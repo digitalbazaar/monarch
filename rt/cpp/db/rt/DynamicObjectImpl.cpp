@@ -177,6 +177,219 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
    return (*mArray)[index];
 }
 
+bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
+{
+   bool rval;
+   
+   if(mType == rhs.mType)
+   {
+      switch(mType)
+      {
+         case String:
+            rval = (strcmp(mString, rhs.mString) == 0);
+            break;
+         case Boolean:
+            rval = (mBoolean == rhs.mBoolean);
+            break;
+         case Int32:
+            rval = (mInt32 == rhs.mInt32);
+            break;
+         case UInt32:
+            rval = (mUInt32 == rhs.mUInt32);
+            break;
+         case Int64:
+            rval = (mInt64 == rhs.mInt64);
+            break;
+         case UInt64:
+            rval = (mUInt64 == rhs.mUInt64);
+            break;
+         case Double:
+            rval = (mDouble == (rhs.mDouble));
+            break;
+         case Map:
+            // ensure maps are the same length
+            rval = (length() == rhs.length());
+            if(rval)
+            {
+               // compare map keys first, then map values if keys are equal
+               ObjectMap::iterator li = mMap->begin();
+               ObjectMap::iterator ri = rhs.mMap->begin();
+               for(; rval && li != mMap->end(); li++, ri++)
+               {
+                  if(strcmp(li->first, ri->first) == 0)
+                  {
+                     // compare key values
+                     rval = (li->second == ri->second);
+                  }
+                  else
+                  {
+                     // keys not equal
+                     rval = false;
+                  }
+               }            
+            }
+            break;
+         case Array:
+            rval = (*mArray == *(rhs.mArray));
+            break;
+      }
+   }
+   else
+   {
+      // compare based on string values
+      switch(mType)
+      {
+         case String:
+         case Boolean:
+         case Int32:
+         case Int64:
+         case UInt32:
+         case UInt64:
+         case Double:
+            switch(rhs.mType)
+            {
+               case String:
+               case Boolean:
+               case Int32:
+               case UInt32:
+               case Int64:
+               case UInt64:
+               case Double:
+                  rval = (strcmp(getString(), rhs.getString()) == 0);
+                  break;
+               default:
+                  rval = false;
+                  break;
+            }
+            break;
+         default:
+            rval = false;
+            break;
+      }
+   }
+   
+   return rval;
+}
+
+bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
+{
+   bool rval;
+   
+   if(mType == rhs.mType)
+   {
+      switch(mType)
+      {
+         case String:
+            rval = (strcmp(mString, rhs.mString) < 0);
+            break;
+         case Boolean:
+            // false is "less" than true
+            rval = (!mBoolean && rhs.mBoolean);
+            break;
+         case Int32:
+            rval = (mInt32 < rhs.mInt32);
+            break;
+         case UInt32:
+            rval = (mUInt32 < rhs.mUInt32);
+            break;
+         case Int64:
+            rval = (mInt64 < rhs.mInt64);
+            break;
+         case UInt64:
+            rval = (mUInt64 < rhs.mUInt64);
+            break;
+         case Double:
+            rval = (mDouble < (rhs.mDouble));
+            break;
+         case Map:
+            // a smaller map is "less"
+            if(length() < rhs.length())
+            {
+               rval = true;
+            }
+            else if(length() > rhs.length())
+            {
+               rval = false;
+            }
+            else
+            {
+               // compare map keys first, then map values if keys are equal
+               rval = false;
+               ObjectMap::iterator li = mMap->begin();
+               ObjectMap::iterator ri = rhs.mMap->begin();
+               for(; !rval && li != mMap->end(); li++, ri++)
+               {
+                  int ret = strcmp(li->first, ri->first);
+                  if(ret == 0)
+                  {
+                     // compare key values
+                     if(li->second < ri->second)
+                     {
+                        rval = true;
+                     }
+                     else if(li->second != ri->second)
+                     {
+                        rval = false;
+                        break;
+                     }
+                  }
+                  else
+                  {
+                     // map key is less or greater
+                     rval = (ret < 0);
+                     break;
+                  }
+               }
+            }
+            break;
+         case Array:
+            rval = (*mArray == *(rhs.mArray));
+            break;
+      }
+   }
+   else
+   {
+      // compare based on string values
+      switch(mType)
+      {
+         case String:
+         case Boolean:
+         case Int32:
+         case Int64:
+         case UInt32:
+         case UInt64:
+         case Double:
+            switch(rhs.mType)
+            {
+               case String:
+               case Boolean:
+               case Int32:
+               case UInt32:
+               case Int64:
+               case UInt64:
+               case Double:
+                  rval = (strcmp(getString(), rhs.getString()) < 0);
+                  break;
+               default:
+                  // maps/arrays "greater/equal" to other types
+                  rval = false;
+                  break;
+            }
+            break;
+         case Map:
+            // map is "less" than array, nothing else
+            rval = (rhs.mType == Array);
+            break;
+         case Array:
+            // array is "greatest" type
+            rval = false;
+            break;
+      }
+   }
+   
+   return rval;
+}
+
 DynamicObject& DynamicObjectImpl::append()
 {
    if(mType != Array)

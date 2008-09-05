@@ -34,106 +34,11 @@ bool DynamicObject::operator==(const DynamicObject& rhs) const
    bool rval;
    
    const DynamicObject& lhs = *this;
-   
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);
    if(!rval && !lhs.isNull() && !rhs.isNull())
    {
-      if(lhs->getType() == rhs->getType())
-      {
-         switch(lhs->getType())
-         {
-            case String:
-               rval = (strcmp(lhs->getString(), rhs->getString()) == 0);
-               break;
-            case Boolean:
-               rval = lhs->getBoolean() == rhs->getBoolean();
-               break;
-            case Int32:
-               rval = lhs->getInt32() == rhs->getInt32();
-               break;
-            case UInt32:
-               rval = lhs->getUInt32() == rhs->getUInt32();
-               break;
-            case Int64:
-               rval = lhs->getInt64() == rhs->getInt64();
-               break;
-            case UInt64:
-               rval = lhs->getUInt64() == rhs->getUInt64();
-               break;
-            case Double:
-               rval = lhs->getDouble() == rhs->getDouble();
-               break;
-            case Map:
-               // FIXME: call map operator==
-               // ensure maps are the same length and contain the same entries
-               if(lhs->length() == rhs->length())
-               {
-                  DynamicObjectImpl& right = *rhs;
-                  rval = true;
-                  DynamicObjectIterator i = lhs.getIterator();
-                  while(rval && i->hasNext())
-                  {
-                     DynamicObject dyno = i->next();
-                     if(rhs->hasMember(i->getName()))
-                     {
-                        rval = (right[i->getName()] == dyno);
-                     }
-                     else
-                     {
-                        rval = false;
-                     }
-                  }
-               }
-               break;
-            case Array:
-               // FIXME: call vector operator==
-               // ensure arrays are the same length and contain the same elements
-               // in the same order
-               if(lhs->length() == rhs->length())
-               {
-                  DynamicObjectImpl& right = *rhs;
-                  rval = true;
-                  int index = 0;
-                  DynamicObjectIterator i = lhs.getIterator();
-                  while(rval && i->hasNext())
-                  {
-                     rval = (right[index++] == i->next());
-                  }
-               }
-               break;
-         }
-      }
-      else
-      {
-         // compare based on string values
-         switch(lhs->getType())
-         {
-            case String:
-            case Boolean:
-            case Int32:
-            case Int64:
-            case UInt32:
-            case UInt64:
-            case Double:
-               switch(rhs->getType())
-               {
-                  case String:
-                  case Boolean:
-                  case Int32:
-                  case UInt32:
-                  case Int64:
-                  case UInt64:
-                  case Double:
-                     rval = (strcmp(lhs->getString(), rhs->getString()) == 0);
-                     break;
-                  default:
-                     break;
-               }
-               break;
-            default:
-               break;
-         }
-      }
+      // compare heap objects
+      rval = (*lhs == *rhs);
    }
    
    return rval;
@@ -160,101 +65,10 @@ bool DynamicObject::operator<(const DynamicObject& rhs) const
    {
       rval = false;
    }
-   // neither lhs or rhs is NULL, check types
-   else if(lhs->getType() == rhs->getType())
-   {
-      switch(lhs->getType())
-      {
-         case String:
-            rval = (strcmp(lhs->getString(), rhs->getString()) < 0);
-            break;
-         case Boolean:
-            rval = !lhs->getBoolean() && rhs->getBoolean();
-            break;
-         case Int32:
-            rval = lhs->getInt32() < rhs->getInt32();
-            break;
-         case UInt32:
-            rval = lhs->getUInt32() < rhs->getUInt32();
-            break;
-         case Int64:
-            rval = lhs->getInt64() < rhs->getInt64();
-            break;
-         case UInt64:
-            rval = lhs->getUInt64() < rhs->getUInt64();
-            break;
-         case Double:
-            rval = lhs->getDouble() < rhs->getDouble();
-            break;
-         case Map:
-            if(lhs->length() < rhs->length())
-            {
-               rval = true;
-            }
-            else if(lhs->length() > rhs->length())
-            {
-               rval = false;
-            }
-            else
-            {
-               // compare map keys first, then map values if keys are equal
-               DynamicObjectIterator li = lhs.getIterator();
-               DynamicObjectIterator ri = rhs.getIterator();
-               while(li->hasNext())
-               {
-                  DynamicObject& left = li->next();
-                  DynamicObject& right= ri->next();
-                  
-                  int ret = strcmp(li->getName(), ri->getName());
-                  if(ret == 0)
-                  {
-                     // check map value
-                     rval = left < right;
-                  }
-                  else
-                  {
-                     // map key is less or greater
-                     rval = (ret < 0);
-                     break;
-                  }
-               }
-            }
-            break;
-         case Array:
-            rval = *lhs->mArray < *rhs->mArray;
-            break;
-      }
-   }
+   // neither lhs or rhs is NULL, compare heap objects
    else
    {
-      // compare based on string values
-      switch(lhs->getType())
-      {
-         case String:
-         case Boolean:
-         case Int32:
-         case Int64:
-         case UInt32:
-         case UInt64:
-         case Double:
-            switch(rhs->getType())
-            {
-               case String:
-               case Boolean:
-               case Int32:
-               case UInt32:
-               case Int64:
-               case UInt64:
-               case Double:
-                  rval = (strcmp(lhs->getString(), rhs->getString()) < 0);
-                  break;
-               default:
-                  break;
-            }
-            break;
-         default:
-            break;
-      }
+      rval = (*lhs < *rhs);
    }
    
    return rval;

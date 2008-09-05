@@ -375,17 +375,16 @@ void runEventFilterTest(TestRunner& tr)
       f1f2["moo"] = true;
       EventWaiter ew1(&ec);
       ew1.start(evType, &f1f2);
-      /*
+      
       EventFilter f2;
       EventWaiter ew2(&ec);
-      ew2.start(evType, &f1f2);*/
+      ew2.start(evType, &f1f2);
       
       EventFilter f3;
       f3["moo"] = false;
       EventWaiter ew3(&ec);
       ew3.start(evType, &f3);
       
-      /*
       EventFilter f4;
       f4["foo"] = "bar";
       EventWaiter ew4(&ec);
@@ -426,23 +425,23 @@ void runEventFilterTest(TestRunner& tr)
       f10["moo"] = false;
       f10["apples"] = 11;
       EventWaiter ew10(&ec);
-      ew10.start(evType, &f10);*/
+      ew10.start(evType, &f10);
       
       // schedule event
       ec.schedule(e);
       Thread::sleep(250);
       
       // wait for event
-      //assert(!ew1.waitForEvent(1));
-      //assert(!ew2.waitForEvent(1));
+      assert(!ew1.waitForEvent(1));
+      assert(!ew2.waitForEvent(1));
       assert(ew3.waitForEvent(1));
-//      assert(ew4.waitForEvent(1));
-//      assert(ew5.waitForEvent(1));
-//      assert(!ew6.waitForEvent(1));
-//      assert(!ew7.waitForEvent(1));
-//      assert(ew8.waitForEvent(1));
-//      assert(ew9.waitForEvent(1));
-//      assert(!ew10.waitForEvent(1));
+      assert(ew4.waitForEvent(1));
+      assert(ew5.waitForEvent(1));
+      assert(!ew6.waitForEvent(1));
+      assert(!ew7.waitForEvent(1));
+      assert(ew8.waitForEvent(1));
+      assert(ew9.waitForEvent(1));
+      assert(!ew10.waitForEvent(1));
    }
    tr.pass();
    
@@ -468,10 +467,10 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      //runEventTest(tr);
-      //runObserverDelegateTest(tr);
-      //runEventControllerTest(tr);
-      //runEventWaiterTest(tr);
+      runEventTest(tr);
+      runObserverDelegateTest(tr);
+      runEventControllerTest(tr);
+      runEventWaiterTest(tr);
       runEventFilterTest(tr);
       return 0;
    }

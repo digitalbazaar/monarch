@@ -126,14 +126,6 @@ public:
    virtual ~DynamicObjectImpl();
    
    /**
-    * Compares this object's value to another object's value to see if this
-    * one is less.
-    * 
-    * @param rhs the other object.
-    */
-   virtual bool operator<(DynamicObjectImpl& rhs) const;
-   
-   /**
     * Sets this object's value to a string.
     * 
     * @param value the value for this object.
@@ -200,6 +192,44 @@ public:
     * @return the DynamicObject.
     */
    virtual DynamicObject& operator[](int index);
+   
+   /**
+    * Compares this object to another one for equality. If the objects are
+    * the same type, and have the same value or contain all the same values
+    * (for Maps/Arrays), then they are equal.
+    * 
+    * @param rhs the DynamicObjectImpl to compare to this one.
+    * 
+    * @return true if the passed object is equal to this one, false if not.
+    */ 
+   virtual bool operator==(const DynamicObjectImpl& rhs) const;
+   
+   /**
+    * Compares this object's value to another object's value to see if this
+    * one is less.
+    * 
+    * If one object is NULL, it is less.
+    * 
+    * If the objects are both numbers, their operator< will be used.
+    * 
+    * If they are both booleans, false will be less than true.
+    * 
+    * If they are both strings, strcmp will be used.
+    * 
+    * If they are both maps, then the smaller map will be less. If the maps are
+    * the same size, then their keys will be compared lexigraphically using
+    * operator<. If their keys are the same, the values of their keys will be
+    * compared using operator<.
+    * 
+    * If they are both arrays, then operator< will be used.
+    * 
+    * If they are different types, then their string value will be compared.
+    * 
+    * @param rhs the other object.
+    * 
+    * @return true if this object is less, false if not.
+    */
+   virtual bool operator<(const DynamicObjectImpl& rhs) const;
    
    /**
     * Appends a DynamicObject to this one and returns a reference to it for
