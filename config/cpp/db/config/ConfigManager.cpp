@@ -117,6 +117,7 @@ bool ConfigManager::addConfig(
                Config next = i->next();
                bool load = true;
                bool optional = false;
+               ConfigType type = Default;
                const char* path = NULL;
 
                if(next->getType() == String)
@@ -148,6 +149,11 @@ bool ConfigManager::addConfig(
                   {
                      optional = next["optional"]->getBoolean();
                   }
+                  // check for user override of type parameter
+                  if(next->hasMember("user"))
+                  {
+                     type =  next["user"]->getBoolean() ? User : Default;
+                  }
                }
                else
                {
@@ -161,7 +167,7 @@ bool ConfigManager::addConfig(
                if(rval && load)
                {
                   DB_CAT_DEBUG(DB_CONFIG_CAT, "Loading include: %s", path);
-                  rval = addConfig(path, Default, NULL, true, dir, optional);
+                  rval = addConfig(path, type, NULL, true, dir, optional);
                }
             }
          }
@@ -169,11 +175,6 @@ bool ConfigManager::addConfig(
       // add to configs
       if(rval)
       {
-         // check for user override of type parameter
-         if(config->hasMember("user"))
-         {
-            type =  config["user"]->getBoolean() ? User : Default;
-         }
          mConfigs.push_back(ConfigPair(config, type));
          if(id != NULL)
          {
@@ -273,7 +274,7 @@ bool ConfigManager::addConfig(
                   i++)
                {
                   rval = addConfig(
-                     (*i).c_str(), Default, NULL, include, file->getName());
+                     (*i).c_str(), type, NULL, include, file->getName());
                }
             }
             else
