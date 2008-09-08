@@ -212,40 +212,31 @@ void EventDaemon::run()
          uint32_t waitTime = 0;
          for(EventList::iterator i = mEvents.begin(); i != mEvents.end();)
          {
-            // if remaining time is less than or equal to waiting time
-            if(i->remaining <= waited)
+            // remove the event if count has reached 0
+            if(i->count == 0)
             {
-               // schedule event, reset remaining time
-               mEventController->schedule(i->event);
-               i->remaining = i->interval;
-               
-               // decrement count as appropriate
-               if(i->count > 0)
-               {
-                  i->count--;
-               }
-               
-               // remove the event if count has reached 0
-               if(i->count == 0)
-               {
-                  i = mEvents.erase(i);
-               }
-               else
-               {
-                  // update wait time
-                  if(waitTime == 0 || i->remaining < waitTime)
-                  {
-                     waitTime = i->remaining;
-                  }
-                  
-                  // increment iterator
-                  i++;
-               }
+               i = mEvents.erase(i);
             }
             else
             {
-               // update remaining time
-               i->remaining -= waitTime;
+               // if remaining time is less than or equal to waiting time
+               if(i->remaining <= waited)
+               {
+                  // schedule event, reset remaining time
+                  mEventController->schedule(i->event);
+                  i->remaining = i->interval;
+                  
+                  // decrement count as appropriate
+                  if(i->count > 0)
+                  {
+                     i->count--;
+                  }
+               }
+               else
+               {
+                  // update remaining time
+                  i->remaining -= waitTime;
+               }
                
                // update wait time
                if(waitTime == 0 || i->remaining < waitTime)
@@ -264,7 +255,14 @@ void EventDaemon::run()
          // wait if appropriate
          if(waitTime > 0)
          {
-            mLock.wait(waitTime, &mScheduleEvents, true);
+            // shave off time spent in loop
+            waited = Timer::getMilliseconds(mStartWaitTime);
+            waitTime = (waited >= waitTime ? 0 : waitTime - waited);
+            if(waitTime > 0)
+            {
+               mStartWaitTime += waited;
+               mLock.wait(waitTime, &mScheduleEvents, true);
+            }
          }
       }
       

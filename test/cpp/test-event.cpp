@@ -479,7 +479,7 @@ void runEventDaemonTest(TestRunner& tr)
    
    const char* evType = "TESTEVENT";
    
-   tr.test("10ms events x200");
+   tr.test("20ms events x100");
    {
       EventWaiter ew(&ec);
       ew.start(evType);
@@ -487,11 +487,11 @@ void runEventDaemonTest(TestRunner& tr)
       Event e;
       e["type"] = evType;
       e["details"]["foo"] = "bar";
-      ed.add(e, 10, 200);
+      ed.add(e, 20, 100);
       
       int count = 0;
       uint64_t startTime = Timer::startTiming();
-      for(; count < 200; count++)
+      for(; count < 100; count++)
       {
          ew.waitForEvent();
          ew.popEvent();
