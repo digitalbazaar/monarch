@@ -18,7 +18,7 @@ namespace event
  * 
  * @author Dave Longley
  */
-class EventDaemon : public virtual db::rt::Runnable
+class EventDaemon : public db::rt::Runnable
 {
 protected:
    /**

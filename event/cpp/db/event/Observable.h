@@ -48,7 +48,7 @@ namespace event
  * 
  * @author Dave Longley
  */
-class Observable : public virtual db::rt::ExclusiveLock, public db::rt::Runnable
+class Observable : public db::rt::Runnable
 {
 protected:
    /**
@@ -122,9 +122,19 @@ protected:
    bool mDispatch;
    
    /**
-    * The dispatch lock used to check or set the dispatch condition.
+    * The queue lock is engaged while the event queue is being updated
+    * or examined.
     */
-   db::rt::ExclusiveLock mDispatchLock;
+   db::rt::ExclusiveLock mQueueLock;
+   
+   /**
+    * The registration lock is engaged to prevent concurrent event processing,
+    * registration/unregistration of observers, tap modification, and
+    * starting/stopping the dispatch operation. Along with other protections,
+    * this allows an observer to be unregistered and free'd without a race
+    * condition where it is in the middle of processing an event.
+    */
+   db::rt::ExclusiveLock mRegistrationLock;
    
    /**
     * A recursive helper function for dispatching a single event to all
@@ -139,8 +149,7 @@ protected:
    
    /**
     * Dispatches a single event to all associated Observers and waits
-    * for them to finish processing the event. This method assumes that
-    * a lock on this Observable as been acquired before it has been called.
+    * for them to finish processing the event.
     * 
     * @param e the Event to dispatch.
     */
