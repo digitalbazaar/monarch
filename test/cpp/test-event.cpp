@@ -638,11 +638,11 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      //runEventTest(tr);
-      //runObserverDelegateTest(tr);
-      //runEventControllerTest(tr);
-      //runEventWaiterTest(tr);
-      //runEventFilterTest(tr);
+      runEventTest(tr);
+      runObserverDelegateTest(tr);
+      runEventControllerTest(tr);
+      runEventWaiterTest(tr);
+      runEventFilterTest(tr);
       runEventDaemonTest(tr);
       return 0;
    }
