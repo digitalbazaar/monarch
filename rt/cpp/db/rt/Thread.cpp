@@ -469,6 +469,7 @@ bool Thread::sleep(unsigned int time)
       // wait to re-enter the monitor until the specified time
       uint32_t remaining = time;
       uint64_t st = System::getCurrentMilliseconds();
+      uint64_t et;
       uint64_t dt;
       while(rval && (time == 0 || remaining > 0))
       {
@@ -476,9 +477,10 @@ bool Thread::sleep(unsigned int time)
          if(rval && time > 0)
          {
             // update remaining time
-            dt = System::getCurrentMilliseconds() - st;
+            et = System::getCurrentMilliseconds();
+            dt = et - st;
             remaining = (dt >= remaining ? 0 : remaining - dt);
-            st += dt;
+            st = et;
          }
       }
    }
