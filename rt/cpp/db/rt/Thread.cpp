@@ -473,8 +473,7 @@ bool Thread::sleep(unsigned int time)
       while(rval && (time == 0 || remaining > 0))
       {
          rval = waitToEnter(&m, remaining);
-         
-         if(time > 0)
+         if(rval && time > 0)
          {
             // update remaining time
             dt = System::getCurrentMilliseconds() - st;
