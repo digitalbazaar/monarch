@@ -30,16 +30,19 @@ namespace event
  * @author David I. Lehn
  * @author Dave Longley
  */
-class EventWaiter :
-   virtual public db::rt::ExclusiveLock,
-   public Observer
+class EventWaiter : public Observer
 {
 protected:
    /**
     * EventController to use to watch for event.
     */
    EventController* mEventController;
-
+   
+   /**
+    * A lock for waiting and modifying this waiter.
+    */
+   db::rt::ExclusiveLock mLock;
+   
    /**
     * The types of events to wait on.
     */
@@ -63,7 +66,6 @@ protected:
    bool mRegistered;
    
 public:
-
    /**
     * Creates a new EventWaiter.
     * 
