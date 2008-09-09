@@ -29,9 +29,7 @@ namespace modest
  * 
  * @author Dave Longley
  */
-class OperationImpl :
-public virtual db::rt::ExclusiveLock,
-protected db::rt::Runnable
+class OperationImpl : protected db::rt::Runnable
 {
 protected:
    /**
@@ -55,6 +53,11 @@ protected:
     * The Thread this Operation is executing on.
     */
    db::rt::Thread* mThread;
+   
+   /**
+    * A lock for modifying this Operation.
+    */
+   db::rt::ExclusiveLock mLock;
    
    /**
     * Set to true if this Operation has started, false otherwise.

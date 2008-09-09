@@ -4,6 +4,7 @@
 #include "db/modest/OperationList.h"
 
 #include <algorithm>
+#include "db/rt/ListIterator.h"
 
 using namespace std;
 using namespace db::modest;
@@ -15,7 +16,7 @@ OperationList::OperationList()
 
 OperationList::~OperationList()
 {
-   terminate();
+   OperationList::terminate();
 }
 
 Operation& OperationList::operator[](int index)
@@ -151,4 +152,9 @@ inline void OperationList::clear()
 inline int OperationList::length()
 {
    return mOperations.size();
+}
+
+IteratorRef<Operation> OperationList::getIterator()
+{
+   return new ListIterator<Operation>(mOperations);
 }

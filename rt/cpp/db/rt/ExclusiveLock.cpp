@@ -33,7 +33,7 @@ inline void ExclusiveLock::notify()
 
 inline void ExclusiveLock::notifyAll()
 {
-   mMonitor.notify();
+   mMonitor.notifyAll();
 }
 
 inline bool ExclusiveLock::wait(uint32_t timeout)

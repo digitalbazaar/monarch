@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_util_ListIterator_H
-#define db_util_ListIterator_H
+#ifndef db_rt_ListIterator_H
+#define db_rt_ListIterator_H
 
 #include "db/rt/Iterator.h"
 #include <list>
 
 namespace db
 {
-namespace util
+namespace rt
 {
 
 /**
@@ -18,7 +18,7 @@ namespace util
  * @author Dave Longley
  */
 template<class T>
-class ListIterator : public db::rt::Iterator<T>
+class ListIterator : public Iterator<T>
 {
 protected:
    /**
@@ -97,6 +97,6 @@ void ListIterator<T>::remove()
    mNext++;
 }
 
-} // end namespace util
+} // end namespace rt
 } // end namespace db
 #endif

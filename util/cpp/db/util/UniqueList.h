@@ -4,7 +4,7 @@
 #ifndef db_util_UniqueList_H
 #define db_util_UniqueList_H
 
-#include "db/util/ListIterator.h"
+#include "db/rt/ListIterator.h"
 
 namespace db
 {
@@ -132,7 +132,7 @@ unsigned int UniqueList<T>::count()
 template<typename T>
 db::rt::Iterator<T>* UniqueList<T>::getIterator()
 {
-   return new ListIterator<T>(mList);
+   return new db::rt::ListIterator<T>(mList);
 }
 
 } // end namespace util

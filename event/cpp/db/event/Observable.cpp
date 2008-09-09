@@ -4,7 +4,8 @@
 #include "db/event/Observable.h"
 
 #include "db/rt/DynamicObjectIterator.h"
-
+#include "db/rt/Iterator.h"
+#include "db/event/ObserverDelegate.h"
 #include <algorithm>
 
 using namespace std;
@@ -21,11 +22,11 @@ Observable::Observable()
 Observable::~Observable()
 {
    // ensure event dispatching is stopped
-   stop();
+   Observable::stop();
 }
 
 void Observable::dispatchEvent(
-   Event& e, EventId id, OperationList& opList)
+   Event& e, EventId id, OperationList& waitList)
 {
    // go through the list of EventId taps
    EventIdMap::iterator ti = mTaps.find(id);
@@ -57,20 +58,25 @@ void Observable::dispatchEvent(
                   
                   if(pass)
                   {
-                     // create and run event dispatcher for each observer
                      for(ObserverList::iterator li =
                          fi->second.begin(); li != fi->second.end(); li++)
                      {
-                        RunnableRef ed = new EventDispatcher(*li, &e);
+                        // create and run event dispatcher for observer
+                        // set operation user data to observer
+                        RunnableRef ed = new ObserverDelegate<Observer>(*li, e);
                         Operation op(ed);
+                        op->setUserData(*li);
                         mOpRunner->runOperation(op);
                         
-                        // only add serial events to the operation list,
+                        // add all operations to the current operation list
+                        mOpList.add(op);
+                        
+                        // only add serial events to the wait list,
                         // parallel events are not waited on for completion
                         if(!e->hasMember("parallel") ||
                            !e["parallel"]->getBoolean())
                         {
-                           opList.add(op);
+                           waitList.add(op);
                         }
                      }
                   }
@@ -80,7 +86,7 @@ void Observable::dispatchEvent(
          else
          {
             // dispatch event to tap
-            dispatchEvent(e, ti->second, opList);
+            dispatchEvent(e, ti->second, waitList);
          }
       }
    }
@@ -88,28 +94,39 @@ void Observable::dispatchEvent(
 
 void Observable::dispatchEvent(Event& e)
 {
-   // create an operation list
-   OperationList opList;
+   // create an operation list for waiting
+   OperationList waitList;
    
    // lock to process event and prevent registration modification
    mRegistrationLock.lock();
+   
+   // get the EventId for the event and dispatch it
+   EventId id = e["id"]->getUInt64();
+   dispatchEvent(e, id, waitList);
+   
+   if(!waitList.isEmpty())
    {
-      // get the EventId for the event and dispatch it
-      EventId id = e["id"]->getUInt64();
-      dispatchEvent(e, id, opList);
+      // unlock registration and wait for dispatch operations to complete
+      mRegistrationLock.unlock();
       
-      if(!opList.isEmpty())
+      if(!waitList.waitFor())
       {
-         // wait for dispatch operations to complete
-         if(!opList.waitFor())
-         {
-            // dispatch thread interrupted, so interrupt all
-            // event dispatches and wait for them to complete
-            opList.interrupt();
-            opList.waitFor(false);
-         }
+         // dispatch thread interrupted, so interrupt all
+         // event dispatches and wait for them to complete
+         waitList.interrupt();
+         waitList.waitFor(false);
+         mOpList.interrupt();
+         mOpList.waitFor(false);
       }
+      
+      // relock registration
+      mRegistrationLock.lock();
    }
+   
+   // prune operation list
+   mOpList.prune();
+   
+   // unlock registration lock
    mRegistrationLock.unlock();
 }
 
@@ -189,6 +206,23 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
 {
    mRegistrationLock.lock();
    {
+      // wait for any event processing operation that is not on the same
+      // thread but is using the same observer that is being unregistered
+      // -- this helps prevents a race condition where an observer could
+      // be free'd after being unregistered by whilst still processing an event
+      Thread* t = Thread::currentThread();
+      IteratorRef<Operation> itr = mOpList.getIterator();
+      while(itr->hasNext())
+      {
+         Operation& op = itr->next();
+         if(op->getThread() != t && op->getUserData() == observer)
+         {
+            // wait for operation to complete
+            op->waitFor();
+         }
+      }
+      mOpList.prune();
+      
       // find the filter map for the event
       ObserverMap::iterator i = mObservers.find(id);
       if(i != mObservers.end())

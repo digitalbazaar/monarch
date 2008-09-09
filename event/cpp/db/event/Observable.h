@@ -52,30 +52,6 @@ class Observable : public db::rt::Runnable
 {
 protected:
    /**
-    * A simple helper class for dispatching events on an Operation.
-    */
-   class EventDispatcher : public Runnable
-   {
-   public:
-      Observer* observer;
-      Event* event;
-      
-      EventDispatcher(Observer* o, Event* e)
-      {
-         observer = o;
-         event = e;
-      }
-      
-      virtual ~EventDispatcher() {}
-      
-      virtual void run()
-      {
-         // notify observer of event
-         observer->eventOccurred(*event);
-      }
-   };
-   
-   /**
     * A list of observers.
     */
    typedef std::list<Observer*> ObserverList;
@@ -116,6 +92,11 @@ protected:
    db::modest::Operation mOperation;
    
    /**
+    * The current list of Operations being used to process events.
+    */
+   db::modest::OperationList mOpList;
+   
+   /**
     * The dispatch condition. Set to true when events can be dispatched,
     * false when not.
     */
@@ -128,11 +109,11 @@ protected:
    db::rt::ExclusiveLock mQueueLock;
    
    /**
-    * The registration lock is engaged to prevent concurrent event processing,
+    * The registration lock is engaged to while dispatching an event,
     * registration/unregistration of observers, tap modification, and
-    * starting/stopping the dispatch operation. Along with other protections,
-    * this allows an observer to be unregistered and free'd without a race
-    * condition where it is in the middle of processing an event.
+    * starting/stopping the dispatch operation. It is not engaged during
+    * event processing to allow event handlers to register/unregister
+    * observers.
     */
    db::rt::ExclusiveLock mRegistrationLock;
    
@@ -142,10 +123,11 @@ protected:
     * 
     * @param e the Event to dispatch.
     * @param id the EventId to dispatch it under.
-    * @param opList the OperationList to store the event-handling Operation.
+    * @param waitList the OperationList to store event-handling Operations that
+    *                 must be waited on to complete.
     */
    virtual void dispatchEvent(
-      Event& e, EventId id, db::modest::OperationList& opList);
+      Event& e, EventId id, db::modest::OperationList& waitList);
    
    /**
     * Dispatches a single event to all associated Observers and waits

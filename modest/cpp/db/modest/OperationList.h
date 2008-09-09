@@ -5,6 +5,7 @@
 #define db_modest_OperationList_H
 
 #include "db/modest/OperationRunner.h"
+#include "db/rt/Iterator.h"
 
 #include <list>
 
@@ -134,6 +135,13 @@ public:
     * @return the number of Operations in this list.
     */
    virtual int length();
+   
+   /**
+    * Gets an iterator over the Operations in this list.
+    * 
+    * @return an iterator over the Operations in this list.
+    */
+   virtual db::rt::IteratorRef<Operation> getIterator();
 };
 
 } // end namespace modest

@@ -39,7 +39,7 @@ OperationImpl::~OperationImpl()
 
 void OperationImpl::run()
 {
-   lock();
+   mLock.lock();
    {
       // operation started on the current thread
       mThread = Thread::currentThread();
@@ -52,7 +52,7 @@ void OperationImpl::run()
          mThread->interrupt();
       }
    }
-   unlock();
+   mLock.unlock();
    
    if(mRunnable != NULL)
    {
@@ -60,7 +60,7 @@ void OperationImpl::run()
       mRunnable->run();
    }
    
-   lock();
+   mLock.lock();
    {
       // determine if the operation was finished or canceled
       if(isInterrupted())
@@ -76,12 +76,12 @@ void OperationImpl::run()
       mThread->setUserData(NULL);
       mThread = NULL;
    }
-   unlock();
+   mLock.unlock();
 }
 
 void OperationImpl::stop()
 {
-   lock();
+   mLock.lock();
    {
       // if operation did not finish, then it was canceled
       if(!finished())
@@ -91,21 +91,21 @@ void OperationImpl::stop()
       
       // mark operation stopped and wake up all waiting threads
       mStopped = true;
-      notifyAll();
+      mLock.notifyAll();
    }
-   unlock();
+   mLock.unlock();
 }
 
 bool OperationImpl::waitFor(bool interruptible)
 {
    bool rval = true;
    
-   lock();
+   mLock.lock();
    {
       // wait until Operation is stopped
       while(!stopped())
       {
-         if(!wait())
+         if(!mLock.wait())
          {
             // thread was interrupted
             rval = false;
@@ -123,7 +123,7 @@ bool OperationImpl::waitFor(bool interruptible)
          }
       }
    }
-   unlock();
+   mLock.unlock();
    
    // ensure thread remains interrupted
    if(!rval)
@@ -141,7 +141,7 @@ inline bool OperationImpl::started()
 
 void OperationImpl::interrupt()
 {
-   lock();
+   mLock.lock();
    {
       if(!mInterrupted)
       {
@@ -152,21 +152,21 @@ void OperationImpl::interrupt()
          }
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 bool OperationImpl::isInterrupted()
 {
    if(!mInterrupted)
    {
-      lock();
+      mLock.lock();
       {
          if(mThread != NULL)
          {
             mInterrupted = mThread->isInterrupted();
          }
       }
-      unlock();
+      mLock.unlock();
    }
    
    return mInterrupted;
