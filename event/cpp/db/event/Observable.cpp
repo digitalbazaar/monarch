@@ -91,49 +91,57 @@ void Observable::dispatchEvent(Event& e)
    // create an operation list
    OperationList opList;
    
-   // get the EventId for the event and dispatch it
-   EventId id = e["id"]->getUInt64();
-   dispatchEvent(e, id, opList);
-   
-   if(!opList.isEmpty())
+   // lock to process event and prevent registration modification
+   mRegistrationLock.lock();
    {
-      // unlock, wait for dispatch operations to complete, relock
-      unlock();
-      if(!opList.waitFor())
+      // get the EventId for the event and dispatch it
+      EventId id = e["id"]->getUInt64();
+      dispatchEvent(e, id, opList);
+      
+      if(!opList.isEmpty())
       {
-         // dispatch thread interrupted, so interrupt all
-         // event dispatches and wait for them to complete
-         opList.interrupt();
-         opList.waitFor(false);
+         // wait for dispatch operations to complete
+         if(!opList.waitFor())
+         {
+            // dispatch thread interrupted, so interrupt all
+            // event dispatches and wait for them to complete
+            opList.interrupt();
+            opList.waitFor(false);
+         }
       }
-      lock();
    }
+   mRegistrationLock.unlock();
 }
 
 void Observable::dispatchEvents()
 {
-   // lock while dispatching
-   lock();
+   // lock event queue
+   mQueueLock.lock();
+   
+   // continue dispatching until no events or interrupted
+   while(!mEventQueue.empty() && !mOperation->isInterrupted())
    {
-      // dispatch
-      while(!mEventQueue.empty() && !mOperation->isInterrupted())
-      {
-         // dispatch the next event
-         Event e = mEventQueue.front();
-         mEventQueue.pop_front();
-         dispatchEvent(e);
-      }
+      // get the next event
+      Event e = mEventQueue.front();
+      mEventQueue.pop_front();
       
-      // turn off dispatching
-      mDispatch = false;
+      // unlock queue, dispatch event, relock queue      
+      mQueueLock.unlock();
+      dispatchEvent(e);
+      mQueueLock.lock();
    }
-   unlock();
+   
+   // turn off dispatching
+   mDispatch = false;
+   
+   // unlock event queue
+   mQueueLock.unlock();
 }
 
 void Observable::registerObserver(
    Observer* observer, EventId id, DynamicObject* filter)
 {
-   lock();
+   mRegistrationLock.lock();
    {
       // add tap to self if EventId doesn't exist yet
       EventIdMap::iterator i = mTaps.find(id);
@@ -174,12 +182,12 @@ void Observable::registerObserver(
       // add the observer to the list
       fi->second.push_back(observer);
    }
-   unlock();
+   mRegistrationLock.unlock();
 }
 
 void Observable::unregisterObserver(Observer* observer, EventId id)
 {
-   lock();
+   mRegistrationLock.lock();
    {
       // find the filter map for the event
       ObserverMap::iterator i = mObservers.find(id);
@@ -216,12 +224,12 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
          }
       }
    }
-   unlock();
+   mRegistrationLock.unlock();
 }
 
 void Observable::addTap(EventId id, EventId tap)
 {
-   lock();
+   mRegistrationLock.lock();
    {
       // add tap to id-self if EventId doesn't exist yet
       EventIdMap::iterator i = mTaps.find(id);
@@ -240,12 +248,12 @@ void Observable::addTap(EventId id, EventId tap)
          mTaps.insert(make_pair(tap, tap));
       }
    }
-   unlock();
+   mRegistrationLock.unlock();
 }
 
 void Observable::removeTap(EventId id, EventId tap)
 {
-   lock();
+   mRegistrationLock.lock();
    {
       // look for tap in the range of taps
       EventIdMap::iterator i = mTaps.find(id);
@@ -263,41 +271,37 @@ void Observable::removeTap(EventId id, EventId tap)
          }
       }
    }
-   unlock();
+   mRegistrationLock.unlock();
 }
 
 void Observable::schedule(Event e, EventId id, bool async)
 {
-   lock();
+   // set the event's ID
+   e["id"] = id;
+   
+   if(async)
    {
-      // set the event's ID
-      e["id"] = id;
+      // lock to modify event queue and dispatch condition
+      mQueueLock.lock();
+      mDispatch = true;
       
-      if(async)
-      {
-         // lock to set dispatch condition
-         mDispatchLock.lock();
-         mDispatch = true;
-         
-         // add event to event queue
-         mEventQueue.push_back(e);
-         
-         // notify on dispatch lock and release
-         mDispatchLock.notifyAll();
-         mDispatchLock.unlock();
-      }
-      else
-      {
-         // dispatch the event immediately
-         dispatchEvent(e);
-      }
+      // add event to queue
+      mEventQueue.push_back(e);
+      
+      // notify on queue lock and release
+      mQueueLock.notifyAll();
+      mQueueLock.unlock();
    }
-   unlock();
+   else
+   {
+      // dispatch the event immediately
+      dispatchEvent(e);
+   }
 }
 
 void Observable::start(OperationRunner* opRunner)
 {
-   lock();
+   mRegistrationLock.lock();
    {
       if(mOperation.isNull())
       {
@@ -309,12 +313,12 @@ void Observable::start(OperationRunner* opRunner)
          opRunner->runOperation(mOperation);
       }
    }
-   unlock();
+   mRegistrationLock.unlock();
 }
 
 void Observable::stop()
 {
-   lock();
+   mRegistrationLock.lock();
    {
       if(!mOperation.isNull())
       {
@@ -335,15 +339,15 @@ void Observable::stop()
          // for it to finish.
          
          // unlock, wait for dispatch operation to finish, relock
-         unlock();
+         mRegistrationLock.unlock();
          mOperation->waitFor();
-         lock();
+         mRegistrationLock.lock();
          
          // clean up operation
          mOperation.setNull();
       }
    }
-   unlock();
+   mRegistrationLock.unlock();
 }
 
 void Observable::run()
@@ -351,18 +355,18 @@ void Observable::run()
    // keep dispatching until interrupted
    while(!mOperation->isInterrupted())
    {
-      // lock dispatch lock and check to see if we can dispatch
-      mDispatchLock.lock();
+      // lock event queue and check to see if we can dispatch
+      mQueueLock.lock();
       if(mDispatch)
       {
-         mDispatchLock.unlock();
+         mQueueLock.unlock();
          dispatchEvents();
       }
       else
       {
          // wait until dispatch condition is marked true and we are notified
-         mDispatchLock.wait();
-         mDispatchLock.unlock();
+         mQueueLock.wait();
+         mQueueLock.unlock();
       }
    }
 }

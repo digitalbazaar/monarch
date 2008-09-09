@@ -13,14 +13,17 @@
 #include "db/event/Observable.h"
 #include "db/event/ObserverDelegate.h"
 #include "db/event/EventController.h"
+#include "db/event/EventDaemon.h"
 #include "db/event/EventWaiter.h"
 #include "db/rt/Runnable.h"
+#include "db/util/Timer.h"
 
 using namespace std;
 using namespace db::test;
 using namespace db::event;
 using namespace db::modest;
 using namespace db::rt;
+using namespace db::util;
 
 class TestObserver : public Observer
 {
@@ -454,6 +457,174 @@ void runEventFilterTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runEventDaemonTest(TestRunner& tr)
+{
+   tr.group("EventDaemon");
+   
+   // create kernel and start engine
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create event controller
+   EventController ec;
+   
+   // start event controller
+   ec.start(&k);
+   
+   // create event daemon
+   EventDaemon ed;
+   
+   // start event daemon
+   ed.start(&k, &ec);
+   
+   const char* evType = "TESTEVENT";
+   
+   tr.test("20ms events x100");
+   {
+      EventWaiter ew(&ec);
+      ew.start(evType);
+      
+      Event e;
+      e["type"] = evType;
+      e["details"]["foo"] = "bar";
+      ed.add(e, 20, 100);
+      
+      int count = 0;
+      uint64_t startTime = Timer::startTiming();
+      for(; count < 100; count++)
+      {
+         ew.waitForEvent();
+         ew.popEvent();
+      }
+      uint64_t time = Timer::getMilliseconds(startTime);
+      printf("time=%llu...", time);
+   }
+   tr.pass();
+   
+   tr.test("No events");
+   {
+      Event e;
+      e["type"] = evType;
+      e["details"]["foo"] = "bar";
+      ed.add(e, 10, -1);
+      Thread::sleep(100);
+      ed.remove(evType);
+      
+      EventWaiter ew(&ec);
+      ew.start(evType);
+      assert(!ew.waitForEvent(100));
+   }
+   tr.pass();
+   
+   tr.test("10ms events x100, 20ms events x50");
+   {
+      EventWaiter ew(&ec);
+      ew.start(evType);
+      
+      Event e;
+      e["type"] = evType;
+      e["details"]["foo"] = "bar";
+      ed.add(e, 10, 100);
+      ed.add(e, 20, 50);
+      
+      int count = 0;
+      uint64_t startTime = Timer::startTiming();
+      for(; count < 150; count++)
+      {
+         ew.waitForEvent();
+         ew.popEvent();
+      }
+      uint64_t time = Timer::getMilliseconds(startTime);
+      printf("time=%llu...", time);
+   }
+   tr.pass();
+   
+   // stop event daemon
+   ed.stop();
+   
+   // stop event controller
+   ec.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.ungroup();
+}
+
+void runInteractiveEventDaemonTest(TestRunner& tr)
+{
+   tr.group("EventDaemon");
+   
+   // create kernel and start engine
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create event controller
+   EventController ec;
+   
+   // start event controller
+   ec.start(&k);
+   
+   // create event daemon
+   EventDaemon ed;
+   
+   // start event daemon
+   ed.start(&k, &ec);
+   
+   const char* evType = "TESTEVENT";
+   
+   tr.test("200 millisecond event");
+   if(false)
+   {
+      EventWaiter ew(&ec);
+      ew.start(evType);
+      
+      Event e;
+      e["type"] = evType;
+      e["details"]["foo"] = "bar";
+      ed.add(e, 200, 1);
+      
+      uint64_t startTime = Timer::startTiming();
+      ew.waitForEvent();
+      uint64_t time = Timer::getMilliseconds(startTime);
+      printf("EVENT TIME: %llu\n", time);
+   }
+   tr.pass();
+   
+   tr.test("10x 200 millisecond event");
+   {
+      EventWaiter ew(&ec);
+      ew.start(evType);
+      
+      Event e;
+      e["type"] = evType;
+      e["details"]["foo"] = "bar";
+      ed.add(e, 200, 10);
+      
+      int count = 0;
+      uint64_t startTime = Timer::startTiming();
+      for(; count < 10; count++)
+      {
+         ew.waitForEvent();
+         ew.popEvent();
+      }
+      uint64_t time = Timer::getMilliseconds(startTime);
+      printf("EVENT TIME: %llu\n", time);
+   }
+   tr.pass();
+   
+   // stop event daemon
+   ed.stop();
+   
+   // stop event controller
+   ec.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.ungroup();
+}
+
 class DbEventTester : public db::test::Tester
 {
 public:
@@ -472,6 +643,7 @@ public:
       runEventControllerTest(tr);
       runEventWaiterTest(tr);
       runEventFilterTest(tr);
+      runEventDaemonTest(tr);
       return 0;
    }
 
@@ -480,6 +652,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
+      runInteractiveEventDaemonTest(tr);
       return 0;
    }
 };

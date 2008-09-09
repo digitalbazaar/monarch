@@ -20,7 +20,7 @@ EventWaiter::EventWaiter(EventController* ec)
 
 EventWaiter::~EventWaiter()
 {
-   stop();
+   EventWaiter::stop();
 }
 
 void EventWaiter::reset()
@@ -76,26 +76,26 @@ void EventWaiter::stop(const char* event)
 
 void EventWaiter::eventOccurred(Event& e)
 {
-   lock();
+   mLock.lock();
    {
       // mark event occurred and notify all observers
       mEventOccurred = true;
       mEvents.push_back(e);
-      notifyAll();
+      mLock.notifyAll();
    }
-   unlock();
+   mLock.unlock();
 }
 
 bool EventWaiter::waitForEvent(uint32_t timeout)
 {
-   lock();
+   mLock.lock();
    {
       if(!mEventOccurred)
       {
-         wait(timeout);
+         mLock.wait(timeout);
       }
    }
-   unlock();
+   mLock.unlock();
    
    return mEventOccurred;
 }
@@ -104,15 +104,20 @@ Event EventWaiter::popEvent()
 {
    Event e(NULL);
    
-   lock();
+   mLock.lock();
    {
       if(!mEvents.empty())
       {
          e = mEvents.front();
          mEvents.pop_front();
       }
+      
+      if(mEvents.empty())
+      {
+         mEventOccurred = false;
+      }
    }
-   unlock();
+   mLock.unlock();
    
    return e;
 }
