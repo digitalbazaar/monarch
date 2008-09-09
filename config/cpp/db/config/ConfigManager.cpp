@@ -299,7 +299,8 @@ bool ConfigManager::addConfig(
                   i++)
                {
                   rval = addConfig(
-                     (*i).c_str(), type, NULL, include, file->getName());
+                     (*i).c_str(), type, NULL, include, file->getName(),
+                     false, false, magic);
                }
                
                // load each dir in order as
