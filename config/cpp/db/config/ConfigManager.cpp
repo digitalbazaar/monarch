@@ -3,7 +3,6 @@
  */
 #include "db/config/ConfigManager.h"
 
-#include <sstream>
 #include <algorithm>
 #include <vector>
 
@@ -26,6 +25,7 @@ const char* ConfigManager::VERSION = "__version__";
 const char* ConfigManager::INCLUDE = "__include__";
 const char* ConfigManager::INCLUDE_EXT = ".config";
 const char* ConfigManager::TMP = "__tmp__";
+const char* ConfigManager::DIR_MAGIC = "__dir__";
 
 ConfigManager::ConfigManager()
 {
@@ -87,8 +87,6 @@ bool ConfigManager::addConfig(
             
             if(!found)
             {
-               ostringstream oss;
-               oss << "Unknown version: " << version << ".";
                ExceptionRef e =
                   new Exception("Unknown version.", "db.config.ConfigError");
                e->getDetails()["version"] = version;
@@ -117,6 +115,8 @@ bool ConfigManager::addConfig(
                Config next = i->next();
                bool load = true;
                bool optional = false;
+               bool deep = false;
+               bool magic = false;
                ConfigType type = Default;
                const char* path = NULL;
 
@@ -154,6 +154,16 @@ bool ConfigManager::addConfig(
                   {
                      type =  next["user"]->getBoolean() ? User : Default;
                   }
+                  // should subdirs be scanned too?
+                  if(next->hasMember("deep"))
+                  {
+                     deep =  next["deep"]->getBoolean();
+                  }
+                  // replace magic strings?
+                  if(next->hasMember("magic"))
+                  {
+                     magic =  next["magic"]->getBoolean();
+                  }
                }
                else
                {
@@ -167,7 +177,8 @@ bool ConfigManager::addConfig(
                if(rval && load)
                {
                   DB_CAT_DEBUG(DB_CONFIG_CAT, "Loading include: %s", path);
-                  rval = addConfig(path, type, NULL, true, dir, optional);
+                  rval = addConfig(
+                     path, type, NULL, true, dir, optional, deep, magic);
                }
             }
          }
@@ -190,7 +201,7 @@ bool ConfigManager::addConfig(
 
 bool ConfigManager::addConfig(
    const char* path, ConfigType type, ConfigId* id, bool include,
-   const char* dir, bool optional)
+   const char* dir, bool optional, bool deep, bool magic)
 {
    bool rval = true;
    
@@ -230,14 +241,18 @@ bool ConfigManager::addConfig(
                if(rval)
                {
                   string dirname = File::dirname(fullPath.c_str());
+                  if(magic)
+                  {
+                     DynamicObject magicMap;
+                     magicMap[DIR_MAGIC] = dirname.c_str();
+                     replaceMagic(cfg, magicMap);
+                  }
                   rval = addConfig(cfg, type, id, include, dirname.c_str());
                }
                if(!rval)
                {
-                  ostringstream oss;
-                  oss << "Configuration file load failure: " << path << ".";
                   ExceptionRef e =
-                     new Exception(oss.str().c_str(),
+                     new Exception("Configuration file load failure.",
                         "db.config.ConfigFileError");
                   e->getDetails()["path"] = path;
                   Exception::setLast(e, true);
@@ -253,28 +268,48 @@ bool ConfigManager::addConfig(
    
                // find all files with INCLUDE_EXT suffix
                vector<string> configFiles;
+               vector<string> configDirs;
                db::rt::IteratorRef<File> i = list->getIterator();
                while(i->hasNext())
                {
                   File& f = i->next();
                   string name = f->getName();
-                  if(name.rfind(INCLUDE_EXT) ==
-                     (name.length() - strlen(INCLUDE_EXT)))
+                  if(f->isFile())
                   {
-                     configFiles.push_back(File::basename(f->getName()));
+                     if(name.rfind(INCLUDE_EXT) ==
+                        (name.length() - strlen(INCLUDE_EXT)))
+                     {
+                        configFiles.push_back(File::basename(f->getName()));
+                     }
+                  }
+                  else if(deep && name != "." && name != ".." &&
+                     f->isDirectory())
+                  {
+                     configDirs.push_back(name);
                   }
                }
                
-               // sort alphanumerically to allow NN-whatever.config ordering
+               // sort alphanumerically to allow NN-whatever[.config] ordering
                sort(configFiles.begin(), configFiles.end());
+               sort(configDirs.begin(), configDirs.end());
                
-               // load each in order as
+               // load each file in order as
                for(vector<string>::iterator i = configFiles.begin();
                   rval && i != configFiles.end();
                   i++)
                {
                   rval = addConfig(
                      (*i).c_str(), type, NULL, include, file->getName());
+               }
+               
+               // load each dir in order as
+               for(vector<string>::iterator i = configDirs.begin();
+                  rval && i != configDirs.end();
+                  i++)
+               {
+                  const char* dir = (*i).c_str();
+                  rval = addConfig(
+                     dir, type, NULL, include, dir, false, false, magic);
                }
             }
             else
@@ -291,10 +326,9 @@ bool ConfigManager::addConfig(
          {
             if(!optional)
             {
-               ostringstream oss;
-               oss << "Configuration file not found: " << path << ".";
                ExceptionRef e =
-                  new Exception(oss.str().c_str(), "db.config.FileNotFound");
+                  new Exception("Configuration file not found.",
+                     "db.config.FileNotFound");
                e->getDetails()["path"] = path;
                Exception::setLast(e, false);
                rval = false;
@@ -540,6 +574,46 @@ bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
    }
    
    return rval;
+}
+
+void ConfigManager::replaceMagic(Config& config, DynamicObject& magicMap)
+{
+   if(config.isNull())
+   {
+      // pass
+   }
+   else
+   {
+      switch(config->getType())
+      {
+         case String:
+         {
+            const char* s = config->getString();
+            if(magicMap->hasMember(s))
+            {
+               config = magicMap[s];
+            }
+            break;
+         }
+         case Boolean:
+         case Int32:
+         case UInt32:
+         case Int64:
+         case UInt64:
+         case Double:
+            break;
+         case Map:
+         case Array:
+         {
+            ConfigIterator i = config.getIterator();
+            while(i->hasNext())
+            {
+               replaceMagic(i->next(), magicMap);
+            }
+            break;
+         }
+      }
+   }
 }
 
 void ConfigManager::getChanges(

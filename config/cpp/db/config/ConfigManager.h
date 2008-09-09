@@ -35,17 +35,34 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * the current config. This allows for a preferences system to make it easy
  * to save user changes.
  * 
- * A special config key, ConfigManager::INCLUDE ("__include__"), is available
- * to control including other files.  If present, the value of this key must
- * be an iterable (array/map) of values.  If a value is a String it is
- * considered to be a required path to load.  If it is a Map it must contain
- * a String "path" key.  It can also contain a Boolean "load" key to supress
- * loading of the path and a Boolean "optional" key to supress failures if the
- * path is not found.  A path can be a file to load or a directory with files
- * with ConfigManager::INCLUDE_EXT (".config") extensions.  In the case of a
- * directory the files are sorted first to allow for control on file load order.
- * A special Boolean "user" key is also available to load a specific config
- * as a User type rather tha Default.
+ * A special config key, ::INCLUDE ("__include__"), is available to control
+ * including other files.  If present, the value of this key must be an
+ * iterable (array/map) of values.  The type determines how the value is
+ * handled:
+ * String: The value is a required path to load.
+ * Map: Options can be provided to control the include process:
+ * "path": Path to include. (String, required)
+ * "load": Supress load of the path. (Boolean, optional, default: true)
+ * "optional": Supress failures if path not found.
+ *    (Boolean, optional, default: false)
+ * "user": Load a specific config as a User type rather tha Default.
+ *    (Boolean, optional, default: false)
+ * "deep": Load each subdir as a dir of configs.
+ *    (Boolean, optional, default: false)
+ * "magic": Recursively scan for magic keys and replace them with appropriate
+ *    values. (Boolean, optional, default: false) 
+ * 
+ * A path can be one of the following:
+ * - A explicit file to load
+ * - A directory with files with ::INCLUDE_EXT (".config") extensions.
+ * 
+ * In the case of directories the paths are sorted first to allow for control
+ * of file load order.
+ * 
+ * The "magic" include parameter allows for the following special value strings
+ * to be replaced.  There is a slight performance penalty for using this
+ * option due to config tree walking and string comparisons.
+ * "__dir__": The directory of this config. (::DIR_MAGIC)
  * 
  * @author David I. Lehn
  */
@@ -130,6 +147,14 @@ protected:
     */
    bool diff(Config& diff, Config& config1, Config& config2);
 
+   /**
+    * Replaces magic values with appropriate values.  See the class docs.
+    * 
+    * @param config the Config to process.
+    * @param magicMap a map of strings to replacement values.
+    */
+   void replaceMagic(Config& config, db::rt::DynamicObject& magicMap);
+
 public:
    /**
     * Storage type for config ids.
@@ -164,6 +189,12 @@ public:
     * caches and other data which should not be saved as user config.
     */
    static const char* TMP;
+   
+   /**
+    * Magic config value which will be replaced with the directory a config
+    * file was loaded from if the include "magic" option is used.
+    */
+   static const char* DIR_MAGIC;
    
    /**
     * Check if a configuration has all values and types from a template
@@ -229,12 +260,15 @@ public:
     *        or NULL.
     * @param optional true to supress failure if path is not found,
     *        false to require path to be present.
+    * @param deep process subdirs as dirs of configs
+    * @param magic replace magic strings with appropriate values.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfig(
       const char* path, ConfigType type = Default, ConfigId* id = NULL,
-      bool include = true, const char* dir = NULL, bool optional = false);
+      bool include = true, const char* dir = NULL, bool optional = false,
+      bool deep = false, bool magic = false);
    
    /**
     * Removes a configuration.
