@@ -133,7 +133,7 @@ public:
     * 
     * @return the number of Operations in this list.
     */
-   virtual bool length();
+   virtual int length();
 };
 
 } // end namespace modest

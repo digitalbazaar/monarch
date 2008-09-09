@@ -148,7 +148,7 @@ inline void OperationList::clear()
    mOperations.clear();
 }
 
-inline bool OperationList::length()
+inline int OperationList::length()
 {
    return mOperations.size();
 }
