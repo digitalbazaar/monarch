@@ -398,7 +398,21 @@ DynamicObject& DynamicObjectImpl::append()
    {
       setType(Array);
    }
-   return (*this)[mArray->size()];
+   
+   DynamicObject d;
+   mArray->push_back(d);
+   return mArray->back();
+}
+
+DynamicObject& DynamicObjectImpl::append(DynamicObject& dyno)
+{
+   if(mType != Array)
+   {
+      setType(Array);
+   }
+   
+   mArray->push_back(dyno);
+   return mArray->back();
 }
 
 void DynamicObjectImpl::setType(DynamicObjectType type)

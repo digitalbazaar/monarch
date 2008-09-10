@@ -240,6 +240,16 @@ public:
    virtual DynamicObject& append();
    
    /**
+    * Appends the passed DynamicObject to this one and returns a reference to
+    * it.
+    * 
+    * @param dyno the DynamicObject to append.
+    * 
+    * @return the DynamicObject that was appended.
+    */
+   virtual DynamicObject& append(DynamicObject& append);
+   
+   /**
     * Sets this object's type. Its existing value will be converted if
     * possible.
     * 

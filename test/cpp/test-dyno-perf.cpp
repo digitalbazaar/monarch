@@ -21,13 +21,13 @@ static void runDynoIterTest1(
 {
    tr.test(name);
    {
-
       uint64_t start_init = System::getCurrentMilliseconds();
       DynamicObject d1;
       d1->setType(Array);
       for(int i = 0; i < dynos; i++)
       {
-         d1[i] = i;
+         d1->append() = i;
+         //d1[i] = i;
       }
       uint64_t start_iter = System::getCurrentMilliseconds();
       for(int j = 0; j < iter; j++)
@@ -35,7 +35,7 @@ static void runDynoIterTest1(
          DynamicObjectIterator i = d1.getIterator();
          while(i->hasNext())
          {
-            DynamicObject next = i->next();
+            i->next();
          }
       }
       uint64_t iter_dt = System::getCurrentMilliseconds() - start_iter;
