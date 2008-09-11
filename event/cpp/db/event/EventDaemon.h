@@ -112,7 +112,7 @@ public:
     * 
     * @param e the event, with e["type"] set, to schedule.
     * @param interval the time at which to schedule the event, in milliseconds.
-    * @param count the number of types to schedule the event, -1 for infinite.
+    * @param count the number of times to schedule the event, -1 for infinite.
     */
    virtual void add(Event& e, uint32_t interval, int count);
    
