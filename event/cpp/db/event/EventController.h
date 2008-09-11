@@ -90,10 +90,15 @@ public:
       db::rt::DynamicObject* filter = NULL);
    
    /**
-    * Registers an observer for a list of event types.
+    * Registers an observer for several events. The passed eventTypes object
+    * must be an array that has entries that are strings that correspond to
+    * event types, or entries that are maps with "type" set to the event
+    * type and "filter" optionally set to an EventFilter.
     *  
     * @param observer the new observer to register for events.
-    * @param eventTypes the list of event types to register the observer for.
+    * @param eventTypes the list of event types and filters to register the
+    *                   observer for ([] of {"type": string,
+    *                   "filter: EventFilter} OR string).
     */
    virtual void registerObserver(
       Observer* observer, db::rt::DynamicObject& eventTypes);

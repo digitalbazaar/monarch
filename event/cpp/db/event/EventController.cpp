@@ -86,8 +86,17 @@ void EventController::registerObserver(
    while(i->hasNext())
    {
       // register all types
-      DynamicObject& type = i->next();
-      registerObserver(observer, type->getString());
+      DynamicObject& next = i->next();
+      if(next->getType() == String)
+      {
+         registerObserver(observer, next->getString());
+      }
+      else if(next->getType() == Map)
+      {
+         registerObserver(
+            observer, next["type"]->getString(),
+            next->hasMember("filter") ? &next["filter"] : NULL);
+      }
    }
 }
 
