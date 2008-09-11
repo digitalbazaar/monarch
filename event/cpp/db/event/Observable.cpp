@@ -261,6 +261,68 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
    mRegistrationLock.unlock();
 }
 
+void Observable::unregisterObserver(Observer* observer)
+{
+   // FIXME: add an optimization that stores all of the events that the
+   // observer is registered to receive to shorten this unregistration process
+   
+   mRegistrationLock.lock();
+   {
+      // wait for any event processing operation that is not on the same
+      // thread but is using the same observer that is being unregistered
+      // -- this helps prevents a race condition where an observer could
+      // be free'd after being unregistered by whilst still processing an event
+      Thread* t = Thread::currentThread();
+      IteratorRef<Operation> itr = mOpList.getIterator();
+      while(itr->hasNext())
+      {
+         Operation& op = itr->next();
+         if(op->getThread() != t && op->getUserData() == observer)
+         {
+            // wait for operation to complete
+            op->waitFor();
+         }
+      }
+      mOpList.prune();
+      
+      // iterate over all filter maps
+      for(ObserverMap::iterator i = mObservers.begin();
+          i != mObservers.end(); i++)
+      {
+         // remove the observer from every list
+         for(FilterMap::iterator fi = i->second.begin(); fi != i->second.end();)
+         {
+            ObserverList::iterator li = find(
+               fi->second.begin(), fi->second.end(), observer);
+            if(li != fi->second.end())
+            {
+               // erase observer from list
+               fi->second.erase(li);
+               
+               // erase filter entry if observer list is empty
+               if(fi->second.empty())
+               {
+                  FilterMap::iterator tmp = fi;
+                  fi++;
+                  i->second.erase(tmp);
+                  
+                  // erase filter map entry if event ID has no more observers
+                  if(i->second.empty())
+                  {
+                     mObservers.erase(i);
+                  }
+               }
+            }
+            else
+            {
+               fi++;
+            }
+         }
+      }
+   }
+   mRegistrationLock.unlock();
+}
+
 void Observable::addTap(EventId id, EventId tap)
 {
    mRegistrationLock.lock();

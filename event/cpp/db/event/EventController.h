@@ -123,6 +123,13 @@ public:
       Observer* observer, db::rt::DynamicObject& eventTypes);
    
    /**
+    * Unregisters an observer entirely.
+    * 
+    * @param observer the observer to unregister for events.
+    */
+   using Observable::unregisterObserver;
+   
+   /**
     * Creates an association between two event types. Observers of the
     * parent event type will receive any events sent to the child, but the
     * child observers will not receive any parent events.

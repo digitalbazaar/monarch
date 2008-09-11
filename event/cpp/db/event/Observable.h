@@ -184,6 +184,13 @@ public:
    virtual void unregisterObserver(Observer* observer, EventId id);
    
    /**
+    * Unregisters an Observer from this Observable for all EventIds.
+    * 
+    * @param observer the Observer to unregister.
+    */
+   virtual void unregisterObserver(Observer* observer);
+   
+   /**
     * Adds an EventId tap for the given EventId. This means that when events
     * are dispatched to Observers registered with the passed "id" they will
     * also be dispatched to Observers with the passed "tap".
