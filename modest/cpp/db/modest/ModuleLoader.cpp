@@ -2,8 +2,10 @@
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/modest/ModuleLoader.h"
+
 #include "db/modest/ModuleApi.h"
 #include "db/rt/DynamicLibrary.h"
+#include "db/rt/DynamicObject.h"
 
 #include <cstring>
 
@@ -55,9 +57,10 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
       else
       {
          // could not load create or free functions
-         char temp[100 + strlen(filename) + strlen(error)];
-         sprintf(temp, "Could not load module '%s', error=%s", filename, error);
-         ExceptionRef e = new Exception(temp, "db.modest.BadModule");
+         ExceptionRef e = new Exception(
+            "Could not load module.", "db.modest.BadModule");
+         e->getDetails()["filename"] = filename;
+         e->getDetails()["error"] = error;
          Exception::setLast(e, false);
       }
    }
@@ -65,11 +68,10 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
    {
       // failed to open module
       char* error = dlerror();
-      char temp[100 + strlen(filename) + strlen(error)];
-      sprintf(temp,
-         "Could not load module '%s', could not open module file, error=%s",
-         filename, error);
-      ExceptionRef e = new Exception(temp, "db.modest.BadModuleFile");
+      ExceptionRef e = new Exception(
+         "Could not open module file.", "db.modest.BadModuleFile");
+      e->getDetails()["filename"] = filename;
+      e->getDetails()["error"] = error;
       Exception::setLast(e, false);
    }
    
