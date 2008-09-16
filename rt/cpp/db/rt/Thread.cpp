@@ -134,35 +134,6 @@ void Thread::cleanupExceptionKeyValue(void* er)
 //   // no action is necessary, thread already interrupted
 //}
 
-bool Thread::isThreadIdValid(pthread_t id)
-{
-   pthread_t invalid;
-   
-#ifdef WIN32
-   /**
-    * Windows pthreads use ptw32_handle_t for pthread_t which is:
-    * 
-    * ptw32_handle_t
-    * {
-    *    void* p;        // pointer to thread object
-    *    unsigned int x; // some extra information about reuse, etc.
-    * };
-    * 
-    * A value of 0 for p is considered invalid.
-    */
-   invalid.p = 0;
-   invalid.x = 0;
-#else
-   /**
-    * Other builds just use a number for pthread_t. 0 is considered invalid.
-    */
-   invalid = 0;
-#endif
-   
-   // pthread_equal() returns non-zero when the IDs *are* equal, 0 otherwise.
-   return (pthread_equal(id, invalid) == 0);
-}
-
 void* Thread::execute(void* thread)
 {
    // do not allow invalid thread IDs
@@ -637,6 +608,40 @@ void Thread::clearException()
       // clear the reference
       ref->setNull();
    }
+}
+
+pthread_t Thread::getInvalidThreadId()
+{
+   pthread_t rval;
+   
+#ifdef WIN32
+   /**
+    * Windows pthreads use ptw32_handle_t for pthread_t which is:
+    * 
+    * ptw32_handle_t
+    * {
+    *    void* p;        // pointer to thread object
+    *    unsigned int x; // some extra information about reuse, etc.
+    * };
+    * 
+    * A value of 0 for p is considered invalid.
+    */
+   rval.p = 0;
+   rval.x = 0;
+#else
+   /**
+    * Other builds just use a number for pthread_t. 0 is considered invalid.
+    */
+   rval = 0;
+#endif
+   
+   return rval;
+}
+
+bool Thread::isThreadIdValid(pthread_t id)
+{
+   // pthread_equal() returns non-zero when the IDs *are* equal, 0 otherwise.
+   return (pthread_equal(id, getInvalidThreadId()) == 0);
 }
 
 // Note: disabled due to a lack of support in windows
