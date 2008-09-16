@@ -23,4 +23,6 @@ build-libraries:
 	@ln -sf $(MODULE_BASE_DIR)/regex/libregex.a $(WINDOWS_LIB_DIR)/libregex.lib
 	@ln -sf $(MODULE_BASE_DIR)/regex/libregex.dll $(WINDOWS_LIB_DIR)/regex.dll
 	@ln -sf $(MODULE_BASE_DIR)/sqlite3/sqlite3.dll $(WINDOWS_LIB_DIR)/sqlite3.dll
+	@ln -sf $(MODULE_BASE_DIR)/zlib/libz.a $(WINDOWS_LIB_DIR)/libz.lib
+	@ln -sf $(MODULE_BASE_DIR)/zlib/mgwz.dll $(WINDOWS_LIB_DIR)/mgwz.dll
 endif

@@ -7,12 +7,12 @@ SUBDIRS := 3rdparty/cpp \
            logging/cpp \
            modest/cpp \
            fiber/cpp \
-           event/cpp \
-           config/cpp \
            crypto/cpp \
-           data/cpp \
+           event/cpp \
            compress/cpp \
+           data/cpp \
            net/cpp \
+           config/cpp \
            mail/cpp \
            sphinx/cpp \
            sql/cpp \
