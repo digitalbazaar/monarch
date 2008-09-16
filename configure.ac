@@ -40,10 +40,8 @@ fi
 
 # Check to see if we need to build for windows
 if test "$ac_enable_windows_build" = "yes" ; then
-   AC_CHECK_PROG(WINDOWS_CXX, mingw32-gcc-4.2.1-sjlj, 
-                 mingw32-gcc-4.2.1-sjlj, not found)
-   AC_CHECK_PROG(WINDOWS_CXX, i586-mingw32msvc-g++, 
-                 i586-mingw32msvc-g++, not found)
+   AC_CHECK_PROG(WINDOWS_CXX, i586-mingw32msvc-gcc, 
+                 i586-mingw32msvc-gcc, not found)
    AC_CHECK_PROG(WINDOWS_AR, i586-mingw32msvc-ar, 
                  i586-mingw32msvc-ar, not found)
    AC_CHECK_PROG(WINDOWS_DLLWRAP, i586-mingw32msvc-dllwrap,
