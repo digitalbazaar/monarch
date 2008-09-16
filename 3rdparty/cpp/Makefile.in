@@ -20,5 +20,7 @@ build-libraries:
 	@ln -sf $(MODULE_BASE_DIR)/mysql/strings.lib $(WINDOWS_LIB_DIR)/strings.lib
 	@ln -sf $(MODULE_BASE_DIR)/mysql/zlib.lib $(WINDOWS_LIB_DIR)/zlib.lib
 	@ln -sf $(MODULE_BASE_DIR)/mysql/libmysql.dll $(WINDOWS_LIB_DIR)/mysql.dll
+	@ln -sf $(MODULE_BASE_DIR)/regex/libregex.a $(WINDOWS_LIB_DIR)/libregex.lib
+	@ln -sf $(MODULE_BASE_DIR)/regex/libregex.dll $(WINDOWS_LIB_DIR)/regex.dll
 	@ln -sf $(MODULE_BASE_DIR)/sqlite3/sqlite3.dll $(WINDOWS_LIB_DIR)/sqlite3.dll
 endif
