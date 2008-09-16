@@ -53,7 +53,11 @@ protected:
        * code. This can be removed once mingw32 is updated with atomic
        * add/fetch and sub/fetch functions.
        */
+#ifdef WIN32
       volatile unsigned int count __attribute__ ((aligned (4)));
+#else
+      volatile unsigned int count;
+#endif
    };
    
    /**
