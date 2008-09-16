@@ -10,8 +10,9 @@
 #else
 #include <windows.h>
 
-// this flag is not used in windows
+// these flags are not used in windows
 #define RTLD_NOW 0
+#define RTLD_GLOBAL 0
 
 /**
  * Opens a dynamic library.
