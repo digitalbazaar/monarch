@@ -11,7 +11,7 @@ SharedLock::SharedLock()
    pthread_rwlock_init(&mLock, NULL);
    
    // no locks yet
-   mThreadId = 0;
+   mThreadId = Thread::getInvalidThreadId();
    mLockCount = 0;
 }
 
@@ -79,7 +79,7 @@ void SharedLock::unlockExclusive()
    if(mLockCount == 0)
    {
       // thread no longer holds exclusive lock
-      mThreadId = 0;
+      mThreadId = Thread::getInvalidThreadId();
       
       // release exclusive lock
       pthread_rwlock_unlock(&mLock);
