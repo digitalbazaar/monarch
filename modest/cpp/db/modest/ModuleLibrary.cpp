@@ -3,6 +3,8 @@
  */
 #include "db/modest/ModuleLibrary.h"
 
+#include "db/rt/DynamicObject.h"
+
 using namespace std;
 using namespace db::modest;
 using namespace db::rt;
@@ -64,24 +66,12 @@ Module* ModuleLibrary::loadModule(const char* filename)
             {
                // could not initialize module, so unload it
                ExceptionRef e = Exception::getLast();
-               int length = 
-                  120 + strlen(filename) + 
-                  strlen(mi->module->getId().name) +
-                  strlen(mi->module->getId().version) +
-                  strlen(e->getMessage()) +
-                  strlen(e->getType());
-               char temp[length];
-               snprintf(temp, length,
-                  "Could not initialize module '%s' "
-                  "named '%s', version '%s',cause=%s:%s:%i",
-                  filename,
-                  mi->module->getId().name,
-                  mi->module->getId().version,
-                  e->getMessage(),
-                  e->getType(),
-                  e->getCode());
                ExceptionRef ex = new Exception(
-                  temp, "db.modest.ModuleInitializationError");
+                  "Could not initialize module.",
+                  "db.modest.ModuleInitializationError");
+               ex->getDetails()["filename"] = filename;
+               ex->getDetails()["name"] = mi->module->getId().name;
+               ex->getDetails()["version"] = mi->module->getId().version;
                ex->setCause(e);
                Exception::setLast(ex, false);
                mLoader.unloadModule(mi);
@@ -90,18 +80,12 @@ Module* ModuleLibrary::loadModule(const char* filename)
          else
          {
             // module is already loaded, set exception and unload it
-            int length = 
-               100 + strlen(filename) + 
-               strlen(mi->module->getId().name) +
-               strlen(mi->module->getId().version);
-            char temp[length];
-            snprintf(temp, length,
-               "Could not load module '%s'. Module "
-               "named '%s' with version '%s' is already loaded.",
-               filename,
-               mi->module->getId().name,
-               mi->module->getId().version);
-            ExceptionRef e = new Exception(temp, "db.modest.DuplicateModule");
+            ExceptionRef e = new Exception(
+               "Could not load module, module already loaded.",
+               "db.modest.DuplicateModule");
+            e->getDetails()["filename"] = filename;
+            e->getDetails()["name"] = mi->module->getId().name;
+            e->getDetails()["version"] = mi->module->getId().version;
             Exception::setLast(e, false);
             mLoader.unloadModule(mi);
          }
