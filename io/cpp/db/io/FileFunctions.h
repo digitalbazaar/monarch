@@ -16,9 +16,6 @@
  */
 #ifdef WIN32
 
-// FIXME: see what the windows equivalent is (PATH_MAX is unix standard)
-#define PATH_MAX 1024
-
 // include windows headers for obtaining time
 #include <sys/stat.h>
 #include <windows.h>
