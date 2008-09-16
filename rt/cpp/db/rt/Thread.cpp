@@ -134,11 +134,40 @@ void Thread::cleanupExceptionKeyValue(void* er)
 //   // no action is necessary, thread already interrupted
 //}
 
+bool Thread::isThreadIdValid(pthread_t id)
+{
+   pthread_t invalid;
+   
+#ifdef WIN32
+   /**
+    * Windows pthreads use ptw32_handle_t for pthread_t which is:
+    * 
+    * ptw32_handle_t
+    * {
+    *    void* p;        // pointer to thread object
+    *    unsigned int x; // some extra information about reuse, etc.
+    * };
+    * 
+    * A value of 0 for p is considered invalid.
+    */
+   invalid.p = 0;
+   invalid.x = 0;
+#else
+   /**
+    * Other builds just use a number for pthread_t. 0 is considered invalid.
+    */
+   invalid = 0;
+#endif
+   
+   // pthread_equal() returns non-zero when the IDs *are* equal, 0 otherwise.
+   return (pthread_equal(id, invalid) == 0);
+}
+
 void* Thread::execute(void* thread)
 {
-   // do not allow threads with an ID of 0
+   // do not allow invalid thread IDs
    pthread_t self = pthread_self();
-   if(pthread_equal(self, 0) == 0)
+   if(isThreadIdValid(self))
    {
       // get the Thread object
       Thread* t = (Thread*)thread;
@@ -160,7 +189,7 @@ void* Thread::execute(void* thread)
    }
    else
    {
-      // detach thread
+      // detach thread and let it die, it's invalid
       pthread_detach(self);
    }
    
@@ -195,9 +224,9 @@ bool Thread::start(size_t stackSize)
       // destroy POSIX thread attributes
       pthread_attr_destroy(&attributes);
       
-      // if the thread was created successfully and does not have an ID
-      // of 0, then return true
-      if(rc == 0 && pthread_equal(mThreadId, 0) == 0)
+      // if the thread was created successfully and has a valid ID,
+      // then return true
+      if(rc == 0 && isThreadIdValid(mThreadId))
       {
          // thread has started
          mStarted = true;
