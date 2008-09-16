@@ -3,6 +3,7 @@
  */
 #include "db/rt/Monitor.h"
 
+#include "db/rt/Thread.h"
 #include "db/rt/TimeFunctions.h"
 
 using namespace db::rt;
@@ -26,7 +27,7 @@ Monitor::Monitor()
    pthread_mutexattr_destroy(&mutexAttr);
    
    // no thread in monitor, no locks yet
-   mThreadId = 0;
+   mThreadId = Thread::getInvalidThreadId();
    mLockCount = 0;
 }
 
@@ -65,7 +66,7 @@ void Monitor::exit()
    if(mLockCount == 0)
    {
       // no longer a thread in this monitor
-      mThreadId = 0;
+      mThreadId = Thread::getInvalidThreadId();
       
       // unlock this monitor's mutex
       pthread_mutex_unlock(&mMutex);
@@ -79,7 +80,7 @@ void Monitor::wait(uint32_t timeout)
    uint32_t lockCount = mLockCount;
    
    // reset thread and lock count
-   mThreadId = 0;
+   mThreadId = Thread::getInvalidThreadId();
    mLockCount = 0;
    
    if(timeout == 0)

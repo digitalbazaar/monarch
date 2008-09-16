@@ -15,7 +15,7 @@ FULL_VERSION=${PACKAGE_VERSION}-${DATE_YMD}
 AC_ARG_ENABLE([linux],
                AS_HELP_STRING([--enable-linux],
                               [compile for linux (default is YES)]),
-              [ac_enable_linux_build=yes], [ac_enable_linux_build=yes])
+              [ac_enable_linux_build=yes], [ac_enable_linux_build=no])
 
 AC_ARG_ENABLE([windows],
                AS_HELP_STRING([--enable-windows],
