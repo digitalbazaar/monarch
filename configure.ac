@@ -13,7 +13,7 @@ FULL_VERSION=${PACKAGE_VERSION}-${DATE_YMD}
 
 # Check for particular build options
 AC_ARG_ENABLE([linux],
-   AS_HELP_STRING([--enable-linux], [compile for linux (default is YES)]),
+   AS_HELP_STRING([--enable-linux], [compile for linux [[yes]]]),
    [
       case "${enableval}" in
          yes) BUILD_FOR_LINUX=yes ;;
@@ -23,12 +23,12 @@ AC_ARG_ENABLE([linux],
    ], [BUILD_FOR_LINUX=yes])  dnl Default value
 
 AC_ARG_ENABLE([windows],
-   AS_HELP_STRING([--enable-windows], [compile for windows (default is NO)]),
+   AS_HELP_STRING([--enable-windows], [compile for windows [[no]]]),
    [
       case "${enableval}" in
          yes) BUILD_FOR_WINDOWS=yes ;;
 	 no) BUILD_FOR_WINDOWS=no ;;
-	 *) AC_MSG_ERROR(bad value ${enableval} for --enable-linux) ;;
+	 *) AC_MSG_ERROR(bad value ${enableval} for --enable-windows) ;;
       esac
    ], [BUILD_FOR_WINDOWS=no])  dnl Default value
 
@@ -81,12 +81,16 @@ echo "Build system      : $build_cpu-$build_vendor-$build_os"
 if test "$BUILD_FOR_LINUX" = "yes"; then
    echo "Linux C++ compiler: $LINUX_CXX"
    echo "Linux C++ archiver: $LINUX_AR"
+else
+   echo "Linux             : disabled (use --enable-linux to enable)"
 fi
 if test "$BUILD_FOR_WINDOWS" = "yes"; then
    echo "Win32 C++ compiler: $WINDOWS_CXX"
    echo "Win32 C++ archiver: $WINDOWS_AR"
    echo "Win32 assembler   : $WINDOWS_AS"
    echo "Win32 DLL wrapper : $WINDOWS_DLLWRAP"
+else
+   echo "Win32             : disabled (use --enable-windows to enable)"
 fi
 
 # Make all the proper substitutions
