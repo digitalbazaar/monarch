@@ -133,15 +133,6 @@ protected:
     */
    static void cleanupExceptionKeyValue(void* er);
    
-   /**
-    * Returns true if the passed thread ID is valid, false if not.
-    * 
-    * @param id the thread ID to check for validity.
-    * 
-    * @return true if valid, false if not.
-    */
-   static bool isThreadIdValid(pthread_t id);
-   
 // Note: disabled due to a lack of support in windows
 //   /**
 //    * Installs the SIGINT handler that can interrupt the current thread.
@@ -373,6 +364,22 @@ public:
     * its count).
     */
    static void clearException();
+   
+   /**
+    * Gets the invalid thread ID.
+    * 
+    * @return the invalid thread ID.
+    */
+   static pthread_t getInvalidThreadId();
+   
+   /**
+    * Returns true if the passed thread ID is valid, false if not.
+    * 
+    * @param id the thread ID to check for validity.
+    * 
+    * @return true if valid, false if not.
+    */
+   static bool isThreadIdValid(pthread_t id);
    
 // Note: disabled due to a lack of support in windows
 //   /**
