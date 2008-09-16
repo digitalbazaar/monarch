@@ -68,9 +68,9 @@ bool AbstractSocket::create(int domain, int type, int protocol)
          // close socket
          close();
          
-         std::string msg = "Could not create Socket! ";
-         msg.append(strerror(errno));
-         ExceptionRef e = new Exception(msg.c_str(), SOCKET_EXCEPTION_TYPE);
+         ExceptionRef e = new Exception(
+            "Could not create Socket!", SOCKET_EXCEPTION_TYPE);
+         e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
       else
@@ -81,9 +81,9 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    }
    else
    {
-      std::string msg = "Could not create Socket! ";
-      msg.append(strerror(errno));
-      ExceptionRef e = new Exception(msg.c_str(), SOCKET_EXCEPTION_TYPE);
+      ExceptionRef e = new Exception(
+         "Could not create Socket!", SOCKET_EXCEPTION_TYPE);
+      e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
    
@@ -408,8 +408,11 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
          mConnected = true;
       }
       
+      // FIXME: remove ifndef if winsock/mingw32 ever supports MSG_DONTWAIT
+#ifndef WIN32
       // restore socket to blocking
       fcntl(mFileDescriptor, F_SETFL, 0);
+#endif
       
       if(mConnected)
       {

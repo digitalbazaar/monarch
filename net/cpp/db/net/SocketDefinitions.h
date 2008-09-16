@@ -120,6 +120,32 @@
    #endif
    */
    
+   // define MSG options
+   // FIXME: winsock doesn't support these messages
+   #define MSG_DONTWAIT 0
+   #define MSG_NOSIGNAL 0
+   
+   /*
+   #define MSG_OOB         1
+   #define MSG_PEEK        2
+   #define MSG_DONTROUTE   4
+   #define MSG_TRYHARD     4       // Synonym for MSG_DONTROUTE for DECnet
+   #define MSG_CTRUNC      8
+   #define MSG_PROBE       0x10    // Do not send. Only probe path f.e. for MTU
+   #define MSG_TRUNC       0x20
+   #define MSG_DONTWAIT    0x40    // Nonblocking io
+   #define MSG_EOR         0x80    // End of record
+   #define MSG_WAITALL     0x100   // Wait for a full request
+   #define MSG_FIN         0x200
+   #define MSG_SYN         0x400
+   #define MSG_CONFIRM     0x800   // Confirm path validity
+   #define MSG_RST         0x1000
+   #define MSG_ERRQUEUE    0x2000  // Fetch message from error queue
+   #define MSG_NOSIGNAL    0x4000  // Do not generate SIGPIPE
+   #define MSG_MORE        0x8000  // Sender will send more
+   #define MSG_EOF         MSG_FIN
+   */
+   
    #ifndef EAI_ADDRFAMILY
       #define EAI_ADDRFAMILY    -6
    #endif
