@@ -2,7 +2,7 @@
 
 SOURCES = $(wildcard db/validation/*.cpp)
 LIBRARIES = dbvalidation
-DYNAMIC_LINK_LIBRARIES = dbrt
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
