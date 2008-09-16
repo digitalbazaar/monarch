@@ -73,7 +73,13 @@ App::~App()
 
 unsigned long App::openSSLSetId()
 {
+// FIXME: win32 uses ptw32_handle_t for pthread IDs which is
+// a struct with a pointer "p" and some number used for "etc"
+#ifdef WIN32
+   return (unsigned long)pthread_self().p;
+#else
    return (unsigned long)pthread_self();
+#endif
 }
 
 void App::openSSLHandleLock(int mode, int n, const char* file, int line)
