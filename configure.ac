@@ -13,14 +13,24 @@ FULL_VERSION=${PACKAGE_VERSION}-${DATE_YMD}
 
 # Check for particular build options
 AC_ARG_ENABLE([linux],
-               AS_HELP_STRING([--enable-linux],
-                              [compile for linux (default is YES)]),
-              [ac_enable_linux_build=yes], [ac_enable_linux_build=no])
+   AS_HELP_STRING([--enable-linux], [compile for linux (default is YES)]),
+   [
+      case "${enableval}" in
+         yes) BUILD_FOR_LINUX=yes ;;
+	 no) BUILD_FOR_LINUX=no ;;
+	 *) AC_MSG_ERROR(bad value ${enableval} for --enable-linux) ;;
+      esac
+   ], [BUILD_FOR_LINUX=yes])  dnl Default value
 
 AC_ARG_ENABLE([windows],
-               AS_HELP_STRING([--enable-windows],
-                              [compile for windows (default is NO)]),
-              [ac_enable_windows_build=yes], [ac_enable_windows_build=no])
+   AS_HELP_STRING([--enable-windows], [compile for windows (default is NO)]),
+   [
+      case "${enableval}" in
+         yes) BUILD_FOR_WINDOWS=yes ;;
+	 no) BUILD_FOR_WINDOWS=no ;;
+	 *) AC_MSG_ERROR(bad value ${enableval} for --enable-linux) ;;
+      esac
+   ], [BUILD_FOR_WINDOWS=no])  dnl Default value
 
 echo -e "\n--------- Configuring DB Core Build Environment -----------"
 # Check the system type
@@ -31,15 +41,14 @@ AC_CANONICAL_BUILD()
 AC_PROG_INSTALL()
 
 # Check to see if we need to build for linux
-if test "$ac_enable_linux_build" = "yes" ; then
+if test "$BUILD_FOR_LINUX" = "yes" ; then
    AC_PROG_CXX()
    AC_CHECK_PROG(LINUX_AR, ar, ar, not found)
    LINUX_CXX="$CXX"
-   BUILD_FOR_LINUX="yes"
 fi
 
 # Check to see if we need to build for windows
-if test "$ac_enable_windows_build" = "yes" ; then
+if test "$BUILD_FOR_WINDOWS" = "yes" ; then
    AC_CHECK_PROG(WINDOWS_CXX, i586-mingw32msvc-g++, 
                  i586-mingw32msvc-g++, not found)
    AC_CHECK_PROG(WINDOWS_AR, i586-mingw32msvc-ar, 
@@ -53,8 +62,6 @@ if test "$ac_enable_windows_build" = "yes" ; then
       AC_PROG_CXX()
       WINDOWS_CXX="$CXX"
    fi
-
-   BUILD_FOR_WINDOWS="yes"
 fi
 
 # Perform compilation environment tests
