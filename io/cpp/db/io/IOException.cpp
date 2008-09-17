@@ -12,8 +12,6 @@ IOException::IOException(
    const char* message, const char* type, int code) :
    Exception(message, type, code)
 {
-   getDetails()["usedBytes"] = 0;
-   getDetails()["unusedBytes"] = 0;
 }
 
 IOException::~IOException()
