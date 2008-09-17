@@ -7,6 +7,7 @@
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
 #include "db/rt/Collectable.h"
+#include "db/rt/WindowsSupport.h"
 
 #include <vector>
 
@@ -14,6 +15,16 @@ namespace db
 {
 namespace config
 {
+
+#ifdef WIN32
+#   ifdef BUILD_DB_CONFIG_DLL
+#      define DLL_CLASS __WIN32_DLL_EXPORT
+#   else
+#      define DLL_CLASS __WIN32_DLL_IMPORT
+#   endif
+#else
+#   define DLL_CLASS
+#endif
 
 #define DB_CONFIG_VERSION "DB Config"
 
@@ -66,7 +77,7 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * 
  * @author David I. Lehn
  */
-class ConfigManager : public virtual db::rt::ExclusiveLock
+class DLL_CLASS ConfigManager : public virtual db::rt::ExclusiveLock
 {
 public:
    /**
@@ -343,6 +354,8 @@ public:
 
 // define a reference counted type
 typedef db::rt::Collectable<ConfigManager> ConfigManagerRef;
+
+#undef DLL_CLASS
 
 } // end namespace config
 } // end namespace db

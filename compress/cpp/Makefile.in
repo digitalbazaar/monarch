@@ -6,7 +6,7 @@ SOURCES = $(wildcard db/compress/*.cpp) \
           $(wildcard db/compress/zip/*.cpp)
 
 LIBRARIES = dbcompress
-DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt
+DYNAMIC_LINK_LIBRARIES = dbrt dbio dbutil
 
 DYNAMIC_WINDOWS_LIBRARIES = mgwz
 STATIC_WINDOWS_LIBRARIES = z

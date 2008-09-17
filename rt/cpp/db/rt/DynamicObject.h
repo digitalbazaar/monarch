@@ -7,6 +7,7 @@
 #include "db/rt/Collectable.h"
 #include "db/rt/Exception.h"
 #include "db/rt/DynamicObjectImpl.h"
+#include "db/rt/WindowsSupport.h"
 
 #include <inttypes.h>
 
@@ -14,6 +15,16 @@ namespace db
 {
 namespace rt
 {
+
+#ifdef WIN32
+#   ifdef BUILD_DB_RT_DLL
+#      define DLL_CLASS __WIN32_DLL_EXPORT
+#   else
+#      define DLL_CLASS __WIN32_DLL_IMPORT
+#   endif
+#else
+#   define DLL_CLASS
+#endif
 
 // forward declare DynamicObjectIterator
 class DynamicObjectIterator;
@@ -25,7 +36,7 @@ class DynamicObjectIterator;
  * 
  * @author Dave Longley
  */
-class DynamicObject : public Collectable<DynamicObjectImpl>
+class DLL_CLASS DynamicObject : public Collectable<DynamicObjectImpl>
 {
 public:
    /**
@@ -239,6 +250,8 @@ public:
     */
    static DynamicObjectType determineType(const char* str);
 };
+
+#undef DLL_CLASS
 
 } // end namespace rt
 } // end namespace db

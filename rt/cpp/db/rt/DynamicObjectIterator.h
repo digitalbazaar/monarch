@@ -6,11 +6,22 @@
 
 #include "db/rt/Iterator.h"
 #include "db/rt/DynamicObject.h"
+#include "db/rt/WindowsSupport.h"
 
 namespace db
 {
 namespace rt
 {
+
+#ifdef WIN32
+#   ifdef BUILD_DB_RT_DLL
+#      define DLL_CLASS __WIN32_DLL_EXPORT
+#   else
+#      define DLL_CLASS __WIN32_DLL_IMPORT
+#   endif
+#else
+#   define DLL_CLASS
+#endif
 
 /**
  * A DynamicObjectIteratorImpl is the implementation for an Iterator for a
@@ -99,8 +110,8 @@ public:
  * 
  * @author Dave Longley
  */
-class DynamicObjectIterator :
-public Collectable<DynamicObjectIteratorImpl>
+class DLL_CLASS DynamicObjectIterator :
+   public Collectable<DynamicObjectIteratorImpl>
 {
 public:
    /**
@@ -116,6 +127,8 @@ public:
     */
    virtual ~DynamicObjectIterator();
 };
+
+#undef DLL_CLASS
 
 } // end namespace rt
 } // end namespace db

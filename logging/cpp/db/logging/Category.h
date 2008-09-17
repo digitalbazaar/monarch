@@ -9,6 +9,7 @@
 #include <list>
 
 #include "db/util/Macros.h"
+#include "db/rt/WindowsSupport.h"
 
 // Forward declaration
 namespace db
@@ -19,22 +20,20 @@ namespace db
    }
 }
 
-#ifndef __GNUC__
-# define __DLL_IMPORT __declspec(dllimport)
+#ifdef WIN32
+#   ifdef BUILD_DB_LOGGING_DLL
+#      define DLL_VAR __WIN32_DLL_EXPORT extern
+#   else
+#      define DLL_VAR __WIN32_DLL_IMPORT
+#   endif
 #else
-# define __DLL_IMPORT __attribute__((dllimport)) extern
+#   define DLL_VAR extern
 #endif
 
-#if defined (BUILD_LOGGING_DLL) || !defined (__WIN32__)
-# define DLL_IMPORT extern
-#else
-# define DLL_IMPORT __DLL_IMPORT
-#endif
+DLL_VAR db::logging::Category* DB_DEFAULT_CAT;
+DLL_VAR db::logging::Category* DB_ALL_CAT;
 
-DLL_IMPORT db::logging::Category* DB_DEFAULT_CAT;
-DLL_IMPORT db::logging::Category* DB_ALL_CAT;
-#undef DLL_IMPORT
-#undef __DLL_IMPORT
+#undef DLL_VAR
 
 
 namespace db

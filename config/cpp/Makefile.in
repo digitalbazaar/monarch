@@ -3,6 +3,8 @@
 SOURCES = $(wildcard db/config/*.cpp)
 LIBRARIES = dbconfig
 DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio dbdata dblogging
+# Control import/export behavior
+MODULE_WINDOWS_CXX_FLAGS = -DBUILD_DB_CONFIG_DLL
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

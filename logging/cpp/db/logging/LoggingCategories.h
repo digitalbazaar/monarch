@@ -5,40 +5,38 @@
 #define db_logging_LoggingCategories_H
 
 #include "db/logging/Category.h"
+#include "db/rt/WindowsSupport.h"
+
+#ifdef WIN32
+#   ifdef BUILD_DB_LOGGING_DLL
+#      define DLL_VAR __WIN32_DLL_EXPORT extern
+#   else
+#      define DLL_VAR __WIN32_DLL_IMPORT
+#   endif
+#else
+#   define DLL_VAR extern
+#endif
 
 // This is a list of pre-defined logging categories that can be used by any
 // module that would like to log messages to a specific category.
 
-#ifndef __GNUC__
-# define __DLL_IMPORT __declspec(dllimport)
-#else
-# define __DLL_IMPORT __attribute__((dllimport)) extern
-#endif
+DLL_VAR db::logging::Category* DB_APP_CAT;
+DLL_VAR db::logging::Category* DB_CONFIG_CAT;
+DLL_VAR db::logging::Category* DB_CRYPTO_CAT; 
+DLL_VAR db::logging::Category* DB_DATA_CAT;
+DLL_VAR db::logging::Category* DB_EVENT_CAT;
+DLL_VAR db::logging::Category* DB_GUI_CAT;
+DLL_VAR db::logging::Category* DB_IO_CAT;
+DLL_VAR db::logging::Category* DB_LOGGING_CAT;
+DLL_VAR db::logging::Category* DB_MAIL_CAT;
+DLL_VAR db::logging::Category* DB_MODEST_CAT;
+DLL_VAR db::logging::Category* DB_NET_CAT;
+DLL_VAR db::logging::Category* DB_RT_CAT;
+DLL_VAR db::logging::Category* DB_SPHINX_CAT;
+DLL_VAR db::logging::Category* DB_SQL_CAT;
+DLL_VAR db::logging::Category* DB_UTIL_CAT;
 
-#if defined (BUILD_LOGGING_DLL) || !defined (__WIN32__)
-# define DLL_IMPORT extern
-#else
-# define DLL_IMPORT __DLL_IMPORT
-#endif
-
-DLL_IMPORT db::logging::Category* DB_APP_CAT;
-DLL_IMPORT db::logging::Category* DB_CONFIG_CAT;
-DLL_IMPORT db::logging::Category* DB_CRYPTO_CAT; 
-DLL_IMPORT db::logging::Category* DB_DATA_CAT;
-DLL_IMPORT db::logging::Category* DB_EVENT_CAT;
-DLL_IMPORT db::logging::Category* DB_GUI_CAT;
-DLL_IMPORT db::logging::Category* DB_IO_CAT;
-DLL_IMPORT db::logging::Category* DB_LOGGING_CAT;
-DLL_IMPORT db::logging::Category* DB_MAIL_CAT;
-DLL_IMPORT db::logging::Category* DB_MODEST_CAT;
-DLL_IMPORT db::logging::Category* DB_NET_CAT;
-DLL_IMPORT db::logging::Category* DB_RT_CAT;
-DLL_IMPORT db::logging::Category* DB_SPHINX_CAT;
-DLL_IMPORT db::logging::Category* DB_SQL_CAT;
-DLL_IMPORT db::logging::Category* DB_UTIL_CAT;
-
-#undef DLL_IMPORT
-#undef __DLL_IMPORT
+#undef DLL_VAR
 
 namespace db
 {
