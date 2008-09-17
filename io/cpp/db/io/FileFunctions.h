@@ -36,6 +36,21 @@ inline static int lstat(const char* path, struct stat* buf)
 {
    return stat(path, buf);
 }
+
+/**
+ * In windows, all file permissions are defaulted to 777, there is no
+ * file permission parameter for mkdir().
+ * 
+ * @param path the name of the path to create.
+ * @param mode the file permissions.
+ * 
+ * @return 0 on success, -1 with errno set on failure.
+ */
+inline static int mkdir(const char *path, mode_t mode)
+{
+   return mkdir(path);
+}
+
 #else
 #include <iostream>
 

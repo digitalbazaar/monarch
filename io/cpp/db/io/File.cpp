@@ -86,14 +86,9 @@ bool FileImpl::mkdirs()
       rc = stat(path.c_str(), &s);
       if(rc != 0)
       {
+         // Note: windows does not allow permissions in mkdir()
          // directory doesn't exist, so try to create it
-#ifdef WIN32
-         // windows does not allow permissions in mkdir()
-         if(mkdir(path.c_str()) < 0)
-#else
-         // FIXME: allow user to set permissions via parameter?
          if(mkdir(path.c_str(), 0777) < 0)
-#endif
          {
             string msg = "Could not make directory! ";
             msg.append(strerror(errno));

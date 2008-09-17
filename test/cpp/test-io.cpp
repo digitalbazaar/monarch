@@ -324,6 +324,20 @@ void runBitStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
+#ifdef WIN32
+
+static int setenv(const char *name, const char *value, int overwrite)
+{
+   SetEnvironmentVariable(name, value);
+}
+
+static int unsetenv(const char *name)
+{
+   SetEnvironmentVariable(name, NULL);
+}
+
+#endif
+
 void runFileTest(TestRunner& tr)
 {
    tr.group("File");
