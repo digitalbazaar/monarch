@@ -328,12 +328,12 @@ void runBitStreamTest(TestRunner& tr)
 
 static int setenv(const char *name, const char *value, int overwrite)
 {
-   SetEnvironmentVariable(name, value);
+   return (SetEnvironmentVariable(name, value) != 0 ? 0 : -1);
 }
 
 static int unsetenv(const char *name)
 {
-   SetEnvironmentVariable(name, NULL);
+   return (SetEnvironmentVariable(name, value) != 0 ? 0 : -1);
 }
 
 #endif
