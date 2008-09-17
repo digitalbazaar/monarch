@@ -333,7 +333,7 @@ static int setenv(const char *name, const char *value, int overwrite)
 
 static int unsetenv(const char *name)
 {
-   return (SetEnvironmentVariable(name, value) != 0 ? 0 : -1);
+   return (SetEnvironmentVariable(name, NULL) != 0 ? 0 : -1);
 }
 
 #endif
