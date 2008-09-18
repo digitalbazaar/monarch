@@ -4,12 +4,24 @@
 #ifndef db_util_BitStream_H
 #define db_util_BitStream_H
 
+#include "db/rt/WindowsSupport.h"
+
 #include <string>
 
 namespace db
 {
 namespace io
 {
+
+#ifdef WIN32
+#   ifdef BUILD_DB_IO_DLL
+#      define DLL_CLASS __WIN32_DLL_EXPORT
+#   else
+#      define DLL_CLASS __WIN32_DLL_IMPORT
+#   endif
+#else
+#   define DLL_CLASS
+#endif
 
 /**
  * A BitStream is a bit set that is optimized for use with entire bytes or
@@ -18,7 +30,7 @@ namespace io
  * @author Dave Longley
  * @author Manu Sporny
  */
-class BitStream
+class DLL_CLASS BitStream
 {
 protected:
    /**
@@ -180,6 +192,8 @@ public:
     */
    virtual std::string toString(int offset, int length);
 };
+
+#undef DLL_CLASS
 
 } // end namespace io
 } // end namespace db

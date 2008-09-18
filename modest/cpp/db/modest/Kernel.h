@@ -7,6 +7,7 @@
 #include "db/modest/Engine.h"
 #include "db/modest/ModuleLibrary.h"
 #include "db/modest/OperationRunner.h"
+#include "db/rt/WindowsSupport.h"
 
 namespace db
 {
@@ -87,22 +88,23 @@ public:
 extern "C" {
 #endif
 
-// define MODEST_API directive
 #ifdef WIN32
-   #ifdef MODEST_API_EXPORT
-      #define MODEST_API __declspec(dllexport)
-   #else
-      #define MODEST_API __declspec(dllimport)
-   #endif
+#   ifdef BUILD_DB_MODEST_DLL
+#      define DLL_DATA __WIN32_DLL_EXPORT extern
+#   else
+#      define DLL_DATA __WIN32_DLL_IMPORT
+#   endif
 #else
-   #define MODEST_API
+#   define DLL_DATA extern
 #endif
 
-extern MODEST_API db::modest::Kernel* createModestKernel();
-extern MODEST_API void freeModestKernel(db::modest::Kernel* k);
+DLL_DATA db::modest::Kernel* createModestKernel();
+DLL_DATA void freeModestKernel(db::modest::Kernel* k);
 
 typedef db::modest::Kernel* (*CreateModestKernelFn)();
 typedef void (*FreeModestKernelFn)(db::modest::Kernel*);
+
+#undef DLL_DATA
 
 #ifdef __cplusplus
 }

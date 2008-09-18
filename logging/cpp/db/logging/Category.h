@@ -22,19 +22,18 @@ namespace db
 
 #ifdef WIN32
 #   ifdef BUILD_DB_LOGGING_DLL
-#      define DLL_VAR __WIN32_DLL_EXPORT extern
+#      define DLL_DATA __WIN32_DLL_EXPORT extern
 #   else
-#      define DLL_VAR __WIN32_DLL_IMPORT
+#      define DLL_DATA __WIN32_DLL_IMPORT
 #   endif
 #else
-#   define DLL_VAR extern
+#   define DLL_DATA extern
 #endif
 
-DLL_VAR db::logging::Category* DB_DEFAULT_CAT;
-DLL_VAR db::logging::Category* DB_ALL_CAT;
+DLL_DATA db::logging::Category* DB_DEFAULT_CAT;
+DLL_DATA db::logging::Category* DB_ALL_CAT;
 
-#undef DLL_VAR
-
+#undef DLL_DATA
 
 namespace db
 {

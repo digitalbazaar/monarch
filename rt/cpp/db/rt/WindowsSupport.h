@@ -13,20 +13,20 @@
  * #ifdef WIN32
  * #   ifdef BUILD_[prefix]_[libname]_DLL
  * #      define DLL_CLASS __WIN32_DLL_EXPORT
- * #      define DLL_VAR __WIN32_DLL_EXPORT extern
+ * #      define DLL_DATA __WIN32_DLL_EXPORT extern
  * #   else
  * #      define DLL_CLASS __WIN32_DLL_IMPORT
- * #      define DLL_VAR __WIN32_DLL_IMPORT
+ * #      define DLL_DATA __WIN32_DLL_IMPORT
  * #   endif
  * #else
  * #   define DLL_CLASS
- * #   define DLL_VAR extern
+ * #   define DLL_DATA extern
  * #endif
  * class DLL_CLASS MyClass {...};
- * DLL_VAR mytype* myvar;
+ * DLL_DATA mytype* myvar;
  * ...
  * #undef DLL_CLASS
- * #undef DLL_VAR
+ * #undef DLL_DATA
  */
 
 #ifndef __GNUC__

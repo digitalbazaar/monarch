@@ -4,12 +4,24 @@
 #ifndef db_data_id3v2_TagHeaderv2_H
 #define db_data_id3v2_TagHeaderv2_H
 
+#include "db/rt/WindowsSupport.h"
+
 namespace db
 {
 namespace data
 {
 namespace id3v2
 {
+
+#ifdef WIN32
+#   ifdef BUILD_DB_DATA_DLL
+#      define DLL_CLASS __WIN32_DLL_EXPORT
+#   else
+#      define DLL_CLASS __WIN32_DLL_IMPORT
+#   endif
+#else
+#   define DLL_CLASS
+#endif
 
 /**
  * An Id3v2 tag header. The currently supported version.revision is 3.0. That
@@ -37,7 +49,7 @@ namespace id3v2
  * 
  * @author Dave Longley
  */
-class TagHeader
+class DLL_CLASS TagHeader
 {
 protected:
    /**

@@ -3,7 +3,6 @@
  */
 #include "db/modest/ModuleLoader.h"
 
-#include "db/modest/ModuleApi.h"
 #include "db/rt/DynamicLibrary.h"
 #include "db/rt/DynamicObject.h"
 

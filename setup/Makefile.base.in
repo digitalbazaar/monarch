@@ -55,7 +55,7 @@ LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES))
 
 # Windows-specific variables
 WINDOWS_CXX = @WINDOWS_CXX@
-WINDOWS_CXX_FLAGS += -g -Wall -D_WIN32_WINNT=0x0501 -DMODEST_API_EXPORT $(MODULE_WINDOWS_CXX_FLAGS)
+WINDOWS_CXX_FLAGS += -g -Wall -D_WIN32_WINNT=0x0501 $(MODULE_WINDOWS_CXX_FLAGS)
 WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/3rdparty/cpp/pthread/include -I$(DBCORE)/3rdparty/cpp/openssl/include -I$(DBCORE)/3rdparty/cpp/expat/include -I$(DBCORE)/3rdparty/cpp/mysql/include -I$(DBCORE)/3rdparty/cpp/regex/include -I$(DBCORE)/3rdparty/cpp/sqlite3/include -I$(DBCORE)/3rdparty/cpp/zlib/include
 WINDOWS_LIB_DIR = $(DBCORE)/libs/windows
 WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
