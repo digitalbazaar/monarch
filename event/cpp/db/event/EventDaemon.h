@@ -33,7 +33,8 @@ protected:
       uint32_t interval;
       int count;
       uint32_t remaining;
-      EventData(Event& e, uint32_t i, int c);
+      int refs;
+      EventData(Event& e, uint32_t i, int c, int r);
    };
    
    /**
@@ -108,29 +109,39 @@ public:
    
    /**
     * Adds an event to be scheduled at the current interval for the specified
-    * number of times.
+    * number of times. If "refs" is specified and the same event at the same
+    * interval already exists, then its reference count will be updated and
+    * the passed count will be added to its remaining count or it will be
+    * set to infinite if specified.
     * 
     * @param e the event, with e["type"] set, to schedule.
     * @param interval the time at which to schedule the event, in milliseconds.
     * @param count the number of times to schedule the event, -1 for infinite.
+    * @param refs 0 to add a duplicate event if the given event and interval
+    *             interval have already been added, > 0 to add reference(s) to
+    *             an existing event and interval.
     */
-   virtual void add(Event& e, uint32_t interval, int count);
+   virtual void add(Event& e, uint32_t interval, int count, int refs = 0);
    
    /**
     * Removes an event type from this daemon. Events of the passed type will
     * no longer be scheduled by this daemon.
     * 
     * @param type the event type to remove.
+    * @param refs 0 to remove all references with the given type, > 0 to remove
+    *            references for the given type.
     */
-   virtual void remove(const char* type);
+   virtual void remove(const char* type, int refs = 0);
    
    /**
     * Removes a specific event from this daemon. It will no longer be scheduled
     * by this daemon.
     * 
     * @param e the specific event to remove.
+    * @param refs 0 to remove all references with the given event, > 0 to remove
+    *             some references for the given event.
     */
-   virtual void remove(Event& e);
+   virtual void remove(Event& e, int refs = 0);
    
    /**
     * Removes a specific event from this daemon. It will no longer be scheduled
@@ -138,8 +149,10 @@ public:
     * 
     * @param e the specific event to remove.
     * @param interval the event's previously set time interval.
+    * @param refs 0 to remove all events references to the given event, > 0 to
+    *             remove some references for the given event.
     */
-   virtual void remove(Event& e, uint32_t interval);
+   virtual void remove(Event& e, uint32_t interval, int refs = 0);
    
    /**
     * Runs this daemon.

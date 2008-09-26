@@ -551,6 +551,87 @@ void runEventDaemonTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runEventDaemonSharedEventTest(TestRunner& tr)
+{
+   tr.group("EventDaemon");
+   
+   // create kernel and start engine
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create event controller
+   EventController ec;
+   
+   // start event controller
+   ec.start(&k);
+   
+   // create event daemon
+   EventDaemon ed;
+   
+   // start event daemon
+   ed.start(&k, &ec);
+   
+   const char* evType = "TESTEVENT";
+   
+   tr.test("share 10x 200ms events");
+   {
+      EventWaiter ew1(&ec);
+      EventWaiter ew2(&ec);
+      ew1.start(evType);
+      ew2.start(evType);
+      
+      Event e1;
+      e1["type"] = evType;
+      e1["details"]["foo"] = "bar";
+      ed.add(e1, 200, 5, 1);
+      
+      Event e2;
+      e2["type"] = evType;
+      e2["details"]["foo"] = "bar";
+      ed.add(e2, 200, 5, 1);
+      
+      int count = 0;
+      uint64_t startTime = Timer::startTiming();
+      for(; count < 10; count++)
+      {
+         ew1.waitForEvent();
+         ew2.waitForEvent();
+         ew1.popEvent();
+         ew2.popEvent();
+      }
+      uint64_t time = Timer::getMilliseconds(startTime);
+      printf("time=%llu...", time);
+      assert(!ew1.waitForEvent(300));
+      assert(count == 10);
+   }
+   tr.pass();
+   
+   tr.test("No events");
+   {
+      Event e;
+      e["type"] = evType;
+      e["details"]["foo"] = "bar";
+      ed.remove(e, 200, 2);
+      Thread::sleep(100);
+      
+      EventWaiter ew(&ec);
+      ew.start(evType);
+      assert(!ew.waitForEvent(200));
+   }
+   tr.pass();
+   
+   // stop event daemon
+   ed.stop();
+   
+   // stop event controller
+   ec.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.ungroup();
+}
+
 void runInteractiveEventDaemonTest(TestRunner& tr)
 {
    tr.group("EventDaemon");
@@ -644,6 +725,7 @@ public:
       runEventWaiterTest(tr);
       runEventFilterTest(tr);
       runEventDaemonTest(tr);
+      runEventDaemonSharedEventTest(tr);
       return 0;
    }
 

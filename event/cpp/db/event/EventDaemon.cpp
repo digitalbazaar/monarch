@@ -11,11 +11,12 @@ using namespace db::modest;
 using namespace db::rt;
 using namespace db::util;
 
-EventDaemon::EventData::EventData(Event& e, uint32_t i, int c) :
+EventDaemon::EventData::EventData(Event& e, uint32_t i, int c, int r) :
    event(e.clone())
 {
    interval = remaining = i;
    count = c;
+   refs = r;
 }
 
 EventDaemon::EventDaemon()
@@ -85,16 +86,45 @@ void EventDaemon::stop()
    mLock.unlock();
 }
 
-void EventDaemon::add(Event& e, uint32_t interval, int count)
+void EventDaemon::add(Event& e, uint32_t interval, int count, int refs)
 {
-   if(count == -1 || count > 0)
+   if(refs >= 0 && (count == -1 || count > 0))
    {
       // lock to add an event
       mLock.lock();
       {
-         // create event data and add to the list
-         EventData ed(e, interval, count);
-         mEvents.push_back(ed);
+         // check to see if the event+interval already exists
+         bool found = false;
+         if(refs > 0)
+         {
+            // find the event
+            for(EventList::iterator i = mEvents.begin();
+                !found && i != mEvents.end(); i++)
+            {
+               // check interval first, it is a faster comparison
+               if(i->interval == interval && i->event == e)
+               {
+                  // event found
+                  found = true;
+                  
+                  // increment its references
+                  i->refs += refs;
+                  
+                  // update its count if not infinite
+                  if(i->count != -1)
+                  {
+                     i->count = (count == -1 ? -1 : i->count + count);
+                  }
+               }
+            }
+         }
+         
+         if(!found)
+         {
+            // create event data and add to the list
+            EventData ed(e, interval, count, (refs == 0 ? 1 : refs));
+            mEvents.push_back(ed);
+         }
          
          // notify daemon to try to schedule events
          mScheduleEvents = true;
@@ -104,18 +134,39 @@ void EventDaemon::add(Event& e, uint32_t interval, int count)
    }
 }
 
-void EventDaemon::remove(const char* type)
+void EventDaemon::remove(const char* type, int refs)
 {
    // lock to remove an event
    mLock.lock();
    {
       // find all events of the given type
-      for(EventList::iterator i = mEvents.begin(); i != mEvents.end();)
+      for(EventList::iterator i = mEvents.begin();
+          i != mEvents.end() && refs >= 0;)
       {
          if(strcmp(i->event["type"]->getString(), type) == 0)
          {
-            // event found, remove it
-            i = mEvents.erase(i);
+            // event found:
+            
+            // remove it entirely
+            if(refs == 0)
+            {
+               i = mEvents.erase(i);
+            }
+            // decrement its references
+            else
+            {
+               i->refs -= refs;
+               if(i->refs <= 0)
+               {
+                  // remove it
+                  i = mEvents.erase(i);
+               }
+               else
+               {
+                  // increment iterator
+                  i++;
+               }
+            }
          }
          else
          {
@@ -131,7 +182,7 @@ void EventDaemon::remove(const char* type)
    mLock.unlock();
 }
 
-void EventDaemon::remove(Event& e)
+void EventDaemon::remove(Event& e, int refs)
 {
    // lock to remove an event
    mLock.lock();
@@ -139,13 +190,28 @@ void EventDaemon::remove(Event& e)
       // find the event
       bool found = false;
       for(EventList::iterator i = mEvents.begin();
-          !found && i != mEvents.end(); i++)
+          !found && i != mEvents.end() && refs >= 0; i++)
       {
          if(i->event == e)
          {
-            // event found, remove it
+            // event found
             found = true;
-            mEvents.erase(i);
+            
+            // remove it entirely
+            if(refs == 0)
+            {
+               mEvents.erase(i);
+            }
+            // decrement its references
+            else
+            {
+               i->refs -= refs;
+               if(i->refs <= 0)
+               {
+                  // remove it
+                  mEvents.erase(i);
+               }
+            }
          }
       }
       
@@ -156,7 +222,7 @@ void EventDaemon::remove(Event& e)
    mLock.unlock();
 }
 
-void EventDaemon::remove(Event& e, uint32_t interval)
+void EventDaemon::remove(Event& e, uint32_t interval, int refs)
 {
    // lock to remove an event
    mLock.lock();
@@ -168,9 +234,24 @@ void EventDaemon::remove(Event& e, uint32_t interval)
       {
          if(i->event == e && i->interval == interval)
          {
-            // event found, remove it
+            // event found
             found = true;
-            mEvents.erase(i);
+            
+            // remove it entirely
+            if(refs == 0)
+            {
+               mEvents.erase(i);
+            }
+            // decrement its references
+            else
+            {
+               i->refs -= refs;
+               if(i->refs <= 0)
+               {
+                  // remove it
+                  mEvents.erase(i);
+               }
+            }
          }
       }
       
