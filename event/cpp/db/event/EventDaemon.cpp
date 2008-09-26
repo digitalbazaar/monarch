@@ -316,7 +316,7 @@ void EventDaemon::run()
                else
                {
                   // update remaining time
-                  i->remaining -= waitTime;
+                  i->remaining -= waited;
                }
                
                // update wait time
