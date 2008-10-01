@@ -237,10 +237,10 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                resHeader->setField("Content-Type", "text/html");
                resHeader->setField("Content-Length", 47);
                resHeader->setField("Connection", "close");
-               if(response->sendHeader())
+               if((noerror = response->sendHeader()))
                {
                   ByteArrayInputStream is(html, 47);
-                  response->sendBody(&is);
+                  noerror = response->sendBody(&is);
                }
             }
          }
