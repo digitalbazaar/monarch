@@ -85,122 +85,181 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    
    // create request
    HttpRequest* request = (HttpRequest*)hc.createRequest();
+   HttpRequestHeader* reqHeader = request->getHeader();
    
-   // create response, set defaults
+   // create response
    HttpResponse* response = (HttpResponse*)request->createResponse();
-   response->getHeader()->setVersion("HTTP/1.1");
-   response->getHeader()->setDate();
-   response->getHeader()->setField("Server", mServerName);
+   HttpResponseHeader* resHeader = response->getHeader();
    
-   // receive request header
-   if(request->receiveHeader())
+   // handle keep-alive (HTTP/1.1 keep-alive is on by default)
+   bool keepAlive = true;
+   bool noerror = true;
+   while(keepAlive && noerror)
    {
-      // check version
-      if(strcmp(request->getHeader()->getVersion(), "HTTP/1.0") == 0 ||
-         strcmp(request->getHeader()->getVersion(), "HTTP/1.1") == 0)
+      // set defaults
+      resHeader->setVersion("HTTP/1.1");
+      resHeader->setDate();
+      resHeader->setField("Server", mServerName);
+      
+      // receive request header
+      if((noerror = request->receiveHeader()))
       {
-         // set version according to request version
-         response->getHeader()->setVersion(request->getHeader()->getVersion());
+         // check http version
+         bool version10 = (strcmp(reqHeader->getVersion(), "HTTP/1.0") == 0);
+         bool version11 = (strcmp(reqHeader->getVersion(), "HTTP/1.1") == 0);
          
-         // include host path if one was used
-         string host;
-         if(request->getHeader()->getField("Host", host))
+         // only version 1.0 and 1.1 supported
+         if(version10 || version11)
          {
-            response->getHeader()->setField("Host", host);
-         }
-         
-         // get request path and normalize it
-         const char* inPath = request->getHeader()->getPath();
-         char outPath[strlen(inPath) + 2];
-         HttpRequestServicer::normalizePath(inPath, outPath);
-         
-         // find appropriate request servicer for path
-         HttpRequestServicer* hrs = NULL;
-         
-         // find secure/non-secure servicer
-         hrs = hc.isSecure() ?
-            findRequestServicer(outPath, mSecureServicers) :
-            findRequestServicer(outPath, mNonSecureServicers);
-         
-         if(hrs != NULL)
-         {
-            // service request
-            hrs->serviceRequest(request, response);
+            // set response version according to request version
+            resHeader->setVersion(reqHeader->getVersion());
+            
+            // include host path if one was used
+            string host;
+            if(reqHeader->getField("Host", host))
+            {
+               resHeader->setField("Host", host);
+            }
+            
+            // get connection header
+            string connHeader;
+            if(reqHeader->getField("Connection", connHeader))
+            {
+               if(strcasecmp(connHeader.c_str(), "close") == 0)
+               {
+                  keepAlive = false;
+               }
+               else if(strcasecmp(connHeader.c_str(), "keep-alive") == 0)
+               {
+                  keepAlive = true;
+               }
+            }
+            else if(version10)
+            {
+               // if HTTP/1.0 and no keep-alive header, keep-alive is off
+               keepAlive = false;
+            }
+            
+            // get request path and normalize it
+            const char* inPath = reqHeader->getPath();
+            char outPath[strlen(inPath) + 2];
+            HttpRequestServicer::normalizePath(inPath, outPath);
+            
+            // find appropriate request servicer for path
+            HttpRequestServicer* hrs = NULL;
+            
+            // find secure/non-secure servicer
+            hrs = hc.isSecure() ?
+               findRequestServicer(outPath, mSecureServicers) :
+               findRequestServicer(outPath, mNonSecureServicers);
+            
+            if(hrs != NULL)
+            {
+               // service request
+               hrs->serviceRequest(request, response);
+               
+               // if servicer closed connection, turn off keep-alive
+               if(c->isClosed())
+               {
+                  keepAlive = false;
+               }
+               
+               // turn off keep-alive if response has close connection field
+               if(keepAlive)
+               {
+                  if(resHeader->getField("Connection", connHeader) &&
+                     strcasecmp(connHeader.c_str(), "Close") == 0)
+                  {
+                     keepAlive = false;
+                  }
+               }
+            }
+            else
+            {
+               // no servicer, so send 404 Not Found
+               char html[] = "<html><h2>404 Not Found</h2></html>";
+               resHeader->setStatus(404, "Not Found");
+               resHeader->setField("Content-Type", "text/html");
+               resHeader->setField("Content-Length", 35);
+               resHeader->setField("Connection", "close");
+               if((noerror = response->sendHeader()))
+               {
+                  ByteArrayInputStream is(html, 35);
+                  noerror = response->sendBody(&is);
+               }
+            }
          }
          else
          {
-            // no servicer, so send 404 Not Found
-            char html[] = "<html><h2>404 Not Found</h2></html>";
-            response->getHeader()->setStatus(404, "Not Found");
-            response->getHeader()->setField("Content-Type", "text/html");
-            response->getHeader()->setField("Content-Length", 35);
-            response->getHeader()->setField("Connection", "close");
-            if(response->sendHeader())
+            // send 505 HTTP Version Not Supported
+            char html[] =
+               "<html><h2>505 HTTP Version Not Supported</h2></html>";
+            resHeader->setStatus(505, "HTTP Version Not Supported");
+            resHeader->setField("Content-Type", "text/html");
+            resHeader->setField("Content-Length", 52);
+            resHeader->setField("Connection", "close");
+            if((noerror = response->sendHeader()))
             {
-               ByteArrayInputStream is(html, 35);
-               response->sendBody(&is);
+               ByteArrayInputStream is(html, 52);
+               noerror = response->sendBody(&is);
             }
          }
       }
       else
       {
-         // send 505 HTTP Version Not Supported
-         char html[] = "<html><h2>505 HTTP Version Not Supported</h2></html>";
-         response->getHeader()->setStatus(505, "HTTP Version Not Supported");
-         response->getHeader()->setField("Content-Type", "text/html");
-         response->getHeader()->setField("Content-Length", 52);
-         response->getHeader()->setField("Connection", "close");
-         if(response->sendHeader())
+         // exception occurred while receiving header
+         ExceptionRef e = Exception::getLast();
+         if(!e.isNull() && strcmp(e->getType(), "db.net.http.BadRequest") == 1)
          {
-            ByteArrayInputStream is(html, 52);
-            response->sendBody(&is);
-         }
-      }
-   }
-   else
-   {
-      // exception occurred while receiving header
-      ExceptionRef e = Exception::getLast();
-      if(!e.isNull() && strcmp(e->getType(), "db.net.http.BadRequest") == 1)
-      {
-         // send 400 Bad Request
-         char html[] = "<html><h2>400 Bad Request</h2></html>";
-         response->getHeader()->setStatus(400, "Bad Request");
-         response->getHeader()->setField("Content-Type", "text/html");
-         response->getHeader()->setField("Content-Length", 38);
-         response->getHeader()->setField("Connection", "close");
-         if(response->sendHeader())
-         {
-            ByteArrayInputStream is(html, 38);
-            response->sendBody(&is);
-         }
-      }
-      else
-      {
-         // if the exception was not an interruption or socket error then
-         // send an internal server error response
-         if(!e.isNull() &&
-            strcmp(e->getType(), "db.io.InterruptedException") != 0 &&
-            strncmp(e->getType(), "db.net.Socket", 13) != 0)
-         {
-            // send 500 Internal Server Error
-            char html[] = "<html><h2>500 Internal Server Error</h2></html>";
-            response->getHeader()->setStatus(500, "Internal Server Error");
+            // send 400 Bad Request
+            char html[] = "<html><h2>400 Bad Request</h2></html>";
+            response->getHeader()->setStatus(400, "Bad Request");
             response->getHeader()->setField("Content-Type", "text/html");
-            response->getHeader()->setField("Content-Length", 47);
+            response->getHeader()->setField("Content-Length", 38);
             response->getHeader()->setField("Connection", "close");
             if(response->sendHeader())
             {
-               ByteArrayInputStream is(html, 47);
+               ByteArrayInputStream is(html, 38);
                response->sendBody(&is);
             }
          }
+         else
+         {
+            // if the exception was not an interruption or socket error then
+            // send an internal server error response
+            if(!e.isNull() &&
+               strcmp(e->getType(), "db.io.InterruptedException") != 0 &&
+               strncmp(e->getType(), "db.net.Socket", 13) != 0)
+            {
+               // send 500 Internal Server Error
+               char html[] = "<html><h2>500 Internal Server Error</h2></html>";
+               resHeader->setStatus(500, "Internal Server Error");
+               resHeader->setField("Content-Type", "text/html");
+               resHeader->setField("Content-Length", 47);
+               resHeader->setField("Connection", "close");
+               if(response->sendHeader())
+               {
+                  ByteArrayInputStream is(html, 47);
+                  response->sendBody(&is);
+               }
+            }
+         }
+      }
+      
+      if(keepAlive && noerror)
+      {
+         // clear request and response header fields
+         reqHeader->clearFields();
+         resHeader->clearFields();
       }
    }
    
    // clean up request and response
    delete request;
    delete response;
+   
+   // close connection
+   hc.close();
 }
 
 void HttpConnectionServicer::addRequestServicer(
