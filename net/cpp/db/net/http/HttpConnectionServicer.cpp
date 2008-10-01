@@ -168,7 +168,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                if(keepAlive)
                {
                   if(resHeader->getField("Connection", connHeader) &&
-                     strcasecmp(connHeader.c_str(), "Close") == 0)
+                     strcasecmp(connHeader.c_str(), "close") == 0)
                   {
                      keepAlive = false;
                   }
