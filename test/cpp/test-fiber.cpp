@@ -623,6 +623,10 @@ void runJsonTest(TestRunner& tr,
          delete t[i];
       }
    }
+   else
+   {
+      printf("BAD MODE: %s\n", mode);
+   }
    
    if(tr.getOutputLevel() == TestRunner::None)
    {
