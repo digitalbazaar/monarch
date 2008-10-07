@@ -253,7 +253,7 @@ void JsonWriter::setIndentation(int level, int spaces)
    mIndentSpaces = spaces;
 }
 
-bool JsonWriter::writeDynamicObjectToStream(
+bool JsonWriter::writeToOStream(
    DynamicObject& dyno, ostream& stream, bool compact, bool strict)
 {
    OStreamOutputStream os(&stream);
@@ -266,13 +266,13 @@ bool JsonWriter::writeDynamicObjectToStream(
    return jw.write(dyno, &os);
 }
 
-std::string JsonWriter::writeDynamicObjectToString(
+std::string JsonWriter::writeToString(
    DynamicObject& dyno, bool compact, bool strict)
 {
    string rval;
    
    ostringstream oss;
-   if(writeDynamicObjectToStream(dyno, oss, compact, strict))
+   if(writeToOStream(dyno, oss, compact, strict))
    {
       rval = oss.str();
    }
@@ -280,11 +280,11 @@ std::string JsonWriter::writeDynamicObjectToString(
    return rval;
 }
 
-bool JsonWriter::writeDynamicObjectToStdOut(
+bool JsonWriter::writeToStdOut(
    DynamicObject& dyno, bool compact, bool strict)
 {
    bool rval;
-   if((rval = writeDynamicObjectToStream(dyno, cout, compact, strict)))
+   if((rval = writeToOStream(dyno, cout, compact, strict)))
    {
       cout << endl;
       cout.flush();

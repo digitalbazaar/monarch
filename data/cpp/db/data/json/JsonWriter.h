@@ -121,7 +121,7 @@ public:
     * 
     * @return true on success, false with exception set on failure.
     */
-   static bool writeDynamicObjectToStream(
+   static bool writeToOStream(
       db::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false,
       bool strict = true);
 
@@ -135,7 +135,7 @@ public:
     * @return the string with JSON data on success, a blank string with
     *         exception set on failure.
     */
-   static std::string writeDynamicObjectToString(
+   static std::string writeToString(
       db::rt::DynamicObject& dyno, bool compact = false, bool strict = true);
    
    /**
@@ -147,7 +147,7 @@ public:
     * 
     * @return true on success, false with exception set on failure.
     */
-   static bool writeDynamicObjectToStdOut(
+   static bool writeToStdOut(
       db::rt::DynamicObject& dyno, bool compact = false, bool strict = true);
 };
 

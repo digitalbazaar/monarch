@@ -59,7 +59,7 @@ void dumpDynamicObjectText(db::rt::DynamicObject& dyno);
  * 
  * @return true on success, false and exception on failure.
  */
-bool dynamicObjectToStream(
+bool dynamicObjectToOStream(
    db::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false);
 
 /**
@@ -136,10 +136,10 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
       if(!(a == b)) \
       { \
          std::cout << "dyno a="; \
-         db::data::json::JsonWriter::writeDynamicObjectToStdOut( \
+         db::data::json::JsonWriter::writeToStdOut( \
             a, false, false); \
          std::cout << "dyno b="; \
-         db::data::json::JsonWriter::writeDynamicObjectToStdOut( \
+         db::data::json::JsonWriter::writeToStdOut( \
             b, false, false); \
          assert(a == b); \
       } \

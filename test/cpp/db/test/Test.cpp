@@ -21,7 +21,7 @@ bool db::test::dumpException(ExceptionRef& e)
    
    cout << "EXCEPTION:" << endl;
    DynamicObject d = Exception::convertToDynamicObject(e);
-   rval = JsonWriter::writeDynamicObjectToStream(d, cout);
+   rval = JsonWriter::writeToStdOut(d);
    cout << endl;
    
    return rval;
@@ -100,20 +100,20 @@ void db::test::dumpDynamicObjectText(DynamicObject& dyno)
    dumpDynamicObjectText_(dyno, NULL, 0);
 }
 
-bool db::test::dynamicObjectToStream(
+bool db::test::dynamicObjectToOStream(
    DynamicObject& dyno, ostream& stream, bool compact)
 {
-   return JsonWriter::writeDynamicObjectToStream(dyno, stream, compact);
+   return JsonWriter::writeToOStream(dyno, stream, compact);
 }
 
 bool db::test::dynamicObjectToString(
    DynamicObject& dyno, string& str, bool compact)
 {
-   str = JsonWriter::writeDynamicObjectToString(dyno, compact);
+   str = JsonWriter::writeToString(dyno, compact);
    return str.length() > 0;
 }
 
 bool db::test::dumpDynamicObject(DynamicObject& dyno, bool compact)
 {
-   return JsonWriter::writeDynamicObjectToStdOut(dyno, compact);
+   return JsonWriter::writeToStdOut(dyno, compact);
 }

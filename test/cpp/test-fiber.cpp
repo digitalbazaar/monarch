@@ -59,7 +59,7 @@ public:
    virtual void processMessage(DynamicObject& msg)
    {
       //printf("Processing msg:\n%s\n",
-      //   JsonWriter::writeDynamicObjectToString(msg).c_str());
+      //   JsonWriter::writeToString(msg).c_str());
       (*msgs)++;
    }
    
@@ -99,7 +99,7 @@ void runFiberTest(TestRunner& tr)
       k.getEngine()->start();
       
       FiberScheduler fs;
-      fs.start(&k, 2);
+      fs.start(&k, 4);
       
       TestFiber* fiber = new TestFiber(10);
       fs.addFiber(fiber);
@@ -128,7 +128,7 @@ void runFiberTest(TestRunner& tr)
       }
       
       uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 2);
+      fs.start(&k, 4);
       
       // add more fibers
       for(int i = 0; i < 20; i++)
@@ -163,7 +163,7 @@ void runFiberTest(TestRunner& tr)
       }
       
       uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 2);
+      fs.start(&k, 4);
       
       int msgs = 0;
       for(int i = 0; i < 20; i++)
@@ -192,7 +192,7 @@ void runFiberTest(TestRunner& tr)
       k.getEngine()->start();
       
       FiberScheduler fs;
-      fs.start(&k, 2);
+      fs.start(&k, 4);
       
       TestFiber* fiber = new TestFiber(100000);
       FiberId id = fs.addFiber(fiber);
@@ -266,7 +266,7 @@ void runSpeedTest(TestRunner& tr)
       }
       
       uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 2);
+      fs.start(&k, 4);
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       
@@ -288,7 +288,7 @@ void runSpeedTest(TestRunner& tr)
       }
       
       uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 2);
+      fs.start(&k, 4);
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       
@@ -370,7 +370,7 @@ void runConcurrentSigningTest(TestRunner& tr)
       
       printf("\n");
       uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 2);
+      fs.start(&k, 4);
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       
@@ -523,7 +523,7 @@ void runJsonTest(TestRunner& tr,
       {
          /* somewhat complex JSON */
          DynamicObject d = makeJsonTestDyno1();
-         s.assign(JsonWriter::writeDynamicObjectToString(d, true));
+         s.assign(JsonWriter::writeToString(d, true));
          break;
       }
       case 2:
