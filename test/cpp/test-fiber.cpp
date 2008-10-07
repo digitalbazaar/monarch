@@ -696,7 +696,8 @@ protected:
          }
          
          // add final value if needed
-         if((9 * mag) <= max)
+         int last = (int)pow((double)10, mag);
+         if(last <= max)
          {
             rval++;
          }
@@ -744,9 +745,10 @@ protected:
          }
          
          // add final value if needed
-         if((9 * mag) <= max)
+         int last = (int)pow((double)10, mag);
+         if(last <= max)
          {
-            d[i] = (int)pow((double)10, mag);
+            d[i] = last;
          }
       }
    }
