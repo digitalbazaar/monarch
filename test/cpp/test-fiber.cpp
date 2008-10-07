@@ -623,6 +623,10 @@ void runJsonTest(TestRunner& tr,
          delete t[i];
       }
    }
+   else
+   {
+      printf("BAD MODE: %s\n", mode);
+   }
    
    if(tr.getOutputLevel() == TestRunner::None)
    {
@@ -658,6 +662,101 @@ void runJsonTest(TestRunner& tr,
 
 class DbFiberTester : public db::test::Tester
 {
+protected:
+   /**
+    * Calculate size of a test array.
+    * 
+    * @param lin true if linear, false if log
+    * @param min min value
+    * @param max max value
+    * @param mag log base 10 magnitude max
+    */
+   virtual int calculateTestArraySize(bool lin, int min, int max, int mag)
+   {
+      int rval;
+      if(lin)
+      {
+         rval = max - min + 1;
+      }
+      else
+      {
+         // full from 1 to 10^mag
+         //int full = 9*mag + 1;
+         // FIXME find algorithm for num vals between min/max for log 10 n
+         rval = 0;
+         // loop over base 10 log vals from 1 to 10*tmag
+         int p = 1;
+         for(int e = 0; e < mag; e++)
+         {
+            for(int n = 0; n < 9; n++)
+            {
+               int val = (n + 1) * p;
+               if(val >= min && val <= max)
+               {
+                  rval++;
+               }
+            }
+            p = p * 10;
+         }
+         
+         // add final value if needed
+         int last = (int)pow((double)10, mag);
+         if(last <= max)
+         {
+            rval++;
+         }
+      }
+      return rval;
+   }
+   
+   /**
+    * Fill a test array.  If lin, then from min to max, else all log base 10
+    * values from 1 to 10^mag between min and max.
+    * 
+    * @param d the test array to fill
+    * @param lin true if linear, false if log
+    * @param min min value
+    * @param max max value
+    * @param mag log base 10 magnitude max
+    */
+   virtual void fillTestArray(int* d, bool lin, int min, int max, int mag)
+   {
+      if(lin)
+      {
+         for(int i = min; i <= max; i++)
+         {
+            d[i - min] = i;
+         }
+      }
+      else
+      {
+         // current index
+         int i = 0;
+         // base 10 log vals from 1 to 10*tmag
+         int p = 1;
+         for(int e = 0; e < mag; e++)
+         {
+            for(int n = 0; n < 9; n++)
+            {
+               int val = (n + 1) * p;
+               if(val >= min && val <= max)
+               {
+                  d[i] = val;
+                  i++;
+               }
+            }
+            p = p * 10;
+         }
+         
+         // add final value if needed
+         int last = (int)pow((double)10, mag);
+         if(last <= max)
+         {
+            d[i] = last;
+         }
+      }
+   }
+   
 public:
    DbFiberTester()
    {
@@ -676,6 +775,36 @@ public:
 
    /**
     * Runs interactive unit tests.
+    * 
+    * Options:
+    * --test all - run all tests
+    * --test sign - signing test
+    * --test json - run one json encode/decode test
+    * --test jsonmatrix - run a matrix of json encode/decode tests
+    * --option loops <n> - number of times to run each individual test
+    * --option dyno 1 - complex dynamic object
+    * --option dyno 2 - trivial "{}" dynamic object
+    * --option csv true - output in CSV format
+    * --option mode fibers - use fibers for ops with 'threads' threads
+    * --option mode modest - use modest operations for ops with 'threads'
+    *                        thread pool size
+    * --option mode threads - use 'threads' threads for ops
+    * --option threads <n> - how many threads to use (direct or pool size)
+    * --option ops <n> - how many operations to perform
+    * 
+    * For jsonmatrix:
+    * For the threads (t) and operations (o) parameters an array will be
+    * created of test values.  Then each combination of t and o values will be
+    * tested.  The values will range from 1 to [t,o]max on a base 10 log scale
+    * by default.  The min and max values can be specified with [t,o]min and
+    * [t,o]max.  If [t,o]lin is true then the values will be linear between min
+    * and max.
+    * 
+    * --option tmag <n> - max log thread magnitude
+    * --option tmin <n> - min number of threads
+    * --option tmax <n> - max number of threads
+    * --option tlin <true|false> - if true, use linear scale from tmin to tmax
+    * (similar for operations via omag/omin/omax/olin)
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
@@ -718,67 +847,44 @@ public:
          
          if(all || (strcmp(test, "jsonmatrix") == 0))
          {
-            // loop threads from 1 to 10*tmag
+            bool tlin = cfg->hasMember("tlin") ?
+               cfg["tlin"]->getBoolean() : false;
             int tmag = cfg->hasMember("tmag") ?
                cfg["tmag"]->getInt32() : 1;
-            // loop ops from 1 to 10*omag
+            int tmin = cfg->hasMember("tmin") ?
+               cfg["tmin"]->getInt32() : 1;
+            int tmax = cfg->hasMember("tmax") ?
+               cfg["tmax"]->getInt32() :
+                  (tlin ? 10 : (int)pow((double)10, tmag));
+               
+            bool olin = cfg->hasMember("olin") ?
+               cfg["olin"]->getBoolean() : false;
             int omag = cfg->hasMember("omag") ?
                cfg["omag"]->getInt32() : 1;
+            int omin = cfg->hasMember("omin") ?
+               cfg["omin"]->getInt32() : 1;
+            int omax = cfg->hasMember("omax") ?
+               cfg["omax"]->getInt32() :
+                  (olin ? 10 : (int)pow((double)10, omag));
+               
             // make the thread and ops count arrays
-            //int tn[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-            //   16, 32, 64, 0};
-            //int on[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-            //   1<<4, 1<<5, 1<<6, 1<<7, 1<<8,
-            //   1<<9, 1<<10, 1<<11, 1<<12, 1<<13, 1<<14, 1<<15, 0};
-            //int tn[] = {
-            //     1,  2,  3,  4,  5,  6,  7,  8,  9,
-            //    10, 20, 30, 40, 50, 60, 70, 80, 90,
-            //   100, 0};
+            int tsize = calculateTestArraySize(tlin, tmin, tmax, tmag);
+            int td[tsize];
+            fillTestArray(td, tlin, tmin, tmax, tmag);
             
-            int tn[9*tmag+2];
-            tn[9*tmag] = (int)pow((double)10,tmag);
-            tn[9*tmag+1] = 0;
-            {
-               // base 10 log vals from 1 to 10*tmag
-               int p = 1;
-               for(int e = 0; e < tmag; e++)
-               {
-                  for(int i = 0; i < 9; i++)
-                  {
-                     int idx = (e * 9) + i;
-                     int val = (i + 1) * p;
-                     tn[idx] = val;
-                  }
-                  p = p * 10;
-               }
-            }
-            
-            int on[9*omag+2];
-            on[9*omag] = (int)pow((double)10,omag);
-            on[9*omag+1] = 0;
-            {
-               // base 10 log vals from 1 to 10*omag
-               int p = 1;
-               for(int e = 0; e < omag; e++)
-               {
-                  for(int i = 0; i < 9; i++)
-                  {
-                     int idx = (e * 9) + i;
-                     int val = (i + 1) * p;
-                     on[idx] = val;
-                  }
-                  p = p * 10;
-               }
-            }
+            int osize = calculateTestArraySize(olin, omin, omax, omag);
+            int od[osize];
+            fillTestArray(od, olin, omin, omax, omag);
             
             // matrix of threads vs ops
-            for(int ti=0; tn[ti] != 0; ti++)
+            for(int ti = 0; ti < tsize; ti++)
             {
-               for(int oi=0; on[oi] != 0; oi++)
+               for(int oi = 0; oi < osize; oi++)
                {
                   for(int i = 0; i < loops; i++)
                   {
-                     runJsonTest(tr, mode, tn[ti], on[oi], dyno, csv);
+                     //printf("test: t:%d o:%d\n", td[ti], od[oi]);
+                     runJsonTest(tr, mode, td[ti], od[oi], dyno, csv);
                   }
                }
             }
