@@ -844,6 +844,18 @@ void runUrlTest(TestRunner& tr)
    }
    
    {
+      Url url("http://example.com/path/"
+         "?key1=100&start=2008-07-04+00%3a00%3a00&end=2008-07-04+23%3a59%3a59");
+      
+      //dumpUrl(url);
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assertStrCmp(vars["key1"]->getString(), "100");
+      assertStrCmp(vars["start"]->getString(), "2008-07-04 00:00:00");
+      assertStrCmp(vars["end"]->getString(), "2008-07-04 23:59:59");
+   }
+   
+   {
       Url url("http://bitmunk.com/path?email=wa-hoo.test_user%40bitmunk.com");
       
       //dumpUrl(url);
