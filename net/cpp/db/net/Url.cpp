@@ -522,6 +522,11 @@ string Url::encode(const char* str, unsigned int length)
    return rval;
 }
 
+string Url::encode(const char* str)
+{
+   return Url::encode(str, strlen(str));
+}
+
 string Url::decode(const char* str, unsigned int length)
 {
    string rval;
@@ -575,6 +580,11 @@ string Url::decode(const char* str, unsigned int length)
    }
    
    return rval;
+}
+
+string Url::decode(const char* str)
+{
+   return Url::decode(str, strlen(str));
 }
 
 string Url::formEncode(DynamicObject& form)

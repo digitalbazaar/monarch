@@ -302,6 +302,15 @@ public:
    static std::string encode(const char* str, unsigned int length);
    
    /**
+    * URL-encodes the passed string.
+    * 
+    * @param str the string to URL-encode.
+    * 
+    * @return the URL-encoded string.
+    */
+   static std::string encode(const char* str);
+   
+   /**
     * URL-decodes the passed string.
     * 
     * @param str the string to URL-decode.
@@ -310,6 +319,15 @@ public:
     * @return the URL-decoded string.
     */
    static std::string decode(const char* str, unsigned int length);
+   
+   /**
+    * URL-decodes the passed string.
+    * 
+    * @param str the string to URL-decode.
+    * 
+    * @return the URL-decoded string.
+    */
+   static std::string decode(const char* str);
    
    /**
     * URL-form-encodes the passed form to a string.
