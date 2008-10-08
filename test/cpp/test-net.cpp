@@ -927,6 +927,34 @@ void runUrlTest(TestRunner& tr)
       assertStrCmp(vars["q"]->getString(), allchars);
    }
    
+   {
+      Url url("http://bitmunk.com");
+      DynamicObject vars;
+      vars["q1"] = "one";
+      vars["q2"] = "two";
+      url.addQueryVariables(vars);
+      assertStrCmp(url.toString().c_str(), "http://bitmunk.com?q1=one&q2=two");
+   }
+   
+   {
+      Url url("http://bitmunk.com?q1=1");
+      DynamicObject vars;
+      vars["q2"] = "2";
+      vars["q3"] = "3";
+      url.addQueryVariables(vars);
+      assertStrCmp(url.toString().c_str(), "http://bitmunk.com?q1=1&q2=2&q3=3");
+   }
+   
+   {
+      Url url("http://bitmunk.com");
+      DynamicObject vars;
+      vars["date"] = "2008-01-01 00:00:01";
+      url.addQueryVariables(vars);
+      assertStrCmp(
+         url.toString().c_str(),
+         "http://bitmunk.com?date=2008-01-01+00%3A00%3A01");
+   }
+   
    tr.pass();
 }
 
@@ -2101,13 +2129,12 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      /*
       runAddressResolveTest(tr);
       runSocketTest(tr);
       runUrlEncodeTest(tr);
       runUrlTest(tr);
       runHttpHeaderTest(tr);
-      runHttpNormalizePath(tr);*/
+      runHttpNormalizePath(tr);
       runCookieTest(tr);
       return 0;
    }

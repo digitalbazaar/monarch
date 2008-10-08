@@ -245,6 +245,15 @@ public:
    virtual const std::string& getQuery();
    
    /**
+    * Adds variables to this url. The variables in the passed map will be
+    * url-encoded.
+    * 
+    * @param vars the DynamicObject Map with key-value pairs to add to the
+    *             query.
+    */
+   virtual void addQueryVariables(db::rt::DynamicObject& vars);
+   
+   /**
     * Gets the variables from the query of this url.
     * 
     * @param vars the DynamicObject Map to populate with the variables from

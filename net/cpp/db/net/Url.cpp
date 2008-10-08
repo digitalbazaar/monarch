@@ -398,6 +398,35 @@ const string& Url::getQuery()
    return mQuery;
 }
 
+void Url::addQueryVariables(DynamicObject& vars)
+{
+   if(vars->getType() == Map && vars->length() > 0)
+   {
+      string query;
+      DynamicObjectIterator i = vars.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         
+         if(query.length() > 0 || mQuery.length() > 0)
+         {
+            query.push_back('&');
+         }
+         query.append(encode(i->getName()));
+         query.push_back('=');
+         query.append(encode(next->getString()));
+      }
+      
+      // update scheme specific part and query
+      if(mQuery.length() == 0)
+      {
+         mSchemeSpecificPart.push_back('?');
+      }
+      mSchemeSpecificPart.append(query);
+      mQuery.append(query);
+   }
+}
+
 bool Url::getQueryVariables(DynamicObject& vars)
 {
    // url-form decode query
