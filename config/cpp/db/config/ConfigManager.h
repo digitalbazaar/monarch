@@ -39,7 +39,7 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * merged config. Configs are typedefs of DynamicObjects.
  *
  * As you add configs they overlay previously added configs:
- * [sys0, sys1, sys2, user0, sys3, ...]
+ * [sys0, sys1, sys2, custom0, sys3, ...]
  * <-- low priority -- high priority -->
  *
  * getChanges() will retrieve the difference between the system configs and
@@ -56,8 +56,8 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * "load": Supress load of the path. (Boolean, optional, default: true)
  * "optional": Supress failures if path not found.
  *    (Boolean, optional, default: false)
- * "user": Load a specific config as a User type rather tha Default.
- *    (Boolean, optional, default: false)
+ * "defaults": Load a specific config as Defaults.
+ *    (Boolean, optional, default: true)
  * "deep": Load each subdir as a dir of configs.
  *    (Boolean, optional, default: false)
  * "magic": Recursively scan for magic keys and replace them with appropriate
@@ -96,12 +96,12 @@ public:
       Default,
       
       /**
-       * User configs.  Provided by users of the system.
+       * Custom configs.  Configs which override Default configs.
        */
-      User,
+      Custom,
       
       /**
-       * Both Default and User configs
+       * Both Default and Custom configs
        */
       All
    };
@@ -119,7 +119,7 @@ protected:
    typedef std::pair<Config, ConfigType> ConfigPair;
 
    /**
-    * Source configs and system/user flag.
+    * Source configs and type flag.
     */
    std::vector<ConfigPair> mConfigs;
    
@@ -197,7 +197,7 @@ public:
    /**
     * Magic key for a property which is only temporary for this session.
     * getChanges and similar will skip this value.  Useful for run-time
-    * caches and other data which should not be saved as user config.
+    * caches and other data which should not be saved as non-default config.
     */
    static const char* TMP;
    
@@ -323,7 +323,7 @@ public:
     *
     * @param target the Config to store the changes in.
     * @param baseType the type to compare against (useful values are Default,
-    *        User, and All).
+    *        Custom, and All).
     * @param addVersion add the first version string added with addVersion
     *        to target.  Useful if target will be saved and needs to be
     *        reloaded.
