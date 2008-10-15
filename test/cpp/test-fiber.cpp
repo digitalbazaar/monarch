@@ -640,6 +640,15 @@ void runJsonTest(TestRunner& tr,
       printf("BAD MODE: %s\n", mode);
    }
    
+   // handle thread mem issue by making process time 0
+   if(Exception::hasLast() &&
+      strcmp(Exception::getLast()->getType(),
+         "db.rt.Thread.InsufficientMemory") == 0)
+   {
+      proc_dt = 0;
+      Exception::clearLast();
+   }
+   
    if(tr.getOutputLevel() == TestRunner::None)
    {
       const char* comment = csv ? "#" : "";
