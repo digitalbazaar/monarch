@@ -511,12 +511,15 @@ public:
 static bool header = true;
 
 /**
- * JSON test
+ * JSON test.
+ * The "threads" mode is using 1 thread per operation.  To normalize this
+ * behavior with "fibers" and "modest" the 'ops' parameter is used in "threads"
+ * mode to control how many threads are used.
  * 
  * @param mode "fibers", "modest", or "threads"
- * @param threads number of threads to run fibers, size of modest thread pool
- *        or number of threads.
- * @param ops number of fibers or modest operations.  not used for threads.
+ * @param threads number of threads to run fibers or size of modest thread pool
+ *        (not used for "threads" test)
+ * @param ops number of fibers, modest operations, or operation threads.
  * @param oploops number of times to repeat each op
  * @param dyno id of dyno to use.  1=complex 2=simple
  * @param csv output in CSV format with '#' comments and spaces around data
@@ -603,22 +606,23 @@ void runJsonTest(TestRunner& tr,
    }
    else if(strcmp(mode, "threads") == 0)
    {
-      Thread* t[threads];
+      // using 1 thread per op
+      Thread* t[ops];
       
       // queue up Operations
       start_init = Timer::startTiming();
       JsonRWRunnable r(s.c_str(), oploops);
-      for(int i = 0; i < threads; i++)
+      for(int i = 0; i < ops; i++)
       {
          t[i] = new Thread(&r);
       }
       
       start_process = Timer::startTiming();
-      for(int i = 0; i < threads; i++)
+      for(int i = 0; i < ops; i++)
       {
          t[i]->start();
       }
-      for(int i = 0; i < threads; i++)
+      for(int i = 0; i < ops; i++)
       {
          t[i]->join();
       }
@@ -626,7 +630,7 @@ void runJsonTest(TestRunner& tr,
       proc_dt = Timer::getMilliseconds(start_process);
       init_dt = start_process - start_init;
       
-      for(int i = 0; i < threads; i++)
+      for(int i = 0; i < ops; i++)
       {
          delete t[i];
       }
