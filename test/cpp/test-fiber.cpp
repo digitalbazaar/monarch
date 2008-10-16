@@ -433,23 +433,20 @@ static DynamicObject makeJsonTestDyno1()
  * @param s JSON string
  * @param slen length of s
  */
-static void jsonReadWrite(const char* s, size_t slen, int loops)
+static void jsonReadWrite(const char* s, size_t slen)
 {
-   while(loops--)
-   {
-      // decode json -> dyno
-      JsonReader jr;
-      DynamicObject d;
-      JsonReader::readDynamicObjectFromString(d, s, slen);
-      assertNoException();
-      
-      // encode dyno -> json
-      NullOutputStream os;
-      JsonWriter jw;
-      jw.setCompact(true);
-      jw.write(d, &os);
-      assertNoException();
-   }
+   // decode json -> dyno
+   JsonReader jr;
+   DynamicObject d;
+   JsonReader::readDynamicObjectFromString(d, s, slen);
+   assertNoException();
+   
+   // encode dyno -> json
+   NullOutputStream os;
+   JsonWriter jw;
+   jw.setCompact(true);
+   jw.write(d, &os);
+   assertNoException();
 }
 
 /**
@@ -473,8 +470,14 @@ public:
    virtual void run()
    {
       //printf("[%d] JsonFiber running.\n", getId());
-      jsonReadWrite(mStr, mStrlen, mLoops);
-      exit();
+      if(mLoops-- > 0)
+      {
+         jsonReadWrite(mStr, mStrlen);
+      }
+      else
+      {
+         exit();
+      }
    }
    
    virtual void interrupted()
@@ -504,7 +507,10 @@ public:
    
    virtual void run()
    {
-      jsonReadWrite(mStr, mStrlen, mLoops);
+      while(mLoops--)
+      {
+         jsonReadWrite(mStr, mStrlen);
+      }
    }
 };
 
