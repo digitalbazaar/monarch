@@ -614,13 +614,14 @@ void runJsonTest(TestRunner& tr,
    {
       // using 1 thread per op
       Thread* t[ops];
+      JsonRWRunnable* r[ops];
       
       // queue up Operations
       start_init = Timer::startTiming();
-      JsonRWRunnable r(s.c_str(), oploops);
       for(int i = 0; i < ops; i++)
       {
-         t[i] = new Thread(&r);
+         r[i] = new JsonRWRunnable(s.c_str(), oploops);
+         t[i] = new Thread(r[i]);
       }
       
       start_process = Timer::startTiming();
@@ -638,6 +639,7 @@ void runJsonTest(TestRunner& tr,
       
       for(int i = 0; i < ops; i++)
       {
+         delete r[i];
          delete t[i];
       }
    }
