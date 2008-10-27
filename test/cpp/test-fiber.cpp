@@ -457,19 +457,27 @@ class JsonRWFiber : public Fiber
 protected:
    const char* mStr;
    size_t mStrlen;
+   int mLoops;
    
 public:
-   JsonRWFiber(const char* str) :
+   JsonRWFiber(const char* str, int loops) :
       mStr(str),
-      mStrlen(strlen(mStr)) {}
+      mStrlen(strlen(mStr)),
+      mLoops(loops) {}
    
    virtual ~JsonRWFiber() {}
    
    virtual void run()
    {
       //printf("[%d] JsonFiber running.\n", getId());
-      jsonReadWrite(mStr, mStrlen);
-      exit();
+      if(mLoops-- > 0)
+      {
+         jsonReadWrite(mStr, mStrlen);
+      }
+      else
+      {
+         exit();
+      }
    }
    
    virtual void interrupted()
@@ -487,34 +495,43 @@ class JsonRWRunnable : public Runnable
 protected:
    const char* mStr;
    size_t mStrlen;
+   int mLoops;
    
 public:
-   JsonRWRunnable(const char* str) :
+   JsonRWRunnable(const char* str, int loops) :
       mStr(str),
-      mStrlen(strlen(mStr)) {}
+      mStrlen(strlen(mStr)),
+      mLoops(loops) {}
    
    virtual ~JsonRWRunnable() {}
    
    virtual void run()
    {
-      jsonReadWrite(mStr, mStrlen);
+      while(mLoops--)
+      {
+         jsonReadWrite(mStr, mStrlen);
+      }
    }
 };
 
 static bool header = true;
 
 /**
- * JSON test
+ * JSON test.
+ * The "threads" mode is using 1 thread per operation.  To normalize this
+ * behavior with "fibers" and "modest" the 'ops' parameter is used in "threads"
+ * mode to control how many threads are used.
  * 
  * @param mode "fibers", "modest", or "threads"
- * @param threads number of threads to run fibers, size of modest thread pool
- *        or number of threads.
- * @param ops number of fibers or modest operations.  not used for threads.
+ * @param threads number of threads to run fibers or size of modest thread pool
+ *        (not used for "threads" test)
+ * @param ops number of fibers, modest operations, or operation threads.
+ * @param oploops number of times to repeat each op
  * @param dyno id of dyno to use.  1=complex 2=simple
  * @param csv output in CSV format with '#' comments and spaces around data
  */
 void runJsonTest(TestRunner& tr,
-   const char* mode, int threads, int ops, int dyno, bool csv)
+   const char* mode, int threads, int ops, int oploops, int dyno, bool csv)
 {
    string s;
    switch(dyno)
@@ -556,7 +573,7 @@ void runJsonTest(TestRunner& tr,
       // queue up fibers
       for(int i = 0; i < ops; i++)
       {
-         fs.addFiber(new JsonRWFiber(s.c_str()));
+         fs.addFiber(new JsonRWFiber(s.c_str(), oploops));
       }
 
       start_process = Timer::startTiming();
@@ -578,7 +595,7 @@ void runJsonTest(TestRunner& tr,
       start_init = Timer::startTiming();
       for(int i = 0; i < ops; i++)
       {
-         RunnableRef r = new JsonRWRunnable(s.c_str());
+         RunnableRef r = new JsonRWRunnable(s.c_str(), oploops);
          Operation op(r);
          opList.add(op);
       }
@@ -595,22 +612,24 @@ void runJsonTest(TestRunner& tr,
    }
    else if(strcmp(mode, "threads") == 0)
    {
-      Thread* t[threads];
+      // using 1 thread per op
+      Thread* t[ops];
+      JsonRWRunnable* r[ops];
       
       // queue up Operations
       start_init = Timer::startTiming();
-      JsonRWRunnable r(s.c_str());
-      for(int i = 0; i < threads; i++)
+      for(int i = 0; i < ops; i++)
       {
-         t[i] = new Thread(&r);
+         r[i] = new JsonRWRunnable(s.c_str(), oploops);
+         t[i] = new Thread(r[i]);
       }
       
       start_process = Timer::startTiming();
-      for(int i = 0; i < threads; i++)
+      for(int i = 0; i < ops; i++)
       {
          t[i]->start();
       }
-      for(int i = 0; i < threads; i++)
+      for(int i = 0; i < ops; i++)
       {
          t[i]->join();
       }
@@ -618,14 +637,24 @@ void runJsonTest(TestRunner& tr,
       proc_dt = Timer::getMilliseconds(start_process);
       init_dt = start_process - start_init;
       
-      for(int i = 0; i < threads; i++)
+      for(int i = 0; i < ops; i++)
       {
+         delete r[i];
          delete t[i];
       }
    }
    else
    {
       printf("BAD MODE: %s\n", mode);
+   }
+   
+   // handle thread mem issue by making process time 0
+   if(Exception::hasLast() &&
+      strcmp(Exception::getLast()->getType(),
+         "db.rt.Thread.InsufficientMemory") == 0)
+   {
+      proc_dt = 0;
+      Exception::clearLast();
    }
    
    if(tr.getOutputLevel() == TestRunner::None)
@@ -791,6 +820,7 @@ public:
     * --option mode threads - use 'threads' threads for ops
     * --option threads <n> - how many threads to use (direct or pool size)
     * --option ops <n> - how many operations to perform
+    * --option oploops <n> - how many times to run each operation
     * 
     * For jsonmatrix:
     * For the threads (t) and operations (o) parameters an array will be
@@ -823,6 +853,9 @@ public:
       {
          // number of loops for each test
          int loops = cfg->hasMember("loops") ? cfg["loops"]->getInt32() : 1;
+         // number of loops in each op (can be used to increase cpu load)
+         int oploops =
+            cfg->hasMember("oploops") ? cfg["oploops"]->getInt32() : 1;
          // dyno to use (check code)
          int dyno = cfg->hasMember("dyno") ? cfg["dyno"]->getInt32() : 1;
          // CSV output mode
@@ -841,7 +874,7 @@ public:
                cfg["ops"]->getInt32() : 1;
             for(int i = 0; i < loops; i++)
             {
-               runJsonTest(tr, mode, threads, ops, dyno, csv);
+               runJsonTest(tr, mode, threads, ops, oploops, dyno, csv);
             }
          }
          
@@ -884,7 +917,7 @@ public:
                   for(int i = 0; i < loops; i++)
                   {
                      //printf("test: t:%d o:%d\n", td[ti], od[oi]);
-                     runJsonTest(tr, mode, td[ti], od[oi], dyno, csv);
+                     runJsonTest(tr, mode, td[ti], od[oi], oploops, dyno, csv);
                   }
                }
             }

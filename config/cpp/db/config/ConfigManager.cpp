@@ -149,10 +149,10 @@ bool ConfigManager::addConfig(
                   {
                      optional = next["optional"]->getBoolean();
                   }
-                  // check for user override of type parameter
-                  if(next->hasMember("user"))
+                  // check for override of type parameter
+                  if(next->hasMember("defaults"))
                   {
-                     type =  next["user"]->getBoolean() ? User : Default;
+                     type =  next["defaults"]->getBoolean() ? Default : Custom;
                   }
                   // should subdirs be scanned too?
                   if(next->hasMember("deep"))

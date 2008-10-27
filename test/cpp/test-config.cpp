@@ -292,7 +292,7 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject b;
       b[0] = 20;
       b[1] = 21;
-      assert(cm.addConfig(b, ConfigManager::User));
+      assert(cm.addConfig(b, ConfigManager::Custom));
       assertNoException();
       
       // custom
@@ -425,7 +425,7 @@ void runConfigManagerTest(TestRunner& tr)
       DynamicObject userc;
       userc["node"]["port"] = 19100;
       userc["node"]["comment"] = "My precious...";
-      assert(cm.addConfig(userc, ConfigManager::User));
+      assert(cm.addConfig(userc, ConfigManager::Custom));
       assertNoException();
       
       // user makes changes during runtime
