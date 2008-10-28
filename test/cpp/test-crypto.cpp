@@ -726,6 +726,48 @@ void runBigDecimalTest(TestRunner& tr)
    #undef NSD
    #undef NSDR
    
+   // FIXME: add more division tests
+   
+   {
+      BigDecimal b1("25");
+      BigDecimal b2("7");
+      b1 /= b2;
+      assert(b1.getDouble() == 1.0);
+      b1.setPrecision(7, Up);
+      b1.round();
+      assertStrCmp(b1.toString().c_str(), "3.5714286");
+   }
+   
+   {
+      BigDecimal b1("0.80");
+      BigDecimal b2("0.80");
+      b1 /= b2;
+      assert(b1.getDouble() == 1.0);
+      b1.setPrecision(7, Up);
+      b1.round();
+      assertStrCmp(b1.toString().c_str(), "1.0000000");
+   }
+   
+   {
+      BigDecimal b1("8");
+      BigDecimal b2("0.80000");
+      b1 /= b2;
+      assert(b1.getDouble() == 10.0);
+      b1.setPrecision(7, Up);
+      b1.round();
+      assertStrCmp(b1.toString().c_str(), "10.0000000");
+   }
+   
+   {
+      BigDecimal b1("2");
+      BigDecimal b2("0.500");
+      b1 /= b2;
+      assert(b1.getDouble() == 4.0);
+      b1.setPrecision(7, Up);
+      b1.round();
+      assertStrCmp(b1.toString().c_str(), "4.0000000");
+   }
+   
    tr.passIfNoException();
 }
 

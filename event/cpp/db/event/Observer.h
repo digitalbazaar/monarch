@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_event_Observer_H
 #define db_event_Observer_H
@@ -38,6 +38,9 @@ public:
     */
    virtual void eventOccurred(Event& e) = 0;
 };
+
+// type definition for a reference-counted Observer
+typedef db::rt::Collectable<Observer> ObserverRef;
 
 } // end namespace event
 } // end namespace db
