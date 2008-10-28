@@ -101,7 +101,7 @@ void BigDecimal::initialize()
 
 void BigDecimal::setExponent(int exponent)
 {
-   if(exponent > mExponent)
+   if(exponent > mExponent && !mSignificand.isZero())
    {
       // multiply significand by power difference
       BigInteger ten(10);
@@ -354,14 +354,13 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
 {
    BigDecimal rval = *this;
    
-   // add the divisor's exponent to the dividend so that when a division is
-   // performed, the exponents subtract to reproduce the original scale
-   rval.setExponent(rval.mExponent + rhs.mExponent);
-   
    // do division with remainder
    BigDecimal remainder;
    rval.mSignificand.divide(
       rhs.mSignificand, rval.mSignificand, remainder.mSignificand);
+   
+   // when dividing exponential numbers, subtract the exponents
+   rval.setExponent(mExponent - rhs.mExponent);
    
    // see if there is a remainder to add to the result
    if(remainder.mSignificand != 0)
@@ -556,11 +555,15 @@ string BigDecimal::toString() const
       int zeros = -mExponent - str.length();
       if(zeros > 0)
       {
-         str.append(0, zeros, '0');
+         str.append(zeros, '0');
+         
+         // append precision 0's
+         str.push_back('.');
+         str.append(mPrecision, '0');
       }
       else
       {
-         // insert decimal point
+         // insert decimal point, assume previously rounded properly
          str.insert(str.length() + mExponent, 1, '.');
       }
    }
@@ -575,15 +578,27 @@ string BigDecimal::toString() const
       
       if((unsigned int)mExponent == str.length())
       {
+         // append precision 0's
+         if(str.length() < mPrecision)
+         {
+            str.append(mPrecision - str.length(), '0');
+         }
+         
          // prepend "0."
          str.insert(0, 1, '.');
          str.insert(0, 1, '0');
       }
       else
       {
-         // insert decimal point
+         // insert decimal point, assume previously rounded properly
          str.insert(str.length() - mExponent, 1, '.');
       }
+   }
+   else
+   {
+      // append precision 0's
+      str.push_back('.');
+      str.append(mPrecision, '0');
    }
    
    // insert negative sign
