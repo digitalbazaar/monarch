@@ -210,7 +210,7 @@ void DynamicObject::merge(DynamicObject& rhs, bool append)
          DynamicObjectIterator i = rhs.getIterator();
          while(i->hasNext())
          {
-            DynamicObject next = i->next();
+            DynamicObject& next = i->next();
             (*this)[i->getName()].merge(next, append);
          }
          break;
