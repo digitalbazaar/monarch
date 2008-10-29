@@ -354,58 +354,21 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
 {
    BigDecimal rval = *this;
    
+   // ensure exponent is large enough to include precision + 1
+   // (this does not change the value of rval)
+   rval.setExponent(mPrecision + 1);
+   
    // do division with remainder
    BigDecimal remainder;
    rval.mSignificand.divide(
       rhs.mSignificand, rval.mSignificand, remainder.mSignificand);
    
    // when dividing exponential numbers, subtract the exponents
-   rval.setExponent(mExponent - rhs.mExponent);
+   rval.mExponent -= rhs.mExponent;
    
-   // see if there is a remainder to add to the result
-   if(remainder.mSignificand != 0)
-   {
-      // determine if the remainder should be rounded up
-      bool roundUp = (mRoundingMode == Up) ? true : false;
-      if(mRoundingMode == HalfUp)
-      {
-         // if twice the remainder is greater than or equal to the divisor,
-         // then it is at least half as large as the divisor
-         if((remainder.mSignificand + remainder.mSignificand).absCompare(
-            rhs.mSignificand) >= 0)
-         {
-            roundUp = true;
-         }
-      }
-      
-      // raise remainder to digits of precision (taking into account the
-      // remainder has the same scale as the dividend rval)
-      unsigned int digits = 0;
-      if(mPrecision - rval.mExponent > 0)
-      {
-         digits = mPrecision - rval.mExponent;
-         BigInteger ten(10);
-         remainder.mSignificand *= ten.pow(digits);
-      }
-      
-      // perform division on significand
-      remainder.mSignificand /= rhs.mSignificand;
-      
-      // set remainder exponent to digits of precision
-      remainder.mExponent = mPrecision;
-      
-      // round up if appropriate
-      if(roundUp)
-      {
-         BigDecimal bd;
-         bd.mSignificand = 1;
-         bd.mExponent = mPrecision;
-         rval += bd;
-      }
-      
-      // add remainder
-      rval += remainder;
-   }
+   // throw out remainder and round
+   // FIXME: optimize by simply minimizing exponent
+   rval.round();
    
    return rval;
 }
@@ -538,8 +501,11 @@ void BigDecimal::round()
    }
 }
 
-string BigDecimal::toString() const
+string BigDecimal::toString(bool zeroFill) const
 {
+   // Note: This implementation will print out only the significant digits,
+   // up to a maximum of the set precision.
+   
    // write out significand
    string str = mSignificand.toString();
    
@@ -556,14 +522,10 @@ string BigDecimal::toString() const
       if(zeros > 0)
       {
          str.append(zeros, '0');
-         
-         // append precision 0's
-         str.push_back('.');
-         str.append(mPrecision, '0');
       }
       else
       {
-         // insert decimal point, assume previously rounded properly
+         // insert decimal point
          str.insert(str.length() + mExponent, 1, '.');
       }
    }
@@ -578,33 +540,68 @@ string BigDecimal::toString() const
       
       if((unsigned int)mExponent == str.length())
       {
-         // append precision 0's
-         if(str.length() < mPrecision)
-         {
-            str.append(mPrecision - str.length(), '0');
-         }
-         
          // prepend "0."
          str.insert(0, 1, '.');
          str.insert(0, 1, '0');
       }
       else
       {
-         // insert decimal point, assume previously rounded properly
+         // insert decimal point
          str.insert(str.length() - mExponent, 1, '.');
       }
    }
-   else
+   
+   // cut the string to the last significant digit
+   string::size_type pos = str.find_last_not_of('0');
+   if(pos != string::npos)
    {
-      // append precision 0's
-      str.push_back('.');
-      str.append(mPrecision, '0');
+      if(str[pos] != '.')
+      {
+         // pos points to a number, so cut after that number
+         if(pos > str.length() + 1)
+         {
+            str.erase(pos + 1, str.length() - pos - 1);
+         }
+      }
+      else
+      {
+         // cut decimal and all other digits (all zeros)
+         str.erase(pos, str.length() - pos);
+      }
    }
    
    // insert negative sign
    if(mSignificand.isNegative())
    {
       str.insert(0, 1, '-');
+   }
+   
+   if(zeroFill)
+   {
+      pos = str.find('.');
+      if(pos != string::npos)
+      {
+         // determine number of digits after decimal point
+         string::size_type count = str.length() - pos - 1;
+         
+         // alter string by difference between count and set precision
+         if(count < mPrecision)
+         {
+            // zero-fill
+            str.append(count, '0');
+         }
+         else
+         {
+            // cut off extra digits
+            str.erase(pos + mPrecision + 1);
+         }
+      }
+      else if(mPrecision > 0)
+      {
+         // add decimal place and zero-fill
+         str.push_back('.');
+         str.append(mPrecision, '0');
+      }
    }
    
    return str;

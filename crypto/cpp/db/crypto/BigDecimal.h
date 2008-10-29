@@ -462,11 +462,17 @@ public:
    void round();
    
    /**
-    * Gets the value of this BigDecimal as a string.
+    * Gets the value of this BigDecimal as a string. The string will include
+    * the significant digits up to a maximum precision as set by setPrecision(),
+    * unless "true" is passed to the function, at which point it will zero-fill
+    * up to the set precision.
+    * 
+    * @param zeroFill true to zero-fill after the decimal point to the set
+    *                 precision, false to only use significant digits.
     * 
     * @return the string.
     */
-   std::string toString() const;
+   std::string toString(bool zeroFill = false) const;
 };
 
 } // end namespace crypto

@@ -636,10 +636,10 @@ void runBigDecimalTest(TestRunner& tr)
 {
    tr.test("BigDecimal");
    
-   #define NSD(op, expectstr) \
+   #define BDCMP0(num, zerofill, expectedStr) \
    do { \
-      BigDecimal result = op; \
-      assertStrCmp(result.toString().c_str(), expectstr); \
+      BigDecimal result = num; \
+      assertStrCmp(result.toString(zerofill).c_str(), expectedStr); \
    } while(0)
 
    BigDecimal number1 = 3.0;
@@ -648,52 +648,92 @@ void runBigDecimalTest(TestRunner& tr)
    //BigDecimal number2 = 1.234;
    //BigDecimal number2 = "1.23e-04";
    //BigDecimal number2 = "1234";
-      
-   NSD(number1, "3");
-   NSD(number2, "123456789.53");
-   NSD(number1 + number2, "123456792.53");
-   NSD(number1 - number2, "-123456786.53");
-   NSD(number1 * number2, "370370368.59");
-   NSD(number2 / number1, "41152263.1766666667");
-   NSD(number2 % number1, "0.53");
+   
+   // precision defaults to 10
+   BDCMP0(number1, false, "3");
+   BDCMP0(number2, false, "123456789.53");
+   BDCMP0(number1 + number2, false, "123456792.53");
+   BDCMP0(number1 - number2, false, "-123456786.53");
+   BDCMP0(number1 * number2, false, "370370368.59");
+   BDCMP0(number2 / number1, false, "41152263.1766666667");
+   BDCMP0(number2 % number1, false, "0.53");
 
-   #define NSDR(n, i, d, expectstr) \
+   #define BDCMP(num, precision, dir, zerofill, expectedStr) \
    do { \
-      BigDecimal nr = n; \
-      nr.setPrecision(i, d); \
+      BigDecimal nr = num; \
+      nr.setPrecision(precision, dir); \
       nr.round(); \
-      NSD(nr, expectstr); \
+      assertStrCmp(nr.toString(zerofill).c_str(), expectedStr); \
    } while(0)
    
-   BigDecimal number3 = "129.54678010";
-   NSD(number3, "129.54678010");
+   // positive rounding
+   {
+      BigDecimal n = "129.54678010";
+      BDCMP0(n, false, "129.54678010");
+      
+      BDCMP(n, 7, Up, false, "129.5467801");
+      BDCMP(n, 6, Up, false, "129.546781");
+      BDCMP(n, 5, Up, false, "129.54679");
+      BDCMP(n, 4, Up, false, "129.5468");
+      BDCMP(n, 3, Up, false, "129.547");
+      BDCMP(n, 2, Up, false, "129.55");
+      BDCMP(n, 1, Up, false, "129.6");
+      BDCMP(n, 0, Up, false, "130");
    
-   NSDR(number3, 7, Up, "129.5467801");
-   NSDR(number3, 6, Up, "129.546781");
-   NSDR(number3, 5, Up, "129.54679");
-   NSDR(number3, 4, Up, "129.5468");
-   NSDR(number3, 3, Up, "129.547");
-   NSDR(number3, 2, Up, "129.55");
-   NSDR(number3, 1, Up, "129.6");
-   NSDR(number3, 0, Up, "130");
-
-   NSDR(number3, 7, HalfUp, "129.5467801");
-   NSDR(number3, 6, HalfUp, "129.546780");
-   NSDR(number3, 5, HalfUp, "129.54678");
-   NSDR(number3, 4, HalfUp, "129.5468");
-   NSDR(number3, 3, HalfUp, "129.547");
-   NSDR(number3, 2, HalfUp, "129.55");
-   NSDR(number3, 1, HalfUp, "129.5");
-   NSDR(number3, 0, HalfUp, "130");
-
-   NSDR(number3, 7, Down, "129.5467801");
-   NSDR(number3, 6, Down, "129.546780");
-   NSDR(number3, 5, Down, "129.54678");
-   NSDR(number3, 4, Down, "129.5467");
-   NSDR(number3, 3, Down, "129.546");
-   NSDR(number3, 2, Down, "129.54");
-   NSDR(number3, 1, Down, "129.5");
-   NSDR(number3, 0, Down, "129");
+      BDCMP(n, 7, HalfUp, false, "129.5467801");
+      BDCMP(n, 6, HalfUp, false, "129.546780");
+      BDCMP(n, 5, HalfUp, false, "129.54678");
+      BDCMP(n, 4, HalfUp, false, "129.5468");
+      BDCMP(n, 3, HalfUp, false, "129.547");
+      BDCMP(n, 2, HalfUp, false, "129.55");
+      BDCMP(n, 1, HalfUp, false, "129.5");
+      BDCMP(n, 0, HalfUp, false, "130");
+   
+      BDCMP(n, 7, Down, false, "129.5467801");
+      BDCMP(n, 6, Down, false, "129.546780");
+      BDCMP(n, 5, Down, false, "129.54678");
+      BDCMP(n, 4, Down, false, "129.5467");
+      BDCMP(n, 3, Down, false, "129.546");
+      BDCMP(n, 2, Down, false, "129.54");
+      BDCMP(n, 1, Down, false, "129.5");
+      BDCMP(n, 0, Down, false, "129");
+   }
+   
+   // negative rounding
+   {
+      BigDecimal n = "-129.54678010";
+      BDCMP0(n, false, "-129.54678010");
+      
+      printf("FIXME: rounding rules for negative numbers\n");
+      /*
+      BDCMP(n, 7, Up, false, "-129.5467801");
+      BDCMP(n, 6, Up, false, "-129.546781");
+      BDCMP(n, 5, Up, false, "-129.54679");
+      BDCMP(n, 4, Up, false, "-129.5468");
+      BDCMP(n, 3, Up, false, "-129.547");
+      BDCMP(n, 2, Up, false, "-129.55");
+      BDCMP(n, 1, Up, false, "-129.6");
+      BDCMP(n, 0, Up, false, "-130");
+   
+      BDCMP(n, 7, HalfUp, false, "-129.5467801");
+      BDCMP(n, 6, HalfUp, false, "-129.546780");
+      BDCMP(n, 5, HalfUp, false, "-129.54678");
+      BDCMP(n, 4, HalfUp, false, "-129.5468");
+      BDCMP(n, 3, HalfUp, false, "-129.547");
+      BDCMP(n, 2, HalfUp, false, "-129.55");
+      BDCMP(n, 1, HalfUp, false, "-129.5");
+      BDCMP(n, 0, HalfUp, false, "-130");
+   
+      BDCMP(n, 7, Down, false, "-129.5467801");
+      BDCMP(n, 6, Down, false, "-129.546780");
+      BDCMP(n, 5, Down, false, "-129.54678");
+      BDCMP(n, 4, Down, false, "-129.5467");
+      BDCMP(n, 3, Down, false, "-129.546");
+      BDCMP(n, 2, Down, false, "-129.54");
+      BDCMP(n, 1, Down, false, "-129.5");
+      BDCMP(n, 0, Down, false, "-129");
+      */
+   }
 
    /*
    BigDecimal bd;
@@ -723,51 +763,79 @@ void runBigDecimalTest(TestRunner& tr)
    }
    */
 
-   #undef NSD
-   #undef NSDR
-   
    // FIXME: add more division tests
+   
+   {
+      BigDecimal b1("100");
+      BigDecimal b2("100.0");
+      assert(b1 == b2);
+   }
+   
+   {
+      BigDecimal b1("-100");
+      BigDecimal b2("-100.0");
+      assert(b1 == b2);
+   }
    
    {
       BigDecimal b1("25");
       BigDecimal b2("7");
-      b1 /= b2;
-      assert(b1.getDouble() == 1.0);
-      b1.setPrecision(7, Up);
-      b1.round();
-      assertStrCmp(b1.toString().c_str(), "3.5714286");
+      BDCMP(b1 / b2, 7, Up, false, "3.5714286");
    }
    
    {
       BigDecimal b1("0.80");
       BigDecimal b2("0.80");
-      b1 /= b2;
-      assert(b1.getDouble() == 1.0);
-      b1.setPrecision(7, Up);
-      b1.round();
-      assertStrCmp(b1.toString().c_str(), "1.0000000");
+      BDCMP(b1 / b2, 7, Up, false, "1");
    }
    
    {
       BigDecimal b1("8");
       BigDecimal b2("0.80000");
-      b1 /= b2;
-      assert(b1.getDouble() == 10.0);
-      b1.setPrecision(7, Up);
-      b1.round();
-      assertStrCmp(b1.toString().c_str(), "10.0000000");
+      BDCMP(b1 / b2, 7, Up, false, "10");
    }
    
    {
       BigDecimal b1("2");
       BigDecimal b2("0.500");
-      b1 /= b2;
-      assert(b1.getDouble() == 4.0);
-      b1.setPrecision(7, Up);
-      b1.round();
-      assertStrCmp(b1.toString().c_str(), "4.0000000");
+      BDCMP(b1 / b2, 7, Up, false, "4");
    }
    
+   {
+      BigDecimal d1;
+      BigDecimal d2;
+      BigDecimal max(100);
+      BigDecimal inc("0.1");
+      BigDecimal zero(0);
+      printf("FIXME: rounding rules for negative numbers\n");
+      printf("FIXME: fix comparison with printf half-even rounding\n");
+      //for(d1 = -100; d1 <= max; d1 += inc)
+      for(d1 = 0; d1 <= max; d1 += inc)
+      {
+         //for(d2 = -100; d2 <= max; d2 += inc)
+         for(d2 = 0; d2 <= max; d2 += inc)
+         {
+            if(d2 != zero)
+            {
+               char res[100];
+               sprintf(res, "%.7Lf", d1.getDouble() / d2.getDouble());
+               /*
+               BigDecimal d12;
+               d12.setPrecision(7, HalfUp);
+               d12 = d1 / d2;
+               printf("%.7Lf / %.7Lf = %.7Lf (C:%.7Lf)\n",
+                  d1.getDouble(), d2.getDouble(), d12.getDouble(),
+                  d1.getDouble() / d2.getDouble());
+               */
+               //BDCMP(d1 / d2, 7, HalfUp, true, res);
+            }
+         }
+      }
+   }
+   
+   #undef BDCMP0
+   #undef BDCMP
+
    tr.passIfNoException();
 }
 
