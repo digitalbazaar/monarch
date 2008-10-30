@@ -639,6 +639,7 @@ void runBigDecimalTest(TestRunner& tr)
    #define BDCMP0(num, zerofill, expectedStr) \
    do { \
       BigDecimal result = num; \
+      result.round(); \
       assertStrCmp(result.toString(zerofill).c_str(), expectedStr); \
    } while(0)
 
