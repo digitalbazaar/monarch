@@ -18,7 +18,7 @@ namespace crypto
  */
 enum RoundingMode
 {
-   Up, HalfUp, Down
+   Up, HalfUp, Down, HalfEven
 };
 
 /**

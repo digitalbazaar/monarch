@@ -513,6 +513,32 @@ void BigDecimal::round()
                *this += bd;
             }
          }
+         else if(mRoundingMode == HalfEven)
+         {
+            if(extra.at(0) > '4' && extra.at(0) <= '9')
+            {
+               if(extra.at(0) > '5')
+               {
+                  // add 1 with the same exponent
+                  BigDecimal bd = 1;
+                  bd.mExponent = mExponent;
+                  *this += bd;
+               }
+               else
+               {
+                  // determine if there are values higher than zero after
+                  // the 5
+                  string::size_type pos = extra.find_last_not_of('0');
+                  if(pos > 0)
+                  {
+                     // add 1 with the same exponent
+                     BigDecimal bd = 1;
+                     bd.mExponent = mExponent;
+                     *this += bd;
+                  }
+               }
+            }
+         }
       }
    }
 }
