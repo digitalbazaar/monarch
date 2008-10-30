@@ -86,6 +86,8 @@ BigDecimal::BigDecimal(const BigDecimal& copy)
    initialize();
    mSignificand = copy.mSignificand;
    mExponent = copy.mExponent;
+   mPrecision = copy.mPrecision;
+   mRoundingMode = copy.mRoundingMode;
 }
 
 BigDecimal::~BigDecimal()
@@ -354,9 +356,9 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
 {
    BigDecimal rval = *this;
    
-   // ensure exponent is large enough to include precision + 1
+   // ensure exponent is large enough to include precision
    // (this does not change the value of rval)
-   rval.setExponent(mPrecision + 1);
+   rval.setExponent(rval.mPrecision + mPrecision + rhs.mPrecision);
    
    // do division with remainder
    BigDecimal remainder;
@@ -366,9 +368,23 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
    // when dividing exponential numbers, subtract the exponents
    rval.mExponent -= rhs.mExponent;
    
-   // throw out remainder and round
-   // FIXME: optimize by simply minimizing exponent
-   rval.round();
+   // if exponent is negative, scale the significand so the exponent is zero
+   if(mExponent < 0)
+   {
+      mExponent = -mExponent;
+      BigInteger ten(10);
+      mSignificand *= ten.pow(mExponent);
+      mExponent = 0;
+   }
+   else
+   {
+      // minimize the exponent
+      while(mSignificand % 10 == 0)
+      {
+         mSignificand /= 10;
+         mExponent--;
+      }
+   }
    
    return rval;
 }
@@ -588,7 +604,7 @@ string BigDecimal::toString(bool zeroFill) const
          if(count < mPrecision)
          {
             // zero-fill
-            str.append(count, '0');
+            str.append(mPrecision - count, '0');
          }
          else
          {
