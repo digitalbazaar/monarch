@@ -14,11 +14,25 @@ namespace crypto
 {
 
 /**
- * A RoundingMode specifies a type of decimal rounding.
+ * A RoundingMode specifies a type of decimal rounding.  Rounding is symmetric
+ * such that rounding is applied on the absolute value and the sign is
+ * re-applied afterwards. 
+ * 
+ * Rounding action on final rounding digit:
+ * 
+ * Up = add 1 if followed by non-zero
+ * Down = do nothing
+ * HalfUp = add 1 if next digit is 5-9, do nothing if 0-4
+ * HalfEven = add 1 if next digit is 6 or more or 5 followed by non-zero,
+ *    do nothing if next digit is 4 or less,
+ *    add 1 if digit is odd and followed 5 and possible zeros,
+ *    do nothing if digit is even.
+ * 
+ * (See http://en.wikipedia.org/wiki/Rounding)
  */
 enum RoundingMode
 {
-   Up, HalfUp, Down, HalfEven
+   Up, HalfUp, HalfEven, Down
 };
 
 /**
@@ -77,8 +91,11 @@ protected:
    void initialize();
    
    /**
-    * Sets the exponent for this BigDecimal, increasing the significand if
-    * necessary. This will not alter the value of this BigDecimal.
+    * Sets the exponent for this BigDecimal.  If the new exponent is larger
+    * than the current exponent, the significand will be increased and the
+    * final value will remain the same.  If the new exponent is smaller than
+    * the current exponent, the significand will be decreased and the value
+    * may become less accurate.
     * 
     * @param exponent the new exponent to use.
     */
@@ -91,7 +108,7 @@ protected:
     * @param bd1 the first BigDecimal.
     * @param bd2 the second BigDecimal.
     */
-   void synchronizeExponents(BigDecimal& bd1, BigDecimal& bd2);
+   static void synchronizeExponents(BigDecimal& bd1, BigDecimal& bd2);
    
 public:
    /**
@@ -462,17 +479,31 @@ public:
    void round();
    
    /**
-    * Gets the value of this BigDecimal as a string. The string will include
-    * the significant digits up to a maximum precision as set by setPrecision(),
-    * unless "true" is passed to the function, at which point it will zero-fill
-    * up to the set precision.
+    * Gets the value of this BigDecimal as a string. By default the string will
+    * include the significant digits up to a maximum precision as set by
+    * setPrecision().  If zeroFill is true, zeros will be filled in up to the
+    * set precision.  If truncate is "false" and the internal representation
+    * has more significant digits that the current precision, they will all be
+    * returned.
     * 
     * @param zeroFill true to zero-fill after the decimal point to the set
     *                 precision, false to only use significant digits.
+    * @param truncate true to truncate result at current precision, false to
+    *                 return all current significant digits.
     * 
     * @return the string.
     */
-   std::string toString(bool zeroFill = false) const;
+   std::string toString(bool zeroFill = false, bool truncate = true) const;
+   
+   /**
+    * Sets the components of the internal representation for this BigDecimal.
+    * This method is for private use by unit tests and should not be needed
+    * for general use.  This method may be removed in the future.
+    * 
+    * @param significand the significand.
+    * @param exponent the exponent.
+    */
+   void _setValue(BigInteger& significand, int exponent);
 };
 
 } // end namespace crypto

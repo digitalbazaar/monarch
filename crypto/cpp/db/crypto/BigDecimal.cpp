@@ -83,7 +83,6 @@ BigDecimal::BigDecimal(const string& value)
 
 BigDecimal::BigDecimal(const BigDecimal& copy)
 {
-   initialize();
    mSignificand = copy.mSignificand;
    mExponent = copy.mExponent;
    mPrecision = copy.mPrecision;
@@ -103,14 +102,25 @@ void BigDecimal::initialize()
 
 void BigDecimal::setExponent(int exponent)
 {
-   if(exponent > mExponent && !mSignificand.isZero())
+   if(exponent != mExponent && !mSignificand.isZero())
    {
-      // multiply significand by power difference
       BigInteger ten(10);
-      mSignificand *= ten.pow(exponent - mExponent);
+      BigInteger pow = ten.pow(exponent - mExponent);
+      if(exponent > mExponent)
+      {
+         // multiply significand by power difference
+         // no loss of accuracy
+         mSignificand *= pow;
+      }
+      else
+      {
+         // divide significand by power difference
+         // may result in loss of accuracy
+         mSignificand /= pow;
+      }
+      
+      mExponent = exponent;
    }
-   
-   mExponent = exponent;
 }
 
 void BigDecimal::synchronizeExponents(BigDecimal& bd1, BigDecimal& bd2)
@@ -354,35 +364,51 @@ BigDecimal BigDecimal::operator*(const BigDecimal& rhs)
 
 BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
 {
-   BigDecimal rval = *this;
-   
-   // ensure exponent is large enough to include precision
-   // (this does not change the value of rval)
-   rval.setExponent(rval.mPrecision + mPrecision + rhs.mPrecision);
-   
-   // do division with remainder
-   BigDecimal remainder;
-   rval.mSignificand.divide(
-      rhs.mSignificand, rval.mSignificand, remainder.mSignificand);
-   
-   // when dividing exponential numbers, subtract the exponents
-   rval.mExponent -= rhs.mExponent;
-   
-   // if exponent is negative, scale the significand so the exponent is zero
-   if(mExponent < 0)
+   BigDecimal rval;
+
+   if(mSignificand.isZero())
    {
-      mExponent = -mExponent;
-      BigInteger ten(10);
-      mSignificand *= ten.pow(mExponent);
-      mExponent = 0;
+      rval = 0;
    }
    else
    {
-      // minimize the exponent
-      while(mSignificand % 10 == 0)
+      rval = *this;
+      
+      // ensure exponent is large enough to include precision
+      // (this does not change the value of rval)
+      rval.setExponent(rval.mPrecision + mPrecision + rhs.mPrecision);
+      
+      // do division with remainder
+      BigDecimal remainder;
+      rval.mSignificand.divide(
+         rhs.mSignificand, rval.mSignificand, remainder.mSignificand);
+      
+      // when dividing exponential numbers, subtract the exponents
+      rval.mExponent -= rhs.mExponent;
+      
+      // if exponent is negative, scale the significand so the exponent is zero
+      // FIXME: these cases reverse the exponent to be like the other case
+      //        ie, force exp up to zero or force it possibly below zero
+      if(rval.mSignificand.isZero())
       {
-         mSignificand /= 10;
-         mExponent--;
+         rval = 0;
+      }
+      else if(rval.mExponent < 0)
+      {
+         BigInteger ten(10);
+         rval.mSignificand *= ten.pow(-rval.mExponent);
+         rval.mExponent = 0;
+      }
+      else
+      {
+         // minimize the exponent
+         BigInteger ten(10);
+         BigInteger zero(0);
+         while(rval.mSignificand % ten == zero)
+         {
+            rval.mSignificand /= ten;
+            rval.mExponent--;
+         }
       }
    }
    
@@ -464,7 +490,7 @@ unsigned int BigDecimal::getPrecision()
 void BigDecimal::round()
 {
    // write out to a string
-   string str = toString();
+   string str = toString(false, false);
    
    // find exponent
    unsigned int dot = str.rfind('.');
@@ -476,74 +502,67 @@ void BigDecimal::round()
          // get the extra digits
          string extra = str.substr(dot + 1 + mPrecision);
          
-         // set new exponent by subtracting extra length
-         mExponent -= extra.length();
+         // set new exponent to the precision
+         mExponent = mPrecision;
          
          // truncate significand
          mSignificand = (str.substr(0, dot) + str.substr(dot + 1, mExponent));
          
          // round significand according to rounding mode
-         if(mRoundingMode == Up)
+         bool roundUp = false;
+         switch(mRoundingMode)
          {
-            // must round up if there is anything but a zero in extra
-            bool round = false;
-            for(const char* ptr = extra.c_str(); *ptr != 0 && !round; ptr++)
-            {
-               if(*ptr != '0')
+            case Down:
+               // do nothing
+               break;
+            case Up:
+               // round up if there is a non-zero in extra
+               roundUp = (extra.find_first_not_of('0') != string::npos);
+               break;
+            case HalfUp:
+               // round up if extra starts with 5 or greater
+               roundUp = (extra[0] >= '5');
+               break;
+            case HalfEven:
+               // round up if next digit in [6,9]
+               roundUp = (extra[0] >= '6');
+               
+               if(!roundUp && extra[0] == '5')
                {
-                  round = true;
-               }
-            }
-            
-            if(round)
-            {
-               // add 1 with the same exponent
-               BigDecimal bd = 1;
-               bd.mExponent = mExponent;
-               *this += bd;
-            }
-         }
-         else if(mRoundingMode == HalfUp)
-         {
-            if(extra.at(0) > '4' && extra.at(0) <= '9')
-            {
-               // add 1 with the same exponent
-               BigDecimal bd = 1;
-               bd.mExponent = mExponent;
-               *this += bd;
-            }
-         }
-         else if(mRoundingMode == HalfEven)
-         {
-            if(extra.at(0) > '4' && extra.at(0) <= '9')
-            {
-               if(extra.at(0) > '5')
-               {
-                  // add 1 with the same exponent
-                  BigDecimal bd = 1;
-                  bd.mExponent = mExponent;
-                  *this += bd;
-               }
-               else
-               {
-                  // determine if there are values higher than zero after
-                  // the 5
-                  string::size_type pos = extra.find_last_not_of('0');
-                  if(pos > 0)
+                  // round up if next digit of 5 is followed by non-zero
+                  roundUp = (extra.find_first_not_of('0', 1) != string::npos);
+                  
+                  // '5' followed by zeros, check current digit for even/odd
+                  if(!roundUp)
                   {
-                     // add 1 with the same exponent
-                     BigDecimal bd = 1;
-                     bd.mExponent = mExponent;
-                     *this += bd;
+                     // get the rounding digit from non-extra
+                     // scan backwards for first number
+                     // assume '0' and no roundUp
+                     const char* start = str.c_str();
+                     const char* ptr = start + dot + mPrecision;
+                     // check current if digit, else previous, else '0'
+                     // covers current == '.' and current == start cases
+                     const char current = (*ptr >= '0' && *ptr <= '9') ?
+                        *ptr : ((ptr != start) ? *(ptr - 1) : '0');
+                     // up on odd, nothing on even
+                     roundUp = ((current - '0') & 0x1);
                   }
                }
-            }
+               break;
+         }
+         
+         if(roundUp)
+         {
+            // add 1 with the proper sign and same exponent
+            BigDecimal bd = mSignificand.isNegative() ? -1 : 1;
+            bd.mExponent = mExponent;
+            *this += bd;
          }
       }
    }
 }
 
-string BigDecimal::toString(bool zeroFill) const
+string BigDecimal::toString(bool zeroFill, bool truncate) const
 {
    // Note: This implementation will print out only the significant digits,
    // up to a maximum of the set precision.
@@ -551,102 +570,88 @@ string BigDecimal::toString(bool zeroFill) const
    // write out significand
    string str = mSignificand.toString();
    
-   // erase negative sign
-   if(mSignificand.isNegative())
+   // pretend exponent is zero if significand is zero
+   int exponent = mSignificand.isZero() ? 0 : mExponent;
+   
+   // remove non-significant trailing zeros for positive exponents
+   // the zeros may be added back later for zerofill
+   if(exponent > 0)
    {
-      str.erase(0, 1);
+      string::size_type trailingZerosStart = str.find_last_not_of('0') + 1;
+      if(trailingZerosStart > 0 && trailingZerosStart < str.length())
+      {
+         exponent -= (str.length() - trailingZerosStart);
+         str.erase(trailingZerosStart);
+      }
    }
    
-   if(mExponent < 0)
+   if(exponent <= 0)
    {
       // append zeros
-      int zeros = -mExponent - str.length();
-      if(zeros > 0)
+      if(exponent < 0)
       {
-         str.append(zeros, '0');
-      }
-      else
-      {
-         // insert decimal point
-         str.insert(str.length() + mExponent, 1, '.');
-      }
-   }
-   else if(mExponent > 0)
-   {
-      // prepend zeros
-      int zeros = mExponent - str.length();
-      if(zeros > 0)
-      {
-         str.insert(0, zeros, '0');
+         str.append(-exponent, '0');
       }
       
-      if((unsigned int)mExponent == str.length())
-      {
-         // prepend "0."
-         str.insert(0, 1, '.');
-         str.insert(0, 1, '0');
-      }
-      else
-      {
-         // insert decimal point
-         str.insert(str.length() - mExponent, 1, '.');
-      }
-   }
-   
-   // cut the string to the last significant digit
-   string::size_type pos = str.find_last_not_of('0');
-   if(pos != string::npos)
-   {
-      if(str[pos] != '.')
-      {
-         // pos points to a number, so cut after that number
-         if(pos > str.length() + 1)
-         {
-            str.erase(pos + 1, str.length() - pos - 1);
-         }
-      }
-      else
-      {
-         // cut decimal and all other digits (all zeros)
-         str.erase(pos, str.length() - pos);
-      }
-   }
-   
-   // insert negative sign
-   if(mSignificand.isNegative())
-   {
-      str.insert(0, 1, '-');
-   }
-   
-   if(zeroFill)
-   {
-      pos = str.find('.');
-      if(pos != string::npos)
-      {
-         // determine number of digits after decimal point
-         string::size_type count = str.length() - pos - 1;
-         
-         // alter string by difference between count and set precision
-         if(count < mPrecision)
-         {
-            // zero-fill
-            str.append(mPrecision - count, '0');
-         }
-         else
-         {
-            // cut off extra digits
-            str.erase(pos + mPrecision + 1);
-         }
-      }
-      else if(mPrecision > 0)
+      // zero fill
+      if(zeroFill && mPrecision > 0)
       {
          // add decimal place and zero-fill
          str.push_back('.');
          str.append(mPrecision, '0');
       }
    }
+   else // mExponent > 0
+   {
+      // adjustment for potential negative sign
+      int start = (mSignificand.isNegative() ? 1 : 0);
+      // count of current precision
+      unsigned int precisionCount;
+      
+      // decimal point position
+      int pointPos = str.length() - exponent;
+      // check that at least one pre-point digit is available
+      if(pointPos >= (start + 1))
+      {
+         precisionCount = exponent;
+         // insert decimal point
+         str.insert(pointPos, 1, '.');
+      }
+      else
+      {
+         // add "0."
+         str.insert(start, "0.", 2);
+         // add pre-zeros
+         str.insert(start + 2, start - pointPos, '0');
+         precisionCount = str.length() - start - 2; 
+      }
+      
+      if(precisionCount < mPrecision)
+      {
+         // need more digits
+         if(zeroFill)
+         {
+            // zero fill
+            str.append(mPrecision - precisionCount, '0');
+         }
+      }
+      else if(precisionCount > mPrecision)
+      {
+         // need less digits
+         if(truncate)
+         {
+            str.erase(str.length() - precisionCount + mPrecision);
+         }
+      }
+   }
    
    return str;
+}
+
+void BigDecimal::_setValue(BigInteger& significand, int exponent)
+{
+   mSignificand = significand;
+   mExponent = exponent;
 }
 
 ostream& operator<<(ostream& os, const BigDecimal& bd)

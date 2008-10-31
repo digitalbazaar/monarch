@@ -634,8 +634,77 @@ void runBigIntegerTest(TestRunner& tr)
 
 void runBigDecimalTest(TestRunner& tr)
 {
-   tr.test("BigDecimal");
+   tr.group("BigDecimal");
    
+   // compare initialized BigDecimal to a double
+   #define BDCMPDBL(bd, dbl) \
+   do { \
+      BigDecimal num = bd; \
+      double bddbl = num.getDouble(); \
+      assert(bddbl == dbl); \
+   } while(0)
+   
+   tr.test("basic");
+   {
+      BDCMPDBL(    1.0,     1.0);
+      BDCMPDBL(   "1.0",    1.0);
+      BDCMPDBL(  100.0,   100.0);
+      BDCMPDBL( "100.0",  100.0);
+      BDCMPDBL( -100.0,  -100.0);
+      BDCMPDBL("-100.0", -100.0);
+   }
+   tr.passIfNoException();
+   
+   tr.test("long double");
+   {
+      BigDecimal bd;
+      bd = -100;
+      long double bddbl = bd.getDouble();
+      assert(bddbl == -100.0);
+   }
+   tr.passIfNoException();
+  
+   tr.test("C double rounding");
+   {
+      double d1 = -98.7;
+      double d2 = -25.6;
+      double d12 = d1 / d2;
+      char res[20];
+      sprintf(res, "%.10f", d12);
+      assertStrCmp(res, "3.8554687500");
+      sprintf(res, "%.9f", d12);
+      assertStrCmp(res, "3.855468750");
+      sprintf(res, "%.8f", d12);
+      assertStrCmp(res, "3.85546875");
+      sprintf(res, "%.7f", d12);
+      assertStrCmp(res, "3.8554688");
+   }
+   tr.passIfNoException();
+
+   tr.test("C long double rounding");
+   {
+      long double d1 = -98.7;
+      long double d2 = -25.6;
+      long double d12 = d1 / d2;
+      char res[20];
+      sprintf(res, "%.10Lf", d12);
+      assertStrCmp(res, "3.8554687500");
+      sprintf(res, "%.9Lf", d12);
+      assertStrCmp(res, "3.855468750");
+      sprintf(res, "%.8Lf", d12);
+      assertStrCmp(res, "3.85546875");
+      // using "long double" will fail due to precision issues and rounding
+      // value will be 3.85546874999.... vs the exact value of 3.85546875
+      // the half even rounding rules will then round it down to 3.8554687
+      // rather than the correct 3.8554688.  Casting to "double" will fix this. 
+      tr.warning("long double precision issue workaround");
+      // sprintf(res, "%.7Lf", d12);
+      sprintf(res, "%.7f", (double)d12);
+      assertStrCmp(res, "3.8554688");
+   }
+   tr.passIfNoException();
+   
+   // compare initialized BigDecimal to a optionally zero filled string
    #define BDCMP0(num, zerofill, expectedStr) \
    do { \
       BigDecimal result = num; \
@@ -643,22 +712,113 @@ void runBigDecimalTest(TestRunner& tr)
       assertStrCmp(result.toString(zerofill).c_str(), expectedStr); \
    } while(0)
 
-   BigDecimal number1 = 3.0;
-   //BigDecimal number2 = 123456789.5;
-   BigDecimal number2 = "123456789.53";
-   //BigDecimal number2 = 1.234;
-   //BigDecimal number2 = "1.23e-04";
-   //BigDecimal number2 = "1234";
+   tr.test("basic+ops");
+   {
+      BigDecimal one(1);
+      BigDecimal zero(0);
+      BigDecimal number1 = 3.0;
+      //BigDecimal number2 = 123456789.5;
+      BigDecimal number2 = "123456789.53";
+      //BigDecimal number2 = 1.234;
+      //BigDecimal number2 = "1.23e-04";
+      //BigDecimal number2 = "1234";
+      
+      // precision defaults to 10
+      BDCMP0(number1, false, "3");
+      BDCMP0(number2, false, "123456789.53");
+      BDCMP0(number1 + number2, false, "123456792.53");
+      BDCMP0(number1 - number2, false, "-123456786.53");
+      BDCMP0(number1 * number2, false, "370370368.59");
+      BDCMP0(number2 / number1, false, "41152263.1766666667");
+      BDCMP0(number2 % number1, false, "0.53");
+      BDCMP0("0", false, "0");
+      BDCMP0("1", false, "1");
+      BDCMP0("10", false, "10");
+      BDCMP0("1000000000", false, "1000000000");
+      BDCMP0("0.1", false, "0.1");
+      BDCMP0("0.01", false, "0.01");
+      BDCMP0("0.00000001", false, "0.00000001");
+      BDCMP0(".1", false, "0.1");
+      BDCMP0(zero / one, false, "0");
+   }
+   tr.passIfNoException();
    
-   // precision defaults to 10
-   BDCMP0(number1, false, "3");
-   BDCMP0(number2, false, "123456789.53");
-   BDCMP0(number1 + number2, false, "123456792.53");
-   BDCMP0(number1 - number2, false, "-123456786.53");
-   BDCMP0(number1 * number2, false, "370370368.59");
-   BDCMP0(number2 / number1, false, "41152263.1766666667");
-   BDCMP0(number2 % number1, false, "0.53");
+   // check internal representation issues
+   #define BDCMP_(sig, exp, expectedStr) \
+   do { \
+      BigDecimal result; \
+      result.setPrecision(7, Down); \
+      result._setValue(sig, exp); \
+      result.round(); \
+      assertStrCmp(result.toString().c_str(), expectedStr); \
+   } while(0)
 
+   tr.test("internals");
+   {
+      BigInteger zero(0);
+      BigInteger one(1);
+      BigInteger none(-1);
+      BigInteger ten(10);
+      BigInteger nten(-10);
+      
+      BDCMP_(zero, -1,     "0"   );
+      BDCMP_(zero,  0,     "0"   );
+      BDCMP_(zero,  1,     "0"   );
+      
+      BDCMP_( one, -2,   "100"   );
+      BDCMP_( one, -1,    "10"   );
+      BDCMP_( one,  0,     "1"   );
+      BDCMP_( one,  1,     "0.1" );
+      BDCMP_( one,  2,     "0.01");
+      
+      BDCMP_(none, -1,   "-10"   );
+      BDCMP_(none,  0,    "-1"   );
+      BDCMP_(none,  1,    "-0.1" );
+      
+      BDCMP_( ten, -2,  "1000"   );
+      BDCMP_( ten, -1,   "100"   );
+      BDCMP_( ten,  0,    "10"   );
+      BDCMP_( ten,  1,     "1"   );
+      BDCMP_( ten,  2,     "0.1" );
+      
+      BDCMP_(nten, -2, "-1000"   );
+      BDCMP_(nten, -1,  "-100"   );
+      BDCMP_(nten,  0,   "-10"   );
+      BDCMP_(nten,  1,    "-1"   );
+      BDCMP_(nten,  2,    "-0.1" );
+      
+      BigInteger n1(123456789);
+      
+      BDCMP_(n1, -10, "1234567890000000000"        );
+      BDCMP_(n1,  -9,  "123456789000000000"        );
+      BDCMP_(n1,  -8,   "12345678900000000"        );
+      BDCMP_(n1,  -7,    "1234567890000000"        );
+      BDCMP_(n1,  -6,     "123456789000000"        );
+      BDCMP_(n1,  -5,      "12345678900000"        );
+      BDCMP_(n1,  -4,       "1234567890000"        );
+      BDCMP_(n1,  -3,        "123456789000"        );
+      BDCMP_(n1,  -2,         "12345678900"        );
+      BDCMP_(n1,  -1,          "1234567890"        );
+      BDCMP_(n1,   0,           "123456789"        );
+      BDCMP_(n1,   1,            "12345678.9"      );
+      BDCMP_(n1,   2,             "1234567.89"     );
+      BDCMP_(n1,   3,              "123456.789"    );
+      BDCMP_(n1,   4,               "12345.6789"   );
+      BDCMP_(n1,   5,                "1234.56789"  );
+      BDCMP_(n1,   6,                 "123.456789" );
+      BDCMP_(n1,   7,                  "12.3456789");
+      BDCMP_(n1,   8,                   "1.2345678");
+      BDCMP_(n1,   9,                   "0.1234567");
+      BDCMP_(n1,  10,                   "0.0123456");
+      BDCMP_(n1,  11,                   "0.0012345");
+      BDCMP_(n1,  12,                   "0.0001234");
+      BDCMP_(n1,  13,                   "0.0000123");
+      BDCMP_(n1,  14,                   "0.0000012");
+      BDCMP_(n1,  15,                   "0.0000001");
+      BDCMP_(n1,  16,                   "0"        );
+   }
+   tr.passIfNoException();
+   
    #define BDCMP(num, precision, dir, zerofill, expectedStr) \
    do { \
       BigDecimal nr = num; \
@@ -667,10 +827,33 @@ void runBigDecimalTest(TestRunner& tr)
       assertStrCmp(nr.toString(zerofill).c_str(), expectedStr); \
    } while(0)
    
-   // positive rounding
+   tr.test("zerofill+rounding");
+   {
+      BDCMP( "100.00", 0, Down, true,   "100"  );
+      BDCMP( "100.00", 1, Down, true,   "100.0");
+      BDCMP("-100.00", 0, Down, true,  "-100"  );
+      BDCMP("-100.00", 1, Down, true,  "-100.0");
+      BDCMP(  100,     1, Down, false,  "100"  );
+      BDCMP(  100,     1, Down, true,   "100.0");
+      BDCMP( -100,     1, Down, false, "-100"  );
+      BDCMP( -100,     1, Down, true,  "-100.0");
+   
+      BDCMP("3.016", 2, HalfEven, false, "3.02");
+      BDCMP("3.013", 2, HalfEven, false,  "3.01");
+      BDCMP("3.015", 2, HalfEven, false,  "3.02");
+      BDCMP("3.045", 2, HalfEven, false,  "3.04");
+      BDCMP("3.04501", 2, HalfEven, false,  "3.05");
+      BDCMP("1.4727540500736376", 7, HalfEven, false, "1.4727541");
+      BDCMP("1.4727540500736376", 7, HalfUp, false, "1.4727541");
+      BDCMP("1.4727540500736376", 7, Up, false, "1.4727541");
+      BDCMP("1.4727540500736376", 7, Down, false, "1.472754");
+   }
+   tr.passIfNoException();
+
+   tr.test("positive rounding");
    {
       BigDecimal n = "129.54678010";
-      BDCMP0(n, false, "129.54678010");
+      BDCMP0(n, false, "129.5467801");
       
       BDCMP(n, 7, Up, false, "129.5467801");
       BDCMP(n, 6, Up, false, "129.546781");
@@ -680,18 +863,27 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 2, Up, false, "129.55");
       BDCMP(n, 1, Up, false, "129.6");
       BDCMP(n, 0, Up, false, "130");
-   
+      
       BDCMP(n, 7, HalfUp, false, "129.5467801");
-      BDCMP(n, 6, HalfUp, false, "129.546780");
+      BDCMP(n, 6, HalfUp, false, "129.54678");
       BDCMP(n, 5, HalfUp, false, "129.54678");
       BDCMP(n, 4, HalfUp, false, "129.5468");
       BDCMP(n, 3, HalfUp, false, "129.547");
       BDCMP(n, 2, HalfUp, false, "129.55");
       BDCMP(n, 1, HalfUp, false, "129.5");
       BDCMP(n, 0, HalfUp, false, "130");
-   
+      
+      BDCMP(n, 7, HalfEven, false, "129.5467801");
+      BDCMP(n, 6, HalfEven, false, "129.54678");
+      BDCMP(n, 5, HalfEven, false, "129.54678");
+      BDCMP(n, 4, HalfEven, false, "129.5468");
+      BDCMP(n, 3, HalfEven, false, "129.547");
+      BDCMP(n, 2, HalfEven, false, "129.55");
+      BDCMP(n, 1, HalfEven, false, "129.5");
+      BDCMP(n, 0, HalfEven, false, "130");
+      
       BDCMP(n, 7, Down, false, "129.5467801");
-      BDCMP(n, 6, Down, false, "129.546780");
+      BDCMP(n, 6, Down, false, "129.54678");
       BDCMP(n, 5, Down, false, "129.54678");
       BDCMP(n, 4, Down, false, "129.5467");
       BDCMP(n, 3, Down, false, "129.546");
@@ -699,14 +891,13 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 1, Down, false, "129.5");
       BDCMP(n, 0, Down, false, "129");
    }
+   tr.passIfNoException();
    
-   // negative rounding
+   tr.test("negative rounding");
    {
       BigDecimal n = "-129.54678010";
-      BDCMP0(n, false, "-129.54678010");
+      BDCMP0(n, false, "-129.5467801");
       
-      printf("FIXME: rounding rules for negative numbers\n");
-      /*
       BDCMP(n, 7, Up, false, "-129.5467801");
       BDCMP(n, 6, Up, false, "-129.546781");
       BDCMP(n, 5, Up, false, "-129.54679");
@@ -715,26 +906,35 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 2, Up, false, "-129.55");
       BDCMP(n, 1, Up, false, "-129.6");
       BDCMP(n, 0, Up, false, "-130");
-   
+      
       BDCMP(n, 7, HalfUp, false, "-129.5467801");
-      BDCMP(n, 6, HalfUp, false, "-129.546780");
+      BDCMP(n, 6, HalfUp, false, "-129.54678");
       BDCMP(n, 5, HalfUp, false, "-129.54678");
       BDCMP(n, 4, HalfUp, false, "-129.5468");
       BDCMP(n, 3, HalfUp, false, "-129.547");
       BDCMP(n, 2, HalfUp, false, "-129.55");
       BDCMP(n, 1, HalfUp, false, "-129.5");
       BDCMP(n, 0, HalfUp, false, "-130");
-   
+      
+      BDCMP(n, 7, HalfEven, false, "-129.5467801");
+      BDCMP(n, 6, HalfEven, false, "-129.54678");
+      BDCMP(n, 5, HalfEven, false, "-129.54678");
+      BDCMP(n, 4, HalfEven, false, "-129.5468");
+      BDCMP(n, 3, HalfEven, false, "-129.547");
+      BDCMP(n, 2, HalfEven, false, "-129.55");
+      BDCMP(n, 1, HalfEven, false, "-129.5");
+      BDCMP(n, 0, HalfEven, false, "-130");
+      
       BDCMP(n, 7, Down, false, "-129.5467801");
-      BDCMP(n, 6, Down, false, "-129.546780");
+      BDCMP(n, 6, Down, false, "-129.54678");
       BDCMP(n, 5, Down, false, "-129.54678");
       BDCMP(n, 4, Down, false, "-129.5467");
       BDCMP(n, 3, Down, false, "-129.546");
       BDCMP(n, 2, Down, false, "-129.54");
       BDCMP(n, 1, Down, false, "-129.5");
       BDCMP(n, 0, Down, false, "-129");
-      */
    }
+   tr.passIfNoException();
 
    /*
    BigDecimal bd;
@@ -766,78 +966,148 @@ void runBigDecimalTest(TestRunner& tr)
 
    // FIXME: add more division tests
    
+   tr.test("pos==");
    {
       BigDecimal b1("100");
       BigDecimal b2("100.0");
       assert(b1 == b2);
    }
+   tr.passIfNoException();
    
+   tr.test("neg==");
    {
       BigDecimal b1("-100");
       BigDecimal b2("-100.0");
       assert(b1 == b2);
    }
+   tr.passIfNoException();
    
+   tr.test("div");
    {
       BigDecimal b1("25");
       BigDecimal b2("7");
       BDCMP(b1 / b2, 7, Up, false, "3.5714286");
    }
+   tr.passIfNoException();
    
+   tr.test("div == 1");
    {
       BigDecimal b1("0.80");
       BigDecimal b2("0.80");
       BDCMP(b1 / b2, 7, Up, false, "1");
    }
+   tr.passIfNoException();
    
+   tr.test("div == 10");
    {
       BigDecimal b1("8");
       BigDecimal b2("0.80000");
       BDCMP(b1 / b2, 7, Up, false, "10");
    }
+   tr.passIfNoException();
    
+   tr.test("div == 4");
    {
       BigDecimal b1("2");
       BigDecimal b2("0.500");
       BDCMP(b1 / b2, 7, Up, false, "4");
    }
+   tr.passIfNoException();
    
+   tr.test("HalfEven");
+   {
+      BigDecimal b1("100");
+      BigDecimal b2("67.9");
+      BigDecimal d;
+      d.setPrecision(7, HalfEven);
+      d = b1 / b2;
+      d.round();
+      BDCMP(d, 7, HalfEven, false, "1.4727541");
+   }
+   tr.passIfNoException();
+   
+   tr.test("HalfEven+zeros");
+   {
+      BigDecimal b1("100.0000000");
+      BigDecimal b2("67.9000000");
+      BigDecimal d;
+      d.setPrecision(7, HalfEven);
+      d = b1 / b2;
+      d.round();
+      BDCMP(d, 7, HalfEven, false, "1.4727541");
+   }
+   tr.passIfNoException();
+   
+   tr.test("HalfEven+neg+zeros");
+   {
+      BigDecimal b1("-100.0000000");
+      BigDecimal b2("-67.9000000");
+      BigDecimal d;
+      d.setPrecision(7, HalfEven);
+      d = b1 / b2;
+      d.round();
+      BDCMP(d, 7, HalfEven, false, "1.4727541");
+   }
+   tr.passIfNoException();
+   
+   tr.test("div ops not changed");
+   {
+      BigDecimal b1(-100);
+      BigDecimal b2(-100);
+      BigDecimal d;
+      d.setPrecision(7, HalfEven);
+      d = b1 / b2;
+      d.round();
+      BDCMP(d, 7, HalfEven, false, "1");
+      BDCMPDBL(b1, -100.0);
+      BDCMPDBL(b2, -100.0);
+      BDCMPDBL(d, 1.0);
+   }
+   tr.passIfNoException();
+   
+   tr.test("division");
    {
       BigDecimal d1;
       BigDecimal d2;
-      BigDecimal max(100);
+      //BigDecimal min(-100);
+      //BigDecimal max(100);
+      BigDecimal min(-10);
+      BigDecimal max(10);
       BigDecimal inc("0.1");
       BigDecimal zero(0);
-      printf("FIXME: rounding rules for negative numbers\n");
-      printf("FIXME: fix comparison with printf half-even rounding\n");
-      //for(d1 = -100; d1 <= max; d1 += inc)
-      for(d1 = 0; d1 <= max; d1 += inc)
+      for(d1 = min; d1 <= max; d1 += inc)
       {
-         //for(d2 = -100; d2 <= max; d2 += inc)
-         for(d2 = 0; d2 <= max; d2 += inc)
+         for(d2 = min; d2 <= max; d2 += inc)
          {
             if(d2 != zero)
             {
+               long double cres = (d1.getDouble() / d2.getDouble());
+               // convert -0 to 0
+               cres = cres ? cres : 0;
                char res[100];
-               sprintf(res, "%.7Lf", d1.getDouble() / d2.getDouble());
+               // cast to double to avoid "long double" precision rounding
+               // issues
+               //sprintf(res, "%.7Lf", cres);
+               sprintf(res, "%.7f", (double)(cres));
                /*
                BigDecimal d12;
-               d12.setPrecision(7, HalfUp);
+               d12.setPrecision(7, HalfEven);
                d12 = d1 / d2;
-               printf("%.7Lf / %.7Lf = %.7Lf (C:%.7Lf)\n",
-                  d1.getDouble(), d2.getDouble(), d12.getDouble(),
-                  d1.getDouble() / d2.getDouble());
+               printf("%.7Lf / %.7Lf = %.7Lf (C:%.7f)\n",
+                  d1.getDouble(), d2.getDouble(), d12.getDouble(), res);
                */
-               //BDCMP(d1 / d2, 7, HalfUp, true, res);
+               BDCMP(d1 / d2, 7, HalfEven, true, res);
             }
          }
       }
    }
+   tr.passIfNoException();
    
+   #undef BDCMPDBL
    #undef BDCMP0
    #undef BDCMP
 
-   tr.passIfNoException();
+   tr.ungroup();
 }
 
 class DbCryptoTester : public db::test::Tester
