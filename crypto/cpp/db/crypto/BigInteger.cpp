@@ -121,7 +121,7 @@ BigInteger& BigInteger::operator=(unsigned long long rhs)
 BigInteger& BigInteger::operator=(long long rhs)
 {
    char temp[22];
-   sprintf(temp, "%llu", rhs);
+   sprintf(temp, "%lli", rhs);
    *this = temp;
    
    return *this;
