@@ -392,6 +392,13 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
       // if exponent is negative, scale the significand so the exponent is zero
       // FIXME: these cases reverse the exponent to be like the other case
       //        ie, force exp up to zero or force it possibly below zero
+      //
+      // FIXME: A degenerate case is when multiple divisions occur with
+      //        intermediate results that cannot be reduced with the logic
+      //        below.  Each result will have an increasing exponent (set
+      //        above) that may not shrink.  Calling round() will fix this but
+      //        may not be appropriate here if the user want's higher precision
+      //        intermediate results in a calculation.
       if(rval.mSignificand.isZero())
       {
          rval.mExponent = 0;
