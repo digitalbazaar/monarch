@@ -104,6 +104,8 @@ void BigDecimal::setExponent(int exponent)
 {
    if(exponent != mExponent)
    {
+      // If mSignificand is zero can skip the adjustment but need to change the
+      // exponent so syncronizeExponents() has the correct behavior.
       if(!mSignificand.isZero())
       {
          BigInteger ten(10);
