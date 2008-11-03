@@ -102,21 +102,24 @@ void BigDecimal::initialize()
 
 void BigDecimal::setExponent(int exponent)
 {
-   if(exponent != mExponent && !mSignificand.isZero())
+   if(exponent != mExponent)
    {
-      BigInteger ten(10);
-      BigInteger pow = ten.pow(exponent - mExponent);
-      if(exponent > mExponent)
+      if(!mSignificand.isZero())
       {
-         // multiply significand by power difference
-         // no loss of accuracy
-         mSignificand *= pow;
-      }
-      else
-      {
-         // divide significand by power difference
-         // may result in loss of accuracy
-         mSignificand /= pow;
+         BigInteger ten(10);
+         BigInteger pow = ten.pow(exponent - mExponent);
+         if(exponent > mExponent)
+         {
+            // multiply significand by power difference
+            // no loss of accuracy
+            mSignificand *= pow;
+         }
+         else
+         {
+            // divide significand by power difference
+            // may result in loss of accuracy
+            mSignificand /= pow;
+         }
       }
       
       mExponent = exponent;

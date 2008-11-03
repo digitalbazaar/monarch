@@ -743,6 +743,73 @@ void runBigDecimalTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("math");
+   {
+      double dres = 
+         10 +
+         .10 * 10 +
+         (10 + .10 * 10) * .10 +
+         ((10 + .10 * 10.0) * .10) * .10 +
+         2.00 +
+         0.04 +
+         0.01;
+      BigDecimal tenth = "0.10";
+      BigDecimal ten = "10";
+      BigDecimal two = "2.00";
+      BigDecimal ohfour = "0.04";
+      BigDecimal ohone = "0.01";
+      BigDecimal expectedResult = "14.26";
+      printf(".10=%s 10=%s 2=%s .04=%s .01=%s\n",
+         tenth.toString().c_str(),
+         ten.toString().c_str(),
+         two.toString().c_str(),
+         ohfour.toString().c_str(),
+         ohone.toString().c_str());
+      BigDecimal result = 
+         ten +
+         tenth * ten +
+         (ten + tenth * ten) * tenth +
+         ((ten + tenth * ten) * tenth) * tenth +
+         two +
+         ohfour +
+         ohone;
+      printf("res=%s dres=%f\n",
+         result.toString().c_str(),
+         dres);
+      assert(result == expectedResult);
+      char dstr[100];
+      sprintf(dstr, "%.2f", dres); 
+      assertStrCmp(result.toString().c_str(), dstr);
+   }
+   tr.passIfNoException();
+   
+   tr.test("sync exp math");
+   {
+      BigDecimal a;
+      BigDecimal b;
+      BigDecimal res;
+      BigDecimal expected;
+      
+      a = "0.1";
+      b = "1";
+      res = a + b;
+      expected =  "1.1";
+      assert(res == expected);
+
+      a = "0";
+      b = "10";
+      res = a + b;
+      expected =  "10";
+      assert(res == expected);
+      
+      a = "0";
+      b = "0.1";
+      res = a + b;
+      expected =  "0.1";
+      assert(res == expected);
+   }
+   tr.passIfNoException();
+   
    // check internal representation issues
    #define BDCMP_(sig, exp, expectedStr) \
    do { \
