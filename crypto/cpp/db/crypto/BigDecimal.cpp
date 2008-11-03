@@ -403,7 +403,6 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
       {
          // minimize the exponent
          BigInteger ten(10);
-         BigInteger zero(0);
          while((rval.mSignificand % ten).isZero())
          {
             rval.mSignificand /= ten;
