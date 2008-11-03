@@ -25,7 +25,7 @@ namespace crypto
  * HalfUp = add 1 if next digit is 5-9, do nothing if 0-4
  * HalfEven = add 1 if next digit is 6 or more or 5 followed by non-zero,
  *    do nothing if next digit is 4 or less,
- *    add 1 if digit is odd and followed 5 and possible zeros,
+ *    add 1 if digit is odd and followed by 5 and possible zeros,
  *    do nothing if digit is even.
  * 
  * (See http://en.wikipedia.org/wiki/Rounding)
