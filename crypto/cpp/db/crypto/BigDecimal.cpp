@@ -391,7 +391,7 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
       //        ie, force exp up to zero or force it possibly below zero
       if(rval.mSignificand.isZero())
       {
-         rval = 0;
+         rval.mExponent = 0;
       }
       else if(rval.mExponent < 0)
       {
@@ -404,7 +404,7 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
          // minimize the exponent
          BigInteger ten(10);
          BigInteger zero(0);
-         while(rval.mSignificand % ten == zero)
+         while((rval.mSignificand % ten).isZero())
          {
             rval.mSignificand /= ten;
             rval.mExponent--;
