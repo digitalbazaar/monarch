@@ -295,11 +295,16 @@ protected:
    virtual bool startLogging();
    
    /**
-    * Stop the default logger if enabled;
+    * Stop the default logger if enabled.
     * 
     * @return true on succes, false and exception on failure.
     */
    virtual bool stopLogging();
+   
+   /**
+    * Create and initialize the app config manager.
+    */
+   virtual void initConfigManager();
    
 public:
    /**

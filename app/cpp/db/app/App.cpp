@@ -48,7 +48,7 @@ App::App()
    mVersion = NULL;
    mDelegate = NULL;
    setDelegate(this);
-   mConfigManager = new ConfigManager;
+   initConfigManager();
    mLogger = NULL;
    
    mAppConfig->setType(Map);
@@ -292,6 +292,11 @@ bool App::stopLogging()
    }
    
    return rval;
+}
+
+void App::initConfigManager()
+{
+   mConfigManager = new ConfigManager;
 }
 
 void App::run()
