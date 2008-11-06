@@ -363,49 +363,6 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("schema check");
-   {
-      DynamicObject schema;
-      DynamicObject config;
-      assert(ConfigManager::isValidConfig(config, schema));
-      schema->setType(Map);
-      config->setType(Map);
-      assert(ConfigManager::isValidConfig(config, schema));
-      schema["s"] = "";
-      schema["i"] = 0;
-      config["s"] = "string";
-      config["i"] = 1;
-      assert(ConfigManager::isValidConfig(config, schema));
-      schema["m"]["s"] = "";
-      schema["m"]["s2"] = "";
-      schema["a"][0] = 0;
-      schema["a"][1] = 1;
-      config["m"]["s"] = "s";
-      config["m"]["s2"] = "s2";
-      config["a"][0] = 0;
-      config["a"][1] = 1;
-   }
-   tr.passIfNoException();
-
-   tr.test("schema check bad");
-   {
-      DynamicObject schema;
-      DynamicObject config;
-      assert(ConfigManager::isValidConfig(config, schema));
-      schema->setType(Map);
-      config->setType(Array);
-      assert(!ConfigManager::isValidConfig(config, schema));
-      Exception::clearLast();
-      config->setType(Map);
-      schema["s"] = "";
-      schema["i"] = 0;
-      config["s"] = 1;
-      config["i"] = "string";
-      assert(!ConfigManager::isValidConfig(config, schema));
-      Exception::clearLast();
-   }
-   tr.passIfNoException();
-
    tr.test("user preferences");
    {
       ConfigManager cm;

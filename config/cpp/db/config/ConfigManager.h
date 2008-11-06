@@ -208,17 +208,6 @@ public:
    static const char* DIR_MAGIC;
    
    /**
-    * Check if a configuration has all values and types from a template
-    * schema.
-    * 
-    * @param config configuration to check against the schema.
-    * @param schema template values and types to verify.
-    * 
-    * @return true on success, false on failure with exception set
-    */
-   static bool isValidConfig(Config& config, Config& schema); 
-   
-   /**
     * Creates a new ConfigManager.
     */
    ConfigManager();
