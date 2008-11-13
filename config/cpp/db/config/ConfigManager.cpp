@@ -150,9 +150,11 @@ void ConfigManager::merge(Config& target, Config& source, bool append)
          }
          case Array:
          {
+            // FIXME: only want to "append" if node is a leaf?
             target->setType(Array);
+            int ii = (append ? target->length() : 0);
             ConfigIterator i = source.getIterator();
-            for(int ii = 0; i->hasNext(); ii++)
+            for(; i->hasNext(); ii++)
             {
                merge(target[ii], i->next(), append);
             }
@@ -219,6 +221,9 @@ void ConfigManager::makeMergedConfig(ConfigId id)
             merged = raw[APPEND].clone();
          }
       }
+      
+      // set merged config
+      config["merged"] = merged;
    }
 }
 
@@ -636,8 +641,25 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
          {
             if(mergeConfig)
             {
-               // merge the passed config into the existing config
-               merge(mConfigs[id]["raw"], config, false);
+               Config& raw = mConfigs[id]["raw"];
+               
+               // merge the merge property (do not append)
+               if(raw->hasMember(MERGE) || config->hasMember(MERGE))
+               {
+                  merge(raw[MERGE], config[MERGE], false);
+               }
+               
+               // aggregate append properties
+               if(raw->hasMember(APPEND) || config->hasMember(APPEND))
+               {
+                  merge(raw[APPEND], config[APPEND], true);
+               }
+               
+               // aggregate remove properties
+               if(raw->hasMember(REMOVE) || config->hasMember(REMOVE))
+               {
+                  merge(raw[REMOVE], config[REMOVE], true);
+               }
             }
             else
             {
@@ -649,13 +671,32 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             {
                if(mergeGroup)
                {
-                  // merge the passed config into the existing group config
-                  merge(mConfigs[groupId]["raw"], config, false);
+                  Config& raw = mConfigs[groupId]["raw"];
+                  
+                  // merge the merge property (do not append)
+                  if(raw->hasMember(MERGE) || config->hasMember(MERGE))
+                  {
+                     merge(raw[MERGE], config[MERGE], false);
+                  }
+                  
+                  // aggregate append properties
+                  if(raw->hasMember(APPEND) || config->hasMember(APPEND))
+                  {
+                     merge(raw[APPEND], config[APPEND], true);
+                  }
+                  
+                  // aggregate remove properties
+                  if(raw->hasMember(REMOVE) || config->hasMember(REMOVE))
+                  {
+                     merge(raw[REMOVE], config[REMOVE], true);
+                  }
                }
                else
                {
-                  // insert group config
-                  insertConfig(groupId, mConfigs, config);
+                  // insert group config, ensure group ID is set
+                  Config groupConfig = config.clone();
+                  groupConfig[ID] = groupId;
+                  insertConfig(groupId, mConfigs, groupConfig);
                }
             }
          }

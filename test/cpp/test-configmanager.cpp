@@ -32,6 +32,8 @@ void testConfigs()
 {
    ConfigManager cm;
    
+   // FIXME: add REMOVE property to test configs
+   
    // build system config
    Config system;
    {
@@ -180,9 +182,20 @@ void testConfigs()
    {
       printf("Testing system merged config...\n");
       
-      // FIXME:
+      // create expect config
+      Config expect;
+      expect["path"]->setType(Array);
+      expect["cowSays"] = "moo";
+      expect["dogSays"] = "bowwow";
+      expect["fruits"]["apple"] = "red";
+      expect["vegetables"]["carrot"] = "orange";
+      expect["vegetables"]["pepper"]->append() = "green";
       
+      Config merged(NULL);
+      cm.getConfig("system", merged, false);
       assertNoException();
+      assertDynoCmp(merged, expect);
+      
       printf("PASS.\n");
    }
    
@@ -203,7 +216,21 @@ void testConfigs()
    {
       printf("Testing engine merged config...\n");
       
-      // FIXME:
+      // create expect config
+      Config expect;
+      expect["path"]->setType(Array);
+      expect["path"]->append() = "/usr/bin";
+      expect["cowSays"] = "moo";
+      expect["dogSays"] = "woof";
+      expect["fruits"]["apple"] = "red";
+      expect["fruits"]["banana"] = "yellow";
+      expect["vegetables"]["carrot"] = "orange";
+      expect["vegetables"]["pepper"]->append() = "red";
+      
+      Config merged(NULL);
+      cm.getConfig("engine", merged, false);
+      assertNoException();
+      assertDynoCmp(merged, expect);
       
       assertNoException();
       printf("PASS.\n");
@@ -226,9 +253,22 @@ void testConfigs()
    {
       printf("Testing ui merged config...\n");
       
-      // FIXME:
+      // create expect config
+      Config expect;
+      expect["path"]->setType(Array);
+      expect["path"]->append() = "/tmp/ui-tool";
+      expect["cowSays"] = "moo";
+      expect["dogSays"] = "bowwow";
+      expect["fruits"]["apple"] = "red";
+      expect["fruits"]["pear"] = "green";
+      expect["vegetables"]["carrot"] = "orange";
+      expect["vegetables"]["pepper"]->append() = "red";
       
+      Config merged(NULL);
+      cm.getConfig("ui", merged, false);
       assertNoException();
+      assertDynoCmp(merged, expect);
+      
       printf("PASS.\n");
    }
    
@@ -236,9 +276,31 @@ void testConfigs()
    {
       printf("Testing app group raw config...\n");
       
-      // FIXME:
+      // create expect config
+      Config expect;
       
+      // set properties
+      expect[ConfigManager::ID] = "app";
+      expect[ConfigManager::PARENT] = "system";
+      expect[ConfigManager::GROUP] = "app";
+      
+      // set merge info
+      Config& merge = expect[ConfigManager::MERGE];
+      merge["dogSays"] = "woof";
+      merge["fruits"]["banana"] = "yellow";
+      merge["fruits"]["pear"] = "green";
+      merge["vegetables"]["pepper"]->append() = "red";
+      
+      // set append info
+      Config& append = expect[ConfigManager::APPEND];
+      append["path"]->append() = "/usr/bin";
+      append["path"]->append() = "/tmp/ui-tool";
+      
+      Config raw(NULL);
+      cm.getConfig("app", raw, true);
       assertNoException();
+      assertDynoCmp(raw, expect);
+      
       printf("PASS.\n");
    }
    
@@ -247,8 +309,21 @@ void testConfigs()
       printf("Testing app group merged config...\n");
       
       // FIXME:
+//      // create expect config
+//      Config expect;
+//      expect["path"]->setType(Array);
+//      expect["cowSays"] = "moo";
+//      expect["dogSays"] = "bowwow";
+//      expect["fruits"]["apple"] = "red";
+//      expect["vegetables"]["carrot"] = "orange";
+//      expect["vegetables"]["pepper"]->append() = "green";
+//      
+//      Config merged(NULL);
+//      cm.getConfig("system", merged, false);
+//      assertNoException();
+//      assertDynoCmp(merged, expect);
       
-      assertNoException();
+      
       printf("PASS.\n");
    }
    
@@ -268,7 +343,6 @@ void testConfigs()
       
       // FIXME:
       
-      assertNoException();
       printf("PASS.\n");
    }
    
@@ -288,7 +362,6 @@ void testConfigs()
       
       // FIXME:
       
-      assertNoException();
       printf("PASS.\n");
    }
    
@@ -308,7 +381,6 @@ void testConfigs()
       
       // FIXME:
       
-      assertNoException();
       printf("PASS.\n");
    }
 }
