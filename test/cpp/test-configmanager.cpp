@@ -663,12 +663,47 @@ void testConfigs()
    _testConfigs(system, engine, ui, user1, user2, child2);
 }
 
+void testFailures()
+{
+   // init configs
+   Config system;
+   Config engine;
+   Config ui;
+   Config user1;
+   Config user2;
+   Config child2;
+   _initConfigs(system, engine, ui, user1, user2, child2);
+   
+   // add conflict to ui
+   ui[ConfigManager::MERGE]["fruits"]["banana"] = "barf";
+   
+   ConfigManager cm;
+   
+   cm.addConfig(system);
+   assertNoException();
+   cm.addConfig(engine);
+   assertNoException();
+   cm.addConfig(ui);
+   assertException();
+   Exception::clearLast();
+   
+   // try to get bogus config ID
+   Config bogus(NULL);
+   cm.getConfig("bogus", bogus, true);
+   assertException();
+   Exception::clearLast();
+   cm.getConfig("bogus", bogus, false);
+   assertException();
+   Exception::clearLast();
+}
+
 int main()
 {
    printf("Testing ConfigManager...\n\n");
    
    testConfigs();
    testConfigFiles();
+   testFailures();
    
    printf("\nALL TESTS PASS.\n");
    
