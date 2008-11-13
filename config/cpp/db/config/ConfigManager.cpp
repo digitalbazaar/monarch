@@ -33,8 +33,7 @@ const char* ConfigManager::INCLUDE_EXT   = ".config";
 const char* ConfigManager::TMP           = "__tmp__";
 const char* ConfigManager::DIR_MAGIC     = "__dir__";
 
-ConfigManager::ConfigManager() :
-   mInvalidConfig(NULL)
+ConfigManager::ConfigManager()
 {
    // initialize internal data structures
    mVersions->setType(Map);
@@ -901,14 +900,14 @@ bool ConfigManager::removeConfig(ConfigId id)
    return rval;
 }
 
-bool ConfigManager::getConfig(ConfigId id, Config& config, bool raw)
+Config ConfigManager::getConfig(ConfigId id, bool raw)
 {
-   bool rval = false;
+   Config rval(NULL);
    
    if(mConfigs->hasMember(id))
    {
-      rval = true;
-      config = (raw ? mConfigs[id]["raw"] : mConfigs[id]["merged"]);
+      rval = (raw ?
+         mConfigs[id]["raw"].clone() : mConfigs[id]["merged"].clone());
    }
    else
    {
@@ -921,24 +920,59 @@ bool ConfigManager::getConfig(ConfigId id, Config& config, bool raw)
    return rval;
 }
 
-Config& ConfigManager::getConfig(ConfigId id)
+bool ConfigManager::setConfig(Config& config)
 {
-   Config* rval;
+   bool rval = false;
    
-   if(mConfigs->hasMember(id))
+   // lock to modify internal storage
+   mLock.lockExclusive();
    {
-      rval = &mConfigs[id]["merged"];
+      ConfigId id = config[ID]->getString();
+      
+      // ensure the ID exists
+      if(!mConfigs->hasMember(id))
+      {
+         ExceptionRef e = new Exception(
+            "Could not set config. Invalid config ID.",
+            "db.config.ConfigManager.InvalidId");
+         Exception::setLast(e, false);
+      }
+      // ensure the group ID hasn't changed
+      else if(
+         (!mConfigs[id]["raw"]->hasMember(GROUP) &&
+          config->hasMember(GROUP)) ||
+         (mConfigs[id]["raw"]->hasMember(GROUP) &&
+          strcmp(config[GROUP]->getString(),
+                 mConfigs[id]["raw"][GROUP]->getString()) != 0))
+      {
+         ExceptionRef e = new Exception(
+            "Could not set config. Group changed.",
+            "db.config.ConfigManager.ConfigConflict");
+         Exception::setLast(e, false);
+      }
+      // ensure the parent ID hasn't changed
+      else if(
+         (!mConfigs[id]["raw"]->hasMember(PARENT) &&
+          config->hasMember(PARENT)) ||
+         (mConfigs[id]["raw"]->hasMember(PARENT) &&
+          strcmp(config[PARENT]->getString(),
+                 mConfigs[id]["raw"][PARENT]->getString()) != 0))
+      {
+         ExceptionRef e = new Exception(
+            "Could not set config. Parent changed.",
+            "db.config.ConfigManager.ConfigConflict");
+         Exception::setLast(e, false);
+      }
+      else
+      {
+         mConfigs[id]["raw"] = config;
+         update(id);
+         rval = true;
+      }
    }
-   else
-   {
-      ExceptionRef e = new Exception(
-         "Could not get config. Invalid config ID.",
-         "db.config.ConfigManager.InvalidId");
-      Exception::setLast(e, false);
-      rval = &mInvalidConfig;
-   }
+   mLock.unlockExclusive();
    
-   return *rval;
+   return rval;
 }
 
 void ConfigManager::addVersion(const char* version)

@@ -58,8 +58,7 @@ void _testConfigs(
    {
       printf("Testing system raw config...\n");
       
-      Config raw(NULL);
-      cm.getConfig("system", raw, true);
+      Config raw = cm.getConfig("system", true);
       assertNoException();
       assertDynoCmp(raw, system);
       
@@ -80,8 +79,7 @@ void _testConfigs(
       expect["vegetables"]["eggplant"] = "purple";
       expect["vegetables"]["pepper"]->append() = "green";
       
-      Config merged(NULL);
-      cm.getConfig("system", merged, false);
+      Config merged = cm.getConfig("system", false);
       assertNoException();
       assertDynoCmp(merged, expect);
       
@@ -92,8 +90,7 @@ void _testConfigs(
    {
       printf("Testing engine raw config...\n");
       
-      Config raw(NULL);
-      cm.getConfig("engine", raw, true);
+      Config raw = cm.getConfig("engine", true);
       assertNoException();
       assertDynoCmp(raw, engine);
       
@@ -116,8 +113,7 @@ void _testConfigs(
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
       
-      Config merged(NULL);
-      cm.getConfig("engine", merged, false);
+      Config merged = cm.getConfig("engine", false);
       assertNoException();
       assertDynoCmp(merged, expect);
       
@@ -129,8 +125,7 @@ void _testConfigs(
    {
       printf("Testing ui raw config...\n");
       
-      Config raw(NULL);
-      cm.getConfig("ui", raw, true);
+      Config raw = cm.getConfig("ui", true);
       assertNoException();
       assertDynoCmp(raw, ui);
       
@@ -153,8 +148,7 @@ void _testConfigs(
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
       
-      Config merged(NULL);
-      cm.getConfig("ui", merged, false);
+      Config merged = cm.getConfig("ui", false);
       assertNoException();
       assertDynoCmp(merged, expect);
       
@@ -189,8 +183,7 @@ void _testConfigs(
       Config& remove= expect[ConfigManager::REMOVE];
       remove["vegetables"]["eggplant"] = "";
       
-      Config raw(NULL);
-      cm.getConfig("app", raw, true);
+      Config raw = cm.getConfig("app", true);
       assertNoException();
       assertDynoCmp(raw, expect);
       
@@ -214,8 +207,7 @@ void _testConfigs(
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
       
-      Config merged(NULL);
-      cm.getConfig("app", merged, false);
+      Config merged = cm.getConfig("app", false);
       assertNoException();
       assertDynoCmp(merged, expect);
       
@@ -226,8 +218,7 @@ void _testConfigs(
    {
       printf("Testing user1 raw config...\n");
       
-      Config raw(NULL);
-      cm.getConfig("user1", raw, true);
+      Config raw = cm.getConfig("user1", true);
       assertNoException();
       assertDynoCmp(raw, user1);
       
@@ -253,8 +244,7 @@ void _testConfigs(
       expect["fruits"]["apricot"] = "orange";
       expect["vegetables"]["carrot"] = "orange";
       
-      Config merged(NULL);
-      cm.getConfig("user1", merged, false);
+      Config merged = cm.getConfig("user1", false);
       assertNoException();
       assertDynoCmp(merged, expect);
       
@@ -265,8 +255,7 @@ void _testConfigs(
    {
       printf("Testing user2 raw config...\n");
       
-      Config raw(NULL);
-      cm.getConfig("user2", raw, true);
+      Config raw = cm.getConfig("user2", true);
       assertNoException();
       assertDynoCmp(raw, user2);
       
@@ -294,8 +283,7 @@ void _testConfigs(
       expect["bacon"]["cooked"] = "red";
       expect["bacon"]["raw"] = "pink";
       
-      Config merged(NULL);
-      cm.getConfig("user2", merged, false);
+      Config merged = cm.getConfig("user2", false);
       assertNoException();
       assertDynoCmp(merged, expect);
       
@@ -306,8 +294,7 @@ void _testConfigs(
    {
       printf("Testing child2 raw config...\n");
       
-      Config raw(NULL);
-      cm.getConfig("child2", raw, true);
+      Config raw = cm.getConfig("child2", true);
       assertNoException();
       assertDynoCmp(raw, child2);
       
@@ -333,8 +320,7 @@ void _testConfigs(
       expect["bacon"]["cooked"] = "red";
       expect["shoes"] = "black";
       
-      Config merged(NULL);
-      cm.getConfig("child2", merged, false);
+      Config merged = cm.getConfig("child2", false);
       assertNoException();
       assertDynoCmp(merged, expect);
       
@@ -691,10 +677,10 @@ void testFailures()
    
    // try to get bogus config ID
    Config bogus(NULL);
-   cm.getConfig("bogus", bogus, true);
+   bogus = cm.getConfig("bogus", true);
    assertException();
    Exception::clearLast();
-   cm.getConfig("bogus", bogus, false);
+   bogus = cm.getConfig("bogus", false);
    assertException();
    Exception::clearLast();
    

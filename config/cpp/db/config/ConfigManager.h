@@ -207,11 +207,6 @@ protected:
    db::rt::SharedLock mLock;
    
    /**
-    * A null configuration to return when an invalid config ID is requested.
-    */
-   Config mInvalidConfig;
-   
-   /**
     * Merges source over data in target. Simple values are cloned. Arrays
     * and Maps are iterated through recursively.
     * 
@@ -338,29 +333,27 @@ public:
    virtual bool removeConfig(ConfigId id);
    
    /**
-    * Gets a specific config by its ID. FIXME: Potential race condition
-    * that will segfault if one configuration is altered by two threads. Need
-    * either a lock policy that must be followed or must return a clone and
-    * add a setConfig() method.
+    * Gets a specific config by its ID. This method will return a clone
+    * of the configuration. To set the configuration, setConfig() must be
+    * called.
     * 
     * @param id the Config's ID.
-    * @param config the Config object to populate.
     * @param raw true to get the raw config, false to get the config as merged
-    *            with its parent (and their parents).
+    *            with all up-tree parents.
     * 
-    * @return true on success, false on failure and exception will be set.
+    * @return the Config or NULL if the ID was invalid.
     */
-   virtual bool getConfig(ConfigId id, Config& config, bool raw);
+   virtual Config getConfig(ConfigId id, bool raw = false);
    
    /**
-    * A shortcut method for retrieving a merged config by its ID. The merged
-    * config *must* be treated as READ-ONLY.
+    * Sets the a particular config's raw data and updates any related
+    * configs.
     * 
-    * @param id the Config's ID.
+    * @param config the config to update.
     * 
-    * @return the Config's merged information or NULL if the ID was invalid.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual Config& getConfig(ConfigId id);
+   virtual bool setConfig(Config& config); 
    
    /**
     * Update config from all current configs. Update is called after adding

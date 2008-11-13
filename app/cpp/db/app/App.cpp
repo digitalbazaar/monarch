@@ -232,7 +232,7 @@ bool App::startLogging()
    bool rval = true;
    
    // get logging config
-   Config& cfg = getConfigManager()->getConfig("app")["app"]["logging"];
+   Config cfg = getConfigManager()->getConfig("app")["app"]["logging"];
    
    if(cfg["enabled"]->getBoolean())
    {
