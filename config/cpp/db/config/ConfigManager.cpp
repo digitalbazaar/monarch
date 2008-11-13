@@ -907,7 +907,7 @@ Config ConfigManager::getConfig(ConfigId id, bool raw)
    if(mConfigs->hasMember(id))
    {
       rval = (raw ?
-         mConfigs[id]["raw"].clone() : mConfigs[id]["merged"].clone());
+         mConfigs[id]["raw"].clone() : mConfigs[id]["merged"]);
    }
    else
    {

@@ -334,8 +334,12 @@ public:
    
    /**
     * Gets a specific config by its ID. This method will return a clone
-    * of the configuration. To set the configuration, setConfig() must be
-    * called.
+    * of the raw configuration if "raw" is set to true. To set the
+    * configuration, setConfig() must be called with the returned "raw"
+    * clone. If "raw" is not true, then a READ-ONLY copy of the merged
+    * configuration will be returned. This is enforced only via policy, so
+    * you must not alter the returned merged configuration or you will mess
+    * everything up, jerk.
     * 
     * @param id the Config's ID.
     * @param raw true to get the raw config, false to get the config as merged
