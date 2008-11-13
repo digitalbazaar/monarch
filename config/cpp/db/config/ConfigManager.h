@@ -6,10 +6,8 @@
 
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
-#include "db/rt/Collectable.h"
+#include "db/rt/SharedLock.h"
 #include "db/rt/WindowsSupport.h"
-
-#include <vector>
 
 namespace db
 {
@@ -34,17 +32,46 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
 
 /**
  * A ConfigManager provides support for managing multiple sources of
- * configuration information, merging those configs into one top-level
- * view, and providing a diff between modifications to the view and the
- * merged config. Configs are typedefs of DynamicObjects.
- *
- * As you add configs they overlay previously added configs:
- * [sys0, sys1, sys2, custom0, sys3, ...]
- * <-- low priority -- high priority -->
- *
- * getChanges() will retrieve the difference between the system configs and
- * the current config. This allows for a preferences system to make it easy
- * to save user changes.
+ * configuration information. Each different configuration source (referred to
+ * as a "config") has a unique ID. Each config may also have relationships
+ * with other sources, namely, it may have one parent and many children.
+ * 
+ * Each config's raw information is stored internally and can be retrieved. In
+ * addition to the raw information, a merge of each config and its tree of
+ * parent configs is stored and can be retrieved. This allows configs to be
+ * overlayed with one another to produce a rich layered configuration system.
+ * 
+ * Configs may also declare that they are members in a particular "group". A
+ * group functions in a similar fashion to a normal config, having a
+ * config ID (which is the same as its group ID), and having both a
+ * "raw" and a merged configuration. Members in the same group cannot have
+ * conflicting raw information, or else an exception will be raised. It is
+ * assumed that the members in a group will contribute different and/or
+ * compatible configuration information to a single group config. This allows
+ * configurations to be split up amongst files and it allows other configs
+ * to set their parents to a particular group ID, thereby sharing the aggregate
+ * configuration information.
+ * 
+ * Configs are typedefs of DynamicObjects.
+ * 
+ * A comprehensive example of the use of this system is as follows:
+ * 
+ * 1. config1 is assigned ID "system".
+ * 2. config2 is assigned ID "engine", group ID "app", and parent ID "system".
+ * 3. config3 is assigned ID "ui", group ID "app", and parent ID "system".
+ * 4. config4 is assigned ID "user1" and parent ID "app".
+ * 5. config5 is assigned ID "user2" and parent ID "app".
+ * Note: A config for the "app" group will be implicitly created.
+ * 
+ * Each config's (including the group "app") specific raw information can be
+ * retrieved on its own. This data acts as a "diff" between the config and its
+ * parent. Also, if config2 or config3's (for instance) "merged" configuration
+ * information is desired, it can be retrieved. This data will show all of the
+ * "system" configuration values with config2 or config3's (respectively) values
+ * overlayed on top of it. Similarly, if config4 or config5's merged data is
+ * retrieved it will show their specific options overlayed on the "app" config's
+ * merged data (which includes all of system's config with config2 AND config3
+ * merged on top of it).
  * 
  * A special config key, ::INCLUDE ("__include__"), is available to control
  * including other files.  If present, the value of this key must be an
@@ -53,8 +80,8 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * String: The value is a required path to load.
  * Map: Options can be provided to control the include process:
  * "path": Path to include. (String, required)
- * "load": Supress load of the path. (Boolean, optional, default: true)
- * "optional": Supress failures if path not found.
+ * "load": Suppress load of the path. (Boolean, optional, default: true)
+ * "optional": Suppress failures if path not found.
  *    (Boolean, optional, default: false)
  * "defaults": Load a specific config as Defaults.
  *    (Boolean, optional, default: true)
@@ -76,101 +103,15 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * "__dir__": The directory of this config. (::DIR_MAGIC)
  * 
  * @author David I. Lehn
+ * @author Dave Longley
  */
-class DLL_CLASS ConfigManager : public virtual db::rt::ExclusiveLock
+class DLL_CLASS ConfigManager
 {
 public:
    /**
-    * The type of a configuration.
+    * Config IDs are strings.
     */
-   enum ConfigType {
-      /**
-       * No type.
-       */
-      None,
-      
-      /**
-       * Default configs.  Used for system defaults and those provided by
-       * components.
-       */
-      Default,
-      
-      /**
-       * Custom configs.  Configs which override Default configs.
-       */
-      Custom,
-      
-      /**
-       * Both Default and Custom configs
-       */
-      All
-   };
-   
-protected:
-   /**
-    * A list of acceptable versions or empty list to accept all versions.
-    * Uses the VERSION key of a config.
-    */
-   db::rt::DynamicObject mVersions;
-   
-   /**
-    * Pair to hold config and system flag.
-    */
-   typedef std::pair<Config, ConfigType> ConfigPair;
-
-   /**
-    * Source configs and type flag.
-    */
-   std::vector<ConfigPair> mConfigs;
-   
-   /**
-    * Merged configuration after update().  Read/Write access.
-    */
-   Config mConfig;
-   
-   /**
-    * Merge source over data in target.  Simple values are cloned.  Arrays
-    * and Maps are iterated through recursively.
-    * 
-    * @param target destination to merge into.
-    * @param source source to merge from. 
-    */
-   void merge(Config& target, Config& source);
-
-   /**
-    * Merge all configs into target.
-    * 
-    * @param target destination to merge into.
-    * @param types type of configs to merge.
-    */
-   void makeMergedConfig(Config& target, ConfigType types = Default);
-
-   /**
-    * Compute the difference from dyno1 to dyno2 and store in diff.  Only
-    * calculates new or updated elements.  Removed elements are not in the
-    * diff.
-    * 
-    * @param diff the Config to write the diff to.
-    * @param config1 original Config.
-    * @param config2 the new Config.
-    * 
-    * @return true if diff found, else false
-    */
-   bool diff(Config& diff, Config& config1, Config& config2);
-
-   /**
-    * Replaces magic values with appropriate values.  See the class docs.
-    * 
-    * @param config the Config to process.
-    * @param magicMap a map of strings to replacement values.
-    */
-   void replaceMagic(Config& config, db::rt::DynamicObject& magicMap);
-
-public:
-   /**
-    * Storage type for config ids.
-    */
-   typedef std::string::size_type ConfigId;
+   typedef const char* ConfigId;
    
    /**
     * Magic value in config objects to inherit default value when merging.
@@ -182,6 +123,39 @@ public:
     * Magic key in config object to specify the config object format version.
     */
    static const char* VERSION;
+   
+   /**
+    * Magic key in a config object to specify its ID.
+    */
+   static const char* ID;
+   
+   /**
+    * Magic key in a config object to specify its group.
+    */
+   static const char* GROUP;
+   
+   /**
+    * Magic key in a config object to specify its parent's ID.
+    */
+   static const char* PARENT;
+   
+   /**
+    * Magic key in a config object to specify the values for config, which
+    * will be merged with a parent config, if one is specified.
+    */
+   static const char* MERGE;
+   
+   /**
+    * Magic key in a config object to specify configuration values to append to,
+    * as opposed to merge with, a parent configuration.
+    */
+   static const char* APPEND;
+   
+   /**
+    * Magic key in a config object to specify configuration values to remove
+    * from a parent configuration.
+    */
+   static const char* REMOVE;
    
    /**
     * Magic key in a config object to specify a list of config files or
@@ -207,6 +181,73 @@ public:
     */
    static const char* DIR_MAGIC;
    
+protected:
+   /**
+    * A map of acceptable versions or empty list to accept all versions.
+    * Uses the VERSION key of a config.
+    */
+   db::rt::DynamicObject mVersions;
+   
+   /**
+    * The stored configurations. This object has the following format:
+    * 
+    * Map (ConfigId -> configuration data)
+    * {
+    *    parent : ConfigId (optional config parent)
+    *    children: [] of ConfigIds (child config IDs)
+    *    raw : Config (raw configuration for the given ID)
+    *    merged : Config (merged w/parent configuration for the given ID)
+    * }
+    */
+   Config mConfigs;
+   
+   /**
+    * A lock for modifying the internal configuration data.
+    */
+   db::rt::SharedLock mLock;
+   
+   /**
+    * Merges source over data in target. Simple values are cloned. Arrays
+    * and Maps are iterated through recursively.
+    * 
+    * @param target destination to merge into.
+    * @param source source to merge from.
+    * @param append true to append array values, false to merge them.
+    */
+   virtual void merge(Config& target, Config& source, bool append);
+   
+   /**
+    * Merges raw and parent merged configs and stores them in the "merged"
+    * property for the given config ID. The merged configuration has no
+    * no "__special__" tags. This method assumes the lock for modifying
+    * internal storage is engaged in exclusive mode.
+    * 
+    * @param id the config ID to create the merged config for.
+    */
+   virtual void makeMergedConfig(ConfigId id);
+   
+   /**
+    * Compute the difference from dyno1 to dyno2 and store in diff.  Only
+    * calculates new or updated elements.  Removed elements are not in the
+    * diff.
+    * 
+    * @param diff the Config to write the diff to.
+    * @param config1 original Config.
+    * @param config2 the new Config.
+    * 
+    * @return true if diff found, else false
+    */
+   virtual bool diff(Config& diff, Config& config1, Config& config2);
+   
+   /**
+    * Replaces magic values with appropriate values.  See the class docs.
+    * 
+    * @param config the Config to process.
+    * @param magicMap a map of strings to replacement values.
+    */
+   virtual void replaceMagic(Config& config, db::rt::DynamicObject& magicMap);
+
+public:
    /**
     * Creates a new ConfigManager.
     */
@@ -230,96 +271,80 @@ public:
    virtual void clear();
    
    /**
-    * Adds a configuration.  The special key "__include__" can be used
-    * to provide an array of files or directories of files to load if the
-    * include parameter is true.  Note that there is currently no way to
-    * get the ConfigId for included files.  See the class documentation for a
-    * full description of the include functionality.
+    * Adds a configuration.
+    * 
+    * The special key "__id__" *must* be present to specify the configuration's
+    * ID.
+    * 
+    * The special key "__parent__" can be provided if the configuration has a
+    * parent configuration that it should receive default values from and be
+    * merged with.
+    * 
+    * The special key "__include__" can be used to provide an array of files
+    * or directories of files to load if the passed include parameter is true.
+    * 
+    * The special key "__version__" must be provided if this configuration
+    * manager requires specific configuration versions.
     * 
     * @param config the Config to add.
-    * @param type the type of Config.
-    * @param id the location to store the id of the new Config or NULL.
-    * @param include process include directives.
-    * @param dir directory of this config used for processing relative includes
-    *        or NULL.
+    * @param include true to process include directives, false to ignore them.
+    * @param dir the directory of this config used for processing relative
+    *            includes or NULL.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfig(
-      Config& config, ConfigType type = Default, ConfigId* id = NULL,
-      bool include = true, const char* dir = NULL);
+      Config& config, bool include = true, const char* dir = NULL);
    
    /**
     * Adds a configuration file or directory of files with addConfig().
     * 
     * @param path the file or directory of files to parse and add.
-    * @param type the type of Config.
-    * @param id the location to store the id of the new Config or NULL.
-    * @param include process include directives.
-    * @param dir directory of this config used for processing relative includes
-    *        or NULL.
-    * @param optional true to supress failure if path is not found,
-    *        false to require path to be present.
-    * @param deep process subdirs as dirs of configs
-    * @param magic replace magic strings with appropriate values.
+    * @param include true to process include directives, false to ignore them.
+    * @param dir the directory of this config used for processing relative
+    *            includes or NULL.
+    * @param optional true to suppress failure if path is not found,
+    *                 false to require path to be present.
+    * @param deep true to process subdirs as dirs of configs.
+    * @param magic true to replace magic strings with appropriate values.
     * 
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool addConfig(
-      const char* path, ConfigType type = Default, ConfigId* id = NULL,
-      bool include = true, const char* dir = NULL, bool optional = false,
-      bool deep = false, bool magic = false);
+   virtual bool addConfigFile(
+      const char* path, bool include = true, const char* dir = NULL,
+      bool optional = false, bool deep = false, bool magic = false);
    
    /**
     * Removes a configuration.
     * 
-    * @param id the Config's id (as returned from addConfig()).
+    * @param id the Config's ID.
     * 
     * @return true on success, false on failure and exception will be set.
     */
    virtual bool removeConfig(ConfigId id);
-
+   
    /**
     * Get a specific config.
     * 
-    * @param id the Config's id (as returned by addConfig()).
-    * @param config the Config to populate with the retrieved Config.
+    * @param id the Config's ID.
+    * @param config the Config object to populate.
+    * @param raw true to get the raw config, false to get the config as merged
+    *            with its parent (and their parents).
     * 
     * @return true on success, false on failure and exception will be set.
     */
-   virtual bool getConfig(ConfigId id, Config& config);
-
+   virtual bool getConfig(ConfigId id, Config& config, bool raw);
+   
    /**
-    * Sets a specific config.
+    * Update config from all current configs. Update is called after adding
+    * and removing configs. It should also be called if an individual config
+    * has data changed.
     * 
-    * @param id the Config's id (as returned by addConfig()).
-    * @param config the new Config to use.
-    * 
-    * @return true on success, false on failure and exception will be set.
+    * @param id the ID of the config to update (all related configs will be
+    *           updated).
     */
-   virtual bool setConfig(ConfigId id, Config& config);
-
-   /**
-    * Update config from all current configs.  Update is called after
-    * adding and removing configs.  It should also be called if an
-    * individual config has data changed.
-    */
-   virtual void update();
-
-   /**
-    * Calculate the differences between the source configs and the
-    * read-write config. Only records new or updated config fields.
-    *
-    * @param target the Config to store the changes in.
-    * @param baseType the type to compare against (useful values are Default,
-    *        Custom, and All).
-    * @param addVersion add the first version string added with addVersion
-    *        to target.  Useful if target will be saved and needs to be
-    *        reloaded.
-    */
-   virtual void getChanges(
-      Config& target, ConfigType baseType = Default, bool addVersion = false);
-
+   virtual void update(ConfigId id);
+   
    /**
     * Set the version of configurations this manager uses.  When adding a
     * config the VERSION string will be checked against this value if not NULL.
@@ -328,7 +353,7 @@ public:
     * @param version a valid version to use.
     */
    virtual void addVersion(const char* version);
-
+   
    /**
     * Return an Array of version this manager is configured to accept.
     *
