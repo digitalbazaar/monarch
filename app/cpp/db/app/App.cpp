@@ -232,7 +232,7 @@ bool App::startLogging()
    bool rval = true;
    
    // get logging config
-   Config& cfg = getConfigManager()->getConfig()["app"]["logging"];
+   Config& cfg = getConfigManager()->getConfig("app")["app"]["logging"];
    
    if(cfg["enabled"]->getBoolean())
    {
@@ -812,7 +812,8 @@ bool App::willParseCommandLine(std::vector<const char*>* args)
       specs[1] = delegate->getCommandLineSpec();
    }
    
-   getConfigManager()->update();
+   // FIXME: which config is supposed to be updated here?
+   //getConfigManager()->update();
    
    return rval;
 }
@@ -869,8 +870,9 @@ bool App::didParseCommandLine()
    // done with temporary command line config
    mCLConfig.setNull();
    
+   // FIXME: which config is supposed to be updated here?
    // update merged config
-   getConfigManager()->update();
+   //getConfigManager()->update();
 
    return rval;
 }

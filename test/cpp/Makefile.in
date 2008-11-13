@@ -4,6 +4,7 @@ SOURCES = $(wildcard db/test/*.cpp)
 EXECUTABLES = \
 	test-compress \
 	test-config \
+	test-configmanager \
 	test-crypto \
 	test-data \
 	test-dyno-perf \

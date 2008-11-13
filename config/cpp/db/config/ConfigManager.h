@@ -207,6 +207,11 @@ protected:
    db::rt::SharedLock mLock;
    
    /**
+    * A null configuration to return when an invalid config ID is requested.
+    */
+   Config mInvalidConfig;
+   
+   /**
     * Merges source over data in target. Simple values are cloned. Arrays
     * and Maps are iterated through recursively.
     * 
@@ -227,6 +232,14 @@ protected:
    virtual void makeMergedConfig(ConfigId id);
    
    /**
+    * Replaces magic values with appropriate values.  See the class docs.
+    * 
+    * @param config the Config to process.
+    * @param magicMap a map of strings to replacement values.
+    */
+   virtual void replaceMagic(Config& config, db::rt::DynamicObject& magicMap);
+   
+   /**
     * Compute the difference from dyno1 to dyno2 and store in diff.  Only
     * calculates new or updated elements.  Removed elements are not in the
     * diff.
@@ -240,12 +253,17 @@ protected:
    virtual bool diff(Config& diff, Config& config1, Config& config2);
    
    /**
-    * Replaces magic values with appropriate values.  See the class docs.
+    * Helper method to check two configs for conflicts. There is a conflict
+    * between the two configs if the "existing" config is not a subset of
+    * "config."
     * 
-    * @param config the Config to process.
-    * @param magicMap a map of strings to replacement values.
+    * @param id the config ID of the two configs.
+    * @param existing the existing config.
+    * @param config the new config.
+    * 
+    * @return true if no conflict, false if conflict with exception set.
     */
-   virtual void replaceMagic(Config& config, db::rt::DynamicObject& magicMap);
+   virtual bool checkConflicts(ConfigId id, Config& existing, Config& config);
 
 public:
    /**
@@ -257,13 +275,6 @@ public:
     * Destructs this ConfigManager.
     */
    virtual ~ConfigManager();
-   
-   /**
-    * Gets the main configuration for this ConfigManager.
-    * 
-    * @return the configuration of all overlayed configurations.
-    */
-   virtual Config& getConfig();
    
    /**
     * Clear all configurations. Invalidates previous addConfig() ids.
@@ -324,7 +335,7 @@ public:
    virtual bool removeConfig(ConfigId id);
    
    /**
-    * Get a specific config.
+    * Gets a specific config by its ID.
     * 
     * @param id the Config's ID.
     * @param config the Config object to populate.
@@ -334,6 +345,15 @@ public:
     * @return true on success, false on failure and exception will be set.
     */
    virtual bool getConfig(ConfigId id, Config& config, bool raw);
+   
+   /**
+    * A shortcut method for retrieving a merged config by its ID.
+    * 
+    * @param id the Config's ID.
+    * 
+    * @return the Config's merged information or NULL if the ID was invalid.
+    */
+   virtual Config& getConfig(ConfigId id);
    
    /**
     * Update config from all current configs. Update is called after adding

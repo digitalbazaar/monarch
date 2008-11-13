@@ -33,7 +33,8 @@ const char* ConfigManager::INCLUDE_EXT   = ".config";
 const char* ConfigManager::TMP           = "__tmp__";
 const char* ConfigManager::DIR_MAGIC     = "__dir__";
 
-ConfigManager::ConfigManager()
+ConfigManager::ConfigManager() :
+   mInvalidConfig(NULL)
 {
    // initialize internal data structures
    mVersions->setType(Map);
@@ -45,62 +46,28 @@ ConfigManager::~ConfigManager()
 }
 
 /**
- * Static helper method to check two configs for conflicts. There is a conflict
- * between the two configs if the "existing" config is not a subset of
- * "config."
- * 
- * @param id the config ID of the two configs.
- * @param existing the existing config.
- * @param config the new config.
- * 
- * @return true if no conflict, false if conflict with exception set.
- */
-static bool checkConflicts(ConfigId id, Config& existing, Config& config)
-{
-   bool rval = false;
-   
-   if(existing.isSubset(config))
-   {
-      rval = true;
-   }
-   else
-   {
-      // calculate the diff to include it in the exception
-      Config diff;
-      diff(diff, existing, config);
-      
-      ExceptionRef e = new Exception(
-         "Config conflict.", "db.config.ConfigManager.ConfigConflict");
-      e->getDetails()["configId"] = id;
-      e->getDetails()["diff"] = diff;
-      Exception::setLast(e, false);
-   }
-   
-   return rval;
-}
-
-/**
  * Static helper method to insert a config. This method assumes there is no
  * existing config with the passed ID and that any parent in the config is
  * valid.
  * 
  * @param id the config ID of the config to insert.
  * @param storage the config to use for storage.
- * @param entry the config to insert.
+ * @param raw the raw config to insert.
  */
-static void insertConfig(ConfigId id, Config& storage, Config& entry)
+static void insertConfig(
+   ConfigManager::ConfigId id, Config& storage, Config& raw)
 {
    Config& c = storage[id];
    c["children"]->setType(Array);
-   c["raw"] = config;
+   c["raw"] = raw;
    
    // if has parent
-   if(config->hasMember(PARENT))
+   if(raw->hasMember(ConfigManager::PARENT))
    {
       // set parent and update parent's children
-      ConfigId parent = config[PARENT]->getString();
+      ConfigManager::ConfigId parent = raw[ConfigManager::PARENT]->getString();
       c["parent"] = parent;
-      storage[parent]["children"]->append(id);
+      storage[parent]["children"]->append() = id;
    }
 }
 
@@ -271,6 +238,46 @@ void ConfigManager::update(ConfigId id)
    mLock.unlockExclusive();
 }
 
+void ConfigManager::replaceMagic(Config& config, DynamicObject& magicMap)
+{
+   if(config.isNull())
+   {
+      // pass
+   }
+   else
+   {
+      switch(config->getType())
+      {
+         case String:
+         {
+            const char* s = config->getString();
+            if(magicMap->hasMember(s))
+            {
+               config = magicMap[s];
+            }
+            break;
+         }
+         case Boolean:
+         case Int32:
+         case UInt32:
+         case Int64:
+         case UInt64:
+         case Double:
+            break;
+         case Map:
+         case Array:
+         {
+            ConfigIterator i = config.getIterator();
+            while(i->hasNext())
+            {
+               replaceMagic(i->next(), magicMap);
+            }
+            break;
+         }
+      }
+   }
+}
+
 bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
 {
    bool rval = false;
@@ -373,56 +380,36 @@ bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
    return rval;
 }
 
-void ConfigManager::replaceMagic(Config& config, DynamicObject& magicMap)
+bool ConfigManager::checkConflicts(
+   ConfigId id, Config& existing, Config& config)
 {
-   if(config.isNull())
+   bool rval = false;
+   
+   if(existing.isSubset(config))
    {
-      // pass
+      rval = true;
    }
    else
    {
-      switch(config->getType())
-      {
-         case String:
-         {
-            const char* s = config->getString();
-            if(magicMap->hasMember(s))
-            {
-               config = magicMap[s];
-            }
-            break;
-         }
-         case Boolean:
-         case Int32:
-         case UInt32:
-         case Int64:
-         case UInt64:
-         case Double:
-            break;
-         case Map:
-         case Array:
-         {
-            ConfigIterator i = config.getIterator();
-            while(i->hasNext())
-            {
-               replaceMagic(i->next(), magicMap);
-            }
-            break;
-         }
-      }
+      // calculate the diff to include it in the exception
+      Config d;
+      diff(d, existing, config);
+      
+      ExceptionRef e = new Exception(
+         "Config conflict.", "db.config.ConfigManager.ConfigConflict");
+      e->getDetails()["configId"] = id;
+      e->getDetails()["diff"] = d;
+      Exception::setLast(e, false);
    }
-}
-
-Config& ConfigManager::getConfig()
-{
-   return mConfig;
+   
+   return rval;
 }
 
 void ConfigManager::clear()
 {
    mLock.lockExclusive();
    {
-      mConfigs.clear();
+      mConfigs->clear();
    }
    mLock.unlockExclusive();
 }
@@ -466,7 +453,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             {
                // check for known version
                const char* version = config[VERSION]->getString();
-               if(!mVersion->hasMember(version))
+               if(!mVersions->hasMember(version))
                {
                   ExceptionRef e = new Exception(
                      "Unsupported version.",
@@ -593,7 +580,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       {
          // get the group ID, use the config ID if there is no group
          ConfigId groupId = (config->hasMember(GROUP) ?
-            config[GROUP]->getString() : configId;
+            config[GROUP]->getString() : id);
          
          // determine if the group differs from the config ID
          bool group = (strcmp(groupId, id) != 0);
@@ -606,14 +593,14 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
          if(mConfigs->hasMember(id))
          {
             mergeConfig = true;
-            rval = checkConflicts(mConfigs[id]["raw"], config);
+            rval = checkConflicts(id, mConfigs[id]["raw"], config);
          }
          // if there is a group then we also must ensure that there are no
          // conflicts with the group config ID
          else if(group && mConfigs->hasMember(groupId))
          {
             mergeGroup = true;
-            rval = checkConflicts(mConfigs[groupId]["raw"], config);
+            rval = checkConflicts(groupId, mConfigs[groupId]["raw"], config);
          }
          
          if(rval)
@@ -621,7 +608,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             if(mergeConfig)
             {
                // merge the passed config into the existing config
-               merge(mConfigs[id]["raw"], config);
+               merge(mConfigs[id]["raw"], config, false);
             }
             else
             {
@@ -634,7 +621,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                if(mergeGroup)
                {
                   // merge the passed config into the existing group config
-                  merge(mConfigs[groupId]["raw"], config);
+                  merge(mConfigs[groupId]["raw"], config, false);
                }
                else
                {
@@ -767,7 +754,7 @@ bool ConfigManager::addConfigFile(
          for(vector<string>::iterator i = configFiles.begin();
              rval && i != configFiles.end(); i++)
          {
-            rval = addConfig(
+            rval = addConfigFile(
                (*i).c_str(), include, file->getName(),
                false, false, magic);
          }
@@ -777,7 +764,7 @@ bool ConfigManager::addConfigFile(
              rval && i != configDirs.end(); i++)
          {
             const char* dir = (*i).c_str();
-            rval = addConfig(dir, include, dir, false, false, magic);
+            rval = addConfigFile(dir, include, dir, false, false, magic);
          }
       }
       else
@@ -858,6 +845,26 @@ bool ConfigManager::getConfig(ConfigId id, Config& config, bool raw)
    }
    
    return rval;
+}
+
+Config& ConfigManager::getConfig(ConfigId id)
+{
+   Config* rval;
+   
+   if(mConfigs->hasMember(id))
+   {
+      rval = &mConfigs[id]["merged"];
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Could not get config. Invalid config ID.",
+         "db.config.ConfigManager.InvalidId");
+      Exception::setLast(e, false);
+      rval = &mInvalidConfig;
+   }
+   
+   return *rval;
 }
 
 void ConfigManager::addVersion(const char* version)
