@@ -338,7 +338,10 @@ public:
    virtual bool removeConfig(ConfigId id);
    
    /**
-    * Gets a specific config by its ID.
+    * Gets a specific config by its ID. FIXME: Potential race condition
+    * that will segfault if one configuration is altered by two threads. Need
+    * either a lock policy that must be followed or must return a clone and
+    * add a setConfig() method.
     * 
     * @param id the Config's ID.
     * @param config the Config object to populate.
@@ -350,7 +353,8 @@ public:
    virtual bool getConfig(ConfigId id, Config& config, bool raw);
    
    /**
-    * A shortcut method for retrieving a merged config by its ID.
+    * A shortcut method for retrieving a merged config by its ID. The merged
+    * config *must* be treated as READ-ONLY.
     * 
     * @param id the Config's ID.
     * 

@@ -10,7 +10,9 @@
 #include <iostream>
 
 #include "db/config/ConfigManager.h"
+#include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
+#include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
 #include "db/test/Test.h"
 
@@ -21,201 +23,36 @@ using namespace db::io;
 using namespace db::rt;
 using namespace db::test;
 
-void testConfigFiles()
+void _writeConfig(Config& config, const char* path)
 {
-   ConfigManager cm;
-   
-   // FIXME: do stuff with config files
+   File file(path);
+   FileOutputStream fos(file);
+   JsonWriter writer;
+   writer.setCompact(false);
+   writer.write(config, &fos);
+   fos.close();
+   assertNoException();
 }
 
-void testConfigs()
+void _readConfig(Config& config, const char* path)
 {
-   ConfigManager cm;
-   
+   File file(path);
+   FileInputStream fis(file);
+   JsonReader reader;
+   reader.start(config);
+   reader.read(&fis) && reader.finish();
+   fis.close();
+   assertNoException();
+}
+
+void _testConfigs(
+   ConfigManager& cm,
+   Config& system,
+   Config& engine, Config& ui,
+   Config& user1, Config& user2,
+   Config& child2)
+{
    // FIXME: need to add failure tests (i.e. invalid config IDs, conflicts)
-   
-   // build system config
-   Config system;
-   {
-      // set properties
-      system[ConfigManager::ID] = "system";
-      
-      // set merge info
-      Config& merge = system[ConfigManager::MERGE];
-      merge["path"]->setType(Array);
-      merge["cowSays"] = "moo";
-      merge["dogSays"] = "bowwow";
-      merge["fruits"]["apple"] = "red";
-      merge["vegetables"]["carrot"] = "orange";
-      merge["vegetables"]["eggplant"] = "purple";
-      merge["vegetables"]["pepper"]->append() = "green";
-   }
-   
-   // build engine config
-   Config engine;
-   {
-      // set properties
-      engine[ConfigManager::ID] = "engine";
-      engine[ConfigManager::PARENT] = "system";
-      engine[ConfigManager::GROUP] = "app";
-      
-      // set merge info
-      Config& merge = engine[ConfigManager::MERGE];
-      merge["dogSays"] = "woof";
-      merge["fruits"]["banana"] = "yellow";
-      merge["vegetables"]["pepper"]->append() = "red";
-      
-      // set append info
-      Config& append = engine[ConfigManager::APPEND];
-      append["path"]->append() = "/usr/bin";
-      
-      // set remove info
-      Config& remove= engine[ConfigManager::REMOVE];
-      remove["vegetables"]["eggplant"] = "";
-   }
-   
-   // build ui config
-   Config ui;
-   {
-      // set properties
-      ui[ConfigManager::ID] = "ui";
-      ui[ConfigManager::PARENT] = "system";
-      ui[ConfigManager::GROUP] = "app";
-      
-      // set merge info
-      Config& merge = ui[ConfigManager::MERGE];
-      merge["fruits"]["pear"] = "green";
-      merge["vegetables"]["pepper"]->append() = "red";
-      
-      // set append info
-      Config& append = ui[ConfigManager::APPEND];
-      append["path"]->append() = "/tmp/ui-tool";
-      
-      // set remove info
-      Config& remove= ui[ConfigManager::REMOVE];
-      remove["vegetables"]["eggplant"] = "";
-   }
-   
-   // build user1 config
-   Config user1;
-   {
-      // set properties
-      user1[ConfigManager::ID] = "user1";
-      user1[ConfigManager::PARENT] = "app";
-      
-      // set merge info
-      Config& merge = user1[ConfigManager::MERGE];
-      merge["fruits"]["apricot"] = "orange";
-      
-      // set append info
-      Config& append = user1[ConfigManager::APPEND];
-      append["path"]->append() = "/home/user1";
-      
-      // set remove info
-      Config& remove= user1[ConfigManager::REMOVE];
-      remove["vegetables"]["pepper"]->setType(Array);
-   }
-   
-   // build user2 config
-   Config user2;
-   {
-      // set properties
-      user2[ConfigManager::ID] = "user2";
-      user2[ConfigManager::PARENT] = "app";
-      
-      // set merge info
-      Config& merge = user2[ConfigManager::MERGE];
-      merge["bacon"]["cooked"] = "red";
-      merge["bacon"]["raw"] = "pink";
-      
-      // set append info
-      Config& append = user2[ConfigManager::APPEND];
-      append["path"]->append() = "/home/user2";
-   }
-   
-   // build child2 config
-   // *Note: child2 is a child user that is based off of user2.
-   Config child2;
-   {
-      // set properties
-      child2[ConfigManager::ID] = "child2";
-      child2[ConfigManager::PARENT] = "user2";
-      
-      // set merge info
-      Config& merge = child2[ConfigManager::MERGE];
-      merge["shoes"] = "black";
-      
-      // set append info
-      Config& append = child2[ConfigManager::APPEND];
-      append["path"]->append() = "/home/child2";
-      
-      // set remove info
-      Config& remove= child2[ConfigManager::REMOVE];
-      remove["path"]->setType(Array);
-      remove["bacon"]["raw"] = "";
-   }
-   
-   // add system config
-   {
-      printf("Testing adding system config...\n");
-      
-      cm.addConfig(system);
-      
-      assertNoException();
-      printf("PASS.\n");
-   }
-   
-   // add engine config
-   {
-      printf("Testing adding engine config...\n");
-      
-      cm.addConfig(engine);
-      
-      assertNoException();
-      printf("PASS.\n");
-   }
-   
-   // add ui config
-   {
-      printf("Testing adding ui config...\n");
-      
-      cm.addConfig(ui);
-      
-      assertNoException();
-      printf("PASS.\n");
-   }
-   
-   // add user1 config
-   {
-      printf("Testing adding user1 config...\n");
-      
-      cm.addConfig(user1);
-      
-      assertNoException();
-      printf("PASS.\n");
-   }
-   
-   // add user2 config
-   {
-      printf("Testing adding user2 config...\n");
-      
-      cm.addConfig(user2);
-      
-      assertNoException();
-      printf("PASS.\n");
-   }
-   
-   // add child2 config
-   {
-      printf("Testing adding child2 config...\n");
-      
-      cm.addConfig(child2);
-      
-      assertNoException();
-      printf("PASS.\n");
-   }
-   
-   // FIXME: might have to recreate configs to compare them properly
    
    // test system raw config
    {
@@ -503,6 +340,327 @@ void testConfigs()
       
       printf("PASS.\n");
    }
+}
+
+void _testConfigs(
+   Config& system,
+   Config& engine, Config& ui,
+   Config& user1, Config& user2,
+   Config& child2)
+{
+   ConfigManager cm;
+   
+   // add system config
+   {
+      printf("Testing adding system config...\n");
+      
+      cm.addConfig(system);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add engine config
+   {
+      printf("Testing adding engine config...\n");
+      
+      cm.addConfig(engine);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add ui config
+   {
+      printf("Testing adding ui config...\n");
+      
+      cm.addConfig(ui);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add user1 config
+   {
+      printf("Testing adding user1 config...\n");
+      
+      cm.addConfig(user1);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add user2 config
+   {
+      printf("Testing adding user2 config...\n");
+      
+      cm.addConfig(user2);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add child2 config
+   {
+      printf("Testing adding child2 config...\n");
+      
+      cm.addConfig(child2);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   _testConfigs(cm, system, engine, ui, user1, user2, child2);
+}
+
+void _testConfigFiles(
+   const char* systemPath,
+   const char* enginePath,
+   const char* uiPath,
+   const char* user1Path,
+   const char* user2Path,
+   const char* child2Path)
+{
+   ConfigManager cm;
+   
+   // read configs from disk
+   Config system;
+   Config engine;
+   Config ui;
+   Config user1;
+   Config user2;
+   Config child2;
+   _readConfig(system, systemPath);
+   _readConfig(engine, enginePath);
+   _readConfig(ui, uiPath);
+   _readConfig(user1, user1Path);
+   _readConfig(user2, user2Path);
+   _readConfig(child2, child2Path);
+   
+   // add system config
+   {
+      printf("Testing adding system config file...\n");
+      
+      cm.addConfigFile(systemPath);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add engine config
+   {
+      printf("Testing adding engine config file...\n");
+      
+      cm.addConfigFile(enginePath);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add ui config
+   {
+      printf("Testing adding ui config file...\n");
+      
+      cm.addConfigFile(uiPath);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add user1 config
+   {
+      printf("Testing adding user1 config file...\n");
+      
+      cm.addConfigFile(user1Path);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add user2 config
+   {
+      printf("Testing adding user2 config file...\n");
+      
+      cm.addConfigFile(user2Path);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // add child2 config
+   {
+      printf("Testing adding child2 config file...\n");
+      
+      cm.addConfigFile(child2Path);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   _testConfigs(system, engine, ui, user1, user2, child2);
+}
+
+void _initConfigs(
+   Config& system,
+   Config& engine, Config& ui,
+   Config& user1, Config& user2,
+   Config& child2)
+{
+   // build system config
+   {
+      // set properties
+      system[ConfigManager::ID] = "system";
+      
+      // set merge info
+      Config& merge = system[ConfigManager::MERGE];
+      merge["path"]->setType(Array);
+      merge["cowSays"] = "moo";
+      merge["dogSays"] = "bowwow";
+      merge["fruits"]["apple"] = "red";
+      merge["vegetables"]["carrot"] = "orange";
+      merge["vegetables"]["eggplant"] = "purple";
+      merge["vegetables"]["pepper"]->append() = "green";
+   }
+   
+   // build engine config
+   {
+      // set properties
+      engine[ConfigManager::ID] = "engine";
+      engine[ConfigManager::PARENT] = "system";
+      engine[ConfigManager::GROUP] = "app";
+      
+      // set merge info
+      Config& merge = engine[ConfigManager::MERGE];
+      merge["dogSays"] = "woof";
+      merge["fruits"]["banana"] = "yellow";
+      merge["vegetables"]["pepper"]->append() = "red";
+      
+      // set append info
+      Config& append = engine[ConfigManager::APPEND];
+      append["path"]->append() = "/usr/bin";
+      
+      // set remove info
+      Config& remove= engine[ConfigManager::REMOVE];
+      remove["vegetables"]["eggplant"] = "";
+   }
+   
+   // build ui config
+   {
+      // set properties
+      ui[ConfigManager::ID] = "ui";
+      ui[ConfigManager::PARENT] = "system";
+      ui[ConfigManager::GROUP] = "app";
+      
+      // set merge info
+      Config& merge = ui[ConfigManager::MERGE];
+      merge["fruits"]["pear"] = "green";
+      merge["vegetables"]["pepper"]->append() = "red";
+      
+      // set append info
+      Config& append = ui[ConfigManager::APPEND];
+      append["path"]->append() = "/tmp/ui-tool";
+      
+      // set remove info
+      Config& remove= ui[ConfigManager::REMOVE];
+      remove["vegetables"]["eggplant"] = "";
+   }
+   
+   // build user1 config
+   {
+      // set properties
+      user1[ConfigManager::ID] = "user1";
+      user1[ConfigManager::PARENT] = "app";
+      
+      // set merge info
+      Config& merge = user1[ConfigManager::MERGE];
+      merge["fruits"]["apricot"] = "orange";
+      
+      // set append info
+      Config& append = user1[ConfigManager::APPEND];
+      append["path"]->append() = "/home/user1";
+      
+      // set remove info
+      Config& remove= user1[ConfigManager::REMOVE];
+      remove["vegetables"]["pepper"]->setType(Array);
+   }
+   
+   // build user2 config
+   {
+      // set properties
+      user2[ConfigManager::ID] = "user2";
+      user2[ConfigManager::PARENT] = "app";
+      
+      // set merge info
+      Config& merge = user2[ConfigManager::MERGE];
+      merge["bacon"]["cooked"] = "red";
+      merge["bacon"]["raw"] = "pink";
+      
+      // set append info
+      Config& append = user2[ConfigManager::APPEND];
+      append["path"]->append() = "/home/user2";
+   }
+   
+   // build child2 config
+   // *Note: child2 is a child user that is based off of user2.
+   {
+      // set properties
+      child2[ConfigManager::ID] = "child2";
+      child2[ConfigManager::PARENT] = "user2";
+      
+      // set merge info
+      Config& merge = child2[ConfigManager::MERGE];
+      merge["shoes"] = "black";
+      
+      // set append info
+      Config& append = child2[ConfigManager::APPEND];
+      append["path"]->append() = "/home/child2";
+      
+      // set remove info
+      Config& remove= child2[ConfigManager::REMOVE];
+      remove["path"]->setType(Array);
+      remove["bacon"]["raw"] = "";
+   }
+}
+
+void testConfigFiles()
+{
+   // create configs
+   Config system;
+   Config engine;
+   Config ui;
+   Config user1;
+   Config user2;
+   Config child2;
+   _initConfigs(system, engine, ui, user1, user2, child2);
+   
+   // write configs to disk
+   _writeConfig(system, "/tmp/test-system.config");
+   _writeConfig(engine, "/tmp/test-engine.config");
+   _writeConfig(ui, "/tmp/test-ui.config");
+   _writeConfig(user1, "/tmp/test-user1.config");
+   _writeConfig(user2, "/tmp/test-user2.config");
+   _writeConfig(child2, "/tmp/test-child2.config");
+   
+   _testConfigFiles(
+      "/tmp/test-system.config",
+      "/tmp/test-engine.config",
+      "/tmp/test-ui.config",
+      "/tmp/test-user1.config",
+      "/tmp/test-user2.config",
+      "/tmp/test-child2.config");
+}
+
+void testConfigs()
+{
+   Config system;
+   Config engine;
+   Config ui;
+   Config user1;
+   Config user2;
+   Config child2;
+   
+   _initConfigs(system, engine, ui, user1, user2, child2);
+   _testConfigs(system, engine, ui, user1, user2, child2);
 }
 
 int main()
