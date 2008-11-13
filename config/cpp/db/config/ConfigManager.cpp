@@ -705,6 +705,10 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
          {
             // only update related merged configs
             update(id);
+            if(group)
+            {
+               update(groupId);
+            }
          }
       }
       mLock.unlockExclusive();

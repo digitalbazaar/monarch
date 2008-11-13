@@ -32,7 +32,7 @@ void testConfigs()
 {
    ConfigManager cm;
    
-   // FIXME: add REMOVE property to test configs
+   // FIXME: need to add failure tests (i.e. invalid config IDs, conflicts)
    
    // build system config
    Config system;
@@ -47,6 +47,7 @@ void testConfigs()
       merge["dogSays"] = "bowwow";
       merge["fruits"]["apple"] = "red";
       merge["vegetables"]["carrot"] = "orange";
+      merge["vegetables"]["eggplant"] = "purple";
       merge["vegetables"]["pepper"]->append() = "green";
    }
    
@@ -67,6 +68,10 @@ void testConfigs()
       // set append info
       Config& append = engine[ConfigManager::APPEND];
       append["path"]->append() = "/usr/bin";
+      
+      // set remove info
+      Config& remove= engine[ConfigManager::REMOVE];
+      remove["vegetables"]["eggplant"] = "";
    }
    
    // build ui config
@@ -85,22 +90,69 @@ void testConfigs()
       // set append info
       Config& append = ui[ConfigManager::APPEND];
       append["path"]->append() = "/tmp/ui-tool";
+      
+      // set remove info
+      Config& remove= ui[ConfigManager::REMOVE];
+      remove["vegetables"]["eggplant"] = "";
    }
    
    // build user1 config
    Config user1;
    {
+      // set properties
+      user1[ConfigManager::ID] = "user1";
+      user1[ConfigManager::PARENT] = "app";
+      
+      // set merge info
+      Config& merge = user1[ConfigManager::MERGE];
+      merge["fruits"]["apricot"] = "orange";
+      
+      // set append info
+      Config& append = user1[ConfigManager::APPEND];
+      append["path"]->append() = "/home/user1";
+      
+      // set remove info
+      Config& remove= user1[ConfigManager::REMOVE];
+      remove["vegetables"]["pepper"]->setType(Array);
    }
    
    // build user2 config
    Config user2;
    {
+      // set properties
+      user2[ConfigManager::ID] = "user2";
+      user2[ConfigManager::PARENT] = "app";
+      
+      // set merge info
+      Config& merge = user2[ConfigManager::MERGE];
+      merge["bacon"]["cooked"] = "red";
+      merge["bacon"]["raw"] = "pink";
+      
+      // set append info
+      Config& append = user2[ConfigManager::APPEND];
+      append["path"]->append() = "/home/user2";
    }
    
    // build child2 config
    // *Note: child2 is a child user that is based off of user2.
    Config child2;
    {
+      // set properties
+      child2[ConfigManager::ID] = "child2";
+      child2[ConfigManager::PARENT] = "user2";
+      
+      // set merge info
+      Config& merge = child2[ConfigManager::MERGE];
+      merge["shoes"] = "black";
+      
+      // set append info
+      Config& append = child2[ConfigManager::APPEND];
+      append["path"]->append() = "/home/child2";
+      
+      // set remove info
+      Config& remove= child2[ConfigManager::REMOVE];
+      remove["path"]->setType(Array);
+      remove["bacon"]["raw"] = "";
    }
    
    // add system config
@@ -132,7 +184,7 @@ void testConfigs()
       assertNoException();
       printf("PASS.\n");
    }
-#if 0
+   
    // add user1 config
    {
       printf("Testing adding user1 config...\n");
@@ -162,7 +214,6 @@ void testConfigs()
       assertNoException();
       printf("PASS.\n");
    }
-#endif
    
    // FIXME: might have to recreate configs to compare them properly
    
@@ -189,6 +240,7 @@ void testConfigs()
       expect["dogSays"] = "bowwow";
       expect["fruits"]["apple"] = "red";
       expect["vegetables"]["carrot"] = "orange";
+      expect["vegetables"]["eggplant"] = "purple";
       expect["vegetables"]["pepper"]->append() = "green";
       
       Config merged(NULL);
@@ -296,6 +348,10 @@ void testConfigs()
       append["path"]->append() = "/usr/bin";
       append["path"]->append() = "/tmp/ui-tool";
       
+      // set remove info
+      Config& remove= expect[ConfigManager::REMOVE];
+      remove["vegetables"]["eggplant"] = "";
+      
       Config raw(NULL);
       cm.getConfig("app", raw, true);
       assertNoException();
@@ -308,21 +364,23 @@ void testConfigs()
    {
       printf("Testing app group merged config...\n");
       
-      // FIXME:
-//      // create expect config
-//      Config expect;
-//      expect["path"]->setType(Array);
-//      expect["cowSays"] = "moo";
-//      expect["dogSays"] = "bowwow";
-//      expect["fruits"]["apple"] = "red";
-//      expect["vegetables"]["carrot"] = "orange";
-//      expect["vegetables"]["pepper"]->append() = "green";
-//      
-//      Config merged(NULL);
-//      cm.getConfig("system", merged, false);
-//      assertNoException();
-//      assertDynoCmp(merged, expect);
+      // create expect config
+      Config expect;
+      expect["path"]->setType(Array);
+      expect["path"]->append() = "/usr/bin";
+      expect["path"]->append() = "/tmp/ui-tool";
+      expect["cowSays"] = "moo";
+      expect["dogSays"] = "woof";
+      expect["fruits"]["apple"] = "red";
+      expect["fruits"]["banana"] = "yellow";
+      expect["fruits"]["pear"] = "green";
+      expect["vegetables"]["carrot"] = "orange";
+      expect["vegetables"]["pepper"]->append() = "red";
       
+      Config merged(NULL);
+      cm.getConfig("app", merged, false);
+      assertNoException();
+      assertDynoCmp(merged, expect);
       
       printf("PASS.\n");
    }
@@ -331,7 +389,10 @@ void testConfigs()
    {
       printf("Testing user1 raw config...\n");
       
-      // FIXME:
+      Config raw(NULL);
+      cm.getConfig("user1", raw, true);
+      assertNoException();
+      assertDynoCmp(raw, user1);
       
       assertNoException();
       printf("PASS.\n");
@@ -341,7 +402,24 @@ void testConfigs()
    {
       printf("Testing user1 merged config...\n");
       
-      // FIXME:
+      // create expect config
+      Config expect;
+      expect["path"]->setType(Array);
+      expect["path"]->append() = "/usr/bin";
+      expect["path"]->append() = "/tmp/ui-tool";
+      expect["path"]->append() = "/home/user1";
+      expect["cowSays"] = "moo";
+      expect["dogSays"] = "woof";
+      expect["fruits"]["apple"] = "red";
+      expect["fruits"]["banana"] = "yellow";
+      expect["fruits"]["pear"] = "green";
+      expect["fruits"]["apricot"] = "orange";
+      expect["vegetables"]["carrot"] = "orange";
+      
+      Config merged(NULL);
+      cm.getConfig("user1", merged, false);
+      assertNoException();
+      assertDynoCmp(merged, expect);
       
       printf("PASS.\n");
    }
@@ -350,7 +428,10 @@ void testConfigs()
    {
       printf("Testing user2 raw config...\n");
       
-      // FIXME:
+      Config raw(NULL);
+      cm.getConfig("user2", raw, true);
+      assertNoException();
+      assertDynoCmp(raw, user2);
       
       assertNoException();
       printf("PASS.\n");
@@ -360,7 +441,26 @@ void testConfigs()
    {
       printf("Testing user2 merged config...\n");
       
-      // FIXME:
+      // create expect config
+      Config expect;
+      expect["path"]->setType(Array);
+      expect["path"]->append() = "/usr/bin";
+      expect["path"]->append() = "/tmp/ui-tool";
+      expect["path"]->append() = "/home/user2";
+      expect["cowSays"] = "moo";
+      expect["dogSays"] = "woof";
+      expect["fruits"]["apple"] = "red";
+      expect["fruits"]["banana"] = "yellow";
+      expect["fruits"]["pear"] = "green";
+      expect["vegetables"]["carrot"] = "orange";
+      expect["vegetables"]["pepper"]->append() = "red";
+      expect["bacon"]["cooked"] = "red";
+      expect["bacon"]["raw"] = "pink";
+      
+      Config merged(NULL);
+      cm.getConfig("user2", merged, false);
+      assertNoException();
+      assertDynoCmp(merged, expect);
       
       printf("PASS.\n");
    }
@@ -369,7 +469,10 @@ void testConfigs()
    {
       printf("Testing child2 raw config...\n");
       
-      // FIXME:
+      Config raw(NULL);
+      cm.getConfig("child2", raw, true);
+      assertNoException();
+      assertDynoCmp(raw, child2);
       
       assertNoException();
       printf("PASS.\n");
@@ -379,7 +482,24 @@ void testConfigs()
    {
       printf("Testing child2 merged config...\n");
       
-      // FIXME:
+      // create expect config
+      Config expect;
+      expect["path"]->setType(Array);
+      expect["path"]->append() = "/home/child2";
+      expect["cowSays"] = "moo";
+      expect["dogSays"] = "woof";
+      expect["fruits"]["apple"] = "red";
+      expect["fruits"]["banana"] = "yellow";
+      expect["fruits"]["pear"] = "green";
+      expect["vegetables"]["carrot"] = "orange";
+      expect["vegetables"]["pepper"]->append() = "red";
+      expect["bacon"]["cooked"] = "red";
+      expect["shoes"] = "black";
+      
+      Config merged(NULL);
+      cm.getConfig("child2", merged, false);
+      assertNoException();
+      assertDynoCmp(merged, expect);
       
       printf("PASS.\n");
    }
