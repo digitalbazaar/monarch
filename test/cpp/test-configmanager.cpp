@@ -326,6 +326,81 @@ void _testConfigs(
       
       printf("PASS.\n");
    }
+   
+   // test setting user2 value
+   {
+      printf("Testing setting user2 value...\n");
+      
+      Config raw = cm.getConfig("user2", true);
+      raw[ConfigManager::MERGE]["added"] = true;
+      cm.setConfig(raw);
+      assertNoException();
+      
+      printf("PASS\n");
+      
+      printf("Testing user2 raw config after setting value...\n");
+      
+      Config raw2 = cm.getConfig("user2", true);
+      assertNoException();
+      assertDynoCmp(raw2, raw);
+      
+      assertNoException();
+      printf("PASS.\n");
+   }
+   
+   // test user2 merged config
+   {
+      printf("Testing user2 merged config after setting value...\n");
+      
+      // create expect config
+      Config expect;
+      expect["path"]->setType(Array);
+      expect["path"]->append() = "/usr/bin";
+      expect["path"]->append() = "/tmp/ui-tool";
+      expect["path"]->append() = "/home/user2";
+      expect["cowSays"] = "moo";
+      expect["dogSays"] = "woof";
+      expect["fruits"]["apple"] = "red";
+      expect["fruits"]["banana"] = "yellow";
+      expect["fruits"]["pear"] = "green";
+      expect["vegetables"]["carrot"] = "orange";
+      expect["vegetables"]["pepper"]->append() = "red";
+      expect["bacon"]["cooked"] = "red";
+      expect["bacon"]["raw"] = "pink";
+      expect["added"] = true;
+      
+      Config merged = cm.getConfig("user2", false);
+      assertNoException();
+      assertDynoCmp(merged, expect);
+      
+      printf("PASS.\n");
+   }
+   
+   // test child2 merged config
+   {
+      printf("Testing child2 merged config after changing user2...\n");
+      
+      // create expect config
+      Config expect;
+      expect["path"]->setType(Array);
+      expect["path"]->append() = "/home/child2";
+      expect["cowSays"] = "moo";
+      expect["dogSays"] = "woof";
+      expect["fruits"]["apple"] = "red";
+      expect["fruits"]["banana"] = "yellow";
+      expect["fruits"]["pear"] = "green";
+      expect["vegetables"]["carrot"] = "orange";
+      expect["vegetables"]["pepper"]->append() = "red";
+      expect["bacon"]["cooked"] = "red";
+      expect["shoes"] = "black";
+      expect["added"] = true;
+      
+      Config merged = cm.getConfig("child2", false);
+      assertNoException();
+      assertDynoCmp(merged, expect);
+      
+      printf("PASS.\n");
+   }
 }
 
 void _testConfigs(
