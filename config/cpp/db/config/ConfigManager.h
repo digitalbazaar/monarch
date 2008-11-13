@@ -240,22 +240,25 @@ protected:
    virtual void replaceMagic(Config& config, db::rt::DynamicObject& magicMap);
    
    /**
-    * Compute the difference from dyno1 to dyno2 and store in diff.  Only
-    * calculates new or updated elements.  Removed elements are not in the
-    * diff.
+    * Computes the differences from config1 to config2 and stores them in
+    * target. Only includes diff additions for main properties (i.e. VERSION,
+    * PARENT, GROUP), ignores all diffs in APPEND and REMOVE, and only includes
+    * diff updates in MERGE.
     * 
     * @param diff the Config to write the diff to.
     * @param config1 original Config.
     * @param config2 the new Config.
+    * @param level set by recursive algorithm, must be initialized to 0.
     * 
     * @return true if diff found, else false
     */
-   virtual bool diff(Config& diff, Config& config1, Config& config2);
+   virtual bool diff(
+      Config& target, Config& config1, Config& config2, int level = 0);
    
    /**
     * Helper method to check two configs for conflicts. There is a conflict
-    * between the two configs if the "existing" config is not a subset of
-    * "config."
+    * between the two configs if "existing" has a main property (i.e. parent,
+    * group, version, etc.) or a merge value that differs from "config".
     * 
     * @param id the config ID of the two configs.
     * @param existing the existing config.

@@ -46,7 +46,7 @@ ConfigManager::~ConfigManager()
 }
 
 /**
- * Static helper method to insert a config. This method assumes there is no
+ * A helper method to insert a config. This method assumes there is no
  * existing config with the passed ID and that any parent in the config is
  * valid.
  * 
@@ -72,7 +72,7 @@ static void insertConfig(
 }
 
 /**
- * Static helper method that removes the config values from one config
+ * A helper method that removes the config values from one config
  * from another config.
  * 
  * @param target the target config to update.
@@ -89,6 +89,9 @@ static void removeLeafNodes(Config& target, Config& remove)
       // proceed if value is in parent configuration
       if(target->hasMember(i->getName()))
       {
+         // FIXME: need a method to remove a single element from an array
+         // also -- this currently will not be able to differentiate
+         // between removing "index" X and removing value "Y" from an array
          if(next->getType() == Map || next->getType() == Array)
          {
             // empty map/array leaf node to be removed
@@ -177,7 +180,7 @@ void ConfigManager::makeMergedConfig(ConfigId id)
       {
          ConfigId parent = mConfigs[id]["parent"]->getString();
          makeMergedConfig(parent);
-         mConfigs[parent]["merged"].clone();
+         merged = mConfigs[parent]["merged"].clone();
          
          // remove appropriate entries from parent config
          if(raw->hasMember(REMOVE))
@@ -278,7 +281,8 @@ void ConfigManager::replaceMagic(Config& config, DynamicObject& magicMap)
    }
 }
 
-bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
+bool ConfigManager::diff(
+   Config& target, Config& config1, Config& config2, int level)
 {
    bool rval = false;
    
@@ -330,21 +334,35 @@ bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
                const char* name = i->getName();
                if(strcmp(name, TMP) != 0)
                {
-                  if(!config1->hasMember(name))
+                  // ignore ID, APPEND, and REMOVE properties
+                  if(level != 0 ||
+                     (strcmp(name, ID) != 0 &&
+                      strcmp(name, APPEND) != 0 &&
+                      strcmp(name, REMOVE) != 0))
                   {
-                     // key not in config1, so add to diff
-                     rval = true;
-                     target[name] = next.clone();
-                  }
-                  else
-                  {
-                     // recusively get sub-diff
-                     Config d;
-                     if(diff(d, config1[name], next))
+                     if(!config1->hasMember(name))
                      {
-                        // diff found, add it
-                        rval = true;
-                        target[name] = d;
+                        // ensure VERSION, PARENT, and GROUP exist in both
+                        if(level == 0 &&
+                           (strcmp(name, VERSION) == 0 ||
+                            strcmp(name, PARENT) == 0 ||
+                            strcmp(name, GROUP) == 0))
+                        {
+                           // special property not in config1, so add to diff
+                           rval = true;
+                           target[name] = next.clone();
+                        }
+                     }
+                     else
+                     {
+                        // recusively get sub-diff
+                        Config d;
+                        if(diff(d, config1[name], next, level + 1))
+                        {
+                           // diff found, add it
+                           rval = true;
+                           target[name] = d;
+                        }
                      }
                   }
                }
@@ -355,23 +373,32 @@ bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
          {
             // compare config2 indexes since we are only concerned with
             // additions and updates, not removals
+            Config temp;
+            temp->setType(Array);
             ConfigIterator i = config2.getIterator();
             for(int ii = 0; i->hasNext(); ii++)
             {
                DynamicObject next = i->next();
                Config d;
-               if(diff(d, config1[ii], next))
+               if(diff(d, config1[ii], next, level + 1))
                {
                   // diff found
                   rval = true;
-                  target[ii] = d;
+                  temp[ii] = d;
                }
                else
                {
                   // set magic value
-                  target[ii] = DEFAULT_VALUE;
+                  temp[ii] = DEFAULT_VALUE;
                }
             }
+            
+            // only set array to target if a diff was found
+            if(rval)
+            {
+               target = temp;
+            }
+            
             break;
          }
       }
@@ -383,23 +410,24 @@ bool ConfigManager::diff(Config& target, Config& config1, Config& config2)
 bool ConfigManager::checkConflicts(
    ConfigId id, Config& existing, Config& config)
 {
-   bool rval = false;
+   bool rval = true;
    
-   if(existing.isSubset(config))
+   // calculate the conflict-diff between existing and config
+   Config d;
+   diff(d, existing, config, 0);
+   
+   // check for version, parent, group, or merge conflicts
+   if(d->hasMember(PARENT) ||
+      d->hasMember(GROUP) ||
+      d->hasMember(VERSION) ||
+      d->hasMember(MERGE))
    {
-      rval = true;
-   }
-   else
-   {
-      // calculate the diff to include it in the exception
-      Config d;
-      diff(d, existing, config);
-      
       ExceptionRef e = new Exception(
          "Config conflict.", "db.config.ConfigManager.ConfigConflict");
       e->getDetails()["configId"] = id;
       e->getDetails()["diff"] = d;
       Exception::setLast(e, false);
+      rval = false;
    }
    
    return rval;
@@ -462,22 +490,23 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                   Exception::setLast(e, false);
                   rval = false;
                }
-               // if has parent
-               else if(config->hasMember(PARENT))
-               {
-                  // ensure parent exists
-                  ConfigId parent = config[PARENT]->getString();
-                  if(!mConfigs->hasMember(parent))
-                  {
-                     ExceptionRef e = new Exception(
-                        "Invalid parent config ID.",
-                        "db.config.ConfigManager.InvalidParent");
-                     e->getDetails()["configId"] = id;
-                     e->getDetails()["parentId"] = parent;
-                     Exception::setLast(e, false);
-                     rval = false;
-                  }
-               }
+            }
+         }
+         
+         // if has parent
+         if(rval && config->hasMember(PARENT))
+         {
+            // ensure parent exists
+            ConfigId parent = config[PARENT]->getString();
+            if(!mConfigs->hasMember(parent))
+            {
+               ExceptionRef e = new Exception(
+                  "Invalid parent config ID.",
+                  "db.config.ConfigManager.InvalidParent");
+               e->getDetails()["configId"] = id;
+               e->getDetails()["parentId"] = parent;
+               Exception::setLast(e, false);
+               rval = false;
             }
          }
       }
