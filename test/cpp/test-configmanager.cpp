@@ -750,23 +750,64 @@ void testFailures()
    assertException();
    Exception::clearLast();
    
+   // remove conflict
+   ui[ConfigManager::MERGE]["fruits"]->removeMember("banana");
+   cm.addConfig(ui);
+   assertNoException();
+   cm.addConfig(user1);
+   assertNoException();
+   cm.addConfig(user2);
+   assertNoException();
+   cm.addConfig(child2);
+   
    // try to get bogus config ID
-   Config bogus(NULL);
-   bogus = cm.getConfig("bogus", true);
-   assertException();
-   Exception::clearLast();
-   bogus = cm.getConfig("bogus", false);
-   assertException();
-   Exception::clearLast();
+   {
+      Config bogus(NULL);
+      bogus = cm.getConfig("bogus", true);
+      assertException();
+      Exception::clearLast();
+      bogus = cm.getConfig("bogus", false);
+      assertException();
+      Exception::clearLast();
+   }
    
    // try to add config with bogus parent
-   Config config;
-   config[ConfigManager::ID] = "fail";
-   config[ConfigManager::PARENT] = "bogus";
-   config[ConfigManager::MERGE]["test"] = "data";
-   cm.addConfig(config);
-   assertException();
-   Exception::clearLast();
+   {
+      Config config;
+      config[ConfigManager::ID] = "fail";
+      config[ConfigManager::PARENT] = "bogus";
+      config[ConfigManager::MERGE]["test"] = "data";
+      cm.addConfig(config);
+      assertException();
+      Exception::clearLast();
+   }
+   
+   // try to change a merged config
+   {
+      Config _user1 = cm.getConfig("user1", false);
+      _user1[ConfigManager::MERGE]["modify"] = true;
+      cm.setConfig(_user1);
+      assertException();
+      Exception::clearLast();
+   }
+   
+   // try to change the group on a config
+   {
+      Config _user1 = cm.getConfig("user1", true);
+      _user1[ConfigManager::GROUP] = "app";
+      cm.setConfig(_user1);
+      assertException();
+      Exception::clearLast();
+   }
+   
+   // try to change the parent on a config
+   {
+      Config _user1 = cm.getConfig("user1", true);
+      _user1[ConfigManager::PARENT] = "system";
+      cm.setConfig(_user1);
+      assertException();
+      Exception::clearLast();
+   }
 }
 
 int main()
