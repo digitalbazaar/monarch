@@ -665,6 +665,8 @@ void testConfigs()
 
 void testFailures()
 {
+   // FIXME: failure tests could be more comprehensive 
+   
    // init configs
    Config system;
    Config engine;
@@ -693,6 +695,15 @@ void testFailures()
    assertException();
    Exception::clearLast();
    cm.getConfig("bogus", bogus, false);
+   assertException();
+   Exception::clearLast();
+   
+   // try to add config with bogus parent
+   Config config;
+   config[ConfigManager::ID] = "fail";
+   config[ConfigManager::PARENT] = "bogus";
+   config[ConfigManager::MERGE]["test"] = "data";
+   cm.addConfig(config);
    assertException();
    Exception::clearLast();
 }
