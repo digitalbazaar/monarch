@@ -52,14 +52,18 @@ App::App()
    mLogger = NULL;
    
    mAppConfig->setType(Map);
-   mAppConfig["app"]["debug"]["init"] = false;
-   mAppConfig["app"]["config"]["debug"] = false;
-   mAppConfig["app"]["config"]["dump"] = false;
-   mAppConfig["app"]["logging"]["enabled"] = true;
-   mAppConfig["app"]["logging"]["level"] = "warning";
-   mAppConfig["app"]["logging"]["log"] = "-";
-   mAppConfig["app"]["logging"]["logAppend"] = true;
-   mAppConfig["app"]["verbose"]["level"] = (uint64_t)0;
+   mAppConfig[ConfigManager::ID] = "system";
+   
+   Config& merge = mAppConfig[ConfigManager::MERGE];
+   
+   merge["app"]["debug"]["init"] = false;
+   merge["app"]["config"]["debug"] = false;
+   merge["app"]["config"]["dump"] = false;
+   merge["app"]["logging"]["enabled"] = true;
+   merge["app"]["logging"]["level"] = "warning";
+   merge["app"]["logging"]["log"] = "-";
+   merge["app"]["logging"]["logAppend"] = true;
+   merge["app"]["verbose"]["level"] = (uint64_t)0;
    getConfigManager()->addConfig(mAppConfig);
 }
 
@@ -219,7 +223,7 @@ int App::getExitStatus()
 
 Config& App::getConfig()
 {
-   return mAppConfig;
+   return mAppConfig[ConfigManager::MERGE];
 }
 
 ConfigManagerRef& App::getConfigManager()
@@ -232,7 +236,7 @@ bool App::startLogging()
    bool rval = true;
    
    // get logging config
-   Config cfg = getConfigManager()->getConfig("app")["app"]["logging"];
+   Config cfg = getConfigManager()->getConfig("system")["app"]["logging"];
    
    if(cfg["enabled"]->getBoolean())
    {
@@ -750,42 +754,42 @@ DynamicObject App::getCommandLineSpec()
    opt = spec["options"]->append();
    opt["short"] = "-v";
    opt["long"] = "--verbose";
-   opt["inc"] = mAppConfig["app"]["verbose"]["level"];
+   opt["inc"] = getConfig()["app"]["verbose"]["level"];
    
    opt = spec["options"]->append();
    opt["long"] = "--no-log";
-   opt["setFalse"] = mAppConfig["app"]["logging"]["enabled"];
+   opt["setFalse"] = getConfig()["app"]["logging"]["enabled"];
    
    opt = spec["options"]->append();
    opt["long"] = "--log-level";
-   opt["arg"] = mAppConfig["app"]["logging"]["level"];
+   opt["arg"] = getConfig()["app"]["logging"]["level"];
    opt["argError"] = "No log level specified.";
    
    opt = spec["options"]->append();
    opt["long"] = "--log";
-   opt["arg"] = mAppConfig["app"]["logging"]["log"];
+   opt["arg"] = getConfig()["app"]["logging"]["log"];
    opt["argError"] = "No log file specified.";
    
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
-   opt["setFalse"] = mAppConfig["app"]["logging"]["logAppend"];
+   opt["setFalse"] = getConfig()["app"]["logging"]["logAppend"];
    
    opt = spec["options"]->append();
    opt["long"] = "--option";
-   opt["set"] = mAppConfig;
+   opt["set"] = getConfig();
    
    opt = spec["options"]->append();
    opt["long"] = "--json-option";
-   opt["set"] = mAppConfig;
+   opt["set"] = getConfig();
    opt["isJsonValue"] = true;
    
    opt = spec["options"]->append();
    opt["long"] = "--config-debug";
-   opt["setTrue"] = mAppConfig["app"]["config"]["debug"];
+   opt["setTrue"] = getConfig()["app"]["config"]["debug"];
    
    opt = spec["options"]->append();
    opt["long"] = "--config-dump";
-   opt["setTrue"] = mAppConfig["app"]["config"]["dump"];
+   opt["setTrue"] = getConfig()["app"]["config"]["dump"];
    
    return spec;
 }
@@ -853,7 +857,7 @@ bool App::didParseCommandLine()
    // check logging level
    {
       const char* cfgLogLevel =
-         mAppConfig["app"]["logging"]["level"]->getString();
+         getConfig()["app"]["logging"]["level"]->getString();
       Logger::Level level;
       bool found = Logger::stringToLevel(cfgLogLevel, level);
       if(!found)
