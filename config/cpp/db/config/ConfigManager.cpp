@@ -23,6 +23,9 @@ using namespace db::rt;
 const char* ConfigManager::DEFAULT_VALUE = "__default__";
 const char* ConfigManager::VERSION       = "__version__";
 const char* ConfigManager::ID            = "__id__";
+// FIXME: change to GROUPS and have support for multiple groups per config?
+// seems like this feature would be simple enought to add without complicating
+// too much
 const char* ConfigManager::GROUP         = "__group__";
 const char* ConfigManager::PARENT        = "__parent__";
 const char* ConfigManager::MERGE         = "__merge__";
