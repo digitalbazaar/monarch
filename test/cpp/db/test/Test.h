@@ -136,11 +136,13 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
       if(!(a == b)) \
       { \
          std::cout << "dyno a="; \
+         db::rt::DynamicObject d = a; \
          db::data::json::JsonWriter::writeToStdOut( \
-            a, false, false); \
+            d, false, false); \
          std::cout << "dyno b="; \
+         d = b; \
          db::data::json::JsonWriter::writeToStdOut( \
-            b, false, false); \
+            d, false, false); \
          assert(a == b); \
       } \
    } while(0)
