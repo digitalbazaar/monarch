@@ -193,7 +193,7 @@ protected:
     * 
     * Map (ConfigId -> configuration data)
     * {
-    *    parent : ConfigId (optional config parent)
+    *    members: [] of ConfigIds (members of a group)
     *    children: [] of ConfigIds (child config IDs)
     *    raw : Config (raw configuration for the given ID)
     *    merged : Config (merged w/parent configuration for the given ID)

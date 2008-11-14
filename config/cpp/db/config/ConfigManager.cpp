@@ -66,9 +66,8 @@ static void insertConfig(
    // if has parent
    if(raw->hasMember(ConfigManager::PARENT))
    {
-      // set parent and update parent's children
+      // update parent's children
       ConfigManager::ConfigId parent = raw[ConfigManager::PARENT]->getString();
-      c["parent"] = parent;
       storage[parent]["children"]->append() = id;
    }
 }
@@ -176,13 +175,58 @@ void ConfigManager::makeMergedConfig(ConfigId id)
       // any "__special__" config format values
       Config merged(NULL);
       
+      // if group, recombine members to rebuild RAW config
+      if(config->hasMember("members"))
+      {
+         // clear old raw config
+         Config& raw = config["raw"];
+         if(raw->hasMember(MERGE))
+         {
+            raw[MERGE]->clear();
+         }
+         if(raw->hasMember(APPEND))
+         {
+            raw[APPEND]->clear();
+         }
+         if(raw->hasMember(REMOVE))
+         {
+            raw[REMOVE]->clear();
+         }
+         
+         // merge together raw configs together
+         ConfigIterator i = config["members"].getIterator();
+         while(i->hasNext())
+         {
+            Config& memberId = i->next();
+            Config& member = mConfigs[memberId->getString()]["raw"];
+            
+            // merge the merge property (do not append)
+            if(member->hasMember(MERGE))
+            {
+               merge(raw[MERGE], member[MERGE], false);
+            }
+            
+            // aggregate append properties
+            if(member->hasMember(APPEND))
+            {
+               merge(raw[APPEND], member[APPEND], true);
+            }
+            
+            // aggregate remove properties
+            if(member->hasMember(REMOVE))
+            {
+               merge(raw[REMOVE], member[REMOVE], true);
+            }
+         }
+      }
+      
       // get raw configuration
       Config& raw = config["raw"];
       
       // get merged config from parent
-      if(config->hasMember("parent"))
+      if(raw->hasMember(PARENT))
       {
-         ConfigId parent = mConfigs[id]["parent"]->getString();
+         ConfigId parent = raw[PARENT]->getString();
          makeMergedConfig(parent);
          merged = mConfigs[parent]["merged"].clone();
          
@@ -237,6 +281,13 @@ void ConfigManager::update(ConfigId id)
       // reproduce merged config for config ID
       mConfigs[id]->removeMember("merged");
       makeMergedConfig(id);
+      
+      // update group config (if not already the group)
+      if(mConfigs[id]["raw"]->hasMember(GROUP) &&
+         strcmp(id, mConfigs[id]["raw"][GROUP]->getString()) != 0)
+      {
+         update(mConfigs[id]["raw"][GROUP]->getString());
+      }
       
       // update each child of config ID
       DynamicObjectIterator i = mConfigs[id]["children"].getIterator();
@@ -468,6 +519,17 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       rval = false;
    }
    
+   // ensure group ID doesn't match config ID
+   if(rval && config->hasMember(GROUP) &&
+      strcmp(id, config[GROUP]->getString()) == 0)
+   {
+      ExceptionRef e = new Exception(
+         "Group ID cannot be the same as config ID.",
+         "db.config.ConfigManager.ConfigConflict");
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   
    if(rval)
    {
       // read lock to check version & parent
@@ -614,28 +676,26 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       // lock to add config to internal storage
       mLock.lockExclusive();
       {
-         // get the group ID, use the config ID if there is no group
-         ConfigId groupId = (config->hasMember(GROUP) ?
-            config[GROUP]->getString() : id);
+         // get the group ID
+         ConfigId groupId;
+         bool group = false;
+         if(config->hasMember(GROUP))
+         {
+            group = true;
+            groupId = config[GROUP]->getString();
+         }
          
-         // determine if the group differs from the config ID
-         bool group = (strcmp(groupId, id) != 0);
+         // if the config ID already exists, ensure there are no conflicts
          bool mergeConfig = false;
-         bool mergeGroup = false;
-         
-         // if the config ID already exists, then we must ensure there are no
-         // conflicts between them (also this optimizes the case where the
-         // group ID is the same as the config ID or there is no group)
          if(mConfigs->hasMember(id))
          {
             mergeConfig = true;
             rval = checkConflicts(id, mConfigs[id]["raw"], config);
          }
-         // if there is a group then we also must ensure that there are no
-         // conflicts with the group config ID
-         else if(group && mConfigs->hasMember(groupId))
+         
+         // if the group ID already exists, ensure there are no conflicts
+         if(group && mConfigs->hasMember(groupId))
          {
-            mergeGroup = true;
             rval = checkConflicts(groupId, mConfigs[groupId]["raw"], config);
          }
          
@@ -671,34 +731,38 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             
             if(group)
             {
-               if(mergeGroup)
+               // add group if it does not exist
+               if(!mConfigs->hasMember(groupId))
                {
-                  Config& raw = mConfigs[groupId]["raw"];
-                  
-                  // merge the merge property (do not append)
-                  if(raw->hasMember(MERGE) || config->hasMember(MERGE))
+                  // insert blank group config, will be updated via update()
+                  Config& groupConfig = mConfigs[groupId];
+                  groupConfig["raw"][ID] = groupId;
+                  groupConfig["raw"][GROUP] = groupId;
+                  groupConfig["children"]->setType(Array);
+                  if(config->hasMember(PARENT))
                   {
-                     merge(raw[MERGE], config[MERGE], false);
+                     groupConfig["raw"][PARENT] = config[PARENT]->getString();
                   }
-                  
-                  // aggregate append properties
-                  if(raw->hasMember(APPEND) || config->hasMember(APPEND))
-                  {
-                     merge(raw[APPEND], config[APPEND], true);
-                  }
-                  
-                  // aggregate remove properties
-                  if(raw->hasMember(REMOVE) || config->hasMember(REMOVE))
-                  {
-                     merge(raw[REMOVE], config[REMOVE], true);
-                  }
+                  groupConfig["members"]->append() = id;
                }
+               // add member to group if not already in group
                else
                {
-                  // insert group config, ensure group ID is set
-                  Config groupConfig = config.clone();
-                  groupConfig[ID] = groupId;
-                  insertConfig(groupId, mConfigs, groupConfig);
+                  bool add = true;
+                  Config& groupConfig = mConfigs[groupId];
+                  ConfigIterator i = groupConfig["members"].getIterator();
+                  while(add && i->hasNext())
+                  {
+                     Config& member = i->next();
+                     if(strcmp(member->getString(), id) == 0)
+                     {
+                        add = false;
+                     }
+                  }
+                  if(add)
+                  {
+                     groupConfig["members"]->append() = id;
+                  }
                }
             }
          }
@@ -707,10 +771,6 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
          {
             // only update related merged configs
             update(id);
-            if(group)
-            {
-               update(groupId);
-            }
          }
       }
       mLock.unlockExclusive();
@@ -871,13 +931,60 @@ bool ConfigManager::removeConfig(ConfigId id)
       {
          rval = true;
          
-         // get all related configs
+         // get raw config
+         Config& raw = mConfigs[id]["raw"];
+         
+         // remove self from parent's children
+         if(raw->hasMember(PARENT))
+         {
+            ConfigId parentId = raw[PARENT]->getString();
+            Config& parent = mConfigs[parentId];
+            ConfigIterator i = parent["children"].getIterator();
+            while(i->hasNext())
+            {
+               Config& child = i->next();
+               if(strcmp(child->getString(), id) == 0)
+               {
+                  i->remove();
+                  break;
+               }
+            }
+         }
+         
+         // build list of all related config IDs
          DynamicObject configIds;
          configIds->setType(Array);
-         if(mConfigs[id]->hasMember("parent"))
+         
+         // add group if it has more members
+         if(raw->hasMember(GROUP))
          {
-            configIds->append(mConfigs[id]["parent"]);
+            ConfigId groupId = raw[GROUP]->getString();
+            Config& group = mConfigs[groupId];
+            if(group["members"]->length() > 0)
+            {
+               // remove member from group
+               ConfigIterator i = group["members"].getIterator();
+               while(i->hasNext())
+               {
+                  Config& member = i->next();
+                  if(strcmp(member->getString(), id) == 0)
+                  {
+                     i->remove();
+                     break;
+                  }
+               }
+               
+               // group needs update
+               configIds->append(raw[GROUP]);
+            }
+            else
+            {
+               // remove group, no more members
+               mConfigs->removeMember(groupId);
+            }
          }
+         
+         // add children
          configIds.merge(mConfigs[id]["children"], true);
          
          // remove config
