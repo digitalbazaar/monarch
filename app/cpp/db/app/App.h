@@ -254,7 +254,7 @@ protected:
    /**
     * ConfigManager for this App.
     */
-   db::config::ConfigManagerRef mConfigManager;
+   db::config::ConfigManager* mConfigManager;
    
    /**
     * A table of pthread mutexes for openSSL.
@@ -401,7 +401,7 @@ public:
     * 
     * @return the ConfigManager for this app.
     */
-   virtual db::config::ConfigManagerRef& getConfigManager();
+   virtual db::config::ConfigManager* getConfigManager();
    
    /**
     * Run all tests and set mExitStatus.

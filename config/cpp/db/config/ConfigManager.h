@@ -390,9 +390,6 @@ public:
    virtual db::rt::DynamicObject& getVersions();
 };
 
-// define a reference counted type
-typedef db::rt::Collectable<ConfigManager> ConfigManagerRef;
-
 #undef DLL_CLASS
 
 } // end namespace config

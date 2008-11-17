@@ -226,7 +226,7 @@ Config& App::getConfig()
    return mAppConfig[ConfigManager::MERGE];
 }
 
-ConfigManagerRef& App::getConfigManager()
+ConfigManager* App::getConfigManager()
 {
    return mConfigManager;
 }
