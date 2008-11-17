@@ -7,8 +7,6 @@
 #include "db/rt/Exception.h"
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
-#include <iostream>
-#include <ostream>
 #include <string>
 #include <cassert>
 
@@ -120,10 +118,7 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
    do { \
       if(strcmp(a, b) != 0) \
       { \
-         std::cout << \
-            std::endl << "string a=" << std::endl << "'" << a << \
-            "'" << std::endl << "string b=" << std::endl << "'" << \
-            b << "'" << std::endl; \
+         printf("\nstring a=\n'%s'\nstring b=\n'%s'\n", a, b); \
          assert(std::strcmp(a, b) == 0); \
       } \
    } while(0)
@@ -135,11 +130,11 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
    do { \
       if(!(a == b)) \
       { \
-         std::cout << "dyno a="; \
+         printf("\ndyno a=\n"); \
          db::rt::DynamicObject d = a; \
          db::data::json::JsonWriter::writeToStdOut( \
             d, false, false); \
-         std::cout << "dyno b="; \
+         printf("dyno b=\n"); \
          d = b; \
          db::data::json::JsonWriter::writeToStdOut( \
             d, false, false); \
