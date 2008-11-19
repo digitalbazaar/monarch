@@ -5,7 +5,8 @@
 #define db_net_InternetAddress_H
 
 #include "db/net/SocketAddress.h"
-#
+#include "db/rt/Collectable.h"
+
 namespace db
 {
 namespace net
@@ -106,6 +107,9 @@ public:
     */
    virtual std::string toString();
 };
+
+// typedef for reference counted InternetAddress
+typedef db::rt::Collectable<InternetAddress> InternetAddressRef;
 
 } // end namespace net
 } // end namespace db

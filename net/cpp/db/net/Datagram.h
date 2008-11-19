@@ -24,6 +24,7 @@ protected:
     * The source or destination address for this Datagram.
     */
    InternetAddress* mAddress;
+   InternetAddressRef mAddressRef;
    
    /**
     * The data for this Datagram.
@@ -58,6 +59,19 @@ public:
     * @param length the length, in bytes, of this Datagram.
     */
    Datagram(InternetAddress* address, int length = 0);
+   
+   /**
+    * Creates a new Datagram. An InternetAddress must be specified that will
+    * either be used to send this Datagram or it will be populated when this
+    * Datagram is used to receive data.
+    * 
+    * If a length for this Datagram is specified, then an internal buffer
+    * will be allocated to store data of the specified length.
+    * 
+    * @param address the InternetAddress to associate with this Datagram.
+    * @param length the length, in bytes, of this Datagram.
+    */
+   Datagram(InternetAddressRef& address, int length = 0);
    
    /**
     * Destructs this Datagram.

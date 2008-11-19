@@ -30,6 +30,28 @@ Datagram::Datagram(InternetAddress* address, int length)
    mCleanup = true;
 }
 
+Datagram::Datagram(InternetAddressRef& address, int length)
+{
+   // set address
+   mAddress = &(*address);
+   mAddressRef = address;
+   
+   if(length > 0)
+   {
+      mData = (char*)malloc(length);
+      mLength = length;
+   }
+   else
+   {
+      // no data yet
+      mData = NULL;
+      mLength = 0;
+   }
+   
+   // cleanup by default
+   mCleanup = true;
+}
+
 Datagram::~Datagram()
 {
    // free data
