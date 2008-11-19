@@ -78,29 +78,17 @@ public:
     * Action keys which consume arguments cannot appear in parallel.  Actions
     * which do not, such as setTrue/setFalse/inc/dec, can appear in parallel.
     * 
-    * If option found then set DynamicObject as appropriate:
-    * "setTrue": DynamicObject | [ DynamicObject[, ...] ]
-    * "setFalse": DynamicObject | [ DynamicObject[, ...] ]
+    * Options that specify a "target" specify target options that can be one
+    * of the following formats:
+    * Specify a target DynamicObject directly:
+    * ...["arg"]["target"] = <dyno>
+    * A relative path from a root DynamicObject:
+    * ...["arg"]["root"] = <dyno>
+    * ...["arg"]["path"] = <string path>
+    * A relative path in a named raw config.  Will be set after changing.
+    * ...["arg"]["config"] = <raw config name>
+    * ...["arg"]["path"] = <string path>
     * 
-    * If option found then increment or decrement DynamicObject value by 1:
-    * "inc": DynamicObject | [ DynamicObject[, ...] ]
-    * "dec": DynamicObject | [ DynamicObject[, ...] ]
-    * 
-    * Read next argument or arguments, convert to the DynamicObject type, and
-    * store them.  On error use argError message.  The command line must have
-    * enough arguments to satisfy the args array length.
-    * "arg": DynamicObject
-    * "args": [ DynamicObject[, ...] ]
-    * "argError": string
-    * 
-    * Append arg or args to an Array DynamicObject:
-    * "append": DynamicObject
-    * 
-    * Set a named config value.  Reads the first argument as a path.  The "set"
-    * target is used to find the final target.  Then this target is assigned
-    * the next argument via the above "arg" process.
-    * "set": DynamicObject
-    *
     * Paths are split on '.'.  If a segment matches r"[^\]*\$" it is joined
     * with the next segment.  Ie, if last char is a '\' but the last two chars
     * are not "\\" then a join occurs but last '\' is dropped.
@@ -112,10 +100,41 @@ public:
     * "a\\.b.c" => target["a\"]["b"]["c"]
     * "a\\b.c" => target["a\\b"]["c"]
     * 
-    * If spec key "isJsonValue" exists and is true then the value argument will
-    * be decoded as a JSON value.  It can be any text that could appear as a
-    * JSON value.  (In other words, it does not have JSON top-level {} or []
+    * If "isJsonValue" exists and is true then the value argument will be
+    * decoded as a JSON value.  It can be any text that could appear as a JSON
+    * value.  (In other words, it does not have JSON top-level {} or []
     * requirement)
+    * 
+    * The type of the new value will be either the type of a special "type"
+    * object, the type of an existing object, or will default to a string.
+    * ...["arg"]["type"] = <dyno>: will use type of dyno
+    * ...["arg"]["target"] = <dyno>: will use type of dyno
+    * otherwise: string
+    * 
+    * If option found then set DynamicObject as appropriate:
+    * "setTrue": target | [ target[, ...] ]
+    * "setFalse": target | [ target[, ...] ]
+    * 
+    * If option found then increment or decrement DynamicObject value by 1:
+    * "inc": target | [ target[, ...] ]
+    * "dec": target | [ target[, ...] ]
+    * Note: This will read/write to a specific DynamicObject.  Interaction with
+    *       a multi-level ConfigManager setup may not be straightforward.
+    * 
+    * Read next argument or arguments, convert to the DynamicObject type, and
+    * store them.  On error use argError message.  The command line must have
+    * enough arguments to satisfy the args array length.
+    * "arg": DynamicObject
+    * "args": [ target[, ...] ]
+    * "argError": string
+    * 
+    * Append arg or args to an Array DynamicObject:
+    * "append": target
+    * 
+    * Set a named config value.  Reads the first argument as a path.  The "set"
+    * target is used to find the final target.  Then this target is assigned
+    * the next argument via the above "arg" process.
+    * "set": target
     * 
     * @return the command line spec
     */
@@ -240,11 +259,6 @@ protected:
     * Command line arguments converted to a mutable vector.
     */
    std::vector<const char*> mCommandLineArgs;
-   
-   /**
-    * Configuration for this App.
-    */
-   db::config::Config mAppConfig;
    
    /**
     * Temporary command line options and specs storage.
@@ -388,20 +402,32 @@ public:
    virtual int getExitStatus();
    
    /**
-    * Gets this app's Config.  This config is automatically added to the
-    * default ConfigManager.  Remember to call update on the ConfigManager
-    * after updates.
-    * 
-    * @return the Config for this app.
-    */
-   virtual db::config::Config& getConfig();
-   
-   /**
     * Gets this app's ConfigManager.
     * 
     * @return the ConfigManager for this app.
     */
    virtual db::config::ConfigManager* getConfigManager();
+   
+   /**
+    * Convienience for getConfigManager()->getConfig(getMainConfigGroup()).
+    * 
+    * @return the main config for this app.
+    */
+   virtual db::config::Config getConfig();
+   
+   /**
+    * Gets the name of the main config group.
+    * 
+    * @return the name of the main config group.
+    */
+   virtual const char* getMainConfigGroup();
+   
+   /**
+    * Gets the name of the parent of the main config group.
+    * 
+    * @return the name of the parent of the main config group.
+    */
+   virtual const char* getParentOfMainConfigGroup();
    
    /**
     * Run all tests and set mExitStatus.
@@ -420,8 +446,7 @@ public:
    virtual bool parseCommandLine(std::vector<const char*>* args);
    
    /**
-    * Get command line spec for default paramters which will be stored in the
-    * object returned from getConfig().
+    * Get command line spec for default paramters.
     * 
     * The default implementation will parse the following parameters:
     * -h, --help: print out default help and delegates help

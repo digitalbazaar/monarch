@@ -838,7 +838,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      Config& cfg = tr.getApp()->getConfig();
+      Config cfg = tr.getApp()->getConfig();
       const char* test = cfg["db.test.Tester"]["test"]->getString();
       bool all = (strcmp(test, "all") == 0);
       

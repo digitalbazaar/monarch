@@ -51,20 +51,35 @@ App::App()
    initConfigManager();
    mLogger = NULL;
    
-   mAppConfig->setType(Map);
-   mAppConfig[ConfigManager::ID] = "system";
+   // hard-coded application boot-up defaults
+   {
+      Config config;
+      config->setType(Map);
+      config[ConfigManager::ID] = "app defaults";
+      config[ConfigManager::GROUP] = "boot";
+      
+      Config& cfg = config[ConfigManager::MERGE];
+      cfg["app"]["debug"]["init"] = false;
+      cfg["app"]["config"]["debug"] = false;
+      cfg["app"]["config"]["dump"] = false;
+      cfg["app"]["logging"]["enabled"] = true;
+      cfg["app"]["logging"]["level"] = "warning";
+      cfg["app"]["logging"]["log"] = "-";
+      cfg["app"]["logging"]["logAppend"] = true;
+      cfg["app"]["verbose"]["level"] = (uint64_t)0;
+      getConfigManager()->addConfig(config);
+   }
    
-   Config& merge = mAppConfig[ConfigManager::MERGE];
-   
-   merge["app"]["debug"]["init"] = false;
-   merge["app"]["config"]["debug"] = false;
-   merge["app"]["config"]["dump"] = false;
-   merge["app"]["logging"]["enabled"] = true;
-   merge["app"]["logging"]["level"] = "warning";
-   merge["app"]["logging"]["log"] = "-";
-   merge["app"]["logging"]["logAppend"] = true;
-   merge["app"]["verbose"]["level"] = (uint64_t)0;
-   getConfigManager()->addConfig(mAppConfig);
+   // application and command line configuration target
+   {
+      Config config;
+      config->setType(Map);
+      config[ConfigManager::ID] = "command line";
+      config[ConfigManager::PARENT] = getParentOfMainConfigGroup();
+      config[ConfigManager::GROUP] = getMainConfigGroup();
+      config[ConfigManager::MERGE]->setType(Map);
+      getConfigManager()->addConfig(config);
+   }
 }
 
 App::~App()
@@ -221,14 +236,24 @@ int App::getExitStatus()
    return mExitStatus;
 }
 
-Config& App::getConfig()
-{
-   return mAppConfig[ConfigManager::MERGE];
-}
-
 ConfigManager* App::getConfigManager()
 {
    return mConfigManager;
+}
+
+Config App::getConfig()
+{
+   return getConfigManager()->getConfig(getMainConfigGroup());
+}
+
+const char* App::getMainConfigGroup()
+{
+   return "main";
+}
+
+const char* App::getParentOfMainConfigGroup()
+{
+   return "boot";
 }
 
 bool App::startLogging()
@@ -236,7 +261,7 @@ bool App::startLogging()
    bool rval = true;
    
    // get logging config
-   Config cfg = getConfigManager()->getConfig("system")["app"]["logging"];
+   Config cfg = getConfig()["app"]["logging"];
    
    if(cfg["enabled"]->getBoolean())
    {
@@ -328,6 +353,205 @@ void App::run()
    }
 }
 
+static DynamicObject* findPath(
+   DynamicObject& root, const char* path, bool createPaths = true)
+{
+   // start target at given root dyno
+   DynamicObject* target = &root;
+   
+   if(path != NULL)
+   {
+      // find real target
+      // split query up by dots with special segment end escaping:
+      // "sss\.sss" == ["sss.sss"]
+      // "sss\\.sss" == ["sss\"]["sss"]
+      // "\\s.s" == ["\\s"]["s"]
+      StringTokenizer st(path, '.');
+      string segment;
+      bool segmentdone = false;
+      while(target != NULL && st.hasNextToken())
+      {
+         const char* tok = st.nextToken();
+         size_t toklen = strlen(tok);
+         if(toklen == 0 || (toklen >= 1 && tok[toklen - 1] != '\\'))
+         {
+            // add basic segment and process
+            segment.append(tok);
+            segmentdone = true;
+         }
+         else if((toklen == 1 && tok[toklen - 1] == '\\') ||
+            (toklen >= 2 && tok[toklen - 1] == '\\' &&
+               tok[toklen - 2] != '\\'))
+         {
+            // dot escape, use next segment
+            segment.append(tok, toklen - 1);
+            segment.push_back('.');
+         }
+         else if(toklen >= 2 &&
+            tok[toklen] == '\\' && tok[toklen - 1] == '\\')
+         {
+            // \ escape, add all but last char and process
+            segment.append(tok, toklen - 1);
+            segmentdone = true;
+         }
+         else
+         {
+            ExceptionRef e = new Exception(
+               "Internal DynamicObject path parse error.",
+               "db.app.CommandLineError");
+            e->getDetails()["path"] = path;
+            Exception::setLast(e, false);
+            target = NULL;
+         }
+         if(target != NULL && (segmentdone || !st.hasNextToken()))
+         {
+            if(!createPaths)
+            {
+               if(!(*target)->hasMember(segment.c_str()))
+               {
+                  ExceptionRef e = new Exception(
+                     "DynamicObject path not found.",
+                     "db.app.CommandLineError");
+                  e->getDetails()["path"] = path;
+                  Exception::setLast(e, false);
+                  target = NULL;
+               }
+            }
+            if(target != NULL)
+            {
+               target = &(*target)[segment.c_str()];
+               segment.clear();
+               segmentdone = false;
+            }
+         }
+      }
+   }
+   
+   return target;
+}
+
+static bool setTargetPath(
+   DynamicObject& root, const char* path, DynamicObject& value)
+{
+   bool rval = true;
+   
+   // start target at given root dyno
+   DynamicObject* target = findPath(root, path);
+   
+   if(target != NULL)
+   {
+      // assign the source object
+      **target = *value.clone();
+   }
+   
+   return rval;
+}
+
+// get read-only object
+// use main config rather than optionally specified one
+static bool getTarget(
+   App* app, DynamicObject& spec, DynamicObject& out,
+   bool setExceptions = false)
+{
+   bool rval = true;
+   
+   if(spec->hasMember("target"))
+   {
+      out = spec["target"];
+   }
+   else if(spec->hasMember("root") && spec->hasMember("path"))
+   {
+      const char* path = spec["path"]->getString();
+      DynamicObject* obj = findPath(spec["root"], path);
+      if(obj != NULL)
+      {
+         out = *obj;
+      }
+      else
+      {
+         if(setExceptions)
+         {
+            ExceptionRef e = new Exception("Object path not found.",
+               "db.app.CommandLineError");
+            e->getDetails()["path"] = path;
+            Exception::setLast(e, false);
+         }
+         rval = false;
+      }
+   }
+   else if(spec->hasMember("config") && spec->hasMember("path"))
+   {
+      const char* path = spec["path"]->getString();
+      DynamicObject config = app->getConfig();
+      DynamicObject* obj = findPath(config, path, false);
+      if(obj != NULL)
+      {
+         out = *obj;
+      }
+      else
+      {
+         if(setExceptions)
+         {
+            ExceptionRef e = new Exception("Object path not found.",
+               "db.app.CommandLineError");
+            e->getDetails()["path"] = path;
+            Exception::setLast(e, false);
+         }
+         rval = false;
+      }
+   }
+   else
+   {
+      if(setExceptions)
+      {
+         ExceptionRef e = new Exception("Invalid option spec.",
+            "db.app.CommandLineError");
+         e->getDetails()["spec"] = spec;
+         Exception::setLast(e, false);
+      }
+      rval = false;
+   }
+   
+   return rval;
+}
+
+static bool setTarget(
+   App* app, DynamicObject& spec, DynamicObject& value)
+{
+   bool rval = true;
+   
+   if(spec->hasMember("target"))
+   {
+      rval = setTargetPath(spec["target"], NULL, value);
+   }
+   else if(spec->hasMember("root") && spec->hasMember("path"))
+   {
+      rval = setTargetPath(spec["root"], spec["path"]->getString(), value);
+   }
+   else if(spec->hasMember("config") && spec->hasMember("path"))
+   {
+      const char* path = spec["path"]->getString();
+      const char* configName = spec["config"]->getString();
+      DynamicObject rawConfig = app->getConfigManager()->getConfig(
+         configName, true);
+      rval = setTargetPath(rawConfig[ConfigManager::MERGE], path, value);
+      if(rval)
+      {
+         rval = app->getConfigManager()->setConfig(rawConfig);
+      }
+   }
+   else
+   {
+      ExceptionRef e = new Exception("Invalid option spec.",
+         "db.app.CommandLineError");
+      e->getDetails()["spec"] = spec;
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   
+   return rval;
+}
+
 static bool processOption(
    App* app,
    vector<const char*>* args,
@@ -347,76 +571,30 @@ static bool processOption(
          // path is first argument
          const char* path = **argsi;
          
-         // start target at given root dyno
-         DynamicObject* target = &optSpec["set"];
-         
-         // find real target
-         // split query up by dots with special segment end escaping:
-         // "sss\.sss" == ["sss.sss"]
-         // "sss\\.sss" == ["sss\"]["sss"]
-         // "\\s.s" == ["\\s"]["s"]
-         StringTokenizer st(path, '.');
-         string segment;
-         bool segmentdone = false;
-         while(rval && st.hasNextToken())
+         // must have config for set
+         if(optSpec["set"]->hasMember("config"))
          {
-            const char* tok = st.nextToken();
-            size_t toklen = strlen(tok);
-            if(toklen == 0 || (toklen >= 1 && tok[toklen - 1] != '\\'))
-            {
-               // add basic segment and process
-               segment.append(tok);
-               segmentdone = true;
-            }
-            else if((toklen == 1 && tok[toklen - 1] == '\\') ||
-               (toklen >= 2 && tok[toklen - 1] == '\\' &&
-                  tok[toklen - 2] != '\\'))
-            {
-               // dot escape, use next segment
-               segment.append(tok, toklen - 1);
-               segment.push_back('.');
-            }
-            else if(toklen >= 2 &&
-               tok[toklen] == '\\' && tok[toklen - 1] == '\\')
-            {
-               // \ escape, add all but last char and process
-               segment.append(tok, toklen - 1);
-               segmentdone = true;
-            }
-            else
-            {
-               ostringstream oss;
-               oss << "Internal option parse error for path: " << path << ".";
-               ExceptionRef e = new Exception(oss.str().c_str(),
-                  "db.app.CommandLineError");
-               Exception::setLast(e, false);
-               rval = false;
-            }
-            if(rval && (segmentdone || !st.hasNextToken()))
-            {
-               target = &(*target)[segment.c_str()];
-               segment.clear();
-               segmentdone = false;
-            }
-         }
-         
-         if(rval)
-         {
-            // re-use "arg" processing to get value
+            // re-use "arg" processing to set value
             DynamicObject subSpec;
-            // storage for value
-            subSpec["arg"]->setType(String);
-            // FIXME: should copy all importand fields
+            // set config and path to use
+            subSpec["arg"]["config"] = optSpec["set"]["config"];
+            subSpec["arg"]["path"] = path;
+            // FIXME: should copy all important fields
             if(optSpec->hasMember("isJsonValue"))
             {
                subSpec["isJsonValue"] = optSpec["isJsonValue"];
             }
             rval = processOption(app, args, argsi, opt, subSpec);
-            
-            if(rval)
-            {
-               *target = subSpec["arg"];
-            }
+         }
+         else
+         {
+            ExceptionRef e =
+               new Exception("Invalid command line spec.",
+                  "db.app.CommandLineError");
+            e->getDetails()["option"] = opt;
+            e->getDetails()["spec"] = optSpec;
+            Exception::setLast(e, false);
+            rval = false;
          }
       }
       else
@@ -427,103 +605,123 @@ static bool processOption(
    
    if(rval && optSpec->hasMember("setTrue"))
    {
-      DynamicObject& target = optSpec["setTrue"];
-      if(target->getType() == Array)
+      DynamicObject value;
+      value = true;
+      DynamicObject& spec = optSpec["setTrue"];
+      if(spec->getType() == Array)
       {
-         DynamicObjectIterator i = target.getIterator();
-         while(i->hasNext())
+         DynamicObjectIterator i = spec.getIterator();
+         while(rval && i->hasNext())
          {
             DynamicObject& next = i->next();
-            next = true;
+            rval = setTarget(app, next, value);
          }
       }
       else
       {
-         target = true;
+         rval = setTarget(app, spec, value);
       }
    }
    
    if(rval && optSpec->hasMember("setFalse"))
    {
-      DynamicObject& target = optSpec["setFalse"];
-      if(target->getType() == Array)
+      DynamicObject value;
+      value = false;
+      DynamicObject& spec = optSpec["setFalse"];
+      if(spec->getType() == Array)
       {
-         DynamicObjectIterator i = target.getIterator();
-         while(i->hasNext())
+         DynamicObjectIterator i = spec.getIterator();
+         while(rval && i->hasNext())
          {
             DynamicObject& next = i->next();
-            next = false;
+            rval = setTarget(app, next, value);
          }
       }
       else
       {
-         target = false;
+         rval = setTarget(app, spec, value);
       }
    }
    
    if(rval && optSpec->hasMember("inc"))
    {
-      DynamicObject& target = optSpec["inc"];
-      switch(target->getType())
+      DynamicObject original;
+      rval = getTarget(app, optSpec["inc"], original);
+      if(rval)
       {
-         // TODO: deal with overflow?
-         case Int32:
-            target = target->getInt32() + 1;
-            break;
-         case UInt32:
-            target = target->getUInt32() + 1;
-            break;
-         case Int64:
-            target = target->getInt64() + 1;
-            break;
-         case UInt64:
-            target = target->getUInt64() + 1;
-            break;
-         case Double:
-            target = target->getDouble() + 1.0;
-            break;
-         default:
-            ostringstream oss;
-            oss << "Invalid command line spec for option: " <<
-               opt << ".";
-            ExceptionRef e =
-               new Exception(oss.str().c_str(),
-                  "db.app.CommandLineError");
-            Exception::setLast(e, false);
-            rval = false;
+         DynamicObject value;
+         switch(original->getType())
+         {
+            // TODO: deal with overflow?
+            case Int32:
+               value = original->getInt32() + 1;
+               break;
+            case UInt32:
+               value = original->getUInt32() + 1;
+               break;
+            case Int64:
+               value = original->getInt64() + 1;
+               break;
+            case UInt64:
+               value = original->getUInt64() + 1;
+               break;
+            case Double:
+               value = original->getDouble() + 1.0;
+               break;
+            default:
+               ExceptionRef e =
+                  new Exception("Invalid command line spec.",
+                     "db.app.CommandLineError");
+               e->getDetails()["option"] = opt;
+               e->getDetails()["spec"] = optSpec;
+               Exception::setLast(e, false);
+               rval = false;
+         }
+         if(!value.isNull())
+         {
+            setTarget(app, optSpec["inc"], value);
+         }
       }
    }
    
    if(rval && optSpec->hasMember("dec"))
    {
-      DynamicObject& target = optSpec["inc"];
-      switch(target->getType())
+      DynamicObject original;
+      rval = getTarget(app, optSpec["dec"], original);
+      if(rval)
       {
-         // TODO: deal with underflow?
-         case Int32:
-            target = target->getInt32() - 1;
-            break;
-         case UInt32:
-            target = target->getUInt32() - 1;
-            break;
-         case Int64:
-            target = target->getInt64() - 1;
-            break;
-         case UInt64:
-            target = target->getUInt64() - 1;
-            break;
-         case Double:
-            target = target->getDouble() - 1.0;
-            break;
-         default:
-            ostringstream oss;
-            oss << "Invalid command line spec for option: " <<
-               opt << ".";
-            ExceptionRef e =
-               new Exception(oss.str().c_str(),
-                  "db.app.CommandLineError");
-            Exception::setLast(e, false);
-            rval = false;
+         DynamicObject value;
+         switch(original->getType())
+         {
+            // TODO: deal with underflow?
+            case Int32:
+               value = original->getInt32() - 1;
+               break;
+            case UInt32:
+               value = original->getUInt32() - 1;
+               break;
+            case Int64:
+               value = original->getInt64() - 1;
+               break;
+            case UInt64:
+               value = original->getUInt64() - 1;
+               break;
+            case Double:
+               value = original->getDouble() - 1.0;
+               break;
+            default:
+               ExceptionRef e =
+                  new Exception("Invalid command line spec.",
+                     "db.app.CommandLineError");
+               e->getDetails()["option"] = opt;
+               e->getDetails()["spec"] = optSpec;
+               Exception::setLast(e, false);
+               rval = false;
+         }
+         if(!value.isNull())
+         {
+            setTarget(app, optSpec["dec"], value);
+         }
       }
    }
    
@@ -534,7 +732,8 @@ static bool processOption(
       {
          // advance to argument
          const char* arg = **argsi;
-         DynamicObject& target = optSpec["arg"];
+         DynamicObject value;
+         // do json conversion if requested
          if(optSpec->hasMember("isJsonValue") &&
             optSpec["isJsonValue"]->getBoolean())
          {
@@ -542,19 +741,26 @@ static bool processOption(
             // use non-strict reader
             JsonReader jr(false);
             ByteArrayInputStream is(arg, strlen(arg));
-            jr.start(target);
+            jr.start(value);
             rval = rval && jr.read(&is) && jr.finish();
          }
          else
          {
             // regular type conversion
+            // try to get old value type else use string
+            bool found = getTarget(app, optSpec["arg"], value, false);
+            if(!found)
+            {
+               value->setType(String);
+            }
             // save target type
-            DynamicObjectType type = target->getType();
+            DynamicObjectType type = value->getType();
             // set target as string
-            target = arg;
+            value = arg;
             // convert back to original type
-            target->setType(type);
+            value->setType(type);
          }
+         rval = setTarget(app, optSpec["arg"], value);
       }
       else
       {
@@ -598,9 +804,10 @@ static bool processOption(
       }
       else
       {
-         ostringstream oss;
-         oss << "Not enough arguments for option: " << opt << ".";
-         e = new Exception(oss.str().c_str(), "db.app.CommandLineError");
+         e = new Exception(
+            "Not enough arguments for option.",
+            "db.app.CommandLineError");
+         e->getDetails()["option"] = opt;
       }
       Exception::setLast(e, false);
    }
@@ -706,7 +913,7 @@ bool App::parseCommandLine(vector<const char*>* args)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -744,52 +951,59 @@ DynamicObject App::getCommandLineSpec()
    opt = spec["options"]->append();
    opt["short"] = "-h";
    opt["long"] = "--help";
-   opt["setTrue"] = mCLConfig["options"]["printHelp"];
+   opt["setTrue"]["target"] = mCLConfig["options"]["printHelp"];
    
    opt = spec["options"]->append();
    opt["short"] = "-V";
    opt["long"] = "--version";
-   opt["setTrue"] = mCLConfig["options"]["printVersion"];
+   opt["setTrue"]["target"] = mCLConfig["options"]["printVersion"];
    
    opt = spec["options"]->append();
    opt["short"] = "-v";
    opt["long"] = "--verbose";
-   opt["inc"] = getConfig()["app"]["verbose"]["level"];
+   opt["inc"]["config"] = "command line";
+   opt["inc"]["path"] = "app.verbose.level";
    
    opt = spec["options"]->append();
    opt["long"] = "--no-log";
-   opt["setFalse"] = getConfig()["app"]["logging"]["enabled"];
+   opt["setFalse"]["config"] = "command line";
+   opt["setFalse"]["path"] = "app.logging.enabled";
    
    opt = spec["options"]->append();
    opt["long"] = "--log-level";
-   opt["arg"] = getConfig()["app"]["logging"]["level"];
+   opt["arg"]["config"] = "command line";
+   opt["arg"]["path"] = "app.logging.level";
    opt["argError"] = "No log level specified.";
    
    opt = spec["options"]->append();
    opt["long"] = "--log";
-   opt["arg"] = getConfig()["app"]["logging"]["log"];
+   opt["arg"]["config"] = "command line";
+   opt["arg"]["path"] = "app.logging.log";
    opt["argError"] = "No log file specified.";
    
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
-   opt["setFalse"] = getConfig()["app"]["logging"]["logAppend"];
+   opt["setFalse"]["config"] = "command line";
+   opt["setFalse"]["path"] = "app.logging.logAppend";
    
    opt = spec["options"]->append();
    opt["long"] = "--option";
-   opt["set"] = getConfig();
+   opt["set"]["config"] = "command line";
    
    opt = spec["options"]->append();
    opt["long"] = "--json-option";
-   opt["set"] = getConfig();
+   opt["set"]["config"] = "command line";
    opt["isJsonValue"] = true;
    
    opt = spec["options"]->append();
    opt["long"] = "--config-debug";
-   opt["setTrue"] = getConfig()["app"]["config"]["debug"];
+   opt["setTrue"]["config"] = "command line";
+   opt["setTrue"]["path"] = "app.config.debug";
    
    opt = spec["options"]->append();
    opt["long"] = "--config-dump";
-   opt["setTrue"] = getConfig()["app"]["config"]["dump"];
+   opt["setTrue"]["config"] = "command line";
+   opt["setTrue"]["path"] = "app.config.dump";
    
    return spec;
 }
@@ -798,7 +1012,7 @@ bool App::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = true;
    
-   // ensure config is clear
+   // ensure temporary command line config holder is empty
    mCLConfig->setType(Map);
    mCLConfig->clear();
    

@@ -116,7 +116,7 @@ public:
     * 
     * @return the tester's App Config.
     */
-   virtual db::config::Config& getConfig();
+   virtual db::config::Config getConfig();
 
    /**
     * Setup before running tests.

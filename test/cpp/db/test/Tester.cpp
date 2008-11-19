@@ -66,31 +66,35 @@ DynamicObject Tester::getCommandLineSpec()
 "\n";
    
    DynamicObject opt;
-   Config& cfg = mApp->getConfig(); 
    
    opt = spec["options"]->append();
    opt["short"] = "-l";
    opt["long"] = "--level";
-   opt["arg"] = cfg["db.test.Tester"]["level"];
+   opt["arg"]["config"] = "db.test.Tester command line";
+   opt["arg"]["path"] = "db\\.test\\.Tester.level";
   
    opt = spec["options"]->append();
    opt["short"] = "-c";
-   opt["setTrue"] = cfg["db.test.Tester"]["continueAfterException"];
+   opt["setTrue"]["config"] = "db.test.Tester command line";
+   opt["setTrue"]["path"] = "db\\.test\\.Tester.continueAfterException";
   
    opt = spec["options"]->append();
    opt["short"] = "-a";
    opt["long"] = "--automatic";
-   opt["setTrue"] = cfg["db.test.Tester"]["__cl_automatic"];
+   opt["setTrue"]["config"] = "db.test.Tester command line";
+   opt["setTrue"]["path"] = "db\\.test\\.Tester.__cl_automatic";
   
    opt = spec["options"]->append();
    opt["short"] = "-i";
    opt["long"] = "--interactive";
-   opt["setTrue"] = cfg["db.test.Tester"]["__cl_interactive"];
+   opt["setTrue"]["config"] = "db.test.Tester command line";
+   opt["setTrue"]["path"] = "db\\.test\\.Tester.__cl_interactive";
   
    opt = spec["options"]->append();
    opt["short"] = "-t";
    opt["long"] = "--test";
-   opt["arg"] = cfg["db.test.Tester"]["test"];
+   opt["arg"]["config"] = "db.test.Tester command line";
+   opt["arg"]["path"] = "db\\.test\\.Tester.test";
   
    return spec;
 }
@@ -99,9 +103,30 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = true;
    
-   mApp->getConfig()["db.test.Tester"]["level"] = TestRunner::Names;
-   mApp->getConfig()["db.test.Tester"]["continueAfterException"] = false;
-   mApp->getConfig()["db.test.Tester"]["test"] = "all";
+   // set defaults
+   {
+      Config config;
+      config->setType(Map);
+      config[ConfigManager::ID] = "db.test.Tester defaults";
+      config[ConfigManager::GROUP] = "boot";
+   
+      Config& merge = config[ConfigManager::MERGE];
+      merge["db.test.Tester"]["level"] = TestRunner::Names;
+      merge["db.test.Tester"]["continueAfterException"] = false;
+      merge["db.test.Tester"]["test"] = "all";
+   
+      mApp->getConfigManager()->addConfig(config);
+   }
+
+   // config to hold potential command line options
+   {
+      Config config;
+      config->setType(Map);
+      config[ConfigManager::ID] = "db.test.Tester command line";
+      config[ConfigManager::PARENT] = mApp->getParentOfMainConfigGroup();
+      config[ConfigManager::GROUP] = mApp->getMainConfigGroup();
+      mApp->getConfigManager()->addConfig(config);
+   }
    
    return rval;
 }
@@ -109,27 +134,32 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
 bool Tester::didParseCommandLine()
 {
    bool rval = true;
-   Config& cfg = mApp->getConfig()["db.test.Tester"];
+   // to get values set on command line
+   Config rawConfig = mApp->getConfigManager()->getConfig(
+      "db.test.Tester command line", true);
+   Config& config = rawConfig[ConfigManager::MERGE]["db.test.Tester"];
 
    // if interactive, assume no automatic, else only automatic enabled
-   if(cfg->hasMember("__cl_interactive") &&
-      cfg["__cl_interactive"]->getBoolean())
+   if(config->hasMember("__cl_interactive") &&
+      config["__cl_interactive"]->getBoolean())
    {
-      cfg["interactive"] = true;
-      cfg["automatic"] = false;
+      config["interactive"] = true;
+      config["automatic"] = false;
    }
    else
    {
-      cfg["interactive"] = false;
-      cfg["automatic"] = true;
+      config["interactive"] = false;
+      config["automatic"] = true;
    }
    
    // if auto set, override interactive setting
-   if(cfg->hasMember("__cl_automatic") &&
-      cfg["__cl_automatic"]->getBoolean())
+   if(config->hasMember("__cl_automatic") &&
+      config["__cl_automatic"]->getBoolean())
    {
-      cfg["automatic"] = true;
+      config["automatic"] = true;
    }
+   
+   mApp->getConfigManager()->setConfig(rawConfig);
    
    return rval;
 }
@@ -148,7 +178,7 @@ const char* Tester::getName()
    return mName;
 }
 
-db::config::Config& Tester::getConfig()
+Config Tester::getConfig()
 {
    return mApp->getConfig();
 }
@@ -218,7 +248,7 @@ bool Tester::runApp()
 {
    bool rval = true;
    
-   Config& cfg = mApp->getConfig()["db.test.Tester"];
+   Config cfg = mApp->getConfig()["db.test.Tester"];
    bool cont = cfg["continueAfterException"]->getBoolean();
    uint32_t cfgLevel = cfg["level"]->getUInt32();
    TestRunner::OutputLevel level;
