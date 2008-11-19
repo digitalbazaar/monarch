@@ -1002,6 +1002,7 @@ bool ConfigManager::removeConfig(ConfigId id)
          ExceptionRef e = new Exception(
             "Could not remove config. Invalid config ID.",
             "db.config.ConfigManager.InvalidId");
+         e->getDetails()["id"] = id;
          Exception::setLast(e, false);
       }
    }
@@ -1024,6 +1025,7 @@ Config ConfigManager::getConfig(ConfigId id, bool raw)
       ExceptionRef e = new Exception(
          "Could not get config. Invalid config ID.",
          "db.config.ConfigManager.InvalidId");
+      e->getDetails()["id"] = id;
       Exception::setLast(e, false);
    }
    
@@ -1045,6 +1047,7 @@ bool ConfigManager::setConfig(Config& config)
          ExceptionRef e = new Exception(
             "Could not set config. Invalid config ID.",
             "db.config.ConfigManager.InvalidId");
+         e->getDetails()["id"] = id;
          Exception::setLast(e, false);
       }
       // ensure the group ID hasn't changed
@@ -1058,6 +1061,7 @@ bool ConfigManager::setConfig(Config& config)
          ExceptionRef e = new Exception(
             "Could not set config. Group changed.",
             "db.config.ConfigManager.ConfigConflict");
+         e->getDetails()["id"] = id;
          Exception::setLast(e, false);
       }
       // ensure the parent ID hasn't changed
@@ -1071,6 +1075,7 @@ bool ConfigManager::setConfig(Config& config)
          ExceptionRef e = new Exception(
             "Could not set config. Parent changed.",
             "db.config.ConfigManager.ConfigConflict");
+         e->getDetails()["id"] = id;
          Exception::setLast(e, false);
       }
       else
