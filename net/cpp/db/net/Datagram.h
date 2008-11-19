@@ -5,7 +5,7 @@
 #define db_net_Datagram_H
 
 #include "db/net/InternetAddress.h"
-#include <string>
+#include "db/rt/Collectable.h"
 
 namespace db
 {
@@ -136,6 +136,9 @@ public:
     */
    virtual std::string getString();
 };
+
+// typedef for a reference counted Datagram
+typedef db::rt::Collectable<Datagram> DatagramRef;
 
 } // end namespace net
 } // end namespace db
