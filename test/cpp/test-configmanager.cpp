@@ -415,7 +415,7 @@ void _testConfigs(
    {
       printf("Testing adding system config...\n");
       
-      cm.addConfig(system);
+      assert(cm.addConfig(system));
       
       assertNoException();
       printf("PASS.\n");
@@ -425,7 +425,7 @@ void _testConfigs(
    {
       printf("Testing adding engine config...\n");
       
-      cm.addConfig(engine);
+      assert(cm.addConfig(engine));
       
       assertNoException();
       printf("PASS.\n");
@@ -435,7 +435,7 @@ void _testConfigs(
    {
       printf("Testing adding ui config...\n");
       
-      cm.addConfig(ui);
+      assert(cm.addConfig(ui));
       
       assertNoException();
       printf("PASS.\n");
@@ -445,7 +445,7 @@ void _testConfigs(
    {
       printf("Testing adding user1 config...\n");
       
-      cm.addConfig(user1);
+      assert(cm.addConfig(user1));
       
       assertNoException();
       printf("PASS.\n");
@@ -455,7 +455,7 @@ void _testConfigs(
    {
       printf("Testing adding user2 config...\n");
       
-      cm.addConfig(user2);
+      assert(cm.addConfig(user2));
       
       assertNoException();
       printf("PASS.\n");
@@ -465,7 +465,7 @@ void _testConfigs(
    {
       printf("Testing adding child2 config...\n");
       
-      cm.addConfig(child2);
+      assert(cm.addConfig(child2));
       
       assertNoException();
       printf("PASS.\n");
@@ -502,7 +502,7 @@ void _testConfigFiles(
    {
       printf("Testing adding system config file...\n");
       
-      cm.addConfigFile(systemPath);
+      assert(cm.addConfigFile(systemPath));
       
       assertNoException();
       printf("PASS.\n");
@@ -512,7 +512,7 @@ void _testConfigFiles(
    {
       printf("Testing adding engine config file...\n");
       
-      cm.addConfigFile(enginePath);
+      assert(cm.addConfigFile(enginePath));
       
       assertNoException();
       printf("PASS.\n");
@@ -522,7 +522,7 @@ void _testConfigFiles(
    {
       printf("Testing adding ui config file...\n");
       
-      cm.addConfigFile(uiPath);
+      assert(cm.addConfigFile(uiPath));
       
       assertNoException();
       printf("PASS.\n");
@@ -532,7 +532,7 @@ void _testConfigFiles(
    {
       printf("Testing adding user1 config file...\n");
       
-      cm.addConfigFile(user1Path);
+      assert(cm.addConfigFile(user1Path));
       
       assertNoException();
       printf("PASS.\n");
@@ -542,7 +542,7 @@ void _testConfigFiles(
    {
       printf("Testing adding user2 config file...\n");
       
-      cm.addConfigFile(user2Path);
+      assert(cm.addConfigFile(user2Path));
       
       assertNoException();
       printf("PASS.\n");
@@ -552,7 +552,7 @@ void _testConfigFiles(
    {
       printf("Testing adding child2 config file...\n");
       
-      cm.addConfigFile(child2Path);
+      assert(cm.addConfigFile(child2Path));
       
       assertNoException();
       printf("PASS.\n");
@@ -742,23 +742,23 @@ void testFailures()
    
    ConfigManager cm;
    
-   cm.addConfig(system);
+   assert(cm.addConfig(system));
    assertNoException();
-   cm.addConfig(engine);
+   assert(cm.addConfig(engine));
    assertNoException();
-   cm.addConfig(ui);
+   assert(!cm.addConfig(ui));
    assertException();
    Exception::clearLast();
    
    // remove conflict
    ui[ConfigManager::MERGE]["fruits"]->removeMember("banana");
-   cm.addConfig(ui);
+   assert(cm.addConfig(ui));
    assertNoException();
-   cm.addConfig(user1);
+   assert(cm.addConfig(user1));
    assertNoException();
-   cm.addConfig(user2);
+   assert(cm.addConfig(user2));
    assertNoException();
-   cm.addConfig(child2);
+   assert(cm.addConfig(child2));
    
    // try to get bogus config ID
    {
@@ -777,7 +777,7 @@ void testFailures()
       config[ConfigManager::ID] = "fail";
       config[ConfigManager::PARENT] = "bogus";
       config[ConfigManager::MERGE]["test"] = "data";
-      cm.addConfig(config);
+      assert(!cm.addConfig(config));
       assertException();
       Exception::clearLast();
    }
