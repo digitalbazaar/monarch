@@ -529,7 +529,7 @@ static bool setTargetPath(
    if(target != NULL)
    {
       // assign the source object
-      **target = *value.clone();
+      **target = *value;
    }
    
    return rval;
