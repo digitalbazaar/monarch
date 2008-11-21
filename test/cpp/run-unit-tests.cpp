@@ -1,24 +1,10 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
-#include <iostream>
-#include <sstream>
 
-#include "db/test/Test.h"
 #include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/rt/Runnable.h"
-#include "db/rt/Thread.h"
-#include "db/logging/Logging.h"
-#include "db/logging/Logger.h"
-#include "db/logging/OutputStreamLogger.h"
-#include "db/logging/FileLogger.h"
 
-using namespace std;
 using namespace db::test;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::logging;
 
 #define DB_TEST_NO_MAIN
 #include "test-rt.cpp"
