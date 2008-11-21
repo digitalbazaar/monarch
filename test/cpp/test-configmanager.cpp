@@ -56,7 +56,7 @@ void _testConfigs(
    
    // test system raw config
    {
-      printf("Testing system raw config...\n");
+      printf("Testing system raw config... ");
       
       Config raw = cm.getConfig("system", true);
       assertNoException();
@@ -67,7 +67,7 @@ void _testConfigs(
    
    // test system merged config
    {
-      printf("Testing system merged config...\n");
+      printf("Testing system merged config... ");
       
       // create expect config
       Config expect;
@@ -88,7 +88,7 @@ void _testConfigs(
    
    // test engine raw config
    {
-      printf("Testing engine raw config...\n");
+      printf("Testing engine raw config... ");
       
       Config raw = cm.getConfig("engine", true);
       assertNoException();
@@ -100,7 +100,7 @@ void _testConfigs(
    
    // test engine merged config
    {
-      printf("Testing engine merged config...\n");
+      printf("Testing engine merged config... ");
       
       // create expect config
       Config expect;
@@ -123,7 +123,7 @@ void _testConfigs(
    
    // test ui raw config
    {
-      printf("Testing ui raw config...\n");
+      printf("Testing ui raw config... ");
       
       Config raw = cm.getConfig("ui", true);
       assertNoException();
@@ -135,7 +135,7 @@ void _testConfigs(
    
    // test ui merged config
    {
-      printf("Testing ui merged config...\n");
+      printf("Testing ui merged config... ");
       
       // create expect config
       Config expect;
@@ -157,7 +157,7 @@ void _testConfigs(
    
    // test app group raw config
    {
-      printf("Testing app group raw config...\n");
+      printf("Testing app group raw config... ");
       
       // create expect config
       Config expect;
@@ -192,7 +192,7 @@ void _testConfigs(
    
    // test app group merged config
    {
-      printf("Testing app group merged config...\n");
+      printf("Testing app group merged config... ");
       
       // create expect config
       Config expect;
@@ -216,7 +216,7 @@ void _testConfigs(
    
    // test user1 raw config
    {
-      printf("Testing user1 raw config...\n");
+      printf("Testing user1 raw config... ");
       
       Config raw = cm.getConfig("user1", true);
       assertNoException();
@@ -228,7 +228,7 @@ void _testConfigs(
    
    // test user1 merged config
    {
-      printf("Testing user1 merged config...\n");
+      printf("Testing user1 merged config... ");
       
       // create expect config
       Config expect;
@@ -253,7 +253,7 @@ void _testConfigs(
    
    // test user2 raw config
    {
-      printf("Testing user2 raw config...\n");
+      printf("Testing user2 raw config... ");
       
       Config raw = cm.getConfig("user2", true);
       assertNoException();
@@ -265,7 +265,7 @@ void _testConfigs(
    
    // test user2 merged config
    {
-      printf("Testing user2 merged config...\n");
+      printf("Testing user2 merged config... ");
       
       // create expect config
       Config expect;
@@ -292,7 +292,7 @@ void _testConfigs(
    
    // test child2 raw config
    {
-      printf("Testing child2 raw config...\n");
+      printf("Testing child2 raw config... ");
       
       Config raw = cm.getConfig("child2", true);
       assertNoException();
@@ -304,7 +304,7 @@ void _testConfigs(
    
    // test child2 merged config
    {
-      printf("Testing child2 merged config...\n");
+      printf("Testing child2 merged config... ");
       
       // create expect config
       Config expect;
@@ -329,7 +329,7 @@ void _testConfigs(
    
    // test setting user2 value
    {
-      printf("Testing setting user2 value...\n");
+      printf("Testing setting user2 value... ");
       
       Config raw = cm.getConfig("user2", true);
       raw[ConfigManager::MERGE]["added"] = true;
@@ -338,7 +338,7 @@ void _testConfigs(
       
       printf("PASS\n");
       
-      printf("Testing user2 raw config after setting value...\n");
+      printf("Testing user2 raw config after setting value... ");
       
       Config raw2 = cm.getConfig("user2", true);
       assertNoException();
@@ -350,7 +350,7 @@ void _testConfigs(
    
    // test user2 merged config
    {
-      printf("Testing user2 merged config after setting value...\n");
+      printf("Testing user2 merged config after setting value... ");
       
       // create expect config
       Config expect;
@@ -378,7 +378,7 @@ void _testConfigs(
    
    // test child2 merged config
    {
-      printf("Testing child2 merged config after changing user2...\n");
+      printf("Testing child2 merged config after changing user2... ");
       
       // create expect config
       Config expect;
@@ -413,7 +413,7 @@ void _testConfigs(
    
    // add system config
    {
-      printf("Testing adding system config...\n");
+      printf("Testing adding system config... ");
       
       assert(cm.addConfig(system));
       
@@ -423,7 +423,7 @@ void _testConfigs(
    
    // add engine config
    {
-      printf("Testing adding engine config...\n");
+      printf("Testing adding engine config... ");
       
       assert(cm.addConfig(engine));
       
@@ -433,7 +433,7 @@ void _testConfigs(
    
    // add ui config
    {
-      printf("Testing adding ui config...\n");
+      printf("Testing adding ui config... ");
       
       assert(cm.addConfig(ui));
       
@@ -443,7 +443,7 @@ void _testConfigs(
    
    // add user1 config
    {
-      printf("Testing adding user1 config...\n");
+      printf("Testing adding user1 config... ");
       
       assert(cm.addConfig(user1));
       
@@ -453,7 +453,7 @@ void _testConfigs(
    
    // add user2 config
    {
-      printf("Testing adding user2 config...\n");
+      printf("Testing adding user2 config... ");
       
       assert(cm.addConfig(user2));
       
@@ -463,7 +463,7 @@ void _testConfigs(
    
    // add child2 config
    {
-      printf("Testing adding child2 config...\n");
+      printf("Testing adding child2 config... ");
       
       assert(cm.addConfig(child2));
       
@@ -500,7 +500,7 @@ void _testConfigFiles(
    
    // add system config
    {
-      printf("Testing adding system config file...\n");
+      printf("Testing adding system config file... ");
       
       assert(cm.addConfigFile(systemPath));
       
@@ -510,7 +510,7 @@ void _testConfigFiles(
    
    // add engine config
    {
-      printf("Testing adding engine config file...\n");
+      printf("Testing adding engine config file... ");
       
       assert(cm.addConfigFile(enginePath));
       
@@ -520,7 +520,7 @@ void _testConfigFiles(
    
    // add ui config
    {
-      printf("Testing adding ui config file...\n");
+      printf("Testing adding ui config file... ");
       
       assert(cm.addConfigFile(uiPath));
       
@@ -530,7 +530,7 @@ void _testConfigFiles(
    
    // add user1 config
    {
-      printf("Testing adding user1 config file...\n");
+      printf("Testing adding user1 config file... ");
       
       assert(cm.addConfigFile(user1Path));
       
@@ -540,7 +540,7 @@ void _testConfigFiles(
    
    // add user2 config
    {
-      printf("Testing adding user2 config file...\n");
+      printf("Testing adding user2 config file... ");
       
       assert(cm.addConfigFile(user2Path));
       
@@ -550,7 +550,7 @@ void _testConfigFiles(
    
    // add child2 config
    {
-      printf("Testing adding child2 config file...\n");
+      printf("Testing adding child2 config file... ");
       
       assert(cm.addConfigFile(child2Path));
       
