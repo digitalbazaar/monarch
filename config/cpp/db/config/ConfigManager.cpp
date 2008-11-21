@@ -47,6 +47,14 @@ ConfigManager::~ConfigManager()
 {
 }
 
+DynamicObject ConfigManager::getDebugInfo()
+{
+   DynamicObject debug;
+   debug["configs"] = mConfigs.clone();
+   debug["versions"] = mVersions.clone();
+   return debug;
+}
+
 /**
  * A helper method to insert a config. This method assumes there is no
  * existing config with the passed ID and that any parent in the config is

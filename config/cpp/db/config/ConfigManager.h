@@ -275,6 +275,13 @@ public:
    virtual ~ConfigManager();
    
    /**
+    * Get internal debug info.
+    * 
+    * @return debug info
+    */
+   virtual db::rt::DynamicObject getDebugInfo();
+   
+   /**
     * Clear all configurations. Invalidates previous addConfig() ids.
     */
    virtual void clear();
