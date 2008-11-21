@@ -19,14 +19,10 @@ using namespace db::test;
 
 Tester::Tester()
 {
-   mName = NULL;
-   setName("");
-   mApp = NULL;
 }
 
 Tester::~Tester()
 {
-   setName(NULL);
    for(list<Tester*>::iterator i = mTesters.begin();
       i != mTesters.end();
       i++)
@@ -35,18 +31,7 @@ Tester::~Tester()
    }
 }
 
-void Tester::registeredForApp(db::app::App* app)
-{
-   mApp = app;
-   for(list<Tester*>::iterator i = mTesters.begin();
-      i != mTesters.end();
-      i++)
-   {
-      (*i)->registeredForApp(mApp);
-   }
-}
-
-DynamicObject Tester::getCommandLineSpec()
+DynamicObject Tester::getCommandLineSpecs()
 {
    DynamicObject spec;
    spec["help"] =
@@ -95,37 +80,48 @@ DynamicObject Tester::getCommandLineSpec()
    opt["long"] = "--test";
    opt["arg"]["config"] = "db.test.Tester command line";
    opt["arg"]["path"] = "db\\.test\\.Tester.test";
-  
-   return spec;
+   
+   //DynamicObject specs = AppDelegate::getCommandLineSpecs();
+   // don't read App superclass options
+   // FIXME need to break up base App and DbApp
+   DynamicObject specs;
+   specs->setType(Array);
+   specs->append(spec);
+   return specs;
 }
 
 bool Tester::willParseCommandLine(std::vector<const char*>* args)
 {
-   bool rval = true;
+   bool rval = App::willParseCommandLine(args);
    
-   // set defaults
+   if(rval)
    {
-      Config config;
-      config->setType(Map);
-      config[ConfigManager::ID] = "db.test.Tester defaults";
-      config[ConfigManager::GROUP] = "boot";
+      // set defaults
+      if(rval)
+      {
+         Config config;
+         config->setType(Map);
+         config[ConfigManager::ID] = "db.test.Tester defaults";
+         config[ConfigManager::GROUP] = "boot";
+      
+         Config& merge = config[ConfigManager::MERGE];
+         merge["db.test.Tester"]["level"] = TestRunner::Names;
+         merge["db.test.Tester"]["continueAfterException"] = false;
+         merge["db.test.Tester"]["test"] = "all";
+      
+         rval = getConfigManager()->addConfig(config);
+      }
    
-      Config& merge = config[ConfigManager::MERGE];
-      merge["db.test.Tester"]["level"] = TestRunner::Names;
-      merge["db.test.Tester"]["continueAfterException"] = false;
-      merge["db.test.Tester"]["test"] = "all";
-   
-      mApp->getConfigManager()->addConfig(config);
-   }
-
-   // config to hold potential command line options
-   {
-      Config config;
-      config->setType(Map);
-      config[ConfigManager::ID] = "db.test.Tester command line";
-      config[ConfigManager::PARENT] = mApp->getParentOfMainConfigGroup();
-      config[ConfigManager::GROUP] = mApp->getMainConfigGroup();
-      mApp->getConfigManager()->addConfig(config);
+      // config to hold potential command line options
+      if(rval)
+      {
+         Config config;
+         config->setType(Map);
+         config[ConfigManager::ID] = "db.test.Tester command line";
+         config[ConfigManager::PARENT] = getParentOfMainConfigGroup();
+         config[ConfigManager::GROUP] = getMainConfigGroup();
+         rval = getConfigManager()->addConfig(config);
+      }
    }
    
    return rval;
@@ -133,54 +129,39 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
 
 bool Tester::didParseCommandLine()
 {
-   bool rval = true;
-   // to get values set on command line
-   Config rawConfig = mApp->getConfigManager()->getConfig(
-      "db.test.Tester command line", true);
-   Config& config = rawConfig[ConfigManager::MERGE]["db.test.Tester"];
-
-   // if interactive, assume no automatic, else only automatic enabled
-   if(config->hasMember("__cl_interactive") &&
-      config["__cl_interactive"]->getBoolean())
-   {
-      config["interactive"] = true;
-      config["automatic"] = false;
-   }
-   else
-   {
-      config["interactive"] = false;
-      config["automatic"] = true;
-   }
+   bool rval = App::didParseCommandLine();
    
-   // if auto set, override interactive setting
-   if(config->hasMember("__cl_automatic") &&
-      config["__cl_automatic"]->getBoolean())
+   if(rval)
    {
-      config["automatic"] = true;
-   }
+      // to get values set on command line
+      Config rawConfig = getConfigManager()->getConfig(
+         "db.test.Tester command line", true);
+      Config& config = rawConfig[ConfigManager::MERGE]["db.test.Tester"];
    
-   mApp->getConfigManager()->setConfig(rawConfig);
+      // if interactive, assume no automatic, else only automatic enabled
+      if(config->hasMember("__cl_interactive") &&
+         config["__cl_interactive"]->getBoolean())
+      {
+         config["interactive"] = true;
+         config["automatic"] = false;
+      }
+      else
+      {
+         config["interactive"] = false;
+         config["automatic"] = true;
+      }
+      
+      // if auto set, override interactive setting
+      if(config->hasMember("__cl_automatic") &&
+         config["__cl_automatic"]->getBoolean())
+      {
+         config["automatic"] = true;
+      }
+      
+      rval = getConfigManager()->setConfig(rawConfig);
+   }
    
    return rval;
-}
-
-void Tester::setName(const char* name)
-{
-   if(mName)
-   {
-      free(mName);
-   }
-   mName = name ? strdup(name) : NULL;
-}
-
-const char* Tester::getName()
-{
-   return mName;
-}
-
-Config Tester::getConfig()
-{
-   return mApp->getConfig();
 }
 
 void Tester::setup(TestRunner& tr)
@@ -193,6 +174,7 @@ void Tester::teardown(TestRunner& tr)
 
 void Tester::addTester(Tester* tester)
 {
+   tester->setOwner(this);
    mTesters.push_back(tester);
 }
 
@@ -209,7 +191,7 @@ int Tester::runInteractiveTests(TestRunner& tr)
 int Tester::runTests(TestRunner& tr)
 {
    int rval = 0;
-   Config& cfg = mApp->getConfig()["db.test.Tester"];
+   Config cfg = getConfig()["db.test.Tester"];
 
    tr.group(mName);
 
@@ -248,7 +230,7 @@ bool Tester::runApp()
 {
    bool rval = true;
    
-   Config cfg = mApp->getConfig()["db.test.Tester"];
+   Config cfg = getConfig()["db.test.Tester"];
    bool cont = cfg["continueAfterException"]->getBoolean();
    uint32_t cfgLevel = cfg["level"]->getUInt32();
    TestRunner::OutputLevel level;
@@ -262,10 +244,13 @@ bool Tester::runApp()
       default: level = TestRunner::Times; break;
    }
    
-   TestRunner tr(mApp, cont, level);
+   App* app = getOwner();
+   app = (app != NULL) ? app : this;
+
+   TestRunner tr(app, cont, level);
    
    int exitStatus = runTests(tr);
-   mApp->setExitStatus(exitStatus);
+   app->setExitStatus(exitStatus);
    rval = (exitStatus == 0);
    assertNoException();
    

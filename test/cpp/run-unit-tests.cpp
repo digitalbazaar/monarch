@@ -31,6 +31,7 @@ class DbAllTester : public db::test::Tester
 public:
    DbAllTester()
    {
+      setName("dbcore");
       addTester(new DbRtTester());
       addTester(new DbModestTester());
       addTester(new DbUtilTester());

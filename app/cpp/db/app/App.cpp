@@ -38,23 +38,54 @@ using namespace db::util;
 // declare table of openSSL mutexes
 pthread_mutex_t* App::sOpenSSLMutexes;
 
-App::App()
+App::App() :
+   mProgramName(NULL),
+   mName(NULL),
+   mVersion(NULL),
+   mExitStatus(0),
+   mConfigManager(NULL),
+   mLogger(NULL),
+   mDelegate(NULL),
+   mOwner(NULL)
 {
    setExitStatus(0);
-   mProgramName = NULL;
    setProgramName("(unknown)");
-   mName = NULL;
    setName("(unknown)");
-   mVersion = NULL;
-   mDelegate = NULL;
-   setDelegate(this);
-   initConfigManager();
+}
+
+App::~App()
+{
+   setProgramName(NULL);
+   setName(NULL);
+   setVersion(NULL);
    mLogger = NULL;
+   if(mConfigManager != NULL)
+   {
+      delete mConfigManager;
+      mConfigManager = NULL;
+   }
+}
+
+bool App::initialize()
+{
+   return initConfigManager() &&
+      willInitConfigGroups() &&
+      ((mDelegate != NULL) ? mDelegate->willInitConfigGroups() : true) &&
+      initConfigGroups() &&
+      ((mDelegate != NULL) ? mDelegate->initConfigGroups() : true) &&
+      didInitConfigGroups() &&
+      ((mDelegate != NULL) ? mDelegate->didInitConfigGroups() : true);
+   // FIXME: need helper func to support multi-level delegates
+}
+
+bool App::willInitConfigGroups()
+{
+   bool rval = true;
    
    // hard-coded application boot-up defaults
+   if(rval && !getConfigManager()->hasConfig("app defaults"))
    {
       Config config;
-      config->setType(Map);
       config[ConfigManager::ID] = "app defaults";
       config[ConfigManager::GROUP] = "boot";
       
@@ -67,27 +98,32 @@ App::App()
       cfg["app"]["logging"]["log"] = "-";
       cfg["app"]["logging"]["logAppend"] = true;
       cfg["app"]["verbose"]["level"] = (uint64_t)0;
-      getConfigManager()->addConfig(config);
+      rval = getConfigManager()->addConfig(config);
    }
+
+   return rval;
+}
+
+bool App::initConfigGroups()
+{
+   return true;
+}
+
+bool App::didInitConfigGroups()
+{
+   bool rval = true;
    
    // application and command line configuration target
+   if(rval && !getConfigManager()->hasConfig("command line"))
    {
       Config config;
-      config->setType(Map);
       config[ConfigManager::ID] = "command line";
       config[ConfigManager::PARENT] = getParentOfMainConfigGroup();
       config[ConfigManager::GROUP] = getMainConfigGroup();
-      config[ConfigManager::MERGE]->setType(Map);
-      getConfigManager()->addConfig(config);
+      rval = getConfigManager()->addConfig(config);
    }
-}
 
-App::~App()
-{
-   setProgramName(NULL);
-   setName(NULL);
-   setVersion(NULL);
-   mLogger = NULL;
+   return rval;
 }
 
 unsigned long App::openSSLSetId()
@@ -167,35 +203,52 @@ void App::printException()
    printException(e);
 }
 
-void App::setDelegate(AppDelegate* delegate)
+void App::setDelegate(App* delegate)
 {
    if(mDelegate != NULL)
    {
       // FIXME: perhaps also have unregisteredForApp() call?
       // unregister previous delegate
-      mDelegate->registeredForApp(NULL);
+      mDelegate->setOwner(NULL);
    }
-   mDelegate = (delegate != NULL) ? delegate : this;
-   mDelegate->registeredForApp(this);
+   mDelegate = delegate;
+   mDelegate->setOwner(this);
 }
 
-AppDelegate* App::getDelegate()
+App* App::getDelegate()
 {
    return mDelegate;
 }
 
+void App::setOwner(App* owner)
+{
+   mOwner = owner;
+}
+
+App* App::getOwner()
+{
+   return mOwner;
+}
+
 void App::setProgramName(const char* name)
 {
-   if(mProgramName)
+   if(mOwner == NULL)
    {
-      free(mProgramName);
+      if(mProgramName)
+      {
+         free(mProgramName);
+      }
+      mProgramName = name ? strdup(name) : NULL;
    }
-   mProgramName = name ? strdup(name) : NULL;
+   else
+   {
+      mOwner->setProgramName(name);
+   }
 }
 
 const char* App::getProgramName()
 {
-   return mProgramName;
+   return (mOwner == NULL) ? mProgramName : mOwner->getProgramName();
 }
 
 void App::setName(const char* name)
@@ -214,31 +267,53 @@ const char* App::getName()
 
 void App::setVersion(const char* version)
 {
-   if(mVersion)
+   if(mOwner == NULL)
    {
-      free(mVersion);
+      if(mVersion)
+      {
+         free(mVersion);
+      }
+      mVersion = version ? strdup(version) : NULL;
    }
-   mVersion = version ? strdup(version) : NULL;
+   else
+   {
+      mOwner->setVersion(version);
+   }
 }
 
 const char* App::getVersion()
 {
-   return mVersion;
+   return (mOwner == NULL) ? mVersion : mOwner->getVersion();
 }
 
 void App::setExitStatus(int exitStatus)
 {
-   mExitStatus = exitStatus;
+   if(mOwner == NULL)
+   {
+      mExitStatus = exitStatus;
+   }
+   else
+   {
+      mOwner->setExitStatus(exitStatus);
+   }
 }
 
 int App::getExitStatus()
 {
-   return mExitStatus;
+   return (mOwner == NULL) ? mExitStatus : mOwner->getExitStatus();
+}
+
+bool App::initConfigManager()
+{
+   // default implementation
+   mConfigManager = new ConfigManager;
+
+   return true;
 }
 
 ConfigManager* App::getConfigManager()
 {
-   return mConfigManager;
+   return (mOwner == NULL) ? mConfigManager : mOwner->getConfigManager();
 }
 
 Config App::getConfig()
@@ -248,12 +323,12 @@ Config App::getConfig()
 
 const char* App::getMainConfigGroup()
 {
-   return "main";
+   return (mOwner == NULL) ? "main" : mOwner->getMainConfigGroup();
 }
 
 const char* App::getParentOfMainConfigGroup()
 {
-   return "boot";
+   return (mOwner == NULL) ? "boot" : mOwner->getParentOfMainConfigGroup();
 }
 
 bool App::startLogging()
@@ -323,33 +398,46 @@ bool App::stopLogging()
    return rval;
 }
 
-void App::initConfigManager()
-{
-   mConfigManager = new ConfigManager;
-}
-
 void App::run()
 {
    bool success;
    bool loggingStarted;
    
-   success = mDelegate->initializeRun();
+   success = initializeRun();
    if(success)
    {
       loggingStarted = startLogging();
    }
    if(success && loggingStarted)
    {
-      success = mDelegate->runApp();
+      success = runApp();
    }
    if(loggingStarted)
    {
       stopLogging();
    }
-   mDelegate->cleanupRun();
+   cleanupRun();
    if(!success)
    {
       printException();
+   }
+}
+
+bool App::initializeRun()
+{
+   return (mDelegate != NULL) ? mDelegate->initializeRun() : true;
+}
+   
+bool App::runApp()
+{
+   return (mDelegate != NULL) ? mDelegate->runApp() : true;
+}
+
+void App::cleanupRun()
+{
+   if(mDelegate != NULL)
+   {
+      mDelegate->cleanupRun();
    }
 }
 
@@ -760,6 +848,10 @@ static bool processOption(
             // convert back to original type
             value->setType(type);
          }
+         if(rval && optSpec->hasMember("type"))
+         {
+            value->setType(optSpec["type"]->getType());
+         }
          rval = setTarget(app, optSpec["arg"], value);
       }
       else
@@ -917,7 +1009,7 @@ bool App::parseCommandLine(vector<const char*>* args)
    return rval;
 }
 
-DynamicObject App::getCommandLineSpec()
+DynamicObject App::getCommandLineSpecs()
 {
    DynamicObject spec;
    spec["help"] =
@@ -1005,7 +1097,10 @@ DynamicObject App::getCommandLineSpec()
    opt["setTrue"]["config"] = "command line";
    opt["setTrue"]["path"] = "app.config.dump";
    
-   return spec;
+   DynamicObject specs;
+   specs->setType(Array);
+   specs->append(spec);
+   return specs;
 }
 
 bool App::willParseCommandLine(std::vector<const char*>* args)
@@ -1021,17 +1116,13 @@ bool App::willParseCommandLine(std::vector<const char*>* args)
    mCLConfig["options"]["printVersion"] = false;
    
    // temp storage for command line specs
-   DynamicObject& specs = mCLConfig["specs"];
-   specs->setType(Array);
-   specs[0] = this->getCommandLineSpec();
-   AppDelegate* delegate = this->getDelegate();
-   if(delegate != NULL)
+   mCLConfig["specs"] = getCommandLineSpecs();
+   if(mDelegate != NULL)
    {
-      specs[1] = delegate->getCommandLineSpec();
+      DynamicObject delegateSpecs;
+      delegateSpecs = mDelegate->getCommandLineSpecs();
+      mCLConfig["specs"].merge(delegateSpecs, true);
    }
-   
-   // FIXME: which config is supposed to be updated here?
-   //getConfigManager()->update();
    
    return rval;
 }
@@ -1150,11 +1241,35 @@ void App::cleanupOpenSSL()
 void App::initializeLogging()
 {
    db::logging::Logging::initialize();
+   if(mDelegate != NULL)
+   {
+      mDelegate->initializeLogging();
+   }
+}
+
+void App::didInitializeLogging()
+{
+   if(mDelegate != NULL)
+   {
+      mDelegate->didInitializeLogging();
+   }
+}
+
+void App::willCleanupLogging()
+{
+   if(mDelegate != NULL)
+   {
+      mDelegate->willCleanupLogging();
+   }
 }
 
 void App::cleanupLogging()
 {
    db::logging::Logging::cleanup();
+   if(mDelegate != NULL)
+   {
+      mDelegate->cleanupLogging();
+   }
 }
 
 int App::main(int argc, const char* argv[])
@@ -1167,10 +1282,14 @@ int App::main(int argc, const char* argv[])
    
    setProgramName(mCommandLineArgs[0]);
    if(!(willParseCommandLine(&mCommandLineArgs) &&
-      mDelegate->willParseCommandLine(&mCommandLineArgs) &&
+      ((mDelegate != NULL) ?
+         mDelegate->willParseCommandLine(&mCommandLineArgs) :
+         true) &&
       parseCommandLine(&mCommandLineArgs) &&
       didParseCommandLine() &&
-      mDelegate->didParseCommandLine()))
+      ((mDelegate != NULL) ?
+         mDelegate->didParseCommandLine() :
+         true)))
    {
       printException();
       exit(EXIT_FAILURE);
@@ -1190,13 +1309,13 @@ int App::main(int argc, const char* argv[])
    
    initializeOpenSSL();
    initializeLogging();
-   mDelegate->didInitializeLogging();
+   didInitializeLogging();
    
    Thread t(this);
    t.start();
    t.join();
    
-   mDelegate->willCleanupLogging();
+   willCleanupLogging();
    cleanupLogging();
    cleanupOpenSSL();
    
@@ -1213,42 +1332,3 @@ int App::main(int argc, const char* argv[])
    
    return mExitStatus;
 }
-
-AppDelegate::AppDelegate() {}
-   
-AppDelegate::~AppDelegate() {}
-
-void AppDelegate::registeredForApp(App* app) {}
-   
-bool AppDelegate::initializeRun()
-{
-   return true;
-}
-   
-bool AppDelegate::runApp()
-{
-   return true;
-}
-
-void AppDelegate::cleanupRun() {}
-
-DynamicObject AppDelegate::getCommandLineSpec()
-{
-   DynamicObject nullSpec;
-   
-   return nullSpec;
-}
-
-bool AppDelegate::willParseCommandLine(vector<const char*>* args)
-{
-   return true;
-}
-
-bool AppDelegate::didParseCommandLine()
-{
-   return true;
-}
-
-void AppDelegate::didInitializeLogging() {}
-   
-void AppDelegate::willCleanupLogging() {}

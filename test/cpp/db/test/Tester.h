@@ -27,8 +27,11 @@ namespace test
  * #ifdef DB_TEST_BUILD_MAIN
  * int main(int argc, const char* argv[])
  * {
- *    DbIoTester tester();
- *    return tester.main(argc, argv);
+ *    App app;
+ *    DbIoTester tester;
+ *    app.setDelegate(tester);
+ *    app.initialize();
+ *    return app.main(argc, argv);
  * }
  * #endif
  * 
@@ -37,19 +40,9 @@ namespace test
  * 
  * Author: David I. Lehn
  */
-class Tester : public db::app::AppDelegate
+class Tester : public db::app::App
 {
 protected:
-   /**
-    * The testers app.
-    */
-   db::app::App* mApp;
-   
-   /**
-    * Name for this Tester
-    */
-   char* mName;
-   
    /**
     * Sub-Testers to run.
     */
@@ -67,18 +60,11 @@ public:
    virtual ~Tester();
    
    /**
-    * Called when App sets this object as its delegate.
-    * 
-    * @param app the App.
-    */
-   virtual void registeredForApp(db::app::App* app);
-   
-   /**
     * Get a specification of the command line paramters.
     * 
-    * @return the command line spec
+    * @return the command line specs
     */
-   virtual db::rt::DynamicObject getCommandLineSpec();
+   virtual db::rt::DynamicObject getCommandLineSpecs();
    
    /**
     * Setup default option values.
@@ -98,27 +84,6 @@ public:
    virtual bool didParseCommandLine();
    
    /**
-    * Set the tester name.
-    * 
-    * @param name the name.
-    */
-   virtual void setName(const char* name);
-
-   /**
-    * Get the tester name.
-    * 
-    * @return the tester name.
-    */
-   virtual const char* getName();
-
-   /**
-    * Get the tester's App Config.
-    * 
-    * @return the tester's App Config.
-    */
-   virtual db::config::Config getConfig();
-
-   /**
     * Setup before running tests.
     */
    virtual void setup(db::test::TestRunner& tr);
@@ -129,7 +94,7 @@ public:
    virtual void teardown(db::test::TestRunner& tr);
 
    /**
-    * Add a tester.
+    * Add a Tester.
     */
    virtual void addTester(db::test::Tester* tester);
 
