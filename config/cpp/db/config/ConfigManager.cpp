@@ -526,6 +526,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       ExceptionRef e = new Exception(
          "Group ID cannot be the same as config ID.",
          "db.config.ConfigManager.ConfigConflict");
+      e->getDetails()["id"] = id;
       Exception::setLast(e, false);
       rval = false;
    }
