@@ -1099,6 +1099,77 @@ void runDynoMergeTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDynoCopyTest(TestRunner& tr)
+{
+   tr.group("DynamicObject copy");
+
+   tr.test("impl");
+   {
+      DynamicObject d;
+      d = "foo";
+      DynamicObjectImpl* diaddr = &(*d);
+      
+      {
+         DynamicObject d2;
+         d2 = "bar";
+         *d = *d2;
+         assertStrCmp(d->getString(), d2->getString());
+         // string address compare
+         assert(d->getString() != d2->getString());
+         // clear to something else
+         d2->clear();
+      }
+      
+      assertStrCmp(d->getString(), "bar");
+      
+      DynamicObject d3;
+      d3 = (int32_t)1;
+      *d = *d3;
+      assert(d->getType() == d3->getType());
+      assert(d->getType() == Int32);
+      assert(d->getInt32() == 1);
+      
+      {
+         DynamicObject d4;
+         d4["cow"] = "moo";
+         d4["dog"] = "woof";
+         d4["deep"]["cat"] = "meow";
+         *d = *d4;
+         d4["deep"]["cat"] = "screech";
+      }
+      
+      {
+         DynamicObject expect;
+         expect["cow"] = "moo";
+         expect["dog"] = "woof";
+         expect["deep"]["cat"] = "screech";
+         assert(d == expect);
+      }
+      
+      {
+         DynamicObject d5;
+         d5[0] = "zero";
+         d5[1] = "one";
+         d5[2]["two"] = "deep";
+         *d = *d5;
+         d5[2]["two"] = "wide";
+      }
+      
+      {
+         DynamicObject expect;
+         expect[0] = "zero";
+         expect[1] = "one";
+         expect[2]["two"] = "wide";
+         assert(d == expect);
+      }
+      
+      assert(diaddr == &(*d));
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 class DbRtTester : public db::test::Tester
 {
 public:
@@ -1124,6 +1195,7 @@ public:
       runDynoTypeTest(tr);
       runDynoAppendTest(tr);
       runDynoMergeTest(tr);
+      runDynoCopyTest(tr);
       return 0;
    }
 

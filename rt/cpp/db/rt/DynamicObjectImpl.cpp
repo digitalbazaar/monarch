@@ -74,6 +74,58 @@ void DynamicObjectImpl::freeData()
    }
 }
 
+void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
+{
+   switch(value.mType)
+   {
+      case String:
+         *this = value.mString;
+         break;
+      case Boolean:
+         *this = value.mBoolean;
+         break;
+      case Int32:
+         *this = value.mInt32;
+         break;
+      case UInt32:
+         *this = value.mUInt32;
+         break;
+      case Int64:
+         *this = value.mInt64;
+         break;
+      case UInt64:
+         *this = value.mUInt64;
+         break;
+      case Double:
+         *this = value.mDouble;
+         break;
+      case Map:
+      {
+         setType(Map);
+         clear();
+         ObjectMap::iterator i = value.mMap->begin();
+         for(; i != value.mMap->end(); i++)
+         {
+            // create new map entry
+            mMap->insert(std::make_pair(strdup(i->first), i->second));
+         }
+         break;
+      }
+      case Array:
+      {
+         setType(Array);
+         clear();
+         ObjectArray::iterator i = value.mArray->begin();
+         for(; i != value.mArray->end(); i++)
+         {
+            // create new array
+            mArray->push_back(*i);
+         }
+         break;
+      }
+   }
+}
+
 void DynamicObjectImpl::operator=(const char* value)
 {
    freeData();

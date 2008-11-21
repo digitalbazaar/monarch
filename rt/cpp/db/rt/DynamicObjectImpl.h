@@ -126,6 +126,13 @@ public:
    virtual ~DynamicObjectImpl();
    
    /**
+    * Sets this object's value to the value of another DynamicObjectImpl.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(const DynamicObjectImpl& value);
+   
+   /**
     * Sets this object's value to a string.
     * 
     * @param value the value for this object.
