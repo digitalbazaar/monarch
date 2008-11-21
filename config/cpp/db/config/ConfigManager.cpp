@@ -1033,6 +1033,11 @@ Config ConfigManager::getConfig(ConfigId id, bool raw)
    return rval;
 }
 
+bool ConfigManager::hasConfig(ConfigId id)
+{
+   return mConfigs->hasMember(id);
+}
+
 bool ConfigManager::setConfig(Config& config)
 {
    bool rval = false;

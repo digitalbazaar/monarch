@@ -333,6 +333,15 @@ public:
    virtual bool removeConfig(ConfigId id);
    
    /**
+    * Check if a config with a specific ID exists.
+    * 
+    * @param id the Config's ID.
+    * 
+    * @return true if ID is valid, false if not.
+    */
+   virtual bool hasConfig(ConfigId id);
+   
+   /**
     * Gets a specific config by its ID. This method will return a clone
     * of the raw configuration if "raw" is set to true. To set the
     * configuration, setConfig() must be called with the returned "raw"
