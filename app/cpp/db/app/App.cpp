@@ -1121,7 +1121,11 @@ bool App::willParseCommandLine(std::vector<const char*>* args)
    {
       DynamicObject delegateSpecs;
       delegateSpecs = mDelegate->getCommandLineSpecs();
-      mCLConfig["specs"].merge(delegateSpecs, true);
+      DynamicObjectIterator i = delegateSpecs.getIterator();
+      while(i->hasNext())
+      {
+         mCLConfig["specs"]->append(i->next());
+      }
    }
    
    return rval;
