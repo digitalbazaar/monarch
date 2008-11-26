@@ -142,6 +142,18 @@ protected:
    virtual bool initConfigManager();
    
    /**
+    * Perform ConfigManager specific cleanup if required.
+    */
+   virtual void cleanupConfigManager();
+   
+   /**
+    * Set the ConfigManager.
+    * 
+    * @param configManager the ConfigManager for this app.
+    */
+   virtual void setConfigManager(db::config::ConfigManager* configManager);
+   
+   /**
     * Called before initConfigGroups().  Used to configure groups that are
     * required by other groups.
     * 

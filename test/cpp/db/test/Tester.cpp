@@ -103,6 +103,7 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
          config->setType(Map);
          config[ConfigManager::ID] = "db.test.Tester defaults";
          config[ConfigManager::GROUP] = "boot";
+         config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
       
          Config& merge = config[ConfigManager::MERGE];
          merge["db.test.Tester"]["level"] = TestRunner::Names;
@@ -120,6 +121,7 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
          config[ConfigManager::ID] = "db.test.Tester command line";
          config[ConfigManager::PARENT] = getParentOfMainConfigGroup();
          config[ConfigManager::GROUP] = getMainConfigGroup();
+         config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
          rval = getConfigManager()->addConfig(config);
       }
    }

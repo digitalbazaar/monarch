@@ -40,6 +40,7 @@ ConfigManager::ConfigManager()
 {
    // initialize internal data structures
    mVersions->setType(Map);
+   //addVersion(DB_DEFAULT_CONFIG_VERSION);
    mConfigs->setType(Map);
 }
 
@@ -482,10 +483,10 @@ bool ConfigManager::checkConflicts(
    Config d;
    diff(d, existing, config, 0);
    
-   // check for version, parent, group, or merge conflicts
+   // check for parent, group, or merge conflicts
+   // version check done elsewhere
    if(d->hasMember(PARENT) ||
       d->hasMember(GROUP) ||
-      d->hasMember(VERSION) ||
       d->hasMember(MERGE))
    {
       ExceptionRef e = new Exception(
@@ -920,6 +921,19 @@ bool ConfigManager::addConfigFile(
          Exception::setLast(e, false);
          rval = false;
       }
+   }
+   
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Invalid config file.",
+         "db.config.ConfigManager.InvalidConfigFile");
+      e->getDetails()["path"] = path;
+      if(dir != NULL)
+      {
+         e->getDetails()["dir"] = dir;
+      }
+      Exception::setLast(e, true);
    }
    
    return rval;

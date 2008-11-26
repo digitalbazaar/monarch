@@ -24,7 +24,7 @@ namespace config
 #   define DLL_CLASS
 #endif
 
-#define DB_CONFIG_VERSION "DB Config"
+#define DB_DEFAULT_CONFIG_VERSION "DB Config 3.0"
 
 // typedef for a config and its iterator
 typedef db::rt::DynamicObject Config;
@@ -395,11 +395,10 @@ public:
    virtual void addVersion(const char* version);
    
    /**
-    * Return an Array of version this manager is configured to accept.
+    * Return a Map of versions this manager is configured to accept.  Acceptable
+    * versions are set to true.
     *
-    * This array starts off empty in order to accept any type of config.  A
-    * define is available called DB_CONFIG_VERSION ("DB Config") for default
-    * use but is not added by default.
+    * This map is initialized with DB_DEFAULT_CONFIG_VERSION.
     *  
     * @return an Array of versions or an empty to accept all versions.
     */

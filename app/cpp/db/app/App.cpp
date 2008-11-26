@@ -59,16 +59,14 @@ App::~App()
    setName(NULL);
    setVersion(NULL);
    mLogger = NULL;
-   if(mConfigManager != NULL)
-   {
-      delete mConfigManager;
-      mConfigManager = NULL;
-   }
+   cleanupConfigManager();
 }
 
 bool App::initialize()
 {
-   return initConfigManager() &&
+   return
+      ((mDelegate != NULL) ?
+         mDelegate->initConfigManager() : initConfigManager()) &&
       willInitConfigGroups() &&
       ((mDelegate != NULL) ? mDelegate->willInitConfigGroups() : true) &&
       initConfigGroups() &&
@@ -88,6 +86,7 @@ bool App::willInitConfigGroups()
       Config config;
       config[ConfigManager::ID] = "app defaults";
       config[ConfigManager::GROUP] = "boot";
+      config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
       
       Config& cfg = config[ConfigManager::MERGE];
       cfg["app"]["debug"]["init"] = false;
@@ -120,6 +119,7 @@ bool App::didInitConfigGroups()
       config[ConfigManager::ID] = "command line";
       config[ConfigManager::PARENT] = getParentOfMainConfigGroup();
       config[ConfigManager::GROUP] = getMainConfigGroup();
+      config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
       rval = getConfigManager()->addConfig(config);
    }
 
@@ -234,7 +234,7 @@ void App::setProgramName(const char* name)
 {
    if(mOwner == NULL)
    {
-      if(mProgramName)
+      if(mProgramName != NULL)
       {
          free(mProgramName);
       }
@@ -253,11 +253,11 @@ const char* App::getProgramName()
 
 void App::setName(const char* name)
 {
-   if(mName)
+   if(mName != NULL)
    {
       free(mName);
    }
-   mName = name ? strdup(name) : NULL;
+   mName = (name != NULL) ? strdup(name) : NULL;
 }
 
 const char* App::getName()
@@ -269,7 +269,7 @@ void App::setVersion(const char* version)
 {
    if(mOwner == NULL)
    {
-      if(mVersion)
+      if(mVersion != NULL)
       {
          free(mVersion);
       }
@@ -306,9 +306,29 @@ int App::getExitStatus()
 bool App::initConfigManager()
 {
    // default implementation
-   mConfigManager = new ConfigManager;
+   setConfigManager(new ConfigManager);
 
    return true;
+}
+
+void App::cleanupConfigManager()
+{
+   if(mConfigManager != NULL)
+   {
+      delete mConfigManager;
+   }
+}
+
+void App::setConfigManager(ConfigManager* configManager)
+{
+   if(mOwner == NULL)
+   {
+      mConfigManager = configManager;
+   }
+   else
+   {
+      mOwner->setConfigManager(configManager);
+   }
 }
 
 ConfigManager* App::getConfigManager()
