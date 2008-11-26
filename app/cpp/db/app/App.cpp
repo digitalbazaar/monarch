@@ -157,7 +157,7 @@ static void _printException(ExceptionRef& e, ostream& s, int level)
       OStreamOutputStream os(&details);
       JsonWriter jw;
       jw.setCompact(false);
-      jw.setIndentation(3 * level, 3);
+      jw.setIndentation(level, 3);
       jw.write(e->getDetails(), &os);
    }
    else
