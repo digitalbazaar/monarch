@@ -549,17 +549,19 @@ public:
 int main(int argc, const char* argv[])                        \
 {                                                             \
    int rval = 1;                                              \
-   appClassName app;                                          \
-   delegateClassName delegate;                                \
-   app.setDelegate(&delegate);                                \
-   if(app.initialize())                                       \
+   appClassName* app = new appClassName;                      \
+   delegateClassName* delegate = new delegateClassName;       \
+   app->setDelegate(delegate);                                \
+   if(app->initialize())                                      \
    {                                                          \
-      rval = app.main(argc, argv);                            \
+      rval = app->main(argc, argv);                           \
    }                                                          \
    else                                                       \
    {                                                          \
       db::app::App::printException();                         \
    }                                                          \
+   delete delegate;                                           \
+   delete app;                                                \
    return rval;                                               \
 }
 
@@ -568,20 +570,21 @@ int main(int argc, const char* argv[])                        \
  * 
  * @param appClassName class name of an App subclass.
  */
-#define DB_APP_MAIN(appClassName)      \
-int main(int argc, const char* argv[]) \
-{                                      \
-   int rval = 1;                       \
-   appClassName app;                   \
-   if(app.initialize())                \
-   {                                   \
-      rval = app.main(argc, argv);     \
-   }                                   \
-   else                                \
-   {                                   \
-      db::app::App::printException();  \
-   }                                   \
-   return rval;                        \
+#define DB_APP_MAIN(appClassName)                             \
+int main(int argc, const char* argv[])                        \
+{                                                             \
+   int rval = 1;                                              \
+   appClassName* app = new appClassName;                      \
+   if(app->initialize())                                      \
+   {                                                          \
+      rval = app->main(argc, argv);                           \
+   }                                                          \
+   else                                                       \
+   {                                                          \
+      db::app::App::printException();                         \
+   }                                                          \
+   delete app;                                                \
+   return rval;                                               \
 }
 
 /**
