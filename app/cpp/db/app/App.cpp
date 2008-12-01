@@ -545,8 +545,9 @@ static bool setTargetPath(
    
    // start target at given root dyno
    DynamicObject* target = findPath(root, path);
+   rval = (target != NULL);
    
-   if(target != NULL)
+   if(rval)
    {
       // assign the source object
       **target = *value;
@@ -626,7 +627,7 @@ static bool getTarget(
 static bool setTarget(
    App* app, DynamicObject& spec, DynamicObject& value)
 {
-   bool rval = true;
+   bool rval;
    
    if(spec->hasMember("target"))
    {
@@ -856,17 +857,16 @@ static bool processOption(
          {
             // regular type conversion
             // try to get old value type else use string
-            bool found = getTarget(app, optSpec["arg"], value, false);
+            DynamicObject valueType;
+            bool found = getTarget(app, optSpec["arg"], valueType, false);
             if(!found)
             {
-               value->setType(String);
+               valueType->setType(String);
             }
-            // save target type
-            DynamicObjectType type = value->getType();
             // set target as string
             value = arg;
             // convert back to original type
-            value->setType(type);
+            value->setType(valueType->getType());
          }
          if(rval && optSpec->hasMember("type"))
          {
