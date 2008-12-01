@@ -1,0 +1,9 @@
+# Makefile to compile the module in this directory
+
+SOURCES = $(wildcard db/sql/mysql/*.cpp)
+LIBRARIES = dbmysql
+DYNAMIC_LINK_LIBRARIES = dbrt dbnet dbsql
+DYNAMIC_WINDOWS_LIBRARIES = mysql
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base

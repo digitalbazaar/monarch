@@ -26,6 +26,8 @@ INCLUDES = \
 	-I$(DBCORE)/rt/cpp \
 	-I$(DBCORE)/sphinx/cpp \
 	-I$(DBCORE)/sql/cpp \
+	-I$(DBCORE)/sqlite3/cpp \
+	-I$(DBCORE)/mysql/cpp \
 	-I$(DBCORE)/test/cpp \
 	-I$(DBCORE)/util/cpp \
 	-I$(DBCORE)/validation/cpp

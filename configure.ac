@@ -133,6 +133,8 @@ AC_CONFIG_FILES([
           setup/docs.doxygen
           sphinx/cpp/Makefile
           sql/cpp/Makefile
+          sqlite3/cpp/Makefile
+          mysql/cpp/Makefile
           test/cpp/Makefile
           util/cpp/Makefile
           validation/cpp/Makefile

@@ -16,6 +16,8 @@ SUBDIRS := 3rdparty/cpp \
            mail/cpp \
            sphinx/cpp \
            sql/cpp \
+           sqlite3/cpp \
+           mysql/cpp \
            validation/cpp \
            app/cpp \
            test/cpp
@@ -35,6 +37,8 @@ INSTALL_LIBRARIES := \
 	net/cpp/dist/linux/libdbnet.so \
 	rt/cpp/dist/linux/libdbrt.so \
 	sql/cpp/dist/linux/libdbsql.so \
+	sqlite3/cpp/dist/linux/libdbsqlite3.so \
+	mysql/cpp/dist/linux/libdbmysql.so \
 	test/cpp/dist/linux/libdbtest.so \
 	util/cpp/dist/linux/libdbutil.so \
 	sphinx/cpp/dist/linux/libdbsphinx.so \
