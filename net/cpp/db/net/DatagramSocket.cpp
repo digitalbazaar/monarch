@@ -31,8 +31,8 @@ inline bool DatagramSocket::leaveGroup(InternetAddress* group)
 
 inline bool DatagramSocket::send(Datagram* datagram)
 {
-   int length = 0;
-   char* data = datagram->getData(length);
+   int length = datagram->getLength();
+   char* data = datagram->getData();
    return UdpSocket::sendDatagram(data, length, datagram->getAddress());
 }
 
@@ -40,8 +40,8 @@ inline bool DatagramSocket::receive(Datagram* datagram)
 {
    bool rval = false;
    
-   int length = 0;
-   char* data = datagram->getData(length);
+   int length = datagram->getLength();
+   char* data = datagram->getData();
    int size = UdpSocket::receiveDatagram(data, length, datagram->getAddress());
    if(size != -1)
    {

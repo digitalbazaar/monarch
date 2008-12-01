@@ -125,13 +125,18 @@ public:
    virtual void setLength(int length);
    
    /**
-    * Gets this Datagram's data.
+    * Gets this Datagram's length.
     * 
-    * @param length to store the length, in bytes, of the data.
+    * @return this Datagram's length.
+    */
+   virtual int getLength();
+   
+   /**
+    * Gets this Datagram's data.
     * 
     * @return this Datagram's data.
     */
-   virtual char* getData(int& length);
+   virtual char* getData();
       
    /**
     * Assigns the data for this Datagram to the passed string. This method will

@@ -119,11 +119,13 @@ void Datagram::setLength(int length)
    mLength = (length > mLength) ? mLength : length;
 }
 
-char* Datagram::getData(int& length)
+int Datagram::getLength()
 {
-   // set length
-   length = mLength;
-   
+   return mLength;
+}
+
+char* Datagram::getData()
+{
    // return data
    return mData;
 }
