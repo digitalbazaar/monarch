@@ -26,6 +26,46 @@ private:
    
 public:
    /**
+    * A StringComparator compares two strings.
+    */
+   struct StringComparator
+   {
+      /**
+       * Compares two null-terminated strings, returning true if the first is
+       * less than the second, false if not. The compare is case-sensitive.
+       * 
+       * @param s1 the first string.
+       * @param s2 the second string.
+       * 
+       * @return true if the s1 < s2, false if not.
+       */
+      bool operator()(const char* s1, const char* s2) const
+      {
+         return strcmp(s1, s2) < 0;
+      }
+   };
+   
+   /**
+    * A StringComparator compares two strings using a case-insensitive compare.
+    */
+   struct StringCaseComparator
+   {
+      /**
+       * Compares two null-terminated strings, returning true if the first is
+       * less than the second, false if not. The compare is case-insensitive.
+       * 
+       * @param s1 the first string.
+       * @param s2 the second string.
+       * 
+       * @return true if the s1 < s2, false if not.
+       */
+      bool operator()(const char* s1, const char* s2) const
+      {
+         return strcasecmp(s1, s2) < 0;
+      }
+   };
+   
+   /**
     * Trims characters from the front and back of the passed string. Any
     * character in the second parameter will be trimmed.
     * 
