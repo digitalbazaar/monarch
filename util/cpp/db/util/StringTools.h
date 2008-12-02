@@ -4,6 +4,7 @@
 #ifndef db_util_StringTools_H
 #define db_util_StringTools_H
 
+#include <cstring>
 #include <string>
 
 namespace db
