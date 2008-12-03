@@ -6,6 +6,7 @@
 
 #include "db/data/id3v2/TagHeader.h"
 #include "db/data/id3v2/FrameHeader.h"
+#include "db/util/StringTools.h"
 
 #include <list>
 #include <map>
@@ -35,26 +36,6 @@ class Tag
 {
 protected:
    /**
-    * An IdComparator compares the IDs for FrameHeaders.
-    */
-   struct IdComparator
-   {
-      /**
-       * Compares two frame header IDs using a string compare, returning
-       * true if the first ID is less than the second, false if not.
-       * 
-       * @param id1 the first ID.
-       * @param id2 the second ID.
-       * 
-       * @return true if the id1 < id2, false if not.
-       */
-      bool operator()(const char* id1, const char* id2) const
-      {
-         return strcmp(id1, id2) < 0;
-      }
-   };
-   
-   /**
     * The header for this Tag.
     */
    TagHeader mHeader;
@@ -67,8 +48,10 @@ protected:
    
    /**
     * Stores a reference to the first frame header with a given ID.
+    * Uses StringComparator to compare IDs for FrameHeaders.
     */
-   typedef std::map<const char*, FrameHeader*, IdComparator> FrameHeaderMap;
+   typedef std::map<const char*, FrameHeader*, db::util::StringComparator>
+      FrameHeaderMap;
    FrameHeaderMap mFrameHeaderMap;
    
 public:

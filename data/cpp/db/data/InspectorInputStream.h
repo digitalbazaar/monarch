@@ -7,6 +7,7 @@
 #include "db/io/FilterInputStream.h"
 #include "db/io/ByteBuffer.h"
 #include "db/data/DataInspector.h"
+#include "db/util/StringTools.h"
 
 #include <map>
 #include <list>
@@ -26,26 +27,6 @@ namespace data
 class InspectorInputStream : public db::io::FilterInputStream
 {
 protected:
-   /**
-    * A NameComparator compares the names for the data inspector map.
-    */
-   struct NameComparator
-   {
-      /**
-       * Compares two inspector names using a string compare, returning true
-       * if the first name is less than the second, false if not.
-       * 
-       * @param name1 the first name.
-       * @param name2 the second name.
-       * 
-       * @return true if the name1 < name2, false if not.
-       */
-      bool operator()(const char* name1, const char* name2) const
-      {
-         return strcmp(name1, name2) < 0;
-      }
-   };
-   
    /**
     * A structure for maintaining information about a particular DataInspector.
     */
@@ -72,7 +53,8 @@ protected:
    /**
     * The data inspectors (stored along with their meta-data).
     */
-   typedef std::map<const char*, DataInspectorMetaData, NameComparator>
+   typedef std::map<
+      const char*, DataInspectorMetaData, db::util::StringComparator>
       InspectorMap;
    InspectorMap mInspectors;
    

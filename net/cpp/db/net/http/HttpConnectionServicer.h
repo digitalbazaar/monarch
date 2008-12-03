@@ -8,6 +8,7 @@
 #include "db/net/ConnectionServicer.h"
 #include "db/net/http/HttpConnection.h"
 #include "db/net/http/HttpRequestServicer.h"
+#include "db/util/StringTools.h"
 
 #include <map>
 #include <string>
@@ -31,26 +32,6 @@ class HttpConnectionServicer : public db::net::ConnectionServicer
 {
 protected:
    /**
-    * A PathComparator compares two http paths.
-    */
-   struct PathComparator
-   {
-      /**
-       * Compares two null-terminated strings, returning true if the first is
-       * less than the second, false if not.
-       * 
-       * @param s1 the first string.
-       * @param s2 the second string.
-       * 
-       * @return true if the s1 < s2, false if not.
-       */
-      bool operator()(const char* s1, const char* s2) const
-      {
-         return strcmp(s1, s2) < 0;
-      }
-   };
-   
-   /**
     * The default server name for this servicer.
     */
    char* mServerName;
@@ -59,7 +40,8 @@ protected:
     * Non-secure HttpRequestServicers. This maps paths to HttpRequestServicers
     * that require non-secure connections.
     */
-   typedef std::map<const char*, HttpRequestServicer*, PathComparator>
+   typedef std::map<
+      const char*, HttpRequestServicer*, db::util::StringComparator>
       ServicerMap;
    ServicerMap mNonSecureServicers;
    
