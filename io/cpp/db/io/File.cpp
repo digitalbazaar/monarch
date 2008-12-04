@@ -445,10 +445,14 @@ bool File::expandUser(const char* path, string& expandedPath)
          const char* home = getenv("HOME");
          if(home != NULL)
          {
+            // use temp string to avoid problems if path is same expandedPath
+            // common for code like expandUser(path.c_str(), path)
             // add HOME
-            expandedPath.assign(home);
+            string newPath(home);
             // add rest of path
-            expandedPath.append(path+1);
+            newPath.append(path+1);
+            // copy to output
+            expandedPath.assign(newPath);
          }
          else
          {
