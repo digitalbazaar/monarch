@@ -161,10 +161,11 @@ protected:
     * 
     * @return true on success, false and exception on failure.
     */
-   virtual bool didInitConfigGroups();
+   virtual bool willInitConfigGroups();
 
    /**
     * Initialize config groups as needed.
+    * 
     * Subclasses should call the superclass method.
     * 
     * @return true on success, false and exception on failure.
@@ -174,11 +175,12 @@ protected:
    /**
     * Called after initConfigGroups().  Used to configure groups that require
     * others to be configured.
+    * 
     * Subclasses should call the superclass method.
     * 
     * @return true on success, false and exception on failure.
     */
-   virtual bool willInitConfigGroups();
+   virtual bool didInitConfigGroups();
 
    /**
     * App's delegate
