@@ -165,7 +165,7 @@ void runConfigManagerTest(TestRunner& tr)
       Config b;
       b[ConfigManager::ID] = "config b";
       b[ConfigManager::PARENT] = "config a";
-      b[ConfigManager::MERGE] = "__default__";
+      b[ConfigManager::MERGE] = ConfigManager::DEFAULT_VALUE;
       assert(cm.addConfig(b));
       assertNoException();
       DynamicObject expect;
@@ -190,9 +190,9 @@ void runConfigManagerTest(TestRunner& tr)
       cfgb[ConfigManager::ID] = "config b";
       cfgb[ConfigManager::PARENT] = "config a";
       Config& b = cfgb[ConfigManager::MERGE];
-      b[0] = "__default__";
+      b[0] = ConfigManager::DEFAULT_VALUE;
       b[1] = 21;
-      b[2]["0"] = "__default__";
+      b[2]["0"] = ConfigManager::DEFAULT_VALUE;
       b[2]["1"] = 221;
       assert(cm.addConfig(cfgb));
       assertNoException();
