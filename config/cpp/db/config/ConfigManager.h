@@ -289,17 +289,17 @@ public:
    /**
     * Adds a configuration.
     * 
-    * The special key "__id__" *must* be present to specify the configuration's
+    * The special key "_id_" *must* be present to specify the configuration's
     * ID.
     * 
-    * The special key "__parent__" can be provided if the configuration has a
+    * The special key "_parent_" can be provided if the configuration has a
     * parent configuration that it should receive default values from and be
     * merged with.
     * 
-    * The special key "__include__" can be used to provide an array of files
+    * The special key "_include_" can be used to provide an array of files
     * or directories of files to load if the passed include parameter is true.
     * 
-    * The special key "__version__" must be provided if this configuration
+    * The special key "_version_" must be provided if this configuration
     * manager requires specific configuration versions.
     * 
     * @param config the Config to add.

@@ -20,21 +20,21 @@ using namespace db::data::json;
 using namespace db::io;
 using namespace db::rt;
 
-const char* ConfigManager::DEFAULT_VALUE = "__default__";
-const char* ConfigManager::VERSION       = "__version__";
-const char* ConfigManager::ID            = "__id__";
+const char* ConfigManager::DEFAULT_VALUE = "_default_";
+const char* ConfigManager::VERSION       = "_version_";
+const char* ConfigManager::ID            = "_id_";
 // FIXME: change to GROUPS and have support for multiple groups per config?
 // seems like this feature would be simple enought to add without complicating
 // too much
-const char* ConfigManager::GROUP         = "__group__";
-const char* ConfigManager::PARENT        = "__parent__";
-const char* ConfigManager::MERGE         = "__merge__";
-const char* ConfigManager::APPEND        = "__append__";
-const char* ConfigManager::REMOVE        = "__remove__";
-const char* ConfigManager::INCLUDE       = "__include__";
+const char* ConfigManager::GROUP         = "_group_";
+const char* ConfigManager::PARENT        = "_parent_";
+const char* ConfigManager::MERGE         = "_merge_";
+const char* ConfigManager::APPEND        = "_append_";
+const char* ConfigManager::REMOVE        = "_remove_";
+const char* ConfigManager::INCLUDE       = "_include_";
 const char* ConfigManager::INCLUDE_EXT   = ".config";
-const char* ConfigManager::TMP           = "__tmp__";
-const char* ConfigManager::DIR_MAGIC     = "__dir__";
+const char* ConfigManager::TMP           = "_tmp_";
+const char* ConfigManager::DIR_MAGIC     = "_dir_";
 
 ConfigManager::ConfigManager()
 {
@@ -181,7 +181,7 @@ void ConfigManager::makeMergedConfig(ConfigId id)
    if(!config->hasMember("merged"))
    {
       // produce a merged configuration that contains only config values, not
-      // any "__special__" config format values
+      // any "_special_" config format values
       Config merged(NULL);
       
       // if group, recombine members to rebuild RAW config
