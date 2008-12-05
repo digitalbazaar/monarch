@@ -2,7 +2,7 @@
 # Usage: Run ./configure once 
 # Author: Manu Sporny
 
-AC_INIT([dbcore],[3.0],[support@digitalbazaar.com])
+AC_INIT([dbcore],[3.1],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
 
 # Setup standard build environment variables
