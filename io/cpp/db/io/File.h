@@ -154,6 +154,13 @@ public:
    virtual bool contains(File& path);
    
    /**
+    * Returns true if this File is the current directory ".".
+    * 
+    * @return true if the File is the current directory ".", false if not.
+    */
+   virtual bool isCurrentDirectory();
+   
+   /**
     * Returns true if this File is a directory, false if it is not. If it
     * is not, then it may be a regular file or a symbolic link. 
     * 
@@ -169,6 +176,13 @@ public:
     */
    virtual bool isFile();
 
+   /**
+    * Returns true if this File is the parent directory "..".
+    * 
+    * @return true if the File is the parent directory "..", false if not.
+    */
+   virtual bool isParentDirectory();
+   
    /**
     * Returns true if this File is readable, false otherwise. Readability
     * depends on several things, including file permissions, file system
