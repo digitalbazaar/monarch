@@ -388,11 +388,10 @@ bool App::startLogging()
       }
       else
       {
-         ostringstream oss;
-         oss << "Invalid app.logging.level: " <<
-            (levelStr ? levelStr : "\"\"") << ".";
          ExceptionRef e =
-            new Exception(oss.str().c_str(), "bitmunk.app.ConfigError");
+            new Exception(
+               "Invalid app.logging.level", "bitmunk.app.ConfigError");
+         e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
          Exception::setLast(e, false);
          rval = false;
       }
@@ -1015,10 +1014,9 @@ bool App::parseCommandLine(vector<const char*>* args)
             }
             if(rval && !found)
             {
-               ostringstream oss;
-               oss << "Unknown option: " << opt << ".";
                ExceptionRef e =
-                  new Exception(oss.str().c_str(), "db.app.CommandLineError");
+                  new Exception("Unknown option.", "db.app.CommandLineError");
+               e->getDetails()["option"] = opt;
                Exception::setLast(e, false);
                rval = false;
             }
@@ -1137,14 +1135,33 @@ bool App::willParseCommandLine(std::vector<const char*>* args)
    
    // temp storage for command line specs
    mCLConfig["specs"] = getCommandLineSpecs();
-   if(mDelegate != NULL)
+   if(mCLConfig["specs"]->getType() != Array)
+   {
+      ExceptionRef e = new Exception(
+         "Command line specs are not an array.",
+         "db.app.CommandLineError");
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   if(rval && mDelegate != NULL)
    {
       DynamicObject delegateSpecs;
       delegateSpecs = mDelegate->getCommandLineSpecs();
-      DynamicObjectIterator i = delegateSpecs.getIterator();
-      while(i->hasNext())
+      if(delegateSpecs->getType() != Array)
       {
-         mCLConfig["specs"]->append(i->next());
+         ExceptionRef e = new Exception(
+            "Delegate command line specs are not an array.",
+            "db.app.CommandLineError");
+         Exception::setLast(e, false);
+         rval = false;
+      }
+      if(rval)
+      {
+         DynamicObjectIterator i = delegateSpecs.getIterator();
+         while(i->hasNext())
+         {
+            mCLConfig["specs"]->append(i->next());
+         }
       }
    }
    
@@ -1191,10 +1208,9 @@ bool App::didParseCommandLine()
       bool found = Logger::stringToLevel(cfgLogLevel, level);
       if(!found)
       {
-         ostringstream oss;
-         oss << "Invalid log level: \"" << cfgLogLevel << "\".";
          ExceptionRef e =
-            new Exception(oss.str().c_str(), "db.app.CommandLineError");
+            new Exception("Invalid log level.", "db.app.CommandLineError");
+         e->getDetails()["level"] = cfgLogLevel;
          Exception::setLast(e, false);
          rval = false;
       }
