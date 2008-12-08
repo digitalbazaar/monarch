@@ -1135,14 +1135,33 @@ bool App::willParseCommandLine(std::vector<const char*>* args)
    
    // temp storage for command line specs
    mCLConfig["specs"] = getCommandLineSpecs();
-   if(mDelegate != NULL)
+   if(mCLConfig["specs"]->getType() != Array)
+   {
+      ExceptionRef e = new Exception(
+         "Command line specs are not an array.",
+         "db.app.CommandLineError");
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   if(rval && mDelegate != NULL)
    {
       DynamicObject delegateSpecs;
       delegateSpecs = mDelegate->getCommandLineSpecs();
-      DynamicObjectIterator i = delegateSpecs.getIterator();
-      while(i->hasNext())
+      if(delegateSpecs->getType() != Array)
       {
-         mCLConfig["specs"]->append(i->next());
+         ExceptionRef e = new Exception(
+            "Delegate command line specs are not an array.",
+            "db.app.CommandLineError");
+         Exception::setLast(e, false);
+         rval = false;
+      }
+      if(rval)
+      {
+         DynamicObjectIterator i = delegateSpecs.getIterator();
+         while(i->hasNext())
+         {
+            mCLConfig["specs"]->append(i->next());
+         }
       }
    }
    
