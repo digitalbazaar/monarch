@@ -251,6 +251,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          // clear request and response header fields
          reqHeader->clearFields();
          resHeader->clearFields();
+         resHeader->clearStatus();
       }
    }
    

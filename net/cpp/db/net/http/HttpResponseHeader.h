@@ -88,6 +88,11 @@ public:
    virtual void setStatus(unsigned int code, const char* message);
    
    /**
+    * Clears the HTTP status for the response.
+    */
+   virtual void clearStatus();
+   
+   /**
     * Gets the HTTP status code for the response.
     * 
     * @return the status code for the response (i.e. "200", "404").

@@ -119,6 +119,16 @@ void HttpResponseHeader::setStatus(unsigned int code, const char* message)
    mStatusMessage = strdup(message);
 }
 
+void HttpResponseHeader::clearStatus()
+{
+   mStatusCode = 0;
+   if(mStatusMessage != NULL)
+   {
+      free(mStatusMessage);
+      mStatusMessage = NULL;
+   }
+}
+
 unsigned int HttpResponseHeader::getStatusCode()
 {
    return mStatusCode;
