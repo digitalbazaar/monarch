@@ -619,6 +619,17 @@ void runDynamicObjectTest(TestRunner& tr)
       }
    }
 
+   {
+      // test '==' and '<' compare of null strings
+      DynamicObject d1;
+      d1->setType(String);
+      DynamicObject d2;
+      d2->setType(String);
+      assert(d1 == d2);
+      d2 = "x";
+      assert(d1 < d2);
+   }
+   
    tr.pass();
 }
 

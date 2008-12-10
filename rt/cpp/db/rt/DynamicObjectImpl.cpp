@@ -240,7 +240,7 @@ bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
       switch(mType)
       {
          case String:
-            rval = (strcmp(mString, rhs.mString) == 0);
+            rval = (strcmp(getString(), rhs.getString()) == 0);
             break;
          case Boolean:
             rval = (mBoolean == rhs.mBoolean);
@@ -334,7 +334,7 @@ bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
       switch(mType)
       {
          case String:
-            rval = (strcmp(mString, rhs.mString) < 0);
+            rval = (strcmp(getString(), rhs.getString()) < 0);
             break;
          case Boolean:
             // false is "less" than true
@@ -596,7 +596,7 @@ bool DynamicObjectImpl::getBoolean() const
          rval = mBoolean;
          break;
       case String:
-         rval = (mString == NULL) ? false : (strcmp(mString, "true") == 0);
+         rval = (strcmp(getString(), "true") == 0);
          break;
       case Int32:
          rval = !(mInt32 == 0);
@@ -871,7 +871,7 @@ int DynamicObjectImpl::length() const
    switch(mType)
    {
       case String:
-         rval = (mString != NULL) ? strlen(mString) : 0;
+         rval = strlen(getString());
          break;
       case Boolean:
          rval = 1;
