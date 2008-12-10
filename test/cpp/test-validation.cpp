@@ -929,6 +929,7 @@ void runValidatorTest(TestRunner& tr)
          tr.passIfException(_dump);
       }
    }
+   tr.ungroup();
    
    /*
    tr.test("content");
