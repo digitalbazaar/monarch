@@ -41,14 +41,14 @@ EXECUTABLES = \
 
 LIBRARIES = dbtest
 DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation $(SPHINX_DBLIBS) dbapp
+DYNAMIC_EXECUTABLE_LIBRARIES = dbtest
 DYNAMIC_WINDOWS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_WINDOWS_LIBRARIES)
 
 LINUX_LIB_DIR = @DBCOREDIR@/libs/linux
 WINDOWS_LIB_DIR = @DBCOREDIR@/libs/windows
 MACOS_LIB_DIR = @DBCOREDIR@/libs/windows
 
-DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LINUX_LIBRARIES) dbtest
-DYNAMIC_MACOS_EXECUTABLE_LIBRARIES = dbtest
+DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LINUX_LIBRARIES)
 
 EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/expat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(MYSQL_EXTRA_WINDOWS_LIBRARIES) -lwsock32 -ldbtest
 
