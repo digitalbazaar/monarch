@@ -64,10 +64,14 @@ if test "$BUILD_FOR_WINDOWS" = "yes" ; then
    fi
 fi
 
-# Perform compilation environment tests
+# FIXME: Perform compilation environment tests
 #AC_CHECK_HEADERS(iostream)
+#AC_CHECK_HEADERS(openssl/opensslv) 
+#AC_CHECK_HEADERS(expat)
+#AC_CHECK_HEADERS(sqlite3)
+#AC_CHECK_HEADERS(mysql/mysql)
 
-# Make sure the proper libraries exist
+# FIXME: Make sure the proper libraries exist
 #AC_CHECK_LIB(pthread, main, [], AC_MSG_ERROR(could not find pthread library))
 #AC_CHECK_LIB(crypto, main, [], AC_MSG_ERROR(could not find crypto library))
 #AC_CHECK_LIB(ssl, main, [], AC_MSG_ERROR(could not find ssl library))
