@@ -493,19 +493,40 @@ bool File::expandUser(const char* path, string& expandedPath)
 bool File::getCurrentWorkingDirectory(string& cwd)
 {
    bool rval = true;
+   bool found = false;
+   size_t path_max;
+   #ifdef PATH_MAX
+   path_max = PATH_MAX;
+   #else
+   path_max = 1024;
+   #endif
    
-   char* b = (char*)malloc(PATH_MAX);
-   if(getcwd(b, PATH_MAX) != NULL)
+   char* b = (char*)malloc(path_max);
+   while(rval && !found)
    {
-      cwd.assign(b);
-   }
-   else
-   {
-      // path was too large for getcwd
-      ExceptionRef e = new Exception(
-         "Could not get current working directory, path too long!");
-      Exception::setLast(e, false);
-      rval = false;
+      if(getcwd(b, path_max) != NULL)
+      {
+         cwd.assign(b);
+         found = true;
+      }
+      else
+      {
+         // not enough space for path
+         // fail to check again if bigger than arbitrary size of 8k
+         if(errno == ERANGE && path_max < (1024 * 8))
+         {
+            path_max *= 2;
+            b = (char*)realloc(b, path_max);
+         }
+         else
+         {
+            // path was too large for getcwd
+            ExceptionRef e = new Exception(
+               "Could not get current working directory, path too long!");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+      }
    }
    free(b);
    
