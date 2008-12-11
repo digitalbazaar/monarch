@@ -36,10 +36,10 @@ MODULE_BASE_DIR = $(shell pwd)
 
 # Linux-specific variables
 LINUX_CXX = @LINUX_CXX@
-LINUX_CXX_FLAGS = -g -Wall -fPIC $(MODULE_LINUX_CXX_FLAGS)
+LINUX_CXX_FLAGS = -g -Wall -fPIC $(MODULE_LINUX_CXX_FLAGS) -march=i686
 LINUX_INCLUDES = $(INCLUDES)
 LINUX_LIB_DIR = $(DBCORE)/libs/linux
-LINUX_LIBS = -L$(LINUX_LIB_DIR)
+LINUX_LIBS = -L$(LINUX_LIB_DIR) -L/usr/lib/mysql
 LINUX_AR = @LINUX_AR@
 LINUX_BUILD_DIR = build/linux
 LINUX_DIST_DIR = dist/linux
@@ -201,7 +201,7 @@ ifeq ($(BUILD_FOR_LINUX),yes)
 #	# This is a fake target to override the default .a build
 $(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-linux.o $(STATIC_LINUX_LIBRARIES)
 	@echo "Building $(@F)..."
-	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) -L$(LINUX_LIB_DIR) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
+	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LIBS) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
 endif
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
