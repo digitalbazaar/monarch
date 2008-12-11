@@ -50,8 +50,9 @@ endif
 ifdef PRINT_COMMANDS
 PRINT_COMMANDS_OPTS = PRINT_COMMANDS=$(PRINT_COMMANDS)
 endif
+MAKE_JOB_OPTS = -j -l 5.0
 
-MAKE_CMD = $(PRINT_COMMANDS_OPTS) $(MAKE) -j -l 5.0 $(PRINT_DIRECTORIES_OPTS)
+MAKE_CMD = $(PRINT_COMMANDS_OPTS) $(MAKE) $(MAKE_JOB_OPTS) $(PRINT_DIRECTORIES_OPTS)
 MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 
 .PHONY: all verbose clean test internal-docs clean-docs
@@ -65,8 +66,12 @@ clean:
 	@rm -rf libs/*
 	@echo "Cleaned all objects and libraries."
 
+# Note: When building for multiple archs this will see all the tests and
+#       will likely fail for non-current archs.  This method is used since
+#       it will work for single arch builds and is difficult to know which
+#       arch to specify otherwise.
 test: all
-	LD_LIBRARY_PATH=@DBCOREDIR@/libs/linux test/cpp/dist/linux/run-unit-tests
+	./dbcore-run test/cpp/dist/*/run-unit-tests
 
 clean-docs:
 	rm -rf docs/cpp-api

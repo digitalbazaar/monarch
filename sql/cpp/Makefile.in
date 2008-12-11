@@ -3,6 +3,7 @@
 SOURCES = $(wildcard db/sql/*.cpp)
 LIBRARIES = dbsql
 DYNAMIC_LINK_LIBRARIES = dbrt dbnet
+DYNAMIC_MACOS_LIBRARIES = dbutil dbio dbmodest dbcrypto
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

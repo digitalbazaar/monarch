@@ -4,6 +4,7 @@ SOURCES = $(wildcard db/sql/sqlite3/*.cpp)
 LIBRARIES = dbsqlite3
 DYNAMIC_LINK_LIBRARIES = dbrt dbnet dbsql
 DYNAMIC_WINDOWS_LIBRARIES = sqlite3
+DYNAMIC_MACOS_LIBRARIES = sqlite3 dbutil dbio dbmodest dbcrypto
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

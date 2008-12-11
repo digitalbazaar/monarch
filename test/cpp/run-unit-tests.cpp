@@ -17,13 +17,17 @@ using namespace db::test;
 #include "test-fiber.cpp"
 #include "test-mail.cpp"
 #include "test-sqlite3.cpp"
+#ifdef HAVE_MYSQL
 #include "test-mysql.cpp"
+#endif
 #include "test-data.cpp"
 #include "test-compress.cpp"
 #include "test-config.cpp"
 #include "test-logging.cpp"
 #include "test-validation.cpp"
+#ifdef HAVE_SPHINX
 #include "test-sphinx.cpp"
+#endif
 #undef DB_TEST_NO_MAIN
 
 class DbAllTester : public db::test::Tester
@@ -42,13 +46,17 @@ public:
       addTester(new DbFiberTester());
       addTester(new DbMailTester());
       addTester(new DbSqlite3Tester());
+#ifdef HAVE_MYSQL
       addTester(new DbMySqlTester());
+#endif
       addTester(new DbDataTester());
       addTester(new DbCompressTester());
       addTester(new DbConfigTester());
       addTester(new DbLoggingTester());
       addTester(new DbValidationTester());
+#ifdef HAVE_SPHINX
       addTester(new DbSphinxClientTester());
+#endif
    }
 
    ~DbAllTester() {}

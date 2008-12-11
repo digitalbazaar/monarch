@@ -491,4 +491,18 @@
 // end #ifdef WIN32
 #endif
 
+#ifdef MACOS
+   // define multicast values
+   #ifndef IPV6_ADD_MEMBERSHIP
+      #define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
+   #endif
+   #ifndef IPV6_DROP_MEMBERSHIP
+      #define IPV6_DROP_MEMBERSHIP IPV6_LEAVE_GROUP
+   #endif
+   // define MSG options
+   #ifndef MSG_NOSIGNAL
+      #define MSG_NOSIGNAL 0
+   #endif
+#endif // MACOS
+
 #endif

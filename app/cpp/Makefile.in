@@ -7,6 +7,7 @@ DYNAMIC_LINK_LIBRARIES = dbrt dblogging dbio dbcrypto dbnet dbdata dbutil dbconf
 DYNAMIC_WINDOWS_LIBRARIES = pthreadGCE2 mgwz regex libeay32 ssleay32
 STATIC_WINDOWS_LIBRARIES = pthreadGCE2 z regex
 EXTRA_WINDOWS_LIBRARIES = -lws2_32
+DYNAMIC_MACOS_LIBRARIES = crypto ssl dbmodest
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

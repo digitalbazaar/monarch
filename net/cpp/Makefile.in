@@ -8,6 +8,7 @@ DYNAMIC_WINDOWS_LIBRARIES = libeay32 ssleay32
 EXTRA_WINDOWS_LIBRARIES = -lws2_32
 # Control import/export behavior
 MODULE_WINDOWS_CXX_FLAGS = -DBUILD_DB_NET_DLL
+DYNAMIC_MACOS_LIBRARIES = crypto ssl
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

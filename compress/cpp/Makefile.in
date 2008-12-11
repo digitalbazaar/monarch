@@ -11,5 +11,7 @@ DYNAMIC_LINK_LIBRARIES = dbrt dbio dbutil
 DYNAMIC_WINDOWS_LIBRARIES = mgwz
 STATIC_WINDOWS_LIBRARIES = z
 
+DYNAMIC_MACOS_LIBRARIES = z
+
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

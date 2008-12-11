@@ -1,4 +1,10 @@
 #!/bin/sh
 # Basic script to setup proper environment for running a DB Core app
 
-LD_LIBRARY_PATH=@DBCOREDIR@/libs/linux "$@"
+case "`uname -s`" in
+   [Ll]inux)
+      LD_LIBRARY_PATH=@DBCOREDIR@/libs/linux "$@" ;;
+   [Dd]arwin)
+      DYLD_LIBRARY_PATH=@DBCOREDIR@/libs/macos "$@" ;;
+   *) echo "unknown platform"; exit 1 ;;
+esac

@@ -1,6 +1,22 @@
 # Makefile to compile the module in this directory
 
 SOURCES = $(wildcard db/test/*.cpp)
+
+ifeq (@BUILD_MYSQL@,yes)
+CXXFLAGS += -DHAVE_MYSQL
+MYSQL_DBLIBS = dbmysql
+MYSQL_EXECUTABLES = test-mysql
+MYSQL_DYNAMIC_WINDOWS_LIBRARIES = mysql
+MYSQL_DYNAMIC_LINUX_LIBRARIES = mysqlclient
+MYSQL_EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/mysql.dll
+endif
+
+ifeq (@BUILD_SPHINX@,yes)
+CXXFLAGS += -DHAVE_SPHINX
+SPHINX_DBLIBS = dbsphinx
+SPHINX_EXECUTABLES = test-sphinx
+endif
+
 EXECUTABLES = \
 	test-compress \
 	test-config \
@@ -16,23 +32,25 @@ EXECUTABLES = \
 	test-modest \
 	test-net \
 	test-rt \
-	test-sphinx \
+	$(SPHINX_EXECUTABLES) \
 	test-sqlite3 \
-	test-mysql \
+	$(MYSQL_EXECUTABLES) \
 	test-util \
 	test-validation \
 	run-unit-tests
 
 LIBRARIES = dbtest
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbdata dbsql dbsqlite3 dbmysql dbevent dbmail dbconfig dbcompress dbvalidation dbsphinx dbapp
-DYNAMIC_WINDOWS_LIBRARIES = sqlite3 mysql
+DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation $(SPHINX_DBLIBS) dbapp
+DYNAMIC_WINDOWS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_WINDOWS_LIBRARIES)
 
 LINUX_LIB_DIR = @DBCOREDIR@/libs/linux
 WINDOWS_LIB_DIR = @DBCOREDIR@/libs/windows
+MACOS_LIB_DIR = @DBCOREDIR@/libs/windows
 
-DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 mysqlclient dbtest
+DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LINUX_LIBRARIES) dbtest
+DYNAMIC_MACOS_EXECUTABLE_LIBRARIES = dbtest
 
-EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/expat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(WINDOWS_LIB_DIR)/mysql.dll -lwsock32 -ldbtest
+EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/expat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(MYSQL_EXTRA_WINDOWS_LIBRARIES) -lwsock32 -ldbtest
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
