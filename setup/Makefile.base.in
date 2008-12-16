@@ -37,7 +37,7 @@ MODULE_BASE_DIR = $(shell pwd)
 
 # Linux-specific variables
 LINUX_CXX = @LINUX_CXX@
-LINUX_CXX_FLAGS = $(CXXFLAGS) -g -Wall -fPIC $(MODULE_LINUX_CXX_FLAGS) -march=i686
+LINUX_CXX_FLAGS = $(CXXFLAGS) -g -Wall -fPIC $(MODULE_LINUX_CXX_FLAGS) -march=i686 @DEFS@
 LINUX_LD_FLAGS = @LDFLAGS@
 LINUX_INCLUDES = $(INCLUDES)
 LINUX_LIB_DIR = $(DBCORE)/libs/linux
@@ -59,7 +59,7 @@ LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES))
 
 # Windows-specific variables
 WINDOWS_CXX = @WINDOWS_CXX@
-WINDOWS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -D_WIN32_WINNT=0x0501 $(MODULE_WINDOWS_CXX_FLAGS)
+WINDOWS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -D_WIN32_WINNT=0x0501 $(MODULE_WINDOWS_CXX_FLAGS) @DEFS@
 WINDOWS_LD_FLAGS = @LDFLAGS@
 WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/3rdparty/cpp/pthread/include -I$(DBCORE)/3rdparty/cpp/openssl/include -I$(DBCORE)/3rdparty/cpp/expat/include -I$(DBCORE)/3rdparty/cpp/mysql/include -I$(DBCORE)/3rdparty/cpp/regex/include -I$(DBCORE)/3rdparty/cpp/sqlite3/include -I$(DBCORE)/3rdparty/cpp/zlib/include
 WINDOWS_LIB_DIR = $(DBCORE)/libs/windows
@@ -84,7 +84,7 @@ WINDOWS_LIBRARIES += $(patsubst %,$(WINDOWS_DIST_DIR)/%.dll, $(LIBRARIES))
 
 # MacOS-specific variables
 MACOS_CXX = @MACOS_CXX@
-MACOS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -fPIC -DMACOS $(MODULE_MACOS_CXX_FLAGS)
+MACOS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -fPIC -DMACOS $(MODULE_MACOS_CXX_FLAGS) @DEFS@
 MACOS_LD_FLAGS = @LDFLAGS@
 MACOS_INCLUDES = $(INCLUDES)
 MACOS_LIB_DIR = $(DBCORE)/libs/macos

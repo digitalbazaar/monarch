@@ -44,6 +44,7 @@ AC_ARG_ENABLE([macos],
    ], [BUILD_FOR_MACOS=no])  dnl Default value
 
 echo -e "\n--------- Configuring DB Core Build Environment -----------"
+
 # Check the system type
 AC_CANONICAL_BUILD()
 
@@ -127,43 +128,9 @@ if test "x$BUILD_MYSQL" = "xyes"; then
    )
 fi
 
-echo -e "\n--------- DB Core Build Environment -----------"
-echo "System            : $PACKAGE_NAME $FULL_VERSION" 
-echo "Build system      : $build_cpu-$build_vendor-$build_os"
-if test "x$BUILD_FOR_LINUX" = "xyes"; then
-   echo "Linux C++ compiler: $LINUX_CXX"
-   echo "Linux C++ archiver: $LINUX_AR"
-else
-   echo "Linux             : disabled (use --enable-linux to enable)"
-fi
-if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
-   echo "Win32 C++ compiler: $WINDOWS_CXX"
-   echo "Win32 C++ archiver: $WINDOWS_AR"
-   echo "Win32 assembler   : $WINDOWS_AS"
-   echo "Win32 DLL wrapper : $WINDOWS_DLLWRAP"
-else
-   echo "Win32             : disabled (use --enable-windows to enable)"
-fi
-if test "x$BUILD_FOR_MACOS" = "xyes"; then
-   echo "MacOS C++ compiler: $MACOS_CXX"
-   echo "MacOS C++ archiver: $MACOS_AR"
-else
-   echo "MacOS             : disabled (use --enable-macos to enable)"
-fi
-
-if test "x$BUILD_MYSQL" = "xyes"; then
-   echo "MySQL             : enabled"
-else
-   echo "MySQL             : disabled"
-fi
-
-if test "x$BUILD_SPHINX" = "xyes"; then
-   echo "Sphinx            : enabled"
-else
-   echo "Sphinx            : disabled"
-fi
-
 # Make all the proper substitutions
+AC_SUBST(DBCOREDIR)
+
 AC_SUBST(DATE_RFC_2822)
 AC_SUBST(FULL_VERSION)
 
@@ -183,10 +150,9 @@ AC_SUBST(WINDOWS_AS)
 AC_SUBST(WINDOWS_DLLWRAP)
 AC_SUBST(MACOS_AS)
 
-AC_SUBST(DBCOREDIR)
 AC_SUBST(JAVADOC)
 
-# Generating Makefiles
+# Generating files
 AC_CONFIG_FILES([
           3rdparty/cpp/Makefile
           Makefile
@@ -220,7 +186,48 @@ AC_CONFIG_FILES([
                  installers/debian/changelog
                  installers/debian/rules
                  setup/capfile
-                ], 
+                ],
                 [chmod +x dbcore-run installers/debian/rules])
 
 AC_OUTPUT
+
+# Dump the build configuration
+echo -e "\n--------- DB Core Build Environment -----------"
+echo "System            : $PACKAGE_NAME $FULL_VERSION"
+echo "Build system      : $build_cpu-$build_vendor-$build_os"
+if test "x$BUILD_FOR_LINUX" = "xyes"; then
+   echo "Linux             : enabled"
+   echo "Linux C++ compiler: $LINUX_CXX"
+   echo "Linux C++ archiver: $LINUX_AR"
+else
+   echo "Linux             : disabled (use --enable-linux to enable)"
+fi
+if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
+   echo "Win32             : enabled"
+   echo "Win32 C++ compiler: $WINDOWS_CXX"
+   echo "Win32 C++ archiver: $WINDOWS_AR"
+   echo "Win32 assembler   : $WINDOWS_AS"
+   echo "Win32 DLL wrapper : $WINDOWS_DLLWRAP"
+else
+   echo "Win32             : disabled (use --enable-windows to enable)"
+fi
+if test "x$BUILD_FOR_MACOS" = "xyes"; then
+   echo "MacOS             : enabled"
+   echo "MacOS C++ compiler: $MACOS_CXX"
+   echo "MacOS C++ archiver: $MACOS_AR"
+else
+   echo "MacOS             : disabled (use --enable-macos to enable)"
+fi
+
+if test "x$BUILD_MYSQL" = "xyes"; then
+   echo "MySQL             : enabled"
+else
+   echo "MySQL             : disabled"
+fi
+
+if test "x$BUILD_SPHINX" = "xyes"; then
+   echo "Sphinx            : enabled"
+else
+   echo "Sphinx            : disabled"
+fi
+
