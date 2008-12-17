@@ -346,46 +346,55 @@ void runFileTest(TestRunner& tr)
 
    File cdir(".");
    File tmp("/tmp");   
-   File a("/tmp/a.txt");
-   File b("../../foo/../junk238jflk38sjf.txt");
-   File c("/tmp/c.txt");
+   File tmpFileA("/tmp/DBCORETEST_a.txt");
+   File junk("../../foo/../junk238jflk38sjf.txt");
+   File tmpFileC("/tmp/DBCORETEST_c.txt");
    string np;
 
    tr.test("normalization");
    {
-      File::normalizePath(b, np);
-      //cout << np << "... ";
+      File::normalizePath(tmp, np);
+      assertStrCmp(np.c_str(), "/tmp");
+      
+      File::normalizePath(tmpFileA, np);
+      assertStrCmp(np.c_str(), "/tmp/DBCORETEST_a.txt");
+      
+      File::normalizePath("/tmp/dir/../file.txt", np);
+      assertStrCmp(np.c_str(), "/tmp/file.txt");
+      
+      File::normalizePath("/tmp/./dir/../file.txt", np);
+      assertStrCmp(np.c_str(), "/tmp/file.txt");
+      
+      File::normalizePath("/tmp/../../file.txt", np);
+      assertStrCmp(np.c_str(), "/file.txt");
    }
    tr.passIfNoException();
 
-   tr.test("readable #1");
+   tr.test("readable curdir");
    {
       File::normalizePath(cdir, np);
-      //cout << np << " should be readable...";
       assert(cdir->isReadable());
    }
    tr.passIfNoException();
 
-   tr.test("readable #2");
+   tr.test("not readable junk");
    {
-      File::normalizePath(b, np);
-      //cout << np << " should not be readable...";
-      assert(!b->isReadable());
+      File::normalizePath(junk, np);
+      assert(!junk->isReadable());
    }
    tr.passIfNoException();
    
-   tr.test("writable");
+   tr.test("writable curdir");
    {
       File::normalizePath(cdir, np);
-      //cout << np << " should be writable...";
       assert(cdir->isWritable());
    }
    tr.passIfNoException();
 
    tr.test("directory containment");
    {
-      assert(tmp->contains(a));
-      assert(!a->contains(tmp));
+      assert(tmp->contains(tmpFileA));
+      assert(!tmpFileA->contains(tmp));
    }
    tr.passIfNoException();
    
@@ -433,16 +442,16 @@ void runFileTest(TestRunner& tr)
    
    tr.test("create");
    {
-      a->create();
-      assert(a->exists());
+      tmpFileA->create();
+      assert(tmpFileA->exists());
    }
    tr.passIfNoException();
    
    tr.test("rename");
    {
-      a->rename(c);
-      assert(!a->exists());
-      assert(c->exists());
+      tmpFileA->rename(tmpFileC);
+      assert(!tmpFileA->exists());
+      assert(tmpFileC->exists());
    }
    tr.passIfNoException();
    

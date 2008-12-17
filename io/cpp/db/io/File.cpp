@@ -379,16 +379,14 @@ bool File::normalizePath(const char* path, string& normalizedPath)
    {
       // if the path isn't absolute, pre-pend the current working directory
       // to the path.
-      if(path[0] != '/')
+      if(isPathAbsolute(path))
       {
-         rval = getCurrentWorkingDirectory(tempPath);
-         
-         tempPath.push_back('/');
-         tempPath.append(path);
+         tempPath.assign(path);
       }
       else
       {
-         tempPath.append(path);
+         rval = getCurrentWorkingDirectory(tempPath);
+         tempPath = File::join(tempPath.c_str(), path, NULL);
       }
       
       // clean up the relative directory references, by traversing the
@@ -410,8 +408,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
             if(skip == 0)
             {
                // not skipping directory, so append it to the normalized path
-               tempPath.insert(0, token);
-               tempPath.insert(0, 1, '/');
+               tempPath = File::join(token, tempPath.c_str(), NULL);
             }
             else
             {
@@ -422,7 +419,8 @@ bool File::normalizePath(const char* path, string& normalizedPath)
       }
    }
    
-   normalizedPath.assign(tempPath);
+   normalizedPath.assign("/");
+   normalizedPath.append(tempPath);
    
    return rval;
 }
