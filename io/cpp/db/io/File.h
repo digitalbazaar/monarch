@@ -273,6 +273,9 @@ public:
    /**
     * Normalizes the file system path passed into the method.
     * 
+    * This method will convert all ".", "..", and relative paths to
+    * an absolute path.
+    * 
     * @param path the path to normalize as a regular constant string.
     * @param normalizedPath the normalized path will be placed into this 
     *                       variable.
@@ -284,6 +287,9 @@ public:
 
    /**
     * Normalizes the file system path passed into the method.
+    * 
+    * This method will convert all ".", "..", and relative paths to
+    * an absolute path.
     * 
     * @param path the path to normalize specified by the given file.
     * @param normalizedPath the normalized path will be placed into this 

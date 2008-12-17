@@ -391,42 +391,38 @@ bool File::normalizePath(const char* path, string& normalizedPath)
          tempPath.append(path);
       }
       
-      // clean up the relative directory references
-      // TODO: This is a somewhat slow process because the string tokenizer
-      //       isn't setup to be run in reverse, which is the most efficient
-      //       way to build a directory path. This could become an issue if
-      //       the application is doing a ton of path normalizations. -- manu
-      StringTokenizer st(tempPath.c_str(), '/');
-      int nTokens = st.getTokenCount();
-      int skipNum = 0;
+      // clean up the relative directory references, by traversing the
+      // path in reverse
+      StringTokenizer st(tempPath.c_str(), '/', false);
+      int skip = 0;
       tempPath.erase();
-      for(int i = nTokens - 1; i > 0; i--)
+      while(st.hasPreviousToken())
       {
-         const char* token = st.getToken(i);
+         const char* token = st.previousToken();
          if(strcmp(token, "..") == 0)
          {
-            skipNum++;
+            // since we're traversing the path backwards, skip the upcoming
+            // previous directory because we found a ".."
+            skip++;
          }
-         else if(strcmp(token, ".") == 0)
+         else if(strcmp(token, ".") != 0)
          {
-            
-         }
-         else
-         {
-            if(skipNum == 0)
+            if(skip == 0)
             {
+               // not skipping directory, so append it to the normalized path
                tempPath.insert(0, token);
                tempPath.insert(0, 1, '/');
             }
             else
             {
-               skipNum--;
+               // directory skipped
+               skip--;
             }
          }
       }
    }
    
-   normalizedPath.assign(tempPath); 
+   normalizedPath.assign(tempPath);
    
    return rval;
 }
