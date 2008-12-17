@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_StringTokenizer_H
 #define db_util_StringTokenizer_H
@@ -26,6 +26,11 @@ struct StringToken
     * A pointer to the next StringToken.
     */
    StringToken* next;
+   
+   /**
+    * A pointer to the previous StringToken.
+    */
+   StringToken* prev;
 };
 
 /**
@@ -53,9 +58,14 @@ protected:
    StringToken* mLastToken;
    
    /**
-    * The current token.
+    * The next token.
     */
-   StringToken* mCurrentToken;
+   StringToken* mNextToken;
+   
+   /**
+    * The previous token.
+    */
+   StringToken* mPrevToken;
    
    /**
     * The number of tokens.
@@ -90,8 +100,12 @@ public:
     * 
     * @param str the string to tokenize.
     * @param delimiter the delimiter character.
+    * @param front if true, starts the token pointer at the front of the
+    *              token list, if false, starts the token pointer at the
+    *              back of the list (Note that this will not change token
+    *              indexes).
     */
-   StringTokenizer(const char* str, char delimiter = '\n');
+   StringTokenizer(const char* str, char delimiter = '\n', bool front = true);
    
    /**
     * Destructs this StringTokenizer.
@@ -103,20 +117,37 @@ public:
     * 
     * @param str the string to tokenize.
     * @param delimiter the delimiter character.
+    * @param front if true, starts the token pointer at the front of the
+    *              token list, if false, starts the token pointer at the
+    *              back of the list (Note that this will not change token
+    *              indexes).
     */
-   virtual void tokenize(const char* str, char delimiter = '\n');
+   virtual void tokenize(
+      const char* str, char delimiter = '\n', bool front = true);
    
    /**
     * Restarts the internal current token pointer.
+    * 
+    * @param front if true, starts the token pointer at the front of the
+    *              token list, if false, starts the token pointer at the
+    *              back of the list (Note that this will not change token
+    *              indexes).
     */
-   virtual void restartTokens();
+   virtual void restartTokens(bool front = true);
    
    /**
-    * Returns true if there are more tokens available.
+    * Returns true if there is a token after the current one.
     * 
-    * @return true if there are more tokens available, false if not.
+    * @return true if nextToken() would return a valid token, false if not.
     */
    virtual bool hasNextToken();
+   
+   /**
+    * Returns true if the there is a token before the current one.
+    * 
+    * @return true if prevToken() would return a valid token, false if not.
+    */
+   virtual bool hasPreviousToken();
    
    /**
     * Gets the next token. If there isn't a next token, good luck because
@@ -125,6 +156,14 @@ public:
     * @return the next token.
     */
    virtual const char* nextToken();
+   
+   /**
+    * Gets the previous token. If there isn't a previous token, good luck
+    * because it's going to do nasty NULL things.
+    * 
+    * @return the previous token.
+    */
+   virtual const char* previousToken();
    
    /**
     * Gets the token at the given index. A negative index will retrieve

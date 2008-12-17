@@ -11,26 +11,22 @@ using namespace db::util;
 
 StringTokenizer::StringTokenizer()
 {
-   mFirstToken = NULL;
-   mLastToken = NULL;
-   mCurrentToken = NULL;
+   mFirstToken = mLastToken = mNextToken = mPrevToken = NULL;
    mTokenCount = 0;
    
    mFirstFreeToken = NULL;
    mFreeTokenCount = 0;
 }
 
-StringTokenizer::StringTokenizer(const char* str, char delimiter)
+StringTokenizer::StringTokenizer(const char* str, char delimiter, bool front)
 {
-   mFirstToken = NULL;
-   mLastToken = NULL;
-   mCurrentToken = NULL;
+   mFirstToken = mLastToken = mNextToken = mPrevToken = NULL;
    mTokenCount = 0;
    
    mFirstFreeToken = NULL;
    mFreeTokenCount = 0;
    
-   tokenize(str, delimiter);
+   tokenize(str, delimiter, front);
 }
 
 StringTokenizer::~StringTokenizer()
@@ -55,7 +51,7 @@ void StringTokenizer::cleanupStringTokens(StringToken* first)
    }
 }
 
-void StringTokenizer::tokenize(const char* str, char delimiter)
+void StringTokenizer::tokenize(const char* str, char delimiter, bool front)
 {
    // move tokens into free-list
    StringToken* next;
@@ -84,9 +80,7 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
    }
    
    // reset token vars
-   mFirstToken = NULL;
-   mLastToken = NULL;
-   mCurrentToken = NULL;
+   mFirstToken = mLastToken = mNextToken = mPrevToken = NULL;
    mTokenCount = 0;
    
    // find tokens in the passed string
@@ -105,6 +99,7 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
          token = mFirstFreeToken;
          mFirstFreeToken = mFirstFreeToken->next;
          token->next = NULL;
+         token->prev = NULL;
          mFreeTokenCount--;
          
          // free data in token
@@ -115,6 +110,8 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
          // allocate a new one
          token = new StringToken();
          token->next = NULL;
+         token->prev = NULL;
+         token->data = NULL;
       }
       
       // find the end of the token
@@ -122,7 +119,7 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
       if(end != NULL)
       {
          // copy data into token
-         token->data = (char*)malloc((end - start) + 1);
+         token->data = (char*)realloc(token->data, (end - start) + 1);
          strncpy(token->data, start, end - start);
          token->data[(end - start)] = 0;
          
@@ -133,7 +130,7 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
       {
          // copy data into token
          size_t length = strlen(start);
-         token->data = (char*)malloc(length + 1);
+         token->data = (char*)realloc(token->data, length + 1);
          strncpy(token->data, start, length);
          token->data[length] = 0;
          
@@ -145,30 +142,55 @@ void StringTokenizer::tokenize(const char* str, char delimiter)
       if(mFirstToken == NULL)
       {
          mFirstToken = mLastToken = token;
-         mCurrentToken = mFirstToken;
       }
       else
       {
+         token->prev = mLastToken;
          mLastToken->next = token;
          mLastToken = token;
       }
    }
+   
+   restartTokens(front);
 }
 
-inline void StringTokenizer::restartTokens()
+inline void StringTokenizer::restartTokens(bool front)
 {
-   mCurrentToken = mFirstToken;
+   if(front)
+   {
+      mNextToken = mFirstToken;
+      mPrevToken = NULL;
+   }
+   else
+   {
+      mPrevToken = mLastToken;
+      mNextToken = NULL;
+   }
 }
 
 inline bool StringTokenizer::hasNextToken()
 {
-   return mCurrentToken != NULL;
+   return mNextToken != NULL;
+}
+
+inline bool StringTokenizer::hasPreviousToken()
+{
+   return mPrevToken != NULL;
 }
 
 const char* StringTokenizer::nextToken()
 {
-   const char* rval = mCurrentToken->data;
-   mCurrentToken = mCurrentToken->next;
+   const char* rval = mNextToken->data;
+   mPrevToken = mNextToken;
+   mNextToken = mNextToken->next;
+   return rval;
+}
+
+const char* StringTokenizer::previousToken()
+{
+   const char* rval = mPrevToken->data;
+   mNextToken = mPrevToken;
+   mPrevToken = mPrevToken->prev;
    return rval;
 }
 
@@ -176,18 +198,23 @@ const char* StringTokenizer::getToken(int i)
 {
    const char* rval = NULL;
    
+   StringToken* token;
    if(i < 0)
    {
-      // Note: negative index searches are not optimized by doing a reverse
-      // search because it would require adding a "prev" pointer to
-      // StringToken -- which is some overhead that is usually not necessary
-      i = mTokenCount + i;
+      i = -i;
+      token = mLastToken;
+      for(int n = 1; n < i && token != NULL; n++)
+      {
+         token = token->prev;
+      }
    }
-   
-   StringToken* token = mFirstToken;
-   for(int n = 0; n < i && token != NULL; n++)
+   else
    {
-      token = token->next;
+      token = mFirstToken;
+      for(int n = 0; n < i && token != NULL; n++)
+      {
+         token = token->next;
+      }
    }
    
    if(token != NULL)

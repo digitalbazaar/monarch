@@ -325,35 +325,94 @@ void runDateTest(TestRunner& tr)
 
 void runStringTokenizerTest(TestRunner& tr)
 {
-   tr.test("StringTokenizer");
+   tr.group("StringTokenizer");
    
-   const char* str = "This is a test of the StringTokenizer class.";
-   
-   /*
-   StringTokenizer st0(str, ' ');
-   while(st0.hasNextToken())
+   tr.test("tokenize forward");
    {
-      cout << "token='" << st0.nextToken() << "'" << endl;
+      const char* str = "This is a test of the StringTokenizer class.";
+      
+      /*
+      StringTokenizer st0(str, ' ');
+      while(st0.hasNextToken())
+      {
+         cout << "token='" << st0.nextToken() << "'" << endl;
+      }
+      */
+      StringTokenizer st(str, ' ', true);
+      #define NT(str) \
+         do { \
+            assert(st.hasNextToken()); \
+            assertStrCmp(st.nextToken(), str); \
+         } while(0)
+      NT("This");
+      NT("is");
+      NT("a");
+      NT("test");
+      NT("of");
+      NT("the");
+      NT("StringTokenizer");
+      NT("class.");
+      assert(!st.hasNextToken());
+      #undef NT
    }
-   */
-   StringTokenizer st(str, ' ');
-   #define NT(str) \
-      do { \
-         assert(st.hasNextToken()); \
-         assertStrCmp(st.nextToken(), str); \
-      } while(0)
-   NT("This");
-   NT("is");
-   NT("a");
-   NT("test");
-   NT("of");
-   NT("the");
-   NT("StringTokenizer");
-   NT("class.");
-   assert(!st.hasNextToken());
-   #undef NT
-   
    tr.passIfNoException();
+   
+   tr.test("tokenize backward");
+   {
+      const char* str = "This is a test of the StringTokenizer class.";
+      
+      StringTokenizer st(str, ' ', false);
+      #define NT(str) \
+         do { \
+            assert(st.hasPreviousToken()); \
+            assertStrCmp(st.previousToken(), str); \
+         } while(0)
+      NT("class.");
+      NT("StringTokenizer");
+      NT("the");
+      NT("of");
+      NT("test");
+      NT("a");
+      NT("is");
+      NT("This");
+      assert(!st.hasPreviousToken());
+      #undef NT
+   }
+   tr.passIfNoException();
+   
+   tr.test("get first token");
+   {
+      const char* str = "This is a test of the StringTokenizer class.";
+      StringTokenizer st(str, ' ', true);
+      assertStrCmp(st.getToken(0), "This");
+   }
+   tr.passIfNoException();
+   
+   tr.test("get second token");
+   {
+      const char* str = "This is a test of the StringTokenizer class.";
+      StringTokenizer st(str, ' ', true);
+      assertStrCmp(st.getToken(1), "is");
+   }
+   tr.passIfNoException();
+   
+   tr.test("get last token");
+   {
+      const char* str = "This is a test of the StringTokenizer class.";
+      StringTokenizer st(str, ' ', false);
+      assertStrCmp(st.getToken(-1), "class.");
+   }
+   tr.passIfNoException();
+   
+   tr.test("get second to last token");
+   {
+      const char* str = "This is a test of the StringTokenizer class.";
+      StringTokenizer st(str, ' ', false);
+      assertStrCmp(st.getToken(-2), "StringTokenizer");
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 void runUniqueListTest(TestRunner& tr)
