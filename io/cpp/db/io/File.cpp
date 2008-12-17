@@ -484,7 +484,7 @@ bool File::getAbsolutePath(const char* path, string& absolutePath)
    // if the path isn't absolute, prepend the current working directory
    // to the path
    string tmp;
-   if(strlen(path) == 0 || path[0] != '/')
+   if(!isPathAbsolute(path))
    {
       string cwd;
       if((rval = getCurrentWorkingDirectory(cwd)))
@@ -530,7 +530,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
          {
             if(skip == 0)
             {
-               // not skipping directory, so join
+               // not skipping directory, so join to the normalized path
                tempPath = File::join(token, tempPath.c_str(), NULL); 
             }
             else
