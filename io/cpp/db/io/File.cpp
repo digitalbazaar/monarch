@@ -22,26 +22,96 @@ using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
 
+#ifdef WIN32
+   const char File::NAME_SEPARATOR = '\\';
+   const char File::PATH_SEPARATOR = ';';
+   
+   // a helper function for stripping drive letters from windows paths
+   static string stripDriveLetter(const char* path)
+   {
+      string rval;
+      
+      int len = strlen(path);
+      if(len > 1)
+      {
+         if(path[1] == ':')
+         {
+            if(len > 2)
+            {
+               rval = (path + 2);
+            }
+            else
+            {
+               rval = File::NAME_SEPARATOR;
+            }
+         }
+         else
+         {
+            rval = path;
+         }
+      }
+      else
+      {
+         rval = path;
+      }
+      
+      return rval;
+   }
+#else
+   const char File::NAME_SEPARATOR = '/';
+   const char File::PATH_SEPARATOR = ':';
+#endif
+
 FileImpl::FileImpl()
 {
-   mName = strdup("");
+   mPath = strdup(".");
+   
+   // initialize absolute path
+   string abs;
+   File::getAbsolutePath(mPath, abs);
+   mAbsolutePath = strdup(abs.c_str());
+   
+   mBaseName = mCanonicalPath = mExtension = NULL;
 }
 
-FileImpl::FileImpl(const char* name)
+FileImpl::FileImpl(const char* path)
 {
-   mName = strdup(name);
+   mPath = strdup(path);
+   
+   // initialize absolute path
+   string abs;
+   File::getAbsolutePath(mPath, abs);
+   mAbsolutePath = strdup(abs.c_str());
+   
+   mBaseName = mCanonicalPath = mExtension = NULL;
 }
 
 FileImpl::~FileImpl()
 {
-   free(mName);
+   free(mPath);
+   free(mAbsolutePath);
+   
+   if(mBaseName != NULL)
+   {
+      free(mBaseName);
+   }
+   
+   if(mCanonicalPath != NULL)
+   {
+      free(mCanonicalPath);
+   }
+   
+   if(mExtension != NULL)
+   {
+      free(mExtension);
+   }
 }
 
 bool FileImpl::create()
 {
    bool rval = false;
    
-   FILE* fp = fopen(mName, "w");
+   FILE* fp = fopen(mAbsolutePath, "w");
    if(fp != NULL)
    {
       rval = true;
@@ -49,9 +119,10 @@ bool FileImpl::create()
    }
    else
    {
-      string msg = "Could not create file! ";
-      msg.append(strerror(errno));
-      ExceptionRef e = new IOException(msg.c_str());
+      ExceptionRef e = new Exception(
+         "Could not create file",
+         "db.io.File.CreateFailed");
+      e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
    
@@ -63,7 +134,10 @@ bool FileImpl::mkdirs()
    bool rval = true;
    
    // get path
-   string path = (isDirectory() ? getName() : File::parentname(getName()));
+   string path = (isDirectory() ?
+      mAbsolutePath : File::parentname(mAbsolutePath));
+   
+   // FIXME: windows drive letter support
    
    // create stack of directories
    vector<string> dirStack;
@@ -108,7 +182,7 @@ bool FileImpl::exists()
    bool rval = false;
    
    struct stat s;
-   int rc = stat(mName, &s);
+   int rc = stat(mAbsolutePath, &s);
    if(rc == 0)
    {
       rval = true;
@@ -125,7 +199,7 @@ bool FileImpl::remove()
 {
    bool rval = false;
    
-   int rc = ::remove(mName);
+   int rc = ::remove(mAbsolutePath);
    if(rc == 0)
    {
       rval = true;
@@ -134,9 +208,10 @@ bool FileImpl::remove()
    {
       // FIXME: want to make sure no exception is
       // set when the file didn't exist prior to deletion
-//      string msg = "Could not delete file! ";
-//      msg.append(strerror(errno));
-//      ExceptionRef e = new IOException(msg.c_str());
+//      ExceptionRef e = new Exception(
+//         "Could not delete file.",
+//         "db.io.File.DeleteFailed");
+//      e->getDetail()["error"] = strerror(errno);
 //      Exception::setLast(e, false);
    }
    
@@ -151,36 +226,82 @@ bool FileImpl::rename(File& file)
    file->remove();
    
    // rename file
-   int rc = ::rename(mName, file->getName());
+   int rc = ::rename(mAbsolutePath, file->getAbsolutePath());
    if(rc == 0)
    {
       rval = true;
    }
    else
    {
-      string msg = "Could not rename file! ";
-      msg.append(strerror(errno));
-      ExceptionRef e = new IOException(msg.c_str());
+      ExceptionRef e = new Exception(
+         "Could not rename file.",
+         "db.io.File.RenameFailed");
+      e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
    
    return rval;
 }
 
-const char* FileImpl::getName() const
+const char* FileImpl::getBaseName()
 {
-   return mName;
+   if(mBaseName == NULL)
+   {
+      // initialize base name
+      mBaseName = strdup(File::basename(mAbsolutePath).c_str());
+   }
+   
+   return mBaseName;
+}
+
+const char* FileImpl::getPath() const
+{
+   return mPath;
+}
+
+const char* FileImpl::getAbsolutePath() const
+{
+   return mAbsolutePath;
+}
+
+const char* FileImpl::getCanonicalPath()
+{
+   // FIXME: create static method
+   // FIXME: get absolute path, follow all symbolic links
+   
+   // FIXME: implement me
+   
+//   if(mCanonicalPath == NULL)
+//   {
+//      mCanonicalPath = strdup(File::getCanonicalPath(mAbsolutePath).c_str());
+//   }
+   
+   return mCanonicalPath;
+}
+
+const char* FileImpl::getExtension()
+{
+   if(mExtension == NULL)
+   {
+      string root;
+      string ext;
+      File::splitext(mAbsolutePath, root, ext);
+      mExtension = strdup(ext.c_str());
+   }
+   
+   return mExtension;
 }
 
 off_t FileImpl::getLength()
 {
    struct stat s;
-   int rc = stat(mName, &s);
+   int rc = stat(mAbsolutePath, &s);
    if(rc != 0)
    {
-      string msg = "Could not stat file! ";
-      msg.append(strerror(errno));
-      ExceptionRef e = new IOException(msg.c_str());
+      ExceptionRef e = new Exception(
+         "Could not stat file.",
+         "db.io.File.StatFailed");
+      e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
    
@@ -191,13 +312,13 @@ FileImpl::Type FileImpl::getType()
 {
    Type rval = Unknown;
    
+   // FIXME: lstat isn't being used here, yet the comment below suggests
+   // otherwise...
+   
    // use lstat so symbolic links aren't followed
    struct stat s;
-   int rc = stat(mName, &s);
-   if(rc != 0)
-   {
-   }
-   else
+   int rc = stat(mAbsolutePath, &s);
+   if(rc == 0)
    {
       switch(s.st_mode & S_IFMT)
       {
@@ -222,7 +343,7 @@ bool FileImpl::isCurrentDirectory()
 {
    string dirname;
    string basename;
-   File::split(mName, dirname, basename);
+   File::split(mAbsolutePath, dirname, basename);
    
    return (strcmp(basename.c_str(), ".") == 0);
 }
@@ -235,21 +356,19 @@ bool FileImpl::isFile()
 bool FileImpl::contains(const char* path)
 {
    bool rval = false;
-   string normalizedContainer;
-   string normalizedFileImpl;
    
-   if(File::normalizePath(getName(), normalizedContainer) && 
-      File::normalizePath(path, normalizedFileImpl))
+   string containee;
+   if(File::getAbsolutePath(path, containee))
    {
-      rval = (normalizedFileImpl.find(normalizedContainer, 0) == 0);
+      rval = (containee.find(mAbsolutePath, 0) == 0);
    }
-
+   
    return rval;
 }
 
 bool FileImpl::contains(File& path)
 {
-   return contains(path->getName());
+   return contains(path->getAbsolutePath());
 }
 
 bool FileImpl::isDirectory()
@@ -261,22 +380,14 @@ bool FileImpl::isParentDirectory()
 {
    string dirname;
    string basename;
-   File::split(mName, dirname, basename);
+   File::split(mAbsolutePath, dirname, basename);
    
    return (strcmp(basename.c_str(), "..") == 0);
 }
 
 bool FileImpl::isReadable()
 {
-   bool rval = false;
-   string npath;
-   
-   if(File::normalizePath(getName(), npath))
-   {
-      rval = File::isPathReadable(npath.c_str());
-   }
-   
-   return rval; 
+   return File::isPathReadable(mAbsolutePath);
 }
 
 bool FileImpl::isSymbolicLink()
@@ -286,15 +397,7 @@ bool FileImpl::isSymbolicLink()
 
 bool FileImpl::isWritable()
 {
-   bool rval = false;
-   string npath;
-   
-   if(File::normalizePath(getName(), npath))
-   {
-      rval = File::isPathWritable(npath.c_str());
-   }
-   
-   return rval; 
+   return File::isPathWritable(mAbsolutePath); 
 }
 
 void FileImpl::listFiles(FileList& files)
@@ -302,28 +405,30 @@ void FileImpl::listFiles(FileList& files)
    if(isDirectory())
    {
       // open directory
-      DIR* dir = opendir(mName);
+      DIR* dir = opendir(mAbsolutePath);
       if(dir == NULL)
       {
          // FIXME: add error handling
       }
       else
       {
+         // FIXME: handle windows drive letters
+         
          // read each directory entry
          struct dirent* entry;
-         unsigned int len1 = strlen(mName);
-         bool separator = mName[len1 - 1] != '/';
+         unsigned int len1 = strlen(mAbsolutePath);
+         bool separator = mAbsolutePath[len1 - 1] != File::NAME_SEPARATOR;
          while((entry = readdir(dir)) != NULL)
          {
             // d_name is null-terminated name for FileImpl, without path name
             // so copy FileImpl name before d_name to get full path
             unsigned int len2 = strlen(entry->d_name);
             char path[len1 + len2 + 2];
-            memcpy(path, mName, len1);
+            memcpy(path, mAbsolutePath, len1);
             if(separator)
             {
                // add path separator as appropriate
-               path[len1] = '/';
+               path[len1] = File::NAME_SEPARATOR;
                memcpy(path + len1 + 1, entry->d_name, len2 + 1);
             }
             else
@@ -345,9 +450,9 @@ void FileImpl::listFiles(FileList& files)
 Date FileImpl::getModifiedDate()
 {
    Date date(0);
-   struct stat s;
    
-   if(stat(mName, &s) == 0)
+   struct stat s;
+   if(stat(mAbsolutePath, &s) == 0)
    {
       date.setSeconds(s.st_mtime);
    }
@@ -361,8 +466,8 @@ bool File::operator==(const File& rhs) const
    
    File& file = *((File*)&rhs);
    
-   // compare names and types for equality
-   if(strcmp((*this)->getName(), file->getName()) == 0)
+   // compare absolute paths and types for equality
+   if(strcmp((*this)->getAbsolutePath(), file->getAbsolutePath()) == 0)
    {
       rval = ((*this)->getType() == file->getType());
    }
@@ -370,32 +475,48 @@ bool File::operator==(const File& rhs) const
    return rval;
 }
 
+bool File::getAbsolutePath(const char* path, string& absolutePath)
+{
+   bool rval = true;
+   
+   // FIXME: handle windows driver letters
+   
+   // if the path isn't absolute, prepend the current working directory
+   // to the path
+   string tmp;
+   if(strlen(path) == 0 || path[0] != '/')
+   {
+      string cwd;
+      if((rval = getCurrentWorkingDirectory(cwd)))
+      {
+         tmp = File::join(cwd.c_str(), path, NULL);
+      }
+   }
+   else
+   {
+      // path already absolute
+      tmp.assign(path);
+   }
+   
+   // normalize path
+   rval = rval && normalizePath(tmp.c_str(), absolutePath);
+   
+   return rval;
+}
+
 bool File::normalizePath(const char* path, string& normalizedPath)
 {
    bool rval = true;
-   string tempPath;
    
+   string tempPath;
    if(strlen(path) > 0)
    {
-      // if the path isn't absolute, pre-pend the current working directory
-      // to the path.
-      if(path[0] != '/')
-      {
-         rval = getCurrentWorkingDirectory(tempPath);
-         
-         tempPath.push_back('/');
-         tempPath.append(path);
-      }
-      else
-      {
-         tempPath.append(path);
-      }
+      // FIXME: handle windows drive letters
       
       // clean up the relative directory references, by traversing the
       // path in reverse
-      StringTokenizer st(tempPath.c_str(), '/', false);
+      StringTokenizer st(path, '/', false);
       int skip = 0;
-      tempPath.erase();
       while(st.hasPreviousToken())
       {
          const char* token = st.previousToken();
@@ -409,9 +530,8 @@ bool File::normalizePath(const char* path, string& normalizedPath)
          {
             if(skip == 0)
             {
-               // not skipping directory, so append it to the normalized path
-               tempPath.insert(0, token);
-               tempPath.insert(0, 1, '/');
+               // not skipping directory, so join
+               tempPath = File::join(token, tempPath.c_str(), NULL); 
             }
             else
             {
@@ -420,23 +540,31 @@ bool File::normalizePath(const char* path, string& normalizedPath)
             }
          }
       }
+      
+      if(skip > 0 && !isPathAbsolute(path))
+      {
+         ExceptionRef e = new Exception(
+            "Could not normalize relative path. Too many \"..\" directories.",
+            "db.io.File.BadNormalization");
+         e->getDetails()["path"] = path;
+         Exception::setLast(e, false);
+         rval = false;
+      }
    }
    
-   normalizedPath.assign(tempPath);
+   normalizedPath.assign("/");
+   normalizedPath.append(tempPath);
    
    return rval;
-}
-
-bool File::normalizePath(File& path, string& normalizedPath)
-{
-   return normalizePath(path->getName(), normalizedPath);
 }
 
 bool File::expandUser(const char* path, string& expandedPath)
 {
    bool rval = true;
-   size_t pathlen = 0;
    
+   // FIXME: handle windows issues
+   
+   size_t pathlen = 0;
    if(path != NULL)
    {
       pathlen = strlen(path);
@@ -449,8 +577,8 @@ bool File::expandUser(const char* path, string& expandedPath)
       if(pathlen > 1 && path[1] != '/')
       {
          ExceptionRef e = new Exception(
-            "db::io::File::expandUser only supports current "
-            "user (ie, \"~/...\").");
+            "Only current user supported (ie, \"~/...\").",
+            "db.io.File.NotImplemented");
          Exception::setLast(e, false);
          rval = false;
       }
@@ -464,7 +592,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             // add HOME
             string newPath(home);
             // add rest of path
-            newPath.append(path+1);
+            newPath.append(path + 1);
             // copy to output
             expandedPath.assign(newPath);
          }
@@ -472,7 +600,8 @@ bool File::expandUser(const char* path, string& expandedPath)
          {
             // no HOME set
             ExceptionRef e = new Exception(
-               "db::io::File::expandUser called without HOME set.");
+               "No home path set.",
+               "db.io.File.HomeNotSet");
             Exception::setLast(e, false);
             rval = false;
          }
@@ -482,7 +611,7 @@ bool File::expandUser(const char* path, string& expandedPath)
    {
       expandedPath.assign(path);
    }
-
+   
    return rval;
 }
 
@@ -491,11 +620,11 @@ bool File::getCurrentWorkingDirectory(string& cwd)
    bool rval = true;
    bool found = false;
    size_t path_max;
-   #ifdef PATH_MAX
+#ifdef PATH_MAX
    path_max = PATH_MAX;
-   #else
+#else
    path_max = 1024;
-   #endif
+#endif
    
    char* b = (char*)malloc(path_max);
    while(rval && !found)
@@ -518,7 +647,8 @@ bool File::getCurrentWorkingDirectory(string& cwd)
          {
             // path was too large for getcwd
             ExceptionRef e = new Exception(
-               "Could not get current working directory, path too long!");
+               "Could not get current working directory, path too long!",
+               "db.io.File.PathTooLong");
             Exception::setLast(e, false);
             rval = false;
          }
@@ -543,7 +673,7 @@ void File::split(const char* path, string& dirname, string& basename)
 {
    // FIXME: support non-posix paths
    string sPath = path;
-   string::size_type pos = sPath.rfind('/') + 1;
+   string::size_type pos = sPath.rfind(NAME_SEPARATOR) + 1;
    dirname.assign(sPath.substr(0, pos));
    basename.assign(sPath.substr(pos));
    if(dirname.length() > 0 && dirname != "/")
@@ -571,6 +701,8 @@ void File::splitext(
 
 string File::parentname(const char* path)
 {
+   // FIXME: figure out drive letter stuff for windows
+   
    string dirname = File::dirname(path);
    if(strcmp(dirname.c_str(), path) == 0)
    {
@@ -607,6 +739,11 @@ string File::basename(const char* path)
 
 bool File::isPathAbsolute(const char* path)
 {
+   // FIXME: windows path is absolute if drive letter starts path or
+   // '\\' starts path
+   
+   // FIXME: linux path is absolute if starts with '/'
+   
    // FIXME: support non-posix paths.
    return path != NULL && strlen(path) > 0 && path[0] == '/';
 }

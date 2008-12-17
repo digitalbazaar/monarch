@@ -3,6 +3,8 @@
  */
 #include "db/io/FileOutputStream.h"
 
+#include "db/rt/DynamicObject.h"
+
 #include <cstring>
 
 using namespace std;
@@ -29,20 +31,25 @@ bool FileOutputStream::ensureOpen()
    {
       if(mAppend)
       {
-         mStream.open(mFile->getName(), ios::out | ios::app | ios::binary);
+         mStream.open(
+            mFile->getAbsolutePath(),
+            ios::out | ios::app | ios::binary);
       }
       else
       {
-         mStream.open(mFile->getName(), ios::out | ios::trunc | ios::binary);
+         mStream.open(
+            mFile->getAbsolutePath(),
+            ios::out | ios::trunc | ios::binary);
       }
       
       if(!mStream.is_open())
       {
-         rval = false;
-         char temp[strlen(mFile->getName()) + 30];
-         sprintf(temp, "Could not open file '%s'!", mFile->getName());
-         ExceptionRef e = new IOException(temp);
+         ExceptionRef e = new Exception(
+            "Could not open file.",
+            "db.io.File.OpenFailed");
+         e->getDetails()["path"] = mFile->getAbsolutePath();
          Exception::setLast(e, false);
+         rval = false;
       }
    }
    
@@ -61,9 +68,10 @@ bool FileOutputStream::write(const char* b, int length)
       // see if a failure has occurred
       if(mStream.fail())
       {
-         char temp[strlen(mFile->getName()) + 40];
-         sprintf(temp, "Could not write to file '%s'!", mFile->getName());
-         ExceptionRef e = new IOException(temp);
+         ExceptionRef e = new Exception(
+            "Could not write to file.",
+            "db.io.File.WriteError");
+         e->getDetails()["path"] = mFile->getAbsolutePath();
          Exception::setLast(e, false);
       }
       else

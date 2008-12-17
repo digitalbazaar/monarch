@@ -1907,7 +1907,7 @@ void runHttpClientGetTest()
             if(client.receiveContent(&fos, &trailer))
             {
                cout << "Content downloaded to '" <<
-                  file->getName() << "'" << endl;
+                  file->getAbsolutePath() << "'" << endl;
                
                cout << "HTTP trailers=\n" << trailer.toString() << endl;
             }
@@ -1966,7 +1966,7 @@ void runHttpClientPostTest()
             if(client.receiveContent(&fos, &trailer))
             {
                cout << "Content downloaded to '" <<
-                  file->getName() << "'" << endl;
+                  file->getAbsolutePath() << "'" << endl;
                
                cout << "HTTP trailers=\n" << trailer.toString() << endl;
             }

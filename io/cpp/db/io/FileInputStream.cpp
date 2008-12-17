@@ -3,6 +3,8 @@
  */
 #include "db/io/FileInputStream.h"
 
+#include "db/rt/DynamicObject.h"
+
 #include <cstring>
 
 using namespace std;
@@ -32,32 +34,33 @@ bool FileInputStream::ensureOpen()
    {
       if(!mFile->exists())
       {
-         rval = false;
-         char temp[strlen(mFile->getName()) + 60];
-         sprintf(temp, "Could not open file '%s'! File does not exist.",
-            mFile->getName());
-         ExceptionRef e = new IOException(temp);
+         ExceptionRef e = new Exception(
+            "Could not open file.",
+            "db.io.File.NotFound");
+         e->getDetails()["path"] = mFile->getAbsolutePath();
          Exception::setLast(e, false);
+         rval = false;
       }
       else if(!mFile->isReadable())
       {
-         rval = false;
-         char temp[strlen(mFile->getName()) + 60];
-         sprintf(temp, "Could not open file '%s'! Access denied.",
-            mFile->getName());
-         ExceptionRef e = new IOException(temp);
+         ExceptionRef e = new Exception(
+            "Could not open file.",
+            "db.io.File.AccessDenied");
+         e->getDetails()["path"] = mFile->getAbsolutePath();
          Exception::setLast(e, false);
+         rval = false;
       }
       else
       {
-         mStream.open(mFile->getName(), ios::in | ios::binary);
+         mStream.open(mFile->getAbsolutePath(), ios::in | ios::binary);
          if(!mStream.is_open())
          {
-            rval = false;
-            char temp[strlen(mFile->getName()) + 30];
-            sprintf(temp, "Could not open file '%s'!", mFile->getName());
-            ExceptionRef e = new IOException(temp);
+            ExceptionRef e = new Exception(
+               "Could not open file stream.",
+               "db.io.File.OpenFailed");
+            e->getDetails()["path"] = mFile->getAbsolutePath();
             Exception::setLast(e, false);
+            rval = false;
          }
       }
    }
@@ -81,11 +84,12 @@ int FileInputStream::read(char* b, int length)
          // see if a failure other than EOF occurred
          if(mStream.fail() && !mStream.eof())
          {
-            rval = -1;
-            char temp[strlen(mFile->getName()) + 40];
-            sprintf(temp, "Could not read from file '%s'!", mFile->getName());
-            ExceptionRef e = new IOException(temp);
+            ExceptionRef e = new Exception(
+               "Could not read file.",
+               "db.io.File.ReadError");
+            e->getDetails()["path"] = mFile->getAbsolutePath();
             Exception::setLast(e, false);
+            rval = -1;
          }
          else if(mStream.gcount() > 0)
          {
@@ -127,11 +131,12 @@ long long FileInputStream::skip(long long count)
       // see if a failure other than EOF occurred
       if(mStream.fail() && !mStream.eof())
       {
-         rval = -1;
-         char temp[strlen(mFile->getName()) + 40];
-         sprintf(temp, "Could not read from file '%s'!", mFile->getName());
-         ExceptionRef e = new IOException(temp);
+         ExceptionRef e = new Exception(
+            "Could not read file.",
+            "db.io.File.ReadError");
+         e->getDetails()["path"] = mFile->getAbsolutePath();
          Exception::setLast(e, false);
+         rval = -1;
       }
    }
    

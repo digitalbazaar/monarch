@@ -875,13 +875,13 @@ bool ConfigManager::addConfigFile(
          while(i->hasNext())
          {
             File& f = i->next();
-            string name = f->getName();
+            string name = f->getAbsolutePath();
             if(f->isFile())
             {
                if(name.rfind(INCLUDE_EXT) ==
                   (name.length() - strlen(INCLUDE_EXT)))
                {
-                  configFiles.push_back(File::basename(f->getName()));
+                  configFiles.push_back(File::basename(f->getAbsolutePath()));
                }
             }
             else if(
@@ -901,7 +901,7 @@ bool ConfigManager::addConfigFile(
              rval && i != configFiles.end(); i++)
          {
             rval = addConfigFile(
-               (*i).c_str(), include, file->getName(),
+               (*i).c_str(), include, file->getAbsolutePath(),
                false, false, magic);
          }
          

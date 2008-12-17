@@ -101,9 +101,6 @@ void StringTokenizer::tokenize(const char* str, char delimiter, bool front)
          token->next = NULL;
          token->prev = NULL;
          mFreeTokenCount--;
-         
-         // free data in token
-         free(token->data);
       }
       else
       {

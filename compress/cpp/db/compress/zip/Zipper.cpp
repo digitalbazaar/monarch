@@ -76,7 +76,7 @@ bool Zipper::zip(FileList& fl, File& out)
       
       // create entry, set file name
       ZipEntry ze;
-      ze->setFilename(file->getName());
+      ze->setFilename(file->getAbsolutePath());
       
       // write entry
       if((rval = writeEntry(ze, &fos)))

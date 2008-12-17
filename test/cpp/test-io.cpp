@@ -350,34 +350,34 @@ void runFileTest(TestRunner& tr)
    File b("../../foo/../junk238jflk38sjf.txt");
    File c("/tmp/c.txt");
    string np;
-
-   tr.test("normalization");
+   
+   tr.test("normalization (invalid)");
    {
-      File::normalizePath(b, np);
-      //cout << np << "... ";
+      File::normalizePath("../../foo/../junk238jflk38sjf.txt", np);
+   }
+   tr.passIfException();
+   
+   tr.test("normalization (valid)");
+   {
+      File::normalizePath("/../../foo/../junk238jflk38sjf.txt", np);
+      assertStrCmp(np.c_str(), "/junk238jflk38sjf.txt");
    }
    tr.passIfNoException();
-
+   
    tr.test("readable #1");
    {
-      File::normalizePath(cdir, np);
-      //cout << np << " should be readable...";
       assert(cdir->isReadable());
    }
    tr.passIfNoException();
 
    tr.test("readable #2");
    {
-      File::normalizePath(b, np);
-      //cout << np << " should not be readable...";
       assert(!b->isReadable());
    }
    tr.passIfNoException();
    
    tr.test("writable");
    {
-      File::normalizePath(cdir, np);
-      //cout << np << " should be writable...";
       assert(cdir->isWritable());
    }
    tr.passIfNoException();
@@ -395,7 +395,7 @@ void runFileTest(TestRunner& tr)
       FileList files;
       dir->listFiles(files);
       
-      //cout << "/tmp contains " << files.count() << " files...";
+      //printf("/tmp contains %i files\n", files.count())";
       
       assert(files->count() > 0);
    }
@@ -426,7 +426,7 @@ void runFileTest(TestRunner& tr)
                type = "Unknown";
                break;
          }
-         //cout << "Name: '" << file->getName() << "', Type: " << type << endl;
+         //printf("Name: '%s', Type: '%s'\n", file->getAbsolutePath(), type);
       }
    }
    tr.passIfNoException();

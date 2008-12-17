@@ -41,9 +41,29 @@ public:
    
 protected:
    /**
-    * Stores the name of this file.
+    * Stores the path of this file, as set by the user.
     */
-   char* mName;
+   char* mPath;
+   
+   /**
+    * Stores the absolute path of this file.
+    */
+   char* mAbsolutePath;
+   
+   /**
+    * Stores the base name of this file.
+    */
+   char* mBaseName;
+   
+   /**
+    * Stores the canonical path of this file.
+    */
+   char* mCanonicalPath;
+   
+   /**
+    * Stores the extension of this file.
+    */
+   char* mExtension;
    
 public:
    /**
@@ -52,15 +72,14 @@ public:
    FileImpl();
    
    /**
-    * Creates a new File with the specified name.
+    * Creates a new File with the specified path. If the OS is MS windows, then
+    * forward slash directory separators will be converted to back slashes.
     * 
-    * @param name the name of the file. Using a blank string specifies an 
+    * @param path the path of the file. Using a blank string specifies an 
     *             invalid file and should never be done. If you want to mention
-    *             the current directory, use "." as the name. All file metadata 
-    *             operations will normalize the path to an absolute file path
-    *             before performing any operations on the file.
+    *             the current directory, use "." as the path.
     */
-   FileImpl(const char* name);
+   FileImpl(const char* path);
    
    /**
     * Destructs this File.
@@ -109,11 +128,46 @@ public:
    virtual bool rename(File& file);
    
    /**
-    * Gets the name of this File.
+    * Gets the name of this File. This is just the last name in the
+    * path for the File.
     * 
     * @return the name of this File.
     */
-   virtual const char* getName() const;
+   virtual const char* getBaseName();
+   
+   /**
+    * Gets the path to this File. This is not necessarily an absolute
+    * or normalized path.
+    * 
+    * @return the path to this File.
+    */
+   virtual const char* getPath() const;
+   
+   /**
+    * Gets the absolute and unique path to this File. The path will be
+    * normalized and, if necessary, have the current working directory
+    * prepended to it to resolve a relative path. Symbolic links will
+    * not be followed.
+    * 
+    * @return the absolute path to this File.
+    */
+   virtual const char* getAbsolutePath() const;
+   
+   /**
+    * Gets the absolute path to this File, resolving any symbolic links
+    * encountered.
+    * 
+    * @return the canonical path to this File.
+    */
+   virtual const char* getCanonicalPath();
+   
+   /**
+    * Gets the extension of this File. This is the part of the path name
+    * following the last '.'.
+    * 
+    * @return the extension of this File.
+    */
+   virtual const char* getExtension();
    
    /**
     * Gets the length of this File.
@@ -237,6 +291,15 @@ public:
 class File : public db::rt::Collectable<FileImpl>
 {
 public:
+#ifdef WIN32
+   static const char NAME_SEPARATOR;
+   static const char PATH_SEPARATOR;
+#else
+   static const char NAME_SEPARATOR;
+   static const char PATH_SEPARATOR;
+#endif
+   
+public:
    /**
     * Creates a new File object.
     * 
@@ -271,10 +334,20 @@ public:
    bool operator==(const File& rhs) const;
    
    /**
-    * Normalizes the file system path passed into the method.
+    * Gets the absolute path for the given path. This method will normalize
+    * the passed file system path by resolving all "." and ".." directories and
+    * prepending the current working directory if necessary to a relative path.
     * 
-    * This method will convert all ".", "..", and relative paths to
-    * an absolute path.
+    * @param path the path to get the absolute path for.
+    * @param absolutePath to store the absolute path.
+    * 
+    * @return true if successful, false if an Exception occurred.
+    */
+   static bool getAbsolutePath(const char* path, std::string& absolutePath);
+   
+   /**
+    * Normalizes the file system path passed into the method. This method will
+    * resolve all "." and ".." directories in the file's path.
     * 
     * @param path the path to normalize as a regular constant string.
     * @param normalizedPath the normalized path will be placed into this 
@@ -284,30 +357,15 @@ public:
     *         occurred.
     */
    static bool normalizePath(const char* path, std::string& normalizedPath);
-
-   /**
-    * Normalizes the file system path passed into the method.
-    * 
-    * This method will convert all ".", "..", and relative paths to
-    * an absolute path.
-    * 
-    * @param path the path to normalize specified by the given file.
-    * @param normalizedPath the normalized path will be placed into this 
-    *                       variable.
-    * 
-    * @return true if the normalization was successful, false if an Exception
-    *         occurred.
-    */
-   static bool normalizePath(File& path, std::string& normalizedPath);
    
    /**
     * Expand "~" at the beginning of a path into the current user.  Will fail
     * if "HOME" is not set in the environment.
     * NOTE: Currently only handles current user.
     * 
-    * @param path the path to expand specified by the given path.
-    * @param expandedPath the expanded path will be placed into this 
-    *                       variable.
+    * @param path the path to be expanded, if it contains a '~' it will be
+    *             expanded to the current user's home path.
+    * @param expandedPath to store the expanded path.
     * 
     * @return true if the expansion was successful, false if an Exception
     *         occurred.

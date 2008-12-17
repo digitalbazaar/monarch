@@ -101,7 +101,7 @@ bool SslContext::setCertificate(File& certFile)
    
    // set certificate file
    if(SSL_CTX_use_certificate_file(
-      mContext, certFile->getName(), SSL_FILETYPE_PEM) != 1)
+      mContext, certFile->getAbsolutePath(), SSL_FILETYPE_PEM) != 1)
    {
       // an error occurred
       ExceptionRef e = new Exception(
@@ -121,7 +121,7 @@ bool SslContext::setPrivateKey(File& pkeyFile)
    
    // set private key file
    if(SSL_CTX_use_PrivateKey_file(
-      mContext, pkeyFile->getName(), SSL_FILETYPE_PEM) != 1)
+      mContext, pkeyFile->getAbsolutePath(), SSL_FILETYPE_PEM) != 1)
    {
       // an error occurred
       ExceptionRef e = new Exception(
@@ -147,8 +147,8 @@ bool SslContext::setVerifyCAs(File* caFile, File* caDir)
    // load verify locations
    if(SSL_CTX_load_verify_locations(
       mContext,
-      (caFile != NULL) ? (*caFile)->getName() : NULL,
-      (caDir != NULL) ? (*caDir)->getName() : NULL) != 1)
+      (caFile != NULL) ? (*caFile)->getAbsolutePath() : NULL,
+      (caDir != NULL) ? (*caDir)->getAbsolutePath() : NULL) != 1)
    {
       // an error occurred
       ExceptionRef e = new Exception(

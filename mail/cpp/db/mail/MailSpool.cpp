@@ -32,7 +32,7 @@ bool MailSpool::writeIndex()
    bool rval;
    
    // get associated index name
-   std::string name = mFile->getName();
+   std::string name = mFile->getAbsolutePath();
    name.append(".idx");
    File file(name.c_str());
    
@@ -69,7 +69,7 @@ bool MailSpool::setFile(File& file)
       mFile = file;
       
       // read associated index
-      std::string name = mFile->getName();
+      std::string name = mFile->getAbsolutePath();
       name.append(".idx");
       File file(name.c_str());
       if(!file->exists())
