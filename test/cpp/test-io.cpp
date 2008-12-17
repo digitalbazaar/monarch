@@ -347,9 +347,18 @@ void runFileTest(TestRunner& tr)
    File cdir(".");
    File tmp("/tmp");   
    File tmpFileA("/tmp/DBCORETEST_a.txt");
-   File junk("../../foo/../junk238jflk38sjf.txt");
+   File tmpFileB("/tmp/dir/../file.txt");
    File tmpFileC("/tmp/DBCORETEST_c.txt");
+   File junk("../../foo/../junk238jflk38sjf.txt");
    string np;
+   
+   tr.test("absolute paths");
+   {
+      assertStrCmp(tmp->getAbsolutePath(), "/tmp");
+      assertStrCmp(tmpFileA->getAbsolutePath(), "/tmp/DBCORETEST_a.txt");
+      assertStrCmp(tmpFileB->getAbsolutePath(), "/tmp/file.txt");
+   }
+   tr.passIfNoException();
    
    tr.test("normalization (invalid)");
    {
@@ -361,12 +370,6 @@ void runFileTest(TestRunner& tr)
    {
       File::normalizePath("/../../foo/../junk238jflk38sjf.txt", np);
       assertStrCmp(np.c_str(), "/junk238jflk38sjf.txt");
-
-      File::normalizePath(tmp, np);
-      assertStrCmp(np.c_str(), "/tmp");
-      
-      File::normalizePath(tmpFileA, np);
-      assertStrCmp(np.c_str(), "/tmp/DBCORETEST_a.txt");
       
       File::normalizePath("/tmp/dir/../file.txt", np);
       assertStrCmp(np.c_str(), "/tmp/file.txt");
@@ -387,7 +390,6 @@ void runFileTest(TestRunner& tr)
 
    tr.test("not readable junk");
    {
-      assert(!b->isReadable());
       assert(!junk->isReadable());
    }
    tr.passIfNoException();
