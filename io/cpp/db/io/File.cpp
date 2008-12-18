@@ -22,14 +22,23 @@ using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
 
+// FIXME: paths on windows are case-insensitive -- this means we should make
+// a macro/function to replace strcmp in most of these functions so it uses
+// strcasecmp when WIN32 is defined
+
 #ifdef WIN32
    const char File::NAME_SEPARATOR = '\\';
    const char File::PATH_SEPARATOR = ';';
    
    // a helper function for stripping drive letters from windows paths
-   static string stripDriveLetter(const char* path)
+   static string stripDriveLetter(const char* path, string* drive = NULL)
    {
       string rval;
+      
+      if(drive != NULL)
+      {
+         drive->erase();
+      }
       
       int len = strlen(path);
       if(len > 1)
@@ -39,6 +48,8 @@ using namespace db::util;
             if(len > 2)
             {
                rval = (path + 2);
+               drive.push_back(path[0]);
+               drive.push_back(path[1]);
             }
             else
             {
@@ -137,15 +148,12 @@ bool FileImpl::mkdirs()
    string path = (isDirectory() ?
       mAbsolutePath : File::parentname(mAbsolutePath));
    
-   // FIXME: windows drive letter support
-   
-   // create stack of directories
+   // create stack of directories in the path
    vector<string> dirStack;
-   dirStack.push_back(path);
-   while(strcmp(path.c_str(), "/") != 0)
+   while(!File::isPathRoot(path.c_str()))
    {
-      path = File::parentname(path.c_str());
       dirStack.push_back(path);
+      path = File::parentname(path.c_str());
    }
    
    // iteratively create directories
@@ -160,14 +168,15 @@ bool FileImpl::mkdirs()
       rc = stat(path.c_str(), &s);
       if(rc != 0)
       {
-         // Note: windows does not allow permissions in mkdir()
          // directory doesn't exist, so try to create it
+         // Note: windows ignores permissions in mkdir(), always 0777
          if(mkdir(path.c_str(), 0777) < 0)
          {
-            string msg = "Could not make directory! ";
-            msg.append(strerror(errno));
-            ExceptionRef e = new IOException(msg.c_str());
+            ExceptionRef e = new Exception(
+               "Could not create directory.",
+               "db.io.File.CreateDirectoryFailed");
             e->getDetails()["path"] = path.c_str();
+            e->getDetails()["error"] = strerror(errno);
             Exception::setLast(e, false);
             rval = false;
          }
@@ -189,7 +198,7 @@ bool FileImpl::exists()
    }
    else
    {
-      // does not set an exception intentionally
+      // does not set an exception intentionally, the file just doesn't exist
    }
    
    return rval;
@@ -204,15 +213,14 @@ bool FileImpl::remove()
    {
       rval = true;
    }
-   else
+   else if(exists())
    {
-      // FIXME: want to make sure no exception is
-      // set when the file didn't exist prior to deletion
-//      ExceptionRef e = new Exception(
-//         "Could not delete file.",
-//         "db.io.File.DeleteFailed");
-//      e->getDetail()["error"] = strerror(errno);
-//      Exception::setLast(e, false);
+      // only set exception when the file exists and could not be removed
+      ExceptionRef e = new Exception(
+         "Could not delete file.",
+         "db.io.File.DeleteFailed");
+      e->getDetails()["error"] = strerror(errno);
+      Exception::setLast(e, false);
    }
    
    return rval;
@@ -266,15 +274,12 @@ const char* FileImpl::getAbsolutePath() const
 
 const char* FileImpl::getCanonicalPath()
 {
-   // FIXME: create static method
-   // FIXME: get absolute path, follow all symbolic links
-   
-   // FIXME: implement me
-   
-//   if(mCanonicalPath == NULL)
-//   {
-//      mCanonicalPath = strdup(File::getCanonicalPath(mAbsolutePath).c_str());
-//   }
+   if(mCanonicalPath == NULL)
+   {
+      string path; 
+      File::getCanonicalPath(mAbsolutePath, path);
+      mCanonicalPath = strdup(path.c_str());
+   }
    
    return mCanonicalPath;
 }
@@ -308,16 +313,24 @@ off_t FileImpl::getLength()
    return s.st_size;
 }
 
-FileImpl::Type FileImpl::getType()
+FileImpl::Type FileImpl::getType(bool follow)
 {
    Type rval = Unknown;
    
-   // FIXME: lstat isn't being used here, yet the comment below suggests
-   // otherwise...
-   
-   // use lstat so symbolic links aren't followed
    struct stat s;
-   int rc = stat(mAbsolutePath, &s);
+   int rc;
+   
+   if(follow)
+   {
+      // ensure follow links are followed with stat
+      rc = stat(mAbsolutePath, &s);
+   }
+   else
+   {
+      // use lstat so symbolic links aren't followed
+      rc = lstat(mAbsolutePath, &s);
+   }
+   
    if(rc == 0)
    {
       switch(s.st_mode & S_IFMT)
@@ -385,6 +398,13 @@ bool FileImpl::isParentDirectory()
    return (strcmp(basename.c_str(), "..") == 0);
 }
 
+bool FileImpl::isRoot()
+{
+   // just check to see if the absolute path is the same as the parent
+   string parent = File::parentname(mAbsolutePath);
+   return (strcmp(parent.c_str(), mAbsolutePath) == 0);
+}
+
 bool FileImpl::isReadable()
 {
    return File::isPathReadable(mAbsolutePath);
@@ -392,7 +412,7 @@ bool FileImpl::isReadable()
 
 bool FileImpl::isSymbolicLink()
 {
-   return getType() == SymbolicLink;
+   return getType(false) == SymbolicLink;
 }
 
 bool FileImpl::isWritable()
@@ -500,6 +520,21 @@ bool File::getAbsolutePath(const char* path, string& absolutePath)
    
    // normalize path
    rval = rval && normalizePath(tmp.c_str(), absolutePath);
+   
+   return rval;
+}
+
+bool File::getCanonicalPath(const char* path, string& canonicalPath)
+{
+   bool rval = true;
+   
+   // FIXME: add while loop to keep following symbolic links after
+   // getting absolute path
+   // FIXME: call readlink(path, outputbuffer, outputbuffersize), returns
+   // number of characters in buffer or -1 with errno set
+   
+   // get absolute path
+   rval = getAbsolutePath(path, canonicalPath);
    
    return rval;
 }
@@ -746,6 +781,21 @@ bool File::isPathAbsolute(const char* path)
    
    // FIXME: support non-posix paths.
    return path != NULL && strlen(path) > 0 && path[0] == '/';
+}
+
+bool File::isPathRoot(const char* path)
+{
+   bool rval = false;
+   
+   // just check to see if the absolute path is the same as the parent
+   string abs;
+   if(File::getAbsolutePath(path, abs))
+   {
+      string parent = File::parentname(abs.c_str());
+      rval = (strcmp(parent.c_str(), abs.c_str()) == 0);
+   }
+   
+   return rval;
 }
 
 string File::join(const char* component, ...)

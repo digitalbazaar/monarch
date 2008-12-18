@@ -179,9 +179,11 @@ public:
    /**
     * Gets the Type of File.
     * 
+    * @param follow true to follow symbolic links, false not to.
+    * 
     * @return the Type of File this File is.
     */
-   virtual Type getType();
+   virtual Type getType(bool follow = true);
    
    /**
     * Returns true if this File contains the given file path. Both
@@ -238,6 +240,17 @@ public:
    virtual bool isParentDirectory();
    
    /**
+    * Returns true if this File is a root path, false if not.
+    * 
+    * On unix-based systems, this will check the absolute path to see if it
+    * is "/". On MS windows systems, this well check the absolute path to
+    * see if it is a drive letter, i.e. "C:\" or "d:\".
+    * 
+    * @return true if this File is a root path, false if not.
+    */
+   virtual bool isRoot();
+   
+   /**
     * Returns true if this File is readable, false otherwise. Readability
     * depends on several things, including file permissions, file system
     * permissions, and access control lists among other file security 
@@ -291,13 +304,17 @@ public:
 class File : public db::rt::Collectable<FileImpl>
 {
 public:
-#ifdef WIN32
+   /**
+    * The OS-dependent separator between names in a file path,
+    * i.e. "/" for "/foo/bar".
+    */
    static const char NAME_SEPARATOR;
+   
+   /**
+    * The OS-dependent separator between entires paths,
+    * i.e. ":" for "/foo/bar:/foo/moo".
+    */
    static const char PATH_SEPARATOR;
-#else
-   static const char NAME_SEPARATOR;
-   static const char PATH_SEPARATOR;
-#endif
    
 public:
    /**
@@ -344,6 +361,17 @@ public:
     * @return true if successful, false if an Exception occurred.
     */
    static bool getAbsolutePath(const char* path, std::string& absolutePath);
+   
+   /**
+    * Gets the canonical path for the given path. This method will get the
+    * absolute path for the given path and follow any symbolic links.
+    * 
+    * @param path the path to get the canonical path for.
+    * @param canonicalPath to store the canonical path.
+    * 
+    * @return true if successful, false if an Exception occurred.
+    */
+   static bool getCanonicalPath(const char* path, std::string& canonicalPath);
    
    /**
     * Normalizes the file system path passed into the method. This method will
@@ -463,7 +491,18 @@ public:
     * @return true if absolute, false if relative.
     */
    static bool isPathAbsolute(const char* path);
-
+   
+   /**
+    * Returns true if a path is a root path, false if not.
+    * 
+    * On unix-based systems, this will check the absolute path to see if it
+    * is "/". On MS windows systems, this well check the absolute path to
+    * see if it is a drive letter, i.e. "C:\" or "d:\".
+    * 
+    * @return true if a root path, false if not.
+    */
+   static bool isPathRoot(const char* path);
+   
    /**
     * Join path components with path separators.  Removes duplicate separators
     * between components and ignores empty components.
