@@ -504,9 +504,9 @@ public:
    static bool isPathRoot(const char* path);
    
    /**
-    * Join two paths with a path separator.  A trailing separator on the first
+    * Join two paths with a name separator.  A trailing separator on the first
     * path or a leading separator on the second path will first be removed to
-    * result in only a single path separator.
+    * result in only a single name separator.
     * 
     * @param path1 first path.
     * @param path2 second path.
