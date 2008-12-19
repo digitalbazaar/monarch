@@ -128,7 +128,12 @@ const char* Logger::levelToString(Level level, bool color)
             : "INFO";
          break;
       case Debug:
-         rval = "DEBUG";
+         rval = color
+            ? DB_ANSI_CSI DB_ANSI_BOLD DB_ANSI_SEP
+              DB_ANSI_BG_BLACK DB_ANSI_SEP
+              DB_ANSI_FG_HI_WHITE DB_ANSI_SGR
+              "DEBUG" DB_ANSI_OFF
+            : "DEBUG";
          break;
       case DebugData:
          rval = "DEBUG-DATA";
