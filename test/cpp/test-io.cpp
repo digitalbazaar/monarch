@@ -349,12 +349,14 @@ void runFileTest(TestRunner& tr)
    const char* tmpFilename = "C:\\windows\\temp";
    const char* tmpFilenameA = "C:\\windows\\temp\\DBCORETEST_a.txt";
    const char* tmpFilenameB = "C:\\windows\\temp\\dir\\..\\file.txt";
+   const char* expectTmpFilenameB = "C:\\windows\\temp\\file.txt";
    const char* tmpFilenameC = "C:\\windows\\temp\\DBCORETEST_c.txt";
 #else
    const char* name = "/tmp";
    const char* tmpFilename = "/tmp";
    const char* tmpFilenameA = "/tmp/DBCORETEST_a.txt";
    const char* tmpFilenameB = "/tmp/dir/../file.txt";
+   const char* expectTmpFilenameB = "/tmp/file.txt";
    const char* tmpFilenameC = "/tmp/DBCORETEST_c.txt";
 #endif
    
@@ -369,7 +371,7 @@ void runFileTest(TestRunner& tr)
    {
       assertStrCmp(tmp->getAbsolutePath(), tmpFilename);
       assertStrCmp(tmpFileA->getAbsolutePath(), tmpFilenameA);
-      assertStrCmp(tmpFileB->getAbsolutePath(), tmpFilenameB);
+      assertStrCmp(tmpFileB->getAbsolutePath(), expectTmpFilenameB);
    }
    tr.passIfNoException();
    
