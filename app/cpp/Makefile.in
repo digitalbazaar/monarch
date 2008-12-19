@@ -4,8 +4,8 @@ SOURCES = $(wildcard db/app/*.cpp)
 LIBRARIES = dbapp
 DYNAMIC_LINK_LIBRARIES = dbrt dblogging dbio dbcrypto dbnet dbdata dbutil dbconfig
 
-DYNAMIC_WINDOWS_LIBRARIES = pthreadGCE2 mgwz regex libeay32 ssleay32
-STATIC_WINDOWS_LIBRARIES = pthreadGCE2 z regex
+DYNAMIC_WINDOWS_LIBRARIES = pthreadGCE2 mgwz libgnurx-0 libeay32 ssleay32
+STATIC_WINDOWS_LIBRARIES = pthreadGCE2 z libgnurx-0
 EXTRA_WINDOWS_LIBRARIES = -lws2_32
 DYNAMIC_MACOS_LIBRARIES = crypto ssl dbmodest
 
