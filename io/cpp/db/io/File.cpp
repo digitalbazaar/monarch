@@ -31,36 +31,23 @@ using namespace db::util;
    // a helper function for stripping drive letters from windows paths
    static string stripDriveLetter(const char* path, string* drive = NULL)
    {
-      string rval;
+      string rval = path;
       
       if(drive != NULL)
       {
          drive->erase();
       }
       
-      size_t len = strlen(path);
-      if(len > 1)
+      if(File::isPathAbsolute(path))
       {
-         if(path[1] == ':')
+         if(path[0] != 0 && path[1] != 0)
          {
-            if(len > 2)
+            rval = (path + 2);
+            if(drive != NULL)
             {
-               rval = (path + 2);
                drive->append(path, 2);
             }
-            else
-            {
-               rval = File::NAME_SEPARATOR;
-            }
          }
-         else
-         {
-            rval = path;
-         }
-      }
-      else
-      {
-         rval = path;
       }
       
       return rval;
