@@ -5,6 +5,7 @@
 #define db_io_File_H
 
 #include "db/rt/Exception.h"
+#include "db/rt/WindowsSupport.h"
 #include "db/util/Date.h"
 
 #include <string>
