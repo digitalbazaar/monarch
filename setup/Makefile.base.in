@@ -1,7 +1,7 @@
 # This file contains basic Makefile includes that contain all building
 # instructions for all binaries and packages.
 
-.PHONY: all build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries
+.PHONY: all build-setup build-clean build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries
 
 all: build-objects build-libraries build-executables
 
@@ -144,23 +144,27 @@ else
 PCMD=@
 endif
 
+build-setup:
+
+build-clean:
+
 .SECONDEXPANSION:
 
 $(ALL_DIRECTORIES):
 	mkdir -p $@
 
 ifeq ($(BUILD_FOR_LINUX),yes)
-$(LINUX_LIBRARY_SOURCES):
+$(LINUX_LIBRARY_SOURCES): build-setup
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 ifdef EXECUTABLES
-$(LINUX_EXECUTABLE_SOURCES):
+$(LINUX_EXECUTABLE_SOURCES): build-setup
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 endif
 endif
 
-clean: clean-libraries clean-objects
+clean: build-clean clean-libraries clean-objects
 
 clean-objects:
 ifeq ($(BUILD_FOR_LINUX),yes)
@@ -185,22 +189,22 @@ ifeq ($(BUILD_FOR_MACOS),yes)
 endif
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
-$(WINDOWS_LIBRARY_SOURCES):
+$(WINDOWS_LIBRARY_SOURCES): build-setup
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 ifdef EXECUTABLES
-$(WINDOWS_EXECUTABLE_SOURCES):
+$(WINDOWS_EXECUTABLE_SOURCES): build-setup
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 endif
 endif
 
 ifeq ($(BUILD_FOR_MACOS),yes)
-$(MACOS_LIBRARY_SOURCES):
+$(MACOS_LIBRARY_SOURCES): build-setup
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 ifdef EXECUTABLES
-$(MACOS_EXECUTABLE_SOURCES):
+$(MACOS_EXECUTABLE_SOURCES): build-setup
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 endif
