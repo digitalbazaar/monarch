@@ -22,10 +22,6 @@ using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
 
-// FIXME: paths on windows are case-insensitive -- this means we should make
-// a macro/function to replace strcmp in most of these functions so it uses
-// strcasecmp when WIN32 is defined
-
 #ifdef WIN32
    const char* File::NAME_SEPARATOR = "\\";
    const char File::NAME_SEPARATOR_CHAR = '\\';
@@ -50,8 +46,7 @@ using namespace db::util;
             if(len > 2)
             {
                rval = (path + 2);
-               drive.push_back(path[0]);
-               drive.push_back(path[1]);
+               drive.append(path, 2);
             }
             else
             {
@@ -486,8 +481,13 @@ bool File::operator==(const File& rhs) const
    
    File& file = *((File*)&rhs);
    
-   // compare absolute paths and types for equality
+   // compare absolute paths and types for equality,
+   // use case-insensitive compare for windows
+#ifdef WIN32
+   if(strcasecmp((*this)->getAbsolutePath(), file->getAbsolutePath()) == 0)
+#else
    if(strcmp((*this)->getAbsolutePath(), file->getAbsolutePath()) == 0)
+#endif
    {
       rval = ((*this)->getType() == file->getType());
    }
