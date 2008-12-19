@@ -15,7 +15,7 @@ namespace io
 {
 
 #ifdef WIN32
-#   ifdef BUILD_DB_RT_DLL
+#   ifdef BUILD_DB_IO_DLL
 #      define DLL_CLASS __WIN32_DLL_EXPORT
 #   else
 #      define DLL_CLASS __WIN32_DLL_IMPORT
