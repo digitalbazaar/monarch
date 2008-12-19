@@ -432,11 +432,12 @@ public:
    static bool isPathWritable(const char* path);
 
    /**
-    * Split a path into the head (dirname) and tail (basename).
-    * dirname is everything up to the final path separator.  If path ends in
-    * a path separator basename will be empty.  If there is no path separator
-    * in the path dirname will be empty.  Trailing separators are stripped from
-    * dirname unless it is the root.
+    * Splits a path into the head (dirname) and tail (basename).
+    * 
+    * dirname is everything up to the final path separator. If path ends in
+    * a path separator basename will be empty. If there is no path separator
+    * in the path dirname will be empty. Any trailing separator are stripped
+    * from dirname unless it is the root.
     * 
     * @param path the path to split.
     * @param dirname a string to fill with the dirname.
@@ -446,7 +447,7 @@ public:
       const char* path, std::string& dirname, std::string& basename);
    
    /**
-    * Split a path into the root and extension, either of which may be empty.
+    * Splits a path into the root and extension, either of which may be empty.
     * 
     * @param path the path to split.
     * @param root a string to fill with the root.

@@ -606,7 +606,14 @@ void runFileTest(TestRunner& tr)
          assertStrCmp(dir.c_str(), "/dir1/dir2");
          assertStrCmp(base.c_str(), "base");
       }
-
+      
+      {
+         string dir, base;
+         File::split("////", dir, base);
+         assertStrCmp(dir.c_str(), "/");
+         assertStrCmp(base.c_str(), "");
+      }
+      
       {
          string root, ext;
          File::splitext("root.ext", root, ext);

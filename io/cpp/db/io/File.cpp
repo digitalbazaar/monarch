@@ -42,7 +42,7 @@ using namespace db::util;
          drive->erase();
       }
       
-      int len = strlen(path);
+      size_t len = strlen(path);
       if(len > 1)
       {
          if(path[1] == ':')
@@ -404,9 +404,7 @@ bool FileImpl::isParentDirectory()
 
 bool FileImpl::isRoot()
 {
-   // just check to see if the absolute path is the same as the parent
-   string parent = File::parentname(mAbsolutePath);
-   return (strcmp(parent.c_str(), mAbsolutePath) == 0);
+   return File::isPathRoot(mAbsolutePath);
 }
 
 bool FileImpl::isReadable()
@@ -574,7 +572,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
             if(skip == 0)
             {
                // not skipping directory, so join to the normalized path
-               tempPath = File::join(token, tempPath.c_str()); 
+               tempPath = File::join(token, tempPath.c_str());
             }
             else
             {
@@ -590,10 +588,10 @@ bool File::normalizePath(const char* path, string& normalizedPath)
          tempPath.insert(0, 1, NAME_SEPARATOR_CHAR);
       }
       
-      if(skip > 0 && !isPathAbsolute(path))
+      if(tempPath.length() == 0 || (skip > 0 && !isPathAbsolute(path)))
       {
          ExceptionRef e = new Exception(
-            "Could not normalize relative path. Too many \"..\" directories.",
+            "Could not normalize relative path.",
             "db.io.File.BadNormalization");
          e->getDetails()["path"] = path;
          Exception::setLast(e, false);
@@ -617,7 +615,7 @@ bool File::expandUser(const char* path, string& expandedPath)
 {
    bool rval = true;
    
-   // FIXME: handle windows issues
+   // FIXME: add windows support
    
    size_t pathlen = 0;
    if(path != NULL)
@@ -629,7 +627,7 @@ bool File::expandUser(const char* path, string& expandedPath)
    {
       // FIXME add getpwnam support
       // only handle current user right now
-      if(pathlen > 1 && path[1] != '/')
+      if(pathlen > 1 && path[1] != NAME_SEPARATOR_CHAR)
       {
          ExceptionRef e = new Exception(
             "Only current user supported (ie, \"~/...\").",
@@ -726,14 +724,37 @@ bool File::isPathWritable(const char* path)
 
 void File::split(const char* path, string& dirname, string& basename)
 {
-   // FIXME: support non-posix paths
-   string sPath = path;
-   string::size_type pos = sPath.rfind(NAME_SEPARATOR_CHAR) + 1;
-   dirname.assign(sPath.substr(0, pos));
-   basename.assign(sPath.substr(pos));
-   if(dirname.length() > 0 && dirname != "/")
+   if(isPathRoot(path))
    {
-      dirname.erase(dirname.find_last_not_of("/") + 1);
+      // root path has no basename
+      dirname = path;
+      basename.erase();
+   }
+   else
+   {
+      // split on the last path name separator
+      char* pos = strrchr(path, NAME_SEPARATOR_CHAR);
+      if(pos != NULL)
+      {
+         pos++;
+         dirname.assign(path, (pos - path));
+         basename.assign(pos);
+      }
+      else
+      {
+         dirname.erase();
+         basename.assign(path);
+      }
+   }
+   
+   // strip trailing slashes from dirname
+   if(dirname.length() > 1)
+   {
+      dirname.erase(dirname.find_last_not_of(NAME_SEPARATOR_CHAR) + 1);
+      if(dirname.length() == 0)
+      {
+         dirname.assign(NAME_SEPARATOR);
+      }
    }
 }
 
@@ -756,20 +777,18 @@ void File::splitext(
 
 string File::parentname(const char* path)
 {
-   // FIXME: figure out drive letter stuff for windows
+   string rval = path;
    
-   string dirname = File::dirname(path);
-   if(strcmp(dirname.c_str(), path) == 0)
+   // check to see if the path is a root
+   if(!isPathRoot(path))
    {
-      // drop last slash if dirname != "/"
-      if(dirname.length() > 1)
-      {
-         dirname.erase(dirname.end());
-         dirname = File::dirname(dirname.c_str());
-      }
+      // path is NOT a root:
+      // strip trailing slashes from path before getting parent
+      rval.erase(rval.find_last_not_of(NAME_SEPARATOR_CHAR) + 1);
+      rval = File::dirname(rval.c_str());
    }
    
-   return dirname;
+   return rval;
 }
 
 string File::dirname(const char* path)
@@ -794,26 +813,70 @@ string File::basename(const char* path)
 
 bool File::isPathAbsolute(const char* path)
 {
-   // FIXME: windows path is absolute if drive letter starts path or
-   // '\\' starts path
+   bool rval = false;
    
-   // FIXME: linux path is absolute if starts with '/'
+#ifdef WIN32
+   // absolute paths on windows start with:
+   // "\" OR
+   // "<drive letter>:" OR
+   // "<drive letter>:\"
+   size_t len = strlen(path);
+   if(len == 1 && path[0] == NAME_SEPARATOR_CHAR)
+   {
+      rval = true;
+   }
+   else if(len >= 2 && path[1] == ':')
+   {
+      char drive = path[0];
+      if((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
+      {
+         if(len == 2 || path[2] == NAME_SEPARATOR_CHAR)
+         {
+            rval = true;
+         }
+      }
+   }
+#else
+   // just compare against name separator
+   rval = (path != NULL && path[0] == NAME_SEPARATOR_CHAR);
+#endif
    
-   // FIXME: support non-posix paths.
-   return path != NULL && strlen(path) > 0 && path[0] == '/';
+   return rval;
 }
 
 bool File::isPathRoot(const char* path)
 {
    bool rval = false;
    
-   // just check to see if the absolute path is the same as the parent
-   string abs;
-   if(File::getAbsolutePath(path, abs))
+   // Note: We cannot just check to see if the absolute path is the same as
+   // the parent because that would require making calls to parentname & split
+   // which rely on this method -- hence a circular dependency would be
+   // introduced. Therefore this code must be uglier.
+#ifdef WIN32
+   // root paths for windows must be:
+   // "\" OR
+   // "<drive letter>:" OR
+   // "<drive letter>:\"
+   size_t len = strlen(path);
+   if(len == 1 && path[0] == NAME_SEPARATOR_CHAR)
    {
-      string parent = File::parentname(abs.c_str());
-      rval = (strcmp(parent.c_str(), abs.c_str()) == 0);
+      rval = true;
    }
+   else if((len == 2 || len == 3) && path[1] == ':')
+   {
+      char drive = path[0];
+      if((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
+      {
+         if(len == 2 || path[2] == NAME_SEPARATOR_CHAR)
+         {
+            rval = true;
+         }
+      }
+   }
+#else
+   // just compare against name separator
+   rval = (path != NULL && strcmp(path, NAME_SEPARATOR) == 0);
+#endif
    
    return rval;
 }
