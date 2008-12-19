@@ -53,6 +53,17 @@ using namespace db::util;
       
       return rval;
    }
+   
+   // a helper function to replace '/' slashes with '\'
+   static string flipSlashes(const char* path)
+   {
+      // transform '/' to '\' (no need to worry about transforming '/' that
+      // are actually supposed to be '/' in a windows path because those
+      // characters are illegal in a windows path
+      string tmp = path;
+      StringTools::replaceAll(tmp, "/", "\\");
+      return tmp;
+   }
 #else
    const char* File::NAME_SEPARATOR = "/";
    const char File::NAME_SEPARATOR_CHAR = '/';
@@ -75,12 +86,7 @@ FileImpl::FileImpl()
 FileImpl::FileImpl(const char* path)
 {
 #ifdef WIN32
-   // transform '/' to '\' (no need to worry about transforming '/' that
-   // are actually supposed to be '/' in a windows path because those
-   // characters are illegal in a windows path
-   string tmp = path;
-   StringTools::replaceAll(tmp, "/", "\\");
-   mPath = strdup(tmp.c_str());
+   mPath = strdup(flipSlashes(path).c_str());
 #else
    // just copy path
    mPath = strdup(path);
@@ -497,6 +503,12 @@ bool File::getAbsolutePath(const char* path, string& absolutePath)
 {
    bool rval = true;
    
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+#endif
+   
    // if the path isn't absolute, prepend the current working directory
    // to the path
    string tmp;
@@ -524,6 +536,12 @@ bool File::getCanonicalPath(const char* path, string& canonicalPath)
 {
    bool rval = true;
    
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+#endif
+   
    // FIXME: add while loop to keep following symbolic links after
    // getting absolute path
    // FIXME: call readlink(path, outputbuffer, outputbuffersize), returns
@@ -540,6 +558,10 @@ bool File::normalizePath(const char* path, string& normalizedPath)
    bool rval = true;
    
 #ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+   
    // strip drive letter, point "path" at stripped path
    string drive;
    string stripped = stripDriveLetter(path, &drive);
@@ -613,6 +635,12 @@ bool File::expandUser(const char* path, string& expandedPath)
 {
    bool rval = true;
    
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+#endif
+   
    // FIXME: add windows support
    
    size_t pathlen = 0;
@@ -669,6 +697,7 @@ bool File::expandUser(const char* path, string& expandedPath)
 bool File::getCurrentWorkingDirectory(string& cwd)
 {
    bool rval = true;
+   
    bool found = false;
    size_t path_max;
 #ifdef PATH_MAX
@@ -712,16 +741,34 @@ bool File::getCurrentWorkingDirectory(string& cwd)
 
 bool File::isPathReadable(const char* path)
 {
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+#endif
+   
    return (access(path, R_OK) == 0);
 }
 
 bool File::isPathWritable(const char* path)
 {
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+#endif
+   
    return (access(path, W_OK) == 0);
 }
 
 void File::split(const char* path, string& dirname, string& basename)
 {
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+#endif
+   
    if(isPathRoot(path))
    {
       // root path has no basename
@@ -759,6 +806,12 @@ void File::split(const char* path, string& dirname, string& basename)
 void File::splitext(
    const char* path, string& root, string& ext, const char* sep)
 {
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+#endif
+   
    string sPath = path;
    string::size_type pos = sPath.rfind(sep);
    if(pos != string::npos)
@@ -775,6 +828,12 @@ void File::splitext(
 
 string File::parentname(const char* path)
 {
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+#endif
+   
    string rval = path;
    
    // check to see if the path is a root
@@ -814,6 +873,10 @@ bool File::isPathAbsolute(const char* path)
    bool rval = false;
    
 #ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+   
    // absolute paths on windows start with:
    // "\" OR
    // "<drive letter>:" OR
@@ -851,6 +914,10 @@ bool File::isPathRoot(const char* path)
    // which rely on this method -- hence a circular dependency would be
    // introduced. Therefore this code must be uglier.
 #ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   path = tmp1.c_str();
+   
    // root paths for windows must be:
    // "\" OR
    // "<drive letter>:" OR
@@ -881,6 +948,14 @@ bool File::isPathRoot(const char* path)
 
 string File::join(const char* path1, const char* path2)
 {
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path);
+   string tmp2 = flipSlashes(path2);
+   path1 = tmp1.c_str();
+   path2 = tmp2.c_str();
+#endif
+   
    // start with path1
    string path = path1;
    
