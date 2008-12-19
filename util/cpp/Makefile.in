@@ -5,8 +5,8 @@ SOURCES = $(wildcard db/util/*.cpp) \
 LIBRARIES = dbutil
 DYNAMIC_LINK_LIBRARIES = dbrt
 
-DYNAMIC_WINDOWS_LIBRARIES = regex
-STATIC_WINDOWS_LIBRARIES = regex
+DYNAMIC_WINDOWS_LIBRARIES = libgnurx-0
+STATIC_WINDOWS_LIBRARIES = libgnurx-0
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
