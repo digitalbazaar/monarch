@@ -46,7 +46,7 @@ using namespace db::util;
             if(len > 2)
             {
                rval = (path + 2);
-               drive.append(path, 2);
+               drive->append(path, 2);
             }
             else
             {
