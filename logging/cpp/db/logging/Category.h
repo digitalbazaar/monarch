@@ -64,6 +64,12 @@ protected:
     */
    char* mDescription;
    
+   /**
+    * ANSI escape codes for this category.  Often used to colorize the id
+    * string in logging messages.
+    */
+   char* mAnsiEscapeCodes;
+   
 public:
    /**
     * Create a new Category.
@@ -139,6 +145,20 @@ public:
     * @return the category description or NULL if not set.
     */
    virtual const char* getDescription();
+   
+   /**
+    * Set the logging ANSI escape codes.
+    *
+    * @param name the logging ANSI escape codes.
+    */
+   virtual void setAnsiEscapeCodes(const char* ansi);
+
+   /**
+    * Gets the logging ANSI escape codes.
+    *
+    * @return the logging ANSI escape codes or an empty string.
+    */
+   virtual const char* getAnsiEscapeCodes();
 };
 
 } // end namespace logging

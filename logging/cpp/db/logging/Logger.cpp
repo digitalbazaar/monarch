@@ -5,6 +5,7 @@
 #include "db/data/json/JsonWriter.h"
 #include "db/logging/Logger.h"
 #include "db/io/OStreamOutputStream.h"
+#include "db/util/AnsiEscapeCodes.h"
 #include "db/util/Date.h"
 #include "db/rt/Thread.h"
 
@@ -93,7 +94,7 @@ bool Logger::stringToLevel(const char* slevel, Level& level)
    return found;
 }
 
-const char* Logger::levelToString(Level level)
+const char* Logger::levelToString(Level level, bool color)
 {
    const char* rval;
 
@@ -103,13 +104,28 @@ const char* Logger::levelToString(Level level)
          rval = "NONE";
          break;
       case Error:
-         rval = "ERROR";
+         rval = color
+            ? DB_ANSI_CSI DB_ANSI_BOLD DB_ANSI_SEP
+              DB_ANSI_BG_RED DB_ANSI_SEP
+              DB_ANSI_FG_WHITE DB_ANSI_SGR
+              "ERROR" DB_ANSI_OFF
+            : "ERROR";
          break;
       case Warning:
-         rval = "WARNING";
+         rval = color
+            ? DB_ANSI_CSI DB_ANSI_BOLD DB_ANSI_SEP
+              DB_ANSI_BG_HI_YELLOW DB_ANSI_SEP
+              DB_ANSI_FG_BLACK DB_ANSI_SGR
+              "WARNING" DB_ANSI_OFF
+            : "WARNING";
          break;
       case Info:
-         rval = "INFO";
+         rval = color
+            ? DB_ANSI_CSI DB_ANSI_BOLD DB_ANSI_SEP
+              DB_ANSI_BG_HI_BLUE DB_ANSI_SEP
+              DB_ANSI_FG_WHITE DB_ANSI_SGR
+              "INFO" DB_ANSI_OFF
+            : "INFO";
          break;
       case Debug:
          rval = "DEBUG";
@@ -328,7 +344,7 @@ bool Logger::log(
 
       if(mFlags & LogLevel)
       {
-         logText.append(levelToString(level));
+         logText.append(levelToString(level, mFlags & LogColor));
          logText.push_back(' ');
       }
 
@@ -340,7 +356,22 @@ bool Logger::log(
          name = name ? name : cat->getName();
          if(name)
          {
-            logText.append(name);
+            if(mFlags & LogColor)
+            {
+               const char* ansi = cat->getAnsiEscapeCodes();
+               logText.append(ansi);
+               logText.append(name);
+               // small optimization for case with no ANSI
+               // always returns "" vs NULL so check if it's an empty string
+               if(ansi[0] != '\0')
+               {
+                  logText.append(DB_ANSI_OFF);
+               }
+            }
+            else
+            {
+               logText.append(name);
+            }
             logText.push_back(' ');
          }
       }

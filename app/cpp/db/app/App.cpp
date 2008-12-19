@@ -96,6 +96,8 @@ bool App::willInitConfigGroups()
       cfg["app"]["logging"]["level"] = "warning";
       cfg["app"]["logging"]["log"] = "-";
       cfg["app"]["logging"]["logAppend"] = true;
+      cfg["app"]["logging"]["location"] = false;
+      cfg["app"]["logging"]["color"] = false;
       cfg["app"]["verbose"]["level"] = (uint64_t)0;
       rval = getConfigManager()->addConfig(config);
    }
@@ -394,6 +396,14 @@ bool App::startLogging()
          e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
          Exception::setLast(e, false);
          rval = false;
+      }
+      if(cfg["color"]->getBoolean())
+      {
+         mLogger->setFlags(mLogger->getFlags() | Logger::LogColor);
+      }
+      if(cfg["location"]->getBoolean())
+      {
+         mLogger->setFlags(mLogger->getFlags() | Logger::LogLocation);
       }
       Logger::addLogger(mLogger);
 
@@ -1045,6 +1055,9 @@ DynamicObject App::getCommandLineSpecs()
 "                      (default: \"warning\")\n"
 "      --log LOG       Set log file.  Use \"-\" for stdout. (default: \"-\")\n"
 "      --log-overwrite Overwrite log file instead of appending. (default: false)\n"
+"      --log-color     Log with any available ANSI color codes. (default: false)\n"
+"      --log-location  Log source code locations.\n"
+"                      (compile time option, default: false)\n"
 "      --              Treat all remaining options as application arguments.\n"
 "\n"
 "Config options:\n"
@@ -1095,6 +1108,16 @@ DynamicObject App::getCommandLineSpecs()
    opt["long"] = "--log-overwrite";
    opt["setFalse"]["config"] = "command line";
    opt["setFalse"]["path"] = "app.logging.logAppend";
+   
+   opt = spec["options"]->append();
+   opt["long"] = "--log-location";
+   opt["setTrue"]["config"] = "command line";
+   opt["setTrue"]["path"] = "app.logging.location";
+   
+   opt = spec["options"]->append();
+   opt["long"] = "--log-color";
+   opt["setTrue"]["config"] = "command line";
+   opt["setTrue"]["path"] = "app.logging.color";
    
    opt = spec["options"]->append();
    opt["long"] = "--option";

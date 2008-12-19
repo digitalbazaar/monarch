@@ -215,6 +215,68 @@ void runLoggingTest(TestRunner& tr)
    tr.ungroup();
 }
 
+static void runColorLoggingTestAll(TestRunner& tr)
+{
+   // test of levels
+   DB_ERROR("[error message]");
+   DB_WARNING("[warning message]");
+   DB_INFO("[info message]");
+   DB_DEBUG("[debug message]");
+   
+   // test known dbcore categories
+   DB_CAT_DEBUG(DB_APP_CAT, "[cat:DB_APP_CAT]");
+   DB_CAT_DEBUG(DB_CONFIG_CAT, "[cat:DB_CONFIG_CAT]");
+   DB_CAT_DEBUG(DB_CRYPTO_CAT, "[cat:DB_DATA_CAT]");
+   DB_CAT_DEBUG(DB_DATA_CAT, "[cat:DB_DATA_CAT]");
+   DB_CAT_DEBUG(DB_EVENT_CAT, "[cat:DB_EVENT_CAT]");
+   DB_CAT_DEBUG(DB_GUI_CAT, "[cat:DB_GUI_CAT]");
+   DB_CAT_DEBUG(DB_IO_CAT, "[cat:DB_IO_CAT]");
+   DB_CAT_DEBUG(DB_LOGGING_CAT, "[cat:DB_LOGGING_CAT]");
+   DB_CAT_DEBUG(DB_MAIL_CAT, "[cat:DB_MAIL_CAT]");
+   DB_CAT_DEBUG(DB_MODEST_CAT, "[cat:DB_MODEST_CAT]");
+   DB_CAT_DEBUG(DB_NET_CAT, "[cat:DB_NET_CAT]");
+   DB_CAT_DEBUG(DB_RT_CAT, "[cat:DB_RT_CAT]");
+   DB_CAT_DEBUG(DB_SPHINX_CAT, "[cat:DB_SPHINX_CAT]");
+   DB_CAT_DEBUG(DB_SQL_CAT, "[cat:DB_SQL_CAT]");
+   DB_CAT_DEBUG(DB_UTIL_CAT, "[cat:DB_UTIL_CAT]");
+}
+
+void runColorLoggingTest(TestRunner& tr)
+{
+   tr.group("color");
+
+   // create the stdout output stream
+   OStreamOutputStream stdoutOS(&cout);
+
+   // Create the default logger
+   OutputStreamLogger logger(&stdoutOS);
+   // Set color mode
+   logger.setFlags(logger.getFlags() | Logger::LogColor);
+
+   // clear previous loggers
+   Logger::clearLoggers();
+   // add a logger for all categories
+   Logger::addLogger(&logger);
+   
+   tr.test("no color");
+   {
+      logger.setFlags(logger.getFlags() & ~Logger::LogColor);
+      runColorLoggingTestAll(tr);
+   }
+   tr.passIfNoException();
+   
+   tr.test("color");
+   {
+      logger.setFlags(logger.getFlags() | Logger::LogColor);
+      runColorLoggingTestAll(tr);
+   }
+   tr.passIfNoException();
+
+   Logger::removeLogger(&logger);
+
+   tr.ungroup();
+}
+
 struct s2l_s {
    const char* key;
    Logger::Level level;
@@ -309,7 +371,8 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-//      runLoggingTest(tr);
+      runLoggingTest(tr);
+      runColorLoggingTest(tr);
       return 0;
    }
 };

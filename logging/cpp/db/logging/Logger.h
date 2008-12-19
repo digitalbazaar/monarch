@@ -105,6 +105,10 @@ public:
        */
       LogLocation = (1 << 5),
       /**
+       * Log messages using any available ANSI color codes.
+       */
+      LogColor = (1 << 6),
+      /**
        * Default logging flag (Log date, object, level, and category).
        */
       LogDefaultFlags =
@@ -210,10 +214,11 @@ public:
     * Conversion from Level to string
     * 
     * @param type the Level to convert.
+    * @param color true to use ANSI colors, false for normal text.
     * 
     * @return the string or NULL.
     */
-   static const char* levelToString(Level level);
+   static const char* levelToString(Level level, bool color = false);
    
    /**
     * Sets the level for this logger.

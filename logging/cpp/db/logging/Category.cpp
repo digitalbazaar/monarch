@@ -17,7 +17,8 @@ Category* DB_ALL_CAT;
 Category::Category(const char* id, const char* name, const char* description) :
    mId(NULL),
    mName(NULL),
-   mDescription(NULL)
+   mDescription(NULL),
+   mAnsiEscapeCodes(NULL)
 {
    setId(id);
    setName(name);
@@ -92,4 +93,18 @@ void Category::setDescription(const char* description)
 const char* Category::getDescription()
 {
    return mDescription;
+}
+
+void Category::setAnsiEscapeCodes(const char* ansi)
+{
+   if(mAnsiEscapeCodes != NULL)
+   {
+      free(mAnsiEscapeCodes);
+   }
+   mAnsiEscapeCodes = (ansi != NULL ? strdup(ansi) : NULL);
+}
+
+const char* Category::getAnsiEscapeCodes()
+{
+   return mAnsiEscapeCodes != NULL ? mAnsiEscapeCodes : "";
 }

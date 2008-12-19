@@ -5,6 +5,7 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
+#include "db/util/AnsiEscapeCodes.h"
 #include "db/util/Base64Codec.h"
 #include "db/util/Crc16.h"
 #include "db/util/StringTools.h"
@@ -285,7 +286,7 @@ void runRegexTest(TestRunner& tr)
 
 void runDateTest(TestRunner& tr)
 {
-   cout << "Starting Date test." << endl << endl;
+   tr.test("Date");
    
    TimeZone gmt = TimeZone::getTimeZone("GMT");
    TimeZone local = TimeZone::getTimeZone();
@@ -320,7 +321,7 @@ void runDateTest(TestRunner& tr)
    
    cout << "Parsed Date 2: " << str3 << endl;
    
-   cout << endl << "Date test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runStringTokenizerTest(TestRunner& tr)
@@ -467,6 +468,104 @@ void runUniqueListTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+void runAnsiEscapeCodeTest(TestRunner& tr)
+{
+   tr.group("ANSI Escape Codes");
+   
+   tr.test("color");
+   {
+      const char* fg[] = {
+         "black   ", DB_ANSI_FG_BLACK, 
+         "red     ", DB_ANSI_FG_RED,
+         "green   ", DB_ANSI_FG_GREEN,
+         "yellow  ", DB_ANSI_FG_YELLOW,
+         "blue    ", DB_ANSI_FG_BLUE,
+         "magenta ", DB_ANSI_FG_MAGENTA,
+         "cyan    ", DB_ANSI_FG_CYAN,
+         "white   ", DB_ANSI_FG_WHITE,
+         NULL
+      };
+      const char* bg[] = {
+         "black   ", DB_ANSI_BG_BLACK, 
+         "red     ", DB_ANSI_BG_RED,
+         "green   ", DB_ANSI_BG_GREEN,
+         "yellow  ", DB_ANSI_BG_YELLOW,
+         "blue    ", DB_ANSI_BG_BLUE,
+         "magenta ", DB_ANSI_BG_MAGENTA,
+         "cyan    ", DB_ANSI_BG_CYAN,
+         "white   ", DB_ANSI_BG_WHITE,
+         NULL
+      };
+      const char* fg_hi[] = {
+         "black   ", DB_ANSI_FG_HI_BLACK, 
+         "red     ", DB_ANSI_FG_HI_RED,
+         "green   ", DB_ANSI_FG_HI_GREEN,
+         "yellow  ", DB_ANSI_FG_HI_YELLOW,
+         "blue    ", DB_ANSI_FG_HI_BLUE,
+         "magenta ", DB_ANSI_FG_HI_MAGENTA,
+         "cyan    ", DB_ANSI_FG_HI_CYAN,
+         "white   ", DB_ANSI_FG_HI_WHITE,
+         NULL
+      };
+      const char* bg_hi[] = {
+         "black   ", DB_ANSI_BG_HI_BLACK, 
+         "red     ", DB_ANSI_BG_HI_RED,
+         "green   ", DB_ANSI_BG_HI_GREEN,
+         "yellow  ", DB_ANSI_BG_HI_YELLOW,
+         "blue    ", DB_ANSI_BG_HI_BLUE,
+         "magenta ", DB_ANSI_BG_HI_MAGENTA,
+         "cyan    ", DB_ANSI_BG_HI_CYAN,
+         "white   ", DB_ANSI_BG_HI_WHITE,
+         NULL
+      };
+
+      #define TABLE(txt, fg, bg) \
+         printf(txt ":\n"); \
+         for(int bgi = 0; bg[bgi] != NULL; bgi += 2) \
+         { \
+            for(int fgi = 0; fg[fgi] != NULL; fgi += 2) \
+            { \
+               printf( \
+                  DB_ANSI_CSI "%s" DB_ANSI_SEP "%s" DB_ANSI_SGR \
+                  "%s" DB_ANSI_OFF, \
+                  fg[fgi+1], bg[bgi+1], fg[fgi]); \
+            } \
+            printf("\n"); \
+         }
+      printf("\n");
+      TABLE("normal fg & normal bg", fg,    bg)
+      TABLE("normal fg & high bg",   fg,    bg_hi)
+      TABLE("high fg & normal bg",   fg_hi, bg)
+      TABLE("high fg & high bg",     fg_hi, bg_hi)
+      #undef TABLE
+      
+      #define TXT "Digital Bazaar, Inc."
+      #define S DB_ANSI_CSI
+      #define E DB_ANSI_SGR TXT DB_ANSI_OFF "\n"
+      printf("reset: "            S DB_ANSI_RESET E); 
+      printf("bold: "             S DB_ANSI_BOLD E); 
+      printf("faint: "            S DB_ANSI_FAINT E); 
+      printf("italic: "           S DB_ANSI_ITALIC E); 
+      printf("underline single: " S DB_ANSI_UNDERLINE_SINGLE E); 
+      printf("blink slow: "       S DB_ANSI_BLINK_SLOW E); 
+      printf("blink rapid: "      S DB_ANSI_BLINK_RAPID E); 
+      printf("negative: "         S DB_ANSI_NEGATIVE E); 
+      printf("conceal: "          S DB_ANSI_CONCEAL E); 
+      printf("underline double: " S DB_ANSI_UNDERLINE_DOUBLE E); 
+      printf("normal: "           S DB_ANSI_NORMAL E); 
+      printf("underline none: "   S DB_ANSI_UNDERLINE_NONE E); 
+      printf("blink off: "        S DB_ANSI_BLINK_OFF E); 
+      printf("positive: "         S DB_ANSI_POSITIVE E); 
+      printf("reveal: "           S DB_ANSI_REVEAL E);
+      #undef TXT
+      #undef S
+      #undef E
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class DbUtilTester : public db::test::Tester
 {
 public:
@@ -495,6 +594,7 @@ public:
    virtual int runInteractiveTests(TestRunner& tr)
    {
       runDateTest(tr);
+      runAnsiEscapeCodeTest(tr);
       return 0;
    }
 };
