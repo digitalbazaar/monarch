@@ -342,29 +342,36 @@ void runFileTest(TestRunner& tr)
 {
    tr.group("File");
    
+   File cdir(".");
+   
 #ifdef WIN32
    const char* name = ".";
+   const char* tmpFilename = "C:\\windows\\temp";
+   const char* tmpFilenameA = "C:\\windows\\temp\\DBCORETEST_a.txt";
+   const char* tmpFilenameB = "C:\\windows\\temp\\dir\\..\\file.txt";
+   const char* tmpFilenameC = "C:\\windows\\temp\\DBCORETEST_c.txt";
 #else
    const char* name = "/tmp";
+   const char* tmpFilename = "/tmp";
+   const char* tmpFilenameA = "/tmp/DBCORETEST_a.txt";
+   const char* tmpFilenameB = "/tmp/dir/../file.txt";
+   const char* tmpFilenameC = "/tmp/DBCORETEST_c.txt";
 #endif
    
-   File cdir(".");
-   File tmp("/tmp");   
-   File tmpFileA("/tmp/DBCORETEST_a.txt");
-   File tmpFileB("/tmp/dir/../file.txt");
-   File tmpFileC("/tmp/DBCORETEST_c.txt");
+   File tmp(tmpFilename);
+   File tmpFileA(tmpFilenameA);
+   File tmpFileB(tmpFilenameB);
+   File tmpFileC(tmpFilenameC);
    File junk("../../foo/../junk238jflk38sjf.txt");
    string np;
    
-#ifndef WIN32
    tr.test("absolute paths");
    {
-      assertStrCmp(tmp->getAbsolutePath(), "/tmp");
-      assertStrCmp(tmpFileA->getAbsolutePath(), "/tmp/DBCORETEST_a.txt");
-      assertStrCmp(tmpFileB->getAbsolutePath(), "/tmp/file.txt");
+      assertStrCmp(tmp->getAbsolutePath(), tmpFilename);
+      assertStrCmp(tmpFileA->getAbsolutePath(), tmpFilenameA);
+      assertStrCmp(tmpFileB->getAbsolutePath(), tmpFilenameB);
    }
    tr.passIfNoException();
-#endif
    
    tr.test("normalization (invalid)");
    {
@@ -377,7 +384,16 @@ void runFileTest(TestRunner& tr)
       File::normalizePath(File::NAME_SEPARATOR, np);
       assertStrCmp(np.c_str(), File::NAME_SEPARATOR);
       
-#ifndef WIN32
+#ifdef WIN32
+      File::normalizePath("C:/windows/temp/dir/../file.txt", np);
+      assertStrCmp(np.c_str(), "C:\\windows\\temp\\file.txt");
+      
+      File::normalizePath("C:/windows/temp/./dir/../file.txt", np);
+      assertStrCmp(np.c_str(), "C:\\windows\\temp\\file.txt");
+      
+      File::normalizePath("C:/windows/temp/../../file.txt", np);
+      assertStrCmp(np.c_str(), "C:\\file.txt");
+#else
       File::normalizePath("/../../foo/../junk238jflk38sjf.txt", np);
       assertStrCmp(np.c_str(), "/junk238jflk38sjf.txt");
       
