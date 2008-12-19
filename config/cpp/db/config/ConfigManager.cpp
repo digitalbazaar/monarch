@@ -806,7 +806,7 @@ bool ConfigManager::addConfigFile(
       // if dir set and expanded user dir not absolute, build a full path
       if(dir && !File::isPathAbsolute(userPath.c_str()))
       {
-         fullPath.assign(File::join(dir, userPath.c_str(), NULL));
+         fullPath.assign(File::join(dir, userPath.c_str()));
       }
       else
       {

@@ -504,14 +504,16 @@ public:
    static bool isPathRoot(const char* path);
    
    /**
-    * Join path components with path separators.  Removes duplicate separators
-    * between components and ignores empty components.
+    * Join two paths with a path separator.  A trailing separator on the first
+    * path or a leading separator on the second path will first be removed to
+    * result in only a single path separator.
     * 
-    * @param part NULL terminated list of path component arguments.
+    * @param path1 first path.
+    * @param path2 second path.
     * 
-    * @return true if absolute, false if relative.
+    * @return a string with the joined paths.
     */
-   static std::string join(const char* component, ...);
+   static std::string join(const char* path1, const char* path2);
 };
 
 } // end namespace io

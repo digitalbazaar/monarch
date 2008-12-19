@@ -509,7 +509,7 @@ bool File::getAbsolutePath(const char* path, string& absolutePath)
       string cwd;
       if((rval = getCurrentWorkingDirectory(cwd)))
       {
-         tmp = File::join(cwd.c_str(), path, NULL);
+         tmp = File::join(cwd.c_str(), path);
       }
    }
    else
@@ -566,7 +566,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
             if(skip == 0)
             {
                // not skipping directory, so join to the normalized path
-               tempPath = File::join(token, tempPath.c_str(), NULL); 
+               tempPath = File::join(token, tempPath.c_str()); 
             }
             else
             {
@@ -798,49 +798,42 @@ bool File::isPathRoot(const char* path)
    return rval;
 }
 
-string File::join(const char* component, ...)
+string File::join(const char* path1, const char* path2)
 {
-   string path;
-   const char* comp = component;
-   va_list varargs;
+   // start with path1
+   string path = path1;
    
-   va_start(varargs, component);
-   while(comp != NULL)
+   // skip if path2 empty
+   if(strlen(path2) > 0)
    {
-      // FIXME: support non-posix paths.
-      if(strlen(comp) > 0)
+      string::size_type plen = path.length();
+      if(plen == 0)
       {
-         string::size_type plen = path.length();
-         if(plen == 0)
+         // empty path1 so just assign path2
+         path.assign(path2);
+      }
+      else
+      {
+         bool path1HasSep = (path[plen - 1] == NAME_SEPARATOR);
+         bool path2HasSep = (path2[0] == NAME_SEPARATOR);
+         if(!path1HasSep && !path2HasSep)
          {
-            // empty path, just assign comp
-            path.assign(comp);
+            // no trailing path1 separator or leading path2 separator
+            path.push_back(NAME_SEPARATOR);
+            path.append(path2);
+         }
+         else if(path1HasSep && path2HasSep)
+         {
+            // trailing and leading slash, skip one
+            path.append(path2 + 1);
          }
          else
          {
-            bool pslash = (path[plen - 1] == '/'); 
-            bool cslash = (comp[0] == '/');
-            if(!pslash && !cslash)
-            {
-               // no trailing path slash or leading comp slash
-               path.push_back('/');
-               path.append(comp);
-            }
-            else if(pslash && cslash)
-            {
-               // trailing and leading slash, skip one
-               path.append(comp + 1);
-            }
-            else
-            {
-               // only one of trailing or leading, just append
-               path.append(comp);
-            }
+            // only one of trailing or leading, just append
+            path.append(path2);
          }
       }
-      comp = va_arg(varargs, const char*);
    }
-   va_end(varargs);
    
    return path;
 }

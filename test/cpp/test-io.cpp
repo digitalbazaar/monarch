@@ -661,75 +661,80 @@ void runFileTest(TestRunner& tr)
 
    tr.test("join");
    {
+      // redefine this here to make testing easier via cpp string concatination
+#ifdef WIN32
+#define SEP "\\"
+#else
+#define SEP "/"
+#endif
       {
-         string path = File::join(NULL);
+         string path = File::join("", "");
          assertStrCmp(path.c_str(), "");
       }
       
       {
-         string path = File::join("", NULL);
-         assertStrCmp(path.c_str(), "");
+         string path = File::join(SEP, "");
+         assertStrCmp(path.c_str(), SEP);
       }
       
       {
-         string path = File::join("", "", NULL);
-         assertStrCmp(path.c_str(), "");
+         string path = File::join("", SEP);
+         assertStrCmp(path.c_str(), SEP);
       }
       
       {
-         string path = File::join("/", NULL);
-         assertStrCmp(path.c_str(), "/");
-      }
-      
-      {
-         string path = File::join("a", NULL);
+         string path = File::join("a", "");
          assertStrCmp(path.c_str(), "a");
       }
       
       {
-         string path = File::join("a", "b", NULL);
-         assertStrCmp(path.c_str(), "a/b");
+         string path = File::join("a", "b");
+         assertStrCmp(path.c_str(), "a" SEP "b");
       }
       
       {
-         string path = File::join("/", "a", "b", NULL);
-         assertStrCmp(path.c_str(), "/a/b");
+         string path1 = File::join(SEP, "a");
+         string path2 = File::join(path1.c_str(), "b");
+         assertStrCmp(path2.c_str(), SEP "a" SEP "b");
       }
       
       {
-         string path = File::join("/a", "/b", NULL);
-         assertStrCmp(path.c_str(), "/a/b");
+         string path = File::join(SEP "a", SEP "b");
+         assertStrCmp(path.c_str(), SEP "a" SEP "b");
       }
       
       {
-         string path = File::join("a/", "/b/", NULL);
-         assertStrCmp(path.c_str(), "a/b/");
+         string path = File::join("a" SEP, SEP "b" SEP);
+         assertStrCmp(path.c_str(), "a" SEP "b" SEP);
       }
       
       {
-         string path = File::join("/a/", "/b/", NULL);
-         assertStrCmp(path.c_str(), "/a/b/");
+         string path = File::join(SEP "a" SEP, SEP "b" SEP);
+         assertStrCmp(path.c_str(), SEP "a" SEP "b" SEP);
       }
       
       {
-         string path = File::join("a", "", "b", NULL);
-         assertStrCmp(path.c_str(), "a/b");
+         string path1 = File::join("a", "");
+         string path2 = File::join(path1.c_str(), "b");
+         assertStrCmp(path2.c_str(), "a" SEP "b");
       }
       
       {
-         string path = File::join("", "a", NULL);
+         string path = File::join("", "a");
          assertStrCmp(path.c_str(), "a");
       }
       
       {
-         string path = File::join("a", "", NULL);
+         string path = File::join("a", "");
          assertStrCmp(path.c_str(), "a");
       }
       
       {
-         string path = File::join("", "a", "", NULL);
-         assertStrCmp(path.c_str(), "a");
+         string path1 = File::join("", "a");
+         string path2 = File::join(path1.c_str(), "");
+         assertStrCmp(path2.c_str(), "a");
       }
+#undef SEP
    }
    tr.passIfNoException();
 #if 0
