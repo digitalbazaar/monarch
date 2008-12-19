@@ -7,13 +7,14 @@
 #include "db/test/TestRunner.h"
 #include "db/util/AnsiEscapeCodes.h"
 #include "db/util/Base64Codec.h"
-#include "db/util/Crc16.h"
-#include "db/util/StringTools.h"
 #include "db/util/Convert.h"
-#include "db/util/regex/Pattern.h"
+#include "db/util/Crc16.h"
 #include "db/util/Date.h"
+#include "db/util/PathFormatter.h"
+#include "db/util/StringTools.h"
 #include "db/util/StringTokenizer.h"
 #include "db/util/UniqueList.h"
+#include "db/util/regex/Pattern.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -468,6 +469,22 @@ void runUniqueListTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+void runPathFormatterTest(TestRunner& tr)
+{
+   tr.test("PathFormatter");
+   {
+      string s1 = "?/\\*:|\"<>+[]";
+      string s2 = "____________";
+      assertStrCmp(PathFormatter::formatFilename(s1).c_str(), s2.c_str());
+   }
+   {
+      string s1 = "abcABC123!@#$%^&()~,. ?/\\*:|\"<>+[]";
+      string s2 = "abcABC123!@#$%^&()~,. ____________";
+      assertStrCmp(PathFormatter::formatFilename(s1).c_str(), s2.c_str());
+   }
+   tr.passIfNoException();
+}
+
 void runAnsiEscapeCodeTest(TestRunner& tr)
 {
    tr.group("ANSI Escape Codes");
@@ -585,6 +602,7 @@ public:
       runStringTokenizerTest(tr);
       runUniqueListTest(tr);
       runRegexTest(tr);
+      runPathFormatterTest(tr);
       return 0;
    }
 
