@@ -3,6 +3,8 @@
  */
 #include "db/util/PathFormatter.h"
 
+#include <cstring>
+
 using namespace std;
 using namespace db::util;
 
@@ -21,9 +23,7 @@ string& PathFormatter::formatFilename(string& str)
       // care most about Windows, Linux and Mac OS X. By default all 
       // ASCII characters are allowed except for characters that are 
       // disallowed on any one of the previously mentioned systems.
-      if((c >= ' ') && (c <= '~') && (c != '?') && (c != '/') && (c != '\\') &&
-         (c != '*') && (c != ':') && (c != '|') && (c != '"') && (c != '<') &&
-         (c != '>') && (c != '+') && (c != '[') && (c != ']'))
+      if((c >= ' ') && (c <= '~') && strchr("?/\\*:|\"<>+[]", c) == NULL)
       {
          correctedString.push_back(c);
       }
