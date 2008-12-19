@@ -8,6 +8,7 @@
 #include "db/io/IOException.h"
 #include "db/rt/DynamicObject.h"
 #include "db/util/StringTokenizer.h"
+#include "db/util/StringTools.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -73,7 +74,17 @@ FileImpl::FileImpl()
 
 FileImpl::FileImpl(const char* path)
 {
+#ifdef WIN32
+   // transform '/' to '\' (no need to worry about transforming '/' that
+   // are actually supposed to be '/' in a windows path because those
+   // characters are illegal in a windows path
+   string tmp = path;
+   StringTools::replaceAll(tmp, "/", "\\");
+   mPath = strdup(tmp.c_str());
+#else
+   // just copy path
    mPath = strdup(path);
+#endif
    
    // initialize absolute path
    string abs;
