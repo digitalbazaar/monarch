@@ -342,8 +342,12 @@ void runFileTest(TestRunner& tr)
 {
    tr.group("File");
    
+#ifdef WIN32
+   const char* name = ".";
+#else
    const char* name = "/tmp";
-
+#endif
+   
    File cdir(".");
    File tmp("/tmp");   
    File tmpFileA("/tmp/DBCORETEST_a.txt");
@@ -352,6 +356,7 @@ void runFileTest(TestRunner& tr)
    File junk("../../foo/../junk238jflk38sjf.txt");
    string np;
    
+#ifndef WIN32
    tr.test("absolute paths");
    {
       assertStrCmp(tmp->getAbsolutePath(), "/tmp");
@@ -359,6 +364,7 @@ void runFileTest(TestRunner& tr)
       assertStrCmp(tmpFileB->getAbsolutePath(), "/tmp/file.txt");
    }
    tr.passIfNoException();
+#endif
    
    tr.test("normalization (invalid)");
    {
@@ -371,6 +377,7 @@ void runFileTest(TestRunner& tr)
       File::normalizePath(File::NAME_SEPARATOR, np);
       assertStrCmp(np.c_str(), File::NAME_SEPARATOR);
       
+#ifndef WIN32
       File::normalizePath("/../../foo/../junk238jflk38sjf.txt", np);
       assertStrCmp(np.c_str(), "/junk238jflk38sjf.txt");
       
@@ -382,6 +389,7 @@ void runFileTest(TestRunner& tr)
       
       File::normalizePath("/tmp/../../file.txt", np);
       assertStrCmp(np.c_str(), "/file.txt");
+#endif
    }
    tr.passIfNoException();
    
@@ -537,7 +545,7 @@ void runFileTest(TestRunner& tr)
          assert(File::expandUser(".", path));
          assertStrCmp(path.c_str(), ".");
       }
-
+      
       setenv("HOME", oldHOME, 1);
    }
    tr.passIfNoException();
