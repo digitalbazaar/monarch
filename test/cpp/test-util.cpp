@@ -542,21 +542,21 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
       #define TXT "Digital Bazaar, Inc."
       #define S DB_ANSI_CSI
       #define E DB_ANSI_SGR TXT DB_ANSI_OFF "\n"
-      printf("reset: "            S DB_ANSI_RESET E); 
-      printf("bold: "             S DB_ANSI_BOLD E); 
-      printf("faint: "            S DB_ANSI_FAINT E); 
-      printf("italic: "           S DB_ANSI_ITALIC E); 
+      printf("reset:            " S DB_ANSI_RESET E); 
+      printf("bold:             " S DB_ANSI_BOLD E); 
+      printf("faint:            " S DB_ANSI_FAINT E); 
+      printf("italic:           " S DB_ANSI_ITALIC E); 
       printf("underline single: " S DB_ANSI_UNDERLINE_SINGLE E); 
-      printf("blink slow: "       S DB_ANSI_BLINK_SLOW E); 
-      printf("blink rapid: "      S DB_ANSI_BLINK_RAPID E); 
-      printf("negative: "         S DB_ANSI_NEGATIVE E); 
-      printf("conceal: "          S DB_ANSI_CONCEAL E); 
+      printf("blink slow:       " S DB_ANSI_BLINK_SLOW E); 
+      printf("blink rapid:      " S DB_ANSI_BLINK_RAPID E); 
+      printf("negative:         " S DB_ANSI_NEGATIVE E); 
+      printf("conceal:          " S DB_ANSI_CONCEAL E); 
       printf("underline double: " S DB_ANSI_UNDERLINE_DOUBLE E); 
-      printf("normal: "           S DB_ANSI_NORMAL E); 
-      printf("underline none: "   S DB_ANSI_UNDERLINE_NONE E); 
-      printf("blink off: "        S DB_ANSI_BLINK_OFF E); 
-      printf("positive: "         S DB_ANSI_POSITIVE E); 
-      printf("reveal: "           S DB_ANSI_REVEAL E);
+      printf("normal:           " S DB_ANSI_NORMAL E); 
+      printf("underline none:   " S DB_ANSI_UNDERLINE_NONE E); 
+      printf("blink off:        " S DB_ANSI_BLINK_OFF E); 
+      printf("positive:         " S DB_ANSI_POSITIVE E); 
+      printf("reveal:           " S DB_ANSI_REVEAL E);
       #undef TXT
       #undef S
       #undef E
