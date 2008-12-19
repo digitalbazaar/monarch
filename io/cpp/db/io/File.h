@@ -14,6 +14,16 @@ namespace db
 namespace io
 {
 
+#ifdef WIN32
+#   ifdef BUILD_DB_RT_DLL
+#      define DLL_CLASS __WIN32_DLL_EXPORT
+#   else
+#      define DLL_CLASS __WIN32_DLL_IMPORT
+#   endif
+#else
+#   define DLL_CLASS
+#endif
+
 // forward declare file, file list
 class File;
 class FileList;
@@ -301,7 +311,7 @@ public:
  * 
  * @author Dave Longley
  */
-class File : public db::rt::Collectable<FileImpl>
+class DLL_CLASS File : public db::rt::Collectable<FileImpl>
 {
 public:
    /**
@@ -518,6 +528,8 @@ public:
     */
    static std::string join(const char* path1, const char* path2);
 };
+
+#undef DLL_CLASS
 
 } // end namespace io
 } // end namespace db
