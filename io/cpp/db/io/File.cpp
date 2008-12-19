@@ -27,8 +27,10 @@ using namespace db::util;
 // strcasecmp when WIN32 is defined
 
 #ifdef WIN32
-   const char File::NAME_SEPARATOR = '\\';
-   const char File::PATH_SEPARATOR = ';';
+   const char* File::NAME_SEPARATOR = "\\";
+   const char File::NAME_SEPARATOR_CHAR = '\\';
+   const char* File::PATH_SEPARATOR = ";";
+   const char File::PATH_SEPARATOR_CHAR = ';';
    
    // a helper function for stripping drive letters from windows paths
    static string stripDriveLetter(const char* path, string* drive = NULL)
@@ -69,8 +71,10 @@ using namespace db::util;
       return rval;
    }
 #else
-   const char File::NAME_SEPARATOR = '/';
-   const char File::PATH_SEPARATOR = ':';
+   const char* File::NAME_SEPARATOR = "/";
+   const char File::NAME_SEPARATOR_CHAR = '/';
+   const char* File::PATH_SEPARATOR = ":";
+   const char File::PATH_SEPARATOR_CHAR = ':';
 #endif
 
 FileImpl::FileImpl()
@@ -417,7 +421,7 @@ bool FileImpl::isSymbolicLink()
 
 bool FileImpl::isWritable()
 {
-   return File::isPathWritable(mAbsolutePath); 
+   return File::isPathWritable(mAbsolutePath);
 }
 
 void FileImpl::listFiles(FileList& files)
@@ -432,23 +436,21 @@ void FileImpl::listFiles(FileList& files)
       }
       else
       {
-         // FIXME: handle windows drive letters
-         
          // read each directory entry
          struct dirent* entry;
          unsigned int len1 = strlen(mAbsolutePath);
-         bool separator = mAbsolutePath[len1 - 1] != File::NAME_SEPARATOR;
+         bool separator = mAbsolutePath[len1 - 1] != File::NAME_SEPARATOR_CHAR;
          while((entry = readdir(dir)) != NULL)
          {
-            // d_name is null-terminated name for FileImpl, without path name
-            // so copy FileImpl name before d_name to get full path
+            // d_name is null-terminated name for file, without path name
+            // so copy file name before d_name to get full path
             unsigned int len2 = strlen(entry->d_name);
             char path[len1 + len2 + 2];
             memcpy(path, mAbsolutePath, len1);
             if(separator)
             {
                // add path separator as appropriate
-               path[len1] = File::NAME_SEPARATOR;
+               path[len1] = File::NAME_SEPARATOR_CHAR;
                memcpy(path + len1 + 1, entry->d_name, len2 + 1);
             }
             else
@@ -456,7 +458,7 @@ void FileImpl::listFiles(FileList& files)
                memcpy(path + len1, entry->d_name, len2 + 1);
             }
             
-            // add new FileImpl to list
+            // add new file to list
             File file(path);
             files->add(file);
          }
@@ -498,8 +500,6 @@ bool File::operator==(const File& rhs) const
 bool File::getAbsolutePath(const char* path, string& absolutePath)
 {
    bool rval = true;
-   
-   // FIXME: handle windows driver letters
    
    // if the path isn't absolute, prepend the current working directory
    // to the path
@@ -543,14 +543,22 @@ bool File::normalizePath(const char* path, string& normalizedPath)
 {
    bool rval = true;
    
+#ifdef WIN32
+   // strip drive letter, point "path" at stripped path
+   string drive;
+   string stripped = stripDriveLetter(path, &drive);
+   path = stripped.c_str();
+#endif
+   
    string tempPath;
    if(strlen(path) > 0)
    {
-      // FIXME: handle windows drive letters
+      // store whether or not path begins with path name separator
+      bool separator = (path[0] == NAME_SEPARATOR_CHAR);
       
       // clean up the relative directory references, by traversing the
       // path in reverse
-      StringTokenizer st(path, '/', false);
+      StringTokenizer st(path, NAME_SEPARATOR_CHAR, false);
       int skip = 0;
       while(st.hasPreviousToken())
       {
@@ -576,6 +584,12 @@ bool File::normalizePath(const char* path, string& normalizedPath)
          }
       }
       
+      // re-insert path name separator
+      if(separator)
+      {
+         tempPath.insert(0, 1, NAME_SEPARATOR_CHAR);
+      }
+      
       if(skip > 0 && !isPathAbsolute(path))
       {
          ExceptionRef e = new Exception(
@@ -587,8 +601,14 @@ bool File::normalizePath(const char* path, string& normalizedPath)
       }
    }
    
-   normalizedPath.assign("/");
+#ifdef WIN32
+   // re-add drive letter before assigning to temp path
+   normalizedPath.assign(drive);
    normalizedPath.append(tempPath);
+#else
+   // assign to temp path
+   normalizedPath.assign(tempPath);
+#endif
    
    return rval;
 }
@@ -708,7 +728,7 @@ void File::split(const char* path, string& dirname, string& basename)
 {
    // FIXME: support non-posix paths
    string sPath = path;
-   string::size_type pos = sPath.rfind(NAME_SEPARATOR) + 1;
+   string::size_type pos = sPath.rfind(NAME_SEPARATOR_CHAR) + 1;
    dirname.assign(sPath.substr(0, pos));
    basename.assign(sPath.substr(pos));
    if(dirname.length() > 0 && dirname != "/")
@@ -814,12 +834,12 @@ string File::join(const char* path1, const char* path2)
       }
       else
       {
-         bool path1HasSep = (path[plen - 1] == NAME_SEPARATOR);
-         bool path2HasSep = (path2[0] == NAME_SEPARATOR);
+         bool path1HasSep = (path[plen - 1] == NAME_SEPARATOR_CHAR);
+         bool path2HasSep = (path2[0] == NAME_SEPARATOR_CHAR);
          if(!path1HasSep && !path2HasSep)
          {
             // no trailing path1 separator or leading path2 separator
-            path.push_back(NAME_SEPARATOR);
+            path.push_back(NAME_SEPARATOR_CHAR);
             path.append(path2);
          }
          else if(path1HasSep && path2HasSep)

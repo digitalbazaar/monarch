@@ -368,6 +368,9 @@ void runFileTest(TestRunner& tr)
    
    tr.test("normalization (valid)");
    {
+      File::normalizePath(File::NAME_SEPARATOR, np);
+      assertStrCmp(np.c_str(), File::NAME_SEPARATOR);
+      
       File::normalizePath("/../../foo/../junk238jflk38sjf.txt", np);
       assertStrCmp(np.c_str(), "/junk238jflk38sjf.txt");
       

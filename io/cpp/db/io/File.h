@@ -308,13 +308,15 @@ public:
     * The OS-dependent separator between names in a file path,
     * i.e. "/" for "/foo/bar".
     */
-   static const char NAME_SEPARATOR;
+   static const char* NAME_SEPARATOR;
+   static const char NAME_SEPARATOR_CHAR;
    
    /**
     * The OS-dependent separator between entires paths,
     * i.e. ":" for "/foo/bar:/foo/moo".
     */
-   static const char PATH_SEPARATOR;
+   static const char* PATH_SEPARATOR;
+   static const char PATH_SEPARATOR_CHAR;
    
 public:
    /**
