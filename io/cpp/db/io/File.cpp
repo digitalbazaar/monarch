@@ -950,7 +950,7 @@ string File::join(const char* path1, const char* path2)
 {
 #ifdef WIN32
    // handle windows slashes mess
-   string tmp1 = flipSlashes(path);
+   string tmp1 = flipSlashes(path1);
    string tmp2 = flipSlashes(path2);
    path1 = tmp1.c_str();
    path2 = tmp2.c_str();
