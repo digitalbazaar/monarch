@@ -85,6 +85,17 @@ public:
    virtual long long skip(long long count);
    
    /**
+    * Reads a line from the file.
+    * 
+    * @param line the string to put the line in.
+    * @param delimiter the delimiter to use, defaults to '\n'.
+    * 
+    * @return the number of bytes read from the stream or 0 if the end of the
+    *         stream has been reached or -1 if an IO exception occurred.
+    */
+   virtual int readLine(std::string& line, char delimiter = '\n');
+   
+   /**
     * Closes the stream.
     */
    virtual void close();

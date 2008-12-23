@@ -143,6 +143,40 @@ long long FileInputStream::skip(long long count)
    return rval;
 }
 
+int FileInputStream::readLine(string& line, char delimiter)
+{
+   int rval = -1;
+   
+   if(ensureOpen())
+   {
+      rval = 0;
+      
+      if(!mStream.eof())
+      {
+         // get line
+         getline(mStream, line, delimiter);
+         
+         // see if a failure other than EOF occurred
+         if(mStream.fail() && !mStream.eof())
+         {
+            ExceptionRef e = new Exception(
+               "Could not read file.",
+               "db.io.File.ReadError");
+            e->getDetails()["path"] = mFile->getAbsolutePath();
+            Exception::setLast(e, false);
+            rval = -1;
+         }
+         else if(mStream.gcount() > 0)
+         {
+            // get the number of bytes read
+            rval = mStream.gcount();
+         }
+      }
+   }
+   
+   return rval;
+}
+
 void FileInputStream::close()
 {
    // close the stream
