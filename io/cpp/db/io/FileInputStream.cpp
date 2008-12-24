@@ -166,10 +166,10 @@ int FileInputStream::readLine(string& line, char delimiter)
             Exception::setLast(e, false);
             rval = -1;
          }
-         else if(mStream.gcount() > 0)
+         else
          {
             // get the number of bytes read
-            rval = mStream.gcount();
+            rval = line.length();
          }
       }
    }
