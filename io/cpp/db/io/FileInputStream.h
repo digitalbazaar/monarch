@@ -90,8 +90,8 @@ public:
     * @param line the string to put the line in.
     * @param delimiter the delimiter to use, defaults to '\n'.
     * 
-    * @return the number of bytes read from the stream or 0 if the end of the
-    *         stream has been reached or -1 if an IO exception occurred.
+    * @return 1 if a line was read, 0 if the end of the stream has been
+    *         reached or -1 if an IO exception occurred.
     */
    virtual int readLine(std::string& line, char delimiter = '\n');
    

@@ -168,8 +168,8 @@ int FileInputStream::readLine(string& line, char delimiter)
          }
          else
          {
-            // get the number of bytes read
-            rval = line.length();
+            // line was read
+            rval = 1;
          }
       }
    }
