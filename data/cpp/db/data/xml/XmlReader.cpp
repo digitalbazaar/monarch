@@ -60,8 +60,9 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
          if(!set)
          {
             // no "name" for "member"
-            mException = new IOException(
-               "Xml parsing error! No 'name' attribute for 'member' element!");
+            mException = new Exception(
+               "Xml parsing error. No 'name' attribute for 'member' element.",
+               "db.data.xml.XmlReader.MissingAttribute");
             Exception::setLast(mException, false);
          }
       }
@@ -88,9 +89,10 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
          if(!set)
          {
             // no "name" for "member"
-            mException = new IOException(
-               "Xml parsing error! No 'index' attribute for 'element' "
-               "element!");
+            mException = new Exception(
+               "Xml parsing error. No 'index' attribute for 'element' "
+               "element.",
+               "db.data.xml.XmlReader.MissingAttribute");
             Exception::setLast(mException, false);
          }
       }
@@ -282,8 +284,9 @@ bool XmlReader::read(InputStream* is)
    if(!mStarted)
    {
       // reader not started
-      ExceptionRef e = new IOException(
-         "Cannot read yet, XmlReader not started!");
+      ExceptionRef e = new Exception(
+         "Cannot read yet, XmlReader not started.",
+         "db.data.xml.XmlReader.SetupError");
       Exception::setLast(e, false);
       rval = false;
    }
@@ -301,10 +304,14 @@ bool XmlReader::read(InputStream* is)
          if(!rval)
          {
             int line = XML_GetCurrentLineNumber(mParser);
-            const char* str = XML_ErrorString(XML_GetErrorCode(mParser));
-            char msg[100 + strlen(str)];
-            sprintf(msg, "Xml parse error at line %d:\n%s\n", line, str);
-            ExceptionRef e = new IOException(msg);
+            int column = XML_GetCurrentColumnNumber(mParser);
+            const char* error = XML_ErrorString(XML_GetErrorCode(mParser));
+            ExceptionRef e = new Exception(
+               "Xml parse error.",
+               "db.data.xml.XmlReader.ParseError");
+            e->getDetails()["line"] = line;
+            e->getDetails()["column"] = column;
+            e->getDetails()["error"] = error;
             Exception::setLast(e, false);
          }
          else if(numBytes == -1)
@@ -316,7 +323,9 @@ bool XmlReader::read(InputStream* is)
       else
       {
          // set memory exception
-         ExceptionRef e = new IOException("Insufficient memory to parse xml!");
+         ExceptionRef e = new Exception(
+            "Insufficient memory to parse xml.",
+            "db.data.xml.XmlReader.InsufficientMemory");
          Exception::setLast(e, false);
          rval = false;
       }
@@ -335,10 +344,14 @@ bool XmlReader::finish()
       if(XML_ParseBuffer(mParser, 0, true) == 0)
       {
          int line = XML_GetCurrentLineNumber(mParser);
-         const char* str = XML_ErrorString(XML_GetErrorCode(mParser));
-         char msg[100 + strlen(str)];
-         sprintf(msg, "Xml parse error at line %d:\n%s\n", line, str);
-         ExceptionRef e = new IOException(msg);
+         int column = XML_GetCurrentColumnNumber(mParser);
+         const char* error = XML_ErrorString(XML_GetErrorCode(mParser));
+         ExceptionRef e = new Exception(
+            "Xml parse error.",
+            "db.data.xml.XmlReader.ParseError");
+         e->getDetails()["line"] = line;
+         e->getDetails()["column"] = column;
+         e->getDetails()["error"] = error;
          Exception::setLast(e, false);
          rval = false;
       }
