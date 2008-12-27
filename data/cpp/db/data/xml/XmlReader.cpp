@@ -292,42 +292,49 @@ bool XmlReader::read(InputStream* is)
    }
    else
    {
-      char* b = (char*)XML_GetBuffer(mParser, READ_SIZE);
-      if(b != NULL)
+      int numBytes = 1;
+      while(rval && numBytes > 0)
       {
-         int numBytes;
-         while(rval && (numBytes = is->read(b, READ_SIZE)) > 0)
+         // get buffer from expat to store data
+         char* b = (char*)XML_GetBuffer(mParser, READ_SIZE);
+         if(b == NULL)
          {
-            rval = (XML_ParseBuffer(mParser, numBytes, false) != 0);
-         }
-         
-         if(!rval)
-         {
-            int line = XML_GetCurrentLineNumber(mParser);
-            int column = XML_GetCurrentColumnNumber(mParser);
-            const char* error = XML_ErrorString(XML_GetErrorCode(mParser));
+            // set memory exception
             ExceptionRef e = new Exception(
-               "Xml parse error.",
-               "db.data.xml.XmlReader.ParseError");
-            e->getDetails()["line"] = line;
-            e->getDetails()["column"] = column;
-            e->getDetails()["error"] = error;
+               "Insufficient memory to parse xml.",
+               "db.data.xml.XmlReader.InsufficientMemory");
             Exception::setLast(e, false);
-         }
-         else if(numBytes == -1)
-         {
-            // input stream read error
             rval = false;
          }
-      }
-      else
-      {
-         // set memory exception
-         ExceptionRef e = new Exception(
-            "Insufficient memory to parse xml.",
-            "db.data.xml.XmlReader.InsufficientMemory");
-         Exception::setLast(e, false);
-         rval = false;
+         else
+         {
+            // read data into buffer
+            numBytes = is->read(b, READ_SIZE);
+            if(numBytes > 0)
+            {
+               // parse data
+               rval = (XML_ParseBuffer(mParser, numBytes, false) != 0);
+            }
+            
+            if(!rval)
+            {
+               int line = XML_GetCurrentLineNumber(mParser);
+               int column = XML_GetCurrentColumnNumber(mParser);
+               const char* error = XML_ErrorString(XML_GetErrorCode(mParser));
+               ExceptionRef e = new Exception(
+                  "Xml parse error.",
+                  "db.data.xml.XmlReader.ParseError");
+               e->getDetails()["line"] = line;
+               e->getDetails()["column"] = column;
+               e->getDetails()["error"] = error;
+               Exception::setLast(e, false);
+            }
+            else if(numBytes == -1)
+            {
+               // input stream read error
+               rval = false;
+            }
+         }
       }
    }
    
