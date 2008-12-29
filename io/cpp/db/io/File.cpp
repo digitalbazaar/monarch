@@ -355,15 +355,6 @@ FileImpl::Type FileImpl::getType(bool follow)
    return rval;
 }
 
-bool FileImpl::isCurrentDirectory()
-{
-   string dirname;
-   string basename;
-   File::split(mAbsolutePath, dirname, basename);
-   
-   return (strcmp(basename.c_str(), ".") == 0);
-}
-
 bool FileImpl::isFile()
 {
    return getType() == RegularFile;
@@ -390,15 +381,6 @@ bool FileImpl::contains(File& path)
 bool FileImpl::isDirectory()
 {
    return getType() == Directory;
-}
-
-bool FileImpl::isParentDirectory()
-{
-   string dirname;
-   string basename;
-   File::split(mAbsolutePath, dirname, basename);
-   
-   return (strcmp(basename.c_str(), "..") == 0);
 }
 
 bool FileImpl::isRoot()
