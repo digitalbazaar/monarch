@@ -350,6 +350,16 @@ public:
    bool operator==(const File& rhs) const;
    
    /**
+    * Returns true if this File is NOT equal to the passed one. Returns
+    * the opposite of operator==.
+    * 
+    * @param rhs the File to compare to this one.
+    * 
+    * @return true if this File is NOT equal to the passed one, false if not.
+    */
+   bool operator!=(const File& rhs) const;
+   
+   /**
     * Gets the absolute path for the given path. This method will normalize
     * the passed file system path by resolving all "." and ".." directories and
     * prepending the current working directory if necessary to a relative path.

@@ -481,6 +481,11 @@ bool File::operator==(const File& rhs) const
    return rval;
 }
 
+bool File::operator!=(const File& rhs) const
+{
+   return !operator==(rhs);
+}
+
 bool File::getAbsolutePath(const char* path, string& absolutePath)
 {
    bool rval = true;
