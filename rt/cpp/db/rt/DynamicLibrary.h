@@ -42,39 +42,49 @@ inline static char* dlerror()
 {
    char* rval = NULL;
    
-   // get the last error in an allocated string buffer
-   // 
-   // Note: A LPTSTR is a pointer to an UTF-8 string (TSTR). If any characters
-   // in the error message are not ASCII, then they will get munged unless
-   // the bytes in the returned string are converted back to wide characters
-   // for display/other use
-   LPVOID lpBuffer;
-   unsigned int size = FormatMessage(
-      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | 
-      FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(), 0, (LPTSTR)&lpBuffer,
-      0, NULL);
-   
-   if(size > 0)
+   // get the last error
+   DWORD dwLastError = GetLastError();
+   if(dwLastError != 0)
    {
-      // copy into global error
-      if(size >= 100)
+      // get the last error in an allocated string buffer
+      // 
+      // Note: A LPTSTR is a pointer to an UTF-8 string (TSTR). If any characters
+      // in the error message are not ASCII, then they will get munged unless
+      // the bytes in the returned string are converted back to wide characters
+      // for display/other use
+      LPVOID lpBuffer;
+      unsigned int size = FormatMessage(
+         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | 
+         FORMAT_MESSAGE_IGNORE_INSERTS, NULL, dwLastError, 0,
+         (LPTSTR)&lpBuffer, 0, NULL);
+      
+      if(size > 0)
       {
-         memcpy(gDynamicLibraryError, lpBuffer, 100);
-         memset(gDynamicLibraryError + 99, 0, 1);
+         // copy into global error
+         if(size >= 100)
+         {
+            memcpy(gDynamicLibraryError, lpBuffer, 100);
+            memset(gDynamicLibraryError + 99, 0, 1);
+         }
+         else
+         {
+            memcpy(gDynamicLibraryError, lpBuffer, size);
+         }
+         
+         rval = gDynamicLibraryError;
       }
       else
       {
-         memcpy(gDynamicLibraryError, lpBuffer, size);
+         // unknown error
+         rval = "Unknown error";
       }
       
-      rval = gDynamicLibraryError;
+      // free lpBuffer
+      LocalFree(lpBuffer);
+      
+      // set last error to 0
+      SetLastError(0);
    }
-   
-   // free lpBuffer
-   LocalFree(lpBuffer);
-   
-   // set last error to 0
-   SetLastError(0);
    
    return rval;
 }
