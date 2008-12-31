@@ -628,13 +628,20 @@ bool File::expandUser(const char* path, string& expandedPath)
    path = tmp1.c_str();
 #endif
    
-   // FIXME: add windows support
-   
    size_t pathlen = 0;
    if(path != NULL)
    {
       pathlen = strlen(path);
    }
+
+   // UNIX-like platforms:
+   //    expand "~" to $HOME
+   // Windows:
+   //    expand "~" to $HOMEDRIVE+$HOMEPATH
+   //    expand "%HOMEDRIVE%", "%HOMEPATH%", and "%HOMEDRIVE%%HOMEPATH%"
+   // All:
+   //    No support for ~username yet. Only ~ and ~/... supported.
+   bool expandTilde = false;
    
    if(pathlen > 0 && path[0] == '~')
    {
@@ -650,32 +657,163 @@ bool File::expandUser(const char* path, string& expandedPath)
       }
       else
       {
-         const char* home = getenv("HOME");
-         if(home != NULL)
+         expandTilde = true;
+      }
+   }
+   
+   if(rval)
+   {
+      // default to append full initial path
+      string::size_type pathOffset = 0;
+      // Use temp string to avoid problems if path is same expandedPath
+      // common for code like expandUser(path.c_str(), path)
+      string newPath;
+#ifdef WIN32
+      #define HD "%HOMEDRIVE%"
+      #define HDLEN 11
+      #define HP "%HOMEPATH%"
+      #define HPLEN 10
+      #define HDHP HD HP
+      #define HDHPLEN (HDLEN + HPLEN)
+      if(expandTilde)
+      {
+         const char* homeDrive = getenv("HOMEDRIVE");
+         const char* homePath = getenv("HOMEPATH");
+         if(homeDrive == NULL)
          {
-            // use temp string to avoid problems if path is same expandedPath
-            // common for code like expandUser(path.c_str(), path)
+            // no HOMEDRIVE set
+            ExceptionRef e = new Exception(
+               "No HOMEDRIVE environment variable set for "
+               "'%HOMEDRIVE%' expansion.",
+               "db.io.File.HomeDriveNotSet");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+         if(rval && homePath == NULL)
+         {
+            // no HOMEPATH set
+            ExceptionRef e = new Exception(
+               "No HOMEPATH environment variable set for "
+               "'%HOMEPATH%' expansion.",
+               "db.io.File.HomePathNotSet");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+         if(rval)
+         {
+            // add HOMEDRIVE
+            newPath.append(homeDrive);
+            // add HOMEPATH
+            newPath.append(homePath);
+            // offset to after '~'
+            pathOffset = 1;
+         }
+      }
+      if(pathlen > HDHPLEN && strncmp(path, HDHP, HDHPLEN) == 0)
+      {
+         const char* homeDrive = getenv("HOMEDRIVE");
+         const char* homePath = getenv("HOMEPATH");
+         if(homeDrive == NULL)
+         {
+            // no HOMEDRIVE set
+            ExceptionRef e = new Exception(
+               "No HOMEDRIVE environment variable set for "
+               "'%HOMEDRIVE%' expansion.",
+               "db.io.File.HomeDriveNotSet");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+         if(rval && homePath == NULL)
+         {
+            // no HOMEPATH set
+            ExceptionRef e = new Exception(
+               "No HOMEPATH environment variable set for "
+               "'%HOMEPATH%' expansion.",
+               "db.io.File.HomePathNotSet");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+         if(rval)
+         {
+            // add HOMEDRIVE
+            newPath.append(homeDrive);
+            // add HOMEPATH
+            newPath.append(homePath);
+            // offset after HOME* tokens
+            pathOffset = HDHPLEN;
+         }
+      }
+      else if(pathlen > HDLEN && strncmp(path, HD, HDLEN) == 0)
+      {
+         const char* homeDrive = getenv("HOMEDRIVE");
+         if(homeDrive != NULL)
+         {
             // add HOME
-            string newPath(home);
-            // add rest of path
-            newPath.append(path + 1);
-            // copy to output
-            expandedPath.assign(newPath);
+            newPath.append(homeDrive);
+            // offset after HOME* tokens
+            pathOffset = HDLEN;
+         }
+         else
+         {
+            // no HOMEDRIVE set
+            ExceptionRef e = new Exception(
+               "No HOMEDRIVE environment variable set for "
+               "'%HOMEDRIVE%' expansion.",
+               "db.io.File.HomeDroveNotSet");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+      }
+      else if(pathlen > HPLEN && strncmp(path, HP, HPLEN) == 0)
+      {
+         const char* homePath = getenv("HOMEPATH");
+         if(homePath != NULL)
+         {
+            // add HOME
+            newPath.append(homePath);
+            // offset after HOME* tokens
+            pathOffset = HPLEN;
          }
          else
          {
             // no HOME set
             ExceptionRef e = new Exception(
-               "No home path set.",
+               "No HOMEPATH environment variable set for "
+               "'%HOMEPATH%' expansion.",
+               "db.io.File.HomePathNotSet");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+      }
+#else
+      if(expandTilde)
+      {
+         const char* home = getenv("HOME");
+         if(home != NULL)
+         {
+            // add HOME
+            newPath.append(home);
+            // offset after '~'
+            pathOffset = 1;
+         }
+         else
+         {
+            // no HOME set
+            ExceptionRef e = new Exception(
+               "No HOME environment variable set for '~' expansion.",
                "db.io.File.HomeNotSet");
             Exception::setLast(e, false);
             rval = false;
          }
       }
-   }
-   else
-   {
-      expandedPath.assign(path);
+#endif
+      if(rval)
+      {
+         // add rest of path after expanded tokens
+         newPath.append(path + pathOffset);
+         // copy to output
+         expandedPath.assign(newPath);
+      }
    }
    
    return rval;
@@ -859,35 +997,38 @@ bool File::isPathAbsolute(const char* path)
 {
    bool rval = false;
    
+   if(path != NULL)
+   {
 #ifdef WIN32
-   // handle windows slashes mess
-   string tmp1 = flipSlashes(path);
-   path = tmp1.c_str();
-   
-   // absolute paths on windows start with:
-   // "\" OR
-   // "<drive letter>:" OR
-   // "<drive letter>:\"
-   size_t len = strlen(path);
-   if(len == 1 && path[0] == NAME_SEPARATOR_CHAR)
-   {
-      rval = true;
-   }
-   else if(len >= 2 && path[1] == ':')
-   {
-      char drive = path[0];
-      if((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
+      // handle windows slashes mess
+      string tmp1 = flipSlashes(path);
+      path = tmp1.c_str();
+      
+      // absolute paths on windows start with:
+      // "\" OR
+      // "<drive letter>:" OR
+      // "<drive letter>:\"
+      size_t len = strlen(path);
+      if(len >= 1 && path[0] == NAME_SEPARATOR_CHAR)
       {
-         if(len == 2 || path[2] == NAME_SEPARATOR_CHAR)
+         rval = true;
+      }
+      else if(len >= 2 && path[1] == ':')
+      {
+         char drive = path[0];
+         if((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
          {
-            rval = true;
+            if(len == 2 || (len > 2 && path[2] == NAME_SEPARATOR_CHAR))
+            {
+               rval = true;
+            }
          }
       }
-   }
 #else
-   // just compare against name separator
-   rval = (path != NULL && path[0] == NAME_SEPARATOR_CHAR);
+      // just compare against name separator
+      rval = (path != NULL && path[0] == NAME_SEPARATOR_CHAR);
 #endif
+   }
    
    return rval;
 }
@@ -896,39 +1037,42 @@ bool File::isPathRoot(const char* path)
 {
    bool rval = false;
    
-   // Note: We cannot just check to see if the absolute path is the same as
-   // the parent because that would require making calls to parentname & split
-   // which rely on this method -- hence a circular dependency would be
-   // introduced. Therefore this code must be uglier.
+   if(path != NULL)
+   {
+      // Note: We cannot just check to see if the absolute path is the same as
+      // the parent because that would require making calls to parentname & split
+      // which rely on this method -- hence a circular dependency would be
+      // introduced. Therefore this code must be uglier.
 #ifdef WIN32
-   // handle windows slashes mess
-   string tmp1 = flipSlashes(path);
-   path = tmp1.c_str();
-   
-   // root paths for windows must be:
-   // "\" OR
-   // "<drive letter>:" OR
-   // "<drive letter>:\"
-   size_t len = strlen(path);
-   if(len == 1 && path[0] == NAME_SEPARATOR_CHAR)
-   {
-      rval = true;
-   }
-   else if((len == 2 || len == 3) && path[1] == ':')
-   {
-      char drive = path[0];
-      if((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
+      // handle windows slashes mess
+      string tmp1 = flipSlashes(path);
+      path = tmp1.c_str();
+      
+      // root paths for windows must be:
+      // "\" OR
+      // "<drive letter>:" OR
+      // "<drive letter>:\"
+      size_t len = strlen(path);
+      if(len == 1 && path[0] == NAME_SEPARATOR_CHAR)
       {
-         if(len == 2 || path[2] == NAME_SEPARATOR_CHAR)
+         rval = true;
+      }
+      else if((len == 2 || len == 3) && path[1] == ':')
+      {
+         char drive = path[0];
+         if((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
          {
-            rval = true;
+            if(len == 2 || path[2] == NAME_SEPARATOR_CHAR)
+            {
+               rval = true;
+            }
          }
       }
-   }
 #else
-   // just compare against name separator
-   rval = (path != NULL && strcmp(path, NAME_SEPARATOR) == 0);
+      // just compare against name separator
+      rval = (path != NULL && strcmp(path, NAME_SEPARATOR) == 0);
 #endif
+   }
    
    return rval;
 }

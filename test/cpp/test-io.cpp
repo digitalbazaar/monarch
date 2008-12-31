@@ -20,6 +20,7 @@
 #include "db/io/MutatorOutputStream.h"
 #include "db/io/TruncateInputStream.h"
 #include "db/rt/System.h"
+#include "db/util/StringTools.h"
 
 #include <iostream>
 #include <sstream>
@@ -30,6 +31,19 @@ using namespace db::test;
 using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
+
+// redefine this here to make testing easier via cpp string concatination
+#ifdef WIN32
+#define SEP "\\"
+#else
+#define SEP "/"
+#endif
+
+#ifdef WIN32
+#define TMPDIR "c:/WINDOWS/Temp"
+#else
+#define TMPDIR "/tmp"
+#endif
 
 void runStringEqualityTest(TestRunner& tr)
 {
@@ -326,15 +340,15 @@ void runBitStreamTest(TestRunner& tr)
 
 #ifdef WIN32
 
-static int setenv(const char *name, const char *value, int overwrite)
-{
-   return (SetEnvironmentVariable(name, value) != 0 ? 0 : -1);
-}
+//static int setenv(const char *name, const char *value, int overwrite)
+//{
+//   return (SetEnvironmentVariable(name, value) != 0 ? 0 : -1);
+//}
 
-static int unsetenv(const char *name)
-{
-   return (SetEnvironmentVariable(name, NULL) != 0 ? 0 : -1);
-}
+//static int unsetenv(const char *name)
+//{
+//   return (SetEnvironmentVariable(name, NULL) != 0 ? 0 : -1);
+//}
 
 #endif
 
@@ -495,76 +509,141 @@ void runFileTest(TestRunner& tr)
    
    tr.test("expandUser");
    {
+#ifdef WIN32
+      const char* HOMEDRIVE = getenv("HOMEDRIVE");
+      const char* HOMEPATH = getenv("HOMEPATH");
+      assert(HOMEDRIVE != NULL);
+      assert(HOMEPATH != NULL);
+#else
       const char* oldHOME = getenv("HOME");
-      string path;
+      assert(oldHOME != NULL);
+#endif
       
+      // test failure with unset env vars
+#ifdef WIN32
+      //unsetenv("HOMEPATH");
+      // can not unset HOMEPATH/HOMEDRIVE on Windows
+#else
       unsetenv("HOME");
       {
-         path.clear();
+         string path;
          assert(!File::expandUser("~/", path));
          assertException();
          Exception::clearLast();
       }
+#endif
 
+#ifdef WIN32
+      // can not set HOME* vars on Windows so use real values 
+      char homestr[strlen(HOMEDRIVE) + strlen(HOMEPATH) + 1];
+      sprintf(homestr, "%s%s", HOMEDRIVE, HOMEPATH);
+#else
+      // set env vars to known state for this test
+      const char* homestr = "/home/test";
       setenv("HOME", "/home/test", 1);
+#endif
 
       {
-         path.clear();
+         string path;
          assert(File::expandUser("~", path));
-         assertStrCmp(path.c_str(), "/home/test");
+         assertStrCmp(path.c_str(), homestr);
       }
 
       {
-         path.clear();
+         string path;
          assert(File::expandUser("~/", path));
-         assertStrCmp(path.c_str(), "/home/test/");
+         string tmp;
+         tmp.append(homestr);
+         tmp.append(SEP);
+         assertStrCmp(path.c_str(), tmp.c_str());
       }
 
       {
-         path.clear();
+         string path;
          assert(File::expandUser("~/foo.txt", path));
-         assertStrCmp(path.c_str(), "/home/test/foo.txt");
+         string tmp;
+         tmp.append(homestr);
+         tmp.append(SEP "foo.txt");
+         assertStrCmp(path.c_str(), tmp.c_str());
       }
 
+#ifdef WIN32
+      // Windows only tests
       {
-         path.clear();
+         string path;
+         assert(File::expandUser("%HOMEDRIVE%%HOMEPATH%/foo.txt", path));
+         string tmp;
+         tmp.append(HOMEDRIVE);
+         tmp.append(HOMEPATH);
+         tmp.append(SEP "foo.txt");
+         assertStrCmp(path.c_str(), tmp.c_str());
+      }
+      
+      {
+         string path;
+         assert(File::expandUser("%HOMEDRIVE%/foo.txt", path));
+         string tmp;
+         tmp.append(HOMEDRIVE);
+         tmp.append(SEP "foo.txt");
+         assertStrCmp(path.c_str(), tmp.c_str());
+      }
+      
+      {
+         string path;
+         assert(File::expandUser("%HOMEPATH%/foo.txt", path));
+         string tmp;
+         tmp.append(HOMEPATH);
+         tmp.append(SEP "foo.txt");
+         assertStrCmp(path.c_str(), tmp.c_str());
+      }
+#endif
+      
+      {
+         string path;
          assert(!File::expandUser("~user/foo.txt", path));
          assertException();
          Exception::clearLast();
       }
       
       {
-         path.clear();
+         string path;
          assert(!File::expandUser("~user/foo.txt", path));
          assertException();
          Exception::clearLast();
       }
 
       {
-         path.clear();
+         string path;
          assert(File::expandUser("/root/path", path));
-         assertStrCmp(path.c_str(), "/root/path");
+         string tmp(SEP "root" SEP "path");
+         assertStrCmp(path.c_str(), tmp.c_str());
       }
 
       {
-         path.clear();
+         string path;
          assert(File::expandUser("rel/path", path));
-         assertStrCmp(path.c_str(), "rel/path");
+         string tmp("rel" SEP "path");
+         assertStrCmp(path.c_str(), tmp.c_str());
       }
 
       {
-         path.clear();
+         string path;
          assert(File::expandUser("", path));
          assertStrCmp(path.c_str(), "");
       }
 
       {
-         path.clear();
+         string path;
          assert(File::expandUser(".", path));
          assertStrCmp(path.c_str(), ".");
       }
       
+      // restore old env
+#ifdef WIN32
+      // can not change HOME* env vars so nothing to cleanup
+#else
       setenv("HOME", oldHOME, 1);
+#endif
    }
    tr.passIfNoException();
 
@@ -580,7 +659,7 @@ void runFileTest(TestRunner& tr)
       {
          string dir, base;
          File::split("/", dir, base);
-         assertStrCmp(dir.c_str(), "/");
+         assertStrCmp(dir.c_str(), SEP);
          assertStrCmp(base.c_str(), "");
       }
 
@@ -594,14 +673,14 @@ void runFileTest(TestRunner& tr)
       {
          string dir, base;
          File::split("/base", dir, base);
-         assertStrCmp(dir.c_str(), "/");
+         assertStrCmp(dir.c_str(), SEP);
          assertStrCmp(base.c_str(), "base");
       }
 
       {
          string dir, base;
          File::split("/dir/", dir, base);
-         assertStrCmp(dir.c_str(), "/dir");
+         assertStrCmp(dir.c_str(), SEP "dir");
          assertStrCmp(base.c_str(), "");
       }
 
@@ -615,7 +694,7 @@ void runFileTest(TestRunner& tr)
       {
          string dir, base;
          File::split("/dir/base", dir, base);
-         assertStrCmp(dir.c_str(), "/dir");
+         assertStrCmp(dir.c_str(), SEP "dir");
          assertStrCmp(base.c_str(), "base");
       }
 
@@ -629,14 +708,14 @@ void runFileTest(TestRunner& tr)
       {
          string dir, base;
          File::split("/dir1/dir2/base", dir, base);
-         assertStrCmp(dir.c_str(), "/dir1/dir2");
+         assertStrCmp(dir.c_str(), SEP "dir1" SEP "dir2");
          assertStrCmp(base.c_str(), "base");
       }
       
       {
          string dir, base;
          File::split("////", dir, base);
-         assertStrCmp(dir.c_str(), "/");
+         assertStrCmp(dir.c_str(), SEP);
          assertStrCmp(base.c_str(), "");
       }
       
@@ -676,7 +755,8 @@ void runFileTest(TestRunner& tr)
       }
 
       {
-         assertStrCmp(File::dirname("/dir1/dir2/base").c_str(), "/dir1/dir2");
+         assertStrCmp(File::dirname("/dir1/dir2/base").c_str(),
+            SEP "dir1" SEP "dir2");
       }
 
       {
@@ -692,17 +772,46 @@ void runFileTest(TestRunner& tr)
       assert(!File::isPathAbsolute(NULL));
       assert(!File::isPathAbsolute(""));
       assert(!File::isPathAbsolute("x"));
+#ifdef WIN32
+      assert(File::isPathAbsolute("/"));
+      assert(File::isPathAbsolute("/abc"));
+      assert(File::isPathAbsolute("\\"));
+      assert(File::isPathAbsolute("\\abc"));
+      assert(File::isPathAbsolute("a:"));
+      assert(File::isPathAbsolute("A:\\"));
+      assert(File::isPathAbsolute("A:\\abc"));
+      assert(File::isPathAbsolute("A:/"));
+      assert(File::isPathAbsolute("A:/abc"));
+      assert(File::isPathAbsolute("c:/"));
+      assert(File::isPathAbsolute("c:/abc"));
+      assert(File::isPathAbsolute("z:/"));
+      assert(File::isPathAbsolute("z:/abc"));
+      assert(!File::isPathAbsolute("a:abc"));
+#endif
+   }
+   tr.passIfNoException();
+
+   tr.test("isPathRoot");
+   {
+      assert(File::isPathRoot("/"));
+      assert(!File::isPathRoot("/x"));
+      assert(!File::isPathRoot(NULL));
+      assert(!File::isPathRoot(""));
+      assert(!File::isPathRoot("x"));
+#ifdef WIN32
+      assert(File::isPathRoot("/"));
+      assert(File::isPathRoot("\\"));
+      assert(File::isPathRoot("a:"));
+      assert(File::isPathRoot("A:\\"));
+      assert(File::isPathRoot("A:/"));
+      assert(File::isPathRoot("c:/"));
+      assert(File::isPathRoot("z:/"));
+#endif
    }
    tr.passIfNoException();
 
    tr.test("join");
    {
-      // redefine this here to make testing easier via cpp string concatination
-#ifdef WIN32
-#define SEP "\\"
-#else
-#define SEP "/"
-#endif
       {
          string path = File::join("", "");
          assertStrCmp(path.c_str(), "");
@@ -770,7 +879,6 @@ void runFileTest(TestRunner& tr)
          string path2 = File::join(path1.c_str(), "");
          assertStrCmp(path2.c_str(), "a");
       }
-#undef SEP
    }
    tr.passIfNoException();
 #if 0
@@ -788,7 +896,7 @@ void runFileInputStreamTest(TestRunner& tr)
 {
    tr.group("FileInputStream");
    
-   File temp("/tmp/fistestoutput.txt");
+   File temp(TMPDIR "/fistestoutput.txt");
    FileOutputStream fos(temp);
    const char* content =
       "This is for testing the skip method for a file input stream.";
@@ -928,6 +1036,9 @@ public:
       return 0;
    }
 };
+
+#undef SEP
+#undef TMPDIR
 
 #ifndef DB_TEST_NO_MAIN
 DB_TEST_MAIN(DbIoTester)

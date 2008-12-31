@@ -687,18 +687,18 @@ void runBigDecimalTest(TestRunner& tr)
       long double d2 = -25.6;
       long double d12 = d1 / d2;
       char res[20];
-      sprintf(res, "%.10Lf", d12);
+      // casting to doubles due to windows issues
+      sprintf(res, "%.10f", (double)d12);
       assertStrCmp(res, "3.8554687500");
-      sprintf(res, "%.9Lf", d12);
+      sprintf(res, "%.9f", (double)d12);
       assertStrCmp(res, "3.855468750");
-      sprintf(res, "%.8Lf", d12);
+      sprintf(res, "%.8f", (double)d12);
       assertStrCmp(res, "3.85546875");
       // using "long double" will fail due to precision issues and rounding
       // value will be 3.85546874999.... vs the exact value of 3.85546875
       // the half even rounding rules will then round it down to 3.8554687
       // rather than the correct 3.8554688.  Casting to "double" will fix this. 
       tr.warning("long double precision issue workaround");
-      // sprintf(res, "%.7Lf", d12);
       sprintf(res, "%.7f", (double)d12);
       assertStrCmp(res, "3.8554688");
    }
@@ -759,12 +759,14 @@ void runBigDecimalTest(TestRunner& tr)
       BigDecimal ohfour = "0.04";
       BigDecimal ohone = "0.01";
       BigDecimal expectedResult = "14.26";
+      /*
       printf(".10=%s 10=%s 2=%s .04=%s .01=%s\n",
          tenth.toString().c_str(),
          ten.toString().c_str(),
          two.toString().c_str(),
          ohfour.toString().c_str(),
          ohone.toString().c_str());
+      */
       BigDecimal result = 
          ten +
          tenth * ten +
@@ -773,9 +775,11 @@ void runBigDecimalTest(TestRunner& tr)
          two +
          ohfour +
          ohone;
+      /*
       printf("res=%s dres=%f\n",
          result.toString().c_str(),
          dres);
+      */
       assert(result == expectedResult);
       char dstr[100];
       sprintf(dstr, "%.2f", dres); 
