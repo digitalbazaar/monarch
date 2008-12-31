@@ -39,6 +39,12 @@ using namespace db::util;
 #define SEP "/"
 #endif
 
+#ifdef WIN32
+#define TMPDIR "c:/WINDOWS/Temp"
+#else
+#define TMPDIR "/tmp"
+#endif
+
 void runStringEqualityTest(TestRunner& tr)
 {
    cout << "Starting string equality test." << endl << endl;
@@ -890,11 +896,7 @@ void runFileInputStreamTest(TestRunner& tr)
 {
    tr.group("FileInputStream");
    
-#ifdef WIN32
-   File temp("C:/WINDOWS/Temp/fistestoutput.txt");
-#else
-   File temp("/tmp/fistestoutput.txt");
-#endif
+   File temp(TMPDIR "/fistestoutput.txt");
    FileOutputStream fos(temp);
    const char* content =
       "This is for testing the skip method for a file input stream.";
@@ -1036,6 +1038,7 @@ public:
 };
 
 #undef SEP
+#undef TMPDIR
 
 #ifndef DB_TEST_NO_MAIN
 DB_TEST_MAIN(DbIoTester)

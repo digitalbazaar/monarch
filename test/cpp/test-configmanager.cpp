@@ -23,6 +23,12 @@ using namespace db::io;
 using namespace db::rt;
 using namespace db::test;
 
+#ifdef WIN32
+#define TMPDIR "c:/WINDOWS/Temp"
+#else
+#define TMPDIR "/tmp"
+#endif
+
 void _writeConfig(Config& config, const char* path)
 {
    File file(path);
@@ -695,20 +701,20 @@ void testConfigFiles()
    _initConfigs(system, engine, ui, user1, user2, child2);
    
    // write configs to disk
-   _writeConfig(system, "/tmp/test-system.config");
-   _writeConfig(engine, "/tmp/test-engine.config");
-   _writeConfig(ui, "/tmp/test-ui.config");
-   _writeConfig(user1, "/tmp/test-user1.config");
-   _writeConfig(user2, "/tmp/test-user2.config");
-   _writeConfig(child2, "/tmp/test-child2.config");
+   _writeConfig(system, TMPDIR "/test-system.config");
+   _writeConfig(engine, TMPDIR "/test-engine.config");
+   _writeConfig(ui, TMPDIR "/test-ui.config");
+   _writeConfig(user1, TMPDIR "/test-user1.config");
+   _writeConfig(user2, TMPDIR "/test-user2.config");
+   _writeConfig(child2, TMPDIR "/test-child2.config");
    
    _testConfigFiles(
-      "/tmp/test-system.config",
-      "/tmp/test-engine.config",
-      "/tmp/test-ui.config",
-      "/tmp/test-user1.config",
-      "/tmp/test-user2.config",
-      "/tmp/test-child2.config");
+      TMPDIR "/test-system.config",
+      TMPDIR "/test-engine.config",
+      TMPDIR "/test-ui.config",
+      TMPDIR "/test-user1.config",
+      TMPDIR "/test-user2.config",
+      TMPDIR "/test-child2.config");
 }
 
 void testConfigs()
@@ -822,3 +828,5 @@ int main()
    
    return 0;
 }
+
+#undef TMPDIR

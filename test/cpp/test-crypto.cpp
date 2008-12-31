@@ -759,12 +759,14 @@ void runBigDecimalTest(TestRunner& tr)
       BigDecimal ohfour = "0.04";
       BigDecimal ohone = "0.01";
       BigDecimal expectedResult = "14.26";
+      /*
       printf(".10=%s 10=%s 2=%s .04=%s .01=%s\n",
          tenth.toString().c_str(),
          ten.toString().c_str(),
          two.toString().c_str(),
          ohfour.toString().c_str(),
          ohone.toString().c_str());
+      */
       BigDecimal result = 
          ten +
          tenth * ten +
@@ -773,9 +775,11 @@ void runBigDecimalTest(TestRunner& tr)
          two +
          ohfour +
          ohone;
+      /*
       printf("res=%s dres=%f\n",
          result.toString().c_str(),
          dres);
+      */
       assert(result == expectedResult);
       char dstr[100];
       sprintf(dstr, "%.2f", dres); 

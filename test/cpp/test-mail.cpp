@@ -19,6 +19,12 @@ using namespace db::net;
 using namespace db::test;
 using namespace db::rt;
 
+#ifdef WIN32
+#define TMPDIR "c:/WINDOWS/Temp"
+#else
+#define TMPDIR "/tmp"
+#endif
+
 void runSmtpClientTest(TestRunner& tr)
 {
    tr.test("SmtpClient");
@@ -186,8 +192,8 @@ void mailSpoolTest(TestRunner& tr)
    string tpl1 = mail.toTemplate();
    
    // clean up old spool files
-   File file("/tmp/bmtestspool");
-   File idxFile("/tmp/bmtestspool.idx");
+   File file(TMPDIR "/bmtestspool");
+   File idxFile(TMPDIR "/bmtestspool.idx");
    idxFile->remove();
    file->remove();
    
@@ -269,6 +275,8 @@ public:
       return 0;
    }
 };
+
+#undef TMPDIR
 
 #ifndef DB_TEST_NO_MAIN
 DB_TEST_MAIN(DbMailTester)
