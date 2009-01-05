@@ -826,12 +826,7 @@ int main()
    
    printf("\nALL TESTS PASS.\n");
    
-#ifndef WIN32
-   // FIXME: calling Thread::exit() on windows causes a busy loop of
-   // some sort (perhaps a deadlock spin lock)
    Thread::exit();
-#endif
-   
    return 0;
 }
 

@@ -321,9 +321,13 @@ public:
    static bool waitToEnter(Monitor* m, uint32_t timeout = 0);
    
    /**
-    * Exits the current thread.
+    * Exits the current thread. If the current thread is the main thread, true
+    * must be passed to actually exit the program.
+    * 
+    * @param exitMain true to exit the main program if the current thread is
+    *                 the main thread, otherwise false.
     */
-   static void exit();
+   static void exit(bool exitMain = false);
    
    /**
     * Sets the exception for the current thread.

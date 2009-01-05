@@ -1392,12 +1392,7 @@ int App::main(int argc, const char* argv[])
 #ifdef WIN32
    WSACleanup();
 #endif
-
-#ifndef WIN32
-   // FIXME: calling Thread::exit() on windows causes a busy loop of
-   // some sort (perhaps a deadlock spin lock)
-   Thread::exit();
-#endif
    
+   Thread::exit();
    return mExitStatus;
 }

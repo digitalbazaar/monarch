@@ -100,7 +100,7 @@ void Thread::cleanupCurrentThreadKeyValue(void* thread)
 {
    // check for thread non-persistence
    Thread* t = (Thread*)thread;
-   if(!t->mPersistent)
+   if(thread != NULL && !t->mPersistent)
    {
       delete t;
    }
@@ -531,9 +531,28 @@ bool Thread::waitToEnter(Monitor* m, uint32_t timeout)
    return rval;
 }
 
-void Thread::exit()
+void Thread::exit(bool exitMain)
 {
-   pthread_exit(NULL);
+   Thread* thread = Thread::currentThread();
+   
+   if(!thread->mPersistent)
+   {
+      // thread is main thread, clean up its values
+      cleanupCurrentThreadKeyValue(thread);
+      cleanupExceptionKeyValue(
+         (ExceptionRef*)pthread_getspecific(sExceptionKey));
+      
+      if(exitMain)
+      {
+         // exit main thread
+         pthread_exit(NULL);
+      }
+   }
+   else
+   {
+      // exit current thread
+      pthread_exit(NULL);
+   }
 }
 
 void Thread::setException(ExceptionRef& e, bool caused)
