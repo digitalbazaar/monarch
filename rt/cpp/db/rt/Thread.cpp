@@ -18,26 +18,21 @@ pthread_once_t Thread::sThreadsInit = PTHREAD_ONCE_INIT;
 pthread_key_t Thread::sCurrentThreadKey;
 pthread_key_t Thread::sExceptionKey;
 
-Thread::Thread(Runnable* runnable, const char* name, bool persistent)
+Thread::Thread(Runnable* runnable, const char* name, bool persistent) :
+   mPersistent(persistent),
+   mRunnable(runnable),
+   mName(NULL),
+   mUserData(NULL),
+   mWaitMonitor(NULL)
 {
    // initialize threads
    pthread_once(&sThreadsInit, &initializeThreads);
    
-   // store persistent setting
-   mPersistent = persistent;
-   
-   // store runnable
-   mRunnable = runnable;
-   
-   // set name
-   mName = NULL;
-   Thread::assignName(name);
-   
-   // no user data
-   mUserData = NULL;
-   
-   // thread not waiting to enter a Monitor yet
-   mWaitMonitor = NULL;
+   if(name != NULL)
+   {
+      // set name
+      Thread::assignName(name);
+   }
    
    // thread is not interrupted or joined yet
    mInterrupted = false;
@@ -75,14 +70,7 @@ void Thread::assignName(const char* name)
       free(mName);
    }
    
-   if(name == NULL)
-   {
-      mName = NULL;
-   }
-   else
-   {
-      mName = strdup(name);
-   }
+   mName = (name != NULL) ? strdup(name) : NULL;
 }
 
 void Thread::initializeThreads()
@@ -537,10 +525,12 @@ void Thread::exit(bool exitMain)
    
    if(!thread->mPersistent)
    {
-      // thread is main thread, clean up its values
+      // thread is main thread, clean up its per-thread values
       cleanupCurrentThreadKeyValue(thread);
+      pthread_setspecific(sCurrentThreadKey, NULL);
       cleanupExceptionKeyValue(
          (ExceptionRef*)pthread_getspecific(sExceptionKey));
+      pthread_setspecific(sExceptionKey, NULL);
       
       if(exitMain)
       {
