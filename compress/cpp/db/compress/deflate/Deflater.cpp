@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/compress/deflate/Deflater.h"
 
 using namespace db::compress::deflate;
 using namespace db::io;
 using namespace db::rt;
+
+#define EXCEPTION_DEFLATE "db.compress.deflate"
 
 Deflater::Deflater()
 {
@@ -58,25 +60,25 @@ bool Deflater::createException(int ret)
          // not enough memory
          e = new Exception(
             "Not enough memory for inflation/deflation.",
-            "db.compress.deflate.InsufficientMemory");
+            EXCEPTION_DEFLATE ".InsufficientMemory");
          break;
       case Z_VERSION_ERROR:
          // zlib library version incompatible
          e = new Exception(
             "Incompatible zlib library version.",
-            "db.compress.deflate.IncompatibleVersion");
+            EXCEPTION_DEFLATE ".IncompatibleVersion");
          break;
       case Z_STREAM_ERROR:
          // invalid stream parameters
          e = new Exception(
             "Invalid zip stream parameters. Null pointer?",
-            "db.compress.deflate.InvalidZipStreamParams");
+            EXCEPTION_DEFLATE ".InvalidZipStreamParams");
          break;
       default:
          // something else went wrong
          e = new Exception(
             "Could not inflate/deflate.",
-            "db.compress.deflate.Error");
+            EXCEPTION_DEFLATE ".Error");
          break;
    }
    
