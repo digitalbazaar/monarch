@@ -1,4 +1,4 @@
-# This is a generated file, composed of the following suppression rules:
+.# This is a generated file, composed of the following suppression rules:
 #
 #      glibc-2.34567-NPTL-helgrind.supp glibc-2.7.supp debian.supp
 #
@@ -1404,5 +1404,22 @@
    fun:_dl_catch_error
    fun:_dlerror_run
    fun:dlopen@GLIBC_2.0
+}
+
+{
+   pthread_exit_leak
+   Memcheck:Leak
+   fun:malloc
+   obj:/lib/ld-2.7.so
+   obj:/lib/ld-2.7.so
+   obj:/lib/ld-2.7.so
+   obj:/lib/ld-2.7.so
+   obj:/lib/tls/i686/cmov/libc-2.7.so
+   obj:/lib/ld-2.7.so
+   fun:__libc_dlopen_mode
+   fun:pthread_cancel_init
+   fun:_Unwind_ForcedUnwind
+   fun:__pthread_unwind
+   fun:pthread_exit
 }
 
