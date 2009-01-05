@@ -3,8 +3,8 @@
  */
 #include "db/net/AbstractSocket.h"
 
+#include "db/net/WindowsSupport.h"
 #include "db/net/SocketTools.h"
-#include "db/net/SocketDefinitions.h"
 #include "db/io/PeekInputStream.h"
 #include "db/net/SocketInputStream.h"
 #include "db/net/SocketOutputStream.h"
@@ -47,14 +47,14 @@ AbstractSocket::AbstractSocket()
 AbstractSocket::~AbstractSocket()
 {
    // close socket
-   close();
+   AbstractSocket::close();
 }
 
 bool AbstractSocket::create(int domain, int type, int protocol)
 {
    bool rval = false;
    
-   int fd = socket(domain, type, protocol);
+   int fd = SOCKET_MACRO_socket(domain, type, protocol);
    if(fd >= 0)
    {
       // set reuse address flag
@@ -244,7 +244,7 @@ bool AbstractSocket::bind(SocketAddress* address)
       address->toSockAddr((sockaddr*)&addr, size);
       
       // bind
-      int error = ::bind(mFileDescriptor, (sockaddr*)&addr, size);
+      int error = SOCKET_MACRO_bind(mFileDescriptor, (sockaddr*)&addr, size);
       if(error < 0)
       {
          // shutdown input/output
@@ -284,7 +284,7 @@ bool AbstractSocket::listen(unsigned int backlog)
       mBacklog = backlog;
       
       // listen
-      int error = ::listen(mFileDescriptor, backlog);
+      int error = SOCKET_MACRO_listen(mFileDescriptor, backlog);
       if(error < 0)
       {
          ExceptionRef e = new Exception(
@@ -298,7 +298,7 @@ bool AbstractSocket::listen(unsigned int backlog)
          mListening = true;
          
          // set socket to non-blocking so accept() calls can be interrupted
-         fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
+         SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
       }
    }
    
@@ -318,7 +318,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
    else
    {
       // try to accept a connection
-      int fd = ::accept(mFileDescriptor, NULL, NULL);
+      int fd = SOCKET_MACRO_accept(mFileDescriptor, NULL, NULL);
       if(fd < 0)
       {
          // see if no connection was currently available
@@ -328,7 +328,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
             fd = 0;
             if(select(true, timeout * 1000LL))
             {
-               fd = ::accept(mFileDescriptor, NULL, NULL);
+               fd = SOCKET_MACRO_accept(mFileDescriptor, NULL, NULL);
             }
          }
       }
@@ -361,10 +361,10 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
       address->toSockAddr((sockaddr*)&addr, size);
       
       // temporarily make socket non-blocking
-      fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
+      SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
       
       // connect
-      int error = ::connect(mFileDescriptor, (sockaddr*)addr, size);
+      int error = SOCKET_MACRO_connect(mFileDescriptor, (sockaddr*)addr, size);
       if(error < 0)
       {
          switch(errno)
@@ -411,7 +411,7 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
       // FIXME: remove ifndef if winsock/mingw32 ever supports MSG_DONTWAIT
 #ifndef WIN32
       // restore socket to blocking
-      fcntl(mFileDescriptor, F_SETFL, 0);
+      SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, 0);
 #endif
       
       if(mConnected)
@@ -446,7 +446,7 @@ bool AbstractSocket::send(const char* b, int length)
       while(rval && length > 0)
       {
          // try to send some data, don't block, don't send SIGPIPE
-         bytes = ::send(
+         bytes = SOCKET_MACRO_send(
             mFileDescriptor, b + offset, length, MSG_DONTWAIT | MSG_NOSIGNAL);
          if(bytes < 0)
          {
@@ -505,7 +505,7 @@ int AbstractSocket::receive(char* b, int length)
    else
    {
       // try to receive some data, don't block
-      rval = ::recv(mFileDescriptor, b, length, MSG_DONTWAIT);
+      rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, MSG_DONTWAIT);
       if(rval < 0)
       {
          // see if no data is available (EGAIN)
@@ -526,7 +526,7 @@ int AbstractSocket::receive(char* b, int length)
                if(select(true, getReceiveTimeout()))
                {
                   // receive data (should not block)
-                  rval = ::recv(mFileDescriptor, b, length, 0);
+                  rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, 0);
                }
             }
          }
@@ -555,7 +555,7 @@ void AbstractSocket::close()
       shutdownOutput();
       
       // close the socket
-      ::close(mFileDescriptor);
+      SOCKET_MACRO_close(mFileDescriptor);
       
       // file descriptor is invalid again
       mFileDescriptor = -1;
@@ -600,7 +600,8 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
       char addr[size];
       
       // get local information
-      int error = getsockname(mFileDescriptor, (sockaddr*)&addr, &size);
+      int error = SOCKET_MACRO_getsockname(
+         mFileDescriptor, (sockaddr*)&addr, &size);
       if(error < 0)
       {
          ExceptionRef e = new Exception(
@@ -638,7 +639,8 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
       char addr[size];
       
       // get remote information
-      int error = getpeername(mFileDescriptor, (sockaddr*)&addr, &size);
+      int error = SOCKET_MACRO_getpeername(
+         mFileDescriptor, (sockaddr*)&addr, &size);
       if(error < 0)
       {
          ExceptionRef e = new Exception(

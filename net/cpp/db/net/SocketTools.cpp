@@ -3,7 +3,7 @@
  */
 #include "db/net/SocketTools.h"
 
-#include "db/net/SocketDefinitions.h"
+#include "db/net/WindowsSupport.h"
 #include "db/rt/Thread.h"
 #include "db/rt/System.h"
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_SocketTools_H
 #define db_net_SocketTools_H
@@ -13,10 +13,7 @@ namespace net
 {
 
 /**
- * A Socket is an interface for an end point for communication.
- * 
- * If an exception occurs during an operation it can be retrieved via
- * getException().
+ * The SocketTools class provides helper methods for using sockets.
  * 
  * @author Dave Longley
  */

@@ -73,11 +73,6 @@ inline static char* dlerror()
          
          rval = gDynamicLibraryError;
       }
-      else
-      {
-         // unknown error
-         rval = "Unknown error";
-      }
       
       // free lpBuffer
       LocalFree(lpBuffer);

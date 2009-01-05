@@ -3,11 +3,11 @@
  */
 #include "db/net/UdpSocket.h"
 
-#include "db/rt/DynamicObject.h"
-#include "db/net/SocketDefinitions.h"
 #include "db/io/PeekInputStream.h"
+#include "db/net/WindowsSupport.h"
 #include "db/net/SocketInputStream.h"
 #include "db/net/SocketOutputStream.h"
+#include "db/rt/DynamicObject.h"
 
 #include <cstring>
 
@@ -190,7 +190,7 @@ bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
       // wait for socket to become writable
       if((rval = select(false, getSendTimeout())))
       {
-         int ret = ::sendto(
+         int ret = SOCKET_MACRO_sendto(
             mFileDescriptor, b, length, 0, (sockaddr*)&addr, size);
          if(ret < 0)
          {
@@ -223,7 +223,8 @@ int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
       char addr[size];
       
       // receive some data
-      rval = ::recvfrom(mFileDescriptor, b, length, 0, (sockaddr*)&addr, &size);
+      rval = SOCKET_MACRO_recvfrom(
+         mFileDescriptor, b, length, 0, (sockaddr*)&addr, &size);
       if(rval < -1)
       {
          rval = -1;

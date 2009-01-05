@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/Internet6Address.h"
-#include "db/net/SocketDefinitions.h"
+
+#include "db/net/WindowsSupport.h"
 #include "db/rt/Exception.h"
 
 #include <cstdlib>
