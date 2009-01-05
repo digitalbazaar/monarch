@@ -30,6 +30,7 @@ Category::~Category()
    Category::setId(NULL);
    Category::setName(NULL);
    Category::setDescription(NULL);
+   Category::setAnsiEscapeCodes(NULL);
 }
 
 void Category::initialize()

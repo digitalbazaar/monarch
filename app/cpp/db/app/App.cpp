@@ -56,6 +56,7 @@ App::App() :
 
 App::~App()
 {
+   mOwner = NULL;
    setProgramName(NULL);
    setName(NULL);
    setVersion(NULL);
@@ -246,7 +247,7 @@ void App::setProgramName(const char* name)
       {
          free(mProgramName);
       }
-      mProgramName = name ? strdup(name) : NULL;
+      mProgramName = (name != NULL) ? strdup(name) : NULL;
    }
    else
    {
@@ -1309,7 +1310,6 @@ void App::cleanupOpenSSL()
 
 void App::initializeLogging()
 {
-   db::logging::Logging::initialize();
    if(mDelegate != NULL)
    {
       mDelegate->initializeLogging();
@@ -1334,7 +1334,6 @@ void App::willCleanupLogging()
 
 void App::cleanupLogging()
 {
-   db::logging::Logging::cleanup();
    if(mDelegate != NULL)
    {
       mDelegate->cleanupLogging();
@@ -1377,6 +1376,7 @@ int App::main(int argc, const char* argv[])
    srand(time(NULL));
    
    initializeOpenSSL();
+   db::logging::Logging::initialize();
    initializeLogging();
    didInitializeLogging();
    
@@ -1385,6 +1385,7 @@ int App::main(int argc, const char* argv[])
    t.join();
    
    willCleanupLogging();
+   db::logging::Logging::cleanup();
    cleanupLogging();
    cleanupOpenSSL();
    

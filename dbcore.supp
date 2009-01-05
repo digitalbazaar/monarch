@@ -1407,7 +1407,7 @@
 }
 
 {
-   pthread_exit_leak
+   leak_pthread_exit
    Memcheck:Leak
    fun:malloc
    obj:/lib/ld-2.7.so
@@ -1421,4 +1421,32 @@
    fun:_Unwind_ForcedUnwind
    fun:__pthread_unwind
    fun:pthread_exit
+}
+
+{
+   leak_dl_map_object_deps
+   Memcheck:Leak
+   fun:malloc
+   fun:_dl_map_object_deps
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:do_dlopen
+   fun:_dl_catch_error
+   fun:dlerror_run
+   fun:__libc_dlopen_mode
+   fun:pthread_cancel_init
+   fun:_Unwind_ForcedUnwind
+   fun:__pthread_unwind
+}
+
+{
+   leak_gethostbyname2
+   Memcheck:Leak
+   fun:malloc
+   obj:*
+   obj:*
+   fun:gethostbyname2_r@@GLIBC_2.1.2
+   fun:gaih_inet
+   fun:getaddrinfo
 }
