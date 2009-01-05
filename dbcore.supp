@@ -1366,8 +1366,6 @@
    obj:/usr/lib/libz.so.1.2.3.3
    obj:/usr/lib/libz.so.1.2.3.3
    fun:deflate
-   fun:compress2
-   fun:compress
 }
 
 {
