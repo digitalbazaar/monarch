@@ -4,6 +4,8 @@
 #ifndef db_app_App_H
 #define db_app_App_H
 
+#include <ostream>
+
 #include "db/logging/Logging.h"
 #include "db/rt/Runnable.h"
 #include "db/rt/Exception.h"
@@ -49,7 +51,7 @@ namespace app
  * - cleanup()
  * - cleanupLogging()
  * 
- * Author: David I. Lehn
+ * @author David I. Lehn
  */
 class App : public db::rt::Runnable
 {
@@ -544,8 +546,18 @@ public:
 
    /**
     * Pretty print an exception.
+    * 
+    * @param e the exception to print.
     */
    static void printException(db::rt::ExceptionRef& e);
+
+   /**
+    * Pretty print an exception to a given output stream.
+    * 
+    * @param e the exception to print.
+    * @param s the output stream.
+    */
+   static void printException(db::rt::ExceptionRef& e, std::ostream& s);
 
    /**
     * Pretty print last exception.

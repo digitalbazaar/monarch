@@ -11,6 +11,7 @@
 #include <openssl/engine.h>
 
 #include <iostream>
+#include <ostream>
 #include <sstream>
 #include <vector>
 
@@ -197,6 +198,11 @@ static void _printException(ExceptionRef& e, ostream& s, int level)
 void App::printException(ExceptionRef& e)
 {
    _printException(e, cerr, 0);
+}
+
+void App::printException(ExceptionRef& e, ostream& s)
+{
+   _printException(e, s, 0);
 }
 
 void App::printException()
