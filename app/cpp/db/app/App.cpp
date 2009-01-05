@@ -1364,14 +1364,14 @@ int App::main(int argc, const char* argv[])
       exit(EXIT_FAILURE);
    }
    
-   // initialize winsock
-   #ifdef WIN32
-      WSADATA wsaData;
-      if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
-      {
-         cerr << "ERROR! Could not initialize winsock!" << endl;
-      }
-   #endif
+#ifdef WIN32
+// initialize winsock
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+   {
+      cerr << "ERROR! Could not initialize winsock!" << endl;
+   }
+#endif
    
    // seed random
    srand(time(NULL));
