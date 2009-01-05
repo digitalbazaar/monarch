@@ -168,8 +168,8 @@ int Deflater::process(ByteBuffer* dst, bool resize)
    {
       // when deflating, let zlib determine flushing to maximize compression
       // when inflating, flush output whenever possible
-      int flush = (mShouldFinish) ?
-         Z_FINISH : ((mDeflating) ? Z_NO_FLUSH : Z_SYNC_FLUSH);
+      int flush = (mShouldFinish ?
+         Z_FINISH : (mDeflating ? Z_NO_FLUSH : Z_SYNC_FLUSH));
       
       // keep processing while no error, no output data, while there is
       // input data or processing should finish, and while there is room
