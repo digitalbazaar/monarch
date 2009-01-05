@@ -527,9 +527,11 @@ void Thread::exit(bool exitMain)
    {
       // thread is main thread, clean up its per-thread values
       cleanupCurrentThreadKeyValue(thread);
-      pthread_setspecific(sCurrentThreadKey, NULL);
       cleanupExceptionKeyValue(
          (ExceptionRef*)pthread_getspecific(sExceptionKey));
+      
+      // ensure per-thread key values are NULL
+      pthread_setspecific(sCurrentThreadKey, NULL);
       pthread_setspecific(sExceptionKey, NULL);
       
       if(exitMain)
