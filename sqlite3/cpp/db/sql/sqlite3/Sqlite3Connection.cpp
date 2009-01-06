@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 
 #include "db/sql/sqlite3/Sqlite3Statement.h"
+#include "db/io/File.h"
 
 using namespace std;
+using namespace db::io;
 using namespace db::sql;
 using namespace db::sql::sqlite3;
 using namespace db::net;
@@ -44,13 +46,11 @@ bool Sqlite3Connection::connect(Url* url)
    
    if(strncmp(url->getScheme().c_str(), "sqlite3", 7) != 0)
    {
-      string urlStr = url->toString();
-      int length = 120 + urlStr.length();
-      char msg[length];
-      snprintf(msg, length,
-         "Could not connect to sqlite3 database, "
-         "url scheme doesn't start with 'sqlite3', url='%s'", urlStr.c_str());
-      ExceptionRef e = new SqlException(msg, "db.sql.BadUrlScheme");
+      ExceptionRef e = new Exception(
+         "Could not connect to sqlite3 database, url scheme doesn't "
+         "start with 'sqlite3'.",
+         "db.sql.BadUrlScheme");
+      e->getDetails()["url"] = url->toString().c_str();
       Exception::setLast(e, false);
    }
    else
@@ -67,11 +67,14 @@ bool Sqlite3Connection::connect(Url* url)
       }
       
       // open sqlite3 connection
-      int ec = sqlite3_open(db, &mHandle);
+      File file(db);
+      int ec = sqlite3_open(file->getAbsolutePath(), &mHandle);
       if(ec != SQLITE_OK)
       {
          // create exception, close connection
          ExceptionRef e = new Sqlite3Exception(this);
+         e->getDetails()["url"] = url->toString().c_str();
+         e->getDetails()["path"] = file->getAbsolutePath();
          Exception::setLast(e, false);
          Sqlite3Connection::close();
       }
