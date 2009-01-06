@@ -110,7 +110,7 @@ bool MySqlConnection::begin()
    
    if(!(rval = (mysql_query(mHandle, "START TRANSACTION") == 0)))
    {
-      ExceptionRef e = new SqlException("Could not begin transaction!");
+      ExceptionRef e = new SqlException("Could not begin transaction.");
       Exception::setLast(e, false);
    }
    
@@ -123,7 +123,7 @@ bool MySqlConnection::commit()
    
    if(!(rval = (mysql_query(mHandle, "COMMIT") == 0)))
    {
-      ExceptionRef e = new SqlException("Could not commit transaction!");
+      ExceptionRef e = new SqlException("Could not commit transaction.");
       Exception::setLast(e, false);
    }
    
@@ -136,7 +136,7 @@ bool MySqlConnection::rollback()
    
    if(!(rval = (mysql_query(mHandle, "ROLLBACK") == 0)))
    {
-      ExceptionRef e = new SqlException("Could not rollback transaction!");
+      ExceptionRef e = new SqlException("Could not rollback transaction.");
       Exception::setLast(e, false);
    }
    
@@ -160,4 +160,17 @@ bool MySqlConnection::setCharacterSet(const char* cset)
    // FIXME: handle exceptions
    mysql_options(mHandle, MYSQL_SET_CHARSET_NAME, cset);
    return true;
+}
+
+bool MySqlConnection::query(const char* sql)
+{
+   bool rval;
+   
+   if(!(rval = (mysql_query(mHandle, sql) == 0)))
+   {
+      ExceptionRef e = new SqlException("Could not execute query.");
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
 }

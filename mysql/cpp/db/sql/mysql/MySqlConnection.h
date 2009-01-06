@@ -112,6 +112,16 @@ public:
     * @return true if successful, false if an SqlException occurred.
     */
    virtual bool setCharacterSet(const char* cset);
+   
+   /**
+    * Performs a simple null-terminated query that returns no results. No
+    * binary data permitted.
+    * 
+    * @param sql the sql query to execute.
+    * 
+    * @return true if successful, false if an SqlException occurred.
+    */
+   virtual bool query(const char* sql);
 };
 
 } // end namespace mysql
