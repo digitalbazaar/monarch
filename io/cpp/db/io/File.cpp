@@ -136,6 +136,7 @@ bool FileImpl::create()
       ExceptionRef e = new Exception(
          "Could not create file",
          "db.io.File.CreateFailed");
+      e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
@@ -222,6 +223,7 @@ bool FileImpl::remove()
       ExceptionRef e = new Exception(
          "Could not delete file.",
          "db.io.File.DeleteFailed");
+      e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
@@ -247,6 +249,8 @@ bool FileImpl::rename(File& file)
       ExceptionRef e = new Exception(
          "Could not rename file.",
          "db.io.File.RenameFailed");
+      e->getDetails()["oldName"] = mAbsolutePath;
+      e->getDetails()["newName"] = file->getAbsolutePath();
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
@@ -309,6 +313,7 @@ off_t FileImpl::getLength()
       ExceptionRef e = new Exception(
          "Could not stat file.",
          "db.io.File.StatFailed");
+      e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
