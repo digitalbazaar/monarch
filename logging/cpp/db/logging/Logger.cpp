@@ -202,22 +202,26 @@ void Logger::getDate(string& date)
 {
    date.erase();
    
-   if(strcmp(mDateFormat, "") == 0)
+   mLock.lockShared();
    {
-      // shortcut - do nothing
+      if(strcmp(mDateFormat, "") == 0)
+      {
+         // shortcut - do nothing
+      }
+      else
+      {
+         // handle other date formats here
+         Date now;
+         date = now.format(date, mDateFormat);
+      }
    }
-   else
-   {
-      // handle other date formats here
-      Date now;
-      date = now.format(date, mDateFormat);
-   }
+   mLock.unlockShared();
 }
 
 bool Logger::setDateFormat(const char* format)
 {
    // lock so flags are not changed while in use in log()
-   lock();
+   mLock.lockExclusive();
    {
       if(mDateFormat != NULL)
       {
@@ -226,19 +230,14 @@ bool Logger::setDateFormat(const char* format)
       
       mDateFormat = strdup(format);
    }
-   unlock();
+   mLock.unlockExclusive();
 
    return true;
 }
 
 void Logger::setFlags(LoggerFlags flags)
 {
-   // lock so flags are not changed while in use in log()
-   lock();
-   {
-      mFlags = flags;
-   }
-   unlock();
+   mFlags = flags;
 }
 
 Logger::LoggerFlags Logger::getFlags()
@@ -296,14 +295,21 @@ bool Logger::log(
    
    if(mLevel >= level)
    {
-      lock();
+      // save flags to avoid async changes while in this function
+      LoggerFlags loggerFlags = mFlags;
 
       // Output fields depending on flags as:
       // [date: ][thread ][object ][level ][cat ][location ]message
 
       string logText;
       
-      if(mFlags & LogDate)
+      // FIXME locking around all this to ensure ordered output
+      // this code should be thread safe without this lock but it is possible
+      // that multiple threads could get dates assigned then be reordered
+      // before actual output occurs.
+      mLock.lockExclusive();
+      
+      if(loggerFlags & LogDate)
       {
          string date;
          getDate(date);
@@ -314,7 +320,7 @@ bool Logger::log(
          }
       }
 
-      if(mFlags & LogThread)
+      if(loggerFlags & LogThread)
       {
          Thread* thread = Thread::currentThread();
          const char* name = thread->getName();
@@ -331,7 +337,7 @@ bool Logger::log(
          logText.push_back(' ');
       }
 
-      if((mFlags & LogObject) && (flags & LogObjectValid))
+      if((loggerFlags & LogObject) && (flags & LogObjectValid))
       {
          if(object)
          {
@@ -347,13 +353,13 @@ bool Logger::log(
          logText.push_back(' ');
       }
 
-      if(mFlags & LogLevel)
+      if(loggerFlags & LogLevel)
       {
-         logText.append(levelToString(level, mFlags & LogColor));
+         logText.append(levelToString(level, loggerFlags & LogColor));
          logText.push_back(' ');
       }
 
-      if((mFlags & LogCategory) && cat)
+      if((loggerFlags & LogCategory) && cat)
       {
          // FIXME: add flag to select name type
          // Try id if set, else try name.
@@ -361,7 +367,7 @@ bool Logger::log(
          name = name ? name : cat->getName();
          if(name)
          {
-            if(mFlags & LogColor)
+            if(loggerFlags & LogColor)
             {
                const char* ansi = cat->getAnsiEscapeCodes();
                logText.append(ansi);
@@ -381,7 +387,7 @@ bool Logger::log(
          }
       }
 
-      if((mFlags & LogLocation) && location)
+      if((loggerFlags & LogLocation) && location)
       {
          logText.append(location);
          logText.push_back(' ');
@@ -395,10 +401,12 @@ bool Logger::log(
       }
       logText.push_back('\n');
       
-      log(logText.c_str());
+      log(logText.c_str(), logText.length());
+      
+      // FIXME: see lock note above
+      mLock.unlockExclusive();
+      
       rval = true;
-
-      unlock();
    }
 
    return rval;

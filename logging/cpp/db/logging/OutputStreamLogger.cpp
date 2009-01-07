@@ -22,16 +22,20 @@ OutputStreamLogger::~OutputStreamLogger()
 
 void OutputStreamLogger::close()
 {
-   if(mStream != NULL)
+   mLock.lock();
    {
-      mStream->close();
-      
-      if(mCleanup)
+      if(mStream != NULL)
       {
-         delete mStream;
-         mStream = NULL;
+         mStream->close();
+         
+         if(mCleanup)
+         {
+            delete mStream;
+            mStream = NULL;
+         }
       }
    }
+   mLock.unlock();
 }
 
 OutputStream* OutputStreamLogger::getOutputStream()
@@ -42,7 +46,7 @@ OutputStream* OutputStreamLogger::getOutputStream()
 void OutputStreamLogger::setOutputStream(OutputStream* os,
    bool cleanup, bool closeCurrent)
 {
-   lock();
+   mLock.lock();
    {
       if(closeCurrent)
       {
@@ -51,13 +55,17 @@ void OutputStreamLogger::setOutputStream(OutputStream* os,
       mStream = os;
       mCleanup = cleanup;
    }
-   unlock();
+   mLock.unlock();
 }
 
-void OutputStreamLogger::log(const char* message)
+void OutputStreamLogger::log(const char* message, size_t length)
 {
-   if(mStream != NULL)
+   mLock.lock();
    {
-      mStream->write(message, strlen(message));
+      if(mStream != NULL)
+      {
+         mStream->write(message, length);
+      }
    }
+   mLock.unlock();
 }

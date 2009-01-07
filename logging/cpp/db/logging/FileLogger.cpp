@@ -1,26 +1,46 @@
 /*
  * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/compress/gzip/Gzipper.h"
 #include "db/logging/FileLogger.h"
+#include "db/io/FileList.h"
+#include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
+#include "db/io/MutatorInputStream.h"
+#include "db/rt/Exception.h"
 #include "db/util/Math.h"
+#include "db/util/regex/Pattern.h"
 
-using namespace db::io;
-using namespace db::util;
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+using namespace db::compress::gzip;
 using namespace db::logging;
+using namespace db::io;
+using namespace db::rt;
+using namespace db::util;
+using namespace db::util::regex;
 
-int FileLogger::DEFAULT_NUM_ROTATING_FILES = 3;
+#define DEFAULT_NUM_ROTATING_FILES 5
+#define DEFAULT_NUM_ROTATING_FILES 5
 
 FileLogger::FileLogger(File* file) :
    OutputStreamLogger(),
-   mFile((FileImpl*)NULL)
+   mFile((FileImpl*)NULL),
+   mFlags(0),
+   mRotationFileSize(0),
+   mCurrentFileSize(0),
+   mMaximumRotatingFiles(DEFAULT_NUM_ROTATING_FILES)
 {
-   mMaxFileSize = 0;
-   mRotateId = 0;
-   mNumRotatingFiles = DEFAULT_NUM_ROTATING_FILES;
    if(file != NULL)
    {
-      setFile(*file, false);
+      bool set = setFile(*file, false);
+      // FIXME: what to do on exception?
+      if(!set)
+      {
+         Exception::clearLast();
+      }
    }
 }
 
@@ -29,126 +49,242 @@ FileLogger::~FileLogger()
    close();
 }
 
-unsigned int FileLogger::getRotateId()
+void FileLogger::close()
 {
-   lock();
-   mRotateId++;
-   
-   if(getNumRotatingFiles() != 0 && mRotateId >= getNumRotatingFiles())
+   mLock.lock();
    {
-      mRotateId = 0;
+      OutputStreamLogger::close();
    }
-   unlock();
-   
-   return mRotateId;
+   mLock.unlock();
 }
 
-void FileLogger::rotateLogFile(const char* logText)
+void FileLogger::setFlags(unsigned int flags)
 {
-#if 0 // FIXME not implemented yet
-   lock();
-   if(getMaxFileSize() > 0)
+   mLock.lock();
    {
-      // includes end line character
-      int logTextLength = strlen(logText) + 1;
-      
-      File file = new File(mFilename);
-      long newLength = file.length() + logTextLength;
-      long overflow = newLength - getMaxFileSize();
-      if(overflow > 0)
+      mFlags = flags;
+   }
+   mLock.unlock();
+}
+
+unsigned int FileLogger::getFlags()
+{
+   return mFlags;
+}
+
+/**
+ * Find first available path of the form "base[-seq]ext"
+ * Using alphanumericly sortable encoding for sequence of:
+ *   seq = chr(ord('a')+len(str(n))-1) + str(n)
+ * (ie, prefix decimal string with letter based on length of string)
+ */
+static string findAvailablePath(const char* base, const char* ext)
+{
+   unsigned int n = 0;
+   bool found = false;
+   size_t seqlen = 20;
+   size_t buflen = strlen(base) + seqlen + strlen(ext) + 1; 
+   char seqbuf[seqlen];
+   char buf[buflen];
+   while(!found)
+   {
+      if(n == 0)
       {
-         // there is overflow, so rotate the files
-         string rotateLog = file->getAbsolutePath() + "." + getRotateId();
-         File newFile = new File(rotateLog);
-         
-         // if there is no limit on the number of rotating files,
-         // then do not overwrite existing rotated logs
-         if(getNumRotatingFiles() == -1)
+         snprintf(buf, buflen, "%s%s", base, ext);
+      }
+      else
+      {
+         snprintf(seqbuf, seqlen, "%u", n);
+         char seqc = 'a' + strlen(seqbuf) - 1;
+         snprintf(buf, buflen, "%s-%c%s%s", base, seqc, seqbuf, ext);
+      }
+      n++;
+      
+      File f(buf);
+      found = !f->exists();
+   }
+   string rval(buf);
+   return rval;
+}
+
+bool FileLogger::rotate()
+{
+   bool rval = true;
+   
+   // assuming we are locked here 
+   // get new name
+   string date;
+   Date now;
+   date = now.format(date, ".%Y%m%d%H%M%S");
+   string fn;
+   fn.assign(mFile->getPath());
+   fn.append(date);
+   
+   // move file to new name
+   close();
+   if(mFlags & GzipCompressRotatedLogsFlag)
+   {
+      // compress stream from old file to new .gz file
+      // FIXME for large files this will block logging during compression
+      fn = findAvailablePath(fn.c_str(), ".gz");
+      File newFile(fn.c_str());
+      
+      Gzipper gzipper;
+      rval = gzipper.startCompressing();
+      
+      if(rval)
+      {
+         FileInputStream fis(mFile);
+         FileOutputStream fos(newFile);
+      
+         MutatorInputStream mis(&fis, false, &gzipper, false);
+         char b[4096];
+         int numBytes;
+         while(rval && (numBytes = mis.read(b, 4096)) > 0)
          {
-            // keep going until an unused file is found
-            while(newFile->exists())
-            {
-               rotateLog = file.getAbsolutePath() + "." + getRotateId();
-               newFile = new File(rotateLog);
-            }
+            rval = fos.write(b, numBytes);
          }
-         
-         // close log files temporarily
-         LoggerManager::closeLoggerFiles(mFilename);
-         
-         // ensure the new file does not exist
-         newFile.delete();
-         
-         // rename current log file to new file
-         file.renameTo(newFile);
-         
-         // reset log files
-         LoggerManager::resetLoggerFiles(mFilename);
+      
+         fis.close();
+         fos.close();
       }
    }
-   unlock();
-#endif
+   else
+   {
+      // move old file to new file
+      fn = findAvailablePath(fn.c_str(), "");
+      File newFile(fn.c_str());
+      rval = mFile->rename(newFile);
+   }
+   
+   if(!rval)
+   {
+      // dump exceptions from moving aside old file
+      // FIXME: print exceptoin?
+      Exception::clearLast();
+      rval = true;
+   }
+   
+   if(mMaximumRotatingFiles > 0)
+   {
+      // remove old log files
+      const char* path = mFile->getAbsolutePath();
+      size_t pathlen = strlen(path);
+      
+      // build list of files with proper names 
+      vector<string> oldFiles;
+      File dir(File::dirname(path).c_str());
+      FileList files;
+      dir->listFiles(files);
+      IteratorRef<File> i = files->getIterator();
+      Pattern* pattern = Pattern::compile(
+         "^\\.[0-9]{14}(-[a-z]{1}[0-9]+)?(\\.gz)?$");
+      while(i->hasNext())
+      {
+         File& file = i->next();
+         const char* nextpath = file->getAbsolutePath();
+         // dummy vars
+         unsigned int _start;
+         unsigned int _end;
+         // check prefix then tail
+         if(strncmp(path, nextpath, pathlen) == 0 &&
+            pattern->match(nextpath + pathlen, 0, _start, _end))
+         {
+            oldFiles.push_back(nextpath);
+         }
+      }
+      delete pattern;
+      // sort results
+      sort(oldFiles.begin(), oldFiles.end());
+      // remove if needed
+      if(oldFiles.size() > mMaximumRotatingFiles)
+      {
+         vector<string>::size_type last =
+            oldFiles.size() - mMaximumRotatingFiles;
+         for(vector<string>::size_type i = 0; i < last; i++)
+         {
+            File f(oldFiles[i].c_str());
+            printf("rem:%s\n", f->getPath());
+            bool success = f->remove();
+            // ignore failures
+            if(!success)
+            {
+               Exception::clearLast();
+            }
+         }
+      }
+   }
+   
+   // start new file
+   rval = setFile(mFile, false);
+   
+   return rval;
 }
 
 bool FileLogger::setFile(File& file, bool append)
 {
-   bool rval = false;
+   bool rval = true;
    
-   lock();
-   
-   close();
-   mFile = file;
-   
-   if(!append)
+   mLock.lock();
    {
-      // FIXME
-      //file.delete();
+      close();
+      mFile = file;
+      
+      if(file->exists())
+      {
+         if(!append)
+         {
+            mCurrentFileSize = 0;
+            rval = mFile->remove();
+         }
+         else
+         {
+            mCurrentFileSize = file->getLength();
+         }
+      }
+      else
+      {
+         mCurrentFileSize = 0;
+      }
+      
+      if(rval)
+      {
+         OutputStream* s = new FileOutputStream(mFile);
+         setOutputStream(s, true, false);
+      }
    }
-   
-   OutputStream* s = new FileOutputStream(file);
-   setOutputStream(s, true, false);
-   rval = true;
-   
-   unlock();
+   mLock.unlock();
    
    return rval;
 }
 
-void FileLogger::close()
+void FileLogger::setRotationFileSize(off_t fileSize)
 {
-   lock();
-   OutputStreamLogger::close();
-   unlock();
+   mLock.lock();
+   {
+      // 0 is means no maximum log file size
+      mRotationFileSize = fileSize;
+   }
+   mLock.unlock();
 }
 
-void FileLogger::setMaxFileSize(off_t fileSize)
+off_t FileLogger::getRotationFileSize()
 {
-   lock();
-   // 0 is means no maximum log file size
-   mMaxFileSize = fileSize;
-   unlock();
+   return mRotationFileSize;
 }
 
-off_t FileLogger::getMaxFileSize()
+void FileLogger::setMaximumRotatingFiles(unsigned int maximumRotatingFiles)
 {
-   return mMaxFileSize;
+   mLock.lock();
+   {
+      mMaximumRotatingFiles = maximumRotatingFiles;
+   }
+   mLock.unlock();
 }
 
-bool FileLogger::setNumRotatingFiles(unsigned int numRotatingFiles)
+unsigned int FileLogger::getMaximumRotatingFiles()
 {
-   bool rval = false;
-   
-   lock();
-   mNumRotatingFiles = numRotatingFiles;
-   rval = true;
-   unlock();
-   
-   return rval;
-}
-
-unsigned int FileLogger::getNumRotatingFiles()
-{
-   return mNumRotatingFiles;
+   return mMaximumRotatingFiles;
 }
 
 File& FileLogger::getFile()
@@ -156,75 +292,22 @@ File& FileLogger::getFile()
    return mFile;
 }
 
-void FileLogger::log(const char* message)
+void FileLogger::log(const char* message, size_t length)
 {
-   OutputStreamLogger::log(message);
-#if 0
-   string logText = "";
-   string logFileText = logText;
-   
-   // if entire log text cannot be entered, break it up
-   string remainder = "";
-   if(getMaxFileSize() > 0 &&
-      ((off_t)logText.length() + 1) > getMaxFileSize())
+   // lock to serialize logs
+   mLock.lock();
    {
-      remainder = logText.substr(getMaxFileSize());
-      logFileText = logText.substr(0, (getMaxFileSize()) - 1);
-   }
-   
-   // lock on the loggermanager
-   LoggerManager::getInstance()->lock();
-   {
-      // ensure a file is set if appropriate
-      if(getMaxFileSize() != 0 &&
-         mFile != NULL && mFile.getName() != "")
+      mCurrentFileSize += length;
+      OutputStreamLogger::log(message, length);
+      if(mRotationFileSize != 0 && mCurrentFileSize >= mRotationFileSize)
       {
-         // if the file no longer exists, start a new file
-         if(!mFile.exists())
+         bool success = rotate();
+         // FIXME how to handle exceptions?
+         if(!success)
          {
-            LoggerManager::resetLoggerFiles(mFilename);
+            Exception::clearLast();
          }
       }
-      
-      // rotate the log file if necessary
-      rotateLogFile(logFileText.c_str());
-      
-      // print to all appropriate streams
-      map<OutputStream*, Level>::iterator i;
-      for(i = mStreamToLevel.begin(); i != mStreamToLevel.end(); i++)
-      {
-         // get the next stream and its level
-         OutputStream* os = i->first;
-         Level sv = i->second;
-         
-         if(sv >= level)
-         {
-            if(os == getOutputStream())
-            {
-               os->write(logFileText.c_str(), logFileText.length());
-            }
-            else
-            {
-               if(os == OStreamOutputStream::getStdoutStream() ||
-                  useCustomStreams)
-               {
-                  os->write(logText.c_str(), logText.length());
-               }
-            }
-
-            // FIXME
-            //os->flush();
-         }
-      }
-      
-      // if there is any remainder, log it without a logger header
-      if(strcmp(remainder.c_str(), "") != 0)
-      {
-         log(c, remainder.c_str(), level, false, false);
-      }
-      
-      rval = true;
    }
-   LoggerManager::getInstance()->unlock();
-#endif
+   mLock.unlock();
 }

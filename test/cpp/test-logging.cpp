@@ -18,6 +18,12 @@ using namespace db::io;
 using namespace db::logging;
 using namespace db::rt;
 
+#ifdef WIN32
+#define TMPDIR "c:/WINDOWS/Temp"
+#else
+#define TMPDIR "/tmp"
+#endif
+
 void runLoggingTest(TestRunner& tr)
 {
    int obj;
@@ -45,7 +51,7 @@ void runLoggingTest(TestRunner& tr)
    Logger::addLogger(&defaultLogger);
 
    // create file logger
-   File file("test.log");
+   File file(TMPDIR "/test-logging.log");
    FileLogger flog(&file);
    // log default category to the file
    Logger::addLogger(&flog);
@@ -215,6 +221,81 @@ void runLoggingTest(TestRunner& tr)
    tr.ungroup();
 }
 
+static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
+{
+   char fnr[200];
+   snprintf(fnr, 200, "/db-test-logging-rotation-%d-%d%s.log",
+      (int)maxFiles, (int)maxSize, compress ? "-gz" : ""); 
+   string fn;
+   fn.append(TMPDIR);
+   fn.append(fnr); 
+   // create file logger
+   File file(fn.c_str());
+   FileLogger flog(&file);
+   flog.setMaximumRotatingFiles(maxFiles);
+   flog.setRotationFileSize(maxSize);
+   if(compress)
+   {
+      flog.setFlags(flog.getFlags() | FileLogger::GzipCompressRotatedLogsFlag);
+   }
+   // log default category to the file
+   Logger::addLogger(&flog);
+   
+   for(int i = 0; i < 100; i++)
+   {
+      DB_DEBUG("[%05d] 01234567890123456789012345678901234567890123456789", i);
+   }
+   
+   Logger::removeLogger(&flog);
+}
+
+void runLogRotationTest(TestRunner& tr)
+{
+   tr.group("Log Rotation");
+
+   tr.test("init");
+   {
+      // Do a cleanup and re-init.  This could invalidate other unit test setup.
+      Logging::cleanup();
+      Logging::initialize();
+   }
+   tr.passIfNoException();
+
+   tr.test("no rotate");
+   {
+      rotatetest(0, 0, false);
+   }
+   tr.passIfNoException();
+
+   tr.test("rotate size:1000");
+   {
+      rotatetest(0, 1000, false);
+   }
+   tr.passIfNoException();
+
+   tr.test("rotate size:1000 max:3");
+   {
+      rotatetest(3, 1000, false);
+   }
+   tr.passIfNoException();
+
+   tr.test("rotate size:1000 max:3 gz");
+   {
+      rotatetest(3, 1000, true);
+   }
+   tr.passIfNoException();
+
+   tr.test("re-init");
+   {
+      // Do a cleanup and re-init for other unit tests.
+      Logging::cleanup();
+      Logging::initialize();
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 static void runColorLoggingTestAll(TestRunner& tr)
 {
    // test of levels
@@ -372,10 +453,13 @@ public:
    virtual int runInteractiveTests(TestRunner& tr)
    {
       runLoggingTest(tr);
+      runLogRotationTest(tr);
       runColorLoggingTest(tr);
       return 0;
    }
 };
+
+#undef TMPDIR
 
 #ifndef DB_TEST_NO_MAIN
 DB_TEST_MAIN(DbLoggingTester)

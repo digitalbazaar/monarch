@@ -10,7 +10,7 @@
 #include <list>
 #include <string>
 
-#include "db/rt/ExclusiveLock.h"
+#include "db/rt/SharedLock.h"
 #include "db/logging/Category.h"
 
 namespace db
@@ -25,7 +25,7 @@ namespace logging
  * @author David I. Lehn
  * @author Manu Sporny
  */
-class Logger : public virtual db::rt::ExclusiveLock
+class Logger
 {
 public:
    /**
@@ -155,6 +155,11 @@ protected:
     */
    LoggerFlags mFlags;
 
+   /**
+    * Internal data structures lock.
+    */ 
+   db::rt::SharedLock mLock;
+   
    /**
     * A multimap of log categories to many loggers.
     */
@@ -404,8 +409,9 @@ public:
     * Logs a pre-formatted message from the default full log() method.
     *
     * @param message the log message.
+    * @param length length of message
     */
-   virtual void log(const char* message) = 0;
+   virtual void log(const char* message, size_t length) = 0;
    
    /**
     * Add a logger for a category.  Any number of loggers can be added for a

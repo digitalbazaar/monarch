@@ -8,6 +8,7 @@
 
 #include "db/logging/Logger.h"
 #include "db/io/OutputStream.h"
+#include "db/rt/ExclusiveLock.h"
 
 namespace db
 {
@@ -34,6 +35,11 @@ protected:
     */
    bool mCleanup;
 
+   /**
+    * Lock for critical sections.
+    */
+   db::rt::ExclusiveLock mLock;
+   
 public:
    /**
     * Creates a new logger with specified level.
@@ -76,8 +82,9 @@ public:
     * Writes the message to the output stream.
     *
     * @param message the message to write to the output stream.
+    * @param length length of message.
     */
-   virtual void log(const char* message);
+   virtual void log(const char* message, size_t length);
 };
 
 } // end namespace logging
