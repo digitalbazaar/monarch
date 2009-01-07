@@ -193,15 +193,9 @@ bool FileLogger::rotate()
       {
          vector<string>::size_type last =
             oldFiles.size() - mMaxRotatedFiles;
-         printf("will rem s:%d l:%d\n", oldFiles.size(), last);
-         for(unsigned int i = 0; i < oldFiles.size(); i++)
-         {
-            printf("  v[%d]=%s\n", i, oldFiles[i].c_str());
-         }
          for(vector<string>::size_type i = 0; i < last; i++)
          {
             File f(oldFiles[i].c_str());
-            printf("rem:%s\n", f->getPath());
             bool success = f->remove();
             // ignore failures
             if(!success)
