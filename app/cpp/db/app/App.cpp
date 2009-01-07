@@ -1139,7 +1139,7 @@ DynamicObject App::getCommandLineSpecs()
    opt = spec["options"]->append();
    opt["long"] = "--log-rotation-size";
    opt["arg"]["config"] = "command line";
-   opt["arg"]["path"] = "app.logging.rotateFileSize";
+   opt["arg"]["path"] = "app.logging.rotationFileSize";
    opt["argError"] = "No rotation size specified.";
    
    opt = spec["options"]->append();
