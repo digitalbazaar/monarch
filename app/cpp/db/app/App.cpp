@@ -17,6 +17,7 @@
 
 #include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
+#include "db/logging/FileLogger.h"
 #include "db/logging/Logging.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/io/ByteArrayInputStream.h"
@@ -97,7 +98,10 @@ bool App::willInitConfigGroups()
       cfg["app"]["logging"]["enabled"] = true;
       cfg["app"]["logging"]["level"] = "warning";
       cfg["app"]["logging"]["log"] = "-";
-      cfg["app"]["logging"]["logAppend"] = true;
+      cfg["app"]["logging"]["append"] = true;
+      cfg["app"]["logging"]["rotationFileSize"] = (uint64_t)(2000000ULL);
+      cfg["app"]["logging"]["maxRotatedFiles"] = (uint32_t)10;
+      cfg["app"]["logging"]["gzip"] = true;
       cfg["app"]["logging"]["location"] = false;
       cfg["app"]["logging"]["color"] = false;
       cfg["app"]["verbose"]["level"] = (uint64_t)0;
@@ -370,24 +374,33 @@ bool App::startLogging()
    if(cfg["enabled"]->getBoolean())
    {
       // setup logging
-      OutputStream* logStream;
       const char* logFile = cfg["log"]->getString();
       if(strcmp(logFile, "-") == 0)
       {
-         logStream = new OStreamOutputStream(&cout);
+         OutputStream* logStream = new OStreamOutputStream(&cout);
+         mLogger = new OutputStreamLogger(logStream, true);
       }
       else
       {
-         bool append = cfg["logAppend"]->getBoolean();
+         bool append = cfg["append"]->getBoolean();
          File f(logFile);
-         logStream = new FileOutputStream(f, append);
+         FileLogger* fileLogger = new FileLogger();
+         fileLogger->setFile(f, append);
+         if(cfg["gzip"]->getBoolean())
+         {
+            fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
+         }
+         fileLogger->setRotationFileSize(
+            cfg["rotationFileSize"]->getUInt64());
+         fileLogger->setMaxRotatedFiles(
+            cfg["maxRotatedFiles"]->getUInt32());
+         mLogger = fileLogger;
       }
-      mLogger = new OutputStreamLogger(logStream, true);
       // FIXME: add cfg option to pick categories to log
       //Logger::addLogger(&mLogger, BM_..._CAT);
       // FIXME: add cfg options for logging options
       //logger.setDateFormat("%H:%M:%S");
-      //logger.setFlags(logger.getFlags() | Logger::LogThread);
+      //logger.setFlags(Logger::LogThread);
       Logger::Level logLevel;
       const char* levelStr = cfg["level"]->getString(); 
       bool found = Logger::stringToLevel(levelStr, logLevel);
@@ -406,11 +419,11 @@ bool App::startLogging()
       }
       if(cfg["color"]->getBoolean())
       {
-         mLogger->setFlags(mLogger->getFlags() | Logger::LogColor);
+         mLogger->setFlags(Logger::LogColor);
       }
       if(cfg["location"]->getBoolean())
       {
-         mLogger->setFlags(mLogger->getFlags() | Logger::LogLocation);
+         mLogger->setFlags(Logger::LogLocation);
       }
       Logger::addLogger(mLogger);
 
@@ -1062,6 +1075,13 @@ DynamicObject App::getCommandLineSpecs()
 "                      (default: \"warning\")\n"
 "      --log LOG       Set log file.  Use \"-\" for stdout. (default: \"-\")\n"
 "      --log-overwrite Overwrite log file instead of appending. (default: false)\n"
+"      --log-rotating-size SIZE\n"
+"                      Log size that triggers rotation in bytes. 0 to disable.\n"
+"                      (default: 2000000)\n"
+"      --log-max-rotated MAX\n"
+"                      Maximum number of rotated log files. 0 for no limit.\n"
+"                      (default: 10)\n"
+"      --log-no-gzip   Do not gzip rotated logs. (default: gzip logs)\n"
 "      --log-color     Log with any available ANSI color codes. (default: false)\n"
 "      --log-location  Log source code locations.\n"
 "                      (compile time option, default: false)\n"
@@ -1114,7 +1134,24 @@ DynamicObject App::getCommandLineSpecs()
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
    opt["setFalse"]["config"] = "command line";
-   opt["setFalse"]["path"] = "app.logging.logAppend";
+   opt["setFalse"]["path"] = "app.logging.append";
+   
+   opt = spec["options"]->append();
+   opt["long"] = "--log-rotation-size";
+   opt["arg"]["config"] = "command line";
+   opt["arg"]["path"] = "app.logging.rotateFileSize";
+   opt["argError"] = "No rotation size specified.";
+   
+   opt = spec["options"]->append();
+   opt["long"] = "--log-max-rotated";
+   opt["arg"]["config"] = "command line";
+   opt["arg"]["path"] = "app.logging.maxRotatedFiles";
+   opt["argError"] = "Max rotated files not specified.";
+   
+   opt = spec["options"]->append();
+   opt["long"] = "--log-no-gzip";
+   opt["setFalse"]["config"] = "command line";
+   opt["setFalse"]["path"] = "app.logging.gzip";
    
    opt = spec["options"]->append();
    opt["long"] = "--log-location";
