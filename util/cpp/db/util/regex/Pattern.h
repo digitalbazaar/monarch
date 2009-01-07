@@ -62,7 +62,7 @@ public:
    /**
     * Compiles a regular expression into a Pattern.
     * 
-    * The caller of this method must free the returned Pattern.
+    * The caller of this method must free the returned Pattern with delete.
     * 
     * @param regex the regular expression to compile.
     * @param matchCase true to match case, false to be case-insensitive.
