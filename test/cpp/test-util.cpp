@@ -223,24 +223,68 @@ void runRegexTest(TestRunner& tr)
 {
    tr.group("Regex");
 
+   tr.test("match");
    {
-      tr.test("match");
       assert(Pattern::match("^[a-z]{3}$", "abc"));
       assert(Pattern::match("^[a-zA-Z0-9_]+$", "username"));
-      tr.passIfNoException();
+      assert(Pattern::match("^.*$", ".123-a0"));
+      assert(Pattern::match("^[0-9]{3}$", "123"));
+      assert(Pattern::match("^[[:digit:]]{3}$", "123"));
+      assert(Pattern::match("^\\.[0-9]{3}$", ".123"));
+      assert(Pattern::match("^\\.[0-9]{3}-[a-z]{1}$", ".123-a"));
+      assert(Pattern::match("^\\.[0-9]{3}-[a-z]{1}[0-9]+$", ".123-a0"));
+      const char* pat = "^\\.[0-9]{3}(-[a-z]{1}[0-9]+)?(\\.gz)?$";
+      assert(Pattern::match(pat, ".123"));
+      assert(Pattern::match(pat, ".123.gz"));
+      assert(Pattern::match(pat, ".123-a5"));
+      assert(Pattern::match(pat, ".123-b50"));
+      assert(Pattern::match(pat, ".123-b50.gz"));
    }
+   tr.passIfNoException();
    
+   tr.test("compiled match");
    {
-      tr.test("no match");
+      unsigned int _start;
+      unsigned int _end;
+      {
+         Pattern* pat = Pattern::compile("moo");
+         assert(pat->match("moo", 0, _start, _end));
+         delete pat;
+      }
+      {
+         Pattern* pat = Pattern::compile("^.*$");
+         assert(pat->match("anything", 0, _start, _end));
+         delete pat;
+      }
+      {
+         Pattern* pat = Pattern::compile("^[0-9]+$");
+         assert(!pat->match("", 0, _start, _end));
+         assert(!pat->match("abc", 0, _start, _end));
+         assert(pat->match("0123", 0, _start, _end));
+         delete pat;
+      }
+      {
+         Pattern* pat = Pattern::compile("^[0-9]+$");
+         assert(!pat->match("abc", 0, _start, _end));
+         assert(pat->match("123", 0, _start, _end));
+         assert(pat->match("abc123" + 3, 0, _start, _end));
+         // Note offset does _not_ work this way:
+         //assert(pat->match("abc123", 3, _start, _end));
+         delete pat;
+      }
+   }
+   tr.passIfNoException();
+   
+   tr.test("no match");
+   {
       assert(!Pattern::match("^[a-z]{3}$", "abcd"));
       assert(!Pattern::match("^[a-z]{3}$", "ABC"));
       assert(!Pattern::match("^[a-zA-Z0-9_]+$", "user name"));
-      tr.passIfNoException();
    }
+   tr.passIfNoException();
 
+   tr.test("sub-match");
    {
-      tr.test("sub-match");
-   
       string submatches = "Look for green globs of green matter in green goo.";
       Pattern* p = Pattern::compile("green");
    
@@ -268,19 +312,18 @@ void runRegexTest(TestRunner& tr)
       assert(!p->match(submatches.c_str(), index, start, end));
       
       delete p;
-      tr.passIfNoException();
    }
+   tr.passIfNoException();
    
+   tr.test("replace all");
    {
-      tr.test("replace all");
       
       string str = "Look for green globs of green matter in green goo.";
       string exp = "Look for blue globs of blue matter in blue goo.";
       StringTools::regexReplaceAll(str, "green", "blue");
       assertStrCmp(str.c_str(), exp.c_str());
-   
-      tr.passIfNoException();
    }
+   tr.passIfNoException();
 
    tr.ungroup();
 }
