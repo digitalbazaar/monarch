@@ -25,7 +25,8 @@ using namespace db::rt;
 Logger::LoggerMap* Logger::sLoggers;
 
 Logger::Logger() :
-   mDateFormat(NULL)
+   mDateFormat(NULL),
+   mFlags(0)
 {
    setLevel(Max);
    setDateFormat("%Y-%m-%d %H:%M:%S");
@@ -235,9 +236,31 @@ bool Logger::setDateFormat(const char* format)
    return true;
 }
 
+void Logger::setAllFlags(LoggerFlags flags)
+{
+   mLock.lockExclusive();
+   {
+      mFlags = flags;
+   }
+   mLock.unlockExclusive();
+}
+
 void Logger::setFlags(LoggerFlags flags)
 {
-   mFlags = flags;
+   mLock.lockExclusive();
+   {
+      mFlags |= flags;
+   }
+   mLock.unlockExclusive();
+}
+
+void Logger::clearFlags(LoggerFlags flags)
+{
+   mLock.lockExclusive();
+   {
+      mFlags &= ~flags;
+   }
+   mLock.unlockExclusive();
 }
 
 Logger::LoggerFlags Logger::getFlags()
@@ -295,7 +318,7 @@ bool Logger::log(
    
    if(mLevel >= level)
    {
-      // save flags to avoid async changes while in this function
+      // save flags to avoid async flag changes while in this function
       LoggerFlags loggerFlags = mFlags;
 
       // Output fields depending on flags as:

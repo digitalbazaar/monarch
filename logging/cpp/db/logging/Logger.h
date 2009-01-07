@@ -79,7 +79,7 @@ public:
    /**
     * Logger control flags.
     */
-   enum LoggerFlag {
+   enum {
       /**
        * Log date.
        */
@@ -116,7 +116,12 @@ public:
       /**
        * Verbose logging flags (LogDefaultFlags plus thread and location).
        */
-      LogVerboseFlags = LogDefaultFlags | LogThread | LogLocation
+      LogVerboseFlags = LogDefaultFlags | LogThread | LogLocation,
+      /**
+       * Shift value for last flag. Subclasses can use flag bits greater than
+       * (1 << LogLastFlagShift).
+       */
+      LogLastFlagShift = 6
    };
    
    /**
@@ -258,11 +263,25 @@ public:
    virtual bool setDateFormat(const char* format);
    
    /**
+    * Sets all the logger flags.
+    *
+    * @param flags a bit field of all LoggerFlags.
+    */
+   virtual void setAllFlags(LoggerFlags flags);
+   
+   /**
     * Sets the logger flags.
     *
-    * @param flags a bit field of LoggerFlags.
+    * @param flags a bit field of LoggerFlags to set.
     */
    virtual void setFlags(LoggerFlags flags);
+   
+   /**
+    * Sets the logger flags.
+    *
+    * @param flags a bit field of LoggerFlags to clear.
+    */
+   virtual void clearFlags(LoggerFlags flags);
    
    /**
     * Gets the logger flags.

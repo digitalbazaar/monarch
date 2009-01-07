@@ -30,7 +30,7 @@ public:
       /**
        * Gzip compress rotated logs.
        */
-      GzipCompressRotatedLogsFlag = (1 << 0)
+      GzipCompressRotatedLogs = (1 << (Logger::LogLastFlagShift+1))
    };
    
 protected:
@@ -40,27 +40,22 @@ protected:
    db::io::File mFile;
    
    /**
-    * Logger flags.
-    */
-   unsigned int mFlags;
-   
-   /**
     * The file size when file rotation is performed.
     */
-   off_t mRotationFileSize;
+   uint64_t mRotationFileSize;
    
    /**
     * The current file size.
     */
-   off_t mCurrentFileSize;
+   uint64_t mCurrentFileSize;
    
    /**
-    * The maximum number of rotating files. This is the maximum number of
+    * The maximum number of rotated files. This is the maximum number of
     * files, excluding the main log file, that will be kept.  Older files will
     * be removed.  Age is determined by using the rotation timestamp and
     * optional sequence id.
     */
-   unsigned int mMaximumRotatingFiles;
+   unsigned int mMaxRotatedFiles;
    
    /**
     * Lock to serialize logging output and logger adjustment.
@@ -76,6 +71,12 @@ protected:
     * @return true on success, false and exception on failure.
     */
    virtual bool rotate();
+   
+   /**
+    * Sequence number to use in the special case of multiple sub-second file
+    * rotations. 
+    */
+   unsigned int mSeqNum;
    
 public:
    /**
@@ -98,20 +99,6 @@ public:
    virtual void close();
    
    /**
-    * Set flags.
-    * 
-    * @param flags logger flags.
-    */
-   virtual void setFlags(unsigned int flags);
-   
-   /**
-    * Get flags.
-    * 
-    * @return the flags
-    */
-   virtual unsigned int getFlags();
-   
-   /**
     * Opens a new log file with the specified file name. Setting append to
     * true will append the file if it exists. Setting it to false will
     * overwrite it.
@@ -131,7 +118,7 @@ public:
     * @param fileSize the log file size (in bytes) that triggers rotation or 0
     *        for no maximum.
     */
-   virtual void setRotationFileSize(off_t fileSize);
+   virtual void setRotationFileSize(uint64_t fileSize);
    
    /**
     * Gets the file size (in bytes) that triggers rotation.
@@ -139,22 +126,22 @@ public:
     * @return the log file size (in bytes) that triggers rotation or 0 for no
     *         rotation.
     */
-   virtual off_t getRotationFileSize();
+   virtual uint64_t getRotationFileSize();
    
    /**
-    * Sets the maximum number of rotating log files.  0 allows an unlimited
+    * Sets the maximum number of rotated log files.  0 allows an unlimited
     * number of rotated files. 1 and greater limit the number of rotated files.
     *
-    * @param maximumRotatingFiles the number of rotating log files.
+    * @param maxRotatedFiles the number of rotated log files.
     */
-   virtual void setMaximumRotatingFiles(unsigned int maximumRotatingFiles);
+   virtual void setMaxRotatedFiles(unsigned int maxRotatedFiles);
 
    /**
-    * Gets the number of rotating log files. See setMaximumRotatingFiles().
+    * Gets the number of rotated log files. See setMaxRotatedFiles().
     *
-    * @return the number of rotating log files.
+    * @return the number of rotated log files.
     */
-   virtual unsigned int getMaximumRotatingFiles();
+   virtual unsigned int getMaxRotatedFiles();
    
    /**
     * Gets the file for this logger.  Note that the file may be changed when

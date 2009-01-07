@@ -102,39 +102,39 @@ void runLoggingTest(TestRunner& tr)
    
    Logger::LoggerFlags old = defaultLogger.getFlags();
 
-   defaultLogger.setFlags(0);
+   defaultLogger.setAllFlags(0);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "none");
 
-   defaultLogger.setFlags(Logger::LogDefaultFlags);
+   defaultLogger.setAllFlags(Logger::LogDefaultFlags);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "default");
 
-   defaultLogger.setFlags(Logger::LogVerboseFlags);
+   defaultLogger.setAllFlags(Logger::LogVerboseFlags);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "verbose");
 
-   defaultLogger.setFlags(Logger::LogDate);
+   defaultLogger.setAllFlags(Logger::LogDate);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Date");
 
-   defaultLogger.setFlags(Logger::LogThread);
+   defaultLogger.setAllFlags(Logger::LogThread);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Thread");
 
-   defaultLogger.setFlags(Logger::LogObject);
+   defaultLogger.setAllFlags(Logger::LogObject);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Object");
 
-   defaultLogger.setFlags(Logger::LogLevel);
+   defaultLogger.setAllFlags(Logger::LogLevel);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Level");
 
-   defaultLogger.setFlags(Logger::LogCategory);
+   defaultLogger.setAllFlags(Logger::LogCategory);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Category");
 
-   defaultLogger.setFlags(Logger::LogLocation);
+   defaultLogger.setAllFlags(Logger::LogLocation);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Location");
 
-   defaultLogger.setFlags(Logger::LogDate | Logger::LogThread |
+   defaultLogger.setAllFlags(Logger::LogDate | Logger::LogThread |
       Logger::LogObject | Logger::LogLevel |
       Logger::LogCategory | Logger::LogLocation);
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "all");
 
-   defaultLogger.setFlags(old);
+   defaultLogger.setAllFlags(old);
 
    tr.passIfNoException();
 
@@ -232,11 +232,11 @@ static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
    // create file logger
    File file(fn.c_str());
    FileLogger flog(&file);
-   flog.setMaximumRotatingFiles(maxFiles);
+   flog.setMaxRotatedFiles(maxFiles);
    flog.setRotationFileSize(maxSize);
    if(compress)
    {
-      flog.setFlags(flog.getFlags() | FileLogger::GzipCompressRotatedLogsFlag);
+      flog.setFlags(FileLogger::GzipCompressRotatedLogs);
    }
    // log default category to the file
    Logger::addLogger(&flog);
@@ -332,7 +332,7 @@ void runColorLoggingTest(TestRunner& tr)
    // Create the default logger
    OutputStreamLogger logger(&stdoutOS);
    // Set color mode
-   logger.setFlags(logger.getFlags() | Logger::LogColor);
+   logger.setFlags(Logger::LogColor);
 
    // clear previous loggers
    Logger::clearLoggers();
@@ -341,14 +341,14 @@ void runColorLoggingTest(TestRunner& tr)
    
    tr.test("no color");
    {
-      logger.setFlags(logger.getFlags() & ~Logger::LogColor);
+      logger.clearFlags(Logger::LogColor);
       runColorLoggingTestAll(tr);
    }
    tr.passIfNoException();
    
    tr.test("color");
    {
-      logger.setFlags(logger.getFlags() | Logger::LogColor);
+      logger.setFlags(Logger::LogColor);
       runColorLoggingTestAll(tr);
    }
    tr.passIfNoException();

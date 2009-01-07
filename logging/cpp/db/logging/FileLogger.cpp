@@ -22,16 +22,15 @@ using namespace db::rt;
 using namespace db::util;
 using namespace db::util::regex;
 
-#define DEFAULT_NUM_ROTATING_FILES 5
-#define DEFAULT_NUM_ROTATING_FILES 5
+#define DEFAULT_MAX_ROTATED_FILES 5
 
 FileLogger::FileLogger(File* file) :
    OutputStreamLogger(),
    mFile((FileImpl*)NULL),
-   mFlags(0),
    mRotationFileSize(0),
    mCurrentFileSize(0),
-   mMaximumRotatingFiles(DEFAULT_NUM_ROTATING_FILES)
+   mMaxRotatedFiles(DEFAULT_MAX_ROTATED_FILES),
+   mSeqNum(0)
 {
    if(file != NULL)
    {
@@ -58,50 +57,43 @@ void FileLogger::close()
    mLock.unlock();
 }
 
-void FileLogger::setFlags(unsigned int flags)
-{
-   mLock.lock();
-   {
-      mFlags = flags;
-   }
-   mLock.unlock();
-}
-
-unsigned int FileLogger::getFlags()
-{
-   return mFlags;
-}
-
 /**
  * Find first available path of the form "base[-seq]ext"
  * Using alphanumericly sortable encoding for sequence of:
  *   seq = chr(ord('a')+len(str(n))-1) + str(n)
  * (ie, prefix decimal string with letter based on length of string)
  */
-static string findAvailablePath(const char* base, const char* ext)
+static string findAvailablePath(
+   const char* base, const char* ext, unsigned int& seq)
 {
-   unsigned int n = 0;
    bool found = false;
    size_t seqlen = 20;
    size_t buflen = strlen(base) + seqlen + strlen(ext) + 1; 
-   char seqbuf[seqlen];
    char buf[buflen];
-   while(!found)
+   // check basic file
    {
-      if(n == 0)
-      {
-         snprintf(buf, buflen, "%s%s", base, ext);
-      }
-      else
-      {
-         snprintf(seqbuf, seqlen, "%u", n);
-         char seqc = 'a' + strlen(seqbuf) - 1;
-         snprintf(buf, buflen, "%s-%c%s%s", base, seqc, seqbuf, ext);
-      }
-      n++;
-      
+      snprintf(buf, buflen, "%s%s", base, ext);
       File f(buf);
       found = !f->exists();
+   }
+   // handle sub-second file names
+   if(!found)
+   {
+      char seqbuf[seqlen];
+      // scan file names until we find a free one
+      while(!found)
+      {
+         snprintf(seqbuf, seqlen, "%u", seq++);
+         char seqc = 'a' + strlen(seqbuf) - 1;
+         snprintf(buf, buflen, "%s-%c%s%s", base, seqc, seqbuf, ext);
+         File f(buf);
+         found = !f->exists();
+      }
+   }
+   else
+   {
+      // reset sequence
+      seq = 0;
    }
    string rval(buf);
    return rval;
@@ -122,11 +114,11 @@ bool FileLogger::rotate()
    
    // move file to new name
    close();
-   if(mFlags & GzipCompressRotatedLogsFlag)
+   if(getFlags() & GzipCompressRotatedLogs)
    {
       // compress stream from old file to new .gz file
       // FIXME for large files this will block logging during compression
-      fn = findAvailablePath(fn.c_str(), ".gz");
+      fn = findAvailablePath(fn.c_str(), ".gz", mSeqNum);
       File newFile(fn.c_str());
       
       Gzipper gzipper;
@@ -152,7 +144,7 @@ bool FileLogger::rotate()
    else
    {
       // move old file to new file
-      fn = findAvailablePath(fn.c_str(), "");
+      fn = findAvailablePath(fn.c_str(), "", mSeqNum);
       File newFile(fn.c_str());
       rval = mFile->rename(newFile);
    }
@@ -165,7 +157,7 @@ bool FileLogger::rotate()
       rval = true;
    }
    
-   if(mMaximumRotatingFiles > 0)
+   if(mMaxRotatedFiles > 0)
    {
       // remove old log files
       const char* path = mFile->getAbsolutePath();
@@ -197,10 +189,15 @@ bool FileLogger::rotate()
       // sort results
       sort(oldFiles.begin(), oldFiles.end());
       // remove if needed
-      if(oldFiles.size() > mMaximumRotatingFiles)
+      if(oldFiles.size() > mMaxRotatedFiles)
       {
          vector<string>::size_type last =
-            oldFiles.size() - mMaximumRotatingFiles;
+            oldFiles.size() - mMaxRotatedFiles;
+         printf("will rem s:%d l:%d\n", oldFiles.size(), last);
+         for(unsigned int i = 0; i < oldFiles.size(); i++)
+         {
+            printf("  v[%d]=%s\n", i, oldFiles[i].c_str());
+         }
          for(vector<string>::size_type i = 0; i < last; i++)
          {
             File f(oldFiles[i].c_str());
@@ -258,7 +255,7 @@ bool FileLogger::setFile(File& file, bool append)
    return rval;
 }
 
-void FileLogger::setRotationFileSize(off_t fileSize)
+void FileLogger::setRotationFileSize(uint64_t fileSize)
 {
    mLock.lock();
    {
@@ -268,23 +265,23 @@ void FileLogger::setRotationFileSize(off_t fileSize)
    mLock.unlock();
 }
 
-off_t FileLogger::getRotationFileSize()
+uint64_t FileLogger::getRotationFileSize()
 {
    return mRotationFileSize;
 }
 
-void FileLogger::setMaximumRotatingFiles(unsigned int maximumRotatingFiles)
+void FileLogger::setMaxRotatedFiles(unsigned int maxRotatedFiles)
 {
    mLock.lock();
    {
-      mMaximumRotatingFiles = maximumRotatingFiles;
+      mMaxRotatedFiles = maxRotatedFiles;
    }
    mLock.unlock();
 }
 
-unsigned int FileLogger::getMaximumRotatingFiles()
+unsigned int FileLogger::getMaxRotatedFiles()
 {
-   return mMaximumRotatingFiles;
+   return mMaxRotatedFiles;
 }
 
 File& FileLogger::getFile()
