@@ -110,7 +110,9 @@ bool MySqlConnection::begin()
    
    if(!(rval = (mysql_query(mHandle, "START TRANSACTION") == 0)))
    {
-      ExceptionRef e = new SqlException("Could not begin transaction.");
+      ExceptionRef e = new Exception("Could not begin transaction.");
+      ExceptionRef cause = new MySqlException(this);
+      e->setCause(cause);
       Exception::setLast(e, false);
    }
    
@@ -123,7 +125,9 @@ bool MySqlConnection::commit()
    
    if(!(rval = (mysql_query(mHandle, "COMMIT") == 0)))
    {
-      ExceptionRef e = new SqlException("Could not commit transaction.");
+      ExceptionRef e = new Exception("Could not commit transaction.");
+      ExceptionRef cause = new MySqlException(this);
+      e->setCause(cause);
       Exception::setLast(e, false);
    }
    
@@ -136,7 +140,9 @@ bool MySqlConnection::rollback()
    
    if(!(rval = (mysql_query(mHandle, "ROLLBACK") == 0)))
    {
-      ExceptionRef e = new SqlException("Could not rollback transaction.");
+      ExceptionRef e = new Exception("Could not rollback transaction.");
+      ExceptionRef cause = new MySqlException(this);
+      e->setCause(cause);
       Exception::setLast(e, false);
    }
    
@@ -168,7 +174,9 @@ bool MySqlConnection::query(const char* sql)
    
    if(!(rval = (mysql_query(mHandle, sql) == 0)))
    {
-      ExceptionRef e = new SqlException("Could not execute query.");
+      ExceptionRef e = new Exception("Could not execute query.");
+      ExceptionRef cause = new MySqlException(this);
+      e->setCause(cause);
       Exception::setLast(e, false);
    }
    
