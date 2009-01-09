@@ -4,12 +4,12 @@ SUBDIRS := 3rdparty/cpp \
            rt/cpp \
            util/cpp \
            io/cpp \
+           compress/cpp \
            logging/cpp \
            modest/cpp \
            fiber/cpp \
            crypto/cpp \
            event/cpp \
-           compress/cpp \
            data/cpp \
            net/cpp \
            config/cpp \

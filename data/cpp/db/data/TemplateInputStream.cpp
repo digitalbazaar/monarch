@@ -282,8 +282,8 @@ int TemplateInputStream::read(char* b, int length)
          if(parseError)
          {
             // create "near" string that failed parsing
-            char near[mTemplate.length()];
-            strncpy(near, mTemplate.data(), mTemplate.length());
+            char nearStr[mTemplate.length()];
+            strncpy(nearStr, mTemplate.data(), mTemplate.length());
             
             // include line, position, and part of string that was parsed
             // in the parse exception
@@ -292,7 +292,7 @@ int TemplateInputStream::read(char* b, int length)
                "db.data.TemplateInputStream.ParseError");
             e->getDetails()["line"] = mLineNumber;
             e->getDetails()["position"] = mPosition;
-            e->getDetails()["near"] = near;
+            e->getDetails()["near"] = nearStr;
             Exception::setLast(e, true);
             rval = -1;
          }

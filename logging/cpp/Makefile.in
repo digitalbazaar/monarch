@@ -5,6 +5,7 @@ LIBRARIES = dblogging
 DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio
 # Control import/export behavior
 MODULE_WINDOWS_CXX_FLAGS = -DBUILD_DB_LOGGING_DLL
+DYNAMIC_WINDOWS_LIBRARIES = dbcompress
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
