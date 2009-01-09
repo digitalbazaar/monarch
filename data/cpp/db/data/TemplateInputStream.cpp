@@ -152,7 +152,7 @@ bool TemplateInputStream::process(const char* pos)
          {
             // escape on, write data before ESCAPE and skip it
             mEscapeOn = true;
-            mPosition += (pos - mTemplate.data());
+            mPosition += (pos - mTemplate.data()) + 1;
             mTemplate.get(&mParsed, pos - mTemplate.data(), true);
             mTemplate.clear(1);
             break;
@@ -161,7 +161,7 @@ bool TemplateInputStream::process(const char* pos)
          {
             // parsing variable on, write data before VAR_START and skip it
             mParsingVariable = true;
-            mPosition += (pos - mTemplate.data());
+            mPosition += (pos - mTemplate.data()) + 1;
             mTemplate.get(&mParsed, pos - mTemplate.data(), true);
             mTemplate.clear(1);
             break;
@@ -182,15 +182,15 @@ bool TemplateInputStream::process(const char* pos)
             if(mVars->hasMember(varname))
             {
                // write value out to parsed data buffer
-               DynamicObject& var = mVars[varname];
-               mParsed.put(var->getString(), var->length(), true);
-               mPosition += len;
+               const char* value = mVars[varname]->getString();
+               mParsed.put(value, strlen(value), true);
+               mPosition += len + 1;
             }
             else
             {
                // missing variable
                ExceptionRef e = new Exception(
-                  "Variable not found."
+                  "Variable not found.",
                   "db.data.TemplateInputStream.VariableNotFound");
                e->getDetails()["name"] = varname;
                Exception::setLast(e, false);

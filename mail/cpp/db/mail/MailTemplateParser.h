@@ -48,25 +48,6 @@ namespace mail
  */
 class MailTemplateParser
 {
-protected:
-   /**
-    * Parses a single line from the template and adds its contents to the
-    * passed Mail either as a header or as a line of the message body.
-    * Template variables are replaced according to the passed "vars"
-    * DynamicObject and the headers flag is cleared once a blank line
-    * has been parsed.
-    * 
-    * @param mail the Mail to populate.
-    * @param vars the key-value variables in the template.
-    * @param line the line to parse.
-    * @param headers the flag to clear once the headers have been parsed.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool parseLine(
-      Mail* mail, db::rt::DynamicObject& vars,
-      const char* line, bool& headers);
-   
 public:
    /**
     * Creates a new MailTemplateParser.

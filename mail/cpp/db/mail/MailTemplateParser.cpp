@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/mail/MailTemplateParser.h"
-#include "db/util/StringTools.h"
 
-using namespace std;
+#include "db/data/TemplateInputStream.h"
+
+using namespace db::data;
 using namespace db::io;
 using namespace db::mail;
 using namespace db::rt;
-using namespace db::util;
 
 MailTemplateParser::MailTemplateParser()
 {
@@ -18,105 +18,29 @@ MailTemplateParser::~MailTemplateParser()
 {
 }
 
-bool MailTemplateParser::parseLine(
-   Mail* mail, DynamicObject& vars, const char* line, bool& headers)
+/**
+ * Parses a single line from the template and adds its contents to the
+ * passed Mail either as a header or as a line of the message body.
+ * Template variables are replaced according to the passed "vars"
+ * DynamicObject and the headers flag is cleared once a blank line
+ * has been parsed.
+ * 
+ * @param mail the Mail to populate.
+ * @param vars the key-value variables in the template.
+ * @param line the line to parse.
+ * @param headers the flag to clear once the headers have been parsed.
+ * 
+ * @return true if successful, false if an exception occurred.
+ */
+static bool parseLine(Mail* mail, const char* line, bool& headers)
 {
    bool rval = true;
    
-   // keep a string for appending message data to
-   string msg;
-   
-   // replace all variables in the line
-   const char* var = NULL;
-   const char* start = line;
-   while(start != NULL && (var = strchr(start, '$')) != NULL)
-   {
-      // ensure the '$' isn't escaped
-      bool escaped = false;
-      if(var != line)
-      {
-         // check the preceeding characters for a non-escape character
-         for(const char* v = var - 1; !escaped && v != line; v--)
-         {
-            if(*v != '\\')
-            {
-               // '$' is not escaped, no need to check further
-               break;
-            }
-            else if((v - 1) == line)
-            {
-               // '$' is escaped
-               escaped = true;
-            }
-            else if(*(v - 1) == '\\')
-            {
-               // an escaped '\' has been found, decrement v
-               v--;
-            }
-            else
-            {
-               // '$' is escaped
-               escaped = true;
-            }
-         }
-      }
-      
-      if(escaped)
-      {
-         // append line data before the escape character
-         // the '$' is escaped, so just append the dollar sign
-         msg.append(start, var - start - 1);
-         msg.push_back('$');
-         
-         // update start
-         start = var + 1;
-      }
-      else
-      {
-         // append all line data before the variable
-         msg.append(start, var - start);
-         
-         // pass '$' character
-         var++;
-         
-         // find the next non-alphanumeric (non-variable character) and use
-         // it as the next starting point for parsing variables
-         start = strpbrk(var, " \t\\`~!@#$%^&*()-+=[]{}|;':\",./<>?");
-         
-         // append the variable value
-         if(start != NULL)
-         {
-            // variable name ends before the line is terminated
-            char key[start - var + 1];
-            strncpy(key, var, start - var);
-            key[start - var] = 0;
-            msg.append(vars[key]->getString());
-         }
-         else
-         {
-            // variable name goes to the end of the line
-            msg.append(vars[var]->getString());
-         }
-      }
-   }
-   
-   // append remainder of the line
-   if(var == NULL && start != NULL)
-   {
-      msg.append(start);
-   }
-   
-   // unescape all '\' characters
-   StringTools::replaceAll(msg, "\\\\", "\\");
-   
-   // point line at the parsed line
-   line = msg.c_str();
-   
    if(headers)
    {
-      if(msg.length() == 0)
+      if(strlen(line) == 0)
       {
-         // last header found
+         // empty line means last header found
          headers = false;
       }
       else
@@ -129,7 +53,7 @@ bool MailTemplateParser::parseLine(
          {
             ExceptionRef e = new Exception(
                "Parse error while parsing mail template! Mail header "
-               "is malformed, non-existant, or Subject header was not found.");
+               "is malformed or non-existant.");
             Exception::setLast(e, false);
             rval = false;
          }
@@ -169,6 +93,9 @@ bool MailTemplateParser::parse(
    // clear mail
    mail->clear();
    
+   // add template input stream to passed input stream
+   TemplateInputStream tis(vars, is, false);
+   
    // SMTP RFC requires lines be no longer than 998 bytes (+2 for CRLF = 1000)
    // so read in a maximum of 1000 bytes at a time
    bool headers = true;
@@ -180,7 +107,7 @@ bool MailTemplateParser::parse(
    bool cr = false;
    
    // read as much as 1000 bytes at a time, then check the read buffer
-   while(rval && (numBytes = is->read(b, 1000 - length)) > 0)
+   while(rval && (numBytes = tis.read(b, 1000 - length)) > 0)
    {
       // increment length
       length += numBytes;
@@ -200,7 +127,7 @@ bool MailTemplateParser::parse(
          length -= (end - start);
          
          // parse line and increment start, skipping LF as appropriate
-         rval = parseLine(mail, vars, start, headers);
+         rval = parseLine(mail, start, headers);
          start = (cr && end[1] == '\n' ? end + 2 : end + 1);
       }
       
@@ -228,7 +155,7 @@ bool MailTemplateParser::parse(
    else if(start != NULL && start[0] != 0)
    {
       // parse the last line
-      rval = parseLine(mail, vars, start, headers);
+      rval = parseLine(mail, start, headers);
    }
    
    return rval;

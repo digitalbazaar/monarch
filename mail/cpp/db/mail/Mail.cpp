@@ -208,9 +208,10 @@ string Mail::toTemplate()
    // add body
    str.append(mMessage["body"]->getString());
    
-   // escape all '$' and '\'
+   // escape all '{', '}', and '\'
    StringTools::replaceAll(str, "\\", "\\\\");
-   StringTools::replaceAll(str, "$", "\\$");
+   StringTools::replaceAll(str, "{", "\\{");
+   StringTools::replaceAll(str, "}", "\\}");
    
    return str;
 }
