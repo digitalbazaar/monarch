@@ -56,25 +56,27 @@ bool Sqlite3Connection::connect(Url* url)
    else
    {
       // get database name
-      const char* db;
-      if(strcmp(url->getScheme().c_str(), "sqlite3::memory:") == 0)
+      string db;
+      if(strcmp(url->toString().c_str(), "sqlite3::memory:") == 0)
       {
-         db = url->getScheme().c_str();
+         // use in-memory database
+         db = ":memory:";
       }
       else
       {
-         db = url->getPath().c_str();
+         // use local file for database
+         File file(url->getPath().c_str());
+         db = file->getAbsolutePath();
       }
       
       // open sqlite3 connection
-      File file(db);
-      int ec = sqlite3_open(file->getAbsolutePath(), &mHandle);
+      int ec = sqlite3_open(db.c_str(), &mHandle);
       if(ec != SQLITE_OK)
       {
          // create exception, close connection
          ExceptionRef e = new Sqlite3Exception(this);
          e->getDetails()["url"] = url->toString().c_str();
-         e->getDetails()["path"] = file->getAbsolutePath();
+         e->getDetails()["db"] = db.c_str();
          Exception::setLast(e, false);
          Sqlite3Connection::close();
       }
