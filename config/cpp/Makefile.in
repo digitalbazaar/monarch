@@ -5,6 +5,7 @@ LIBRARIES = dbconfig
 DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio dbdata dblogging
 # Control import/export behavior
 MODULE_WINDOWS_CXX_FLAGS = -DBUILD_DB_CONFIG_DLL
+DYNAMIC_MACOS_LIBRARIES = dbcompress
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
