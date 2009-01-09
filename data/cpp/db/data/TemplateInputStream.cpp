@@ -15,7 +15,7 @@ using namespace db::rt;
 #define SPECIAL     "\n\\{}"
 
 TemplateInputStream::TemplateInputStream(
-   DynamicObject& vars, InputStream* is, bool cleanup) :
+   DynamicObject& vars, bool strict, InputStream* is, bool cleanup) :
    FilterInputStream(is, cleanup),
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
@@ -24,6 +24,7 @@ TemplateInputStream::TemplateInputStream(
    mParsingVariable(false),
    mEscapeOn(false),
    mVars(vars),
+   mStrict(strict),
    mEndOfStream(false)
 {
 }
@@ -36,6 +37,7 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
    mPosition(0),
    mParsingVariable(false),
    mEscapeOn(false),
+   mStrict(false),
    mEndOfStream(false)
 {
    mVars->setType(Map);
@@ -45,9 +47,10 @@ TemplateInputStream::~TemplateInputStream()
 {
 }
 
-void TemplateInputStream::setVariables(DynamicObject& vars)
+void TemplateInputStream::setVariables(DynamicObject& vars, bool strict)
 {
    mVars = vars;
+   mStrict = strict;
 }
 
 /**
@@ -188,12 +191,19 @@ bool TemplateInputStream::process(const char* pos)
             }
             else
             {
-               // missing variable
-               ExceptionRef e = new Exception(
-                  "Variable not found.",
-                  "db.data.TemplateInputStream.VariableNotFound");
-               e->getDetails()["name"] = varname;
-               Exception::setLast(e, false);
+               if(mStrict)
+               {
+                  // missing variable
+                  ExceptionRef e = new Exception(
+                     "Variable not found.",
+                     "db.data.TemplateInputStream.VariableNotFound");
+                  e->getDetails()["name"] = varname;
+                  Exception::setLast(e, false);
+               }
+               else
+               {
+                  mPosition += len + 1;
+               }
             }
             break;
          }

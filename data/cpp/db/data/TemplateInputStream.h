@@ -77,6 +77,12 @@ protected:
    db::rt::DynamicObject mVars;
    
    /**
+    * True to raise exceptions if the template has variables that
+    * are not found in "mVars", false not to.
+    */
+   bool mStrict;
+   
+   /**
     * Set to true once the end of the underlying stream is reached.
     */
    bool mEndOfStream;
@@ -105,12 +111,14 @@ public:
     * passed InputStream.
     * 
     * @param vars the template variables to use.
+    * @param strict true to raise an exception if the passed variables do not
+    *               have a variable that is found in the template, false if not.
     * @param is the underlying InputStream to read from.
     * @param cleanup true to clean up the passed InputStream when destructing,
     *                false not to.
     */
    TemplateInputStream(
-      db::rt::DynamicObject& vars,
+      db::rt::DynamicObject& vars, bool strict,
       db::io::InputStream* is, bool cleanup = false);
    
    /**
@@ -136,8 +144,10 @@ public:
     * template variable with in the actual message.
     * 
     * @param vars the variables to use.
+    * @param strict true to raise an exception if the passed variables do not
+    *               have a variable that is found in the template, false if not.
     */
-   virtual void setVariables(db::rt::DynamicObject& vars);
+   virtual void setVariables(db::rt::DynamicObject& vars, bool strict = false);
    
    /**
     * Reads some bytes from the stream. This method will block until at least

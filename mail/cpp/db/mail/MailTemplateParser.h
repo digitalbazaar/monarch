@@ -68,12 +68,15 @@ public:
     * 
     * @param mail the Mail to populate.
     * @param vars the key-value variables in the template.
+    * @param strict true to raise an exception if the passed variables do not
+    *               have a variable that is found in the template, false if not.
     * @param is the InputStream with template content.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool parse(
-      Mail* mail, db::rt::DynamicObject& vars, db::io::InputStream* is);
+      Mail* mail, db::rt::DynamicObject& vars, bool strict,
+      db::io::InputStream* is);
 };
 
 } // end namespace mail

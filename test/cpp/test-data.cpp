@@ -1295,13 +1295,13 @@ void runTemplateInputStreamTest(TestRunner& tr)
       DynamicObject vars;
       vars["bccAddress1"] = "support@bitmunk.com";
       vars["eggs"] = "This is a ";
-      vars["bacon"] = ""; // -- no bacon
+      // vars["bacon"] -- no bacon
       vars["ham"] = "number ";
       vars["sausage"] = 5;
       
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
-      TemplateInputStream tis(vars, &bais, false);
+      TemplateInputStream tis(vars, false, &bais, false);
       
       // parse entire template
       ByteBuffer output(2048);
@@ -1348,7 +1348,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
-      TemplateInputStream tis(vars, &bais, false);
+      TemplateInputStream tis(vars, true, &bais, false);
       
       // parse entire template
       ByteBuffer output(2048);
@@ -1372,7 +1372,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
-      TemplateInputStream tis(vars, &bais, false);
+      TemplateInputStream tis(vars, true, &bais, false);
       
       // parse entire template
       ByteBuffer output(2048);

@@ -191,7 +191,7 @@ bool MailSpool::getFirst(Mail* mail)
                   ByteArrayInputStream bais(&bb, false);
                   MailTemplateParser parser;
                   DynamicObject vars;
-                  rval = parser.parse(mail, vars, &bais);
+                  rval = parser.parse(mail, vars, false, &bais);
                }
                break;
             }

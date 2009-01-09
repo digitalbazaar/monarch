@@ -86,7 +86,7 @@ static bool parseLine(Mail* mail, const char* line, bool& headers)
 }
 
 bool MailTemplateParser::parse(
-   Mail* mail, DynamicObject& vars, InputStream* is)
+   Mail* mail, DynamicObject& vars, bool strict, InputStream* is)
 {
    bool rval = true;
    
@@ -94,7 +94,7 @@ bool MailTemplateParser::parse(
    mail->clear();
    
    // add template input stream to passed input stream
-   TemplateInputStream tis(vars, is, false);
+   TemplateInputStream tis(vars, strict, is, false);
    
    // SMTP RFC requires lines be no longer than 998 bytes (+2 for CRLF = 1000)
    // so read in a maximum of 1000 bytes at a time

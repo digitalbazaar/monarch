@@ -78,13 +78,13 @@ void runMailTemplateParser(TestRunner& tr)
    DynamicObject vars;
    vars["bccAddress1"] = "support@bitmunk.com";
    vars["eggs"] = "This is a ";
-   vars["bacon"] = ""; // -- no bacon
+   //vars["bacon"] -- no bacon
    vars["ham"] = "number ";
    vars["sausage"] = 5;
    
    // parse mail
    db::mail::Mail mail;
-   parser.parse(&mail, vars, &bais);
+   parser.parse(&mail, vars, false, &bais);
    
    const char* expect =
       "This is the test body. I want $10.00.\r\n"
@@ -186,7 +186,7 @@ void mailSpoolTest(TestRunner& tr)
    
    // parse mail
    db::mail::Mail mail;
-   parser.parse(&mail, vars, &bais);
+   parser.parse(&mail, vars, true, &bais);
    
    // get template
    string tpl1 = mail.toTemplate();
