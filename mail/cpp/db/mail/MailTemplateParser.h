@@ -14,29 +14,17 @@ namespace mail
 
 /**
  * A MailTemplateParser is used to parse templates that contain email messages
- * with specially marked variables.
+ * with specially marked variables. See db::data::TemplateInputStream for
+ * variable rules. Variables may appear in any part of the email message.
  * 
- * A template is a string of text with variable names that are delimited by
- * starting with a '$' and ending with a non-alpha-numeric character (or the
- * end of the text). If the starting '$' is preceeded by a '\' then it will
- * be interpreted as a regular '$' not the beginning of a variable name. If
- * a '\' is to appear in the message, it must be escaped like so: '\\'.
- * 
- * The variable values are stored in a DynamicObject. If the variable value
- * is a basic value like a string, boolean, or number, then the variable name
- * will simply be replaced with the value from the DynamicObject. If the
- * value is a map, then the variable name will be replaced by a comma-delimited
- * list of key-value pairs. If the value is an array, then the variable name
- * will be replaced with a comma-delimited list of values.
- * 
- * In addition to parsing the above variables, this parser will parse message
- * headers in the template. The parser always starts assuming that the message
+ * In addition to parsing variables, this parser will parse message headers
+ * in the template. The parser always starts assuming that the message
  * begins with headers. A blank line should follow the headers to indicate
  * there are no more of them and the body is about to begin.
  * 
  * Headers must not contain whitespace and must start at the beginning of a
- * line and end with a colon and a space. They can be variables. The value of
- * the header can contain variables and must end with CR, LF, or CRLF.
+ * line and end with a colon and a space. The value of the header must end
+ * with CR, LF, or CRLF.
  * 
  * Once the blank line after the headers has been read, the rest of the message
  * will be interpreted as the email's body.

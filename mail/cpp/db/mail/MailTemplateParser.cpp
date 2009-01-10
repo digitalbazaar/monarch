@@ -107,9 +107,9 @@ bool MailTemplateParser::parse(
    bool cr = false;
    
    // read as much as 1000 bytes at a time, then check the read buffer
-   while(rval && (numBytes = tis.read(b, 1000 - length)) > 0)
+   while(rval && (numBytes = tis.read(b + length, 1000 - length)) > 0)
    {
-      // increment length
+      // increment length (number of valid bytes in 'b')
       length += numBytes;
       
       // ensure line is null-terminated
@@ -123,12 +123,15 @@ bool MailTemplateParser::parse(
          cr = (end[0] == '\r');
          end[0] = 0;
          
-         // update length
-         length -= (end - start);
-         
-         // parse line and increment start, skipping LF as appropriate
+         // parse line
          rval = parseLine(mail, start, headers);
-         start = (cr && end[1] == '\n' ? end + 2 : end + 1);
+         
+         // decrement length and increment start skipping LF as appropriate
+         // Note: 'b' always ends in 0, so end[1] must always be a valid byte
+         // or the null-terminator of b
+         int skip = (cr && end[1] == '\n' ? 2 : 1);
+         length -= (end - start) + skip;
+         start = end + skip;
       }
       
       if(end == NULL && length > 998)
@@ -144,7 +147,7 @@ bool MailTemplateParser::parse(
       else if(start > b)
       {
          // shift buffer contents as necessary
-         memmove(b, start, length);
+         memmove(b, start, length + 1);
       }
    }
    
@@ -152,10 +155,10 @@ bool MailTemplateParser::parse(
    {
       rval = false;
    }
-   else if(start != NULL && start[0] != 0)
+   else if(length > 0)
    {
       // parse the last line
-      rval = parseLine(mail, start, headers);
+      rval = parseLine(mail, b, headers);
    }
    
    return rval;
