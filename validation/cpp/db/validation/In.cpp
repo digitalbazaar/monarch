@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/validation/In.h"
+
 #include "db/rt/DynamicObjectIterator.h"
 
 using namespace db::rt;
@@ -58,6 +59,11 @@ bool In::isValid(
       detail["validator"] = "db.validator.In";
       detail["expectedValues"] = mContents;
       detail["message"] = mErrorMessage ? mErrorMessage : "Value not found!";
+   }
+   
+   if(rval)
+   {
+      context->addSuccess();
    }
    
    return rval;

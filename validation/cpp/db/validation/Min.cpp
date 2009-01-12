@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/validation/Min.h"
 
@@ -31,6 +31,10 @@ bool Min::isValid(
          detail["message"] = mErrorMessage;
       }
       detail["expectedMin"] = mSize;
+   }
+   else
+   {
+      context->addSuccess();
    }
    
    return rval;

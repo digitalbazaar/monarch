@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
 
 #include "db/validation/Int.h"
+
 #include "db/rt/DynamicObjectIterator.h"
 
 #include <inttypes.h>
@@ -217,6 +218,11 @@ bool Int::isValid(
          detail["message"] = mErrorMessage ? mErrorMessage : "Value too large!";
          detail["expectedMax"] = mMax;
       }
+   }
+   
+   if(rval)
+   {
+      context->addSuccess();
    }
    
    return rval;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 
 #include "db/test/Test.h"
@@ -965,6 +965,91 @@ void runValidatorTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runAnyExceptionsTest(TestRunner& tr)
+{
+   tr.group("Any validator exceptions");
+   
+   v::Any v(
+      new v::Map(
+         "dog", new v::Equals("woof"),
+         "cat", new v::Equals("meow"),
+         NULL),
+      new v::Int(v::Int::Positive),
+      NULL);
+   
+   tr.test("map fail 1");
+   {
+      DynamicObject mapFail;
+      mapFail["dog"] = "bowwow";
+      mapFail["cat"] = "meow";
+      
+      assert(!v.isValid(mapFail));
+      printf("\nShould be able to tell that only \"dog\" was incorrect.\n");
+      ExceptionRef e = Exception::getLast();
+      DynamicObject ex = Exception::convertToDynamicObject(e);
+      dumpDynamicObject(ex);
+      printf("\nIt looks like this for only a map validator (w/o the Any):\n");
+      
+      Exception::clearLast();
+      v::Map v2(
+         "dog", new v::Equals("woof"),
+         "cat", new v::Equals("meow"),
+         NULL);
+      assert(!v2.isValid(mapFail));
+      e = Exception::getLast();
+      ex = Exception::convertToDynamicObject(e);
+      dumpDynamicObject(ex);
+   }
+   tr.passIfException();
+   
+   tr.test("map fail 2");
+   {
+      DynamicObject mapFail;
+      mapFail["dog"] = "woof";
+      
+      assert(!v.isValid(mapFail));
+      printf("\nShould be able to tell that only \"cat\" was missing.\n");
+      ExceptionRef e = Exception::getLast();
+      DynamicObject ex = Exception::convertToDynamicObject(e);
+      dumpDynamicObject(ex);
+      printf("\nIt looks like this for only a map validator (w/o the Any):\n");
+      
+      Exception::clearLast();
+      v::Map v2(
+         "dog", new v::Equals("woof"),
+         "cat", new v::Equals("meow"),
+         NULL);
+      assert(!v2.isValid(mapFail));
+      e = Exception::getLast();
+      ex = Exception::convertToDynamicObject(e);
+      dumpDynamicObject(ex);
+   }
+   tr.passIfException();
+   
+   tr.test("int fail 1");
+   {
+      DynamicObject intFail;
+      intFail = 0;
+      
+      assert(!v.isValid(intFail));
+      printf("\nShould be able to tell that only integer wasn't positive.\n");
+      ExceptionRef e = Exception::getLast();
+      DynamicObject ex = Exception::convertToDynamicObject(e);
+      dumpDynamicObject(ex);
+      printf("\nIt looks like this for only an int validator (w/o the Any):\n");
+      
+      Exception::clearLast();
+      v::Int v2(v::Int::Positive);
+      assert(!v2.isValid(intFail));
+      e = Exception::getLast();
+      ex = Exception::convertToDynamicObject(e);
+      dumpDynamicObject(ex);
+   }
+   tr.passIfException();
+   
+   tr.ungroup();
+}
+
 class DbValidationTester : public db::test::Tester
 {
 public:
@@ -989,6 +1074,7 @@ public:
    {
 //      runRegexTest(tr);
 //      runDateTest(tr);
+      runAnyExceptionsTest(tr);
       return 0;
    }
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/validation/CompareText.h"
 
@@ -43,6 +43,11 @@ bool CompareText::isValid(DynamicObject& obj, ValidatorContext* context)
             mErrorMessage : "Text comparison failure!");
          detail["expectedValue"] = mText.c_str();
       }
+   }
+   
+   if(rval)
+   {
+      context->addSuccess();
    }
    
    return rval;

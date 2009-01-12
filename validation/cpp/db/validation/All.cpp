@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/validation/All.h"
 
@@ -33,6 +33,11 @@ bool All::isValid(
       {
          rval = false;
       }
+   }
+   
+   if(rval)
+   {
+      context->addSuccess();
    }
    
    return rval;

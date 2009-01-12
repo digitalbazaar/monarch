@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/validation/ValidatorContext.h"
 
@@ -8,11 +8,13 @@
 using namespace db::rt;
 using namespace db::validation;
 
-ValidatorContext::ValidatorContext(DynamicObject* state)
+ValidatorContext::ValidatorContext(DynamicObject* state) :
+   mResults(NULL)
 {
    mPath = NULL;
    mState = state;
    mSetExceptions = true;
+   clearResults();
 }
 
 ValidatorContext::~ValidatorContext()
@@ -87,12 +89,29 @@ std::string ValidatorContext::getPath()
    return rval;
 }
 
+void ValidatorContext::addSuccess()
+{
+   mResults["successes"] = mResults["successes"]->getUInt32() + 1;
+}
+
 DynamicObject ValidatorContext::addError(
    const char* type, DynamicObject* object)
 {
    DynamicObject errorDetail;
    
-   // Skip setting exceptions if requested.  Return errorDetail regardless.
+   // setup error detail
+   errorDetail["type"] = type;
+   // FIXME: localize message
+   errorDetail["message"] = "Invalid value!";
+   if(object != NULL)
+   {
+      errorDetail["invalidValue"] = *object;
+   }
+   
+   // add error detail to results errors
+   mResults["errors"]->append(errorDetail);
+   
+   // Skip setting exceptions if requested. Return errorDetail regardless.
    if(mSetExceptions)
    {
       ExceptionRef e;
@@ -118,19 +137,23 @@ DynamicObject ValidatorContext::addError(
          }
       }
       
-      // setup error detail
-      errorDetail["type"] = type;
-      // FIXME: localize message
-      errorDetail["message"] = "Invalid value!";
-      if(object != NULL)
-      {
-         errorDetail["invalidValue"] = *object;
-      }
-      
       // add detail to "errors" section of exception details
       std::string fullpath = getPath();
       e->getDetails()["errors"][fullpath.c_str()] = errorDetail;
    }
    
    return errorDetail;
+}
+
+DynamicObject ValidatorContext::getResults()
+{
+   return mResults;
+}
+
+void ValidatorContext::clearResults()
+{
+   mResults = DynamicObject();
+   mResults["successes"] = 0;
+   mResults["errors"]->setType(Array);
+   mResults["errors"]->clear();
 }

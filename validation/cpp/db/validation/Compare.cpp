@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/validation/Compare.h"
 
@@ -59,6 +59,10 @@ bool Compare::isValid(
          {
             context->popPath();
          }
+      }
+      else
+      {
+         context->addSuccess();
       }
    }
    

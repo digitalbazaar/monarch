@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/validation/Null.h"
 
@@ -33,5 +33,10 @@ bool Null::isValid(
       }
       // FIXME: add expected value to error detail?
    }
+   else
+   {
+      context->addSuccess();
+   }
+   
    return rval;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_validation_ValidatorContext_H
 #define db_validation_ValidatorContext_H
@@ -15,8 +15,8 @@ namespace validation
 {
 
 /**
- * Context to be used during validation.  This object is used to keep track
- * of the "path" while Validators traverse a DynamicObject.  It can also
+ * Context to be used during validation. This object is used to keep track
+ * of the "path" while Validators traverse a DynamicObject. It can also
  * store arbitrary state as needed for validation.
  * 
  * @author David I. Lehn
@@ -24,17 +24,31 @@ namespace validation
 class ValidatorContext
 {
 protected:
-   /* Arbitrary user state.  Lazily created as needed. */
+   /**
+    * Arbitrary user state. Lazily created as needed.
+    */
    db::rt::DynamicObject* mState;
    
-   /* Path used during object traversal. */
+   /**
+    * Path used during object traversal.
+    */
    std::vector<char*>* mPath;
    
-   /* Flag to stop setting of exceptions.  Useful when only concerned with
+   /**
+    * Flag to stop setting of exceptions. Useful when only concerned with
     * success or failure of validators rather than details.
     */
    bool mSetExceptions;
-    
+   
+   /**
+    * Stores the results of the validation process. This includes the
+    * number of successful validations and any errors that occurred
+    * during the validation process, regardless of whether or not
+    * exceptions are being set. This is particularly useful for
+    * producing helpful error messages for special validators like Any.
+    */
+   db::rt::DynamicObject mResults;
+   
 public:
    /**
     * Creates a new ValidatorContext.
@@ -94,6 +108,11 @@ public:
    virtual std::string getPath();
    
    /**
+    * Records a successful validation.
+    */
+   virtual void addSuccess();
+   
+   /**
     * Creates an Error exception if needed and add a basic error report with
     * the given "type" field and a "message" field with "Invalid value!".  If
     * the object parameter is given it will be assigned to the "invalidValue"
@@ -109,6 +128,16 @@ public:
     */
    virtual db::rt::DynamicObject addError(
       const char* type, db::rt::DynamicObject* object = NULL);
+   
+   /**
+    * Gets the current validation results.
+    */
+   virtual db::rt::DynamicObject getResults();
+   
+   /**
+    * Clears the current validation results from this context.
+    */
+   virtual void clearResults();
 };
 
 } // end namespace validation

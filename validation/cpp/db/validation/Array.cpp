@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/validation/Array.h"
 
@@ -73,6 +73,11 @@ bool Array::isValid(
          context->addError("db.validation.TypeError", &obj);
       detail["validator"] = "db.validator.Array";
       detail["message"] = "Object not an Array!";
+   }
+   
+   if(rval)
+   {
+      context->addSuccess();
    }
 
    return rval;

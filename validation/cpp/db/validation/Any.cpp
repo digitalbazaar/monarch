@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/validation/Any.h"
 
@@ -25,26 +25,52 @@ bool Any::isValid(
 {
    bool rval = false;
    
-   // store previous value
+   // store previous set exceptions value
    bool setExceptions = context->setExceptions(false);
-   std::vector<Validator*>::iterator i;
-   for(i = mValidators.begin();
-      !rval && i != mValidators.end();
-      i++)
+   
+   // validate each "any" validator until one is valid, for each
+   // invalid result, store the context results if they match or
+   // exceed the most number of successful validations
+   uint32_t maxSuccesses = 0;
+   int index;
+   DynamicObject errors;
+   errors->setType(Array);
+   for(std::vector<Validator*>::iterator i = mValidators.begin();
+       !rval && i != mValidators.end(); i++, index++)
    {
       rval = (*i)->isValid(obj, context);
+      if(!rval)
+      {
+         // get validation results
+         DynamicObject r = context->getResults();
+         uint32_t successes = r["successes"]->getUInt32();
+         if(successes > maxSuccesses)
+         {
+            // new max successes
+            maxSuccesses = successes;
+            errors->clear();
+            errors->append(r["errors"]);
+         }
+         else if(successes == maxSuccesses)
+         {
+            errors->append(r["errors"]);
+         }
+         
+         // clear validation results
+         context->clearResults();
+      }
    }
-   // restore
+   
+   // restore set exceptions value
    context->setExceptions(setExceptions);
    
-   // set exception for Any 
+   // set exception for Any, return array of errors 
    if(!rval)
    {
-      // FIXME: Use the confusing "AnyError" name instead?
-      // or set a more appropriate detail message? 
       DynamicObject detail =
          context->addError("db.validation.ValueError", &obj);
       detail["validator"] = "db.validator.Any";
+      detail["possibleErrors"] = errors;
    }
    
    return rval;
