@@ -645,11 +645,11 @@ void runDynamicObjectTest(TestRunner& tr)
       DynamicObject d4;
       d4 = "second";
       //printf("index=%i\n", dArray->getIndex(d4));
-      assert(dArray->getIndex(d4) == 1);
+      assert(dArray->indexOf(d4) == 1);
       
       DynamicObject d5;
       d5 = "fourth";
-      assert(dArray->getIndex(d5) == -1);
+      assert(dArray->indexOf(d5) == -1);
    }
    
    tr.pass();

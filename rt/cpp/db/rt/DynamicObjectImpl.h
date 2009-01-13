@@ -349,7 +349,7 @@ public:
     * @return if this object is an Array and contains the passed object,
     *         the index of that object, otherwise -1.
     */
-   virtual int getIndex(DynamicObject& obj) const;
+   virtual int indexOf(DynamicObject& obj) const;
    
    /**
     * Clears associated data.

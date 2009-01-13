@@ -818,7 +818,7 @@ bool DynamicObjectImpl::hasMember(const char* name) const
    return rval;
 }
 
-int DynamicObjectImpl::getIndex(DynamicObject& obj) const
+int DynamicObjectImpl::indexOf(DynamicObject& obj) const
 {
    int rval = -1;
    
