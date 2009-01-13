@@ -183,6 +183,63 @@ void runObserverDelegateTest(TestRunner& tr)
    tr.pass();
 }
 
+class TestObserverWithDyno
+{
+public:
+   TestObserverWithDyno()
+   {
+   }
+   
+   virtual ~TestObserverWithDyno()
+   {
+   }
+   
+   virtual void handleEventWithDyno(Event& e, DynamicObject& d)
+   {
+      //printf("Event occurred w/dyno:\n");
+      //dumpDynamicObject(d);
+   }
+};
+
+void runObserverDelegateDynoTest(TestRunner& tr)
+{
+   tr.test("ObserverDelegate Dyno");
+   
+   // create kernel and start engine
+   Kernel k;
+   k.getEngine()->start();
+   
+   // create observer
+   DynamicObject d;
+   d["foo"] = "bar";
+   TestObserverWithDyno towd;
+   ObserverDelegate<TestObserverWithDyno> od(
+      &towd, &TestObserverWithDyno::handleEventWithDyno, d);
+   
+   // create observable
+   Observable observable;
+   
+   // register observer and start observable
+   observable.registerObserver(&od, 1);
+   observable.start(&k);
+   
+   // create and schedule event
+   Event e1;
+   e1["name"] = "Event1";
+   observable.schedule(e1, 1);
+   
+   // wait for a second
+   Thread::sleep(1000);
+   
+   // stop observable
+   observable.stop();
+   
+   // stop kernel engine
+   k.getEngine()->stop();
+   
+   tr.pass();
+}
+
 void runEventControllerTest(TestRunner& tr)
 {
    tr.test("EventController");
@@ -721,6 +778,7 @@ public:
    {
       runEventTest(tr);
       runObserverDelegateTest(tr);
+      runObserverDelegateDynoTest(tr);
       runEventControllerTest(tr);
       runEventWaiterTest(tr);
       runEventFilterTest(tr);
