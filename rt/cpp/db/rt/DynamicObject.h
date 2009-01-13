@@ -87,7 +87,7 @@ public:
     * @return true if the passed DynamicObject is not equal to this one, false
     *         if not.
     */ 
-   virtual bool operator!=(const DynamicObject& rhs);
+   virtual bool operator!=(const DynamicObject& rhs) const;
    
    /**
     * Compares this DynamicObject to another one to see if it is less than it.

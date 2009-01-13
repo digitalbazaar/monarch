@@ -44,7 +44,7 @@ bool DynamicObject::operator==(const DynamicObject& rhs) const
    return rval;
 }
 
-bool DynamicObject::operator!=(const DynamicObject& rhs)
+bool DynamicObject::operator!=(const DynamicObject& rhs) const
 {
    return !(*this == rhs);
 }

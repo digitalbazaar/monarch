@@ -340,6 +340,18 @@ public:
    virtual void removeMember(const char* name);
    
    /**
+    * If this object is an Array and at least one of its indexes has an
+    * object that is equal to the passed object, this method returns the
+    * index of that object. Otherwise, it returns -1.
+    * 
+    * @param obj the object to look for. 
+    * 
+    * @return if this object is an Array and contains the passed object,
+    *         the index of that object, otherwise -1.
+    */
+   virtual int getIndex(DynamicObject& obj) const;
+   
+   /**
     * Clears associated data.
     * Maps and Arrays: removes all items.
     * Strings: set to "".

@@ -630,6 +630,28 @@ void runDynamicObjectTest(TestRunner& tr)
       assert(d1 < d2);
    }
    
+   {
+      DynamicObject dArray;
+      DynamicObject d1;
+      d1 = "first";
+      DynamicObject d2;
+      d2 = "second";
+      DynamicObject d3;
+      d3 = "third";
+      dArray[0] = d1;
+      dArray[1] = d2;
+      dArray[2] = d3;
+      
+      DynamicObject d4;
+      d4 = "second";
+      //printf("index=%i\n", dArray->getIndex(d4));
+      assert(dArray->getIndex(d4) == 1);
+      
+      DynamicObject d5;
+      d5 = "fourth";
+      assert(dArray->getIndex(d5) == -1);
+   }
+   
    tr.pass();
 }
 

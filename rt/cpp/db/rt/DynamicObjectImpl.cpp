@@ -8,6 +8,7 @@
 #include "db/rt/DynamicObject.h"
 
 #include <cstdlib>
+#include <algorithm>
 
 using namespace std;
 using namespace db::rt;
@@ -72,6 +73,13 @@ void DynamicObjectImpl::freeData()
          // nothing to cleanup
          break;
    }
+}
+
+void DynamicObjectImpl::removeMember(ObjectMap::iterator iterator)
+{
+   // clean up key and remove map entry
+   free((char*)iterator->first);
+   mMap->erase(iterator);
 }
 
 void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
@@ -810,11 +818,21 @@ bool DynamicObjectImpl::hasMember(const char* name) const
    return rval;
 }
 
-void DynamicObjectImpl::removeMember(ObjectMap::iterator iterator)
+int DynamicObjectImpl::getIndex(DynamicObject& obj) const
 {
-   // clean up key and remove map entry
-   free((char*)iterator->first);
-   mMap->erase(iterator);
+   int rval = -1;
+   
+   // type must be array to get an index
+   if(mType == Array)
+   {
+      ObjectArray::iterator i = find(mArray->begin(), mArray->end(), obj);
+      if(i != mArray->end())
+      {
+         rval = (i - mArray->begin());
+      }
+   }
+   
+   return rval;
 }
 
 void DynamicObjectImpl::removeMember(const char* name)
