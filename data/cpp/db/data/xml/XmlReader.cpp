@@ -15,6 +15,9 @@ const char* XmlReader::CHAR_ENCODING = "UTF-8";
 // initialize read size
 unsigned int XmlReader::READ_SIZE = 4096;
 
+// base exception name
+#define XML_READER_EXCEPTION "db.data.xml.XmlReader"
+
 XmlReader::XmlReader() :
    mException(NULL)
 {
@@ -62,7 +65,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
             // no "name" for "member"
             mException = new Exception(
                "Xml parsing error. No 'name' attribute for 'member' element.",
-               "db.data.xml.XmlReader.MissingAttribute");
+               XML_READER_EXCEPTION ".MissingAttribute");
             Exception::setLast(mException, false);
          }
       }
@@ -92,7 +95,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
             mException = new Exception(
                "Xml parsing error. No 'index' attribute for 'element' "
                "element.",
-               "db.data.xml.XmlReader.MissingAttribute");
+               XML_READER_EXCEPTION ".MissingAttribute");
             Exception::setLast(mException, false);
          }
       }
@@ -286,7 +289,7 @@ bool XmlReader::read(InputStream* is)
       // reader not started
       ExceptionRef e = new Exception(
          "Cannot read yet, XmlReader not started.",
-         "db.data.xml.XmlReader.SetupError");
+         XML_READER_EXCEPTION ".SetupError");
       Exception::setLast(e, false);
       rval = false;
    }
@@ -302,7 +305,7 @@ bool XmlReader::read(InputStream* is)
             // set memory exception
             ExceptionRef e = new Exception(
                "Insufficient memory to parse xml.",
-               "db.data.xml.XmlReader.InsufficientMemory");
+               XML_READER_EXCEPTION ".InsufficientMemory");
             Exception::setLast(e, false);
             rval = false;
          }
@@ -323,7 +326,7 @@ bool XmlReader::read(InputStream* is)
                const char* error = XML_ErrorString(XML_GetErrorCode(mParser));
                ExceptionRef e = new Exception(
                   "Xml parse error.",
-                  "db.data.xml.XmlReader.ParseError");
+                  XML_READER_EXCEPTION ".ParseError");
                e->getDetails()["line"] = line;
                e->getDetails()["column"] = column;
                e->getDetails()["error"] = error;
@@ -355,7 +358,7 @@ bool XmlReader::finish()
          const char* error = XML_ErrorString(XML_GetErrorCode(mParser));
          ExceptionRef e = new Exception(
             "Xml parse error.",
-            "db.data.xml.XmlReader.ParseError");
+            XML_READER_EXCEPTION ".ParseError");
          e->getDetails()["line"] = line;
          e->getDetails()["column"] = column;
          e->getDetails()["error"] = error;
