@@ -35,6 +35,12 @@ protected:
       Event& e, void* userData);
    
    /**
+    * Typedef for handler's event w/dyno function.
+    */
+   typedef void (HandlerType::*EventWithDynoFunction)(
+      Event& e, db::rt::DynamicObject& userData);
+   
+   /**
     * Typedef for freeing a handler's user-data.
     */
    typedef void (HandlerType::*FreeUserDataFunction)(void* userData);
@@ -55,9 +61,19 @@ protected:
    EventWithUserDataFunction mUserDataFunction;
    
    /**
+    * The handler's event w/dyno function.
+    */
+   EventWithDynoFunction mDynoFunction;
+   
+   /**
     * The handler's user-data.
     */
    void* mUserData;
+   
+   /**
+    * The handler's dyno.
+    */
+   db::rt::DynamicObject mDyno;
    
    /**
     * The handler's free user-data function.
@@ -99,6 +115,18 @@ public:
       FreeUserDataFunction ff = NULL);
    
    /**
+    * Creates a new ObserverDelegate with the specified handler object and
+    * function for handling an Event with a DynamicObject.
+    * 
+    * @param h the actual handler object.
+    * @param f the handler's function for handling an Event w/user-data.
+    * @param dyno the DynamicObject to pass to the function when the
+    *             event occurs.
+    */
+   ObserverDelegate(
+      HandlerType* h, EventWithDynoFunction f, db::rt::DynamicObject& dyno);
+   
+   /**
     * Creates a new Runnable ObserverDelegate with the specified observer
     * and Event to handle.
     * 
@@ -128,12 +156,14 @@ public:
 template<class HandlerType>
 ObserverDelegate<HandlerType>::ObserverDelegate(
    HandlerType* h, EventFunction f) :
+   mDyno(NULL),
    mEvent(NULL)
 {
    mHandler = h;
    mFunction = f;
    mUserDataFunction = NULL;
    mFreeUserDataFunction = NULL;
+   mDynoFunction = NULL;
    mUserData = NULL;
    mObserver = NULL;
 }
@@ -142,25 +172,44 @@ template<class HandlerType>
 ObserverDelegate<HandlerType>::ObserverDelegate(
    HandlerType* h, EventWithUserDataFunction f,
    void* userData, FreeUserDataFunction ff) :
+   mDyno(NULL),
    mEvent(NULL)
 {
    mHandler = h;
    mFunction = NULL;
    mUserDataFunction = f;
    mFreeUserDataFunction = ff;
+   mDynoFunction = NULL;
    mUserData = userData;
    mObserver = NULL;
 }
 
 template<class HandlerType>
 ObserverDelegate<HandlerType>::ObserverDelegate(
+   HandlerType* h, EventWithDynoFunction f, db::rt::DynamicObject& dyno) :
+   mDyno(dyno),
+   mEvent(NULL)
+{
+   mHandler = h;
+   mFunction = NULL;
+   mUserDataFunction = NULL;
+   mFreeUserDataFunction = NULL;
+   mDynoFunction = f;
+   mUserData = NULL;
+   mObserver = NULL;
+}
+
+template<class HandlerType>
+ObserverDelegate<HandlerType>::ObserverDelegate(
    Observer* observer, Event& e) :
+   mDyno(NULL),
    mEvent(e)
 {
    mHandler = NULL;
    mFunction = NULL;
    mUserDataFunction = NULL;
    mFreeUserDataFunction = NULL;
+   mDynoFunction = NULL;
    mUserData = NULL;
    mObserver = observer;
 }
@@ -177,15 +226,20 @@ ObserverDelegate<HandlerType>::~ObserverDelegate()
 template<class HandlerType>
 void ObserverDelegate<HandlerType>::eventOccurred(Event& e)
 {
-   if(mFunction)
+   if(mFunction != NULL)
    {
       // call handle event function on handler
       (mHandler->*mFunction)(e);
    }
-   else
+   else if(mUserDataFunction != NULL)
    {
       // call handle event w/user-data function on handler
       (mHandler->*mUserDataFunction)(e, mUserData);
+   }
+   else if(mDynoFunction != NULL)
+   {
+      // call handle event w/dyno function on handler
+      (mHandler->*mDynoFunction)(e, mDyno);
    }
 }
 
