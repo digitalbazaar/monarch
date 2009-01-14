@@ -46,6 +46,7 @@ App::App() :
    mVersion(NULL),
    mExitStatus(0),
    mConfigManager(NULL),
+   mCleanupConfigManager(false),
    mLogger(NULL),
    mDelegate(NULL),
    mOwner(NULL)
@@ -326,21 +327,23 @@ bool App::initConfigManager()
 
 void App::cleanupConfigManager()
 {
-   if(mConfigManager != NULL)
+   if(mConfigManager != NULL && mCleanupConfigManager)
    {
       delete mConfigManager;
+      mConfigManager = NULL;
    }
 }
 
-void App::setConfigManager(ConfigManager* configManager)
+void App::setConfigManager(ConfigManager* configManager, bool cleanup)
 {
    if(mOwner == NULL)
    {
       mConfigManager = configManager;
+      mCleanupConfigManager = cleanup;
    }
    else
    {
-      mOwner->setConfigManager(configManager);
+      mOwner->setConfigManager(configManager, cleanup);
    }
 }
 

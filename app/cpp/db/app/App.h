@@ -92,6 +92,11 @@ protected:
    db::config::ConfigManager* mConfigManager;
    
    /**
+    * Clean up the ConfigManager.
+    */
+   bool mCleanupConfigManager;
+   
+   /**
     * A table of pthread mutexes for openSSL.
     */
    static pthread_mutex_t* sOpenSSLMutexes;
@@ -152,8 +157,10 @@ protected:
     * Set the ConfigManager.
     * 
     * @param configManager the ConfigManager for this app.
+    * @param cleanup true to cleanup this manager, false not to.
     */
-   virtual void setConfigManager(db::config::ConfigManager* configManager);
+   virtual void setConfigManager(
+      db::config::ConfigManager* configManager, bool cleanup = true);
    
    /**
     * Called before initConfigGroups().  Used to configure groups that are
