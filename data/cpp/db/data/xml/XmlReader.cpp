@@ -223,9 +223,9 @@ void XmlReader::parseNamespace(const char** fullName, char** ns)
    const char* sep = strchr(*fullName, '|');
    if(sep != NULL)
    {
-      *ns = (char*)malloc(sep - *fullName);
+      *ns = (char*)malloc((sep - *fullName) + 1);
       strncpy(*ns, *fullName, sep - *fullName);
-      ns[(sep - *fullName)] = 0;
+      (*ns)[(sep - *fullName)] = 0;
       *fullName = sep + 1;
    }
 }

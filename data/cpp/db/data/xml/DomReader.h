@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_xml_DomReader_H
 #define db_data_xml_DomReader_H
@@ -73,7 +73,7 @@ public:
     * 
     * @param root the DynamicObject to use as the root element for the Document.
     */
-   virtual void start(db::rt::DynamicObject& root);
+   using XmlReader::start;
    
    /**
     * Finishes deserializing a document from xml. This method must be called

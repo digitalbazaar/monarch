@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/xml/DomReader.h"
 
@@ -96,11 +96,6 @@ void DomReader::appendData(const XML_Char* data, int length)
       temp[len + length] = 0;
       e["data"] = temp;
    }
-}
-
-void DomReader::start(DynamicObject& root)
-{
-   XmlReader::start(root);
 }
 
 bool DomReader::finish()

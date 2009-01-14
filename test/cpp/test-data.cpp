@@ -1103,6 +1103,27 @@ void runDomReadWriteTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+void runDomReaderCrashTest(TestRunner& tr)
+{
+   tr.test("DomReader Crash");
+   {
+      string xml =
+         "<?xml version=\"1.0\"?>\n<ResultSet xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"urn:yahoo:maps\" xsi:schemaLocation=\"urn:yahoo:maps http://api.local.yahoo.com/MapsService/V1/GeocodeResponse.xsd\"><Result precision=\"address\"><Latitude>37.130968</Latitude><Longitude>-80.407491</Longitude><Address>100 E Main St</Address><City>Christiansburg</City><State>VA</State><Zip>24073-3029</Zip><Country>US</Country></Result><Result precision=\"address\"><Latitude>37.128598</Latitude><Longitude>-80.410080</Longitude><Address>100 W Main St</Address><City>Christiansburg</City><State>VA</State><Zip>24073-2944</Zip><Country>US</Country></Result></ResultSet>";
+      
+      //printf("XML:\n%s\n", xml.c_str());
+      
+      ByteArrayInputStream bais(xml.c_str(), xml.length());
+      DomReader reader;
+      DynamicObject dyno;
+      reader.start(dyno);
+      reader.read(&bais);
+      reader.finish();
+      
+      //JsonWriter::writeToStdOut(dyno, true, false);
+   }
+   tr.passIfNoException();
+}
+
 void runSwapTest(TestRunner& tr)
 {
    tr.group("byte order swapping");
@@ -1410,6 +1431,7 @@ public:
       runXmlReadWriteTest(tr);
       runXmlIOStreamTest(tr);
       runDomReadWriteTest(tr);
+      runDomReaderCrashTest(tr);
       
       runSwapTest(tr);
       
