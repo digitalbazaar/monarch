@@ -32,7 +32,7 @@ protected:
    /**
     * The database driver parameters in URL form for this connection.
     */
-   db::net::Url* mUrl;
+   db::net::UrlRef mUrl;
    
    /**
     * An SqlComparator compares two sql statements.

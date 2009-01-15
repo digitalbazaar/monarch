@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/Connection.h"
+
 #include "db/sql/Statement.h"
 
 using namespace std;
@@ -9,9 +10,9 @@ using namespace db::net;
 using namespace db::sql;
 using namespace db::rt;
 
-Connection::Connection()
+Connection::Connection() :
+   mUrl(NULL)
 {
-   mUrl = NULL;
 }
 
 Connection::~Connection()
@@ -60,26 +61,23 @@ bool Connection::connect(const char* url)
    bool rval = false;
    
    // clean up old url
-   if(mUrl != NULL)
-   {
-      delete mUrl;
-   }
+   mUrl.setNull();
    
    // ensure URL isn't malformed
    Exception::clearLast();
    mUrl = new Url(url);
    if(Exception::hasLast())
    {
-      string msg;
-      msg.append("Invalid database url!,url=");
-      msg.append(url);
-      ExceptionRef e = new SqlException(msg.c_str());
+      ExceptionRef e = new Exception(
+         "Invalid database url.",
+         "db.sql.Connection.InvalidUrl");
+      e->getDetails()["url"] = url;
       Exception::setLast(e, true);
    }
    else
    {
       // call implementation-specific code
-      rval = connect(mUrl);
+      rval = connect(&(*mUrl));
    }
    
    return rval;
@@ -105,11 +103,7 @@ Statement* Connection::prepare(const char* sql)
 void Connection::close()
 {
    // clean up url
-   if(mUrl != NULL)
-   {
-      delete mUrl;
-      mUrl = NULL;
-   }
+   mUrl.setNull();
    
    // clean up prepared statements
    cleanupPreparedStatements();
@@ -126,7 +120,9 @@ bool Connection::begin()
    }
    else
    {
-      ExceptionRef e = new SqlException("Could not begin transaction!");
+      ExceptionRef e = new Exception(
+         "Could not begin transaction.",
+         "db.sql.Connection.TransactionBeginError");
       Exception::setLast(e, true);
    }
    
@@ -144,7 +140,9 @@ bool Connection::commit()
    }
    else
    {
-      ExceptionRef e = new SqlException("Could not commit transaction!");
+      ExceptionRef e = new Exception(
+         "Could not commit transaction.",
+         "db.sql.Connection.TransactionCommitError");
       Exception::setLast(e, true);
    }
    
@@ -162,7 +160,9 @@ bool Connection::rollback()
    }
    else
    {
-      ExceptionRef e = new SqlException("Could not rollback transaction!");
+      ExceptionRef e = new Exception(
+         "Could not rollback transaction.",
+         "db.sql.Connection.TransactionRollbackError");
       Exception::setLast(e, true);
    }
    
