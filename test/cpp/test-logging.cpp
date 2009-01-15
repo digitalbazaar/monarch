@@ -241,7 +241,7 @@ static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
    // log default category to the file
    Logger::addLogger(&flog);
    
-   for(int i = 0; i < 100; i++)
+   for(int i = 0; i < 500; i++)
    {
       DB_DEBUG("[%05d] 01234567890123456789012345678901234567890123456789", i);
    }

@@ -78,8 +78,8 @@ protected:
    
 public:
    /**
-    * Creates a new JobDispatcher with an unlimited number of threads that
-    * have an idle expiration time of 5 minutes.
+    * Creates a new JobDispatcher with 10 threads that have an idle expiration
+    * time of 2 minutes.
     */
    JobDispatcher();
    
