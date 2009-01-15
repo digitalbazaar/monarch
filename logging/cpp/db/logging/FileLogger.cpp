@@ -219,7 +219,7 @@ void FileLogger::gzipCompress(void* info)
 #endif
    }
    
-   delete (GzipCompressInfo*)info;
+   delete cInfo;
    
    // notification for threads that wait for compression to complete
    mCompressionWaitLock.lock();
