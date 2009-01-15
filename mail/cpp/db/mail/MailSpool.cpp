@@ -31,20 +31,33 @@ bool MailSpool::writeIndex()
 {
    bool rval;
    
-   // get associated index name
-   std::string name = mFile->getAbsolutePath();
-   name.append(".idx");
-   File file(name.c_str());
-   
-   // write out index data
-   FileOutputStream fos(file);
-   DynamicObject config;
-   config["head"] = mHead;
-   config["tail"] = mTail;
-   config["count"] = mCount;
-   JsonWriter writer;
-   rval = writer.write(config, &fos);
-   fos.close();
+   if(mFile.isNull())
+   {
+      ExceptionRef e = new Exception(
+         "Cannot write to mail spool, no spool file set.",
+         "db.mail.NoSpoolFile");
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   else
+   {
+      // get associated index name
+      std::string name = mFile->getAbsolutePath();
+      name.append(".idx");
+      File file(name.c_str());
+      if((rval = file->mkdirs()))
+      {
+         // write out index data
+         FileOutputStream fos(file);
+         DynamicObject config;
+         config["head"] = mHead;
+         config["tail"] = mTail;
+         config["count"] = mCount;
+         JsonWriter writer;
+         rval = writer.write(config, &fos);
+         fos.close();
+      }
+   }
    
    return rval;
 }
@@ -110,24 +123,35 @@ bool MailSpool::spool(Mail* mail)
    
    lock();
    {
-      // write out mail entry
-      FileOutputStream fos(mFile, mCount > 0);
-      
-      // entry = index + size + tpl
-      uint32_t idx = DB_UINT32_TO_LE(mTail);
-      uint32_t size = DB_UINT32_TO_LE(tpl.length());
-      rval =
-         fos.write((char*)&idx, 4) &&
-         fos.write((char*)&size, 4) &&
-         fos.write(tpl.c_str(), tpl.length());
-      fos.close();
-      
-      // increment tail, count
-      mTail++;
-      mCount++;
-      
-      // write out index
-      rval = rval && writeIndex();
+      if(mFile.isNull())
+      {
+         ExceptionRef e = new Exception(
+            "Cannot spool mail, no spool file set.",
+            "db.mail.NoSpoolFile");
+         Exception::setLast(e, false);
+         rval = false;
+      }
+      else
+      {
+         // write out mail entry
+         FileOutputStream fos(mFile, mCount > 0);
+         
+         // entry = index + size + tpl
+         uint32_t idx = DB_UINT32_TO_LE(mTail);
+         uint32_t size = DB_UINT32_TO_LE(tpl.length());
+         rval =
+            fos.write((char*)&idx, 4) &&
+            fos.write((char*)&size, 4) &&
+            fos.write(tpl.c_str(), tpl.length());
+         fos.close();
+         
+         // increment tail, count
+         mTail++;
+         mCount++;
+         
+         // write out index
+         rval = rval && writeIndex();
+      }
    }
    unlock();
    
@@ -143,8 +167,17 @@ bool MailSpool::getFirst(Mail* mail)
       if(mCount == 0)
       {
          ExceptionRef e = new Exception(
-            "Cannot get first mail from spool! Spool is empty!");
+            "Cannot get first mail from spool. Spool is empty.",
+            "db.mail.EmptySpool");
          Exception::setLast(e, false);
+      }
+      else if(mFile.isNull())
+      {
+         ExceptionRef e = new Exception(
+            "Cannot read from spool, no spool file set.",
+            "db.mail.NoSpoolFile");
+         Exception::setLast(e, false);
+         rval = false;
       }
       else
       {

@@ -126,10 +126,24 @@ void JobDispatcher::dispatchJobs()
       for(RunnableList::iterator i = mJobQueue.begin();
           run && i != mJobQueue.end();)
       {
-         if(getThreadPool()->tryRunJob(*(*i)))
+         // use RunnableRef if one exists
+         ReferenceMap::iterator mi = mJobReferenceMap.find(*i);
+         if(mi != mJobReferenceMap.end())
          {
-            // remove entry from map and queue
-            mJobReferenceMap.erase(*i);
+            if(getThreadPool()->tryRunJob(mi->second))
+            {
+               // remove entry from map and queue
+               mJobReferenceMap.erase(mi);
+               i = mJobQueue.erase(i);
+            }
+            else
+            {
+               run = false;
+            }
+         }
+         else if(getThreadPool()->tryRunJob(*(*i)))
+         {
+            // remove entry from queue
             i = mJobQueue.erase(i);
          }
          else
@@ -277,7 +291,7 @@ unsigned int JobDispatcher::getTotalJobCount()
    
    lock();
    {
-      rval = getQueuedJobCount() + getThreadPool()->getIdleThreadCount();
+      rval = getQueuedJobCount() + getThreadPool()->getRunningThreadCount();
    }
    unlock();
    
