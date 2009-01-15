@@ -295,7 +295,7 @@ bool FileLogger::rotate()
       rval = findAvailablePath(fn.c_str(), mSeqNum, "", &newfn);
       if(rval)
       {
-         File newFile(fn.c_str());
+         File newFile(newfn.c_str());
 #ifdef FILE_LOGGER_DEBUG
          printf("FileLogger: rename: %s => %s\n", fn.c_str(), newfn.c_str());
 #endif
