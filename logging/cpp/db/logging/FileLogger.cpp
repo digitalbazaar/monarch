@@ -25,7 +25,7 @@ using namespace db::util::regex;
 
 #define DEFAULT_MAX_ROTATED_FILES 5
 #define DEFAULT_COMPRESSION_THREAD_POOL_SIZE 2
-#define FILE_LOGGER_DEBUG
+//#define FILE_LOGGER_DEBUG
 
 FileLogger::FileLogger(File* file) :
    OutputStreamLogger(),
@@ -349,6 +349,18 @@ bool FileLogger::rotate()
             oldFiles.size() - mMaxRotatedFiles;
          for(vector<string>::size_type i = 0; i < last; i++)
          {
+            // FIXME: Handle deletion of files in the compression process.
+            // Compression jobs may be in a queue to be processed or in process.
+            // This removal code may try to remove the target file before the
+            // compression has started or completed. This could be handled by
+            // keeping track of the jobs associated with file names and
+            // stopping the job before it starts or interrupting it.  The
+            // compression job should then clean up the orig and gz files. The
+            // code below would then not need to be run. As the code is now it
+            // may do extra work and/or create files by mistake. They will
+            // however be cleaned up next time through this routine. Windows
+            // may fail on the remove but will also do cleanup next time this
+            // is run.
             File f(oldFiles[i].c_str());
             bool success = f->remove();
 #ifdef FILE_LOGGER_DEBUG
