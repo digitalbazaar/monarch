@@ -1078,7 +1078,7 @@ DynamicObject App::getCommandLineSpecs()
 "                      (default: \"warning\")\n"
 "      --log LOG       Set log file.  Use \"-\" for stdout. (default: \"-\")\n"
 "      --log-overwrite Overwrite log file instead of appending. (default: false)\n"
-"      --log-rotating-size SIZE\n"
+"      --log-rotation-size SIZE\n"
 "                      Log size that triggers rotation in bytes. 0 to disable.\n"
 "                      (default: 2000000)\n"
 "      --log-max-rotated MAX\n"

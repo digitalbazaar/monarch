@@ -240,7 +240,7 @@ bool FileLogger::setFile(File& file, bool append)
       
       if(rval)
       {
-         OutputStream* s = new FileOutputStream(mFile);
+         OutputStream* s = new FileOutputStream(mFile, append);
          setOutputStream(s, true, false);
       }
    }
