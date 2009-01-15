@@ -208,6 +208,8 @@ void FileLogger::gzipCompress(void* info)
       sourceFile->remove();
       
 #ifdef FILE_LOGGER_DEBUG
+      //printf("FileLogger: z 1s sleep: %s\n", targetFile->getPath());
+      //Thread::sleep(1000);
       printf("FileLogger: z done: %s => %s\n",
          sourceFile->getPath(), targetFile->getPath());
 #endif
