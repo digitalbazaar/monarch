@@ -64,15 +64,6 @@ protected:
    db::rt::ExclusiveLock mLock;
    
    /**
-    * Gzip compress a file.
-    * 
-    * Intended to be used by a RunnableDelegate and be re-entrant.
-    * 
-    * @return info private compression info.
-    */
-   virtual void gzipCompress(void* info);
-   
-   /**
     * Rotate the log file.  The current file is renamed to include a timestamp
     * extension and optionally compressed.
     * 
@@ -169,6 +160,16 @@ public:
     * @return the compression job dispatcher.
     */
    virtual db::rt::JobDispatcher& getCompressionJobDispatcher();
+   
+   /**
+    * Gzip compress a file.
+    * 
+    * Intended to be used by a rotate() via a RunnableDelegate and be
+    * re-entrant.
+    * 
+    * @return info private compression info.
+    */
+   virtual void gzipCompress(void* info);
    
    /**
     * Gets the file for this logger.  Note that the file may be changed when
