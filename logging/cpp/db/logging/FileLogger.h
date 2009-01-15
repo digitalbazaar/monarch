@@ -7,6 +7,7 @@
 #include "db/io/File.h"
 #include "db/logging/OutputStreamLogger.h"
 #include "db/rt/ExclusiveLock.h"
+#include "db/rt/JobDispatcher.h"
 
 namespace db
 {
@@ -63,6 +64,15 @@ protected:
    db::rt::ExclusiveLock mLock;
    
    /**
+    * Gzip compress a file.
+    * 
+    * Intended to be used by a RunnableDelegate and be re-entrant.
+    * 
+    * @return info private compression info.
+    */
+   virtual void gzipCompress(void* info);
+   
+   /**
     * Rotate the log file.  The current file is renamed to include a timestamp
     * extension and optionally compressed.
     * 
@@ -77,6 +87,16 @@ protected:
     * rotations. 
     */
    unsigned int mSeqNum;
+   
+   /**
+    * Job dispatcher for compression jobs.
+    */
+   db::rt::JobDispatcher mCompressionJobDispatcher;
+   
+   /**
+    * Lock used to wait on compression completion.
+    */
+   db::rt::ExclusiveLock mCompressionWaitLock;
    
 public:
    /**
@@ -142,6 +162,13 @@ public:
     * @return the number of rotated log files.
     */
    virtual unsigned int getMaxRotatedFiles();
+   
+   /**
+    * Gets the job dispatcher used for compression jobs.
+    *
+    * @return the compression job dispatcher.
+    */
+   virtual db::rt::JobDispatcher& getCompressionJobDispatcher();
    
    /**
     * Gets the file for this logger.  Note that the file may be changed when

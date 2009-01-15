@@ -8,6 +8,7 @@
 #include "db/io/FileOutputStream.h"
 #include "db/io/MutatorInputStream.h"
 #include "db/rt/Exception.h"
+#include "db/rt/RunnableDelegate.h"
 #include "db/util/Math.h"
 #include "db/util/regex/Pattern.h"
 
@@ -23,6 +24,8 @@ using namespace db::util;
 using namespace db::util::regex;
 
 #define DEFAULT_MAX_ROTATED_FILES 5
+#define DEFAULT_COMPRESSION_THREAD_POOL_SIZE 2
+#define FILE_LOGGER_DEBUG
 
 FileLogger::FileLogger(File* file) :
    OutputStreamLogger(),
@@ -41,10 +44,24 @@ FileLogger::FileLogger(File* file) :
          Exception::clearLast();
       }
    }
+   mCompressionJobDispatcher.getThreadPool()->
+      setPoolSize(DEFAULT_COMPRESSION_THREAD_POOL_SIZE);
+   mCompressionJobDispatcher.startDispatching();
 }
 
 FileLogger::~FileLogger()
 {
+   // wait for all queued and running compression jobs to finish
+   mCompressionWaitLock.lock();
+   {
+      while(mCompressionJobDispatcher.getTotalJobCount() > 0)
+      {
+         mCompressionWaitLock.wait();
+      }
+   }
+   mCompressionWaitLock.unlock();
+   
+   mCompressionJobDispatcher.stopDispatching();
    close();
 }
 
@@ -58,45 +75,160 @@ void FileLogger::close()
 }
 
 /**
- * Find first available path of the form "base[-seq]ext"
+ * Find first available path pair of the form:
+ *    "base[-seq]ext"
+ * and optionally also a secondary path of the form:
+ *    "base[-seq]ext[ext2]"
+ * 
+ * This can be used, for instance, to move a log file to the .ext.ext2 file,
+ * create a new source file, then run a compression thread to compress the
+ * .ext,ext2 file to the .ext file.
+ *  
  * Using alphanumericly sortable encoding for sequence of:
  *   seq = chr(ord('a')+len(str(n))-1) + str(n)
  * (ie, prefix decimal string with letter based on length of string)
+ * 
+ * @param base base path
+ * @param seq sequence number to use
+ * @param ext first file extension
+ * @param path primary output path
+ * @param ext2 second file extension
+ * @param path2 secondary output path
+ * @return true if found, false and exception set if not or search failed
  */
-static string findAvailablePath(
-   const char* base, const char* ext, unsigned int& seq)
+static bool findAvailablePath(
+   const char* base, unsigned int& seq,
+   const char* ext = NULL,
+   string* path = NULL,
+   const char* ext2 = NULL, 
+   string* path2 = NULL)
 {
    bool found = false;
    size_t seqlen = 20;
-   size_t buflen = strlen(base) + seqlen + strlen(ext) + 1; 
+   size_t buflen = strlen(base) + seqlen + (ext == NULL ? 0 : strlen(ext)) + 1; 
    char buf[buflen];
-   // check basic file
+   size_t buflen2 = buflen + (ext2 == NULL ? 0 : strlen(ext2));
+   char buf2[buflen2];
+   while(!found)
    {
-      snprintf(buf, buflen, "%s%s", base, ext);
-      File f(buf);
-      found = !f->exists();
-   }
-   // handle sub-second file names
-   if(!found)
-   {
-      char seqbuf[seqlen];
-      // scan file names until we find a free one
-      while(!found)
+      // check basic file
       {
-         snprintf(seqbuf, seqlen, "%u", seq++);
-         char seqc = 'a' + strlen(seqbuf) - 1;
-         snprintf(buf, buflen, "%s-%c%s%s", base, seqc, seqbuf, ext);
+         snprintf(buf, buflen, "%s%s", base, ext);
          File f(buf);
          found = !f->exists();
       }
+      // handle sub-second file names
+      if(!found)
+      {
+         char seqbuf[seqlen];
+         // scan file names until we find a free one
+         // FIXME limit this search and fail w/ exception
+         while(!found)
+         {
+            snprintf(seqbuf, seqlen, "%u", seq++);
+            char seqc = 'a' + strlen(seqbuf) - 1;
+            snprintf(buf, buflen, "%s-%c%s%s",
+               base, seqc, seqbuf, (ext == NULL ? "" : ext));
+            File f(buf);
+            found = !f->exists();
+         }
+      }
+      // check secondary file if needed
+      if(found && ext2 != NULL)
+      {
+         snprintf(buf2, buflen2, "%s%s", buf, ext2);
+         File f2(buf2);
+         found = !f2->exists();
+         printf("buf2[%d]: %s\n", found, buf2);
+      }
    }
-   else
+   
+   if(found)
    {
       // reset sequence
       seq = 0;
+      // assign output paths
+      if(path != NULL)
+      {
+         path->assign(buf);
+      }
+      if(ext2 != NULL && path2 != NULL)
+      {
+         path2->assign(buf2);
+      }
    }
-   string rval(buf);
-   return rval;
+   
+   return found;
+}
+
+/**
+ * Simple private holder for gzip compression RunnableDelegate info.
+ */
+class GzipCompressInfo
+{
+public:
+   string sourceFileName;
+   string targetFileName;
+   GzipCompressInfo() {}
+   virtual ~GzipCompressInfo() {}
+};
+
+void FileLogger::gzipCompress(void* info)
+{
+   bool rval;
+   GzipCompressInfo* cInfo = (GzipCompressInfo*)info;
+   Gzipper gzipper;
+   rval = gzipper.startCompressing();
+   
+   if(rval)
+   {
+      File sourceFile(cInfo->sourceFileName.c_str());
+      File targetFile(cInfo->targetFileName.c_str());
+   
+#ifdef FILE_LOGGER_DEBUG
+      printf("FileLogger: z start: %s => %s\n",
+         sourceFile->getPath(), targetFile->getPath());
+#endif
+      
+      FileInputStream fis(sourceFile);
+      FileOutputStream fos(targetFile);
+      
+      MutatorInputStream mis(&fis, false, &gzipper, false);
+      char b[4096];
+      int numBytes;
+      while(rval && (numBytes = mis.read(b, 4096)) > 0)
+      {
+         rval = fos.write(b, numBytes);
+      }
+   
+      fis.close();
+      fos.close();
+      
+      // done with source
+      sourceFile->remove();
+      
+#ifdef FILE_LOGGER_DEBUG
+      printf("FileLogger: z done: %s => %s\n",
+         sourceFile->getPath(), targetFile->getPath());
+#endif
+   }
+   else
+   {
+#ifdef FILE_LOGGER_DEBUG
+      printf("FileLogger: z error\n");
+#endif
+   }
+   
+   delete (GzipCompressInfo*)info;
+   
+   // notification for threads that wait for compression to complete
+   mCompressionWaitLock.lock();
+   {
+      mCompressionWaitLock.notifyAll();
+   }
+   mCompressionWaitLock.unlock();
+   
+   // failures and exceptions ignored
 }
 
 bool FileLogger::rotate()
@@ -116,37 +248,59 @@ bool FileLogger::rotate()
    close();
    if(getFlags() & GzipCompressRotatedLogs)
    {
+      // deleted in gzipCompress or below after setup failure
+      GzipCompressInfo* info = new GzipCompressInfo;
       // compress stream from old file to new .gz file
-      // FIXME for large files this will block logging during compression
-      fn = findAvailablePath(fn.c_str(), ".gz", mSeqNum);
-      File newFile(fn.c_str());
+      rval = findAvailablePath(fn.c_str(), mSeqNum,
+         ".gz", &info->targetFileName,
+         ".orig", &info->sourceFileName);
       
-      Gzipper gzipper;
-      rval = gzipper.startCompressing();
-      
+      // ensure files are created so next findAvailablePath call will pick a
+      // correct name regardless of compression thread progress
       if(rval)
       {
-         FileInputStream fis(mFile);
-         FileOutputStream fos(newFile);
-      
-         MutatorInputStream mis(&fis, false, &gzipper, false);
-         char b[4096];
-         int numBytes;
-         while(rval && (numBytes = mis.read(b, 4096)) > 0)
-         {
-            rval = fos.write(b, numBytes);
-         }
-      
-         fis.close();
-         fos.close();
+         // move source file to new name
+         File orig(info->sourceFileName.c_str());
+#ifdef FILE_LOGGER_DEBUG
+         printf("FileLogger: z rename: %s => %s\n",
+            mFile->getPath(), orig->getPath());
+#endif
+         rval = mFile->rename(orig);
+      }
+      if(rval)
+      {
+         // create target file
+         File newFile(info->targetFileName.c_str());
+#ifdef FILE_LOGGER_DEBUG
+         printf("FileLogger: z create: %s\n", newFile->getPath());
+#endif
+         rval = newFile->create();
+      }
+      if(rval)
+      {
+         // send a compression job to the pool
+         RunnableRef compressor = new RunnableDelegate<FileLogger>(
+            this, &FileLogger::gzipCompress, info);
+         mCompressionJobDispatcher.queueJob(compressor);
+      }
+      else
+      {
+         delete info;
       }
    }
    else
    {
       // move old file to new file
-      fn = findAvailablePath(fn.c_str(), "", mSeqNum);
-      File newFile(fn.c_str());
-      rval = mFile->rename(newFile);
+      string newfn;
+      rval = findAvailablePath(fn.c_str(), mSeqNum, "", &newfn);
+      if(rval)
+      {
+         File newFile(fn.c_str());
+#ifdef FILE_LOGGER_DEBUG
+         printf("FileLogger: rename: %s => %s\n", fn.c_str(), newfn.c_str());
+#endif
+         rval = mFile->rename(newFile);
+      }
    }
    
    if(!rval)
@@ -197,6 +351,9 @@ bool FileLogger::rotate()
          {
             File f(oldFiles[i].c_str());
             bool success = f->remove();
+#ifdef FILE_LOGGER_DEBUG
+            printf("FileLogger: remove: %s\n", f->getPath());
+#endif
             // ignore failures
             if(!success)
             {
@@ -276,6 +433,11 @@ void FileLogger::setMaxRotatedFiles(unsigned int maxRotatedFiles)
 unsigned int FileLogger::getMaxRotatedFiles()
 {
    return mMaxRotatedFiles;
+}
+
+JobDispatcher& FileLogger::getCompressionJobDispatcher()
+{
+   return mCompressionJobDispatcher;
 }
 
 File& FileLogger::getFile()
