@@ -35,16 +35,18 @@ bool MailSpool::writeIndex()
    std::string name = mFile->getAbsolutePath();
    name.append(".idx");
    File file(name.c_str());
-   
-   // write out index data
-   FileOutputStream fos(file);
-   DynamicObject config;
-   config["head"] = mHead;
-   config["tail"] = mTail;
-   config["count"] = mCount;
-   JsonWriter writer;
-   rval = writer.write(config, &fos);
-   fos.close();
+   if((rval = file->mkdirs()))
+   {
+      // write out index data
+      FileOutputStream fos(file);
+      DynamicObject config;
+      config["head"] = mHead;
+      config["tail"] = mTail;
+      config["count"] = mCount;
+      JsonWriter writer;
+      rval = writer.write(config, &fos);
+      fos.close();
+   }
    
    return rval;
 }
