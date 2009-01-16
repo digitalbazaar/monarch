@@ -271,7 +271,7 @@ Logger::LoggerFlags Logger::getFlags()
 /**
  * Adapted from glibc sprintf docs.
  */
-char* Logger::makeMessage(const char *format, va_list varargs)
+char* Logger::vMakeMessage(const char *format, va_list varargs)
 {
    /* Guess we need no more than 128 bytes. */
    int n, size = 128;
@@ -305,7 +305,7 @@ char* Logger::makeMessage(const char *format, va_list varargs)
    }
 }
 
-bool Logger::log(
+bool Logger::vLog(
    Category* cat,
    Level level,
    const char* location,
@@ -416,7 +416,7 @@ bool Logger::log(
          logText.push_back(' ');
       }
 
-      char* message = makeMessage(format, varargs);
+      char* message = vMakeMessage(format, varargs);
       if(message)
       {
          logText.append(message);
@@ -448,14 +448,14 @@ bool Logger::log(
    
    va_list varargs;
    va_start(varargs, format);
-   rval = log(cat, level, location, object, flags, format, varargs);
+   rval = vLog(cat, level, location, object, flags, format, varargs);
    va_end(varargs);
    
    return rval;
 }
 
 
-void Logger::logToLoggers(
+void Logger::vLogToLoggers(
    Category* registeredCat,
    Category* messageCat,
    Level level,
@@ -477,7 +477,7 @@ void Logger::logToLoggers(
          {
             // Log the message
             Logger* logger = i->second;
-            logger->log(
+            logger->vLog(
                messageCat, level, location, object, flags, format, varargs);
          }
       }
@@ -496,12 +496,12 @@ void Logger::logToLoggers(
 {
    va_list varargs;
    va_start(varargs, format);
-   logToLoggers(registeredCat, messageCat,
+   vLogToLoggers(registeredCat, messageCat,
       level, location, object, flags, format, varargs);
    va_end(varargs);
 }
 
-void Logger::logToLoggers(
+void Logger::vLogToLoggers(
    Category* cat,
    Level level,
    const char* location,
@@ -511,9 +511,9 @@ void Logger::logToLoggers(
    va_list varargs)
 {
    // Log to loggers registered for this category
-   logToLoggers(cat, cat, level, location, object, flags, format, varargs);
+   vLogToLoggers(cat, cat, level, location, object, flags, format, varargs);
    // Log to loggers registered for all categories
-   logToLoggers(
+   vLogToLoggers(
       DB_ALL_CAT, cat, level, location, object, flags, format, varargs);
 }
 
@@ -528,6 +528,6 @@ void Logger::logToLoggers(
 {
    va_list varargs;
    va_start(varargs, format);
-   logToLoggers(cat, level, location, object, flags, format, varargs);
+   vLogToLoggers(cat, level, location, object, flags, format, varargs);
    va_end(varargs);
 }

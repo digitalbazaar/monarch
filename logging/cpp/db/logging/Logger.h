@@ -183,7 +183,7 @@ protected:
     * 
     * @returns NULL on error or string. Caller must free memory;
     */
-   static char* makeMessage(const char *format, va_list varargs);
+   static char* vMakeMessage(const char *format, va_list varargs);
    
 public:
    /**
@@ -305,7 +305,7 @@ public:
     * 
     * @return true if the text was written, false if not.
     */
-   bool log(
+   bool vLog(
       db::logging::Category* cat, 
       Level level,
       const char* location,
@@ -350,7 +350,7 @@ public:
     * @param format the log message format (printf style)
     * @param va_list the log message args
     */
-   static void logToLoggers(
+   static void vLogToLoggers(
       db::logging::Category* registeredCat,
       db::logging::Category* messageCat,
       Level level,
@@ -394,7 +394,7 @@ public:
     * @param format the log message format (printf style)
     * @param va_list the log message args
     */
-   static void logToLoggers(
+   static void vLogToLoggers(
       db::logging::Category* cat,
       Level level,
       const char* location,
