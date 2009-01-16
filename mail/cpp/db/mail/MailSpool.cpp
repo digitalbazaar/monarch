@@ -160,7 +160,10 @@ bool MailSpool::spool(Mail* mail)
 
 bool MailSpool::getFirst(Mail* mail)
 {
-   bool rval = false;
+   bool rval = true;
+   
+   // keep track of whether or not the first mail was found in the spool
+   bool foundFirst = false;
    
    lock();
    {
@@ -170,6 +173,7 @@ bool MailSpool::getFirst(Mail* mail)
             "Cannot get first mail from spool. Spool is empty.",
             "db.mail.EmptySpool");
          Exception::setLast(e, false);
+         rval = false;
       }
       else if(mFile.isNull())
       {
@@ -221,6 +225,7 @@ bool MailSpool::getFirst(Mail* mail)
                if(numBytes != -1)
                {
                   // parse mail data
+                  foundFirst = true;
                   ByteArrayInputStream bais(&bb, false);
                   MailTemplateParser parser;
                   DynamicObject vars;
@@ -241,9 +246,24 @@ bool MailSpool::getFirst(Mail* mail)
          
          // close spool file
          fis.close();
+
+         // IO error
+         if(numBytes < 0)
+         {
+            rval = false;
+         }
       }
    }
    unlock();
+   
+   if(rval && !foundFirst)
+   {
+      ExceptionRef e = new Exception(
+         "Could not read first mail from spool. Possibly corrupt spool file.",
+         "db.mail.CorruptSpoolFile");
+      Exception::setLast(e, false);
+      rval = false;
+   }
    
    return rval;
 }
