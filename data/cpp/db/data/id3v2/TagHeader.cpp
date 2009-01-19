@@ -12,7 +12,7 @@ using namespace db::data::id3v2;
 const unsigned char TagHeader::sSupportedVersion = 3;
 const unsigned char TagHeader::sSupportedRevision = 0;
 const int TagHeader::sHeaderSize = 10;
-const int TagHeader::sMaxTagSize = 268435456;
+const int TagHeader::sMaxTagSize = 0x10000000; // == 268435456
 const unsigned char TagHeader::sUnsynchronizedBit = 0x80;
 const unsigned char TagHeader::sExtendedHeaderBit = 0x40;
 const unsigned char TagHeader::sExperimentalBit = 0x20;
