@@ -26,6 +26,7 @@ EXECUTABLES = \
 	test-dyno-perf \
 	test-event \
 	test-fiber \
+	test-fiber-yield \
 	test-io \
 	test-logging \
 	test-mail \

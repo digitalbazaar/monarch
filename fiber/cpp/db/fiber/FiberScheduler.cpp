@@ -258,6 +258,12 @@ void FiberScheduler::runNextFiber(bool yield)
       mFiberItr = mFiberList.begin();
    }
    
+   // FIXME: a possible optimization would be to move running fibers into
+   // their own fiber list so just the non-running fibers could be iterated
+   // over, this may also be part of a solution for doing real yields(),
+   // where lists of yielded fibers could be compiled and checked (keeping in
+   // mind that threads cannot change for yielded fibers)
+   
    // initialize cycleEnd as invalid
    Fiber* fiber = NULL;
    Fiber::State state;
@@ -433,6 +439,47 @@ void FiberScheduler::sendMessage(FiberId id, DynamicObject& msg)
 
 inline void FiberScheduler::yield(FiberId id)
 {
+   // FIXME: Note: The below solution to the yield() problem is only viable
+   // if the assumption is correct that the stack will be reset to some small
+   // size every time setjmp() returns with 0. Otherwise, there will be
+   // a stack overflow if many fibers all yield to one another.
+   
+   // FIXME: If all fibers are "running" yield() is effectively useless
+   // we need to implement a real yield() which may involve setjmp()/longjmp()
+   // for portability. The solution entails:
+   
+   // yield():
+   // 1. add yielding fiber to list of yielded fibers
+   // 2. check for non-running fiber
+   // 3. if found, run fiber
+   // 4. jump to first in list of yielded threads
+   
+   // The current implementation only does step 2 & 3. It would need to be
+   // changed to something like:
+   
+//   jmp_buf env;
+//   if(setjmp(env) == 0)
+//   {
+//      // saved execution environment, store in a list that is either
+//      // saved per-thread or saved within the fibers themselves as a
+//      // linked-list -- which would be thread-safe because fibers could only
+//      // yield to each other on the same thread
+//      saveExecutionEnvironment(id, env);
+//      
+//      // once execution environment is saved so it can be jumped back to
+//      // later (which will result in running the code in the below "else"),
+//      // then do runNextFiber()
+//      runNextFiber(true);
+//      
+//      // now get the first yielded fiber and jump to its execution environment
+//      longjmp(env);
+//   }
+//   else
+//   {
+//      // back from jumping, do nothing but drop out to continue after yield()
+//   }
+   
+   // try to run another fiber
    runNextFiber(true);
 }
 
