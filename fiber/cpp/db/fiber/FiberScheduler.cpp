@@ -444,15 +444,15 @@ inline void FiberScheduler::yield(FiberId id)
    // size every time setjmp() returns with 0. Otherwise, there will be
    // a stack overflow if many fibers all yield to one another.
    
-   // FIXME: If all fibers are "running" yield() is effectively useless
-   // we need to implement a real yield() which may involve setjmp()/longjmp()
+   // FIXME: If all fibers are "running" yield() is effectively useless. We
+   // need to implement a real yield() which may involve setjmp()/longjmp()
    // for portability. The solution entails:
    
    // yield():
    // 1. add yielding fiber to list of yielded fibers
    // 2. check for non-running fiber
    // 3. if found, run fiber
-   // 4. jump to first in list of yielded threads
+   // 4. jump to first in list of yielded fibers
    
    // The current implementation only does step 2 & 3. It would need to be
    // changed to something like:
