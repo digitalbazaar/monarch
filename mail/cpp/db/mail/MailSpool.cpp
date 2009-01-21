@@ -1,15 +1,16 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/mail/MailSpool.h"
 
-#include "db/io/ByteArrayInputStream.h"
-#include "db/io/FileInputStream.h"
-#include "db/io/FileOutputStream.h"
 #include "db/data/Data.h"
 #include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/mail/MailTemplateParser.h"
+#include "db/io/ByteArrayInputStream.h"
+#include "db/io/FileInputStream.h"
+#include "db/io/FileOutputStream.h"
+#include "db/util/Data.h"
 
 using namespace db::data::json;
 using namespace db::io;

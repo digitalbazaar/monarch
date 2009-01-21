@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sphinx/SphinxClient.h"
 
 #include "db/net/InternetAddress.h"
 #include "db/net/TcpSocket.h"
+#include "db/util/Data.h"
 
 using namespace db::sphinx;
 using namespace db::data;

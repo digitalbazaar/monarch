@@ -3,8 +3,8 @@
  */
 #include "db/compress/gzip/Header.h"
 
-#include "db/data/Data.h"
 #include "db/rt/System.h"
+#include "db/util/Data.h"
 #include <zlib.h>
 
 #include <cstdlib>

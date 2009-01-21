@@ -34,6 +34,7 @@
 #include "db/net/http/HttpConnectionServicer.h"
 #include "db/net/http/HttpRequestServicer.h"
 #include "db/net/Server.h"
+#include "db/util/Data.h"
 
 using namespace std;
 using namespace db::test;

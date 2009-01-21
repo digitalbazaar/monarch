@@ -3,7 +3,7 @@
  */
 #include "db/compress/gzip/Trailer.h"
 
-#include "db/data/Data.h"
+#include "db/util/Data.h"
 #include <zlib.h>
 
 using namespace db::compress::gzip;
