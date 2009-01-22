@@ -25,7 +25,7 @@ using namespace db::rt;
 #define TMPDIR "/tmp"
 #endif
 
-#define VALID_SMTP_SERVER "smtp://yuna.digitalbazaar.com:25"
+#define VALID_SMTP_SERVER "smtp://mail.digitalbazaar.com:25"
 
 void runSmtpClientTest(TestRunner& tr)
 {
