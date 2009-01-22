@@ -52,8 +52,9 @@ static bool parseLine(Mail* mail, const char* line, bool& headers)
          if(header == NULL || (int)strcspn(line, " \t") < (header - line))
          {
             ExceptionRef e = new Exception(
-               "Parse error while parsing mail template! Mail header "
-               "is malformed or non-existant.");
+               "Parse error while parsing mail template. Mail header "
+               "is malformed or non-existant.",
+               "db.mail.InvalidHeader");
             Exception::setLast(e, false);
             rval = false;
          }
@@ -139,8 +140,9 @@ bool MailTemplateParser::parse(
          // invalid line detected
          numBytes = -1;
          ExceptionRef e = new Exception(
-            "Message line too long! SMTP requires that lines be no longer "
-            "than 1000 bytes, including the terminating CRLF.");
+            "Message line too long. SMTP requires that lines be no longer "
+            "than 1000 bytes, including the terminating CRLF.",
+            "db.mail.LineTooLong");
          Exception::setLast(e, false);
          rval = false;
       }
