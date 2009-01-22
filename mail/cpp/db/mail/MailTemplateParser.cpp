@@ -5,6 +5,7 @@
 
 #include "db/data/TemplateInputStream.h"
 
+using namespace std;
 using namespace db::data;
 using namespace db::io;
 using namespace db::mail;
@@ -99,6 +100,9 @@ bool MailTemplateParser::parse(
    
    // SMTP RFC requires lines be no longer than 998 bytes (+2 for CRLF = 1000)
    // so read in a maximum of 1000 bytes at a time
+   bool checkedEncoding = false;
+   bool bodyEncoded = false;
+   string body;
    bool headers = true;
    char b[1001];
    int numBytes;
@@ -117,39 +121,67 @@ bool MailTemplateParser::parse(
       b[length] = 0;
       start = b;
       
-      // parse lines according to line breaks
-      while(rval && (end = strpbrk(start, "\r\n")) != NULL)
+      // see if the body is to be encoded, in which case we don't need to
+      // parse each individual line, we can just build a body string
+      if(!headers && !checkedEncoding)
       {
-         // take note of CR, then insert null-terminator
-         cr = (end[0] == '\r');
-         end[0] = 0;
+         Message& msg = mail->getMessage();
+         if(msg["headers"]->hasMember("Content-Transfer-Encoding"))
+         {
+            const char* encoding =
+               msg["headers"]["Content-Transfer-Encoding"]->getString();
+            if(strcasecmp(encoding, "base64") == 0)
+            {
+               bodyEncoded = true;
+            }
+         }
          
-         // parse line
-         rval = parseLine(mail, start, headers);
-         
-         // decrement length and increment start skipping LF as appropriate
-         // Note: 'b' always ends in 0, so end[1] must always be a valid byte
-         // or the null-terminator of b
-         int skip = (cr && end[1] == '\n' ? 2 : 1);
-         length -= (end - start) + skip;
-         start = end + skip;
+         checkedEncoding = true;
       }
       
-      if(end == NULL && length > 998)
+      // if using body encoded and headers are finished, append to body string
+      if(bodyEncoded && !headers)
       {
-         // invalid line detected
-         numBytes = -1;
-         ExceptionRef e = new Exception(
-            "Message line too long. SMTP requires that lines be no longer "
-            "than 1000 bytes, including the terminating CRLF.",
-            "db.mail.LineTooLong");
-         Exception::setLast(e, false);
-         rval = false;
+         body.append(b);
+         length = 0;
       }
-      else if(start > b)
+      // parse line normally
+      else
       {
-         // shift buffer contents as necessary
-         memmove(b, start, length + 1);
+         // parse lines according to line breaks
+         while(rval && (end = strpbrk(start, "\r\n")) != NULL)
+         {
+            // take note of CR, then insert null-terminator
+            cr = (end[0] == '\r');
+            end[0] = 0;
+            
+            // parse line
+            rval = parseLine(mail, start, headers);
+            
+            // decrement length and increment start skipping LF as appropriate
+            // Note: 'b' always ends in 0, so end[1] must always be a valid byte
+            // or the null-terminator of b
+            int skip = (cr && end[1] == '\n' ? 2 : 1);
+            length -= (end - start) + skip;
+            start = end + skip;
+         }
+         
+         if(end == NULL && length > 998)
+         {
+            // invalid line detected
+            numBytes = -1;
+            ExceptionRef e = new Exception(
+               "Message line too long. SMTP requires that lines be no longer "
+               "than 1000 bytes, including the terminating CRLF.",
+               "db.mail.LineTooLong");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+         else if(start > b)
+         {
+            // shift buffer contents as necessary
+            memmove(b, start, length + 1);
+         }
       }
    }
    
@@ -159,8 +191,22 @@ bool MailTemplateParser::parse(
    }
    else if(length > 0)
    {
-      // parse the last line
-      rval = parseLine(mail, b, headers);
+      // if using body encoded and headers are finished, append to body string
+      if(bodyEncoded && !headers)
+      {
+         body.append(b);
+      }
+      // parse last line normally
+      else
+      {
+         rval = parseLine(mail, b, headers);
+      }
+   }
+   
+   // if body is to be encoded, now set it in the mail
+   if(bodyEncoded)
+   {
+      mail->setBody(body.c_str());
    }
    
    return rval;

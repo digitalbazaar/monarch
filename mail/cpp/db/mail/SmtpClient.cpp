@@ -91,11 +91,12 @@ bool SmtpClient::startData(Connection* c)
       sendCrlf(c);
 }
 
-bool SmtpClient::sendMessage(Connection* c, Message msg)
+bool SmtpClient::sendMessage(Connection* c, Mail* mail)
 {
    bool rval = true;
    
    // send headers
+   Message msg = mail->getMessage();
    DynamicObjectIterator i = msg["headers"].getIterator();
    while(rval && i->hasNext())
    {
@@ -143,10 +144,9 @@ bool SmtpClient::sendMessage(Connection* c, Message msg)
    
    if(rval)
    {
-      // send smtp-encoded body
-      string value = msg["body"]->getString();
-      Mail::smtpMessageEncode(value);
-      rval = c->getOutputStream()->write(value.c_str(), value.length());
+      // send encoded body
+      string body = mail->getTransferEncodedBody();
+      rval = c->getOutputStream()->write(body.c_str(), body.length());
    }
    
    return rval;   
@@ -215,7 +215,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    }
    
    // send data
-   if(rval && (rval = sendMessage(c, mail->getMessage())));
+   if(rval && (rval = sendMessage(c, mail)));
    
    // end data
    if(rval && (rval = endData(c)))

@@ -165,6 +165,15 @@ public:
    virtual Message& getMessage();
    
    /**
+    * Gets the transfer-encoded body of this Mail. The returned string
+    * will be transfer-encoded according to its Content-Transfer-Encoding
+    * header.
+    * 
+    * @return the transfer-encoded body.
+    */
+   virtual std::string getTransferEncodedBody();
+   
+   /**
     * Converts this Mail into a template that can be re-parsed to create
     * this Mail again. This is useful for spooling.
     * 

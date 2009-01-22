@@ -3,12 +3,15 @@
  */
 #include "db/mail/Mail.h"
 
+#include "db/net/http/HttpHeader.h"
+#include "db/util/Base64Codec.h"
 #include "db/util/StringTools.h"
 
 using namespace std;
 using namespace db::mail;
 using namespace db::rt;
 using namespace db::util;
+using namespace db::net::http;
 
 Mail::Mail()
 {
@@ -143,7 +146,10 @@ void Mail::setHeader(const char* header, const char* value)
    }
    else
    {
-      mMessage["headers"][header] = value;
+      char tmp[strlen(header) + 1];
+      strcpy(tmp, header);
+      HttpHeader::biCapitalize(tmp);
+      mMessage["headers"][tmp] = value;
    }
 }
 
@@ -220,4 +226,30 @@ string& Mail::smtpMessageEncode(string& str)
 {
    // insert second dot for any line that starts with a dot
    return StringTools::replaceAll(str, "\r\n.", "\r\n..");
+}
+
+string Mail::getTransferEncodedBody()
+{
+   string rval = mMessage["body"]->getString();
+   
+   bool encoded = false;
+   if(mMessage["headers"]->hasMember("Content-Transfer-Encoding"))
+   {
+      const char* encoding =
+         mMessage["headers"]["Content-Transfer-Encoding"]->getString();
+      if(strcasecmp(encoding, "base64") == 0)
+      {
+         // base64 encode message
+         rval = Base64Codec::encode(rval.c_str(), rval.length());
+         encoded = true;
+      }
+   }
+   
+   if(!encoded)
+   {
+      // use default smtp-encoding
+      smtpMessageEncode(rval);
+   }
+   
+   return rval;
 }

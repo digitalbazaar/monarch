@@ -95,11 +95,11 @@ protected:
     * Sends the message to the server.
     * 
     * @param c the smtp connection.
-    * @param msg the message to send.
+    * @param mail the mail with the message to send.
     * 
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool sendMessage(db::net::Connection* c, Message msg);
+   virtual bool sendMessage(db::net::Connection* c, Mail* mail);
    
    /**
     * Sends the data delimiter signaling the end of data to the server.
