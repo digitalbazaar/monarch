@@ -30,10 +30,12 @@ MailTemplateParser::~MailTemplateParser()
  * @param vars the key-value variables in the template.
  * @param line the line to parse.
  * @param headers the flag to clear once the headers have been parsed.
+ * @param bodyEncoded the flag to set if the body should be transfer-encoded.
  * 
  * @return true if successful, false if an exception occurred.
  */
-static bool parseLine(Mail* mail, const char* line, bool& headers)
+static bool parseLine(
+   Mail* mail, const char* line, bool& headers, bool& bodyEncoded)
 {
    bool rval = true;
    
@@ -74,6 +76,11 @@ static bool parseLine(Mail* mail, const char* line, bool& headers)
                strncpy(hdr, line, header - line);
                hdr[header - line] = 0;
                mail->setHeader(hdr, header + 2);
+               
+               if(!bodyEncoded)
+               {
+                  bodyEncoded = mail->shouldTransferEncodeBody();
+               }
             }
          }
       }
@@ -92,6 +99,9 @@ bool MailTemplateParser::parse(
 {
    bool rval = true;
    
+   // FIXME: This code can be refactored to do less "cornercase" handling
+   // regarding body encoding
+   
    // clear mail
    mail->clear();
    
@@ -100,8 +110,7 @@ bool MailTemplateParser::parse(
    
    // SMTP RFC requires lines be no longer than 998 bytes (+2 for CRLF = 1000)
    // so read in a maximum of 1000 bytes at a time
-   bool checkedEncoding = false;
-   bool bodyEncoded = false;
+   bool bodyEncoded = mail->shouldTransferEncodeBody();
    string body;
    bool headers = true;
    char b[1001];
@@ -121,24 +130,6 @@ bool MailTemplateParser::parse(
       b[length] = 0;
       start = b;
       
-      // see if the body is to be encoded, in which case we don't need to
-      // parse each individual line, we can just build a body string
-      if(!headers && !checkedEncoding)
-      {
-         Message& msg = mail->getMessage();
-         if(msg["headers"]->hasMember("Content-Transfer-Encoding"))
-         {
-            const char* encoding =
-               msg["headers"]["Content-Transfer-Encoding"]->getString();
-            if(strcasecmp(encoding, "base64") == 0)
-            {
-               bodyEncoded = true;
-            }
-         }
-         
-         checkedEncoding = true;
-      }
-      
       // if using body encoded and headers are finished, append to body string
       if(bodyEncoded && !headers)
       {
@@ -156,7 +147,7 @@ bool MailTemplateParser::parse(
             end[0] = 0;
             
             // parse line
-            rval = parseLine(mail, start, headers);
+            rval = parseLine(mail, start, headers, bodyEncoded);
             
             // decrement length and increment start skipping LF as appropriate
             // Note: 'b' always ends in 0, so end[1] must always be a valid byte
@@ -164,6 +155,15 @@ bool MailTemplateParser::parse(
             int skip = (cr && end[1] == '\n' ? 2 : 1);
             length -= (end - start) + skip;
             start = end + skip;
+            
+            if(!headers && bodyEncoded)
+            {
+               // append rest of data in buffer to body and break
+               body.append(start);
+               start = b;
+               length = 0;
+               break;
+            }
          }
          
          if(end == NULL && length > 998)
@@ -199,7 +199,7 @@ bool MailTemplateParser::parse(
       // parse last line normally
       else
       {
-         rval = parseLine(mail, b, headers);
+         rval = parseLine(mail, b, headers, bodyEncoded);
       }
    }
    

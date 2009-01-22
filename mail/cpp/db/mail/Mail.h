@@ -165,6 +165,15 @@ public:
    virtual Message& getMessage();
    
    /**
+    * Returns true if the body of this Mail should be transfer-encoded by
+    * checking it for a Content-Transfer-Encoding header.
+    * 
+    * @return true if the body of this Mail should be transfer-encoded, false
+    *         if not.
+    */
+   virtual bool shouldTransferEncodeBody();
+   
+   /**
     * Gets the transfer-encoded body of this Mail. The returned string
     * will be transfer-encoded according to its Content-Transfer-Encoding
     * header.

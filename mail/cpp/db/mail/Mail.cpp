@@ -177,6 +177,49 @@ Message& Mail::getMessage()
    return mMessage;
 }
 
+bool Mail::shouldTransferEncodeBody()
+{
+   bool rval = false;
+   
+   if(mMessage["headers"]->hasMember("Content-Transfer-Encoding"))
+   {
+      const char* encoding =
+         mMessage["headers"]["Content-Transfer-Encoding"]->getString();
+      if(strcasecmp(encoding, "base64") == 0)
+      {
+         rval = true;
+      }
+   }
+   
+   return rval;
+}
+
+string Mail::getTransferEncodedBody()
+{
+   string rval = mMessage["body"]->getString();
+   
+   bool encoded = false;
+   if(mMessage["headers"]->hasMember("Content-Transfer-Encoding"))
+   {
+      const char* encoding =
+         mMessage["headers"]["Content-Transfer-Encoding"]->getString();
+      if(strcasecmp(encoding, "base64") == 0)
+      {
+         // base64 encode message
+         rval = Base64Codec::encode(rval.c_str(), rval.length());
+         encoded = true;
+      }
+   }
+   
+   if(!encoded)
+   {
+      // use default smtp-encoding
+      smtpMessageEncode(rval);
+   }
+   
+   return rval;
+}
+
 string Mail::toTemplate()
 {
    string str;
@@ -226,30 +269,4 @@ string& Mail::smtpMessageEncode(string& str)
 {
    // insert second dot for any line that starts with a dot
    return StringTools::replaceAll(str, "\r\n.", "\r\n..");
-}
-
-string Mail::getTransferEncodedBody()
-{
-   string rval = mMessage["body"]->getString();
-   
-   bool encoded = false;
-   if(mMessage["headers"]->hasMember("Content-Transfer-Encoding"))
-   {
-      const char* encoding =
-         mMessage["headers"]["Content-Transfer-Encoding"]->getString();
-      if(strcasecmp(encoding, "base64") == 0)
-      {
-         // base64 encode message
-         rval = Base64Codec::encode(rval.c_str(), rval.length());
-         encoded = true;
-      }
-   }
-   
-   if(!encoded)
-   {
-      // use default smtp-encoding
-      smtpMessageEncode(rval);
-   }
-   
-   return rval;
 }
