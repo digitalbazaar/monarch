@@ -157,15 +157,18 @@ void FiberScheduler2::run()
          // swap in the fiber's context
          scheduler->swap(fiber->getContext());
          
-         // lock scheduling while adding fiber back to queue
-         mScheduleLock.lock();
+         if(fiber->getState() != Fiber2::Sleeping)
          {
-            mFiberQueue.push_back(fiber);
+            // lock scheduling while adding fiber back to queue
+            mScheduleLock.lock();
+            {
+               mFiberQueue.push_back(fiber);
+            }
+            mScheduleLock.unlock();
+            
+            // notify that a fiber is available
+            fiberAvailable();
          }
-         mScheduleLock.unlock();
-         
-         // notify that a fiber is available
-         fiberAvailable();
       }
    }
 }
@@ -200,9 +203,13 @@ void FiberScheduler2::wakeup(FiberId2 id)
       FiberMap::iterator i = mSleepingFibers.find(id);
       if(i != mSleepingFibers.end())
       {
-         // update fiber state and remove from sleeping fibers map
+         // update fiber state, add to queue, remove from sleeping fibers map
          i->second->setState(Fiber2::Running);
+         mFiberQueue.push_back(i->second);
          mSleepingFibers.erase(i);
+         
+         // notify that a fiber is available
+         fiberAvailable();
       }
    }
    mScheduleLock.unlock();

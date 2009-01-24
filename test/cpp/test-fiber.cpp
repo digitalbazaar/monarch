@@ -232,6 +232,22 @@ public:
    }
 };
 
+class TestFiber2Sleep : public Fiber2
+{
+public:
+   TestFiber2Sleep()
+   {
+   };
+   virtual ~TestFiber2Sleep() {};
+   
+   virtual void run()
+   {
+      //printf("going to sleep...\n");
+      sleep();
+      //printf("awake!\n");
+   }
+};
+
 void runFiber2Test(TestRunner& tr)
 {
    tr.group("Fibers 2");
@@ -285,6 +301,27 @@ void runFiber2Test(TestRunner& tr)
       k.getEngine()->stop();
    }
    tr.passIfNoException();
+   
+   tr.test("sleep fiber");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler2 fs;
+      fs.start(&k, 1);
+      
+      FiberId2 id = fs.addFiber(new TestFiber2Sleep());
+      
+      // wait, and then wakeup sleeping fiber
+      Thread::sleep(500);
+      //printf("waking up fiber...\n");
+      fs.wakeup(id);
+      
+      fs.waitForLastFiberExit(true);
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+   
 #if 0
    tr.test("messages");
    {
@@ -1022,8 +1059,8 @@ public:
    {
       //runFiberTest(tr);
       //runFiberSpeedTest(tr);
-      //runFiber2Test(tr);
-      runFiber2SpeedTest(tr);
+      runFiber2Test(tr);
+      //runFiber2SpeedTest(tr);
       return 0;
    }
 
