@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 
 #include "db/test/Test.h"
@@ -11,6 +11,7 @@
 #include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/fiber/FiberScheduler.h"
+#include "db/fiber/FiberScheduler2.h"
 #include "db/io/NullOutputStream.h"
 #include "db/modest/Kernel.h"
 #include "db/util/Timer.h"
@@ -207,6 +208,185 @@ void runFiberTest(TestRunner& tr)
    tr.ungroup();
 }
 
+class TestFiber2 : public Fiber2
+{
+public:
+   int start;
+   
+public:
+   TestFiber2(int n)
+   {
+      start = n;
+   };
+   virtual ~TestFiber2() {};
+   
+   virtual void run()
+   {
+      for(int i = start; i > 0; i--)
+      {
+//         printf("Fiber %i doing iteration %i on thread %p\n",
+//            getId(), i, Thread::currentThread());
+         iterate();
+         yield();
+      }
+   }
+};
+
+class TestFiber2Sleep : public Fiber2
+{
+public:
+   TestFiber2Sleep()
+   {
+   };
+   virtual ~TestFiber2Sleep() {};
+   
+   virtual void run()
+   {
+      //printf("going to sleep...\n");
+      sleep();
+      //printf("awake!\n");
+   }
+};
+
+void runFiber2Test(TestRunner& tr)
+{
+   tr.group("Fibers 2");
+   
+   tr.test("single fiber");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler2 fs;
+      fs.start(&k, 1);
+      
+      TestFiber2* fiber = new TestFiber2(1000);
+      fs.addFiber(fiber);
+      
+      fs.waitForLastFiberExit(true);
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+   
+   tr.test("many fibers");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler2 fs;
+      
+      // queue up some fibers prior to starting
+      for(int i = 0; i < 1000; i++)
+      {
+         fs.addFiber(new TestFiber2(20));
+      }
+      
+      for(int i = 0; i < 400; i++)
+      {
+         fs.addFiber(new TestFiber2(50));
+      }
+      
+      uint64_t startTime = Timer::startTiming();
+      fs.start(&k, 4);
+      
+      // add more fibers
+      for(int i = 0; i < 20; i++)
+      {
+         fs.addFiber(new TestFiber2(100));
+      }
+      
+      fs.waitForLastFiberExit(true);
+      printf("time=%g secs... ", Timer::getSeconds(startTime));
+      
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+   
+   tr.test("sleep fiber");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler2 fs;
+      fs.start(&k, 1);
+      
+      FiberId2 id = fs.addFiber(new TestFiber2Sleep());
+      
+      // wait, and then wakeup sleeping fiber
+      Thread::sleep(500);
+      //printf("waking up fiber...\n");
+      fs.wakeup(id);
+      
+      fs.waitForLastFiberExit(true);
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+   
+#if 0
+   tr.test("messages");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler fs;
+      
+      FiberId id;
+      for(int i = 0; i < 50; i++)
+      {
+         id = fs.addFiber(new TestFiber(1000));
+         DynamicObject msg;
+         msg["helloId"] = i + 1;
+         for(int n = 0; n < 1000; n++)
+         {
+            fs.sendMessage(id, msg);
+         }
+      }
+      
+      uint64_t startTime = Timer::startTiming();
+      fs.start(&k, 4);
+      
+      int msgs = 0;
+      for(int i = 0; i < 20; i++)
+      {
+         id = fs.addFiber(new TestFiber(1000, &msgs));
+         DynamicObject msg;
+         msg["helloId"] = i + 1;
+         for(int n = 0; n < 10000; n++)
+         {
+            fs.sendMessage(id, msg);
+         }
+      }
+      
+      fs.waitForLastFiberExit(true);
+      printf("msgs=%d, time=%g secs... ", msgs, Timer::getSeconds(startTime));
+      k.getEngine()->stop();
+      
+      // assert all messages were delivered
+      assert(msgs == 200000);
+   }
+   tr.passIfNoException();
+   
+   tr.test("interrupted fiber");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler fs;
+      fs.start(&k, 4);
+      
+      TestFiber* fiber = new TestFiber(100000);
+      FiberId id = fs.addFiber(fiber);
+      Thread::sleep(10);
+      fs.interrupt(id);
+      
+      fs.waitForLastFiberExit(true);
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+#endif
+   tr.ungroup();
+}
+
 class SpeedTestRunnable : public Runnable
 {
 protected:
@@ -224,7 +404,7 @@ public:
    }
 };
 
-void runSpeedTest(TestRunner& tr)
+void runFiberSpeedTest(TestRunner& tr)
 {
    tr.group("Fiber speed");
    
@@ -295,6 +475,86 @@ void runSpeedTest(TestRunner& tr)
       k.getEngine()->stop();
    }
    tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
+void runFiber2SpeedTest(TestRunner& tr)
+{
+   tr.group("Fiber2 speed");
+   
+   for(int fibers = 100; fibers <= 100000; fibers += 100)
+   {
+      for(int iterations = 50; iterations <= 1000; iterations += 50)
+      {
+         double time1;
+         double time2;
+         
+         char testname[100];
+         snprintf(testname, 100, "%i Fibers,%i iterations",
+            fibers, iterations);
+         tr.test(testname);
+         {
+            Kernel k;
+            k.getEngine()->start();
+            
+            FiberScheduler fs;
+            
+            // queue up fibers
+            for(int i = 0; i < fibers; i++)
+            {
+               fs.addFiber(new TestFiber(iterations));
+            }
+            
+            uint64_t startTime = Timer::startTiming();
+            fs.start(&k, 4);
+            fs.waitForLastFiberExit(true);
+            time1 = Timer::getSeconds(startTime);
+            printf("time=%g secs... ", time1);
+            
+            k.getEngine()->stop();
+         }
+         tr.passIfNoException();
+         
+         snprintf(testname, 100, "%i Fiber2s,%i iterations",
+            fibers, iterations);
+         tr.test(testname);
+         {
+            Kernel k;
+            k.getEngine()->start();
+            
+            FiberScheduler2 fs;
+            
+            // queue up fibers
+            for(int i = 0; i < fibers; i++)
+            {
+               fs.addFiber(new TestFiber2(iterations));
+            }
+            
+            uint64_t startTime = Timer::startTiming();
+            fs.start(&k, 4);
+            fs.waitForLastFiberExit(true);
+            time2 = Timer::getSeconds(startTime);
+            printf("time=%g secs... ", time2);
+            
+            k.getEngine()->stop();
+         }
+         tr.passIfNoException();
+         
+         if(time1 < time2)
+         {
+            printf("WINNER: Fiber1\n");
+         }
+         else if(time2 < time1)
+         {
+            printf("WINNER: Fiber2\n");
+         }
+         else
+         {
+            printf("WINNER: TIE\n");
+         }
+      }
+   }
    
    tr.ungroup();
 }
@@ -797,8 +1057,10 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      runFiberTest(tr);
-      runSpeedTest(tr);
+      //runFiberTest(tr);
+      //runFiberSpeedTest(tr);
+      runFiber2Test(tr);
+      //runFiber2SpeedTest(tr);
       return 0;
    }
 
