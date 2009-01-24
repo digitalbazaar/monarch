@@ -18,16 +18,22 @@ namespace util
  */
 class Timer
 {
+protected:
+   /**
+    * Start time.
+    */
+   uint64_t mStartTime;
+   
 public:
    /**
     * Creates a new Timer.
     */
-   Timer() {};
+   Timer();
    
    /**
     * Destructs this Timer.
     */
-   virtual ~Timer() {};
+   virtual ~Timer();
    
    /**
     * Starts this Timer.
@@ -35,9 +41,18 @@ public:
    virtual void start();
    
    /**
-    * Stops this Timer.
+    * Gets the time that has elasped since the starting time.
+    * 
+    * @return the time that elapsed in milliseconds.
     */
-   virtual void stop();
+   virtual uint64_t getElapsedMilliseconds();
+   
+   /**
+    * Gets the time that has elasped since the starting time.
+    * 
+    * @return the time that elapsed in seconds.
+    */
+   virtual double getElapsedSeconds();
    
    /**
     * Starts timing and returns the starting time (in milliseconds since

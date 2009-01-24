@@ -8,15 +8,31 @@
 using namespace db::rt;
 using namespace db::util;
 
-void Timer::start()
+Timer::Timer() :
+   mStartTime(0)
 {
-   // FIXME: store start time
 }
 
-void Timer::stop()
+Timer::~Timer()
 {
-   // FIXME: store elasped time
 }
+
+void Timer::start()
+{
+   mStartTime = System::getCurrentMilliseconds();
+}
+
+uint64_t Timer::getElapsedMilliseconds()
+{
+   return System::getCurrentMilliseconds() - mStartTime;
+}
+
+double Timer::getElapsedSeconds()
+{
+   return getElapsedMilliseconds() / 1000.;
+}
+
+// FIXME: remove the static methods below:
 
 uint64_t Timer::startTiming()
 {
