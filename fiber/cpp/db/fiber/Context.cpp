@@ -4,6 +4,8 @@
 #include "db/fiber/Context.h"
 
 #include "db/fiber/Fiber2.h"
+#include "db/fiber/WindowsSupport.h"
+
 #include <sys/mman.h>
 
 using namespace db::fiber;
@@ -49,14 +51,14 @@ void Context::init(Fiber2* fiber, size_t stackSize)
    
    // 0: let mmap pick the memory address
    // stackSize: enough memory for new stack
-   // PROT_READ | PROT_WRITE | PROT_EXEC: memory can be read/written/executed
-   // MAP_PRIVATE | MAP_ANON: memory is process private with no file descriptor
+   // PROT_READ | PROT_WRITE | PROT_EXEC: can be read/written/executed
+   // MAP_PRIVATE | MAP_ANONYMOUS: process private with no file descriptor
    // -1: no file descriptor associated
    // 0: start at offset 0
    mUserContext.uc_stack.ss_sp = mmap(
       0, stackSize,
       PROT_READ | PROT_WRITE | PROT_EXEC,
-      MAP_PRIVATE | MAP_ANON, -1, 0);
+      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
    mUserContext.uc_stack.ss_size = stackSize;
    mUserContext.uc_stack.ss_flags = 0;
    mUserContext.uc_link = NULL;
