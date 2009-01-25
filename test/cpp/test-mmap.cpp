@@ -66,11 +66,12 @@ int main()
    }
    printf("func2 stack allocated.\n");
    
+#ifdef WIN32
    // FIXME: remove me
    printf(
-      "WARNING: context switching disabled due to issues with using "
+      "WARNING: context switching disabled on win32 due to issues with using "
       "mmap'd memory for stacks...\n");
-#if 0
+#else
    // make func1 context
    if(getcontext(&gFunc1Context) == -1)
    {
