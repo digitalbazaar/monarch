@@ -4,7 +4,7 @@
 #ifndef db_fiber_Fiber2_H
 #define db_fiber_Fiber2_H
 
-#include "db/fiber/Context.h"
+#include "db/fiber/FiberContext.h"
 
 #include <inttypes.h>
 
@@ -71,7 +71,7 @@ protected:
    /**
     * This fiber's execution context.
     */
-   Context mContext;
+   FiberContext mContext;
    
 public:
    /**
@@ -130,7 +130,7 @@ public:
     * 
     * @return this fiber's execution context.
     */
-   virtual Context* getContext();
+   virtual FiberContext* getContext();
    
 protected:
    /**

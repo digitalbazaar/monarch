@@ -34,7 +34,7 @@ protected:
    /**
     * A list of scheduler contexts.
     */
-   typedef std::list<Context*> ContextList;
+   typedef std::list<FiberContext*> ContextList;
    ContextList mContextList;
    
    /**
@@ -63,7 +63,7 @@ protected:
    /**
     * A map of sleeping fibers.
     */
-   FiberMap mSleepingFibers; 
+   FiberMap mSleepingFibers;
    
    /**
     * An exclusive lock for scheduling the next fiber.

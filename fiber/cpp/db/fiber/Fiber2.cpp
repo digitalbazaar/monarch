@@ -58,7 +58,7 @@ inline Fiber2::State Fiber2::getState()
    return mState;
 }
 
-inline Context* Fiber2::getContext()
+inline FiberContext* Fiber2::getContext()
 {
    return &mContext;
 }

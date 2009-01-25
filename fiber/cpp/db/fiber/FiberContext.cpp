@@ -1,19 +1,20 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/fiber/Context.h"
+#include "db/fiber/FiberContext.h"
 
 #include "db/fiber/Fiber2.h"
+#include <cstring>
 
 using namespace db::fiber;
 
-Context::Context() :
+FiberContext::FiberContext() :
    mAllocatedStack(false),
    mBack(NULL)
 {
 }
 
-Context::~Context()
+FiberContext::~FiberContext()
 {
    if(mAllocatedStack)
    {
@@ -39,7 +40,7 @@ static void startFiber(Fiber2* fiber)
    fiber->start();
 }
 
-void Context::init(Fiber2* fiber, size_t stackSize)
+void FiberContext::init(Fiber2* fiber, size_t stackSize)
 {
    // context has an allocated stack
    mAllocatedStack = true;
@@ -47,12 +48,15 @@ void Context::init(Fiber2* fiber, size_t stackSize)
    // get the current context
    getcontext(&mUserContext);
    
+#ifdef WIN32
+   // FIXME: win32 requires malloc to be used for the stack because mmap
+   // has issues at present
+   mUserContext.uc_stack.ss_sp = malloc(stackSize);
+#else
    // allocate memory for the context's stack using mmap so the memory
    // is executable and can expand to use available system resources
    // as necessary:
-#ifdef WIN32
-   mUserContext.uc_stack.ss_sp = malloc(stackSize);
-#else
+   
    // 0: let mmap pick the memory address
    // stackSize: enough memory for new stack
    // PROT_READ | PROT_WRITE | PROT_EXEC: can be read/written/executed
@@ -72,18 +76,18 @@ void Context::init(Fiber2* fiber, size_t stackSize)
    makecontext(&mUserContext, (void (*)())startFiber, 1, fiber);
 }
 
-void Context::swap(Context* in)
+inline void FiberContext::swap(FiberContext* in)
 {
    in->mBack = this;
    swapcontext(&mUserContext, &in->mUserContext);
 }
 
-inline void Context::swapBack()
+inline void FiberContext::swapBack()
 {
    swap(mBack);
 }
 
-inline void Context::loadBack()
+inline void FiberContext::loadBack()
 {
    setcontext(&mBack->mUserContext);
 }

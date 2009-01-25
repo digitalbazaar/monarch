@@ -1,10 +1,9 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_fiber_Context_H
-#define db_fiber_Context_H
+#ifndef db_fiber_FiberContext_H
+#define db_fiber_FiberContext_H
 
-#include "db/rt/Thread.h"
 #include "db/fiber/WindowsSupport.h"
 
 namespace db
@@ -15,7 +14,7 @@ namespace fiber
 class Fiber2;
 
 /**
- * A context is a snapshot of the minimal information required to continue
+ * A FiberContext is a snapshot of the minimal information required to continue
  * a paused process of execution. It is used in this fiber library to store
  * the stack and other information for fibers and fiber scheduler threads.
  * 
@@ -27,7 +26,7 @@ class Fiber2;
  * 
  * @author Dave Longley
  */
-class Context
+class FiberContext
 {
 protected:
    /**
@@ -43,18 +42,18 @@ protected:
    /**
     * Set to context that was last swapped out.
     */
-   Context* mBack;
+   FiberContext* mBack;
    
 public:
    /**
-    * Creates a new uninitialized Context.
+    * Creates a new uninitialized FiberContext.
     */
-   Context();
+   FiberContext();
    
    /**
-    * Destructs this Context.
+    * Destructs this FiberContext.
     */
-   virtual ~Context();
+   virtual ~FiberContext();
    
    /**
     * Initializes this context by setting up a stack for the passed fiber.
@@ -70,7 +69,7 @@ public:
     * 
     * @param in the new context to swap in.
     */
-   virtual void swap(Context* in);
+   virtual void swap(FiberContext* in);
    
    /**
     * Swaps this context back to the one that last swapped it out.

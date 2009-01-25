@@ -124,7 +124,7 @@ FiberId2 FiberScheduler2::addFiber(Fiber2* fiber)
 void FiberScheduler2::run()
 {
    // get and store scheduler context for this thread
-   Context* scheduler = new Context();
+   FiberContext* scheduler = new FiberContext();
    mScheduleLock.lock();
    {
       mContextList.push_back(scheduler);
@@ -289,21 +289,21 @@ Fiber2* FiberScheduler2::nextFiber()
    return rval;
 }
 
-void FiberScheduler2::fiberAvailable()
+inline void FiberScheduler2::fiberAvailable()
 {
    mFiberWaitLock.lock();
    mFiberWaitLock.notifyAll();
    mFiberWaitLock.unlock();
 }
 
-void FiberScheduler2::waitForFiber()
+inline void FiberScheduler2::waitForFiber()
 {
    mFiberWaitLock.lock();
    mFiberWaitLock.wait();
    mFiberWaitLock.unlock();
 }
 
-void FiberScheduler2::noFibersAvailable()
+inline void FiberScheduler2::noFibersAvailable()
 {
    mNoFibersWaitLock.lock();
    mNoFibersWaitLock.notifyAll();
