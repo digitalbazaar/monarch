@@ -483,9 +483,9 @@ void runFiber2SpeedTest(TestRunner& tr)
 {
    tr.group("Fiber2 speed");
    
-   for(int fibers = 100; fibers <= 100000; fibers += 100)
+   for(int fibers = 100; fibers <= 1000; fibers += 100)
    {
-      for(int iterations = 50; iterations <= 1000; iterations += 50)
+      for(int iterations = 10; iterations <= 100; iterations += 10)
       {
          double time1;
          double time2;
@@ -1060,7 +1060,7 @@ public:
       //runFiberTest(tr);
       //runFiberSpeedTest(tr);
       runFiber2Test(tr);
-      //runFiber2SpeedTest(tr);
+      runFiber2SpeedTest(tr);
       return 0;
    }
 
