@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef WIN32
+#define MAP_FAILED    ((void*)-1)
+#endif
+
 static ucontext_t gMainContext;
 static ucontext_t gFunc1Context;
 static ucontext_t gFunc2Context;

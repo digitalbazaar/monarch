@@ -14,10 +14,6 @@
 #include <windows.h>
 #include <sys/types.h>
 
-#ifndef MAP_FAILED
-#define MAP_FAILED    ((void*)-1)
-#endif
-
 #define MAP_SHARED    0x01 // share changes outside process
 #define MAP_PRIVATE   0x02 // changes are private to process
 #define MAP_ANONYMOUS 0x20 // no file descriptor associated
