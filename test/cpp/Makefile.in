@@ -30,6 +30,7 @@ EXECUTABLES = \
 	test-io \
 	test-logging \
 	test-mail \
+	test-mmap \
 	test-modest \
 	test-net \
 	test-rt \

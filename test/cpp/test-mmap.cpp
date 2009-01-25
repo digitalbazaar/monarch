@@ -42,8 +42,26 @@ int main()
 {
    printf("Testing ucontext...\n");
    
-   char func1Stack[16384];
-   char func2Stack[16384];
+   // mmap stacks
+   size_t stackSize = 16384;
+   void* func1Stack = mmap(
+      0, stackSize,
+      PROT_READ | PROT_WRITE | PROT_EXEC,
+      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+   if(func1Stack == MAP_FAILED)
+   {
+      printf("failed to allocate func1 stack\n"); 
+      exit(1);
+   }
+   void* func2Stack = mmap(
+      0, stackSize,
+      PROT_READ | PROT_WRITE | PROT_EXEC,
+      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+   if(func2Stack == MAP_FAILED)
+   {
+      printf("failed to allocate func2 stack\n"); 
+      exit(1);
+   }
    
    // make func1 context
    if(getcontext(&gFunc1Context) == -1)
@@ -52,7 +70,7 @@ int main()
       exit(1);
    }
    gFunc1Context.uc_stack.ss_sp = func1Stack;
-   gFunc1Context.uc_stack.ss_size = sizeof(func1Stack);
+   gFunc1Context.uc_stack.ss_size = stackSize;
    gFunc1Context.uc_stack.ss_flags = 0;
    gFunc1Context.uc_link = NULL;
    makecontext(&gFunc1Context, (void (*)())func1, 1, 1);
@@ -64,7 +82,7 @@ int main()
       exit(1);
    }
    gFunc2Context.uc_stack.ss_sp = func2Stack;
-   gFunc2Context.uc_stack.ss_size = sizeof(func2Stack);
+   gFunc2Context.uc_stack.ss_size = stackSize;
    gFunc2Context.uc_stack.ss_flags = 0;
    gFunc2Context.uc_link = NULL;
    makecontext(&gFunc2Context, (void (*)())func2, 1, 2);
@@ -76,6 +94,20 @@ int main()
       exit(1);
    }
    
-   printf("main returned, exiting.\n");
+   printf("main returned, de-allocating stacks...\n");
+   
+   if(munmap(func1Stack, stackSize) == -1)
+   {
+      printf("failed to de-allocate func1 stack\n"); 
+      exit(1);
+   }
+   
+   if(munmap(func2Stack, stackSize) == -1)
+   {
+      printf("failed to de-allocate func2 stack\n"); 
+      exit(1);
+   }
+   
+   printf("exiting.\n");
    exit(0);
 }
