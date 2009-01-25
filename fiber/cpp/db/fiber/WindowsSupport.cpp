@@ -77,8 +77,8 @@ int makecontext(ucontext_t* ucp, void (*func)(), int argc, ...)
       // set the extended instruction pointer to the passed function
       ucp->uc_mcontext.Eip = (DWORD)func;
       
-      // set the top of the stack
-      ucp->uc_mcontext.Esp = (DWORD)sp;
+      // set the top of the stack, leave room for function pointer
+      ucp->uc_mcontext.Esp = (DWORD)sp - sizeof(int);
       
       // ensure full context is saved
       ucp->uc_mcontext.ContextFlags = CONTEXT_FULL;
