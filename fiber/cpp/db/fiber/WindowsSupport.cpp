@@ -145,13 +145,14 @@ void* mmap(
          
          DWORD flNewProtect = PAGE_EXECUTE;
          DWORD flOldProtect;
-         if(VirtualProtect(start, length, flNewProtect, &flOldProtect) == 0)
+         if(VirtualProtect(rval, length, flNewProtect, &flOldProtect) == 0)
          {
+            printf("FAILED VirtualProtect\n");
+            printf("last error=%i\n", (int)GetLastError());
             // changing permissions failed, unmap memory
             munmap(start, length);
             errno = EPERM;
             rval = MAP_FAILED;
-            printf("FAILED VirtualProtect\n");
          }
       }
    }

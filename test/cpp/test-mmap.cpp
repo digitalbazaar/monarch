@@ -53,6 +53,8 @@ int main()
       printf("failed to allocate func1 stack\n"); 
       exit(1);
    }
+   printf("func1 stack allocated.\n");
+   
    void* func2Stack = mmap(
       0, stackSize,
       PROT_READ | PROT_WRITE | PROT_EXEC,
@@ -62,7 +64,8 @@ int main()
       printf("failed to allocate func2 stack\n"); 
       exit(1);
    }
-   
+   printf("func2 stack allocated.\n");
+      
    // make func1 context
    if(getcontext(&gFunc1Context) == -1)
    {
@@ -86,14 +89,14 @@ int main()
    gFunc2Context.uc_stack.ss_flags = 0;
    gFunc2Context.uc_link = NULL;
    makecontext(&gFunc2Context, (void (*)())func2, 1, 2);
-   
+#if 0
    printf("main swapping in func1...\n");
    if(swapcontext(&gMainContext, &gFunc1Context) == -1)
    {
       printf("failed to swap from main to func1\n");
       exit(1);
    }
-   
+#endif
    printf("main returned, de-allocating stacks...\n");
    
    if(munmap(func1Stack, stackSize) == -1)
