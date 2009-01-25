@@ -7,7 +7,7 @@
 
 #include <errno.h>
 
-#define MAP_FAILED (void*)-1
+#include <stdio.h>
 
 int getcontext(ucontext_t* ucp)
 {
@@ -107,6 +107,7 @@ void* mmap(
    {
       // only MAP_ANONYMOUS is supported at this time
       errno = EINVAL;
+      printf("NOT MAP_ANONYMOUS\n");
    }
    else
    {
@@ -134,6 +135,7 @@ void* mmap(
       {
          errno = ENOMEM;
          rval = MAP_FAILED;
+         printf("FAILED VirtualAlloc()\n");
       }
       else if(prot & PROT_EXEC)
       {
@@ -149,6 +151,7 @@ void* mmap(
             munmap(start, length);
             errno = EPERM;
             rval = MAP_FAILED;
+            printf("FAILED VirtualProtect\n");
          }
       }
    }
