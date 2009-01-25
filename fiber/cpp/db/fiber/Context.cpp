@@ -17,8 +17,13 @@ Context::~Context()
 {
    if(mAllocatedStack)
    {
+#ifdef WIN32
+      // clean up stack
+      free(mUserContext.uc_stack.ss_sp);
+#else
       // clean up stack
       munmap(mUserContext.uc_stack.ss_sp, mUserContext.uc_stack.ss_size);
+#endif
    }
 }
 
@@ -45,7 +50,9 @@ void Context::init(Fiber2* fiber, size_t stackSize)
    // allocate memory for the context's stack using mmap so the memory
    // is executable and can expand to use available system resources
    // as necessary:
-   
+#ifdef WIN32
+   mUserContext.uc_stack.ss_sp = malloc(stackSize);
+#else
    // 0: let mmap pick the memory address
    // stackSize: enough memory for new stack
    // PROT_READ | PROT_WRITE | PROT_EXEC: can be read/written/executed
@@ -56,6 +63,7 @@ void Context::init(Fiber2* fiber, size_t stackSize)
       0, stackSize,
       PROT_READ | PROT_WRITE | PROT_EXEC,
       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+#endif
    mUserContext.uc_stack.ss_size = stackSize;
    mUserContext.uc_stack.ss_flags = 0;
    mUserContext.uc_link = NULL;
