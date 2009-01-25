@@ -4,9 +4,25 @@
 #ifndef db_fiber_WindowsSupport_H
 #define db_fiber_WindowsSupport_H
 
-#ifdef WIN32
+#ifndef WIN32
+
+#include <ucontext.h>
+#include <sys/mman.h>
+
+#else
 
 #include <windows.h>
+#include <sys/types.h>
+
+#define MAP_SHARED    0x01 // share changes outside process
+#define MAP_PRIVATE   0x02 // changes are private to process
+#define MAP_ANONYMOUS 0x20 // no file descriptor associated
+
+#define PROT_NONE     0x0 // page cannot be accessed
+#define PROT_READ     0x1 // page can be read
+#define PROT_WRITE    0x2 // page can be written
+#define PROT_EXEC     0x4 // page can be executed
+#define PROT_NONE     0x0 // page can not be accessed
 
 // Note: See gcc 4.2.4 includes for some of these typedefs 
 
@@ -20,9 +36,6 @@ typedef struct stack_t
 
 // use windows.h CONTEXT object for actual thread context
 typedef CONTEXT mcontext_t;
-
-// typedef sigset_t but it is unused in windows
-typedef unsigned long int sigset_t;
 
 // Note: Current ucontext implementation does not use uc_link because
 // it is not needed by db::fiber.

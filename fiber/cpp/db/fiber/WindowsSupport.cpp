@@ -5,6 +5,10 @@
 
 #ifdef WIN32
 
+#include <errno.h>
+
+#define MAP_FAILED (void*)-1
+
 int getcontext(ucontext_t* ucp)
 {
    // get full context, so that Eip/Esp are included
@@ -12,7 +16,7 @@ int getcontext(ucontext_t* ucp)
    int rval = GetThreadContext(GetCurrentThread(), &ucp->uc_mcontext);
    
    // GetThreadContext returns 0 on error, non-zero on success
-   return (ret == 0) ? -1: 0;
+   return (rval == 0) ? -1: 0;
 }
 
 int setcontext(const ucontext_t* ucp)
@@ -54,7 +58,7 @@ int makecontext(ucontext_t* ucp, void (*func)(), int argc, ...)
    
    // bottom of stack has higher memory address than top on windows
    // so the stack starts at the end of the stack memory
-   char* sp = (char*)(ucp->uc_stack.ss_sp + ucp->uc_stack.ss_size);
+   char* sp = (char*)((size_t)ucp->uc_stack.ss_sp + ucp->uc_stack.ss_size);
    
    // POSIX says arguments must be of size int
    size_t argSize = sizeof(int);
@@ -138,7 +142,7 @@ void* mmap(
          // Windows XP SP2 and Windows Server 2003 SP1.
          
          DWORD flNewProtect = PAGE_EXECUTE;
-         DWord flOldProtect;
+         DWORD flOldProtect;
          if(VirtualProtect(start, length, flNewProtect, &flOldProtect) == 0)
          {
             // changing permissions failed, unmap memory

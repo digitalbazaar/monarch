@@ -4,9 +4,8 @@
 #ifndef db_fiber_Context_H
 #define db_fiber_Context_H
 
-#include <ucontext.h>
-
 #include "db/rt/Thread.h"
+#include "db/fiber/WindowsSupport.h"
 
 namespace db
 {

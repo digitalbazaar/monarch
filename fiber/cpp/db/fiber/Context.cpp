@@ -4,9 +4,6 @@
 #include "db/fiber/Context.h"
 
 #include "db/fiber/Fiber2.h"
-#include "db/fiber/WindowsSupport.h"
-
-#include <sys/mman.h>
 
 using namespace db::fiber;
 
