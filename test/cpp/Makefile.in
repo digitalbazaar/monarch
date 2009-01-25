@@ -36,6 +36,7 @@ EXECUTABLES = \
 	$(SPHINX_EXECUTABLES) \
 	test-sqlite3 \
 	$(MYSQL_EXECUTABLES) \
+	test-ucontext \
 	test-util \
 	test-validation \
 	run-unit-tests
