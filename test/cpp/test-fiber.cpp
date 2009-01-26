@@ -12,6 +12,7 @@
 #include "db/data/json/JsonWriter.h"
 #include "db/fiber/FiberScheduler.h"
 #include "db/fiber/FiberScheduler2.h"
+#include "db/fiber/FiberMessageCenter.h"
 #include "db/io/NullOutputStream.h"
 #include "db/modest/Kernel.h"
 #include "db/util/Timer.h"
@@ -248,6 +249,56 @@ public:
    }
 };
 
+class TestMessagableFiber : public MessagableFiber
+{
+public:
+   int start;
+   int count;
+   int messages;
+   int expectMessages;
+   
+public:
+   TestMessagableFiber(FiberMessageCenter* fmc, int n, int expectMsgs) :
+      MessagableFiber(fmc)
+   {
+      start = n;
+      count = n;
+      messages = 0;
+      expectMessages = expectMsgs;
+   };
+   virtual ~TestMessagableFiber() {};
+   
+   virtual bool processMessages(FiberMessageQueue* msgs)
+   {
+      bool rval = true;
+      
+      while(!msgs->empty())
+      {
+         DynamicObject msg = msgs->front();
+         msgs->pop_front();
+//         printf("Processing msg:\n%s\n",
+//            JsonWriter::writeToString(msg).c_str());
+         messages++;
+      }
+      
+      if(count > 0)
+      {
+         count--;
+         iterate();
+         yield();
+      }
+      else
+      {
+         assert(messages == expectMessages);
+//         printf("Fiber %i received %i messages,exiting.\n",
+//            getId(), messages);
+         rval = false;
+      }
+      
+      return rval;
+   }
+};
+
 void runFiber2Test(TestRunner& tr)
 {
    tr.group("Fibers 2");
@@ -322,68 +373,50 @@ void runFiber2Test(TestRunner& tr)
    }
    tr.passIfNoException();
    
-#if 0
    tr.test("messages");
    {
       Kernel k;
       k.getEngine()->start();
       
-      FiberScheduler fs;
+      FiberScheduler2 fs;
+      FiberMessageCenter fmc;
       
-      FiberId id;
+      FiberId2 id;
       for(int i = 0; i < 50; i++)
       {
-         id = fs.addFiber(new TestFiber(1000));
+         MessagableFiber* fiber = new TestMessagableFiber(&fmc, 1000, 1000);
+         id = fs.addFiber(fiber);
+         fmc.registerFiber(fiber);
          DynamicObject msg;
          msg["helloId"] = i + 1;
          for(int n = 0; n < 1000; n++)
          {
-            fs.sendMessage(id, msg);
+            fmc.sendMessage(id, msg);
          }
       }
       
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 4);
       
-      int msgs = 0;
       for(int i = 0; i < 20; i++)
       {
-         id = fs.addFiber(new TestFiber(1000, &msgs));
+         MessagableFiber* fiber = new TestMessagableFiber(&fmc, 1000, 10000);
+         id = fs.addFiber(fiber);
+         fmc.registerFiber(fiber);
          DynamicObject msg;
          msg["helloId"] = i + 1;
          for(int n = 0; n < 10000; n++)
          {
-            fs.sendMessage(id, msg);
+            fmc.sendMessage(id, msg);
          }
       }
       
       fs.waitForLastFiberExit(true);
-      printf("msgs=%d, time=%g secs... ", msgs, Timer::getSeconds(startTime));
+      printf("time=%g secs... ", Timer::getSeconds(startTime));
       k.getEngine()->stop();
-      
-      // assert all messages were delivered
-      assert(msgs == 200000);
    }
    tr.passIfNoException();
    
-   tr.test("interrupted fiber");
-   {
-      Kernel k;
-      k.getEngine()->start();
-      
-      FiberScheduler fs;
-      fs.start(&k, 4);
-      
-      TestFiber* fiber = new TestFiber(100000);
-      FiberId id = fs.addFiber(fiber);
-      Thread::sleep(10);
-      fs.interrupt(id);
-      
-      fs.waitForLastFiberExit(true);
-      k.getEngine()->stop();
-   }
-   tr.passIfNoException();
-#endif
    tr.ungroup();
 }
 

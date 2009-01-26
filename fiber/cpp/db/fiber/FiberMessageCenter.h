@@ -46,7 +46,11 @@ public:
    
    /**
     * Registers a fiber with this message center so it can receive messages.
-    * This method is called automatically by MessagableFibers.
+    * This method is called automatically by MessagableFibers when they
+    * start up, however, it can be manually called as well if messages need
+    * to be delivered prior to the fiber starting. Note that the fiber must
+    * have already been assigned a fiber ID, i.e. via addFiber() on a
+    * FiberScheduler. 
     * 
     * @param fiber the fiber to register with this message center.
     */
@@ -54,7 +58,7 @@ public:
    
    /**
     * Unregisters a fiber with this message center. This method is called
-    * automatically by MessagableFibers.
+    * automatically by MessagableFibers before they exit.
     * 
     * @param fiber the fiber to unregister with this message center.
     */

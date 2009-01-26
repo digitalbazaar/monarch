@@ -55,7 +55,7 @@ void MessagableFiber::run()
    }
    
    // unregister with message center
-   mMessageCenter->registerFiber(this);
+   mMessageCenter->unregisterFiber(this);
 }
 
 void MessagableFiber::addMessage(db::rt::DynamicObject& msg)
