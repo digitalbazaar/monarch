@@ -40,12 +40,12 @@ static void startFiber(Fiber2* fiber)
    fiber->start();
 }
 
-bool FiberContext::init(Fiber2* fiber, size_t stackSize)
+bool FiberContext::init(Fiber2* fiber)
 {
 #ifdef WIN32
    // FIXME: win32 requires malloc to be used for the stack because mmap
    // has issues at present
-   void* stack = malloc(stackSize);
+   void* stack = malloc(fiber->getStackSize());
    mAllocatedStack = (stack != NULL);
 #else
    // allocate memory for the context's stack using mmap so the memory
@@ -59,7 +59,7 @@ bool FiberContext::init(Fiber2* fiber, size_t stackSize)
    // -1: no file descriptor associated
    // 0: start at offset 0
    void* stack = mmap(
-      0, stackSize,
+      0, fiber->getStackSize(),
       PROT_READ | PROT_WRITE | PROT_EXEC,
       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
    mAllocatedStack = (stack != MAP_FAILED);
@@ -72,7 +72,7 @@ bool FiberContext::init(Fiber2* fiber, size_t stackSize)
       
       // set the new stack location and size
       mUserContext.uc_stack.ss_sp = stack;
-      mUserContext.uc_stack.ss_size = stackSize;
+      mUserContext.uc_stack.ss_size = fiber->getStackSize();
       mUserContext.uc_stack.ss_flags = 0;
       mUserContext.uc_link = NULL;
       

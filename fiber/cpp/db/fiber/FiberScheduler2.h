@@ -38,11 +38,6 @@ protected:
    ContextList mContextList;
    
    /**
-    * The stack size to use for all fibers.
-    */
-   size_t mFiberStackSize;
-   
-   /**
     * A list of available FiberIds from exited fibers.
     */
    typedef std::list<FiberId2> FiberIdFreeList;
@@ -97,11 +92,9 @@ public:
     * 
     * @param opRunner the OperationRunner to use.
     * @param numOps the number of Operations to run fibers on.
-    * @param fiberStackSize the stack size to use for each fiber, 0 for default. 
     */
    virtual void start(
-      db::modest::OperationRunner* opRunner, int numOps,
-      size_t fiberStackSize = 0);
+      db::modest::OperationRunner* opRunner, int numOps);
    
    /**
     * Stops this FiberScheduler. This method will not cause its Fibers to

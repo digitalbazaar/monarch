@@ -69,15 +69,22 @@ protected:
    State mState;
    
    /**
+    * The size of this fiber's stack.
+    */
+   size_t mStackSize;
+   
+   /**
     * This fiber's execution context.
     */
    FiberContext mContext;
    
 public:
    /**
-    * Creates a new Fiber.
+    * Creates a new Fiber with the specified stack size.
+    * 
+    * @param stackSize the stack size to use in bytes, 0 for the default.
     */
-   Fiber2();
+   Fiber2(size_t stackSize = 0);
    
    /**
     * Destructs this Fiber.
@@ -124,6 +131,13 @@ public:
     * @return this fiber's current state.
     */
    virtual State getState();
+   
+   /**
+    * Gets this fiber's stack size.
+    * 
+    * @return this fiber's stack size.
+    */
+   virtual size_t getStackSize();
    
    /**
     * Gets this fiber's execution context.

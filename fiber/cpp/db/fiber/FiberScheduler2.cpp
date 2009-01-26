@@ -11,8 +11,6 @@ using namespace db::fiber;
 using namespace db::modest;
 using namespace db::rt;
 
-#define DEFAULT_STACK_SIZE 0x1000 // 32k
-
 FiberScheduler2::FiberScheduler2()
 {
    // add first FiberId
@@ -33,13 +31,8 @@ FiberScheduler2::~FiberScheduler2()
    mFiberMap.clear();
 }
 
-void FiberScheduler2::start(
-   OperationRunner* opRunner, int numOps, size_t fiberStackSize)
+void FiberScheduler2::start(OperationRunner* opRunner, int numOps)
 {
-   // save stack size
-   mFiberStackSize =
-      (fiberStackSize == 0 ? DEFAULT_STACK_SIZE : fiberStackSize);
-   
    // create "numOps" Operations
    for(int i = 0; i < numOps; i++)
    {
@@ -151,7 +144,7 @@ void FiberScheduler2::run()
          if(fiber->getState() == Fiber2::New)
          {
             // initialize the fiber's context
-            if(tryInit && fiber->getContext()->init(fiber, mFiberStackSize))
+            if(tryInit && fiber->getContext()->init(fiber))
             {
                // set fiber state to running
                fiber->setState(Fiber2::Running);

@@ -8,10 +8,13 @@
 using namespace db::fiber;
 using namespace db::rt;
 
-Fiber2::Fiber2() :
+#define DEFAULT_STACK_SIZE 0x2000 // 8k
+
+Fiber2::Fiber2(size_t stackSize) :
    mId(0),
    mState(Fiber2::New)
 {
+   mStackSize = (stackSize == 0 ? DEFAULT_STACK_SIZE : stackSize);
 }
 
 Fiber2::~Fiber2()
@@ -56,6 +59,11 @@ inline void Fiber2::setState(State state)
 inline Fiber2::State Fiber2::getState()
 {
    return mState;
+}
+
+inline size_t Fiber2::getStackSize()
+{
+   return mStackSize;
 }
 
 inline FiberContext* Fiber2::getContext()

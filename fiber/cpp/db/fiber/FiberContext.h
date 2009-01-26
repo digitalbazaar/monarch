@@ -59,12 +59,11 @@ public:
     * Initializes this context by setting up a stack for the passed fiber.
     * 
     * @param fiber the fiber to create a stack for.
-    * @param stackSize the size of the stack to create.
     * 
     * @return true if successful, false if there was not enough memory to
     *         allocate the fiber at this time.
     */
-   virtual bool init(Fiber2* fiber, size_t stackSize);
+   virtual bool init(Fiber2* fiber);
    
    /**
     * Saves this context and swaps another one in. This context will be
