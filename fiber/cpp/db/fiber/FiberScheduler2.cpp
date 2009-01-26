@@ -11,7 +11,7 @@ using namespace db::fiber;
 using namespace db::modest;
 using namespace db::rt;
 
-#define DEFAULT_STACK_SIZE 0x10000 // 64k
+#define DEFAULT_STACK_SIZE 0x1000 // 32k
 
 FiberScheduler2::FiberScheduler2()
 {
@@ -150,24 +150,39 @@ void FiberScheduler2::run()
          if(fiber->getState() == Fiber2::New)
          {
             // initialize the fiber's context
-            fiber->setState(Fiber2::Running);
-            fiber->getContext()->init(fiber, mFiberStackSize);
+            if(fiber->getContext()->init(fiber, mFiberStackSize))
+            {
+               // set fiber state to running
+               fiber->setState(Fiber2::Running);
+            }
+            else
+            {
+               // failed to init fiber, not enough memory, lock to re-queue it
+               mScheduleLock.lock();
+               {
+                  mFiberQueue.push_back(fiber);
+               }
+               mScheduleLock.unlock();
+            }
          }
          
-         // swap in the fiber's context
-         scheduler->swap(fiber->getContext());
-         
-         if(fiber->getState() != Fiber2::Sleeping)
+         if(fiber->getState() == Fiber2::Running)
          {
-            // lock scheduling while adding fiber back to queue
-            mScheduleLock.lock();
-            {
-               mFiberQueue.push_back(fiber);
-            }
-            mScheduleLock.unlock();
+            // swap in the fiber's context
+            scheduler->swap(fiber->getContext());
             
-            // notify that a fiber is available
-            fiberAvailable();
+            if(fiber->getState() != Fiber2::Sleeping)
+            {
+               // lock scheduling while adding fiber back to queue
+               mScheduleLock.lock();
+               {
+                  mFiberQueue.push_back(fiber);
+               }
+               mScheduleLock.unlock();
+               
+               // notify that a fiber is available
+               fiberAvailable();
+            }
          }
       }
    }

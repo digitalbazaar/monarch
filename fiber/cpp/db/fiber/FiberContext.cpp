@@ -40,18 +40,13 @@ static void startFiber(Fiber2* fiber)
    fiber->start();
 }
 
-void FiberContext::init(Fiber2* fiber, size_t stackSize)
+bool FiberContext::init(Fiber2* fiber, size_t stackSize)
 {
-   // context has an allocated stack
-   mAllocatedStack = true;
-   
-   // get the current context
-   getcontext(&mUserContext);
-   
 #ifdef WIN32
    // FIXME: win32 requires malloc to be used for the stack because mmap
    // has issues at present
-   mUserContext.uc_stack.ss_sp = malloc(stackSize);
+   void* stack = malloc(stackSize);
+   mAllocatedStack = (stack != NULL);
 #else
    // allocate memory for the context's stack using mmap so the memory
    // is executable and can expand to use available system resources
@@ -63,17 +58,29 @@ void FiberContext::init(Fiber2* fiber, size_t stackSize)
    // MAP_PRIVATE | MAP_ANONYMOUS: process private with no file descriptor
    // -1: no file descriptor associated
    // 0: start at offset 0
-   mUserContext.uc_stack.ss_sp = mmap(
+   void* stack = mmap(
       0, stackSize,
       PROT_READ | PROT_WRITE | PROT_EXEC,
       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+   mAllocatedStack = (stack != MAP_FAILED);
 #endif
-   mUserContext.uc_stack.ss_size = stackSize;
-   mUserContext.uc_stack.ss_flags = 0;
-   mUserContext.uc_link = NULL;
    
-   // write the new stack location, etc. to this context
-   makecontext(&mUserContext, (void (*)())startFiber, 1, fiber);
+   if(mAllocatedStack)
+   {
+      // get the current context
+      getcontext(&mUserContext);
+      
+      // set the new stack location and size
+      mUserContext.uc_stack.ss_sp = stack;
+      mUserContext.uc_stack.ss_size = stackSize;
+      mUserContext.uc_stack.ss_flags = 0;
+      mUserContext.uc_link = NULL;
+      
+      // write the new stack location, etc. to this context
+      makecontext(&mUserContext, (void (*)())startFiber, 1, fiber);
+   }
+   
+   return mAllocatedStack;
 }
 
 inline void FiberContext::swap(FiberContext* in)
