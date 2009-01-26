@@ -132,6 +132,7 @@ void FiberScheduler2::run()
    mScheduleLock.unlock();
    
    // continue scheduling fibers while this thread is not interrupted
+   bool tryInit = true;
    Thread* t = Thread::currentThread();
    while(!t->isInterrupted())
    {
@@ -150,23 +151,28 @@ void FiberScheduler2::run()
          if(fiber->getState() == Fiber2::New)
          {
             // initialize the fiber's context
-            if(fiber->getContext()->init(fiber, mFiberStackSize))
+            if(tryInit && fiber->getContext()->init(fiber, mFiberStackSize))
             {
                // set fiber state to running
                fiber->setState(Fiber2::Running);
             }
             else
             {
-               // failed to init fiber, not enough memory, lock to re-queue it
-               mScheduleLock.lock();
-               {
-                  mFiberQueue.push_back(fiber);
-               }
-               mScheduleLock.unlock();
+               // do not try init again until a fiber's stack is reclaimed
+               tryInit = false;
             }
          }
          
-         if(fiber->getState() == Fiber2::Running)
+         if(fiber->getState() != Fiber2::Running)
+         {
+            // failed to init fiber, not enough memory, lock to re-queue it
+            mScheduleLock.lock();
+            {
+               mFiberQueue.push_back(fiber);
+            }
+            mScheduleLock.unlock();
+         }
+         else
          {
             // swap in the fiber's context
             scheduler->swap(fiber->getContext());
@@ -176,7 +182,20 @@ void FiberScheduler2::run()
                // lock scheduling while adding fiber back to queue
                mScheduleLock.lock();
                {
-                  mFiberQueue.push_back(fiber);
+                  // if fiber is running, put it in the back of the queue
+                  if(fiber->getState() == Fiber2::Running)
+                  {
+                     mFiberQueue.push_back(fiber);
+                  }
+                  // fiber is dying, so put it in front for quicker cleanup
+                  else
+                  {
+                     mFiberQueue.push_front(fiber);
+                     
+                     // because fiber's stack memory will be reclaimed, it
+                     // is safe to try init on new fibers again
+                     tryInit = true;
+                  }
                }
                mScheduleLock.unlock();
                
