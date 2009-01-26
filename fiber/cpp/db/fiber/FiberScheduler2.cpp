@@ -211,8 +211,12 @@ void FiberScheduler2::sleep(Fiber2* fiber)
    // lock scheduling to insert sleeping fiber entry
    mScheduleLock.lock();
    {
-      fiber->setState(Fiber2::Sleeping);
-      mSleepingFibers.insert(make_pair(fiber->getId(), fiber));
+      // only *actually* sleep fiber if it can be sleeped at the moment
+      if(fiber->canSleep())
+      {
+         fiber->setState(Fiber2::Sleeping);
+         mSleepingFibers.insert(make_pair(fiber->getId(), fiber));
+      }
    }
    mScheduleLock.unlock();
    

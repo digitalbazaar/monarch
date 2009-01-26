@@ -3,6 +3,7 @@
  */
 #include "db/fiber/MessagableFiber.h"
 
+#include "db/fiber/FiberScheduler2.h"
 #include "db/fiber/FiberMessageCenter.h"
 
 using namespace db::fiber;
@@ -64,8 +65,25 @@ void MessagableFiber::addMessage(db::rt::DynamicObject& msg)
    mMessageLock.lock();
    {
       mIncomingMessageQueue->push_back(msg);
+      
+      // wake up self if sleeping
+      mScheduler->wakeup(getId());
    }
    mMessageLock.unlock();
+}
+
+bool MessagableFiber::canSleep()
+{
+   bool rval;
+   
+   // lock to see if there are incoming messages
+   mMessageLock.lock();
+   {
+      rval = mIncomingMessageQueue->empty();
+   }
+   mMessageLock.unlock();
+   
+   return rval;
 }
 
 bool MessagableFiber::sendMessage(FiberId2 id, DynamicObject& msg)

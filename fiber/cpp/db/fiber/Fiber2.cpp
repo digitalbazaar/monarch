@@ -70,3 +70,8 @@ inline FiberContext* Fiber2::getContext()
 {
    return &mContext;
 }
+
+inline bool Fiber2::canSleep()
+{
+   return true;
+}

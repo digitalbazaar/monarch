@@ -281,6 +281,14 @@ public:
          messages++;
       }
       
+      // test sleeping and waking up due to new messages
+      while(count == 10000)
+      {
+         printf("sleeping...\n");
+         sleep();
+         printf("awake!\n");
+      }
+      
       if(count > 0)
       {
          count--;

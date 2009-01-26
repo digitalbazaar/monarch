@@ -146,6 +146,24 @@ public:
     */
    virtual FiberContext* getContext();
    
+   /**
+    * Determines whether or not a fiber is capable of sleeping when a
+    * particular call to sleep is made. This method will be called by this
+    * fiber's scheduler, inside of its scheduler lock, right before sleeping
+    * this fiber. Any call to wake up this fiber will be blocked while this
+    * method is running.
+    * 
+    * If this method returns false, the fiber will not be sleeped, but its
+    * context will still be swapped out.
+    * 
+    * This method is useful for preventing race conditions in extending fiber
+    * classes. The base fiber class is always capable of sleeping.
+    * 
+    * @return true if this fiber can be put to sleep at the moment, false
+    *         if not.
+    */
+   virtual bool canSleep();
+   
 protected:
    /**
     * Yields this fiber temporarily to allow another fiber to run.
@@ -155,8 +173,13 @@ protected:
    virtual void yield();
    
    /**
-    * Causes this fiber to sleep. The fiber may be awakened only be a wakeup()
-    * call to its FiberScheduler using this fiber's ID.
+    * Causes this fiber to sleep, if canSleep() returns true when this
+    * fiber's scheduler attempts to put it to sleep. The fiber may be awakened
+    * only be a wakeup() call to its FiberScheduler using this fiber's ID.
+    * 
+    * Proper use of this method may involve calling it inside of a loop that
+    * depends on a particular condition that will be modified by some external
+    * code that will then call wakeup().
     * 
     * This method *must* only be called inside run().
     */

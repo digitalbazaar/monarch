@@ -24,13 +24,16 @@ typedef std::list<db::rt::DynamicObject> FiberMessageQueue;
  * in a loop, receiving its latest messages in a queue on each iteration. If
  * the loop returns false, then the Fiber will exit.
  * 
+ * A MessagableFiber can only sleep when it has no incoming messages. If a
+ * MessagableFiber is asleep and it receives a new message, it will wake up.
+ * 
  * @author Dave Longley
  */
 class MessagableFiber : public Fiber2
 {
 protected:
    /**
-    * The FiberMessageCenter this MessageFiber is registered with.
+    * The FiberMessageCenter this MessagableFiber is registered with.
     */
    FiberMessageCenter* mMessageCenter;
    
@@ -86,6 +89,24 @@ public:
     * @param msg the message to add.
     */
    virtual void addMessage(db::rt::DynamicObject& msg);
+   
+   /**
+    * Determines whether or not a fiber is capable of sleeping when a
+    * particular call to sleep is made. This method will be called by this
+    * fiber's scheduler, inside of its scheduler lock, right before sleeping
+    * this fiber. Any call to wake up this fiber will be blocked while this
+    * method is running.
+    * 
+    * If this method returns false, the fiber will not be sleeped, but its
+    * context will still be swapped out.
+    * 
+    * A MessagableFiber can only be put to sleep when it has no incoming
+    * messages.
+    * 
+    * @return true if this fiber can be put to sleep at the moment, false
+    *         if not.
+    */
+   virtual bool canSleep();
    
 protected:
    /**
