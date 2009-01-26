@@ -208,12 +208,11 @@ void FiberScheduler2::yield(Fiber2* fiber)
 
 void FiberScheduler2::sleep(Fiber2* fiber)
 {
-   fiber->setState(Fiber2::Sleeping);
-   
    // lock scheduling to insert sleeping fiber entry
    mScheduleLock.lock();
    {
-      mSleepingFibers.insert(make_pair(fiber->getId(), fiber));      
+      fiber->setState(Fiber2::Sleeping);
+      mSleepingFibers.insert(make_pair(fiber->getId(), fiber));
    }
    mScheduleLock.unlock();
    
