@@ -253,8 +253,6 @@ class TestMessagableFiber : public MessagableFiber
 {
 public:
    int start;
-   int count;
-   int messages;
    int expectMessages;
    
 public:
@@ -262,14 +260,15 @@ public:
       MessagableFiber(fmc)
    {
       start = n;
-      count = n;
-      messages = 0;
       expectMessages = expectMsgs;
    };
    virtual ~TestMessagableFiber() {};
    
    virtual void processMessages()
    {
+      int count = start;
+      int messages = 0;
+      
       // test sleeping and waking up due to new messages
       //printf("sleeping...\n");
       sleep();
@@ -285,6 +284,7 @@ public:
 //            printf("Processing msg:\n%s\n",
 //               JsonWriter::writeToString(msg).c_str());
             messages++;
+            yield();
          }
          
          if(count > 0)
