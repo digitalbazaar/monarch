@@ -20,12 +20,38 @@ class FiberMessageCenter;
 typedef std::list<db::rt::DynamicObject> FiberMessageQueue;
 
 /**
- * A MessagableFiber is a Fiber that can receive messages. The Fiber runs on
- * in a loop, receiving its latest messages in a queue on each iteration. If
- * the loop returns false, then the Fiber will exit.
+ * A MessagableFiber is a Fiber that can receive messages. The Fiber processes
+ * messages and performs whatever custom work is necessary inside of the
+ * processMessages() function. Once that function returns, the Fiber will
+ * exit.
  * 
  * A MessagableFiber can only sleep when it has no incoming messages. If a
  * MessagableFiber is asleep and it receives a new message, it will wake up.
+ * 
+ * A useful programming design for a MessagableFiber, therefore, is to do
+ * something that will result in a message being sent back to the fiber at
+ * a later time, and then sleep. After sleep() returns, getMessages() can
+ * be called to handle any messages that accumulated while the fiber was
+ * asleep.
+ * 
+ * For example:
+ * 
+ * bool processMessages()
+ * {
+ *    createAnotherFiberThatWillMessageThisOneWhenItFinishes();
+ *    sleep();
+ *    
+ *    FiberMessageQueue* queue = getMessages();
+ *    while(!queue->isEmpty())
+ *    {
+ *       DynamicObject msg = queue->front();
+ *       queue->pop_front();
+ *       
+ *       // handle message
+ *    }
+ *    
+ *    return false;
+ * }
  * 
  * @author Dave Longley
  */
@@ -75,11 +101,10 @@ public:
    virtual ~MessagableFiber();
    
    /**
-    * Runs the main loop for this fiber. The loop will continually call
-    * processMessages, delivering any messages that have been queued up since
-    * the last call. The run() method should not be overridden by extending
-    * classes unless you know what you're doing, instead processMessages
-    * should be implemented.
+    * Registers this fiber with its FiberMessageCenter, runs processMessages(),
+    * and then unregisters from the FiberMessageCenter. The run() method should
+    * not be overridden by extending classes unless you know what you're doing,
+    * instead processMessages() should be implemented.
     */
    virtual void run();
    
@@ -110,6 +135,17 @@ public:
    
 protected:
    /**
+    * Swaps the internal message queues and returns a queue with the latest
+    * messages so they can be processed. Any messages left in the previous
+    * queue will be cleared. This should be called from processMessages to
+    * retrieve the most recent messages. This method can be called as many
+    * times as necessary from processMessages.
+    * 
+    * @return the processing message queue.
+    */
+   virtual FiberMessageQueue* getMessages();
+   
+   /**
     * Sends a message to another fiber.
     * 
     * @param id the ID of the fiber.
@@ -120,15 +156,10 @@ protected:
    virtual bool sendMessage(FiberId2 id, db::rt::DynamicObject& msg);
    
    /**
-    * Processes the passed messages and performs whatever custom work is
-    * necessary. Whatever messages are not removed from the queue after
-    * this method returns will be erased. 
-    * 
-    * @param msgs the queue of messages to process.
-    * 
-    * @return true to continue processing messages, false to exit the fiber.
+    * Processes messages, retrieved via getMessages(), and performs whatever
+    * custom work is necessary.
     */
-   virtual bool processMessages(FiberMessageQueue* msgs) = 0;
+   virtual void processMessages() = 0;
 };
 
 } // end namespace fiber

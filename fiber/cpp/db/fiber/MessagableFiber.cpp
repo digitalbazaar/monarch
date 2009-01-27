@@ -26,34 +26,8 @@ void MessagableFiber::run()
    // register with message center
    mMessageCenter->registerFiber(this);
    
-   bool quit = false;
-   while(!quit)
-   {
-      // lock to swap message queues
-      mMessageLock.lock();
-      {
-         if(mProcessingMessageQueue == &mMessageQueue1)
-         {
-            mProcessingMessageQueue = &mMessageQueue2;
-            mIncomingMessageQueue = &mMessageQueue1;
-         }
-         else
-         {
-            mProcessingMessageQueue = &mMessageQueue1;
-            mIncomingMessageQueue = &mMessageQueue2;
-         }
-      }
-      mMessageLock.unlock();
-      
-      // process messages
-      quit = !processMessages(mProcessingMessageQueue);
-      
-      // clear processing message queue
-      mProcessingMessageQueue->clear();
-      
-      // yield to allow other fibers to run
-      yield();
-   }
+   // process messages
+   processMessages();
    
    // unregister with message center
    mMessageCenter->unregisterFiber(this);
@@ -84,6 +58,30 @@ bool MessagableFiber::canSleep()
    mMessageLock.unlock();
    
    return rval;
+}
+
+FiberMessageQueue* MessagableFiber::getMessages()
+{
+   // lock to swap message queues
+   mMessageLock.lock();
+   {
+      // clear previous processing message queue
+      mProcessingMessageQueue->clear();
+      
+      if(mProcessingMessageQueue == &mMessageQueue1)
+      {
+         mProcessingMessageQueue = &mMessageQueue2;
+         mIncomingMessageQueue = &mMessageQueue1;
+      }
+      else
+      {
+         mProcessingMessageQueue = &mMessageQueue1;
+         mIncomingMessageQueue = &mMessageQueue2;
+      }
+   }
+   mMessageLock.unlock();
+   
+   return mProcessingMessageQueue;
 }
 
 bool MessagableFiber::sendMessage(FiberId2 id, DynamicObject& msg)
