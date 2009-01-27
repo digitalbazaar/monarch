@@ -4,12 +4,7 @@
 #ifndef db_fiber_WindowsSupport_H
 #define db_fiber_WindowsSupport_H
 
-#ifndef WIN32
-
-#include <ucontext.h>
-#include <sys/mman.h>
-
-#else
+#ifdef WIN32
 
 #include <windows.h>
 #include <sys/types.h>

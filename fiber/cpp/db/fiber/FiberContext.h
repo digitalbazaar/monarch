@@ -4,7 +4,16 @@
 #ifndef db_fiber_FiberContext_H
 #define db_fiber_FiberContext_H
 
+#ifndef WIN32
+
+#include <ucontext.h>
+#include <sys/mman.h>
+
+#else
+
 #include "db/fiber/WindowsSupport.h"
+
+#endif
 
 namespace db
 {

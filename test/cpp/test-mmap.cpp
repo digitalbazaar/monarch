@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "db/fiber/WindowsSupport.h"
+#include "db/fiber/FiberContext.h"
 
 #include <stdio.h>
 #include <stdlib.h>
