@@ -300,6 +300,52 @@ public:
    }
 };
 
+class TestChildFiber : public MessagableFiber
+{
+public:
+   FiberId2 parentId;
+   
+public:
+   TestChildFiber(FiberMessageCenter* fmc, FiberId2 parent) :
+      MessagableFiber(fmc),
+      parentId(parent)
+   {
+   };
+   virtual ~TestChildFiber() {};
+   
+   virtual void processMessages()
+   {
+      DynamicObject msg;
+      msg["fiberId"] = getId();
+      msg["wakeup"] = true;
+      sendMessage(parentId, msg);
+   }
+};
+
+class TestParentFiber : public MessagableFiber
+{
+public:
+   TestParentFiber(FiberMessageCenter* fmc) :
+      MessagableFiber(fmc)
+   {
+   };
+   virtual ~TestParentFiber() {};
+   
+   virtual void processMessages()
+   {
+      TestChildFiber* child = new TestChildFiber(mMessageCenter, getId());
+      FiberId childId = mScheduler->addFiber(child);
+      sleep();
+      
+      FiberMessageQueue* msgs = getMessages();
+      assert(msgs->size() == 1);
+      DynamicObject msg = msgs->front();
+      assert(msg["fiberId"]->getUInt32() == childId);
+      assert(msg->hasMember("wakeup"));
+      assert(msg["wakeup"]->getBoolean());
+   }
+};
+
 void runFiber2Test(TestRunner& tr)
 {
    tr.group("Fibers 2");
@@ -395,6 +441,25 @@ void runFiber2Test(TestRunner& tr)
             fmc.sendMessage(id, msg);
          }
       }
+      
+      uint64_t startTime = Timer::startTiming();
+      fs.start(&k, 4);
+      
+      fs.waitForLastFiberExit(true);
+      printf("time=%g secs... ", Timer::getSeconds(startTime));
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+   
+   tr.test("parent/child fiber");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      
+      FiberScheduler2 fs;
+      FiberMessageCenter fmc;
+      
+      fs.addFiber(new TestParentFiber(&fmc));
       
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 4);

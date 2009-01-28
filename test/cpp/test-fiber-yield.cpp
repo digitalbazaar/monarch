@@ -5,7 +5,7 @@
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
-#include "db/fiber/FiberScheduler.h"
+#include "db/fiber/FiberScheduler2.h"
 #include "db/modest/Kernel.h"
 #include "db/util/Timer.h"
 
@@ -21,7 +21,7 @@ using namespace db::rt;
 using namespace db::test;
 using namespace db::util;
 
-class TestFiber : public Fiber
+class TestFiber : public Fiber2
 {
 public:
    int count;
@@ -46,8 +46,6 @@ public:
       }
       
       printf("Test fiber '%d' done with '%d' iterations.\n", getId(), i);
-      
-      exit();
    }
 };
 
@@ -60,7 +58,7 @@ void runFiberYieldTest(TestRunner& tr)
       Kernel k;
       k.getEngine()->start();
       
-      FiberScheduler fs;
+      FiberScheduler2 fs;
       
       // queue up some fibers prior to starting
       for(int i = 0; i < 10; i++)
