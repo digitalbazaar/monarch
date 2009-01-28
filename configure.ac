@@ -182,12 +182,11 @@ AC_CONFIG_FILES([
 
 # Generate scripts and configuration files for release
 AC_CONFIG_FILES([
-                 dbcore-run 
-                 installers/debian/changelog
-                 installers/debian/rules
-                 setup/capfile
-                ],
-                [chmod +x dbcore-run installers/debian/rules])
+	installers/debian/changelog
+	setup/capfile
+])
+AC_CONFIG_FILES([dbcore-run], [chmod +x dbcore-run])
+AC_CONFIG_FILES([installers/debian/rules], [chmod +x installers/debian/rules])
 
 AC_OUTPUT
 
