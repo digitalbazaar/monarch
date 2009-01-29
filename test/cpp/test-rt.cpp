@@ -1203,6 +1203,63 @@ void runDynoCopyTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDynoReverseTest(TestRunner& tr)
+{
+   tr.group("DynamicObject reverse");
+
+   tr.test("str");
+   {
+      DynamicObject d;
+      d->setType(String);
+      
+      d->clear();
+      d->reverse();
+      assertStrCmp(d->getString(), "");
+      
+      d = "012";
+      d->reverse();
+      assertStrCmp(d->getString(), "210");
+      
+   }
+   tr.passIfNoException();
+      
+   tr.test("array");
+   {
+      DynamicObject d;
+      d->setType(Array);
+      DynamicObject expect;
+      expect->setType(Array);
+      
+      d->clear();
+      expect->clear();
+      d->reverse();
+      assert(d == expect);
+      
+      d->clear();
+      expect->clear();
+      d[0] = "zero";
+      d[1] = "one";
+      d[2] = "two";
+      d->reverse();
+      expect[0] = "two";
+      expect[1] = "one";
+      expect[2] = "zero";
+      assert(d == expect);
+      
+      d->clear();
+      expect->clear();
+      d[0]["zero"] = 0;
+      d[1]["one"] = 1;
+      d->reverse();
+      expect[0]["one"] = 1;
+      expect[1]["zero"] = 0;
+      assert(d == expect);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 class DbRtTester : public db::test::Tester
 {
 public:
@@ -1229,6 +1286,7 @@ public:
       runDynoAppendTest(tr);
       runDynoMergeTest(tr);
       runDynoCopyTest(tr);
+      runDynoReverseTest(tr);
       return 0;
    }
 

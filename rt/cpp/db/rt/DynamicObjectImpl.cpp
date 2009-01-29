@@ -915,3 +915,23 @@ int DynamicObjectImpl::length() const
    
    return rval;
 }
+
+void DynamicObjectImpl::reverse()
+{
+   switch(mType)
+   {
+      case String:
+         if(mString != NULL)
+         {
+            string s = mString;
+            std::reverse(s.begin(), s.end());
+            *this = s.c_str();
+         }
+         break;
+      case Array:
+         std::reverse(mArray->begin(), mArray->end());
+         break;
+      default:
+         break;
+   }
+}

@@ -369,6 +369,14 @@ public:
     * Array length = number of elements in the array.
     */
    virtual int length() const;
+   
+   /**
+    * Reverse the data.
+    * Arrays: reverse.
+    * Strings: reverse.
+    * Other: do nothing.
+    */
+   virtual void reverse();
 };
 
 } // end namespace rt
