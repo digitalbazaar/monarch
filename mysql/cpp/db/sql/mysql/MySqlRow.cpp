@@ -133,14 +133,23 @@ bool MySqlRow::getUInt64(unsigned int column, unsigned long long& i)
 
 bool MySqlRow::getText(unsigned int column, string& str)
 {
+   my_bool isNull;
    mBindings[column].buffer_type = MYSQL_TYPE_BLOB;
    char temp[mBindings[column].buffer_length + 1];
    mBindings[column].buffer = temp;
    mBindings[column].length = &mBindings[column].buffer_length;
+   mBindings[column].is_null = &isNull;
    mysql_stmt_fetch_column(getStatementHandle(), &mBindings[column], column, 0);
    
-   memset(temp + mBindings[column].buffer_length, 0, 1);
-   str.assign(temp);
+   if(isNull)
+   {
+      str.erase();
+   }
+   else
+   {
+      temp[mBindings[column].buffer_length] = 0;
+      str.assign(temp);
+   }
    
    // FIXME: check exceptions, etc
    return true;
