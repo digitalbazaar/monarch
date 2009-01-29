@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_fiber_Fiber_H
 #define db_fiber_Fiber_H
 
-#include "db/rt/DynamicObject.h"
+#include "db/fiber/FiberContext.h"
 
-#include <list>
+#include <inttypes.h>
 
 namespace db
 {
@@ -15,7 +15,6 @@ namespace fiber
 
 // type definitions
 typedef uint32_t FiberId;
-typedef int16_t FiberPriority;
 
 // forward declarations
 class FiberScheduler;
@@ -26,28 +25,11 @@ class FiberScheduler;
  * a FiberScheduler. Multiple threads can be used to run multiple Fibers, but
  * no Fiber will ever run concurrently with itself.
  * 
- * A Fiber will be continuously run by its FiberScheduler until it exits via a
- * call to exit(). This should be called from run(), processMessage(), or
- * interrupted().
- * 
- * A Fiber can be interrupted by calling interrupt() (or when it receives
- * an interrupted system message). If a Fiber is interrupted, then its
- * interrupted() call will be called each time it is scheduled, instead of
- * its run() method, even if it is in a sleep state. This is to allow fibers
- * to handle interrupts at any point. If a fiber calls resume(), its interrupted
- * state will be cleared. A fiber may also call exit() from its interrupted()
- * method.
- * 
- * Fibers can have priorities that a FiberScheduler can use to determine their
- * scheduling order.
- * 
- * There are several methods that are guaranteed to be run non-currently
- * with themselves and each other:
- * 
- * processMessage()
- * run()
- * interrupted()
- * exiting()
+ * A Fiber will be continually scheduled by its FiberScheduler until it
+ * returns from its run() method. It may use a call to yield() to allow
+ * other Fibers to do work. A Fiber may also use a call to sleep() to prevent
+ * the Fiber from being scheduled until a wakeup() call has been issued to
+ * the FiberScheduler using the Fiber's ID.
  * 
  * @author Dave Longley
  */
@@ -61,30 +43,25 @@ public:
    enum FiberStates
    {
       // states a fiber can be in
-      None        = 0,
+      New         = 0,
       Running     = 1 << 0,
       Sleeping    = 1 << 1,
-      Interrupted = 1 << 2,
-      Exiting     = 1 << 3,
-      
-      // special values to alter a fiber's state via system messages
-      Wakeup      = 1 << 4,
-      Resume      = 1 << 5,
+      Exited      = 1 << 2,
       
       // a deleted fiber should be in this state
-      Dead        = 1 << 6
+      Dead        = 1 << 7
    };
    
 protected:
    /**
-    * The FiberScheduler in charge of scheduling and running this Fiber.
-    */
-   FiberScheduler* mScheduler;
-   
-   /**
     * The ID of this Fiber.
     */
    FiberId mId;
+   
+   /**
+    * The FiberScheduler in charge of scheduling and running this Fiber.
+    */
+   FiberScheduler* mScheduler;
    
    /**
     * The current state of this Fiber.
@@ -92,87 +69,22 @@ protected:
    State mState;
    
    /**
-    * This Fiber's priority.
+    * The size of this fiber's stack.
     */
-   FiberPriority mPriority;
+   size_t mStackSize;
    
    /**
-    * Typedef and a queue of deferred messages to process after running.
+    * This fiber's execution context.
     */
-   typedef std::list<db::rt::DynamicObject*> MessageQueue;
-   MessageQueue mMessageQueue;
-   
-   /**
-    * Yields this Fiber temporarily to allow another Fiber to run.
-    * 
-    * This method *must* only be called inside run().
-    */
-   virtual void yield();
-   
-   /**
-    * Causes this Fiber to sleep. If called from a non-concurrent method, then
-    * this Fiber is guaranteed to sleep() before run() is called again. If a
-    * fiber is interrupted during a sleep, interrupted() will still be called.
-    * 
-    * Subsequent calls to wakeup() will change this.
-    * 
-    * The Fiber will remain asleep until it is woken up, interrupted, or exits.
-    */
-   virtual void sleep();
-   
-   /**
-    * Returns true if this fiber is sleeping, false if not.
-    * 
-    * @return true if this fiber is sleeping, false if not.
-    */
-   virtual bool isSleeping();
-   
-   /**
-    * Causes this Fiber to wakeup if it was sleeping.
-    */
-   virtual void wakeup();
-   
-   /**
-    * Causes this Fiber to be interrupted. If called from a non-concurrent
-    * method, then this Fiber is guaranteed to call interrupted() the next
-    * time it is scheduled, rather than run(). Subsequent calls to resume()
-    * will change this.
-    * 
-    * The Fiber will remain interrupted until it is resumed or exits.
-    */
-   virtual void interrupt();
-   
-   /**
-    * Returns true if this fiber is interrupted.
-    * 
-    * @return true if this fiber is interrupted, false if not.
-    */
-   virtual bool isInterrupted();
-   
-   /**
-    * Causes this Fiber to resume if it has been interrupted.
-    */
-   virtual void resume();
-   
-   /**
-    * Causes this Fiber to exit. The Fiber is guaranteed to exit before
-    * run() is called again.
-    */
-   virtual void exit();
-   
-   /**
-    * Sends a message to another fiber using the same scheduler.
-    * 
-    * @param id the ID of the fiber to send the message to.
-    * @param msg the message to send.
-    */
-   virtual void sendMessage(FiberId id, db::rt::DynamicObject& msg);
+   FiberContext mContext;
    
 public:
    /**
-    * Creates a new Fiber.
+    * Creates a new Fiber with the specified stack size.
+    * 
+    * @param stackSize the stack size to use in bytes, 0 for the default.
     */
-   Fiber();
+   Fiber(size_t stackSize = 0);
    
    /**
     * Destructs this Fiber.
@@ -180,70 +92,24 @@ public:
    virtual ~Fiber();
    
    /**
-    * Runs this Fiber while it is not interrupted and not sleeping. If this
-    * Fiber is interrupted, interrupted() will be called instead. If this
-    * Fiber is sleeping, no call will be made.
-    * 
-    * This method is guaranteed to be a non-concurrent method as specified in
-    * the description of the Fiber class.
+    * Called via *only* by a FiberScheduler to start this fiber.
+    */
+   virtual void start();
+   
+   /**
+    * Executes the custom work for this fiber. This method is guaranteed to be
+    * a non-concurrent with itself. The methods yield() and sleep() may be
+    * called from run() to alter scheduling.
     */
    virtual void run() = 0;
    
    /**
-    * Called when this Fiber has been interrupted instead of run(). This method
-    * should either cause the Fiber to exit or resume. It will be called
-    * repeatedly instead of run() as long as this fiber is in an interrupted
-    * state.
+    * Called *only* by a FiberScheduler to claim ownership of this fiber.
     * 
-    * This method is guaranteed to be a non-concurrent method as specified in
-    * the description of the Fiber class.
-    * 
-    * The default behavior is to ignore interruptions by resuming.
+    * @param id the FiberId assigned to this fiber.
+    * @param scheduler the FiberScheduler that is claiming this fiber.
     */
-   virtual void interrupted();
-   
-   /**
-    * Called just prior to this Fiber's exit. One useful override for this
-    * function is to send an event indicating that the Fiber has exited.
-    * 
-    * This method is guaranteed to be a non-concurrent method as specified in
-    * the description of the Fiber class.
-    */
-   virtual void exiting() {};
-   
-   /**
-    * Called *only* by a FiberScheduler to have this Fiber process the passed
-    * message.
-    * 
-    * This method is guaranteed to be a non-concurrent method as specified in
-    * the description of the Fiber class.
-    * 
-    * @param msg the message to process.
-    */
-   virtual void processMessage(db::rt::DynamicObject& msg) {};
-   
-   /**
-    * Called *only* by a FiberScheduler to claim ownership of this Fiber.
-    * 
-    * @param scheduler the FiberScheduler that is claiming this Fiber.
-    * @param id the FiberId assigned to this Fiber.
-    */
-   virtual void setScheduler(FiberScheduler* scheduler, FiberId id);
-   
-   /**
-    * Adds a deferred message to be processed. A deferred message is a
-    * custom message that could not be processed while the Fiber was
-    * running, but will be once it completes.
-    * 
-    * @param msg the message to add.
-    */
-   virtual void addDeferredMessage(db::rt::DynamicObject* msg);
-   
-   /**
-    * Processes all of this Fiber's messages that could not be processed
-    * while it was running.
-    */
-   virtual void processDeferredMessages();
+   virtual void setScheduler(FiberId id, FiberScheduler* scheduler);
    
    /**
     * Gets this Fiber's ID, as assigned by its FiberScheduler.
@@ -253,32 +119,71 @@ public:
    virtual FiberId getId();
    
    /**
-    * Called *only* by a FiberScheduler to set this Fiber's current state.
+    * Called *only* by a FiberScheduler to set this fiber's current state.
     * 
-    * @param state the new state for this Fiber.
+    * @param state the new state for this fiber.
     */
    virtual void setState(State state);
    
    /**
-    * Gets this Fiber's current state.
+    * Gets this fiber's current state.
     * 
-    * @return this Fiber's state.
+    * @return this fiber's current state.
     */
    virtual State getState();
    
    /**
-    * Sets the priority of this Fiber.
+    * Gets this fiber's stack size.
     * 
-    * @param p the new FiberPriority.
+    * @return this fiber's stack size.
     */
-   virtual void setPriority(FiberPriority p);
+   virtual size_t getStackSize();
    
    /**
-    * Gets this Fiber's priority.
+    * Gets this fiber's execution context.
     * 
-    * @return this Fiber's priority.
+    * @return this fiber's execution context.
     */
-   virtual FiberPriority getPriority();
+   virtual FiberContext* getContext();
+   
+   /**
+    * Determines whether or not a fiber is capable of sleeping when a
+    * particular call to sleep is made. This method will be called by this
+    * fiber's scheduler, inside of its scheduler lock, right before sleeping
+    * this fiber. Any call to wake up this fiber will be blocked while this
+    * method is running.
+    * 
+    * If this method returns false, the fiber will not be sleeped, but its
+    * context will still be swapped out.
+    * 
+    * This method is useful for preventing race conditions in extending fiber
+    * classes. The base fiber class is always capable of sleeping.
+    * 
+    * @return true if this fiber can be put to sleep at the moment, false
+    *         if not.
+    */
+   virtual bool canSleep();
+   
+protected:
+   /**
+    * Yields this fiber temporarily to allow another fiber to run.
+    * 
+    * This method *must* only be called inside run().
+    */
+   virtual void yield();
+   
+   /**
+    * Causes this fiber to sleep, if canSleep() returns true when this
+    * fiber's scheduler attempts to put it to sleep. The fiber may be awakened
+    * only be a wakeup() call to its FiberScheduler using this fiber's ID.
+    * 
+    * Proper use of this method may involve calling it inside of a loop that
+    * depends on a particular condition that will be modified by some external
+    * code that will then call wakeup().
+    * 
+    * This method *must* only be called inside run().
+    */
+   virtual void sleep();
 };
 
 } // end namespace fiber

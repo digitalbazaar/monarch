@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/fiber/Fiber.h"
 
@@ -8,102 +8,42 @@
 using namespace db::fiber;
 using namespace db::rt;
 
-Fiber::Fiber()
+#define DEFAULT_STACK_SIZE 0x2000 // 8k
+
+Fiber::Fiber(size_t stackSize) :
+   mId(0),
+   mState(Fiber::New)
 {
-   // default priority of 0
-   setPriority(0);
+   mStackSize = (stackSize == 0 ? DEFAULT_STACK_SIZE : stackSize);
 }
 
 Fiber::~Fiber()
 {
-   // delete any unprocessed deferred messages
-   for(MessageQueue::iterator i = mMessageQueue.begin();
-       i != mMessageQueue.end(); i++)
-   {
-      delete *i;
-   }
+}
+
+void Fiber::start()
+{
+   // run custom fiber code
+   run();
    
-   // fiber is deceased
-   mState = Dead;
+   // fiber now exited
+   mScheduler->exit(this);
 }
 
 inline void Fiber::yield()
 {
-   mScheduler->yield(getId());
-}
-
-inline void Fiber::exit()
-{
-   mScheduler->exit(getId());
+   mScheduler->yield(this);
 }
 
 inline void Fiber::sleep()
 {
-   mScheduler->sleep(getId());
+   mScheduler->sleep(this);
 }
 
-inline bool Fiber::isSleeping()
+void Fiber::setScheduler(FiberId id, FiberScheduler* scheduler)
 {
-   return (mState & Fiber::Sleeping);
-}
-
-inline void Fiber::wakeup()
-{
-   mScheduler->wakeup(getId());
-}
-
-inline void Fiber::interrupt()
-{
-   mScheduler->interrupt(getId());
-}
-
-inline bool Fiber::isInterrupted()
-{
-   return (mState & Fiber::Interrupted);
-}
-
-inline void Fiber::resume()
-{
-   mScheduler->resume(getId());
-}
-
-inline void Fiber::sendMessage(FiberId id, db::rt::DynamicObject& msg)
-{
-   mScheduler->sendMessage(id, msg);
-}
-
-inline void Fiber::interrupted()
-{
-   resume();
-}
-
-void Fiber::setScheduler(FiberScheduler* scheduler, FiberId id)
-{
-   mScheduler = scheduler;
    mId = id;
-   mState = None;
-}
-
-inline void Fiber::addDeferredMessage(DynamicObject* msg)
-{
-   mMessageQueue.push_back(msg);
-}
-
-void Fiber::processDeferredMessages()
-{
-   if(!mMessageQueue.empty())
-   {
-      for(MessageQueue::iterator i = mMessageQueue.begin();
-          i != mMessageQueue.end(); i++)
-      {
-         // process and then delete message
-         processMessage(**i);
-         delete *i;
-      }
-      
-      // clear queue
-      mMessageQueue.clear();
-   }
+   mScheduler = scheduler;
 }
 
 inline FiberId Fiber::getId()
@@ -121,12 +61,17 @@ inline Fiber::State Fiber::getState()
    return mState;
 }
 
-inline void Fiber::setPriority(FiberPriority p)
+inline size_t Fiber::getStackSize()
 {
-   mPriority = p;
+   return mStackSize;
 }
 
-inline FiberPriority Fiber::getPriority()
+inline FiberContext* Fiber::getContext()
 {
-   return mPriority;
+   return &mContext;
+}
+
+inline bool Fiber::canSleep()
+{
+   return true;
 }

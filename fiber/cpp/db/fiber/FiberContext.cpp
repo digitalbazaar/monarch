@@ -3,7 +3,7 @@
  */
 #include "db/fiber/FiberContext.h"
 
-#include "db/fiber/Fiber2.h"
+#include "db/fiber/Fiber.h"
 #include <cstring>
 
 using namespace db::fiber;
@@ -34,13 +34,13 @@ FiberContext::~FiberContext()
  * 
  * @param fiber the new fiber to start.
  */
-static void startFiber(Fiber2* fiber)
+static void startFiber(Fiber* fiber)
 {
    // start new fiber
    fiber->start();
 }
 
-bool FiberContext::init(Fiber2* fiber)
+bool FiberContext::init(Fiber* fiber)
 {
 #ifdef WIN32
    // FIXME: win32 requires malloc to be used for the stack because mmap

@@ -25,7 +25,7 @@ protected:
    /**
     * A map of registered FiberIds to MessagableFibers.
     */
-   typedef std::map<FiberId2, MessagableFiber*> FiberMap;
+   typedef std::map<FiberId, MessagableFiber*> FiberMap;
    FiberMap mFibers;
    
    /**
@@ -72,7 +72,7 @@ public:
     * 
     * @return true if the message was delivered, false if no such fiber exists.
     */
-   virtual bool sendMessage(FiberId2 id, db::rt::DynamicObject& msg);
+   virtual bool sendMessage(FiberId id, db::rt::DynamicObject& msg);
 };
 
 } // end namespace fiber

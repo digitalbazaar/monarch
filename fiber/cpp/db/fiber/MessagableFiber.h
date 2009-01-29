@@ -4,7 +4,7 @@
 #ifndef db_fiber_MessagableFiber_H
 #define db_fiber_MessagableFiber_H
 
-#include "db/fiber/Fiber2.h"
+#include "db/fiber/Fiber.h"
 #include "db/rt/DynamicObject.h"
 
 #include <list>
@@ -55,7 +55,7 @@ typedef std::list<db::rt::DynamicObject> FiberMessageQueue;
  * 
  * @author Dave Longley
  */
-class MessagableFiber : public Fiber2
+class MessagableFiber : public Fiber
 {
 protected:
    /**
@@ -153,7 +153,7 @@ protected:
     * 
     * @return true if the message was delivered, false if no such fiber exists.
     */
-   virtual bool sendMessage(FiberId2 id, db::rt::DynamicObject& msg);
+   virtual bool sendMessage(FiberId id, db::rt::DynamicObject& msg);
    
    /**
     * Processes messages, retrieved via getMessages(), and performs whatever

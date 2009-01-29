@@ -37,7 +37,7 @@ void FiberMessageCenter::unregisterFiber(MessagableFiber* fiber)
    mMessageLock.unlockExclusive();
 }
 
-bool FiberMessageCenter::sendMessage(FiberId2 id, DynamicObject& msg)
+bool FiberMessageCenter::sendMessage(FiberId id, DynamicObject& msg)
 {
    bool rval = false;
    

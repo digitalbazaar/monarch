@@ -20,7 +20,7 @@ namespace db
 namespace fiber
 {
 
-class Fiber2;
+class Fiber;
 
 /**
  * A FiberContext is a snapshot of the minimal information required to continue
@@ -72,7 +72,7 @@ public:
     * @return true if successful, false if there was not enough memory to
     *         allocate the fiber at this time.
     */
-   virtual bool init(Fiber2* fiber);
+   virtual bool init(Fiber* fiber);
    
    /**
     * Saves this context and swaps another one in. This context will be

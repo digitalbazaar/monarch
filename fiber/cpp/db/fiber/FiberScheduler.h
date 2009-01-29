@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_fiber_FiberScheduler_H
 #define db_fiber_FiberScheduler_H
@@ -18,8 +18,8 @@ namespace fiber
 /**
  * A FiberScheduler schedules and runs Fibers. It uses N modest Operations to
  * run however many Fibers are assigned to it. Each Operation shares the same
- * FiberScheduler, calling it to acquire the next scheduled Fiber to run each
- * time it finishes running a Fiber. 
+ * FiberScheduler, calling it to acquire the next scheduled fiber to run each
+ * time it finishes running a fiber. 
  * 
  * @author Dave Longley
  */
@@ -27,26 +27,15 @@ class FiberScheduler : public db::rt::Runnable
 {
 protected:
    /**
-    * Typedef and a map of FiberIds to Fibers.
-    */
-   typedef std::map<FiberId, Fiber*> FiberMap;
-   FiberMap mFiberMap;
-   
-   /**
-    * Typedef and a list of Fibers.
-    */
-   typedef std::list<Fiber*> FiberList;
-   FiberList mFiberList;
-   
-   /**
-    * An iterator for scheduling Fibers.
-    */
-   FiberList::iterator mFiberItr;
-   
-   /**
     * The list of Operations to run Fibers on.
     */
    db::modest::OperationList mOpList;
+   
+   /**
+    * A list of scheduler contexts.
+    */
+   typedef std::list<FiberContext*> ContextList;
+   ContextList mContextList;
    
    /**
     * A list of available FiberIds from exited fibers.
@@ -55,107 +44,36 @@ protected:
    FiberIdFreeList mFiberIdFreeList;
    
    /**
-    * A FiberMessage is a message sent to a particular Fiber. It contains
-    * the recipient Fiber's ID, and either a new state for the Fiber or
-    * message data with the state set to Fiber::None.
+    * A map of all fibers (fiber ID => fiber) in the scheduler.
     */
-   struct FiberMessage
-   {
-      FiberId id;
-      Fiber::State state;
-      db::rt::DynamicObject* data;
-   };
+   typedef std::map<FiberId, Fiber*> FiberMap;
+   FiberMap mFiberMap;
    
    /**
-    * Typedef, system message queue and custom message queue.
+    * A queue of fibers to execute.
     */
-   typedef std::list<FiberMessage> MessageQueue;
-   MessageQueue* mSystemMessages;
-   MessageQueue* mCustomMessages;
+   typedef std::list<Fiber*> FiberQueue;
+   FiberQueue mFiberQueue;
    
    /**
-    * An exclusive lock for scheduling the next Fiber.
+    * A map of sleeping fibers.
+    */
+   FiberMap mSleepingFibers;
+   
+   /**
+    * An exclusive lock for scheduling the next fiber.
     */
    db::rt::ExclusiveLock mScheduleLock;
    
    /**
-    * An exclusive lock for swapping message queues.
+    * An exclusive lock for waiting for fibers.
     */
-   db::rt::ExclusiveLock mMessageQueueLock;
-   
-   /**
-    * An exclusive lock for waiting for work.
-    */
-   db::rt::ExclusiveLock mWorkWaitLock;
+   db::rt::ExclusiveLock mFiberWaitLock;
    
    /**
     * An exclusive lock for waiting for the fiber list to empty.
     */
    db::rt::ExclusiveLock mNoFibersWaitLock;
-   
-   /**
-    * Called to notify operations that work (messages or fibers) is available.
-    */
-   virtual void workAvailable();
-   
-   /**
-    * Called to cause the current operation to wait for work to become
-    * available (messages or fibers).
-    */
-   virtual void waitForWork();
-   
-   /**
-    * Called to notify that no fibers are in the system.
-    */
-   virtual void noFibersAvailable();
-   
-   /**
-    * Queues the passed message for processing.
-    * 
-    * @param fm the message to queue.
-    * @param system true if it is a system message, false if not.
-    */
-   virtual void queueMessage(FiberMessage& fm, bool system);
-   
-   /**
-    * Sends a system message to change the state of a Fiber.
-    * 
-    * @param id the FiberId of the Fiber to send the message to.
-    * @param state the new state for the Fiber.
-    */
-   virtual void sendSystemMessage(FiberId id, Fiber::State state);
-   
-   /**
-    * Processes pending custom messages.
-    */
-   virtual void processCustomMessages();
-   
-   /**
-    * Processes pending system messages and returns true if work is available.
-    * 
-    * @return true if work is available for fiber operations, false if not.
-    */
-   virtual bool processSystemMessages();
-   
-   /**
-    * Increments the internal iterator to the next fiber.
-    */
-   virtual void nextFiber();
-   
-   /**
-    * Removes the fiber pointed to by the internal iterator and
-    * increments the iterator.
-    */
-   virtual void removeFiber();
-   
-   /**
-    * Processes pending FiberMessages and runs the next scheduled Fiber. If
-    * there is no Fiber to run, the current thread will wait until one becomes
-    * available unless yield is true.
-    * 
-    * @param yield true if the current Fiber is yielding, false if not.
-    */
-   virtual void runNextFiber(bool yield);
    
 public:
    /**
@@ -170,12 +88,13 @@ public:
    
    /**
     * Starts this FiberScheduler. It will create "numOps" Operations using
-    * the passed OperationRunner to run its Fibers on.
+    * the passed OperationRunner to run its fibers on.
     * 
     * @param opRunner the OperationRunner to use.
-    * @param numOps the number of Operations to run Fibers on.
+    * @param numOps the number of Operations to run fibers on.
     */
-   virtual void start(db::modest::OperationRunner* opRunner, int numOps);
+   virtual void start(
+      db::modest::OperationRunner* opRunner, int numOps);
    
    /**
     * Stops this FiberScheduler. This method will not cause its Fibers to
@@ -195,72 +114,75 @@ public:
    virtual bool waitForLastFiberExit(bool stop);
    
    /**
-    * Adds a new Fiber to this FiberScheduler. The passed Fiber must be
+    * Adds a new fiber to this FiberScheduler. The passed fiber must be
     * heap-allocated. It will be deleted by this FiberScheduler when it
     * exits.
     * 
-    * @param fiber the Fiber to add.
+    * @param fiber the fiber to add.
     * 
-    * @return the FiberId assigned to the Fiber.
+    * @return the FiberId assigned to the fiber.
     */
    virtual FiberId addFiber(Fiber* fiber);
    
    /**
-    * Sends a message to be processed the next time this scheduler is run.
+    * Yields the passed fiber. This *must* be called by a running fiber.
     * 
-    * @param id the FiberId of the Fiber to send the message to.
-    * @param msg the message to send.
+    * @param fiber the fiber to field.
     */
-   virtual void sendMessage(FiberId id, db::rt::DynamicObject& msg);
+   virtual void yield(Fiber* fiber);
    
    /**
-    * Yields the *current* Fiber. This *must* be called by a running Fiber.
+    * Puts the passed fiber to sleep. This *must* be called by a running
+    * fiber.
     * 
-    * @param id the ID of the running Fiber to yield.
+    * @param fiber the fiber to put to sleep.
     */
-   virtual void yield(FiberId id);
+   virtual void sleep(Fiber* fiber);
    
    /**
-    * Exits (terminates) any Fiber.
+    * Wakes up any sleeping fiber. If the passed fiber ID has no associated
+    * fiber, then this is a no-op.
     * 
-    * @param id the FiberId of the Fiber to exit.
-    */
-   virtual void exit(FiberId id);
-   
-   /**
-    * Puts to sleep any non-exiting Fiber.
-    * 
-    * @param id the FiberId of the Fiber to put to sleep.
-    */
-   virtual void sleep(FiberId id);
-   
-   /**
-    * Wakes up any sleeping Fiber.
-    * 
-    * @param id the FiberId of the Fiber to wakeup.
+    * @param id the FiberId of the fiber to wakeup.
     */
    virtual void wakeup(FiberId id);
    
    /**
-    * Interrupts a Fiber. An interrupted Fiber's interrupted() method will
-    * be called even if it is in a sleep state.
-    * 
-    * @param id the FiberId of the Fiber to interrupt.
+    * Exits the passed fiber, switching permanently its context out for
+    * the current thread's scheduler context. This *must* be called by a
+    * running fiber and is done so by default after its run() method exits.
     */
-   virtual void interrupt(FiberId id);
-   
-   /**
-    * Resumes an interrupted a Fiber.
-    * 
-    * @param id the FiberId of the Fiber to resume.
-    */
-   virtual void resume(FiberId id);
+   virtual void exit(Fiber* fiber);
    
    /**
     * Runs this FiberScheduler. This method is executed inside of N modest
     * Operations.
     */
    virtual void run();
+   
+protected:
+   /**
+    * Gets the next schedulable fiber, if any.
+    * 
+    * @return the next schedulable fiber, or NULL if none are available.
+    */
+   virtual Fiber* nextFiber();
+   
+   /**
+    * Called to notify operations that a fiber is available to be scheduled.
+    */
+   virtual void fiberAvailable();
+   
+   /**
+    * Called to cause the current operation to wait for a fiber to become
+    * available to be scheduled.
+    */
+   virtual void waitForFiber();
+   
+   /**
+    * Called to notify that no fibers are in the system.
+    */
+   virtual void noFibersAvailable();
 };
 
 } // end namespace fiber

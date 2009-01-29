@@ -3,14 +3,14 @@
  */
 #include "db/fiber/MessagableFiber.h"
 
-#include "db/fiber/FiberScheduler2.h"
+#include "db/fiber/FiberScheduler.h"
 #include "db/fiber/FiberMessageCenter.h"
 
 using namespace db::fiber;
 using namespace db::rt;
 
 MessagableFiber::MessagableFiber(FiberMessageCenter* fmc, size_t stackSize) :
-   Fiber2(stackSize)
+   Fiber(stackSize)
 {
    mMessageCenter = fmc;
    mProcessingMessageQueue = &mMessageQueue1;
@@ -84,7 +84,7 @@ FiberMessageQueue* MessagableFiber::getMessages()
    return mProcessingMessageQueue;
 }
 
-bool MessagableFiber::sendMessage(FiberId2 id, DynamicObject& msg)
+bool MessagableFiber::sendMessage(FiberId id, DynamicObject& msg)
 {
    return mMessageCenter->sendMessage(id, msg);
 }

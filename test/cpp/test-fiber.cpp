@@ -11,7 +11,6 @@
 #include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/fiber/FiberScheduler.h"
-#include "db/fiber/FiberScheduler2.h"
 #include "db/fiber/FiberMessageCenter.h"
 #include "db/io/NullOutputStream.h"
 #include "db/modest/Kernel.h"
@@ -44,188 +43,19 @@ class TestFiber : public Fiber
 {
 public:
    int start;
-   int count;
-   int dummy;
-   int* msgs;
+   
 public:
-   TestFiber(int n, int* m = NULL)
+   TestFiber(int n)
    {
       start = n;
-      count = n;
-      dummy = 0;
-      
-      msgs = (m == NULL ? &dummy : m);
    };
    virtual ~TestFiber() {};
-   
-   virtual void processMessage(DynamicObject& msg)
-   {
-      //printf("Processing msg:\n%s\n",
-      //   JsonWriter::writeToString(msg).c_str());
-      (*msgs)++;
-   }
-   
-   virtual void run()
-   {
-      //printf("Running test fiber '%d'\n", getId());
-      
-      iterate();
-      
-      if(--count == 0)
-      {
-         //printf("total iterations: %d\n", start);
-         exit();
-      }
-//      else if(count == 99990)
-//      {
-//         sleep();
-//      }
-   }
-   
-   virtual void interrupted()
-   {
-      printf("\nTest fiber '%d' interrupted after %d iterations!\n",
-         getId(), start - count);
-      exit();
-      //resume();
-   }
-};
-
-void runFiberTest(TestRunner& tr)
-{
-   tr.group("Fibers");
-   
-   tr.test("single fiber");
-   {
-      Kernel k;
-      k.getEngine()->start();
-      
-      FiberScheduler fs;
-      fs.start(&k, 4);
-      
-      TestFiber* fiber = new TestFiber(10);
-      fs.addFiber(fiber);
-      
-      fs.waitForLastFiberExit(true);
-      k.getEngine()->stop();
-   }
-   tr.passIfNoException();
-   
-   tr.test("many fibers");
-   {
-      Kernel k;
-      k.getEngine()->start();
-      
-      FiberScheduler fs;
-      
-      // queue up some fibers prior to starting
-      for(int i = 0; i < 1000; i++)
-      {
-         fs.addFiber(new TestFiber(20));
-      }
-      
-      for(int i = 0; i < 400; i++)
-      {
-         fs.addFiber(new TestFiber(50));
-      }
-      
-      uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 4);
-      
-      // add more fibers
-      for(int i = 0; i < 20; i++)
-      {
-         fs.addFiber(new TestFiber(100));
-      }
-      
-      fs.waitForLastFiberExit(true);
-      printf("time=%g secs... ", Timer::getSeconds(startTime));
-      
-      k.getEngine()->stop();
-   }
-   tr.passIfNoException();
-   
-   tr.test("messages");
-   {
-      Kernel k;
-      k.getEngine()->start();
-      
-      FiberScheduler fs;
-      
-      FiberId id;
-      for(int i = 0; i < 50; i++)
-      {
-         id = fs.addFiber(new TestFiber(1000));
-         DynamicObject msg;
-         msg["helloId"] = i + 1;
-         for(int n = 0; n < 1000; n++)
-         {
-            fs.sendMessage(id, msg);
-         }
-      }
-      
-      uint64_t startTime = Timer::startTiming();
-      fs.start(&k, 4);
-      
-      int msgs = 0;
-      for(int i = 0; i < 20; i++)
-      {
-         id = fs.addFiber(new TestFiber(1000, &msgs));
-         DynamicObject msg;
-         msg["helloId"] = i + 1;
-         for(int n = 0; n < 10000; n++)
-         {
-            fs.sendMessage(id, msg);
-         }
-      }
-      
-      fs.waitForLastFiberExit(true);
-      printf("msgs=%d, time=%g secs... ", msgs, Timer::getSeconds(startTime));
-      k.getEngine()->stop();
-      
-      // assert all messages were delivered
-      assert(msgs == 200000);
-   }
-   tr.passIfNoException();
-   
-   tr.test("interrupted fiber");
-   {
-      Kernel k;
-      k.getEngine()->start();
-      
-      FiberScheduler fs;
-      fs.start(&k, 4);
-      
-      TestFiber* fiber = new TestFiber(100000);
-      FiberId id = fs.addFiber(fiber);
-      Thread::sleep(10);
-      fs.interrupt(id);
-      
-      fs.waitForLastFiberExit(true);
-      k.getEngine()->stop();
-   }
-   tr.passIfNoException();
-   
-   tr.ungroup();
-}
-
-class TestFiber2 : public Fiber2
-{
-public:
-   int start;
-   
-public:
-   TestFiber2(int n)
-   {
-      start = n;
-   };
-   virtual ~TestFiber2() {};
    
    virtual void run()
    {
       for(int i = start; i > 0; i--)
       {
-//         printf("Fiber %i doing iteration %i on thread %p\n",
+//         printf("TestFiber %i doing iteration %i on thread %p\n",
 //            getId(), i, Thread::currentThread());
          iterate();
          yield();
@@ -233,13 +63,13 @@ public:
    }
 };
 
-class TestFiber2Sleep : public Fiber2
+class TestFiberSleep : public Fiber
 {
 public:
-   TestFiber2Sleep()
+   TestFiberSleep()
    {
    };
-   virtual ~TestFiber2Sleep() {};
+   virtual ~TestFiberSleep() {};
    
    virtual void run()
    {
@@ -295,7 +125,7 @@ public:
          }
       }
       
-      //printf("Fiber %i received %i messages,exiting.\n",
+      //printf("TestMessagableFiber %i received %i messages,exiting.\n",
       //   getId(), messages);
    }
 };
@@ -303,10 +133,10 @@ public:
 class TestChildFiber : public MessagableFiber
 {
 public:
-   FiberId2 parentId;
+   FiberId parentId;
    
 public:
-   TestChildFiber(FiberMessageCenter* fmc, FiberId2 parent) :
+   TestChildFiber(FiberMessageCenter* fmc, FiberId parent) :
       MessagableFiber(fmc),
       parentId(parent)
    {
@@ -346,19 +176,19 @@ public:
    }
 };
 
-void runFiber2Test(TestRunner& tr)
+void runFiberTest(TestRunner& tr)
 {
-   tr.group("Fibers 2");
+   tr.group("Fibers");
    
    tr.test("single fiber");
    {
       Kernel k;
       k.getEngine()->start();
       
-      FiberScheduler2 fs;
+      FiberScheduler fs;
       fs.start(&k, 1);
       
-      TestFiber2* fiber = new TestFiber2(1000);
+      TestFiber* fiber = new TestFiber(100);
       fs.addFiber(fiber);
       
       fs.waitForLastFiberExit(true);
@@ -371,17 +201,17 @@ void runFiber2Test(TestRunner& tr)
       Kernel k;
       k.getEngine()->start();
       
-      FiberScheduler2 fs;
+      FiberScheduler fs;
       
       // queue up some fibers prior to starting
       for(int i = 0; i < 1000; i++)
       {
-         fs.addFiber(new TestFiber2(20));
+         fs.addFiber(new TestFiber(20));
       }
       
       for(int i = 0; i < 400; i++)
       {
-         fs.addFiber(new TestFiber2(50));
+         fs.addFiber(new TestFiber(50));
       }
       
       uint64_t startTime = Timer::startTiming();
@@ -390,7 +220,7 @@ void runFiber2Test(TestRunner& tr)
       // add more fibers
       for(int i = 0; i < 20; i++)
       {
-         fs.addFiber(new TestFiber2(100));
+         fs.addFiber(new TestFiber(100));
       }
       
       fs.waitForLastFiberExit(true);
@@ -405,10 +235,10 @@ void runFiber2Test(TestRunner& tr)
       Kernel k;
       k.getEngine()->start();
       
-      FiberScheduler2 fs;
+      FiberScheduler fs;
       fs.start(&k, 1);
       
-      FiberId2 id = fs.addFiber(new TestFiber2Sleep());
+      FiberId id = fs.addFiber(new TestFiberSleep());
       
       // wait, and then wakeup sleeping fiber
       Thread::sleep(500);
@@ -425,10 +255,10 @@ void runFiber2Test(TestRunner& tr)
       Kernel k;
       k.getEngine()->start();
       
-      FiberScheduler2 fs;
+      FiberScheduler fs;
       FiberMessageCenter fmc;
       
-      FiberId2 id;
+      FiberId id;
       for(int i = 0; i < 50; i++)
       {
          MessagableFiber* fiber = new TestMessagableFiber(&fmc, 1000, 1000);
@@ -456,7 +286,7 @@ void runFiber2Test(TestRunner& tr)
       Kernel k;
       k.getEngine()->start();
       
-      FiberScheduler2 fs;
+      FiberScheduler fs;
       FiberMessageCenter fmc;
       
       fs.addFiber(new TestParentFiber(&fmc));
@@ -565,17 +395,15 @@ void runFiberSpeedTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runFiber2SpeedTest(TestRunner& tr)
+void runFiberSpeedTest2(TestRunner& tr)
 {
-   tr.group("Fiber2 speed");
+   tr.group("Fiber speed 2");
    
+   Timer timer;
    for(int fibers = 100; fibers <= 1000; fibers += 100)
    {
       for(int iterations = 10; iterations <= 100; iterations += 10)
       {
-         double time1;
-         double time2;
-         
          char testname[100];
          snprintf(testname, 100, "%i Fibers,%i iterations",
             fibers, iterations);
@@ -592,53 +420,14 @@ void runFiber2SpeedTest(TestRunner& tr)
                fs.addFiber(new TestFiber(iterations));
             }
             
-            uint64_t startTime = Timer::startTiming();
+            timer.start();
             fs.start(&k, 4);
             fs.waitForLastFiberExit(true);
-            time1 = Timer::getSeconds(startTime);
-            printf("time=%g secs... ", time1);
+            printf("time=%g secs... ", timer.getElapsedSeconds());
             
             k.getEngine()->stop();
          }
          tr.passIfNoException();
-         
-         snprintf(testname, 100, "%i Fiber2s,%i iterations",
-            fibers, iterations);
-         tr.test(testname);
-         {
-            Kernel k;
-            k.getEngine()->start();
-            
-            FiberScheduler2 fs;
-            
-            // queue up fibers
-            for(int i = 0; i < fibers; i++)
-            {
-               fs.addFiber(new TestFiber2(iterations));
-            }
-            
-            uint64_t startTime = Timer::startTiming();
-            fs.start(&k, 4);
-            fs.waitForLastFiberExit(true);
-            time2 = Timer::getSeconds(startTime);
-            printf("time=%g secs... ", time2);
-            
-            k.getEngine()->stop();
-         }
-         tr.passIfNoException();
-         
-         if(time1 < time2)
-         {
-            printf("WINNER: Fiber1\n");
-         }
-         else if(time2 < time1)
-         {
-            printf("WINNER: Fiber2\n");
-         }
-         else
-         {
-            printf("WINNER: TIE\n");
-         }
       }
    }
    
@@ -684,8 +473,6 @@ public:
          printf("NOT VERIFIED!\n");
       }
       //assert(verified);
-      
-      exit();
    }
 };
 
@@ -715,10 +502,11 @@ void runConcurrentSigningTest(TestRunner& tr)
       }
       
       printf("\n");
-      uint64_t startTime = Timer::startTiming();
+      Timer timer;
+      timer.start();
       fs.start(&k, 4);
       fs.waitForLastFiberExit(true);
-      printf("time=%g secs... ", Timer::getSeconds(startTime));
+      printf("time=%g secs... ", timer.getElapsedSeconds());
       
       k.getEngine()->stop();
    }
@@ -726,7 +514,6 @@ void runConcurrentSigningTest(TestRunner& tr)
    
    tr.ungroup();
 }
-
 
 /**
  * Make a DynamicObject with various content to stress test JSON reader/writer.
@@ -796,9 +583,9 @@ static void jsonReadWrite(const char* s, size_t slen)
 }
 
 /**
- * Fiber that will read and write a JSON string once then exit.
+ * Fiber that will read and write a JSON string a number of times.
  */
-class JsonRWFiber : public Fiber
+class JsonRWFiber : public Fiber, public Runnable
 {
 protected:
    const char* mStr;
@@ -815,26 +602,16 @@ public:
    
    virtual void run()
    {
-      //printf("[%d] JsonFiber running.\n", getId());
-      if(mLoops-- > 0)
+      while(mLoops-- > 0)
       {
          jsonReadWrite(mStr, mStrlen);
+         yield();
       }
-      else
-      {
-         exit();
-      }
-   }
-   
-   virtual void interrupted()
-   {
-      printf("[%d] JsonFiber interrupted, exiting.\n", getId());
-      exit();
    }
 };
 
 /**
- * Runnable that will read and write a JSON string once then exit.
+ * Runnable that will read and write a JSON string a number of times.
  */
 class JsonRWRunnable : public Runnable
 {
@@ -876,7 +653,8 @@ static bool header = true;
  * @param dyno id of dyno to use.  1=complex 2=simple
  * @param csv output in CSV format with '#' comments and spaces around data
  */
-void runJsonTest(TestRunner& tr,
+void runJsonTest(
+   TestRunner& tr,
    const char* mode, int threads, int ops, int oploops, int dyno, bool csv)
 {
    string s;
@@ -1143,10 +921,9 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      //runFiberTest(tr);
-      //runFiberSpeedTest(tr);
-      runFiber2Test(tr);
-      //runFiber2SpeedTest(tr);
+      runFiberTest(tr);
+      runFiberSpeedTest(tr);
+      //runFiberSpeedTest2(tr);
       return 0;
    }
 
