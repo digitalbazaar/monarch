@@ -399,7 +399,7 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
       //        intermediate results that cannot be reduced with the logic
       //        below.  Each result will have an increasing exponent (set
       //        above) that may not shrink.  Calling round() will fix this but
-      //        may not be appropriate here if the user want's higher precision
+      //        may not be appropriate here if the user wants higher precision
       //        intermediate results in a calculation.
       if(rval.mSignificand.isZero())
       {

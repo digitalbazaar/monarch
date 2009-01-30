@@ -24,7 +24,7 @@ const char* ConfigManager::DEFAULT_VALUE = "_default_";
 const char* ConfigManager::VERSION       = "_version_";
 const char* ConfigManager::ID            = "_id_";
 // FIXME: change to GROUPS and have support for multiple groups per config?
-// seems like this feature would be simple enought to add without complicating
+// seems like this feature would be simple enough to add without complicating
 // too much
 const char* ConfigManager::GROUP         = "_group_";
 const char* ConfigManager::PARENT        = "_parent_";
@@ -795,8 +795,6 @@ bool ConfigManager::addConfigFile(
 {
    bool rval = true;
    
-   // FIXME: why are we doing this here? are we making assumptions about
-   // how the config manager is being used?
    string userPath;
    rval = File::expandUser(path, userPath);
    if(rval)

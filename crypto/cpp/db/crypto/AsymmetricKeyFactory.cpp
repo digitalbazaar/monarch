@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/AsymmetricKeyFactory.h"
 
@@ -188,7 +188,7 @@ bool AsymmetricKeyFactory::createKeyPair(
       rval = false;
       int length = 15 + strlen(algorithm) + 19 + 1;
       char msg[length];
-      snprintf(msg, length, "Key algorithm '%s' is not supported!", algorithm);
+      snprintf(msg, length, "Key algorithm '%s' is not supported.", algorithm);
       ExceptionRef e = new Exception(msg, "db.crypto.UnsupportedAlgorithm");
       Exception::setLast(e, false);
    }
@@ -201,7 +201,6 @@ PrivateKeyRef AsymmetricKeyFactory::loadPrivateKeyFromPem(
 {
    PrivateKeyRef key;
    
-   // FIXME: this leaks 12 bytes every time it's called, why?
    // create a read-only memory bio
    BIO* bio = BIO_new_mem_buf((void*)pem, length);
    
@@ -220,8 +219,8 @@ PrivateKeyRef AsymmetricKeyFactory::loadPrivateKeyFromPem(
    }
    else
    {
-      ExceptionRef e = new IOException(
-         "Could not load private key from PEM!", "db.crypto.PrivateKeyIO");
+      ExceptionRef e = new Exception(
+         "Could not load private key from PEM.", "db.crypto.PrivateKeyIO");
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
@@ -255,8 +254,8 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    }
    else
    {
-      ExceptionRef e = new IOException(
-         "Could not write private key to PEM!", "db.crypto.PrivateKeyIO");
+      ExceptionRef e = new Exception(
+         "Could not write private key to PEM.", "db.crypto.PrivateKeyIO");
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
@@ -287,8 +286,8 @@ PublicKeyRef AsymmetricKeyFactory::loadPublicKeyFromPem(
    }
    else
    {
-      ExceptionRef e = new IOException(
-         "Could not load public key from PEM!", "db.crypto.PublicKeyIO");
+      ExceptionRef e = new Exception(
+         "Could not load public key from PEM.", "db.crypto.PublicKeyIO");
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
@@ -319,8 +318,8 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
    }
    else
    {
-      ExceptionRef e = new IOException(
-         "Could not write public key to PEM!", "db.crypto.PublicKeyIO");
+      ExceptionRef e = new Exception(
+         "Could not write public key to PEM.", "db.crypto.PublicKeyIO");
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }

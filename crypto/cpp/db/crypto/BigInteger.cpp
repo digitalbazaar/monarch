@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/BigInteger.h"
 
-// FIXME: find a way to remove all assert()s in this class.
+// FIXME: if asserts are not compiled in, and an error occurs, math will be off
 #include <cassert>
 #include <openssl/crypto.h>
 
@@ -68,7 +68,7 @@ BigInteger::BigInteger(const string& value)
 BigInteger::BigInteger(const BigInteger& copy)
 {
    initialize();
-   bool success = BN_copy(mBigNum, copy.mBigNum) == mBigNum;
+   bool success = (BN_copy(mBigNum, copy.mBigNum) == mBigNum);
    assert(success);
 }
 
@@ -104,7 +104,7 @@ BN_CTX* BigInteger::getContext()
 
 BigInteger& BigInteger::operator=(const BigInteger& rhs)
 {
-   bool success = BN_copy(mBigNum, rhs.mBigNum) == mBigNum;
+   bool success = (BN_copy(mBigNum, rhs.mBigNum) == mBigNum);
    assert(success);
    return *this;
 }
@@ -129,8 +129,7 @@ BigInteger& BigInteger::operator=(long long rhs)
 
 BigInteger& BigInteger::operator=(unsigned int rhs)
 {
-   int rc = (rhs == 0) ?
-      BN_zero(mBigNum) : BN_set_word(mBigNum, rhs);
+   int rc = (rhs == 0 ? BN_zero(mBigNum) : BN_set_word(mBigNum, rhs));
    assert(rc == 1);
    return *this;
 }
@@ -321,7 +320,8 @@ int BigInteger::absCompare(const BigInteger& rhs)
 void BigInteger::divide(
    const BigInteger& divisor, BigInteger& quotient, BigInteger& remainder)
 {
-   int rc = BN_div(quotient.mBigNum, remainder.mBigNum,
+   int rc = BN_div(
+      quotient.mBigNum, remainder.mBigNum,
       mBigNum, divisor.mBigNum, getContext());
    assert(rc == 1);
 }
