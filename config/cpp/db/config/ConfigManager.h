@@ -376,9 +376,9 @@ public:
    virtual bool setConfig(Config& config); 
    
    /**
-    * Update config from all current configs. Update is called after adding
-    * and removing configs. It should also be called if an individual config
-    * has data changed.
+    * Reproduces the merged config for the given config ID. This method is
+    * automatically called when adding, removing, or setting a config, it
+    * should not ordinarily need to be called manually.
     * 
     * @param id the ID of the config to update (all related configs will be
     *           updated).

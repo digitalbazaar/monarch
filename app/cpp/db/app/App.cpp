@@ -137,9 +137,9 @@ bool App::didInitConfigGroups()
 
 unsigned long App::openSSLSetId()
 {
-// FIXME: win32 uses ptw32_handle_t for pthread IDs which is
-// a struct with a pointer "p" and some number used for "etc"
 #ifdef WIN32
+   // win32 uses ptw32_handle_t for pthread IDs which is
+   // a struct with a pointer "p" and some number used for "etc"
    return (unsigned long)pthread_self().p;
 #else
    return (unsigned long)pthread_self();
@@ -914,7 +914,7 @@ static bool processOption(
    
    if(rval && optSpec->hasMember("args"))
    {
-      // FIXME implenent
+      // FIXME implement
       ExceptionRef e =
          new Exception("args target not implemented yet",
             "db.app.CommandLineError");
@@ -1289,10 +1289,6 @@ bool App::didParseCommandLine()
    // done with temporary command line config
    mCLConfig.setNull();
    
-   // FIXME: which config is supposed to be updated here?
-   // update merged config
-   //getConfigManager()->update();
-
    return rval;
 }
 
