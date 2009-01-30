@@ -122,7 +122,7 @@ typedef int socklen_t;
 */
 
 // define MSG options
-// FIXME: winsock doesn't support these messages
+// winsock doesn't support these messages
 #define MSG_DONTWAIT 0
 #define MSG_NOSIGNAL 0
 
