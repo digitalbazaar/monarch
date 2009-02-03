@@ -61,32 +61,35 @@ bool Sqlite3Connection::connect(Url* url)
       {
          // use in-memory database
          db = ":memory:";
+         rval = true;
       }
       else
       {
          // use local file for database
          File file(url->getPath().c_str());
          db = file->getAbsolutePath();
+         rval = file->mkdirs();
       }
       
-      // open sqlite3 connection
-      int ec = sqlite3_open(db.c_str(), &mHandle);
-      if(ec != SQLITE_OK)
+      if(rval)
       {
-         // create exception, close connection
-         ExceptionRef e = new Sqlite3Exception(this);
-         e->getDetails()["url"] = url->toString().c_str();
-         e->getDetails()["db"] = db.c_str();
-         Exception::setLast(e, false);
-         Sqlite3Connection::close();
-      }
-      else
-      {
-         // connected
-         rval = true;
-         
-         // set busy timeout to 15 seconds
-         sqlite3_busy_timeout(mHandle, 15000);
+         // open sqlite3 connection
+         int ec = sqlite3_open(db.c_str(), &mHandle);
+         if(ec != SQLITE_OK)
+         {
+            // create exception, close connection
+            ExceptionRef e = new Sqlite3Exception(this);
+            e->getDetails()["url"] = url->toString().c_str();
+            e->getDetails()["db"] = db.c_str();
+            Exception::setLast(e, false);
+            Sqlite3Connection::close();
+            rval = false;
+         }
+         else
+         {
+            // connected, set busy timeout to 15 seconds
+            sqlite3_busy_timeout(mHandle, 15000);
+         }
       }
    }
    
