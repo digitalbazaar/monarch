@@ -79,7 +79,7 @@ public:
     * Finishes deserializing a document from xml. This method must be called
     * to complete deserialization.
     * 
-    * @return true if the finish succeeded, false if an IOException occurred.
+    * @return true if the finish succeeded, false if an Exception occurred.
     */
    virtual bool finish();
 };

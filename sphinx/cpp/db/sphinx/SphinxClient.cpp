@@ -353,7 +353,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
                b->clear(4);
                attr["value"] = 0.0;
                ExceptionRef e = new Exception(
-                  "Sphinx floats unimplemented!", "db.sphinx.Sphinx");
+                  "Sphinx floats unimplemented.", "db.sphinx.Sphinx");
                Exception::setLast(e, false);
                rval = false;
                break;
@@ -487,7 +487,7 @@ bool SphinxClient::parseResponse(
       default:
       {
          ExceptionRef e = new Exception(
-            "Invalid searchd status code!", "db.sphinx.Sphinx");
+            "Invalid searchd status code.", "db.sphinx.Sphinx");
          Exception::setLast(e, false);
          break;
       }
@@ -506,7 +506,8 @@ bool SphinxClient::checkVersion(Connection* c)
    {
       // could not read version
       ExceptionRef e = new Exception(
-         "Could not read searchd protocol version!");
+         "Could not read searchd protocol version.",
+         "db.sphinx.BadProtocol");
       Exception::setLast(e, false);
    }
    else
@@ -516,10 +517,10 @@ bool SphinxClient::checkVersion(Connection* c)
       if(version < 1)
       {
          // unsupported protocol version
-         char temp[60];
-         snprintf(temp, 60,
-            "Unsupported searchd protocol version '%u'", version);
-         ExceptionRef e = new Exception(temp, "db.sphinx.Sphinx");
+         ExceptionRef e = new Exception(
+            "Unsupported searchd protocol version.",
+            "db.sphinx.UnsupportedProtocolVersion");
+         e->getDetails()["version"] = version;
          Exception::setLast(e, false);
       }
       else
@@ -546,7 +547,7 @@ bool SphinxClient::receiveResponse(
    {
       // error receiving header
       ExceptionRef e = new Exception(
-         "Could not receive response header!", "db.sphinx.Sphinx");
+         "Could not receive response header.", "db.sphinx.Sphinx");
       Exception::setLast(e, (numBytes == -1)); 
    }
    else
@@ -566,7 +567,7 @@ bool SphinxClient::receiveResponse(
       if(length > 1048576*8)
       {
          ExceptionRef e = new Exception(
-            "Response data was larger than 8MB!", "db.sphinx.Sphinx");
+            "Response data was larger than 8MB.", "db.sphinx.ResponseTooLarge");
          Exception::setLast(e, false);
       }
       else
@@ -587,7 +588,7 @@ bool SphinxClient::receiveResponse(
          {
             // error receiving response data
             ExceptionRef e = new Exception(
-               "Could not receive response!", "db.sphinx.Sphinx");
+               "Could not receive response.", "db.sphinx.ReadError");
             Exception::setLast(e, (numBytes == -1));
          }
       }

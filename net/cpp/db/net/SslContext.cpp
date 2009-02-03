@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/SocketDefinitions.h"
 #include "db/net/SslContext.h"
@@ -105,7 +105,7 @@ bool SslContext::setCertificate(File& certFile)
    {
       // an error occurred
       ExceptionRef e = new Exception(
-         "Could not set SSL certificate!",
+         "Could not set SSL certificate.",
          SSL_EXCEPTION_TYPE);
       e->getDetails()["error"] = SslContext::getSslErrorStrings();
       Exception::setLast(e, false);
@@ -125,7 +125,7 @@ bool SslContext::setPrivateKey(File& pkeyFile)
    {
       // an error occurred
       ExceptionRef e = new Exception(
-         "Could not set SSL private key!",
+         "Could not set SSL private key.",
          SSL_EXCEPTION_TYPE);
       Exception::setLast(e, false);
       rval = false;
@@ -152,7 +152,7 @@ bool SslContext::setVerifyCAs(File* caFile, File* caDir)
    {
       // an error occurred
       ExceptionRef e = new Exception(
-         "Could not set verify Certificate Authorities!",
+         "Could not set verify Certificate Authorities.",
          SSL_EXCEPTION_TYPE);
       Exception::setLast(e, false);
       rval = false;

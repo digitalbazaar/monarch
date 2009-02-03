@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/MutatorInputStream.h"
 
@@ -78,7 +78,7 @@ int MutatorInputStream::read(char* b, int length)
                // no more data available for algorithm
                mResult = MutationAlgorithm::Error;
                ExceptionRef e = new Exception(
-                  "Insufficient data for mutation algorithm!",
+                  "Insufficient data for mutation algorithm.",
                   "db.io.MutationException");
                Exception::setLast(e, false);
                rval = -1;

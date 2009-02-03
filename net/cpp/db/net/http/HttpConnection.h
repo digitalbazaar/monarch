@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpConnection_H
 #define db_net_http_HttpConnection_H
@@ -68,7 +68,7 @@ public:
     * 
     * @param header the header to send.
     * 
-    * @return true if the header was sent, false if an IOException occurred.
+    * @return true if the header was sent, false if an Exception occurred.
     */
    virtual bool sendHeader(HttpHeader* header);
    
@@ -79,7 +79,7 @@ public:
     * 
     * @param header the header to populate.
     * 
-    * @return true if the header was received, false if an IOException occurred.
+    * @return true if the header was received, false if an Exception occurred.
     */
    virtual bool receiveHeader(HttpHeader* header);
    
@@ -92,7 +92,7 @@ public:
     * @param is the InputStream to read the body from.
     * @param trailer any trailer headers to send if appropriate.
     * 
-    * @return true if the body was sent, false if an IOException occurred.
+    * @return true if the body was sent, false if an Exception occurred.
     */
    virtual bool sendBody(
       HttpHeader* header, db::io::InputStream* is,
@@ -125,7 +125,7 @@ public:
     * @param os the OutputStream to write the body to.
     * @param trailer used to store any received trailer headers.
     * 
-    * @return true if the body was received, false if an IOException occurred.
+    * @return true if the body was received, false if an Exception occurred.
     */
    virtual bool receiveBody(
       HttpHeader* header, db::io::OutputStream* os,

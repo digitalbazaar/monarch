@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/DefaultBlockCipher.h"
+
 #include "db/crypto/SymmetricKeyFactory.h"
-#include "db/io/IOException.h"
+#include "db/rt/DynamicObject.h"
 
 #include <openssl/err.h>
 
@@ -54,9 +55,10 @@ bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
       }
       else
       {
-         ExceptionRef e = new IOException(
-            "Could not start encrypting!",
-            ERR_error_string(ERR_get_error(), NULL));
+         ExceptionRef e = new Exception(
+            "Could not start encrypting.",
+            "db.crypto.BlockCipher.StartEncryptionError");
+         e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
          Exception::setLast(e, false);
       }
    }
@@ -88,9 +90,10 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
       }
       else
       {
-         ExceptionRef e = new IOException(
-            "Could not start decrypting!",
-            ERR_error_string(ERR_get_error(), NULL));
+         ExceptionRef e = new Exception(
+            "Could not start decrypting.",
+            "db.crypto.BlockCipher.StartDecryptionError");
+         e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
          Exception::setLast(e, false);
       }
    }
@@ -117,9 +120,10 @@ bool DefaultBlockCipher::update(
          }
          else
          {
-            ExceptionRef e = new IOException(
-               "Could not encrypt data!",
-               ERR_error_string(ERR_get_error(), NULL));
+            ExceptionRef e = new Exception(
+               "Could not encrypt data.",
+               "db.crypto.BlockCipher.EncryptionError");
+            e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::setLast(e, false);
          }
       }
@@ -134,9 +138,10 @@ bool DefaultBlockCipher::update(
          }
          else
          {
-            ExceptionRef e = new IOException(
-               "Could not decrypt data!",
-               ERR_error_string(ERR_get_error(), NULL));
+            ExceptionRef e = new Exception(
+               "Could not decrypt data.",
+               "db.crypto.BlockCipher.DecryptionError");
+            e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::setLast(e, false);
          }
       }
@@ -150,8 +155,10 @@ bool DefaultBlockCipher::update(
    }
    else
    {
-      ExceptionRef e = new IOException(
-         "Cannot update cipher; cipher not started!");
+      ExceptionRef e = new Exception(
+         "Cannot update cipher; cipher not started.",
+         "db.crypto.BlockCipher.MethodCallOutOfOrder");
+      e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
    
@@ -175,9 +182,10 @@ bool DefaultBlockCipher::finish(char* out, int& length)
          }
          else
          {
-            ExceptionRef e = new IOException(
-               "Could not finish encrypting!",
-               ERR_error_string(ERR_get_error(), NULL));
+            ExceptionRef e = new Exception(
+               "Could not finish encrypting.",
+               "db.crypto.BlockCipher.EncryptionError");
+            e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::setLast(e, false);
          }
       }
@@ -191,9 +199,10 @@ bool DefaultBlockCipher::finish(char* out, int& length)
          }
          else
          {
-            ExceptionRef e = new IOException(
-               "Could not finish decrypting!",
-               ERR_error_string(ERR_get_error(), NULL));
+            ExceptionRef e = new Exception(
+               "Could not finish decrypting.",
+               "db.crypto.BlockCipher.DecryptionError");
+            e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::setLast(e, false);
          }
       }
@@ -206,8 +215,10 @@ bool DefaultBlockCipher::finish(char* out, int& length)
    }
    else
    {
-      ExceptionRef e = new IOException(
-         "Cannot finish cipher; cipher not started!");
+      ExceptionRef e = new Exception(
+         "Cannot finish cipher; cipher not started.",
+         "db.crypto.BlockCipher.MethodCallOutOfOrder");
+      e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
    

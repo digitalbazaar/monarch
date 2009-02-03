@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpBodyInputStream.h"
 
@@ -125,14 +125,16 @@ int HttpBodyInputStream::read(char* b, int length)
          {
             // we will probably want this to be more robust in the
             // future so this kind of exception can be recovered from
-            ExceptionRef e = new IOException(
-               "Receiving HTTP content body interrupted!");
+            ExceptionRef e = new Exception(
+               "Receiving HTTP content body interrupted.",
+               "db.io.InterruptedException");
             Exception::setLast(e, false);
          }
          else
          {
-            ExceptionRef e = new IOException(
-               "Could not receive all HTTP content bytes!");
+            ExceptionRef e = new Exception(
+               "Could not receive all HTTP content bytes.",
+               "db.io.IO");
             Exception::setLast(e, false);
          }
       }

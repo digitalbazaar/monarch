@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/SymmetricKeyFactory.h"
+
 #include "db/rt/System.h"
+#include "db/rt/DynamicObject.h"
 #include "db/rt/Exception.h"
 
 #include <openssl/evp.h>
@@ -44,12 +46,11 @@ bool SymmetricKeyFactory::createRandomKey(
    else
    {
       // unknown algorithm
-      rval = false;
-      int length = 15 + strlen(algorithm) + 19 + 1;
-      char msg[length];
-      snprintf(msg, length, "Key algorithm '%s' is not supported!", algorithm);
-      ExceptionRef e = new Exception(msg, "db.crypto.UnsupportedAlgorithm");
+      ExceptionRef e = new Exception(
+         "Key algorithm is not supported.", "db.crypto.UnsupportedAlgorithm");
+      e->getDetails()["algorithm"] = algorithm;
       Exception::setLast(e, false);
+      rval = false;
    }
    
    if(rval)

@@ -225,8 +225,9 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os)
    
       if(!rval || !(type == Map || type == Array))
       {
-         ExceptionRef e = new IOException(
-            "No JSON top-level Map or Array found");
+         ExceptionRef e = new Exception(
+            "No JSON top-level Map or Array found.",
+            "db.data.json.JsonWriter.InvalidJson");
          Exception::setLast(e, false);
          rval = false;
       }

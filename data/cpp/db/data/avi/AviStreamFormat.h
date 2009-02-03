@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_avi_AviStreamFormat_H
 #define db_data_avi_AviStreamFormat_H
@@ -82,7 +82,7 @@ public:
     * 
     * @param os the OutputStream to write to.
     * 
-    * @exception true on success, false on an IOException.
+    * @exception true on success, false on an Exception.
     */
    virtual bool writeTo(db::io::OutputStream& os);
    

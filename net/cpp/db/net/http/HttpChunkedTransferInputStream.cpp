@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpChunkedTransferInputStream.h"
 
@@ -65,7 +65,9 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
             tempBytesLeft > INT_MAX)
          {
             // the chunk size could not be read!
-            ExceptionRef e = new IOException("Invalid HTTP chunk size!");
+            ExceptionRef e = new Exception(
+               "Invalid HTTP chunk size.",
+               "db.net.http.BadChunkedEncoding");
             Exception::setLast(e, false);
             rval = -1;
          }
@@ -82,8 +84,9 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          if(rval == 0)
          {
             // the chunk size could not be read!
-            ExceptionRef e = new IOException(
-               "Could not read HTTP chunk size! End of stream.");
+            ExceptionRef e = new Exception(
+               "Could not read HTTP chunk size. End of stream.",
+               "db.net.http.EndOfStream");
             Exception::setLast(e, false);
             rval = -1;
          }
@@ -94,7 +97,9 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
             if(!e->getDetails()->hasMember("wouldBlock"))
             {
                // the chunk size could not be read!
-               e = new IOException("Could not read HTTP chunk size!");
+               e = new Exception(
+                  "Could not read HTTP chunk size.",
+                  "db.net.http.BadChunkedEncoding");
                Exception::setLast(e, true);
             }
          }
@@ -118,7 +123,9 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
       }
       else
       {
-         ExceptionRef e = new IOException("Could not read HTTP chunk!");
+         ExceptionRef e = new Exception(
+            "Could not read HTTP chunk.",
+            "db.net.http.BadChunkedEncoding");
          Exception::setLast(e, false);
          rval = -1;
       }
@@ -155,7 +162,9 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
       {
          // if the chunk bytes left is greater than zero and end of stream
          // was read, then whole chunk wasn't read
-         ExceptionRef e = new IOException("Could not read entire HTTP chunk!");
+         ExceptionRef e = new Exception(
+            "Could not read entire HTTP chunk.",
+            "db.net.http.BadChunkedEncoding");
          Exception::setLast(e, false);
          rval = -1;
       }

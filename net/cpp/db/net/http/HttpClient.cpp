@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpClient.h"
+
 #include "db/net/TcpSocket.h"
 #include "db/net/SslSocket.h"
 #include "db/io/InputStream.h"
@@ -163,8 +164,9 @@ bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
    
    if(mConnection == NULL)
    {
-      ExceptionRef e = new IOException(
-         "Could not receive HTTP content, not connected!");
+      ExceptionRef e = new Exception(
+         "Could not receive HTTP content, not connected.",
+         "db.net.http.NotConnected");
       Exception::setLast(e, false);
    }
    else

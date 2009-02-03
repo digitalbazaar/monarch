@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/mail/SmtpClient.h"
 
@@ -236,9 +236,10 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
       if(code != -1)
       {
          // code was not the expected one
-         char temp[120];
-         sprintf(temp, "Unexpected SMTP server response code!,code=%i", code);
-         ExceptionRef e = new IOException(temp, "db.mail.UnexpectedSmtpCode");
+         ExceptionRef e = new Exception(
+            "Unexpected SMTP server response code,",
+            "db.mail.UnexpectedSmtpCode");
+         e->getDetails()["code"] = code;
          Exception::setLast(e, false);
       }
    }

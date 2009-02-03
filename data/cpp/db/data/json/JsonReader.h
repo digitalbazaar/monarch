@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_json_JsonReader_H
 #define db_data_json_JsonReader_H
@@ -215,7 +215,7 @@ protected:
     * @param position an integer set to the position of the last character
     *                 that was parsed.
     * 
-    * @return true if successful, false if an IOException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    bool process(const char* c, int count, int& position);
    
@@ -227,7 +227,7 @@ protected:
     * @param ic the type of input to process
     * @param c the character to process (if needed)
     * 
-    * @return true if successful, false if an IOException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    bool processNext(JsonInputClass ic, char c = '\0');
    
@@ -278,7 +278,7 @@ public:
     * 
     * @param is the InputStream to read the JSON from.
     * 
-    * @return true if the read succeeded, false if an IOException occurred.
+    * @return true if the read succeeded, false if an Exception occurred.
     */
    virtual bool read(db::io::InputStream* is);
 
@@ -286,7 +286,7 @@ public:
     * Finishes deserializing an object from JSON. This method should be called
     * to complete deserialization and verify valid JSON was found.
     * 
-    * @return true if the finish succeeded, false if an IOException occurred.
+    * @return true if the finish succeeded, false if an Exception occurred.
     */
    virtual bool finish();
    

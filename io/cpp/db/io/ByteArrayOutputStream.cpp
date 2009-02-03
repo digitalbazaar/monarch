@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/ByteArrayOutputStream.h"
 
@@ -24,15 +24,13 @@ bool ByteArrayOutputStream::write(const char* b, int length)
    int written = mBuffer->put(b, length, getResize());
    if(written != length)
    {
-      // FIXME: probably want to add something to IO exception for
-      // storing bytes that couldn't be read/written, etc
-      rval = false;
       IOException* e = new IOException(
-         "Could not write all data, ByteBuffer is full!");
+         "Could not write all data, ByteBuffer is full.");
       e->setUsedBytes(written);
       e->setUnusedBytes(length - written);
       ExceptionRef ref = e;
       Exception::setLast(ref, false);
+      rval = false;
    }
    
    return rval;

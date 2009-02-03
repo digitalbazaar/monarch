@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/compress/zip/Zipper.h"
 
@@ -141,7 +141,7 @@ bool Zipper::readLocalFileHeader(ZipEntry& ze, InputStream* is)
 {
    // FIXME: not implemented
    ExceptionRef e = new Exception(
-      "Zipper::readLocalFileHeader() not implemented!");
+      "Zipper::readLocalFileHeader() not implemented.");
    Exception::setLast(e, false);
    return false;
 }
@@ -209,7 +209,7 @@ bool Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
 bool Zipper::readFileHeader(ZipEntry& ze, InputStream* is)
 {
    // FIXME: not implemented
-   ExceptionRef e = new Exception("Zipper::readFileHeader() not implemented!");
+   ExceptionRef e = new Exception("Zipper::readFileHeader() not implemented.");
    Exception::setLast(e, false);
    return false;
 }
@@ -299,7 +299,7 @@ int Zipper::readEntry(ZipEntry& ze, InputStream* is)
    int rval = -1;
    
    // FIXME: not implemented
-   ExceptionRef e = new Exception("Zipper::readEntry() not implemented!");
+   ExceptionRef e = new Exception("Zipper::readEntry() not implemented.");
    Exception::setLast(e, false);
    
    return rval;
@@ -331,7 +331,7 @@ int Zipper::read(char* b, int length)
    int rval = -1;
    
    // FIXME: not implemented
-   ExceptionRef e = new Exception("Zipper::read() not implemented!");
+   ExceptionRef e = new Exception("Zipper::read() not implemented.");
    Exception::setLast(e, false);
    
    return rval;

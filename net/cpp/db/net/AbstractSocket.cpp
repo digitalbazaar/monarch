@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/AbstractSocket.h"
 
@@ -69,7 +69,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
          close();
          
          ExceptionRef e = new Exception(
-            "Could not create Socket!", SOCKET_EXCEPTION_TYPE);
+            "Could not create socket.", SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
@@ -82,7 +82,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    else
    {
       ExceptionRef e = new Exception(
-         "Could not create Socket!", SOCKET_EXCEPTION_TYPE);
+         "Could not create socket.", SOCKET_EXCEPTION_TYPE);
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
@@ -105,14 +105,14 @@ bool AbstractSocket::select(bool read, long long timeout)
          {
             // interrupted exception
             e = new Exception(
-               "Socket read interrupted!", "db.io.InterruptedException");
+               "Socket read interrupted.", "db.io.InterruptedException");
             e->getDetails()["error"] = strerror(errno);
          }
          else
          {
             // interrupted exception
             e = new Exception(
-               "Socket write interrupted!", "db.io.InterruptedException");
+               "Socket write interrupted.", "db.io.InterruptedException");
             e->getDetails()["error"] = strerror(errno);
          }
       }
@@ -122,14 +122,14 @@ bool AbstractSocket::select(bool read, long long timeout)
          {
             // error occurred, get string message
             e = new Exception(
-               "Could not read from Socket!", SOCKET_EXCEPTION_TYPE);
+               "Could not read from socket.", SOCKET_EXCEPTION_TYPE);
             e->getDetails()["error"] = strerror(errno);
          }
          else
          {
             // error occurred, get string message
             e = new Exception(
-               "Could not write to Socket!", SOCKET_EXCEPTION_TYPE);
+               "Could not write to socket.", SOCKET_EXCEPTION_TYPE);
             e->getDetails()["error"] = strerror(errno);
          }
       }
@@ -140,14 +140,14 @@ bool AbstractSocket::select(bool read, long long timeout)
       {
          // read timeout occurred
          e = new Exception(
-            "Socket read timed out!", SOCKET_TIMEOUT_EXCEPTION_TYPE);
+            "Socket read timed out.", SOCKET_TIMEOUT_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
       }
       else
       {
          // write timeout occurred
          e = new Exception(
-            "Socket write timed out!", SOCKET_TIMEOUT_EXCEPTION_TYPE);
+            "Socket write timed out.", SOCKET_TIMEOUT_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
       }
    }
@@ -165,14 +165,14 @@ bool AbstractSocket::select(bool read, long long timeout)
          {
             // error occurred, get string message
             e = new Exception(
-               "Could not read from Socket!", SOCKET_EXCEPTION_TYPE);
+               "Could not read from socket.", SOCKET_EXCEPTION_TYPE);
             e->getDetails()["error"] = strerror(lastError);
          }
          else
          {
             // error occurred, get string message
             e = new Exception(
-               "Could not write to Socket!", SOCKET_EXCEPTION_TYPE);
+               "Could not write to socket.", SOCKET_EXCEPTION_TYPE);
             e->getDetails()["error"] = strerror(lastError);
          }
       }
@@ -252,7 +252,7 @@ bool AbstractSocket::bind(SocketAddress* address)
          shutdownOutput();
          
          ExceptionRef e = new Exception(
-            "Could not bind Socket!", SOCKET_EXCEPTION_TYPE);
+            "Could not bind socket.", SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
@@ -275,7 +275,7 @@ bool AbstractSocket::listen(unsigned int backlog)
    if(!isBound())
    {
       ExceptionRef e = new Exception(
-         "Cannot listen on unbound Socket!", SOCKET_EXCEPTION_TYPE);
+         "Cannot listen on unbound socket.", SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
    }
    else
@@ -288,7 +288,7 @@ bool AbstractSocket::listen(unsigned int backlog)
       if(error < 0)
       {
          ExceptionRef e = new Exception(
-            "Could not listen on Socket!", SOCKET_EXCEPTION_TYPE);
+            "Could not listen on socket.", SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
@@ -312,7 +312,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
    if(!isListening())
    {
       ExceptionRef e = new Exception(
-         "Cannot accept with a non-listening Socket!", SOCKET_EXCEPTION_TYPE);
+         "Cannot accept with a non-listening socket.", SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
    }
    else
@@ -336,7 +336,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
       if(fd < 0)
       {
          ExceptionRef e = new Exception(
-            "Could not accept connection!", SOCKET_EXCEPTION_TYPE);
+            "Could not accept connection.", SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
@@ -393,7 +393,7 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
             {
                // could not connect
                ExceptionRef e = new Exception(
-                  "Cannot connect Socket!", SOCKET_EXCEPTION_TYPE);
+                  "Cannot connect socket.", SOCKET_EXCEPTION_TYPE);
                e->getDetails()["error"] = strerror(errno);
                e->getDetails()["address"] = address->toString().c_str();
                Exception::setLast(e, false);
@@ -432,7 +432,7 @@ bool AbstractSocket::send(const char* b, int length)
    if(!isBound())
    {
       ExceptionRef e = new Exception(
-         "Cannot write to unbound Socket!", SOCKET_EXCEPTION_TYPE);
+         "Cannot write to unbound socket.", SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
    }
    else
@@ -474,7 +474,7 @@ bool AbstractSocket::send(const char* b, int length)
             {
                // actual socket error
                ExceptionRef e = new Exception(
-                  "Could not write to Socket!", SOCKET_EXCEPTION_TYPE);
+                  "Could not write to socket.", SOCKET_EXCEPTION_TYPE);
                e->getDetails()["error"] = strerror(errno);
                Exception::setLast(e, false);
                rval = false;
@@ -499,7 +499,7 @@ int AbstractSocket::receive(char* b, int length)
    if(!isBound())
    {
       ExceptionRef e = new Exception(
-         "Cannot read from unbound Socket!", SOCKET_EXCEPTION_TYPE);
+         "Cannot read from unbound socket.", SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
    }
    else
@@ -536,7 +536,7 @@ int AbstractSocket::receive(char* b, int length)
          {
             // socket error
             ExceptionRef e = new Exception(
-               "Could not read from Socket!", SOCKET_EXCEPTION_TYPE);
+               "Could not read from socket.", SOCKET_EXCEPTION_TYPE);
             e->getDetails()["error"] = strerror(errno);
             Exception::setLast(e, false);
          }
@@ -589,7 +589,7 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
    if(!isBound())
    {
       ExceptionRef e = new Exception(
-         "Cannot get local address for an unbound Socket!",
+         "Cannot get local address for an unbound socket.",
          SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
    }
@@ -605,7 +605,7 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
       if(error < 0)
       {
          ExceptionRef e = new Exception(
-            "Could not get Socket local address!",
+            "Could not get Socket local address.",
             SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
@@ -628,7 +628,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
    if(!isConnected())
    {
       ExceptionRef e = new Exception(
-         "Cannot get local address for an unconnected Socket!",
+         "Cannot get local address for an unconnected socket.",
          SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
    }
@@ -644,7 +644,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
       if(error < 0)
       {
          ExceptionRef e = new Exception(
-            "Could not get Socket remote address!",
+            "Could not get Socket remote address.",
             SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);

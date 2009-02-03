@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/sql/mysql/MySqlStatement.h"
+
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlRow.h"
 
@@ -266,7 +267,7 @@ bool MySqlStatement::setText(unsigned int param, const char* value)
 bool MySqlStatement::setInt32(const char* name, int value)
 {
    ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented!");
+     new SqlException("MySql named parameter support not implemented.");
    Exception::setLast(e, false);
    return false;
 }
@@ -274,7 +275,7 @@ bool MySqlStatement::setInt32(const char* name, int value)
 bool MySqlStatement::setUInt32(const char* name, unsigned int value)
 {
    ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented!");
+     new SqlException("MySql named parameter support not implemented.");
    Exception::setLast(e, false);
    return false;
 }
@@ -282,7 +283,7 @@ bool MySqlStatement::setUInt32(const char* name, unsigned int value)
 bool MySqlStatement::setInt64(const char* name, long long value)
 {
    ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented!");
+     new SqlException("MySql named parameter support not implemented.");
    Exception::setLast(e, false);
    return false;
 }
@@ -291,7 +292,7 @@ bool MySqlStatement::setUInt64(
    const char* name, unsigned long long value)
 {
    ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented!");
+     new SqlException("MySql named parameter support not implemented.");
    Exception::setLast(e, false);
    return false;
 }
@@ -299,7 +300,7 @@ bool MySqlStatement::setUInt64(
 bool MySqlStatement::setText(const char* name, const char* value)
 {
    ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented!");
+     new SqlException("MySql named parameter support not implemented.");
    Exception::setLast(e, false);
    return false;
 }

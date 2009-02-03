@@ -4,6 +4,7 @@
 #include "db/net/InternetAddress.h"
 
 #include "db/net/WindowsSupport.h"
+#include "db/rt/DynamicObject.h"
 #include "db/rt/Exception.h"
 
 #include <cstdlib>
@@ -108,10 +109,8 @@ bool InternetAddress::setHost(const char* host)
    // get address information
    if(getaddrinfo(host, NULL, &hints, &res) != 0)
    {
-      int length = 17 + strlen(host);
-      char msg[length];
-      snprintf(msg, length, "Unknown host '%s'!", host);
-      ExceptionRef e = new Exception(msg, "db.net.UnknownHost");
+      ExceptionRef e = new Exception("Unknown host.", "db.net.UnknownHost");
+      e->getDetails()["host"] = host;
       Exception::setLast(e, false);
    }
    else

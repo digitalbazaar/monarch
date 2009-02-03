@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/UdpSocket.h"
 
@@ -110,7 +110,7 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
    if(error < 0)
    {
       ExceptionRef e = new Exception(
-         "Could not join multicast group!", SOCKET_EXCEPTION_TYPE);
+         "Could not join multicast group.", SOCKET_EXCEPTION_TYPE);
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
@@ -158,7 +158,7 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
    if(error < 0)
    {
       ExceptionRef e = new Exception(
-         "Could not leave multicast group!", SOCKET_EXCEPTION_TYPE);
+         "Could not leave multicast group.", SOCKET_EXCEPTION_TYPE);
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
@@ -173,7 +173,7 @@ bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
    if(!isBound())
    {
       ExceptionRef e = new Exception(
-         "Cannot write to unbound Socket!", SOCKET_EXCEPTION_TYPE);
+         "Cannot write to unbound socket.", SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
       rval = false;
    }
@@ -195,7 +195,7 @@ bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
          if(ret < 0)
          {
             ExceptionRef e = new Exception(
-               "Could not write to Socket!", SOCKET_EXCEPTION_TYPE);
+               "Could not write to socket.", SOCKET_EXCEPTION_TYPE);
             e->getDetails()["error"] = strerror(errno);
             Exception::setLast(e, false);
             rval = false;
@@ -213,7 +213,7 @@ int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
    if(!isBound())
    {
       ExceptionRef e = new Exception(
-         "Cannot read from unbound Socket!", SOCKET_EXCEPTION_TYPE);
+         "Cannot read from unbound socket.", SOCKET_EXCEPTION_TYPE);
       Exception::setLast(e, false);
    }
    else if(select(true, getReceiveTimeout()))
@@ -229,7 +229,7 @@ int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
       {
          rval = -1;
          ExceptionRef e = new Exception(
-            "Could not read from Socket!", SOCKET_EXCEPTION_TYPE);
+            "Could not read from socket.", SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
@@ -255,7 +255,7 @@ bool UdpSocket::setMulticastHops(unsigned char hops)
    if(error < 0)
    {
       ExceptionRef e = new Exception(
-         "Could not set multicast hops!", SOCKET_EXCEPTION_TYPE);
+         "Could not set multicast hops.", SOCKET_EXCEPTION_TYPE);
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
@@ -274,7 +274,7 @@ bool UdpSocket::setMulticastTimeToLive(unsigned char ttl)
    if(error < 0)
    {
       ExceptionRef e = new Exception(
-         "Could not set multicast TTL!", SOCKET_EXCEPTION_TYPE);
+         "Could not set multicast TTL.", SOCKET_EXCEPTION_TYPE);
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }
@@ -292,7 +292,7 @@ bool UdpSocket::setBroadcastEnabled(bool enable)
    if(error < 0)
    {
       ExceptionRef e = new Exception(
-         "Could not set broadcast flag!", SOCKET_EXCEPTION_TYPE);
+         "Could not set broadcast flag.", SOCKET_EXCEPTION_TYPE);
       e->getDetails()["error"] = strerror(errno);
       Exception::setLast(e, false);
    }

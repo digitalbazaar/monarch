@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/AbstractBlockCipher.h"
+
+#include "db/rt/DynamicObject.h"
 
 #include <cstring>
 
@@ -47,10 +49,9 @@ const EVP_CIPHER* AbstractBlockCipher::getCipherFunction(const char* algorithm)
    }
    else
    {
-      int length = 27 + strlen(algorithm) + 2 + 1;
-      char msg[length];
-      snprintf(msg, length, "Unsupported key algorithm '%s'!", algorithm);
-      ExceptionRef e = new Exception(msg, "db.crypto.UnsupportedAlgorithm");
+      ExceptionRef e = new Exception(
+         "Unsupported key algorithm", "db.crypto.UnsupportedAlgorithm");
+      e->getDetails()["algorithm"] = algorithm;
       Exception::setLast(e, false);
    }
    

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_DynamicObjectReader_H
 #define db_data_DynamicObjectReader_H
@@ -60,7 +60,7 @@ public:
     * 
     * @param is the InputStream to read the data from.
     * 
-    * @return true if the read succeeded, false if an IOException occurred.
+    * @return true if the read succeeded, false if an Exception occurred.
     */
    virtual bool read(db::io::InputStream* is) = 0;
    
@@ -68,7 +68,7 @@ public:
     * Finishes deserializing an object. This method must be called to
     * complete deserialization.
     * 
-    * @return true if the finish succeeded, false if an IOException occurred.
+    * @return true if the finish succeeded, false if an Exception occurred.
     */
    virtual bool finish() = 0;
 };

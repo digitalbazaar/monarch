@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/crypto/DigitalSignature.h"
+
 #include "db/crypto/PrivateKey.h"
 #include "db/crypto/PublicKey.h"
 

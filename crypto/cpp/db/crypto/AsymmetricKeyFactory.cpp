@@ -3,7 +3,6 @@
  */
 #include "db/crypto/AsymmetricKeyFactory.h"
 
-#include "db/io/IOException.h"
 #include "db/rt/System.h"
 #include "db/rt/DynamicObject.h"
 #include "db/util/Math.h"
@@ -16,7 +15,6 @@
 
 using namespace std;
 using namespace db::crypto;
-using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
 
@@ -185,12 +183,11 @@ bool AsymmetricKeyFactory::createKeyPair(
    else
    {
       // unknown algorithm
-      rval = false;
-      int length = 15 + strlen(algorithm) + 19 + 1;
-      char msg[length];
-      snprintf(msg, length, "Key algorithm '%s' is not supported.", algorithm);
-      ExceptionRef e = new Exception(msg, "db.crypto.UnsupportedAlgorithm");
+      ExceptionRef e = new Exception(
+         "Key algorithm is not supported.", "db.crypto.UnsupportedAlgorithm");
+      e->getDetails()["algorithm"] = algorithm;
       Exception::setLast(e, false);
+      rval = false;
    }
    
    return rval;

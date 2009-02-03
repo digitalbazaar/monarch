@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/io/File.h"
 
@@ -857,7 +857,7 @@ bool File::getCurrentWorkingDirectory(string& cwd)
          {
             // path was too large for getcwd
             ExceptionRef e = new Exception(
-               "Could not get current working directory, path too long!",
+               "Could not get current working directory, path too long.",
                "db.io.File.PathTooLong");
             Exception::setLast(e, false);
             rval = false;

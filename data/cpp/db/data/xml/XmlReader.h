@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_data_xml_XmlReader_H
 #define db_data_xml_XmlReader_H
@@ -179,7 +179,7 @@ public:
     * 
     * @param is the InputStream to read the xml from.
     * 
-    * @return true if the read succeeded, false if an IOException occurred.
+    * @return true if the read succeeded, false if an Exception occurred.
     */
    virtual bool read(db::io::InputStream* is);
    
@@ -187,7 +187,7 @@ public:
     * Finishes deserializing an object from xml. This method must be called
     * to complete deserialization.
     * 
-    * @return true if the finish succeeded, false if an IOException occurred.
+    * @return true if the finish succeeded, false if an Exception occurred.
     */
    virtual bool finish();
 };

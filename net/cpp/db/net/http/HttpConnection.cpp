@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpConnection.h"
 
@@ -74,8 +74,9 @@ bool HttpConnection::receiveHeader(HttpHeader* header)
       // parse header
       if(!header->parse(headerStr))
       {
-         ExceptionRef e = new IOException(
-            "Could not receive HTTP header! Is connection SSL or not HTTP?",
+         ExceptionRef e = new Exception(
+            "Could not receive HTTP header. "
+            "Maybe SSL is used on one end and not the other?",
             "db.net.http.BadHeader");
          Exception::setLast(e, false);
          rval = false;
@@ -151,13 +152,13 @@ bool HttpConnection::sendBody(
                // we will probably want this to be more robust in the
                // future so this kind of exception can be recovered from
                ExceptionRef e = new IOException(
-                  "Sending HTTP content body interrupted!");
+                  "Sending HTTP content body interrupted.");
                Exception::setLast(e, false);
             }
             else
             {
                ExceptionRef e = new IOException(
-                  "Could not read HTTP content bytes to send!");
+                  "Could not read HTTP content bytes to send.");
                Exception::setLast(e, false);
             }
          }

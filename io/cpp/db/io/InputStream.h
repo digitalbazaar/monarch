@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_io_InputStream_H
 #define db_io_InputStream_H
@@ -96,7 +96,7 @@ inline int InputStream::peek(char* b, int length, bool block)
 {
    // extending classes must implement this method if they want support
    db::rt::ExceptionRef e =
-      new IOException("InputStream::peek() is not implemented!");
+      new IOException("InputStream::peek() is not implemented.");
    db::rt::Exception::setLast(e, false);
    return -1;
 }

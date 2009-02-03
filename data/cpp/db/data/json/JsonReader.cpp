@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/data/json/JsonReader.h"
+
 #include "db/util/Convert.h"
 #include "db/io/ByteArrayInputStream.h"
 
@@ -270,10 +271,12 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
                break;
             default:
             {
-               string temp("Invalid escape code: \"");
+               string temp;
                temp.push_back(c);
-               temp.push_back('"');
-               ExceptionRef e = new IOException(temp.c_str());
+               ExceptionRef e = new Exception(
+                  "Invalid escape code.",
+                  "db.data.json.JsonReader.InvalidEscapeCode");
+               e->getDetails()["escapeCode"] = temp.c_str();
                Exception::setLast(e, false);
                rval = false;
                break;
@@ -472,7 +475,9 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
 
       case __: /* Error */
       {
-         ExceptionRef e = new IOException("Invalid input");
+         ExceptionRef e = new Exception(
+            "Invalid input.",
+            "db.data.json.JsonReader.InvalidInput");
          Exception::setLast(e, false);
          rval = false;
          break;
@@ -480,7 +485,9 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
 
       default:
       {
-         ExceptionRef e = new IOException("Invalid JSON parse state");
+         ExceptionRef e = new Exception(
+            "Invalid JSON parse state.",
+            "db.data.json.JsonReader.InvalidParseState");
          Exception::setLast(e, false);
          rval = false;
          break;
@@ -513,8 +520,9 @@ bool JsonReader::read(InputStream* is)
    if(!mStarted)
    {
       // reader not started
-      ExceptionRef e = new IOException(
-         "Cannot read yet, JsonReader not started!");
+      ExceptionRef e = new Exception(
+         "Cannot read yet, JsonReader not started.",
+         "db.data.json.JsonReader.NotStarted");
       Exception::setLast(e, false);
       rval = false;
    }
@@ -545,7 +553,11 @@ bool JsonReader::read(InputStream* is)
          sprintf(msg,
             "JSON parser error at line %d, position %d, near \"%s\"\n",
             mLineNumber, position, temp);
-         ExceptionRef e = new IOException(msg, "db.data.json.ParseError");
+         ExceptionRef e = new Exception(
+            msg, "db.data.json.JsonReader.ParseError");
+         e->getDetails()["line"] = mLineNumber;
+         e->getDetails()["position"] = position;
+         e->getDetails()["near"] = temp;
          Exception::setLast(e, true);
       }
       else if(numBytes == -1)
@@ -567,13 +579,15 @@ bool JsonReader::finish()
       ExceptionRef e;
       if(mStrict)
       {
-         e = new IOException(
-            "No JSON top-level Object or Array found");
+         e = new Exception(
+            "No JSON top-level Object or Array found.",
+            "db.data.json.JsonReader.ParseError");
       }
       else
       {
-         e = new IOException(
-            "No JSON value found");
+         e = new Exception(
+            "No JSON value found.",
+            "db.data.json.JsonReader.ParseError");
       }
       Exception::setLast(e, false);
       rval = false;
@@ -595,8 +609,7 @@ bool JsonReader::readDynamicObjectFromString(
    JsonReader jr(strict);
    
    jr.start(dyno);
-   rval = jr.read(&is) &&
-      jr.finish();
+   rval = jr.read(&is) && jr.finish();
    
    return rval;
 }

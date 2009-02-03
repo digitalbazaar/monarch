@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/Url.h"
 
@@ -152,7 +152,7 @@ bool Url::setUrl(const string& url)
       if(c < 'a' || c > 'z')
       {
          ExceptionRef e = new Exception(
-            "Url scheme contains invalid start character!",
+            "Url scheme contains invalid start character.",
             "db.net.MalformedUrl");
          e->getDetails()["url"] = url.c_str();
          e->getDetails()["relative"] = mRelative;
@@ -170,7 +170,7 @@ bool Url::setUrl(const string& url)
                c == '+' || c == '.' || c != '-'))
             {
                ExceptionRef e = new Exception(
-                  "Url scheme contains invalid characters!",
+                  "Url scheme contains invalid characters.",
                   "db.net.MalformedUrl");
                e->getDetails()["url"] = url.c_str();
                e->getDetails()["relative"] = mRelative;
