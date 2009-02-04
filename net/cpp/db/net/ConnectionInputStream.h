@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_ConnectionInputStream_H
 #define db_net_ConnectionInputStream_H
 
 #include "db/io/InputStream.h"
+#include "db/io/ByteBuffer.h"
 
 namespace db
 {
@@ -18,8 +19,9 @@ class Connection;
  * A ConnectionInputStream is used to read bytes from a Connection and store
  * the number of bytes read.
  * 
- * A ConnectionOutputStream assumes all reads will occur on the same
- * thread.
+ * This class assumes that it will be used in a single thread or in a
+ * synchronized fashion. Doing concurrent reads/peeks results in undefined
+ * behavior.
  * 
  * @author Dave Longley
  */
@@ -35,7 +37,17 @@ protected:
     * The total number of bytes read so far.
     */
    uint64_t mBytesRead;
-
+   
+   /**
+    * A buffer for peeking ahead.
+    */
+   db::io::ByteBuffer mPeekBuffer;
+   
+   /**
+    * Set to true while peeking.
+    */
+   bool mPeeking;
+   
 public:
    /**
     * Creates a new ConnectionInputStream.

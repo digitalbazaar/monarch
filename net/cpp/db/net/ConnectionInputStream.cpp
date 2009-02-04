@@ -1,6 +1,8 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/net/ConnectionInputStream.h"
+
 #include "db/net/Connection.h"
 #include "db/util/Math.h"
 
@@ -12,30 +14,41 @@ using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
 
-ConnectionInputStream::ConnectionInputStream(Connection* c)
+ConnectionInputStream::ConnectionInputStream(Connection* c) :
+   mConnection(c),
+   mBytesRead(0),
+   mPeekBuffer(0),
+   mPeeking(false)
 {
-   mConnection = c;
-   mBytesRead = 0;
 }
 
 ConnectionInputStream::~ConnectionInputStream()
 {
 }
 
-int ConnectionInputStream::read(char* b, int length)
+inline int ConnectionInputStream::read(char* b, int length)
 {
    int rval = 0;
    
-   // throttle the read as appropriate
-   BandwidthThrottler* bt = mConnection->getBandwidthThrottler(true);
-   if(bt != NULL)
+   if(mPeeking || mPeekBuffer.isEmpty())
    {
-      bt->requestBytes(length, length);
+      // throttle the read as appropriate
+      BandwidthThrottler* bt = mConnection->getBandwidthThrottler(true);
+      if(bt != NULL)
+      {
+         bt->requestBytes(length, length);
+      }
+      
+      // read from the socket input stream
+      rval = mConnection->getSocket()->getInputStream()->read(b, length);
+   }
+   else
+   {
+      // read from peek buffer
+      rval = mPeekBuffer.get(b, length);
    }
    
-   // read from the socket input stream
-   rval = mConnection->getSocket()->getInputStream()->read(b, length);
-   if(rval > 0)
+   if(rval > 0 && !mPeeking)
    {
       // update bytes read (reset as necessary)
       if(mBytesRead > Math::HALF_MAX_LONG_VALUE)
@@ -213,8 +226,31 @@ int ConnectionInputStream::readCrlf(string& line)
 
 inline int ConnectionInputStream::peek(char* b, int length, bool block)
 {
-   // peek using socket input stream
-   return mConnection->getSocket()->getInputStream()->peek(b, length, block);
+   int rval = 0;
+   
+   // see if more data needs to be read
+   if(block && length > mPeekBuffer.length())
+   {
+      // allocate enough space in the peek buffer
+      mPeekBuffer.allocateSpace(length, true);
+      
+      // read into the peek buffer from this stream
+      mPeeking = true;
+      rval = mPeekBuffer.put(this);
+      mPeeking = false;
+   }
+   
+   // check for peeked bytes
+   if(!mPeekBuffer.isEmpty() && rval != -1)
+   {
+      // read from the peek buffer
+      rval = mPeekBuffer.get(b, length);
+      
+      // reset peek buffer so that data will be read again
+      mPeekBuffer.reset(rval);
+   }
+   
+   return rval;
 }
 
 inline void ConnectionInputStream::close()
