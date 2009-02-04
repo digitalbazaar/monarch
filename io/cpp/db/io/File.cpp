@@ -926,6 +926,7 @@ File File::createTempFile(const char* prefix, const char* dir)
          // try to get unique temporary path name
          time = System::getCurrentMilliseconds();
          snprintf(num, 22, "%llu", time % 1000);
+         num[4] = 0;
          for(int n = 0; num[n] != 0; n++)
          {
             num[n] += ('A' - '0');
