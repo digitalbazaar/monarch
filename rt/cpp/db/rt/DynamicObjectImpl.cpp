@@ -31,57 +31,6 @@ DynamicObjectImpl::~DynamicObjectImpl()
    }
 }
 
-void DynamicObjectImpl::freeMapKeys()
-{
-   // clean up member names
-   for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); i++)
-   {
-      free((char*)i->first);
-   }
-}
-
-void DynamicObjectImpl::freeData()
-{
-   // clean up data based on type
-   switch(mType)
-   {
-      case String:
-         if(mString != NULL)
-         {
-            free(mString);
-            mString = NULL;
-         }
-         break;
-      case Map:
-         if(mMap != NULL)
-         {
-            freeMapKeys();
-            mMap->clear();
-            delete mMap;
-            mMap = NULL;
-         }
-         break;
-      case Array:
-         if(mArray != NULL)
-         {
-            mArray->clear();
-            delete mArray;
-            mArray = NULL;
-         }
-         break;
-      default:
-         // nothing to cleanup
-         break;
-   }
-}
-
-void DynamicObjectImpl::removeMember(ObjectMap::iterator iterator)
-{
-   // clean up key and remove map entry
-   free((char*)iterator->first);
-   mMap->erase(iterator);
-}
-
 void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
 {
    switch(value.mType)
@@ -525,6 +474,14 @@ DynamicObjectType DynamicObjectImpl::getType() const
    return mType;
 }
 
+void DynamicObjectImpl::format(const char* format, ...)
+{
+   va_list varargs;
+   va_start(varargs, format);
+   setFormattedString(format, varargs);
+   va_end(varargs);
+}
+
 const char* DynamicObjectImpl::getString() const
 {
    const char* rval;
@@ -933,5 +890,111 @@ void DynamicObjectImpl::reverse()
          break;
       default:
          break;
+   }
+}
+
+void DynamicObjectImpl::freeMapKeys()
+{
+   // clean up member names
+   for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); i++)
+   {
+      free((char*)i->first);
+   }
+}
+
+void DynamicObjectImpl::freeData()
+{
+   // clean up data based on type
+   switch(mType)
+   {
+      case String:
+         if(mString != NULL)
+         {
+            free(mString);
+            mString = NULL;
+         }
+         break;
+      case Map:
+         if(mMap != NULL)
+         {
+            freeMapKeys();
+            mMap->clear();
+            delete mMap;
+            mMap = NULL;
+         }
+         break;
+      case Array:
+         if(mArray != NULL)
+         {
+            mArray->clear();
+            delete mArray;
+            mArray = NULL;
+         }
+         break;
+      default:
+         // nothing to cleanup
+         break;
+   }
+}
+
+void DynamicObjectImpl::removeMember(ObjectMap::iterator iterator)
+{
+   // clean up key and remove map entry
+   free((char*)iterator->first);
+   mMap->erase(iterator);
+}
+
+void DynamicObjectImpl::setFormattedString(const char* format, va_list varargs)
+{
+   // Note: this code is adapted from the glibc sprintf documentation
+   
+   // estimate 256 bytes to start with
+   int n, size = 256;
+   char *p;
+   char *np;
+   
+   bool mallocFailed = ((p = (char*)malloc(size)) == NULL);
+   bool success = false;
+   while(!success && !mallocFailed)
+   {
+      // try to print in the allocated space
+      n = vsnprintf(p, size, format, varargs);
+      
+      // if that worked, return the string
+      if(n > -1 && n < size)
+      {
+         success = true;
+      }
+      else
+      {
+         // try again with more space
+         if(n > -1)
+         {
+            // glibc 2.1 says (n + 1) is exactly what is needed
+            size = n + 1;
+         }
+         else
+         {
+            // glibc 2.0 doesn't know the exact size, so guess
+            size *= 2;
+         }
+         
+         if((np = (char*)realloc(p, size)) == NULL)
+         {
+            // bad malloc
+            free(p);
+            mallocFailed = true;
+         }
+         else
+         {
+            p = np;
+         }
+      }
+   }
+   
+   if(success)
+   {
+      operator=(p);
+      free(p);
    }
 }

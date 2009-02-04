@@ -97,23 +97,6 @@ protected:
    friend class DynamicObjectIteratorArray;
    friend class DynamicObjectIteratorMap;
    
-   /**
-    * Frees the key data associated with a Map.
-    */
-   virtual void freeMapKeys();
-   
-   /**
-    * Frees the data associated with this DynamicObjectImpl.
-    */
-   virtual void freeData();
-   
-   /**
-    * Removes a member from this map object.
-    * 
-    * @param it iterator to the member to remove from this object.
-    */
-   virtual void removeMember(ObjectMap::iterator iterator);
-   
 public:
    /**
     * Creates a new DynamicObjectImpl.
@@ -272,6 +255,14 @@ public:
    virtual DynamicObjectType getType() const;
    
    /**
+    * Sets this object to a printf-formatted string.
+    * 
+    * @param format the format for the string.
+    * @param ... the format parameters.
+    */
+   virtual void format(const char* format, ...);
+   
+   /**
     * Gets this object's value as a string. If the type of this object
     * is not a string, then the returned pointer may be invalidated by
     * the next call to getString().
@@ -377,6 +368,32 @@ public:
     * Other: do nothing.
     */
    virtual void reverse();
+   
+protected:
+   /**
+    * Frees the key data associated with a Map.
+    */
+   virtual void freeMapKeys();
+   
+   /**
+    * Frees the data associated with this DynamicObjectImpl.
+    */
+   virtual void freeData();
+   
+   /**
+    * Removes a member from this map object.
+    * 
+    * @param it iterator to the member to remove from this object.
+    */
+   virtual void removeMember(ObjectMap::iterator iterator);
+   
+   /**
+    * Sets this object to the passed formatted string.
+    * 
+    * @param format the format for the url.
+    * @param varargs the format parameters.
+    */
+   virtual void setFormattedString(const char* format, va_list varargs);
 };
 
 } // end namespace rt

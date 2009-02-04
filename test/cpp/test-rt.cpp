@@ -547,6 +547,14 @@ void runDynamicObjectTest(TestRunner& tr)
       assert(count == 1);
    }
    
+   
+   {
+      // test formatted string
+      DynamicObject d;
+      d->format("String %s, Integer %i", "mystring", 1);
+      assertStrCmp(d->getString(), "String mystring, Integer 1");
+   }
+   
    {
       // test length types
       {
