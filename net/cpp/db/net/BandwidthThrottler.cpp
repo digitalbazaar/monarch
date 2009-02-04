@@ -1,15 +1,17 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/BandwidthThrottler.h"
 
 #include "db/rt/System.h"
 #include "db/rt/Thread.h"
+#include "db/util/Math.h"
 
 #include <math.h>
 
 using namespace db::net;
 using namespace db::rt;
+using namespace db::util;
 
 BandwidthThrottler::BandwidthThrottler(uint64_t rateLimit)
 {
@@ -136,23 +138,23 @@ bool BandwidthThrottler::limitBandwidth()
    return rval;
 }
 
-bool BandwidthThrottler::requestBytes(unsigned int count, int& permitted)
+bool BandwidthThrottler::requestBytes(int count, int& permitted)
 {
    bool rval = true;
    
    // no bytes permitted yet
    permitted = 0;
    
-   mLock.lock();
+   if(getRateLimit() > 0)
    {
-      if(getRateLimit() > 0)
+      mLock.lock();
       {
          // limit the bandwidth
          rval = limitBandwidth();
          
          // get the available bytes
-         permitted = (getAvailableBytes() < count) ?
-            getAvailableBytes() : count;
+         permitted = (getAvailableBytes() >= (uint64_t)Math::MAX_INT_VALUE) ? 
+           count : (int)getAvailableBytes();
          
          // increment the bytes granted
          mBytesGranted += permitted;
@@ -160,13 +162,13 @@ bool BandwidthThrottler::requestBytes(unsigned int count, int& permitted)
          // update last request time
          mLastRequestTime = System::getCurrentMilliseconds();
       }
-      else
-      {
-         // no rate limit, return the count
-         permitted = count;
-      }
+      mLock.unlock();
    }
-   mLock.unlock();
+   else
+   {
+      // no rate limit, return the count
+      permitted = count;
+   }
    
    return rval;
 }

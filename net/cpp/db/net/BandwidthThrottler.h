@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_BandwidthThrottler_H
 #define db_net_BandwidthThrottler_H
@@ -138,7 +138,7 @@ public:
     * @return false if the thread this throttler is waiting on gets
     *         interrupted (with an Exception set), true otherwise.
     */
-   virtual bool requestBytes(unsigned int count, int& permitted);
+   virtual bool requestBytes(int count, int& permitted);
    
    /**
     * Sets the rate limit in bytes/second. A value of 0 indicates no rate limit.
