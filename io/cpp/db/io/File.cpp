@@ -13,7 +13,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdarg>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
 #include <vector>
@@ -81,6 +83,7 @@ FileImpl::FileImpl()
    mAbsolutePath = strdup(abs.c_str());
    
    mBaseName = mCanonicalPath = mExtension = NULL;
+   mTmpFileDescriptor = -1;
 }
 
 FileImpl::FileImpl(const char* path)
@@ -98,10 +101,17 @@ FileImpl::FileImpl(const char* path)
    mAbsolutePath = strdup(abs.c_str());
    
    mBaseName = mCanonicalPath = mExtension = NULL;
+   mTmpFileDescriptor = -1;
 }
 
 FileImpl::~FileImpl()
 {
+   if(mTmpFileDescriptor != -1)
+   {
+      // remove temp file
+      remove();
+   }
+   
    free(mPath);
    free(mAbsolutePath);
    
@@ -215,6 +225,13 @@ bool FileImpl::remove()
    int rc = ::remove(mAbsolutePath);
    if(rc == 0)
    {
+      if(mTmpFileDescriptor != -1)
+      {
+         // close temp file
+         close(mTmpFileDescriptor);
+         mTmpFileDescriptor = -1;
+      }
+      
       rval = true;
    }
    else if(exists())
@@ -865,6 +882,89 @@ bool File::getCurrentWorkingDirectory(string& cwd)
       }
    }
    free(b);
+   
+   return rval;
+}
+
+bool File::getTemporaryDirectory(string& tmp)
+{
+   bool rval = true;
+   
+   char* tmpdir = getenv("TMPDIR");
+   if(tmpdir == NULL)
+   {
+#ifdef WIN32
+      TCHAR path[MAX_PATH];
+      GetTempPath(MAX_PATH, path);
+      tmp = path;
+#else
+      tmp = "/tmp";
+#endif
+   }
+   
+   return rval;
+}
+
+File File::createTempFile()
+{
+   File rval((FileImpl*)NULL);
+   
+   string tmp;
+   if(getTemporaryDirectory(tmp))
+   {
+      int fd = -1;
+      char* path = NULL;
+      for(int i = 0; i < TMP_MAX; i++)
+      {
+         // try to get temporary path name
+         path = tempnam(tmp.c_str(), "tmp.");
+         if(path != NULL)
+         {
+            // try to uniquely open the file
+            fd = open(path, O_RDWR | O_CREAT | O_EXCL, 0600);
+            if(fd == -1)
+            {
+               if(errno == EEXIST)
+               {
+                  // file already exists, try again
+                  free(path);
+                  continue;
+               }
+               else
+               {
+                  // other file error
+                  break;
+               }
+            }
+            else
+            {
+               // file created and unique
+               break;
+            }
+         }
+      }
+      
+      if(path == NULL || fd == -1)
+      {
+         ExceptionRef e = new Exception(
+            "Could not create temp file.",
+            "db.io.File.CreateTempFileFailed");
+         if(path != NULL)
+         {
+            e->getDetails()["path"] = path;
+            free(path);
+         }
+         e->getDetails()["error"] = strerror(errno);
+         Exception::setLast(e, false);
+      }
+      else
+      {
+         FileImpl* impl = new FileImpl(path);
+         impl->mTmpFileDescriptor = fd;
+         rval = impl;
+         free(path);
+      }
+   }
    
    return rval;
 }

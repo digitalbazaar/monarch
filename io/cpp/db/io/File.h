@@ -76,6 +76,16 @@ protected:
     */
    char* mExtension;
    
+   /**
+    * Set to a temporary file descriptor if this file is a temporary file.
+    */
+   int mTmpFileDescriptor;
+   
+   /**
+    * File is a friend of FileImpl.
+    */
+   friend class File;
+   
 public:
    /**
     * Creates a new File.
@@ -419,6 +429,25 @@ public:
     *         retrieved (with an Exception set), true upon success.
     */
    static bool getCurrentWorkingDirectory(std::string& cwd);
+   
+   /**
+    * Gets the system temporary directory. 
+    * 
+    * @param tmp the string that will be updated with the system's temporary
+    *            directory upon success.
+    * 
+    * @return false if the temporary directory could not be
+    *         retrieved (with an Exception set), true upon success.
+    */
+   static bool getTemporaryDirectory(std::string& tmp);
+   
+   /**
+    * Creates a temporary file. This file will be deleted when it goes out
+    * of scope. It may be manually deleted via remove() if desired.
+    * 
+    * @return the temporary file, or NULL if no file could be created.
+    */
+   static File createTempFile();
    
    /**
     * Determines if the passed path is readable or not.

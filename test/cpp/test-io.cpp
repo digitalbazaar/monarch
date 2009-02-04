@@ -888,7 +888,21 @@ void runFileTest(TestRunner& tr)
       file->mkdirs();
    }
    tr.passIfNoException();
-#endif   
+#endif
+   
+   tr.test("tmp file");
+   {
+      File file = File::createTempFile();
+      assert(!file.isNull());
+      string path = file->getAbsolutePath();
+      printf("CREATED TEMP FILE: '%s'... ", path.c_str());
+      assert(file->exists());
+      file.setNull();
+      file = File(path.c_str());
+      assert(!file->exists());
+   }
+   tr.passIfNoException();
+   
    tr.ungroup();
 }
 
