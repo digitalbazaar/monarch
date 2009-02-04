@@ -17,10 +17,6 @@ using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
 
-const unsigned long long MAX_ULONG_VALUE = 0xffffffffffffffffLL;
-const unsigned long HALF_MAX_LONG_VALUE =
-   (unsigned long)(MAX_ULONG_VALUE / 2);
-
 HttpConnection::HttpConnection(Connection* c, bool cleanup) :
    ConnectionWrapper(c, cleanup)
 {
