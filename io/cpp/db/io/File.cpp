@@ -918,20 +918,37 @@ File File::createTempFile(const char* prefix, const char* dir)
    {
       int fd = -1;
       char* path = NULL;
+      char num[22];
+      string filename;
+      uint64_t time;
       for(int i = 0; i < TMP_MAX; i++)
       {
-         // try to get temporary path name
-         path = tempnam(tmp.c_str(), prefix);
+         // try to get unique temporary path name
+         time = System::getCurrentMilliseconds();
+         snprintf(num, 22, "%llu", time % 1000);
+         for(int n = 0; num[n] != 0; n++)
+         {
+            num[n] += ('A' - '0');
+         }
+         path = tempnam(tmp.c_str(), num);
          if(path != NULL)
          {
+            // add prefix
+            string dirname;
+            string basename;
+            File::split(path, dirname, basename);
+            basename.insert(0, prefix);
+            filename = File::join(dirname.c_str(), basename.c_str());
+            free(path);
+            
             // try to uniquely open the file
-            fd = open(path, O_RDWR | O_CREAT | O_EXCL, 0600);
+            fd = open(filename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
             if(fd == -1)
             {
+               filename.erase();
                if(errno == EEXIST)
                {
                   // file already exists, try again
-                  free(path);
                   continue;
                }
                else
@@ -948,14 +965,14 @@ File File::createTempFile(const char* prefix, const char* dir)
          }
       }
       
-      if(path == NULL || fd == -1)
+      if(fd == -1)
       {
          ExceptionRef e = new Exception(
             "Could not create temp file.",
             "db.io.File.CreateTempFileFailed");
-         if(path != NULL)
+         if(filename.length() > 0)
          {
-            e->getDetails()["path"] = path;
+            e->getDetails()["path"] = filename.c_str();
             free(path);
          }
          e->getDetails()["error"] = strerror(errno);
@@ -963,10 +980,9 @@ File File::createTempFile(const char* prefix, const char* dir)
       }
       else
       {
-         FileImpl* impl = new FileImpl(path);
+         FileImpl* impl = new FileImpl(filename.c_str());
          impl->mTmpFileDescriptor = fd;
          rval = impl;
-         free(path);
       }
    }
    
