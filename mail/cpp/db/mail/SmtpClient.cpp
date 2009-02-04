@@ -276,6 +276,16 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
       
       // disconnect
       c.close();
+      
+      if(!rval)
+      {
+         ExceptionRef e = new Exception(
+            "Failed to send mail.",
+            "db.mail.MailSendFailed");
+         e->getDetails()["host"] = url->getHost().c_str();
+         e->getDetails()["port"] = url->getPort();
+         Exception::setLast(e, true);
+      }
    }
    else
    {
