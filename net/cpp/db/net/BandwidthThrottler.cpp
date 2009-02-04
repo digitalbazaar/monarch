@@ -33,9 +33,6 @@ bool BandwidthThrottler::requestBytes(int count, int& permitted)
 {
    bool rval = true;
    
-   // no bytes permitted yet
-   permitted = 0;
-   
    if(getRateLimit() > 0)
    {
       mLock.lock();

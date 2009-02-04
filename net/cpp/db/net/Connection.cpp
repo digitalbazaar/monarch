@@ -37,7 +37,7 @@ Connection::~Connection()
 void Connection::setBandwidthThrottler(BandwidthThrottler* bt, bool read)
 {
    // synchronize setting the bandwidth throttler so it is thread safe
-   mBandwidthThrottlerLock.lock();
+   mBandwidthThrottlerLock.lockExclusive();
    {
       if(read)
       {
@@ -48,7 +48,7 @@ void Connection::setBandwidthThrottler(BandwidthThrottler* bt, bool read)
          mWriteBandwidthThrottler = bt;
       }
    }
-   mBandwidthThrottlerLock.unlock();
+   mBandwidthThrottlerLock.unlockExclusive();
 }
 
 BandwidthThrottler* Connection::getBandwidthThrottler(bool read)
@@ -56,11 +56,11 @@ BandwidthThrottler* Connection::getBandwidthThrottler(bool read)
    BandwidthThrottler* rval = NULL;
    
    // synchronize fetching the bandwidth throttler so it is thread safe
-   mBandwidthThrottlerLock.lock();
+   mBandwidthThrottlerLock.lockShared();
    {
       rval = read ? mReadBandwidthThrottler : mWriteBandwidthThrottler;
    }
-   mBandwidthThrottlerLock.unlock();
+   mBandwidthThrottlerLock.unlockShared();
    
    return rval;
 }
