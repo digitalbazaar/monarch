@@ -13,7 +13,7 @@ using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
 
-BandwidthThrottler::BandwidthThrottler(uint64_t rateLimit)
+BandwidthThrottler::BandwidthThrottler(int rateLimit)
 {
    // initialize the last request time
    mLastRequestTime = System::getCurrentMilliseconds();
@@ -27,6 +27,64 @@ BandwidthThrottler::BandwidthThrottler(uint64_t rateLimit)
 
 BandwidthThrottler::~BandwidthThrottler()
 {
+}
+
+bool BandwidthThrottler::requestBytes(int count, int& permitted)
+{
+   bool rval = true;
+   
+   // no bytes permitted yet
+   permitted = 0;
+   
+   if(getRateLimit() > 0)
+   {
+      mLock.lock();
+      {
+         // limit the bandwidth
+         rval = limitBandwidth();
+         
+         // get the available bytes
+         int available = getAvailableBytes();
+         permitted = (available > count ? count : available);
+         
+         // increment the bytes granted
+         mBytesGranted += permitted;
+         
+         // update last request time
+         mLastRequestTime = System::getCurrentMilliseconds();
+      }
+      mLock.unlock();
+   }
+   else
+   {
+      // no rate limit, return the count
+      permitted = count;
+   }
+   
+   return rval;
+}
+
+void BandwidthThrottler::setRateLimit(int rateLimit)
+{
+   mLock.lock();
+   {
+      // set new rate limit
+      mRateLimit = rateLimit;
+      if(mRateLimit > 0)
+      {
+         // reset the window time
+         resetWindowTime();
+         
+         // update the available byte time
+         updateAvailableByteTime();
+      }
+   }
+   mLock.unlock();
+}
+
+inline int BandwidthThrottler::getRateLimit()
+{
+   return mRateLimit;
 }
 
 void BandwidthThrottler::resetWindowTime()
@@ -109,9 +167,10 @@ void BandwidthThrottler::updateAvailableBytes()
       0 : mAvailableBytes - mBytesGranted;
 }
 
-inline uint64_t BandwidthThrottler::getAvailableBytes()
+inline int BandwidthThrottler::getAvailableBytes()
 {
-   return mAvailableBytes;
+   return (mAvailableBytes >= (uint64_t)Math::MAX_INT_VALUE ?
+      Math::MAX_INT_VALUE : (int)mAvailableBytes);
 }
 
 bool BandwidthThrottler::limitBandwidth()
@@ -136,62 +195,4 @@ bool BandwidthThrottler::limitBandwidth()
    }
    
    return rval;
-}
-
-bool BandwidthThrottler::requestBytes(int count, int& permitted)
-{
-   bool rval = true;
-   
-   // no bytes permitted yet
-   permitted = 0;
-   
-   if(getRateLimit() > 0)
-   {
-      mLock.lock();
-      {
-         // limit the bandwidth
-         rval = limitBandwidth();
-         
-         // get the available bytes
-         permitted = (getAvailableBytes() >= (uint64_t)Math::MAX_INT_VALUE) ? 
-           count : (int)getAvailableBytes();
-         
-         // increment the bytes granted
-         mBytesGranted += permitted;
-         
-         // update last request time
-         mLastRequestTime = System::getCurrentMilliseconds();
-      }
-      mLock.unlock();
-   }
-   else
-   {
-      // no rate limit, return the count
-      permitted = count;
-   }
-   
-   return rval;
-}
-
-void BandwidthThrottler::setRateLimit(uint64_t rateLimit)
-{
-   mLock.lock();
-   {
-      // set new rate limit
-      mRateLimit = rateLimit;
-      if(mRateLimit > 0)
-      {
-         // reset the window time
-         resetWindowTime();
-         
-         // update the available byte time
-         updateAvailableByteTime();
-      }
-   }
-   mLock.unlock();
-}
-
-inline uint64_t BandwidthThrottler::getRateLimit()
-{
-   return mRateLimit;
 }

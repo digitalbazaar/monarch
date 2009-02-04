@@ -22,7 +22,7 @@ protected:
    /**
     * The rate limit for this BandwidthThrottler.
     */
-   uint64_t mRateLimit;
+   int mRateLimit;
    
    /**
     * The time (in milliseconds) at which a window began for requesting data.
@@ -56,63 +56,6 @@ protected:
     */
    db::rt::ExclusiveLock mLock;
    
-   /**
-    * Resets the window time.
-    */
-   void resetWindowTime();
-   
-   /**
-    * Updates the time at which a window for requesting data began --
-    * if the number of granted bytes in the current window is high enough.
-    */
-   void updateWindowTime();
-   
-   /**
-    * Gets the time at which the current window for requesting
-    * data began. 
-    * 
-    * @return the time at which the current window for requesting data began.
-    */
-   uint64_t getWindowTime();
-   
-   /**
-    * Updates the amount of time (in milliseconds) that must pass before
-    * a byte is available.
-    */
-   void updateAvailableByteTime();
-   
-   /**
-    * Gets the amount of time (in milliseconds) that must pass before
-    * a byte is available. This number is never more than 1000 and never
-    * less than 1.
-    * 
-    * @return the amount of time (in milliseconds) that must pass before
-    *         a byte is available.
-    */
-   uint64_t getAvailableByteTime();
-   
-   /**
-    * Updates the number of bytes that are currently available.
-    */
-   void updateAvailableBytes();
-   
-   /**
-    * Gets the number of bytes that are currently available.
-    * 
-    * @return the number of bytes that are currently available.
-    */
-   uint64_t getAvailableBytes();
-   
-   /**
-    * This method blocks until at least one byte is available without
-    * violating the rate limit or until the current thread has been
-    * interrupted.
-    * 
-    * @return false if the thread this throttler is waiting on gets
-    *         interrupted (with an InterruptedException set), true otherwise.
-    */
-   bool limitBandwidth();
-   
 public:
    /**
     * Creates a new BandwidthThrottler.
@@ -120,7 +63,7 @@ public:
     * @param rateLimit the bytes/second rate limit to use. A value of 0
     *                  indicates no rate limit.
     */
-   BandwidthThrottler(uint64_t rateLimit);
+   BandwidthThrottler(int rateLimit);
    
    /**
     * Destructs this BandwidthThrottler.
@@ -145,14 +88,72 @@ public:
     * 
     * @param rateLimit the bytes/second rate limit to use.
     */
-   virtual void setRateLimit(uint64_t rateLimit);
+   virtual void setRateLimit(int rateLimit);
    
    /**
     * Gets the rate limit in bytes/second. A value of 0 indicates no rate limit.
     * 
     * @return the rate limit in bytes/second.
     */
-   virtual uint64_t getRateLimit();
+   virtual int getRateLimit();
+   
+protected:
+   /**
+    * Resets the window time.
+    */
+   virtual void resetWindowTime();
+   
+   /**
+    * Updates the time at which a window for requesting data began --
+    * if the number of granted bytes in the current window is high enough.
+    */
+   virtual void updateWindowTime();
+   
+   /**
+    * Gets the time at which the current window for requesting
+    * data began. 
+    * 
+    * @return the time at which the current window for requesting data began.
+    */
+   virtual uint64_t getWindowTime();
+   
+   /**
+    * Updates the amount of time (in milliseconds) that must pass before
+    * a byte is available.
+    */
+   virtual void updateAvailableByteTime();
+   
+   /**
+    * Gets the amount of time (in milliseconds) that must pass before
+    * a byte is available. This number is never more than 1000 and never
+    * less than 1.
+    * 
+    * @return the amount of time (in milliseconds) that must pass before
+    *         a byte is available.
+    */
+   virtual uint64_t getAvailableByteTime();
+   
+   /**
+    * Updates the number of bytes that are currently available.
+    */
+   virtual void updateAvailableBytes();
+   
+   /**
+    * Gets the number of bytes that are currently available.
+    * 
+    * @return the number of bytes that are currently available.
+    */
+   virtual int getAvailableBytes();
+   
+   /**
+    * This method blocks until at least one byte is available without
+    * violating the rate limit or until the current thread has been
+    * interrupted.
+    * 
+    * @return false if the thread this throttler is waiting on gets
+    *         interrupted (with an InterruptedException set), true otherwise.
+    */
+   virtual bool limitBandwidth();
 };
 
 } // end namespace net
