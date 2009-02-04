@@ -445,9 +445,13 @@ public:
     * Creates a temporary file. This file will be deleted when it goes out
     * of scope. It may be manually deleted via remove() if desired.
     * 
+    * @param prefix a prefix for the temporary file.
+    * @param dir the directory for the file, NULL for the default system
+    *            temporary directory.
+    * 
     * @return the temporary file, or NULL if no file could be created.
     */
-   static File createTempFile();
+   static File createTempFile(const char* prefix, const char* dir = NULL);
    
    /**
     * Determines if the passed path is readable or not.

@@ -892,7 +892,7 @@ void runFileTest(TestRunner& tr)
    
    tr.test("tmp file");
    {
-      File file = File::createTempFile();
+      File file = File::createTempFile("tmp.");
       assert(!file.isNull());
       string path = file->getAbsolutePath();
       printf("CREATED TEMP FILE: '%s'... ", path.c_str());

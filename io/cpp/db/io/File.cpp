@@ -222,16 +222,16 @@ bool FileImpl::remove()
 {
    bool rval = false;
    
+   if(mTmpFileDescriptor != -1)
+   {
+      // close temp file
+      close(mTmpFileDescriptor);
+      mTmpFileDescriptor = -1;
+   }
+   
    int rc = ::remove(mAbsolutePath);
    if(rc == 0)
    {
-      if(mTmpFileDescriptor != -1)
-      {
-         // close temp file
-         close(mTmpFileDescriptor);
-         mTmpFileDescriptor = -1;
-      }
-      
       rval = true;
    }
    else if(exists())
@@ -905,19 +905,23 @@ bool File::getTemporaryDirectory(string& tmp)
    return rval;
 }
 
-File File::createTempFile()
+File File::createTempFile(const char* prefix, const char* dir)
 {
    File rval((FileImpl*)NULL);
    
    string tmp;
-   if(getTemporaryDirectory(tmp))
+   if(dir != NULL)
+   {
+      tmp = dir;
+   }
+   if(dir != NULL || getTemporaryDirectory(tmp))
    {
       int fd = -1;
       char* path = NULL;
       for(int i = 0; i < TMP_MAX; i++)
       {
          // try to get temporary path name
-         path = tempnam(tmp.c_str(), "tmp.");
+         path = tempnam(tmp.c_str(), prefix);
          if(path != NULL)
          {
             // try to uniquely open the file
