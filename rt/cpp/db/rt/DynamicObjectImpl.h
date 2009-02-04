@@ -9,6 +9,7 @@
 #include <map>
 #include <vector>
 #include <cstring>
+#include <cstdarg>
 
 #include <inttypes.h>
 
