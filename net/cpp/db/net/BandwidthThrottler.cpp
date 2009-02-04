@@ -184,8 +184,10 @@ bool BandwidthThrottler::limitBandwidth()
    // available byte time
    while(rval && getAvailableBytes() == 0)
    {
-      // sleep
+      // unlock to sleep
+      mLock.unlock();
       rval = Thread::sleep(getAvailableByteTime());
+      mLock.lock();
       
       // update the number of available bytes
       updateAvailableBytes();
