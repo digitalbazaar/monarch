@@ -223,7 +223,7 @@ inline void ConnectionInputStream::close()
    mConnection->getSocket()->getInputStream()->close();
 }
 
-inline unsigned long long ConnectionInputStream::getBytesRead()
+inline uint64_t ConnectionInputStream::getBytesRead()
 {
    return mBytesRead;
 }
