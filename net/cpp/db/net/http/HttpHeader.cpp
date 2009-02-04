@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/net/http/HttpHeader.h"
 
@@ -424,6 +424,18 @@ bool HttpHeader::hasContent()
    long long length = 0;
    getField("Content-Length", length);
    return (length != 0 || hasField("Transfer-Encoding"));
+}
+
+void HttpHeader::writeTo(HttpHeader* header)
+{
+   // set version
+   header->setVersion(getVersion());
+   
+   // add all fields
+   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
+   {
+      header->addField(i->first, i->second);
+   }
 }
 
 void HttpHeader::biCapitalize(char* name)

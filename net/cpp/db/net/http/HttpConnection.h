@@ -180,6 +180,9 @@ public:
    virtual uint64_t getContentBytesWritten();
 };
 
+// typedef for a counted reference to an HttpConnection
+typedef db::rt::Collectable<HttpConnection> HttpConnectionRef;
+
 } // end namespace http
 } // end namespace net
 } // end namespace db

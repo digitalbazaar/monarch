@@ -105,6 +105,13 @@ public:
     * @return the status message for the response (i.e. "OK", "Not Found").
     */
    virtual const char* getStatusMessage();
+   
+   /**
+    * Writes the contents of this response header into the passed one.
+    * 
+    * @param header the header to write to.
+    */
+   virtual void writeTo(HttpResponseHeader* header);
 };
 
 } // end namespace http

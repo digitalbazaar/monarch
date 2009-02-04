@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_http_HttpHeader_H
 #define db_net_http_HttpHeader_H
@@ -269,6 +269,13 @@ public:
     * @return true if this header specifies content, false if not.
     */
    virtual bool hasContent();
+   
+   /**
+    * Writes the contents of this header into the passed one.
+    * 
+    * @param header the header to write to.
+    */
+   virtual void writeTo(HttpHeader* header);
    
    /**
     * BiCapitalizes a header field so that its name is normalized as an

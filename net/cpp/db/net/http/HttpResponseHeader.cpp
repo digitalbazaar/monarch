@@ -142,3 +142,9 @@ const char* HttpResponseHeader::getStatusMessage()
    }
    return mStatusMessage;
 }
+
+void HttpResponseHeader::writeTo(HttpResponseHeader* header)
+{
+   HttpHeader::writeTo(header);
+   header->setStatus(getStatusCode(), getStatusMessage());
+}

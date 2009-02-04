@@ -140,6 +140,9 @@ public:
    virtual HttpConnection* getConnection();
 };
 
+// typedef for a counted reference to an HttpResponse
+typedef db::rt::Collectable<HttpResponse> HttpResponseRef;
+
 } // end namespace http
 } // end namespace net
 } // end namespace db

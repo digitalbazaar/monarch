@@ -107,6 +107,13 @@ public:
     * @return the path for the request.
     */
    virtual const char* getPath();
+   
+   /**
+    * Writes the contents of this request header into the passed one.
+    * 
+    * @param header the header to write to.
+    */
+   virtual void writeTo(HttpRequestHeader* header);
 };
 
 } // end namespace http

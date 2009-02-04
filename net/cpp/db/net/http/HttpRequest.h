@@ -151,6 +151,9 @@ public:
    virtual HttpConnection* getConnection();
 };
 
+// typedef for a counted reference to an HttpRequest
+typedef db::rt::Collectable<HttpRequest> HttpRequestRef;
+
 } // end namespace http
 } // end namespace net
 } // end namespace db

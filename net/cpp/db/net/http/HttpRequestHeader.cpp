@@ -120,3 +120,10 @@ const char* HttpRequestHeader::getPath()
    }
    return mPath;
 }
+
+void HttpRequestHeader::writeTo(HttpRequestHeader* header)
+{
+   HttpHeader::writeTo(header);
+   header->setMethod(getMethod());
+   header->setPath(getPath());
+}
