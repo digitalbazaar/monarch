@@ -73,7 +73,8 @@ using namespace db::util;
    const char File::PATH_SEPARATOR_CHAR = ':';
 #endif
 
-FileImpl::FileImpl()
+FileImpl::FileImpl() :
+   mRemoveOnCleanup(false)
 {
    mPath = strdup(".");
    
@@ -83,10 +84,10 @@ FileImpl::FileImpl()
    mAbsolutePath = strdup(abs.c_str());
    
    mBaseName = mCanonicalPath = mExtension = NULL;
-   mTmpFileDescriptor = -1;
 }
 
-FileImpl::FileImpl(const char* path)
+FileImpl::FileImpl(const char* path) :
+   mRemoveOnCleanup(false)
 {
 #ifdef WIN32
    mPath = strdup(flipSlashes(path).c_str());
@@ -101,12 +102,11 @@ FileImpl::FileImpl(const char* path)
    mAbsolutePath = strdup(abs.c_str());
    
    mBaseName = mCanonicalPath = mExtension = NULL;
-   mTmpFileDescriptor = -1;
 }
 
 FileImpl::~FileImpl()
 {
-   if(mTmpFileDescriptor != -1)
+   if(mRemoveOnCleanup)
    {
       // remove temp file
       remove();
@@ -221,13 +221,6 @@ bool FileImpl::exists()
 bool FileImpl::remove()
 {
    bool rval = false;
-   
-   if(mTmpFileDescriptor != -1)
-   {
-      // close temp file
-      close(mTmpFileDescriptor);
-      mTmpFileDescriptor = -1;
-   }
    
    int rc = ::remove(mAbsolutePath);
    if(rc == 0)
@@ -960,7 +953,8 @@ File File::createTempFile(const char* prefix, const char* dir)
             }
             else
             {
-               // file created and unique
+               // file created and unique, close it
+               close(fd);
                break;
             }
          }
@@ -982,7 +976,7 @@ File File::createTempFile(const char* prefix, const char* dir)
       else
       {
          FileImpl* impl = new FileImpl(filename.c_str());
-         impl->mTmpFileDescriptor = fd;
+         impl->mRemoveOnCleanup = true;
          rval = impl;
       }
    }

@@ -77,9 +77,9 @@ protected:
    char* mExtension;
    
    /**
-    * Set to a temporary file descriptor if this file is a temporary file.
+    * Set to true to remove a file when cleaning up.
     */
-   int mTmpFileDescriptor;
+   bool mRemoveOnCleanup;
    
    /**
     * File is a friend of FileImpl.
