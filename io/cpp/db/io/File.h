@@ -81,11 +81,6 @@ protected:
     */
    bool mRemoveOnCleanup;
    
-   /**
-    * File is a friend of FileImpl.
-    */
-   friend class File;
-   
 public:
    /**
     * Creates a new File.
@@ -137,6 +132,14 @@ public:
     * @return true if this file was deleted, false if not.
     */
    virtual bool remove();
+   
+   /**
+    * Sets whether or not this file should be deleted when this object
+    * is destructed.
+    * 
+    * @param remove true to remove when destructing, false not to.
+    */
+   virtual void setRemoveOnCleanup(bool remove);
    
    /**
     * Renames this file to the passed one, overwriting an existing file of the

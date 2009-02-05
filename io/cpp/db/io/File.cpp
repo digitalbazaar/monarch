@@ -241,6 +241,11 @@ bool FileImpl::remove()
    return rval;
 }
 
+void FileImpl::setRemoveOnCleanup(bool remove)
+{
+   mRemoveOnCleanup = remove;
+}
+
 bool FileImpl::rename(File& file)
 {
    bool rval = false;
@@ -976,7 +981,7 @@ File File::createTempFile(const char* prefix, const char* dir)
       else
       {
          FileImpl* impl = new FileImpl(filename.c_str());
-         impl->mRemoveOnCleanup = true;
+         impl->setRemoveOnCleanup(true);
          rval = impl;
       }
    }
