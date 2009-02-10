@@ -571,7 +571,7 @@ static void jsonReadWrite(const char* s, size_t slen)
    // decode json -> dyno
    JsonReader jr;
    DynamicObject d;
-   JsonReader::readDynamicObjectFromString(d, s, slen);
+   JsonReader::readFromString(d, s, slen);
    assertNoException();
    
    // encode dyno -> json

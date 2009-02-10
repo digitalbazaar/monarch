@@ -35,6 +35,7 @@
 #include "db/net/http/HttpRequestServicer.h"
 #include "db/net/Server.h"
 #include "db/util/Data.h"
+#include "db/util/Timer.h"
 
 using namespace std;
 using namespace db::test;
@@ -49,6 +50,7 @@ using namespace db::modest;
 using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
+using namespace db::util;
 
 void runJsonValidTest(TestRunner& tr)
 {
@@ -1406,6 +1408,73 @@ void runTemplateInputStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
+/**
+ * Make a DynamicObject with various content to stress test JSON reader/writer.
+ * 
+ * @return test DynamicObject
+ */
+static DynamicObject makeJsonTestDyno2()
+{
+   DynamicObject d3;
+   d3["a"] = 123;
+   d3["b"] = true;
+   d3["c"] = "sea";
+   
+   DynamicObject loremIpsum;
+   loremIpsum =
+      "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do "
+      "eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad "
+      "minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip "
+      "ex ea commodo consequat. Duis aute irure dolor in reprehenderit in "
+      "voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur "
+      "sint occaecat cupidatat non proident, sunt in culpa qui officia "
+      "deserunt mollit anim id est laborum.";
+   
+   DynamicObject d;
+   d["zeroth"] = false;
+   d["first"] = "one";
+   d["second"] = 2.0;
+   d["third"] = 3;
+   d["fourth"]->setType(Array);
+   d["fourth"]->append() = d3.clone();
+   d["fourth"]->append() = d3.clone();
+   d["fourth"]->append() = d3.clone();
+   d["fourth"]->append() = d3.clone();
+   d["fifth"] = d3.clone();
+   d["sixth"].setNull();
+   d["seventh"] = loremIpsum.clone();
+   d["eighth"]["one"] = loremIpsum.clone();
+   d["eighth"]["two"] = loremIpsum.clone();
+   d["eighth"]["three"] = loremIpsum.clone();
+   d["eighth"]["four"] = loremIpsum.clone();
+   d["ninth"] = "WUVT 90.7 FM - The Greatest Radio Station on Earth";
+   
+   return d;
+}
+
+void runJsonReaderSpeedTest(TestRunner& tr)
+{
+   tr.group("JsonReader speed");
+   
+   tr.test("speed");
+   {
+      DynamicObject in = makeJsonTestDyno2();
+      string json = JsonWriter::writeToString(in, true);
+      
+      Timer t;
+      t.start();
+      for(int i = 0; i < 10000; i++)
+      {
+         DynamicObject out;
+         JsonReader::readFromString(out, json.c_str(), json.length());
+      }
+      printf("%0.2f secs... ", t.getElapsedSeconds());
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class DbDataTester : public db::test::Tester
 {
 public:
@@ -1450,6 +1519,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
+      runJsonReaderSpeedTest(tr);
       return 0;
    }
 };

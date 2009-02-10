@@ -300,7 +300,7 @@ public:
     * 
     * @return true on success, false and exception set on failure.
     */
-   static bool readDynamicObjectFromString(
+   static bool readFromString(
       db::rt::DynamicObject& dyno, const char* s, size_t slen,
       bool strict = true);
 };

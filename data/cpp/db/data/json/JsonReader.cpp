@@ -19,8 +19,8 @@ using namespace db::util;
 unsigned int JsonReader::READ_SIZE = 4096;
 
 /**
- * Map of 128 ASCII characters to theis JsonInputClass.  Used to reduce the
- * size of the state table.  Non-whitespace control characters are errors.
+ * Map of 128 ASCII characters to JsonInputClass. Used to reduce the size
+ * of the state table. Non-whitespace control characters are errors.
  * Other Unicode characters mapped to C_CH.
  */
 static JsonInputClass sAsciiToClass[128] = {
@@ -160,7 +160,10 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
             obj->setType(Map);
             mDynoStack.push_back(obj);
          }
-         mDynoStack.back()->setType(Map);
+         else
+         {
+            mDynoStack.back()->setType(Map);
+         }
          break;
       case OV: /* got key:value */
       {
@@ -191,7 +194,10 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
             obj->setType(Array);
             mDynoStack.push_back(obj);
          }
-         mDynoStack.back()->setType(Array);
+         else
+         {
+            mDynoStack.back()->setType(Array);
+         }
          break;
       case AV: /* got value */
       {
@@ -199,11 +205,8 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          DynamicObject value(mDynoStack.back());
          mDynoStack.pop_back();
          
-         // get object
-         DynamicObject& obj = mDynoStack.back();
-         
-         // set key=value
-         obj[obj->length()] = value;
+         // append value
+         mDynoStack.back()->append(value);
          
          mState = next;
          break;
@@ -271,8 +274,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
                break;
             default:
             {
-               string temp;
-               temp.push_back(c);
+               string temp(1, c);
                ExceptionRef e = new Exception(
                   "Invalid escape code.",
                   "db.data.json.JsonReader.InvalidEscapeCode");
@@ -600,7 +602,7 @@ bool JsonReader::finish()
    return rval;
 }
 
-bool JsonReader::readDynamicObjectFromString(
+bool JsonReader::readFromString(
    db::rt::DynamicObject& dyno, const char* s, size_t slen, bool strict)
 {
    bool rval;
