@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 
 #include "db/test/Test.h"
@@ -501,9 +501,19 @@ void runFileTest(TestRunner& tr)
    
    tr.test("rename");
    {
-      tmpFileA->rename(tmpFileC);
-      assert(!tmpFileA->exists());
-      assert(tmpFileC->exists());
+      bool renamed;
+      renamed = tmpFileA->rename(tmpFileC);
+      assertNoException();
+      assert(renamed);
+      
+      bool exists;
+      exists = tmpFileA->exists();
+      assertNoException();
+      assert(!exists);
+      
+      exists = tmpFileC->exists();
+      assertNoException();
+      assert(exists);
    }
    tr.passIfNoException();
    
