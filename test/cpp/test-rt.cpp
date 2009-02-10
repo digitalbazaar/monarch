@@ -547,6 +547,22 @@ void runDynamicObjectTest(TestRunner& tr)
       assert(count == 1);
    }
    
+   {
+      // test name for null value
+      DynamicObject d;
+      d["a"].setNull();
+      int count = 0;
+      DynamicObjectIterator i = d.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         const char* name = i->getName();
+         assertStrCmp(name, "a");
+         assert(next.isNull());
+         count++;
+      }
+      assert(count == 1);
+   }
    
    {
       // test formatted string
