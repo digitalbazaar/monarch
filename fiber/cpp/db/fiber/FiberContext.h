@@ -4,15 +4,16 @@
 #ifndef db_fiber_FiberContext_H
 #define db_fiber_FiberContext_H
 
-#ifndef WIN32
-
-#include <ucontext.h>
-#include <sys/mman.h>
-
+#if defined(WIN32)
+  #include "db/fiber/WindowsSupport.h"
+#elif defined(MACOS)
+  #include <sys/types.h>
+  #include <sys/mman.h>
+  #include "PortableUContext.h"
+  #define MAP_ANONYMOUS MAP_ANON
 #else
-
-#include "db/fiber/WindowsSupport.h"
-
+  #include <ucontext.h>
+  #include <sys/mman.h>
 #endif
 
 namespace db

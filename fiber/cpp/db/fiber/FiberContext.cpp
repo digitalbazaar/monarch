@@ -73,8 +73,10 @@ bool FiberContext::init(Fiber* fiber)
       // set the new stack location and size
       mUserContext.uc_stack.ss_sp = stack;
       mUserContext.uc_stack.ss_size = fiber->getStackSize();
+#if !defined(MACOS)
       mUserContext.uc_stack.ss_flags = 0;
       mUserContext.uc_link = NULL;
+#endif
       
       // write the new stack location, etc. to this context
       makecontext(&mUserContext, (void (*)())startFiber, 1, fiber);
