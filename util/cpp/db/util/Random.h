@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_util_Random_H
 #define db_util_Random_H
@@ -29,6 +29,18 @@ public:
     * Destructs this Random.
     */
    virtual ~Random() {};
+   
+   /**
+    * Seeds the random number generator with a good seed value.
+    */
+   static void seed();
+   
+   /**
+    * Seeds the random number generator with a value.
+    * 
+    * @param value the value to seed with.
+    */
+   static void seed(unsigned int value);
    
    /**
     * Gets the next random number between "low" and "high".

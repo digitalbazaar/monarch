@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/app/App.h"
 
@@ -26,6 +26,7 @@
 #include "db/io/OStreamOutputStream.h"
 #include "db/rt/Exception.h"
 #include "db/rt/Thread.h"
+#include "db/util/Random.h"
 #include "db/util/StringTokenizer.h"
 
 using namespace std;
@@ -1409,7 +1410,7 @@ int App::main(int argc, const char* argv[])
 #endif
    
    // seed random
-   srand(time(NULL));
+   Random::seed();
    
    initializeOpenSSL();
    db::logging::Logging::initialize();
