@@ -672,6 +672,15 @@ void* Thread::execute(void* thread)
       // disable thread cancelation
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
       
+#ifdef WIN32
+      // random must be seeded per-thread on windows
+      // add thread ID to make seed more unique to this thread
+      uint64_t value =
+         System::getCurrentMilliseconds() +
+         (unsigned long)self.p + time(NULL);
+      srand((unsigned int)(value & 0xFFFFFFFF));
+#endif
+      
       // thread is alive
       t->mAlive = true;
       

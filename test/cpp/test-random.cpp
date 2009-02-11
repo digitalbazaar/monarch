@@ -21,10 +21,9 @@ public:
       int count = 20;
       printf("Generating %i random numbers between 1 and 1000000000:\n", count);
       
-      Random r;
       for(int i = 1; i <= count; i++)
       {
-         printf("%i: %llu\n", i, r.next(1, 1000000000));
+         printf("%i: %llu\n", i, Random::next(1, 1000000000));
       }
       
       printf("done.\n");

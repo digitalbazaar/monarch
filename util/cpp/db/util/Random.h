@@ -6,10 +6,6 @@
 
 #include <inttypes.h>
 
-#ifdef WIN32
-#include "db/rt/Thread.h"
-#endif
-
 namespace db
 {
 namespace util
@@ -22,24 +18,16 @@ namespace util
  */
 class Random
 {
-protected:
-#ifdef WIN32
-   /**
-    * Stores the thread that seeded this random.
-    */
-   db::rt::Thread* mSeedThread;
-#endif
-   
 public:
-   /**
-    * Creates a new Random.
-    */
-   Random();
-   
    /**
     * Destructs this Random.
     */
-   virtual ~Random();
+   virtual ~Random() {};
+   
+   /**
+    * Must be called once at application start up to seed RNG.
+    */
+   static void seed();
    
    /**
     * Gets the next pseudo-random (non-secure) number between "low" and "high".
@@ -49,12 +37,13 @@ public:
     * 
     * @return a pseduo-random (non-secure) number between "low" and "high". 
     */
-   virtual uint64_t next(uint64_t low, uint64_t high);
+   static uint64_t next(uint64_t low, uint64_t high);
    
+protected:
    /**
-    * Must be called once at application start up to seed RNG.
+    * Creates a new Random.
     */
-   static void seed();
+   Random() {};
 };
 
 } // end namespace util
