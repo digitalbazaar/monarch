@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/rt/Thread.h"
 
@@ -51,110 +51,6 @@ Thread::~Thread()
       // delete name
       free(mName);
    }
-}
-
-void Thread::run()
-{
-   // if a Runnable is available, use it
-   if(mRunnable != NULL)
-   {
-      mRunnable->run();
-   }
-}
-
-void Thread::assignName(const char* name)
-{
-   // delete old name
-   if(mName != NULL)
-   {
-      free(mName);
-   }
-   
-   mName = (name != NULL) ? strdup(name) : NULL;
-}
-
-void Thread::initializeThreads()
-{
-   // create the thread specific data keys
-   pthread_key_create(&sCurrentThreadKey, &cleanupCurrentThreadKeyValue);
-   pthread_key_create(&sExceptionKey, &cleanupExceptionKeyValue);
-   
-   // Note: disabled due to a lack of support in windows
-   // install signal handler
-   //installSigIntHandler();
-}
-
-void Thread::cleanupCurrentThreadKeyValue(void* thread)
-{
-   // check for thread non-persistence
-   Thread* t = (Thread*)thread;
-   if(thread != NULL && !t->mPersistent)
-   {
-      delete t;
-   }
-}
-
-void Thread::cleanupExceptionKeyValue(void* er)
-{
-   if(er != NULL)
-   {
-      // clean up exception reference
-      ExceptionRef* ref = (ExceptionRef*)er;
-      delete ref;
-   }
-}
-
-// Note: disabled due to a lack of support in windows
-//void Thread::installSigIntHandler()
-//{
-//   // create the SIGINT handler
-//   struct sigaction newsa;
-//   newsa.sa_handler = handleSigInt;
-//   newsa.sa_flags = 0;
-//   sigemptyset(&newsa.sa_mask);
-//   
-//   // set the SIGINT handler
-//   sigaction(SIGINT, &newsa, NULL);
-//}
-//
-//void Thread::handleSigInt(int signum)
-//{
-//   // no action is necessary, thread already interrupted
-//}
-
-void* Thread::execute(void* thread)
-{
-   // do not allow invalid thread IDs
-   pthread_t self = pthread_self();
-   if(isThreadIdValid(self))
-   {
-      // get the Thread object
-      Thread* t = (Thread*)thread;
-      
-      // set thread specific data for current thread to the Thread
-      pthread_setspecific(sCurrentThreadKey, t);
-      
-      // disable thread cancelation
-      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-      
-      // thread is alive
-      t->mAlive = true;
-      
-      // run the passed thread's run() method
-      t->run();
-      
-      // thread is no longer alive
-      t->mAlive = false;
-   }
-   else
-   {
-      // detach thread and let it die, it's invalid
-      pthread_detach(self);
-   }
-   
-   // exit thread
-   pthread_exit(NULL);
-   return NULL;
 }
 
 bool Thread::start(size_t stackSize)
@@ -364,6 +260,11 @@ void Thread::detach()
       // detach thread
       pthread_detach(mThreadId);
    }
+}
+
+pthread_t Thread::getId()
+{
+   return mThreadId;
 }
 
 void Thread::setName(const char* name)
@@ -686,3 +587,116 @@ bool Thread::isThreadIdValid(pthread_t id)
 //   // set signal handler
 //   sigaction(signum, newaction, oldaction);
 //}
+
+void Thread::run()
+{
+   // if a Runnable is available, use it
+   if(mRunnable != NULL)
+   {
+      mRunnable->run();
+   }
+}
+
+void Thread::assignName(const char* name)
+{
+   // delete old name
+   if(mName != NULL)
+   {
+      free(mName);
+   }
+   
+   mName = (name != NULL) ? strdup(name) : NULL;
+}
+
+void Thread::initializeThreads()
+{
+   // create the thread specific data keys
+   pthread_key_create(&sCurrentThreadKey, &cleanupCurrentThreadKeyValue);
+   pthread_key_create(&sExceptionKey, &cleanupExceptionKeyValue);
+   
+   // Note: disabled due to a lack of support in windows
+   // install signal handler
+   //installSigIntHandler();
+}
+
+void Thread::cleanupCurrentThreadKeyValue(void* thread)
+{
+   // check for thread non-persistence
+   Thread* t = (Thread*)thread;
+   if(thread != NULL && !t->mPersistent)
+   {
+      delete t;
+   }
+}
+
+void Thread::cleanupExceptionKeyValue(void* er)
+{
+   if(er != NULL)
+   {
+      // clean up exception reference
+      ExceptionRef* ref = (ExceptionRef*)er;
+      delete ref;
+   }
+}
+
+// Note: disabled due to a lack of support in windows
+//void Thread::installSigIntHandler()
+//{
+//   // create the SIGINT handler
+//   struct sigaction newsa;
+//   newsa.sa_handler = handleSigInt;
+//   newsa.sa_flags = 0;
+//   sigemptyset(&newsa.sa_mask);
+//   
+//   // set the SIGINT handler
+//   sigaction(SIGINT, &newsa, NULL);
+//}
+//
+//void Thread::handleSigInt(int signum)
+//{
+//   // no action is necessary, thread already interrupted
+//}
+
+void* Thread::execute(void* thread)
+{
+   // do not allow invalid thread IDs
+   pthread_t self = pthread_self();
+   if(isThreadIdValid(self))
+   {
+      // get the Thread object
+      Thread* t = (Thread*)thread;
+      
+      // set thread specific data for current thread to the Thread
+      pthread_setspecific(sCurrentThreadKey, t);
+      
+      // disable thread cancelation
+      pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+      
+#ifdef WIN32
+      // random must be seeded per-thread on windows
+      // add thread ID to make seed more unique to this thread
+      uint64_t value =
+         System::getCurrentMilliseconds() +
+         (unsigned long)self.p + time(NULL);
+      srand((unsigned int)(value & 0xFFFFFFFF));
+#endif
+      
+      // thread is alive
+      t->mAlive = true;
+      
+      // run the passed thread's run() method
+      t->run();
+      
+      // thread is no longer alive
+      t->mAlive = false;
+   }
+   else
+   {
+      // detach thread and let it die, it's invalid
+      pthread_detach(self);
+   }
+   
+   // exit thread
+   pthread_exit(NULL);
+   return NULL;
+}
