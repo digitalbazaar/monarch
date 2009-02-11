@@ -45,7 +45,7 @@ LINUX_LIBS = -L$(LINUX_LIB_DIR) -L/usr/lib/mysql
 LINUX_AR = @LINUX_AR@
 LINUX_BUILD_DIR = build/linux
 LINUX_DIST_DIR = dist/linux
-LINUX_LIBRARY_SOURCES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.cpp, $(SOURCES))
+LINUX_LIBRARY_SOURCES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.cpp, $(SOURCES)) 
 LINUX_EXECUTABLE_SOURCES := $(patsubst %,$(LINUX_BUILD_DIR)/%.cpp, $(EXECUTABLES))
 LINUX_LIBRARY_OBJECTS := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-linux.o, $(SOURCES))
 LINUX_EXECUTABLE_OBJECTS := $(patsubst %,$(LINUX_BUILD_DIR)/%-linux.o, $(EXECUTABLES))
@@ -91,15 +91,18 @@ MACOS_INCLUDES = $(INCLUDES)
 MACOS_LIB_DIR = $(DBCORE)/libs/macos
 MACOS_LIBS = -L$(MACOS_LIB_DIR)
 MACOS_AR = @MACOS_AR@
+MACOS_AS = @MACOS_AS@
 MACOS_BUILD_DIR = build/macos
 MACOS_DIST_DIR = dist/macos
-MACOS_LIBRARY_SOURCES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%.cpp, $(SOURCES))
+MACOS_CPP_SOURCES := $(filter %.cpp, $(SOURCES))
+MACOS_AS_SOURCES := $(filter %.S, $(SOURCES))
+MACOS_LIBRARY_SOURCES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%.cpp, $(MACOS_CPP_SOURCES))  $(patsubst %.S,$(MACOS_BUILD_DIR)/%.S, $(MACOS_AS_SOURCES))
 MACOS_EXECUTABLE_SOURCES := $(patsubst %,$(MACOS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
-MACOS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.o, $(SOURCES))
+MACOS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.o, $(MACOS_CPP_SOURCES)) $(patsubst %.S,$(MACOS_BUILD_DIR)/%-asm-macos.o, $(MACOS_AS_SOURCES))
 MACOS_EXECUTABLE_OBJECTS := $(patsubst %,$(MACOS_BUILD_DIR)/%-macos.o, $(EXECUTABLES))
 DYNAMIC_MACOS_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_MACOS_LIBRARIES)
 MACOS_EXECUTABLES := $(patsubst %,$(MACOS_DIST_DIR)/%, $(EXECUTABLES))
-MACOS_DEPENDENCIES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.P, $(SOURCES))
+MACOS_DEPENDENCIES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.P, $(MACOS_CPP_SOURCES))
 MACOS_DEPENDENCIES += $(patsubst %.cpp,%-macos.P, $(MACOS_EXECUTABLE_SOURCES))
 
 MACOS_LIBRARIES := $(patsubst %,$(MACOS_DIST_DIR)/lib%.dylib, $(LIBRARIES))
@@ -229,6 +232,13 @@ ifeq ($(BUILD_FOR_WINDOWS),yes)
 endif
 
 ifeq ($(BUILD_FOR_MACOS),yes)
+%-asm-macos.o: %.S
+	echo "Building $(basename $@).o..."
+	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
+	$(PCMD) cp $(basename $@).d $(basename $@).P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
+		rm -f $(basename $@).d
+
 %-macos.o %-macos.P: %.cpp
 	@echo "Building $(basename $@).o..."
 	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
