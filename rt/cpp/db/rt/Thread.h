@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_rt_Thread_H
 #define db_rt_Thread_H
@@ -28,12 +28,6 @@ namespace rt
  */
 class Thread : public virtual ExclusiveLock, protected Runnable
 {
-private:
-   /**
-    * Used to ensure that shared thread information is initialized only once.
-    */
-   static pthread_once_t sThreadsInit;
-   
 protected:
    /**
     * The ID of the POSIX thread wrapped by this class.
@@ -92,19 +86,6 @@ protected:
    bool mStarted;
    
    /**
-    * This method is called when a new POSIX thread is created (on that
-    * POSIX thread). It runs the Runnable associated with this Thread.
-    */
-   virtual void run();
-   
-   /**
-    * Allocates space for this Thread's name and sets it.
-    * 
-    * @param name the name to assign to this thread.
-    */
-   virtual void assignName(const char* name);
-   
-   /**
     * A thread key for obtaining the current thread.
     */
    static pthread_key_t sCurrentThreadKey;
@@ -114,45 +95,11 @@ protected:
     */
    static pthread_key_t sExceptionKey;
    
+private:
    /**
-    * Initializes any shared thread information.
+    * Used to ensure that shared thread information is initialized only once.
     */
-   static void initializeThreads();
-   
-   /**
-    * Clears the value of the current thread key.
-    * 
-    * @param thread the current Thread.
-    */
-   static void cleanupCurrentThreadKeyValue(void* thread);
-   
-   /**
-    * Clears the value of the exception key.
-    * 
-    * @param er the ExceptionRef on the current Thread.
-    */
-   static void cleanupExceptionKeyValue(void* er);
-   
-// Note: disabled due to a lack of support in windows
-//   /**
-//    * Installs the SIGINT handler that can interrupt the current thread.
-//    */
-//   static void installSigIntHandler();
-//   
-//   /**
-//    * The SIGINT handler that ensures threads get interrupted.
-//    * 
-//    * @param signum the signal to handle.
-//    */
-//   static void handleSigInt(int signum);
-   
-   /**
-    * The method used to execute the POSIX thread. The passed Thread object
-    * will be deleted once execution completes.
-    *
-    * @param thread the Thread that is executing (to be cast to a Thread*).
-    */
-   static void* execute(void* thread);
+   static pthread_once_t sThreadsInit;
    
 public:
    /**
@@ -237,6 +184,13 @@ public:
     * @return true if this Thread has been started, false if not.
     */
    virtual bool hasStarted();
+   
+   /**
+    * Gets the ID of this thread.
+    * 
+    * @return the ID of this thread.
+    */
+   virtual pthread_t getId();
    
    /**
     * Sets the name of this Thread.
@@ -418,6 +372,60 @@ public:
 //   static void setSignalHandler(
 //      int signum, const struct sigaction* newaction,
 //      struct sigaction* oldaction);
+   
+protected:
+   /**
+    * This method is called when a new POSIX thread is created (on that
+    * POSIX thread). It runs the Runnable associated with this Thread.
+    */
+   virtual void run();
+   
+   /**
+    * Allocates space for this Thread's name and sets it.
+    * 
+    * @param name the name to assign to this thread.
+    */
+   virtual void assignName(const char* name);
+   
+   /**
+    * Initializes any shared thread information.
+    */
+   static void initializeThreads();
+   
+   /**
+    * Clears the value of the current thread key.
+    * 
+    * @param thread the current Thread.
+    */
+   static void cleanupCurrentThreadKeyValue(void* thread);
+   
+   /**
+    * Clears the value of the exception key.
+    * 
+    * @param er the ExceptionRef on the current Thread.
+    */
+   static void cleanupExceptionKeyValue(void* er);
+   
+// Note: disabled due to a lack of support in windows
+//   /**
+//    * Installs the SIGINT handler that can interrupt the current thread.
+//    */
+//   static void installSigIntHandler();
+//   
+//   /**
+//    * The SIGINT handler that ensures threads get interrupted.
+//    * 
+//    * @param signum the signal to handle.
+//    */
+//   static void handleSigInt(int signum);
+   
+   /**
+    * The method used to execute the POSIX thread. The passed Thread object
+    * will be deleted once execution completes.
+    *
+    * @param thread the Thread that is executing (to be cast to a Thread*).
+    */
+   static void* execute(void* thread);
 };
 
 } // end namespace rt

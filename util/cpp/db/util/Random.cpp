@@ -13,26 +13,20 @@ using namespace db::util;
 
 void Random::seed()
 {
-   uint64_t t = System::getCurrentMilliseconds();
-   Random::seed((unsigned int)(t & 0xFFFFFFFF) + time(NULL));
-}
-
-void Random::seed(unsigned int value)
-{
-#ifdef WIN32
-   srand(value);
-#else
-   srandom(value);
+#ifndef WIN32
+   // only do actual seeding on linux, each thread is seeded on windows
+   // as rand() is per-thread on win32
+   uint64_t value = System::getCurrentMilliseconds();
+   srandom((unsigned int)(value & 0xFFFFFFFF) + time(NULL));
 #endif
 }
 
 uint64_t Random::next(uint64_t low, uint64_t high)
 {
+   // get a random number between low and high
 #ifdef WIN32
-   // get a random number between 1 and 1000000000
    return low + (uint64_t)((long double)high * (rand() / (RAND_MAX + 1.0)));
 #else
-   // get a random number between 1 and 1000000000
    return low + (uint64_t)((long double)high * (random() / (RAND_MAX + 1.0)));
 #endif
 }

@@ -18,12 +18,6 @@ namespace util
  */
 class Random
 {
-private:
-   /**
-    * Creates a new Random.
-    */
-   Random() {};
-   
 public:
    /**
     * Destructs this Random.
@@ -31,16 +25,9 @@ public:
    virtual ~Random() {};
    
    /**
-    * Seeds the random number generator with a good seed value.
+    * Must be called once at application start up to seed RNG.
     */
    static void seed();
-   
-   /**
-    * Seeds the random number generator with a value.
-    * 
-    * @param value the value to seed with.
-    */
-   static void seed(unsigned int value);
    
    /**
     * Gets the next pseudo-random (non-secure) number between "low" and "high".
@@ -51,6 +38,12 @@ public:
     * @return a pseduo-random (non-secure) number between "low" and "high". 
     */
    static uint64_t next(uint64_t low, uint64_t high);
+   
+protected:
+   /**
+    * Creates a new Random.
+    */
+   Random() {};
 };
 
 } // end namespace util
