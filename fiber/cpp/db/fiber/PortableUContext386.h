@@ -1,8 +1,8 @@
 #include <stdarg.h>
 #include <sys/ucontext.h>
 
-#define setcontext(u) _setmcontext(&(u)->uc_mcontext)
-#define getcontext(u) _getmcontext(&(u)->uc_mcontext)
+#define setcontext(u) setmcontext(&(u)->uc_mcontext)
+#define getcontext(u) getmcontext(&(u)->uc_mcontext)
 typedef struct mcontext mcontext_t;
 typedef struct ucontext ucontext_t;
 
@@ -11,8 +11,8 @@ typedef void (MakeContextCallback)(void);
 /*extern*/ int swapcontext(ucontext_t *, ucontext_t *);
 //  /*extern*/ void makecontext(ucontext_t*, void(*)(), int, ...);
 /*extern*/ void makecontext(ucontext_t *, MakeContextCallback *, int, ...);
-/*extern*/ int _getmcontext(mcontext_t *);
-/*extern*/ void _setmcontext(mcontext_t *);
+extern "C" int getmcontext(mcontext_t *);
+extern "C" void setmcontext(mcontext_t *);
 
 /*-
  * Copyright (c) 1999 Marcel Moolenaar
