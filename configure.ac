@@ -78,8 +78,9 @@ fi
 
 # Conditional setup for MacOS build
 if test "$BUILD_FOR_MACOS" = "yes" ; then
-   AC_PROG_CXX()
+   AC_PROG_CXX(g++-4 g++)
    AC_CHECK_PROG(MACOS_AR, ar, ar, not found)
+   AC_CHECK_PROG(MACOS_AS, as, as, not found)
    MACOS_CXX="$CXX"
 fi
 
@@ -214,6 +215,7 @@ if test "x$BUILD_FOR_MACOS" = "xyes"; then
    echo "MacOS             : enabled"
    echo "MacOS C++ compiler: $MACOS_CXX"
    echo "MacOS C++ archiver: $MACOS_AR"
+   echo "MacOS assembler   : $MACOS_AS"
 else
    echo "MacOS             : disabled (use --enable-macos to enable)"
 fi
