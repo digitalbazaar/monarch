@@ -12,7 +12,7 @@ namespace util
 {
 
 /**
- * The Random class is used to obtain random numbers.
+ * The Random class is used to obtain pseudo-random (non-secure) numbers.
  * 
  * @author Dave Longley
  */
@@ -43,12 +43,12 @@ public:
    static void seed(unsigned int value);
    
    /**
-    * Gets the next random number between "low" and "high".
+    * Gets the next pseudo-random (non-secure) number between "low" and "high".
     * 
     * @param low the lowest possible number to return.
     * @param high the highest possible number to return.
     * 
-    * @return a random number between "low" and "high". 
+    * @return a pseduo-random (non-secure) number between "low" and "high". 
     */
    static uint64_t next(uint64_t low, uint64_t high);
 };
