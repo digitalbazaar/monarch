@@ -51,7 +51,7 @@ void makecontext(ucontext_t *ucp, void (*func)(void), int argc, ...)
 
 	sp = (uintptr_t *)ucp->uc_stack.ss_sp + ucp->uc_stack.ss_size / sizeof(void *);
 	sp -= argc;
-	sp = (void*)((uintptr_t)sp - (uintptr_t)sp % 16);	/* 16-align for OS X */
+	sp = (uintptr_t*)((uintptr_t)sp - (uintptr_t)sp % 16);	/* 16-align for OS X */
 	memmove(sp, &argc + 1, argc * sizeof(uintptr_t));
 
 	*--sp = 0;		/* return address */
