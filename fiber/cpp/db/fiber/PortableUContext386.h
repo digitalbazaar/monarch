@@ -12,7 +12,7 @@ typedef void (MakeContextCallback)(void);
 //  /*extern*/ void makecontext(ucontext_t*, void(*)(), int, ...);
 /*extern*/ void makecontext(ucontext_t *, MakeContextCallback *, int, ...);
 extern "C" int getmcontext(mcontext_t *);
-extern "C" void setmcontext(mcontext_t *);
+extern "C" int setmcontext(mcontext_t *);
 
 /*-
  * Copyright (c) 1999 Marcel Moolenaar
