@@ -6,14 +6,15 @@
 #include "db/rt/System.h"
 
 #include <stdlib.h>
+#include <time.h>
 
 using namespace db::rt;
 using namespace db::util;
 
 void Random::seed()
 {
-   uint64_t time = System::getCurrentMilliseconds();
-   Random::seed((unsigned int)(time & 0xFFFFFFFF));
+   uint64_t t = System::getCurrentMilliseconds();
+   Random::seed((unsigned int)(t & 0xFFFFFFFF) + time(NULL));
 }
 
 void Random::seed(unsigned int value)

@@ -33,6 +33,7 @@ EXECUTABLES = \
 	test-mmap \
 	test-modest \
 	test-net \
+	test-random \
 	test-rt \
 	$(SPHINX_EXECUTABLES) \
 	test-sqlite3 \
