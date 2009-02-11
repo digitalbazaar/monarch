@@ -53,8 +53,10 @@ int main()
    }
    gFunc1Context.uc_stack.ss_sp = func1Stack;
    gFunc1Context.uc_stack.ss_size = sizeof(func1Stack);
+#ifndef MACOS
    gFunc1Context.uc_stack.ss_flags = 0;
    gFunc1Context.uc_link = NULL;
+#endif
    makecontext(&gFunc1Context, (void (*)())func1, 1, 1);
    
    // make func2 context
@@ -65,8 +67,10 @@ int main()
    }
    gFunc2Context.uc_stack.ss_sp = func2Stack;
    gFunc2Context.uc_stack.ss_size = sizeof(func2Stack);
+#ifndef MACOS
    gFunc2Context.uc_stack.ss_flags = 0;
    gFunc2Context.uc_link = NULL;
+#endif
    makecontext(&gFunc2Context, (void (*)())func2, 1, 2);
    
    printf("main swapping in func1...\n");
