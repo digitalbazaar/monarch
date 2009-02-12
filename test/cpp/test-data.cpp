@@ -15,6 +15,8 @@
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
 #include "db/io/OStreamOutputStream.h"
+#include "db/io/MutatorInputStream.h"
+#include "db/data/CharacterSetMutator.h"
 #include "db/data/Data.h"
 #include "db/data/TemplateInputStream.h"
 #include "db/data/xml/XmlReader.h"
@@ -1452,6 +1454,49 @@ static DynamicObject makeJsonTestDyno2()
    return d;
 }
 
+void runCharacterSetMutatorTest(TestRunner& tr)
+{
+   tr.group("CharacterSetMutator");
+    
+   tr.test("ISO-8859-1 to UTF-8");
+   {
+      // FIXME: do something fancy here
+      const char* data =
+         "foo";
+      
+      CharacterSetMutator csm;
+      csm.setCharacterSets("UTF-8", "ISO-8859-1");
+      
+      ByteArrayInputStream bais(data, strlen(data));
+      string out;
+      MutatorInputStream mis(&bais, false, &csm, false);
+      int numBytes;
+      char b[2048];
+      while((numBytes = mis.read(b, 2048)) > 0)
+      {
+         out.append(b, numBytes);
+      }
+      mis.close();
+      
+      //printf("output: '%s'\n", out.c_str());
+   }
+   tr.passIfNoException();
+   
+   tr.test("UTF-8 to ISO-8859-1");
+   {
+      // FIXME: do something fancy here
+      const char* data =
+         "foo";
+      
+      string out;
+      CharacterSetMutator::convert(data, "ISO-8859-1", out, "UTF-8");
+      //printf("output: '%s'\n", out.c_str());
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 void runJsonReaderSpeedTest(TestRunner& tr)
 {
    tr.group("JsonReader speed");
@@ -1510,6 +1555,8 @@ public:
       runAviTest(tr);
       
       runTemplateInputStreamTest(tr);
+      
+      runCharacterSetMutatorTest(tr);
       
       return 0;
    }
