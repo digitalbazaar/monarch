@@ -181,6 +181,17 @@ AC_CONFIG_FILES([
           validation/cpp/Makefile
 ])
 
+# Generate the platform-specific build file
+if test "$BUILD_FOR_LINUX" = "yes" ; then
+AC_CONFIG_FILES([ setup/Makefile.linux ])
+fi
+if test "$BUILD_FOR_MACOS" = "yes" ; then
+AC_CONFIG_FILES([ setup/Makefile.macos ])
+fi
+if test "$BUILD_FOR_WINDOWS" = "yes" ; then
+AC_CONFIG_FILES([ setup/Makefile.mingw32 ])
+fi
+
 # Generate scripts and configuration files for release
 AC_CONFIG_FILES([
 	installers/debian/changelog

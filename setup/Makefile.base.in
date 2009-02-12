@@ -1,5 +1,5 @@
-# This file contains basic Makefile includes that contain all building
-# instructions for all binaries and packages.
+# This file contains basic Makefile includes that contain all 
+# common building instructions for all binaries and packages.
 
 .PHONY: all build-setup build-clean build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries
 
@@ -35,353 +35,38 @@ INCLUDES = \
 
 MODULE_BASE_DIR = $(shell pwd)
 
-# Linux-specific variables
-LINUX_CXX = @LINUX_CXX@
-LINUX_CXX_FLAGS = $(CXXFLAGS) -g -Wall -fPIC $(MODULE_LINUX_CXX_FLAGS) -march=i686 @DEFS@
-LINUX_LD_FLAGS = @LDFLAGS@
-LINUX_INCLUDES = $(INCLUDES)
-LINUX_LIB_DIR = $(DBCORE)/libs/linux
-LINUX_LIBS = -L$(LINUX_LIB_DIR) -L/usr/lib/mysql
-LINUX_AR = @LINUX_AR@
-LINUX_BUILD_DIR = build/linux
-LINUX_DIST_DIR = dist/linux
-LINUX_LIBRARY_SOURCES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.cpp, $(SOURCES))
-LINUX_EXECUTABLE_SOURCES := $(patsubst %,$(LINUX_BUILD_DIR)/%.cpp, $(EXECUTABLES))
-LINUX_LIBRARY_OBJECTS := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-linux.o, $(SOURCES))
-LINUX_EXECUTABLE_OBJECTS := $(patsubst %,$(LINUX_BUILD_DIR)/%-linux.o, $(EXECUTABLES))
-DYNAMIC_LINUX_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_LINUX_LIBRARIES)
-LINUX_EXECUTABLES := $(patsubst %,$(LINUX_DIST_DIR)/%, $(EXECUTABLES))
-LINUX_DEPENDENCIES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-linux.P, $(SOURCES))
-LINUX_DEPENDENCIES += $(patsubst %.cpp,%-linux.P, $(LINUX_EXECUTABLE_SOURCES))
-
-LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES))
-#LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
-
-# Windows-specific variables
-WINDOWS_CXX = @WINDOWS_CXX@
-WINDOWS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -D_WIN32_WINNT=0x0501 $(MODULE_WINDOWS_CXX_FLAGS) @DEFS@ -march=i686
-WINDOWS_LD_FLAGS = @LDFLAGS@
-WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/3rdparty/cpp/pthread/include -I$(DBCORE)/3rdparty/cpp/openssl/include -I$(DBCORE)/3rdparty/cpp/expat/include -I$(DBCORE)/3rdparty/cpp/mysql/include -I$(DBCORE)/3rdparty/cpp/regex/include -I$(DBCORE)/3rdparty/cpp/sqlite3/include -I$(DBCORE)/3rdparty/cpp/zlib/include
-WINDOWS_LIB_DIR = $(DBCORE)/libs/windows
-WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
-WINDOWS_AR = @WINDOWS_AR@
-WINDOWS_AS = @WINDOWS_AS@
-DYNAMIC_WINDOWS_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_WINDOWS_LIBRARIES)
-WINDOWS_DLLWRAP = @WINDOWS_DLLWRAP@
-WINDOWS_DLLWRAP_FLAGS = --as=$(WINDOWS_AS) --export-all --driver-name $(WINDOWS_CXX) -s
-WINDOWS_BUILD_DIR = build/windows
-WINDOWS_DIST_DIR = dist/windows
-WINDOWS_LIBRARY_SOURCES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%.cpp, $(SOURCES))
-WINDOWS_EXECUTABLE_SOURCES := $(patsubst %,$(WINDOWS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
-WINDOWS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-windows.o, $(SOURCES))
-WINDOWS_EXECUTABLE_OBJECTS := $(patsubst %,$(WINDOWS_BUILD_DIR)/%-windows.o, $(EXECUTABLES))
-WINDOWS_EXECUTABLES := $(patsubst %,$(WINDOWS_DIST_DIR)/%, $(EXECUTABLES))
-WINDOWS_EXE_EXECUTABLES := $(patsubst %,%.exe, $(WINDOWS_EXECUTABLES))
-WINDOWS_DEPENDENCIES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-windows.P, $(SOURCES))
-WINDOWS_DEPENDENCIES += $(patsubst %.cpp,-windows%.P, $(WINDOWS_EXECUTABLE_SOURCES))
-
-WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_DIST_DIR)/%.lib, $(LIBRARIES))
-WINDOWS_LIBRARIES += $(patsubst %,$(WINDOWS_DIST_DIR)/%.dll, $(LIBRARIES))
-
-# MacOS-specific variables
-MACOS_CXX = @MACOS_CXX@
-MACOS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -fPIC -DMACOS $(MODULE_MACOS_CXX_FLAGS) @DEFS@
-MACOS_LD_FLAGS = @LDFLAGS@
-MACOS_INCLUDES = $(INCLUDES) -I/sw/include
-MACOS_LIB_DIR = $(DBCORE)/libs/macos
-MACOS_LIBS = -L$(MACOS_LIB_DIR) -L/sw/lib
-MACOS_AR = @MACOS_AR@
-MACOS_AS = @MACOS_AS@
-MACOS_BUILD_DIR = build/macos
-MACOS_DIST_DIR = dist/macos
-MACOS_CPP_SOURCES := $(filter %.cpp, $(SOURCES))
-MACOS_AS_SOURCES := $(filter %.S, $(SOURCES))
-MACOS_LIBRARY_SOURCES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%.cpp, $(MACOS_CPP_SOURCES))  $(patsubst %.S,$(MACOS_BUILD_DIR)/%.S, $(MACOS_AS_SOURCES))
-MACOS_EXECUTABLE_SOURCES := $(patsubst %,$(MACOS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
-MACOS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.o, $(MACOS_CPP_SOURCES)) $(patsubst %.S,$(MACOS_BUILD_DIR)/%-asm-macos.o, $(MACOS_AS_SOURCES))
-MACOS_EXECUTABLE_OBJECTS := $(patsubst %,$(MACOS_BUILD_DIR)/%-macos.o, $(EXECUTABLES))
-DYNAMIC_MACOS_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_MACOS_LIBRARIES)
-MACOS_EXECUTABLES := $(patsubst %,$(MACOS_DIST_DIR)/%, $(EXECUTABLES))
-MACOS_DEPENDENCIES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.P, $(MACOS_CPP_SOURCES))
-MACOS_DEPENDENCIES += $(patsubst %.cpp,%-macos.P, $(MACOS_EXECUTABLE_SOURCES))
-
-MACOS_LIBRARIES := $(patsubst %,$(MACOS_DIST_DIR)/lib%.dylib, $(LIBRARIES))
-#MACOS_LIBRARIES += $(patsubst %,$(MACOS_DIST_DIR)/lib%.a, $(LIBRARIES))
-
-ifeq ($(BUILD_FOR_LINUX),yes)
-ALL_SOURCES += $(LINUX_LIBRARY_SOURCES) $(LINUX_EXECUTABLE_SOURCES)
-ALL_OBJECTS += $(LINUX_LIBRARY_OBJECTS) $(LINUX_EXECUTABLE_OBJECTS)
-ALL_LIBRARIES += $(LINUX_LIBRARIES)
-ALL_EXECUTABLES += $(LINUX_EXECUTABLES)
-ALL_DIRECTORIES += $(LINUX_BUILD_DIR) $(LINUX_DIST_DIR)
-ifndef MAKE_CLEAN_ACTIVE
--include $(LINUX_DEPENDENCIES)
-endif
-endif
-
-ifeq ($(BUILD_FOR_WINDOWS),yes)
-ALL_SOURCES += $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES)
-ALL_OBJECTS += $(WINDOWS_LIBRARY_OBJECTS) $(WINDOWS_EXECUTABLE_OBJECTS)
-ALL_LIBRARIES += $(WINDOWS_LIBRARIES)
-ALL_EXECUTABLES += $(WINDOWS_EXE_EXECUTABLES)
-ALL_DIRECTORIES += $(WINDOWS_BUILD_DIR) $(WINDOWS_DIST_DIR)
-ifndef MAKE_CLEAN_ACTIVE
--include $(WINDOWS_DEPENDENCIES)
-endif
-endif
-
-ifeq ($(BUILD_FOR_MACOS),yes)
-ALL_SOURCES += $(MACOS_LIBRARY_SOURCES) $(MACOS_EXECUTABLE_SOURCES)
-ALL_OBJECTS += $(MACOS_LIBRARY_OBJECTS) $(MACOS_EXECUTABLE_OBJECTS)
-ALL_LIBRARIES += $(MACOS_LIBRARIES)
-ALL_EXECUTABLES += $(MACOS_EXECUTABLES)
-ALL_DIRECTORIES += $(MACOS_BUILD_DIR) $(MACOS_DIST_DIR)
-ifndef MAKE_CLEAN_ACTIVE
--include $(MACOS_DEPENDENCIES)
-endif
-endif
-
 ifdef PRINT_COMMANDS
 PCMD=
 else
 PCMD=@
 endif
 
+# Platform-specific variables and build rules
+.SECONDEXPANSION:
+
+ifeq ($(BUILD_FOR_LINUX),yes)
+include @DBCOREDIR@/setup/Makefile.linux
+endif
+ifeq ($(BUILD_FOR_MACOS),yes)
+include @DBCOREDIR@/setup/Makefile.macos
+endif
+ifeq ($(BUILD_FOR_WINDOWS),yes)
+include @DBCOREDIR@/setup/Makefile.mingw32
+endif
+
+# Platform-agnostic build rules 
+
 build-setup:
 
 build-clean:
 
-.SECONDEXPANSION:
-
 $(ALL_DIRECTORIES):
 	mkdir -p $@
 
-ifeq ($(BUILD_FOR_LINUX),yes)
-$(LINUX_LIBRARY_SOURCES): build-setup
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
-ifdef EXECUTABLES
-$(LINUX_EXECUTABLE_SOURCES): build-setup
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
-endif
-endif
-
 clean: build-clean clean-libraries clean-objects
-
-clean-objects:
-ifeq ($(BUILD_FOR_LINUX),yes)
-	$(PCMD) rm -rf $(LINUX_BUILD_DIR)
-endif
-ifeq ($(BUILD_FOR_WINDOWS),yes)
-	$(PCMD) rm -rf $(WINDOWS_BUILD_DIR)
-endif
-ifeq ($(BUILD_FOR_MACOS),yes)
-	$(PCMD) rm -rf $(MACOS_BUILD_DIR)
-endif
-
-clean-libraries:
-ifeq ($(BUILD_FOR_LINUX),yes)
-	$(PCMD) rm -rf $(LINUX_DIST_DIR)
-endif
-ifeq ($(BUILD_FOR_WINDOWS),yes)
-	$(PCMD) rm -rf $(WINDOWS_DIST_DIR)
-endif
-ifeq ($(BUILD_FOR_MACOS),yes)
-	$(PCMD) rm -rf $(MACOS_DIST_DIR)
-endif
-
-ifeq ($(BUILD_FOR_WINDOWS),yes)
-$(WINDOWS_LIBRARY_SOURCES): build-setup
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
-ifdef EXECUTABLES
-$(WINDOWS_EXECUTABLE_SOURCES): build-setup
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
-endif
-endif
-
-ifeq ($(BUILD_FOR_MACOS),yes)
-$(MACOS_LIBRARY_SOURCES): build-setup
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
-ifdef EXECUTABLES
-$(MACOS_EXECUTABLE_SOURCES): build-setup
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
-endif
-endif
-
-ifeq ($(BUILD_FOR_LINUX),yes)
-%-linux.o %-linux.P: %.cpp
-	@echo "Building $(basename $@).o..."
-	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) -c -MD -o $(basename $@).o $(LINUX_INCLUDES) -I. $(realpath $<)
-	$(PCMD) cp $(basename $@).d $(basename $@).P; \
-		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
-		rm -f $(basename $@).d
-endif
-
-ifeq ($(BUILD_FOR_WINDOWS),yes)
-%-windows.o %-windows.P: %.cpp
-	@echo "Building $(basename $@).o..."
-	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -c -MD -o $(basename $@).o $(WINDOWS_INCLUDES) -I. $<
-	$(PCMD) cp $(basename $@).d $(basename $@).P; \
-		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
-		rm -f $(basename $@).d
-endif
-
-ifeq ($(BUILD_FOR_MACOS),yes)
-%-asm-macos.o: %.S
-	echo "Building $(basename $@).o..."
-	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
-	$(PCMD) cp $(basename $@).d $(basename $@).P; \
-		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
-		rm -f $(basename $@).d
-
-%-macos.o %-macos.P: %.cpp
-	@echo "Building $(basename $@).o..."
-	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
-	$(PCMD) cp $(basename $@).d $(basename $@).P; \
-		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
-		rm -f $(basename $@).d
-endif
-
-%.so: $(LINUX_LIBRARY_OBJECTS)
-	@echo "Building $@..."
-	$(PCMD) $(LINUX_CXX) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -shared -o $@ $(LINUX_LIBRARY_OBJECTS) $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
-	$(PCMD) mkdir -p $(LINUX_LIB_DIR)
-	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
-
-%.dll: $(WINDOWS_LIBRARY_OBJECTS)
-	@echo "Building $@..."
-	$(PCMD) $(WINDOWS_DLLWRAP) $(WINDOWS_DLLWRAP_FLAGS) $(WINDOWS_LIBS) --output-def $(@:.dll=.def) --implib $(@:.dll=.lib) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=$(WINDOWS_LIB_DIR)/%.dll) $(EXTRA_WINDOWS_LIBRARIES)
-	$(PCMD) mkdir -p $(WINDOWS_LIB_DIR)
-	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
-
-%.dylib: $(MACOS_LIBRARY_OBJECTS)
-	@echo "Building $@..."
-	$(PCMD) mkdir -p $(MACOS_LIB_DIR)
-	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
-	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(MACOS_LIB_DIR)/$(@F)
-
-#ifeq ($(BUILD_FOR_LINUX),yes)
-#%.a: $(LINUX_LIBRARY_OBJECTS)
-#	@echo "Building $@..."
-#	$(PCMD) $(LINUX_AR) $(AR_FLAGS) $@ $(LINUX_LIBRARY_OBJECTS)
-#	$(PCMD) mkdir -p $(LINUX_LIB_DIR)
-#	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
-#endif
-
-%.lib: $(WINDOWS_LIBRARY_OBJECTS)
-	@echo "Building $@..."
-	$(PCMD) $(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
-	$(PCMD) mkdir -p $(WINDOWS_LIB_DIR)
-	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
-
-ifdef EXECUTABLES
-ifeq ($(BUILD_FOR_LINUX),yes)
-#$(STATIC_LINUX_LIBRARIES):
-#	# This is a fake target to override the default .a build
-$(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-linux.o $(STATIC_LINUX_LIBRARIES)
-	@echo "Building $(@F)..."
-	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(DYNAMIC_LINUX_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
-endif
-
-ifeq ($(BUILD_FOR_WINDOWS),yes)
-$(STATIC_WINDOWS_LIBRARIES):
-	# This is a fake target to override the default .lib build
-$(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES) $(WINDOWS_EXECUTABLE_OBJECTS) $(STATIC_WINDOWS_LIBRARIES)
-	@echo "Building $(@F)..."
-	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) $(WINDOWS_LD_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
-# rule to just copy non-exe to .exe
-%.exe: %
-	@echo "Copying $(basename $@) to .exe..."
-	$(PCMD) cp $< $@
-endif
-
-ifeq ($(BUILD_FOR_MACOS),yes)
-#$(STATIC_MACOS_LIBRARIES):
-#	# This is a fake target to override the default .dylib build
-$(MACOS_EXECUTABLES): $(MACOS_LIBRARY_SOURCES) $(MACOS_EXECUTABLE_SOURCES) $(MACOS_EXECUTABLE_OBJECTS) $(STATIC_MACOS_LIBRARIES)
-	@echo "Building $(@F)..."
-	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -o $@ $(MACOS_BUILD_DIR)/$(@F)-macos.o $(DYNAMIC_MACOS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
-endif
-endif
 
 build-objects: $(ALL_DIRECTORIES) $(ALL_SOURCES) $(ALL_OBJECTS)
 
 build-libraries: $(ALL_DIRECTORIES) $(ALL_LIBRARIES)
 
 build-executables: $(ALL_DIRECTORIES) $(ALL_EXECUTABLES)
-
-dump-variables:
-	@echo BUILD_FOR_LINUX=$(BUILD_FOR_LINUX)
-	@echo BUILD_FOR_WINDOWS=$(BUILD_FOR_WINDOWS)
-	@echo BUILD_FOR_MACOS=$(BUILD_FOR_MACOS)
-	@echo AR_FLAGS=$(AR_FLAGS)
-	@echo DBCORE=$(DBCORE)
-	@echo INCLUDES=$(INCLUDES)
-	@echo MODULE_BASE_DIR=$(MODULE_BASE_DIR)
-# Linux-specific variables
-	@echo LINUX_CXX=$(LINUX_CXX)
-	@echo LINUX_CXX_FLAGS=$(LINUX_CXX_FLAGS)
-	@echo LINUX_INCLUDES=$(LINUX_INCLUDES)
-	@echo LINUX_LIB_DIR=$(LINUX_LIB_DIR)
-	@echo LINUX_LIBS=$(LINUX_LIBS)
-	@echo LINUX_AR=$(LINUX_AR)
-	@echo LINUX_BUILD_DIR=$(LINUX_BUILD_DIR)
-	@echo LINUX_DIST_DIR=$(LINUX_DIST_DIR)
-	@echo DYNAMIC_LINUX_LIBRARIES=$(DYNAMIC_LINUX_LIBRARIES)
-	@echo LINUX_LIBRARY_SOURCES=$(LINUX_LIBRARY_SOURCES)
-	@echo LINUX_EXECUTABLE_SOURCES=$(LINUX_EXECUTABLE_SOURCES)
-	@echo LINUX_LIBRARY_OBJECTS=$(LINUX_LIBRARY_OBJECTS)
-	@echo LINUX_EXECUTABLE_OBJECTS=$(LINUX_EXECUTABLE_OBJECTS)
-	@echo LINUX_EXECUTABLES=$(LINUX_EXECUTABLES)
-	@echo LINUX_DEPENDENCIES=$(LINUX_DEPENDENCIES)
-	@echo LINUX_LIBRARIES=$(LINUX_LIBRARIES)
-
-# Windows-specific variables
-	@echo WINDOWS_CXX=$(WINDOWS_CXX)
-	@echo WINDOWS_CXX_FLAGS=$(WINDOWS_CXX_FLAGS)
-	@echo WINDOWS_INCLUDES=$(WINDOWS_INCLUDES)
-	@echo WINDOWS_LIB_DIR=$(WINDOWS_LIB_DIR)
-	@echo WINDOWS_LIBS=$(WINDOWS_LIBS)
-	@echo WINDOWS_AR=$(WINDOWS_AR)
-	@echo WINDOWS_AS=$(WINDOWS_AS)
-	@echo DYNAMIC_WINDOWS_LIBRARIES=$(DYNAMIC_WINDOWS_LIBRARIES)
-	@echo WINDOWS_DLLWRAP=$(WINDOWS_DLLWRAP)
-	@echo WINDOWS_DLLWRAP_FLAGS=$(WINDOWS_DLLWRAP_FLAGS)
-	@echo WINDOWS_BUILD_DIR=$(WINDOWS_BUILD_DIR)
-	@echo WINDOWS_DIST_DIR=$(WINDOWS_DIST_DIR)
-	@echo WINDOWS_LIBRARY_SOURCES=$(WINDOWS_LIBRARY_SOURCES)
-	@echo WINDOWS_EXECUTABLE_SOURCES=$(WINDOWS_EXECUTABLE_SOURCES)
-	@echo WINDOWS_LIBRARY_OBJECTS=$(WINDOWS_LIBRARY_OBJECTS)
-	@echo WINDOWS_EXECUTABLE_OBJECTS=$(WINDOWS_EXECUTABLE_OBJECTS)
-	@echo WINDOWS_EXECUTABLES=$(WINDOWS_EXECUTABLES)
-	@echo WINDOWS_EXE_EXECUTABLES=$(WINDOWS_EXE_EXECUTABLES)
-	@echo WINDOWS_DEPENDENCIES=$(WINDOWS_DEPENDENCIES)
-	@echo WINDOWS_LIBRARIES=$(WINDOWS_LIBRARIES)
-
-# MacOS-specific variables
-	@echo MACOS_CXX=$(MACOS_CXX)
-	@echo MACOS_CXX_FLAGS=$(MACOS_CXX_FLAGS)
-	@echo MACOS_INCLUDES=$(MACOS_INCLUDES)
-	@echo MACOS_LIB_DIR=$(MACOS_LIB_DIR)
-	@echo MACOS_LIBS=$(MACOS_LIBS)
-	@echo MACOS_AR=$(MACOS_AR)
-	@echo MACOS_BUILD_DIR=$(MACOS_BUILD_DIR)
-	@echo MACOS_DIST_DIR=$(MACOS_DIST_DIR)
-	@echo DYNAMIC_MACOS_LIBRARIES=$(DYNAMIC_MACOS_LIBRARIES)
-	@echo MACOS_LIBRARY_SOURCES=$(MACOS_LIBRARY_SOURCES)
-	@echo MACOS_EXECUTABLE_SOURCES=$(MACOS_EXECUTABLE_SOURCES)
-	@echo MACOS_LIBRARY_OBJECTS=$(MACOS_LIBRARY_OBJECTS)
-	@echo MACOS_EXECUTABLE_OBJECTS=$(MACOS_EXECUTABLE_OBJECTS)
-	@echo MACOS_EXECUTABLES=$(MACOS_EXECUTABLES)
-	@echo MACOS_DEPENDENCIES=$(MACOS_DEPENDENCIES)
-	@echo MACOS_LIBRARIES=$(MACOS_LIBRARIES)
-
-	@echo ALL_SOURCES=$(ALL_SOURCES)
-	@echo ALL_OBJECTS=$(ALL_OBJECTS)
-	@echo ALL_LIBRARIES=$(ALL_LIBRARIES)
-	@echo ALL_EXECUTABLES=$(ALL_EXECUTABLES)
