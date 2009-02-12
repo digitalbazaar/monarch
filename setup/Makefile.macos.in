@@ -1,0 +1,115 @@
+# This file contains platform-specific Makefile rules for building 
+# Mac OSX binaries and packages.
+
+# MacOS-specific variables
+MACOS_CXX = @MACOS_CXX@
+MACOS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -fPIC -DMACOS $(MODULE_MACOS_CXX_FLAGS) @DEFS@
+MACOS_LD_FLAGS = @LDFLAGS@
+MACOS_INCLUDES = $(INCLUDES) -I/sw/include
+MACOS_LIB_DIR = $(DBCORE)/libs/macos
+MACOS_LIBS = -L$(MACOS_LIB_DIR) -L/sw/lib
+MACOS_AR = @MACOS_AR@
+MACOS_AS = @MACOS_AS@
+MACOS_BUILD_DIR = build/macos
+MACOS_DIST_DIR = dist/macos
+MACOS_CPP_SOURCES := $(filter %.cpp, $(SOURCES))
+MACOS_AS_SOURCES := $(filter %.S, $(SOURCES))
+MACOS_LIBRARY_SOURCES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%.cpp, $(MACOS_CPP_SOURCES))  $(patsubst %.S,$(MACOS_BUILD_DIR)/%.S, $(MACOS_AS_SOURCES))
+MACOS_EXECUTABLE_SOURCES := $(patsubst %,$(MACOS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
+MACOS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.o, $(MACOS_CPP_SOURCES)) $(patsubst %.S,$(MACOS_BUILD_DIR)/%-asm-macos.o, $(MACOS_AS_SOURCES))
+MACOS_EXECUTABLE_OBJECTS := $(patsubst %,$(MACOS_BUILD_DIR)/%-macos.o, $(EXECUTABLES))
+DYNAMIC_MACOS_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_MACOS_LIBRARIES)
+MACOS_EXECUTABLES := $(patsubst %,$(MACOS_DIST_DIR)/%, $(EXECUTABLES))
+MACOS_DEPENDENCIES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.P, $(MACOS_CPP_SOURCES))
+MACOS_DEPENDENCIES += $(patsubst %.cpp,%-macos.P, $(MACOS_EXECUTABLE_SOURCES))
+
+MACOS_LIBRARIES := $(patsubst %,$(MACOS_DIST_DIR)/lib%.dylib, $(LIBRARIES))
+#MACOS_LIBRARIES += $(patsubst %,$(MACOS_DIST_DIR)/lib%.a, $(LIBRARIES))
+
+ALL_SOURCES += $(MACOS_LIBRARY_SOURCES) $(MACOS_EXECUTABLE_SOURCES)
+ALL_OBJECTS += $(MACOS_LIBRARY_OBJECTS) $(MACOS_EXECUTABLE_OBJECTS)
+ALL_LIBRARIES += $(MACOS_LIBRARIES)
+ALL_EXECUTABLES += $(MACOS_EXECUTABLES)
+ALL_DIRECTORIES += $(MACOS_BUILD_DIR) $(MACOS_DIST_DIR)
+
+ifndef MAKE_CLEAN_ACTIVE
+-include $(MACOS_DEPENDENCIES)
+endif
+
+clean-objects:
+	$(PCMD) rm -rf $(MACOS_BUILD_DIR)
+
+clean-libraries:
+	$(PCMD) rm -rf $(MACOS_DIST_DIR)
+
+$(MACOS_LIBRARY_SOURCES): build-setup
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+
+ifdef EXECUTABLES
+$(MACOS_EXECUTABLE_SOURCES): build-setup
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+endif
+
+%-asm-macos.o: %.S
+	echo "Building $(basename $@).o..."
+	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
+	$(PCMD) cp $(basename $@).d $(basename $@).P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
+		rm -f $(basename $@).d
+
+%-macos.o %-macos.P: %.cpp
+	@echo "Building $(basename $@).o..."
+	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
+	$(PCMD) cp $(basename $@).d $(basename $@).P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
+		rm -f $(basename $@).d
+endif
+
+%.dylib: $(MACOS_LIBRARY_OBJECTS)
+	@echo "Building $@..."
+	$(PCMD) mkdir -p $(MACOS_LIB_DIR)
+	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
+	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(MACOS_LIB_DIR)/$(@F)
+
+ifdef EXECUTABLES
+#$(STATIC_MACOS_LIBRARIES):
+#	# This is a fake target to override the default .dylib build
+$(MACOS_EXECUTABLES): $(MACOS_LIBRARY_SOURCES) $(MACOS_EXECUTABLE_SOURCES) $(MACOS_EXECUTABLE_OBJECTS) $(STATIC_MACOS_LIBRARIES)
+	@echo "Building $(@F)..."
+	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -o $@ $(MACOS_BUILD_DIR)/$(@F)-macos.o $(DYNAMIC_MACOS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
+endif
+
+dump-variables:
+	@echo BUILD_FOR_LINUX=$(BUILD_FOR_LINUX)
+	@echo BUILD_FOR_WINDOWS=$(BUILD_FOR_WINDOWS)
+	@echo BUILD_FOR_MACOS=$(BUILD_FOR_MACOS)
+	@echo AR_FLAGS=$(AR_FLAGS)
+	@echo DBCORE=$(DBCORE)
+	@echo INCLUDES=$(INCLUDES)
+	@echo MODULE_BASE_DIR=$(MODULE_BASE_DIR)
+
+# MacOS-specific variables
+	@echo MACOS_CXX=$(MACOS_CXX)
+	@echo MACOS_CXX_FLAGS=$(MACOS_CXX_FLAGS)
+	@echo MACOS_INCLUDES=$(MACOS_INCLUDES)
+	@echo MACOS_LIB_DIR=$(MACOS_LIB_DIR)
+	@echo MACOS_LIBS=$(MACOS_LIBS)
+	@echo MACOS_AR=$(MACOS_AR)
+	@echo MACOS_BUILD_DIR=$(MACOS_BUILD_DIR)
+	@echo MACOS_DIST_DIR=$(MACOS_DIST_DIR)
+	@echo DYNAMIC_MACOS_LIBRARIES=$(DYNAMIC_MACOS_LIBRARIES)
+	@echo MACOS_LIBRARY_SOURCES=$(MACOS_LIBRARY_SOURCES)
+	@echo MACOS_EXECUTABLE_SOURCES=$(MACOS_EXECUTABLE_SOURCES)
+	@echo MACOS_LIBRARY_OBJECTS=$(MACOS_LIBRARY_OBJECTS)
+	@echo MACOS_EXECUTABLE_OBJECTS=$(MACOS_EXECUTABLE_OBJECTS)
+	@echo MACOS_EXECUTABLES=$(MACOS_EXECUTABLES)
+	@echo MACOS_DEPENDENCIES=$(MACOS_DEPENDENCIES)
+	@echo MACOS_LIBRARIES=$(MACOS_LIBRARIES)
+
+	@echo ALL_SOURCES=$(ALL_SOURCES)
+	@echo ALL_OBJECTS=$(ALL_OBJECTS)
+	@echo ALL_LIBRARIES=$(ALL_LIBRARIES)
+	@echo ALL_EXECUTABLES=$(ALL_EXECUTABLES)
+
