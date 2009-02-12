@@ -7,6 +7,7 @@
 #include "db/io/ByteArrayInputStream.h"
 #include "db/io/MutatorInputStream.h"
 #include <errno.h>
+#include <cstdlib>
 
 using namespace db::data;
 using namespace db::io;
