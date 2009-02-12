@@ -124,6 +124,23 @@ public:
     * @return the number of non-reversible conversions since reset().
     */
    virtual uint32_t getNonReversibleConversions();
+   
+   /**
+    * A static helper method that converts a string from one character
+    * set to another. This method is only useful for character sets that
+    * do not allow null characters, as the string parameters rely on null
+    * terminators.
+    * 
+    * @param in the input string.
+    * @param inCharSet the input character set code.
+    * @param out the output string.
+    * @param outCharSet the output character set code.
+    * 
+    * @return true if successful, false on error.
+    */
+   static bool convert(
+      const std::string& in, const char* inCharSet,
+      std::string& out, const char* outCharSet);
 };
 
 } // end namespace io

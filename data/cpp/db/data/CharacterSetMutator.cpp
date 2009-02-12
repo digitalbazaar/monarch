@@ -4,6 +4,8 @@
 #include "db/data/CharacterSetMutator.h"
 
 #include "db/rt/DynamicObject.h"
+#include "db/io/ByteArrayInputStream.h"
+#include "db/io/MutatorInputStream.h"
 #include <errno.h>
 
 using namespace db::data;
@@ -21,6 +23,12 @@ CharacterSetMutator::CharacterSetMutator() :
 
 CharacterSetMutator::~CharacterSetMutator()
 {
+   // ensure convert descriptor closed
+   if(mConvertDescriptor != INVALID_ICONV)
+   {
+      iconv_close(mConvertDescriptor);
+      mConvertDescriptor = INVALID_ICONV;
+   }
 }
 
 bool CharacterSetMutator::setCharacterSets(const char* from, const char* to)
@@ -38,6 +46,10 @@ bool CharacterSetMutator::setCharacterSets(const char* from, const char* to)
          e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
          rval = false;
+      }
+      else
+      {
+         mConvertDescriptor = INVALID_ICONV;
       }
    }
    
@@ -209,4 +221,32 @@ bool CharacterSetMutator::isFinished()
 uint32_t CharacterSetMutator::getNonReversibleConversions()
 {
    return mNonReversibles;
+}
+
+bool CharacterSetMutator::convert(
+   const std::string& in, const char* inCharSet,
+   std::string& out, const char* outCharSet)
+{
+   bool rval = false;
+   
+   CharacterSetMutator csm;
+   if(csm.setCharacterSets(inCharSet, outCharSet))
+   {
+      out.clear();
+      ByteArrayInputStream bais(in.c_str(), in.length());
+      MutatorInputStream mis(&bais, false, &csm, false);
+      
+      int numBytes;
+      char* buf = (char*)malloc(1024);
+      while((numBytes = mis.read(buf, 1024)) > 0)
+      {
+         out.append(buf, numBytes);
+      }
+      free(buf);
+      mis.close();
+      
+      rval = (numBytes != -1);
+   }
+   
+   return rval;
 }

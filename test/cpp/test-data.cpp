@@ -1476,6 +1476,7 @@ void runCharacterSetMutatorTest(TestRunner& tr)
       {
          out.append(b, numBytes);
       }
+      mis.close();
       
       //printf("output: '%s'\n", out.c_str());
    }
@@ -1487,19 +1488,8 @@ void runCharacterSetMutatorTest(TestRunner& tr)
       const char* data =
          "foo";
       
-      CharacterSetMutator csm;
-      csm.setCharacterSets("ISO-8859-1", "UTF-8");
-      
-      ByteArrayInputStream bais(data, strlen(data));
       string out;
-      MutatorInputStream mis(&bais, false, &csm, false);
-      int numBytes;
-      char b[2048];
-      while((numBytes = mis.read(b, 2048)) > 0)
-      {
-         out.append(b, numBytes);
-      }
-      
+      CharacterSetMutator::convert(data, "ISO-8859-1", out, "UTF-8");
       //printf("output: '%s'\n", out.c_str());
    }
    tr.passIfNoException();
