@@ -14,6 +14,8 @@ build-libraries:
 	@ln -sf $(MODULE_BASE_DIR)/expat/libexpat.a $(WINDOWS_LIB_DIR)/libexpat.lib
 	@ln -sf $(MODULE_BASE_DIR)/expat/libexpat.a $(WINDOWS_LIB_DIR)/expat.dll
 	@ln -sf $(MODULE_BASE_DIR)/expat/libexpat.dll $(WINDOWS_LIB_DIR)/libexpat.dll
+	@ln -sf $(MODULE_BASE_DIR)/iconv/libiconv2.dll $(WINDOWS_LIB_DIR)/iconv2.dll
+	@ln -sf $(MODULE_BASE_DIR)/iconv/libcharset1.dll $(WINDOWS_LIB_DIR)/charset1.dll
 	@ln -sf $(MODULE_BASE_DIR)/mysql/libmysql.lib $(WINDOWS_LIB_DIR)/libmysql.lib
 	@ln -sf $(MODULE_BASE_DIR)/mysql/mysys.lib $(WINDOWS_LIB_DIR)/mysys.lib
 	@ln -sf $(MODULE_BASE_DIR)/mysql/regex.lib $(WINDOWS_LIB_DIR)/regex.lib
