@@ -1,0 +1,120 @@
+# This file contains platform-specific Makefile rules for building
+# Windows binaries and packages.
+
+# Windows-specific variables
+WINDOWS_CXX = @WINDOWS_CXX@
+WINDOWS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -D_WIN32_WINNT=0x0501 $(MODULE_WINDOWS_CXX_FLAGS) @DEFS@ -march=i686
+WINDOWS_LD_FLAGS = @LDFLAGS@
+WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/3rdparty/cpp/pthread/include -I$(DBCORE)/3rdparty/cpp/openssl/include -I$(DBCORE)/3rdparty/cpp/expat/include -I$(DBCORE)/3rdparty/cpp/mysql/include -I$(DBCORE)/3rdparty/cpp/regex/include -I$(DBCORE)/3rdparty/cpp/sqlite3/include -I$(DBCORE)/3rdparty/cpp/zlib/include
+WINDOWS_LIB_DIR = $(DBCORE)/libs/windows
+WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
+WINDOWS_AR = @WINDOWS_AR@
+WINDOWS_AS = @WINDOWS_AS@
+DYNAMIC_WINDOWS_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_WINDOWS_LIBRARIES)
+WINDOWS_DLLWRAP = @WINDOWS_DLLWRAP@
+WINDOWS_DLLWRAP_FLAGS = --as=$(WINDOWS_AS) --export-all --driver-name $(WINDOWS_CXX) -s
+WINDOWS_BUILD_DIR = build/windows
+WINDOWS_DIST_DIR = dist/windows
+WINDOWS_LIBRARY_SOURCES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%.cpp, $(SOURCES))
+WINDOWS_EXECUTABLE_SOURCES := $(patsubst %,$(WINDOWS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
+WINDOWS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-windows.o, $(SOURCES))
+WINDOWS_EXECUTABLE_OBJECTS := $(patsubst %,$(WINDOWS_BUILD_DIR)/%-windows.o, $(EXECUTABLES))
+WINDOWS_EXECUTABLES := $(patsubst %,$(WINDOWS_DIST_DIR)/%, $(EXECUTABLES))
+WINDOWS_EXE_EXECUTABLES := $(patsubst %,%.exe, $(WINDOWS_EXECUTABLES))
+WINDOWS_DEPENDENCIES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-windows.P, $(SOURCES))
+WINDOWS_DEPENDENCIES += $(patsubst %.cpp,-windows%.P, $(WINDOWS_EXECUTABLE_SOURCES))
+
+WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_DIST_DIR)/%.lib, $(LIBRARIES))
+WINDOWS_LIBRARIES += $(patsubst %,$(WINDOWS_DIST_DIR)/%.dll, $(LIBRARIES))
+
+ALL_SOURCES += $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES)
+ALL_OBJECTS += $(WINDOWS_LIBRARY_OBJECTS) $(WINDOWS_EXECUTABLE_OBJECTS)
+ALL_LIBRARIES += $(WINDOWS_LIBRARIES)
+ALL_EXECUTABLES += $(WINDOWS_EXE_EXECUTABLES)
+ALL_DIRECTORIES += $(WINDOWS_BUILD_DIR) $(WINDOWS_DIST_DIR)
+
+ifndef MAKE_CLEAN_ACTIVE
+-include $(WINDOWS_DEPENDENCIES)
+endif
+
+clean-objects:
+	$(PCMD) rm -rf $(WINDOWS_BUILD_DIR)
+
+clean-libraries:
+	$(PCMD) rm -rf $(WINDOWS_DIST_DIR)
+
+$(WINDOWS_LIBRARY_SOURCES): build-setup
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+
+ifdef EXECUTABLES
+$(WINDOWS_EXECUTABLE_SOURCES): build-setup
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+endif
+
+%-windows.o %-windows.P: %.cpp
+	@echo "Building $(basename $@).o..."
+	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -c -MD -o $(basename $@).o $(WINDOWS_INCLUDES) -I. $<
+	$(PCMD) cp $(basename $@).d $(basename $@).P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
+		rm -f $(basename $@).d
+
+%.dll: $(WINDOWS_LIBRARY_OBJECTS)
+	@echo "Building $@..."
+	$(PCMD) $(WINDOWS_DLLWRAP) $(WINDOWS_DLLWRAP_FLAGS) $(WINDOWS_LIBS) --output-def $(@:.dll=.def) --implib $(@:.dll=.lib) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=$(WINDOWS_LIB_DIR)/%.dll) $(EXTRA_WINDOWS_LIBRARIES)
+	$(PCMD) mkdir -p $(WINDOWS_LIB_DIR)
+	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
+
+%.lib: $(WINDOWS_LIBRARY_OBJECTS)
+	@echo "Building $@..."
+	$(PCMD) $(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
+	$(PCMD) mkdir -p $(WINDOWS_LIB_DIR)
+	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(WINDOWS_LIB_DIR)/$(@F)
+
+ifdef EXECUTABLES
+$(STATIC_WINDOWS_LIBRARIES):
+	# This is a fake target to override the default .lib build
+$(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES) $(WINDOWS_EXECUTABLE_OBJECTS) $(STATIC_WINDOWS_LIBRARIES)
+	@echo "Building $(@F)..."
+	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) $(WINDOWS_LD_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
+# rule to just copy non-exe to .exe
+%.exe: %
+	@echo "Copying $(basename $@) to .exe..."
+	$(PCMD) cp $< $@
+endif
+
+dump-variables:
+	@echo BUILD_FOR_LINUX=$(BUILD_FOR_LINUX)
+	@echo BUILD_FOR_WINDOWS=$(BUILD_FOR_WINDOWS)
+	@echo BUILD_FOR_MACOS=$(BUILD_FOR_MACOS)
+	@echo AR_FLAGS=$(AR_FLAGS)
+	@echo DBCORE=$(DBCORE)
+	@echo INCLUDES=$(INCLUDES)
+	@echo MODULE_BASE_DIR=$(MODULE_BASE_DIR)
+# Windows-specific variables
+	@echo WINDOWS_CXX=$(WINDOWS_CXX)
+	@echo WINDOWS_CXX_FLAGS=$(WINDOWS_CXX_FLAGS)
+	@echo WINDOWS_INCLUDES=$(WINDOWS_INCLUDES)
+	@echo WINDOWS_LIB_DIR=$(WINDOWS_LIB_DIR)
+	@echo WINDOWS_LIBS=$(WINDOWS_LIBS)
+	@echo WINDOWS_AR=$(WINDOWS_AR)
+	@echo WINDOWS_AS=$(WINDOWS_AS)
+	@echo DYNAMIC_WINDOWS_LIBRARIES=$(DYNAMIC_WINDOWS_LIBRARIES)
+	@echo WINDOWS_DLLWRAP=$(WINDOWS_DLLWRAP)
+	@echo WINDOWS_DLLWRAP_FLAGS=$(WINDOWS_DLLWRAP_FLAGS)
+	@echo WINDOWS_BUILD_DIR=$(WINDOWS_BUILD_DIR)
+	@echo WINDOWS_DIST_DIR=$(WINDOWS_DIST_DIR)
+	@echo WINDOWS_LIBRARY_SOURCES=$(WINDOWS_LIBRARY_SOURCES)
+	@echo WINDOWS_EXECUTABLE_SOURCES=$(WINDOWS_EXECUTABLE_SOURCES)
+	@echo WINDOWS_LIBRARY_OBJECTS=$(WINDOWS_LIBRARY_OBJECTS)
+	@echo WINDOWS_EXECUTABLE_OBJECTS=$(WINDOWS_EXECUTABLE_OBJECTS)
+	@echo WINDOWS_EXECUTABLES=$(WINDOWS_EXECUTABLES)
+	@echo WINDOWS_EXE_EXECUTABLES=$(WINDOWS_EXE_EXECUTABLES)
+	@echo WINDOWS_DEPENDENCIES=$(WINDOWS_DEPENDENCIES)
+	@echo WINDOWS_LIBRARIES=$(WINDOWS_LIBRARIES)
+
+	@echo ALL_SOURCES=$(ALL_SOURCES)
+	@echo ALL_OBJECTS=$(ALL_OBJECTS)
+	@echo ALL_LIBRARIES=$(ALL_LIBRARIES)
+	@echo ALL_EXECUTABLES=$(ALL_EXECUTABLES)
