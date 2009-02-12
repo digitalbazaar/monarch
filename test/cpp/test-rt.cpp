@@ -572,6 +572,14 @@ void runDynamicObjectTest(TestRunner& tr)
    }
    
    {
+      // test formatted string using current string
+      DynamicObject d;
+      d = "b";
+      d->format("a%sc", d->getString());
+      assertStrCmp(d->getString(), "abc");
+   }
+   
+   {
       // test length types
       {
          DynamicObject d;
