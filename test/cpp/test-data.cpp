@@ -1556,6 +1556,8 @@ public:
       
       runTemplateInputStreamTest(tr);
       
+      runCharacterSetMutatorTest(tr);
+      
       return 0;
    }
 
@@ -1564,8 +1566,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      //runJsonReaderSpeedTest(tr);
-      runCharacterSetMutatorTest(tr);
+      runJsonReaderSpeedTest(tr);
       return 0;
    }
 };

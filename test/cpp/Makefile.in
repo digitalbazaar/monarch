@@ -52,9 +52,9 @@ LINUX_LIB_DIR = @DBCOREDIR@/libs/linux
 WINDOWS_LIB_DIR = @DBCOREDIR@/libs/windows
 MACOS_LIB_DIR = @DBCOREDIR@/libs/windows
 
-DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 iconv2 charset1 $(MYSQL_DYNAMIC_LINUX_LIBRARIES)
+DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LINUX_LIBRARIES)
 
-EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/expat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(MYSQL_EXTRA_WINDOWS_LIBRARIES) -lwsock32 -ldbtest
+EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/expat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(WINDOWS_LIB_DIR)/iconv2.dll $(WINDOWS_LIB_DIR)/charset1.dll $(MYSQL_EXTRA_WINDOWS_LIBRARIES) -lwsock32 -ldbtest
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
