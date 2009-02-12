@@ -12,10 +12,11 @@ SOURCES = $(wildcard db/data/*.cpp) \
 
 LIBRARIES = dbdata
 DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt dblogging
-DYNAMIC_WINDOWS_LIBRARIES = expat
+DYNAMIC_WINDOWS_LIBRARIES = expat iconv2 charset1
+DYNAMIC_MACOS_LIBRARIES = iconv charset expat dbcompress
+
 # Control import/export behavior
 MODULE_WINDOWS_CXX_FLAGS = -DBUILD_DB_DATA_DLL
-DYNAMIC_MACOS_LIBRARIES = expat dbcompress
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

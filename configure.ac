@@ -11,6 +11,7 @@ DBCOREDIR=`pwd`
 DATE_RFC_2822=`date +"%a, %d %b %Y %H:%M:%S %z"`
 DATE_YMD=`date +%Y%m%d`
 FULL_VERSION=${PACKAGE_VERSION}-${DATE_YMD}
+FULL_DOTTED_VERSION=${PACKAGE_VERSION}
 
 # Check for particular build options
 AC_ARG_ENABLE([linux],
@@ -82,6 +83,7 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
    AC_CHECK_PROG(MACOS_AR, ar, ar, not found)
    AC_CHECK_PROG(MACOS_AS, as, as, not found)
    MACOS_CXX="$CXX"
+   LDFLAGS="-L/sw/lib"
 fi
 
 AC_ARG_ENABLE([sphinx],
@@ -134,6 +136,7 @@ AC_SUBST(DBCOREDIR)
 
 AC_SUBST(DATE_RFC_2822)
 AC_SUBST(FULL_VERSION)
+AC_SUBST(FULL_DOTTED_VERSION)
 
 AC_SUBST(BUILD_FOR_LINUX)
 AC_SUBST(BUILD_FOR_WINDOWS)

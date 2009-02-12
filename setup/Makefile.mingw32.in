@@ -5,7 +5,7 @@
 WINDOWS_CXX = @WINDOWS_CXX@
 WINDOWS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -D_WIN32_WINNT=0x0501 $(MODULE_WINDOWS_CXX_FLAGS) @DEFS@ -march=i686
 WINDOWS_LD_FLAGS = @LDFLAGS@
-WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/3rdparty/cpp/pthread/include -I$(DBCORE)/3rdparty/cpp/openssl/include -I$(DBCORE)/3rdparty/cpp/expat/include -I$(DBCORE)/3rdparty/cpp/mysql/include -I$(DBCORE)/3rdparty/cpp/regex/include -I$(DBCORE)/3rdparty/cpp/sqlite3/include -I$(DBCORE)/3rdparty/cpp/zlib/include
+WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/3rdparty/cpp/pthread/include -I$(DBCORE)/3rdparty/cpp/openssl/include -I$(DBCORE)/3rdparty/cpp/expat/include -I$(DBCORE)/3rdparty/cpp/mysql/include -I$(DBCORE)/3rdparty/cpp/regex/include -I$(DBCORE)/3rdparty/cpp/sqlite3/include -I$(DBCORE)/3rdparty/cpp/zlib/include -I$(DBCORE)/3rdparty/cpp/iconv/include
 WINDOWS_LIB_DIR = $(DBCORE)/libs/windows
 WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
 WINDOWS_AR = @WINDOWS_AR@

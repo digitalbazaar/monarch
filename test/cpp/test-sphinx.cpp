@@ -26,7 +26,7 @@ void runSphinxClientTest(TestRunner &tr, db::test::Tester& tester)
    
    tr.test("searchd protocol");
    {
-      Url url("sphinx://omega:3312");
+      Url url("sphinx://omega.digitalbazaar.com:3312");
       
       SphinxCommand cmd;
       SphinxResponse response;

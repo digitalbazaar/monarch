@@ -4,7 +4,7 @@
 # MacOS-specific variables
 MACOS_CXX = @MACOS_CXX@
 MACOS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -fPIC -DMACOS $(MODULE_MACOS_CXX_FLAGS) @DEFS@
-MACOS_LD_FLAGS = @LDFLAGS@
+MACOS_LD_FLAGS = @LDFLAGS@ -Wl,-dylib_compatibility_version,@FULL_DOTTED_VERSION@ -Wl,-dylib_current_version,@FULL_DOTTED_VERSION@
 MACOS_INCLUDES = $(INCLUDES) -I/sw/include
 MACOS_LIB_DIR = $(DBCORE)/libs/macos
 MACOS_LIBS = -L$(MACOS_LIB_DIR) -L/sw/lib
@@ -65,12 +65,11 @@ endif
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
-endif
 
 %.dylib: $(MACOS_LIBRARY_OBJECTS)
 	@echo "Building $@..."
 	$(PCMD) mkdir -p $(MACOS_LIB_DIR)
-	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
+	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -install_name @DBCOREDIR@/libs/macos/$(@F) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
 	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(MACOS_LIB_DIR)/$(@F)
 
 ifdef EXECUTABLES
