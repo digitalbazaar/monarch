@@ -83,7 +83,7 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
    AC_CHECK_PROG(MACOS_AR, ar, ar, not found)
    AC_CHECK_PROG(MACOS_AS, as, as, not found)
    MACOS_CXX="$CXX"
-   LDFLAGS="-L/sw/lib"
+   LDFLAGS="$LDFLAGS -L/sw/lib"
 fi
 
 AC_ARG_ENABLE([sphinx],

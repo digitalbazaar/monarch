@@ -81,7 +81,11 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
             // check to see if the connection has been shutdown, by seeing
             // if recv() will return 0 (do a peek so as not to disturb data)
             char buf;
-            if(recv(fd, &buf, 1, MSG_DONTWAIT | MSG_PEEK) <= 0)
+            int flags = MSG_PEEK;
+#ifdef MSG_DONTWAIT
+            flags |= MSG_DONTWAIT;
+#endif
+            if(recv(fd, &buf, 1, flags) <= 0)
             {
                // connection closed, or error
                rval = -1;
