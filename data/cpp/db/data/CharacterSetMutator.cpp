@@ -118,12 +118,16 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
       }
       else
       {
-         // libiconv uses const char* for iconv input
-	 // glibc uses char* which conforms to POSIX
-#ifdef _LIBICONV_VERSION
-         const char* in;
-#else
+// libiconv uses const char* for iconv input glibc uses char* which conforms 
+// to POSIX
+#ifndef _LIBICONV_VERSION
          char* in;
+// the iconv() function on Apple PPC has a different signature than the i386
+// version of the header
+#elif (_LIBICONV_VERSION == 0x010B) && (__APPLE__) && !defined(__PPC_)
+         char* in;
+#else
+         const char* in;
 #endif
          // get in buffer
          in = src->data();
