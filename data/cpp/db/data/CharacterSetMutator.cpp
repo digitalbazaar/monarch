@@ -124,7 +124,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
          char* in;
 // the iconv() function on Apple PPC has a different signature than the i386
 // version of the header
-#elif (_LIBICONV_VERSION == 0x010B) && (__APPLE__) && !defined(__PPC_)
+#elif (_LIBICONV_VERSION == 0x010B) && (__APPLE__) && !defined(__ppc__)
          char* in;
 #else
          const char* in;
