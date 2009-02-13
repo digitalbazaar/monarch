@@ -63,6 +63,16 @@ bool AbstractSocket::create(int domain, int type, int protocol)
       int reuse = 1;
       int error = setsockopt(
          fd, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse, sizeof(reuse));
+#if !defined(MSG_NOSIGNAL) && defined(SO_NOSIGPIPE)
+      if(error == 0)
+      {
+         // nescessary on platforms that don't support MSG_NOSIGNAL option
+         // on send()
+         int on = 1;
+         error = setsockopt(
+            fd, SOL_SOCKET, SO_NOSIGPIPE, (void*)&on, sizeof(on));
+      }
+#endif
       if(error < 0)
       {
          // close socket
@@ -342,8 +352,27 @@ Socket* AbstractSocket::accept(unsigned int timeout)
       }
       else if(fd != 0)
       {
-         // create a connected Socket
-         rval = createConnectedSocket(fd);
+         bool success = true;
+#if !defined(MSG_NOSIGNAL) && defined(SO_NOSIGPIPE)
+         // nescessary on platforms that don't support MSG_NOSIGNAL option
+         // on send()
+         int on = 1;
+         int error = setsockopt(
+            fd, SOL_SOCKET, SO_NOSIGPIPE, (void*)&on, sizeof(on));
+         if(error < 0)
+         {
+            ExceptionRef e = new Exception(
+               "Could not set socket options.", SOCKET_EXCEPTION_TYPE);
+            e->getDetails()["error"] = strerror(errno);
+            Exception::setLast(e, false);
+            success = false;
+         }
+#endif
+         if(success)
+         {
+            // create a connected Socket
+            rval = createConnectedSocket(fd);
+         }
       }
    }
    
@@ -445,9 +474,19 @@ bool AbstractSocket::send(const char* b, int length)
       int bytes;
       while(rval && length > 0)
       {
-         // try to send some data, don't block, don't send SIGPIPE
+         // try to send some data
+         // don't block and don't send SIGPIPE per send() if possible
+         // Platforms without MSG_NOSIGNAL such as MacOS set a per-socket
+         // SO_NOSIGPIPE option.
+         int flags = 0;
+#ifdef MSG_DONTWAIT
+         flags |= MSG_DONTWAIT;
+#endif
+#ifdef MSG_NOSIGNAL
+         flags |= MSG_NOSIGNAL;
+#endif
          bytes = SOCKET_MACRO_send(
-            mFileDescriptor, b + offset, length, MSG_DONTWAIT | MSG_NOSIGNAL);
+            mFileDescriptor, b + offset, length, flags);
          if(bytes < 0)
          {
             // see if socket buffer is full (EAGAIN)
@@ -505,7 +544,11 @@ int AbstractSocket::receive(char* b, int length)
    else
    {
       // try to receive some data, don't block
-      rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, MSG_DONTWAIT);
+      int flags = 0;
+#ifdef MSG_DONTWAIT
+      flags |= MSG_DONTWAIT;
+#endif
+      rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, flags);
       if(rval < 0)
       {
          // see if no data is available (EGAIN)

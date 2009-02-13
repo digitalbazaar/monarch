@@ -121,11 +121,6 @@ typedef int socklen_t;
 #endif
 */
 
-// define MSG options
-// winsock doesn't support these messages
-#define MSG_DONTWAIT 0
-#define MSG_NOSIGNAL 0
-
 /*
 #define MSG_OOB         1
 #define MSG_PEEK        2
@@ -304,10 +299,6 @@ typedef int socklen_t;
 #endif
 #ifndef IPV6_DROP_MEMBERSHIP
    #define IPV6_DROP_MEMBERSHIP IPV6_LEAVE_GROUP
-#endif
-// define MSG options
-#ifndef MSG_NOSIGNAL
-   #define MSG_NOSIGNAL 0
 #endif
 
 #endif // MACOS
