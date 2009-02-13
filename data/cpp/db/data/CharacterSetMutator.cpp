@@ -118,8 +118,15 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
       }
       else
       {
+         // libiconv uses const char* for iconv input
+	 // glibc uses char* which conforms to POSIX
+#ifdef _LIBICONV_VERSION
+         const char* in;
+#else
+         char* in;
+#endif
          // get in buffer
-         const char* in = src->data();
+         in = src->data();
          size_t inBytesLeft = src->length();
          
          // get out buffer
