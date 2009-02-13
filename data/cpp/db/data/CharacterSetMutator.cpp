@@ -119,7 +119,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
       else
       {
          // get in buffer
-         char* in = src->data();
+         const char* in = src->data();
          size_t inBytesLeft = src->length();
          
          // get out buffer
