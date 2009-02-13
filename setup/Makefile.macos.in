@@ -7,7 +7,9 @@ MACOS_CXX_FLAGS = $(CXXFLAGS) -g -Wall -fPIC -DMACOS $(MODULE_MACOS_CXX_FLAGS) @
 MACOS_LD_FLAGS = @LDFLAGS@ -Wl,-dylib_compatibility_version,@FULL_DOTTED_VERSION@ -Wl,-dylib_current_version,@FULL_DOTTED_VERSION@
 MACOS_INCLUDES = $(INCLUDES) -I/sw/include
 MACOS_LIB_DIR = $(DBCORE)/libs/macos
-MACOS_LIBS = -L$(MACOS_LIB_DIR) -L/sw/lib
+MACOS_LIBS = -L$(MACOS_LIB_DIR)
+# Add default library location for Fink
+MACOS_LIBS += -L/sw/lib
 MACOS_AR = @MACOS_AR@
 MACOS_AS = @MACOS_AS@
 MACOS_BUILD_DIR = build/macos
