@@ -165,12 +165,9 @@ Exception* Thread::createInterruptedException()
 {
    Exception* rval = NULL;
    
-   unsigned int length = (getName() == NULL) ? 0 : strlen(getName());
-   length = 8 + length + 13 + 1;
-   char msg[length];
-   snprintf(msg, length, "Thread '%s' interrupted",
-      (getName() == NULL) ? "" : getName());
-   rval = new Exception(msg, "db.rt.Interrupted");
+   rval = new Exception("Thread interrupted", "db.rt.Interrupted");
+   const char* name = getName();
+   rval->getDetails()["name"] = ((name == NULL) ? "" : name);
    
    return rval;
 }
