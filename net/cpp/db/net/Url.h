@@ -6,6 +6,8 @@
 
 #include "db/rt/DynamicObject.h"
 
+#include <string>
+
 namespace db
 {
 namespace net

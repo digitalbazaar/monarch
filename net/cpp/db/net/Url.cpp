@@ -4,6 +4,7 @@
 #include "db/net/Url.h"
 
 #include "db/rt/DynamicObjectIterator.h"
+#include "db/rt/Exception.h"
 #include "db/util/Convert.h"
 #include "db/util/StringTokenizer.h"
 

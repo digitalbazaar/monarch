@@ -7,6 +7,7 @@
 #include "db/io/MutationAlgorithm.h"
 
 #include <iconv.h>
+#include <string>
 
 namespace db
 {

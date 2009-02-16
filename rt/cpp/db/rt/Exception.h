@@ -5,17 +5,12 @@
 #define db_rt_Exception_H
 
 #include "db/rt/Collectable.h"
-#include <stddef.h>
-#include <string>
-#include <cstring>
+#include "db/rt/DynamicObject.h"
 
 namespace db
 {
 namespace rt
 {
-
-// forward declare DynamicObject
-class DynamicObject;
 
 /**
  * An Exception is raised when some kind of unhandled behavior occurs.

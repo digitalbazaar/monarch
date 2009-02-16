@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
+#include "db/rt/Exception.h"
 #include "db/validation/ValidatorContext.h"
 
 #include <cstdlib>

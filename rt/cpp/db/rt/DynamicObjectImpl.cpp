@@ -8,6 +8,8 @@
 #include "db/rt/DynamicObject.h"
 
 #include <cstdlib>
+#include <cstdio>
+#include <string>
 #include <algorithm>
 
 using namespace std;

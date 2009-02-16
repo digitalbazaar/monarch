@@ -7,6 +7,7 @@
 #include "db/rt/DynamicObjectIterators.h"
 
 #include <cstdlib>
+#include <cctype>
 
 using namespace db::rt;
 

@@ -7,6 +7,8 @@
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
 
+#include <string>
+
 namespace db
 {
 namespace mail

@@ -9,6 +9,8 @@
 #include "db/data/mpeg/AudioBitrateTable.h"
 #include "db/data/mpeg/AudioSamplingRateTable.h"
 
+#include <string>
+
 namespace db
 {
 namespace data

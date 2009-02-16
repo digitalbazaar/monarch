@@ -7,6 +7,8 @@
 #include "db/io/InputStream.h"
 #include "db/io/ByteBuffer.h"
 
+#include <string>
+
 namespace db
 {
 namespace net

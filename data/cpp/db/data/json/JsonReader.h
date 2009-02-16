@@ -7,6 +7,7 @@
 #include "db/data/DynamicObjectReader.h"
 
 #include <vector>
+#include <string>
 
 namespace db
 {

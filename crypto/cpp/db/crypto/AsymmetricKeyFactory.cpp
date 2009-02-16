@@ -5,6 +5,7 @@
 
 #include "db/rt/System.h"
 #include "db/rt/DynamicObject.h"
+#include "db/rt/Exception.h"
 #include "db/util/Math.h"
 
 #include <openssl/err.h>

@@ -9,6 +9,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
 using namespace std;
 using namespace db::compress::gzip;

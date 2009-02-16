@@ -6,6 +6,8 @@
 
 #include "db/data/DynamicObjectWriter.h"
 
+#include <string>
+
 namespace db
 {
 namespace data

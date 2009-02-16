@@ -5,7 +5,6 @@
 #define db_rt_DynamicObject_H
 
 #include "db/rt/Collectable.h"
-#include "db/rt/Exception.h"
 #include "db/rt/DynamicObjectImpl.h"
 #include "db/rt/WindowsSupport.h"
 

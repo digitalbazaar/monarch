@@ -3,6 +3,8 @@
  */
 #include "db/util/regex/Pattern.h"
 
+#include <string>
+
 #include "db/rt/Exception.h"
 
 using namespace std;
