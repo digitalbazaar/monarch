@@ -1095,69 +1095,45 @@ class TestConnectionServicer3 : public ConnectionServicer
    }
 };
 
-void runServerConnectionTest()
+void runServerDynamicServiceTest(TestRunner& tr)
 {
-   cout << "Starting Server Connection test." << endl << endl;
-   
-   // create kernel
-   Kernel k;
-   k.getEngine()->start();
-   
-   // create server
-   Server server(&k);
-   InternetAddress address("0.0.0.0", 19100);
-   
-   // create generic service
-   TestConnectionServicer1 tcs1;
-   server.addConnectionService(&address, &tcs1);
-   
-//   // create generic service (stomp on other service)
-//   TestConnectionServicer2 tcs2;
-//   server.addConnectionService(&address, &tcs2);
-   
-   if(server.start())
+   tr.test("Server dynamic service");
    {
-      cout << "Server started." << endl;
+      // create kernel
+      Kernel k;
+      k.getEngine()->start();
+      
+      // create server
+      Server server(&k);
+      InternetAddress address1("0.0.0.0", 0);
+      InternetAddress address2("0.0.0.0", 0);
+      
+      // create generic service
+      TestConnectionServicer1 tcs1;
+      Server::ServiceId id1 = server.addConnectionService(&address1, &tcs1);
+      assert(id1 != 0);
+      
+      server.start();
+      assertNoException();
+      
+      // create generic service
+      TestConnectionServicer2 tcs2;
+      Server::ServiceId id2 = server.addConnectionService(&address2, &tcs2);
+      assert(id2 != 0);
+      
+      //printf("address1: %s\n", address1.toString().c_str());
+      //printf("address2: %s\n", address2.toString().c_str());
+      
+      // remove service 1
+      assert(server.removePortService(id1));
+      
+      // stop server
+      server.stop();
+      
+      // stop kernel engine
+      k.getEngine()->stop();
    }
-   else if(Exception::getLast() != NULL)
-   {
-      cout << "Server started with errors=" <<
-         Exception::getLast()->getMessage() << endl;
-   }
-   
-//   // create generic service (stomp on second service, dynamically stop/start)
-//   TestConnectionServicer3 tcs3;
-//   if(!server.addConnectionService(&address, &tcs3))
-//   {
-//      cout << "Could not start service 3!, exception=" <<
-//         Exception::getLast()->getMessage() << endl;
-//   }
-//   
-//   Thread::sleep(5000);
-//   
-//   // create generic service (stomp on third service, dynamically stop/start)
-//   if(!server.addConnectionService(&address, &tcs2))
-//   {
-//      cout << "Could not start service 2!, exception=" <<
-//         Exception::getLast()->getMessage() << endl;
-//   }
-   
-   ExclusiveLock lock;
-   lock.lock();
-   {
-      lock.wait();//lock.wait(120000);
-      //lock.wait(30000);
-   }
-   lock.unlock();
-   //Thread::sleep(60000);
-   
-   server.stop();
-   cout << "Server stopped." << endl;
-   
-   // stop kernel engine
-   k.getEngine()->stop();
-   
-   cout << endl << "Server Connection test complete." << endl;
+   tr.passIfNoException();
 }
 
 class BlastConnections : public Runnable
@@ -2143,6 +2119,7 @@ public:
    {
       runAddressResolveTest(tr);
       runSocketTest(tr);
+      runServerDynamicServiceTest(tr);
       runUrlEncodeTest(tr);
       runUrlTest(tr);
       runHttpHeaderTest(tr);
@@ -2163,7 +2140,6 @@ public:
 //      runTcpClientServerTest();
 //      runUdpClientServerTest();
 //      runDatagramTest();
-//      runServerConnectionTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
 //      runHttpNormalizePath(tr);

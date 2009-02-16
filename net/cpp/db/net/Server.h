@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_Server_H
 #define db_net_Server_H
@@ -12,6 +12,7 @@
 #include "db/net/SocketDataPresenter.h"
 #include "db/net/DatagramServicer.h"
 
+#include <list>
 #include <map>
 
 namespace db
@@ -31,6 +32,17 @@ namespace net
  */
 class Server
 {
+public:
+   /**
+    * A unique ID for a service that resides on this Server.
+    */
+   typedef uint32_t ServiceId;
+   
+   /**
+    * An invalid ServiceId.
+    */
+   static ServiceId sInvalidServiceId;
+   
 protected:
    /**
     * The modest OperationRunner used to run this server.
@@ -38,9 +50,16 @@ protected:
    db::modest::OperationRunner* mOperationRunner;
    
    /**
-    * A map of ports to PortServices.
+    * A list of available ServiceIds from removed services.
     */
-   std::map<unsigned short, PortService*> mPortServices;
+   typedef std::list<ServiceId> ServiceIdFreeList;
+   ServiceIdFreeList mServiceIdFreeList;
+   
+   /**
+    * A map of ServiceId to PortService.
+    */
+   typedef std::map<ServiceId, PortService*> PortServiceMap;
+   PortServiceMap mPortServices;
    
    /**
     * True if this server is running, false if not.
@@ -67,26 +86,6 @@ protected:
     */
    friend class ConnectionService;
    
-   /**
-    * Gets the PortService associated with the given port or NULL if none
-    * exists.
-    * 
-    * @return the PortService associated with the given port or NULL if
-    *         none exists.
-    */
-   virtual PortService* getPortService(unsigned short port);
-   
-   /**
-    * Adds a new PortService for the given port. If an old service exists
-    * on the given port, it is stopped and removed. If the server is running,
-    * the new service is started.
-    * 
-    * @param ps the new PortService to add.
-    * 
-    * @return true if the service was added/started properly.
-    */
-   virtual bool addPortService(PortService* ps);
-   
 public:
    /**
     * Creates a new Server that runs using the passed modest OperationRunner.
@@ -102,33 +101,50 @@ public:
    
    /**
     * Adds a ConnectionServicer to this server or replaces an existing one. If
-    * the server is running the service will be started.
+    * the server is running the service will be started. The added service will
+    * be assigned an ID which can be used to remove the service if desired.
     * 
     * @param a the address to listen on.
     * @param s the ConnectionServicer to service Connections with.
     * @param p the SocketDataPresenter to use to present data to the servicer.
     * 
-    * @return if the server is running: true if the service started, false
-    *         if not; if the server is not running: true.
+    * @return the ServiceId for the new service if the service was added, 0
+    *         if the service could not be added -- if the server is running
+    *         and the service could not be started, it will not be added, if
+    *         the server is not running, the service will be added.
     */
-   virtual bool addConnectionService(
+   virtual ServiceId addConnectionService(
       InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p = NULL);
    
    /**
     * Adds a DatagramService to this server or replaces an existing one. If
-    * the server is running the service will be started.
+    * the server is running the service will be started. The added service will
+    * be assigned an ID which can be used to remove the service if desired.
     * 
     * @param a the address to bind to.
     * @param s the DatagramServicer to service Datagrams with.
     * 
-    * @return if the server is running: true if the service started, false
-    *         if not; if the server is not running: true.
+    * @return the ServiceId for the new service if the service was added, 0
+    *         if the service could not be added -- if the server is running
+    *         and the service could not be started, it will not be added, if
+    *         the server is not running, the service will be added.
     */
-   virtual bool addDatagramService(InternetAddress* a, DatagramServicer* s);
+   virtual ServiceId addDatagramService(
+      InternetAddress* a, DatagramServicer* s);
    
    /**
-    * Starts this server if it isn't already running. If a service fails to
-    * start, an exception should be set on the current thread indicating why.
+    * Removes a ConnectionService or DatagramService by its assigned ID. If
+    * the service is running, it will be stopped before it is removed.
+    * 
+    * @param id the ServiceId of the service to remove.
+    * 
+    * @return true if a service was actually removed, false if not.
+    */
+   virtual bool removePortService(ServiceId id);
+   
+   /**
+    * Starts this server if it isn't already running. If any service fails to
+    * start, an exception will be set and start will fail.
     * 
     * @return true if all of the services for this server started, false if
     *         at least one failed.
@@ -176,6 +192,29 @@ public:
     * @return the current number of connections to this server.
     */
    virtual int32_t getConnectionCount();
+   
+protected:
+   /**
+    * Gets the PortService associated with the given ServiceId or NULL if none
+    * exists.
+    * 
+    * @param id the ServiceId associated with the PortService.
+    * 
+    * @return the PortService associated with the given ServiceId or NULL if
+    *         none exists.
+    */
+   virtual PortService* getPortService(ServiceId id);
+   
+   /**
+    * Adds a new PortService. If the server is running, the new service is
+    * started.
+    * 
+    * @param ps the new PortService to add.
+    * 
+    * @return the ServiceId for the PortService if it was added/started, 0
+    *         if it was not added/failed to start and should be deleted.
+    */
+   virtual ServiceId addPortService(PortService* ps);
 };
 
 } // end namespace net

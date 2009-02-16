@@ -274,6 +274,9 @@ bool AbstractSocket::bind(SocketAddress* address)
          
          // now bound
          mBound = true;
+         
+         // update address
+         getLocalAddress(address);
       }
    }
    

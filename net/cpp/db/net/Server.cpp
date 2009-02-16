@@ -1,102 +1,113 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/Server.h"
 
 #include "db/net/ConnectionService.h"
 #include "db/net/DatagramService.h"
 
+#include <algorithm>
+
 using namespace std;
 using namespace db::modest;
 using namespace db::net;
+using namespace db::rt;
 
-Server::Server(OperationRunner* opRunner)
+Server::ServiceId Server::sInvalidServiceId = 0;
+
+Server::Server(OperationRunner* opRunner) :
+   mOperationRunner(opRunner),
+   mRunning(false),
+   mMaxConnections(100),
+   mCurrentConnections(0)
 {
-   mOperationRunner = opRunner;
-   mRunning = false;
-   mMaxConnections = 100;
-   mCurrentConnections = 0;
+   // add first service ID
+   mServiceIdFreeList.push_back(1);
 }
 
 Server::~Server()
 {
    // ensure server is stopped
-   stop();
+   Server::stop();
    
    // delete all port services
-   for(map<unsigned short, PortService*>::iterator i = mPortServices.begin();
+   for(PortServiceMap::iterator i = mPortServices.begin();
        i != mPortServices.end(); i++)
    {
       delete i->second;
    }
 }
 
-PortService* Server::getPortService(unsigned short port)
-{
-   PortService* rval = NULL;
-   
-   map<unsigned short, PortService*>::iterator i = mPortServices.find(port);
-   if(i != mPortServices.end())
-   {
-      rval = i->second;
-   }
-   
-   return rval;
-}
-
-bool Server::addPortService(PortService* ps)
-{
-   bool rval = false;
-   
-   // get old port service
-   PortService* old = getPortService(ps->getAddress()->getPort());
-   if(old != NULL)
-   {
-      // stop and delete old port service
-      old->stop();
-      delete old;
-   }
-   
-   // set new port service
-   mPortServices[ps->getAddress()->getPort()] = ps;
-   
-   // start service if server is running
-   if(isRunning())
-   {
-      rval = ps->start();
-   }
-   else
-   {
-      // no need to start service
-      rval = true;
-   }
-   
-   return rval;
-}
-
-bool Server::addConnectionService(
+Server::ServiceId Server::addConnectionService(
    InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p)
 {
-   bool rval = false;
+   ServiceId rval = sInvalidServiceId;
    
    mLock.lock();
    {
       // add ConnectionService
-      rval = addPortService(new ConnectionService(this, a, s, p));
+      ConnectionService* cs = new ConnectionService(this, a, s, p);
+      rval = addPortService(cs);
+      if(rval == sInvalidServiceId)
+      {
+         // clean up port service
+         delete cs;
+      }
    }
    mLock.unlock();
    
    return rval;
 }
 
-bool Server::addDatagramService(InternetAddress* a, DatagramServicer* s)
+Server::ServiceId Server::addDatagramService(
+   InternetAddress* a, DatagramServicer* s)
+{
+   ServiceId rval = sInvalidServiceId;
+   
+   mLock.lock();
+   {
+      // add DatagramService
+      DatagramService* ds = new DatagramService(this, a, s);
+      rval = addPortService(ds);
+      if(rval == sInvalidServiceId)
+      {
+         // clean up port service
+         delete ds;
+      }
+   }
+   mLock.unlock();
+   
+   return rval;
+}
+
+bool Server::removePortService(ServiceId id)
 {
    bool rval = false;
    
    mLock.lock();
    {
-      // add DatagramService
-      rval = addPortService(new DatagramService(this, a, s));
+      PortServiceMap::iterator i = mPortServices.find(id);
+      if(i != mPortServices.end())
+      {
+         // add port service ID to front of free list
+         mServiceIdFreeList.push_front(i->first);
+         
+         // remove port service from map
+         PortService* ps = i->second;
+         mPortServices.erase(i);
+         
+         // stop service if running
+         if(isRunning())
+         {
+            ps->stop();
+         }
+         
+         // delete port service
+         delete ps;
+         
+         // removed port service
+         rval = true;
+      }
    }
    mLock.unlock();
    
@@ -117,11 +128,24 @@ bool Server::start()
          // no connections yet
          mCurrentConnections = 0;
          
-         // start all port services
-         for(map<unsigned short, PortService*>::iterator i =
-             mPortServices.begin(); rval && i != mPortServices.end(); i++)
+         // start all port services, fail if any cannot start
+         for(PortServiceMap::iterator i = mPortServices.begin();
+             rval && i != mPortServices.end(); i++)
          {
             rval = i->second->start();
+         }
+         
+         if(!rval)
+         {
+            // save exception
+            ExceptionRef e = Exception::getLast();
+            Exception::clearLast();
+            
+            // stop all started port services
+            stop();
+            
+            // reset exception
+            Exception::setLast(e, false);
          }
       }
    }
@@ -137,15 +161,15 @@ void Server::stop()
       if(isRunning())
       {
          // interrupt all port services
-         for(map<unsigned short, PortService*>::iterator i =
-             mPortServices.begin(); i != mPortServices.end(); i++)
+         for(PortServiceMap::iterator i = mPortServices.begin();
+             i != mPortServices.end(); i++)
          {
             i->second->interrupt();
          }
          
          // stop all port services
-         for(map<unsigned short, PortService*>::iterator i =
-             mPortServices.begin(); i != mPortServices.end(); i++)
+         for(PortServiceMap::iterator i = mPortServices.begin();
+             i != mPortServices.end(); i++)
          {
             i->second->stop();
          }
@@ -183,4 +207,52 @@ inline int32_t Server::getMaxConnectionCount()
 inline int32_t Server::getConnectionCount()
 {
    return mCurrentConnections;
+}
+
+PortService* Server::getPortService(ServiceId id)
+{
+   PortService* rval = NULL;
+   
+   PortServiceMap::iterator i = mPortServices.find(id);
+   if(i != mPortServices.end())
+   {
+      rval = i->second;
+   }
+   
+   return rval;
+}
+
+Server::ServiceId Server::addPortService(PortService* ps)
+{
+   ServiceId rval = sInvalidServiceId;
+   
+   bool added;
+   if(isRunning())
+   {
+      // start service if server is running
+      added = ps->start();
+   }
+   else
+   {
+      // no need to start service
+      added = true;
+   }
+   
+   if(added)
+   {
+      // get available ServiceId
+      rval = mServiceIdFreeList.front();
+      mServiceIdFreeList.pop_front();
+      
+      // add new id if list is empty
+      if(mServiceIdFreeList.empty())
+      {
+         mServiceIdFreeList.push_back(rval + 1);
+      }
+      
+      // set new port service
+      mPortServices.insert(make_pair(rval, ps));
+   }
+   
+   return rval;
 }
