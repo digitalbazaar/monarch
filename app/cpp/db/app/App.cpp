@@ -25,6 +25,7 @@
 #include "db/io/FileOutputStream.h"
 #include "db/io/OStreamOutputStream.h"
 #include "db/rt/Exception.h"
+#include "db/rt/Platform.h"
 #include "db/rt/Thread.h"
 #include "db/util/Random.h"
 #include "db/util/StringTokenizer.h"
@@ -1416,11 +1417,13 @@ int App::main(int argc, const char* argv[])
    db::logging::Logging::initialize();
    initializeLogging();
    didInitializeLogging();
+   db::rt::Platform::initialize();
    
    Thread t(this);
    t.start();
    t.join();
    
+   db::rt::Platform::cleanup();
    willCleanupLogging();
    db::logging::Logging::cleanup();
    cleanupLogging();
