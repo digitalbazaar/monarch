@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_sql_Connection_H
 #define db_sql_Connection_H
@@ -7,6 +7,7 @@
 #include "db/net/Url.h"
 #include "db/sql/SqlException.h"
 #include "db/rt/Collectable.h"
+#include "db/util/StringTools.h"
 
 #include <cstring>
 
@@ -35,29 +36,11 @@ protected:
    db::net::UrlRef mUrl;
    
    /**
-    * An SqlComparator compares two sql statements.
+    * A map of sql to prepared statements for this connection using
+    * case-insensitive comparator to compare sql statements.
     */
-   struct NameComparator
-   {
-      /**
-       * Compares two null-terminated strings, returning true if the first is
-       * less than the second, false if not. The compare is case-insensitive.
-       * 
-       * @param s1 the first string.
-       * @param s2 the second string.
-       * 
-       * @return true if the s1 < s2, false if not.
-       */
-      bool operator()(const char* s1, const char* s2) const
-      {
-         return strcasecmp(s1, s2) < 0;
-      }
-   };
-   
-   /**
-    * A map of sql to prepared statements for this connection.
-    */
-   typedef std::map<const char*, Statement*, NameComparator> PreparedStmtMap;
+   typedef std::map<const char*, Statement*, db::util::StringCaseComparator>
+      PreparedStmtMap;
    PreparedStmtMap mPreparedStmts;
    
    /**

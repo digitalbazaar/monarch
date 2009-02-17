@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #ifndef db_net_SslSessionCache_H
 #define db_net_SslSessionCache_H
@@ -7,6 +7,7 @@
 #include "db/net/SslSession.h"
 #include "db/net/Url.h"
 #include "db/rt/SharedLock.h"
+#include "db/util/StringTools.h"
 
 #include <map>
 
@@ -24,29 +25,11 @@ class SslSessionCache
 {
 protected:
    /**
-    * A HostnameComparator compares two hostnames.
+    * A mapping of hostnames to re-usable SSL sessions using case-insensitive
+    * comparator to compare hostnames.
     */
-   struct HostnameComparator
-   {
-      /**
-       * Compares two null-terminated strings, returning true if the first is
-       * less than the second, false if not. The compare is case-insensitive.
-       * 
-       * @param s1 the first string.
-       * @param s2 the second string.
-       * 
-       * @return true if the s1 < s2, false if not.
-       */
-      bool operator()(const char* s1, const char* s2) const
-      {
-         return strcasecmp(s1, s2) < 0;
-      }
-   };
-   
-   /**
-    * A mapping of hostnames to re-usable SSL sessions.
-    */
-   typedef std::map<const char*, db::net::SslSession, HostnameComparator>
+   typedef std::map<
+      const char*, db::net::SslSession, db::util::StringCaseComparator>
       SessionMap;
    SessionMap mSessions;
    

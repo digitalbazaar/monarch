@@ -8,6 +8,7 @@
 #include "db/rt/Collectable.h"
 #include "db/rt/WindowsSupport.h"
 #include "db/util/Date.h"
+#include "db/util/StringTools.h"
 
 #include <cstring>
 #include <map>
@@ -52,29 +53,12 @@ protected:
    char* mVersion;
    
    /**
-    * A FieldComparator compares two header field names.
+    * The map containing the header fields using case-insensitive comparator to
+    * compare field names.
     */
-   struct FieldComparator
-   {
-      /**
-       * Compares two null-terminated strings, returning true if the first is
-       * less than the second, false if not. The compare is case-insensitive.
-       * 
-       * @param s1 the first string.
-       * @param s2 the second string.
-       * 
-       * @return true if the s1 < s2, false if not.
-       */
-      bool operator()(const char* s1, const char* s2) const
-      {
-         return strcasecmp(s1, s2) < 0;
-      }
-   };
-   
-   /**
-    * The map containing the header fields.
-    */
-   typedef std::multimap<const char*, std::string, FieldComparator> FieldMap;
+   typedef std::multimap<
+      const char*, std::string, db::util::StringCaseComparator>
+      FieldMap;
    FieldMap mFields;
    
    /**
