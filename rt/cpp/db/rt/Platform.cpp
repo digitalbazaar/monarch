@@ -7,8 +7,13 @@
 
 using namespace db::rt;
 
-static DynamicObject* sDynLibExtMap = NULL;
-static Platform::PlatformInfo* sCurrent = NULL;
+// Note: do not initialize these, they are automatically
+// initialized to NULL before main -- and sometimes if dlopen
+// is called, it will try to re-init these, stomping on
+// the existing values, leaking memory, and generally stuffing
+// everything up
+static DynamicObject* sDynLibExtMap;
+static Platform::PlatformInfo* sCurrent;
 
 bool Platform::initialize()
 {
