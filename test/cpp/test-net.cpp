@@ -1868,8 +1868,9 @@ void runHttpClientGetTest()
       cout << address.toString() << endl;
       
       // do get
-      const char* headers[] = {"Test-Header: bacon", NULL};
-      HttpResponse* response = client.get(&url, headers);
+      DynamicObject headers;
+      headers["Test-Header"] = "bacon";
+      HttpResponse* response = client.get(&url, &headers);
       if(response != NULL)
       {
          cout << "Response=" << endl <<
@@ -1922,13 +1923,12 @@ void runHttpClientPostTest()
       ByteArrayInputStream baos(someData, strlen(someData));
       
       // do post
-      const char* headers[] = {
-         "Content-Type: text/plain",
-         "Transfer-Encoding: chunked",
-         NULL};
+      DynamicObject headers;
+      headers["Content-Type"] = "text/plain";
+      headers["Transfer-Encoding"] = "chunked";
       
       HttpTrailer trailer;
-      HttpResponse* response = client.post(&url, headers, &baos, &trailer);
+      HttpResponse* response = client.post(&url, &headers, &baos, &trailer);
       if(response != NULL)
       {
          cout << "Response=" << endl <<

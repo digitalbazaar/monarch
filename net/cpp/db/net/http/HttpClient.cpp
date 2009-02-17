@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/http/HttpClient.h"
 
@@ -7,52 +7,30 @@
 #include "db/net/SslSocket.h"
 #include "db/io/InputStream.h"
 #include "db/io/OutputStream.h"
+#include "db/rt/DynamicObjectIterator.h"
 
 using namespace db::io;
 using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
 
-HttpClient::HttpClient()
+HttpClient::HttpClient(SslContext* sc) :
+   mConnection(NULL),
+   mRequest(NULL),
+   mResponse(NULL),
+   mSslContext(NULL),
+   mCleanupSslContext(sc == NULL)
 {
-   mConnection = NULL;
-   mRequest = NULL;
-   mResponse = NULL;
-   mSslContext = NULL;
 }
 
 HttpClient::~HttpClient()
 {
    // ensure client is disconnected
    HttpClient::disconnect();
-}
-
-void HttpClient::setHeaders(HttpHeader* h, const char** headers)
-{
-   if(headers != NULL)
+   
+   if(mCleanupSslContext && mSslContext != NULL)
    {
-      // go through headers until NULL is reached
-      const char* field;
-      char* colon;
-      for(int i = 0; headers[i] != NULL; i++)
-      {
-         // find colon
-         field = headers[i];
-         if((colon = strchr(field, ':')) != NULL)
-         {
-            // get field name
-            char name[colon - field + 1];
-            strncpy(name, field, colon - field);
-            name[(colon - field)] = 0;
-            
-            // skip whitespace
-            colon++;
-            for(; *colon == ' ' && *colon != 0; colon++);
-            
-            // set field
-            h->setField(name, colon);
-         }
-      }
+      delete mSslContext;
    }
 }
 
@@ -97,7 +75,7 @@ bool HttpClient::connect(Url* url)
    return mConnection != NULL;
 }
 
-HttpResponse* HttpClient::get(Url* url, const char** headers)
+HttpResponse* HttpClient::get(Url* url, DynamicObject* headers)
 {
    HttpResponse* rval = NULL;
    
@@ -112,8 +90,11 @@ HttpResponse* HttpClient::get(Url* url, const char** headers)
       mRequest->getHeader()->setField("Host", url->getAuthority());
       mRequest->getHeader()->setField("User-Agent", "DB Http Client/2.0");
       
-      // set user headers
-      setHeaders(mRequest->getHeader(), headers);
+      if(headers != NULL)
+      {
+         // set custom headers
+         setCustomHeaders(mRequest->getHeader(), *headers);
+      }
       
       // send request header and receive response header
       if(mRequest->sendHeader() && mResponse->receiveHeader())
@@ -127,7 +108,7 @@ HttpResponse* HttpClient::get(Url* url, const char** headers)
 }
 
 HttpResponse* HttpClient::post(
-   Url* url, const char** headers, InputStream* is, HttpTrailer* trailer)
+   Url* url, DynamicObject* headers, InputStream* is, HttpTrailer* trailer)
 {
    HttpResponse* rval = NULL;
    
@@ -142,8 +123,11 @@ HttpResponse* HttpClient::post(
       mRequest->getHeader()->setField("Host", url->getAuthority());
       mRequest->getHeader()->setField("User-Agent", "DB Http Client/2.0");
       
-      // set user headers
-      setHeaders(mRequest->getHeader(), headers);
+      if(headers != NULL)
+      {
+         // set custom headers
+         setCustomHeaders(mRequest->getHeader(), *headers);
+      }
       
       // send request header, send body, and receive response header
       if(mRequest->sendHeader() &&
@@ -262,4 +246,30 @@ HttpConnection* HttpClient::createConnection(
    }
    
    return rval;
+}
+
+void HttpClient::setCustomHeaders(HttpHeader* h, DynamicObject& headers)
+{
+   if(!headers.isNull())
+   {
+      DynamicObjectIterator i = headers.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& value = i->next();
+         const char* field = i->getName();
+         if(value->getType() == Array)
+         {
+            DynamicObjectIterator ai = value.getIterator();
+            while(ai->hasNext())
+            {
+               DynamicObject& av = ai->next();
+               h->addField(field, av->getString());
+            }
+         }
+         else
+         {
+            h->addField(field, value->getString());
+         }
+      }
+   }
 }

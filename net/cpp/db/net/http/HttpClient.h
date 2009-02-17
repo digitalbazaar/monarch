@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_http_HttpClient_H
 #define db_net_http_HttpClient_H
@@ -47,23 +47,23 @@ protected:
    db::net::SslContext* mSslContext;
    
    /**
+    * Set to true if this client created its own ssl context.
+    */
+   bool mCleanupSslContext;
+   
+   /**
     * Store the previous SSL session.
     */
    SslSession mSslSession;
    
-   /**
-    * Sets the headers fields in the request header.
-    * 
-    * @param h the HttpHeader to update.
-    * @param headers the header fields to set.
-    */
-   virtual void setHeaders(HttpHeader* h, const char** headers);
-   
 public:
    /**
     * Creates a new HttpClient.
+    * 
+    * @param sc the SslContext to use for https connections, NULL to create
+    *           one.
     */
-   HttpClient();
+   HttpClient(db::net::SslContext* sc = NULL);
    
    /**
     * Destructs this HttpClient.
@@ -87,32 +87,29 @@ public:
    /**
     * Sends an HTTP GET request and receives the response header. This
     * method will not receive the response content. The caller of this
-    * method must not free the memory associated with the returned
+    * method *MUST NOT* free the memory associated with the returned
     * HttpResponse.
     * 
     * If the passed headers variable is not NULL, then it should contain
-    * an array of null-terminated header field "name: value" pairs. The last
-    * entry in the array must be NULL.
-    * 
-    * Exception::getLast() may be checked if no response is received, but
-    * it should be cleared prior to this method with Exception::clearLast();
+    * a map with keys that are field names and values that are either arrays
+    * or non-maps.
     * 
     * @param url the url of the content to request.
     * @param headers any special headers to include in the request.
     * 
     * @return the HTTP response if one was received, NULL if not.
     */
-   virtual HttpResponse* get(db::net::Url* url, const char** headers = NULL);
+   virtual HttpResponse* get(
+      db::net::Url* url, db::rt::DynamicObject* headers = NULL);
    
    /**
-    * Sends an HTTP POST request and its content.
+    * Sends an HTTP POST request and its content. The caller of this
+    * method *MUST NOT* free the memory associated with the returned
+    * HttpResponse.
     * 
     * If the passed headers variable is not NULL, then it should contain
-    * an array of null-terminated header field "name: value" pairs. The last
-    * entry in the array must be NULL.
-    * 
-    * Exception::getLast() may be checked if no response is received, but
-    * it should be cleared prior to this method with Exception::clearLast().
+    * a map with keys that are field names and values that are either arrays
+    * or non-maps.
     * 
     * @param url the url to post to.
     * @param headers any special headers to include in the request.
@@ -122,7 +119,8 @@ public:
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* post(
-      db::net::Url* url, const char** headers, db::io::InputStream* is,
+      db::net::Url* url, db::rt::DynamicObject* headers,
+      db::io::InputStream* is,
       HttpTrailer* trailer = NULL);
    
    /**
@@ -205,6 +203,15 @@ public:
       db::net::SslContext* context = NULL,
       db::net::SslSession* session = NULL,
       unsigned int timeout = 30);
+   
+protected:
+   /**
+    * Sets the custom headers fields in the request header.
+    * 
+    * @param h the HttpHeader to update.
+    * @param headers the header fields to set.
+    */
+   virtual void setCustomHeaders(HttpHeader* h, db::rt::DynamicObject& headers);
 };
 
 } // end namespace http
