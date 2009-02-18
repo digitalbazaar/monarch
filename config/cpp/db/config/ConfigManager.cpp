@@ -514,7 +514,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
    bool rval = true;
    
    // get config ID
-   ConfigId id;
+   ConfigId id = "";
    if(config->hasMember(ID))
    {
       id = config[ID]->getString();
@@ -687,7 +687,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       mLock.lockExclusive();
       {
          // get the group ID
-         ConfigId groupId;
+         ConfigId groupId = "";
          bool group = false;
          if(config->hasMember(GROUP))
          {

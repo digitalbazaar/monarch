@@ -87,7 +87,7 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
    else
    {
       // get element tag name
-      const char* tagName;
+      const char* tagName = "";
       switch(dyno->getType())
       {
          case String:

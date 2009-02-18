@@ -97,7 +97,10 @@ static inline bool hexToByte(
    bool rval;
    unsigned char temp;
    rval = nibbleToByte(high, temp) && nibbleToByte(low, value);
-   value += (temp << 4);
+   if(rval)
+   {
+      value += (temp << 4);
+   }
    return rval;
 }
 
@@ -167,7 +170,10 @@ bool Convert::hexToInt(
       {
          unsigned char temp;
          rval = nibbleToByte(hex[i], temp);
-         value |= (temp << (4 * (hexLength - i - 1)));
+         if(rval)
+         {
+            value |= (temp << (4 * (hexLength - i - 1)));
+         }
       }
    }
    

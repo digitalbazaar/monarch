@@ -134,7 +134,7 @@ int Header::convertFromBytes(char* b, int length)
                {
                   // try to read in filename
                   string filename;
-                  unsigned char c;
+                  unsigned char c = 0;
                   while(bb.length() > 0 && (c = bb.next()) != 0)
                   {
                      filename.push_back(c);
@@ -163,7 +163,7 @@ int Header::convertFromBytes(char* b, int length)
                {
                   // try to read in file comment
                   string comment;
-                  unsigned char c;
+                  unsigned char c = 0;
                   while(bb.length() > 0 && (c = bb.next()) != 0)
                   {
                      comment.push_back(c);

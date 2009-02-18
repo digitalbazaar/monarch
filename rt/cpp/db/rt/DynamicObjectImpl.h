@@ -359,6 +359,8 @@ public:
     * Boolean length = 1
     * Map length = number of entries in the map.
     * Array length = number of elements in the array.
+    * 
+    * @return the length of this object or -1 if unknown
     */
    virtual int length() const;
    

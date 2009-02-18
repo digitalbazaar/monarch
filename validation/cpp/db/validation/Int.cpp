@@ -131,9 +131,9 @@ bool Int::isValid(
    }
    
    // absolute value of dyno value
-   uint64_t val;
+   uint64_t val = 0;
    // flag if val is negative
-   bool valneg;
+   bool valneg = false;
    
    // get value for min/max check
    if(rval)

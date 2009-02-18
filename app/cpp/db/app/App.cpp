@@ -455,7 +455,7 @@ bool App::stopLogging()
 void App::run()
 {
    bool success;
-   bool loggingStarted;
+   bool loggingStarted = false;
    
    success = initializeRun();
    if(success)

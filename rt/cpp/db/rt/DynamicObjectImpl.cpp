@@ -192,7 +192,7 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
 
 bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
 {
-   bool rval;
+   bool rval = false;
    
    if(mType == rhs.mType)
    {
@@ -286,7 +286,7 @@ bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
 
 bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
 {
-   bool rval;
+   bool rval = false;
    
    if(mType == rhs.mType)
    {
@@ -843,7 +843,7 @@ void DynamicObjectImpl::clear()
 
 int DynamicObjectImpl::length() const
 {
-   int rval;
+   int rval = -1;
    
    switch(mType)
    {

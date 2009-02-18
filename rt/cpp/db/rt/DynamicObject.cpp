@@ -268,7 +268,7 @@ bool DynamicObject::isSubset(const DynamicObject& rhs) const
 
 const char* DynamicObject::descriptionForType(DynamicObjectType type)
 {
-   const char* rval;
+   const char* rval = NULL;
    
    switch(type)
    {
