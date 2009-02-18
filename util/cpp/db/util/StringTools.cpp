@@ -5,6 +5,9 @@
 
 #include "db/util/regex/Pattern.h"
 
+#include <cstring>
+#include <cstdarg>
+
 using namespace std;
 using namespace db::util;
 using namespace db::util::regex;
@@ -72,4 +75,47 @@ string& StringTools::regexReplaceAll(
    }
    
    return str;
+}
+
+/**
+ * A helper function for StringTools::format().
+ * 
+ * @param f the format.
+ * @param ap the variable args list.
+ */
+static string vformat(const char* f, va_list ap)
+{
+   // estimate size for string
+   int size = 256;
+   char* str = (char*)malloc(size);
+   
+   // copy va_list in case we must realloc
+   va_list clone;
+   va_copy(clone, ap);
+   
+   // try to get formatted string
+   size = vsnprintf(str, size, f, ap);
+   
+   // if size > 0, then string was truncated and size contains
+   // full size of formatted string (not including null-terminator)
+   if(size > 0)
+   {
+      // include room for null-terminator
+      size++;
+      str = (char*)realloc(str, size);
+      vsnprintf(str, size, f, ap);
+   }
+   
+   string rval = str;
+   free(str);
+   return rval;
+}
+
+string StringTools::format(const char* f, ...)
+{
+   va_list ap;
+   va_start(ap, f);
+   string rval = vformat(f, ap);
+   va_end(ap);
+   return rval;
 }
