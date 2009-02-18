@@ -264,13 +264,13 @@ inline uint64_t TimeWindow::getTimePassed()
    return mTimePassed;
 }
 
-inline double TimeWindow::getItemsPerMillisecond(double items, double interval)
+double TimeWindow::getItemsPerMillisecond(double items, double interval)
 {
    // items / millisecond -- force interval to 1
    return items / (1.0 > interval ? 1.0 : interval);
 }
 
-inline double TimeWindow::getItemsPerSecond(double items, double interval)
+double TimeWindow::getItemsPerSecond(double items, double interval)
 {
    // items / millisecond * 1000 = items / second
    return getItemsPerMillisecond(items, interval) * 1000.0;

@@ -218,7 +218,7 @@ void Semaphore::setMaxPermitCount(int max)
    lock();
    {
       // store old permit count
-      int oldPermitCount = getMaxPermitCount();
+      int oldPermitCount = mPermits;
       
       // set new permit count
       mPermits = max;
@@ -238,7 +238,7 @@ void Semaphore::setMaxPermitCount(int max)
    unlock();
 }
 
-inline int Semaphore::getMaxPermitCount()
+int Semaphore::getMaxPermitCount()
 {
    return mPermits;
 }
