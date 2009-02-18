@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include <iostream>
 #include <sstream>
@@ -512,166 +512,173 @@ void runTcpClientServerTest()
    cout << endl << "TCP Client/Server test complete." << endl;
 }
 
-void runUdpClientServerTest()
+void runUdpClientServerTest(TestRunner& tr)
 {
-   cout << "Running UDP Client/Server Test" << endl << endl;
-   
-   InternetAddress* sa;
-   InternetAddress* ca;
-   InternetAddress serverAddress("127.0.0.1", 9999);
-   InternetAddress clientAddress("127.0.0.1", 0);
-   //Internet6Address serverAddress("::1", 9999);
-   //Internet6Address clientAddress("::1", 0);
-   sa = &serverAddress;
-   ca = &clientAddress;
-   
-   // ensure host was known
-   if(!Exception::hasLast())
+   tr.test("UDP Client/Server");
    {
+      InternetAddress* sa;
+      InternetAddress* ca;
+      InternetAddress serverAddress("127.0.0.1", 0);
+      InternetAddress clientAddress("127.0.0.1", 0);
+      //Internet6Address serverAddress("::1", 0);
+      //Internet6Address clientAddress("::1", 0);
+      sa = &serverAddress;
+      ca = &clientAddress;
+      
       // create udp server and client sockets
       UdpSocket server;
       UdpSocket client;
       
-      // set receive timeouts to 10 seconds
-      server.setReceiveTimeout(10000);
-      client.setReceiveTimeout(10000);
+      // set receive timeouts to 2 seconds
+      server.setReceiveTimeout(2000);
+      client.setReceiveTimeout(2000);
       
       // bind with server
       server.bind(sa);
+      assertNoException();
       
-      cout << "Server bound at host: " << sa->getHost() << endl;
-      cout << "Server bound at address: " << sa->getAddress() << endl;
-      cout << "Server bound on port: " << sa->getPort() << endl;
+      //printf("Server bound at host: %s\n", sa->getHost());
+      //printf("Server bound at address: %s\n", sa->getAddress());
+      //printf("Server bound on port: %i\n", sa->getPort());
       
       // bind with client
       client.bind(ca);
-      client.getLocalAddress(ca);
+      assertNoException();
       
-      cout << "Client bound at host: " << ca->getHost() << endl;
-      cout << "Client bound at address: " << ca->getAddress() << endl;
-      cout << "Client bound on port: " << ca->getPort() << endl;
+      //printf("Client bound at host: %s\n", ca->getHost());
+      //printf("Client bound at address: %s\n", ca->getAddress());
+      //printf("Client bound on port: %i\n", ca->getPort());
       
       // send some data with client
       string clientData = "Hello there, Server.";
       client.sendDatagram(clientData.c_str(), clientData.length(), sa);
+      assertNoException();
       
-      cout << "Client sent: " << clientData << endl;
+      //printf("Client sent: %s\n", clientData.c_str());
       
       // receive the client data
       char read[2048];
-      int numBytes = server.receiveDatagram(read, 2048, ca);
+      int numBytes = server.receiveDatagram(read, clientData.length(), ca);
       string serverReceived(read, numBytes);
+      assertNoException();
       
-      cout << "Server received: " << serverReceived << endl;
-      cout << "Data from: " << ca->getAddress();
-      cout << ":" << ca->getPort() << endl;
+      //printf("Server received: %s\n", serverReceived.c_str());
+      //printf("Data from: %s:%i\n", ca->getAddress(), ca->getPort());
+      assertStrCmp(clientData.c_str(), serverReceived.c_str());
       
       // send some data with server
       string serverData = "G'day, Client.";
       server.sendDatagram(serverData.c_str(), serverData.length(), ca);
+      assertNoException();
       
-      cout << "Server sent: " << serverData << endl;
+      //printf("Server sent: %s\n", serverData.c_str());
       
       // receive the server data
-      numBytes = client.receiveDatagram(read, 2048, sa);
+      numBytes = client.receiveDatagram(read, serverData.length(), sa);
       string clientReceived(read, numBytes);
       
-      cout << "Client received: " << clientReceived << endl;
-      cout << "Data from: " << sa->getAddress();
-      cout << ":" << sa->getPort() << endl;
+      //printf("Client received: %s\n", clientReceived.c_str());
+      //printf("Data from: %s:%i\n", sa->getAddress(), sa->getPort());
+      assertStrCmp(serverData.c_str(), clientReceived.c_str());
       
       // close sockets
       client.close();
       server.close();
       
-      cout << "Sockets closed." << endl;
+      //printf("Sockets closed.\n");
    }
-   
-   cout << endl << "UDP Client/Server test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runDatagramTest()
+void runDatagramTest(TestRunner& tr)
 {
-   cout << "Running Datagram Test" << endl << endl;
-   
-   InternetAddress* sa;
-   InternetAddress* ca;
-   InternetAddress serverAddress("127.0.0.1", 9999);
-   InternetAddress clientAddress("127.0.0.1", 0);
-   //Internet6Address serverAddress("::1", 9999);
-   //Internet6Address clientAddress("::1", 0);
-   sa = &serverAddress;
-   ca = &clientAddress;
-   
-   // ensure host was known
-   if(!Exception::hasLast())
+   tr.test("Datagram");
    {
+      InternetAddress* sa;
+      InternetAddress* ca;
+      InternetAddress serverAddress("127.0.0.1", 0);
+      InternetAddress clientAddress("127.0.0.1", 0);
+      //Internet6Address serverAddress("::1", 0);
+      //Internet6Address clientAddress("::1", 0);
+      sa = &serverAddress;
+      ca = &clientAddress;
+      
       // create datagram server and client sockets
       DatagramSocket server;
       DatagramSocket client;
       
-      // set receive timeouts to 10 seconds
-      server.setReceiveTimeout(10000);
-      client.setReceiveTimeout(10000);
+      // set receive timeouts to 2 seconds
+      server.setReceiveTimeout(2000);
+      client.setReceiveTimeout(2000);
       
       // bind with server
       server.bind(sa);
+      assertNoException();
       
-      cout << "Server bound at host: " << sa->getHost() << endl;
-      cout << "Server bound at address: " << sa->getAddress() << endl;
-      cout << "Server bound on port: " << sa->getPort() << endl;
+      //printf("Server bound at host: %s\n", sa->getHost());
+      //printf("Server bound at address: %s\n", sa->getAddress());
+      //printf("Server bound on port: %i\n", sa->getPort());
       
       // bind with client
       client.bind(ca);
-      client.getLocalAddress(ca);
+      assertNoException();
       
-      cout << "Client bound at host: " << ca->getHost() << endl;
-      cout << "Client bound at address: " << ca->getAddress() << endl;
-      cout << "Client bound on port: " << ca->getPort() << endl;
+      //printf("Client bound at host: %s\n", ca->getHost());
+      //printf("Client bound at address: %s\n", ca->getAddress());
+      //printf("Client bound on port: %i\n", ca->getPort());
       
       // create a datagram
       Datagram d1(sa);
       d1.assignString("Hello there, Server.");
       
       // send the datagram with the client
-      client.send(&d1);
+      assert(client.send(&d1));
       
-      cout << "Client sent: " << d1.getString() << endl;
+      //printf("Client sent: %s\n", d1.getString().c_str());
       
       // create a datagram
+      InternetAddressRef ia = new InternetAddress();
       char externalData[2048];
-      Datagram d2(ca);
+      Datagram d2(ia);
       d2.setData(externalData, 2048, false);
       
       // receive a datagram
       server.receive(&d2);
+      assertNoException();
       
-      cout << "Server received: " << d2.getString() << endl;
-      cout << "Data from: " << d2.getAddress()->getAddress();
-      cout << ":" << d2.getAddress()->getPort() << endl;
+      //printf("Server received: %s\n", d2.getString().c_str());
+      //printf("Data from: %s:%i\n",
+      //   d2.getAddress()->getAddress(), d2.getAddress()->getPort());
+      assertStrCmp(d2.getAddress()->toString().c_str(), ca->toString().c_str());
+      assertStrCmp(d2.getString().c_str(), d1.getString().c_str());
       
       // send a datagram with the server
       d2.assignString("G'day, Client.");
+      d2.setAddress(ca);
       server.send(&d2);
+      assertNoException();
       
-      cout << "Server sent: " << d2.getString() << endl;
+      //printf("Server sent: %s\n", d2.getString().c_str());
       
       // receive the server datagram
-      Datagram d3(sa, 2048);
+      ia = new InternetAddress();
+      Datagram d3(ia, 2048);
       client.receive(&d3);
+      assertNoException();
       
-      cout << "Client received: " << d3.getString() << endl;
-      cout << "Data from: " << d3.getAddress()->getAddress();
-      cout << ":" << d3.getAddress()->getPort() << endl;
+      //printf("Client received: %s\n", d3.getString().c_str());
+      //printf("Data from: %s:%i\n",
+      //   d3.getAddress()->getAddress(), d3.getAddress()->getPort());
+      assertStrCmp(d3.getAddress()->toString().c_str(), sa->toString().c_str());
+      assertStrCmp(d3.getString().c_str(), d2.getString().c_str());
       
       // close sockets
       client.close();
       server.close();
       
-      cout << "Sockets closed." << endl;
+      //printf("Sockets closed.\n");
    }
-   
-   cout << endl << "Datagram test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runUrlEncodeTest(TestRunner& tr)
@@ -2125,6 +2132,8 @@ public:
       runHttpHeaderTest(tr);
       runHttpNormalizePath(tr);
       runCookieTest(tr);
+      runUdpClientServerTest(tr);
+      runDatagramTest(tr);
       return 0;
    }
 
@@ -2138,8 +2147,6 @@ public:
 //      runServerSocketTest();
 //      runSslServerSocketTest();
 //      runTcpClientServerTest();
-//      runUdpClientServerTest();
-//      runDatagramTest();
 //      runServerSslConnectionTest();
 //      runServerDatagramTest();
 //      runHttpNormalizePath(tr);
