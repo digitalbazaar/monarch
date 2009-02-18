@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_DatagramServicer_H
 #define db_net_DatagramServicer_H
@@ -29,6 +29,14 @@ public:
     * Destructs this DatagramServicer.
     */
    virtual ~DatagramServicer() {};
+   
+   /**
+    * Performs initialization work on the DatagramSocket once it is
+    * bound, if any is necessary, and returns false if an exception occurs.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool initialize() { return true; };
    
    /**
     * Receives Datagrams from the passed DatagramSocket and services them.
