@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/DatagramService.h"
 #include "db/net/Server.h"
@@ -29,7 +29,7 @@ Operation DatagramService::initialize()
    mSocket = new DatagramSocket();
    
    // bind socket to the address
-   if(mSocket->bind(getAddress()))
+   if(mSocket->bind(getAddress()) && mServicer->initialize())
    {
       // create Operation for running service
       rval = *this;

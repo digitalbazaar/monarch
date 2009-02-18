@@ -76,6 +76,15 @@ public:
     */
    static std::string& regexReplaceAll(
       std::string& str, const std::string& regex, const std::string& replace);
+   
+   /**
+    * Creates an std::string from a printf format. 
+    * 
+    * @param f the format.
+    * 
+    * @return the std::string.
+    */
+   static std::string format(const char* f, ...);
 };
 
 /**
