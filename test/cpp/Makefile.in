@@ -2,6 +2,9 @@
 
 SOURCES = $(wildcard db/test/*.cpp)
 
+# conditional build of tests
+ifeq (@BUILD_TESTS@,yes)
+
 ifeq (@BUILD_MYSQL@,yes)
 CXXFLAGS += -DHAVE_MYSQL
 MYSQL_DBLIBS = dbmysql
@@ -57,6 +60,9 @@ DYNAMIC_MACOS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_MACOS_LIBRARIES)
 DYNAMIC_WINDOWS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_WINDOWS_LIBRARIES)
 
 EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/expat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(WINDOWS_LIB_DIR)/iconv2.dll $(WINDOWS_LIB_DIR)/charset1.dll $(MYSQL_EXTRA_WINDOWS_LIBRARIES) -lwsock32 -ldbtest
+
+# conditional build of tests
+endif
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base

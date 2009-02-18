@@ -131,6 +131,42 @@ if test "x$BUILD_MYSQL" = "xyes"; then
    )
 fi
 
+dnl ----------------- tests -----------------
+
+AC_ARG_ENABLE([tests],
+   AC_HELP_STRING([--disable-tests], [disable building test apps [[no]]]),
+   [
+   case "${enableval}" in
+      yes) BUILD_TESTS=yes ;;
+      no)  BUILD_TESTS=no ;;
+      *)   AC_MSG_ERROR(bad value ${enableval} for --disable-tests) ;;
+   esac
+   ],
+   [BUILD_TESTS=yes]) dnl Default value
+
+AC_SUBST(BUILD_TESTS)
+
+dnl ----------------- disable log location -----------------
+
+AC_ARG_ENABLE([log-location],
+   AC_HELP_STRING(
+      [--disable-log-location],
+      [disable log location [[no]]]),
+   [
+   case "${enableval}" in
+      yes) DB_DISABLE_LOG_LOCATION=no ;;
+      no)  DB_DISABLE_LOG_LOCATION=yes ;;
+      *)   AC_MSG_ERROR(bad value ${enableval} for --enable-log-location) ;;
+   esac
+   ],
+   [DB_DISABLE_LOG_LOCATION=no]) dnl Default value
+if test "x$DB_DISABLE_LOG_LOCATION" = xyes; then
+   AC_DEFINE(DB_DISABLE_LOG_LOCATION, 1,
+      [Enable log location.])
+fi
+
+dnl ----------------- substitutions -----------------
+
 # Make all the proper substitutions
 AC_SUBST(DBCOREDIR)
 
@@ -246,3 +282,14 @@ else
    echo "Sphinx            : disabled"
 fi
 
+if test "x$BUILD_TESTS" = "xyes"; then
+   echo "Tests             : enabled"
+else
+   echo "Tests             : disabled (use --enable-tests to enable)"
+fi
+
+if test "x$DB_DISABLE_LOG_LOCATION" = "xyes"; then
+   echo "Log location      : disabled (use --enable-log-location to enable)"
+else
+   echo "Log location      : enabled"
+fi

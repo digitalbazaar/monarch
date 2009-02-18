@@ -42,9 +42,9 @@ public:
  */
 
 /**
- * Remove location info when not in debug mode.
+ * Remove location info when disabled or when not in debug mode. 
  */
-#ifndef DB_NDEBUG
+#if !defined(DB_DISABLE_LOG_LOCATION) && !defined(DB_NDEBUG)
 #define DB_LOG_STRLOC DB_STRLOC
 #else
 #define DB_LOG_STRLOC NULL
