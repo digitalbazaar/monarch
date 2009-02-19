@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/modest/ModuleLoader.h"
 
 #include "db/rt/DynamicLibrary.h"
-#include "db/rt/DynamicObject.h"
 
 #include <cstring>
 
