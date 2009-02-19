@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/modest/OperationDispatcher.h"
 #include "db/modest/Engine.h"
@@ -41,7 +41,7 @@ void OperationDispatcher::dispatchJobs()
    OperationImpl* impl = NULL;
    
    // get engine state
-   ImmutableState* state = mEngine->getState();
+   State* state = (State*)mEngine->getState();
    
    lock();
    {
@@ -90,7 +90,7 @@ void OperationDispatcher::dispatchJobs()
                   if(impl->getStateMutator() != NULL)
                   {
                      impl->getStateMutator()->mutatePreExecutionState(
-                        (State*)state, mOpMap[impl]);
+                        state, mOpMap[impl]);
                   }
                   
                   // try to run the operation
@@ -186,12 +186,12 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
       // do post-execution state mutation
       if(op->getStateMutator() != NULL)
       {
-         mEngine->getState()->lock();
+         State* state = (State*)mEngine->getState();
+         state->lock();
          {
-            op->getStateMutator()->mutatePostExecutionState(
-               (State*)mEngine->getState(), op);
+            op->getStateMutator()->mutatePostExecutionState(state, op);
          }
-         mEngine->getState()->unlock();
+         state->unlock();
       }
       
       // stop operation, resume dispatching

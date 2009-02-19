@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/modest/OperationImpl.h"
 
@@ -84,7 +84,7 @@ void OperationImpl::stop()
    mLock.lock();
    {
       // if operation did not finish, then it was canceled
-      if(!finished())
+      if(!mFinished)
       {
          mCanceled = true;
       }
@@ -103,7 +103,7 @@ bool OperationImpl::waitFor(bool interruptible)
    mLock.lock();
    {
       // wait until Operation is stopped
-      while(!stopped())
+      while(!mStopped)
       {
          if(!mLock.wait())
          {
@@ -134,7 +134,7 @@ bool OperationImpl::waitFor(bool interruptible)
    return rval;
 }
 
-inline bool OperationImpl::started()
+bool OperationImpl::started()
 {
    return mStarted;
 }
@@ -172,27 +172,27 @@ bool OperationImpl::isInterrupted()
    return mInterrupted;
 }
 
-inline bool OperationImpl::stopped()
+bool OperationImpl::stopped()
 {
    return mStopped;
 }
 
-inline bool OperationImpl::finished()
+bool OperationImpl::finished()
 {
    return mFinished;
 }
 
-inline bool OperationImpl::canceled()
+bool OperationImpl::canceled()
 {
    return mCanceled;
 }
 
-inline Thread* OperationImpl::getThread()
+Thread* OperationImpl::getThread()
 {
    return mThread;
 }
 
-inline Runnable* OperationImpl::getRunnable()
+Runnable* OperationImpl::getRunnable()
 {
    return mRunnable;
 }
@@ -231,7 +231,7 @@ void OperationImpl::addGuard(OperationGuardRef& g, bool front)
    }
 }
 
-inline OperationGuard* OperationImpl::getGuard()
+OperationGuard* OperationImpl::getGuard()
 {
    return mGuard.isNull() ? NULL : &(*mGuard);
 }
@@ -270,7 +270,7 @@ void OperationImpl::addStateMutator(StateMutatorRef& m, bool front)
    }
 }
 
-inline StateMutator* OperationImpl::getStateMutator()
+StateMutator* OperationImpl::getStateMutator()
 {
    return mMutator.isNull() ? NULL : &(*mMutator);
 }
