@@ -3,7 +3,7 @@
 
 # MacOS-specific variables
 MACOS_CXX = @MACOS_CXX@
-MACOS_CXX_FLAGS = $(CXXFLAGS) -g -O2 -Wall -fPIC -DMACOS $(MODULE_MACOS_CXX_FLAGS) @DEFS@
+MACOS_CXX_FLAGS = @CXXFLAGS@ -Wall -fPIC -DMACOS $(MODULE_MACOS_CXX_FLAGS) @DEFS@
 MACOS_LD_FLAGS = @LDFLAGS@ -Wl,-dylib_compatibility_version,@FULL_DOTTED_VERSION@ -Wl,-dylib_current_version,@FULL_DOTTED_VERSION@ -Wl,-flat_namespace
 MACOS_INCLUDES = $(INCLUDES) -I/sw/include
 MACOS_LIB_DIR = $(DBCORE)/libs/macos

@@ -165,6 +165,17 @@ if test "x$DB_DISABLE_LOG_LOCATION" = xyes; then
       [Enable log location.])
 fi
 
+dnl ----------------- optimization -----------------
+
+dnl option to override default c++ optimization (often -g -O2)
+AC_ARG_WITH(opt-flags,
+  AC_HELP_STRING([--with-opt-flags=FLAGS],
+    [use FLAGS for optimization (-O -fno-exceptions)]),
+  [DB_CXX_OPT_FLAGS="${withval}"],
+  [DB_CXX_OPT_FLAGS="-O -fno-exceptions"]) dnl Default value
+CXXFLAGS="$CXXFLAGS $DB_CXX_OPT_FLAGS"
+AC_MSG_NOTICE(Using optimization flags: "$CXXFLAGS")
+
 dnl ----------------- substitutions -----------------
 
 # Make all the proper substitutions
