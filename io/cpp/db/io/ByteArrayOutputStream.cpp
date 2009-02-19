@@ -3,6 +3,8 @@
  */
 #include "db/io/ByteArrayOutputStream.h"
 
+#include "db/io/IOException.h"
+
 using namespace db::io;
 using namespace db::rt;
 

@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/io/MutatorOutputStream.h"
+
+#include "db/rt/Exception.h"
 
 using namespace db::io;
 using namespace db::rt;

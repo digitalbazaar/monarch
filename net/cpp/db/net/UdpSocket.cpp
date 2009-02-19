@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/UdpSocket.h"
 
@@ -7,7 +7,7 @@
 #include "db/net/WindowsSupport.h"
 #include "db/net/SocketInputStream.h"
 #include "db/net/SocketOutputStream.h"
-#include "db/rt/DynamicObject.h"
+#include "db/rt/Exception.h"
 
 #include <cstring>
 

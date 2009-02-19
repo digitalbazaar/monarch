@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/http/HttpConnection.h"
 
+#include "db/io/IOException.h"
 #include "db/net/http/HttpRequest.h"
 #include "db/net/http/HttpResponse.h"
 #include "db/net/http/HttpBodyInputStream.h"

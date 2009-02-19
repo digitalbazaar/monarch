@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_io_TruncateInputStream_H
 #define db_io_TruncateInputStream_H
 
 #include "db/io/FilterInputStream.h"
+
+#include <inttypes.h>
 
 namespace db
 {

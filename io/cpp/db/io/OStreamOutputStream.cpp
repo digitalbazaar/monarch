@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/io/OStreamOutputStream.h"
+
+#include "db/rt/Exception.h"
 
 using namespace std;
 using namespace db::io;

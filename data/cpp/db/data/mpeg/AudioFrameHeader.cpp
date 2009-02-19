@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/data/mpeg/AudioFrameHeader.h"
 
+#include "db/rt/Exception.h"
 #include <math.h>
 
 using namespace std;
@@ -39,7 +40,8 @@ bool AudioFrameHeader::convertFromBytes(const char* bytes, int length)
    if(length < 4)
    {
       ExceptionRef e = new Exception(
-         "AudioFrameHeader::convertFromBytes() length must be >= 4");
+         "AudioFrameHeader::convertFromBytes() length must be >= 4",
+         "db.data.mpeg.InvalidLength");
       Exception::setLast(e, false);
    }
    else

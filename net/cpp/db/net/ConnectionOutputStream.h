@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_ConnectionOutputStream_H
 #define db_net_ConnectionOutputStream_H
 
 #include "db/io/ByteBuffer.h"
 #include "db/io/OutputStream.h"
+
+#include <inttypes.h>
 
 namespace db
 {

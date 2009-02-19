@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/Connection.h"
 
-#include "db/rt/DynamicObject.h"
+#include "db/rt/Exception.h"
 #include "db/util/Math.h"
 
 using namespace db::io;

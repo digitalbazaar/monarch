@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_data_xml_XmlReader_H
 #define db_data_xml_XmlReader_H
 
 #include "db/data/DynamicObjectReader.h"
+#include "db/rt/Exception.h"
 
 #include <expat.h>
 #include <list>

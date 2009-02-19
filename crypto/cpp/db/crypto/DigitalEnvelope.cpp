@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/crypto/DigitalEnvelope.h"
 
 #include "db/crypto/PrivateKey.h"
 #include "db/crypto/PublicKey.h"
 #include "db/crypto/SymmetricKeyFactory.h"
-#include "db/rt/DynamicObject.h"
+#include "db/rt/Exception.h"
 
 #include <openssl/err.h>
 

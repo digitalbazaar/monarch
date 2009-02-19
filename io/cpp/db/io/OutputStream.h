@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_io_OutputStream_H
 #define db_io_OutputStream_H
 
 #include "db/rt/Collectable.h"
-#include "db/io/IOException.h"
 
 namespace db
 {
@@ -27,12 +26,12 @@ public:
    /**
     * Creates a new OutputStream.
     */
-   OutputStream() {};
+   OutputStream();
    
    /**
     * Destructs this OutputStream.
     */
-   virtual ~OutputStream() {};
+   virtual ~OutputStream();
    
    /**
     * Writes some bytes to the stream.
@@ -48,24 +47,30 @@ public:
    /**
     * Forces this stream to flush its output, if any of it was buffered.
     * 
+    * Default implementation simply returns true.
+    * 
     * @return true if the write was successful, false if an IO exception
     *         occurred.
     */
-   virtual bool flush() { return true; };
+   virtual bool flush();
    
    /**
     * Forces this stream to finish its output, if the stream has such a
     * function.
     * 
+    * Default implementation simply returns true.
+    * 
     * @return true if the write was successful, false if an IO exception
     *         occurred.
     */
-   virtual bool finish() { return true; };
+   virtual bool finish();
    
    /**
     * Closes the stream.
+    * 
+    * Default implementation is a no-op.
     */
-   virtual void close() {};
+   virtual void close();
 };
 
 // typedef for a counted reference to an OutputStream

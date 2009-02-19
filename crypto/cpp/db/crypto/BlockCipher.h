@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_crypto_BlockCipher_H
 #define db_crypto_BlockCipher_H
 
 #include "db/io/ByteBuffer.h"
+
+#include <inttypes.h>
 
 namespace db
 {

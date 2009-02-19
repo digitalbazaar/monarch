@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_io_InputStream_H
 #define db_io_InputStream_H
 
-#include "db/io/IOException.h"
 #include "db/rt/Collectable.h"
 
 namespace db
@@ -27,12 +26,12 @@ public:
    /**
     * Creates a new InputStream.
     */
-   InputStream() {};
+   InputStream();
    
    /**
     * Destructs this InputStream.
     */
-   virtual ~InputStream() {};
+   virtual ~InputStream();
    
    /**
     * Reads some bytes from the stream. This method will block until at least
@@ -91,38 +90,6 @@ public:
     */
    virtual void close() {};
 };
-
-inline int InputStream::peek(char* b, int length, bool block)
-{
-   // extending classes must implement this method if they want support
-   db::rt::ExceptionRef e =
-      new IOException("InputStream::peek() is not implemented.");
-   db::rt::Exception::setLast(e, false);
-   return -1;
-}
-
-inline long long InputStream::skip(long long count)
-{
-   long long skipped = 0;
-   
-   // read and discard bytes
-   char b[2048];
-   int numBytes = 0;
-   int length = (count < 2048) ? count : 2048;
-   while(count > 0 && (numBytes = read(b, length)) > 0)
-   {
-      skipped += numBytes;
-      count -= numBytes;
-      length = (count < 2048) ? count : 2048;
-   }
-   
-   if(skipped == 0 && numBytes == -1)
-   {
-      skipped = -1;
-   }
-   
-   return skipped;
-}
 
 // typedef for a counted reference to an InputStream
 typedef db::rt::Collectable<InputStream> InputStreamRef;

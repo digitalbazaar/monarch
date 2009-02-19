@@ -16,6 +16,7 @@
 #include "db/io/ByteArrayInputStream.h"
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/io/ByteBuffer.h"
+#include "db/io/IOException.h"
 #include "db/io/MutatorInputStream.h"
 #include "db/io/MutatorOutputStream.h"
 #include "db/io/TruncateInputStream.h"

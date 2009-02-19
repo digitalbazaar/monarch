@@ -3,7 +3,7 @@
  */
 #include "db/data/CharacterSetMutator.h"
 
-#include "db/rt/DynamicObject.h"
+#include "db/rt/Exception.h"
 #include "db/io/ByteArrayInputStream.h"
 #include "db/io/MutatorInputStream.h"
 #include <errno.h>

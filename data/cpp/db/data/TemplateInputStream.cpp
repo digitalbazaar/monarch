@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/data/TemplateInputStream.h"
+
+#include "db/rt/Exception.h"
 
 using namespace db::data;
 using namespace db::io;

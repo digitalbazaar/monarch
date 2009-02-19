@@ -5,6 +5,7 @@
 
 #include "db/util/Convert.h"
 #include "db/io/ByteArrayInputStream.h"
+#include "db/rt/Exception.h"
 
 #include <cstdlib>
 
@@ -249,7 +250,8 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          }
          break;
       case _E: /* Escape done */
-         char ec;
+      {
+         char ec = c;
          switch(c)
          {
             case '"':
@@ -288,7 +290,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          // go back to string character reading
          mState = SC;
          break;
-
+      }
       case U_: /* unicode */
       {
          // Save current string
