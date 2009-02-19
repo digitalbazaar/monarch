@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_modest_State_H
 #define db_modest_State_H
 
 #include "db/modest/ImmutableState.h"
+#include "db/rt/ExclusiveLock.h"
 
 #include <map>
 #include <cstring>
