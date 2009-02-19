@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/modest/Kernel.h"
-#include "db/modest/OperationImpl.h"
 
 using namespace db::modest;
 using namespace db::rt;
@@ -42,12 +41,12 @@ const char* Kernel::getVersion()
    return mVersion;
 }
 
-inline Kernel* createModestKernel()
+Kernel* createModestKernel()
 {
    return new db::modest::Kernel();
 }
 
-inline void freeModestKernel(Kernel* k)
+void freeModestKernel(Kernel* k)
 {
    delete k;
 }
