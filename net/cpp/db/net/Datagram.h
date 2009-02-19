@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_Datagram_H
 #define db_net_Datagram_H
 
+#include "db/io/ByteBuffer.h"
 #include "db/net/InternetAddress.h"
 #include "db/rt/Collectable.h"
 
@@ -13,7 +14,8 @@ namespace net
 {
 
 /**
- * A Datagram is a self-contained, independent entity of data.
+ * A Datagram is a self-contained, independent entity of data that can
+ * be transported over the Internet.
  * 
  * @author Dave Longley
  */
@@ -21,57 +23,46 @@ class Datagram
 {
 protected:
    /**
-    * The source or destination address for this Datagram.
+    * The source or destination address for this datagram.
     */
    InternetAddress* mAddress;
    InternetAddressRef mAddressRef;
    
    /**
-    * The data for this Datagram.
+    * The data for this datagram.
     */
-   char* mData;
-   
-   /**
-    * The length of the data in this Datagram.
-    */
-   int mLength;
-   
-   /**
-    * True to clean up the internal data buffer, false not to.
-    */
-   bool mCleanup;
-   
-   /**
-    * Frees the internal data for this Datagram.
-    */
-   virtual void freeData();
+   db::io::ByteBuffer mBuffer;
    
 public:
    /**
     * Creates a new Datagram. An InternetAddress must be specified that will
-    * either be used to send this Datagram or it will be populated when this
-    * Datagram is used to receive data.
+    * either be used to send this datagram or it will be populated when this
+    * datagram is used to receive data.
     * 
-    * If a length for this Datagram is specified, then an internal buffer
-    * will be allocated to store data of the specified length.
+    * If a capacity is specified, the internal data buffer will automatically
+    * be allocated to the specified amount. Otherwise, it can be allocated
+    * manually via getBuffer().
     * 
-    * @param address the InternetAddress to associate with this Datagram.
-    * @param length the length, in bytes, of this Datagram.
+    * @param address the InternetAddress to associate with this datagram.
+    * @param capacity the maximum capacity for the data in this datagram, 0
+    *                 to set it manually via getBuffer().
     */
-   Datagram(InternetAddress* address, int length = 0);
+   Datagram(InternetAddress* address, int capacity = 0);
    
    /**
     * Creates a new Datagram. An InternetAddress must be specified that will
-    * either be used to send this Datagram or it will be populated when this
-    * Datagram is used to receive data.
+    * either be used to send this datagram or it will be populated when this
+    * datagram is used to receive data.
     * 
-    * If a length for this Datagram is specified, then an internal buffer
-    * will be allocated to store data of the specified length.
+    * If a capacity is specified, the internal data buffer will automatically
+    * be allocated to the specified amount. Otherwise, it can be allocated
+    * manually via getBuffer().
     * 
-    * @param address the InternetAddress to associate with this Datagram.
-    * @param length the length, in bytes, of this Datagram.
+    * @param address the InternetAddress to associate with this datagram.
+    * @param capacity the maximum capacity for the data in this datagram, 0
+    *                 to set it manually via getBuffer().
     */
-   Datagram(InternetAddressRef& address, int length = 0);
+   Datagram(InternetAddressRef& address, int capacity = 0);
    
    /**
     * Destructs this Datagram.
@@ -79,79 +70,58 @@ public:
    virtual ~Datagram();
    
    /**
-    * Sets the address for this Datagram. This is either the source or
-    * destination address for this Datagram.
+    * Sets the address for this datagram. This is either the source or
+    * destination address for this datagram.
     * 
-    * @param address the address for this Datagram.
+    * @param address the address for this datagram.
     */
    virtual void setAddress(InternetAddress* address);
    
    /**
-    * Gets the address for this Datagram. This is either the source or
-    * destination address for this Datagram.
+    * Sets the address for this datagram. This is either the source or
+    * destination address for this datagram.
     * 
-    * @return the address for this Datagram.
+    * @param address the address for this datagram.
+    */
+   virtual void setAddress(InternetAddressRef& address);
+   
+   /**
+    * Gets the address for this datagram. This is either the source or
+    * destination address for this datagram.
+    * 
+    * @return the address for this datagram.
     */
    virtual InternetAddress* getAddress();
    
    /**
-    * Sets the data for this Datagram. This method will set the internal
-    * data buffer to the passed data buffer. Any existing internal data
-    * buffer will be freed.
+    * Gets the data buffer for this datagram. It may be modified as the
+    * user of this datagram sees fit.
     * 
-    * @param data the data to use.
-    * @param length the length of the data.
-    * @param cleanup true to cleanup the data when the Datagram is destructed,
-    *                false not to.
-    */ 
-   virtual void setData(char* data, int length, bool cleanup);
-   
-   /**
-    * Assigns the data for this Datagram. This method will copy the passed
-    * data to the internal data buffer for this Datagram. The copied data
-    * will be freed when this Datagram is destructed.
+    * When a datagram is received, this buffer will be cleared and filled
+    * with the data for the datagram, with no more bytes than its capacity.
+    * Therefore, getBuffer()->resize(<desired_capacity>) should be called
+    * before receiving this datagram.
     * 
-    * @param data the data to use.
-    * @param length the length of the data.
-    */ 
-   virtual void assignData(const char* data, int length);
-   
-   /**
-    * Sets the length of the data for this Datagram. The length cannot be
-    * set larger than the current length, only smaller.
+    * When a datagram is sent, the buffer's data, starting at its offset and
+    * up to its length, will be sent. The buffer will not be cleared. 
     * 
-    * @param length the length of the data for this Datagram.
+    * @return the data buffer for this datagram.
     */
-   virtual void setLength(int length);
+   virtual db::io::ByteBuffer* getBuffer();
    
    /**
-    * Gets this Datagram's length.
-    * 
-    * @return this Datagram's length.
-    */
-   virtual int getLength();
-   
-   /**
-    * Gets this Datagram's data.
-    * 
-    * @return this Datagram's data.
-    */
-   virtual char* getData();
-      
-   /**
-    * Assigns the data for this Datagram to the passed string. This method will
-    * copy the passed data to the internal data buffer for this Datagram. The
-    * copied data will be freed when this Datagram is destructed. The
-    * terminating NULL character will NOT be included.
+    * Assigns the data for this datagram to the passed string. The
+    * terminating NULL character will NOT be included. The internal
+    * buffer for this datagram will become managed if it is not already.
     * 
     * @param str the string to use.
     */ 
    virtual void assignString(const std::string& str);
    
    /**
-    * Gets this Datagram's data as a string.
+    * Gets this datagram's data as a string.
     * 
-    * @return this Datagram's data as a string.
+    * @return this datagram's data as a string.
     */
    virtual std::string getString();
 };

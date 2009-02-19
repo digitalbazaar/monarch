@@ -112,6 +112,18 @@ public:
    virtual void resize(int capacity);
    
    /**
+    * Reallocates the space for data in this buffer. Any existing managed
+    * data will be free'd.
+    * 
+    * If copy is true and the existing data is larger than the given capacity,
+    * then it will be truncated.
+    * 
+    * @param capacity the new capacity for this buffer.
+    * @param copy true to copy the existing data, false not to.
+    */
+   virtual void reAllocate(int capacity = 0, bool copy = false);
+   
+   /**
     * Puts a particular byte into this buffer n times.
     * 
     * @param b the byte to put into this buffer.
@@ -330,8 +342,8 @@ public:
     * ByteBuffer. No data is copied.
     * 
     * @param b the buffer to use.
-    * @param cleanup true if the passed buffer should be cleaned up by
-    *                this object, false if not.
+    * @param cleanup true if the data in the passed buffer should be cleaned
+    *                up by this object, false if not.
     */
    virtual void setBytes(ByteBuffer* b, bool cleanup);
    

@@ -135,6 +135,37 @@ void ByteBuffer::resize(int capacity)
    }
 }
 
+void ByteBuffer::reAllocate(int capacity, bool copy)
+{
+   // save old data info
+   unsigned char* data = mBuffer;
+   char* offset = (char*)mOffset;
+   int length = mLength;
+   
+   // create the new byte buffer
+   mCapacity = capacity;
+   mBuffer = (capacity > 0) ? (unsigned char*)malloc(mCapacity) : NULL;
+   mOffset = mBuffer;
+   mLength = 0;
+   
+   if(copy)
+   {
+      // put old data into buffer
+      put(offset, length, false);
+   }
+   
+   if(mCleanup)
+   {
+      // free old data
+      ::free(data);
+   }
+   else
+   {
+      // now must cleanup
+      mCleanup = true;
+   }
+}
+
 int ByteBuffer::putByte(unsigned char b, int n, bool resize)
 {
    // allocate space for the data

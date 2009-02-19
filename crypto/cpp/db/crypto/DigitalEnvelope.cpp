@@ -52,23 +52,23 @@ bool DigitalEnvelope::startSealing(
    {
       // create symmetric key buffers for each public key
       EVP_PKEY* pKeys[keys];
-      char* eKeys[keys];
+      unsigned char* eKeys[keys];
       int eKeyLengths[keys];
       for(int i = 0; i < keys; i++)
       {
          pKeys[i] = publicKeys[i]->getPKEY();
-         eKeys[i] = (char*)malloc(publicKeys[i]->getOutputSize());
+         eKeys[i] = (unsigned char*)malloc(publicKeys[i]->getOutputSize());
       }
       
       // create iv buffer
       unsigned int ivLength = EVP_CIPHER_iv_length(mCipherFunction);
-      char* iv = (ivLength == 0) ? NULL : (char*)malloc(ivLength);
+      unsigned char* iv = (ivLength == 0) ?
+         NULL : (unsigned char*)malloc(ivLength);
       
       // initialize sealing the envelope
       if(EVP_SealInit(
          &mCipherContext, mCipherFunction,
-         (unsigned char**)eKeys, eKeyLengths, (unsigned char*)iv,
-         pKeys, keys) == 1)
+         eKeys, eKeyLengths, iv, pKeys, keys) == 1)
       {
          // initialization successful
          rval = true;
@@ -87,7 +87,7 @@ bool DigitalEnvelope::startSealing(
             // assign encrypted symmetric key
             symmetricKeys[i]->setAlgorithm(algorithm);
             symmetricKeys[i]->assignData(
-               eKeys[i], eKeyLengths[i], ivCopy, ivLength, true);
+               (char*)eKeys[i], eKeyLengths[i], ivCopy, ivLength, true);
          }
          
          if(iv != NULL)
