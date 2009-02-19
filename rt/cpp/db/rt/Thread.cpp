@@ -232,8 +232,7 @@ void Thread::join()
    if(join && hasStarted())
    {
       // join thread, wait for it to detach/terminate indefinitely
-      int status;
-      pthread_join(mThreadId, (void **)&status);
+      pthread_join(mThreadId, NULL);
    }
 }
 
