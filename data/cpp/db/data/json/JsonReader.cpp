@@ -286,7 +286,10 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
                break;
             }
          }
-         mString.push_back(ec);
+         if(rval)
+         {
+            mString.push_back(ec);
+         }
          // go back to string character reading
          mState = SC;
          break;
