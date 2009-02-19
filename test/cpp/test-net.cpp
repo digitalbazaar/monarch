@@ -640,7 +640,7 @@ void runDatagramTest(TestRunner& tr)
       InternetAddressRef ia = new InternetAddress();
       char externalData[2048];
       Datagram d2(ia);
-      d2.setData(externalData, 2048, false);
+      d2.getBuffer()->setBytes(externalData, 0, 2048, false);
       
       // receive a datagram
       server.receive(&d2);
@@ -662,7 +662,7 @@ void runDatagramTest(TestRunner& tr)
       
       // receive the server datagram
       ia = new InternetAddress();
-      Datagram d3(ia, 2048);
+      Datagram d3(ia, d2.getString().length());
       client.receive(&d3);
       assertNoException();
       

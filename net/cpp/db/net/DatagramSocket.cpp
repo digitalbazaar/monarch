@@ -3,6 +3,7 @@
  */
 #include "db/net/DatagramSocket.h"
 
+using namespace db::io;
 using namespace db::net;
 
 DatagramSocket::DatagramSocket()
@@ -31,21 +32,24 @@ inline bool DatagramSocket::leaveGroup(InternetAddress* group)
 
 inline bool DatagramSocket::send(Datagram* datagram)
 {
-   int length = datagram->getLength();
-   char* data = datagram->getData();
-   return UdpSocket::sendDatagram(data, length, datagram->getAddress());
+   ByteBuffer* buffer = datagram->getBuffer();
+   return UdpSocket::sendDatagram(
+      buffer->data(), buffer->length(), datagram->getAddress());
 }
 
 inline bool DatagramSocket::receive(Datagram* datagram)
 {
    bool rval = false;
    
-   int length = datagram->getLength();
-   char* data = datagram->getData();
-   int size = UdpSocket::receiveDatagram(data, length, datagram->getAddress());
+   // clear buffer and receive datagram
+   ByteBuffer* buffer = datagram->getBuffer();
+   buffer->clear();
+   int size = UdpSocket::receiveDatagram(
+      buffer->data(), buffer->freeSpace(), datagram->getAddress());
    if(size != -1)
    {
-      datagram->setLength(size);
+      // extend buffer to fill size of received datagram
+      datagram->getBuffer()->extend(size);
       rval = true;
    }
    

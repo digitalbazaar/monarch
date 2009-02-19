@@ -233,7 +233,7 @@ int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
          e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
-      else if(rval != 0 && address != NULL)
+      else if(address != NULL)
       {
          // convert socket address
          address->fromSockAddr((sockaddr*)&addr, size);
