@@ -251,7 +251,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          break;
       case _E: /* Escape done */
       {
-         char ec = c;
+         char ec;
          switch(c)
          {
             case '"':
