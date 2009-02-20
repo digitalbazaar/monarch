@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_crypto_MessageDigest_H
 #define db_crypto_MessageDigest_H
 
 #include "db/crypto/CryptoHashAlgorithm.h"
+#include "db/io/File.h"
 
 #include <string>
 
@@ -32,13 +33,6 @@ protected:
     */
    bool mPersistent;
    
-   /**
-    * Gets the hash function for this algorithm.
-    *
-    * @return the hash function to use.
-    */
-   virtual const EVP_MD* getHashFunction();
-
 public:
    /**
     * Creates a new MessageDigest that uses the passed hash algorithm. An
@@ -107,7 +101,25 @@ public:
     * 
     * @return the message digest as a hexadecimal string. 
     */
-   virtual std::string getDigest();   
+   virtual std::string getDigest();
+   
+   /**
+    * A convenience method for digesting an entire File. This method will
+    * update the message digest with the contents from the given file.
+    * 
+    * @param file the file to digest.
+    * 
+    * @return true if successful, false if an error occured.
+    */
+   virtual bool digestFile(db::io::File& file);
+   
+protected:
+   /**
+    * Gets the hash function for this algorithm.
+    *
+    * @return the hash function to use.
+    */
+   virtual const EVP_MD* getHashFunction();
 };
 
 } // end namespace crypto

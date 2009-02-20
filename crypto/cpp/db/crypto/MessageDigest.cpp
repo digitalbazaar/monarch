@@ -3,6 +3,7 @@
  */
 #include "db/crypto/MessageDigest.h"
 
+#include "db/io/FileInputStream.h"
 #include "db/util/Convert.h"
 #include "db/rt/DynamicObject.h"
 #include "db/rt/Exception.h"
@@ -11,6 +12,7 @@
 
 using namespace std;
 using namespace db::crypto;
+using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
 
@@ -38,22 +40,6 @@ MessageDigest::MessageDigest(const char* algorithm, bool persistent)
 
 MessageDigest::~MessageDigest()
 {
-}
-
-const EVP_MD* MessageDigest::getHashFunction()
-{
-   const EVP_MD* rval = NULL;
-   
-   if(strcmp(mAlgorithm, "SHA1") == 0)
-   {
-      rval = EVP_sha1();
-   }
-   else if(strcmp(mAlgorithm, "MD5") == 0)
-   {
-      rval = EVP_md5();
-   }
-   
-   return rval;
 }
 
 void MessageDigest::reset()
@@ -126,4 +112,35 @@ string MessageDigest::getDigest()
    
    // convert the hash value into hexadecimal
    return Convert::bytesToHex(hashValue, length);
+}
+
+bool MessageDigest::digestFile(File& file)
+{
+   FileInputStream fis(file);
+   const unsigned int bufsize = 2048;
+   char* buf = (char*)malloc(bufsize);
+   int numBytes;
+   while((numBytes = fis.read(buf, bufsize) > 0))
+   {
+      update(buf, numBytes);
+   }
+   fis.close();
+   free(buf);
+   return (numBytes == 0);
+}
+
+const EVP_MD* MessageDigest::getHashFunction()
+{
+   const EVP_MD* rval = NULL;
+   
+   if(strcmp(mAlgorithm, "SHA1") == 0)
+   {
+      rval = EVP_sha1();
+   }
+   else if(strcmp(mAlgorithm, "MD5") == 0)
+   {
+      rval = EVP_md5();
+   }
+   
+   return rval;
 }
