@@ -368,6 +368,18 @@ inline int ByteBuffer::clear()
    return clear(mLength);
 }
 
+int ByteBuffer::advanceOffset(int length)
+{
+   // ensure that the maximum cleared is existing length
+   int rval = (length > 0) ? ((mLength < length) ? mLength : length) : 0;
+   
+   // set new length and offset
+   mLength -= rval;
+   mOffset = mOffset + rval;
+   
+   return rval;
+}
+
 int ByteBuffer::reset(int length)
 {
    // ensure that the most the offset is moved back is the existing offset

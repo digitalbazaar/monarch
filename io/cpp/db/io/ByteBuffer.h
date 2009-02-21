@@ -259,9 +259,13 @@ public:
     * beginning). If more data is requested to be cleared than there is data,
     * all data will be cleared.
     * 
+    * This method is not guaranteed to be reversible, use advanceOffset() if
+    * you may want to call reset() later.
+    * 
     * Note: The underlying bytes will not be altered by this call, only
     * the internal offset pointer will be moved forward and the length
-    * decreased by the specified length parameter.
+    * decreased by the specified length parameter. If all data is cleared,
+    * then the internal offset pointer and length will be set to 0.
     * 
     * @param length the amount of data to clear from this buffer, a negative
     *               number will have no effect.
@@ -279,6 +283,26 @@ public:
     * @return the actual amount of data cleared.
     */
    virtual int clear();
+   
+   /**
+    * Moves the internal offset pointer forward and decreases the length of
+    * this buffer by the specified parameter. The internal offset pointer
+    * will not be set past the capacity of this buffer.
+    * 
+    * This method has the effect of reading bytes out of this buffer without
+    * actually copying them anywhere. The underlying bytes in this buffer
+    * will not be affected, and a call to reset() can undo this operation.
+    * 
+    * This method is particularly useful if the underlying bytes have been
+    * read from via this buffer's accessors and this buffer now needs to
+    * be updated to account for those changes.
+    * 
+    * @param length the amount to advance the offset, a negative number will
+    *        have no effect.
+    * 
+    * @return the actual amount the offset increased.
+    */
+   virtual int advanceOffset(int length);
    
    /**
     * Resets the offset for this ByteBuffer by the specified length. This will
