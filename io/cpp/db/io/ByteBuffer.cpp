@@ -21,11 +21,13 @@ ByteBuffer::ByteBuffer(int capacity)
    mCleanup = true;
 }
 
-ByteBuffer::ByteBuffer(char* b, int offset, int length, bool cleanup)
+ByteBuffer::ByteBuffer(
+   char* b, int offset, int length, int capacity, bool cleanup)
 {
    // set the byte buffer
    mCleanup = false;
-   ByteBuffer::setBytes(b, offset, length, cleanup);
+   capacity = (capacity == -1) ? length : capacity;
+   ByteBuffer::setBytes(b, offset, length, capacity, cleanup);
 }
 
 ByteBuffer::ByteBuffer(const ByteBuffer& copy)
@@ -431,15 +433,16 @@ inline int ByteBuffer::capacity() const
 inline void ByteBuffer::setBytes(ByteBuffer* b, bool cleanup)
 {
    // set the byte buffer
-   setBytes(b->bytes(), b->offset(), b->length(), cleanup);
+   setBytes(b->bytes(), b->offset(), b->length(), b->capacity(), cleanup);
 }
 
-void ByteBuffer::setBytes(char* b, int offset, int length, bool cleanup)
+void ByteBuffer::setBytes(
+   char* b, int offset, int length, int capacity, bool cleanup)
 {
    // cleanup old buffer
    cleanupBytes();
    
-   mCapacity = length;
+   mCapacity = capacity;
    mBuffer = (unsigned char*)b;
    mOffset = mBuffer + offset;
    mLength = length;

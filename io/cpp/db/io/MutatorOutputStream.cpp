@@ -78,7 +78,7 @@ bool MutatorOutputStream::write(const char* b, int length)
    else
    {
       // wrap the passed data to mutate it without caching it
-      mInputWrapper.setBytes((char*)b, 0, length, false);
+      mInputWrapper.setBytes((char*)b, 0, length, length, false);
       src = &mInputWrapper;
    }
    

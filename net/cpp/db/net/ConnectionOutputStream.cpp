@@ -29,7 +29,7 @@ bool ConnectionOutputStream::write(const char* b, int length)
    if(!mUseBuffer)
    {
       // wrap bytes and immediately flush
-      mBuffer.setBytes((char*)b, 0, length, false);
+      mBuffer.setBytes((char*)b, 0, length, length, false);
       rval = flush();
    }
    else
@@ -172,8 +172,7 @@ void ConnectionOutputStream::resizeBuffer(int size)
       else
       {
          // allocate new bytes for buffer
-         mBuffer.setBytes(NULL, 0, 0, false);
-         mBuffer.resize(size);
+         mBuffer.reAllocate(size);
          mUseBuffer = true;
       }
    }

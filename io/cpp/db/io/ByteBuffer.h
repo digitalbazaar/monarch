@@ -65,9 +65,11 @@ public:
     * @param b the buffer of bytes to wrap.
     * @param offset the offset at which valid bytes begin.
     * @param length the number of valid bytes.
+    * @param capacity the total capacity of the buffer, -1 to use length.
     * @param cleanup true to handle clean up of the memory, false not to.
     */
-   ByteBuffer(char* b, int offset, int length, bool cleanup = false);
+   ByteBuffer(
+      char* b, int offset, int length, int capacity = -1, bool cleanup = false);
    
    /**
     * Copies the data in the passed ByteBuffer into this one.
@@ -378,10 +380,12 @@ public:
     * @param b the buffer to use.
     * @param offset the offset at which the valid bytes start in the buffer.
     * @param length the number of valid bytes in the buffer.
+    * @param capacity the total capacity of the buffer.
     * @param cleanup true if the passed buffer should be cleaned up by
     *                this object, false if not.
     */
-   virtual void setBytes(char* b, int offset, int length, bool cleanup);
+   virtual void setBytes(
+      char* b, int offset, int length, int capacity, bool cleanup);
    
    /**
     * Gets the bytes in this buffer. This method will return the underlying

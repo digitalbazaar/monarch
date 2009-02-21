@@ -640,7 +640,7 @@ void runDatagramTest(TestRunner& tr)
       InternetAddressRef ia = new InternetAddress();
       char externalData[2048];
       Datagram d2(ia);
-      d2.getBuffer()->setBytes(externalData, 0, 2048, false);
+      d2.getBuffer()->setBytes(externalData, 0, 0, 2048, false);
       
       // receive a datagram
       server.receive(&d2);
