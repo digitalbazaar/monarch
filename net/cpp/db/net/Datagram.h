@@ -25,8 +25,7 @@ protected:
    /**
     * The source or destination address for this datagram.
     */
-   InternetAddress* mAddress;
-   InternetAddressRef mAddressRef;
+   InternetAddressRef mAddress;
    
    /**
     * The data for this datagram.
@@ -35,19 +34,18 @@ protected:
    
 public:
    /**
-    * Creates a new Datagram. An InternetAddress must be specified that will
-    * either be used to send this datagram or it will be populated when this
-    * datagram is used to receive data.
+    * Creates a new Datagram with no yet specified outgoing or incoming
+    * InternetAddress. A call to setAddress() must be made before attempting
+    * to send or receive this Datagram.
     * 
     * If a capacity is specified, the internal data buffer will automatically
     * be allocated to the specified amount. Otherwise, it can be allocated
     * manually via getBuffer().
     * 
-    * @param address the InternetAddress to associate with this datagram.
     * @param capacity the maximum capacity for the data in this datagram, 0
     *                 to set it manually via getBuffer().
     */
-   Datagram(InternetAddress* address, int capacity = 0);
+   Datagram(int capacity = 0);
    
    /**
     * Creates a new Datagram. An InternetAddress must be specified that will
@@ -75,14 +73,6 @@ public:
     * 
     * @param address the address for this datagram.
     */
-   virtual void setAddress(InternetAddress* address);
-   
-   /**
-    * Sets the address for this datagram. This is either the source or
-    * destination address for this datagram.
-    * 
-    * @param address the address for this datagram.
-    */
    virtual void setAddress(InternetAddressRef& address);
    
    /**
@@ -91,7 +81,7 @@ public:
     * 
     * @return the address for this datagram.
     */
-   virtual InternetAddress* getAddress();
+   virtual InternetAddressRef& getAddress();
    
    /**
     * Gets the data buffer for this datagram. It may be modified as the

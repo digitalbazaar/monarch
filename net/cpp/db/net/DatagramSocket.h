@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_DatagramSocket_H
 #define db_net_DatagramSocket_H
@@ -32,35 +32,6 @@ public:
    virtual ~DatagramSocket();
    
    /**
-    * Binds this Socket to the passed address.
-    * 
-    * @param address the address to bind to.
-    * 
-    * @return true if bound, false if an exception occurred.
-    */
-   virtual bool bind(InternetAddress* address);   
-   
-   /**
-    * Joins a multicast group with the given address.
-    * 
-    * @param group the multicast group address.
-    * @param localAddress the local address to bind to.
-    * 
-    * @return true if the join was successful, false if an exception occurred.
-    */
-   virtual bool joinGroup(
-      InternetAddress* group, InternetAddress* localAddress = NULL);
-   
-   /**
-    * Leaves a multicast group with the given address.
-    * 
-    * @param group the multicast group address.
-    * 
-    * @return true if the leave was successful, false if an exception occurred.
-    */
-   virtual bool leaveGroup(InternetAddress* group);
-   
-   /**
     * Sends a Datagram.
     * 
     * @param datagram the Datagram to send.
@@ -83,99 +54,21 @@ public:
     */
    virtual bool receive(Datagram* datagram);
    
-   /**
-    * Sets the IPv6 multicast hops. This is the number of hops a datagram
-    * should make before dying.
-    * 
-    * Note: This method is for IPv6 only.
-    * 
-    * @param hops the number of hops to use.
-    * 
-    * @return true if the hops were set, false if an exception occurred.
-    */
-   virtual bool setMulticastHops(unsigned char hops);
-   
-   /**
-    * Sets the IPv4 multicast time-to-live (TTL). This is the number of hops a
-    * datagram should make before dying.
-    * 
-    * Note: This method is for IPv4 only.
-    * 
-    * @param ttl the time-to-live to use.
-    * 
-    * @return true if the ttl was set, false if an exception occurred.
-    */
-   virtual bool setMulticastTimeToLive(unsigned char ttl);
-   
-   /**
-    * Enables/disables broadcasting via this socket.
-    * 
-    * @param enable true to enable broadcasting, false to disable it.
-    * 
-    * @return true if broadcasting was set, false if an exception occurred.
-    */
-   virtual bool setBroadcastEnabled(bool enable);   
-   
-   /**
-    * Closes this Socket. This will be done automatically when the Socket is
-    * destructed.
-    */
-   virtual void close();
-   
-   /**
-    * Returns true if this Socket is bound, false if not.
-    * 
-    * @return true if this Socket is bound, false if not.
-    */
-   virtual bool isBound();
-   
-   /**
-    * Returns true if this Socket is connected, false if not.
-    * 
-    * @return true if this Socket is connected, false if not.
-    */
-   virtual bool isConnected();
-   
-   /**
-    * Gets the local address for this Socket.
-    * 
-    * @param address the address to populate.
-    * 
-    * @return true if the address was populated, false if an exception occurred.
-    */
-   virtual bool getLocalAddress(InternetAddress* address);
-   
-   /**
-    * Sets the send timeout for this Socket. This is the amount of time that
-    * this Socket will block waiting to send data.
-    * 
-    * @param timeout the send timeout in milliseconds.
-    */
-   virtual void setSendTimeout(uint32_t timeout);
-   
-   /**
-    * Gets the send timeout for this Socket. This is the amount of time that
-    * this Socket will block waiting to send data.
-    * 
-    * @return the send timeout in milliseconds.
-    */
-   virtual uint32_t getSendTimeout();
-   
-   /**
-    * Sets the receive timeout for this Socket. This is the amount of time that
-    * this Socket will block waiting to receive data.
-    * 
-    * @param timeout the receive timeout in milliseconds.
-    */
-   virtual void setReceiveTimeout(uint32_t timeout);
-   
-   /**
-    * Gets the receive timeout for this Socket. This is the amount of time that
-    * this Socket will block waiting to receive data.
-    * 
-    * @return the receive timeout in milliseconds.
-    */
-   virtual uint32_t getReceiveTimeout();
+   // use remainder of UdpSocket interface
+   using UdpSocket::bind;
+   using UdpSocket::joinGroup;
+   using UdpSocket::leaveGroup;
+   using UdpSocket::setMulticastHops;
+   using UdpSocket::setMulticastTimeToLive;
+   using UdpSocket::setBroadcastEnabled;   
+   using UdpSocket::close;
+   using UdpSocket::isBound;
+   using UdpSocket::isConnected;
+   using UdpSocket::getLocalAddress;
+   using UdpSocket::setSendTimeout;
+   using UdpSocket::getSendTimeout;
+   using UdpSocket::setReceiveTimeout;
+   using UdpSocket::getReceiveTimeout;
 };
 
 } // end namespace net

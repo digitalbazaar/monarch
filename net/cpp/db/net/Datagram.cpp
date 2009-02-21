@@ -10,16 +10,14 @@ using namespace std;
 using namespace db::io;
 using namespace db::net;
 
-Datagram::Datagram(InternetAddress* address, int capacity) :
-   mAddress(address),
-   mAddressRef(NULL),
+Datagram::Datagram(int capacity) :
+   mAddress(NULL),
    mBuffer(capacity)
 {
 }
 
 Datagram::Datagram(InternetAddressRef& address, int capacity) :
-   mAddress(&(*address)),
-   mAddressRef(address),
+   mAddress(address),
    mBuffer(capacity)
 {
 }
@@ -28,19 +26,12 @@ Datagram::~Datagram()
 {
 }
 
-void Datagram::setAddress(InternetAddress* address)
-{
-   mAddress = address;
-   mAddressRef.setNull();
-}
-
 void Datagram::setAddress(InternetAddressRef& address)
 {
-   mAddress = &(*address);
-   mAddressRef = address;
+   mAddress = address;
 }
 
-InternetAddress* Datagram::getAddress()
+InternetAddressRef& Datagram::getAddress()
 {
    return mAddress;
 }

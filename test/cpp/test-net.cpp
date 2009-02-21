@@ -594,14 +594,14 @@ void runDatagramTest(TestRunner& tr)
 {
    tr.test("Datagram");
    {
-      InternetAddress* sa;
-      InternetAddress* ca;
-      InternetAddress serverAddress("127.0.0.1", 0);
-      InternetAddress clientAddress("127.0.0.1", 0);
-      //Internet6Address serverAddress("::1", 0);
-      //Internet6Address clientAddress("::1", 0);
-      sa = &serverAddress;
-      ca = &clientAddress;
+      InternetAddressRef sa;
+      InternetAddressRef ca;
+      InternetAddressRef serverAddress = new InternetAddress("127.0.0.1", 0);
+      InternetAddressRef clientAddress = new InternetAddress("127.0.0.1", 0);
+      //InternetAddressRef serverAddress = new Internet6Address("::1", 0);
+      //InternetAddressRef clientAddress = new Internet6Address("::1", 0);
+      sa = serverAddress;
+      ca = clientAddress;
       
       // create datagram server and client sockets
       DatagramSocket server;
@@ -612,7 +612,7 @@ void runDatagramTest(TestRunner& tr)
       client.setReceiveTimeout(2000);
       
       // bind with server
-      server.bind(sa);
+      server.bind(&(*sa));
       assertNoException();
       
       //printf("Server bound at host: %s\n", sa->getHost());
@@ -620,7 +620,7 @@ void runDatagramTest(TestRunner& tr)
       //printf("Server bound on port: %i\n", sa->getPort());
       
       // bind with client
-      client.bind(ca);
+      client.bind(&(*ca));
       assertNoException();
       
       //printf("Client bound at host: %s\n", ca->getHost());
