@@ -164,7 +164,6 @@ public:
     */
    virtual bool canSleep();
    
-protected:
    /**
     * Yields this fiber temporarily to allow another fiber to run.
     * 
