@@ -260,7 +260,8 @@ public:
     * all data will be cleared.
     * 
     * Note: The underlying bytes will not be altered by this call, only
-    * the internal pointer will be reset according to the length specified.
+    * the internal offset pointer will be moved forward and the length
+    * decreased by the specified length parameter.
     * 
     * @param length the amount of data to clear from this buffer, a negative
     *               number will have no effect.
@@ -273,7 +274,7 @@ public:
     * Clears all data from this buffer.
     * 
     * Note: The underlying bytes will not be altered by this call, only
-    * the internal pointer will be reset to 0.
+    * the internal offset pointer and length will be reset to 0.
     * 
     * @return the actual amount of data cleared.
     */
