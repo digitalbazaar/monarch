@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_crypto_SymmetricKey_H
 #define db_crypto_SymmetricKey_H
 
 #include <string>
+#include "db/rt/Collectable.h"
 
 namespace db
 {
@@ -169,6 +170,9 @@ public:
     */
    virtual bool isEncrypted();
 };
+
+// typedef for a reference-counted SymmetricKey
+typedef db::rt::Collectable<SymmetricKey> SymmetricKeyRef;
 
 } // end namespace crypto
 } // end namespace db
