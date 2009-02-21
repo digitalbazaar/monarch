@@ -31,7 +31,7 @@ int Trailer::convertFromBytes(char* b, int length)
    else
    {
       // wrap input in a ByteBuffer
-      ByteBuffer bb(b, 0, length, false);
+      ByteBuffer bb(b, 0, length, length, false);
       
       // read crc-32
       bb.get((char*)&mCrc32, 4);

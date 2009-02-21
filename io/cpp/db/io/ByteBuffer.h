@@ -65,11 +65,11 @@ public:
     * @param b the buffer of bytes to wrap.
     * @param offset the offset at which valid bytes begin.
     * @param length the number of valid bytes.
-    * @param capacity the total capacity of the buffer, -1 to use length.
+    * @param capacity the total capacity of the buffer.
     * @param cleanup true to handle clean up of the memory, false not to.
     */
    ByteBuffer(
-      char* b, int offset, int length, int capacity = -1, bool cleanup = false);
+      char* b, int offset, int length, int capacity, bool cleanup);
    
    /**
     * Copies the data in the passed ByteBuffer into this one.

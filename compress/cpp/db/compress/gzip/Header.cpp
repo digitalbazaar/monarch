@@ -70,7 +70,7 @@ int Header::convertFromBytes(char* b, int length)
    else
    {
       // create ByteBuffer for reading header
-      ByteBuffer bb(b, 0, length, false);
+      ByteBuffer bb(b, 0, length, length, false);
       
       // store the total number of header bytes needed
       int headerSize = 10;
