@@ -14,14 +14,14 @@ DatagramSocket::~DatagramSocket()
 {
 }
 
-bool DatagramSocket::send(Datagram* datagram)
+bool DatagramSocket::send(DatagramRef& datagram)
 {
    ByteBuffer* buffer = datagram->getBuffer();
    return UdpSocket::sendDatagram(
       buffer->data(), buffer->length(), &(*datagram->getAddress()));
 }
 
-bool DatagramSocket::receive(Datagram* datagram)
+bool DatagramSocket::receive(DatagramRef& datagram)
 {
    bool rval = false;
    

@@ -38,7 +38,7 @@ public:
     * 
     * @return true if the Datagram was sent, false if an exception occurred. 
     */
-   virtual bool send(Datagram* datagram);
+   virtual bool send(DatagramRef& datagram);
    
    /**
     * Receives a datagram. This method will block until at least one Datagram
@@ -52,7 +52,7 @@ public:
     * 
     * @return true if a Datagram was received, false if an exception occurred. 
     */
-   virtual bool receive(Datagram* datagram);
+   virtual bool receive(DatagramRef& datagram);
    
    // use remainder of UdpSocket interface
    using UdpSocket::bind;

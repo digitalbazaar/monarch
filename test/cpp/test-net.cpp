@@ -628,49 +628,53 @@ void runDatagramTest(TestRunner& tr)
       //printf("Client bound on port: %i\n", ca->getPort());
       
       // create a datagram
-      Datagram d1(sa);
-      d1.assignString("Hello there, Server.");
+      DatagramRef d1 = new Datagram(sa);
+      d1->assignString("Hello there, Server.");
       
       // send the datagram with the client
-      assert(client.send(&d1));
+      client.send(d1);
+      assertNoException();
       
-      //printf("Client sent: %s\n", d1.getString().c_str());
+      //printf("Client sent: %s\n", d1->getString().c_str());
       
       // create a datagram
       InternetAddressRef ia = new InternetAddress();
       char externalData[2048];
-      Datagram d2(ia);
-      d2.getBuffer()->setBytes(externalData, 0, 0, 2048, false);
+      DatagramRef d2 = new Datagram(ia);
+      d2->getBuffer()->setBytes(externalData, 0, 0, 2048, false);
       
       // receive a datagram
-      server.receive(&d2);
+      server.receive(d2);
       assertNoException();
       
-      //printf("Server received: %s\n", d2.getString().c_str());
+      //printf("Server received: %s\n", d2->getString().c_str());
       //printf("Data from: %s:%i\n",
-      //   d2.getAddress()->getAddress(), d2.getAddress()->getPort());
-      assertStrCmp(d2.getAddress()->toString().c_str(), ca->toString().c_str());
-      assertStrCmp(d2.getString().c_str(), d1.getString().c_str());
+      //   d2->getAddress()->getAddress(), d2->getAddress()->getPort());
+      assertStrCmp(
+         d2->getAddress()->toString().c_str(), ca->toString().c_str());
+      assertStrCmp(d2->getString().c_str(), d1->getString().c_str());
       
       // send a datagram with the server
-      d2.assignString("G'day, Client.");
-      d2.setAddress(ca);
-      server.send(&d2);
+      d2->assignString("G'day, Client.");
+      d2->setAddress(ca);
+      server.send(d2);
       assertNoException();
       
-      //printf("Server sent: %s\n", d2.getString().c_str());
+      //printf("Server sent: %s\n", d2->getString().c_str());
       
       // receive the server datagram
       ia = new InternetAddress();
-      Datagram d3(ia, d2.getString().length());
-      client.receive(&d3);
+      DatagramRef d3 = new Datagram(ia, d2->getString().length());
+      client.receive(d3);
       assertNoException();
       
-      //printf("Client received: %s\n", d3.getString().c_str());
+      //printf("Client received: %s\n", d3->getString().c_str());
       //printf("Data from: %s:%i\n",
-      //   d3.getAddress()->getAddress(), d3.getAddress()->getPort());
-      assertStrCmp(d3.getAddress()->toString().c_str(), sa->toString().c_str());
-      assertStrCmp(d3.getString().c_str(), d2.getString().c_str());
+      //   d3->getAddress()->getAddress(), d3->getAddress()->getPort());
+      assertStrCmp(
+         d3->getAddress()->toString().c_str(), sa->toString().c_str());
+      assertStrCmp(
+         d3->getString().c_str(), d2->getString().c_str());
       
       // close sockets
       client.close();
