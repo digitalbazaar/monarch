@@ -125,9 +125,22 @@ public:
    /**
     * Gets a string representation for this SocketAddress.
     * 
+    * @param simple true for simple representation that can be converted
+    *               back into a SocketAddress, false for complex
+    *               representation for display only.
+    * 
     * @return a string representation for this SocketAddress.
     */
-   virtual std::string toString();
+   virtual std::string toString(bool simple = true);
+   
+   /**
+    * Converts the passed string into this SocketAddress.
+    * 
+    * @param str the string to convert into this SocketAddress.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool fromString(const char* str);
 };
 
 } // end namespace net

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/InternetAddress.h"
 
@@ -185,11 +185,24 @@ bool InternetAddress::isMulticast()
    return rval;
 }
 
-string InternetAddress::toString()
+string InternetAddress::toString(bool simple)
 {
-   int length = 100 + strlen(getHost()) + strlen(getAddress());
-   char temp[length];
-   snprintf(temp, length, "InternetAddress [%s:%u,%s:%u]",
-      getHost(), getPort(), getAddress(), getPort());
-   return temp;
+   string rval;
+   
+   if(simple)
+   {
+      char temp[6 + strlen(getAddress())];
+      sprintf(temp, "%s:%u", getAddress(), getPort());
+      rval = temp;
+   }
+   else
+   {
+      int length = 100 + strlen(getHost()) + strlen(getAddress());
+      char temp[length];
+      snprintf(temp, length, "InternetAddress [%s:%u,%s:%u]",
+         getHost(), getPort(), getAddress(), getPort());
+      rval = temp;
+   }
+   
+   return rval;
 }

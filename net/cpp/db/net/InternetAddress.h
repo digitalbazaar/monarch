@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_InternetAddress_H
 #define db_net_InternetAddress_H
@@ -103,9 +103,13 @@ public:
    /**
     * Gets a string representation for this InternetAddress.
     * 
+    * @param simple true for simple representation that can be converted
+    *               back into a InternetAddress, false for complex
+    *               representation for display only.
+    * 
     * @return a string representation for this InternetAddress.
     */
-   virtual std::string toString();
+   virtual std::string toString(bool simple = true);
 };
 
 // typedef for reference counted InternetAddress

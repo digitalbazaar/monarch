@@ -98,6 +98,11 @@ void runAddressResolveTest(TestRunner& tr)
    assertNoException();
    //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
    
+   string strAddress = ip4.toString();
+   InternetAddress another;
+   another.fromString(strAddress.c_str());
+   assertStrCmp(another.toString().c_str(), strAddress.c_str());
+   
 //   // create IPv6 address
 //   Internet6Address ip6;
 //   
