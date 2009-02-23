@@ -175,11 +175,11 @@ int Deflater::process(ByteBuffer* dst, bool resize)
       int flush = (mShouldFinish ?
          Z_FINISH : (mDeflating ? Z_NO_FLUSH : Z_SYNC_FLUSH));
       
-      // keep processing while no error, no output data, while there is
-      // input data or processing should finish, and while there is room
-      // to store the output data or if the destination buffer can be
+      // keep processing while no finished, no error, no output data, while
+      // there is input data or processing should finish, and while there is
+      // room to store the output data or if the destination buffer can be
       // resized
-      while(rval == 0 &&
+      while(!mFinished && rval == 0 &&
             (mZipStream.avail_in > 0 || mShouldFinish) &&
             (resize || !dst->isFull()))
       {
