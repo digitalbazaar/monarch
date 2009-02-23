@@ -192,7 +192,7 @@ int Deflater::process(ByteBuffer* dst, bool resize)
          // set output buffer, store old free space
          int freeSpace = dst->freeSpace();
          dst->allocateSpace(freeSpace, false);
-         mZipStream.next_out = (unsigned char*)dst->data();
+         mZipStream.next_out = dst->udata();
          mZipStream.avail_out = freeSpace;
          
          // perform deflation/inflation
