@@ -597,7 +597,9 @@ void runUdpClientServerTest(TestRunner& tr)
 
 void runDatagramTest(TestRunner& tr)
 {
-   tr.test("Datagram");
+   tr.group("Datagram");
+   
+   tr.test("unicast");
    {
       InternetAddressRef sa;
       InternetAddressRef ca;
@@ -678,6 +680,107 @@ void runDatagramTest(TestRunner& tr)
       //   d3->getAddress()->getAddress(), d3->getAddress()->getPort());
       assertStrCmp(
          d3->getAddress()->toString().c_str(), sa->toString().c_str());
+      assertStrCmp(
+         d3->getString().c_str(), d2->getString().c_str());
+      
+      // close sockets
+      client.close();
+      server.close();
+      
+      //printf("Sockets closed.\n");
+   }
+   
+   tr.passIfNoException();
+   
+   tr.test("multicast");
+   {
+      InternetAddressRef sa;
+      InternetAddressRef ca;
+      InternetAddressRef ga;
+      InternetAddressRef serverAddress = new InternetAddress("0.0.0.0", 12345);
+      InternetAddressRef clientAddress = new InternetAddress("0.0.0.0", 0);
+      InternetAddressRef groupAddress = new InternetAddress("225.0.0.1", 12345);
+      //InternetAddressRef serverAddress = new Internet6Address("::1", 0);
+      //InternetAddressRef clientAddress = new Internet6Address("::1", 0);
+      //InternetAddressRef groupAddress = new Internet6Address("FIXME", 0);
+      sa = serverAddress;
+      ca = clientAddress;
+      ga = groupAddress;
+      
+      // create datagram server and client sockets
+      DatagramSocket server;
+      DatagramSocket client;
+      
+      // set receive timeouts to 2 seconds
+      server.setReceiveTimeout(2000);
+      client.setReceiveTimeout(2000);
+      
+      // bind with server
+      server.bind(&(*sa));
+      assertNoException();
+      
+      //printf("Server bound at host: %s\n", sa->getHost());
+      //printf("Server bound at address: %s\n", sa->getAddress());
+      //printf("Server bound on port: %i\n", sa->getPort());
+      
+      // joing group with server
+      server.joinGroup(&(*groupAddress), &(*sa));
+      assertNoException();
+      
+      // bind with client
+      client.bind(&(*ca));
+      assertNoException();
+      
+      //printf("Client bound at host: %s\n", ca->getHost());
+      //printf("Client bound at address: %s\n", ca->getAddress());
+      //printf("Client bound on port: %i\n", ca->getPort());
+      
+      // create a datagram
+      DatagramRef d1 = new Datagram(ga);
+      d1->assignString("Hello there, everyone.");
+      
+      // send the datagram to the group with the client
+      client.send(d1);
+      assertNoException();
+      
+      //printf("Client sent: %s\n", d1->getString().c_str());
+      
+      // create a datagram
+      InternetAddressRef ia = new InternetAddress();
+      char externalData[2048];
+      DatagramRef d2 = new Datagram(ia);
+      d2->getBuffer()->setBytes(externalData, 0, 0, 2048, false);
+      
+      // receive a datagram
+      server.receive(d2);
+      assertNoException();
+      
+      //printf("Server received: %s\n", d2->getString().c_str());
+      //printf("Data from: %s:%i\n",
+      //   d2->getAddress()->getAddress(), d2->getAddress()->getPort());
+      //assertStrCmp(
+      //   d2->getAddress()->toString().c_str(), ca->toString().c_str());
+      assertStrCmp(d2->getString().c_str(), d1->getString().c_str());
+      
+      // send a datagram with the server
+      d2->assignString("G'day, Client.");
+      d2->setAddress(ca);
+      server.send(d2);
+      assertNoException();
+      
+      //printf("Server sent: %s\n", d2->getString().c_str());
+      
+      // receive the server datagram
+      ia = new InternetAddress();
+      DatagramRef d3 = new Datagram(ia, d2->getString().length());
+      client.receive(d3);
+      assertNoException();
+      
+      //printf("Client received: %s\n", d3->getString().c_str());
+      //printf("Data from: %s:%i\n",
+      //   d3->getAddress()->getAddress(), d3->getAddress()->getPort());
+      //assertStrCmp(
+      //   d3->getAddress()->toString().c_str(), sa->toString().c_str());
       assertStrCmp(
          d3->getString().c_str(), d2->getString().c_str());
       
