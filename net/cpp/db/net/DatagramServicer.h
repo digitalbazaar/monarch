@@ -34,9 +34,11 @@ public:
     * Performs initialization work on the DatagramSocket once it is
     * bound, if any is necessary, and returns false if an exception occurs.
     * 
+    * @param s the DatagramSocket to be serviced.
+    * 
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool initialize() { return true; };
+   virtual bool initialize(DatagramSocket* s) { return true; };
    
    /**
     * Receives Datagrams from the passed DatagramSocket and services them.

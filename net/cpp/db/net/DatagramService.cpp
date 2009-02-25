@@ -29,7 +29,7 @@ Operation DatagramService::initialize()
    mSocket = new DatagramSocket();
    
    // bind socket to the address
-   if(mSocket->bind(getAddress()) && mServicer->initialize())
+   if(mSocket->bind(getAddress()) && mServicer->initialize(mSocket))
    {
       // create Operation for running service
       rval = *this;
