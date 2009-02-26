@@ -424,6 +424,59 @@ void runZipTest(TestRunner& tr)
    }
    tr.passIfNoException();
 #endif
+//#if 0
+   tr.test("zip non-compressed mp3");
+   {
+      string filename = TMPDIR "/bmtestfile.mp3";
+      File file(filename.c_str());
+      if(!file->exists())
+      {
+         string temp = filename;
+         temp.append(" does not exist, not running test!");
+         tr.warning(temp.c_str());
+      }
+      else
+      {
+         FileInputStream fis(file);
+         File out(TMPDIR "/bmtestfile.zip");
+         FileOutputStream fos(out, false);
+         
+         // create zipper, buffer
+         Zipper zipper;
+         char b[2048];
+         int numBytes;
+         
+         // create zip entry, set file name
+         ZipEntry ze;
+         ze->setFilename("bmtestfile-unzipped.mp3");
+         ze->disableCompression(true);
+         zipper.addEntry(ze);
+         
+         while(zipper.hasNextEntry())
+         {
+            // write next entry
+            ZipEntry next = zipper.nextEntry();
+            if(zipper.writeEntry(next, &fos))
+            {
+               // write data for entry
+               bool success = true;
+               while(success && (numBytes = fis.read(b, 2048)) > 0)
+               {
+                  success = zipper.write(b, numBytes, &fos);
+               }
+            }
+         }
+         
+         // close input stream
+         fis.close();
+         
+         // finish zip archive, close output stream
+         zipper.finish(&fos);
+         fos.close();
+      }
+   }
+   tr.passIfNoException();
+//#endif
    tr.ungroup();
 }
 

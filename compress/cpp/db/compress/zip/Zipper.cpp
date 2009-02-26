@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/compress/zip/Zipper.h"
 
@@ -16,19 +16,16 @@ using namespace db::rt;
 using namespace db::util;
 
 // define zip version
-const unsigned short Zipper::ZIP_VERSION = 20;
-
-// define compression method (DEFLATE = 8)
-const unsigned short Zipper::COMPRESSION_METHOD = 8;
+const uint16_t Zipper::ZIP_VERSION = 20;
 
 // define record signatures for ZIP format
-const unsigned int Zipper::LFH_SIGNATURE = 'P'|('K'<<8)|(3<<16)|(4<<24);
-const unsigned int Zipper::DAD_SIGNATURE = 'P'|('K'<<8)|(7<<16)|(8<<24);
-const unsigned int Zipper::CDS_SIGNATURE = 'P'|('K'<<8)|(1<<16)|(2<<24);
-const unsigned int Zipper::CDE_SIGNATURE = 'P'|('K'<<8)|(5<<16)|(6<<24);
+const uint32_t Zipper::LFH_SIGNATURE = 'P'|('K'<<8)|(3<<16)|(4<<24);
+const uint32_t Zipper::DAD_SIGNATURE = 'P'|('K'<<8)|(7<<16)|(8<<24);
+const uint32_t Zipper::CDS_SIGNATURE = 'P'|('K'<<8)|(1<<16)|(2<<24);
+const uint32_t Zipper::CDE_SIGNATURE = 'P'|('K'<<8)|(5<<16)|(6<<24);
 
 Zipper::Zipper() :
-   mBuffer(2048)
+   mBuffer(0)
 {
    mCentralDirectoryOffset = 0;
    
@@ -55,12 +52,41 @@ Zipper::~Zipper()
 {
 }
 
+void Zipper::addEntry(ZipEntry& ze)
+{
+   mUnwrittenEntries.push_back(ze);
+}
+
+bool Zipper::hasNextEntry()
+{
+   return !mUnwrittenEntries.empty();
+}
+
+ZipEntry Zipper::nextEntry()
+{
+   ZipEntry rval(NULL);
+   
+   if(!mUnwrittenEntries.empty())
+   {
+      rval = mUnwrittenEntries.front();
+      mUnwrittenEntries.pop_front();
+   }
+   
+   return rval;
+}
+
+uint64_t Zipper::getEstimatedArchiveSize()
+{
+   // FIXME: figure this calculation out
+   return 0;
+}
+
 bool Zipper::zip(FileList& fl, File& out)
 {
    bool rval = true;
    
    // clear entry list, reset central directory offset
-   mEntries.clear();
+   mWrittenEntries.clear();
    mCentralDirectoryOffset = 0;
    
    // create file output stream
@@ -100,12 +126,157 @@ bool Zipper::zip(FileList& fl, File& out)
    return rval;
 }
 
+bool Zipper::writeEntry(ZipEntry& ze, OutputStream* os)
+{
+   // finish the current entry
+   bool rval = finishCurrentEntry(os);
+   
+   if(rval)
+   {
+      // store new entry in list
+      mWrittenEntries.push_back(ze);
+      
+      // reset entry crc
+      ze->setCrc32(0);
+      
+      if(ze->getCompressionMethod() == ZipEntry::COMPRESSION_DEFLATE)
+      {
+         // start raw deflation
+         mDeflater.startDeflating(-1, true);
+      }
+      
+      // write out local file header for entry
+      rval = writeLocalFileHeader(ze, os);
+   }
+   
+   return rval;
+}
+
+int Zipper::readEntry(ZipEntry& ze, InputStream* is)
+{
+   int rval = -1;
+   
+   // FIXME: not implemented
+   ExceptionRef e = new Exception("Zipper::readEntry() not implemented.");
+   Exception::setLast(e, false);
+   
+   return rval;
+}
+
+bool Zipper::write(char* b, int length, OutputStream* os)
+{
+   bool rval = true;
+   
+   // update the entry's crc
+   ZipEntry& ze = mWrittenEntries.back();
+   ze->setCrc32(crc32(ze->getCrc32(), (unsigned char*)b, length));
+   
+   if(ze->getCompressionMethod() == ZipEntry::COMPRESSION_DEFLATE)
+   {
+      // initialize buffer
+      if(mBuffer.capacity() == 0)
+      {
+         mBuffer.resize(2048);
+      }
+      
+      // set input for deflater
+      mDeflater.setInput(b, length, false);
+      
+      // process all input and write it to the output stream
+      while(rval &&
+            (mDeflater.process(&mBuffer, false) > 0 || mBuffer.isFull()))
+      {
+         // ensure data is written to output stream
+         rval = (mBuffer.get(os) > 0);
+      }
+   }
+   else
+   {
+      // write all input to the output stream
+      rval = os->write(b, length);
+      if(rval)
+      {
+         // update uncompressed/compressed bytes in entry
+         uint32_t size = ze->getUncompressedSize();
+         ze->setCompressedSize(size + length);
+         ze->setUncompressedSize(size + length);
+      }
+   }
+   
+   return rval;
+}
+
+int Zipper::read(char* b, int length)
+{
+   int rval = -1;
+   
+   // FIXME: not implemented
+   ExceptionRef e = new Exception("Zipper::read() not implemented.");
+   Exception::setLast(e, false);
+   
+   return rval;
+}
+
+bool Zipper::finish(OutputStream* os)
+{
+   // finish the current entry
+   bool rval = finishCurrentEntry(os);
+   
+   // check central directory flag
+   if(rval && true)// FIXME: replace "true" with flag check
+   {
+      // write out the file header for each entry
+      uint32_t cdSize = 0;
+      for(EntryList::iterator i = mWrittenEntries.begin();
+          rval && i != mWrittenEntries.end(); i++)
+      {
+         rval = writeFileHeader(*i, os);
+         cdSize += (*i)->getFileHeaderSize();
+      }
+      
+      // write out end of central directory record
+      if(rval)
+      {
+         uint32_t cdesig = DB_UINT32_TO_LE(CDE_SIGNATURE);
+         uint16_t diskNumber = 0;
+         uint16_t entries = DB_UINT16_TO_LE(mWrittenEntries.size());
+         uint16_t zipCommentLength = 0;
+         uint32_t offset = DB_UINT32_TO_LE(mCentralDirectoryOffset);
+         
+         // write out end of central directory record signature
+         // write out this disk number (0)
+         // write out number of disk with the start of central directory (0)
+         // write out number of entries in central directory on this disk
+         // write out total number of entries in central directory
+         // write out size of central directory
+         // write out offset of start of central directory w/respect to disk #
+         // write out .ZIP file comment length
+         // write out .ZIP file comment
+         rval =
+            os->write((char*)&cdesig, 4) &&
+            os->write((char*)&diskNumber, 2) &&
+            os->write((char*)&diskNumber, 2) &&
+            os->write((char*)&entries, 2) &&
+            os->write((char*)&entries, 2) &&
+            os->write((char*)&cdSize, 4) &&
+            os->write((char*)&offset, 4) &&
+            os->write((char*)&zipCommentLength, 2);
+      }
+   }
+   
+   // clear entry list, reset central directory offset
+   mWrittenEntries.clear();
+   mCentralDirectoryOffset = 0;
+   
+   return rval;
+}
+
 bool Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
 {
    uint32_t lfhsig = DB_UINT32_TO_LE(LFH_SIGNATURE);
    uint16_t zipver = DB_UINT16_TO_LE(ZIP_VERSION);
    uint16_t gpflag = DB_UINT16_TO_LE(mGpBitFlag);
-   uint16_t compmd = DB_UINT16_TO_LE(COMPRESSION_METHOD);
+   uint16_t compmd = DB_UINT16_TO_LE(ze->getCompressionMethod());
    uint32_t dosTime = DB_UINT32_TO_LE(ze->getDosTime());
    uint32_t crc = 0;
    uint32_t size = 0;
@@ -151,7 +322,7 @@ bool Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
    uint32_t cdssig = DB_UINT32_TO_LE(CDS_SIGNATURE);
    uint16_t zipver = DB_UINT16_TO_LE(ZIP_VERSION);
    uint16_t gpflag = DB_UINT16_TO_LE(mGpBitFlag);
-   uint16_t compmd = DB_UINT16_TO_LE(COMPRESSION_METHOD);
+   uint16_t compmd = DB_UINT16_TO_LE(ze->getCompressionMethod());
    uint32_t dosTime = DB_UINT32_TO_LE(ze->getDosTime());
    uint32_t crc = DB_UINT32_TO_LE(ze->getCrc32());
    uint32_t cSize = DB_UINT32_TO_LE(ze->getCompressedSize());
@@ -219,23 +390,26 @@ bool Zipper::finishCurrentEntry(OutputStream* os)
    bool rval = true;
    
    // write data descriptor for previous entry
-   if(!mEntries.empty())
+   if(!mWrittenEntries.empty())
    {
       // get the current entry
-      ZipEntry& ze = mEntries.back();
+      ZipEntry& ze = mWrittenEntries.back();
       
-      // write out any remaining deflated data
-      mDeflater.setInput(NULL, 0, true);
-      while(rval && (mDeflater.process(&mBuffer, false) > 0 ||
-            mBuffer.isFull()))
+      if(ze->getCompressionMethod() == ZipEntry::COMPRESSION_DEFLATE)
       {
-         // ensure data is written to output stream
-         rval = (mBuffer.get(os) > 0);
+         // write out any remaining deflated data
+         mDeflater.setInput(NULL, 0, true);
+         while(rval && (mDeflater.process(&mBuffer, false) > 0 ||
+               mBuffer.isFull()))
+         {
+            // ensure data is written to output stream
+            rval = (mBuffer.get(os) > 0);
+         }
+         
+         // set compressed/uncompressed sizes for entry
+         ze->setCompressedSize(mDeflater.getTotalOutputBytes());
+         ze->setUncompressedSize(mDeflater.getTotalInputBytes());
       }
-      
-      // set compressed/uncompressed sizes for entry
-      ze->setCompressedSize(mDeflater.getTotalOutputBytes());
-      ze->setUncompressedSize(mDeflater.getTotalInputBytes());
       
       // store offset to local file header
       ze->setLocalFileHeaderOffset(mCentralDirectoryOffset);
@@ -244,7 +418,7 @@ bool Zipper::finishCurrentEntry(OutputStream* os)
       mCentralDirectoryOffset += ze->getLocalFileHeaderSize();
       
       // add size of compressed data to central directory offset
-      mCentralDirectoryOffset += mDeflater.getTotalOutputBytes();
+      mCentralDirectoryOffset += ze->getCompressedSize();
       
       if(rval)
       {
@@ -267,126 +441,6 @@ bool Zipper::finishCurrentEntry(OutputStream* os)
          mCentralDirectoryOffset += 16;
       }
    }
-   
-   return rval;
-}
-
-bool Zipper::writeEntry(ZipEntry& ze, OutputStream* os)
-{
-   // finish the current entry
-   bool rval = finishCurrentEntry(os);
-   
-   if(rval)
-   {
-      // store new entry in list
-      mEntries.push_back(ze);
-      
-      // reset entry crc
-      ze->setCrc32(0);
-      
-      // start raw deflation
-      mDeflater.startDeflating(-1, true);
-      
-      // write out local file header for entry
-      rval = writeLocalFileHeader(ze, os);
-   }
-   
-   return rval;
-}
-
-int Zipper::readEntry(ZipEntry& ze, InputStream* is)
-{
-   int rval = -1;
-   
-   // FIXME: not implemented
-   ExceptionRef e = new Exception("Zipper::readEntry() not implemented.");
-   Exception::setLast(e, false);
-   
-   return rval;
-}
-
-bool Zipper::write(char* b, int length, OutputStream* os)
-{
-   bool rval = true;
-   
-   // update the entry's crc
-   ZipEntry& ze = mEntries.back();
-   ze->setCrc32(crc32(ze->getCrc32(), (unsigned char*)b, length));
-   
-   // set input for deflater
-   mDeflater.setInput(b, length, false);
-   
-   // process all input and write it to the output stream
-   while(rval && (mDeflater.process(&mBuffer, false) > 0 || mBuffer.isFull()))
-   {
-      // ensure data is written to output stream
-      rval = (mBuffer.get(os) > 0);
-   }
-   
-   return rval;
-}
-
-int Zipper::read(char* b, int length)
-{
-   int rval = -1;
-   
-   // FIXME: not implemented
-   ExceptionRef e = new Exception("Zipper::read() not implemented.");
-   Exception::setLast(e, false);
-   
-   return rval;
-}
-
-bool Zipper::finish(OutputStream* os)
-{
-   // finish the current entry
-   bool rval = finishCurrentEntry(os);
-   
-   // check central directory flag
-   if(rval && true)// FIXME: replace "true" with flag check
-   {
-      // write out the file header for each entry
-      unsigned int cdSize = 0;
-      for(EntryList::iterator i = mEntries.begin();
-          rval && i != mEntries.end(); i++)
-      {
-         rval = writeFileHeader(*i, os);
-         cdSize += (*i)->getFileHeaderSize();
-      }
-      
-      // write out end of central directory record
-      if(rval)
-      {
-         uint32_t cdesig = DB_UINT32_TO_LE(CDE_SIGNATURE);
-         uint16_t diskNumber = 0;
-         uint16_t entries = DB_UINT16_TO_LE(mEntries.size());
-         uint16_t zipCommentLength = 0;
-         uint32_t offset = DB_UINT32_TO_LE(mCentralDirectoryOffset);
-         
-         // write out end of central directory record signature
-         // write out this disk number (0)
-         // write out number of disk with the start of central directory (0)
-         // write out number of entries in central directory on this disk
-         // write out total number of entries in central directory
-         // write out size of central directory
-         // write out offset of start of central directory w/respect to disk #
-         // write out .ZIP file comment length
-         // write out .ZIP file comment
-         rval =
-            os->write((char*)&cdesig, 4) &&
-            os->write((char*)&diskNumber, 2) &&
-            os->write((char*)&diskNumber, 2) &&
-            os->write((char*)&entries, 2) &&
-            os->write((char*)&entries, 2) &&
-            os->write((char*)&cdSize, 4) &&
-            os->write((char*)&offset, 4) &&
-            os->write((char*)&zipCommentLength, 2);
-      }
-   }
-   
-   // clear entry list, reset central directory offset
-   mEntries.clear();
-   mCentralDirectoryOffset = 0;
    
    return rval;
 }

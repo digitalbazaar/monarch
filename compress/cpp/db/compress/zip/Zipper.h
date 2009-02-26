@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_compress_zip_Zipper_H
 #define db_compress_zip_Zipper_H
@@ -18,7 +18,16 @@ namespace zip
 {
 
 /**
- * A Zipper is used to compress or decompress ZIP-formatted data.
+ * A Zipper is used to compress or decompress ZIP-formatted data. There are
+ * multiple ways to use a single Zipper object.
+ * 
+ * One method is to create a Zipper object and then simply use it to
+ * write out ZipEntries as they are created on the fly. Another method is
+ * to create ZipEntries and store them with the Zipper, and then use its
+ * hasNextEntry() and nextEntry() methods to write out the entries at
+ * a later point. This method is also useful for getting a total output
+ * size estimate. The last method is for simply zipping a list of files,
+ * which can be done by calling zip().
  * 
  * Short excerpt from APPNOTE.TXT - .ZIP File Format Specification
  * Version: 6.3.2
@@ -167,83 +176,41 @@ protected:
    db::io::ByteBuffer mBuffer;
    
    /**
+    * Typedef for a list of zip entries.
+    */
+   typedef std::list<ZipEntry> EntryList;
+   
+   /**
+    * A list of zip entries to be written.
+    */
+   EntryList mUnwrittenEntries;
+   
+   /**
     * A list of the zip entries written out so far. This list is used to
     * build the central directory of the zip file.
     */
-   typedef std::list<ZipEntry> EntryList;
-   EntryList mEntries;
+   EntryList mWrittenEntries;
    
    /**
     * Stores the offset to the central directory from the beginning
     * of the zip archive.
     */
-   unsigned int mCentralDirectoryOffset;
+   uint32_t mCentralDirectoryOffset;
    
    /**
     * The general purpose bit flag (this implementation always uses the
     * same one).
     */
-   unsigned short mGpBitFlag;
+   uint16_t mGpBitFlag;
    
    /**
-    * The zip version, compression type, and record signatures for the ZIP
-    * archive.
+    * The zip version and record signatures for the ZIP archive.
     */
-   static const unsigned short ZIP_VERSION;
-   static const unsigned short COMPRESSION_METHOD;
-   static const unsigned int LFH_SIGNATURE;
-   static const unsigned int DAD_SIGNATURE;
-   static const unsigned int CDS_SIGNATURE;
-   static const unsigned int CDE_SIGNATURE;
-   
-   /**
-    * Writes out the local file header for an entry.
-    * 
-    * @param ze the ZipEntry.
-    * @param os the OutputStream to write to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool writeLocalFileHeader(ZipEntry& ze, db::io::OutputStream* os);
-   
-   /**
-    * Reads an entry from a local file header.
-    * 
-    * @param ze the ZipEntry.
-    * @param is the InputStream to read from.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool readLocalFileHeader(ZipEntry& ze, db::io::InputStream* is);
-   
-   /**
-    * Writes out the file header for an entry for the central directory.
-    * 
-    * @param ze the ZipEntry.
-    * @param os the OutputStream to write to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool writeFileHeader(ZipEntry& ze, db::io::OutputStream* os);
-   
-   /**
-    * Reads an entry from a file header from the central directory.
-    * 
-    * @param ze the ZipEntry.
-    * @param is the InputStream to read from.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool readFileHeader(ZipEntry& ze, db::io::InputStream* is);
-   
-   /**
-    * Finishes writing the current entry.
-    * 
-    * @param os the OutputStream to write to.
-    * 
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool finishCurrentEntry(db::io::OutputStream* os);
+   static const uint16_t ZIP_VERSION;
+   static const uint32_t LFH_SIGNATURE;
+   static const uint32_t DAD_SIGNATURE;
+   static const uint32_t CDS_SIGNATURE;
+   static const uint32_t CDE_SIGNATURE;
    
 public:
    /**
@@ -255,6 +222,38 @@ public:
     * Destructs this Zipper.
     */
    virtual ~Zipper();
+   
+   /**
+    * Adds a ZipEntry to be written to this Zipper. This entry can be
+    * retrieved by calling nextEntry() when writing the zip archive out.
+    * 
+    * @param ze the ZipEntry to write out.
+    */
+   virtual void addEntry(ZipEntry& ze);
+   
+   /**
+    * Returns true if there is another ZipEntry to be written out.
+    * 
+    * @return true if there is another ZipEntry to write, false if not.
+    */
+   virtual bool hasNextEntry();
+   
+   /**
+    * Gets the next ZipEntry to be written out.
+    * 
+    * @return the next ZipEntry to be written out.
+    */
+   virtual ZipEntry nextEntry();
+   
+   /**
+    * Returns the estimated total size of the zip file, but is only accurate
+    * if none of the added ZipEntries use compression and their associated
+    * files are not modified before the zip file is written out. This method
+    * is useful for determining archive sizes before they are created.
+    * 
+    * @return the estimated total size of the zip file.
+    */
+   virtual uint64_t getEstimatedArchiveSize();
    
    /**
     * Sets the FileList to use to produce a zip file. ZipEntries will be
@@ -328,6 +327,56 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool finish(db::io::OutputStream* os);
+   
+protected:
+   /**
+    * Writes out the local file header for an entry.
+    * 
+    * @param ze the ZipEntry.
+    * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool writeLocalFileHeader(ZipEntry& ze, db::io::OutputStream* os);
+   
+   /**
+    * Reads an entry from a local file header.
+    * 
+    * @param ze the ZipEntry.
+    * @param is the InputStream to read from.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool readLocalFileHeader(ZipEntry& ze, db::io::InputStream* is);
+   
+   /**
+    * Writes out the file header for an entry for the central directory.
+    * 
+    * @param ze the ZipEntry.
+    * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool writeFileHeader(ZipEntry& ze, db::io::OutputStream* os);
+   
+   /**
+    * Reads an entry from a file header from the central directory.
+    * 
+    * @param ze the ZipEntry.
+    * @param is the InputStream to read from.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool readFileHeader(ZipEntry& ze, db::io::InputStream* is);
+   
+   /**
+    * Finishes writing the current entry.
+    * 
+    * @param os the OutputStream to write to.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool finishCurrentEntry(db::io::OutputStream* os);
 };
 
 } // end namespace zip
