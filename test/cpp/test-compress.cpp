@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2008 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "db/test/Test.h"
@@ -424,7 +424,7 @@ void runZipTest(TestRunner& tr)
    }
    tr.passIfNoException();
 #endif
-//#if 0
+#if 0
    tr.test("zip non-compressed mp3");
    {
       string filename = TMPDIR "/bmtestfile.mp3";
@@ -452,6 +452,9 @@ void runZipTest(TestRunner& tr)
          ze->setInputFile(file);
          zipper.addEntry(ze);
          
+         //uint64_t totalSize = zipper.getEstimatedArchiveSize();
+         //printf("Estimated total size: %llu\n", totalSize);
+         
          while(zipper.hasNextEntry())
          {
             // write next entry
@@ -477,7 +480,7 @@ void runZipTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-//#endif
+#endif
    tr.ungroup();
 }
 

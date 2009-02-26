@@ -77,8 +77,37 @@ ZipEntry Zipper::nextEntry()
 
 uint64_t Zipper::getEstimatedArchiveSize()
 {
-   // FIXME: figure this calculation out
-   return 0;
+   uint64_t rval = 0;
+   
+   for(EntryList::iterator i = mUnwrittenEntries.begin();
+       i != mUnwrittenEntries.end(); i++)
+   {
+      ZipEntry& ze = *i;
+      
+      // get filename length
+      int filenameLength = strlen(ze->getFilename());
+      
+      // 30 bytes for each local file header + filename + extra (0)
+      rval += 30 + filenameLength + 0;
+      
+      // add file size
+      File inputFile = ze->getInputFile();
+      if(!inputFile.isNull())
+      {
+         rval += inputFile->getLength();
+      }
+      
+      // 16 bytes for data descriptor
+      rval += 16;
+      
+      // 46 bytes for each file header + filename + extra (0) + file comment
+      rval += 46 + filenameLength + 0 + strlen(ze->getFileComment());
+      
+      // 22 bytes for end of central directory record
+      rval += 22;
+   }
+   
+   return rval;
 }
 
 bool Zipper::zip(FileList& fl, File& out)
