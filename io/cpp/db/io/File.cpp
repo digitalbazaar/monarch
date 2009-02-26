@@ -5,7 +5,6 @@
 
 #include "db/io/FileFunctions.h"
 #include "db/io/FileList.h"
-#include "db/io/IOException.h"
 #include "db/rt/DynamicObject.h"
 #include "db/util/StringTokenizer.h"
 #include "db/util/StringTools.h"
