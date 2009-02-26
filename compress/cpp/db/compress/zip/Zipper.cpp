@@ -90,22 +90,18 @@ uint64_t Zipper::getEstimatedArchiveSize()
       // 30 bytes for each local file header + filename + extra (0)
       rval += 30 + filenameLength + 0;
       
-      // add file size
-      File inputFile = ze->getInputFile();
-      if(!inputFile.isNull())
-      {
-         rval += inputFile->getLength();
-      }
+      // add compressed size
+      rval += ze->getCompressedSize();
       
       // 16 bytes for data descriptor
       rval += 16;
       
       // 46 bytes for each file header + filename + extra (0) + file comment
       rval += 46 + filenameLength + 0 + strlen(ze->getFileComment());
-      
-      // 22 bytes for end of central directory record
-      rval += 22;
    }
+   
+   // 22 bytes for end of central directory record
+   rval += 22;
    
    return rval;
 }
@@ -165,8 +161,9 @@ bool Zipper::writeEntry(ZipEntry& ze, OutputStream* os)
       // store new entry in list
       mWrittenEntries.push_back(ze);
       
-      // reset entry crc
+      // reset entry crc, compressed size
       ze->setCrc32(0);
+      ze->setCompressedSize(0);
       
       if(ze->getCompressionMethod() == ZipEntry::COMPRESSION_DEFLATE)
       {
@@ -225,8 +222,9 @@ bool Zipper::write(char* b, int length, OutputStream* os)
       rval = os->write(b, length);
       if(rval)
       {
-         // update uncompressed/compressed bytes in entry
-         uint32_t size = ze->getUncompressedSize();
+         // update uncompressed/compressed bytes in entry,
+         // use compressed size because it is initialized to 0
+         uint32_t size = ze->getCompressedSize();
          ze->setCompressedSize(size + length);
          ze->setUncompressedSize(size + length);
       }

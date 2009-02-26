@@ -161,6 +161,12 @@ uint16_t ZipEntryImpl::getCompressionMethod()
 void ZipEntryImpl::setInputFile(File& file)
 {
    mInputFile = file;
+   if(file->exists())
+   {
+      // set sizes
+      setUncompressedSize(file->getLength());
+      setCompressedSize(file->getLength());
+   }
 }
 
 File& ZipEntryImpl::getInputFile()
