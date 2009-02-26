@@ -247,9 +247,10 @@ public:
    
    /**
     * Returns the estimated total size of the zip file, but is only accurate
-    * if none of the added ZipEntries use compression and their associated
-    * files are not modified before the zip file is written out. This method
-    * is useful for determining archive sizes before they are created.
+    * if none of the added ZipEntries use compression, they have associated
+    * input files, and none of their input files are modified before the zip
+    * file is written out. This method is useful for determining archive sizes
+    * before they are created.
     * 
     * @return the estimated total size of the zip file.
     */

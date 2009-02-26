@@ -5,6 +5,7 @@
 #define db_compress_zip_ZipEntry_H
 
 #include "db/rt/Collectable.h"
+#include "db/io/File.h"
 #include "db/io/InputStream.h"
 #include "db/io/OutputStream.h"
 #include "db/util/Date.h"
@@ -67,6 +68,11 @@ protected:
     * The compression method to use.
     */
    uint16_t mCompressionMethod;
+   
+   /**
+    * The input file to use.
+    */
+   db::io::File mInputFile;
    
 public:
    /**
@@ -216,6 +222,23 @@ public:
     * @return the compression method to use.
     */
    virtual uint16_t getCompressionMethod();
+   
+   /**
+    * Sets an optional input file to use when writing out this zip entry. This
+    * is useful if the zip entry is created and added to a Zipper to be
+    * processed later. It is not necessary to use this method.
+    * 
+    * @param file the input file to use.
+    */
+   virtual void setInputFile(db::io::File& file);
+   
+   /**
+    * Gets the associated input file with this entry. It may be null if
+    * no input file was associated.
+    * 
+    * @return the associated input file.
+    */
+   virtual db::io::File& getInputFile();
 };
 
 /**

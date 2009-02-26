@@ -22,7 +22,8 @@ ZipEntryImpl::ZipEntryImpl() :
    mUncompressedSize(0),
    mCrc32(0),
    mLocalHeaderOffset(0),
-   mCompressionMethod(ZipEntry::COMPRESSION_DEFLATE)
+   mCompressionMethod(ZipEntry::COMPRESSION_DEFLATE),
+   mInputFile((FileImpl*)NULL)
 {
    mFilename = strdup("");
    mFileComment = strdup("");
@@ -155,6 +156,16 @@ void ZipEntryImpl::disableCompression(bool disable)
 uint16_t ZipEntryImpl::getCompressionMethod()
 {
    return mCompressionMethod;
+}
+
+void ZipEntryImpl::setInputFile(File& file)
+{
+   mInputFile = file;
+}
+
+File& ZipEntryImpl::getInputFile()
+{
+   return mInputFile;
 }
 
 ZipEntry::ZipEntry() :

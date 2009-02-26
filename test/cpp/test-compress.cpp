@@ -437,7 +437,6 @@ void runZipTest(TestRunner& tr)
       }
       else
       {
-         FileInputStream fis(file);
          File out(TMPDIR "/bmtestfile.zip");
          FileOutputStream fos(out, false);
          
@@ -450,6 +449,7 @@ void runZipTest(TestRunner& tr)
          ZipEntry ze;
          ze->setFilename("bmtestfile-unzipped.mp3");
          ze->disableCompression(true);
+         ze->setInputFile(file);
          zipper.addEntry(ze);
          
          while(zipper.hasNextEntry())
@@ -459,16 +459,17 @@ void runZipTest(TestRunner& tr)
             if(zipper.writeEntry(next, &fos))
             {
                // write data for entry
+               FileInputStream fis(ze->getInputFile());
                bool success = true;
                while(success && (numBytes = fis.read(b, 2048)) > 0)
                {
                   success = zipper.write(b, numBytes, &fos);
                }
+               
+               // close input stream
+               fis.close();
             }
          }
-         
-         // close input stream
-         fis.close();
          
          // finish zip archive, close output stream
          zipper.finish(&fos);
