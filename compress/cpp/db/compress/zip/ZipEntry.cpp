@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/compress/zip/ZipEntry.h"
 
@@ -13,15 +13,21 @@ using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
 
-ZipEntryImpl::ZipEntryImpl()
+// define compression methods (DEFLATE = 8)
+const uint16_t ZipEntry::COMPRESSION_NONE = 0;
+const uint16_t ZipEntry::COMPRESSION_DEFLATE = 8;
+
+ZipEntryImpl::ZipEntryImpl() :
+   mCompressedSize(0),
+   mUncompressedSize(0),
+   mCrc32(0),
+   mLocalHeaderOffset(0),
+   mCompressionMethod(ZipEntry::COMPRESSION_DEFLATE),
+   mInputFile((FileImpl*)NULL)
 {
    mFilename = strdup("");
    mFileComment = strdup("");
    setDate(NULL);
-   mCompressedSize = 0;
-   mUncompressedSize = 0;
-   mCrc32 = 0;
-   mLocalHeaderOffset = 0;
 }
 
 ZipEntryImpl::~ZipEntryImpl()
@@ -30,12 +36,12 @@ ZipEntryImpl::~ZipEntryImpl()
    free(mFileComment);
 }
 
-unsigned int ZipEntryImpl::getLocalFileHeaderSize()
+uint32_t ZipEntryImpl::getLocalFileHeaderSize()
 {
    return 30 + strlen(mFilename) + strlen(mFileComment);
 }
 
-unsigned int ZipEntryImpl::getFileHeaderSize()
+uint32_t ZipEntryImpl::getFileHeaderSize()
 {
    return 46 + strlen(mFilename) + strlen(mFileComment);
 }
@@ -91,54 +97,81 @@ void ZipEntryImpl::setDate(Date* date)
    }
 }
 
-void ZipEntryImpl::setDosTime(unsigned int dosTime)
+void ZipEntryImpl::setDosTime(uint32_t dosTime)
 {
    mDosTime = dosTime;
 }
 
-unsigned int ZipEntryImpl::getDosTime()
+uint32_t ZipEntryImpl::getDosTime()
 {
    return mDosTime;
 }
 
-void ZipEntryImpl::setCompressedSize(unsigned int size)
+void ZipEntryImpl::setCompressedSize(uint32_t size)
 {
    mCompressedSize = size;
 }
 
-unsigned int ZipEntryImpl::getCompressedSize()
+uint32_t ZipEntryImpl::getCompressedSize()
 {
    return mCompressedSize;
 }
 
-void ZipEntryImpl::setUncompressedSize(unsigned int size)
+void ZipEntryImpl::setUncompressedSize(uint32_t size)
 {
    mUncompressedSize = size;
 }
 
-unsigned int ZipEntryImpl::getUncompressedSize()
+uint32_t ZipEntryImpl::getUncompressedSize()
 {
    return mUncompressedSize;
 }
 
-void ZipEntryImpl::setCrc32(unsigned int crc)
+void ZipEntryImpl::setCrc32(uint32_t crc)
 {
    mCrc32 = crc;
 }
 
-unsigned int ZipEntryImpl::getCrc32()
+uint32_t ZipEntryImpl::getCrc32()
 {
    return mCrc32;
 }
 
-void ZipEntryImpl::setLocalFileHeaderOffset(unsigned int offset)
+void ZipEntryImpl::setLocalFileHeaderOffset(uint32_t offset)
 {
    mLocalHeaderOffset = offset;
 }
 
-unsigned int ZipEntryImpl::getLocalFileHeaderOffset()
+uint32_t ZipEntryImpl::getLocalFileHeaderOffset()
 {
    return mLocalHeaderOffset;
+}
+
+void ZipEntryImpl::disableCompression(bool disable)
+{
+   mCompressionMethod =
+      (disable ? ZipEntry::COMPRESSION_NONE : ZipEntry::COMPRESSION_DEFLATE);
+}
+
+uint16_t ZipEntryImpl::getCompressionMethod()
+{
+   return mCompressionMethod;
+}
+
+void ZipEntryImpl::setInputFile(File& file)
+{
+   mInputFile = file;
+   if(file->exists())
+   {
+      // set sizes
+      setUncompressedSize(file->getLength());
+      setCompressedSize(file->getLength());
+   }
+}
+
+File& ZipEntryImpl::getInputFile()
+{
+   return mInputFile;
 }
 
 ZipEntry::ZipEntry() :

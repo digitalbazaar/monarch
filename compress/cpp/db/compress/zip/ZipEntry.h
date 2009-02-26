@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_compress_zip_ZipEntry_H
 #define db_compress_zip_ZipEntry_H
 
 #include "db/rt/Collectable.h"
+#include "db/io/File.h"
 #include "db/io/InputStream.h"
 #include "db/io/OutputStream.h"
 #include "db/util/Date.h"
@@ -40,28 +41,38 @@ protected:
     * The last modification date & time for this entry using
     * the MS-DOS date & time format.
     */
-   unsigned int mDosTime;
+   uint32_t mDosTime;
    
    /**
     * The compressed size for this entry's data.
     */
-   unsigned int mCompressedSize;
+   uint32_t mCompressedSize;
    
    /**
     * The uncompressed size for this entry's data.
     */
-   unsigned int mUncompressedSize;
+   uint32_t mUncompressedSize;
    
    /**
     * The crc-32 for this entry.
     */
-   unsigned int mCrc32;
+   uint32_t mCrc32;
    
    /**
     * Stores the offset to the local header, relative to the start of the
     * first disk on which the file appears.
     */
-   unsigned int mLocalHeaderOffset;
+   uint32_t mLocalHeaderOffset;
+   
+   /**
+    * The compression method to use.
+    */
+   uint16_t mCompressionMethod;
+   
+   /**
+    * The input file to use.
+    */
+   db::io::File mInputFile;
    
 public:
    /**
@@ -79,14 +90,14 @@ public:
     * 
     * @return the size, in bytes, of a local file header for this entry.
     */
-   virtual unsigned int getLocalFileHeaderSize();
+   virtual uint32_t getLocalFileHeaderSize();
    
    /**
     * Gets the size, in bytes, of a file header for this entry.
     * 
     * @return the size, in bytes, of a file header for this entry.
     */
-   virtual unsigned int getFileHeaderSize();
+   virtual uint32_t getFileHeaderSize();
    
    /**
     * Sets the filename for this entry.
@@ -129,7 +140,7 @@ public:
     * 
     * @param dosTime the MS-DOS date & time to use.
     */
-   virtual void setDosTime(unsigned int dosTime);
+   virtual void setDosTime(uint32_t dosTime);
    
    /**
     * Gets the last modification date for the file according to a
@@ -137,63 +148,97 @@ public:
     * 
     * @return the MS-DOS date & time to use.
     */
-   virtual unsigned int getDosTime();
+   virtual uint32_t getDosTime();
    
    /**
     * Sets the compressed size for this entry.
     * 
     * @param size the compressed size for this entry.
     */
-   virtual void setCompressedSize(unsigned int size);
+   virtual void setCompressedSize(uint32_t size);
    
    /**
     * Gets the compressed size for this entry.
     * 
     * @return the compressed size for this entry.
     */
-   virtual unsigned int getCompressedSize();
+   virtual uint32_t getCompressedSize();
    
    /**
     * Sets the uncompressed size for this entry.
     * 
     * @param size the uncompressed size for this entry.
     */
-   virtual void setUncompressedSize(unsigned int size);
+   virtual void setUncompressedSize(uint32_t size);
    
    /**
     * Gets the uncompressed size for this entry.
     * 
     * @return the uncompressed size for this entry.
     */
-   virtual unsigned int getUncompressedSize();
+   virtual uint32_t getUncompressedSize();
    
    /**
     * Sets the crc-32 for this entry.
     * 
     * @param crc the crc-32 for this entry.
     */
-   virtual void setCrc32(unsigned int crc);
+   virtual void setCrc32(uint32_t crc);
    
    /**
     * Gets the crc-32 for this entry.
     * 
     * @return the crc-32 for this entry.
     */
-   virtual unsigned int getCrc32();
+   virtual uint32_t getCrc32();
    
    /**
     * Sets the offset to the local file header.
     * 
     * @param offset the offset to the local file header.
     */
-   virtual void setLocalFileHeaderOffset(unsigned int offset);
+   virtual void setLocalFileHeaderOffset(uint32_t offset);
    
    /**
     * Gets the offset to the local file header.
     * 
     * @return the offset to the local file header.
     */
-   virtual unsigned int getLocalFileHeaderOffset();
+   virtual uint32_t getLocalFileHeaderOffset();
+   
+   /**
+    * Sets whether or not compression (DEFLATE) will be used. Compression
+    * is on by default. This must be called before writing the zip entry
+    * or adding it to a Zipper for it to be effective.
+    * 
+    * @param disable true to disable compression (files will simply be archived,
+    *                false to enable compression.
+    */
+   virtual void disableCompression(bool disable);
+   
+   /**
+    * Gets the compression method to use with this entry.
+    * 
+    * @return the compression method to use.
+    */
+   virtual uint16_t getCompressionMethod();
+   
+   /**
+    * Sets an optional input file to use when writing out this zip entry. This
+    * is useful if the zip entry is created and added to a Zipper to be
+    * processed later. It is not necessary to use this method.
+    * 
+    * @param file the input file to use.
+    */
+   virtual void setInputFile(db::io::File& file);
+   
+   /**
+    * Gets the associated input file with this entry. It may be null if
+    * no input file was associated.
+    * 
+    * @return the associated input file.
+    */
+   virtual db::io::File& getInputFile();
 };
 
 /**
@@ -204,6 +249,12 @@ public:
 class ZipEntry : public db::rt::Collectable<ZipEntryImpl>
 {
 public:
+   /**
+    * The available compression methods.
+    */
+   static const uint16_t COMPRESSION_NONE;
+   static const uint16_t COMPRESSION_DEFLATE;
+   
    /**
     * Creates a new ZipEntry.
     */
