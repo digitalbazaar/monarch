@@ -75,9 +75,11 @@ endif
 ifdef EXECUTABLES
 $(STATIC_WINDOWS_LIBRARIES):
 	# This is a fake target to override the default .lib build
-$(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES) $(WINDOWS_EXECUTABLE_OBJECTS) $(STATIC_WINDOWS_LIBRARIES)
+$(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $$(@F).cpp $(WINDOWS_BUILD_DIR)/$$(@F)-windows.o $(STATIC_WINDOWS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(WINDOWS_BUILD_DIR)/$$(source)-windows.o)
 	@echo "Building $(@F)..."
-	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) $(WINDOWS_LD_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
+	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) $(WINDOWS_LD_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(@F)-windows.o \
+	$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(WINDOWS_BUILD_DIR)/$(source)-windows.o) \
+	$(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
 # rule to just copy non-exe to .exe
 %.exe: %
 	@echo "Copying $(basename $@) to .exe..."

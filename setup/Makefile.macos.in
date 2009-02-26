@@ -77,9 +77,11 @@ endif
 ifdef EXECUTABLES
 #$(STATIC_MACOS_LIBRARIES):
 #	# This is a fake target to override the default .dylib build
-$(MACOS_EXECUTABLES): $(MACOS_LIBRARY_SOURCES) $(MACOS_EXECUTABLE_SOURCES) $(MACOS_EXECUTABLE_OBJECTS) $(STATIC_MACOS_LIBRARIES)
+$(MACOS_EXECUTABLES): $(MACOS_LIBRARY_SOURCES) $$(@F).cpp $(MACOS_BUILD_DIR)/$$(@F)-macos.o $(STATIC_MACOS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(MACOS_BUILD_DIR)/$$(source)-macos.o)
 	@echo "Building $(@F)..."
-	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -o $@ $(MACOS_BUILD_DIR)/$(@F)-macos.o $(DYNAMIC_MACOS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
+	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -o $@ $(MACOS_BUILD_DIR)/$(@F)-macos.o \
+	$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(MACOS_BUILD_DIR)/$(source)-macos.o) \
+	$(DYNAMIC_MACOS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
 endif
 
 dump-variables:

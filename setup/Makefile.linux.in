@@ -73,7 +73,7 @@ clean-libraries:
 ifdef EXECUTABLES
 #$(STATIC_LINUX_LIBRARIES):
 #	# This is a fake target to override the default .a build
-$(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-linux.o $(STATIC_LINUX_LIBRARIES)
+$(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-linux.o $(STATIC_LINUX_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$$(source)-linux.o)
 	@echo "Building $(@F)..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LD_FLAGS) $(LINUX_LIBS) \
 		-o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o \
