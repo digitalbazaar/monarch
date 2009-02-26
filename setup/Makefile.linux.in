@@ -75,7 +75,10 @@ ifdef EXECUTABLES
 #	# This is a fake target to override the default .a build
 $(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-linux.o $(STATIC_LINUX_LIBRARIES)
 	@echo "Building $(@F)..."
-	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o $(DYNAMIC_LINUX_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
+	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LD_FLAGS) $(LINUX_LIBS) \
+		-o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o \
+		$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$(source)-linux.o) \
+		$(DYNAMIC_LINUX_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
 endif
 
 dump-variables:

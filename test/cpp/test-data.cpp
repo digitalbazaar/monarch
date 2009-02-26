@@ -1571,6 +1571,7 @@ public:
    }
 };
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbDataTester() { return new DbDataTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbDataTester)
-#endif

@@ -461,6 +461,7 @@ public:
 
 #undef TMPDIR
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbLoggingTester() { return new DbLoggingTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbLoggingTester)
-#endif

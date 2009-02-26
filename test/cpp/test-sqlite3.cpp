@@ -653,6 +653,7 @@ public:
    }
 };
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbSqlite3Tester() { return new DbSqlite3Tester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbSqlite3Tester)
-#endif

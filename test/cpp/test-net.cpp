@@ -2270,6 +2270,7 @@ public:
    }
 };
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbNetTester() { return new DbNetTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbNetTester)
-#endif

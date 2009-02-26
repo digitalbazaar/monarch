@@ -129,9 +129,15 @@ public:
 
 /**
  * Macro to ease defining and starting a Tester.
- * NOTE: Surround this macro with #ifndef DB_TEST_NO_MAIN ... #endif.
  */
 #define DB_TEST_MAIN(testClassName) DB_DELEGATE_MAIN(testClassName)
+
+/**
+ * Macro to define main() as weak so when combining all tests objects into a 
+ * top-level binary the individual test main()s will be ignored.
+ */
+#define DB_TEST_WEAK_MAIN \
+   int main(int argc, const char* argv[]) __attribute__ ((weak));
 
 } // end namespace test
 } // end namespace db

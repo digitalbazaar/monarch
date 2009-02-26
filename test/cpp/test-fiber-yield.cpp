@@ -105,6 +105,7 @@ public:
    }
 };
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbFiberYieldTester() { return new DbFiberYieldTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbFiberYieldTester)
-#endif

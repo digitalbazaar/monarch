@@ -312,6 +312,7 @@ public:
    }
 };
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbMySqlTester() { return new DbMySqlTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbMySqlTester)
-#endif

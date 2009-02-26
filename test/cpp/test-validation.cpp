@@ -1081,6 +1081,7 @@ public:
 
 #undef _dump
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbValidationTester() { return new DbValidationTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbValidationTester)
-#endif

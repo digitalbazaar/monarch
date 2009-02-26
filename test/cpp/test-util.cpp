@@ -660,6 +660,7 @@ public:
    }
 };
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbUtilTester() { return new DbUtilTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbUtilTester)
-#endif

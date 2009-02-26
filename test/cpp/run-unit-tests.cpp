@@ -6,29 +6,27 @@
 
 using namespace db::test;
 
-#define DB_TEST_NO_MAIN
-#include "test-rt.cpp"
-#include "test-modest.cpp"
-#include "test-util.cpp"
-#include "test-io.cpp"
-#include "test-crypto.cpp"
-#include "test-net.cpp"
-#include "test-event.cpp"
-#include "test-fiber.cpp"
-#include "test-mail.cpp"
-#include "test-sqlite3.cpp"
+db::test::Tester* getDbRtTester();
+db::test::Tester* getDbModestTester();
+db::test::Tester* getDbUtilTester();
+db::test::Tester* getDbIoTester();
+db::test::Tester* getDbCryptoTester();
+db::test::Tester* getDbNetTester();
+db::test::Tester* getDbEventTester();
+db::test::Tester* getDbFiberTester();
+db::test::Tester* getDbMailTester();
+db::test::Tester* getDbSqlite3Tester();
 #ifdef HAVE_MYSQL
-#include "test-mysql.cpp"
+db::test::Tester* getDbMySqlTester();
 #endif
-#include "test-data.cpp"
-#include "test-compress.cpp"
-#include "test-config.cpp"
-#include "test-logging.cpp"
-#include "test-validation.cpp"
+db::test::Tester* getDbDataTester();
+db::test::Tester* getDbCompressTester();
+db::test::Tester* getDbConfigTester();
+db::test::Tester* getDbLoggingTester();
+db::test::Tester* getDbValidationTester();
 #ifdef HAVE_SPHINX
-#include "test-sphinx.cpp"
+db::test::Tester* getDbSphinxClientTester();
 #endif
-#undef DB_TEST_NO_MAIN
 
 class DbAllTester : public db::test::Tester
 {
@@ -36,26 +34,26 @@ public:
    DbAllTester()
    {
       setName("dbcore");
-      addTester(new DbRtTester());
-      addTester(new DbModestTester());
-      addTester(new DbUtilTester());
-      addTester(new DbIoTester());
-      addTester(new DbCryptoTester());
-      addTester(new DbNetTester());
-      addTester(new DbEventTester());
-      addTester(new DbFiberTester());
-      addTester(new DbMailTester());
-      addTester(new DbSqlite3Tester());
+      addTester(getDbRtTester());
+      addTester(getDbModestTester());
+      addTester(getDbUtilTester());
+      addTester(getDbIoTester());
+      addTester(getDbCryptoTester());
+      addTester(getDbNetTester());
+      addTester(getDbEventTester());
+      addTester(getDbFiberTester());
+      addTester(getDbMailTester());
+      addTester(getDbSqlite3Tester());
 #ifdef HAVE_MYSQL
-      addTester(new DbMySqlTester());
+      addTester(getDbMySqlTester());
 #endif
-      addTester(new DbDataTester());
-      addTester(new DbCompressTester());
-      addTester(new DbConfigTester());
-      addTester(new DbLoggingTester());
-      addTester(new DbValidationTester());
+      addTester(getDbDataTester());
+      addTester(getDbCompressTester());
+      addTester(getDbConfigTester());
+      addTester(getDbLoggingTester());
+      addTester(getDbValidationTester());
 #ifdef HAVE_SPHINX
-      addTester(new DbSphinxClientTester());
+      addTester(getDbSphinxClientTester());
 #endif
    }
 

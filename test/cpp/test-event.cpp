@@ -797,6 +797,7 @@ public:
    }
 };
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbEventTester() { return new DbEventTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbEventTester)
-#endif

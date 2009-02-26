@@ -458,6 +458,7 @@ public:
 
 #undef TMPDIR
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbCompressTester() { return new DbCompressTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbCompressTester)
-#endif

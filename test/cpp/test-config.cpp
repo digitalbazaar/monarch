@@ -328,6 +328,7 @@ public:
    }
 };
 
-#ifndef DB_TEST_NO_MAIN
+db::test::Tester* getDbConfigTester() { return new DbConfigTester(); }
+
+DB_TEST_WEAK_MAIN
 DB_TEST_MAIN(DbConfigTester)
-#endif
