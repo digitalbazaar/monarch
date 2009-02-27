@@ -73,7 +73,7 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * merged data (which includes all of system's config with config2 AND config3
  * merged on top of it).
  * 
- * A special config key, ::INCLUDE ("__include__"), is available to control
+ * A special config key, ::INCLUDE ("_include_"), is available to control
  * including other files.  If present, the value of this key must be an
  * iterable (array/map) of values.  The type determines how the value is
  * handled:
