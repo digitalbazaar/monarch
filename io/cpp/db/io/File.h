@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_io_File_H
 #define db_io_File_H
