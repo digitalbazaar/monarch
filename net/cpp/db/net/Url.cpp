@@ -635,6 +635,7 @@ string Url::formEncode(DynamicObject& form)
       
       // url-encode and append form field
       rval.append(encode(i->getName(), strlen(i->getName())));
+      rval.push_back('=');
       rval.append(encode(next->getString(), strlen(next->getString())));
    }
    
