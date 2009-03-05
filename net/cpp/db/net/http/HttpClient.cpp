@@ -18,7 +18,7 @@ HttpClient::HttpClient(SslContext* sc) :
    mConnection(NULL),
    mRequest(NULL),
    mResponse(NULL),
-   mSslContext(NULL),
+   mSslContext(sc),
    mCleanupSslContext(sc == NULL)
 {
 }
