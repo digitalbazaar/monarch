@@ -115,13 +115,14 @@ public:
     * @param headers any special headers to include in the request.
     * @param is the InputStream to read the content to send from.
     * @param trailer used to store any trailer headers to send.
+    * @param skipContinue true to skip 100 continue response.
     * 
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* post(
       db::net::Url* url, db::rt::DynamicObject* headers,
       db::io::InputStream* is,
-      HttpTrailer* trailer = NULL);
+      HttpTrailer* trailer = NULL, bool skipContinue = true);
    
    /**
     * Receives the content previously requested by get() or post() and

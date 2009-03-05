@@ -108,7 +108,8 @@ HttpResponse* HttpClient::get(Url* url, DynamicObject* headers)
 }
 
 HttpResponse* HttpClient::post(
-   Url* url, DynamicObject* headers, InputStream* is, HttpTrailer* trailer)
+   Url* url, DynamicObject* headers, InputStream* is, HttpTrailer* trailer,
+   bool skipContinue)
 {
    HttpResponse* rval = NULL;
    
@@ -134,8 +135,20 @@ HttpResponse* HttpClient::post(
          mRequest->sendBody(is, trailer) &&
          mResponse->receiveHeader())
       {
-         // return response
-         rval = mResponse;
+         // receive and throw-out 100 continue
+         if(skipContinue && mResponse->getHeader()->getStatusCode() == 100)
+         {
+            if(mResponse->receiveHeader())
+            {
+               // return response
+               rval = mResponse;
+            }
+         }
+         else
+         {
+            // return response
+            rval = mResponse;
+         }
       }
    }
    
