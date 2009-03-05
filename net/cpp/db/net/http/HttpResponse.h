@@ -138,6 +138,13 @@ public:
     * @return the HttpConnection associated with this response.
     */
    virtual HttpConnection* getConnection();
+   
+   /**
+    * Gets the related request.
+    * 
+    * @return the related http request.
+    */
+   virtual HttpRequest* getRequest();
 };
 
 // typedef for a counted reference to an HttpResponse
