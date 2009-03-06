@@ -18,7 +18,10 @@ AC_ARG_ENABLE([linux],
    AS_HELP_STRING([--enable-linux], [compile for linux [[yes]]]),
    [
       case "${enableval}" in
-         yes) BUILD_FOR_LINUX=yes ;;
+         yes) BUILD_FOR_LINUX=yes 
+              BUILD_FOR_WINDOWS=no
+              BUILD_FOR_MACOS=no
+              ;;
          no) BUILD_FOR_LINUX=no ;;
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-linux) ;;
       esac
@@ -28,7 +31,10 @@ AC_ARG_ENABLE([windows],
    AS_HELP_STRING([--enable-windows], [compile for windows [[no]]]),
    [
       case "${enableval}" in
-         yes) BUILD_FOR_WINDOWS=yes ;;
+         yes) BUILD_FOR_WINDOWS=yes 
+              BUILD_FOR_LINUX=no
+              BUILD_FOR_MACOS=no
+              ;;
          no) BUILD_FOR_WINDOWS=no ;;
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-windows) ;;
       esac
@@ -38,7 +44,10 @@ AC_ARG_ENABLE([macos],
    AS_HELP_STRING([--enable-macos], [compile for MacOS [[no]]]),
    [
       case "${enableval}" in
-         yes) BUILD_FOR_MACOS=yes ;;
+         yes) BUILD_FOR_MACOS=yes 
+              BUILD_FOR_LINUX=no
+              BUILD_FOR_WINDOWS=no
+              ;;
          no) BUILD_FOR_MACOS=no ;;
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-macos) ;;
       esac
