@@ -57,3 +57,8 @@ inline HttpConnection* HttpResponse::getConnection()
 {
    return mRequest->getConnection();
 }
+
+inline HttpRequest* HttpResponse::getRequest()
+{
+   return mRequest;
+}
