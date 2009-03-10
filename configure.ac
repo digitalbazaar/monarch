@@ -104,6 +104,10 @@ AC_ARG_ENABLE([sphinx],
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-sphinx) ;;
       esac
    ], [BUILD_SPHINX=yes])  dnl Default value
+# Disable sphinx support in Windows
+if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
+   BUILD_SPHINX=no
+fi
 AC_SUBST(BUILD_SPHINX)
 
 # FIXME: Perform compilation environment tests
@@ -130,6 +134,11 @@ AC_ARG_ENABLE([mysql],
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-mysql) ;;
       esac
    ], [BUILD_MYSQL=yes])  dnl Default pre lib detection value
+
+# Disable mysql support in Windows
+if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
+   BUILD_MYSQL=no
+fi
 AC_SUBST(BUILD_MYSQL)
 
 # if MySQL support enabled, check for the lib
@@ -152,26 +161,29 @@ AC_ARG_ENABLE([tests],
    esac
    ],
    [BUILD_TESTS=yes]) dnl Default value
-
+# Disable test building Windows
+if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
+   BUILD_TESTS=no
+fi
 AC_SUBST(BUILD_TESTS)
 
-dnl ----------------- disable log location -----------------
+dnl ----------------- disable log line numbers -----------------
 
-AC_ARG_ENABLE([log-location],
+AC_ARG_ENABLE([log-line-numbers],
    AC_HELP_STRING(
-      [--disable-log-location],
-      [disable log location [[no]]]),
+      [--disable-log-line-numbers],
+      [disable log line numbers [[no]]]),
    [
    case "${enableval}" in
-      yes) DB_DISABLE_LOG_LOCATION=no ;;
-      no)  DB_DISABLE_LOG_LOCATION=yes ;;
-      *)   AC_MSG_ERROR(bad value ${enableval} for --enable-log-location) ;;
+      yes) DB_DISABLE_LOG_LINE_NUMBERS=no ;;
+      no)  DB_DISABLE_LOG_LINE_NUMBERS=yes ;;
+      *)   AC_MSG_ERROR(bad value ${enableval} for --enable-log-line-numbers) ;;
    esac
    ],
-   [DB_DISABLE_LOG_LOCATION=no]) dnl Default value
-if test "x$DB_DISABLE_LOG_LOCATION" = xyes; then
-   AC_DEFINE(DB_DISABLE_LOG_LOCATION, 1,
-      [Enable log location.])
+   [DB_DISABLE_LOG_LINE_NUMBERS=no]) dnl Default value
+if test "x$DB_DISABLE_LOG_LINE_NUMBERS" = xyes; then
+   AC_DEFINE(DB_DISABLE_LOG_LINE_NUMBERS, 1,
+      [Enable log line numbers.])
 fi
 
 dnl ----------------- optimization -----------------
@@ -308,8 +320,8 @@ else
    echo "Tests             : disabled (use --enable-tests to enable)"
 fi
 
-if test "x$DB_DISABLE_LOG_LOCATION" = "xyes"; then
-   echo "Log location      : disabled (use --enable-log-location to enable)"
+if test "x$DB_DISABLE_LOG_LINE_NUMBERS" = "xyes"; then
+   echo "Log line numbers  : disabled (use --enable-log-line-numbers to enable)"
 else
-   echo "Log location      : enabled"
+   echo "Log line numbers  : enabled"
 fi
