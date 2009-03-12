@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "db/config/ConfigManager.h"
 
@@ -26,15 +26,15 @@ const char* ConfigManager::ID            = "_id_";
 // FIXME: change to GROUPS and have support for multiple groups per config?
 // seems like this feature would be simple enough to add without complicating
 // too much
-const char* ConfigManager::GROUP         = "_group_";
-const char* ConfigManager::PARENT        = "_parent_";
-const char* ConfigManager::MERGE         = "_merge_";
-const char* ConfigManager::APPEND        = "_append_";
-const char* ConfigManager::REMOVE        = "_remove_";
-const char* ConfigManager::INCLUDE       = "_include_";
-const char* ConfigManager::INCLUDE_EXT   = ".config";
-const char* ConfigManager::TMP           = "_tmp_";
-const char* ConfigManager::DIR_MAGIC     = "_dir_";
+const char* ConfigManager::GROUP       = "_group_";
+const char* ConfigManager::PARENT      = "_parent_";
+const char* ConfigManager::MERGE       = "_merge_";
+const char* ConfigManager::APPEND      = "_append_";
+const char* ConfigManager::REMOVE      = "_remove_";
+const char* ConfigManager::INCLUDE     = "_include_";
+const char* ConfigManager::INCLUDE_EXT = ".config";
+const char* ConfigManager::TMP         = "_tmp_";
+const char* ConfigManager::DIRECTORY   = "_dir_";
 
 ConfigManager::ConfigManager()
 {
@@ -308,7 +308,7 @@ void ConfigManager::update(ConfigId id)
    mLock.unlockExclusive();
 }
 
-void ConfigManager::replaceMagic(Config& config, DynamicObject& magicMap)
+void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
 {
    if(config.isNull())
    {
@@ -321,9 +321,9 @@ void ConfigManager::replaceMagic(Config& config, DynamicObject& magicMap)
          case String:
          {
             const char* s = config->getString();
-            if(magicMap->hasMember(s))
+            if(keywordMap->hasMember(s))
             {
-               config = magicMap[s];
+               config = keywordMap[s];
             }
             break;
          }
@@ -340,7 +340,7 @@ void ConfigManager::replaceMagic(Config& config, DynamicObject& magicMap)
             ConfigIterator i = config.getIterator();
             while(i->hasNext())
             {
-               replaceMagic(i->next(), magicMap);
+               replaceKeywords(i->next(), keywordMap);
             }
             break;
          }
@@ -455,7 +455,7 @@ bool ConfigManager::diff(
                }
                else
                {
-                  // set magic value
+                  // set keyword value
                   temp[ii] = DEFAULT_VALUE;
                }
             }
@@ -613,8 +613,8 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             Config& next = i->next();
             bool load = true;
             bool optional = false;
-            bool deep = false;
-            bool magic = false;
+            bool includeSubdirectories = false;
+            bool substituteKeywords = false;
             const char* path = NULL;
             
             if(next->getType() == String)
@@ -648,14 +648,16 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                   optional = next["optional"]->getBoolean();
                }
                // should subdirs be scanned too?
-               if(next->hasMember("deep"))
+               if(next->hasMember("includeSubdirectories"))
                {
-                  deep =  next["deep"]->getBoolean();
+                  includeSubdirectories = 
+                     next["includeSubdirectories"]->getBoolean();
                }
-               // replace magic strings?
-               if(next->hasMember("magic"))
+               // replace keyword strings?
+               if(next->hasMember("substituteKeywords"))
                {
-                  magic =  next["magic"]->getBoolean();
+                  substituteKeywords = 
+                     next["substituteKeywords"]->getBoolean();
                }
             }
             else
@@ -674,7 +676,8 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             {
                DB_CAT_DEBUG(DB_CONFIG_CAT, "Loading include: %s", path);
                rval = addConfigFile(
-                  path, true, dir, optional, deep, magic);
+                  path, true, dir, optional, includeSubdirectories, 
+                  substituteKeywords);
             }
          }
       }
@@ -791,7 +794,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
 
 bool ConfigManager::addConfigFile(
    const char* path, bool include, const char* dir,
-   bool optional, bool deep, bool magic)
+   bool optional, bool includeSubdirectories, bool substituteKeywords)
 {
    bool rval = true;
    
@@ -838,13 +841,13 @@ bool ConfigManager::addConfigFile(
          
          if(rval)
          {
-            // handle magic replacement
+            // handle keyword replacement
             string dirname = File::dirname(fullPath.c_str());
-            if(magic)
+            if(substituteKeywords)
             {
-               DynamicObject magicMap;
-               magicMap[DIR_MAGIC] = dirname.c_str();
-               replaceMagic(cfg, magicMap);
+               DynamicObject keywordMap;
+               keywordMap[DIRECTORY] = dirname.c_str();
+               replaceKeywords(cfg, keywordMap);
             }
             rval = addConfig(cfg, include, dirname.c_str());
          }
@@ -883,7 +886,7 @@ bool ConfigManager::addConfigFile(
                }
             }
             else if(
-               deep && name != "." && name != ".." &&
+               includeSubdirectories && name != "." && name != ".." &&
                f->isDirectory())
             {
                configDirs.push_back(name);
@@ -900,7 +903,7 @@ bool ConfigManager::addConfigFile(
          {
             rval = addConfigFile(
                (*i).c_str(), include, file->getAbsolutePath(),
-               false, false, magic);
+               false, false, substituteKeywords);
          }
          
          // load each dir in order
@@ -908,7 +911,8 @@ bool ConfigManager::addConfigFile(
              rval && i != configDirs.end(); i++)
          {
             const char* dir = (*i).c_str();
-            rval = addConfigFile(dir, include, dir, false, false, magic);
+            rval = addConfigFile(
+               dir, include, dir, false, false, substituteKeywords);
          }
       }
       else

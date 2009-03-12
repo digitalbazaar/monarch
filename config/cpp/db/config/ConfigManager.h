@@ -85,10 +85,10 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  *    (Boolean, optional, default: false)
  * "defaults": Load a specific config as Defaults.
  *    (Boolean, optional, default: true)
- * "deep": Load each subdir as a dir of configs.
+ * "includeSubdirectories": Load each subdirectory as a directory of configs.
  *    (Boolean, optional, default: false)
- * "magic": Recursively scan for magic keys and replace them with appropriate
- *    values. (Boolean, optional, default: false) 
+ * "substituteKeywords": Recursively scan for variable substitution keywords and 
+ *    replace them with appropriate values. (Boolean, optional, default: false) 
  * 
  * A path can be one of the following:
  * - A explicit file to load
@@ -97,13 +97,15 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * In the case of directories the paths are sorted first to allow for control
  * of file load order.
  * 
- * The "magic" include parameter allows for the following special value strings
- * to be replaced.  There is a slight performance penalty for using this
- * option due to config tree walking and string comparisons.
- * "__dir__": The directory of this config. (::DIR_MAGIC)
+ * The "substituteKeywords" include parameter allows for the following special 
+ * keywords to be replaced.  There is a slight performance penalty for using 
+ * this option due to config tree walking and string comparisons:
+ * 
+ * "_dir_": The directory of this config. (::DIRECTORY)
  * 
  * @author David I. Lehn
  * @author Dave Longley
+ * @author Manu Sporny
  */
 class DLL_CLASS ConfigManager
 {
@@ -114,51 +116,51 @@ public:
    typedef const char* ConfigId;
    
    /**
-    * Magic value in config objects to inherit default value when merging.
-    * Useful for arrays.
+    * Keyword substitution value in config objects to inherit default value 
+    * when merging. Useful for arrays.
     */
    static const char* DEFAULT_VALUE;
    
    /**
-    * Magic key in config object to specify the config object format version.
+    * Keyword key in config object to specify the config object format version.
     */
    static const char* VERSION;
    
    /**
-    * Magic key in a config object to specify its ID.
+    * Keyword in a config object to specify its ID.
     */
    static const char* ID;
    
    /**
-    * Magic key in a config object to specify its group.
+    * Keyword in a config object to specify its group.
     */
    static const char* GROUP;
    
    /**
-    * Magic key in a config object to specify its parent's ID.
+    * Keyword in a config object to specify its parent's ID.
     */
    static const char* PARENT;
    
    /**
-    * Magic key in a config object to specify the values for config, which
+    * Keyword in a config object to specify the values for config, which
     * will be merged with a parent config, if one is specified.
     */
    static const char* MERGE;
    
    /**
-    * Magic key in a config object to specify configuration values to append to,
+    * Keyword in a config object to specify configuration values to append to,
     * as opposed to merge with, a parent configuration.
     */
    static const char* APPEND;
    
    /**
-    * Magic key in a config object to specify configuration values to remove
+    * Keyword in a config object to specify configuration values to remove
     * from a parent configuration.
     */
    static const char* REMOVE;
    
    /**
-    * Magic key in a config object to specify a list of config files or
+    * Keyword in a config object to specify a list of config files or
     * directories to include before this object.
     */
    static const char* INCLUDE;
@@ -169,17 +171,17 @@ public:
    static const char* INCLUDE_EXT;
    
    /**
-    * Magic key for a property which is only temporary for this session.
+    * Keyword for a property which is only temporary for this session.
     * getChanges and similar will skip this value.  Useful for run-time
     * caches and other data which should not be saved as non-default config.
     */
    static const char* TMP;
    
    /**
-    * Magic config value which will be replaced with the directory a config
-    * file was loaded from if the include "magic" option is used.
+    * Directory keyword which will be replaced with the directory a config
+    * file was loaded from if the "substituteKeywords" option is used.
     */
-   static const char* DIR_MAGIC;
+   static const char* DIRECTORY;
    
 protected:
    /**
@@ -227,12 +229,13 @@ protected:
    virtual void makeMergedConfig(ConfigId id);
    
    /**
-    * Replaces magic values with appropriate values.  See the class docs.
+    * Replaces keyword values with appropriate values.  See the class docs.
     * 
     * @param config the Config to process.
-    * @param magicMap a map of strings to replacement values.
+    * @param keywordMap a map of strings to replacement values.
     */
-   virtual void replaceMagic(Config& config, db::rt::DynamicObject& magicMap);
+   virtual void replaceKeywords(
+      Config& config, db::rt::DynamicObject& keywordMap);
    
    /**
     * Computes the differences from config1 to config2 and stores them in
@@ -321,14 +324,16 @@ public:
     *            includes or NULL.
     * @param optional true to suppress failure if path is not found,
     *                 false to require path to be present.
-    * @param deep true to process subdirs as dirs of configs.
-    * @param magic true to replace magic strings with appropriate values.
+    * @param processSubdirectories true to process subdirs as dirs of configs.
+    * @param substituteKeywords true to replace keywords with appropriate 
+    *                           values.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfigFile(
       const char* path, bool include = true, const char* dir = NULL,
-      bool optional = false, bool deep = false, bool magic = false);
+      bool optional = false, bool processSubdirectories = false, 
+      bool substituteKeywords = false);
    
    /**
     * Removes a configuration.
