@@ -213,8 +213,8 @@ void runConfigManagerTest(TestRunner& tr)
       ConfigManager cm;
       Config a;
       a[ConfigManager::ID] = "config";
-      a[ConfigManager::MERGE]["foo"] = "{INSTALL_DIR}";
-      cm.setKeyword("INSTALL_DIR", "bar");
+      a[ConfigManager::MERGE]["foo"] = "{RESOURCE_DIR}";
+      cm.setKeyword("RESOURCE_DIR", "bar");
       assert(cm.addConfig(a));
       assertNoException();
       assertDynoCmp(cm.getConfig("config"), expect);

@@ -327,8 +327,8 @@ void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
 
             // Replace the install directory value in the keyword map
             StringTools::replaceAll(
-               tempString, "{INSTALL_DIR}", 
-               keywordMap["INSTALL_DIR"]->getString());
+               tempString, "{RESOURCE_DIR}", 
+               keywordMap["RESOURCE_DIR"]->getString());
             config = tempString.c_str();
 
             // Replace any keywords
