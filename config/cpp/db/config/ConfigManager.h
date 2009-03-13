@@ -191,6 +191,12 @@ protected:
    db::rt::DynamicObject mVersions;
    
    /**
+    * A map of replacement keywords that can be used on strings contained in
+    * configuration files.
+    */
+   db::rt::DynamicObject mKeywordMap;   
+   
+   /**
     * The stored configurations. This object has the following format:
     * 
     * Map (ConfigId -> configuration data)
@@ -379,6 +385,15 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool setConfig(Config& config); 
+   
+   /**
+    * Associates a value with a keyword such that variable replacement can 
+    * happen in JSON strings.
+    * 
+    * @param keyword The keyword to use in the config manager.
+    * @param value The value to associate with the keyword.
+    */
+   virtual void setKeyword(const char* keyword, const char* value);
    
    /**
     * Reproduces the merged config for the given config ID. This method is

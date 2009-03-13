@@ -205,6 +205,22 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+
+   tr.test("keyword substitution");
+   {
+      DynamicObject expect;
+      expect["foo"] = "bar";
+      ConfigManager cm;
+      Config a;
+      a[ConfigManager::ID] = "config";
+      a[ConfigManager::MERGE]["foo"] = "{INSTALL_DIR}";
+      cm.setKeyword("INSTALL_DIR", "bar");
+      assert(cm.addConfig(a));
+      assertNoException();
+      assertDynoCmp(cm.getConfig("config"), expect);
+   }
+   tr.passIfNoException();
+   
 #if 0
    tr.test("user preferences");
    {

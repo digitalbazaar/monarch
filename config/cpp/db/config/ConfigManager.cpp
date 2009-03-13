@@ -12,6 +12,7 @@
 #include "db/io/FileList.h"
 #include "db/io/FileInputStream.h"
 #include "db/logging/Logging.h"
+#include "db/util/StringTools.h"
 
 using namespace std;
 using namespace db::config;
@@ -19,6 +20,7 @@ using namespace db::data;
 using namespace db::data::json;
 using namespace db::io;
 using namespace db::rt;
+using namespace db::util;
 
 const char* ConfigManager::DEFAULT_VALUE = "_default_";
 const char* ConfigManager::VERSION       = "_version_";
@@ -40,6 +42,7 @@ ConfigManager::ConfigManager()
 {
    // initialize internal data structures
    mVersions->setType(Map);
+   mKeywordMap->setType(Map);
    //addVersion(DB_DEFAULT_CONFIG_VERSION);
    mConfigs->setType(Map);
 }
@@ -320,6 +323,15 @@ void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
       {
          case String:
          {
+            string tempString = config->getString();
+
+            // Replace the install directory value in the keyword map
+            StringTools::replaceAll(
+               tempString, "{INSTALL_DIR}", 
+               keywordMap["INSTALL_DIR"]->getString());
+            config = tempString.c_str();
+
+            // Replace any keywords
             const char* s = config->getString();
             if(keywordMap->hasMember(s))
             {
@@ -591,6 +603,9 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       }
       mLock.unlockShared();
    }
+
+   // handle global keyword replacement
+   replaceKeywords(config, mKeywordMap);
    
    // process includes
    if(rval && include && config->hasMember(INCLUDE))
@@ -841,7 +856,12 @@ bool ConfigManager::addConfigFile(
          
          if(rval)
          {
+            // handle global keyword replacement
+            replaceKeywords(cfg, mKeywordMap);
+            
             // handle keyword replacement
+            // FIXME: The following code should be moved over to the global 
+            //        keyword replacement mechanism.
             string dirname = File::dirname(fullPath.c_str());
             if(substituteKeywords)
             {
@@ -1118,6 +1138,11 @@ bool ConfigManager::setConfig(Config& config)
    mLock.unlockExclusive();
    
    return rval;
+}
+
+void ConfigManager::setKeyword(const char* keyword, const char* value)
+{
+   mKeywordMap[keyword] = value;
 }
 
 void ConfigManager::addVersion(const char* version)
