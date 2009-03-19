@@ -209,12 +209,18 @@ void runConfigManagerTest(TestRunner& tr)
    tr.test("keyword substitution");
    {
       DynamicObject expect;
-      expect["foo"] = "bar";
+      expect["dir"] = "/the/real/dir";
+      expect["dir+"] = "/the/real/dir/plus/more";
+      //expect["name"] = "Digital Bazaar, Inc.";
       ConfigManager cm;
       Config a;
       a[ConfigManager::ID] = "config";
-      a[ConfigManager::MERGE]["foo"] = "{RESOURCE_DIR}";
-      cm.setKeyword("RESOURCE_DIR", "bar");
+      a[ConfigManager::MERGE]["dir"] = "{RESOURCE_DIR}";
+      a[ConfigManager::MERGE]["dir+"] = "{RESOURCE_DIR}/plus/more";
+      // FIXME: only supports "{RESOURCE_DIR}" now
+      //a[ConfigManager::MERGE]["other"] = "{DB}";
+      cm.setKeyword("RESOURCE_DIR", "/the/real/dir");
+      //cm.setKeyword("DB", "Digital Bazaar, Inc.");
       assert(cm.addConfig(a));
       assertNoException();
       assertDynoCmp(cm.getConfig("config"), expect);

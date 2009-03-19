@@ -311,7 +311,7 @@ void ConfigManager::update(ConfigId id)
    mLock.unlockExclusive();
 }
 
-void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
+static void _replaceKeywords(Config& config, DynamicObject& keywordMap)
 {
    if(config.isNull())
    {
@@ -326,16 +326,18 @@ void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
             string tempString = config->getString();
 
             // Replace the install directory value in the keyword map
+            const char* resourceDir = keywordMap->hasMember("RESOURCE_DIR") ?
+               keywordMap["RESOURCE_DIR"]->getString() : "";
             StringTools::replaceAll(
-               tempString, "{RESOURCE_DIR}", 
-               keywordMap["RESOURCE_DIR"]->getString());
+               tempString, "{RESOURCE_DIR}",
+               resourceDir);
             config = tempString.c_str();
 
             // Replace any keywords
             const char* s = config->getString();
             if(keywordMap->hasMember(s))
             {
-               config = keywordMap[s];
+               config = keywordMap[s]->getString();
             }
             break;
          }
@@ -352,10 +354,30 @@ void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
             ConfigIterator i = config.getIterator();
             while(i->hasNext())
             {
-               replaceKeywords(i->next(), keywordMap);
+               _replaceKeywords(i->next(), keywordMap);
             }
             break;
          }
+      }
+   }
+}
+
+void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
+{
+   if(!config.isNull())
+   {
+      // only process non-meta config info
+      if(config->hasMember(MERGE))
+      {
+         _replaceKeywords(config[MERGE], mKeywordMap);
+      }
+      if(config->hasMember(APPEND))
+      {
+         _replaceKeywords(config[APPEND], mKeywordMap);
+      }
+      if(config->hasMember(REMOVE))
+      {
+         _replaceKeywords(config[REMOVE], mKeywordMap);
       }
    }
 }
@@ -603,9 +625,12 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       }
       mLock.unlockShared();
    }
-
+   
    // handle global keyword replacement
-   replaceKeywords(config, mKeywordMap);
+   if(rval)
+   {
+      replaceKeywords(config, mKeywordMap);
+   }
    
    // process includes
    if(rval && include && config->hasMember(INCLUDE))
