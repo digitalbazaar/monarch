@@ -369,15 +369,15 @@ void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
       // only process non-meta config info
       if(config->hasMember(MERGE))
       {
-         _replaceKeywords(config[MERGE], mKeywordMap);
+         _replaceKeywords(config[MERGE], keywordMap);
       }
       if(config->hasMember(APPEND))
       {
-         _replaceKeywords(config[APPEND], mKeywordMap);
+         _replaceKeywords(config[APPEND], keywordMap);
       }
       if(config->hasMember(REMOVE))
       {
-         _replaceKeywords(config[REMOVE], mKeywordMap);
+         _replaceKeywords(config[REMOVE], keywordMap);
       }
    }
 }
