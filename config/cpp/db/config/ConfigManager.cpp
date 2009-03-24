@@ -509,7 +509,7 @@ bool ConfigManager::diff(
 }
 
 bool ConfigManager::checkConflicts(
-   ConfigId id, Config& existing, Config& config)
+   ConfigId id, Config& existing, Config& config, bool isGroup)
 {
    bool rval = true;
    
@@ -524,9 +524,11 @@ bool ConfigManager::checkConflicts(
       d->hasMember(MERGE))
    {
       ExceptionRef e = new Exception(
-         "Config conflict.", "db.config.ConfigManager.ConfigConflict");
+         "Config conflict. Parent, group, or merge field differs for "
+         "a particular config ID.", "db.config.ConfigManager.ConfigConflict");
       e->getDetails()["configId"] = id;
       e->getDetails()["diff"] = d;
+      e->getDetails()["isGroup"] = isGroup;
       Exception::setLast(e, false);
       rval = false;
    }
@@ -743,13 +745,14 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
          if(mConfigs->hasMember(id))
          {
             mergeConfig = true;
-            rval = checkConflicts(id, mConfigs[id]["raw"], config);
+            rval = checkConflicts(id, mConfigs[id]["raw"], config, false);
          }
          
          // if the group ID already exists, ensure there are no conflicts
          if(group && mConfigs->hasMember(groupId))
          {
-            rval = checkConflicts(groupId, mConfigs[groupId]["raw"], config);
+            rval = checkConflicts(
+               groupId, mConfigs[groupId]["raw"], config, true);
          }
          
          if(rval)

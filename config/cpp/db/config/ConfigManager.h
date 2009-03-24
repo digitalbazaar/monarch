@@ -267,10 +267,12 @@ protected:
     * @param id the config ID of the two configs.
     * @param existing the existing config.
     * @param config the new config.
+    * @param isGroup true if the given config ID is for a group, false if not.
     * 
     * @return true if no conflict, false if conflict with exception set.
     */
-   virtual bool checkConflicts(ConfigId id, Config& existing, Config& config);
+   virtual bool checkConflicts(
+      ConfigId id, Config& existing, Config& config, bool isGroup);
 
 public:
    /**
