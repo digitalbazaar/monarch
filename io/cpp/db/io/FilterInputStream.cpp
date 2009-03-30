@@ -5,19 +5,27 @@
 
 using namespace db::io;
 
-FilterInputStream::FilterInputStream(InputStream* is, bool cleanup)
+FilterInputStream::FilterInputStream(InputStream* is, bool cleanup) :
+   mInputStream(NULL),
+   mCleanupInputStream(false)
 {
-   mInputStream = is;
-   mCleanupInputStream = cleanup;
+   setInputStream(is, cleanup);
 }
 
 FilterInputStream::~FilterInputStream()
+{
+   setInputStream(NULL, false);
+}
+
+void FilterInputStream::setInputStream(InputStream* is, bool cleanup)
 {
    // cleanup wrapped input stream as appropriate
    if(mCleanupInputStream && mInputStream != NULL)
    {
       delete mInputStream;
    }
+   mInputStream = is;
+   mCleanupInputStream = cleanup;
 }
 
 inline int FilterInputStream::read(char* b, int length)
