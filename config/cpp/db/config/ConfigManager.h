@@ -97,11 +97,13 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * In the case of directories the paths are sorted first to allow for control
  * of file load order.
  * 
- * The "substituteKeywords" include parameter allows for the following special 
- * keywords to be replaced.  There is a slight performance penalty for using 
- * this option due to config tree walking and string comparisons:
+ * The "substituteKeywords" include parameter allows for keywords to be
+ * replaced. setKeyword() can be used for custom keywords. There is a slight
+ * performance penalty for using this option due to config tree walking and
+ * string comparisons. The following are special reserved keywords that are
+ * also available. 
  * 
- * "_dir_": The directory of this config. (::DIRECTORY)
+ * "{CURRENT_DIR}": The directory of this config file.
  * 
  * @author David I. Lehn
  * @author Dave Longley
@@ -176,12 +178,6 @@ public:
     * caches and other data which should not be saved as non-default config.
     */
    static const char* TMP;
-   
-   /**
-    * Directory keyword which will be replaced with the directory a config
-    * file was loaded from if the "substituteKeywords" option is used.
-    */
-   static const char* DIRECTORY;
    
 protected:
    /**

@@ -6,8 +6,11 @@
 #include <algorithm>
 #include <vector>
 
-#include "db/io/BufferedOutputStream.h"
 #include "db/data/json/JsonReader.h"
+#include "db/data/TemplateInputStream.h"
+#include "db/io/BufferedOutputStream.h"
+#include "db/io/ByteArrayInputStream.h"
+#include "db/io/ByteArrayOutputStream.h"
 #include "db/io/File.h"
 #include "db/io/FileList.h"
 #include "db/io/FileInputStream.h"
@@ -36,7 +39,6 @@ const char* ConfigManager::REMOVE      = "_remove_";
 const char* ConfigManager::INCLUDE     = "_include_";
 const char* ConfigManager::INCLUDE_EXT = ".config";
 const char* ConfigManager::TMP         = "_tmp_";
-const char* ConfigManager::DIRECTORY   = "_dir_";
 
 ConfigManager::ConfigManager()
 {
@@ -311,7 +313,15 @@ void ConfigManager::update(ConfigId id)
    mLock.unlockExclusive();
 }
 
-static void _replaceKeywords(Config& config, DynamicObject& keywordMap)
+struct _replaceKeywordsState_s {
+   ByteArrayInputStream* bais;
+   TemplateInputStream* tis;
+   ByteBuffer* output;
+   ByteArrayOutputStream* baos;
+};
+
+static void _replaceKeywords(Config& config, DynamicObject& keywordMap,
+   struct _replaceKeywordsState_s* state)
 {
    if(config.isNull())
    {
@@ -323,22 +333,17 @@ static void _replaceKeywords(Config& config, DynamicObject& keywordMap)
       {
          case String:
          {
-            string tempString = config->getString();
-
-            // Replace the install directory value in the keyword map
-            const char* resourceDir = keywordMap->hasMember("RESOURCE_DIR") ?
-               keywordMap["RESOURCE_DIR"]->getString() : "";
-            StringTools::replaceAll(
-               tempString, "{RESOURCE_DIR}",
-               resourceDir);
-            config = tempString.c_str();
-
-            // Replace any keywords
-            const char* s = config->getString();
-            if(keywordMap->hasMember(s))
-            {
-               config = keywordMap[s]->getString();
-            }
+            // setup template processing chain
+            state->bais->setByteArray(
+               config->getString(), config->length());
+            state->tis->setVariables(keywordMap, true);
+            state->output->clear();
+            // reset input stream and parsing state
+            state->tis->setInputStream(state->bais);
+            state->tis->parse(state->baos);
+            state->output->putByte(0, 1, true);
+            // set new string
+            config = state->output->data();
             break;
          }
          case Boolean:
@@ -354,7 +359,7 @@ static void _replaceKeywords(Config& config, DynamicObject& keywordMap)
             ConfigIterator i = config.getIterator();
             while(i->hasNext())
             {
-               _replaceKeywords(i->next(), keywordMap);
+               _replaceKeywords(i->next(), keywordMap, state);
             }
             break;
          }
@@ -366,18 +371,40 @@ void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
 {
    if(!config.isNull())
    {
+      struct _replaceKeywordsState_s* state = NULL;
+      bool freeState = false;
+      // only create state if needed
+      if(config->hasMember(MERGE) ||
+         config->hasMember(APPEND) ||
+         config->hasMember(REMOVE))
+      {
+         state = new struct _replaceKeywordsState_s;
+         state->bais = new ByteArrayInputStream(NULL, 0);
+         state->tis = new TemplateInputStream(state->bais, false);
+         state->output = new ByteBuffer(2048);
+         state->baos = new ByteArrayOutputStream(state->output, true);
+         freeState = true;
+      }
       // only process non-meta config info
       if(config->hasMember(MERGE))
       {
-         _replaceKeywords(config[MERGE], keywordMap);
+         _replaceKeywords(config[MERGE], keywordMap, state);
       }
       if(config->hasMember(APPEND))
       {
-         _replaceKeywords(config[APPEND], keywordMap);
+         _replaceKeywords(config[APPEND], keywordMap, state);
       }
       if(config->hasMember(REMOVE))
       {
-         _replaceKeywords(config[REMOVE], keywordMap);
+         _replaceKeywords(config[REMOVE], keywordMap, state);
+      }
+      if(freeState)
+      {
+         delete state->baos;
+         delete state->output;
+         delete state->tis;
+         delete state->bais;
+         delete state;
       }
    }
 }
@@ -884,19 +911,23 @@ bool ConfigManager::addConfigFile(
          
          if(rval)
          {
-            // handle global keyword replacement
-            replaceKeywords(cfg, mKeywordMap);
-            
-            // handle keyword replacement
-            // FIXME: The following code should be moved over to the global 
-            //        keyword replacement mechanism.
             string dirname = File::dirname(fullPath.c_str());
+            
+            // add special keywords
             if(substituteKeywords)
             {
-               DynamicObject keywordMap;
-               keywordMap[DIRECTORY] = dirname.c_str();
-               replaceKeywords(cfg, keywordMap);
+               mKeywordMap["CURRENT_DIR"] = dirname.c_str();
             }
+
+            // do keyword replacement (custom and special)
+            replaceKeywords(cfg, mKeywordMap);
+
+            // remove special keywords
+            if(substituteKeywords)
+            {
+               mKeywordMap->removeMember("CURRENT_DIR");
+            }
+
             rval = addConfig(cfg, include, dirname.c_str());
          }
          
