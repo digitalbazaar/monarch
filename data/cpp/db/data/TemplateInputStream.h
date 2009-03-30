@@ -88,6 +88,11 @@ protected:
    bool mEndOfStream;
    
    /**
+    * Reset parsing state.
+    */
+   virtual void resetState();
+   
+   /**
     * Gets a pointer to the next character to process.
     * 
     * @param start the starting point.
@@ -136,6 +141,15 @@ public:
     * Destructs this TemplateInputStream.
     */
    virtual ~TemplateInputStream();
+   
+   /**
+    * Setup a new input stream and reset template parsing state.
+    * 
+    * @param is the underlying InputStream to read from.
+    * @param cleanup true to clean up the passed InputStream when destructing,
+    *                false not to.
+    */
+   void setInputStream(db::io::InputStream* is, bool cleanup = false);
    
    /**
     * Sets the variables to use when parsing the template. The passed "vars"

@@ -1407,6 +1407,43 @@ void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfException();
    
+   tr.test("parse (reuse pipeline)");
+   {
+      // create template
+      const char* tpl1 = "{TEST1}";
+      
+      // create variables
+      DynamicObject vars;
+      vars["TEST1"] = "111";
+      vars["TEST2"] = "222";
+      
+      // create template input stream
+      ByteArrayInputStream bais(tpl1, strlen(tpl1));
+      TemplateInputStream tis(vars, false, &bais, false);
+      
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      
+      // null-terminate output
+      output.putByte(0, 1, true);
+      
+      // assert expected value
+      assertStrCmp("111", output.data());
+      
+      const char* tpl2 = "{TEST2}";
+      bais.setByteArray(tpl2, strlen(tpl2));
+      output.clear();
+      tis.setInputStream(&bais, false);
+      tis.parse(&baos);
+      output.putByte(0, 1, true);
+      
+      // assert expected value
+      assertStrCmp("222", output.data());
+   }
+   tr.passIfNoException();
+   
    tr.ungroup();
 }
 
