@@ -313,14 +313,16 @@ void ConfigManager::update(ConfigId id)
    mLock.unlockExclusive();
 }
 
-struct _replaceKeywordsState_s {
+struct _replaceKeywordsState_s
+{
    ByteArrayInputStream* bais;
    TemplateInputStream* tis;
    ByteBuffer* output;
    ByteArrayOutputStream* baos;
 };
 
-static void _replaceKeywords(Config& config, DynamicObject& keywordMap,
+static void _replaceKeywords(
+   Config& config, DynamicObject& keywordMap,
    struct _replaceKeywordsState_s* state)
 {
    if(config.isNull())
@@ -334,8 +336,7 @@ static void _replaceKeywords(Config& config, DynamicObject& keywordMap,
          case String:
          {
             // setup template processing chain
-            state->bais->setByteArray(
-               config->getString(), config->length());
+            state->bais->setByteArray(config->getString(), config->length());
             state->tis->setVariables(keywordMap, true);
             state->output->clear();
             // reset input stream and parsing state
