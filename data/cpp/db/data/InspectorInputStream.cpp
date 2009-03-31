@@ -241,9 +241,10 @@ void InspectorInputStream::getInspectors(list<DataInspector*>& inspectors)
 bool InspectorInputStream::inspect()
 {
    // scan entire stream
-   char b[2048];
+   char* b = (char*)malloc(2048);
    int numBytes;
    while((numBytes = read(b, 2048)) > 0);
+   free(b);
    return numBytes == 0;
 }
 
