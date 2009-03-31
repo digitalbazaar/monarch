@@ -120,7 +120,7 @@ bool MessageDigest::digestFile(File& file)
    const unsigned int bufsize = 2048;
    char* buf = (char*)malloc(bufsize);
    int numBytes;
-   while((numBytes = fis.read(buf, bufsize) > 0))
+   while((numBytes = fis.read(buf, bufsize)) > 0)
    {
       update(buf, numBytes);
    }
