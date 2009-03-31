@@ -372,34 +372,33 @@ void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
 {
    if(!config.isNull())
    {
-      struct _replaceKeywordsState_s* state = NULL;
-      bool freeState = false;
+      // only process includes and non-meta config info
+      const char* keys[] = {INCLUDE, MERGE, APPEND, REMOVE, NULL};
       // only create state if needed
-      if(config->hasMember(MERGE) ||
-         config->hasMember(APPEND) ||
-         config->hasMember(REMOVE))
+      struct _replaceKeywordsState_s* state = NULL;
+      for(int i = 0; keys[i] != NULL; i++)
       {
-         state = new struct _replaceKeywordsState_s;
-         state->bais = new ByteArrayInputStream(NULL, 0);
-         state->tis = new TemplateInputStream(state->bais, false);
-         state->output = new ByteBuffer(2048);
-         state->baos = new ByteArrayOutputStream(state->output, true);
-         freeState = true;
+         if(config->hasMember(keys[i]))
+         {
+            state = new struct _replaceKeywordsState_s;
+            state->bais = new ByteArrayInputStream(NULL, 0);
+            state->tis = new TemplateInputStream(state->bais, false);
+            state->output = new ByteBuffer(2048);
+            state->baos = new ByteArrayOutputStream(state->output, true);
+	    // only create once
+	    break;
+         }
       }
-      // only process non-meta config info
-      if(config->hasMember(MERGE))
+      // replace keywords
+      for(int i = 0; keys[i] != NULL; i++)
       {
-         _replaceKeywords(config[MERGE], keywordMap, state);
+         const char* key = keys[i];
+         if(config->hasMember(key))
+         {
+            _replaceKeywords(config[key], keywordMap, state);
+         }
       }
-      if(config->hasMember(APPEND))
-      {
-         _replaceKeywords(config[APPEND], keywordMap, state);
-      }
-      if(config->hasMember(REMOVE))
-      {
-         _replaceKeywords(config[REMOVE], keywordMap, state);
-      }
-      if(freeState)
+      if(state != NULL)
       {
          delete state->baos;
          delete state->output;
