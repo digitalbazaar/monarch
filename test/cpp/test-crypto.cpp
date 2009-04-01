@@ -1209,7 +1209,6 @@ public:
    virtual int runAutomaticTests(TestRunner& tr)
    {
       runMessageDigestTest(tr);
-      /*
       runCipherTest(tr, "AES256");
       runAsymmetricKeyLoadingTest(tr);
       runDsaAsymmetricKeyCreationTest(tr);
@@ -1219,7 +1218,6 @@ public:
       runEnvelopeTest(tr);
       runBigIntegerTest(tr);
       runBigDecimalTest(tr);
-      */
       return 0;
    }
 
