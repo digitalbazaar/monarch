@@ -4,6 +4,8 @@
 #ifndef db_net_BandwidthThrottler_H
 #define db_net_BandwidthThrottler_H
 
+#include "db/rt/Collectable.h"
+
 namespace db
 {
 namespace net
@@ -54,6 +56,9 @@ public:
     */
    virtual int getRateLimit() = 0;
 };
+
+// typedef for a reference counted BandwidthThrottler
+typedef db::rt::Collectable<BandwidthThrottler> BandwidthThrottlerRef;
 
 } // end namespace net
 } // end namespace db
