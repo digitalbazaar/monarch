@@ -34,7 +34,7 @@ bool BandwidthThrottlerChain::requestBytes(int count, int& permitted)
    for(ThrottlerChain::iterator i = mChain.begin();
        rval && i != mChain.end(); i++)
    {
-      rval = requestBytes(count, permitted);
+      rval = (*i)->requestBytes(count, permitted);
    }
    
    return rval;
