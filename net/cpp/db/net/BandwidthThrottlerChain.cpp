@@ -32,12 +32,19 @@ bool BandwidthThrottlerChain::requestBytes(int count, int& permitted)
    
    if(!mChain.empty())
    {
-      // request bytes from each throttler in the chain
+      // request bytes from each throttler in the chain, limit max permitted
+      // to minimum permitted
+      int maxPermitted = -1;
       for(ThrottlerChain::iterator i = mChain.begin();
           rval && i != mChain.end(); i++)
       {
          rval = (*i)->requestBytes(count, permitted);
+         if(rval && (maxPermitted == -1 || permitted < maxPermitted))
+         {
+            maxPermitted = permitted;
+         }
       }
+      permitted = maxPermitted;
    }
    
    return rval;
