@@ -167,7 +167,7 @@ void runMySqlConnectionTest(TestRunner& tr)
    tr.test("MySql Connection");
    
    MySqlConnection c;
-   c.connect("mysql://dbreadclient:k288m2s8f6gk39a@mojo.bitmunk.com/test");
+   c.connect("mysql://dbreadclient:k288m2s8f6gk39a@omega.digitalbazaar.com/test");
    c.close();
    assertNoException();
    
@@ -185,7 +185,7 @@ void runMySqlStatementTest(TestRunner& tr)
    Exception::clearLast();
    
    MySqlConnection c;
-   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com");
+   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@omega.digitalbazaar.com");
    assertNoException();
    
    // create table
@@ -226,7 +226,7 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
    
    // create mysql connection pool
    MySqlConnectionPool cp(
-      "mysql://dbwriteclient:k288m2s8f6gk39a@mojo.bitmunk.com", 100);
+      "mysql://dbwriteclient:k288m2s8f6gk39a@omega.digitalbazaar.com", 100);
    assertNoException();
    
    // create table

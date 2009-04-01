@@ -21,32 +21,41 @@ TemplateInputStream::TemplateInputStream(
    FilterInputStream(is, cleanup),
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
-   mLineNumber(0),
-   mPosition(0),
-   mParsingVariable(false),
-   mEscapeOn(false),
    mVars(vars),
-   mStrict(strict),
-   mEndOfStream(false)
+   mStrict(strict)
 {
+   resetState();
 }
 
 TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
    FilterInputStream(is, cleanup),
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
-   mLineNumber(0),
-   mPosition(0),
-   mParsingVariable(false),
-   mEscapeOn(false),
-   mStrict(false),
-   mEndOfStream(false)
+   mStrict(false)
 {
+   resetState();
    mVars->setType(Map);
 }
 
 TemplateInputStream::~TemplateInputStream()
 {
+}
+
+void TemplateInputStream::resetState()
+{
+   mTemplate.clear();
+   mParsed.clear();
+   mLineNumber = 0;
+   mPosition = 0;
+   mParsingVariable = false;
+   mEscapeOn = false;
+   mEndOfStream = false;
+}
+
+void TemplateInputStream::setInputStream(InputStream* is, bool cleanup)
+{
+   FilterInputStream::setInputStream(is, cleanup);
+   resetState();
 }
 
 void TemplateInputStream::setVariables(DynamicObject& vars, bool strict)

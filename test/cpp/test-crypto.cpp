@@ -92,7 +92,21 @@ void runMessageDigestTest(TestRunner& tr)
       assert(digestSha1 == correctSha1);
    }
    tr.passIfNoException();
-   
+
+   // FIXME: need a test file to compare against
+#if 0
+   tr.test("file test");
+   {
+      File file = File::createTempFile("test");
+      MessageDigest md("SHA1");
+      if(md.digestFile(file))
+      {
+         string sha1 = md.getDigest();
+         printf("sha1: %s\n", sha1.c_str());
+      }
+   }
+   tr.passIfNoException();
+#endif   
    tr.ungroup();
 }
 

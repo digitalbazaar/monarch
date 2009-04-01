@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/BandwidthThrottler.h"
+#include "db/net/DefaultBandwidthThrottler.h"
 
 #include "db/rt/System.h"
 #include "db/rt/Thread.h"
@@ -13,7 +13,7 @@ using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
 
-BandwidthThrottler::BandwidthThrottler(int rateLimit)
+DefaultBandwidthThrottler::DefaultBandwidthThrottler(int rateLimit)
 {
    // initialize the last request time
    mLastRequestTime = System::getCurrentMilliseconds();
@@ -25,11 +25,11 @@ BandwidthThrottler::BandwidthThrottler(int rateLimit)
    setRateLimit(rateLimit);
 }
 
-BandwidthThrottler::~BandwidthThrottler()
+DefaultBandwidthThrottler::~DefaultBandwidthThrottler()
 {
 }
 
-bool BandwidthThrottler::requestBytes(int count, int& permitted)
+bool DefaultBandwidthThrottler::requestBytes(int count, int& permitted)
 {
    bool rval = true;
    
@@ -61,7 +61,7 @@ bool BandwidthThrottler::requestBytes(int count, int& permitted)
    return rval;
 }
 
-void BandwidthThrottler::setRateLimit(int rateLimit)
+void DefaultBandwidthThrottler::setRateLimit(int rateLimit)
 {
    mLock.lock();
    {
@@ -79,12 +79,12 @@ void BandwidthThrottler::setRateLimit(int rateLimit)
    mLock.unlock();
 }
 
-inline int BandwidthThrottler::getRateLimit()
+inline int DefaultBandwidthThrottler::getRateLimit()
 {
    return mRateLimit;
 }
 
-void BandwidthThrottler::resetWindowTime()
+void DefaultBandwidthThrottler::resetWindowTime()
 {
    // set the current window time
    mWindowTime = System::getCurrentMilliseconds();
@@ -93,7 +93,7 @@ void BandwidthThrottler::resetWindowTime()
    mBytesGranted = 0;
 }
 
-void BandwidthThrottler::updateWindowTime()
+void DefaultBandwidthThrottler::updateWindowTime()
 {
    // get the current time
    uint64_t now = System::getCurrentMilliseconds();
@@ -132,12 +132,12 @@ void BandwidthThrottler::updateWindowTime()
    }
 }
 
-inline uint64_t BandwidthThrottler::getWindowTime()
+inline uint64_t DefaultBandwidthThrottler::getWindowTime()
 {
    return mWindowTime;
 }
 
-void BandwidthThrottler::updateAvailableByteTime()
+void DefaultBandwidthThrottler::updateAvailableByteTime()
 {
    // the amount of time until a byte is available is 1000 milliseconds
    // divided by the rate in bytes/second, with a minimum of 1 millisecond
@@ -145,12 +145,12 @@ void BandwidthThrottler::updateAvailableByteTime()
    mAvailableByteTime = (1 > mAvailableByteTime) ? 1 : mAvailableByteTime;
 }
 
-inline uint64_t BandwidthThrottler::getAvailableByteTime()
+inline uint64_t DefaultBandwidthThrottler::getAvailableByteTime()
 {
    return mAvailableByteTime;
 }
 
-void BandwidthThrottler::updateAvailableBytes()
+void DefaultBandwidthThrottler::updateAvailableBytes()
 {
    // get the passed time in the current window
    double passedTime = System::getCurrentMilliseconds() - getWindowTime();
@@ -164,13 +164,13 @@ void BandwidthThrottler::updateAvailableBytes()
       0 : mAvailableBytes - mBytesGranted;
 }
 
-inline int BandwidthThrottler::getAvailableBytes()
+inline int DefaultBandwidthThrottler::getAvailableBytes()
 {
    return (mAvailableBytes >= (uint64_t)Math::MAX_INT_VALUE ?
       Math::MAX_INT_VALUE : (int)mAvailableBytes);
 }
 
-bool BandwidthThrottler::limitBandwidth()
+bool DefaultBandwidthThrottler::limitBandwidth()
 {
    bool rval = true;
    

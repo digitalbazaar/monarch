@@ -47,6 +47,15 @@ public:
    virtual ~FilterInputStream();
    
    /**
+    * Set the input stream.
+    * 
+    * @param is the InputStream to read from.
+    * @param cleanup true to clean up the passed InputStream when destructing,
+    *                false not to.
+    */
+   virtual void setInputStream(InputStream* is, bool cleanup = false);
+   
+   /**
     * Reads some bytes from the stream. This method will block until at least
     * one byte can be read or until the end of the stream is reached. A
     * value of 0 will be returned if the end of the stream has been reached,
