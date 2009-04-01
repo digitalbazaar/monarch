@@ -314,7 +314,7 @@ public:
    virtual db::config::ConfigManager* getConfigManager();
    
    /**
-    * Convienience for getConfigManager()->getConfig(getMainConfigGroup()).
+    * Convenience for getConfigManager()->getConfig(getMainConfigGroup()).
     * 
     * @return the main config for this app.
     */
