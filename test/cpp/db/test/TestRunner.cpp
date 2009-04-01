@@ -177,6 +177,10 @@ void TestRunner::passIfNoException()
          done();
          assert(!Exception::hasLast());
       }
+      else
+      {
+         Exception::clearLast();
+      }
    }
    else
    {
