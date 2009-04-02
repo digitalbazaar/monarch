@@ -27,17 +27,15 @@ public:
     * 
     * PlatformInfo
     * {
-    *    "spec": String,
+    *    "spec": String, (FIXME: not implemented yet)
     *    "os": String,
-    *    "sharedLibExt": String,
     *    "cpuType": Int32,
-    *    "cpuSubType": Int32,
-    *    "capabilities": {key=value}
+    *    "cpuSubType": Int32, (FIXME: not implemented yet)
+    *    "capabilities": {key=value} (FIXME: not implemented yet)
     * }
     * 
     * @member spec combined architecture specficiation string
     * @member os operating system
-    * @member sharedLibExt shared library extension
     * @member cpuType primary CPU architecture type
     * @member cpuSubType secondary CPU architecture type
     * @member capabilities OS, CPU, and hardware dependent features
@@ -58,6 +56,14 @@ public:
     * should be called only once.
     */
    static void cleanup();
+   
+   /**
+    * Gets the dynamic library prefix for a specific operating system.
+    * For example, no prefix ("") for Windows, "lib" for Mac OS X and Linux.
+    * 
+    * @return the dynamic library extension or NULL if not known.
+    */
+   static const char* getDynamicLibraryPrefix(const char* os);
    
    /**
     * Gets the dynamic library extension for a specific operating system.

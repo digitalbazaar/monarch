@@ -12,54 +12,73 @@ using namespace db::rt;
 // is called, it will try to re-init these, stomping on
 // the existing values, leaking memory, and generally stuffing
 // everything up
-static DynamicObject* sDynLibExtMap;
-static Platform::PlatformInfo* sCurrent;
+static DynamicObject* sCommonInfo;
+static Platform::PlatformInfo* sCurrentInfo;
+
+/* 
+ * sCommonInfo:
+ * {
+ *    "os": {osName: osInfo}
+ * }
+ * osInfo:
+ * {
+ *    "dynamicLibPrefix": String
+ *    "dynamicLibExt": String
+ * }
+ * @member dynamicLibPrefix prefix for dynamic libraries
+ * @member dynamicLibExt extension for dynamic libraries
+ */
 
 bool Platform::initialize()
 {
-   if(sDynLibExtMap == NULL)
+   if(sCommonInfo == NULL)
    {
-      sDynLibExtMap = new DynamicObject();
+      sCommonInfo = new DynamicObject();
+      
+      // dynamic library prefix map
+      (*sCommonInfo)["os"]["linux"]["dynamicLibPrefix"] = "lib";
+      (*sCommonInfo)["os"]["windows"]["dynamicLibPrefix"] = "";
+      (*sCommonInfo)["os"]["macos"]["dynamicLibPrefix"] = "lib";
       
       // dynamic library extension map
-      (*sDynLibExtMap)["linux"] = "so";
-      (*sDynLibExtMap)["windows"] = "dll";
-      (*sDynLibExtMap)["macos"] = "dylib";
+      (*sCommonInfo)["os"]["linux"]["dynamicLibExt"] = "so";
+      (*sCommonInfo)["os"]["windows"]["dynamicLibExt"] = "dll";
+      (*sCommonInfo)["os"]["macos"]["dynamicLibExt"] = "dylib";
    }
    
-   if(sCurrent == NULL)
+   if(sCurrentInfo == NULL)
    {
-      sCurrent = new PlatformInfo();
+      sCurrentInfo = new PlatformInfo();
       
       // Operating System
 #if defined(LINUX)
-      (*sCurrent)["os"] = "linux";
+      (*sCurrentInfo)["os"] = "linux";
 #elif defined(MACOS)
-      (*sCurrent)["os"] = "macos";
+      (*sCurrentInfo)["os"] = "macos";
 #elif defined(WIN32)
-      (*sCurrent)["os"] = "windows";
+      (*sCurrentInfo)["os"] = "windows";
 #else
 #error Platform: Unknown OS.
 #endif
       
       // Primary CPU type
 #if defined(__i386__)
-      (*sCurrent)["cpuType"] = "x86";
+      (*sCurrentInfo)["cpuType"] = "x86";
 #elif defined(__x86_64__)
-      (*sCurrent)["cpuType"] = "x86_64";
+      (*sCurrentInfo)["cpuType"] = "x86_64";
 #elif defined(__ppc__)
-      (*sCurrent)["cpuType"] = "ppc";
+      (*sCurrentInfo)["cpuType"] = "ppc";
 //#elif defined(__ppc64__)
-//      (*sCurrent)["cpuType"] = "ppc64";
+//      (*sCurrentInfo)["cpuType"] = "ppc64";
 //#elif defined(__arm__)
-//      (*sCurrent)["cpuType"] = "arm";
+//      (*sCurrentInfo)["cpuType"] = "arm";
 #else
 #error Platform: Unknown CPU type.
 #endif
       
       // Secondary CPU type
       // FIXME: add specific CPU type detection
-      (*sCurrent)["cpuSubType"] = "";
+      (*sCurrentInfo)["cpuSubType"] = "";
    }
    
    return true;
@@ -67,29 +86,39 @@ bool Platform::initialize()
 
 void Platform::cleanup()
 {
-   if(sDynLibExtMap != NULL)
+   if(sCommonInfo != NULL)
    {
-      delete sDynLibExtMap;
-      sDynLibExtMap = NULL;
+      delete sCommonInfo;
+      sCommonInfo = NULL;
    }
-   if(sCurrent != NULL)
+   if(sCurrentInfo != NULL)
    {
-      delete sCurrent;
-      sCurrent = NULL;
+      delete sCurrentInfo;
+      sCurrentInfo = NULL;
    }
+}
+
+const char* Platform::getDynamicLibraryPrefix(const char* os)
+{
+   const char* rval = NULL;
+   if(os != NULL && (*sCommonInfo)["os"]->hasMember(os))
+   {
+      rval = (*sCommonInfo)["os"][os]["dynamicLibPrefix"]->getString();
+   }
+   return rval;
 }
 
 const char* Platform::getDynamicLibraryExt(const char* os)
 {
    const char* rval = NULL;
-   if(os != NULL && (*sDynLibExtMap)->hasMember(os))
+   if(os != NULL && (*sCommonInfo)["os"]->hasMember(os))
    {
-      rval = (*sDynLibExtMap)[os]->getString();
+      rval = (*sCommonInfo)["os"][os]["dynamicLibExt"]->getString();
    }
    return rval;
 }
 
 Platform::PlatformInfo& Platform::getCurrent()
 {
-   return *sCurrent;
+   return *sCurrentInfo;
 }
