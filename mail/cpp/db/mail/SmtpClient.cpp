@@ -222,7 +222,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    {
       // receive response
       rval = ((code = getResponseCode(c)) == 354);
-      responseCodes["startMessage"] = code;
+      responseCodes["startData"] = code;
    }
    
    // send data
@@ -233,7 +233,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    {
       // receive response
       rval = ((code = getResponseCode(c)) == 250);
-      responseCodes["endMessage"] = code;
+      responseCodes["endData"] = code;
    }
    
    // quit
