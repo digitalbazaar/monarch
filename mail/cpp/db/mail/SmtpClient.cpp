@@ -170,6 +170,11 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
 {
    bool rval = true;
    
+   // create details object in case of exception
+   DynamicObject details;
+   DynamicObject& responseCodes = details["responseCodes"];
+   responseCodes->setType(Map);
+   
    // FIXME: this is the simplest implementation to get this thing to
    // send mail to our server, it will have to be filled out later if
    // we so desire
@@ -179,23 +184,27 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    
    // receive response from server
    rval = ((code = getResponseCode(c)) == 220);
+   responseCodes["connect"] = code;
    
    // say helo from sender's domain
    if(rval && (rval = helo(c, mail->getSender()["domain"]->getString())))
    {
       // receive response
       rval = ((code = getResponseCode(c)) == 250);
+      responseCodes["helo"] = code;
    }
    
    // send sender's address
    if(rval && (rval = mailFrom(
-         c, mail->getSender()["smtpEncoding"]->getString())))
+      c, mail->getSender()["smtpEncoding"]->getString())))
    {
       // receive response
       rval = ((code = getResponseCode(c)) == 250);
+      responseCodes["mailFrom"] = code;
    }
    
    // do rcpt to
+   int index = 0;
    AddressIterator i = mail->getRecipients().getIterator();
    while(rval && i->hasNext())
    {
@@ -204,6 +213,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
       {
          // receive response
          rval = ((code = getResponseCode(c)) == 250);
+         responseCodes["rcptTo"][index++] = code;
       }
    }
    
@@ -212,6 +222,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    {
       // receive response
       rval = ((code = getResponseCode(c)) == 354);
+      responseCodes["startMessage"] = code;
    }
    
    // send data
@@ -222,6 +233,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    {
       // receive response
       rval = ((code = getResponseCode(c)) == 250);
+      responseCodes["endMessage"] = code;
    }
    
    // quit
@@ -229,6 +241,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    {
       // receive response
       rval = ((code = getResponseCode(c)) == 221);
+      responseCodes["quit"] = code;
    }
    
    if(!rval)
@@ -239,7 +252,8 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
          ExceptionRef e = new Exception(
             "Unexpected SMTP server response code,",
             "db.mail.UnexpectedSmtpCode");
-         e->getDetails()["code"] = code;
+         details["code"] = code;
+         e->getDetails() = details;
          Exception::setLast(e, false);
       }
    }
