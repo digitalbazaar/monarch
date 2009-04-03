@@ -265,51 +265,66 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
 {
    bool rval = false;
    
-   // connect, use 30 second timeouts
-   TcpSocket s;
-   s.setReceiveTimeout(30000);
-   Exception::clearLast();
-   InternetAddress address(url->getHost().c_str(), url->getPort());
-   if(Exception::hasLast())
+   // ensure mail has recipients
+   if(mail->getRecipients()->length() == 0)
    {
       ExceptionRef e = new Exception(
-         "Failed to setup SMTP host address.",
-         "db.mail.SmtpAddressLookupFailure");
-      e->getDetails()["host"] = url->getHost().c_str();
-      e->getDetails()["port"] = url->getPort();
-      Exception::setLast(e, true);
-      rval = false;
-   }
-   else if(s.connect(&address, 30))
-   {
-      // create smtp connection
-      Connection c(&s, false);
-      
-      // send mail
-      rval = sendMail(&c, mail);
-      
-      // disconnect
-      c.close();
-      
-      if(!rval)
-      {
-         ExceptionRef e = new Exception(
-            "Failed to send mail.",
-            "db.mail.MailSendFailed");
-         e->getDetails()["host"] = url->getHost().c_str();
-         e->getDetails()["port"] = url->getPort();
-         Exception::setLast(e, true);
-      }
+         "No mail recipients specified.",
+         "db.mail.NoMailRecipients");
+      e->getDetails()["sender"] =
+         mail->getSender()["smtpEncoding"]->getString();
+      e->getDetails()["subject"] =
+         mail->getMessage()["headers"]["Subject"]->getString();
+      Exception::setLast(e, false);
    }
    else
    {
-      ExceptionRef e = new Exception(
-         "Failed to connect to SMTP host.",
-         "db.mail.SmtpConnectionFailure");
-      e->getDetails()["host"] = url->getHost().c_str();
-      e->getDetails()["port"] = url->getPort();
-      Exception::setLast(e, true);
-      rval = false;
+      // connect, use 30 second timeouts
+      TcpSocket s;
+      s.setReceiveTimeout(30000);
+      Exception::clearLast();
+      InternetAddress address(url->getHost().c_str(), url->getPort());
+      if(Exception::hasLast())
+      {
+         ExceptionRef e = new Exception(
+            "Failed to setup SMTP host address.",
+            "db.mail.SmtpAddressLookupFailure");
+         e->getDetails()["host"] = url->getHost().c_str();
+         e->getDetails()["port"] = url->getPort();
+         Exception::setLast(e, true);
+         rval = false;
+      }
+      else if(s.connect(&address, 30))
+      {
+         // create smtp connection
+         Connection c(&s, false);
+         
+         // send mail
+         rval = sendMail(&c, mail);
+         
+         // disconnect
+         c.close();
+         
+         if(!rval)
+         {
+            ExceptionRef e = new Exception(
+               "Failed to send mail.",
+               "db.mail.MailSendFailed");
+            e->getDetails()["host"] = url->getHost().c_str();
+            e->getDetails()["port"] = url->getPort();
+            Exception::setLast(e, true);
+         }
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Failed to connect to SMTP host.",
+            "db.mail.SmtpConnectionFailure");
+         e->getDetails()["host"] = url->getHost().c_str();
+         e->getDetails()["port"] = url->getPort();
+         Exception::setLast(e, true);
+         rval = false;
+      }
    }
    
    return rval;
