@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/http/HttpConnectionServicer.h"
 
@@ -117,7 +117,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             // use proxy'd host field if one was used
             // else use host field if one was used
             string host;
-            if(reqHeader->getField("X-Forwarded-Server", host) ||
+            if(reqHeader->getField("X-Forwarded-Host", host) ||
                reqHeader->getField("Host", host))
             {
                resHeader->setField("Host", host);
