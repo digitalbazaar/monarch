@@ -114,9 +114,11 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             // set response version according to request version
             resHeader->setVersion(reqHeader->getVersion());
             
-            // include host path if one was used
+            // use proxy'd host field if one was used
+            // else use host field if one was used
             string host;
-            if(reqHeader->getField("Host", host))
+            if(reqHeader->getField("X-Forwarded-Server", host) ||
+               reqHeader->getField("Host", host))
             {
                resHeader->setField("Host", host);
             }
