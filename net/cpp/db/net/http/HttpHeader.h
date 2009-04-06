@@ -172,6 +172,13 @@ public:
    virtual int getFieldCount(const char* name);
    
    /**
+    * Gets the total number of fields in this header.
+    * 
+    * @return the total number of fields in this header.
+    */
+   virtual int getFieldCount();
+   
+   /**
     * Gets a header field value.
     * 
     * @param name the name of the header field to get the value of.

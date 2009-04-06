@@ -184,6 +184,11 @@ int HttpHeader::getFieldCount(const char* name)
    return mFields.count(name);
 }
 
+int HttpHeader::getFieldCount()
+{
+   return mFields.size();
+}
+
 bool HttpHeader::getField(const char* name, long long& value, int index)
 {
    bool rval = false;
