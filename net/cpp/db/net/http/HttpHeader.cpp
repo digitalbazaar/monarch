@@ -443,15 +443,17 @@ void HttpHeader::biCapitalize(char* name)
    // capitalize first letter and letters after hyphens
    // decapitalize other letters
    // NOTE: hardcoded version is faster than using toupper/tolower
+   int length = 0;
    if(name != NULL && *name != '\0')
    {
+      length++;
       char* ptr = name;
       // cap first
       if(*ptr >= 'a' && *ptr <= 'z')
       {
          *ptr -= 'a' - 'A';
       }
-      for(ptr++; *ptr != '\0'; ptr++)
+      for(ptr++; *ptr != '\0'; ptr++, length++)
       {
          // cap after '-'
          if(*(ptr - 1) == '-')
@@ -466,6 +468,12 @@ void HttpHeader::biCapitalize(char* name)
          {
             *ptr += 'a' - 'A';
          }
+      }
+      
+      // special case TE header
+      if(length == 2 && name[0] == 'T' && name[1] == 'e')
+      {
+         name[1] = 'E';
       }
    }
 }
