@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/util/regex/Pattern.h"
 
@@ -51,10 +51,16 @@ bool Pattern::match(
    return rval;
 }
 
-Pattern* Pattern::compile(const char* regex, bool matchCase, bool subMatches)
+bool Pattern::match(const char* str)
+{
+   // execute regex
+   return (regexec(&mStorage, str, 0, NULL, 0) == 0);
+}
+
+PatternRef Pattern::compile(const char* regex, bool matchCase, bool subMatches)
 {
    // create a new Pattern
-   Pattern* p = new Pattern();
+   PatternRef p = new Pattern();
    
    int flags = REG_EXTENDED;
    
@@ -75,15 +81,12 @@ Pattern* Pattern::compile(const char* regex, bool matchCase, bool subMatches)
       memset(str, '\0', size);
       regerror(error, &p->getStorage(), str, size);
       
-      // create message for exception
-      string message = "Invalid regular expression! ";
-      message.append(str);
+      // clean up pattern upon compilation failure
+      p.setNull();
       
-      // delete pattern upon compilation failure
-      delete p;
-      p = NULL;
-      
-      ExceptionRef e = new Exception(message.c_str(), "db.util.InvalidRegex");
+      ExceptionRef e = new Exception(
+         "Invalid regular expression.", "db.util.InvalidRegex");
+      e->getDetails()["error"] = str;
       Exception::setLast(e, false);
    }
    
@@ -95,16 +98,13 @@ bool Pattern::match(const char* regex, const char* str, bool matchCase)
    bool rval = false;
    
    // compile a pattern with no sub matches allowed
-   Pattern* p = compile(regex, matchCase, false);
+   PatternRef p = compile(regex, matchCase, false);
    
-   if(p != NULL)
+   if(!p.isNull())
    {
       // execute regex
-      rval = regexec(&p->getStorage(), str, 0, NULL, 0) == 0;
+      rval = p->match(str);
    }
-   
-   // delete pattern
-   delete p;
    
    return rval;
 }

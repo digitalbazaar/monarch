@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "db/test/Test.h"
@@ -247,30 +247,26 @@ void runRegexTest(TestRunner& tr)
       unsigned int _start;
       unsigned int _end;
       {
-         Pattern* pat = Pattern::compile("moo");
+         PatternRef pat = Pattern::compile("moo");
          assert(pat->match("moo", 0, _start, _end));
-         delete pat;
       }
       {
-         Pattern* pat = Pattern::compile("^.*$");
+         PatternRef pat = Pattern::compile("^.*$");
          assert(pat->match("anything", 0, _start, _end));
-         delete pat;
       }
       {
-         Pattern* pat = Pattern::compile("^[0-9]+$");
+         PatternRef pat = Pattern::compile("^[0-9]+$");
          assert(!pat->match("", 0, _start, _end));
          assert(!pat->match("abc", 0, _start, _end));
          assert(pat->match("0123", 0, _start, _end));
-         delete pat;
       }
       {
-         Pattern* pat = Pattern::compile("^[0-9]+$");
+         PatternRef pat = Pattern::compile("^[0-9]+$");
          assert(!pat->match("abc", 0, _start, _end));
          assert(pat->match("123", 0, _start, _end));
          assert(pat->match("abc123" + 3, 0, _start, _end));
          // Note offset does _not_ work this way:
          //assert(pat->match("abc123", 3, _start, _end));
-         delete pat;
       }
    }
    tr.passIfNoException();
@@ -286,7 +282,7 @@ void runRegexTest(TestRunner& tr)
    tr.test("sub-match");
    {
       string submatches = "Look for green globs of green matter in green goo.";
-      Pattern* p = Pattern::compile("green");
+      PatternRef p = Pattern::compile("green");
    
       unsigned int start, end;
       unsigned int index = 0;
@@ -310,8 +306,6 @@ void runRegexTest(TestRunner& tr)
       index = end;
 
       assert(!p->match(submatches.c_str(), index, start, end));
-      
-      delete p;
    }
    tr.passIfNoException();
    

@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_util_regex_Pattern_H
 #define db_util_regex_Pattern_H
 
 #include <regex.h>
+#include "db/rt/Collectable.h"
 
 namespace db
 {
@@ -60,9 +61,16 @@ public:
       unsigned int& start, unsigned int& end);
    
    /**
-    * Compiles a regular expression into a Pattern.
+    * Matches this pattern against the given string.
     * 
-    * The caller of this method must free the returned Pattern with delete.
+    * @param str the string to match this pattern against.
+    * 
+    * @return true if the passed string matches the regex, false if not.
+    */
+   virtual bool match(const char* str);
+   
+   /**
+    * Compiles a regular expression into a Pattern.
     * 
     * @param regex the regular expression to compile.
     * @param matchCase true to match case, false to be case-insensitive.
@@ -70,7 +78,7 @@ public:
     * 
     * @return the compiled Pattern or NULL if an exception occurred.
     */
-   static Pattern* compile(
+   static db::rt::Collectable<Pattern> compile(
       const char* regex, bool matchCase = true, bool subMatches = true);
    
    /**
@@ -85,6 +93,9 @@ public:
     */
    static bool match(const char* regex, const char* str, bool matchCase = true);
 };
+
+// typedef for a reference counted Pattern class
+typedef db::rt::Collectable<Pattern> PatternRef;
 
 } // end namespace regex
 } // end namespace util

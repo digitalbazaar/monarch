@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/util/StringTools.h"
 
@@ -59,8 +59,8 @@ string& StringTools::regexReplaceAll(
    string& str, const string& regex, const string& replace)
 {
    // compile regex pattern
-   Pattern* p = Pattern::compile(regex.c_str());
-   if(p != NULL)
+   PatternRef p = Pattern::compile(regex.c_str());
+   if(!p.isNull())
    {
       // replace all matches
       unsigned int start, end;
@@ -70,9 +70,6 @@ string& StringTools::regexReplaceAll(
          str.replace(start, end - start, replace);
          index = start + replace.length();
       }
-      
-      // free regex pattern
-      delete p;
    }
    
    return str;

@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/compress/gzip/Gzipper.h"
 #include "db/logging/FileLogger.h"
+
+#include "db/compress/gzip/Gzipper.h"
 #include "db/io/FileList.h"
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
@@ -325,7 +326,7 @@ bool FileLogger::rotate()
       FileList files;
       dir->listFiles(files);
       IteratorRef<File> i = files->getIterator();
-      Pattern* pattern = Pattern::compile(
+      PatternRef pattern = Pattern::compile(
          "^\\.[0-9]{14}(-[a-z]{1}[0-9]+)?(\\.gz)?$");
       while(i->hasNext())
       {
@@ -341,7 +342,7 @@ bool FileLogger::rotate()
             oldFiles.push_back(nextpath);
          }
       }
-      delete pattern;
+      
       // sort results
       sort(oldFiles.begin(), oldFiles.end());
       // remove if needed
