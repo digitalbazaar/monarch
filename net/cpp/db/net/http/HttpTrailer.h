@@ -74,6 +74,13 @@ public:
     * @return the content length provided in an update to this trailer.
     */
    virtual unsigned long long getContentLength();
+   
+   /**
+    * Gets the type of header this is.
+    * 
+    * @return the type of header this is.
+    */
+   virtual Type getType();
 };
 
 // typedef for a counted reference to an HttpTrailer

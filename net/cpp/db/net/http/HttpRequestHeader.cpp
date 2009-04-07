@@ -127,3 +127,8 @@ void HttpRequestHeader::writeTo(HttpRequestHeader* header)
    header->setMethod(getMethod());
    header->setPath(getPath());
 }
+
+inline HttpHeader::Type HttpRequestHeader::getType()
+{
+   return HttpHeader::Request;
+}

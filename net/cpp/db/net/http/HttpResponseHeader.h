@@ -112,6 +112,13 @@ public:
     * @param header the header to write to.
     */
    virtual void writeTo(HttpResponseHeader* header);
+   
+   /**
+    * Gets the type of header this is.
+    * 
+    * @return the type of header this is.
+    */
+   virtual Type getType();
 };
 
 } // end namespace http

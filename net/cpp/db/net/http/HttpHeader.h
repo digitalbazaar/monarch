@@ -46,6 +46,15 @@ namespace http
  */
 class DLL_CLASS HttpHeader
 {
+public:
+   /**
+    * The types of http headers.
+    */
+   enum Type
+   {
+      Header, Request, Response, Trailer
+   };
+   
 protected:
    /**
     * The version (HTTP/major.minor) for the header.
@@ -66,6 +75,11 @@ protected:
     * optimization.
     */
    size_t mFieldsSize;
+   
+   /**
+    * The type of header this is.
+    */
+   Type mType;
    
 public:
    /**
@@ -267,6 +281,13 @@ public:
     * @param header the header to write to.
     */
    virtual void writeTo(HttpHeader* header);
+   
+   /**
+    * Gets the type of header this is.
+    * 
+    * @return the type of header this is.
+    */
+   virtual Type getType();
    
    /**
     * BiCapitalizes a header field so that its name is normalized as an

@@ -148,3 +148,8 @@ void HttpResponseHeader::writeTo(HttpResponseHeader* header)
    HttpHeader::writeTo(header);
    header->setStatus(getStatusCode(), getStatusMessage());
 }
+
+inline HttpHeader::Type HttpResponseHeader::getType()
+{
+   return HttpHeader::Response;
+}

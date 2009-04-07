@@ -443,6 +443,11 @@ void HttpHeader::writeTo(HttpHeader* header)
    }
 }
 
+inline HttpHeader::Type HttpHeader::getType()
+{
+   return HttpHeader::Header;
+}
+
 void HttpHeader::biCapitalize(char* name)
 {
    // capitalize first letter and letters after hyphens
