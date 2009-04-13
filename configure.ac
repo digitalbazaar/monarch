@@ -110,7 +110,7 @@ if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
 fi
 AC_SUBST(BUILD_SPHINX)
 
-# FIXME: Perform compilation environment tests
+# FIXME: Perform compilation environment tests 
 #AC_CHECK_HEADERS(iostream)
 #AC_CHECK_HEADERS(openssl/opensslv) 
 #AC_CHECK_HEADERS(expat)
@@ -149,7 +149,7 @@ if test "x$BUILD_MYSQL" = "xyes"; then
    )
 fi
 
-dnl ----------------- tests -----------------
+dnl ----------------- disable test building and running -----------------
 
 AC_ARG_ENABLE([tests],
    AC_HELP_STRING([--disable-tests], [disable building test apps [[no]]]),
