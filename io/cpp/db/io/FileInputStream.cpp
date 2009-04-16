@@ -4,6 +4,7 @@
 #include "db/io/FileInputStream.h"
 
 #include "db/rt/DynamicObject.h"
+#include "db/io/FileFunctions.h"
 
 #include <cstring>
 #include <cstdlib>
