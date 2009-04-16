@@ -84,10 +84,10 @@ inline static ssize_t getdelim(
    }
    
    ssize_t len = rval + 1;
-   if(*n < rval)
+   if(*n < (size_t)rval)
    {
       // reallocate lineptr
-      *lineptr = realloc(*lineptr, len);
+      *lineptr = (char*)realloc(*lineptr, len);
       if(*lineptr != NULL)
       {
          *n = len;

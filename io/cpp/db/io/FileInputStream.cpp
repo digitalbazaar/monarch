@@ -3,6 +3,7 @@
  */
 #include "db/io/FileInputStream.h"
 
+#include "db/io/FileFunctions.h"
 #include "db/rt/DynamicObject.h"
 
 #include <cstring>
