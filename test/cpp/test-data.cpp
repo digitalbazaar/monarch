@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include <iostream>
 #include <sstream>
@@ -123,7 +123,7 @@ void runJsonValidTest(TestRunner& tr)
       
       DynamicObject d;
       const char* s = tests[i];
-      //cout << s << endl;
+      //printf("%s\n", s);
       ByteArrayInputStream is(s, strlen(s));
       jr.start(d);
       assertNoException();
@@ -131,7 +131,7 @@ void runJsonValidTest(TestRunner& tr)
       assertNoException();
       jr.finish();
       assertNoException();
-      //cout << s << endl;
+      //printf("%s\n", s);
       //dumpDynamicObject(d);
       
       tr.passIfNoException();
@@ -188,7 +188,7 @@ void runJsonInvalidTest(TestRunner& tr)
 
       DynamicObject d;
       const char* s = tests[i];
-      //cout << s << endl;
+      //printf("%s\n", s);
       ByteArrayInputStream is(s, strlen(s));
       jr.start(d);
       assertNoException();
@@ -197,7 +197,7 @@ void runJsonInvalidTest(TestRunner& tr)
       assertException();
       Exception::clearLast();
       //jw.write(d, &os);
-      //cout << endl;
+      //printf("\n");
       
       tr.passIfNoException();
    }
@@ -598,7 +598,7 @@ void runXmlReaderTest(TestRunner& tr)
       reader.finish();
       
       assertException();
-      //cout << endl << Exception::getLast()->getMessage() << endl;
+      //printf("\n%s\n", Exception::getLast()->getMessage());
       Exception::clearLast();
    }
    
@@ -713,7 +713,6 @@ void runXmlWriterTest(TestRunner& tr)
       OStreamOutputStream os(&oss);
       
       writer.write(dyno, &os);
-      //std::cout << "XML=\n" << oss.str() << std::endl;
       assertStrCmp(oss.str().c_str(), "<string/>");
       
       os.close();
@@ -728,7 +727,6 @@ void runXmlWriterTest(TestRunner& tr)
       OStreamOutputStream os(&oss);
       
       writer.write(dyno, &os);
-      //std::cout << "XML=\n" << oss.str() << std::endl;
       assertStrCmp(oss.str().c_str(), "<number>5</number>");
       
       os.close();
@@ -745,7 +743,6 @@ void runXmlWriterTest(TestRunner& tr)
       OStreamOutputStream os(&oss);
       
       writer.write(dyno, &os);
-      //std::cout << "XML=\n" << oss.str() << std::endl;
       assertStrCmp(oss.str().c_str(),
          "<array>"
          "<element index=\"0\">"
@@ -776,7 +773,6 @@ void runXmlWriterTest(TestRunner& tr)
       OStreamOutputStream os(&oss);
       
       writer.write(dyno, &os);
-      //std::cout << "XML=\n" << oss.str() << std::endl;
       assertStrCmp(oss.str().c_str(),
          "<object>"
          "<member name=\"aNumber\">"
@@ -813,7 +809,6 @@ void runXmlWriterTest(TestRunner& tr)
       OStreamOutputStream os(&oss);
       
       writer.write(dyno, &os);
-      //std::cout << "XML=\n" << oss.str() << std::endl;
       assertStrCmp(oss.str().c_str(),
          "<object>\n"
          " <member name=\"aNumber\">\n"
@@ -850,7 +845,6 @@ void runXmlWriterTest(TestRunner& tr)
       OStreamOutputStream os(&oss);
       
       writer.write(dyno, &os);
-      //std::cout << "XML=\n" << oss.str() << std::endl;
       assertStrCmp(oss.str().c_str(),
          "<object>\n"
          "   <member name=\"aNumber\">\n"

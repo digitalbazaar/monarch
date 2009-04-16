@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include <iostream>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
@@ -79,7 +78,7 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
          assertNoException();
       }
       //unsigned long long end = System::getCurrentMilliseconds();
-      //cout << "TIME=" << (end - start) << " ms" << std::endl;
+      //printf("TIME=%llu ms\n", (end - start));
    }
    tr.passIfNoException();
    

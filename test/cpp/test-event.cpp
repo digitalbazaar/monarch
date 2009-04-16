@@ -1,8 +1,6 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include <iostream>
-#include <sstream>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"

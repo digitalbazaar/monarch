@@ -1,8 +1,6 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include <iostream>
-#include <sstream>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
@@ -254,10 +252,10 @@ void runMailTemplateParser(TestRunner& tr)
       "This is a number 5.\r\n";
    
    assertStrCmp(generatedTemplate.c_str(), genExpect);
-   //cout << "Generated template=\n" << generatedTemplate << std::endl;
+   //printf("Generated template=%s\n", generatedTemplate.c_str());
    
 //   // print out mail message
-//   cout << "\nHeaders=\n";
+//   printf("\nHeaders=\n");
 //   DynamicObjectIterator i = msg["headers"].getIterator();
 //   while(i->hasNext())
 //   {
@@ -265,12 +263,12 @@ void runMailTemplateParser(TestRunner& tr)
 //      DynamicObjectIterator doi = header.getIterator();
 //      while(doi->hasNext())
 //      {
-//         cout << i->getName() << ": " << doi->next()->getString() << endl;
+//         printf("%s: %s\n", i->getName(), doi->next()->getString());
 //      }
 //   }
 //   
-//   cout << "Expect=\n" << expect << endl;
-//   cout << "Body=\n" << msg["body"]->getString() << endl;
+//   printf("Expect=%s\n", expect);
+//   printf("Body=%s\n", msg["body"]->getString());
    
 //   // set url of mail server
 //   Url url(VALID_SMTP_SERVER);

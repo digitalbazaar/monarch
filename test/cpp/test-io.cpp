@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "db/test/Test.h"
@@ -23,8 +23,6 @@
 #include "db/rt/System.h"
 #include "db/util/StringTools.h"
 
-#include <iostream>
-#include <sstream>
 #include <cstdlib>
 
 using namespace std;
@@ -48,7 +46,7 @@ using namespace db::util;
 
 void runStringEqualityTest(TestRunner& tr)
 {
-   cout << "Starting string equality test." << endl << endl;
+   tr.test("string equality");
    
    // Note: string length doesn't appear to matter
    string str = "blah";
@@ -60,7 +58,7 @@ void runStringEqualityTest(TestRunner& tr)
       if(str == "");
    }
    end = System::getCurrentMilliseconds();
-   cout << "String == \"\" time: " << (end - start) << " ms" << endl;
+   printf("String == \"\" time: %llu ms\n", (end - start));
    
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -68,16 +66,16 @@ void runStringEqualityTest(TestRunner& tr)
       if(str.length() == 0);
    }
    end = System::getCurrentMilliseconds();
-   cout << "String.length() == 0 time: " << (end - start) << " ms" << endl;
+   printf("String.length() == 0 time: %llu ms\n", (end - start));
    
    // Note: test demonstrates that comparing to length is about 6 times faster
    
-   cout << endl << "String equality test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runStringAppendCharTest(TestRunner& tr)
 {
-   cout << "Starting string append char test." << endl << endl;
+   tr.test("string append char");
    
    // Note: string length doesn't appear to matter
    string str = "blah";
@@ -89,8 +87,8 @@ void runStringAppendCharTest(TestRunner& tr)
       if(str.length() == 1 && str[0] == '/');
    }
    end = System::getCurrentMilliseconds();
-   cout << "String.length() == 1 && str[0] == '/' time: " <<
-      (end - start) << " ms" << endl;
+   printf("String.length() == 1 && str[0] == '/' time: %llu ms\n",
+      (end - start));
    
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -98,7 +96,7 @@ void runStringAppendCharTest(TestRunner& tr)
       if(str == "/");
    }
    end = System::getCurrentMilliseconds();
-   cout << "String == \"/\" time: " << (end - start) << " ms" << endl;
+   printf("String == \"/\" time: %llu ms\n", (end - start));
    
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -106,8 +104,8 @@ void runStringAppendCharTest(TestRunner& tr)
       if(strcmp(str.c_str(), "/") == 0);
    }
    end = System::getCurrentMilliseconds();
-   cout << "strcmp(String.c_str(), \"/\") == 0 time: " <<
-      (end - start) << " ms" << endl;
+   printf("strcmp(String.c_str(), \"/\") == 0 time: %llu ms\n",
+      (end - start));
    
    string version = "HTTP/1.0";
    start = System::getCurrentMilliseconds();
@@ -116,7 +114,7 @@ void runStringAppendCharTest(TestRunner& tr)
       if(version == "HTTP/1.0");
    }
    end = System::getCurrentMilliseconds();
-   cout << "String == \"HTTP/1.0\" time: " << (end - start) << " ms" << endl;
+   printf("String == \"HTTP/1.0\" time: %llu ms\n", (end - start));
    
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -124,8 +122,8 @@ void runStringAppendCharTest(TestRunner& tr)
       if(strcmp(version.c_str(), "HTTP/1.0") == 0);
    }
    end = System::getCurrentMilliseconds();
-   cout << "strcmp(String.c_str(), \"HTTP/1.0\") == 0 time: " <<
-      (end - start) << " ms" << endl;
+   printf("strcmp(String.c_str(), \"HTTP/1.0\") == 0 time: %llu ms\n",
+      (end - start));
    
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 10000; i++)
@@ -133,7 +131,7 @@ void runStringAppendCharTest(TestRunner& tr)
       str.append(1, '/');
    }
    end = System::getCurrentMilliseconds();
-   cout << "String.append(1, '/') time: " << (end - start) << " ms" << endl;
+   printf("String.append(1, '/') time: %llu ms\n", (end - start));
    
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 10000; i++)
@@ -141,7 +139,7 @@ void runStringAppendCharTest(TestRunner& tr)
       str.append("/");
    }
    end = System::getCurrentMilliseconds();
-   cout << "String.append(\"/\") time: " << (end - start) << " ms" << endl;
+   printf("String.append(\"/\") time: %llu ms\n", (end - start));
    
    string space = " ";
    start = System::getCurrentMilliseconds();
@@ -150,7 +148,7 @@ void runStringAppendCharTest(TestRunner& tr)
       str.append("this" + space + "is a sentence");
    }
    end = System::getCurrentMilliseconds();
-   cout << "String inline append time: " << (end - start) << " ms" << endl;
+   printf("String inline append time: %llu ms\n", (end - start));
    
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 10000; i++)
@@ -160,14 +158,14 @@ void runStringAppendCharTest(TestRunner& tr)
       str.append("is a sentence");
    }
    end = System::getCurrentMilliseconds();
-   cout << "String multiline append time: " << (end - start) << " ms" << endl;
+   printf("String multiline append time: %llu ms\n", (end - start));
    
-   cout << endl << "String append char test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runStringCompareTest(TestRunner& tr)
 {
-   cout << "Starting string compare test." << endl << endl;
+   tr.test("string compare");
    
    string str1 = "blah";
    char str2[] = "blah";
@@ -179,7 +177,7 @@ void runStringCompareTest(TestRunner& tr)
       if(str1 == "blah");
    }
    end = System::getCurrentMilliseconds();
-   cout << "std::string compare time: " << (end - start) << " ms" << endl;
+   printf("std::string compare time: %llu ms\n", (end - start));
    
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -187,9 +185,9 @@ void runStringCompareTest(TestRunner& tr)
       if(strcmp(str2, "blah") == 0);
    }
    end = System::getCurrentMilliseconds();
-   cout << "char* compare time: " << (end - start) << " ms" << endl;
+   printf("char* compare time: %llu ms\n", (end - start));
    
-   cout << endl << "String compare test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runByteBufferTest(TestRunner& tr)
@@ -291,10 +289,10 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
    if(!baos2.write(sentence, length))
    {
       IOException* e = (IOException*)&(*Exception::getLast());
-      //cout << "Exception Caught=" << e->getMessage() << endl;
-      //cout << "Written bytes=" << e->getUsedBytes() << endl;
-      //cout << "Unwritten bytes=" << e->getUnusedBytes() << endl;
-      //cout << "Turning on resize and finishing write..." << endl;
+      //printf("Exception Caught=%s\n", e->getMessage());
+      //printf("Written bytes=%d\n", e->getUsedBytes());
+      //printf("Unwritten bytes=%d\n", e->getUnusedBytes());
+      //printf("Turning on resize and finishing write...\n");
       
       // turn on resize
       baos2.setResize(true);

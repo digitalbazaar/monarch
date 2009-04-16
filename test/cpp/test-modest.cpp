@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include <iostream>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
@@ -29,11 +28,11 @@ public:
       rval = !loggingOut && ops < 3;
       if(!rval)
       {
-         //cout << "Operation must wait or cancel." << endl;
+         //printf("Operation must wait or cancel.\n");
       }
       else
       {
-         //cout << "Operation can run." << endl;
+         //printf("Operation can run.\n");
       }
       
       return rval;
@@ -46,11 +45,11 @@ public:
       
       if(loggedOut)
       {
-         //cout << "Operation must cancel, user logged out." << endl;
+         //printf("Operation must cancel, user logged out.\n");
       }
       else
       {
-         //cout << "Operation can wait, user is not logged out yet." << endl;
+         //printf("Operation can wait, user is not logged out yet.\n");
       }
       
       return loggedOut;
@@ -76,7 +75,7 @@ public:
       if(mLogout)
       {
          s->setBoolean("logging.out", true);
-         //cout << "Logging out..." << endl;
+         //printf("Logging out...\n");
       }
    }
    
@@ -89,7 +88,7 @@ public:
       if(mLogout)
       {
          s->setBoolean("logged.out", true);
-         //cout << "Logged out." << endl;
+         //printf("Logged out.\n");
       }
    }
 };
@@ -109,7 +108,7 @@ public:
    
    virtual void run()
    {
-      //cout << "Operation running: " << mName << endl;
+      //printf("Operation running: %s\n", mName.c_str());
       
       lock();
       {
@@ -117,7 +116,7 @@ public:
       }
       unlock();
       
-      //cout << "Operation finished: " << mName << endl;
+      //printf("Operation finished: %s\n", mName.c_str());
    }
    
    virtual string& toString(string& str)
@@ -131,12 +130,10 @@ void runModestTest(TestRunner& tr)
 {
    tr.test("Modest Engine");
    
-   //cout << "Starting Modest test." << endl << endl;
    Exception::clearLast();
    
    Kernel k;
    
-   //cout << "Modest engine started." << endl;
    k.getEngine()->start();
    
    RunOp r1("Number 1", 500);
@@ -193,14 +190,11 @@ void runModestTest(TestRunner& tr)
    op5->waitFor();
    opLogout->waitFor();
    
-   //cout << "Operations complete." << endl;
+   printf("Operations complete.\n");
    
    k.getEngine()->stop();
-   //cout << "Modest engine stopped." << endl;
    
    tr.passIfNoException();
-   
-   //cout << endl << "Modest test complete." << endl;
 }
 
 class DbModestTester : public Tester

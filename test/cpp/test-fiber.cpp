@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "db/test/Test.h"
@@ -16,8 +16,6 @@
 #include "db/modest/Kernel.h"
 #include "db/util/Timer.h"
 
-#include <iostream>
-#include <sstream>
 #include <cstdlib>
 #include <cmath>
 

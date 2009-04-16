@@ -1,7 +1,6 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include <iostream>
 #include <sstream>
 
 #include "db/test/Test.h"
@@ -46,14 +45,12 @@ void runMessageDigestTest(TestRunner& tr)
       testMd5.update(" MESSAGE");
       string digestMd5 = testMd5.getDigest();
       
-      //cout << "MD5 Digest=" << digestMd5 << endl;
       assert(digestMd5 == correctMd5);
       
       MessageDigest testSha1("SHA1", false);
       testSha1.update("THIS IS A MESSAGE");
       string digestSha1 = testSha1.getDigest();
       
-      //cout << "SHA-1 Digest=" << digestSha1 << endl;
       assert(digestSha1 == correctSha1);
    }
    tr.passIfNoException();
@@ -70,7 +67,6 @@ void runMessageDigestTest(TestRunner& tr)
       digestMd5 = testMd5.getDigest();
       digestMd5 = testMd5.getDigest();
       
-      //cout << "MD5 Digest=" << digestMd5 << endl;
       assert(digestMd5 == correctMd5);
       
       MessageDigest testSha1("SHA1", true);
@@ -78,7 +74,6 @@ void runMessageDigestTest(TestRunner& tr)
       string digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
       
-      //cout << "SHA-1 Digest=" << digestSha1 << endl;
       assert(digestSha1 == correctSha1);
       
       testSha1.reset();
@@ -88,7 +83,6 @@ void runMessageDigestTest(TestRunner& tr)
       digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
       
-      //cout << "SHA-1 Digest=" << digestSha1 << endl;
       assert(digestSha1 == correctSha1);
    }
    tr.passIfNoException();
@@ -319,8 +313,8 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    
-   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+   //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
+   //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
    
    tr.passIfNoException();
 }
@@ -368,8 +362,8 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    
-   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+   //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
+   //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
    
    tr.passIfNoException();
 }
@@ -417,8 +411,8 @@ void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    
-   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+   //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
+   //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
    
    tr.passIfNoException();
 }
@@ -472,8 +466,8 @@ void runDigitalSignatureInputStreamTest(TestRunner& tr)
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    
-   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+   //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
+   //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
    
    tr.passIfNoException();
 }
@@ -526,8 +520,8 @@ void runDigitalSignatureOutputStreamTest(TestRunner& tr)
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    
-   //cout << "Written Private Key PEM=" << endl << outPrivatePem << endl;
-   //cout << "Written Public Key PEM=" << endl << outPublicPem << endl;
+   //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
+   //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
    
    tr.passIfNoException();
 }
@@ -557,59 +551,51 @@ void runEnvelopeTest(TestRunner& tr)
    
    string display1 = "";
    display1.append(message, length);
-   //cout << "Sending message '" << display1 << "'" << endl;
-   //cout << "Message Length=" << length << endl;
+   //printf("Sending message '%s'\n", display1.c_str());
+   //printf("Message Length=%d\n", length);
    
    // create an outgoing envelope
    SymmetricKey secretKey;
    DigitalEnvelope outEnv;
    outEnv.startSealing("AES256", publicKey, &secretKey);
    assertNoException();
-   //cout << "Created outgoing envelope..." << endl;
    
    // update the envelope
    char output[2048];
    int outLength;
    int totalOut = 0;
    outEnv.update(message, length, output, outLength);
-   //cout << "Updated outgoing envelope..." << endl;
    totalOut += outLength;
    
    // finish the envelope
-   ///cout << "Output Length=" << outLength << endl;
    outEnv.finish(output + outLength, outLength);
-   //cout << "Finished sealing outgoing envelope..." << endl;
    totalOut += outLength;
    
-   //cout << "Total Output Length=" << totalOut << endl;
+   //printf("Total output length=%d\n", totalOut);
    
    // create an incoming envelope
    DigitalEnvelope inEnv;
    inEnv.startOpening(privateKey, &secretKey);
    assertNoException();
-   //cout << "Created incoming envelope..." << endl;
    
    // update the envelope
    char input[2048];
    int inLength;
    int totalIn = 0;
    inEnv.update(output, totalOut, input, inLength);
-   //cout << "Updated incoming envelope..." << endl;
    totalIn += inLength;
    
    // finish the envelope
-   //cout << "Input Length=" << inLength << endl;
    inEnv.finish(input + inLength, inLength);
-   //cout << "Finished opening incoming envelope..." << endl;
    totalIn += inLength;
    
-   //cout << "Total Input Length=" << totalIn << endl;
+   //printf("Total input length=%d\n", totalIn);
    
    // create a string to display the received message
    string display2 = "";
    display2.append(input, totalIn);
    
-   //cout << "Received message '" << display2 << "'" << endl;
+   //printf("Received message '%s'\n", display2.c_str());
 
    assert(display1 == display2);
    
@@ -1029,7 +1015,7 @@ void runBigDecimalTest(TestRunner& tr)
       bd = number3;
       bd.setPrecision(i, Up);
       bd.round();
-      cout << "round " << i << " places, up=" << bd << endl;
+      printf("round %d places, up=%s\n", i, bd.toString(true).c_str());
    }
    
    for(int i = 7; i >= 0; i--)
@@ -1037,7 +1023,7 @@ void runBigDecimalTest(TestRunner& tr)
       bd = number3;
       bd.setPrecision(i, HalfUp);
       bd.round();
-      cout << "round " << i << " places, half up=" << bd << endl;
+      printf("round %d places, half up=%s\n", i, bd.toString(true).c_str());
    }
    
    for(int i = 7; i >= 0; i--)
@@ -1045,7 +1031,7 @@ void runBigDecimalTest(TestRunner& tr)
       bd = number3;
       bd.setPrecision(i, Down);
       bd.round();
-      cout << "round " << i << " places, down=" << bd << endl;
+      printf("round %d places, down=%s\n", i, bd.toString(true).c_str());
    }
    */
 

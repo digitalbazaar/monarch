@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  * 
  * This test file is used to test the dbcore ConfigManager without the need
  * for it to use the dbcore App Tester framework -- which itself depends on
@@ -7,7 +7,6 @@
  * the simplest config files can be loaded and that the simplest configuration
  * values can be combined and merged together, including groups.
  */
-#include <iostream>
 
 #include "db/config/ConfigManager.h"
 #include "db/data/json/JsonReader.h"
