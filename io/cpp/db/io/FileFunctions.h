@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_io_FileFunctions_H
 #define db_io_FileFunctions_H
@@ -50,9 +50,6 @@ inline static int mkdir(const char *path, mode_t mode)
 {
    return mkdir(path);
 }
-
-#else
-#include <iostream>
 
 // FIXME: access() needs to be defined for windows
 
