@@ -57,6 +57,8 @@ inline static int mkdir(const char *path, mode_t mode)
 
 #if defined(WIN32) || defined(MACOS)
 
+#include <cstdlib>
+
 /**
  * Gets a line, delimited by the specified char, from a file. If the passed
  * lineptr is too small or NULL, it will be resized via realloc -- the caller
