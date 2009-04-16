@@ -1,27 +1,29 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/io/FileInputStream.h"
 
 #include "db/rt/DynamicObject.h"
 
 #include <cstring>
+#include <cstdlib>
 
 using namespace std;
 using namespace db::io;
 using namespace db::rt;
 
 FileInputStream::FileInputStream(File& file) :
-   mFile(file)
+   mFile(file),
+   mHandle(NULL)
 {
 }
 
 FileInputStream::~FileInputStream()
 {
-   // close the ifstream if it is open
-   if(mStream.is_open())
+   // close the handle if it is open
+   if(mHandle != NULL)
    {
-      mStream.close();
+      fclose(mHandle);
    }
 }
 
@@ -30,7 +32,7 @@ bool FileInputStream::ensureOpen()
    bool rval = true;
    
    // try to open the file
-   if(!mStream.is_open())
+   if(mHandle == NULL)
    {
       if(!mFile->exists())
       {
@@ -52,13 +54,14 @@ bool FileInputStream::ensureOpen()
       }
       else
       {
-         mStream.open(mFile->getAbsolutePath(), ios::in | ios::binary);
-         if(!mStream.is_open())
+         mHandle = fopen(mFile->getAbsolutePath(), "rb");
+         if(mHandle == NULL)
          {
             ExceptionRef e = new Exception(
                "Could not open file stream.",
                "db.io.File.OpenFailed");
             e->getDetails()["path"] = mFile->getAbsolutePath();
+            e->getDetails()["error"] = strerror(errno);
             Exception::setLast(e, false);
             rval = false;
          }
@@ -76,26 +79,27 @@ int FileInputStream::read(char* b, int length)
    {
       rval = 0;
       
-      if(!mStream.eof())
+      // do read
+      int count = fread(b, 1, length, mHandle);
+      if(count != length)
       {
-         // do read
-         mStream.read(b, length);
-         
-         // see if a failure other than EOF occurred
-         if(mStream.fail() && !mStream.eof())
+         // check for an error other than EOF
+         if((count != 0 || feof(mHandle) == 0) && ferror(mHandle) != 0)
          {
             ExceptionRef e = new Exception(
                "Could not read file.",
                "db.io.File.ReadError");
             e->getDetails()["path"] = mFile->getAbsolutePath();
+            e->getDetails()["error"] = strerror(errno);
             Exception::setLast(e, false);
             rval = -1;
          }
-         else if(mStream.gcount() > 0)
-         {
-            // get the number of bytes read
-            rval = mStream.gcount();
-         }
+      }
+      
+      if(rval != -1)
+      {
+         // return number of bytes read
+         rval = count;
       }
    }
    
@@ -108,11 +112,13 @@ long long FileInputStream::skip(long long count)
    
    if(ensureOpen())
    {
+      bool success;
+      
       // store current position and the end position
-      streampos curr = mStream.tellg();
-      mStream.seekg(0, ios::end);
-      streampos end = mStream.tellg();
-      mStream.seekg(curr, ios::beg);
+      size_t curr = ftell(mHandle);
+      success = (fseek(mHandle, 0, SEEK_END) == 0);
+      size_t end = ftell(mHandle);
+      success = success && (fseek(mHandle, curr, SEEK_SET) == 0);
       
       rval = count;
       if(rval > 0 && curr < end)
@@ -124,17 +130,16 @@ long long FileInputStream::skip(long long count)
          }
          
          // skip from current offset
-         mStream.seekg(rval, ios::cur);
-         curr = mStream.tellg();
+         success = success && (fseek(mHandle, rval, SEEK_CUR) == 0);
       }
       
-      // see if a failure other than EOF occurred
-      if(mStream.fail() && !mStream.eof())
+      if(!success)
       {
          ExceptionRef e = new Exception(
             "Could not read file.",
             "db.io.File.ReadError");
          e->getDetails()["path"] = mFile->getAbsolutePath();
+         e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
          rval = -1;
       }
@@ -151,18 +156,19 @@ int FileInputStream::readLine(string& line, char delimiter)
    {
       rval = 0;
       
-      if(!mStream.eof())
+      // feof returns non-zero when EOF
+      if(feof(mHandle) == 0)
       {
          // get line
-         getline(mStream, line, delimiter);
-         
-         // see if a failure other than EOF occurred
-         if(mStream.fail() && !mStream.eof())
+         char* data = NULL;
+         size_t length = 0;
+         if(getdelim(&data, &length, delimiter, mHandle) == -1)
          {
             ExceptionRef e = new Exception(
                "Could not read file.",
                "db.io.File.ReadError");
             e->getDetails()["path"] = mFile->getAbsolutePath();
+            e->getDetails()["error"] = strerror(errno);
             Exception::setLast(e, false);
             rval = -1;
          }
@@ -170,6 +176,8 @@ int FileInputStream::readLine(string& line, char delimiter)
          {
             // line was read
             rval = 1;
+            line.assign(data, length);
+            free(data);
          }
       }
    }
@@ -179,6 +187,10 @@ int FileInputStream::readLine(string& line, char delimiter)
 
 void FileInputStream::close()
 {
-   // close the stream
-   mStream.close();
+   if(mHandle != NULL)
+   {
+      // close the stream
+      fclose(mHandle);
+      mHandle = NULL;
+   }
 }

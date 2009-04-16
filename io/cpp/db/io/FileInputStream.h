@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_io_FileInputStream_H
 #define db_io_FileInputStream_H
@@ -7,7 +7,7 @@
 #include "db/io/File.h"
 #include "db/io/InputStream.h"
 
-#include <fstream>
+#include <cstdio>
 
 namespace db
 {
@@ -28,9 +28,9 @@ protected:
    File mFile;
    
    /**
-    * The ifstream to read with.
+    * The file handle to read with.
     */
-   std::ifstream mStream;
+   FILE* mHandle;
    
    /**
     * Ensures the file is open for reading.

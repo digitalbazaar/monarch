@@ -919,12 +919,35 @@ void runFileInputStreamTest(TestRunner& tr)
 {
    tr.group("FileInputStream");
    
-   File temp(TMPDIR "/fistestoutput.txt");
+   File temp = File::createTempFile("fistestoutput");
    FileOutputStream fos(temp);
    const char* content =
       "This is for testing the skip method for a file input stream.";
-   fos.write(content, strlen(content));
+   int contentLength = strlen(content);
+   fos.write(content, contentLength);
    fos.close();
+   
+   tr.test("read");
+   {
+      FileInputStream fis(temp);
+      char b[100];
+      int numBytes = fis.read(b, 100);
+      assert(numBytes == contentLength);
+      b[numBytes] = 0;
+      assertStrCmp(b, content);
+   }
+   tr.passIfNoException();
+   
+   tr.test("not found");
+   {
+      File temp = File::createTempFile("dumb");
+      temp->remove();
+      FileInputStream fis(temp);
+      char b[100];
+      fis.read(b, 100);
+      //dumpException();
+   }
+   tr.passIfException();
    
    tr.test("skip");
    {
