@@ -73,31 +73,49 @@ inline static int mkdir(const char *path, mode_t mode)
 inline static ssize_t getdelim(
    char **lineptr, size_t *n, int delim, FILE *stream)
 {
-   ssize_t rval = -1;
+   ssize_t rval = 0;
    
+   // fill string with characters until EOF or delim
    std::string s;
    int c;
-   while((c = fgetc(stream)) != EOF && c != delim)
+   while((c = fgetc(stream)) != EOF)
    {
       s.push_back(c);
       rval++;
-   }
-   
-   ssize_t len = rval + 1;
-   if(*n < (size_t)rval)
-   {
-      // reallocate lineptr
-      *lineptr = (char*)realloc(*lineptr, len);
-      if(*lineptr != NULL)
+      
+      if(c == delim)
       {
-         *n = len;
+         break;
       }
    }
    
-   // copy string into lineptr
-   if(*lineptr != NULL)
+   // check for read error OR (EOF + no data read, spec says return -1 for that)
+   if(ferror(stream) != 0 || (c == EOF && rval == 0))
    {
-      strcpy(*lineptr, s.c_str());
+      rval = -1;
+   }
+   else
+   {
+      // get length required for buffer
+      ssize_t len = rval + 1;
+      
+      // ensure there is enough room in lineptr
+      if(*lineptr == NULL || *n < (size_t)rval)
+      {
+         // reallocate lineptr
+         *lineptr = (char*)realloc(*lineptr, len);
+         if(*lineptr != NULL)
+         {
+            // update length
+            *n = len;
+         }
+      }
+      
+      // copy string into lineptr
+      if(*lineptr != NULL)
+      {
+         strcpy(*lineptr, s.c_str());
+      }
    }
    
    return rval;

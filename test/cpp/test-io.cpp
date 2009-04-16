@@ -935,6 +935,45 @@ void runFileInputStreamTest(TestRunner& tr)
       assert(numBytes == contentLength);
       b[numBytes] = 0;
       assertStrCmp(b, content);
+      fis.close();
+   }
+   tr.passIfNoException();
+   
+   tr.test("read line");
+   {
+      File temp2 = File::createTempFile("fistestlines");
+      FileOutputStream fos(temp2);
+      const char* content2 = "Line 1\nLine 2\nLine 3\nLine 4";
+      fos.write(content2, strlen(content2));
+      fos.close();
+      
+      FileInputStream fis(temp2);
+      string line;
+      int count = 1;
+      while((fis.readLine(line) > 0))
+      {
+         //printf("line=%s\n", line.c_str());
+         switch(count)
+         {
+            case 1:
+               assertStrCmp(line.c_str(), "Line 1");
+               break;
+            case 2:
+               assertStrCmp(line.c_str(), "Line 2");
+               break;
+            case 3:
+               assertStrCmp(line.c_str(), "Line 3");
+               break;
+            case 4:
+               assertStrCmp(line.c_str(), "Line 4");
+               break;
+            default:
+               assert(0);
+         }
+         count++;
+      }
+      
+      fis.close();
    }
    tr.passIfNoException();
    
@@ -946,6 +985,7 @@ void runFileInputStreamTest(TestRunner& tr)
       char b[100];
       fis.read(b, 100);
       //dumpException();
+      fis.close();
    }
    tr.passIfException();
    
@@ -979,6 +1019,8 @@ void runFileInputStreamTest(TestRunner& tr)
       assert(fis.skip(10) == 8);
       
       assert(fis.read(b, 3) == 0);
+      
+      fis.close();
    }
    tr.passIfNoException();
    

@@ -159,8 +159,9 @@ int FileInputStream::readLine(string& line, char delimiter)
       {
          // get line
          char* data = NULL;
-         size_t length = 0;
-         if(getdelim(&data, &length, delimiter, mHandle) == -1)
+         size_t size = 0;
+         ssize_t length = getdelim(&data, &size, delimiter, mHandle);
+         if(length == -1)
          {
             ExceptionRef e = new Exception(
                "Could not read file.",
@@ -174,7 +175,15 @@ int FileInputStream::readLine(string& line, char delimiter)
          {
             // line was read
             rval = 1;
-            line.assign(data, length);
+            if(data[length - 1] == delimiter)
+            {
+               // do not include delimiter
+               line.assign(data, length - 1);
+            }
+            else
+            {
+               line.assign(data, length);
+            }
             free(data);
          }
       }
