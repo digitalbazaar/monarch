@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "db/test/Test.h"
@@ -14,7 +14,6 @@
 #include "db/rt/JobDispatcher.h"
 #include "db/data/json/JsonWriter.h"
 
-#include <iostream>
 #include <cstdlib>
 
 using namespace std;
@@ -27,11 +26,11 @@ void runTimeTest(TestRunner& tr)
    
    uint64_t start = System::getCurrentMilliseconds();
    
-   cout << "Time start=" << start << endl;
+   printf("Time start=%llu\n", start);
    
    uint64_t end = System::getCurrentMilliseconds();
    
-   cout << "Time end=" << end << endl;
+   printf("Time end=%llu\n", end);
    
    tr.pass();
 }
@@ -54,11 +53,11 @@ public:
    {
       Thread* t = Thread::currentThread();
       string name = t->getName();
-      //cout << name << ": This is a TestRunnable thread,addr=" << t << endl;
+      //printf("%s: This is a TestRunnable thread,addr=%p\n", name, t);
       
       if(name == "Thread 1")
       {
-         //cout << "Thread 1 Waiting for interruption..." << endl;
+         //printf("Thread 1 Waiting for interruption...\n");
          
          lock();
          {
@@ -76,34 +75,34 @@ public:
          
 //         if(Thread::interrupted())
 //         {
-//            cout << "Thread 1 Interrupted. Exception message="
-//                 << e->getMessage() << endl;
+//            printf("Thread 1 Interrupted. Exception message=%s\n",
+//               e->getMessage());
 //         }
 //         else
 //         {
-//            cout << "Thread 1 Finished." << endl;
+//            printf("Thread 1 Finished.\n");
 //         }
       }
       else if(name == "Thread 2")
       {
-         //cout << "Thread 2 Finished." << endl;
+         //printf("Thread 2 Finished.\n");
       }
       else if(name == "Thread 3")
       {
-         //cout << "Thread 3 Waiting for Thread 5..." << endl;
+         //printf("Thread 3 Waiting for Thread 5...\n");
          
          lock();
          lock();
          lock();
          {
-            //cout << "Thread 3 starting wait..." << endl;
+            //printf("Thread 3 starting wait...\n");
             while(mustWait)
             {
                // thread 3 should be notified, not interrupted
                bool interrupted = !wait(5000);
                assert(!interrupted);
             }
-            //cout << "Thread 3 Awake!" << endl;
+            //printf("Thread 3 Awake!\n");
          }
          unlock();
          unlock();
@@ -111,20 +110,20 @@ public:
          
 //         if(Thread::interrupted())
 //         {
-//            cout << "Thread 3 Interrupted." << endl;
+//            printf("Thread 3 Interrupted.\n");
 //         }
 //         else
 //         {
-//            cout << "Thread 3 Finished." << endl;
+//            printf("Thread 3 Finished.\n");
 //         }         
       }
       else if(name == "Thread 4")
       {
-         //cout << "Thread 4 Finished." << endl;
+         //printf("Thread 4 Finished.\n");
       }
       else if(name == "Thread 5")
       {
-         //cout << "Thread 5 waking up a thread..." << endl;
+         //printf("Thread 5 waking up a thread...\n");
          
          lock();
          lock();
@@ -134,16 +133,16 @@ public:
             // wait for a moment
             Thread::sleep(100);
             mustWait = false;
-            //cout << "Thread 5 notifying a thread..." << endl;
+            //printf("Thread 5 notifying a thread...\n");
             notifyAll();
-            //cout << "Thread 5 notified another thread." << endl;
+            //printf("Thread 5 notified another thread.\n");
          }
          unlock();
          unlock();
          unlock();
          unlock();
          
-         //cout << "Thread 5 Finished." << endl;
+         //printf("Thread 5 Finished.\n");
       }
    }
 };
@@ -152,7 +151,7 @@ void runThreadTest(TestRunner& tr)
 {
    tr.test("Thread");
    
-   //cout << "Running Thread Test" << endl << endl;
+   //printf("Running Thread Test\n\n");
    
    TestRunnable r1;
    Thread t1(&r1, "Thread 1");
@@ -161,7 +160,7 @@ void runThreadTest(TestRunner& tr)
    Thread t4(&r1, "Thread 4");
    Thread t5(&r1, "Thread 5");
    
-   //cout << "Threads starting..." << endl;
+   //printf("Threads starting...\n");
    
    size_t stackSize = 131072;
    t1.start(stackSize);
@@ -180,7 +179,7 @@ void runThreadTest(TestRunner& tr)
    
    tr.pass();
    
-   //cout << endl << "Thread Test complete." << endl;
+   //printf("\nThread Test complete.\n");
 }
 
 class TestJob : public Runnable
@@ -199,7 +198,7 @@ public:
    
    virtual void run()
    {
-      //cout << endl << "TestJob: Running a job,name=" << mName << endl;
+      //printf("\nTestJob: Running a job,name=%s\n", mName);
       
       if(mName == "1")
       {
@@ -214,7 +213,7 @@ public:
          Thread::sleep(125);
       }
       
-      //cout << endl << "TestJob: Finished a job,name=" << mName << endl;
+      //printf("\nTestJob: Finished a job,name=%s\n", mName);
    }
 };
 
@@ -331,14 +330,14 @@ public:
             assert(
                *mTotal == 0 || *mTotal == 2000 ||
                *mTotal == 3000 || *mTotal == 5000);
-            //cout << "read total=" << *mTotal << std::endl;
+            //printf("read total=%d\n", *mTotal);
             
             mLock->lockShared();
             {
                assert(
                   *mTotal == 0 || *mTotal == 2000 ||
                   *mTotal == 3000 || *mTotal == 5000);
-               //cout << "read total=" << *mTotal << std::endl;
+               //printf("read total=%d\n", *mTotal);
             }
             mLock->unlockShared();
          }
@@ -500,7 +499,7 @@ void runDynamicObjectTest(TestRunner& tr)
    assert(dyno1.isSubset(clone));
    
    // test print out code
-   //cout << endl;
+   //printf("\n");
    //dumpDynamicObject(dyno1);
    
    {

@@ -1,8 +1,6 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include <iostream>
-#include <sstream>
 
 #include "db/sphinx/SphinxClient.h"
 #include "db/data/json/JsonWriter.h"
@@ -50,7 +48,7 @@ void runSphinxClientTest(TestRunner &tr, db::test::Tester& tester)
       client.execute(url, cmd, response);
       assertNoException();
       
-      //cout << endl << "Response:" << endl;
+      //printf("\nResponse:\n");
       //dumpDynamicObject(response);
    }
    tr.passIfNoException();

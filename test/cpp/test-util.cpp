@@ -17,7 +17,6 @@
 #include "db/util/regex/Pattern.h"
 
 #include <cstdlib>
-#include <iostream>
 
 using namespace std;
 using namespace db::test;
@@ -94,7 +93,7 @@ void runCrcTest(TestRunner& tr)
    Crc16 crc16a;
    char b[] = {10, 20, 30, 40, 50, 60, 70, 80};
    crc16a.update(b, 8);
-   //cout << "CRC-16=" << crc16.getChecksum() << endl;
+   //printf("CRC-16=%s\n", crc16.getChecksum().c_str());
    assert(crc16a.getChecksum() == correctValue);
    tr.pass();
 
@@ -108,8 +107,6 @@ void runConvertTest(TestRunner& tr)
    // convert to hex
    char data[] = "abcdefghiABCDEFGZXYW0123987{;}*%6,./.12`~";
    string original(data, strlen(data));
-   
-   //cout << "test data=" << original << endl;
    
    string lowerHex = Convert::bytesToHex(data, strlen(data));
    string upperHex = Convert::bytesToUpperHex(data, strlen(data));
@@ -336,7 +333,7 @@ void runDateTest(TestRunner& tr)
    d.format(str, "%a, %d %b %Y %H:%M:%S", &gmt);
    //d.format(str, "%a, %d %b %Y %H:%M:%S", &local);
    
-   cout << "Current Date: " << str << endl;
+   printf("Current Date: %s\n", str.c_str());
    
    // parse date
    Date d2;
@@ -346,7 +343,7 @@ void runDateTest(TestRunner& tr)
    d2.format(str2, "%a, %d %b %Y %H:%M:%S", &gmt);
    //d2.format(str2, "%a, %d %b %Y %H:%M:%S", &local);
    
-   cout << "Parsed Date 1: " << str2 << endl;
+   printf("Parsed Date 1: %s\n", str2.c_str());
    
 //   // FIXME: parser may have a problem with AM/PM
    // parse date again
@@ -357,7 +354,7 @@ void runDateTest(TestRunner& tr)
    //d3.format(str3, "%a, %d %b %Y %H:%M:%S", &gmt);
    d3.format(str3, "%a, %d %b %Y %H:%M:%S", &local);
    
-   cout << "Parsed Date 2: " << str3 << endl;
+   printf("Parsed Date 2: %s\n", str3.c_str());
    
    tr.passIfNoException();
 }
@@ -374,7 +371,7 @@ void runStringTokenizerTest(TestRunner& tr)
       StringTokenizer st0(str, ' ');
       while(st0.hasNextToken())
       {
-         cout << "token='" << st0.nextToken() << "'" << endl;
+         printf("token='%s'\n", st0.nextToken());
       }
       */
       StringTokenizer st(str, ' ', true);
@@ -469,7 +466,7 @@ void runUniqueListTest(TestRunner& tr)
    /*
    while(i->hasNext())
    {
-      cout << "element=" << i->next() << endl;
+      printf("element=%d\n", i->next());
    }
    */
    assert(i->hasNext());
@@ -487,7 +484,7 @@ void runUniqueListTest(TestRunner& tr)
    /*
    while(i->hasNext())
    {
-      cout << "element=" << i->next() << endl;
+      printf("element=%d\n", i->next());
    }
    */
    assert(i->hasNext());

@@ -1,8 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include <iostream>
-#include <sstream>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
@@ -49,54 +47,50 @@ void runAddressResolveTest(TestRunner& tr)
 {
    tr.test("Address Resolution");
    
-   //cout << "Running Address Resolve Test" << endl << endl;
-   
    Exception::clearLast();
    
    // create IPv4 address
    InternetAddress ip4;
    
-   //cout << "Testing IPv4..." << endl << endl;
+   //printf("Testing IPv4...\n\n");
    
    ip4.setHost("www.bitmunk.com");
    ip4.getAddress();
    assertNoException();
-   //cout << "www.bitmunk.com = " << ip4.getAddress() << endl;
+   //printf("www.bitmunk.com = %s\n", ip4.getAddress());
    
    ip4.setHost("www.google.com");
    ip4.getAddress();
    assertNoException();
-   //cout << "www.google.com = " << ip4.getAddress() << endl;
+   //printf("www.google.com = %s\n", ip4.getAddress());
    
    ip4.setHost("www.yahoo.com");
    ip4.getAddress();
    assertNoException();
-   //cout << "www.yahoo.com = " << ip4.getAddress() << endl;
+   //printf("www.yahoo.com = %s\n", ip4.getAddress());
    
    ip4.setHost("www.microsoft.com");
    ip4.getAddress();
    assertNoException();
-   //cout << "www.microsoft.com = " << ip4.getAddress() << endl;
-   
-   //cout << endl;
+   //printf("www.microsoft.com = %s\n\n" << ip4.getAddress());
    
    ip4.setAddress("192.168.0.1");
    ip4.getAddress();
    ip4.getHost();
    assertNoException();
-   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   //printf("%s = %s\n", ip4.getAddress(), ip4.getHost());
    
    ip4.setAddress("192.168.0.8");
    ip4.getAddress();
    ip4.getHost();
    assertNoException();
-   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   //printf("%s = %s\n", ip4.getAddress(), ip4.getHost());
    
    ip4.setAddress("216.239.51.99");
    ip4.getAddress();
    ip4.getHost();
    assertNoException();
-   //cout << ip4.getAddress() << " = " << ip4.getHost() << endl;
+   //printf("%s = %s\n", ip4.getAddress(), ip4.getHost());
    
    string strAddress = ip4.toString();
    InternetAddress another;
@@ -106,38 +100,33 @@ void runAddressResolveTest(TestRunner& tr)
 //   // create IPv6 address
 //   Internet6Address ip6;
 //   
-//   cout << endl << "Testing IPv6..." << endl << endl;
+//   printf("\nTesting IPv6...\n\n");
 //   
 //   ip6.setHost("ip6-localhost");
-//   cout << "ip6-localhost = " << ip6.getAddress() << endl;
+//   printf("ip6-localhost = %s\n", ip6.getAddress());
 //   
 //   ip6.setHost("yuna.digitalbazaar.com");
-//   cout << "yuna.digitalbazaar.com = " << ip6.getAddress() << endl;
+//   printf("yuna.digitalbazaar.com = %s\n", ip6.getAddress());
 //   
 //   ip6.setHost("www.google.com");
-//   cout << "www.google.com = " << ip6.getAddress() << endl;
+//   printf("www.google.com = %s\n", ip6.getAddress());
 //   
 //   ip6.setHost("www.yahoo.com");
-//   cout << "www.yahoo.com = " << ip6.getAddress() << endl;
+//   printf("www.yahoo.com = %s\n", ip6.getAddress());
 //   
 //   ip6.setHost("www.microsoft.com");
-//   cout << "www.microsoft.com = " << ip6.getAddress() << endl;
-//   
-//   cout << endl;
+//   printf("www.microsoft.com = %s\n\n", ip6.getAddress());
 //   
 //   ip6.setAddress("fc00:840:db:bb:d::8");
-//   cout << ip6.getAddress() << " = " << ip6.getHost() << endl;
+//   printf("%s = %s\n", ip6.getAddress(), ip6.getHost());
    
    tr.passIfNoException();
-   
-   //cout << endl << "Address Resolve Test complete." << endl << endl;
 }
 
 void runSocketTest(TestRunner& tr)
 {
    tr.test("Socket");
    
-   //cout << "Running Socket Test" << endl << endl;
    Exception::clearLast();
    
    // create address
@@ -149,7 +138,7 @@ void runSocketTest(TestRunner& tr)
    
    address.getAddress();
    assertNoException();
-   //cout << "Connecting to: " << address.getAddress() << endl;
+   //printf("Connecting to: %s\n", address.getAddress());
    
    // create tcp socket
    TcpSocket socket;
@@ -171,23 +160,23 @@ void runSocketTest(TestRunner& tr)
    int numBytes = 0;
    string str;
    
-   //cout << endl << "DOING A PEEK!" << endl;
+   //printf("\nDOING A PEEK!\n");
    
    string peek;
    numBytes = socket.getInputStream()->peek(response, 2048);
    if(numBytes > 0)
    {
-      //cout << "Peeked " << numBytes << " bytes." << endl;
+      //printf("Peeked %d bytes\n", numBytes);
       peek.append(response, numBytes);
-      //cout << "Peek bytes=" << peek << endl;
+      //printf("Peek bytes=%s\n", peek.c_str());
    }
    assertNoException();
    
-   //cout << endl << "DOING ACTUAL READ NOW!" << endl;
+   //printf("\nDOING ACTUAL READ NOW!\n");
    int peekBytes = numBytes;
    while((numBytes = socket.getInputStream()->read(response, 2048)) > 0)
    {
-      //cout << "numBytes received: " << numBytes << endl;
+      //printf("numBytes received: %d\n", numBytes);
       str.append(response, numBytes);
    }
    
@@ -199,34 +188,27 @@ void runSocketTest(TestRunner& tr)
 //   string str = "";
 //   while((numBytes = socket.receive(response, 0, 2048)) > 0)
 //   {
-//      cout << "numBytes received: " << numBytes << endl;
+//      printf("numBytes received: %d\n");
 //      str.append(response, numBytes);
 //   }
    
-   //cout << "Response:" << endl << str << endl;
+   //printf("Response:\n%s\n", str.c_str());
    
    // close
    socket.close();
    
    tr.passIfNoException();
-   
-   //cout << "Socket connection closed." << endl;
-   
-   //cout << endl << "Socket test complete." << endl;
 }
 
-void runSslSocketTest()
+void runSslSocketTest(TestRunner& tr)
 {
-   cout << "Running SSL Socket Test" << endl << endl;
-   
-   // FIXME:
-   // seed PRNG
+   tr.test("SSL Socket");
    
    // create address
    InternetAddress address("127.0.0.1", 443);
    //InternetAddress address("127.0.0.1", 19020);
    //InternetAddress address("www.google.com", 80);
-   cout << address.getAddress() << endl;
+   printf("%s\n", address.getAddress());
    
    // ensure host was known
    if(!Exception::hasLast())
@@ -257,39 +239,37 @@ void runSslSocketTest()
       int numBytes = 0;
       string str = "";
       
-      cout << endl << "DOING A PEEK!" << endl;
+      printf("\nDOING A PEEK!\n");
       
       numBytes = sslSocket.getInputStream()->peek(response, 2048);
       if(numBytes > 0)
       {
-         cout << "Peeked " << numBytes << " bytes." << endl;
+         printf("Peeked %d bytes.\n", numBytes);
          string peek = "";
          peek.append(response, numBytes);
-         cout << "Peek bytes=" << peek << endl;
+         printf("Peek bytes=%s\n", peek.c_str());
       }
       
-      cout << endl << "DOING ACTUAL READ NOW!" << endl;
+      printf("\nDOING ACTUAL READ NOW!\n");
       
       while((numBytes = sslSocket.getInputStream()->read(response, 2048)) > 0)
       {
-         cout << "numBytes received: " << numBytes << endl;
+         printf("numBytes received: %d\n", numBytes);
          str.append(response, numBytes);
       }
       
-      cout << "Response:" << endl << str << endl;
+      printf("Response:\n%s\n", str.c_str());
       
       // close
       sslSocket.close();
-      
-      cout << "SSL Socket connection closed." << endl;
    }
    
-   cout << endl << "SSL Socket test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runServerSocketTest()
+void runServerSocketTest(TestRunner& tr)
 {
-   //cout << "Running Server Socket Test" << endl << endl;
+   tr.test("Server Socket");
    
    Exception::clearLast();
    
@@ -304,20 +284,20 @@ void runServerSocketTest()
       
       if(socket.bind(&address))
       {
-         cout << "Server socket bound..." << endl;
+         printf("Server socket bound...\n");
       }
       else
       {
-         cout << "Could not bind server socket!" << endl;
+         printf("Could not bind server socket!\n");
       }
       
       if(socket.listen())
       {
-         cout << "Listening for a connection..." << endl;
+         printf("Listening for a connection...\n");
       }
       else
       {
-         cout << "Could not listen with server socket!" << endl;
+         printf("Could not listen with server socket!\n");
       }
       
       string str = "HTTP/1.0 200 OK\r\nContent-Length: 0\r\n\r\n";
@@ -341,16 +321,14 @@ void runServerSocketTest()
       
       // close server socket
       socket.close();
-      
-      cout << "Server Socket connection closed." << endl;
    }
    
-   cout << endl << "Server Socket test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runSslServerSocketTest()
+void runSslServerSocketTest(TestRunner& tr)
 {
-   cout << "Running SSL Server Socket Test" << endl << endl;
+   tr.test("SSL Server Socket");
    
    // bind and listen
    InternetAddress address("127.0.0.1", 1024);
@@ -363,27 +341,27 @@ void runSslServerSocketTest()
       
       if(socket.bind(&address))
       {
-         cout << "Server socket bound..." << endl;
+         printf("Server socket bound...\n");
       }
       else
       {
-         cout << "Could not bind server socket!" << endl;
+         printf("Could not bind server socket!\n");
       }
       
       if(socket.listen())
       {
-         cout << "Listening for a connection..." << endl;
+         printf("Listening for a connection...\n");
       }
       else
       {
-         cout << "Could not listen with server socket!" << endl;
+         printf("Could not listen with server socket!\n");
       }
       
       // accept a connection
       TcpSocket* worker = (TcpSocket*)socket.accept(10);
       if(worker != NULL)
       {
-         cout << "Accepted a connection!" << endl;
+         printf("Accepted a connection!\n");
          
          // create an SSL context
          SslContext context(NULL, false);
@@ -398,26 +376,26 @@ void runSslServerSocketTest()
          int numBytes = 0;
          string str = "";
          
-         cout << endl << "DOING A PEEK!" << endl;
+         printf("\nDOING A PEEK!\n");
          
          numBytes = worker->getInputStream()->peek(request, 2048);
          if(numBytes > 0)
          {
-            cout << "Peeked " << numBytes << " bytes." << endl;
+            printf("Peeked %d bytes.\n", numBytes);
             string peek = "";
             peek.append(request, numBytes);
-            cout << "Peek bytes=" << peek << endl;
+            printf("Peek bytes=%s\n", peek.c_str());
          }
          
-         cout << endl << "DOING ACTUAL READ NOW!" << endl;
+         printf("\nDOING ACTUAL READ NOW!\n");
          
          while((numBytes = sslSocket.getInputStream()->read(request, 2048)) > 0)
          {
-            cout << "numBytes received: " << numBytes << endl;
+            printf("numBytes received: %d\n", numBytes);
             str.append(request, numBytes);
          }
          
-         cout << "Request:" << endl << str << endl;
+         printf("Request:\n%s\n", str.c_str());
          
          // close ssl socket socket
          sslSocket.close();
@@ -425,21 +403,19 @@ void runSslServerSocketTest()
       }
       else
       {
-         cout << "Could not accept a connection!" << endl;
+         printf("Could not accept a connection!\n");
       }
       
       // close server socket
       socket.close();
-      
-      cout << "SSL Server Socket connection closed." << endl;
    }
    
-   cout << endl << "SSL Server Socket test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runTcpClientServerTest()
+void runTcpClientServerTest(TestRunner& tr)
 {
-   cout << "Running TCP Client/Server Test" << endl << endl;
+   tr.test("TCP Client/Server");
    
    InternetAddress* address;
    InternetAddress ia("127.0.0.1", 9999);
@@ -461,44 +437,44 @@ void runTcpClientServerTest()
       server.bind(address);
       server.listen();
       
-      cout << "Server listening at host: " << address->getHost() << endl;
-      cout << "Server listening at address: " << address->getAddress() << endl;
-      cout << "Server listening on port: " << address->getPort() << endl;
+      printf("Server listening at host: %s\n", address->getHost());
+      printf("Server listening at address: %s\n", address->getAddress());
+      printf("Server listening on port: %d\n", address->getPort());
       
       // connect with client
       client.connect(address);
       
-      cout << "Client connected." << endl;
+      printf("Client connected.\n");
       
       // accept a connection
       TcpSocket* worker = (TcpSocket*)server.accept(10);
       
-      cout << "Client connection accepted by Server." << endl;
+      printf("Client connection accepted by Server.\n");
       
       // send some data with client
       string clientData = "Hello there, Server.";
       client.getOutputStream()->write(clientData.c_str(), clientData.length());
       
-      cout << "Client sent: " << clientData << endl;
+      printf("Client sent: %s\n", clientData.c_str());
       
       // receive the client data
       char read[2048];
       int numBytes = worker->getInputStream()->read(read, 2048);
       string serverReceived(read, numBytes);
       
-      cout << "Server received: " << serverReceived << endl;
+      printf("Server received: %s\n", serverReceived.c_str());
       
       // send some data with server
       string serverData = "G'day, Client.";
       worker->getOutputStream()->write(serverData.c_str(), serverData.length());
       
-      cout << "Server sent: " << serverData << endl;
+      printf("Server sent: %s\n", serverData.c_str());
       
       // receive the server data
       numBytes = client.getInputStream()->read(read, 2048);
       string clientReceived(read, numBytes);
       
-      cout << "Client received: " << clientReceived << endl;
+      printf("Client received: %s\n", clientReceived.c_str());
       
       // close sockets
       client.close();
@@ -511,10 +487,10 @@ void runTcpClientServerTest()
          delete worker;
       }
       
-      cout << "Sockets closed." << endl;
+      printf("Sockets closed.\n");
    }
    
-   cout << endl << "TCP Client/Server test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runUdpClientServerTest(TestRunner& tr)
@@ -802,11 +778,6 @@ void runUrlEncodeTest(TestRunner& tr)
    string encoded = Url::encode(str.c_str(), str.length());
    string decoded = Url::decode(encoded.c_str(), encoded.length());
    
-   //cout << "test data=" << str << endl;
-   
-   //cout << "url encoded=" << encoded << endl;
-   //cout << "url decoded=" << decoded << endl;
-   
    assertStrCmp(decoded.c_str(), str.c_str());
    
    tr.pass();
@@ -816,23 +787,23 @@ void dumpUrl(Url url)
 {
    if(Exception::hasLast())
    {
-      cout << "url=[exception]" << endl;
+      printf("url=[exception]\n");
    }
    else
    {
       string str = url.toString();
       
-      cout << "url=" << str << endl;
-      cout << " scheme=" << url.getScheme() << endl;
-      cout << " scheme specific part=" << url.getSchemeSpecificPart() << endl;
-      cout << " authority=" << url.getAuthority() << endl;
-      cout << " userinfo=" << url.getUserInfo() << endl;
-      cout << " user=" << url.getUser() << endl;
-      cout << " password=" << url.getPassword() << endl;
-      cout << " host=" << url.getHost() << endl;
-      cout << " port=" << url.getPort() << endl;
-      cout << " path=" << url.getPath() << endl;
-      cout << " query=" << url.getQuery() << endl;
+      printf("url=%s\n", str.c_str());
+      printf(" scheme=%s\n", url.getScheme().c_str());
+      printf(" scheme specific part=%s\n", url.getSchemeSpecificPart().c_str());
+      printf(" authority=%s\n", url.getAuthority().c_str());
+      printf(" userinfo=%s\n", url.getUserInfo().c_str());
+      printf(" user=%s\n", url.getUser().c_str());
+      printf(" password=%s\n", url.getPassword().c_str());
+      printf(" host=%s\n", url.getHost().c_str());
+      printf(" port=%d\n", url.getPort());
+      printf(" path=%s\n", url.getPath().c_str());
+      printf(" query=%s\n", url.getQuery().c_str());
    }
 }
 
@@ -1092,20 +1063,27 @@ void runUrlTest(TestRunner& tr)
 class InterruptServerSocketTest : public Runnable
 {
 public:
+   TestRunner& testRunner;
+   InterruptServerSocketTest(TestRunner& tr) :
+      testRunner(tr)
+   {
+   };
+   ~InterruptServerSocketTest() {};
+   
    /**
     * Runs the unit tests.
     */
    virtual void run()
    {
-      runServerSocketTest();
+      runServerSocketTest(testRunner);
       
       if(Exception::hasLast())
       {
          ExceptionRef e = Exception::getLast();
-         cout << "Exception occurred!" << endl;
-         cout << "message: " << e->getMessage() << endl;
-         cout << "type: " << e->getType() << endl;
-         cout << "code: " << e->getCode() << endl;
+         printf("Exception occurred!\n");
+         printf("message: %s\n", e->getMessage());
+         printf("type: %s\n", e->getType());
+         printf("code: %d\n", e->getCode());
       }      
    }
 };
@@ -1114,22 +1092,15 @@ void runInterruptServerSocketTest(TestRunner& tr)
 {
    tr.test("Thread Interrupt");
    
-   InterruptServerSocketTest runnable;
+   InterruptServerSocketTest runnable(tr);
    Thread t(&runnable);
    t.start(131072);
    
-   //cout << "Waiting for thread..." << endl;
    Thread::sleep(2000);
-   //cout << "Finished waiting for thread." << endl;
-   
-   //cout << "Interrupting thread..." << endl;
    t.interrupt();
-   
-   //cout << "Joining thread..." << endl;
    t.join();
-   //cout << "Thread joined." << endl;
    
-   tr.pass();
+   tr.passIfNoException();
 }
 
 class TestConnectionServicer1 : public ConnectionServicer
@@ -1154,45 +1125,45 @@ public:
    
    void serviceConnection(Connection* c)
    {
-      //cout << "1: Servicing connection!" << endl;
+      //printf("1: Servicing connection!\n");
       
       char b[100];
       int numBytes = 0;
       
-      //cout << endl << "Reading HTTP..." << endl;
+      //printf("\nReading HTTP...\n");
       
       InputStream* is = c->getInputStream();
       numBytes = is->peek(b, 100);
       if(numBytes > 0)
       {
-//         cout << "Server read " << numBytes << " bytes." << endl;
+//         printf("Server read %d bytes.\n", numBytes);
 //         string str;
 //         str.append(b, numBytes);
-//         cout << "DATA=" << endl << str << endl;
+//         printf("DATA=\n%s\n", str.c_str());
       }
       else if(numBytes == -1)
       {
-         cout << "Server Exception=" <<
-            Exception::getLast()->getMessage() << endl <<
-            Exception::getLast()->getType() << endl;
+         printf("Server Exception=%s\n%s\n",
+            Exception::getLast()->getMessage(),
+            Exception::getLast()->getType());
       }
       
       OutputStream* os = c->getOutputStream();
       if(os->write(reply.c_str(), reply.length()))
       {
-//         cout << "Server sent=" << endl << reply << endl;
+//         printf("Server sent=\n%s\n", reply.c_str());
       }
       else
       {
-         cout << "Server Exception=" <<
-            Exception::getLast()->getMessage() << endl <<
-            Exception::getLast()->getType() << endl;
+         printf("Server Exception=%s\n%s\n",
+            Exception::getLast()->getMessage(),
+            Exception::getLast()->getType());
       }
       
-//      cout << "1: Finished servicing connection." << endl;
+//      printf("1: Finished servicing connection.\n");
       
       serviced++;
-//      cout << "Connections serviced=" << serviced << endl;
+//      printf("Connections serviced=%d\n", serviced);
    }
 };
 
@@ -1200,8 +1171,8 @@ class TestConnectionServicer2 : public ConnectionServicer
 {
    void serviceConnection(Connection* c)
    {
-      cout << "2: Servicing connection!" << endl;
-      cout << "2: Finished servicing connection." << endl;
+      printf("2: Servicing connection.\n");
+      printf("2: Finished servicing connection.\n");
    }
 };
 
@@ -1209,8 +1180,8 @@ class TestConnectionServicer3 : public ConnectionServicer
 {
    void serviceConnection(Connection* c)
    {
-      cout << "3: Servicing connection!" << endl;
-      cout << "3: Finished servicing connection." << endl;
+      printf("3: Servicing connection.\n");
+      printf("3: Finished servicing connection.\n");
    }
 };
 
@@ -1301,7 +1272,7 @@ public:
          // connect
          if(socket->connect(address))
          {
-            //cout << "connected" << endl;
+            //printf("connected\n");
             
             // do ssl if appropriate
             if(ssl)
@@ -1323,23 +1294,21 @@ public:
                // receive response
                socket->receive(b, 1024);
 //               int numBytes = socket->receive(b, 1024);
-//               cout << "Client read " << numBytes << "bytes." << endl;
-//               cout << "DATA=";
-//               cout.write(b, numBytes);
-//               cout << endl;
+//               printf("Client read %d bytes.\n", numBytes);
+//               printf("DATA=%s\n", string(b, numBytes).c_str());
             }
             else
             {
-               cout << "Client Exception=" <<
-                  Exception::getLast()->getMessage() << endl <<
-                  Exception::getLast()->getType() << endl;
+               printf("Client Exception=%s\n%s\n",
+                  Exception::getLast()->getMessage(),
+                  Exception::getLast()->getType());
             }
          }
          else
          {
-            cout << "Client Exception=" <<
-               Exception::getLast()->getMessage() << endl <<
-               Exception::getLast()->getType() << endl;
+            printf("Client Exception=%s\n%s\n",
+               Exception::getLast()->getMessage(),
+               Exception::getLast()->getType());
          }
          
          // close socket
@@ -1351,9 +1320,9 @@ public:
    }
 };
 
-void runServerSslConnectionTest()
+void runServerSslConnectionTest(TestRunner& tr)
 {
-   cout << "Starting Server SSL Connection test." << endl << endl;
+   tr.test("Server SSL Connection");
    
    // create kernel
    Kernel k;
@@ -1384,15 +1353,8 @@ void runServerSslConnectionTest()
 //   list.add(&presenter2);
 //   server.addConnectionService(&address, &tcs1, &list);
    
-   if(server.start())
-   {
-      cout << "Server started." << endl;
-   }
-   else if(Exception::getLast() != NULL)
-   {
-      cout << "Server started with errors=" <<
-         Exception::getLast()->getMessage() << endl;
-   }
+   assert(server.start());
+   printf("Server started.\n");
    
    BlastConnections bc(&address, true);
    Thread t1(&bc);
@@ -1424,41 +1386,41 @@ void runServerSslConnectionTest()
 //   t6.join();
 //   t7.join();
 //   t8.join();
-//   cout << "all client threads joined." << endl;
+//   printf("all client threads joined.\n");
    
    unsigned long long end = System::getCurrentMilliseconds();
    
    // stop server
    server.stop();
-   cout << "Server stopped." << endl;
+   printf("Server stopped.\n");
    
    // stop kernel engine
    k.getEngine()->stop();
    
-   long double time = end - start;
-   long double secs = time / 1000.0;
+   double time = end - start;
+   double secs = time / 1000.0;
    double rate = (double)tcs1.serviced / secs;
    
-   cout << "Connections=" << tcs1.serviced << endl;
-   cout << "Time=" << time << " ms = " << secs << " secs" << endl;
-   cout << "Time/Connection=" << (double)time / tcs1.serviced << " ms" << endl;
-   cout << "Connections/second=" << rate << endl;
+   printf("Connections=%d\n", tcs1.serviced);
+   printf("Time=%f ms = %f secs\n", time, secs);
+   printf("Time/Connection=%f ms\n", (double)time / tcs1.serviced);
+   printf("Connections/second=%f\n", rate);
    
-   cout << endl << "Server SSL Connection test complete." << endl;
+   tr.passIfNoException();
 }
 
 class TestDatagramServicer : public DatagramServicer
 {
    void serviceDatagrams(DatagramSocket* s)
    {
-      cout << "Servicing datagrams!" << endl;
-      cout << "Finished servicing datagrams." << endl;
+      printf("Servicing datagrams.\n");
+      printf("Finished servicing datagrams.\n");
    }
 };
 
-void runServerDatagramTest()
+void runServerDatagramTest(TestRunner& tr)
 {
-   cout << "Starting Server Datagram test." << endl << endl;
+   tr.test("Server Datagram");
    
    // create kernel
    Kernel k;
@@ -1474,23 +1436,23 @@ void runServerDatagramTest()
    
    if(server.start())
    {
-      cout << "Server started." << endl;
+      printf("Server started.\n");
    }
    else if(Exception::getLast() != NULL)
    {
-      cout << "Server started with errors=" <<
-         Exception::getLast()->getMessage() << endl;
+      printf("Server started with errors=%s\n",
+         Exception::getLast()->getMessage());
    }
    
    Thread::sleep(10000);
    
    server.stop();
-   cout << "Server stopped." << endl;
+   printf("Server stopped.\n");
    
    // stop kernel engine
    k.getEngine()->stop();
    
-   cout << endl << "Server Datagram test complete." << endl;
+   tr.passIfNoException();
 }
 
 void runHttpHeaderTest(TestRunner& tr)
@@ -1914,9 +1876,9 @@ public:
    }
 };
 
-void runHttpServerTest()
+void runHttpServerTest(TestRunner& tr)
 {
-   cout << "Starting Http Server test." << endl << endl;
+   tr.test("Http Server");
    
    // create kernel
    Kernel k;
@@ -1951,29 +1913,29 @@ void runHttpServerTest()
    
    if(server.start())
    {
-      cout << "Server started." << endl;
+      printf("Server started.\n");
    }
    else if(Exception::getLast() != NULL)
    {
-      cout << "Server started with errors=" <<
-         Exception::getLast()->getMessage() << endl;
+      printf("Server started with errors=%s\n",
+         Exception::getLast()->getMessage());
    }
    
    // sleep
    Thread::sleep(30000);
    
    server.stop();
-   cout << "Server stopped." << endl;
+   printf("Server stopped.\n");
    
    // stop kernel engine
    k.getEngine()->stop();
    
-   cout << endl << "Http Server test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runHttpClientGetTest()
+void runHttpClientGetTest(TestRunner& tr)
 {
-   cout << "Starting Http Client GET test." << endl << endl;
+   tr.test("Http Client GET");
    
    // create client
    HttpClient client;
@@ -1982,9 +1944,9 @@ void runHttpClientGetTest()
    Url url("http://www.bitmunk.com");
    if(client.connect(&url))
    {
-      cout << "Connected to: " << url.toString() << endl;
+      printf("Connected to: %s\n", url.toString().c_str());
       InternetAddress address(url.getHost().c_str(), url.getPort());
-      cout << address.toString() << endl;
+      printf("%s\n", address.toString().c_str());
       
       // do get
       DynamicObject headers;
@@ -1992,8 +1954,7 @@ void runHttpClientGetTest()
       HttpResponse* response = client.get(&url, &headers);
       if(response != NULL)
       {
-         cout << "Response=" << endl <<
-            response->getHeader()->toString() << endl;
+         printf("Response=\n%s\n", response->getHeader()->toString().c_str());
          if(response->getHeader()->getStatusCode() == 200)
          {
             // receive content
@@ -2002,30 +1963,28 @@ void runHttpClientGetTest()
             FileOutputStream fos(file);
             if(client.receiveContent(&fos, &trailer))
             {
-               cout << "Content downloaded to '" <<
-                  file->getAbsolutePath() << "'" << endl;
+               printf("Content downloaded to '%s'\n",
+                  file->getAbsolutePath());
                
-               cout << "HTTP trailers=\n" << trailer.toString() << endl;
+               printf("HTTP trailers=\n%s\n", trailer.toString().c_str());
             }
             assertNoException();
          }
       }
       else
       {
-         cout << "There was no response!" << endl;
+         printf("There was no response!\n");
       }
       
-      cout << "Disconnecting..." << endl;
       client.disconnect();
-      cout << "Disconnected." << endl;
    }
    
-   cout << endl << "Http Client GET test complete." << endl;
+   tr.passIfNoException();
 }
 
-void runHttpClientPostTest()
+void runHttpClientPostTest(TestRunner& tr)
 {
-   cout << "Starting Http Client POST test." << endl << endl;
+   tr.test("Http Client POST");
    
    // create client
    HttpClient client;
@@ -2034,9 +1993,9 @@ void runHttpClientPostTest()
    Url url("http://www.bitmunk.com");
    if(client.connect(&url))
    {
-      cout << "Connected to: " << url.toString() << endl;
+      printf("Connected to: %s\n", url.toString().c_str());
       InternetAddress address(url.getHost().c_str(), url.getPort());
-      cout << address.toString() << endl;
+      printf("%s\n", address.toString().c_str());
       
       char someData[] = "Just some post data.";
       ByteArrayInputStream baos(someData, strlen(someData));
@@ -2050,8 +2009,8 @@ void runHttpClientPostTest()
       HttpResponse* response = client.post(&url, &headers, &baos, &trailer);
       if(response != NULL)
       {
-         cout << "Response=" << endl <<
-            response->getHeader()->toString() << endl;
+         printf("Response=\n%s\n",
+            response->getHeader()->toString().c_str());
          if(response->getHeader()->getStatusCode() == 200)
          {
             // receive content
@@ -2060,25 +2019,23 @@ void runHttpClientPostTest()
             FileOutputStream fos(file);
             if(client.receiveContent(&fos, &trailer))
             {
-               cout << "Content downloaded to '" <<
-                  file->getAbsolutePath() << "'" << endl;
+               printf("Content downloaded to '%s'\n",
+                  file->getAbsolutePath());
                
-               cout << "HTTP trailers=\n" << trailer.toString() << endl;
+               printf("HTTP trailers=\n%s\n", trailer.toString().c_str());
             }
             assertNoException();
          }
       }
       else
       {
-         cout << "There was no response!" << endl;
+         printf("There was no response!\n");
       }
       
-      cout << "Disconnecting..." << endl;
       client.disconnect();
-      cout << "Disconnected." << endl;
    }
    
-   cout << endl << "Http Client POST test complete." << endl;
+   tr.passIfNoException();
 }
 
 class PingHttpRequestServicer : public HttpRequestServicer
@@ -2139,9 +2096,9 @@ public:
    }
 };
 
-void runPingTest()
+void runPingTest(TestRunner& tr)
 {
-   cout << "Starting Ping test." << endl << endl;
+   tr.test("Ping");
    
    // create kernel
    Kernel k;
@@ -2177,12 +2134,12 @@ void runPingTest()
    
    if(server.start())
    {
-      cout << "Server started." << endl;
+      printf("Server started.\n");
    }
    else if(Exception::getLast() != NULL)
    {
-      cout << "Server started with errors=" <<
-         Exception::getLast()->getMessage() << endl;
+      printf("Server started with errors=%s\n",
+         Exception::getLast()->getMessage());
    }
    
    // connect
@@ -2206,21 +2163,21 @@ void runPingTest()
    //Thread::sleep(10000);
    
    server.stop();
-   cout << "Server stopped." << endl;
+   printf("Server stopped.\n");
    
    // stop kernel engine
    k.getEngine()->stop();
    
    unsigned long long millis = end - start;
-   cout << "Connection Time: " << millis << endl;
+   printf("Connection Time: %llu\n", millis);
    
 //   unsigned long long millis = test1.end - test1.start;
 //   long double cps = ((long double)pcs.serviced) / millis * 1000.0;
-//   cout << "Connections serviced: " << pcs.serviced << endl;
-//   cout << "Time: " << millis << endl;
-//   cout << "Connections/Second: " << cps << endl;
+//   printf("Connections serviced: %d\n", pcs.serviced);
+//   printf("Time: llu\n", millis);
+//   printf("Connections/Second: %Lf\n", cps);
    
-   cout << endl << "Ping test complete." << endl;
+   tr.passIfNoException();
 }
 
 class DbNetTester : public db::test::Tester
@@ -2255,17 +2212,17 @@ public:
    virtual int runInteractiveTests(TestRunner& tr)
    {
 //      runInterruptServerSocketTest(tr);
-//      runSslSocketTest();
-//      runServerSocketTest();
-//      runSslServerSocketTest();
-//      runTcpClientServerTest();
-//      runServerSslConnectionTest();
-//      runServerDatagramTest();
+//      runSslSocketTest(tr);
+//      runServerSocketTest(tr);
+//      runSslServerSocketTest(tr);
+//      runTcpClientServerTest(tr);
+//      runServerSslConnectionTest(tr);
+//      runServerDatagramTest(tr);
 //      runHttpNormalizePath(tr);
-      runHttpServerTest();
-//      runHttpClientGetTest();
-//      runHttpClientPostTest();
-//      runPingTest();
+      runHttpServerTest(tr);
+//      runHttpClientGetTest(tr);
+//      runHttpClientPostTest(tr);
+//      runPingTest(tr);
       return 0;
    }
 };
