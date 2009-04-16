@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_io_FileOutputStream_H
 #define db_io_FileOutputStream_H
@@ -7,7 +7,7 @@
 #include "db/io/File.h"
 #include "db/io/OutputStream.h"
 
-#include <fstream>
+#include <cstdio>
 
 namespace db
 {
@@ -33,9 +33,9 @@ protected:
    bool mAppend;
    
    /**
-    * The ofstream to write with.
+    * The file handle to write with.
     */
-   std::ofstream mStream;
+   FILE* mHandle;
    
    /**
     * Ensures the file is open for writing.

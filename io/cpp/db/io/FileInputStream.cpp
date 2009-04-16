@@ -21,10 +21,7 @@ FileInputStream::FileInputStream(File& file) :
 FileInputStream::~FileInputStream()
 {
    // close the handle if it is open
-   if(mHandle != NULL)
-   {
-      fclose(mHandle);
-   }
+   FileInputStream::close();
 }
 
 bool FileInputStream::ensureOpen()

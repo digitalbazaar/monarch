@@ -55,4 +55,53 @@ inline static int mkdir(const char *path, mode_t mode)
 
 #endif // end of defined WIN32
 
+#if defined(WIN32) || defined(MACOS)
+
+/**
+ * Gets a line, delimited by the specified char, from a file. If the passed
+ * lineptr is too small or NULL, it will be resized via realloc -- the caller
+ * must call free() on the returned lineptr.
+ * 
+ * @param lineptr the line pointer to update.
+ * @param n the size of the line to update.
+ * @param delim the delimiter character.
+ * @param stream the file handle to read from.
+ * 
+ * @return the number of bytes read, including the delimiter, but not
+ *         including the null-terminator.
+ */
+ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream)
+{
+   ssize_t rval = -1;
+   
+   std::string s;
+   int c;
+   while((c = fgetc(stream)) != EOF && c != delim)
+   {
+      s.push_back(c);
+      rval++;
+   }
+   
+   ssize_t len = rval + 1;
+   if(*n < rval)
+   {
+      // reallocate lineptr
+      *lineptr = realloc(*lineptr, len);
+      if(*lineptr != NULL)
+      {
+         *n = len;
+      }
+   }
+   
+   // copy string into lineptr
+   if(*lineptr != NULL)
+   {
+      strcpy(*lineptr, s.c_str());
+   }
+   
+   return rval;
+}
+
+#endif // end of defined WIN32 or MACOS
+
 #endif

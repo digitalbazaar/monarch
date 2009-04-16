@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/io/FileOutputStream.h"
 
@@ -12,14 +12,16 @@ using namespace db::io;
 using namespace db::rt;
 
 FileOutputStream::FileOutputStream(File& file, bool append) :
-   mFile(file)
+   mFile(file),
+   mAppend(append),
+   mHandle(NULL)
 {
-   // store append mode
-   mAppend = append;
 }
 
 FileOutputStream::~FileOutputStream()
 {
+   // close the handle if it is open
+   FileOutputStream::close();
 }
 
 bool FileOutputStream::ensureOpen()
@@ -27,27 +29,16 @@ bool FileOutputStream::ensureOpen()
    bool rval = true;
    
    // try to open the file
-   if(!mStream.is_open())
+   if(mHandle == NULL)
    {
-      if(mAppend)
-      {
-         mStream.open(
-            mFile->getAbsolutePath(),
-            ios::out | ios::app | ios::binary);
-      }
-      else
-      {
-         mStream.open(
-            mFile->getAbsolutePath(),
-            ios::out | ios::trunc | ios::binary);
-      }
-      
-      if(!mStream.is_open())
+      mHandle = fopen(mFile->getAbsolutePath(), mAppend ? "ab" : "wb");
+      if(mHandle == NULL)
       {
          ExceptionRef e = new Exception(
-            "Could not open file.",
+            "Could not open file stream.",
             "db.io.File.OpenFailed");
          e->getDetails()["path"] = mFile->getAbsolutePath();
+         e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
          rval = false;
       }
@@ -63,15 +54,14 @@ bool FileOutputStream::write(const char* b, int length)
    if(ensureOpen())
    {
       // do write
-      mStream.write(b, length);
-      
-      // see if a failure has occurred
-      if(mStream.fail())
+      if((int)fwrite(b, 1, length, mHandle) != length)
       {
+         // error
          ExceptionRef e = new Exception(
             "Could not write to file.",
             "db.io.File.WriteError");
          e->getDetails()["path"] = mFile->getAbsolutePath();
+         e->getDetails()["error"] = strerror(errno);
          Exception::setLast(e, false);
       }
       else
@@ -85,6 +75,10 @@ bool FileOutputStream::write(const char* b, int length)
 
 void FileOutputStream::close()
 {
-   // close the stream
-   mStream.close();
+   if(mHandle != NULL)
+   {
+      // close the stream
+      fclose(mHandle);
+      mHandle = NULL;
+   }
 }
