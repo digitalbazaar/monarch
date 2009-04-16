@@ -1188,6 +1188,22 @@ void runBigDecimalTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("convert from double");
+   {
+      double d = 10.0012345678;
+      BigDecimal bd = d;
+      assertStrCmp(bd.toString(true).c_str(), "10.0012345678"); 
+   }
+   tr.passIfNoException();
+   
+   tr.test("convert from long double");
+   {
+      long double d = 10.0012345678;
+      BigDecimal bd = d;
+      assertStrCmp(bd.toString(true).c_str(), "10.0012345678"); 
+   }
+   tr.passIfNoException();
+   
    #undef BDCMPDBL
    #undef BDCMP0
    #undef BDCMP

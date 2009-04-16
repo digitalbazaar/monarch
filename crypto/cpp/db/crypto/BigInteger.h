@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_crypto_BigInteger_H
 #define db_crypto_BigInteger_H
@@ -7,7 +7,7 @@
 #include "db/io/ByteBuffer.h"
 
 #include <openssl/bn.h>
-#include <iostream>
+#include <string>
 
 namespace db
 {
@@ -472,25 +472,5 @@ public:
 
 } // end namespace crypto
 } // end namespace db
-
-/**
- * Writes a BigInteger to an ostream.
- * 
- * @param os the ostream to write to.
- * @param bi the BigInteger to write.
- * 
- * @return the ostream.
- */
-std::ostream& operator<<(std::ostream& os, const db::crypto::BigInteger& bi);
-
-/**
- * Reads a BigInteger from an istream.
- * 
- * @param is the istream to read from.
- * @param bi the BigInteger to populate.
- * 
- * @return the istream.
- */
-std::istream& operator>>(std::istream& is, db::crypto::BigInteger& bi);
 
 #endif

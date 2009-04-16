@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/crypto/BigDecimal.h"
 
-#include <sstream>
 #include <cstdlib>
 
 using namespace std;
@@ -155,17 +154,17 @@ BigDecimal& BigDecimal::operator=(const BigDecimal& rhs)
 BigDecimal& BigDecimal::operator=(long double rhs)
 {
    // convert double to string
-   ostringstream oss;
-   oss << rhs;
-   return *this = oss.str();
+   char temp[1024];
+   snprintf(temp, 1024, "%.*Lf", mPrecision, rhs);
+   return *this = temp;
 }
 
 BigDecimal& BigDecimal::operator=(double rhs)
 {
    // convert double to string
-   ostringstream oss;
-   oss << rhs;
-   return *this = oss.str();
+   char temp[1024];
+   snprintf(temp, 1024, "%.*f", mPrecision, rhs);
+   return *this = temp;
 }
 
 BigDecimal& BigDecimal::operator=(long long rhs)
@@ -663,18 +662,4 @@ void BigDecimal::_setValue(BigInteger& significand, int exponent)
 {
    mSignificand = significand;
    mExponent = exponent;
-}
-
-ostream& operator<<(ostream& os, const BigDecimal& bd)
-{
-   os << bd.toString();
-   return os;
-}
-
-istream& operator>>(istream& is, BigDecimal& bd)
-{
-   string str;
-   is >> str; 
-   bd = str;
-   return is;
 }

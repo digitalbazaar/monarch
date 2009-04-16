@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_crypto_BigDecimal_H
 #define db_crypto_BigDecimal_H
@@ -508,25 +508,5 @@ public:
 
 } // end namespace crypto
 } // end namespace db
-
-/**
- * Writes a BigDecimal to an ostream.
- * 
- * @param os the ostream to write to.
- * @param bd the BigDecimal to write.
- * 
- * @return the ostream.
- */
-std::ostream& operator<<(std::ostream& os, const db::crypto::BigDecimal& bd);
-
-/**
- * Reads a BigDecimal from an istream.
- * 
- * @param is the istream to read from.
- * @param bi the BigDecimal to populate.
- * 
- * @return the istream.
- */
-std::istream& operator>>(std::istream& is, db::crypto::BigDecimal& bd);
 
 #endif

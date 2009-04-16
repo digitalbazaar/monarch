@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/crypto/BigInteger.h"
 
@@ -391,18 +391,4 @@ string BigInteger::toString() const
    string str = s;
    OPENSSL_free(s);
    return str;
-}
-
-ostream& operator<<(ostream& os, const BigInteger& bi)
-{
-   os << bi.toString();
-   return os;
-}
-
-istream& operator>>(istream& is, BigInteger& bi)
-{
-   string str;
-   is >> str;
-   bi = str;
-   return is;
 }
