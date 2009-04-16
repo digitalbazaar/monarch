@@ -70,7 +70,8 @@ inline static int mkdir(const char *path, mode_t mode)
  * @return the number of bytes read, including the delimiter, but not
  *         including the null-terminator.
  */
-ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream)
+inline static ssize_t getdelim(
+   char **lineptr, size_t *n, int delim, FILE *stream)
 {
    ssize_t rval = -1;
    
