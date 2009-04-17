@@ -82,7 +82,7 @@ int FileInputStream::read(char* b, int length)
       if(count != length)
       {
          // check for an error other than EOF
-         if(feof(mHandle) == 0 && ferror(mHandle) != 0)
+         if(feof(mHandle) == 0)
          {
             ExceptionRef e = new Exception(
                "Could not read file.",
