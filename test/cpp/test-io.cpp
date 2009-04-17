@@ -939,6 +939,24 @@ void runFileInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("read small");
+   {
+      FileInputStream fis(temp);
+      char b[7];
+      int numBytes;
+      int total = 0;
+      string input;
+      while((numBytes = fis.read(b, 10)) > 0)
+      {
+         input.append(b, numBytes);
+         total += numBytes;
+      }
+      assert(total == contentLength);
+      assertStrCmp(input.c_str(), content);
+      fis.close();
+   }
+   tr.passIfNoException();
+   
    tr.test("read line");
    {
       File temp2 = File::createTempFile("fistestlines");
