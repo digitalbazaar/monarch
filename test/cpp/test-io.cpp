@@ -946,7 +946,7 @@ void runFileInputStreamTest(TestRunner& tr)
       int numBytes;
       int total = 0;
       string input;
-      while((numBytes = fis.read(b, 10)) > 0)
+      while((numBytes = fis.read(b, 7)) > 0)
       {
          input.append(b, numBytes);
          total += numBytes;
