@@ -96,11 +96,13 @@ public:
     * 
     * @param url the url of the content to request.
     * @param headers any special headers to include in the request.
+    * @param follow true to follow redirects (default), false not to.
     * 
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* get(
-      db::net::Url* url, db::rt::DynamicObject* headers = NULL);
+      db::net::Url* url, db::rt::DynamicObject* headers = NULL,
+      bool follow = true);
    
    /**
     * Sends an HTTP POST request and its content. The caller of this

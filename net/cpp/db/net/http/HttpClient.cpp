@@ -75,7 +75,7 @@ bool HttpClient::connect(Url* url)
    return mConnection != NULL;
 }
 
-HttpResponse* HttpClient::get(Url* url, DynamicObject* headers)
+HttpResponse* HttpClient::get(Url* url, DynamicObject* headers, bool follow)
 {
    HttpResponse* rval = NULL;
    
@@ -99,8 +99,34 @@ HttpResponse* HttpClient::get(Url* url, DynamicObject* headers)
       // send request header and receive response header
       if(mRequest->sendHeader() && mResponse->receiveHeader())
       {
-         // return response
-         rval = mResponse;
+         // handle http redirect
+         int code = mResponse->getHeader()->getStatusCode();
+         if(follow && (code == 301 || code == 302))
+         {
+            // get new location
+            std::string location;
+            if(!mResponse->getHeader()->getField("location", location))
+            {
+               ExceptionRef e = new Exception(
+                  "Got redirect response code, but could not redirect. "
+                  "No location field in header.",
+                  "db.net.http.InvalidRedirect");
+               e->getDetails()["statusCode"] = code;
+               Exception::setLast(e, false);
+            }
+            else
+            {
+               // disconnect and then do get to redirect url
+               disconnect();
+               Url redirect = location.c_str();
+               rval = get(&redirect, headers, follow);
+            }
+         }
+         else
+         {
+            // return response
+            rval = mResponse;
+         }
       }
    }
    
