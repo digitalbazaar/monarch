@@ -331,14 +331,72 @@ public:
                *mTotal == 0 || *mTotal == 2000 ||
                *mTotal == 3000 || *mTotal == 5000);
             //printf("read total=%d\n", *mTotal);
+         }
+         mLock->unlockShared();
+      }
+   }
+};
+
+class DeadlockRunnable : public Runnable
+{
+public:
+   SharedLock* mLock;
+   ExclusiveLock* mSignalLock;
+   bool* mSignal;
+   bool mWrite;
+   
+   DeadlockRunnable(
+      SharedLock* lock, ExclusiveLock* signalLock, bool* signal, bool write) :
+      mLock(lock),
+      mSignalLock(signalLock),
+      mSignal(signal),
+      mWrite(write)
+   {
+   }
+   
+   virtual ~DeadlockRunnable()
+   {
+   }
+   
+   virtual void run()
+   {
+      if(mWrite)
+      {
+         // wait for signal to get exclusive lock
+         mSignalLock->lock();
+         while(!(*mSignal))
+         {
+            mSignalLock->wait();
+         }
+         mSignalLock->unlock();
+         
+         // get exclusive lock
+         mLock->lockExclusive();
+         
+         // should block forever if test fails
+         
+         mLock->unlockExclusive();
+      }
+      else
+      {
+         // get shared lock
+         mLock->lockShared();
+         {
+            // set signal
+            mSignalLock->lock();
+            *mSignal = true;
+            mSignalLock->notifyAll();
+            mSignalLock->unlock();
             
+            // wait to allow lock exclusive to occur in write thread
+            Thread::sleep(250);
+            
+            // try to get shared lock
             mLock->lockShared();
-            {
-               assert(
-                  *mTotal == 0 || *mTotal == 2000 ||
-                  *mTotal == 3000 || *mTotal == 5000);
-               //printf("read total=%d\n", *mTotal);
-            }
+            
+            // should block here for ever if test fails
+            
+            // recursive unlock shared lock
             mLock->unlockShared();
          }
          mLock->unlockShared();
@@ -348,58 +406,84 @@ public:
 
 void runSharedLockTest(TestRunner& tr)
 {
-   tr.test("SharedLock");
+   tr.group("SharedLock");
    
-   for(int i = 0; i < 200; i++)
+   tr.test("simple read/write");
    {
-      SharedLock lock;
-      int total = 0;
+      for(int i = 0; i < 200; i++)
+      {
+         SharedLock lock;
+         int total = 0;
+         
+         SharedLockRunnable r1(&lock, &total, false, 0);
+         SharedLockRunnable r2(&lock, &total, true, 2);
+         SharedLockRunnable r3(&lock, &total, false, 0);
+         SharedLockRunnable r4(&lock, &total, true, 3);
+         SharedLockRunnable r5(&lock, &total, false, 0);
+         
+         Thread t1(&r1);
+         Thread t2(&r2);
+         Thread t3(&r3);
+         Thread t4(&r4);
+         Thread t5(&r5);
+         
+         t1.start();
+         t2.start();
+         t3.start();
+         t4.start();
+         t5.start();
+         
+         lock.lockShared();
+         assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
+         lock.unlockShared();
+         
+         lock.lockShared();
+         assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
+         lock.unlockShared();
+         
+         lock.lockShared();
+         assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
+         lock.unlockShared();
+         
+         lock.lockShared();
+         assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
+         lock.unlockShared();
+         
+         t1.join();
+         t2.join();
+         t3.join();
+         t4.join();
+         t5.join();
+         
+         lock.lockShared();
+         assert(total == 5000);
+         lock.unlockShared();
+      }
+   }
+   tr.passIfNoException();
+   
+   tr.test("recursive read+write+read");
+   {
+      // this test checks to see if thread 1 can get a read lock,
+      // wait for thread 2 to get a write lock, and then see if
+      // thread 1 can recurse its read lock (it should be able to)
       
-      SharedLockRunnable r1(&lock, &total, false, 0);
-      SharedLockRunnable r2(&lock, &total, true, 2);
-      SharedLockRunnable r3(&lock, &total, false, 0);
-      SharedLockRunnable r4(&lock, &total, true, 3);
-      SharedLockRunnable r5(&lock, &total, false, 0);
+      SharedLock lock;
+      ExclusiveLock signalLock;
+      bool signal = false;
+      
+      DeadlockRunnable r1(&lock, &signalLock, &signal, false);
+      DeadlockRunnable r2(&lock, &signalLock, &signal, true);
       
       Thread t1(&r1);
       Thread t2(&r2);
-      Thread t3(&r3);
-      Thread t4(&r4);
-      Thread t5(&r5);
       
-      t1.start();
       t2.start();
-      t3.start();
-      t4.start();
-      t5.start();
-      
-      lock.lockShared();
-      assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
-      lock.unlockShared();
-      
-      lock.lockShared();
-      assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
-      lock.unlockShared();
-      
-      lock.lockShared();
-      assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
-      lock.unlockShared();
-      
-      lock.lockShared();
-      assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
-      lock.unlockShared();
+      t1.start();
       
       t1.join();
       t2.join();
-      t3.join();
-      t4.join();
-      t5.join();
-      
-      lock.lockShared();
-      assert(total == 5000);
-      lock.unlockShared();
    }
-   
    tr.passIfNoException();
 }
 
