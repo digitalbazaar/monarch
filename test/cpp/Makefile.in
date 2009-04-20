@@ -41,9 +41,10 @@ run_unit_tests_EXTRA_SOURCES += test-sphinx
 endif
 
 EXECUTABLES = \
+	test-configmanager \
+	test-sharedlock-deadlock \
 	test-compress \
 	test-config \
-	test-configmanager \
 	test-crypto \
 	test-data \
 	test-dyno-perf \
@@ -59,7 +60,6 @@ EXECUTABLES = \
 	test-random \
 	test-rt \
 	$(SPHINX_EXECUTABLES) \
-	test-sharedlock-deadlock \
 	test-sqlite3 \
 	$(MYSQL_EXECUTABLES) \
 	test-ucontext \
