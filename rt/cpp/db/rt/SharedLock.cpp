@@ -3,6 +3,8 @@
  */
 #include "db/rt/SharedLock.h"
 
+#include <cerrno>
+
 using namespace db::rt;
 
 SharedLock::SharedLock()
