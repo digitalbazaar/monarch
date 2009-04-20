@@ -83,7 +83,7 @@ public:
 
 int main()
 {
-   printf("Testing SharedLock deadlock, will pass if no deadlock...");
+   printf("Testing SharedLock deadlock, will pass if no deadlock...\n");
    
    // this test checks to see if thread 1 can get a read lock,
    // wait for thread 2 to get a write lock, and then see if
