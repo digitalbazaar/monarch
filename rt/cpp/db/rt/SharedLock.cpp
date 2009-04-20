@@ -17,6 +17,8 @@ SharedLock::SharedLock()
 
 SharedLock::~SharedLock()
 {
+   // destroy lock
+   pthread_rwlock_destroy(&mLock);
 }
 
 void SharedLock::lockShared()
