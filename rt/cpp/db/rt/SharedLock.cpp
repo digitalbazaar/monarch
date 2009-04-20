@@ -29,35 +29,37 @@ void SharedLock::lockShared()
    int rc = pthread_equal(mThreadId, pthread_self());
    if(rc == 0)
    {
-      // Note: On Windows & Mac OS only, it is possible for the current
-      // thread to hold the shared lock but be unable to increment the
-      // shared lock count because another thread is waiting to lock
-      // exclusively. Linux systems will correctly increment the shared lock
-      // count because the lock is already held by the current thread --
-      // thereby avoiding the nasty deadlock issue.
-      // 
-      // The POSIX spec states that a thread that holds the shared lock can
-      // successfully call pthread_rwlock_rdlock() n times so long as it
-      // also calls pthread_rwlock_unlock() the same number of times. The
-      // spec, however, also states that a shared lock cannot be acquired
-      // if a thread is waiting to acquire the exclusive lock. This
-      // introduces some confusion into how that line is interpreted: we
-      // can either assume that a thread that has already acquired the lock
-      // doesn't need to "acquire" it again (Linux interpretation), or we
-      // can assume that it does (Windows + Mac OS). However, if we choose
-      // the later interpretation, recursive shared locks make little to no
-      // sense, causing them to get into potentially countless deadlock
-      // scenarios that are logistical nightmares to code around.
-      // 
-      // Here, if we are on Linux, we simply call pthread_rwlock_rdlock().
-      // If we are on Windows or Mac OS, then we do pthread_rwlock_tryrdlock()
-      // first, then check for EDEADLK, and if we have found it, we unlock
-      // the shared lock and then re-lock it. This adds a caveat to any
-      // code that is using recursive shared locks ... they may lose their
-      // lock temporarily when they recurse. This is the best compromise that
-      // could be thought of without re-implementing the lock entirely or
-      // stating that recursive shared locks are a programming error and in
-      // breach of the programming contract with this class.
+      /*
+       Note: On Windows & Mac OS only, it is possible for the current
+       thread to hold the shared lock but be unable to increment the
+       shared lock count because another thread is waiting to lock
+       exclusively. Linux systems will correctly increment the shared lock
+       count because the lock is already held by the current thread --
+       thereby avoiding the nasty deadlock issue.
+       
+       The POSIX spec states that a thread that holds the shared lock can
+       successfully call pthread_rwlock_rdlock() n times so long as it
+       also calls pthread_rwlock_unlock() the same number of times. The
+       spec, however, also states that a shared lock cannot be acquired
+       if a thread is waiting to acquire the exclusive lock. This
+       introduces some confusion into how that line is interpreted: we
+       can either assume that a thread that has already acquired the lock
+       doesn't need to "acquire" it again (Linux interpretation), or we
+       can assume that it does (Windows + Mac OS). However, if we choose
+       the later interpretation, recursive shared locks make little to no
+       sense, causing them to get into potentially countless deadlock
+       scenarios that are logistical nightmares to code around.
+       
+       Here, if we are on Linux, we simply call pthread_rwlock_rdlock().
+       If we are on Windows or Mac OS, then we do pthread_rwlock_tryrdlock()
+       first, then check for EDEADLK, and if we have found it, we unlock
+       the shared lock and then re-lock it. This adds a caveat to any
+       code that is using recursive shared locks ... they may lose their
+       lock temporarily when they recurse. This is the best compromise that
+       could be thought of without re-implementing the lock entirely or
+       stating that recursive shared locks are a programming error and in
+       breach of the programming contract with this class.
+       */
       
 #if defined(WIN32) || defined(MACOS)
       // try to obtain a shared lock
@@ -70,9 +72,10 @@ void SharedLock::lockShared()
             pthread_rwlock_unlock(&mLock);
             pthread_rwlock_rdlock(&mLock);
          }
-         else if(errno == EBUSY)
+         else
          {
-            // lock was simply busy, so do a regular shared lock
+            // lock was simply busy (or not enough locks),
+            // so do a regular shared lock and wait our turn
             pthread_rwlock_rdlock(&mLock);
          }
       }
