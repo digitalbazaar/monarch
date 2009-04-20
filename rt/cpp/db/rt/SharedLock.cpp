@@ -24,8 +24,7 @@ SharedLock::~SharedLock()
 void SharedLock::lockShared()
 {
    // see if this thread holds the exclusive lock
-   pthread_t self = pthread_self();
-   int rc = pthread_equal(mThreadId, self);
+   int rc = pthread_equal(mThreadId, pthread_self());
    if(rc == 0)
    {
       // obtain a shared lock
@@ -41,8 +40,7 @@ void SharedLock::lockShared()
 void SharedLock::unlockShared()
 {
    // see if this thread holds the exclusive lock
-   pthread_t self = pthread_self();
-   int rc = pthread_equal(mThreadId, self);
+   int rc = pthread_equal(mThreadId, pthread_self());
    if(rc == 0)
    {
       // release shared lock
