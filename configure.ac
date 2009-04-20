@@ -155,14 +155,14 @@ AC_ARG_ENABLE([tests],
    AC_HELP_STRING([--disable-tests], [disable building test apps [[no]]]),
    [
    case "${enableval}" in
-      yes) BUILD_TESTS=yes ;;
+      yes) BUILD_TESTS=yes; BUILD_TESTS_SET=yes ;;
       no)  BUILD_TESTS=no ;;
       *)   AC_MSG_ERROR(bad value ${enableval} for --disable-tests) ;;
    esac
    ],
    [BUILD_TESTS=yes]) dnl Default value
 # Disable test building Windows
-if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
+if test "x$BUILD_FOR_WINDOWS" = "xyes" -a "x$BUILD_TESTS_SET" != "xyes"; then
    BUILD_TESTS=no
 fi
 AC_SUBST(BUILD_TESTS)
