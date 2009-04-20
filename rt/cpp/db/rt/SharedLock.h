@@ -31,6 +31,11 @@ namespace rt
  * if an exclusive lock is held, new shared locks on the same thread act
  * as if they are simply recursing the exclusive lock.
  * 
+ * Note: If a thread holds a shared lock and it tries to acquire the
+ * shared lock again, it is possible that it will temporarily lose its
+ * shared lock in order to allow a thread that is waiting on the exclusive
+ * lock to proceed.
+ * 
  * Note: This SharedLock assumes that no thread will be assigned an ID of 0.
  * If a thread is, then there is a race condition that could result in that
  * thread obtaining a lock when it isn't really inside of this Monitor.
