@@ -404,6 +404,29 @@ public:
    }
 };
 
+static void _runSharedLockDeadlockTest()
+{
+   // this test checks to see if thread 1 can get a read lock,
+   // wait for thread 2 to get a write lock, and then see if
+   // thread 1 can recurse its read lock (it should be able to)
+   
+   SharedLock lock;
+   ExclusiveLock signalLock;
+   bool signal = false;
+   
+   DeadlockRunnable r1(&lock, &signalLock, &signal, false);
+   DeadlockRunnable r2(&lock, &signalLock, &signal, true);
+   
+   Thread t1(&r1);
+   Thread t2(&r2);
+   
+   t2.start();
+   t1.start();
+   
+   t1.join();
+   t2.join();
+}
+
 void runSharedLockTest(TestRunner& tr)
 {
    tr.group("SharedLock");
@@ -464,27 +487,24 @@ void runSharedLockTest(TestRunner& tr)
    
    tr.test("recursive read+write+read");
    {
-      // this test checks to see if thread 1 can get a read lock,
-      // wait for thread 2 to get a write lock, and then see if
-      // thread 1 can recurse its read lock (it should be able to)
-      
-      SharedLock lock;
-      ExclusiveLock signalLock;
-      bool signal = false;
-      
-      DeadlockRunnable r1(&lock, &signalLock, &signal, false);
-      DeadlockRunnable r2(&lock, &signalLock, &signal, true);
-      
-      Thread t1(&r1);
-      Thread t2(&r2);
-      
-      t2.start();
-      t1.start();
-      
-      t1.join();
-      t2.join();
+      _runSharedLockDeadlockTest();
    }
    tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
+void runInteractiveSharedLockTest(TestRunner& tr)
+{
+   tr.group("SharedLock");
+   
+   tr.test("recursive read+write+read");
+   {
+      _runSharedLockDeadlockTest();
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 void runDynamicObjectTest(TestRunner& tr)
@@ -1410,6 +1430,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
+      runInteractiveSharedLockTest(tr);
       runTimeTest(tr);
       return 0;
    }
