@@ -59,6 +59,7 @@ EXECUTABLES = \
 	test-random \
 	test-rt \
 	$(SPHINX_EXECUTABLES) \
+	test-sharedlock-deadlock \
 	test-sqlite3 \
 	$(MYSQL_EXECUTABLES) \
 	test-ucontext \
