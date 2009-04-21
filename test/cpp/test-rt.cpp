@@ -1430,13 +1430,10 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      /*
       runThreadTest(tr);
       runThreadPoolTest(tr);
       runJobDispatcherTest(tr);
-      */
-      while(1) runSharedLockTest(tr);
-      /*
+      runSharedLockTest(tr);
       runDynamicObjectTest(tr);
       runDynoClearTest(tr);
       runDynoConversionTest(tr);
@@ -1447,7 +1444,6 @@ public:
       runDynoMergeTest(tr);
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
-      */
       return 0;
    }
 
