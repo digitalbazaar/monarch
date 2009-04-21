@@ -80,12 +80,6 @@ protected:
     * A counter for the number of threads that have requested an exclusive lock. 
     */
    uint32_t mExclusiveRequests;
-   
-   /**
-    * Set to true if a thread waiting on a shared lock should be permitted
-    * to go.
-    */
-   bool mAllowShared;
 #else
 // non-windows & non-macos:
    /**

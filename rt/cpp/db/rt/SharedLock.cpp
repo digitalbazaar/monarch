@@ -39,8 +39,7 @@ SharedLock::SharedLock() :
    mThreadId(Thread::getInvalidThreadId()),
    mSharedCount(0),
    mExclusiveCount(0),
-   mExclusiveRequests(0),
-   mAllowShared(false)
+   mExclusiveRequests(0)
 {
    // create mutex attributes
    pthread_mutexattr_t mutexAttr;
@@ -81,20 +80,31 @@ void SharedLock::lockShared()
       // enter critical section
       pthread_mutex_lock(&mMutex);
       
-      // wait while exclusive lock count above 0 or
-      // while exclusive lock are waiting AND no
-      // shared lock should be allowed to proceed
-      // (helps to prevent "writer" starvation)
-      while(mExclusiveCount > 0 || (mExclusiveRequests > 0 && !mAllowShared))
+      // here we cannot proceed unless the exclusive count is 0 *AND*
+      // either there are no exclusive locks ("writers") waiting, or
+      // we have already yielded to allow an exclusive lock to go
+      bool yielded = false;
+      while(mExclusiveCount > 0 || (mExclusiveRequests > 0 && !yielded))
       {
-         pthread_cond_wait(&mSharedCondition, &mMutex);
+         if(mExclusiveCount > 0)
+         {
+            // must wait
+            pthread_cond_wait(&mSharedCondition, &mMutex);
+         }
+         else
+         {
+            // yield to a thread blocked on an exclusive lock
+            pthread_mutex_unlock(&mMutex);
+            pthread_cond_broadcast(&mExclusiveCondition);
+            pthread_mutex_lock(&mMutex);
+            
+            // "reader" has now yielded at least once for a "writer"
+            yielded = true;
+         }
       }
       
       // shared lock acquired
       mSharedCount++;
-      
-      // do not allow another shared lock if there are exclusive locks waiting
-      mAllowShared = false;
       
       // exit critical section
       pthread_mutex_unlock(&mMutex);
@@ -141,7 +151,7 @@ void SharedLock::lockExclusive()
       mExclusiveRequests++;
       
       // wait for exclusive and shared lock counts to hit 0
-      while(mExclusiveCount > 0 && mSharedCount > 0)
+      while(mExclusiveCount > 0 || mSharedCount > 0)
       {
          pthread_cond_wait(&mExclusiveCondition, &mMutex);
       }
@@ -173,11 +183,6 @@ void SharedLock::unlockExclusive()
    
    if(mExclusiveCount == 0)
    {
-      // allow a shared lock if there are exclusive locks waiting since
-      // this thread just finished using an exclusive lock
-      // (helps prevent "reader" starvation)
-      mAllowShared = true;
-      
       // thread no longer holds exclusive lock
       mThreadId = Thread::getInvalidThreadId();
       

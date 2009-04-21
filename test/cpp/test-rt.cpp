@@ -506,36 +506,37 @@ void runSharedLockTest(TestRunner& tr)
       printf("time=%.2f secs... ", secs);
    }
    tr.passIfNoException();
-   /*
+   
    tr.test("recursive read+write+read");
    {
       _runSharedLockDeadlockTest();
    }
    tr.passIfNoException();
-   */
    
    tr.ungroup();
 }
 
+struct StarvationData
+{
+   SharedLock lock;
+   ExclusiveLock protect;
+   bool signal;
+   bool write;
+   bool reader;
+   int count;
+   int maxReaders;
+   int maxWriters;
+};
+
 class StarvationRunnable : public Runnable
 {
 public:
-   SharedLock* mLock;
-   ExclusiveLock* mProtectLock;
-   bool* mSignal;
-   bool mWrite;
-   bool* mReader;
-   int* mCount;
+   StarvationData* mStarvationData;
+   bool mWriter;
    
-   StarvationRunnable(
-      SharedLock* lock, ExclusiveLock* protect, bool* signal, bool write,
-      bool* reader, int* count) :
-         mLock(lock),
-         mProtectLock(protect),
-         mSignal(signal),
-         mWrite(write),
-         mReader(reader),
-         mCount(count)
+   StarvationRunnable(StarvationData* sd, bool writer) :
+      mStarvationData(sd),
+      mWriter(writer)
    {
    }
    
@@ -546,32 +547,48 @@ public:
    virtual void run()
    {
       // wait for signal to start
-      mProtectLock->lock();
-      while(!(*mSignal))
+      mStarvationData->protect.lock();
+      while(!mStarvationData->signal)
       {
-         mProtectLock->wait();
+         mStarvationData->protect.wait();
       }
-      mProtectLock->unlock();
+      mStarvationData->protect.unlock();
       
       Thread::sleep(rand() % 10 + 1);
       
-      if(mWrite)
+      if(mWriter)
       {
-         mLock->lockExclusive();
+         mStarvationData->lock.lockExclusive();
          {
-            *mCount = (*mReader) ? 1 : (*mCount) + 1;
-            *mReader = false;
+            if(mStarvationData->reader)
+            {
+               mStarvationData->maxReaders = mStarvationData->count;
+               mStarvationData->count = 1;
+               mStarvationData->reader = false;
+            }
+            else
+            {
+               mStarvationData->count++;
+            }
          }
-         mLock->unlockExclusive();
+         mStarvationData->lock.unlockExclusive();
       }
       else
       {
-         mLock->lockShared();
+         mStarvationData->lock.lockShared();
          {
-            *mCount = (*mReader) ? (*mCount) + 1 : 1;
-            *mReader = true;
+            if(!mStarvationData->reader)
+            {
+               mStarvationData->maxWriters = mStarvationData->count;
+               mStarvationData->count = 1;
+               mStarvationData->reader = true;
+            }
+            else
+            {
+               mStarvationData->count++;
+            }
          }
-         mLock->unlockShared();
+         mStarvationData->lock.unlockShared();
       }
    }
 };
@@ -592,12 +609,12 @@ void runInteractiveSharedLockTest(TestRunner& tr)
       // nor writers starve each other out
       for(int i = 0; i < 200; i++)
       {
-         /*
-         SharedLock lock;
-         ExclusiveLock protect;
-         bool signal = false;
-         int count = 0;
-         bool reader = false;
+         StarvationData sd;
+         sd.signal = false;
+         sd.reader = false;
+         sd.count = 0;
+         sd.maxReaders = 0;
+         sd.maxWriters = 0;
          
          int num = 50;
          Thread* threads[(num * 2)];
@@ -605,16 +622,14 @@ void runInteractiveSharedLockTest(TestRunner& tr)
          // create readers
          for(int n = 0; n < num; n++)
          {
-            RunnableRef r = new StarvationRunnable(
-               &lock, &protect, &signal, false, &reader, &count);
+            RunnableRef r = new StarvationRunnable(&sd, false);
             threads[n] = new Thread(r);
          }
          
          // create writers
          for(int n = 0; n < num; n++)
          {
-            RunnableRef r = new StarvationRunnable(
-               &lock, &protect, &signal, true, &reader, &count);
+            RunnableRef r = new StarvationRunnable(&sd, true);
             threads[n + num] = new Thread(r);
          }
          
@@ -625,12 +640,21 @@ void runInteractiveSharedLockTest(TestRunner& tr)
          }
          
          // set signal to start
-         protect.lock();
-         signal = true;
-         protect.notifyAll();
-         protect.unlock();
-         */
-         // FIXME: add join code
+         sd.protect.lock();
+         sd.signal = true;
+         sd.protect.notifyAll();
+         sd.protect.unlock();
+         
+         // join threads
+         for(int n = 0; n < (num * 2); n++)
+         {
+            threads[n]->join();
+            delete threads[n];
+         }
+         
+         // report max counts
+         printf("max concurrent readers: %i, max concurrent writers: %i... \n",
+            sd.maxReaders, sd.maxWriters);
       }
    }
    tr.passIfNoException();
