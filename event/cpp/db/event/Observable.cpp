@@ -208,14 +208,13 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
    {
       // wait for any event processing operation that is not on the same
       // thread but is using the same observer that is being unregistered
-      // -- this helps prevents a race condition where an observer could
+      // -- this helps prevent a race condition where an observer could
       // be free'd after being unregistered by whilst still processing an event
-      Thread* t = Thread::currentThread();
       IteratorRef<Operation> itr = mOpList.getIterator();
       while(itr->hasNext())
       {
          Operation& op = itr->next();
-         if(op->getThread() != t && op->getUserData() == observer)
+         if(op->getUserData() == observer)
          {
             // wait for operation to complete
             op->waitFor();
@@ -270,14 +269,13 @@ void Observable::unregisterObserver(Observer* observer)
    {
       // wait for any event processing operation that is not on the same
       // thread but is using the same observer that is being unregistered
-      // -- this helps prevents a race condition where an observer could
+      // -- this helps prevent a race condition where an observer could
       // be free'd after being unregistered by whilst still processing an event
-      Thread* t = Thread::currentThread();
       IteratorRef<Operation> itr = mOpList.getIterator();
       while(itr->hasNext())
       {
          Operation& op = itr->next();
-         if(op->getThread() != t && op->getUserData() == observer)
+         if(op->getUserData() == observer)
          {
             // wait for operation to complete
             op->waitFor();
