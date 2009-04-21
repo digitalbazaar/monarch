@@ -653,7 +653,9 @@ void runInteractiveSharedLockTest(TestRunner& tr)
          }
          
          // report max counts
-         printf("max concurrent readers: %i, max concurrent writers: %i... \n",
+         printf(
+            "max consecutive readers: %i, "
+            "max consecutive writers: %i... \n",
             sd.maxReaders, sd.maxWriters);
       }
    }
