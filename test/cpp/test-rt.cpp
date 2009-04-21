@@ -327,10 +327,26 @@ public:
       {
          mLock->lockShared();
          {
+            int total = *mTotal;
             assert(
-               *mTotal == 0 || *mTotal == 2000 ||
-               *mTotal == 3000 || *mTotal == 5000);
-            //printf("read total=%d\n", *mTotal);
+               total == 0 || total == 2000 ||
+               total == 3000 || total == 5000);
+            
+            mLock->lockShared();
+            {
+               assert(
+                  total == 0 || total == 2000 ||
+                  total == 3000 || total == 5000);
+               
+               mLock->lockShared();
+               {
+                  assert(
+                     total == 0 || total == 2000 ||
+                     total == 3000 || total == 5000);
+               }
+               mLock->unlockShared();
+            }
+            mLock->unlockShared();
          }
          mLock->unlockShared();
       }
@@ -433,6 +449,7 @@ void runSharedLockTest(TestRunner& tr)
    
    tr.test("simple read/write");
    {
+      uint64_t start = System::getCurrentMilliseconds();
       for(int i = 0; i < 200; i++)
       {
          SharedLock lock;
@@ -460,9 +477,11 @@ void runSharedLockTest(TestRunner& tr)
          assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
          lock.unlockShared();
          
+         lock.lockExclusive();
          lock.lockShared();
          assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
          lock.unlockShared();
+         lock.unlockExclusive();
          
          lock.lockShared();
          assert(total == 0 || total == 2000 || total == 3000 || total == 5000);
@@ -482,6 +501,9 @@ void runSharedLockTest(TestRunner& tr)
          assert(total == 5000);
          lock.unlockShared();
       }
+      uint64_t end = System::getCurrentMilliseconds();
+      double secs = (end - start) / 1000.;
+      printf("time=%.2f secs... ", secs);
    }
    tr.passIfNoException();
    
@@ -1408,10 +1430,13 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
+      /*
       runThreadTest(tr);
       runThreadPoolTest(tr);
       runJobDispatcherTest(tr);
-      runSharedLockTest(tr);
+      */
+      while(1) runSharedLockTest(tr);
+      /*
       runDynamicObjectTest(tr);
       runDynoClearTest(tr);
       runDynoConversionTest(tr);
@@ -1422,6 +1447,7 @@ public:
       runDynoMergeTest(tr);
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
+      */
       return 0;
    }
 

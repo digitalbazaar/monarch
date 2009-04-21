@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_rt_SharedLock_H
 #define db_rt_SharedLock_H
@@ -31,11 +31,6 @@ namespace rt
  * if an exclusive lock is held, new shared locks on the same thread act
  * as if they are simply recursing the exclusive lock.
  * 
- * Note: If a thread holds a shared lock and it tries to acquire the
- * shared lock again, it is possible that it will temporarily lose its
- * shared lock in order to allow a thread that is waiting on the exclusive
- * lock to proceed.
- * 
  * Note: This SharedLock assumes that no thread will be assigned an ID of 0.
  * If a thread is, then there is a race condition that could result in that
  * thread obtaining a lock when it isn't really inside of this Monitor.
@@ -47,6 +42,52 @@ namespace rt
 class SharedLock
 {
 protected:
+#if defined(WIN32) && defined(MACOS)
+// windows & macos:
+   /**
+    * The mutex for this lock.
+    */
+   pthread_mutex_t mMutex;
+   
+   /**
+    * The condition used to wait and signal shared lock threads.
+    */
+   pthread_cond_t mSharedCondition;
+   
+   /**
+    * The condition used to wait and signal exclusive lock threads.
+    */
+   pthread_cond_t mExclusiveCondition;
+   
+   /**
+    * Stores the pthread ID of the thread that currently holds the
+    * exclusive lock.
+    */
+   pthread_t mThreadId;
+   
+   /**
+    * A counter for the number of shared locks held by all threads.
+    */
+   uint32_t mSharedCount;
+   
+   /**
+    * A counter for the number of recursive locks held by the thread that
+    * holds an exclusive lock.
+    */
+   uint32_t mExclusiveCount;
+   
+   /**
+    * A counter for the number of threads that have requested an exclusive lock. 
+    */
+   uint32_t mExclusiveRequests;
+   
+   /**
+    * Set to true if a thread waiting on a shared lock should be permitted
+    * to go.
+    */
+   bool mAllowShared;
+#else
+// non-windows & non-macos:
    /**
     * The pthread read/write lock.
     */
@@ -63,6 +104,7 @@ protected:
     * thread that holds an exclusive lock.
     */
    unsigned int mLockCount;
+#endif
    
 public:
    /**
