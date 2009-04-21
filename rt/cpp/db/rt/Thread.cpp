@@ -21,6 +21,7 @@ pthread_key_t Thread::sExceptionKey;
 Thread::Thread(Runnable* runnable, const char* name, bool persistent) :
    mPersistent(persistent),
    mRunnable(runnable),
+   mRunnableRef(NULL),
    mName(NULL),
    mUserData(NULL),
    mWaitMonitor(NULL)
@@ -41,6 +42,35 @@ Thread::Thread(Runnable* runnable, const char* name, bool persistent) :
    // thread is not alive, detached, or started yet
    mAlive = false;
    mDetached = false;
+   mCleanup = false;
+   mStarted = false;
+}
+
+Thread::Thread(RunnableRef& runnable, const char* name, bool persistent) :
+   mPersistent(persistent),
+   mRunnable(&(*runnable)),
+   mRunnableRef(runnable),
+   mName(NULL),
+   mUserData(NULL),
+   mWaitMonitor(NULL)
+{
+   // initialize threads
+   pthread_once(&sThreadsInit, &initializeThreads);
+   
+   if(name != NULL)
+   {
+      // set name
+      Thread::assignName(name);
+   }
+   
+   // thread is not interrupted or joined yet
+   mInterrupted = false;
+   mJoined = false;
+   
+   // thread is not alive, detached, or started yet
+   mAlive = false;
+   mDetached = false;
+   mCleanup = false;
    mStarted = false;
 }
 
@@ -236,7 +266,7 @@ void Thread::join()
    }
 }
 
-void Thread::detach()
+void Thread::detach(bool cleanup)
 {
    bool detach = false;
    
@@ -247,6 +277,7 @@ void Thread::detach()
       {
          detach = true;
          mDetached = true;
+         mCleanup = cleanup;
       }
    }
    unlock();
@@ -676,6 +707,12 @@ void* Thread::execute(void* thread)
       
       // thread is no longer alive
       t->mAlive = false;
+      
+      // if thread is persistent but clean up is on, delete it
+      if(t->mPersistent && t->mCleanup)
+      {
+         delete t;
+      }
    }
    else
    {

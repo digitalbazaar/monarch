@@ -44,6 +44,7 @@ protected:
     * The Runnable associated with this Thread.
     */
    Runnable* mRunnable;
+   RunnableRef mRunnableRef;
    
    /**
     * The name for this thread.
@@ -69,6 +70,12 @@ protected:
     * Stores whether or not this Thread has been detached.
     */
    bool mDetached;
+   
+   /**
+    * Stores whether or not this Thread should be deleted when it
+    * completes if it was detached.
+    */
+   bool mCleanup;
    
    /**
     * Stores whether or not this Thread has been interrupted.
@@ -111,6 +118,8 @@ public:
     *                   life of the thread, false if not.
     */
    Thread(Runnable* runnable, const char* name = NULL, bool persistent = true);
+   Thread(
+      RunnableRef& runnable, const char* name = NULL, bool persistent = true);
    
    /**
     * Destructs this Thread and deletes its Runnable.
@@ -147,8 +156,11 @@ public:
     * waited for via a join() call. This allows for the thread to be
     * automatically cleaned up by the OS once it terminates. Otherwise
     * a join() call must be made to appropriately clean up the thread.
+    * 
+    * @param cleanup true to delete the thread object when the thread
+    *                completes, false to leave it alone.
     */
-   virtual void detach();
+   virtual void detach(bool cleanup = false);
    
    /**
     * Returns true if this Thread is still alive, false if not. A Thread
