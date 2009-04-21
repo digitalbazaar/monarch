@@ -42,7 +42,7 @@ namespace rt
 class SharedLock
 {
 protected:
-#if defined(WIN32) && defined(MACOS)
+#if defined(WIN32) || defined(MACOS)
 // windows & macos:
    /**
     * The mutex for this lock.

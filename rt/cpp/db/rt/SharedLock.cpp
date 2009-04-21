@@ -33,7 +33,7 @@ using namespace db::rt;
  locks.
  */
 
-#if defined(WIN32) && defined(MACOS)
+#if defined(WIN32) || defined(MACOS)
 // windows & macos:
 SharedLock::SharedLock() :
    mThreadId(Thread::getInvalidThreadId()),
