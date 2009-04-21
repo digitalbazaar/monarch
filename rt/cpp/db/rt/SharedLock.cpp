@@ -14,16 +14,17 @@ using namespace db::rt;
  thereby avoiding the nasty deadlock issue.
  
  The POSIX spec states that a thread that holds the shared lock can
- successfully call pthread_rwlock_rdlock() n times so long as it
- also calls pthread_rwlock_unlock() the same number of times. The
- spec, however, also states that a shared lock cannot be acquired
- if a thread is waiting to acquire the exclusive lock. This
- introduces some confusion into how that line is interpreted: we
- can either assume that a thread that has already acquired the lock
- doesn't need to "acquire" it again (Linux interpretation), or we
- can assume that it does (Windows + Mac OS). However, if we choose
- the later interpretation, recursive shared locks make little to no
- sense, causing them to get into potentially countless deadlock
+ successfully call pthread_rwlock_rdlock() n times so long as it also calls
+ pthread_rwlock_unlock() the same number of times. The spec, however, also
+ states that it is implementation-defined whether or not a shared lock can
+ be acquired if a thread is waiting to acquire the exclusive lock. This
+ introduces some confusion into how that line is interpreted: we can either
+ assume that a thread that has already acquired the lock doesn't need to
+ "acquire" it again (Linux interpretation), or we can assume that it does
+ (Windows + Mac OS). However, if we choose the later interpretation, and we
+ prevent a shared lock from being "acquired" (on a thread that already has
+ the lock) when a thread desiring an exclusive lock is blocked, then recursive
+ shared locks make little to no sense, causing potentially countless deadlock
  scenarios that are logistical nightmares to code around.
  
  Here, if we are on Linux, we simply use a pthread_rwlock. If we are
