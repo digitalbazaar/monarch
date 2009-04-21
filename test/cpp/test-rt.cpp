@@ -506,15 +506,75 @@ void runSharedLockTest(TestRunner& tr)
       printf("time=%.2f secs... ", secs);
    }
    tr.passIfNoException();
-   
+   /*
    tr.test("recursive read+write+read");
    {
       _runSharedLockDeadlockTest();
    }
    tr.passIfNoException();
+   */
    
    tr.ungroup();
 }
+
+class StarvationRunnable : public Runnable
+{
+public:
+   SharedLock* mLock;
+   ExclusiveLock* mProtectLock;
+   bool* mSignal;
+   bool mWrite;
+   bool* mReader;
+   int* mCount;
+   
+   StarvationRunnable(
+      SharedLock* lock, ExclusiveLock* protect, bool* signal, bool write,
+      bool* reader, int* count) :
+         mLock(lock),
+         mProtectLock(protect),
+         mSignal(signal),
+         mWrite(write),
+         mReader(reader),
+         mCount(count)
+   {
+   }
+   
+   virtual ~StarvationRunnable()
+   {
+   }
+   
+   virtual void run()
+   {
+      // wait for signal to start
+      mProtectLock->lock();
+      while(!(*mSignal))
+      {
+         mProtectLock->wait();
+      }
+      mProtectLock->unlock();
+      
+      Thread::sleep(rand() % 10 + 1);
+      
+      if(mWrite)
+      {
+         mLock->lockExclusive();
+         {
+            *mCount = (*mReader) ? 1 : (*mCount) + 1;
+            *mReader = false;
+         }
+         mLock->unlockExclusive();
+      }
+      else
+      {
+         mLock->lockShared();
+         {
+            *mCount = (*mReader) ? (*mCount) + 1 : 1;
+            *mReader = true;
+         }
+         mLock->unlockShared();
+      }
+   }
+};
 
 void runInteractiveSharedLockTest(TestRunner& tr)
 {
@@ -523,6 +583,55 @@ void runInteractiveSharedLockTest(TestRunner& tr)
    tr.test("recursive read+write+read");
    {
       _runSharedLockDeadlockTest();
+   }
+   tr.passIfNoException();
+   
+   tr.test("starvation");
+   {
+      // this test checks to ensure that neither readers
+      // nor writers starve each other out
+      for(int i = 0; i < 200; i++)
+      {
+         /*
+         SharedLock lock;
+         ExclusiveLock protect;
+         bool signal = false;
+         int count = 0;
+         bool reader = false;
+         
+         int num = 50;
+         Thread* threads[(num * 2)];
+         
+         // create readers
+         for(int n = 0; n < num; n++)
+         {
+            RunnableRef r = new StarvationRunnable(
+               &lock, &protect, &signal, false, &reader, &count);
+            threads[n] = new Thread(r);
+         }
+         
+         // create writers
+         for(int n = 0; n < num; n++)
+         {
+            RunnableRef r = new StarvationRunnable(
+               &lock, &protect, &signal, true, &reader, &count);
+            threads[n + num] = new Thread(r);
+         }
+         
+         // start threads
+         for(int n = 0; n < (num * 2); n++)
+         {
+            threads[n]->start();
+         }
+         
+         // set signal to start
+         protect.lock();
+         signal = true;
+         protect.notifyAll();
+         protect.unlock();
+         */
+         // FIXME: add join code
+      }
    }
    tr.passIfNoException();
    
