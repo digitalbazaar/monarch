@@ -47,6 +47,13 @@ namespace event
  * that Observers do not receive "double" events due to a poorly created
  * system of taps or due to registration under both a tap and its tapee.
  * 
+ * Note: It is a programmer error to create a situation where two Observers
+ * are competing to unregister each other. It is also a programmer error,
+ * when using parallel events, to create a situation where two events for
+ * the same Observer attempt to unregister the Observer concurrently. Both
+ * of these situations will cause deadlock and must be protected against
+ * using appropriate locking mechanisms.
+ * 
  * @author Dave Longley
  */
 class Observable : public db::rt::Runnable

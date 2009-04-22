@@ -111,7 +111,7 @@ public:
     * // do something if desired
     * 
     * // wait until specified time or until there is work to do, if notified
-    * lock.wait(&waitLock, time, &workToDo, true);
+    * lock.wait(time, &workToDo, true);
     * 
     * // do something else if desired
     * 
@@ -119,14 +119,15 @@ public:
     * lock.unlock();
     * 
     * @param timeout the number of milliseconds to wait before timing out,
-    *                0 to wait indefinitely.
+    *                0 to wait indefinitely, updated to remaining time if
+    *                timeout does not fully elapse before returning.
     * @param condition the condition to check.
     * @param stop the value the condition must be to stop waiting before the
     *             timeout expires, if notify() or notifyAll() has been called.
     * 
     * @return true if the thread was not interrupted, false if it was.
     */
-   virtual bool wait(uint32_t timeout, bool* condition, bool stop);
+   virtual bool wait(uint32_t& timeout, bool* condition, bool stop);
 };
 
 } // end namespace rt

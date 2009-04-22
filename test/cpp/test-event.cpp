@@ -762,6 +762,55 @@ void runInteractiveEventDaemonTest(TestRunner& tr)
    tr.ungroup();
 }
 
+class SelfUnregisterObserver : public Observer
+{
+public:
+   EventController* mEventController;
+   
+   SelfUnregisterObserver(EventController* ec) :
+      mEventController(ec)
+   {
+   };
+   
+   virtual ~SelfUnregisterObserver() {}
+   
+   virtual void eventOccurred(Event& e)
+   {
+      mEventController->unregisterObserver(this);
+      
+      Event e2;
+      e2["type"] = "signal";
+      mEventController->schedule(e2);
+   }
+};
+
+void runObserverSelfUnregister(TestRunner& tr)
+{
+   tr.test("Observer self-unregister");
+   {
+      Kernel k;
+      k.getEngine()->start();
+      EventController ec;
+      ec.start(&k);
+      
+      EventWaiter ew(&ec);
+      ew.start("signal");
+      
+      SelfUnregisterObserver observer(&ec);
+      ec.registerObserver(&observer, "test");
+      
+      Event e;
+      e["type"] = "test";
+      ec.schedule(e);
+      
+      assert(ew.waitForEvent(5000));
+      
+      ec.stop();
+      k.getEngine()->stop();
+   }
+   tr.passIfNoException();
+}
+
 class DbEventTester : public db::test::Tester
 {
 public:
@@ -783,6 +832,7 @@ public:
       runEventFilterTest(tr);
       runEventDaemonTest(tr);
       runEventDaemonSharedEventTest(tr);
+      runObserverSelfUnregister(tr);
       return 0;
    }
 

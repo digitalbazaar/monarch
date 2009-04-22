@@ -42,7 +42,7 @@ inline bool ExclusiveLock::wait(uint32_t timeout)
    return Thread::waitToEnter(&mMonitor, timeout);
 }
 
-bool ExclusiveLock::wait(uint32_t timeout, bool* condition, bool stop)
+bool ExclusiveLock::wait(uint32_t& timeout, bool* condition, bool stop)
 {
    bool rval = true;
    
@@ -62,6 +62,7 @@ bool ExclusiveLock::wait(uint32_t timeout, bool* condition, bool stop)
          st = et;
       }
    }
+   timeout = remaining;
    
    return rval;
 }

@@ -135,11 +135,13 @@ public:
     * @param interruptible true if the current thread can be interrupted
     *                      and return from this call, false if the Operation
     *                      must complete before this call will return.
+    * @param timeout the number of milliseconds to wait for the operation
+    *                to stop before timing out, 0 to wait indefinitely.
     * 
     * @return false if the current thread was interrupted while waiting (with
     *         an InterruptedException set), true if it was not interrupted.
     */
-   virtual bool waitFor(bool interruptible = true);
+   virtual bool waitFor(bool interruptible = true, uint32_t timeout = 0);
    
    /**
     * Returns true if this Operation has started, false if not.

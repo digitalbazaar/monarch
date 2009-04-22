@@ -81,26 +81,68 @@ void Observable::registerObserver(
  * allow the observer to finish event processing, then the observer could
  * be free'd whilst processing an event, resulting in a segfault.
  * 
+ * Note: This method assumes the registration lock is engaged when it is
+ * called.
+ * 
+ * @param lock the registration lock.
  * @param observer the observer being unregistered.
  * @param opList the operation list that may contain the observer's event
  *               processing operation(s).
  */
-static void waitForObserver(Observer* observer, OperationList& opList)
+static void waitForObserver(
+   ExclusiveLock& lock, Observer* observer, OperationList& opList)
 {
-   // wait for the observer to finish event processing but only if the
-   // unregistration request is not coming from this thread (prevents deadlock)
    Thread* t = Thread::currentThread();
-   IteratorRef<Operation> itr = opList.getIterator();
-   while(itr->hasNext())
+   bool mustWait;
+   
+   do
    {
-      Operation& op = itr->next();
-      if(op->getUserData() == observer && t != op->getThread())
+      // must wait for the observer to finish event processing but only if
+      // the unregistration request is not coming from this thread
+      // (prevents deadlock)
+      mustWait = false;
+      OperationList tmpOpList;
+      IteratorRef<Operation> itr = opList.getIterator();
+      while(itr->hasNext())
       {
-         // wait for operation to complete
-         op->waitFor();
+         Operation& op = itr->next();
+         if(op->getUserData() == observer && t != op->getThread())
+         {
+            tmpOpList.add(op);
+            mustWait = true;
+         }
+      }
+      
+      if(mustWait)
+      {
+         // unlock registration lock to allow other processing while waiting
+         lock.unlock();
+         
+         // wait for observer event processing operations
+         itr = tmpOpList.getIterator();
+         while(itr->hasNext())
+         {
+            Operation& op = itr->next();
+            
+            // Note: It is possible right now for deadlock to occur if
+            // two parallel event processing threads attempt to concurrently
+            // unregister their observer... this is currently considered a
+            // programmer error and is documented as such. However, we could
+            // potentially fix this if we were to add a map of observer to
+            // operation list where we store each operation that is trying to
+            // unregister an observer ... and we allow at least one operation
+            // from that list to proceed at a time.
+            
+            // wait for operation to complete
+            op->waitFor();
+         }
+         opList.prune();
+         
+         // relock registration lock
+         lock.lock();
       }
    }
-   opList.prune();
+   while(mustWait);
 }
 
 void Observable::unregisterObserver(Observer* observer, EventId id)
@@ -108,7 +150,7 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
    mRegistrationLock.lock();
    {
       // wait for the observer to finish any event processing
-      waitForObserver(observer, mOpList);
+      waitForObserver(mRegistrationLock, observer, mOpList);
       
       // find the filter map for the event
       ObserverMap::iterator i = mObservers.find(id);
@@ -146,7 +188,7 @@ void Observable::unregisterObserver(Observer* observer)
    mRegistrationLock.lock();
    {
       // wait for the observer to finish any event processing
-      waitForObserver(observer, mOpList);
+      waitForObserver(mRegistrationLock, observer, mOpList);
       
       // iterate over all filter maps, keep a list of event IDs to remove
       vector<EventId> removeIds;

@@ -96,16 +96,28 @@ void OperationImpl::stop()
    mLock.unlock();
 }
 
-bool OperationImpl::waitFor(bool interruptible)
+bool OperationImpl::waitFor(bool interruptible, uint32_t timeout)
 {
    bool rval = true;
    
    mLock.lock();
    {
-      // wait until Operation is stopped
-      while(!mStopped)
+      // wait until Operation is stopped or timed out
+      bool interrupted = false;
+      bool timedOut = false;
+      uint32_t remaining = timeout;
+      while(!mStopped && !timedOut)
       {
-         if(!mLock.wait())
+         if(timeout > 0)
+         {
+            interrupted = !mLock.wait(remaining, &mStopped, true);
+         }
+         else
+         {
+            interrupted = !mLock.wait();
+         }
+         
+         if(interrupted)
          {
             // thread was interrupted
             rval = false;
@@ -120,6 +132,10 @@ bool OperationImpl::waitFor(bool interruptible)
                // clear thread interruption
                Thread::interrupted(true);
             }
+         }
+         else if(timeout > 0 && remaining == 0)
+         {
+            timedOut = true;
          }
       }
    }
