@@ -72,25 +72,43 @@ void Observable::registerObserver(
    mRegistrationLock.unlock();
 }
 
+/**
+ * A helper function that will wait for an observer to finish processing
+ * events before proceeding -- unless the thread that is processing the
+ * events is the current thread. This prevents a race condition where an
+ * observer that is to be unregistered could be concurrently processing
+ * an event during the unregister call. If this wait is not performed to
+ * allow the observer to finish event processing, then the observer could
+ * be free'd whilst processing an event, resulting in a segfault.
+ * 
+ * @param observer the observer being unregistered.
+ * @param opList the operation list that may contain the observer's event
+ *               processing operation(s).
+ */
+static void waitForObserver(Observer* observer, OperationList& opList)
+{
+   // wait for the observer to finish event processing but only if the
+   // unregistration request is not coming from this thread (prevents deadlock)
+   Thread* t = Thread::currentThread();
+   IteratorRef<Operation> itr = opList.getIterator();
+   while(itr->hasNext())
+   {
+      Operation& op = itr->next();
+      if(op->getUserData() == observer && t != op->getThread())
+      {
+         // wait for operation to complete
+         op->waitFor();
+      }
+   }
+   opList.prune();
+}
+
 void Observable::unregisterObserver(Observer* observer, EventId id)
 {
    mRegistrationLock.lock();
    {
-      // wait for any event processing operation that is not on the same
-      // thread but is using the same observer that is being unregistered
-      // -- this helps prevent a race condition where an observer could
-      // be free'd after being unregistered by whilst still processing an event
-      IteratorRef<Operation> itr = mOpList.getIterator();
-      while(itr->hasNext())
-      {
-         Operation& op = itr->next();
-         if(op->getUserData() == observer)
-         {
-            // wait for operation to complete
-            op->waitFor();
-         }
-      }
-      mOpList.prune();
+      // wait for the observer to finish any event processing
+      waitForObserver(observer, mOpList);
       
       // find the filter map for the event
       ObserverMap::iterator i = mObservers.find(id);
@@ -127,21 +145,8 @@ void Observable::unregisterObserver(Observer* observer)
    
    mRegistrationLock.lock();
    {
-      // wait for any event processing operation that is not on the same
-      // thread but is using the same observer that is being unregistered
-      // -- this helps prevent a race condition where an observer could
-      // be free'd after being unregistered by whilst still processing an event
-      IteratorRef<Operation> itr = mOpList.getIterator();
-      while(itr->hasNext())
-      {
-         Operation& op = itr->next();
-         if(op->getUserData() == observer)
-         {
-            // wait for operation to complete
-            op->waitFor();
-         }
-      }
-      mOpList.prune();
+      // wait for the observer to finish any event processing
+      waitForObserver(observer, mOpList);
       
       // iterate over all filter maps, keep a list of event IDs to remove
       vector<EventId> removeIds;
