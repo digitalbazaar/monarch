@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_event_Observable_H
 #define db_event_Observable_H
@@ -10,6 +10,7 @@
 
 #include <list>
 #include <map>
+#include <vector>
 
 namespace db
 {
@@ -54,7 +55,7 @@ protected:
    /**
     * A list of observers.
     */
-   typedef std::list<Observer*> ObserverList;
+   typedef std::vector<Observer*> ObserverList;
    
    /**
     * A map of an EventFilter to a list of Observers.
@@ -116,31 +117,6 @@ protected:
     * observers.
     */
    db::rt::ExclusiveLock mRegistrationLock;
-   
-   /**
-    * A recursive helper function for dispatching a single event to all
-    * associated Observers.
-    * 
-    * @param e the Event to dispatch.
-    * @param id the EventId to dispatch it under.
-    * @param waitList the OperationList to store event-handling Operations that
-    *                 must be waited on to complete.
-    */
-   virtual void dispatchEvent(
-      Event& e, EventId id, db::modest::OperationList& waitList);
-   
-   /**
-    * Dispatches a single event to all associated Observers and waits
-    * for them to finish processing the event.
-    * 
-    * @param e the Event to dispatch.
-    */
-   virtual void dispatchEvent(Event& e);
-   
-   /**
-    * Dispatches the events in the event queue to all registered Observers.
-    */
-   virtual void dispatchEvents();
    
 public:
    /**
@@ -249,6 +225,46 @@ public:
     * Observers.
     */
    virtual void run();
+   
+protected:
+   /**
+    * A helper function to removes an observer from a FilterMap.
+    * 
+    * This method assumes the registration lock is engaged.
+    * 
+    * @param observer the observer to remove.
+    * @param fm the FilterMap to remove the observer from.
+    * @param removableFilters a list of filters that can be removed now
+    *                         that they contain no observers.
+    */
+   virtual void removeObserverFromFilterMap(
+      Observer* observer, FilterMap& fm,
+      std::vector<EventFilter>& removableFilters);
+   
+   /**
+    * A recursive helper function for dispatching a single event to all
+    * associated Observers.
+    * 
+    * @param e the Event to dispatch.
+    * @param id the EventId to dispatch it under.
+    * @param waitList the OperationList to store event-handling Operations that
+    *                 must be waited on to complete.
+    */
+   virtual void dispatchEvent(
+      Event& e, EventId id, db::modest::OperationList& waitList);
+   
+   /**
+    * Dispatches a single event to all associated Observers and waits
+    * for them to finish processing the event.
+    * 
+    * @param e the Event to dispatch.
+    */
+   virtual void dispatchEvent(Event& e);
+   
+   /**
+    * Dispatches the events in the event queue to all registered Observers.
+    */
+   virtual void dispatchEvents();
 };
 
 } // end namespace event

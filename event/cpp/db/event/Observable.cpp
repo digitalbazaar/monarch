@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/event/Observable.h"
 
@@ -23,136 +23,6 @@ Observable::~Observable()
 {
    // ensure event dispatching is stopped
    Observable::stop();
-}
-
-void Observable::dispatchEvent(
-   Event& e, EventId id, OperationList& waitList)
-{
-   // go through the list of EventId taps
-   EventIdMap::iterator ti = mTaps.find(id);
-   if(ti != mTaps.end())
-   {
-      EventIdMap::iterator end = mTaps.upper_bound(id);
-      for(; ti != end; ti++)
-      {
-         // dispatch event if the tap is the EventId itself
-         if(ti->second == id)
-         {
-            // get the filter map for the EventId tap
-            ObserverMap::iterator oi = mObservers.find(id);
-            if(oi != mObservers.end())
-            {
-               FilterMap& fm = oi->second;
-               
-               // go through each filter
-               bool pass;
-               for(FilterMap::iterator fi = fm.begin(); fi != fm.end(); fi++)
-               {
-                  // check observer filter if appropriate
-                  pass = true;
-                  if(!fi->first.isNull())
-                  {
-                     // filter must be a subset of event
-                     pass = fi->first.isSubset(e);
-                  }
-                  
-                  if(pass)
-                  {
-                     for(ObserverList::iterator li =
-                         fi->second.begin(); li != fi->second.end(); li++)
-                     {
-                        // create and run event dispatcher for observer
-                        // set operation user data to observer
-                        RunnableRef ed = new ObserverDelegate<Observer>(*li, e);
-                        Operation op(ed);
-                        op->setUserData(*li);
-                        mOpRunner->runOperation(op);
-                        
-                        // add all operations to the current operation list
-                        mOpList.add(op);
-                        
-                        // only add serial events to the wait list,
-                        // parallel events are not waited on for completion
-                        if(!e->hasMember("parallel") ||
-                           !e["parallel"]->getBoolean())
-                        {
-                           waitList.add(op);
-                        }
-                     }
-                  }
-               }
-            }
-         }
-         else
-         {
-            // dispatch event to tap
-            dispatchEvent(e, ti->second, waitList);
-         }
-      }
-   }
-}
-
-void Observable::dispatchEvent(Event& e)
-{
-   // create an operation list for waiting
-   OperationList waitList;
-   
-   // lock to process event and prevent registration modification
-   mRegistrationLock.lock();
-   
-   // get the EventId for the event and dispatch it
-   EventId id = e["id"]->getUInt64();
-   dispatchEvent(e, id, waitList);
-   
-   if(!waitList.isEmpty())
-   {
-      // unlock registration and wait for dispatch operations to complete
-      mRegistrationLock.unlock();
-      
-      if(!waitList.waitFor())
-      {
-         // dispatch thread interrupted, so interrupt all
-         // event dispatches and wait for them to complete
-         waitList.interrupt();
-         waitList.waitFor(false);
-         mOpList.interrupt();
-         mOpList.waitFor(false);
-      }
-      
-      // relock registration
-      mRegistrationLock.lock();
-   }
-   
-   // prune operation list
-   mOpList.prune();
-   
-   // unlock registration lock
-   mRegistrationLock.unlock();
-}
-
-void Observable::dispatchEvents()
-{
-   // lock event queue
-   mQueueLock.lock();
-   
-   // continue dispatching until no events or interrupted
-   while(!mEventQueue.empty() && !mOperation->isInterrupted())
-   {
-      // get the next event
-      Event e = mEventQueue.front();
-      mEventQueue.pop_front();
-      
-      // unlock queue, dispatch event, relock queue      
-      mQueueLock.unlock();
-      dispatchEvent(e);
-      mQueueLock.lock();
-   }
-   
-   // turn off dispatching
-   mDispatch = false;
-   
-   // unlock event queue
-   mQueueLock.unlock();
 }
 
 void Observable::registerObserver(
@@ -226,33 +96,23 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
       ObserverMap::iterator i = mObservers.find(id);
       if(i != mObservers.end())
       {
-         // remove the observer from every list
-         for(FilterMap::iterator fi = i->second.begin(); fi != i->second.end();)
+         // remove observer
+         vector<EventFilter> removableFilters;
+         removeObserverFromFilterMap(observer, i->second, removableFilters);
+         
+         // erase filter map if it would be empty after processing
+         // the removable filters
+         if(removableFilters.size() == i->second.size())
          {
-            ObserverList::iterator li = find(
-               fi->second.begin(), fi->second.end(), observer);
-            if(li != fi->second.end())
+            mObservers.erase(i);
+         }
+         // remove all appropriate filters
+         else
+         {
+            for(vector<EventFilter>::iterator fi = removableFilters.begin();
+                fi != removableFilters.end(); fi++)
             {
-               // erase observer from list
-               fi->second.erase(li);
-               
-               // erase filter entry if observer list is empty
-               if(fi->second.empty())
-               {
-                  FilterMap::iterator tmp = fi;
-                  fi++;
-                  i->second.erase(tmp);
-                  
-                  // erase filter map entry if event ID has no more observers
-                  if(i->second.empty())
-                  {
-                     mObservers.erase(i);
-                  }
-               }
-            }
-            else
-            {
-               fi++;
+               i->second.erase(*fi);
             }
          }
       }
@@ -283,39 +143,37 @@ void Observable::unregisterObserver(Observer* observer)
       }
       mOpList.prune();
       
-      // iterate over all filter maps
+      // iterate over all filter maps, keep a list of event IDs to remove
+      vector<EventId> removeIds;
       for(ObserverMap::iterator i = mObservers.begin();
           i != mObservers.end(); i++)
       {
-         // remove the observer from every list
-         for(FilterMap::iterator fi = i->second.begin(); fi != i->second.end();)
+         // remove observer
+         vector<EventFilter> removableFilters;
+         removeObserverFromFilterMap(observer, i->second, removableFilters);
+         
+         // mark filter map for removal if it would be empty after processing
+         // the removable filters
+         if(removableFilters.size() == i->second.size())
          {
-            ObserverList::iterator li = find(
-               fi->second.begin(), fi->second.end(), observer);
-            if(li != fi->second.end())
+            removeIds.push_back(i->first);
+         }
+         // remove all appropriate filters
+         else
+         {
+            for(vector<EventFilter>::iterator fi = removableFilters.begin();
+                fi != removableFilters.end(); fi++)
             {
-               // erase observer from list
-               fi->second.erase(li);
-               
-               // erase filter entry if observer list is empty
-               if(fi->second.empty())
-               {
-                  FilterMap::iterator tmp = fi;
-                  fi++;
-                  i->second.erase(tmp);
-                  
-                  // erase filter map entry if event ID has no more observers
-                  if(i->second.empty())
-                  {
-                     mObservers.erase(i);
-                  }
-               }
-            }
-            else
-            {
-               fi++;
+               i->second.erase(*fi);
             }
          }
+      }
+      
+      // remove all appropriate filter map entries
+      for(std::vector<EventId>::iterator ei = removeIds.begin();
+          ei != removeIds.end(); ei++)
+      {
+         mObservers.erase(*ei);
       }
    }
    mRegistrationLock.unlock();
@@ -463,4 +321,164 @@ void Observable::run()
          mQueueLock.unlock();
       }
    }
+}
+
+void Observable::removeObserverFromFilterMap(
+   Observer* observer, FilterMap& fm,
+   vector<EventFilter>& removableFilters)
+{
+   // remove the observer from every filter's list
+   for(FilterMap::iterator fi = fm.begin(); fi != fm.end(); fi++)
+   {
+      // erase all instances of the observer in this filter's list
+      for(ObserverList::iterator li = fi->second.begin();
+          li != fi->second.end();)
+      {
+         if(*li == observer)
+         {
+            // erase observer entry
+            li = fi->second.erase(li);
+         }
+         else
+         {
+            li++;
+         }
+      }
+      
+      // if filter's list is now empty, mark it for removal
+      if(fi->second.empty())
+      {
+         removableFilters.push_back(fi->first);
+      }
+   }
+}
+
+void Observable::dispatchEvent(
+   Event& e, EventId id, OperationList& waitList)
+{
+   // go through the list of EventId taps
+   EventIdMap::iterator ti = mTaps.find(id);
+   if(ti != mTaps.end())
+   {
+      EventIdMap::iterator end = mTaps.upper_bound(id);
+      for(; ti != end; ti++)
+      {
+         // dispatch event if the tap is the EventId itself
+         if(ti->second == id)
+         {
+            // get the filter map for the EventId tap
+            ObserverMap::iterator oi = mObservers.find(id);
+            if(oi != mObservers.end())
+            {
+               FilterMap& fm = oi->second;
+               
+               // go through each filter
+               bool pass;
+               for(FilterMap::iterator fi = fm.begin(); fi != fm.end(); fi++)
+               {
+                  // check observer filter if appropriate
+                  pass = true;
+                  if(!fi->first.isNull())
+                  {
+                     // filter must be a subset of event
+                     pass = fi->first.isSubset(e);
+                  }
+                  
+                  if(pass)
+                  {
+                     for(ObserverList::iterator li =
+                         fi->second.begin(); li != fi->second.end(); li++)
+                     {
+                        // create and run event dispatcher for observer
+                        // set operation user data to observer
+                        RunnableRef ed = new ObserverDelegate<Observer>(*li, e);
+                        Operation op(ed);
+                        op->setUserData(*li);
+                        mOpRunner->runOperation(op);
+                        
+                        // add all operations to the current operation list
+                        mOpList.add(op);
+                        
+                        // only add serial events to the wait list,
+                        // parallel events are not waited on for completion
+                        if(!e->hasMember("parallel") ||
+                           !e["parallel"]->getBoolean())
+                        {
+                           waitList.add(op);
+                        }
+                     }
+                  }
+               }
+            }
+         }
+         else
+         {
+            // dispatch event to tap
+            dispatchEvent(e, ti->second, waitList);
+         }
+      }
+   }
+}
+
+void Observable::dispatchEvent(Event& e)
+{
+   // create an operation list for waiting
+   OperationList waitList;
+   
+   // lock to process event and prevent registration modification
+   mRegistrationLock.lock();
+   
+   // get the EventId for the event and dispatch it
+   EventId id = e["id"]->getUInt64();
+   dispatchEvent(e, id, waitList);
+   
+   if(!waitList.isEmpty())
+   {
+      // unlock registration and wait for dispatch operations to complete
+      mRegistrationLock.unlock();
+      
+      if(!waitList.waitFor())
+      {
+         // dispatch thread interrupted, so interrupt all
+         // event dispatches and wait for them to complete
+         waitList.interrupt();
+         waitList.waitFor(false);
+         mOpList.interrupt();
+         mOpList.waitFor(false);
+      }
+      
+      // relock registration
+      mRegistrationLock.lock();
+   }
+   
+   // prune operation list
+   mOpList.prune();
+   
+   // unlock registration lock
+   mRegistrationLock.unlock();
+}
+
+void Observable::dispatchEvents()
+{
+   // lock event queue
+   mQueueLock.lock();
+   
+   // continue dispatching until no events or interrupted
+   while(!mEventQueue.empty() && !mOperation->isInterrupted())
+   {
+      // get the next event
+      Event e = mEventQueue.front();
+      mEventQueue.pop_front();
+      
+      // unlock queue, dispatch event, relock queue      
+      mQueueLock.unlock();
+      dispatchEvent(e);
+      mQueueLock.lock();
+   }
+   
+   // turn off dispatching
+   mDispatch = false;
+   
+   // unlock event queue
+   mQueueLock.unlock();
 }

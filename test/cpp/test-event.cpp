@@ -429,14 +429,15 @@ void runEventFilterTest(TestRunner& tr)
       e["foo"] = "bar";
       e["apples"] = 10;
       
-      EventFilter f1f2;
-      f1f2["moo"] = true;
+      EventFilter f1;
+      f1["moo"] = true;
       EventWaiter ew1(&ec);
-      ew1.start(evType, &f1f2);
+      ew1.start(evType, &f1);
       
       EventFilter f2;
+      f2["moo"] = true;
       EventWaiter ew2(&ec);
-      ew2.start(evType, &f1f2);
+      ew2.start(evType, &f2);
       
       EventFilter f3;
       f3["moo"] = false;

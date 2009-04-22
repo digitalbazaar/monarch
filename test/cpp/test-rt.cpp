@@ -15,6 +15,8 @@
 #include "db/data/json/JsonWriter.h"
 
 #include <cstdlib>
+#include <algorithm>
+#include <map>
 
 using namespace std;
 using namespace db::test;
@@ -942,6 +944,30 @@ void runDynamicObjectTest(TestRunner& tr)
       DynamicObject d5;
       d5 = "fourth";
       assert(dArray->indexOf(d5) == -1);
+   }
+   
+   {
+      // test compare cloned object
+      DynamicObject d1;
+      d1["map"]["key"] = "value";                                              
+      DynamicObject d2 = d1.clone();
+      assert(d1 == d2);
+      assert(!(d1 < d2));
+   }
+   
+   {
+      // test same object as map key
+      DynamicObject d1;
+      d1["map"]["key"] = "value";                                              
+      DynamicObject d2;
+      d2["map"]["key"] = "value";
+      assert(d1 == d2);
+      assert(!(d1 < d2));
+      
+      std::map<DynamicObject, int> maptest;
+      maptest.insert(make_pair(d1, 1));
+      maptest.insert(make_pair(d2, 1));
+      assert(maptest.size() == 1);
    }
    
    tr.pass();
