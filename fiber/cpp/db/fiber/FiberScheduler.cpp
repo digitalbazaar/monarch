@@ -224,6 +224,20 @@ void FiberScheduler::sleep(Fiber* fiber)
    fiber->getContext()->swapBack();
 }
 
+void FiberScheduler::wakeupSelf(Fiber* fiber)
+{
+   // lock scheduling while waking up sleeping fiber
+   mScheduleLock.lock();
+   {
+      // only *actually* wake up self if sleeping
+      if(fiber->getState() == Fiber::Sleeping)
+      {
+         wakeup(fiber->getId());
+      }
+   }
+   mScheduleLock.unlock();
+}
+
 void FiberScheduler::wakeup(FiberId id)
 {
    // lock scheduling while waking up sleeping fiber

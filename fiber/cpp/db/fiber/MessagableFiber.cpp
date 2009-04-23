@@ -43,7 +43,7 @@ void MessagableFiber::addMessage(db::rt::DynamicObject& msg)
    mMessageLock.unlock();
    
    // wake up self if sleeping
-   mScheduler->wakeup(getId());
+   mScheduler->wakeupSelf(this);
 }
 
 bool MessagableFiber::canSleep()

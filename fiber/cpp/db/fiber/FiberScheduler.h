@@ -140,6 +140,14 @@ public:
    virtual void sleep(Fiber* fiber);
    
    /**
+    * Wakes up this sleeping fiber. This *must* be called by the fiber that
+    * is to be woken up.
+    * 
+    * @param id the FiberId of the fiber to wakeup.
+    */
+   virtual void wakeupSelf(Fiber* fiber);
+   
+   /**
     * Wakes up any sleeping fiber. If the passed fiber ID has no associated
     * fiber, then this is a no-op.
     * 
