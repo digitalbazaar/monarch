@@ -40,6 +40,11 @@ inline void Fiber::sleep()
    mScheduler->sleep(this);
 }
 
+inline void Fiber::wakeup()
+{
+   mScheduler->wakeupSelf(this);
+}
+
 void Fiber::setScheduler(FiberId id, FiberScheduler* scheduler)
 {
    mId = id;

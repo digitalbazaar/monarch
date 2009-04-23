@@ -183,6 +183,15 @@ public:
     * This method *must* only be called inside run().
     */
    virtual void sleep();
+   
+   /**
+    * Causes this fiber to wakeup, if this fiber was asleep.
+    * 
+    * This method may be called outside of run to wake up this fiber, but
+    * *must* be done with appropriate protections. This method must only
+    * be called when it is not possible for this fiber to be exiting. 
+    */
+   virtual void wakeup();
 };
 
 } // end namespace fiber

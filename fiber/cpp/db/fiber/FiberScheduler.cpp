@@ -141,6 +141,8 @@ void FiberScheduler::run()
       // else a fiber has been found
       else
       {
+         // fiber's state can only be set to New if it
+         // hasn't ever been run yet, so no need to lock here
          if(fiber->getState() == Fiber::New)
          {
             // initialize the fiber's context
@@ -156,7 +158,13 @@ void FiberScheduler::run()
             }
          }
          
-         if(fiber->getState() != Fiber::Running)
+         // Note: The fiber's state *must* have been New or Running if it was
+         // selected via nextFiber. The fiber cannot be running currently.
+         // The only state the fiber can be set to outside of its own context
+         // is Running. It could only have had its state set to Running if its
+         // state was Sleeping, which is impossible. Therefore, the fiber's
+         // state will definitely be New if it failed to init.
+         if(fiber->getState() == Fiber::New)
          {
             // failed to init fiber, not enough memory, lock to re-queue it
             mScheduleLock.lock();
@@ -165,10 +173,15 @@ void FiberScheduler::run()
             }
             mScheduleLock.unlock();
          }
+         // fiber's state is Running
          else
          {
             // swap in the fiber's context
             scheduler->swap(fiber->getContext());
+            
+            // Note: Here the fiber's state could be changed externally
+            // from Sleeping to Running (or vice versa), so we must lock
+            // first to ensure we don't cause any evil race conditions.
             
             // lock scheduling while adding fiber back to queue
             mScheduleLock.lock();
@@ -261,6 +274,10 @@ void FiberScheduler::wakeup(FiberId id)
 
 void FiberScheduler::exit(Fiber* fiber)
 {
+   // no need to lock to modify state here, it could only be changed to
+   // Running and only if the state was Sleeping, which it can't be since
+   // the state *had* to be Running since we are exiting from within a
+   // fiber's context
    fiber->setState(Fiber::Exited);
    
    // load scheduler back in
