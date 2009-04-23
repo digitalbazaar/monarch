@@ -170,10 +170,10 @@ void FiberScheduler::run()
             // swap in the fiber's context
             scheduler->swap(fiber->getContext());
             
-            if(fiber->getState() != Fiber::Sleeping)
+            // lock scheduling while adding fiber back to queue
+            mScheduleLock.lock();
             {
-               // lock scheduling while adding fiber back to queue
-               mScheduleLock.lock();
+               if(fiber->getState() != Fiber::Sleeping)
                {
                   // if fiber is running, put it in the back of the queue
                   if(fiber->getState() == Fiber::Running)
@@ -189,12 +189,12 @@ void FiberScheduler::run()
                      // is safe to try init on new fibers again
                      tryInit = true;
                   }
+                  
+                  // notify that a fiber is available
+                  fiberAvailable();
                }
-               mScheduleLock.unlock();
-               
-               // notify that a fiber is available
-               fiberAvailable();
             }
+            mScheduleLock.unlock();
          }
       }
    }
