@@ -73,6 +73,18 @@ bool FileOutputStream::write(const char* b, int length)
    return rval;
 }
 
+bool FileOutputStream::flush()
+{
+   bool rval = false;
+   
+   if(ensureOpen())
+   {
+      fflush(mHandle);
+   }
+   
+   return rval;
+}
+
 void FileOutputStream::close()
 {
    if(mHandle != NULL)
