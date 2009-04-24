@@ -298,7 +298,7 @@ void FiberScheduler::wakeup(FiberId id)
 void FiberScheduler::exit(Fiber* fiber)
 {
    // no need to lock to modify state here, it could only be changed to
-   // Running and only if the state was Sleeping, which it can't be since
+   // Waking and only if the state was Sleeping, which it can't be since
    // the state *had* to be Running since we are exiting from within a
    // fiber's context
    fiber->setState(Fiber::Exited);
