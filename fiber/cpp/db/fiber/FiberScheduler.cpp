@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/fiber/FiberScheduler.h"
 
@@ -187,7 +187,13 @@ void FiberScheduler::run()
             // lock scheduling while adding fiber back to queue
             mScheduleLock.lock();
             {
-               if(fiber->getState() != Fiber::Sleeping)
+               if(fiber->getState() == Fiber::Sleeping)
+               {
+                  // do not re-queue the fiber, instead add it to a map
+                  // of sleeping fibers
+                  mSleepingFibers.insert(make_pair(fiber->getId(), fiber));
+               }
+               else
                {
                   // if fiber is running, put it in the back of the queue
                   if(fiber->getState() == Fiber::Running)
@@ -235,8 +241,15 @@ void FiberScheduler::sleep(Fiber* fiber)
       // only *actually* sleep fiber if it can be sleeped at the moment
       if(fiber->canSleep())
       {
+         // Note: Simply set the fiber's state here. The fiber will be added
+         // to a map of sleeping fibers once it is swapped out. That map insert
+         // must occur after swapping the fiber out to prevent a race condition
+         // where the fiber can be double-scheduled -- which could occur if
+         // the fiber was insert into the sleep map here, then wakeup() was
+         // called immediately causing the fiber to be queued for scheduling
+         // before it was swapped out -- and then another scheduling thread
+         // could run the fiber concurrently causing evil havok.
          fiber->setState(Fiber::Sleeping);
-         mSleepingFibers.insert(make_pair(fiber->getId(), fiber));
       }
    }
    mScheduleLock.unlock();
@@ -297,10 +310,10 @@ void FiberScheduler::wakeup(FiberId id)
 
 void FiberScheduler::exit(Fiber* fiber)
 {
-   // no need to lock to modify state here, it could only be changed to
+   // Note: No need to lock to modify state here, it could only be changed to
    // Waking and only if the state was Sleeping, which it can't be since
-   // the state *had* to be Running since we are exiting from within a
-   // fiber's context
+   // the state *had* to be Running since we are exiting from within the
+   // fiber's context.
    fiber->setState(Fiber::Exited);
    
    // load scheduler back in
