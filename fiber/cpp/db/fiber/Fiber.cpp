@@ -78,5 +78,5 @@ inline FiberContext* Fiber::getContext()
 
 inline bool Fiber::canSleep()
 {
-   return true;
+   return false;
 }

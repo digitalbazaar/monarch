@@ -158,13 +158,15 @@ void FiberScheduler::run()
             }
          }
          
-         // Note: The fiber's state *must* have been New or Running if it was
-         // selected via nextFiber. The fiber cannot be running currently.
-         // The only state the fiber can be set to outside of its own context
-         // is Waking. It could only have had its state set to Waking if its
-         // state was Sleeping, which is impossible given the first sentence.
-         // Therefore, the fiber's state will definitely be New if it failed
-         // to init.
+         /*
+         Note: The fiber's state *must* have been New or Running if it was
+         selected via nextFiber. The fiber cannot be running currently.
+         The only state the fiber can be set to outside of its own context
+         is Waking. It could only have had its state set to Waking if its
+         state was Sleeping, which is impossible given the first sentence.
+         Therefore, the fiber's state will definitely be New if it failed
+         to init.
+         */
          if(fiber->getState() == Fiber::New)
          {
             // failed to init fiber, not enough memory, lock to re-queue it
@@ -189,11 +191,48 @@ void FiberScheduler::run()
             {
                if(fiber->getState() == Fiber::Sleeping)
                {
-                  // do not re-queue the fiber, instead add it to a map
-                  // of sleeping fibers
-                  mSleepingFibers.insert(make_pair(fiber->getId(), fiber));
+                  /*
+                  Note: We must check the canSleep() method here and not
+                  in the above sleep() call. We must do this because there
+                  only two ways for a fiber to keep running after a call
+                  to put it to sleep. The first is to wakeup the fiber.
+                  However, if a fiber was going to sleep but hadn't been
+                  swapped out yet, then a wakeup call will fail to wake
+                  up the fiber (because while the fiber's state will have
+                  been set to sleeping, it will not have entered the map
+                  of sleeping fibers yet). Since a wakeup call may fail, the
+                  only other way to keep a fiber running is for it to fail
+                  its canSleep() call. A fiber-extending class can specify
+                  the conditions underwhich a fiber can sleep in this method
+                  to prevent it from sleeping if it may have missing that
+                  critical wakeup() call. We make that call here, because
+                  if we did it in the sleep() call it would have the same
+                  potential problem as the wakeup() call: it could be missed
+                  and cause the fiber to sleep indefinitely.
+                  
+                  With this implementation, the user can safely implement
+                  a canSleep() method that checks a condition (within a
+                  mutex) that will be set elsewhere (within the mutex)
+                  *followed by* a mutex-free wake up call. This
+                  implementation prevents a deadlock scenario.
+                  */
+                  
+                  // only *actually* sleep fiber if it can be sleeped at
+                  // the moment
+                  if(fiber->canSleep())
+                  {
+                     // do not re-queue the fiber, instead add it to a map
+                     // of sleeping fibers
+                     mSleepingFibers.insert(make_pair(fiber->getId(), fiber));
+                  }
+                  else
+                  {
+                     // change fiber state back to running
+                     fiber->setState(Fiber::Running);
+                  }
                }
-               else
+               
+               if(fiber->getState() != Fiber::Sleeping)
                {
                   // if fiber is running, put it in the back of the queue
                   if(fiber->getState() == Fiber::Running)
@@ -210,12 +249,14 @@ void FiberScheduler::run()
                      tryInit = true;
                   }
                   
-                  // Note: If the fiber's state is Waking, we don't add it
-                  // to the queue as this was done when its state was changed
-                  // to Waking. Also, it is worth noting that its state cannot
-                  // be changed back to Sleeping until the fiber runs again
-                  // in its own context, so there are no race conditions
-                  // concerning the fiber queue.
+                  /*
+                  Note: If the fiber's state is Waking, we don't add it
+                  to the queue as this was done when its state was changed
+                  to Waking. Also, it is worth noting that its state cannot
+                  be changed back to Sleeping until the fiber runs again
+                  in its own context, so there are no race conditions
+                  concerning the fiber queue.
+                  */
                   
                   // notify that a fiber is available
                   fiberAvailable();
@@ -238,19 +279,18 @@ void FiberScheduler::sleep(Fiber* fiber)
    // lock scheduling to insert sleeping fiber entry
    mScheduleLock.lock();
    {
-      // only *actually* sleep fiber if it can be sleeped at the moment
-      if(fiber->canSleep())
-      {
-         // Note: Simply set the fiber's state here. The fiber will be added
-         // to a map of sleeping fibers once it is swapped out. That map insert
-         // must occur after swapping the fiber out to prevent a race condition
-         // where the fiber can be double-scheduled -- which could occur if
-         // the fiber was insert into the sleep map here, then wakeup() was
-         // called immediately causing the fiber to be queued for scheduling
-         // before it was swapped out -- and then another scheduling thread
-         // could run the fiber concurrently causing evil havok.
-         fiber->setState(Fiber::Sleeping);
-      }
+      /*
+      Note: Simply set the fiber's state here. The fiber will be added
+      to a map of sleeping fibers, if it "canSleep()" once it is swapped
+      out. That map insert must occur after swapping the fiber out to
+      prevent a race condition where the fiber can be double-scheduled --
+      which could occur if the fiber was insert into the sleep map here,
+      then wakeup() was called immediately causing the fiber to be queued
+      for scheduling before it was swapped out -- and then another
+      scheduling thread could run the fiber concurrently causing evil
+      havok.
+      */
+      fiber->setState(Fiber::Sleeping);
    }
    mScheduleLock.unlock();
    
@@ -281,20 +321,22 @@ void FiberScheduler::wakeup(FiberId id)
       FiberMap::iterator i = mSleepingFibers.find(id);
       if(i != mSleepingFibers.end())
       {
-         // Note: Here we must set a special Waking state for the fiber. This
-         // is because a fiber may have just put itself to sleep and the
-         // scheduler's context may have been swapped in in another thread.
-         // Since the scheduler will be blocked until we return here, we will
-         // have already added the fiber back into the fiber queue -- and if
-         // we were to simply set a state of Running, then once the scheduler
-         // gets unblocked it would also add the fiber into the fiber queue,
-         // causing some serious evil. Instead, we set a Waking state and
-         // allow the scheduler to convert Waking state fibers back into
-         // Running state fibers once they are found during the scheduling
-         // process. Also, it is worth noting that a fiber's state can only
-         // be set to Sleeping when we are inside of a fiber's context, so
-         // we needn't worry about a similar (but reverse) situation occurring
-         // there.
+         /*
+         Note: Here we must set a special Waking state for the fiber. This
+         is because a fiber may have just put itself to sleep and the
+         scheduler's context may have been swapped in in another thread.
+         Since the scheduler will be blocked until we return here, we will
+         have already added the fiber back into the fiber queue -- and if
+         we were to simply set a state of Running, then once the scheduler
+         gets unblocked it would also add the fiber into the fiber queue,
+         causing some serious evil. Instead, we set a Waking state and
+         allow the scheduler to convert Waking state fibers back into
+         Running state fibers once they are found during the scheduling
+         process. Also, it is worth noting that a fiber's state can only
+         be set to Sleeping when we are inside of a fiber's context, so
+         we needn't worry about a similar (but reverse) situation occurring
+         there.
+         */
          
          // update fiber state, add to queue, remove from sleeping fibers map
          i->second->setState(Fiber::Waking);
@@ -310,10 +352,12 @@ void FiberScheduler::wakeup(FiberId id)
 
 void FiberScheduler::exit(Fiber* fiber)
 {
-   // Note: No need to lock to modify state here, it could only be changed to
-   // Waking and only if the state was Sleeping, which it can't be since
-   // the state *had* to be Running since we are exiting from within the
-   // fiber's context.
+   /*
+   Note: No need to lock to modify state here, it could only be changed to
+   Waking and only if the state was Sleeping, which it can't be since
+   the state *had* to be Running since we are exiting from within the
+   fiber's context.
+   */
    fiber->setState(Fiber::Exited);
    
    // load scheduler back in

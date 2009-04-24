@@ -116,15 +116,6 @@ public:
    virtual void addMessage(db::rt::DynamicObject& msg);
    
    /**
-    * Determines whether or not a fiber is capable of sleeping when a
-    * particular call to sleep is made. This method will be called by this
-    * fiber's scheduler, inside of its scheduler lock, right before sleeping
-    * this fiber. Any call to wake up this fiber will be blocked while this
-    * method is running.
-    * 
-    * If this method returns false, the fiber will not be sleeped, but its
-    * context will still be swapped out.
-    * 
     * A MessagableFiber can only be put to sleep when it has no incoming
     * messages.
     * 

@@ -151,14 +151,43 @@ public:
     * Determines whether or not a fiber is capable of sleeping when a
     * particular call to sleep is made. This method will be called by this
     * fiber's scheduler, inside of its scheduler lock, right before sleeping
-    * this fiber. Any call to wake up this fiber will be blocked while this
-    * method is running.
+    * this fiber. The fiber is guaranteed not to change state while this call
+    * is being made. To create deadlock free code, whatever condition would
+    * cause this fiber to wake up should be checked (within a mutex) in this
+    * call. The condition should be set within the same mutex elsewhere --
+    * followed by a call to wakeup().
     * 
     * If this method returns false, the fiber will not be sleeped, but its
     * context will still be swapped out.
     * 
-    * This method is useful for preventing race conditions in extending fiber
-    * classes. The base fiber class is always capable of sleeping.
+    * This method is essential for preventing race conditions in extending
+    * fiber classes that need to sleep. The base fiber class is never capable
+    * of sleeping.
+    * 
+    * Note: One way to implement deadlock-free and reliable sleep-conditional
+    * fibers:
+    * 
+    * class MyFiber : public Fiber
+    * {
+    *    bool mCondition;
+    * 
+    *    bool canSleep()
+    *    {
+    *       bool rval;
+    *       mutex.lock();
+    *       rval = mCondition;
+    *       mutex.unlock();
+    *       return rval;
+    *    }
+    * 
+    *    void myWakeup(bool cond)
+    *    {
+    *       mutex.lock();
+    *       mCondition = cond;
+    *       mutex.unlock();
+    *       wakeupSelf();
+    *    }
+    * }
     * 
     * @return true if this fiber can be put to sleep at the moment, false
     *         if not.
