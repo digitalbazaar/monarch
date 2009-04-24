@@ -46,7 +46,8 @@ public:
       New         = 0,
       Running     = 1 << 0,
       Sleeping    = 1 << 1,
-      Exited      = 1 << 2,
+      Waking      = 1 << 2,
+      Exited      = 1 << 3,
       
       // a deleted fiber should be in this state
       Dead        = 1 << 7

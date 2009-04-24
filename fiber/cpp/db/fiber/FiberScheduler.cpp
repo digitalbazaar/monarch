@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <setjmp.h>
+#include <cassert>
 
 using namespace std;
 using namespace db::fiber;
@@ -161,9 +162,10 @@ void FiberScheduler::run()
          // Note: The fiber's state *must* have been New or Running if it was
          // selected via nextFiber. The fiber cannot be running currently.
          // The only state the fiber can be set to outside of its own context
-         // is Running. It could only have had its state set to Running if its
-         // state was Sleeping, which is impossible. Therefore, the fiber's
-         // state will definitely be New if it failed to init.
+         // is Waking. It could only have had its state set to Waking if its
+         // state was Sleeping, which is impossible given the first sentence.
+         // Therefore, the fiber's state will definitely be New if it failed
+         // to init.
          if(fiber->getState() == Fiber::New)
          {
             // failed to init fiber, not enough memory, lock to re-queue it
@@ -180,8 +182,8 @@ void FiberScheduler::run()
             scheduler->swap(fiber->getContext());
             
             // Note: Here the fiber's state could be changed externally
-            // from Sleeping to Running (or vice versa), so we must lock
-            // first to ensure we don't cause any evil race conditions.
+            // from Sleeping to Waking, so we must lock first to ensure
+            // ensure we don't cause any evil race conditions.
             
             // lock scheduling while adding fiber back to queue
             mScheduleLock.lock();
@@ -194,7 +196,7 @@ void FiberScheduler::run()
                      mFiberQueue.push_back(fiber);
                   }
                   // fiber is dying, so put it in front for quicker cleanup
-                  else
+                  else if(fiber->getState() == Fiber::Exited)
                   {
                      mFiberQueue.push_front(fiber);
                      
@@ -202,6 +204,13 @@ void FiberScheduler::run()
                      // is safe to try init on new fibers again
                      tryInit = true;
                   }
+                  
+                  // Note: If the fiber's state is Waking, we don't add it
+                  // to the queue as this was done when its state was changed
+                  // to Waking. Also, it is worth noting that its state cannot
+                  // be changed back to Sleeping until the fiber runs again
+                  // in its own context, so there are no race conditions
+                  // concerning the fiber queue.
                   
                   // notify that a fiber is available
                   fiberAvailable();
@@ -260,8 +269,23 @@ void FiberScheduler::wakeup(FiberId id)
       FiberMap::iterator i = mSleepingFibers.find(id);
       if(i != mSleepingFibers.end())
       {
+         // Note: Here we must set a special Waking state for the fiber. This
+         // is because a fiber may have just put itself to sleep and the
+         // scheduler's context may have been swapped in in another thread.
+         // Since the scheduler will be blocked until we return here, we will
+         // have already added the fiber back into the fiber queue -- and if
+         // we were to simply set a state of Running, then once the scheduler
+         // gets unblocked it would also add the fiber into the fiber queue,
+         // causing some serious evil. Instead, we set a Waking state and
+         // allow the scheduler to convert Waking state fibers back into
+         // Running state fibers once they are found during the scheduling
+         // process. Also, it is worth noting that a fiber's state can only
+         // be set to Sleeping when we are inside of a fiber's context, so
+         // we needn't worry about a similar (but reverse) situation occurring
+         // there.
+         
          // update fiber state, add to queue, remove from sleeping fibers map
-         i->second->setState(Fiber::Running);
+         i->second->setState(Fiber::Waking);
          mFiberQueue.push_back(i->second);
          mSleepingFibers.erase(i);
          
@@ -305,12 +329,15 @@ Fiber* FiberScheduler::nextFiber()
          // check state of fiber
          switch(fiber->getState())
          {
+            // if a fiber is waking, set it to running and schedule it
+            case Fiber::Waking:
+               fiber->setState(Fiber::Running);
             // if fiber is new or running, it can be scheduled
             case Fiber::New:
             case Fiber::Running:
                rval = fiber;
                break;
-               // exited or dead fibers must be deleted
+            // exited or dead fibers must be deleted
             case Fiber::Exited:
                fiber->setState(Fiber::Dead);
             case Fiber::Dead:
@@ -320,8 +347,9 @@ Fiber* FiberScheduler::nextFiber()
                delete fiber;
                fiber = NULL;
                break;
-               // sleeping fibers cannot be scheduled
+            // a sleeping fiber should *NEVER* be in the queue
             case Fiber::Sleeping:
+               assert(false);
                break;
          }
          
