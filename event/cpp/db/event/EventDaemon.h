@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_event_EventDaemon_H
 #define db_event_EventDaemon_H
@@ -30,6 +30,7 @@ protected:
    struct EventData
    {
       Event event;
+      Event cloned;
       uint32_t interval;
       int count;
       uint32_t remaining;

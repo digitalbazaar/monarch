@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/event/EventDaemon.h"
 
@@ -12,7 +12,8 @@ using namespace db::rt;
 using namespace db::util;
 
 EventDaemon::EventData::EventData(Event& e, uint32_t i, int c, int r) :
-   event(e.clone())
+   event(e),
+   cloned(e.clone())
 {
    interval = remaining = i;
    count = c;
@@ -304,7 +305,7 @@ void EventDaemon::run()
                if(i->remaining <= waited)
                {
                   // schedule event, reset remaining time
-                  mEventController->schedule(i->event);
+                  mEventController->schedule(i->cloned);
                   i->remaining = i->interval;
                   
                   // decrement count as appropriate
