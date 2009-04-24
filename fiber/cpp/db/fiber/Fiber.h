@@ -169,7 +169,7 @@ public:
     * 
     * class MyFiber : public Fiber
     * {
-    *    bool mCondition;
+    *    volatile bool mCondition;
     * 
     *    bool canSleep()
     *    {
@@ -180,12 +180,12 @@ public:
     *       return rval;
     *    }
     * 
-    *    void myWakeup(bool cond)
+    *    void myWakeup()
     *    {
     *       mutex.lock();
-    *       mCondition = cond;
+    *       mCondition = false;
     *       mutex.unlock();
-    *       wakeupSelf();
+    *       wakeup();
     *    }
     * }
     * 
