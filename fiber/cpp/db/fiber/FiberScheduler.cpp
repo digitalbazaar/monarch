@@ -5,7 +5,6 @@
 
 #include <algorithm>
 #include <setjmp.h>
-#include <cassert>
 
 using namespace std;
 using namespace db::fiber;
@@ -349,7 +348,10 @@ Fiber* FiberScheduler::nextFiber()
                break;
             // a sleeping fiber should *NEVER* be in the queue
             case Fiber::Sleeping:
-               assert(false);
+               fprintf(stderr,
+                  "A sleeping fiber was scheduled to run, which should "
+                  "never *ever* happen. The fiber code is broken.\n");
+               ::exit(1);
                break;
          }
          
