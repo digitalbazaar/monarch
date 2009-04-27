@@ -107,9 +107,10 @@ public:
    /**
     * Gets the current thread's Operation. This method assumes that you
     * know that the current thread has an Operation. Do not call it if
-    * you aren't certain of this.
+    * you aren't certain of this, it may result in memory corruption.
     * 
-    * @return the current thread's Operation.
+    * @return the current thread's Operation, NULL if the Operation is not
+    *         registered with this dispatcher.
     */
    virtual Operation getCurrentOperation();
    

@@ -210,11 +210,21 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
 
 Operation OperationDispatcher::getCurrentOperation()
 {
+   Operation rval(NULL);
+   
    // get the current thread's OperationImpl
    Thread* thread = Thread::currentThread();
    OperationImpl* impl = (OperationImpl*)thread->getUserData();
-   OperationMap::iterator i = mOpMap.find(impl);
-   return i->second;
+   if(impl != NULL)
+   {
+      OperationMap::iterator i = mOpMap.find(impl);
+      if(i != mOpMap.end())
+      {
+         rval = i->second;
+      }
+   }
+   
+   return rval;
 }
 
 ThreadPool* OperationDispatcher::getThreadPool()
