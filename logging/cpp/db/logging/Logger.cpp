@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "db/data/json/JsonWriter.h"
@@ -7,6 +7,7 @@
 #include "db/io/OStreamOutputStream.h"
 #include "db/util/AnsiEscapeCodes.h"
 #include "db/util/Date.h"
+#include "db/util/UniqueList.h"
 #include "db/rt/Thread.h"
 
 #include <iostream>
@@ -186,6 +187,29 @@ void Logger::clearLoggers()
    if(sLoggers != NULL)
    {
       sLoggers->clear();
+   }
+}
+
+void Logger::flushLoggers()
+{
+   if(sLoggers != NULL)
+   {
+      // create a unique list of loggers to flush
+      UniqueList<Logger*> loggers;
+      
+      // iterate over all loggers adding them to a unique list
+      for(LoggerMap::iterator i = sLoggers->begin(); i != sLoggers->end(); i++)
+      {
+         loggers.add(i->second);
+      }
+      
+      // flush unique loggers
+      IteratorRef<Logger*> itr = loggers.getIterator();
+      while(itr->hasNext())
+      {
+         Logger* logger = itr->next();
+         logger->flush();
+      }
    }
 }
 
@@ -454,6 +478,10 @@ bool Logger::log(
    return rval;
 }
 
+void Logger::flush()
+{
+   // nothing to do in default implementation
+}
 
 void Logger::vLogToLoggers(
    Category* registeredCat,

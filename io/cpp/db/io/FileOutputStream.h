@@ -21,6 +21,16 @@ namespace io
  */
 class FileOutputStream : public OutputStream
 {
+public:
+   /**
+    * An enum for using stdout or stderr.
+    */
+   enum StdOutput
+   {
+      Out,
+      Err
+   };
+   
 protected:
    /**
     * The File to write to.
@@ -36,14 +46,6 @@ protected:
     * The file handle to write with.
     */
    FILE* mHandle;
-   
-   /**
-    * Ensures the file is open for writing.
-    * 
-    * @return true if the file is opened for writing, false if it cannot be
-    *         opened.
-    */
-   bool ensureOpen();
 
 public:
    /**
@@ -53,6 +55,14 @@ public:
     * @param append true to append to the File if it exists, false to overwrite.
     */
    FileOutputStream(File& file, bool append = false);
+   
+   /**
+    * Creates a new FileOutputStream that uses either stdout or stderror for
+    * writing.
+    * 
+    * @param out either StdOutput::Out or StdOutput::Err to write to.
+    */
+   FileOutputStream(StdOutput out);
    
    /**
     * Destructs this FileOutputStream.
@@ -84,6 +94,15 @@ public:
     * Closes the stream.
     */
    virtual void close();
+   
+protected:
+   /**
+    * Ensures the file is open for writing.
+    * 
+    * @return true if the file is opened for writing, false if it cannot be
+    *         opened.
+    */
+   bool ensureOpen();
 };
 
 } // end namespace io

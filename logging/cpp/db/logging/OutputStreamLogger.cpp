@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "db/logging/OutputStreamLogger.h"
@@ -65,6 +65,18 @@ void OutputStreamLogger::log(const char* message, size_t length)
       if(mStream != NULL)
       {
          mStream->write(message, length);
+      }
+   }
+   mLock.unlock();
+}
+
+void OutputStreamLogger::flush()
+{
+   mLock.lock();
+   {
+      if(mStream != NULL)
+      {
+         mStream->flush();
       }
    }
    mLock.unlock();

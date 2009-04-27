@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_logging_OutputStreamLogger_H
 #define db_logging_OutputStreamLogger_H
@@ -85,6 +85,11 @@ public:
     * @param length length of message.
     */
    virtual void log(const char* message, size_t length);
+   
+   /**
+    * Explicitly flush any output that hasn't been flushed yet.
+    */
+   virtual void flush();
 };
 
 } // end namespace logging
