@@ -27,8 +27,8 @@ public:
     */
    enum StdOutput
    {
-      Out,
-      Err
+      StdOut,
+      StdErr
    };
    
 protected:
@@ -60,7 +60,8 @@ public:
     * Creates a new FileOutputStream that uses either stdout or stderror for
     * writing.
     * 
-    * @param out either StdOutput::Out or StdOutput::Err to write to.
+    * @param out either FileOutputStream::StdOut or FileOutputStream::StdErr to
+    *            write to.
     */
    FileOutputStream(StdOutput out);
    

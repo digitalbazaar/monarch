@@ -382,7 +382,8 @@ bool App::startLogging()
       const char* logFile = cfg["log"]->getString();
       if(strcmp(logFile, "-") == 0)
       {
-         OutputStream* logStream = new OStreamOutputStream(&cout);
+         OutputStream* logStream = new FileOutputStream(
+            FileOutputStream::StdOut);
          mLogger = new OutputStreamLogger(logStream, true);
       }
       else

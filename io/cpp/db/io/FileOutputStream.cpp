@@ -21,7 +21,7 @@ FileOutputStream::FileOutputStream(File& file, bool append) :
 FileOutputStream::FileOutputStream(StdOutput out) :
    mFile((FileImpl*)NULL),
    mAppend(false),
-   mHandle((out == Out) ? stdout : stderr)
+   mHandle((out == StdOut) ? stdout : stderr)
 {
 }
 
@@ -71,6 +71,7 @@ bool FileOutputStream::flush()
 
 void FileOutputStream::close()
 {
+   // (mFile is null when using stdout/stderr)
    if(mHandle != NULL && !mFile.isNull())
    {
       // close the stream
@@ -83,8 +84,8 @@ bool FileOutputStream::ensureOpen()
 {
    bool rval = true;
    
-   // try to open the file
-   if(mHandle == NULL)
+   // try to open the file (mFile is null when using stdout/stderr)
+   if(mHandle == NULL && !mFile.isNull())
    {
       mHandle = fopen(mFile->getAbsolutePath(), mAppend ? "ab" : "wb");
       if(mHandle == NULL)
