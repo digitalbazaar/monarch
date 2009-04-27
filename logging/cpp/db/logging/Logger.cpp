@@ -4,13 +4,11 @@
 
 #include "db/data/json/JsonWriter.h"
 #include "db/logging/Logger.h"
-#include "db/io/OStreamOutputStream.h"
 #include "db/util/AnsiEscapeCodes.h"
 #include "db/util/Date.h"
 #include "db/util/UniqueList.h"
 #include "db/rt/Thread.h"
 
-#include <iostream>
 #include <sstream>
 #include <cstdlib>
 
