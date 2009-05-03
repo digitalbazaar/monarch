@@ -38,7 +38,10 @@ void runValidatorTest(TestRunner& tr)
       assertStrCmp(
          Exception::getLast()->getType(), "db.validation.ValidationError");
       assertStrCmp(
-         Exception::getLast()->getMessage(), "Object not valid.");
+         Exception::getLast()->getMessage(), 
+         "The given object does not meet all of the data validation "
+         "requirements. Please examine the error details for more information "
+         "about the specific requirements.");
       Exception::clearLast();
       tr.passIfNoException();
    }
