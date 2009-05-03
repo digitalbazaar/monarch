@@ -72,7 +72,7 @@ bool Array::isValid(
       DynamicObject detail =
          context->addError("db.validation.TypeError", &obj);
       detail["validator"] = "db.validator.Array";
-      detail["message"] = "Object not an Array!";
+      detail["message"] = "The given object type must be an Array.";
    }
    
    if(rval)

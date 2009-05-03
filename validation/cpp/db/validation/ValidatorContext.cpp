@@ -102,8 +102,12 @@ DynamicObject ValidatorContext::addError(
    
    // setup error detail
    errorDetail["type"] = type;
-   // FIXME: localize message
-   errorDetail["message"] = "Invalid value!";
+   // FIXME: localize message -- lehn
+   // FIXME: really? do we need to mention this, because we'd have to
+   //        do this for every string in the system.. -- manu
+   errorDetail["message"] = "The given value does not meet all of the data "
+      "validation requirements. Please examine the error details for more "
+      "information about the specific requirements.";
    if(object != NULL)
    {
       errorDetail["invalidValue"] = *object;
@@ -120,7 +124,10 @@ DynamicObject ValidatorContext::addError(
       if(!Exception::hasLast())
       {
          e = new Exception(
-            "Object not valid.", "db.validation.ValidationError");
+            "The given object does not meet all of the data validation "
+            "requirements. Please examine the error details for more "
+            "information about the specific requirements.", 
+            "db.validation.ValidationError");
          Exception::setLast(e, false);
       }
       else
@@ -133,7 +140,10 @@ DynamicObject ValidatorContext::addError(
             // other exceptions then a long cause chain could be generated
             // switching between ValidationError and other types.
             e = new Exception(
-               "Object not valid.", "db.validation.ValidationError");
+               "The given object does not meet all of the data validation "
+               "requirements. Please examine the error details for more "
+               "information about the specific requirements.",
+               "db.validation.ValidationError");
             Exception::setLast(e, true);
          }
       }

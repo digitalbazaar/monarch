@@ -49,7 +49,9 @@ bool In::isValid(
          DynamicObject detail =
             context->addError("db.validation.InternalError");
          detail["validator"] = "db.validator.In";
-         detail["message"] = "Invalid In validator data!";
+         detail["message"] = "There was an error when determining the type for "
+            "the input object to the validator. The input object type is "
+            "unknown.";
          break;
    }
    
@@ -58,7 +60,9 @@ bool In::isValid(
       DynamicObject detail = context->addError("db.validation.NotFound", &obj);
       detail["validator"] = "db.validator.In";
       detail["expectedValues"] = mContents;
-      detail["message"] = mErrorMessage ? mErrorMessage : "Value not found!";
+      detail["message"] = mErrorMessage ? mErrorMessage : 
+         "There was an error in the validator when retrieving a value "
+         "for the input object.";
    }
    
    if(rval)

@@ -40,7 +40,9 @@ bool CompareText::isValid(DynamicObject& obj, ValidatorContext* context)
             "db.validation.CompareTextFailure", &obj);
          detail["validator"] = "db.validator.CompareText";
          detail["message"] = (mErrorMessage != NULL ?
-            mErrorMessage : "Text comparison failure!");
+            mErrorMessage : 
+            "The two text strings that were given are required "
+            "to be equivalent, but they are different.");
          detail["expectedValue"] = mText.c_str();
       }
    }

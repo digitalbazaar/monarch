@@ -29,7 +29,7 @@ bool Compare::isValid(
       DynamicObject detail =
          context->addError("db.validation.TypeError");
       detail["validator"] = "db.validator.Compare";
-      detail["message"] = "Object not a Map!";
+      detail["message"] = "The given object type must be a mapping (Map) type.";
    }
    else
    {
@@ -49,7 +49,9 @@ bool Compare::isValid(
             context->addError("db.validation.CompareFailure", &obj);
          detail["validator"] = "db.validator.Compare";
          detail["message"] =
-            mErrorMessage ? mErrorMessage : "Comparison failure!";
+            mErrorMessage ? mErrorMessage : \
+               "The two objects that were compared are required to be "
+               "equivalent, but they are different.";
          detail["key0"] = mKey0;
          detail["key1"] = mKey1;
          detail["expectedValue"] = obj[mKey0];

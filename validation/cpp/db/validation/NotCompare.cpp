@@ -30,7 +30,7 @@ bool NotCompare::isValid(
       DynamicObject detail =
          context->addError("db.validation.TypeError");
       detail["validator"] = "db.validator.NotCompare";
-      detail["message"] = "Object not a Map!";
+      detail["message"] = "The given object type must a mapping (Map) type";
    }
    else
    {
@@ -50,7 +50,9 @@ bool NotCompare::isValid(
             context->addError("db.validation.NotCompareFailure", &obj);
          detail["validator"] = "db.validator.NotCompare";
          detail["message"] =
-            mErrorMessage ? mErrorMessage : "Not Comparison failure!";
+            mErrorMessage ? mErrorMessage : 
+               "The two objects that were given are required "
+               "to be different in some way, but they are equivalent.";
          detail["key0"] = mKey0;
          detail["key1"] = mKey1;
          detail["expectedValue"] = obj[mKey0];

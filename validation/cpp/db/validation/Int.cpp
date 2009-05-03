@@ -127,7 +127,8 @@ bool Int::isValid(
          context->addError("db.validation.ValueError", &obj);
       detail["validator"] = "db.validator.Int";
       detail["message"] =
-         mErrorMessage ? mErrorMessage : "Value not an integer!";
+         mErrorMessage ? mErrorMessage : 
+            "The given value type is required to be an integer.";
    }
    
    // absolute value of dyno value
@@ -186,7 +187,9 @@ bool Int::isValid(
          DynamicObject detail =
             context->addError("db.validation.ValueError", &obj);
          detail["validator"] = "db.validator.Int";
-         detail["message"] = mErrorMessage ? mErrorMessage : "Value too small!";
+         detail["message"] = mErrorMessage ? mErrorMessage : 
+            "The given integer value is less than the required minimum "
+            "integer value.";
          detail["expectedMin"] = mMin;
       }
    }
@@ -215,7 +218,9 @@ bool Int::isValid(
          DynamicObject detail =
             context->addError("db.validation.ValueError", &obj);
          detail["validator"] = "db.validator.Int";
-         detail["message"] = mErrorMessage ? mErrorMessage : "Value too large!";
+         detail["message"] = mErrorMessage ? mErrorMessage :        
+            "The given integer value is greater than the allowable maximum "
+            "integer value.";
          detail["expectedMax"] = mMax;
       }
    }

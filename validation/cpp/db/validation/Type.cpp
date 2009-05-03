@@ -26,15 +26,17 @@ bool Type::isValid(DynamicObject& obj, ValidatorContext* context)
          obj.isNull() ?
             "null" :
             DynamicObject::descriptionForType(obj->getType());
-      int length = 40 + strlen(strType);
-      char temp[length];
-      snprintf(temp, length, "Invalid type, received '%s'", strType);
 
       DynamicObject detail = context->addError("db.validation.TypeError", &obj);
       detail["validator"] = "db.validator.Type";
-      // FIXME: localize
-      detail["message"] = mErrorMessage ? mErrorMessage : temp;
-      detail["expectedType"] = DynamicObject::descriptionForType(mType);
+      // FIXME: localize -- lehn
+      // FIXME: really? do we need to mention this, because we'd have to
+      //        do this for every string in the system.. -- manu
+      detail["message"] = mErrorMessage ? mErrorMessage : 
+         "The given object type is different from the " \
+         "required object type.";
+      detail["givenType"] = strType;
+      detail["requiredType"] = DynamicObject::descriptionForType(mType);
    }
    else
    {
