@@ -71,7 +71,7 @@ clean:
 #       it will work for single arch builds and is difficult to know which
 #       arch to specify otherwise.
 test: all
-	./dbcore-run test/cpp/dist/*/run-unit-tests
+	test/cpp/run-unit-tests.py
 
 clean-docs:
 	rm -rf docs/cpp-api

@@ -5,6 +5,7 @@
 
 all: build-objects build-libraries build-executables
 
+PLATFORM=@PLATFORM@
 BUILD_FOR_LINUX=@BUILD_FOR_LINUX@
 BUILD_FOR_WINDOWS=@BUILD_FOR_WINDOWS@
 BUILD_FOR_MACOS=@BUILD_FOR_MACOS@

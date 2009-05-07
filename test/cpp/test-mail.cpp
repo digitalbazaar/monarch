@@ -462,5 +462,5 @@ public:
 
 db::test::Tester* getDbMailTester() { return new DbMailTester(); }
 
-DB_TEST_WEAK_MAIN
+
 DB_TEST_MAIN(DbMailTester)

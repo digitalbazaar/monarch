@@ -1,23 +1,6 @@
 # Makefile to compile the module in this directory
 
 SOURCES = $(wildcard db/test/*.cpp)
-# run-unit-tests combines many individual tests
-run_unit_tests_EXTRA_SOURCES = \
-	test-rt \
-	test-modest \
-	test-util \
-	test-io \
-	test-crypto \
-	test-net \
-	test-event \
-	test-fiber \
-	test-mail \
-	test-sqlite3 \
-	test-data \
-	test-compress \
-	test-config \
-	test-logging \
-	test-validation
 
 # conditional build of tests
 ifeq (@BUILD_TESTS@,yes)
@@ -30,14 +13,12 @@ MYSQL_DYNAMIC_WINDOWS_LIBRARIES = mysql
 MYSQL_DYNAMIC_LINUX_LIBRARIES = mysqlclient
 MYSQL_DYNAMIC_MACOS_LIBRARIES = mysqlclient
 MYSQL_EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/mysql.dll
-run_unit_tests_EXTRA_SOURCES += test-mysql
 endif
 
 ifeq (@BUILD_SPHINX@,yes)
 MODULE_CXX_FLAGS += -DHAVE_SPHINX
 SPHINX_DBLIBS = dbsphinx
 SPHINX_EXECUTABLES = test-sphinx
-run_unit_tests_EXTRA_SOURCES += test-sphinx
 endif
 
 EXECUTABLES = \
@@ -64,8 +45,7 @@ EXECUTABLES = \
 	$(MYSQL_EXECUTABLES) \
 	test-ucontext \
 	test-util \
-	test-validation \
-	run-unit-tests
+	test-validation
 
 LIBRARIES = dbtest
 DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation $(SPHINX_DBLIBS) dbapp

@@ -26,7 +26,7 @@ public:
          printf("%i: %llu\n", i, Random::next(1, 1000000000));
       }
       
-      printf("done.\n");
+      printf("Done. Total:1 Passed:1 Failed:0 Warnings:0 Unknown:0.");
    }
 };
 

@@ -6,19 +6,19 @@ LINUX_CXX = @LINUX_CXX@
 LINUX_CXX_FLAGS = @CXXFLAGS@ -march=i686 -Wall -fPIC -DLINUX $(MODULE_CXX_FLAGS) $(MODULE_LINUX_CXX_FLAGS) @DEFS@
 LINUX_LD_FLAGS = @LDFLAGS@
 LINUX_INCLUDES = $(INCLUDES)
-LINUX_LIB_DIR = $(DBCORE)/libs/linux
+LINUX_LIB_DIR = $(DBCORE)/libs/$(PLATFORM)
 LINUX_LIBS = -L$(LINUX_LIB_DIR) -L/usr/lib/mysql
 LINUX_AR = @LINUX_AR@
-LINUX_BUILD_DIR = build/linux
-LINUX_DIST_DIR = dist/linux
+LINUX_BUILD_DIR = build/$(PLATFORM)
+LINUX_DIST_DIR = dist/$(PLATFORM)
 LINUX_LIBRARY_SOURCES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%.cpp, $(SOURCES))
 LINUX_EXECUTABLE_SOURCES := $(patsubst %,$(LINUX_BUILD_DIR)/%.cpp, $(EXECUTABLES))
-LINUX_LIBRARY_OBJECTS := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-linux.o, $(SOURCES))
-LINUX_EXECUTABLE_OBJECTS := $(patsubst %,$(LINUX_BUILD_DIR)/%-linux.o, $(EXECUTABLES))
+LINUX_LIBRARY_OBJECTS := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-$(PLATFORM).o, $(SOURCES))
+LINUX_EXECUTABLE_OBJECTS := $(patsubst %,$(LINUX_BUILD_DIR)/%-$(PLATFORM).o, $(EXECUTABLES))
 DYNAMIC_LINUX_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_LINUX_LIBRARIES)
 LINUX_EXECUTABLES := $(patsubst %,$(LINUX_DIST_DIR)/%, $(EXECUTABLES))
-LINUX_DEPENDENCIES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-linux.P, $(SOURCES))
-LINUX_DEPENDENCIES += $(patsubst %.cpp,%-linux.P, $(LINUX_EXECUTABLE_SOURCES))
+LINUX_DEPENDENCIES := $(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-$(PLATFORM).P, $(SOURCES))
+LINUX_DEPENDENCIES += $(patsubst %.cpp,%-$(PLATFORM).P, $(LINUX_EXECUTABLE_SOURCES))
 
 LINUX_LIBRARIES := $(patsubst %,$(LINUX_DIST_DIR)/lib%.so, $(LIBRARIES))
 #LINUX_LIBRARIES += $(patsubst %,$(LINUX_DIST_DIR)/lib%.a, $(LIBRARIES))
@@ -49,7 +49,7 @@ clean-objects:
 clean-libraries:
 	$(PCMD) rm -rf $(LINUX_DIST_DIR)
 
-%-linux.o %-linux.P: %.cpp
+%-$(PLATFORM).o %-$(PLATFORM).P: %.cpp
 	@echo "Building $(basename $@).o..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) -c -MD -o $(basename $@).o $(LINUX_INCLUDES) -I. $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
@@ -73,11 +73,11 @@ clean-libraries:
 ifdef EXECUTABLES
 #$(STATIC_LINUX_LIBRARIES):
 #	# This is a fake target to override the default .a build
-$(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-linux.o $(STATIC_LINUX_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$$(source)-linux.o)
+$(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-$(PLATFORM).o $(STATIC_LINUX_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$$(source)-$(PLATFORM).o)
 	@echo "Building $(@F)..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LD_FLAGS) $(LINUX_LIBS) \
-		-o $@ $(LINUX_BUILD_DIR)/$(@F)-linux.o \
-		$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$(source)-linux.o) \
+		-o $@ $(LINUX_BUILD_DIR)/$(@F)-$(PLATFORM).o \
+		$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$(source)-$(PLATFORM).o) \
 		$(DYNAMIC_LINUX_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
 endif
 

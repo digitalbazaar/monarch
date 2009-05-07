@@ -67,6 +67,7 @@ if test "$BUILD_FOR_LINUX" = "yes" ; then
    AC_PROG_CXX()
    AC_CHECK_PROG(LINUX_AR, ar, ar, not found)
    LINUX_CXX="$CXX"
+   PLATFORM=linux
 fi
 
 # Conditional setup for Windows build
@@ -84,6 +85,7 @@ if test "$BUILD_FOR_WINDOWS" = "yes" ; then
       AC_PROG_CXX()
       WINDOWS_CXX="$CXX"
    fi
+   PLATFORM=windows
 fi
 
 # Conditional setup for MacOS build
@@ -93,6 +95,7 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
    AC_CHECK_PROG(MACOS_AS, as, as, not found)
    MACOS_CXX="$CXX"
    LDFLAGS="$LDFLAGS -L/sw/lib"
+   PLATFORM=macos
 fi
 
 AC_ARG_ENABLE([sphinx],
@@ -200,6 +203,7 @@ AC_MSG_NOTICE(Using optimization flags: "$CXXFLAGS")
 dnl ----------------- substitutions -----------------
 
 # Make all the proper substitutions
+AC_SUBST(PLATFORM)
 AC_SUBST(DBCOREDIR)
 
 AC_SUBST(DATE_RFC_2822)
@@ -269,6 +273,7 @@ AC_CONFIG_FILES([
 	setup/capfile
 ])
 AC_CONFIG_FILES([dbcore-run], [chmod +x dbcore-run])
+AC_CONFIG_FILES([test/cpp/run-unit-tests.py], [chmod +x test/cpp/run-unit-tests.py])
 AC_CONFIG_FILES([installers/debian/rules], [chmod +x installers/debian/rules])
 
 AC_OUTPUT

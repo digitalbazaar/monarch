@@ -225,5 +225,5 @@ public:
 
 db::test::Tester* getDbModestTester() { return new DbModestTester(); }
 
-DB_TEST_WEAK_MAIN
+
 DB_TEST_MAIN(DbModestTester)

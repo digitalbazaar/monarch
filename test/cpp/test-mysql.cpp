@@ -313,5 +313,5 @@ public:
 
 db::test::Tester* getDbMySqlTester() { return new DbMySqlTester(); }
 
-DB_TEST_WEAK_MAIN
+
 DB_TEST_MAIN(DbMySqlTester)

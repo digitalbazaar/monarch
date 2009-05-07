@@ -137,5 +137,5 @@ public:
 
 db::test::Tester* getDbDynoPerfTester() { return new DbDynoPerfTester(); }
 
-DB_TEST_WEAK_MAIN
+
 DB_TEST_MAIN(DbDynoPerfTester)

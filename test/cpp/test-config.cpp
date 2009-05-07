@@ -350,5 +350,5 @@ public:
 
 db::test::Tester* getDbConfigTester() { return new DbConfigTester(); }
 
-DB_TEST_WEAK_MAIN
+
 DB_TEST_MAIN(DbConfigTester)

@@ -1148,5 +1148,5 @@ public:
 
 db::test::Tester* getDbIoTester() { return new DbIoTester(); }
 
-DB_TEST_WEAK_MAIN
+
 DB_TEST_MAIN(DbIoTester)

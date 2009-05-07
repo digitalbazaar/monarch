@@ -581,5 +581,5 @@ public:
 
 db::test::Tester* getDbCompressTester() { return new DbCompressTester(); }
 
-DB_TEST_WEAK_MAIN
+
 DB_TEST_MAIN(DbCompressTester)
