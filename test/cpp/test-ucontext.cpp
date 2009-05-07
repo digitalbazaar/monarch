@@ -81,5 +81,6 @@ int main()
    }
    
    printf("main returned, exiting.\n");
+   printf("Done. Total:1 Passed:1 Failed:0 Warnings:0 Unknown:0.\n");
    exit(0);
 }
