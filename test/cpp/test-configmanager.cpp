@@ -824,7 +824,7 @@ int main()
    testFailures();
    
    printf("\nALL TESTS PASS.\n");
-   
+   printf("Done. Total:1 Passed:1 Failed:0 Warnings:0 Unknown:0.\n");
    Thread::exit();
    return 0;
 }
