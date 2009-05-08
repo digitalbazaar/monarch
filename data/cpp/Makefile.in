@@ -12,7 +12,7 @@ SOURCES = $(wildcard db/data/*.cpp) \
 
 LIBRARIES = dbdata
 DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt dblogging
-DYNAMIC_WINDOWS_LIBRARIES = expat iconv2 charset1
+DYNAMIC_WINDOWS_LIBRARIES = libexpat iconv2 charset1
 DYNAMIC_MACOS_LIBRARIES = iconv charset expat dbcompress
 
 # Control import/export behavior

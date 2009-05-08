@@ -57,7 +57,7 @@ MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 
 .PHONY: all verbose clean test internal-docs clean-docs
 
-all:
+all: 
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-objects build-libraries &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-executables &&) true
 
