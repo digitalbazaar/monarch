@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env @PYTHON@
 #
 # Script to run all of the unit tests and produce output that is easily
 # readable.
@@ -84,7 +84,7 @@ def dumpStats():
    global gWarnings
    global gFailed
 
-   print "Done. Total:%i Passed:%i Failed:%i Warnings:%i Unknown:0\n" % \
+   print "Done. Total:%i Passed:%i Failed:%i Warnings:%i Unknown:0.\n" % \
        (gTotal, gPassed, gFailed, gWarnings)
 
 # Run all of the platform/config-agnostic tests
