@@ -61,10 +61,8 @@ using namespace db::util;
       // transform '/' to '\' (no need to worry about transforming '/' that
       // are actually supposed to be '/' in a windows path because those
       // characters are illegal in a windows path
-      // also transform all '\\\\' to '\\' to handle escaped windows paths
       string tmp = path;
       StringTools::replaceAll(tmp, "/", "\\");
-      StringTools::replaceAll(tmp, "\\\\", "\\");
       return tmp;
    }
 #else
