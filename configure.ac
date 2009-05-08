@@ -61,6 +61,7 @@ AC_CANONICAL_BUILD()
 # Checking for standard build tools
 #AC_LANG(C++)
 AC_PROG_INSTALL()
+AC_CHECK_PROGS(PYTHON, python2.5 python2.4, not found)
 
 # Conditional setup for Linux build
 if test "$BUILD_FOR_LINUX" = "yes" ; then
@@ -217,6 +218,8 @@ AC_SUBST(BUILD_FOR_MACOS)
 AC_SUBST(LINUX_CXX)
 AC_SUBST(WINDOWS_CXX)
 AC_SUBST(MACOS_CXX)
+
+AC_SUBST(PYTHON)
 
 AC_SUBST(LINUX_AR)
 AC_SUBST(WINDOWS_AR)
