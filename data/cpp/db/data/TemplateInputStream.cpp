@@ -145,6 +145,7 @@ bool TemplateInputStream::process(const char* pos)
                "db.data.TemplateInputStream.InvalidEscape");
             e->getDetails()["character"] = pos[0];
             Exception::setLast(e, false);
+            rval = false;
             break;
          }
       }
@@ -210,6 +211,7 @@ bool TemplateInputStream::process(const char* pos)
                      "db.data.TemplateInputStream.VariableNotFound");
                   e->getDetails()["name"] = varname;
                   Exception::setLast(e, false);
+                  rval = false;
                }
                else
                {
