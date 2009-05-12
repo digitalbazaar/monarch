@@ -385,8 +385,8 @@ void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
             state->tis = new TemplateInputStream(state->bais, false);
             state->output = new ByteBuffer(2048);
             state->baos = new ByteArrayOutputStream(state->output, true);
-	    // only create once
-	    break;
+            // only create once
+            break;
          }
       }
       // replace keywords
