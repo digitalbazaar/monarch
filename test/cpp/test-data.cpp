@@ -1352,6 +1352,67 @@ void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("parse (DOS paths)");
+   {
+      // create template
+      const char* tpl =
+         "The path is {PATH}!";
+      
+      // create variables
+      DynamicObject vars;
+      vars["PATH"] = "C:\\Dox";
+      
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+      
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+      
+      const char* expect =
+         "The path is C:\\Dox!";
+      
+      // null-terminate output
+      output.putByte(0, 1, true);
+      
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfException();
+   
+   tr.test("parse (DOS paths in template)");
+   {
+      // create template
+      const char* tpl =
+         "The path is C:\\\\Dox!";
+      
+      // create variables
+      DynamicObject vars;
+      
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+      
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+      
+      const char* expect =
+         "The path is C:\\Dox!";
+      
+      // null-terminate output
+      output.putByte(0, 1, true);
+      
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfException();
+   
    tr.test("parse (invalid - ends in '\\')");
    {
       // create template
