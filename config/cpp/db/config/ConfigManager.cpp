@@ -658,7 +658,20 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
    // handle global keyword replacement
    if(rval)
    {
+      // add special current directory keyword
+      if(dir != NULL)
+      {
+         mKeywordMap["CURRENT_DIR"] = dir;
+      }
+      
+      // do keyword replacement (custom and special)
       replaceKeywords(config, mKeywordMap);
+      
+      // remove special keywords
+      if(dir != NULL)
+      {
+         mKeywordMap->removeMember("CURRENT_DIR");
+      }
    }
    
    // process includes
@@ -683,7 +696,6 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             bool load = true;
             bool optional = false;
             bool includeSubdirectories = false;
-            bool substituteKeywords = false;
             const char* path = NULL;
             
             if(next->getType() == String)
@@ -722,12 +734,6 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                   includeSubdirectories = 
                      next["includeSubdirectories"]->getBoolean();
                }
-               // replace keyword strings?
-               if(next->hasMember("substituteKeywords"))
-               {
-                  substituteKeywords = 
-                     next["substituteKeywords"]->getBoolean();
-               }
             }
             else
             {
@@ -745,8 +751,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             {
                DB_CAT_DEBUG(DB_CONFIG_CAT, "Loading include: %s", path);
                rval = addConfigFile(
-                  path, true, dir, optional, includeSubdirectories, 
-                  substituteKeywords);
+                  path, true, dir, optional, includeSubdirectories);
             }
          }
       }
@@ -864,7 +869,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
 
 bool ConfigManager::addConfigFile(
    const char* path, bool include, const char* dir,
-   bool optional, bool includeSubdirectories, bool substituteKeywords)
+   bool optional, bool includeSubdirectories)
 {
    bool rval = true;
    
@@ -911,23 +916,8 @@ bool ConfigManager::addConfigFile(
          
          if(rval)
          {
+            // include path to config (necessary for CURRENT_DIR replacement)
             string dirname = File::dirname(fullPath.c_str());
-            
-            // add special keywords
-            if(substituteKeywords)
-            {
-               mKeywordMap["CURRENT_DIR"] = dirname.c_str();
-            }
-
-            // do keyword replacement (custom and special)
-            replaceKeywords(cfg, mKeywordMap);
-
-            // remove special keywords
-            if(substituteKeywords)
-            {
-               mKeywordMap->removeMember("CURRENT_DIR");
-            }
-
             rval = addConfig(cfg, include, dirname.c_str());
          }
          
@@ -982,7 +972,7 @@ bool ConfigManager::addConfigFile(
          {
             rval = addConfigFile(
                (*i).c_str(), include, file->getAbsolutePath(),
-               false, false, substituteKeywords);
+               false, false);
          }
          
          // load each dir in order
@@ -991,7 +981,7 @@ bool ConfigManager::addConfigFile(
          {
             const char* dir = (*i).c_str();
             rval = addConfigFile(
-               dir, include, dir, false, false, substituteKeywords);
+               dir, include, dir, false, false);
          }
       }
       else

@@ -238,18 +238,15 @@ void runConfigManagerTest(TestRunner& tr)
       FileOutputStream fos(configFile);
       
       // create and populate the config file
-      if(configFile->create())
-      {
-         string configFileText =
-            "{\n"
-            "\"_id_\": \"config\",\n"
-            "\"_merge_\": {\n"
-            "   \"dir\": \"{CURRENT_DIR}\",\n"
-            "   \"dir-plus\": \"{CURRENT_DIR}/plus/more\" }\n"
-            "}\n";
-         fos.write(configFileText.c_str(), configFileText.length());
-         fos.close();
-      }
+      string configFileText =
+         "{\n"
+         "\"_id_\": \"config\",\n"
+         "\"_merge_\": {\n"
+         "   \"dir\": \"{CURRENT_DIR}\",\n"
+         "   \"dir-plus\": \"{CURRENT_DIR}/plus/more\" }\n"
+         "}\n";
+      fos.write(configFileText.c_str(), configFileText.length());
+      fos.close();
       
       // modify the current working directory to the expected value
       absoluteDir = File::dirname(configFile->getAbsolutePath());
@@ -264,7 +261,7 @@ void runConfigManagerTest(TestRunner& tr)
       // create the configuration
       ConfigManager cm;
       assert(cm.addConfigFile(configFile->getAbsolutePath(),
-         true, absoluteDir.c_str(), true, false, true));
+         true, absoluteDir.c_str(), true, false));
       assertNoException();
       assertDynoCmp(cm.getConfig("config"), expect);
    }
