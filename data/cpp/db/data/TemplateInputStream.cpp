@@ -207,7 +207,9 @@ bool TemplateInputStream::process(const char* pos)
                {
                   // missing variable
                   ExceptionRef e = new Exception(
-                     "Variable not found.",
+                     "The substitution variable is currently not defined. "
+                     "Variable substitution cannot occur with an undefined "
+                     "variable.",
                      "db.data.TemplateInputStream.VariableNotFound");
                   e->getDetails()["name"] = varname;
                   Exception::setLast(e, false);

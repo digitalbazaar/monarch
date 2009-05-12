@@ -2,17 +2,20 @@
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
+#include "db/config/ConfigManager.h"
+#include "db/data/json/JsonWriter.h"
+#include "db/io/File.h"
+#include "db/io/FileOutputStream.h"
 #include "db/rt/Exception.h"
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
-#include "db/config/ConfigManager.h"
-#include "db/data/json/JsonWriter.h"
 
 using namespace std;
+using namespace db::config;
+using namespace db::io;
 using namespace db::rt;
 using namespace db::test;
-using namespace db::config;
 
 void runConfigManagerTest(TestRunner& tr)
 {
@@ -204,17 +207,17 @@ void runConfigManagerTest(TestRunner& tr)
    tr.passIfNoException();
 
 
-   tr.test("keyword substitution");
+   tr.test("keyword substitution {RESOURCE_DIR}");
    {
       DynamicObject expect;
       expect["dir"] = "/the/real/dir";
-      expect["dir+"] = "/the/real/dir/plus/more";
+      expect["dir-plus"] = "/the/real/dir/plus/more";
       //expect["name"] = "Digital Bazaar, Inc.";
       ConfigManager cm;
       Config a;
       a[ConfigManager::ID] = "config";
       a[ConfigManager::MERGE]["dir"] = "{RESOURCE_DIR}";
-      a[ConfigManager::MERGE]["dir+"] = "{RESOURCE_DIR}/plus/more";
+      a[ConfigManager::MERGE]["dir-plus"] = "{RESOURCE_DIR}/plus/more";
       // FIXME: only supports "{RESOURCE_DIR}" now
       //a[ConfigManager::MERGE]["other"] = "{DB}";
       cm.setKeyword("RESOURCE_DIR", "/the/real/dir");
@@ -224,7 +227,49 @@ void runConfigManagerTest(TestRunner& tr)
       assertDynoCmp(cm.getConfig("config"), expect);
    }
    tr.passIfNoException();
-   
+
+   tr.test("keyword substitution {CURRENT_DIR}");
+   {
+      DynamicObject expect;
+      string cwd;
+      string cwdPlusMore;
+      string absoluteDir;
+      File configFile = File::createTempFile("test-config-file");
+      FileOutputStream fos(configFile);
+      
+      // create and populate the config file
+      if(configFile->create())
+      {
+         string configFileText =
+            "{\n"
+            "\"_id_\": \"config\",\n"
+            "\"_merge_\": {\n"
+            "   \"dir\": \"{CURRENT_DIR}\",\n"
+            "   \"dir-plus\": \"{CURRENT_DIR}/plus/more\" }\n"
+            "}\n";
+         fos.write(configFileText.c_str(), configFileText.length());
+         fos.close();
+      }
+      
+      // modify the current working directory to the expected value
+      absoluteDir = File::dirname(configFile->getAbsolutePath());
+      cwd = absoluteDir.c_str();
+      cwdPlusMore = cwd.c_str();
+      cwdPlusMore.append("/plus/more");
+
+      // set the expected values
+      expect["dir"] = cwd.c_str();
+      expect["dir-plus"] = cwdPlusMore.c_str();
+      
+      // create the configuration
+      ConfigManager cm;
+      assert(cm.addConfigFile(configFile->getAbsolutePath(),
+         true, absoluteDir.c_str(), true, false, true));
+      assertNoException();
+      assertDynoCmp(cm.getConfig("config"), expect);
+   }
+   tr.passIfNoException();
+
 #if 0
    tr.test("user preferences");
    {
