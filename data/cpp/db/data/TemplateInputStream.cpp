@@ -25,6 +25,7 @@ TemplateInputStream::TemplateInputStream(
    mStrict(strict)
 {
    resetState();
+   mVars->setType(Map);
 }
 
 TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
