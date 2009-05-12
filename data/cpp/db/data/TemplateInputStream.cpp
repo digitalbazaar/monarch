@@ -62,6 +62,7 @@ void TemplateInputStream::setInputStream(InputStream* is, bool cleanup)
 void TemplateInputStream::setVariables(DynamicObject& vars, bool strict)
 {
    mVars = vars;
+   mVars->setType(Map);
    mStrict = strict;
 }
 
