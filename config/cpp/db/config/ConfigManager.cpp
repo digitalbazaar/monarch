@@ -614,7 +614,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             if(!config->hasMember(VERSION))
             {
                ExceptionRef e = new Exception(
-                  "No version found.",
+                  "No config file version found.",
                   "db.config.ConfigManager.UnspecifiedVersion");
                Exception::setLast(e, false);
                rval = false;
@@ -626,7 +626,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                if(!mVersions->hasMember(version))
                {
                   ExceptionRef e = new Exception(
-                     "Unsupported version.",
+                     "Unsupported config file version.",
                      "db.config.ConfigManager.UnsupportedVersion");
                   e->getDetails()["version"] = version;
                   Exception::setLast(e, false);
@@ -643,7 +643,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             if(!mConfigs->hasMember(parent))
             {
                ExceptionRef e = new Exception(
-                  "Invalid parent config ID.",
+                  "Invalid parent configuration file ID.",
                   "db.config.ConfigManager.InvalidParent");
                e->getDetails()["configId"] = id;
                e->getDetails()["parentId"] = parent;
@@ -667,7 +667,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       if(config[INCLUDE]->getType() != Array)
       {
          ExceptionRef e = new Exception(
-            "Include directive value must be an array.",
+            "The include directive value must be an array.",
             "db.config.ConfigManager.InvalidIncludeType");
          e->getDetails()["configId"] = id;
          e->getDetails()[INCLUDE] = config[INCLUDE];
@@ -699,7 +699,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                else
                {
                   ExceptionRef e = new Exception(
-                     "Missing include path.",
+                     "The include path is missing.",
                      "db.config.ConfigManager.MissingIncludePath");
                   e->getDetails()["configId"] = id;
                   e->getDetails()[INCLUDE] = config[INCLUDE];
@@ -732,7 +732,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             else
             {
                ExceptionRef e = new Exception(
-                  "Invalid include value type.",
+                  "The type of the include value is invalid.",
                   "db.config.ConfigManager.InvalidIncludeType");
                e->getDetails()["configId"] = id;
                e->getDetails()[INCLUDE] = config[INCLUDE];
