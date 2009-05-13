@@ -3,6 +3,8 @@
  */
 #include "db/data/TemplateInputStream.h"
 
+#include <string>
+
 #include "db/rt/Exception.h"
 
 using namespace db::data;
@@ -145,7 +147,7 @@ bool TemplateInputStream::process(const char* pos)
             ExceptionRef e = new Exception(
                "Unknown escaped character.",
                "db.data.TemplateInputStream.InvalidEscape");
-            e->getDetails()["character"] = pos[0];
+            e->getDetails()["character"] = std::string(1, pos[0]).c_str();
             Exception::setLast(e, false);
             rval = false;
             break;

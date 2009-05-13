@@ -113,10 +113,9 @@ runTest("test-validation")
 if("@BUILD_MYSQL@" == "yes"):
    runTest("test-mysql")
 
-# FIXME: The SPHINX tests are failing
 # Only run these unit(tests if sphinx was enabled
-#if("@BUILD_SPHINX@" == "yes"):
-#   runTest("test-sphinx")
+if("@BUILD_SPHINX@" == "yes"):
+   runTest("test-sphinx")
 
 # Dump all of the test statistics
 print "Full test run completed"

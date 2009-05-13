@@ -87,8 +87,6 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  *    (Boolean, optional, default: true)
  * "includeSubdirectories": Load each subdirectory as a directory of configs.
  *    (Boolean, optional, default: false)
- * "substituteKeywords": Recursively scan for variable substitution keywords and 
- *    replace them with appropriate values. (Boolean, optional, default: false) 
  * 
  * A path can be one of the following:
  * - A explicit file to load
@@ -97,8 +95,7 @@ typedef db::rt::DynamicObjectIterator ConfigIterator;
  * In the case of directories the paths are sorted first to allow for control
  * of file load order.
  * 
- * The "substituteKeywords" include parameter allows for keywords to be
- * replaced. setKeyword() can be used for custom keywords. There is a slight
+ * The setKeyword() method can be used for custom keywords. There is a slight
  * performance penalty for using this option due to config tree walking and
  * string comparisons. The following are special reserved keywords that are
  * also available. 
@@ -329,15 +326,12 @@ public:
     * @param optional true to suppress failure if path is not found,
     *                 false to require path to be present.
     * @param processSubdirectories true to process subdirs as dirs of configs.
-    * @param substituteKeywords true to replace keywords with appropriate 
-    *                           values.
     * 
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfigFile(
       const char* path, bool include = true, const char* dir = NULL,
-      bool optional = false, bool processSubdirectories = false, 
-      bool substituteKeywords = false);
+      bool optional = false, bool processSubdirectories = false);
    
    /**
     * Removes a configuration.
