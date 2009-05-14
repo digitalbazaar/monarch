@@ -180,7 +180,7 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
          else if(rval > 0)
          {
             // do calculation on outgoing data
-            mCrc32 = crc32(mCrc32, dst->udata() + dst->length() - rval, rval); 
+            mCrc32 = crc32(mCrc32, dst->uend() - rval, rval); 
          }
          
          // check for completed inflation

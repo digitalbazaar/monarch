@@ -234,7 +234,7 @@ int ByteBuffer::put(InputStream* is, int length)
       length = (length > 0 && length < fs ? length : fs);
       
       // read some bytes
-      rval = is->read(data() + mLength, length);
+      rval = is->read(end(), length);
       if(rval != -1)
       {
          // update buffer length
@@ -263,7 +263,7 @@ int ByteBuffer::fill(InputStream* is, int length)
       int numBytes = 1;
       while(length > 0 && numBytes > 0)
       {
-         numBytes = is->read(data() + mLength, length);
+         numBytes = is->read(end(), length);
          if(numBytes >= 0)
          {
             // update by bytes read
@@ -467,6 +467,16 @@ inline char* ByteBuffer::data() const
 inline unsigned char* ByteBuffer::udata() const
 {
    return mOffset;
+}
+
+inline char* ByteBuffer::end() const
+{
+   return (char*)(mOffset + mLength);
+}
+
+inline unsigned char* ByteBuffer::uend() const
+{
+   return mOffset + mLength;
 }
 
 inline int ByteBuffer::offset() const

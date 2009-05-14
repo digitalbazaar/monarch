@@ -211,13 +211,13 @@ void runByteBufferTest(TestRunner& tr)
    
    // this should result in printing out "T hate chicken" still
    b.allocateSpace(10, true);
-   sprintf(b.data() + b.length(), " always");
+   sprintf(b.end(), " always");
    char temp[100];
    strncpy(temp, b.data(), b.length());
    assertStrCmp(temp, "T hate chicken");
    
    // this should now result in printing out "T hate chicken always"
-   sprintf(b.data() + b.length() - 1, " always");
+   sprintf(b.end() - 1, " always");
    b.extend(6);
    b.putByte(' ', 1, true);
    b.putByte('t', 1, true);
