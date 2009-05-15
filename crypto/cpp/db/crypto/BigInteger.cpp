@@ -380,7 +380,7 @@ void BigInteger::toBytes(ByteBuffer* b)
    b->allocateSpace(size, true);
    
    // write the number out
-   BN_bn2bin(mBigNum, (unsigned char*)b->data() + b->length());
+   BN_bn2bin(mBigNum, b->uend());
    b->extend(size);
 }
 

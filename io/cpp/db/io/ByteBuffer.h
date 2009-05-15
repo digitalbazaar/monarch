@@ -308,7 +308,17 @@ public:
    
    /**
     * Resets the offset for this ByteBuffer by the specified length. This will
-    * move the internal offset pointer backwards.
+    * move the internal offset pointer backwards. The length of this buffer
+    * will be increased by the amount the offset moves backwards.
+    * 
+    * Note: This will not cause the next put() call to place data in a
+    * different location than it would have if you hadn't called reset(). Data
+    * will still be put at offset() + length() or end(), it's just that
+    * after this call, offset will be less and length will be greater.
+    * 
+    * If you want to put data at an earlier spot in the buffer, then you
+    * should be decreasing the length of the buffer, not its offset. To do so,
+    * call trim().
     * 
     * @param length the maximum number of bytes to move the offset back, a
     *               negative number will have no effect.
@@ -319,7 +329,11 @@ public:
    
    /**
     * Trims data from the end of this ByteBuffer without resizing it. This will
-    * decrease the length of this ByteBuffer.
+    * decrease the length of this ByteBuffer. The internal offset that
+    * points to the start of the valid bytes will be unaffected.
+    * 
+    * This method is useful for re-writing (overwriting) data in a buffer and
+    * then extending it again via extend().
     * 
     * @param length the number of bytes to trim off the end of this buffer, a
     *               negative number will have no effect.
@@ -330,7 +344,8 @@ public:
    
    /**
     * Extends the length of this ByteBuffer without resizing its capacity. This
-    * will increase the length of this ByteBuffer.
+    * will increase the length of this ByteBuffer. The internal offset that
+    * points to the start of valid bytes will be unaffected.
     * 
     * If this method is to be called because an external method is going to
     * first add valid bytes to this ByteBuffer by writing directly to its
@@ -420,6 +435,26 @@ public:
     * @return the unsigned bytes in this buffer starting at the valid offset.
     */
    virtual unsigned char* udata() const;
+   
+   /**
+    * Gets the bytes in this buffer starting at the valid offset for this
+    * buffer + the number of valid bytes in the buffer. This method is
+    * useful for manually appending data to this buffer (which is typically
+    * followed by a call to extend() afterwards).
+    * 
+    * @return the first invalid byte at the end of this buffer.
+    */
+   virtual char* end() const;
+   
+   /**
+    * Gets the bytes in this buffer starting at the valid offset for this
+    * buffer + the number of valid bytes in the buffer. This method is
+    * useful for manually appending data to this buffer (which is typically
+    * followed by a call to extend() afterwards).
+    * 
+    * @return the first invalid unsigned byte at the end of this buffer.
+    */
+   virtual unsigned char* uend() const;
    
    /**
     * Gets the offset at which the bytes start in this buffer.

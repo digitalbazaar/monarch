@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/crypto/BlockCipher.h"
 
@@ -24,7 +24,7 @@ bool BlockCipher::update(
    
    // do update
    int length;
-   if(update(in, inLength, out->data() + out->length(), length))
+   if(update(in, inLength, out->end(), length))
    {
       // extend buffer length
       out->extend(length);
@@ -43,7 +43,7 @@ bool BlockCipher::finish(ByteBuffer* out, bool resize)
    
    // do finish
    int length;
-   if(finish(out->data() + out->length(), length))
+   if(finish(out->end(), length))
    {
       // extend buffer length
       out->extend(length);

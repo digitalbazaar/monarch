@@ -134,7 +134,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
          size_t inBytesLeft = src->length();
          
          // get out buffer
-         char* out = dst->data() + dst->length();
+         char* out = dst->end();
          size_t outBytesLeft = dst->freeSpace();
          
          // do character conversion
