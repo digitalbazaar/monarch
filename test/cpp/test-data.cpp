@@ -1381,7 +1381,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       // assert expected value
       assertStrCmp(expect, output.data());
    }
-   tr.passIfException();
+   tr.passIfNoException();
    
    tr.test("parse (DOS paths in template)");
    {
@@ -1411,7 +1411,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       // assert expected value
       assertStrCmp(expect, output.data());
    }
-   tr.passIfException();
+   tr.passIfNoException();
    
    tr.test("parse (invalid - ends in '\\')");
    {
