@@ -207,11 +207,11 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             }
          }
       }
-      else
+      else if(Exception::hasLast())
       {
          // exception occurred while receiving header
          ExceptionRef e = Exception::getLast();
-         if(!e.isNull() && strcmp(e->getType(), "db.net.http.BadRequest") == 1)
+         if(strcmp(e->getType(), "db.net.http.BadRequest") == 1)
          {
             // send 400 Bad Request
             char html[] = "<html><h2>400 Bad Request</h2></html>";
@@ -225,25 +225,21 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                response->sendBody(&is);
             }
          }
-         else
+         // if the exception was not an interruption or socket error then
+         // send an internal server error response
+         else if(strcmp(e->getType(), "db.io.InterruptedException") != 0 &&
+                 strncmp(e->getType(), "db.net.Socket", 13) != 0)
          {
-            // if the exception was not an interruption or socket error then
-            // send an internal server error response
-            if(!e.isNull() &&
-               strcmp(e->getType(), "db.io.InterruptedException") != 0 &&
-               strncmp(e->getType(), "db.net.Socket", 13) != 0)
+            // send 500 Internal Server Error
+            char html[] = "<html><h2>500 Internal Server Error</h2></html>";
+            resHeader->setStatus(500, "Internal Server Error");
+            resHeader->setField("Content-Type", "text/html");
+            resHeader->setField("Content-Length", 47);
+            resHeader->setField("Connection", "close");
+            if((noerror = response->sendHeader()))
             {
-               // send 500 Internal Server Error
-               char html[] = "<html><h2>500 Internal Server Error</h2></html>";
-               resHeader->setStatus(500, "Internal Server Error");
-               resHeader->setField("Content-Type", "text/html");
-               resHeader->setField("Content-Length", 47);
-               resHeader->setField("Connection", "close");
-               if((noerror = response->sendHeader()))
-               {
-                  ByteArrayInputStream is(html, 47);
-                  noerror = response->sendBody(&is);
-               }
+               ByteArrayInputStream is(html, 47);
+               noerror = response->sendBody(&is);
             }
          }
       }
