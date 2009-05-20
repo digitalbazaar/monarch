@@ -56,7 +56,9 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
             char* end = strrchr(path, '/');
             if(end != NULL)
             {
-               end[0] = 0;
+               // if parent is root (end == path), set path to "/"
+               // if parent is not root, clear last slash
+               end[(end == path) ? 1 : 0] = 0;
             }
             else
             {
