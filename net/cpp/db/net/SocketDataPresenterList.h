@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_SocketDataPresenterList_H
 #define db_net_SocketDataPresenterList_H
 
 #include "db/rt/Collectable.h"
-#include "db/rt/ExclusiveLock.h"
+#include "db/rt/SharedLock.h"
 #include "db/net/SocketDataPresenter.h"
 
-#include <list>
+#include <vector>
 
 namespace db
 {
@@ -23,14 +23,18 @@ namespace net
  * 
  * @author Dave Longley
  */
-class SocketDataPresenterList :
-public virtual db::rt::ExclusiveLock, public SocketDataPresenter
+class SocketDataPresenterList : public SocketDataPresenter
 {
 protected:
    /**
     * A list of available SocketDataPresenters.
     */
-   std::list<SocketDataPresenter*> mDataPresenters;
+   std::vector<SocketDataPresenter*> mDataPresenters;
+   
+   /**
+    * A shared lock for accessing the list.
+    */
+   db::rt::SharedLock mLock;
    
    /**
     * Set to true to clean up the memory for the SocketDataPresenters in this

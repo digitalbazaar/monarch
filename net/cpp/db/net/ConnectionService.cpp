@@ -92,16 +92,16 @@ bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
 
 bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
 {
-   bool rval;
-   
-   // operation's user data is the socket being serviced, either it is
-   // the socket accepting connections or a socket that is servicing one
-   Socket* socket = (Socket*)op->getUserData();
+   bool rval = false;
    
    // must cancel any OP if the server is not running
    if(!mServer->isRunning())
    {
       rval = true;
+      
+      // operation's user data is the socket being serviced, either it is
+      // the socket accepting connections or a socket that is servicing one
+      Socket* socket = (Socket*)op->getUserData();
       
       // if the socket isn't the accept socket, then it needs to be cleaned up
       if(socket != mSocket)

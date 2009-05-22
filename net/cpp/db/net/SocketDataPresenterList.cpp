@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/SocketDataPresenterList.h"
 
 using namespace std;
 using namespace db::net;
 
-SocketDataPresenterList::SocketDataPresenterList(bool cleanup)
+SocketDataPresenterList::SocketDataPresenterList(bool cleanup) :
+   mCleanup(cleanup)
 {
-   mCleanup = cleanup;
 }
 
 SocketDataPresenterList::~SocketDataPresenterList()
@@ -16,7 +16,7 @@ SocketDataPresenterList::~SocketDataPresenterList()
    if(mCleanup)
    {
       // clean up data presenters
-      for(list<SocketDataPresenter*>::iterator i = mDataPresenters.begin();
+      for(vector<SocketDataPresenter*>::iterator i = mDataPresenters.begin();
           i != mDataPresenters.end(); i++)
       {
          delete *i;
@@ -26,11 +26,11 @@ SocketDataPresenterList::~SocketDataPresenterList()
 
 void SocketDataPresenterList::add(SocketDataPresenter* sdp)
 {
-   lock();
+   mLock.lockExclusive();
    {
       mDataPresenters.push_back(sdp);
    }
-   unlock();
+   mLock.unlockExclusive();
 }
 
 Socket* SocketDataPresenterList::createPresentationWrapper(
@@ -38,16 +38,16 @@ Socket* SocketDataPresenterList::createPresentationWrapper(
 {
    Socket* rval = NULL;
    
-   lock();
+   mLock.lockShared();
    {
       // use data presenters to create a socket wrapper
-      for(list<SocketDataPresenter*>::iterator i = mDataPresenters.begin();
+      for(vector<SocketDataPresenter*>::iterator i = mDataPresenters.begin();
           i != mDataPresenters.end() && rval == NULL; i++)
       {
          rval = (*i)->createPresentationWrapper(s, secure);
       }
    }
-   unlock();
+   mLock.unlockShared();
    
    return rval;
 }
