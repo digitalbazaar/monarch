@@ -69,7 +69,7 @@ bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
 {
    bool rval = false;
    
-   if(op->getUserData() == &mSocket)
+   if(op->getUserData() == mSocket)
    {
       // accept OP can execute if server is running
       rval = mServer->isRunning();

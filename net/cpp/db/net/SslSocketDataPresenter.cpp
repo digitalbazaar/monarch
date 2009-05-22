@@ -1,10 +1,13 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/SslSocketDataPresenter.h"
+
 #include "db/net/SslSocket.h"
+#include "db/net/SocketDefinitions.h"
 
 using namespace db::net;
+using namespace db::rt;
 
 SslSocketDataPresenter::SslSocketDataPresenter(SslContext* context)
 {
@@ -19,6 +22,10 @@ bool SslSocketDataPresenter::detectSsl(Socket* s)
 {
    bool rval = false;
    
+   // save old receive timeout, set new one at 3 seconds
+   uint32_t recvTimeout = s->getReceiveTimeout();
+   s->setReceiveTimeout(1000 * 3);
+   
    // at least 5 bytes are needed to detect an SSL/TLS packet
    char b[5];
    unsigned int numBytes = 0;
@@ -30,6 +37,20 @@ bool SslSocketDataPresenter::detectSsl(Socket* s)
    {
       count -= numBytes;
    }
+   
+   if(numBytes < 0)
+   {
+      // ignore socket timeout exceptions
+      ExceptionRef e = Exception::getLast();
+      if(strcmp(e->getType(), SOCKET_TIMEOUT_EXCEPTION_TYPE) == 0)
+      {
+         printf("ignoring socket read timeout\n");
+         rval = true;
+      }
+   }
+   
+   // reset old receive timeout
+   s->setReceiveTimeout(recvTimeout);
    
    if(count == 0)
    {
