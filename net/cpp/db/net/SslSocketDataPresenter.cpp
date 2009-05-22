@@ -28,10 +28,10 @@ bool SslSocketDataPresenter::detectSsl(Socket* s)
    
    // at least 5 bytes are needed to detect an SSL/TLS packet
    char b[5];
-   unsigned int numBytes = 0;
+   int numBytes = 0;
    
    // peek 5 bytes
-   unsigned int count = 5;
+   int count = 5;
    while(count > 0 &&
          (numBytes = s->getInputStream()->peek(b + (5 - count), count)) > 0)
    {
@@ -44,7 +44,6 @@ bool SslSocketDataPresenter::detectSsl(Socket* s)
       ExceptionRef e = Exception::getLast();
       if(strcmp(e->getType(), SOCKET_TIMEOUT_EXCEPTION_TYPE) == 0)
       {
-         printf("ignoring socket read timeout\n");
          rval = true;
       }
    }
