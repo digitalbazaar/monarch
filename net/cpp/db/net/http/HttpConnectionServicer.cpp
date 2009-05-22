@@ -209,11 +209,12 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             }
          }
       }
-      else if(Exception::hasLast())
+      else
       {
          // exception occurred while receiving header
          ExceptionRef e = Exception::getLast();
-         if(strcmp(e->getType(), "db.net.http.BadRequest") == 1)
+         if(strcmp(e->getType(), "db.net.http.BadHeader") == 0 ||
+            strcmp(e->getType(), "db.net.http.BadRequest") == 0)
          {
             // send 400 Bad Request
             char html[] = "<html><h2>400 Bad Request</h2></html>";
@@ -248,6 +249,9 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       
       if(keepAlive && noerror)
       {
+         // set keep-alive timeout (defaults to 5 minutes)
+         hc.setReadTimeout(1000 * 60 * 5);
+         
          // clear request and response header fields
          reqHeader->clearFields();
          resHeader->clearFields();
