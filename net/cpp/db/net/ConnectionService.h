@@ -188,27 +188,11 @@ public:
    virtual void run();
    
    /**
-    * Creates a Connection from the given connected Socket and services it.
+    * Services a Connection and then closes it.
     * 
-    * @param s the connected Socket.
-    * 
-    * @return false if a connection could not be created from the socket.
+    * @param s the Socket to wrap in a Connection and service.
     */
-   virtual bool createConnection(Socket* s);
-   
-   /**
-    * Services the passed Connection and then closes it.
-    * 
-    * @param c the Connection to service.
-    */
-   virtual void serviceConnection(void* c);
-   
-   /**
-    * Ensures the passed Connection is closed and cleans up its memory.
-    * 
-    * @param c the Connection to clean up.
-    */
-   virtual void cleanupConnection(void* c);
+   virtual void serviceConnection(void* s);
    
    /**
     * Sets the maximum number of concurrent connections this service should

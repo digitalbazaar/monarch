@@ -48,7 +48,7 @@ Operation ConnectionService::initialize()
    {
       // create Operation for running service
       rval = *this;
-      rval->setUserData((void*)"accept");
+      rval->setUserData(&mSocket);
       rval->addGuard(this);
    }
    
@@ -69,7 +69,7 @@ bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
 {
    bool rval = false;
    
-   if(strcmp("accept", (const char*)op->getUserData()) == 0)
+   if(op->getUserData() == &mSocket)
    {
       // accept OP can execute if server is running
       rval = mServer->isRunning();
@@ -94,15 +94,24 @@ bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
 {
    bool rval;
    
-   if(strcmp("accept", (const char*)op->getUserData()) == 0)
+   // operation's user data is the socket being serviced, either it is
+   // the socket accepting connections or a socket that is servicing one
+   Socket* socket = (Socket*)op->getUserData();
+   
+   if(socket == mSocket)
    {
       // must cancel accept OP if server is no longer running
       rval = !mServer->isRunning();
    }
    else
    {
-      // don't cancel service OPs, as they must cleanup
+      // cancel service OPs
       rval = true;
+      
+      // close and clean up the operation's socket socket
+      socket->close(); 
+      delete socket;
+      op->setUserData(NULL);
    }
    
    return rval;
@@ -133,8 +142,19 @@ void ConnectionService::run()
       // wait for 5 seconds for a connection
       if((s = mSocket->accept(5)) != NULL)
       {
-         // create connection
-         createConnection(s);
+         // create RunnableDelegate to service connection
+         // and run it as an Operation
+         RunnableRef r =
+            new RunnableDelegate<ConnectionService>(
+               this, &ConnectionService::serviceConnection, s);
+         Operation op(r);
+         op->setUserData(s);
+         op->addGuard(this);
+         op->addStateMutator(this);
+         mRunningServicers.add(op);
+         
+         // run operation
+         mServer->getOperationRunner()->runOperation(op);
       }
    }
    
@@ -145,16 +165,16 @@ void ConnectionService::run()
    mRunningServicers.terminate();
 }
 
-bool ConnectionService::createConnection(Socket* s)
+void ConnectionService::serviceConnection(void* s)
 {
-   bool rval = true;
-   
-   // try to wrap Socket for standard data presentation
+   // ensure the Socket can be wrapped with at least standard data presentation
    bool secure = false;
-   Socket* wrapper = s;
+   Socket* socket = (Socket*)s;
+   Socket* wrapper = socket;
    if(mDataPresenter != NULL)
    {
-      wrapper = mDataPresenter->createPresentationWrapper(s, secure);
+      // the secure flag will be set by the data presenter
+      wrapper = mDataPresenter->createPresentationWrapper(socket, secure);
    }
    
    if(wrapper != NULL)
@@ -163,44 +183,19 @@ bool ConnectionService::createConnection(Socket* s)
       Connection* c = new Connection(wrapper, true);
       c->setSecure(secure);
       
-      // create RunnableDelegate to service connection and run as an Operation
-      RunnableRef r =
-         new RunnableDelegate<ConnectionService>(
-            this, &ConnectionService::serviceConnection, c,
-            &ConnectionService::cleanupConnection);
-      Operation op(r);
-      op->setUserData((void*)"service");
-      op->addGuard(this);
-      op->addStateMutator(this);
-      mRunningServicers.add(op);
+      // service connection
+      mServicer->serviceConnection(c);
       
-      // run operation
-      mServer->getOperationRunner()->runOperation(op);
+      // close and clean up connection
+      c->close();
+      delete c;
    }
    else
    {
       // close socket, data cannot be presented in standard format
-      s->close();
-      delete s;
-      rval = false;
+      socket->close();
+      delete socket;
    }
-   
-   return rval;
-}
-
-void ConnectionService::serviceConnection(void* c)
-{
-   // service the connection
-   mServicer->serviceConnection((Connection*)c);
-}
-
-void ConnectionService::cleanupConnection(void* c)
-{
-   // ensure connection is closed
-   // clean up connection
-   Connection* conn = (Connection*)c;
-   conn->close();
-   delete conn;
 }
 
 inline void ConnectionService::setMaxConnectionCount(int32_t count)
