@@ -74,7 +74,7 @@ bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
       // accept OP can execute if server is running
       rval = mServer->isRunning();
    }
-   else
+   else if(mServer->isRunning())
    {
       // service OP can execute if the server and the connection service
       // have enough permits available
@@ -98,20 +98,19 @@ bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
    // the socket accepting connections or a socket that is servicing one
    Socket* socket = (Socket*)op->getUserData();
    
-   if(socket == mSocket)
+   // must cancel any OP if the server is not running
+   if(!mServer->isRunning())
    {
-      // must cancel accept OP if server is no longer running
-      rval = !mServer->isRunning();
-   }
-   else
-   {
-      // cancel service OPs
       rval = true;
       
-      // close and clean up the operation's socket socket
-      socket->close(); 
-      delete socket;
-      op->setUserData(NULL);
+      // if the socket isn't the accept socket, then it needs to be cleaned up
+      if(socket != mSocket)
+      {
+         // close and clean up the operation's socket
+         socket->close(); 
+         delete socket;
+         op->setUserData(NULL);
+      }
    }
    
    return rval;
