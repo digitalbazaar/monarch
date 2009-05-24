@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/SocketWrapper.h"
 
@@ -134,6 +134,12 @@ inline unsigned int SocketWrapper::getBacklog()
 inline int SocketWrapper::getFileDescriptor()
 {
    return getSocket()->getFileDescriptor();
+}
+
+inline SocketAddress::CommunicationDomain
+   SocketWrapper::getCommunicationDomain()
+{
+   return getSocket()->getCommunicationDomain();
 }
 
 inline void SocketWrapper::setSendNonBlocking(bool on)

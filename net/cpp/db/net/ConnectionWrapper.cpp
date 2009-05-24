@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/ConnectionWrapper.h"
 
@@ -104,6 +104,12 @@ inline bool ConnectionWrapper::getLocalAddress(InternetAddress* address)
 inline bool ConnectionWrapper::getRemoteAddress(InternetAddress* address)
 {
    return mConnection->getRemoteAddress(address);
+}
+
+inline SocketAddress::CommunicationDomain
+   ConnectionWrapper::getCommunicationDomain()
+{
+   return mConnection->getCommunicationDomain();
 }
 
 inline void ConnectionWrapper::setSocket(Socket* s, bool cleanup)

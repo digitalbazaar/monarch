@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_Connection_H
 #define db_net_Connection_H
@@ -192,6 +192,13 @@ public:
     *         occurred.
     */
    virtual bool getRemoteAddress(SocketAddress* address);
+   
+   /**
+    * Gets the communication domain for this Socket, i.e. IPv4, IPv6.
+    * 
+    * @return the communication domain for this Socket.
+    */
+   virtual SocketAddress::CommunicationDomain getCommunicationDomain();
    
    /**
     * Sets the Socket used by this Connection. This method is generally used

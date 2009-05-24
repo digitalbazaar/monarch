@@ -15,7 +15,7 @@ using namespace db::net;
 using namespace db::rt;
 
 InternetAddress::InternetAddress(const char* host, unsigned short port) :
-   SocketAddress("IPv4", "0.0.0.0", port)
+   SocketAddress(SocketAddress::IPv4, "0.0.0.0", port)
 {
    mHost = strdup("");
    

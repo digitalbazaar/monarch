@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_Socket_H
 #define db_net_Socket_H
@@ -215,6 +215,13 @@ public:
     * @return the file descriptor for this Socket.
     */
    virtual int getFileDescriptor() = 0;
+   
+   /**
+    * Gets the communication domain for this Socket, i.e. IPv4, IPv6.
+    * 
+    * @return the communication domain for this Socket.
+    */
+   virtual SocketAddress::CommunicationDomain getCommunicationDomain() = 0;
    
    /**
     * Sets whether or not this Socket should not block when sending. If true,

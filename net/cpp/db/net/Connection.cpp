@@ -129,6 +129,11 @@ inline bool Connection::getRemoteAddress(SocketAddress* address)
    return getSocket()->getRemoteAddress(address);
 }
 
+inline SocketAddress::CommunicationDomain Connection::getCommunicationDomain()
+{
+   return getSocket()->getCommunicationDomain();
+}
+
 void Connection::setSocket(Socket* s, bool cleanup)
 {
    mSocket = s;

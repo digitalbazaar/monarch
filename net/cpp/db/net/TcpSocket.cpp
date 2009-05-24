@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/TcpSocket.h"
+
 #include "db/net/SocketDefinitions.h"
 #include "db/io/PeekInputStream.h"
 #include "db/net/SocketInputStream.h"
@@ -20,7 +21,7 @@ TcpSocket::~TcpSocket()
 {
 }
 
-bool TcpSocket::acquireFileDescriptor(const char* domain)
+bool TcpSocket::acquireFileDescriptor(SocketAddress::CommunicationDomain domain)
 {
    bool rval = true;
    
@@ -29,7 +30,7 @@ bool TcpSocket::acquireFileDescriptor(const char* domain)
       // use PF_INET = "protocol family internet" (which just so happens to
       // have the same value as AF_INET but that's only because different
       // protocols were never used with the same address family
-      if(strcmp(domain, "IPv6") == 0)
+      if(domain == SocketAddress::IPv6)
       {
          // use IPv6
          rval = create(PF_INET6, SOCK_STREAM, IPPROTO_TCP);

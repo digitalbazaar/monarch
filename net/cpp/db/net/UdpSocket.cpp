@@ -23,7 +23,7 @@ UdpSocket::~UdpSocket()
 {
 }
 
-bool UdpSocket::acquireFileDescriptor(const char* domain)
+bool UdpSocket::acquireFileDescriptor(SocketAddress::CommunicationDomain domain)
 {
    bool rval = true;
    
@@ -32,7 +32,7 @@ bool UdpSocket::acquireFileDescriptor(const char* domain)
       // use PF_INET = "protocol family internet" (which just so happens to
       // have the same value as AF_INET but that's only because different
       // protocols were never used with the same address family
-      if(strcmp(domain, "IPv6") == 0)
+      if(domain == SocketAddress::IPv6)
       {
          // use IPv6
          rval = create(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
@@ -66,7 +66,7 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
 {
    int error = 0;
    
-   if(strcmp(group->getProtocol(), "IPv6") == 0)
+   if(group->getCommunicationDomain() == SocketAddress::IPv6)
    {
       // create IPv6 multicast request
       struct ipv6_mreq request;
@@ -122,7 +122,7 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
 {
    int error = 0;
    
-   if(strcmp(group->getProtocol(), "IPv6") == 0)
+   if(group->getCommunicationDomain() == SocketAddress::IPv6)
    {
       // create IPv6 multicast request
       struct ipv6_mreq request;

@@ -14,28 +14,26 @@ using namespace db::net;
 using namespace db::rt;
 
 SocketAddress::SocketAddress(
-   const char* protocol, const char* address, unsigned short port) 
+   CommunicationDomain domain, const char* address, unsigned short port) :
+   mCommDomain(domain),
+   mAddress(strdup(address)),
+   mPort(port)
 {
-   mProtocol = strdup(protocol);
-   mAddress = strdup(address);
-   mPort = port;
 }
 
 SocketAddress::~SocketAddress()
 {
-   free(mProtocol);
    free(mAddress);
 }
 
-void SocketAddress::setProtocol(const char* protocol)
+void SocketAddress::setCommunicationDomain(CommunicationDomain domain)
 {
-   free(mProtocol);
-   mProtocol = strdup(protocol);
+   mCommDomain = domain;
 }
 
-const char* SocketAddress::getProtocol()
+SocketAddress::CommunicationDomain SocketAddress::getCommunicationDomain()
 {
-   return mProtocol;
+   return mCommDomain;
 }
 
 void SocketAddress::setAddress(const char* address)
@@ -106,6 +104,28 @@ bool SocketAddress::fromString(const char* str)
       e->getDetails()["string"] = str;
       Exception::setLast(e, false);
       rval = false;
+   }
+   
+   return rval;
+}
+
+const char* SocketAddress::communicationDomainToString(
+   CommunicationDomain domain)
+{
+   const char* rval;
+   
+   switch(domain)
+   {
+      case IPv4:
+         rval = "IPv4";
+         break;
+      case IPv6:
+         rval = "IPv6";
+         break;
+      default:
+         // should never happen
+         rval = "invalid";
+         break;
    }
    
    return rval;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/AbstractSocket.h"
 
@@ -18,30 +18,26 @@ using namespace db::io;
 using namespace db::net;
 using namespace db::rt;
 
-AbstractSocket::AbstractSocket()
-{
+AbstractSocket::AbstractSocket() :
    // file descriptor is invalid at this point
-   mFileDescriptor = -1;
-   
+   mFileDescriptor(-1),
+   mCommDomain(SocketAddress::IPv4),
    // not bound, listening, or connected
-   mBound = false;
-   mListening = false;
-   mConnected = false;
-   
+   mBound(false),
+   mListening(false),
+   mConnected(false),
    // input/output uninitialized
-   mInputStream = NULL;
-   mOutputStream = NULL;
-   
+   mInputStream(NULL),
+   mOutputStream(NULL),
    // no receive or send timeouts (socket will block)
-   mReceiveTimeout = 0;
-   mSendTimeout = 0;
-   
+   mSendTimeout(0),
+   mReceiveTimeout(0),
    // default backlog is 50
-   mBacklog = 50;
-   
+   mBacklog(50),
    // default to blocking IO
-   mSendNonBlocking = false;
-   mReceiveNonBlocking = false;
+   mSendNonBlocking(false),
+   mReceiveNonBlocking(false)
+{
 }
 
 AbstractSocket::~AbstractSocket()
@@ -53,6 +49,17 @@ AbstractSocket::~AbstractSocket()
 bool AbstractSocket::create(int domain, int type, int protocol)
 {
    bool rval = false;
+   
+   // IPv6
+   if(domain == PF_INET6 || domain == AF_INET6)
+   {
+      mCommDomain = SocketAddress::IPv6;
+   }
+   // default to IPv4
+   else
+   {
+      mCommDomain = SocketAddress::IPv4;
+   }
    
    int fd = SOCKET_MACRO_socket(domain, type, protocol);
    if(fd >= 0)
@@ -246,7 +253,7 @@ bool AbstractSocket::shutdownOutput()
 bool AbstractSocket::bind(SocketAddress* address)
 {
    // acquire file descriptor
-   if(acquireFileDescriptor(address->getProtocol()))
+   if(acquireFileDescriptor(address->getCommunicationDomain()))
    {
       // populate address structure
       unsigned int size = 130;
@@ -385,7 +392,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
 bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
 {
    // acquire file descriptor
-   if(acquireFileDescriptor(address->getProtocol()))
+   if(acquireFileDescriptor(address->getCommunicationDomain()))
    {
       // populate address structure
       unsigned int size = 130;
@@ -704,6 +711,12 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
    }
    
    return rval;
+}
+
+inline SocketAddress::CommunicationDomain
+   AbstractSocket::getCommunicationDomain()
+{
+   return mCommDomain;
 }
 
 inline InputStream* AbstractSocket::getInputStream()

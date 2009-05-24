@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/ConnectionService.h"
 
+#include "db/logging/Logging.h"
 #include "db/net/Server.h"
 #include "db/net/TcpSocket.h"
+#include "db/net/Internet6Address.h"
 #include "db/rt/RunnableDelegate.h"
 
 using namespace std;
@@ -181,6 +183,32 @@ void ConnectionService::serviceConnection(void* s)
       // create connection
       Connection* c = new Connection(wrapper, true);
       c->setSecure(secure);
+      
+      // get socket address for logging
+      SocketAddress* sa = NULL;
+      switch(c->getCommunicationDomain())
+      {
+         case SocketAddress::IPv4:
+            sa = new InternetAddress();
+            break;
+         case SocketAddress::IPv6:
+            sa = new Internet6Address();
+            break;
+      }
+      c->getRemoteAddress(sa);
+      
+      if(sa != NULL)
+      {
+         // log connection
+         DB_CAT_DEBUG(DB_NET_CAT, "%s:%i servicing connection from %s:%i",
+            getAddress()->getAddress(),
+            getAddress()->getPort(),
+            sa->getAddress(),
+            sa->getPort());
+         
+         // clean up address
+         delete sa;
+      }
       
       // service connection
       mServicer->serviceConnection(c);

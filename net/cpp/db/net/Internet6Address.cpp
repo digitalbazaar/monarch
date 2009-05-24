@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/Internet6Address.h"
 
@@ -16,8 +16,8 @@ using namespace db::rt;
 Internet6Address::Internet6Address(const char* host, unsigned short port) :
    InternetAddress("", port)
 {
-   // set protocol
-   Internet6Address::setProtocol("IPv6");
+   // set domain
+   Internet6Address::setCommunicationDomain(SocketAddress::IPv6);
    
    if(strcmp(host, "") != 0)
    {

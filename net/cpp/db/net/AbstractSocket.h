@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_AbstractSocket_H
 #define db_net_AbstractSocket_H
@@ -29,6 +29,11 @@ protected:
     * A file descriptor for the Socket. 
     */
    int mFileDescriptor;
+   
+   /**
+    * The communication domain for this Socket.
+    */
+   SocketAddress::CommunicationDomain mCommDomain;
    
    /**
     * True when this Socket is bound, false when not.
@@ -118,7 +123,8 @@ protected:
     * @return true if the file descriptor could be acquired, false if
     *         an exception occurred.
     */
-   virtual bool acquireFileDescriptor(const char* domain) = 0;
+   virtual bool acquireFileDescriptor(
+      SocketAddress::CommunicationDomain domain) = 0;
    
    /**
     * Initializes the input stream for this Socket, if it is not already
@@ -370,6 +376,13 @@ public:
     * @return the file descriptor for this Socket.
     */
    virtual int getFileDescriptor();
+   
+   /**
+    * Gets the communication domain for this Socket, i.e. IPv4, IPv6.
+    * 
+    * @return the communication domain for this Socket.
+    */
+   virtual SocketAddress::CommunicationDomain getCommunicationDomain();
    
    /**
     * Sets whether or not this Socket should not block when sending. If true,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_TcpSocket_H
 #define db_net_TcpSocket_H
@@ -30,7 +30,8 @@ protected:
     * @return true if the file descriptor could be acquired, false if
     *         an exception occurred.
     */
-   virtual bool acquireFileDescriptor(const char* domain);
+   virtual bool acquireFileDescriptor(
+      SocketAddress::CommunicationDomain domain);
    
    /**
     * Creates a new Socket with the given file descriptor that points to

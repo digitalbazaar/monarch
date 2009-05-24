@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_SocketAddress_H
 #define db_net_SocketAddress_H
@@ -22,11 +22,18 @@ namespace net
  */
 class SocketAddress
 {
+public:
+   enum CommunicationDomain
+   {
+      IPv4,
+      IPv6
+   };
+   
 protected:
    /**
-    * The protocol associated with this socket address.
+    * The domain associated with this socket address.
     */
-   char* mProtocol;
+   CommunicationDomain mCommDomain;
    
    /**
     * The address part of the socket address.
@@ -42,12 +49,12 @@ public:
    /**
     * Creates a new SocketAddress with the specified address and port.
     * 
-    * @param protocol the protocol.
+    * @param domain the communication domain.
     * @param address the address (or host).
     * @param port the socket port.
     */
    SocketAddress(
-      const char* protocol = "IPv4",
+      CommunicationDomain domain = IPv4,
       const char* address = "0.0.0.0",
       unsigned short port = 0);
    
@@ -81,18 +88,18 @@ public:
    virtual bool fromSockAddr(const sockaddr* addr, unsigned int size) = 0;
    
    /**
-    * Sets the protocol for the socket address. 
+    * Sets the communication domain for the socket address, i.e. IPv4, IPv6.
     * 
-    * @param protocol the protocol to use.
+    * @param domain the communication domain to use.
     */
-   virtual void setProtocol(const char* protocol);
+   virtual void setCommunicationDomain(CommunicationDomain domain);
    
    /**
-    * Gets the protocol for the socket address. 
+    * Gets the communication domain for the socket address, i.e. IPv4, IPv6. 
     * 
-    * @return the protocol.
+    * @return the communication domain.
     */
-   virtual const char* getProtocol();
+   virtual CommunicationDomain getCommunicationDomain();
    
    /**
     * Sets the address part of the socket address. 
@@ -141,6 +148,15 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool fromString(const char* str);
+   
+   /**
+    * Converts the passed communication domain into a string representation.
+    * 
+    * @param domain the communication domain.
+    * 
+    * @return the string representation.
+    */
+   static const char* communicationDomainToString(CommunicationDomain domain);
 };
 
 } // end namespace net
