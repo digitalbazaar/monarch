@@ -1,20 +1,38 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/Connection.h"
+
+#include "db/net/Internet6Address.h"
 
 using namespace db::net;
 using namespace db::rt;
 
-Connection::Connection(Socket* s, bool cleanup)
+Connection::Connection(Socket* s, bool cleanup) :
+   mSocket(s),
+   mCleanupSocket(cleanup),
+   mLocalAddress(NULL),
+   mRemoteAddress(NULL),
+   mSecure(false),
+   mReadBandwidthThrottler(NULL),
+   mWriteBandwidthThrottler(NULL)
 {
-   mSocket = s;
-   mCleanupSocket = cleanup;
-   mSecure = false;
+   // create addresses
+   switch(getCommunicationDomain())
+   {
+      case SocketAddress::IPv4:
+         mLocalAddress = new InternetAddress();
+         mRemoteAddress = new InternetAddress();
+         break;
+      case SocketAddress::IPv6:
+         mLocalAddress = new Internet6Address();
+         mRemoteAddress = new Internet6Address();
+         break;
+   }
    
-   // no bandwidth throttlers installed
-   mReadBandwidthThrottler = NULL;
-   mWriteBandwidthThrottler = NULL;
+   // get local and remote addresses
+   writeLocalAddress(mLocalAddress);
+   writeRemoteAddress(mRemoteAddress);
    
    // create streams
    mInputStream = new ConnectionInputStream(this);
@@ -26,6 +44,10 @@ Connection::~Connection()
    // clean up streams
    delete mInputStream;
    delete mOutputStream;
+   
+   // clean up addresses
+   delete mLocalAddress;
+   delete mRemoteAddress;
    
    // handle socket cleanup
    if(mSocket != NULL && mCleanupSocket)
@@ -119,12 +141,22 @@ inline void Connection::close()
    getSocket()->close();
 }
 
-inline bool Connection::getLocalAddress(SocketAddress* address)
+inline SocketAddress* Connection::getLocalAddress()
+{
+   return mLocalAddress;
+}
+
+inline SocketAddress* Connection::getRemoteAddress()
+{
+   return mRemoteAddress;
+}
+
+inline bool Connection::writeLocalAddress(SocketAddress* address)
 {
    return getSocket()->getLocalAddress(address);
 }
 
-inline bool Connection::getRemoteAddress(SocketAddress* address)
+inline bool Connection::writeRemoteAddress(SocketAddress* address)
 {
    return getSocket()->getRemoteAddress(address);
 }

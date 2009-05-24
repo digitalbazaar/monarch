@@ -165,24 +165,44 @@ public:
    virtual void close();
    
    /**
-    * Gets the local InternetAddress for this Connection.
+    * Gets the local address for this Connection. This address can be
+    * up-cast to an InternetAddress or Internet6Address based on
+    * the communication domain of the returned SocketAddress.
     * 
-    * @param address the InternetAddress to populate.
-    * 
-    * @return true if the address could be obtained, false if a SocketException
-    *         occurred.
+    * @return the local address.
     */
-   virtual bool getLocalAddress(InternetAddress* address);
+   virtual SocketAddress* getLocalAddress();
    
    /**
-    * Gets the remote InternetAddress for this Connection.
+    * Gets the remote address for this Connection. This address can be
+    * up-cast to an InternetAddress or Internet6Address based on
+    * the communication domain of the returned SocketAddress.
     * 
-    * @param address the InternetAddress to populate.
+    * @return the remote address.
+    */
+   virtual SocketAddress* getRemoteAddress();
+   
+   /**
+    * Writes the local SocketAddress for this Connection into the passed
+    * parameter.
+    * 
+    * @param address the SocketAddress to populate.
     * 
     * @return true if the address could be obtained, false if a SocketException
     *         occurred.
     */
-   virtual bool getRemoteAddress(InternetAddress* address);
+   virtual bool writeLocalAddress(SocketAddress* address);
+   
+   /**
+    * Writes the remote SocketAddress for this Connection into the passed
+    * parameter.
+    * 
+    * @param address the SocketAddress to populate.
+    * 
+    * @return true if the address could be obtained, false if a SocketException
+    *         occurred.
+    */
+   virtual bool writeRemoteAddress(SocketAddress* address);
    
    /**
     * Gets the communication domain for this Socket, i.e. IPv4, IPv6.

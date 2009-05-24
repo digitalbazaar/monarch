@@ -96,14 +96,24 @@ inline void ConnectionWrapper::close()
    mConnection->close();
 }
 
-inline bool ConnectionWrapper::getLocalAddress(InternetAddress* address)
+inline SocketAddress* ConnectionWrapper::getLocalAddress()
 {
-   return mConnection->getLocalAddress(address);
+   return mConnection->getLocalAddress();
 }
 
-inline bool ConnectionWrapper::getRemoteAddress(InternetAddress* address)
+inline SocketAddress* ConnectionWrapper::getRemoteAddress()
 {
-   return mConnection->getRemoteAddress(address);
+   return mConnection->getRemoteAddress();
+}
+
+inline bool ConnectionWrapper::writeLocalAddress(SocketAddress* address)
+{
+   return mConnection->writeLocalAddress(address);
+}
+
+inline bool ConnectionWrapper::writeRemoteAddress(SocketAddress* address)
+{
+   return mConnection->writeRemoteAddress(address);
 }
 
 inline SocketAddress::CommunicationDomain

@@ -184,52 +184,28 @@ void ConnectionService::serviceConnection(void* s)
       Connection* c = new Connection(wrapper, true);
       c->setSecure(secure);
       
-      // get socket address for logging
-      SocketAddress* local = NULL;
-      SocketAddress* remote = NULL;
-      switch(c->getCommunicationDomain())
-      {
-         case SocketAddress::IPv4:
-            local = new InternetAddress();
-            remote = new InternetAddress();
-            break;
-         case SocketAddress::IPv6:
-            local = new Internet6Address();
-            remote = new Internet6Address();
-            break;
-      }
+      // get local/remote addresses
+      SocketAddress* local = c->getLocalAddress();
+      SocketAddress* remote = c->getRemoteAddress();
       
-      if(local != NULL)
-      {
-         c->getLocalAddress(local);
-         c->getRemoteAddress(remote);
-         
-         // log connection
-         DB_CAT_DEBUG(DB_NET_CAT, "%s:%i servicing %s connection from %s:%i",
-            local->getAddress(),
-            local->getPort(),
-            secure ? "secure" : "non-secure",
-            remote->getAddress(),
-            remote->getPort());
-      }
+      // log connection
+      DB_CAT_DEBUG(DB_NET_CAT, "%s:%i servicing %s connection from %s:%i",
+         local->getAddress(),
+         local->getPort(),
+         secure ? "secure" : "non-secure",
+         remote->getAddress(),
+         remote->getPort());
       
       // service connection
       mServicer->serviceConnection(c);
       
-      if(local != NULL)
-      {
-         // log connection
-         DB_CAT_DEBUG(DB_NET_CAT, "%s:%i serviced %s connection from %s:%i",
-            local->getAddress(),
-            local->getPort(),
-            secure ? "secure" : "non-secure",
-            remote->getAddress(),
-            remote->getPort());
-         
-         // clean up addresses
-         delete local;
-         delete remote;
-      }
+      // log connection
+      DB_CAT_DEBUG(DB_NET_CAT, "%s:%i serviced %s connection from %s:%i",
+         local->getAddress(),
+         local->getPort(),
+         secure ? "secure" : "non-secure",
+         remote->getAddress(),
+         remote->getPort());
       
       // close and clean up connection
       c->close();
