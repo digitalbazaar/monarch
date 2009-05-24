@@ -205,13 +205,23 @@ void ConnectionService::serviceConnection(void* s)
             getAddress()->getPort(),
             sa->getAddress(),
             sa->getPort());
-         
-         // clean up address
-         delete sa;
       }
       
       // service connection
       mServicer->serviceConnection(c);
+      
+      if(sa != NULL)
+      {
+         // log connection
+         DB_CAT_DEBUG(DB_NET_CAT, "%s:%i serviced connection from %s:%i",
+            getAddress()->getAddress(),
+            getAddress()->getPort(),
+            sa->getAddress(),
+            sa->getPort());
+         
+         // clean up address
+         delete sa;
+      }
       
       // close and clean up connection
       c->close();
