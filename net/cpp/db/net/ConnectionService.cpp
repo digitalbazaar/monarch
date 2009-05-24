@@ -185,42 +185,50 @@ void ConnectionService::serviceConnection(void* s)
       c->setSecure(secure);
       
       // get socket address for logging
-      SocketAddress* sa = NULL;
+      SocketAddress* local = NULL;
+      SocketAddress* remote = NULL;
       switch(c->getCommunicationDomain())
       {
          case SocketAddress::IPv4:
-            sa = new InternetAddress();
+            local = new InternetAddress();
+            remote = new InternetAddress();
             break;
          case SocketAddress::IPv6:
-            sa = new Internet6Address();
+            local = new Internet6Address();
+            remote = new Internet6Address();
             break;
       }
-      c->getRemoteAddress(sa);
       
-      if(sa != NULL)
+      if(local != NULL)
       {
+         c->getLocalAddress(local);
+         c->getRemoteAddress(remote);
+         
          // log connection
-         DB_CAT_DEBUG(DB_NET_CAT, "%s:%i servicing connection from %s:%i",
-            getAddress()->getAddress(),
-            getAddress()->getPort(),
-            sa->getAddress(),
-            sa->getPort());
+         DB_CAT_DEBUG(DB_NET_CAT, "%s:%i servicing %s connection from %s:%i",
+            local->getAddress(),
+            local->getPort(),
+            secure ? "secure" : "non-secure",
+            remote->getAddress(),
+            remote->getPort());
       }
       
       // service connection
       mServicer->serviceConnection(c);
       
-      if(sa != NULL)
+      if(local != NULL)
       {
          // log connection
-         DB_CAT_DEBUG(DB_NET_CAT, "%s:%i serviced connection from %s:%i",
-            getAddress()->getAddress(),
-            getAddress()->getPort(),
-            sa->getAddress(),
-            sa->getPort());
+         DB_CAT_DEBUG(DB_NET_CAT, "%s:%i serviced %s connection from %s:%i",
+            local->getAddress(),
+            local->getPort(),
+            secure ? "secure" : "non-secure",
+            remote->getAddress(),
+            remote->getPort());
          
-         // clean up address
-         delete sa;
+         // clean up addresses
+         delete local;
+         delete remote;
       }
       
       // close and clean up connection
