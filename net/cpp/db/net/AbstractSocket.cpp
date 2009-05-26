@@ -271,6 +271,8 @@ bool AbstractSocket::bind(SocketAddress* address)
          ExceptionRef e = new Exception(
             "Could not bind socket.", SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
+         e->getDetails()["address"] = address->getAddress();
+         e->getDetails()["port"] = address->getPort();
          Exception::setLast(e, false);
       }
       else
