@@ -8,8 +8,9 @@ using namespace db::modest;
 using namespace db::net;
 
 DatagramService::DatagramService(
-   Server* server, InternetAddress* address, DatagramServicer* servicer) :
-   PortService(server, address)
+   Server* server, InternetAddress* address, DatagramServicer* servicer,
+   const char* name) :
+   PortService(server, address, name)
 {
    mServicer = servicer;
    mSocket = NULL;

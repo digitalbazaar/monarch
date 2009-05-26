@@ -107,6 +107,7 @@ public:
     * @param a the address to listen on.
     * @param s the ConnectionServicer to service Connections with.
     * @param p the SocketDataPresenter to use to present data to the servicer.
+    * @param name a name for the connection service.
     * 
     * @return the ServiceId for the new service if the service was added, 0
     *         if the service could not be added -- if the server is running
@@ -114,7 +115,8 @@ public:
     *         the server is not running, the service will be added.
     */
    virtual ServiceId addConnectionService(
-      InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p = NULL);
+      InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p = NULL,
+      const char* name = "unnamed");
    
    /**
     * Adds a DatagramService to this server or replaces an existing one. If
@@ -123,6 +125,7 @@ public:
     * 
     * @param a the address to bind to.
     * @param s the DatagramServicer to service Datagrams with.
+    * @param name a name for the datagram service.
     * 
     * @return the ServiceId for the new service if the service was added, 0
     *         if the service could not be added -- if the server is running
@@ -130,7 +133,7 @@ public:
     *         the server is not running, the service will be added.
     */
    virtual ServiceId addDatagramService(
-      InternetAddress* a, DatagramServicer* s);
+      InternetAddress* a, DatagramServicer* s, const char* name = "unnamed");
    
    /**
     * Removes a ConnectionService or DatagramService by its assigned ID. If

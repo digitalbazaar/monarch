@@ -1,22 +1,28 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/PortService.h"
 
 #include "db/net/Server.h"
 
+#include <cstdlib>
+
 using namespace db::modest;
 using namespace db::net;
+using namespace db::rt;
 
-PortService::PortService(Server* server, InternetAddress* address) :
+PortService::PortService(
+   Server* server, InternetAddress* address, const char* name) :
+   mServer(server),
+   mAddress(address),
    mOperation(NULL)
 {
-   mServer = server;
-   mAddress = address;
+   mName = strdup(name);
 }
 
 PortService::~PortService()
 {
+   free(mName);
 }
 
 bool PortService::start()
@@ -36,6 +42,13 @@ bool PortService::start()
    }
    else
    {
+      // set exception
+      ExceptionRef e = new Exception(
+         "Port service failed to start.",
+         "db.net.PortService.StartFailed");
+      e->getDetails()["name"] = mName;
+      Exception::setLast(e, true);
+      
       // clean up service
       cleanup();
    }

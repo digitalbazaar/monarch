@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_PortService_H
 #define db_net_PortService_H
@@ -24,6 +24,11 @@ class Server;
 class PortService : public db::rt::Runnable
 {
 protected:
+   /**
+    * A name for this port service.
+    */
+   char* mName;
+   
    /**
     * The Server associated with this PortService.
     */
@@ -63,8 +68,10 @@ public:
     * 
     * @param server the Server this service is for.
     * @param address the address for this service.
+    * @param name a name for this port service.
     */
-   PortService(Server* server, InternetAddress* address);
+   PortService(
+      Server* server, InternetAddress* address, const char* name = "unnamed");
    
    /**
     * Destructs this PortService.

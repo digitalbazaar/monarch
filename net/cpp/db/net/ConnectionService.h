@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_ConnectionService_H
 #define db_net_ConnectionService_H
@@ -91,12 +91,14 @@ public:
     * @param address the address to listen for Connections on.
     * @param servicer the ConnectionServicer to service Connections with.
     * @param presenter the SocketDataPresenter to present data with.
+    * @param name a name for this service.
     */
    ConnectionService(
       Server* server,
       InternetAddress* address,
       ConnectionServicer* servicer,
-      SocketDataPresenter* presenter);
+      SocketDataPresenter* presenter,
+      const char* name = "unnamed");
    
    /**
     * Destructs this ConnectionService.

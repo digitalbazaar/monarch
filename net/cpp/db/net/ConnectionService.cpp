@@ -18,8 +18,9 @@ ConnectionService::ConnectionService(
    Server* server,
    InternetAddress* address,
    ConnectionServicer* servicer,
-   SocketDataPresenter* presenter) :
-   PortService(server, address)
+   SocketDataPresenter* presenter,
+   const char* name) :
+   PortService(server, address, name)
 {
    mServicer = servicer;
    mDataPresenter = presenter;

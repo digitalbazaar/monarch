@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_DatagramService_H
 #define db_net_DatagramService_H
@@ -56,9 +56,13 @@ public:
     * @param server the Server this service is for.
     * @param address the address to bind to.
     * @param servicer the DatagramServicer to service datagrams with.
+    * @param name a name for this service.
     */
    DatagramService(
-      Server* server, InternetAddress* address, DatagramServicer* servicer);
+      Server* server,
+      InternetAddress* address,
+      DatagramServicer* servicer,
+      const char* name = "unnamed");
    
    /**
     * Destructs this DatagramService.

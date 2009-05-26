@@ -39,14 +39,15 @@ Server::~Server()
 }
 
 Server::ServiceId Server::addConnectionService(
-   InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p)
+   InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p,
+   const char* name)
 {
    ServiceId rval = sInvalidServiceId;
    
    mLock.lock();
    {
       // add ConnectionService
-      ConnectionService* cs = new ConnectionService(this, a, s, p);
+      ConnectionService* cs = new ConnectionService(this, a, s, p, name);
       rval = addPortService(cs);
       if(rval == sInvalidServiceId)
       {
@@ -60,14 +61,14 @@ Server::ServiceId Server::addConnectionService(
 }
 
 Server::ServiceId Server::addDatagramService(
-   InternetAddress* a, DatagramServicer* s)
+   InternetAddress* a, DatagramServicer* s, const char* name)
 {
    ServiceId rval = sInvalidServiceId;
    
    mLock.lock();
    {
       // add DatagramService
-      DatagramService* ds = new DatagramService(this, a, s);
+      DatagramService* ds = new DatagramService(this, a, s, name);
       rval = addPortService(ds);
       if(rval == sInvalidServiceId)
       {
@@ -144,8 +145,12 @@ bool Server::start()
             // stop all started port services
             stop();
             
-            // reset exception
-            Exception::setLast(e, false);
+            // reset exception as cause
+            ExceptionRef ex = new Exception(
+               "Could not start server. At least one port service failed.",
+               "db.net.Server.PortServiceFailed");
+            ex->setCause(e);
+            Exception::setLast(ex, false);
          }
       }
    }
