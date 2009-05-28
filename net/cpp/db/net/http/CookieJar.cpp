@@ -99,7 +99,7 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
                      // parse expiration time
                      if(d.parse(tmpValue, HttpHeader::sDateFormat, &gmt))
                      {
-                        int age = d.second() - now.second();
+                        int64_t age = d.getSeconds() - now.getSeconds();
                         cookie["maxAge"] = (age <= 0 ? 0 : age);
                      }
                      else
