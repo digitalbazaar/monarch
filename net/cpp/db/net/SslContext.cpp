@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/SocketDefinitions.h"
 #include "db/net/SslContext.h"
@@ -107,6 +107,7 @@ bool SslContext::setCertificate(File& certFile)
       ExceptionRef e = new Exception(
          "Could not set SSL certificate.",
          SSL_EXCEPTION_TYPE);
+      e->getDetails()["filename"] = certFile->getAbsolutePath();
       e->getDetails()["error"] = SslContext::getSslErrorStrings();
       Exception::setLast(e, false);
       rval = false;
@@ -127,6 +128,7 @@ bool SslContext::setPrivateKey(File& pkeyFile)
       ExceptionRef e = new Exception(
          "Could not set SSL private key.",
          SSL_EXCEPTION_TYPE);
+      e->getDetails()["filename"] = pkeyFile->getAbsolutePath();
       Exception::setLast(e, false);
       rval = false;
    }
@@ -154,6 +156,14 @@ bool SslContext::setVerifyCAs(File* caFile, File* caDir)
       ExceptionRef e = new Exception(
          "Could not set verify Certificate Authorities.",
          SSL_EXCEPTION_TYPE);
+      if(caFile != NULL)
+      {
+         e->getDetails()["filename"] = (*caFile)->getAbsolutePath();
+      }
+      else if(caDir != NULL)
+      {
+         e->getDetails()["directory"] = (*caDir)->getAbsolutePath();
+      }
       Exception::setLast(e, false);
       rval = false;
    }
