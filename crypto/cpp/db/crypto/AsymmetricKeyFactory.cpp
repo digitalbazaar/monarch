@@ -220,8 +220,17 @@ PrivateKeyRef AsymmetricKeyFactory::loadPrivateKeyFromPem(
    
    // try to load private key from bio
    EVP_PKEY* pkey = NULL;
-   pkey = PEM_read_bio_PrivateKey(
-      bio, &pkey, passwordCallback, (void*)password);
+   if(password != NULL)
+   {
+      // use password to load key
+      pkey = PEM_read_bio_PrivateKey(
+         bio, &pkey, passwordCallback, (void*)password);
+   }
+   else
+   {
+      // no password provided
+      pkey = PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
+   }
    
    // free the bio
    BIO_free_all(bio);
@@ -252,9 +261,22 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    BIO* bio = BIO_new(BIO_s_mem());
    
    // write the key to the bio
-   int error = PEM_write_bio_PKCS8PrivateKey(
-      bio, key->getPKEY(), EVP_des_ede3_cbc(),
-      NULL, 0, passwordCallback, (void*)password);
+   int error;
+   if(password != NULL)
+   {
+      // use password
+      error = PEM_write_bio_PKCS8PrivateKey(
+         bio, key->getPKEY(), EVP_des_ede3_cbc(),
+         NULL, 0, passwordCallback, (void*)password);
+   }
+   else
+   {
+      // no password
+      error = PEM_write_bio_PKCS8PrivateKey(
+         bio, key->getPKEY(), NULL,
+         NULL, 0, NULL, NULL);
+   }
+   
    if(error != 0)
    {
       // get the memory buffer from the bio

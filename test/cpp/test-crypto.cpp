@@ -358,7 +358,7 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
    assert(verified);
    
    string outPrivatePem =
-      factory.writePrivateKeyToPem(privateKey, "password");
+      factory.writePrivateKeyToPem(privateKey, NULL);
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    
@@ -407,7 +407,7 @@ void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
    assert(verified);
    
    string outPrivatePem =
-      factory.writePrivateKeyToPem(privateKey, "password");
+      factory.writePrivateKeyToPem(privateKey, NULL);
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
    

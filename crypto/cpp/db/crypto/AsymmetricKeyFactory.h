@@ -72,7 +72,7 @@ public:
     * 
     * @param pem the PEM string to load the key from.
     * @param length the length of the PEM string.
-    * @param password the password to use to load the key.
+    * @param password the password to use to load the key, NULL to use none.
     * 
     * @return the loaded PrivateKey or NULL if an exception occurred.
     */
@@ -85,7 +85,7 @@ public:
     * structure that has a header and footer.
     * 
     * @param key the PrivateKey to write to a PEM string.
-    * @param password the password to use to encrypt the key.
+    * @param password the password to use to encrypt the key, NULL to use none.
     * 
     * @return the PEM string or a blank string of an exception occurred.
     */
