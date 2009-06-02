@@ -396,10 +396,10 @@ X509CertificateRef AsymmetricKeyFactory::createSelfSignedCertificate(
    
    bool pass;
    
-   // create certificate object, v2
-   // (we don't have any optional stuff, but code forces minimum of v2)
+   // create certificate object, v1 (0x0)
+   // (we don't have any optional stuff)
    X509* x509 = X509_new();
-   pass = (X509_set_version(x509, 2) != 0);
+   pass = (X509_set_version(x509, 0) != 0);
    
    // set serial number to 0
    pass = pass && ASN1_INTEGER_set(X509_get_serialNumber(x509), 0);
