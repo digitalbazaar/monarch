@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/crypto/AsymmetricKeyFactory.h"
 
@@ -19,6 +19,11 @@ using namespace db::crypto;
 using namespace db::rt;
 using namespace db::util;
 
+#define EXCEPTION_UNSUPPORTED_ALGORITHM "db.crypto.UnsupportedAlgorithm"
+#define EXCEPTION_PRIVATE_KEY_IO        "db.crypto.PrivateKey.IO"
+#define EXCEPTION_PUBLIC_KEY_IO         "db.crypto.PublicKey.IO"
+#define EXCEPTION_CERTIFICATE_IO        "db.crypto.Certificate.IO"
+
 AsymmetricKeyFactory::AsymmetricKeyFactory()
 {
 }
@@ -27,8 +32,18 @@ AsymmetricKeyFactory::~AsymmetricKeyFactory()
 {
 }
 
-int AsymmetricKeyFactory::passwordCallback(
-   char* b, int length, int flag, void* userData)
+/**
+ * A callback function that is called to obtain a password to unlock
+ * an encrypted key.
+ * 
+ * @param b the buffer to populate with a password.
+ * @param length the length of the buffer to populate.
+ * @param flag a flag that is reserved for future use.
+ * @param userData a pointer to some user data.
+ * 
+ * @return the length of the password.
+ */
+static int passwordCallback(char* b, int length, int flag, void* userData)
 {
    // interpret user data as a const char*
    const char* password = (const char*)userData;
@@ -185,7 +200,8 @@ bool AsymmetricKeyFactory::createKeyPair(
    {
       // unknown algorithm
       ExceptionRef e = new Exception(
-         "Key algorithm is not supported.", "db.crypto.UnsupportedAlgorithm");
+         "Key algorithm is not supported.",
+         EXCEPTION_UNSUPPORTED_ALGORITHM);
       e->getDetails()["algorithm"] = algorithm;
       Exception::setLast(e, false);
       rval = false;
@@ -218,7 +234,8 @@ PrivateKeyRef AsymmetricKeyFactory::loadPrivateKeyFromPem(
    else
    {
       ExceptionRef e = new Exception(
-         "Could not load private key from PEM.", "db.crypto.PrivateKeyIO");
+         "Could not load private key from PEM.",
+         EXCEPTION_PRIVATE_KEY_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
@@ -253,7 +270,8 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    else
    {
       ExceptionRef e = new Exception(
-         "Could not write private key to PEM.", "db.crypto.PrivateKeyIO");
+         "Could not write private key to PEM.",
+         EXCEPTION_PRIVATE_KEY_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
@@ -272,7 +290,7 @@ PublicKeyRef AsymmetricKeyFactory::loadPublicKeyFromPem(
    
    // try to load public key from bio
    EVP_PKEY* pkey = NULL;
-   pkey = PEM_read_bio_PUBKEY(bio, &pkey, passwordCallback, NULL);
+   pkey = PEM_read_bio_PUBKEY(bio, &pkey, NULL, NULL);
    
    // free the bio
    BIO_free(bio);
@@ -285,7 +303,8 @@ PublicKeyRef AsymmetricKeyFactory::loadPublicKeyFromPem(
    else
    {
       ExceptionRef e = new Exception(
-         "Could not load public key from PEM.", "db.crypto.PublicKeyIO");
+         "Could not load public key from PEM.",
+         EXCEPTION_PUBLIC_KEY_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }
@@ -317,7 +336,202 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
    else
    {
       ExceptionRef e = new Exception(
-         "Could not write public key to PEM.", "db.crypto.PublicKeyIO");
+         "Could not write public key to PEM.",
+         EXCEPTION_PUBLIC_KEY_IO);
+      e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
+}
+
+X509CertificateRef AsymmetricKeyFactory::createSelfSignedCertificate(
+   PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
+   DynamicObject& subject, time_t days)
+{
+   X509CertificateRef rval(NULL);
+   
+   /* Structure of a v3 X.509 certificate:
+      Certificate
+         Version
+         Serial Number
+         Algorithm ID
+         Issuer
+         Validity
+            + Not Before
+            + Not After
+         Subject
+         Subject Public Key Info
+            + Public Key Algorithm
+            + Subject Public Key
+         Issuer Unique Identifier (Optional)  // introduced in v2
+         Subject Unique Identifier (Optional) // introduced in v2
+         Extensions (Optional)                // introduced in v3
+            + ...
+      Certificate Signature Algorithm
+      Certificate Signature
+    */
+   
+   bool pass;
+   
+   // create certificate object, v2
+   // (we don't have any optional stuff, but code forces minimum of v2)
+   X509* x509 = X509_new();
+   pass = (X509_set_version(x509, 2) != 0);
+   
+   // set serial number to 0
+   pass = pass && ASN1_INTEGER_set(X509_get_serialNumber(x509), 0);
+   
+   // set not before to current time, set not after to given days
+   pass = pass &&
+      (X509_gmtime_adj(X509_get_notBefore(x509), 0) != NULL) &&
+      (X509_gmtime_adj(X509_get_notAfter(x509), days * 24 * 60 * 60) != NULL);
+   
+   // assign public key to certificate
+   pass = pass && X509_set_pubkey(x509, publicKey->getPKEY());
+   
+   // get the subject so its entry can be modified
+   X509_NAME* sname = X509_get_subject_name(x509);
+   
+   /* Add attributes for subject:
+   CN: Common Name (site's domain, i.e. localhost, myserver.com)
+   OU: Organizational Unit
+   O : Organization
+   L : Locality (city, i.e. New York)
+   ST: State (i.e., Virginia)
+   C : Country (i.e., US)
+   */
+   // Notes:
+   // MBSTRING_UTF8 means the entry is of type utf-8 "bytes"
+   // first -1 tells the function to use strlen() to get the length
+   // second -1 and 0 tells the function to append the entry
+   pass = pass &&
+      X509_NAME_add_entry_by_txt(
+         sname, "CN", MBSTRING_UTF8,
+         (const unsigned char*)subject["CN"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         sname, "OU", MBSTRING_UTF8,
+         (const unsigned char*)subject["OU"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         sname, "O", MBSTRING_UTF8,
+         (const unsigned char*)subject["O"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         sname, "L", MBSTRING_UTF8,
+         (const unsigned char*)subject["L"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         sname, "ST", MBSTRING_UTF8,
+         (const unsigned char*)subject["ST"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         sname, "C", MBSTRING_UTF8,
+         (const unsigned char*)subject["C"]->getString(), -1, -1, 0);
+   
+   // certificate is self-signed, so issuer name is same as subject name
+   pass = pass && X509_set_issuer_name(x509, sname);
+   
+   // self-sign certificate
+   if(pass)
+   {
+      const EVP_MD* hashAlgorithm = NULL;
+      const char* algorithm = privateKey->getAlgorithm();
+      if(strcmp(algorithm, "RSA") == 0)
+      {
+         hashAlgorithm = EVP_sha1();
+      }
+      else if(strcmp(algorithm, "DSA") == 0)
+      {
+         hashAlgorithm = EVP_dss1();
+      }
+      else
+      {
+         // unknown algorithm
+         ExceptionRef e = new Exception(
+            "Key algorithm is not supported.",
+            EXCEPTION_UNSUPPORTED_ALGORITHM);
+         e->getDetails()["algorithm"] = algorithm;
+         Exception::setLast(e, false);
+         pass = false;
+      }
+      
+      pass = pass && X509_sign(x509, privateKey->getPKEY(), EVP_sha1());
+   }
+   
+   if(pass)
+   {
+      // create X509Certificate object
+      rval = new X509Certificate(x509);
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Could not create self-signed X.509 certificate.",
+         "db.crypto.Certificate.CreationError");
+      e->getDetails()["subject"] = subject.clone();
+      e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
+}
+
+X509CertificateRef AsymmetricKeyFactory::loadCertificateFromPem(
+   const char* pem, int length)
+{
+   X509CertificateRef cert;
+   
+   // create a read-only memory bio
+   BIO* bio = BIO_new_mem_buf((void*)pem, length);
+   BIO_set_close(bio, BIO_NOCLOSE);
+   
+   // try to load certificate from bio
+   X509* x509 = NULL;
+   x509 = PEM_read_bio_X509(bio, &x509, NULL, NULL);
+   
+   // free the bio
+   BIO_free(bio);
+   
+   if(x509 != NULL)
+   {
+      // wrap the X.509 structure in a X509Certificate
+      cert = new X509Certificate(x509);
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Could not load X.509 certificate from PEM.",
+         EXCEPTION_PUBLIC_KEY_IO);
+      e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
+      Exception::setLast(e, false);
+   }
+   
+   return cert;
+}
+
+string AsymmetricKeyFactory::writeCertificateToPem(X509CertificateRef& cert)
+{
+   string rval;
+   
+   // create a memory BIO
+   BIO* bio = BIO_new(BIO_s_mem());
+   
+   // write the certificate to the bio
+   int error = PEM_write_bio_X509(bio, cert->getX509());
+   if(error != 0)
+   {
+      // get the memory buffer from the bio
+      BUF_MEM* mem;
+      BIO_get_mem_ptr(bio, &mem);
+      
+      // add characters to the string
+      rval.append(mem->data, mem->length);
+      
+      // free the bio
+      BIO_free(bio);
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Could not write X.509 certificate to PEM.",
+         EXCEPTION_CERTIFICATE_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::setLast(e, false);
    }

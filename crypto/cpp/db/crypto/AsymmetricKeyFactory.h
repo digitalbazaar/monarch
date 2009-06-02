@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_crypto_AsymmetricKeyFactory_H
 #define db_crypto_AsymmetricKeyFactory_H
 
 #include "db/crypto/PrivateKey.h"
 #include "db/crypto/PublicKey.h"
+#include "db/crypto/X509Certificate.h"
 
 namespace db
 {
@@ -37,19 +38,6 @@ protected:
     */
    void createRsaKeyPair(PrivateKeyRef& privateKey, PublicKeyRef& publicKey);
    
-   /**
-    * A callback function that is called to obtain a password to unlock
-    * an encrypted key.
-    * 
-    * @param b the buffer to populate with a password.
-    * @param length the length of the buffer to populate.
-    * @param flag a flag that is reserved for future use.
-    * @param userData a pointer to some user data.
-    * 
-    * @return the length of the password.
-    */
-   static int passwordCallback(char* b, int length, int flag, void* userData);
-   
 public:
    /**
     * Creates a new AsymmetricKeyFactory.
@@ -73,7 +61,7 @@ public:
     * 
     * @return true if no exception occurred, false if not.
     */
-   bool createKeyPair(
+   virtual bool createKeyPair(
       const char* algorithm,
       PrivateKeyRef& privateKey, PublicKeyRef& publicKey);
    
@@ -101,7 +89,7 @@ public:
     * 
     * @return the PEM string or a blank string of an exception occurred.
     */
-   std::string writePrivateKeyToPem(
+   virtual std::string writePrivateKeyToPem(
       PrivateKeyRef& key, const char* password);
    
    /**
@@ -111,7 +99,6 @@ public:
     * 
     * @param pem the PEM string to load the key from.
     * @param length the length of the PEM string.
-    * @param password the password to use to load the key.
     * 
     * @return the loaded PublicKey or NULL if an exception occurred.
     */
@@ -123,11 +110,55 @@ public:
     * structure that has a header and footer.
     * 
     * @param key the PublicKey to write to a PEM string.
-    * @param password the password to use to encrypt the key.
     * 
-    * @return the PEM string or a blank string of an exception occurred.
+    * @return the PEM string or a blank string if an exception occurred.
     */
-   std::string writePublicKeyToPem(PublicKeyRef& key);
+   virtual std::string writePublicKeyToPem(PublicKeyRef& key);
+   
+   /**
+    * Generates a self-signed X.509 certificate that contains the given
+    * public key.
+    * 
+    * @param privateKey the private key to sign with. 
+    * @param publicKey the public key for the certificate.
+    * @param subject the subject information in a map:
+    *    CN: Common Name (site's domain, i.e. localhost, myserver.com)
+    *    OU: Organizational Unit
+    *    O : Organization
+    *    L : Locality (city, i.e. New York)
+    *    ST: State (i.e., Virginia)
+    *    C : Country (i.e., US)
+    * @param days the number of days the certificate should be valid.
+    * 
+    * @return the self-signed X.509 certificate, NULL if an exception occurred.
+    */
+   virtual X509CertificateRef createSelfSignedCertificate(
+      PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
+      db::rt::DynamicObject& subject, time_t days);
+   
+   /**
+    * Loads an X.509 certificate from a PEM formatted string. A PEM formatted
+    * string is just the base64-encoded version of an ASN.1 DER-encoded cert
+    * structure that has a header and footer.
+    * 
+    * @param pem the PEM string to load the certificate from.
+    * @param length the length of the PEM string.
+    * 
+    * @return the loaded X.509 certificate or NULL if an exception occurred.
+    */
+   virtual X509CertificateRef loadCertificateFromPem(
+      const char* pem, int length);
+   
+   /**
+    * Writes an X.509 certificate to a PEM formatted string. A PEM formatted
+    * string is just the base64-encoded version of an ASN.1 DER-encoded cert
+    * structure that has a header and footer.
+    * 
+    * @param cert the X509Certificate to write to a PEM string.
+    * 
+    * @return the PEM string or a blank string if an exception occurred.
+    */
+   virtual std::string writeCertificateToPem(X509CertificateRef& cert);
 };
 
 } // end namespace crypto

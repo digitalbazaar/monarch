@@ -602,6 +602,74 @@ void runEnvelopeTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+void runX509CertificateCreationTest(TestRunner& tr)
+{
+   tr.test("X.509 Certificate Creation");
+   
+   // seed PRNG
+   //RAND_load_file("/dev/urandom", 1024);
+   
+   // get an asymmetric key factory
+   AsymmetricKeyFactory factory;
+   
+   // create a new key pair
+   PrivateKeyRef privateKey;
+   PublicKeyRef publicKey;
+   factory.createKeyPair("RSA", privateKey, publicKey);
+   assertNoException();
+   
+   assert(!privateKey.isNull());
+   assert(!publicKey.isNull());
+   
+   string outPublicPem = factory.writePublicKeyToPem(publicKey);
+   
+   // generate a self-signed X.509 certificate
+   DynamicObject subject;
+   subject["CN"] = "localhost";
+   subject["OU"] = "Disorganized Unit";
+   subject["O"] = "Fake Inc.";
+   subject["L"] = "Blacksburg";
+   subject["ST"] = "Virginia";
+   subject["C"] = "US";
+   
+   X509CertificateRef cert;
+   cert = factory.createSelfSignedCertificate(
+      privateKey, publicKey, subject, 1);
+   assertNoException();
+   assert(!cert.isNull());
+   
+   // write out the public key in the certificate
+   PublicKeyRef certPublicKey = cert->getPublicKey();
+   string outCertPublicPem = factory.writePublicKeyToPem(certPublicKey);
+   assertStrCmp(outPublicPem.c_str(), outCertPublicPem.c_str());
+   
+   // assert that subjects and issuers are the same
+   DynamicObject certSubject = cert->getSubject();
+   DynamicObject certIssuer = cert->getIssuer();
+   //dumpDynamicObject(subject);
+   //dumpDynamicObject(certSubject);
+   assert(certSubject == subject);
+   assert(certSubject == certIssuer);
+   
+   // write out the certificate
+   string outCertPem = factory.writeCertificateToPem(cert);
+   
+   //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
+   //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
+   //printf("Written X.509 Certificate PEM=\n%s\n", outCertPem.c_str());
+   
+   // read in certificate
+   X509CertificateRef loadedCert = factory.loadCertificateFromPem(
+      outCertPem.c_str(), outCertPem.length());
+   assertNoException();
+   
+   // output certificate again for comparison
+   string outCertPem2 = factory.writeCertificateToPem(loadedCert);
+   assertStrCmp(outCertPem.c_str(), outCertPem2.c_str());
+   
+   tr.passIfNoException();
+}
+
 void runBigIntegerTest(TestRunner& tr)
 {
    tr.test("BigInteger");
@@ -1218,6 +1286,7 @@ public:
       runDigitalSignatureInputStreamTest(tr);
       runDigitalSignatureOutputStreamTest(tr);
       runEnvelopeTest(tr);
+      runX509CertificateCreationTest(tr);
       runBigIntegerTest(tr);
       runBigDecimalTest(tr);
       return 0;

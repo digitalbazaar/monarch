@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_rt_DynamicObject_H
 #define db_rt_DynamicObject_H
@@ -123,6 +123,13 @@ public:
    virtual void operator=(const char* value);
    
    /**
+    * Sets this object's value to a string.
+    * 
+    * @param value the value for this object.
+    */
+   virtual void operator=(const unsigned char* value);
+   
+   /**
     * Sets this object's value to a boolean.
     * 
     * @param value the value for this object.
@@ -172,6 +179,15 @@ public:
     * @return the DynamicObject.
     */
    virtual DynamicObject& operator[](const char* name);
+   
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
+    * 
+    * @param name the name of the member.
+    * 
+    * @return the DynamicObject.
+    */
+   virtual DynamicObject& operator[](const unsigned char* name);
    
    /**
     * Gets a DynamicObject from a DynamicObjectImpl based on its index. A

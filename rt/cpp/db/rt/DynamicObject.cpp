@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/rt/DynamicObject.h"
 
@@ -80,6 +80,11 @@ void DynamicObject::operator=(const char* value)
    *mReference->ptr = value;
 }
 
+void DynamicObject::operator=(const unsigned char* value)
+{
+   operator=((const char*)value);
+}
+
 void DynamicObject::operator=(bool value)
 {
    *mReference->ptr = value;
@@ -113,6 +118,11 @@ void DynamicObject::operator=(double value)
 DynamicObject& DynamicObject::operator[](const char* name)
 {
    return (*mReference->ptr)[name];
+}
+
+DynamicObject& DynamicObject::operator[](const unsigned char* name)
+{
+   return operator[]((const char*)name);
 }
 
 DynamicObject& DynamicObject::operator[](int index)
