@@ -154,6 +154,12 @@ public:
     * @param context an SslContext to use ssl, NULL not to.
     * @param session an SSL session to reuse, if any.
     * @param timeout the timeout in seconds (0 for indefinite).
+    * @param commonNames a list of special X.509 subject common names to allow
+    *                    in addition to the url's host, a blank list indicates
+    *                    that the url's host common name should be ignored and
+    *                    any common name can be accepted, a NULL list adds
+    *                    no special common names and only the url's host will
+    *                    be used.
     * 
     * @return the HttpConnection to the url or NULL if an exception
     *         occurred.
@@ -162,7 +168,8 @@ public:
       Url* url,
       db::net::SslContext* sslContext = NULL,
       db::net::SslSession* session = NULL,
-      unsigned int timeout = 30);
+      unsigned int timeout = 30,
+      db::rt::DynamicObject* commonNames = NULL);
    
    /**
     * Creates an SSL connection to the passed url. This is the preferred
@@ -176,7 +183,14 @@ public:
     * @param url the url to connect to.
     * @param context an SslContext to use.
     * @param cache the SSL session cache to use.
+    * @param commonName the X.509 subject common 
     * @param timeout the timeout in seconds (0 for indefinite).
+    * @param commonNames a list of special X.509 subject common names to allow
+    *                    in addition to the url's host, a blank list indicates
+    *                    that the url's host common name should be ignored and
+    *                    any common name can be accepted, a NULL list adds
+    *                    no special common names and only the url's host will
+    *                    be used.
     * 
     * @return the HttpConnection to the url or NULL if an exception
     *         occurred.
@@ -184,7 +198,8 @@ public:
    static HttpConnection* createSslConnection(
       Url* url, db::net::SslContext& context,
       db::net::SslSessionCache& cache,
-      unsigned int timeout = 30);
+      unsigned int timeout = 30,
+      db::rt::DynamicObject* commonNames = NULL);
    
    /**
     * Creates a connection to the passed address.
@@ -197,6 +212,12 @@ public:
     * @param context an SslContext to use ssl, NULL not to.
     * @param session an SSL session to reuse, if any.
     * @param timeout the timeout in seconds (0 for indefinite).
+    * @param commonNames a list of special X.509 subject common names to allow
+    *                    in addition to the url's host, a blank list indicates
+    *                    that the url's host common name should be ignored and
+    *                    any common name can be accepted, a NULL list adds
+    *                    no special common names and only the url's host will
+    *                    be used.
     * 
     * @return the HttpConnection to the address or NULL if an exception
     *         occurred.
@@ -205,7 +226,8 @@ public:
       db::net::InternetAddress* address,
       db::net::SslContext* context = NULL,
       db::net::SslSession* session = NULL,
-      unsigned int timeout = 30);
+      unsigned int timeout = 30,
+      db::rt::DynamicObject* commonNames = NULL);
    
 protected:
    /**

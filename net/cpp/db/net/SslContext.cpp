@@ -1,8 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/SocketDefinitions.h"
 #include "db/net/SslContext.h"
+
+#include "db/net/SocketDefinitions.h"
 #include "db/rt/DynamicObject.h"
 
 #include <openssl/err.h>

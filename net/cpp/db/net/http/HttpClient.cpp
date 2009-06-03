@@ -225,16 +225,16 @@ void HttpClient::disconnect()
 
 HttpConnection* HttpClient::createConnection(
    Url* url, SslContext* context, SslSession* session,
-   unsigned int timeout)
+   unsigned int timeout, DynamicObject* commonNames)
 {
    // create connection
    InternetAddress address(url->getHost().c_str(), url->getPort());
-   return createConnection(&address, context, session, timeout);
+   return createConnection(&address, context, session, timeout, commonNames);
 }
 
 HttpConnection* HttpClient::createSslConnection(
    Url* url, SslContext& context, SslSessionCache& cache,
-   unsigned int timeout)
+   unsigned int timeout, DynamicObject* commonNames)
 {
    HttpConnection* rval;
    
@@ -243,7 +243,8 @@ HttpConnection* HttpClient::createSslConnection(
    
    // create ssl connection
    rval = createConnection(
-      url, &context, session.isNull() ? NULL : &session, timeout);
+      url, &context, (session.isNull() ? NULL : &session), timeout,
+      commonNames);
    if(rval != NULL)
    {
       // store session
@@ -256,7 +257,7 @@ HttpConnection* HttpClient::createSslConnection(
 
 HttpConnection* HttpClient::createConnection(
    InternetAddress* address, SslContext* context, SslSession* session,
-   unsigned int timeout)
+   unsigned int timeout, DynamicObject* commonNames)
 {
    HttpConnection* rval = NULL;
    
@@ -268,11 +269,36 @@ HttpConnection* HttpClient::createConnection(
       if(context != NULL)
       {
          // create ssl socket, reuse passed session
-         s = new SslSocket(context, (TcpSocket*)s, true, true);
-         ((SslSocket*)s)->setSession(session);
+         SslSocket* ss;
+         ss = new SslSocket(context, (TcpSocket*)s, true, true);
+         s = ss;
+         ss->setSession(session);
+         
+         // no special common names, so use default: url host
+         if(commonNames == NULL)
+         {
+            ss->addVerifyCommonName(address->getHost());
+         }
+         else if((*commonNames)->getType() == Array)
+         {
+            // only add common names (and host) if length of list > 0
+            if((*commonNames)->length() > 0)
+            {
+               // always add host
+               ss->addVerifyCommonName(address->getHost());
+               
+               // add all common names to be checked
+               DynamicObjectIterator i = commonNames->getIterator();
+               while(i->hasNext())
+               {
+                  DynamicObject& next = i->next();
+                  ss->addVerifyCommonName(next->getString());
+               }
+            }
+         }
          
          // start ssl session
-         ((SslSocket*)s)->performHandshake();
+         ss->performHandshake();
       }
       
       rval = new HttpConnection(new Connection(s, true), true);
