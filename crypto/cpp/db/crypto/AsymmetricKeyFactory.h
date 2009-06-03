@@ -7,6 +7,7 @@
 #include "db/crypto/PrivateKey.h"
 #include "db/crypto/PublicKey.h"
 #include "db/crypto/X509Certificate.h"
+#include "db/util/Date.h"
 
 namespace db
 {
@@ -128,13 +129,17 @@ public:
     *    L : Locality (city, i.e. New York)
     *    ST: State (i.e., Virginia)
     *    C : Country (i.e., US)
-    * @param days the number of days the certificate should be valid.
+    * @param startDate the starting date at which the certificate is valid,
+    *                  NULL for now.
+    * @param endDate the ending date at which the certificate is valid,
+    *                NULL for now.
     * 
     * @return the self-signed X.509 certificate, NULL if an exception occurred.
     */
    virtual X509CertificateRef createSelfSignedCertificate(
       PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
-      db::rt::DynamicObject& subject, time_t days);
+      db::rt::DynamicObject& subject,
+      db::util::Date* startDate, db::util::Date* endDate);
    
    /**
     * Loads an X.509 certificate from a PEM formatted string. A PEM formatted

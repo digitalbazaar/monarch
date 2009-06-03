@@ -21,6 +21,7 @@
 #include "db/io/FileList.h"
 #include "db/io/ByteArrayInputStream.h"
 #include "db/io/OStreamOutputStream.h"
+#include "db/util/Date.h"
 
 using namespace std;
 using namespace db::test;
@@ -632,9 +633,17 @@ void runX509CertificateCreationTest(TestRunner& tr)
    subject["ST"] = "Virginia";
    subject["C"] = "US";
    
+   // certificate is valid starting yesterday
+   Date yesterday;
+   yesterday.addSeconds(-1 * 24 * 60 * 60);
+   
+   // certificate expires tomorrow
+   Date tomorrow;
+   tomorrow.addSeconds(24 * 60 * 60);
+   
    X509CertificateRef cert;
    cert = factory.createSelfSignedCertificate(
-      privateKey, publicKey, subject, 1);
+      privateKey, publicKey, subject, &yesterday, &tomorrow);
    assertNoException();
    assert(!cert.isNull());
    

@@ -369,7 +369,7 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
 
 X509CertificateRef AsymmetricKeyFactory::createSelfSignedCertificate(
    PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
-   DynamicObject& subject, time_t days)
+   DynamicObject& subject, Date* startDate, Date* endDate)
 {
    X509CertificateRef rval(NULL);
    
@@ -404,10 +404,17 @@ X509CertificateRef AsymmetricKeyFactory::createSelfSignedCertificate(
    // set serial number to 0
    pass = pass && ASN1_INTEGER_set(X509_get_serialNumber(x509), 0);
    
+   // get starting date and ending dates in seconds relative to now
+   time_t now = Date().getSeconds();
+   time_t startSeconds = (startDate != NULL) ?
+      (startDate->getSeconds() - now) : 0;
+   time_t endSeconds = (endDate != NULL) ?
+      (endDate->getSeconds() - now) : 0;
+   
    // set not before to current time, set not after to given days
    pass = pass &&
-      (X509_gmtime_adj(X509_get_notBefore(x509), 0) != NULL) &&
-      (X509_gmtime_adj(X509_get_notAfter(x509), days * 24 * 60 * 60) != NULL);
+      (X509_gmtime_adj(X509_get_notBefore(x509), startSeconds) != NULL) &&
+      (X509_gmtime_adj(X509_get_notAfter(x509), endSeconds) != NULL);
    
    // assign public key to certificate
    pass = pass && X509_set_pubkey(x509, publicKey->getPKEY());
