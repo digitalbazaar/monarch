@@ -146,7 +146,7 @@ bool SslSocket::performHandshake()
          case SSL_ERROR_ZERO_RETURN:
          {
             ExceptionRef e = new Exception(
-               "Could not perform SSL handshake! Socket closed.",
+               "Could not perform SSL handshake. Socket closed.",
                SOCKET_EXCEPTION_TYPE);
             Exception::setLast(e, false);
             rval = false;
@@ -159,7 +159,7 @@ bool SslSocket::performHandshake()
             if(ret <= 0)
             {
                ExceptionRef e = new Exception(
-                  "Could not perform SSL handshake! Socket closed.",
+                  "Could not perform SSL handshake. Socket closed.",
                   SOCKET_EXCEPTION_TYPE);
                Exception::setLast(e, (ret < 0));
                rval = false;
