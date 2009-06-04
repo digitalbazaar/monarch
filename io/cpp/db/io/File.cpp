@@ -5,6 +5,8 @@
 
 #include "db/io/FileFunctions.h"
 #include "db/io/FileList.h"
+#include "db/io/FileInputStream.h"
+#include "db/io/FileOutputStream.h"
 #include "db/rt/DynamicObject.h"
 #include "db/util/StringTokenizer.h"
 #include "db/util/StringTools.h"
@@ -503,6 +505,52 @@ bool File::operator==(const File& rhs) const
 bool File::operator!=(const File& rhs) const
 {
    return !operator==(rhs);
+}
+
+bool File::readBytes(ByteBuffer* buffer)
+{
+   bool rval = true;
+   
+   // read into the buffer until full (error, not enough space),
+   // or until EOF (success)
+   FileInputStream* fis = new FileInputStream(*this);
+   int numBytes = -1;
+   while(!buffer->isFull() &&
+         (numBytes = fis->read(buffer->end(), buffer->freeSpace())) > 0)
+   {
+      // extend buffer by amount read
+      buffer->extend(numBytes);
+   }
+   fis->close();
+   delete fis;
+   
+   if(numBytes == -1)
+   {
+      rval = false;
+   }
+   else if(numBytes != 0 && buffer->isFull())
+   {
+      ExceptionRef e = new Exception(
+         "Could not read entire file. Buffer is full.",
+         "db.io.File.InsufficientBufferSpace");
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   
+   return rval;
+}
+
+bool File::writeBytes(ByteBuffer* buffer, bool append)
+{
+   bool rval = true;
+   
+   // write entire buffer to file
+   FileOutputStream* fos = new FileOutputStream(*this, append);
+   rval = fos->write(buffer->data(), buffer->length());
+   fos->close();
+   delete fos;
+   
+   return rval;
 }
 
 bool File::getAbsolutePath(const char* path, string& absolutePath)

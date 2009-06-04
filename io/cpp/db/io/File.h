@@ -4,6 +4,7 @@
 #ifndef db_io_File_H
 #define db_io_File_H
 
+#include "db/io/ByteBuffer.h"
 #include "db/rt/Exception.h"
 #include "db/rt/WindowsSupport.h"
 #include "db/util/Date.h"
@@ -371,6 +372,28 @@ public:
     * @return true if this File is NOT equal to the passed one, false if not.
     */
    bool operator!=(const File& rhs) const;
+   
+   /**
+    * Reads the entire contents of this file into the passed ByteBuffer.
+    * Useful for small files only.
+    * 
+    * @param buffer the buffer to populate, it will not be resized.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   bool readBytes(ByteBuffer* buffer);
+   
+   /**
+    * Writes the entire contents of the passed ByteBuffer into this file,
+    * without modifying the ByteBuffer.
+    * 
+    * @param buffer the buffer with data to write.
+    * @param append true to append to the file, if it exists,
+    *               false to overwrite.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   bool writeBytes(ByteBuffer* buffer, bool append);
    
    /**
     * Gets the absolute path for the given path. This method will normalize
