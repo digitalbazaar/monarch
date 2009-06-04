@@ -343,6 +343,8 @@ static DynamicObject makeJSONTests()
    td[tdcount++]["JSON"] = "[0]";
    td[tdcount  ]["dyno"][0] = "\n";
    td[tdcount++]["JSON"] = "[\"\\n\"]";
+   td[tdcount  ]["dyno"][0] = "C:\\foo\\bar.txt";
+   td[tdcount++]["JSON"] = "[\"C:\\\\foo\\\\bar.txt\"]";
    td[tdcount  ]["dyno"][0] = td[0]["dyno"];
    td[tdcount++]["JSON"] = "[{}]";
    td[tdcount  ]["dyno"][0] = -1;
