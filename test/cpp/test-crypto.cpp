@@ -642,8 +642,8 @@ void runX509CertificateCreationTest(TestRunner& tr)
    tomorrow.addSeconds(24 * 60 * 60);
    
    X509CertificateRef cert;
-   cert = factory.createSelfSignedCertificate(
-      privateKey, publicKey, subject, &yesterday, &tomorrow);
+   cert = factory.createCertificate(
+      privateKey, publicKey, subject, subject, &yesterday, &tomorrow);
    assertNoException();
    assert(!cert.isNull());
    

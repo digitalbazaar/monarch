@@ -367,9 +367,10 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
    return rval;
 }
 
-X509CertificateRef AsymmetricKeyFactory::createSelfSignedCertificate(
+X509CertificateRef AsymmetricKeyFactory::createCertificate(
    PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
-   DynamicObject& subject, Date* startDate, Date* endDate)
+   DynamicObject& subject, DynamicObject& issuer,
+   Date* startDate, Date* endDate)
 {
    X509CertificateRef rval(NULL);
    
@@ -454,10 +455,31 @@ X509CertificateRef AsymmetricKeyFactory::createSelfSignedCertificate(
          sname, "C", MBSTRING_UTF8,
          (const unsigned char*)subject["C"]->getString(), -1, -1, 0);
    
-   // certificate is self-signed, so issuer name is same as subject name
-   pass = pass && X509_set_issuer_name(x509, sname);
+   // get the issuer so its entry can be modified
+   X509_NAME* iname = X509_get_issuer_name(x509);
    
-   // self-sign certificate
+   // build issuer (same fields as subject)
+   pass = pass &&
+      X509_NAME_add_entry_by_txt(
+         iname, "CN", MBSTRING_UTF8,
+         (const unsigned char*)issuer["CN"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         iname, "OU", MBSTRING_UTF8,
+         (const unsigned char*)issuer["OU"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         iname, "O", MBSTRING_UTF8,
+         (const unsigned char*)issuer["O"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         iname, "L", MBSTRING_UTF8,
+         (const unsigned char*)issuer["L"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         iname, "ST", MBSTRING_UTF8,
+         (const unsigned char*)issuer["ST"]->getString(), -1, -1, 0) &&
+      X509_NAME_add_entry_by_txt(
+         iname, "C", MBSTRING_UTF8,
+         (const unsigned char*)issuer["C"]->getString(), -1, -1, 0);
+   
+   // sign certificate
    if(pass)
    {
       const EVP_MD* hashAlgorithm = NULL;
@@ -492,7 +514,7 @@ X509CertificateRef AsymmetricKeyFactory::createSelfSignedCertificate(
    else
    {
       ExceptionRef e = new Exception(
-         "Could not create self-signed X.509 certificate.",
+         "Could not create X.509 certificate.",
          "db.crypto.Certificate.CreationError");
       e->getDetails()["subject"] = subject.clone();
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);

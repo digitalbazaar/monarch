@@ -117,8 +117,10 @@ public:
    virtual std::string writePublicKeyToPem(PublicKeyRef& key);
    
    /**
-    * Generates a self-signed X.509 certificate that contains the given
-    * public key.
+    * Generates an X.509 certificate that contains the given public key and
+    * is signed by the given private key that belongs to the given issuer,
+    * where the issuer is the same as the subject to create a self-signed
+    * certificate.
     * 
     * @param privateKey the private key to sign with. 
     * @param publicKey the public key for the certificate.
@@ -129,16 +131,19 @@ public:
     *    L : Locality (city, i.e. New York)
     *    ST: State (i.e., Virginia)
     *    C : Country (i.e., US)
+    * @param issuer the issuer of the certificate (same fields as subject),
+    *               can be the same object as the subject to create a
+    *               self-signed certificate.
     * @param startDate the starting date at which the certificate is valid,
     *                  NULL for now.
     * @param endDate the ending date at which the certificate is valid,
     *                NULL for now.
     * 
-    * @return the self-signed X.509 certificate, NULL if an exception occurred.
+    * @return the X.509 certificate, NULL if an exception occurred.
     */
-   virtual X509CertificateRef createSelfSignedCertificate(
+   virtual X509CertificateRef createCertificate(
       PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
-      db::rt::DynamicObject& subject,
+      db::rt::DynamicObject& subject, db::rt::DynamicObject& issuer,
       db::util::Date* startDate, db::util::Date* endDate);
    
    /**
