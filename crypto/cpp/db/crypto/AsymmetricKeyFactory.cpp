@@ -446,14 +446,22 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
          sname, "O", MBSTRING_UTF8,
          (const unsigned char*)subject["O"]->getString(), -1, -1, 0) &&
       X509_NAME_add_entry_by_txt(
-         sname, "L", MBSTRING_UTF8,
-         (const unsigned char*)subject["L"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
-         sname, "ST", MBSTRING_UTF8,
-         (const unsigned char*)subject["ST"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
          sname, "C", MBSTRING_UTF8,
          (const unsigned char*)subject["C"]->getString(), -1, -1, 0);
+   
+   // locality and state considered optional
+   if(pass && subject->hasMember("L"))
+   {
+      pass = X509_NAME_add_entry_by_txt(
+         sname, "L", MBSTRING_UTF8,
+         (const unsigned char*)subject["L"]->getString(), -1, -1, 0);
+   }
+   if(pass && subject->hasMember("ST"))
+   {
+      pass = X509_NAME_add_entry_by_txt(
+         sname, "ST", MBSTRING_UTF8,
+         (const unsigned char*)subject["ST"]->getString(), -1, -1, 0);
+   }
    
    // get the issuer so its entry can be modified
    X509_NAME* iname = X509_get_issuer_name(x509);
@@ -470,14 +478,22 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
          iname, "O", MBSTRING_UTF8,
          (const unsigned char*)issuer["O"]->getString(), -1, -1, 0) &&
       X509_NAME_add_entry_by_txt(
-         iname, "L", MBSTRING_UTF8,
-         (const unsigned char*)issuer["L"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
-         iname, "ST", MBSTRING_UTF8,
-         (const unsigned char*)issuer["ST"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
          iname, "C", MBSTRING_UTF8,
          (const unsigned char*)issuer["C"]->getString(), -1, -1, 0);
+   
+   // locality and state considered optional
+   if(pass && issuer->hasMember("L"))
+   {
+      pass = X509_NAME_add_entry_by_txt(
+         iname, "L", MBSTRING_UTF8,
+         (const unsigned char*)issuer["L"]->getString(), -1, -1, 0);
+   }
+   if(pass && issuer->hasMember("ST"))
+   {
+      pass = X509_NAME_add_entry_by_txt(
+         iname, "ST", MBSTRING_UTF8,
+         (const unsigned char*)issuer["ST"]->getString(), -1, -1, 0);
+   }
    
    // sign certificate
    if(pass)

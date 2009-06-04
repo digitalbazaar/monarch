@@ -603,7 +603,7 @@ void runEnvelopeTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runX509CertificateCreationTest(TestRunner& tr)
+void runX509CertificateCreationTest(TestRunner& tr, bool print)
 {
    tr.test("X.509 Certificate Creation");
    
@@ -622,6 +622,7 @@ void runX509CertificateCreationTest(TestRunner& tr)
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
    
+   string outPrivatePem = factory.writePrivateKeyToPem(privateKey, NULL);
    string outPublicPem = factory.writePublicKeyToPem(publicKey);
    
    // generate a self-signed X.509 certificate
@@ -663,9 +664,12 @@ void runX509CertificateCreationTest(TestRunner& tr)
    // write out the certificate
    string outCertPem = factory.writeCertificateToPem(cert);
    
-   //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
-   //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
-   //printf("Written X.509 Certificate PEM=\n%s\n", outCertPem.c_str());
+   if(print)
+   {
+      printf("Private Key PEM=\n%s\n", outPrivatePem.c_str());
+      printf("Public Key PEM=\n%s\n", outPublicPem.c_str());
+      printf("X.509 Certificate PEM=\n%s\n", outCertPem.c_str());
+   }
    
    // read in certificate
    X509CertificateRef loadedCert = factory.loadCertificateFromPem(
@@ -1295,7 +1299,7 @@ public:
       runDigitalSignatureInputStreamTest(tr);
       runDigitalSignatureOutputStreamTest(tr);
       runEnvelopeTest(tr);
-      runX509CertificateCreationTest(tr);
+      runX509CertificateCreationTest(tr, false);
       runBigIntegerTest(tr);
       runBigDecimalTest(tr);
       return 0;
@@ -1306,6 +1310,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
+      runX509CertificateCreationTest(tr, true);
       return 0;
    }
 };
