@@ -67,13 +67,6 @@ static int verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
                {
                   commonNameFound = true;
                }
-               else
-               {
-                  // log error
-                  DB_CAT_DEBUG(DB_NET_CAT,
-                     "X.509 certificate verification failure, "
-                     "no match found for common name '%s'", value);
-               }
                OPENSSL_free(value);
             }
          }
@@ -186,6 +179,29 @@ bool SslSocket::verifyCommonName(const char* commonName)
          // common name matches
          rval = true;
       }
+   }
+   
+   // add useful logging output
+   if(!rval)
+   {
+      std::string str;
+      for(VerifyCommonNameList::iterator i = mVerifyCommonNames.begin();
+          i != mVerifyCommonNames.end(); i++)
+      {
+         if(str.length() > 0)
+         {
+            str.push_back(',');
+         }
+         str.push_back('\'');
+         str.append(*i);
+         str.push_back('\'');
+      }
+      
+      // log error
+      DB_CAT_DEBUG(DB_NET_CAT,
+         "X.509 certificate verification failure, "
+         "no match found for common name '%s', permitted common names: %s",
+         commonName, str.c_str());
    }
    
    return rval;
