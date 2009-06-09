@@ -126,6 +126,10 @@ bool InternetAddress::setHost(const char* host)
       free(mAddress);
       mAddress = strdup(dst);
       rval = true;
+      
+      // save the host
+      free(mHost);
+      mHost = strdup(host);
    }
    
    if(res != NULL)
