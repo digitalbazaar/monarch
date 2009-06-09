@@ -23,6 +23,14 @@ namespace validation
  */
 class ValidatorContext
 {
+public:
+   // types of error data that can be masked
+   enum MaskType
+   {
+      MaskNone          = 0,
+      MaskInvalidValues = 1 << 0
+   };
+
 protected:
    /**
     * Arbitrary user state. Lazily created as needed.
@@ -39,6 +47,11 @@ protected:
     * success or failure of validators rather than details.
     */
    bool mSetExceptions;
+   
+   /**
+    * The current mask type for hiding error data.
+    */
+   MaskType mMaskType;
    
    /**
     * Stores the results of the validation process. This includes the
@@ -68,7 +81,25 @@ public:
     * @return state object for this context.
     */
    virtual db::rt::DynamicObject& getState();
-
+   
+   /**
+    * Sets the mask type for error data. This will control what data will
+    * appear in errors and what will not. This is particular useful for
+    * hidding invalid values for data fields like passwords.
+    * 
+    * @param mt the new mask type.
+    */
+   virtual void setMaskType(MaskType mt);
+   
+   /**
+    * Gets the current mask type for error data. This controls what data
+    * will appear in errors and what will not. This is particular useful for
+    * hidding invalid values for data fields like passwords.
+    * 
+    * @return the current mask type.
+    */
+   virtual MaskType getMaskType();
+   
    /**
     * Control if exceptions are set with addError().
     * 

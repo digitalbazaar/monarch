@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_validation_Validation_H
 #define db_validation_Validation_H
@@ -27,5 +27,6 @@
 #include "db/validation/Type.h"
 #include "db/validation/Valid.h"
 #include "db/validation/ValidatorList.h"
+#include "db/validation/ValidatorContext.h"
 
 #endif

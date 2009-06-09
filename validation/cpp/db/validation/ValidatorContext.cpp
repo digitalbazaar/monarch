@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/rt/Exception.h"
 #include "db/validation/ValidatorContext.h"
+
+#include "db/rt/Exception.h"
 
 #include <cstdlib>
 
@@ -15,6 +16,7 @@ ValidatorContext::ValidatorContext(DynamicObject* state) :
    mPath = NULL;
    mState = state;
    mSetExceptions = true;
+   mMaskType = ValidatorContext::MaskNone;
    clearResults();
 }
 
@@ -35,6 +37,16 @@ ValidatorContext::~ValidatorContext()
 db::rt::DynamicObject& ValidatorContext::getState()
 {
    return *mState;
+}
+
+void ValidatorContext::setMaskType(MaskType mt)
+{
+   mMaskType = mt;
+}
+
+ValidatorContext::MaskType ValidatorContext::getMaskType()
+{
+   return mMaskType;
 }
 
 bool ValidatorContext::setExceptions(bool set)
@@ -108,7 +120,7 @@ DynamicObject ValidatorContext::addError(
    errorDetail["message"] = "The given value does not meet all of the data "
       "validation requirements. Please examine the error details for more "
       "information about the specific requirements.";
-   if(object != NULL)
+   if(object != NULL && (mMaskType & ValidatorContext::MaskInvalidValues) == 0)
    {
       errorDetail["invalidValue"] = *object;
    }
