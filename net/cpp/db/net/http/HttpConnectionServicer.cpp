@@ -181,14 +181,15 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             else
             {
                // no servicer, so send 404 Not Found
-               char html[] = "<html><h2>404 Not Found</h2></html>";
+               const char* html =
+                  "<html><body><h2>404 Not Found</h2></body></html>";
                resHeader->setStatus(404, "Not Found");
                resHeader->setField("Content-Type", "text/html");
-               resHeader->setField("Content-Length", 35);
+               resHeader->setField("Content-Length", 48);
                resHeader->setField("Connection", "close");
                if((noerror = response->sendHeader()))
                {
-                  ByteArrayInputStream is(html, 35);
+                  ByteArrayInputStream is(html, 48);
                   noerror = response->sendBody(&is);
                }
             }
@@ -196,15 +197,17 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          else
          {
             // send 505 HTTP Version Not Supported
-            char html[] =
-               "<html><h2>505 HTTP Version Not Supported</h2></html>";
+            const char* html =
+               "<html><body>"
+               "<h2>505 HTTP Version Not Supported</h2>"
+               "</body></html>";
             resHeader->setStatus(505, "HTTP Version Not Supported");
             resHeader->setField("Content-Type", "text/html");
-            resHeader->setField("Content-Length", 52);
+            resHeader->setField("Content-Length", 65);
             resHeader->setField("Connection", "close");
             if((noerror = response->sendHeader()))
             {
-               ByteArrayInputStream is(html, 52);
+               ByteArrayInputStream is(html, 65);
                noerror = response->sendBody(&is);
             }
          }
@@ -217,14 +220,15 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             strcmp(e->getType(), "db.net.http.BadRequest") == 0)
          {
             // send 400 Bad Request
-            char html[] = "<html><h2>400 Bad Request</h2></html>";
+            const char* html =
+               "<html><body><h2>400 Bad Request</h2></body></html>";
             response->getHeader()->setStatus(400, "Bad Request");
             response->getHeader()->setField("Content-Type", "text/html");
-            response->getHeader()->setField("Content-Length", 38);
+            response->getHeader()->setField("Content-Length", 50);
             response->getHeader()->setField("Connection", "close");
             if(response->sendHeader())
             {
-               ByteArrayInputStream is(html, 38);
+               ByteArrayInputStream is(html, 50);
                response->sendBody(&is);
             }
          }
@@ -234,14 +238,15 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                  strncmp(e->getType(), "db.net.Socket", 13) != 0)
          {
             // send 500 Internal Server Error
-            char html[] = "<html><h2>500 Internal Server Error</h2></html>";
+            const char* html =
+               "<html><body><h2>500 Internal Server Error</h2></body></html>";
             resHeader->setStatus(500, "Internal Server Error");
             resHeader->setField("Content-Type", "text/html");
-            resHeader->setField("Content-Length", 47);
+            resHeader->setField("Content-Length", 60);
             resHeader->setField("Connection", "close");
             if((noerror = response->sendHeader()))
             {
-               ByteArrayInputStream is(html, 47);
+               ByteArrayInputStream is(html, 60);
                noerror = response->sendBody(&is);
             }
          }
