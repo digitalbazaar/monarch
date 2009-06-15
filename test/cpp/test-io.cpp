@@ -521,8 +521,10 @@ void runFileTest(TestRunner& tr)
 #ifdef WIN32
       const char* HOMEDRIVE = getenv("HOMEDRIVE");
       const char* HOMEPATH = getenv("HOMEPATH");
+      const char* USERPROFILE = getenv("USERPROFILE");
       assert(HOMEDRIVE != NULL);
       assert(HOMEPATH != NULL);
+      assert(USERPROFILE != NULL);
 #else
       const char* oldHOME = getenv("HOME");
       assert(oldHOME != NULL);
@@ -546,6 +548,8 @@ void runFileTest(TestRunner& tr)
       // can not set HOME* vars on Windows so use real values 
       char homestr[strlen(HOMEDRIVE) + strlen(HOMEPATH) + 1];
       sprintf(homestr, "%s%s", HOMEDRIVE, HOMEPATH);
+      char profilestr[strlen(USERPROFILE) + 1];
+      sprintf(profilestr, "%s", USERPROFILE);
 #else
       // set env vars to known state for this test
       const char* homestr = "/home/test";
@@ -584,6 +588,15 @@ void runFileTest(TestRunner& tr)
          string tmp;
          tmp.append(HOMEDRIVE);
          tmp.append(HOMEPATH);
+         tmp.append(SEP "foo.txt");
+         assertStrCmp(path.c_str(), tmp.c_str());
+      }
+      
+      {
+         string path;
+         assert(File::expandUser("%USERPROFILE%/foo.txt", path));
+         string tmp;
+         tmp.append(USERPROFILE);
          tmp.append(SEP "foo.txt");
          assertStrCmp(path.c_str(), tmp.c_str());
       }
