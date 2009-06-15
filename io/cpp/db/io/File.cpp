@@ -745,6 +745,13 @@ bool File::expandUser(const char* path, string& expandedPath)
       #define UPLEN 13
       #define HDHP HD HP
       #define HDHPLEN (HDLEN + HPLEN)
+      
+      // Note: Only the first occurrences of ~, HOMEDRIVE, HOMEPATH, or
+      // USERPROFILE will be replaced. If HOMEDRIVE and HOMEPATH both occur,
+      // then both of their first occurrences will be replaced. If there are
+      // other occurrences, then the path will be invalid on windows anyway
+      // ... so we don't bother replacing them here.
+      
       if(expandTilde)
       {
          const char* userProfile = getenv("USERPROFILE");
@@ -766,14 +773,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             pathOffset = 1;
          }
       }
-      
-      // Note: Only the first occurrences of HOMEDRIVE, HOMEPATH, or USERPROFILE
-      // will be replaced. If HOMEDRIVE and HOMEPATH both occur, then both of
-      // their first occurrences will be replaced. If there are other
-      // occurrences, then the path will be invalid on windows anyway ... so
-      // we don't bother replacing them here.
-      
-      if(pathlen >= UPLEN && strncmp(path, UP, UPLEN) == 0)
+      else if(pathlen >= UPLEN && strncmp(path, UP, UPLEN) == 0)
       {
          const char* userProfile = getenv("USERPROFILE");
          if(userProfile == NULL)
