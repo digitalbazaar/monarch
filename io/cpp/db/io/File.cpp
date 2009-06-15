@@ -773,7 +773,7 @@ bool File::expandUser(const char* path, string& expandedPath)
       // occurrences, then the path will be invalid on windows anyway ... so
       // we don't bother replacing them here.
       
-      if(pathlen > UPLEN && strncmp(path, UP, UPLEN) == 0)
+      if(pathlen >= UPLEN && strncmp(path, UP, UPLEN) == 0)
       {
          const char* userProfile = getenv("USERPROFILE");
          if(userProfile == NULL)
@@ -794,7 +794,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             pathOffset = UPLEN;
          }
       }
-      else if(pathlen > HDHPLEN && strncmp(path, HDHP, HDHPLEN) == 0)
+      else if(pathlen >= HDHPLEN && strncmp(path, HDHP, HDHPLEN) == 0)
       {
          const char* homeDrive = getenv("HOMEDRIVE");
          const char* homePath = getenv("HOMEPATH");
@@ -828,7 +828,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             pathOffset = HDHPLEN;
          }
       }
-      else if(pathlen > HDLEN && strncmp(path, HD, HDLEN) == 0)
+      else if(pathlen >= HDLEN && strncmp(path, HD, HDLEN) == 0)
       {
          const char* homeDrive = getenv("HOMEDRIVE");
          if(homeDrive != NULL)
@@ -849,7 +849,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             rval = false;
          }
       }
-      else if(pathlen > HPLEN && strncmp(path, HP, HPLEN) == 0)
+      else if(pathlen >= HPLEN && strncmp(path, HP, HPLEN) == 0)
       {
          const char* homePath = getenv("HOMEPATH");
          if(homePath != NULL)
