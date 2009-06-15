@@ -221,6 +221,11 @@ bool SslSocket::performHandshake()
       {
          case SSL_ERROR_ZERO_RETURN:
          {
+            // Note: In SSL 3.0/TLS 1.0 this case only occurs when a closure
+            // alert has occurred in the protocol, i.e. if the connection has
+            // been closed cleanly. It does not necessarily indicate that the
+            // underlying transport has been closed. This condition usually
+            // suggests, however, that the remote end has been closed.
             ExceptionRef e = new Exception(
                "Could not perform SSL handshake. Socket closed.",
                SOCKET_EXCEPTION_TYPE ".SslHandshakeError");
