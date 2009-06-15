@@ -584,11 +584,28 @@ void runFileTest(TestRunner& tr)
       // Windows only tests
       {
          string path;
+         assert(File::expandUser("%HOMEDRIVE%%HOMEPATH%", path));
+         string tmp;
+         tmp.append(HOMEDRIVE);
+         tmp.append(HOMEPATH);
+         assertStrCmp(path.c_str(), tmp.c_str());
+      }
+      
+      {
+         string path;
          assert(File::expandUser("%HOMEDRIVE%%HOMEPATH%/foo.txt", path));
          string tmp;
          tmp.append(HOMEDRIVE);
          tmp.append(HOMEPATH);
          tmp.append(SEP "foo.txt");
+         assertStrCmp(path.c_str(), tmp.c_str());
+      }
+      
+      {
+         string path;
+         assert(File::expandUser("%USERPROFILE%", path));
+         string tmp;
+         tmp.append(USERPROFILE);
          assertStrCmp(path.c_str(), tmp.c_str());
       }
       

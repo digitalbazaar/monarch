@@ -704,7 +704,8 @@ bool File::expandUser(const char* path, string& expandedPath)
    // UNIX-like platforms:
    //    expand "~" to $HOME
    // Windows:
-   //    expand "~" to $HOMEDRIVE+$HOMEPATH
+   //    expand "~" to %USERPROFILE%
+   //    expand "%USERPROFILE%"
    //    expand "%HOMEDRIVE%", "%HOMEPATH%", and "%HOMEDRIVE%%HOMEPATH%"
    // All:
    //    No support for ~username yet. Only ~ and ~/... supported.
@@ -740,43 +741,60 @@ bool File::expandUser(const char* path, string& expandedPath)
       #define HDLEN 11
       #define HP "%HOMEPATH%"
       #define HPLEN 10
+      #define UP "%USERPROFILE%"
+      #define UPLEN 13
       #define HDHP HD HP
       #define HDHPLEN (HDLEN + HPLEN)
       if(expandTilde)
       {
-         const char* homeDrive = getenv("HOMEDRIVE");
-         const char* homePath = getenv("HOMEPATH");
-         if(homeDrive == NULL)
+         const char* userProfile = getenv("USERPROFILE");
+         if(userProfile == NULL)
          {
-            // no HOMEDRIVE set
+            // no USERPROFILE set
             ExceptionRef e = new Exception(
-               "No HOMEDRIVE environment variable set for "
-               "'%HOMEDRIVE%' expansion.",
-               "db.io.File.HomeDriveNotSet");
+               "No USERPROFILE environment variable set for "
+               "'%USERPROFILE%' expansion.",
+               "db.io.File.UserProfileNotSet");
             Exception::setLast(e, false);
             rval = false;
          }
-         if(rval && homePath == NULL)
+         else
          {
-            // no HOMEPATH set
-            ExceptionRef e = new Exception(
-               "No HOMEPATH environment variable set for "
-               "'%HOMEPATH%' expansion.",
-               "db.io.File.HomePathNotSet");
-            Exception::setLast(e, false);
-            rval = false;
-         }
-         if(rval)
-         {
-            // add HOMEDRIVE
-            newPath.append(homeDrive);
-            // add HOMEPATH
-            newPath.append(homePath);
+            // add USERPFOFILE
+            newPath.append(userProfile);
             // offset to after '~'
             pathOffset = 1;
          }
       }
-      if(pathlen > HDHPLEN && strncmp(path, HDHP, HDHPLEN) == 0)
+      
+      // Note: Only the first occurrences of HOMEDRIVE, HOMEPATH, or USERPROFILE
+      // will be replaced. If HOMEDRIVE and HOMEPATH both occur, then both of
+      // their first occurrences will be replaced. If there are other
+      // occurrences, then the path will be invalid on windows anyway ... so
+      // we don't bother replacing them here.
+      
+      if(pathlen > UPLEN && strncmp(path, UP, UPLEN) == 0)
+      {
+         const char* userProfile = getenv("USERPROFILE");
+         if(userProfile == NULL)
+         {
+            // no USERPROFILE set
+            ExceptionRef e = new Exception(
+               "No USERPROFILE environment variable set for "
+               "'%USERPROFILE%' expansion.",
+               "db.io.File.UserProfileNotSet");
+            Exception::setLast(e, false);
+            rval = false;
+         }
+         else
+         {
+            // add USERPFOFILE
+            newPath.append(userProfile);
+            // offset after USERPROFILE* token
+            pathOffset = UPLEN;
+         }
+      }
+      else if(pathlen > HDHPLEN && strncmp(path, HDHP, HDHPLEN) == 0)
       {
          const char* homeDrive = getenv("HOMEDRIVE");
          const char* homePath = getenv("HOMEPATH");
