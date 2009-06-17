@@ -379,7 +379,7 @@ inline uint64_t RateAverager::getWindowLength()
    return mCurrentWindow.getLength();
 }
 
-uint64_t RateAverager::getETA(uint64_t count)
+uint64_t RateAverager::getEta(uint64_t count, bool current)
 {
    uint64_t rval = 0;
    
@@ -387,8 +387,11 @@ uint64_t RateAverager::getETA(uint64_t count)
    {
       if(count > 0)
       {
-         // multiply the current rate by the count
-         rval = (uint64_t)roundl(count / getCurrentRate());
+         // use either current or total rate
+         double rate = (current ? getCurrentRate() : getTotalRate());
+         
+         // divide the remaining count by the rate
+         rval = (uint64_t)roundl(count / rate);
       }
    }
    mLock.unlock();

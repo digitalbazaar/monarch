@@ -326,11 +326,12 @@ public:
     * Gets an ETA (in seconds) for the given number of items.
     * 
     * @param count the item count to get an ETA for.
+    * @param current true to use the current rate, false to use the total rate.
     * 
     * @return the amount of time (in seconds) until the passed number of
     *         items is reached according to the current rate. 
     */
-   virtual uint64_t getETA(uint64_t count);
+   virtual uint64_t getEta(uint64_t count, bool current = true);
 };
 
 } // end namespace util
