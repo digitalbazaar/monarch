@@ -217,6 +217,18 @@ public:
    virtual bool getField(const char* name, std::string& value, int index = 0);
    
    /**
+    * Gets a header field value, returning a blank string if it doesn't exist.
+    * 
+    * @param name the name of the header field to get the value of.
+    * @param index the index of the field, for fields that have
+    *              multiple entries.
+    * 
+    * @return the value of the header field if it exists, or a blank string
+    *         if it doesn't.
+    */
+   virtual std::string getFieldValue(const char* name, int index = 0);
+   
+   /**
     * Returns true if this header has the passed field, false if not.
     * 
     * @param name the name of the header field to check for.

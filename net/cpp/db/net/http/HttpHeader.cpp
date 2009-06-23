@@ -227,6 +227,13 @@ bool HttpHeader::getField(const char* name, string& value, int index)
    return rval;
 }
 
+std::string HttpHeader::getFieldValue(const char* name, int index)
+{
+   string rval;
+   getField(name, rval, index);
+   return rval;
+}
+
 bool HttpHeader::hasField(const char* name)
 {
    bool rval = false;
