@@ -19,6 +19,7 @@ SUBDIRS := 3rdparty/cpp \
            sqlite3/cpp \
            mysql/cpp \
            validation/cpp \
+           upnp/cpp \
            app/cpp \
            test/cpp
 
@@ -40,6 +41,7 @@ INSTALL_LIBRARIES := \
 	sqlite3/cpp/dist/linux/libdbsqlite3.so \
 	mysql/cpp/dist/linux/libdbmysql.so \
 	test/cpp/dist/linux/libdbtest.so \
+	upnp/cpp/dist/linux/libdbupnp.so \
 	util/cpp/dist/linux/libdbutil.so \
 	sphinx/cpp/dist/linux/libdbsphinx.so \
 	validation/cpp/dist/linux/libdbvalidation.so

@@ -255,6 +255,7 @@ AC_CONFIG_FILES([
           sqlite3/cpp/Makefile
           mysql/cpp/Makefile
           test/cpp/Makefile
+          upnp/cpp/Makefile
           util/cpp/Makefile
           validation/cpp/Makefile
 ])
