@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_util_Timer_H
 #define db_util_Timer_H
@@ -41,7 +41,7 @@ public:
    virtual void start();
    
    /**
-    * Gets the time that has elasped since the starting time.
+    * Gets the time that has elapsed since the starting time.
     * 
     * @return the time that elapsed in milliseconds.
     */
@@ -53,6 +53,26 @@ public:
     * @return the time that elapsed in seconds.
     */
    virtual double getElapsedSeconds();
+   
+   /**
+    * Gets the time that remains until the given time.
+    * 
+    * @param until the ending time to check, in milliseconds, relative to
+    *              the start time.
+    * 
+    * @return the time that remains in milliseconds.
+    */
+   virtual uint64_t getRemainingMilliseconds(uint64_t until);
+   
+   /**
+    * Gets the time that remains until the given time.
+    * 
+    * @param until the ending time to check, in milliseconds, relative to
+    *              the start time.
+    * 
+    * @return the time that remains in seconds.
+    */
+   virtual double getRemainingSeconds(uint64_t until);
    
    /**
     * Starts timing and returns the starting time (in milliseconds since

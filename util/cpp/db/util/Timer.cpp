@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/util/Timer.h"
 
@@ -30,6 +30,25 @@ uint64_t Timer::getElapsedMilliseconds()
 double Timer::getElapsedSeconds()
 {
    return getElapsedMilliseconds() / 1000.;
+}
+
+uint64_t Timer::getRemainingMilliseconds(uint64_t until)
+{
+   uint64_t rval = 0;
+   
+   uint64_t now = System::getCurrentMilliseconds();
+   uint64_t then = mStartTime + until;
+   if(now > then)
+   {
+      rval = now - then;
+   }
+   
+   return rval;
+}
+
+double Timer::getRemainingSeconds(uint64_t until)
+{
+   return getRemainingMilliseconds(until) / 1000.;
 }
 
 // FIXME: remove the static methods below:
