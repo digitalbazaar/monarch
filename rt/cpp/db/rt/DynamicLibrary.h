@@ -61,16 +61,9 @@ inline static char* dlerror()
       if(size > 0)
       {
          // copy into global error
-         if(size >= 100)
-         {
-            memcpy(gDynamicLibraryError, lpBuffer, 100);
-            memset(gDynamicLibraryError + 99, 0, 1);
-         }
-         else
-         {
-            memcpy(gDynamicLibraryError, lpBuffer, size);
-         }
-         
+         size = (size > 99) ? 99 : size;
+         memset(gDynamicLibraryError, 0, 100);
+         memcpy(gDynamicLibraryError, lpBuffer, size);
          rval = gDynamicLibraryError;
       }
       
