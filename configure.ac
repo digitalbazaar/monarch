@@ -198,6 +198,12 @@ AC_ARG_WITH(opt-flags,
     [use FLAGS for optimization (-O -fno-exceptions)]),
   [DB_CXX_OPT_FLAGS="${withval}"],
   [DB_CXX_OPT_FLAGS="-O -fno-exceptions"]) dnl Default value
+
+dnl Turn optimization off for Windows
+if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
+   DB_CXX_OPT_FLAGS="-O0 -fno-exceptions"
+fi
+
 CXXFLAGS="$CXXFLAGS $DB_CXX_OPT_FLAGS"
 AC_MSG_NOTICE(Using optimization flags: "$CXXFLAGS")
 

@@ -10,8 +10,10 @@ build-libraries:
 	@ln -sf $(MODULE_BASE_DIR)/openssl/ssleay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll
 	@ln -sf $(MODULE_BASE_DIR)/expat/libexpat.dll $(WINDOWS_LIB_DIR)/libexpat.dll
 	@ln -sf $(MODULE_BASE_DIR)/iconv/libiconv2.dll $(WINDOWS_LIB_DIR)/iconv2.dll
+	@ln -sf $(MODULE_BASE_DIR)/iconv/libiconv2.dll $(WINDOWS_LIB_DIR)/libiconv2.dll
 	@ln -sf $(MODULE_BASE_DIR)/iconv/libcharset1.dll $(WINDOWS_LIB_DIR)/charset1.dll
 	@ln -sf $(MODULE_BASE_DIR)/regex/libgnurx-0.dll $(WINDOWS_LIB_DIR)/libgnurx-0.dll
 	@ln -sf $(MODULE_BASE_DIR)/sqlite3/sqlite3.dll $(WINDOWS_LIB_DIR)/sqlite3.dll
 	@ln -sf $(MODULE_BASE_DIR)/zlib/mgwz.dll $(WINDOWS_LIB_DIR)/mgwz.dll
+	@zcat /usr/share/doc/mingw32-runtime/mingwm10.dll.gz > $(WINDOWS_LIB_DIR)/mingwm10.dll
 endif
