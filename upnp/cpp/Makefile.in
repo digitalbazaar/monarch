@@ -2,7 +2,7 @@
 
 SOURCES = $(wildcard db/upnp/*.cpp)
 LIBRARIES = dbupnp
-DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbmodest dbio dbcrypto dblogging
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbmodest dbio dbcrypto dbnet dblogging
 
 DYNAMIC_WINDOWS_LIBRARIES = libgnurx-0
 STATIC_WINDOWS_LIBRARIES = libgnurx-0
