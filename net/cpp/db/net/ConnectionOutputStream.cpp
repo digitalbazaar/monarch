@@ -64,7 +64,7 @@ bool ConnectionOutputStream::flush()
       numBytes = mUnflushed.length();
       if(bt != NULL)
       {
-         bt->requestBytes(mBuffer.length(), numBytes);
+         bt->requestBytes(numBytes, numBytes);
       }
       
       // send data through the socket output stream
@@ -101,7 +101,7 @@ bool ConnectionOutputStream::flush()
       numBytes = mBuffer.length();
       if(bt != NULL)
       {
-         bt->requestBytes(mBuffer.length(), numBytes);
+         bt->requestBytes(numBytes, numBytes);
       }
       
       // send data through the socket output stream
@@ -171,8 +171,8 @@ void ConnectionOutputStream::resizeBuffer(int size)
       }
       else
       {
-         // allocate new bytes for buffer
-         mBuffer.reAllocate(size);
+         // allocate new bytes for buffer and copy existing bytes
+         mBuffer.reAllocate(size, true);
          mUseBuffer = true;
       }
    }
