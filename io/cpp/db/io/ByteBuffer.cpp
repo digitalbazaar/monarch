@@ -150,7 +150,7 @@ void ByteBuffer::reAllocate(int capacity, bool copy)
    mOffset = mBuffer;
    mLength = 0;
    
-   if(copy)
+   if(copy && capacity > 0)
    {
       // put old data into buffer
       put(offset, length, false);
