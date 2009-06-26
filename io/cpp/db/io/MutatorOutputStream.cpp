@@ -157,7 +157,7 @@ bool MutatorOutputStream::finish()
    if(!mFinished)
    {
       // ensure mutation is finished
-      rval = write(NULL, 0);
+      rval = write(NULL, 0) && mOutputStream->finish();
       
       // now finished
       mFinished = true;
