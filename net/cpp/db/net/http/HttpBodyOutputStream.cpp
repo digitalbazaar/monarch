@@ -29,6 +29,9 @@ FilterOutputStream(connection->getOutputStream(), false)
          mOutputStream = new HttpChunkedTransferOutputStream(
             (ConnectionOutputStream*)mOutputStream, trailer);
          mCleanupOutputStream = true;
+         
+         // let chunked transfer output stream use its own buffering
+         connection->getOutputStream()->resizeBuffer(0);
       }
    }
    

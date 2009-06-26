@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_http_HttpChunkedTransferOutputStream_H
 #define db_net_http_HttpChunkedTransferOutputStream_H
@@ -82,6 +82,11 @@ public db::io::BufferedOutputStream
 {
 protected:
    /**
+    * The default chunk size.
+    */
+   int mChunkSize;
+   
+   /**
     * The output buffer.
     */
    db::io::ByteBuffer mOutputBuffer;
@@ -94,7 +99,7 @@ protected:
    /**
     * Stores the amount of data sent to include in the header trailers.
     */
-   unsigned long long mDataSent;
+   uint64_t mDataSent;
    
    /**
     * True if finished writing output, false if not.
@@ -107,14 +112,28 @@ public:
     * 
     * @param os the ConnectionOutputStream to send data over.
     * @param trailer the HttpTrailer to use for header trailers.
+    * @param chunkSize the default chunk size to use (may be smaller), the
+    *                  default is 1022, which will create a buffer of size 1024,
+    *                  by leaving room for the terminating 2 bytes of CRLF.
     */
    HttpChunkedTransferOutputStream(
-      ConnectionOutputStream* os, HttpTrailer* trailer);
+      ConnectionOutputStream* os, HttpTrailer* trailer, int chunkSize = 1022);
    
    /**
     * Destructs this HttpChunkedTransferOutputStream.
     */
    virtual ~HttpChunkedTransferOutputStream();
+   
+   /**
+    * Writes some bytes to the stream.
+    * 
+    * @param b the array of bytes to write.
+    * @param length the number of bytes to write to the stream.
+    * 
+    * @return true if the write was successful, false if an IO exception
+    *         occurred. 
+    */
+   virtual bool write(const char* b, int length);
    
    /**
     * Forces this stream to flush its output, if any of it was buffered.
