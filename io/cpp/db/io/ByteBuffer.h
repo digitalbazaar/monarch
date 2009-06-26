@@ -97,6 +97,30 @@ public:
     * pointed to underlying byte array will not be cleaned up unless it was
     * specified so previously.
     * 
+    * This call is also useful for manually defragmenting this buffer before
+    * writing to its underlying bytes directly. If some of the data that was
+    * written to this buffer has already been read out of it, then the data
+    * between the beginning of this buffer and its current offset will be
+    * included in the return value of freeSpace(). This means that if you
+    * try to write freeSpace() bytes to the underlying bytes in this buffer
+    * directly (i.e. via write(uend(), ...) or write(end(), ...)), then you
+    * will experience a buffer-overrun. To avoid this, this buffer can be
+    * manually defragmented by calling allocateSpace() with the resize parameter
+    * set to false. Whatever amount you pass in for the length parameter will
+    * become available up to freeSpace(). This is done by moving the data
+    * to the beginning of the buffer as needed. Keep in mind that this will
+    * cause any old bytes before the current offset to become unavailable.
+    * 
+    * A simpler way to say the above is that if you call:
+    * 
+    * allocateSpace(freeSpace(), false)
+    * 
+    * Then the valid data will be placed at the beginning of the buffer if
+    * it wasn't there already.
+    * 
+    * If resize is false and length is larger than freeSpace(), then only
+    * freeSpace() will be available.
+    * 
     * @param length the number of bytes that need to be written to this buffer.
     * @param resize true to resize the buffer as is necessary, false not to. 
     */
@@ -114,8 +138,8 @@ public:
    virtual void resize(int capacity);
    
    /**
-    * Reallocates the space for data in this buffer. Any existing managed
-    * data will be free'd.
+    * Reallocates the space for data in this buffer, possibly at a new memory
+    * location. Any existing managed data will be free'd.
     * 
     * If copy is true and the existing data is larger than the given capacity,
     * then it will be truncated.
