@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/io/BufferedOutputStream.h"
 
@@ -7,9 +7,9 @@ using namespace db::io;
 
 BufferedOutputStream::BufferedOutputStream(
    ByteBuffer* b, OutputStream* os, bool cleanup) :
-   FilterOutputStream(os, cleanup)
+   FilterOutputStream(os, cleanup),
+   mBuffer(b)
 {
-   mBuffer = b;
 }
 
 BufferedOutputStream::~BufferedOutputStream()
