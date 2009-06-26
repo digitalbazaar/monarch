@@ -30,6 +30,9 @@ bool BandwidthThrottlerChain::requestBytes(int count, int& permitted)
 {
    bool rval = true;
    
+   // initialize permitted to count
+   permitted = count;
+   
    if(!mChain.empty())
    {
       // request bytes from each throttler in the chain, limit max permitted
@@ -44,7 +47,12 @@ bool BandwidthThrottlerChain::requestBytes(int count, int& permitted)
             maxPermitted = permitted;
          }
       }
-      permitted = maxPermitted;
+      
+      // use maxPermitted if maxPermitted was set by a throttler in the chain
+      if(maxPermitted != -1)
+      {
+         permitted = maxPermitted;
+      }
    }
    
    return rval;
