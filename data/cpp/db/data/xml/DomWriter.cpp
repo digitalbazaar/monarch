@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/data/xml/DomWriter.h"
 
@@ -25,6 +25,14 @@ DomWriter::~DomWriter()
 
 bool DomWriter::write(Element& e, OutputStream* os, int level)
 {
+   DynamicObject nsPrefixMap;
+   nsPrefixMap->setType(Map);
+   return writeWithNamespaceSupport(e, os, level, nsPrefixMap);
+}
+
+bool DomWriter::writeWithNamespaceSupport(
+   Element& e, OutputStream* os, int level, DynamicObject& nsPrefixMap)
+{
    bool rval = true;
    
    if(level < 0)
@@ -32,23 +40,68 @@ bool DomWriter::write(Element& e, OutputStream* os, int level)
       level = mIndentLevel;
    }
    
+   // add any entries to the current namespace prefix map
+   if(e->hasMember("attributes") && e["attributes"]->getType() == Map)
+   {
+      AttributeIterator attrs = e["attributes"].getIterator();
+      while(attrs->hasNext())
+      {
+         Attribute& attr = attrs->next();
+         
+         // check for an xml namespace prefix definition
+         const char* attrName = attr["name"]->getString();
+         if(strncmp(attrName, "xmlns:", 6) == 0)
+         {
+            const char* uri = attr["value"]->getString();
+            nsPrefixMap[uri] = attrName + 6;
+         }
+      }
+   }
+   
+   // create element name, which may require using the namespace prefix map
+   string elementName;
+   if(e->hasMember("namespace"))
+   {
+      const char* ns = e["namespace"]->getString();
+      if(nsPrefixMap->hasMember(ns))
+      {
+         // prepend prefix for given namespace
+         elementName.append(nsPrefixMap[ns]->getString());
+         elementName.push_back(':');
+      }
+   }
+   elementName.append(e["name"]->getString());
+   
    // open start element
-   e["name"]->setType(String);
    rval =
       ((mCompact || level == 0) ? true : os->write("\n", 1)) &&
       writeIndentation(os, level) &&
       os->write("<", 1) &&
-      os->write(e["name"]->getString(), e["name"]->length());
+      os->write(elementName.c_str(), elementName.length());
    
    // write attributes
-   e["attributes"]->setType(Map);
    AttributeIterator attrs = e["attributes"].getIterator();
-   while(rval && attrs->hasNext()) 
+   while(rval && attrs->hasNext())
    {
       Attribute& attr = attrs->next();
+      
+      // create attribute name, which may require using the namespace prefix map
+      string attrName;
+      if(attr->hasMember("namespace"))
+      {
+         const char* ns = attr["namespace"]->getString();
+         if(nsPrefixMap->hasMember(ns))
+         {
+            // prepend prefix for given namespace
+            attrName.append(nsPrefixMap[ns]->getString());
+            attrName.push_back(':');
+         }
+      }
+      attrName.append(attr["name"]->getString());
+      
       rval =
          os->write(" ", 1) &&
-         os->write(attrs->getName(), strlen(attrs->getName())) &&
+         os->write(attrName.c_str(), attrName.length()) &&
          os->write("=\"", 2) &&
          os->write(attr["value"]->getString(), attr["value"]->length()) &&
          os->write("\"", 1);
@@ -78,7 +131,8 @@ bool DomWriter::write(Element& e, OutputStream* os, int level)
             {
                // serialize child
                Element& child = children->next();
-               rval = write(child, os, level + 1);
+               rval = writeWithNamespaceSupport(
+                  child, os, level + 1, nsPrefixMap);
             }
          }
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/data/xml/DomReader.h"
 
@@ -20,9 +20,6 @@ DomReader::~DomReader()
 
 void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
 {
-   // FIXME: namespaces can be parsed out into element["namespace"]
-   // and attribute ["name"]["namespace"] if necessary in the future
-   
    if(mException.isNull() && !mDynoStack.empty())
    {
       // parse element's local name and namespace
@@ -68,6 +65,15 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
          if(ns != NULL)
          {
             free(ns);
+         }
+         
+         // add to element's namespace prefix map if is xmlns attribute
+         const char* attrName = attr["name"]->getString();
+         if(strncmp(attrName, "xmlns:", 6) == 0)
+         {
+            const char* uri = attr["value"]->getString();
+            (*e)["namespacePrefixMap"]->setType(Map);
+            (*e)["namespacePrefixMap"][uri] = attrName + 6;
          }
       }
    }

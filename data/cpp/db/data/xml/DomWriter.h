@@ -28,7 +28,7 @@ class DomWriter : public XmlWriter
 {
 protected:
    /**
-    * Recursively serializes the passed Element to XML.
+    * Calls writeWithNamespaceSupport() with a new, empty, namespace prefix map.
     * 
     * @param e the Element to serialize.
     * @param os the OutputStream to write the XML to.
@@ -37,6 +37,21 @@ protected:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(Element& e, db::io::OutputStream* os, int level);
+   
+   /**
+    * Recursively serializes the passed DynamicObject to XML.
+    * 
+    * @param e the Element to serialize.
+    * @param os the OutputStream to write the XML to.
+    * @param level current level of indentation (-1 to initialize with default).
+    * @param nsPrefixMap a namespace URI to prefix map that adds new entries
+    *                    as they are found in each element.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool writeWithNamespaceSupport(
+      Element& dyno, db::io::OutputStream* os, int level,
+      db::rt::DynamicObject& nsPrefixMap);
    
 public:
    /**
