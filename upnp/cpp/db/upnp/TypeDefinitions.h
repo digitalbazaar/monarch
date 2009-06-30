@@ -20,12 +20,21 @@ namespace upnp
  * A UPnP device represents a device that supports the UPnP protocol. It
  * provides UPnP services that a UPnP control point can use to control it.
  * 
- * The xml element names are used as properties of the DynamicObject. A
- * root UPnP device has the additional fields:
+ * Any UPnP device whose description has been fetched as the following fields:
  * 
- * server   : OS and product version information about the device.
- * location : a URL to the device's description.
- * usn      : a Unique Service Name for the device.
+ * All fields (inclusive) "deviceType"-"UPC".
+ * devices      : an array of sub-devices.
+ * services     : an array of services.
+ * description  : the description as a DOM Element as below.
+ * 
+ * A root UPnP device has the additional fields:
+ * 
+ * server      : OS and product version information about the device.
+ * location    : a URL to the device's description.
+ * usn         : a Unique Service Name for the device.
+ * 
+ * Below is the full XML description for a device. It is used to build
+ * a simpler device object with the above properties.
  * -----------------------------------------------------------------------
  * <pre>
  * 
@@ -181,6 +190,20 @@ typedef db::rt::DynamicObjectIterator DeviceIterator;
  * A UPnP Service represents a service that supports the UPnP protocol. A
  * UPnP Service is provided by a UPnP Device to give a UPnP ControlPoint
  * access to its functionality.
+ * 
+ * Any UPnP service has as the following fields (see below for docs):
+ * serviceType
+ * serviceId
+ * SCPDURL
+ * controlURL
+ * eventSubURL
+ * 
+ * Any UPnP service whose description has been fetched as the following fields:
+ * actions     : an array of Actions.
+ * description : the description as a DOM Element as below.
+ * 
+ * Below is the full XML description for a service. It is used to build
+ * a simpler service object with the above properties.
  * -----------------------------------------------------------------------
  * <pre>
  * 
@@ -251,8 +274,8 @@ typedef db::rt::DynamicObject ServiceList;
 typedef db::rt::DynamicObjectIterator ServiceIterator;
 
 /**
- * A UPnPServiceDescription is an XML document that describes a UPnPService. It
- * is a Service Procotol Control Definition (SCPD).
+ * A UPnP ServiceDescription is an XML document that describes a UPnP Service.
+ * It is a Service Procotol Control Definition (SCPD).
  * -----------------------------------------------------------------------
  * The UPnP description for a service defines actions and their arguments,
  * and state variables and their data type, range, and event characteristics.
@@ -559,6 +582,18 @@ typedef db::rt::DynamicObject ServiceDescription;
 /**
  * A UPnP ServiceAction is an XML serializable action that a UPnP Service can
  * perform.
+ * 
+ * An Action has these properties, as defined below:
+ * name         : the name of the action.
+ * argumentList : an array of ActionArguments
+ * 
+ * Each ActionArgument has these properties as defined below:
+ * name      : the name of the argument.
+ * direction : "in" or "out"
+ * retval    : the return value? (currently unused)
+ * 
+ * Below is the full XML description for an action. It is used to build
+ * a simpler action object with the above properties.
  * -----------------------------------------------------------------------
  * <pre>
  * 
@@ -610,6 +645,25 @@ typedef db::rt::DynamicObjectIterator ActionArgumentIterator;
  * An ActionResult is a map of named return values.
  */
 typedef db::rt::DynamicObject ActionResult;
+
+/**
+ * A PortMapping object is used to add or remove a port mapping entry
+ * on an internet gateway device. A blank IP address for the RemoteHost
+ * will use the default external IP address of the internet gateway device.
+ * 
+ * If adding a port mapping, all parameters are used. If removing a port
+ * mapping, only the first three (RemoteHost, ExternalPort, Protocol) are used.
+ * 
+ * @param RemoteHost the external IP address ("x.x.x.x" or "").
+ * @param ExternalPort the external port clients connect to.
+ * @param Protocol either "TCP" or "UDP".
+ * @param InternalPort the port on the internal server.
+ * @param InternalClient the internal IP address to redirect ("x.x.x.x").
+ * @param PortMappingEnabled true or false.
+ * @param PortMappingDescription a string describing the mapping.
+ * @param PortMappingLeaseDuration 0 for infinite, otherwise seconds for lease.
+ */
+typedef db::rt::DynamicObject PortMapping;
 
 } // end namespace upnp
 } // end namespace db
