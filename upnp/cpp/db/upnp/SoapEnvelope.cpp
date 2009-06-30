@@ -26,7 +26,33 @@ SoapEnvelope::~SoapEnvelope()
 {
 }
 
-string SoapEnvelope::create(SoapOperation& soapOp)
+// a helper function that converts message parameters into a dom element
+static void paramsToElement(SoapMessage& msg, DynamicObject& params, Element& e)
+{
+   if(params->getType() == Map)
+   {
+      DynamicObjectIterator pi = params.getIterator();
+      while(pi->hasNext())
+      {
+         DynamicObject& p = pi->next();
+         
+         // add param element
+         Element param;
+         param["name"] = pi->getName();
+         param["namespace"] = msg["namespace"]->getString();
+         e["children"][pi->getName()]->append(param);
+         paramsToElement(msg, p, param);
+      }
+   }
+   else
+   {
+      // use 0/1 for booleans
+      e["data"] = (params->getType() == Boolean) ?
+         (params->getBoolean() ? "1" : "0") : params->getString();
+   }
+}
+
+string SoapEnvelope::create(SoapMessage& msg)
 {
    string envelope;
    
@@ -59,31 +85,18 @@ string SoapEnvelope::create(SoapOperation& soapOp)
    {
       Attribute attr;
       attr["name"] = "xmlns:" TARGET_NS_PREFIX;
-      attr["value"] = soapOp["namespace"]->getString();
+      attr["value"] = msg["namespace"]->getString();
       body["attributes"][attr["name"]->getString()] = attr;
    }
    
    // add message
    Element message;
-   message["name"] = soapOp["name"]->getString();
-   message["namespace"] = soapOp["namespace"]->getString();
+   message["name"] = msg["name"]->getString();
+   message["namespace"] = msg["namespace"]->getString();
    body["children"][message["name"]->getString()]->append(message);
    
    // add message parameters
-   DynamicObjectIterator pi = soapOp["params"].getIterator();
-   while(pi->hasNext())
-   {
-      DynamicObject& p = pi->next();
-      
-      // add param
-      Element param;
-      param["name"] = pi->getName();
-      param["namespace"] = soapOp["namespace"]->getString();
-      // use 0/1 for booleans
-      param["data"] = (p->getType() == Boolean) ?
-         (p->getBoolean() ? "1" : "0") : p->getString();
-      message["children"][param["name"]->getString()]->append(param);
-   }
+   paramsToElement(msg, msg["params"], message);
    
    // write envelope to string
    DomWriter writer;
@@ -106,7 +119,7 @@ string SoapEnvelope::create(SoapOperation& soapOp)
 }
 
 // a helper function to convert elements into objects using tag names as keys
-static void getResults(Element& e, DynamicObject& result)
+static void elementToParams(Element& e, DynamicObject& params)
 {
    // convert any children
    if(e["children"]->length() > 0)
@@ -120,13 +133,13 @@ static void getResults(Element& e, DynamicObject& result)
          while(ei->hasNext())
          {
             Element& child = ei->next();
-            getResults(child, result[child["name"]->getString()]);
+            elementToParams(child, params[child["name"]->getString()]);
          }
       }
    }
    else
    {
-      result = e["data"]->getString();
+      params = e["data"]->getString();
    }
 }
 
@@ -138,7 +151,8 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
    result->setType(Map);
    result->clear();
    result["fault"] = false;
-   result["result"]->setType(Map);
+   SoapMessage& msg = result["message"];
+   msg->setType(Map);
    
    //  parse result
    Element root;
@@ -148,32 +162,33 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
    {
       // ensure there is a body in the response
       rval = false;
-      root["children"]->setType(Array);
       if(root["children"]->hasMember("Body"))
       {
          // ensure body is valid
          Element& body = root["children"]["Body"][0];
          if(body["children"]->length() == 1)
          {
-            // see if the body contains a soap fault or message
-            Element faultOrMessage = body["children"].first();
-            if(faultOrMessage.isNull())
+            // body contains message and is valid
+            rval = true;
+            
+            // get message name and namespace
+            Element message = body["children"].first()[0];
+            const char* name = message["name"]->getString();
+            const char* ns = message["namespace"]->getString();
+            msg["name"] = name;
+            msg["namespace"] = ns;
+            msg["params"]->setType(Map);
+            
+            // is a soap fault if name is "Fault" and namespace is
+            // the same as the body element
+            if(strcmp(name, "Fault") == 0 &&
+               strcmp(ns, body["namespace"]->getString()) == 0)
             {
-               // body is valid
-               rval = true;
-               
-               // is a fault if name is "Fault" and namespace is
-               // the same as the body element
-               if(strcmp(
-                  faultOrMessage[0]["name"]->getString(), "Fault") == 0 &&
-                  faultOrMessage[0]["namespace"] == body["namespace"])
-               {
-                  result["fault"] = true;
-               }
-               
-               // get results from response message
-               getResults(faultOrMessage[0], result["result"]);
+               result["fault"] = true;
             }
+            
+            // convert element to message params
+            elementToParams(message, msg["params"]);
          }
       }
       

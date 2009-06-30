@@ -30,19 +30,19 @@ ControlPoint::~ControlPoint()
  * A helper function that sends a soap envelope and gets its result.
  * 
  * @param service the service to connect to.
- * @param soapOp the soap operation to perform.
+ * @param msg the soap message to send.
  * @param result the result to populate.
  * 
  * @return true if successful, false if an exception occurred.
  */
 static bool doSoap(
-   Service& service, SoapOperation& soapOp, ActionResult& result)
+   Service& service, SoapMessage& msg, ActionResult& result)
 {
    bool rval = false;
    
    // create the soap envelope
    SoapEnvelope env;
-   string envelope = env.create(soapOp);
+   string envelope = env.create(msg);
    if(envelope.length() > 0)
    {
       // get the control url for the service
@@ -59,7 +59,7 @@ static bool doSoap(
          headers["Content-Type"] = "text/xml; charset=\"utf-8\"";
          headers["Soapaction"] = StringTools::format("\"%s#%s\"",
             service["serviceType"]->getString(),
-            soapOp["name"]->getString()).c_str();
+            msg["name"]->getString()).c_str();
          
          // do post
          Url path(url.getPath());
@@ -98,8 +98,8 @@ static bool doSoap(
                }
                else
                {
-                  // return result
-                  result = sr["result"];
+                  // return result as message parameters
+                  result = sr["result"]["message"]["params"];
                }
             }
          }
@@ -143,14 +143,14 @@ bool ControlPoint::performAction(
    }
    else
    {
-      // create a soap envelope
-      SoapOperation soapOp;
-      soapOp["name"] = name;
-      soapOp["namespace"] = service["serviceType"]->getString();
-      soapOp["params"] = params;
+      // create a soap message
+      SoapMessage msg;
+      msg["name"] = name;
+      msg["namespace"] = service["serviceType"]->getString();
+      msg["params"] = params;
       
       // do soap transfer
-      rval = doSoap(service, soapOp, result);
+      rval = doSoap(service, msg, result);
    }
    
    return rval;

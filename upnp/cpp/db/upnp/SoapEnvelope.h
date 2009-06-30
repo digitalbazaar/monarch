@@ -15,22 +15,21 @@ namespace upnp
 {
 
 /**
- * A SoapOperation is a remote procedural call that uses SOAP. It can be
- * serialized to XML.
+ * A SoapMessage is a remote procedural call (RCP) or a response to an RCP
+ * that uses SOAP. It can be serialized to XML.
  * 
- * @param name the name for the operation.
+ * @param name the name for the message.
  * @param namespace the namespace URI that defines the XML elements.
- * @param params the parameters for the operation.
+ * @param params the parameters for the message (a map).
  */
-typedef db::rt::DynamicObject SoapOperation;
+typedef db::rt::DynamicObject SoapMessage;
 
 /**
- * A SoapResult is the result of a SoapOperation. It may be a fault or
- * a map return values.
+ * A SoapResult is the result of a parsed SoapEnvelope. It may or may not
+ * be a soap fault.
  * 
  * @param fault a boolean that is set to true if the result is a fault.
- * @param result a map containing the fault details or the return values
- *               as name=value pairs. 
+ * @param message the SoapMessage. 
  */
 typedef db::rt::DynamicObject SoapResult;
 
@@ -54,13 +53,13 @@ public:
    virtual ~SoapEnvelope();
    
    /**
-    * Produces a soap envelope that contains a soap operation.
+    * Produces a soap envelope that contains the passed message.
     * 
-    * @param soapOp the soap operation to put in the envelope.
+    * @param msg the soap message to put in the envelope.
     * 
     * @return the envelope as a string or a string of length 0 on error.
     */
-   virtual std::string create(SoapOperation& soapOp);
+   virtual std::string create(SoapMessage& msg);
    
    /**
     * Parses a soap envelope from an input stream.
