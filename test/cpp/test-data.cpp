@@ -1104,23 +1104,155 @@ void runDomReadWriteTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+void runDomReadWriteNamespaceTest(TestRunner& tr)
+{
+   tr.test("DomReadWriteNamespace");
+   
+   {
+      string xml =
+         "<soap:Envelope "
+         "soap:encodingStyle=\"http://www.w3.org/2001/12/soap-encoding\" "
+         "xmlns:soap=\"http://www.w3.org/2001/12/soap-envelope\">"
+         "<soap:Body xmlns:m=\"http://www.example.org/stock\">"
+         "<m:GetStockPrice>"
+         "<m:StockName>IBM</m:StockName>"
+         "</m:GetStockPrice>"
+         "</soap:Body>"
+         "</soap:Envelope>";
+      
+      ByteArrayInputStream bais(xml.c_str(), xml.length());
+      DomReader dr;
+      Element root;
+      dr.start(root);
+      dr.read(&bais);
+      dr.finish();
+      
+      //dumpDynamicObject(root);
+      
+      ostringstream oss;
+      OStreamOutputStream os(&oss);
+      DomWriter writer;
+      writer.setCompact(true);
+      //writer.setIndentation(0, 1);
+      writer.write(root, &os);
+      
+      assertStrCmp(xml.c_str(), oss.str().c_str());
+   }
+   
+   tr.passIfNoException();
+}
+
+void runDomWriteNamespaceTest(TestRunner& tr)
+{
+   tr.test("DomWriteNamespace");
+   
+   {
+      // create root element
+      Element root;
+      root["name"] = "Envelope";
+      root["namespace"] = "http://www.w3.org/2001/12/soap-envelope";
+      // add soap namespace attribute
+      {
+         Attribute attr;
+         attr["name"] = "xmlns:soap";
+         attr["value"] = "http://www.w3.org/2001/12/soap-envelope";
+         root["attributes"][attr["name"]->getString()] = attr;
+      }
+      // add encoding style attribute
+      {
+         Attribute attr;
+         attr["name"] = "encodingStyle";
+         attr["namespace"] = "http://www.w3.org/2001/12/soap-envelope";
+         attr["value"] = "http://www.w3.org/2001/12/soap-encoding";
+         root["attributes"][attr["name"]->getString()] = attr;
+      }
+      
+      // add body element
+      Element body;
+      body["name"] = "Body";
+      body["namespace"] = "http://www.w3.org/2001/12/soap-envelope";
+      root["children"][body["name"]->getString()]->append(body);
+      // add target namespace attribute
+      {
+         Attribute attr;
+         attr["name"] = "xmlns:m";
+         attr["value"] = "http://www.example.org/stock";
+         body["attributes"][attr["name"]->getString()] = attr;
+      }
+      
+      // add message
+      Element message;
+      message["name"] = "GetStockPrice";
+      message["namespace"] = "http://www.example.org/stock";
+      body["children"][message["name"]->getString()]->append(message);
+      
+      // add param
+      Element param;
+      param["name"] = "StockName";
+      param["namespace"] = "http://www.example.org/stock";
+      param["data"] = "IBM";
+      message["children"][param["name"]->getString()]->append(param);
+      
+      // write envelope to string
+      string envelope;
+      DomWriter writer;
+      writer.setCompact(false);
+      writer.setIndentation(0, 1);
+      ByteBuffer bb(1024);
+      ByteArrayOutputStream baos(&bb, true);
+      writer.write(root, &baos);
+      assertNoException();
+      envelope.append(bb.data(), bb.length());
+      
+      const char* expect =
+         "<soap:Envelope "
+         "soap:encodingStyle=\"http://www.w3.org/2001/12/soap-encoding\" "
+         "xmlns:soap=\"http://www.w3.org/2001/12/soap-envelope\">\n"
+         " <soap:Body xmlns:m=\"http://www.example.org/stock\">\n"
+         "  <m:GetStockPrice>\n"
+         "   <m:StockName>IBM</m:StockName>\n"
+         "  </m:GetStockPrice>\n"
+         " </soap:Body>\n"
+         "</soap:Envelope>";
+      assertStrCmp(expect, envelope.c_str());
+   }
+   
+   tr.passIfNoException();
+}
+
 void runDomReaderCrashTest(TestRunner& tr)
 {
+   // this test will segfault if it fails
    tr.test("DomReader Crash");
    {
       string xml =
-         "<?xml version=\"1.0\"?>\n<ResultSet xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"urn:yahoo:maps\" xsi:schemaLocation=\"urn:yahoo:maps http://api.local.yahoo.com/MapsService/V1/GeocodeResponse.xsd\"><Result precision=\"address\"><Latitude>37.130968</Latitude><Longitude>-80.407491</Longitude><Address>100 E Main St</Address><City>Christiansburg</City><State>VA</State><Zip>24073-3029</Zip><Country>US</Country></Result><Result precision=\"address\"><Latitude>37.128598</Latitude><Longitude>-80.410080</Longitude><Address>100 W Main St</Address><City>Christiansburg</City><State>VA</State><Zip>24073-2944</Zip><Country>US</Country></Result></ResultSet>";
+         "<?xml version=\"1.0\"?>\n"
+         "<ResultSet xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+         "xmlns=\"urn:yahoo:maps\" xsi:schemaLocation=\"urn:yahoo:maps "
+         "http://api.local.yahoo.com/MapsService/V1/GeocodeResponse.xsd\">"
+         "<Result precision=\"address\">"
+         "<Latitude>37.130968</Latitude><Longitude>-80.407491</Longitude>"
+         "<Address>100 E Main St</Address><City>Christiansburg</City>"
+         "<State>VA</State><Zip>24073-3029</Zip><Country>US</Country>"
+         "</Result>"
+         "<Result precision=\"address\">"
+         "<Latitude>37.128598</Latitude><Longitude>-80.410080</Longitude>"
+         "<Address>100 W Main St</Address><City>Christiansburg</City>"
+         "<State>VA</State><Zip>24073-2944</Zip><Country>US</Country>"
+         "</Result></ResultSet>";
       
       //printf("XML:\n%s\n", xml.c_str());
       
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       DomReader reader;
-      DynamicObject dyno;
-      reader.start(dyno);
+      Element root;
+      reader.start(root);
       reader.read(&bais);
+      assertNoException();
       reader.finish();
+      assertNoException();
       
-      //JsonWriter::writeToStdOut(dyno, true, false);
+      //dumpDynamicObject(root);
    }
    tr.passIfNoException();
 }
@@ -1641,6 +1773,8 @@ public:
       runXmlIOStreamTest(tr);
       runDomReadWriteTest(tr);
       runDomReaderCrashTest(tr);
+      runDomReadWriteNamespaceTest(tr);
+      runDomWriteNamespaceTest(tr);
       
       runSwapTest(tr);
       

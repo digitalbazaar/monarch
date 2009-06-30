@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_data_xml_DomReader_H
 #define db_data_xml_DomReader_H
@@ -29,27 +29,10 @@ protected:
    bool mRootStarted;
    
    /**
-    * Handles start elements for this reader.
-    * 
-    * @param name the name of the element (namespace-uri|element-name).
-    * @param attrs the attributes of the element.
+    * Stores the namespace declaration information before each call to
+    * startElement, where it gets added to the current element and cleared.
     */
-   virtual void startElement(const XML_Char* name, const XML_Char** attrs);
-   
-   /**
-    * Handles end elements for this reader.
-    * 
-    * @param name the name of the element (namespace-uri|element-name). 
-    */
-   virtual void endElement(const XML_Char* name);
-   
-   /**
-    * Handles character data for this reader.
-    * 
-    * @param data the read data.
-    * @param length the length of the data.
-    */
-   virtual void appendData(const XML_Char* data, int length);
+   db::rt::DynamicObject mNamespacePrefixMap;
    
 public:
    /**
@@ -73,7 +56,7 @@ public:
     * 
     * @param root the DynamicObject to use as the root element for the Document.
     */
-   using XmlReader::start;
+   virtual void start(Element& root);
    
    /**
     * Finishes deserializing a document from xml. This method must be called
@@ -82,6 +65,40 @@ public:
     * @return true if the finish succeeded, false if an Exception occurred.
     */
    virtual bool finish();
+   
+protected:
+   /**
+    * Handles start elements for this reader.
+    * 
+    * @param name the name of the element (namespace-uri|element-name).
+    * @param attrs the attributes of the element.
+    */
+   virtual void startElement(const XML_Char* name, const XML_Char** attrs);
+   
+   /**
+    * Handles end elements for this reader.
+    * 
+    * @param name the name of the element (namespace-uri|element-name). 
+    */
+   virtual void endElement(const XML_Char* name);
+   
+   /**
+    * Handles character data for this reader.
+    * 
+    * @param data the read data.
+    * @param length the length of the data.
+    */
+   virtual void appendData(const XML_Char* data, int length);
+   
+   /**
+    * Called before the start element handler for each namespace declared
+    * in that start element.
+    * 
+    * @param prefix the prefix associated with the namespace-uri.
+    * @param uri the namespace-uri.
+    */
+   virtual void startNamespaceDeclaration(
+      const XML_Char* prefix, const XML_Char* uri);
 };
 
 } // end namespace xml

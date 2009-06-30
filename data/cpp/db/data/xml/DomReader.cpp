@@ -3,19 +3,45 @@
  */
 #include "db/data/xml/DomReader.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::data;
 using namespace db::data::xml;
 using namespace db::io;
 using namespace db::rt;
 
-DomReader::DomReader()
+DomReader::DomReader() :
+   mRootStarted(false),
+   mNamespacePrefixMap(NULL)
 {
-   mRootStarted = false;
 }
 
 DomReader::~DomReader()
 {
+}
+
+void DomReader::start(Element& root)
+{
+   // create namespace prefix map
+   mNamespacePrefixMap = DynamicObject();
+   mNamespacePrefixMap->setType(Map);
+   
+   // start
+   XmlReader::start(root);
+}
+
+bool DomReader::finish()
+{
+   bool rval = XmlReader::finish();
+   
+   // free namespace prefix map
+   mNamespacePrefixMap.setNull();
+   
+   // no longer started
+   mRootStarted = false;
+   
+   return rval;
 }
 
 void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
@@ -47,8 +73,28 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
       (*e)["attributes"]->setType(Map);
       (*e)["children"]->setType(Map);
       
+      // save namespace declarations as xmlns:prefix attributes
+      {
+         DynamicObjectIterator i = mNamespacePrefixMap.getIterator();
+         while(i->hasNext())
+         {
+            DynamicObject& prefix = i->next();
+            // create attribute: "xmlns:<prefix>"="<namespace-uri>"
+            // but only include colon if prefix length > 0
+            int len = prefix->length() + 7;
+            char attrName[len];
+            snprintf(attrName, len, "xmlns%s%s",
+               prefix->length() > 0 ? ":" : "", prefix->getString());
+            Attribute& attr = (*e)["attributes"][attrName];
+            attr["name"] = attrName;
+            attr["value"] = i->getName();
+         }
+         mNamespacePrefixMap->clear();
+      }
+      
       if(ns != NULL)
       {
+         // free namespace string
          free(ns);
       }
       
@@ -64,16 +110,8 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
          
          if(ns != NULL)
          {
+            // free namespace string
             free(ns);
-         }
-         
-         // add to element's namespace prefix map if is xmlns attribute
-         const char* attrName = attr["name"]->getString();
-         if(strncmp(attrName, "xmlns:", 6) == 0)
-         {
-            const char* uri = attr["value"]->getString();
-            (*e)["namespacePrefixMap"]->setType(Map);
-            (*e)["namespacePrefixMap"][uri] = attrName + 6;
          }
       }
    }
@@ -104,12 +142,9 @@ void DomReader::appendData(const XML_Char* data, int length)
    }
 }
 
-bool DomReader::finish()
+void DomReader::startNamespaceDeclaration(
+   const XML_Char* prefix, const XML_Char* uri)
 {
-   bool rval = XmlReader::finish();
-   
-   // no longer started
-   mRootStarted = false;
-   
-   return rval;
+   // storage declaration info
+   mNamespacePrefixMap[uri] = (prefix == NULL) ? "" : prefix;
 }

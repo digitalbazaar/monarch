@@ -49,7 +49,7 @@ bool DomWriter::writeWithNamespaceSupport(
          Attribute& attr = attrs->next();
          
          // check for an xml namespace prefix definition
-         const char* attrName = attr["name"]->getString();
+         const char* attrName = attrs->getName();
          if(strncmp(attrName, "xmlns:", 6) == 0)
          {
             const char* uri = attr["value"]->getString();
@@ -80,6 +80,7 @@ bool DomWriter::writeWithNamespaceSupport(
       os->write(elementName.c_str(), elementName.length());
    
    // write attributes
+   e["attributes"]->setType(Map);
    AttributeIterator attrs = e["attributes"].getIterator();
    while(rval && attrs->hasNext())
    {
@@ -156,7 +157,7 @@ bool DomWriter::writeWithNamespaceSupport(
       
       rval = rval &&
          os->write("</", 2) &&
-         os->write(e["name"]->getString(), e["name"]->length()) &&
+         os->write(elementName.c_str(), elementName.length()) &&
          os->write(">", 1);
    }
    

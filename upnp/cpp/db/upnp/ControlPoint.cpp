@@ -45,36 +45,41 @@ static string createSoapEnvelope(SoapOperation& soapOp)
    // create root element
    Element root;
    root["name"] = "Envelope";
+   root["namespace"] = SOAP_NS_URI;
    // add soap namespace attribute
    {
-      Attribute& attr = root["attributes"]->append();
+      Attribute attr;
       attr["name"] = "xmlns:" SOAP_NS_PREFIX;
       attr["value"] = SOAP_NS_URI;
+      root["attributes"][attr["name"]->getString()] = attr;
    }
    // add encoding style attribute
    {
-      Attribute& attr = root["attributes"]->append();
+      Attribute attr;
       attr["name"] = "encodingStyle";
       attr["namespace"] = SOAP_NS_URI;
       attr["value"] = ENC_STYLE_NS_URI;
+      root["attributes"][attr["name"]->getString()] = attr;
    }
    
    // add body element
    Element body;
    body["name"] = "Body";
-   root["children"]->append(body);
+   body["namespace"] = SOAP_NS_URI;
+   root["children"]["Body"]->append(body);
    // add target namespace attribute
    {
-      Attribute& attr = body["attributes"]->append();
+      Attribute attr;
       attr["name"] = "xmlns:" TARGET_NS_PREFIX;
       attr["value"] = soapOp["namespace"]->getString();
+      body["attributes"][attr["name"]->getString()] = attr;
    }
    
    // add message
    Element message;
    message["name"] = soapOp["name"]->getString();
    message["namespace"] = soapOp["namespace"]->getString();
-   body->append(message);
+   body["children"][message["name"]->getString()]->append(message);
    
    // add message parameters
    DynamicObjectIterator pi = soapOp["params"].getIterator();
@@ -87,9 +92,9 @@ static string createSoapEnvelope(SoapOperation& soapOp)
       param["name"] = pi->getName();
       param["namespace"] = soapOp["namespace"]->getString();
       // use 0/1 for booleans
-      param["value"] = (p->getType() == Boolean) ?
+      param["data"] = (p->getType() == Boolean) ?
          (p->getBoolean() ? "1" : "0") : p->getString();
-      message->append(param);
+      message["children"][param["name"]->getString()]->append(param);
    }
    
    // write envelope to string
