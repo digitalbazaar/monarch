@@ -19,17 +19,6 @@ using namespace db::rt;
 using namespace db::upnp;
 using namespace db::util;
 
-#define DEVICE_TYPE_IGD \
-   "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
-#define DEVICE_TYPE_WAN \
-   "urn:schemas-upnp-org:device:WANDevice:1"
-#define DEVICE_TYPE_WAN_CONNECTION \
-   "urn:schemas-upnp-org:device:WANConnectionDevice:1"
-#define SERVICE_TYPE_WAN_IP_CONNECTION \
-   "urn:schemas-upnp-org:service:WANIPConnection:1"
-
-#define UPNPERROR_NoSuchEntryInArray 714
-
 ControlPoint::ControlPoint()
 {
 }
@@ -353,7 +342,7 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
       while(wd.isNull() && di->hasNext())
       {
          Device& next = di->next();
-         if(strcmp(next["deviceType"]->getString(), DEVICE_TYPE_WAN) == 0)
+         if(strcmp(next["deviceType"]->getString(), UPNP_DEVICE_TYPE_WAN) == 0)
          {
             // found wan device
             wd = next;
@@ -371,7 +360,8 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
       {
          Device& next = di->next();
          if(strcmp(
-            next["deviceType"]->getString(), DEVICE_TYPE_WAN_CONNECTION) == 0)
+            next["deviceType"]->getString(),
+            UPNP_DEVICE_TYPE_WAN_CONNECTION) == 0)
          {
             // found wan connection device
             wcd = next;
@@ -390,7 +380,7 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          Service& next = si->next();
          if(strcmp(
             next["serviceType"]->getString(),
-            SERVICE_TYPE_WAN_IP_CONNECTION) == 0)
+            UPNP_SERVICE_TYPE_WAN_IP_CONNECTION) == 0)
          {
             // found wan ip connection service
             wipcs = next;
@@ -445,9 +435,15 @@ bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
    return rval;
 }
 
-bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs)
+bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs, bool* dne)
 {
    bool rval = false;
+   
+   // initialize does not exist param
+   if(dne != NULL)
+   {
+      *dne = false;
+   }
    
    // only these 3 parameters must be sent
    PortMapping pm2;
@@ -458,6 +454,19 @@ bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs)
    // perform the action
    ActionResult result;
    rval = performAction("DeletePortMapping", pm2, wipcs, result);
+   if(!rval && dne != NULL)
+   {
+      // handle setting does not exist (dne) parameter so cases where
+      // remove if exists can be implemented easily
+      DynamicObject params = result["message"]["params"];
+      DynamicObject& upnpError = params["detail"]["UPnPError"];
+      int32_t code = upnpError["errorCode"]->getInt32();
+      if(code == UPNP_ERROR_NoSuchEntryInArray)
+      {
+         // no such entry
+         *dne = true;
+      }
+   }
    
    return rval;
 }
@@ -480,7 +489,8 @@ bool ControlPoint::getPortMapping(PortMapping& pm, int index, Service& wipcs)
    {
       params = result["message"]["params"];
       DynamicObject& upnpError = params["detail"]["UPnPError"];
-      if(upnpError["errorCode"]->getInt32() == UPNPERROR_NoSuchEntryInArray)
+      int32_t code = upnpError["errorCode"]->getInt32();
+      if(code == UPNP_ERROR_NoSuchEntryInArray)
       {
          // no such entry, return null port mapping
          pm.setNull();
@@ -513,7 +523,8 @@ bool ControlPoint::getPortMapping(PortMapping& pm, Service& wipcs)
    {
       DynamicObject params = result["message"]["params"];
       DynamicObject& upnpError = params["detail"]["UPnPError"];
-      if(upnpError["errorCode"]->getInt32() == UPNPERROR_NoSuchEntryInArray)
+      int32_t code = upnpError["errorCode"]->getInt32();
+      if(code == UPNP_ERROR_NoSuchEntryInArray)
       {
          // no such entry, return null port mapping
          pm.setNull();

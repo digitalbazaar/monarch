@@ -6,6 +6,8 @@
 #include "db/test/TestRunner.h"
 #include "db/io/ByteArrayInputStream.h"
 #include "db/data/xml/DomTypes.h"
+#include "db/upnp/ControlPoint.h"
+#include "db/upnp/DeviceDiscoverer.h"
 #include "db/upnp/SoapEnvelope.h"
 
 using namespace std;
@@ -122,23 +124,82 @@ void runPortMappingTest(TestRunner& tr)
 {
    tr.group("PortMapping");
    
+   PortMapping mapping;
+   mapping["RemoteHost"] = "";
+   mapping["ExternalPort"] = 19123;
+   mapping["Protocol"] = "TCP";
+   mapping["InternalPort"] = 19124;
+   mapping["InternalClient"] = "192.168.123.123";
+   mapping["PortMappingEnabled"] = true;
+   mapping["PortMappingDescription"] = "A test port mapping.";
+   mapping["PortMappingLeaseDuration"] = 0;
+   
+   Device igd(NULL);
+   Service wipcs(NULL);
+   
+   tr.test("discover internet gateway device");
+   {
+      // search for 1 internet gateway device... 30 seconds to find one
+      DeviceDiscoverer dd;
+      DeviceList devices;
+      if(dd.discover(devices, UPNP_DEVICE_TYPE_IGD, 30 * 1000, 1))
+      {
+         // found!
+         igd = devices.first();
+      }
+      assert(!igd.isNull());
+   }
+   tr.passIfNoException();
+   
+   tr.test("get device description");
+   {
+      ControlPoint cp;
+      cp.getDeviceDescription(igd);
+      assertNoException();
+   }
+   tr.passIfNoException();
+   
+   tr.test("get wan ip connection service");
+   {
+      ControlPoint cp;
+      wipcs = cp.getWanIpConnectionService(igd);
+      assert(!wipcs.isNull());
+   }
+   tr.passIfNoException();
+   
    tr.test("remove if exists");
    {
-      // FIXME:
+      ControlPoint cp;
+      PortMapping pm = mapping.clone();
+      bool dne;
+      if(!cp.removePortMapping(pm, wipcs, &dne))
+      {
+         // if dne then the mapping already does not exist, which is fine
+         if(dne)
+         {
+            Exception::clearLast();
+         }
+      }
    }
    tr.passIfNoException();
    
-   tr.test("add");
+   tr.test("add mapping");
    {
-      // FIXME:
+      ControlPoint cp;
+      PortMapping pm = mapping.clone();
+      cp.addPortMapping(pm, wipcs);
    }
    tr.passIfNoException();
    
-   tr.test("remove");
+   tr.test("remove mapping");
    {
-      // FIXME:
+      ControlPoint cp;
+      PortMapping pm = mapping.clone();
+      cp.removePortMapping(pm, wipcs, NULL);
    }
    tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 class DbUpnpTester : public db::test::Tester

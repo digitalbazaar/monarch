@@ -96,36 +96,6 @@ public:
     * Internal port values that are different from the external port
     * Dynamic port mappings (i.e. with finite lease durations)
     * 
-    * UPNP error codes:
-    * 
-    * "402 Invalid Args" One of following: not enough IN arguments, too many IN
-    * arguments, no IN argument by that name, one or more IN arguments are of
-    * the wrong data type.
-    * 
-    * "714 NoSuchEntryInArray" The specified array index is out of
-    * bounds.
-    * 
-    * "715 WildCardNotPermittedInSrcIP" The source IP address cannot be
-    * wild-carded.
-    * 
-    * "716 WildCardNotPermittedInExtPort" The external port cannot be
-    * wild-carded.
-    * 
-    * "718 ConflictInMappingEntry" The port mapping entry specified conflicts
-    * with a mapping assigned previously to another client.
-    * 
-    * "724 SamePortValuesRequired" Internal and External port values must be
-    * the same.
-    * 
-    * "725 OnlyPermanentLeasesSupported" The NAT implementation only supports
-    * permanent lease times on port mappings.
-    * 
-    * "726 RemoteHostOnlySupportsWildcard" RemoteHost must be a wildcard and
-    * cannot be a specific IP address or DNS name.
-    * 
-    * "727 ExternalPortOnlySupportsWildcard" ExternalPort must be a wildcard
-    * and cannot be a specific port value.
-    * 
     * @param pm the port mapping entry.
     * @param wipcs the wan ip connection service.
     * 
@@ -140,21 +110,13 @@ public:
     * given remote host, external port, and protocol. When an entry is
     * deleted, PortMappingNumberOfEntries decrements.
     * 
-    * UPNP error codes:
-    * 
-    * "402 Invalid Args" One of following: not enough IN arguments, too many IN
-    * arguments, no IN argument by that name, one or more IN arguments are of
-    * the wrong data type.
-    * 
-    * "714 NoSuchEntryInArray" There was no entry to delete that matched the
-    * passed parameters.
-    * 
     * @param pm the port mapping entry.
     * @param wipcs the wan ip connection service.
+    * @param dne set to true if the mapping does not exist.
     * 
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool removePortMapping(PortMapping& pm, Service& wipcs);
+   virtual bool removePortMapping(PortMapping& pm, Service& wipcs, bool* dne);
    
    /**
     * Gets a port mapping entry by its index via a wan ip connection service.
@@ -164,12 +126,6 @@ public:
     * returned indicating that no entry exists at the given index. All entries
     * are stored in a contiguous array and can be retrieved using an array
     * index that ranges from 0 to PortMappingNumberOfEntries - 1.
-    * 
-    * UPNP error codes:
-    * 
-    * "402 Invalid Args" One of following: not enough IN arguments, too many IN
-    * arguments, no IN argument by that name, one or more IN arguments are of
-    * the wrong data type.
     * 
     * @param pm the port mapping to populate, NULL if no such entry exists.
     * @param index the index in the port mapping entry array at which to
@@ -185,15 +141,6 @@ public:
     * 
     * This action will retrieve the NAT port mapping for the given
     * RemoteHost, ExternalPort, and PortMappingProtocol.
-    * 
-    * UPNP error codes:
-    * 
-    * "402 Invalid Args" One of following: not enough IN arguments, too many IN
-    * arguments, no IN argument by that name, one or more IN arguments are of
-    * the wrong data type.
-    * 
-    * "714 NoSuchEntryInArray" The specified array index is out of
-    * bounds.
     * 
     * @param pm the PortMapping with RemoteHost, ExternalPort, and
     *           Protocol set, to be populated with other data or set to NULL.

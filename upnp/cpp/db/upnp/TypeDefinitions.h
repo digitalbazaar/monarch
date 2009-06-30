@@ -12,6 +12,72 @@ namespace db
 namespace upnp
 {
 
+// defines for device and service types
+#define UPNP_DEVICE_TYPE_IGD \
+   "urn:schemas-upnp-org:device:InternetGatewayDevice:1"
+#define UPNP_DEVICE_TYPE_WAN \
+   "urn:schemas-upnp-org:device:WANDevice:1"
+#define UPNP_DEVICE_TYPE_WAN_CONNECTION \
+   "urn:schemas-upnp-org:device:WANConnectionDevice:1"
+#define UPNP_SERVICE_TYPE_WAN_IP_CONNECTION \
+   "urn:schemas-upnp-org:service:WANIPConnection:1"
+
+// defines for errors
+/**
+ * One of following: not enough IN arguments, too many IN arguments,
+ * no IN argument by that name, one or more IN arguments are of the
+ * wrong data type.
+ */
+#define UPNP_ERROR_InvalidArgs                      402
+
+/**
+ * The specified array index was invalid.
+ */
+#define UPNP_ERROR_SpecifiedArrayIndexInvalid       713
+
+/**
+ * There was no entry to delete that matched the passed parameters.
+ */
+#define UPNP_ERROR_NoSuchEntryInArray               714
+
+/**
+ * The source IP address cannot be wild-carded.
+ */
+#define UPNP_ERROR_WildCardNotPermittedInSrcIP      715
+
+/**
+ * The external port cannot be wild-carded.
+ */
+#define UPNP_ERROR_WildCardNotPermittedInExtPort    716
+
+/**
+ * The port mapping entry specified conflicts with a mapping assigned
+ * previously to another client.
+ */
+#define UPNP_ERROR_ConflictInMappingEntry           718
+
+/**
+ * Internal and External port values must be the same.
+ */
+#define UPNP_ERROR_SamePortValuesRequired           724
+
+/**
+ * The NAT implementation only supports permanent lease times on port
+ * mappings.
+ */
+#define UPNP_ERROR_OnlyPermanentLeasesSupported     725
+
+/**
+ * RemoteHost must be a wildcard and cannot be a specific IP address or
+ * DNS name.
+ */
+#define UPNP_ERROR_RemoteHostOnlySupportsWildcard   726
+
+/**
+ * ExternalPort must be a wildcard and cannot be a specific port value.
+ */
+#define UPNP_ERROR_ExternalPortOnlySupportsWildcard 727
+
 /**
  * Type definition information obtained from: http://www.upnp.org 
  */
