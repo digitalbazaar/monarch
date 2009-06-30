@@ -44,11 +44,12 @@ EXECUTABLES = \
 	test-sqlite3 \
 	$(MYSQL_EXECUTABLES) \
 	test-ucontext \
+	test-upnp \
 	test-util \
 	test-validation
 
 LIBRARIES = dbtest
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation $(SPHINX_DBLIBS) dbapp
+DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation dbupnp $(SPHINX_DBLIBS) dbapp
 DYNAMIC_EXECUTABLE_LIBRARIES = dbtest
 
 LINUX_LIB_DIR = @DBCOREDIR@/libs/linux

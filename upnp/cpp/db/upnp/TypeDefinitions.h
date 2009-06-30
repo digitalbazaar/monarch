@@ -611,16 +611,6 @@ typedef db::rt::DynamicObjectIterator ActionArgumentIterator;
  */
 typedef db::rt::DynamicObject ActionResult;
 
-/**
- * A SoapOperation is a remote procedural call that uses SOAP. It can be
- * serialized to XML.
- * 
- * @param name the name for the operation.
- * @param namespace the namespace URI that defines the XML elements.
- * @param params the parameters for the operation.
- */
-typedef db::rt::DynamicObject SoapOperation;
-
 } // end namespace upnp
 } // end namespace db
 

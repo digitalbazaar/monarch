@@ -209,6 +209,15 @@ public:
    virtual DynamicObjectIterator getIterator() const;
    
    /**
+    * Gets a reference-counted DynamicObject for the first member or
+    * array element in this object. If this DynamicObject is not a map
+    * or array, then a reference to this object will be returned.
+    * 
+    * @return a DynamicObject.
+    */
+   virtual DynamicObject first() const;
+   
+   /**
     * Clones this DynamicObject and returns it.
     * 
     * @return a clone of this DynamicObject.

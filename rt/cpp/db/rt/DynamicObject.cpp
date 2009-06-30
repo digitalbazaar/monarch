@@ -150,6 +150,20 @@ DynamicObjectIterator DynamicObject::getIterator() const
    return DynamicObjectIterator(i);
 }
 
+DynamicObject DynamicObject::first() const
+{
+   DynamicObject rval(NULL);
+   
+   // return first result of iterator
+   DynamicObjectIterator i = getIterator();
+   if(i->hasNext())
+   {
+      rval = i->next();
+   }
+   
+   return rval;
+}
+
 DynamicObject DynamicObject::clone()
 {
    DynamicObject rval;

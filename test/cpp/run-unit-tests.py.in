@@ -108,6 +108,7 @@ runTest("test-config")
 runTest("test-configmanager")
 runTest("test-logging")
 runTest("test-validation")
+runTest("test-upnp")
 
 # Only run these unit(test if mysql was enabled
 if("@BUILD_MYSQL@" == "yes"):
