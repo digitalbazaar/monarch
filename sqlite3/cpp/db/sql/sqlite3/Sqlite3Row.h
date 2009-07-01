@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_sql_sqlite3_Sqlite3Row_h
 #define db_sql_sqlite3_Sqlite3Row_h
@@ -33,23 +33,6 @@ protected:
     */
    int mColumnCount;
    
-   /**
-    * Gets the C handle for the Sqlite3Statement.
-    * 
-    * @return the C handle for the Sqlite3Statement.
-    */
-   virtual sqlite3_stmt* getStatementHandle();
-   
-   /**
-    * Gets the column index for the given column name.
-    * 
-    * @param name the name of the column.
-    * 
-    * @return the column index for the given column name of -1 if the name
-    *         is invalid and an exception has been set.
-    */
-   int getColumnIndex(const char* name);
-   
 public:
    /**
     * Creates a new Sqlite3Row from the given Sqlite3Statement.
@@ -81,7 +64,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getInt32(unsigned int column, int& i);
+   virtual bool getInt32(unsigned int column, int32_t& i);
    
    /**
     * Gets a 32-bit unsigned integer from a column.
@@ -91,7 +74,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getUInt32(unsigned int column, unsigned int& i);
+   virtual bool getUInt32(unsigned int column, uint32_t& i);
    
    /**
     * Gets a 64-bit integer from a column.
@@ -101,7 +84,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getInt64(unsigned int column, long long& i);
+   virtual bool getInt64(unsigned int column, int64_t& i);
    
    /**
     * Gets a 64-bit unsigned integer from a column.
@@ -111,7 +94,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getUInt64(unsigned int column, unsigned long long& i);
+   virtual bool getUInt64(unsigned int column, uint64_t& i);
    
    /**
     * Gets a text string from a column.
@@ -141,7 +124,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getInt32(const char* column, int& i);
+   virtual bool getInt32(const char* column, int32_t& i);
    
    /**
     * Gets a 32-bit unsigned integer from a column.
@@ -151,7 +134,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getUInt32(const char* column, unsigned int& i);
+   virtual bool getUInt32(const char* column, uint32_t& i);
    
    /**
     * Gets a 64-bit integer from a column.
@@ -161,7 +144,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getInt64(const char* column, long long& i);
+   virtual bool getInt64(const char* column, int64_t& i);
    
    /**
     * Gets a 64-bit unsigned integer from a column.
@@ -171,7 +154,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getUInt64(const char* column, unsigned long long& i);
+   virtual bool getUInt64(const char* column, uint64_t& i);
    
    /**
     * Gets a text string from a column.
@@ -182,6 +165,17 @@ public:
     * @return true if successful, false if an SqlException occurred.
     */
    virtual bool getText(const char* column, std::string& str);
+   
+protected:
+   /**
+    * Gets the column index for the given column name.
+    * 
+    * @param name the name of the column.
+    * 
+    * @return the column index for the given column name of -1 if the name
+    *         is invalid and an exception has been set.
+    */
+   virtual int getColumnIndex(const char* name);
 };
 
 } // end namespace sqlite3

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_sql_Statement_H
 #define db_sql_Statement_H
@@ -66,7 +66,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool setInt32(unsigned int param, int value) = 0;
+   virtual bool setInt32(unsigned int param, int32_t value) = 0;
    
    /**
     * Sets the value of a 32-bit unsigned integer for a positional parameter.
@@ -76,7 +76,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool setUInt32(unsigned int param, unsigned int value) = 0;
+   virtual bool setUInt32(unsigned int param, uint32_t value) = 0;
    
    /**
     * Sets the value of a 64-bit integer for a positional parameter.
@@ -86,7 +86,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool setInt64(unsigned int param, long long value) = 0;
+   virtual bool setInt64(unsigned int param, int64_t value) = 0;
    
    /**
     * Sets the value of a 64-bit unsigned integer for a positional parameter.
@@ -96,8 +96,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool setUInt64(
-      unsigned int param, unsigned long long value) = 0;
+   virtual bool setUInt64(unsigned int param, uint64_t value) = 0;
    
    /**
     * Sets the value of a text string for a positional parameter.
@@ -107,8 +106,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool setText(
-      unsigned int param, const char* value) = 0;
+   virtual bool setText(unsigned int param, const char* value) = 0;
    
    /**
     * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
@@ -118,7 +116,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool setInt32(const char* name, int value) = 0;
+   virtual bool setInt32(const char* name, int32_t value) = 0;
    
    /**
     * Sets the value of a 32-bit unsigned integer for a named parameter
@@ -129,7 +127,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool setUInt32(const char* name, unsigned int value) = 0;
+   virtual bool setUInt32(const char* name, uint32_t value) = 0;
    
    /**
     * Sets the value of a 64-bit integer for a named parameter (:mynamehere).
@@ -139,7 +137,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool setInt64(const char* name, long long value) = 0;
+   virtual bool setInt64(const char* name, int64_t value) = 0;
    
    /**
     * Sets the value of a 64-bit unsigned integer for a named parameter
@@ -150,8 +148,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool setUInt64(
-      const char* name, unsigned long long value) = 0;
+   virtual bool setUInt64(const char* name, uint64_t value) = 0;
    
    /**
     * Sets the value of a text string for a named parameter (:mynamehere).
@@ -193,7 +190,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getRowsChanged(unsigned long long& rows) = 0;
+   virtual bool getRowsChanged(uint64_t& rows) = 0;
    
    /**
     * Gets the ID of the last row that was inserted. This is done per
@@ -201,7 +198,7 @@ public:
     * 
     * @return the ID of the last row that was inserted.
     */
-   virtual unsigned long long getLastInsertRowId() = 0;
+   virtual uint64_t getLastInsertRowId() = 0;
 };
 
 // type definition for a reference counted Statement

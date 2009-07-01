@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/sql/mysql/MySqlConnection.h"
+
 #include "db/sql/mysql/MySqlStatement.h"
 
 #include <mysql/errmsg.h>
@@ -24,19 +25,9 @@ MySqlConnection::~MySqlConnection()
    MySqlConnection::close();
 }
 
-Statement* MySqlConnection::createStatement(const char* sql)
+inline ::MYSQL* MySqlConnection::getHandle()
 {
-   // create statement
-   Exception::clearLast();
-   Statement* rval = new MySqlStatement(this, sql);
-   if(Exception::hasLast())
-   {
-      // delete statement if exception was thrown while creating statement
-      delete rval;
-      rval = NULL;
-   }
-   
-   return rval;
+   return mHandle;
 }
 
 bool MySqlConnection::connect(Url* url)
@@ -178,6 +169,21 @@ bool MySqlConnection::query(const char* sql)
       ExceptionRef cause = new MySqlException(this);
       e->setCause(cause);
       Exception::setLast(e, false);
+   }
+   
+   return rval;
+}
+
+Statement* MySqlConnection::createStatement(const char* sql)
+{
+   // create statement
+   Exception::clearLast();
+   Statement* rval = new MySqlStatement(this, sql);
+   if(Exception::hasLast())
+   {
+      // delete statement if exception was thrown while creating statement
+      delete rval;
+      rval = NULL;
    }
    
    return rval;

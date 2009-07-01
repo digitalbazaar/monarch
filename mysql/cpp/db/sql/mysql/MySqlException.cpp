@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/sql/mysql/MySqlException.h"
+
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlStatement.h"
 
@@ -13,16 +14,16 @@ using namespace db::sql::mysql;
 MySqlException::MySqlException(MySqlConnection* c) :
    SqlException("", "db.sql.mysql.MySql")
 {
-   setCode(mysql_errno(c->mHandle));
-   setMessage(mysql_error(c->mHandle));
-   setSqlState(mysql_sqlstate(c->mHandle));
+   setCode(mysql_errno(c->getHandle()));
+   setMessage(mysql_error(c->getHandle()));
+   setSqlState(mysql_sqlstate(c->getHandle()));
 }
 
 MySqlException::MySqlException(MySqlStatement* s)
 {
-   setCode(mysql_stmt_errno(s->mHandle));
-   setMessage(mysql_stmt_error(s->mHandle));
-   setSqlState(mysql_stmt_sqlstate(s->mHandle));
+   setCode(mysql_stmt_errno(s->getHandle()));
+   setMessage(mysql_stmt_error(s->getHandle()));
+   setSqlState(mysql_stmt_sqlstate(s->getHandle()));
 }
 
 MySqlException::~MySqlException()

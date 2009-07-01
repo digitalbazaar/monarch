@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_sql_mysql_MySqlConnection_H
 #define db_sql_mysql_MySqlConnection_H
@@ -32,22 +32,6 @@ protected:
     */
    ::MYSQL* mHandle;
    
-   /**
-    * These classes are friends so they can access the C handle to
-    * the database.
-    */
-   friend class MySqlStatement;
-   friend class MySqlException;
-   
-   /**
-    * Creates a prepared Statement.
-    * 
-    * @param sql the standard query language text of the Statement.
-    * 
-    * @return the new Statement, NULL if an exception occurred.
-    */
-   virtual Statement* createStatement(const char* sql);
-   
 public:
    /**
     * Creates a new Connection.
@@ -58,6 +42,13 @@ public:
     * Destructs this Connection.
     */
    virtual ~MySqlConnection();
+   
+   /**
+    * Gets the mysql connection handle.
+    * 
+    * @return the mysql connection handle.
+    */
+   virtual ::MYSQL* getHandle();
    
    /**
     * Connects to the specified host using the specified default database. No
@@ -122,6 +113,16 @@ public:
     * @return true if successful, false if an SqlException occurred.
     */
    virtual bool query(const char* sql);
+   
+protected:
+   /**
+    * Creates a prepared Statement.
+    * 
+    * @param sql the standard query language text of the Statement.
+    * 
+    * @return the new Statement, NULL if an exception occurred.
+    */
+   virtual Statement* createStatement(const char* sql);
 };
 
 } // end namespace mysql

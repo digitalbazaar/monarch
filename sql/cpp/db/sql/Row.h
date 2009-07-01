@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_sql_Row_h
 #define db_sql_Row_h
@@ -61,7 +61,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getInt32(unsigned int column, int& i) = 0;
+   virtual bool getInt32(unsigned int column, int32_t& i) = 0;
    
    /**
     * Gets a 32-bit unsigned integer from a column.
@@ -71,7 +71,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getUInt32(unsigned int column, unsigned int& i) = 0;
+   virtual bool getUInt32(unsigned int column, uint32_t& i) = 0;
    
    /**
     * Gets a 64-bit integer from a column.
@@ -81,7 +81,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getInt64(unsigned int column, long long& i) = 0;
+   virtual bool getInt64(unsigned int column, int64_t& i) = 0;
    
    /**
     * Gets a 64-bit unsigned integer from a column.
@@ -91,8 +91,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getUInt64(
-      unsigned int column, unsigned long long& i) = 0;
+   virtual bool getUInt64(unsigned int column, uint64_t& i) = 0;
    
    /**
     * Gets a text string from a column.
@@ -122,7 +121,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getInt32(const char* column, int& i) = 0;
+   virtual bool getInt32(const char* column, int32_t& i) = 0;
    
    /**
     * Gets a 32-bit unsigned integer from a column.
@@ -132,7 +131,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getUInt32(const char* column, unsigned int& i) = 0;
+   virtual bool getUInt32(const char* column, uint32_t& i) = 0;
 
    /**
     * Gets a 64-bit integer from a column.
@@ -142,7 +141,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getInt64(const char* column, long long& i) = 0;
+   virtual bool getInt64(const char* column, int64_t& i) = 0;
    
    /**
     * Gets a 64-bit unsigned integer from a column.
@@ -152,8 +151,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool getUInt64(
-      const char* column, unsigned long long& i) = 0;
+   virtual bool getUInt64(const char* column, uint64_t& i) = 0;
    
    /**
     * Gets a text string from a column.

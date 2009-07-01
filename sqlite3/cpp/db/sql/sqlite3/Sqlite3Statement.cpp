@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/sql/sqlite3/Sqlite3Statement.h"
 
@@ -41,24 +41,12 @@ Sqlite3Statement::~Sqlite3Statement()
    sqlite3_finalize(mHandle);
 }
 
-int Sqlite3Statement::getParameterIndex(const char* name)
+inline sqlite3_stmt* Sqlite3Statement::getHandle()
 {
-   int index = sqlite3_bind_parameter_index(mHandle, name);
-   
-   if(index == 0)
-   {
-      // exception, no parameter with given name found
-      int length = strlen(name) + 40;
-      char temp[length];
-      snprintf(temp, length, "Invalid parameter name!,name='%s'", name);
-      ExceptionRef e = new SqlException(temp);
-      Exception::setLast(e, false);
-   }
-   
-   return index;
+   return mHandle;
 }
 
-bool Sqlite3Statement::setInt32(unsigned int param, int value)
+bool Sqlite3Statement::setInt32(unsigned int param, int32_t value)
 {
    bool rval = true;
    
@@ -74,8 +62,7 @@ bool Sqlite3Statement::setInt32(unsigned int param, int value)
    return rval;
 }
 
-bool Sqlite3Statement::setUInt32(
-   unsigned int param, unsigned int value)
+bool Sqlite3Statement::setUInt32(unsigned int param, uint32_t value)
 {
    bool rval = true;
    
@@ -91,8 +78,7 @@ bool Sqlite3Statement::setUInt32(
    return rval;
 }
 
-bool Sqlite3Statement::setInt64(
-   unsigned int param, long long value)
+bool Sqlite3Statement::setInt64(unsigned int param, int64_t value)
 {
    bool rval = true;
    
@@ -108,8 +94,7 @@ bool Sqlite3Statement::setInt64(
    return rval;
 }
 
-bool Sqlite3Statement::setUInt64(
-   unsigned int param, unsigned long long value)
+bool Sqlite3Statement::setUInt64(unsigned int param, uint64_t value)
 {
    bool rval = true;
    
@@ -125,8 +110,7 @@ bool Sqlite3Statement::setUInt64(
    return rval;
 }
 
-bool Sqlite3Statement::setText(
-   unsigned int param, const char* value)
+bool Sqlite3Statement::setText(unsigned int param, const char* value)
 {
    bool rval = true;
    
@@ -143,7 +127,7 @@ bool Sqlite3Statement::setText(
    return rval;
 }
 
-bool Sqlite3Statement::setInt32(const char* name, int value)
+bool Sqlite3Statement::setInt32(const char* name, int32_t value)
 {
    bool rval = true;
    
@@ -156,7 +140,7 @@ bool Sqlite3Statement::setInt32(const char* name, int value)
    return rval;
 }
 
-bool Sqlite3Statement::setUInt32(const char* name, unsigned int value)
+bool Sqlite3Statement::setUInt32(const char* name, uint32_t value)
 {
    bool rval = true;
    
@@ -169,7 +153,7 @@ bool Sqlite3Statement::setUInt32(const char* name, unsigned int value)
    return rval;
 }
 
-bool Sqlite3Statement::setInt64(const char* name, long long value)
+bool Sqlite3Statement::setInt64(const char* name, int64_t value)
 {
    bool rval = true;
    
@@ -182,8 +166,7 @@ bool Sqlite3Statement::setInt64(const char* name, long long value)
    return rval;
 }
 
-bool Sqlite3Statement::setUInt64(
-   const char* name, unsigned long long value)
+bool Sqlite3Statement::setUInt64(const char* name, uint64_t value)
 {
    bool rval = true;
    
@@ -196,8 +179,7 @@ bool Sqlite3Statement::setUInt64(
    return rval;
 }
 
-bool Sqlite3Statement::setText(
-   const char* name, const char* value)
+bool Sqlite3Statement::setText(const char* name, const char* value)
 {
    bool rval = true;
    
@@ -326,15 +308,31 @@ bool Sqlite3Statement::reset()
    return rval;
 }
 
-bool Sqlite3Statement::getRowsChanged(unsigned long long& rows)
+bool Sqlite3Statement::getRowsChanged(uint64_t& rows)
 {
    // FIXME: handle exceptions
    rows = sqlite3_changes(((Sqlite3Connection*)mConnection)->mHandle);
    return true;
 }
 
-unsigned long long Sqlite3Statement::getLastInsertRowId()
+uint64_t Sqlite3Statement::getLastInsertRowId()
 {
-   return sqlite3_last_insert_rowid(
-      ((Sqlite3Connection*)mConnection)->mHandle);
+   return sqlite3_last_insert_rowid(((Sqlite3Connection*)mConnection)->mHandle);
+}
+
+int Sqlite3Statement::getParameterIndex(const char* name)
+{
+   int index = sqlite3_bind_parameter_index(mHandle, name);
+   
+   if(index == 0)
+   {
+      // exception, no parameter with given name found
+      int length = strlen(name) + 40;
+      char temp[length];
+      snprintf(temp, length, "Invalid parameter name!,name='%s'", name);
+      ExceptionRef e = new SqlException(temp);
+      Exception::setLast(e, false);
+   }
+   
+   return index;
 }
