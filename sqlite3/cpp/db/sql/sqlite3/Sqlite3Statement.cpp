@@ -3,7 +3,6 @@
  */
 #include "db/sql/sqlite3/Sqlite3Statement.h"
 
-#include "db/rt/Thread.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 #include "db/sql/sqlite3/Sqlite3Row.h"
 
