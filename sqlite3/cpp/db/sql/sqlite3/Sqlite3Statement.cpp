@@ -209,7 +209,9 @@ bool Sqlite3Statement::execute()
                break;
             default:
             {
-               // error stepping statement (version 1 of api requires reset)
+               // error stepping statement (version 1 of api requires reset
+               // to return actual cause of the problem)
+               mState = sqlite3_reset(mHandle);
                ExceptionRef e =
                   new Sqlite3Exception((Sqlite3Connection*)mConnection);
                Exception::setLast(e, false);
