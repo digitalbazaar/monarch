@@ -272,21 +272,46 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    hc.close();
 }
 
-void HttpConnectionServicer::addRequestServicer(
+bool HttpConnectionServicer::addRequestServicer(
    HttpRequestServicer* s, bool secure)
 {
+   bool rval = false;
+   
+   const char* path = s->getPath();
+   
    mRequestServicerLock.lockExclusive();
    {
       if(secure)
       {
-         mSecureServicers[s->getPath()] = s;
+         ServicerMap::iterator i = mSecureServicers.find(path);
+         if(i == mSecureServicers.end())
+         {
+            mSecureServicers[path] = s;
+            rval = true;
+         }
       }
       else
       {
-         mNonSecureServicers[s->getPath()] = s;
+         ServicerMap::iterator i = mNonSecureServicers.find(path);
+         if(i == mNonSecureServicers.end())
+         {
+            mNonSecureServicers[path] = s;
+            rval = true;
+         }
       }
    }
    mRequestServicerLock.unlockExclusive();
+   
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not add http request servicer. Path already in use.",
+         "db.net.http.DuplicatePath");
+      e->getDetails()["path"] = path;
+      Exception::setLast(e, false);
+   }
+   
+   return rval;
 }
 
 void HttpConnectionServicer::removeRequestServicer(

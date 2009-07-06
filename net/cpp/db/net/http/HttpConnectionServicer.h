@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_http_HttpConnectionServicer_H
 #define db_net_http_HttpConnectionServicer_H
@@ -92,19 +92,21 @@ public:
    virtual void serviceConnection(Connection* c);
    
    /**
-    * Adds an HttpRequestServicer. If a servicer already exists at the new
-    * servicer's path it will be replaced with the new servicer.
+    * Adds an HttpRequestServicer. If a servicer already exists at the given
+    * path, this method will set an exception and return false.
     * 
-    * A servicer may be added as both a secure and non-secure servicer --
-    * by calling this method twice, once with secure = false, and once
-    * with secure = true.
+    * However, w servicer may be added as both a secure and non-secure
+    * servicer -- by calling this method twice, once with secure = false, and
+    * once with secure = true.
     * 
     * @param s the HttpRequestServicer to add.
     * @param secure true if this servicer should service only secure
     *               connections, false if it should service only
     *               non-secure connections.
+    * 
+    * @return true if successful, false if not.
     */
-   virtual void addRequestServicer(HttpRequestServicer* s, bool secure);
+   virtual bool addRequestServicer(HttpRequestServicer* s, bool secure);
    
    /**
     * Removes an HttpRequestServicer.
