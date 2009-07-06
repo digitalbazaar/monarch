@@ -39,15 +39,6 @@ protected:
     */
    uint64_t mIdleTime;
    
-   /**
-    * Creates a prepared Statement.
-    * 
-    * @param sql the standard query language text of the Statement.
-    * 
-    * @return the new Statement, NULL if an exception occurred.
-    */
-   virtual Statement* createStatement(const char* sql);
-   
 public:
    /**
     * Creates a new PooledConnection around the passed Connection.
@@ -85,6 +76,16 @@ public:
     *         0 if connection is active.
     */
    virtual uint64_t getIdleTime();
+   
+   /**
+    * Connects to the database specified by the given url.
+    * 
+    * @param url the url for the database to connect to, including driver
+    *            specific parameters.
+    * 
+    * @return true if successful, false if an SqlException occurred.
+    */
+   virtual bool connect(const char* url);
    
    /**
     * Connects to the database specified by the given url.

@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/sql/PooledConnection.h"
+
 #include "db/sql/AbstractConnectionPool.h"
 
 using namespace db::net;
@@ -29,12 +30,6 @@ inline Connection* PooledConnection::getConnection()
    return mConnection;
 }
 
-inline Statement* PooledConnection::createStatement(const char* sql)
-{
-   // pooled connections don't create their own statements
-   return NULL;
-}
-
 inline void PooledConnection::setIdleTime(uint64_t idleTime)
 {
    mIdleTime = idleTime;
@@ -43,6 +38,11 @@ inline void PooledConnection::setIdleTime(uint64_t idleTime)
 inline uint64_t PooledConnection::getIdleTime()
 {
    return mIdleTime;
+}
+
+inline bool PooledConnection::connect(const char* url)
+{
+   return mConnection->connect(url);
 }
 
 inline bool PooledConnection::connect(Url* url)

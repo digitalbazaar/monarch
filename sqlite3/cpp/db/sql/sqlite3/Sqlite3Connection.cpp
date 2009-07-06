@@ -103,7 +103,7 @@ bool Sqlite3Connection::connect(Url* url)
 
 void Sqlite3Connection::close()
 {
-   Connection::close();
+   AbstractConnection::close();
    
    if(mHandle != NULL)
    {

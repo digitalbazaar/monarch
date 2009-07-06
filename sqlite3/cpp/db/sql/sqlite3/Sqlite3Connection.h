@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_sql_sqlite3_Sqlite3Connection_H
 #define db_sql_sqlite3_Sqlite3Connection_H
 
 #include <sqlite3.h>
 
-#include "db/sql/Connection.h"
+#include "db/sql/AbstractConnection.h"
 #include "db/sql/sqlite3/Sqlite3Exception.h"
 
 namespace db
@@ -25,7 +25,7 @@ class Sqlite3Statement;
  * @author Dave Longley
  * @author David I. Lehn
  */
-class Sqlite3Connection : public db::sql::Connection
+class Sqlite3Connection : public db::sql::AbstractConnection
 {
 protected:
    /**
@@ -71,7 +71,7 @@ public:
     * @return true if successful, false if an SqlException occurred.
     */
    virtual bool connect(db::net::Url* url);
-   using db::sql::Connection::connect;
+   using db::sql::AbstractConnection::connect;
    
    /**
     * Closes this connection.

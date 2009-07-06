@@ -1,62 +1,27 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/sql/Connection.h"
+#include "db/sql/AbstractConnection.h"
 
 #include "db/sql/Statement.h"
+
+#include <cstring>
 
 using namespace std;
 using namespace db::net;
 using namespace db::sql;
 using namespace db::rt;
 
-Connection::Connection() :
+AbstractConnection::AbstractConnection() :
    mUrl(NULL)
 {
 }
 
-Connection::~Connection()
+AbstractConnection::~AbstractConnection()
 {
 }
 
-void Connection::addPreparedStatement(Statement* stmt)
-{
-   PreparedStmtMap::iterator i = mPreparedStmts.find(stmt->getSql());
-   if(i != mPreparedStmts.end())
-   {
-      // delete old statement
-      Statement* old = i->second;
-      mPreparedStmts.erase(i);
-      delete old;
-   }
-   
-   // insert new statement
-   mPreparedStmts.insert(make_pair(stmt->getSql(), stmt));
-}
-
-Statement* Connection::getPreparedStatement(const char* sql)
-{
-   Statement* rval = NULL;
-   
-   PreparedStmtMap::iterator i = mPreparedStmts.find(sql);
-   if(i != mPreparedStmts.end())
-   {
-      rval = i->second;
-      
-      // reset statement for reuse
-      if(!i->second->reset())
-      {
-         // reset failed, delete old statement
-         mPreparedStmts.erase(i);
-         delete rval;
-         rval = NULL;
-      }
-   }
-   
-   return rval;
-}
-
-bool Connection::connect(const char* url)
+bool AbstractConnection::connect(const char* url)
 {
    bool rval = false;
    
@@ -83,7 +48,7 @@ bool Connection::connect(const char* url)
    return rval;
 }
 
-Statement* Connection::prepare(const char* sql)
+Statement* AbstractConnection::prepare(const char* sql)
 {
    Statement* rval = getPreparedStatement(sql);
    if(rval == NULL)
@@ -100,7 +65,7 @@ Statement* Connection::prepare(const char* sql)
    return rval;
 }
 
-void Connection::close()
+void AbstractConnection::close()
 {
    // clean up url
    mUrl.setNull();
@@ -109,7 +74,7 @@ void Connection::close()
    cleanupPreparedStatements();
 }
 
-bool Connection::begin()
+bool AbstractConnection::begin()
 {
    bool rval = false;
    
@@ -129,7 +94,7 @@ bool Connection::begin()
    return rval;
 }
 
-bool Connection::commit()
+bool AbstractConnection::commit()
 {
    bool rval = false;
    
@@ -149,7 +114,7 @@ bool Connection::commit()
    return rval;
 }
 
-bool Connection::rollback()
+bool AbstractConnection::rollback()
 {
    bool rval = false;
    
@@ -169,7 +134,7 @@ bool Connection::rollback()
    return rval;
 }
 
-void Connection::cleanupPreparedStatements()
+void AbstractConnection::cleanupPreparedStatements()
 {
    // clean up all prepared statements
    for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
@@ -178,4 +143,41 @@ void Connection::cleanupPreparedStatements()
       delete i->second;
    }
    mPreparedStmts.clear();
+}
+
+void AbstractConnection::addPreparedStatement(Statement* stmt)
+{
+   PreparedStmtMap::iterator i = mPreparedStmts.find(stmt->getSql());
+   if(i != mPreparedStmts.end())
+   {
+      // delete old statement
+      Statement* old = i->second;
+      mPreparedStmts.erase(i);
+      delete old;
+   }
+   
+   // insert new statement
+   mPreparedStmts.insert(make_pair(stmt->getSql(), stmt));
+}
+
+Statement* AbstractConnection::getPreparedStatement(const char* sql)
+{
+   Statement* rval = NULL;
+   
+   PreparedStmtMap::iterator i = mPreparedStmts.find(sql);
+   if(i != mPreparedStmts.end())
+   {
+      rval = i->second;
+      
+      // reset statement for reuse
+      if(!i->second->reset())
+      {
+         // reset failed, delete old statement
+         mPreparedStmts.erase(i);
+         delete rval;
+         rval = NULL;
+      }
+   }
+   
+   return rval;
 }

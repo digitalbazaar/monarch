@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_sql_Connection_H
 #define db_sql_Connection_H
@@ -8,8 +8,6 @@
 #include "db/sql/SqlException.h"
 #include "db/rt/Collectable.h"
 #include "db/util/StringTools.h"
-
-#include <cstring>
 
 namespace db
 {
@@ -20,66 +18,24 @@ namespace sql
 class Statement;
 
 /**
- * A Connection is an abstract base class for a connection to a specific
- * type of database. Extending classes will provide appropriate implementation
- * details.
+ * A Connection is an interface for a connection to a specific type of
+ * database. Extending classes will provide appropriate implementation details.
  * 
  * @author Dave Longley
  * @author David I. Lehn
  */
 class Connection
 {
-protected:
-   /**
-    * The database driver parameters in URL form for this connection.
-    */
-   db::net::UrlRef mUrl;
-   
-   /**
-    * A map of sql to prepared statements for this connection using
-    * case-insensitive comparator to compare sql statements.
-    */
-   typedef std::map<const char*, Statement*, db::util::StringCaseComparator>
-      PreparedStmtMap;
-   PreparedStmtMap mPreparedStmts;
-   
-   /**
-    * Adds a heap-allocated statement to the map of prepared statements,
-    * overwriting any existing one. The memory for the statement will be
-    * auto-managed by this Connection.
-    * 
-    * @param stmt the pre-compiled prepared statement.
-    */
-   virtual void addPreparedStatement(Statement* stmt);
-   
-   /**
-    * Retrieves a previously stored prepared statement.
-    * 
-    * @param sql the sql of the statement to retrieve.
-    * 
-    * @return the pre-compiled prepared statement or NULL if not found.
-    */
-   virtual Statement* getPreparedStatement(const char* sql);
-   
-   /**
-    * Creates a prepared Statement.
-    * 
-    * @param sql the standard query language text of the Statement.
-    * 
-    * @return the new Statement, NULL if an exception occurred.
-    */
-   virtual Statement* createStatement(const char* sql) = 0;
-   
 public:
    /**
     * Creates a new Connection.
     */
-   Connection();
+   Connection() {};
    
    /**
     * Destructs this Connection.
     */
-   virtual ~Connection();
+   virtual ~Connection() {};
    
    /**
     * Connects to the database specified by the given url.
@@ -89,7 +45,7 @@ public:
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool connect(const char* url);
+   virtual bool connect(const char* url) = 0;
    
    /**
     * Connects to the database specified by the given url.
@@ -110,33 +66,33 @@ public:
     * 
     * @return the new stored Statement, NULL if an exception occurred.
     */
-   virtual Statement* prepare(const char* sql);
+   virtual Statement* prepare(const char* sql) = 0;
    
    /**
     * Closes this connection.
     */
-   virtual void close();
+   virtual void close() = 0;
    
    /**
     * Begins a new transaction.
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool begin();
+   virtual bool begin() = 0;
    
    /**
     * Commits the current transaction.
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool commit();
+   virtual bool commit() = 0;
    
    /**
     * Rolls back the current transaction.
     * 
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool rollback();
+   virtual bool rollback() = 0;
    
    /**
     * Returns true if this connection is connected, false if not.
@@ -148,7 +104,7 @@ public:
    /**
     * Cleans up this connection's prepared statements.
     */
-   virtual void cleanupPreparedStatements();
+   virtual void cleanupPreparedStatements() = 0;
 };
 
 // type definition for reference counted Connection

@@ -6,7 +6,7 @@
 
 #include <mysql/mysql.h>
 
-#include "db/sql/Connection.h"
+#include "db/sql/AbstractConnection.h"
 #include "db/sql/mysql/MySqlException.h"
 
 namespace db
@@ -24,7 +24,7 @@ class MySqlStatement;
  * 
  * @author Dave Longley
  */
-class MySqlConnection : public db::sql::Connection
+class MySqlConnection : public db::sql::AbstractConnection
 {
 protected:
    /**
@@ -60,7 +60,7 @@ public:
     * @return true if successful, false if an SqlException occurred.
     */
    virtual bool connect(db::net::Url* url);
-   using db::sql::Connection::connect;
+   using db::sql::AbstractConnection::connect;
    
    /**
     * Closes this connection.
