@@ -130,7 +130,7 @@ bool Sqlite3Statement::setText(unsigned int param, const char* value)
 
 bool Sqlite3Statement::setInt32(const char* name, int32_t value)
 {
-   bool rval = true;
+   bool rval = false;
    
    int index = getParameterIndex(name);
    if(index > 0)
@@ -143,7 +143,7 @@ bool Sqlite3Statement::setInt32(const char* name, int32_t value)
 
 bool Sqlite3Statement::setUInt32(const char* name, uint32_t value)
 {
-   bool rval = true;
+   bool rval = false;
    
    int index = getParameterIndex(name);
    if(index > 0)
@@ -156,7 +156,7 @@ bool Sqlite3Statement::setUInt32(const char* name, uint32_t value)
 
 bool Sqlite3Statement::setInt64(const char* name, int64_t value)
 {
-   bool rval = true;
+   bool rval = false;
    
    int index = getParameterIndex(name);
    if(index > 0)
@@ -169,7 +169,7 @@ bool Sqlite3Statement::setInt64(const char* name, int64_t value)
 
 bool Sqlite3Statement::setUInt64(const char* name, uint64_t value)
 {
-   bool rval = true;
+   bool rval = false;
    
    int index = getParameterIndex(name);
    if(index > 0)
@@ -182,7 +182,7 @@ bool Sqlite3Statement::setUInt64(const char* name, uint64_t value)
 
 bool Sqlite3Statement::setText(const char* name, const char* value)
 {
-   bool rval = true;
+   bool rval = false;
    
    int index = getParameterIndex(name);
    if(index > 0)
@@ -324,10 +324,9 @@ uint64_t Sqlite3Statement::getLastInsertRowId()
 int Sqlite3Statement::getParameterIndex(const char* name)
 {
    int index = sqlite3_bind_parameter_index(mHandle, name);
-   
    if(index == 0)
    {
-      // exception, no parameter with given name found
+      // exception, no parameter with given name found (index=0 is invalid)
       ExceptionRef e = new SqlException("Invalid parameter name.");
       e->getDetails()["name"] = name;
       Exception::setLast(e, false);
