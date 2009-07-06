@@ -17,7 +17,7 @@ Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
 {
    // FIXME: switch to sqlite3_prepare_v2 when appropriate
    const char* tail;
-   mState = sqlite3_prepare(c->mHandle, sql, -1, &mHandle, &tail);
+   mState = sqlite3_prepare(c->getHandle(), sql, -1, &mHandle, &tail);
    if(mState != SQLITE_OK)
    {
       // exception
@@ -300,8 +300,7 @@ bool Sqlite3Statement::reset()
    if(mState != SQLITE_OK)
    {
       // driver error
-      ExceptionRef e =
-         new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
       Exception::setLast(e, false);
       rval = false;
    }
@@ -312,13 +311,14 @@ bool Sqlite3Statement::reset()
 bool Sqlite3Statement::getRowsChanged(uint64_t& rows)
 {
    // FIXME: handle exceptions
-   rows = sqlite3_changes(((Sqlite3Connection*)mConnection)->mHandle);
+   rows = sqlite3_changes(((Sqlite3Connection*)mConnection)->getHandle());
    return true;
 }
 
 uint64_t Sqlite3Statement::getLastInsertRowId()
 {
-   return sqlite3_last_insert_rowid(((Sqlite3Connection*)mConnection)->mHandle);
+   return sqlite3_last_insert_rowid(
+      ((Sqlite3Connection*)mConnection)->getHandle());
 }
 
 int Sqlite3Statement::getParameterIndex(const char* name)
@@ -328,10 +328,8 @@ int Sqlite3Statement::getParameterIndex(const char* name)
    if(index == 0)
    {
       // exception, no parameter with given name found
-      int length = strlen(name) + 40;
-      char temp[length];
-      snprintf(temp, length, "Invalid parameter name!,name='%s'", name);
-      ExceptionRef e = new SqlException(temp);
+      ExceptionRef e = new SqlException("Invalid parameter name.");
+      e->getDetails()["name"] = name;
       Exception::setLast(e, false);
    }
    

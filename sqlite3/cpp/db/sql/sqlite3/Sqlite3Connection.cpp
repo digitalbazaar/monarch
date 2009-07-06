@@ -40,6 +40,11 @@ Statement* Sqlite3Connection::createStatement(const char* sql)
    return rval;
 }
 
+inline ::sqlite3* Sqlite3Connection::getHandle()
+{
+   return mHandle;
+}
+
 bool Sqlite3Connection::connect(Url* url)
 {
    bool rval = false;

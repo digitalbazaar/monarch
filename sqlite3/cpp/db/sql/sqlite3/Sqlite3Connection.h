@@ -34,13 +34,6 @@ protected:
    ::sqlite3* mHandle;
    
    /**
-    * These classes are friends so they can access the C handle to
-    * the database.
-    */
-   friend class Sqlite3Statement;
-   friend class Sqlite3Exception;
-   
-   /**
     * Creates a prepared Statement.
     * 
     * @param sql the standard query language text of the Statement.
@@ -59,6 +52,13 @@ public:
     * Destructs this Connection.
     */
    virtual ~Sqlite3Connection();
+   
+   /**
+    * Gets the sqlite3 database connection handle.
+    * 
+    * @return the sqlite3 database connection handle.
+    */
+   virtual ::sqlite3* getHandle();
    
    /**
     * Connects to the database specified by the given url.
