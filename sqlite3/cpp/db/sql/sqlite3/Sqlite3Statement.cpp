@@ -22,6 +22,7 @@ Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
    {
       // exception
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
+      e->getDetails()["sql"] = sql;
       Exception::setLast(e, false);
    }
    

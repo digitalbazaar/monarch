@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/sql/SqlException.h"
 
@@ -14,7 +14,6 @@ SqlException::SqlException(
    const char* message, const char* type, int code) :
    Exception(message, type, code)
 {
-   getDetails()["sqlState"] = "";
 }
 
 SqlException::~SqlException()
