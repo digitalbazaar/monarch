@@ -30,7 +30,9 @@ void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
    {
       db::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST);
       assertNoException();
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -48,7 +50,9 @@ void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
    {
       db::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST2);
       assertNoException();
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -67,7 +71,9 @@ void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
       db::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST " (t TEXT, i INT)");
       assertNoException();
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -86,7 +92,9 @@ void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
       db::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST2 " (t TEXT, i INT)");
       assertNoException();
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -109,7 +117,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       db::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
       assertNoException();
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -128,7 +138,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       db::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('!tset', 4321)");
       assertNoException();
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -149,7 +161,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       assertNoException();
       s->setText(1, "boundpositional");
       s->setInt32(2, 2222);
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -170,7 +184,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       assertNoException();
       s->setText(":first", "boundnamed");
       s->setInt32(":second", 2223);
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -188,8 +204,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST);
       assertNoException();
-      s->execute();
+      int success = s->execute();
       assertNoException();
+      assert(success);
       
       Row* row;
       string t;
@@ -241,7 +258,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       db::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST2 " (t, i) VALUES ('test!', 1234)");
       assertNoException();
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -260,7 +279,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       db::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST2 " (t, i) VALUES ('!tset', 4321)");
       assertNoException();
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -281,7 +302,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       assertNoException();
       s->setText(1, "boundpositional");
       s->setInt32(2, 2222);
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -302,7 +325,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       assertNoException();
       s->setText(":first", "boundnamed");
       s->setInt32(":second", 2223);
-      s->execute();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
    }
    if(tr != NULL)
    {
@@ -320,8 +345,9 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST2);
       assertNoException();
-      s->execute();
+      int success = s->execute();
       assertNoException();
+      assert(success);
       
       Row* row;
       string t;
@@ -404,6 +430,363 @@ void runSqlite3StatementTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runSqlite3TableTest(TestRunner& tr)
+{
+   tr.group("Sqlite3 Table");
+   
+   // clear any exceptions
+   Exception::clearLast();
+   
+   Sqlite3Connection c;
+   c.connect("sqlite3::memory:");
+   
+   // clean up table if it exists
+   tr.test("drop table if exists");
+   {
+      db::sql::Statement* s = c.prepare(
+         "DROP TABLE IF EXISTS " TABLE_TEST);
+      assertNoException();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
+   }
+   tr.passIfNoException();
+
+   // create a fresh table
+   tr.test("create table");
+   {
+      db::sql::Statement* s = c.prepare(
+         "CREATE TABLE " TABLE_TEST " (t TEXT, i INT)");
+      assertNoException();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
+   }
+   tr.passIfNoException();
+   
+   // drop table
+   tr.test("drop table");
+   {
+      db::sql::Statement* s = c.prepare(
+         "DROP TABLE " TABLE_TEST);
+      assertNoException();
+      int success = s->execute();
+      assertNoException();
+      assert(success);
+   }
+   tr.passIfNoException();
+
+   tr.test("connection close");
+   {
+      c.close();
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
+void runSqlite3TableMigrationTest(TestRunner& tr)
+{
+   tr.group("Sqlite3 Table Migration (1)");
+   {
+      // test table migration algorithm
+      // - begin transaction
+      // - alter t1 name to t1_old
+      // - create new t1
+      // - copy t1_old data to t1
+      // - drop t1_old
+      // - commit
+      
+      // clear any exceptions
+      Exception::clearLast();
+      
+      Sqlite3Connection c;
+      c.connect("sqlite3::memory:");
+      
+      tr.test("create test table");
+      {
+         db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("begin");
+      {
+         c.begin();
+      }
+      tr.passIfNoException();
+      
+      tr.test("rename");
+      {
+         db::sql::Statement* s = c.prepare("ALTER TABLE t1 RENAME TO t1_old");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("create new table");
+      {
+         db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("copy data");
+      {
+         db::sql::Statement* s =
+            c.prepare("INSERT INTO t1 SELECT * FROM t1_old");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("drop old table");
+      {
+         db::sql::Statement* s = c.prepare("DROP TABLE t1_old");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+      
+      tr.test("commit");
+      {
+         c.commit();
+      }
+      tr.passIfNoException();
+   
+      tr.test("connection close");
+      {
+         c.close();
+      }
+      tr.passIfNoException();
+   }
+   tr.ungroup();
+
+   tr.group("Sqlite3 Table Migration (2)");
+   {
+      // test table migration algorithm 2
+      // - begin transaction
+      // - create temp table t1_new (new schema)
+      // - copy/migrate t1 data to t1_new
+      // - drop t1
+      // - create table t1 (new schema)
+      // - copy t1_new data to t1
+      // - drop t1_new
+      // - commit
+      
+      // clear any exceptions
+      Exception::clearLast();
+      
+      Sqlite3Connection c;
+      c.connect("sqlite3::memory:");
+      
+      tr.test("create test table");
+      {
+         db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("begin");
+      {
+         c.begin();
+      }
+      tr.passIfNoException();
+      
+      tr.test("create new temp table");
+      {
+         db::sql::Statement* s =
+            c.prepare("CREATE TEMPORARY TABLE t1_new (t TEXT, i INT)");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("copy data");
+      {
+         db::sql::Statement* s =
+            c.prepare("INSERT INTO t1_new SELECT * FROM t1");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("drop old table");
+      {
+         db::sql::Statement* s = c.prepare("DROP TABLE t1");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+      
+      tr.test("create new table");
+      {
+         db::sql::Statement* s =
+            c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("copy data");
+      {
+         db::sql::Statement* s =
+            c.prepare("INSERT INTO t1 SELECT * FROM t1_new");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("drop temp table");
+      {
+         db::sql::Statement* s = c.prepare("DROP TABLE t1_new");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+      
+      tr.test("commit");
+      {
+         c.commit();
+      }
+      tr.passIfNoException();
+   
+      tr.test("connection close");
+      {
+         c.close();
+      }
+      tr.passIfNoException();
+   }
+   tr.ungroup();
+   
+   tr.group("Sqlite3 Table Migration (3)");
+   {
+      // test table migration algorithm 3
+      // - begin transaction
+      // - create temp table t1_old with old data
+      // - drop t1
+      // - create table t1 with new schema
+      // - copy/migrate t1_old data to t1
+      // - drop t1_old
+      // - commit
+      
+      // clear any exceptions
+      Exception::clearLast();
+      
+      Sqlite3Connection c;
+      c.connect("sqlite3::memory:");
+      
+      tr.test("create test table");
+      {
+         db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("begin");
+      {
+         c.begin();
+      }
+      tr.passIfNoException();
+      
+      tr.test("create new temp table");
+      {
+         db::sql::Statement* s =
+            c.prepare("CREATE TEMPORARY TABLE t1_old AS SELECT * FROM t1");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("drop old table");
+      {
+         db::sql::Statement* s = c.prepare("DROP TABLE t1");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+      
+      tr.test("create new table");
+      {
+         db::sql::Statement* s =
+            c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("copy data");
+      {
+         db::sql::Statement* s =
+            c.prepare("INSERT INTO t1 SELECT * FROM t1_old");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+   
+      tr.test("drop temp table");
+      {
+         db::sql::Statement* s = c.prepare("DROP TABLE t1_old");
+         assertNoException();
+         int success = s->execute();
+         assertNoException();
+         assert(success);
+      }
+      tr.passIfNoException();
+      
+      tr.test("commit");
+      {
+         c.commit();
+      }
+      tr.passIfNoException();
+   
+      tr.test("connection close");
+      {
+         c.close();
+      }
+      tr.passIfNoException();
+   }
+   tr.ungroup();
+}
+
 class Sqlite3ThreadTest : public Runnable
 {
 public:
@@ -466,8 +849,9 @@ void runSqlite3ReuseTest(TestRunner& tr)
       db::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST " (t TEXT, i INT)");
       assertNoException();
-      s->execute();
+      int success = s->execute();
       assertNoException();
+      assert(success);
       c->close();
    }
    tr.passIfNoException();
@@ -480,8 +864,9 @@ void runSqlite3ReuseTest(TestRunner& tr)
       db::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
       assertNoException();
-      s->execute();
+      int success = s->execute();
       assertNoException();
+      assert(success);
       c->close();
    }
    tr.passIfNoException();
@@ -495,8 +880,9 @@ void runSqlite3ReuseTest(TestRunner& tr)
          "SELECT * FROM " TABLE_TEST " WHERE i=:i LIMIT 1");
       assertNoException();
       s->setInt32(":i", 1234);
-      s->execute();
+      int success = s->execute();
       assertNoException();
+      assert(success);
       
       Row* row = s->fetch();
       assert(row != NULL);
@@ -524,8 +910,9 @@ void runSqlite3ReuseTest(TestRunner& tr)
          "SELECT * FROM " TABLE_TEST " WHERE i=:i LIMIT 1");
       assertNoException();
       s->setInt32(":i", 1234);
-      s->execute();
+      int success = s->execute();
       assertNoException();
+      assert(success);
       
       Row* row = s->fetch();
       assert(row != NULL);
@@ -637,6 +1024,8 @@ public:
    {
       runSqlite3ConnectionTest(tr);
       runSqlite3StatementTest(tr);
+      runSqlite3TableTest(tr);
+      runSqlite3TableMigrationTest(tr);
       runSqlite3ThreadTest(tr);
       runSqlite3ReuseTest(tr);
       return 0;
