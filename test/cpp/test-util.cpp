@@ -11,6 +11,7 @@
 #include "db/util/Crc16.h"
 #include "db/util/Date.h"
 #include "db/util/PathFormatter.h"
+#include "db/util/Random.h"
 #include "db/util/StringTools.h"
 #include "db/util/StringTokenizer.h"
 #include "db/util/UniqueList.h"
@@ -617,6 +618,19 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runRandomTest(TestRunner& tr)
+{
+   tr.test("Random");
+   {
+      Random::seed();
+      for(int i = 0; i < 10000; i++)
+      {
+         printf("%llu\n", Random::next(1, 1000000000));
+      }
+   }
+   tr.passIfNoException();
+}
+
 class DbUtilTester : public db::test::Tester
 {
 public:
@@ -647,6 +661,7 @@ public:
    {
       runDateTest(tr);
       runAnsiEscapeCodeTest(tr);
+      //runRandomTest(tr);
       return 0;
    }
 };
