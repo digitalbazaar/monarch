@@ -14,9 +14,8 @@ using namespace db::rt;
 Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
    Statement(c, sql)
 {
-   // FIXME: switch to sqlite3_prepare_v2 when appropriate
    const char* tail;
-   mState = sqlite3_prepare(c->getHandle(), sql, -1, &mHandle, &tail);
+   mState = sqlite3_prepare_v2(c->getHandle(), sql, -1, &mHandle, &tail);
    if(mState != SQLITE_OK)
    {
       // exception
@@ -209,9 +208,7 @@ bool Sqlite3Statement::execute()
                break;
             default:
             {
-               // error stepping statement (version 1 of api requires reset
-               // to return actual cause of the problem)
-               mState = sqlite3_reset(mHandle);
+               // error stepping statement
                ExceptionRef e =
                   new Sqlite3Exception((Sqlite3Connection*)mConnection);
                Exception::setLast(e, false);
@@ -267,7 +264,7 @@ Row* Sqlite3Statement::fetch()
             break;
          default:
          {
-            // error stepping statement (version 1 of api requires reset)
+            // error stepping statement
             ExceptionRef e =
                new Sqlite3Exception((Sqlite3Connection*)mConnection);
             Exception::setLast(e, false);
