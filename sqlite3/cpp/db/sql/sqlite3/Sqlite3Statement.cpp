@@ -208,7 +208,9 @@ bool Sqlite3Statement::execute()
                break;
             default:
             {
-               // error stepping statement
+               // error stepping statement, reset sqlite3 handle because it
+               // will cause a more specific error to be set
+               mState = sqlite3_reset(mHandle);
                ExceptionRef e =
                   new Sqlite3Exception((Sqlite3Connection*)mConnection);
                Exception::setLast(e, false);
