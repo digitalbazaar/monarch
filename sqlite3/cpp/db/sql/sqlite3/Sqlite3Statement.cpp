@@ -209,7 +209,9 @@ bool Sqlite3Statement::execute()
             default:
             {
                // error stepping statement, reset sqlite3 handle because it
-               // will cause a more specific error to be set
+               // will cause a more specific error to be set... doesn't
+               // matter whether we use sqlite API v1 or v2, we still need
+               // this here to get specific error message
                mState = sqlite3_reset(mHandle);
                ExceptionRef e =
                   new Sqlite3Exception((Sqlite3Connection*)mConnection);
