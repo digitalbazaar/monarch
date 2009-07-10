@@ -79,11 +79,8 @@ bool AbstractConnection::begin()
    bool rval = false;
    
    Statement* s = prepare("BEGIN");
-   if(s != NULL)
-   {
-      rval = s->execute();
-   }
-   else
+   rval = (s != NULL) && s->execute() && s->reset();
+   if(!rval)
    {
       ExceptionRef e = new Exception(
          "Could not begin transaction.",
@@ -99,11 +96,8 @@ bool AbstractConnection::commit()
    bool rval = false;
    
    Statement* s = prepare("COMMIT");
-   if(s != NULL)
-   {
-      rval = s->execute();
-   }
-   else
+   rval = (s != NULL) && s->execute() && s->reset();
+   if(!rval)
    {
       ExceptionRef e = new Exception(
          "Could not commit transaction.",
@@ -118,16 +112,22 @@ bool AbstractConnection::rollback()
 {
    bool rval = false;
    
+   // save the reason for the rollback
+   ExceptionRef reason = Exception::getLast();
+   
+   // attempt to do the rollback
    Statement* s = prepare("ROLLBACK");
-   if(s != NULL)
-   {
-      rval = s->execute();
-   }
-   else
+   rval = (s != NULL) && s->execute() && s->reset();
+   if(!rval)
    {
       ExceptionRef e = new Exception(
          "Could not rollback transaction.",
          "db.sql.Connection.TransactionRollbackError");
+      if(!reason.isNull())
+      {
+         e->getDetails()["rollbackReason"] =
+            Exception::convertToDynamicObject(reason);
+      }
       Exception::setLast(e, true);
    }
    
