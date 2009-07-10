@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/util/Date.h"
 
@@ -124,6 +124,20 @@ void Date::setSeconds(time_t seconds)
 time_t Date::getSeconds()
 {
    return mSecondsSinceEpoch;
+}
+
+string Date::getDateTime(TimeZone* tz)
+{
+   // %F = YYYY-MM-DD
+   // %T = HH:MM:SS
+   string rval;
+   return format(rval, "%F %T", tz);
+}
+
+string Date::getUtcDateTime()
+{
+   TimeZone tz = TimeZone::getTimeZone("UTC");
+   return getDateTime(&tz);
 }
 
 string& Date::format(string& str, const char* format, TimeZone* tz)

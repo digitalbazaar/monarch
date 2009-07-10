@@ -28,7 +28,7 @@ TimeZone TimeZone::getTimeZone(const char* tz)
 {
    TimeZone rval;
    
-   if(strcmp(tz, "GMT") == 0)
+   if(strcmp(tz, "GMT") == 0 || strcmp(tz, "UTC") == 0)
    {
       rval.mMinutesWest = 0;
    }

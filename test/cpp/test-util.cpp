@@ -322,42 +322,62 @@ void runRegexTest(TestRunner& tr)
 
 void runDateTest(TestRunner& tr)
 {
-   tr.test("Date");
+   tr.group("Date");
    
    TimeZone gmt = TimeZone::getTimeZone("GMT");
    TimeZone local = TimeZone::getTimeZone();
    
-   Date d;
-   string str;
-   //d.format(str);
-   //d.format(str, "%a, %d %b %Y %H:%M:%S");
-   d.format(str, "%a, %d %b %Y %H:%M:%S", &gmt);
-   //d.format(str, "%a, %d %b %Y %H:%M:%S", &local);
-   
-   printf("Current Date: %s\n", str.c_str());
-   
-   // parse date
-   Date d2;
-   d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
-   //d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &local);
-   string str2;
-   d2.format(str2, "%a, %d %b %Y %H:%M:%S", &gmt);
-   //d2.format(str2, "%a, %d %b %Y %H:%M:%S", &local);
-   
-   printf("Parsed Date 1: %s\n", str2.c_str());
-   
-//   // FIXME: parser may have a problem with AM/PM
-   // parse date again
-   Date d3;
-   str = "Thu, 02 Aug 2007 10:30:00";
-   d3.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
-   string str3;
-   //d3.format(str3, "%a, %d %b %Y %H:%M:%S", &gmt);
-   d3.format(str3, "%a, %d %b %Y %H:%M:%S", &local);
-   
-   printf("Parsed Date 2: %s\n", str3.c_str());
-   
+   tr.test("format and parse");
+   {
+      Date d;
+      string str;
+      //d.format(str);
+      //d.format(str, "%a, %d %b %Y %H:%M:%S");
+      d.format(str, "%a, %d %b %Y %H:%M:%S", &gmt);
+      //d.format(str, "%a, %d %b %Y %H:%M:%S", &local);
+      //printf("Current Date: %s\n", str.c_str());
+      assertNoException();
+      
+      // parse date
+      Date d2;
+      d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
+      //d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &local);
+      assertNoException();
+      string str2;
+      d2.format(str2, "%a, %d %b %Y %H:%M:%S", &gmt);
+      //d2.format(str2, "%a, %d %b %Y %H:%M:%S", &local);
+      assertNoException();
+      
+      //printf("Parsed Date 1: %s\n", str2.c_str());
+      
+      // FIXME: parser may have a problem with AM/PM
+      // parse date again
+      Date d3;
+      str = "Thu, 02 Aug 2007 10:30:00";
+      d3.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
+      assertNoException();
+      string str3;
+      //d3.format(str3, "%a, %d %b %Y %H:%M:%S", &gmt);
+      d3.format(str3, "%a, %d %b %Y %H:%M:%S", &local);
+      assertNoException();
+      
+      //printf("Parsed Date 2: %s\n", str3.c_str());
+   }
    tr.passIfNoException();
+   
+   tr.test("utc datetime");
+   {
+      Date d;
+      string str;
+      d.parse("Thu, 02 Aug 2007 10:30:00", "%a, %d %b %Y %H:%M:%S", &gmt);
+      assertNoException();
+      
+      string utc = d.getUtcDateTime();
+      assertStrCmp(utc.c_str(), "2007-08-02 10:30:00");
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
 }
 
 void runStringTokenizerTest(TestRunner& tr)
@@ -650,6 +670,7 @@ public:
       runStringTokenizerTest(tr);
       runUniqueListTest(tr);
       runRegexTest(tr);
+      runDateTest(tr);
       runPathFormatterTest(tr);
       return 0;
    }
@@ -659,7 +680,6 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      runDateTest(tr);
       runAnsiEscapeCodeTest(tr);
       //runRandomTest(tr);
       return 0;

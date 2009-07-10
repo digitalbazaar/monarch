@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_util_Date_H
 #define db_util_Date_H
@@ -128,6 +128,26 @@ public:
     * @return the number of seconds since the Epoch.
     */
    virtual time_t getSeconds();
+   
+   /**
+    * Gets this date as a standard datetime, namely, as a string in the format:
+    * 
+    * YYYY-MM-DD HH:MM:SS
+    * 
+    * @param tz the TimeZone to get the Date in (NULL for local time).
+    * 
+    * @return the datetime string.
+    */
+   virtual std::string getDateTime(TimeZone* tz = NULL);
+   
+   /**
+    * Gets this date as a standard datetime, namely, as a string in the format:
+    * 
+    * YYYY-MM-DD HH:MM:SS
+    * 
+    * @return the datetime string using the UTC time zone.
+    */
+   virtual std::string getUtcDateTime();
    
    /**
     * Writes this Date to a string according to the passed format.
