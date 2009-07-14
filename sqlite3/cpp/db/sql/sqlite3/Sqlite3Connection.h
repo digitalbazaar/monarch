@@ -33,15 +33,6 @@ protected:
     */
    ::sqlite3* mHandle;
    
-   /**
-    * Creates a prepared Statement.
-    * 
-    * @param sql the standard query language text of the Statement.
-    * 
-    * @return the new Statement, NULL if an exception occurred.
-    */
-   virtual Statement* createStatement(const char* sql);
-   
 public:
    /**
     * Creates a new Connection.
@@ -91,6 +82,16 @@ public:
     * @return true if this connection is connected, false if not.
     */
    virtual bool isConnected();
+   
+protected:
+   /**
+    * Creates a prepared Statement.
+    * 
+    * @param sql the standard query language text of the Statement.
+    * 
+    * @return the new Statement, NULL if an exception occurred.
+    */
+   virtual Statement* createStatement(const char* sql);
 };
 
 } // end namespace sqlite3

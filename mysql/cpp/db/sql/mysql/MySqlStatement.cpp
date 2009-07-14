@@ -12,44 +12,16 @@ using namespace db::sql::mysql;
 using namespace db::rt;
 
 MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
-   Statement(c, sql)
+   Statement(c, sql),
+   mHandle(NULL),
+   mResult(NULL),
+   mParamCount(0),
+   mParamBindings(NULL),
+   mExecuted(false),
+   mFieldCount(0),
+   mResultBindings(NULL),
+   mRow(NULL)
 {
-   // clear object
-   mFieldCount = 0;
-   mResultBindings = NULL;
-   mResult = NULL;
-   mRow = NULL;
-   mParamBindings = NULL;
-   mExecuted = false;
-   
-   // initialize handle
-   mHandle = mysql_stmt_init(c->getHandle());
-   if(mHandle == NULL)
-   {
-      // connection exception
-      ExceptionRef e = new MySqlException((MySqlConnection*)mConnection);
-      Exception::setLast(e, false);
-   }
-   else
-   {
-      // prepare statement
-      if(mysql_stmt_prepare(mHandle, sql, strlen(sql)) != 0)
-      {
-         // statement exception
-         ExceptionRef e = new MySqlException(this);
-         Exception::setLast(e, false);
-      }
-      else
-      {
-         // determine number of parameters, initialize bindings
-         mParamCount = mysql_stmt_param_count(mHandle);
-         if(mParamCount > 0)
-         {
-            mParamBindings = new MYSQL_BIND[mParamCount];
-            memset(mParamBindings, 0, sizeof(mParamBindings));
-         }
-      }
-   }
 }
 
 MySqlStatement::~MySqlStatement()
@@ -100,13 +72,56 @@ MySqlStatement::~MySqlStatement()
       delete mRow;
    }
    
-   // clean up C statement
-   mysql_stmt_close(mHandle);
+   if(mHandle != NULL)
+   {
+      // clean up statement handle
+      mysql_stmt_close(mHandle);
+   }
 }
 
 inline MYSQL_STMT* MySqlStatement::getHandle()
 {
    return mHandle;
+}
+
+bool MySqlStatement::initialize()
+{
+   bool rval = true;
+   
+   MySqlConnection* c = (MySqlConnection*)mConnection;
+   
+   // initialize handle
+   mHandle = mysql_stmt_init(c->getHandle());
+   if(mHandle == NULL)
+   {
+      // connection exception
+      ExceptionRef e = new MySqlException(c);
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   else
+   {
+      // prepare statement
+      if(mysql_stmt_prepare(mHandle, mSql, strlen(mSql)) != 0)
+      {
+         // statement exception
+         ExceptionRef e = new MySqlException(this);
+         Exception::setLast(e, false);
+         rval = false;
+      }
+      else
+      {
+         // determine number of parameters, initialize bindings
+         mParamCount = mysql_stmt_param_count(mHandle);
+         if(mParamCount > 0)
+         {
+            mParamBindings = new MYSQL_BIND[mParamCount];
+            memset(mParamBindings, 0, sizeof(mParamBindings));
+         }
+      }
+   }
+   
+   return rval;
 }
 
 bool MySqlStatement::setInt32(unsigned int param, int32_t value)

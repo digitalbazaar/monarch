@@ -25,21 +25,6 @@ Sqlite3Connection::~Sqlite3Connection()
    Sqlite3Connection::close();
 }
 
-Statement* Sqlite3Connection::createStatement(const char* sql)
-{
-   // create statement
-   Exception::clearLast();
-   Statement* rval = new Sqlite3Statement(this, sql);
-   if(Exception::hasLast())
-   {
-      // delete statement if exception was thrown while creating statement
-      delete rval;
-      rval = NULL;
-   }
-   
-   return rval;
-}
-
 inline ::sqlite3* Sqlite3Connection::getHandle()
 {
    return mHandle;
@@ -154,4 +139,18 @@ bool Sqlite3Connection::rollback()
 inline bool Sqlite3Connection::isConnected()
 {
    return mHandle != NULL;
+}
+
+Statement* Sqlite3Connection::createStatement(const char* sql)
+{
+   // create statement
+   Sqlite3Statement* rval = new Sqlite3Statement(this, sql);
+   if(!rval->initialize())
+   {
+      // delete statement if it could not be initialized
+      delete rval;
+      rval = NULL;
+   }
+   
+   return rval;
 }

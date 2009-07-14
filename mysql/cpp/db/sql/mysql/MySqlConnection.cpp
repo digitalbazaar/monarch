@@ -36,13 +36,11 @@ bool MySqlConnection::connect(Url* url)
    
    if(strcmp(url->getScheme().c_str(), "mysql") != 0)
    {
-      string urlStr = url->toString();
-      int length = 120 + urlStr.length();
-      char msg[length];
-      snprintf(msg, length,
-         "Could not connect to mysql database, "
-         "url scheme doesn't start with 'mysql', url='%s'", urlStr.c_str());
-      ExceptionRef e = new SqlException(msg, "db.sql.BadUrlScheme");
+      ExceptionRef e = new Exception(
+         "Could not connect to mysql database. "
+         "Url scheme doesn't start with 'mysql'",
+         "db.sql.BadUrlScheme");
+      e->getDetails()["url"] = url->toString().c_str();
       Exception::setLast(e, false);
    }
    else
@@ -177,11 +175,10 @@ bool MySqlConnection::query(const char* sql)
 Statement* MySqlConnection::createStatement(const char* sql)
 {
    // create statement
-   Exception::clearLast();
-   Statement* rval = new MySqlStatement(this, sql);
-   if(Exception::hasLast())
+   MySqlStatement* rval = new MySqlStatement(this, sql);
+   if(!rval->initialize())
    {
-      // delete statement if exception was thrown while creating statement
+      // delete statement if it could not be initialized
       delete rval;
       rval = NULL;
    }

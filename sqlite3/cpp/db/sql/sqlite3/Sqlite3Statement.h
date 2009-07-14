@@ -62,6 +62,13 @@ public:
    virtual sqlite3_stmt* getHandle();
    
    /**
+    * Initializes this statement for use.
+    * 
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool initialize();
+   
+   /**
     * Sets the value of a 32-bit integer for a positional parameter.
     * 
     * @param param the parameter number (1 being the first param).

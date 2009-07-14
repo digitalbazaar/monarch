@@ -12,20 +12,10 @@ using namespace db::sql::sqlite3;
 using namespace db::rt;
 
 Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
-   Statement(c, sql)
+   Statement(c, sql),
+   mHandle(NULL),
+   mRow(NULL)
 {
-   const char* tail;
-   mState = sqlite3_prepare_v2(c->getHandle(), sql, -1, &mHandle, &tail);
-   if(mState != SQLITE_OK)
-   {
-      // exception
-      ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      e->getDetails()["sql"] = sql;
-      Exception::setLast(e, false);
-   }
-   
-   // no current row yet
-   mRow = NULL;
 }
 
 Sqlite3Statement::~Sqlite3Statement()
@@ -36,13 +26,36 @@ Sqlite3Statement::~Sqlite3Statement()
       delete mRow;
    }
    
-   // clean up handle
-   sqlite3_finalize(mHandle);
+   if(mHandle != NULL)
+   {
+      // clean up handle
+      sqlite3_finalize(mHandle);
+   }
 }
 
 inline sqlite3_stmt* Sqlite3Statement::getHandle()
 {
    return mHandle;
+}
+
+bool Sqlite3Statement::initialize()
+{
+   bool rval = true;
+   
+   Sqlite3Connection* c = (Sqlite3Connection*)mConnection;
+   
+   const char* tail;
+   mState = sqlite3_prepare_v2(c->getHandle(), mSql, -1, &mHandle, &tail);
+   if(mState != SQLITE_OK)
+   {
+      // exception
+      ExceptionRef e = new Sqlite3Exception(c);
+      e->getDetails()["sql"] = mSql;
+      Exception::setLast(e, false);
+      rval = false;
+   }
+   
+   return rval;
 }
 
 bool Sqlite3Statement::setInt32(unsigned int param, int32_t value)
