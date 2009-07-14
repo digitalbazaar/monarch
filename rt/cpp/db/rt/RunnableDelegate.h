@@ -19,6 +19,178 @@ namespace rt
  * 
  * @author Dave Longley
  */
+template<typename RunnableType> class RunnableDelegate;
+
+// special case for RunnableDelegate with no object must be done below
+// using the "void" for RunnableType and inline
+template<> class RunnableDelegate<void> : public Runnable
+{
+   /**
+    * Enum for types of runnable delegate.
+    */
+   enum Type
+   {
+      NoParam,
+      Param,
+      DynoParam
+   };
+   
+   /**
+    * Typedef for the run function.
+    */
+   typedef void (*RunFunction)();
+   
+   /**
+    * Typedef for the run w/param function.
+    */
+   typedef void (*RunWithParamFunction)(void*);
+   
+   /**
+    * Typedef for freeing the parameter.
+    */
+   typedef void (*FreeParamFunction)(void*);
+   
+   /**
+    * Typedef for the run w/dyno function.
+    */
+   typedef void (*RunWithDynoFunction)(DynamicObject&);
+   
+   /**
+    * The type of runnable delegate.
+    */
+   Type mType;
+   
+   /**
+    * The object's run function.
+    */
+   union
+   {
+      RunFunction mFunction;
+      RunWithParamFunction mParamFunction;
+      RunWithDynoFunction mDynoFunction;
+   };
+   
+   /**
+    * The object's free param function.
+    */
+   FreeParamFunction mFreeParamFunction;
+   
+   /**
+    * The parameter to use with the run function.
+    */
+   union
+   {
+      void* mParam;
+      DynamicObject* mDyno;
+   };
+   
+public:
+   /**
+    * Creates a new RunnableDelegate with the specified run function.
+    * 
+    * @param f the object's run function.
+    */
+   RunnableDelegate(RunFunction f)
+   {
+      mType = NoParam;
+      mFunction = f;
+   };
+   
+   /**
+    * Creates a new RunnableDelegate with the run w/param function, and
+    * parameter for the function.
+    * 
+    * @param f the object's run w/param function.
+    * @param param the parameter for the run w/param function.
+    * @param fp the object's function to free the parameter (can be NULL).
+    */
+   RunnableDelegate(
+      RunWithParamFunction f, void* param, FreeParamFunction fp = NULL)
+   {
+      mType = Param;
+      mParamFunction = f;
+      mParam = param;
+      mFreeParamFunction = fp;
+   };
+   
+   /**
+    * Creates a new RunnableDelegate with the run w/dyno function, and
+    * dyno parameter for the function.
+    * 
+    * @param f the object's run w/dyno function.
+    * @param dyno the parameter for the run w/dyno function.
+    */
+   RunnableDelegate(RunWithDynoFunction f, DynamicObject& param)
+   {
+      mType = DynoParam;
+      mDynoFunction = f;
+      mDyno = new DynamicObject(param);
+   };
+   
+   /**
+    * Destructs this RunnableDelegate.
+    */
+   virtual ~RunnableDelegate()
+   {
+      if(mType == Param && mParam != NULL && mFreeParamFunction != NULL)
+      {
+         (*mFreeParamFunction)(mParam);
+      }
+      else if(mType == DynoParam)
+      {
+         delete mDyno;
+      }
+   }
+   
+   /**
+    * Runs the delegated run function.
+    */
+   virtual void run()
+   {
+      switch(mType)
+      {
+         case NoParam:
+            // call run function
+            (*mFunction)();
+            break;
+         case Param:
+            // call run w/param function
+            (*mParamFunction)(mParam);
+            break;
+         case DynoParam:
+            // call run w/dyno function
+            (*mDynoFunction)(*mDyno);
+            break;
+      }
+   }
+   
+   /**
+    * Gets this runnable's param.
+    * 
+    * @return this runnable's param.
+    */
+   virtual void* getParam()
+   {
+      return mParam;
+   }
+   
+   /**
+    * Gets this runnable's dynamic object.
+    * 
+    * @return this runnable's dynamic object.
+    */
+   virtual DynamicObject getDynamicObject()
+   {
+      DynamicObject rval(NULL);
+      if(mDyno != NULL)
+      {
+         rval = *mDyno;
+      }
+      return rval;
+   }
+};
+
+// every other case where RunnableType is not void and an object is used
 template<typename RunnableType>
 class RunnableDelegate : public Runnable
 {

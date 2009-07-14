@@ -7,6 +7,7 @@
 #include "db/test/TestRunner.h"
 #include "db/rt/ExclusiveLock.h"
 #include "db/rt/Runnable.h"
+#include "db/rt/RunnableDelegate.h"
 #include "db/rt/Thread.h"
 #include "db/rt/Semaphore.h"
 #include "db/rt/SharedLock.h"
@@ -1578,6 +1579,159 @@ void runDynoReverseTest(TestRunner& tr)
    tr.ungroup();
 }
 
+class RunnableDelegateClass
+{
+public:
+   int counter;
+   RunnableDelegateClass() {};
+   virtual ~RunnableDelegateClass() {};
+   
+   virtual void runFunction()
+   {
+      counter++;
+   };
+   
+   virtual void runParamFunction(void* param)
+   {
+      int* counter = (int*)param;
+      (*counter)++;
+   };
+   
+   virtual void freeParamFunction(void* param)
+   {
+      int* counter = (int*)param;
+      delete counter;
+   };
+   
+   virtual void runDynoFunction(DynamicObject& dyno)
+   {
+      dyno["counter"] = dyno["counter"]->getUInt32() + 1;
+   };
+};
+
+static int gCounter;
+static void _runFunction()
+{
+   gCounter++;
+};
+
+static void _runParamFunction(void* param)
+{
+   int* counter = (int*)param;
+   (*counter)++;
+};
+
+static void _freeParamFunction(void* param)
+{
+   int* counter = (int*)param;
+   delete counter;
+};
+
+static void _runDynoFunction(DynamicObject& dyno)
+{
+   dyno["counter"] = dyno["counter"]->getUInt32() + 1;
+};
+
+void runRunnableDelegateTest(TestRunner& tr)
+{
+   tr.group("RunnableDelegate");
+   
+   tr.test("RunnableDelegate Object()");
+   {
+      RunnableDelegateClass drc;
+      drc.counter = 0;
+      
+      RunnableRef r = new RunnableDelegate<RunnableDelegateClass>(
+         &drc, &RunnableDelegateClass::runFunction);
+      Thread* t = new Thread(r);
+      t->start();
+      t->join();
+      delete t;
+      
+      assert(drc.counter == 1);
+   }
+   tr.passIfNoException();
+   
+   tr.test("RunnableDelegate f()");
+   {
+      gCounter = 0;
+      RunnableRef r = new RunnableDelegate<void>(_runFunction);
+      Thread* t = new Thread(r);
+      t->start();
+      t->join();
+      delete t;
+      
+      assert(gCounter == 1);
+   }
+   tr.passIfNoException();
+   
+   tr.test("RunnableDelegate Object(void*)");
+   {
+      int* counter = new int(0);
+      
+      RunnableDelegateClass drc;
+      RunnableRef r = new RunnableDelegate<RunnableDelegateClass>(
+         &drc, &RunnableDelegateClass::runParamFunction, counter,
+         &RunnableDelegateClass::freeParamFunction);
+      Thread* t = new Thread(r);
+      t->start();
+      t->join();
+      delete t;
+      
+      assert(*counter == 1);
+   }
+   tr.passIfNoException();
+   
+   tr.test("RunnableDelegate f(void*)");
+   {
+      int* counter = new int(0);
+      
+      RunnableRef r = new RunnableDelegate<void>(
+         _runParamFunction, counter, _freeParamFunction);
+      Thread* t = new Thread(r);
+      t->start();
+      t->join();
+      delete t;
+      
+      assert(*counter == 1);
+   }
+   tr.passIfNoException();
+   
+   tr.test("RunnableDelegate Object(DynamicObject)");
+   {
+      DynamicObject d;
+      d["counter"] = 0;
+      
+      RunnableDelegateClass drc;
+      RunnableRef r = new RunnableDelegate<RunnableDelegateClass>(
+         &drc, &RunnableDelegateClass::runDynoFunction, d);
+      Thread* t = new Thread(r);
+      t->start();
+      t->join();
+      delete t;
+      
+      assert(d["counter"]->getUInt32() == 1);
+   }
+   tr.passIfNoException();
+   
+   tr.test("RunnableDelegate f(DynamicObject)");
+   {
+      DynamicObject d;
+      d["counter"] = 0;
+      
+      RunnableRef r = new RunnableDelegate<void>(_runDynoFunction, d);
+      Thread* t = new Thread(r);
+      t->start();
+      t->join();
+      delete t;
+      
+      assert(d["counter"]->getUInt32() == 1);
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class DbRtTester : public db::test::Tester
 {
 public:
@@ -1605,6 +1759,7 @@ public:
       runDynoMergeTest(tr);
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
+      runRunnableDelegateTest(tr);
       return 0;
    }
 
