@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/rt/Exception.h"
 
@@ -99,6 +99,12 @@ bool Exception::hasLast()
 void Exception::clearLast()
 {
    Thread::clearException();
+}
+
+DynamicObject Exception::getLastAsDynamicObject()
+{
+   ExceptionRef e = Exception::getLast();
+   return Exception::convertToDynamicObject(e);
 }
 
 DynamicObject Exception::convertToDynamicObject(ExceptionRef& e)

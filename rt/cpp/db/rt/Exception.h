@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_rt_Exception_H
 #define db_rt_Exception_H
@@ -180,6 +180,13 @@ public:
     * its count).
     */
    static void clearLast();
+   
+   /**
+    * Gets the last exception as a DynamicObject.
+    * 
+    * @return the last exception as a DynamicObject.
+    */
+   static DynamicObject getLastAsDynamicObject();
    
    /**
     * Converts the passed Exception to a DynamicObject.
