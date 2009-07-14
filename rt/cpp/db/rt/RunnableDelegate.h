@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_rt_RunnableDelegate_H
 #define db_rt_RunnableDelegate_H
@@ -24,6 +24,16 @@ class RunnableDelegate : public Runnable
 {
 protected:
    /**
+    * Enum for types of runnable delegate.
+    */
+   enum Type
+   {
+      NoParam,
+      Param,
+      DynoParam
+   };
+   
+   /**
     * Typedef for the run function.
     */
    typedef void (RunnableType::*RunFunction)();
@@ -39,6 +49,16 @@ protected:
    typedef void (RunnableType::*FreeParamFunction)(void*);
    
    /**
+    * Typedef for the run w/dyno function.
+    */
+   typedef void (RunnableType::*RunWithDynoFunction)(DynamicObject&);
+   
+   /**
+    * The type of runnable delegate.
+    */
+   Type mType;
+   
+   /**
     * The object with the run function.
     */
    RunnableType* mObject;
@@ -46,12 +66,12 @@ protected:
    /**
     * The object's run function.
     */
-   RunFunction mFunction;
-   
-   /**
-    * The object's run w/param function.
-    */
-   RunWithParamFunction mParamFunction;
+   union
+   {
+      RunFunction mFunction;
+      RunWithParamFunction mParamFunction;
+      RunWithDynoFunction mDynoFunction;
+   };
    
    /**
     * The object's free param function.
@@ -59,9 +79,13 @@ protected:
    FreeParamFunction mFreeParamFunction;
    
    /**
-    * The parameter for the run w/param function.
+    * The parameter to use with the run function.
     */
-   void* mParam;
+   union
+   {
+      void* mParam;
+      DynamicObject* mDyno;
+   };
    
 public:
    /**
@@ -87,6 +111,17 @@ public:
       void* param, FreeParamFunction fp = NULL);
    
    /**
+    * Creates a new RunnableDelegate with the specified object,
+    * run w/dyno function, and dyno parameter for the function.
+    * 
+    * @param obj the object with the run function.
+    * @param f the object's run w/dyno function.
+    * @param dyno the parameter for the run w/dyno function.
+    */
+   RunnableDelegate(
+      RunnableType* obj, RunWithDynoFunction f, DynamicObject& param);
+   
+   /**
     * Destructs this RunnableDelegate.
     */
    virtual ~RunnableDelegate();
@@ -102,58 +137,75 @@ public:
     * @return this runnable's param.
     */
    virtual void* getParam();
+   
+   /**
+    * Gets this runnable's dynamic object.
+    * 
+    * @return this runnable's dynamic object.
+    */
+   virtual DynamicObject getDynamicObject();
 };
 
 template<typename RunnableType>
 RunnableDelegate<RunnableType>::RunnableDelegate(
    RunnableType* obj, RunFunction f)
 {
+   mType = NoParam;
    mObject = obj;
    mFunction = f;
-   mParamFunction = NULL;
-   mParam = NULL;
 }
 
 template<typename RunnableType>
 RunnableDelegate<RunnableType>::RunnableDelegate(
    RunnableType* obj, RunWithParamFunction f, void* param, FreeParamFunction fp)
 {
+   mType = Param;
    mObject = obj;
-   mFunction = NULL;
    mParamFunction = f;
    mParam = param;
    mFreeParamFunction = fp;
 }
 
 template<typename RunnableType>
+RunnableDelegate<RunnableType>::RunnableDelegate(
+   RunnableType* obj, RunWithDynoFunction f, DynamicObject& param)
+{
+   mType = DynoParam;
+   mObject = obj;
+   mDynoFunction = f;
+   mDyno = new DynamicObject(param);
+}
+
+template<typename RunnableType>
 RunnableDelegate<RunnableType>::~RunnableDelegate()
 {
-   if(mParam != NULL && mFreeParamFunction != NULL)
+   if(mType == Param && mParam != NULL && mFreeParamFunction != NULL)
    {
       (mObject->*mFreeParamFunction)(mParam);
+   }
+   else if(mType == DynoParam)
+   {
+      delete mDyno;
    }
 }
 
 template<typename RunnableType>
 void RunnableDelegate<RunnableType>::run()
 {
-   if(mFunction != NULL)
+   switch(mType)
    {
-      // call object's run function
-      (mObject->*mFunction)();
-   }
-   else
-   {
-      // call object's run w/param function
-      (mObject->*mParamFunction)(mParam);
-      
-      // free param if necessary
-      if(mParam != NULL && mFreeParamFunction != NULL)
-      {
-         (mObject->*mFreeParamFunction)(mParam);
-         mParam = NULL;
-         mFreeParamFunction = NULL;
-      }
+      case NoParam:
+         // call object's run function
+         (mObject->*mFunction)();
+         break;
+      case Param:
+         // call object's run w/param function
+         (mObject->*mParamFunction)(mParam);
+         break;
+      case DynoParam:
+         // call object's run w/dyno function
+         (mObject->*mDynoFunction)(*mDyno);
+         break;
    }
 }
 
@@ -161,6 +213,17 @@ template<typename RunnableType>
 void* RunnableDelegate<RunnableType>::getParam()
 {
    return mParam;
+}
+
+template<typename RunnableType>
+DynamicObject RunnableDelegate<RunnableType>::getDynamicObject()
+{
+   DynamicObject rval(NULL);
+   if(mDyno != NULL)
+   {
+      rval = *mDyno;
+   }
+   return rval;
 }
 
 } // end namespace rt
