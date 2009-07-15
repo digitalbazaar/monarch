@@ -203,7 +203,7 @@ bool AsymmetricKeyFactory::createKeyPair(
          "Key algorithm is not supported.",
          EXCEPTION_UNSUPPORTED_ALGORITHM);
       e->getDetails()["algorithm"] = algorithm;
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -246,7 +246,7 @@ PrivateKeyRef AsymmetricKeyFactory::loadPrivateKeyFromPem(
          "Could not load private key from PEM.",
          EXCEPTION_PRIVATE_KEY_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return key;
@@ -295,7 +295,7 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
          "Could not write private key to PEM.",
          EXCEPTION_PRIVATE_KEY_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -328,7 +328,7 @@ PublicKeyRef AsymmetricKeyFactory::loadPublicKeyFromPem(
          "Could not load public key from PEM.",
          EXCEPTION_PUBLIC_KEY_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return key;
@@ -361,7 +361,7 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
          "Could not write public key to PEM.",
          EXCEPTION_PUBLIC_KEY_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -515,7 +515,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
             "Key algorithm is not supported.",
             EXCEPTION_UNSUPPORTED_ALGORITHM);
          e->getDetails()["algorithm"] = algorithm;
-         Exception::setLast(e, false);
+         Exception::set(e);
          pass = false;
       }
       
@@ -534,7 +534,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
          "db.crypto.Certificate.CreationError");
       e->getDetails()["subject"] = subject.clone();
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -567,7 +567,7 @@ X509CertificateRef AsymmetricKeyFactory::loadCertificateFromPem(
          "Could not load X.509 certificate from PEM.",
          EXCEPTION_PUBLIC_KEY_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return cert;
@@ -600,7 +600,7 @@ string AsymmetricKeyFactory::writeCertificateToPem(X509CertificateRef& cert)
          "Could not write X.509 certificate to PEM.",
          EXCEPTION_CERTIFICATE_IO);
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;

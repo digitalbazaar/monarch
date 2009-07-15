@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/crypto/SymmetricKeyFactory.h"
 
@@ -49,7 +49,7 @@ bool SymmetricKeyFactory::createRandomKey(
       ExceptionRef e = new Exception(
          "Key algorithm is not supported.", "db.crypto.UnsupportedAlgorithm");
       e->getDetails()["algorithm"] = algorithm;
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    

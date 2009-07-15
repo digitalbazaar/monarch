@@ -59,7 +59,7 @@ bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
             "Could not start encrypting.",
             "db.crypto.BlockCipher.StartEncryptionError");
          e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
    }
    
@@ -94,7 +94,7 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
             "Could not start decrypting.",
             "db.crypto.BlockCipher.StartDecryptionError");
          e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
    }
    
@@ -124,7 +124,7 @@ bool DefaultBlockCipher::update(
                "Could not encrypt data.",
                "db.crypto.BlockCipher.EncryptionError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
       }
       else
@@ -142,7 +142,7 @@ bool DefaultBlockCipher::update(
                "Could not decrypt data.",
                "db.crypto.BlockCipher.DecryptionError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
       }
       
@@ -159,7 +159,7 @@ bool DefaultBlockCipher::update(
          "Cannot update cipher; cipher not started.",
          "db.crypto.BlockCipher.MethodCallOutOfOrder");
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -186,7 +186,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
                "Could not finish encrypting.",
                "db.crypto.BlockCipher.EncryptionError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
       }
       else
@@ -203,7 +203,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
                "Could not finish decrypting.",
                "db.crypto.BlockCipher.DecryptionError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
       }
       
@@ -219,7 +219,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
          "Cannot finish cipher; cipher not started.",
          "db.crypto.BlockCipher.MethodCallOutOfOrder");
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;

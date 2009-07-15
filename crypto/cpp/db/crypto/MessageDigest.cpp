@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/crypto/MessageDigest.h"
 
@@ -34,7 +34,7 @@ MessageDigest::MessageDigest(const char* algorithm, bool persistent)
       ExceptionRef e = new Exception(
          "Unsupported hash algorithm.", "db.crypto.UnsupportedAlgorithm");
       e->getDetails()["algorithm"] = algorithm;
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
 }
 

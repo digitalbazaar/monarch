@@ -116,7 +116,7 @@ bool DigitalEnvelope::startSealing(
             "Could not start opening envelope.",
             "db.crypto.DigitalEnvelope.SealError");
          e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
    }
    
@@ -162,7 +162,7 @@ bool DigitalEnvelope::startOpening(
             "Could not start opening envelope.",
             "db.crypto.DigitalEnvelope.OpenError");
          e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
    }
    
@@ -192,7 +192,7 @@ bool DigitalEnvelope::update(
                "Could not seal envelope data.",
                "db.crypto.DigitalEnvelope.SealError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
       }
       else
@@ -210,7 +210,7 @@ bool DigitalEnvelope::update(
                "Could not open envelope data.",
                "db.crypto.DigitalEnvelope.OpenError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
       }
       
@@ -225,7 +225,7 @@ bool DigitalEnvelope::update(
    {
       ExceptionRef e = new Exception(
          "Cannot update envelope; envelope not started.");
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -251,7 +251,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
                "Could not finish sealing envelope.",
                "db.crypto.DigitalEnvelope.SealError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
       }
       else
@@ -267,7 +267,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
                "Could not finish opening envelope.",
                "db.crypto.DigitalEnvelope.OpenError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
       }
       
@@ -282,7 +282,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
       ExceptionRef e = new Exception(
          "Cannot finish envelope; envelope not started.",
          "db.crypto.DigitalEnvelope.MethodCallOutOfOrder");
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
