@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/mail/MailSpool.h"
 
@@ -37,7 +37,7 @@ bool MailSpool::writeIndex()
       ExceptionRef e = new Exception(
          "Cannot write to mail spool, no spool file set.",
          "db.mail.NoSpoolFile");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    else
@@ -129,7 +129,7 @@ bool MailSpool::spool(Mail* mail)
          ExceptionRef e = new Exception(
             "Cannot spool mail, no spool file set.",
             "db.mail.NoSpoolFile");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else
@@ -173,7 +173,7 @@ bool MailSpool::getFirst(Mail* mail)
          ExceptionRef e = new Exception(
             "Cannot get first mail from spool. Spool is empty.",
             "db.mail.EmptySpool");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else if(mFile.isNull())
@@ -181,7 +181,7 @@ bool MailSpool::getFirst(Mail* mail)
          ExceptionRef e = new Exception(
             "Cannot read from spool, no spool file set.",
             "db.mail.NoSpoolFile");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else
@@ -262,7 +262,7 @@ bool MailSpool::getFirst(Mail* mail)
       ExceptionRef e = new Exception(
          "Could not read first mail from spool. Possibly corrupt spool file.",
          "db.mail.CorruptSpoolFile");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    

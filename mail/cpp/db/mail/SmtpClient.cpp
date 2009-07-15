@@ -254,7 +254,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
             "db.mail.UnexpectedSmtpCode");
          details["code"] = code;
          e->getDetails() = details;
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
    }
    
@@ -275,7 +275,7 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
          mail->getSender()["smtpEncoding"]->getString();
       e->getDetails()["subject"] =
          mail->getMessage()["headers"]["Subject"]->getString();
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else
    {
@@ -291,7 +291,7 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
             "db.mail.SmtpAddressLookupFailure");
          e->getDetails()["host"] = url->getHost().c_str();
          e->getDetails()["port"] = url->getPort();
-         Exception::setLast(e, true);
+         Exception::push(e);
          rval = false;
       }
       else if(s.connect(&address, 30))
@@ -312,7 +312,7 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
                "db.mail.MailSendFailed");
             e->getDetails()["host"] = url->getHost().c_str();
             e->getDetails()["port"] = url->getPort();
-            Exception::setLast(e, true);
+            Exception::push(e);
          }
       }
       else
@@ -322,7 +322,7 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
             "db.mail.SmtpConnectionFailure");
          e->getDetails()["host"] = url->getHost().c_str();
          e->getDetails()["port"] = url->getPort();
-         Exception::setLast(e, true);
+         Exception::push(e);
          rval = false;
       }
    }

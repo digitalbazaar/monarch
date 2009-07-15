@@ -59,7 +59,7 @@ static bool parseLine(
                "Parse error while parsing mail template. Mail header "
                "is malformed or non-existant.",
                "db.mail.InvalidHeader");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
          else
@@ -175,7 +175,7 @@ bool MailTemplateParser::parse(
                "Message line too long. SMTP requires that lines be no longer "
                "than 1000 bytes, including the terminating CRLF.",
                "db.mail.LineTooLong");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
          else if(start > b)
