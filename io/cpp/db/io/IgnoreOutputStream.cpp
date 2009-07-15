@@ -40,7 +40,7 @@ bool IgnoreOutputStream::write(const char* b, int length)
       rval = mOutputStream->write(b + ignored, length);
       if(!rval)
       {
-         ExceptionRef ref = Exception::getLast();
+         ExceptionRef ref = Exception::get();
          IOException* e = dynamic_cast<IOException*>(&(*ref));
          if(e != NULL)
          {

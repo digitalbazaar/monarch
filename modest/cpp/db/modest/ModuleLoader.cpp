@@ -59,7 +59,7 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
             "Could not load module.", "db.modest.BadModule");
          e->getDetails()["filename"] = filename;
          e->getDetails()["error"] = error;
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
    }
    else
@@ -70,7 +70,7 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
          "Could not open module file.", "db.modest.BadModuleFile");
       e->getDetails()["filename"] = filename;
       e->getDetails()["error"] = error;
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;

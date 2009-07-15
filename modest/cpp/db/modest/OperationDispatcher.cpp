@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/modest/OperationDispatcher.h"
+
 #include "db/modest/Engine.h"
 
 using namespace std;

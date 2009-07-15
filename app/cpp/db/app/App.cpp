@@ -215,7 +215,7 @@ void App::printException(ExceptionRef& e, ostream& s)
 
 void App::printException()
 {
-   ExceptionRef e = Exception::getLast();
+   ExceptionRef e = Exception::get();
    printException(e);
 }
 

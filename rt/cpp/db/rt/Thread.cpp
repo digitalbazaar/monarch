@@ -127,7 +127,7 @@ bool Thread::start(size_t stackSize)
                   "Could not start thread. Not enough system resources.",
                   "db.rt.Thread.InsufficientResources");
                e->getDetails()["error"] = strerror(errno);
-               Exception::setLast(e, false);
+               Exception::set(e);
                break;
             }
             case EINVAL:
@@ -136,7 +136,7 @@ bool Thread::start(size_t stackSize)
                   "Could not start thread. Invalid thread parameters.",
                   "db.rt.Thread.InvalidParameters");
                e->getDetails()["error"] = strerror(errno);
-               Exception::setLast(e, false);
+               Exception::set(e);
                break;
             }
             case EPERM:
@@ -145,7 +145,7 @@ bool Thread::start(size_t stackSize)
                   "Could not start thread. Not authorized.",
                   "db.rt.Thread.AccessDenied");
                e->getDetails()["error"] = strerror(errno);
-               Exception::setLast(e, false);
+               Exception::set(e);
                break;
             }
             case ENOMEM:
@@ -154,7 +154,7 @@ bool Thread::start(size_t stackSize)
                   "Could not start thread. Not enough memory.",
                   "db.rt.Thread.InsufficientMemory");
                e->getDetails()["error"] = strerror(errno);
-               Exception::setLast(e, false);
+               Exception::set(e);
                break;
             }
             default:
@@ -163,7 +163,7 @@ bool Thread::start(size_t stackSize)
                   "Could not start thread.",
                   "db.rt.Thread.Error");
                e->getDetails()["error"] = strerror(errno);
-               Exception::setLast(e, false);
+               Exception::set(e);
                break;
             }
          }

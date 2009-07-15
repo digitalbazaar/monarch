@@ -63,15 +63,13 @@ Module* ModuleLibrary::loadModule(const char* filename)
             else
             {
                // could not initialize module, so unload it
-               ExceptionRef e = Exception::getLast();
-               ExceptionRef ex = new Exception(
+               ExceptionRef e = new Exception(
                   "Could not initialize module.",
                   "db.modest.ModuleInitializationError");
-               ex->getDetails()["filename"] = filename;
-               ex->getDetails()["name"] = mi->module->getId().name;
-               ex->getDetails()["version"] = mi->module->getId().version;
-               ex->setCause(e);
-               Exception::setLast(ex, false);
+               e->getDetails()["filename"] = filename;
+               e->getDetails()["name"] = mi->module->getId().name;
+               e->getDetails()["version"] = mi->module->getId().version;
+               Exception::push(e);
                mLoader.unloadModule(mi);
             }
          }
@@ -84,7 +82,7 @@ Module* ModuleLibrary::loadModule(const char* filename)
             e->getDetails()["filename"] = filename;
             e->getDetails()["name"] = mi->module->getId().name;
             e->getDetails()["version"] = mi->module->getId().version;
-            Exception::setLast(e, false);
+            Exception::set(e);
             mLoader.unloadModule(mi);
          }
       }

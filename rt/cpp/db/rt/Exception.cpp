@@ -80,28 +80,6 @@ DynamicObject& Exception::getDetails()
    return *mDetails;
 }
 
-// FIXME: deprecated
-ExceptionRef& Exception::setLast(ExceptionRef& e, bool caused)
-{
-   caused ? Exception::push(e) : Exception::set(e);
-   return e;
-}
-// FIXME: deprecated
-ExceptionRef Exception::getLast()
-{
-   return Exception::get();
-}
-// FIXME: deprecated
-bool Exception::hasLast()
-{
-   return Exception::isSet();
-}
-// FIXME: deprecated
-//void Exception::clearLast()
-//{
-//   Exception::clear();
-//}
-
 ExceptionRef& Exception::set(ExceptionRef& e)
 {
    // false = do not use previous exception as cause, instead, clear it 

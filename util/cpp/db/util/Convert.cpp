@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/util/Convert.h"
 
@@ -143,8 +143,9 @@ bool Convert::hexToBytes(
    if(!rval)
    {
       ExceptionRef e = new Exception(
-         "Invalid hex value!", "db.util.ConversionError");
-      Exception::setLast(e, false);
+         "Invalid hex value.",
+         "db.util.ConversionError");
+      Exception::set(e);
    }
    
    return rval;
@@ -159,8 +160,9 @@ bool Convert::hexToInt(
    {
       rval = false;
       ExceptionRef e = new Exception(
-         "Hex value too large!", "db.util.ConversionError");
-      Exception::setLast(e, false);
+         "Hex value too large.",
+         "db.util.ConversionError");
+      Exception::set(e);
    }
    else
    {
@@ -180,8 +182,9 @@ bool Convert::hexToInt(
    if(!rval)
    {
       ExceptionRef e = new Exception(
-         "Invalid hex value!", "db.util.ConversionError");
-      Exception::setLast(e, false);
+         "Invalid hex value.",
+         "db.util.ConversionError");
+      Exception::set(e);
    }
    
    return rval;

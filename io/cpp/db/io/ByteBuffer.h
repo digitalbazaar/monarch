@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_io_ByteBuffer_H
 #define db_io_ByteBuffer_H
@@ -199,7 +199,7 @@ public:
     * buffer is full or until a specified amount is read into it, then
     * call fill() instead.
     * 
-    * Exception::getLast() will be set if an IO error occurs.
+    * Exception::get() will be set if an IO error occurs.
     * 
     * @param is the input stream to read from.
     * @param length the maximum number of bytes to read, 0 to use this buffer's
@@ -217,7 +217,7 @@ public:
     * This method will block until the specified number of bytes is read,
     * the end of the input stream is reached, or until the buffer is full.
     * 
-    * Exception::getLast() will be set if an IO error occurs.
+    * Exception::get() will be set if an IO error occurs.
     * 
     * @param is the input stream to read from.
     * @param length the number of bytes to read, 0 to read as much as can fit
@@ -271,7 +271,7 @@ public:
     * This method will increment the internal pointer of this buffer by the
     * number of bytes retrieved.
     * 
-    * Exception::getLast() will be set if an IO error occurs.
+    * Exception::get() will be set if an IO error occurs.
     * 
     * @param os the OutputStream to write the retrieved data to.
     * 

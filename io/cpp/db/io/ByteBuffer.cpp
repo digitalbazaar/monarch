@@ -337,7 +337,7 @@ int ByteBuffer::get(OutputStream* os)
    else
    {
       // determine if output stream would block 
-      ExceptionRef e = Exception::getLast();
+      ExceptionRef e = Exception::get();
       if(e->getDetails()->hasMember("wouldBlock"))
       {
          // move internal pointer and change length by amount written

@@ -132,12 +132,6 @@ public:
     */
    virtual DynamicObject& getDetails();
    
-   // FIXME: remove old deprecated exception interface
-   static Collectable<Exception>& setLast(
-      Collectable<Exception>& e, bool caused);
-   static Collectable<Exception> getLast();
-   static bool hasLast();
-   
    /**
     * Sets the exception for the current thread, replacing any old existing
     * exception.
