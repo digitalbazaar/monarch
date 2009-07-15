@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/app/App.h"
 
@@ -420,7 +420,7 @@ bool App::startLogging()
             new Exception(
                "Invalid app.logging.level", "bitmunk.app.ConfigError");
          e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       if(cfg["color"]->getBoolean())
@@ -543,7 +543,7 @@ static DynamicObject* findPath(
                "Internal DynamicObject path parse error.",
                "db.app.CommandLineError");
             e->getDetails()["path"] = path;
-            Exception::setLast(e, false);
+            Exception::set(e);
             target = NULL;
          }
          if(target != NULL && (segmentdone || !st.hasNextToken()))
@@ -556,7 +556,7 @@ static DynamicObject* findPath(
                      "DynamicObject path not found.",
                      "db.app.CommandLineError");
                   e->getDetails()["path"] = path;
-                  Exception::setLast(e, false);
+                  Exception::set(e);
                   target = NULL;
                }
             }
@@ -618,7 +618,7 @@ static bool getTarget(
             ExceptionRef e = new Exception("Object path not found.",
                "db.app.CommandLineError");
             e->getDetails()["path"] = path;
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
          rval = false;
       }
@@ -639,7 +639,7 @@ static bool getTarget(
             ExceptionRef e = new Exception("Object path not found.",
                "db.app.CommandLineError");
             e->getDetails()["path"] = path;
-            Exception::setLast(e, false);
+            Exception::set(e);
          }
          rval = false;
       }
@@ -651,7 +651,7 @@ static bool getTarget(
          ExceptionRef e = new Exception("Invalid option spec.",
             "db.app.CommandLineError");
          e->getDetails()["spec"] = spec;
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
       rval = false;
    }
@@ -689,7 +689,7 @@ static bool setTarget(
       ExceptionRef e = new Exception("Invalid option spec.",
          "db.app.CommandLineError");
       e->getDetails()["spec"] = spec;
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -737,7 +737,7 @@ static bool processOption(
                   "db.app.CommandLineError");
             e->getDetails()["option"] = opt;
             e->getDetails()["spec"] = optSpec;
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
       }
@@ -818,7 +818,7 @@ static bool processOption(
                      "db.app.CommandLineError");
                e->getDetails()["option"] = opt;
                e->getDetails()["spec"] = optSpec;
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
          }
          if(!value.isNull())
@@ -859,7 +859,7 @@ static bool processOption(
                      "db.app.CommandLineError");
                e->getDetails()["option"] = opt;
                e->getDetails()["spec"] = optSpec;
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
          }
          if(!value.isNull())
@@ -921,7 +921,7 @@ static bool processOption(
       ExceptionRef e =
          new Exception("args target not implemented yet",
             "db.app.CommandLineError");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -956,7 +956,7 @@ static bool processOption(
             "db.app.CommandLineError");
          e->getDetails()["option"] = opt;
       }
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -1053,7 +1053,7 @@ bool App::parseCommandLine(vector<const char*>* args)
                ExceptionRef e =
                   new Exception("Unknown option.", "db.app.CommandLineError");
                e->getDetails()["option"] = opt;
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
             }
          }
@@ -1213,7 +1213,7 @@ bool App::willParseCommandLine(std::vector<const char*>* args)
       ExceptionRef e = new Exception(
          "Command line specs are not an array.",
          "db.app.CommandLineError");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    if(rval && mDelegate != NULL)
@@ -1225,7 +1225,7 @@ bool App::willParseCommandLine(std::vector<const char*>* args)
          ExceptionRef e = new Exception(
             "Delegate command line specs are not an array.",
             "db.app.CommandLineError");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       if(rval)
@@ -1284,7 +1284,7 @@ bool App::didParseCommandLine()
          ExceptionRef e =
             new Exception("Invalid log level.", "db.app.CommandLineError");
          e->getDetails()["level"] = cfgLogLevel;
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
    }

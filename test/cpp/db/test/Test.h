@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_test_Test_H
 #define db_test_Test_H
@@ -88,11 +88,11 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
  */
 #define assertNoException() \
    do { \
-      if(db::rt::Exception::hasLast()) \
+      if(db::rt::Exception::isSet()) \
       { \
-         db::rt::ExceptionRef e = db::rt::Exception::getLast(); \
+         db::rt::ExceptionRef e = db::rt::Exception::get(); \
          db::test::dumpException(e); \
-         assert(!db::rt::Exception::hasLast()); \
+         assert(!db::rt::Exception::isSet()); \
       } \
    } while(0)
 
@@ -101,13 +101,13 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
  */
 #define assertException() \
    do { \
-      if(!db::rt::Exception::hasLast()) \
+      if(!db::rt::Exception::isSet()) \
       { \
          db::rt::ExceptionRef e = \
             new db::rt::Exception( \
                "Test expected an Exception but there wasn't one!"); \
          db::test::dumpException(e); \
-         assert(db::rt::Exception::hasLast()); \
+         assert(db::rt::Exception::isSet()); \
       } \
    } while(0)
 

@@ -211,7 +211,7 @@ void runSslSocketTest(TestRunner& tr)
    printf("%s\n", address.getAddress());
    
    // ensure host was known
-   if(!Exception::hasLast())
+   if(!Exception::isSet())
    {
       // create tcp socket
       TcpSocket socket;
@@ -334,7 +334,7 @@ void runSslServerSocketTest(TestRunner& tr)
    InternetAddress address("127.0.0.1", 1024);
    
    // ensure host was known
-   if(!Exception::hasLast())
+   if(!Exception::isSet())
    {
       // create tcp socket
       TcpSocket socket;
@@ -423,7 +423,7 @@ void runTcpClientServerTest(TestRunner& tr)
    address = &ia;
    
    // ensure host was known
-   if(!Exception::hasLast())
+   if(!Exception::isSet())
    {
       // create tcp server and client sockets
       TcpSocket server;
@@ -785,7 +785,7 @@ void runUrlEncodeTest(TestRunner& tr)
 
 void dumpUrl(Url url)
 {
-   if(Exception::hasLast())
+   if(Exception::isSet())
    {
       printf("url=[exception]\n");
    }
@@ -867,7 +867,7 @@ void runUrlTest(TestRunner& tr)
       Url url("http://example.com:8080/path");
 
       //dumpUrl(url);
-      assert(!Exception::hasLast());
+      assert(!Exception::isSet());
       assert(url.getScheme() == "http");
       assert(url.getUserInfo() == "");
       assert(url.getUser() == "");
@@ -882,7 +882,7 @@ void runUrlTest(TestRunner& tr)
       Url url("scheme:schemespecific");
 
       //dumpUrl(url);
-      assert(!Exception::hasLast());
+      assert(!Exception::isSet());
       assert(url.getScheme() == "scheme");
       assert(url.getSchemeSpecificPart() == "schemespecific");
    }
@@ -893,7 +893,7 @@ void runUrlTest(TestRunner& tr)
          "&key3=two%20words%3D2");
 
       //dumpUrl(url);
-      assert(!Exception::hasLast());
+      assert(!Exception::isSet());
       assert(url.getScheme() == "scheme");
       assert(url.getUserInfo() == "user:password");
       assert(url.getUser() == "user");
@@ -915,7 +915,7 @@ void runUrlTest(TestRunner& tr)
          "/path/param1/10001?key1=value1&key2=value2&key3=two%20words%3D2");
       
       //dumpUrl(url);
-      assert(!Exception::hasLast());
+      assert(!Exception::isSet());
       assertStrCmp(url.getPath().c_str(), "/path/param1/10001");
       assertStrCmp(
          url.getQuery().c_str(),
@@ -949,7 +949,7 @@ void runUrlTest(TestRunner& tr)
       Url url("http://bitmunk.com/path?email=wa-hoo.test_user%40bitmunk.com");
       
       //dumpUrl(url);
-      assert(!Exception::hasLast());
+      assert(!Exception::isSet());
       assert(url.getPath() == "/path");
       assert(url.getQuery() == "email=wa-hoo.test_user%40bitmunk.com");
       
@@ -1077,9 +1077,9 @@ public:
    {
       runServerSocketTest(testRunner);
       
-      if(Exception::hasLast())
+      if(Exception::isSet())
       {
-         ExceptionRef e = Exception::getLast();
+         ExceptionRef e = Exception::get();
          printf("Exception occurred!\n");
          printf("message: %s\n", e->getMessage());
          printf("type: %s\n", e->getType());
@@ -1144,8 +1144,8 @@ public:
       else if(numBytes == -1)
       {
          printf("Server Exception=%s\n%s\n",
-            Exception::getLast()->getMessage(),
-            Exception::getLast()->getType());
+            Exception::get()->getMessage(),
+            Exception::get()->getType());
       }
       
       OutputStream* os = c->getOutputStream();
@@ -1156,8 +1156,8 @@ public:
       else
       {
          printf("Server Exception=%s\n%s\n",
-            Exception::getLast()->getMessage(),
-            Exception::getLast()->getType());
+            Exception::get()->getMessage(),
+            Exception::get()->getType());
       }
       
 //      printf("1: Finished servicing connection.\n");
@@ -1300,15 +1300,15 @@ public:
             else
             {
                printf("Client Exception=%s\n%s\n",
-                  Exception::getLast()->getMessage(),
-                  Exception::getLast()->getType());
+                  Exception::get()->getMessage(),
+                  Exception::get()->getType());
             }
          }
          else
          {
             printf("Client Exception=%s\n%s\n",
-               Exception::getLast()->getMessage(),
-               Exception::getLast()->getType());
+               Exception::get()->getMessage(),
+               Exception::get()->getType());
          }
          
          // close socket
@@ -1438,10 +1438,10 @@ void runServerDatagramTest(TestRunner& tr)
    {
       printf("Server started.\n");
    }
-   else if(Exception::getLast() != NULL)
+   else if(Exception::get() != NULL)
    {
       printf("Server started with errors=%s\n",
-         Exception::getLast()->getMessage());
+         Exception::get()->getMessage());
    }
    
    Thread::sleep(10000);
@@ -1915,10 +1915,10 @@ void runHttpServerTest(TestRunner& tr)
    {
       printf("Server started.\n");
    }
-   else if(Exception::getLast() != NULL)
+   else if(Exception::get() != NULL)
    {
       printf("Server started with errors=%s\n",
-         Exception::getLast()->getMessage());
+         Exception::get()->getMessage());
    }
    
    // sleep
@@ -2136,10 +2136,10 @@ void runPingTest(TestRunner& tr)
    {
       printf("Server started.\n");
    }
-   else if(Exception::getLast() != NULL)
+   else if(Exception::get() != NULL)
    {
       printf("Server started with errors=%s\n",
-         Exception::getLast()->getMessage());
+         Exception::get()->getMessage());
    }
    
    // connect

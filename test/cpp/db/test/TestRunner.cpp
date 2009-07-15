@@ -167,15 +167,15 @@ void TestRunner::pass()
 
 void TestRunner::passIfNoException()
 {
-   if(Exception::hasLast())
+   if(Exception::isSet())
    {
       fail();
-      ExceptionRef e = Exception::getLast();
+      ExceptionRef e = Exception::get();
       dumpException(e);
       if(mDoneOnException)
       {
          done();
-         assert(!Exception::hasLast());
+         assert(!Exception::isSet());
       }
       else
       {

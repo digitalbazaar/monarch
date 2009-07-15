@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/test/Test.h"
 
+// FIXME: replace iostream with cstdlib and printfs
 #include <iostream>
 #include <sstream>
 
@@ -19,10 +20,10 @@ bool db::test::dumpException(ExceptionRef& e)
 {
    bool rval;
    
-   cout << "EXCEPTION:" << endl;
+   printf("EXCEPTION:\n");
    DynamicObject d = Exception::convertToDynamicObject(e);
    rval = JsonWriter::writeToStdOut(d);
-   cout << endl;
+   printf("\n");
    
    return rval;
 }
@@ -31,9 +32,9 @@ bool db::test::dumpException()
 {
    bool rval = true;
    
-   if(Exception::hasLast())
+   if(Exception::isSet())
    {
-      ExceptionRef e = Exception::getLast();
+      ExceptionRef e = Exception::get();
       rval = dumpException(e);
    }
    

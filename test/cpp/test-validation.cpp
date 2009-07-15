@@ -36,9 +36,9 @@ void runValidatorTest(TestRunner& tr)
       assertException();
       if(_dump) dumpException();
       assertStrCmp(
-         Exception::getLast()->getType(), "db.validation.ValidationError");
+         Exception::get()->getType(), "db.validation.ValidationError");
       assertStrCmp(
-         Exception::getLast()->getMessage(), 
+         Exception::get()->getMessage(), 
          "The given object does not meet all of the data validation "
          "requirements. Please examine the error details for more information "
          "about the specific requirements.");
@@ -64,8 +64,8 @@ void runValidatorTest(TestRunner& tr)
 
       tr.test("invalid map (addv)");
       assert(!v0.isValid(dnv));
-      assert(Exception::hasLast());
-      ExceptionRef e = Exception::getLast();
+      assert(Exception::isSet());
+      ExceptionRef e = Exception::get();
       assert(e->getDetails()->hasMember("errors"));
       assert(e->getDetails()["errors"]->length() == 2);
       assert(e->getDetails()["errors"]->hasMember("i"));
@@ -383,8 +383,8 @@ void runValidatorTest(TestRunner& tr)
 
       tr.test("invalid each(array)");
       assert(!v.isValid(dnv));
-      assert(Exception::hasLast());
-      ExceptionRef e = Exception::getLast();
+      assert(Exception::isSet());
+      ExceptionRef e = Exception::get();
       assert(e->getDetails()->hasMember("errors"));
       assert(e->getDetails()["errors"]->length() == 2);
       tr.passIfException(_dump);
@@ -407,8 +407,8 @@ void runValidatorTest(TestRunner& tr)
 
       tr.test("invalid each(map)");
       assert(!v.isValid(dnv));
-      assert(Exception::hasLast());
-      ExceptionRef e = Exception::getLast();
+      assert(Exception::isSet());
+      ExceptionRef e = Exception::get();
       assert(e->getDetails()->hasMember("errors"));
       assert(e->getDetails()["errors"]->length() == 2);
       assert(e->getDetails()["errors"]->hasMember("b"));
@@ -887,7 +887,7 @@ void runValidatorTest(TestRunner& tr)
          DynamicObject dnv = dv.clone();
          dnv["m"]["b"] = false;
          assert(!v.isValid(dnv));
-         ExceptionRef e = Exception::getLast();
+         ExceptionRef e = Exception::get();
          assert(e->getDetails()["errors"]->hasMember("m.b"));
          tr.passIfException(_dump);
       }
@@ -897,7 +897,7 @@ void runValidatorTest(TestRunner& tr)
          DynamicObject dnv = dv.clone();
          dnv["a"][0] = false;
          assert(!v.isValid(dnv));
-         ExceptionRef e = Exception::getLast();
+         ExceptionRef e = Exception::get();
          assert(e->getDetails()["errors"]->hasMember("a[0]"));
          tr.passIfException(_dump);
       }
@@ -907,7 +907,7 @@ void runValidatorTest(TestRunner& tr)
          DynamicObject dnv = dv.clone();
          dnv["m2"]["m"]["b"] = false;
          assert(!v.isValid(dnv));
-         ExceptionRef e = Exception::getLast();
+         ExceptionRef e = Exception::get();
          assert(e->getDetails()["errors"]->hasMember("m2.m.b"));
          tr.passIfException(_dump);
       }
@@ -1010,7 +1010,7 @@ void runAnyExceptionsTest(TestRunner& tr)
       
       assert(!v.isValid(mapFail));
       printf("\nShould be able to tell that only \"cat\" was missing.\n");
-      ExceptionRef e = Exception::getLast();
+      ExceptionRef e = Exception::get();
       DynamicObject ex = Exception::convertToDynamicObject(e);
       dumpDynamicObject(ex);
       printf("\nIt looks like this for only a map validator (w/o the Any):\n");
@@ -1021,7 +1021,7 @@ void runAnyExceptionsTest(TestRunner& tr)
          "cat", new v::Equals("meow"),
          NULL);
       assert(!v2.isValid(mapFail));
-      e = Exception::getLast();
+      e = Exception::get();
       ex = Exception::convertToDynamicObject(e);
       dumpDynamicObject(ex);
    }
@@ -1034,7 +1034,7 @@ void runAnyExceptionsTest(TestRunner& tr)
       
       assert(!v.isValid(intFail));
       printf("\nShould be able to tell that only integer wasn't positive.\n");
-      ExceptionRef e = Exception::getLast();
+      ExceptionRef e = Exception::get();
       DynamicObject ex = Exception::convertToDynamicObject(e);
       dumpDynamicObject(ex);
       printf("\nIt looks like this for only an int validator (w/o the Any):\n");
@@ -1042,7 +1042,7 @@ void runAnyExceptionsTest(TestRunner& tr)
       Exception::clear();
       v::Int v2(v::Int::Positive);
       assert(!v2.isValid(intFail));
-      e = Exception::getLast();
+      e = Exception::get();
       ex = Exception::convertToDynamicObject(e);
       dumpDynamicObject(ex);
    }

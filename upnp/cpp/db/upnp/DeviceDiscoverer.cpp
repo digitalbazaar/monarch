@@ -256,7 +256,7 @@ int DeviceDiscoverer::discover(
             if(!socket.receive(response))
             {
                // check last exception
-               ExceptionRef e = Exception::getLast();
+               ExceptionRef e = Exception::get();
                if(strcmp(e->getType(), "db.net.SocketTimeout") == 0)
                {
                   // exception indicates timed out

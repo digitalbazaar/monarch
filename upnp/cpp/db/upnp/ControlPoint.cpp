@@ -289,7 +289,7 @@ static bool doSoap(
                   ExceptionRef e = new Exception(
                      "Could not parse soap response.",
                      "db.upnp.InvalidSoapResponse");
-                  Exception::setLast(e, true);
+                  Exception::push(e);
                }
                else if(sr["fault"]->getBoolean())
                {
@@ -298,7 +298,7 @@ static bool doSoap(
                      "Soap fault received.",
                      "db.upnp.SoapFault");
                   e->getDetails()["fault"] = sr["result"];
-                  Exception::setLast(e, false);
+                  Exception::set(e);
                   rval = false;
                }
                else
@@ -319,7 +319,7 @@ static bool doSoap(
       ExceptionRef e = new Exception(
          "Could not perform soap transfer.",
          "db.upnp.SoapTransferError");
-      Exception::setLast(e, true);
+      Exception::push(e);
    }
    
    return rval;
@@ -407,7 +407,7 @@ bool ControlPoint::performAction(
       e->getDetails()["actionName"] = actionName;
       e->getDetails()["serviceType"] = service["serviceType"]->getString();
       e->getDetails()["serviceId"] = service["serviceId"]->getString();
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else
    {
