@@ -45,7 +45,7 @@ bool MySqlRow::getType(unsigned int column, int& type)
       snprintf(temp, 100,
          "Could not get column type, invalid column index!,index=%i", column);
       ExceptionRef e = new SqlException(temp);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else
    {
@@ -237,7 +237,7 @@ int64_t MySqlRow::getColumnIndex(const char* name)
       ExceptionRef e = new SqlException(
          "Could not get column value. Invalid column name.");
       e->getDetails()["name"] = name;
-      Exception::setLast(e, false); 
+      Exception::set(e); 
    }
    
    return rval;

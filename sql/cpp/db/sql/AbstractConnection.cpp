@@ -37,7 +37,7 @@ bool AbstractConnection::connect(const char* url)
          "Invalid database url.",
          "db.sql.Connection.InvalidUrl");
       e->getDetails()["url"] = url;
-      Exception::setLast(e, true);
+      Exception::push(e);
    }
    else
    {
@@ -85,7 +85,7 @@ bool AbstractConnection::begin()
       ExceptionRef e = new Exception(
          "Could not begin transaction.",
          "db.sql.Connection.TransactionBeginError");
-      Exception::setLast(e, true);
+      Exception::push(e);
    }
    
    return rval;
@@ -102,7 +102,7 @@ bool AbstractConnection::commit()
       ExceptionRef e = new Exception(
          "Could not commit transaction.",
          "db.sql.Connection.TransactionCommitError");
-      Exception::setLast(e, true);
+      Exception::push(e);
    }
    
    return rval;
@@ -113,7 +113,7 @@ bool AbstractConnection::rollback()
    bool rval = false;
    
    // save the reason for the rollback
-   ExceptionRef reason = Exception::getLast();
+   ExceptionRef reason = Exception::get();
    
    // attempt to do the rollback
    Statement* s = prepare("ROLLBACK");
@@ -128,7 +128,7 @@ bool AbstractConnection::rollback()
          e->getDetails()["rollbackReason"] =
             Exception::convertToDynamicObject(reason);
       }
-      Exception::setLast(e, true);
+      Exception::push(e);
    }
    
    return rval;

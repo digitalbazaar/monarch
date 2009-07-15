@@ -180,7 +180,7 @@ int Sqlite3Row::getColumnIndex(const char* name)
       ExceptionRef e = new SqlException(
          "Could not get column value. Invalid column name.");
       e->getDetails()["name"] = name;
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;

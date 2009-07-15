@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 
@@ -41,7 +41,7 @@ bool Sqlite3Connection::connect(Url* url)
          "start with 'sqlite3'.",
          "db.sql.BadUrlScheme");
       e->getDetails()["url"] = url->toString().c_str();
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else
    {
@@ -71,7 +71,7 @@ bool Sqlite3Connection::connect(Url* url)
             ExceptionRef e = new Sqlite3Exception(this);
             e->getDetails()["url"] = url->toString().c_str();
             e->getDetails()["db"] = db.c_str();
-            Exception::setLast(e, false);
+            Exception::set(e);
             Sqlite3Connection::close();
             rval = false;
          }
@@ -102,7 +102,7 @@ bool Sqlite3Connection::rollback()
    bool rval = true;
    
    // save the reason for the rollback
-   ExceptionRef reason = Exception::getLast();
+   ExceptionRef reason = Exception::get();
    
    // Note: This is necessary on the current version of sqlite3... all
    // statements must be reset or finalized before doing a rollback:
@@ -130,7 +130,7 @@ bool Sqlite3Connection::rollback()
          e->getDetails()["rollbackReason"] =
             Exception::convertToDynamicObject(reason);
       }
-      Exception::setLast(e, true);
+      Exception::push(e);
    }
    
    return rval;

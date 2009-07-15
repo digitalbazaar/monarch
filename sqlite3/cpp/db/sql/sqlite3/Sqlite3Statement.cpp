@@ -51,7 +51,7 @@ bool Sqlite3Statement::initialize()
       // exception
       ExceptionRef e = new Sqlite3Exception(c);
       e->getDetails()["sql"] = mSql;
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -67,7 +67,7 @@ bool Sqlite3Statement::setInt32(unsigned int param, int32_t value)
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -83,7 +83,7 @@ bool Sqlite3Statement::setUInt32(unsigned int param, uint32_t value)
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -99,7 +99,7 @@ bool Sqlite3Statement::setInt64(unsigned int param, int64_t value)
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -115,7 +115,7 @@ bool Sqlite3Statement::setUInt64(unsigned int param, uint64_t value)
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -132,7 +132,7 @@ bool Sqlite3Statement::setText(unsigned int param, const char* value)
    {
       // exception, could not bind parameter
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -228,7 +228,7 @@ bool Sqlite3Statement::execute()
                mState = sqlite3_reset(mHandle);
                ExceptionRef e =
                   new Sqlite3Exception((Sqlite3Connection*)mConnection);
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
                break;
             }
@@ -242,7 +242,7 @@ bool Sqlite3Statement::execute()
             "Statement state is invalid. Did you call reset() to reuse "
             "the statement? (Connections should do this automatically).",
             "db.sql.sqlite3.BadState");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
          break;
       }
@@ -251,7 +251,7 @@ bool Sqlite3Statement::execute()
          // driver error
          ExceptionRef e =
             new Sqlite3Exception((Sqlite3Connection*)mConnection);
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
          break;
       }
@@ -284,7 +284,7 @@ Row* Sqlite3Statement::fetch()
             // error stepping statement
             ExceptionRef e =
                new Sqlite3Exception((Sqlite3Connection*)mConnection);
-            Exception::setLast(e, false);
+            Exception::set(e);
             reset();
             break;
          }
@@ -316,7 +316,7 @@ bool Sqlite3Statement::reset()
    {
       // driver error
       ExceptionRef e = new Sqlite3Exception((Sqlite3Connection*)mConnection);
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -344,7 +344,7 @@ int Sqlite3Statement::getParameterIndex(const char* name)
       // exception, no parameter with given name found (index=0 is invalid)
       ExceptionRef e = new SqlException("Invalid parameter name.");
       e->getDetails()["name"] = name;
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return index;

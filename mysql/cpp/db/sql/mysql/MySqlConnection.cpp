@@ -41,7 +41,7 @@ bool MySqlConnection::connect(Url* url)
          "Url scheme doesn't start with 'mysql'",
          "db.sql.BadUrlScheme");
       e->getDetails()["url"] = url->toString().c_str();
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else
    {
@@ -69,7 +69,7 @@ bool MySqlConnection::connect(Url* url)
       {
          // create exception, close connection
          ExceptionRef e = new MySqlException(this);
-         Exception::setLast(e, false);
+         Exception::set(e);
          MySqlConnection::close();
       }
       else
@@ -102,7 +102,7 @@ bool MySqlConnection::begin()
       ExceptionRef e = new Exception("Could not begin transaction.");
       ExceptionRef cause = new MySqlException(this);
       e->setCause(cause);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -117,7 +117,7 @@ bool MySqlConnection::commit()
       ExceptionRef e = new Exception("Could not commit transaction.");
       ExceptionRef cause = new MySqlException(this);
       e->setCause(cause);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -132,7 +132,7 @@ bool MySqlConnection::rollback()
       ExceptionRef e = new Exception("Could not rollback transaction.");
       ExceptionRef cause = new MySqlException(this);
       e->setCause(cause);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -166,7 +166,7 @@ bool MySqlConnection::query(const char* sql)
       ExceptionRef e = new Exception("Could not execute query.");
       ExceptionRef cause = new MySqlException(this);
       e->setCause(cause);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;

@@ -96,7 +96,7 @@ bool MySqlStatement::initialize()
    {
       // connection exception
       ExceptionRef e = new MySqlException(c);
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    else
@@ -106,7 +106,7 @@ bool MySqlStatement::initialize()
       {
          // statement exception
          ExceptionRef e = new MySqlException(this);
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else
@@ -271,7 +271,7 @@ bool MySqlStatement::setInt32(const char* name, int32_t value)
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    return false;
 }
 
@@ -279,7 +279,7 @@ bool MySqlStatement::setUInt32(const char* name, uint32_t value)
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    return false;
 }
 
@@ -287,7 +287,7 @@ bool MySqlStatement::setInt64(const char* name, int64_t value)
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    return false;
 }
 
@@ -295,7 +295,7 @@ bool MySqlStatement::setUInt64(const char* name, uint64_t value)
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    return false;
 }
 
@@ -303,7 +303,7 @@ bool MySqlStatement::setText(const char* name, const char* value)
 {
    ExceptionRef e =
      new SqlException("MySql named parameter support not implemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    return false;
 }
 
@@ -316,13 +316,13 @@ bool MySqlStatement::execute()
    {
       // statement exception
       ExceptionRef e = new MySqlException(this);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else if(mysql_stmt_execute(mHandle) != 0)
    {
       // statement exception
       ExceptionRef e = new MySqlException(this);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else
    {
@@ -355,7 +355,7 @@ bool MySqlStatement::execute()
             {
                // statement exception
                ExceptionRef e = new MySqlException(this);
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
                delete [] mResultBindings;
                mResultBindings = NULL;
@@ -372,7 +372,7 @@ bool MySqlStatement::execute()
          {
             // statement exception
             ExceptionRef e = new MySqlException(this);
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
       }
@@ -399,7 +399,7 @@ Row* MySqlStatement::fetch()
       {
          // exception occurred
          ExceptionRef e = new MySqlException(this);
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
       else if(rc != MYSQL_NO_DATA)
       {
@@ -448,7 +448,7 @@ bool MySqlStatement::checkParamCount(unsigned int param)
       ExceptionRef e = new SqlException(
          "Invalid statement parameter index.");
       e->getDetails()["index"] = param;
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
