@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/io/ByteArrayOutputStream.h"
 
@@ -31,7 +31,7 @@ bool ByteArrayOutputStream::write(const char* b, int length)
       e->setUsedBytes(written);
       e->setUnusedBytes(length - written);
       ExceptionRef ref = e;
-      Exception::setLast(ref, false);
+      Exception::set(ref);
       rval = false;
    }
    

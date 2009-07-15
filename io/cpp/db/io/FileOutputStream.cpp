@@ -46,7 +46,7 @@ bool FileOutputStream::write(const char* b, int length)
             "db.io.File.WriteError");
          e->getDetails()["path"] = mFile->getAbsolutePath();
          e->getDetails()["error"] = strerror(errno);
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
       else
       {
@@ -95,7 +95,7 @@ bool FileOutputStream::ensureOpen()
             "db.io.File.OpenFailed");
          e->getDetails()["path"] = mFile->getAbsolutePath();
          e->getDetails()["error"] = strerror(errno);
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
    }

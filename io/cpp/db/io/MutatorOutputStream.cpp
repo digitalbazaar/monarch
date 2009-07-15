@@ -101,7 +101,7 @@ bool MutatorOutputStream::write(const char* b, int length)
                ExceptionRef e = new Exception(
                   "Insufficient data for mutation algorithm.",
                   "db.io.MutationException");
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
             }
             else

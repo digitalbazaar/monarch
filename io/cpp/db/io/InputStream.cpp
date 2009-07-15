@@ -22,7 +22,7 @@ int InputStream::peek(char* b, int length, bool block)
    ExceptionRef e = new Exception(
       "InputStream::peek() is not implemented.",
       "db.io.NotImplemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    return -1;
 }
 

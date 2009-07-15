@@ -38,7 +38,7 @@ bool FileInputStream::ensureOpen()
             "Could not open file.",
             "db.io.File.NotFound");
          e->getDetails()["path"] = mFile->getAbsolutePath();
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else if(!mFile->isReadable())
@@ -47,7 +47,7 @@ bool FileInputStream::ensureOpen()
             "Could not open file.",
             "db.io.File.AccessDenied");
          e->getDetails()["path"] = mFile->getAbsolutePath();
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else
@@ -60,7 +60,7 @@ bool FileInputStream::ensureOpen()
                "db.io.File.OpenFailed");
             e->getDetails()["path"] = mFile->getAbsolutePath();
             e->getDetails()["error"] = strerror(errno);
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
       }
@@ -89,7 +89,7 @@ int FileInputStream::read(char* b, int length)
                "db.io.File.ReadError");
             e->getDetails()["path"] = mFile->getAbsolutePath();
             e->getDetails()["error"] = strerror(errno);
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = -1;
          }
       }
@@ -138,7 +138,7 @@ long long FileInputStream::skip(long long count)
             "db.io.File.ReadError");
          e->getDetails()["path"] = mFile->getAbsolutePath();
          e->getDetails()["error"] = strerror(errno);
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = -1;
       }
    }
@@ -168,7 +168,7 @@ int FileInputStream::readLine(string& line, char delimiter)
                "db.io.File.ReadError");
             e->getDetails()["path"] = mFile->getAbsolutePath();
             e->getDetails()["error"] = strerror(errno);
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = -1;
          }
          else

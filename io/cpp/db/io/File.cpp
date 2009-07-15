@@ -149,7 +149,7 @@ bool FileImpl::create()
          "db.io.File.CreateFailed");
       e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -192,7 +192,7 @@ bool FileImpl::mkdirs()
                "db.io.File.CreateDirectoryFailed");
             e->getDetails()["path"] = path.c_str();
             e->getDetails()["error"] = strerror(errno);
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
       }
@@ -236,7 +236,7 @@ bool FileImpl::remove()
          "db.io.File.DeleteFailed");
       e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -268,7 +268,7 @@ bool FileImpl::rename(File& file)
       e->getDetails()["oldName"] = mAbsolutePath;
       e->getDetails()["newName"] = file->getAbsolutePath();
       e->getDetails()["error"] = strerror(errno);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -331,7 +331,7 @@ off_t FileImpl::getLength()
          "db.io.File.StatFailed");
       e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return s.st_size;
@@ -533,7 +533,7 @@ bool File::readBytes(ByteBuffer* buffer)
       ExceptionRef e = new Exception(
          "Could not read entire file. Buffer is full.",
          "db.io.File.InsufficientBufferSpace");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -668,7 +668,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
             "Could not normalize relative path.",
             "db.io.File.BadNormalization");
          e->getDetails()["path"] = path;
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
    }
@@ -720,7 +720,7 @@ bool File::expandUser(const char* path, string& expandedPath)
          ExceptionRef e = new Exception(
             "Only current user supported (ie, \"~/...\").",
             "db.io.File.NotImplemented");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else
@@ -762,7 +762,7 @@ bool File::expandUser(const char* path, string& expandedPath)
                "No USERPROFILE environment variable set for "
                "'%USERPROFILE%' expansion.",
                "db.io.File.UserProfileNotSet");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
          else
@@ -783,7 +783,7 @@ bool File::expandUser(const char* path, string& expandedPath)
                "No USERPROFILE environment variable set for "
                "'%USERPROFILE%' expansion.",
                "db.io.File.UserProfileNotSet");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
          else
@@ -805,7 +805,7 @@ bool File::expandUser(const char* path, string& expandedPath)
                "No HOMEDRIVE environment variable set for "
                "'%HOMEDRIVE%' expansion.",
                "db.io.File.HomeDriveNotSet");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
          if(rval && homePath == NULL)
@@ -815,7 +815,7 @@ bool File::expandUser(const char* path, string& expandedPath)
                "No HOMEPATH environment variable set for "
                "'%HOMEPATH%' expansion.",
                "db.io.File.HomePathNotSet");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
          if(rval)
@@ -845,7 +845,7 @@ bool File::expandUser(const char* path, string& expandedPath)
                "No HOMEDRIVE environment variable set for "
                "'%HOMEDRIVE%' expansion.",
                "db.io.File.HomeDroveNotSet");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
       }
@@ -866,7 +866,7 @@ bool File::expandUser(const char* path, string& expandedPath)
                "No HOMEPATH environment variable set for "
                "'%HOMEPATH%' expansion.",
                "db.io.File.HomePathNotSet");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
       }
@@ -887,7 +887,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             ExceptionRef e = new Exception(
                "No HOME environment variable set for '~' expansion.",
                "db.io.File.HomeNotSet");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
       }
@@ -939,7 +939,7 @@ bool File::getCurrentWorkingDirectory(string& cwd)
             ExceptionRef e = new Exception(
                "Could not get current working directory, path too long.",
                "db.io.File.PathTooLong");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
       }
@@ -1041,7 +1041,7 @@ File File::createTempFile(const char* prefix, const char* dir)
             free(path);
          }
          e->getDetails()["error"] = strerror(errno);
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
       else
       {

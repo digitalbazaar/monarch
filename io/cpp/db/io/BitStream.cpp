@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/io/BitStream.h"
 
@@ -108,7 +108,7 @@ bool BitStream::appendFromString(const char* str, int length)
          ExceptionRef e = new Exception(
             "Could not convert BitStream from string, invalid character '%c' "
             "at position %d.", "db.io.BitStream.InvalidBitChar");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
    }

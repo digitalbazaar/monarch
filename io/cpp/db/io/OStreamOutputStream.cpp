@@ -31,7 +31,7 @@ bool OStreamOutputStream::write(const char* b, int length)
    {
       ExceptionRef e = new Exception(
          "Could not write to ostream.", "db.io.IO");
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;

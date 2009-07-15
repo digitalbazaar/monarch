@@ -133,18 +133,18 @@ DynamicObject ValidatorContext::addError(
    {
       ExceptionRef e;
       
-      if(!Exception::hasLast())
+      if(!Exception::isSet())
       {
          e = new Exception(
             "The given object does not meet all of the data validation "
             "requirements. Please examine the error details for more "
             "information about the specific requirements.", 
             "db.validation.ValidationError");
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
       else
       {
-         e = Exception::getLast();
+         e = Exception::get();
          // Check we are adding to a ValidationError
          if(strcmp(e->getType(), "db.validation.ValidationError") != 0)
          {
@@ -156,7 +156,7 @@ DynamicObject ValidatorContext::addError(
                "requirements. Please examine the error details for more "
                "information about the specific requirements.",
                "db.validation.ValidationError");
-            Exception::setLast(e, true);
+            Exception::push(e);
          }
       }
       

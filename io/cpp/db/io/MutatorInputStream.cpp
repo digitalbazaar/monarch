@@ -82,7 +82,7 @@ int MutatorInputStream::read(char* b, int length)
                ExceptionRef e = new Exception(
                   "Insufficient data for mutation algorithm.",
                   "db.io.MutationException");
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = -1;
             }
             else
