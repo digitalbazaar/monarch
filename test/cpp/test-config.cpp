@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/config/ConfigManager.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/io/File.h"
@@ -117,7 +116,7 @@ void runConfigManagerTest(TestRunner& tr)
       ConfigManager cm;
       assert(!cm.removeConfig("error"));
       assertException();
-      Exception::clearLast();
+      Exception::clear();
    }
    tr.passIfNoException();
 
@@ -325,13 +324,13 @@ void runConfigManagerTest(TestRunner& tr)
       cm.addVersion("1");
       assert(!cm.addConfig(c));
       assertException();
-      Exception::clearLast();
+      Exception::clear();
       
       c[ConfigManager::VERSION] = "2";
       cm.removeConfig("config");
       assert(!cm.addConfig(c));
       assertException();
-      Exception::clearLast();
+      Exception::clear();
       
       c[ConfigManager::VERSION] = "1";
       assert(cm.addConfig(c));

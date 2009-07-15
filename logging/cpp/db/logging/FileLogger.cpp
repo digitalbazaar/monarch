@@ -42,7 +42,7 @@ FileLogger::FileLogger(File* file) :
       // FIXME: what to do on exception?
       if(!set)
       {
-         Exception::clearLast();
+         Exception::clear();
       }
    }
    mCompressionJobDispatcher.getThreadPool()->
@@ -310,7 +310,7 @@ bool FileLogger::rotate()
    {
       // dump exceptions from moving aside old file
       // FIXME: print exceptoin?
-      Exception::clearLast();
+      Exception::clear();
       rval = true;
    }
    
@@ -372,7 +372,7 @@ bool FileLogger::rotate()
             // ignore failures
             if(!success)
             {
-               Exception::clearLast();
+               Exception::clear();
             }
          }
       }
@@ -473,7 +473,7 @@ void FileLogger::log(const char* message, size_t length)
          // FIXME how to handle exceptions?
          if(!success)
          {
-            Exception::clearLast();
+            Exception::clear();
          }
       }
    }

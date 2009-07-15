@@ -771,12 +771,12 @@ void runJsonTest(
    }
    
    // handle thread mem issue by making process time 0
-   if(Exception::hasLast() &&
-      strcmp(Exception::getLast()->getType(),
+   if(Exception::isSet() &&
+      strcmp(Exception::get()->getType(),
          "db.rt.Thread.InsufficientMemory") == 0)
    {
       proc_dt = 0;
-      Exception::clearLast();
+      Exception::clear();
    }
    
    if(tr.getOutputLevel() == TestRunner::None)

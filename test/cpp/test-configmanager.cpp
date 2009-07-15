@@ -7,7 +7,6 @@
  * the simplest config files can be loaded and that the simplest configuration
  * values can be combined and merged together, including groups.
  */
-
 #include "db/config/ConfigManager.h"
 #include "db/data/json/JsonReader.h"
 #include "db/data/json/JsonWriter.h"
@@ -753,7 +752,7 @@ void testFailures()
    assertNoException();
    assert(!cm.addConfig(ui));
    assertException();
-   Exception::clearLast();
+   Exception::clear();
    
    // remove conflict
    ui[ConfigManager::MERGE]["fruits"]->removeMember("banana");
@@ -770,10 +769,10 @@ void testFailures()
       Config bogus(NULL);
       bogus = cm.getConfig("bogus", true);
       assertException();
-      Exception::clearLast();
+      Exception::clear();
       bogus = cm.getConfig("bogus", false);
       assertException();
-      Exception::clearLast();
+      Exception::clear();
    }
    
    // try to add config with bogus parent
@@ -784,7 +783,7 @@ void testFailures()
       config[ConfigManager::MERGE]["test"] = "data";
       assert(!cm.addConfig(config));
       assertException();
-      Exception::clearLast();
+      Exception::clear();
    }
    
    // try to change a merged config
@@ -793,7 +792,7 @@ void testFailures()
       _user1[ConfigManager::MERGE]["modify"] = true;
       cm.setConfig(_user1);
       assertException();
-      Exception::clearLast();
+      Exception::clear();
    }
    
    // try to change the group on a config
@@ -802,7 +801,7 @@ void testFailures()
       _user1[ConfigManager::GROUP] = "app";
       cm.setConfig(_user1);
       assertException();
-      Exception::clearLast();
+      Exception::clear();
    }
    
    // try to change the parent on a config
@@ -811,7 +810,7 @@ void testFailures()
       _user1[ConfigManager::PARENT] = "system";
       cm.setConfig(_user1);
       assertException();
-      Exception::clearLast();
+      Exception::clear();
    }
 }
 

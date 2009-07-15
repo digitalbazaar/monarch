@@ -301,7 +301,7 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
       baos2.write(sentence + e->getUsedBytes(), e->getUnusedBytes());
       
       // clear exception
-      Exception::clearLast();
+      Exception::clear();
    }
    
    assertStrCmp(b.data(), "T hate chickenThis is a sentence.");
@@ -540,7 +540,7 @@ void runFileTest(TestRunner& tr)
          string path;
          assert(!File::expandUser("~/", path));
          assertException();
-         Exception::clearLast();
+         Exception::clear();
       }
 #endif
 
@@ -641,14 +641,14 @@ void runFileTest(TestRunner& tr)
          string path;
          assert(!File::expandUser("~user/foo.txt", path));
          assertException();
-         Exception::clearLast();
+         Exception::clear();
       }
       
       {
          string path;
          assert(!File::expandUser("~user/foo.txt", path));
          assertException();
-         Exception::clearLast();
+         Exception::clear();
       }
 
       {

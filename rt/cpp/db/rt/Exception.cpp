@@ -97,16 +97,10 @@ bool Exception::hasLast()
    return Exception::isSet();
 }
 // FIXME: deprecated
-void Exception::clearLast()
-{
-   Exception::clear();
-}
-// FIXME: deprecated
-DynamicObject Exception::getLastAsDynamicObject()
-{
-   ExceptionRef e = Exception::get();
-   return Exception::convertToDynamicObject(e);
-}
+//void Exception::clearLast()
+//{
+//   Exception::clear();
+//}
 
 ExceptionRef& Exception::set(ExceptionRef& e)
 {

@@ -181,7 +181,7 @@ void runMySqlStatementTest(TestRunner& tr)
    tr.group("MySql Statement");
    
    // clear any exceptions
-   Exception::clearLast();
+   Exception::clear();
    
    MySqlConnection c;
    c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@omega.digitalbazaar.com");

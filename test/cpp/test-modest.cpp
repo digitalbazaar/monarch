@@ -130,7 +130,7 @@ void runModestTest(TestRunner& tr)
 {
    tr.test("Modest Engine");
    
-   Exception::clearLast();
+   Exception::clear();
    
    Kernel k;
    

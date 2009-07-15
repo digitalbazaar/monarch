@@ -41,10 +41,10 @@ bool SslSocketDataPresenter::detectSsl(Socket* s)
    if(numBytes < 0)
    {
       // clear socket timeout exceptions
-      ExceptionRef e = Exception::getLast();
+      ExceptionRef e = Exception::get();
       if(strcmp(e->getType(), SOCKET_TIMEOUT_EXCEPTION_TYPE) == 0)
       {
-         Exception::clearLast();
+         Exception::clear();
       }
    }
    

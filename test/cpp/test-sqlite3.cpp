@@ -410,7 +410,7 @@ void runSqlite3StatementTest(TestRunner& tr)
    tr.group("Sqlite3 Statement");
    
    // clear any exceptions
-   Exception::clearLast();
+   Exception::clear();
    
    Sqlite3Connection c;
    c.connect("sqlite3::memory:");
@@ -435,7 +435,7 @@ void runSqlite3TableTest(TestRunner& tr)
    tr.group("Sqlite3 Table");
    
    // clear any exceptions
-   Exception::clearLast();
+   Exception::clear();
    
    Sqlite3Connection c;
    c.connect("sqlite3::memory:");
@@ -498,7 +498,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
       // - commit
       
       // clear any exceptions
-      Exception::clearLast();
+      Exception::clear();
       
       Sqlite3Connection c;
       c.connect("sqlite3::memory:");
@@ -587,7 +587,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
       // - commit
       
       // clear any exceptions
-      Exception::clearLast();
+      Exception::clear();
       
       Sqlite3Connection c;
       c.connect("sqlite3::memory:");
@@ -698,7 +698,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
       // - commit
       
       // clear any exceptions
-      Exception::clearLast();
+      Exception::clear();
       
       Sqlite3Connection c;
       c.connect("sqlite3::memory:");
@@ -835,7 +835,7 @@ void runSqlite3ReuseTest(TestRunner& tr)
    tr.group("Reuse");
    
    // clear any exceptions
-   Exception::clearLast();
+   Exception::clear();
    
    // create sqlite3 connection pool
    Sqlite3ConnectionPool cp("sqlite3::memory:", 1);

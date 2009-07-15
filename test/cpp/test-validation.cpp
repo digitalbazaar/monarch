@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "db/test/Test.h"
@@ -42,7 +42,7 @@ void runValidatorTest(TestRunner& tr)
          "The given object does not meet all of the data validation "
          "requirements. Please examine the error details for more information "
          "about the specific requirements.");
-      Exception::clearLast();
+      Exception::clear();
       tr.passIfNoException();
    }
    
@@ -988,19 +988,17 @@ void runAnyExceptionsTest(TestRunner& tr)
       
       assert(!v.isValid(mapFail));
       printf("\nShould be able to tell that only \"dog\" was incorrect.\n");
-      ExceptionRef e = Exception::getLast();
-      DynamicObject ex = Exception::convertToDynamicObject(e);
+      DynamicObject ex = Exception::getAsDynamicObject();
       dumpDynamicObject(ex);
       printf("\nIt looks like this for only a map validator (w/o the Any):\n");
       
-      Exception::clearLast();
+      Exception::clear();
       v::Map v2(
          "dog", new v::Equals("woof"),
          "cat", new v::Equals("meow"),
          NULL);
       assert(!v2.isValid(mapFail));
-      e = Exception::getLast();
-      ex = Exception::convertToDynamicObject(e);
+      ex = Exception::getAsDynamicObject();
       dumpDynamicObject(ex);
    }
    tr.passIfException();
@@ -1017,7 +1015,7 @@ void runAnyExceptionsTest(TestRunner& tr)
       dumpDynamicObject(ex);
       printf("\nIt looks like this for only a map validator (w/o the Any):\n");
       
-      Exception::clearLast();
+      Exception::clear();
       v::Map v2(
          "dog", new v::Equals("woof"),
          "cat", new v::Equals("meow"),
@@ -1041,7 +1039,7 @@ void runAnyExceptionsTest(TestRunner& tr)
       dumpDynamicObject(ex);
       printf("\nIt looks like this for only an int validator (w/o the Any):\n");
       
-      Exception::clearLast();
+      Exception::clear();
       v::Int v2(v::Int::Positive);
       assert(!v2.isValid(intFail));
       e = Exception::getLast();

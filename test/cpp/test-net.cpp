@@ -47,7 +47,7 @@ void runAddressResolveTest(TestRunner& tr)
 {
    tr.test("Address Resolution");
    
-   Exception::clearLast();
+   Exception::clear();
    
    // create IPv4 address
    InternetAddress ip4;
@@ -127,7 +127,7 @@ void runSocketTest(TestRunner& tr)
 {
    tr.test("Socket");
    
-   Exception::clearLast();
+   Exception::clear();
    
    // create address
    //InternetAddress address("127.0.0.1", 80);
@@ -271,13 +271,13 @@ void runServerSocketTest(TestRunner& tr)
 {
    tr.test("Server Socket");
    
-   Exception::clearLast();
+   Exception::clear();
    
    // bind and listen
    InternetAddress address("127.0.0.1", 19100);
    
    // ensure host was known
-   if(!Exception::hasLast())
+   if(!Exception::isSet())
    {
       // create tcp socket
       TcpSocket socket;

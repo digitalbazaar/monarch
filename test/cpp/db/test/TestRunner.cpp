@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/test/TestRunner.h"
 
@@ -179,7 +179,7 @@ void TestRunner::passIfNoException()
       }
       else
       {
-         Exception::clearLast();
+         Exception::clear();
       }
    }
    else
@@ -190,13 +190,13 @@ void TestRunner::passIfNoException()
 
 void TestRunner::passIfException(bool dump)
 {
-   if(Exception::hasLast())
+   if(Exception::isSet())
    {
       if(dump)
       {
          dumpException();
       }
-      Exception::clearLast();
+      Exception::clear();
       pass();
    }
    else

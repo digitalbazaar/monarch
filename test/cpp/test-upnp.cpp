@@ -177,7 +177,7 @@ void runPortMappingTest(TestRunner& tr)
          // if dne then the mapping already does not exist, which is fine
          if(dne)
          {
-            Exception::clearLast();
+            Exception::clear();
          }
       }
    }

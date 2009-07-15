@@ -137,8 +137,6 @@ public:
       Collectable<Exception>& e, bool caused);
    static Collectable<Exception> getLast();
    static bool hasLast();
-   static void clearLast();
-   static DynamicObject getLastAsDynamicObject();
    
    /**
     * Sets the exception for the current thread, replacing any old existing

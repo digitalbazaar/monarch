@@ -374,7 +374,7 @@ void mailSpoolTest(TestRunner& tr)
    // get first mail (should exception, spool is empty)
    spool.getFirst(&m3);
    assertException();
-   Exception::clearLast();
+   Exception::clear();
    
    tr.passIfNoException();
 }
@@ -406,10 +406,10 @@ void runFailedMailSendTest(TestRunner& tr)
    if(!sent)
    {
       // check for network errors, we want to spool the mail
-      ExceptionRef e = Exception::getLast();
+      ExceptionRef e = Exception::get();
       if(strncmp(e->getType(), "db.net", 6) == 0)
       {
-         Exception::clearLast();
+         Exception::clear();
          spool.spool(&mail);
          assertNoException();
          

@@ -139,8 +139,8 @@ bool Server::start()
          if(!rval)
          {
             // save exception
-            ExceptionRef e = Exception::getLast();
-            Exception::clearLast();
+            ExceptionRef e = Exception::get();
+            Exception::clear();
             
             // stop all started port services
             stop();
@@ -150,7 +150,7 @@ bool Server::start()
                "Could not start server. At least one port service failed.",
                "db.net.Server.PortServiceFailed");
             ex->setCause(e);
-            Exception::setLast(ex, false);
+            Exception::set(ex);
          }
       }
    }

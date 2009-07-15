@@ -224,7 +224,7 @@ void runThreadPoolTest(TestRunner& tr)
 {
    tr.test("ThreadPool");
    
-   Exception::clearLast();
+   Exception::clear();
    
    // create a thread pool
    ThreadPool pool(3);
@@ -256,7 +256,7 @@ void runJobDispatcherTest(TestRunner& tr)
 {
    tr.test("JobDispatcher");
    
-   Exception::clearLast();
+   Exception::clear();
    
    // create a job dispatcher
    //JobDispatcher jd;

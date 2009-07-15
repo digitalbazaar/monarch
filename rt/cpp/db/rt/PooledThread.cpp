@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/rt/PooledThread.h"
 
@@ -108,7 +108,7 @@ void PooledThread::run()
          mThreadPool->jobCompleted(this);
          
          // clear last exception on thread as the job has been completed
-         Exception::clearLast();
+         Exception::clear();
       }
       else
       {

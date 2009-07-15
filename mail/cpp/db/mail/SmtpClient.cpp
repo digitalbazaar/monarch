@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/mail/SmtpClient.h"
 
@@ -282,9 +282,9 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
       // connect, use 30 second timeouts
       TcpSocket s;
       s.setReceiveTimeout(30000);
-      Exception::clearLast();
+      Exception::clear();
       InternetAddress address(url->getHost().c_str(), url->getPort());
-      if(Exception::hasLast())
+      if(Exception::isSet())
       {
          ExceptionRef e = new Exception(
             "Failed to setup SMTP host address.",

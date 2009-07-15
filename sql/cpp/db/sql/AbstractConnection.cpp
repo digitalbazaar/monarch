@@ -29,9 +29,9 @@ bool AbstractConnection::connect(const char* url)
    mUrl.setNull();
    
    // ensure URL isn't malformed
-   Exception::clearLast();
+   Exception::clear();
    mUrl = new Url(url);
-   if(Exception::hasLast())
+   if(Exception::isSet())
    {
       ExceptionRef e = new Exception(
          "Invalid database url.",

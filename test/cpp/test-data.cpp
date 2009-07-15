@@ -195,7 +195,7 @@ void runJsonInvalidTest(TestRunner& tr)
       jr.read(&is);
       jr.finish();
       assertException();
-      Exception::clearLast();
+      Exception::clear();
       //jw.write(d, &os);
       //printf("\n");
       
@@ -317,7 +317,7 @@ void runJsonInvalidDJTest(TestRunner& tr)
       //jw.write(dyno1, &os);
       jw.write(d, &bbos);
       assertException();
-      Exception::clearLast();
+      Exception::clear();
       b.clear();
       assertNoException();
       
@@ -601,7 +601,7 @@ void runXmlReaderTest(TestRunner& tr)
       
       assertException();
       //printf("\n%s\n", Exception::getLast()->getMessage());
-      Exception::clearLast();
+      Exception::clear();
    }
    
    {

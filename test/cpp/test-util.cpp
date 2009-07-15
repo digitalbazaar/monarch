@@ -183,13 +183,13 @@ void runConvertTest(TestRunner& tr)
       hex = "x";
       assert(!Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assertException();
-      Exception::clearLast();
+      Exception::clear();
 
       // too big
       hex = "876543210";
       assert(!Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assertException();
-      Exception::clearLast();
+      Exception::clear();
    }
    
    {
