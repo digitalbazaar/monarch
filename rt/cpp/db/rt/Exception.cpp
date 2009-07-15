@@ -80,30 +80,66 @@ DynamicObject& Exception::getDetails()
    return *mDetails;
 }
 
+// FIXME: deprecated
 ExceptionRef& Exception::setLast(ExceptionRef& e, bool caused)
 {
-   Thread::setException(e, caused);
+   caused ? Exception::push(e) : Exception::set(e);
+   return e;
+}
+// FIXME: deprecated
+ExceptionRef Exception::getLast()
+{
+   return Exception::get();
+}
+// FIXME: deprecated
+bool Exception::hasLast()
+{
+   return Exception::isSet();
+}
+// FIXME: deprecated
+void Exception::clearLast()
+{
+   Exception::clear();
+}
+// FIXME: deprecated
+DynamicObject Exception::getLastAsDynamicObject()
+{
+   ExceptionRef e = Exception::get();
+   return Exception::convertToDynamicObject(e);
+}
+
+ExceptionRef& Exception::set(ExceptionRef& e)
+{
+   // false = do not use previous exception as cause, instead, clear it 
+   Thread::setException(e, false);
    return e;
 }
 
-ExceptionRef Exception::getLast()
+ExceptionRef& Exception::push(ExceptionRef& e)
+{
+   // true = use previous exception as cause, do NOT clear it 
+   Thread::setException(e, true);
+   return e;
+}
+
+ExceptionRef Exception::get()
 {
    return Thread::getException();
 }
 
-bool Exception::hasLast()
+bool Exception::isSet()
 {
    return Thread::hasException();
 }
 
-void Exception::clearLast()
+void Exception::clear()
 {
    Thread::clearException();
 }
 
-DynamicObject Exception::getLastAsDynamicObject()
+DynamicObject Exception::getAsDynamicObject()
 {
-   ExceptionRef e = Exception::getLast();
+   ExceptionRef e = Exception::get();
    return Exception::convertToDynamicObject(e);
 }
 

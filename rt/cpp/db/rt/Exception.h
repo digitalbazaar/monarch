@@ -17,9 +17,9 @@ namespace rt
  * 
  * In the current implementation of db::rt, a single Exception is stored in
  * thread-local memory for each thread. Whenever an Object's method needs to
- * raise an Exception, it calls Thread::setException() with a dynamically
- * allocated Exception (or derivative). The memory cleanup will be handled
- * by the thread when setting new exceptions and when the thread dies.
+ * raise an Exception, it calls Exception::set() with a dynamically allocated
+ * Exception (or derivative). The memory cleanup will be handled by the thread
+ * when setting new exceptions and when the thread dies.
  * 
  * @author Dave Longley
  */
@@ -132,61 +132,87 @@ public:
     */
    virtual DynamicObject& getDetails();
    
+   // FIXME: remove old deprecated exception interface
+   static Collectable<Exception>& setLast(
+      Collectable<Exception>& e, bool caused);
+   static Collectable<Exception> getLast();
+   static bool hasLast();
+   static void clearLast();
+   static DynamicObject getLastAsDynamicObject();
+   
    /**
-    * Sets the exception for the current thread.
+    * Sets the exception for the current thread, replacing any old existing
+    * exception.
     * 
     * This will store the passed reference in thread-local memory, incrementing
     * its count. The thread-local reference will be cleared, decrementing the
     * count, when the current thread exits or when the exception reference is
-    * replaced by another call to setException() on the same thread.
+    * replaced by another call to set() on the same thread.
     * 
-    * Note: An exception's cause may be set externally to this thread either
-    * to a locally generated one or to the exception retrieved via getLast().
-    * However, if the cause is the exception retrieved via getLast(), it is
-    * faster to simply pass this method "true" for the "caused" parameter
-    * than it is to manually get and set the cause.
+    * Note: If the exception to be set was caused by another related
+    * exception, then a call to push() is more appropriate. Calling push()
+    * will preserve an existing exception on the current thread as a cause
+    * of the new exception that is passed to push.
     * 
-    * @param e the reference to the Exception to set for the current thread.
-    * @param caused true if the current Exception on the thread caused
-    *               the passed Exception and should be set as its cause.
+    * @param e the reference to the exception to set for the current thread.
     * 
-    * @return the reference to the Exception.
+    * @return the reference to the exception.
     */
-   static Collectable<Exception>& setLast(
-      Collectable<Exception>& e, bool caused);
+   static Collectable<Exception>& set(Collectable<Exception>& e);
    
    /**
-    * Gets a reference to the Exception for the current thread. This will be
-    * the last Exception that was set on this thread. It is stored in
+    * Pushes an exception onto the current thread's stack of related exceptions.
+    * 
+    * The previous existing exception (at the old top of the stack) will be
+    * saved as the "cause" of the new exception. If there was no existing
+    * exception, then there will be no cause set on the new exception.
+    * 
+    * If the caller instead wishes to set an entirely new exception that is
+    * unrelated to any previous exceptions set on the thread, then they should
+    * call set() instead of push().
+    * 
+    * @param e the reference to the exception to push onto the current thread,
+    *          keeping any existing exception as the cause of "e".
+    * 
+    * @return the reference to the exception.
+    */
+   static Collectable<Exception>& push(Collectable<Exception>& e);
+   
+   /**
+    * Gets a reference to the exception for the current thread. This will be
+    * the last exception that was set on this thread. It is stored in
     * thread-local memory the reference to it will be automatically cleared,
     * and thus decremented, when the thread exits.
     * 
-    * @return a reference to the last Exception for the current thread, which
+    * The returned exception may have a stack related exceptions, with
+    * each layer stored as the "cause" of the exception above it.
+    * 
+    * @return a reference to the last exception for the current thread, which
     *         may reference NULL.
     */
-   static Collectable<Exception> getLast();
+   static Collectable<Exception> get();
    
    /**
-    * Returns true if the current thread has encountered an Exception that
-    * can be retrieved by calling Thread::getException(), false if not.
+    * Returns true if the current thread has encountered an exception that
+    * can be retrieved by calling Exception::get(), false if not.
     * 
-    * @return true if the current thread an Exception, false if not.
+    * @return true if the current thread an exception, false if not.
     */
-   static bool hasLast();
+   static bool isSet();
    
    /**
-    * Clears any Exception from the current thread. This clears the
+    * Clears any exception from the current thread. This clears the
     * thread-local reference to the exception's memory (thus decrementing
     * its count).
     */
-   static void clearLast();
+   static void clear();
    
    /**
     * Gets the last exception as a DynamicObject.
     * 
     * @return the last exception as a DynamicObject.
     */
-   static DynamicObject getLastAsDynamicObject();
+   static DynamicObject getAsDynamicObject();
    
    /**
     * Converts the passed Exception to a DynamicObject.
