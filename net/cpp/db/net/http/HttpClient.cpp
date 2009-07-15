@@ -112,7 +112,7 @@ HttpResponse* HttpClient::get(Url* url, DynamicObject* headers, bool follow)
                   "No location field in header.",
                   "db.net.http.InvalidRedirect");
                e->getDetails()["statusCode"] = code;
-               Exception::setLast(e, false);
+               Exception::set(e);
             }
             else
             {
@@ -190,7 +190,7 @@ bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
       ExceptionRef e = new Exception(
          "Could not receive HTTP content, not connected.",
          "db.net.http.NotConnected");
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else
    {

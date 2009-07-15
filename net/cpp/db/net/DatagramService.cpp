@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/DatagramService.h"
+
 #include "db/net/Server.h"
 
 using namespace db::modest;

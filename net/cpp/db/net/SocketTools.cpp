@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/SocketTools.h"
 
@@ -143,7 +143,7 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
       
       // set interrupted exception
       ExceptionRef e = t->createInterruptedException();
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else if(rval > 0 && FD_ISSET(fd, &exfds) != 0)
    {
@@ -315,7 +315,7 @@ int SocketTools::select(
       
       // set interrupted exception
       ExceptionRef e = t->createInterruptedException();
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;

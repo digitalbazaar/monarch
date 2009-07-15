@@ -109,7 +109,7 @@ static bool checkVariableError(const char* start, const char* pos)
          "Variable names must start with a letter and contain only "
          "alphanumeric characters.",
          "db.data.TemplateInputStream.InvalidVariable");
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -148,7 +148,7 @@ bool TemplateInputStream::process(const char* pos)
                "Unknown escaped character.",
                "db.data.TemplateInputStream.InvalidEscape");
             e->getDetails()["character"] = std::string(1, pos[0]).c_str();
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
             break;
          }
@@ -216,7 +216,7 @@ bool TemplateInputStream::process(const char* pos)
                      "variable.",
                      "db.data.TemplateInputStream.VariableNotFound");
                   e->getDetails()["name"] = varname;
-                  Exception::setLast(e, false);
+                  Exception::set(e);
                   rval = false;
                }
                else
@@ -288,7 +288,7 @@ int TemplateInputStream::read(char* b, int length)
                ExceptionRef e = new Exception(
                   "Incomplete variable or variable name too large.",
                   "db.data.TemplateInputStream.InvalidVariable");
-               Exception::setLast(e, false);
+               Exception::set(e);
                parseError = true;
             }
             else if(!mParsingVariable && !mEscapeOn)
@@ -312,7 +312,7 @@ int TemplateInputStream::read(char* b, int length)
             e->getDetails()["line"] = mLineNumber;
             e->getDetails()["position"] = mPosition;
             e->getDetails()["near"] = nearStr;
-            Exception::setLast(e, true);
+            Exception::push(e);
             rval = -1;
          }
          
@@ -332,7 +332,7 @@ int TemplateInputStream::read(char* b, int length)
       ExceptionRef e = new Exception(
          "Incomplete escape sequence at the end of the template.",
          "db.data.TemplateInputStream.IncompleteTemplate");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = -1;
    }
    

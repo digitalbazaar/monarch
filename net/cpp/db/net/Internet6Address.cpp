@@ -100,7 +100,7 @@ bool Internet6Address::setHost(const char* host)
    {
       ExceptionRef e = new Exception("Unknown host.", "db.net.UnknownHost");
       e->getDetails()["host"] = host;
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else
    {

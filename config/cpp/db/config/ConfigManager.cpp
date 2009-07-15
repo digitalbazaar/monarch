@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/config/ConfigManager.h"
 
@@ -556,7 +556,7 @@ bool ConfigManager::checkConflicts(
       e->getDetails()["configId"] = id;
       e->getDetails()["diff"] = d;
       e->getDetails()["isGroup"] = isGroup;
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -587,7 +587,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       ExceptionRef e = new Exception(
          "No valid config ID found.",
          "db.config.ConfigManager.MissingId");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -599,7 +599,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
          "Group ID cannot be the same as config ID.",
          "db.config.ConfigManager.ConfigConflict");
       e->getDetails()["id"] = id;
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -616,7 +616,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                ExceptionRef e = new Exception(
                   "No config file version found.",
                   "db.config.ConfigManager.UnspecifiedVersion");
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
             }
             else
@@ -629,7 +629,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                      "Unsupported config file version.",
                      "db.config.ConfigManager.UnsupportedVersion");
                   e->getDetails()["version"] = version;
-                  Exception::setLast(e, false);
+                  Exception::set(e);
                   rval = false;
                }
             }
@@ -647,7 +647,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                   "db.config.ConfigManager.InvalidParent");
                e->getDetails()["configId"] = id;
                e->getDetails()["parentId"] = parent;
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
             }
          }
@@ -684,7 +684,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             "db.config.ConfigManager.InvalidIncludeType");
          e->getDetails()["configId"] = id;
          e->getDetails()[INCLUDE] = config[INCLUDE];
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else
@@ -715,7 +715,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                      "db.config.ConfigManager.MissingIncludePath");
                   e->getDetails()["configId"] = id;
                   e->getDetails()[INCLUDE] = config[INCLUDE];
-                  Exception::setLast(e, false);
+                  Exception::set(e);
                   rval = false;
                }
                // should include be loaded?
@@ -742,7 +742,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
                   "db.config.ConfigManager.InvalidIncludeType");
                e->getDetails()["configId"] = id;
                e->getDetails()[INCLUDE] = config[INCLUDE];
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
             }
             
@@ -898,7 +898,7 @@ bool ConfigManager::addConfigFile(
                "Configuration file not found.",
                "db.config.ConfigManager.FileNotFound");
             e->getDetails()["path"] = path;
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
       }
@@ -927,7 +927,7 @@ bool ConfigManager::addConfigFile(
                "Configuration file load failure.",
                "db.config.ConfigManager.ConfigFileError");
             e->getDetails()["path"] = path;
-            Exception::setLast(e, true);
+            Exception::push(e);
             rval = false;
          }
       }
@@ -989,7 +989,7 @@ bool ConfigManager::addConfigFile(
          ExceptionRef e = new Exception(
             "Unknown configuration file type.",
             "db.config.ConfigManager.FileNotFound");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
    }
@@ -1004,7 +1004,7 @@ bool ConfigManager::addConfigFile(
       {
          e->getDetails()["dir"] = dir;
       }
-      Exception::setLast(e, true);
+      Exception::push(e);
    }
    
    return rval;
@@ -1097,7 +1097,7 @@ bool ConfigManager::removeConfig(ConfigId id)
             "Could not remove config. Invalid config ID.",
             "db.config.ConfigManager.InvalidId");
          e->getDetails()["id"] = id;
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
    }
    mLock.unlockExclusive();
@@ -1120,7 +1120,7 @@ Config ConfigManager::getConfig(ConfigId id, bool raw)
          "Could not get config. Invalid config ID.",
          "db.config.ConfigManager.InvalidId");
       e->getDetails()["id"] = id;
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;
@@ -1147,7 +1147,7 @@ bool ConfigManager::setConfig(Config& config)
             "Could not set config. Invalid config ID.",
             "db.config.ConfigManager.InvalidId");
          e->getDetails()["id"] = id;
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
       // ensure the group ID hasn't changed
       else if(
@@ -1161,7 +1161,7 @@ bool ConfigManager::setConfig(Config& config)
             "Could not set config. Group changed.",
             "db.config.ConfigManager.ConfigConflict");
          e->getDetails()["id"] = id;
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
       // ensure the parent ID hasn't changed
       else if(
@@ -1175,7 +1175,7 @@ bool ConfigManager::setConfig(Config& config)
             "Could not set config. Parent changed.",
             "db.config.ConfigManager.ConfigConflict");
          e->getDetails()["id"] = id;
-         Exception::setLast(e, false);
+         Exception::set(e);
       }
       else
       {

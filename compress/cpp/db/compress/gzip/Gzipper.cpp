@@ -225,7 +225,7 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
             {
                ExceptionRef e = new Exception(
                   "Bad gzip CRC.", "db.compress.gzip.BadCrc");
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = -1;
             }
          }

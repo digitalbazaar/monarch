@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/http/HttpBodyOutputStream.h"
 
@@ -55,7 +55,7 @@ bool HttpBodyOutputStream::write(const char* b, int length)
       {
          // see if send would block
          length = 0;
-         ExceptionRef e = Exception::getLast();
+         ExceptionRef e = Exception::get();
          if(e->getDetails()->hasMember("wouldBlock"))
          {
             // use number of bytes sent

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/data/json/JsonReader.h"
 
@@ -281,7 +281,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
                   "Invalid escape code.",
                   "db.data.json.JsonReader.InvalidEscapeCode");
                e->getDetails()["escapeCode"] = temp.c_str();
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
                break;
             }
@@ -485,7 +485,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          ExceptionRef e = new Exception(
             "Invalid input.",
             "db.data.json.JsonReader.InvalidInput");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
          break;
       }
@@ -495,7 +495,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          ExceptionRef e = new Exception(
             "Invalid JSON parse state.",
             "db.data.json.JsonReader.InvalidParseState");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
          break;
       }
@@ -530,7 +530,7 @@ bool JsonReader::read(InputStream* is)
       ExceptionRef e = new Exception(
          "Cannot read yet, JsonReader not started.",
          "db.data.json.JsonReader.NotStarted");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    else
@@ -565,7 +565,7 @@ bool JsonReader::read(InputStream* is)
          e->getDetails()["line"] = mLineNumber;
          e->getDetails()["position"] = position;
          e->getDetails()["near"] = temp;
-         Exception::setLast(e, true);
+         Exception::push(e);
       }
       else if(numBytes == -1)
       {
@@ -596,7 +596,7 @@ bool JsonReader::finish()
             "No JSON value found.",
             "db.data.json.JsonReader.ParseError");
       }
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    

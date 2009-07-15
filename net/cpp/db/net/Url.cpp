@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/Url.h"
 
@@ -102,7 +102,7 @@ bool Url::setUrl(const char* format, va_list varargs)
          "Could not set url. Formatted string could not be malloc'd.",
          "db.net.Url.BadMalloc");
       e->getDetails()["format"] = format;
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -157,7 +157,7 @@ bool Url::setUrl(const string& url)
             "db.net.MalformedUrl");
          e->getDetails()["url"] = url.c_str();
          e->getDetails()["relative"] = mRelative;
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else
@@ -175,7 +175,7 @@ bool Url::setUrl(const string& url)
                   "db.net.MalformedUrl");
                e->getDetails()["url"] = url.c_str();
                e->getDetails()["relative"] = mRelative;
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
             }
          }

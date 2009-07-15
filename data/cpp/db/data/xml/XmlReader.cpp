@@ -73,7 +73,7 @@ bool XmlReader::read(InputStream* is)
       ExceptionRef e = new Exception(
          "Cannot read yet, XmlReader not started.",
          XML_READER_EXCEPTION ".SetupError");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    else
@@ -89,7 +89,7 @@ bool XmlReader::read(InputStream* is)
             ExceptionRef e = new Exception(
                "Insufficient memory to parse xml.",
                XML_READER_EXCEPTION ".InsufficientMemory");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
          }
          else
@@ -113,7 +113,7 @@ bool XmlReader::read(InputStream* is)
                e->getDetails()["line"] = line;
                e->getDetails()["column"] = column;
                e->getDetails()["error"] = error;
-               Exception::setLast(e, false);
+               Exception::set(e);
             }
             else if(numBytes == -1)
             {
@@ -145,7 +145,7 @@ bool XmlReader::finish()
          e->getDetails()["line"] = line;
          e->getDetails()["column"] = column;
          e->getDetails()["error"] = error;
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       
@@ -192,7 +192,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
             mException = new Exception(
                "Xml parsing error. No 'name' attribute for 'member' element.",
                XML_READER_EXCEPTION ".MissingAttribute");
-            Exception::setLast(mException, false);
+            Exception::set(mException);
          }
       }
       else if(strcmp(name, "element") == 0)
@@ -222,7 +222,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
                "Xml parsing error. No 'index' attribute for 'element' "
                "element.",
                XML_READER_EXCEPTION ".MissingAttribute");
-            Exception::setLast(mException, false);
+            Exception::set(mException);
          }
       }
       else

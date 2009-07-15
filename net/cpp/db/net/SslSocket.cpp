@@ -229,7 +229,7 @@ bool SslSocket::performHandshake()
             ExceptionRef e = new Exception(
                "Could not perform SSL handshake. Socket closed.",
                SOCKET_EXCEPTION_TYPE ".SslHandshakeError");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
             break;
          }
@@ -242,7 +242,7 @@ bool SslSocket::performHandshake()
                ExceptionRef e = new Exception(
                   "Could not perform SSL handshake. Socket closed.",
                   SOCKET_EXCEPTION_TYPE ".SslHandshakeError");
-               Exception::setLast(e, (ret < 0));
+               (ret < 0) ? Exception::push(e) : Exception::set(e);
                rval = false;
             }
             break;
@@ -258,7 +258,7 @@ bool SslSocket::performHandshake()
                "Could not perform SSL handshake.",
                SOCKET_EXCEPTION_TYPE ".SslHandshakeError");
             e->getDetails()["error"] = SslContext::getSslErrorStrings();
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = false;
             break;
          }
@@ -295,7 +295,7 @@ bool SslSocket::send(const char* b, int length)
       ExceptionRef e = new Exception(
          "Cannot write to unconnected socket.",
          SOCKET_EXCEPTION_TYPE ".WriteError");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    else
@@ -322,7 +322,7 @@ bool SslSocket::send(const char* b, int length)
                   "Could not write to socket. Socket closed.",
                   SOCKET_EXCEPTION_TYPE ".WriteError");
                e->getDetails()["error"] = SslContext::getSslErrorStrings();
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
                break;
             }
@@ -336,7 +336,7 @@ bool SslSocket::send(const char* b, int length)
                      "Could not write to socket. Socket closed.",
                      SOCKET_EXCEPTION_TYPE ".WriteError");
                   e->getDetails()["error"] = strerror(errno);
-                  Exception::setLast(e, (ret < 0));
+                  (ret < 0) ? Exception::push(e) : Exception::set(e);
                   rval = false;
                }
                break;
@@ -351,7 +351,7 @@ bool SslSocket::send(const char* b, int length)
                   "Could not write to socket.",
                   SOCKET_EXCEPTION_TYPE ".WriteError");
                e->getDetails()["error"] = SslContext::getSslErrorStrings();
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = false;
                break;
             }
@@ -374,7 +374,7 @@ int SslSocket::receive(char* b, int length)
       ExceptionRef e = new Exception(
          "Cannot read from unconnected socket.",
          SOCKET_EXCEPTION_TYPE ".ReadError");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = -1;
    }
    else
@@ -415,7 +415,7 @@ int SslSocket::receive(char* b, int length)
                   ExceptionRef e = new Exception(
                      "Could not read from socket.",
                      SOCKET_EXCEPTION_TYPE ".ReadError");
-                  Exception::setLast(e, true);
+                  Exception::push(e);
                   rval = -1;
                }
                break;
@@ -433,7 +433,7 @@ int SslSocket::receive(char* b, int length)
                   "Could not read from socket.",
                   SOCKET_EXCEPTION_TYPE ".ReadError");
                e->getDetails()["error"] = SslContext::getSslErrorStrings();
-               Exception::setLast(e, false);
+               Exception::set(e);
                rval = -1;
                break;
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/ConnectionInputStream.h"
 
@@ -150,7 +150,7 @@ int ConnectionInputStream::readCrlf(string& line)
          rval = -1;
          ExceptionRef e = new Exception(
             "Could not read CRLF, line too long.", "db.net.CRLFLineTooLong");
-         Exception::setLast(e, false);
+         Exception::set(e);
          break;
       }
       

@@ -42,7 +42,7 @@ bool AudioFrameHeader::convertFromBytes(const char* bytes, int length)
       ExceptionRef e = new Exception(
          "AudioFrameHeader::convertFromBytes() length must be >= 4",
          "db.data.mpeg.InvalidLength");
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    else
    {

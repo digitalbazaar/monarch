@@ -85,7 +85,7 @@ bool ConnectionOutputStream::flush()
       else
       {
          // see if send would block
-         ExceptionRef e = Exception::getLast();
+         ExceptionRef e = Exception::get();
          if(e->getDetails()->hasMember("wouldBlock"))
          {
             // clear number of bytes sent
@@ -122,7 +122,7 @@ bool ConnectionOutputStream::flush()
       else
       {
          // see if send would block
-         ExceptionRef e = Exception::getLast();
+         ExceptionRef e = Exception::get();
          if(e->getDetails()->hasMember("wouldBlock"))
          {
             // clear number of bytes sent

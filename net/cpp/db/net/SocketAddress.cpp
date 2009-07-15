@@ -102,7 +102,7 @@ bool SocketAddress::fromString(const char* str)
          "Could not parse SocketAddress from string.",
          "db.net.SocketAddress.ParseError");
       e->getDetails()["string"] = str;
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    

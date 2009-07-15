@@ -215,7 +215,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       else
       {
          // exception occurred while receiving header
-         ExceptionRef e = Exception::getLast();
+         ExceptionRef e = Exception::get();
          if(strcmp(e->getType(), "db.net.http.BadHeader") == 0 ||
             strcmp(e->getType(), "db.net.http.BadRequest") == 0)
          {
@@ -308,7 +308,7 @@ bool HttpConnectionServicer::addRequestServicer(
          "Could not add http request servicer. Path already in use.",
          "db.net.http.DuplicatePath");
       e->getDetails()["path"] = path;
-      Exception::setLast(e, false);
+      Exception::set(e);
    }
    
    return rval;

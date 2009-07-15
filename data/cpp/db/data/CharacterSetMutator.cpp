@@ -45,7 +45,7 @@ bool CharacterSetMutator::setCharacterSets(const char* from, const char* to)
             "Could not close conversion descriptor.",
             "db.data.CharacterSetMutator.CloseError");
          e->getDetails()["error"] = strerror(errno);
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
       else
@@ -63,7 +63,7 @@ bool CharacterSetMutator::setCharacterSets(const char* from, const char* to)
             "Could not open conversion descriptor.",
             "db.data.CharacterSetMutator.OpenError");
          e->getDetails()["error"] = strerror(errno);
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
    }
@@ -81,7 +81,7 @@ bool CharacterSetMutator::reset()
          "Could not reset CharacterSetMutator, "
          "no character sets specified yet.",
          "db.data.CharacterSetMutator.NoCharacterSets");
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    else
@@ -93,7 +93,7 @@ bool CharacterSetMutator::reset()
             "Could not reset CharacterSetMutator.",
             "db.data.CharacterSetMutator.ResetError");
          e->getDetails()["error"] = strerror(errno);
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
    }
@@ -158,7 +158,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
                      "Invalid multibyte sequence.",
                      "db.data.CharacterSetMutator.InvalidMultibyteSequence");
                   e->getDetails()["error"] = strerror(errno);
-                  Exception::setLast(e, false);
+                  Exception::set(e);
                   rval = MutationAlgorithm::Error;
                   break;
                }
@@ -191,7 +191,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
                      "Conversion error.",
                      "db.data.CharacterSetMutator.Error");
                   e->getDetails()["error"] = strerror(errno);
-                  Exception::setLast(e, false);
+                  Exception::set(e);
                   rval = MutationAlgorithm::Error;
                   break;
                }

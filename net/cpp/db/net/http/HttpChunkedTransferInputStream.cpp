@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/http/HttpChunkedTransferInputStream.h"
 
@@ -68,7 +68,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
             ExceptionRef e = new Exception(
                "Invalid HTTP chunk size.",
                "db.net.http.BadChunkedEncoding");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = -1;
          }
          else
@@ -87,20 +87,20 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
             ExceptionRef e = new Exception(
                "Could not read HTTP chunk size. End of stream.",
                "db.net.http.EndOfStream");
-            Exception::setLast(e, false);
+            Exception::set(e);
             rval = -1;
          }
          else
          {
             // create special exception if not a blocking exception
-            ExceptionRef e = Exception::getLast();
+            ExceptionRef e = Exception::get();
             if(!e->getDetails()->hasMember("wouldBlock"))
             {
                // the chunk size could not be read!
                e = new Exception(
                   "Could not read HTTP chunk size.",
                   "db.net.http.BadChunkedEncoding");
-               Exception::setLast(e, true);
+               Exception::push(e);
             }
          }
       }
@@ -126,7 +126,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          ExceptionRef e = new Exception(
             "Could not read HTTP chunk.",
             "db.net.http.BadChunkedEncoding");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = -1;
       }
    }
@@ -165,7 +165,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          ExceptionRef e = new Exception(
             "Could not read entire HTTP chunk.",
             "db.net.http.BadChunkedEncoding");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = -1;
       }
    }

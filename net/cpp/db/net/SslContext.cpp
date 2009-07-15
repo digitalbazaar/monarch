@@ -110,7 +110,7 @@ bool SslContext::setCertificate(File& certFile)
          SSL_EXCEPTION_TYPE);
       e->getDetails()["filename"] = certFile->getAbsolutePath();
       e->getDetails()["error"] = SslContext::getSslErrorStrings();
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -130,7 +130,7 @@ bool SslContext::setPrivateKey(File& pkeyFile)
          "Could not set SSL private key.",
          SSL_EXCEPTION_TYPE);
       e->getDetails()["filename"] = pkeyFile->getAbsolutePath();
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    
@@ -165,7 +165,7 @@ bool SslContext::setVerifyCAs(File* caFile, File* caDir)
       {
          e->getDetails()["directory"] = (*caDir)->getAbsolutePath();
       }
-      Exception::setLast(e, false);
+      Exception::set(e);
       rval = false;
    }
    

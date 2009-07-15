@@ -184,7 +184,7 @@ int Zipper::readEntry(ZipEntry& ze, InputStream* is)
    
    // FIXME: not implemented
    ExceptionRef e = new Exception("Zipper::readEntry() not implemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    
    return rval;
 }
@@ -239,7 +239,7 @@ int Zipper::read(char* b, int length)
    
    // FIXME: not implemented
    ExceptionRef e = new Exception("Zipper::read() not implemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    
    return rval;
 }
@@ -340,7 +340,7 @@ bool Zipper::readLocalFileHeader(ZipEntry& ze, InputStream* is)
    // FIXME: not implemented
    ExceptionRef e = new Exception(
       "Zipper::readLocalFileHeader() not implemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    return false;
 }
 
@@ -408,7 +408,7 @@ bool Zipper::readFileHeader(ZipEntry& ze, InputStream* is)
 {
    // FIXME: not implemented
    ExceptionRef e = new Exception("Zipper::readFileHeader() not implemented.");
-   Exception::setLast(e, false);
+   Exception::set(e);
    return false;
 }
 

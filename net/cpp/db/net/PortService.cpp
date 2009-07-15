@@ -47,7 +47,7 @@ bool PortService::start()
          "Port service failed to start.",
          "db.net.PortService.StartFailed");
       e->getDetails()["name"] = mName;
-      Exception::setLast(e, true);
+      Exception::push(e);
       
       // clean up service
       cleanup();

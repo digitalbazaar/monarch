@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2005-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/data/riff/RiffFormHeader.h"
 

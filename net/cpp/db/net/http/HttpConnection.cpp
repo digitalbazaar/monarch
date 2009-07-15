@@ -75,7 +75,7 @@ bool HttpConnection::receiveHeader(HttpHeader* header)
             "Could not receive HTTP header. "
             "Maybe SSL is used on one end and not the other?",
             "db.net.http.BadHeader");
-         Exception::setLast(e, false);
+         Exception::set(e);
          rval = false;
       }
    }
@@ -150,13 +150,13 @@ bool HttpConnection::sendBody(
                // future so this kind of exception can be recovered from
                ExceptionRef e = new IOException(
                   "Sending HTTP content body interrupted.");
-               Exception::setLast(e, false);
+               Exception::set(e);
             }
             else
             {
                ExceptionRef e = new IOException(
                   "Could not read HTTP content bytes to send.");
-               Exception::setLast(e, false);
+               Exception::set(e);
             }
          }
       }
