@@ -2,24 +2,19 @@
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/rt/System.h"
-#include "db/rt/DynamicObject.h"
-#include "db/rt/DynamicObjectIterator.h"
+#include "db/data/json/JsonWriter.h"
+#include "db/io/ByteArrayInputStream.h"
+#include "db/io/File.h"
+#include "db/io/FileInputStream.h"
+#include "db/io/FileOutputStream.h"
+#include "db/io/FileList.h"
+#include "db/modest/Kernel.h"
 #include "db/net/TcpSocket.h"
 #include "db/net/UdpSocket.h"
 #include "db/net/DatagramSocket.h"
 #include "db/net/Internet6Address.h"
 #include "db/net/SslSocket.h"
-#include "db/io/File.h"
-#include "db/io/FileInputStream.h"
-#include "db/io/FileOutputStream.h"
-#include "db/io/FileList.h"
 #include "db/net/Url.h"
-#include "db/util/Date.h"
-#include "db/util/StringTools.h"
 #include "db/net/http/CookieJar.h"
 #include "db/net/http/HttpHeader.h"
 #include "db/net/http/HttpRequest.h"
@@ -27,14 +22,21 @@
 #include "db/net/http/HttpConnectionServicer.h"
 #include "db/net/http/HttpRequestServicer.h"
 #include "db/net/http/HttpClient.h"
-#include "db/modest/Kernel.h"
 #include "db/net/Server.h"
 #include "db/net/NullSocketDataPresenter.h"
 #include "db/net/SslSocketDataPresenter.h"
 #include "db/net/SocketDataPresenterList.h"
-#include "db/io/ByteArrayInputStream.h"
+#include "db/rt/System.h"
+#include "db/rt/DynamicObject.h"
+#include "db/rt/DynamicObjectIterator.h"
+#include "db/test/Test.h"
+#include "db/test/Tester.h"
+#include "db/test/TestRunner.h"
+#include "db/util/Date.h"
+#include "db/util/StringTools.h"
 
 using namespace std;
+using namespace db::data;
 using namespace db::test;
 using namespace db::io;
 using namespace db::modest;
@@ -1013,6 +1015,30 @@ void runUrlTest(TestRunner& tr)
       DynamicObject vars;
       assert(!url.getQueryVariables(vars));
       assert(vars->getType() == Map);
+   }
+   
+   {
+      // check using last value for key
+      Url url("http://bitmunk.com/path?a=1&a=2");
+      
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      DynamicObject expect;
+      expect["a"] = "2";
+      assertDynoCmp(vars, expect);
+   }
+   
+   {
+      // check key arrays
+      Url url("http://bitmunk.com/path?a=1&a=2&a=");
+      
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars, true));
+      DynamicObject expect;
+      expect["a"][0] = "1";
+      expect["a"][1] = "2";
+      expect["a"][2] = "";
+      assertDynoCmp(vars, expect);
    }
    
    {
