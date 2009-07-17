@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_data_json_JsonWriter_H
 #define db_data_json_JsonWriter_H
@@ -124,9 +124,9 @@ public:
     * @return true on success, false with exception set on failure.
     */
    static bool writeToOStream(
-      db::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false,
+      db::rt::DynamicObject dyno, std::ostream& stream, bool compact = false,
       bool strict = true);
-
+   
    /**
     * Writes a DynamicObject as JSON to a string.
     * 
@@ -138,10 +138,10 @@ public:
     *         exception set on failure.
     */
    static std::string writeToString(
-      db::rt::DynamicObject& dyno, bool compact = false, bool strict = true);
+      db::rt::DynamicObject dyno, bool compact = false, bool strict = true);
    
    /**
-    * Writes a DynamicObject as JSON to cout.
+    * Writes a DynamicObject as JSON to standard out.
     * 
     * @param dyno the DynamicObject to write out.
     * @param compact true to use compact syntax, false no to.
@@ -150,7 +150,7 @@ public:
     * @return true on success, false with exception set on failure.
     */
    static bool writeToStdOut(
-      db::rt::DynamicObject& dyno, bool compact = false, bool strict = true);
+      db::rt::DynamicObject dyno, bool compact = false, bool strict = true);
 };
 
 } // end namespace json
