@@ -150,7 +150,7 @@ void runPortMappingTest(TestRunner& tr)
       assert(!igd.isNull());
    }
    tr.passIfNoException();
-   
+      
    tr.test("get device description");
    {
       ControlPoint cp;
@@ -166,7 +166,7 @@ void runPortMappingTest(TestRunner& tr)
       assert(!wipcs.isNull());
    }
    tr.passIfNoException();
-   
+#if 0
    tr.test("remove if exists");
    {
       ControlPoint cp;
@@ -198,7 +198,7 @@ void runPortMappingTest(TestRunner& tr)
       cp.removePortMapping(pm, wipcs, NULL);
    }
    tr.passIfNoException();
-   
+#endif
    tr.ungroup();
 }
 

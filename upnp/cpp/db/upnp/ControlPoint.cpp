@@ -3,16 +3,20 @@
  */
 #include "db/upnp/ControlPoint.h"
 
+#include "db/data/json/JsonWriter.h"
 #include "db/data/xml/DomReader.h"
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/io/ByteArrayInputStream.h"
+#include "db/logging/Logging.h"
 #include "db/net/http/HttpClient.h"
 #include "db/upnp/SoapEnvelope.h"
 #include "db/util/StringTools.h"
 
 using namespace std;
+using namespace db::data::json;
 using namespace db::data::xml;
 using namespace db::io;
+using namespace db::logging;
 using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
@@ -30,6 +34,10 @@ bool ControlPoint::getDescription(Url* url, string& description)
 {
    bool rval = false;
    
+   DB_CAT_DEBUG(DB_UPNP_CAT,
+      "Getting UPnP description from url '%s'...",
+      url->toString().c_str());
+   
    // do http connection
    HttpClient client;
    if((rval = client.connect(url)))
@@ -43,6 +51,10 @@ bool ControlPoint::getDescription(Url* url, string& description)
       HttpResponse* response = client.get(&path, &headers);
       if((rval = (response != NULL)))
       {
+         DB_CAT_DEBUG(DB_UPNP_CAT,
+            "Get UPnP description response header:\n%s",
+            response->getHeader()->toString().c_str());
+         
          // FIXME: ensure response code is appropriate, etc.
          
          // receive response
@@ -50,6 +62,10 @@ bool ControlPoint::getDescription(Url* url, string& description)
          ByteArrayOutputStream baos(&bb, true);
          if((rval = client.receiveContent(&baos)))
          {
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Get UPnP description response body:\n%s",
+               string(bb.data(), bb.length()).c_str());
+            
             // get description
             description.erase();
             description.append(bb.data(), bb.length());
@@ -58,6 +74,15 @@ bool ControlPoint::getDescription(Url* url, string& description)
       
       // disconnect
       client.disconnect();
+   }
+   
+   if(!rval)
+   {
+      DB_CAT_ERROR(DB_UPNP_CAT,
+         "Failed to get UPnP description from url '%s': %s",
+         url->toString().c_str(),
+         JsonWriter::writeToString(
+            Exception::getAsDynamicObject()).c_str());
    }
    
    return rval;
@@ -253,6 +278,10 @@ static bool doSoap(
       // get the control url for the service
       Url url(service["controlURL"]->getString());
       
+      DB_CAT_DEBUG(DB_UPNP_CAT,
+         "Sending SOAP message to url '%s':\n%s",
+         url.toString().c_str(), envelope.c_str());
+      
       // do http connection
       HttpClient client;
       if((rval = client.connect(&url)))
@@ -272,6 +301,10 @@ static bool doSoap(
          HttpResponse* response = client.post(&path, &headers, &bais);
          if((rval = (response != NULL)))
          {
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Received response header:\n%s",
+               response->getHeader()->toString().c_str());
+            
             // FIXME: ensure response code is appropriate, etc.
             
             // receive response
@@ -279,6 +312,10 @@ static bool doSoap(
             ByteArrayOutputStream baos(&bb, true);
             if((rval = client.receiveContent(&baos)))
             {
+               DB_CAT_DEBUG(DB_UPNP_CAT,
+                  "Received SOAP message:\n%s",
+                  string(bb.data(), bb.length()).c_str());
+               
                // parse soap response
                ByteArrayInputStream bais2(&bb);
                SoapResult sr;
@@ -316,6 +353,11 @@ static bool doSoap(
    
    if(!rval)
    {
+      DB_CAT_ERROR(DB_UPNP_CAT,
+         "Could not perform SOAP transfer: %s",
+         JsonWriter::writeToString(
+            Exception::getAsDynamicObject()).c_str());
+      
       ExceptionRef e = new Exception(
          "Could not perform soap transfer.",
          "db.upnp.SoapTransferError");
