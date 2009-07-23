@@ -89,29 +89,33 @@ bool ControlPoint::getDescription(Url* url, string& description)
 }
 
 // a helper function to parse devices or sub-devices
-static void parseDevice(Device& device, Element& root)
+static void parseDevice(Device& device, Element& root, bool sub)
 {
+   DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing device from xml: %s",
+      JsonWriter::writeToString(root).c_str());
+   
    // get basic device info
+   Element& rd = sub ? root : root["children"]["device"][0];
    device["deviceType"] =
-      root["children"]["deviceType"][0]["data"]->getString();
+      rd["children"]["deviceType"][0]["data"]->getString();
    device["manufacturer"] =
-      root["children"]["manufacturer"][0]["data"]->getString();
+      rd["children"]["manufacturer"][0]["data"]->getString();
    device["manufacturerURL"] =
-      root["children"]["manufacturerURL"][0]["data"]->getString();
+      rd["children"]["manufacturerURL"][0]["data"]->getString();
    device["modelDescription"] =
-      root["children"]["modelDescription"][0]["data"]->getString();
+      rd["children"]["modelDescription"][0]["data"]->getString();
    device["modelName"] =
-      root["children"]["modelName"][0]["data"]->getString();
+      rd["children"]["modelName"][0]["data"]->getString();
    device["modelNumber"] =
-      root["children"]["modelNumber"][0]["data"]->getString();
+      rd["children"]["modelNumber"][0]["data"]->getString();
    device["modelURL"] =
-      root["children"]["modelURL"][0]["data"]->getString();
+      rd["children"]["modelURL"][0]["data"]->getString();
    device["serialNumber"] =
-      root["children"]["serialNumber"][0]["data"]->getString();
+      rd["children"]["serialNumber"][0]["data"]->getString();
    device["UDN"] =
-      root["children"]["UDN"][0]["data"]->getString();
+      rd["children"]["UDN"][0]["data"]->getString();
    device["UPC"] =
-      root["children"]["UPC"][0]["data"]->getString();
+      rd["children"]["UPC"][0]["data"]->getString();
    
    // initialize sub-devices and services
    DeviceList& deviceList = device["devices"];
@@ -120,9 +124,9 @@ static void parseDevice(Device& device, Element& root)
    serviceList->setType(Array);
    
    // parse out services
-   if(root["children"]->hasMember("serviceList"))
+   if(rd["children"]->hasMember("serviceList"))
    {
-      Element& sl = root["children"]["serviceList"][0];
+      Element& sl = rd["children"]["serviceList"][0];
       DynamicObjectIterator si = sl["children"]["service"].getIterator();
       while(si->hasNext())
       {
@@ -147,9 +151,9 @@ static void parseDevice(Device& device, Element& root)
    }   
    
    // parse out devices
-   if(root["children"]->hasMember("deviceList"))
+   if(rd["children"]->hasMember("deviceList"))
    {
-      Element& dl = root["children"]["deviceList"][0];
+      Element& dl = rd["children"]["deviceList"][0];
       DynamicObjectIterator di = dl["children"]["device"].getIterator();
       while(di->hasNext())
       {
@@ -157,12 +161,15 @@ static void parseDevice(Device& device, Element& root)
          
          // parse sub-device information
          Device d;
-         parseDevice(d, dev);
+         parseDevice(d, dev, true);
          
          // add device to device list
          deviceList->append(d);
       }
    }
+   
+   DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed device: %s",
+      JsonWriter::writeToString(device).c_str());
 }
 
 bool ControlPoint::getDeviceDescription(Device& device)
@@ -184,8 +191,8 @@ bool ControlPoint::getDeviceDescription(Device& device)
       reader.start(root);
       if((rval = reader.read(&bais) && reader.finish()))
       {
-         // parse device
-         parseDevice(device, root);
+         // parse root device
+         parseDevice(device, root, false);
       }
    }
    
@@ -388,6 +395,9 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          {
             // found wan device
             wd = next;
+            
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Found '" UPNP_DEVICE_TYPE_WAN "' device");
          }
       }
    }
@@ -407,6 +417,10 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          {
             // found wan connection device
             wcd = next;
+            
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Found '" UPNP_DEVICE_TYPE_WAN_CONNECTION
+               "' device");
          }
       }
    }
@@ -426,6 +440,10 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          {
             // found wan ip connection service
             wipcs = next;
+            
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Found '" UPNP_SERVICE_TYPE_WAN_IP_CONNECTION
+               "' service");
          }
       }
    }
