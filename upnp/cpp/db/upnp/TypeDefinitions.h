@@ -707,20 +707,21 @@ typedef db::rt::DynamicObject ActionResult;
 
 /**
  * A PortMapping object is used to add or remove a port mapping entry
- * on an internet gateway device. A blank IP address for the RemoteHost
+ * on an internet gateway device. A blank IP address for the NewRemoteHost
  * will use the default external IP address of the internet gateway device.
  * 
  * If adding a port mapping, all parameters are used. If removing a port
- * mapping, only the first three (RemoteHost, ExternalPort, Protocol) are used.
+ * mapping, only the first three (NewRemoteHost, NewExternalPort, NewProtocol)
+ * are used.
  * 
- * @param RemoteHost the external IP address ("x.x.x.x" or "").
- * @param ExternalPort the external port clients connect to.
- * @param Protocol either "TCP" or "UDP".
- * @param InternalPort the port on the internal server.
- * @param InternalClient the internal IP address to redirect ("x.x.x.x").
- * @param PortMappingEnabled true or false.
- * @param PortMappingDescription a string describing the mapping.
- * @param PortMappingLeaseDuration 0 for infinite, otherwise seconds for lease.
+ * @param NewRemoteHost the external IP address ("x.x.x.x" or "").
+ * @param NewExternalPort the external port clients connect to.
+ * @param NewProtocol either "TCP" or "UDP".
+ * @param NewInternalPort the port on the internal server.
+ * @param NewInternalClient the internal IP address to redirect ("x.x.x.x").
+ * @param NewEnabled true or false.
+ * @param NewPortMappingDescription a string describing the mapping.
+ * @param NewLeaseDuration 0 for infinite, X seconds for lease.
  */
 typedef db::rt::DynamicObject PortMapping;
 

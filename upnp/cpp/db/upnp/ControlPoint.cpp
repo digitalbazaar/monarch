@@ -561,9 +561,9 @@ bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs, bool* dne)
    
    // only these 3 parameters must be sent
    PortMapping pm2;
-   pm2["RemoteHost"] = pm["RemoteHost"];
-   pm2["ExternalPort"] = pm["ExternalPort"];
-   pm2["Protocol"] = pm["Protocol"];
+   pm2["NewRemoteHost"] = pm["NewRemoteHost"];
+   pm2["NewExternalPort"] = pm["NewExternalPort"];
+   pm2["NewProtocol"] = pm["NewProtocol"];
    
    // perform the action
    ActionResult result;
@@ -621,9 +621,9 @@ bool ControlPoint::getPortMapping(PortMapping& pm, Service& wipcs)
    
    // only these 3 parameters must be sent
    PortMapping pm2;
-   pm2["RemoteHost"] = pm["RemoteHost"];
-   pm2["ExternalPort"] = pm["ExternalPort"];
-   pm2["Protocol"] = pm["Protocol"];
+   pm2["NewRemoteHost"] = pm["NewRemoteHost"];
+   pm2["NewExternalPort"] = pm["NewExternalPort"];
+   pm2["NewProtocol"] = pm["NewProtocol"];
    
    // perform the action
    ActionResult result;

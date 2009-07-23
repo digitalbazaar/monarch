@@ -125,14 +125,14 @@ void runPortMappingTest(TestRunner& tr)
    tr.group("PortMapping");
    
    PortMapping mapping;
-   mapping["RemoteHost"] = "";
-   mapping["ExternalPort"] = 19123;
-   mapping["Protocol"] = "TCP";
-   mapping["InternalPort"] = 19124;
-   mapping["InternalClient"] = "10.10.0.10";
-   mapping["PortMappingEnabled"] = true;
-   mapping["PortMappingDescription"] = "A test port mapping.";
-   mapping["PortMappingLeaseDuration"] = 0;
+   mapping["NewRemoteHost"] = "";
+   mapping["NewExternalPort"] = 19123;
+   mapping["NewProtocol"] = "TCP";
+   mapping["NewInternalPort"] = 19124;
+   mapping["NewInternalClient"] = "10.10.0.10";
+   mapping["NewEnabled"] = true;
+   mapping["NewPortMappingDescription"] = "A test port mapping.";
+   mapping["NewLeaseDuration"] = 0;
    
    Device igd(NULL);
    Service wipcs(NULL);
@@ -174,7 +174,7 @@ void runPortMappingTest(TestRunner& tr)
       assertNoException();
    }
    tr.passIfNoException();
-#if 0
+   
    tr.test("remove if exists");
    {
       ControlPoint cp;
@@ -190,7 +190,7 @@ void runPortMappingTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-#endif
+   
    tr.test("add mapping");
    {
       ControlPoint cp;
@@ -199,7 +199,6 @@ void runPortMappingTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
-#if 0
    tr.test("remove mapping");
    {
       ControlPoint cp;
@@ -207,7 +206,7 @@ void runPortMappingTest(TestRunner& tr)
       cp.removePortMapping(pm, wipcs, NULL);
    }
    tr.passIfNoException();
-#endif   
+   
    tr.ungroup();
 }
 

@@ -140,10 +140,11 @@ public:
     * Gets a specific port mapping entry via a wan ip connection service.
     * 
     * This action will retrieve the NAT port mapping for the given
-    * RemoteHost, ExternalPort, and PortMappingProtocol.
+    * NewRemoteHost, NewExternalPort, and NewPortMappingProtocol.
     * 
-    * @param pm the PortMapping with RemoteHost, ExternalPort, and
-    *           Protocol set, to be populated with other data or set to NULL.
+    * @param pm the PortMapping with NewRemoteHost, NewExternalPort, and
+    *           NewProtocol set, to be populated with other data or set
+    *           to NULL.
     * @param wipcs the wan ip connection service.
     * 
     * @return true if successful, false if not.
