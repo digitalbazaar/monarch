@@ -370,8 +370,6 @@ static bool doSoap(
                "Received response header:\n%s",
                response->getHeader()->toString().c_str());
             
-            // FIXME: ensure response code is appropriate, etc.
-            
             // receive response
             ByteBuffer bb(1024);
             ByteArrayOutputStream baos(&bb, true);
@@ -399,14 +397,14 @@ static bool doSoap(
                   ExceptionRef e = new Exception(
                      "Soap fault received.",
                      "db.upnp.SoapFault");
-                  e->getDetails()["fault"] = sr["result"];
+                  e->getDetails()["fault"] = sr["message"];
                   Exception::set(e);
                   rval = false;
                }
                else
                {
                   // return result as message parameters
-                  result = sr["result"]["message"]["params"];
+                  result = sr["message"]["params"];
                }
             }
          }
