@@ -139,10 +139,10 @@ void runPortMappingTest(TestRunner& tr)
    
    tr.test("discover internet gateway device");
    {
-      // search for 1 internet gateway device... 30 seconds to find one
+      // search for 1 internet gateway device... 2 seconds to find one
       DeviceDiscoverer dd;
       DeviceList devices;
-      if(dd.discover(devices, UPNP_DEVICE_TYPE_IGD, 30 * 1000, 1) == 1)
+      if(dd.discover(devices, UPNP_DEVICE_TYPE_IGD, 2 * 1000, 1) == 1)
       {
          // found!
          igd = devices.first();
