@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "db/logging/LoggingCategories.h"
@@ -22,6 +22,7 @@ Category* DB_NET_CAT;
 Category* DB_RT_CAT;
 Category* DB_SPHINX_CAT;
 Category* DB_SQL_CAT;
+Category* DB_UPNP_CAT;
 Category* DB_UTIL_CAT;
 
 void LoggingCategories::initialize()
@@ -82,6 +83,10 @@ void LoggingCategories::initialize()
       "DB_SQL",
       "DB SQL",
       NULL);
+   DB_UPNP_CAT = new Category(
+      "DB_UPNP",
+      "DB UPnP",
+      NULL);
    DB_UTIL_CAT = new Category(
       "DB_UTIL",
       "DB Utilities",
@@ -131,6 +136,9 @@ void LoggingCategories::cleanup()
    
    delete DB_SQL_CAT;
    DB_SQL_CAT = NULL;
+   
+   delete DB_UPNP_CAT;
+   DB_UPNP_CAT = NULL;
    
    delete DB_UTIL_CAT;
    DB_UTIL_CAT = NULL;
