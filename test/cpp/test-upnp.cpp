@@ -174,7 +174,7 @@ void runPortMappingTest(TestRunner& tr)
       assertNoException();
    }
    tr.passIfNoException();
-#if 0
+   
    tr.test("remove if exists");
    {
       ControlPoint cp;
@@ -190,7 +190,7 @@ void runPortMappingTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-#endif
+   
    tr.test("add mapping");
    {
       ControlPoint cp;
@@ -241,7 +241,7 @@ void runPortMappingTest(TestRunner& tr)
       assert(pm == mapping);
    }
    tr.passIfNoException();
-#if 0
+   
    tr.test("remove mapping");
    {
       ControlPoint cp;
@@ -249,7 +249,37 @@ void runPortMappingTest(TestRunner& tr)
       cp.removePortMapping(pm, wipcs, NULL);
    }
    tr.passIfNoException();
-#endif
+   
+   tr.test("get all mappings after remove");
+   {
+      ControlPoint cp;
+      PortMapping pm;
+      pm->setType(Map);
+      printf("\nSTART PORT MAPPINGS:\n");
+      for(int i = 0; !pm.isNull(); i++)
+      {
+         pm->clear();
+         if(cp.getPortMapping(pm, i, wipcs))
+         {
+            if(pm.isNull())
+            {
+               // last port mapping found
+               Exception::clear();
+            }
+            else
+            {
+               dumpDynamicObject(pm);
+            }
+         }
+         else
+         {
+            pm.setNull();
+         }
+      }
+      printf("END PORT MAPPINGS.\n");
+   }
+   tr.passIfNoException();
+   
    tr.ungroup();
 }
 
