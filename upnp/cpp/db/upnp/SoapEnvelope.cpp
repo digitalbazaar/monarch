@@ -208,6 +208,11 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
             "db.upnp.InvalidSoapEnvelope");
          Exception::set(e);
       }
+      else
+      {
+         DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed SOAP result: %s",
+            JsonWriter::writeToString(result).c_str());
+      }
    }
    
    return rval;

@@ -400,11 +400,12 @@ static bool doSoap(
                   e->getDetails()["fault"] = sr["message"];
                   Exception::set(e);
                   rval = false;
+                  result = sr;
                }
                else
                {
-                  // return result as message parameters
-                  result = sr["message"]["params"];
+                  // return result as soap result
+                  result = sr;
                }
             }
          }
@@ -631,6 +632,9 @@ bool ControlPoint::getPortMapping(PortMapping& pm, Service& wipcs)
    if(rval)
    {
       pm = result["message"]["params"];
+      pm["NewRemoteHost"] = pm2["NewRemoteHost"];
+      pm["NewExternalPort"] = pm2["NewExternalPort"];
+      pm["NewProtocol"] = pm2["NewProtocol"];
    }
    // handle soap fault
    else if(result["fault"]->getBoolean())

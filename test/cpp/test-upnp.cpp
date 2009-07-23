@@ -126,13 +126,13 @@ void runPortMappingTest(TestRunner& tr)
    
    PortMapping mapping;
    mapping["NewRemoteHost"] = "";
-   mapping["NewExternalPort"] = 19123;
+   mapping["NewExternalPort"] = 19100;
    mapping["NewProtocol"] = "TCP";
-   mapping["NewInternalPort"] = 19124;
+   mapping["NewInternalPort"] = 19100;
    mapping["NewInternalClient"] = "10.10.0.10";
-   mapping["NewEnabled"] = true;
+   mapping["NewEnabled"] = "1";
    mapping["NewPortMappingDescription"] = "A test port mapping.";
-   mapping["NewLeaseDuration"] = 0;
+   mapping["NewLeaseDuration"] = "0";
    
    Device igd(NULL);
    Service wipcs(NULL);
@@ -198,7 +198,29 @@ void runPortMappingTest(TestRunner& tr)
       cp.addPortMapping(pm, wipcs);
    }
    tr.passIfNoException();
-   
+#if 0   
+   tr.test("get generic mapping");
+   {
+      ControlPoint cp;
+      PortMapping pm;
+      cp.getPortMapping(pm, 0, wipcs);
+      dumpDynamicObject(pm);
+   }
+   tr.passIfNoException();
+#endif
+   tr.test("get specific mapping");
+   {
+      ControlPoint cp;
+      PortMapping pm;
+      pm["NewRemoteHost"] = mapping["NewRemoteHost"].clone();
+      pm["NewExternalPort"] = mapping["NewExternalPort"].clone();
+      pm["NewProtocol"] = mapping["NewProtocol"].clone();
+      cp.getPortMapping(pm, wipcs);
+      //dumpDynamicObject(pm);
+      assert(pm == mapping);
+   }
+   tr.passIfNoException();
+#if 0
    tr.test("remove mapping");
    {
       ControlPoint cp;
@@ -206,7 +228,7 @@ void runPortMappingTest(TestRunner& tr)
       cp.removePortMapping(pm, wipcs, NULL);
    }
    tr.passIfNoException();
-   
+#endif
    tr.ungroup();
 }
 
