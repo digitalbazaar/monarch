@@ -576,7 +576,8 @@ bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs, bool* dne)
       DynamicObject params = result["message"]["params"];
       DynamicObject& upnpError = params["detail"]["UPnPError"];
       int32_t code = upnpError["errorCode"]->getInt32();
-      if(code == UPNP_ERROR_NoSuchEntryInArray)
+      if(code == UPNP_ERROR_NoSuchEntryInArray ||
+         code == UPNP_ERROR_SpecifiedArrayIndexInvalid)
       {
          // no such entry
          *dne = true;
@@ -605,7 +606,8 @@ bool ControlPoint::getPortMapping(PortMapping& pm, int index, Service& wipcs)
       params = result["message"]["params"];
       DynamicObject& upnpError = params["detail"]["UPnPError"];
       int32_t code = upnpError["errorCode"]->getInt32();
-      if(code == UPNP_ERROR_NoSuchEntryInArray)
+      if(code == UPNP_ERROR_NoSuchEntryInArray ||
+         code == UPNP_ERROR_SpecifiedArrayIndexInvalid)
       {
          // no such entry, return null port mapping
          pm.setNull();
@@ -642,7 +644,8 @@ bool ControlPoint::getPortMapping(PortMapping& pm, Service& wipcs)
       DynamicObject params = result["message"]["params"];
       DynamicObject& upnpError = params["detail"]["UPnPError"];
       int32_t code = upnpError["errorCode"]->getInt32();
-      if(code == UPNP_ERROR_NoSuchEntryInArray)
+      if(code == UPNP_ERROR_NoSuchEntryInArray ||
+         code == UPNP_ERROR_SpecifiedArrayIndexInvalid)
       {
          // no such entry, return null port mapping
          pm.setNull();
