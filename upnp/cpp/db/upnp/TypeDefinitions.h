@@ -91,7 +91,6 @@ namespace upnp
  * All fields (inclusive) "deviceType"-"UPC".
  * devices      : an array of sub-devices.
  * services     : an array of services.
- * description  : the description as a DOM Element as below.
  * 
  * A root UPnP device has the additional fields:
  * 
@@ -265,8 +264,7 @@ typedef db::rt::DynamicObjectIterator DeviceIterator;
  * eventSubURL
  * 
  * Any UPnP service whose description has been fetched as the following fields:
- * actions     : an array of Actions.
- * description : the description as a DOM Element as below.
+ * actions     : a map of Action name to Action.
  * 
  * Below is the full XML description for a service. It is used to build
  * a simpler service object with the above properties.
@@ -651,12 +649,7 @@ typedef db::rt::DynamicObject ServiceDescription;
  * 
  * An Action has these properties, as defined below:
  * name         : the name of the action.
- * argumentList : an array of ActionArguments
- * 
- * Each ActionArgument has these properties as defined below:
- * name      : the name of the argument.
- * direction : "in" or "out"
- * retval    : the return value? (currently unused)
+ * arguments    : a map with "in", "out", and "retval" argument names
  * 
  * Below is the full XML description for an action. It is used to build
  * a simpler action object with the above properties.
@@ -704,8 +697,6 @@ typedef db::rt::DynamicObject ServiceDescription;
  */
 typedef db::rt::DynamicObject Action;
 typedef db::rt::DynamicObjectIterator ActionIterator;
-typedef db::rt::DynamicObject ActionArgument;
-typedef db::rt::DynamicObjectIterator ActionArgumentIterator;
 
 /**
  * An ActionResult is a map of named return values.

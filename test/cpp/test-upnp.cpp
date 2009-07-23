@@ -129,7 +129,7 @@ void runPortMappingTest(TestRunner& tr)
    mapping["ExternalPort"] = 19123;
    mapping["Protocol"] = "TCP";
    mapping["InternalPort"] = 19124;
-   mapping["InternalClient"] = "192.168.123.123";
+   mapping["InternalClient"] = "10.10.0.10";
    mapping["PortMappingEnabled"] = true;
    mapping["PortMappingDescription"] = "A test port mapping.";
    mapping["PortMappingLeaseDuration"] = 0;
@@ -166,6 +166,15 @@ void runPortMappingTest(TestRunner& tr)
       assert(!wipcs.isNull());
    }
    tr.passIfNoException();
+   
+   tr.test("get service description");
+   {
+      ControlPoint cp;
+      cp.getServiceDescription(igd, wipcs);
+      assertNoException();
+   }
+   tr.passIfNoException();
+   
 #if 0
    tr.test("remove if exists");
    {
@@ -182,7 +191,8 @@ void runPortMappingTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-   
+#endif
+#if 0
    tr.test("add mapping");
    {
       ControlPoint cp;
@@ -190,7 +200,8 @@ void runPortMappingTest(TestRunner& tr)
       cp.addPortMapping(pm, wipcs);
    }
    tr.passIfNoException();
-   
+#endif
+#if 0
    tr.test("remove mapping");
    {
       ControlPoint cp;
@@ -198,7 +209,7 @@ void runPortMappingTest(TestRunner& tr)
       cp.removePortMapping(pm, wipcs, NULL);
    }
    tr.passIfNoException();
-#endif
+#endif   
    tr.ungroup();
 }
 

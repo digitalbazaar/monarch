@@ -55,11 +55,12 @@ public:
    /**
     * Gets the description for a service.
     * 
+    * @param device the device with the service.
     * @param service the service to get the description for.
     * 
     * @return true if successful, false if not.
     */
-   virtual bool getServiceDescription(Service& service);
+   virtual bool getServiceDescription(Device& device, Service& service);
    
    /**
     * Gets the WANIPConnectionService from an InternetGatewayDevice.
