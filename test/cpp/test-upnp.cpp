@@ -170,11 +170,10 @@ void runPortMappingTest(TestRunner& tr)
    tr.test("get service description");
    {
       ControlPoint cp;
-      cp.getServiceDescription(igd, wipcs);
+      cp.getServiceDescription(wipcs);
       assertNoException();
    }
    tr.passIfNoException();
-   
 #if 0
    tr.test("remove if exists");
    {
@@ -192,7 +191,6 @@ void runPortMappingTest(TestRunner& tr)
    }
    tr.passIfNoException();
 #endif
-#if 0
    tr.test("add mapping");
    {
       ControlPoint cp;
@@ -200,7 +198,7 @@ void runPortMappingTest(TestRunner& tr)
       cp.addPortMapping(pm, wipcs);
    }
    tr.passIfNoException();
-#endif
+   
 #if 0
    tr.test("remove mapping");
    {

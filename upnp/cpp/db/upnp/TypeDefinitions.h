@@ -91,6 +91,7 @@ namespace upnp
  * All fields (inclusive) "deviceType"-"UPC".
  * devices      : an array of sub-devices.
  * services     : an array of services.
+ * rootURL      : the root URL to the device (includes schema+host+port)
  * 
  * A root UPnP device has the additional fields:
  * 
@@ -262,6 +263,7 @@ typedef db::rt::DynamicObjectIterator DeviceIterator;
  * SCPDURL
  * controlURL
  * eventSubURL
+ * rootURL      : the root URL to the service (includes schema+host+port)
  * 
  * Any UPnP service whose description has been fetched as the following fields:
  * actions     : a map of Action name to Action.

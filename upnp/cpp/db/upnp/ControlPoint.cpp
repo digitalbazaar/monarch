@@ -100,13 +100,15 @@ bool ControlPoint::getDescription(Url* url, string& description)
 }
 
 // a helper function to parse devices or sub-devices
-static void parseDevice(Device& device, Element& root, bool sub)
+static void parseDevice(
+   Device& device, Element& root, const char* rootUrl, bool sub)
 {
    DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing device from xml: %s",
       JsonWriter::writeToString(root).c_str());
    
    // get basic device info
    Element& rd = sub ? root : root["children"]["device"][0];
+   device["rootURL"] = rootUrl;
    device["deviceType"] =
       rd["children"]["deviceType"][0]["data"]->getString();
    device["manufacturer"] =
@@ -155,6 +157,7 @@ static void parseDevice(Device& device, Element& root, bool sub)
             service["children"]["controlURL"][0]["data"]->getString();
          s["eventSubURL"] =
             service["children"]["eventSubURL"][0]["data"]->getString();
+         s["rootURL"] = rootUrl;
          
          // add service to device
          serviceList->append(s);
@@ -172,7 +175,7 @@ static void parseDevice(Device& device, Element& root, bool sub)
          
          // parse sub-device information
          Device d;
-         parseDevice(d, dev, true);
+         parseDevice(d, dev, rootUrl, true);
          
          // add device to device list
          deviceList->append(d);
@@ -190,6 +193,11 @@ bool ControlPoint::getDeviceDescription(Device& device)
    // get the location url for the device
    Url url(device["location"]->getString());
    
+   // save the root URL
+   string rootUrl = url.getScheme();
+   rootUrl.append("://");
+   rootUrl.append(url.getAuthority());
+   
    // get description
    string description;
    rval = getDescription(&url, description);
@@ -203,22 +211,21 @@ bool ControlPoint::getDeviceDescription(Device& device)
       if((rval = reader.read(&bais) && reader.finish()))
       {
          // parse root device
-         parseDevice(device, root, false);
+         parseDevice(device, root, rootUrl.c_str(), false);
       }
    }
    
    return rval;
 }
 
-bool ControlPoint::getServiceDescription(Device& device, Service& service)
+bool ControlPoint::getServiceDescription(Service& service)
 {
    bool rval = false;
    
    // get the description url for the service
-   Url url(device["location"]->getString());
-   url.format("%s://%s%s",
-      url.getScheme().c_str(),
-      url.getAuthority().c_str(),
+   Url url;
+   url.format("%s%s",
+      service["rootURL"]->getString(),
       service["SCPDURL"]->getString());
    
    // get description
@@ -313,7 +320,8 @@ bool ControlPoint::getServiceDescription(Device& device, Service& service)
 /**
  * A helper function that sends a soap envelope and gets its result.
  * 
- * @param service the service to connect to.
+ * @param device the service to connect to.
+ * @param service the service to use.
  * @param msg the soap message to send.
  * @param result the result to populate.
  * 
@@ -330,7 +338,10 @@ static bool doSoap(
    if(envelope.length() > 0)
    {
       // get the control url for the service
-      Url url(service["controlURL"]->getString());
+      Url url;
+      url.format("%s%s",
+         service["rootURL"]->getString(),
+         service["controlURL"]->getString());
       
       DB_CAT_DEBUG(DB_UPNP_CAT,
          "Sending SOAP message to url '%s':\n%s",
