@@ -111,6 +111,11 @@ protected:
    bool mDispatch;
    
    /**
+    * A counter for event sequence IDs.
+    */
+   uint64_t mSequenceId;
+   
+   /**
     * The queue lock is engaged while the event queue is being updated
     * or examined.
     */

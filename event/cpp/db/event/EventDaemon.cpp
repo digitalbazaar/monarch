@@ -291,6 +291,7 @@ void EventDaemon::run()
          // iterate over event heap, scheduling all events that have waited
          // for their intervals, removing all non-repetitious events, and
          // keeping track of the new wait time
+         Event clone;
          uint32_t waitTime = 0;
          for(EventList::iterator i = mEvents.begin(); i != mEvents.end();)
          {
@@ -305,7 +306,8 @@ void EventDaemon::run()
                if(i->remaining <= waited)
                {
                   // schedule event, reset remaining time
-                  mEventController->schedule(i->cloned);
+                  clone = i->cloned.clone();
+                  mEventController->schedule(clone);
                   i->remaining = i->interval;
                   
                   // decrement count as appropriate
