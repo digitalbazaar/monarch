@@ -428,10 +428,10 @@ void Url::addQueryVariables(DynamicObject& vars)
    }
 }
 
-bool Url::getQueryVariables(DynamicObject& vars)
+bool Url::getQueryVariables(DynamicObject& vars, bool asArrays)
 {
    // url-form decode query
-   return formDecode(vars, mQuery.c_str());
+   return formDecode(vars, mQuery.c_str(), asArrays);
 }
 
 string Url::getPathAndQuery()
@@ -642,7 +642,7 @@ string Url::formEncode(DynamicObject& form)
    return rval;
 }
 
-bool Url::formDecode(DynamicObject& form, const char* str)
+bool Url::formDecode(DynamicObject& form, const char* str, bool asArrays)
 {
    bool rval = false;
    
@@ -673,8 +673,19 @@ bool Url::formDecode(DynamicObject& form, const char* str)
             memcpy(name, tok, namelen);
             
             // url-decode name and value
-            form[decode(name, namelen).c_str()] =
-               decode(eq + 1, strlen(eq + 1)).c_str();
+            string key = decode(name, namelen);
+            DynamicObject value;
+            value = decode(eq + 1, strlen(eq + 1)).c_str();
+            // add value for key or add value to key array
+            if(asArrays)
+            {
+               form[key.c_str()]->setType(Array);
+               form[key.c_str()]->append(value);
+            }
+            else
+            {
+               form[key.c_str()] = value;
+            }
          }
       }
       else
@@ -688,7 +699,18 @@ bool Url::formDecode(DynamicObject& form, const char* str)
             rval = true;
             
             // url-decode name and value
-            form[decode(tok, namelen).c_str()] = "";
+            string key = decode(tok, namelen).c_str();
+            DynamicObject value;
+            value = "";
+            if(asArrays)
+            {
+               form[key.c_str()]->setType(Array);
+               form[key.c_str()]->append(value);
+            }
+            else
+            {
+               form[key.c_str()] = value;
+            }
          }
       }
    }

@@ -3,6 +3,8 @@
  */
 #include "db/upnp/DeviceDiscoverer.h"
 
+#include "db/data/json/JsonWriter.h"
+#include "db/logging/Logging.h"
 #include "db/net/DatagramSocket.h"
 #include "db/net/http/HttpRequestHeader.h"
 #include "db/net/http/HttpResponseHeader.h"
@@ -10,6 +12,8 @@
 #include "db/util/Timer.h"
 
 using namespace std;
+using namespace db::data::json;
+using namespace db::logging;
 using namespace db::net::http;
 using namespace db::net;
 using namespace db::rt;
@@ -236,6 +240,8 @@ int DeviceDiscoverer::discover(
       // create and send discover request datagram
       DatagramRef request = new Datagram(groupAddr);
       request->assignString(requestHeader.toString().c_str());
+      DB_CAT_DEBUG(DB_UPNP_CAT, "Sending UPnP request:\n%s",
+         requestHeader.toString().c_str());
       if(socket.send(request))
       {
          // no devices yet
@@ -259,26 +265,44 @@ int DeviceDiscoverer::discover(
                ExceptionRef e = Exception::get();
                if(strcmp(e->getType(), "db.net.SocketTimeout") == 0)
                {
+                  DB_CAT_DEBUG(DB_UPNP_CAT, "UPnP request timed out.");
+                  
                   // exception indicates timed out
                   remaining = 0;
                }
                else
                {
-                  // some other error
+                  DB_CAT_ERROR(DB_UPNP_CAT,
+                     "UPnP request error: %s",
+                     JsonWriter::writeToString(
+                        Exception::getAsDynamicObject()).c_str());
+                  
+                  // some error other than a timeout
                   rval = -1;
                }
             }
             else
             {
                // parse ssdp response
+               DB_CAT_DEBUG(DB_UPNP_CAT, "Received UPnP response:\n%s",
+                  response->getString().c_str());
                Device device = parseDevice(response->getString().c_str());
                if(device.isNull())
                {
+                  DB_CAT_ERROR(DB_UPNP_CAT,
+                     "UPnP response parse error: %s",
+                     JsonWriter::writeToString(
+                        Exception::getAsDynamicObject()).c_str());
+                  
                   // error in parsing
                   rval = -1;
                }
                else
                {
+                  DB_CAT_DEBUG(DB_UPNP_CAT,
+                     "Found UPnP device: %s",
+                     JsonWriter::writeToString(device).c_str());
+                  
                   // another device found
                   rval++;
                   devices->append(device);

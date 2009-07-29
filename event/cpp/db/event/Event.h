@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_event_Event_H
 #define db_event_Event_H
@@ -16,9 +16,21 @@ namespace event
  * significant occurs. An Event may be dispatched to the Observable's
  * registered Observers so they can take whatever action they deem appropriate.
  * 
- * Event["id"] is reserved and will refer to an EventId for the Event.
- * Event["serial"] is reserved.
- * Event["parallel"] is reserved.
+ * Reserved fields:
+ * 
+ * Event["id"]:
+ *    Refers to an EventId for the Event's type.
+ * Event["sequenceId"]:
+ *    Refers to a global sequence in which an event occurred on a given
+ *    Observable -- it increases by 1 per event.
+ * Event["serial"]:
+ *    Used to determine if an event must be distributed before
+ *    events that follow it.
+ * Event["parallel"]:
+ *    Used to determine if an event can be distributed at any moment,
+ *    regardless of other events.
+ * Event["details"]:
+ *    A map that should contain any user details for the event.
  * 
  * @author Dave Longley
  */

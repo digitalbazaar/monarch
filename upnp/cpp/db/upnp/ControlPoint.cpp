@@ -3,16 +3,20 @@
  */
 #include "db/upnp/ControlPoint.h"
 
+#include "db/data/json/JsonWriter.h"
 #include "db/data/xml/DomReader.h"
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/io/ByteArrayInputStream.h"
+#include "db/logging/Logging.h"
 #include "db/net/http/HttpClient.h"
 #include "db/upnp/SoapEnvelope.h"
 #include "db/util/StringTools.h"
 
 using namespace std;
+using namespace db::data::json;
 using namespace db::data::xml;
 using namespace db::io;
+using namespace db::logging;
 using namespace db::net;
 using namespace db::net::http;
 using namespace db::rt;
@@ -30,6 +34,10 @@ bool ControlPoint::getDescription(Url* url, string& description)
 {
    bool rval = false;
    
+   DB_CAT_DEBUG(DB_UPNP_CAT,
+      "Getting UPnP description from url '%s'...",
+      url->toString().c_str());
+   
    // do http connection
    HttpClient client;
    if((rval = client.connect(url)))
@@ -43,16 +51,35 @@ bool ControlPoint::getDescription(Url* url, string& description)
       HttpResponse* response = client.get(&path, &headers);
       if((rval = (response != NULL)))
       {
-         // FIXME: ensure response code is appropriate, etc.
+         DB_CAT_DEBUG(DB_UPNP_CAT,
+            "Get UPnP description response header:\n%s",
+            response->getHeader()->toString().c_str());
          
          // receive response
          ByteBuffer bb(2048);
          ByteArrayOutputStream baos(&bb, true);
          if((rval = client.receiveContent(&baos)))
          {
-            // get description
-            description.erase();
-            description.append(bb.data(), bb.length());
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Get UPnP description response body:\n%s",
+               string(bb.data(), bb.length()).c_str());
+            if(response->getHeader()->getStatusCode() < 400)
+            {
+               // get description
+               description.erase();
+               description.append(bb.data(), bb.length());
+            }
+            else
+            {
+               // error getting description
+               ExceptionRef e = new Exception(
+                  "HTTP transmission error.",
+                  "db.upnp.HttpError");
+               e->getDetails()["statusMessage"] =
+                  response->getHeader()->getStatusMessage();
+               e->getDetails()["statusCode"] =
+                  response->getHeader()->getStatusCode();
+            }
          }
       }
       
@@ -60,33 +87,48 @@ bool ControlPoint::getDescription(Url* url, string& description)
       client.disconnect();
    }
    
+   if(!rval)
+   {
+      DB_CAT_ERROR(DB_UPNP_CAT,
+         "Failed to get UPnP description from url '%s': %s",
+         url->toString().c_str(),
+         JsonWriter::writeToString(
+            Exception::getAsDynamicObject()).c_str());
+   }
+   
    return rval;
 }
 
 // a helper function to parse devices or sub-devices
-static void parseDevice(Device& device, Element& root)
+static void parseDevice(
+   Device& device, Element& root, const char* rootUrl, bool sub)
 {
+   DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing device from xml: %s",
+      JsonWriter::writeToString(root).c_str());
+   
    // get basic device info
+   Element& rd = sub ? root : root["children"]["device"][0];
+   device["rootURL"] = rootUrl;
    device["deviceType"] =
-      root["children"]["deviceType"][0]["data"]->getString();
+      rd["children"]["deviceType"][0]["data"]->getString();
    device["manufacturer"] =
-      root["children"]["manufacturer"][0]["data"]->getString();
+      rd["children"]["manufacturer"][0]["data"]->getString();
    device["manufacturerURL"] =
-      root["children"]["manufacturerURL"][0]["data"]->getString();
+      rd["children"]["manufacturerURL"][0]["data"]->getString();
    device["modelDescription"] =
-      root["children"]["modelDescription"][0]["data"]->getString();
+      rd["children"]["modelDescription"][0]["data"]->getString();
    device["modelName"] =
-      root["children"]["modelName"][0]["data"]->getString();
+      rd["children"]["modelName"][0]["data"]->getString();
    device["modelNumber"] =
-      root["children"]["modelNumber"][0]["data"]->getString();
+      rd["children"]["modelNumber"][0]["data"]->getString();
    device["modelURL"] =
-      root["children"]["modelURL"][0]["data"]->getString();
+      rd["children"]["modelURL"][0]["data"]->getString();
    device["serialNumber"] =
-      root["children"]["serialNumber"][0]["data"]->getString();
+      rd["children"]["serialNumber"][0]["data"]->getString();
    device["UDN"] =
-      root["children"]["UDN"][0]["data"]->getString();
+      rd["children"]["UDN"][0]["data"]->getString();
    device["UPC"] =
-      root["children"]["UPC"][0]["data"]->getString();
+      rd["children"]["UPC"][0]["data"]->getString();
    
    // initialize sub-devices and services
    DeviceList& deviceList = device["devices"];
@@ -95,9 +137,9 @@ static void parseDevice(Device& device, Element& root)
    serviceList->setType(Array);
    
    // parse out services
-   if(root["children"]->hasMember("serviceList"))
+   if(rd["children"]->hasMember("serviceList"))
    {
-      Element& sl = root["children"]["serviceList"][0];
+      Element& sl = rd["children"]["serviceList"][0];
       DynamicObjectIterator si = sl["children"]["service"].getIterator();
       while(si->hasNext())
       {
@@ -115,6 +157,7 @@ static void parseDevice(Device& device, Element& root)
             service["children"]["controlURL"][0]["data"]->getString();
          s["eventSubURL"] =
             service["children"]["eventSubURL"][0]["data"]->getString();
+         s["rootURL"] = rootUrl;
          
          // add service to device
          serviceList->append(s);
@@ -122,9 +165,9 @@ static void parseDevice(Device& device, Element& root)
    }   
    
    // parse out devices
-   if(root["children"]->hasMember("deviceList"))
+   if(rd["children"]->hasMember("deviceList"))
    {
-      Element& dl = root["children"]["deviceList"][0];
+      Element& dl = rd["children"]["deviceList"][0];
       DynamicObjectIterator di = dl["children"]["device"].getIterator();
       while(di->hasNext())
       {
@@ -132,12 +175,15 @@ static void parseDevice(Device& device, Element& root)
          
          // parse sub-device information
          Device d;
-         parseDevice(d, dev);
+         parseDevice(d, dev, rootUrl, true);
          
          // add device to device list
          deviceList->append(d);
       }
    }
+   
+   DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed device: %s",
+      JsonWriter::writeToString(device).c_str());
 }
 
 bool ControlPoint::getDeviceDescription(Device& device)
@@ -146,6 +192,11 @@ bool ControlPoint::getDeviceDescription(Device& device)
    
    // get the location url for the device
    Url url(device["location"]->getString());
+   
+   // save the root URL
+   string rootUrl = url.getScheme();
+   rootUrl.append("://");
+   rootUrl.append(url.getAuthority());
    
    // get description
    string description;
@@ -159,8 +210,8 @@ bool ControlPoint::getDeviceDescription(Device& device)
       reader.start(root);
       if((rval = reader.read(&bais) && reader.finish()))
       {
-         // parse device
-         parseDevice(device, root);
+         // parse root device
+         parseDevice(device, root, rootUrl.c_str(), false);
       }
    }
    
@@ -172,7 +223,10 @@ bool ControlPoint::getServiceDescription(Service& service)
    bool rval = false;
    
    // get the description url for the service
-   Url url(service["SCPDURL"]->getString());
+   Url url;
+   url.format("%s%s",
+      service["rootURL"]->getString(),
+      service["SCPDURL"]->getString());
    
    // get description
    string description;
@@ -186,46 +240,78 @@ bool ControlPoint::getServiceDescription(Service& service)
       reader.start(root);
       if((rval = reader.read(&bais) && reader.finish()))
       {
-         // save description in service
-         service["description"] = root;
-         service["actions"]->setType(Array);
+         DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing service from xml: %s",
+            JsonWriter::writeToString(root).c_str());
          
          // parse out actions
+         service["actions"]->setType(Map);
          if(root["children"]->hasMember("actionList"))
          {
             Element& actionList = root["children"]["actionList"][0];
             if(actionList["children"]->hasMember("action"))
             {
-               Element& action = actionList["children"]["action"][0];
-               
-               // get action basics
-               Action a;
-               a["name"] =
-                  action["children"]["name"][0]["data"]->getString();
-               a["argumentList"]->setType(Array);
-               
-               // add action arguments
-               Element& argList = action["children"]["argumentList"][0];
-               DynamicObjectIterator argi =
-                  argList["children"]["argument"].getIterator();
-               while(argi->hasNext())
+               DynamicObjectIterator ai =
+                  actionList["children"]["action"].getIterator();
+               while(ai->hasNext())
                {
-                  DynamicObject& argument = argi->next();
-                  ActionArgument arg;
-                  arg["name"] =
-                     argument["children"]["name"][0["data"]]->getString();
-                  arg["direction"] =
-                     argument["children"]["direction"][0]["data"]->getString();
-                  arg["retval"] =
-                     argument["children"]["retval"][0]["data"]->getString();
-                  a["argumentList"]->append(arg);
+                  DynamicObject& action = ai->next();
+                  
+                  // get action basics
+                  Action a;
+                  a["name"] =
+                     action["children"]["name"][0]["data"]->getString();
+                  a["arguments"]->setType(Map);
+                  a["arguments"]["in"]->setType(Array);
+                  a["arguments"]["out"]->setType(Array);
+                  
+                  // add action arguments
+                  if(action["children"]->hasMember("argumentList"))
+                  {
+                     Element& argList = action["children"]["argumentList"][0];
+                     DynamicObjectIterator argi =
+                        argList["children"]["argument"].getIterator();
+                     while(argi->hasNext())
+                     {
+                        DynamicObject& argument = argi->next();
+                        
+                        // build argument
+                        DynamicObject name;
+                        name =
+                           argument["children"]["name"]
+                           [0]["data"]->getString();
+                        const char* direction =
+                           argument["children"]["direction"]
+                           [0]["data"]->getString();
+                        if(strcmp(direction, "in") == 0)
+                        {
+                           a["arguments"]["in"]->append(name);
+                        }
+                        else
+                        {
+                           a["arguments"]["out"]->append(name);
+                        }
+                        
+                        if(argument["children"]->hasMember("retval"))
+                        {
+                           a["retval"][name->getString()] =
+                              argument["children"]["retval"]
+                              [0]["data"]->getString();
+                        }
+                     }
+                     
+                     // add action to service
+                     service["actions"][a["name"]->getString()] = a;
+                  }
                }
-               
-               // add action to service
-               service["actions"]->append(a);
             }
          }
       }
+   }
+   
+   if(rval)
+   {
+      DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed service: %s",
+         JsonWriter::writeToString(service).c_str());
    }
    
    return rval;
@@ -234,7 +320,8 @@ bool ControlPoint::getServiceDescription(Service& service)
 /**
  * A helper function that sends a soap envelope and gets its result.
  * 
- * @param service the service to connect to.
+ * @param device the service to connect to.
+ * @param service the service to use.
  * @param msg the soap message to send.
  * @param result the result to populate.
  * 
@@ -251,7 +338,14 @@ static bool doSoap(
    if(envelope.length() > 0)
    {
       // get the control url for the service
-      Url url(service["controlURL"]->getString());
+      Url url;
+      url.format("%s%s",
+         service["rootURL"]->getString(),
+         service["controlURL"]->getString());
+      
+      DB_CAT_DEBUG(DB_UPNP_CAT,
+         "Sending SOAP message to url '%s':\n%s",
+         url.toString().c_str(), envelope.c_str());
       
       // do http connection
       HttpClient client;
@@ -272,13 +366,19 @@ static bool doSoap(
          HttpResponse* response = client.post(&path, &headers, &bais);
          if((rval = (response != NULL)))
          {
-            // FIXME: ensure response code is appropriate, etc.
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Received response header:\n%s",
+               response->getHeader()->toString().c_str());
             
             // receive response
             ByteBuffer bb(1024);
             ByteArrayOutputStream baos(&bb, true);
             if((rval = client.receiveContent(&baos)))
             {
+               DB_CAT_DEBUG(DB_UPNP_CAT,
+                  "Received SOAP message:\n%s",
+                  string(bb.data(), bb.length()).c_str());
+               
                // parse soap response
                ByteArrayInputStream bais2(&bb);
                SoapResult sr;
@@ -297,14 +397,15 @@ static bool doSoap(
                   ExceptionRef e = new Exception(
                      "Soap fault received.",
                      "db.upnp.SoapFault");
-                  e->getDetails()["fault"] = sr["result"];
+                  e->getDetails()["fault"] = sr["message"];
                   Exception::set(e);
                   rval = false;
+                  result = sr;
                }
                else
                {
-                  // return result as message parameters
-                  result = sr["result"]["message"]["params"];
+                  // return result as soap result
+                  result = sr;
                }
             }
          }
@@ -316,6 +417,11 @@ static bool doSoap(
    
    if(!rval)
    {
+      DB_CAT_ERROR(DB_UPNP_CAT,
+         "Could not perform SOAP transfer: %s",
+         JsonWriter::writeToString(
+            Exception::getAsDynamicObject()).c_str());
+      
       ExceptionRef e = new Exception(
          "Could not perform soap transfer.",
          "db.upnp.SoapTransferError");
@@ -346,6 +452,9 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          {
             // found wan device
             wd = next;
+            
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Found device '" UPNP_DEVICE_TYPE_WAN "'");
          }
       }
    }
@@ -365,6 +474,9 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          {
             // found wan connection device
             wcd = next;
+            
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Found device '" UPNP_DEVICE_TYPE_WAN_CONNECTION "'");
          }
       }
    }
@@ -384,6 +496,9 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          {
             // found wan ip connection service
             wipcs = next;
+            
+            DB_CAT_DEBUG(DB_UPNP_CAT,
+               "Found service '" UPNP_SERVICE_TYPE_WAN_IP_CONNECTION "'");
          }
       }
    }
@@ -397,9 +512,9 @@ bool ControlPoint::performAction(
 {
    bool rval = false;
    
-   // ensure action exists in service description
-   ServiceDescription& desc = service["description"];
-   if(!desc->hasMember("actions") || !desc["actions"]->hasMember(actionName))
+   // ensure action exists in the service
+   if(!service->hasMember("actions") ||
+      !service["actions"]->hasMember(actionName))
    {
       ExceptionRef e = new Exception(
          "Service has no such action.",
@@ -447,9 +562,9 @@ bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs, bool* dne)
    
    // only these 3 parameters must be sent
    PortMapping pm2;
-   pm2["RemoteHost"] = pm["RemoteHost"];
-   pm2["ExternalPort"] = pm["ExternalPort"];
-   pm2["Protocol"] = pm["Protocol"];
+   pm2["NewRemoteHost"] = pm["NewRemoteHost"];
+   pm2["NewExternalPort"] = pm["NewExternalPort"];
+   pm2["NewProtocol"] = pm["NewProtocol"];
    
    // perform the action
    ActionResult result;
@@ -461,7 +576,8 @@ bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs, bool* dne)
       DynamicObject params = result["message"]["params"];
       DynamicObject& upnpError = params["detail"]["UPnPError"];
       int32_t code = upnpError["errorCode"]->getInt32();
-      if(code == UPNP_ERROR_NoSuchEntryInArray)
+      if(code == UPNP_ERROR_NoSuchEntryInArray ||
+         code == UPNP_ERROR_SpecifiedArrayIndexInvalid)
       {
          // no such entry
          *dne = true;
@@ -490,7 +606,8 @@ bool ControlPoint::getPortMapping(PortMapping& pm, int index, Service& wipcs)
       params = result["message"]["params"];
       DynamicObject& upnpError = params["detail"]["UPnPError"];
       int32_t code = upnpError["errorCode"]->getInt32();
-      if(code == UPNP_ERROR_NoSuchEntryInArray)
+      if(code == UPNP_ERROR_NoSuchEntryInArray ||
+         code == UPNP_ERROR_SpecifiedArrayIndexInvalid)
       {
          // no such entry, return null port mapping
          pm.setNull();
@@ -507,9 +624,9 @@ bool ControlPoint::getPortMapping(PortMapping& pm, Service& wipcs)
    
    // only these 3 parameters must be sent
    PortMapping pm2;
-   pm2["RemoteHost"] = pm["RemoteHost"];
-   pm2["ExternalPort"] = pm["ExternalPort"];
-   pm2["Protocol"] = pm["Protocol"];
+   pm2["NewRemoteHost"] = pm["NewRemoteHost"];
+   pm2["NewExternalPort"] = pm["NewExternalPort"];
+   pm2["NewProtocol"] = pm["NewProtocol"];
    
    // perform the action
    ActionResult result;
@@ -517,6 +634,9 @@ bool ControlPoint::getPortMapping(PortMapping& pm, Service& wipcs)
    if(rval)
    {
       pm = result["message"]["params"];
+      pm["NewRemoteHost"] = pm2["NewRemoteHost"];
+      pm["NewExternalPort"] = pm2["NewExternalPort"];
+      pm["NewProtocol"] = pm2["NewProtocol"];
    }
    // handle soap fault
    else if(result["fault"]->getBoolean())
@@ -524,7 +644,8 @@ bool ControlPoint::getPortMapping(PortMapping& pm, Service& wipcs)
       DynamicObject params = result["message"]["params"];
       DynamicObject& upnpError = params["detail"]["UPnPError"];
       int32_t code = upnpError["errorCode"]->getInt32();
-      if(code == UPNP_ERROR_NoSuchEntryInArray)
+      if(code == UPNP_ERROR_NoSuchEntryInArray ||
+         code == UPNP_ERROR_SpecifiedArrayIndexInvalid)
       {
          // no such entry, return null port mapping
          pm.setNull();

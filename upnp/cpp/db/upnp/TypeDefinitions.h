@@ -91,7 +91,7 @@ namespace upnp
  * All fields (inclusive) "deviceType"-"UPC".
  * devices      : an array of sub-devices.
  * services     : an array of services.
- * description  : the description as a DOM Element as below.
+ * rootURL      : the root URL to the device (includes schema+host+port)
  * 
  * A root UPnP device has the additional fields:
  * 
@@ -263,10 +263,10 @@ typedef db::rt::DynamicObjectIterator DeviceIterator;
  * SCPDURL
  * controlURL
  * eventSubURL
+ * rootURL      : the root URL to the service (includes schema+host+port)
  * 
  * Any UPnP service whose description has been fetched as the following fields:
- * actions     : an array of Actions.
- * description : the description as a DOM Element as below.
+ * actions     : a map of Action name to Action.
  * 
  * Below is the full XML description for a service. It is used to build
  * a simpler service object with the above properties.
@@ -651,12 +651,7 @@ typedef db::rt::DynamicObject ServiceDescription;
  * 
  * An Action has these properties, as defined below:
  * name         : the name of the action.
- * argumentList : an array of ActionArguments
- * 
- * Each ActionArgument has these properties as defined below:
- * name      : the name of the argument.
- * direction : "in" or "out"
- * retval    : the return value? (currently unused)
+ * arguments    : a map with "in", "out", and "retval" argument names
  * 
  * Below is the full XML description for an action. It is used to build
  * a simpler action object with the above properties.
@@ -704,8 +699,6 @@ typedef db::rt::DynamicObject ServiceDescription;
  */
 typedef db::rt::DynamicObject Action;
 typedef db::rt::DynamicObjectIterator ActionIterator;
-typedef db::rt::DynamicObject ActionArgument;
-typedef db::rt::DynamicObjectIterator ActionArgumentIterator;
 
 /**
  * An ActionResult is a map of named return values.
@@ -714,20 +707,21 @@ typedef db::rt::DynamicObject ActionResult;
 
 /**
  * A PortMapping object is used to add or remove a port mapping entry
- * on an internet gateway device. A blank IP address for the RemoteHost
+ * on an internet gateway device. A blank IP address for the NewRemoteHost
  * will use the default external IP address of the internet gateway device.
  * 
  * If adding a port mapping, all parameters are used. If removing a port
- * mapping, only the first three (RemoteHost, ExternalPort, Protocol) are used.
+ * mapping, only the first three (NewRemoteHost, NewExternalPort, NewProtocol)
+ * are used.
  * 
- * @param RemoteHost the external IP address ("x.x.x.x" or "").
- * @param ExternalPort the external port clients connect to.
- * @param Protocol either "TCP" or "UDP".
- * @param InternalPort the port on the internal server.
- * @param InternalClient the internal IP address to redirect ("x.x.x.x").
- * @param PortMappingEnabled true or false.
- * @param PortMappingDescription a string describing the mapping.
- * @param PortMappingLeaseDuration 0 for infinite, otherwise seconds for lease.
+ * @param NewRemoteHost the external IP address ("x.x.x.x" or "").
+ * @param NewExternalPort the external port clients connect to.
+ * @param NewProtocol either "TCP" or "UDP".
+ * @param NewInternalPort the port on the internal server.
+ * @param NewInternalClient the internal IP address to redirect ("x.x.x.x").
+ * @param NewEnabled true or false.
+ * @param NewPortMappingDescription a string describing the mapping.
+ * @param NewLeaseDuration 0 for infinite, X seconds for lease.
  */
 typedef db::rt::DynamicObject PortMapping;
 

@@ -13,10 +13,12 @@ using namespace db::event;
 using namespace db::modest;
 using namespace db::rt;
 
-Observable::Observable()
+#define MAX_SEQ_ID (uint64_t)0xffffffffffffffffULL
+
+Observable::Observable() :
+   mDispatch(false),
+   mSequenceId(0)
 {
-   // no events to dispatch yet
-   mDispatch = false;
 }
 
 Observable::~Observable()
@@ -284,6 +286,10 @@ void Observable::schedule(Event e, EventId id, bool async)
       mQueueLock.lock();
       mDispatch = true;
       
+      // set event's sequence ID
+      mSequenceId = (mSequenceId == MAX_SEQ_ID) ? 1 : mSequenceId + 1;
+      e["sequenceId"] = mSequenceId;
+      
       // add event to queue
       mEventQueue.push_back(e);
       
@@ -293,6 +299,12 @@ void Observable::schedule(Event e, EventId id, bool async)
    }
    else
    {
+      // set event's sequence ID
+      mQueueLock.lock();
+      mSequenceId = (mSequenceId == MAX_SEQ_ID) ? 1 : mSequenceId + 1;
+      e["sequenceId"] = mSequenceId;
+      mQueueLock.unlock();
+      
       // dispatch the event immediately
       dispatchEvent(e);
    }

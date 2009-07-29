@@ -145,5 +145,5 @@ void EventController::removeParent(const char* child, const char* parent)
 void EventController::schedule(Event& event)
 {
    EventId id = getEventId(event["type"]->getString());
-   Observable::schedule(event, id);
+   Observable::schedule(event, id, true);
 }

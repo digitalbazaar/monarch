@@ -3,14 +3,18 @@
  */
 #include "db/upnp/SoapEnvelope.h"
 
+#include "db/data/json/JsonWriter.h"
 #include "db/data/xml/DomReader.h"
 #include "db/data/xml/DomWriter.h"
 #include "db/io/ByteArrayInputStream.h"
 #include "db/io/ByteArrayOutputStream.h"
+#include "db/logging/Logging.h"
 
 using namespace std;
+using namespace db::data::json;
 using namespace db::data::xml;
 using namespace db::io;
+using namespace db::logging;
 using namespace db::rt;
 using namespace db::upnp;
 
@@ -124,16 +128,18 @@ static void elementToParams(Element& e, DynamicObject& params)
    // convert any children
    if(e["children"]->length() > 0)
    {
-      // each entry in children is an array of elements
+      // each entry in children is an array of child names
       DynamicObjectIterator i = e["children"].getIterator();
       while(i->hasNext())
       {
-         DynamicObject& elements = i->next();
-         ElementIterator ei = elements.getIterator();
-         while(ei->hasNext())
+         DynamicObject& childName = i->next();
+         
+         // each entry in child name is a child of that name
+         ElementIterator ci = childName.getIterator();
+         while(ci->hasNext())
          {
-            Element& child = ei->next();
-            elementToParams(child, params[child["name"]->getString()]);
+            Element& child = ci->next();
+            elementToParams(child, params[i->getName()]);
          }
       }
    }
@@ -160,6 +166,9 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
    reader.start(root);
    if((rval = reader.read(is) && reader.finish()))
    {
+      DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing SOAP envelope: %s",
+         JsonWriter::writeToString(root).c_str());
+      
       // ensure there is a body in the response
       rval = false;
       if(root["children"]->hasMember("Body"))
@@ -198,6 +207,11 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
             "Invalid or no soap body found in response envelope.",
             "db.upnp.InvalidSoapEnvelope");
          Exception::set(e);
+      }
+      else
+      {
+         DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed SOAP result: %s",
+            JsonWriter::writeToString(result).c_str());
       }
    }
    

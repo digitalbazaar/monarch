@@ -34,6 +34,7 @@ DLL_DATA db::logging::Category* DB_NET_CAT;
 DLL_DATA db::logging::Category* DB_RT_CAT;
 DLL_DATA db::logging::Category* DB_SPHINX_CAT;
 DLL_DATA db::logging::Category* DB_SQL_CAT;
+DLL_DATA db::logging::Category* DB_UPNP_CAT;
 DLL_DATA db::logging::Category* DB_UTIL_CAT;
 
 #undef DLL_DATA

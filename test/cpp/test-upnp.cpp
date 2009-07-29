@@ -125,24 +125,24 @@ void runPortMappingTest(TestRunner& tr)
    tr.group("PortMapping");
    
    PortMapping mapping;
-   mapping["RemoteHost"] = "";
-   mapping["ExternalPort"] = 19123;
-   mapping["Protocol"] = "TCP";
-   mapping["InternalPort"] = 19124;
-   mapping["InternalClient"] = "192.168.123.123";
-   mapping["PortMappingEnabled"] = true;
-   mapping["PortMappingDescription"] = "A test port mapping.";
-   mapping["PortMappingLeaseDuration"] = 0;
+   mapping["NewRemoteHost"] = "";
+   mapping["NewExternalPort"] = 19100;
+   mapping["NewProtocol"] = "TCP";
+   mapping["NewInternalPort"] = 19100;
+   mapping["NewInternalClient"] = "10.10.0.10";
+   mapping["NewEnabled"] = "1";
+   mapping["NewPortMappingDescription"] = "A test port mapping.";
+   mapping["NewLeaseDuration"] = "0";
    
    Device igd(NULL);
    Service wipcs(NULL);
    
    tr.test("discover internet gateway device");
    {
-      // search for 1 internet gateway device... 30 seconds to find one
+      // search for 1 internet gateway device... 2 seconds to find one
       DeviceDiscoverer dd;
       DeviceList devices;
-      if(dd.discover(devices, UPNP_DEVICE_TYPE_IGD, 30 * 1000, 1))
+      if(dd.discover(devices, UPNP_DEVICE_TYPE_IGD, 2 * 1000, 1) == 1)
       {
          // found!
          igd = devices.first();
@@ -150,7 +150,7 @@ void runPortMappingTest(TestRunner& tr)
       assert(!igd.isNull());
    }
    tr.passIfNoException();
-   
+      
    tr.test("get device description");
    {
       ControlPoint cp;
@@ -164,6 +164,14 @@ void runPortMappingTest(TestRunner& tr)
       ControlPoint cp;
       wipcs = cp.getWanIpConnectionService(igd);
       assert(!wipcs.isNull());
+   }
+   tr.passIfNoException();
+   
+   tr.test("get service description");
+   {
+      ControlPoint cp;
+      cp.getServiceDescription(wipcs);
+      assertNoException();
    }
    tr.passIfNoException();
    
@@ -191,11 +199,84 @@ void runPortMappingTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("get all mappings");
+   {
+      ControlPoint cp;
+      PortMapping pm;
+      pm->setType(Map);
+      printf("\nSTART PORT MAPPINGS:\n");
+      for(int i = 0; !pm.isNull(); i++)
+      {
+         pm->clear();
+         if(cp.getPortMapping(pm, i, wipcs))
+         {
+            if(pm.isNull())
+            {
+               // last port mapping found
+               Exception::clear();
+            }
+            else
+            {
+               dumpDynamicObject(pm);
+            }
+         }
+         else
+         {
+            pm.setNull();
+         }
+      }
+      printf("END PORT MAPPINGS.\n");
+   }
+   tr.passIfNoException();
+   
+   tr.test("get specific mapping");
+   {
+      ControlPoint cp;
+      PortMapping pm;
+      pm["NewRemoteHost"] = mapping["NewRemoteHost"].clone();
+      pm["NewExternalPort"] = mapping["NewExternalPort"].clone();
+      pm["NewProtocol"] = mapping["NewProtocol"].clone();
+      cp.getPortMapping(pm, wipcs);
+      //dumpDynamicObject(pm);
+      assert(pm == mapping);
+   }
+   tr.passIfNoException();
+   
    tr.test("remove mapping");
    {
       ControlPoint cp;
       PortMapping pm = mapping.clone();
       cp.removePortMapping(pm, wipcs, NULL);
+   }
+   tr.passIfNoException();
+   
+   tr.test("get all mappings after remove");
+   {
+      ControlPoint cp;
+      PortMapping pm;
+      pm->setType(Map);
+      printf("\nSTART PORT MAPPINGS:\n");
+      for(int i = 0; !pm.isNull(); i++)
+      {
+         pm->clear();
+         if(cp.getPortMapping(pm, i, wipcs))
+         {
+            if(pm.isNull())
+            {
+               // last port mapping found
+               Exception::clear();
+            }
+            else
+            {
+               dumpDynamicObject(pm);
+            }
+         }
+         else
+         {
+            pm.setNull();
+         }
+      }
+      printf("END PORT MAPPINGS.\n");
    }
    tr.passIfNoException();
    

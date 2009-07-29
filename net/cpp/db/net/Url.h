@@ -261,10 +261,13 @@ public:
     * @param vars the DynamicObject Map to populate with the variables from
     *             the query.  vars will be converted to a Map if it is some
     *             other type.
+    * @param asArrays true to create an array to hold all values for each key,
+    *           false to use only the last value for each key.
     * 
     * @return true if variables were present, false if not.
     */
-   virtual bool getQueryVariables(db::rt::DynamicObject& vars);
+   virtual bool getQueryVariables(
+      db::rt::DynamicObject& vars, bool asArrays = false);
    
    /**
     * Combines the path and query of this url, if one exists.
@@ -358,10 +361,13 @@ public:
     * 
     * @param form the DynamicObject map to populate with the decoded key-values.
     * @param str the NULL terminated string to URL-form-decode.
+    * @param asArrays true to create an array to hold all values for each key,
+    *           false to use only the last value for each key.
     * 
     * @return true if form data was found, false if not.
     */
-   static bool formDecode(db::rt::DynamicObject& form, const char* str);
+   static bool formDecode(
+      db::rt::DynamicObject& form, const char* str, bool asArrays = false);
 };
 
 // type definition for a reference collected Url
