@@ -23,7 +23,7 @@ SphinxClient::~SphinxClient()
 
 uint32_t SphinxClient::readUInt32(ByteBuffer* b, bool limit)
 {
-   uint32_t i;
+   uint32_t i = 0;
    b->get((char*)&i, 4);
    i = DB_UINT32_FROM_BE(i);
    
@@ -37,7 +37,7 @@ uint32_t SphinxClient::readUInt32(ByteBuffer* b, bool limit)
 
 uint64_t SphinxClient::readUInt64(ByteBuffer* b, bool limit)
 {
-   uint64_t i;
+   uint64_t i = 0;
    b->get((char*)&i, 8);
    i = DB_UINT64_FROM_BE(i);
    
