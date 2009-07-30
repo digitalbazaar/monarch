@@ -20,6 +20,7 @@ INCLUDES = \
 	-I$(DBCORE)/data/cpp \
 	-I$(DBCORE)/event/cpp \
 	-I$(DBCORE)/fiber/cpp \
+	-I$(DBCORE)/http/cpp \
 	-I$(DBCORE)/io/cpp \
 	-I$(DBCORE)/logging/cpp \
 	-I$(DBCORE)/mail/cpp \

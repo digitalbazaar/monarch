@@ -32,9 +32,9 @@
 #include "db/data/riff/RiffFormHeader.h"
 #include "db/modest/Kernel.h"
 #include "db/net/Url.h"
-#include "db/net/http/HttpClient.h"
-#include "db/net/http/HttpConnectionServicer.h"
-#include "db/net/http/HttpRequestServicer.h"
+#include "db/http/HttpClient.h"
+#include "db/http/HttpConnectionServicer.h"
+#include "db/http/HttpRequestServicer.h"
 #include "db/net/Server.h"
 #include "db/util/Data.h"
 #include "db/util/Timer.h"
@@ -50,7 +50,7 @@ using namespace db::data::xml;
 using namespace db::io;
 using namespace db::modest;
 using namespace db::net;
-using namespace db::net::http;
+using namespace db::http;
 using namespace db::rt;
 using namespace db::util;
 

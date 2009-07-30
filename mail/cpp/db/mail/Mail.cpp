@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/mail/Mail.h"
 
-#include "db/net/http/HttpHeader.h"
 #include "db/util/Base64Codec.h"
 #include "db/util/StringTools.h"
 
@@ -11,7 +10,6 @@ using namespace std;
 using namespace db::mail;
 using namespace db::rt;
 using namespace db::util;
-using namespace db::net::http;
 
 Mail::Mail()
 {
@@ -122,6 +120,46 @@ AddressList& Mail::getRecipients()
    return mRecipients;
 }
 
+static void biCapitalize(char* name)
+{
+   // capitalize first letter and letters after hyphens
+   // decapitalize other letters
+   // NOTE: hardcoded version is faster than using toupper/tolower
+   int length = 0;
+   if(name != NULL && *name != '\0')
+   {
+      length++;
+      char* ptr = name;
+      // cap first
+      if(*ptr >= 'a' && *ptr <= 'z')
+      {
+         *ptr -= 'a' - 'A';
+      }
+      for(ptr++; *ptr != '\0'; ptr++, length++)
+      {
+         // cap after '-'
+         if(*(ptr - 1) == '-')
+         {
+            if(*ptr >= 'a' && *ptr <= 'z')
+            {
+               *ptr -= 'a' - 'A';
+            }
+         }
+         // decap rest
+         else if(*ptr >= 'A' && *ptr <= 'Z')
+         {
+            *ptr += 'a' - 'A';
+         }
+      }
+      
+      // special case TE header
+      if(length == 2 && name[0] == 'T' && name[1] == 'e')
+      {
+         name[1] = 'E';
+      }
+   }
+}
+
 void Mail::setHeader(const char* header, const char* value)
 {
    if(strcasecmp(header, "from") == 0)
@@ -148,7 +186,7 @@ void Mail::setHeader(const char* header, const char* value)
    {
       char tmp[strlen(header) + 1];
       strcpy(tmp, header);
-      HttpHeader::biCapitalize(tmp);
+      biCapitalize(tmp);
       mMessage["headers"][tmp] = value;
    }
 }

@@ -15,13 +15,13 @@
 #include "db/net/Internet6Address.h"
 #include "db/net/SslSocket.h"
 #include "db/net/Url.h"
-#include "db/net/http/CookieJar.h"
-#include "db/net/http/HttpHeader.h"
-#include "db/net/http/HttpRequest.h"
-#include "db/net/http/HttpResponse.h"
-#include "db/net/http/HttpConnectionServicer.h"
-#include "db/net/http/HttpRequestServicer.h"
-#include "db/net/http/HttpClient.h"
+#include "db/http/CookieJar.h"
+#include "db/http/HttpHeader.h"
+#include "db/http/HttpRequest.h"
+#include "db/http/HttpResponse.h"
+#include "db/http/HttpConnectionServicer.h"
+#include "db/http/HttpRequestServicer.h"
+#include "db/http/HttpClient.h"
 #include "db/net/Server.h"
 #include "db/net/NullSocketDataPresenter.h"
 #include "db/net/SslSocketDataPresenter.h"
@@ -41,7 +41,7 @@ using namespace db::test;
 using namespace db::io;
 using namespace db::modest;
 using namespace db::net;
-using namespace db::net::http;
+using namespace db::http;
 using namespace db::rt;
 using namespace db::util;
 

@@ -12,6 +12,7 @@ SUBDIRS := 3rdparty/cpp \
            event/cpp \
            data/cpp \
            net/cpp \
+           http/cpp \
            config/cpp \
            mail/cpp \
            sphinx/cpp \
@@ -36,6 +37,7 @@ INSTALL_LIBRARIES := \
 	mail/cpp/dist/linux/libdbmail.so \
 	modest/cpp/dist/linux/libdbmodest.so \
 	net/cpp/dist/linux/libdbnet.so \
+	http/cpp/dist/linux/libdbhttp.so \
 	rt/cpp/dist/linux/libdbrt.so \
 	sql/cpp/dist/linux/libdbsql.so \
 	sqlite3/cpp/dist/linux/libdbsqlite3.so \

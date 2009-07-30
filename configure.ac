@@ -248,6 +248,7 @@ AC_CONFIG_FILES([
           data/cpp/Makefile
           event/cpp/Makefile
           fiber/cpp/Makefile
+          http/cpp/Makefile
           io/cpp/Makefile
           logging/cpp/Makefile
           mail/cpp/Makefile
