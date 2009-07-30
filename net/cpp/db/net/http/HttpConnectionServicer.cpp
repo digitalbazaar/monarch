@@ -216,8 +216,8 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       {
          // exception occurred while receiving header
          ExceptionRef e = Exception::get();
-         if(strcmp(e->getType(), "db.net.http.BadHeader") == 0 ||
-            strcmp(e->getType(), "db.net.http.BadRequest") == 0)
+         if(e->isType("db.net.http.BadHeader") ||
+            e->isType("db.net.http.BadRequest"))
          {
             // send 400 Bad Request
             const char* html =
@@ -234,8 +234,8 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          }
          // if the exception was not an interruption or socket error then
          // send an internal server error response
-         else if(strcmp(e->getType(), "db.io.InterruptedException") != 0 &&
-                 strncmp(e->getType(), "db.net.Socket", 13) != 0)
+         else if(!e->isType("db.io.InterruptedException") &&
+                 !e->isType("db.net.Socket", true))
          {
             // send 500 Internal Server Error
             const char* html =

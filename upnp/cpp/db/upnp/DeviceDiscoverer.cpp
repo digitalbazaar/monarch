@@ -263,7 +263,7 @@ int DeviceDiscoverer::discover(
             {
                // check last exception
                ExceptionRef e = Exception::get();
-               if(strcmp(e->getType(), "db.net.SocketTimeout") == 0)
+               if(e->isType("db.net.SocketTimeout"))
                {
                   DB_CAT_DEBUG(DB_UPNP_CAT, "UPnP request timed out.");
                   
