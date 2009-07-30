@@ -14,6 +14,7 @@ Category* DB_CRYPTO_CAT;
 Category* DB_DATA_CAT;
 Category* DB_EVENT_CAT;
 Category* DB_GUI_CAT;
+Category* DB_HTTP_CAT;
 Category* DB_IO_CAT;
 Category* DB_LOGGING_CAT;
 Category* DB_MAIL_CAT;
@@ -51,6 +52,10 @@ void LoggingCategories::initialize()
       "DB_GUI",
       "DB Graphical User Interface",
       NULL);
+   DB_HTTP_CAT = new Category(
+      "DB_HTTP",
+      "DB Http",
+      NULL);
    DB_IO_CAT = new Category(
       "DB_IO",
       "DB Input/Output",
@@ -77,7 +82,7 @@ void LoggingCategories::initialize()
       NULL);
    DB_SPHINX_CAT = new Category(
       "DB_SPHINX",
-      "DB SPHINX",
+      "DB Sphinx",
       NULL);
    DB_SQL_CAT = new Category(
       "DB_SQL",
@@ -112,6 +117,9 @@ void LoggingCategories::cleanup()
    
    delete DB_GUI_CAT;
    DB_GUI_CAT = NULL;
+   
+   delete DB_HTTP_CAT;
+   DB_HTTP_CAT = NULL;
    
    delete DB_IO_CAT;
    DB_IO_CAT = NULL;
