@@ -1087,8 +1087,10 @@ DynamicObject App::getCommandLineSpecs()
 "      --log-max-rotated MAX\n"
 "                      Maximum number of rotated log files. 0 for no limit.\n"
 "                      (default: 10)\n"
+"      --log-gzip      Do gzip rotated logs. (default: gzip logs)\n"
 "      --log-no-gzip   Do not gzip rotated logs. (default: gzip logs)\n"
 "      --log-color     Log with any available ANSI color codes. (default: false)\n"
+"      --log-no-color  Log without ANSI color codes. (default: false)\n"
 "      --log-location  Log source code locations.\n"
 "                      (compile time option, default: false)\n"
 "      --              Treat all remaining options as application arguments.\n"
@@ -1155,6 +1157,11 @@ DynamicObject App::getCommandLineSpecs()
    opt["argError"] = "Max rotated files not specified.";
    
    opt = spec["options"]->append();
+   opt["long"] = "--log-gzip";
+   opt["setTrue"]["config"] = "command line";
+   opt["setTrue"]["path"] = "app.logging.gzip";
+   
+   opt = spec["options"]->append();
    opt["long"] = "--log-no-gzip";
    opt["setFalse"]["config"] = "command line";
    opt["setFalse"]["path"] = "app.logging.gzip";
@@ -1168,6 +1175,11 @@ DynamicObject App::getCommandLineSpecs()
    opt["long"] = "--log-color";
    opt["setTrue"]["config"] = "command line";
    opt["setTrue"]["path"] = "app.logging.color";
+   
+   opt = spec["options"]->append();
+   opt["long"] = "--log-no-color";
+   opt["setFalse"]["config"] = "command line";
+   opt["setFalse"]["path"] = "app.logging.color";
    
    opt = spec["options"]->append();
    opt["long"] = "--option";
