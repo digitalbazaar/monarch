@@ -6,15 +6,15 @@
 #include "db/data/json/JsonWriter.h"
 #include "db/logging/Logging.h"
 #include "db/net/DatagramSocket.h"
-#include "db/net/http/HttpRequestHeader.h"
-#include "db/net/http/HttpResponseHeader.h"
+#include "db/http/HttpRequestHeader.h"
+#include "db/http/HttpResponseHeader.h"
 #include "db/rt/Exception.h"
 #include "db/util/Timer.h"
 
 using namespace std;
 using namespace db::data::json;
 using namespace db::logging;
-using namespace db::net::http;
+using namespace db::http;
 using namespace db::net;
 using namespace db::rt;
 using namespace db::upnp;
@@ -263,7 +263,7 @@ int DeviceDiscoverer::discover(
             {
                // check last exception
                ExceptionRef e = Exception::get();
-               if(strcmp(e->getType(), "db.net.SocketTimeout") == 0)
+               if(e->isType("db.net.SocketTimeout"))
                {
                   DB_CAT_DEBUG(DB_UPNP_CAT, "UPnP request timed out.");
                   

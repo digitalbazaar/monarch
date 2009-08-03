@@ -645,6 +645,36 @@ void runValidatorTest(TestRunner& tr)
       tr.passIfException(_dump);
    }
    
+   {
+      // whitespace test
+      DynamicObject dv;
+      dv = "test";
+      DynamicObject dnvs;
+      dnvs = " test";
+      DynamicObject dnve;
+      dnve = "test ";
+      DynamicObject dnvse;
+      dnvse = " test ";
+      
+      v::Regex v("^[^[:space:]]{1}.*[^[:space:]]{1}$");
+
+      tr.test("ws v");
+      assert(v.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("regex(ws start)");
+      assert(!v.isValid(dnvs));
+      tr.passIfException(_dump);
+
+      tr.test("regex(ws end)");
+      assert(!v.isValid(dnve));
+      tr.passIfException(_dump);
+
+      tr.test("regex(ws both)");
+      assert(!v.isValid(dnvse));
+      tr.passIfException(_dump);
+   }
+   
    tr.group("register");
    {
       tr.test("init");

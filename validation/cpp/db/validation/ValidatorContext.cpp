@@ -145,10 +145,10 @@ DynamicObject ValidatorContext::addError(
       else
       {
          e = Exception::get();
-         // Check we are adding to a ValidationError
-         if(strcmp(e->getType(), "db.validation.ValidationError") != 0)
+         // Check if we are adding to a ValidationError
+         if(!e->isType("db.validation.ValidationError"))
          {
-            // FIXME: this is a bit bogus.  If validation checking keeps causing
+            // FIXME: this is a bit bogus. If validation checking keeps causing
             // other exceptions then a long cause chain could be generated
             // switching between ValidationError and other types.
             e = new Exception(

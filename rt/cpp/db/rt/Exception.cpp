@@ -49,6 +49,22 @@ const char* Exception::getType()
    return mType;
 }
 
+bool Exception::isType(const char* type, bool startsWith)
+{
+   bool rval = false;
+   
+   if(startsWith)
+   {
+      rval = (strncmp(getType(), type, strlen(type)) == 0);
+   }
+   else
+   {
+      rval = (strcmp(getType(), type) == 0);
+   }
+   
+   return rval;
+}
+
 void Exception::setCode(int code)
 {
    mCode = code;
@@ -66,6 +82,54 @@ void Exception::setCause(ExceptionRef& cause)
 ExceptionRef& Exception::getCause()
 {
    return *mCause;
+}
+
+// method to optimize deep searches for exception type base names
+static ExceptionRef _getCauseOfType(ExceptionRef& e, const char* type, int n)
+{
+   ExceptionRef rval(NULL);
+   
+   // check this exception's type
+   if(strncmp(e->getType(), type, n) == 0)
+   {
+      rval = e;
+   }
+   // check this exception's cause
+   else if(!e->getCause().isNull())
+   {
+      rval = _getCauseOfType(e->getCause(), type, n);
+   }
+   
+   return rval;
+}
+
+ExceptionRef Exception::getCauseOfType(const char* type, bool startsWith)
+{
+   ExceptionRef rval(NULL);
+   
+   if(!mCause->isNull())
+   {
+      if(startsWith)
+      {
+         // use optimized recursive method that only counts "type" length once
+         _getCauseOfType(*mCause, type, strlen(type));
+      }
+      else
+      {
+         // check this exception's cause
+         if((*mCause)->isType(type, false))
+         {
+            rval = *mCause;
+         }
+         // check deeper in the stack/chain
+         else
+         {
+            rval = (*mCause)->getCauseOfType(type, false);
+         }
+      }
+   }
+   
+   return rval;
 }
 
 DynamicObject& Exception::getDetails()

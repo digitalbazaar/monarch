@@ -96,6 +96,19 @@ public:
    virtual const char* getType();
    
    /**
+    * Returns true if this Exception is of the passed type.
+    * 
+    * @param type the type to check.
+    * @param startsWith false to only return true if the passed type string
+    *        matches the exact type of this exception (the default behavior),
+    *        true to return true if this exception's type starts with the
+    *        given type.
+    * 
+    * @return true if this Exception is of the passed type.
+    */
+   virtual bool isType(const char* type, bool startsWith = false);
+   
+   /**
     * Sets the code for this Exception.
     *
     * @param code the code for this Exception.
@@ -122,6 +135,23 @@ public:
     * @return the cause for this Exception (may be NULL).
     */
    virtual Collectable<Exception>& getCause();
+   
+   /**
+    * Checks the cause stack/chain in this Exception for an Exception of
+    * the given type. If one is found, it is returned. Otherwise, NULL
+    * is returned.
+    * 
+    * @param type the type to look for.
+    * @param startsWith false to only return true if the passed type string
+    *        matches the exact type of the cause (the default behavior),
+    *        true to return true if the cause's type starts with the
+    *        given type.
+    * 
+    * @return the Exception with the given type, if found in this Exception's
+    *         stack/chain of causes.
+    */
+   virtual Collectable<Exception> getCauseOfType(
+      const char* type, bool startsWith = false);
    
    /**
     * Gets the details for this Exception. If there were no details

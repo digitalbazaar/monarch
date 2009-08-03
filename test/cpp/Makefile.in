@@ -32,6 +32,7 @@ EXECUTABLES = \
 	test-event \
 	test-fiber \
 	test-fiber-yield \
+	test-http \
 	test-io \
 	test-logging \
 	test-mail \
@@ -49,7 +50,7 @@ EXECUTABLES = \
 	test-validation
 
 LIBRARIES = dbtest
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation dbupnp $(SPHINX_DBLIBS) dbapp
+DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbhttp dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation dbupnp $(SPHINX_DBLIBS) dbapp
 DYNAMIC_EXECUTABLE_LIBRARIES = dbtest
 
 LINUX_LIB_DIR = @DBCOREDIR@/libs/linux

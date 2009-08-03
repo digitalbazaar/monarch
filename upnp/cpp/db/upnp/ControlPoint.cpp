@@ -8,17 +8,17 @@
 #include "db/io/ByteArrayOutputStream.h"
 #include "db/io/ByteArrayInputStream.h"
 #include "db/logging/Logging.h"
-#include "db/net/http/HttpClient.h"
+#include "db/http/HttpClient.h"
 #include "db/upnp/SoapEnvelope.h"
 #include "db/util/StringTools.h"
 
 using namespace std;
 using namespace db::data::json;
 using namespace db::data::xml;
+using namespace db::http;
 using namespace db::io;
 using namespace db::logging;
 using namespace db::net;
-using namespace db::net::http;
 using namespace db::rt;
 using namespace db::upnp;
 using namespace db::util;

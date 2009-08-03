@@ -26,6 +26,7 @@ DLL_DATA db::logging::Category* DB_CRYPTO_CAT;
 DLL_DATA db::logging::Category* DB_DATA_CAT;
 DLL_DATA db::logging::Category* DB_EVENT_CAT;
 DLL_DATA db::logging::Category* DB_GUI_CAT;
+DLL_DATA db::logging::Category* DB_HTTP_CAT;
 DLL_DATA db::logging::Category* DB_IO_CAT;
 DLL_DATA db::logging::Category* DB_LOGGING_CAT;
 DLL_DATA db::logging::Category* DB_MAIL_CAT;
