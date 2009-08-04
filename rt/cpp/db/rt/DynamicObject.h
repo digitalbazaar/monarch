@@ -38,6 +38,21 @@ class DynamicObjectIterator;
 class DLL_CLASS DynamicObject : public Collectable<DynamicObjectImpl>
 {
 public:
+
+   /**
+    * DynamicObject diffing flags
+    */
+   enum {
+      /**
+       * Compare all 32-bit and 64-bit integers as 64-bit integers.
+       */
+      DiffIntegerCompareU64Bit = 1,
+      /**
+       * Default diff flags (DiffIntegerCompare64Bit).
+       */
+      DiffDefaultFlags = DiffIntegerCompareU64Bit
+   };   
+   
    /**
     * Creates a new DynamicObject with a new, empty DynamicObjectImpl.
     */
@@ -246,11 +261,15 @@ public:
     * 
     * @param target the object to generate differences against.
     * @param result the resulting differences if there are any.
+    * @param flags the set of flags that enable or disable certain comparison
+    *              mechanisms used internally in the Dynamic object.
     * 
     * @return true if the objects are different, false if the objects are the 
     *         same.
     */
-   virtual bool diff(DynamicObject& target, DynamicObject& result);
+   virtual bool diff(
+      DynamicObject& target, DynamicObject& result, 
+      uint32_t flags = DiffDefaultFlags);
    
    /**
     * Determines if this DynamicObject is a subset of another. If this

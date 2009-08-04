@@ -216,9 +216,10 @@ DynamicObject DynamicObject::clone()
    return rval;
 }
 
-bool DynamicObject::diff(DynamicObject& target, DynamicObject& result)
+bool DynamicObject::diff(
+   DynamicObject& target, DynamicObject& result, uint32_t flags)
 {
-   bool rval = true;
+   bool rval = false;
    DynamicObject& source = (DynamicObject&)*this;
    
    if(source.isNull() && target.isNull())
@@ -229,14 +230,13 @@ bool DynamicObject::diff(DynamicObject& target, DynamicObject& result)
    {
       // <stuff> -> NULL: diff=NULL
       rval = true;
-      target = DynamicObject(NULL);
+      result = "[DiffError: target object is NULL]";
    }
-   else if((source.isNull() && !target.isNull()) ||
-      (source->getType() != target->getType()))
+   else if(source.isNull() && !target.isNull())
    {
       // NULL -> <stuff> -or- types differ: diff=target
       rval = true;
-      target = target.clone();
+      result = "[DiffError: source object is NULL]";
    }
    else
    {
@@ -250,73 +250,108 @@ bool DynamicObject::diff(DynamicObject& target, DynamicObject& result)
          case Int64:
          case UInt64:
          case Double:
-            // compare simple types directly
-            if(source != target)
+            // check to see if we should ignore the type mismatch if we
+            // don't care about integer formats
+            if((flags & DiffIntegerCompareU64Bit) &&
+               ((source->getType() != String) && source->getType() != Double))
             {
-               // changed: diff=target
+               if(source->getUInt64() != target->getUInt64())
+               {
+                  rval = true;
+                  result = target.clone();
+               }
+            }
+            // check to see if their is a type mismatch
+            else if(source->getType() != target->getType())
+            {
+               result = "[DiffError: type mismatch]";
                rval = true;
-               result = target.clone();
             }
             break;
          case Map:
          {
-            // compare target keys since we are only concerned with
-            // additions and updates, not removals
-            DynamicObjectIterator i = target.getIterator();
-            while(i->hasNext())
+            if(source->getType() != target->getType())
             {
-               DynamicObject next = i->next();
-               const char* name = i->getName();
-               if(!source->hasMember(name))
+               result = "[DiffError: Expected Map, type mismatch]";
+               rval = true;
+            }
+            else
+            {
+               // FIXME: since this code was copied from the config manager
+               // this only checks additions and updates not removals which
+               // is totally wrong... we need to fix this
+               DynamicObjectIterator i = target.getIterator();
+               while(i->hasNext())
                {
-                  // special property not in source, so add to diff
-                  rval = true;
-                  result[name] = next.clone();
-               }
-               else
-               {
-                  // recusively get sub-diff
-                  DynamicObject d;
-                  if(source[name].diff(next, d))
+                  DynamicObject next = i->next();
+                  const char* name = i->getName();
+                  if(!source->hasMember(name))
                   {
-                     // diff found, add it
+                     // source does not have property that is in target,
+                     // so add to diff
                      rval = true;
-                     result[name] = d;
+                     result[name] = next.clone();
+                  }
+                  else
+                  {
+                     // recusively get sub-diff
+                     DynamicObject d;
+                     if(source[name].diff(next, d, flags))
+                     {
+                        // diff found, add it
+                        rval = true;
+                        result[name] = d;
+                     }
                   }
                }
-            }
+            }            
+            // FIXME: search source for items that are not in target
+            
             break;
          }
          case Array:
          {
-            // compare target indexes since we are only concerned with
-            // additions and updates, not removals
-            DynamicObject temp;
-            temp->setType(Array);
-            DynamicObjectIterator i = target.getIterator();
-            for(int ii = 0; i->hasNext(); ii++)
+            if(source->getType() != target->getType())
             {
-               DynamicObject next = i->next();
-               DynamicObject d;
-               if(source[ii].diff(next, d))
+               result = "[DiffError: Expected Array, type mismatch]";
+               rval = true;
+            }
+            else
+            {
+               // FIXME: since this code was copied from the config manager
+               // this only checks additions and updates not removals which
+               // is totally wrong... we need to fix this
+               DynamicObject temp;
+               temp->setType(Array);
+               DynamicObjectIterator i = target.getIterator();
+               for(int ii = 0; i->hasNext(); ii++)
                {
-                  // diff found
-                  rval = true;
-                  temp[ii] = d;
+                  DynamicObject next = i->next();
+                  DynamicObject d;
+                  if(source->length() < (ii + 1) || 
+                     source[ii].diff(next, d, flags))
+                  {
+                     // diff found
+                     rval = true;
+                     temp[ii] = d;
+                  }
+                  else
+                  {
+                     // set the array value in temp to the value in source
+                     // FIXME: should this be set to null or something else
+                     // instead since there is no difference?
+                     temp[ii] = source[ii];
+                  }
                }
-               else
+               
+               // FIXME: check target for array indexes that are in source
+               
+               // only set array to target if a diff was found
+               if(rval)
                {
-                  // set keyword value
-                  temp[ii] = source[ii];
+                  result = temp;
                }
             }
-            
-            // only set array to target if a diff was found
-            if(rval)
-            {
-               result = temp;
-            }
-            
             break;
          }
       }
