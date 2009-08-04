@@ -238,6 +238,19 @@ public:
     * @param append true to append arrays, false to overwrite them.
     */
    virtual void merge(DynamicObject& rhs, bool append);
+
+   /**
+    * Generates the differences between this object and the given target object
+    * by doing a deep compare between both objects. The differences are written
+    * to the given result object. 
+    * 
+    * @param target the object to generate differences against.
+    * @param result the resulting differences if there are any.
+    * 
+    * @return true if the objects are different, false if the objects are the 
+    *         same.
+    */
+   virtual bool diff(DynamicObject& target, DynamicObject& result);
    
    /**
     * Determines if this DynamicObject is a subset of another. If this

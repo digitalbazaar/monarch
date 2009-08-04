@@ -216,6 +216,115 @@ DynamicObject DynamicObject::clone()
    return rval;
 }
 
+bool DynamicObject::diff(DynamicObject& target, DynamicObject& result)
+{
+   bool rval = true;
+   DynamicObject& source = (DynamicObject&)*this;
+   
+   if(source.isNull() && target.isNull())
+   {
+      // same: no diff
+   }
+   else if(!source.isNull() && target.isNull())
+   {
+      // <stuff> -> NULL: diff=NULL
+      rval = true;
+      target = DynamicObject(NULL);
+   }
+   else if((source.isNull() && !target.isNull()) ||
+      (source->getType() != target->getType()))
+   {
+      // NULL -> <stuff> -or- types differ: diff=target
+      rval = true;
+      target = target.clone();
+   }
+   else
+   {
+      // not null && same type: diff=deep compare
+      switch(source->getType())
+      {
+         case String:
+         case Boolean:
+         case Int32:
+         case UInt32:
+         case Int64:
+         case UInt64:
+         case Double:
+            // compare simple types directly
+            if(source != target)
+            {
+               // changed: diff=target
+               rval = true;
+               result = target.clone();
+            }
+            break;
+         case Map:
+         {
+            // compare target keys since we are only concerned with
+            // additions and updates, not removals
+            DynamicObjectIterator i = target.getIterator();
+            while(i->hasNext())
+            {
+               DynamicObject next = i->next();
+               const char* name = i->getName();
+               if(!source->hasMember(name))
+               {
+                  // special property not in source, so add to diff
+                  rval = true;
+                  result[name] = next.clone();
+               }
+               else
+               {
+                  // recusively get sub-diff
+                  DynamicObject d;
+                  if(source[name].diff(next, d))
+                  {
+                     // diff found, add it
+                     rval = true;
+                     result[name] = d;
+                  }
+               }
+            }
+            break;
+         }
+         case Array:
+         {
+            // compare target indexes since we are only concerned with
+            // additions and updates, not removals
+            DynamicObject temp;
+            temp->setType(Array);
+            DynamicObjectIterator i = target.getIterator();
+            for(int ii = 0; i->hasNext(); ii++)
+            {
+               DynamicObject next = i->next();
+               DynamicObject d;
+               if(source[ii].diff(next, d))
+               {
+                  // diff found
+                  rval = true;
+                  temp[ii] = d;
+               }
+               else
+               {
+                  // set keyword value
+                  temp[ii] = source[ii];
+               }
+            }
+            
+            // only set array to target if a diff was found
+            if(rval)
+            {
+               result = temp;
+            }
+            
+            break;
+         }
+      }
+   }
+   
+   return rval;
+}
+
 void DynamicObject::merge(DynamicObject& rhs, bool append)
 {
    switch(rhs->getType())
