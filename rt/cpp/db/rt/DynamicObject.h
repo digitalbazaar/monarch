@@ -40,17 +40,26 @@ class DLL_CLASS DynamicObject : public Collectable<DynamicObjectImpl>
 public:
 
    /**
-    * DynamicObject diffing flags
+    * DynamicObject differencing flags.
     */
-   enum {
+   enum
+   {
       /**
-       * Compare all 32-bit and 64-bit integers as 64-bit integers.
+       * Compare all 32-bit and 64-bit integers as 64-bit integers. UInt32
+       * types will be compared against UInt64 and Int32 will be compared
+       * against Int64.
        */
-      DiffIntegerCompareU64Bit = 1,
+      DiffIntegersAsInt64s = 1 << 0,
+      
       /**
-       * Default diff flags (DiffIntegerCompare64Bit).
+       * Compare doubles as strings.
        */
-      DiffDefaultFlags = DiffIntegerCompareU64Bit
+      DiffDoublesAsStrings = 1 << 1,
+      
+      /**
+       * Default diff flags (DiffCompareAsInt64).
+       */
+      DiffDefaultFlags = DiffIntegersAsInt64s
    };   
    
    /**

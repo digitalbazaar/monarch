@@ -243,36 +243,85 @@ bool DynamicObject::diff(
       // not null && same type: diff=deep compare
       switch(source->getType())
       {
-         case String:
-         case Boolean:
          case Int32:
-         case UInt32:
          case Int64:
+         case UInt32:
          case UInt64:
-         case Double:
-            // check to see if we should ignore the type mismatch if we
-            // don't care about integer formats
-            if((flags & DiffIntegerCompareU64Bit) &&
-               ((source->getType() != String) && source->getType() != Double))
+            if(source->getType() != target->getType())
             {
-               if(source->getUInt64() != target->getUInt64())
+               switch(target->getType())
+               {
+                  case Int32:
+                  case Int64:
+                  case UInt32:
+                  case UInt64:
+                     // if we're comparing using 64 bit integers, ignore
+                     // differences between 32 bit and 64 bit integers
+                     if(flags & DiffIntegersAsInt64s)
+                     {
+                        // do signed comparison
+                        if(source->getType() == Int32 ||
+                           source->getType() == Int64)
+                        {
+                           if(source->getInt64() != target->getInt64())
+                           {
+                              rval = true;
+                              result = target.clone();
+                           }
+                        }
+                        // do unsigned comparison
+                        else if(source->getUInt64() != target->getUInt64())
+                        {
+                           rval = true;
+                           result = target.clone();
+                        }
+                        
+                        // only break out of case if we're comparing
+                        // using 64 bit integers, otherwise drop to the
+                        // default case of a type mismatch
+                        break;
+                     }
+                  default:
+                     result = "[DiffError: type mismatch]";
+                     rval = true;
+               }
+            }
+            else if(source != target)
+            {
+               rval = true;
+               result = target.clone();
+            }
+            break;
+         case Double:
+            // compare doubles as strings if requested
+            if((flags & DiffDoublesAsStrings) &&
+               source->getType() == target->getType())
+            {
+               if(strcmp(source->getString(), target->getString()) != 0)
                {
                   rval = true;
                   result = target.clone();
                }
+               // only break out of case if comparing as strings
+               break;
             }
-            // check to see if their is a type mismatch
-            else if(source->getType() != target->getType())
+         case String:
+         case Boolean:
+            if(source->getType() != target->getType())
             {
                result = "[DiffError: type mismatch]";
                rval = true;
             }
+            else if(source != target)
+            {
+               rval = true;
+               result = target.clone();
+            }
             break;
          case Map:
-         {
             if(source->getType() != target->getType())
             {
-               result = "[DiffError: Expected Map, type mismatch]";
+               result = "[DiffError: type mismatch, expected Map]";
                rval = true;
             }
             else
@@ -308,12 +357,10 @@ bool DynamicObject::diff(
             // FIXME: search source for items that are not in target
             
             break;
-         }
          case Array:
-         {
             if(source->getType() != target->getType())
             {
-               result = "[DiffError: Expected Array, type mismatch]";
+               result = "[DiffError: type mismatch, expected Array]";
                rval = true;
             }
             else
@@ -353,7 +400,6 @@ bool DynamicObject::diff(
                }
             }
             break;
-         }
       }
    }
    
