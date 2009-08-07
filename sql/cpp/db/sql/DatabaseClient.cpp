@@ -366,43 +366,6 @@ static void _buildUpdateParameters(
    sql.append(whereSql);
 }
 
-// helper function to build delete parameters
-static void _buildDeleteParameters(
-   SchemaObject& schema, string& sql,
-   DynamicObject* where, DynamicObject& params)
-{
-   params->setType(Array);
-   
-   bool first = true;
-   DynamicObjectIterator i = schema["columns"].getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* memberName = next["memberName"]->getString();
-      
-      // if the where includes the given member, we want to create a param
-      if(where != NULL && (*where)->hasMember(memberName))
-      {
-         if(first)
-         {
-            first = false;
-            sql.append(" WHERE ");
-         }
-         else
-         {
-            sql.append(" AND ");
-         }
-         sql.append(next["name"]->getString());
-         sql.append("=?");
-         
-         // add param
-         DynamicObject& param = params->append();
-         param["name"] = next["name"]->getString();
-         param["value"] = (*where)[memberName];
-      }
-   }
-}
-
 bool DatabaseClient::create(
    const char* table, bool ignoreIfExists, Connection* c)
 {
@@ -736,7 +699,12 @@ bool DatabaseClient::remove(
       
       // build parameters
       DynamicObject params;
-      _buildDeleteParameters(schema, sql, where, params);
+      params->setType(Array);
+      if(where != NULL)
+      {
+         buildParams(schema, *where, params);
+         appendWhereSql(sql, params);
+      }
       
       // FIXME: remove me
       printf("\nSQL: %s\n", sql.c_str());

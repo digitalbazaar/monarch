@@ -216,8 +216,11 @@ bool Sqlite3Statement::execute()
          switch(mState)
          {
             case SQLITE_DONE:
+               // reset to finalize statement
+               mState = sqlite3_reset(mHandle);
+               break;
             case SQLITE_ROW:
-               // valid return state (done or got back a row)
+               // got back a row
                break;
             default:
             {
@@ -278,6 +281,8 @@ Row* Sqlite3Statement::fetch()
             // no more rows, clean up row object
             delete mRow;
             mRow = NULL;
+            // reset to finalize statement
+            mState = sqlite3_reset(mHandle);
             break;
          default:
          {
