@@ -192,29 +192,6 @@ static void _buildSelectParamsAndResults(
    }
 }
 
-// helper function to append a where clause with parameters
-static void _appendWhereClause(string& sql, DynamicObject& params)
-{
-   bool first = true;
-   DynamicObjectIterator i = params.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& name = i->next()["name"];
-      
-      if(first)
-      {
-         sql.append(" WHERE ");
-         first = false;
-      }
-      else
-      {
-         sql.append(" AND ");
-      }
-      sql.append(name->getString());
-      sql.append("=?");
-   }
-}
-
 // helper function to set statement parameters, the passed params object
 // must be an ordered array of objects with "name" and "value" set
 static bool _setParameters(Statement* s, DynamicObject& params)
@@ -320,86 +297,6 @@ static bool _getRowData(DynamicObject& results, Row* r, DynamicObject& row)
    }
    
    return rval;
-}
-
-// helper function to append a limit to an sql string
-static void _appendLimitClause(string& sql, uint64_t limit, uint64_t start)
-{
-   // append LIMIT
-   if(limit > 0)
-   {
-      sql.append(" LIMIT ");
-      char tmp[21];
-      
-      if(start > 0)
-      {
-         snprintf(tmp, 21, "%llu", start);
-         sql.append(tmp);
-         sql.append(",");
-      }
-      
-      snprintf(tmp, 21, "%llu", limit);
-      sql.append(tmp);
-   }
-}
-
-// helper function to build insert parameters
-static void _buildInsertParameters(
-   SchemaObject& schema, string& sql, DynamicObject& row, DynamicObject& params)
-{
-   params->setType(Array);
-   
-   bool first = true;
-   DynamicObjectIterator i = schema["columns"].getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* memberName = next["memberName"]->getString();
-      
-      // if there is no where object or it does not contain a member name
-      // that is associated with the current column entry, then we want to
-      // include pulling that column out in our select sql
-      if(row->hasMember(memberName))
-      {
-         if(first)
-         {
-            first = false;
-            sql.append("(");
-         }
-         else
-         {
-            sql.append(",");
-         }
-         sql.append(next["name"]->getString());
-         
-         // add param
-         DynamicObject& param = params->append();
-         param["name"] = next["name"]->getString();
-         param["value"] = row[memberName];
-      }
-   }
-   
-   // add values if any parameters were created
-   if(!first)
-   {
-      first = true;
-      sql.append(") VALUES (");
-      i = params.getIterator();
-      while(i->hasNext())
-      {
-         i->next();
-         if(first)
-         {
-            first = false;
-            sql.append("?");
-         }
-         else
-         {
-            sql.append(",?");
-         }
-      }
-      sql.append(")");
-   }
 }
 
 // helper function to build update parameters
@@ -602,6 +499,74 @@ bool DatabaseClient::create(
    return rval;
 }
 
+bool DatabaseClient::insert(
+   const char* table, DynamicObject& row, Connection* c)
+{
+   return insertOrReplace("INSERT", table, row, c);
+}
+
+bool DatabaseClient::replace(
+   const char* table, DynamicObject& row, Connection* c)
+{
+   return insertOrReplace("REPLACE", table, row, c);
+}
+
+bool DatabaseClient::insertOrUpdate(
+   const char* table, DynamicObject& row, Connection* c)
+{
+   return replace(table, row, c);
+}
+
+bool DatabaseClient::update(
+   const char* table, DynamicObject& row, DynamicObject* where,
+   uint64_t limit, uint64_t start, Connection* c)
+{
+   bool rval = false;
+   
+   // ensure the schema exists
+   if(_checkForSchema(mSchemas, table))
+   {
+      // get schema
+      SchemaObject& schema = mSchemas[table];
+      
+      // create starting clause
+      string sql = "UPDATE ";
+      sql.append(table);
+      sql.append(" SET ");
+      
+      // build parameters
+      DynamicObject params;
+      _buildUpdateParameters(schema, sql, row, where, params);
+      
+      // append LIMIT clause
+      appendLimitSql(sql, limit, start);
+      
+      // FIXME: remove me
+      printf("\nSQL: %s\n", sql.c_str());
+      
+      // get a write connection from the pool if one wasn't passed in
+      Connection* conn = (c == NULL) ? getWriteConnection() : c;
+      if(conn != NULL)
+      {
+         // prepare statement, set parameters, and execute
+         Statement* s = conn->prepare(sql.c_str());
+         rval = (s != NULL) && _setParameters(s, params) && s->execute();
+         if(rval)
+         {
+            // FIXME: will may need to return the number of affected rows
+         }
+         
+         // close connection if it was not passed in
+         if(c == NULL)
+         {
+            conn->close();
+         }
+      }
+   }
+   
+   return rval;
+}
+
 bool DatabaseClient::selectOne(
    const char* table, DynamicObject& row, Connection* c)
 {
@@ -626,7 +591,7 @@ bool DatabaseClient::selectOne(
       sql.append(table);
       
       // append WHERE clause
-      _appendWhereClause(sql, params);
+      appendWhereSql(sql, params);
       
       // append LIMIT
       sql.append(" LIMIT 1");
@@ -700,10 +665,10 @@ bool DatabaseClient::select(
       // than a bunch of "key=value AND"s concatenated together
       
       // append WHERE clause
-      _appendWhereClause(sql, params);
+      appendWhereSql(sql, params);
       
       // append LIMIT clause
-      _appendLimitClause(sql, limit, start);
+      appendLimitSql(sql, limit, start);
       
       // FIXME: remove me
       printf("\nSQL: %s\n", sql.c_str());
@@ -741,74 +706,6 @@ bool DatabaseClient::select(
                }
                rval = _getRowData(results, r, row);
             }
-         }
-         
-         // close connection if it was not passed in
-         if(c == NULL)
-         {
-            conn->close();
-         }
-      }
-   }
-   
-   return rval;
-}
-
-bool DatabaseClient::insert(
-   const char* table, DynamicObject& row, Connection* c)
-{
-   return insertOrReplace("INSERT", table, row, c);
-}
-
-bool DatabaseClient::replace(
-   const char* table, DynamicObject& row, Connection* c)
-{
-   return insertOrReplace("REPLACE", table, row, c);
-}
-
-bool DatabaseClient::insertOrUpdate(
-   const char* table, DynamicObject& row, Connection* c)
-{
-   return replace(table, row, c);
-}
-
-bool DatabaseClient::update(
-   const char* table, DynamicObject& row, DynamicObject* where,
-   uint64_t limit, uint64_t start, Connection* c)
-{
-   bool rval = false;
-   
-   // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
-   {
-      // get schema
-      SchemaObject& schema = mSchemas[table];
-      
-      // create starting clause
-      string sql = "UPDATE ";
-      sql.append(table);
-      sql.append(" SET ");
-      
-      // build parameters
-      DynamicObject params;
-      _buildUpdateParameters(schema, sql, row, where, params);
-      
-      // append LIMIT clause
-      _appendLimitClause(sql, limit, start);
-      
-      // FIXME: remove me
-      printf("\nSQL: %s\n", sql.c_str());
-      
-      // get a write connection from the pool if one wasn't passed in
-      Connection* conn = (c == NULL) ? getWriteConnection() : c;
-      if(conn != NULL)
-      {
-         // prepare statement, set parameters, and execute
-         Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && _setParameters(s, params) && s->execute();
-         if(rval)
-         {
-            // FIXME: will may need to return the number of affected rows
          }
          
          // close connection if it was not passed in
@@ -877,6 +774,105 @@ bool DatabaseClient::end(Connection* c, bool commit)
    return commit ? c->commit() : c->rollback();
 }
 
+void DatabaseClient::buildParams(
+   SchemaObject& schema, DynamicObject& members, DynamicObject& params)
+{
+   // ensure params is an array
+   params->setType(Array);
+   
+   // map the given members object into a list of parameters that can
+   // be used to generate sql and set parameter values
+   DynamicObjectIterator i = schema["columns"].getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      const char* memberName = next["memberName"]->getString();
+      
+      // if the members map contains the given member name, create a param
+      // for it and append it to the params array
+      if(members->hasMember(memberName))
+      {
+         // add param
+         DynamicObject& param = params->append();
+         param["name"] = next["name"]->getString();
+         param["value"] = members[memberName];
+      }
+   }
+}
+
+void DatabaseClient::appendValuesSql(string& sql, DynamicObject& params)
+{
+   string values;
+   
+   bool first = true;
+   DynamicObjectIterator i = params.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& name = i->next()["name"];
+      if(first)
+      {
+         first = false;
+         sql.append(" (");
+         values.append(" VALUES (?");
+      }
+      else
+      {
+         sql.append(",");
+         values.append(",?");
+      }
+      sql.append(name->getString());
+   }
+   
+   if(!first)
+   {
+      sql.append(")");
+      values.append(")");
+   }
+   
+   sql.append(values);
+}
+
+void DatabaseClient::appendWhereSql(string& sql, DynamicObject& params)
+{
+   bool first = true;
+   DynamicObjectIterator i = params.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& name = i->next()["name"];
+      if(first)
+      {
+         first = false;
+         sql.append(" WHERE ");
+      }
+      else
+      {
+         sql.append(" AND ");
+      }
+      sql.append(name->getString());
+      sql.append("=?");
+   }
+}
+
+void DatabaseClient::appendLimitSql(string& sql, uint64_t limit, uint64_t start)
+{
+   // append LIMIT
+   if(limit > 0)
+   {
+      sql.append(" LIMIT ");
+      char tmp[21];
+      
+      if(start > 0)
+      {
+         snprintf(tmp, 21, "%llu", start);
+         sql.append(tmp);
+         sql.append(",");
+      }
+      
+      snprintf(tmp, 21, "%llu", limit);
+      sql.append(tmp);
+   }
+}
+
 bool DatabaseClient::insertOrReplace(
    const char* cmd, const char* table, DynamicObject& row, Connection* c)
 {
@@ -888,14 +884,17 @@ bool DatabaseClient::insertOrReplace(
       // get schema
       SchemaObject& schema = mSchemas[table];
       
+      // build parameters
+      DynamicObject params;
+      buildParams(schema, row, params);
+      
       // create starting clause
       string sql = cmd;
       sql.append(" INTO ");
       sql.append(schema["table"]->getString());
       
-      // build parameters
-      DynamicObject params;
-      _buildInsertParameters(schema, sql, row, params);
+      // append VALUES SQL
+      appendValuesSql(sql, params);
       
       // FIXME: remove me
       printf("\nSQL: %s\n", sql.c_str());

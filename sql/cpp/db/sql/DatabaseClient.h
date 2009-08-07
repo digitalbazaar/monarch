@@ -139,43 +139,6 @@ public:
       const char* table, bool ignoreIfExists, Connection* c = NULL);
    
    /**
-    * Selects all column values not present in the given row object from
-    * the specified table, using any present values in the WHERE clause
-    * of the SELECT. 
-    * 
-    * @param table the name of the table to select from.
-    * @param row the object to store the row result in, will be set to NULL
-    *           if the SELECT returns back no rows.
-    * @param c the connection to use, NULL to obtain one from the pool.
-    * 
-    * @return true if successful, false if an Exception occurred.
-    */
-   virtual bool selectOne(
-      const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
-   
-   /**
-    * Selects all column values not present in the given WHERE object from
-    * the specified table, using any present values in the WHERE clause
-    * of the SELECT. Each row result will be stored in the array rows. An
-    * optional LIMIT amount may be specified.
-    * 
-    * @param table the name of the table to SELECT FROM.
-    * @param rows the array object to store the rows result in.
-    * @param where an object that specifies specific column values to
-    *           look for, NULL to include no WHERE clause.
-    * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
-    * @param start the starting row for the LIMIT, defaults to 0.
-    * @param c the connection to use, NULL to obtain one from the pool.
-    * 
-    * @return true if successful, false if an Exception occurred.
-    */
-   virtual bool select(
-      const char* table, db::rt::DynamicObject& rows,
-      db::rt::DynamicObject* where = NULL,
-      uint64_t limit = 0, uint64_t start = 0,
-      Connection* c = NULL);
-   
-   /**
     * Inserts a row into a table. All applicable values in the given object
     * will be inserted into the given table, according to its schema.
     * 
@@ -240,6 +203,43 @@ public:
       Connection* c = NULL);
    
    /**
+    * Selects all column values not present in the given row object from
+    * the specified table, using any present values in the WHERE clause
+    * of the SELECT. 
+    * 
+    * @param table the name of the table to select from.
+    * @param row the object to store the row result in, will be set to NULL
+    *           if the SELECT returns back no rows.
+    * @param c the connection to use, NULL to obtain one from the pool.
+    * 
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool selectOne(
+      const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
+   
+   /**
+    * Selects all column values not present in the given WHERE object from
+    * the specified table, using any present values in the WHERE clause
+    * of the SELECT. Each row result will be stored in the array rows. An
+    * optional LIMIT amount may be specified.
+    * 
+    * @param table the name of the table to SELECT FROM.
+    * @param rows the array object to store the rows result in.
+    * @param where an object that specifies specific column values to
+    *           look for, NULL to include no WHERE clause.
+    * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
+    * @param start the starting row for the LIMIT, defaults to 0.
+    * @param c the connection to use, NULL to obtain one from the pool.
+    * 
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool select(
+      const char* table, db::rt::DynamicObject& rows,
+      db::rt::DynamicObject* where = NULL,
+      uint64_t limit = 0, uint64_t start = 0,
+      Connection* c = NULL);
+   
+   /**
     * Removes rows from a table. If the given "where" object is not NULL, its
     * applicable members will define the WHERE clause of the UPDATE SQL.
     * 
@@ -271,6 +271,49 @@ public:
    virtual bool end(Connection* c, bool commit);
    
 protected:
+   /**
+    * Converts a map of member-named values into an array of parameters. Each
+    * member name that is recognized in the passed input object will be
+    * converted into a parameter, that includes its associated table column
+    * name, and it will be appended to the passed parameters array.
+    * 
+    * @param schema the table schema to use.
+    * @param members the input map of member-named values.
+    * @param params the parameters array to append to.
+    */
+   virtual void buildParams(
+      SchemaObject& schema,
+      db::rt::DynamicObject& members, db::rt::DynamicObject& params);
+   
+   /**
+    * Appends the SQL " (col1,col2,...) VALUES (val1,val2,...)" to an SQL
+    * statement.
+    * 
+    * @param sql the SQL string to append to.
+    * @param params the list of parameters to generate the SQL from.
+    */
+   virtual void appendValuesSql(
+      std::string& sql, db::rt::DynamicObject& params);
+   
+   /**
+    * Appends the SQL " WHERE col1=? AND col2=? ..." to an SQL statement.
+    * 
+    * @param sql the SQL string to append to.
+    * @param params the list of parameters to generate the SQL from.
+    */
+   virtual void appendWhereSql(
+      std::string& sql, db::rt::DynamicObject& params);
+   
+   /**
+    * Appends the SQL " LIMIT <start>,<limit>" to an SQL statement.
+    * 
+    * @param sql the SQL string to append to.
+    * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
+    * @param start the starting row for the LIMIT, defaults to 0.
+    */
+   virtual void appendLimitSql(
+      std::string& sql, uint64_t limit, uint64_t start);
+   
    /**
     * Inserts or replaces a row into a table. All applicable values in the
     * given object will be inserted into the given table, according to its
