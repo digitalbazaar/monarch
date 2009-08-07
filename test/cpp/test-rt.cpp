@@ -971,6 +971,23 @@ void runDynamicObjectTest(TestRunner& tr)
       assert(maptest.size() == 1);
    }
    
+   {
+      // test '<' for arrays
+      DynamicObject d1;
+      d1->setType(Array);
+      DynamicObject d2;
+      d2->setType(Array);
+      
+      d1[0] = 0;
+      d1[1] = 1;
+      
+      d2[0] = 0;
+      d2[1] = 2;
+      
+      assert(!(d1 == d2));
+      assert(d1 < d2);
+   }
+   
    tr.pass();
 }
 

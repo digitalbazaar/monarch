@@ -356,7 +356,7 @@ bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
             }
             break;
          case Array:
-            rval = (*mArray == *(rhs.mArray));
+            rval = (*mArray < *(rhs.mArray));
             break;
       }
    }
