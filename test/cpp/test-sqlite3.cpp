@@ -6,6 +6,7 @@
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
 #include "db/rt/Thread.h"
+#include "db/sql/DatabaseClient.h"
 #include "db/sql/Row.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 #include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
@@ -934,6 +935,230 @@ void runSqlite3ReuseTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runSqlite3DatabaseClientTest(TestRunner& tr)
+{
+   tr.group("DatabaseClient");
+   
+   // create sqlite3 connection pool
+   Sqlite3ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:", 1);
+   ConnectionPoolRef pool(cp);
+   assertNoException();
+   
+   // create database client
+   DatabaseClient dbc;
+   dbc.setReadConnectionPool(pool);
+   dbc.setWriteConnectionPool(pool);
+   
+   tr.test("initialize");
+   {
+      dbc.initialize();
+   }
+   tr.passIfNoException();
+   
+   tr.test("define table");
+   {
+      SchemaObject schema;
+      schema["table"] = TABLE_TEST;
+      
+      // column 0
+      schema["columns"][0]["name"] = "foo_id";
+      schema["columns"][0]["type"] = "INTEGER PRIMARY KEY";
+      schema["columns"][0]["memberName"] = "fooId";
+      schema["columns"][0]["memberType"]->setType(UInt64);
+      
+      // column 1
+      schema["columns"][1]["name"] = "foo_string";
+      schema["columns"][1]["type"] = "TEXT";
+      schema["columns"][1]["memberName"] = "fooString";
+      schema["columns"][1]["memberType"]->setType(String);
+      
+      // column 2
+      schema["columns"][2]["name"] = "foo_flag";
+      schema["columns"][2]["type"] = "INTEGER";
+      schema["columns"][2]["memberName"] = "fooFlag";
+      schema["columns"][2]["memberType"]->setType(Boolean);
+      
+      // column 3
+      schema["columns"][3]["name"] = "foo_int32";
+      schema["columns"][3]["type"] = "INTEGER";
+      schema["columns"][3]["memberName"] = "fooInt32";
+      schema["columns"][3]["memberType"]->setType(Int32);
+      
+      dbc.define(schema);
+   }
+   tr.passIfNoException();
+   
+   tr.test("create table");
+   {
+      dbc.create(TABLE_TEST, false);
+   }
+   tr.passIfNoException();
+   
+   tr.test("create table if not exists");
+   {
+      dbc.create(TABLE_TEST, true);
+   }
+   tr.passIfNoException();
+   
+   tr.test("insert");
+   {
+      DynamicObject row;
+      row["fooString"] = "foobar";
+      row["fooFlag"] = true;
+      row["fooInt32"] = 3;
+      dbc.insert(TABLE_TEST, row);
+   }
+   tr.passIfNoException();
+   
+   tr.test("insert again");
+   {
+      DynamicObject row;
+      row["fooString"] = "foobar";
+      row["fooFlag"] = false;
+      row["fooInt32"] = 3;
+      dbc.insert(TABLE_TEST, row);
+   }
+   tr.passIfNoException();
+   
+   tr.test("select one");
+   {
+      DynamicObject row;
+      row["fooId"] = 1;
+      dbc.selectOne(TABLE_TEST, row);
+      
+      DynamicObject expect;
+      expect["fooId"] = 1;
+      expect["fooString"] = "foobar";
+      expect["fooFlag"] = true;
+      expect["fooInt32"] = 3;
+      if(expect != row)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(row);
+      }
+      assert(expect == row);
+   }
+   tr.passIfNoException();
+   
+   tr.test("select");
+   {
+      DynamicObject rows;
+      DynamicObject where;
+      where["fooInt32"] = 3;
+      dbc.select(TABLE_TEST, rows, &where, 5);
+      
+      DynamicObject expect;
+      expect->setType(Array);
+      DynamicObject& first = expect->append();
+      first["fooId"] = 1;
+      first["fooString"] = "foobar";
+      first["fooFlag"] = true;
+      first["fooInt32"] = 3;
+      DynamicObject& second = expect->append();
+      second["fooId"] = 2;
+      second["fooString"] = "foobar";
+      second["fooFlag"] = false;
+      second["fooInt32"] = 3;
+      if(expect != rows)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(rows);
+      }
+      assert(expect == rows);
+   }
+   tr.passIfNoException();
+   
+   tr.test("update");
+   {
+      DynamicObject row;
+      row["fooString"] = "bar";
+      DynamicObject where;
+      where["fooId"] = 2;
+      dbc.update(TABLE_TEST, row, &where);
+   }
+   tr.passIfNoException();
+   
+   tr.test("select updated one");
+   {
+      DynamicObject row;
+      row["fooString"] = "bar";
+      dbc.selectOne(TABLE_TEST, row);
+      
+      DynamicObject expect;
+      expect["fooId"] = 2;
+      expect["fooString"] = "bar";
+      expect["fooFlag"] = false;
+      expect["fooInt32"] = 3;
+      if(expect != row)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(row);
+      }
+      assert(expect == row);
+   }
+   tr.passIfNoException();
+   
+   tr.test("select updated");
+   {
+      DynamicObject rows;
+      DynamicObject where;
+      where["fooString"] = "bar";
+      dbc.select(TABLE_TEST, rows, &where);
+      
+      DynamicObject expect;
+      expect[0]["fooId"] = 2;
+      expect[0]["fooString"] = "bar";
+      expect[0]["fooFlag"] = false;
+      expect[0]["fooInt32"] = 3;
+      if(expect != rows)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(rows);
+      }
+      assert(expect == rows);
+   }
+   tr.passIfNoException();
+   
+   tr.test("remove");
+   {
+      DynamicObject where;
+      where["fooId"] = 1;
+      dbc.remove(TABLE_TEST, &where);
+   }
+   tr.passIfNoException();
+   
+   tr.test("select again");
+   {
+      DynamicObject rows;
+      dbc.select(TABLE_TEST, rows);
+      
+      DynamicObject expect;
+      expect[0]["fooId"] = 2;
+      expect[0]["fooString"] = "bar";
+      expect[0]["fooFlag"] = false;
+      expect[0]["fooInt32"] = 3;
+      if(expect != rows)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(rows);
+      }
+      assert(expect == rows);
+   }
+   tr.passIfNoException();
+   
+   tr.ungroup();
+}
+
 class Sqlite3ConnectionPoolTest : public Runnable
 {
 public:
@@ -1028,6 +1253,7 @@ public:
       runSqlite3TableMigrationTest(tr);
       runSqlite3ThreadTest(tr);
       runSqlite3ReuseTest(tr);
+      //runSqlite3DatabaseClientTest(tr);
       return 0;
    }
 
@@ -1036,7 +1262,8 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      runSqlite3ConnectionPoolTest(tr);
+      //runSqlite3ConnectionPoolTest(tr);
+      runSqlite3DatabaseClientTest(tr);
       return 0;
    }
 };
