@@ -189,6 +189,35 @@ public:
       const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
    
    /**
+    * Replaces a row in a table. All applicable values in the given object
+    * will be inserted into the given table, according to its schema.
+    * 
+    * @param table the name of the table to REPLACE INTO.
+    * @param row the object with data to insert as a row.
+    * @param c the connection to use, NULL to obtain one from the pool.
+    * 
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool replace(
+      const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
+   
+   /**
+    * Inserts or updates a row into a table. All applicable values in the given
+    * object will be inserted into the given table, according to its schema.
+    * 
+    * The default implementation will call replace(). Extending implementations
+    * may use more optimized SQL like INSERT INTO ... ON DUPLICATE KEY UPDATE.
+    * 
+    * @param table the name of the table to insert/update.
+    * @param row the object with data to insert as a row.
+    * @param c the connection to use, NULL to obtain one from the pool.
+    * 
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool insertOrUpdate(
+      const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
+   
+   /**
     * Updates a row in a table. All applicable values in the given object
     * will be updated in the given table, according to its schema. If the
     * given "where" object is not NULL, its applicable members will define
@@ -240,6 +269,23 @@ public:
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool end(Connection* c, bool commit);
+   
+protected:
+   /**
+    * Inserts or replaces a row into a table. All applicable values in the
+    * given object will be inserted into the given table, according to its
+    * schema.
+    * 
+    * @param cmd the command (INSERT or REPLACE).
+    * @param table the name of the table to INSERT/REPLACE INTO.
+    * @param row the object with data to insert as a row.
+    * @param c the connection to use, NULL to obtain one from the pool.
+    * 
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool insertOrReplace(
+      const char* cmd, const char* table, db::rt::DynamicObject& row,
+      Connection* c = NULL);
 };
 
 } // end namespace sql

@@ -141,102 +141,6 @@ static bool _checkForSchema(DynamicObject& schemas, const char* table)
    return rval;
 }
 
-bool DatabaseClient::create(
-   const char* table, bool ignoreIfExists, Connection* c)
-{
-   bool rval = false;
-   
-   // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
-   {
-      // get schema
-      SchemaObject& schema = mSchemas[table];
-      
-      // create starting clause
-      string sql = "CREATE TABLE ";
-      if(ignoreIfExists)
-      {
-         sql.append("IF NOT EXISTS ");
-      }
-      sql.append(table);
-      sql.append(" (");
-      
-      // append all column names and types
-      {
-         bool first = true;
-         DynamicObjectIterator i = schema["columns"].getIterator();
-         while(i->hasNext())
-         {
-            DynamicObject& next = i->next();
-            
-            if(first)
-            {
-               first = false;
-            }
-            else
-            {
-               sql.append(",");
-            }
-            sql.append(next["name"]->getString());
-            sql.append(" ");
-            sql.append(next["type"]->getString());
-         }
-      }
-      
-      // add any indices
-      if(schema->hasMember("indices"))
-      {
-         bool first = true;
-         DynamicObjectIterator i = schema["indices"].getIterator();
-         while(i->hasNext())
-         {
-            DynamicObject& next = i->next();
-            
-            if(first)
-            {
-               first = false;
-            }
-            else
-            {
-               sql.append(",");
-            }
-            sql.append(next->getString());
-         }
-      }
-      
-      // close table definition
-      sql.append(")");
-      
-      // FIXME: remove me
-      printf("\nSQL: %s\n", sql.c_str());
-      
-      // get a write connection from the pool if one wasn't passed in
-      Connection* conn = (c == NULL) ? getWriteConnection() : c;
-      if(conn != NULL)
-      {
-         // prepare and execute statement
-         Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && s->execute();
-         
-         // close connection if it was not passed in
-         if(c == NULL)
-         {
-            conn->close();
-         }
-      }
-   }
-   
-   if(!rval)
-   {
-      ExceptionRef e = new Exception(
-         "Could not create table.",
-         DBC_EXCEPTION ".CreateTableFailed");
-      Exception::push(e);
-   }
-   
-   return rval;
-}
-
 // helper function to build a list of parameters while appending a WHERE
 // clause to a SELECT statement... whilst also building a result object
 // that stores the columns that need to be retrieved, their types, and the
@@ -418,6 +322,286 @@ static bool _getRowData(DynamicObject& results, Row* r, DynamicObject& row)
    return rval;
 }
 
+// helper function to append a limit to an sql string
+static void _appendLimitClause(string& sql, uint64_t limit, uint64_t start)
+{
+   // append LIMIT
+   if(limit > 0)
+   {
+      sql.append(" LIMIT ");
+      char tmp[21];
+      
+      if(start > 0)
+      {
+         snprintf(tmp, 21, "%llu", start);
+         sql.append(tmp);
+         sql.append(",");
+      }
+      
+      snprintf(tmp, 21, "%llu", limit);
+      sql.append(tmp);
+   }
+}
+
+// helper function to build insert parameters
+static void _buildInsertParameters(
+   SchemaObject& schema, string& sql, DynamicObject& row, DynamicObject& params)
+{
+   params->setType(Array);
+   
+   bool first = true;
+   DynamicObjectIterator i = schema["columns"].getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      const char* memberName = next["memberName"]->getString();
+      
+      // if there is no where object or it does not contain a member name
+      // that is associated with the current column entry, then we want to
+      // include pulling that column out in our select sql
+      if(row->hasMember(memberName))
+      {
+         if(first)
+         {
+            first = false;
+            sql.append("(");
+         }
+         else
+         {
+            sql.append(",");
+         }
+         sql.append(next["name"]->getString());
+         
+         // add param
+         DynamicObject& param = params->append();
+         param["name"] = next["name"]->getString();
+         param["value"] = row[memberName];
+      }
+   }
+   
+   // add values if any parameters were created
+   if(!first)
+   {
+      first = true;
+      sql.append(") VALUES (");
+      i = params.getIterator();
+      while(i->hasNext())
+      {
+         i->next();
+         if(first)
+         {
+            first = false;
+            sql.append("?");
+         }
+         else
+         {
+            sql.append(",?");
+         }
+      }
+      sql.append(")");
+   }
+}
+
+// helper function to build update parameters
+static void _buildUpdateParameters(
+   SchemaObject& schema, string& sql,
+   DynamicObject& row, DynamicObject* where, DynamicObject& params)
+{
+   params->setType(Array);
+   
+   // create whereParams and sql to append SET params and sql are set
+   DynamicObject whereParams;
+   whereParams->setType(Array);
+   string whereSql;
+   
+   // build SET part of update
+   bool firstSet = true;
+   bool firstWhere = true;
+   DynamicObjectIterator i = schema["columns"].getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      const char* memberName = next["memberName"]->getString();
+      
+      // if the row has the given member, we want to update it
+      if(row->hasMember(memberName))
+      {
+         if(firstSet)
+         {
+            firstSet = false;
+         }
+         else
+         {
+            sql.append(",");
+         }
+         sql.append(next["name"]->getString());
+         sql.append("=?");
+         
+         // add param
+         DynamicObject& param = params->append();
+         param["name"] = next["name"]->getString();
+         param["value"] = row[memberName];
+      }
+      // if the where has the given member, we want to include it in the WHERE
+      else if(where != NULL && (*where)->hasMember(memberName))
+      {
+         if(firstWhere)
+         {
+            firstWhere = false;
+            whereSql.append(" WHERE ");
+         }
+         else
+         {
+            whereSql.append(" AND ");
+         }
+         whereSql.append(next["name"]->getString());
+         whereSql.append("=?");
+         
+         // add param
+         DynamicObject& param = whereParams->append();
+         param["name"] = next["name"]->getString();
+         param["value"] = (*where)[memberName];
+      }
+   }
+   
+   // append where params and SQL
+   params.merge(whereParams, true);
+   sql.append(whereSql);
+}
+
+// helper function to build delete parameters
+static void _buildDeleteParameters(
+   SchemaObject& schema, string& sql,
+   DynamicObject* where, DynamicObject& params)
+{
+   params->setType(Array);
+   
+   bool first = true;
+   DynamicObjectIterator i = schema["columns"].getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      const char* memberName = next["memberName"]->getString();
+      
+      // if the where includes the given member, we want to create a param
+      if(where != NULL && (*where)->hasMember(memberName))
+      {
+         if(first)
+         {
+            first = false;
+            sql.append(" WHERE ");
+         }
+         else
+         {
+            sql.append(" AND ");
+         }
+         sql.append(next["name"]->getString());
+         sql.append("=?");
+         
+         // add param
+         DynamicObject& param = params->append();
+         param["name"] = next["name"]->getString();
+         param["value"] = (*where)[memberName];
+      }
+   }
+}
+
+bool DatabaseClient::create(
+   const char* table, bool ignoreIfExists, Connection* c)
+{
+   bool rval = false;
+   
+   // ensure the schema exists
+   if(_checkForSchema(mSchemas, table))
+   {
+      // get schema
+      SchemaObject& schema = mSchemas[table];
+      
+      // create starting clause
+      string sql = "CREATE TABLE ";
+      if(ignoreIfExists)
+      {
+         sql.append("IF NOT EXISTS ");
+      }
+      sql.append(table);
+      sql.append(" (");
+      
+      // append all column names and types
+      {
+         bool first = true;
+         DynamicObjectIterator i = schema["columns"].getIterator();
+         while(i->hasNext())
+         {
+            DynamicObject& next = i->next();
+            
+            if(first)
+            {
+               first = false;
+            }
+            else
+            {
+               sql.append(",");
+            }
+            sql.append(next["name"]->getString());
+            sql.append(" ");
+            sql.append(next["type"]->getString());
+         }
+      }
+      
+      // add any indices
+      if(schema->hasMember("indices"))
+      {
+         bool first = true;
+         DynamicObjectIterator i = schema["indices"].getIterator();
+         while(i->hasNext())
+         {
+            DynamicObject& next = i->next();
+            
+            if(first)
+            {
+               first = false;
+            }
+            else
+            {
+               sql.append(",");
+            }
+            sql.append(next->getString());
+         }
+      }
+      
+      // close table definition
+      sql.append(")");
+      
+      // FIXME: remove me
+      printf("\nSQL: %s\n", sql.c_str());
+      
+      // get a write connection from the pool if one wasn't passed in
+      Connection* conn = (c == NULL) ? getWriteConnection() : c;
+      if(conn != NULL)
+      {
+         // prepare and execute statement
+         Statement* s = conn->prepare(sql.c_str());
+         rval = (s != NULL) && s->execute();
+         
+         // close connection if it was not passed in
+         if(c == NULL)
+         {
+            conn->close();
+         }
+      }
+   }
+   
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not create table.",
+         DBC_EXCEPTION ".CreateTableFailed");
+      Exception::push(e);
+   }
+   
+   return rval;
+}
+
 bool DatabaseClient::selectOne(
    const char* table, DynamicObject& row, Connection* c)
 {
@@ -486,27 +670,6 @@ bool DatabaseClient::selectOne(
    }
    
    return rval;
-}
-
-// helper function to append a limit to an sql string
-static void _appendLimitClause(string& sql, uint64_t limit, uint64_t start)
-{
-   // append LIMIT
-   if(limit > 0)
-   {
-      sql.append(" LIMIT ");
-      char tmp[21];
-      
-      if(start > 0)
-      {
-         snprintf(tmp, 21, "%llu", start);
-         sql.append(tmp);
-         sql.append(",");
-      }
-      
-      snprintf(tmp, 21, "%llu", limit);
-      sql.append(tmp);
-   }
 }
 
 bool DatabaseClient::select(
@@ -591,176 +754,22 @@ bool DatabaseClient::select(
    return rval;
 }
 
-// helper function to build insert parameters
-static void _buildInsertParameters(
-   SchemaObject& schema, string& sql, DynamicObject& row, DynamicObject& params)
-{
-   params->setType(Array);
-   
-   bool first = true;
-   DynamicObjectIterator i = schema["columns"].getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* memberName = next["memberName"]->getString();
-      
-      // if there is no where object or it does not contain a member name
-      // that is associated with the current column entry, then we want to
-      // include pulling that column out in our select sql
-      if(row->hasMember(memberName))
-      {
-         if(first)
-         {
-            first = false;
-            sql.append("(");
-         }
-         else
-         {
-            sql.append(",");
-         }
-         sql.append(next["name"]->getString());
-         
-         // add param
-         DynamicObject& param = params->append();
-         param["name"] = next["name"]->getString();
-         param["value"] = row[memberName];
-      }
-   }
-   
-   // add values if any parameters were created
-   if(!first)
-   {
-      first = true;
-      sql.append(") VALUES (");
-      i = params.getIterator();
-      while(i->hasNext())
-      {
-         i->next();
-         if(first)
-         {
-            first = false;
-            sql.append("?");
-         }
-         else
-         {
-            sql.append(",?");
-         }
-      }
-      sql.append(")");
-   }
-}
-
 bool DatabaseClient::insert(
    const char* table, DynamicObject& row, Connection* c)
 {
-   bool rval = false;
-   
-   // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
-   {
-      // get schema
-      SchemaObject& schema = mSchemas[table];
-      
-      // create starting clause
-      string sql = "INSERT INTO ";
-      sql.append(table);
-      
-      // build parameters
-      DynamicObject params;
-      _buildInsertParameters(schema, sql, row, params);
-      
-      // FIXME: remove me
-      printf("\nSQL: %s\n", sql.c_str());
-      
-      // get a write connection from the pool if one wasn't passed in
-      Connection* conn = (c == NULL) ? getWriteConnection() : c;
-      if(conn != NULL)
-      {
-         // prepare statement, set parameters, and execute
-         Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && _setParameters(s, params) && s->execute();
-         if(rval)
-         {
-            // FIXME: will need to either return any autoincrement values
-            // or figure out where to set them in the passed in row
-         }
-         
-         // close connection if it was not passed in
-         if(c == NULL)
-         {
-            conn->close();
-         }
-      }
-   }
-   
-   return rval;
+   return insertOrReplace("INSERT", table, row, c);
 }
 
-// helper function to build update parameters
-static void _buildUpdateParameters(
-   SchemaObject& schema, string& sql,
-   DynamicObject& row, DynamicObject* where, DynamicObject& params)
+bool DatabaseClient::replace(
+   const char* table, DynamicObject& row, Connection* c)
 {
-   params->setType(Array);
-   
-   // create whereParams and sql to append SET params and sql are set
-   DynamicObject whereParams;
-   whereParams->setType(Array);
-   string whereSql;
-   
-   // build SET part of update
-   bool firstSet = true;
-   bool firstWhere = true;
-   DynamicObjectIterator i = schema["columns"].getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* memberName = next["memberName"]->getString();
-      
-      // if the row has the given member, we want to update it
-      if(row->hasMember(memberName))
-      {
-         if(firstSet)
-         {
-            firstSet = false;
-         }
-         else
-         {
-            sql.append(",");
-         }
-         sql.append(next["name"]->getString());
-         sql.append("=?");
-         
-         // add param
-         DynamicObject& param = params->append();
-         param["name"] = next["name"]->getString();
-         param["value"] = row[memberName];
-      }
-      // if the where has the given member, we want to include it in the WHERE
-      else if(where != NULL && (*where)->hasMember(memberName))
-      {
-         if(firstWhere)
-         {
-            firstWhere = false;
-            whereSql.append(" WHERE ");
-         }
-         else
-         {
-            whereSql.append(" AND ");
-         }
-         whereSql.append(next["name"]->getString());
-         whereSql.append("=?");
-         
-         // add param
-         DynamicObject& param = whereParams->append();
-         param["name"] = next["name"]->getString();
-         param["value"] = (*where)[memberName];
-      }
-   }
-   
-   // append where params and SQL
-   params.merge(whereParams, true);
-   sql.append(whereSql);
+   return insertOrReplace("REPLACE", table, row, c);
+}
+
+bool DatabaseClient::insertOrUpdate(
+   const char* table, DynamicObject& row, Connection* c)
+{
+   return replace(table, row, c);
 }
 
 bool DatabaseClient::update(
@@ -811,43 +820,6 @@ bool DatabaseClient::update(
    }
    
    return rval;
-}
-
-// helper function to build delete parameters
-static void _buildDeleteParameters(
-   SchemaObject& schema, string& sql,
-   DynamicObject* where, DynamicObject& params)
-{
-   params->setType(Array);
-   
-   bool first = true;
-   DynamicObjectIterator i = schema["columns"].getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* memberName = next["memberName"]->getString();
-      
-      // if the where includes the given member, we want to create a param
-      if(where != NULL && (*where)->hasMember(memberName))
-      {
-         if(first)
-         {
-            first = false;
-            sql.append(" WHERE ");
-         }
-         else
-         {
-            sql.append(" AND ");
-         }
-         sql.append(next["name"]->getString());
-         sql.append("=?");
-         
-         // add param
-         DynamicObject& param = params->append();
-         param["name"] = next["name"]->getString();
-         param["value"] = (*where)[memberName];
-      }
-   }
 }
 
 bool DatabaseClient::remove(
@@ -903,4 +875,51 @@ bool DatabaseClient::begin(Connection* c)
 bool DatabaseClient::end(Connection* c, bool commit)
 {
    return commit ? c->commit() : c->rollback();
+}
+
+bool DatabaseClient::insertOrReplace(
+   const char* cmd, const char* table, DynamicObject& row, Connection* c)
+{
+   bool rval = false;
+   
+   // ensure the schema exists
+   if(_checkForSchema(mSchemas, table))
+   {
+      // get schema
+      SchemaObject& schema = mSchemas[table];
+      
+      // create starting clause
+      string sql = cmd;
+      sql.append(" INTO ");
+      sql.append(schema["table"]->getString());
+      
+      // build parameters
+      DynamicObject params;
+      _buildInsertParameters(schema, sql, row, params);
+      
+      // FIXME: remove me
+      printf("\nSQL: %s\n", sql.c_str());
+      
+      // get a write connection from the pool if one wasn't passed in
+      Connection* conn = (c == NULL) ? getWriteConnection() : c;
+      if(conn != NULL)
+      {
+         // prepare statement, set parameters, and execute
+         Statement* s = conn->prepare(sql.c_str());
+         rval = (s != NULL) && _setParameters(s, params) && s->execute();
+         if(rval)
+         {
+            // FIXME: will need to either return any autoincrement values
+            // or figure out where to set them in the passed in row
+         }
+         
+         // close connection if it was not passed in
+         if(c == NULL)
+         {
+            conn->close();
+         }
+      }
+   }
+   
+   return rval;
 }
