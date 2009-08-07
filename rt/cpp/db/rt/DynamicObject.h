@@ -45,6 +45,11 @@ public:
    enum
    {
       /**
+       * Compare all objects for exact equality.
+       */
+      DiffEqual = 0,
+      
+      /**
        * Compare all 32-bit and 64-bit integers as 64-bit integers. UInt32
        * types will be compared against UInt64 and Int32 will be compared
        * against Int64.
@@ -59,7 +64,7 @@ public:
       /**
        * Default diff flags (DiffCompareAsInt64).
        */
-      DiffDefaultFlags = DiffIntegersAsInt64s
+      DiffDefault = DiffIntegersAsInt64s
    };   
    
    /**
@@ -278,7 +283,7 @@ public:
     */
    virtual bool diff(
       DynamicObject& target, DynamicObject& result, 
-      uint32_t flags = DiffDefaultFlags);
+      uint32_t flags = DiffDefault);
    
    /**
     * Determines if this DynamicObject is a subset of another. If this
