@@ -1468,6 +1468,152 @@ void runDynoMergeTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDynoDiffTest(TestRunner& tr)
+{
+   tr.group("DynamicObject diff");
+
+   tr.test("no diff");
+   {
+      DynamicObject d1;
+      d1["a"] = true;
+      
+      DynamicObject d2;
+      d2["a"] = true;
+      
+      DynamicObject diff;
+      assert(!d1.diff(d2, diff));
+   }
+   tr.passIfNoException();
+
+   tr.test("basic");
+   {
+      DynamicObject d1;
+      d1->setType(Map);
+      
+      DynamicObject d2;
+      d2["a"] = true;
+      
+      DynamicObject expect;
+      expect["a"] = true;
+      
+      // d1 diff d2
+      DynamicObject diff;
+      assert(d1.diff(d2, diff));
+      assert(diff == expect);
+      
+      // d2 diff d1 (reverse above)
+      diff->clear();
+      assert(d1.diff(d2, diff));
+      assert(diff == expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("deep");
+   {
+      DynamicObject d1;
+      d1->setType(Map);
+      
+      DynamicObject d2;
+      d2["a"]["a1"] = true;
+      d2["a"]["a2"] = 123;
+      d2["b"]["b1"] = "Hello, World!";
+      
+      DynamicObject expect;
+      expect = d2.clone();
+      
+      DynamicObject diff;
+      assert(d1.diff(d2, diff));
+      assert(diff == expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("ints");
+   {
+      // common value
+      #define V 123
+      
+      DynamicObject d1;
+      d1["u32-u32"] = (uint32_t)V;
+      d1["u32-u64"] = (uint32_t)V;
+      d1["u32-s32"] = (uint32_t)V;
+      d1["u32-s64"] = (uint32_t)V;
+      
+      d1["s32-u32"] = (int32_t)V;
+      d1["s32-u64"] = (int32_t)V;
+      d1["s32-s32"] = (int32_t)V;
+      d1["s32-s64"] = (int32_t)V;
+      
+      d1["u64-u32"] = (uint64_t)V;
+      d1["u64-u64"] = (uint64_t)V;
+      d1["u64-s32"] = (uint64_t)V;
+      d1["u64-s64"] = (uint64_t)V;
+      
+      d1["s64-u32"] = (uint64_t)V;
+      d1["s64-u64"] = (int64_t)V;
+      d1["s64-s32"] = (int64_t)V;
+      d1["s64-s64"] = (int64_t)V;
+      
+      DynamicObject d2;
+      d2["u32-u32"] = (uint32_t)V;
+      d2["u32-u64"] = (uint64_t)V;
+      d2["u32-s32"] = (int32_t)V;
+      d2["u32-s64"] = (int64_t)V;
+      
+      d2["s32-u32"] = (uint32_t)V;
+      d2["s32-u64"] = (uint64_t)V;
+      d2["s32-s32"] = (int32_t)V;
+      d2["s32-s64"] = (int64_t)V;
+      
+      d2["u64-u32"] = (uint32_t)V;
+      d2["u64-u64"] = (uint64_t)V;
+      d2["u64-s32"] = (int32_t)V;
+      d2["u64-s64"] = (int64_t)V;
+      
+      d2["s64-u32"] = (uint32_t)V;
+      d2["s64-u64"] = (uint64_t)V;
+      d2["s64-s32"] = (int32_t)V;
+      d2["s64-s64"] = (int64_t)V;
+      
+      #undef V
+      
+      DynamicObject diff;
+      // types cause difference
+      assert(d1.diff(d2, diff, DynamicObject::DiffEqual));
+      assert(diff->length() == 12);
+      // no diff with comparisons using int64s
+      assert(!(d1.diff(d2, diff, DynamicObject::DiffIntegersAsInt64s)));
+      assert(diff->length() == 0);
+   }
+   tr.passIfNoException();
+
+   tr.test("doubles");
+   {
+      #define V 1.23456789
+      
+      DynamicObject d1;
+      d1["d1"] = (double)V;
+      
+      DynamicObject d2;
+      // set and convert through a string back to a double
+      d2["d1"] = (double)V;
+      d2["d1"]->setType(String);
+      d2["d1"]->setType(Double);
+      
+      #undef V
+      
+      DynamicObject diff;
+      // not exact due to double->string->double conversion
+      assert(d1.diff(d2, diff, DynamicObject::DiffEqual));
+      assert(diff->length() == 1);
+      // no diff when compared as strings
+      assert(!(d1.diff(d2, diff, DynamicObject::DiffDoublesAsStrings)));
+      assert(diff->length() == 0);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 void runDynoCopyTest(TestRunner& tr)
 {
    tr.group("DynamicObject copy");
@@ -1774,6 +1920,7 @@ public:
       runDynoTypeTest(tr);
       runDynoAppendTest(tr);
       runDynoMergeTest(tr);
+      runDynoDiffTest(tr);
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
       runRunnableDelegateTest(tr);
