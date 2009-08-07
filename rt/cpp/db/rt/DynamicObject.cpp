@@ -221,6 +221,8 @@ bool DynamicObject::diff(
 {
    bool rval = false;
    DynamicObject& source = (DynamicObject&)*this;
+   // clear any old values
+   result->clear();
    
    if(source.isNull() && target.isNull())
    {
