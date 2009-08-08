@@ -13,10 +13,10 @@
 #include "db/util/Timer.h"
 
 using namespace std;
-using namespace db::test;
 using namespace db::rt;
 using namespace db::sql;
 using namespace db::sql::sqlite3;
+using namespace db::test;
 using namespace db::util;
 
 #define TABLE_TEST  "test"
@@ -946,6 +946,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    
    // create database client
    DatabaseClient dbc;
+   dbc.setDebugLogging(true);
    dbc.setReadConnectionPool(pool);
    dbc.setWriteConnectionPool(pool);
    

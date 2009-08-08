@@ -3,11 +3,15 @@
  */
 #include "db/sql/DatabaseClient.h"
 
+#include "db/data/json/JsonWriter.h"
+#include "db/logging/Logging.h"
 #include "db/rt/DynamicObjectIterator.h"
 #include "db/sql/Row.h"
 #include "db/sql/Statement.h"
 
 using namespace std;
+using namespace db::data::json;
+using namespace db::logging;
 using namespace db::rt;
 using namespace db::sql;
 namespace v = db::validation;
@@ -15,6 +19,7 @@ namespace v = db::validation;
 #define DBC_EXCEPTION "db.sql.DatabaseClient"
 
 DatabaseClient::DatabaseClient() :
+   mDebugLogging(false),
    mReadPool(NULL),
    mWritePool(NULL)
 {
@@ -38,6 +43,7 @@ bool DatabaseClient::initialize()
          new v::Each(new v::Map(
             "name", new v::Type(String),
             "type", new v::Type(String),
+            "autoIncrement", new v::Optional(new v::Type(Boolean)),
             "memberName", new v::Type(String),
             "memberType", new v::Any(
                new v::Int(),
@@ -58,6 +64,11 @@ bool DatabaseClient::initialize()
       NULL);
    
    return rval;
+}
+
+void DatabaseClient::setDebugLogging(bool enabled)
+{
+   mDebugLogging = enabled;
 }
 
 void DatabaseClient::setReadConnectionPool(db::sql::ConnectionPoolRef& pool)
@@ -432,8 +443,8 @@ bool DatabaseClient::create(
       // close table definition
       sql.append(")");
       
-      // FIXME: remove me
-      printf("\nSQL: %s\n", sql.c_str());
+      // log sql
+      logSql(sql);
       
       // get a write connection from the pool if one wasn't passed in
       Connection* conn = (c == NULL) ? getWriteConnection() : c;
@@ -482,7 +493,7 @@ bool DatabaseClient::insertOrUpdate(
 
 bool DatabaseClient::update(
    const char* table, DynamicObject& row, DynamicObject* where,
-   uint64_t limit, uint64_t start, Connection* c)
+   uint64_t limit, uint64_t start, uint64_t* affectedRows, Connection* c)
 {
    bool rval = false;
    
@@ -504,8 +515,8 @@ bool DatabaseClient::update(
       // append LIMIT clause
       appendLimitSql(sql, limit, start);
       
-      // FIXME: remove me
-      printf("\nSQL: %s\n", sql.c_str());
+      // log sql
+      logSql(sql, &params);
       
       // get a write connection from the pool if one wasn't passed in
       Connection* conn = (c == NULL) ? getWriteConnection() : c;
@@ -514,9 +525,9 @@ bool DatabaseClient::update(
          // prepare statement, set parameters, and execute
          Statement* s = conn->prepare(sql.c_str());
          rval = (s != NULL) && _setParameters(s, params) && s->execute();
-         if(rval)
+         if(rval && affectedRows != NULL)
          {
-            // FIXME: will may need to return the number of affected rows
+            s->getRowsChanged(*affectedRows);
          }
          
          // close connection if it was not passed in
@@ -559,8 +570,8 @@ bool DatabaseClient::selectOne(
       // append LIMIT
       sql.append(" LIMIT 1");
       
-      // FIXME: remove me
-      printf("\nSQL: %s\n", sql.c_str());
+      // log sql
+      logSql(sql, &params);
       
       // get a read connection from the pool if one wasn't passed in
       Connection* conn = (c == NULL) ? getReadConnection() : c;
@@ -633,8 +644,8 @@ bool DatabaseClient::select(
       // append LIMIT clause
       appendLimitSql(sql, limit, start);
       
-      // FIXME: remove me
-      printf("\nSQL: %s\n", sql.c_str());
+      // log sql
+      logSql(sql, &params);
       
       // get a read connection from the pool if one wasn't passed in
       Connection* conn = (c == NULL) ? getReadConnection() : c;
@@ -683,7 +694,8 @@ bool DatabaseClient::select(
 }
 
 bool DatabaseClient::remove(
-   const char* table, DynamicObject* where, Connection* c)
+   const char* table, DynamicObject* where,
+   uint64_t* affectedRows, Connection* c)
 {
    bool rval = false;
    
@@ -706,8 +718,8 @@ bool DatabaseClient::remove(
          appendWhereSql(sql, params);
       }
       
-      // FIXME: remove me
-      printf("\nSQL: %s\n", sql.c_str());
+      // log sql
+      logSql(sql, &params);
       
       // get a write connection from the pool if one wasn't passed in
       Connection* conn = (c == NULL) ? getWriteConnection() : c;
@@ -716,9 +728,9 @@ bool DatabaseClient::remove(
          // prepare statement, set parameters, and execute
          Statement* s = conn->prepare(sql.c_str());
          rval = (s != NULL) && _setParameters(s, params) && s->execute();
-         if(rval)
+         if(rval && affectedRows != NULL)
          {
-            // FIXME: will may need to return the number of affected rows
+            s->getRowsChanged(*affectedRows);
          }
          
          // close connection if it was not passed in
@@ -740,6 +752,26 @@ bool DatabaseClient::begin(Connection* c)
 bool DatabaseClient::end(Connection* c, bool commit)
 {
    return commit ? c->commit() : c->rollback();
+}
+
+void DatabaseClient::logSql(string& str, DynamicObject* params)
+{
+   if(mDebugLogging)
+   {
+      DynamicObject p(NULL);
+      if(params != NULL)
+      {
+         p = *params;
+      }
+      else
+      {
+         p = DynamicObject();
+         p->setType(Map);
+      }
+      
+      DB_CAT_DEBUG(DB_SQL_CAT, "DatabaseClient SQL: '%s',\nparams: %s",
+         str.c_str(), JsonWriter::writeToString(p).c_str());
+   }
 }
 
 void DatabaseClient::buildParams(
@@ -766,6 +798,14 @@ void DatabaseClient::buildParams(
          param["value"] = members[memberName];
       }
    }
+}
+
+void DatabaseClient::buildColumnSchemas(
+   SchemaObject& schema,
+   ::DynamicObject& members, DynamicObject& params,
+   bool exclude)
+{
+   // FIXME:
 }
 
 void DatabaseClient::appendValuesSql(string& sql, DynamicObject& params)
@@ -876,8 +916,19 @@ bool DatabaseClient::insertOrReplace(
          rval = (s != NULL) && _setParameters(s, params) && s->execute();
          if(rval)
          {
-            // FIXME: will need to either return any autoincrement values
-            // or figure out where to set them in the passed in row
+            // set any auto-increment value in the object
+            DynamicObjectIterator i = schema["columns"].getIterator();
+            while(i->hasNext())
+            {
+               DynamicObject& next = i->next();
+               if(next["autoIncrement"]->getBoolean())
+               {
+                  const char* memberName = next["memberName"]->getString();
+                  row[memberName] = s->getLastInsertRowId();
+                  row[memberName]->setType(next["memberType"]->getType());
+                  break;
+               }
+            }
          }
          
          // close connection if it was not passed in

@@ -48,6 +48,11 @@ class DatabaseClient
 {
 protected:
    /**
+    * True to enable debug logging.
+    */
+   bool mDebugLogging;
+   
+   /**
     * A database read connection pool.
     */
    ConnectionPoolRef mReadPool;
@@ -84,6 +89,13 @@ public:
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool initialize();
+   
+   /**
+    * Sets whether or not debug logging is enabled.
+    * 
+    * @param enabled true to enable debug logging, false not to.
+    */
+   virtual void setDebugLogging(bool enabled);
    
    /**
     * Sets a connection pool to draw read connections from.
@@ -192,15 +204,16 @@ public:
     * @param where the object with containing WHERE clause parameters.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param start the starting row for the LIMIT, defaults to 0.
+    * @param affectedRows if not NULL, will store the number of affected rows.
     * @param c the connection to use, NULL to obtain one from the pool.
     * 
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool update(
       const char* table, db::rt::DynamicObject& row,
-      db::rt::DynamicObject* where,
+      db::rt::DynamicObject* where = NULL,
       uint64_t limit = 0, uint64_t start = 0,
-      Connection* c = NULL);
+      uint64_t* affectedRows = NULL, Connection* c = NULL);
    
    /**
     * Selects all column values not present in the given row object from
@@ -245,12 +258,14 @@ public:
     * 
     * @param table the name of the table to DELETE FROM.
     * @param where the object with containing WHERE clause parameters.
+    * @param affectedRows if not NULL, will store the number of affected rows.
     * @param c the connection to use, NULL to obtain one from the pool.
     * 
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool remove(
-      const char* table, db::rt::DynamicObject* where, Connection* c = NULL);
+      const char* table, db::rt::DynamicObject* where,
+      uint64_t* affectedRows = NULL, Connection* c = NULL);
    
    /**
     * Begins a database transaction.
@@ -272,6 +287,14 @@ public:
    
 protected:
    /**
+    * Logs the passed SQL string if debug logging is on.
+    * 
+    * @param sql the SQL string to log.
+    * @param params any params for the sql.
+    */
+   virtual void logSql(std::string& sql, db::rt::DynamicObject* params = NULL);
+   
+   /**
     * Converts a map of member-named values into an array of parameters. Each
     * member name that is recognized in the passed input object will be
     * converted into a parameter, that includes its associated table column
@@ -286,6 +309,31 @@ protected:
       db::rt::DynamicObject& members, db::rt::DynamicObject& params);
    
    /**
+    * Builds an array of column schema information for columns based on the
+    * given map of member-named values. The resulting column schemas array
+    * can either be a collection of columns that do not appear the in the
+    * given members object or a collection of columns that do appear. This
+    * is defined by the "exclude" boolean parameter.
+    * 
+    * Each entry in the resulting array is for a single column and contains
+    * a reference to that column's schema information that includes column
+    * name, type, and associated member name and type. This can be used
+    * to generate the columns for a SELECT statement and to pull data out
+    * of the rows that were selected and put it into an object.
+    * 
+    * @param schema the table schema to use.
+    * @param members the input map of member-named values.
+    * @param columnSchemas the column schemas array to populate.
+    * @param exclude true to add all column schemas except for those in
+    *           "members", false to only include column schemas for those
+    *           in "members".  
+    */
+   virtual void buildColumnSchemas(
+      SchemaObject& schema,
+      db::rt::DynamicObject& members, db::rt::DynamicObject& params,
+      bool exclude);
+   
+   /**
     * Appends the SQL " (col1,col2,...) VALUES (val1,val2,...)" to an SQL
     * statement.
     * 
@@ -294,6 +342,11 @@ protected:
     */
    virtual void appendValuesSql(
       std::string& sql, db::rt::DynamicObject& params);
+   
+   /**
+    * Appends the SQL " col1,col2,... " to an SQL statement.
+    * 
+    */
    
    /**
     * Appends the SQL " WHERE col1=? AND col2=? ..." to an SQL statement.
