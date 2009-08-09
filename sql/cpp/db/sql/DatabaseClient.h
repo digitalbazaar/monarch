@@ -225,7 +225,7 @@ public:
     *           exists, false to report them.
     * @param c the connection to use, NULL to obtain one from the pool. 
     * 
-    * @return true if successful, false if an Exception occurred.
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual bool create(
       const char* table, bool ignoreIfExists, Connection* c = NULL);

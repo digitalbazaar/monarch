@@ -163,14 +163,18 @@ bool DatabaseClient::create(
       // get schema
       SchemaObject& schema = mSchemas[table];
       
+      // create sql executable
+      SqlExecutableRef se = new SqlExecutable();
+      se->write = true;
+      
       // create starting clause
-      string sql = "CREATE TABLE ";
+      se->sql = "CREATE TABLE ";
       if(ignoreIfExists)
       {
-         sql.append("IF NOT EXISTS ");
+         se->sql.append("IF NOT EXISTS ");
       }
-      sql.append(table);
-      sql.append(" (");
+      se->sql.append(table);
+      se->sql.append(" (");
       
       // append all column names and types
       {
@@ -186,11 +190,11 @@ bool DatabaseClient::create(
             }
             else
             {
-               sql.append(",");
+               se->sql.append(",");
             }
-            sql.append(next["name"]->getString());
-            sql.append(" ");
-            sql.append(next["type"]->getString());
+            se->sql.append(next["name"]->getString());
+            se->sql.append(" ");
+            se->sql.append(next["type"]->getString());
          }
       }
       
@@ -201,31 +205,16 @@ bool DatabaseClient::create(
          while(i->hasNext())
          {
             DynamicObject& next = i->next();
-            sql.append(",");
-            sql.append(next->getString());
+            se->sql.append(",");
+            se->sql.append(next->getString());
          }
       }
       
       // close table definition
-      sql.append(")");
+      se->sql.append(")");
       
-      // log sql
-      logSql(sql);
-      
-      // get a write connection from the pool if one wasn't passed in
-      Connection* conn = (c == NULL) ? getWriteConnection() : c;
-      if(conn != NULL)
-      {
-         // prepare and execute statement
-         Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && s->execute();
-         
-         // close connection if it was not passed in
-         if(c == NULL)
-         {
-            conn->close();
-         }
-      }
+      // execute SQL
+      rval = execute(se, c);
    }
    
    if(!rval)
