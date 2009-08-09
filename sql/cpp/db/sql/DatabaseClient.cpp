@@ -402,7 +402,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
       // if we wrote to the database, get affected rows and last insert ID
       if(rval && se->write)
       {
-         s->getRowsChanged(se->affectedRows);
+         s->getRowsChanged(se->rowsAffected);
          se->lastInsertRowId = s->getLastInsertRowId();
       }
       // else we read, so get row results

@@ -78,17 +78,17 @@ struct SqlExecutable
    /**
     * Stores the number of affected rows after execution.
     */
-   uint64_t affectedRows;
-   
-   /**
-    * Stores the last insert ID after execution.
-    */
-   uint64_t lastInsertRowId;
+   uint64_t rowsAffected;
    
    /**
     * Stores the number of rows retrieved.
     */
    uint64_t rowsRetrieved;
+   
+   /**
+    * Stores the last insert ID after execution.
+    */
+   uint64_t lastInsertRowId;
    
    /**
     * Initializes an SqlExecutable.
@@ -98,9 +98,9 @@ struct SqlExecutable
       columnSchemas(NULL),
       whereFilter(NULL),
       result(NULL),
-      affectedRows(0),
-      lastInsertRowId(0),
-      rowsRetrieved(0)
+      rowsAffected(0),
+      rowsRetrieved(0),
+      lastInsertRowId(0)
    {
       params->setType(db::rt::Array);
    };

@@ -1111,7 +1111,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc.update(TABLE_TEST, row, &where);
       assert(!se.isNull());
       dbc.execute(se);
-      assert(se->affectedRows = 1);
+      assert(se->rowsAffected = 1);
    }
    tr.passIfNoException();
    
@@ -1172,7 +1172,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc.remove(TABLE_TEST, &where);
       assert(!se.isNull());
       dbc.execute(se);
-      assert(se->affectedRows == 1);
+      assert(se->rowsAffected == 1);
    }
    tr.passIfNoException();
    
