@@ -277,7 +277,7 @@ public:
       uint64_t limit = 0, uint64_t start = 0);
    
    /**
-    * Creates an SqlExecutable that will selects all column values not present
+    * Creates an SqlExecutable that will selects column values not present
     * in the given WHERE object from the specified table, using any present
     * values in the WHERE clause of the SELECT. The first row will be returned
     * in the SqlExecutable's result property as a map. This property can be
@@ -286,14 +286,18 @@ public:
     * @param table the name of the table to select from.
     * @param where an object that specifies specific column values to
     *           look for, NULL to include no WHERE clause.
+    * @param members a specific map of member names to include, NULL to
+    *           include all members not in the WHERE.
     * 
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef selectOne(
-      const char* table, db::rt::DynamicObject* where = NULL);
+      const char* table,
+      db::rt::DynamicObject* where = NULL,
+      db::rt::DynamicObject* members = NULL);
    
    /**
-    * Creates an SqlExecutable that will selects all column values not present
+    * Creates an SqlExecutable that will selects column values not present
     * in the given WHERE object from the specified table, using any present
     * values in the WHERE clause of the SELECT. An optional LIMIT amount may
     * be specified. The row results will be stored in the SqlExecutable's
@@ -302,13 +306,17 @@ public:
     * @param table the name of the table to SELECT FROM.
     * @param where an object that specifies specific column values to
     *           look for, NULL to include no WHERE clause.
+    * @param members a specific map of member names to include, NULL to
+    *           include all members not in the WHERE.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param start the starting row for the LIMIT, defaults to 0.
     * 
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef select(
-      const char* table, db::rt::DynamicObject* where = NULL,
+      const char* table,
+      db::rt::DynamicObject* where = NULL,
+      db::rt::DynamicObject* members = NULL,
       uint64_t limit = 0, uint64_t start = 0);
    
    /**
@@ -394,10 +402,12 @@ protected:
    
    /**
     * Builds an array of column schema information for columns based on the
-    * given map of member-named values. The resulting column schemas array
-    * can either be a collection of columns that do not appear the in the
-    * given members object or a collection of columns that do appear. This
-    * is defined by the "exclude" boolean parameter.
+    * given maps of member-named values. The resulting column schemas array
+    * will consist of a collection of columns that do not appear the in the
+    * given excludeMembers object but do exist in the given includeMembers
+    * object. If the includeMembers object is NULL then any members that
+    * exist that are not in the excludeMembers object will be included. If
+    * the excludeMembers object is NULL then it will be ignored entirely.
     * 
     * Each entry in the resulting array is for a single column and contains
     * a reference to that column's schema information that includes column
@@ -406,16 +416,15 @@ protected:
     * of the rows that were selected and put it into an object.
     * 
     * @param schema the table schema to use.
-    * @param members the input map of member-named values.
+    * @param excludeMembers the input map of member-named values to exclude.
+    * @param includeMembers the input map of member-named values to include.
     * @param columnSchemas the column schemas array to populate.
-    * @param exclude true to add all column schemas except for those in
-    *           "members", false to only include column schemas for those
-    *           in "members".  
     */
    virtual void buildColumnSchemas(
       SchemaObject& schema,
-      db::rt::DynamicObject* members, db::rt::DynamicObject& columnSchemas,
-      bool exclude);
+      db::rt::DynamicObject* excludeMembers,
+      db::rt::DynamicObject* includeMembers,
+      db::rt::DynamicObject& columnSchemas);
    
    /**
     * Appends the SQL " (col1,col2,...) VALUES (val1,val2,...)" to an SQL
@@ -492,6 +501,8 @@ protected:
     * 
     * @param schema the table schema to use.
     * @param where the WHERE filter.
+    * @param members a specific map of member names to include, NULL to
+    *                include all members not in the WHERE.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param params the parameters to populate.
     * @param columnSchemas the column schemas to populate.
@@ -499,7 +510,8 @@ protected:
     * @return the SQL SELECT text.
     */
    std::string createSelectSql(
-      SchemaObject& schema, db::rt::DynamicObject* where,
+      SchemaObject& schema,
+      db::rt::DynamicObject* where, db::rt::DynamicObject* members,
       uint64_t limit, uint64_t start,
       db::rt::DynamicObject& params, db::rt::DynamicObject& columnSchemas);
    

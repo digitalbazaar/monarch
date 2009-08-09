@@ -996,7 +996,6 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooFlag"] = true;
       row["fooInt32"] = 3;
       SqlExecutableRef se = dbc.insert(TABLE_TEST, row);
-      assert(!se.isNull());
       dbc.execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
@@ -1024,7 +1023,6 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooFlag"] = false;
       row["fooInt32"] = 3;
       SqlExecutableRef se = dbc.insert(TABLE_TEST, row);
-      assert(!se.isNull());
       dbc.execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
@@ -1050,7 +1048,6 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject where;
       where["fooId"] = 1;
       SqlExecutableRef se = dbc.selectOne(TABLE_TEST, &where);
-      assert(!se.isNull());
       dbc.execute(se);
       assertNoException();
       
@@ -1070,12 +1067,35 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    }
    tr.passIfNoException();
    
+   tr.test("select one specific member");
+   {
+      DynamicObject where;
+      where["fooId"] = 1;
+      DynamicObject members;
+      members["fooString"];
+      SqlExecutableRef se = dbc.selectOne(TABLE_TEST, &where, &members);
+      dbc.execute(se);
+      assertNoException();
+      
+      DynamicObject expect;
+      expect["fooId"] = 1;
+      expect["fooString"] = "foobar";
+      if(expect != se->result)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(se->result);
+      }
+      assert(expect == se->result);
+   }
+   tr.passIfNoException();
+   
    tr.test("select");
    {
       DynamicObject where;
       where["fooInt32"] = 3;
-      SqlExecutableRef se = dbc.select(TABLE_TEST, &where, 5);
-      assert(!se.isNull());
+      SqlExecutableRef se = dbc.select(TABLE_TEST, &where, NULL, 5);
       dbc.execute(se);
       assertNoException();
       
@@ -1109,7 +1129,6 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject where;
       where["fooId"] = 2;
       SqlExecutableRef se = dbc.update(TABLE_TEST, row, &where);
-      assert(!se.isNull());
       dbc.execute(se);
       assert(se->rowsAffected = 1);
    }
@@ -1120,7 +1139,6 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject where;
       where["fooString"] = "bar";
       SqlExecutableRef se = dbc.selectOne(TABLE_TEST, &where);
-      assert(!se.isNull());
       dbc.execute(se);
       assertNoException();
       
@@ -1145,7 +1163,6 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject where;
       where["fooString"] = "bar";
       SqlExecutableRef se = dbc.select(TABLE_TEST, &where);
-      assert(!se.isNull());
       dbc.execute(se);
       assertNoException();
       
@@ -1170,7 +1187,6 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject where;
       where["fooId"] = 1;
       SqlExecutableRef se = dbc.remove(TABLE_TEST, &where);
-      assert(!se.isNull());
       dbc.execute(se);
       assert(se->rowsAffected == 1);
    }
@@ -1179,7 +1195,6 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    tr.test("select again");
    {
       SqlExecutableRef se = dbc.select(TABLE_TEST);
-      assert(!se.isNull());
       dbc.execute(se);
       assertNoException();
       

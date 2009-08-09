@@ -287,9 +287,9 @@ SqlExecutableRef DatabaseClient::update(
 }
 
 SqlExecutableRef DatabaseClient::selectOne(
-   const char* table, DynamicObject* where)
+   const char* table, DynamicObject* where, DynamicObject* members)
 {
-   SqlExecutableRef rval = select(table, where, 1, 0);
+   SqlExecutableRef rval = select(table, where, members, 1, 0);
    if(!rval.isNull())
    {
       // set result to a map
@@ -300,7 +300,8 @@ SqlExecutableRef DatabaseClient::selectOne(
 }
 
 SqlExecutableRef DatabaseClient::select(
-   const char* table, DynamicObject* where, uint64_t limit, uint64_t start)
+   const char* table, DynamicObject* where, DynamicObject* members,
+   uint64_t limit, uint64_t start)
 {
    SqlExecutableRef rval(NULL);
    
@@ -320,7 +321,8 @@ SqlExecutableRef DatabaseClient::select(
       
       // create SELECT sql
       rval->sql = createSelectSql(
-         schema, where, limit, start, rval->params, rval->columnSchemas);
+         schema, where, members, limit, start,
+         rval->params, rval->columnSchemas);
       if(where != NULL)
       {
          rval->whereFilter = *where;
@@ -374,97 +376,116 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
 {
    bool rval = false;
    
-   if(mDebugLogging)
+   if(se.isNull())
    {
-      DB_CAT_DEBUG(DB_SQL_CAT,
-         "SqlExecutable:\n"
-         "sql: %s\n"
-         "write: %s\n"
-         "params: %s\n"
-         "columnSchemas: %s\n"
-         "whereFilter: %s\n",
-         se->sql.c_str(),
-         se->write ? "true" : "false",
-         JsonWriter::writeToString(se->params, false, false).c_str(),
-         JsonWriter::writeToString(se->columnSchemas, false, false).c_str(),
-         JsonWriter::writeToString(se->whereFilter, false, false).c_str());
-   }
-   
-   // get a connection from the pool if one wasn't passed in
-   Connection* conn = (c == NULL) ?
-      (se->write ? getWriteConnection() : getReadConnection()) : c;
-   if(conn != NULL)
-   {
-      // prepare statement, set parameters, and execute
-      Statement* s = conn->prepare(se->sql.c_str());
-      rval = (s != NULL) && setParams(s, se->params) && s->execute();
-      
-      // if we wrote to the database, get affected rows and last insert ID
-      if(rval && se->write)
+      // typical usage will involve generating an SQL executable and then
+      // passing it to this method ... the generation might result in a
+      // NULL SQL executable which would be passed here and caught for
+      // convenience ... if that's the case a relevant exception is already
+      // set -- for the degenerate/unusual case nothing is set yet so we set
+      // something here
+      if(!Exception::isSet())
       {
-         s->getRowsChanged(se->rowsAffected);
-         se->lastInsertRowId = s->getLastInsertRowId();
+         ExceptionRef e = new Exception(
+            "Could not execute SQL. SqlExecutable is NULL.",
+            DBC_EXCEPTION ".NullSqlExecutable");
+         Exception::set(e);
       }
-      // else we read, so get row results
-      else if(rval && !se->result.isNull())
+   }
+   else
+   {
+      if(mDebugLogging)
       {
-         // get results as an array
-         if(se->result->getType() == Array)
+         DB_CAT_DEBUG(DB_SQL_CAT,
+            "SqlExecutable:\n"
+            "sql: %s\n"
+            "write: %s\n"
+            "params: %s\n"
+            "columnSchemas: %s\n"
+            "whereFilter: %s\n",
+            se->sql.c_str(),
+            se->write ? "true" : "false",
+            JsonWriter::writeToString(se->params, false, false).c_str(),
+            JsonWriter::writeToString(se->columnSchemas, false, false).c_str(),
+            JsonWriter::writeToString(se->whereFilter, false, false).c_str());
+      }
+      
+      // get a connection from the pool if one wasn't passed in
+      Connection* conn = (c == NULL) ?
+         (se->write ? getWriteConnection() : getReadConnection()) : c;
+      if(conn != NULL)
+      {
+         // prepare statement, set parameters, and execute
+         Statement* s = conn->prepare(se->sql.c_str());
+         rval = (s != NULL) && setParams(s, se->params) && s->execute();
+         
+         // if we wrote to the database, get affected rows and last insert ID
+         if(rval && se->write)
          {
-            se->result->clear();
-            
-            // FIXME: we intentionally do not check rval in this while()
-            // loop right now because there are some issues where if
-            // if we don't retrieve the entire result set (fetch each row)
-            // then we run into problems -- this needs to be double checked
-            // so we can handle this case better
-            
-            // iterate over rows
-            Row* r;
-            while((r = s->fetch()) != NULL)
-            {
-               // pull out data (and copy data specified in where)
-               DynamicObject& row = se->result->append();
-               if(!se->whereFilter.isNull())
-               {
-                  row = se->whereFilter.clone();
-               }
-               rval = getRowData(se->columnSchemas, r, row);
-            }
-            
-            // save number of rows retrieved
-            se->rowsRetrieved = se->result->length();
+            s->getRowsChanged(se->rowsAffected);
+            se->lastInsertRowId = s->getLastInsertRowId();
          }
-         // get results as a single map
-         else
+         // else we read, so get row results
+         else if(rval && !se->result.isNull())
          {
-            Row* r = s->fetch();
-            if(r == NULL)
+            // get results as an array
+            if(se->result->getType() == Array)
             {
-               // the value doesn't exist
-               se->rowsRetrieved = 0;
+               se->result->clear();
+               
+               // FIXME: we intentionally do not check rval in this while()
+               // loop right now because there are some issues where if
+               // if we don't retrieve the entire result set (fetch each row)
+               // then we run into problems -- this needs to be double checked
+               // so we can handle this case better
+               
+               // iterate over rows
+               Row* r;
+               while((r = s->fetch()) != NULL)
+               {
+                  // pull out data (and copy data specified in where)
+                  DynamicObject& row = se->result->append();
+                  if(!se->whereFilter.isNull())
+                  {
+                     row = se->whereFilter.clone();
+                  }
+                  rval = getRowData(se->columnSchemas, r, row);
+               }
+               
+               // save number of rows retrieved
+               se->rowsRetrieved = se->result->length();
             }
+            // get results as a single map
             else
             {
-               // row found, pull out data
-               se->rowsRetrieved = 1;
-               if(!se->whereFilter.isNull())
+               Row* r = s->fetch();
+               if(r == NULL)
                {
-                  DynamicObject clone = se->whereFilter.clone();
-                  se->result.merge(clone, false);
+                  // the value doesn't exist
+                  se->rowsRetrieved = 0;
                }
-               rval = getRowData(se->columnSchemas, r, se->result);
-               
-               // finish out result set
-               s->fetch();
+               else
+               {
+                  // row found, pull out data
+                  se->rowsRetrieved = 1;
+                  if(!se->whereFilter.isNull())
+                  {
+                     DynamicObject clone = se->whereFilter.clone();
+                     se->result.merge(clone, false);
+                  }
+                  rval = getRowData(se->columnSchemas, r, se->result);
+                  
+                  // finish out result set
+                  s->fetch();
+               }
             }
          }
-      }
-      
-      // close connection if it was not passed in
-      if(c == NULL)
-      {
-         conn->close();
+         
+         // close connection if it was not passed in
+         if(c == NULL)
+         {
+            conn->close();
+         }
       }
    }
    
@@ -531,8 +552,9 @@ void DatabaseClient::buildParams(
 
 void DatabaseClient::buildColumnSchemas(
    SchemaObject& schema,
-   DynamicObject* members, DynamicObject& columnSchemas,
-   bool exclude)
+   DynamicObject* excludeMembers,
+   DynamicObject* includeMembers,
+   DynamicObject& columnSchemas)
 {
    DynamicObjectIterator i = schema["columns"].getIterator();
    while(i->hasNext())
@@ -540,19 +562,13 @@ void DatabaseClient::buildColumnSchemas(
       DynamicObject& next = i->next();
       const char* memberName = next["memberName"]->getString();
       
-      // only include column schemas if members does not have the current
-      // member
-      if(exclude)
+      // if exclude members does not exist or the current member is not
+      // in it, then see if we should include this column schema
+      if(excludeMembers == NULL || !(*excludeMembers)->hasMember(memberName))
       {
-         if(members == NULL || !(*members)->hasMember(memberName))
-         {
-            columnSchemas->append(next);
-         }
-      }
-      // only include column schemas if members has the current member
-      else
-      {
-         if(members != NULL && (*members)->hasMember(memberName))
+         // if we are to include all column schemas (include == NULL) or if
+         // our current member is in the list of schemas to include, include it
+         if(includeMembers == NULL || (*includeMembers)->hasMember(memberName))
          {
             columnSchemas->append(next);
          }
@@ -788,7 +804,8 @@ bool DatabaseClient::getRowData(
 }
 
 string DatabaseClient::createSelectSql(
-   SchemaObject& schema, DynamicObject* where,
+   SchemaObject& schema,
+   DynamicObject* where, DynamicObject* members,
    uint64_t limit, uint64_t start,
    DynamicObject& params, DynamicObject& columnSchemas)
 {
@@ -803,7 +820,7 @@ string DatabaseClient::createSelectSql(
    }
    
    // build column schemas for results
-   buildColumnSchemas(schema, where, columnSchemas, true);
+   buildColumnSchemas(schema, where, members, columnSchemas);
    
    // append column names
    appendColumnNames(sql, columnSchemas);
