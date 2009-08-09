@@ -964,6 +964,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       // column 0
       schema["columns"][0]["name"] = "foo_id";
       schema["columns"][0]["type"] = "INTEGER PRIMARY KEY";
+      schema["columns"][0]["autoIncrement"] = true;
       schema["columns"][0]["memberName"] = "fooId";
       schema["columns"][0]["memberType"]->setType(UInt64);
       
@@ -1008,6 +1009,20 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooFlag"] = true;
       row["fooInt32"] = 3;
       dbc.insert(TABLE_TEST, row);
+      
+      DynamicObject expect;
+      expect["fooId"] = 1;
+      expect["fooString"] = "foobar";
+      expect["fooFlag"] = true;
+      expect["fooInt32"] = 3;
+      if(expect != row)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(row);
+      }
+      assert(expect == row);
    }
    tr.passIfNoException();
    
@@ -1018,6 +1033,20 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooFlag"] = false;
       row["fooInt32"] = 3;
       dbc.insert(TABLE_TEST, row);
+      
+      DynamicObject expect;
+      expect["fooId"] = 2;
+      expect["fooString"] = "foobar";
+      expect["fooFlag"] = false;
+      expect["fooInt32"] = 3;
+      if(expect != row)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(row);
+      }
+      assert(expect == row);
    }
    tr.passIfNoException();
    
