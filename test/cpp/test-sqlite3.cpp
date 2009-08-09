@@ -961,30 +961,25 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SchemaObject schema;
       schema["table"] = TABLE_TEST;
       
-      // column 0
-      schema["columns"][0]["name"] = "foo_id";
-      schema["columns"][0]["type"] = "INTEGER PRIMARY KEY";
-      schema["columns"][0]["autoIncrement"] = true;
-      schema["columns"][0]["memberName"] = "fooId";
-      schema["columns"][0]["memberType"]->setType(UInt64);
+      DatabaseClient::addSchemaColumn(
+         schema,
+         "foo_id", "INTEGER PRIMARY KEY", true,
+         "fooId", UInt64);
       
-      // column 1
-      schema["columns"][1]["name"] = "foo_string";
-      schema["columns"][1]["type"] = "TEXT";
-      schema["columns"][1]["memberName"] = "fooString";
-      schema["columns"][1]["memberType"]->setType(String);
+      DatabaseClient::addSchemaColumn(
+         schema,
+         "foo_string", "TEXT", false,
+         "fooString", String);
       
-      // column 2
-      schema["columns"][2]["name"] = "foo_flag";
-      schema["columns"][2]["type"] = "INTEGER";
-      schema["columns"][2]["memberName"] = "fooFlag";
-      schema["columns"][2]["memberType"]->setType(Boolean);
+      DatabaseClient::addSchemaColumn(
+         schema,
+         "foo_flag", "INTEGER", false,
+         "fooFlag", Boolean);
       
-      // column 3
-      schema["columns"][3]["name"] = "foo_int32";
-      schema["columns"][3]["type"] = "INTEGER";
-      schema["columns"][3]["memberName"] = "fooInt32";
-      schema["columns"][3]["memberType"]->setType(Int32);
+      DatabaseClient::addSchemaColumn(
+         schema,
+         "foo_int32", "INTEGER", false,
+         "fooInt32", Int32);
       
       dbc.define(schema);
    }

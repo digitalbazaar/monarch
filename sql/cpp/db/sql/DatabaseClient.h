@@ -288,6 +288,21 @@ public:
     */
    virtual bool end(Connection* c, bool commit);
    
+   /**
+    * Appends a column to the given table schema.
+    * 
+    * @param schema the schema to append to.
+    * @param name the name of the column.
+    * @param type the type of the column.
+    * @param autoIncrement true if the column is auto-increment, false if not.
+    * @param memberName the associated object member name.
+    * @param memberType the associated object member type.
+    */
+   static void addSchemaColumn(
+      SchemaObject& schema,
+      const char* name, const char* type, bool autoIncrement,
+      const char* memberName, db::rt::DynamicObjectType memberType);
+   
 protected:
    /**
     * Logs the passed SQL string if debug logging is on.
@@ -438,6 +453,9 @@ protected:
       const char* cmd, const char* table, db::rt::DynamicObject& row,
       Connection* c = NULL);
 };
+
+// type definition for a reference counted DatabaseClient
+typedef db::rt::Collectable<DatabaseClient> DatabaseClientRef;
 
 } // end namespace sql
 } // end namespace db

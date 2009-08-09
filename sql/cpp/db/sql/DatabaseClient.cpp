@@ -517,6 +517,19 @@ bool DatabaseClient::end(Connection* c, bool commit)
    return commit ? c->commit() : c->rollback();
 }
 
+void DatabaseClient::addSchemaColumn(
+   SchemaObject& schema,
+   const char* name, const char* type, bool autoIncrement,
+   const char* memberName, DynamicObjectType memberType)
+{
+   DynamicObject column = schema["columns"]->append();
+   column["name"] = name;
+   column["type"] = type;
+   column["autoIncrement"] = autoIncrement;
+   column["memberName"] = memberName;
+   column["memberType"]->setType(memberType);
+}
+
 void DatabaseClient::logSql(string& str, DynamicObject* params)
 {
    if(mDebugLogging)
