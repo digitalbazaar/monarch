@@ -18,6 +18,13 @@ namespace v = db::validation;
 
 #define DBC_EXCEPTION "db.sql.DatabaseClient"
 
+// FIXME: Consider a change to the API where an object is returned by each
+// of the insert()/update()/select()/remove() calls that can be executed...
+// that object contains the params, sql, etc ... and you can ask it for
+// information like last update ID/affected rows, etc. This might result
+// in a prettier or more understandable API ... at the cost of some additional
+// verbosity
+
 DatabaseClient::DatabaseClient() :
    mDebugLogging(false),
    mReadPool(NULL),
