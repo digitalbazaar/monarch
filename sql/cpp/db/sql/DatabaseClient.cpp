@@ -332,7 +332,7 @@ bool DatabaseClient::update(
 }
 
 bool DatabaseClient::selectOne(
-   const char* table, DynamicObject& row, Connection* c)
+   const char* table, DynamicObject& row, DynamicObject* where, Connection* c)
 {
    bool rval = false;
    
@@ -345,7 +345,7 @@ bool DatabaseClient::selectOne(
       // create SELECT sql
       DynamicObject params;
       DynamicObject columnSchemas;
-      string sql = createSelectSql(schema, &row, 1, 0, params, columnSchemas);
+      string sql = createSelectSql(schema, where, 1, 0, params, columnSchemas);
       
       // log sql
       logSql(sql, &params);

@@ -219,19 +219,22 @@ public:
       uint64_t* affectedRows = NULL, Connection* c = NULL);
    
    /**
-    * Selects all column values not present in the given row object from
+    * Selects all column values not present in the given WHERE object from
     * the specified table, using any present values in the WHERE clause
-    * of the SELECT. 
+    * of the SELECT. The first row will be returned. 
     * 
     * @param table the name of the table to select from.
     * @param row the object to store the row result in, will be set to NULL
     *           if the SELECT returns back no rows.
+    * @param where an object that specifies specific column values to
+    *           look for, NULL to include no WHERE clause.
     * @param c the connection to use, NULL to obtain one from the pool.
     * 
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool selectOne(
-      const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
+      const char* table, db::rt::DynamicObject& row,
+      db::rt::DynamicObject* where = NULL, Connection* c = NULL);
    
    /**
     * Selects all column values not present in the given WHERE object from

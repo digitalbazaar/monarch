@@ -1049,7 +1049,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject row;
       row["fooId"] = 1;
-      dbc.selectOne(TABLE_TEST, row);
+      dbc.selectOne(TABLE_TEST, row, &row);
       
       DynamicObject expect;
       expect["fooId"] = 1;
@@ -1111,7 +1111,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject row;
       row["fooString"] = "bar";
-      dbc.selectOne(TABLE_TEST, row);
+      dbc.selectOne(TABLE_TEST, row, &row);
       
       DynamicObject expect;
       expect["fooId"] = 2;
