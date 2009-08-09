@@ -13,6 +13,9 @@ namespace db
 namespace sql
 {
 
+// forward declare row
+class Row;
+
 /**
  * A SchemaObject contains the schema for a database table. It is used
  * to create a table and as a mapping between objects that make up the
@@ -330,7 +333,7 @@ protected:
     */
    virtual void buildColumnSchemas(
       SchemaObject& schema,
-      db::rt::DynamicObject& members, db::rt::DynamicObject& params,
+      db::rt::DynamicObject* members, db::rt::DynamicObject& columnSchemas,
       bool exclude);
    
    /**
@@ -344,9 +347,13 @@ protected:
       std::string& sql, db::rt::DynamicObject& params);
    
    /**
-    * Appends the SQL " col1,col2,... " to an SQL statement.
+    * Appends the SQL " col1,col2,..." to an SQL statement.
     * 
+    * @param sql the SQL string to append to.
+    * @param columnSchemas the column schemas array to generate the SQL from.
     */
+   virtual void appendColumnNames(
+      std::string& sql, db::rt::DynamicObject& columnSchemas);
    
    /**
     * Appends the SQL " WHERE col1=? AND col2=? ..." to an SQL statement.
@@ -366,6 +373,37 @@ protected:
     */
    virtual void appendLimitSql(
       std::string& sql, uint64_t limit, uint64_t start);
+   
+   /**
+    * Appends the SQL " SET col1=?,col2=? ..." to an SQL statement.
+    * 
+    * @param sql the SQL string to append to.
+    * @param params the list of parameters to generate the SQL from.
+    */
+   virtual void appendSetSql(
+      std::string& sql, db::rt::DynamicObject& params);
+   
+   /**
+    * Sets the parameters for a statement.
+    * 
+    * @param s the statement.
+    * @param params the parameters.
+    * 
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool setParams(Statement* s, db::rt::DynamicObject& params);
+   
+   /**
+    * Gets row data from a row returned from a statement.
+    * 
+    * @param columnSchemas the column schemas associated with the row.
+    * @param r the SQL row returned from a statement.
+    * @param row the row object to put the SQL row data into.
+    * 
+    * @return true if successful, false if an Exception occured.
+    */
+   virtual bool getRowData(
+      db::rt::DynamicObject& columnSchemas, Row* r, db::rt::DynamicObject& row);
    
    /**
     * Inserts or replaces a row into a table. All applicable values in the

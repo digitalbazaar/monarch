@@ -152,231 +152,6 @@ static bool _checkForSchema(DynamicObject& schemas, const char* table)
    return rval;
 }
 
-// helper function to build a list of parameters while appending a WHERE
-// clause to a SELECT statement... whilst also building a result object
-// that stores the columns that need to be retrieved, their types, and the
-// associated object member names to store their values under
-static void _buildSelectParamsAndResults(
-   SchemaObject& schema, string& sql,
-   DynamicObject* where, DynamicObject& params, DynamicObject& results)
-{
-   // append all column names that are not in the given WHERE object
-   // and then build an array of parameters that includes column names and
-   // their values and an array of column names that will be returned along
-   // with their associated dynamic object types and member names (this
-   // will allow us to populate dynamic object rows)
-   params->setType(Array);
-   results->setType(Array);
-   
-   bool first = true;
-   DynamicObjectIterator i = schema["columns"].getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* memberName = next["memberName"]->getString();
-      
-      // if there is no where object or it does not contain a member name
-      // that is associated with the current column entry, then we want to
-      // include pulling that column out in our select sql
-      if(where == NULL || !(*where)->hasMember(memberName))
-      {
-         if(first)
-         {
-            first = false;
-         }
-         else
-         {
-            sql.append(",");
-         }
-         sql.append(next["name"]->getString());
-         
-         // add result
-         results->append(next);
-      }
-      else
-      {
-         // add param
-         DynamicObject& param = params->append();
-         param["name"] = next["name"]->getString();
-         param["value"] = (*where)[memberName];
-      }
-   }
-}
-
-// helper function to set statement parameters, the passed params object
-// must be an ordered array of objects with "name" and "value" set
-static bool _setParameters(Statement* s, DynamicObject& params)
-{
-   bool rval = true;
-   
-   // append parameters
-   unsigned int param = 1;
-   DynamicObjectIterator i = params.getIterator();
-   while(rval && i->hasNext())
-   {
-      DynamicObject& value = i->next()["value"];
-      switch(value->getType())
-      {
-         case Int32:
-            rval &= s->setInt32(param++, value->getInt32());
-            break;
-         case UInt32:
-         case Boolean:
-            rval &= s->setUInt32(param++, value->getUInt32());
-            break;
-         case Int64:
-            rval &= s->setInt64(param++, value->getInt64());
-            break;
-         case UInt64:
-            rval &= s->setUInt64(param++, value->getUInt64());
-            break;
-         case String:
-         case Double:
-            // doubles are treated as strings
-            rval &= s->setText(param++, value->getString());
-            break;
-            break;
-         default:
-         {
-            ExceptionRef e = new Exception(
-               "Invalid parameter type.",
-               DBC_EXCEPTION ".InvalidParameterType");
-            e->getDetails()["invalidType"] =
-               DynamicObject::descriptionForType(value->getType());
-            Exception::set(e);
-            break;
-         }
-      }
-   }
-   
-   return rval;
-}
-
-// helper function for pulling out row data
-static bool _getRowData(DynamicObject& results, Row* r, DynamicObject& row)
-{
-   bool rval = true;
-   
-   // a union for pulling out integer data
-   union
-   {
-      int32_t int32;
-      uint32_t uint32;
-      int64_t int64;
-      uint64_t uint64;
-   } tmpInt;
-   string tmpStr;
-   
-   DynamicObjectIterator i = results.getIterator();
-   while(rval && i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* columnName = next["name"]->getString();
-      const char* memberName = next["memberName"]->getString();
-      
-      switch(next["memberType"]->getType())
-      {
-         case Int32:
-            rval = r->getInt32(columnName, tmpInt.int32);
-            row[memberName] = tmpInt.int32;
-            break;
-         case UInt32:
-            rval = r->getUInt32(columnName, tmpInt.uint32);
-            row[memberName] = tmpInt.uint32;
-            break;
-         case Int64:
-            rval = r->getInt64(columnName, tmpInt.int64);
-            row[memberName] = tmpInt.int64;
-            break;
-         case UInt64:
-            rval = r->getUInt64(columnName, tmpInt.uint64);
-            row[memberName] = tmpInt.uint64;
-            break;
-         case Boolean:
-            rval = r->getUInt32(columnName, tmpInt.uint32);
-            row[memberName] = (tmpInt.uint32 == 0) ? false : true;
-            break;
-         case String:
-         case Double:
-            rval = r->getText(columnName, tmpStr);
-            row[memberName] = tmpStr.c_str();
-            break;
-         default:
-            // other types not supported
-            break;
-      }
-   }
-   
-   return rval;
-}
-
-// helper function to build update parameters
-static void _buildUpdateParameters(
-   SchemaObject& schema, string& sql,
-   DynamicObject& row, DynamicObject* where, DynamicObject& params)
-{
-   params->setType(Array);
-   
-   // create whereParams and sql to append SET params and sql are set
-   DynamicObject whereParams;
-   whereParams->setType(Array);
-   string whereSql;
-   
-   // build SET part of update
-   bool firstSet = true;
-   bool firstWhere = true;
-   DynamicObjectIterator i = schema["columns"].getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* memberName = next["memberName"]->getString();
-      
-      // if the row has the given member, we want to update it
-      if(row->hasMember(memberName))
-      {
-         if(firstSet)
-         {
-            firstSet = false;
-         }
-         else
-         {
-            sql.append(",");
-         }
-         sql.append(next["name"]->getString());
-         sql.append("=?");
-         
-         // add param
-         DynamicObject& param = params->append();
-         param["name"] = next["name"]->getString();
-         param["value"] = row[memberName];
-      }
-      // if the where has the given member, we want to include it in the WHERE
-      else if(where != NULL && (*where)->hasMember(memberName))
-      {
-         if(firstWhere)
-         {
-            firstWhere = false;
-            whereSql.append(" WHERE ");
-         }
-         else
-         {
-            whereSql.append(" AND ");
-         }
-         whereSql.append(next["name"]->getString());
-         whereSql.append("=?");
-         
-         // add param
-         DynamicObject& param = whereParams->append();
-         param["name"] = next["name"]->getString();
-         param["value"] = (*where)[memberName];
-      }
-   }
-   
-   // append where params and SQL
-   params.merge(whereParams, true);
-   sql.append(whereSql);
-}
-
 bool DatabaseClient::create(
    const char* table, bool ignoreIfExists, Connection* c)
 {
@@ -506,14 +281,30 @@ bool DatabaseClient::update(
       // create starting clause
       string sql = "UPDATE ";
       sql.append(table);
-      sql.append(" SET ");
       
-      // build parameters
+      // build SET parameters
       DynamicObject params;
-      _buildUpdateParameters(schema, sql, row, where, params);
+      buildParams(schema, row, params);
+      
+      // build WHERE parameters
+      DynamicObject whereParams;
+      whereParams->setType(Array);
+      if(where != NULL)
+      {
+         buildParams(schema, *where, whereParams);
+      }
+      
+      // append SET clause
+      appendSetSql(sql, params);
+      
+      // append where clause
+      appendWhereSql(sql, whereParams);
       
       // append LIMIT clause
       appendLimitSql(sql, limit, start);
+      
+      // concatenate params
+      params.merge(whereParams, true);
       
       // log sql
       logSql(sql, &params);
@@ -524,7 +315,7 @@ bool DatabaseClient::update(
       {
          // prepare statement, set parameters, and execute
          Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && _setParameters(s, params) && s->execute();
+         rval = (s != NULL) && setParams(s, params) && s->execute();
          if(rval && affectedRows != NULL)
          {
             s->getRowsChanged(*affectedRows);
@@ -555,10 +346,16 @@ bool DatabaseClient::selectOne(
       // create starting clause
       string sql = "SELECT ";
       
-      // build parameters and results
+      // build parameters
       DynamicObject params;
-      DynamicObject results;
-      _buildSelectParamsAndResults(schema, sql, &row, params, results);
+      buildParams(schema, row, params);
+      
+      // build column schemas for results
+      DynamicObject columnSchemas;
+      buildColumnSchemas(schema, &row, columnSchemas, true);
+      
+      // append column names
+      appendColumnNames(sql, columnSchemas);
       
       // append table
       sql.append(" FROM ");
@@ -579,7 +376,7 @@ bool DatabaseClient::selectOne(
       {
          // prepare statement, set parameters, and execute
          Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && _setParameters(s, params) && s->execute();
+         rval = (s != NULL) && setParams(s, params) && s->execute();
          
          // get row result
          if(rval)
@@ -593,7 +390,7 @@ bool DatabaseClient::selectOne(
             else
             {
                // row found, pull out data
-               rval = _getRowData(results, r, row);
+               rval = getRowData(columnSchemas, r, row);
                
                // finish out result set
                s->fetch();
@@ -626,10 +423,20 @@ bool DatabaseClient::select(
       // create starting clause
       string sql = "SELECT ";
       
-      // build parameters and results
+      // build parameters
       DynamicObject params;
-      DynamicObject results;
-      _buildSelectParamsAndResults(schema, sql, where, params, results);
+      params->setType(Array);
+      if(where != NULL)
+      {
+         buildParams(schema, *where, params);
+      }
+      
+      // build column schemas for results
+      DynamicObject columnSchemas;
+      buildColumnSchemas(schema, where, columnSchemas, true);
+      
+      // append column names
+      appendColumnNames(sql, columnSchemas);
       
       // append table
       sql.append(" FROM ");
@@ -653,7 +460,7 @@ bool DatabaseClient::select(
       {
          // prepare statement, set parameters, and execute
          Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && _setParameters(s, params) && s->execute();
+         rval = (s != NULL) && setParams(s, params) && s->execute();
          
          // get row results
          if(rval)
@@ -678,7 +485,7 @@ bool DatabaseClient::select(
                {
                   row = where->clone();
                }
-               rval = _getRowData(results, r, row);
+               rval = getRowData(columnSchemas, r, row);
             }
          }
          
@@ -727,7 +534,7 @@ bool DatabaseClient::remove(
       {
          // prepare statement, set parameters, and execute
          Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && _setParameters(s, params) && s->execute();
+         rval = (s != NULL) && setParams(s, params) && s->execute();
          if(rval && affectedRows != NULL)
          {
             s->getRowsChanged(*affectedRows);
@@ -802,10 +609,35 @@ void DatabaseClient::buildParams(
 
 void DatabaseClient::buildColumnSchemas(
    SchemaObject& schema,
-   ::DynamicObject& members, DynamicObject& params,
+   DynamicObject* members, DynamicObject& columnSchemas,
    bool exclude)
 {
-   // FIXME:
+   columnSchemas->setType(Array);
+   
+   DynamicObjectIterator i = schema["columns"].getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      const char* memberName = next["memberName"]->getString();
+      
+      // only include column schemas if members does not have the current
+      // member
+      if(exclude)
+      {
+         if(members == NULL || !(*members)->hasMember(memberName))
+         {
+            columnSchemas->append(next);
+         }
+      }
+      // only include column schemas if members has the current member
+      else
+      {
+         if(members != NULL && (*members)->hasMember(memberName))
+         {
+            columnSchemas->append(next);
+         }
+      }
+   }
 }
 
 void DatabaseClient::appendValuesSql(string& sql, DynamicObject& params)
@@ -838,6 +670,27 @@ void DatabaseClient::appendValuesSql(string& sql, DynamicObject& params)
    }
    
    sql.append(values);
+}
+
+void DatabaseClient::appendColumnNames(
+   string& sql, DynamicObject& columnSchemas)
+{
+   bool first = true;
+   DynamicObjectIterator i = columnSchemas.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& name = i->next()["name"];
+      if(first)
+      {
+         first = false;
+         sql.append(" ");
+      }
+      else
+      {
+         sql.append(",");
+      }
+      sql.append(name->getString());
+   }
 }
 
 void DatabaseClient::appendWhereSql(string& sql, DynamicObject& params)
@@ -881,6 +734,133 @@ void DatabaseClient::appendLimitSql(string& sql, uint64_t limit, uint64_t start)
    }
 }
 
+void DatabaseClient::appendSetSql(string& sql, DynamicObject& params)
+{
+   bool first = true;
+   DynamicObjectIterator i = params.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& name = i->next()["name"];
+      if(first)
+      {
+         first = false;
+         sql.append(" SET ");
+      }
+      else
+      {
+         sql.append(",");
+      }
+      
+      sql.append(name->getString());
+      sql.append("=?");
+   }
+}
+
+bool DatabaseClient::setParams(Statement* s, DynamicObject& params)
+{
+   bool rval = true;
+   
+   // append parameters
+   unsigned int param = 1;
+   DynamicObjectIterator i = params.getIterator();
+   while(rval && i->hasNext())
+   {
+      DynamicObject& value = i->next()["value"];
+      switch(value->getType())
+      {
+         case Int32:
+            rval &= s->setInt32(param++, value->getInt32());
+            break;
+         case UInt32:
+         case Boolean:
+            rval &= s->setUInt32(param++, value->getUInt32());
+            break;
+         case Int64:
+            rval &= s->setInt64(param++, value->getInt64());
+            break;
+         case UInt64:
+            rval &= s->setUInt64(param++, value->getUInt64());
+            break;
+         case String:
+         case Double:
+            // doubles are treated as strings
+            rval &= s->setText(param++, value->getString());
+            break;
+            break;
+         default:
+         {
+            ExceptionRef e = new Exception(
+               "Invalid parameter type.",
+               DBC_EXCEPTION ".InvalidParameterType");
+            e->getDetails()["invalidType"] =
+               DynamicObject::descriptionForType(value->getType());
+            Exception::set(e);
+            break;
+         }
+      }
+   }
+   
+   return rval;
+}
+
+bool DatabaseClient::getRowData(
+   DynamicObject& columnSchemas, Row* r, DynamicObject& row)
+{
+   bool rval = true;
+   
+   // a union for pulling out integer data
+   union
+   {
+      int32_t int32;
+      uint32_t uint32;
+      int64_t int64;
+      uint64_t uint64;
+   } tmpInt;
+   string tmpStr;
+   
+   DynamicObjectIterator i = columnSchemas.getIterator();
+   while(rval && i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      const char* columnName = next["name"]->getString();
+      const char* memberName = next["memberName"]->getString();
+      
+      switch(next["memberType"]->getType())
+      {
+         case Int32:
+            rval = r->getInt32(columnName, tmpInt.int32);
+            row[memberName] = tmpInt.int32;
+            break;
+         case UInt32:
+            rval = r->getUInt32(columnName, tmpInt.uint32);
+            row[memberName] = tmpInt.uint32;
+            break;
+         case Int64:
+            rval = r->getInt64(columnName, tmpInt.int64);
+            row[memberName] = tmpInt.int64;
+            break;
+         case UInt64:
+            rval = r->getUInt64(columnName, tmpInt.uint64);
+            row[memberName] = tmpInt.uint64;
+            break;
+         case Boolean:
+            rval = r->getUInt32(columnName, tmpInt.uint32);
+            row[memberName] = (tmpInt.uint32 == 0) ? false : true;
+            break;
+         case String:
+         case Double:
+            rval = r->getText(columnName, tmpStr);
+            row[memberName] = tmpStr.c_str();
+            break;
+         default:
+            // other types not supported
+            break;
+      }
+   }
+   
+   return rval;
+}
+
 bool DatabaseClient::insertOrReplace(
    const char* cmd, const char* table, DynamicObject& row, Connection* c)
 {
@@ -904,8 +884,8 @@ bool DatabaseClient::insertOrReplace(
       // append VALUES SQL
       appendValuesSql(sql, params);
       
-      // FIXME: remove me
-      printf("\nSQL: %s\n", sql.c_str());
+      // log sql
+      logSql(sql, &params);
       
       // get a write connection from the pool if one wasn't passed in
       Connection* conn = (c == NULL) ? getWriteConnection() : c;
@@ -913,7 +893,7 @@ bool DatabaseClient::insertOrReplace(
       {
          // prepare statement, set parameters, and execute
          Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && _setParameters(s, params) && s->execute();
+         rval = (s != NULL) && setParams(s, params) && s->execute();
          if(rval)
          {
             // set any auto-increment value in the object
