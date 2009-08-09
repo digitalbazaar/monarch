@@ -270,11 +270,11 @@ bool DatabaseClient::insertOrUpdate(
    return replace(table, row, c);
 }
 
-bool DatabaseClient::update(
+SqlExecutableRef DatabaseClient::update(
    const char* table, DynamicObject& row, DynamicObject* where,
-   uint64_t limit, uint64_t start, uint64_t* affectedRows, Connection* c)
+   uint64_t limit, uint64_t start)
 {
-   bool rval = false;
+   SqlExecutableRef rval(NULL);
    
    // ensure the schema exists
    if(_checkForSchema(mSchemas, table))
@@ -282,55 +282,37 @@ bool DatabaseClient::update(
       // get schema
       SchemaObject& schema = mSchemas[table];
       
+      // create sql executable
+      rval = new SqlExecutable();
+      rval->write = false;
+      
       // create starting clause
-      string sql = "UPDATE ";
-      sql.append(table);
+      rval->sql = "UPDATE ";
+      rval->sql.append(table);
       
       // build SET parameters
-      DynamicObject params;
-      buildParams(schema, row, params);
+      buildParams(schema, row, rval->params);
       
       // build WHERE parameters
       DynamicObject whereParams;
       whereParams->setType(Array);
       if(where != NULL)
       {
+         rval->whereFilter = *where;
          buildParams(schema, *where, whereParams);
       }
       
       // append SET clause
-      appendSetSql(sql, params);
+      appendSetSql(rval->sql, rval->params);
       
       // append where clause
-      appendWhereSql(sql, whereParams);
+      appendWhereSql(rval->sql, whereParams);
       
       // append LIMIT clause
-      appendLimitSql(sql, limit, start);
+      appendLimitSql(rval->sql, limit, start);
       
       // concatenate params
-      params.merge(whereParams, true);
-      
-      // log sql
-      logSql(sql, &params);
-      
-      // get a write connection from the pool if one wasn't passed in
-      Connection* conn = (c == NULL) ? getWriteConnection() : c;
-      if(conn != NULL)
-      {
-         // prepare statement, set parameters, and execute
-         Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && setParams(s, params) && s->execute();
-         if(rval && affectedRows != NULL)
-         {
-            s->getRowsChanged(*affectedRows);
-         }
-         
-         // close connection if it was not passed in
-         if(c == NULL)
-         {
-            conn->close();
-         }
-      }
+      rval->params.merge(whereParams, true);
    }
    
    return rval;

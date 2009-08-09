@@ -1108,7 +1108,10 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "bar";
       DynamicObject where;
       where["fooId"] = 2;
-      dbc.update(TABLE_TEST, row, &where);
+      SqlExecutableRef se = dbc.update(TABLE_TEST, row, &where);
+      assert(!se.isNull());
+      dbc.execute(se);
+      assert(se->affectedRows = 1);
    }
    tr.passIfNoException();
    

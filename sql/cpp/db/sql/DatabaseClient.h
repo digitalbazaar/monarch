@@ -273,27 +273,24 @@ public:
       const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
    
    /**
-    * Updates a row in a table. All applicable values in the given object
-    * will be updated in the given table, according to its schema. If the
-    * given "where" object is not NULL, its applicable members will define
-    * the WHERE clause of the UPDATE SQL. An optional LIMIT amount may be
-    * specified.
+    * Creates an SqlExecutable that will updates a row in a table. All
+    * applicable values in the given object will be updated in the given
+    * table, according to its schema. If the given "where" object is not
+    * NULL, its applicable members will define the WHERE clause of the
+    * UPDATE SQL. An optional LIMIT amount may be specified.
     * 
     * @param table the name of the table to UPDATE.
     * @param row the object with data to use in the update.
     * @param where the object with containing WHERE clause parameters.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param start the starting row for the LIMIT, defaults to 0.
-    * @param affectedRows if not NULL, will store the number of affected rows.
-    * @param c the connection to use, NULL to obtain one from the pool.
     * 
     * @return true if successful, false if an Exception occurred.
     */
-   virtual bool update(
+   virtual SqlExecutableRef update(
       const char* table, db::rt::DynamicObject& row,
       db::rt::DynamicObject* where = NULL,
-      uint64_t limit = 0, uint64_t start = 0,
-      uint64_t* affectedRows = NULL, Connection* c = NULL);
+      uint64_t limit = 0, uint64_t start = 0);
    
    /**
     * Creates an SqlExecutable that will selects all column values not present
