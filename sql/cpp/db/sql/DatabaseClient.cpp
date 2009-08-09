@@ -343,29 +343,10 @@ bool DatabaseClient::selectOne(
       // get schema
       SchemaObject& schema = mSchemas[table];
       
-      // create starting clause
-      string sql = "SELECT ";
-      
-      // build parameters
+      // create SELECT sql
       DynamicObject params;
-      buildParams(schema, row, params);
-      
-      // build column schemas for results
       DynamicObject columnSchemas;
-      buildColumnSchemas(schema, &row, columnSchemas, true);
-      
-      // append column names
-      appendColumnNames(sql, columnSchemas);
-      
-      // append table
-      sql.append(" FROM ");
-      sql.append(table);
-      
-      // append WHERE clause
-      appendWhereSql(sql, params);
-      
-      // append LIMIT
-      sql.append(" LIMIT 1");
+      string sql = createSelectSql(schema, &row, 1, 0, params, columnSchemas);
       
       // log sql
       logSql(sql, &params);
@@ -420,36 +401,11 @@ bool DatabaseClient::select(
       // get schema
       SchemaObject& schema = mSchemas[table];
       
-      // create starting clause
-      string sql = "SELECT ";
-      
-      // build parameters
+      // create SELECT sql
       DynamicObject params;
-      params->setType(Array);
-      if(where != NULL)
-      {
-         buildParams(schema, *where, params);
-      }
-      
-      // build column schemas for results
       DynamicObject columnSchemas;
-      buildColumnSchemas(schema, where, columnSchemas, true);
-      
-      // append column names
-      appendColumnNames(sql, columnSchemas);
-      
-      // append table
-      sql.append(" FROM ");
-      sql.append(table);
-      
-      // FIXME: consider allowing for more complex WHERE clauses other
-      // than a bunch of "key=value AND"s concatenated together
-      
-      // append WHERE clause
-      appendWhereSql(sql, params);
-      
-      // append LIMIT clause
-      appendLimitSql(sql, limit, start);
+      string sql = createSelectSql(
+         schema, where, limit, start, params, columnSchemas);
       
       // log sql
       logSql(sql, &params);
@@ -695,6 +651,12 @@ void DatabaseClient::appendColumnNames(
 
 void DatabaseClient::appendWhereSql(string& sql, DynamicObject& params)
 {
+   // FIXME: consider allowing for more complex WHERE clauses other
+   // than a bunch of "key=value AND"s concatenated together
+   
+   // FIXME: consider allowing arrays for values in parameters so that
+   // IN (?,?,?,...) SQL can be generated
+   
    bool first = true;
    DynamicObjectIterator i = params.getIterator();
    while(i->hasNext())
@@ -859,6 +821,40 @@ bool DatabaseClient::getRowData(
    }
    
    return rval;
+}
+
+string DatabaseClient::createSelectSql(
+   SchemaObject& schema, DynamicObject* where,
+   uint64_t limit, uint64_t start,
+   DynamicObject& params, DynamicObject& columnSchemas)
+{
+   // create starting clause
+   string sql = "SELECT ";
+   
+   // build parameters
+   params->setType(Array);
+   if(where != NULL)
+   {
+      buildParams(schema, *where, params);
+   }
+   
+   // build column schemas for results
+   buildColumnSchemas(schema, where, columnSchemas, true);
+   
+   // append column names
+   appendColumnNames(sql, columnSchemas);
+   
+   // append table
+   sql.append(" FROM ");
+   sql.append(schema["table"]->getString());
+   
+   // append WHERE clause
+   appendWhereSql(sql, params);
+   
+   // append LIMIT clause
+   appendLimitSql(sql, limit, start);
+   
+   return sql;
 }
 
 bool DatabaseClient::insertOrReplace(

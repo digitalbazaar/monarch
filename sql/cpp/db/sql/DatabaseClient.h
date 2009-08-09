@@ -406,6 +406,23 @@ protected:
       db::rt::DynamicObject& columnSchemas, Row* r, db::rt::DynamicObject& row);
    
    /**
+    * Creates SELECT SQL text and the associated parameters and column
+    * schemas arrays.
+    * 
+    * @param schema the table schema to use.
+    * @param where the WHERE filter.
+    * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
+    * @param params the parameters to populate.
+    * @param columnSchemas the column schemas to populate.
+    * 
+    * @return the SQL SELECT text.
+    */
+   std::string createSelectSql(
+      SchemaObject& schema, db::rt::DynamicObject* where,
+      uint64_t limit, uint64_t start,
+      db::rt::DynamicObject& params, db::rt::DynamicObject& columnSchemas);
+   
+   /**
     * Inserts or replaces a row into a table. All applicable values in the
     * given object will be inserted into the given table, according to its
     * schema.
