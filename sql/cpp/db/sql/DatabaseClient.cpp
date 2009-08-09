@@ -25,6 +25,11 @@ namespace v = db::validation;
 // in a prettier or more understandable API ... at the cost of some additional
 // verbosity
 
+// FIXME: do the above. create some ref-counted object that stores:
+// SQL string, params for SQL string, column schemas, affected rows, last ID
+// determine if there's an easy way to make the object's properties such that
+// they can be set manually for more complicated SQL
+
 DatabaseClient::DatabaseClient() :
    mDebugLogging(false),
    mReadPool(NULL),
@@ -514,6 +519,76 @@ bool DatabaseClient::begin(Connection* c)
 bool DatabaseClient::end(Connection* c, bool commit)
 {
    return commit ? c->commit() : c->rollback();
+}
+
+bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
+{
+   bool rval = false;
+   
+   // get a connection from the pool if one wasn't passed in
+   Connection* conn = (c == NULL) ?
+      (se->write ? getWriteConnection() : getReadConnection()) : c;
+   if(conn != NULL)
+   {
+      // prepare statement, set parameters, and execute
+      Statement* s = conn->prepare(se->sql.c_str());
+      rval = (s != NULL) && setParams(s, se->params) && s->execute();
+      
+      // get row results
+      if(rval && !se->result.isNull())
+      {
+         // get results as an array
+         if(se->result->getType() == Array)
+         {
+            se->result->clear();
+            
+            // FIXME: we intentionally do not check rval in this while()
+            // loop right now because there are some issues where if
+            // if we don't retrieve the entire result set (fetch each row) ...
+            // then we run into problems -- this needs to be double checked
+            // so we can handle this case better
+            
+            // iterate over rows
+            Row* r;
+            while((r = s->fetch()) != NULL)
+            {
+               // pull out data (and copy data specified in where)
+               DynamicObject& row = se->result->append();
+               if(!se->whereFilter.isNull())
+               {
+                  row = se->whereFilter.clone();
+               }
+               rval = getRowData(se->columnSchemas, r, row);
+            }
+         }
+         // get results as a single map
+         else
+         {
+            Row* r = s->fetch();
+            if(r == NULL)
+            {
+               // the value doesn't exist
+               se->result.setNull();
+            }
+            else
+            {
+               // row found, pull out data
+               rval = getRowData(se->columnSchemas, r, se->result);
+               
+               // finish out result set
+               s->fetch();
+            }
+         }
+      }
+      
+      // close connection if it was not passed in
+      if(c == NULL)
+      {
+         conn->close();
+      }
+   }
+   
+   return rval;
 }
 
 void DatabaseClient::addSchemaColumn(

@@ -33,6 +33,75 @@ class Row;
 typedef db::rt::DynamicObject SchemaObject;
 
 /**
+ * An SqlExecutable is an object that contains prepared statement SQL,
+ * parameters for that SQL, and store other useful state information. It
+ * can be generated and executed by a DatabaseClient. When executed, it will
+ * run the generated SQL, setting all parameters, retrieving rows, and keeping
+ * track of state information like the number of affected rows and any
+ * auto-increment update IDs.
+ */
+struct SqlExecutable
+{
+   /**
+    * Stores prepared statement SQL.
+    */
+   std::string sql;
+   
+   /**
+    * Stores whether or not the SQL should modify the database.
+    */
+   bool write;
+   
+   /**
+    * Stores an array of column name + column value parameters to be inserted
+    * into a prepared statement.
+    */
+   db::rt::DynamicObject params;
+   
+   /**
+    * Stores an array of column schemas that are used to retrieve column
+    * data after doing an SQL SELECT.
+    */
+   db::rt::DynamicObject columnSchemas;
+   
+   /**
+    * An SQL WHERE filter. This is a map with member name => member values
+    * that the SQL will be filtered on.
+    */
+   db::rt::DynamicObject whereFilter;
+   
+   /**
+    * Stores the result from a SELECT. This can either be one row or many.
+    */
+   db::rt::DynamicObject result;
+   
+   /**
+    * Stores the number of affected rows after execution.
+    */
+   uint64_t affectedRows;
+   
+   /**
+    * Stores the last insert ID after execution.
+    */
+   uint64_t lastInsertId;
+   
+   /**
+    * Initializes an SqlExecutable.
+    */
+   SqlExecutable() :
+      write(false),
+      params(NULL),
+      columnSchemas(NULL),
+      whereFilter(NULL),
+      result(NULL),
+      affectedRows(0),
+      lastInsertId(0) {};
+};
+
+// type definition for a reference counted SqlExecutable
+typedef db::rt::Collectable<SqlExecutable> SqlExecutableRef;
+
+/**
  * A DatabaseClient provides a simple interface to a database. The interface
  * abstracts away SQL and the connection and fetching APIs from its user,
  * removing much of the verbosity required to do basic database interaction.
@@ -290,6 +359,19 @@ public:
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool end(Connection* c, bool commit);
+   
+   /**
+    * Executes the passed SqlExecutable. Its SQL statement will be prepared,
+    * its parameters set, and then executed. If a row object was provided, then
+    * a single row will be retrieved. If a rows object was provided, then
+    * X row(s) will be retrieved.
+    * 
+    * @param se the SqlExecutable to execute.
+    * @param c the connection to use, NULL to obtain one from the pool.
+    * 
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool execute(SqlExecutableRef& se, Connection* c = NULL);
    
    /**
     * Appends a column to the given table schema.
