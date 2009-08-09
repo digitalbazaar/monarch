@@ -18,18 +18,6 @@ namespace v = db::validation;
 
 #define DBC_EXCEPTION "db.sql.DatabaseClient"
 
-// FIXME: Consider a change to the API where an object is returned by each
-// of the insert()/update()/select()/remove() calls that can be executed...
-// that object contains the params, sql, etc ... and you can ask it for
-// information like last update ID/affected rows, etc. This might result
-// in a prettier or more understandable API ... at the cost of some additional
-// verbosity
-
-// FIXME: do the above. create some ref-counted object that stores:
-// SQL string, params for SQL string, column schemas, affected rows, last ID
-// determine if there's an easy way to make the object's properties such that
-// they can be set manually for more complicated SQL
-
 DatabaseClient::DatabaseClient() :
    mDebugLogging(false),
    mReadPool(NULL),
@@ -55,7 +43,6 @@ bool DatabaseClient::initialize()
          new v::Each(new v::Map(
             "name", new v::Type(String),
             "type", new v::Type(String),
-            "autoIncrement", new v::Optional(new v::Type(Boolean)),
             "memberName", new v::Type(String),
             "memberType", new v::Any(
                new v::Int(),
@@ -252,22 +239,14 @@ bool DatabaseClient::create(
    return rval;
 }
 
-bool DatabaseClient::insert(
-   const char* table, DynamicObject& row, Connection* c)
+SqlExecutableRef DatabaseClient::insert(const char* table, DynamicObject& row)
 {
-   return insertOrReplace("INSERT", table, row, c);
+   return insertOrReplace("INSERT", table, row);
 }
 
-bool DatabaseClient::replace(
-   const char* table, DynamicObject& row, Connection* c)
+SqlExecutableRef DatabaseClient::replace(const char* table, DynamicObject& row)
 {
-   return insertOrReplace("REPLACE", table, row, c);
-}
-
-bool DatabaseClient::insertOrUpdate(
-   const char* table, DynamicObject& row, Connection* c)
-{
-   return replace(table, row, c);
+   return insertOrReplace("REPLACE", table, row);
 }
 
 SqlExecutableRef DatabaseClient::update(
@@ -505,13 +484,12 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
 
 void DatabaseClient::addSchemaColumn(
    SchemaObject& schema,
-   const char* name, const char* type, bool autoIncrement,
+   const char* name, const char* type,
    const char* memberName, DynamicObjectType memberType)
 {
    DynamicObject column = schema["columns"]->append();
    column["name"] = name;
    column["type"] = type;
-   column["autoIncrement"] = autoIncrement;
    column["memberName"] = memberName;
    column["memberType"]->setType(memberType);
 }
@@ -854,10 +832,10 @@ string DatabaseClient::createSelectSql(
    return sql;
 }
 
-bool DatabaseClient::insertOrReplace(
-   const char* cmd, const char* table, DynamicObject& row, Connection* c)
+SqlExecutableRef DatabaseClient::insertOrReplace(
+   const char* cmd, const char* table, DynamicObject& row)
 {
-   bool rval = false;
+   SqlExecutableRef rval(NULL);
    
    // ensure the schema exists
    if(_checkForSchema(mSchemas, table))
@@ -865,51 +843,20 @@ bool DatabaseClient::insertOrReplace(
       // get schema
       SchemaObject& schema = mSchemas[table];
       
+      // create sql executable
+      rval = new SqlExecutable();
+      rval->write = true;
+      
       // build parameters
-      DynamicObject params;
-      buildParams(schema, row, params);
+      buildParams(schema, row, rval->params);
       
       // create starting clause
-      string sql = cmd;
-      sql.append(" INTO ");
-      sql.append(schema["table"]->getString());
+      rval->sql = cmd;
+      rval->sql.append(" INTO ");
+      rval->sql.append(schema["table"]->getString());
       
       // append VALUES SQL
-      appendValuesSql(sql, params);
-      
-      // log sql
-      logSql(sql, &params);
-      
-      // get a write connection from the pool if one wasn't passed in
-      Connection* conn = (c == NULL) ? getWriteConnection() : c;
-      if(conn != NULL)
-      {
-         // prepare statement, set parameters, and execute
-         Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && setParams(s, params) && s->execute();
-         if(rval)
-         {
-            // set any auto-increment value in the object
-            DynamicObjectIterator i = schema["columns"].getIterator();
-            while(i->hasNext())
-            {
-               DynamicObject& next = i->next();
-               if(next["autoIncrement"]->getBoolean())
-               {
-                  const char* memberName = next["memberName"]->getString();
-                  row[memberName] = s->getLastInsertRowId();
-                  row[memberName]->setType(next["memberType"]->getType());
-                  break;
-               }
-            }
-         }
-         
-         // close connection if it was not passed in
-         if(c == NULL)
-         {
-            conn->close();
-         }
-      }
+      appendValuesSql(rval->sql, rval->params);
    }
    
    return rval;

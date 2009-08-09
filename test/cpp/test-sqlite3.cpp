@@ -962,24 +962,16 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       schema["table"] = TABLE_TEST;
       
       DatabaseClient::addSchemaColumn(
-         schema,
-         "foo_id", "INTEGER PRIMARY KEY", true,
-         "fooId", UInt64);
+         schema, "foo_id", "INTEGER PRIMARY KEY", "fooId", UInt64);
       
       DatabaseClient::addSchemaColumn(
-         schema,
-         "foo_string", "TEXT", false,
-         "fooString", String);
+         schema, "foo_string", "TEXT", "fooString", String);
       
       DatabaseClient::addSchemaColumn(
-         schema,
-         "foo_flag", "INTEGER", false,
-         "fooFlag", Boolean);
+         schema, "foo_flag", "INTEGER", "fooFlag", Boolean);
       
       DatabaseClient::addSchemaColumn(
-         schema,
-         "foo_int32", "INTEGER", false,
-         "fooInt32", Int32);
+         schema, "foo_int32", "INTEGER", "fooInt32", Int32);
       
       dbc.define(schema);
    }
@@ -1003,7 +995,11 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = true;
       row["fooInt32"] = 3;
-      dbc.insert(TABLE_TEST, row);
+      SqlExecutableRef se = dbc.insert(TABLE_TEST, row);
+      assert(!se.isNull());
+      dbc.execute(se);
+      assertNoException();
+      row["fooId"] = se->lastInsertRowId;
       
       DynamicObject expect;
       expect["fooId"] = 1;
@@ -1027,7 +1023,11 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = false;
       row["fooInt32"] = 3;
-      dbc.insert(TABLE_TEST, row);
+      SqlExecutableRef se = dbc.insert(TABLE_TEST, row);
+      assert(!se.isNull());
+      dbc.execute(se);
+      assertNoException();
+      row["fooId"] = se->lastInsertRowId;
       
       DynamicObject expect;
       expect["fooId"] = 2;

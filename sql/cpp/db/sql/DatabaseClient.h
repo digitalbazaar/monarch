@@ -231,49 +231,33 @@ public:
       const char* table, bool ignoreIfExists, Connection* c = NULL);
    
    /**
-    * Inserts a row into a table. All applicable values in the given object
-    * will be inserted into the given table, according to its schema.
+    * Creates an SqlExecutable that will insert a row into a table. All
+    * applicable values in the given object will be inserted into the given
+    * table, according to its schema.
     * 
     * @param table the name of the table to INSERT INTO.
     * @param row the object with data to insert as a row.
-    * @param c the connection to use, NULL to obtain one from the pool.
     * 
-    * @return true if successful, false if an Exception occurred.
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
-   virtual bool insert(
-      const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
+   virtual SqlExecutableRef insert(
+      const char* table, db::rt::DynamicObject& row);
    
    /**
-    * Replaces a row in a table. All applicable values in the given object
-    * will be inserted into the given table, according to its schema.
+    * Creates an SqlExecutable that will replace a row in a table. All
+    * applicable values in the given object will be inserted into the given
+    * table, according to its schema.
     * 
     * @param table the name of the table to REPLACE INTO.
     * @param row the object with data to insert as a row.
-    * @param c the connection to use, NULL to obtain one from the pool.
     * 
-    * @return true if successful, false if an Exception occurred.
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
-   virtual bool replace(
-      const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
+   virtual SqlExecutableRef replace(
+      const char* table, db::rt::DynamicObject& row);
    
    /**
-    * Inserts or updates a row into a table. All applicable values in the given
-    * object will be inserted into the given table, according to its schema.
-    * 
-    * The default implementation will call replace(). Extending implementations
-    * may use more optimized SQL like INSERT INTO ... ON DUPLICATE KEY UPDATE.
-    * 
-    * @param table the name of the table to insert/update.
-    * @param row the object with data to insert as a row.
-    * @param c the connection to use, NULL to obtain one from the pool.
-    * 
-    * @return true if successful, false if an Exception occurred.
-    */
-   virtual bool insertOrUpdate(
-      const char* table, db::rt::DynamicObject& row, Connection* c = NULL);
-   
-   /**
-    * Creates an SqlExecutable that will updates a row in a table. All
+    * Creates an SqlExecutable that will update a row in a table. All
     * applicable values in the given object will be updated in the given
     * table, according to its schema. If the given "where" object is not
     * NULL, its applicable members will define the WHERE clause of the
@@ -285,7 +269,7 @@ public:
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param start the starting row for the LIMIT, defaults to 0.
     * 
-    * @return true if successful, false if an Exception occurred.
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef update(
       const char* table, db::rt::DynamicObject& row,
@@ -377,13 +361,12 @@ public:
     * @param schema the schema to append to.
     * @param name the name of the column.
     * @param type the type of the column.
-    * @param autoIncrement true if the column is auto-increment, false if not.
     * @param memberName the associated object member name.
     * @param memberType the associated object member type.
     */
    static void addSchemaColumn(
       SchemaObject& schema,
-      const char* name, const char* type, bool autoIncrement,
+      const char* name, const char* type,
       const char* memberName, db::rt::DynamicObjectType memberType);
    
 protected:
@@ -521,20 +504,18 @@ protected:
       db::rt::DynamicObject& params, db::rt::DynamicObject& columnSchemas);
    
    /**
-    * Inserts or replaces a row into a table. All applicable values in the
-    * given object will be inserted into the given table, according to its
-    * schema.
+    * Creates an SqlExecutable that will insert or replace a row into a table.
+    * All applicable values in the given object will be inserted into the given
+    * table, according to its schema.
     * 
     * @param cmd the command (INSERT or REPLACE).
     * @param table the name of the table to INSERT/REPLACE INTO.
     * @param row the object with data to insert as a row.
-    * @param c the connection to use, NULL to obtain one from the pool.
     * 
-    * @return true if successful, false if an Exception occurred.
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
-   virtual bool insertOrReplace(
-      const char* cmd, const char* table, db::rt::DynamicObject& row,
-      Connection* c = NULL);
+   virtual SqlExecutableRef insertOrReplace(
+      const char* cmd, const char* table, db::rt::DynamicObject& row);
 };
 
 // type definition for a reference counted DatabaseClient
