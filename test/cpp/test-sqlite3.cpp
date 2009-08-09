@@ -1311,7 +1311,7 @@ public:
       runSqlite3TableMigrationTest(tr);
       runSqlite3ThreadTest(tr);
       runSqlite3ReuseTest(tr);
-      //runSqlite3DatabaseClientTest(tr);
+      runSqlite3DatabaseClientTest(tr);
       return 0;
    }
 
