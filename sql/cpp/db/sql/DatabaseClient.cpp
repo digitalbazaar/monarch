@@ -145,6 +145,7 @@ static bool _checkForSchema(DynamicObject& schemas, const char* table)
       ExceptionRef e = new Exception(
          "No schema defined for table.",
          DBC_EXCEPTION ".MissingSchema");
+      e->getDetails()["table"] = table;
       Exception::set(e);
       rval = false;
    }
@@ -197,20 +198,11 @@ bool DatabaseClient::create(
       // add any indices
       if(schema->hasMember("indices"))
       {
-         bool first = true;
          DynamicObjectIterator i = schema["indices"].getIterator();
          while(i->hasNext())
          {
             DynamicObject& next = i->next();
-            
-            if(first)
-            {
-               first = false;
-            }
-            else
-            {
-               sql.append(",");
-            }
+            sql.append(",");
             sql.append(next->getString());
          }
       }
