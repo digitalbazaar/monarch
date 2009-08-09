@@ -83,19 +83,27 @@ struct SqlExecutable
    /**
     * Stores the last insert ID after execution.
     */
-   uint64_t lastInsertId;
+   uint64_t lastInsertRowId;
+   
+   /**
+    * Stores the number of rows retrieved.
+    */
+   uint64_t rowsRetrieved;
    
    /**
     * Initializes an SqlExecutable.
     */
    SqlExecutable() :
       write(false),
-      params(NULL),
       columnSchemas(NULL),
       whereFilter(NULL),
       result(NULL),
       affectedRows(0),
-      lastInsertId(0) {};
+      lastInsertRowId(0),
+      rowsRetrieved(0)
+   {
+      params->setType(db::rt::Array);
+   };
 };
 
 // type definition for a reference counted SqlExecutable
@@ -288,59 +296,52 @@ public:
       uint64_t* affectedRows = NULL, Connection* c = NULL);
    
    /**
-    * Selects all column values not present in the given WHERE object from
-    * the specified table, using any present values in the WHERE clause
-    * of the SELECT. The first row will be returned. 
+    * Creates an SqlExecutable that will selects all column values not present
+    * in the given WHERE object from the specified table, using any present
+    * values in the WHERE clause of the SELECT. The first row will be returned
+    * in the SqlExecutable's result property as a map. This property can be
+    * set before executing.
     * 
     * @param table the name of the table to select from.
-    * @param row the object to store the row result in, will be set to NULL
-    *           if the SELECT returns back no rows.
     * @param where an object that specifies specific column values to
     *           look for, NULL to include no WHERE clause.
-    * @param c the connection to use, NULL to obtain one from the pool.
     * 
-    * @return true if successful, false if an Exception occurred.
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
-   virtual bool selectOne(
-      const char* table, db::rt::DynamicObject& row,
-      db::rt::DynamicObject* where = NULL, Connection* c = NULL);
+   virtual SqlExecutableRef selectOne(
+      const char* table, db::rt::DynamicObject* where = NULL);
    
    /**
-    * Selects all column values not present in the given WHERE object from
-    * the specified table, using any present values in the WHERE clause
-    * of the SELECT. Each row result will be stored in the array rows. An
-    * optional LIMIT amount may be specified.
+    * Creates an SqlExecutable that will selects all column values not present
+    * in the given WHERE object from the specified table, using any present
+    * values in the WHERE clause of the SELECT. An optional LIMIT amount may
+    * be specified. The row results will be stored in the SqlExecutable's
+    * result property as an array. This property can be set before executing.
     * 
     * @param table the name of the table to SELECT FROM.
-    * @param rows the array object to store the rows result in.
     * @param where an object that specifies specific column values to
     *           look for, NULL to include no WHERE clause.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param start the starting row for the LIMIT, defaults to 0.
-    * @param c the connection to use, NULL to obtain one from the pool.
     * 
-    * @return true if successful, false if an Exception occurred.
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
-   virtual bool select(
-      const char* table, db::rt::DynamicObject& rows,
-      db::rt::DynamicObject* where = NULL,
-      uint64_t limit = 0, uint64_t start = 0,
-      Connection* c = NULL);
+   virtual SqlExecutableRef select(
+      const char* table, db::rt::DynamicObject* where = NULL,
+      uint64_t limit = 0, uint64_t start = 0);
    
    /**
-    * Removes rows from a table. If the given "where" object is not NULL, its
-    * applicable members will define the WHERE clause of the UPDATE SQL.
+    * Creates an SqlExecutable that deletes from a table. If the given
+    * "where" object is not NULL, its applicable members will define the
+    * WHERE clause of the UPDATE SQL.
     * 
     * @param table the name of the table to DELETE FROM.
     * @param where the object with containing WHERE clause parameters.
-    * @param affectedRows if not NULL, will store the number of affected rows.
-    * @param c the connection to use, NULL to obtain one from the pool.
     * 
-    * @return true if successful, false if an Exception occurred.
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
-   virtual bool remove(
-      const char* table, db::rt::DynamicObject* where,
-      uint64_t* affectedRows = NULL, Connection* c = NULL);
+   virtual SqlExecutableRef remove(
+      const char* table, db::rt::DynamicObject* where);
    
    /**
     * Begins a database transaction.

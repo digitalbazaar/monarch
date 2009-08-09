@@ -336,175 +336,74 @@ bool DatabaseClient::update(
    return rval;
 }
 
-bool DatabaseClient::selectOne(
-   const char* table, DynamicObject& row, DynamicObject* where, Connection* c)
+SqlExecutableRef DatabaseClient::selectOne(
+   const char* table, DynamicObject* where)
 {
-   bool rval = false;
-   
-   // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
+   SqlExecutableRef rval = select(table, where, 1, 0);
+   if(!rval.isNull())
    {
-      // get schema
-      SchemaObject& schema = mSchemas[table];
-      
-      // create SELECT sql
-      DynamicObject params;
-      DynamicObject columnSchemas;
-      string sql = createSelectSql(schema, where, 1, 0, params, columnSchemas);
-      
-      // log sql
-      logSql(sql, &params);
-      
-      // get a read connection from the pool if one wasn't passed in
-      Connection* conn = (c == NULL) ? getReadConnection() : c;
-      if(conn != NULL)
-      {
-         // prepare statement, set parameters, and execute
-         Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && setParams(s, params) && s->execute();
-         
-         // get row result
-         if(rval)
-         {
-            Row* r = s->fetch();
-            if(r == NULL)
-            {
-               // the value doesn't exist
-               row.setNull();
-            }
-            else
-            {
-               // row found, pull out data
-               rval = getRowData(columnSchemas, r, row);
-               
-               // finish out result set
-               s->fetch();
-            }
-         }
-         
-         // close connection if it was not passed in
-         if(c == NULL)
-         {
-            conn->close();
-         }
-      }
+      // set result to a map
+      rval->result->setType(Map);
    }
    
    return rval;
 }
 
-bool DatabaseClient::select(
-   const char* table, DynamicObject& rows, DynamicObject* where,
-   uint64_t limit, uint64_t start, Connection* c)
+SqlExecutableRef DatabaseClient::select(
+   const char* table, DynamicObject* where, uint64_t limit, uint64_t start)
 {
-   bool rval = false;
+   SqlExecutableRef rval(NULL);
    
    // ensure the schema exists
    if(_checkForSchema(mSchemas, table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
+      
+      // create sql executable
+      rval = new SqlExecutable();
+      rval->write = false;
+      rval->columnSchemas = DynamicObject();
+      rval->columnSchemas->setType(Array);
+      rval->result = DynamicObject();
+      rval->result->setType(Array);
       
       // create SELECT sql
-      DynamicObject params;
-      DynamicObject columnSchemas;
-      string sql = createSelectSql(
-         schema, where, limit, start, params, columnSchemas);
-      
-      // log sql
-      logSql(sql, &params);
-      
-      // get a read connection from the pool if one wasn't passed in
-      Connection* conn = (c == NULL) ? getReadConnection() : c;
-      if(conn != NULL)
-      {
-         // prepare statement, set parameters, and execute
-         Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && setParams(s, params) && s->execute();
-         
-         // get row results
-         if(rval)
-         {
-            // initialize rows array
-            rows->setType(Array);
-            rows->clear();
-            
-            // FIXME: we intentionally do not check rval in this while()
-            // loop right now because there are some issues where if
-            // if we don't retrieve the entire result set (fetch each row) ...
-            // then we run into problems -- this needs to be double checked
-            // so we can handle this case better
-            
-            // iterate over rows
-            Row* r;
-            while((r = s->fetch()) != NULL)
-            {
-               // pull out data (and copy data specified in where)
-               DynamicObject& row = rows->append();
-               if(where != NULL)
-               {
-                  row = where->clone();
-               }
-               rval = getRowData(columnSchemas, r, row);
-            }
-         }
-         
-         // close connection if it was not passed in
-         if(c == NULL)
-         {
-            conn->close();
-         }
-      }
-   }
-   
-   return rval;
-}
-
-bool DatabaseClient::remove(
-   const char* table, DynamicObject* where,
-   uint64_t* affectedRows, Connection* c)
-{
-   bool rval = false;
-   
-   // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
-   {
-      // get schema
-      SchemaObject& schema = mSchemas[table];
-      
-      // create starting clause
-      string sql = "DELETE FROM ";
-      sql.append(table);
-      
-      // build parameters
-      DynamicObject params;
-      params->setType(Array);
+      rval->sql = createSelectSql(
+         schema, where, limit, start, rval->params, rval->columnSchemas);
       if(where != NULL)
       {
-         buildParams(schema, *where, params);
-         appendWhereSql(sql, params);
+         rval->whereFilter = *where;
       }
+   }
+   
+   return rval;
+}
+
+SqlExecutableRef DatabaseClient::remove(const char* table, DynamicObject* where)
+{
+   SqlExecutableRef rval(NULL);
+   
+   // ensure the schema exists
+   if(_checkForSchema(mSchemas, table))
+   {
+      // get schema
+      SchemaObject& schema = mSchemas[table];
       
-      // log sql
-      logSql(sql, &params);
+      // create sql executable
+      rval = new SqlExecutable();
+      rval->write = true;
       
-      // get a write connection from the pool if one wasn't passed in
-      Connection* conn = (c == NULL) ? getWriteConnection() : c;
-      if(conn != NULL)
+      // create starting clause
+      rval->sql = "DELETE FROM ";
+      rval->sql.append(table);
+      
+      // build parameters
+      if(where != NULL)
       {
-         // prepare statement, set parameters, and execute
-         Statement* s = conn->prepare(sql.c_str());
-         rval = (s != NULL) && setParams(s, params) && s->execute();
-         if(rval && affectedRows != NULL)
-         {
-            s->getRowsChanged(*affectedRows);
-         }
-         
-         // close connection if it was not passed in
-         if(c == NULL)
-         {
-            conn->close();
-         }
+         rval->whereFilter = *where;
+         buildParams(schema, rval->whereFilter, rval->params);
+         appendWhereSql(rval->sql, rval->params);
       }
    }
    
@@ -525,6 +424,22 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
 {
    bool rval = false;
    
+   if(mDebugLogging)
+   {
+      DB_CAT_DEBUG(DB_SQL_CAT,
+         "SqlExecutable:\n"
+         "sql: %s\n"
+         "write: %s\n"
+         "params: %s\n"
+         "columnSchemas: %s\n"
+         "whereFilter: %s\n",
+         se->sql.c_str(),
+         se->write ? "true" : "false",
+         JsonWriter::writeToString(se->params, false, false).c_str(),
+         JsonWriter::writeToString(se->columnSchemas, false, false).c_str(),
+         JsonWriter::writeToString(se->whereFilter, false, false).c_str());
+   }
+   
    // get a connection from the pool if one wasn't passed in
    Connection* conn = (c == NULL) ?
       (se->write ? getWriteConnection() : getReadConnection()) : c;
@@ -534,8 +449,14 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
       Statement* s = conn->prepare(se->sql.c_str());
       rval = (s != NULL) && setParams(s, se->params) && s->execute();
       
-      // get row results
-      if(rval && !se->result.isNull())
+      // if we wrote to the database, get affected rows and last insert ID
+      if(rval && se->write)
+      {
+         s->getRowsChanged(se->affectedRows);
+         se->lastInsertRowId = s->getLastInsertRowId();
+      }
+      // else we read, so get row results
+      else if(rval && !se->result.isNull())
       {
          // get results as an array
          if(se->result->getType() == Array)
@@ -544,7 +465,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
             
             // FIXME: we intentionally do not check rval in this while()
             // loop right now because there are some issues where if
-            // if we don't retrieve the entire result set (fetch each row) ...
+            // if we don't retrieve the entire result set (fetch each row)
             // then we run into problems -- this needs to be double checked
             // so we can handle this case better
             
@@ -560,6 +481,9 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                }
                rval = getRowData(se->columnSchemas, r, row);
             }
+            
+            // save number of rows retrieved
+            se->rowsRetrieved = se->result->length();
          }
          // get results as a single map
          else
@@ -568,11 +492,17 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
             if(r == NULL)
             {
                // the value doesn't exist
-               se->result.setNull();
+               se->rowsRetrieved = 0;
             }
             else
             {
                // row found, pull out data
+               se->rowsRetrieved = 1;
+               if(!se->whereFilter.isNull())
+               {
+                  DynamicObject clone = se->whereFilter.clone();
+                  se->result.merge(clone, false);
+               }
                rval = getRowData(se->columnSchemas, r, se->result);
                
                // finish out result set
@@ -655,8 +585,6 @@ void DatabaseClient::buildColumnSchemas(
    DynamicObject* members, DynamicObject& columnSchemas,
    bool exclude)
 {
-   columnSchemas->setType(Array);
-   
    DynamicObjectIterator i = schema["columns"].getIterator();
    while(i->hasNext())
    {
@@ -916,7 +844,7 @@ string DatabaseClient::createSelectSql(
    DynamicObject& params, DynamicObject& columnSchemas)
 {
    // create starting clause
-   string sql = "SELECT ";
+   string sql = "SELECT";
    
    // build parameters
    params->setType(Array);

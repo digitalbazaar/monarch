@@ -1047,32 +1047,37 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    
    tr.test("select one");
    {
-      DynamicObject row;
-      row["fooId"] = 1;
-      dbc.selectOne(TABLE_TEST, row, &row);
+      DynamicObject where;
+      where["fooId"] = 1;
+      SqlExecutableRef se = dbc.selectOne(TABLE_TEST, &where);
+      assert(!se.isNull());
+      dbc.execute(se);
+      assertNoException();
       
       DynamicObject expect;
       expect["fooId"] = 1;
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
-      if(expect != row)
+      if(expect != se->result)
       {
          printf("expected:\n");
          dumpDynamicObject(expect);
          printf("got:\n");
-         dumpDynamicObject(row);
+         dumpDynamicObject(se->result);
       }
-      assert(expect == row);
+      assert(expect == se->result);
    }
    tr.passIfNoException();
    
    tr.test("select");
    {
-      DynamicObject rows;
       DynamicObject where;
       where["fooInt32"] = 3;
-      dbc.select(TABLE_TEST, rows, &where, 5);
+      SqlExecutableRef se = dbc.select(TABLE_TEST, &where, 5);
+      assert(!se.isNull());
+      dbc.execute(se);
+      assertNoException();
       
       DynamicObject expect;
       expect->setType(Array);
@@ -1086,14 +1091,14 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       second["fooString"] = "foobar";
       second["fooFlag"] = false;
       second["fooInt32"] = 3;
-      if(expect != rows)
+      if(expect != se->result)
       {
          printf("expected:\n");
          dumpDynamicObject(expect);
          printf("got:\n");
-         dumpDynamicObject(rows);
+         dumpDynamicObject(se->result);
       }
-      assert(expect == rows);
+      assert(expect == se->result);
    }
    tr.passIfNoException();
    
@@ -1109,46 +1114,51 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    
    tr.test("select updated one");
    {
-      DynamicObject row;
-      row["fooString"] = "bar";
-      dbc.selectOne(TABLE_TEST, row, &row);
+      DynamicObject where;
+      where["fooString"] = "bar";
+      SqlExecutableRef se = dbc.selectOne(TABLE_TEST, &where);
+      assert(!se.isNull());
+      dbc.execute(se);
+      assertNoException();
       
       DynamicObject expect;
       expect["fooId"] = 2;
       expect["fooString"] = "bar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
-      if(expect != row)
+      if(expect != se->result)
       {
          printf("expected:\n");
          dumpDynamicObject(expect);
          printf("got:\n");
-         dumpDynamicObject(row);
+         dumpDynamicObject(se->result);
       }
-      assert(expect == row);
+      assert(expect == se->result);
    }
    tr.passIfNoException();
    
    tr.test("select updated");
    {
-      DynamicObject rows;
       DynamicObject where;
       where["fooString"] = "bar";
-      dbc.select(TABLE_TEST, rows, &where);
+      SqlExecutableRef se = dbc.select(TABLE_TEST, &where);
+      assert(!se.isNull());
+      dbc.execute(se);
+      assertNoException();
       
       DynamicObject expect;
       expect[0]["fooId"] = 2;
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
-      if(expect != rows)
+      if(expect != se->result)
       {
          printf("expected:\n");
          dumpDynamicObject(expect);
          printf("got:\n");
-         dumpDynamicObject(rows);
+         dumpDynamicObject(se->result);
       }
-      assert(expect == rows);
+      assert(expect == se->result);
    }
    tr.passIfNoException();
    
@@ -1156,28 +1166,33 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooId"] = 1;
-      dbc.remove(TABLE_TEST, &where);
+      SqlExecutableRef se = dbc.remove(TABLE_TEST, &where);
+      assert(!se.isNull());
+      dbc.execute(se);
+      assert(se->affectedRows == 1);
    }
    tr.passIfNoException();
    
    tr.test("select again");
    {
-      DynamicObject rows;
-      dbc.select(TABLE_TEST, rows);
+      SqlExecutableRef se = dbc.select(TABLE_TEST);
+      assert(!se.isNull());
+      dbc.execute(se);
+      assertNoException();
       
       DynamicObject expect;
       expect[0]["fooId"] = 2;
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
-      if(expect != rows)
+      if(expect != se->result)
       {
          printf("expected:\n");
          dumpDynamicObject(expect);
          printf("got:\n");
-         dumpDynamicObject(rows);
+         dumpDynamicObject(se->result);
       }
-      assert(expect == rows);
+      assert(expect == se->result);
    }
    tr.passIfNoException();
    
