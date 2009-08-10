@@ -18,6 +18,16 @@ namespace v = db::validation;
 
 #define DBC_EXCEPTION "db.sql.DatabaseClient"
 
+// FIXME: The goal behind returning SqlExecutables from the methods in this
+// class is to transition to a system where a developer can manually construct
+// their own SqlExecutables for complex SQL statements and save a lot of
+// code duplication and time -- the current API isn't quite there yet but
+// that's where it's heading. Right now no manual construction is done (or
+// remotely easy given that things like columnSchemas would need to be
+// constructed for the SqlExecutable object -- so changing its data members
+// should be completely fine and internal to that class and this class' use
+// of that class.
+
 DatabaseClient::DatabaseClient() :
    mDebugLogging(false),
    mReadPool(NULL),
