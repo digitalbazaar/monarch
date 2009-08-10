@@ -265,6 +265,12 @@ SqlExecutableRef DatabaseClient::replace(const char* table, DynamicObject& row)
    return insertOrReplace("REPLACE", table, row);
 }
 
+SqlExecutableRef DatabaseClient::insertOnDuplicateKeyUpdate(
+   const char* table, DynamicObject& row)
+{
+   return replace(table, row);
+}
+
 SqlExecutableRef DatabaseClient::update(
    const char* table, DynamicObject& row, DynamicObject* where,
    uint64_t limit, uint64_t start)
@@ -279,7 +285,7 @@ SqlExecutableRef DatabaseClient::update(
       
       // create sql executable
       rval = new SqlExecutable();
-      rval->write = false;
+      rval->write = true;
       
       // create starting clause
       rval->sql = "UPDATE ";

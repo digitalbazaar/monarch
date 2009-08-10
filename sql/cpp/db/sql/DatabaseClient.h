@@ -270,6 +270,20 @@ public:
       const char* table, db::rt::DynamicObject& row);
    
    /**
+    * Creates an SqlExecutable that will insert a row into a table and if
+    * a duplicate key is found, it will update that row. The default
+    * implementation for this method will call replace(). Extending classes
+    * may call more optimized database-specific SQL.
+    * 
+    * @param table the name of the table to insert into/update.
+    * @param row the object with data to insert/update as a row.
+    * 
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
+    */
+   virtual SqlExecutableRef insertOnDuplicateKeyUpdate(
+      const char* table, db::rt::DynamicObject& row);
+   
+   /**
     * Creates an SqlExecutable that will update a row in a table. All
     * applicable values in the given object will be updated in the given
     * table, according to its schema. If the given "where" object is not

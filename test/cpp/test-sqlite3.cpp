@@ -6,10 +6,10 @@
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
 #include "db/rt/Thread.h"
-#include "db/sql/DatabaseClient.h"
 #include "db/sql/Row.h"
 #include "db/sql/sqlite3/Sqlite3Connection.h"
 #include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
+#include "db/sql/sqlite3/Sqlite3DatabaseClient.h"
 #include "db/util/Timer.h"
 
 using namespace std;
@@ -945,14 +945,14 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    assertNoException();
    
    // create database client
-   DatabaseClient dbc;
-   dbc.setDebugLogging(true);
-   dbc.setReadConnectionPool(pool);
-   dbc.setWriteConnectionPool(pool);
+   DatabaseClientRef dbc = new Sqlite3DatabaseClient();
+   dbc->setDebugLogging(true);
+   dbc->setReadConnectionPool(pool);
+   dbc->setWriteConnectionPool(pool);
    
    tr.test("initialize");
    {
-      dbc.initialize();
+      dbc->initialize();
    }
    tr.passIfNoException();
    
@@ -970,19 +970,19 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       DatabaseClient::addSchemaColumn(schema,
          "foo_int32", "INTEGER", "fooInt32", Int32);
       
-      dbc.define(schema);
+      dbc->define(schema);
    }
    tr.passIfNoException();
    
    tr.test("create table");
    {
-      dbc.create(TABLE_TEST, false);
+      dbc->create(TABLE_TEST, false);
    }
    tr.passIfNoException();
    
    tr.test("create table if not exists");
    {
-      dbc.create(TABLE_TEST, true);
+      dbc->create(TABLE_TEST, true);
    }
    tr.passIfNoException();
    
@@ -992,8 +992,8 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = true;
       row["fooInt32"] = 3;
-      SqlExecutableRef se = dbc.insert(TABLE_TEST, row);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
+      dbc->execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
       
@@ -1019,8 +1019,8 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = false;
       row["fooInt32"] = 3;
-      SqlExecutableRef se = dbc.insert(TABLE_TEST, row);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
+      dbc->execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
       
@@ -1044,8 +1044,8 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooId"] = 1;
-      SqlExecutableRef se = dbc.selectOne(TABLE_TEST, &where);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
+      dbc->execute(se);
       assertNoException();
       
       DynamicObject expect;
@@ -1070,8 +1070,8 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       where["fooId"] = 1;
       DynamicObject members;
       members["fooString"];
-      SqlExecutableRef se = dbc.selectOne(TABLE_TEST, &where, &members);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where, &members);
+      dbc->execute(se);
       assertNoException();
       
       DynamicObject expect;
@@ -1092,8 +1092,8 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooInt32"] = 3;
-      SqlExecutableRef se = dbc.select(TABLE_TEST, &where, NULL, 5);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->select(TABLE_TEST, &where, NULL, 5);
+      dbc->execute(se);
       assertNoException();
       
       DynamicObject expect;
@@ -1122,11 +1122,23 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    tr.test("update");
    {
       DynamicObject row;
+      row["fooString"] = "foobar2";
+      DynamicObject where;
+      where["fooId"] = 2;
+      SqlExecutableRef se = dbc->update(TABLE_TEST, row, &where);
+      dbc->execute(se);
+      assert(se->rowsAffected = 1);
+   }
+   tr.passIfNoException();
+   
+   tr.test("update w/limit");
+   {
+      DynamicObject row;
       row["fooString"] = "bar";
       DynamicObject where;
       where["fooId"] = 2;
-      SqlExecutableRef se = dbc.update(TABLE_TEST, row, &where);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->update(TABLE_TEST, row, &where, 1);
+      dbc->execute(se);
       assert(se->rowsAffected = 1);
    }
    tr.passIfNoException();
@@ -1135,8 +1147,8 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooString"] = "bar";
-      SqlExecutableRef se = dbc.selectOne(TABLE_TEST, &where);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
+      dbc->execute(se);
       assertNoException();
       
       DynamicObject expect;
@@ -1159,8 +1171,8 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooString"] = "bar";
-      SqlExecutableRef se = dbc.select(TABLE_TEST, &where);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
+      dbc->execute(se);
       assertNoException();
       
       DynamicObject expect;
@@ -1183,16 +1195,16 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooId"] = 1;
-      SqlExecutableRef se = dbc.remove(TABLE_TEST, &where);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->remove(TABLE_TEST, &where);
+      dbc->execute(se);
       assert(se->rowsAffected == 1);
    }
    tr.passIfNoException();
    
    tr.test("select again");
    {
-      SqlExecutableRef se = dbc.select(TABLE_TEST);
-      dbc.execute(se);
+      SqlExecutableRef se = dbc->select(TABLE_TEST);
+      dbc->execute(se);
       assertNoException();
       
       DynamicObject expect;
