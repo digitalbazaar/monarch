@@ -475,8 +475,6 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
             // get results as an array
             if(se->result->getType() == Array)
             {
-               se->result->clear();
-               
                // FIXME: we intentionally do not check rval in this while()
                // loop right now because there are some issues where if
                // if we don't retrieve the entire result set (fetch each row)
