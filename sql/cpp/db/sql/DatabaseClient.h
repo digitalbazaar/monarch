@@ -86,9 +86,19 @@ struct SqlExecutable
    uint64_t rowsRetrieved;
    
    /**
+    * Stores the total number of rows found if requested.
+    */
+   uint64_t rowsFound;
+   
+   /**
     * Stores the last insert ID after execution.
     */
    uint64_t lastInsertRowId;
+   
+   /**
+    * Stores whether or not the total number of rows found should be returned.
+    */
+   bool returnRowsFound;
    
    /**
     * Initializes an SqlExecutable.
@@ -100,7 +110,9 @@ struct SqlExecutable
       result(NULL),
       rowsAffected(0),
       rowsRetrieved(0),
-      lastInsertRowId(0)
+      rowsFound(0),
+      lastInsertRowId(0),
+      returnRowsFound(false)
    {
       params->setType(db::rt::Array);
    };

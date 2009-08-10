@@ -513,6 +513,39 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                   s->fetch();
                }
             }
+            
+            // get total rows found if requested
+            if(rval && se->returnRowsFound)
+            {
+               // FIXME: we want to abstract this better but aren't sure how
+               // we want to yet ... this implementation is mysql only ...
+               // in sqlite3 you do a select without a limit and then only
+               // return the rows up to the limit and then keep counting
+               // past it with fetch() ... in postgresql you have to do a
+               // SELECT COUNT(*) as total within a transaction
+               
+               // select found rows
+               const char* sql = "SELECT FOUND_ROWS() AS total";
+               Statement* statement = conn->prepare(sql);
+               rval = (statement != NULL) && statement->execute();
+               if(rval)
+               {
+                  // fetch total row
+                  Row* row = statement->fetch();
+                  if(row != NULL)
+                  {
+                     row->getUInt64("total", se->rowsFound);
+                  }
+                  else
+                  {
+                     ExceptionRef e = new Exception(
+                        "Could not get the total number of found rows.",
+                        DBC_EXCEPTION ".GetFoundRowsFailed");
+                     Exception::push(e);
+                     rval = false;
+                  }
+               }
+            }
          }
          
          // close connection if it was not passed in
