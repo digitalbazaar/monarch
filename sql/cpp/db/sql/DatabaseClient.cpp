@@ -484,11 +484,12 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                // so we can handle this case better
                
                // iterate over rows
+               int index = 0;
                Row* r;
                while((r = s->fetch()) != NULL)
                {
                   // pull out data
-                  DynamicObject& row = se->result->append();
+                  DynamicObject& row = se->result[index++];
                   rval = getRowData(se->columnSchemas, r, row);
                }
                
