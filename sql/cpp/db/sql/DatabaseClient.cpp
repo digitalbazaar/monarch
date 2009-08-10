@@ -136,27 +136,13 @@ bool DatabaseClient::define(SchemaObject& schema)
    rval = mSchemaValidator->isValid(schema);
    if(rval)
    {
+      // FIXME: consider allowing multiple schemas for the same table to
+      // allow for different data mappings?
+      // FIXME: consider the ability to map to more complex objects like
+      // sub-maps
+      
       // store schema
       mSchemas[schema["table"]->getString()] = schema;
-   }
-   
-   return rval;
-}
-
-// helper function for ensuring a table has a defined schema
-static bool _checkForSchema(DynamicObject& schemas, const char* table)
-{
-   bool rval = true;
-   
-   // ensure the schema exists
-   if(!schemas->hasMember(table))
-   {
-      ExceptionRef e = new Exception(
-         "No schema defined for table.",
-         DBC_EXCEPTION ".MissingSchema");
-      e->getDetails()["table"] = table;
-      Exception::set(e);
-      rval = false;
    }
    
    return rval;
@@ -168,7 +154,7 @@ bool DatabaseClient::create(
    bool rval = false;
    
    // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
+   if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
@@ -286,7 +272,7 @@ SqlExecutableRef DatabaseClient::update(
    SqlExecutableRef rval(NULL);
    
    // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
+   if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
@@ -312,6 +298,7 @@ SqlExecutableRef DatabaseClient::update(
       }
       
       // append SET clause
+      rval->sql.append(" SET");
       appendSetSql(rval->sql, rval->params);
       
       // append where clause
@@ -347,7 +334,7 @@ SqlExecutableRef DatabaseClient::select(
    SqlExecutableRef rval(NULL);
    
    // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
+   if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
@@ -378,7 +365,7 @@ SqlExecutableRef DatabaseClient::remove(const char* table, DynamicObject* where)
    SqlExecutableRef rval(NULL);
    
    // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
+   if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
@@ -545,24 +532,22 @@ void DatabaseClient::addSchemaColumn(
    column["memberType"]->setType(memberType);
 }
 
-void DatabaseClient::logSql(string& str, DynamicObject* params)
+bool DatabaseClient::checkForSchema(const char* table)
 {
-   if(mDebugLogging)
+   bool rval = true;
+   
+   // ensure the schema exists
+   if(!mSchemas->hasMember(table))
    {
-      DynamicObject p(NULL);
-      if(params != NULL)
-      {
-         p = *params;
-      }
-      else
-      {
-         p = DynamicObject();
-         p->setType(Map);
-      }
-      
-      DB_CAT_DEBUG(DB_SQL_CAT, "DatabaseClient SQL: '%s',\nparams: %s",
-         str.c_str(), JsonWriter::writeToString(p).c_str());
+      ExceptionRef e = new Exception(
+         "No schema defined for table.",
+         DBC_EXCEPTION ".MissingSchema");
+      e->getDetails()["table"] = table;
+      Exception::set(e);
+      rval = false;
    }
+   
+   return rval;
 }
 
 void DatabaseClient::buildParams(
@@ -727,7 +712,7 @@ void DatabaseClient::appendSetSql(string& sql, DynamicObject& params)
       if(first)
       {
          first = false;
-         sql.append(" SET ");
+         sql.append(" ");
       }
       else
       {
@@ -885,7 +870,7 @@ SqlExecutableRef DatabaseClient::insertOrReplace(
    SqlExecutableRef rval(NULL);
    
    // ensure the schema exists
-   if(_checkForSchema(mSchemas, table))
+   if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];

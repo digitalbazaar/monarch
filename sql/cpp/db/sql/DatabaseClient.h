@@ -392,12 +392,13 @@ public:
    
 protected:
    /**
-    * Logs the passed SQL string if debug logging is on.
+    * Checks to make sure a schema for the given table exists.
     * 
-    * @param sql the SQL string to log.
-    * @param params any params for the sql.
+    * @param table the table to check for a schema for.
+    * 
+    * @return true if a schema exists, false if not (with Exception set).
     */
-   virtual void logSql(std::string& sql, db::rt::DynamicObject* params = NULL);
+   virtual bool checkForSchema(const char* table);
    
    /**
     * Converts a map of member-named values into an array of parameters. Each
@@ -478,7 +479,9 @@ protected:
       std::string& sql, uint64_t limit, uint64_t start);
    
    /**
-    * Appends the SQL " SET col1=?,col2=? ..." to an SQL statement.
+    * Appends the SQL " col1=?,col2=? ..." to an SQL statement. Note that
+    * " SET" is not prepended so that this function can be reused where
+    * no " SET" should be provided.
     * 
     * @param sql the SQL string to append to.
     * @param params the list of parameters to generate the SQL from.

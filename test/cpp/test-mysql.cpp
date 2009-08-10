@@ -6,10 +6,10 @@
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
 #include "db/rt/Thread.h"
-#include "db/sql/DatabaseClient.h"
 #include "db/sql/Row.h"
 #include "db/sql/mysql/MySqlConnection.h"
 #include "db/sql/mysql/MySqlConnectionPool.h"
+#include "db/sql/mysql/MySqlDatabaseClient.h"
 #include "db/util/Timer.h"
 
 using namespace std;
@@ -220,7 +220,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
    assertNoException();
    
    // create database client
-   DatabaseClient dbc;
+   MySqlDatabaseClient dbc;
    dbc.setDebugLogging(true);
    dbc.setReadConnectionPool(readPool);
    dbc.setWriteConnectionPool(writePool);
@@ -450,6 +450,41 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
+      if(expect != se->result)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(se->result);
+      }
+      assert(expect == se->result);
+   }
+   tr.passIfNoException();
+   
+   tr.test("insert on duplicate key update");
+   {
+      DynamicObject row;
+      row["fooId"] = 1;
+      row["fooString"] = "duplicate key update";
+      SqlExecutableRef se = dbc.insertOnDuplicateKeyUpdate(TABLE_TEST, row);
+      dbc.execute(se);
+      assert(se->rowsAffected = 1);
+   }
+   tr.passIfNoException();
+   
+   tr.test("select duplicate key updated");
+   {
+      DynamicObject where;
+      where["fooString"] = "duplicate key update";
+      SqlExecutableRef se = dbc.selectOne(TABLE_TEST, &where);
+      dbc.execute(se);
+      assertNoException();
+      
+      DynamicObject expect;
+      expect["fooId"] = 1;
+      expect["fooString"] = "duplicate key update";
+      expect["fooFlag"] = true;
+      expect["fooInt32"] = 3;
       if(expect != se->result)
       {
          printf("expected:\n");
