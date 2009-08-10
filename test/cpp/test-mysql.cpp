@@ -375,8 +375,11 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       DynamicObject where;
       where["fooInt32"] = 3;
       SqlExecutableRef se = dbc->select(TABLE_TEST, &where, NULL, 5);
+      assert(!se.isNull());
+      se->returnRowsFound = true;
       dbc->execute(se);
       assertNoException();
+      assert(se->rowsFound == 2);
       
       DynamicObject expect;
       expect->setType(Array);
