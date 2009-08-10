@@ -1075,7 +1075,6 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assertNoException();
       
       DynamicObject expect;
-      expect["fooId"] = 1;
       expect["fooString"] = "foobar";
       if(expect != se->result)
       {
@@ -1180,6 +1179,38 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
+      if(expect != se->result)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(se->result);
+      }
+      assert(expect == se->result);
+   }
+   tr.passIfNoException();
+   
+   tr.test("select IN()");
+   {
+      DynamicObject where;
+      where["fooString"]->append() = "bar";
+      where["fooString"]->append() = "foobar";
+      SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
+      dbc->execute(se);
+      assertNoException();
+      
+      DynamicObject expect;
+      expect->setType(Array);
+      DynamicObject& first = expect->append();
+      first["fooId"] = 1;
+      first["fooString"] = "foobar";
+      first["fooFlag"] = true;
+      first["fooInt32"] = 3;
+      DynamicObject& second = expect->append();
+      second["fooId"] = 2;
+      second["fooString"] = "bar";
+      second["fooFlag"] = false;
+      second["fooInt32"] = 3;
       if(expect != se->result)
       {
          printf("expected:\n");

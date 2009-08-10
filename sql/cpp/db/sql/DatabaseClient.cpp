@@ -487,12 +487,8 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                Row* r;
                while((r = s->fetch()) != NULL)
                {
-                  // pull out data (and copy data specified in where)
+                  // pull out data
                   DynamicObject& row = se->result->append();
-                  if(!se->whereFilter.isNull())
-                  {
-                     row = se->whereFilter.clone();
-                  }
                   rval = getRowData(se->columnSchemas, r, row);
                }
                
@@ -512,11 +508,6 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                {
                   // row found, pull out data
                   se->rowsRetrieved = 1;
-                  if(!se->whereFilter.isNull())
-                  {
-                     DynamicObject clone = se->whereFilter.clone();
-                     se->result.merge(clone, false);
-                  }
                   rval = getRowData(se->columnSchemas, r, se->result);
                   
                   // finish out result set
@@ -709,14 +700,11 @@ void DatabaseClient::appendWhereSql(string& sql, DynamicObject& params)
    // FIXME: consider allowing for more complex WHERE clauses other
    // than a bunch of "key=value AND"s concatenated together
    
-   // FIXME: consider allowing arrays for values in parameters so that
-   // IN (?,?,?,...) SQL can be generated
-   
    bool first = true;
    DynamicObjectIterator i = params.getIterator();
    while(i->hasNext())
    {
-      DynamicObject& name = i->next()["name"];
+      DynamicObject& param = i->next();
       if(first)
       {
          first = false;
@@ -726,8 +714,38 @@ void DatabaseClient::appendWhereSql(string& sql, DynamicObject& params)
       {
          sql.append(" AND ");
       }
-      sql.append(name->getString());
-      sql.append("=?");
+      
+      // append name
+      sql.append(param["name"]->getString());
+      
+      /// use IN clause
+      if(param["value"]->getType() == Array)
+      {
+         sql.append(" IN (");
+         
+         bool aFirst = true;
+         DynamicObjectIterator ai = param["value"].getIterator();
+         while(ai->hasNext())
+         {
+            ai->next();
+            if(aFirst)
+            {
+               aFirst = false;
+               sql.append("?");
+            }
+            else
+            {
+               sql.append(",?");
+            }
+         }
+         
+         sql.append(")");
+      }
+      // use single equals
+      else
+      {
+         sql.append("=?");
+      }
    }
 }
 
@@ -804,6 +822,48 @@ bool DatabaseClient::setParams(Statement* s, DynamicObject& params)
             rval &= s->setText(param++, value->getString());
             break;
             break;
+         case Array:
+         {
+            // iterate over array
+            DynamicObjectIterator ai = value.getIterator();
+            while(ai->hasNext())
+            {
+               DynamicObject& av = ai->next();
+               switch(av->getType())
+               {
+                  case Int32:
+                     rval &= s->setInt32(param++, av->getInt32());
+                     break;
+                  case UInt32:
+                  case Boolean:
+                     rval &= s->setUInt32(param++, av->getUInt32());
+                     break;
+                  case Int64:
+                     rval &= s->setInt64(param++, av->getInt64());
+                     break;
+                  case UInt64:
+                     rval &= s->setUInt64(param++, av->getUInt64());
+                     break;
+                  case String:
+                  case Double:
+                     // doubles are treated as strings
+                     rval &= s->setText(param++, av->getString());
+                     break;
+                     break;
+                  default:
+                  {
+                     ExceptionRef e = new Exception(
+                        "Invalid parameter type.",
+                        DBC_EXCEPTION ".InvalidParameterType");
+                     e->getDetails()["invalidType"] =
+                        DynamicObject::descriptionForType(av->getType());
+                     Exception::set(e);
+                     break;
+                  }
+               }
+            }
+            break;
+         }
          default:
          {
             ExceptionRef e = new Exception(
@@ -894,8 +954,8 @@ string DatabaseClient::createSelectSql(
       buildParams(schema, *where, params);
    }
    
-   // build column schemas for results
-   buildColumnSchemas(schema, where, members, columnSchemas);
+   // build column schemas for results, do not exclude any fields
+   buildColumnSchemas(schema, NULL, members, columnSchemas);
    
    // append column names
    appendColumnNames(sql, columnSchemas);

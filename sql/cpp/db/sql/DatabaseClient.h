@@ -316,15 +316,13 @@ public:
       uint64_t limit = 0, uint64_t start = 0);
    
    /**
-    * Creates an SqlExecutable that will selects column values not present
-    * in the given WHERE object from the specified table, using any present
-    * values in the WHERE clause of the SELECT. The first row will be returned
-    * in the SqlExecutable's result property as a map. This property can be
-    * set before executing.
+    * Creates an SqlExecutable that will select column values from the
+    * specified table. The first row will be returned in the SqlExecutable's
+    * result property as a map. This property can be set before executing.
     * 
     * @param table the name of the table to select from.
-    * @param where an object that specifies specific column values to
-    *           look for, NULL to include no WHERE clause.
+    * @param where an object that specifies some specific column values to
+    *           filter on, NULL to include no WHERE clause.
     * @param members a specific map of member names to include, NULL to
     *           include all members not in the WHERE.
     * 
@@ -336,15 +334,14 @@ public:
       db::rt::DynamicObject* members = NULL);
    
    /**
-    * Creates an SqlExecutable that will selects column values not present
-    * in the given WHERE object from the specified table, using any present
-    * values in the WHERE clause of the SELECT. An optional LIMIT amount may
-    * be specified. The row results will be stored in the SqlExecutable's
-    * result property as an array. This property can be set before executing.
+    * Creates an SqlExecutable that will select column values from the
+    * specified table. An optional LIMIT amount may be specified. The row
+    * results will be stored in the SqlExecutable's result property as an array.
+    * This property can be set before executing.
     * 
     * @param table the name of the table to SELECT FROM.
-    * @param where an object that specifies specific column values to
-    *           look for, NULL to include no WHERE clause.
+    * @param where an object that specifies some specific column values to
+    *           filter on, NULL to include no WHERE clause.
     * @param members a specific map of member names to include, NULL to
     *           include all members not in the WHERE.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
