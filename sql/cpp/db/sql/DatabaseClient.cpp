@@ -428,6 +428,16 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
    }
    else
    {
+      // FIXME: this is for mysql only, see FIXME below
+      if(se->returnRowsFound)
+      {
+         size_t i = se->sql.find_first_of("SELECT ");
+         if(i != string::npos)
+         {
+            se->sql.insert(i + 7, "SQL_CALC_FOUND_ROWS ");
+         }
+      }
+      
       if(mDebugLogging)
       {
          DB_CAT_DEBUG(DB_SQL_CAT,
