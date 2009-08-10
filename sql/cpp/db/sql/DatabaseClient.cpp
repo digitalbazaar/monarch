@@ -228,6 +228,37 @@ bool DatabaseClient::create(
    return rval;
 }
 
+bool DatabaseClient::drop(
+   const char* table, bool ignoreIfNotExists, Connection* c)
+{
+   bool rval = false;
+   
+   // create sql executable
+   SqlExecutableRef se = new SqlExecutable();
+   se->write = true;
+   
+   // create starting clause
+   se->sql = "DROP TABLE ";
+   if(ignoreIfNotExists)
+   {
+      se->sql.append("IF EXISTS ");
+   }
+   se->sql.append(table);
+  
+   // execute SQL
+   rval = execute(se, c);
+   
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not drop reate table.",
+         DBC_EXCEPTION ".DropTableFailed");
+      Exception::push(e);
+   }
+   
+   return rval;
+}
+
 SqlExecutableRef DatabaseClient::insert(const char* table, DynamicObject& row)
 {
    return insertOrReplace("INSERT", table, row);

@@ -218,7 +218,7 @@ public:
    
    /**
     * Creates a table via CREATE TABLE. The schema for the table must have
-    * been previously set with defineTable.
+    * been previously set with define.
     * 
     * @param table the name of the table to create.
     * @param ignoreIfExists true to ignore any errors if the table already
@@ -229,6 +229,19 @@ public:
     */
    virtual bool create(
       const char* table, bool ignoreIfExists, Connection* c = NULL);
+   
+   /**
+    * Drops a table via DROP TABLE.
+    * 
+    * @param table the name of the table to delete.
+    * @param ignoreIfNotExists true to ignore any errors if the table doesn't
+    *           exist, false to report them.
+    * @param c the connection to use, NULL to obtain one from the pool. 
+    * 
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
+    */
+   virtual bool drop(
+      const char* table, bool ignoreIfNotExists, Connection* c = NULL);
    
    /**
     * Creates an SqlExecutable that will insert a row into a table. All

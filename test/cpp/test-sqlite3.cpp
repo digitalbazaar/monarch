@@ -961,17 +961,14 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SchemaObject schema;
       schema["table"] = TABLE_TEST;
       
-      DatabaseClient::addSchemaColumn(
-         schema, "foo_id", "INTEGER PRIMARY KEY", "fooId", UInt64);
-      
-      DatabaseClient::addSchemaColumn(
-         schema, "foo_string", "TEXT", "fooString", String);
-      
-      DatabaseClient::addSchemaColumn(
-         schema, "foo_flag", "INTEGER", "fooFlag", Boolean);
-      
-      DatabaseClient::addSchemaColumn(
-         schema, "foo_int32", "INTEGER", "fooInt32", Int32);
+      DatabaseClient::addSchemaColumn(schema,
+         "foo_id", "INTEGER PRIMARY KEY", "fooId", UInt64);
+      DatabaseClient::addSchemaColumn(schema,
+         "foo_string", "TEXT", "fooString", String);
+      DatabaseClient::addSchemaColumn(schema,
+         "foo_flag", "INTEGER", "fooFlag", Boolean);
+      DatabaseClient::addSchemaColumn(schema,
+         "foo_int32", "INTEGER", "fooInt32", Int32);
       
       dbc.define(schema);
    }
