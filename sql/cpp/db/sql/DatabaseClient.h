@@ -424,10 +424,13 @@ public:
     * @param schema the table schema to use.
     * @param members the input map of member-named values.
     * @param params the parameters array to append to.
+    * @param tableAlias a table alias to use.
     */
    virtual void buildParams(
       SchemaObject& schema,
-      db::rt::DynamicObject& members, db::rt::DynamicObject& params);
+      db::rt::DynamicObject& members,
+      db::rt::DynamicObject& params,
+      const char* tableAlias = NULL);
    
    /**
     * Builds an array of column schema information for columns based on the
@@ -448,12 +451,14 @@ public:
     * @param excludeMembers the input map of member-named values to exclude.
     * @param includeMembers the input map of member-named values to include.
     * @param columnSchemas the column schemas array to populate.
+    * @param tableAlias a table alias to use.
     */
    virtual void buildColumnSchemas(
       SchemaObject& schema,
       db::rt::DynamicObject* excludeMembers,
       db::rt::DynamicObject* includeMembers,
-      db::rt::DynamicObject& columnSchemas);
+      db::rt::DynamicObject& columnSchemas,
+      const char* tableAlias = NULL);
    
    /**
     * Appends the SQL " (col1,col2,...) VALUES (val1,val2,...)" to an SQL
@@ -479,9 +484,10 @@ public:
     * 
     * @param sql the SQL string to append to.
     * @param params the list of parameters to generate the SQL from.
+    * @param useTableAlias true to use a table alias, false not to.
     */
    virtual void appendWhereSql(
-      std::string& sql, db::rt::DynamicObject& params);
+      std::string& sql, db::rt::DynamicObject& params, bool useTableAlias);
    
    /**
     * Appends the SQL " LIMIT <start>,<limit>" to an SQL statement.
@@ -537,6 +543,7 @@ public:
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param params the parameters to populate.
     * @param columnSchemas the column schemas to populate.
+    * @param tableAlias a table alias to use.
     * 
     * @return the SQL SELECT text.
     */
@@ -544,7 +551,8 @@ public:
       SchemaObject& schema,
       db::rt::DynamicObject* where, db::rt::DynamicObject* members,
       uint64_t limit, uint64_t start,
-      db::rt::DynamicObject& params, db::rt::DynamicObject& columnSchemas);
+      db::rt::DynamicObject& params, db::rt::DynamicObject& columnSchemas,
+      const char* tableAlias);
    
    /**
     * Appends a column to the given table schema.

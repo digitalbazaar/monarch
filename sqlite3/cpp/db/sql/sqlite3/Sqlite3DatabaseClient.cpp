@@ -33,7 +33,7 @@ SqlExecutableRef Sqlite3DatabaseClient::update(
       
       // create starting clause
       rval->sql = "UPDATE ";
-      rval->sql.append(table);
+      rval->sql.append(schema["table"]->getString());
       
       // build SET parameters
       buildParams(schema, row, rval->params);
@@ -52,7 +52,7 @@ SqlExecutableRef Sqlite3DatabaseClient::update(
       appendSetSql(rval->sql, rval->params);
       
       // append where clause
-      appendWhereSql(rval->sql, whereParams);
+      appendWhereSql(rval->sql, whereParams, false);
       
       // Note: sqlite3 does not support LIMITs in UPDATEs by default, so
       // apply any limit via a special rowid sub-select query instead
@@ -69,7 +69,7 @@ SqlExecutableRef Sqlite3DatabaseClient::update(
          
          rval->sql.append("rowid IN (SELECT rowid FROM ");
          rval->sql.append(table);
-         appendWhereSql(rval->sql, whereParams);
+         appendWhereSql(rval->sql, whereParams, false);
          
          // append LIMIT clause
          appendLimitSql(rval->sql, limit, start);

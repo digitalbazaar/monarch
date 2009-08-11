@@ -46,7 +46,10 @@ bool DatabaseClient::initialize()
    
    // create schema validator
    mSchemaValidator = new v::Map(
-      "table", new v::Type(String),
+      "table", new v::All(
+         new v::Type(String),
+         new v::Min(1, "Table name must be at least 1 character long."),
+         NULL),
       "columns", new v::All(
          new v::Type(Array),
          new v::Min(1, "There must be at least 1 column in a table."),
@@ -143,6 +146,14 @@ bool DatabaseClient::define(SchemaObject& schema)
       
       // store schema
       mSchemas[schema["table"]->getString()] = schema;
+      
+      // add table alias to each column
+      DynamicObjectIterator i = schema["columns"].getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         next["tableAlias"] = schema["tableAlias"]->getString();
+      }
    }
    
    return rval;
@@ -301,7 +312,7 @@ SqlExecutableRef DatabaseClient::update(
       
       // create starting clause
       rval->sql = "UPDATE ";
-      rval->sql.append(table);
+      rval->sql.append(schema["table"]->getString());
       
       // build SET parameters
       buildParams(schema, row, rval->params);
@@ -320,7 +331,7 @@ SqlExecutableRef DatabaseClient::update(
       appendSetSql(rval->sql, rval->params);
       
       // append where clause
-      appendWhereSql(rval->sql, whereParams);
+      appendWhereSql(rval->sql, whereParams, false);
       
       // append LIMIT clause
       appendLimitSql(rval->sql, limit, start);
@@ -365,10 +376,14 @@ SqlExecutableRef DatabaseClient::select(
       rval->result = DynamicObject();
       rval->result->setType(Array);
       
+      // determine table alias (ensure it isn't the same as the table name)
+      const char* tableAlias =
+         (strcmp(schema["table"]->getString(), "t1") == 0) ? "t" : "t1";
+      
       // create SELECT sql
       rval->sql = createSelectSql(
          schema, where, members, limit, start,
-         rval->params, rval->columnSchemas);
+         rval->params, rval->columnSchemas, tableAlias);
       if(where != NULL)
       {
          rval->whereFilter = *where;
@@ -394,14 +409,14 @@ SqlExecutableRef DatabaseClient::remove(const char* table, DynamicObject* where)
       
       // create starting clause
       rval->sql = "DELETE FROM ";
-      rval->sql.append(table);
+      rval->sql.append(schema["table"]->getString());
       
       // build parameters
       if(where != NULL)
       {
          rval->whereFilter = *where;
          buildParams(schema, rval->whereFilter, rval->params);
-         appendWhereSql(rval->sql, rval->params);
+         appendWhereSql(rval->sql, rval->params, false);
       }
    }
    
@@ -590,10 +605,19 @@ bool DatabaseClient::checkForSchema(const char* table)
 }
 
 void DatabaseClient::buildParams(
-   SchemaObject& schema, DynamicObject& members, DynamicObject& params)
+   SchemaObject& schema, DynamicObject& members, DynamicObject& params,
+   const char* tableAlias)
 {
    // ensure params is an array
    params->setType(Array);
+   
+   // create shared table alias object
+   DynamicObject taObj(NULL);
+   if(tableAlias != NULL)
+   {
+      taObj = DynamicObject();
+      taObj = tableAlias;
+   }
    
    // map the given members object into a list of parameters that can
    // be used to generate sql and set parameter values
@@ -609,8 +633,12 @@ void DatabaseClient::buildParams(
       {
          // add param
          DynamicObject& param = params->append();
-         param["name"] = next["name"]->getString();
+         param["name"] = next["name"];
          param["value"] = members[memberName];
+         if(tableAlias != NULL)
+         {
+            param["tableAlias"] = taObj;
+         }
       }
    }
 }
@@ -619,8 +647,17 @@ void DatabaseClient::buildColumnSchemas(
    SchemaObject& schema,
    DynamicObject* excludeMembers,
    DynamicObject* includeMembers,
-   DynamicObject& columnSchemas)
+   DynamicObject& columnSchemas,
+   const char* tableAlias)
 {
+   // create shared table alias object
+   DynamicObject taObj(NULL);
+   if(tableAlias != NULL)
+   {
+      taObj = DynamicObject();
+      taObj = tableAlias;
+   }
+   
    DynamicObjectIterator i = schema["columns"].getIterator();
    while(i->hasNext())
    {
@@ -635,7 +672,13 @@ void DatabaseClient::buildColumnSchemas(
          // our current member is in the list of schemas to include, include it
          if(includeMembers == NULL || (*includeMembers)->hasMember(memberName))
          {
-            columnSchemas->append(next);
+            DynamicObject cs;
+            cs["column"] = next;
+            if(tableAlias != NULL)
+            {
+               cs["tableAlias"] = taObj;
+            }
+            columnSchemas->append(cs);
          }
       }
    }
@@ -661,6 +704,8 @@ void DatabaseClient::appendValuesSql(string& sql, DynamicObject& params)
          sql.append(",");
          values.append(",?");
       }
+      
+      // append unaliased name
       sql.append(name->getString());
    }
    
@@ -680,7 +725,7 @@ void DatabaseClient::appendColumnNames(
    DynamicObjectIterator i = columnSchemas.getIterator();
    while(i->hasNext())
    {
-      DynamicObject& name = i->next()["name"];
+      DynamicObject& next = i->next();
       if(first)
       {
          first = false;
@@ -690,11 +735,18 @@ void DatabaseClient::appendColumnNames(
       {
          sql.append(",");
       }
-      sql.append(name->getString());
+      
+      if(next->hasMember("tableAlias"))
+      {
+         sql.append(next["tableAlias"]->getString());
+         sql.append(".");
+      }
+      sql.append(next["column"]["name"]->getString());
    }
 }
 
-void DatabaseClient::appendWhereSql(string& sql, DynamicObject& params)
+void DatabaseClient::appendWhereSql(
+   string& sql, DynamicObject& params, bool useTableAlias)
 {
    // FIXME: consider allowing for more complex WHERE clauses other
    // than a bunch of "key=value AND"s concatenated together
@@ -714,7 +766,12 @@ void DatabaseClient::appendWhereSql(string& sql, DynamicObject& params)
          sql.append(" AND ");
       }
       
-      // append name
+      // append aliased name
+      if(useTableAlias)
+      {
+         sql.append(param["tableAlias"]->getString());
+         sql.append(".");
+      }
       sql.append(param["name"]->getString());
       
       /// use IN clause
@@ -774,7 +831,7 @@ void DatabaseClient::appendSetSql(string& sql, DynamicObject& params)
    DynamicObjectIterator i = params.getIterator();
    while(i->hasNext())
    {
-      DynamicObject& name = i->next()["name"];
+      DynamicObject& param = i->next();
       if(first)
       {
          first = false;
@@ -785,7 +842,8 @@ void DatabaseClient::appendSetSql(string& sql, DynamicObject& params)
          sql.append(",");
       }
       
-      sql.append(name->getString());
+      // append unaliased name
+      sql.append(param["name"]->getString());
       sql.append("=?");
    }
 }
@@ -897,7 +955,7 @@ bool DatabaseClient::getRowData(
    DynamicObjectIterator i = columnSchemas.getIterator();
    while(rval && i->hasNext())
    {
-      DynamicObject& next = i->next();
+      DynamicObject& next = i->next()["column"];
       const char* columnName = next["name"]->getString();
       const char* memberName = next["memberName"]->getString();
       
@@ -941,7 +999,8 @@ string DatabaseClient::createSelectSql(
    SchemaObject& schema,
    DynamicObject* where, DynamicObject* members,
    uint64_t limit, uint64_t start,
-   DynamicObject& params, DynamicObject& columnSchemas)
+   DynamicObject& params, DynamicObject& columnSchemas,
+   const char* tableAlias)
 {
    // create starting clause
    string sql = "SELECT";
@@ -950,11 +1009,11 @@ string DatabaseClient::createSelectSql(
    params->setType(Array);
    if(where != NULL)
    {
-      buildParams(schema, *where, params);
+      buildParams(schema, *where, params, tableAlias);
    }
    
    // build column schemas for results, do not exclude any fields
-   buildColumnSchemas(schema, NULL, members, columnSchemas);
+   buildColumnSchemas(schema, NULL, members, columnSchemas, tableAlias);
    
    // append column names
    appendColumnNames(sql, columnSchemas);
@@ -962,9 +1021,11 @@ string DatabaseClient::createSelectSql(
    // append table
    sql.append(" FROM ");
    sql.append(schema["table"]->getString());
+   sql.append(" ");
+   sql.append(tableAlias);
    
    // append WHERE clause
-   appendWhereSql(sql, params);
+   appendWhereSql(sql, params, true);
    
    // append LIMIT clause
    appendLimitSql(sql, limit, start);
