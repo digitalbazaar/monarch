@@ -216,6 +216,55 @@ DynamicObject DynamicObject::clone()
    return rval;
 }
 
+/**
+ * The _getMapDiff helper function gets the differences between the source
+ * object and the target object and places the result in the result object.
+ * The comparison flags are passed to the diffing algorithm.
+ * 
+ * @param source the source object to compare against the target object.
+ * @param target the target object that will be compared against the source 
+ *               object.
+ * @param result the result of the diffing operation.
+ * @param flags the flags that will be passed to the recursive diffing 
+ *              operation.
+ *              
+ * @return true if there are differences, false otherwise.
+ */
+static bool _getMapDiff(
+   DynamicObject& source, DynamicObject& target, DynamicObject& result, 
+   uint32_t flags)
+{
+   bool rval = false;
+   
+   // Find everything that is in target and not in source
+   DynamicObjectIterator i = target.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      const char* name = i->getName();
+      if(!source->hasMember(name))
+      {
+         // source does not have property that is in target,
+         // so add to diff
+         rval = true;
+         result[name] = next.clone();
+      }
+      else
+      {
+         // recusively get sub-diff
+         DynamicObject d;
+         if(source[name].diff(next, d, flags))
+         {
+            // diff found, add it
+            rval = true;
+            result[name] = d;
+         }
+      }
+   }
+   
+   return rval;
+}
+
 bool DynamicObject::diff(
    DynamicObject& target, DynamicObject& result, uint32_t flags)
 {
@@ -328,36 +377,11 @@ bool DynamicObject::diff(
             }
             else
             {
-               // FIXME: since this code was copied from the config manager
-               // this only checks additions and updates not removals which
-               // is totally wrong... we need to fix this
-               DynamicObjectIterator i = target.getIterator();
-               while(i->hasNext())
-               {
-                  DynamicObject next = i->next();
-                  const char* name = i->getName();
-                  if(!source->hasMember(name))
-                  {
-                     // source does not have property that is in target,
-                     // so add to diff
-                     rval = true;
-                     result[name] = next.clone();
-                  }
-                  else
-                  {
-                     // recusively get sub-diff
-                     DynamicObject d;
-                     if(source[name].diff(next, d, flags))
-                     {
-                        // diff found, add it
-                        rval = true;
-                        result[name] = d;
-                     }
-                  }
-               }
-            }            
-            // FIXME: search source for items that are not in target
-            
+               // get the Map differences between source and target
+               rval = _getMapDiff(source, target, result, flags) || rval;
+               // get the Map differences between target and source
+               rval = _getMapDiff(target, source, result, flags) || rval;        
+            }
             break;
          case Array:
             if(source->getType() != target->getType())
