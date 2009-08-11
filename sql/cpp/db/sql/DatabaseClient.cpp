@@ -148,6 +148,18 @@ bool DatabaseClient::define(SchemaObject& schema)
    return rval;
 }
 
+SchemaObject DatabaseClient::getSchema(const char* table)
+{
+   SchemaObject rval(NULL);
+   
+   if(checkForSchema(table))
+   {
+      rval = mSchemas[table];
+   }
+   
+   return rval;
+}
+
 bool DatabaseClient::create(
    const char* table, bool ignoreIfExists, Connection* c)
 {
@@ -559,18 +571,6 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
    return rval;
 }
 
-void DatabaseClient::addSchemaColumn(
-   SchemaObject& schema,
-   const char* name, const char* type,
-   const char* memberName, DynamicObjectType memberType)
-{
-   DynamicObject column = schema["columns"]->append();
-   column["name"] = name;
-   column["type"] = type;
-   column["memberName"] = memberName;
-   column["memberType"]->setType(memberType);
-}
-
 bool DatabaseClient::checkForSchema(const char* table)
 {
    bool rval = true;
@@ -970,6 +970,18 @@ string DatabaseClient::createSelectSql(
    appendLimitSql(sql, limit, start);
    
    return sql;
+}
+
+void DatabaseClient::addSchemaColumn(
+   SchemaObject& schema,
+   const char* name, const char* type,
+   const char* memberName, DynamicObjectType memberType)
+{
+   DynamicObject column = schema["columns"]->append();
+   column["name"] = name;
+   column["type"] = type;
+   column["memberName"] = memberName;
+   column["memberType"]->setType(memberType);
 }
 
 SqlExecutableRef DatabaseClient::insertOrReplace(

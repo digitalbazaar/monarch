@@ -229,6 +229,13 @@ public:
    virtual bool define(SchemaObject& schema);
    
    /**
+    * Gets a schema for a table.
+    * 
+    * @return the schema for the table or NULL if it does not exist.
+    */
+   virtual SchemaObject getSchema(const char* table);
+   
+   /**
     * Creates a table via CREATE TABLE. The schema for the table must have
     * been previously set with define.
     * 
@@ -400,21 +407,6 @@ public:
    virtual bool execute(SqlExecutableRef& se, Connection* c = NULL);
    
    /**
-    * Appends a column to the given table schema.
-    * 
-    * @param schema the schema to append to.
-    * @param name the name of the column.
-    * @param type the type of the column.
-    * @param memberName the associated object member name.
-    * @param memberType the associated object member type.
-    */
-   static void addSchemaColumn(
-      SchemaObject& schema,
-      const char* name, const char* type,
-      const char* memberName, db::rt::DynamicObjectType memberType);
-   
-protected:
-   /**
     * Checks to make sure a schema for the given table exists.
     * 
     * @param table the table to check for a schema for.
@@ -554,6 +546,21 @@ protected:
       uint64_t limit, uint64_t start,
       db::rt::DynamicObject& params, db::rt::DynamicObject& columnSchemas);
    
+   /**
+    * Appends a column to the given table schema.
+    * 
+    * @param schema the schema to append to.
+    * @param name the name of the column.
+    * @param type the type of the column.
+    * @param memberName the associated object member name.
+    * @param memberType the associated object member type.
+    */
+   static void addSchemaColumn(
+      SchemaObject& schema,
+      const char* name, const char* type,
+      const char* memberName, db::rt::DynamicObjectType memberType);
+   
+protected:
    /**
     * Creates an SqlExecutable that will insert or replace a row into a table.
     * All applicable values in the given object will be inserted into the given
