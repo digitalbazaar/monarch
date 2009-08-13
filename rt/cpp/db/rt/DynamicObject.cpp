@@ -33,7 +33,7 @@ DynamicObject::~DynamicObject()
 bool DynamicObject::operator==(const DynamicObject& rhs) const
 {
    bool rval;
-   
+
    const DynamicObject& lhs = *this;
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);
    if(!rval && !lhs.isNull() && !rhs.isNull())
@@ -41,7 +41,7 @@ bool DynamicObject::operator==(const DynamicObject& rhs) const
       // compare heap objects
       rval = (*lhs == *rhs);
    }
-   
+
    return rval;
 }
 
@@ -53,9 +53,9 @@ bool DynamicObject::operator!=(const DynamicObject& rhs) const
 bool DynamicObject::operator<(const DynamicObject& rhs) const
 {
    bool rval;
-   
+
    const DynamicObject& lhs = *this;
-   
+
    // NULL is always less than anything other than NULL
    if(lhs.isNull())
    {
@@ -71,7 +71,7 @@ bool DynamicObject::operator<(const DynamicObject& rhs) const
    {
       rval = (*lhs < *rhs);
    }
-   
+
    return rval;
 }
 
@@ -153,21 +153,21 @@ DynamicObjectIterator DynamicObject::getIterator() const
 DynamicObject DynamicObject::first() const
 {
    DynamicObject rval(NULL);
-   
+
    // return first result of iterator
    DynamicObjectIterator i = getIterator();
    if(i->hasNext())
    {
       rval = i->next();
    }
-   
+
    return rval;
 }
 
 DynamicObject DynamicObject::clone()
 {
    DynamicObject rval;
-   
+
    if(isNull())
    {
       rval.setNull();
@@ -212,7 +212,7 @@ DynamicObject DynamicObject::clone()
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -220,22 +220,22 @@ DynamicObject DynamicObject::clone()
  * The _getMapDiff helper function gets the differences between the source
  * object and the target object and places the result in the result object.
  * The comparison flags are passed to the diffing algorithm.
- * 
+ *
  * @param source the source object to compare against the target object.
- * @param target the target object that will be compared against the source 
+ * @param target the target object that will be compared against the source
  *               object.
  * @param result the result of the diffing operation.
- * @param flags the flags that will be passed to the recursive diffing 
+ * @param flags the flags that will be passed to the recursive diffing
  *              operation.
- *              
+ *
  * @return true if there are differences, false otherwise.
  */
 static bool _getMapDiff(
-   DynamicObject& source, DynamicObject& target, DynamicObject& result, 
+   DynamicObject& source, DynamicObject& target, DynamicObject& result,
    uint32_t flags)
 {
    bool rval = false;
-   
+
    // Find everything that is in target and not in source
    DynamicObjectIterator i = target.getIterator();
    while(i->hasNext())
@@ -261,7 +261,7 @@ static bool _getMapDiff(
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -269,10 +269,11 @@ bool DynamicObject::diff(
    DynamicObject& target, DynamicObject& result, uint32_t flags)
 {
    bool rval = false;
+
    DynamicObject& source = (DynamicObject&)*this;
    // clear any old values
    result->clear();
-   
+
    if(source.isNull() && target.isNull())
    {
       // same: no diff
@@ -326,7 +327,7 @@ bool DynamicObject::diff(
                            rval = true;
                            result = target.clone();
                         }
-                        
+
                         // only break out of case if we're comparing
                         // using 64 bit integers, otherwise drop to the
                         // default case of a type mismatch
@@ -380,7 +381,7 @@ bool DynamicObject::diff(
                // get the Map differences between source and target
                rval = _getMapDiff(source, target, result, flags) || rval;
                // get the Map differences between target and source
-               rval = _getMapDiff(target, source, result, flags) || rval;        
+               rval = _getMapDiff(target, source, result, flags) || rval;
             }
             break;
          case Array:
@@ -401,7 +402,7 @@ bool DynamicObject::diff(
                {
                   DynamicObject next = i->next();
                   DynamicObject d;
-                  if(source->length() < (ii + 1) || 
+                  if(source->length() < (ii + 1) ||
                      source[ii].diff(next, d, flags))
                   {
                      // diff found
@@ -416,9 +417,9 @@ bool DynamicObject::diff(
                      temp[ii] = source[ii];
                   }
                }
-               
+
                // FIXME: check target for array indexes that are in source
-               
+
                // only set array to target if a diff was found
                if(rval)
                {
@@ -428,7 +429,7 @@ bool DynamicObject::diff(
             break;
       }
    }
-   
+
    return rval;
 }
 
@@ -471,7 +472,7 @@ void DynamicObject::merge(DynamicObject& rhs, bool append)
 bool DynamicObject::isSubset(const DynamicObject& rhs) const
 {
    bool rval;
-   
+
    rval = Collectable<DynamicObjectImpl>::operator==(rhs);
    if(!rval && (*this)->getType() == Map && rhs->getType() == Map)
    {
@@ -502,14 +503,14 @@ bool DynamicObject::isSubset(const DynamicObject& rhs) const
          }
       }
    }
-   
+
    return rval;
 }
 
 const char* DynamicObject::descriptionForType(DynamicObjectType type)
 {
    const char* rval = NULL;
-   
+
    switch(type)
    {
       case String:
@@ -540,14 +541,14 @@ const char* DynamicObject::descriptionForType(DynamicObjectType type)
          rval = "array";
          break;
    }
-   
+
    return rval;
 }
 
 DynamicObjectType DynamicObject::determineType(const char* str)
 {
    DynamicObjectType rval = String;
-   
+
    // FIXME: this code might interpret hex/octal strings as integers
    // (and other code for that matter!) and we might not want to do that
 
@@ -586,6 +587,6 @@ DynamicObjectType DynamicObject::determineType(const char* str)
          }
       }
    }
-   
+
    return rval;
 }
