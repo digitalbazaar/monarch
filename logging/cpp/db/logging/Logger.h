@@ -20,7 +20,7 @@ namespace logging
 
 /**
  * A class that handles logging to a file.
- *  
+ *
  * @author Dave Longley
  * @author David I. Lehn
  * @author Manu Sporny
@@ -52,21 +52,21 @@ public:
       /**
        * The debug level setting. Errors, warnings, info, and debug
        * information will be logged.
-       * 
+       *
        * Debug log output should include stack traces, etc.
        */
       Debug,
       /**
        * The debug data level setting. Errors, warnings, info, debug,
        * and debug data will be logged.
-       * 
+       *
        * Debug data log output includes any data associated with debug log output.
        */
       DebugData,
       /**
        * The detail level setting. Errors, warnings, info, debug,
        * debug data, and debug fine detail will be logged.
-       * 
+       *
        * Detail log output includes very fine detailed informational messages.
        */
       DebugDetail,
@@ -75,7 +75,7 @@ public:
        */
       Max
    };
-   
+
    /**
     * Logger control flags.
     */
@@ -123,33 +123,33 @@ public:
        */
       LogLastFlagShift = 6
    };
-   
+
    /**
     * Logger control flags.
     */
    typedef unsigned int LoggerFlags;
-   
+
    /**
     * Log message flags.
     */
    enum LogFlag {
       /**
-       * Log object parameter is set. 
+       * Log object parameter is set.
        */
       LogObjectValid = 1
    };
-   
+
    /**
     * Log message flags.
     */
    typedef unsigned int LogFlags;
-   
+
 protected:
    /**
     * The current level setting.
     */
    Level mLevel;
-   
+
    /**
     * The date format.
     */
@@ -162,9 +162,9 @@ protected:
 
    /**
     * Internal data structures lock.
-    */ 
+    */
    db::rt::SharedLock mLock;
-   
+
    /**
     * A multimap of log categories to many loggers.
     */
@@ -174,28 +174,28 @@ protected:
     * Map from categories to loggers.
     */
    static LoggerMap* sLoggers;
-   
+
    /**
     * Convert a varargs list into a string.  Adapted from glibc sprintf docs.
-    * 
+    *
     * @param format printf style format for a string
     * @param varargs va_list of arguments for the format string.
-    * 
+    *
     * @returns NULL on error or string. Caller must free memory;
     */
    static char* vMakeMessage(const char *format, va_list varargs);
-   
+
 public:
    /**
     * Creates a new logger with Max level and LogDefaultFlags flags.
     */
    Logger();
-   
+
    /**
     * Destructs the Logger.
     */
    virtual ~Logger();
-   
+
    /**
     * Initializes the logger framework. This static method MUST be called
     * during application start-up before any threads are active in order to
@@ -209,27 +209,27 @@ public:
     * terminated.
     */
    static void cleanup();
-   
+
    /**
     * Case insensitive conversion from string to Level.
-    * 
+    *
     * @param slevel the string to convert.
     * @param level the level.
-    * 
+    *
     * @return true if found and level will be set, false if not found.
     */
    static bool stringToLevel(const char *slevel, Level& level);
-   
+
    /**
     * Conversion from Level to string
-    * 
+    *
     * @param type the Level to convert.
     * @param color true to use ANSI colors, false for normal text.
-    * 
+    *
     * @return the string or NULL.
     */
    static const char* levelToString(Level level, bool color = false);
-   
+
    /**
     * Sets the level for this logger.
     *
@@ -243,53 +243,53 @@ public:
     * @return the level set for this logger.
     */
    virtual Level getLevel();
-   
+
    /**
     * Gets the current date in the appropriate format.
-    * 
+    *
     * @param date the date string to populate with the current date in
     *             the appropriate format.
     */
    virtual void getDate(std::string& date);
-   
+
    /**
     * Sets the date format. If the date format given is not
     * a valid format, the method does nothing but return false.
     *
     * @param dateFormat the new date format.
-    * 
+    *
     * @return true if the date format is set, false if not.
     */
    virtual bool setDateFormat(const char* format);
-   
+
    /**
     * Sets all the logger flags.
     *
     * @param flags a bit field of all LoggerFlags.
     */
    virtual void setAllFlags(LoggerFlags flags);
-   
+
    /**
     * Sets the logger flags.
     *
     * @param flags a bit field of LoggerFlags to set.
     */
    virtual void setFlags(LoggerFlags flags);
-   
+
    /**
     * Sets the logger flags.
     *
     * @param flags a bit field of LoggerFlags to clear.
     */
    virtual void clearFlags(LoggerFlags flags);
-   
+
    /**
     * Gets the logger flags.
     *
     * @return the logger flags.
     */
    virtual LoggerFlags getFlags();
-   
+
    /**
     * Log a message.  The implementation of this method should lock the logger,
     * check the the log level, create a formatted message, and call the simple
@@ -302,18 +302,18 @@ public:
     * @param flags flags for this message
     * @param format the log message format (printf style)
     * @param va_list the log message args
-    * 
+    *
     * @return true if the text was written, false if not.
     */
    bool vLog(
-      db::logging::Category* cat, 
+      db::logging::Category* cat,
       Level level,
       const char* location,
       const void* object,
       LogFlags flags,
       const char* format,
       va_list varargs);
-   
+
    /**
     * Log a message.  The implementation of this method should lock the logger,
     * check the the log level, create a formatted message, and call the simple
@@ -326,18 +326,18 @@ public:
     * @param flags flags for this message
     * @param format the log message format (printf style)
     * @param ... the log message args
-    * 
+    *
     * @return true if the text was written, false if not.
     */
    bool log(
-      db::logging::Category* cat, 
+      db::logging::Category* cat,
       Level level,
       const char* location,
       const void* object,
       LogFlags flags,
       const char* format,
       ...);
-   
+
    /**
     * Logs a pre-formatted message from the default full log() method.
     *
@@ -345,12 +345,12 @@ public:
     * @param length length of message
     */
    virtual void log(const char* message, size_t length) = 0;
-   
+
    /**
     * Explicitly flush any output that hasn't been flushed yet.
     */
    virtual void flush();
-   
+
    /**
     * Log a message to all loggers registered for a category.
     *
@@ -372,7 +372,7 @@ public:
       LogFlags flags,
       const char* format,
       va_list varargs);
-   
+
    /**
     * Log a message to all loggers registered for a category.
     *
@@ -394,7 +394,7 @@ public:
       LogFlags flags,
       const char* format,
       ...);
-   
+
    /**
     * Log a message to all loggers registered for a category and to loggers
     * registered for all categories.
@@ -415,7 +415,7 @@ public:
       LogFlags flags,
       const char* format,
       va_list varargs);
-   
+
    /**
     * Log a message to all loggers registered for a category and to loggers
     * registered for all categories.
@@ -436,11 +436,11 @@ public:
       LogFlags flags,
       const char* format,
       ...);
-   
+
    /**
     * Add a logger for a category.  Any number of loggers can be added for a
     * single category.
-    * 
+    *
     * @param logger the logger to register
     * @param category the category to use.  Defaults to the default category.
     */
@@ -450,7 +450,7 @@ public:
    /**
     * Remove a logger for a category.  This will remove the first match if
     * duplicates are found.
-    * 
+    *
     * @param logger the logger to register
     * @param category the category to use.  Defaults to a generic category.
     */
@@ -461,7 +461,7 @@ public:
     * Clear all loggers.
     */
    static void clearLoggers();
-   
+
    /**
     * Flushes all loggers.
     */
@@ -469,7 +469,7 @@ public:
 
    /**
     * Gets the loggers.
-    * 
+    *
     * @return the loggers
     */
    //getLoggers(...)

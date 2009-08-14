@@ -26,20 +26,20 @@ MailTemplateParser::~MailTemplateParser()
  * Template variables are replaced according to the passed "vars"
  * DynamicObject and the headers flag is cleared once a blank line
  * has been parsed.
- * 
+ *
  * @param mail the Mail to populate.
  * @param vars the key-value variables in the template.
  * @param line the line to parse.
  * @param headers the flag to clear once the headers have been parsed.
  * @param bodyEncoded the flag to set if the body should be transfer-encoded.
- * 
+ *
  * @return true if successful, false if an exception occurred.
  */
 static bool parseLine(
    Mail* mail, const char* line, bool& headers, bool& bodyEncoded)
 {
    bool rval = true;
-   
+
    if(headers)
    {
       if(strlen(line) == 0)
@@ -51,7 +51,7 @@ static bool parseLine(
       {
          // get the header name
          const char* header = strstr(line, ": ");
-         
+
          // ensure there is a header name and that no white-space occurs in it
          if(header == NULL || (int)strcspn(line, " \t") < (header - line))
          {
@@ -77,7 +77,7 @@ static bool parseLine(
                strncpy(hdr, line, header - line);
                hdr[header - line] = 0;
                mail->setHeader(hdr, header + 2);
-               
+
                if(!bodyEncoded)
                {
                   bodyEncoded = mail->shouldTransferEncodeBody();
@@ -91,7 +91,7 @@ static bool parseLine(
       // append the line to the mail's body
       mail->appendBodyLine(line);
    }
-   
+
    return rval;
 }
 
@@ -99,16 +99,16 @@ bool MailTemplateParser::parse(
    Mail* mail, DynamicObject& vars, bool strict, InputStream* is)
 {
    bool rval = true;
-   
+
    // FIXME: This code can be refactored to do less "cornercase" handling
    // regarding body encoding
-   
+
    // clear mail
    mail->clear();
-   
+
    // add template input stream to passed input stream
    TemplateInputStream tis(vars, strict, is, false);
-   
+
    // SMTP RFC requires lines be no longer than 998 bytes (+2 for CRLF = 1000)
    // so read in a maximum of 1000 bytes at a time
    bool bodyEncoded = mail->shouldTransferEncodeBody();
@@ -120,17 +120,17 @@ bool MailTemplateParser::parse(
    char* start = 0;
    char* end = 0;
    bool cr = false;
-   
+
    // read as much as 1000 bytes at a time, then check the read buffer
    while(rval && (numBytes = tis.read(b + length, 1000 - length)) > 0)
    {
       // increment length (number of valid bytes in 'b')
       length += numBytes;
-      
+
       // ensure line is null-terminated
       b[length] = 0;
       start = b;
-      
+
       // if using body encoded and headers are finished, append to body string
       if(bodyEncoded && !headers)
       {
@@ -146,17 +146,17 @@ bool MailTemplateParser::parse(
             // take note of CR, then insert null-terminator
             cr = (end[0] == '\r');
             end[0] = 0;
-            
+
             // parse line
             rval = parseLine(mail, start, headers, bodyEncoded);
-            
+
             // decrement length and increment start skipping LF as appropriate
             // Note: 'b' always ends in 0, so end[1] must always be a valid byte
             // or the null-terminator of b
             int skip = (cr && end[1] == '\n' ? 2 : 1);
             length -= (end - start) + skip;
             start = end + skip;
-            
+
             if(!headers && bodyEncoded)
             {
                // append rest of data in buffer to body and break
@@ -166,7 +166,7 @@ bool MailTemplateParser::parse(
                break;
             }
          }
-         
+
          if(end == NULL && length > 998)
          {
             // invalid line detected
@@ -185,7 +185,7 @@ bool MailTemplateParser::parse(
          }
       }
    }
-   
+
    if(numBytes < 0)
    {
       rval = false;
@@ -203,12 +203,12 @@ bool MailTemplateParser::parse(
          rval = parseLine(mail, b, headers, bodyEncoded);
       }
    }
-   
+
    // if body is to be encoded, now set it in the mail
    if(bodyEncoded)
    {
       mail->setBody(body.c_str());
    }
-   
+
    return rval;
 }

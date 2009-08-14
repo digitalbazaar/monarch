@@ -37,40 +37,40 @@ void Mail::clear()
 bool Mail::setAddress(Address& a, const char* address)
 {
    bool rval = false;
-   
+
    // FIXME: obviously this needs work to be robust
-   
+
    // set address
    a["address"] = address;
-   
+
    // check for domain
    const char* at = strchr(address, '@');
    if(at != NULL)
    {
       // set domain
       a["domain"] = (at + 1);
-      
+
       // set smtp encoding of address
       char temp[strlen(address) + 3];
       sprintf(temp, "<%s>", address);
       a["smtpEncoding"] = temp;
-      
+
       rval = true;
    }
-   
+
    return rval;
 }
 
 bool Mail::addRecipient(const char* header, const char* address)
 {
    bool rval = false;
-   
+
    Address a;
    if((rval = setAddress(a, address)))
    {
       // add to list of recipients
       mRecipients[mRecipients->length()] = a;
-      
+
       // add header if not NULL
       if(header != NULL)
       {
@@ -78,20 +78,20 @@ bool Mail::addRecipient(const char* header, const char* address)
          mMessage["headers"][header]->append() = address;
       }
    }
-   
+
    return rval;
 }
 
 bool Mail::setSender(const char* address)
 {
    bool rval = false;
-   
+
    if((rval = setAddress(mSender, address)))
    {
       // set "From" header
       mMessage["headers"]["From"] = address;
    }
-   
+
    return rval;
 }
 
@@ -151,7 +151,7 @@ static void biCapitalize(char* name)
             *ptr += 'a' - 'A';
          }
       }
-      
+
       // special case TE header
       if(length == 2 && name[0] == 'T' && name[1] == 'e')
       {
@@ -218,7 +218,7 @@ Message& Mail::getMessage()
 bool Mail::shouldTransferEncodeBody()
 {
    bool rval = false;
-   
+
    if(mMessage["headers"]->hasMember("Content-Transfer-Encoding"))
    {
       const char* encoding =
@@ -228,14 +228,14 @@ bool Mail::shouldTransferEncodeBody()
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
 string Mail::getTransferEncodedBody()
 {
    string rval = mMessage["body"]->getString();
-   
+
    bool encoded = false;
    if(mMessage["headers"]->hasMember("Content-Transfer-Encoding"))
    {
@@ -248,26 +248,26 @@ string Mail::getTransferEncodedBody()
          encoded = true;
       }
    }
-   
+
    if(!encoded)
    {
       // use default smtp-encoding
       smtpMessageEncode(rval);
    }
-   
+
    return rval;
 }
 
 string Mail::toTemplate()
 {
    string str;
-   
+
    // add headers
    DynamicObjectIterator i = mMessage["headers"].getIterator();
    while(i->hasNext())
    {
       DynamicObject& header = i->next();
-      
+
       if(header->getType() == Array)
       {
          DynamicObjectIterator ii = header.getIterator();
@@ -288,18 +288,18 @@ string Mail::toTemplate()
          str.append("\r\n");
       }
    }
-   
+
    // terminate headers
    str.append("\r\n");
-   
+
    // add body
    str.append(mMessage["body"]->getString());
-   
+
    // escape all '{', '}', and '\'
    StringTools::replaceAll(str, "\\", "\\\\");
    StringTools::replaceAll(str, "{", "\\{");
    StringTools::replaceAll(str, "}", "\\}");
-   
+
    return str;
 }
 

@@ -1,14 +1,13 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/logging/Category.h"
 
 #include <cstdlib>
 #include <cstring>
 
 using namespace db::logging;
- 
+
 // DO NOT INITIALIZE THESE VARIABLES!
 // These are not initialized on purpose due to initialization code issues.
 Category* DB_DEFAULT_CAT;
@@ -24,7 +23,7 @@ Category::Category(const char* id, const char* name, const char* description) :
    setName(name);
    setDescription(description);
 }
-   
+
 Category::~Category()
 {
    Category::setId(NULL);
@@ -49,7 +48,7 @@ void Category::cleanup()
 {
    delete DB_DEFAULT_CAT;
    DB_DEFAULT_CAT = NULL;
-   
+
    delete DB_ALL_CAT;
    DB_ALL_CAT = NULL;
 }

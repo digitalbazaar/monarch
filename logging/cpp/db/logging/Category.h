@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_logging_Category_H
 #define db_logging_Category_H
@@ -42,7 +42,7 @@ namespace logging
 
 /**
  * A logging category.
- *  
+ *
  * @author David I. Lehn
  */
 class Category
@@ -52,24 +52,24 @@ protected:
     * The id string of the logger.  See Category() for a full description.
     */
    char* mId;
-   
+
    /**
     * The human readable name of the id of the logger.  See Category() for
     * a full description.
     */
    char* mName;
-   
+
    /**
     * A description of this category.  Used for help messages.
     */
    char* mDescription;
-   
+
    /**
     * ANSI escape codes for this category.  Often used to colorize the id
     * string in logging messages.
     */
    char* mAnsiEscapeCodes;
-   
+
 public:
    /**
     * Create a new Category.
@@ -79,19 +79,19 @@ public:
     *        such as "DB" for Digital Bazaar Core or "BM" for Bitmunk.  CLASS
     *        is a sub-system such as MAIL, NET, RT, etc.  Break down the class
     *        further into sub-classes if needed.  There is no parenting of
-    *        categories (yet).  May be NULL. 
+    *        categories (yet).  May be NULL.
     * @param name a more human readable name for this logger compared to the
     *        id.  Will show up as "<?>" if set to NULL.
     * @param description a description of this category.  Used for help
     *        messages.  May be NULL.
     */
    Category(const char* id, const char* name, const char* description);
-   
+
    /**
     * Destructs the Category.
     */
    virtual ~Category();
-   
+
    /**
     * Initializes the static categories. This static method is called by
     * Logging::initialize() which MUST be called during application start-up.
@@ -103,7 +103,7 @@ public:
     * Logging::cleanup() and MUST be called during application tear-down.
     */
    static void cleanup();
-   
+
    /**
     * Set the category short name.
     *
@@ -117,7 +117,7 @@ public:
     * @return the category short name or NULL if not set.
     */
    virtual const char* getId();
-   
+
    /**
     * Set the category name.
     *
@@ -131,7 +131,7 @@ public:
     * @return the category name or "<?>" if not set.
     */
    virtual const char* getName();
-   
+
    /**
     * Set the category description.
     *
@@ -145,7 +145,7 @@ public:
     * @return the category description or NULL if not set.
     */
    virtual const char* getDescription();
-   
+
    /**
     * Set the logging ANSI escape codes.
     *

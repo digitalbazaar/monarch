@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/logging/OutputStreamLogger.h"
 
 #include <cstring>
@@ -27,7 +26,7 @@ void OutputStreamLogger::close()
       if(mStream != NULL)
       {
          mStream->close();
-         
+
          if(mCleanup)
          {
             delete mStream;

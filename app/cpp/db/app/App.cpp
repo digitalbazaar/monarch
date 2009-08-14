@@ -85,7 +85,7 @@ bool App::initialize()
 bool App::willInitConfigGroups()
 {
    bool rval = true;
-   
+
    // hard-coded application boot-up defaults
    if(rval && !getConfigManager()->hasConfig("app defaults"))
    {
@@ -93,7 +93,7 @@ bool App::willInitConfigGroups()
       config[ConfigManager::ID] = "app defaults";
       config[ConfigManager::GROUP] = "boot";
       config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
-      
+
       Config& cfg = config[ConfigManager::MERGE];
       cfg["app"]["debug"]["init"] = false;
       cfg["app"]["config"]["debug"] = false;
@@ -122,7 +122,7 @@ bool App::initConfigGroups()
 bool App::didInitConfigGroups()
 {
    bool rval = true;
-   
+
    // application and command line configuration target
    if(rval && !getConfigManager()->hasConfig("command line"))
    {
@@ -186,14 +186,14 @@ static void _printException(ExceptionRef& e, ostream& s, int level)
    {
       cause << '-';
    }
-   
+
    char indent[3 * level + 1];
    indent[3 * level] = '\0';
    memset(indent, ' ', 3 * level);
 
    if(level == 0)
    {
-      s << "Exception:" << endl; 
+      s << "Exception:" << endl;
    }
    s <<
       indent << "type:    " << e->getType() << endl <<
@@ -372,10 +372,10 @@ const char* App::getParentOfMainConfigGroup()
 bool App::startLogging()
 {
    bool rval = true;
-   
+
    // get logging config
    Config cfg = getConfig()["app"]["logging"];
-   
+
    if(cfg["enabled"]->getBoolean())
    {
       // setup logging
@@ -408,7 +408,7 @@ bool App::startLogging()
       //logger.setDateFormat("%H:%M:%S");
       //logger.setFlags(Logger::LogThread);
       Logger::Level logLevel;
-      const char* levelStr = cfg["level"]->getString(); 
+      const char* levelStr = cfg["level"]->getString();
       bool found = Logger::stringToLevel(levelStr, logLevel);
       if(found)
       {
@@ -435,21 +435,21 @@ bool App::startLogging()
 
       // NOTE: logging is now initialized.  use logging system after this point
    }
-   
+
    return rval;
 }
 
 bool App::stopLogging()
 {
    bool rval = true;
-   
+
    if(mLogger != NULL)
    {
       Logger::removeLogger(mLogger);
       delete mLogger;
       mLogger = NULL;
    }
-   
+
    return rval;
 }
 
@@ -457,7 +457,7 @@ void App::run()
 {
    bool success;
    bool loggingStarted = false;
-   
+
    success = initializeRun();
    if(success)
    {
@@ -482,7 +482,7 @@ bool App::initializeRun()
 {
    return (mDelegate != NULL) ? mDelegate->initializeRun() : true;
 }
-   
+
 bool App::runApp()
 {
    return (mDelegate != NULL) ? mDelegate->runApp() : true;
@@ -501,7 +501,7 @@ static DynamicObject* findPath(
 {
    // start target at given root dyno
    DynamicObject* target = &root;
-   
+
    if(path != NULL)
    {
       // find real target
@@ -569,7 +569,7 @@ static DynamicObject* findPath(
          }
       }
    }
-   
+
    return target;
 }
 
@@ -577,17 +577,17 @@ static bool setTargetPath(
    DynamicObject& root, const char* path, DynamicObject& value)
 {
    bool rval = true;
-   
+
    // start target at given root dyno
    DynamicObject* target = findPath(root, path);
    rval = (target != NULL);
-   
+
    if(rval)
    {
       // assign the source object
       **target = *value;
    }
-   
+
    return rval;
 }
 
@@ -598,7 +598,7 @@ static bool getTarget(
    bool setExceptions = false)
 {
    bool rval = true;
-   
+
    if(spec->hasMember("target"))
    {
       out = spec["target"];
@@ -655,7 +655,7 @@ static bool getTarget(
       }
       rval = false;
    }
-   
+
    return rval;
 }
 
@@ -663,7 +663,7 @@ static bool setTarget(
    App* app, DynamicObject& spec, DynamicObject& value)
 {
    bool rval;
-   
+
    if(spec->hasMember("target"))
    {
       rval = setTargetPath(spec["target"], NULL, value);
@@ -692,7 +692,7 @@ static bool setTarget(
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
@@ -706,7 +706,7 @@ static bool processOption(
    bool rval = true;
    // flag used to set common exception
    bool hadEnoughArgs = true;
-   
+
    if(rval && optSpec->hasMember("set"))
    {
       (*argsi)++;
@@ -714,7 +714,7 @@ static bool processOption(
       {
          // path is first argument
          const char* path = **argsi;
-         
+
          // must have config for set
          if(optSpec["set"]->hasMember("config"))
          {
@@ -746,7 +746,7 @@ static bool processOption(
          rval = hadEnoughArgs = false;
       }
    }
-   
+
    if(rval && optSpec->hasMember("setTrue"))
    {
       DynamicObject value;
@@ -766,7 +766,7 @@ static bool processOption(
          rval = setTarget(app, spec, value);
       }
    }
-   
+
    if(rval && optSpec->hasMember("setFalse"))
    {
       DynamicObject value;
@@ -786,7 +786,7 @@ static bool processOption(
          rval = setTarget(app, spec, value);
       }
    }
-   
+
    if(rval && optSpec->hasMember("inc"))
    {
       DynamicObject original;
@@ -827,7 +827,7 @@ static bool processOption(
          }
       }
    }
-   
+
    if(rval && optSpec->hasMember("dec"))
    {
       DynamicObject original;
@@ -868,7 +868,7 @@ static bool processOption(
          }
       }
    }
-   
+
    if(rval && optSpec->hasMember("arg"))
    {
       (*argsi)++;
@@ -914,7 +914,7 @@ static bool processOption(
          rval = hadEnoughArgs = false;
       }
    }
-   
+
    if(rval && optSpec->hasMember("args"))
    {
       // FIXME implement
@@ -924,7 +924,7 @@ static bool processOption(
       Exception::set(e);
       rval = false;
    }
-   
+
    if(rval && optSpec->hasMember("append"))
    {
       (*argsi)++;
@@ -939,7 +939,7 @@ static bool processOption(
          rval = hadEnoughArgs = false;
       }
    }
-   
+
    if(!rval && !hadEnoughArgs)
    {
       ExceptionRef e;
@@ -958,21 +958,21 @@ static bool processOption(
       }
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 bool App::parseCommandLine(vector<const char*>* args)
 {
    bool rval = true;
-   
+
    // process all command line args
    for(vector<const char*>::iterator i = ++(args->begin());
       rval && i < args->end();
       i++)
    {
       const char* arg = *i;
-      
+
       // check if we are at end of options
       if(strcmp(arg, "--") == 0 || strlen(arg) == 0 || arg[0] != '-')
       {
@@ -1016,13 +1016,13 @@ bool App::parseCommandLine(vector<const char*>* args)
                opts.push_back(opt);
             }
          }
-         
+
          for(vector<string>::iterator opti = opts.begin();
             opti != opts.end();
             opti++)
          {
             const char* opt = (*opti).c_str();
-            
+
             // process arg for each spec
             bool found = false;
             DynamicObjectIterator si = mCLConfig["specs"].getIterator();
@@ -1103,103 +1103,103 @@ DynamicObject App::getCommandLineSpecs()
 "      --json-option NAME JSONVALUE\n"
 "                      Set dotted config path NAME to the decoded JSONVALUE.\n"
 "\n";
-   
+
    DynamicObject opt;
-   
+
    opt = spec["options"]->append();
    opt["short"] = "-h";
    opt["long"] = "--help";
    opt["setTrue"]["target"] = mCLConfig["options"]["printHelp"];
-   
+
    opt = spec["options"]->append();
    opt["short"] = "-V";
    opt["long"] = "--version";
    opt["setTrue"]["target"] = mCLConfig["options"]["printVersion"];
-   
+
    opt = spec["options"]->append();
    opt["short"] = "-v";
    opt["long"] = "--verbose";
    opt["inc"]["config"] = "command line";
    opt["inc"]["path"] = "app.verbose.level";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--no-log";
    opt["setFalse"]["config"] = "command line";
    opt["setFalse"]["path"] = "app.logging.enabled";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log-level";
    opt["arg"]["config"] = "command line";
    opt["arg"]["path"] = "app.logging.level";
    opt["argError"] = "No log level specified.";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log";
    opt["arg"]["config"] = "command line";
    opt["arg"]["path"] = "app.logging.log";
    opt["argError"] = "No log file specified.";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
    opt["setFalse"]["config"] = "command line";
    opt["setFalse"]["path"] = "app.logging.append";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log-rotation-size";
    opt["arg"]["config"] = "command line";
    opt["arg"]["path"] = "app.logging.rotationFileSize";
    opt["argError"] = "No rotation size specified.";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log-max-rotated";
    opt["arg"]["config"] = "command line";
    opt["arg"]["path"] = "app.logging.maxRotatedFiles";
    opt["argError"] = "Max rotated files not specified.";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log-gzip";
    opt["setTrue"]["config"] = "command line";
    opt["setTrue"]["path"] = "app.logging.gzip";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log-no-gzip";
    opt["setFalse"]["config"] = "command line";
    opt["setFalse"]["path"] = "app.logging.gzip";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log-location";
    opt["setTrue"]["config"] = "command line";
    opt["setTrue"]["path"] = "app.logging.location";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log-color";
    opt["setTrue"]["config"] = "command line";
    opt["setTrue"]["path"] = "app.logging.color";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--log-no-color";
    opt["setFalse"]["config"] = "command line";
    opt["setFalse"]["path"] = "app.logging.color";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--option";
    opt["set"]["config"] = "command line";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--json-option";
    opt["set"]["config"] = "command line";
    opt["isJsonValue"] = true;
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--config-debug";
    opt["setTrue"]["config"] = "command line";
    opt["setTrue"]["path"] = "app.config.debug";
-   
+
    opt = spec["options"]->append();
    opt["long"] = "--config-dump";
    opt["setTrue"]["config"] = "command line";
    opt["setTrue"]["path"] = "app.config.dump";
-   
+
    DynamicObject specs;
    specs->setType(Array);
    specs->append(spec);
@@ -1209,15 +1209,15 @@ DynamicObject App::getCommandLineSpecs()
 bool App::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = true;
-   
+
    // ensure temporary command line config holder is empty
    mCLConfig->setType(Map);
    mCLConfig->clear();
-   
+
    // temporary flags for command line processing
    mCLConfig["options"]["printHelp"] = false;
    mCLConfig["options"]["printVersion"] = false;
-   
+
    // temp storage for command line specs
    mCLConfig["specs"] = getCommandLineSpecs();
    if(mCLConfig["specs"]->getType() != Array)
@@ -1249,14 +1249,14 @@ bool App::willParseCommandLine(std::vector<const char*>* args)
          }
       }
    }
-   
+
    return rval;
 }
 
 bool App::didParseCommandLine()
 {
    bool rval = true;
-   
+
    // process help and version flags first
    if(mCLConfig["options"]["printHelp"]->getBoolean())
    {
@@ -1300,10 +1300,10 @@ bool App::didParseCommandLine()
          rval = false;
       }
    }
-    
+
    // done with temporary command line config
    mCLConfig.setNull();
-   
+
    return rval;
 }
 
@@ -1313,27 +1313,27 @@ void App::initializeOpenSSL()
    SSL_library_init();
    SSL_load_error_strings();
    OpenSSL_add_all_algorithms();
-   
+
    // create mutex attributes, use fastest type of mutex
    pthread_mutexattr_t mutexAttr;
    pthread_mutexattr_init(&mutexAttr);
    pthread_mutexattr_settype(&mutexAttr, PTHREAD_MUTEX_NORMAL);
-   
+
    // create CRYPTO_num_locks() mutexes
    int numLocks = CRYPTO_num_locks();
    sOpenSSLMutexes = (pthread_mutex_t*)calloc(
       numLocks, sizeof(pthread_mutex_t));
-   
+
    // initialize mutexes
    for(int i = 0; i < numLocks; i++)
    {
       // initialize mutex
       pthread_mutex_init(&sOpenSSLMutexes[i], &mutexAttr);
    }
-   
+
    // destroy mutex attributes
    pthread_mutexattr_destroy(&mutexAttr);
-   
+
    // set openSSL multi-threaded callbacks
    CRYPTO_set_id_callback(&App::openSSLSetId);
    CRYPTO_set_locking_callback(&App::openSSLHandleLock);
@@ -1346,7 +1346,7 @@ void App::cleanupOpenSSL()
    ERR_free_strings();
    EVP_cleanup();
    CRYPTO_cleanup_all_ex_data();
-   
+
    // destroy mutexes
    int numLocks = CRYPTO_num_locks();
    for(int i = 0; i < numLocks; i++)
@@ -1354,7 +1354,7 @@ void App::cleanupOpenSSL()
       // initialize mutex
       pthread_mutex_destroy(&sOpenSSLMutexes[i]);
    }
-   
+
    // free mutexes
    free(sOpenSSLMutexes);
 }
@@ -1398,7 +1398,7 @@ int App::main(int argc, const char* argv[])
    {
       mCommandLineArgs.push_back(argv[i]);
    }
-   
+
    setProgramName(mCommandLineArgs[0]);
    if(!(willParseCommandLine(&mCommandLineArgs) &&
       ((mDelegate != NULL) ?
@@ -1413,7 +1413,7 @@ int App::main(int argc, const char* argv[])
       printException();
       exit(EXIT_FAILURE);
    }
-   
+
 #ifdef WIN32
 // initialize winsock
    WSADATA wsaData;
@@ -1422,31 +1422,31 @@ int App::main(int argc, const char* argv[])
       cerr << "ERROR! Could not initialize winsock!" << endl;
    }
 #endif
-   
+
    // seed random
    Random::seed();
-   
+
    initializeOpenSSL();
    db::logging::Logging::initialize();
    initializeLogging();
    didInitializeLogging();
    db::rt::Platform::initialize();
-   
+
    Thread t(this);
    t.start();
    t.join();
-   
+
    db::rt::Platform::cleanup();
    willCleanupLogging();
    db::logging::Logging::cleanup();
    cleanupLogging();
    cleanupOpenSSL();
-   
+
    // cleanup winsock
 #ifdef WIN32
    WSACleanup();
 #endif
-   
+
    Thread::exit();
    return mExitStatus;
 }

@@ -1,11 +1,10 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/logging/Logging.h"
 
 using namespace db::logging;
- 
+
 void Logging::initialize()
 {
    Category::initialize();

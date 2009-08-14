@@ -17,7 +17,7 @@ namespace logging
 
 /**
  * A class that handles logging to an OutputStream.
- *  
+ *
  * @author Dave Longley
  * @author David I. Lehn
  * @author Manu Sporny
@@ -29,7 +29,7 @@ protected:
     * The file output stream to write logging information to.
     */
    db::io::OutputStream* mStream;
-   
+
    /**
     * Flag to cleanup the output stream.
     */
@@ -39,7 +39,7 @@ protected:
     * Lock for critical sections.
     */
    db::rt::ExclusiveLock mLock;
-   
+
 public:
    /**
     * Creates a new logger with specified level.
@@ -49,20 +49,20 @@ public:
     */
    OutputStreamLogger(
       db::io::OutputStream* stream = NULL, bool cleanup = false);
-   
+
    /**
     * Overloaded to ensure that the stream gets closed when garbage
     * collected.
     */
    virtual ~OutputStreamLogger();
-   
+
    /**
     * Gets the print stream for this logger.
-    * 
+    *
     * @return the print stream for this logger.
     */
    virtual db::io::OutputStream* getOutputStream();
-   
+
    /**
     * Close and cleanup stream if cleanup flag set and stream exists.
     */
@@ -70,14 +70,14 @@ public:
 
    /**
     * Sets the output stream.
-    * 
+    *
     * @param os the output stream to use.
     * @param cleanup if the logger handles cleanup of this stream.
     * @param closeCurrent if the logger should close current stream.
     */
    virtual void setOutputStream(db::io::OutputStream* os, bool cleanup = false,
       bool closeCurrent = true);
-   
+
    /**
     * Writes the message to the output stream.
     *
@@ -85,7 +85,7 @@ public:
     * @param length length of message.
     */
    virtual void log(const char* message, size_t length);
-   
+
    /**
     * Explicitly flush any output that hasn't been flushed yet.
     */

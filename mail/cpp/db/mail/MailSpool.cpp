@@ -31,7 +31,7 @@ MailSpool::~MailSpool()
 bool MailSpool::writeIndex()
 {
    bool rval;
-   
+
    if(mFile.isNull())
    {
       ExceptionRef e = new Exception(
@@ -59,7 +59,7 @@ bool MailSpool::writeIndex()
          fos.close();
       }
    }
-   
+
    return rval;
 }
 
@@ -76,12 +76,12 @@ void MailSpool::unlock()
 bool MailSpool::setFile(File& file)
 {
    bool rval;
-   
+
    lock();
    {
       // set file
       mFile = file;
-      
+
       // read associated index
       std::string name = mFile->getAbsolutePath();
       name.append(".idx");
@@ -101,7 +101,7 @@ bool MailSpool::setFile(File& file)
          reader.start(config);
          rval = reader.read(&fis) && reader.finish();
          fis.close();
-         
+
          if(rval)
          {
             mHead = config["head"]->getUInt32();
@@ -111,17 +111,17 @@ bool MailSpool::setFile(File& file)
       }
    }
    unlock();
-   
+
    return rval;
 }
 
 bool MailSpool::spool(Mail* mail)
 {
    bool rval;
-   
+
    // convert mail to template
    std::string tpl = mail->toTemplate();
-   
+
    lock();
    {
       if(mFile.isNull())
@@ -136,7 +136,7 @@ bool MailSpool::spool(Mail* mail)
       {
          // write out mail entry
          FileOutputStream fos(mFile, mCount > 0);
-         
+
          // entry = index + size + tpl
          uint32_t idx = DB_UINT32_TO_LE(mTail);
          uint32_t size = DB_UINT32_TO_LE(tpl.length());
@@ -145,27 +145,27 @@ bool MailSpool::spool(Mail* mail)
             fos.write((char*)&size, 4) &&
             fos.write(tpl.c_str(), tpl.length());
          fos.close();
-         
+
          // increment tail, count
          mTail++;
          mCount++;
-         
+
          // write out index
          rval = rval && writeIndex();
       }
    }
    unlock();
-   
+
    return rval;
 }
 
 bool MailSpool::getFirst(Mail* mail)
 {
    bool rval = true;
-   
+
    // keep track of whether or not the first mail was found in the spool
    bool foundFirst = false;
-   
+
    lock();
    {
       if(mCount == 0)
@@ -192,7 +192,7 @@ bool MailSpool::getFirst(Mail* mail)
          int numBytes = 1;
          uint32_t idx;
          uint32_t size;
-         
+
          // skip mail entries until head is reached
          while(numBytes > 0)
          {
@@ -202,14 +202,14 @@ bool MailSpool::getFirst(Mail* mail)
                memcpy(&idx, b, 4);
                idx = DB_UINT32_FROM_LE(idx);
             }
-            
+
             // read current size
             if((numBytes = fis.read(b, 4) == 4))
             {
                memcpy(&size, b, 4);
                size = DB_UINT32_FROM_LE(size);
             }
-            
+
             // read mail if current index is head
             if(idx == mHead)
             {
@@ -222,7 +222,7 @@ bool MailSpool::getFirst(Mail* mail)
                   size -= numBytes;
                   read = (int)(size > 2048 ? 2048 : size);
                }
-               
+
                if(numBytes != -1)
                {
                   // parse mail data
@@ -244,7 +244,7 @@ bool MailSpool::getFirst(Mail* mail)
                }
             }
          }
-         
+
          // close spool file
          fis.close();
 
@@ -256,7 +256,7 @@ bool MailSpool::getFirst(Mail* mail)
       }
    }
    unlock();
-   
+
    if(rval && !foundFirst)
    {
       ExceptionRef e = new Exception(
@@ -265,14 +265,14 @@ bool MailSpool::getFirst(Mail* mail)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 bool MailSpool::unwind()
 {
    bool rval;
-   
+
    lock();
    {
       if(mCount == 0)
@@ -285,20 +285,20 @@ bool MailSpool::unwind()
          // increment head, decrement count
          mHead++;
          mCount--;
-         
+
          if(mCount == 0)
          {
             // reset index, spool now empty
             mHead = mTail = 0;
             mFile->remove();
          }
-         
+
          // write out index
          rval = writeIndex();
       }
    }
    unlock();
-   
+
    return rval;
 }
 

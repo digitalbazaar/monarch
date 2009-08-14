@@ -1,16 +1,15 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/logging/LoggingCategories.h"
 
 using namespace db::logging;
- 
+
 // DO NOT INITIALIZE THESE VARIABLES!
 // These are not initialized on purpose due to initialization code issues.
 Category* DB_APP_CAT;
 Category* DB_CONFIG_CAT;
-Category* DB_CRYPTO_CAT; 
+Category* DB_CRYPTO_CAT;
 Category* DB_DATA_CAT;
 Category* DB_EVENT_CAT;
 Category* DB_GUI_CAT;
@@ -102,52 +101,52 @@ void LoggingCategories::cleanup()
 {
    delete DB_APP_CAT;
    DB_APP_CAT = NULL;
-   
+
    delete DB_CONFIG_CAT;
    DB_CONFIG_CAT = NULL;
-   
+
    delete DB_CRYPTO_CAT;
    DB_CRYPTO_CAT = NULL;
-    
+
    delete DB_DATA_CAT;
    DB_DATA_CAT = NULL;
-   
+
    delete DB_EVENT_CAT;
    DB_EVENT_CAT = NULL;
-   
+
    delete DB_GUI_CAT;
    DB_GUI_CAT = NULL;
-   
+
    delete DB_HTTP_CAT;
    DB_HTTP_CAT = NULL;
-   
+
    delete DB_IO_CAT;
    DB_IO_CAT = NULL;
-   
+
    delete DB_LOGGING_CAT;
    DB_LOGGING_CAT = NULL;
-   
+
    delete DB_MAIL_CAT;
    DB_MAIL_CAT = NULL;
-   
+
    delete DB_MODEST_CAT;
    DB_MODEST_CAT = NULL;
-   
+
    delete DB_NET_CAT;
    DB_NET_CAT = NULL;
-   
+
    delete DB_RT_CAT;
    DB_RT_CAT = NULL;
-   
+
    delete DB_SPHINX_CAT;
    DB_SPHINX_CAT = NULL;
-   
+
    delete DB_SQL_CAT;
    DB_SQL_CAT = NULL;
-   
+
    delete DB_UPNP_CAT;
    DB_UPNP_CAT = NULL;
-   
+
    delete DB_UTIL_CAT;
    DB_UTIL_CAT = NULL;
 }

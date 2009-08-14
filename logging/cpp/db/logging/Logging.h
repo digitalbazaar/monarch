@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_logging_Logging_H
 #define db_logging_Logging_H
@@ -14,10 +14,10 @@ namespace db
 {
 namespace logging
 {
-   
+
 /**
  * Pseudo-class to initialize and cleanup the logging framework.
- * 
+ *
  * @author David I. Lehn
  */
 class Logging
@@ -42,7 +42,7 @@ public:
  */
 
 /**
- * Remove location info when disabled or when not in debug mode. 
+ * Remove location info when disabled or when not in debug mode.
  */
 #if !defined(DB_DISABLE_LOG_LINE_NUMBERS) && !defined(DB_NDEBUG)
 #define DB_LOG_STRLOC DB_STRLOC
@@ -87,7 +87,7 @@ static inline void DB_X(db::a a, db::b b, const char* loc,
    DB_LOG(cat, level, object, db::logging::Logger::LogObjectValid, ##args)
 /**
  * Log with no object.
- */ 
+ */
 #define DB_CAT_LEVEL_LOG(cat, level, args...) \
    DB_LOG(cat, level, NULL, 0, ##args)
 

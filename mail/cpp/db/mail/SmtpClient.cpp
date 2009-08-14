@@ -27,7 +27,7 @@ SmtpClient::~SmtpClient()
 void SmtpClient::activateSsl(Connection* c)
 {
    mSslContext = new SslContext(NULL, true);
-   
+
    // switch underlying socket with an SSL socket
    Socket* s = new SslSocket(
       mSslContext, (TcpSocket*)c->getSocket(), true, c->mustCleanupSocket());
@@ -38,7 +38,7 @@ void SmtpClient::activateSsl(Connection* c)
 int SmtpClient::getResponseCode(Connection* c)
 {
    int rval = -1;
-   
+
    // get response line
    string line;
    if(c->getInputStream()->readCrlf(line))
@@ -46,7 +46,7 @@ int SmtpClient::getResponseCode(Connection* c)
       // parse code from line
       rval = strtoul(line.c_str(), NULL, 10);
    }
-   
+
    return rval;
 }
 
@@ -94,7 +94,7 @@ bool SmtpClient::startData(Connection* c)
 bool SmtpClient::sendMessage(Connection* c, Mail* mail)
 {
    bool rval = true;
-   
+
    // send headers
    Message msg = mail->getMessage();
    DynamicObjectIterator i = msg["headers"].getIterator();
@@ -106,7 +106,7 @@ bool SmtpClient::sendMessage(Connection* c, Mail* mail)
       while(rval && hi->hasNext())
       {
          DynamicObject header = hi->next();
-         
+
          if(rval && !comma)
          {
             // send header name and colon
@@ -115,7 +115,7 @@ bool SmtpClient::sendMessage(Connection* c, Mail* mail)
                   i->getName(), strlen(i->getName())) &&
                c->getOutputStream()->write(": ", 2);
          }
-         
+
          if(rval && comma)
          {
             // send comma
@@ -125,7 +125,7 @@ bool SmtpClient::sendMessage(Connection* c, Mail* mail)
          {
             comma = true;
          }
-         
+
          if(rval)
          {
             // send smtp-encoded header value
@@ -134,22 +134,22 @@ bool SmtpClient::sendMessage(Connection* c, Mail* mail)
             rval = c->getOutputStream()->write(value.c_str(), value.length());
          }
       }
-      
+
       // send CRLF
       if(rval)
       {
          rval = sendCrlf(c);
       }
    }
-   
+
    if(rval)
    {
       // send encoded body
       string body = mail->getTransferEncodedBody();
       rval = c->getOutputStream()->write(body.c_str(), body.length());
    }
-   
-   return rval;   
+
+   return rval;
 }
 
 bool SmtpClient::endData(Connection* c)
@@ -169,23 +169,23 @@ bool SmtpClient::quit(Connection* c)
 bool SmtpClient::sendMail(Connection* c, Mail* mail)
 {
    bool rval = true;
-   
+
    // create details object in case of exception
    DynamicObject details;
    DynamicObject& responseCodes = details["responseCodes"];
    responseCodes->setType(Map);
-   
+
    // FIXME: this is the simplest implementation to get this thing to
    // send mail to our server, it will have to be filled out later if
    // we so desire
-   
+
    // for storing server response codes
    int code;
-   
+
    // receive response from server
    rval = ((code = getResponseCode(c)) == 220);
    responseCodes["connect"] = code;
-   
+
    // say helo from sender's domain
    if(rval && (rval = helo(c, mail->getSender()["domain"]->getString())))
    {
@@ -193,7 +193,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
       rval = ((code = getResponseCode(c)) == 250);
       responseCodes["helo"] = code;
    }
-   
+
    // send sender's address
    if(rval && (rval = mailFrom(
       c, mail->getSender()["smtpEncoding"]->getString())))
@@ -202,7 +202,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
       rval = ((code = getResponseCode(c)) == 250);
       responseCodes["mailFrom"] = code;
    }
-   
+
    // do rcpt to
    int index = 0;
    AddressIterator i = mail->getRecipients().getIterator();
@@ -216,7 +216,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
          responseCodes["rcptTo"][index++] = code;
       }
    }
-   
+
    // start data
    if(rval && (rval = startData(c)))
    {
@@ -224,10 +224,10 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
       rval = ((code = getResponseCode(c)) == 354);
       responseCodes["startData"] = code;
    }
-   
+
    // send data
    if(rval && (rval = sendMessage(c, mail)));
-   
+
    // end data
    if(rval && (rval = endData(c)))
    {
@@ -235,7 +235,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
       rval = ((code = getResponseCode(c)) == 250);
       responseCodes["endData"] = code;
    }
-   
+
    // quit
    if(rval && (rval = quit(c)))
    {
@@ -243,7 +243,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
       rval = ((code = getResponseCode(c)) == 221);
       responseCodes["quit"] = code;
    }
-   
+
    if(!rval)
    {
       if(code != -1)
@@ -257,14 +257,14 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
          Exception::set(e);
       }
    }
-   
+
    return rval;
 }
 
 bool SmtpClient::sendMail(Url* url, Mail* mail)
 {
    bool rval = false;
-   
+
    // ensure mail has recipients
    if(mail->getRecipients()->length() == 0)
    {
@@ -298,13 +298,13 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
       {
          // create smtp connection
          Connection c(&s, false);
-         
+
          // send mail
          rval = sendMail(&c, mail);
-         
+
          // disconnect
          c.close();
-         
+
          if(!rval)
          {
             ExceptionRef e = new Exception(
@@ -326,6 +326,6 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
          rval = false;
       }
    }
-   
+
    return rval;
 }

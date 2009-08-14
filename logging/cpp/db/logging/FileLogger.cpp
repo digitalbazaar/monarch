@@ -61,7 +61,7 @@ FileLogger::~FileLogger()
       }
    }
    mCompressionWaitLock.unlock();
-   
+
    mCompressionJobDispatcher.stopDispatching();
    close();
 }
@@ -80,15 +80,15 @@ void FileLogger::close()
  *    "base[-seq]ext"
  * and optionally also a secondary path of the form:
  *    "base[-seq]ext[ext2]"
- * 
+ *
  * This can be used, for instance, to move a log file to the .ext.ext2 file,
  * create a new source file, then run a compression thread to compress the
  * .ext,ext2 file to the .ext file.
- *  
+ *
  * Using alphanumericly sortable encoding for sequence of:
  *   seq = chr(ord('a')+len(str(n))-1) + str(n)
  * (ie, prefix decimal string with letter based on length of string)
- * 
+ *
  * @param base base path
  * @param seq sequence number to use
  * @param ext first file extension
@@ -101,12 +101,12 @@ static bool findAvailablePath(
    const char* base, unsigned int& seq,
    const char* ext = NULL,
    string* path = NULL,
-   const char* ext2 = NULL, 
+   const char* ext2 = NULL,
    string* path2 = NULL)
 {
    bool found = false;
    size_t seqlen = 20;
-   size_t buflen = strlen(base) + seqlen + (ext == NULL ? 0 : strlen(ext)) + 1; 
+   size_t buflen = strlen(base) + seqlen + (ext == NULL ? 0 : strlen(ext)) + 1;
    char buf[buflen];
    size_t buflen2 = buflen + (ext2 == NULL ? 0 : strlen(ext2));
    char buf2[buflen2];
@@ -143,7 +143,7 @@ static bool findAvailablePath(
          printf("buf2[%d]: %s\n", found, buf2);
       }
    }
-   
+
    if(found)
    {
       // reset sequence
@@ -158,7 +158,7 @@ static bool findAvailablePath(
          path2->assign(buf2);
       }
    }
-   
+
    return found;
 }
 
@@ -180,20 +180,20 @@ void FileLogger::gzipCompress(void* info)
    GzipCompressInfo* cInfo = (GzipCompressInfo*)info;
    Gzipper gzipper;
    rval = gzipper.startCompressing();
-   
+
    if(rval)
    {
       File sourceFile(cInfo->sourceFileName.c_str());
       File targetFile(cInfo->targetFileName.c_str());
-   
+
 #ifdef FILE_LOGGER_DEBUG
       printf("FileLogger: z start: %s => %s\n",
          sourceFile->getPath(), targetFile->getPath());
 #endif
-      
+
       FileInputStream fis(sourceFile);
       FileOutputStream fos(targetFile);
-      
+
       MutatorInputStream mis(&fis, false, &gzipper, false);
       char b[4096];
       int numBytes;
@@ -201,13 +201,13 @@ void FileLogger::gzipCompress(void* info)
       {
          rval = fos.write(b, numBytes);
       }
-   
+
       fis.close();
       fos.close();
-      
+
       // done with source
       sourceFile->remove();
-      
+
 #ifdef FILE_LOGGER_DEBUG
       //printf("FileLogger: z 1s sleep: %s\n", targetFile->getPath());
       //Thread::sleep(1000);
@@ -221,24 +221,24 @@ void FileLogger::gzipCompress(void* info)
       printf("FileLogger: z error\n");
 #endif
    }
-   
+
    delete cInfo;
-   
+
    // notification for threads that wait for compression to complete
    mCompressionWaitLock.lock();
    {
       mCompressionWaitLock.notifyAll();
    }
    mCompressionWaitLock.unlock();
-   
+
    // failures and exceptions ignored
 }
 
 bool FileLogger::rotate()
 {
    bool rval = true;
-   
-   // assuming we are locked here 
+
+   // assuming we are locked here
    // get new name
    string date;
    Date now;
@@ -246,7 +246,7 @@ bool FileLogger::rotate()
    string fn;
    fn.assign(mFile->getPath());
    fn.append(date);
-   
+
    // move file to new name
    close();
    if(getFlags() & GzipCompressRotatedLogs)
@@ -257,7 +257,7 @@ bool FileLogger::rotate()
       rval = findAvailablePath(fn.c_str(), mSeqNum,
          ".gz", &info->targetFileName,
          ".orig", &info->sourceFileName);
-      
+
       // ensure files are created so next findAvailablePath call will pick a
       // correct name regardless of compression thread progress
       if(rval)
@@ -305,7 +305,7 @@ bool FileLogger::rotate()
          rval = mFile->rename(newFile);
       }
    }
-   
+
    if(!rval)
    {
       // dump exceptions from moving aside old file
@@ -313,14 +313,14 @@ bool FileLogger::rotate()
       Exception::clear();
       rval = true;
    }
-   
+
    if(mMaxRotatedFiles > 0)
    {
       // remove old log files
       const char* path = mFile->getAbsolutePath();
       size_t pathlen = strlen(path);
-      
-      // build list of files with proper names 
+
+      // build list of files with proper names
       vector<string> oldFiles;
       File dir(File::dirname(path).c_str());
       FileList files;
@@ -342,7 +342,7 @@ bool FileLogger::rotate()
             oldFiles.push_back(nextpath);
          }
       }
-      
+
       // sort results
       sort(oldFiles.begin(), oldFiles.end());
       // remove if needed
@@ -377,22 +377,22 @@ bool FileLogger::rotate()
          }
       }
    }
-   
+
    // start new file
    rval = setFile(mFile, false);
-   
+
    return rval;
 }
 
 bool FileLogger::setFile(File& file, bool append)
 {
    bool rval = true;
-   
+
    mLock.lock();
    {
       close();
       mFile = file;
-      
+
       if(file->exists())
       {
          if(!append)
@@ -409,7 +409,7 @@ bool FileLogger::setFile(File& file, bool append)
       {
          mCurrentFileSize = 0;
       }
-      
+
       if(rval)
       {
          OutputStream* s = new FileOutputStream(mFile, append);
@@ -417,7 +417,7 @@ bool FileLogger::setFile(File& file, bool append)
       }
    }
    mLock.unlock();
-   
+
    return rval;
 }
 

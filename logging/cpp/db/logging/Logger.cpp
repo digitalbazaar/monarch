@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/data/json/JsonWriter.h"
 #include "db/logging/Logger.h"
 #include "db/util/AnsiEscapeCodes.h"
@@ -19,7 +18,7 @@ using namespace db::util;
 using namespace db::logging;
 using namespace db::rt;
 
-// DO NOT INITIALIZE THIS VARIABLE! Logger::sLoggers is not not initialized on 
+// DO NOT INITIALIZE THIS VARIABLE! Logger::sLoggers is not not initialized on
 // purpose due to compiler initialization code issues.
 Logger::LoggerMap* Logger::sLoggers;
 
@@ -90,7 +89,7 @@ bool Logger::stringToLevel(const char* slevel, Level& level)
          found = true;
       }
    }
-   
+
    return found;
 }
 
@@ -194,13 +193,13 @@ void Logger::flushLoggers()
    {
       // create a unique list of loggers to flush
       UniqueList<Logger*> loggers;
-      
+
       // iterate over all loggers adding them to a unique list
       for(LoggerMap::iterator i = sLoggers->begin(); i != sLoggers->end(); i++)
       {
          loggers.add(i->second);
       }
-      
+
       // flush unique loggers
       IteratorRef<Logger*> itr = loggers.getIterator();
       while(itr->hasNext())
@@ -224,7 +223,7 @@ Logger::Level Logger::getLevel()
 void Logger::getDate(string& date)
 {
    date.erase();
-   
+
    mLock.lockShared();
    {
       if(strcmp(mDateFormat, "") == 0)
@@ -250,7 +249,7 @@ bool Logger::setDateFormat(const char* format)
       {
          free(mDateFormat);
       }
-      
+
       mDateFormat = strdup(format);
    }
    mLock.unlockExclusive();
@@ -337,7 +336,7 @@ bool Logger::vLog(
    va_list varargs)
 {
    bool rval = false;
-   
+
    if(mLevel >= level)
    {
       // save flags to avoid async flag changes while in this function
@@ -347,13 +346,13 @@ bool Logger::vLog(
       // [date: ][thread ][object ][level ][cat ][location ]message
 
       string logText;
-      
+
       // FIXME locking around all this to ensure ordered output
       // this code should be thread safe without this lock but it is possible
       // that multiple threads could get dates assigned then be reordered
       // before actual output occurs.
       mLock.lockExclusive();
-      
+
       if(loggerFlags & LogDate)
       {
          string date;
@@ -445,12 +444,12 @@ bool Logger::vLog(
          free(message);
       }
       logText.push_back('\n');
-      
+
       log(logText.c_str(), logText.length());
-      
+
       // FIXME: see lock note above
       mLock.unlockExclusive();
-      
+
       rval = true;
    }
 
@@ -467,12 +466,12 @@ bool Logger::log(
    ...)
 {
    bool rval;
-   
+
    va_list varargs;
    va_start(varargs, format);
    rval = vLog(cat, level, location, object, flags, format, varargs);
    va_end(varargs);
-   
+
    return rval;
 }
 
