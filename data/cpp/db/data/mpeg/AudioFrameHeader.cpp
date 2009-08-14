@@ -36,7 +36,7 @@ inline unsigned char* AudioFrameHeader::getDataBytes()
 bool AudioFrameHeader::convertFromBytes(const char* bytes, int length)
 {
    bool rval = false;
-   
+
    if(length < 4)
    {
       ExceptionRef e = new Exception(
@@ -50,22 +50,22 @@ bool AudioFrameHeader::convertFromBytes(const char* bytes, int length)
       {
          mData = new ByteBuffer(4);
       }
-      
+
       // put bytes into buffer
       mData->clear();
       mData->put(bytes, 4, false);
-      
+
       // determine if this header is valid
       rval = isValid();
    }
-   
+
    return rval;
 }
 
 bool AudioFrameHeader::isValid()
 {
    bool rval = false;
-   
+
    // this header is valid if it has frame sync and its version,
    // layer, bitrate, sampling rate are valid, and if its bitrate
    // and channel mode combination are valid
@@ -75,14 +75,14 @@ bool AudioFrameHeader::isValid()
    {
       rval = true;
    }
-   
+
    return rval;
 }
 
 bool AudioFrameHeader::hasFrameSync()
 {
    bool rval = false;
-   
+
    // the first 11 bits must be set to 1 for "frame sync":
    // 1111111111xxxx
    // 1111111 = 255
@@ -92,7 +92,7 @@ bool AudioFrameHeader::hasFrameSync()
    {
       rval = true;
    }
-   
+
    return rval;
 }
 
@@ -153,7 +153,7 @@ int AudioFrameHeader::getBitrate()
    // to the right 4 and then AND with 0x0F
    // with 11110000 >> 4 = 00001111 & 0x0F = 1111
    unsigned char bitrateIndex = ((getDataBytes()[2] >> 4) & 0x0f);
-   
+
    // get the bitrate from the bitrate table
    AudioVersion v;
    getVersion(v);
@@ -174,7 +174,7 @@ int AudioFrameHeader::getSamplingRate()
    // to the right 2 and then AND with 0x03
    // with 00001100 >> 2 = 00000011 & 0x03 = 11
    unsigned char samplingRateIndex = ((getDataBytes()[2] >> 2) & 0x03);
-   
+
    // get the sampling rate from the sampling rate table
    AudioVersion v;
    getVersion(v);
@@ -191,7 +191,7 @@ void AudioFrameHeader::setPadded(bool padded)
 {
    // the padding bit is located in bit 1 for byte 2,
    // if enabling, then SET bit 1 by ORing with 0x02,
-   // if disabling, then CLEAR bit 1 by ANDing with 0xFD 
+   // if disabling, then CLEAR bit 1 by ANDing with 0xFD
    if(padded)
    {
       getDataBytes()[2] |= 0x02;
@@ -214,7 +214,7 @@ void AudioFrameHeader::setPrivateBit(bool set)
 {
    // the private bit is located in bit 0 for byte 2,
    // if enabling, then SET bit 1 by ORing with 0x01,
-   // if disabling, then CLEAR bit 1 by ANDing with 0xFE 
+   // if disabling, then CLEAR bit 1 by ANDing with 0xFE
    if(set)
    {
       getDataBytes()[2] |= 0x01;
@@ -231,7 +231,7 @@ bool AudioFrameHeader::isPrivateBitSet()
    // AND against 1
    // privateBit is enabled if the bit is NOT cleared
    return (getDataBytes()[2] & 0x01) != 0;
-}   
+}
 
 void AudioFrameHeader::getChannelMode(AudioChannelMode& cm)
 {
@@ -246,7 +246,7 @@ int AudioFrameHeader::getChannelCount()
    // get the channel mode
    AudioChannelMode cm;
    getChannelMode(cm);
-   
+
    // return the number of channels
    return cm.channels;
 }
@@ -254,16 +254,16 @@ int AudioFrameHeader::getChannelCount()
 bool AudioFrameHeader::isBitrateChannelModeCombinationValid()
 {
    bool rval = false;
-   
+
    // get the layer
    AudioLayer layer;
    getLayer(layer);
-   
+
    if(layer.type == AudioLayer::Layer2)
    {
       // get the bitrate
       int bitrate = getBitrate();
-      
+
       // if the bitrate is free, 64000, or between 96000 and 192000 then
       // any channel mode is permissible
       if(bitrate == 0 || bitrate == 64000 ||
@@ -276,7 +276,7 @@ bool AudioFrameHeader::isBitrateChannelModeCombinationValid()
          // get the channel mode
          AudioChannelMode cm;
          getChannelMode(cm);
-         
+
          // if the channel mode is single channel, then the bitrate must
          // be between 32000 and 56000 or be 80000
          if(cm.type == AudioChannelMode::SingleChannel)
@@ -302,9 +302,9 @@ bool AudioFrameHeader::isBitrateChannelModeCombinationValid()
       // all combinations are valid for Layers I & III
       rval = true;
    }
-   
+
    return rval;
-}   
+}
 
 void AudioFrameHeader::getChannelModeExtension(AudioChannelModeExtension& cme)
 {
@@ -321,7 +321,7 @@ int AudioFrameHeader::getJointStereoBound()
    // get the channel mode extension
    AudioChannelModeExtension cme;
    getChannelModeExtension(cme);
-   
+
    // return the upper band
    return cme.upperBand;
 }
@@ -383,14 +383,14 @@ void AudioFrameHeader::getEmphasis(AudioEmphasis& emphasis)
 int AudioFrameHeader::getSideInformationLength()
 {
    int rval = 0;
-   
+
    // get version
    AudioVersion version;
    getVersion(version);
-   
+
    // get channel count
    int channels = getChannelCount();
-   
+
    if(version.type == AudioVersion::Mpeg1)
    {
       if(channels == 2)
@@ -417,39 +417,39 @@ int AudioFrameHeader::getSideInformationLength()
          rval = 9;
       }
    }
-   
+
    return rval;
 }
 
 int AudioFrameHeader::getAudioDataLength()
 {
    int rval = 0;
-   
+
    // subtract the header length from the frame length
    rval = getFrameLength() - 4;
-   
+
    // subtract the CRC-16, if applicable
    if(isCrcEnabled())
    {
       rval -= 2;
    }
-   
+
    return rval;
 }
 
 int AudioFrameHeader::getFrameLength()
 {
    int rval = 0;
-   
+
    // get the version and layer for the frame
    AudioVersion version;
    getVersion(version);
    AudioLayer layer;
    getLayer(layer);
-   
+
    // get the bitrate for the frame
    int bitrate = getBitrate();
-   
+
    if(bitrate != 0)
    {
       // bitrate is not free format, so we know the frame length
@@ -462,20 +462,20 @@ int AudioFrameHeader::getFrameLength()
       // use the maximum
       rval = calculateMaxFrameLength(version, layer);
    }
-   
+
    return rval;
 }
 
 double AudioFrameHeader::getAudioLength()
 {
    double rval = 0.0;
-   
+
    // get the version and layer
    AudioVersion version;
    getVersion(version);
    AudioLayer layer;
    getLayer(layer);
-   
+
    // calculate the audio length based on the version and layer
    switch(layer.type)
    {
@@ -498,8 +498,8 @@ double AudioFrameHeader::getAudioLength()
       default:
          break;
    }
-   
-   return rval;  
+
+   return rval;
 }
 
 ByteBuffer* AudioFrameHeader::getBytes()
@@ -507,23 +507,23 @@ ByteBuffer* AudioFrameHeader::getBytes()
    if(mData == NULL)
    {
       mData = new ByteBuffer(4);
-      
+
       // set the first and second bytes to frame sync values
       ((unsigned char*)mData->bytes())[0] = 0xff;
       ((unsigned char*)mData->bytes())[1] = 0xf0;
-      
+
       // clear other bytes
       mData[2] = 0;
       mData[3] = 0;
    }
-   
+
    return mData;
 }
 
 string AudioFrameHeader::toString()
 {
    string str;
-   
+
    // get audio characteristics
    AudioVersion v;
    AudioLayer l;
@@ -535,15 +535,15 @@ string AudioFrameHeader::toString()
    getChannelMode(cm);
    getChannelModeExtension(cme);
    getEmphasis(e);
-   
+
    // for converting numbers to strings
    char temp[30];
-   
+
    str.append("[MpegAudioFrameHeader]\n");
    str.append(v.name);
    str.push_back('\n');
    str.append(l.name);
-   
+
    int bitrate = getBitrate();
    if(bitrate > 0)
    {
@@ -559,7 +559,7 @@ string AudioFrameHeader::toString()
    {
       str.append("\nBitrate: Invalid");
    }
-   
+
    int samplingRate = getSamplingRate();
    if(samplingRate != -1)
    {
@@ -570,14 +570,14 @@ string AudioFrameHeader::toString()
    {
       str.append("\nSampling Rate: Invalid");
    }
-   
+
    str.append("\nChannel Mode: ");
    str.append(cm.name);
    str.append("\nChannel Mode Extension: ");
    str.append(cme.name);
    str.append("\nEmphasis: ");
    str.append(e.name);
-   
+
    str.append("\nCRC-16 Protected: ");
    str.append(isCrcEnabled() ? "true" : "false");
    str.append("\nPadded: ");
@@ -588,15 +588,15 @@ string AudioFrameHeader::toString()
    str.append(isCopyrighted() ? "true" : "false");
    str.append("\nOriginal: ");
    str.append(isOriginal() ? "true" : "false");
-   
+
    str.append("\nFrame Length: ");
-   sprintf(temp, "%i bytes", getFrameLength()); 
+   sprintf(temp, "%i bytes", getFrameLength());
    str.append(temp);
-   
+
    str.append("\nAudio Length: ");
    sprintf(temp, "%f seconds", getAudioLength());
    str.append(temp);
-   
+
    return str;
 }
 
@@ -605,10 +605,10 @@ int AudioFrameHeader::calculateFrameLength(
    double bitrate, double samplingRate, bool paddingEnabled)
 {
    int rval = 0;
-   
+
    // get the padding for the frame
    int padding = (paddingEnabled) ? 1 : 0;
-   
+
    // calculate the frame length based on the version and layer
    switch(layer.type)
    {
@@ -631,7 +631,7 @@ int AudioFrameHeader::calculateFrameLength(
       default:
          break;
    }
-   
+
    return rval;
 }
 
@@ -639,14 +639,14 @@ int AudioFrameHeader::calculateMinFrameLength(
    const AudioVersion& version, const AudioLayer& layer)
 {
    int rval = 0;
-   
+
    // get the minimum bitrate and maximum sampling rate
    int bitrate = sBitrateTable.getMinBitrate(version, layer);
    int samplingRate = sSamplingRateTable.getMaxSamplingRate(version);
-   
+
    // calculate frame length, use padding
    rval = calculateFrameLength(version, layer, bitrate, samplingRate, true);
-   
+
    return rval;
 }
 
@@ -654,13 +654,13 @@ int AudioFrameHeader::calculateMaxFrameLength(
    const AudioVersion& version, const AudioLayer& layer)
 {
    int rval = 0;
-   
+
    // get the maximum bitrate and minimum sampling rate
    int bitrate = sBitrateTable.getMaxBitrate(version, layer);
    int samplingRate = sSamplingRateTable.getMinSamplingRate(version);
-   
+
    // calculate frame length, use padding
    rval = calculateFrameLength(version, layer, bitrate, samplingRate, true);
-   
+
    return rval;
 }

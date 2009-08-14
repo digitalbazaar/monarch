@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/data/xml/XmlWriter.h"
 
@@ -26,7 +26,7 @@ XmlWriter::~XmlWriter()
 string XmlWriter::encode(const char* data)
 {
    string rval;
-   
+
    for(int i = 0; data[i] != 0; i++)
    {
       switch(data[i])
@@ -51,14 +51,14 @@ string XmlWriter::encode(const char* data)
             break;
       }
    }
-   
+
    return rval;
 }
 
 bool XmlWriter::writeIndentation(OutputStream* os, int level)
 {
    bool rval = true;
-   
+
    // write out indentation
    int indent = mCompact ? 0 : (level * mIndentSpaces);
    if(indent > 0)
@@ -67,19 +67,19 @@ bool XmlWriter::writeIndentation(OutputStream* os, int level)
       memset(temp, ' ', indent);
       rval = os->write(temp, indent);
    }
-   
+
    return rval;
 }
 
 bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
 {
    bool rval = true;
-   
+
    if(level < 0)
    {
       level = mIndentLevel;
    }
-   
+
    if(dyno.isNull())
    {
       rval = writeIndentation(os, level + 1) && os->write("<null/>", 7);
@@ -110,7 +110,7 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
             tagName = "array";
             break;
       }
-      
+
       // write opening tag, if element is empty, use compact element
       int tagLength = strlen(tagName);
       rval =
@@ -119,7 +119,7 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
          os->write("<", 1) &&
          os->write(tagName, tagLength) &&
          ((dyno->length() == 0) ? os->write("/>", 2) : os->write(">", 1));
-      
+
       // write element data/contents
       if(rval && dyno->length() > 0)
       {
@@ -151,7 +151,7 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                while(rval && i->hasNext())
                {
                   DynamicObject next = i->next();
-                  
+
                   // serialize member name and value
                   rval =
                      (mCompact ? true : os->write("\n", 1)) &&
@@ -174,9 +174,9 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                while(rval && i->hasNext())
                {
                   DynamicObject next = i->next();
-                  
+
                   // serialize element index and value
-                  sprintf(temp, "%i", i->getIndex()); 
+                  sprintf(temp, "%i", i->getIndex());
                   rval =
                      (mCompact ? true : os->write("\n", 1)) &&
                      writeIndentation(os, level + 1) &&
@@ -191,7 +191,7 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                break;
             }
          }
-         
+
          // write end element
          // (only write indentation for map or array)
          if(dyno->getType() == Map || dyno->getType() == Array)
@@ -200,7 +200,7 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                (mCompact ? true : os->write("\n", 1)) &&
                writeIndentation(os, level);
          }
-         
+
          rval =
             rval &&
             os->write("</", 2) &&
@@ -208,18 +208,18 @@ bool XmlWriter::write(DynamicObject& dyno, OutputStream* os, int level)
             os->write(">", 1);
       }
    }
-   
+
    return rval;
 }
 
 bool XmlWriter::write(DynamicObject& dyno, OutputStream* os)
 {
    bool rval;
-   
+
    ByteBuffer b(1024);
    BufferedOutputStream bos(&b, os);
    rval = write(dyno, &bos, mIndentLevel) && bos.flush();
-   
+
    return rval;
 }
 

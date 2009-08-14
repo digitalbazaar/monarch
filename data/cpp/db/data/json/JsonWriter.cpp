@@ -33,7 +33,7 @@ bool JsonWriter::writeIndentation(OutputStream* os, int level)
 {
    bool rval = true;
    int indent = mCompact ? 0 : (level * mIndentSpaces);
-   
+
    // write out indentation
    if(indent > 0)
    {
@@ -41,7 +41,7 @@ bool JsonWriter::writeIndentation(OutputStream* os, int level)
       memset(temp, ' ', indent);
       rval = os->write(temp, indent);
    }
-   
+
    return rval;
 }
 
@@ -66,7 +66,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
          {
             const char* temp = dyno->getString();
             size_t length = strlen(temp);
-            
+
             // Note: UTF-8 has a maximum of 6-bytes per character when
             // encoded in json format ("/u1234")
             string encoded;
@@ -118,7 +118,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                   }
                }
             }
-            
+
             // end string serialization and write encoded string
             encoded.push_back('"');
             rval = os->write(encoded.c_str(), encoded.length());
@@ -139,13 +139,13 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
          {
             // start map serialization
             rval = (mCompact) ? os->write("{", 1) : os->write("{\n", 2);
-            
+
             // serialize each map member
             DynamicObjectIterator i = dyno.getIterator();
             while(rval && i->hasNext())
             {
                DynamicObject& next = i->next();
-               
+
                // serialize indentation and start serializing member name
                if((rval =
                   writeIndentation(os, level + 1) &&
@@ -156,13 +156,13 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                   rval = ((mCompact) ?
                      os->write("\":", 2) : os->write("\" : ", 4)) &&
                      write(next, os, level + 1);
-                  
+
                   // serialize delimiter if appropriate
                   if(rval && i->hasNext())
                   {
                      rval = os->write(",", 1);
                   }
-                  
+
                   // add formatting if appropriate
                   if(rval && !mCompact)
                   {
@@ -170,7 +170,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                   }
                }
             }
-            
+
             // end map serialization
             rval = writeIndentation(os, level) && os->write("}", 1);
             break;
@@ -179,7 +179,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
          {
             // start array serialization
             rval = (mCompact) ? os->write("[", 1) : os->write("[\n", 2);
-            
+
             // serialize each array element
             DynamicObjectIterator i = dyno.getIterator();
             while(rval && i->hasNext())
@@ -188,44 +188,44 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                rval =
                   writeIndentation(os, level + 1) &&
                   write(i->next(), os, level + 1);
-               
+
                // serialize delimiter if appropriate
                if(rval && i->hasNext())
                {
                   rval = os->write(",", 1);
                }
-               
+
                // add formatting if appropriate
                if(rval && !mCompact)
                {
                   rval = os->write("\n", 1);
                }
             }
-            
+
             // end array serialization
             rval = writeIndentation(os, level) && os->write("]", 1);
             break;
          }
       }
    }
-   
+
    return rval;
 }
 
 bool JsonWriter::write(DynamicObject& dyno, OutputStream* os)
 {
    bool rval = true;
-   
+
    if(mStrict)
    {
       rval = !dyno.isNull();
-      
+
       DynamicObjectType type;
       if(rval)
       {
          type = dyno->getType();
       }
-   
+
       if(!rval || !(type == Map || type == Array))
       {
          ExceptionRef e = new Exception(
@@ -235,14 +235,14 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os)
          rval = false;
       }
    }
-   
+
    if(rval)
    {
       ByteBuffer b(1024);
       BufferedOutputStream bos(&b, os);
       rval = write(dyno, &bos, mIndentLevel) && bos.flush();
    }
-   
+
    return rval;
 }
 
@@ -274,13 +274,13 @@ std::string JsonWriter::writeToString(
    DynamicObject dyno, bool compact, bool strict)
 {
    string rval;
-   
+
    ostringstream oss;
    if(writeToOStream(dyno, oss, compact, strict))
    {
       rval = oss.str();
    }
-   
+
    return rval;
 }
 

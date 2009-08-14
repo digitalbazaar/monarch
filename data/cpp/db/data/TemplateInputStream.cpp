@@ -70,16 +70,16 @@ void TemplateInputStream::setVariables(DynamicObject& vars, bool strict)
 
 /**
  * Checks for a variable error.
- * 
+ *
  * @param start the start of the data.
  * @param pos the position.
- * 
+ *
  * @return true if there was no error, false if there was.
  */
 static bool checkVariableError(const char* start, const char* pos)
 {
    bool rval = true;
-   
+
    switch(pos[0])
    {
       case EOL:
@@ -102,7 +102,7 @@ static bool checkVariableError(const char* start, const char* pos)
       default:
          break;
    }
-   
+
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -111,20 +111,20 @@ static bool checkVariableError(const char* start, const char* pos)
          "db.data.TemplateInputStream.InvalidVariable");
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 bool TemplateInputStream::process(const char* pos)
 {
    bool rval = true;
-   
+
    if(mParsingVariable)
    {
       // handle invalid variables
       rval = checkVariableError(mTemplate.data(), pos);
    }
-   
+
    if(rval && mEscapeOn)
    {
       // escape IS on
@@ -189,14 +189,14 @@ bool TemplateInputStream::process(const char* pos)
          {
             // no longer parsing variable
             mParsingVariable = false;
-            
+
             // get variable name, clear VAR_END
             int len = pos - mTemplate.data();
             char varname[len + 1];
             varname[len] = 0;
             mTemplate.get(varname, len);
             mTemplate.clear(1);
-            
+
             // get variable value
             if(mVars->hasMember(varname))
             {
@@ -228,14 +228,14 @@ bool TemplateInputStream::process(const char* pos)
          }
       }
    }
-   
+
    return rval;
 }
 
 const char* TemplateInputStream::getNext(const char* start)
 {
    const char* rval = NULL;
-   
+
    if(mEscapeOn)
    {
       rval = (start[0] == 0 ? NULL : start);
@@ -244,14 +244,14 @@ const char* TemplateInputStream::getNext(const char* start)
    {
       rval = strpbrk(start, SPECIAL);
    }
-   
+
    return rval;
 }
 
 int TemplateInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    // while no error AND parsed is empty AND NOT when end of stream
    // and the template buffer is empty
    while(rval != -1 && mParsed.isEmpty() &&
@@ -265,13 +265,13 @@ int TemplateInputStream::read(char* b, int length)
          rval = mTemplate.put(mInputStream, mTemplate.freeSpace() - 1);
          mEndOfStream = (rval == 0);
       }
-      
+
       // there is data to parse if no IO error and template is not empty
       if(rval != -1 && !mTemplate.isEmpty())
       {
          // add null-terminator to template data to use string functions
          mTemplate.putByte(0, 1, false);
-         
+
          // process all special characters
          bool parseError = false;
          const char* pos;
@@ -279,7 +279,7 @@ int TemplateInputStream::read(char* b, int length)
          {
             parseError = !process(pos);
          }
-         
+
          if(!parseError)
          {
             // corner-case where variable name does not terminate
@@ -297,13 +297,13 @@ int TemplateInputStream::read(char* b, int length)
                mTemplate.get(&mParsed, mTemplate.length() - 1, false);
             }
          }
-         
+
          if(parseError)
          {
             // create "near" string that failed parsing
             char nearStr[mTemplate.length()];
             strncpy(nearStr, mTemplate.data(), mTemplate.length());
-            
+
             // include line, position, and part of string that was parsed
             // in the parse exception
             ExceptionRef e = new Exception(
@@ -315,12 +315,12 @@ int TemplateInputStream::read(char* b, int length)
             Exception::push(e);
             rval = -1;
          }
-         
+
          // remove null-terminator
          mTemplate.trim(1);
       }
    }
-   
+
    // return any parsed data
    if(rval != -1 && !mParsed.isEmpty())
    {
@@ -335,25 +335,25 @@ int TemplateInputStream::read(char* b, int length)
       Exception::set(e);
       rval = -1;
    }
-   
+
    return rval;
 }
 
 bool TemplateInputStream::parse(OutputStream* os)
 {
    bool rval = true;
-   
+
    char tmp[BUFFER_SIZE];
    int numBytes;
    while(rval && (numBytes = read(tmp, BUFFER_SIZE)) > 0)
    {
       rval = os->write(tmp, numBytes);
    }
-   
+
    if(numBytes < 0)
    {
       rval = false;
    }
-   
+
    return rval;
 }

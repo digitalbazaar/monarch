@@ -13,7 +13,7 @@ DynamicObjectOutputStream::DynamicObjectOutputStream(
 {
    mReader = reader;
    mCleanupReader = cleanup;
-   
+
    // start DynamicObjectReader
    mReader->start(dyno);
 }
@@ -30,7 +30,7 @@ bool DynamicObjectOutputStream::write(const char* b, int length)
 {
    // set input stream byte array
    mInputStream.setByteArray(b, length);
-   
+
    // use reader
    return mReader->read(&mInputStream);
 }

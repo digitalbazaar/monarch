@@ -34,12 +34,12 @@ bool DomWriter::writeWithNamespaceSupport(
    Element& e, OutputStream* os, int level, DynamicObject& nsPrefixMap)
 {
    bool rval = true;
-   
+
    if(level < 0)
    {
       level = mIndentLevel;
    }
-   
+
    // add any entries to the current namespace prefix map
    if(e->hasMember("attributes") && e["attributes"]->getType() == Map)
    {
@@ -47,7 +47,7 @@ bool DomWriter::writeWithNamespaceSupport(
       while(attrs->hasNext())
       {
          Attribute& attr = attrs->next();
-         
+
          // check for an xml namespace prefix definition
          const char* attrName = attrs->getName();
          if(strncmp(attrName, "xmlns:", 6) == 0)
@@ -57,7 +57,7 @@ bool DomWriter::writeWithNamespaceSupport(
          }
       }
    }
-   
+
    // create element name, which may require using the namespace prefix map
    string elementName;
    if(e->hasMember("namespace"))
@@ -71,21 +71,21 @@ bool DomWriter::writeWithNamespaceSupport(
       }
    }
    elementName.append(e["name"]->getString());
-   
+
    // open start element
    rval =
       ((mCompact || level == 0) ? true : os->write("\n", 1)) &&
       writeIndentation(os, level) &&
       os->write("<", 1) &&
       os->write(elementName.c_str(), elementName.length());
-   
+
    // write attributes
    e["attributes"]->setType(Map);
    AttributeIterator attrs = e["attributes"].getIterator();
    while(rval && attrs->hasNext())
    {
       Attribute& attr = attrs->next();
-      
+
       // create attribute name, which may require using the namespace prefix map
       string attrName;
       if(attr->hasMember("namespace"))
@@ -99,7 +99,7 @@ bool DomWriter::writeWithNamespaceSupport(
          }
       }
       attrName.append(attr["name"]->getString());
-      
+
       rval =
          os->write(" ", 1) &&
          os->write(attrName.c_str(), attrName.length()) &&
@@ -107,14 +107,14 @@ bool DomWriter::writeWithNamespaceSupport(
          os->write(attr["value"]->getString(), attr["value"]->length()) &&
          os->write("\"", 1);
    }
-   
+
    // close start element, if element is empty, use compact element
    e["data"]->setType(String);
    e["children"]->setType(Map);
    int dataLength = e["data"]->length();
    bool empty = (dataLength == 0 && e["children"]->length() == 0);
-   rval = rval && (empty ? os->write("/>", 2) : os->write(">", 1));   
-   
+   rval = rval && (empty ? os->write("/>", 2) : os->write(">", 1));
+
    // write element data and children
    if(rval && !empty)
    {
@@ -137,7 +137,7 @@ bool DomWriter::writeWithNamespaceSupport(
             }
          }
       }
-      
+
       // write element data
       if(dataLength > 0)
       {
@@ -145,7 +145,7 @@ bool DomWriter::writeWithNamespaceSupport(
          string encoded = encode(e["data"]->getString());
          rval = os->write(encoded.c_str(), encoded.length());
       }
-      
+
       // write end element
       // (only write indentation when data is blank and children are present)
       if(dataLength == 0 && !empty)
@@ -154,13 +154,13 @@ bool DomWriter::writeWithNamespaceSupport(
             (mCompact ? true : os->write("\n", 1)) &&
             writeIndentation(os, level);
       }
-      
+
       rval = rval &&
          os->write("</", 2) &&
          os->write(elementName.c_str(), elementName.length()) &&
          os->write(">", 1);
    }
-   
+
    return rval;
 }
 

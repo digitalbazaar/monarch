@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_data_Data_H
 #define db_data_Data_H
@@ -15,23 +15,23 @@ namespace data
 
 /**
  * Various support macros and types for data processing.
- * 
+ *
  * @author David I. Lehn
  */
 
 /**
  * Single value for storage of a FOURCC type.
- */ 
+ */
 typedef uint32_t fourcc_t;
 
 /**
  * Convert four characters to a fourcc_t in host endianess.
- * 
+ *
  * @param a first character
  * @param b second character
  * @param c third character
  * @param d fourth character
- *  
+ *
  * @return a fourcc_t
  */
 #define DB_FOURCC_FROM_CHARS(a,b,c,d) \
@@ -39,16 +39,16 @@ typedef uint32_t fourcc_t;
 
 /**
  * Convert a four character string to a fourcc_t in host endianess.
- * 
+ *
  * @param s a string with at least four characters
- *  
+ *
  * @return a fourcc_t
  */
 #define DB_FOURCC_FROM_STR(s) DB_FOURCC_FROM_CHARS((s)[0],(s)[1],(s)[2],(s)[3])
 
 /**
  * Set a string to fourcc values.
- * 
+ *
  * @param s a fourcc_t
  * @param s a string with at least four characters
  */
@@ -63,11 +63,11 @@ typedef uint32_t fourcc_t;
  * Compare a fourcc with a string.  This check might be faster on an expected
  * failure due to a short-circuit fail on the first character.  An alternative
  * which may be faster on expected successful compares is:
- * (aFourcc == DB_FOURCC_FROM_STR(aString)) 
- * 
+ * (aFourcc == DB_FOURCC_FROM_STR(aString))
+ *
  * @param fourcc a fourcc_t
  * @param s a string with at least four characters
- * 
+ *
  * @return true on a match, false otherwise
  */
 #define DB_FOURCC_CMP_STR(fourcc, s) \
@@ -78,9 +78,9 @@ typedef uint32_t fourcc_t;
 
 /**
  * Create a mask for first N characters of a fourcc_t.
- * 
+ *
  * @param n number of characters to mask.  n in range [1,4].
- * 
+ *
  * @return a mask for first N characters of a fourcc_t:
  *         1 => "?---",
  *         2 => "??--",
@@ -93,12 +93,12 @@ typedef uint32_t fourcc_t;
  * Compare a fourcc with a string.  This check might be faster on an expected
  * failure due to a short-circuit fail on the first character.  An alternative
  * which may be faster on expected successful compares is:
- * (aFourcc == DB_FOURCC_FROM_STR(aString)) 
- * 
+ * (aFourcc == DB_FOURCC_FROM_STR(aString))
+ *
  * @param fourcc a fourcc_t
  * @param s a string with at least four characters
  * @param n number of characters to compare in range [1,4]
- * 
+ *
  * @return true on a match, false otherwise
  */
 #define DB_FOURCC_NCMP_STR(fourcc, s, n) \
@@ -107,18 +107,18 @@ typedef uint32_t fourcc_t;
 
 /**
  * A printf style format string.
- * 
+ *
  * printf("fourcc=%" DB_FOURCC_FORMAT "\n", DB_FOURCC_ARGS(fourcc));
  */
 #define DB_FOURCC_FORMAT "c%c%c%c"
 
 /**
  * Break down a fourcc_t into printf args.
- * 
+ *
  * printf("fourcc=%" DB_FOURCC_FORMAT "\n", DB_FOURCC_ARGS(fourcc));
- * 
+ *
  * @param fourcc a fourcc_t
- *  
+ *
  * @return a list of args
  */
 #define DB_FOURCC_ARGS(fourcc) \

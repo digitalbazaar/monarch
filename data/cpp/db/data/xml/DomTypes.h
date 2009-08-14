@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_data_xml_DomTypes_H
 #define db_data_xml_DomTypes_H
@@ -16,7 +16,7 @@ namespace xml
 
 /**
  * An Element has a name, attributes, data, and children.
- * 
+ *
  * Element
  * {
  *    "name" : string,
@@ -25,7 +25,7 @@ namespace xml
  *    "data" : string,
  *    "children" : Map of Arrays
  * }
- * 
+ *
  * @member name the name of the element.
  * @member namespace the namespace for the element.
  * @member attributes a map of attribute names to attributes.
@@ -37,14 +37,14 @@ typedef db::rt::DynamicObjectIterator ElementIterator;
 
 /**
  * An Attribute has a value and a namespace.
- * 
+ *
  * Attribute
  * {
  *    "name" : string,
  *    "namespace" : string,
  *    "value" : string
  * }
- * 
+ *
  * @member name the name of the attribute.
  * @member value the value of the attribute.
  * @member namespace the namespace for the attribute.

@@ -24,13 +24,13 @@ bool AviHeaderList::writeTo(OutputStream& os)
 
    // write RIFF header
    rval = mRiffHeader.writeTo(os);
-   
+
    if(rval)
    {
       // write the main AVI header
       rval = mMainHeader.writeTo(os);
    }
-   
+
    // write each stream header list
    for(list<AviStreamHeaderList>::iterator i = mStreamHeaderLists.begin();
       i != mStreamHeaderLists.end() && rval;
@@ -38,14 +38,14 @@ bool AviHeaderList::writeTo(OutputStream& os)
    {
       rval = (*i).writeTo(os);
    }
-   
+
    return rval;
 }
 
 bool AviHeaderList::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
-   
+
    // convert the header
    int offset = 0;
    if(mRiffHeader.convertFromBytes(b + offset, length) &&
@@ -54,23 +54,23 @@ bool AviHeaderList::convertFromBytes(const char* b, int length)
       // step forward past RIFF header
       offset += RiffListHeader::HEADER_SIZE;
       length -= RiffListHeader::HEADER_SIZE;
-      
+
       // convert main header
       if(mMainHeader.convertFromBytes(b + offset, length))
       {
          // main header converted
          rval = true;
-         
+
          // ensure there is enough data remaining to convert the header list
          if(length >= (int)mRiffHeader.getListSize())
          {
             // set length to size of list
             length = (int)mRiffHeader.getListSize();
-            
+
             // move past header
             offset += mMainHeader.getSize();
             length -= mMainHeader.getSize();
-            
+
             // convert all stream header lists
             while(length > 0)
             {
@@ -78,7 +78,7 @@ bool AviHeaderList::convertFromBytes(const char* b, int length)
                if(list.convertFromBytes(b + offset, length))
                {
                   mStreamHeaderLists.push_back(list);
-                  
+
                   // move to next stream header list
                   offset += list.getSize();
                   length -= list.getSize();
@@ -95,7 +95,7 @@ bool AviHeaderList::convertFromBytes(const char* b, int length)
          }
       }
    }
-   
+
    return rval;
 }
 

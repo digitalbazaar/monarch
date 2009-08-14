@@ -26,14 +26,14 @@ void AudioCrc16::reset()
 int AudioCrc16::getAudioDataAmount(AudioFrameHeader* header)
 {
    int rval = 0;
-   
+
    // determine the number of bits of audio data to use in the CRC
    int audioDataBits = 0;
-   
+
    // get the channel count and stereo subband bound
    int channels = header->getChannelCount();
    int bound = header->getJointStereoBound();
-   
+
    // how many bits to use depends on the layer type
    AudioLayer layer;
    header->getLayer(layer);
@@ -58,27 +58,27 @@ int AudioCrc16::getAudioDataAmount(AudioFrameHeader* header)
          // do nothing, no audio data bits
          break;
    }
-   
+
    if(audioDataBits > 0)
    {
       // determine the number of audio data bytes (round up)
       rval = (int)round(((double)audioDataBits / 8));
    }
-   
-   return rval;      
+
+   return rval;
 }
 
 int AudioCrc16::calculateCrc(AudioFrameHeader* header, const char* audioData)
 {
    // reset the CRC value
    reset();
-   
+
    // update the CRC with the last 2 header bytes
    update(header->getBytes()->bytes() + 2, 2);
-   
+
    // update the CRC with the audio data amount
    update(audioData, getAudioDataAmount(header));
-   
+
    // return the CRC check sum
    return getChecksum();
 }

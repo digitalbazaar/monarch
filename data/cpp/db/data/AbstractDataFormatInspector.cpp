@@ -35,7 +35,7 @@ void AbstractDataFormatInspector::setSkipBytes(long long count)
 int AbstractDataFormatInspector::inspectData(const char* b, int length)
 {
    int rval = 0;
-   
+
    // inspect data if not satisfied or if keep-inspecting enabled
    if(!isDataSatisfied() || (keepInspecting() && isFormatRecognized()))
    {
@@ -52,7 +52,7 @@ int AbstractDataFormatInspector::inspectData(const char* b, int length)
          // try to detect format
          rval = detectFormat(b, length);
       }
-      
+
       // increase number of inspected bytes
       mBytesInspected += rval;
    }
@@ -61,7 +61,7 @@ int AbstractDataFormatInspector::inspectData(const char* b, int length)
       // consider all data inspected
       rval = length;
    }
-   
+
    return rval;
 }
 

@@ -22,10 +22,10 @@ AviStreamData::~AviStreamData()
 bool AviStreamData::writeTo(OutputStream& os)
 {
    bool rval;
-   
+
    // write RIFF header
    rval = mRiffHeader.writeTo(os);
-   
+
    if(rval)
    {
       // write data
@@ -38,7 +38,7 @@ bool AviStreamData::writeTo(OutputStream& os)
 bool AviStreamData::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
-   
+
    // convert the RIFF header
    if(mRiffHeader.convertFromBytes(b, length) && isValid())
    {
@@ -49,12 +49,12 @@ bool AviStreamData::convertFromBytes(const char* b, int length)
 //            mData = new byte[getChunkSize()];
 //            System.arraycopy(b, offset + RiffChunkHeader.CHUNK_HEADER_SIZE,
 //               mData, 0, getChunkSize());
-         
+
          // converted successfully
          rval = true;
       }
    }
-   
+
    return rval;
 }
 

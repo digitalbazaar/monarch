@@ -22,23 +22,23 @@ AviStreamHeader::~AviStreamHeader()
 bool AviStreamHeader::writeTo(OutputStream& os)
 {
    bool rval;
-   
+
    // write RIFF header
    rval = mRiffHeader.writeTo(os);
-   
+
    if(rval)
    {
       // write data
       rval = os.write(mData, HEADER_SIZE);
    }
-   
+
    return rval;
 }
 
 bool AviStreamHeader::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
-   
+
    // convert the RIFF header
    if(mRiffHeader.convertFromBytes(b, length) && isValid())
    {
@@ -46,12 +46,12 @@ bool AviStreamHeader::convertFromBytes(const char* b, int length)
       if(length >= getSize())
       {
          memcpy(mData, b + RiffChunkHeader::HEADER_SIZE, getChunkSize());
-         
+
          // converted successfully
          rval = true;
       }
    }
-   
+
    return rval;
 }
 

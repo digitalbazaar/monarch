@@ -29,7 +29,7 @@ uint32_t AviHeader::readDWord(int offset)
    {
       rval = DB_UINT32_FROM_LE(*((uint32_t*)(mData + offset)));
    }
-   
+
    return rval;
 }
 
@@ -39,20 +39,20 @@ bool AviHeader::writeTo(OutputStream& os)
 
    // write RIFF header
    rval = mRiffHeader.writeTo(os);
-   
+
    if(rval)
    {
       // write data
       rval = os.write(mData, HEADER_SIZE);
    }
-   
+
    return rval;
 }
 
 bool AviHeader::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
-   
+
    // convert the RIFF header
    if(mRiffHeader.convertFromBytes(b, length) &&
       mRiffHeader.getIdentifier() == CHUNK_ID)
@@ -61,12 +61,12 @@ bool AviHeader::convertFromBytes(const char* b, int length)
       if(length >= getSize())
       {
          memcpy(mData, b + RiffChunkHeader::HEADER_SIZE, HEADER_SIZE);
-         
+
          // converted successfully
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
@@ -77,7 +77,7 @@ bool AviHeader::isValid()
 
 int AviHeader::getChunkSize()
 {
-   // AVI header chunk size is 56 bytes      
+   // AVI header chunk size is 56 bytes
    return (int)mRiffHeader.getChunkSize();
 }
 
@@ -170,12 +170,12 @@ uint32_t AviHeader::getDataRate()
 double AviHeader::getFrameRate()
 {
    double rval = 0.0;
-   
+
    if(getTimeScale() != 0)
    {
       rval = (double)getDataRate() / getTimeScale();
    }
-   
+
    return rval;
 }
 
@@ -197,12 +197,12 @@ uint32_t AviHeader::getTotalTime()
 double AviHeader::getTotalSeconds()
 {
    double rval = 0.0;
-   
+
    if(getTotalFrames() != 0)
    {
       rval = getMicrosecondsPerFrame() / 1000000.0;
       rval *= getTotalFrames();
    }
-   
+
    return rval;
 }

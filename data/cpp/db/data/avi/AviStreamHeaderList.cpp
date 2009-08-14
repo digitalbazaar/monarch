@@ -20,7 +20,7 @@ AviStreamHeaderList::~AviStreamHeaderList()
 bool AviStreamHeaderList::writeTo(OutputStream& os)
 {
    bool rval;
-   
+
    // write RIFF header
    // write stream header
    // write stream format
@@ -28,7 +28,7 @@ bool AviStreamHeaderList::writeTo(OutputStream& os)
       mRiffHeader.writeTo(os) &&
       mStreamHeader.writeTo(os) &&
       mStreamFormat.writeTo(os);
-   
+
    if(rval)
    {
       // write stream data, if present
@@ -37,14 +37,14 @@ bool AviStreamHeaderList::writeTo(OutputStream& os)
          rval = mStreamData.writeTo(os);
       }
    }
-   
+
    return rval;
 }
 
 bool AviStreamHeaderList::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
-   
+
    // convert the RIFF header
    if(mRiffHeader.convertFromBytes(b, length) &&
       mRiffHeader.getIdentifier() == CHUNK_ID)
@@ -54,27 +54,27 @@ bool AviStreamHeaderList::convertFromBytes(const char* b, int length)
       {
          // step forward past RIFF header
          b += RiffListHeader::HEADER_SIZE;
-         
+
          // set length to list size
          length = (int)mRiffHeader.getListSize();
-         
+
          // convert header
          if(mStreamHeader.convertFromBytes(b, length))
          {
             // step forward past header
             b += mStreamHeader.getSize();
             length -= mStreamHeader.getSize();
-            
+
             // convert format
             if(mStreamFormat.convertFromBytes(b, length))
             {
                // header list converted, 'strd' is not used
                rval = true;
-               
+
                // step forward past format
                b += mStreamFormat.getSize();
                length -= mStreamFormat.getSize();
-               
+
                // look for stream data anyway
                if(length > 0)
                {
@@ -85,7 +85,7 @@ bool AviStreamHeaderList::convertFromBytes(const char* b, int length)
          }
       }
    }
-   
+
    return rval;
 }
 

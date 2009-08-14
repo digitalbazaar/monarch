@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/data/id3v2/Tag.h"
 
@@ -28,10 +28,10 @@ void Tag::addFrameHeader(FrameHeader* header, bool updateSize)
    {
       mFrameHeaderMap[header->getId()] = header;
    }
-   
+
    // add frame header
    mFrameHeaders.push_back(header);
-   
+
    if(updateSize)
    {
       // update tag size
@@ -43,13 +43,13 @@ void Tag::addFrameHeader(FrameHeader* header, bool updateSize)
 FrameHeader* Tag::getFrameHeader(const char* id)
 {
    FrameHeader* rval = NULL;
-   
+
    FrameHeaderMap::iterator i = mFrameHeaderMap.find(id);
    if(i != mFrameHeaderMap.end())
    {
       rval = i->second;
    }
-   
+
    return rval;
 }
 

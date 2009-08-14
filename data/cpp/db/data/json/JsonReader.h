@@ -125,10 +125,10 @@ enum JsonState {
  * JSON (JavaScript Object Notation) (RFC 4627).  Optionally can deserialize
  * just JSON values.
  * Partly based on work from:
- * 
+ *
  * http://www.json.org/
  * http://fara.cs.uni-potsdam.de/~jsg/json_parser/
- * 
+ *
  * The JSON parser works by examining a character at a time.  It first uses a
  * character to class mapping table (sAsciiToClass) to convert a character
  * into a smaller set of classes.  Then a state transition table (sStateTable)
@@ -141,13 +141,13 @@ enum JsonState {
  * processNext() can perform actions when a state transition occurs.  This is
  * used to do all of the state and stack manipulation.  This can be called
  * recusively for C_DO for instance.
- * 
+ *
  * Objects that have known end states can be created directly.  This includes
  * strings, true, false, null, objects, and arrays.  Objects such as numbers
  * can be any length and the parser doesn't know a number is done until it
  * parses and non-number input class.  At this point it will process the number
- * and then re-call processNext with the next non-number input.   
- * 
+ * and then re-call processNext with the next non-number input.
+ *
  * @author David I. Lehn <dlehn@digitalbazaar.com>
  */
 class JsonReader : public DynamicObjectReader
@@ -157,22 +157,22 @@ protected:
     * True if JSON must start with an object or array.
     */
    bool mStrict;
-   
+
    /**
     * True if this JSON parser has started, false if not.
     */
    bool mStarted;
-   
+
    /**
     * Current state.
     */
    JsonState mState;
-   
+
    /**
     * A stack of parse states.
     */
    std::vector<JsonState> mStateStack;
-   
+
    /**
     * Temporary string built up as input is parsed.  Interpreted as needed.
     */
@@ -182,22 +182,22 @@ protected:
     * A stack of DynamicObjects.
     */
    std::vector<db::rt::DynamicObject> mDynoStack;
-   
+
    /**
     * The final target DynamicObject set from start().
     */
    db::rt::DynamicObject* mTarget;
-   
+
    /**
     * The read size in bytes.
     */
    static unsigned int READ_SIZE;
-   
+
    /**
     * Current buffer.
     */
    char* mBuffer;
-   
+
    /**
     * Line number for debugging (count of '\n's, starting at 1).
     */
@@ -207,78 +207,78 @@ protected:
     * Flag if root Object or Array was found.
     */
    bool mValid;
-   
+
    /**
     * Process a buffer of characters.
-    * 
+    *
     * @param c string buffer.
     * @param count size of c.
     * @param position an integer set to the position of the last character
     *                 that was parsed.
-    * 
+    *
     * @return true if successful, false if an Exception occurred.
     */
    bool process(const char* c, int count, int& position);
-   
+
    /**
     * Process one input object.  For most classes the parameter c is used
     * to pass the character object.  For C_DO the DynamicObjects to
     * process are at the back of mDynoStack.
-    * 
+    *
     * @param ic the type of input to process
     * @param c the character to process (if needed)
-    * 
+    *
     * @return true if successful, false if an Exception occurred.
     */
    bool processNext(JsonInputClass ic, char c = '\0');
-   
+
 public:
    /**
     * Creates a new JsonReader.
-    * 
+    *
     * In strict mode the JSON stream must start with an object or array.  In
     * non-strict mode any valid JSON value can be deserialized.
-    * 
+    *
     * @param strict the JSON stream must start with an object or array.
     */
    JsonReader(bool strict = true);
-   
+
    /**
     * Destructs this JsonReader.
     */
    virtual ~JsonReader();
-   
+
    /**
     * Starts deserializing an object from JSON. This JsonReader can be re-used
     * by calling start() with the same or a new object.  Calling start() before
     * a previous deserialization has finished will abort the previous state.
-    * 
+    *
     * Using a non-empty target object can be used to merge in new values.  This
     * is only defined for similar object types (ie, merging an array into a map
     * will overwrite the map).
-    * 
+    *
     * @param dyno the DynamicObject for the object to deserialize.
     */
    virtual void start(db::rt::DynamicObject& dyno);
-   
+
    /**
     * This method reads JSON from the passed InputStream until the end of
     * the stream, blocking if necessary.
-    * 
+    *
     * The start() method must be called at least once before calling read(). As
     * the JSON is read, the DynamicObject provided in start() is used to
     * deserialize an object.
-    * 
+    *
     * This method may be called multiple times if the input stream needs to
     * be populated in between calls or if multiple input streams are used.
-    * 
+    *
     * The object is built incrementally and on error will be partially built.
-    * 
+    *
     * finish() should be called after the read is complete in order to check
     * that a top level object is complete.
-    * 
+    *
     * @param is the InputStream to read the JSON from.
-    * 
+    *
     * @return true if the read succeeded, false if an Exception occurred.
     */
    virtual bool read(db::io::InputStream* is);
@@ -286,19 +286,19 @@ public:
    /**
     * Finishes deserializing an object from JSON. This method should be called
     * to complete deserialization and verify valid JSON was found.
-    * 
+    *
     * @return true if the finish succeeded, false if an Exception occurred.
     */
    virtual bool finish();
-   
+
    /**
     * Reads a DynamicObject as JSON from a string.
-    * 
+    *
     * @param dyno the DynamicObject to fill.
     * @param s the string to read from.
     * @param slen the length of s.
     * @param strict the JSON stream must start with an object or array.
-    * 
+    *
     * @return true on success, false and exception set on failure.
     */
    static bool readFromString(

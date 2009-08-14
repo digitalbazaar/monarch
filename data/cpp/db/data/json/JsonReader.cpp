@@ -111,11 +111,11 @@ void JsonReader::start(DynamicObject& dyno)
    // clear stacks
    mDynoStack.clear();
    mStateStack.clear();
-   
+
    // set object as target and push to stack
    mTarget = &dyno;
    mDynoStack.push_back(dyno);
-   
+
    // set current state
    if(mStrict)
    {
@@ -127,10 +127,10 @@ void JsonReader::start(DynamicObject& dyno)
       // just a value
       mState = V_;
    }
-   
+
    // start line count
    mLineNumber = 1;
-   
+
    // read started
    mStarted = true;
 
@@ -140,13 +140,13 @@ void JsonReader::start(DynamicObject& dyno)
 bool JsonReader::processNext(JsonInputClass ic, char c)
 {
    bool rval = true;
-   
+
    // keep track of line count
    if(c == '\n')
    {
       mLineNumber++;
    }
-   
+
    JsonState next = sStateTable[mState][ic];
 
    switch(next)
@@ -181,7 +181,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
 
          // set key=value
          obj[key->getString()] = value;
-         
+
          mState = next;
          break;
       }
@@ -205,10 +205,10 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          // pop value
          DynamicObject value(mDynoStack.back());
          mDynoStack.pop_back();
-         
+
          // append value
          mDynoStack.back()->append(value);
-         
+
          mState = next;
          break;
       }
@@ -217,10 +217,10 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          // pop value
          DynamicObject value(mDynoStack.back());
          mDynoStack.pop_back();
-         
+
          // set object=value
          mDynoStack.back() = value;
-         
+
          // check for top level
          if(mState == V_)
          {
@@ -256,7 +256,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          {
             case '"':
             case '\\':
-            case '/': 
+            case '/':
                ec = c;
                break;
             case 'b':
@@ -300,7 +300,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          DynamicObject obj;
          obj = mString.c_str();
          mDynoStack.push_back(obj);
-         
+
          // Start new string
          mString.clear();
          mState = next;
@@ -475,7 +475,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
       case NL: /* null nul */
          mState = next;
          break;
-         
+
       /* Stay in same state */
       case _W: /* Whitespace done */
          break;
@@ -500,14 +500,14 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          break;
       }
    }
-   
+
    return rval;
 }
 
 bool JsonReader::process(const char* buffer, int count, int& position)
 {
    bool rval = true;
-   
+
    for(position = 0; rval && position < count; position++)
    {
       // FIXME: do proper unicode handling
@@ -516,14 +516,14 @@ bool JsonReader::process(const char* buffer, int count, int& position)
       JsonInputClass ic = (ci >= 0 && ci < 128) ? sAsciiToClass[ci] : C_CH;
       rval = processNext(ic, c);
    }
-   
+
    return rval;
 }
 
 bool JsonReader::read(InputStream* is)
 {
    bool rval = true;
-   
+
    if(!mStarted)
    {
       // reader not started
@@ -548,7 +548,7 @@ bool JsonReader::read(InputStream* is)
          // happen for values with terminating symbols or fixed lengths.
          rval = process(" ", 1, position);
       }
-      
+
       if(!rval)
       {
          // include line, position, and part of string that was parsed
@@ -573,14 +573,14 @@ bool JsonReader::read(InputStream* is)
          rval = false;
       }
    }
-   
+
    return rval;
 }
 
 bool JsonReader::finish()
 {
    bool rval = true;
-   
+
    if(!mValid)
    {
       ExceptionRef e;
@@ -599,11 +599,11 @@ bool JsonReader::finish()
       Exception::set(e);
       rval = false;
    }
-   
+
    // no longer started or valid
    mStarted = false;
    mValid = false;
-   
+
    return rval;
 }
 
@@ -611,12 +611,12 @@ bool JsonReader::readFromString(
    db::rt::DynamicObject& dyno, const char* s, size_t slen, bool strict)
 {
    bool rval;
-   
+
    ByteArrayInputStream is(s, slen);
    JsonReader jr(strict);
-   
+
    jr.start(dyno);
    rval = jr.read(&is) && jr.finish();
-   
+
    return rval;
 }

@@ -30,7 +30,7 @@ DynamicObjectInputStream::~DynamicObjectInputStream()
 int DynamicObjectInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    if(!mHasData)
    {
       // do full serialization into buffer
@@ -45,13 +45,13 @@ int DynamicObjectInputStream::read(char* b, int length)
          rval = -1;
       }
    }
-   
+
    if(rval == 0)
    {
       // Conversion done, just feed more data out
       rval = mBufferInputStream.read(b, length);
    }
-   
+
    return rval;
 }
 

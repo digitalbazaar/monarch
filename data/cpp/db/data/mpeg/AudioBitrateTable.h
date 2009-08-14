@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_data_mpeg_AudioBitrateTable_H
 #define db_data_mpeg_AudioBitrateTable_H
@@ -20,7 +20,7 @@ namespace mpeg
 /**
  * An AudioBitrateTable maps Bitrate Indices (as bit values in this header) to
  * particular bitrates.
- * 
+ *
  *    EEEE: Bitrate Index - an index into a Bitrate Table:
  *    bits  V1,L1 V1,L2 V1,L3   V2,L1 V2,L2&L3
  * 0  0000  free  free  free    free  free
@@ -39,7 +39,7 @@ namespace mpeg
  * 13 1101  416   320   256     224   144
  * 14 1110  448   384   320     256   160
  * 15 1111  res   res   res     res   res
- * 
+ *
  * Key:
  * All values above are in kbps (1000 bits per second NOT 1024 bits per
  * second)
@@ -50,7 +50,7 @@ namespace mpeg
  * L3 = Layer III
  * free = Free format. Application determined.
  * res = Reserved. This is invalid should never be used.
- * 
+ *
  * @author Dave Longley
  */
 class AudioBitrateTable
@@ -64,10 +64,10 @@ protected:
       /**
        * Compares two map keys using a string compare, returning true if the
        * first key is less than the second, false if not.
-       * 
+       *
        * @param k1 the first key.
        * @param k2 the second key.
-       * 
+       *
        * @return true if the k1 < k2, false if not.
        */
       bool operator()(const unsigned char* k1, const unsigned char* k2) const
@@ -75,16 +75,16 @@ protected:
          return memcmp(k1, k2, 3) < 0;
       }
    };
-   
+
    /**
     * The underlying map used to map indices, versions, and layers to bitrates.
     */
    typedef std::map<const unsigned char*, int, KeyComparator> BitrateMap;
    BitrateMap mMap;
-   
+
    /**
     * Adds a bitrate entry for the given index, version, and layer.
-    * 
+    *
     * @param index the bit values for the bitrate index.
     * @param version the MPEG version.
     * @param layer the MPEG layer.
@@ -93,51 +93,51 @@ protected:
    virtual void addBitrate(
       unsigned char index, const AudioVersion& version,
       const AudioLayer& layer, int bitrate);
-   
+
 public:
    /**
     * Creates a new AudioBitrateTable.
     */
    AudioBitrateTable();
-   
+
    /**
     * Destructs this AudioBitrateTable.
     */
    virtual ~AudioBitrateTable();
-   
+
    /**
     * Gets the bitrate for the given index (bit values as a byte), version,
     * and layer.
-    * 
+    *
     * @param index the bit values for the bitrate index.
     * @param version the MPEG version.
     * @param layer the MPEG layer type.
-    * 
+    *
     * @return the bitrate (in bits/second) with 0 indicating a free format
     *         bitrate and -1 indicating an invalid bitrate index.
     */
    virtual int getBitrate(
       unsigned char index,
       const AudioVersion& version, const AudioLayer& layer) const;
-   
+
    /**
     * Gets the minimum non-free-format bitrate for the given version and
     * layer.
-    * 
+    *
     * @param version the MPEG version.
     * @param layer the MPEG layer type.
-    * 
+    *
     * @return the minimum non-free-format bitrate (in bits/second).
     */
    virtual int getMinBitrate(
       const AudioVersion& version, const AudioLayer& layer) const;
-   
+
    /**
     * Gets the maximum bitrate for the given version and layer.
-    * 
+    *
     * @param version the MPEG version.
     * @param layer the MPEG layer type.
-    * 
+    *
     * @return the maximum bitrate (in bits/second).
     */
    virtual int getMaxBitrate(

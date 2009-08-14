@@ -28,7 +28,7 @@ InspectorInputStream::~InspectorInputStream()
    {
       // clean up name
       free((char*)i->first);
-      
+
       // clean up inspector if appropriate
       if(i->second.cleanupInspector)
       {
@@ -40,7 +40,7 @@ InspectorInputStream::~InspectorInputStream()
 int InspectorInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    if(!mFinished || mReadFully)
    {
       // if the read buffer is empty, populate it
@@ -48,7 +48,7 @@ int InspectorInputStream::read(char* b, int length)
       {
          mReadBuffer.fill(mInputStream);
       }
-      
+
       // if no bytes are available, run inspectors to release inspected bytes
       if(!mFinished && mAvailableBytes == 0)
       {
@@ -71,7 +71,7 @@ int InspectorInputStream::read(char* b, int length)
                }
             }
          }
-         
+
          // keep inspecting while inspectors are waiting and not end of stream
          bool eos = false;
          int uninspected, inspected;
@@ -83,7 +83,7 @@ int InspectorInputStream::read(char* b, int length)
             {
                // get next meta data
                DataInspectorMetaData* metaData = *i;
-               
+
                // determine the number of uninspected bytes
                uninspected = mReadBuffer.length() - metaData->inspectedBytes;
                if(uninspected > 0)
@@ -92,7 +92,7 @@ int InspectorInputStream::read(char* b, int length)
                   inspected = metaData->inspector->inspectData(
                      mReadBuffer.data() + metaData->inspectedBytes,
                      uninspected);
-                  
+
                   // see if any data was inspected
                   if(inspected > 0)
                   {
@@ -112,7 +112,7 @@ int InspectorInputStream::read(char* b, int length)
                   i = mWaiting.erase(i);
                }
             }
-            
+
             // remove all waiting inspectors if the read buffer is full or eos
             if(mReadBuffer.isFull() || eos)
             {
@@ -129,7 +129,7 @@ int InspectorInputStream::read(char* b, int length)
             }
          }
       }
-      
+
       // set the number of available bytes to the minimum inspected
       mAvailableBytes = mReadBuffer.length();
       for(InspectorMap::iterator i = mInspectors.begin();
@@ -141,7 +141,7 @@ int InspectorInputStream::read(char* b, int length)
                mAvailableBytes : i->second.inspectedBytes;
          }
       }
-      
+
       // if bytes are available, release them
       if(mAvailableBytes > 0)
       {
@@ -149,7 +149,7 @@ int InspectorInputStream::read(char* b, int length)
          rval = mReadBuffer.get(
             b, (length < mAvailableBytes) ? length : mAvailableBytes);
          mAvailableBytes -= rval;
-         
+
          // update the number of inspected bytes in each inspector
          int count;
          for(InspectorMap::iterator i = mInspectors.begin();
@@ -162,7 +162,7 @@ int InspectorInputStream::read(char* b, int length)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -170,7 +170,7 @@ bool InspectorInputStream::addInspector(
    const char* name, DataInspector* di, bool cleanup)
 {
    bool rval = false;
-   
+
    // find existing meta-data
    InspectorMap::iterator i = mInspectors.find(name);
    if(i == mInspectors.end())
@@ -180,51 +180,51 @@ bool InspectorInputStream::addInspector(
       metaData.inspector = di;
       metaData.inspectedBytes = 0;
       metaData.cleanupInspector = cleanup;
-      
+
       // store meta-data in map
       mInspectors[strdup(name)] = metaData;
-      
+
       rval = true;
    }
-   
+
    return rval;
 }
 
 bool InspectorInputStream::removeInspector(const char* name)
 {
    bool rval = false;
-   
+
    // find existing meta-data
    InspectorMap::iterator i = mInspectors.find(name);
    if(i != mInspectors.end())
    {
       // clean up name
       free((char*)i->first);
-      
+
       // clean up inspector if appropriate
       if(i->second.cleanupInspector)
       {
          delete i->second.inspector;
       }
-      
+
       mInspectors.erase(i);
       rval = true;
    }
-   
+
    return rval;
 }
 
 DataInspector* InspectorInputStream::getInspector(const char* name)
 {
    DataInspector* rval = NULL;
-   
+
    // find existing meta-data
    InspectorMap::iterator i = mInspectors.find(name);
    if(i != mInspectors.end())
    {
       rval = i->second.inspector;
    }
-   
+
    return rval;
 }
 

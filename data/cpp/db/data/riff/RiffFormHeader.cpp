@@ -19,7 +19,7 @@ RiffFormHeader::~RiffFormHeader()
 bool RiffFormHeader::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
-   
+
    if(b != NULL && length >= HEADER_SIZE)
    {
       if(mChunkHeader.convertFromBytes(b, length))
@@ -32,10 +32,10 @@ bool RiffFormHeader::convertFromBytes(const char* b, int length)
          }
       }
    }
-   
+
    setValid(rval);
-   
-   return rval;      
+
+   return rval;
 }
 
 void RiffFormHeader::setFileSize(uint32_t fileSize)

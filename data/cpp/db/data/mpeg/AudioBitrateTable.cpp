@@ -14,17 +14,17 @@ AudioBitrateTable::AudioBitrateTable()
    AudioLayer layer1(AudioLayer::Layer1);
    AudioLayer layer2(AudioLayer::Layer2);
    AudioLayer layer3(AudioLayer::Layer3);
-   
+
    // add bitrates for Version 1 Layer I
    for(unsigned char index = 0x00; index < 0x0f; index++)
    {
       addBitrate(index, mpeg1, layer1, index * 32);
    }
-   
+
    // FIXME: these bitrates could be added in simple loops,
    // but do we want to do that -- or is it easier to read as is?
    // do we care about readability in the code for these values?
-   
+
    // add bitrates for Version 1 Layer II
    addBitrate(0x00, mpeg1, layer2, 0);
    addBitrate(0x01, mpeg1, layer2, 32);
@@ -41,7 +41,7 @@ AudioBitrateTable::AudioBitrateTable()
    addBitrate(0x0c, mpeg1, layer2, 256);
    addBitrate(0x0d, mpeg1, layer2, 320);
    addBitrate(0x0e, mpeg1, layer2, 384);
-   
+
    // add bitrates for Version 1 Layer III
    addBitrate(0x00, mpeg1, layer3, 0);
    addBitrate(0x01, mpeg1, layer3, 32);
@@ -58,7 +58,7 @@ AudioBitrateTable::AudioBitrateTable()
    addBitrate(0x0c, mpeg1, layer3, 224);
    addBitrate(0x0d, mpeg1, layer3, 256);
    addBitrate(0x0e, mpeg1, layer3, 320);
-   
+
    // add bitrates for Version 2 Layer I
    addBitrate(0x00, mpeg2, layer1, 0);
    addBitrate(0x01, mpeg2, layer1, 32);
@@ -75,7 +75,7 @@ AudioBitrateTable::AudioBitrateTable()
    addBitrate(0x0c, mpeg2, layer1, 192);
    addBitrate(0x0d, mpeg2, layer1, 224);
    addBitrate(0x0e, mpeg2, layer1, 256);
-   
+
    // add bitrates for Version 2 Layer II
    addBitrate(0x00, mpeg2, layer2, 0);
    addBitrate(0x01, mpeg2, layer2, 8);
@@ -92,7 +92,7 @@ AudioBitrateTable::AudioBitrateTable()
    addBitrate(0x0c, mpeg2, layer2, 128);
    addBitrate(0x0d, mpeg2, layer2, 144);
    addBitrate(0x0e, mpeg2, layer2, 160);
-   
+
    // add bitrates for Version 2 Layer III
    addBitrate(0x00, mpeg2, layer3, 0);
    addBitrate(0x01, mpeg2, layer3, 8);
@@ -118,7 +118,7 @@ AudioBitrateTable::~AudioBitrateTable()
    {
       free((unsigned char*)i->first);
    }
-   
+
    // clear map
    mMap.clear();
 }
@@ -129,11 +129,11 @@ void AudioBitrateTable::addBitrate(
 {
    // build key from index, version, and layer
    unsigned char* key = (unsigned char*)malloc(3);
-   
+
    key[0] = index;
    key[1] = version.bitValues;
    key[2] = layer.bitValues;
-   
+
    // update key if it already exists, otherwise add it
    BitrateMap::iterator i = mMap.find(key);
    if(i != mMap.end())
@@ -152,27 +152,27 @@ int AudioBitrateTable::getBitrate(
    const AudioVersion& version, const AudioLayer& layer) const
 {
    int rval = -1;
-   
+
    // MPEG version 2.5 uses the same bitrate table as MPEG version 2
    AudioVersion v = version;
    if(v.type == AudioVersion::Mpeg25)
    {
       v.setType(AudioVersion::Mpeg2);
    }
-   
+
    // find bitrate
    unsigned char key[3];
    key[0] = index;
    key[1] = v.bitValues;
    key[2] = layer.bitValues;
-   
+
    BitrateMap::const_iterator i = mMap.find(key);
    if(i != mMap.end())
    {
       // convert from kilobits to bits
       rval = i->second * 1000;
    }
-   
+
    return rval;
 }
 

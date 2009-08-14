@@ -34,34 +34,34 @@ TagHeader::~TagHeader()
 unsigned char TagHeader::getFlagByte()
 {
    unsigned char b = 0x00;
-   
+
    if(mUnsynchronizedFlag)
    {
       b |= sUnsynchronizedBit;
    }
-   
+
    if(mExtendedHeaderFlag)
    {
       b |= sExtendedHeaderBit;
    }
-   
+
    if(mExperimentalFlag)
    {
       b |= sExperimentalBit;
    }
-   
+
    return b;
 }
 
 void TagHeader::convertToBytes(char* b)
 {
    unsigned char* ub = (unsigned char*)b;
-   
+
    memcpy(ub, "ID3", 3);
    ub[3] = mVersion;
    ub[4] = mRevision;
    ub[5] = getFlagByte();
-   
+
    // get size
    convertIntToSynchsafeBytes(mTagSize, b + 6);
 }
@@ -69,15 +69,15 @@ void TagHeader::convertToBytes(char* b)
 bool TagHeader::convertFromBytes(const char* b)
 {
    bool rval = false;
-   
+
    unsigned char* ub = (unsigned char*)b;
-   
+
    // check for "ID3"
    if(memcmp(ub, "ID3", 3) == 0)
    {
       unsigned char version = sSupportedVersion;
       unsigned char revision = sSupportedRevision;
-      
+
       // check version and revision
       if(ub[3] <= version && ub[4] <= revision)
       {
@@ -88,7 +88,7 @@ bool TagHeader::convertFromBytes(const char* b)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
@@ -162,7 +162,7 @@ inline int TagHeader::getTagSize()
 void TagHeader::convertIntToSynchsafeBytes(int integer, char* b)
 {
    unsigned char* ub = (unsigned char*)b;
-   
+
    // we may want to ensure the int is 32-bit
    // only 28 significant bits in the integer
    for(int i = 0; i < 4; i++)
@@ -174,15 +174,15 @@ void TagHeader::convertIntToSynchsafeBytes(int integer, char* b)
 int TagHeader::convertSynchsafeBytesToInt(const char* b)
 {
    int rval = 0;
-   
+
    unsigned char* ub = (unsigned char*)b;
-   
+
    // we may want to ensure the int is 32-bit
    // most significant byte first
    for(int i = 0; i < 4; i++)
    {
       rval |= ((ub[i] & 0x7F) << ((3 - i) * 7));
    }
-   
+
    return rval;
 }

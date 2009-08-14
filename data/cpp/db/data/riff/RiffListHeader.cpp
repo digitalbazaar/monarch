@@ -22,7 +22,7 @@ bool RiffListHeader::writeTo(OutputStream& os)
    char buf[HEADER_SIZE];
    convertToBytes(buf);
    return os.write(buf, HEADER_SIZE);
-}   
+}
 
 void RiffListHeader::convertToBytes(char* b)
 {
@@ -33,7 +33,7 @@ void RiffListHeader::convertToBytes(char* b)
 bool RiffListHeader::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
-   
+
    if(b != NULL && length >= HEADER_SIZE)
    {
       if(mChunkHeader.convertFromBytes(b, length))
@@ -46,10 +46,10 @@ bool RiffListHeader::convertFromBytes(const char* b, int length)
          }
       }
    }
-   
+
    setValid(rval);
-   
-   return rval;      
+
+   return rval;
 }
 
 void RiffListHeader::setIdentifier(fourcc_t id)
@@ -70,7 +70,7 @@ void RiffListHeader::setChunkSize(uint32_t size)
 uint32_t RiffListHeader::getChunkSize()
 {
    return mChunkHeader.getChunkSize();
-}   
+}
 
 void RiffListHeader::setListSize(uint32_t size)
 {

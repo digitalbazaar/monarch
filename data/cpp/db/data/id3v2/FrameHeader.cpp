@@ -23,9 +23,9 @@ FrameHeader::FrameHeader(const char* id)
    mId = (char*)malloc(5);
    strncpy(mId, id, 4);
    mId[4] = 0;
-   
+
    mDescription = strdup("");
-   
+
    mFrameSize = 0;
    mTagAlteredDiscardFrame = false;
    mFileAlteredDiscardFrame = false;
@@ -51,22 +51,22 @@ void FrameHeader::setFlags1(unsigned char b)
 unsigned char FrameHeader::getFlagByte1()
 {
    unsigned char b = 0x00;
-   
+
    if(mTagAlteredDiscardFrame)
    {
       b |= TAG_ALTERED_DISCARD_FRAME_BIT;
    }
-   
+
    if(mFileAlteredDiscardFrame)
    {
       b |= FILE_ALTERED_DISCARD_FRAME_BIT;
    }
-   
+
    if(mReadOnly)
    {
       b |= READ_ONLY_BIT;
    }
-   
+
    return b;
 }
 
@@ -80,22 +80,22 @@ void FrameHeader::setFlags2(unsigned char b)
 unsigned char FrameHeader::getFlagByte2()
 {
    unsigned char b = 0x00;
-   
+
    if(mCompressed)
    {
       b |= COMPRESSION_BIT;
    }
-   
+
    if(mEncrypted)
    {
       b |= ENCRYPTION_BIT;
    }
-   
+
    if(mGrouped)
    {
       b |= GROUPING_BIT;
    }
-   
+
    return b;
 }
 
@@ -106,10 +106,10 @@ void FrameHeader::convertFromBytes(const char* b, int length)
    strncpy(id, b, 4);
    id[4] = 0;
    setId(id);
-   
+
    // convert frame size
    setFrameSize(convertBytesToInt(b + 4));
-   
+
    // convert flags
    unsigned char* ub = (unsigned char*)b;
    setFlags1(ub[8]);
@@ -120,10 +120,10 @@ void FrameHeader::convertToBytes(char* b)
 {
    // copy ID
    memcpy(b, getId(), 4);
-   
+
    // set size
    convertIntToBytes(getFrameSize(), b + 4);
-   
+
    // set flags
    unsigned char* ub = (unsigned char*)b;
    ub[8] = getFlagByte1();
@@ -144,7 +144,7 @@ inline void FrameHeader::setDescription(const char* description)
 {
    free(mDescription);
    mDescription = strdup(description);
-   
+
    // FIXME: uncomment once char encoding is implemented
    // Utf8Codec::decode("ISO-8859-1", description);
 }
@@ -227,25 +227,25 @@ inline bool FrameHeader::isGrouped()
 string& FrameHeader::toString(string& str)
 {
    str.erase();
-   
+
    str.append("[ID3TagFrameHeader]\n");
    str.append("Frame ID=");
    str.append(getId());
    str.append("\nFrame Size=");
-   
+
    char temp[20];
    sprintf(temp, "%i", getFrameSize());
    str.push_back('\n');
-   
+
    return str;
 }
 
 void FrameHeader::convertIntToBytes(int integer, char* b)
 {
    unsigned char* ub = (unsigned char*)b;
-   
+
    // FIXME: remove method, use db::Data byte ordering macro
-   
+
    for(int i = 0; i < 4; i++)
    {
       ub[i] = ((integer >> ((3 - i) * 8)) & 0xFF);
@@ -255,16 +255,16 @@ void FrameHeader::convertIntToBytes(int integer, char* b)
 int FrameHeader::convertBytesToInt(const char* b)
 {
    int rval = 0;
-   
+
    // FIXME: remove method, use db::Data byte ordering macro
-   
+
    unsigned char* ub = (unsigned char*)b;
-   
+
    // most significant byte first
    for(int i = 0; i < 4; i++)
    {
       rval |= ((ub[i] & 0xFF) << ((3 - i) * 8));
    }
-   
+
    return rval;
 }

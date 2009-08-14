@@ -26,7 +26,7 @@ void DomReader::start(Element& root)
    // create namespace prefix map
    mNamespacePrefixMap = DynamicObject();
    mNamespacePrefixMap->setType(Map);
-   
+
    // start
    XmlReader::start(root);
 }
@@ -34,13 +34,13 @@ void DomReader::start(Element& root)
 bool DomReader::finish()
 {
    bool rval = XmlReader::finish();
-   
+
    // free namespace prefix map
    mNamespacePrefixMap.setNull();
-   
+
    // no longer started
    mRootStarted = false;
-   
+
    return rval;
 }
 
@@ -51,7 +51,7 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
       // parse element's local name and namespace
       char* ns;
       parseNamespace(&name, &ns);
-      
+
       Element* e;
       if(mRootStarted)
       {
@@ -65,14 +65,14 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
          e = &(*mDynoStack.front());
          mRootStarted = true;
       }
-      
+
       // initialize element
       (*e)["name"] = name;
       (*e)["namespace"] = (ns == NULL ? "" : ns);
       (*e)["data"] = "";
       (*e)["attributes"]->setType(Map);
       (*e)["children"]->setType(Map);
-      
+
       // save namespace declarations as xmlns:prefix attributes
       {
          DynamicObjectIterator i = mNamespacePrefixMap.getIterator();
@@ -91,13 +91,13 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
          }
          mNamespacePrefixMap->clear();
       }
-      
+
       if(ns != NULL)
       {
          // free namespace string
          free(ns);
       }
-      
+
       // parse element attributes
       for(int i = 0; attrs[i] != NULL; i += 2)
       {
@@ -107,7 +107,7 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
          attr["name"] = attrs[i];
          attr["namespace"] = (ns == NULL ? "" : ns);
          attr["value"] = attrs[i + 1];
-         
+
          if(ns != NULL)
          {
             // free namespace string

@@ -35,7 +35,7 @@ CharacterSetMutator::~CharacterSetMutator()
 bool CharacterSetMutator::setCharacterSets(const char* from, const char* to)
 {
    bool rval = true;
-   
+
    if(mConvertDescriptor != INVALID_ICONV)
    {
       // close old convert descriptor
@@ -53,7 +53,7 @@ bool CharacterSetMutator::setCharacterSets(const char* from, const char* to)
          mConvertDescriptor = INVALID_ICONV;
       }
    }
-   
+
    if(rval)
    {
       mConvertDescriptor = iconv_open(to, from);
@@ -67,14 +67,14 @@ bool CharacterSetMutator::setCharacterSets(const char* from, const char* to)
          rval = false;
       }
    }
-   
+
    return rval;
 }
 
 bool CharacterSetMutator::reset()
 {
    bool rval = false;
-   
+
    if(mConvertDescriptor == INVALID_ICONV)
    {
       ExceptionRef e = new Exception(
@@ -97,10 +97,10 @@ bool CharacterSetMutator::reset()
          rval = false;
       }
    }
-   
+
    // reset non-reversibles
    mNonReversibles = 0;
-   
+
    return rval;
 }
 
@@ -108,7 +108,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
    ByteBuffer* src, ByteBuffer* dst, bool finish)
 {
    MutationAlgorithm::Result rval;
-   
+
    if(!isFinished())
    {
       if(src->isEmpty() && !finish)
@@ -118,7 +118,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
       }
       else
       {
-// libiconv uses const char* for iconv input glibc uses char* which conforms 
+// libiconv uses const char* for iconv input glibc uses char* which conforms
 // to POSIX
 #ifndef _LIBICONV_VERSION
          char* in;
@@ -132,21 +132,21 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
          // get in buffer
          in = src->data();
          size_t inBytesLeft = src->length();
-         
+
          // get out buffer
          char* out = dst->end();
          size_t outBytesLeft = dst->freeSpace();
-         
+
          // do character conversion
          size_t count = iconv(
             mConvertDescriptor, &in, &inBytesLeft, &out, &outBytesLeft);
-         
+
          // clear used bytes from source buffer
          src->clear(src->length() - inBytesLeft);
-         
+
          // add written bytes to destination buffer
          dst->extend(dst->freeSpace() - outBytesLeft);
-         
+
          // check conversion result
          if(count == ((size_t)-1))
          {
@@ -201,7 +201,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
          {
             // count == number of non-reversible conversions performed
             mNonReversibles += count;
-            
+
             if(finish)
             {
                // now finished
@@ -221,7 +221,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
       // algorithm completed
       rval = MutationAlgorithm::CompleteTruncate;
    }
-   
+
    return rval;
 }
 
@@ -240,14 +240,14 @@ bool CharacterSetMutator::convert(
    std::string& out, const char* outCharSet)
 {
    bool rval = false;
-   
+
    CharacterSetMutator csm;
    if(csm.setCharacterSets(inCharSet, outCharSet))
    {
       out.clear();
       ByteArrayInputStream bais(in.c_str(), in.length());
       MutatorInputStream mis(&bais, false, &csm, false);
-      
+
       int numBytes;
       char* buf = (char*)malloc(1024);
       while((numBytes = mis.read(buf, 1024)) > 0)
@@ -256,9 +256,9 @@ bool CharacterSetMutator::convert(
       }
       free(buf);
       mis.close();
-      
+
       rval = (numBytes != -1);
    }
-   
+
    return rval;
 }

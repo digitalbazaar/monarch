@@ -39,26 +39,26 @@ void XmlReader::start(DynamicObject& dyno)
    mDynoStack.clear();
    mTypeStack.clear();
    mDynoStack.push_front(&dyno);
-   
+
    if(mStarted)
    {
       // free parser
       XML_ParserFree(mParser);
       mException.setNull();
    }
-   
+
    // create parser
    mParser = XML_ParserCreateNS(CHAR_ENCODING, '|');
-   
+
    // set user data to this reader
    XML_SetUserData(mParser, this);
-   
+
    // set handlers
    XML_SetElementHandler(mParser, &startElement, &endElement);
    XML_SetCharacterDataHandler(mParser, &appendData);
    XML_SetNamespaceDeclHandler(
       mParser, &startNamespaceDeclaration, &endNamespaceDeclaration);
-   
+
    // read started
    mStarted = true;
 }
@@ -66,7 +66,7 @@ void XmlReader::start(DynamicObject& dyno)
 bool XmlReader::read(InputStream* is)
 {
    bool rval = true;
-   
+
    if(!mStarted)
    {
       // reader not started
@@ -101,7 +101,7 @@ bool XmlReader::read(InputStream* is)
                // parse data
                rval = (XML_ParseBuffer(mParser, numBytes, false) != 0);
             }
-            
+
             if(!rval)
             {
                int line = XML_GetCurrentLineNumber(mParser);
@@ -123,14 +123,14 @@ bool XmlReader::read(InputStream* is)
          }
       }
    }
-   
+
    return rval;
 }
 
 bool XmlReader::finish()
 {
    bool rval = true;
-   
+
    if(mStarted)
    {
       // parse last data
@@ -148,14 +148,14 @@ bool XmlReader::finish()
          Exception::set(e);
          rval = false;
       }
-      
+
       // free parser
       XML_ParserFree(mParser);
    }
-   
+
    // no longer started
    mStarted = false;
-   
+
    return rval;
 }
 
@@ -166,7 +166,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
    {
       // parse element's local name
       parseLocalName(&name);
-      
+
       if(strcmp(name, "member") == 0)
       {
          // create child object based on name
@@ -175,7 +175,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
          {
             // parse attribute's local name
             parseLocalName(&attrs[i]);
-            
+
             // get object name
             if(strcmp(attrs[i], "name") == 0)
             {
@@ -185,7 +185,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
                set = true;
             }
          }
-         
+
          if(!set)
          {
             // no "name" for "member"
@@ -203,7 +203,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
          {
             // parse attribute's local name
             parseLocalName(&attrs[i]);
-            
+
             // get object index
             if(strcmp(attrs[i], "index") == 0)
             {
@@ -214,7 +214,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
                set = true;
             }
          }
-         
+
          if(!set)
          {
             // no "name" for "member"
@@ -230,7 +230,7 @@ void XmlReader::startElement(const XML_Char* name, const XML_Char** attrs)
          // determine object type from element name
          DynamicObjectType dot = tagNameToType(name);
          mTypeStack.push_front(dot);
-         
+
          if(strcmp(name, "null") == 0)
          {
             // set dyno to null
@@ -246,7 +246,7 @@ void XmlReader::endElement(const XML_Char* name)
    {
       // parse element's local name
       parseLocalName(&name);
-      
+
       if(mDynoStack.front()->isNull())
       {
          if(strcmp(name, "null") == 0)
@@ -278,10 +278,10 @@ void XmlReader::endElement(const XML_Char* name)
                   dot = Int64;
                }
             }
-            
+
             // set object type
             (*mDynoStack.front())->setType(dot);
-            
+
             // pop stacks
             mDynoStack.pop_front();
             mTypeStack.pop_front();
@@ -357,7 +357,7 @@ void XmlReader::endNamespaceDeclaration(void* xr, const XML_Char* prefix)
 DynamicObjectType XmlReader::tagNameToType(const char* name)
 {
    DynamicObjectType rval = String;
-   
+
    // determine determine object type from name
    if(strcmp(name, "boolean") == 0)
    {
@@ -376,7 +376,7 @@ DynamicObjectType XmlReader::tagNameToType(const char* name)
    {
       rval = Array;
    }
-   
+
    return rval;
 }
 

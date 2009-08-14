@@ -23,33 +23,33 @@ RiffChunkHeader::~RiffChunkHeader()
 bool RiffChunkHeader::writeTo(OutputStream& os)
 {
    bool rval;
-   
+
    char buf[HEADER_SIZE];
    convertToBytes(buf);
    rval = os.write(buf, HEADER_SIZE);
-   
+
    return rval;
 }
 
 void RiffChunkHeader::convertToBytes(char* b)
 {
-   DB_FOURCC_TO_STR(mId, b);   
+   DB_FOURCC_TO_STR(mId, b);
    *(uint32_t*)(b + 4) = DB_UINT32_TO_LE(mChunkSize);
 }
 
 bool RiffChunkHeader::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
-   
+
    if(b != NULL && length >= HEADER_SIZE)
    {
       mId = DB_FOURCC_FROM_STR(b);
       mChunkSize = DB_UINT32_FROM_LE(*((uint32_t*)(b + 4)));
       rval = true;
    }
-   
+
    setValid(rval);
-   
+
    return rval;
 }
 
@@ -76,12 +76,12 @@ uint32_t RiffChunkHeader::getChunkSize()
 uint32_t RiffChunkHeader::getPaddedSize()
 {
    uint32_t rval = mChunkSize;
-   
+
    if(rval % 2 == 1)
    {
       rval++;
    }
-   
+
    return rval;
 }
 
