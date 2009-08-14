@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/net/WindowsSupport.h"
 
@@ -46,7 +46,7 @@ static void setConnectErrno()
 int win_compat_socket(int domain, int type, int protocol)
 {
    int rval;
-   
+
    SOCKET s = socket(domain, type, protocol);
    if(s == INVALID_SOCKET)
    {
@@ -57,7 +57,7 @@ int win_compat_socket(int domain, int type, int protocol)
    {
       rval = (int)s;
    }
-   
+
    return rval;
 }
 
@@ -69,7 +69,7 @@ int win_compat_connect(int fd, const struct sockaddr* addr, socklen_t addrlen)
       setConnectErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -81,7 +81,7 @@ int win_compat_bind(int fd, const struct sockaddr* addr, socklen_t addrlen)
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -93,14 +93,14 @@ int win_compat_listen(int fd, int backlog)
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
 int win_compat_accept(int fd, struct sockaddr* addr, socklen_t* addrlen)
 {
    int rval;
-   
+
    SOCKET s = accept(fd, addr, addrlen);
    if(s == INVALID_SOCKET)
    {
@@ -111,7 +111,7 @@ int win_compat_accept(int fd, struct sockaddr* addr, socklen_t* addrlen)
    {
       rval = (int)s;
    }
-   
+
    return rval;
 }
 
@@ -123,7 +123,7 @@ int win_compat_shutdown(int fd, int mode)
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -135,7 +135,7 @@ int win_compat_close(int fd)
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -147,7 +147,7 @@ int win_compat_getsockname(int fd, struct sockaddr* name, socklen_t* namelen)
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -159,7 +159,7 @@ int win_compat_getpeername(int fd, struct sockaddr* name, socklen_t* namelen)
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -171,7 +171,7 @@ int win_compat_recv(int fd, void* buf, size_t len, int flags)
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -183,7 +183,7 @@ int win_compat_send(int fd, const void* buf, size_t len, int flags)
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -197,7 +197,7 @@ int win_compat_recvfrom(
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -211,7 +211,7 @@ int win_compat_sendto(
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -223,7 +223,7 @@ int win_compat_fcntl(int fd, long cmd, unsigned long arg)
       setErrno();
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -231,27 +231,27 @@ const char *inet_ntop(
    int af, const void* src, char* dst, unsigned int size)
 {
    const char* rval = NULL;
-   
+
    // this method uses getnameinfo() which translates a socket address
    // to a node name and service location -- it has this prototype:
    //
    // getnameinfo(const struct sockaddr* sa, socklen_t salen,
    //    char* node, coklen_t nodelen, char* service, socklen_t servicelen,
    //    int flags);
-   
+
    // check address family
    if(af == AF_INET)
    {
       // get a zero'd-out IPv4 address structure
       struct sockaddr_in sa;
       memset(&sa, '\0', sizeof(sa));
-      
+
       // set the address family to IPv4
       sa.sin_family = AF_INET;
-      
+
       // copy the source in_addr into the structure
       memcpy(&sa.sin_addr, src, sizeof(in_addr));
-      
+
       // NULL specifies that we don't care about getting a "service" name
       // NI_NUMERICHOST ensures that the numeric form of the address
       // given in sockaddr_in will be returned
@@ -284,13 +284,13 @@ const char *inet_ntop(
       // get a zero'd-out IPv6 address structure
       struct sockaddr_in6 sa;
       memset(&sa, '\0', sizeof(sa));
-      
+
       // set the address family to IPv6
       sa.sin6_family = AF_INET6;
-      
+
       // copy the source in_addr into the structure
       memcpy(&sa.sin6_addr, src, sizeof(in6_addr));
-      
+
       // NULL specifies that we don't care about getting a "service" name
       // NI_NUMERICHOST ensures that the numeric form of the address
       // given in sockaddr_in will be returned
@@ -318,35 +318,35 @@ const char *inet_ntop(
          }
       }
    }
-   
+
    return rval;
 }
 
 int inet_pton(int af, const char* src, void* dst)
 {
    int rval = -1;
-   
+
    // this method uses getaddrinfo() which obtains address information,
    // it has this prototype:
    //
    // getaddrinfo(const char* nodename, const char* servicename,
    //    const struct addrinfo* hints, struct addrinfo** res);
-   
+
    // create hints address structure
    struct addrinfo hints;
    memset(&hints, '\0', sizeof(hints));
-   hints.ai_family = af;      
-   
+   hints.ai_family = af;
+
    // create pointer for storing allocated resolved address
    struct addrinfo* res = NULL;
-   
+
    // get address information
    int error = getaddrinfo(src, NULL, &hints, &res);
    if(error == 0)
    {
       rval = 1;
    }
-   
+
    if(res != NULL)
    {
       if(af == AF_INET)
@@ -361,11 +361,11 @@ int inet_pton(int af, const char* src, void* dst)
          struct sockaddr_in6* addr = (sockaddr_in6*)res->ai_addr;
          memcpy(dst, &addr->sin6_addr, sizeof(in6_addr));
       }
-      
+
       // free the result
       freeaddrinfo(res);
    }
-   
+
    return rval;
 }
 #endif // WIN32

@@ -39,26 +39,26 @@ SslContext::SslContext(const char* protocol, bool client)
       // use only TLS
       mContext = SSL_CTX_new(TLSv1_method());
    }
-   
+
    // turn on all options (this enables a bunch of bug fixes for various
    // SSL implementations that may communicate with sockets created in
    // this context)
    SSL_CTX_set_options(mContext, SSL_OP_ALL);
-   
+
    // cache server sessions so if a client proposes a session it can
    // be found in the cache and re-used
    SSL_CTX_set_session_cache_mode(mContext, SSL_SESS_CACHE_SERVER);
-   
+
    // set SSL session context ID
    const char* id = "DBSSLCTXID";
    SSL_CTX_set_session_id_context(
       mContext, (const unsigned char*)id, strlen(id));
-   
+
    // default to peer authentication only for the client (which means
    // only a client will check a server's cert, a server will not
    // request any client cert -- which is the common behavior)
    setPeerAuthentication(client);
-   
+
    // use default ciphers
    // Note: even if non-authenticating ciphers (i.e. "aNULL") are
    // chosen here, you will get a "no shared cipher" error unless
@@ -82,7 +82,7 @@ SSL* SslContext::createSSL(TcpSocket* socket, bool client)
    mLock.lock();
    SSL* ssl = SSL_new(mContext);
    mLock.unlock();
-   
+
    // set connect state on SSL
    if(client)
    {
@@ -92,14 +92,14 @@ SSL* SslContext::createSSL(TcpSocket* socket, bool client)
    {
       SSL_set_accept_state(ssl);
    }
-   
+
    return ssl;
 }
 
 bool SslContext::setCertificate(File& certFile)
 {
    bool rval = true;
-   
+
    // set certificate file
    if(SSL_CTX_use_certificate_file(
       mContext, certFile->getAbsolutePath(), SSL_FILETYPE_PEM) != 1)
@@ -113,14 +113,14 @@ bool SslContext::setCertificate(File& certFile)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 bool SslContext::setPrivateKey(File& pkeyFile)
 {
    bool rval = true;
-   
+
    // set private key file
    if(SSL_CTX_use_PrivateKey_file(
       mContext, pkeyFile->getAbsolutePath(), SSL_FILETYPE_PEM) != 1)
@@ -133,7 +133,7 @@ bool SslContext::setPrivateKey(File& pkeyFile)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
@@ -146,7 +146,7 @@ void SslContext::setPeerAuthentication(bool on)
 bool SslContext::setVerifyCAs(File* caFile, File* caDir)
 {
    bool rval = true;
-   
+
    // load verify locations
    if(SSL_CTX_load_verify_locations(
       mContext,
@@ -168,20 +168,20 @@ bool SslContext::setVerifyCAs(File* caFile, File* caDir)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 DynamicObject SslContext::getSslErrorStrings()
 {
    DynamicObject rval;
-   
+
    rval->setType(Array);
    long err;
    while((err = ERR_get_error()) != 0)
    {
       rval->append() = ERR_error_string(err, NULL);
    }
-   
+
    return rval;
 }

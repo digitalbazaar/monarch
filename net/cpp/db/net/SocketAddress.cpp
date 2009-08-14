@@ -4,7 +4,7 @@
 #include "db/net/SocketAddress.h"
 
 #include "db/net/SocketDefinitions.h"
-#include "db/rt/Exception.h" 
+#include "db/rt/Exception.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -60,7 +60,7 @@ unsigned short SocketAddress::getPort()
 string SocketAddress::toString(bool simple)
 {
    string rval;
-   
+
    if(simple)
    {
       char temp[6 + strlen(getAddress())];
@@ -73,14 +73,14 @@ string SocketAddress::toString(bool simple)
       sprintf(temp, "SocketAddress [%s:%u]", getAddress(), getPort());
       rval = temp;
    }
-   
+
    return rval;
 }
 
 bool SocketAddress::fromString(const char* str)
 {
    bool rval = true;
-   
+
    // look for colon separator
    const char* colon = strchr(str, ':');
    if(colon != NULL && str[0] != ':' && strlen(colon) > 0)
@@ -88,7 +88,7 @@ bool SocketAddress::fromString(const char* str)
       // get port
       unsigned int port = strtoul(colon + 1, NULL, 10);
       mPort = (port & 0xFFFF);
-      
+
       // get address
       int len = (colon - str);
       char address[len + 1];
@@ -105,7 +105,7 @@ bool SocketAddress::fromString(const char* str)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
@@ -113,7 +113,7 @@ const char* SocketAddress::communicationDomainToString(
    CommunicationDomain domain)
 {
    const char* rval;
-   
+
    switch(domain)
    {
       case IPv4:
@@ -127,6 +127,6 @@ const char* SocketAddress::communicationDomainToString(
          rval = "invalid";
          break;
    }
-   
+
    return rval;
 }

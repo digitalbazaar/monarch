@@ -55,7 +55,7 @@ inline void SslSessionCache::storeSession(Url* url, SslSession& session)
 SslSession SslSessionCache::getSession(const char* host)
 {
    SslSession rval(NULL);
-   
+
    // lock to read from cache
    mLock.lockShared();
    {
@@ -66,7 +66,7 @@ SslSession SslSessionCache::getSession(const char* host)
       }
    }
    mLock.unlockShared();
-   
+
    return rval;
 }
 

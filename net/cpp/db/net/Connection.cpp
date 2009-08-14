@@ -29,11 +29,11 @@ Connection::Connection(Socket* s, bool cleanup) :
          mRemoteAddress = new Internet6Address();
          break;
    }
-   
+
    // get local and remote addresses
    writeLocalAddress(mLocalAddress);
    writeRemoteAddress(mRemoteAddress);
-   
+
    // create streams
    mInputStream = new ConnectionInputStream(this);
    mOutputStream = new ConnectionOutputStream(this);
@@ -44,11 +44,11 @@ Connection::~Connection()
    // clean up streams
    delete mInputStream;
    delete mOutputStream;
-   
+
    // clean up addresses
    delete mLocalAddress;
    delete mRemoteAddress;
-   
+
    // handle socket cleanup
    if(mSocket != NULL && mCleanupSocket)
    {
@@ -76,14 +76,14 @@ void Connection::setBandwidthThrottler(BandwidthThrottler* bt, bool read)
 BandwidthThrottler* Connection::getBandwidthThrottler(bool read)
 {
    BandwidthThrottler* rval = NULL;
-   
+
    // synchronize fetching the bandwidth throttler so it is thread safe
    mBandwidthThrottlerLock.lockShared();
    {
       rval = read ? mReadBandwidthThrottler : mWriteBandwidthThrottler;
    }
    mBandwidthThrottlerLock.unlockShared();
-   
+
    return rval;
 }
 

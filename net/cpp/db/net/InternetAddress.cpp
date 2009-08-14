@@ -18,7 +18,7 @@ InternetAddress::InternetAddress(const char* host, unsigned short port) :
    SocketAddress(SocketAddress::IPv4, "0.0.0.0", port)
 {
    mHost = strdup("");
-   
+
    if(strcmp(host, "") != 0)
    {
       // resolve host
@@ -34,37 +34,37 @@ InternetAddress::~InternetAddress()
 bool InternetAddress::toSockAddr(sockaddr* addr, unsigned int& size)
 {
    bool rval = false;
-   
+
    // use sockaddr_in (IPv4)
    if(size >= sizeof(sockaddr_in))
    {
       struct sockaddr_in* sa = (sockaddr_in*)addr;
       size = sizeof(sockaddr_in);
       memset(sa, '\0', size);
-      
+
       // the address family is internet (AF_INET = address family internet)
       sa->sin_family = AF_INET;
-      
+
       // htons = "Host To Network Short" which means order the short in
       // network byte order (big-endian)
       sa->sin_port = htons(getPort());
-      
+
       // converts an address to network byte order
       rval = (inet_pton(AF_INET, getAddress(), &sa->sin_addr) == 1);
    }
-   
+
    return rval;
 }
 
 bool InternetAddress::fromSockAddr(const sockaddr* addr, unsigned int size)
 {
    bool rval = false;
-   
+
    // use sockaddr_in (IPv4)
    if(size >= sizeof(sockaddr_in))
    {
       struct sockaddr_in* sa = (sockaddr_in*)addr;
-      
+
       // get address
       char dst[INET_ADDRSTRLEN];
       memset(&dst, '\0', size);
@@ -72,15 +72,15 @@ bool InternetAddress::fromSockAddr(const sockaddr* addr, unsigned int size)
       {
          // set address
          setAddress(dst);
-         
+
          // converting from network byte order to little-endian
          setPort(ntohs(sa->sin_port));
-         
+
          // conversion successful
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
@@ -88,7 +88,7 @@ void InternetAddress::setAddress(const char* address)
 {
    // set the address
    SocketAddress::setAddress(address);
-   
+
    // clear the host
    free(mHost);
    mHost = strdup("");
@@ -97,15 +97,15 @@ void InternetAddress::setAddress(const char* address)
 bool InternetAddress::setHost(const char* host)
 {
    bool rval = false;
-   
+
    // create hints address structure
    struct addrinfo hints;
    memset(&hints, '\0', sizeof(hints));
    hints.ai_family = AF_INET;
-   
+
    // create pointer for storing allocated resolved address
    struct addrinfo* res = NULL;
-   
+
    // get address information
    if(getaddrinfo(host, NULL, &hints, &res) != 0)
    {
@@ -118,7 +118,7 @@ bool InternetAddress::setHost(const char* host)
       // copy the first result
       struct sockaddr_in addr;
       memcpy(&addr, res->ai_addr, res->ai_addrlen);
-      
+
       // get the address
       char dst[INET_ADDRSTRLEN];
       memset(&dst, '\0', INET_ADDRSTRLEN);
@@ -126,18 +126,18 @@ bool InternetAddress::setHost(const char* host)
       free(mAddress);
       mAddress = strdup(dst);
       rval = true;
-      
+
       // save the host
       free(mHost);
       mHost = strdup(host);
    }
-   
+
    if(res != NULL)
    {
       // free res if it got allocated
       freeaddrinfo(res);
    }
-   
+
    return rval;
 }
 
@@ -149,7 +149,7 @@ const char* InternetAddress::getHost()
       struct sockaddr_in sa;
       unsigned int size = sizeof(sockaddr_in);
       toSockAddr((sockaddr*)&sa, size);
-      
+
       // NULL specifies that we don't care about getting a "service" name
       // given in sockaddr_in will be returned
       char dst[100];
@@ -167,7 +167,7 @@ const char* InternetAddress::getHost()
          mHost = strdup(getAddress());
       }
    }
-   
+
    // return host
    return mHost;
 }
@@ -175,24 +175,24 @@ const char* InternetAddress::getHost()
 bool InternetAddress::isMulticast()
 {
    bool rval = false;
-   
+
    // get a IPv4 address structure
    struct sockaddr_in sa;
    unsigned int size = sizeof(sockaddr_in);
    toSockAddr((sockaddr*)&sa, size);
-   
+
    if(IN_MULTICAST(ntohl(sa.sin_addr.s_addr)) != 0)
    {
       rval = true;
    }
-   
+
    return rval;
 }
 
 string InternetAddress::toString(bool simple)
 {
    string rval;
-   
+
    if(simple)
    {
       char temp[6 + strlen(getAddress())];
@@ -207,6 +207,6 @@ string InternetAddress::toString(bool simple)
          getHost(), getPort(), getAddress(), getPort());
       rval = temp;
    }
-   
+
    return rval;
 }

@@ -26,17 +26,17 @@ DatagramService::~DatagramService()
 Operation DatagramService::initialize()
 {
    Operation rval(NULL);
-   
+
    // create datagram socket
    mSocket = new DatagramSocket();
-   
+
    // bind socket to the address
    if(mSocket->bind(getAddress()) && mServicer->initialize(mSocket))
    {
       // create Operation for running service
       rval = *this;
    }
-   
+
    return rval;
 }
 
@@ -54,7 +54,7 @@ void DatagramService::run()
 {
    // service datagrams
    mServicer->serviceDatagrams(mSocket);
-   
+
    // close socket
    mSocket->close();
 }

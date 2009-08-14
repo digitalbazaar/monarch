@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_SocketOutputStream_H
 #define db_net_SocketOutputStream_H
@@ -14,7 +14,7 @@ namespace net
 
 /**
  * A SocketOutputStream is used to write bytes to a Socket.
- * 
+ *
  * @author Dave Longley
  */
 class SocketOutputStream : public db::io::OutputStream
@@ -28,26 +28,26 @@ protected:
 public:
    /**
     * Creates a new SocketOutputStream.
-    * 
+    *
     * @param s the Socket to write to.
     */
    SocketOutputStream(Socket* s);
-   
+
    /**
     * Destructs this SocketOutputStream.
     */
    virtual ~SocketOutputStream();
-   
+
    /**
     * Writes some bytes to the stream.
-    * 
+    *
     * @param b the array of bytes to write.
     * @param length the number of bytes to write to the stream.
-    * 
+    *
     * @return true if the write was successful, false if an IO exception
-    *         occurred. 
+    *         occurred.
     */
-   virtual bool write(const char* b, int length);   
+   virtual bool write(const char* b, int length);
 };
 
 } // end namespace net

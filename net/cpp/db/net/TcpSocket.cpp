@@ -24,7 +24,7 @@ TcpSocket::~TcpSocket()
 bool TcpSocket::acquireFileDescriptor(SocketAddress::CommunicationDomain domain)
 {
    bool rval = true;
-   
+
    if(mFileDescriptor == -1)
    {
       // use PF_INET = "protocol family internet" (which just so happens to
@@ -41,7 +41,7 @@ bool TcpSocket::acquireFileDescriptor(SocketAddress::CommunicationDomain domain)
          rval = create(PF_INET, SOCK_STREAM, IPPROTO_TCP);
       }
    }
-   
+
    return rval;
 }
 
@@ -52,10 +52,10 @@ Socket* TcpSocket::createConnectedSocket(unsigned int fd)
    socket->mFileDescriptor = fd;
    socket->mBound = true;
    socket->mConnected = true;
-   
+
    // initialize input and output
    socket->initializeInput();
    socket->initializeOutput();
-   
+
    return socket;
 }

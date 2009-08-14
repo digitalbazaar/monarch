@@ -21,10 +21,10 @@ using namespace db::rt;
  * to check the certificate's common name against the host or against a
  * provided alternatives list. This method will be called regardless of whether
  * or not peer verification is on.
- * 
+ *
  * @param preverifyOk 1 if the current certificate passed, 0 if not.
  * @param ctx the X.509 certificate store context for certificate verification.
- * 
+ *
  * @return 0 to stop certificate chain verification immediately and fail the
  *         current handshake (but the connection will only fail if peer
  *         verification is on), 1 to continue -- if 1 is always returned, then
@@ -43,11 +43,11 @@ static int verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
       SSL* ssl = (SSL*)X509_STORE_CTX_get_ex_data(
          ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
       SslSocket* self = (SslSocket*)SSL_get_ex_data(ssl, 0);
-      
+
       // get subject name
       X509* x509 = X509_STORE_CTX_get_current_cert(ctx);
       X509_NAME* name = X509_get_subject_name(x509);
-      
+
       // find a common name that matches
       bool commonNameFound = false;
       X509_NAME_ENTRY* entry;
@@ -72,7 +72,7 @@ static int verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
          }
       }
       while(i != -1 && !commonNameFound);
-      
+
       // if common name not found then certificate verification failure
       if(!commonNameFound)
       {
@@ -82,7 +82,7 @@ static int verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
          preverifyOk = 0;
       }
    }
-   
+
    return preverifyOk;
 }
 
@@ -92,19 +92,19 @@ SslSocket::SslSocket(
 {
    // create ssl object
    mSSL = context->createSSL(socket, client);
-   
+
    // associate this socket with the SSL instance
    SSL_set_ex_data(mSSL, 0, this);
-   
+
    // allocate bio pair using default sizes (large enough for SSL records)
    BIO_new_bio_pair(&mSSLBio, 0, &mSocketBio, 0);
-   
+
    // assign SSL BIO to SSL
    SSL_set_bio(mSSL, mSSLBio, mSSLBio);
-   
+
    // no ssl session negotiated yet
    mSessionNegotiated = false;
-   
+
    // create input and output streams
    mInputStream = new PeekInputStream(new SocketInputStream(this), true);
    mOutputStream = new SocketOutputStream(this);
@@ -114,14 +114,14 @@ SslSocket::~SslSocket()
 {
    // free SSL object (implicitly frees SSL BIO)
    SSL_free(mSSL);
-   
+
    // free Socket BIO
    BIO_free(mSocketBio);
-   
+
    // destruct input and output streams
    delete mInputStream;
    delete mOutputStream;
-   
+
    // free verify common names
    for(VerifyCommonNameList::iterator i = mVerifyCommonNames.begin();
        i != mVerifyCommonNames.end(); i++)
@@ -154,7 +154,7 @@ void SslSocket::addVerifyCommonName(const char* commonName)
    // add common name to list
    mVerifyCommonNames.push_back(
       (commonName != NULL) ? strdup(commonName) : NULL);
-   
+
    // set verify callback (retain verify mode) if adding first common name
    if(mVerifyCommonNames.size() == 1)
    {
@@ -170,7 +170,7 @@ std::vector<const char*>& SslSocket::getVerifyCommonNames()
 bool SslSocket::verifyCommonName(const char* commonName)
 {
    bool rval = false;
-   
+
    for(VerifyCommonNameList::iterator i = mVerifyCommonNames.begin();
        !rval && i != mVerifyCommonNames.end(); i++)
    {
@@ -180,7 +180,7 @@ bool SslSocket::verifyCommonName(const char* commonName)
          rval = true;
       }
    }
-   
+
    // add useful logging output
    if(!rval)
    {
@@ -196,21 +196,21 @@ bool SslSocket::verifyCommonName(const char* commonName)
          str.append(*i);
          str.push_back('\'');
       }
-      
+
       // log error
       DB_CAT_DEBUG(DB_NET_CAT,
          "X.509 certificate verification failure, "
          "no match found for common name '%s', permitted common names: %s",
          commonName, str.c_str());
    }
-   
+
    return rval;
 }
 
 bool SslSocket::performHandshake()
 {
    bool rval = true;
-   
+
    // do SSL_do_handshake()
    int ret = 0;
    while(rval && (ret = SSL_do_handshake(mSSL)) <= 0)
@@ -264,13 +264,13 @@ bool SslSocket::performHandshake()
          }
       }
    }
-   
+
    if(rval)
    {
       // session negotiated
       mSessionNegotiated = true;
    }
-   
+
    return mSessionNegotiated;
 }
 
@@ -281,7 +281,7 @@ void SslSocket::close()
       // shutdown SSL
       SSL_shutdown(mSSL);
    }
-   
+
    // close connection
    getSocket()->close();
 }
@@ -289,7 +289,7 @@ void SslSocket::close()
 bool SslSocket::send(const char* b, int length)
 {
    bool rval = true;
-   
+
    if(!isConnected())
    {
       ExceptionRef e = new Exception(
@@ -305,7 +305,7 @@ bool SslSocket::send(const char* b, int length)
       {
          rval = performHandshake();
       }
-      
+
       // do SSL_write() (implicit handshake performed as necessary)
       int ret = 0;
       bool closed = false;
@@ -357,18 +357,18 @@ bool SslSocket::send(const char* b, int length)
             }
          }
       }
-      
+
       // flush all data to the socket
       rval = rval && tcpWrite();
    }
-   
+
    return rval;
 }
 
 int SslSocket::receive(char* b, int length)
 {
    int rval = 0;
-   
+
    if(!isConnected())
    {
       ExceptionRef e = new Exception(
@@ -387,7 +387,7 @@ int SslSocket::receive(char* b, int length)
             rval = -1;
          }
       }
-      
+
       // do SSL_read() (implicit handshake performed as necessary)
       int ret = 0;
       bool closed = false;
@@ -439,14 +439,14 @@ int SslSocket::receive(char* b, int length)
             }
          }
       }
-      
+
       // set number of bytes read
       if(rval != -1)
       {
          rval = (closed) ? 0 : ret;
       }
    }
-   
+
    return rval;
 }
 
@@ -463,7 +463,7 @@ OutputStream* SslSocket::getOutputStream()
 int SslSocket::tcpRead()
 {
    int rval = 0;
-   
+
    // flush the Socket BIO
    if(tcpWrite())
    {
@@ -479,14 +479,14 @@ int SslSocket::tcpRead()
          {
             // write to Socket BIO
             BIO_write(mSocketBio, b, numBytes);
-            
+
             // decrement remaining bytes to read
             length -= numBytes;
-            
+
             // update bytes read
             rval = (rval == -1) ? numBytes : rval + numBytes;
          }
-         
+
          if(numBytes < 0)
          {
             // exception reading from input stream
@@ -499,14 +499,14 @@ int SslSocket::tcpRead()
       // exception during tcpWrite()
       rval = -1;
    }
-   
+
    return rval;
 }
 
 bool SslSocket::tcpWrite()
 {
    bool rval = true;
-   
+
    // determine how many bytes can be read from the Socket BIO
    size_t length = BIO_ctrl_pending(mSocketBio);
    if(length > 0)
@@ -522,6 +522,6 @@ bool SslSocket::tcpWrite()
          length -= numBytes;
       }
    }
-   
+
    return rval;
 }

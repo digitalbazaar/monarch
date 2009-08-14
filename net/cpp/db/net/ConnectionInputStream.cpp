@@ -29,7 +29,7 @@ ConnectionInputStream::~ConnectionInputStream()
 inline int ConnectionInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    if(mPeeking || mPeekBuffer.isEmpty())
    {
       // throttle the read as appropriate
@@ -38,7 +38,7 @@ inline int ConnectionInputStream::read(char* b, int length)
       {
          bt->requestBytes(length, length);
       }
-      
+
       // read from the socket input stream
       rval = mConnection->getSocket()->getInputStream()->read(b, length);
    }
@@ -47,7 +47,7 @@ inline int ConnectionInputStream::read(char* b, int length)
       // read from peek buffer
       rval = mPeekBuffer.get(b, length);
    }
-   
+
    if(rval > 0 && !mPeeking)
    {
       // update bytes read (reset as necessary)
@@ -55,17 +55,17 @@ inline int ConnectionInputStream::read(char* b, int length)
       {
          mBytesRead = 0;
       }
-      
+
       mBytesRead += rval;
    }
-   
+
    return rval;
 }
 
 int ConnectionInputStream::readFully(char* b, int length)
 {
    int rval = 0;
-   
+
    // keep reading until eos, error, or length reached
    int remaining = length;
    int offset = 0;
@@ -76,21 +76,21 @@ int ConnectionInputStream::readFully(char* b, int length)
       offset += numBytes;
       rval += numBytes;
    }
-   
+
    if(numBytes == -1)
    {
       rval = -1;
    }
-   
+
    return rval;
 }
 
 int ConnectionInputStream::readLine(string& line)
 {
    int rval = 0;
-   
+
    line.erase();
-   
+
    // read one character at a time
    char c;
    int numBytes;
@@ -105,7 +105,7 @@ int ConnectionInputStream::readLine(string& line)
             // read the character in and discard it
             read(&c, 1);
          }
-         
+
          // set character to an eol since a carriage return is treated the same
          c = '\n';
       }
@@ -113,26 +113,26 @@ int ConnectionInputStream::readLine(string& line)
       {
          // append the character
          line.push_back(c);
-         
+
          // a character was appended, so not end of stream
          rval = 1;
       }
    }
-   
+
    if(numBytes == -1)
    {
       rval = -1;
    }
-   
+
    return rval;
 }
 
 int ConnectionInputStream::readCrlf(string& line)
 {
    int rval = 0;
-   
+
    line.erase();
-   
+
    // peek ahead
    char b[1024];
    int numBytes;
@@ -143,7 +143,7 @@ int ConnectionInputStream::readCrlf(string& line)
    {
       // read maximum amount
       readSize = 1023;
-      
+
       // maximum line length of 1 MB
       if(line.length() > (1024 << 10))
       {
@@ -153,7 +153,7 @@ int ConnectionInputStream::readCrlf(string& line)
          Exception::set(e);
          break;
       }
-      
+
       if(numBytes <= 1)
       {
          // not enough peek bytes available, so activate blocking
@@ -163,17 +163,17 @@ int ConnectionInputStream::readCrlf(string& line)
       {
          // peek bytes available, so deactivate blocking
          block = false;
-         
+
          // ensure peek buffer ends in NULL byte
          b[numBytes] = 0;
-         
+
          // look for a CR
          char* i = strchr(b, '\r');
          if(i == NULL)
          {
             // CR not found, append all peeked bytes to string
             line.append(b, numBytes);
-            
+
             // read and discard
             read(b, numBytes);
          }
@@ -181,13 +181,13 @@ int ConnectionInputStream::readCrlf(string& line)
          {
             // null CR for copying
             i[0] = 0;
-            
+
             // append peeked bytes up until found CR to string
             line.append(b);
-            
+
             // read and discard up until the CR
             read(b, i - b);
-            
+
             // if there's room to check for an LF, do it
             if((i - b) < (numBytes - 1))
             {
@@ -196,7 +196,7 @@ int ConnectionInputStream::readCrlf(string& line)
                {
                   // CRLF found before end of stream
                   rval = 1;
-                  
+
                   // read and discard CRLF (2 characters)
                   read(b, 2);
                }
@@ -215,41 +215,41 @@ int ConnectionInputStream::readCrlf(string& line)
          }
       }
    }
-   
+
    if(numBytes == -1)
    {
       rval = -1;
    }
-   
+
    return rval;
 }
 
 inline int ConnectionInputStream::peek(char* b, int length, bool block)
 {
    int rval = 0;
-   
+
    // see if more data needs to be read
    if(block && length > mPeekBuffer.length())
    {
       // allocate enough space in the peek buffer
       mPeekBuffer.allocateSpace(length, true);
-      
+
       // read into the peek buffer from this stream
       mPeeking = true;
       rval = mPeekBuffer.put(this);
       mPeeking = false;
    }
-   
+
    // check for peeked bytes
    if(!mPeekBuffer.isEmpty() && rval != -1)
    {
       // read from the peek buffer
       rval = mPeekBuffer.get(b, length);
-      
+
       // reset peek buffer so that data will be read again
       mPeekBuffer.reset(rval);
    }
-   
+
    return rval;
 }
 

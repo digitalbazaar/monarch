@@ -24,7 +24,7 @@ bool DatagramSocket::send(DatagramRef& datagram)
 bool DatagramSocket::receive(DatagramRef& datagram)
 {
    bool rval = false;
-   
+
    // clear buffer and receive datagram
    ByteBuffer* buffer = datagram->getBuffer();
    buffer->clear();
@@ -36,6 +36,6 @@ bool DatagramSocket::receive(DatagramRef& datagram)
       datagram->getBuffer()->extend(size);
       rval = true;
    }
-   
+
    return rval;
 }

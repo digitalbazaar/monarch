@@ -44,21 +44,21 @@ Url::~Url()
 bool Url::setUrl(const char* format, va_list varargs)
 {
    bool rval;
-   
+
    // Note: this code is adapted from the glibc sprintf documentation
-   
+
    // estimate 256 bytes to start with
    int n, size = 256;
    char *p;
    char *np;
-   
+
    bool mallocFailed = ((p = (char*)malloc(size)) == NULL);
    bool success = false;
    while(!success && !mallocFailed)
    {
       // try to print in the allocated space
       n = vsnprintf(p, size, format, varargs);
-      
+
       // if that worked, return the string
       if(n > -1 && n < size)
       {
@@ -77,7 +77,7 @@ bool Url::setUrl(const char* format, va_list varargs)
             // glibc 2.0 doesn't know the exact size, so guess
             size *= 2;
          }
-         
+
          if((np = (char*)realloc(p, size)) == NULL)
          {
             // bad malloc
@@ -90,7 +90,7 @@ bool Url::setUrl(const char* format, va_list varargs)
          }
       }
    }
-   
+
    if(success)
    {
       rval = setUrl(p);
@@ -105,7 +105,7 @@ bool Url::setUrl(const char* format, va_list varargs)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
@@ -118,14 +118,14 @@ Url& Url::operator=(const Url& rhs)
 bool Url::setUrl(const string& url)
 {
    bool rval = true;
-   
+
    // find the first colon
    string::size_type index = 0;
    index = url.find(':');
-   
+
    // if no colon found, assume relative
    mRelative = (index == string::npos);
-   
+
    // handle scheme for absolute urls only
    if(!mRelative)
    {
@@ -139,13 +139,13 @@ bool Url::setUrl(const string& url)
       {
          index--;
       }
-      
+
       // split string into the scheme and scheme-specific-part
       mScheme = url.substr(0, index);
-      
+
       // make scheme lower case
       transform(mScheme.begin(), mScheme.end(), mScheme.begin(), ::tolower);
-      
+
       // check scheme for validity
       // FIXME scheme should be case-insensitive
       char c;
@@ -186,7 +186,7 @@ bool Url::setUrl(const string& url)
       // url is relative, start at beginning
       index = 0;
    }
-   
+
    if(rval && index < url.length() - 1)
    {
       // get scheme specific part
@@ -199,9 +199,9 @@ bool Url::setUrl(const string& url)
       {
          mSchemeSpecificPart = url.substr(index + 1);
       }
-      
+
       // get authority, path, and query:
-      
+
       // authority is preceeded by double slash "//" (current index + 1) and
       // is terminated by single slash "/", a question mark "?", or
       // the end of the url
@@ -209,12 +209,12 @@ bool Url::setUrl(const string& url)
       {
          string::size_type slash = mSchemeSpecificPart.find('/', 2);
          string::size_type qMark = mSchemeSpecificPart.find('?', 2);
-         
+
          // see if a query exists
          if(qMark != string::npos)
          {
             // a query exists
-            
+
             // get authority & path
             if(slash != string::npos && slash < qMark)
             {
@@ -226,9 +226,9 @@ bool Url::setUrl(const string& url)
                mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
                mPath = '/';
             }
-            
+
             // get query
-            if(qMark != mSchemeSpecificPart.length() - 1) 
+            if(qMark != mSchemeSpecificPart.length() - 1)
             {
                mQuery = mSchemeSpecificPart.substr(qMark + 1);
             }
@@ -236,10 +236,10 @@ bool Url::setUrl(const string& url)
          else if(slash != string::npos)
          {
             // no query -- just authority and path
-            
+
             // get authority
             mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
-            
+
             // get path
             mPath = mSchemeSpecificPart.substr(slash);
          }
@@ -247,7 +247,7 @@ bool Url::setUrl(const string& url)
          {
             // no path or query, just authority
             mPath = '/';
-            
+
             if(mSchemeSpecificPart[1] == '/')
             {
                // get authority after slash
@@ -261,7 +261,7 @@ bool Url::setUrl(const string& url)
          }
       }
    }
-   
+
    if(mAuthority.length() > 0)
    {
       string hostAndPort;
@@ -294,7 +294,7 @@ bool Url::setUrl(const string& url)
          {
             mHost = hostAndPort.substr(0, slash - hostAndPort.c_str());
          }
-         
+
          // try to get default port
          mPort = getDefaultPort();
       }
@@ -309,7 +309,7 @@ bool Url::setUrl(const string& url)
          mPassword = mUserInfo.substr(colon - mUserInfo.c_str() + 1);
       }
    }
-   
+
    return rval;
 }
 
@@ -321,12 +321,12 @@ bool Url::setUrl(const char* url)
 bool Url::format(const char* format, ...)
 {
    bool rval;
-   
+
    va_list varargs;
    va_start(varargs, format);
    rval = setUrl(format, varargs);
    va_end(varargs);
-   
+
    return rval;
 }
 
@@ -340,7 +340,7 @@ const string& Url::getScheme()
    return mScheme;
 }
 
-const string& Url::getSchemeSpecificPart() 
+const string& Url::getSchemeSpecificPart()
 {
    return mSchemeSpecificPart;
 }
@@ -354,17 +354,17 @@ const string& Url::getUserInfo()
 {
    return mUserInfo;
 }
-   
+
 const string& Url::getUser()
 {
    return mUser;
 }
-   
+
 const string& Url::getPassword()
 {
    return mPassword;
 }
-   
+
 const string& Url::getPath()
 {
    return mPath;
@@ -373,24 +373,24 @@ const string& Url::getPath()
 bool Url::getTokenizedPath(DynamicObject& result, const char* basePath)
 {
    bool rval = false;
-   
+
    const char* start = strstr(mPath.c_str(), basePath);
    if(start != NULL)
    {
       rval = true;
-      
+
       // split path up by forward slashes
       const char* tok;
       StringTokenizer st(start + strlen(basePath), '/');
       for(int i = 0; st.hasNextToken(); i++)
       {
          tok = st.nextToken();
-         
+
          // url-decode token, set dynamic object value and type
          result[i] = decode(tok, strlen(tok)).c_str();
       }
    }
-   
+
    return rval;
 }
 
@@ -408,7 +408,7 @@ void Url::addQueryVariables(DynamicObject& vars)
       while(i->hasNext())
       {
          DynamicObject& next = i->next();
-         
+
          if(query.length() > 0 || mQuery.length() > 0)
          {
             query.push_back('&');
@@ -417,7 +417,7 @@ void Url::addQueryVariables(DynamicObject& vars)
          query.push_back('=');
          query.append(encode(next->getString()));
       }
-      
+
       // update scheme specific part and query
       if(mQuery.length() == 0)
       {
@@ -458,7 +458,7 @@ unsigned int Url::getPort()
 unsigned int Url::getDefaultPort()
 {
    unsigned int rval = 0;
-   
+
    if(strcmp(getScheme().c_str(), "http") == 0)
    {
       rval = 80;
@@ -488,14 +488,14 @@ unsigned int Url::getDefaultPort()
    {
       rval = 3306;
    }
-   
+
    return rval;
 }
 
 string Url::toString() const
 {
    string str;
-   
+
    if(!isRelative())
    {
       str.append(mScheme);
@@ -506,19 +506,19 @@ string Url::toString() const
    {
       str.append(mSchemeSpecificPart.substr(2));
    }
-   
+
    return str;
 }
 
 string Url::encode(const char* str, unsigned int length)
 {
    string rval;
-   
+
    char c;
    for(unsigned int i = 0; i < length; i++)
    {
       c = str[i];
-      
+
       // see if the character is "safe" (0-9, A-Z, or a-z)
       if((unsigned int)(c - '0') < 10u)
       {
@@ -548,7 +548,7 @@ string Url::encode(const char* str, unsigned int length)
          rval.append(Convert::bytesToUpperHex(&c, 1));
       }
    }
-   
+
    return rval;
 }
 
@@ -560,13 +560,13 @@ string Url::encode(const char* str)
 string Url::decode(const char* str, unsigned int length)
 {
    string rval;
-   
+
    char c;
    unsigned int cLength;
    for(unsigned int i = 0; i < length; i++)
    {
       c = str[i];
-      
+
       // FIXME: optimize with a char[128] LUT
       // see if the character is "safe" (0-9, A-Z, or a-z)
       if((c >= '0' && c <= '9') ||
@@ -599,7 +599,7 @@ string Url::decode(const char* str, unsigned int length)
             Convert::hexToBytes(str + i + 1, 2, &c, cLength);
             rval.push_back(c);
          }
-         
+
          // skip two characters
          i += 2;
       }
@@ -608,7 +608,7 @@ string Url::decode(const char* str, unsigned int length)
          // FIXME: handle other characters
       }
    }
-   
+
    return rval;
 }
 
@@ -620,35 +620,35 @@ string Url::decode(const char* str)
 string Url::formEncode(DynamicObject& form)
 {
    string rval;
-   
+
    // ensure type is map
    form->setType(Map);
    DynamicObjectIterator i = form.getIterator();
    while(i->hasNext())
    {
       DynamicObject& next = i->next();
-      
+
       if(rval.length() > 0)
       {
          rval.push_back('&');
       }
-      
+
       // url-encode and append form field
       rval.append(encode(i->getName(), strlen(i->getName())));
       rval.push_back('=');
       rval.append(encode(next->getString(), strlen(next->getString())));
    }
-   
+
    return rval;
 }
 
 bool Url::formDecode(DynamicObject& form, const char* str, bool asArrays)
 {
    bool rval = false;
-   
+
    // force form to be a map
    form->setType(Map);
-   
+
    // split string up by ampersands
    const char* tok;
    const char* eq;
@@ -656,22 +656,22 @@ bool Url::formDecode(DynamicObject& form, const char* str, bool asArrays)
    while(st.hasNextToken())
    {
       tok = st.nextToken();
-      
+
       // split on equals
       eq = strchr(tok, '=');
       if(eq != NULL)
       {
          size_t namelen = eq - tok;
-         
+
          if(namelen > 0)
          {
             // valid var found
             rval = true;
-            
+
             // get variable name and set value
             char name[namelen];
             memcpy(name, tok, namelen);
-            
+
             // url-decode name and value
             string key = decode(name, namelen);
             DynamicObject value;
@@ -691,13 +691,13 @@ bool Url::formDecode(DynamicObject& form, const char* str, bool asArrays)
       else
       {
          size_t namelen = strlen(tok);
-         
+
          // ignore empty names
          if(namelen > 0)
          {
             // valid var found
             rval = true;
-            
+
             // url-decode name and value
             string key = decode(tok, namelen).c_str();
             DynamicObject value;
@@ -714,6 +714,6 @@ bool Url::formDecode(DynamicObject& form, const char* str, bool asArrays)
          }
       }
    }
-   
+
    return rval;
 }

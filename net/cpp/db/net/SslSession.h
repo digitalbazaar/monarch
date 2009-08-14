@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_net_SslSession_H
 #define db_net_SslSession_H
@@ -16,7 +16,7 @@ namespace net
 /**
  * The SslSessionImpl is a simple container that will store an
  * SSL_SESSION and free it when it is destructed.
- * 
+ *
  * @author Dave Longley
  */
 class SslSessionImpl
@@ -27,7 +27,7 @@ public:
    {
       session = s;
    }
-   
+
    virtual ~SslSessionImpl()
    {
       SSL_SESSION_free(session);

@@ -25,7 +25,7 @@ ConnectionService::ConnectionService(
    mServicer = servicer;
    mDataPresenter = presenter;
    mSocket = NULL;
-   
+
    mMaxConnections = 100;
    mCurrentConnections = 0;
 }
@@ -39,13 +39,13 @@ ConnectionService::~ConnectionService()
 Operation ConnectionService::initialize()
 {
    Operation rval(NULL);
-   
+
    // no connections yet
    mCurrentConnections = 0;
-   
+
    // create tcp socket
    mSocket = new TcpSocket();
-   
+
    // bind socket to the address and start listening
    if(mSocket->bind(getAddress()) && mSocket->listen())
    {
@@ -54,7 +54,7 @@ Operation ConnectionService::initialize()
       rval->setUserData(&mSocket);
       rval->addGuard(this);
    }
-   
+
    return rval;
 }
 
@@ -71,7 +71,7 @@ void ConnectionService::cleanup()
 bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
 {
    bool rval = false;
-   
+
    if(op->getUserData() == mSocket)
    {
       // accept OP can execute if server is running
@@ -89,33 +89,33 @@ bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
          rval = (permits > 0);
       }
    }
-   
+
    return rval;
 }
 
 bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
 {
    bool rval = false;
-   
+
    // must cancel any OP if the server is not running
    if(!mServer->isRunning())
    {
       rval = true;
-      
+
       // operation's user data is the socket being serviced, either it is
       // the socket accepting connections or a socket that is servicing one
       Socket* socket = (Socket*)op->getUserData();
-      
+
       // if the socket isn't the accept socket, then it needs to be cleaned up
       if(socket != mSocket)
       {
          // close and clean up the operation's socket
-         socket->close(); 
+         socket->close();
          delete socket;
          op->setUserData(NULL);
       }
    }
-   
+
    return rval;
 }
 
@@ -140,7 +140,7 @@ void ConnectionService::run()
    {
       // prune running servicers
       mRunningServicers.prune();
-      
+
       // wait for 5 seconds for a connection
       if((s = mSocket->accept(5)) != NULL)
       {
@@ -154,15 +154,15 @@ void ConnectionService::run()
          op->addGuard(this);
          op->addStateMutator(this);
          mRunningServicers.add(op);
-         
+
          // run operation
          mServer->getOperationRunner()->runOperation(op);
       }
    }
-   
+
    // close socket
    mSocket->close();
-   
+
    // terminate running servicers
    mRunningServicers.terminate();
 }
@@ -178,17 +178,17 @@ void ConnectionService::serviceConnection(void* s)
       // the secure flag will be set by the data presenter
       wrapper = mDataPresenter->createPresentationWrapper(socket, secure);
    }
-   
+
    if(wrapper != NULL)
    {
       // create connection
       Connection* c = new Connection(wrapper, true);
       c->setSecure(secure);
-      
+
       // get local/remote addresses
       SocketAddress* local = c->getLocalAddress();
       SocketAddress* remote = c->getRemoteAddress();
-      
+
       // log connection
       DB_CAT_DEBUG(DB_NET_CAT, "%s:%i servicing %s connection from %s:%i",
          local->getAddress(),
@@ -196,10 +196,10 @@ void ConnectionService::serviceConnection(void* s)
          secure ? "secure" : "non-secure",
          remote->getAddress(),
          remote->getPort());
-      
+
       // service connection
       mServicer->serviceConnection(c);
-      
+
       // log connection
       DB_CAT_DEBUG(DB_NET_CAT, "%s:%i serviced %s connection from %s:%i",
          local->getAddress(),
@@ -207,7 +207,7 @@ void ConnectionService::serviceConnection(void* s)
          secure ? "secure" : "non-secure",
          remote->getAddress(),
          remote->getPort());
-      
+
       // close and clean up connection
       c->close();
       delete c;

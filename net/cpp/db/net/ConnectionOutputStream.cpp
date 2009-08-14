@@ -25,7 +25,7 @@ ConnectionOutputStream::~ConnectionOutputStream()
 bool ConnectionOutputStream::write(const char* b, int length)
 {
    bool rval = true;
-   
+
    if(!mUseBuffer)
    {
       // wrap bytes and immediately flush
@@ -39,7 +39,7 @@ bool ConnectionOutputStream::write(const char* b, int length)
       {
          // put bytes into buffer
          written += mBuffer.put(b + written, length - written, false);
-         
+
          // flush buffer if full
          if(mBuffer.isFull())
          {
@@ -47,17 +47,17 @@ bool ConnectionOutputStream::write(const char* b, int length)
          }
       }
    }
-   
+
    return rval;
 }
 
 bool ConnectionOutputStream::flush()
 {
    bool rval = true;
-   
+
    int numBytes;
    BandwidthThrottler* bt = mConnection->getBandwidthThrottler(false);
-   
+
    // flush previously unflushed data (due to non-blocking send)
    while(rval && mUnflushed.length() > 0)
    {
@@ -66,20 +66,20 @@ bool ConnectionOutputStream::flush()
       {
          bt->requestBytes(numBytes, numBytes);
       }
-      
+
       // send data through the socket output stream
       if((rval = mConnection->getSocket()->getOutputStream()->write(
          mUnflushed.data(), numBytes)))
       {
          // clear written bytes from buffer
          mUnflushed.clear(numBytes);
-         
+
          // update bytes written (reset as necessary)
          if(mBytesWritten > Math::HALF_MAX_LONG_VALUE)
          {
             mBytesWritten = 0;
          }
-         
+
          mBytesWritten += numBytes;
       }
       else
@@ -93,7 +93,7 @@ bool ConnectionOutputStream::flush()
          }
       }
    }
-   
+
    // flush buffered output
    while(rval && mBuffer.length() > 0)
    {
@@ -103,20 +103,20 @@ bool ConnectionOutputStream::flush()
       {
          bt->requestBytes(numBytes, numBytes);
       }
-      
+
       // send data through the socket output stream
       if((rval = mConnection->getSocket()->getOutputStream()->write(
          mBuffer.data(), numBytes)))
       {
          // clear written bytes from buffer
          mBuffer.clear(numBytes);
-         
+
          // update bytes written (reset as necessary)
          if(mBytesWritten > Math::HALF_MAX_LONG_VALUE)
          {
             mBytesWritten = 0;
          }
-         
+
          mBytesWritten += numBytes;
       }
       else
@@ -130,13 +130,13 @@ bool ConnectionOutputStream::flush()
          }
       }
    }
-   
+
    // put any unflushed bytes into unflushed buffer
    mUnflushed.put(&mBuffer, mBuffer.length(), true);
-   
+
    // clear buffer
    mBuffer.clear();
-   
+
    return rval;
 }
 
@@ -144,7 +144,7 @@ void ConnectionOutputStream::close()
 {
    // make sure to flush ;)
    flush();
-   
+
    // close socket output stream
    mConnection->getSocket()->getOutputStream()->close();
 }
@@ -161,7 +161,7 @@ void ConnectionOutputStream::resizeBuffer(int size)
    {
       flush();
    }
-   
+
    if(size > 0)
    {
       if(mUseBuffer)

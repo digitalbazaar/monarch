@@ -26,7 +26,7 @@ UdpSocket::~UdpSocket()
 bool UdpSocket::acquireFileDescriptor(SocketAddress::CommunicationDomain domain)
 {
    bool rval = true;
-   
+
    if(mFileDescriptor == -1)
    {
       // use PF_INET = "protocol family internet" (which just so happens to
@@ -43,7 +43,7 @@ bool UdpSocket::acquireFileDescriptor(SocketAddress::CommunicationDomain domain)
          rval = create(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
       }
    }
-   
+
    return rval;
 }
 
@@ -54,29 +54,29 @@ Socket* UdpSocket::createConnectedSocket(unsigned int fd)
    socket->mFileDescriptor = fd;
    socket->mBound = true;
    socket->mConnected = true;
-   
+
    // initialize input and output
    socket->initializeInput();
    socket->initializeOutput();
-   
+
    return socket;
 }
 
 bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
 {
    int error = 0;
-   
+
    if(group->getCommunicationDomain() == SocketAddress::IPv6)
    {
       // create IPv6 multicast request
       struct ipv6_mreq request;
-      
+
       // set multicast address
       inet_pton(AF_INET6, group->getAddress(), &request.ipv6mr_multiaddr);
-      
+
       // use any address for local interface
       request.ipv6mr_interface = 0;
-      
+
       // join group
       error = setsockopt(
          mFileDescriptor, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP,
@@ -86,10 +86,10 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
    {
       // create IPv4 multicast request
       struct ip_mreq request;
-      
+
       // set multicast address
       inet_pton(AF_INET, group->getAddress(), &request.imr_multiaddr);
-      
+
       // set local interface
       if(localAddress == NULL)
       {
@@ -100,13 +100,13 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
       {
          inet_pton(AF_INET, localAddress->getAddress(), &request.imr_interface);
       }
-      
+
       // join group
       error = setsockopt(
          mFileDescriptor, IPPROTO_IP, IP_ADD_MEMBERSHIP,
          (char*)&request, sizeof(request));
    }
-   
+
    if(error < 0)
    {
       ExceptionRef e = new Exception(
@@ -114,25 +114,25 @@ bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return error == 0;
 }
 
 bool UdpSocket::leaveGroup(SocketAddress* group)
 {
    int error = 0;
-   
+
    if(group->getCommunicationDomain() == SocketAddress::IPv6)
    {
       // create IPv6 multicast request
       struct ipv6_mreq request;
-      
+
       // set multicast address
       inet_pton(AF_INET6, group->getAddress(), &request.ipv6mr_multiaddr);
-      
+
       // use any address for local interface
       request.ipv6mr_interface = 0;
-      
+
       // leave group
       error = setsockopt(
          mFileDescriptor, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP,
@@ -142,19 +142,19 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
    {
       // create IPv4 multicast request
       struct ip_mreq request;
-      
+
       // set multicast address
       inet_pton(AF_INET, group->getAddress(), &request.imr_multiaddr);
-      
+
       // use any address for local interface
       request.imr_interface.s_addr = INADDR_ANY;
-      
+
       // leave group
       error = setsockopt(
          mFileDescriptor, IPPROTO_IP, IP_DROP_MEMBERSHIP,
          (char*)&request, sizeof(request));
    }
-   
+
    if(error < 0)
    {
       ExceptionRef e = new Exception(
@@ -162,14 +162,14 @@ bool UdpSocket::leaveGroup(SocketAddress* group)
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return error == 0;
 }
 
 bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
 {
    bool rval = true;
-   
+
    if(!isBound())
    {
       ExceptionRef e = new Exception(
@@ -183,7 +183,7 @@ bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
       unsigned int size = 130;
       char addr[size];
       address->toSockAddr((sockaddr*)&addr, size);
-      
+
       // send all data (sendto cannot fail to send all bytes in one go because
       // the socket send buffer was full, it will block until it has enough
       // room to send)
@@ -202,14 +202,14 @@ bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
          }
       }
    }
-   
+
    return rval;
 }
 
 int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
 {
    int rval = -1;
-   
+
    if(!isBound())
    {
       ExceptionRef e = new Exception(
@@ -221,7 +221,7 @@ int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
       // get address structure
       socklen_t size = 130;
       char addr[size];
-      
+
       // receive some data
       rval = SOCKET_MACRO_recvfrom(
          mFileDescriptor, b, length, 0, (sockaddr*)&addr, &size);
@@ -239,19 +239,19 @@ int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
          address->fromSockAddr((sockaddr*)&addr, size);
       }
    }
-   
+
    return rval;
 }
 
 bool UdpSocket::setMulticastHops(unsigned char hops)
 {
    int error = 0;
-   
+
    // set multicast hops flag
    error = setsockopt(
       mFileDescriptor, IPPROTO_IPV6, IPV6_MULTICAST_HOPS,
       (char*)&hops, sizeof(hops));
-   
+
    if(error < 0)
    {
       ExceptionRef e = new Exception(
@@ -259,18 +259,18 @@ bool UdpSocket::setMulticastHops(unsigned char hops)
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return error == 0;
 }
 
 bool UdpSocket::setMulticastTimeToLive(unsigned char ttl)
 {
    int error = 0;
-   
+
    // set multicast ttl flag
    error = setsockopt(
       mFileDescriptor, IPPROTO_IP, IP_MULTICAST_TTL, (char*)&ttl, sizeof(ttl));
-   
+
    if(error < 0)
    {
       ExceptionRef e = new Exception(
@@ -278,7 +278,7 @@ bool UdpSocket::setMulticastTimeToLive(unsigned char ttl)
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return error == 0;
 }
 
@@ -296,6 +296,6 @@ bool UdpSocket::setBroadcastEnabled(bool enable)
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return error == 0;
 }

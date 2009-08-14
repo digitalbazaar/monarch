@@ -49,7 +49,7 @@ AbstractSocket::~AbstractSocket()
 bool AbstractSocket::create(int domain, int type, int protocol)
 {
    bool rval = false;
-   
+
    // IPv6
    if(domain == PF_INET6 || domain == AF_INET6)
    {
@@ -60,7 +60,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    {
       mCommDomain = SocketAddress::IPv4;
    }
-   
+
    int fd = SOCKET_MACRO_socket(domain, type, protocol);
    if(fd >= 0)
    {
@@ -84,7 +84,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
       {
          // close socket
          close();
-         
+
          ExceptionRef e = new Exception(
             "Could not create socket.", SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
@@ -103,14 +103,14 @@ bool AbstractSocket::create(int domain, int type, int protocol)
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 bool AbstractSocket::select(bool read, long long timeout)
 {
    Exception* e = NULL;
-   
+
    // wait for readability/writability
    int error = SocketTools::select(
       read, (unsigned int)mFileDescriptor, timeout);
@@ -194,13 +194,13 @@ bool AbstractSocket::select(bool read, long long timeout)
          }
       }
    }
-   
+
    if(e != NULL)
    {
       ExceptionRef ref = e;
       Exception::set(ref);
    }
-   
+
    return e == NULL;
 }
 
@@ -211,7 +211,7 @@ bool AbstractSocket::initializeInput()
       // create input stream
       mInputStream = new PeekInputStream(new SocketInputStream(this), true);
    }
-   
+
    return true;
 }
 
@@ -222,7 +222,7 @@ bool AbstractSocket::initializeOutput()
       // create output stream
       mOutputStream = new SocketOutputStream(this);
    }
-   
+
    return true;
 }
 
@@ -234,7 +234,7 @@ bool AbstractSocket::shutdownInput()
       delete mInputStream;
       mInputStream = NULL;
    }
-   
+
    return true;
 }
 
@@ -246,7 +246,7 @@ bool AbstractSocket::shutdownOutput()
       delete mOutputStream;
       mOutputStream = NULL;
    }
-   
+
    return true;
 }
 
@@ -259,7 +259,7 @@ bool AbstractSocket::bind(SocketAddress* address)
       unsigned int size = 130;
       char addr[size];
       address->toSockAddr((sockaddr*)&addr, size);
-      
+
       // bind
       int error = SOCKET_MACRO_bind(mFileDescriptor, (sockaddr*)&addr, size);
       if(error < 0)
@@ -267,7 +267,7 @@ bool AbstractSocket::bind(SocketAddress* address)
          // shutdown input/output
          shutdownInput();
          shutdownOutput();
-         
+
          ExceptionRef e = new Exception(
             "Could not bind socket.", SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
@@ -280,15 +280,15 @@ bool AbstractSocket::bind(SocketAddress* address)
          // initialize input and output
          initializeInput();
          initializeOutput();
-         
+
          // now bound
          mBound = true;
-         
+
          // update address
          getLocalAddress(address);
       }
    }
-   
+
    return mBound;
 }
 
@@ -304,7 +304,7 @@ bool AbstractSocket::listen(unsigned int backlog)
    {
       // set backlog
       mBacklog = backlog;
-      
+
       // listen
       int error = SOCKET_MACRO_listen(mFileDescriptor, backlog);
       if(error < 0)
@@ -318,19 +318,19 @@ bool AbstractSocket::listen(unsigned int backlog)
       {
          // now listening
          mListening = true;
-         
+
          // set socket to non-blocking so accept() calls can be interrupted
          SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
       }
    }
-   
+
    return mListening;
 }
 
 Socket* AbstractSocket::accept(unsigned int timeout)
 {
    Socket* rval = NULL;
-   
+
    if(!isListening())
    {
       ExceptionRef e = new Exception(
@@ -354,7 +354,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
             }
          }
       }
-      
+
       if(fd < 0)
       {
          ExceptionRef e = new Exception(
@@ -387,7 +387,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -400,10 +400,10 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
       unsigned int size = 130;
       char addr[size];
       address->toSockAddr((sockaddr*)&addr, size);
-      
+
       // temporarily make socket non-blocking
       SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
-      
+
       // connect
       int error = SOCKET_MACRO_connect(mFileDescriptor, (sockaddr*)addr, size);
       if(error < 0)
@@ -448,13 +448,13 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
          mBound = true;
          mConnected = true;
       }
-      
+
       // FIXME: remove ifndef if winsock/mingw32 ever supports MSG_DONTWAIT
 #ifndef WIN32
       // restore socket to blocking
       SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, 0);
 #endif
-      
+
       if(mConnected)
       {
          // initialize input and output
@@ -462,14 +462,14 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
          initializeOutput();
       }
    }
-   
+
    return mConnected;
 }
 
 bool AbstractSocket::send(const char* b, int length)
 {
    bool rval = true;
-   
+
    if(!isBound())
    {
       ExceptionRef e = new Exception(
@@ -539,14 +539,14 @@ bool AbstractSocket::send(const char* b, int length)
          }
       }
    }
-   
+
    return rval;
 }
 
 int AbstractSocket::receive(char* b, int length)
 {
    int rval = -1;
-   
+
    if(!isBound())
    {
       ExceptionRef e = new Exception(
@@ -585,7 +585,7 @@ int AbstractSocket::receive(char* b, int length)
                }
             }
          }
-         
+
          // check for error again
          if(rval < 0 && errno != EAGAIN)
          {
@@ -597,7 +597,7 @@ int AbstractSocket::receive(char* b, int length)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -608,13 +608,13 @@ void AbstractSocket::close()
       // shutdown input and output
       shutdownInput();
       shutdownOutput();
-      
+
       // close the socket
       SOCKET_MACRO_close(mFileDescriptor);
-      
+
       // file descriptor is invalid again
       mFileDescriptor = -1;
-      
+
       // not bound, listening, or connected
       mBound = false;
       mListening = false;
@@ -640,7 +640,7 @@ inline bool AbstractSocket::isConnected()
 bool AbstractSocket::getLocalAddress(SocketAddress* address)
 {
    bool rval = false;
-   
+
    if(!isBound())
    {
       ExceptionRef e = new Exception(
@@ -653,7 +653,7 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
       // get address structure
       socklen_t size = 130;
       char addr[size];
-      
+
       // get local information
       int error = SOCKET_MACRO_getsockname(
          mFileDescriptor, (sockaddr*)&addr, &size);
@@ -672,14 +672,14 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
 bool AbstractSocket::getRemoteAddress(SocketAddress* address)
 {
    bool rval = false;
-   
+
    if(!isConnected())
    {
       ExceptionRef e = new Exception(
@@ -692,7 +692,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
       // get address structure
       socklen_t size = 130;
       char addr[size];
-      
+
       // get remote information
       int error = SOCKET_MACRO_getpeername(
          mFileDescriptor, (sockaddr*)&addr, &size);
@@ -711,7 +711,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 

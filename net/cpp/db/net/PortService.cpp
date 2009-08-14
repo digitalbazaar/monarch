@@ -32,7 +32,7 @@ bool PortService::start()
       // stop service
       stop();
    }
-   
+
    // initialize service
    mOperation = initialize();
    if(!mOperation.isNull())
@@ -48,11 +48,11 @@ bool PortService::start()
          "db.net.PortService.StartFailed");
       e->getDetails()["name"] = mName;
       Exception::push(e);
-      
+
       // clean up service
       cleanup();
    }
-   
+
    return !mOperation.isNull();
 }
 
@@ -74,7 +74,7 @@ void PortService::stop()
       mOperation->waitFor(false);
       mOperation.setNull();
    }
-   
+
    // clean up service
    cleanup();
 }

@@ -17,10 +17,10 @@ DefaultBandwidthThrottler::DefaultBandwidthThrottler(int rateLimit)
 {
    // initialize the last request time
    mLastRequestTime = System::getCurrentMilliseconds();
-   
+
    // initialize the available number of bytes
    mAvailableBytes = 0;
-   
+
    // set the rate limit (will also reset the window time if necessary)
    setRateLimit(rateLimit);
 }
@@ -32,21 +32,21 @@ DefaultBandwidthThrottler::~DefaultBandwidthThrottler()
 bool DefaultBandwidthThrottler::requestBytes(int count, int& permitted)
 {
    bool rval = true;
-   
+
    if(getRateLimit() > 0)
    {
       mLock.lock();
       {
          // limit the bandwidth
          rval = limitBandwidth();
-         
+
          // get the available bytes
          int available = getAvailableBytes();
          permitted = (available > count ? count : available);
-         
+
          // increment the bytes granted
          mBytesGranted += permitted;
-         
+
          // update last request time
          mLastRequestTime = System::getCurrentMilliseconds();
       }
@@ -57,7 +57,7 @@ bool DefaultBandwidthThrottler::requestBytes(int count, int& permitted)
       // no rate limit, return the count
       permitted = count;
    }
-   
+
    return rval;
 }
 
@@ -71,7 +71,7 @@ void DefaultBandwidthThrottler::setRateLimit(int rateLimit)
       {
          // reset the window time
          resetWindowTime();
-         
+
          // update the available byte time
          updateAvailableByteTime();
       }
@@ -88,7 +88,7 @@ void DefaultBandwidthThrottler::resetWindowTime()
 {
    // set the current window time
    mWindowTime = System::getCurrentMilliseconds();
-      
+
    // reset the bytes already granted in this window
    mBytesGranted = 0;
 }
@@ -97,7 +97,7 @@ void DefaultBandwidthThrottler::updateWindowTime()
 {
    // get the current time
    uint64_t now = System::getCurrentMilliseconds();
-   
+
    // Cap the number of bytes granted per window at maximum uint value
    // so that there isn't any overflow. This should also be a sufficiently
    // large enough number such that rate calculations aren't affected
@@ -118,7 +118,7 @@ void DefaultBandwidthThrottler::updateWindowTime()
       // If it subsequently actually takes one second to transfer the
       // byte, then the next request would be somewhere shortly after
       // 2 seconds.
-      // 
+      //
       // It is assumed that any request more than a second later
       // involves a different transfer so we shouldn't store up a
       // lot of available bytes (by failing to reset the window) for
@@ -154,11 +154,11 @@ void DefaultBandwidthThrottler::updateAvailableBytes()
 {
    // get the passed time in the current window
    double passedTime = System::getCurrentMilliseconds() - getWindowTime();
-   
+
    // determine how many bytes are available given the passed time --
    // use the floor so as not to go over the rate limit
    mAvailableBytes = (uint64_t)floorl(passedTime / 1000. * getRateLimit());
-   
+
    // subtract the number of bytes already granted in this window
    mAvailableBytes = (mBytesGranted > mAvailableBytes) ?
       0 : mAvailableBytes - mBytesGranted;
@@ -173,13 +173,13 @@ inline int DefaultBandwidthThrottler::getAvailableBytes()
 bool DefaultBandwidthThrottler::limitBandwidth()
 {
    bool rval = true;
-   
+
    // update the window time
    updateWindowTime();
 
    // update the number of available bytes
    updateAvailableBytes();
-   
+
    // while there aren't any available bytes, sleep for the
    // available byte time
    while(rval && getAvailableBytes() == 0)
@@ -188,10 +188,10 @@ bool DefaultBandwidthThrottler::limitBandwidth()
       mLock.unlock();
       rval = Thread::sleep(getAvailableByteTime());
       mLock.lock();
-      
+
       // update the number of available bytes
       updateAvailableBytes();
    }
-   
+
    return rval;
 }
