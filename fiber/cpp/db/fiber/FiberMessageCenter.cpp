@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/fiber/FiberMessageCenter.h"
 
@@ -40,7 +40,7 @@ void FiberMessageCenter::unregisterFiber(MessagableFiber* fiber)
 bool FiberMessageCenter::sendMessage(FiberId id, DynamicObject& msg)
 {
    bool rval = false;
-   
+
    // get shared lock to deliver message
    mMessageLock.lockShared();
    {
@@ -52,6 +52,6 @@ bool FiberMessageCenter::sendMessage(FiberId id, DynamicObject& msg)
       }
    }
    mMessageLock.unlockShared();
-   
+
    return rval;
 }

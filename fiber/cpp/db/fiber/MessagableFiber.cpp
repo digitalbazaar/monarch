@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/fiber/MessagableFiber.h"
 
@@ -25,10 +25,10 @@ void MessagableFiber::run()
 {
    // register with message center
    mMessageCenter->registerFiber(this);
-   
+
    // process messages
    processMessages();
-   
+
    // unregister with message center
    mMessageCenter->unregisterFiber(this);
 }
@@ -41,7 +41,7 @@ void MessagableFiber::addMessage(db::rt::DynamicObject& msg)
       mIncomingMessageQueue->push_back(msg);
    }
    mMessageLock.unlock();
-   
+
    // wake up self if sleeping
    wakeup();
 }
@@ -49,14 +49,14 @@ void MessagableFiber::addMessage(db::rt::DynamicObject& msg)
 bool MessagableFiber::canSleep()
 {
    bool rval;
-   
+
    // lock to see if there are incoming messages
    mMessageLock.lock();
    {
       rval = mIncomingMessageQueue->empty();
    }
    mMessageLock.unlock();
-   
+
    return rval;
 }
 
@@ -67,7 +67,7 @@ FiberMessageQueue* MessagableFiber::getMessages()
    {
       // clear previous processing message queue
       mProcessingMessageQueue->clear();
-      
+
       if(mProcessingMessageQueue == &mMessageQueue1)
       {
          mProcessingMessageQueue = &mMessageQueue2;
@@ -80,7 +80,7 @@ FiberMessageQueue* MessagableFiber::getMessages()
       }
    }
    mMessageLock.unlock();
-   
+
    return mProcessingMessageQueue;
 }
 

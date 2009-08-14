@@ -21,7 +21,7 @@ FiberScheduler::~FiberScheduler()
 {
    // ensure stopped
    FiberScheduler::stop();
-   
+
    // delete all fibers
    for(FiberMap::iterator i = mFiberMap.begin(); i != mFiberMap.end(); i++)
    {
@@ -40,7 +40,7 @@ void FiberScheduler::start(OperationRunner* opRunner, int numOps)
       Operation op(*this);
       mOpList.add(op);
    }
-   
+
    // queue Operations
    mOpList.queue(opRunner);
 }
@@ -49,7 +49,7 @@ inline void FiberScheduler::stop()
 {
    // terminate all operations
    mOpList.terminate();
-   
+
    // delete all thread contexts
    for(ContextList::iterator i = mContextList.begin();
        i != mContextList.end(); i++)
@@ -62,7 +62,7 @@ inline void FiberScheduler::stop()
 bool FiberScheduler::waitForLastFiberExit(bool stop)
 {
    bool rval = true;
-   
+
    mNoFibersWaitLock.lock();
    {
       // wait on the no fibers lock until there are no more fibers
@@ -72,45 +72,45 @@ bool FiberScheduler::waitForLastFiberExit(bool stop)
       }
    }
    mNoFibersWaitLock.unlock();
-   
+
    if(rval && stop)
    {
       // stop fiber scheduler
       this->stop();
    }
-   
+
    return rval;
 }
 
 FiberId FiberScheduler::addFiber(Fiber* fiber)
 {
    FiberId id;
-   
+
    // lock scheduler to add fiber
    mScheduleLock.lock();
    {
       // get available FiberId
       id = mFiberIdFreeList.front();
       mFiberIdFreeList.pop_front();
-      
+
       // add new id if list is empty
       if(mFiberIdFreeList.empty())
       {
          mFiberIdFreeList.push_back(id + 1);
       }
-      
+
       // assign id and scheduler to fiber
       fiber->setScheduler(id, this);
-      
+
       // add fiber to map and queue
       mFiberMap.insert(make_pair(id, fiber));
       mFiberQueue.push_back(fiber);
-      
+
       // notify that a fiber is available for scheduling
       fiberAvailable();
    }
    mScheduleLock.unlock();
-   
+
    return id;
 }
 
@@ -123,7 +123,7 @@ void FiberScheduler::run()
       mContextList.push_back(scheduler);
    }
    mScheduleLock.unlock();
-   
+
    // continue scheduling fibers while this thread is not interrupted
    bool tryInit = true;
    Thread* t = Thread::currentThread();
@@ -131,7 +131,7 @@ void FiberScheduler::run()
    {
       // synchronously get the next fiber to schedule
       Fiber* fiber = nextFiber();
-      
+
       // if there is no fiber to schedule
       if(fiber == NULL)
       {
@@ -157,7 +157,7 @@ void FiberScheduler::run()
                tryInit = false;
             }
          }
-         
+
          /*
          Note: The fiber's state *must* have been New or Running if it was
          selected via nextFiber. The fiber cannot be running currently.
@@ -181,11 +181,11 @@ void FiberScheduler::run()
          {
             // swap in the fiber's context
             scheduler->swap(fiber->getContext());
-            
+
             // Note: Here the fiber's state could be changed externally
             // from Sleeping to Waking, so we must lock first to ensure
             // ensure we don't cause any evil race conditions.
-            
+
             // lock scheduling while adding fiber back to queue
             mScheduleLock.lock();
             {
@@ -209,14 +209,14 @@ void FiberScheduler::run()
                   if we did it in the sleep() call it would have the same
                   potential problem as the wakeup() call: it could be missed
                   and cause the fiber to sleep indefinitely.
-                  
+
                   With this implementation, the user can safely implement
                   a canSleep() method that checks a condition (within a
                   mutex) that will be set elsewhere (within the mutex)
                   *followed by* a mutex-free wake up call. This
                   implementation prevents a deadlock scenario.
                   */
-                  
+
                   // only *actually* sleep fiber if it can be sleeped at
                   // the moment
                   if(fiber->canSleep())
@@ -231,7 +231,7 @@ void FiberScheduler::run()
                      fiber->setState(Fiber::Running);
                   }
                }
-               
+
                if(fiber->getState() != Fiber::Sleeping)
                {
                   // if fiber is running, put it in the back of the queue
@@ -243,12 +243,12 @@ void FiberScheduler::run()
                   else if(fiber->getState() == Fiber::Exited)
                   {
                      mFiberQueue.push_front(fiber);
-                     
+
                      // because fiber's stack memory will be reclaimed, it
                      // is safe to try init on new fibers again
                      tryInit = true;
                   }
-                  
+
                   /*
                   Note: If the fiber's state is Waking, we don't add it
                   to the queue as this was done when its state was changed
@@ -257,7 +257,7 @@ void FiberScheduler::run()
                   in its own context, so there are no race conditions
                   concerning the fiber queue.
                   */
-                  
+
                   // notify that a fiber is available
                   fiberAvailable();
                }
@@ -293,7 +293,7 @@ void FiberScheduler::sleep(Fiber* fiber)
       fiber->setState(Fiber::Sleeping);
    }
    mScheduleLock.unlock();
-   
+
    // swap scheduler back in
    fiber->getContext()->swapBack();
 }
@@ -337,12 +337,12 @@ void FiberScheduler::wakeup(FiberId id)
          we needn't worry about a similar (but reverse) situation occurring
          there.
          */
-         
+
          // update fiber state, add to queue, remove from sleeping fibers map
          i->second->setState(Fiber::Waking);
          mFiberQueue.push_back(i->second);
          mSleepingFibers.erase(i);
-         
+
          // notify that a fiber is available
          fiberAvailable();
       }
@@ -359,7 +359,7 @@ void FiberScheduler::exit(Fiber* fiber)
    fiber's context.
    */
    fiber->setState(Fiber::Exited);
-   
+
    // load scheduler back in
    fiber->getContext()->loadBack();
 }
@@ -367,12 +367,12 @@ void FiberScheduler::exit(Fiber* fiber)
 Fiber* FiberScheduler::nextFiber()
 {
    Fiber* rval = NULL;
-   
+
    // lock scheduling while iterating over and modifying fiber queue
    mScheduleLock.lock();
    {
       // look for a fiber that can be scheduled:
-      
+
       // cycle through fibers not more than once
       FiberId cycleEnd = 0;
       for(FiberQueue::iterator i = mFiberQueue.begin();
@@ -381,7 +381,7 @@ Fiber* FiberScheduler::nextFiber()
          // pop fiber off queue
          Fiber* fiber = *i;
          i = mFiberQueue.erase(i);
-         
+
          // check state of fiber
          switch(fiber->getState())
          {
@@ -411,13 +411,13 @@ Fiber* FiberScheduler::nextFiber()
                ::exit(1);
                break;
          }
-         
+
          // if current fiber cannot be scheduled
          if(rval == NULL && fiber != NULL)
          {
             // push fiber onto end of queue
             mFiberQueue.push_back(fiber);
-            
+
             // ensure current fiber is not checked again
             if(cycleEnd == 0)
             {
@@ -425,7 +425,7 @@ Fiber* FiberScheduler::nextFiber()
             }
          }
       }
-      
+
       if(mFiberMap.empty())
       {
          // notify that no fibers are available
@@ -433,7 +433,7 @@ Fiber* FiberScheduler::nextFiber()
       }
    }
    mScheduleLock.unlock();
-   
+
    return rval;
 }
 
