@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/event/EventWaiter.h"
 
@@ -70,7 +70,7 @@ void EventWaiter::stop(const char* event)
             i->remove();
             removed = true;
          }
-      }    
+      }
    }
 }
 
@@ -96,14 +96,14 @@ bool EventWaiter::waitForEvent(uint32_t timeout)
       }
    }
    mLock.unlock();
-   
+
    return mEventOccurred;
 }
 
 Event EventWaiter::popEvent()
 {
    Event e(NULL);
-   
+
    mLock.lock();
    {
       if(!mEvents.empty())
@@ -111,13 +111,13 @@ Event EventWaiter::popEvent()
          e = mEvents.front();
          mEvents.pop_front();
       }
-      
+
       if(mEvents.empty())
       {
          mEventOccurred = false;
       }
    }
    mLock.unlock();
-   
+
    return e;
 }

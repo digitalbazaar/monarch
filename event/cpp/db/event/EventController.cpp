@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/event/EventController.h"
 
@@ -15,7 +15,7 @@ EventController::EventController()
 {
    // ensure event type map's type is set
    mTypeMap->setType(Map);
-   
+
    // assign ID for wildcard top-level event, set next event ID
    mTypeMap["*"] = TOPLEVEL_ID;
    mNextEventId = TOPLEVEL_ID + 1;
@@ -28,7 +28,7 @@ EventController::~EventController()
 EventId EventController::getEventId(const char* type)
 {
    EventId id = 0;
-   
+
    // try shared lock first (most common case and is faster)
    mMapLock.lockShared();
    {
@@ -39,7 +39,7 @@ EventId EventController::getEventId(const char* type)
       }
    }
    mMapLock.unlockShared();
-   
+
    if(id == 0)
    {
       // use exclusive lock since no event ID was found in shared lock
@@ -55,14 +55,14 @@ EventId EventController::getEventId(const char* type)
          {
             // assign event ID and increment
             mTypeMap[type] = id = mNextEventId++;
-            
+
             // add top-level tap
             addTap(id, TOPLEVEL_ID);
          }
       }
       mMapLock.unlockExclusive();
    }
-   
+
    return id;
 }
 

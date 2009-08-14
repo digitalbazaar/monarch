@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_event_Observer_H
 #define db_event_Observer_H
@@ -14,7 +14,7 @@ namespace event
 /**
  * An Observer can register with an Observable to receive the events it
  * generates.
- * 
+ *
  * @author Dave Longley
  */
 class Observer
@@ -24,16 +24,16 @@ public:
     * Creates a new Observer.
     */
    Observer() {};
-   
+
    /**
     * Destructs this Observer.
     */
    virtual ~Observer() {};
-   
+
    /**
     * Called when an Event occurs on an Observable that this Observer is
     * registered with.
-    * 
+    *
     * @param e the Event that occurred.
     */
    virtual void eventOccurred(Event& e) = 0;

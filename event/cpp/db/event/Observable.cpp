@@ -38,7 +38,7 @@ void Observable::registerObserver(
       {
          mTaps.insert(make_pair(id, id));
       }
-      
+
       // get the event ID's filter map, creating it if necessary
       ObserverMap::iterator oi = mObservers.find(id);
       if(oi == mObservers.end())
@@ -49,14 +49,14 @@ void Observable::registerObserver(
             mObservers.insert(make_pair(id, tmp));
          oi = p.first;
       }
-      
+
       // create the event filter to compare against
       EventFilter ef(NULL);
       if(filter != NULL)
       {
          ef = filter->clone();
       }
-      
+
       // get the observer list, creating it if necessary
       FilterMap::iterator fi = oi->second.find(ef);
       if(fi == oi->second.end())
@@ -67,7 +67,7 @@ void Observable::registerObserver(
             oi->second.insert(make_pair(ef, tmp));
          fi = p.first;
       }
-      
+
       // add the observer to the list
       fi->second.push_back(observer);
    }
@@ -82,10 +82,10 @@ void Observable::registerObserver(
  * an event during the unregister call. If this wait is not performed to
  * allow the observer to finish event processing, then the observer could
  * be free'd whilst processing an event, resulting in a segfault.
- * 
+ *
  * Note: This method assumes the registration lock is engaged when it is
  * called.
- * 
+ *
  * @param lock the registration lock.
  * @param observer the observer being unregistered.
  * @param opList the operation list that may contain the observer's event
@@ -96,7 +96,7 @@ static void waitForObserver(
 {
    Thread* t = Thread::currentThread();
    bool mustWait;
-   
+
    do
    {
       // must wait for the observer to finish event processing but only if
@@ -114,18 +114,18 @@ static void waitForObserver(
             mustWait = true;
          }
       }
-      
+
       if(mustWait)
       {
          // unlock registration lock to allow other processing while waiting
          lock.unlock();
-         
+
          // wait for observer event processing operations
          itr = tmpOpList.getIterator();
          while(itr->hasNext())
          {
             Operation& op = itr->next();
-            
+
             // Note: It is possible right now for deadlock to occur if
             // two parallel event processing threads attempt to concurrently
             // unregister their observer... this is currently considered a
@@ -134,12 +134,12 @@ static void waitForObserver(
             // operation list where we store each operation that is trying to
             // unregister an observer ... and we allow at least one operation
             // from that list to proceed at a time.
-            
+
             // wait for operation to complete
             op->waitFor();
          }
          opList.prune();
-         
+
          // relock registration lock
          lock.lock();
       }
@@ -153,7 +153,7 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
    {
       // wait for the observer to finish any event processing
       waitForObserver(mRegistrationLock, observer, mOpList);
-      
+
       // find the filter map for the event
       ObserverMap::iterator i = mObservers.find(id);
       if(i != mObservers.end())
@@ -161,7 +161,7 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
          // remove observer
          vector<EventFilter> removableFilters;
          removeObserverFromFilterMap(observer, i->second, removableFilters);
-         
+
          // erase filter map if it would be empty after processing
          // the removable filters
          if(removableFilters.size() == i->second.size())
@@ -186,12 +186,12 @@ void Observable::unregisterObserver(Observer* observer)
 {
    // FIXME: add an optimization that stores all of the events that the
    // observer is registered to receive to shorten this unregistration process
-   
+
    mRegistrationLock.lock();
    {
       // wait for the observer to finish any event processing
       waitForObserver(mRegistrationLock, observer, mOpList);
-      
+
       // iterate over all filter maps, keep a list of event IDs to remove
       vector<EventId> removeIds;
       for(ObserverMap::iterator i = mObservers.begin();
@@ -200,7 +200,7 @@ void Observable::unregisterObserver(Observer* observer)
          // remove observer
          vector<EventFilter> removableFilters;
          removeObserverFromFilterMap(observer, i->second, removableFilters);
-         
+
          // mark filter map for removal if it would be empty after processing
          // the removable filters
          if(removableFilters.size() == i->second.size())
@@ -217,7 +217,7 @@ void Observable::unregisterObserver(Observer* observer)
             }
          }
       }
-      
+
       // remove all appropriate filter map entries
       for(std::vector<EventId>::iterator ei = removeIds.begin();
           ei != removeIds.end(); ei++)
@@ -238,10 +238,10 @@ void Observable::addTap(EventId id, EventId tap)
       {
          mTaps.insert(make_pair(id, id));
       }
-      
+
       // insert tap for id
       mTaps.insert(make_pair(id, tap));
-      
+
       // add tap to tap-self if EventId doesn't exist yet
       i = mTaps.find(tap);
       if(i == mTaps.end())
@@ -279,20 +279,20 @@ void Observable::schedule(Event e, EventId id, bool async)
 {
    // set the event's ID
    e["id"] = id;
-   
+
    if(async)
    {
       // lock to modify event queue and dispatch condition
       mQueueLock.lock();
       mDispatch = true;
-      
+
       // set event's sequence ID
       mSequenceId = (mSequenceId == MAX_SEQ_ID) ? 1 : mSequenceId + 1;
       e["sequenceId"] = mSequenceId;
-      
+
       // add event to queue
       mEventQueue.push_back(e);
-      
+
       // notify on queue lock and release
       mQueueLock.notifyAll();
       mQueueLock.unlock();
@@ -304,7 +304,7 @@ void Observable::schedule(Event e, EventId id, bool async)
       mSequenceId = (mSequenceId == MAX_SEQ_ID) ? 1 : mSequenceId + 1;
       e["sequenceId"] = mSequenceId;
       mQueueLock.unlock();
-      
+
       // dispatch the event immediately
       dispatchEvent(e);
    }
@@ -335,7 +335,7 @@ void Observable::stop()
       {
          // interrupt dispatch operation
          mOperation->interrupt();
-         
+
          // Note: We only care about locking in this method to prevent
          // start() from running while we are shutting down -- we don't
          // care if more events are scheduled because that won't cause
@@ -343,17 +343,17 @@ void Observable::stop()
          // check mOperation.isNull() before starting anything, then
          // we don't need to worry about it starting here since mOperation
          // can't be NULL until we relock and clear it below.
-         // 
+         //
          // We need to unlock() while we wait for the dispatch operation
          // to complete because it needs to lock after dispatching each
          // event and won't finish if we are holding the lock here waiting
          // for it to finish.
-         
+
          // unlock, wait for dispatch operation to finish, relock
          mRegistrationLock.unlock();
          mOperation->waitFor();
          mRegistrationLock.lock();
-         
+
          // clean up operation
          mOperation.setNull();
       }
@@ -403,7 +403,7 @@ void Observable::removeObserverFromFilterMap(
             li++;
          }
       }
-      
+
       // if filter's list is now empty, mark it for removal
       if(fi->second.empty())
       {
@@ -430,7 +430,7 @@ void Observable::dispatchEvent(
             if(oi != mObservers.end())
             {
                FilterMap& fm = oi->second;
-               
+
                // go through each filter
                bool pass;
                for(FilterMap::iterator fi = fm.begin(); fi != fm.end(); fi++)
@@ -442,7 +442,7 @@ void Observable::dispatchEvent(
                      // filter must be a subset of event
                      pass = fi->first.isSubset(e);
                   }
-                  
+
                   if(pass)
                   {
                      for(ObserverList::iterator li =
@@ -454,10 +454,10 @@ void Observable::dispatchEvent(
                         Operation op(ed);
                         op->setUserData(*li);
                         mOpRunner->runOperation(op);
-                        
+
                         // add all operations to the current operation list
                         mOpList.add(op);
-                        
+
                         // only add serial events to the wait list,
                         // parallel events are not waited on for completion
                         if(!e->hasMember("parallel") ||
@@ -483,19 +483,19 @@ void Observable::dispatchEvent(Event& e)
 {
    // create an operation list for waiting
    OperationList waitList;
-   
+
    // lock to process event and prevent registration modification
    mRegistrationLock.lock();
-   
+
    // get the EventId for the event and dispatch it
    EventId id = e["id"]->getUInt64();
    dispatchEvent(e, id, waitList);
-   
+
    if(!waitList.isEmpty())
    {
       // unlock registration and wait for dispatch operations to complete
       mRegistrationLock.unlock();
-      
+
       if(!waitList.waitFor())
       {
          // dispatch thread interrupted, so interrupt all
@@ -505,14 +505,14 @@ void Observable::dispatchEvent(Event& e)
          mOpList.interrupt();
          mOpList.waitFor(false);
       }
-      
+
       // relock registration
       mRegistrationLock.lock();
    }
-   
+
    // prune operation list
    mOpList.prune();
-   
+
    // unlock registration lock
    mRegistrationLock.unlock();
 }
@@ -521,23 +521,23 @@ void Observable::dispatchEvents()
 {
    // lock event queue
    mQueueLock.lock();
-   
+
    // continue dispatching until no events or interrupted
    while(!mEventQueue.empty() && !mOperation->isInterrupted())
    {
       // get the next event
       Event e = mEventQueue.front();
       mEventQueue.pop_front();
-      
-      // unlock queue, dispatch event, relock queue      
+
+      // unlock queue, dispatch event, relock queue
       mQueueLock.unlock();
       dispatchEvent(e);
       mQueueLock.lock();
    }
-   
+
    // turn off dispatching
    mDispatch = false;
-   
+
    // unlock event queue
    mQueueLock.unlock();
 }

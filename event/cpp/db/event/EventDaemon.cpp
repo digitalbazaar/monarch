@@ -52,10 +52,10 @@ void EventDaemon::start(OperationRunner* opRunner, EventController* ec)
       {
          // store event controller
          mEventController = ec;
-         
+
          // daemon should try to schedule events
          mScheduleEvents = true;
-         
+
          // run daemon on an operation
          mOperation = *this;
          opRunner->runOperation(mOperation);
@@ -74,12 +74,12 @@ void EventDaemon::stop()
       {
          // interrupt daemon
          mOperation->interrupt();
-         
+
          // wait for daemon to finish
          mLock.unlock();
          mOperation->waitFor();
          mLock.lock();
-         
+
          // no longer running
          mRunning = false;
       }
@@ -107,10 +107,10 @@ void EventDaemon::add(Event& e, uint32_t interval, int count, int refs)
                {
                   // event found
                   found = true;
-                  
+
                   // increment its references
                   i->refs += refs;
-                  
+
                   // update its count if not infinite
                   if(i->count != -1)
                   {
@@ -119,14 +119,14 @@ void EventDaemon::add(Event& e, uint32_t interval, int count, int refs)
                }
             }
          }
-         
+
          if(!found)
          {
             // create event data and add to the list
             EventData ed(e, interval, count, (refs == 0 ? 1 : refs));
             mEvents.push_back(ed);
          }
-         
+
          // notify daemon to try to schedule events
          mScheduleEvents = true;
          mLock.notifyAll();
@@ -147,7 +147,7 @@ void EventDaemon::remove(const char* type, int refs)
          if(strcmp(i->event["type"]->getString(), type) == 0)
          {
             // event found:
-            
+
             // remove it entirely
             if(refs == 0)
             {
@@ -175,7 +175,7 @@ void EventDaemon::remove(const char* type, int refs)
             i++;
          }
       }
-      
+
       // notify daemon to try to schedule events
       mScheduleEvents = true;
       mLock.notifyAll();
@@ -197,7 +197,7 @@ void EventDaemon::remove(Event& e, int refs)
          {
             // event found
             found = true;
-            
+
             // remove it entirely
             if(refs == 0)
             {
@@ -215,7 +215,7 @@ void EventDaemon::remove(Event& e, int refs)
             }
          }
       }
-      
+
       // notify daemon to try to schedule events
       mScheduleEvents = true;
       mLock.notifyAll();
@@ -237,7 +237,7 @@ void EventDaemon::remove(Event& e, uint32_t interval, int refs)
          {
             // event found
             found = true;
-            
+
             // remove it entirely
             if(refs == 0)
             {
@@ -255,7 +255,7 @@ void EventDaemon::remove(Event& e, uint32_t interval, int refs)
             }
          }
       }
-      
+
       // notify daemon to try to schedule events
       mScheduleEvents = true;
       mLock.notifyAll();
@@ -269,7 +269,7 @@ void EventDaemon::run()
    {
       // lock to schedule events
       mLock.lock();
-      
+
       if(mEvents.empty())
       {
          // wait until notified or interrupted
@@ -282,12 +282,12 @@ void EventDaemon::run()
          // iteration does not require passing over the entire loop --
          // this can be done by sorting according to time remaining
          // until the next event is scheduled
-         
+
          // get the amount of time that has been waited, restart wait time
          uint32_t waited = (mStartWaitTime == 0 ?
             0 : Timer::getMilliseconds(mStartWaitTime));
          mStartWaitTime = Timer::startTiming();
-         
+
          // iterate over event heap, scheduling all events that have waited
          // for their intervals, removing all non-repetitious events, and
          // keeping track of the new wait time
@@ -309,7 +309,7 @@ void EventDaemon::run()
                   clone = i->cloned.clone();
                   mEventController->schedule(clone);
                   i->remaining = i->interval;
-                  
+
                   // decrement count as appropriate
                   if(i->count > 0)
                   {
@@ -321,21 +321,21 @@ void EventDaemon::run()
                   // update remaining time
                   i->remaining -= waited;
                }
-               
+
                // update wait time
                if(waitTime == 0 || i->remaining < waitTime)
                {
                   waitTime = i->remaining;
                }
-               
+
                // increment iterator
                i++;
             }
          }
-         
+
          // turn off scheduling events to try to wait for whole wait time
          mScheduleEvents = false;
-         
+
          // wait if appropriate
          if(waitTime > 0)
          {
@@ -349,7 +349,7 @@ void EventDaemon::run()
             }
          }
       }
-      
+
       // unlock to allow daemon modification
       mLock.unlock();
    }
