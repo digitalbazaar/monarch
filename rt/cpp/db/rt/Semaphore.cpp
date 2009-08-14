@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/rt/Semaphore.h"
 
@@ -13,7 +13,7 @@ Semaphore::Semaphore(int permits, bool fair)
    // set permits
    mPermits = permits;
    mPermitsLeft = permits;
-   
+
    // set fair/not fair
    mFair = fair;
 }
@@ -29,7 +29,7 @@ int Semaphore::increasePermitsLeft(int increase)
    int permits = mPermits - mPermitsLeft;
    increase = (permits < increase) ? permits : increase;
    mPermitsLeft += increase;
-   
+
    return increase;
 }
 
@@ -41,11 +41,11 @@ inline void Semaphore::decreasePermitsLeft(int decrease)
 bool Semaphore::waitThread(Thread* t)
 {
    bool rval = true;
-   
+
    // add thread to wait queue
    mWaitMap.insert(make_pair(t, true));
    mWaitList.push_back(t);
-   
+
    // wait while not interrupted and in the list of waiting threads
    while(rval && mustWait(t))
    {
@@ -54,13 +54,13 @@ bool Semaphore::waitThread(Thread* t)
          // thread has been interrupted, so notify other waiting
          // threads and remove this thread from the wait list
          notifyThreads(1);
-         
+
          // remove thread from wait queue
          mWaitList.remove(t);
          mWaitMap.erase(t);
       }
    }
-   
+
    return rval;
 }
 
@@ -86,13 +86,13 @@ void Semaphore::notifyThreads(int count)
          // store iterator and advance it
          prev = i;
          i++;
-         
+
          // remove thread
          mWaitList.remove(prev->first);
          mWaitMap.erase(prev);
       }
    }
-   
+
    // notify all threads to wake up
    notifyAll();
 }
@@ -111,7 +111,7 @@ bool Semaphore::acquire()
 bool Semaphore::acquire(int permits)
 {
    bool rval = true;
-   
+
    lock();
    {
       // see if enough permits are available
@@ -121,7 +121,7 @@ bool Semaphore::acquire(int permits)
          // must wait for permits
          rval = waitThread(t);
       }
-      
+
       if(rval)
       {
          // permits have been granted, decrease permits left
@@ -129,7 +129,7 @@ bool Semaphore::acquire(int permits)
       }
    }
    unlock();
-   
+
    return rval;
 }
 
@@ -141,20 +141,20 @@ bool Semaphore::tryAcquire()
 bool Semaphore::tryAcquire(int permits)
 {
    bool rval = false;
-   
+
    lock();
    {
       if(availablePermits() - permits >= 0)
       {
          // decrease permits left
          decreasePermitsLeft(permits);
-         
+
          // permits granted
          rval = true;
       }
    }
    unlock();
-   
+
    return rval;
 }
 
@@ -166,17 +166,17 @@ void Semaphore::release()
 int Semaphore::release(int permits)
 {
    int rval = 0;
-   
+
    lock();
    {
       // increase the number of permits left
       rval = increasePermitsLeft(permits);
-      
+
       // notify threads for number of permits
       notifyThreads(permits);
    }
    unlock();
-   
+
    return rval;
 }
 
@@ -188,13 +188,13 @@ inline int Semaphore::availablePermits()
 int Semaphore::usedPermits()
 {
    int rval = 0;
-   
+
    lock();
    {
       rval = mPermits - mPermitsLeft;
    }
    unlock();
-   
+
    return rval;
 }
 
@@ -219,10 +219,10 @@ void Semaphore::setMaxPermitCount(int max)
    {
       // store old permit count
       int oldPermitCount = mPermits;
-      
+
       // set new permit count
       mPermits = max;
-      
+
       // release more permits or decrease permits left
       if(max > oldPermitCount)
       {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/rt/JobDispatcher.h"
 
@@ -14,10 +14,10 @@ JobDispatcher::JobDispatcher()
    // create the thread pool with 10 threads by default
    mThreadPool = new ThreadPool(10);
    mCleanupThreadPool = true;
-   
+
    // no dispatcher thread yet
    mDispatcherThread = NULL;
-   
+
    // set thread expire time to 2 minutes (120000 milliseconds) by default
    getThreadPool()->setThreadExpireTime(120000);
 }
@@ -27,7 +27,7 @@ JobDispatcher::JobDispatcher(ThreadPool* pool, bool cleanupPool)
    // store the thread pool
    mThreadPool = pool;
    mCleanupThreadPool = cleanupPool;
-   
+
    // no dispatcher thread yet
    mDispatcherThread = NULL;
 }
@@ -39,7 +39,7 @@ JobDispatcher::~JobDispatcher()
    {
       delete mDispatcherThread;
    }
-   
+
    // clean up thread pool as appropriate
    if(mCleanupThreadPool && mThreadPool != NULL)
    {
@@ -66,7 +66,7 @@ inline Thread* JobDispatcher::getDispatcherThread()
 {
    return mDispatcherThread;
 }
-   
+
 void JobDispatcher::queueJob(Runnable& job)
 {
    lock();
@@ -75,7 +75,7 @@ void JobDispatcher::queueJob(Runnable& job)
       mJobQueue.push_back(&job);
    }
    unlock();
-   
+
    // wake up dispatcher
    wakeup();
 }
@@ -86,12 +86,12 @@ void JobDispatcher::queueJob(RunnableRef& job)
    {
       // add the job to the queue
       mJobQueue.push_back(&(*job));
-      
+
       // add job to the reference map
       mJobReferenceMap.insert(make_pair(&(*job), job));
    }
    unlock();
-   
+
    // wake up dispatcher
    wakeup();
 }
@@ -102,12 +102,12 @@ void JobDispatcher::dequeueJob(Runnable& job)
    {
       // remove the job from the queue
       mJobQueue.remove(&job);
-      
+
       // remove job from the reference map
       mJobReferenceMap.erase(&job);
    }
    unlock();
-   
+
    // wake up dispatcher
    wakeup();
 }
@@ -158,7 +158,7 @@ void JobDispatcher::dispatchJobs()
 bool JobDispatcher::isQueued(Runnable& job)
 {
    bool rval = false;
-   
+
    lock();
    {
       RunnableList::iterator i =
@@ -166,7 +166,7 @@ bool JobDispatcher::isQueued(Runnable& job)
       rval = (i != mJobQueue.end());
    }
    unlock();
-   
+
    return rval;
 }
 
@@ -183,7 +183,7 @@ void JobDispatcher::startDispatching()
       {
          // create new dispatcher thread
          mDispatcherThread = new Thread(this);
-         
+
          // start dispatcher thread (128k stack)
          mDispatcherThread->start(131072);
       }
@@ -194,7 +194,7 @@ void JobDispatcher::startDispatching()
 void JobDispatcher::stopDispatching()
 {
    Thread* t = NULL;
-   
+
    lock();
    {
       if(isDispatching())
@@ -206,7 +206,7 @@ void JobDispatcher::stopDispatching()
       }
    }
    unlock();
-   
+
    if(t != NULL)
    {
       // join and clean up old dispatcher thread
@@ -241,13 +241,13 @@ void JobDispatcher::run()
 bool JobDispatcher::isDispatching()
 {
    bool rval = false;
-   
+
    lock();
    {
       rval = (getDispatcherThread() != NULL);
    }
    unlock();
-   
+
    return rval;
 }
 
@@ -260,7 +260,7 @@ void JobDispatcher::clearQueuedJobs()
       mJobReferenceMap.clear();
    }
    unlock();
-   
+
    // wake up dispatcher
    wakeup();
 }
@@ -288,12 +288,12 @@ inline unsigned int JobDispatcher::getQueuedJobCount()
 unsigned int JobDispatcher::getTotalJobCount()
 {
    unsigned int rval = 0;
-   
+
    lock();
    {
       rval = getQueuedJobCount() + getThreadPool()->getRunningThreadCount();
    }
    unlock();
-   
+
    return rval;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/rt/ThreadPool.h"
 
@@ -11,7 +11,7 @@ ThreadPool::ThreadPool(unsigned int poolSize, size_t stackSize) :
 {
    // set stack size
    mThreadStackSize = stackSize;
-   
+
    // default thread expire time to 0 (no expiration)
    mThreadExpireTime = 0;
 }
@@ -25,7 +25,7 @@ ThreadPool::~ThreadPool()
 PooledThread* ThreadPool::getIdleThread()
 {
    PooledThread* rval = NULL;
-   
+
    // lock lists for modification
    mListLock.lock();
    {
@@ -33,9 +33,9 @@ PooledThread* ThreadPool::getIdleThread()
       {
          rval = mIdleThreads.front();
          mIdleThreads.pop_front();
-         
+
          // lock thread's job lock until it is assigned a job or marked expired
-         // 
+         //
          // Note: This must be done because the thread could come out of
          // its idle state while we are checking it. If, when we check it,
          // the thread is not expired, then we might accidentally assign it
@@ -51,25 +51,25 @@ PooledThread* ThreadPool::getIdleThread()
             rval = NULL;
          }
       }
-      
+
       if(rval == NULL)
       {
          // create new thread and add it to the thread list
          rval = new PooledThread(this, getThreadExpireTime());
          mThreads.push_back(rval);
-         
+
          // lock thread's job lock to prevent it from going idle before
          // its job is assigned
          rval->getJobLock()->lock();
       }
-      
+
       // remove extra threads if applicable
       if(!mIdleThreads.empty())
       {
          // get the number of extra threads
          int extraThreads =
             mThreads.size() - mThreadSemaphore.getMaxPermitCount();
-         
+
          // remove extra idle threads
          if(extraThreads > 0)
          {
@@ -78,7 +78,7 @@ PooledThread* ThreadPool::getIdleThread()
       }
    }
    mListLock.unlock();
-   
+
    return rval;
 }
 
@@ -107,7 +107,7 @@ void ThreadPool::cleanupExpiredThreads()
       ThreadList cleanup(mExpiredThreads);
       mExpiredThreads.clear();
       mListLock.unlock();
-      
+
       // join and cleanup threads
       for(ThreadList::iterator i = cleanup.begin(); i != cleanup.end(); i++)
       {
@@ -128,14 +128,14 @@ bool ThreadPool::runJobOnIdleThread(Runnable& job, bool block)
       {
          // get an idle thread
          t = getIdleThread();
-         
+
          // set job
          t->setJob(&job);
-         
+
          // unlock thread's job lock now that a job is assigned, so if it was
          // about to become idle or expire, it will pick up its new assignment
          t->getJobLock()->unlock();
-         
+
          // if the thread hasn't started yet, start it
          if(!t->hasStarted())
          {
@@ -151,11 +151,11 @@ bool ThreadPool::runJobOnIdleThread(Runnable& job, bool block)
          }
       }
       mJobLock.unlock();
-      
+
       // clean up expired threads
       cleanupExpiredThreads();
    }
-   
+
    return t != NULL;
 }
 
@@ -170,14 +170,14 @@ bool ThreadPool::runJobOnIdleThread(RunnableRef& job, bool block)
       {
          // get an idle thread
          t = getIdleThread();
-         
+
          // set job
          t->setJob(job);
-         
+
          // unlock thread's job lock now that a job is assigned, so if it was
          // about to become idle or expire, it will pick up its new assignment
          t->getJobLock()->unlock();
-         
+
          // if the thread hasn't started yet, start it
          if(!t->hasStarted())
          {
@@ -193,18 +193,18 @@ bool ThreadPool::runJobOnIdleThread(RunnableRef& job, bool block)
          }
       }
       mJobLock.unlock();
-      
+
       // clean up expired threads
       cleanupExpiredThreads();
    }
-   
+
    return t != NULL;
 }
 
 bool ThreadPool::tryRunJob(Runnable& job)
 {
    bool rval;
-   
+
    // try to acquire a thread permit
    if((rval = mThreadSemaphore.tryAcquire()))
    {
@@ -215,14 +215,14 @@ bool ThreadPool::tryRunJob(Runnable& job)
          mThreadSemaphore.release();
       }
    }
-   
+
    return rval;
 }
 
 bool ThreadPool::tryRunJob(RunnableRef& job)
 {
    bool rval;
-   
+
    // try to acquire a thread permit
    if((rval = mThreadSemaphore.tryAcquire()))
    {
@@ -233,7 +233,7 @@ bool ThreadPool::tryRunJob(RunnableRef& job)
          mThreadSemaphore.release();
       }
    }
-   
+
    return rval;
 }
 
@@ -263,7 +263,7 @@ void ThreadPool::jobCompleted(PooledThread* t)
    // job lock here because this method is called from the thread itself,
    // and it therefore cannot be idle, waiting to be notified
    t->setJob(NULL);
-   
+
    // lock lists for modification
    mListLock.lock();
    {
@@ -272,7 +272,7 @@ void ThreadPool::jobCompleted(PooledThread* t)
       mIdleThreads.push_front(t);
    }
    mListLock.unlock();
-   
+
    // release thread permit
    mThreadSemaphore.release();
 }
@@ -304,15 +304,15 @@ void ThreadPool::terminateAllThreads()
       {
          // interrupt all the threads
          interruptAllThreads();
-         
+
          // move all threads to the expired list
          mExpiredThreads.splice(mExpiredThreads.end(), mThreads);
       }
       mListLock.unlock();
-      
+
       // clean up expired threads
       cleanupExpiredThreads();
-      
+
       // clear the idle list, no list locking necessary since no jobs
       // are running and no new ones can be assigned while inside of the
       // job lock -- this clear is necessary in case the idle threads
@@ -332,13 +332,13 @@ void ThreadPool::setPoolSize(unsigned int size)
       // the pool, those threads will be created as they are needed
       // hence, we do not need to adjust for increases in the pool size
       // only for decreases
-      
+
       // remove threads as necessary
       if(mThreads.size() > size)
       {
          removeIdleThreads(mThreads.size() - size);
       }
-      
+
       // set semaphore permits
       mThreadSemaphore.setMaxPermitCount(size);
    }
@@ -363,7 +363,7 @@ inline size_t ThreadPool::getThreadStackSize()
 void ThreadPool::setThreadExpireTime(uint32_t expireTime)
 {
    mThreadExpireTime = expireTime;
-   
+
    // ensure lists are not modified while updating expire time
    mListLock.lock();
    {
@@ -389,7 +389,7 @@ inline unsigned int ThreadPool::getThreadCount()
 unsigned int ThreadPool::getRunningThreadCount()
 {
    unsigned int rval = 0;
-   
+
    // ensure lists are not modified while getting difference
    mListLock.lock();
    {
@@ -397,7 +397,7 @@ unsigned int ThreadPool::getRunningThreadCount()
       rval = mThreads.size() - mIdleThreads.size();
    }
    mListLock.unlock();
-   
+
    return rval;
 }
 

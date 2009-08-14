@@ -13,10 +13,10 @@ PooledThread::PooledThread(
 {
    // no job to run yet
    mJob = NULL;
-   
+
    // store thread pool
    mThreadPool = pool;
-   
+
    // sets the expire time for this thread
    setExpireTime(expireTime);
    mExpired = false;
@@ -30,7 +30,7 @@ void PooledThread::goIdle()
 {
    // Note: This method is called inside of this thread's job lock
    uint64_t startTime = System::getCurrentMilliseconds();
-   
+
    // wait on job lock until expire time
    if(mJobLock.wait(getExpireTime()))
    {
@@ -54,10 +54,10 @@ void PooledThread::setJob(Runnable* job)
    // Note: The ThreadPool calls this method inside of this thread's
    // job lock when it is not called from this thread itself to prevent
    // issues during idling/unidling
-   
+
    // set job
    mJob = job;
-   
+
    if(job != NULL)
    {
       // notify thread to unidle
@@ -75,11 +75,11 @@ void PooledThread::setJob(RunnableRef& job)
    // Note: The ThreadPool calls this method inside of this thread's
    // job lock when it is not called from this thread itself to prevent
    // issues during idling/unidling
-   
+
    // set job and reference
    mJob = &(*job);
    mJobReference = job;
-   
+
    // notify thread to unidle
    mJobLock.notifyAll();
 }
@@ -106,7 +106,7 @@ void PooledThread::run()
          mJobLock.unlock();
          mJob->run();
          mThreadPool->jobCompleted(this);
-         
+
          // clear last exception on thread as the job has been completed
          Exception::clear();
       }
@@ -117,7 +117,7 @@ void PooledThread::run()
          mJobLock.unlock();
       }
    }
-   
+
    // thread expired
    mExpired = true;
 }

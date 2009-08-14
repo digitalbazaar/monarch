@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_rt_Runnable_H
 #define db_rt_Runnable_H
@@ -23,12 +23,12 @@ public:
     * Constructs this Runnable.
     */
    Runnable() {};
-   
+
    /**
     * Destructs this Runnable.
     */
    virtual ~Runnable() {};
-   
+
    /**
     * Runs some implementation specific operation.
     */

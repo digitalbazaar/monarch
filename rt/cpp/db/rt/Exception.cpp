@@ -52,7 +52,7 @@ const char* Exception::getType()
 bool Exception::isType(const char* type, bool startsWith)
 {
    bool rval = false;
-   
+
    if(startsWith)
    {
       rval = (strncmp(getType(), type, strlen(type)) == 0);
@@ -61,7 +61,7 @@ bool Exception::isType(const char* type, bool startsWith)
    {
       rval = (strcmp(getType(), type) == 0);
    }
-   
+
    return rval;
 }
 
@@ -88,7 +88,7 @@ ExceptionRef& Exception::getCause()
 static ExceptionRef _getCauseOfType(ExceptionRef& e, const char* type, int n)
 {
    ExceptionRef rval(NULL);
-   
+
    // check this exception's type
    if(strncmp(e->getType(), type, n) == 0)
    {
@@ -99,14 +99,14 @@ static ExceptionRef _getCauseOfType(ExceptionRef& e, const char* type, int n)
    {
       rval = _getCauseOfType(e->getCause(), type, n);
    }
-   
+
    return rval;
 }
 
 ExceptionRef Exception::getCauseOfType(const char* type, bool startsWith)
 {
    ExceptionRef rval(NULL);
-   
+
    if(!mCause->isNull())
    {
       if(startsWith)
@@ -128,7 +128,7 @@ ExceptionRef Exception::getCauseOfType(const char* type, bool startsWith)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -140,20 +140,20 @@ DynamicObject& Exception::getDetails()
       details->setType(Map);
       *mDetails = details;
    }
-   
+
    return *mDetails;
 }
 
 ExceptionRef& Exception::set(ExceptionRef& e)
 {
-   // false = do not use previous exception as cause, instead, clear it 
+   // false = do not use previous exception as cause, instead, clear it
    Thread::setException(e, false);
    return e;
 }
 
 ExceptionRef& Exception::push(ExceptionRef& e)
 {
-   // true = use previous exception as cause, do NOT clear it 
+   // true = use previous exception as cause, do NOT clear it
    Thread::setException(e, true);
    return e;
 }
@@ -182,21 +182,21 @@ DynamicObject Exception::getAsDynamicObject()
 DynamicObject Exception::convertToDynamicObject(ExceptionRef& e)
 {
    DynamicObject dyno;
-   
+
    dyno["message"] = e->getMessage();
    dyno["type"] = e->getType();
    dyno["code"] = e->getCode();
-   
+
    if(!e->getCause().isNull())
    {
       dyno["cause"] = convertToDynamicObject(e->getCause());
    }
-   
+
    if(!(*e).mDetails->isNull())
    {
       dyno["details"] = e->getDetails();
    }
-   
+
    return dyno;
 }
 
@@ -206,17 +206,17 @@ ExceptionRef Exception::convertToException(DynamicObject& dyno)
       dyno["message"]->getString(),
       dyno["type"]->getString(),
       dyno["code"]->getInt32());
-   
+
    if(dyno->hasMember("cause"))
    {
       ExceptionRef cause = convertToException(dyno["cause"]);
       e->setCause(cause);
    }
-   
+
    if(dyno->hasMember("details"))
    {
       *(*e).mDetails = dyno["details"].clone();
    }
-   
+
    return e;
 }

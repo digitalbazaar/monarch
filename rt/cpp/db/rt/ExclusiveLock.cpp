@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/rt/ExclusiveLock.h"
 
@@ -45,7 +45,7 @@ inline bool ExclusiveLock::wait(uint32_t timeout)
 bool ExclusiveLock::wait(uint32_t& timeout, bool* condition, bool stop)
 {
    bool rval = true;
-   
+
    uint32_t remaining = timeout;
    uint64_t st = System::getCurrentMilliseconds();
    uint64_t et;
@@ -63,6 +63,6 @@ bool ExclusiveLock::wait(uint32_t& timeout, bool* condition, bool stop)
       }
    }
    timeout = remaining;
-   
+
    return rval;
 }

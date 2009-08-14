@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/rt/Platform.h"
 
@@ -15,7 +15,7 @@ using namespace db::rt;
 static DynamicObject* sCommonInfo;
 static Platform::PlatformInfo* sCurrentInfo;
 
-/* 
+/*
  * sCommonInfo:
  * {
  *    "os": {osName: osInfo}
@@ -34,22 +34,22 @@ bool Platform::initialize()
    if(sCommonInfo == NULL)
    {
       sCommonInfo = new DynamicObject();
-      
+
       // dynamic library prefix map
       (*sCommonInfo)["os"]["linux"]["dynamicLibPrefix"] = "lib";
       (*sCommonInfo)["os"]["windows"]["dynamicLibPrefix"] = "";
       (*sCommonInfo)["os"]["macos"]["dynamicLibPrefix"] = "lib";
-      
+
       // dynamic library extension map
       (*sCommonInfo)["os"]["linux"]["dynamicLibExt"] = "so";
       (*sCommonInfo)["os"]["windows"]["dynamicLibExt"] = "dll";
       (*sCommonInfo)["os"]["macos"]["dynamicLibExt"] = "dylib";
    }
-   
+
    if(sCurrentInfo == NULL)
    {
       sCurrentInfo = new PlatformInfo();
-      
+
       // Operating System
 #if defined(LINUX)
       (*sCurrentInfo)["os"] = "linux";
@@ -60,7 +60,7 @@ bool Platform::initialize()
 #else
 #error Platform: Unknown OS.
 #endif
-      
+
       // Primary CPU type
 #if defined(__i386__)
       (*sCurrentInfo)["cpuType"] = "x86";
@@ -75,12 +75,12 @@ bool Platform::initialize()
 #else
 #error Platform: Unknown CPU type.
 #endif
-      
+
       // Secondary CPU type
       // FIXME: add specific CPU type detection
       (*sCurrentInfo)["cpuSubType"] = "";
    }
-   
+
    return true;
 }
 

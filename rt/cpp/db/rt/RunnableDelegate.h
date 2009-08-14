@@ -16,7 +16,7 @@ namespace rt
  * run() function to an object's member function. It also allows for a
  * single void* parameter to be passed to an object member's function if
  * so desired.
- * 
+ *
  * @author Dave Longley
  */
 template<typename RunnableType> class RunnableDelegate;
@@ -34,32 +34,32 @@ template<> class RunnableDelegate<void> : public Runnable
       Param,
       DynoParam
    };
-   
+
    /**
     * Typedef for the run function.
     */
    typedef void (*RunFunction)();
-   
+
    /**
     * Typedef for the run w/param function.
     */
    typedef void (*RunWithParamFunction)(void*);
-   
+
    /**
     * Typedef for freeing the parameter.
     */
    typedef void (*FreeParamFunction)(void*);
-   
+
    /**
     * Typedef for the run w/dyno function.
     */
    typedef void (*RunWithDynoFunction)(DynamicObject&);
-   
+
    /**
     * The type of runnable delegate.
     */
    Type mType;
-   
+
    /**
     * The object's run function.
     */
@@ -69,12 +69,12 @@ template<> class RunnableDelegate<void> : public Runnable
       RunWithParamFunction mParamFunction;
       RunWithDynoFunction mDynoFunction;
    };
-   
+
    /**
     * The object's free param function.
     */
    FreeParamFunction mFreeParamFunction;
-   
+
    /**
     * The parameter to use with the run function.
     */
@@ -83,11 +83,11 @@ template<> class RunnableDelegate<void> : public Runnable
       void* mParam;
       DynamicObject* mDyno;
    };
-   
+
 public:
    /**
     * Creates a new RunnableDelegate with the specified run function.
-    * 
+    *
     * @param f the object's run function.
     */
    RunnableDelegate(RunFunction f)
@@ -95,11 +95,11 @@ public:
       mType = NoParam;
       mFunction = f;
    };
-   
+
    /**
     * Creates a new RunnableDelegate with the run w/param function, and
     * parameter for the function.
-    * 
+    *
     * @param f the object's run w/param function.
     * @param param the parameter for the run w/param function.
     * @param fp the object's function to free the parameter (can be NULL).
@@ -112,11 +112,11 @@ public:
       mParam = param;
       mFreeParamFunction = fp;
    };
-   
+
    /**
     * Creates a new RunnableDelegate with the run w/dyno function, and
     * dyno parameter for the function.
-    * 
+    *
     * @param f the object's run w/dyno function.
     * @param dyno the parameter for the run w/dyno function.
     */
@@ -126,7 +126,7 @@ public:
       mDynoFunction = f;
       mDyno = new DynamicObject(param);
    };
-   
+
    /**
     * Destructs this RunnableDelegate.
     */
@@ -141,7 +141,7 @@ public:
          delete mDyno;
       }
    }
-   
+
    /**
     * Runs the delegated run function.
     */
@@ -163,20 +163,20 @@ public:
             break;
       }
    }
-   
+
    /**
     * Gets this runnable's param.
-    * 
+    *
     * @return this runnable's param.
     */
    virtual void* getParam()
    {
       return mParam;
    }
-   
+
    /**
     * Gets this runnable's dynamic object.
-    * 
+    *
     * @return this runnable's dynamic object.
     */
    virtual DynamicObject getDynamicObject()
@@ -204,37 +204,37 @@ protected:
       Param,
       DynoParam
    };
-   
+
    /**
     * Typedef for the run function.
     */
    typedef void (RunnableType::*RunFunction)();
-   
+
    /**
     * Typedef for the run w/param function.
     */
    typedef void (RunnableType::*RunWithParamFunction)(void*);
-   
+
    /**
     * Typedef for freeing the parameter.
     */
    typedef void (RunnableType::*FreeParamFunction)(void*);
-   
+
    /**
     * Typedef for the run w/dyno function.
     */
    typedef void (RunnableType::*RunWithDynoFunction)(DynamicObject&);
-   
+
    /**
     * The type of runnable delegate.
     */
    Type mType;
-   
+
    /**
     * The object with the run function.
     */
    RunnableType* mObject;
-   
+
    /**
     * The object's run function.
     */
@@ -244,12 +244,12 @@ protected:
       RunWithParamFunction mParamFunction;
       RunWithDynoFunction mDynoFunction;
    };
-   
+
    /**
     * The object's free param function.
     */
    FreeParamFunction mFreeParamFunction;
-   
+
    /**
     * The parameter to use with the run function.
     */
@@ -258,21 +258,21 @@ protected:
       void* mParam;
       DynamicObject* mDyno;
    };
-   
+
 public:
    /**
     * Creates a new RunnableDelegate with the specified object and
     * run function.
-    * 
+    *
     * @param obj the object with the run function.
     * @param f the object's run function.
     */
    RunnableDelegate(RunnableType* obj, RunFunction f);
-   
+
    /**
     * Creates a new RunnableDelegate with the specified object,
     * run w/param function, and parameter for the function.
-    * 
+    *
     * @param obj the object with the run function.
     * @param f the object's run w/param function.
     * @param param the parameter for the run w/param function.
@@ -281,38 +281,38 @@ public:
    RunnableDelegate(
       RunnableType* obj, RunWithParamFunction f,
       void* param, FreeParamFunction fp = NULL);
-   
+
    /**
     * Creates a new RunnableDelegate with the specified object,
     * run w/dyno function, and dyno parameter for the function.
-    * 
+    *
     * @param obj the object with the run function.
     * @param f the object's run w/dyno function.
     * @param dyno the parameter for the run w/dyno function.
     */
    RunnableDelegate(
       RunnableType* obj, RunWithDynoFunction f, DynamicObject& param);
-   
+
    /**
     * Destructs this RunnableDelegate.
     */
    virtual ~RunnableDelegate();
-   
+
    /**
     * Runs the object's run function.
     */
    virtual void run();
-   
+
    /**
     * Gets this runnable's param.
-    * 
+    *
     * @return this runnable's param.
     */
    virtual void* getParam();
-   
+
    /**
     * Gets this runnable's dynamic object.
-    * 
+    *
     * @return this runnable's dynamic object.
     */
    virtual DynamicObject getDynamicObject();

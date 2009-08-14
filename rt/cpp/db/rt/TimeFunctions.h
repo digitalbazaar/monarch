@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_rt_TimeFunctions_H
 #define db_rt_TimeFunctions_H
 
 /**
  * This header provides some cross-platform definitions for time functions.
- * 
+ *
  * Primarily, this header defines functionality for missing POSIX time
  * functions in windows.
- * 
+ *
  * FIXME: This header's code should be relocated to .c/.cpp.
- * 
+ *
  * @author Dave Longley
  */
 
@@ -28,20 +28,20 @@
 
 /**
  * Gets the number of minutes west of GMT the current time zone is.
- * 
+ *
  * @return the number of minutes west of GMT the current time zone is.
  */
 inline static long long gGetTimeZoneMinutesWest()
 {
    struct timeb time;
    ftime(&time);
-   
+
    // apply daylight savings time
    if(time.dstflag != 0)
    {
       time.timezone -= 60;
    }
-   
+
    return time.timezone;
 }
 
@@ -68,7 +68,7 @@ struct timezone
     * The number of minutes west of Greenwich, England.
     */
    int tz_minuteswest;
-   
+
    /**
     * The type of daylight savings time (DST): 0 for no DST is used in
     * the time zone, 1 if it is.
@@ -78,18 +78,18 @@ struct timezone
 
 /**
  * Gets the current time of day and stores it in the passed timeval
- * structure as the number of seconds and microseconds since the epoch. 
- * 
+ * structure as the number of seconds and microseconds since the epoch.
+ *
  * @param tv the timeval structure.
  * @param tz the timezone structure.
- * 
+ *
  * @return 0 if the method executed with success, -1 if not.
  */
 inline static int gettimeofday(struct timeval* tv, struct timezone* tz)
 {
    // define tzinit flag (whether or not the timezone has been initialized)
    static bool tzinit = false;
-   
+
    // NOTE: use FileTimeToSystemTime to convert a FILETIME to a SYSTEMTIME
    // that has years, months, days, hours, seconds, milliseconds, etc
    if(tv != NULL)
@@ -97,17 +97,17 @@ inline static int gettimeofday(struct timeval* tv, struct timezone* tz)
 //      // get the system time as a file time (a UTC time object)
 //      FILETIME ft;
 //      GetSystemTimeAsFileTime(&ft);
-//      
+//
 //      // use a large integer to combine the time into a 64-bit long
 //      LARGE_INTEGER li;
 //      li.LowPart = ft.dwLowDateTime;
 //      li.HighPart = ft.dwHighDateTime;
-//      
-//      // get the 64-bit long in 
+//
+//      // get the 64-bit long in
 //      // the time is in 100-nanosecond intervals (1000 nanoseconds in
 //      // a microsecond, so this is really just microseconds / 10)
 //      __int64 time = li.QuadPart;
-      
+
       // get the system time as a file time (a UTC time object),
       // interpretable as a 64-bit integer
       union now
@@ -115,22 +115,22 @@ inline static int gettimeofday(struct timeval* tv, struct timezone* tz)
          FILETIME ft;
          __int64 time;
       };
-      
+
       GetSystemTimeAsFileTime(&now.ft);
-      
+
       // eliminate time between 01/01/1601 (UTC) and 01/01/1970 (epoch)
       now.time -= EPOCH_UTC_TENTHMICROSECS_DELTA;
-      
+
       // get time in microseconds
       now.time /= 10ULL;
-      
+
       // store time in seconds and microseconds (1 microsecond = 1000000 sec)
       tv->tv_sec  = (unsigned long long)(now.time / 1000000ULL);
       tv->tv_usec = (unsigned long long)(now.time % 1000000ULL);
    }
-   
+
    // populate timezone
-   if(tz != NULL) 
+   if(tz != NULL)
    {
       if(!tzinit)
       {
@@ -138,14 +138,14 @@ inline static int gettimeofday(struct timeval* tv, struct timezone* tz)
          _tzset();
          tzinit = true;
       }
-      
+
       // set timezone information:
-      
+
       // get the number of minutes west (tz_dsttime is supposedly obsolete)
       tz->tz_minuteswest = gGetTimeZoneMinutesWest();
       tz->tz_dsttime = _daylight;
    }
-   
+
    // success
    return 0;
 }
@@ -200,9 +200,9 @@ static const char* gDaysOfWeek[7] =
 
 /**
  * Determines if the passed year is a leap year.
- * 
+ *
  * @param year the year to check.
- * 
+ *
  * @return true if the passed year is a leap year, false if not.
  */
 inline static bool gIsLeapYear(unsigned int year)
@@ -217,17 +217,17 @@ inline static bool gIsLeapYear(unsigned int year)
  * Gets a number from the passed string and increments the string's position
  * to the first non-digit character or the end of the number with the specified
  * number of digits.
- * 
+ *
  * @param s the string to get the number from.
  * @param num the number to update.
  * @param digits the number of digits for the number.
- * 
+ *
  * @return true if there were sufficient digits, false if not.
  */
 inline static bool gStringToNumber(const char** s, int& num, int digits)
 {
    bool rval = true;
-   
+
    int pow, digit;
    num = 0;
    digits--;
@@ -241,7 +241,7 @@ inline static bool gStringToNumber(const char** s, int& num, int digits)
          {
             digit *= 10;
          }
-         
+
          num += digit;
          ++*s;
       }
@@ -250,7 +250,7 @@ inline static bool gStringToNumber(const char** s, int& num, int digits)
          rval = false;
       }
    }
-   
+
    return rval;
 }
 
@@ -262,43 +262,43 @@ inline static bool gStringToNumber(const char** s, int& num, int digits)
  * Breaks the passed time_t struct (seconds since the epoch) into a broken-down
  * time representation in Coordinated Universal Time (UTC) (GMT time). The
  * passed tm struct will be populated.
- * 
+ *
  * This function is re-entrant and therefore thread-safe.
- * 
+ *
  * @param timep the time_t (seconds since the epoch) to break-down.
  * @param result the tm to populate with the broken-down date.
- * 
+ *
  * @return a pointer to the result.
  */
 inline static struct tm* gmtime_r(const time_t* timep, struct tm* result)
 {
    // the number of seconds per day
    time_t secsPerDay = 86400;
-   
+
    // the number of seconds today
    time_t secs = *timep % secsPerDay;
-   
+
    // the number of whole minutes today
    time_t mins = secs / 60;
-   
+
    // set the number of seconds after the current minute
    result->tm_sec = secs % 60;
-   
+
    // set the number of minutes after the current hour
    result->tm_min = mins % 60;
-   
+
    // set the number of hours past midnight
    result->tm_hour = mins / 60;
-   
+
    // determine the year and the day in the year:
-   
+
    // start with the number of whole days since the epoch
    time_t day = *timep / secsPerDay;
    time_t daysPerYear = 365;
-   
+
    // determine the week day (Jan 1 1970 was a Thursday, so add 4)
    result->tm_wday = (day + 4) % 7;
-   
+
    int* year = &result->tm_year;
    for(*year = 1970; ; (*year)++)
    {
@@ -316,27 +316,27 @@ inline static struct tm* gmtime_r(const time_t* timep, struct tm* result)
          break;
       }
    }
-   
+
    // set the day in the year (days do not begin on 0, so +1)
    day++;
    result->tm_yday = day;
-   
+
    // remove extra day from leap years (31 days in Jan + 28 in February = 59)
    if(gIsLeapYear(1900 + *year) && day > 59)
    {
       day--;
    }
-   
+
    // determine the month
    int* month = &result->tm_mon;
    for(*month = 11; day <= gDaysInPreviousMonth[*month]; (*month)--);
-   
+
    // determine the day of the month
    result->tm_mday = day - gDaysInPreviousMonth[*month];
-   
+
    // daylight savings time information not available
    result->tm_isdst = -1;
-   
+
    return result;
 }
 
@@ -344,19 +344,19 @@ inline static struct tm* gmtime_r(const time_t* timep, struct tm* result)
  * Breaks the passed time_t struct (seconds since the epoch) into a broken-down
  * time representation in the local time zone. The passed tm struct will be
  * populated.
- * 
+ *
  * This function is re-entrant and therefore thread-safe.
- * 
+ *
  * @param timep the time_t (seconds since the epoch) to break-down.
  * @param result the tm to populate with the broken-down date.
- * 
+ *
  * @return a pointer to the result.
  */
 inline static struct tm* localtime_r(const time_t* timep, struct tm* result)
 {
    // remove the minutes west (as seconds) to the passed time
    time_t local = *timep - (gGetTimeZoneMinutesWest() * 60LL);
-   
+
    // get the UTC time
    return gmtime_r(&local, result);
 }
@@ -364,11 +364,11 @@ inline static struct tm* localtime_r(const time_t* timep, struct tm* result)
 /**
  * Parses a date string based on the given format and writes its broken-down
  * time to the passed tm struct.
- * 
+ *
  * @param s the date string to parse.
  * @param format the format to parse according to.
  * @param tm the broken-down time structure to write the result to.
- * 
+ *
  * @return a pointer to the first character not processed by this call.
  */
 inline static char* strptime(const char* s, const char* format, struct tm* tm)
@@ -376,10 +376,10 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
    // Note: This algorithm searches for the next non-escaped percent sign in
    // the format string on each iteration. As the format string is searched,
    // the date string pointer is also incremented.
-   // 
+   //
    // From there, the date substring is parsed according to the character that
    // follows the percent sign in the format string.
-   // 
+   //
    // FIXME: this parse code is incomplete, and hasn't been robustly tested
    // Note: week day, week in year, and day in year can be ignored because
    // mktime/timegm doesn't use them
@@ -578,7 +578,7 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
                case 'y':
                   // year (2 digit)
                   parse = gStringToNumber(&s, tm->tm_year, 2);
-                  
+
                   if(century == -1)
                   {
                      // spec says values under 69 = 21th century, others 20th
@@ -619,16 +619,16 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
             break;
       }
    }
-   
+
    return (char*)s;
 }
 
 /**
  * Converts the passed broken-down tm struct into seconds since the epoch in
  * UTC.
- * 
+ *
  * @param tm the broken-down structure to convert.
- * 
+ *
  * @return the number of seconds since the epoch in UTC for the given structure.
  */
 inline static time_t timegm(struct tm* tm)
@@ -640,7 +640,7 @@ inline static time_t timegm(struct tm* tm)
       // subtract seconds west to get to GMT time
       rval -= gGetTimeZoneMinutesWest() * 60LL;
    }
-   
+
    return rval;
 }
 

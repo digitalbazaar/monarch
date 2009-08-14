@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_rt_Collectable_H
 #define db_rt_Collectable_H
@@ -20,15 +20,15 @@ namespace rt
  * A Collectable is a reference counter for heap-allocated objects. When the
  * number of references to a particular heap-allocated object reaches zero,
  * that object will be garbage-collected.
- * 
+ *
  * A Collectable makes no attempt to solve any circular-reference problems. If
  * multiple Collectables contain references to each other it is possible that
  * their HeapObjects will never be garbage-collected.
- * 
+ *
  * Collectables are *not* thread-safe by design (for speed). If two threads
  * need to modify a HeapObject at the same time, then a new Collectable
  * should be created and passed to one of the two threads.
- * 
+ *
  * @author Dave Longley
  */
 template<typename HeapObject>
@@ -44,10 +44,10 @@ protected:
        * A pointer to a HeapObject.
        */
       HeapObject* ptr;
-      
+
       /**
        * A reference count for HeapObject.
-       * 
+       *
        * FIXME: The compiler attribute is provided to ensure the count is
        * 32-bit aligned so that it doesn't break fragile windows atomic
        * code. This can be removed once mingw32 is updated with atomic
@@ -59,97 +59,97 @@ protected:
       volatile unsigned int count;
 #endif
    };
-   
+
    /**
     * A reference to a HeapObject. When the HeapObject is NULL, this
     * reference is NULL.
     */
    Reference* mReference;
-   
+
    /**
     * Acquires the passed Reference.
-    * 
+    *
     * @param ref the Reference to acquire.
     */
    virtual void acquire(Reference* ref);
-   
+
    /**
     * Releases the current Reference.
     */
    virtual void release();
-   
+
 public:
    /**
     * Creates a new Collectable that points to the given HeapObject.
-    * 
+    *
     * @param ptr the HeapObject to point at.
     */
    Collectable(HeapObject* ptr = NULL);
-   
+
    /**
     * Creates a new Collectable by copying an existing one.
-    * 
+    *
     * @param copy the Collectable to copy.
     */
    Collectable(const Collectable& copy);
-   
+
    /**
     * Destructs this Collectable.
     */
    virtual ~Collectable();
-   
+
    /**
     * Sets this Collectable equal to another one.
-    * 
+    *
     * @param rhs the Collectable to set this one equal to.
-    * 
+    *
     * @return a reference to this Collectable.
     */
    virtual Collectable& operator=(const Collectable& rhs);
-   
+
    /**
     * Compares this Collectable against another one for equality. If the
     * passed Collectable has a reference to the same HeapObject as this
     * one, then they are equal.
-    * 
+    *
     * @param rhs the Collectable to compare this one against.
-    * 
+    *
     * @return true if this Collectable is equal the another one, false if not.
     */
    virtual bool operator==(const Collectable& rhs) const;
-   
+
    /**
     * Compares this Collectable against another one for inequality.
-    * 
+    *
     * @param rhs the Collectable to compare this one against.
-    * 
+    *
     * @return true if this Collectable is not equal the another one,
     *         false if not.
     */
    virtual bool operator!=(const Collectable& rhs) const;
-   
+
    /**
     * Returns a reference to this Collectable's HeapObject.
-    * 
+    *
     * @return a reference to this Collectable's HeapObject.
     */
    virtual HeapObject& operator*() const;
-   
+
    /**
     * Returns a pointer to this Collectable's HeapObject.
-    * 
+    *
     * @return a pointer to this Collectable's HeapObject.
     */
    virtual HeapObject* operator->() const;
-   
+
    /**
     * Sets this Collectable's HeapObject to NULL.
     */
    virtual void setNull();
-   
+
    /**
     * Returns true if this Collectable's HeapObject is NULL, false if not.
-    * 
+    *
     * @return true if this Collectable's HeapObject is NULL, false if not.
     */
    virtual bool isNull() const;
@@ -198,7 +198,7 @@ void Collectable<HeapObject>::acquire(Reference* ref)
       __sync_add_and_fetch(&ref->count, 1);
 #endif
    }
-   
+
    mReference = ref;
 }
 
@@ -221,7 +221,7 @@ void Collectable<HeapObject>::release()
          delete mReference->ptr;
          delete mReference;
       }
-      
+
       mReference = NULL;
    }
 }
@@ -236,7 +236,7 @@ Collectable<HeapObject>& Collectable<HeapObject>::operator=(
       release();
       acquire(rhs.mReference);
    }
-   
+
    return *this;
 }
 

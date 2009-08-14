@@ -28,17 +28,17 @@ Thread::Thread(Runnable* runnable, const char* name, bool persistent) :
 {
    // initialize threads
    pthread_once(&sThreadsInit, &initializeThreads);
-   
+
    if(name != NULL)
    {
       // set name
       Thread::assignName(name);
    }
-   
+
    // thread is not interrupted or joined yet
    mInterrupted = false;
    mJoined = false;
-   
+
    // thread is not alive, detached, or started yet
    mAlive = false;
    mDetached = false;
@@ -56,17 +56,17 @@ Thread::Thread(RunnableRef& runnable, const char* name, bool persistent) :
 {
    // initialize threads
    pthread_once(&sThreadsInit, &initializeThreads);
-   
+
    if(name != NULL)
    {
       // set name
       Thread::assignName(name);
    }
-   
+
    // thread is not interrupted or joined yet
    mInterrupted = false;
    mJoined = false;
-   
+
    // thread is not alive, detached, or started yet
    mAlive = false;
    mDetached = false;
@@ -86,29 +86,29 @@ Thread::~Thread()
 bool Thread::start(size_t stackSize)
 {
    bool rval = false;
-   
+
    if(!hasStarted())
    {
       // initialize POSIX thread attributes
       pthread_attr_t attributes;
       pthread_attr_init(&attributes);
-      
+
       if(stackSize > 0)
       {
          // set thread stack size
          pthread_attr_setstacksize(&attributes, stackSize);
       }
-      
+
       // make thread joinable
       pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_JOINABLE);
-      
+
       // create the POSIX thread
       int rc = pthread_create(
          &mThreadId, &attributes, &Thread::execute, (void*)this);
-      
+
       // destroy POSIX thread attributes
       pthread_attr_destroy(&attributes);
-      
+
       // if the thread was created successfully and has a valid ID,
       // then return true
       if(rc == 0 && isThreadIdValid(mThreadId))
@@ -169,7 +169,7 @@ bool Thread::start(size_t stackSize)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -194,32 +194,32 @@ bool Thread::isAlive()
 Exception* Thread::createInterruptedException()
 {
    Exception* rval = NULL;
-   
+
    rval = new Exception("Thread interrupted", "db.rt.Interrupted");
    const char* name = getName();
    rval->getDetails()["name"] = ((name == NULL) ? "" : name);
-   
+
    return rval;
 }
 
 void Thread::interrupt()
 {
    lock();
-   
+
    // only interrupt if not already interrupted
    if(!isInterrupted())
    {
       // set interrupted flag
       mInterrupted = true;
-      
+
       // Note: disabled due to lack of support in windows
       // send SIGINT to thread
       //sendSignal(SIGINT);
-      
+
       // store thread's current monitor
       Monitor* m = mWaitMonitor;
       unlock();
-      
+
       // wake up thread it is inside of a monitor
       if(m != NULL)
       {
@@ -247,7 +247,7 @@ bool Thread::hasStarted()
 void Thread::join()
 {
    bool join = false;
-   
+
    lock();
    {
       // check for previous detachments/joins
@@ -258,7 +258,7 @@ void Thread::join()
       }
    }
    unlock();
-   
+
    if(join && hasStarted())
    {
       // join thread, wait for it to detach/terminate indefinitely
@@ -269,7 +269,7 @@ void Thread::join()
 void Thread::detach(bool cleanup)
 {
    bool detach = false;
-   
+
    lock();
    {
       // check for previous detachments/joins
@@ -281,7 +281,7 @@ void Thread::detach(bool cleanup)
       }
    }
    unlock();
-   
+
    if(detach && hasStarted())
    {
       // detach thread
@@ -306,13 +306,13 @@ void Thread::setName(const char* name)
 const char* Thread::getName()
 {
    const char* rval = NULL;
-   
+
    lock();
    {
       rval = mName;
    }
    unlock();
-   
+
    return rval;
 }
 
@@ -330,14 +330,14 @@ Thread* Thread::currentThread()
 {
    // initialize threads
    pthread_once(&sThreadsInit, &initializeThreads);
-   
+
    // get a pointer to the current thread
    Thread* rval = (Thread*)pthread_getspecific(sCurrentThreadKey);
    if(rval == NULL)
    {
       // create non-persistent thread
       rval = new Thread(NULL, NULL, false);
-      
+
       // initialize thread data
       rval->mThreadId = pthread_self();
       rval->mAlive = true;
@@ -345,23 +345,23 @@ Thread* Thread::currentThread()
       pthread_setspecific(sCurrentThreadKey, rval);
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
    }
-   
+
    return rval;
 }
 
 bool Thread::interrupted(bool clear)
 {
    bool rval = false;
-   
+
    // get the current thread's interrupted status
    Thread* t = Thread::currentThread();
-   
+
    t->lock();
    {
       if(t->isInterrupted())
       {
          rval = true;
-         
+
          if(clear)
          {
             // clear interrupted flag
@@ -370,14 +370,14 @@ bool Thread::interrupted(bool clear)
       }
    }
    t->unlock();
-   
+
    return rval;
 }
 
 bool Thread::sleep(unsigned int time)
 {
    bool rval = true;
-   
+
    // enter an arbitrary monitor
    Monitor m;
    m.enter();
@@ -401,7 +401,7 @@ bool Thread::sleep(unsigned int time)
       }
    }
    m.exit();
-   
+
    return rval;
 }
 
@@ -413,7 +413,7 @@ void Thread::yield()
 bool Thread::waitToEnter(Monitor* m, uint32_t timeout)
 {
    bool rval = true;
-   
+
    // set the current thread's wait monitor
    Thread* t = currentThread();
    t->lock();
@@ -421,20 +421,20 @@ bool Thread::waitToEnter(Monitor* m, uint32_t timeout)
       t->mWaitMonitor = m;
    }
    t->unlock();
-   
+
    // wait if not interrupted and timeout not exhausted
    if(!t->isInterrupted())
    {
       m->wait(timeout);
    }
-   
+
    // clear the current thread's wait monitor
    t->lock();
    {
       t->mWaitMonitor = NULL;
    }
    t->unlock();
-   
+
    // create interrupted exception if interrupted
    if(t->isInterrupted())
    {
@@ -443,25 +443,25 @@ bool Thread::waitToEnter(Monitor* m, uint32_t timeout)
       setException(e, false);
       rval = false;
    }
-   
+
    return rval;
 }
 
 void Thread::exit(bool exitMain)
 {
    Thread* thread = Thread::currentThread();
-   
+
    if(!thread->mPersistent)
    {
       // thread is main thread, clean up its per-thread values
       cleanupCurrentThreadKeyValue(thread);
       cleanupExceptionKeyValue(
          (ExceptionRef*)pthread_getspecific(sExceptionKey));
-      
+
       // ensure per-thread key values are NULL
       pthread_setspecific(sCurrentThreadKey, NULL);
       pthread_setspecific(sExceptionKey, NULL);
-      
+
       if(exitMain)
       {
          // exit main thread
@@ -479,7 +479,7 @@ void Thread::setException(ExceptionRef& e, bool caused)
 {
    // initialize threads
    pthread_once(&sThreadsInit, &initializeThreads);
-   
+
    // get the exception reference for the current thread
    ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
    if(ref == NULL)
@@ -496,7 +496,7 @@ void Thread::setException(ExceptionRef& e, bool caused)
          // set cause of passed exception to previous exception
          e->setCause(*ref);
       }
-      
+
       // update the reference
       *ref = e;
    }
@@ -506,7 +506,7 @@ ExceptionRef Thread::getException()
 {
    // initialize threads
    pthread_once(&sThreadsInit, &initializeThreads);
-   
+
    // get the exception reference for the current thread
    ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
    if(ref == NULL)
@@ -515,7 +515,7 @@ ExceptionRef Thread::getException()
       ref = new ExceptionRef(NULL);
       pthread_setspecific(sExceptionKey, ref);
    }
-   
+
    // return the reference
    return *ref;
 }
@@ -523,10 +523,10 @@ ExceptionRef Thread::getException()
 bool Thread::hasException()
 {
    bool rval = false;
-   
+
    // initialize threads
    pthread_once(&sThreadsInit, &initializeThreads);
-   
+
    // get the exception reference for the current thread
    ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
    if(ref != NULL)
@@ -534,7 +534,7 @@ bool Thread::hasException()
       // return true if the reference isn't to NULL
       rval = !ref->isNull();
    }
-   
+
    return rval;
 }
 
@@ -552,17 +552,17 @@ void Thread::clearException()
 pthread_t Thread::getInvalidThreadId()
 {
    pthread_t rval;
-   
+
 #ifdef WIN32
    /**
     * Windows pthreads use ptw32_handle_t for pthread_t which is:
-    * 
+    *
     * ptw32_handle_t
     * {
     *    void* p;        // pointer to thread object
     *    unsigned int x; // some extra information about reuse, etc.
     * };
-    * 
+    *
     * A value of 0 for p is considered invalid.
     */
    rval.p = 0;
@@ -573,7 +573,7 @@ pthread_t Thread::getInvalidThreadId()
     */
    rval = 0;
 #endif
-   
+
    return rval;
 }
 
@@ -631,7 +631,7 @@ void Thread::assignName(const char* name)
    {
       free(mName);
    }
-   
+
    mName = (name != NULL) ? strdup(name) : NULL;
 }
 
@@ -640,7 +640,7 @@ void Thread::initializeThreads()
    // create the thread specific data keys
    pthread_key_create(&sCurrentThreadKey, &cleanupCurrentThreadKeyValue);
    pthread_key_create(&sExceptionKey, &cleanupExceptionKeyValue);
-   
+
    // Note: disabled due to a lack of support in windows
    // install signal handler
    //installSigIntHandler();
@@ -674,7 +674,7 @@ void Thread::cleanupExceptionKeyValue(void* er)
 //   newsa.sa_handler = handleSigInt;
 //   newsa.sa_flags = 0;
 //   sigemptyset(&newsa.sa_mask);
-//   
+//
 //   // set the SIGINT handler
 //   sigaction(SIGINT, &newsa, NULL);
 //}
@@ -692,22 +692,22 @@ void* Thread::execute(void* thread)
    {
       // get the Thread object
       Thread* t = (Thread*)thread;
-      
+
       // set thread specific data for current thread to the Thread
       pthread_setspecific(sCurrentThreadKey, t);
-      
+
       // disable thread cancelation
       pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-      
+
       // thread is alive
       t->mAlive = true;
-      
+
       // run the passed thread's run() method
       t->run();
-      
+
       // thread is no longer alive
       t->mAlive = false;
-      
+
       // if thread is persistent but clean up is on, delete it
       if(t->mPersistent && t->mCleanup)
       {
@@ -719,7 +719,7 @@ void* Thread::execute(void* thread)
       // detach thread and let it die, it's invalid
       pthread_detach(self);
    }
-   
+
    // exit thread
    pthread_exit(NULL);
    return NULL;

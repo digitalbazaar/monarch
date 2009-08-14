@@ -25,7 +25,7 @@ DynamicObjectImpl::DynamicObjectImpl()
 DynamicObjectImpl::~DynamicObjectImpl()
 {
    DynamicObjectImpl::freeData();
-   
+
    // free cached string value
    if(mStringValue != NULL)
    {
@@ -137,13 +137,13 @@ void DynamicObjectImpl::operator=(double value)
 DynamicObject& DynamicObjectImpl::operator[](const char* name)
 {
    DynamicObject* rval = NULL;
-   
+
    // change to map type if necessary
    if(mType != Map)
    {
       setType(Map);
    }
-   
+
    ObjectMap::iterator i = mMap->find(name);
    if(i == mMap->end())
    {
@@ -157,7 +157,7 @@ DynamicObject& DynamicObjectImpl::operator[](const char* name)
       // get existing map entry
       rval = &i->second;
    }
-   
+
    return *rval;
 }
 
@@ -168,9 +168,9 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
    {
       setType(Array);
    }
-   
+
    int size = mArray->size();
-   
+
    // fill the object array as necessary
    if(index >= size)
    {
@@ -186,14 +186,14 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
    {
       index = size + index;
    }
-   
+
    return (*mArray)[index];
 }
 
 bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
 {
    bool rval = false;
-   
+
    if(mType == rhs.mType)
    {
       switch(mType)
@@ -239,7 +239,7 @@ bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
                      // keys not equal
                      rval = false;
                   }
-               }            
+               }
             }
             break;
          case Array:
@@ -280,14 +280,14 @@ bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
             break;
       }
    }
-   
+
    return rval;
 }
 
 bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
 {
    bool rval = false;
-   
+
    if(mType == rhs.mType)
    {
       switch(mType)
@@ -399,7 +399,7 @@ bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
             break;
       }
    }
-   
+
    return rval;
 }
 
@@ -409,7 +409,7 @@ DynamicObject& DynamicObjectImpl::append()
    {
       setType(Array);
    }
-   
+
    DynamicObject d;
    mArray->push_back(d);
    return mArray->back();
@@ -421,7 +421,7 @@ DynamicObject& DynamicObjectImpl::append(DynamicObject& dyno)
    {
       setType(Array);
    }
-   
+
    mArray->push_back(dyno);
    return mArray->back();
 }
@@ -487,7 +487,7 @@ void DynamicObjectImpl::format(const char* format, ...)
 const char* DynamicObjectImpl::getString() const
 {
    const char* rval;
-   
+
    if(mType == String)
    {
       if(mString != NULL)
@@ -509,7 +509,7 @@ const char* DynamicObjectImpl::getString() const
    else
    {
       char* str = (char*)(mStringValue);
-      
+
       // convert type as appropriate
       switch(mType)
       {
@@ -542,21 +542,21 @@ const char* DynamicObjectImpl::getString() const
          default: /* String, Map, Array, ... already handled*/
             break;
       }
-      
+
       // set generated value
       ((DynamicObjectImpl*)this)->mStringValue = str;
-      
+
       // return generated value
       rval = mStringValue;
    }
-   
+
    return rval;
 }
 
 bool DynamicObjectImpl::getBoolean() const
 {
    bool rval;
-   
+
    switch(mType)
    {
       case Boolean:
@@ -584,14 +584,14 @@ bool DynamicObjectImpl::getBoolean() const
          rval = false;
          break;
    }
-   
+
    return rval;
 }
 
 int32_t DynamicObjectImpl::getInt32() const
 {
    int32_t rval;
-   
+
    switch(mType)
    {
       case Int32:
@@ -620,14 +620,14 @@ int32_t DynamicObjectImpl::getInt32() const
          rval = 0;
          break;
    }
-   
+
    return rval;
 }
 
 uint32_t DynamicObjectImpl::getUInt32() const
 {
    uint32_t rval;
-   
+
    switch(mType)
    {
       case UInt32:
@@ -656,14 +656,14 @@ uint32_t DynamicObjectImpl::getUInt32() const
          rval = 0;
          break;
    }
-   
+
    return rval;
 }
 
 int64_t DynamicObjectImpl::getInt64() const
 {
    int64_t rval;
-   
+
    switch(mType)
    {
       case Int64:
@@ -691,14 +691,14 @@ int64_t DynamicObjectImpl::getInt64() const
          rval = 0;
          break;
    }
-   
+
    return rval;
 }
 
 uint64_t DynamicObjectImpl::getUInt64() const
 {
    uint64_t rval;
-   
+
    switch(mType)
    {
       case UInt64:
@@ -726,14 +726,14 @@ uint64_t DynamicObjectImpl::getUInt64() const
          rval = 0;
          break;
    }
-   
+
    return rval;
 }
 
 double DynamicObjectImpl::getDouble() const
 {
    double rval;
-   
+
    switch(mType)
    {
       case Double:
@@ -761,26 +761,26 @@ double DynamicObjectImpl::getDouble() const
          rval = 0;
          break;
    }
-   
+
    return rval;
 }
 
 bool DynamicObjectImpl::hasMember(const char* name) const
 {
    bool rval = false;
-   
+
    if(mType == Map)
    {
       rval = (mMap->count(name) != 0);
    }
-   
+
    return rval;
 }
 
 int DynamicObjectImpl::indexOf(DynamicObject& obj) const
 {
    int rval = -1;
-   
+
    // type must be array to get an index
    if(mType == Array)
    {
@@ -790,7 +790,7 @@ int DynamicObjectImpl::indexOf(DynamicObject& obj) const
          rval = (i - mArray->begin());
       }
    }
-   
+
    return rval;
 }
 
@@ -844,7 +844,7 @@ void DynamicObjectImpl::clear()
 int DynamicObjectImpl::length() const
 {
    int rval = -1;
-   
+
    switch(mType)
    {
       case String:
@@ -871,7 +871,7 @@ int DynamicObjectImpl::length() const
          rval = mArray->size();
          break;
    }
-   
+
    return rval;
 }
 
@@ -949,19 +949,19 @@ void DynamicObjectImpl::removeMember(ObjectMap::iterator iterator)
 void DynamicObjectImpl::setFormattedString(const char* format, va_list varargs)
 {
    // Note: this code is adapted from the glibc sprintf documentation
-   
+
    // estimate 256 bytes to start with
    int n, size = 256;
    char *p;
    char *np;
-   
+
    bool mallocFailed = ((p = (char*)malloc(size)) == NULL);
    bool success = false;
    while(!success && !mallocFailed)
    {
       // try to print in the allocated space
       n = vsnprintf(p, size, format, varargs);
-      
+
       // if that worked, return the string
       if(n > -1 && n < size)
       {
@@ -980,7 +980,7 @@ void DynamicObjectImpl::setFormattedString(const char* format, va_list varargs)
             // glibc 2.0 doesn't know the exact size, so guess
             size *= 2;
          }
-         
+
          if((np = (char*)realloc(p, size)) == NULL)
          {
             // bad malloc
@@ -993,7 +993,7 @@ void DynamicObjectImpl::setFormattedString(const char* format, va_list varargs)
          }
       }
    }
-   
+
    if(success)
    {
       operator=(p);
