@@ -30,7 +30,7 @@ bool DigitalSignatureOutputStream::write(const char* b, int length)
       // update digital signature
       mSignature->update(b, length);
    }
-   
+
    // write to underlying stream
    return FilterOutputStream::write(b, length);
 }
@@ -42,7 +42,7 @@ void DigitalSignatureOutputStream::setSignature(
    {
       delete mSignature;
    }
-   
+
    mSignature = ds;
    mCleanupSignature = cleanup;
 }

@@ -13,14 +13,14 @@ SymmetricKey::SymmetricKey(const char* algorithm)
    // no key data yet
    mData = NULL;
    mDataLength = 0;
-   
+
    // no IV yet
    mIv = NULL;
    mIvLength = 0;
-   
+
    // set algorithm
    mAlgorithm = strdup(algorithm);
-   
+
    // default to unencrypted
    mEncrypted = false;
 }
@@ -66,13 +66,13 @@ void SymmetricKey::assignData(
    // free existing data and IV
    freeData();
    freeIv();
-   
+
    // set new data
    mData = data;
    mDataLength = length;
    mIv = iv;
    mIvLength = ivLength;
-   
+
    // set encrypted flag
    mEncrypted = encrypted;
 }
@@ -84,7 +84,7 @@ void SymmetricKey::setData(
    // free existing data and IV
    freeData();
    freeIv();
-   
+
    // allocate data as necessary
    if(data != NULL)
    {
@@ -93,7 +93,7 @@ void SymmetricKey::setData(
       memcpy(mData, data, length);
       mDataLength = length;
    }
-   
+
    // allocate IV as necessary
    if(iv != NULL)
    {
@@ -102,7 +102,7 @@ void SymmetricKey::setData(
       memcpy(mIv, iv, ivLength);
       mIvLength = ivLength;
    }
-   
+
    // set encrypted flag
    mEncrypted = encrypted;
 }

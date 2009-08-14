@@ -39,13 +39,13 @@ bool DigitalEnvelope::startSealing(
    SymmetricKey** symmetricKeys, int keys)
 {
    bool rval = false;
-   
+
    // enable encryption mode
    mEncryptMode = true;
-   
+
    // reset input and output bytes
    mInputBytes = mOutputBytes = 0;
-   
+
    // get the cipher function
    mCipherFunction = getCipherFunction(algorithm);
    if(mCipherFunction != NULL)
@@ -59,12 +59,12 @@ bool DigitalEnvelope::startSealing(
          pKeys[i] = publicKeys[i]->getPKEY();
          eKeys[i] = (unsigned char*)malloc(publicKeys[i]->getOutputSize());
       }
-      
+
       // create iv buffer
       unsigned int ivLength = EVP_CIPHER_iv_length(mCipherFunction);
       unsigned char* iv = (ivLength == 0) ?
          NULL : (unsigned char*)malloc(ivLength);
-      
+
       // initialize sealing the envelope
       if(EVP_SealInit(
          &mCipherContext, mCipherFunction,
@@ -72,7 +72,7 @@ bool DigitalEnvelope::startSealing(
       {
          // initialization successful
          rval = true;
-         
+
          // set the encrypted symmetric key data
          for(int i = 0; i < keys; i++)
          {
@@ -83,13 +83,13 @@ bool DigitalEnvelope::startSealing(
                ivCopy = (char*)malloc(ivLength);
                memcpy(ivCopy, iv, ivLength);
             }
-            
+
             // assign encrypted symmetric key
             symmetricKeys[i]->setAlgorithm(algorithm);
             symmetricKeys[i]->assignData(
                (char*)eKeys[i], eKeyLengths[i], ivCopy, ivLength, true);
          }
-         
+
          if(iv != NULL)
          {
             // delete iv buffer (freeing the other buffers is up
@@ -104,14 +104,14 @@ bool DigitalEnvelope::startSealing(
          {
             free(eKeys[i]);
          }
-         
+
          if(iv != NULL)
          {
             // delete iv buffer (freeing the other buffers is up to the
             // SymmetricKeys)
             free(iv);
          }
-         
+
          ExceptionRef e = new Exception(
             "Could not start opening envelope.",
             "db.crypto.DigitalEnvelope.SealError");
@@ -119,7 +119,7 @@ bool DigitalEnvelope::startSealing(
          Exception::set(e);
       }
    }
-   
+
    return rval;
 }
 
@@ -127,16 +127,16 @@ bool DigitalEnvelope::startOpening(
    PrivateKeyRef& privateKey, SymmetricKey* symmetricKey)
 {
    bool rval = false;
-   
+
    // store key
    mKey = privateKey;
-   
+
    // disable encryption mode
    mEncryptMode = false;
-   
+
    // reset input and output bytes
    mInputBytes = mOutputBytes = 0;
-   
+
    // get the cipher function
    mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
    if(mCipherFunction != NULL)
@@ -147,7 +147,7 @@ bool DigitalEnvelope::startOpening(
       char* iv;
       unsigned int ivLength;
       symmetricKey->getData(&eKey, eKeyLength, &iv, ivLength);
-      
+
       // initialize opening the envelope
       if(EVP_OpenInit(
          &mCipherContext, mCipherFunction,
@@ -165,7 +165,7 @@ bool DigitalEnvelope::startOpening(
          Exception::set(e);
       }
    }
-   
+
    return rval;
 }
 
@@ -173,7 +173,7 @@ bool DigitalEnvelope::update(
    const char* in, int inLength, char* out, int& outLength)
 {
    bool rval = false;
-   
+
    // only proceed if the cipher function has been set
    if(mCipherFunction != NULL)
    {
@@ -213,7 +213,7 @@ bool DigitalEnvelope::update(
             Exception::set(e);
          }
       }
-      
+
       if(rval)
       {
          // update input and output bytes
@@ -227,14 +227,14 @@ bool DigitalEnvelope::update(
          "Cannot update envelope; envelope not started.");
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 bool DigitalEnvelope::finish(char* out, int& length)
 {
    bool rval = false;
-   
+
    // only proceed if the cipher function has been set
    if(mCipherFunction != NULL)
    {
@@ -270,7 +270,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
             Exception::set(e);
          }
       }
-      
+
       if(rval)
       {
          // update output bytes
@@ -284,7 +284,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
          "db.crypto.DigitalEnvelope.MethodCallOutOfOrder");
       Exception::set(e);
    }
-   
+
    return rval;
 }
 

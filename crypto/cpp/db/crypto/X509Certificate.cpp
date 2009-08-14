@@ -41,34 +41,34 @@ PublicKeyRef& X509Certificate::getPublicKey()
          mPublicKey = new PublicKey(pkey);
       }
    }
-   
+
    return mPublicKey;
 }
 
 /**
  * Gets the field names and values for a particular X509_NAME.
- * 
+ *
  * For instance, if the subject name is passed, then the "CN" (common name)
  * value, "C" (country) value, etc. will be added to the output map.
- * 
+ *
  * @param name the X509_name, i.e. X509_get_subject_name(mX509).
  * @param output the map to populate.
  */
 static void getX509NameValues(X509_NAME* name, DynamicObject& output)
 {
    output->setType(Map);
-   
+
    unsigned char* value;
    X509_NAME_ENTRY* entry;
    int count = X509_NAME_entry_count(name);
    for(int i = 0; i < count; i++)
    {
       entry = X509_NAME_get_entry(name, i);
-      
+
       // get entry name (object) and value (data)
       ASN1_OBJECT* obj = X509_NAME_ENTRY_get_object(entry);
       ASN1_STRING* str = X509_NAME_ENTRY_get_data(entry);
-      
+
       // convert name and value to strings
       int nid = OBJ_obj2nid(obj);
       const char* sn = OBJ_nid2sn(nid);

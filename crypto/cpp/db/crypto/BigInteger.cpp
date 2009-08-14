@@ -16,7 +16,7 @@ using namespace db::io;
 BigInteger::BigInteger(unsigned long long value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -26,7 +26,7 @@ BigInteger::BigInteger(unsigned long long value)
 BigInteger::BigInteger(long long value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -36,7 +36,7 @@ BigInteger::BigInteger(long long value)
 BigInteger::BigInteger(unsigned int value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -46,7 +46,7 @@ BigInteger::BigInteger(unsigned int value)
 BigInteger::BigInteger(int value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -75,7 +75,7 @@ BigInteger::BigInteger(const BigInteger& copy)
 BigInteger::~BigInteger()
 {
    BN_free(mBigNum);
-   
+
    if(mBigNumContext != NULL)
    {
       BN_CTX_free(mBigNumContext);
@@ -98,7 +98,7 @@ BN_CTX* BigInteger::getContext()
    {
       BN_CTX_init(mBigNumContext);
    }
-   
+
    return mBigNumContext;
 }
 
@@ -114,7 +114,7 @@ BigInteger& BigInteger::operator=(unsigned long long rhs)
    char temp[22];
    sprintf(temp, "%llu", rhs);
    *this = temp;
-   
+
    return *this;
 }
 
@@ -123,7 +123,7 @@ BigInteger& BigInteger::operator=(long long rhs)
    char temp[22];
    sprintf(temp, "%lli", rhs);
    *this = temp;
-   
+
    return *this;
 }
 
@@ -156,7 +156,7 @@ BigInteger& BigInteger::operator=(const char* rhs)
          assert(rc == 1);
       }
    }
-   
+
    return *this;
 }
 
@@ -358,7 +358,7 @@ long long BigInteger::getInt64() const
    {
       rval = -rval;
    }
-   
+
    return rval;
 }
 
@@ -378,7 +378,7 @@ void BigInteger::toBytes(ByteBuffer* b)
    // make enough room for the number
    int size = getNumBytes();
    b->allocateSpace(size, true);
-   
+
    // write the number out
    BN_bn2bin(mBigNum, b->uend());
    b->extend(size);

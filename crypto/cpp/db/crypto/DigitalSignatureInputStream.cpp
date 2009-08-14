@@ -27,13 +27,13 @@ int DigitalSignatureInputStream::read(char* b, int length)
 {
    // read from underlying stream
    int rval = FilterInputStream::read(b, length);
-   
+
    if(rval > 0 && mSignature != NULL)
    {
       // update digital signature
       mSignature->update(b, rval);
    }
-   
+
    return rval;
 }
 
@@ -44,7 +44,7 @@ void DigitalSignatureInputStream::setSignature(
    {
       delete mSignature;
    }
-   
+
    mSignature = ds;
    mCleanupSignature = cleanup;
 }

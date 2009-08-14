@@ -14,7 +14,7 @@ DigitalSignature::DigitalSignature(PrivateKeyRef& key)
 {
    // store key
    mKey = key;
-   
+
    // set sign mode to true
    mSignMode = true;
 }
@@ -23,7 +23,7 @@ DigitalSignature::DigitalSignature(PublicKeyRef& key)
 {
    // store key
    mKey = key;
-   
+
    // set sign mode to false
    mSignMode = false;
 }
@@ -35,7 +35,7 @@ DigitalSignature::~DigitalSignature()
 const EVP_MD* DigitalSignature::getHashFunction()
 {
    const EVP_MD* rval = NULL;
-   
+
    if(strcmp(mKey->getAlgorithm(), "DSA") == 0)
    {
       // dss1 is the same as sha1 but there's some weird algorithm
@@ -52,7 +52,7 @@ const EVP_MD* DigitalSignature::getHashFunction()
       // default to SHA1
       rval = EVP_sha1();
    }
-   
+
    return rval;
 }
 
@@ -60,7 +60,7 @@ void DigitalSignature::reset()
 {
    // get the hash function for this algorithm
    mHashFunction = getHashFunction();
-   
+
    // initialize the message digest context (NULL uses the default engine)
    // according to sign mode
    if(mSignMode)
@@ -80,7 +80,7 @@ void DigitalSignature::update(const char* b, unsigned int length)
    {
       reset();
    }
-   
+
    // update message digest context according to sign mode
    if(mSignMode)
    {
@@ -103,7 +103,7 @@ void DigitalSignature::getValue(char* b, unsigned int& length)
       {
          reset();
       }
-      
+
       EVP_SignFinal(
          &mMessageDigestContext, (unsigned char*)b, &length, mKey->getPKEY());
    }
@@ -118,7 +118,7 @@ unsigned int DigitalSignature::getValueLength()
 bool DigitalSignature::verify(const char* b, unsigned int length)
 {
    bool rval = false;
-   
+
    if(!mSignMode)
    {
       // if the hash function hasn't been set, then call reset to set it
@@ -126,7 +126,7 @@ bool DigitalSignature::verify(const char* b, unsigned int length)
       {
          reset();
       }
-      
+
       int error = EVP_VerifyFinal(
          &mMessageDigestContext, (unsigned char*)b, length, mKey->getPKEY());
       if(error == 1)
@@ -134,7 +134,7 @@ bool DigitalSignature::verify(const char* b, unsigned int length)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 

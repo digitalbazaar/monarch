@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/compress/gzip/Trailer.h"
 
@@ -22,7 +22,7 @@ Trailer::~Trailer()
 int Trailer::convertFromBytes(char* b, int length)
 {
    int rval = 0;
-   
+
    // make sure there are at least 8 bytes available -- the trailer size
    if(length < 8)
    {
@@ -32,16 +32,16 @@ int Trailer::convertFromBytes(char* b, int length)
    {
       // wrap input in a ByteBuffer
       ByteBuffer bb(b, 0, length, length, false);
-      
+
       // read crc-32
       bb.get((char*)&mCrc32, 4);
       mCrc32 = DB_UINT32_FROM_LE(mCrc32);
-      
+
       // read input size
       bb.get((char*)&mInputSize, 4);
       mInputSize = DB_UINT32_FROM_LE(mInputSize);
    }
-   
+
    return rval;
 }
 

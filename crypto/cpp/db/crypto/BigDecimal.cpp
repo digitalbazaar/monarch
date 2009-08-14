@@ -11,7 +11,7 @@ using namespace db::crypto;
 BigDecimal::BigDecimal(long double value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -21,7 +21,7 @@ BigDecimal::BigDecimal(long double value)
 BigDecimal::BigDecimal(double value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -31,7 +31,7 @@ BigDecimal::BigDecimal(double value)
 BigDecimal::BigDecimal(long long value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -41,7 +41,7 @@ BigDecimal::BigDecimal(long long value)
 BigDecimal::BigDecimal(unsigned long long value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -51,7 +51,7 @@ BigDecimal::BigDecimal(unsigned long long value)
 BigDecimal::BigDecimal(int value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -61,7 +61,7 @@ BigDecimal::BigDecimal(int value)
 BigDecimal::BigDecimal(unsigned int value)
 {
    initialize();
-   
+
    if(value != 0)
    {
       *this = value;
@@ -122,7 +122,7 @@ void BigDecimal::setExponent(int exponent)
             mSignificand /= pow;
          }
       }
-      
+
       mExponent = exponent;
    }
 }
@@ -209,7 +209,7 @@ BigDecimal& BigDecimal::operator=(const char* rhs)
 BigDecimal& BigDecimal::operator=(const string& rhs)
 {
    string temp;
-   
+
    // find decimal point
    unsigned int dot = rhs.rfind('.');
    if(dot != string::npos)
@@ -220,10 +220,10 @@ BigDecimal& BigDecimal::operator=(const string& rhs)
       {
          // parse exponent
          mExponent = -strtoll(rhs.c_str() + e + 1, NULL, 10);
-         
+
          // add number of places between the e and the decimal point
          mExponent += e - dot - 1;
-         
+
          // remove decimal point and e
          temp.append(rhs.substr(0, dot));
          temp.append(rhs.substr(dot + 1, e - dot));
@@ -232,7 +232,7 @@ BigDecimal& BigDecimal::operator=(const string& rhs)
       {
          // set exponent to the number of places between dot and end of string
          mExponent = rhs.length() - dot - 1;
-         
+
          // remove decimal point
          temp.append(rhs.substr(0, dot));
          if(dot != rhs.length() - 1)
@@ -247,10 +247,10 @@ BigDecimal& BigDecimal::operator=(const string& rhs)
       mExponent = 0;
       temp = rhs;
    }
-   
+
    // parse significand
    mSignificand = temp;
-   
+
    // if exponent is negative, scale the significand so the exponent is zero
    if(mExponent < 0)
    {
@@ -259,7 +259,7 @@ BigDecimal& BigDecimal::operator=(const string& rhs)
       mSignificand *= ten.pow(mExponent);
       mExponent = 0;
    }
-   
+
    return *this;
 }
 
@@ -288,7 +288,7 @@ bool BigDecimal::operator!=(long double rhs)
 bool BigDecimal::operator<(const BigDecimal& rhs)
 {
    bool rval = false;
-   
+
    if(isNegative() && !rhs.isNegative())
    {
       rval = true;
@@ -302,14 +302,14 @@ bool BigDecimal::operator<(const BigDecimal& rhs)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
 bool BigDecimal::operator>(const BigDecimal& rhs)
 {
    bool rval = false;
-   
+
    if(!isNegative() && rhs.isNegative())
    {
       rval = true;
@@ -323,7 +323,7 @@ bool BigDecimal::operator>(const BigDecimal& rhs)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
@@ -358,11 +358,11 @@ BigDecimal BigDecimal::operator-(const BigDecimal& rhs)
 BigDecimal BigDecimal::operator*(const BigDecimal& rhs)
 {
    BigDecimal rval = *this;
-   
+
    // perform multiplication and then add exponents
    rval.mSignificand *= rhs.mSignificand;
    rval.mExponent += rhs.mExponent;
-   
+
    return rval;
 }
 
@@ -377,19 +377,19 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
    else
    {
       rval = *this;
-      
+
       // ensure exponent is large enough to include precision
       // (this does not change the value of rval)
       rval.setExponent(rval.mPrecision + mPrecision + rhs.mPrecision);
-      
+
       // do division with remainder
       BigDecimal remainder;
       rval.mSignificand.divide(
          rhs.mSignificand, rval.mSignificand, remainder.mSignificand);
-      
+
       // when dividing exponential numbers, subtract the exponents
       rval.mExponent -= rhs.mExponent;
-      
+
       // if exponent is negative, scale the significand so the exponent is zero
       // FIXME: these cases reverse the exponent to be like the other case
       //        ie, force exp up to zero or force it possibly below zero
@@ -421,7 +421,7 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -501,7 +501,7 @@ void BigDecimal::round()
 {
    // write out to a string
    string str = toString(false, false);
-   
+
    // find exponent
    unsigned int dot = str.rfind('.');
    if(dot != string::npos)
@@ -511,13 +511,13 @@ void BigDecimal::round()
       {
          // get the extra digits
          string extra = str.substr(dot + 1 + mPrecision);
-         
+
          // set new exponent to the precision
          mExponent = mPrecision;
-         
+
          // truncate significand
          mSignificand = (str.substr(0, dot) + str.substr(dot + 1, mExponent));
-         
+
          // round significand according to rounding mode
          bool roundUp = false;
          switch(mRoundingMode)
@@ -536,12 +536,12 @@ void BigDecimal::round()
             case HalfEven:
                // round up if next digit in [6,9]
                roundUp = (extra[0] >= '6');
-               
+
                if(!roundUp && extra[0] == '5')
                {
                   // round up if next digit of 5 is followed by non-zero
                   roundUp = (extra.find_first_not_of('0', 1) != string::npos);
-                  
+
                   // '5' followed by zeros, check current digit for even/odd
                   if(!roundUp)
                   {
@@ -560,7 +560,7 @@ void BigDecimal::round()
                }
                break;
          }
-         
+
          if(roundUp)
          {
             // add 1 with the proper sign and same exponent
@@ -576,13 +576,13 @@ string BigDecimal::toString(bool zeroFill, bool truncate) const
 {
    // Note: This implementation will print out only the significant digits,
    // up to a maximum of the set precision.
-   
+
    // write out significand
    string str = mSignificand.toString();
-   
+
    // pretend exponent is zero if significand is zero
    int exponent = mSignificand.isZero() ? 0 : mExponent;
-   
+
    // remove non-significant trailing zeros for positive exponents
    // the zeros may be added back later for zerofill
    if(exponent > 0)
@@ -594,7 +594,7 @@ string BigDecimal::toString(bool zeroFill, bool truncate) const
          str.erase(trailingZerosStart);
       }
    }
-   
+
    if(exponent <= 0)
    {
       // append zeros
@@ -602,7 +602,7 @@ string BigDecimal::toString(bool zeroFill, bool truncate) const
       {
          str.append(-exponent, '0');
       }
-      
+
       // zero fill
       if(zeroFill && mPrecision > 0)
       {
@@ -617,7 +617,7 @@ string BigDecimal::toString(bool zeroFill, bool truncate) const
       int start = (mSignificand.isNegative() ? 1 : 0);
       // count of current precision
       unsigned int precisionCount;
-      
+
       // decimal point position
       int pointPos = str.length() - exponent;
       // check that at least one pre-point digit is available
@@ -633,9 +633,9 @@ string BigDecimal::toString(bool zeroFill, bool truncate) const
          str.insert(start, "0.", 2);
          // add pre-zeros
          str.insert(start + 2, start - pointPos, '0');
-         precisionCount = str.length() - start - 2; 
+         precisionCount = str.length() - start - 2;
       }
-      
+
       if(precisionCount < mPrecision)
       {
          // need more digits
@@ -654,7 +654,7 @@ string BigDecimal::toString(bool zeroFill, bool truncate) const
          }
       }
    }
-   
+
    return str;
 }
 

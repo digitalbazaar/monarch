@@ -14,13 +14,13 @@ AbstractBlockCipher::AbstractBlockCipher(bool encrypt)
 {
    // store encrypt mode
    mEncryptMode = encrypt;
-   
+
    // initialize input/output bytes
    mInputBytes = mOutputBytes = 0;
-   
+
    // initialize the cipher context
    EVP_CIPHER_CTX_init(&mCipherContext);
-   
+
    // set the cipher function to null
    mCipherFunction = NULL;
 }
@@ -34,7 +34,7 @@ AbstractBlockCipher::~AbstractBlockCipher()
 const EVP_CIPHER* AbstractBlockCipher::getCipherFunction(const char* algorithm)
 {
    const EVP_CIPHER* rval = NULL;
-   
+
    if(strcmp(algorithm, "AES") == 0 || strcmp(algorithm, "AES256") == 0)
    {
       rval = EVP_aes_256_cbc();
@@ -54,7 +54,7 @@ const EVP_CIPHER* AbstractBlockCipher::getCipherFunction(const char* algorithm)
       e->getDetails()["algorithm"] = algorithm;
       Exception::set(e);
    }
-   
+
    return rval;
 }
 

@@ -18,10 +18,10 @@ bool BlockCipher::update(
    const char* in, int inLength, ByteBuffer* out, bool resize)
 {
    bool rval = false;
-   
+
    // allocate space for data
    out->allocateSpace(inLength + getBlockSize(), resize);
-   
+
    // do update
    int length;
    if(update(in, inLength, out->end(), length))
@@ -30,17 +30,17 @@ bool BlockCipher::update(
       out->extend(length);
       rval = true;
    }
-   
+
    return rval;
 }
 
 bool BlockCipher::finish(ByteBuffer* out, bool resize)
 {
    bool rval = false;
-   
+
    // allocate space for data
    out->allocateSpace(getBlockSize(), resize);
-   
+
    // do finish
    int length;
    if(finish(out->end(), length))
@@ -49,6 +49,6 @@ bool BlockCipher::finish(ByteBuffer* out, bool resize)
       out->extend(length);
       rval = true;
    }
-   
+
    return rval;
 }

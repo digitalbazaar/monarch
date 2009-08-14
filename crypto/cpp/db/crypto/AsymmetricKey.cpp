@@ -19,7 +19,7 @@ AsymmetricKey::~AsymmetricKey()
 {
    // free the public/private key structure
    EVP_PKEY_free(mKey);
-   
+
    if(mAlgorithm != NULL)
    {
       free(mAlgorithm);
@@ -47,7 +47,7 @@ const char* AsymmetricKey::getAlgorithm()
             mAlgorithm = strdup("NONE");
       }
    }
-   
+
    return mAlgorithm;
 }
 

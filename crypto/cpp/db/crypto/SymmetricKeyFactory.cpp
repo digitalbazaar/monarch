@@ -28,9 +28,9 @@ bool SymmetricKeyFactory::createRandomKey(
    const char* algorithm, SymmetricKey* key)
 {
    bool rval = true;
-   
+
    const EVP_CIPHER* cipherType = NULL;
-   
+
    if(strcmp(algorithm, "AES") == 0 || strcmp(algorithm, "AES256") == 0)
    {
       cipherType = EVP_aes_256_cbc();
@@ -52,14 +52,14 @@ bool SymmetricKeyFactory::createRandomKey(
       Exception::set(e);
       rval = false;
    }
-   
+
    if(rval)
    {
       // get random bytes for data
       unsigned int keyLength = EVP_CIPHER_key_length(cipherType);
       char *data = (char*)malloc(keyLength);
       RAND_bytes((unsigned char*)data, keyLength);
-      
+
       // get random bytes for IV
       char* iv = NULL;
       unsigned int ivLength = EVP_CIPHER_iv_length(cipherType);
@@ -68,12 +68,12 @@ bool SymmetricKeyFactory::createRandomKey(
          iv = (char*)malloc(ivLength);
          RAND_bytes((unsigned char*)iv, ivLength);
       }
-      
+
       // create symmetric key and assign key data/IV
       key->setAlgorithm("AES256");
       key->assignData(data, keyLength, iv, ivLength, false);
    }
-   
+
    return rval;
 }
 
@@ -83,7 +83,7 @@ bool SymmetricKeyFactory::createKey(const char* algorithm, SymmetricKey* key)
    struct timeval tv;
    gettimeofday(&tv, 0);
    RAND_add(&tv, sizeof(tv), 0.0);
-   
+
    // create random key
    return createRandomKey(algorithm, key);
 }

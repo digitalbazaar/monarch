@@ -9,7 +9,7 @@ CryptoHashAlgorithm::CryptoHashAlgorithm()
 {
    // initialize the message digest context
    EVP_MD_CTX_init(&mMessageDigestContext);
-   
+
    // set the hash function to null
    mHashFunction = NULL;
 }

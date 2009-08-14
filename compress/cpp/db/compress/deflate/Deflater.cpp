@@ -36,7 +36,7 @@ void Deflater::cleanupStream()
          inflateEnd(&mZipStream);
       }
    }
-   
+
    // re-initialize stream (use defaults via Z_NULL)
    mZipStream.zalloc = Z_NULL;
    mZipStream.zfree = Z_NULL;
@@ -48,9 +48,9 @@ void Deflater::cleanupStream()
 bool Deflater::createException(int ret)
 {
    bool rval = false;
-   
+
    Exception* e = NULL;
-   
+
    switch(ret)
    {
       case Z_OK:
@@ -83,22 +83,22 @@ bool Deflater::createException(int ret)
             EXCEPTION_DEFLATE ".Error");
          break;
    }
-   
+
    if(e != NULL)
    {
       rval = true;
-      
+
       if(mZipStream.msg != NULL)
       {
          // use zlib stream error message as cause
          ExceptionRef cause = new Exception(mZipStream.msg);
          e->setCause(cause);
       }
-      
+
       ExceptionRef ref = e;
       Exception::set(ref);
    }
-   
+
    return e;
 }
 
@@ -106,9 +106,9 @@ bool Deflater::startDeflating(int level, bool raw)
 {
    // clean up previous stream
    cleanupStream();
-   
+
    int ret;
-   
+
    if(raw)
    {
       // windowBits is negative to indicate a raw stream
@@ -123,11 +123,11 @@ bool Deflater::startDeflating(int level, bool raw)
       ret = deflateInit2(
          &mZipStream, level, Z_DEFLATED, 15, 8, Z_DEFAULT_STRATEGY);
    }
-   
+
    mDeflating = true;
    mShouldFinish = false;
    mFinished = false;
-   
+
    return !createException(ret);
 }
 
@@ -135,9 +135,9 @@ bool Deflater::startInflating(bool raw)
 {
    // clean up previous stream
    cleanupStream();
-   
+
    int ret;
-   
+
    if(raw)
    {
       // windowBits is negative to indicate a raw stream
@@ -148,11 +148,11 @@ bool Deflater::startInflating(bool raw)
       // add 32 to windowBits to support gzip or zlib decoding
       ret = inflateInit2(&mZipStream, 15 + 32);
    }
-   
+
    mDeflating = false;
    mShouldFinish = false;
    mFinished = false;
-   
+
    return !createException(ret);
 }
 
@@ -167,14 +167,14 @@ void Deflater::setInput(const char* b, int length, bool finish)
 int Deflater::process(ByteBuffer* dst, bool resize)
 {
    int rval = 0;
-   
+
    if(!mFinished)
    {
       // when deflating, let zlib determine flushing to maximize compression
       // when inflating, flush output whenever possible
       int flush = (mShouldFinish ?
          Z_FINISH : (mDeflating ? Z_NO_FLUSH : Z_SYNC_FLUSH));
-      
+
       // keep processing while no finished, no error, no output data, while
       // there is input data or processing should finish, and while there is
       // room to store the output data or if the destination buffer can be
@@ -188,22 +188,22 @@ int Deflater::process(ByteBuffer* dst, bool resize)
             // allocate space for output
             dst->allocateSpace(1024, resize);
          }
-         
+
          // set output buffer, store old free space
          int freeSpace = dst->freeSpace();
          dst->allocateSpace(freeSpace, false);
          mZipStream.next_out = dst->uend();
          mZipStream.avail_out = freeSpace;
-         
+
          // perform deflation/inflation
          int ret = (mDeflating) ?
             ::deflate(&mZipStream, flush) :
             ::inflate(&mZipStream, flush);
-         
+
          // extend destination buffer by data written to it
          int length = freeSpace - mZipStream.avail_out;
          dst->extend(length);
-         
+
          // handle potential exception
          if(createException(ret))
          {
@@ -214,7 +214,7 @@ int Deflater::process(ByteBuffer* dst, bool resize)
             // return number of output bytes
             rval = length;
          }
-         
+
          if(ret == Z_STREAM_END)
          {
             // finished
@@ -222,7 +222,7 @@ int Deflater::process(ByteBuffer* dst, bool resize)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -230,7 +230,7 @@ MutationAlgorithm::Result Deflater::mutateData(
    ByteBuffer* src, ByteBuffer* dst, bool finish)
 {
    MutationAlgorithm::Result rval = MutationAlgorithm::Stepped;
-   
+
    if(!isFinished())
    {
       if(inputAvailable() == 0)
@@ -246,7 +246,7 @@ MutationAlgorithm::Result Deflater::mutateData(
             setInput(src->data(), src->length(), finish);
          }
       }
-      
+
       // keep processing while no output data and algorithm stepped
       while(dst->isEmpty() && rval == MutationAlgorithm::Stepped)
       {
@@ -269,7 +269,7 @@ MutationAlgorithm::Result Deflater::mutateData(
             // algorithm complete
             rval = MutationAlgorithm::CompleteTruncate;
          }
-         
+
          // clear source buffer of data that has been consumed
          src->clear(src->length() - inputAvailable());
       }
@@ -279,7 +279,7 @@ MutationAlgorithm::Result Deflater::mutateData(
       // algorithm completed
       rval = MutationAlgorithm::CompleteTruncate;
    }
-   
+
    return rval;
 }
 

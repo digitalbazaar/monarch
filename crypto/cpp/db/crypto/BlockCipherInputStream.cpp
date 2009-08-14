@@ -28,7 +28,7 @@ BlockCipherInputStream::~BlockCipherInputStream()
 int BlockCipherInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    // read from buffer if not empty
    if(!mReadBuffer.isEmpty())
    {
@@ -61,7 +61,7 @@ int BlockCipherInputStream::read(char* b, int length)
                success = mCipher->finish(&mReadBuffer, true);
                mCipherFinished = true;
             }
-            
+
             if(success)
             {
                // read from buffer
@@ -75,7 +75,7 @@ int BlockCipherInputStream::read(char* b, int length)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -85,7 +85,7 @@ void BlockCipherInputStream::setCipher(BlockCipher* cipher, bool cleanup)
    {
       delete mCipher;
    }
-   
+
    mCipher = cipher;
    mCleanupCipher = cleanup;
    mCipherFinished = false;

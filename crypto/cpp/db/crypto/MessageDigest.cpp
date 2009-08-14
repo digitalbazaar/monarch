@@ -19,7 +19,7 @@ using namespace db::util;
 MessageDigest::MessageDigest(const char* algorithm, bool persistent)
 {
    mPersistent = persistent;
-   
+
    if(strcmp(algorithm, "SHA1") == 0)
    {
       mAlgorithm = algorithm;
@@ -46,7 +46,7 @@ void MessageDigest::reset()
 {
    // get the hash function for this algorithm
    mHashFunction = getHashFunction();
-   
+
    // initialize the message digest context (NULL uses the default engine)
    EVP_DigestInit_ex(&mMessageDigestContext, mHashFunction, NULL);
 }
@@ -63,7 +63,7 @@ void MessageDigest::update(const char* b, unsigned int length)
    {
       reset();
    }
-   
+
    // update message digest context
    EVP_DigestUpdate(&mMessageDigestContext, b, length);
 }
@@ -75,7 +75,7 @@ void MessageDigest::getValue(char* b, unsigned int& length)
    {
       reset();
    }
-   
+
    if(mPersistent)
    {
       // get the final value from a copy so the context can continue to be used
@@ -99,7 +99,7 @@ unsigned int MessageDigest::getValueLength()
    {
       reset();
    }
-   
+
    return EVP_MD_size(mHashFunction);
 }
 
@@ -109,7 +109,7 @@ string MessageDigest::getDigest()
    unsigned int length = getValueLength();
    char hashValue[length];
    getValue(hashValue, length);
-   
+
    // convert the hash value into hexadecimal
    return Convert::bytesToHex(hashValue, length);
 }
@@ -132,7 +132,7 @@ bool MessageDigest::digestFile(File& file)
 const EVP_MD* MessageDigest::getHashFunction()
 {
    const EVP_MD* rval = NULL;
-   
+
    if(strcmp(mAlgorithm, "SHA1") == 0)
    {
       rval = EVP_sha1();
@@ -141,6 +141,6 @@ const EVP_MD* MessageDigest::getHashFunction()
    {
       rval = EVP_md5();
    }
-   
+
    return rval;
 }

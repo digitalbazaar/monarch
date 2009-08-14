@@ -26,7 +26,7 @@ bool DefaultBlockCipher::startEncrypting(
    // create a symmetric key
    SymmetricKeyFactory factory;
    factory.createKey(algorithm, symmetricKey);
-   
+
    // start encrypting
    return startEncrypting(symmetricKey);
 }
@@ -34,13 +34,13 @@ bool DefaultBlockCipher::startEncrypting(
 bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
 {
    bool rval = false;
-   
+
    // enable encryption mode
    mEncryptMode = true;
-   
+
    // reset input and output bytes
    mInputBytes = mOutputBytes = 0;
-   
+
    // get the cipher function
    mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
    if(mCipherFunction != NULL)
@@ -62,20 +62,20 @@ bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
          Exception::set(e);
       }
    }
-   
+
    return rval;
 }
 
 bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
 {
    bool rval = false;
-   
+
    // disable encryption mode
    mEncryptMode = false;
-   
+
    // reset input and output bytes
    mInputBytes = mOutputBytes = 0;
-   
+
    // get the cipher function
    mCipherFunction = getCipherFunction(symmetricKey->getAlgorithm());
    if(mCipherFunction != NULL)
@@ -97,7 +97,7 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
          Exception::set(e);
       }
    }
-   
+
    return rval;
 }
 
@@ -105,7 +105,7 @@ bool DefaultBlockCipher::update(
    const char* in, int inLength, char* out, int& outLength)
 {
    bool rval = false;
-   
+
    // only proceed if the cipher function has been set
    if(mCipherFunction != NULL)
    {
@@ -145,7 +145,7 @@ bool DefaultBlockCipher::update(
             Exception::set(e);
          }
       }
-      
+
       if(rval)
       {
          // update input and output bytes
@@ -161,14 +161,14 @@ bool DefaultBlockCipher::update(
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 bool DefaultBlockCipher::finish(char* out, int& length)
 {
    bool rval = false;
-   
+
    // only proceed if the cipher function has been set
    if(mCipherFunction != NULL)
    {
@@ -206,7 +206,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
             Exception::set(e);
          }
       }
-      
+
       if(rval)
       {
          // update output bytes
@@ -221,7 +221,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 

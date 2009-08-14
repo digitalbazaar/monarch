@@ -35,12 +35,12 @@ AsymmetricKeyFactory::~AsymmetricKeyFactory()
 /**
  * A callback function that is called to obtain a password to unlock
  * an encrypted key.
- * 
+ *
  * @param b the buffer to populate with a password.
  * @param length the length of the buffer to populate.
  * @param flag a flag that is reserved for future use.
  * @param userData a pointer to some user data.
- * 
+ *
  * @return the length of the password.
  */
 static int passwordCallback(char* b, int length, int flag, void* userData)
@@ -53,7 +53,7 @@ static int passwordCallback(char* b, int length, int flag, void* userData)
       // passed buffer for a NULL terminator)
       int len = strlen(password);
       length = (len < length - 1) ? len : length - 1;
-      
+
       // copy the password into the given buffer
       memcpy(b, password, length);
    }
@@ -62,7 +62,7 @@ static int passwordCallback(char* b, int length, int flag, void* userData)
       // no password available
       length = 0;
    }
-   
+
    // return the password length
    return length;
 }
@@ -84,35 +84,35 @@ void AsymmetricKeyFactory::createDsaKeyPair(
          BIGNUM* g = dsa->g;
          BIGNUM* x = dsa->priv_key;
          BIGNUM* y = dsa->pub_key;
-         
+
          // clear private parameters
          dsa->priv_key = NULL;
-         
+
          // create public key
          EVP_PKEY* pub = EVP_PKEY_new();
          EVP_PKEY_set1_DSA(pub, dsa);
          publicKey = new PublicKey(pub);
-         
+
          // clear public parameters
          dsa->p = NULL;
          dsa->q = NULL;
          dsa->g = NULL;
          dsa->pub_key = NULL;
-         
+
          // restore private parameters
          dsa->priv_key = x;
-         
+
          // create private key
          EVP_PKEY* priv = EVP_PKEY_new();
          EVP_PKEY_set1_DSA(priv, dsa);
          privateKey = new PrivateKey(priv);
-         
+
          // restore public parameters
          dsa->p = p;
          dsa->q = q;
          dsa->g = g;
          dsa->pub_key = y;
-         
+
          // free DSA
          DSA_free(dsa);
       }
@@ -134,15 +134,15 @@ void AsymmetricKeyFactory::createRsaKeyPair(
       BIGNUM* dmp1 = rsa->dmp1;
       BIGNUM* dmq1 = rsa->dmq1;
       BIGNUM* iqmp = rsa->iqmp;
-      
+
       // clear public parameters
       rsa->e = NULL;
-      
+
       // create private key
       EVP_PKEY* priv = EVP_PKEY_new();
       EVP_PKEY_set1_RSA(priv, rsa);
       privateKey = new PrivateKey(priv);
-      
+
       // clear private parameters
       rsa->d = NULL;
       rsa->p = NULL;
@@ -150,15 +150,15 @@ void AsymmetricKeyFactory::createRsaKeyPair(
       rsa->dmp1 = NULL;
       rsa->dmq1 = NULL;
       rsa->iqmp = NULL;
-      
+
       // restore public parameters
       rsa->e = e;
-      
+
       // create public key
       EVP_PKEY* pub = EVP_PKEY_new();
       EVP_PKEY_set1_RSA(pub, rsa);
       publicKey = new PublicKey(pub);
-      
+
       // restore private parameters
       rsa->d = d;
       rsa->p = p;
@@ -166,7 +166,7 @@ void AsymmetricKeyFactory::createRsaKeyPair(
       rsa->dmp1 = dmp1;
       rsa->dmq1 = dmq1;
       rsa->iqmp = iqmp;
-      
+
       // free RSA
       RSA_free(rsa);
    }
@@ -176,16 +176,16 @@ bool AsymmetricKeyFactory::createKeyPair(
    const char* algorithm, PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
 {
    bool rval = true;
-   
+
    // set private and public keys to null
    privateKey.setNull();
    publicKey.setNull();
-   
+
    // add random bytes from the time
    struct timeval tv;
    gettimeofday(&tv, 0);
    RAND_add(&tv, sizeof(tv), 0.0);
-   
+
    if(strcmp(algorithm, "DSA") == 0)
    {
       // create DSA key pair
@@ -206,7 +206,7 @@ bool AsymmetricKeyFactory::createKeyPair(
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
@@ -214,10 +214,10 @@ PrivateKeyRef AsymmetricKeyFactory::loadPrivateKeyFromPem(
    const char* pem, int length, const char* password)
 {
    PrivateKeyRef key;
-   
+
    // create a read-only memory bio
    BIO* bio = BIO_new_mem_buf((void*)pem, length);
-   
+
    // try to load private key from bio
    EVP_PKEY* pkey = NULL;
    if(password != NULL)
@@ -231,10 +231,10 @@ PrivateKeyRef AsymmetricKeyFactory::loadPrivateKeyFromPem(
       // no password provided
       pkey = PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
    }
-   
+
    // free the bio
    BIO_free_all(bio);
-   
+
    if(pkey != NULL)
    {
       // wrap the PKEY structure in a PrivateKey
@@ -248,7 +248,7 @@ PrivateKeyRef AsymmetricKeyFactory::loadPrivateKeyFromPem(
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
-   
+
    return key;
 }
 
@@ -256,10 +256,10 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
    PrivateKeyRef& key, const char* password)
 {
    string rval;
-   
+
    // create a memory BIO
    BIO* bio = BIO_new(BIO_s_mem());
-   
+
    // write the key to the bio
    int error;
    if(password != NULL)
@@ -276,16 +276,16 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
          bio, key->getPKEY(), NULL,
          NULL, 0, NULL, NULL);
    }
-   
+
    if(error != 0)
    {
       // get the memory buffer from the bio
       BUF_MEM* mem;
       BIO_get_mem_ptr(bio, &mem);
-      
+
       // add characters to the string
       rval.append(mem->data, mem->length);
-      
+
       // free the bio
       BIO_free(bio);
    }
@@ -297,7 +297,7 @@ string AsymmetricKeyFactory::writePrivateKeyToPem(
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
@@ -305,18 +305,18 @@ PublicKeyRef AsymmetricKeyFactory::loadPublicKeyFromPem(
    const char* pem, int length)
 {
    PublicKeyRef key;
-   
+
    // create a read-only memory bio
    BIO* bio = BIO_new_mem_buf((void*)pem, length);
    BIO_set_close(bio, BIO_NOCLOSE);
-   
+
    // try to load public key from bio
    EVP_PKEY* pkey = NULL;
    pkey = PEM_read_bio_PUBKEY(bio, &pkey, NULL, NULL);
-   
+
    // free the bio
    BIO_free(bio);
-   
+
    if(pkey != NULL)
    {
       // wrap the PKEY structure in a PublicKey
@@ -330,17 +330,17 @@ PublicKeyRef AsymmetricKeyFactory::loadPublicKeyFromPem(
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
-   
+
    return key;
 }
 
 string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
 {
    string rval;
-   
+
    // create a memory BIO
    BIO* bio = BIO_new(BIO_s_mem());
-   
+
    // write the key to the bio
    int error = PEM_write_bio_PUBKEY(bio, key->getPKEY());
    if(error != 0)
@@ -348,10 +348,10 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
       // get the memory buffer from the bio
       BUF_MEM* mem;
       BIO_get_mem_ptr(bio, &mem);
-      
+
       // add characters to the string
       rval.append(mem->data, mem->length);
-      
+
       // free the bio
       BIO_free(bio);
    }
@@ -363,7 +363,7 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
@@ -373,7 +373,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
    Date* startDate, Date* endDate)
 {
    X509CertificateRef rval(NULL);
-   
+
    /* Structure of a v3 X.509 certificate:
       Certificate
          Version
@@ -394,35 +394,35 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
       Certificate Signature Algorithm
       Certificate Signature
     */
-   
+
    bool pass;
-   
+
    // create certificate object, v1 (0x0)
    // (we don't have any optional stuff)
    X509* x509 = X509_new();
    pass = (X509_set_version(x509, 0) != 0);
-   
+
    // set serial number to 0
    pass = pass && ASN1_INTEGER_set(X509_get_serialNumber(x509), 0);
-   
+
    // get starting date and ending dates in seconds relative to now
    time_t now = Date().getSeconds();
    time_t startSeconds = (startDate != NULL) ?
       (startDate->getSeconds() - now) : 0;
    time_t endSeconds = (endDate != NULL) ?
       (endDate->getSeconds() - now) : 0;
-   
+
    // set not before to current time, set not after to given days
    pass = pass &&
       (X509_gmtime_adj(X509_get_notBefore(x509), startSeconds) != NULL) &&
       (X509_gmtime_adj(X509_get_notAfter(x509), endSeconds) != NULL);
-   
+
    // assign public key to certificate
    pass = pass && X509_set_pubkey(x509, publicKey->getPKEY());
-   
+
    // get the subject so its entry can be modified
    X509_NAME* sname = X509_get_subject_name(x509);
-   
+
    /* Add attributes for subject:
    CN: Common Name (site's domain, i.e. localhost, myserver.com)
    OU: Organizational Unit
@@ -448,7 +448,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
       X509_NAME_add_entry_by_txt(
          sname, "C", MBSTRING_UTF8,
          (const unsigned char*)subject["C"]->getString(), -1, -1, 0);
-   
+
    // locality and state considered optional
    if(pass && subject->hasMember("L"))
    {
@@ -462,10 +462,10 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
          sname, "ST", MBSTRING_UTF8,
          (const unsigned char*)subject["ST"]->getString(), -1, -1, 0);
    }
-   
+
    // get the issuer so its entry can be modified
    X509_NAME* iname = X509_get_issuer_name(x509);
-   
+
    // build issuer (same fields as subject)
    pass = pass &&
       X509_NAME_add_entry_by_txt(
@@ -480,7 +480,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
       X509_NAME_add_entry_by_txt(
          iname, "C", MBSTRING_UTF8,
          (const unsigned char*)issuer["C"]->getString(), -1, -1, 0);
-   
+
    // locality and state considered optional
    if(pass && issuer->hasMember("L"))
    {
@@ -494,7 +494,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
          iname, "ST", MBSTRING_UTF8,
          (const unsigned char*)issuer["ST"]->getString(), -1, -1, 0);
    }
-   
+
    // sign certificate
    if(pass)
    {
@@ -518,10 +518,10 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
          Exception::set(e);
          pass = false;
       }
-      
+
       pass = pass && X509_sign(x509, privateKey->getPKEY(), EVP_sha1());
    }
-   
+
    if(pass)
    {
       // create X509Certificate object
@@ -536,7 +536,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
@@ -544,18 +544,18 @@ X509CertificateRef AsymmetricKeyFactory::loadCertificateFromPem(
    const char* pem, int length)
 {
    X509CertificateRef cert;
-   
+
    // create a read-only memory bio
    BIO* bio = BIO_new_mem_buf((void*)pem, length);
    BIO_set_close(bio, BIO_NOCLOSE);
-   
+
    // try to load certificate from bio
    X509* x509 = NULL;
    x509 = PEM_read_bio_X509(bio, &x509, NULL, NULL);
-   
+
    // free the bio
    BIO_free(bio);
-   
+
    if(x509 != NULL)
    {
       // wrap the X.509 structure in a X509Certificate
@@ -569,17 +569,17 @@ X509CertificateRef AsymmetricKeyFactory::loadCertificateFromPem(
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
-   
+
    return cert;
 }
 
 string AsymmetricKeyFactory::writeCertificateToPem(X509CertificateRef& cert)
 {
    string rval;
-   
+
    // create a memory BIO
    BIO* bio = BIO_new(BIO_s_mem());
-   
+
    // write the certificate to the bio
    int error = PEM_write_bio_X509(bio, cert->getX509());
    if(error != 0)
@@ -587,10 +587,10 @@ string AsymmetricKeyFactory::writeCertificateToPem(X509CertificateRef& cert)
       // get the memory buffer from the bio
       BUF_MEM* mem;
       BIO_get_mem_ptr(bio, &mem);
-      
+
       // add characters to the string
       rval.append(mem->data, mem->length);
-      
+
       // free the bio
       BIO_free(bio);
    }
@@ -602,6 +602,6 @@ string AsymmetricKeyFactory::writeCertificateToPem(X509CertificateRef& cert)
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
-   
+
    return rval;
 }

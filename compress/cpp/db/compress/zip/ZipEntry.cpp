@@ -49,21 +49,21 @@ uint32_t ZipEntryImpl::getFileHeaderSize()
 void ZipEntryImpl::setFilename(const char* filename)
 {
    free(mFilename);
-   
+
    // Note: The filename must be normalized such that it
    // does not contain a drive letter or leading slash and
    // such that all slashes are forward slashes. It can
    // contain a relative path.
-   
+
    // FIXME: this needs a more full implementation to remove
    // drive letters, etc
-   
+
    // remove leading slash
    while(filename[0] != 0 && filename[0] == '/')
    {
       filename++;
    }
-   
+
    mFilename = strdup(filename);
 }
 

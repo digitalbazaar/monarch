@@ -30,7 +30,7 @@ Gzipper::~Gzipper()
    {
       delete mHeader;
    }
-   
+
    // clean up trailer as necessary
    if(mTrailer != NULL && mCleanupTrailer)
    {
@@ -45,7 +45,7 @@ void Gzipper::setHeader(Header* header, bool cleanup)
    {
       delete mHeader;
    }
-   
+
    mHeader = header;
    mCleanupTrailer = cleanup;
 }
@@ -62,7 +62,7 @@ void Gzipper::setTrailer(Trailer* trailer, bool cleanup)
    {
       delete mTrailer;
    }
-   
+
    mTrailer = trailer;
    mCleanupTrailer = cleanup;
 }
@@ -80,11 +80,11 @@ bool Gzipper::startCompressing(int level)
    mBuffer.clear();
    mCrc32 = 0;
    mGzipFinished = false;
-   
+
    // reset header and trailer CRCs
    mHeader->resetCrc();
    mTrailer->setCrc32(0);
-   
+
    // start raw deflation
    return startDeflating(level, true);
 }
@@ -97,11 +97,11 @@ bool Gzipper::startDecompressing()
    mBuffer.clear();
    mCrc32 = 0;
    mGzipFinished = false;
-   
+
    // reset header and trailer CRCs
    mHeader->resetCrc();
    mTrailer->setCrc32(0);
-   
+
    // start raw inflation
    return startInflating(true);
 }
@@ -125,7 +125,7 @@ void Gzipper::setInput(const char* b, int length, bool finish)
 int Gzipper::process(ByteBuffer* dst, bool resize)
 {
    int rval = 0;
-   
+
    if(!mHeaderProcessed)
    {
       // determine if reading or writing the header
@@ -162,7 +162,7 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
       // store input (for crc calculation)
       unsigned char* in = mZipStream.next_in;
       unsigned int inLength = mZipStream.avail_in;
-      
+
       // do deflation/inflation
       rval = Deflater::process(dst, resize);
       if(rval != -1)
@@ -180,9 +180,9 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
          else if(rval > 0)
          {
             // do calculation on outgoing data
-            mCrc32 = crc32(mCrc32, dst->uend() - rval, rval); 
+            mCrc32 = crc32(mCrc32, dst->uend() - rval, rval);
          }
-         
+
          // check for completed inflation
          if(!mDeflating && Deflater::isFinished())
          {
@@ -219,7 +219,7 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
             mTrailerProcessed = true;
             mBuffer.clear();
             mGzipFinished = true;
-            
+
             // do crc check
             if(mCrc32 != mTrailer->getCrc32())
             {
@@ -236,7 +236,7 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
          }
       }
    }
-   
+
    return rval;
 }
 
