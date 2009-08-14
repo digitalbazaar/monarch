@@ -30,26 +30,26 @@ void runBase64Test(TestRunner& tr)
    const char* expected = "YmNkZQ==";
 
    tr.test("Base64");
-   
+
    char data[] = {'a', 'b', 'c', 'd', 'e'};
    string encoded = Base64Codec::encode(data + 1, 4);
    assert(encoded == expected);
-   
+
    char* decoded;
    unsigned int length;
    Base64Codec::decode(encoded.c_str(), &decoded, length);
    assert(decoded != NULL);
-   
+
    assert(length == 4);
    for(unsigned int i = 0; i < length; i++)
    {
       assert(decoded[i] == data[i + 1]);
    }
-   
+
    string encoded2 = Base64Codec::encode(decoded, 4);
    assertStrCmp(encoded2.c_str(), expected);
    free(decoded);
-   
+
    unsigned int size = 144;
    string large;
    large.append(size, 0x01);
@@ -58,7 +58,7 @@ void runBase64Test(TestRunner& tr)
    assert(memcmp(decoded, large.c_str(), size) == 0);
    assert(length == size);
    free(decoded);
-   
+
    size = 145;
    large.erase();
    large.append(size, 0x01);
@@ -67,17 +67,17 @@ void runBase64Test(TestRunner& tr)
    assert(memcmp(decoded, large.c_str(), size) == 0);
    assert(length == size);
    free(decoded);
-   
+
    tr.pass();
 }
 
 void runCrcTest(TestRunner& tr)
 {
    tr.group("CRC");
-   
+
    unsigned int correctValue = 6013;
-   
-   tr.test("single value update");   
+
+   tr.test("single value update");
    Crc16 crc16s;
    crc16s.update(10);
    crc16s.update(20);
@@ -89,8 +89,8 @@ void runCrcTest(TestRunner& tr)
    crc16s.update(80);
    assert(crc16s.getChecksum() == correctValue);
    tr.pass();
-   
-   tr.test("array update");   
+
+   tr.test("array update");
    Crc16 crc16a;
    char b[] = {10, 20, 30, 40, 50, 60, 70, 80};
    crc16a.update(b, 8);
@@ -104,38 +104,38 @@ void runCrcTest(TestRunner& tr)
 void runConvertTest(TestRunner& tr)
 {
    tr.test("Convert");
-   
+
    // convert to hex
    char data[] = "abcdefghiABCDEFGZXYW0123987{;}*%6,./.12`~";
    string original(data, strlen(data));
-   
+
    string lowerHex = Convert::bytesToHex(data, strlen(data));
    string upperHex = Convert::bytesToUpperHex(data, strlen(data));
-   
+
    assertStrCmp(lowerHex.c_str(),"616263646566676869414243444546475a585957303132333938377b3b7d2a25362c2e2f2e3132607e");
    assert(lowerHex.length() == 82);
    assertStrCmp(upperHex.c_str(),"616263646566676869414243444546475A585957303132333938377B3B7D2A25362C2E2F2E3132607E");
    assert(upperHex.length() == 82);
-   
+
    char decoded1[lowerHex.length() / 2];
    char decoded2[upperHex.length() / 2];
-   
+
    unsigned int length1;
    unsigned int length2;
    Convert::hexToBytes(lowerHex.c_str(), lowerHex.length(), decoded1, length1);
    Convert::hexToBytes(upperHex.c_str(), upperHex.length(), decoded2, length2);
-   
+
    string ascii1(decoded1, length1);
    string ascii2(decoded2, length2);
-   
+
    assertStrCmp(ascii1.c_str(), data);
    assert(length1 == strlen(data));
    assertStrCmp(ascii2.c_str(), data);
    assert(length2 == strlen(data));
-   
+
    assert(ascii1 == ascii2);
    assert(ascii1 == original);
-   
+
    assertStrCmp(Convert::intToHex(10).c_str(), "0a");
    assertStrCmp(Convert::intToHex(33).c_str(), "21");
    assertStrCmp(Convert::intToHex(100).c_str(), "64");
@@ -146,39 +146,39 @@ void runConvertTest(TestRunner& tr)
    assertStrCmp(Convert::intToUpperHex(8975).c_str(), "230F");
    assertStrCmp(Convert::intToHex(65537).c_str(), "010001");
    assertStrCmp(Convert::intToUpperHex(65537).c_str(), "010001");
-   
+
    {
       unsigned int ui;
       string hex;
-      
+
       hex = "230f";
       assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assert(ui == 8975);
-      
+
       hex = "230F";
       assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assert(ui == 8975);
-      
+
       hex = "230FABCD";
       assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assert(ui == 588229581);
-      
+
       hex = "0";
       assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assert(ui == 0x0);
-      
+
       hex = "d";
       assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assert(ui == 0xd);
-      
+
       hex = "fab";
       assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assert(ui == 0xfab);
-      
+
       hex = "0141";
       assert(Convert::hexToInt(hex.c_str(), hex.length(), ui));
       assert(ui == 0x141);
-      
+
       // bad hex
       hex = "x";
       assert(!Convert::hexToInt(hex.c_str(), hex.length(), ui));
@@ -191,11 +191,11 @@ void runConvertTest(TestRunner& tr)
       assertException();
       Exception::clear();
    }
-   
+
    {
       unsigned int length;
       string hex;
-      char bytes[100]; 
+      char bytes[100];
 
       hex = "0";
       assert(Convert::hexToBytes(hex.c_str(), hex.length(), bytes, length));
@@ -239,7 +239,7 @@ void runRegexTest(TestRunner& tr)
       assert(Pattern::match(pat, ".123-b50.gz"));
    }
    tr.passIfNoException();
-   
+
    tr.test("compiled match");
    {
       unsigned int _start;
@@ -268,7 +268,7 @@ void runRegexTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-   
+
    tr.test("no match");
    {
       assert(!Pattern::match("^[a-z]{3}$", "abcd"));
@@ -281,7 +281,7 @@ void runRegexTest(TestRunner& tr)
    {
       string submatches = "Look for green globs of green matter in green goo.";
       PatternRef p = Pattern::compile("green");
-   
+
       unsigned int start, end;
       unsigned int index = 0;
 
@@ -306,10 +306,10 @@ void runRegexTest(TestRunner& tr)
       assert(!p->match(submatches.c_str(), index, start, end));
    }
    tr.passIfNoException();
-   
+
    tr.test("replace all");
    {
-      
+
       string str = "Look for green globs of green matter in green goo.";
       string exp = "Look for blue globs of blue matter in blue goo.";
       StringTools::regexReplaceAll(str, "green", "blue");
@@ -323,10 +323,10 @@ void runRegexTest(TestRunner& tr)
 void runDateTest(TestRunner& tr)
 {
    tr.group("Date");
-   
+
    TimeZone gmt = TimeZone::getTimeZone("GMT");
    TimeZone local = TimeZone::getTimeZone();
-   
+
    tr.test("format and parse");
    {
       Date d;
@@ -337,7 +337,7 @@ void runDateTest(TestRunner& tr)
       //d.format(str, "%a, %d %b %Y %H:%M:%S", &local);
       //printf("Current Date: %s\n", str.c_str());
       assertNoException();
-      
+
       // parse date
       Date d2;
       d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
@@ -347,9 +347,9 @@ void runDateTest(TestRunner& tr)
       d2.format(str2, "%a, %d %b %Y %H:%M:%S", &gmt);
       //d2.format(str2, "%a, %d %b %Y %H:%M:%S", &local);
       assertNoException();
-      
+
       //printf("Parsed Date 1: %s\n", str2.c_str());
-      
+
       // FIXME: parser may have a problem with AM/PM
       // parse date again
       Date d3;
@@ -360,34 +360,34 @@ void runDateTest(TestRunner& tr)
       //d3.format(str3, "%a, %d %b %Y %H:%M:%S", &gmt);
       d3.format(str3, "%a, %d %b %Y %H:%M:%S", &local);
       assertNoException();
-      
+
       //printf("Parsed Date 2: %s\n", str3.c_str());
    }
    tr.passIfNoException();
-   
+
    tr.test("utc datetime");
    {
       Date d;
       string str;
       d.parse("Thu, 02 Aug 2007 10:30:00", "%a, %d %b %Y %H:%M:%S", &gmt);
       assertNoException();
-      
+
       string utc = d.getUtcDateTime();
       assertStrCmp(utc.c_str(), "2007-08-02 10:30:00");
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runStringTokenizerTest(TestRunner& tr)
 {
    tr.group("StringTokenizer");
-   
+
    tr.test("tokenize forward");
    {
       const char* str = "This is a test of the StringTokenizer class.";
-      
+
       /*
       StringTokenizer st0(str, ' ');
       while(st0.hasNextToken())
@@ -413,11 +413,11 @@ void runStringTokenizerTest(TestRunner& tr)
       #undef NT
    }
    tr.passIfNoException();
-   
+
    tr.test("tokenize backward");
    {
       const char* str = "This is a test of the StringTokenizer class.";
-      
+
       StringTokenizer st(str, ' ', false);
       #define NT(str) \
          do { \
@@ -436,7 +436,7 @@ void runStringTokenizerTest(TestRunner& tr)
       #undef NT
    }
    tr.passIfNoException();
-   
+
    tr.test("get first token");
    {
       const char* str = "This is a test of the StringTokenizer class.";
@@ -444,7 +444,7 @@ void runStringTokenizerTest(TestRunner& tr)
       assertStrCmp(st.getToken(0), "This");
    }
    tr.passIfNoException();
-   
+
    tr.test("get second token");
    {
       const char* str = "This is a test of the StringTokenizer class.";
@@ -452,7 +452,7 @@ void runStringTokenizerTest(TestRunner& tr)
       assertStrCmp(st.getToken(1), "is");
    }
    tr.passIfNoException();
-   
+
    tr.test("get last token");
    {
       const char* str = "This is a test of the StringTokenizer class.";
@@ -460,7 +460,7 @@ void runStringTokenizerTest(TestRunner& tr)
       assertStrCmp(st.getToken(-1), "class.");
    }
    tr.passIfNoException();
-   
+
    tr.test("get second to last token");
    {
       const char* str = "This is a test of the StringTokenizer class.";
@@ -468,21 +468,21 @@ void runStringTokenizerTest(TestRunner& tr)
       assertStrCmp(st.getToken(-2), "StringTokenizer");
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runUniqueListTest(TestRunner& tr)
 {
    tr.test("UniqueList");
-   
+
    UniqueList<int> list;
-   
+
    list.add(5);
    list.add(6);
    list.add(7);
    list.add(5);
-   
+
    Iterator<int>* i = list.getIterator();
    /*
    while(i->hasNext())
@@ -498,9 +498,9 @@ void runUniqueListTest(TestRunner& tr)
    assert(i->next() == 7);
    assert(!i->hasNext());
    delete i;
-   
+
    list.remove(5);
-   
+
    i = list.getIterator();
    /*
    while(i->hasNext())
@@ -514,9 +514,9 @@ void runUniqueListTest(TestRunner& tr)
    assert(i->next() == 7);
    assert(!i->hasNext());
    delete i;
-   
+
    list.clear();
-   
+
    i = list.getIterator();
    assert(!i->hasNext());
    delete i;
@@ -543,11 +543,11 @@ void runPathFormatterTest(TestRunner& tr)
 void runAnsiEscapeCodeTest(TestRunner& tr)
 {
    tr.group("ANSI Escape Codes");
-   
+
    tr.test("color");
    {
       const char* fg[] = {
-         "black   ", DB_ANSI_FG_BLACK, 
+         "black   ", DB_ANSI_FG_BLACK,
          "red     ", DB_ANSI_FG_RED,
          "green   ", DB_ANSI_FG_GREEN,
          "yellow  ", DB_ANSI_FG_YELLOW,
@@ -558,7 +558,7 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
          NULL
       };
       const char* bg[] = {
-         "black   ", DB_ANSI_BG_BLACK, 
+         "black   ", DB_ANSI_BG_BLACK,
          "red     ", DB_ANSI_BG_RED,
          "green   ", DB_ANSI_BG_GREEN,
          "yellow  ", DB_ANSI_BG_YELLOW,
@@ -569,7 +569,7 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
          NULL
       };
       const char* fg_hi[] = {
-         "black   ", DB_ANSI_FG_HI_BLACK, 
+         "black   ", DB_ANSI_FG_HI_BLACK,
          "red     ", DB_ANSI_FG_HI_RED,
          "green   ", DB_ANSI_FG_HI_GREEN,
          "yellow  ", DB_ANSI_FG_HI_YELLOW,
@@ -580,7 +580,7 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
          NULL
       };
       const char* bg_hi[] = {
-         "black   ", DB_ANSI_BG_HI_BLACK, 
+         "black   ", DB_ANSI_BG_HI_BLACK,
          "red     ", DB_ANSI_BG_HI_RED,
          "green   ", DB_ANSI_BG_HI_GREEN,
          "yellow  ", DB_ANSI_BG_HI_YELLOW,
@@ -610,31 +610,31 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
       TABLE("high fg & normal bg",   fg_hi, bg)
       TABLE("high fg & high bg",     fg_hi, bg_hi)
       #undef TABLE
-      
+
       #define TXT "Digital Bazaar, Inc."
       #define S DB_ANSI_CSI
       #define E DB_ANSI_SGR TXT DB_ANSI_OFF "\n"
-      printf("reset:            " S DB_ANSI_RESET E); 
-      printf("bold:             " S DB_ANSI_BOLD E); 
-      printf("faint:            " S DB_ANSI_FAINT E); 
-      printf("italic:           " S DB_ANSI_ITALIC E); 
-      printf("underline single: " S DB_ANSI_UNDERLINE_SINGLE E); 
-      printf("blink slow:       " S DB_ANSI_BLINK_SLOW E); 
-      printf("blink rapid:      " S DB_ANSI_BLINK_RAPID E); 
-      printf("negative:         " S DB_ANSI_NEGATIVE E); 
-      printf("conceal:          " S DB_ANSI_CONCEAL E); 
-      printf("underline double: " S DB_ANSI_UNDERLINE_DOUBLE E); 
-      printf("normal:           " S DB_ANSI_NORMAL E); 
-      printf("underline none:   " S DB_ANSI_UNDERLINE_NONE E); 
-      printf("blink off:        " S DB_ANSI_BLINK_OFF E); 
-      printf("positive:         " S DB_ANSI_POSITIVE E); 
+      printf("reset:            " S DB_ANSI_RESET E);
+      printf("bold:             " S DB_ANSI_BOLD E);
+      printf("faint:            " S DB_ANSI_FAINT E);
+      printf("italic:           " S DB_ANSI_ITALIC E);
+      printf("underline single: " S DB_ANSI_UNDERLINE_SINGLE E);
+      printf("blink slow:       " S DB_ANSI_BLINK_SLOW E);
+      printf("blink rapid:      " S DB_ANSI_BLINK_RAPID E);
+      printf("negative:         " S DB_ANSI_NEGATIVE E);
+      printf("conceal:          " S DB_ANSI_CONCEAL E);
+      printf("underline double: " S DB_ANSI_UNDERLINE_DOUBLE E);
+      printf("normal:           " S DB_ANSI_NORMAL E);
+      printf("underline none:   " S DB_ANSI_UNDERLINE_NONE E);
+      printf("blink off:        " S DB_ANSI_BLINK_OFF E);
+      printf("positive:         " S DB_ANSI_POSITIVE E);
       printf("reveal:           " S DB_ANSI_REVEAL E);
       #undef TXT
       #undef S
       #undef E
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 

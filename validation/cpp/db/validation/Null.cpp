@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/validation/Null.h"
 
@@ -20,7 +20,7 @@ bool Null::isValid(
    ValidatorContext* context)
 {
    bool rval = obj.isNull();
-   
+
    if(!rval)
    {
       DynamicObject detail =
@@ -37,6 +37,6 @@ bool Null::isValid(
    {
       context->addSuccess();
    }
-   
+
    return rval;
 }

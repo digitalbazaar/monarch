@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
@@ -104,7 +104,7 @@ bool Int::isValid(
    DynamicObjectType objType;
 
    rval = !obj.isNull();
-   
+
    if(rval)
    {
       objType = obj->getType();
@@ -112,7 +112,7 @@ bool Int::isValid(
       {
          objType = DynamicObject::determineType(obj->getString());
       }
-   
+
       // type check
       rval =
          objType == Int32 ||
@@ -120,22 +120,22 @@ bool Int::isValid(
          objType == Int64 ||
          objType == UInt64;
    }
-   
+
    if(!rval)
    {
       DynamicObject detail =
          context->addError("db.validation.ValueError", &obj);
       detail["validator"] = "db.validator.Int";
       detail["message"] =
-         mErrorMessage ? mErrorMessage : 
+         mErrorMessage ? mErrorMessage :
             "The given value type is required to be an integer.";
    }
-   
+
    // absolute value of dyno value
    uint64_t val = 0;
    // flag if val is negative
    bool valneg = false;
-   
+
    // get value for min/max check
    if(rval)
    {
@@ -180,20 +180,20 @@ bool Int::isValid(
          // 2. val is negative and smaller than mMin
          rval = (!valneg ? val >= mMin : val <= mMin);
       }
-      
+
       // set exception on failure
       if(!rval)
       {
          DynamicObject detail =
             context->addError("db.validation.ValueError", &obj);
          detail["validator"] = "db.validator.Int";
-         detail["message"] = mErrorMessage ? mErrorMessage : 
+         detail["message"] = mErrorMessage ? mErrorMessage :
             "The given integer value is less than the required minimum "
             "integer value.";
          detail["expectedMin"] = mMin;
       }
    }
-   
+
    // max check
    if(rval)
    {
@@ -211,24 +211,24 @@ bool Int::isValid(
          // 2. val is negative and larger than mMax
          rval = (valneg ? val >= mMax : val <= mMax);
       }
-      
+
       // set exception on failure
       if(!rval)
       {
          DynamicObject detail =
             context->addError("db.validation.ValueError", &obj);
          detail["validator"] = "db.validator.Int";
-         detail["message"] = mErrorMessage ? mErrorMessage :        
+         detail["message"] = mErrorMessage ? mErrorMessage :
             "The given integer value is greater than the allowable maximum "
             "integer value.";
          detail["expectedMax"] = mMax;
       }
    }
-   
+
    if(rval)
    {
       context->addSuccess();
    }
-   
+
    return rval;
 }

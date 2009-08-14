@@ -33,11 +33,11 @@ using namespace db::util;
 void runMessageDigestTest(TestRunner& tr)
 {
    tr.group("MessageDigest");
-   
+
    // correct values
    string correctMd5 = "78eebfd9d42958e3f31244f116ab7bbe";
-   string correctSha1 = "5f24f4d6499fd2d44df6c6e94be8b14a796c071d";   
-   
+   string correctSha1 = "5f24f4d6499fd2d44df6c6e94be8b14a796c071d";
+
    tr.test("non-persistent");
    {
       MessageDigest testMd5("MD5", false);
@@ -45,17 +45,17 @@ void runMessageDigestTest(TestRunner& tr)
       testMd5.update("IS A");
       testMd5.update(" MESSAGE");
       string digestMd5 = testMd5.getDigest();
-      
+
       assert(digestMd5 == correctMd5);
-      
+
       MessageDigest testSha1("SHA1", false);
       testSha1.update("THIS IS A MESSAGE");
       string digestSha1 = testSha1.getDigest();
-      
+
       assert(digestSha1 == correctSha1);
    }
    tr.passIfNoException();
-   
+
    tr.test("persistent");
    {
       string digestMd5;
@@ -67,23 +67,23 @@ void runMessageDigestTest(TestRunner& tr)
       testMd5.update(" MESSAGE");
       digestMd5 = testMd5.getDigest();
       digestMd5 = testMd5.getDigest();
-      
+
       assert(digestMd5 == correctMd5);
-      
+
       MessageDigest testSha1("SHA1", true);
       testSha1.update("THIS IS A MESSAGE");
       string digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
-      
+
       assert(digestSha1 == correctSha1);
-      
+
       testSha1.reset();
       testSha1.update("THIS IS ");
       digestSha1 = testSha1.getDigest();
       testSha1.update("A MESSAGE");
       digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
-      
+
       assert(digestSha1 == correctSha1);
    }
    tr.passIfNoException();
@@ -101,7 +101,7 @@ void runMessageDigestTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-#endif   
+#endif
    tr.ungroup();
 }
 
@@ -109,59 +109,59 @@ void runMessageDigestTest(TestRunner& tr)
 void runCipherTest(TestRunner& tr, const char* algorithm)
 {
    tr.group("Cipher");
-   
+
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
-   
+
    tr.test(algorithm);
    {
       // create a secret message
       char message[] = "I'll never teelllll!";
       int length = strlen(message);
-      
+
       // get a default block cipher
       DefaultBlockCipher cipher;
-      
+
       // generate a new key and start encryption
       SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
       assertNoException();
-      
+
       // update encryption
       char output[2048];
       int outLength;
       int totalOut = 0;
       cipher.update(message, length, output, outLength);
       totalOut += outLength;
-      
+
       // finish encryption
       cipher.finish(output + outLength, outLength);
       totalOut += outLength;
       //printf("cipher out: %llu, out: %d\n", cipher.getTotalOutput(), totalOut);
       assert((int)cipher.getTotalOutput() == totalOut);
-      
+
       // start decryption
       cipher.startDecrypting(&key);
-      
+
       // update decryption
       char input[2048];
       int inLength;
       int totalIn = 0;
       cipher.update(output, totalOut, input, inLength);
       totalIn += inLength;
-      
+
       // finish decryption
       cipher.finish(input + inLength, inLength);
       totalIn += inLength;
       //printf("cipher in: %llu, in: %d\n", cipher.getTotalOutput(), totalIn);
       assert((int)cipher.getTotalOutput() == totalIn);
-      
+
       // check the decrypted message
       string result(input, totalIn);
       assert(strcmp(message, result.c_str()) == 0);
    }
    tr.passIfNoException();
-   
+
    // do byte buffer test
    string alg = algorithm;
    alg.append("+ByteBuffer");
@@ -170,22 +170,22 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       // create a secret message
       char message[] = "I'll never teelllll!";
       int length = strlen(message);
-      
+
       // get a default block cipher
       DefaultBlockCipher cipher;
-      
+
       // generate a new key and start encryption
       SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
       assertNoException();
-      
+
       // update and finish encryption
       ByteBuffer output;
       cipher.update(message, length, &output, true);
       cipher.finish(&output, true);
       assert((int)cipher.getTotalInput() == length);
       assert((int)cipher.getTotalOutput() == output.length());
-      
+
       // do decryption
       ByteBuffer input;
       cipher.startDecrypting(&key);
@@ -193,13 +193,13 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       cipher.finish(&input, true);
       assert((int)cipher.getTotalInput() == output.length());
       assert((int)cipher.getTotalOutput() == input.length());
-      
+
       // check the decrypted message
       string result(input.data(), input.length());
       assert(strcmp(message, result.c_str()) == 0);
    }
    tr.passIfNoException();
-   
+
    alg = algorithm;
    alg.append("+BlockCipherInputStream");
    tr.test(alg.c_str());
@@ -207,18 +207,18 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       // create a secret message
       char message[] = "I'll never teelllll!";
       ByteArrayInputStream bais(message, strlen(message));
-      
+
       // get a default block cipher
       DefaultBlockCipher cipher;
-      
+
       // generate a new key and start encryption
       SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
       assertNoException();
-      
+
       // create encrypted data buffer
       ByteBuffer encrypted(200);
-      
+
       // create stream to encrypt
       BlockCipherInputStream encryptStream(&cipher, false, &bais, false);
       char b[1024];
@@ -229,13 +229,13 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       }
       encryptStream.close();
       assertNoException();
-      
+
       // start decrypting
       cipher.startDecrypting(&key);
-      
+
       // create decrypted data buffer
       ByteBuffer decrypted(200);
-      
+
       // create stream to decrypt
       bais.setByteBuffer(&encrypted, false);
       BlockCipherInputStream decryptStream(&cipher, false, &bais, false);
@@ -245,386 +245,386 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
       }
       decryptStream.close();
       assertNoException();
-      
+
       // assert data is the same
       string result(decrypted.data(), decrypted.length());
       assert(strcmp(message, result.c_str()) == 0);
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runAsymmetricKeyLoadingTest(TestRunner& tr)
 {
    tr.test("Asymmetric Key Loading");
-   
+
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
-   
+
    // get an asymmetric key factory
    AsymmetricKeyFactory factory;
-   
+
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
    factory.createKeyPair("RSA", privateKey, publicKey);
-   
+
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
-   
+
    // write keys to PEMs
    string privatePem = factory.writePrivateKeyToPem(privateKey, "password");
-   string publicPem = factory.writePublicKeyToPem(publicKey);   
-   
+   string publicPem = factory.writePublicKeyToPem(publicKey);
+
    // cleanup keys
    privateKey.setNull();
    publicKey.setNull();
-   
+
    // load the private key from PEM
    privateKey = factory.loadPrivateKeyFromPem(
       privatePem.c_str(), privatePem.length(), "password");
-   
+
    // load the public key from PEM
    publicKey = factory.loadPublicKeyFromPem(
       publicPem.c_str(), publicPem.length());
-   
+
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
-   
+
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
    DigitalSignature ds1(privateKey);
    ds1.update(data, 8);
-   
+
    // get the signature
    char sig[ds1.getValueLength()];
    unsigned int length;
    ds1.getValue(sig, length);
-   
+
    // verify the signature
    DigitalSignature ds2(publicKey);
    ds2.update(data, 8);
    bool verified = ds2.verify(sig, length);
-   
+
    assert(verified);
-   
+
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, "password");
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
-   
+
    //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
    //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
-   
+
    tr.passIfNoException();
 }
 
 void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
 {
    tr.test("DSA Asymmetric Key Creation");
-   
+
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
-   
+
    // get an asymmetric key factory
    AsymmetricKeyFactory factory;
-   
+
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
    factory.createKeyPair("DSA", privateKey, publicKey);
-   
+
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
-   
+
    assertStrCmp(privateKey->getAlgorithm(), "DSA");
    assertStrCmp(publicKey->getAlgorithm(), "DSA");
-   
+
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
    DigitalSignature ds1(privateKey);
    ds1.update(data, 8);
-   
+
    // get the signature
    char sig[ds1.getValueLength()];
    unsigned int length;
    ds1.getValue(sig, length);
-   
+
    // verify the signature
    DigitalSignature ds2(publicKey);
    ds2.update(data, 8);
    bool verified = ds2.verify(sig, length);
-   
+
    assert(verified);
-   
+
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, NULL);
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
-   
+
    //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
    //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
-   
+
    tr.passIfNoException();
 }
 
 void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
 {
    tr.test("RSA Asymmetric Key Creation");
-   
+
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
-   
+
    // get an asymmetric key factory
    AsymmetricKeyFactory factory;
-   
+
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
    factory.createKeyPair("RSA", privateKey, publicKey);
-   
+
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
-   
+
    assertStrCmp(privateKey->getAlgorithm(), "RSA");
    assertStrCmp(publicKey->getAlgorithm(), "RSA");
-   
+
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
    DigitalSignature ds1(privateKey);
    ds1.update(data, 8);
-   
+
    // get the signature
    char sig[ds1.getValueLength()];
    unsigned int length;
    ds1.getValue(sig, length);
-   
+
    // verify the signature
    DigitalSignature ds2(publicKey);
    ds2.update(data, 8);
    bool verified = ds2.verify(sig, length);
-   
+
    assert(verified);
-   
+
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, NULL);
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
-   
+
    //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
    //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
-   
+
    tr.passIfNoException();
 }
 
 void runDigitalSignatureInputStreamTest(TestRunner& tr)
 {
    tr.test("DigitalSignatureInputStream");
-   
+
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
-   
+
    // get an asymmetric key factory
    AsymmetricKeyFactory factory;
-   
+
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
    factory.createKeyPair("RSA", privateKey, publicKey);
-   
+
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
-   
+
    assertStrCmp(privateKey->getAlgorithm(), "RSA");
    assertStrCmp(publicKey->getAlgorithm(), "RSA");
-   
+
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
    DigitalSignature* ds1 = new DigitalSignature(privateKey);
-   
+
    char dummy[8];
    ByteArrayInputStream bais(data, 8);
    DigitalSignatureInputStream dsos1(ds1, true, &bais, false);
    dsos1.read(dummy, 8);
-   
+
    // get the signature
    char sig[ds1->getValueLength()];
    unsigned int length;
    ds1->getValue(sig, length);
-   
+
    // verify the signature
    DigitalSignature ds2(publicKey);
    bais.setByteArray(data, 8);
    DigitalSignatureInputStream dsos2(&ds2, false, &bais, false);
    dsos2.read(dummy, 8);
    bool verified = ds2.verify(sig, length);
-   
+
    assert(verified);
-   
+
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, "password");
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
-   
+
    //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
    //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
-   
+
    tr.passIfNoException();
 }
 
 void runDigitalSignatureOutputStreamTest(TestRunner& tr)
 {
    tr.test("DigitalSignatureOutputStream");
-   
+
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
-   
+
    // get an asymmetric key factory
    AsymmetricKeyFactory factory;
-   
+
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
    factory.createKeyPair("RSA", privateKey, publicKey);
-   
+
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
-   
+
    assertStrCmp(privateKey->getAlgorithm(), "RSA");
    assertStrCmp(publicKey->getAlgorithm(), "RSA");
-   
+
    // sign some data
    char data[] = {1,2,3,4,5,6,7,8};
    DigitalSignature ds1(privateKey);
-   
+
    ostringstream oss;
    OStreamOutputStream osos(&oss);
    DigitalSignatureOutputStream dsos1(&ds1, false, &osos, false);
    dsos1.write(data, 8);
-   
+
    // get the signature
    char sig[ds1.getValueLength()];
    unsigned int length;
    ds1.getValue(sig, length);
-   
+
    // verify the signature
    DigitalSignature* ds2 = new DigitalSignature(publicKey);
    DigitalSignatureOutputStream dsos2(ds2, true, &osos, false);
    dsos2.write(data, 8);
    bool verified = ds2->verify(sig, length);
-   
+
    assert(verified);
-   
+
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, "password");
    string outPublicPem =
       factory.writePublicKeyToPem(publicKey);
-   
+
    //printf("Written Private Key PEM=\n%s\n", outPrivatePem.c_str());
    //printf("Written Public Key PEM=\n%s\n", outPublicPem.c_str());
-   
+
    tr.passIfNoException();
 }
 
 void runEnvelopeTest(TestRunner& tr)
 {
    tr.test("Envelope");
-   
+
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
-   
+
    // get an asymmetric key factory
    AsymmetricKeyFactory factory;
-   
+
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
    factory.createKeyPair("RSA", privateKey, publicKey);
-   
+
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
-   
+
    // create a secret message
    char message[] =
       "This is a confidential message. For British Eyes Only.";
    int length = strlen(message);
-   
+
    string display1 = "";
    display1.append(message, length);
    //printf("Sending message '%s'\n", display1.c_str());
    //printf("Message Length=%d\n", length);
-   
+
    // create an outgoing envelope
    SymmetricKey secretKey;
    DigitalEnvelope outEnv;
    outEnv.startSealing("AES256", publicKey, &secretKey);
    assertNoException();
-   
+
    // update the envelope
    char output[2048];
    int outLength;
    int totalOut = 0;
    outEnv.update(message, length, output, outLength);
    totalOut += outLength;
-   
+
    // finish the envelope
    outEnv.finish(output + outLength, outLength);
    totalOut += outLength;
-   
+
    //printf("Total output length=%d\n", totalOut);
-   
+
    // create an incoming envelope
    DigitalEnvelope inEnv;
    inEnv.startOpening(privateKey, &secretKey);
    assertNoException();
-   
+
    // update the envelope
    char input[2048];
    int inLength;
    int totalIn = 0;
    inEnv.update(output, totalOut, input, inLength);
    totalIn += inLength;
-   
+
    // finish the envelope
    inEnv.finish(input + inLength, inLength);
    totalIn += inLength;
-   
+
    //printf("Total input length=%d\n", totalIn);
-   
+
    // create a string to display the received message
    string display2 = "";
    display2.append(input, totalIn);
-   
+
    //printf("Received message '%s'\n", display2.c_str());
 
    assert(display1 == display2);
-   
+
    tr.passIfNoException();
 }
 
 void runX509CertificateCreationTest(TestRunner& tr, bool print)
 {
    tr.test("X.509 Certificate Creation");
-   
+
    // seed PRNG
    //RAND_load_file("/dev/urandom", 1024);
-   
+
    // get an asymmetric key factory
    AsymmetricKeyFactory factory;
-   
+
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
    factory.createKeyPair("RSA", privateKey, publicKey);
    assertNoException();
-   
+
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
-   
+
    string outPrivatePem = factory.writePrivateKeyToPem(privateKey, NULL);
    string outPublicPem = factory.writePublicKeyToPem(publicKey);
-   
+
    // generate a self-signed X.509 certificate
    DynamicObject subject;
    subject["CN"] = "localhost";
@@ -633,26 +633,26 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
    subject["L"] = "Blacksburg";
    subject["ST"] = "Virginia";
    subject["C"] = "US";
-   
+
    // certificate is valid starting yesterday
    Date yesterday;
    yesterday.addSeconds(-1 * 24 * 60 * 60);
-   
+
    // certificate expires tomorrow
    Date tomorrow;
    tomorrow.addSeconds(24 * 60 * 60);
-   
+
    X509CertificateRef cert;
    cert = factory.createCertificate(
       privateKey, publicKey, subject, subject, &yesterday, &tomorrow);
    assertNoException();
    assert(!cert.isNull());
-   
+
    // write out the public key in the certificate
    PublicKeyRef certPublicKey = cert->getPublicKey();
    string outCertPublicPem = factory.writePublicKeyToPem(certPublicKey);
    assertStrCmp(outPublicPem.c_str(), outCertPublicPem.c_str());
-   
+
    // assert that subjects and issuers are the same
    DynamicObject certSubject = cert->getSubject();
    DynamicObject certIssuer = cert->getIssuer();
@@ -660,26 +660,26 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
    //dumpDynamicObject(certSubject);
    assert(certSubject == subject);
    assert(certSubject == certIssuer);
-   
+
    // write out the certificate
    string outCertPem = factory.writeCertificateToPem(cert);
-   
+
    if(print)
    {
       printf("Private Key PEM=\n%s\n", outPrivatePem.c_str());
       printf("Public Key PEM=\n%s\n", outPublicPem.c_str());
       printf("X.509 Certificate PEM=\n%s\n", outCertPem.c_str());
    }
-   
+
    // read in certificate
    X509CertificateRef loadedCert = factory.loadCertificateFromPem(
       outCertPem.c_str(), outCertPem.length());
    assertNoException();
-   
+
    // output certificate again for comparison
    string outCertPem2 = factory.writeCertificateToPem(loadedCert);
    assertStrCmp(outCertPem.c_str(), outCertPem2.c_str());
-   
+
    tr.passIfNoException();
 }
 
@@ -695,7 +695,7 @@ void runBigIntegerTest(TestRunner& tr)
 
    BigInteger number1 = 2;
    BigInteger number2 = 123456789;
-   
+
    assert(number1 == 2);
    assert(number2 == 123456789);
 
@@ -716,7 +716,7 @@ void runBigIntegerTest(TestRunner& tr)
 void runBigDecimalTest(TestRunner& tr)
 {
    tr.group("BigDecimal");
-   
+
    // compare initialized BigDecimal to a double
    #define BDCMPDBL(bd, dbl) \
    do { \
@@ -724,7 +724,7 @@ void runBigDecimalTest(TestRunner& tr)
       double bddbl = num.getDouble(); \
       assert(bddbl == dbl); \
    } while(0)
-   
+
    tr.test("basic");
    {
       BDCMPDBL(    1.0,     1.0);
@@ -735,7 +735,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMPDBL("-100.0", -100.0);
    }
    tr.passIfNoException();
-   
+
    tr.test("long double");
    {
       BigDecimal bd;
@@ -744,7 +744,7 @@ void runBigDecimalTest(TestRunner& tr)
       assert(bddbl == -100.0);
    }
    tr.passIfNoException();
-  
+
    tr.test("C double rounding");
    {
       double d1 = -98.7;
@@ -778,13 +778,13 @@ void runBigDecimalTest(TestRunner& tr)
       // using "long double" will fail due to precision issues and rounding
       // value will be 3.85546874999.... vs the exact value of 3.85546875
       // the half even rounding rules will then round it down to 3.8554687
-      // rather than the correct 3.8554688.  Casting to "double" will fix this. 
+      // rather than the correct 3.8554688.  Casting to "double" will fix this.
       tr.warning("long double precision issue workaround");
       sprintf(res, "%.7f", (double)d12);
       assertStrCmp(res, "3.8554688");
    }
    tr.passIfNoException();
-   
+
    // compare initialized BigDecimal to a optionally zero filled string
    #define BDCMP0(num, zerofill, expectedStr) \
    do { \
@@ -803,7 +803,7 @@ void runBigDecimalTest(TestRunner& tr)
       //BigDecimal number2 = 1.234;
       //BigDecimal number2 = "1.23e-04";
       //BigDecimal number2 = "1234";
-      
+
       // precision defaults to 10
       BDCMP0(number1, false, "3");
       BDCMP0(number2, false, "123456789.53");
@@ -823,10 +823,10 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP0(zero / one, false, "0");
    }
    tr.passIfNoException();
-   
+
    tr.test("math");
    {
-      double dres = 
+      double dres =
          10 +
          .10 * 10 +
          (10 + .10 * 10) * .10 +
@@ -848,7 +848,7 @@ void runBigDecimalTest(TestRunner& tr)
          ohfour.toString().c_str(),
          ohone.toString().c_str());
       */
-      BigDecimal result = 
+      BigDecimal result =
          ten +
          tenth * ten +
          (ten + tenth * ten) * tenth +
@@ -863,18 +863,18 @@ void runBigDecimalTest(TestRunner& tr)
       */
       assert(result == expectedResult);
       char dstr[100];
-      sprintf(dstr, "%.2f", dres); 
+      sprintf(dstr, "%.2f", dres);
       assertStrCmp(result.toString().c_str(), dstr);
    }
    tr.passIfNoException();
-   
+
    tr.test("sync exp math");
    {
       BigDecimal a;
       BigDecimal b;
       BigDecimal res;
       BigDecimal expected;
-      
+
       a = "0.1";
       b = "1";
       res = a + b;
@@ -886,7 +886,7 @@ void runBigDecimalTest(TestRunner& tr)
       res = a + b;
       expected =  "10";
       assert(res == expected);
-      
+
       a = "0";
       b = "0.1";
       res = a + b;
@@ -894,7 +894,7 @@ void runBigDecimalTest(TestRunner& tr)
       assert(res == expected);
    }
    tr.passIfNoException();
-   
+
    // check internal representation issues
    #define BDCMP_(sig, exp, expectedStr) \
    do { \
@@ -912,35 +912,35 @@ void runBigDecimalTest(TestRunner& tr)
       BigInteger none(-1);
       BigInteger ten(10);
       BigInteger nten(-10);
-      
+
       BDCMP_(zero, -1,     "0"   );
       BDCMP_(zero,  0,     "0"   );
       BDCMP_(zero,  1,     "0"   );
-      
+
       BDCMP_( one, -2,   "100"   );
       BDCMP_( one, -1,    "10"   );
       BDCMP_( one,  0,     "1"   );
       BDCMP_( one,  1,     "0.1" );
       BDCMP_( one,  2,     "0.01");
-      
+
       BDCMP_(none, -1,   "-10"   );
       BDCMP_(none,  0,    "-1"   );
       BDCMP_(none,  1,    "-0.1" );
-      
+
       BDCMP_( ten, -2,  "1000"   );
       BDCMP_( ten, -1,   "100"   );
       BDCMP_( ten,  0,    "10"   );
       BDCMP_( ten,  1,     "1"   );
       BDCMP_( ten,  2,     "0.1" );
-      
+
       BDCMP_(nten, -2, "-1000"   );
       BDCMP_(nten, -1,  "-100"   );
       BDCMP_(nten,  0,   "-10"   );
       BDCMP_(nten,  1,    "-1"   );
       BDCMP_(nten,  2,    "-0.1" );
-      
+
       BigInteger n1(123456789);
-      
+
       BDCMP_(n1, -10, "1234567890000000000"        );
       BDCMP_(n1,  -9,  "123456789000000000"        );
       BDCMP_(n1,  -8,   "12345678900000000"        );
@@ -970,7 +970,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP_(n1,  16,                   "0"        );
    }
    tr.passIfNoException();
-   
+
    #define BDCMP(num, precision, dir, zerofill, expectedStr) \
    do { \
       BigDecimal nr = num; \
@@ -978,7 +978,7 @@ void runBigDecimalTest(TestRunner& tr)
       nr.round(); \
       assertStrCmp(nr.toString(zerofill).c_str(), expectedStr); \
    } while(0)
-   
+
    tr.test("zerofill+rounding");
    {
       BDCMP( "100.00", 0, Down, true,   "100"  );
@@ -989,7 +989,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(  100,     1, Down, true,   "100.0");
       BDCMP( -100,     1, Down, false, "-100"  );
       BDCMP( -100,     1, Down, true,  "-100.0");
-   
+
       BDCMP("3.016", 2, HalfEven, false, "3.02");
       BDCMP("3.013", 2, HalfEven, false,  "3.01");
       BDCMP("3.015", 2, HalfEven, false,  "3.02");
@@ -1006,7 +1006,7 @@ void runBigDecimalTest(TestRunner& tr)
    {
       BigDecimal n = "129.54678010";
       BDCMP0(n, false, "129.5467801");
-      
+
       BDCMP(n, 7, Up, false, "129.5467801");
       BDCMP(n, 6, Up, false, "129.546781");
       BDCMP(n, 5, Up, false, "129.54679");
@@ -1015,7 +1015,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 2, Up, false, "129.55");
       BDCMP(n, 1, Up, false, "129.6");
       BDCMP(n, 0, Up, false, "130");
-      
+
       BDCMP(n, 7, HalfUp, false, "129.5467801");
       BDCMP(n, 6, HalfUp, false, "129.54678");
       BDCMP(n, 5, HalfUp, false, "129.54678");
@@ -1024,7 +1024,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 2, HalfUp, false, "129.55");
       BDCMP(n, 1, HalfUp, false, "129.5");
       BDCMP(n, 0, HalfUp, false, "130");
-      
+
       BDCMP(n, 7, HalfEven, false, "129.5467801");
       BDCMP(n, 6, HalfEven, false, "129.54678");
       BDCMP(n, 5, HalfEven, false, "129.54678");
@@ -1033,7 +1033,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 2, HalfEven, false, "129.55");
       BDCMP(n, 1, HalfEven, false, "129.5");
       BDCMP(n, 0, HalfEven, false, "130");
-      
+
       BDCMP(n, 7, Down, false, "129.5467801");
       BDCMP(n, 6, Down, false, "129.54678");
       BDCMP(n, 5, Down, false, "129.54678");
@@ -1044,12 +1044,12 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 0, Down, false, "129");
    }
    tr.passIfNoException();
-   
+
    tr.test("negative rounding");
    {
       BigDecimal n = "-129.54678010";
       BDCMP0(n, false, "-129.5467801");
-      
+
       BDCMP(n, 7, Up, false, "-129.5467801");
       BDCMP(n, 6, Up, false, "-129.546781");
       BDCMP(n, 5, Up, false, "-129.54679");
@@ -1058,7 +1058,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 2, Up, false, "-129.55");
       BDCMP(n, 1, Up, false, "-129.6");
       BDCMP(n, 0, Up, false, "-130");
-      
+
       BDCMP(n, 7, HalfUp, false, "-129.5467801");
       BDCMP(n, 6, HalfUp, false, "-129.54678");
       BDCMP(n, 5, HalfUp, false, "-129.54678");
@@ -1067,7 +1067,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 2, HalfUp, false, "-129.55");
       BDCMP(n, 1, HalfUp, false, "-129.5");
       BDCMP(n, 0, HalfUp, false, "-130");
-      
+
       BDCMP(n, 7, HalfEven, false, "-129.5467801");
       BDCMP(n, 6, HalfEven, false, "-129.54678");
       BDCMP(n, 5, HalfEven, false, "-129.54678");
@@ -1076,7 +1076,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(n, 2, HalfEven, false, "-129.55");
       BDCMP(n, 1, HalfEven, false, "-129.5");
       BDCMP(n, 0, HalfEven, false, "-130");
-      
+
       BDCMP(n, 7, Down, false, "-129.5467801");
       BDCMP(n, 6, Down, false, "-129.54678");
       BDCMP(n, 5, Down, false, "-129.54678");
@@ -1090,7 +1090,7 @@ void runBigDecimalTest(TestRunner& tr)
 
    /*
    BigDecimal bd;
-   
+
    for(int i = 7; i >= 0; i--)
    {
       bd = number3;
@@ -1098,7 +1098,7 @@ void runBigDecimalTest(TestRunner& tr)
       bd.round();
       printf("round %d places, up=%s\n", i, bd.toString(true).c_str());
    }
-   
+
    for(int i = 7; i >= 0; i--)
    {
       bd = number3;
@@ -1106,7 +1106,7 @@ void runBigDecimalTest(TestRunner& tr)
       bd.round();
       printf("round %d places, half up=%s\n", i, bd.toString(true).c_str());
    }
-   
+
    for(int i = 7; i >= 0; i--)
    {
       bd = number3;
@@ -1117,7 +1117,7 @@ void runBigDecimalTest(TestRunner& tr)
    */
 
    // FIXME: add more division tests
-   
+
    tr.test("pos==");
    {
       BigDecimal b1("100");
@@ -1125,7 +1125,7 @@ void runBigDecimalTest(TestRunner& tr)
       assert(b1 == b2);
    }
    tr.passIfNoException();
-   
+
    tr.test("neg==");
    {
       BigDecimal b1("-100");
@@ -1133,7 +1133,7 @@ void runBigDecimalTest(TestRunner& tr)
       assert(b1 == b2);
    }
    tr.passIfNoException();
-   
+
    tr.test("div");
    {
       BigDecimal b1("25");
@@ -1141,7 +1141,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(b1 / b2, 7, Up, false, "3.5714286");
    }
    tr.passIfNoException();
-   
+
    tr.test("div == 1");
    {
       BigDecimal b1("0.80");
@@ -1149,7 +1149,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(b1 / b2, 7, Up, false, "1");
    }
    tr.passIfNoException();
-   
+
    tr.test("div == 10");
    {
       BigDecimal b1("8");
@@ -1157,7 +1157,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(b1 / b2, 7, Up, false, "10");
    }
    tr.passIfNoException();
-   
+
    tr.test("div == 4");
    {
       BigDecimal b1("2");
@@ -1165,7 +1165,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(b1 / b2, 7, Up, false, "4");
    }
    tr.passIfNoException();
-   
+
    tr.test("HalfEven");
    {
       BigDecimal b1("100");
@@ -1177,7 +1177,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(d, 7, HalfEven, false, "1.4727541");
    }
    tr.passIfNoException();
-   
+
    tr.test("HalfEven+zeros");
    {
       BigDecimal b1("100.0000000");
@@ -1189,7 +1189,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(d, 7, HalfEven, false, "1.4727541");
    }
    tr.passIfNoException();
-   
+
    tr.test("HalfEven+neg+zeros");
    {
       BigDecimal b1("-100.0000000");
@@ -1201,7 +1201,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMP(d, 7, HalfEven, false, "1.4727541");
    }
    tr.passIfNoException();
-   
+
    tr.test("div ops not changed");
    {
       BigDecimal b1(-100);
@@ -1216,7 +1216,7 @@ void runBigDecimalTest(TestRunner& tr)
       BDCMPDBL(d, 1.0);
    }
    tr.passIfNoException();
-   
+
    tr.test("division");
    {
       BigDecimal d1;
@@ -1254,23 +1254,23 @@ void runBigDecimalTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-   
+
    tr.test("convert from double");
    {
       double d = 10.0012345678;
       BigDecimal bd = d;
-      assertStrCmp(bd.toString(true).c_str(), "10.0012345678"); 
+      assertStrCmp(bd.toString(true).c_str(), "10.0012345678");
    }
    tr.passIfNoException();
-   
+
    tr.test("convert from long double");
    {
       long double d = 10.0012345678;
       BigDecimal bd = d;
-      assertStrCmp(bd.toString(true).c_str(), "10.0012345678"); 
+      assertStrCmp(bd.toString(true).c_str(), "10.0012345678");
    }
    tr.passIfNoException();
-   
+
    #undef BDCMPDBL
    #undef BDCMP0
    #undef BDCMP

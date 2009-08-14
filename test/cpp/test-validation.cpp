@@ -13,7 +13,7 @@ using namespace db::test;
 using namespace db::rt;
 namespace v = db::validation;
 
-// Use to dump out expected exceptions 
+// Use to dump out expected exceptions
 #define _dump false
 
 void runValidatorTest(TestRunner& tr)
@@ -27,7 +27,7 @@ void runValidatorTest(TestRunner& tr)
       assert(v.isValid(d));
       tr.passIfNoException();
    }
-   
+
    {
       tr.test("not valid");
       DynamicObject d;
@@ -38,14 +38,14 @@ void runValidatorTest(TestRunner& tr)
       assertStrCmp(
          Exception::get()->getType(), "db.validation.ValidationError");
       assertStrCmp(
-         Exception::get()->getMessage(), 
+         Exception::get()->getMessage(),
          "The given object does not meet all of the data validation "
          "requirements. Please examine the error details for more information "
          "about the specific requirements.");
       Exception::clear();
       tr.passIfNoException();
    }
-   
+
    {
       tr.test("map (addv)");
       DynamicObject dv;
@@ -55,7 +55,7 @@ void runValidatorTest(TestRunner& tr)
       dnv["i"] = false;
       dnv["b"] = "false";
 
-      // create with addValidator      
+      // create with addValidator
       v::Map v0;
       v0.addValidator("i", new v::Type(Int32));
       v0.addValidator("b", new v::Type(Boolean));
@@ -85,7 +85,7 @@ void runValidatorTest(TestRunner& tr)
       assert(!v1.isValid(dnv));
       tr.passIfException(_dump);
    }
-   
+
    {
       tr.test("types");
       DynamicObject dv;
@@ -97,7 +97,7 @@ void runValidatorTest(TestRunner& tr)
       dv["bool"] = true;
       dv["string"] = "string";
       dv["map"]["map"] = true;
-      dv["array"][0] = true; 
+      dv["array"][0] = true;
       DynamicObject dnv;
       dnv["int32"] = false;
       dnv["uint32"] = false;
@@ -107,8 +107,8 @@ void runValidatorTest(TestRunner& tr)
       dnv["bool"] = "false";
       dnv["string"] = false;
       dnv["map"] = false;
-      dnv["array"] = false; 
-      
+      dnv["array"] = false;
+
       v::Map v(
          "int32", new v::Type(Int32),
          "uint32", new v::Type(UInt32),
@@ -122,12 +122,12 @@ void runValidatorTest(TestRunner& tr)
          NULL);
       assert(v.isValid(dv));
       tr.passIfNoException();
-      
+
       tr.test("invalid types");
       assert(!v.isValid(dnv));
       tr.passIfException(_dump);
    }
-   
+
    {
       tr.test("array (addv)");
       DynamicObject dv;
@@ -137,7 +137,7 @@ void runValidatorTest(TestRunner& tr)
       dnv[0] = false;
       dnv[1] = "false";
 
-      // create with addValidator      
+      // create with addValidator
       v::Array v0;
       v0.addValidator(0, new v::Type(Int32));
       v0.addValidator(1, new v::Type(Boolean));
@@ -161,7 +161,7 @@ void runValidatorTest(TestRunner& tr)
       assert(!v1.isValid(dnv));
       tr.passIfException(_dump);
    }
-   
+
    {
       tr.test("optional");
       DynamicObject d;
@@ -173,7 +173,7 @@ void runValidatorTest(TestRunner& tr)
       assert(v.isValid(d));
       tr.passIfNoException();
    }
-   
+
    // trick to test for extra values.  Optional check to see if key is
    // present.  If so, then force not valid.
    {
@@ -187,56 +187,56 @@ void runValidatorTest(TestRunner& tr)
          NULL);
       assert(v.isValid(d));
       tr.passIfNoException();
-      
+
       tr.test("invalid extra");
       assert(!v.isValid(d2));
       tr.passIfException(_dump);
    }
-   
+
    {
       tr.test("min");
       DynamicObject d;
       d = "1";
-      
+
       v::Min v(0);
       assert(v.isValid(d));
       tr.passIfNoException();
-      
+
       tr.test("invalid min");
       v::Min nv(2);
       assert(!nv.isValid(d));
       tr.passIfException(_dump);
    }
-   
+
    {
       tr.test("max");
       DynamicObject d;
       d = "1";
-      
+
       v::Max v(2);
       assert(v.isValid(d));
       tr.passIfNoException();
-      
+
       tr.test("invalid max");
       v::Max nv(0);
       assert(!nv.isValid(d));
       tr.passIfException(_dump);
    }
-   
+
    {
       DynamicObject d;
-      
+
       tr.test("not");
       v::Not v(new v::NotValid());
       assert(v.isValid(d));
       tr.passIfNoException();
-      
+
       tr.test("invalid not");
       v::Not nv(new v::Valid());
       assert(!nv.isValid(d));
       tr.passIfException(_dump);
    }
-   
+
    {
       tr.test("equals");
       DynamicObject eq;
@@ -245,14 +245,14 @@ void runValidatorTest(TestRunner& tr)
       dv = "db";
       DynamicObject dnv;
       dnv = "db!";
-      
+
       v::Equals v(eq);
       assert(v.isValid(dv));
-      
+
       v::Equals v2("db");
       assert(v2.isValid(dv));
       tr.passIfNoException();
-      
+
       tr.test("invalid equals");
       assert(!v.isValid(dnv));
       assert(!v2.isValid(dnv));
@@ -267,7 +267,7 @@ void runValidatorTest(TestRunner& tr)
       dv = 0;
       DynamicObject dnv;
       dnv = 1;
-      
+
       v::All v(
          new v::Type(Int32),
          new v::Equals(eq),
@@ -314,7 +314,7 @@ void runValidatorTest(TestRunner& tr)
       // dnv2 empty
       DynamicObject dnv3;
       dnv3["q"] = "a";
-      
+
       v::Any v(
          new v::Map(
             "q", new v::All(
@@ -426,7 +426,7 @@ void runValidatorTest(TestRunner& tr)
       dv = "c";
       DynamicObject dnv;
       dnv = "d";
-      
+
       v::In v(vals);
       assert(v.isValid(dv));
       tr.passIfNoException();
@@ -446,7 +446,7 @@ void runValidatorTest(TestRunner& tr)
       dv = "c";
       DynamicObject dnv;
       dnv = "d";
-      
+
       v::In v(vals);
       assert(v.isValid(dv));
       tr.passIfNoException();
@@ -455,7 +455,7 @@ void runValidatorTest(TestRunner& tr)
       assert(!v.isValid(dnv));
       tr.passIfException(_dump);
    }
-   
+
    {
       DynamicObject dv0;
       dv0 = 0;
@@ -471,7 +471,7 @@ void runValidatorTest(TestRunner& tr)
       dvss = "-2";
       DynamicObject dnv;
       dnv = "x";
-      
+
       // default, any int
       v::Int v0;
       // uint64_t
@@ -486,7 +486,7 @@ void runValidatorTest(TestRunner& tr)
       v::Int vp(v::Int::NonNegative);
       // < 0
       v::Int vn(v::Int::Negative);
-      
+
       tr.test("int");
       assert(v0.isValid(dv0));
       assert(vu.isValid(dv0));
@@ -504,20 +504,20 @@ void runValidatorTest(TestRunner& tr)
       assert(vu.isValid(dvu));
       assert(vs.isValid(dvu));
       assert(vp.isValid(dvu));
-      
+
       assert(v0.isValid(dvus));
       assert(vu.isValid(dvus));
       assert(vs.isValid(dvus));
       assert(vp.isValid(dvus));
-      
+
       assert(v0.isValid(dvs));
       assert(vs.isValid(dvs));
       assert(vn.isValid(dvs));
-      
+
       assert(v0.isValid(dvss));
       assert(vs.isValid(dvss));
       assert(vn.isValid(dvss));
-      
+
       assert(vm2.isValid(dvs));
       assert(vm2.isValid(dvu));
       tr.passIfNoException();
@@ -525,36 +525,36 @@ void runValidatorTest(TestRunner& tr)
       tr.test("invalid int (string)");
       assert(!v0.isValid(dnv));
       tr.passIfException(_dump);
-      
+
       tr.test("invalid int (min int)");
       assert(!vm.isValid(dvs));
       tr.passIfException(_dump);
-      
+
       tr.test("invalid int (min string)");
       assert(!vm.isValid(dvss));
       tr.passIfException(_dump);
-      
+
       tr.test("invalid int (max int)");
       assert(!vm.isValid(dvu));
       tr.passIfException(_dump);
-      
+
       tr.test("invalid int (max string)");
       assert(!vm.isValid(dvus));
       tr.passIfException(_dump);
-      
+
       tr.test("invalid int (not positive)");
       assert(!vp.isValid(dvs));
       tr.passIfException(_dump);
-      
+
       tr.test("invalid int (not negative (0))");
       assert(!vn.isValid(dv0));
       tr.passIfException(_dump);
-      
+
       tr.test("invalid int (not negative)");
       assert(!vn.isValid(dvu));
       tr.passIfException(_dump);
    }
-   
+
    {
       tr.test("compare");
       DynamicObject dv;
@@ -563,7 +563,7 @@ void runValidatorTest(TestRunner& tr)
       DynamicObject dnv;
       dnv["a"] = 0;
       dnv["b"] = 1;
-      
+
       v::Compare v("a", "b");
       assert(v.isValid(dv));
       tr.passIfNoException();
@@ -572,12 +572,12 @@ void runValidatorTest(TestRunner& tr)
       assert(!v.isValid(dnv));
       tr.passIfException(_dump);
    }
-   
+
    {
       tr.test("compare text");
-      
+
       const char* text = "Apples\nAnd\nOranges\n";
-      
+
       DynamicObject dv;
       dv["a"] = "Apples\r\nAnd\rOranges\n";
       dv["b"] = "Apples\r\nAnd\r\nOranges\r\n";
@@ -585,19 +585,19 @@ void runValidatorTest(TestRunner& tr)
       DynamicObject dnv;
       dnv["a"] = "Apples\r\rAnd\rOranges\r";
       dnv["b"] = "Apples\r\rAndOranges";
-      
+
       v::CompareText v(text);
       assert(v.isValid(dv["a"]));
       assert(v.isValid(dv["b"]));
       assert(v.isValid(dv["c"]));
       tr.passIfNoException();
-      
+
       tr.test("invalid compare text");
       assert(!v.isValid(dnv["a"]));
       assert(!v.isValid(dnv["b"]));
       tr.passIfException(_dump);
    }
-   
+
    {
       tr.test("regex");
       DynamicObject dv;
@@ -606,7 +606,7 @@ void runValidatorTest(TestRunner& tr)
       dnv = "user name";
       DynamicObject dnv2;
       dnv2 = 123;
-      
+
       v::Regex v("^[a-zA-Z0-9_]+$");
       assert(v.isValid(dv));
       tr.passIfNoException();
@@ -619,13 +619,13 @@ void runValidatorTest(TestRunner& tr)
       assert(!v.isValid(dnv2));
       tr.passIfException(_dump);
    }
-   
+
    {
       DynamicObject dv;
       dv = "bitmunk.com";
       DynamicObject dnv;
       dnv = "bitmunkxcom";
-      
+
       v::Regex v("bitmunk.com$");
       tr.test("regex(dot)");
       assert(v.isValid(dv));
@@ -644,7 +644,7 @@ void runValidatorTest(TestRunner& tr)
       assert(!ve.isValid(dnv));
       tr.passIfException(_dump);
    }
-   
+
    {
       // whitespace test
       DynamicObject dv;
@@ -655,7 +655,7 @@ void runValidatorTest(TestRunner& tr)
       dnve = "test ";
       DynamicObject dnvse;
       dnvse = " test ";
-      
+
       v::Regex v("^[^[:space:]]{1}.*[^[:space:]]{1}$");
 
       tr.test("ws v");
@@ -674,7 +674,7 @@ void runValidatorTest(TestRunner& tr)
       assert(!v.isValid(dnvse));
       tr.passIfException(_dump);
    }
-   
+
    tr.group("register");
    {
       tr.test("init");
@@ -686,7 +686,7 @@ void runValidatorTest(TestRunner& tr)
       dv["acceptToS"] = true;
       dv["dob"] = "1985-10-26";
       dv["email"] = "foobar@example.com";
-      
+
       DynamicObject t;
       t = true;
 
@@ -731,13 +731,13 @@ void runValidatorTest(TestRunner& tr)
          new v::Compare("password", "password2", "Passwords do not match!"),
          NULL);
       tr.passIfNoException();
-      
+
       {
          tr.test("valid");
          assert(v.isValid(dv));
          tr.passIfNoException();
       }
-      
+
       {
          tr.test("invalid username type");
          DynamicObject dnv = dv.clone();
@@ -763,7 +763,7 @@ void runValidatorTest(TestRunner& tr)
       }
 
       // skipping password and fullname checking (same as username)
-      
+
       {
          tr.test("no tos");
          DynamicObject dnv = dv.clone();
@@ -819,10 +819,10 @@ void runValidatorTest(TestRunner& tr)
       tr.test("init");
       DynamicObject dvm;
       dvm["m"]["x"] = true;
-      
+
       DynamicObject dva;
       dva["a"][0] = true;
-      
+
       DynamicObject t;
       t = true;
 
@@ -831,19 +831,19 @@ void runValidatorTest(TestRunner& tr)
             "x", new v::Equals(t),
             NULL),
          NULL);
-      
+
       v::Map va(
          "a", new v::Array(0, new v::Equals(t), -1),
          NULL);
       tr.passIfNoException();
-      
+
       {
          tr.test("valid");
          assert(vm.isValid(dvm));
          assert(va.isValid(dva));
          tr.passIfNoException();
       }
-      
+
       {
          tr.test("invalid m");
          DynamicObject dnv = dvm.clone();
@@ -851,7 +851,7 @@ void runValidatorTest(TestRunner& tr)
          assert(!vm.isValid(dnv));
          tr.passIfException(_dump);
       }
-      
+
       {
          tr.test("invalid a");
          DynamicObject dnv = dvm.clone();
@@ -870,7 +870,7 @@ void runValidatorTest(TestRunner& tr)
       dv["m"]["b"] = true;
       dv["a"][0] = true;
       dv["m2"]["m"]["b"] = true;
-      
+
       DynamicObject t;
       t = true;
 
@@ -889,13 +889,13 @@ void runValidatorTest(TestRunner& tr)
             NULL),
          NULL);
       tr.passIfNoException();
-      
+
       {
          tr.test("valid");
          assert(v.isValid(dv));
          tr.passIfNoException();
       }
-      
+
       {
          tr.test("invalid b");
          DynamicObject dnv = dv.clone();
@@ -903,7 +903,7 @@ void runValidatorTest(TestRunner& tr)
          assert(!v.isValid(dnv));
          tr.passIfException(_dump);
       }
-      
+
       {
          tr.test("invalid m");
          DynamicObject dnv = dv.clone();
@@ -911,7 +911,7 @@ void runValidatorTest(TestRunner& tr)
          assert(!v.isValid(dnv));
          tr.passIfException(_dump);
       }
-      
+
       {
          tr.test("invalid m.b");
          DynamicObject dnv = dv.clone();
@@ -921,7 +921,7 @@ void runValidatorTest(TestRunner& tr)
          assert(e->getDetails()["errors"]->hasMember("m.b"));
          tr.passIfException(_dump);
       }
-      
+
       {
          tr.test("invalid a.0");
          DynamicObject dnv = dv.clone();
@@ -931,7 +931,7 @@ void runValidatorTest(TestRunner& tr)
          assert(e->getDetails()["errors"]->hasMember("a[0]"));
          tr.passIfException(_dump);
       }
-      
+
       {
          tr.test("invalid m2.m.b");
          DynamicObject dnv = dv.clone();
@@ -952,7 +952,7 @@ void runValidatorTest(TestRunner& tr)
 
       v::Map v("a", new v::Valid(), NULL);
       tr.passIfNoException();
-      
+
       {
          tr.test("simple");
          DynamicObject nullObject;
@@ -963,7 +963,7 @@ void runValidatorTest(TestRunner& tr)
       }
    }
    tr.ungroup();
-   
+
    /*
    tr.test("content");
    {
@@ -980,7 +980,7 @@ void runValidatorTest(TestRunner& tr)
       assert(v.isValid(d));
    }
    tr.passIfNoException();
-   
+
    tr.test("content");
    {
       DynamicObject d;
@@ -1001,7 +1001,7 @@ void runValidatorTest(TestRunner& tr)
 void runAnyExceptionsTest(TestRunner& tr)
 {
    tr.group("Any validator exceptions");
-   
+
    v::Any v(
       new v::Map(
          "dog", new v::Equals("woof"),
@@ -1009,19 +1009,19 @@ void runAnyExceptionsTest(TestRunner& tr)
          NULL),
       new v::Int(v::Int::Positive),
       NULL);
-   
+
    tr.test("map fail 1");
    {
       DynamicObject mapFail;
       mapFail["dog"] = "bowwow";
       mapFail["cat"] = "meow";
-      
+
       assert(!v.isValid(mapFail));
       printf("\nShould be able to tell that only \"dog\" was incorrect.\n");
       DynamicObject ex = Exception::getAsDynamicObject();
       dumpDynamicObject(ex);
       printf("\nIt looks like this for only a map validator (w/o the Any):\n");
-      
+
       Exception::clear();
       v::Map v2(
          "dog", new v::Equals("woof"),
@@ -1032,19 +1032,19 @@ void runAnyExceptionsTest(TestRunner& tr)
       dumpDynamicObject(ex);
    }
    tr.passIfException();
-   
+
    tr.test("map fail 2");
    {
       DynamicObject mapFail;
       mapFail["dog"] = "woof";
-      
+
       assert(!v.isValid(mapFail));
       printf("\nShould be able to tell that only \"cat\" was missing.\n");
       ExceptionRef e = Exception::get();
       DynamicObject ex = Exception::convertToDynamicObject(e);
       dumpDynamicObject(ex);
       printf("\nIt looks like this for only a map validator (w/o the Any):\n");
-      
+
       Exception::clear();
       v::Map v2(
          "dog", new v::Equals("woof"),
@@ -1056,19 +1056,19 @@ void runAnyExceptionsTest(TestRunner& tr)
       dumpDynamicObject(ex);
    }
    tr.passIfException();
-   
+
    tr.test("int fail 1");
    {
       DynamicObject intFail;
       intFail = 0;
-      
+
       assert(!v.isValid(intFail));
       printf("\nShould be able to tell that only integer wasn't positive.\n");
       ExceptionRef e = Exception::get();
       DynamicObject ex = Exception::convertToDynamicObject(e);
       dumpDynamicObject(ex);
       printf("\nIt looks like this for only an int validator (w/o the Any):\n");
-      
+
       Exception::clear();
       v::Int v2(v::Int::Positive);
       assert(!v2.isValid(intFail));
@@ -1077,7 +1077,7 @@ void runAnyExceptionsTest(TestRunner& tr)
       dumpDynamicObject(ex);
    }
    tr.passIfException();
-   
+
    tr.ungroup();
 }
 

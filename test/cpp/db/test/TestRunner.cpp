@@ -34,7 +34,7 @@ string TestRunner::getTestName()
    vector<string>::iterator i;
    string res;
 
-   for(i = mTestPath.begin(); 
+   for(i = mTestPath.begin();
        i != mTestPath.end();
        i++)
    {
@@ -87,7 +87,7 @@ bool TestRunner::stringToLevel(const char* slevel, OutputLevel& level)
          found = true;
       }
    }
-   
+
    return found;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/validation/Array.h"
 
@@ -13,16 +13,16 @@ Array::Array()
 Array::Array(int index, ...)
 {
    va_list ap;
-   
+
    va_start(ap, index);
    addValidators(index, ap);
    va_end(ap);
 }
-   
+
 Array::~Array()
 {
    std::vector<std::pair<int,Validator*> >::iterator i;
-   
+
    for(i = mValidators.begin();
       i != mValidators.end();
       i++)
@@ -30,13 +30,13 @@ Array::~Array()
       delete i->second;
    }
 }
-   
+
 bool Array::isValid(
    DynamicObject& obj,
    ValidatorContext* context)
 {
    bool rval = true;
-   
+
    if(!obj.isNull() && obj->getType() == db::rt::Array)
    {
       std::vector<std::pair<int,Validator*> >::iterator i;
@@ -48,7 +48,7 @@ bool Array::isValid(
             char idx[23];
             snprintf(idx, 23, "[%d]", i->first);
             context->pushPath(idx);
-            
+
             // do not short-circuit
             if(!i->second->isValid(obj[i->first], context))
             {
@@ -74,7 +74,7 @@ bool Array::isValid(
       detail["validator"] = "db.validator.Array";
       detail["message"] = "The given object type must be an Array.";
    }
-   
+
    if(rval)
    {
       context->addSuccess();
@@ -101,7 +101,7 @@ void Array::addValidators(int index, va_list ap)
 void Array::addValidators(int index, ...)
 {
    va_list ap;
-   
+
    va_start(ap, index);
    addValidators(index, ap);
    va_end(ap);

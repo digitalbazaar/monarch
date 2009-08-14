@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/validation/CompareText.h"
 
@@ -25,14 +25,14 @@ CompareText::~CompareText()
 bool CompareText::isValid(DynamicObject& obj, ValidatorContext* context)
 {
    bool rval = !obj.isNull();
-   
+
    if(rval)
    {
       // replace all CRLF with LF
       std::string compare = obj->getString();
       StringTools::replaceAll(compare, "\r\n", "\n");
       StringTools::replaceAll(compare, "\r", "\n");
-      
+
       rval = (strcmp(compare.c_str(), mText.c_str()) == 0);
       if(!rval)
       {
@@ -40,17 +40,17 @@ bool CompareText::isValid(DynamicObject& obj, ValidatorContext* context)
             "db.validation.CompareTextFailure", &obj);
          detail["validator"] = "db.validator.CompareText";
          detail["message"] = (mErrorMessage != NULL ?
-            mErrorMessage : 
+            mErrorMessage :
             "The two text strings that were given are required "
             "to be equivalent, but they are different.");
          detail["expectedValue"] = mText.c_str();
       }
    }
-   
+
    if(rval)
    {
       context->addSuccess();
    }
-   
+
    return rval;
 }

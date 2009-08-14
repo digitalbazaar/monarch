@@ -1,10 +1,9 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
- * 
+ *
  * This test file is used to test deadlock issues with the SharedLock
  * class absent any use of the dbcore App Tester framework.
  */
-
 #include <cstdio>
 
 #include "db/rt/Thread.h"
@@ -21,7 +20,7 @@ public:
    ExclusiveLock* mSignalLock;
    bool* mSignal;
    bool mWrite;
-   
+
    DeadlockRunnable(
       SharedLock* lock, ExclusiveLock* signalLock, bool* signal, bool write) :
       mLock(lock),
@@ -30,11 +29,11 @@ public:
       mWrite(write)
    {
    }
-   
+
    virtual ~DeadlockRunnable()
    {
    }
-   
+
    virtual void run()
    {
       if(mWrite)
@@ -46,12 +45,12 @@ public:
             mSignalLock->wait();
          }
          mSignalLock->unlock();
-         
+
          // get exclusive lock
          mLock->lockExclusive();
-         
+
          // should block forever if test fails
-         
+
          mLock->unlockExclusive();
       }
       else
@@ -64,15 +63,15 @@ public:
             *mSignal = true;
             mSignalLock->notifyAll();
             mSignalLock->unlock();
-            
+
             // wait to allow lock exclusive to occur in write thread
             Thread::sleep(250);
-            
+
             // try to get shared lock
             mLock->lockShared();
-            
+
             // should block here for ever if test fails
-            
+
             // recursive unlock shared lock
             mLock->unlockShared();
          }
@@ -84,30 +83,30 @@ public:
 int main()
 {
    printf("Testing SharedLock deadlock, will pass if no deadlock...\n");
-   
+
    // this test checks to see if thread 1 can get a read lock,
    // wait for thread 2 to get a write lock, and then see if
    // thread 1 can recurse its read lock (it should be able to)
-   
+
    SharedLock lock;
    ExclusiveLock signalLock;
    bool signal = false;
-   
+
    DeadlockRunnable r1(&lock, &signalLock, &signal, false);
    DeadlockRunnable r2(&lock, &signalLock, &signal, true);
-   
+
    Thread t1(&r1);
    Thread t2(&r2);
-   
+
    t2.start();
    t1.start();
-   
+
    t1.join();
    t2.join();
-   
+
    printf("PASS.\n");
    printf("Done. Total:1 Passed:1 Failed:0 Warnings:0 Unknown:0.\n");
-   
+
    Thread::exit();
    return 0;
 }

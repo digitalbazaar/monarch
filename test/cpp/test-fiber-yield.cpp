@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
  */
-
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
@@ -25,18 +24,18 @@ class TestFiber : public Fiber
 {
 public:
    int count;
-   
+
 public:
    TestFiber(int n)
    {
       count = n;
    };
    virtual ~TestFiber() {};
-   
+
    virtual void run()
    {
       printf("Running test fiber '%d'\n", getId());
-      
+
       int i = 0;
       for(; i < count; i++)
       {
@@ -44,7 +43,7 @@ public:
          yield();
          printf("Test fiber '%d' continuing.\n", getId());
       }
-      
+
       printf("Test fiber '%d' done with '%d' iterations.\n", getId(), i);
    }
 };
@@ -52,30 +51,30 @@ public:
 void runFiberYieldTest(TestRunner& tr)
 {
    tr.group("Fiber Yield");
-   
+
    tr.test("10 yielding fibers/10 iterations");
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
-      
+
       // queue up some fibers prior to starting
       for(int i = 0; i < 10; i++)
       {
          fs.addFiber(new TestFiber(10));
       }
-      
+
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 1);
-      
+
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
-      
+
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 

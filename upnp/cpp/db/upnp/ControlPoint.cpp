@@ -33,11 +33,11 @@ ControlPoint::~ControlPoint()
 bool ControlPoint::getDescription(Url* url, string& description)
 {
    bool rval = false;
-   
+
    DB_CAT_DEBUG(DB_UPNP_CAT,
       "Getting UPnP description from url '%s'...",
       url->toString().c_str());
-   
+
    // do http connection
    HttpClient client;
    if((rval = client.connect(url)))
@@ -45,7 +45,7 @@ bool ControlPoint::getDescription(Url* url, string& description)
       // create special headers
       DynamicObject headers;
       headers["Connection"] = "close";
-      
+
       // do get
       Url path(url->getPath());
       HttpResponse* response = client.get(&path, &headers);
@@ -54,7 +54,7 @@ bool ControlPoint::getDescription(Url* url, string& description)
          DB_CAT_DEBUG(DB_UPNP_CAT,
             "Get UPnP description response header:\n%s",
             response->getHeader()->toString().c_str());
-         
+
          // receive response
          ByteBuffer bb(2048);
          ByteArrayOutputStream baos(&bb, true);
@@ -82,11 +82,11 @@ bool ControlPoint::getDescription(Url* url, string& description)
             }
          }
       }
-      
+
       // disconnect
       client.disconnect();
    }
-   
+
    if(!rval)
    {
       DB_CAT_ERROR(DB_UPNP_CAT,
@@ -95,7 +95,7 @@ bool ControlPoint::getDescription(Url* url, string& description)
          JsonWriter::writeToString(
             Exception::getAsDynamicObject()).c_str());
    }
-   
+
    return rval;
 }
 
@@ -105,7 +105,7 @@ static void parseDevice(
 {
    DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing device from xml: %s",
       JsonWriter::writeToString(root).c_str());
-   
+
    // get basic device info
    Element& rd = sub ? root : root["children"]["device"][0];
    device["rootURL"] = rootUrl;
@@ -129,13 +129,13 @@ static void parseDevice(
       rd["children"]["UDN"][0]["data"]->getString();
    device["UPC"] =
       rd["children"]["UPC"][0]["data"]->getString();
-   
+
    // initialize sub-devices and services
    DeviceList& deviceList = device["devices"];
    deviceList->setType(Array);
    ServiceList& serviceList = device["services"];
    serviceList->setType(Array);
-   
+
    // parse out services
    if(rd["children"]->hasMember("serviceList"))
    {
@@ -144,7 +144,7 @@ static void parseDevice(
       while(si->hasNext())
       {
          Element& service = si->next();
-         
+
          // get service information
          Service s;
          s["serviceType"] =
@@ -158,12 +158,12 @@ static void parseDevice(
          s["eventSubURL"] =
             service["children"]["eventSubURL"][0]["data"]->getString();
          s["rootURL"] = rootUrl;
-         
+
          // add service to device
          serviceList->append(s);
       }
-   }   
-   
+   }
+
    // parse out devices
    if(rd["children"]->hasMember("deviceList"))
    {
@@ -172,16 +172,16 @@ static void parseDevice(
       while(di->hasNext())
       {
          Element& dev = di->next();
-         
+
          // parse sub-device information
          Device d;
          parseDevice(d, dev, rootUrl, true);
-         
+
          // add device to device list
          deviceList->append(d);
       }
    }
-   
+
    DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed device: %s",
       JsonWriter::writeToString(device).c_str());
 }
@@ -189,15 +189,15 @@ static void parseDevice(
 bool ControlPoint::getDeviceDescription(Device& device)
 {
    bool rval = false;
-   
+
    // get the location url for the device
    Url url(device["location"]->getString());
-   
+
    // save the root URL
    string rootUrl = url.getScheme();
    rootUrl.append("://");
    rootUrl.append(url.getAuthority());
-   
+
    // get description
    string description;
    rval = getDescription(&url, description);
@@ -214,20 +214,20 @@ bool ControlPoint::getDeviceDescription(Device& device)
          parseDevice(device, root, rootUrl.c_str(), false);
       }
    }
-   
+
    return rval;
 }
 
 bool ControlPoint::getServiceDescription(Service& service)
 {
    bool rval = false;
-   
+
    // get the description url for the service
    Url url;
    url.format("%s%s",
       service["rootURL"]->getString(),
       service["SCPDURL"]->getString());
-   
+
    // get description
    string description;
    rval = getDescription(&url, description);
@@ -242,7 +242,7 @@ bool ControlPoint::getServiceDescription(Service& service)
       {
          DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing service from xml: %s",
             JsonWriter::writeToString(root).c_str());
-         
+
          // parse out actions
          service["actions"]->setType(Map);
          if(root["children"]->hasMember("actionList"))
@@ -255,7 +255,7 @@ bool ControlPoint::getServiceDescription(Service& service)
                while(ai->hasNext())
                {
                   DynamicObject& action = ai->next();
-                  
+
                   // get action basics
                   Action a;
                   a["name"] =
@@ -263,7 +263,7 @@ bool ControlPoint::getServiceDescription(Service& service)
                   a["arguments"]->setType(Map);
                   a["arguments"]["in"]->setType(Array);
                   a["arguments"]["out"]->setType(Array);
-                  
+
                   // add action arguments
                   if(action["children"]->hasMember("argumentList"))
                   {
@@ -273,7 +273,7 @@ bool ControlPoint::getServiceDescription(Service& service)
                      while(argi->hasNext())
                      {
                         DynamicObject& argument = argi->next();
-                        
+
                         // build argument
                         DynamicObject name;
                         name =
@@ -290,7 +290,7 @@ bool ControlPoint::getServiceDescription(Service& service)
                         {
                            a["arguments"]["out"]->append(name);
                         }
-                        
+
                         if(argument["children"]->hasMember("retval"))
                         {
                            a["retval"][name->getString()] =
@@ -298,7 +298,7 @@ bool ControlPoint::getServiceDescription(Service& service)
                               [0]["data"]->getString();
                         }
                      }
-                     
+
                      // add action to service
                      service["actions"][a["name"]->getString()] = a;
                   }
@@ -307,31 +307,31 @@ bool ControlPoint::getServiceDescription(Service& service)
          }
       }
    }
-   
+
    if(rval)
    {
       DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed service: %s",
          JsonWriter::writeToString(service).c_str());
    }
-   
+
    return rval;
 }
 
 /**
  * A helper function that sends a soap envelope and gets its result.
- * 
+ *
  * @param device the service to connect to.
  * @param service the service to use.
  * @param msg the soap message to send.
  * @param result the result to populate.
- * 
+ *
  * @return true if successful, false if an exception occurred.
  */
 static bool doSoap(
    Service& service, SoapMessage& msg, ActionResult& result)
 {
    bool rval = false;
-   
+
    // create the soap envelope
    SoapEnvelope env;
    string envelope = env.create(msg);
@@ -342,11 +342,11 @@ static bool doSoap(
       url.format("%s%s",
          service["rootURL"]->getString(),
          service["controlURL"]->getString());
-      
+
       DB_CAT_DEBUG(DB_UPNP_CAT,
          "Sending SOAP message to url '%s':\n%s",
          url.toString().c_str(), envelope.c_str());
-      
+
       // do http connection
       HttpClient client;
       if((rval = client.connect(&url)))
@@ -359,7 +359,7 @@ static bool doSoap(
          headers["Soapaction"] = StringTools::format("\"%s#%s\"",
             service["serviceType"]->getString(),
             msg["name"]->getString()).c_str();
-         
+
          // do post
          Url path(url.getPath());
          ByteArrayInputStream bais(envelope.c_str(), envelope.length());
@@ -369,7 +369,7 @@ static bool doSoap(
             DB_CAT_DEBUG(DB_UPNP_CAT,
                "Received response header:\n%s",
                response->getHeader()->toString().c_str());
-            
+
             // receive response
             ByteBuffer bb(1024);
             ByteArrayOutputStream baos(&bb, true);
@@ -378,7 +378,7 @@ static bool doSoap(
                DB_CAT_DEBUG(DB_UPNP_CAT,
                   "Received SOAP message:\n%s",
                   string(bb.data(), bb.length()).c_str());
-               
+
                // parse soap response
                ByteArrayInputStream bais2(&bb);
                SoapResult sr;
@@ -409,37 +409,37 @@ static bool doSoap(
                }
             }
          }
-         
+
          // disconnect
          client.disconnect();
       }
    }
-   
+
    if(!rval)
    {
       DB_CAT_ERROR(DB_UPNP_CAT,
          "Could not perform SOAP transfer: %s",
          JsonWriter::writeToString(
             Exception::getAsDynamicObject()).c_str());
-      
+
       ExceptionRef e = new Exception(
          "Could not perform soap transfer.",
          "db.upnp.SoapTransferError");
       Exception::push(e);
    }
-   
+
    return rval;
 }
 
 Service ControlPoint::getWanIpConnectionService(Device& igd)
 {
    /* Note:
-    * 
+    *
     * An InternetGatewayDevice has a WANDevice in it. Inside the WANDevice
     * there is a WANConnectionDevice. The WANConnectionDevice may have a
     * WANIPConnectionServices which provides port mapping services.
     */
-   
+
    // get the wan device
    Device wd(NULL);
    {
@@ -452,13 +452,13 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          {
             // found wan device
             wd = next;
-            
+
             DB_CAT_DEBUG(DB_UPNP_CAT,
                "Found device '" UPNP_DEVICE_TYPE_WAN "'");
          }
       }
    }
-   
+
    // get the wan connection device
    Device wcd(NULL);
    if(!wd.isNull())
@@ -474,13 +474,13 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          {
             // found wan connection device
             wcd = next;
-            
+
             DB_CAT_DEBUG(DB_UPNP_CAT,
                "Found device '" UPNP_DEVICE_TYPE_WAN_CONNECTION "'");
          }
       }
    }
-   
+
    // get the wan ip connection service
    Service wipcs(NULL);
    if(!wcd.isNull())
@@ -496,13 +496,13 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
          {
             // found wan ip connection service
             wipcs = next;
-            
+
             DB_CAT_DEBUG(DB_UPNP_CAT,
                "Found service '" UPNP_SERVICE_TYPE_WAN_IP_CONNECTION "'");
          }
       }
    }
-   
+
    return wipcs;
 }
 
@@ -511,7 +511,7 @@ bool ControlPoint::performAction(
    Service& service, ActionResult& result)
 {
    bool rval = false;
-   
+
    // ensure action exists in the service
    if(!service->hasMember("actions") ||
       !service["actions"]->hasMember(actionName))
@@ -531,41 +531,41 @@ bool ControlPoint::performAction(
       msg["name"] = actionName;
       msg["namespace"] = service["serviceType"]->getString();
       msg["params"] = params;
-      
+
       // do soap transfer
       rval = doSoap(service, msg, result);
    }
-   
+
    return rval;
 }
 
 bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
 {
    bool rval = false;
-   
+
    // perform the action
    ActionResult result;
    rval = performAction("AddPortMapping", pm, wipcs, result);
-   
+
    return rval;
 }
 
 bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs, bool* dne)
 {
    bool rval = false;
-   
+
    // initialize does not exist param
    if(dne != NULL)
    {
       *dne = false;
    }
-   
+
    // only these 3 parameters must be sent
    PortMapping pm2;
    pm2["NewRemoteHost"] = pm["NewRemoteHost"];
    pm2["NewExternalPort"] = pm["NewExternalPort"];
    pm2["NewProtocol"] = pm["NewProtocol"];
-   
+
    // perform the action
    ActionResult result;
    rval = performAction("DeletePortMapping", pm2, wipcs, result);
@@ -583,14 +583,14 @@ bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs, bool* dne)
          *dne = true;
       }
    }
-   
+
    return rval;
 }
 
 bool ControlPoint::getPortMapping(PortMapping& pm, int index, Service& wipcs)
 {
    bool rval = false;
-   
+
    // perform the action
    ActionResult result;
    DynamicObject params;
@@ -614,20 +614,20 @@ bool ControlPoint::getPortMapping(PortMapping& pm, int index, Service& wipcs)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
 bool ControlPoint::getPortMapping(PortMapping& pm, Service& wipcs)
 {
    bool rval = false;
-   
+
    // only these 3 parameters must be sent
    PortMapping pm2;
    pm2["NewRemoteHost"] = pm["NewRemoteHost"];
    pm2["NewExternalPort"] = pm["NewExternalPort"];
    pm2["NewProtocol"] = pm["NewProtocol"];
-   
+
    // perform the action
    ActionResult result;
    rval = performAction("GetSpecificPortMappingEntry", pm2, wipcs, result);
@@ -652,6 +652,6 @@ bool ControlPoint::getPortMapping(PortMapping& pm, Service& wipcs)
          rval = true;
       }
    }
-   
+
    return rval;
 }

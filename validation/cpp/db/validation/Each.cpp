@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/validation/Each.h"
 
@@ -23,15 +23,15 @@ bool Each::isArrayValid(
    ValidatorContext* context)
 {
    bool rval = true;
-   
+
    DynamicObjectIterator doi = obj.getIterator();
-   
+
    int i = -1;
    while(doi->hasNext())
    {
       DynamicObject& member = doi->next();
       i++;
-      
+
       // add [#] indexing to path even if at root
       char idx[23];
       snprintf(idx, 23, "[%d]", i);
@@ -41,7 +41,7 @@ bool Each::isArrayValid(
       rval = rval && objValid;
       context->popPath();
    }
-   
+
    return rval;
 }
 
@@ -50,13 +50,13 @@ bool Each::isMapValid(
    ValidatorContext* context)
 {
    bool rval = true;
-   
+
    DynamicObjectIterator doi = obj.getIterator();
-   
+
    while(doi->hasNext())
    {
       DynamicObject& member = doi->next();
-      
+
       // only add a "." if this is not a root map
       if(context->getDepth() != 0)
       {
@@ -81,7 +81,7 @@ bool Each::isValid(
    ValidatorContext* context)
 {
    bool rval = true;
-   
+
    if(obj.isNull() || !(obj->getType() == Array || obj->getType() == Map))
    {
       rval = false;
@@ -108,7 +108,7 @@ bool Each::isValid(
             break;
       }
    }
-   
+
    if(rval)
    {
       context->addSuccess();

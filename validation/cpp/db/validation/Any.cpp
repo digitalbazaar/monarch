@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/validation/Any.h"
 
@@ -9,12 +9,12 @@ using namespace db::validation;
 Any::Any(Validator* validator, ...)
 {
    va_list ap;
-   
+
    va_start(ap, validator);
    addValidators(validator, ap);
    va_end(ap);
 }
-   
+
 Any::~Any()
 {
 }
@@ -24,10 +24,10 @@ bool Any::isValid(
    ValidatorContext* context)
 {
    bool rval = false;
-   
+
    // store previous set exceptions value
    bool setExceptions = context->setExceptions(false);
-   
+
    // validate each "any" validator until one is valid, for each
    // invalid result, store the context results if they match or
    // exceed the most number of successful validations
@@ -55,16 +55,16 @@ bool Any::isValid(
          {
             errors->append(r["errors"]);
          }
-         
+
          // clear validation results
          context->clearResults();
       }
    }
-   
+
    // restore set exceptions value
    context->setExceptions(setExceptions);
-   
-   // set exception for Any, return array of errors 
+
+   // set exception for Any, return array of errors
    if(!rval)
    {
       DynamicObject detail =
@@ -72,6 +72,6 @@ bool Any::isValid(
       detail["validator"] = "db.validator.Any";
       detail["possibleErrors"] = errors;
    }
-   
+
    return rval;
 }

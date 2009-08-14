@@ -19,25 +19,25 @@ using namespace db::test;
 bool db::test::dumpException(ExceptionRef& e)
 {
    bool rval;
-   
+
    printf("EXCEPTION:\n");
    DynamicObject d = Exception::convertToDynamicObject(e);
    rval = JsonWriter::writeToStdOut(d);
    printf("\n");
-   
+
    return rval;
 }
 
 bool db::test::dumpException()
 {
    bool rval = true;
-   
+
    if(Exception::isSet())
    {
       ExceptionRef e = Exception::get();
       rval = dumpException(e);
    }
-   
+
    return rval;
 }
 
@@ -48,12 +48,12 @@ void db::test::dumpDynamicObjectText_(
    {
       cout << ' ';
    }
-   
+
    if(doi == NULL)
    {
       doi = dyno.getIterator();
    }
-   
+
    switch(dyno->getType())
    {
       case String:

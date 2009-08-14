@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/fiber/FiberContext.h"
 
@@ -41,14 +41,14 @@ void func2(int i)
 int main()
 {
    printf("Testing ucontext...\n");
-   
+
    char func1Stack[16384];
    char func2Stack[16384];
-   
+
    // make func1 context
    if(getcontext(&gFunc1Context) == -1)
    {
-      printf("failed to make func1 context\n"); 
+      printf("failed to make func1 context\n");
       exit(1);
    }
    gFunc1Context.uc_stack.ss_sp = func1Stack;
@@ -58,11 +58,11 @@ int main()
    gFunc1Context.uc_link = NULL;
 #endif
    makecontext(&gFunc1Context, (void (*)())func1, 1, 1);
-   
+
    // make func2 context
    if(getcontext(&gFunc2Context) == -1)
    {
-      printf("failed to make func2 context\n"); 
+      printf("failed to make func2 context\n");
       exit(1);
    }
    gFunc2Context.uc_stack.ss_sp = func2Stack;
@@ -72,14 +72,14 @@ int main()
    gFunc2Context.uc_link = NULL;
 #endif
    makecontext(&gFunc2Context, (void (*)())func2, 1, 2);
-   
+
    printf("main swapping in func1...\n");
    if(swapcontext(&gMainContext, &gFunc1Context) == -1)
    {
       printf("failed to swap from main to func1\n");
       exit(1);
    }
-   
+
    printf("main returned, exiting.\n");
    printf("Done. Total:1 Passed:1 Failed:0 Warnings:0 Unknown:0.\n");
    exit(0);

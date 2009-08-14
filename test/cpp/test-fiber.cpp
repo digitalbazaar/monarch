@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
@@ -41,14 +40,14 @@ class TestFiber : public Fiber
 {
 public:
    int start;
-   
+
 public:
    TestFiber(int n)
    {
       start = n;
    };
    virtual ~TestFiber() {};
-   
+
    virtual void run()
    {
       for(int i = start; i > 0; i--)
@@ -68,7 +67,7 @@ public:
    {
    };
    virtual ~TestFiberSleep() {};
-   
+
    virtual void run()
    {
       //printf("going to sleep...\n");
@@ -82,7 +81,7 @@ class TestMessagableFiber : public MessagableFiber
 public:
    int start;
    int expectMessages;
-   
+
 public:
    TestMessagableFiber(FiberMessageCenter* fmc, int n, int expectMsgs) :
       MessagableFiber(fmc)
@@ -91,17 +90,17 @@ public:
       expectMessages = expectMsgs;
    };
    virtual ~TestMessagableFiber() {};
-   
+
    virtual void processMessages()
    {
       int count = start;
       int messages = 0;
-      
+
       // test sleeping and waking up due to new messages
       //printf("sleeping...\n");
       sleep();
       //printf("awake!\n");
-      
+
       while(count > 0)
       {
          FiberMessageQueue* msgs = getMessages();
@@ -114,7 +113,7 @@ public:
             messages++;
             yield();
          }
-         
+
          if(count > 0)
          {
             count--;
@@ -122,7 +121,7 @@ public:
             yield();
          }
       }
-      
+
       //printf("TestMessagableFiber %i received %i messages,exiting.\n",
       //   getId(), messages);
    }
@@ -132,7 +131,7 @@ class TestChildFiber : public MessagableFiber
 {
 public:
    FiberId parentId;
-   
+
 public:
    TestChildFiber(FiberMessageCenter* fmc, FiberId parent) :
       MessagableFiber(fmc),
@@ -140,7 +139,7 @@ public:
    {
    };
    virtual ~TestChildFiber() {};
-   
+
    virtual void processMessages()
    {
       DynamicObject msg;
@@ -158,13 +157,13 @@ public:
    {
    };
    virtual ~TestParentFiber() {};
-   
+
    virtual void processMessages()
    {
       TestChildFiber* child = new TestChildFiber(mMessageCenter, getId());
       FiberId childId = mScheduler->addFiber(child);
       sleep();
-      
+
       FiberMessageQueue* msgs = getMessages();
       assert(msgs->size() == 1);
       DynamicObject msg = msgs->front();
@@ -177,85 +176,85 @@ public:
 void runFiberTest(TestRunner& tr)
 {
    tr.group("Fibers");
-   
+
    tr.test("single fiber");
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
       fs.start(&k, 1);
-      
+
       TestFiber* fiber = new TestFiber(100);
       fs.addFiber(fiber);
-      
+
       fs.waitForLastFiberExit(true);
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.test("many fibers");
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
-      
+
       // queue up some fibers prior to starting
       for(int i = 0; i < 1000; i++)
       {
          fs.addFiber(new TestFiber(20));
       }
-      
+
       for(int i = 0; i < 400; i++)
       {
          fs.addFiber(new TestFiber(50));
       }
-      
+
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 4);
-      
+
       // add more fibers
       for(int i = 0; i < 20; i++)
       {
          fs.addFiber(new TestFiber(100));
       }
-      
+
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
-      
+
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.test("sleep fiber");
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
       fs.start(&k, 1);
-      
+
       FiberId id = fs.addFiber(new TestFiberSleep());
-      
+
       // wait, and then wakeup sleeping fiber
       Thread::sleep(500);
       //printf("waking up fiber...\n");
       fs.wakeup(id);
-      
+
       fs.waitForLastFiberExit(true);
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.test("messages");
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
       FiberMessageCenter fmc;
-      
+
       FiberId id;
       for(int i = 0; i < 50; i++)
       {
@@ -269,35 +268,35 @@ void runFiberTest(TestRunner& tr)
             fmc.sendMessage(id, msg);
          }
       }
-      
+
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 4);
-      
+
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.test("parent/child fiber");
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
       FiberMessageCenter fmc;
-      
+
       fs.addFiber(new TestParentFiber(&fmc));
-      
+
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 4);
-      
+
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
@@ -308,7 +307,7 @@ protected:
 public:
    SpeedTestRunnable(int n) { count = n; };
    virtual ~SpeedTestRunnable() {};
-   
+
    virtual void run()
    {
       while(--count >= 0)
@@ -321,13 +320,13 @@ public:
 void runFiberSpeedTest(TestRunner& tr)
 {
    tr.group("Fiber speed");
-   
+
    tr.test("300 threads,100 iterations");
    {
       Kernel k;
       k.getEngine()->getThreadPool()->setPoolSize(300);
       k.getEngine()->start();
-      
+
       // queue up Operations
       OperationList opList;
       for(int i = 0; i < 300; i++)
@@ -336,67 +335,67 @@ void runFiberSpeedTest(TestRunner& tr)
          Operation op(r);
          opList.add(op);
       }
-      
+
       uint64_t startTime = Timer::startTiming();
       opList.queue(&k);
       opList.waitFor();
       printf("time=%g secs... ", Timer::getSeconds(startTime));
-      
+
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.test("300 fibers,100 iterations");
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
-      
+
       // queue up fibers
       for(int i = 0; i < 300; i++)
       {
          fs.addFiber(new TestFiber(100));
       }
-      
+
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 4);
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
-      
+
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.test("10,000 fibers,3 iterations");
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
-      
+
       // queue up fibers
       for(int i = 0; i < 10000; i++)
       {
          fs.addFiber(new TestFiber(3));
       }
-      
+
       uint64_t startTime = Timer::startTiming();
       fs.start(&k, 4);
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", Timer::getSeconds(startTime));
-      
+
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runFiberSpeedTest2(TestRunner& tr)
 {
    tr.group("Fiber speed 2");
-   
+
    Timer timer;
    for(int fibers = 100; fibers <= 1000; fibers += 100)
    {
@@ -409,26 +408,26 @@ void runFiberSpeedTest2(TestRunner& tr)
          {
             Kernel k;
             k.getEngine()->start();
-            
+
             FiberScheduler fs;
-            
+
             // queue up fibers
             for(int i = 0; i < fibers; i++)
             {
                fs.addFiber(new TestFiber(iterations));
             }
-            
+
             timer.start();
             fs.start(&k, 4);
             fs.waitForLastFiberExit(true);
             printf("time=%g secs... ", timer.getElapsedSeconds());
-            
+
             k.getEngine()->stop();
          }
          tr.passIfNoException();
       }
    }
-   
+
    tr.ungroup();
 }
 
@@ -437,7 +436,7 @@ class ConcurrentSigner : public Fiber
 protected:
    PrivateKeyRef mPrivateKey;
    PublicKeyRef mPublicKey;
-   
+
 public:
    ConcurrentSigner(PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
    {
@@ -445,19 +444,19 @@ public:
       mPublicKey = publicKey;
    };
    virtual ~ConcurrentSigner() {};
-   
+
    virtual void run()
    {
       string test =
          "POST /api/3.0/sva/contracts/media/2 HTTP/1.1localhost:19100";
-      
+
       DigitalSignature* ds = new DigitalSignature(mPrivateKey);
       ds->update(test.c_str(), test.length());
       char sig[ds->getValueLength()];
       unsigned int length;
       ds->getValue(sig, length);
       delete ds;
-      
+
       ds = new DigitalSignature(mPublicKey);
       ds->update(test.c_str(), test.length());
       bool verified = ds->verify(sig, length);
@@ -477,45 +476,45 @@ public:
 void runConcurrentSigningTest(TestRunner& tr)
 {
    tr.group("DigitalSignature fiber concurrency");
-   
+
    // generate keys
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
    AsymmetricKeyFactory afk;
    afk.createKeyPair("RSA", privateKey, publicKey);
    assertNoException();
-   
+
    tr.test("10 fibers");
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
-      
+
       // queue up fibers
       int count = 10;
       for(int i = 0; i < count; i++)
       {
          fs.addFiber(new ConcurrentSigner(privateKey, publicKey));
       }
-      
+
       printf("\n");
       Timer timer;
       timer.start();
       fs.start(&k, 4);
       fs.waitForLastFiberExit(true);
       printf("time=%g secs... ", timer.getElapsedSeconds());
-      
+
       k.getEngine()->stop();
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 /**
  * Make a DynamicObject with various content to stress test JSON reader/writer.
- * 
+ *
  * @return test DynamicObject
  */
 static DynamicObject makeJsonTestDyno1()
@@ -524,7 +523,7 @@ static DynamicObject makeJsonTestDyno1()
    d3["a"] = 123;
    d3["b"] = true;
    d3["c"] = "sea";
-   
+
    DynamicObject loremIpsum;
    loremIpsum =
       "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do "
@@ -534,7 +533,7 @@ static DynamicObject makeJsonTestDyno1()
       "voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur "
       "sint occaecat cupidatat non proident, sunt in culpa qui officia "
       "deserunt mollit anim id est laborum.";
-   
+
    DynamicObject d;
    d["zeroth"] = false;
    d["first"] = "one";
@@ -553,14 +552,14 @@ static DynamicObject makeJsonTestDyno1()
    d["eighth"]["three"] = loremIpsum.clone();
    d["eighth"]["four"] = loremIpsum.clone();
    d["ninth"] = "WUVT 90.7 FM - The Greatest Radio Station on Earth";
-   
+
    return d;
 }
 
 /**
  * Decode a JSON string into a DynamicObject then encode to a null output
  * stream.
- * 
+ *
  * @param s JSON string
  * @param slen length of s
  */
@@ -571,7 +570,7 @@ static void jsonReadWrite(const char* s, size_t slen)
    DynamicObject d;
    JsonReader::readFromString(d, s, slen);
    assertNoException();
-   
+
    // encode dyno -> json
    NullOutputStream os;
    JsonWriter jw;
@@ -589,15 +588,15 @@ protected:
    const char* mStr;
    size_t mStrlen;
    int mLoops;
-   
+
 public:
    JsonRWFiber(const char* str, int loops) :
       mStr(str),
       mStrlen(strlen(mStr)),
       mLoops(loops) {}
-   
+
    virtual ~JsonRWFiber() {}
-   
+
    virtual void run()
    {
       while(mLoops-- > 0)
@@ -617,15 +616,15 @@ protected:
    const char* mStr;
    size_t mStrlen;
    int mLoops;
-   
+
 public:
    JsonRWRunnable(const char* str, int loops) :
       mStr(str),
       mStrlen(strlen(mStr)),
       mLoops(loops) {}
-   
+
    virtual ~JsonRWRunnable() {}
-   
+
    virtual void run()
    {
       while(mLoops--)
@@ -642,7 +641,7 @@ static bool header = true;
  * The "threads" mode is using 1 thread per operation.  To normalize this
  * behavior with "fibers" and "modest" the 'ops' parameter is used in "threads"
  * mode to control how many threads are used.
- * 
+ *
  * @param mode "fibers", "modest", or "threads"
  * @param threads number of threads to run fibers or size of modest thread pool
  *        (not used for "threads" test)
@@ -674,7 +673,7 @@ void runJsonTest(
          s.assign("");
          break;
    }
-   
+
    char name[200];
    snprintf(name, 200, "JSON r/w mode:%s threads:%d ops:%d",
       mode, threads, ops);
@@ -682,15 +681,15 @@ void runJsonTest(
    uint64_t start_process = 0;
    uint64_t proc_dt = 0;
    uint64_t init_dt = 0;
-   
+
    tr.test(name);
    if(strcmp(mode, "fibers") == 0)
    {
       Kernel k;
       k.getEngine()->start();
-      
+
       FiberScheduler fs;
-      
+
       start_init = Timer::startTiming();
       // queue up fibers
       for(int i = 0; i < ops; i++)
@@ -701,17 +700,17 @@ void runJsonTest(
       start_process = Timer::startTiming();
       fs.start(&k, threads);
       fs.waitForLastFiberExit(true);
-      
+
       proc_dt = Timer::getMilliseconds(start_process);
       init_dt = start_process - start_init;
-      
+
       k.getEngine()->stop();
    }
    else if(strcmp(mode, "modest") == 0)
    {
       Kernel k;
       k.getEngine()->getThreadPool()->setPoolSize(threads);
-      
+
       // queue up Operations
       OperationList opList;
       start_init = Timer::startTiming();
@@ -722,14 +721,14 @@ void runJsonTest(
          opList.add(op);
       }
       opList.queue(&k);
-      
+
       start_process = Timer::startTiming();
       k.getEngine()->start();
       opList.waitFor();
-      
+
       proc_dt = Timer::getMilliseconds(start_process);
       init_dt = start_process - start_init;
-      
+
       k.getEngine()->stop();
    }
    else if(strcmp(mode, "threads") == 0)
@@ -737,7 +736,7 @@ void runJsonTest(
       // using 1 thread per op
       Thread* t[ops];
       JsonRWRunnable* r[ops];
-      
+
       // queue up Operations
       start_init = Timer::startTiming();
       for(int i = 0; i < ops; i++)
@@ -745,7 +744,7 @@ void runJsonTest(
          r[i] = new JsonRWRunnable(s.c_str(), oploops);
          t[i] = new Thread(r[i]);
       }
-      
+
       start_process = Timer::startTiming();
       for(int i = 0; i < ops; i++)
       {
@@ -755,10 +754,10 @@ void runJsonTest(
       {
          t[i]->join();
       }
-      
+
       proc_dt = Timer::getMilliseconds(start_process);
       init_dt = start_process - start_init;
-      
+
       for(int i = 0; i < ops; i++)
       {
          delete r[i];
@@ -769,7 +768,7 @@ void runJsonTest(
    {
       printf("BAD MODE: %s\n", mode);
    }
-   
+
    // handle thread mem issue by making process time 0
    if(Exception::isSet() &&
       strcmp(Exception::get()->getType(),
@@ -778,7 +777,7 @@ void runJsonTest(
       proc_dt = 0;
       Exception::clear();
    }
-   
+
    if(tr.getOutputLevel() == TestRunner::None)
    {
       const char* comment = csv ? "#" : "";
@@ -816,7 +815,7 @@ class DbFiberTester : public db::test::Tester
 protected:
    /**
     * Calculate size of a test array.
-    * 
+    *
     * @param lin true if linear, false if log
     * @param min min value
     * @param max max value
@@ -849,7 +848,7 @@ protected:
             }
             p = p * 10;
          }
-         
+
          // add final value if needed
          int last = (int)pow((double)10, mag);
          if(last <= max)
@@ -859,11 +858,11 @@ protected:
       }
       return rval;
    }
-   
+
    /**
     * Fill a test array.  If lin, then from min to max, else all log base 10
     * values from 1 to 10^mag between min and max.
-    * 
+    *
     * @param d the test array to fill
     * @param lin true if linear, false if log
     * @param min min value
@@ -898,7 +897,7 @@ protected:
             }
             p = p * 10;
          }
-         
+
          // add final value if needed
          int last = (int)pow((double)10, mag);
          if(last <= max)
@@ -907,7 +906,7 @@ protected:
          }
       }
    }
-   
+
 public:
    DbFiberTester()
    {
@@ -927,7 +926,7 @@ public:
 
    /**
     * Runs interactive unit tests.
-    * 
+    *
     * Options:
     * --test all - run all tests
     * --test sign - signing test
@@ -944,7 +943,7 @@ public:
     * --option threads <n> - how many threads to use (direct or pool size)
     * --option ops <n> - how many operations to perform
     * --option oploops <n> - how many times to run each operation
-    * 
+    *
     * For jsonmatrix:
     * For the threads (t) and operations (o) parameters an array will be
     * created of test values.  Then each combination of t and o values will be
@@ -952,7 +951,7 @@ public:
     * by default.  The min and max values can be specified with [t,o]min and
     * [t,o]max.  If [t,o]lin is true then the values will be linear between min
     * and max.
-    * 
+    *
     * --option tmag <n> - max log thread magnitude
     * --option tmin <n> - min number of threads
     * --option tmax <n> - max number of threads
@@ -964,12 +963,12 @@ public:
       Config cfg = tr.getApp()->getConfig();
       const char* test = cfg["db.test.Tester"]["test"]->getString();
       bool all = (strcmp(test, "all") == 0);
-      
+
       if(all || (strcmp(test, "sign") == 0))
       {
          runConcurrentSigningTest(tr);
       }
-      
+
       if(/*all ||*/
          (strcmp(test, "json") == 0) ||
          (strcmp(test, "jsonmatrix") == 0))
@@ -986,7 +985,7 @@ public:
          // test mode: fibers, modest, or threads
          const char* mode = cfg->hasMember("mode") ?
             cfg["mode"]->getString() : "fibers";
-         
+
          if(all || (strcmp(test, "json") == 0))
          {
             // number of threads
@@ -1000,7 +999,7 @@ public:
                runJsonTest(tr, mode, threads, ops, oploops, dyno, csv);
             }
          }
-         
+
          if(all || (strcmp(test, "jsonmatrix") == 0))
          {
             bool tlin = cfg->hasMember("tlin") ?
@@ -1012,7 +1011,7 @@ public:
             int tmax = cfg->hasMember("tmax") ?
                cfg["tmax"]->getInt32() :
                   (tlin ? 10 : (int)pow((double)10, tmag));
-               
+
             bool olin = cfg->hasMember("olin") ?
                cfg["olin"]->getBoolean() : false;
             int omag = cfg->hasMember("omag") ?
@@ -1022,16 +1021,16 @@ public:
             int omax = cfg->hasMember("omax") ?
                cfg["omax"]->getInt32() :
                   (olin ? 10 : (int)pow((double)10, omag));
-               
+
             // make the thread and ops count arrays
             int tsize = calculateTestArraySize(tlin, tmin, tmax, tmag);
             int td[tsize];
             fillTestArray(td, tlin, tmin, tmax, tmag);
-            
+
             int osize = calculateTestArraySize(olin, omin, omax, omag);
             int od[osize];
             fillTestArray(od, olin, omin, omax, omag);
-            
+
             // matrix of threads vs ops
             for(int ti = 0; ti < tsize; ti++)
             {
@@ -1046,7 +1045,7 @@ public:
             }
          }
       }
-      
+
       return 0;
    }
 };

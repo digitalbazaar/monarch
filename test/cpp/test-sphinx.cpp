@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/sphinx/SphinxClient.h"
 #include "db/data/json/JsonWriter.h"
 #include "db/io/OStreamOutputStream.h"
@@ -21,15 +20,15 @@ using namespace db::test;
 void runSphinxClientTest(TestRunner &tr, db::test::Tester& tester)
 {
    tr.group("SphinxClient");
-   
+
    tr.test("searchd protocol");
    {
       Url url("sphinx://omega.digitalbazaar.com:3312");
-      
+
       SphinxCommand cmd;
       SphinxResponse response;
       SphinxClient client;
-      
+
       cmd["type"] = SPHINX_SEARCHD_CMD_SEARCH;
       cmd["query"] = "test";
       cmd["matchOffset"] = 0;
@@ -44,15 +43,15 @@ void runSphinxClientTest(TestRunner &tr, db::test::Tester& tester)
       cmd["maxId"] = 0;
       cmd["maxMatches"] = 1000;
       cmd["groupSort"] = "@group desc";
-      
+
       client.execute(url, cmd, response);
       assertNoException();
-      
+
       //printf("\nResponse:\n");
       //dumpDynamicObject(response);
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 

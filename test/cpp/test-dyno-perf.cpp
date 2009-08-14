@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
@@ -39,7 +38,7 @@ static void runDynoIterTest1(
       }
       uint64_t iter_dt = System::getCurrentMilliseconds() - start_iter;
       uint64_t init_dt = start_iter - start_init;
-      
+
       if(header)
       {
          printf(

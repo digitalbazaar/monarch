@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/validation/Type.h"
 
@@ -19,7 +19,7 @@ Type::~Type()
 bool Type::isValid(DynamicObject& obj, ValidatorContext* context)
 {
    bool rval = (!obj.isNull() && obj->getType() == mType);
-   
+
    if(!rval)
    {
       const char* strType =
@@ -32,7 +32,7 @@ bool Type::isValid(DynamicObject& obj, ValidatorContext* context)
       // FIXME: localize -- lehn
       // FIXME: really? do we need to mention this, because we'd have to
       //        do this for every string in the system.. -- manu
-      detail["message"] = mErrorMessage ? mErrorMessage : 
+      detail["message"] = mErrorMessage ? mErrorMessage :
          "The given object type is different from the " \
          "required object type.";
       detail["givenType"] = strType;
@@ -42,6 +42,6 @@ bool Type::isValid(DynamicObject& obj, ValidatorContext* context)
    {
       context->addSuccess();
    }
-   
+
    return rval;
 }

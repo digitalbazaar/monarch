@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_validation_Optional_H
 #define db_validation_Optional_H
@@ -26,7 +26,7 @@ namespace validation
  *      NULL)
  *   m.isValid(d1) => true
  *   m.isValid(d2) => true
- * 
+ *
  * @author David I. Lehn
  */
 class Optional : public Validator
@@ -39,18 +39,18 @@ public:
     * Creates a new validator.
     */
    Optional(Validator* validator);
-   
+
    /**
     * Destructs this validator.
     */
    virtual ~Optional();
-   
+
    /**
     * Checks if an object is valid.
-    * 
+    *
     * @param obj the object to validate.
     * @param context context to use during validation.
-    * 
+    *
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
@@ -60,9 +60,9 @@ public:
 
    /**
     * If an object is missing is this Check if this validator is optional.
-    * 
+    *
     * @param context context to use during validation.
-    * 
+    *
     * @return true if optional, false if mandatory.
     */
    virtual bool isOptional(ValidatorContext* context);

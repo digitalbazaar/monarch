@@ -20,7 +20,7 @@ using namespace db::upnp;
 void runSoapEnvelopeTest(TestRunner& tr)
 {
    tr.group("SoapEnvelope");
-   
+
    tr.test("create");
    {
       const char* expect =
@@ -33,18 +33,18 @@ void runSoapEnvelopeTest(TestRunner& tr)
          "</m:GetStockPrice>"
          "</soap:Body>"
          "</soap:Envelope>";
-      
+
       SoapEnvelope env;
       SoapMessage msg;
       msg["name"] = "GetStockPrice";
       msg["namespace"] = "http://www.example.org/stock";
       msg["params"]["StockName"] = "IBM";
       string envelope = env.create(msg);
-      
+
       assertStrCmp(expect, envelope.c_str());
    }
    tr.passIfNoException();
-   
+
    tr.test("parse message");
    {
       const char* expect =
@@ -57,17 +57,17 @@ void runSoapEnvelopeTest(TestRunner& tr)
          "</m:GetStockPrice>"
          "</soap:Body>"
          "</soap:Envelope>";
-      
+
       ByteArrayInputStream bais(expect, strlen(expect));
-      
+
       SoapEnvelope env;
       SoapResult result;
       env.parse(&bais, result);
       assertNoException();
-      
+
       // result is not a fault
       assert(!result["fault"]->getBoolean());
-      
+
       // compare message
       SoapMessage expectMessage;
       expectMessage["name"] = "GetStockPrice";
@@ -76,7 +76,7 @@ void runSoapEnvelopeTest(TestRunner& tr)
       assert(expectMessage == result["message"]);
    }
    tr.passIfNoException();
-   
+
    tr.test("parse fault");
    {
       const char* expect =
@@ -94,17 +94,17 @@ void runSoapEnvelopeTest(TestRunner& tr)
          "</soap:Fault>"
          "</soap:Body>"
          "</soap:Envelope>";
-      
+
       ByteArrayInputStream bais(expect, strlen(expect));
-      
+
       SoapEnvelope env;
       SoapResult result;
       env.parse(&bais, result);
       assertNoException();
-      
+
       // result is a fault
       assert(result["fault"]->getBoolean());
-      
+
       // compare message
       SoapMessage expectMessage;
       expectMessage["name"] = "Fault";
@@ -116,14 +116,14 @@ void runSoapEnvelopeTest(TestRunner& tr)
       assert(expectMessage == result["message"]);
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runPortMappingTest(TestRunner& tr)
 {
    tr.group("PortMapping");
-   
+
    PortMapping mapping;
    mapping["NewRemoteHost"] = "";
    mapping["NewExternalPort"] = 19100;
@@ -133,10 +133,10 @@ void runPortMappingTest(TestRunner& tr)
    mapping["NewEnabled"] = "1";
    mapping["NewPortMappingDescription"] = "A test port mapping.";
    mapping["NewLeaseDuration"] = "0";
-   
+
    Device igd(NULL);
    Service wipcs(NULL);
-   
+
    tr.test("discover internet gateway device");
    {
       // search for 1 internet gateway device... 2 seconds to find one
@@ -150,7 +150,7 @@ void runPortMappingTest(TestRunner& tr)
       assert(!igd.isNull());
    }
    tr.passIfNoException();
-      
+
    tr.test("get device description");
    {
       ControlPoint cp;
@@ -158,7 +158,7 @@ void runPortMappingTest(TestRunner& tr)
       assertNoException();
    }
    tr.passIfNoException();
-   
+
    tr.test("get wan ip connection service");
    {
       ControlPoint cp;
@@ -166,7 +166,7 @@ void runPortMappingTest(TestRunner& tr)
       assert(!wipcs.isNull());
    }
    tr.passIfNoException();
-   
+
    tr.test("get service description");
    {
       ControlPoint cp;
@@ -174,7 +174,7 @@ void runPortMappingTest(TestRunner& tr)
       assertNoException();
    }
    tr.passIfNoException();
-   
+
    tr.test("remove if exists");
    {
       ControlPoint cp;
@@ -190,7 +190,7 @@ void runPortMappingTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-   
+
    tr.test("add mapping");
    {
       ControlPoint cp;
@@ -198,7 +198,7 @@ void runPortMappingTest(TestRunner& tr)
       cp.addPortMapping(pm, wipcs);
    }
    tr.passIfNoException();
-   
+
    tr.test("get all mappings");
    {
       ControlPoint cp;
@@ -228,7 +228,7 @@ void runPortMappingTest(TestRunner& tr)
       printf("END PORT MAPPINGS.\n");
    }
    tr.passIfNoException();
-   
+
    tr.test("get specific mapping");
    {
       ControlPoint cp;
@@ -241,7 +241,7 @@ void runPortMappingTest(TestRunner& tr)
       assert(pm == mapping);
    }
    tr.passIfNoException();
-   
+
    tr.test("remove mapping");
    {
       ControlPoint cp;
@@ -249,7 +249,7 @@ void runPortMappingTest(TestRunner& tr)
       cp.removePortMapping(pm, wipcs, NULL);
    }
    tr.passIfNoException();
-   
+
    tr.test("get all mappings after remove");
    {
       ControlPoint cp;
@@ -279,7 +279,7 @@ void runPortMappingTest(TestRunner& tr)
       printf("END PORT MAPPINGS.\n");
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
@@ -297,7 +297,7 @@ public:
    virtual int runAutomaticTests(TestRunner& tr)
    {
       runSoapEnvelopeTest(tr);
-      
+
       return 0;
    }
 
@@ -307,7 +307,7 @@ public:
    virtual int runInteractiveTests(TestRunner& tr)
    {
       runPortMappingTest(tr);
-      
+
       return 0;
    }
 };

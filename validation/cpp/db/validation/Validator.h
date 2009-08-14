@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_validation_Validator_H
 #define db_validation_Validator_H
@@ -17,7 +17,7 @@ namespace validation
 
 /**
  * Base functionality for Validators.
- * 
+ *
  * @author David I. Lehn
  */
 class Validator
@@ -25,28 +25,28 @@ class Validator
 protected:
    /* Custom error message */
    char* mErrorMessage;
-   
+
 public:
    /**
     * Creates a new Validator with a specified error message or NULL to use
     * a default message for this validator.
-    * 
+    *
     * @param errorMessage a custom error message used in the error detail
     *        "message" field.  NULL to use default.  string is copied.
     */
    Validator(const char* errorMessage = NULL);
-   
+
    /**
     * Destructs this Validator.
     */
    virtual ~Validator();
-   
+
    /**
     * Checks if an object is valid.
-    * 
+    *
     * @param obj the object to validate.
     * @param context context to use during validation.
-    * 
+    *
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
@@ -55,9 +55,9 @@ public:
 
    /**
     * Checks if an object is valid using a new context.
-    * 
+    *
     * @param obj the object to validate.
-    * 
+    *
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(db::rt::DynamicObject& obj);
@@ -71,9 +71,9 @@ public:
     * as a wrapper around other validators.
     *
     * See the Optional class documentation for an example.
-    * 
+    *
     * @param state arbitrary state for validators to use during validation.
-    * 
+    *
     * @return true if optional, false if mandatory.
     */
    virtual bool isOptional(ValidatorContext* context);

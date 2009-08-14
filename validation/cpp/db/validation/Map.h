@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_validation_Map_H
 #define db_validation_Map_H
@@ -29,7 +29,7 @@ namespace validation
  * NOTE: Checking for arbitrary extra members not yet implemented.  However,
  * you can set a validator such as: "new Optional(new NotValid())" in order
  * to fail on specific members that are not allowed.
- * 
+ *
  * @author David I. Lehn
  */
 class Map : public Validator
@@ -42,49 +42,49 @@ public:
     * Creates a new validator.
     */
    Map();
-   
+
    /**
     * Creates a new validator with a NULL key terminated key:validator list.
     */
    Map(const char* key, ...);
-   
+
    /**
     * Destructs this validator.
     */
    virtual ~Map();
-   
+
    /**
     * Checks if an object is valid.
-    * 
+    *
     * @param obj the object to validate.
     * @param context context to use during validation.
-    * 
+    *
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
       db::rt::DynamicObject& obj,
       ValidatorContext* context);
    using Validator::isValid;
-   
+
    /**
     * Adds a key:validator pair.
-    * 
+    *
     * @param key a map key.
     * @param validator a Validator.
     */
    virtual void addValidator(const char* key, Validator* validator);
-   
+
    /**
     * Adds key:validator pairs.
-    * 
+    *
     * @param key a map key.
     * @param ap a vararg list.
     */
    virtual void addValidators(const char* key, va_list ap);
-   
+
    /**
     * Adds a NULL terminated list of key:validator pairs.
-    * 
+    *
     * @param key a map key.
     * @param ... more key:validator pairs.
     */

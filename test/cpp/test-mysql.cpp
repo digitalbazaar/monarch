@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
@@ -31,7 +30,7 @@ void createMySqlTable(TestRunner& tr, db::sql::Connection* c)
       s->execute();
    }
    tr.passIfNoException();
-   
+
    tr.test("create table");
    {
       db::sql::Statement* s = c->prepare(
@@ -55,7 +54,7 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
       assert(s->getLastInsertRowId() > 0);
    }
    tr.passIfNoException();
-   
+
    tr.test("insert test 2");
    {
       db::sql::Statement* s = c->prepare(
@@ -65,7 +64,7 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
       assert(s->getLastInsertRowId() > 0);
    }
    tr.passIfNoException();
-   
+
    tr.test("insert positional parameters test");
    {
       db::sql::Statement* s;
@@ -84,14 +83,14 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
       //printf("TIME=%llu ms\n", (end - start));
    }
    tr.passIfNoException();
-   
+
    tr.test("select test");
    {
       db::sql::Statement* s = c->prepare("SELECT t, i FROM " TABLE_TEST);
       assertNoException();
       s->execute();
       assertNoException();
-      
+
       // fetch rows
       Row* row;
       string t;
@@ -102,7 +101,7 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
          assertNoException();
          row->getInt32("i", i);
          assertNoException();
-         
+
          if(strcmp(t.c_str(), "test!") == 0)
          {
             assert(i == 1234);
@@ -123,14 +122,14 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
       }
    }
    tr.passIfNoException();
-   
+
    tr.test("select command ordering test");
    {
       db::sql::Statement* s = c->prepare("SELECT t, i FROM " TABLE_TEST);
       assertNoException();
       s->execute();
       assertNoException();
-      
+
       // fetch rows
       Row* row;
       string t;
@@ -141,7 +140,7 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
          assertNoException();
          row->getInt32("i", i);
          assertNoException();
-         
+
          if(strcmp(t.c_str(), "test!") == 0)
          {
             assert(i == 1234);
@@ -167,76 +166,76 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
 void runMySqlConnectionTest(TestRunner& tr)
 {
    tr.test("MySql Connection");
-   
+
    MySqlConnection c;
    c.connect("mysql://dbreadclient:k288m2s8f6gk39a@omega.digitalbazaar.com/test");
    c.close();
    assertNoException();
-   
+
    // clean up mysql
    mysql_library_end();
-   
+
    tr.pass();
 }
 
 void runMySqlStatementTest(TestRunner& tr)
 {
    tr.group("MySql Statement");
-   
+
    // clear any exceptions
    Exception::clear();
-   
+
    MySqlConnection c;
    c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@omega.digitalbazaar.com");
    assertNoException();
-   
+
    // create table
    createMySqlTable(tr, &c);
-   
+
    // execute mysql statements
    executeMySqlStatements(tr, &c);
-   
+
    tr.test("connection close");
    {
       c.close();
    }
    tr.passIfNoException();
-   
+
    // clean up mysql
    mysql_library_end();
-   
+
    tr.ungroup();
 }
 
 void runMySqlDatabaseClientTest(TestRunner& tr)
 {
    tr.group("DatabaseClient");
-   
+
    // create mysql connection pools
    ConnectionPoolRef readPool = new MySqlConnectionPool(
       "mysql://dbreadclient:k288m2s8f6gk39a@omega.digitalbazaar.com", 1);
    ConnectionPoolRef writePool = new MySqlConnectionPool(
       "mysql://dbwriteclient:k288m2s8f6gk39a@omega.digitalbazaar.com", 1);
    assertNoException();
-   
+
    // create database client
    DatabaseClientRef dbc = new MySqlDatabaseClient();
    dbc->setDebugLogging(true);
    dbc->setReadConnectionPool(readPool);
    dbc->setWriteConnectionPool(writePool);
-   
+
    tr.test("initialize");
    {
       dbc->initialize();
    }
    tr.passIfNoException();
-   
+
    tr.test("define table");
    {
       SchemaObject schema;
       schema["table"] = TABLE_TEST;
       schema["indices"]->append() = "PRIMARY KEY(foo_id)";
-      
+
       DatabaseClient::addSchemaColumn(schema,
          "foo_id", "BIGINT(20) UNSIGNED AUTO_INCREMENT", "fooId", UInt64);
       DatabaseClient::addSchemaColumn(schema,
@@ -245,29 +244,29 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
          "foo_flag", "TINYINT(1) UNSIGNED", "fooFlag", Boolean);
       DatabaseClient::addSchemaColumn(schema,
          "foo_int32", "TINYINT(1) UNSIGNED", "fooInt32", Int32);
-      
+
       dbc->define(schema);
    }
    tr.passIfNoException();
-   
+
    tr.test("drop table if exists");
    {
       dbc->drop(TABLE_TEST, true);
    }
    tr.passIfNoException();
-   
+
    tr.test("create table");
    {
       dbc->create(TABLE_TEST, false);
    }
    tr.passIfNoException();
-   
+
    tr.test("create table if not exists");
    {
       dbc->create(TABLE_TEST, true);
    }
    tr.passIfNoException();
-   
+
    tr.test("insert");
    {
       DynamicObject row;
@@ -278,7 +277,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       dbc->execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
-      
+
       DynamicObject expect;
       expect["fooId"] = 1;
       expect["fooString"] = "foobar";
@@ -294,7 +293,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == row);
    }
    tr.passIfNoException();
-   
+
    tr.test("insert again");
    {
       DynamicObject row;
@@ -305,7 +304,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       dbc->execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
-      
+
       DynamicObject expect;
       expect["fooId"] = 2;
       expect["fooString"] = "foobar";
@@ -321,7 +320,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == row);
    }
    tr.passIfNoException();
-   
+
    tr.test("select one");
    {
       DynamicObject where;
@@ -329,7 +328,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect["fooId"] = 1;
       expect["fooString"] = "foobar";
@@ -345,7 +344,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("select one specific member");
    {
       DynamicObject where;
@@ -355,7 +354,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where, &members);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect["fooString"] = "foobar";
       if(expect != se->result)
@@ -368,7 +367,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("select");
    {
       DynamicObject where;
@@ -379,7 +378,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       dbc->execute(se);
       assertNoException();
       assert(se->rowsFound == 2);
-      
+
       DynamicObject expect;
       expect->setType(Array);
       DynamicObject& first = expect->append();
@@ -402,7 +401,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("update");
    {
       DynamicObject row;
@@ -414,7 +413,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(se->rowsAffected = 1);
    }
    tr.passIfNoException();
-   
+
    tr.test("update w/limit");
    {
       DynamicObject row;
@@ -426,7 +425,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(se->rowsAffected = 1);
    }
    tr.passIfNoException();
-   
+
    tr.test("select updated one");
    {
       DynamicObject where;
@@ -434,7 +433,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect["fooId"] = 2;
       expect["fooString"] = "bar";
@@ -450,7 +449,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("select updated");
    {
       DynamicObject where;
@@ -458,7 +457,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect[0]["fooId"] = 2;
       expect[0]["fooString"] = "bar";
@@ -474,7 +473,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("select IN()");
    {
       DynamicObject where;
@@ -483,7 +482,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect->setType(Array);
       DynamicObject& first = expect->append();
@@ -506,7 +505,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("insert on duplicate key update");
    {
       DynamicObject row;
@@ -517,7 +516,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(se->rowsAffected = 1);
    }
    tr.passIfNoException();
-   
+
    tr.test("select duplicate key updated");
    {
       DynamicObject where;
@@ -525,7 +524,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect["fooId"] = 1;
       expect["fooString"] = "duplicate key update";
@@ -541,7 +540,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("remove");
    {
       DynamicObject where;
@@ -551,13 +550,13 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(se->rowsAffected == 1);
    }
    tr.passIfNoException();
-   
+
    tr.test("select again");
    {
       SqlExecutableRef se = dbc->select(TABLE_TEST);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect[0]["fooId"] = 2;
       expect[0]["fooString"] = "bar";
@@ -573,7 +572,7 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
@@ -582,7 +581,7 @@ class MySqlConnectionPoolTest : public Runnable
 public:
    MySqlConnectionPool* pool;
    TestRunner* tr;
-   
+
    virtual void run()
    {
       db::sql::Connection* c = pool->getConnection();
@@ -594,22 +593,22 @@ public:
 void runMySqlConnectionPoolTest(TestRunner& tr)
 {
    tr.group("MySql ConnectionPool");
-   
+
    // create mysql connection pool
    MySqlConnectionPool cp(
       "mysql://dbwriteclient:k288m2s8f6gk39a@omega.digitalbazaar.com", 100);
    assertNoException();
-   
+
    // create table
    db::sql::Connection* c = cp.getConnection();
    createMySqlTable(tr, c);
    c->close();
-   
+
    // create connection test threads
    int testCount = 300;
    MySqlConnectionPoolTest tests[testCount];
    Thread* threads[testCount];
-   
+
    // create threads, set pool for tests
    for(int i = 0; i < testCount; i++)
    {
@@ -617,9 +616,9 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
       tests[i].tr = &tr;
       threads[i] = new Thread(&tests[i]);
    }
-   
+
    uint64_t startTime = Timer::startTiming();
-   
+
    // run connection threads
    for(int i = 0; i < testCount; i++)
    {
@@ -628,30 +627,30 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
          threads[i - 1]->join();
       }
    }
-   
+
    // join threads
    for(int i = 0; i < testCount; i++)
    {
       threads[i]->join();
    }
-   
+
    double seconds = Timer::getSeconds(startTime);
-   
+
    // clean up threads
    for(int i = 0; i < testCount; i++)
    {
       delete threads[i];
    }
-   
+
    // clean up mysql
    mysql_library_end();
-   
+
    // print report
    printf("\nNumber of independent connection uses: %d\n", testCount);
    printf("Number of pooled connections created: %d\n",
       cp.getConnectionCount());
    printf("Total time: %g seconds\n", seconds);
-   
+
    tr.ungroup();
 }
 

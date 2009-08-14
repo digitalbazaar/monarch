@@ -19,7 +19,7 @@ using namespace db::test;
 void runConfigManagerTest(TestRunner& tr)
 {
    tr.group("ConfigManager");
-   
+
    tr.test("init");
    {
       DynamicObject expect;
@@ -34,7 +34,7 @@ void runConfigManagerTest(TestRunner& tr)
       assertDynoCmp(cm.getConfig("config"), expect);
    }
    tr.passIfNoException();
-   
+
    tr.test("init & clear");
    {
       DynamicObject expect;
@@ -49,7 +49,7 @@ void runConfigManagerTest(TestRunner& tr)
       assert(cfg2.isNull());
    }
    tr.passIfException();
-   
+
    tr.test("1 config");
    {
       DynamicObject expect;
@@ -64,7 +64,7 @@ void runConfigManagerTest(TestRunner& tr)
       assertDynoCmp(cm.getConfig("config"), expect);
    }
    tr.passIfNoException();
-   
+
    tr.test("config change");
    {
       ConfigManager cm;
@@ -235,7 +235,7 @@ void runConfigManagerTest(TestRunner& tr)
       string absoluteDir;
       File configFile = File::createTempFile("test-config-file");
       FileOutputStream fos(configFile);
-      
+
       // create and populate the config file
       string configFileText =
          "{\n"
@@ -246,7 +246,7 @@ void runConfigManagerTest(TestRunner& tr)
          "}\n";
       fos.write(configFileText.c_str(), configFileText.length());
       fos.close();
-      
+
       // modify the current working directory to the expected value
       absoluteDir = File::dirname(configFile->getAbsolutePath());
       cwd = absoluteDir.c_str();
@@ -256,7 +256,7 @@ void runConfigManagerTest(TestRunner& tr)
       // set the expected values
       expect["dir"] = cwd.c_str();
       expect["dir-plus"] = cwdPlusMore.c_str();
-      
+
       // create the configuration
       ConfigManager cm;
       assert(cm.addConfigFile(configFile->getAbsolutePath(),
@@ -288,7 +288,7 @@ void runConfigManagerTest(TestRunner& tr)
       userc["node"]["comment"] = "My precious...";
       assert(cm.addConfig(userc, ConfigManager::Custom));
       assertNoException();
-      
+
       // user makes changes during runtime
       DynamicObject c = cm.getConfig();
       c["node"]["port"] = 19200;
@@ -310,7 +310,7 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 #endif
-   
+
    tr.test("versioning");
    {
       ConfigManager cm;
@@ -320,22 +320,22 @@ void runConfigManagerTest(TestRunner& tr)
       c[ConfigManager::ID] = "config";
       assert(cm.addConfig(c));
       assertNoException();
-      
+
       cm.addVersion("1");
       assert(!cm.addConfig(c));
       assertException();
       Exception::clear();
-      
+
       c[ConfigManager::VERSION] = "2";
       cm.removeConfig("config");
       assert(!cm.addConfig(c));
       assertException();
       Exception::clear();
-      
+
       c[ConfigManager::VERSION] = "1";
       assert(cm.addConfig(c));
       assertNoException();
-      
+
       c[ConfigManager::VERSION] = "2";
       cm.removeConfig("config");
       cm.addVersion("2");
@@ -343,7 +343,7 @@ void runConfigManagerTest(TestRunner& tr)
       assertNoException();
    }
    tr.passIfNoException();
-   
+
    tr.test("empty array & map");
    {
       ConfigManager cm;

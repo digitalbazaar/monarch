@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/util/Random.h"
 #include "db/util/Math.h"
@@ -20,12 +20,12 @@ public:
    {
       int count = 20;
       printf("Generating %i random numbers between 1 and 1000000000:\n", count);
-      
+
       for(int i = 1; i <= count; i++)
       {
          printf("%i: %llu\n", i, Random::next(1, 1000000000));
       }
-      
+
       printf("Done. Total:1 Passed:1 Failed:0 Warnings:0 Unknown:0.");
    }
 };
@@ -33,7 +33,7 @@ public:
 int main()
 {
    printf("Testing Random...\n");
-   
+
    Random::seed();
    for(int i = 0; i < 10; i++)
    {
@@ -42,6 +42,6 @@ int main()
       t.start();
       t.join();
    }
-   
+
    exit(0);
 }

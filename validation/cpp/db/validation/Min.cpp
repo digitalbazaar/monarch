@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/validation/Min.h"
 
@@ -21,7 +21,7 @@ bool Min::isValid(
    ValidatorContext* context)
 {
    bool rval = (!obj.isNull() && obj->length() >= mSize);
-   
+
    if(!rval)
    {
       DynamicObject detail = context->addError("db.validation.MinError", &obj);
@@ -36,6 +36,6 @@ bool Min::isValid(
    {
       context->addSuccess();
    }
-   
+
    return rval;
 }

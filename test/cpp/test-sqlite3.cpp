@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
@@ -130,7 +129,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       assertNoException();
    }
-   
+
    if(tr != NULL)
    {
       tr->test("insert test 2");
@@ -151,7 +150,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       assertNoException();
    }
-   
+
    if(tr != NULL)
    {
       tr->test("insert positional parameters");
@@ -174,7 +173,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       assertNoException();
    }
-   
+
    if(tr != NULL)
    {
       tr->test("insert named parameters");
@@ -197,7 +196,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       assertNoException();
    }
-   
+
    if(tr != NULL)
    {
       tr->test("select");
@@ -208,7 +207,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       int success = s->execute();
       assertNoException();
       assert(success);
-      
+
       Row* row;
       string t;
       int i;
@@ -218,7 +217,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
          assertNoException();
          row->getInt32("i", i);
          assertNoException();
-         
+
          if(strcmp(t.c_str(), "test!") == 0)
          {
             assert(i == 1234);
@@ -271,7 +270,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       assertNoException();
    }
-   
+
    if(tr != NULL)
    {
       tr->test("insert test 2");
@@ -292,7 +291,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       assertNoException();
    }
-   
+
    if(tr != NULL)
    {
       tr->test("insert positional parameters");
@@ -315,7 +314,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       assertNoException();
    }
-   
+
    if(tr != NULL)
    {
       tr->test("insert named parameters");
@@ -338,7 +337,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
    {
       assertNoException();
    }
-   
+
    if(tr != NULL)
    {
       tr->test("select");
@@ -349,7 +348,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       int success = s->execute();
       assertNoException();
       assert(success);
-      
+
       Row* row;
       string t;
       int i;
@@ -359,7 +358,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
          assertNoException();
          row->getInt32("i", i);
          assertNoException();
-         
+
          if(strcmp(t.c_str(), "test!") == 0)
          {
             assert(i == 1234);
@@ -397,50 +396,50 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
 void runSqlite3ConnectionTest(TestRunner& tr)
 {
    tr.test("Sqlite3 Connection");
-   
+
    Sqlite3Connection c;
    c.connect("sqlite3::memory:");
    c.close();
    assertNoException();
-   
+
    tr.pass();
 }
 
 void runSqlite3StatementTest(TestRunner& tr)
 {
    tr.group("Sqlite3 Statement");
-   
+
    // clear any exceptions
    Exception::clear();
-   
+
    Sqlite3Connection c;
    c.connect("sqlite3::memory:");
-   
+
    // create table
    createSqlite3Table(&tr, &c);
-   
+
    // execute statements
    executeSqlite3Statements(&tr, &c);
-   
+
    tr.test("connection close");
    {
       c.close();
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runSqlite3TableTest(TestRunner& tr)
 {
    tr.group("Sqlite3 Table");
-   
+
    // clear any exceptions
    Exception::clear();
-   
+
    Sqlite3Connection c;
    c.connect("sqlite3::memory:");
-   
+
    // clean up table if it exists
    tr.test("drop table if exists");
    {
@@ -464,7 +463,7 @@ void runSqlite3TableTest(TestRunner& tr)
       assert(success);
    }
    tr.passIfNoException();
-   
+
    // drop table
    tr.test("drop table");
    {
@@ -482,7 +481,7 @@ void runSqlite3TableTest(TestRunner& tr)
       c.close();
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
@@ -497,13 +496,13 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
       // - copy t1_old data to t1
       // - drop t1_old
       // - commit
-      
+
       // clear any exceptions
       Exception::clear();
-      
+
       Sqlite3Connection c;
       c.connect("sqlite3::memory:");
-      
+
       tr.test("create test table");
       {
          db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
@@ -513,13 +512,13 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("begin");
       {
          c.begin();
       }
       tr.passIfNoException();
-      
+
       tr.test("rename");
       {
          db::sql::Statement* s = c.prepare("ALTER TABLE t1 RENAME TO t1_old");
@@ -529,7 +528,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("create new table");
       {
          db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
@@ -539,7 +538,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("copy data");
       {
          db::sql::Statement* s =
@@ -550,7 +549,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("drop old table");
       {
          db::sql::Statement* s = c.prepare("DROP TABLE t1_old");
@@ -560,13 +559,13 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-      
+
       tr.test("commit");
       {
          c.commit();
       }
       tr.passIfNoException();
-   
+
       tr.test("connection close");
       {
          c.close();
@@ -586,13 +585,13 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
       // - copy t1_new data to t1
       // - drop t1_new
       // - commit
-      
+
       // clear any exceptions
       Exception::clear();
-      
+
       Sqlite3Connection c;
       c.connect("sqlite3::memory:");
-      
+
       tr.test("create test table");
       {
          db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
@@ -602,13 +601,13 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("begin");
       {
          c.begin();
       }
       tr.passIfNoException();
-      
+
       tr.test("create new temp table");
       {
          db::sql::Statement* s =
@@ -619,7 +618,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("copy data");
       {
          db::sql::Statement* s =
@@ -630,7 +629,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("drop old table");
       {
          db::sql::Statement* s = c.prepare("DROP TABLE t1");
@@ -640,7 +639,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-      
+
       tr.test("create new table");
       {
          db::sql::Statement* s =
@@ -651,7 +650,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("copy data");
       {
          db::sql::Statement* s =
@@ -662,7 +661,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("drop temp table");
       {
          db::sql::Statement* s = c.prepare("DROP TABLE t1_new");
@@ -672,13 +671,13 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-      
+
       tr.test("commit");
       {
          c.commit();
       }
       tr.passIfNoException();
-   
+
       tr.test("connection close");
       {
          c.close();
@@ -686,7 +685,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.passIfNoException();
    }
    tr.ungroup();
-   
+
    tr.group("Sqlite3 Table Migration (3)");
    {
       // test table migration algorithm 3
@@ -697,13 +696,13 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
       // - copy/migrate t1_old data to t1
       // - drop t1_old
       // - commit
-      
+
       // clear any exceptions
       Exception::clear();
-      
+
       Sqlite3Connection c;
       c.connect("sqlite3::memory:");
-      
+
       tr.test("create test table");
       {
          db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
@@ -713,13 +712,13 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("begin");
       {
          c.begin();
       }
       tr.passIfNoException();
-      
+
       tr.test("create new temp table");
       {
          db::sql::Statement* s =
@@ -730,7 +729,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("drop old table");
       {
          db::sql::Statement* s = c.prepare("DROP TABLE t1");
@@ -740,7 +739,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-      
+
       tr.test("create new table");
       {
          db::sql::Statement* s =
@@ -751,7 +750,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("copy data");
       {
          db::sql::Statement* s =
@@ -762,7 +761,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-   
+
       tr.test("drop temp table");
       {
          db::sql::Statement* s = c.prepare("DROP TABLE t1_old");
@@ -772,13 +771,13 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
          assert(success);
       }
       tr.passIfNoException();
-      
+
       tr.test("commit");
       {
          c.commit();
       }
       tr.passIfNoException();
-   
+
       tr.test("connection close");
       {
          c.close();
@@ -792,7 +791,7 @@ class Sqlite3ThreadTest : public Runnable
 {
 public:
    Sqlite3Connection* connection;
-   
+
    virtual void run()
    {
       connection = new Sqlite3Connection();
@@ -804,44 +803,44 @@ public:
 void runSqlite3ThreadTest(TestRunner& tr)
 {
    tr.group("Sqlite3 multithread");
-   
+
    // create sqlite3 connection in another thread
    Sqlite3ThreadTest runnable;
    Thread t(&runnable);
    t.start();
    t.join();
-   
+
    // use sqlite3 connection in this thread
    tr.test("connection created in separate thread");
    {
       db::sql::Connection* c = runnable.connection;
-      
+
       // create table
       createSqlite3Table(NULL, c);
-      
+
       // execute statements
       executeSqlite3Statements(NULL, c);
-      
+
       // close connection
       c->close();
       delete c;
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runSqlite3ReuseTest(TestRunner& tr)
 {
    tr.group("Reuse");
-   
+
    // clear any exceptions
    Exception::clear();
-   
+
    // create sqlite3 connection pool
    Sqlite3ConnectionPool cp("sqlite3::memory:", 1);
    assertNoException();
-   
+
    tr.test("create table");
    {
       // create table
@@ -856,7 +855,7 @@ void runSqlite3ReuseTest(TestRunner& tr)
       c->close();
    }
    tr.passIfNoException();
-   
+
    tr.test("insert row");
    {
       // create table
@@ -871,7 +870,7 @@ void runSqlite3ReuseTest(TestRunner& tr)
       c->close();
    }
    tr.passIfNoException();
-   
+
    tr.test("select single row");
    {
       // select single row
@@ -884,24 +883,24 @@ void runSqlite3ReuseTest(TestRunner& tr)
       int success = s->execute();
       assertNoException();
       assert(success);
-      
+
       Row* row = s->fetch();
       assert(row != NULL);
       string t;
       int i;
-      
+
       row->getText("t", t);
       assertNoException();
       row->getInt32("i", i);
       assertNoException();
-      
+
       assertStrCmp(t.c_str(), "test!");
       assert(i == 1234);
-      
+
       c->close();
    }
    tr.passIfNoException();
-   
+
    tr.test("select single row again");
    {
       // select single row
@@ -914,53 +913,53 @@ void runSqlite3ReuseTest(TestRunner& tr)
       int success = s->execute();
       assertNoException();
       assert(success);
-      
+
       Row* row = s->fetch();
       assert(row != NULL);
       string t;
       int i;
-      
+
       row->getText("t", t);
       assertNoException();
       row->getInt32("i", i);
       assertNoException();
-      
+
       assertStrCmp(t.c_str(), "test!");
       assert(i == 1234);
-      
+
       c->close();
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runSqlite3DatabaseClientTest(TestRunner& tr)
 {
    tr.group("DatabaseClient");
-   
+
    // create sqlite3 connection pool
    Sqlite3ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:", 1);
    ConnectionPoolRef pool(cp);
    assertNoException();
-   
+
    // create database client
    DatabaseClientRef dbc = new Sqlite3DatabaseClient();
    dbc->setDebugLogging(true);
    dbc->setReadConnectionPool(pool);
    dbc->setWriteConnectionPool(pool);
-   
+
    tr.test("initialize");
    {
       dbc->initialize();
    }
    tr.passIfNoException();
-   
+
    tr.test("define table");
    {
       SchemaObject schema;
       schema["table"] = TABLE_TEST;
-      
+
       DatabaseClient::addSchemaColumn(schema,
          "foo_id", "INTEGER PRIMARY KEY", "fooId", UInt64);
       DatabaseClient::addSchemaColumn(schema,
@@ -969,23 +968,23 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
          "foo_flag", "INTEGER", "fooFlag", Boolean);
       DatabaseClient::addSchemaColumn(schema,
          "foo_int32", "INTEGER", "fooInt32", Int32);
-      
+
       dbc->define(schema);
    }
    tr.passIfNoException();
-   
+
    tr.test("create table");
    {
       dbc->create(TABLE_TEST, false);
    }
    tr.passIfNoException();
-   
+
    tr.test("create table if not exists");
    {
       dbc->create(TABLE_TEST, true);
    }
    tr.passIfNoException();
-   
+
    tr.test("insert");
    {
       DynamicObject row;
@@ -996,7 +995,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       dbc->execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
-      
+
       DynamicObject expect;
       expect["fooId"] = 1;
       expect["fooString"] = "foobar";
@@ -1012,7 +1011,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(expect == row);
    }
    tr.passIfNoException();
-   
+
    tr.test("insert again");
    {
       DynamicObject row;
@@ -1023,7 +1022,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       dbc->execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
-      
+
       DynamicObject expect;
       expect["fooId"] = 2;
       expect["fooString"] = "foobar";
@@ -1039,7 +1038,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(expect == row);
    }
    tr.passIfNoException();
-   
+
    tr.test("select one");
    {
       DynamicObject where;
@@ -1047,7 +1046,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect["fooId"] = 1;
       expect["fooString"] = "foobar";
@@ -1063,7 +1062,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("select one specific member");
    {
       DynamicObject where;
@@ -1073,7 +1072,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where, &members);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect["fooString"] = "foobar";
       if(expect != se->result)
@@ -1086,7 +1085,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("select");
    {
       DynamicObject where;
@@ -1094,7 +1093,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->select(TABLE_TEST, &where, NULL, 5);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect->setType(Array);
       DynamicObject& first = expect->append();
@@ -1117,7 +1116,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("update");
    {
       DynamicObject row;
@@ -1129,7 +1128,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(se->rowsAffected = 1);
    }
    tr.passIfNoException();
-   
+
    tr.test("update w/limit");
    {
       DynamicObject row;
@@ -1141,7 +1140,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(se->rowsAffected = 1);
    }
    tr.passIfNoException();
-   
+
    tr.test("select updated one");
    {
       DynamicObject where;
@@ -1149,7 +1148,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect["fooId"] = 2;
       expect["fooString"] = "bar";
@@ -1165,7 +1164,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("select updated");
    {
       DynamicObject where;
@@ -1173,7 +1172,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect[0]["fooId"] = 2;
       expect[0]["fooString"] = "bar";
@@ -1189,7 +1188,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("select IN()");
    {
       DynamicObject where;
@@ -1198,7 +1197,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect->setType(Array);
       DynamicObject& first = expect->append();
@@ -1221,7 +1220,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.test("remove");
    {
       DynamicObject where;
@@ -1231,13 +1230,13 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(se->rowsAffected == 1);
    }
    tr.passIfNoException();
-   
+
    tr.test("select again");
    {
       SqlExecutableRef se = dbc->select(TABLE_TEST);
       dbc->execute(se);
       assertNoException();
-      
+
       DynamicObject expect;
       expect[0]["fooId"] = 2;
       expect[0]["fooString"] = "bar";
@@ -1253,7 +1252,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       assert(expect == se->result);
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
@@ -1262,7 +1261,7 @@ class Sqlite3ConnectionPoolTest : public Runnable
 public:
    Sqlite3ConnectionPool* pool;
    TestRunner* tr;
-   
+
    virtual void run()
    {
       db::sql::Connection* c = pool->getConnection();
@@ -1275,21 +1274,21 @@ public:
 void runSqlite3ConnectionPoolTest(TestRunner& tr)
 {
    tr.group("Sqlite3 ConnectionPool");
-   
+
    // create sqlite3 connection pool
    Sqlite3ConnectionPool cp("sqlite3:///tmp/sqlite3cptest.db", 1);
    assertNoException();
-   
+
    // create table
    db::sql::Connection* c = cp.getConnection();
    createSqlite3Table(NULL, c);
    c->close();
-   
+
    // create connection test threads
    int testCount = 200;
    Sqlite3ConnectionPoolTest tests[testCount];
    Thread* threads[testCount];
-   
+
    // create threads, set pool for tests
    for(int i = 0; i < testCount; i++)
    {
@@ -1297,9 +1296,9 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
       tests[i].tr = &tr;
       threads[i] = new Thread(&tests[i]);
    }
-   
+
    uint64_t startTime = Timer::startTiming();
-   
+
    // run connection threads
    for(int i = 0; i < testCount; i++)
    {
@@ -1308,27 +1307,27 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
          threads[i - 1]->join();
       }
    }
-   
+
    // join threads
    for(int i = 0; i < testCount; i++)
    {
       threads[i]->join();
    }
-   
+
    double seconds = Timer::getSeconds(startTime);
-   
+
    // clean up threads
    for(int i = 0; i < testCount; i++)
    {
       delete threads[i];
    }
-   
+
    // print report
    printf("\nNumber of independent connection uses: %d\n", testCount);
    printf("Number of pooled connections created: %d\n",
       cp.getConnectionCount());
    printf("Total time: %g seconds\n", seconds);
-   
+
    tr.ungroup();
 }
 

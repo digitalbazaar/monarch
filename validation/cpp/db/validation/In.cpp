@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/validation/In.h"
 
@@ -24,7 +24,7 @@ bool In::isValid(
 {
    bool rval = false;
    bool valid = true;
-   
+
    switch(mContents->getType())
    {
       case Array:
@@ -54,21 +54,21 @@ bool In::isValid(
             "unknown.";
          break;
    }
-   
+
    if(!rval && valid)
    {
       DynamicObject detail = context->addError("db.validation.NotFound", &obj);
       detail["validator"] = "db.validator.In";
       detail["expectedValues"] = mContents;
-      detail["message"] = mErrorMessage ? mErrorMessage : 
+      detail["message"] = mErrorMessage ? mErrorMessage :
          "There was an error in the validator when retrieving a value "
          "for the input object.";
    }
-   
+
    if(rval)
    {
       context->addSuccess();
    }
-   
+
    return rval;
 }

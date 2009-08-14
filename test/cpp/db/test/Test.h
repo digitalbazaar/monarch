@@ -17,14 +17,14 @@ namespace test
 
 /**
  * Dump exception details.
- * 
+ *
  * @return true on success, false and exception on failure.
  */
 bool dumpException(db::rt::ExceptionRef& e);
 
 /**
  * Dump exception details of current exception if present.
- * 
+ *
  * @return true on success, false and exception on failure.
  */
 bool dumpException();
@@ -54,7 +54,7 @@ void dumpDynamicObjectText(db::rt::DynamicObject& dyno);
  * @param dyno DynamicObject to dump.
  * @param stream stream to write to.
  * @param compact Use compact syntax
- * 
+ *
  * @return true on success, false and exception on failure.
  */
 bool dynamicObjectToOStream(
@@ -67,7 +67,7 @@ bool dynamicObjectToOStream(
  * @param dyno DynamicObject to dump.
  * @param str string to write to.
  * @param compact Use compact syntax
- * 
+ *
  * @return true on success, false and exception on failure.
  */
 bool dynamicObjectToString(
@@ -75,10 +75,10 @@ bool dynamicObjectToString(
 
 /**
  * Dump DynamicObject details as JSON to cout.
- * 
+ *
  * @param dyno DynamicObject to dump.
  * @param compact Use compact syntax
- * 
+ *
  * @return true on success, false and exception on failure.
  */
 bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);

@@ -39,7 +39,7 @@ static void paramsToElement(SoapMessage& msg, DynamicObject& params, Element& e)
       while(pi->hasNext())
       {
          DynamicObject& p = pi->next();
-         
+
          // add param element
          Element param;
          param["name"] = pi->getName();
@@ -59,7 +59,7 @@ static void paramsToElement(SoapMessage& msg, DynamicObject& params, Element& e)
 string SoapEnvelope::create(SoapMessage& msg)
 {
    string envelope;
-   
+
    // create root element
    Element root;
    root["name"] = "Envelope";
@@ -79,7 +79,7 @@ string SoapEnvelope::create(SoapMessage& msg)
       attr["value"] = ENC_STYLE_NS_URI;
       root["attributes"][attr["name"]->getString()] = attr;
    }
-   
+
    // add body element
    Element body;
    body["name"] = "Body";
@@ -92,16 +92,16 @@ string SoapEnvelope::create(SoapMessage& msg)
       attr["value"] = msg["namespace"]->getString();
       body["attributes"][attr["name"]->getString()] = attr;
    }
-   
+
    // add message
    Element message;
    message["name"] = msg["name"]->getString();
    message["namespace"] = msg["namespace"]->getString();
    body["children"][message["name"]->getString()]->append(message);
-   
+
    // add message parameters
    paramsToElement(msg, msg["params"], message);
-   
+
    // write envelope to string
    DomWriter writer;
    writer.setCompact(true);
@@ -118,7 +118,7 @@ string SoapEnvelope::create(SoapMessage& msg)
          "db.upnp.InvalidSoapEnvelope");
       Exception::push(e);
    }
-   
+
    return envelope;
 }
 
@@ -133,7 +133,7 @@ static void elementToParams(Element& e, DynamicObject& params)
       while(i->hasNext())
       {
          DynamicObject& childName = i->next();
-         
+
          // each entry in child name is a child of that name
          ElementIterator ci = childName.getIterator();
          while(ci->hasNext())
@@ -152,14 +152,14 @@ static void elementToParams(Element& e, DynamicObject& params)
 bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
 {
    bool rval = false;
-   
+
    // prepare passed result
    result->setType(Map);
    result->clear();
    result["fault"] = false;
    SoapMessage& msg = result["message"];
    msg->setType(Map);
-   
+
    //  parse result
    Element root;
    DomReader reader;
@@ -168,7 +168,7 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
    {
       DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing SOAP envelope: %s",
          JsonWriter::writeToString(root).c_str());
-      
+
       // ensure there is a body in the response
       rval = false;
       if(root["children"]->hasMember("Body"))
@@ -179,7 +179,7 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
          {
             // body contains message and is valid
             rval = true;
-            
+
             // get message name and namespace
             Element message = body["children"].first()[0];
             const char* name = message["name"]->getString();
@@ -187,7 +187,7 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
             msg["name"] = name;
             msg["namespace"] = ns;
             msg["params"]->setType(Map);
-            
+
             // is a soap fault if name is "Fault" and namespace is
             // the same as the body element
             if(strcmp(name, "Fault") == 0 &&
@@ -195,12 +195,12 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
             {
                result["fault"] = true;
             }
-            
+
             // convert element to message params
             elementToParams(message, msg["params"]);
          }
       }
-      
+
       if(!rval)
       {
          ExceptionRef e = new Exception(
@@ -214,6 +214,6 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
             JsonWriter::writeToString(result).c_str());
       }
    }
-   
+
    return rval;
 }

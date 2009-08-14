@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/validation/Map.h"
 
@@ -13,16 +13,16 @@ Map::Map()
 Map::Map(const char* key, ...)
 {
    va_list ap;
-   
+
    va_start(ap, key);
    addValidators(key, ap);
    va_end(ap);
 }
-   
+
 Map::~Map()
 {
    std::vector<std::pair<const char*,Validator*> >::iterator i;
-   
+
    for(i = mValidators.begin();
       i != mValidators.end();
       i++)
@@ -36,7 +36,7 @@ bool Map::isValid(
    ValidatorContext* context)
 {
    bool rval = true;
-   
+
    if(!obj.isNull() && obj->getType() == db::rt::Map)
    {
       std::vector<std::pair<const char*,Validator*> >::iterator i;
@@ -80,7 +80,7 @@ bool Map::isValid(
       detail["validator"] = "db.validator.Map";
       detail["message"] = "The given object type must a mapping (Map) type";
    }
-   
+
    return rval;
 }
 
@@ -102,7 +102,7 @@ void Map::addValidators(const char* key, va_list ap)
 void Map::addValidators(const char* key, ...)
 {
    va_list ap;
-   
+
    va_start(ap, key);
    addValidators(key, ap);
    va_end(ap);

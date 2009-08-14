@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
@@ -47,11 +46,11 @@ using namespace db::util;
 void runStringEqualityTest(TestRunner& tr)
 {
    tr.test("string equality");
-   
+
    // Note: string length doesn't appear to matter
    string str = "blah";
    unsigned long long start, end;
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
    {
@@ -59,7 +58,7 @@ void runStringEqualityTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("String == \"\" time: %llu ms\n", (end - start));
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
    {
@@ -67,20 +66,20 @@ void runStringEqualityTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("String.length() == 0 time: %llu ms\n", (end - start));
-   
+
    // Note: test demonstrates that comparing to length is about 6 times faster
-   
+
    tr.passIfNoException();
 }
 
 void runStringAppendCharTest(TestRunner& tr)
 {
    tr.test("string append char");
-   
+
    // Note: string length doesn't appear to matter
    string str = "blah";
    unsigned long long start, end;
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
    {
@@ -89,7 +88,7 @@ void runStringAppendCharTest(TestRunner& tr)
    end = System::getCurrentMilliseconds();
    printf("String.length() == 1 && str[0] == '/' time: %llu ms\n",
       (end - start));
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
    {
@@ -97,7 +96,7 @@ void runStringAppendCharTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("String == \"/\" time: %llu ms\n", (end - start));
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
    {
@@ -106,7 +105,7 @@ void runStringAppendCharTest(TestRunner& tr)
    end = System::getCurrentMilliseconds();
    printf("strcmp(String.c_str(), \"/\") == 0 time: %llu ms\n",
       (end - start));
-   
+
    string version = "HTTP/1.0";
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -115,7 +114,7 @@ void runStringAppendCharTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("String == \"HTTP/1.0\" time: %llu ms\n", (end - start));
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
    {
@@ -124,7 +123,7 @@ void runStringAppendCharTest(TestRunner& tr)
    end = System::getCurrentMilliseconds();
    printf("strcmp(String.c_str(), \"HTTP/1.0\") == 0 time: %llu ms\n",
       (end - start));
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 10000; i++)
    {
@@ -132,7 +131,7 @@ void runStringAppendCharTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("String.append(1, '/') time: %llu ms\n", (end - start));
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 10000; i++)
    {
@@ -140,7 +139,7 @@ void runStringAppendCharTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("String.append(\"/\") time: %llu ms\n", (end - start));
-   
+
    string space = " ";
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 10000; i++)
@@ -149,7 +148,7 @@ void runStringAppendCharTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("String inline append time: %llu ms\n", (end - start));
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 10000; i++)
    {
@@ -159,18 +158,18 @@ void runStringAppendCharTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("String multiline append time: %llu ms\n", (end - start));
-   
+
    tr.passIfNoException();
 }
 
 void runStringCompareTest(TestRunner& tr)
 {
    tr.test("string compare");
-   
+
    string str1 = "blah";
    char str2[] = "blah";
    unsigned long long start, end;
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
    {
@@ -178,7 +177,7 @@ void runStringCompareTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("std::string compare time: %llu ms\n", (end - start));
-   
+
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
    {
@@ -186,16 +185,16 @@ void runStringCompareTest(TestRunner& tr)
    }
    end = System::getCurrentMilliseconds();
    printf("char* compare time: %llu ms\n", (end - start));
-   
+
    tr.passIfNoException();
 }
 
 void runByteBufferTest(TestRunner& tr)
 {
    tr.test("ByteBuffer");
-   
+
    ByteBuffer b;
-   
+
    const char* chicken = "chicken";
    const char* t = "T ";
    const char* hate = "hate ";
@@ -204,18 +203,18 @@ void runByteBufferTest(TestRunner& tr)
    b.put(hate, strlen(hate), true);
    b.put(chicken, strlen(chicken), true);
    b.put("", 1, true);
-   
+
    // FIXME: this test should be more comprehensive
-  
+
    assertStrCmp(b.data(), "T hate chicken");
-   
+
    // this should result in printing out "T hate chicken" still
    b.allocateSpace(10, true);
    sprintf(b.end(), " always");
    char temp[100];
    strncpy(temp, b.data(), b.length());
    assertStrCmp(temp, "T hate chicken");
-   
+
    // this should now result in printing out "T hate chicken always"
    sprintf(b.end() - 1, " always");
    b.extend(6);
@@ -227,21 +226,21 @@ void runByteBufferTest(TestRunner& tr)
    b.putByte(0x00, 1, true);
    strncpy(temp, b.data(), b.length());
    assertStrCmp(temp, "T hate chicken always true");
-   
+
    unsigned char aByte;
    b.getByte(aByte);
    assert(aByte == 'T');
-   
+
    tr.passIfNoException();
 }
 
 void runByteArrayInputStreamTest(TestRunner& tr)
 {
    tr.test("ByteArrayInputStream");
-   
+
    char html[] = "<html>505 HTTP Version Not Supported</html>";
    ByteArrayInputStream is(html, 43);
-   
+
    char b[10];
    int numBytes;
    string str;
@@ -250,24 +249,24 @@ void runByteArrayInputStreamTest(TestRunner& tr)
       memset(b + numBytes, 0, 1);
       str.append(b);
    }
-   
+
    assertStrCmp(str.c_str(), html);
-   
+
    tr.passIfNoException();
 }
 
 void runByteArrayOutputStreamTest(TestRunner& tr)
 {
    tr.test("ByteArrayOutputStream");
-   
+
    ByteBuffer b;
-   
+
    ByteArrayOutputStream baos1(&b);
    const char* sentence = "This is a sentence.";
    baos1.write(sentence, strlen(sentence) + 1);
-   
+
    assertStrCmp(b.data(), sentence);
-   
+
    const char* t = "T ";
    const char* hate = "hate ";
    const char* chicken = "chicken";
@@ -276,12 +275,12 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
    b.put(hate, strlen(hate), true);
    b.put(chicken, strlen(chicken), true);
    b.put("", 1, true);
-   
+
    assertStrCmp(b.data(), "T hate chicken");
-   
+
    // trim null-terminator
    b.trim(1);
-   
+
    // false = turn off resizing buffer
    int length = strlen(sentence) + 1;
    ByteArrayOutputStream baos2(&b, false);
@@ -293,26 +292,26 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
       //printf("Written bytes=%d\n", e->getUsedBytes());
       //printf("Unwritten bytes=%d\n", e->getUnusedBytes());
       //printf("Turning on resize and finishing write...\n");
-      
+
       // turn on resize
       baos2.setResize(true);
-      
+
       // write remaining bytes
       baos2.write(sentence + e->getUsedBytes(), e->getUnusedBytes());
-      
+
       // clear exception
       Exception::clear();
    }
-   
+
    assertStrCmp(b.data(), "T hate chickenThis is a sentence.");
-   
+
    tr.passIfNoException();
 }
 
 void runBitStreamTest(TestRunner& tr)
 {
    tr.group("BitStream");
-   
+
    tr.test("string conversion");
    {
       BitStream bs;
@@ -321,7 +320,7 @@ void runBitStreamTest(TestRunner& tr)
       assertStrCmp(bits, bs.toString().c_str());
    }
    tr.passIfNoException();
-   
+
    tr.test("shift left");
    {
       BitStream bs;
@@ -333,7 +332,7 @@ void runBitStreamTest(TestRunner& tr)
 //      assertStrCmp("01010110", bs.toString().c_str());
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
@@ -354,9 +353,9 @@ void runBitStreamTest(TestRunner& tr)
 void runFileTest(TestRunner& tr)
 {
    tr.group("File");
-   
+
    File cdir(".");
-   
+
 #ifdef WIN32
    const char* name = ".";
    const char* tmpFilename = "C:\\windows\\temp";
@@ -372,14 +371,14 @@ void runFileTest(TestRunner& tr)
    const char* expectTmpFilenameB = "/tmp/file.txt";
    const char* tmpFilenameC = "/tmp/DBCORETEST_c.txt";
 #endif
-   
+
    File tmp(tmpFilename);
    File tmpFileA(tmpFilenameA);
    File tmpFileB(tmpFilenameB);
    File tmpFileC(tmpFilenameC);
    File junk("../../foo/../junk238jflk38sjf.txt");
    string np;
-   
+
    tr.test("absolute paths");
    {
       assertStrCmp(tmp->getAbsolutePath(), tmpFilename);
@@ -387,43 +386,43 @@ void runFileTest(TestRunner& tr)
       assertStrCmp(tmpFileB->getAbsolutePath(), expectTmpFilenameB);
    }
    tr.passIfNoException();
-   
+
    tr.test("normalization (invalid)");
    {
       File::normalizePath("../../foo/../junk238jflk38sjf.txt", np);
    }
    tr.passIfException();
-   
+
    tr.test("normalization (valid)");
    {
       File::normalizePath(File::NAME_SEPARATOR, np);
       assertStrCmp(np.c_str(), File::NAME_SEPARATOR);
-      
+
 #ifdef WIN32
       File::normalizePath("C:/windows/temp/dir/../file.txt", np);
       assertStrCmp(np.c_str(), "C:\\windows\\temp\\file.txt");
-      
+
       File::normalizePath("C:/windows/temp/./dir/../file.txt", np);
       assertStrCmp(np.c_str(), "C:\\windows\\temp\\file.txt");
-      
+
       File::normalizePath("C:/windows/temp/../../file.txt", np);
       assertStrCmp(np.c_str(), "C:\\file.txt");
 #else
       File::normalizePath("/../../foo/../junk238jflk38sjf.txt", np);
       assertStrCmp(np.c_str(), "/junk238jflk38sjf.txt");
-      
+
       File::normalizePath("/tmp/dir/../file.txt", np);
       assertStrCmp(np.c_str(), "/tmp/file.txt");
-      
+
       File::normalizePath("/tmp/./dir/../file.txt", np);
       assertStrCmp(np.c_str(), "/tmp/file.txt");
-      
+
       File::normalizePath("/tmp/../../file.txt", np);
       assertStrCmp(np.c_str(), "/file.txt");
 #endif
    }
    tr.passIfNoException();
-   
+
    tr.test("readable curdir");
    {
       assert(cdir->isReadable());
@@ -435,7 +434,7 @@ void runFileTest(TestRunner& tr)
       assert(!junk->isReadable());
    }
    tr.passIfNoException();
-   
+
    tr.test("writable curdir");
    {
       assert(cdir->isWritable());
@@ -448,19 +447,19 @@ void runFileTest(TestRunner& tr)
       assert(!tmpFileA->contains(tmp));
    }
    tr.passIfNoException();
-   
+
    tr.test("directory list");
    {
       File dir(name);
       FileList files;
       dir->listFiles(files);
-      
+
       //printf("/tmp contains %i files\n", files.count())";
-      
+
       assert(files->count() > 0);
    }
    tr.passIfNoException();
-   
+
    tr.test("get type");
    {
       File dir(name);
@@ -490,32 +489,32 @@ void runFileTest(TestRunner& tr)
       }
    }
    tr.passIfNoException();
-   
+
    tr.test("create");
    {
       tmpFileA->create();
       assert(tmpFileA->exists());
    }
    tr.passIfNoException();
-   
+
    tr.test("rename");
    {
       bool renamed;
       renamed = tmpFileA->rename(tmpFileC);
       assertNoException();
       assert(renamed);
-      
+
       bool exists;
       exists = tmpFileA->exists();
       assertNoException();
       assert(!exists);
-      
+
       exists = tmpFileC->exists();
       assertNoException();
       assert(exists);
    }
    tr.passIfNoException();
-   
+
    tr.test("expandUser");
    {
 #ifdef WIN32
@@ -529,7 +528,7 @@ void runFileTest(TestRunner& tr)
       const char* oldHOME = getenv("HOME");
       assert(oldHOME != NULL);
 #endif
-      
+
       // test failure with unset env vars
 #ifdef WIN32
       //unsetenv("HOMEPATH");
@@ -545,7 +544,7 @@ void runFileTest(TestRunner& tr)
 #endif
 
 #ifdef WIN32
-      // can not set HOME* vars on Windows so use real values 
+      // can not set HOME* vars on Windows so use real values
       char homestr[strlen(HOMEDRIVE) + strlen(HOMEPATH) + 1];
       sprintf(homestr, "%s%s", HOMEDRIVE, HOMEPATH);
       char profilestr[strlen(USERPROFILE) + 1];
@@ -590,7 +589,7 @@ void runFileTest(TestRunner& tr)
          tmp.append(HOMEPATH);
          assertStrCmp(path.c_str(), tmp.c_str());
       }
-      
+
       {
          string path;
          assert(File::expandUser("%HOMEDRIVE%%HOMEPATH%/foo.txt", path));
@@ -600,7 +599,7 @@ void runFileTest(TestRunner& tr)
          tmp.append(SEP "foo.txt");
          assertStrCmp(path.c_str(), tmp.c_str());
       }
-      
+
       {
          string path;
          assert(File::expandUser("%USERPROFILE%", path));
@@ -608,7 +607,7 @@ void runFileTest(TestRunner& tr)
          tmp.append(USERPROFILE);
          assertStrCmp(path.c_str(), tmp.c_str());
       }
-      
+
       {
          string path;
          assert(File::expandUser("%USERPROFILE%/foo.txt", path));
@@ -617,7 +616,7 @@ void runFileTest(TestRunner& tr)
          tmp.append(SEP "foo.txt");
          assertStrCmp(path.c_str(), tmp.c_str());
       }
-      
+
       {
          string path;
          assert(File::expandUser("%HOMEDRIVE%/foo.txt", path));
@@ -626,7 +625,7 @@ void runFileTest(TestRunner& tr)
          tmp.append(SEP "foo.txt");
          assertStrCmp(path.c_str(), tmp.c_str());
       }
-      
+
       {
          string path;
          assert(File::expandUser("%HOMEPATH%/foo.txt", path));
@@ -636,14 +635,14 @@ void runFileTest(TestRunner& tr)
          assertStrCmp(path.c_str(), tmp.c_str());
       }
 #endif
-      
+
       {
          string path;
          assert(!File::expandUser("~user/foo.txt", path));
          assertException();
          Exception::clear();
       }
-      
+
       {
          string path;
          assert(!File::expandUser("~user/foo.txt", path));
@@ -676,7 +675,7 @@ void runFileTest(TestRunner& tr)
          assert(File::expandUser(".", path));
          assertStrCmp(path.c_str(), ".");
       }
-      
+
       // restore old env
 #ifdef WIN32
       // can not change HOME* env vars so nothing to cleanup
@@ -750,14 +749,14 @@ void runFileTest(TestRunner& tr)
          assertStrCmp(dir.c_str(), SEP "dir1" SEP "dir2");
          assertStrCmp(base.c_str(), "base");
       }
-      
+
       {
          string dir, base;
          File::split("////", dir, base);
          assertStrCmp(dir.c_str(), SEP);
          assertStrCmp(base.c_str(), "");
       }
-      
+
       {
          string root, ext;
          File::splitext("root.ext", root, ext);
@@ -855,64 +854,64 @@ void runFileTest(TestRunner& tr)
          string path = File::join("", "");
          assertStrCmp(path.c_str(), "");
       }
-      
+
       {
          string path = File::join(SEP, "");
          assertStrCmp(path.c_str(), SEP);
       }
-      
+
       {
          string path = File::join("", SEP);
          assertStrCmp(path.c_str(), SEP);
       }
-      
+
       {
          string path = File::join("a", "");
          assertStrCmp(path.c_str(), "a");
       }
-      
+
       {
          string path = File::join("a", "b");
          assertStrCmp(path.c_str(), "a" SEP "b");
       }
-      
+
       {
          string path1 = File::join(SEP, "a");
          string path2 = File::join(path1.c_str(), "b");
          assertStrCmp(path2.c_str(), SEP "a" SEP "b");
       }
-      
+
       {
          string path = File::join(SEP "a", SEP "b");
          assertStrCmp(path.c_str(), SEP "a" SEP "b");
       }
-      
+
       {
          string path = File::join("a" SEP, SEP "b" SEP);
          assertStrCmp(path.c_str(), "a" SEP "b" SEP);
       }
-      
+
       {
          string path = File::join(SEP "a" SEP, SEP "b" SEP);
          assertStrCmp(path.c_str(), SEP "a" SEP "b" SEP);
       }
-      
+
       {
          string path1 = File::join("a", "");
          string path2 = File::join(path1.c_str(), "b");
          assertStrCmp(path2.c_str(), "a" SEP "b");
       }
-      
+
       {
          string path = File::join("", "a");
          assertStrCmp(path.c_str(), "a");
       }
-      
+
       {
          string path = File::join("a", "");
          assertStrCmp(path.c_str(), "a");
       }
-      
+
       {
          string path1 = File::join("", "a");
          string path2 = File::join(path1.c_str(), "");
@@ -928,7 +927,7 @@ void runFileTest(TestRunner& tr)
    }
    tr.passIfNoException();
 #endif
-   
+
    tr.test("tmp file");
    {
       File file = File::createTempFile("tmp.");
@@ -941,14 +940,14 @@ void runFileTest(TestRunner& tr)
       assert(!file->exists());
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runFileInputStreamTest(TestRunner& tr)
 {
    tr.group("FileInputStream");
-   
+
    File temp = File::createTempFile("fistestoutput");
    FileOutputStream fos(temp);
    const char* content =
@@ -956,7 +955,7 @@ void runFileInputStreamTest(TestRunner& tr)
    int contentLength = strlen(content);
    fos.write(content, contentLength);
    fos.close();
-   
+
    tr.test("read");
    {
       FileInputStream fis(temp);
@@ -968,7 +967,7 @@ void runFileInputStreamTest(TestRunner& tr)
       fis.close();
    }
    tr.passIfNoException();
-   
+
    tr.test("read small");
    {
       FileInputStream fis(temp);
@@ -986,7 +985,7 @@ void runFileInputStreamTest(TestRunner& tr)
       fis.close();
    }
    tr.passIfNoException();
-   
+
    tr.test("read line");
    {
       File temp2 = File::createTempFile("fistestlines");
@@ -994,7 +993,7 @@ void runFileInputStreamTest(TestRunner& tr)
       const char* content2 = "Line 1\nLine 2\nLine 3\nLine 4";
       fos.write(content2, strlen(content2));
       fos.close();
-      
+
       FileInputStream fis(temp2);
       string line;
       int count = 1;
@@ -1020,11 +1019,11 @@ void runFileInputStreamTest(TestRunner& tr)
          }
          count++;
       }
-      
+
       fis.close();
    }
    tr.passIfNoException();
-   
+
    tr.test("not found");
    {
       File temp = File::createTempFile("dumb");
@@ -1036,55 +1035,55 @@ void runFileInputStreamTest(TestRunner& tr)
       fis.close();
    }
    tr.passIfException();
-   
+
    tr.test("skip");
    {
       FileInputStream fis(temp);
       char b[10];
-      
+
       assert(fis.read(b, 4) == 4);
       b[4] = 0;
       assertStrCmp(b, "This");
-      
+
       assert(fis.skip(4) == 4);
-      
+
       assert(fis.read(b, 3) == 3);
       b[3] = 0;
       assertStrCmp(b, "for");
-      
+
       assert(fis.skip(18) == 18);
-      
+
       assert(fis.read(b, 6) == 6);
       b[6] = 0;
       assertStrCmp(b, "method");
-      
+
       assert(fis.skip(12) == 12);
-      
+
       assert(fis.read(b, 5) == 5);
       b[5] = 0;
       assertStrCmp(b, "input");
-      
+
       assert(fis.skip(10) == 8);
-      
+
       assert(fis.read(b, 3) == 0);
-      
+
       fis.close();
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runTruncateInputStreamTest(TestRunner& tr)
 {
    tr.group("TruncateInputStream");
-   
+
    tr.test("truncate");
    {
       const char* test = "this is a test";
       ByteBuffer b;
       b.put(test, strlen(test), true);
-      
+
       char buf[100];
       ByteArrayInputStream bais(&b);
       assert(bais.read(buf, 1) == 1);
@@ -1093,7 +1092,7 @@ void runTruncateInputStreamTest(TestRunner& tr)
       assert(strncmp(buf, "his", 3) == 0);
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
@@ -1102,7 +1101,7 @@ class ReadWatcher
 public:
    ReadWatcher() {};
    virtual ~ReadWatcher() {};
-   
+
    virtual void readUpdated(int fd, int events)
    {
       printf("FD '%d' is readable!\n", fd);
@@ -1112,28 +1111,28 @@ public:
 void runIOMonitorTest(TestRunner& tr)
 {
    tr.group("IOMonitor");
-   
+
    tr.test("watch read");
    {
       ReadWatcher rw;
       IOWatcherRef w = new IOEventDelegate<ReadWatcher>(
          &rw, &ReadWatcher::readUpdated);
-      
+
       // FIXME:
       //FILE* fp = fopen("/tmp/testfile.txt", "rw");
       //assert(fp != NULL);
       //int fd = fileno(fp);
       int fd = 1;
-      
+
       IOMonitor iom;
       iom.addWatcher(fd, 0, w);
-      
+
       // FIXME: do stuff
-      
+
       //fclose(fp);
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 

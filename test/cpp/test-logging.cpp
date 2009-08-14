@@ -40,7 +40,7 @@ void runLoggingTest(TestRunner& tr)
    /////////////////
 
    tr.test("basic");
-   
+
    // create the stdout output stream
    OStreamOutputStream stdoutOS(&cout);
 
@@ -61,7 +61,7 @@ void runLoggingTest(TestRunner& tr)
    DB_WARNING("[warning message]");
    DB_INFO("[info message]");
    DB_DEBUG("[debug message]");
-   
+
    tr.passIfNoException();
 
    /////////////////
@@ -71,13 +71,13 @@ void runLoggingTest(TestRunner& tr)
    // Create a test Logger and category
    OutputStreamLogger testLogger(&stdoutOS);
    Category TEST_CAT("DB_TEST", "DB Test Suite", NULL);
-   
+
    // add logger for specific category
    Logger::addLogger(&testLogger, &TEST_CAT);
 
    // category test
    DB_CAT_ERROR(&TEST_CAT, "[(TEST_CAT,DB_ALL_CAT) error message]");
-   
+
    // cat error with object address
    DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "[(TEST,ALL) error w/ object]");
 
@@ -86,20 +86,20 @@ void runLoggingTest(TestRunner& tr)
    DB_CAT_ERROR(&TEST_CAT, "[(!TEST,ALL) error message]");
 
    tr.passIfNoException();
-   
+
    /////////////////
 
    tr.test("DB_ALL_CAT");
-   
+
    DB_DEBUG("ALL from DB_DEFAULT_CAT");
    DB_CAT_DEBUG(&TEST_CAT, "ALL from TEST_CAT");
-   
+
    tr.passIfNoException();
-   
+
    /////////////////
 
    tr.test("flags");
-   
+
    Logger::LoggerFlags old = defaultLogger.getFlags();
 
    defaultLogger.setAllFlags(0);
@@ -152,7 +152,7 @@ void runLoggingTest(TestRunner& tr)
 
    tr.test("double log");
 
-   // re-add default logger 
+   // re-add default logger
    Logger::addLogger(&defaultLogger);
    // check if message is logged twice
    DB_DEBUG("double test");
@@ -192,16 +192,16 @@ void runLoggingTest(TestRunner& tr)
 
    // add logging for all log messages
    OutputStreamLogger sLogger(&sos);
-      
+
    // add default logger
    Logger::addLogger(&sLogger);
-   
+
    // clear ot
    Logger::clearLoggers();
 
    // Try to output
    DB_DEBUG("Error if I am logged.");
-   
+
    assert(oss.str().length() == 0);
 
    Logger::clearLoggers();
@@ -225,10 +225,10 @@ static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
 {
    char fnr[200];
    snprintf(fnr, 200, "/db-test-logging-rotation-%d-%d%s.log",
-      (int)maxFiles, (int)maxSize, compress ? "-gz" : ""); 
+      (int)maxFiles, (int)maxSize, compress ? "-gz" : "");
    string fn;
    fn.append(TMPDIR);
-   fn.append(fnr); 
+   fn.append(fnr);
    // create file logger
    File file(fn.c_str());
    FileLogger flog(&file);
@@ -240,12 +240,12 @@ static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
    }
    // log default category to the file
    Logger::addLogger(&flog);
-   
+
    for(int i = 0; i < 500; i++)
    {
       DB_DEBUG("[%05d] 01234567890123456789012345678901234567890123456789", i);
    }
-   
+
    Logger::removeLogger(&flog);
 }
 
@@ -303,7 +303,7 @@ static void runColorLoggingTestAll(TestRunner& tr)
    DB_WARNING("[warning message]");
    DB_INFO("[info message]");
    DB_DEBUG("[debug message]");
-   
+
    // test known dbcore categories
    DB_CAT_DEBUG(DB_APP_CAT, "[cat:DB_APP_CAT]");
    DB_CAT_DEBUG(DB_CONFIG_CAT, "[cat:DB_CONFIG_CAT]");
@@ -338,14 +338,14 @@ void runColorLoggingTest(TestRunner& tr)
    Logger::clearLoggers();
    // add a logger for all categories
    Logger::addLogger(&logger);
-   
+
    tr.test("no color");
    {
       logger.clearFlags(Logger::LogColor);
       runColorLoggingTestAll(tr);
    }
    tr.passIfNoException();
-   
+
    tr.test("color");
    {
       logger.setFlags(Logger::LogColor);

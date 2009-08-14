@@ -49,38 +49,38 @@ DynamicObject Tester::getCommandLineSpecs()
 "                      Note: -i and -a can be combined to do both types.\n"
 "  -t, --test TEST     Run a specific test if supported. (default: \"all\")\n"
 "\n";
-   
+
    DynamicObject opt;
-   
+
    opt = spec["options"]->append();
    opt["short"] = "-l";
    opt["long"] = "--level";
    opt["arg"]["config"] = "db.test.Tester command line";
    opt["arg"]["path"] = "db\\.test\\.Tester.level";
-  
+
    opt = spec["options"]->append();
    opt["short"] = "-c";
    opt["setTrue"]["config"] = "db.test.Tester command line";
    opt["setTrue"]["path"] = "db\\.test\\.Tester.continueAfterException";
-  
+
    opt = spec["options"]->append();
    opt["short"] = "-a";
    opt["long"] = "--automatic";
    opt["setTrue"]["config"] = "db.test.Tester command line";
    opt["setTrue"]["path"] = "db\\.test\\.Tester.__cl_automatic";
-  
+
    opt = spec["options"]->append();
    opt["short"] = "-i";
    opt["long"] = "--interactive";
    opt["setTrue"]["config"] = "db.test.Tester command line";
    opt["setTrue"]["path"] = "db\\.test\\.Tester.__cl_interactive";
-  
+
    opt = spec["options"]->append();
    opt["short"] = "-t";
    opt["long"] = "--test";
    opt["arg"]["config"] = "db.test.Tester command line";
    opt["arg"]["path"] = "db\\.test\\.Tester.test";
-   
+
    //DynamicObject specs = AppDelegate::getCommandLineSpecs();
    // don't read App superclass options
    // FIXME need to break up base App and DbApp
@@ -93,7 +93,7 @@ DynamicObject Tester::getCommandLineSpecs()
 bool Tester::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = App::willParseCommandLine(args);
-   
+
    if(rval)
    {
       // set defaults
@@ -104,15 +104,15 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
          config[ConfigManager::ID] = "db.test.Tester defaults";
          config[ConfigManager::GROUP] = "boot";
          config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
-      
+
          Config& merge = config[ConfigManager::MERGE];
          merge["db.test.Tester"]["level"] = TestRunner::Names;
          merge["db.test.Tester"]["continueAfterException"] = false;
          merge["db.test.Tester"]["test"] = "all";
-      
+
          rval = getConfigManager()->addConfig(config);
       }
-   
+
       // config to hold potential command line options
       if(rval)
       {
@@ -125,21 +125,21 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
          rval = getConfigManager()->addConfig(config);
       }
    }
-   
+
    return rval;
 }
 
 bool Tester::didParseCommandLine()
 {
    bool rval = App::didParseCommandLine();
-   
+
    if(rval)
    {
       // to get values set on command line
       Config rawConfig = getConfigManager()->getConfig(
          "db.test.Tester command line", true);
       Config& config = rawConfig[ConfigManager::MERGE]["db.test.Tester"];
-   
+
       // if interactive, assume no automatic, else only automatic enabled
       if(config->hasMember("__cl_interactive") &&
          config["__cl_interactive"]->getBoolean())
@@ -152,17 +152,17 @@ bool Tester::didParseCommandLine()
          config["interactive"] = false;
          config["automatic"] = true;
       }
-      
+
       // if auto set, override interactive setting
       if(config->hasMember("__cl_automatic") &&
          config["__cl_automatic"]->getBoolean())
       {
          config["automatic"] = true;
       }
-      
+
       rval = getConfigManager()->setConfig(rawConfig);
    }
-   
+
    return rval;
 }
 
@@ -219,24 +219,24 @@ int Tester::runTests(TestRunner& tr)
       rval = runAutomaticTests(tr);
       assertNoException();
    }
-   
+
    teardown(tr);
    assertNoException();
 
    tr.ungroup();
-   
+
    return rval;
 }
 
 bool Tester::runApp()
 {
    bool rval = true;
-   
+
    Config cfg = getConfig()["db.test.Tester"];
    bool cont = cfg["continueAfterException"]->getBoolean();
    uint32_t cfgLevel = cfg["level"]->getUInt32();
    TestRunner::OutputLevel level;
-   
+
    switch(cfgLevel)
    {
       case 0: level = TestRunner::None; break;
@@ -245,18 +245,18 @@ bool Tester::runApp()
       case 3: level = TestRunner::Names; break;
       default: level = TestRunner::Times; break;
    }
-   
+
    App* app = getOwner();
    app = (app != NULL) ? app : this;
 
    TestRunner tr(app, cont, level);
-   
+
    int exitStatus = runTests(tr);
    app->setExitStatus(exitStatus);
    rval = (exitStatus == 0);
    assertNoException();
-   
+
    tr.done();
-   
+
    return rval;
 }

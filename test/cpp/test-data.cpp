@@ -57,11 +57,11 @@ using namespace db::util;
 void runJsonValidTest(TestRunner& tr)
 {
    tr.group("JSON (Valid)");
-   
+
    JsonWriter jw;
    JsonReader jr;
    OStreamOutputStream os(&cout);
-   
+
    const char* tests[] = {
       "{}",
       "[]",
@@ -120,7 +120,7 @@ void runJsonValidTest(TestRunner& tr)
       char msg[50];
       snprintf(msg, 50, "Parse #%d", i);
       tr.test(msg);
-      
+
       DynamicObject d;
       const char* s = tests[i];
       //printf("%s\n", s);
@@ -133,21 +133,21 @@ void runJsonValidTest(TestRunner& tr)
       assertNoException();
       //printf("%s\n", s);
       //dumpDynamicObject(d);
-      
+
       tr.passIfNoException();
    }
-   
+
    tr.ungroup();
 }
 
 void runJsonInvalidTest(TestRunner& tr)
 {
    tr.group("JSON (Invalid)");
-   
+
    JsonWriter jw;
    JsonReader jr;
    OStreamOutputStream os(&cout);
-   
+
    const char* tests[] = {
       "",
       " ",
@@ -198,17 +198,17 @@ void runJsonInvalidTest(TestRunner& tr)
       Exception::clear();
       //jw.write(d, &os);
       //printf("\n");
-      
+
       tr.passIfNoException();
    }
-   
+
    tr.ungroup();
 }
 
 void runJsonDJDTest(TestRunner& tr)
 {
    tr.group("JSON (Dyno->JSON->Dyno)");
-   
+
    DynamicObject dyno0;
    dyno0["email"] = "example@example.com";
    dyno0["AIM"] = "example";
@@ -230,17 +230,17 @@ void runJsonDJDTest(TestRunner& tr)
    dyno1["somearray"][2] = "item3";
    dyno1["somearray"][3] = dyno0;
    dyno1["contact"] = dyno0;
-   
+
    JsonWriter jw;
    JsonReader jr;
    OStreamOutputStream os(&cout);
-   
+
    DynamicObject* dynos[] = {
       &dyno0,
       &dyno1,
       NULL
    };
-   
+
    for(int i = 0; dynos[i] != NULL; i++)
    {
       char msg[50];
@@ -251,14 +251,14 @@ void runJsonDJDTest(TestRunner& tr)
 
       ByteBuffer b;
       ByteArrayOutputStream bbos(&b);
-      
+
       jw.setCompact(true);
       //jw.write(dyno1, &os);
       jw.write(d, &bbos);
       assertNoException();
       b.clear();
       assertNoException();
-      
+
       jw.setCompact(false);
       jw.setIndentation(0, 3);
       //jw.write(d, &os);
@@ -277,31 +277,31 @@ void runJsonDJDTest(TestRunner& tr)
 
       tr.passIfNoException();
    }
-   
+
    tr.ungroup();
 }
 
 void runJsonInvalidDJTest(TestRunner& tr)
 {
    tr.group("JSON (Invalid Dyno->JSON)");
-   
+
    DynamicObject dyno0;
    dyno0 = 0;
 
    DynamicObject dyno1;
    dyno1 = "";
-   
+
    DynamicObject dyno2(NULL);
-   
+
    JsonWriter jw;
-   
+
    DynamicObject* dynos[] = {
       &dyno0,
       &dyno1,
       &dyno2,
       NULL
    };
-   
+
    for(int i = 0; dynos[i] != NULL; i++)
    {
       char msg[50];
@@ -312,7 +312,7 @@ void runJsonInvalidDJTest(TestRunner& tr)
 
       ByteBuffer b;
       ByteArrayOutputStream bbos(&b);
-      
+
       jw.setCompact(true);
       //jw.write(dyno1, &os);
       jw.write(d, &bbos);
@@ -320,10 +320,10 @@ void runJsonInvalidDJTest(TestRunner& tr)
       Exception::clear();
       b.clear();
       assertNoException();
-      
+
       tr.passIfNoException();
    }
-   
+
    tr.ungroup();
 }
 
@@ -366,43 +366,43 @@ static DynamicObject makeJSONTests()
       "\u040e \u045e \u0404 \u0454 \u0490 \u0491";
    td[tdcount++]["JSON"] =
       "[\"\xd0\x8e \xd1\x9e \xd0\x84 \xd1\x94 \xd2\x90 \xd2\x91\"]";
-   
+
    return td;
 }
 
 void runJsonVerifyDJDTest(TestRunner& tr)
 {
    tr.group("JSON (Verify Dyno->JSON->Dyno)");
-   
+
    JsonWriter jw;
    JsonReader jr;
    OStreamOutputStream os(&cout);
-   
+
    DynamicObject td = makeJSONTests();
    int tdcount = td->length();
-   
+
    for(int i = 0; i < tdcount; i++)
    {
       char msg[50];
       snprintf(msg, 50, "Verify #%d", i);
       tr.test(msg);
-      
+
       DynamicObject d = td[i]["dyno"];
       const char* s = td[i]["JSON"]->getString();
 
       ByteBuffer b;
       ByteArrayOutputStream bbos(&b);
-      
+
       jw.setCompact(true);
       //jw.write(d, &os);
       assertNoException();
       jw.write(d, &bbos);
       assertNoException();
-      
+
       // Verify written string
       assert(strlen(s) == (unsigned int)b.length());
       assert(strncmp(s, b.data(), b.length()) == 0);
-      
+
       ByteArrayInputStream is(b.data(), b.length());
       DynamicObject dr;
       jr.start(dr);
@@ -414,12 +414,12 @@ void runJsonVerifyDJDTest(TestRunner& tr)
       //jw.write(dr, &os);
       assertNoException();
       b.clear();
-      
+
       assertDynoCmp(d, dr);
-      
+
       tr.passIfNoException();
    }
-   
+
    tr.ungroup();
 }
 
@@ -427,7 +427,7 @@ static DynamicObject makeJSONValueTests()
 {
    DynamicObject td = makeJSONTests();
    int tdcount = td->length();
-   
+
    td[tdcount  ]["dyno"] = true;
    td[tdcount++]["JSON"] = "true";
    td[tdcount  ]["dyno"] = true;
@@ -452,24 +452,24 @@ static DynamicObject makeJSONValueTests()
    td[tdcount++]["JSON"] = "0.0";
    td[tdcount  ]["dyno"] = DynamicObject(NULL);
    td[tdcount++]["JSON"] = "null";
-   
+
    return td;
 }
 void runJsonValueVerifyJDTest(TestRunner& tr)
 {
    tr.group("JSON (verify value fragments)");
-   
+
    JsonReader jr(false);
-   
+
    DynamicObject td = makeJSONValueTests();
    int tdcount = td->length();
-   
+
    for(int i = 0; i < tdcount; i++)
    {
       char msg[50];
       snprintf(msg, 50, "Verify #%d", i);
       tr.test(msg);
-      
+
       DynamicObject d = td[i]["dyno"];
       const char* s = td[i]["JSON"]->getString();
 
@@ -483,19 +483,19 @@ void runJsonValueVerifyJDTest(TestRunner& tr)
       assertNoException();
       //jw.write(dr, &os);
       assertNoException();
-      
+
       assertDynoCmp(d, dr);
-      
+
       tr.passIfNoException();
    }
-   
+
    tr.ungroup();
 }
 
 void runJsonIOStreamTest(TestRunner& tr)
 {
    tr.group("JSON I/O");
-   
+
    tr.test("Input");
    /*
    DynamicObject di;
@@ -511,61 +511,61 @@ void runJsonIOStreamTest(TestRunner& tr)
    dois.read(oss);
    */
    tr.passIfNoException();
-   
+
    tr.test("Output");
    tr.passIfNoException();
 
    tr.warning("Fix JSON IO Stream test");
-   
+
    tr.ungroup();
 }
 
 void runXmlReaderTest(TestRunner& tr)
 {
    tr.test("XmlReader");
-   
+
    {
       string xml =
          "<null/>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       assert(dyno.isNull());
    }
-   
+
    {
       string xml =
          "<object/>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       assert(dyno->length() == 0);
    }
-   
+
    {
       string xml =
          "<string>This is some content.</string>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       assertStrCmp(dyno->getString(), "This is some content.");
    }
-   
+
    {
       string xml =
          "<object>"
@@ -573,17 +573,17 @@ void runXmlReaderTest(TestRunner& tr)
            "<string>This is some content.</string>"
           "</member>"
          "</object>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       assertStrCmp(dyno["child"]->getString(), "This is some content.");
    }
-   
+
    {
       string xml =
          "<object>"
@@ -591,19 +591,19 @@ void runXmlReaderTest(TestRunner& tr)
            "<string>This is some content.</string>"
           "</member>"
          "</object>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       assertException();
       //printf("\n%s\n", Exception::getLast()->getMessage());
       Exception::clear();
    }
-   
+
    {
       string xml =
          "<object>"
@@ -617,21 +617,21 @@ void runXmlReaderTest(TestRunner& tr)
            "<null>baddata</null>"
           "</member>"
          "</object>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       assertStrCmp(dyno["child"]->getString(), "This is some content.");
       assert(dyno->hasMember("nullChild"));
       assert(dyno->hasMember("nullChild2"));
       assert(dyno["nullChild"].isNull());
       assert(dyno["nullChild2"].isNull());
    }
-   
+
    {
       string xml =
          "<object>"
@@ -649,20 +649,20 @@ void runXmlReaderTest(TestRunner& tr)
            "</array>"
           "</member>"
          "</object>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       assert(dyno["myarray"]->length() == 3);
       assertStrCmp(dyno["myarray"][0]->getString(), "element 1");
       assert(dyno["myarray"][1]->length() == 0);
       assertStrCmp(dyno["myarray"][2]->getString(), "element 3");
    }
-   
+
    {
       string xml =
          "<object>"
@@ -683,67 +683,67 @@ void runXmlReaderTest(TestRunner& tr)
            "</array>"
           "</member>"
          "</object>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       //dumpDynamicObject(dyno);
-      
+
       assert(dyno["myarray"]->length() == 4);
       assert(dyno["myarray"][0]->getUInt32() == 514);
       assert(dyno["myarray"][1]->getDouble() == 5.14);
       assert(dyno["myarray"][2]->getInt32() == -514);
       assert(dyno["myarray"][3]->getDouble() == -5.14);
    }
-   
+
    tr.passIfNoException();
 }
 
 void runXmlWriterTest(TestRunner& tr)
 {
    tr.test("XmlWriter");
-   
+
    {
       DynamicObject dyno;
-      
+
       XmlWriter writer;
       ostringstream oss;
       OStreamOutputStream os(&oss);
-      
+
       writer.write(dyno, &os);
       assertStrCmp(oss.str().c_str(), "<string/>");
-      
+
       os.close();
    }
-   
+
    {
       DynamicObject dyno;
       dyno = 5;
-      
+
       XmlWriter writer;
       ostringstream oss;
       OStreamOutputStream os(&oss);
-      
+
       writer.write(dyno, &os);
       assertStrCmp(oss.str().c_str(), "<number>5</number>");
-      
+
       os.close();
    }
-   
+
    {
       DynamicObject dyno;
       dyno[0] = 5;
       dyno[1] = 1;
       dyno[2] = 4;
-      
+
       XmlWriter writer;
       ostringstream oss;
       OStreamOutputStream os(&oss);
-      
+
       writer.write(dyno, &os);
       assertStrCmp(oss.str().c_str(),
          "<array>"
@@ -757,23 +757,23 @@ void runXmlWriterTest(TestRunner& tr)
             "<number>4</number>"
          "</element>"
          "</array>");
-      
+
       os.close();
    }
-   
+
    {
       DynamicObject dyno;
       dyno["aNumber"] = 514;
       dyno["cow"] = "Moooooooo";
-      
+
       DynamicObject child;
       child["id"] = 514;
       dyno["child"] = child;
-      
+
       XmlWriter writer;
       ostringstream oss;
       OStreamOutputStream os(&oss);
-      
+
       writer.write(dyno, &os);
       assertStrCmp(oss.str().c_str(),
          "<object>"
@@ -791,25 +791,25 @@ void runXmlWriterTest(TestRunner& tr)
             "<string>Moooooooo</string>"
          "</member>"
          "</object>");
-      
+
       os.close();
    }
-   
+
    {
       DynamicObject dyno;
       dyno["aNumber"] = 514;
       dyno["cow"] = "Moooooooo";
-      
+
       DynamicObject child;
       child["id"] = 514;
       dyno["child"] = child;
-      
+
       XmlWriter writer;
       writer.setCompact(false);
       writer.setIndentation(0, 1);
       ostringstream oss;
       OStreamOutputStream os(&oss);
-      
+
       writer.write(dyno, &os);
       assertStrCmp(oss.str().c_str(),
          "<object>\n"
@@ -827,25 +827,25 @@ void runXmlWriterTest(TestRunner& tr)
          "  <string>Moooooooo</string>\n"
          " </member>\n"
          "</object>");
-      
+
       os.close();
    }
-   
+
    {
       DynamicObject dyno;
       dyno["aNumber"] = 514;
       dyno["cow"] = "Moooooooo";
-      
+
       DynamicObject child;
       child["id"] = 514;
       dyno["child"] = child;
-      
+
       XmlWriter writer;
       writer.setCompact(false);
       writer.setIndentation(0, 3);
       ostringstream oss;
       OStreamOutputStream os(&oss);
-      
+
       writer.write(dyno, &os);
       assertStrCmp(oss.str().c_str(),
          "<object>\n"
@@ -863,74 +863,74 @@ void runXmlWriterTest(TestRunner& tr)
          "      <string>Moooooooo</string>\n"
          "   </member>\n"
          "</object>");
-      
+
       os.close();
    }
-   
+
    tr.passIfNoException();
 }
 
 void runXmlReadWriteTest(TestRunner& tr)
 {
    tr.test("XmlReadWrite");
-   
+
    {
       string xml =
          "<null/>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       ostringstream oss;
       OStreamOutputStream os(&oss);
       XmlWriter writer;
       writer.write(dyno, &os);
-      
+
       assertStrCmp(xml.c_str(), oss.str().c_str());
    }
-   
+
    {
       string xml =
          "<object/>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       ostringstream oss;
       OStreamOutputStream os(&oss);
       XmlWriter writer;
       writer.write(dyno, &os);
-      
+
       assertStrCmp(xml.c_str(), oss.str().c_str());
    }
-   
+
    {
       string xml =
          "<string>This is some content.</string>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       ostringstream oss;
       OStreamOutputStream os(&oss);
       XmlWriter writer;
       writer.write(dyno, &os);
-      
+
       assertStrCmp(xml.c_str(), oss.str().c_str());
    }
-   
+
    {
       string xml =
          "<object>"
@@ -938,22 +938,22 @@ void runXmlReadWriteTest(TestRunner& tr)
            "<string>This is some content.</string>"
           "</member>"
          "</object>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       ostringstream oss;
       OStreamOutputStream os(&oss);
       XmlWriter writer;
       writer.write(dyno, &os);
-      
+
       assertStrCmp(xml.c_str(), oss.str().c_str());
    }
-   
+
    {
       string xml =
          "<object>"
@@ -964,22 +964,22 @@ void runXmlReadWriteTest(TestRunner& tr)
            "<null/>"
           "</member>"
          "</object>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       ostringstream oss;
       OStreamOutputStream os(&oss);
       XmlWriter writer;
       writer.write(dyno, &os);
-      
+
       assertStrCmp(xml.c_str(), oss.str().c_str());
    }
-   
+
    {
       string xml =
          "<object>"
@@ -1011,29 +1011,29 @@ void runXmlReadWriteTest(TestRunner& tr)
            "</array>"
           "</member>"
          "</object>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       XmlReader reader;
       DynamicObject dyno;
       reader.start(dyno);
       reader.read(&bais);
       reader.finish();
-      
+
       ostringstream oss;
       OStreamOutputStream os(&oss);
       XmlWriter writer;
       writer.write(dyno, &os);
-      
+
       assertStrCmp(xml.c_str(), oss.str().c_str());
    }
-   
+
    tr.passIfNoException();
 }
 
 void runXmlIOStreamTest(TestRunner& tr)
 {
    tr.group("XML I/O");
-   
+
    tr.test("Input");
    /*
    DynamicObject di;
@@ -1049,19 +1049,19 @@ void runXmlIOStreamTest(TestRunner& tr)
    dois.read(oss);
    */
    tr.passIfNoException();
-   
+
    tr.test("Output");
    tr.passIfNoException();
 
    tr.warning("Fix XML IO Stream test");
-   
+
    tr.ungroup();
 }
 
 void runDomReadWriteTest(TestRunner& tr)
 {
    tr.test("DomReadWrite");
-   
+
    {
       string xml =
          "<root>"
@@ -1083,31 +1083,31 @@ void runDomReadWriteTest(TestRunner& tr)
            "</page>"
           "</magazine>"
          "</root>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       DomReader dr;
       Element root;
       dr.start(root);
       dr.read(&bais);
       dr.finish();
-      
+
       ostringstream oss;
       OStreamOutputStream os(&oss);
       DomWriter writer;
       writer.setCompact(true);
       //writer.setIndentation(0, 1);
       writer.write(root, &os);
-      
+
       assertStrCmp(xml.c_str(), oss.str().c_str());
    }
-   
+
    tr.passIfNoException();
 }
 
 void runDomReadWriteNamespaceTest(TestRunner& tr)
 {
    tr.test("DomReadWriteNamespace");
-   
+
    {
       string xml =
          "<soap:Envelope "
@@ -1119,33 +1119,33 @@ void runDomReadWriteNamespaceTest(TestRunner& tr)
          "</m:GetStockPrice>"
          "</soap:Body>"
          "</soap:Envelope>";
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       DomReader dr;
       Element root;
       dr.start(root);
       dr.read(&bais);
       dr.finish();
-      
+
       //dumpDynamicObject(root);
-      
+
       ostringstream oss;
       OStreamOutputStream os(&oss);
       DomWriter writer;
       writer.setCompact(true);
       //writer.setIndentation(0, 1);
       writer.write(root, &os);
-      
+
       assertStrCmp(xml.c_str(), oss.str().c_str());
    }
-   
+
    tr.passIfNoException();
 }
 
 void runDomWriteNamespaceTest(TestRunner& tr)
 {
    tr.test("DomWriteNamespace");
-   
+
    {
       // create root element
       Element root;
@@ -1166,7 +1166,7 @@ void runDomWriteNamespaceTest(TestRunner& tr)
          attr["value"] = "http://www.w3.org/2001/12/soap-encoding";
          root["attributes"][attr["name"]->getString()] = attr;
       }
-      
+
       // add body element
       Element body;
       body["name"] = "Body";
@@ -1179,20 +1179,20 @@ void runDomWriteNamespaceTest(TestRunner& tr)
          attr["value"] = "http://www.example.org/stock";
          body["attributes"][attr["name"]->getString()] = attr;
       }
-      
+
       // add message
       Element message;
       message["name"] = "GetStockPrice";
       message["namespace"] = "http://www.example.org/stock";
       body["children"][message["name"]->getString()]->append(message);
-      
+
       // add param
       Element param;
       param["name"] = "StockName";
       param["namespace"] = "http://www.example.org/stock";
       param["data"] = "IBM";
       message["children"][param["name"]->getString()]->append(param);
-      
+
       // write envelope to string
       string envelope;
       DomWriter writer;
@@ -1203,7 +1203,7 @@ void runDomWriteNamespaceTest(TestRunner& tr)
       writer.write(root, &baos);
       assertNoException();
       envelope.append(bb.data(), bb.length());
-      
+
       const char* expect =
          "<soap:Envelope "
          "soap:encodingStyle=\"http://www.w3.org/2001/12/soap-encoding\" "
@@ -1216,7 +1216,7 @@ void runDomWriteNamespaceTest(TestRunner& tr)
          "</soap:Envelope>";
       assertStrCmp(expect, envelope.c_str());
    }
-   
+
    tr.passIfNoException();
 }
 
@@ -1240,9 +1240,9 @@ void runDomReaderCrashTest(TestRunner& tr)
          "<Address>100 W Main St</Address><City>Christiansburg</City>"
          "<State>VA</State><Zip>24073-2944</Zip><Country>US</Country>"
          "</Result></ResultSet>";
-      
+
       //printf("XML:\n%s\n", xml.c_str());
-      
+
       ByteArrayInputStream bais(xml.c_str(), xml.length());
       DomReader reader;
       Element root;
@@ -1251,7 +1251,7 @@ void runDomReaderCrashTest(TestRunner& tr)
       assertNoException();
       reader.finish();
       assertNoException();
-      
+
       //dumpDynamicObject(root);
    }
    tr.passIfNoException();
@@ -1260,9 +1260,9 @@ void runDomReaderCrashTest(TestRunner& tr)
 void runSwapTest(TestRunner& tr)
 {
    tr.group("byte order swapping");
-   
+
    // take value vXX, swap it to sXX, and check with expected eXX
-   
+
    tr.test("16");
    {
       uint16_t v = 0x0123;
@@ -1271,7 +1271,7 @@ void runSwapTest(TestRunner& tr)
       assert(s == e);
    }
    tr.pass();
-   
+
    tr.test("32");
    {
       uint32_t v = 0x01234567U;
@@ -1289,20 +1289,20 @@ void runSwapTest(TestRunner& tr)
       assert(s == e);
    }
    tr.pass();
-   
+
    tr.ungroup();
 }
 
 void runFourccTest(TestRunner& tr)
 {
    tr.group("FOURCC");
-   
+
    tr.test("create");
    {
       fourcc_t fc = DB_FOURCC_FROM_CHARS('T','E','S','T');
       fourcc_t fs = DB_FOURCC_FROM_STR("TEST");
       assert(fc == fs);
-      
+
       char b[4];
       DB_FOURCC_TO_STR(fs, b);
       assert(strncmp(b, "TEST", 4) == 0);
@@ -1312,7 +1312,7 @@ void runFourccTest(TestRunner& tr)
       assertStrCmp(sb, "fourcc[TEST]");
    }
    tr.passIfNoException();
-   
+
    tr.test("mask");
    {
       uint8_t m = 0xff;
@@ -1333,7 +1333,7 @@ void runFourccTest(TestRunner& tr)
       assert(f != DB_FOURCC_FROM_STR("xxxx"));
    }
    tr.passIfNoException();
-   
+
    tr.test("ncmp");
    {
       fourcc_t f = DB_FOURCC_FROM_STR("TEST");
@@ -1352,12 +1352,12 @@ void runFourccTest(TestRunner& tr)
 
    tr.ungroup();
 }
-   
+
 
 void runRiffTest(TestRunner& tr)
 {
    tr.group("RIFF");
-   
+
    tr.test("chunk");
    {
       fourcc_t fourcc = DB_FOURCC_FROM_STR("TEST");
@@ -1365,14 +1365,14 @@ void runRiffTest(TestRunner& tr)
       RiffChunkHeader chunk(fourcc, size);
       assert(chunk.getIdentifier() == fourcc);
       assert(chunk.getChunkSize() == size);
-      
+
       char expect[8] = {'T', 'E', 'S', 'T', 0x04, 0x03, 0x02, 0x01};
       char offsetexpect[9] = {0, 'T', 'E', 'S', 'T', 0x04, 0x03, 0x02, 0x01};
       char to[8];
       memset(to, 0xFE, 8);
       chunk.convertToBytes(to);
       assert(memcmp(expect, to, 8) == 0);
-      
+
       // short
       assert(!chunk.convertFromBytes(expect, 7));
 
@@ -1393,39 +1393,39 @@ void runRiffTest(TestRunner& tr)
       assert(memcmp(expect, to, 8) == 0);
    }
    tr.passIfNoException();
-   
+
    tr.test("list");
    {
       // FIXME
    }
    tr.passIfNoException();
-   
+
    tr.test("form");
    {
       // FIXME
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runAviTest(TestRunner& tr)
 {
    tr.group("AVI");
-   
+
    tr.test("...");
       // FIXME
    {
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runTemplateInputStreamTest(TestRunner& tr)
 {
    tr.group("TemplateInputStream");
-   
+
    tr.test("parse (valid)");
    {
       // create template
@@ -1444,7 +1444,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Slash before escaped variable \\\\\\{bccAddress1\\}.\n"
          "2 slashes before escaped variable \\\\\\\\\\{bccAddress1\\}.\n"
          "{eggs}{bacon}{ham}{sausage}.";
-      
+
       // create variables
       DynamicObject vars;
       vars["bccAddress1"] = "support@bitmunk.com";
@@ -1452,16 +1452,16 @@ void runTemplateInputStreamTest(TestRunner& tr)
       // vars["bacon"] -- no bacon
       vars["ham"] = "number ";
       vars["sausage"] = 5;
-      
+
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
       TemplateInputStream tis(vars, false, &bais, false);
-      
+
       // parse entire template
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      
+
       const char* expect =
          "Subject: This is an autogenerated unit test email\r\n"
          "From: testuser@bitmunk.com\r\n"
@@ -1477,82 +1477,82 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Slash before escaped variable \\{bccAddress1}.\n"
          "2 slashes before escaped variable \\\\{bccAddress1}.\n"
          "This is a number 5.";
-      
+
       // null-terminate output
       output.putByte(0, 1, true);
-      
+
       // assert expected value
       assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
-   
+
    tr.test("parse (DOS paths)");
    {
       // create template
       const char* tpl =
          "The path is {PATH}!";
-      
+
       // create variables
       DynamicObject vars;
       vars["PATH"] = "C:\\Dox";
-      
+
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
       TemplateInputStream tis(vars, true, &bais, false);
-      
+
       // parse entire template
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
       assertNoException();
-      
+
       const char* expect =
          "The path is C:\\Dox!";
-      
+
       // null-terminate output
       output.putByte(0, 1, true);
-      
+
       // assert expected value
       assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
-   
+
    tr.test("parse (DOS paths in template)");
    {
       // create template
       const char* tpl =
          "The path is C:\\\\Dox!";
-      
+
       // create variables
       DynamicObject vars;
-      
+
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
       TemplateInputStream tis(vars, true, &bais, false);
-      
+
       // parse entire template
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
       assertNoException();
-      
+
       const char* expect =
          "The path is C:\\Dox!";
-      
+
       // null-terminate output
       output.putByte(0, 1, true);
-      
+
       // assert expected value
       assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
-   
+
    tr.test("parse (invalid - ends in '\\')");
    {
       // create template
       const char* tpl =
          "This template ends in an escape character\\";
-      
+
       // create variables
       DynamicObject vars;
       vars["bccAddress1"] = "support@bitmunk.com";
@@ -1560,85 +1560,85 @@ void runTemplateInputStreamTest(TestRunner& tr)
       vars["bacon"] = ""; // -- no bacon
       vars["ham"] = "number ";
       vars["sausage"] = 5;
-      
+
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
       TemplateInputStream tis(vars, true, &bais, false);
-      
+
       // parse entire template
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
    }
    tr.passIfException();
-   
+
    tr.test("parse (invalid - incomplete variable)");
    {
       // create template
       const char* tpl =
          "{eggs}{bacon}{ham}{sausage}{incompleteVariable";
-      
+
       // create variables
       DynamicObject vars;
       vars["eggs"] = "This is a ";
       vars["bacon"] = ""; // -- no bacon
       vars["ham"] = "number ";
       vars["sausage"] = 5;
-      
+
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
       TemplateInputStream tis(vars, true, &bais, false);
-      
+
       // parse entire template
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
    }
    tr.passIfException();
-   
+
    tr.test("parse (reuse pipeline)");
    {
       // create template
       const char* tpl1 = "{TEST1}";
-      
+
       // create variables
       DynamicObject vars;
       vars["TEST1"] = "111";
       vars["TEST2"] = "222";
-      
+
       // create template input stream
       ByteArrayInputStream bais(tpl1, strlen(tpl1));
       TemplateInputStream tis(vars, false, &bais, false);
-      
+
       // parse entire template
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      
+
       // null-terminate output
       output.putByte(0, 1, true);
-      
+
       // assert expected value
       assertStrCmp("111", output.data());
-      
+
       const char* tpl2 = "{TEST2}";
       bais.setByteArray(tpl2, strlen(tpl2));
       output.clear();
       tis.setInputStream(&bais, false);
       tis.parse(&baos);
       output.putByte(0, 1, true);
-      
+
       // assert expected value
       assertStrCmp("222", output.data());
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 /**
  * Make a DynamicObject with various content to stress test JSON reader/writer.
- * 
+ *
  * @return test DynamicObject
  */
 static DynamicObject makeJsonTestDyno2()
@@ -1647,7 +1647,7 @@ static DynamicObject makeJsonTestDyno2()
    d3["a"] = 123;
    d3["b"] = true;
    d3["c"] = "sea";
-   
+
    DynamicObject loremIpsum;
    loremIpsum =
       "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do "
@@ -1657,7 +1657,7 @@ static DynamicObject makeJsonTestDyno2()
       "voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur "
       "sint occaecat cupidatat non proident, sunt in culpa qui officia "
       "deserunt mollit anim id est laborum.";
-   
+
    DynamicObject d;
    d["zeroth"] = false;
    d["first"] = "one";
@@ -1676,23 +1676,23 @@ static DynamicObject makeJsonTestDyno2()
    d["eighth"]["three"] = loremIpsum.clone();
    d["eighth"]["four"] = loremIpsum.clone();
    d["ninth"] = "WUVT 90.7 FM - The Greatest Radio Station on Earth";
-   
+
    return d;
 }
 
 void runCharacterSetMutatorTest(TestRunner& tr)
 {
    tr.group("CharacterSetMutator");
-    
+
    tr.test("ISO-8859-1 to UTF-8");
    {
       // FIXME: do something fancy here
       const char* data =
          "foo";
-      
+
       CharacterSetMutator csm;
       csm.setCharacterSets("UTF-8", "ISO-8859-1");
-      
+
       ByteArrayInputStream bais(data, strlen(data));
       string out;
       MutatorInputStream mis(&bais, false, &csm, false);
@@ -1703,35 +1703,35 @@ void runCharacterSetMutatorTest(TestRunner& tr)
          out.append(b, numBytes);
       }
       mis.close();
-      
+
       //printf("output: '%s'\n", out.c_str());
    }
    tr.passIfNoException();
-   
+
    tr.test("UTF-8 to ISO-8859-1");
    {
       // FIXME: do something fancy here
       const char* data =
          "foo";
-      
+
       string out;
       CharacterSetMutator::convert(data, "ISO-8859-1", out, "UTF-8");
       //printf("output: '%s'\n", out.c_str());
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
 void runJsonReaderSpeedTest(TestRunner& tr)
 {
    tr.group("JsonReader speed");
-   
+
    tr.test("speed");
    {
       DynamicObject in = makeJsonTestDyno2();
       string json = JsonWriter::writeToString(in, true);
-      
+
       Timer t;
       t.start();
       for(int i = 0; i < 10000; i++)
@@ -1742,7 +1742,7 @@ void runJsonReaderSpeedTest(TestRunner& tr)
       printf("%0.2f secs... ", t.getElapsedSeconds());
    }
    tr.passIfNoException();
-   
+
    tr.ungroup();
 }
 
@@ -1766,7 +1766,7 @@ public:
       runJsonVerifyDJDTest(tr);
       runJsonValueVerifyJDTest(tr);
       runJsonIOStreamTest(tr);
-      
+
       runXmlReaderTest(tr);
       runXmlWriterTest(tr);
       runXmlReadWriteTest(tr);
@@ -1775,17 +1775,17 @@ public:
       runDomReaderCrashTest(tr);
       runDomReadWriteNamespaceTest(tr);
       runDomWriteNamespaceTest(tr);
-      
+
       runSwapTest(tr);
-      
+
       runFourccTest(tr);
       runRiffTest(tr);
       runAviTest(tr);
-      
+
       runTemplateInputStreamTest(tr);
-      
+
       runCharacterSetMutatorTest(tr);
-      
+
       return 0;
    }
 

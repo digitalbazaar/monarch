@@ -29,7 +29,7 @@ ValidatorContext::~ValidatorContext()
       {
          free(*i);
       }
-      
+
       delete mPath;
    }
 }
@@ -69,7 +69,7 @@ void ValidatorContext::popPath()
 {
    if(mPath != NULL)
    {
-      char* path = mPath->back(); 
+      char* path = mPath->back();
       mPath->pop_back();
       free(path);
    }
@@ -88,7 +88,7 @@ unsigned int ValidatorContext::getDepth()
 std::string ValidatorContext::getPath()
 {
    std::string rval;
-   
+
    if(mPath != NULL)
    {
       for(std::vector<char*>::iterator i = mPath->begin();
@@ -98,7 +98,7 @@ std::string ValidatorContext::getPath()
          rval.append(*i);
       }
    }
-   
+
    return rval;
 }
 
@@ -111,7 +111,7 @@ DynamicObject ValidatorContext::addError(
    const char* type, DynamicObject* object)
 {
    DynamicObject errorDetail;
-   
+
    // setup error detail
    errorDetail["type"] = type;
    // FIXME: localize message -- lehn
@@ -124,21 +124,21 @@ DynamicObject ValidatorContext::addError(
    {
       errorDetail["invalidValue"] = *object;
    }
-   
+
    // add error detail to results errors
    mResults["errors"]->append(errorDetail);
-   
+
    // Skip setting exceptions if requested. Return errorDetail regardless.
    if(mSetExceptions)
    {
       ExceptionRef e;
-      
+
       if(!Exception::isSet())
       {
          e = new Exception(
             "The given object does not meet all of the data validation "
             "requirements. Please examine the error details for more "
-            "information about the specific requirements.", 
+            "information about the specific requirements.",
             "db.validation.ValidationError");
          Exception::set(e);
       }
@@ -159,12 +159,12 @@ DynamicObject ValidatorContext::addError(
             Exception::push(e);
          }
       }
-      
+
       // add detail to "errors" section of exception details
       std::string fullpath = getPath();
       e->getDetails()["errors"][fullpath.c_str()] = errorDetail;
    }
-   
+
    return errorDetail;
 }
 
