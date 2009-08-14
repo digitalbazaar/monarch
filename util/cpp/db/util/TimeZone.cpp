@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/util/TimeZone.h"
 #include "db/rt/System.h"
@@ -27,7 +27,7 @@ inline unsigned int TimeZone::getMinutesWest()
 TimeZone TimeZone::getTimeZone(const char* tz)
 {
    TimeZone rval;
-   
+
    if(strcmp(tz, "GMT") == 0 || strcmp(tz, "UTC") == 0)
    {
       rval.mMinutesWest = 0;
@@ -56,6 +56,6 @@ TimeZone TimeZone::getTimeZone(const char* tz)
    {
       rval.mMinutesWest = gGetTimeZoneMinutesWest();
    }
-   
+
    return rval;
 }

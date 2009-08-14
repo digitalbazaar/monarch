@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_util_UniqueList_H
 #define db_util_UniqueList_H
@@ -14,7 +14,7 @@ namespace util
 /**
  * A UniqueList consists of a list of unique objects. The objects will be
  * compared on their equality operator: operator==.
- * 
+ *
  * @author Dave Longley
  */
 template<typename T>
@@ -25,51 +25,51 @@ protected:
     * The underlying list data structure.
     */
    std::list<T> mList;
-   
+
 public:
    /**
     * Creates a new UniqueList.
     */
    UniqueList() {};
-   
+
    /**
     * Destructs this UniqueList.
     */
    virtual ~UniqueList() {};
-   
+
    /**
     * Adds an object to this list, if it isn't already in the list.
-    * 
+    *
     * @param obj the object to add.
-    * 
+    *
     * @return true if the object was added, false if it was not.
     */
    virtual bool add(const T& obj);
-   
+
    /**
     * Removes an object from this list, if it is in the list.
-    * 
+    *
     * @param obj the object to remove.
-    * 
+    *
     * @return true if the object was removed, false if it not.
     */
    virtual bool remove(const T& obj);
-   
+
    /**
     * Clears this list.
     */
    virtual void clear();
-   
+
    /**
     * The number of items in this list.
-    * 
+    *
     * @return the number of items in this list.
     */
    virtual unsigned int count();
-   
+
    /**
     * Gets the Iterator for this list. It must be deleted after use.
-    * 
+    *
     * @return the Iterator for the list.
     */
    virtual db::rt::Iterator<T>* getIterator();
@@ -79,19 +79,19 @@ template<typename T>
 bool UniqueList<T>::add(const T& obj)
 {
    bool rval = true;
-   
+
    db::rt::Iterator<T>* i = getIterator();
    while(rval && i->hasNext())
    {
       rval = !(i->next() == obj);
    }
    delete i;
-   
+
    if(rval)
    {
       mList.push_back(obj);
    }
-   
+
    return rval;
 }
 
@@ -99,7 +99,7 @@ template<typename T>
 bool UniqueList<T>::remove(const T& obj)
 {
    bool rval = false;
-   
+
    db::rt::Iterator<T>* i = getIterator();
    while(!rval && i->hasNext())
    {
@@ -111,7 +111,7 @@ bool UniqueList<T>::remove(const T& obj)
       }
    }
    delete i;
-   
+
    return rval;
 }
 

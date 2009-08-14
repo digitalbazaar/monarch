@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_util_AnsiEscapeCodes_H
 #define db_util_AnsiEscapeCodes_H
@@ -28,15 +28,15 @@
 #define DB_ANSI_NEGATIVE          "7"
 // Conceal - not widely supported
 #define DB_ANSI_CONCEAL           "8"
-// Underline: Double    
+// Underline: Double
 #define DB_ANSI_UNDERLINE_DOUBLE "21"
 // Intensity: Normal - not bold and not faint
 #define DB_ANSI_NORMAL           "22"
-// Underline: None   
+// Underline: None
 #define DB_ANSI_UNDERLINE_NONE   "24"
-// Blink: off  
+// Blink: off
 #define DB_ANSI_BLINK_OFF        "25"
-// Image: Positive   
+// Image: Positive
 #define DB_ANSI_POSITIVE         "27"
 // Reveal - conceal off
 #define DB_ANSI_REVEAL           "28"
@@ -50,7 +50,7 @@
 #define DB_ANSI_FG_MAGENTA       "35"
 #define DB_ANSI_FG_CYAN          "36"
 #define DB_ANSI_FG_WHITE         "37"
- 
+
 // Background colors (normal intensity)
 #define DB_ANSI_BG_BLACK         "40"
 #define DB_ANSI_BG_RED           "41"
@@ -70,7 +70,7 @@
 #define DB_ANSI_FG_HI_MAGENTA    "95"
 #define DB_ANSI_FG_HI_CYAN       "96"
 #define DB_ANSI_FG_HI_WHITE      "97"
- 
+
 // Background colors (high intensity)
 #define DB_ANSI_BG_HI_BLACK     "100"
 #define DB_ANSI_BG_HI_RED       "101"

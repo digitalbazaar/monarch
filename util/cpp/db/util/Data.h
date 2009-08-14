@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_util_Data_H
 #define db_util_Data_H
@@ -20,7 +20,7 @@ namespace util
 
 /**
  * Various support macros and types for data processing.
- * 
+ *
  * @author David I. Lehn
  */
 
@@ -66,7 +66,7 @@ namespace util
 #define DB_UINT16_TO_BE(val) DB_UINT16_SWAP_LE_BE(val)
 #define DB_UINT32_TO_BE(val) DB_UINT32_SWAP_LE_BE(val)
 #define DB_UINT64_TO_BE(val) DB_UINT64_SWAP_LE_BE(val)
-#elif BYTE_ORDER == BIG_ENDIAN 
+#elif BYTE_ORDER == BIG_ENDIAN
 #define DB_UINT16_TO_LE(val) DB_UINT16_SWAP_LE_BE(val)
 #define DB_UINT32_TO_LE(val) DB_UINT32_SWAP_LE_BE(val)
 #define DB_UINT64_TO_LE(val) DB_UINT64_SWAP_LE_BE(val)
@@ -74,7 +74,7 @@ namespace util
 #define DB_UINT32_TO_BE(val) (val)
 #define DB_UINT64_TO_BE(val) (val)
 #else
-#error BYTE_ORDER not defined 
+#error BYTE_ORDER not defined
 #endif
 
 // symmetric conversion

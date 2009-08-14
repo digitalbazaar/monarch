@@ -34,15 +34,15 @@ string Convert::bytesToHex(const char* bytes, unsigned int length)
    for(unsigned int i = 0; i < length; i++, ptr += 2)
    {
       // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
-      
+
       // convert the top 4 bits
       ptr[0] = HEX_CHARS[(ubytes[i] >> 4)];
-      
+
       // convert the bottom 4 bits
       ptr[1] = HEX_CHARS[(ubytes[i] & 0x0f)];
    }
    ptr[0] = 0;
-   
+
    return hex;
 }
 
@@ -55,22 +55,22 @@ string Convert::bytesToUpperHex(const char* bytes, unsigned int length)
    for(unsigned int i = 0; i < length; i++, ptr += 2)
    {
       // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
-      
+
       // convert the top 4 bits
       ptr[0] = UPPER_HEX_CHARS[(ubytes[i] >> 4)];
-      
+
       // convert the bottom 4 bits
       ptr[1] = UPPER_HEX_CHARS[(ubytes[i] & 0x0f)];
    }
    ptr[0] = 0;
-   
+
    return hex;
 }
 
 static inline bool nibbleToByte(const char hex, unsigned char& value)
 {
    bool rval = true;
-   
+
    if(hex >= '0' && hex <= '9')
    {
       value = hex - '0';
@@ -87,10 +87,10 @@ static inline bool nibbleToByte(const char hex, unsigned char& value)
    {
       rval = false;
    }
-   
+
    return rval;
 }
-   
+
 static inline bool hexToByte(
    const char high, const char low, unsigned char& value)
 {
@@ -110,10 +110,10 @@ bool Convert::hexToBytes(
    bool rval = true;
 
    length = 0;
-   
+
    // convert bytes to unsigned
    unsigned char* ubytes = (unsigned char*)bytes;
-   
+
    unsigned char c1;
    unsigned char c2;
    unsigned int i;
@@ -139,7 +139,7 @@ bool Convert::hexToBytes(
       c2 = hex[i + 1];
       rval = hexToByte(c1, c2, ubytes[length++]);
    }
-   
+
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -147,7 +147,7 @@ bool Convert::hexToBytes(
          "db.util.ConversionError");
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
@@ -155,7 +155,7 @@ bool Convert::hexToInt(
    const char* hex, unsigned int hexLength, unsigned int& value)
 {
    bool rval = true;
-   
+
    if(hexLength > (sizeof(unsigned int) * 2))
    {
       rval = false;
@@ -178,7 +178,7 @@ bool Convert::hexToInt(
          }
       }
    }
-   
+
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -186,14 +186,14 @@ bool Convert::hexToInt(
          "db.util.ConversionError");
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 string Convert::intToHex(unsigned int n)
 {
    string rval;
-   
+
    char ch;
    for(int i = 2 * sizeof(int) - 1; i >= 0; i--)
    {
@@ -203,20 +203,20 @@ string Convert::intToHex(unsigned int n)
          rval.push_back(ch);
       }
    }
-   
+
    // insert single leading zero as necessary
    if(rval.length() % 2 != 0)
    {
       rval.insert(rval.begin(), '0');
    }
-   
+
    return rval;
 }
 
 string Convert::intToUpperHex(unsigned int n)
 {
    string rval;
-   
+
    char ch;
    for(int i = 2 * sizeof(int) - 1; i >= 0; i--)
    {
@@ -226,13 +226,13 @@ string Convert::intToUpperHex(unsigned int n)
          rval.push_back(ch);
       }
    }
-   
+
    // insert single leading zero as necessary
    if(rval.length() % 2 != 0)
    {
       rval.insert(rval.begin(), '0');
    }
-   
+
    return rval;
 }
 

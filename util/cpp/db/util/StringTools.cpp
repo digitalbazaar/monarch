@@ -17,7 +17,7 @@ string& StringTools::trim(string& str, const string& trimChars)
 {
    // erase front trim characters
    str.erase(0, str.find_first_not_of(trimChars));
-   
+
    // find back trim characters
    string::size_type last = str.find_last_not_of(trimChars);
    if(last != string::npos)
@@ -25,7 +25,7 @@ string& StringTools::trim(string& str, const string& trimChars)
       // erase back trim characters
       str.erase(last + 1);
    }
-   
+
    return str;
 }
 
@@ -38,7 +38,7 @@ string& StringTools::replace(
    {
       str.replace(found, find.length(), replace);
    }
-   
+
    return str;
 }
 
@@ -51,7 +51,7 @@ string& StringTools::replaceAll(
       str.replace(found, find.length(), replace);
       found = str.find(find, found + replace.length());
    }
-   
+
    return str;
 }
 
@@ -71,13 +71,13 @@ string& StringTools::regexReplaceAll(
          index = start + replace.length();
       }
    }
-   
+
    return str;
 }
 
 /**
  * A helper function for StringTools::format().
- * 
+ *
  * @param f the format.
  * @param ap the variable args list.
  */
@@ -86,14 +86,14 @@ static string vformat(const char* f, va_list ap)
    // estimate size for string
    int size = 256;
    char* str = (char*)malloc(size);
-   
+
    // copy va_list in case we must realloc
    va_list clone;
    va_copy(clone, ap);
-   
+
    // try to get formatted string
    size = vsnprintf(str, size, f, ap);
-   
+
    // if size > 0, then string was truncated and size contains
    // full size of formatted string (not including null-terminator)
    if(size > 0)
@@ -103,7 +103,7 @@ static string vformat(const char* f, va_list ap)
       str = (char*)realloc(str, size);
       vsnprintf(str, size, f, ap);
    }
-   
+
    string rval = str;
    free(str);
    return rval;

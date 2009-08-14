@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #include "db/util/TimeWindow.h"
 #include "db/rt/System.h"
@@ -30,7 +30,7 @@ void TimeWindow::adjustItemCount(uint64_t timeChange)
    }
    mLock.unlock();
 }
-   
+
 void TimeWindow::reset()
 {
    mLock.lock();
@@ -38,7 +38,7 @@ void TimeWindow::reset()
       mStartTime = 0;
       mItemCount = 0;
       mTimePassed = 0;
-      
+
       // reset the last time that time was added
       mLastAddTime = System::getCurrentMilliseconds();
    }
@@ -61,28 +61,28 @@ void TimeWindow::setEqualTo(TimeWindow& window)
 double TimeWindow::getIncreaseRateInItemsPerMillisecond()
 {
    double rval = 0.0;
-   
+
    mLock.lock();
    {
       // get the rate in items per millisecond
       rval = getItemsPerMillisecond(getItemCount(), getTimePassed());
    }
    mLock.unlock();
-   
+
    return rval;
 }
 
 double TimeWindow::getIncreaseRate()
 {
    double rval = 0.0;
-   
+
    mLock.lock();
    {
       // get the rate in items per second
       rval = getItemsPerSecond(getItemCount(), getTimePassed());
    }
    mLock.unlock();
-   
+
    return rval;
 }
 
@@ -100,11 +100,11 @@ void TimeWindow::setLength(uint64_t length, bool adjust)
       {
          // get the time change
          uint64_t timeChange = length - mLength;
-         
+
          // adjust the item count
          adjustItemCount(timeChange);
       }
-      
+
       // set new length
       mLength = length;
    }
@@ -130,11 +130,11 @@ void TimeWindow::setStartTime(uint64_t time, bool adjust)
       {
          // get the time change
          uint64_t timeChange = time - mStartTime;
-         
+
          // adjust the item count
          adjustItemCount(timeChange);
       }
-      
+
       // set new start time
       mStartTime = time;
    }
@@ -149,45 +149,45 @@ inline uint64_t TimeWindow::getStartTime()
 uint64_t TimeWindow::getEndTime()
 {
    uint64_t rval = 0;
-   
+
    if(getLength() > 0)
    {
       rval = getStartTime() + getLength() - 1;
    }
-   
+
    return rval;
 }
 
 uint64_t TimeWindow::getCurrentTime()
 {
    uint64_t rval = 0;
-   
+
    mLock.lock();
    {
       rval = getStartTime() + getTimePassed();
    }
    mLock.unlock();
-   
+
    return rval;
 }
 
 uint64_t TimeWindow::getRemainingTime()
 {
    uint64_t rval = 0;
-   
+
    mLock.lock();
    {
       rval = getEndTime() - getCurrentTime();
    }
    mLock.unlock();
-   
+
    return rval;
 }
 
 bool TimeWindow::isTimeInWindow(uint64_t time)
 {
    bool rval = false;
-   
+
    mLock.lock();
    {
       // make sure time is passed start time
@@ -202,7 +202,7 @@ bool TimeWindow::isTimeInWindow(uint64_t time)
       }
    }
    mLock.unlock();
-   
+
    return rval;
 }
 
@@ -230,14 +230,14 @@ void TimeWindow::increaseTimePassed(uint64_t time)
    mLock.lock();
    {
       mTimePassed += time;
-      
+
       // see if this window has a maximum length
       if(getLength() != 0)
       {
          // cap time passed at the length of the window
          mTimePassed = (mTimePassed < getLength()) ? mTimePassed : getLength();
       }
-      
+
       // update last time that time was added
       mLastAddTime = System::getCurrentMilliseconds();
    }

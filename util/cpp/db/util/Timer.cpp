@@ -35,14 +35,14 @@ double Timer::getElapsedSeconds()
 uint64_t Timer::getRemainingMilliseconds(uint64_t until)
 {
    uint64_t rval = 0;
-   
+
    uint64_t now = System::getCurrentMilliseconds();
    uint64_t then = mStartTime + until;
    if(now > then)
    {
       rval = now - then;
    }
-   
+
    return rval;
 }
 

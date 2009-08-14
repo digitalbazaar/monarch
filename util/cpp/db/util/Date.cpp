@@ -79,7 +79,7 @@ void Date::setDosTime(unsigned int dosTime)
 unsigned int Date::dosTime(bool local)
 {
    struct tm time;
-   
+
    if(local)
    {
       // get local time
@@ -90,7 +90,7 @@ unsigned int Date::dosTime(bool local)
       // use broken down time
       time = mBrokenDownTime;
    }
-   
+
    // MS-DOS date & time bit-breakdown (4-bytes total):
    // [0-4][5-10][11-15][16-20][21-24][25-31]
    //  sec  min   hour   day    month  years
@@ -143,7 +143,7 @@ string Date::getUtcDateTime()
 string& Date::format(string& str, const char* format, TimeZone* tz)
 {
    struct tm time;
-   
+
    // apply time zone
    if(tz == NULL)
    {
@@ -161,24 +161,24 @@ string& Date::format(string& str, const char* format, TimeZone* tz)
       // use stored time
       time = mBrokenDownTime;
    }
-   
+
    // print the time to a string
    unsigned int size = strlen(format) + 100;
    char out[size];
    strftime(out, size, format, &time);
    str.assign(out);
-   
+
    return str;
 }
 
 bool Date::parse(const char* str, const char* format, TimeZone* tz)
 {
    bool rval = false;
-   
+
    if(strptime(str, format, &mBrokenDownTime) != NULL)
    {
       rval = true;
-      
+
       if(tz == NULL)
       {
          // get local time
@@ -189,12 +189,12 @@ bool Date::parse(const char* str, const char* format, TimeZone* tz)
          // get gmt time (applies no timezone)
          mSecondsSinceEpoch = timegm(&mBrokenDownTime);
       }
-      
+
       // ensure broken down time is in GMT and totally filled out
       // (strptime may not populate all fields)
       gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
    }
-   
+
    return rval;
 }
 

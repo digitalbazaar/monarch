@@ -35,7 +35,7 @@ uint64_t Random::next(uint64_t low, uint64_t high)
 {
    // get a random number between low and high
    uint32_t r;
-   
+
 #ifdef WIN32
    /* Park-Miller "minimal standard" 31 bit PRNG, implemented with
     * David G. Carta's optimization: with 32 bit math and without
@@ -51,6 +51,6 @@ uint64_t Random::next(uint64_t low, uint64_t high)
 #else
    r = random();
 #endif
-   
+
    return low + (uint64_t)((high - low) * r / (RAND_MAX + 1.0));
 }
