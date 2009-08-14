@@ -22,13 +22,13 @@ PeekInputStream(is, false)
 {
    // store trailer
    mTrailer = trailer;
-   
+
    // no current chunk yet
    mChunkBytesLeft = 0;
-   
+
    // not last chunk yet
    mLastChunk = false;
-   
+
    // store the thread reading from this stream
    mThread = Thread::currentThread();
 }
@@ -40,10 +40,10 @@ HttpChunkedTransferInputStream::~HttpChunkedTransferInputStream()
 int HttpChunkedTransferInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    // get underlying connection input stream
    ConnectionInputStream* is = (ConnectionInputStream*)mInputStream;
-   
+
    if(mChunkBytesLeft == 0 && !mLastChunk)
    {
       // read chunk-size
@@ -58,7 +58,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          {
             sizeLength = size - chunkSize.c_str();
          }
-         
+
          // get size of chunk data
          unsigned int tempBytesLeft;
          if(!Convert::hexToInt(chunkSize.c_str(), sizeLength, tempBytesLeft) ||
@@ -105,7 +105,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          }
       }
    }
-   
+
    // read some chunk bytes into the passed data buffer
    int numBytes = 1;
    if(mChunkBytesLeft > 0 && rval != -1 && numBytes > 0 &&
@@ -117,7 +117,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
       {
          // decrement bytes left
          mChunkBytesLeft -= numBytes;
-         
+
          // increment bytes read
          rval += numBytes;
       }
@@ -130,7 +130,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          rval = -1;
       }
    }
-   
+
    if(rval != -1)
    {
       // if this is the last chunk, then read in the
@@ -145,7 +145,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
             trailerHeaders.append(line);
             trailerHeaders.append(HttpHeader::CRLF);
          }
-         
+
          // parse trailer headers, if appropriate
          if(mTrailer != NULL)
          {
@@ -169,7 +169,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          rval = -1;
       }
    }
-   
+
    return rval;
 }
 
@@ -178,6 +178,6 @@ void HttpChunkedTransferInputStream::close()
    // reset
    mChunkBytesLeft = 0;
    mLastChunk = false;
-   
+
    // do not close underlying stream
 }

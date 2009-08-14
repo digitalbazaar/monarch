@@ -29,7 +29,7 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
       // Set-Cookie: cookie1_name=cookie1_value; max-age=0; path=/
       // Set-Cookie: c2=v2; expires=Thu, 21-Aug-2008 23:47:25 GMT; path=/
       // Cookie: cookie1_name=cookie1_value; cookie2_name=cookie2_value
-      
+
       // parse cookies by semi-colons (cannot parse by commas because
       // the "expires" value may contain a comma and no one follows the
       // standard)
@@ -49,13 +49,13 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
          {
             // get next token (name=value)
             const char* token = pairs.nextToken();
-            
+
             // get name part of token
             size_t nameLength = strcspn(token, "=");
             char tmpName[nameLength + 1];
             strncpy(tmpName, token, nameLength);
             tmpName[nameLength] = 0;
-            
+
             // trim whitespace from name
             char* namePtr = (tmpName + nameLength);
             for(; namePtr != tmpName && *namePtr == ' '; namePtr--)
@@ -64,7 +64,7 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
             }
             for(namePtr = tmpName; *namePtr != 0 && *namePtr == ' ';
                 namePtr++);
-            
+
             // get value part of token (ensure value length is at least 0 in
             // case bad parsing because of no equals sign after name)
             size_t valueLength = strlen(token);
@@ -76,7 +76,7 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
                strncpy(tmpValue, token + nameLength + 1, valueLength);
             }
             tmpValue[valueLength] = 0;
-            
+
             if(origin == Client)
             {
                // set cookie
@@ -124,7 +124,7 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
                      cookie[namePtr] = tmpValue;
                   }
                }
-               
+
                // add cookie if last token
                if(!pairs.hasNextToken())
                {
@@ -133,13 +133,13 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
                   {
                      cookie["secure"] = false;
                   }
-                  
+
                   // cookie is not http-only if no HttpOnly value found
                   if(!cookie->hasMember("httpOnly"))
                   {
                      cookie["httpOnly"] = false;
                   }
-                  
+
                   mCookies[cookie["name"]->getString()] = cookie;
                   cookie.setNull();
                }
@@ -153,16 +153,16 @@ bool CookieJar::writeCookies(
    HttpHeader* header, CookieOrigin origin, bool overwrite)
 {
    bool rval = true;
-   
+
    // get header field name
    const char* field = (origin == Server ? "Set-Cookie" : "Cookie");
-   
+
    // if overwriting, remove existing field
    if(overwrite)
    {
       header->removeField(field);
    }
-   
+
    // if cookies exist, convert all cookies to string
    if(mCookies->length() > 0)
    {
@@ -174,7 +174,7 @@ bool CookieJar::writeCookies(
       while(i->hasNext())
       {
          Cookie& cookie = i->next();
-         
+
          // only write out cookie if not expired or if origin is Server
          age = cookie["maxAge"]->getInt32();
          if(origin == Server || age != 0)
@@ -187,12 +187,12 @@ bool CookieJar::writeCookies(
                   str.append("; ");
                }
             }
-            
+
             // output cookie name and value
             str.append(cookie["name"]->getString());
             str.push_back('=');
             str.append(cookie["value"]->getString());
-            
+
             // only send out other cookie data if writing out Set-Cookie
             if(origin == Server)
             {
@@ -202,7 +202,7 @@ bool CookieJar::writeCookies(
                   str.append("; comment=");
                   str.append(cookie["comment"]->getString());
                }
-               
+
                // output "expires" value if appropriate
                if(age > 0)
                {
@@ -216,51 +216,51 @@ bool CookieJar::writeCookies(
                   // expire cookie
                   str.append("; max-age=0");
                }
-               
+
                // output path
                str.append("; path=");
                str.append(cookie["path"]->getString());
-               
+
                // output secure if appropriate
                if(cookie["secure"]->getBoolean())
                {
                   str.append("; secure");
                }
-               
+
                // output http only if appropriate
                if(cookie["httpOnly"]->getBoolean())
                {
                   str.append("; HttpOnly");
                }
-               
+
                // output domain if appropriate
                if(cookie->hasMember("domain"))
                {
                   str.append("; domain=");
                   str.append(cookie["domain"]->getString());
                }
-               
+
                // output version if appropriate
                if(cookie->hasMember("version"))
                {
                   str.append("; version=");
                   str.append(cookie["version"]->getString());
                }
-               
+
                // add header field and clear string
                header->addField(field, str.c_str());
                str.erase();
             }
          }
       }
-      
+
       if(origin == Client)
       {
          // add single header field
          header->addField(field, str.c_str());
       }
    }
-   
+
    return rval;
 }
 
@@ -280,29 +280,29 @@ void CookieJar::setCookie(
    cookie["path"] = path;
    cookie["secure"] = secure;
    cookie["httpOnly"] = httpOnly;
-   
+
    if(domain != NULL)
    {
       cookie["domain"] = domain;
    }
-   
+
    if(version != 0)
    {
       cookie["version"] = version;
    }
-   
+
    setCookie(cookie);
 }
 
 Cookie CookieJar::getCookie(const char* name)
 {
    Cookie rval(NULL);
-   
+
    if(mCookies->hasMember(name))
    {
       rval = mCookies[name];
    }
-   
+
    return rval;
 }
 

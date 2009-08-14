@@ -21,12 +21,12 @@ FilterInputStream(connection->getInputStream(), false)
    // store connection, trailer
    mConnection = connection;
    mTrailer = trailer;
-   
+
    // no bytes received yet
    mBytesReceived = 0;
    mContentLength = 0;
    mContentLengthKnown = false;
-   
+
    // wrap input stream if using chunked transfer encoding
    mChunkedTransfer = false;
    string transferEncoding;
@@ -40,13 +40,13 @@ FilterInputStream(connection->getInputStream(), false)
          mCleanupInputStream = true;
       }
    }
-   
+
    if(!mChunkedTransfer)
    {
       // determine how much content needs to be received
       mContentLengthKnown =
          header->getField("Content-Length", mContentLength);
-      
+
       // see if content length was specified as a negative amount
       if(mContentLengthKnown && mContentLength < 0)
       {
@@ -68,7 +68,7 @@ HttpBodyInputStream::~HttpBodyInputStream()
 int HttpBodyInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    // do chunked or unknown length transfer
    if(mChunkedTransfer || !mContentLengthKnown)
    {
@@ -77,17 +77,17 @@ int HttpBodyInputStream::read(char* b, int length)
       {
          // update bytes received
          mBytesReceived += rval;
-         
+
          // update http connection content bytes read (reset as necessary)
          if(mConnection->getContentBytesRead() > Math::HALF_MAX_LONG_VALUE)
          {
             mConnection->setContentBytesRead(0);
          }
-         
+
          mConnection->setContentBytesRead(
             mConnection->getContentBytesRead() + rval);
       }
-      
+
       // if finished, update trailer with content length
       if(rval == 0 && mTrailer != NULL)
       {
@@ -106,17 +106,17 @@ int HttpBodyInputStream::read(char* b, int length)
          // update content length, bytes received
          mContentLength -= rval;
          mBytesReceived += rval;
-         
+
          // update http connection content bytes read (reset as necessary)
          if(mConnection->getContentBytesRead() > Math::HALF_MAX_LONG_VALUE)
          {
             mConnection->setContentBytesRead(0);
          }
-         
+
          mConnection->setContentBytesRead(
             mConnection->getContentBytesRead() + rval);
       }
-      
+
       // see if content is remaining
       if(rval == 0 && mContentLength > 0)
       {
@@ -145,7 +145,7 @@ int HttpBodyInputStream::read(char* b, int length)
          mTrailer->update(mBytesReceived);
       }
    }
-   
+
    return rval;
 }
 

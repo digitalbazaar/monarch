@@ -31,7 +31,7 @@ HttpHeader::~HttpHeader()
    {
       free(mVersion);
    }
-   
+
    HttpHeader::clearFields();
 }
 
@@ -69,7 +69,7 @@ const char* HttpHeader::getVersion()
       // default to HTTP/1.1
       mVersion = strdup("HTTP/1.1");
    }
-   
+
    return mVersion;
 }
 
@@ -88,7 +88,7 @@ void HttpHeader::setField(const char* name, const string& value)
    {
       // save name
       char* storedName = (char*)start->first;
-      
+
       // clean up old fields
       FieldMap::iterator end = mFields.upper_bound(storedName);
       for(FieldMap::iterator i = start; i != end; i++)
@@ -96,7 +96,7 @@ void HttpHeader::setField(const char* name, const string& value)
          mFieldsSize -= i->second.length();
       }
       mFields.erase(start, end);
-      
+
       // set new field
       mFields.insert(make_pair(storedName, value));
       mFieldsSize += value.length();
@@ -137,7 +137,7 @@ void HttpHeader::removeField(const char* name)
    {
       // store name for freeing
       char* storedName = (char*)start->first;
-      
+
       // remove all field entries (may be more than one)
       int length = strlen(name);
       FieldMap::iterator end = mFields.upper_bound(name);
@@ -146,10 +146,10 @@ void HttpHeader::removeField(const char* name)
          mFieldsSize -= length;
          mFieldsSize -= i->second.length();
       }
-      
+
       // erase entire range
       mFields.erase(start, end);
-      
+
       // free name
       free(storedName);
    }
@@ -168,13 +168,13 @@ void HttpHeader::clearFields()
       nameArray[next] = (char*)i->first;
       next++;
    }
-   
+
    // free names
    for(size_t n = 0; n < next; n++)
    {
       free(nameArray[n]);
    }
-   
+
    mFieldsSize = 0;
    mFields.clear();
 }
@@ -192,22 +192,22 @@ int HttpHeader::getFieldCount()
 bool HttpHeader::getField(const char* name, long long& value, int index)
 {
    bool rval = false;
-   
+
    string str;
    if(getField(name, str, index))
    {
       char* endptr = NULL;
       value = strtoll(str.c_str(), &endptr, 10);
-      rval = endptr != str.c_str() && *endptr == '\0';      
+      rval = endptr != str.c_str() && *endptr == '\0';
    }
-   
+
    return rval;
 }
 
 bool HttpHeader::getField(const char* name, string& value, int index)
 {
    bool rval = false;
-   
+
    // find field entry
    FieldMap::iterator i = mFields.find(name);
    if(i != mFields.end())
@@ -215,7 +215,7 @@ bool HttpHeader::getField(const char* name, string& value, int index)
       // count to correct value
       FieldMap::iterator end = mFields.upper_bound(i->first);
       for(int n = 0; i != end && n < index; n++, i++);
-      
+
       if(i != end)
       {
          // get value
@@ -223,7 +223,7 @@ bool HttpHeader::getField(const char* name, string& value, int index)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
@@ -237,24 +237,24 @@ std::string HttpHeader::getFieldValue(const char* name, int index)
 bool HttpHeader::hasField(const char* name)
 {
    bool rval = false;
-   
+
    // find field entry
    FieldMap::iterator i = mFields.find(name);
    if(i != mFields.end())
    {
       rval = true;
    }
-   
+
    return rval;
 }
 
 bool HttpHeader::parse(const string& str)
 {
    bool rval = false;
-   
+
    // clear fields
    clearFields();
-   
+
    bool startLine = hasStartLine();
    const char* start = str.c_str();
    char* cr;
@@ -278,21 +278,21 @@ bool HttpHeader::parse(const string& str)
                char name[(colon - start) + 1];
                memcpy(name, start, colon - start);
                name[colon - start] = 0;
-               
+
                // skip whitespace
                colon++;
                for(; *colon == ' ' && colon < cr; colon++);
-               
+
                // get field value
                char value[cr - colon + 1];
                strncpy(value, colon, cr - colon);
                value[(cr - colon)] = 0;
-               
+
                // add field
                addField(name, value);
             }
          }
-         
+
          start = cr + 2;
       }
       else
@@ -300,7 +300,7 @@ bool HttpHeader::parse(const string& str)
          start = cr + 1;
       }
    }
-   
+
    return rval;
 }
 
@@ -308,15 +308,15 @@ string HttpHeader::toString()
 {
    string str;
    str.reserve(512);
-   
+
    // get the start line
    getStartLine(str);
-   
+
    // determine total fields size:
    // (CRLF + fields size + fields * (": " + CRLF))
    char fields[2 + mFieldsSize + mFields.size() * 4];
    char* s = fields;
-   
+
    // append CRLF if there is a start line
    if(str.length() > 0)
    {
@@ -324,52 +324,52 @@ string HttpHeader::toString()
       s[1] = '\n';
       s += 2;
    }
-   
+
    // append all fields
    int length;
    for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
    {
       // get field name length
       length = strlen(i->first);
-      
+
       // append name
       memcpy(s, i->first, length);
       s += length;
-      
+
       // append delimiter
       s[0] = ':';
       s[1] = ' ';
       s += 2;
-      
+
       // append value
       memcpy(s, i->second.c_str(), i->second.length());
       s += i->second.length();
-      
+
       // append CRLF
       s[0] = '\r';
       s[1] = '\n';
       s += 2;
    }
-   
+
    // add CRLF
    s[0] = '\r';
    s[1] = '\n';
    s += 2;
-   
+
    // append fields
    str.append(fields, s - fields);
-   
+
    return str;
 }
 
 bool HttpHeader::write(OutputStream* os)
 {
    bool rval = true;
-   
+
    // get the start line
    string line;
    getStartLine(line);
-   
+
    // write the start line and CRLF if one exists
    if(line.length() > 0)
    {
@@ -377,7 +377,7 @@ bool HttpHeader::write(OutputStream* os)
          os->write(line.c_str(), line.length()) &&
          os->write(CRLF, 2);
    }
-   
+
    // write all fields
    for(FieldMap::iterator i = mFields.begin(); rval && i != mFields.end(); i++)
    {
@@ -388,10 +388,10 @@ bool HttpHeader::write(OutputStream* os)
          os->write(i->second.c_str(), i->second.length()) &&
          os->write(CRLF, 2);
    }
-   
+
    // write ending CRLF
    rval = rval && os->write(CRLF, 2);
-   
+
    return rval;
 }
 
@@ -400,7 +400,7 @@ void HttpHeader::setDate(Date* date)
    // get GMT time zone
    TimeZone gmt = TimeZone::getTimeZone("GMT");
    string str;
-   
+
    if(date == NULL)
    {
       // get current date
@@ -411,7 +411,7 @@ void HttpHeader::setDate(Date* date)
    {
       date->format(str, sDateFormat, &gmt);
    }
-   
+
    // set date field
    setField("Date", str);
 }
@@ -419,7 +419,7 @@ void HttpHeader::setDate(Date* date)
 bool HttpHeader::getDate(Date& date)
 {
    bool rval = false;
-   
+
    string str;
    if(getField("Date", str))
    {
@@ -427,7 +427,7 @@ bool HttpHeader::getDate(Date& date)
       TimeZone gmt = TimeZone::getTimeZone("GMT");
       rval = date.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
    }
-   
+
    return rval;
 }
 
@@ -442,7 +442,7 @@ void HttpHeader::writeTo(HttpHeader* header)
 {
    // set version
    header->setVersion(getVersion());
-   
+
    // add all fields
    for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
    {
@@ -486,7 +486,7 @@ void HttpHeader::biCapitalize(char* name)
             *ptr += 'a' - 'A';
          }
       }
-      
+
       // special case TE header
       if(length == 2 && name[0] == 'T' && name[1] == 'e')
       {

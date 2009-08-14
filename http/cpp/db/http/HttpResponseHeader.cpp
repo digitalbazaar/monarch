@@ -26,17 +26,17 @@ HttpResponseHeader::~HttpResponseHeader()
 bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
 {
    bool rval = false;
-   
+
    // create status message string
    unsigned int msgLength = 0;
    char msg[length];
    msg[0] = 0;
-   
+
    // copy string so it can be modified
    char tokens[length + 1];
    strncpy(tokens, str, length);
    tokens[length] = 0;
-   
+
    // find space-delimited tokens in the passed string
    int count = 0;
    char* start = tokens;
@@ -50,7 +50,7 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
          // nullify delimiter
          end[0] = 0;
       }
-      
+
       if(count == 0)
       {
          setVersion(start);
@@ -66,13 +66,13 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
          {
             msg[msgLength++] = ' ';
          }
-         
+
          strcpy(msg + msgLength, start);
          msgLength += (end - start);
       }
-      
+
       count++;
-      
+
       if(end != NULL)
       {
          start = end + 1;
@@ -82,14 +82,14 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
          start = end;
       }
    }
-   
+
    // set status message
    if(mStatusMessage != NULL)
    {
       free(mStatusMessage);
    }
    mStatusMessage = strdup(msg);
-   
+
    return rval;
 }
 
@@ -111,7 +111,7 @@ inline bool HttpResponseHeader::hasStartLine()
 void HttpResponseHeader::setStatus(unsigned int code, const char* message)
 {
    mStatusCode = code;
-   
+
    if(mStatusMessage != NULL)
    {
       free(mStatusMessage);

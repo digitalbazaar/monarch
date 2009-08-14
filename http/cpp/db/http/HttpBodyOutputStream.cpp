@@ -20,7 +20,7 @@ FilterOutputStream(connection->getOutputStream(), false)
 {
    // store connection
    mConnection = connection;
-   
+
    // wrap output stream if using chunked transfer encoding
    string transferEncoding;
    if(header->getField("Transfer-Encoding", transferEncoding))
@@ -30,12 +30,12 @@ FilterOutputStream(connection->getOutputStream(), false)
          mOutputStream = new HttpChunkedTransferOutputStream(
             (ConnectionOutputStream*)mOutputStream, trailer);
          mCleanupOutputStream = true;
-         
+
          // let chunked transfer output stream use its own buffering
          connection->getOutputStream()->resizeBuffer(0);
       }
    }
-   
+
    // not finished yet
    mFinished = false;
 }
@@ -47,7 +47,7 @@ HttpBodyOutputStream::~HttpBodyOutputStream()
 bool HttpBodyOutputStream::write(const char* b, int length)
 {
    bool rval = true;
-   
+
    if(length > 0)
    {
       // write out to underlying stream
@@ -63,7 +63,7 @@ bool HttpBodyOutputStream::write(const char* b, int length)
             length = e->getDetails()["written"]->getInt32();
          }
       }
-      
+
       if(length > 0)
       {
          // update http connection content bytes written (reset as necessary)
@@ -71,19 +71,19 @@ bool HttpBodyOutputStream::write(const char* b, int length)
          {
             mConnection->setContentBytesWritten(0);
          }
-         
+
          mConnection->setContentBytesWritten(
             mConnection->getContentBytesWritten() + length);
       }
    }
-   
+
    return rval;
 }
 
 bool HttpBodyOutputStream::finish()
 {
    bool rval = true;
-   
+
    if(!mFinished)
    {
       // flush and finish underlying stream
@@ -94,22 +94,22 @@ bool HttpBodyOutputStream::finish()
          {
             mConnection->setContentBytesWritten(0);
          }
-         
+
          mConnection->setContentBytesWritten(
             mConnection->getContentBytesWritten());
       }
-      
+
       if(mCleanupOutputStream)
       {
          // close underlying stream, it was created internally for
          // transfer-encoding (i.e. "chunked")
          mOutputStream->close();
       }
-      
+
       // now finished
       mFinished = true;
    }
-   
+
    return rval;
 }
 

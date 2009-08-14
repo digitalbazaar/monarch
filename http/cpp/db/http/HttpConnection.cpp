@@ -23,7 +23,7 @@ HttpConnection::HttpConnection(Connection* c, bool cleanup) :
 {
    // no content bytes read yet
    mContentBytesRead = 0;
-   
+
    // no content bytes written yet
    mContentBytesWritten = 0;
 }
@@ -49,7 +49,7 @@ inline bool HttpConnection::sendHeader(HttpHeader* header)
 bool HttpConnection::receiveHeader(HttpHeader* header)
 {
    bool rval = true;
-   
+
    // read until eof, error, or blank line w/CRLF
    string headerStr;
    string line;
@@ -60,7 +60,7 @@ bool HttpConnection::receiveHeader(HttpHeader* header)
       headerStr.append(line);
       headerStr.append(HttpHeader::CRLF);
    }
-   
+
    if(read == -1)
    {
       // read failed
@@ -79,7 +79,7 @@ bool HttpConnection::receiveHeader(HttpHeader* header)
          rval = false;
       }
    }
-   
+
    return rval;
 }
 
@@ -87,10 +87,10 @@ bool HttpConnection::sendBody(
    HttpHeader* header, InputStream* is, HttpTrailer* trailer)
 {
    bool rval = true;
-   
+
    // create HttpBodyOutputStream
    HttpBodyOutputStream os(this, header, trailer);
-   
+
    // determine how much content needs to be read
    long long contentLength = 0;
    bool lengthUnspecified = true;
@@ -98,13 +98,13 @@ bool HttpConnection::sendBody(
    {
       lengthUnspecified = false;
    }
-   
+
    // vars for read/write
    unsigned int length = 2048;
    mBuffer.clear();
    mBuffer.allocateSpace(length, true);
    int numBytes = 0;
-   
+
    // do unspecified length transfer
    if(lengthUnspecified)
    {
@@ -119,7 +119,7 @@ bool HttpConnection::sendBody(
    else
    {
       // do specified length transfer:
-      
+
       // read in content, write out to connection
       unsigned long long contentRemaining = contentLength;
       unsigned int readSize = (contentRemaining < length) ?
@@ -135,7 +135,7 @@ bool HttpConnection::sendBody(
          }
          mBuffer.clear();
       }
-      
+
       // check to see if content is remaining
       if(rval)
       {
@@ -161,13 +161,13 @@ bool HttpConnection::sendBody(
          }
       }
    }
-   
+
    // close body stream (will not close underlying stream)
    os.close();
-   
+
    // check read error
    rval = (numBytes != -1);
-   
+
    return rval;
 }
 
@@ -181,16 +181,16 @@ bool HttpConnection::receiveBody(
    HttpHeader* header, OutputStream* os, HttpTrailer* trailer)
 {
    bool rval = true;
-   
+
    // create HttpBodyInputStream
    HttpBodyInputStream is(this, header, trailer);
-   
+
    // vars for read/write
    unsigned int length = 2048;
    mBuffer.clear();
    mBuffer.allocateSpace(length, true);
    int numBytes = 0;
-   
+
    // read in from connection, write out content
    // Note: keep reading even if content output stream fails
    while((numBytes = mBuffer.put(&is, length)) > 0)
@@ -199,13 +199,13 @@ bool HttpConnection::receiveBody(
       rval = rval && os->write(mBuffer.data(), numBytes);
       mBuffer.clear();
    }
-   
+
    // close input stream (will not close underlying stream)
    is.close();
-   
+
    // check read error
    rval = (rval && numBytes != -1);
-   
+
    return rval;
 }
 

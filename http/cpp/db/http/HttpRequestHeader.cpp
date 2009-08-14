@@ -21,7 +21,7 @@ HttpRequestHeader::~HttpRequestHeader()
    {
       free(mMethod);
    }
-   
+
    if(mPath != NULL)
    {
       free(mPath);
@@ -34,7 +34,7 @@ bool HttpRequestHeader::parseStartLine(const char* str, unsigned int length)
    char tokens[length + 1];
    strncpy(tokens, str, length);
    tokens[length] = 0;
-   
+
    // find space-delimited tokens in the passed string
    int count = 0;
    char* start = tokens;
@@ -48,7 +48,7 @@ bool HttpRequestHeader::parseStartLine(const char* str, unsigned int length)
          // nullify delimiter
          end[0] = 0;
       }
-      
+
       switch(count++)
       {
          case 0:
@@ -61,11 +61,11 @@ bool HttpRequestHeader::parseStartLine(const char* str, unsigned int length)
             setVersion(start);
             break;
       }
-      
+
       // increment start
       start = (end != NULL) ? end + 1 : end;
    }
-   
+
    return count == 3;
 }
 

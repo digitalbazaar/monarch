@@ -29,7 +29,7 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
    char* path, ServicerMap& servicerMap)
 {
    HttpRequestServicer* rval = NULL;
-   
+
    // strip any query
    if(path != NULL)
    {
@@ -39,7 +39,7 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
          end[0] = 0;
       }
    }
-   
+
    mRequestServicerLock.lockShared();
    {
       // try to find servicer for path
@@ -75,7 +75,7 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
       }
    }
    mRequestServicerLock.unlockShared();
-   
+
    return rval;
 }
 
@@ -85,15 +85,15 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    HttpConnection hc(c, false);
    hc.setReadTimeout(30000);
    hc.setWriteTimeout(30000);
-   
+
    // create request
    HttpRequest* request = (HttpRequest*)hc.createRequest();
    HttpRequestHeader* reqHeader = request->getHeader();
-   
+
    // create response
    HttpResponse* response = (HttpResponse*)request->createResponse();
    HttpResponseHeader* resHeader = response->getHeader();
-   
+
    // handle keep-alive (HTTP/1.1 keep-alive is on by default)
    bool keepAlive = true;
    bool noerror = true;
@@ -103,20 +103,20 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       resHeader->setVersion("HTTP/1.1");
       resHeader->setDate();
       resHeader->setField("Server", mServerName);
-      
+
       // receive request header
       if((noerror = request->receiveHeader()))
       {
          // check http version
          bool version10 = (strcmp(reqHeader->getVersion(), "HTTP/1.0") == 0);
          bool version11 = (strcmp(reqHeader->getVersion(), "HTTP/1.1") == 0);
-         
+
          // only version 1.0 and 1.1 supported
          if(version10 || version11)
          {
             // set response version according to request version
             resHeader->setVersion(reqHeader->getVersion());
-            
+
             // use proxy'd host field if one was used
             // else use host field if one was used
             string host;
@@ -125,7 +125,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             {
                resHeader->setField("Host", host);
             }
-            
+
             // get connection header
             string connHeader;
             if(reqHeader->getField("Connection", connHeader))
@@ -144,31 +144,31 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                // if HTTP/1.0 and no keep-alive header, keep-alive is off
                keepAlive = false;
             }
-            
+
             // get request path and normalize it
             const char* inPath = reqHeader->getPath();
             char outPath[strlen(inPath) + 2];
             HttpRequestServicer::normalizePath(inPath, outPath);
-            
+
             // find appropriate request servicer for path
             HttpRequestServicer* hrs = NULL;
-            
+
             // find secure/non-secure servicer
             hrs = hc.isSecure() ?
                findRequestServicer(outPath, mSecureServicers) :
                findRequestServicer(outPath, mNonSecureServicers);
-            
+
             if(hrs != NULL)
             {
                // service request
                hrs->serviceRequest(request, response);
-               
+
                // if servicer closed connection, turn off keep-alive
                if(c->isClosed())
                {
                   keepAlive = false;
                }
-               
+
                // turn off keep-alive if response has close connection field
                if(keepAlive)
                {
@@ -252,23 +252,23 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             }
          }
       }
-      
+
       if(keepAlive && noerror)
       {
          // set keep-alive timeout (defaults to 5 minutes)
          hc.setReadTimeout(1000 * 60 * 5);
-         
+
          // clear request and response header fields
          reqHeader->clearFields();
          resHeader->clearFields();
          resHeader->clearStatus();
       }
    }
-   
+
    // clean up request and response
    delete request;
    delete response;
-   
+
    // close connection
    hc.close();
 }
@@ -277,9 +277,9 @@ bool HttpConnectionServicer::addRequestServicer(
    HttpRequestServicer* s, bool secure)
 {
    bool rval = false;
-   
+
    const char* path = s->getPath();
-   
+
    mRequestServicerLock.lockExclusive();
    {
       if(secure)
@@ -302,7 +302,7 @@ bool HttpConnectionServicer::addRequestServicer(
       }
    }
    mRequestServicerLock.unlockExclusive();
-   
+
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -311,7 +311,7 @@ bool HttpConnectionServicer::addRequestServicer(
       e->getDetails()["path"] = path;
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
@@ -336,7 +336,7 @@ HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
    const char* path, bool secure)
 {
    HttpRequestServicer* rval = NULL;
-   
+
    mRequestServicerLock.lockExclusive();
    {
       if(secure)
@@ -359,6 +359,6 @@ HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
       }
    }
    mRequestServicerLock.unlockExclusive();
-   
+
    return rval;
 }

@@ -27,7 +27,7 @@ HttpClient::~HttpClient()
 {
    // ensure client is disconnected
    HttpClient::disconnect();
-   
+
    if(mCleanupSslContext && mSslContext != NULL)
    {
       delete mSslContext;
@@ -40,7 +40,7 @@ bool HttpClient::connect(Url* url)
    {
       // create connection as necessary
       InternetAddress address(url->getHost().c_str(), url->getPort());
-      
+
       SslContext* ssl = NULL;
       if(strcmp(url->getScheme().c_str(), "https") == 0)
       {
@@ -49,10 +49,10 @@ bool HttpClient::connect(Url* url)
          {
             mSslContext = new SslContext(NULL, true);
          }
-         
+
          ssl = mSslContext;
       }
-      
+
       if((mConnection = createConnection(
          &address, ssl, &mSslSession, 30)) != NULL)
       {
@@ -61,24 +61,24 @@ bool HttpClient::connect(Url* url)
          {
             mSslSession = ((SslSocket*)mConnection->getSocket())->getSession();
          }
-         
+
          // create request and response
          mRequest = (HttpRequest*)mConnection->createRequest();
          mResponse = (HttpResponse*)mRequest->createResponse();
-         
+
          // set default timeouts
          mConnection->setReadTimeout(30000);
          mConnection->setWriteTimeout(30000);
       }
    }
-   
+
    return mConnection != NULL;
 }
 
 HttpResponse* HttpClient::get(Url* url, DynamicObject* headers, bool follow)
 {
    HttpResponse* rval = NULL;
-   
+
    // ensure connected
    if(connect(url))
    {
@@ -89,13 +89,13 @@ HttpResponse* HttpClient::get(Url* url, DynamicObject* headers, bool follow)
       mRequest->getHeader()->clearFields();
       mRequest->getHeader()->setField("Host", url->getAuthority());
       mRequest->getHeader()->setField("User-Agent", "DB Http Client/2.0");
-      
+
       if(headers != NULL)
       {
          // set custom headers
          setCustomHeaders(mRequest->getHeader(), *headers);
       }
-      
+
       // send request header and receive response header
       if(mRequest->sendHeader() && mResponse->receiveHeader())
       {
@@ -129,7 +129,7 @@ HttpResponse* HttpClient::get(Url* url, DynamicObject* headers, bool follow)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -138,7 +138,7 @@ HttpResponse* HttpClient::post(
    bool skipContinue)
 {
    HttpResponse* rval = NULL;
-   
+
    // ensure connected
    if(connect(url))
    {
@@ -149,13 +149,13 @@ HttpResponse* HttpClient::post(
       mRequest->getHeader()->clearFields();
       mRequest->getHeader()->setField("Host", url->getAuthority());
       mRequest->getHeader()->setField("User-Agent", "DB Http Client/2.0");
-      
+
       if(headers != NULL)
       {
          // set custom headers
          setCustomHeaders(mRequest->getHeader(), *headers);
       }
-      
+
       // send request header, send body, and receive response header
       if(mRequest->sendHeader() &&
          mRequest->sendBody(is, trailer) &&
@@ -177,14 +177,14 @@ HttpResponse* HttpClient::post(
          }
       }
    }
-   
+
    return rval;
 }
 
 bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
 {
    bool rval = false;
-   
+
    if(mConnection == NULL)
    {
       ExceptionRef e = new Exception(
@@ -197,7 +197,7 @@ bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
       // receive body
       rval = mResponse->receiveBody(os, trailer);
    }
-   
+
    return rval;
 }
 
@@ -208,13 +208,13 @@ void HttpClient::disconnect()
       delete mRequest;
       mRequest = NULL;
    }
-   
+
    if(mResponse != NULL)
    {
       delete mResponse;
       mResponse = NULL;
    }
-   
+
    if(mConnection != NULL)
    {
       mConnection->close();
@@ -237,10 +237,10 @@ HttpConnection* HttpClient::createSslConnection(
    unsigned int timeout, DynamicObject* commonNames)
 {
    HttpConnection* rval;
-   
+
    // get existing ssl session
    SslSession session = cache.getSession(url);
-   
+
    // create ssl connection
    rval = createConnection(
       url, &context, (session.isNull() ? NULL : &session), timeout,
@@ -251,7 +251,7 @@ HttpConnection* HttpClient::createSslConnection(
       session = ((SslSocket*)rval->getSocket())->getSession();
       cache.storeSession(url, session);
    }
-   
+
    return rval;
 }
 
@@ -260,7 +260,7 @@ HttpConnection* HttpClient::createConnection(
    unsigned int timeout, DynamicObject* commonNames)
 {
    HttpConnection* rval = NULL;
-   
+
    // connect with given timeout
    Socket* s = new TcpSocket();
    if(s->connect(address, timeout))
@@ -273,7 +273,7 @@ HttpConnection* HttpClient::createConnection(
          ss = new SslSocket(context, (TcpSocket*)s, true, true);
          s = ss;
          ss->setSession(session);
-         
+
          // no special common names, so use default: url host
          if(commonNames == NULL)
          {
@@ -286,7 +286,7 @@ HttpConnection* HttpClient::createConnection(
             {
                // always add host
                ss->addVerifyCommonName(address->getHost());
-               
+
                // add all common names to be checked
                DynamicObjectIterator i = commonNames->getIterator();
                while(i->hasNext())
@@ -296,11 +296,11 @@ HttpConnection* HttpClient::createConnection(
                }
             }
          }
-         
+
          // start ssl session
          ss->performHandshake();
       }
-      
+
       rval = new HttpConnection(new Connection(s, true), true);
    }
    else
@@ -309,7 +309,7 @@ HttpConnection* HttpClient::createConnection(
       s->close();
       delete s;
    }
-   
+
    return rval;
 }
 
