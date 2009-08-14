@@ -20,7 +20,7 @@ State::~State()
    {
       // free name
       free((char*)i->first);
-      
+
       // free variable
       freeVariable(i->second);
    }
@@ -29,14 +29,14 @@ State::~State()
 State::Variable* State::getVariable(const char* name)
 {
    Variable* rval = NULL;
-   
+
    map<const char*, Variable*, VarNameComparator>::iterator i =
       mVarTable.find(name);
    if(i != mVarTable.end())
    {
       rval = i->second;
    }
-   
+
    return rval;
 }
 
@@ -49,17 +49,17 @@ State::Variable* State::createVariable(const char* name, Variable::Type type)
       // create new variable
       var = new Variable();
       var->type = type;
-      
+
       // create string as appropriate
       if(type == Variable::String)
       {
          var->s = new string();
       }
-      
+
       // store variable in table
       mVarTable.insert(make_pair(strdup(name), var));
    }
-   
+
    if(var->type != type)
    {
       // allocate or delete string as appropriate
@@ -72,7 +72,7 @@ State::Variable* State::createVariable(const char* name, Variable::Type type)
          delete var->s;
       }
    }
-   
+
    return var;
 }
 
@@ -83,7 +83,7 @@ void State::freeVariable(Variable* var)
    {
       delete var->s;
    }
-   
+
    // delete variable
    delete var;
 }
@@ -98,14 +98,14 @@ void State::setBoolean(const char* name, bool value)
 bool State::getBoolean(const char* name, bool& value)
 {
    bool rval = false;
-   
+
    Variable* var = getVariable(name);
    if(var != NULL && var->type == Variable::Boolean)
    {
       value = var->b;
       rval = true;
    }
-   
+
    return rval;
 }
 
@@ -119,7 +119,7 @@ void State::setInteger(const char* name, int32_t value)
 bool State::increaseInteger(const char* name, int32_t amount, int32_t* value)
 {
    bool rval;
-   
+
    // get variable
    Variable* var = getVariable(name);
    if(var != NULL && var->type == Variable::Integer)
@@ -130,24 +130,24 @@ bool State::increaseInteger(const char* name, int32_t amount, int32_t* value)
       {
          *value = var->i;
       }
-      
+
       rval = true;
    }
-   
+
    return rval;
 }
 
 bool State::getInteger(const char* name, int32_t& value)
 {
    bool rval = false;
-   
+
    Variable* var = getVariable(name);
    if(var != NULL && var->type == Variable::Integer)
    {
       value = var->i;
       rval = true;
    }
-   
+
    return rval;
 }
 
@@ -155,7 +155,7 @@ bool State::getIntegerDifference(
    const char* name1, const char* name2, int32_t& value)
 {
    bool rval = false;
-   
+
    // get integer 1 and integer 2
    int32_t first, second;
    if(getInteger(name1, first) && getInteger(name2, second))
@@ -163,7 +163,7 @@ bool State::getIntegerDifference(
       value = first - second;
       rval = true;
    }
-   
+
    return rval;
 }
 
@@ -177,14 +177,14 @@ void State::setString(const char* name, const string& value)
 bool State::getString(const char* name, string& value)
 {
    bool rval = false;
-   
+
    Variable* var = getVariable(name);
    if(var != NULL && var->type == Variable::String)
    {
       value = *(var->s);
       rval = true;
    }
-   
+
    return rval;
 }
 
@@ -196,10 +196,10 @@ void State::removeVariable(const char* name)
    {
       // free name
       free((char*)i->first);
-      
+
       // free variable
       freeVariable(i->second);
-      
+
       // remove variable from table
       mVarTable.erase(i);
    }

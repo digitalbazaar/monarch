@@ -21,14 +21,14 @@ ModuleLibrary::~ModuleLibrary()
 Module* ModuleLibrary::findModule(const ModuleId* id)
 {
    Module* rval = NULL;
-   
+
    // find module
    ModuleMap::iterator i = mModules.find(id);
    if(i != mModules.end())
    {
       rval = i->second->module;
    }
-   
+
    return rval;
 }
 
@@ -42,7 +42,7 @@ Module* ModuleLibrary::findModule(const char* name)
 Module* ModuleLibrary::loadModule(const char* filename)
 {
    Module* rval = NULL;
-   
+
    mLoadLock.lock();
    {
       // try to load module
@@ -88,7 +88,7 @@ Module* ModuleLibrary::loadModule(const char* filename)
       }
    }
    mLoadLock.unlock();
-   
+
    return rval;
 }
 
@@ -102,7 +102,7 @@ void ModuleLibrary::unloadModule(const ModuleId* id)
       {
          // get module
          ModuleInfo* mi = i->second;
-         
+
          // erase module from map and list
          mModules.erase(i);
          for(ModuleList::iterator li = mLoadOrder.begin();
@@ -114,7 +114,7 @@ void ModuleLibrary::unloadModule(const ModuleId* id)
                break;
             }
          }
-         
+
          // clean up and unload module
          mi->module->cleanup(mKernel);
          mLoader.unloadModule(mi);
@@ -133,11 +133,11 @@ void ModuleLibrary::unloadAllModules()
          // find ModuleInfo
          ModuleMap::iterator i = mModules.find(mLoadOrder.back());
          ModuleInfo* mi = i->second;
-         
+
          // remove module from map and list
          mModules.erase(i);
          mLoadOrder.pop_back();
-         
+
          // clean up and unload module
          mi->module->cleanup(mKernel);
          mLoader.unloadModule(mi);
@@ -149,21 +149,21 @@ void ModuleLibrary::unloadAllModules()
 Module* ModuleLibrary::getModule(const ModuleId* id)
 {
    Module* rval = NULL;
-   
+
    mLoadLock.lock();
    {
       // find Module
       rval = findModule(id);
    }
    mLoadLock.unlock();
-   
+
    return rval;
 }
 
 const ModuleId* ModuleLibrary::getModuleId(const char* name)
 {
    const ModuleId* rval = NULL;
-   
+
    mLoadLock.lock();
    {
       // find Module
@@ -174,14 +174,14 @@ const ModuleId* ModuleLibrary::getModuleId(const char* name)
       }
    }
    mLoadLock.unlock();
-   
+
    return rval;
 }
 
 ModuleInterface* ModuleLibrary::getModuleInterface(const ModuleId* id)
 {
    ModuleInterface* rval = NULL;
-   
+
    mLoadLock.lock();
    {
       // find Module
@@ -192,6 +192,6 @@ ModuleInterface* ModuleLibrary::getModuleInterface(const ModuleId* id)
       }
    }
    mLoadLock.unlock();
-   
+
    return rval;
 }

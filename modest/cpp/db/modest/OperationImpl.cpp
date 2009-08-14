@@ -45,7 +45,7 @@ void OperationImpl::run()
       mThread = Thread::currentThread();
       mThread->setUserData(this);
       mStarted = true;
-      
+
       // interrupt thread if appropriate
       if(mInterrupted)
       {
@@ -53,13 +53,13 @@ void OperationImpl::run()
       }
    }
    mLock.unlock();
-   
+
    if(mRunnable != NULL)
    {
       // run the operation's runnable
       mRunnable->run();
    }
-   
+
    mLock.lock();
    {
       // determine if the operation was finished or canceled
@@ -71,7 +71,7 @@ void OperationImpl::run()
       {
          mFinished = true;
       }
-      
+
       // clear thread from Operation
       mThread->setUserData(NULL);
       mThread = NULL;
@@ -88,7 +88,7 @@ void OperationImpl::stop()
       {
          mCanceled = true;
       }
-      
+
       // mark operation stopped and wake up all waiting threads
       mStopped = true;
       mLock.notifyAll();
@@ -99,7 +99,7 @@ void OperationImpl::stop()
 bool OperationImpl::waitFor(bool interruptible, uint32_t timeout)
 {
    bool rval = true;
-   
+
    mLock.lock();
    {
       // wait until Operation is stopped or timed out
@@ -116,12 +116,12 @@ bool OperationImpl::waitFor(bool interruptible, uint32_t timeout)
          {
             interrupted = !mLock.wait();
          }
-         
+
          if(interrupted)
          {
             // thread was interrupted
             rval = false;
-            
+
             if(interruptible)
             {
                // interruptible, so break out
@@ -140,13 +140,13 @@ bool OperationImpl::waitFor(bool interruptible, uint32_t timeout)
       }
    }
    mLock.unlock();
-   
+
    // ensure thread remains interrupted
    if(!rval)
    {
       Thread::currentThread()->interrupt();
    }
-   
+
    return rval;
 }
 
@@ -184,7 +184,7 @@ bool OperationImpl::isInterrupted()
       }
       mLock.unlock();
    }
-   
+
    return mInterrupted;
 }
 

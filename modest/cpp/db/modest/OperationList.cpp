@@ -22,7 +22,7 @@ OperationList::~OperationList()
 Operation& OperationList::operator[](int index)
 {
    Operation* op = NULL;
-   
+
    mLock.lock();
    {
       // assumes index is not invalid
@@ -31,7 +31,7 @@ Operation& OperationList::operator[](int index)
       op = &(*i);
    }
    mLock.unlock();
-   
+
    return *op;
 }
 
@@ -87,14 +87,14 @@ void OperationList::interrupt()
 bool OperationList::waitFor(bool interruptible)
 {
    bool rval = true;
-   
+
    mLock.lock();
    {
       for(list<Operation>::iterator i = mOperations.begin();
           i != mOperations.end(); i++)
       {
          rval = (*i)->waitFor(interruptible);
-         
+
          // break out if interruptible and interrupted
          if(interruptible && !rval)
          {
@@ -103,7 +103,7 @@ bool OperationList::waitFor(bool interruptible)
       }
    }
    mLock.unlock();
-   
+
    return rval;
 }
 
