@@ -38,7 +38,7 @@ void MySqlRow::setFields(
 bool MySqlRow::getType(unsigned int column, int& type)
 {
    bool rval = false;
-   
+
    if(column >= mFieldCount)
    {
       char temp[100];
@@ -52,7 +52,7 @@ bool MySqlRow::getType(unsigned int column, int& type)
       type = mFields[column].type;
       rval = true;
    }
-   
+
    return rval;
 }
 
@@ -64,7 +64,7 @@ bool MySqlRow::getInt32(unsigned int column, int32_t& i)
    mBindings[column].length = &mBindings[column].buffer_length;
    mysql_stmt_fetch_column(
       getStatementHandle(mStatement), &mBindings[column], column, 0);
-   
+
    // FIXME: check exceptions, etc
    return true;
 }
@@ -77,7 +77,7 @@ bool MySqlRow::getUInt32(unsigned int column, uint32_t& i)
    mBindings[column].length = &mBindings[column].buffer_length;
    mysql_stmt_fetch_column(
       getStatementHandle(mStatement), &mBindings[column], column, 0);
-   
+
    // FIXME: check exceptions, etc
    return true;
 }
@@ -90,7 +90,7 @@ bool MySqlRow::getInt64(unsigned int column, int64_t& i)
    mBindings[column].length = &mBindings[column].buffer_length;
    mysql_stmt_fetch_column(
       getStatementHandle(mStatement), &mBindings[column], column, 0);
-   
+
    // FIXME: check exceptions, etc
    return true;
 }
@@ -103,7 +103,7 @@ bool MySqlRow::getUInt64(unsigned int column, uint64_t& i)
    mBindings[column].length = &mBindings[column].buffer_length;
    mysql_stmt_fetch_column(
       getStatementHandle(mStatement), &mBindings[column], column, 0);
-   
+
    // FIXME: check exceptions, etc
    return true;
 }
@@ -118,7 +118,7 @@ bool MySqlRow::getText(unsigned int column, string& str)
    mBindings[column].is_null = &isNull;
    mysql_stmt_fetch_column(
       getStatementHandle(mStatement), &mBindings[column], column, 0);
-   
+
    if(isNull)
    {
       str.erase();
@@ -128,7 +128,7 @@ bool MySqlRow::getText(unsigned int column, string& str)
       temp[mBindings[column].buffer_length] = 0;
       str.assign(temp);
    }
-   
+
    // FIXME: check exceptions, etc
    return true;
 }
@@ -136,84 +136,84 @@ bool MySqlRow::getText(unsigned int column, string& str)
 bool MySqlRow::getType(const char* column, int& type)
 {
    bool rval = false;
-   
+
    // get column index for name
    int64_t index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getType(index, type);
    }
-   
+
    return rval;
 }
 
 bool MySqlRow::getInt32(const char* column, int32_t& i)
 {
    bool rval = false;
-   
+
    // get column index for name
    int64_t index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getInt32(index, i);
    }
-   
+
    return rval;
 }
 
 bool MySqlRow::getUInt32(const char* column, uint32_t& i)
 {
    bool rval = false;
-   
+
    // get column index for name
    int64_t index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getUInt32(index, i);
    }
-   
+
    return rval;
 }
 
 bool MySqlRow::getInt64(const char* column, int64_t& i)
 {
    bool rval = false;
-   
+
    // get column index for name
    int64_t index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getInt64(index, i);
    }
-   
+
    return rval;
 }
 
 bool MySqlRow::getUInt64(const char* column, uint64_t& i)
 {
    bool rval = false;
-   
+
    // get column index for name
    int64_t index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getUInt64(index, i);
    }
-   
+
    return rval;
 }
 
 bool MySqlRow::getText(const char* column, std::string& str)
 {
    bool rval = false;
-   
+
    // get column index for name
    int64_t index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getText(index, str);
    }
-   
+
    return rval;
 }
 
@@ -221,7 +221,7 @@ int64_t MySqlRow::getColumnIndex(const char* name)
 {
    // use 64-bit signed int to cover all values + error (negative 1)
    int64_t rval = -1;
-   
+
    for(unsigned int i = 0; i < mFieldCount; i++)
    {
       if(strcmp(name, mFields[i].name) == 0)
@@ -230,15 +230,15 @@ int64_t MySqlRow::getColumnIndex(const char* name)
          break;
       }
    }
-   
+
    if(rval == -1)
    {
       // set exception
       ExceptionRef e = new SqlException(
          "Could not get column value. Invalid column name.");
       e->getDetails()["name"] = name;
-      Exception::set(e); 
+      Exception::set(e);
    }
-   
+
    return rval;
 }

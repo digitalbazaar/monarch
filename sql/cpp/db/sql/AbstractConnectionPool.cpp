@@ -11,7 +11,7 @@ using namespace db::sql;
 
 AbstractConnectionPool::AbstractConnectionPool(
    const char* url, unsigned int poolSize) :
-   mConnectionSemaphore(poolSize, true), mUrl(url) 
+   mConnectionSemaphore(poolSize, true), mUrl(url)
 {
    // default connection expire time to 0 (no expiration)
    mConnectionExpireTime = 0;
@@ -34,13 +34,13 @@ void AbstractConnectionPool::connectionClosed(PooledConnection* connection)
       {
          // remove from active connections
          mActiveConnections.erase(i);
-         
+
          // set the connection idle time
          connection->setIdleTime(System::getCurrentMilliseconds());
-         
+
          // put at front of idle connections
          mIdleConnections.push_front(connection);
-         
+
          // release connection permit
          mConnectionSemaphore.release();
       }
@@ -51,14 +51,14 @@ void AbstractConnectionPool::connectionClosed(PooledConnection* connection)
 Connection* AbstractConnectionPool::getIdleConnection()
 {
    PooledConnection* rval = NULL;
-   
+
    // obtain connection permit
    bool acquired = true;
    if(mConnectionSemaphore.getMaxPermitCount() != 0)
    {
       acquired = mConnectionSemaphore.acquire();
    }
-   
+
    if(acquired)
    {
       mListLock.lock();
@@ -68,7 +68,7 @@ Connection* AbstractConnectionPool::getIdleConnection()
             // get last idle connection
             rval = mIdleConnections.back();
             mIdleConnections.pop_back();
-            
+
             // test for connectivity
             if(!rval->isConnected())
             {
@@ -79,13 +79,13 @@ Connection* AbstractConnectionPool::getIdleConnection()
                rval = NULL;
             }
          }
-         
+
          if(rval == NULL)
          {
             // create new connection
             rval = createConnection();
          }
-         
+
          if(rval != NULL)
          {
             // add connection to list of active connections
@@ -94,10 +94,10 @@ Connection* AbstractConnectionPool::getIdleConnection()
       }
       mListLock.unlock();
    }
-   
+
    // now try to close any expired connections
    closeExpiredConnections();
-   
+
    return rval;
 }
 
@@ -113,7 +113,7 @@ void AbstractConnectionPool::closeExpiredConnections()
          // connections at once -- so that each time a request is made
          // to get a connection, not all other connections must be checked
          // in the worst case
-         
+
          // find the first expired connection, all that follow are expired
          bool found = false;
          list<PooledConnection*>::iterator i = mIdleConnections.begin();
@@ -123,7 +123,7 @@ void AbstractConnectionPool::closeExpiredConnections()
             found = ((*i)->getIdleTime() <=
                System::getCurrentMilliseconds() - mConnectionExpireTime);
          }
-         
+
          // close and clean up all expired connections
          if(found)
          {
@@ -132,14 +132,14 @@ void AbstractConnectionPool::closeExpiredConnections()
                // close the expired connection and delete it
                (*i)->closeConnection();
                delete (*i);
-               
+
                // remove from idle list (erase automatically advances iterator)
                i = mIdleConnections.erase(i);
             }
          }
       }
       mListLock.unlock();
-   } 
+   }
 }
 
 inline Connection* AbstractConnectionPool::getConnection()
@@ -160,7 +160,7 @@ void AbstractConnectionPool::closeAllConnections()
          connection->closeConnection();
          delete connection;
       }
-      
+
       // remove all idle connections
       for(list<PooledConnection*>::iterator i = mIdleConnections.begin();
           i != mIdleConnections.end(); i++)
@@ -169,7 +169,7 @@ void AbstractConnectionPool::closeAllConnections()
          connection->closeConnection();
          delete connection;
       }
-      
+
       // clear all connection lists
       mActiveConnections.clear();
       mIdleConnections.clear();
@@ -187,7 +187,7 @@ void AbstractConnectionPool::setPoolSize(unsigned int size)
       {
          closeExpiredConnections();
       }
-      
+
       // set semaphore max permits
       mConnectionSemaphore.setMaxPermitCount(size);
    }
@@ -232,7 +232,7 @@ inline unsigned int AbstractConnectionPool::getIdleConnectionCount()
 unsigned int AbstractConnectionPool::getExpiredConnectionCount()
 {
    unsigned int expiredConnections = 0;
-   
+
    mListLock.lock();
    {
       // check list for active connections
@@ -241,7 +241,7 @@ unsigned int AbstractConnectionPool::getExpiredConnectionCount()
       {
          // get the connection
          PooledConnection* connection = *i;
-         
+
          // check if expired connection
          if(connection->getIdleTime() <=
             System::getCurrentMilliseconds() - mConnectionExpireTime)
@@ -251,6 +251,6 @@ unsigned int AbstractConnectionPool::getExpiredConnectionCount()
       }
    }
    mListLock.unlock();
-   
+
    return expiredConnections;
 }

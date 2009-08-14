@@ -33,7 +33,7 @@ inline ::sqlite3* Sqlite3Connection::getHandle()
 bool Sqlite3Connection::connect(Url* url)
 {
    bool rval = false;
-   
+
    if(strncmp(url->getScheme().c_str(), "sqlite3", 7) != 0)
    {
       ExceptionRef e = new Exception(
@@ -60,7 +60,7 @@ bool Sqlite3Connection::connect(Url* url)
          db = file->getAbsolutePath();
          rval = file->mkdirs();
       }
-      
+
       if(rval)
       {
          // open sqlite3 connection
@@ -82,14 +82,14 @@ bool Sqlite3Connection::connect(Url* url)
          }
       }
    }
-   
+
    return rval;
 }
 
 void Sqlite3Connection::close()
 {
    AbstractConnection::close();
-   
+
    if(mHandle != NULL)
    {
       sqlite3_close(mHandle);
@@ -100,10 +100,10 @@ void Sqlite3Connection::close()
 bool Sqlite3Connection::rollback()
 {
    bool rval = true;
-   
+
    // save the reason for the rollback
    ExceptionRef reason = Exception::get();
-   
+
    // Note: This is necessary on the current version of sqlite3... all
    // statements must be reset or finalized before doing a rollback:
    for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
@@ -112,14 +112,14 @@ bool Sqlite3Connection::rollback()
       Sqlite3Statement* s = (Sqlite3Statement*)i->second;
       rval = s->reset();
    }
-   
+
    if(rval)
    {
       // attempt to do the rollback
       Statement* s = prepare("ROLLBACK");
       rval = (s != NULL) && s->execute() && s->reset();
    }
-   
+
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -132,7 +132,7 @@ bool Sqlite3Connection::rollback()
       }
       Exception::push(e);
    }
-   
+
    return rval;
 }
 
@@ -151,6 +151,6 @@ Statement* Sqlite3Connection::createStatement(const char* sql)
       delete rval;
       rval = NULL;
    }
-   
+
    return rval;
 }

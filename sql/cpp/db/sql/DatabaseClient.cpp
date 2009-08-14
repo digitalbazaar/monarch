@@ -43,7 +43,7 @@ DatabaseClient::~DatabaseClient()
 bool DatabaseClient::initialize()
 {
    bool rval = true;
-   
+
    // create schema validator
    mSchemaValidator = new v::Map(
       "table", new v::All(
@@ -74,7 +74,7 @@ bool DatabaseClient::initialize()
          new v::Each(new v::Type(String)),
          NULL)),
       NULL);
-   
+
    return rval;
 }
 
@@ -96,7 +96,7 @@ void DatabaseClient::setWriteConnectionPool(db::sql::ConnectionPoolRef& pool)
 Connection* DatabaseClient::getReadConnection()
 {
    Connection* rval = NULL;
-   
+
    if(mReadPool.isNull())
    {
       ExceptionRef e = new Exception(
@@ -108,14 +108,14 @@ Connection* DatabaseClient::getReadConnection()
    {
       rval = mReadPool->getConnection();
    }
-   
+
    return rval;
 }
 
 Connection* DatabaseClient::getWriteConnection()
 {
    Connection* rval = NULL;
-   
+
    if(mWritePool.isNull())
    {
       ExceptionRef e = new Exception(
@@ -127,14 +127,14 @@ Connection* DatabaseClient::getWriteConnection()
    {
       rval = mWritePool->getConnection();
    }
-   
+
    return rval;
 }
 
 bool DatabaseClient::define(SchemaObject& schema)
 {
    bool rval = false;
-   
+
    // validate schema object
    rval = mSchemaValidator->isValid(schema);
    if(rval)
@@ -143,10 +143,10 @@ bool DatabaseClient::define(SchemaObject& schema)
       // allow for different data mappings?
       // FIXME: consider the ability to map to more complex objects like
       // sub-maps
-      
+
       // store schema
       mSchemas[schema["table"]->getString()] = schema;
-      
+
       // add table alias to each column
       DynamicObjectIterator i = schema["columns"].getIterator();
       while(i->hasNext())
@@ -155,19 +155,19 @@ bool DatabaseClient::define(SchemaObject& schema)
          next["tableAlias"] = schema["tableAlias"]->getString();
       }
    }
-   
+
    return rval;
 }
 
 SchemaObject DatabaseClient::getSchema(const char* table)
 {
    SchemaObject rval(NULL);
-   
+
    if(checkForSchema(table))
    {
       rval = mSchemas[table];
    }
-   
+
    return rval;
 }
 
@@ -175,17 +175,17 @@ bool DatabaseClient::create(
    const char* table, bool ignoreIfExists, Connection* c)
 {
    bool rval = false;
-   
+
    // ensure the schema exists
    if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
-      
+
       // create sql executable
       SqlExecutableRef se = new SqlExecutable();
       se->write = true;
-      
+
       // create starting clause
       se->sql = "CREATE TABLE ";
       if(ignoreIfExists)
@@ -194,7 +194,7 @@ bool DatabaseClient::create(
       }
       se->sql.append(table);
       se->sql.append(" (");
-      
+
       // append all column names and types
       {
          bool first = true;
@@ -202,7 +202,7 @@ bool DatabaseClient::create(
          while(i->hasNext())
          {
             DynamicObject& next = i->next();
-            
+
             if(first)
             {
                first = false;
@@ -216,7 +216,7 @@ bool DatabaseClient::create(
             se->sql.append(next["type"]->getString());
          }
       }
-      
+
       // add any indices
       if(schema->hasMember("indices"))
       {
@@ -228,14 +228,14 @@ bool DatabaseClient::create(
             se->sql.append(next->getString());
          }
       }
-      
+
       // close table definition
       se->sql.append(")");
-      
+
       // execute SQL
       rval = execute(se, c);
    }
-   
+
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -243,7 +243,7 @@ bool DatabaseClient::create(
          DBC_EXCEPTION ".CreateTableFailed");
       Exception::push(e);
    }
-   
+
    return rval;
 }
 
@@ -251,11 +251,11 @@ bool DatabaseClient::drop(
    const char* table, bool ignoreIfNotExists, Connection* c)
 {
    bool rval = false;
-   
+
    // create sql executable
    SqlExecutableRef se = new SqlExecutable();
    se->write = true;
-   
+
    // create starting clause
    se->sql = "DROP TABLE ";
    if(ignoreIfNotExists)
@@ -263,10 +263,10 @@ bool DatabaseClient::drop(
       se->sql.append("IF EXISTS ");
    }
    se->sql.append(table);
-  
+
    // execute SQL
    rval = execute(se, c);
-   
+
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -274,7 +274,7 @@ bool DatabaseClient::drop(
          DBC_EXCEPTION ".DropTableFailed");
       Exception::push(e);
    }
-   
+
    return rval;
 }
 
@@ -299,24 +299,24 @@ SqlExecutableRef DatabaseClient::update(
    uint64_t limit, uint64_t start)
 {
    SqlExecutableRef rval(NULL);
-   
+
    // ensure the schema exists
    if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
-      
+
       // create sql executable
       rval = new SqlExecutable();
       rval->write = true;
-      
+
       // create starting clause
       rval->sql = "UPDATE ";
       rval->sql.append(schema["table"]->getString());
-      
+
       // build SET parameters
       buildParams(schema, row, rval->params);
-      
+
       // build WHERE parameters
       DynamicObject whereParams;
       whereParams->setType(Array);
@@ -325,21 +325,21 @@ SqlExecutableRef DatabaseClient::update(
          rval->whereFilter = *where;
          buildParams(schema, *where, whereParams);
       }
-      
+
       // append SET clause
       rval->sql.append(" SET");
       appendSetSql(rval->sql, rval->params);
-      
+
       // append where clause
       appendWhereSql(rval->sql, whereParams, false);
-      
+
       // append LIMIT clause
       appendLimitSql(rval->sql, limit, start);
-      
+
       // concatenate params
       rval->params.merge(whereParams, true);
    }
-   
+
    return rval;
 }
 
@@ -352,7 +352,7 @@ SqlExecutableRef DatabaseClient::selectOne(
       // set result to a map
       rval->result->setType(Map);
    }
-   
+
    return rval;
 }
 
@@ -361,13 +361,13 @@ SqlExecutableRef DatabaseClient::select(
    uint64_t limit, uint64_t start)
 {
    SqlExecutableRef rval(NULL);
-   
+
    // ensure the schema exists
    if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
-      
+
       // create sql executable
       rval = new SqlExecutable();
       rval->write = false;
@@ -375,11 +375,11 @@ SqlExecutableRef DatabaseClient::select(
       rval->columnSchemas->setType(Array);
       rval->result = DynamicObject();
       rval->result->setType(Array);
-      
+
       // determine table alias (ensure it isn't the same as the table name)
       const char* tableAlias =
          (strcmp(schema["table"]->getString(), "t1") == 0) ? "t" : "t1";
-      
+
       // create SELECT sql
       rval->sql = createSelectSql(
          schema, where, members, limit, start,
@@ -389,28 +389,28 @@ SqlExecutableRef DatabaseClient::select(
          rval->whereFilter = *where;
       }
    }
-   
+
    return rval;
 }
 
 SqlExecutableRef DatabaseClient::remove(const char* table, DynamicObject* where)
 {
    SqlExecutableRef rval(NULL);
-   
+
    // ensure the schema exists
    if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
-      
+
       // create sql executable
       rval = new SqlExecutable();
       rval->write = true;
-      
+
       // create starting clause
       rval->sql = "DELETE FROM ";
       rval->sql.append(schema["table"]->getString());
-      
+
       // build parameters
       if(where != NULL)
       {
@@ -419,7 +419,7 @@ SqlExecutableRef DatabaseClient::remove(const char* table, DynamicObject* where)
          appendWhereSql(rval->sql, rval->params, false);
       }
    }
-   
+
    return rval;
 }
 
@@ -436,7 +436,7 @@ bool DatabaseClient::end(Connection* c, bool commit)
 bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
 {
    bool rval = false;
-   
+
    if(se.isNull())
    {
       // typical usage will involve generating an SQL executable and then
@@ -464,7 +464,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
             se->sql.insert(i + 7, "SQL_CALC_FOUND_ROWS ");
          }
       }
-      
+
       if(mDebugLogging)
       {
          DB_CAT_DEBUG(DB_SQL_CAT,
@@ -480,7 +480,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
             JsonWriter::writeToString(se->columnSchemas, false, false).c_str(),
             JsonWriter::writeToString(se->whereFilter, false, false).c_str());
       }
-      
+
       // get a connection from the pool if one wasn't passed in
       Connection* conn = (c == NULL) ?
          (se->write ? getWriteConnection() : getReadConnection()) : c;
@@ -489,7 +489,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
          // prepare statement, set parameters, and execute
          Statement* s = conn->prepare(se->sql.c_str());
          rval = (s != NULL) && setParams(s, se->params) && s->execute();
-         
+
          // if we wrote to the database, get affected rows and last insert ID
          if(rval && se->write)
          {
@@ -507,7 +507,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                // if we don't retrieve the entire result set (fetch each row)
                // then we run into problems -- this needs to be double checked
                // so we can handle this case better
-               
+
                // iterate over rows
                int index = 0;
                Row* r;
@@ -517,7 +517,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                   DynamicObject& row = se->result[index++];
                   rval = getRowData(se->columnSchemas, r, row);
                }
-               
+
                // save number of rows retrieved
                se->rowsRetrieved = se->result->length();
             }
@@ -535,12 +535,12 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                   // row found, pull out data
                   se->rowsRetrieved = 1;
                   rval = getRowData(se->columnSchemas, r, se->result);
-                  
+
                   // finish out result set
                   s->fetch();
                }
             }
-            
+
             // get total rows found if requested
             if(rval && se->returnRowsFound)
             {
@@ -550,7 +550,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                // return the rows up to the limit and then keep counting
                // past it with fetch() ... in postgresql you have to do a
                // SELECT COUNT(*) as total within a transaction
-               
+
                // select found rows
                const char* sql = "SELECT FOUND_ROWS() AS total";
                Statement* statement = conn->prepare(sql);
@@ -574,7 +574,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
                }
             }
          }
-         
+
          // close connection if it was not passed in
          if(c == NULL)
          {
@@ -582,14 +582,14 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
          }
       }
    }
-   
+
    return rval;
 }
 
 bool DatabaseClient::checkForSchema(const char* table)
 {
    bool rval = true;
-   
+
    // ensure the schema exists
    if(!mSchemas->hasMember(table))
    {
@@ -600,7 +600,7 @@ bool DatabaseClient::checkForSchema(const char* table)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
@@ -610,7 +610,7 @@ void DatabaseClient::buildParams(
 {
    // ensure params is an array
    params->setType(Array);
-   
+
    // create shared table alias object
    DynamicObject taObj(NULL);
    if(tableAlias != NULL)
@@ -618,7 +618,7 @@ void DatabaseClient::buildParams(
       taObj = DynamicObject();
       taObj = tableAlias;
    }
-   
+
    // map the given members object into a list of parameters that can
    // be used to generate sql and set parameter values
    DynamicObjectIterator i = schema["columns"].getIterator();
@@ -626,7 +626,7 @@ void DatabaseClient::buildParams(
    {
       DynamicObject& next = i->next();
       const char* memberName = next["memberName"]->getString();
-      
+
       // if the members map contains the given member name, create a param
       // for it and append it to the params array
       if(members->hasMember(memberName))
@@ -657,13 +657,13 @@ void DatabaseClient::buildColumnSchemas(
       taObj = DynamicObject();
       taObj = tableAlias;
    }
-   
+
    DynamicObjectIterator i = schema["columns"].getIterator();
    while(i->hasNext())
    {
       DynamicObject& next = i->next();
       const char* memberName = next["memberName"]->getString();
-      
+
       // if exclude members does not exist or the current member is not
       // in it, then see if we should include this column schema
       if(excludeMembers == NULL || !(*excludeMembers)->hasMember(memberName))
@@ -687,7 +687,7 @@ void DatabaseClient::buildColumnSchemas(
 void DatabaseClient::appendValuesSql(string& sql, DynamicObject& params)
 {
    string values;
-   
+
    bool first = true;
    DynamicObjectIterator i = params.getIterator();
    while(i->hasNext())
@@ -704,17 +704,17 @@ void DatabaseClient::appendValuesSql(string& sql, DynamicObject& params)
          sql.append(",");
          values.append(",?");
       }
-      
+
       // append unaliased name
       sql.append(name->getString());
    }
-   
+
    if(!first)
    {
       sql.append(")");
       values.append(")");
    }
-   
+
    sql.append(values);
 }
 
@@ -735,7 +735,7 @@ void DatabaseClient::appendColumnNames(
       {
          sql.append(",");
       }
-      
+
       if(next->hasMember("tableAlias"))
       {
          sql.append(next["tableAlias"]->getString());
@@ -750,7 +750,7 @@ void DatabaseClient::appendWhereSql(
 {
    // FIXME: consider allowing for more complex WHERE clauses other
    // than a bunch of "key=value AND"s concatenated together
-   
+
    bool first = true;
    DynamicObjectIterator i = params.getIterator();
    while(i->hasNext())
@@ -765,7 +765,7 @@ void DatabaseClient::appendWhereSql(
       {
          sql.append(" AND ");
       }
-      
+
       // append aliased name
       if(useTableAlias)
       {
@@ -773,12 +773,12 @@ void DatabaseClient::appendWhereSql(
          sql.append(".");
       }
       sql.append(param["name"]->getString());
-      
+
       /// use IN clause
       if(param["value"]->getType() == Array)
       {
          sql.append(" IN (");
-         
+
          bool aFirst = true;
          DynamicObjectIterator ai = param["value"].getIterator();
          while(ai->hasNext())
@@ -794,7 +794,7 @@ void DatabaseClient::appendWhereSql(
                sql.append(",?");
             }
          }
-         
+
          sql.append(")");
       }
       // use single equals
@@ -812,14 +812,14 @@ void DatabaseClient::appendLimitSql(string& sql, uint64_t limit, uint64_t start)
    {
       sql.append(" LIMIT ");
       char tmp[21];
-      
+
       if(start > 0)
       {
          snprintf(tmp, 21, "%llu", start);
          sql.append(tmp);
          sql.append(",");
       }
-      
+
       snprintf(tmp, 21, "%llu", limit);
       sql.append(tmp);
    }
@@ -841,7 +841,7 @@ void DatabaseClient::appendSetSql(string& sql, DynamicObject& params)
       {
          sql.append(",");
       }
-      
+
       // append unaliased name
       sql.append(param["name"]->getString());
       sql.append("=?");
@@ -851,7 +851,7 @@ void DatabaseClient::appendSetSql(string& sql, DynamicObject& params)
 bool DatabaseClient::setParams(Statement* s, DynamicObject& params)
 {
    bool rval = true;
-   
+
    // append parameters
    unsigned int param = 1;
    DynamicObjectIterator i = params.getIterator();
@@ -933,7 +933,7 @@ bool DatabaseClient::setParams(Statement* s, DynamicObject& params)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -941,7 +941,7 @@ bool DatabaseClient::getRowData(
    DynamicObject& columnSchemas, Row* r, DynamicObject& row)
 {
    bool rval = true;
-   
+
    // a union for pulling out integer data
    union
    {
@@ -951,14 +951,14 @@ bool DatabaseClient::getRowData(
       uint64_t uint64;
    } tmpInt;
    string tmpStr;
-   
+
    DynamicObjectIterator i = columnSchemas.getIterator();
    while(rval && i->hasNext())
    {
       DynamicObject& next = i->next()["column"];
       const char* columnName = next["name"]->getString();
       const char* memberName = next["memberName"]->getString();
-      
+
       switch(next["memberType"]->getType())
       {
          case Int32:
@@ -991,7 +991,7 @@ bool DatabaseClient::getRowData(
             break;
       }
    }
-   
+
    return rval;
 }
 
@@ -1004,32 +1004,32 @@ string DatabaseClient::createSelectSql(
 {
    // create starting clause
    string sql = "SELECT";
-   
+
    // build parameters
    params->setType(Array);
    if(where != NULL)
    {
       buildParams(schema, *where, params, tableAlias);
    }
-   
+
    // build column schemas for results, do not exclude any fields
    buildColumnSchemas(schema, NULL, members, columnSchemas, tableAlias);
-   
+
    // append column names
    appendColumnNames(sql, columnSchemas);
-   
+
    // append table
    sql.append(" FROM ");
    sql.append(schema["table"]->getString());
    sql.append(" ");
    sql.append(tableAlias);
-   
+
    // append WHERE clause
    appendWhereSql(sql, params, true);
-   
+
    // append LIMIT clause
    appendLimitSql(sql, limit, start);
-   
+
    return sql;
 }
 
@@ -1049,28 +1049,28 @@ SqlExecutableRef DatabaseClient::insertOrReplace(
    const char* cmd, const char* table, DynamicObject& row)
 {
    SqlExecutableRef rval(NULL);
-   
+
    // ensure the schema exists
    if(checkForSchema(table))
    {
       // get schema
       SchemaObject& schema = mSchemas[table];
-      
+
       // create sql executable
       rval = new SqlExecutable();
       rval->write = true;
-      
+
       // build parameters
       buildParams(schema, row, rval->params);
-      
+
       // create starting clause
       rval->sql = cmd;
       rval->sql.append(" INTO ");
       rval->sql.append(schema["table"]->getString());
-      
+
       // append VALUES SQL
       appendValuesSql(rval->sql, rval->params);
    }
-   
+
    return rval;
 }

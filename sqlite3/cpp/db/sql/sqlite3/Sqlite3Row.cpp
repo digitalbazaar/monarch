@@ -73,97 +73,97 @@ bool Sqlite3Row::getText(unsigned int column, string& str)
 bool Sqlite3Row::getType(const char* column, int& type)
 {
    bool rval = false;
-   
+
    // get column index for name
    int index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getType(index, type);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Row::getInt32(const char* column, int32_t& i)
 {
    bool rval = false;
-   
+
    // get column index for name
    int index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getInt32(index, i);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Row::getUInt32(const char* column, uint32_t& i)
 {
    bool rval = false;
-   
+
    // get column index for name
    int index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getUInt32(index, i);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Row::getInt64(const char* column, int64_t& i)
 {
    bool rval = false;
-   
+
    // get column index for name
    int index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getInt64(index, i);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Row::getUInt64(const char* column, uint64_t& i)
 {
    bool rval = false;
-   
+
    // get column index for name
    int index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getUInt64(index, i);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Row::getText(const char* column, std::string& str)
 {
    bool rval = false;
-   
+
    // get column index for name
    int index = getColumnIndex(column);
    if(index != -1)
    {
       rval = getText(index, str);
    }
-   
+
    return rval;
 }
 
 int Sqlite3Row::getColumnIndex(const char* name)
 {
    int rval = -1;
-   
+
    // get column count as appropriate
    if(mColumnCount == -1)
    {
       mColumnCount = sqlite3_column_count(getStatementHandle(mStatement));
    }
-   
+
    for(int i = 0; i < mColumnCount; i++)
    {
       if(strcmp(name, sqlite3_column_name(
@@ -173,7 +173,7 @@ int Sqlite3Row::getColumnIndex(const char* name)
          break;
       }
    }
-   
+
    if(rval == -1)
    {
       // set exception
@@ -182,6 +182,6 @@ int Sqlite3Row::getColumnIndex(const char* name)
       e->getDetails()["name"] = name;
       Exception::set(e);
    }
-   
+
    return rval;
 }

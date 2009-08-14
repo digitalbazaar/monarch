@@ -24,10 +24,10 @@ AbstractConnection::~AbstractConnection()
 bool AbstractConnection::connect(const char* url)
 {
    bool rval = false;
-   
+
    // clean up old url
    mUrl.setNull();
-   
+
    // ensure URL isn't malformed
    Exception::clear();
    mUrl = new Url(url);
@@ -44,7 +44,7 @@ bool AbstractConnection::connect(const char* url)
       // call implementation-specific code
       rval = connect(&(*mUrl));
    }
-   
+
    return rval;
 }
 
@@ -61,7 +61,7 @@ Statement* AbstractConnection::prepare(const char* sql)
          addPreparedStatement(rval);
       }
    }
-   
+
    return rval;
 }
 
@@ -69,7 +69,7 @@ void AbstractConnection::close()
 {
    // clean up url
    mUrl.setNull();
-   
+
    // clean up prepared statements
    cleanupPreparedStatements();
 }
@@ -77,7 +77,7 @@ void AbstractConnection::close()
 bool AbstractConnection::begin()
 {
    bool rval = false;
-   
+
    Statement* s = prepare("BEGIN");
    rval = (s != NULL) && s->execute() && s->reset();
    if(!rval)
@@ -87,14 +87,14 @@ bool AbstractConnection::begin()
          "db.sql.Connection.TransactionBeginError");
       Exception::push(e);
    }
-   
+
    return rval;
 }
 
 bool AbstractConnection::commit()
 {
    bool rval = false;
-   
+
    Statement* s = prepare("COMMIT");
    rval = (s != NULL) && s->execute() && s->reset();
    if(!rval)
@@ -104,17 +104,17 @@ bool AbstractConnection::commit()
          "db.sql.Connection.TransactionCommitError");
       Exception::push(e);
    }
-   
+
    return rval;
 }
 
 bool AbstractConnection::rollback()
 {
    bool rval = false;
-   
+
    // save the reason for the rollback
    ExceptionRef reason = Exception::get();
-   
+
    // attempt to do the rollback
    Statement* s = prepare("ROLLBACK");
    rval = (s != NULL) && s->execute() && s->reset();
@@ -130,7 +130,7 @@ bool AbstractConnection::rollback()
       }
       Exception::push(e);
    }
-   
+
    return rval;
 }
 
@@ -155,7 +155,7 @@ void AbstractConnection::addPreparedStatement(Statement* stmt)
       mPreparedStmts.erase(i);
       delete old;
    }
-   
+
    // insert new statement
    mPreparedStmts.insert(make_pair(stmt->getSql(), stmt));
 }
@@ -163,12 +163,12 @@ void AbstractConnection::addPreparedStatement(Statement* stmt)
 Statement* AbstractConnection::getPreparedStatement(const char* sql)
 {
    Statement* rval = NULL;
-   
+
    PreparedStmtMap::iterator i = mPreparedStmts.find(sql);
    if(i != mPreparedStmts.end())
    {
       rval = i->second;
-      
+
       // reset statement for reuse
       if(!i->second->reset())
       {
@@ -178,6 +178,6 @@ Statement* AbstractConnection::getPreparedStatement(const char* sql)
          rval = NULL;
       }
    }
-   
+
    return rval;
 }

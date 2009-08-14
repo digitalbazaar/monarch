@@ -19,7 +19,7 @@ MySqlConnectionPool::~MySqlConnectionPool()
 PooledConnection* MySqlConnectionPool::createConnection()
 {
    PooledConnection* rval = NULL;
-   
+
    // create and connect connection
    Connection* c = new MySqlConnection();
    if(c->connect(&mUrl))
@@ -27,6 +27,6 @@ PooledConnection* MySqlConnectionPool::createConnection()
       // wrap in a pooled connection
       rval = new PooledConnection(this, c);
    }
-   
+
    return rval;
 }

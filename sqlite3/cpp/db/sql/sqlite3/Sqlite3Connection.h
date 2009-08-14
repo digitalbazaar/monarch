@@ -21,7 +21,7 @@ class Sqlite3Statement;
 
 /**
  * An Sqlite3Connection is a Connection to an sqlite3 database.
- * 
+ *
  * @author Dave Longley
  * @author David I. Lehn
  */
@@ -32,63 +32,63 @@ protected:
     * The handle to the sqlite3 database.
     */
    ::sqlite3* mHandle;
-   
+
 public:
    /**
     * Creates a new Connection.
     */
    Sqlite3Connection();
-   
+
    /**
     * Destructs this Connection.
     */
    virtual ~Sqlite3Connection();
-   
+
    /**
     * Gets the sqlite3 database connection handle.
-    * 
+    *
     * @return the sqlite3 database connection handle.
     */
    virtual ::sqlite3* getHandle();
-   
+
    /**
     * Connects to the database specified by the given url.
-    * 
+    *
     * @param url Sqlite3 parameters in URL form:
     *        "sqlite:///path/to/example.db"
     *        A SQLite3 database called example.db OR
     *        "sqlite::memory:" for an in-memory temporary database
-    * 
+    *
     * @return true if successful, false if an SqlException occurred.
     */
    virtual bool connect(db::net::Url* url);
    using db::sql::AbstractConnection::connect;
-   
+
    /**
     * Closes this connection.
     */
    virtual void close();
-   
+
    /**
     * Rolls back the current transaction.
-    * 
+    *
     * @return true if successful, false if an SqlException occurred.
     */
    virtual bool rollback();
-   
+
    /**
     * Returns true if this connection is connected, false if not.
-    * 
+    *
     * @return true if this connection is connected, false if not.
     */
    virtual bool isConnected();
-   
+
 protected:
    /**
     * Creates a prepared Statement.
-    * 
+    *
     * @param sql the standard query language text of the Statement.
-    * 
+    *
     * @return the new Statement, NULL if an exception occurred.
     */
    virtual Statement* createStatement(const char* sql);

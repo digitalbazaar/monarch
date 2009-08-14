@@ -33,7 +33,7 @@ inline ::MYSQL* MySqlConnection::getHandle()
 bool MySqlConnection::connect(Url* url)
 {
    bool rval = false;
-   
+
    if(strcmp(url->getScheme().c_str(), "mysql") != 0)
    {
       ExceptionRef e = new Exception(
@@ -47,17 +47,17 @@ bool MySqlConnection::connect(Url* url)
    {
       // initialize handle
       mHandle = mysql_init(NULL);
-      
+
       // default character set to UTF-8
       mysql_options(mHandle, MYSQL_SET_CHARSET_NAME, "utf8");
-      
+
       // setup client flag
       int clientFlag = CLIENT_FOUND_ROWS | CLIENT_COMPRESS;
-      
+
       // determine default database (if any)
       const char* db = (url->getPath().length() <= 1 ?
          NULL : url->getPath().c_str() + 1);
-      
+
       // FIXME: we want to add read/write/create params to the URL
       // so connections can be read-only/write/etc (use query in URL)
       if(mysql_real_connect(
@@ -78,14 +78,14 @@ bool MySqlConnection::connect(Url* url)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
 void MySqlConnection::close()
 {
    AbstractConnection::close();
-   
+
    if(mHandle != NULL)
    {
       mysql_close(mHandle);
@@ -96,7 +96,7 @@ void MySqlConnection::close()
 bool MySqlConnection::begin()
 {
    bool rval;
-   
+
    if(!(rval = (mysql_query(mHandle, "START TRANSACTION") == 0)))
    {
       ExceptionRef e = new Exception("Could not begin transaction.");
@@ -104,14 +104,14 @@ bool MySqlConnection::begin()
       e->setCause(cause);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 bool MySqlConnection::commit()
 {
    bool rval;
-   
+
    if(!(rval = (mysql_query(mHandle, "COMMIT") == 0)))
    {
       ExceptionRef e = new Exception("Could not commit transaction.");
@@ -119,14 +119,14 @@ bool MySqlConnection::commit()
       e->setCause(cause);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 bool MySqlConnection::rollback()
 {
    bool rval;
-   
+
    if(!(rval = (mysql_query(mHandle, "ROLLBACK") == 0)))
    {
       ExceptionRef e = new Exception("Could not rollback transaction.");
@@ -134,19 +134,19 @@ bool MySqlConnection::rollback()
       e->setCause(cause);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 bool MySqlConnection::isConnected()
 {
    bool rval = false;
-   
+
    if(mHandle != NULL)
    {
       rval = (mysql_ping(mHandle) == 0);
    }
-   
+
    return rval;
 }
 
@@ -160,7 +160,7 @@ bool MySqlConnection::setCharacterSet(const char* cset)
 bool MySqlConnection::query(const char* sql)
 {
    bool rval;
-   
+
    if(!(rval = (mysql_query(mHandle, sql) == 0)))
    {
       ExceptionRef e = new Exception("Could not execute query.");
@@ -168,7 +168,7 @@ bool MySqlConnection::query(const char* sql)
       e->setCause(cause);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
@@ -182,6 +182,6 @@ Statement* MySqlConnection::createStatement(const char* sql)
       delete rval;
       rval = NULL;
    }
-   
+
    return rval;
 }

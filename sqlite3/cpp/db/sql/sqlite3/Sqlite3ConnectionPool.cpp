@@ -19,7 +19,7 @@ Sqlite3ConnectionPool::~Sqlite3ConnectionPool()
 PooledConnection* Sqlite3ConnectionPool::createConnection()
 {
    PooledConnection* rval = NULL;
-   
+
    // create and connect connection
    Connection* c = new Sqlite3Connection();
    if(c->connect(&mUrl))
@@ -27,6 +27,6 @@ PooledConnection* Sqlite3ConnectionPool::createConnection()
       // wrap in a pooled connection
       rval = new PooledConnection(this, c);
    }
-   
+
    return rval;
 }

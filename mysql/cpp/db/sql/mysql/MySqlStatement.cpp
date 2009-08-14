@@ -31,7 +31,7 @@ MySqlStatement::~MySqlStatement()
    {
       mysql_free_result(mResult);
    }
-   
+
    // clean up param bindings
    if(mParamBindings != NULL)
    {
@@ -55,23 +55,23 @@ MySqlStatement::~MySqlStatement()
                break;
          }
       }
-      
+
       // clean up all bindings
       delete [] mParamBindings;
    }
-   
+
    // clean up result bindings
    if(mResultBindings != NULL)
    {
       delete [] mResultBindings;
    }
-   
+
    // clean up row, if any
    if(mRow != NULL)
    {
       delete mRow;
    }
-   
+
    if(mHandle != NULL)
    {
       // clean up statement handle
@@ -87,9 +87,9 @@ inline MYSQL_STMT* MySqlStatement::getHandle()
 bool MySqlStatement::initialize()
 {
    bool rval = true;
-   
+
    MySqlConnection* c = (MySqlConnection*)mConnection;
-   
+
    // initialize handle
    mHandle = mysql_stmt_init(c->getHandle());
    if(mHandle == NULL)
@@ -120,26 +120,26 @@ bool MySqlStatement::initialize()
          }
       }
    }
-   
+
    return rval;
 }
 
 bool MySqlStatement::setInt32(unsigned int param, int32_t value)
 {
    bool rval = checkParamCount(param);
-   
+
    if(rval)
    {
       // param is 1 higher than bind index
       param--;
-      
+
       if(mExecuted)
       {
          // clean up previously set parameter
          delete (int*)mParamBindings[param].buffer;
          //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
-      
+
       // MYSQL_TYPE_LONG should be a 32-bit int INTEGER field,
       // length = 0 for ints
       // since the integer is stack-allocated, we must heap-allocate it here
@@ -149,26 +149,26 @@ bool MySqlStatement::setInt32(unsigned int param, int32_t value)
       mParamBindings[param].length = 0;
       mParamBindings[param].is_unsigned = 0;
    }
-   
+
    return rval;
 }
 
 bool MySqlStatement::setUInt32(unsigned int param, uint32_t value)
 {
    bool rval = checkParamCount(param);
-   
+
    if(rval)
    {
       // param is 1 higher than bind index
       param--;
-      
+
       if(mExecuted)
       {
          // clean up previously set parameter
          delete (int*)mParamBindings[param].buffer;
          //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
-      
+
       // MYSQL_TYPE_LONG should be a 32-bit int INTEGER field,
       // length = 0 for ints
       // since the integer is stack-allocated, we must heap-allocate it here
@@ -178,55 +178,55 @@ bool MySqlStatement::setUInt32(unsigned int param, uint32_t value)
       mParamBindings[param].length = 0;
       mParamBindings[param].is_unsigned = 1;
    }
-   
+
    return rval;
 }
 
 bool MySqlStatement::setInt64(unsigned int param, int64_t value)
 {
    bool rval = checkParamCount(param);
-   
+
    if(rval)
    {
       // param is 1 higher than bind index
       param--;
-      
+
       if(mExecuted)
       {
          // clean up previously set parameter
          delete (long long*)mParamBindings[param].buffer;
          //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
-      
+
       // MYSQL_TYPE_LONGLONG should be a 64-bit int BIGINT field,
       // length = 0 for ints
       // since the integer is stack-allocated, we must heap-allocate it here
       mParamBindings[param].buffer_type = MYSQL_TYPE_LONGLONG;
       mParamBindings[param].buffer = (char*)new long long(value);
       mParamBindings[param].is_null = 0;
-      mParamBindings[param].length = 0; 
-      mParamBindings[param].is_unsigned = 0;  
+      mParamBindings[param].length = 0;
+      mParamBindings[param].is_unsigned = 0;
    }
-   
+
    return rval;
 }
 
 bool MySqlStatement::setUInt64(unsigned int param, uint64_t value)
 {
    bool rval = checkParamCount(param);
-   
+
    if(rval)
    {
       // param is 1 higher than bind index
       param--;
-      
+
       if(mExecuted)
       {
          // clean up previously set parameter
          delete (long long*)mParamBindings[param].buffer;
          //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
-      
+
       // MYSQL_TYPE_LONGLONG should be a 64-bit int BIGINT field,
       // length = 0 for ints
       // since the integer is stack-allocated, we must heap-allocate it here
@@ -236,26 +236,26 @@ bool MySqlStatement::setUInt64(unsigned int param, uint64_t value)
       mParamBindings[param].length = 0;
       mParamBindings[param].is_unsigned = 1;
    }
-   
+
    return rval;
 }
 
 bool MySqlStatement::setText(unsigned int param, const char* value)
 {
    bool rval = checkParamCount(param);
-   
+
    if(rval)
    {
       // param is 1 higher than bind index
       param--;
-      
+
       if(mExecuted)
       {
          // clean up previously set parameter
          delete (unsigned long*)mParamBindings[param].length;
          //memset(mParamBindings, 0, sizeof(mParamBindings));
       }
-      
+
       // MYSQL_TYPE_BLOB should be a BLOB or TEXT field
       // length is heap-allocated and cleaned up later
       mParamBindings[param].buffer_type = MYSQL_TYPE_BLOB;
@@ -263,7 +263,7 @@ bool MySqlStatement::setText(unsigned int param, const char* value)
       mParamBindings[param].is_null = 0;
       mParamBindings[param].length = new unsigned long(strlen(value));
    }
-   
+
    return rval;
 }
 
@@ -310,7 +310,7 @@ bool MySqlStatement::setText(const char* name, const char* value)
 bool MySqlStatement::execute()
 {
    bool rval = false;
-   
+
    // bind parameters
    if(mysql_stmt_bind_param(mHandle, mParamBindings) != 0)
    {
@@ -327,29 +327,29 @@ bool MySqlStatement::execute()
    else
    {
       rval = true;
-      
+
       if(!mExecuted || mResult == NULL)
       {
          // get result meta-data
          mResult = mysql_stmt_result_metadata(mHandle);
       }
-      
+
       if(mResult != NULL)
       {
          if(!mExecuted || mResultBindings == NULL)
          {
             // get field count
             mFieldCount = mysql_stmt_field_count(mHandle);
-            
+
             // setup result bindings
             mResultBindings = new MYSQL_BIND[mFieldCount];
             memset(mResultBindings, 0, sizeof(MYSQL_BIND) * mFieldCount);
-            
+
             for(unsigned int i = 0; i < mFieldCount; i++)
             {
                mResultBindings[i].length = &mResultBindings[i].buffer_length;
             }
-            
+
             // set result bindings
             if(mysql_stmt_bind_result(mHandle, mResultBindings) != 0)
             {
@@ -366,7 +366,7 @@ bool MySqlStatement::execute()
             // clear result bindings
             memset(mResultBindings, 0, sizeof(MYSQL_BIND) * mFieldCount);
          }
-         
+
          // pull results from server (necessary to clear pipeline for next call)
          if(mysql_stmt_store_result(mHandle) != 0)
          {
@@ -376,21 +376,21 @@ bool MySqlStatement::execute()
             rval = false;
          }
       }
-      
+
       if(rval)
       {
          // statement has now been executed at least once
          mExecuted = true;
       }
    }
-   
+
    return rval;
 }
 
 Row* MySqlStatement::fetch()
 {
    Row* rval = NULL;
-   
+
    if(mResult != NULL)
    {
       // fetch the next row
@@ -407,16 +407,16 @@ Row* MySqlStatement::fetch()
          {
             // create row as necessary
             mRow = new MySqlRow(this);
-            
+
             // set fields for row
             mRow->setFields(
                mysql_fetch_fields(mResult), mFieldCount, mResultBindings);
          }
-         
+
          rval = mRow;
       }
    }
-   
+
    return rval;
 }
 
@@ -441,7 +441,7 @@ uint64_t MySqlStatement::getLastInsertRowId()
 bool MySqlStatement::checkParamCount(unsigned int param)
 {
    bool rval = true;
-   
+
    if(param > mParamCount)
    {
       // exception, no parameter with given index
@@ -451,6 +451,6 @@ bool MySqlStatement::checkParamCount(unsigned int param)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }

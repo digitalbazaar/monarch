@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_sql_SqlException_H
 #define db_sql_SqlException_H
@@ -13,7 +13,7 @@ namespace sql
 
 /**
  * A SqlException is raised when some kind of sql database error occurs.
- * 
+ *
  * @author Dave Longley
  */
 class SqlException : public db::rt::Exception
@@ -31,22 +31,22 @@ public:
    SqlException(
       const char* message = "",
       const char* type = "db.sql.Sql", int code = 0);
-   
+
    /**
     * Destructs this SqlException.
     */
    virtual ~SqlException();
-   
+
    /**
     * Sets the sql state string to associate with this exception.
-    * 
+    *
     * @param state the sql state string to associate with this exception.
     */
    virtual void setSqlState(const char* state);
-   
+
    /**
     * Gets the sql state string to associate with this exception.
-    * 
+    *
     * @return the sql state string to associate with this exception.
     */
    virtual const char* getSqlState();

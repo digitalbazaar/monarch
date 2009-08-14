@@ -25,7 +25,7 @@ Sqlite3Statement::~Sqlite3Statement()
    {
       delete mRow;
    }
-   
+
    if(mHandle != NULL)
    {
       // clean up handle
@@ -41,9 +41,9 @@ inline sqlite3_stmt* Sqlite3Statement::getHandle()
 bool Sqlite3Statement::initialize()
 {
    bool rval = true;
-   
+
    Sqlite3Connection* c = (Sqlite3Connection*)mConnection;
-   
+
    const char* tail;
    mState = sqlite3_prepare_v2(c->getHandle(), mSql, -1, &mHandle, &tail);
    if(mState != SQLITE_OK)
@@ -54,14 +54,14 @@ bool Sqlite3Statement::initialize()
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setInt32(unsigned int param, int32_t value)
 {
    bool rval = true;
-   
+
    mState = sqlite3_bind_int(mHandle, param, value);
    if(mState != SQLITE_OK)
    {
@@ -70,14 +70,14 @@ bool Sqlite3Statement::setInt32(unsigned int param, int32_t value)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setUInt32(unsigned int param, uint32_t value)
 {
    bool rval = true;
-   
+
    mState = sqlite3_bind_int(mHandle, param, value);
    if(mState != SQLITE_OK)
    {
@@ -86,14 +86,14 @@ bool Sqlite3Statement::setUInt32(unsigned int param, uint32_t value)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setInt64(unsigned int param, int64_t value)
 {
    bool rval = true;
-   
+
    mState = sqlite3_bind_int64(mHandle, param, value);
    if(mState != SQLITE_OK)
    {
@@ -102,14 +102,14 @@ bool Sqlite3Statement::setInt64(unsigned int param, int64_t value)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setUInt64(unsigned int param, uint64_t value)
 {
    bool rval = true;
-   
+
    mState = sqlite3_bind_int64(mHandle, param, value);
    if(mState != SQLITE_OK)
    {
@@ -118,14 +118,14 @@ bool Sqlite3Statement::setUInt64(unsigned int param, uint64_t value)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setText(unsigned int param, const char* value)
 {
    bool rval = true;
-   
+
    // use SQLITE_STATIC to ensure the memory is not cleaned up by sqlite
    mState = sqlite3_bind_text(mHandle, param, value, -1, SQLITE_STATIC);
    if(mState != SQLITE_OK)
@@ -135,79 +135,79 @@ bool Sqlite3Statement::setText(unsigned int param, const char* value)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setInt32(const char* name, int32_t value)
 {
    bool rval = false;
-   
+
    int index = getParameterIndex(name);
    if(index > 0)
    {
       rval = setInt32(index, value);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setUInt32(const char* name, uint32_t value)
 {
    bool rval = false;
-   
+
    int index = getParameterIndex(name);
    if(index > 0)
    {
       rval = setUInt32(index, value);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setInt64(const char* name, int64_t value)
 {
    bool rval = false;
-   
+
    int index = getParameterIndex(name);
    if(index > 0)
    {
       rval = setInt64(index, value);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setUInt64(const char* name, uint64_t value)
 {
    bool rval = false;
-   
+
    int index = getParameterIndex(name);
    if(index > 0)
    {
       rval = setUInt64(index, value);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::setText(const char* name, const char* value)
 {
    bool rval = false;
-   
+
    int index = getParameterIndex(name);
    if(index > 0)
    {
       rval = setText(index, value);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::execute()
 {
    bool rval = true;
-   
+
    switch(mState)
    {
       case SQLITE_OK:
@@ -259,14 +259,14 @@ bool Sqlite3Statement::execute()
          break;
       }
    }
-   
+
    return rval;
 }
 
 Row* Sqlite3Statement::fetch()
 {
    Row* rval = NULL;
-   
+
    if(mRow != NULL)
    {
       // get next row
@@ -300,21 +300,21 @@ Row* Sqlite3Statement::fetch()
       // create and return first row
       rval = mRow = new Sqlite3Row(this);
    }
-   
+
    return rval;
 }
 
 bool Sqlite3Statement::reset()
 {
    bool rval = true;
-   
+
    // clean up existing row object
    if(mRow != NULL)
    {
       delete mRow;
       mRow = NULL;
    }
-   
+
    // reset statement
    mState = sqlite3_reset(mHandle);
    if(mState != SQLITE_OK)
@@ -324,7 +324,7 @@ bool Sqlite3Statement::reset()
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
@@ -351,6 +351,6 @@ int Sqlite3Statement::getParameterIndex(const char* name)
       e->getDetails()["name"] = name;
       Exception::set(e);
    }
-   
+
    return index;
 }
