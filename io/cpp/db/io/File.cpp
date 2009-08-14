@@ -31,17 +31,17 @@ using namespace db::util;
    const char File::NAME_SEPARATOR_CHAR = '\\';
    const char* File::PATH_SEPARATOR = ";";
    const char File::PATH_SEPARATOR_CHAR = ';';
-   
+
    // a helper function for stripping drive letters from windows paths
    static string stripDriveLetter(const char* path, string* drive = NULL)
    {
       string rval = path;
-      
+
       if(drive != NULL)
       {
          drive->erase();
       }
-      
+
       if(File::isPathAbsolute(path))
       {
          if(path[0] != 0 && path[1] != 0)
@@ -53,10 +53,10 @@ using namespace db::util;
             }
          }
       }
-      
+
       return rval;
    }
-   
+
    // a helper function to replace '/' slashes with '\'
    static string flipSlashes(const char* path)
    {
@@ -78,12 +78,12 @@ FileImpl::FileImpl() :
    mRemoveOnCleanup(false)
 {
    mPath = strdup(".");
-   
+
    // initialize absolute path
    string abs;
    File::getAbsolutePath(mPath, abs);
    mAbsolutePath = strdup(abs.c_str());
-   
+
    mBaseName = mCanonicalPath = mExtension = NULL;
 }
 
@@ -96,12 +96,12 @@ FileImpl::FileImpl(const char* path) :
    // just copy path
    mPath = strdup(path);
 #endif
-   
+
    // initialize absolute path
    string abs;
    File::getAbsolutePath(mPath, abs);
    mAbsolutePath = strdup(abs.c_str());
-   
+
    mBaseName = mCanonicalPath = mExtension = NULL;
 }
 
@@ -112,20 +112,20 @@ FileImpl::~FileImpl()
       // remove temp file
       remove();
    }
-   
+
    free(mPath);
    free(mAbsolutePath);
-   
+
    if(mBaseName != NULL)
    {
       free(mBaseName);
    }
-   
+
    if(mCanonicalPath != NULL)
    {
       free(mCanonicalPath);
    }
-   
+
    if(mExtension != NULL)
    {
       free(mExtension);
@@ -135,7 +135,7 @@ FileImpl::~FileImpl()
 bool FileImpl::create()
 {
    bool rval = false;
-   
+
    FILE* fp = fopen(mAbsolutePath, "w");
    if(fp != NULL)
    {
@@ -151,18 +151,18 @@ bool FileImpl::create()
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
 bool FileImpl::mkdirs()
 {
    bool rval = true;
-   
+
    // get path
    string path = (isDirectory() ?
       mAbsolutePath : File::parentname(mAbsolutePath));
-   
+
    // create stack of directories in the path
    vector<string> dirStack;
    while(!File::isPathRoot(path.c_str()))
@@ -170,7 +170,7 @@ bool FileImpl::mkdirs()
       dirStack.push_back(path);
       path = File::parentname(path.c_str());
    }
-   
+
    // iteratively create directories
    struct stat s;
    int rc;
@@ -178,7 +178,7 @@ bool FileImpl::mkdirs()
    {
       path = dirStack.back();
       dirStack.pop_back();
-      
+
       // try to stat directory
       rc = stat(path.c_str(), &s);
       if(rc != 0)
@@ -197,14 +197,14 @@ bool FileImpl::mkdirs()
          }
       }
    }
-   
+
    return rval;
 }
 
 bool FileImpl::exists()
 {
    bool rval = false;
-   
+
    struct stat s;
    int rc = stat(mAbsolutePath, &s);
    if(rc == 0)
@@ -215,14 +215,14 @@ bool FileImpl::exists()
    {
       // does not set an exception intentionally, the file just doesn't exist
    }
-   
+
    return rval;
 }
 
 bool FileImpl::remove()
 {
    bool rval = false;
-   
+
    int rc = ::remove(mAbsolutePath);
    if(rc == 0)
    {
@@ -238,7 +238,7 @@ bool FileImpl::remove()
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
@@ -250,10 +250,10 @@ void FileImpl::setRemoveOnCleanup(bool remove)
 bool FileImpl::rename(File& file)
 {
    bool rval = false;
-   
+
    // delete old file
    file->remove();
-   
+
    // rename file
    int rc = ::rename(mAbsolutePath, file->getAbsolutePath());
    if(rc == 0)
@@ -270,7 +270,7 @@ bool FileImpl::rename(File& file)
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return rval;
 }
 
@@ -281,7 +281,7 @@ const char* FileImpl::getBaseName()
       // initialize base name
       mBaseName = strdup(File::basename(mAbsolutePath).c_str());
    }
-   
+
    return mBaseName;
 }
 
@@ -299,11 +299,11 @@ const char* FileImpl::getCanonicalPath()
 {
    if(mCanonicalPath == NULL)
    {
-      string path; 
+      string path;
       File::getCanonicalPath(mAbsolutePath, path);
       mCanonicalPath = strdup(path.c_str());
    }
-   
+
    return mCanonicalPath;
 }
 
@@ -316,7 +316,7 @@ const char* FileImpl::getExtension()
       File::splitext(mAbsolutePath, root, ext);
       mExtension = strdup(ext.c_str());
    }
-   
+
    return mExtension;
 }
 
@@ -333,17 +333,17 @@ off_t FileImpl::getLength()
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
    }
-   
+
    return s.st_size;
 }
 
 FileImpl::Type FileImpl::getType(bool follow)
 {
    Type rval = Unknown;
-   
+
    struct stat s;
    int rc;
-   
+
    if(follow)
    {
       // ensure follow links are followed with stat
@@ -354,7 +354,7 @@ FileImpl::Type FileImpl::getType(bool follow)
       // use lstat so symbolic links aren't followed
       rc = lstat(mAbsolutePath, &s);
    }
-   
+
    if(rc == 0)
    {
       switch(s.st_mode & S_IFMT)
@@ -372,7 +372,7 @@ FileImpl::Type FileImpl::getType(bool follow)
             break;
       }
    }
-   
+
    return rval;
 }
 
@@ -384,13 +384,13 @@ bool FileImpl::isFile()
 bool FileImpl::contains(const char* path)
 {
    bool rval = false;
-   
+
    string containee;
    if(File::getAbsolutePath(path, containee))
    {
       rval = (containee.find(mAbsolutePath, 0) == 0);
    }
-   
+
    return rval;
 }
 
@@ -457,12 +457,12 @@ void FileImpl::listFiles(FileList& files)
             {
                memcpy(path + len1, entry->d_name, len2 + 1);
             }
-            
+
             // add new file to list
             File file(path);
             files->add(file);
          }
-         
+
          // close directory
          closedir(dir);
       }
@@ -472,22 +472,22 @@ void FileImpl::listFiles(FileList& files)
 Date FileImpl::getModifiedDate()
 {
    Date date(0);
-   
+
    struct stat s;
    if(stat(mAbsolutePath, &s) == 0)
    {
       date.setSeconds(s.st_mtime);
    }
-   
+
    return date;
 }
 
 bool File::operator==(const File& rhs) const
 {
    bool rval = false;
-   
+
    File& file = *((File*)&rhs);
-   
+
    // compare absolute paths and types for equality,
    // use case-insensitive compare for windows
 #ifdef WIN32
@@ -498,7 +498,7 @@ bool File::operator==(const File& rhs) const
    {
       rval = ((*this)->getType() == file->getType());
    }
-   
+
    return rval;
 }
 
@@ -510,7 +510,7 @@ bool File::operator!=(const File& rhs) const
 bool File::readBytes(ByteBuffer* buffer)
 {
    bool rval = true;
-   
+
    // read into the buffer until full (error, not enough space),
    // or until EOF (success)
    FileInputStream* fis = new FileInputStream(*this);
@@ -523,7 +523,7 @@ bool File::readBytes(ByteBuffer* buffer)
    }
    fis->close();
    delete fis;
-   
+
    if(numBytes == -1)
    {
       rval = false;
@@ -536,33 +536,33 @@ bool File::readBytes(ByteBuffer* buffer)
       Exception::set(e);
       rval = false;
    }
-   
+
    return rval;
 }
 
 bool File::writeBytes(ByteBuffer* buffer, bool append)
 {
    bool rval = true;
-   
+
    // write entire buffer to file
    FileOutputStream* fos = new FileOutputStream(*this, append);
    rval = fos->write(buffer->data(), buffer->length());
    fos->close();
    delete fos;
-   
+
    return rval;
 }
 
 bool File::getAbsolutePath(const char* path, string& absolutePath)
 {
    bool rval = true;
-   
+
 #ifdef WIN32
    // handle windows slashes mess
    string tmp1 = flipSlashes(path);
    path = tmp1.c_str();
 #endif
-   
+
    // if the path isn't absolute, prepend the current working directory
    // to the path
    string tmp;
@@ -579,55 +579,55 @@ bool File::getAbsolutePath(const char* path, string& absolutePath)
       // path already absolute
       tmp.assign(path);
    }
-   
+
    // normalize path
    rval = rval && normalizePath(tmp.c_str(), absolutePath);
-   
+
    return rval;
 }
 
 bool File::getCanonicalPath(const char* path, string& canonicalPath)
 {
    bool rval = true;
-   
+
 #ifdef WIN32
    // handle windows slashes mess
    string tmp1 = flipSlashes(path);
    path = tmp1.c_str();
 #endif
-   
+
    // FIXME: add while loop to keep following symbolic links after
    // getting absolute path
    // FIXME: call readlink(path, outputbuffer, outputbuffersize), returns
    // number of characters in buffer or -1 with errno set
-   
+
    // get absolute path
    rval = getAbsolutePath(path, canonicalPath);
-   
+
    return rval;
 }
 
 bool File::normalizePath(const char* path, string& normalizedPath)
 {
    bool rval = true;
-   
+
 #ifdef WIN32
    // handle windows slashes mess
    string tmp1 = flipSlashes(path);
    path = tmp1.c_str();
-   
+
    // strip drive letter, point "path" at stripped path
    string drive;
    string stripped = stripDriveLetter(path, &drive);
    path = stripped.c_str();
 #endif
-   
+
    string tempPath;
    if(strlen(path) > 0)
    {
       // store whether or not path begins with path name separator
       bool separator = (path[0] == NAME_SEPARATOR_CHAR);
-      
+
       // clean up the relative directory references, by traversing the
       // path in reverse
       StringTokenizer st(path, NAME_SEPARATOR_CHAR, false);
@@ -655,13 +655,13 @@ bool File::normalizePath(const char* path, string& normalizedPath)
             }
          }
       }
-      
+
       // re-insert path name separator
       if(separator)
       {
          tempPath.insert(0, 1, NAME_SEPARATOR_CHAR);
       }
-      
+
       if(tempPath.length() == 0 || (skip > 0 && !isPathAbsolute(path)))
       {
          ExceptionRef e = new Exception(
@@ -672,7 +672,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
          rval = false;
       }
    }
-   
+
 #ifdef WIN32
    // re-add drive letter before assigning to temp path
    normalizedPath.assign(drive);
@@ -681,20 +681,20 @@ bool File::normalizePath(const char* path, string& normalizedPath)
    // assign to temp path
    normalizedPath.assign(tempPath);
 #endif
-   
+
    return rval;
 }
 
 bool File::expandUser(const char* path, string& expandedPath)
 {
    bool rval = true;
-   
+
 #ifdef WIN32
    // handle windows slashes mess
    string tmp1 = flipSlashes(path);
    path = tmp1.c_str();
 #endif
-   
+
    size_t pathlen = 0;
    if(path != NULL)
    {
@@ -710,7 +710,7 @@ bool File::expandUser(const char* path, string& expandedPath)
    // All:
    //    No support for ~username yet. Only ~ and ~/... supported.
    bool expandTilde = false;
-   
+
    if(pathlen > 0 && path[0] == '~')
    {
       // FIXME add getpwnam support
@@ -728,7 +728,7 @@ bool File::expandUser(const char* path, string& expandedPath)
          expandTilde = true;
       }
    }
-   
+
    if(rval)
    {
       // default to append full initial path
@@ -745,13 +745,13 @@ bool File::expandUser(const char* path, string& expandedPath)
       #define UPLEN 13
       #define HDHP HD HP
       #define HDHPLEN (HDLEN + HPLEN)
-      
+
       // Note: Only the first occurrences of ~, HOMEDRIVE, HOMEPATH, or
       // USERPROFILE will be replaced. If HOMEDRIVE and HOMEPATH both occur,
       // then both of their first occurrences will be replaced. If there are
       // other occurrences, then the path will be invalid on windows anyway
       // ... so we don't bother replacing them here.
-      
+
       if(expandTilde)
       {
          const char* userProfile = getenv("USERPROFILE");
@@ -900,14 +900,14 @@ bool File::expandUser(const char* path, string& expandedPath)
          expandedPath.assign(newPath);
       }
    }
-   
+
    return rval;
 }
 
 bool File::getCurrentWorkingDirectory(string& cwd)
 {
    bool rval = true;
-   
+
    bool found = false;
    size_t path_max;
 #ifdef PATH_MAX
@@ -915,7 +915,7 @@ bool File::getCurrentWorkingDirectory(string& cwd)
 #else
    path_max = 1024;
 #endif
-   
+
    char* b = (char*)malloc(path_max);
    while(rval && !found)
    {
@@ -945,14 +945,14 @@ bool File::getCurrentWorkingDirectory(string& cwd)
       }
    }
    free(b);
-   
+
    return rval;
 }
 
 bool File::getTemporaryDirectory(string& tmp)
 {
    bool rval = true;
-   
+
    char* tmpdir = getenv("TMPDIR");
    if(tmpdir == NULL)
    {
@@ -964,14 +964,14 @@ bool File::getTemporaryDirectory(string& tmp)
       tmp = "/tmp";
 #endif
    }
-   
+
    return rval;
 }
 
 File File::createTempFile(const char* prefix, const char* dir)
 {
    File rval((FileImpl*)NULL);
-   
+
    string tmp;
    if(dir != NULL)
    {
@@ -1004,7 +1004,7 @@ File File::createTempFile(const char* prefix, const char* dir)
             basename.insert(0, prefix);
             filename = File::join(dirname.c_str(), basename.c_str());
             free(path);
-            
+
             // try to uniquely open the file
             fd = open(filename.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
             if(fd == -1)
@@ -1029,7 +1029,7 @@ File File::createTempFile(const char* prefix, const char* dir)
             }
          }
       }
-      
+
       if(fd == -1)
       {
          ExceptionRef e = new Exception(
@@ -1050,7 +1050,7 @@ File File::createTempFile(const char* prefix, const char* dir)
          rval = impl;
       }
    }
-   
+
    return rval;
 }
 
@@ -1061,7 +1061,7 @@ bool File::isPathReadable(const char* path)
    string tmp1 = flipSlashes(path);
    path = tmp1.c_str();
 #endif
-   
+
    return (access(path, R_OK) == 0);
 }
 
@@ -1072,7 +1072,7 @@ bool File::isPathWritable(const char* path)
    string tmp1 = flipSlashes(path);
    path = tmp1.c_str();
 #endif
-   
+
    return (access(path, W_OK) == 0);
 }
 
@@ -1083,7 +1083,7 @@ void File::split(const char* path, string& dirname, string& basename)
    string tmp1 = flipSlashes(path);
    path = tmp1.c_str();
 #endif
-   
+
    if(isPathRoot(path))
    {
       // root path has no basename
@@ -1106,7 +1106,7 @@ void File::split(const char* path, string& dirname, string& basename)
          basename.assign(path);
       }
    }
-   
+
    // strip trailing slashes from dirname
    if(dirname.length() > 1)
    {
@@ -1126,7 +1126,7 @@ void File::splitext(
    string tmp1 = flipSlashes(path);
    path = tmp1.c_str();
 #endif
-   
+
    string sPath = path;
    string::size_type pos = sPath.rfind(sep);
    if(pos != string::npos)
@@ -1148,9 +1148,9 @@ string File::parentname(const char* path)
    string tmp1 = flipSlashes(path);
    path = tmp1.c_str();
 #endif
-   
+
    string rval = path;
-   
+
    // check to see if the path is a root
    if(!isPathRoot(path))
    {
@@ -1159,7 +1159,7 @@ string File::parentname(const char* path)
       rval.erase(rval.find_last_not_of(NAME_SEPARATOR_CHAR) + 1);
       rval = File::dirname(rval.c_str());
    }
-   
+
    return rval;
 }
 
@@ -1167,9 +1167,9 @@ string File::dirname(const char* path)
 {
    string dirname;
    string basename;
-   
+
    File::split(path, dirname, basename);
-   
+
    return dirname;
 }
 
@@ -1177,23 +1177,23 @@ string File::basename(const char* path)
 {
    string dirname;
    string basename;
-   
+
    File::split(path, dirname, basename);
-   
+
    return basename;
 }
 
 bool File::isPathAbsolute(const char* path)
 {
    bool rval = false;
-   
+
    if(path != NULL)
    {
 #ifdef WIN32
       // handle windows slashes mess
       string tmp1 = flipSlashes(path);
       path = tmp1.c_str();
-      
+
       // absolute paths on windows start with:
       // "\" OR
       // "<drive letter>:" OR
@@ -1219,14 +1219,14 @@ bool File::isPathAbsolute(const char* path)
       rval = (path != NULL && path[0] == NAME_SEPARATOR_CHAR);
 #endif
    }
-   
+
    return rval;
 }
 
 bool File::isPathRoot(const char* path)
 {
    bool rval = false;
-   
+
    if(path != NULL)
    {
       // Note: We cannot just check to see if the absolute path is the same as
@@ -1237,7 +1237,7 @@ bool File::isPathRoot(const char* path)
       // handle windows slashes mess
       string tmp1 = flipSlashes(path);
       path = tmp1.c_str();
-      
+
       // root paths for windows must be:
       // "\" OR
       // "<drive letter>:" OR
@@ -1263,7 +1263,7 @@ bool File::isPathRoot(const char* path)
       rval = (path != NULL && strcmp(path, NAME_SEPARATOR) == 0);
 #endif
    }
-   
+
    return rval;
 }
 
@@ -1276,10 +1276,10 @@ string File::join(const char* path1, const char* path2)
    path1 = tmp1.c_str();
    path2 = tmp2.c_str();
 #endif
-   
+
    // start with path1
    string path = path1;
-   
+
    // skip if path2 empty
    if(strlen(path2) > 0)
    {
@@ -1311,6 +1311,6 @@ string File::join(const char* path1, const char* path2)
          }
       }
    }
-   
+
    return path;
 }

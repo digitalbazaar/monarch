@@ -34,7 +34,7 @@ ByteArrayInputStream::~ByteArrayInputStream()
 int ByteArrayInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    if(mBuffer == NULL)
    {
       // try to read from byte array
@@ -43,7 +43,7 @@ int ByteArrayInputStream::read(char* b, int length)
          // copy bytes into passed buffer
          rval = (length > mLength) ? mLength : length;
          memcpy(b, mBytes, rval);
-         
+
          // increment bytes pointer, decrement length
          mBytes += rval;
          mLength -= rval;
@@ -58,7 +58,7 @@ int ByteArrayInputStream::read(char* b, int length)
          rval = mBuffer->get(b, length);
       }
    }
-   
+
    return rval;
 }
 
@@ -66,7 +66,7 @@ void ByteArrayInputStream::setByteArray(const char* b, int length)
 {
    mBytes = b;
    mLength = length;
-   
+
    if(mCleanupBuffer && mBuffer != NULL)
    {
       delete mBuffer;
@@ -79,13 +79,13 @@ void ByteArrayInputStream::setByteBuffer(ByteBuffer* b, bool cleanup)
 {
    mBytes = NULL;
    mLength = 0;
-   
+
    if(mCleanupBuffer && mBuffer != NULL)
    {
       delete mBuffer;
       mCleanupBuffer = false;
    }
-   
+
    mBuffer = b;
    mCleanupBuffer = cleanup;
 }

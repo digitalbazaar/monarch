@@ -22,10 +22,10 @@ OStreamOutputStream::~OStreamOutputStream()
 bool OStreamOutputStream::write(const char* b, int length)
 {
    bool rval = false;
-   
+
    // do write
    mStream->write(b, length);
-   
+
    // see if a failure has occurred
    if(!(rval = !mStream->fail()))
    {
@@ -33,6 +33,6 @@ bool OStreamOutputStream::write(const char* b, int length)
          "Could not write to ostream.", "db.io.IO");
       Exception::set(e);
    }
-   
+
    return rval;
 }

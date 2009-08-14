@@ -19,20 +19,20 @@ BufferedOutputStream::~BufferedOutputStream()
 bool BufferedOutputStream::write(const char* b, int length)
 {
    bool rval = true;
-   
+
    int written = 0;
    while(rval && written < length)
    {
       // put bytes into buffer
       written += mBuffer->put(b + written, length - written, false);
-      
+
       // flush buffer if full
       if(mBuffer->isFull())
       {
          rval = flush();
       }
    }
-   
+
    return rval;
 }
 

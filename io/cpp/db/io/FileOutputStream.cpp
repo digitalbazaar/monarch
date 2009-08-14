@@ -34,7 +34,7 @@ FileOutputStream::~FileOutputStream()
 bool FileOutputStream::write(const char* b, int length)
 {
    bool rval = false;
-   
+
    if(ensureOpen())
    {
       // do write
@@ -53,19 +53,19 @@ bool FileOutputStream::write(const char* b, int length)
          rval = true;
       }
    }
-   
+
    return rval;
 }
 
 bool FileOutputStream::flush()
 {
    bool rval = false;
-   
+
    if(ensureOpen())
    {
       fflush(mHandle);
    }
-   
+
    return rval;
 }
 
@@ -83,7 +83,7 @@ void FileOutputStream::close()
 bool FileOutputStream::ensureOpen()
 {
    bool rval = true;
-   
+
    // try to open the file (mFile is null when using stdout/stderr)
    if(mHandle == NULL && !mFile.isNull())
    {
@@ -99,6 +99,6 @@ bool FileOutputStream::ensureOpen()
          rval = false;
       }
    }
-   
+
    return rval;
 }

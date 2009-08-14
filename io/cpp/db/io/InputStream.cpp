@@ -29,7 +29,7 @@ int InputStream::peek(char* b, int length, bool block)
 long long InputStream::skip(long long count)
 {
    long long skipped = 0;
-   
+
    // read and discard bytes
    char b[2048];
    int numBytes = 0;
@@ -40,11 +40,11 @@ long long InputStream::skip(long long count)
       count -= numBytes;
       length = (count < 2048) ? count : 2048;
    }
-   
+
    if(skipped == 0 && numBytes == -1)
    {
       skipped = -1;
    }
-   
+
    return skipped;
 }

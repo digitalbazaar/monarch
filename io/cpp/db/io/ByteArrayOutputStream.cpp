@@ -21,7 +21,7 @@ ByteArrayOutputStream::~ByteArrayOutputStream()
 bool ByteArrayOutputStream::write(const char* b, int length)
 {
    bool rval = true;
-   
+
    // put bytes in byte buffer
    int written = mBuffer->put(b, length, getResize());
    if(written != length)
@@ -34,7 +34,7 @@ bool ByteArrayOutputStream::write(const char* b, int length)
       Exception::set(ref);
       rval = false;
    }
-   
+
    return rval;
 }
 

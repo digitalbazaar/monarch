@@ -43,7 +43,7 @@ void BitStream::append(bool bit)
    {
       resize(mSize / 2);
    }
-   
+
    // OR appropriate byte in bit set
    mBitSet[mLength / 8] |= bit ? (0x80 >> (mLength % 8)) : 0;
    mLength++;
@@ -84,14 +84,14 @@ void BitStream::append(const unsigned char* b, int length)
 bool BitStream::appendFromString(const char* str, int length)
 {
    bool rval = true;
-   
+
    // determine the number of bytes that need to be allocated
    int bytes = length / 8 + (length % 8 != 0 ? 1 : 0);
    if(mSize < bytes)
    {
       resize(bytes - mSize);
    }
-   
+
    // append bits
    for(int i = 0; rval && i < length; i++)
    {
@@ -112,7 +112,7 @@ bool BitStream::appendFromString(const char* str, int length)
          rval = false;
       }
    }
-   
+
    return rval;
 }
 
@@ -143,7 +143,7 @@ void BitStream::operator<<(int n)
       // FIXME: this implementation is terribly slow
       // FIXME: instead do memmove for every whole byte, then shift every byte
       // or something smarter
-      
+
       std::string out = toString();
       out.erase(0, n);
       clear();
@@ -155,7 +155,7 @@ void BitStream::operator<<(int n)
 unsigned char BitStream::get(int bitOffset)
 {
    unsigned char rval = 0;
-   
+
    if(bitOffset < mLength && bitOffset % 8 == 0)
    {
       rval = mBitSet[bitOffset / 8];
@@ -170,7 +170,7 @@ unsigned char BitStream::get(int bitOffset)
          }
       }
    }
-   
+
    return rval;
 }
 
@@ -200,7 +200,7 @@ void BitStream::setLength(int length)
    if(mLength > mSize)
    {
       // resize to accomodate length
-      // Note: this could obviously be optimized, but works fine 
+      // Note: this could obviously be optimized, but works fine
       // in the general case for bfp watermarks
       resize(mSize / 2);
       setLength(length);

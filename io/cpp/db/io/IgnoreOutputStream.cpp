@@ -21,7 +21,7 @@ IgnoreOutputStream::~IgnoreOutputStream()
 bool IgnoreOutputStream::write(const char* b, int length)
 {
    bool rval = true;
-   
+
    // determine the length to write out and new ignore count
    int ignored = mIgnoreCount;
    if(mIgnoreCount > length)
@@ -34,7 +34,7 @@ bool IgnoreOutputStream::write(const char* b, int length)
       length -= mIgnoreCount;
       mIgnoreCount = 0;
    }
-   
+
    if(length > 0)
    {
       rval = mOutputStream->write(b + ignored, length);
@@ -49,7 +49,7 @@ bool IgnoreOutputStream::write(const char* b, int length)
          }
       }
    }
-   
+
    return rval;
 }
 

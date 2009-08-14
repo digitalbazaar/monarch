@@ -28,7 +28,7 @@ FileInputStream::~FileInputStream()
 bool FileInputStream::ensureOpen()
 {
    bool rval = true;
-   
+
    // try to open the file
    if(mHandle == NULL)
    {
@@ -65,18 +65,18 @@ bool FileInputStream::ensureOpen()
          }
       }
    }
-   
+
    return rval;
 }
 
 int FileInputStream::read(char* b, int length)
 {
    int rval = -1;
-   
+
    if(ensureOpen())
    {
       rval = 0;
-      
+
       // do read
       int count = fread(b, 1, length, mHandle);
       if(count != length)
@@ -93,31 +93,31 @@ int FileInputStream::read(char* b, int length)
             rval = -1;
          }
       }
-      
+
       if(rval != -1)
       {
          // return number of bytes read
          rval = count;
       }
    }
-   
+
    return rval;
 }
 
 long long FileInputStream::skip(long long count)
 {
    long long rval = -1;
-   
+
    if(ensureOpen())
    {
       bool success;
-      
+
       // store current position and the end position
       size_t curr = ftell(mHandle);
       success = (fseek(mHandle, 0, SEEK_END) == 0);
       size_t end = ftell(mHandle);
       success = success && (fseek(mHandle, curr, SEEK_SET) == 0);
-      
+
       rval = count;
       if(rval > 0 && curr < end)
       {
@@ -126,11 +126,11 @@ long long FileInputStream::skip(long long count)
          {
             rval = end - curr;
          }
-         
+
          // skip from current offset
          success = success && (fseek(mHandle, rval, SEEK_CUR) == 0);
       }
-      
+
       if(!success)
       {
          ExceptionRef e = new Exception(
@@ -142,18 +142,18 @@ long long FileInputStream::skip(long long count)
          rval = -1;
       }
    }
-   
+
    return rval;
 }
 
 int FileInputStream::readLine(string& line, char delimiter)
 {
    int rval = -1;
-   
+
    if(ensureOpen())
    {
       rval = 0;
-      
+
       // feof returns non-zero when EOF
       if(feof(mHandle) == 0)
       {
@@ -188,7 +188,7 @@ int FileInputStream::readLine(string& line, char delimiter)
          }
       }
    }
-   
+
    return rval;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef db_io_IOException_H
 #define db_io_IOException_H
@@ -31,36 +31,36 @@ public:
    IOException(
       const char* message = "",
       const char* type = "db.io.IO", int code = 0);
-   
+
    /**
     * Destructs this IOException.
     */
    virtual ~IOException();
-   
+
    /**
     * Sets the number of used bytes (read/written) from an IO operation.
-    * 
+    *
     * @param used the number of used bytes (read or written).
     */
    virtual void setUsedBytes(int used);
-   
+
    /**
     * Gets the number of used bytes (read/written) from an IO operation.
-    * 
+    *
     * @return the number of used bytes (read or written).
     */
    virtual int getUsedBytes();
-   
+
    /**
     * Sets the number of unused bytes (unread/unwritten) from an IO operation.
-    * 
+    *
     * @param unused the number of unused bytes (unread or unwritten).
     */
    virtual void setUnusedBytes(int unused);
-   
+
    /**
     * Gets the number of unused bytes (unread/unwritten) from an IO operation.
-    * 
+    *
     * @return the number of unused bytes (unread or unwritten).
     */
    virtual int getUnusedBytes();

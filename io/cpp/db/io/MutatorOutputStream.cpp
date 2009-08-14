@@ -19,7 +19,7 @@ MutatorOutputStream::MutatorOutputStream(
    mCleanupAlgorithm = cleanupAlgorithm;
    mResult = MutationAlgorithm::NeedsData;
    mFinished = false;
-   
+
    // set source buffer
    if(src == NULL)
    {
@@ -31,7 +31,7 @@ MutatorOutputStream::MutatorOutputStream(
       mSource = src;
       mCleanupSource = false;
    }
-   
+
    // set destination buffer
    if(dst == NULL)
    {
@@ -51,12 +51,12 @@ MutatorOutputStream::~MutatorOutputStream()
    {
       delete mSource;
    }
-   
+
    if(mCleanupDestination)
    {
       delete mDestination;
    }
-   
+
    if(mCleanupAlgorithm && mAlgorithm != NULL)
    {
       delete mAlgorithm;
@@ -66,7 +66,7 @@ MutatorOutputStream::~MutatorOutputStream()
 bool MutatorOutputStream::write(const char* b, int length)
 {
    bool rval = true;
-   
+
    // determine buffer to obtain source data from
    ByteBuffer* src;
    if(!mSource->isEmpty())
@@ -81,10 +81,10 @@ bool MutatorOutputStream::write(const char* b, int length)
       mInputWrapper.setBytes((char*)b, 0, length, length, false);
       src = &mInputWrapper;
    }
-   
+
    // signal algorithm to complete if length is zero
    bool finish = (length == 0);
-   
+
    // keep mutating while algorithm does not need data and is not complete
    bool write = true;
    while(rval && write && mResult < MutationAlgorithm::CompleteAppend)
@@ -123,7 +123,7 @@ bool MutatorOutputStream::write(const char* b, int length)
             break;
       }
    }
-   
+
    if(mResult == MutationAlgorithm::CompleteAppend)
    {
       if(!src->isEmpty())
@@ -146,23 +146,23 @@ bool MutatorOutputStream::write(const char* b, int length)
          mSource->put(&mInputWrapper, mInputWrapper.length(), true);
       }
    }
-   
+
    return rval;
 }
 
 bool MutatorOutputStream::finish()
 {
    bool rval = true;
-   
+
    if(!mFinished)
    {
       // ensure mutation is finished
       rval = write(NULL, 0) && mOutputStream->finish();
-      
+
       // now finished
       mFinished = true;
    }
-   
+
    return rval;
 }
 
@@ -170,7 +170,7 @@ void MutatorOutputStream::close()
 {
    // ensure finished
    finish();
-   
+
    // close underlying stream
    mOutputStream->close();
 }
@@ -181,7 +181,7 @@ void MutatorOutputStream::setAlgorithm(MutationAlgorithm* ma, bool cleanup)
    {
       delete mAlgorithm;
    }
-   
+
    mAlgorithm = ma;
    mCleanupAlgorithm = cleanup;
    mResult = MutationAlgorithm::NeedsData;

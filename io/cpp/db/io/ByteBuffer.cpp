@@ -77,7 +77,7 @@ void ByteBuffer::allocateSpace(int length, bool resize)
          this->resize(mCapacity + overflow);
       }
    }
-   
+
    // determine if the data needs to be shifted
    if(mOffset > mBuffer)
    {
@@ -89,7 +89,7 @@ void ByteBuffer::allocateSpace(int length, bool resize)
             // shift the data in the buffer
             memmove(mBuffer, mOffset, mLength);
          }
-         
+
          mOffset = mBuffer;
       }
    }
@@ -107,10 +107,10 @@ void ByteBuffer::resize(int capacity)
             memmove(mBuffer, mOffset, mLength);
             mOffset = mBuffer;
          }
-         
+
          // store old offset difference
          int offset = mOffset - mBuffer;
-         
+
          // reallocate buffer
          mBuffer = (unsigned char*)realloc(mBuffer, capacity);
          mCapacity = capacity;
@@ -121,15 +121,15 @@ void ByteBuffer::resize(int capacity)
       {
          // create a new buffer
          unsigned char* newBuffer = (unsigned char*)malloc(capacity);
-         
+
          // copy the data into the new buffer, truncate old count as necessary
          mCapacity = capacity;
          mLength = (mCapacity < mLength) ? mCapacity : mLength;
          memcpy(newBuffer, mOffset, mLength);
-         
+
          // clean up old buffer
          cleanupBytes();
-         
+
          // memory management now on regardless of previous setting
          mBuffer = mOffset = newBuffer;
          mCleanup = true;
@@ -143,19 +143,19 @@ void ByteBuffer::reAllocate(int capacity, bool copy)
    unsigned char* data = mBuffer;
    char* offset = (char*)mOffset;
    int length = mLength;
-   
+
    // create the new byte buffer
    mCapacity = capacity;
    mBuffer = (capacity > 0) ? (unsigned char*)malloc(mCapacity) : NULL;
    mOffset = mBuffer;
    mLength = 0;
-   
+
    if(copy && capacity > 0)
    {
       // put old data into buffer
       put(offset, length, false);
    }
-   
+
    if(mCleanup)
    {
       // free old data
@@ -172,7 +172,7 @@ int ByteBuffer::putByte(unsigned char b, int n, bool resize)
 {
    // allocate space for the data
    allocateSpace(n, resize);
-   
+
    int fs = freeSpace();
    n = (fs < n ? fs : n);
    if(n > 0)
@@ -181,7 +181,7 @@ int ByteBuffer::putByte(unsigned char b, int n, bool resize)
       memset(mOffset + mLength, b, n);
       mLength += n;
    }
-   
+
    return n;
 }
 
@@ -189,11 +189,11 @@ int ByteBuffer::put(const char* b, int length, bool resize)
 {
    // allocate space for the data
    allocateSpace(length, resize);
-   
+
    // copy data into the buffer
    int fs = freeSpace();
    length = (length < fs) ? length : fs;
-   
+
    if(length < 10)
    {
       // optimized over memcpy()
@@ -207,9 +207,9 @@ int ByteBuffer::put(const char* b, int length, bool resize)
    {
       memcpy(mOffset + mLength, b, length);
    }
-   
+
    mLength += length;
-   
+
    return length;
 }
 
@@ -222,17 +222,17 @@ int ByteBuffer::put(ByteBuffer* b, int length, bool resize)
 int ByteBuffer::put(InputStream* is, int length)
 {
    int rval = 0;
-   
+
    // if the buffer is not full, do a read
    int fs = freeSpace();
    if(fs != 0)
    {
       // allocate free space
       allocateSpace(fs, false);
-      
+
       // determine how much to read
       length = (length > 0 && length < fs ? length : fs);
-      
+
       // read some bytes
       rval = is->read(end(), length);
       if(rval != -1)
@@ -241,24 +241,24 @@ int ByteBuffer::put(InputStream* is, int length)
          mLength += rval;
       }
    }
-   
+
    return rval;
 }
 
 int ByteBuffer::fill(InputStream* is, int length)
 {
    int rval = 0;
-   
+
    // if the buffer is not full, do a read
    int fs = freeSpace();
    if(fs != 0)
    {
       // allocate free space
       allocateSpace(fs, false);
-      
+
       // determine how much to read
       length = (length > 0 && length < fs ? length : fs);
-      
+
       // read until amount received or stream empty
       int numBytes = 1;
       while(length > 0 && numBytes > 0)
@@ -277,25 +277,25 @@ int ByteBuffer::fill(InputStream* is, int length)
          }
       }
    }
-   
+
    return rval;
 }
 
 int ByteBuffer::getByte(unsigned char& b)
 {
    int rval = 0;
-   
+
    if(mLength > 0)
    {
       // get byte
       b = mOffset[0];
-      
+
       // move internal pointer
       mOffset++;
       mLength--;
       rval++;
    }
-   
+
    return rval;
 }
 
@@ -303,11 +303,11 @@ int ByteBuffer::get(char* b, int length)
 {
    length = (length < mLength) ? length : mLength;
    memcpy(b, data(), length);
-   
+
    // move internal pointer
    mOffset += length;
    mLength -= length;
-   
+
    return length;
 }
 
@@ -316,18 +316,18 @@ int ByteBuffer::get(ByteBuffer* b, int length, bool resize)
    // put data into passed buffer
    length = (length < mLength) ? length : mLength;
    int rval = b->put(data(), length, resize);
-   
+
    // move internal pointer and change length
    mOffset += rval;
    mLength -= rval;
-   
+
    return rval;
 }
 
 int ByteBuffer::get(OutputStream* os)
 {
    int rval = 0;
-   
+
    if(os->write(data(), mLength))
    {
       rval = mLength;
@@ -336,7 +336,7 @@ int ByteBuffer::get(OutputStream* os)
    }
    else
    {
-      // determine if output stream would block 
+      // determine if output stream would block
       ExceptionRef e = Exception::get();
       if(e->getDetails()->hasMember("wouldBlock"))
       {
@@ -345,11 +345,11 @@ int ByteBuffer::get(OutputStream* os)
          mOffset += rval;
          mLength -= rval;
       }
-      
+
       // exception
       rval = -1;
    }
-   
+
    return rval;
 }
 
@@ -357,11 +357,11 @@ int ByteBuffer::clear(int length)
 {
    // ensure that the maximum cleared is existing length
    int rval = (length > 0) ? ((mLength < length) ? mLength : length) : 0;
-   
+
    // set new length and offset
    mLength -= rval;
    mOffset = (mLength == 0) ? mBuffer : mOffset + rval;
-   
+
    return rval;
 }
 
@@ -374,11 +374,11 @@ int ByteBuffer::advanceOffset(int length)
 {
    // ensure that the maximum cleared is existing length
    int rval = (length > 0) ? ((mLength < length) ? mLength : length) : 0;
-   
+
    // set new length and offset
    mLength -= rval;
    mOffset = mOffset + rval;
-   
+
    return rval;
 }
 
@@ -387,11 +387,11 @@ int ByteBuffer::reset(int length)
    // ensure that the most the offset is moved back is the existing offset
    int max = mOffset - mBuffer;
    int rval = (length > 0 ? (max < length ? max : length) : 0);
-   
+
    // set new offset and length
    mOffset -= rval;
    mLength += rval;
-   
+
    return rval;
 }
 
@@ -399,10 +399,10 @@ int ByteBuffer::trim(int length)
 {
    // ensure that the maximum trimmed is existing length
    int rval = (length > 0) ? ((mLength < length) ? mLength : length) : 0;
-   
+
    // set new length
    mLength -= rval;
-   
+
    return rval;
 }
 
@@ -411,10 +411,10 @@ int ByteBuffer::extend(int length)
    // ensure that the maximum extended is (free space - offset)
    int max = freeSpace() - (mOffset - mBuffer);
    int rval = (length > 0) ? ((max < length) ? max : length) : 0;
-   
+
    // set new length
    mLength += rval;
-   
+
    return rval;
 }
 
@@ -441,7 +441,7 @@ void ByteBuffer::setBytes(
 {
    // cleanup old buffer
    cleanupBytes();
-   
+
    mCapacity = capacity;
    mBuffer = (unsigned char*)b;
    mOffset = mBuffer + offset;

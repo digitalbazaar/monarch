@@ -19,7 +19,7 @@ MutatorInputStream::MutatorInputStream(
    mCleanupAlgorithm = cleanupAlgorithm;
    mResult = MutationAlgorithm::NeedsData;
    mSourceEmpty = false;
-   
+
    // set source buffer
    if(src == NULL)
    {
@@ -31,7 +31,7 @@ MutatorInputStream::MutatorInputStream(
       mSource = src;
       mCleanupSource = false;
    }
-   
+
    // set destination buffer
    if(dst == NULL)
    {
@@ -51,12 +51,12 @@ MutatorInputStream::~MutatorInputStream()
    {
       delete mSource;
    }
-   
+
    if(mCleanupDestination)
    {
       delete mDestination;
    }
-   
+
    if(mCleanupAlgorithm && mAlgorithm != NULL)
    {
       delete mAlgorithm;
@@ -66,7 +66,7 @@ MutatorInputStream::~MutatorInputStream()
 int MutatorInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    // mutate while no data is available and algorithm not complete
    while(rval == 0 && mResult < MutationAlgorithm::CompleteAppend)
    {
@@ -107,7 +107,7 @@ int MutatorInputStream::read(char* b, int length)
             break;
       }
    }
-   
+
    // if the algorithm has completed, handle any excess source data
    if(mResult >= MutationAlgorithm::CompleteAppend)
    {
@@ -115,10 +115,10 @@ int MutatorInputStream::read(char* b, int length)
       {
          // empty source into destination
          mSource->get(mDestination, mSource->length(), true);
-         
+
          // get bytes from destination
          rval = mDestination->get(b, length);
-         
+
          if(rval == 0 && !mSourceEmpty)
          {
             // read bytes directly into passed buffer
@@ -136,7 +136,7 @@ int MutatorInputStream::read(char* b, int length)
       // get data from destination buffer
       rval = mDestination->get(b, length);
    }
-   
+
    return rval;
 }
 
@@ -146,7 +146,7 @@ void MutatorInputStream::setAlgorithm(MutationAlgorithm* ma, bool cleanup)
    {
       delete mAlgorithm;
    }
-   
+
    mAlgorithm = ma;
    mCleanupAlgorithm = cleanup;
    mResult = MutationAlgorithm::NeedsData;

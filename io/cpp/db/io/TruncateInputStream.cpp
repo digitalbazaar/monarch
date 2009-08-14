@@ -20,7 +20,7 @@ TruncateInputStream::~TruncateInputStream()
 int TruncateInputStream::read(char* b, int length)
 {
    int rval = 0;
-   
+
    // only read up to max amount, truncate rest
    if(mTotal < mMax)
    {
@@ -33,6 +33,6 @@ int TruncateInputStream::read(char* b, int length)
          mTotal += rval;
       }
    }
-   
+
    return rval;
 }
