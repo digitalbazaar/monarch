@@ -491,6 +491,56 @@ public:
     * @return the string.
     */
    std::string toString() const;
+
+   /**
+    * Generates a cryptographically strong random number with the given
+    * number of bits.
+    *
+    * @param bits the number of bits.
+    * @param top if -1 then the top bit may be 0, if 0 then the top bit will
+    *            be set to 1, if 1 then the two most significant bits will
+    *            be set to 1 so that the product of two similarly generated
+    *            random numbers will be 2*bits in length.
+    * @param bottom true to make the number odd, false to make it even.
+    *
+    * @return the generated number.
+    */
+   static BigInteger random(int bits, int top, bool bottom);
+
+   /**
+    * Generates a cryptographically strong random number between 0 and the
+    * given BigInteger.
+    *
+    * @param max the maximum value for the random BigInteger.
+    *
+    * @return the generated number.
+    */
+   static BigInteger random(BigInteger& max);
+
+   /**
+    * Generates a pseudo-random number that should not be considered
+    * cryptographically strong.
+    *
+    * @param bits the number of bits.
+    * @param top if -1 then the top bit may be 0, if 0 then the top bit will
+    *            be set to 1, if 1 then the two most significant bits will
+    *            be set to 1 so that the product of two similarly generated
+    *            random numbers will be 2*bits in length.
+    * @param bottom true to make the number odd, false to make it even.
+    *
+    * @return the generated number.
+    */
+   static BigInteger pseudoRandom(int bits, int top, bool bottom);
+
+   /**
+    * Generates a pseudo-random number number between 0 and the
+    * given BigInteger that should not be considered cryptographically strong.
+    *
+    * @param max the maximum value for the random BigInteger.
+    *
+    * @return the generated number.
+    */
+   static BigInteger pseudoRandom(BigInteger& max);
 };
 
 } // end namespace crypto

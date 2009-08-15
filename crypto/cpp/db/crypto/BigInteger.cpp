@@ -409,3 +409,35 @@ string BigInteger::toString() const
    OPENSSL_free(s);
    return str;
 }
+
+BigInteger BigInteger::random(int bits, int top, bool bottom)
+{
+   BigInteger rval;
+   int rc = BN_rand(rval.mBigNum, bits, top, bottom);
+   assert(rc == 1);
+   return rval;
+}
+
+BigInteger BigInteger::random(BigInteger& max)
+{
+   BigInteger rval;
+   int rc = BN_rand_range(rval.mBigNum, max.mBigNum);
+   assert(rc == 1);
+   return rval;
+}
+
+BigInteger BigInteger::pseudoRandom(int bits, int top, bool bottom)
+{
+   BigInteger rval;
+   int rc = BN_pseudo_rand(rval.mBigNum, bits, top, bottom);
+   assert(rc == 1);
+   return rval;
+}
+
+BigInteger BigInteger::pseudoRandom(BigInteger& max)
+{
+   BigInteger rval;
+   int rc = BN_pseudo_rand_range(rval.mBigNum, max.mBigNum);
+   assert(rc == 1);
+   return rval;
+}

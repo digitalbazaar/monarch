@@ -10,6 +10,7 @@
 using namespace std;
 using namespace db::test;
 using namespace db::crypto;
+using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
 
@@ -17,10 +18,21 @@ void runModExpTest(TestRunner& tr)
 {
    tr.test("modexp");
 
-   // create big number
-   BigInteger number1 = 2;
-   number1.powEquals(2048);
-   printf("\nbyte size: %d\n", number1.getNumBytes());
+   // create 160-bit base
+   BigInteger b = BigInteger::pseudoRandom(160, 0, false);
+   printf("\nbase size: %d-bit\n", b.getNumBytes() * 8);
+
+   // create 2048-bit exponent
+   BigInteger e = BigInteger::pseudoRandom(2048, 0, true);
+   printf("exponent size: %d-bit\n", e.getNumBytes() * 8);
+
+   // create 1024-bit modulus
+   BigInteger m = BigInteger::pseudoRandom(1048, 0, true);
+   printf("modulus size: %d-bit\n", m.getNumBytes() * 8);
+
+   // get modexp remainder
+   BigInteger r = b.modexp(e, m);
+   printf("remainder: %s\n", r.toString().c_str());
 
    tr.passIfNoException();
 }
