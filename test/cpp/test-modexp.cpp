@@ -18,21 +18,32 @@ void runModExpTest(TestRunner& tr)
 {
    tr.test("modexp");
 
-   // create 160-bit base
-   BigInteger b = BigInteger::pseudoRandom(160, 0, false);
-   printf("\nbase size: %d-bit\n", b.getNumBytes() * 8);
+   Timer timer;
+   uint64_t totalTime = 0;
+   for(int i = 0; i < 100; i++)
+   {
+      // create 160-bit base
+      BigInteger b = BigInteger::pseudoRandom(160, 0, false);
+      //printf("\nbase size: %d-bit\n", b.getNumBytes() * 8);
 
-   // create 2048-bit exponent
-   BigInteger e = BigInteger::pseudoRandom(2048, 0, true);
-   printf("exponent size: %d-bit\n", e.getNumBytes() * 8);
+      // create 2048-bit exponent
+      BigInteger e = BigInteger::pseudoRandom(2048, 0, true);
+      //printf("exponent size: %d-bit\n", e.getNumBytes() * 8);
 
-   // create 1024-bit modulus
-   BigInteger m = BigInteger::pseudoRandom(1048, 0, true);
-   printf("modulus size: %d-bit\n", m.getNumBytes() * 8);
+      // create 1024-bit modulus
+      BigInteger m = BigInteger::pseudoRandom(1048, 0, true);
+      //printf("modulus size: %d-bit\n", m.getNumBytes() * 8);
 
-   // get modexp remainder
-   BigInteger r = b.modexp(e, m);
-   printf("remainder: %s\n", r.toString().c_str());
+      // get modexp remainder
+      timer.start();
+      BigInteger r = b.modexp(e, m);
+      totalTime += timer.getElapsedMilliseconds();
+      //printf("remainder: %s, %llu ms\n",
+      //   r.toString().c_str(), timer.getElapsedMilliseconds());
+   }
+
+   double avg = totalTime / 100;
+   printf("avg modexp time: %.2f ms... ", avg);
 
    tr.passIfNoException();
 }
