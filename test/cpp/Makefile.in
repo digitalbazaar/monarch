@@ -38,6 +38,7 @@ EXECUTABLES = \
 	test-mail \
 	test-mmap \
 	test-modest \
+	test-modexp \
 	test-net \
 	test-random \
 	test-rt \

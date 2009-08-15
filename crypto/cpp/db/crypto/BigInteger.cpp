@@ -312,6 +312,23 @@ BigInteger& BigInteger::operator%=(const BigInteger& rhs)
    return *this;
 }
 
+BigInteger BigInteger::modexp(const BigInteger& e, const BigInteger& m)
+{
+   BigInteger rval;
+   int rc = BN_mod_exp(
+      rval.mBigNum, mBigNum, e.mBigNum, m.mBigNum, getContext());
+   assert(rc == 1);
+   return rval;
+}
+
+BigInteger& BigInteger::modexpEquals(
+   const BigInteger& e, const BigInteger& m)
+{
+   int rc = BN_mod_exp(mBigNum, mBigNum, e.mBigNum, m.mBigNum, getContext());
+   assert(rc == 1);
+   return *this;
+}
+
 int BigInteger::absCompare(const BigInteger& rhs)
 {
    return BN_ucmp(mBigNum, rhs.mBigNum);

@@ -374,6 +374,29 @@ public:
    BigInteger& operator%=(const BigInteger& rhs);
 
    /**
+    * Performs a modular exponentiation and returns the remainder of the
+    * division of this BigIntger raised to the power of "e" and divided by "m".
+    *
+    * @param e the exponent to raise this BigInteger to.
+    * @param m the modulus to divide by.
+    *
+    * @return the result of the modular exponentiation.
+    */
+   BigInteger modexp(const BigInteger& e, const BigInteger& m);
+
+   /**
+    * Performs a modular exponentiation and sets this BigInteger to the
+    * remainder of the division of this BigIntger raised to the power of
+    * "e" and divided by "m".
+    *
+    * @param e the exponent to raise this BigInteger to.
+    * @param m the modulus to divide by.
+    *
+    * @return the new value of this BigInteger.
+    */
+   BigInteger& modexpEquals(const BigInteger& e, const BigInteger& m);
+
+   /**
     * Compares the absolute value of this BigInteger to the absolute value
     * of another one.
     *
