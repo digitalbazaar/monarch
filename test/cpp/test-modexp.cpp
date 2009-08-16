@@ -25,14 +25,17 @@ void runModExpTest(TestRunner& tr)
       // create 160-bit base
       BigInteger b = BigInteger::pseudoRandom(160, 0, false);
       //printf("\nbase size: %d-bit\n", b.getNumBytes() * 8);
+      //printf("\nb: %s\n", b.toHex().c_str());
 
       // create 2048-bit exponent
       BigInteger e = BigInteger::pseudoRandom(2048, 0, true);
       //printf("exponent size: %d-bit\n", e.getNumBytes() * 8);
+      //printf("\ne: %s\n", e.toHex().c_str());
 
       // create 1024-bit modulus
       BigInteger m = BigInteger::pseudoRandom(1048, 0, true);
       //printf("modulus size: %d-bit\n", m.getNumBytes() * 8);
+      //printf("\nm: %s\n", m.toHex().c_str());
 
       // get modexp remainder
       timer.start();
