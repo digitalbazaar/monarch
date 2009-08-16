@@ -454,14 +454,14 @@ public:
     *
     * @return the value of this BigInteger as a 32-bit unsigned integer.
     */
-   unsigned int getUInt32() const;
+   uint32_t getUInt32() const;
 
    /**
     * Gets the value of this BigInteger as a 64-bit integer.
     *
     * @return the value of this BigInteger as a 64-bit integer.
     */
-   long long getInt64() const;
+   int64_t getInt64() const;
 
    /**
     * Gets the number of bytes required to store this BigInteger.
@@ -486,11 +486,27 @@ public:
    void toBytes(db::io::ByteBuffer* b);
 
    /**
-    * Gets the value of this BigInteger as a string.
+    * Gets the value of this BigInteger as a decimal string.
     *
     * @return the string.
     */
    std::string toString() const;
+
+   /**
+    * Converts a hexadecimal string into a BigInteger.
+    *
+    * @param hex the hexadecimal string.
+    *
+    * @return the BigInteger.
+    */
+   void fromHex(const char* hex);
+
+   /**
+    * Gets the value of this BigInteger as a hexadecimal string.
+    *
+    * @return the hexadecimal string.
+    */
+   std::string toHex();
 
    /**
     * Generates a cryptographically strong random number with the given

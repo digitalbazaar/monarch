@@ -363,14 +363,14 @@ bool BigInteger::isCompact() const
    return BN_get_word(mBigNum) < 0xffffffffL;
 }
 
-unsigned int BigInteger::getUInt32() const
+uint32_t BigInteger::getUInt32() const
 {
    return BN_get_word(mBigNum);
 }
 
-long long BigInteger::getInt64() const
+int64_t BigInteger::getInt64() const
 {
-   long long rval = BN_get_word(mBigNum);
+   int64_t rval = BN_get_word(mBigNum);
    if(isNegative())
    {
       rval = -rval;
@@ -407,6 +407,21 @@ string BigInteger::toString() const
    assert(s != NULL);
    string str = s;
    OPENSSL_free(s);
+   return str;
+}
+
+void BigInteger::fromHex(const char* hex)
+{
+   int rc = BN_hex2bn(&mBigNum, hex);
+   assert(rc == 1);
+}
+
+string BigInteger::toHex()
+{
+   char* hex = BN_bn2hex(mBigNum);
+   assert(hex != NULL);
+   string str = hex;
+   OPENSSL_free(hex);
    return str;
 }
 
