@@ -27,8 +27,10 @@ void runModExpTest(TestRunner& tr)
       //printf("\nbase size: %d-bit\n", b.getNumBytes() * 8);
       //printf("\nb: %s\n", b.toHex().c_str());
 
-      // create 2048-bit exponent
-      BigInteger e = BigInteger::pseudoRandom(2048, 0, true);
+      // (1024-bit exponent + 1024-bit modulus = 2048-bit RSA private key)
+
+      // create 1024-bit exponent
+      BigInteger e = BigInteger::pseudoRandom(1024, 0, true);
       //printf("exponent size: %d-bit\n", e.getNumBytes() * 8);
       //printf("\ne: %s\n", e.toHex().c_str());
 
