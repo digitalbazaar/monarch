@@ -72,7 +72,7 @@ void AsymmetricKeyFactory::createDsaKeyPair(
 {
    // generate DSA parameters
    DSA* dsa = DSA_generate_parameters(
-      1024, NULL, 0, NULL, NULL, NULL, NULL);
+      2048, NULL, 0, NULL, NULL, NULL, NULL);
    if(dsa != NULL)
    {
       // generate DSA keys
@@ -123,7 +123,7 @@ void AsymmetricKeyFactory::createRsaKeyPair(
    PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
 {
    // generate RSA keys
-   RSA* rsa = RSA_generate_key(1024, 3, NULL, NULL);
+   RSA* rsa = RSA_generate_key(2048, 65537, NULL, NULL);
    if(rsa != NULL)
    {
       // store private/public key parameters
