@@ -33,7 +33,7 @@ void runModExpTest(TestRunner& tr)
       //printf("\ne: %s\n", e.toHex().c_str());
 
       // create 1024-bit modulus
-      BigInteger m = BigInteger::pseudoRandom(1048, 0, true);
+      BigInteger m = BigInteger::pseudoRandom(1024, 0, true);
       //printf("modulus size: %d-bit\n", m.getNumBytes() * 8);
       //printf("\nm: %s\n", m.toHex().c_str());
 
