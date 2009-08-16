@@ -413,7 +413,7 @@ string BigInteger::toString() const
 void BigInteger::fromHex(const char* hex)
 {
    int rc = BN_hex2bn(&mBigNum, hex);
-   assert(rc == 1);
+   assert(rc != 0);
 }
 
 string BigInteger::toHex()
