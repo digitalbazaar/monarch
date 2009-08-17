@@ -260,6 +260,7 @@ bool Zipper::finish(OutputStream* os)
          rval = writeFileHeader(*i, os);
          cdSize += (*i)->getFileHeaderSize();
       }
+      cdSize = DB_UINT32_TO_LE(cdSize);
 
       // write out end of central directory record
       if(rval)
