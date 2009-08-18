@@ -354,7 +354,7 @@ static bool doSoap(
          // create special headers
          DynamicObject headers;
          headers["Connection"] = "close";
-         headers["Content-Length"] = envelope.length();
+         headers["Content-Length"] = (uint32_t)envelope.length();
          headers["Content-Type"] = "text/xml; charset=\"utf-8\"";
          headers["Soapaction"] = StringTools::format("\"%s#%s\"",
             service["serviceType"]->getString(),
