@@ -16,10 +16,10 @@ SUBDIRS := 3rdparty/cpp \
            config/cpp \
            mail/cpp \
            sphinx/cpp \
+           validation/cpp \
            sql/cpp \
            sqlite3/cpp \
            mysql/cpp \
-           validation/cpp \
            upnp/cpp \
            app/cpp \
            test/cpp
