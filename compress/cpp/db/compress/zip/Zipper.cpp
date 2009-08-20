@@ -308,7 +308,8 @@ bool Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
    uint32_t dosTime = DB_UINT32_TO_LE(ze->getDosTime());
    uint32_t crc = 0;
    uint32_t size = 0;
-   uint16_t fnLength = DB_UINT16_TO_LE(strlen(ze->getFilename()));
+   uint16_t cfnLength = strlen(ze->getFilename());
+   uint16_t fnLength = DB_UINT16_TO_LE(cfnLength);
    uint16_t exLength = 0;
 
    // write local file header signature
@@ -333,7 +334,7 @@ bool Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
       os->write((char*)&size, 4) &&
       os->write((char*)&fnLength, 2) &&
       os->write((char*)&exLength, 2) &&
-      os->write(ze->getFilename(), fnLength);
+      os->write(ze->getFilename(), cfnLength);
 }
 
 bool Zipper::readLocalFileHeader(ZipEntry& ze, InputStream* is)
@@ -355,9 +356,11 @@ bool Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
    uint32_t crc = DB_UINT32_TO_LE(ze->getCrc32());
    uint32_t cSize = DB_UINT32_TO_LE(ze->getCompressedSize());
    uint32_t ucSize = DB_UINT32_TO_LE(ze->getUncompressedSize());
-   uint16_t fnLength = DB_UINT16_TO_LE(strlen(ze->getFilename()));
+   uint16_t cfnLength = strlen(ze->getFilename());
+   uint16_t fnLength = DB_UINT16_TO_LE(cfnLength);
    uint16_t exLength = 0;
-   uint16_t fcLength = DB_UINT16_TO_LE(strlen(ze->getFileComment()));
+   uint16_t cfcLength = strlen(ze->getFileComment());
+   uint16_t fcLength = DB_UINT16_TO_LE(cfcLength);
    uint16_t diskNumber = 0;
    uint16_t internalAttr = 0;
    uint32_t externalAttr = 0;
@@ -400,9 +403,9 @@ bool Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
       os->write((char*)&internalAttr, 2) &&
       os->write((char*)&externalAttr, 4) &&
       os->write((char*)&offset, 4) &&
-      os->write(ze->getFilename(), fnLength) &&
+      os->write(ze->getFilename(), cfnLength) &&
       // no extra field to write out, write out comment
-      os->write(ze->getFileComment(), fcLength);
+      os->write(ze->getFileComment(), cfcLength);
 }
 
 bool Zipper::readFileHeader(ZipEntry& ze, InputStream* is)
