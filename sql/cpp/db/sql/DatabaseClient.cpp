@@ -146,14 +146,6 @@ bool DatabaseClient::define(SchemaObject& schema)
 
       // store schema
       mSchemas[schema["table"]->getString()] = schema;
-
-      // add table alias to each column
-      DynamicObjectIterator i = schema["columns"].getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& next = i->next();
-         next["tableAlias"] = schema["tableAlias"]->getString();
-      }
    }
 
    return rval;
