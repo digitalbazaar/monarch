@@ -1,6 +1,7 @@
 # Makefile to compile the module in this directory
 
-SOURCES = $(wildcard db/rt/*.cpp)
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
 LIBRARIES = dbrt
 
 DYNAMIC_WINDOWS_LIBRARIES = pthreadGCE2

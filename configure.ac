@@ -239,32 +239,32 @@ AC_SUBST(JAVADOC)
 
 # Generating files
 AC_CONFIG_FILES([
-          3rdparty/cpp/Makefile
+          cpp/3rdparty/Makefile
           Makefile
-          app/cpp/Makefile
-          compress/cpp/Makefile
-          config/cpp/Makefile
-          crypto/cpp/Makefile
-          data/cpp/Makefile
-          event/cpp/Makefile
-          fiber/cpp/Makefile
-          http/cpp/Makefile
-          io/cpp/Makefile
-          logging/cpp/Makefile
-          mail/cpp/Makefile
-          modest/cpp/Makefile
-          net/cpp/Makefile
-          rt/cpp/Makefile
+          cpp/app/Makefile
+          cpp/compress/Makefile
+          cpp/config/Makefile
+          cpp/crypto/Makefile
+          cpp/data/Makefile
+          cpp/event/Makefile
+          cpp/fiber/Makefile
+          cpp/http/Makefile
+          cpp/io/Makefile
+          cpp/logging/Makefile
+          cpp/mail/Makefile
+          cpp/modest/Makefile
+          cpp/net/Makefile
+          cpp/rt/Makefile
           setup/Makefile.base
           setup/docs.doxygen
-          sphinx/cpp/Makefile
-          sql/cpp/Makefile
-          sqlite3/cpp/Makefile
-          mysql/cpp/Makefile
-          test/cpp/Makefile
-          upnp/cpp/Makefile
-          util/cpp/Makefile
-          validation/cpp/Makefile
+          cpp/sphinx/Makefile
+          cpp/sql/Makefile
+          cpp/sqlite3/Makefile
+          cpp/mysql/Makefile
+          cpp/test/Makefile
+          cpp/upnp/Makefile
+          cpp/util/Makefile
+          cpp/validation/Makefile
 ])
 
 # Generate the platform-specific build file
@@ -281,10 +281,9 @@ fi
 # Generate scripts and configuration files for release
 AC_CONFIG_FILES([
 	installers/debian/changelog
-	setup/capfile
 ])
 AC_CONFIG_FILES([dbcore-run], [chmod +x dbcore-run])
-AC_CONFIG_FILES([test/cpp/run-unit-tests.py], [chmod +x test/cpp/run-unit-tests.py])
+AC_CONFIG_FILES([cpp/test/run-unit-tests.py], [chmod +x cpp/test/run-unit-tests.py])
 AC_CONFIG_FILES([installers/debian/rules], [chmod +x installers/debian/rules])
 
 AC_OUTPUT
