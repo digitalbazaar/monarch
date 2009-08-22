@@ -1,7 +1,7 @@
 # The top-level Makefile that is used to build 
 
-SUBDIRS := 3rdparty/cpp \
-           rt/cpp \
+SUBDIRS := cpp/3rdparty \
+           cpp/rt \
            util/cpp \
            io/cpp \
            compress/cpp \
