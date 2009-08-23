@@ -1,9 +1,13 @@
 # Makefile to compile the module in this directory
 
-SOURCES = $(wildcard db/compress/*.cpp) \
-          $(wildcard db/compress/deflate/*.cpp) \
-          $(wildcard db/compress/gzip/*.cpp) \
-          $(wildcard db/compress/zip/*.cpp)
+HEADERS = $(wildcard *.h) \
+          $(wildcard deflate/*.h) \
+          $(wildcard gzip/*.h) \
+          $(wildcard zip/*.h)
+SOURCES = $(wildcard *.cpp) \
+          $(wildcard deflate/*.cpp) \
+          $(wildcard gzip/*.cpp) \
+          $(wildcard zip/*.cpp)
 
 LIBRARIES = dbcompress
 DYNAMIC_LINK_LIBRARIES = dbrt dbio dbutil

@@ -6,13 +6,12 @@ LINUX_CXX = @LINUX_CXX@
 LINUX_CXX_FLAGS = @CXXFLAGS@ -march=i686 -Wall -fPIC -DLINUX $(MODULE_CXX_FLAGS) $(MODULE_LINUX_CXX_FLAGS) @DEFS@
 LINUX_LD_FLAGS = @LDFLAGS@
 LINUX_INCLUDES = $(INCLUDES)
-LINUX_LIB_DIR = $(DBCORE)/libs/$(PLATFORM)
 LINUX_LIBS = -L$(LINUX_LIB_DIR) -L/usr/lib/mysql
 LINUX_AR = @LINUX_AR@
-LINUX_BUILD_DIR = build/$(PLATFORM)
-LINUX_DIST_DIR = dist/$(PLATFORM)
-LINUX_HEADER_DIST_DIR := dist/include/db/$(notdir $(MODULE_BASE_DIR))
-LINUX_HEADER_FILES := $(patsubst %.h, $(DBCORE)/$(LINUX_HEADER_DIST_DIR)/%.h, $(HEADERS))
+LINUX_BUILD_DIR = build
+LINUX_DIST_DIR = dist
+LINUX_LIB_DIR = $(DBCORE)/$(LINUX_DIST_DIR)/lib
+LINUX_HEADER_FILES := $(patsubst %.h, $(DBCORE)/$(HEADER_DIST_DIR)/%.h, $(HEADERS))
 LINUX_LIBRARY_SOURCES := $(patsubst %.cpp, $(LINUX_BUILD_DIR)/%.cpp, $(SOURCES))
 LINUX_EXECUTABLE_SOURCES := $(patsubst %, $(LINUX_BUILD_DIR)/%.cpp, $(EXECUTABLES))
 LINUX_LIBRARY_OBJECTS := $(patsubst %.cpp, $(LINUX_BUILD_DIR)/%-$(PLATFORM).o, $(SOURCES))
@@ -30,23 +29,22 @@ ALL_SOURCES += $(LINUX_LIBRARY_SOURCES) $(LINUX_EXECUTABLE_SOURCES)
 ALL_OBJECTS += $(LINUX_LIBRARY_OBJECTS) $(LINUX_EXECUTABLE_OBJECTS)
 ALL_LIBRARIES += $(LINUX_LIBRARIES)
 ALL_EXECUTABLES += $(LINUX_EXECUTABLES)
-ALL_DIRECTORIES += $(LINUX_BUILD_DIR) $(LINUX_DIST_DIR)
+ALL_DIRECTORIES += $(LINUX_BUILD_DIR) $(LINUX_DIST_DIR) $(LINUX_LIB_DIR)
 
 ifndef MAKE_CLEAN_ACTIVE
 -include $(LINUX_DEPENDENCIES)
 endif
 
-$(LINUX_HEADER_FILES): 
+$(LINUX_HEADER_FILES): $(ALL_DIRECTORIES)
 	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(DBCORE)/$(LINUX_HEADER_DIST_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) ln -sf $(subst $(DBCORE)/$(HEADER_DIST_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 
-$(LINUX_LIBRARY_SOURCES): build-setup $(LINUX_HEADER_FILES)
+$(LINUX_LIBRARY_SOURCES): build-setup $(ALL_DIRECTORIES) $(LINUX_HEADER_FILES)
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 
 ifdef EXECUTABLES
-$(LINUX_EXECUTABLE_SOURCES): build-setup
-	$(PCMD) mkdir -p $(dir $@)
+$(LINUX_EXECUTABLE_SOURCES): build-setup $(ALL_DIRECTORIES) $(LINUX_HEADER_FILES)
 	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 endif
 
@@ -57,31 +55,20 @@ clean-libraries:
 	$(PCMD) rm -rf $(LINUX_DIST_DIR)
 
 %-$(PLATFORM).o %-$(PLATFORM).P: %.cpp
-	@echo "Building $(basename $@).o..."
+	@echo "Building $(notdir $(MODULE_BASE_DIR))/$(LINUX_BUILD_DIR)/$(basename $(notdir $@)).o..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) -c -MD -o $(basename $@).o $(LINUX_INCLUDES) -I. $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
 %.so: $(LINUX_LIBRARY_OBJECTS)
-	@echo "Building $@..."
+	@echo "Building $(notdir $(MODULE_BASE_DIR))/$(LINUX_DIST_DIR)/$(notdir $@)..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -shared -o $@ $(LINUX_LIBRARY_OBJECTS) $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
-	$(PCMD) mkdir -p $(LINUX_LIB_DIR)
 	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
 
-#ifeq ($(BUILD_FOR_LINUX),yes)
-#%.a: $(LINUX_LIBRARY_OBJECTS)
-#	@echo "Building $@..."
-#	$(PCMD) $(LINUX_AR) $(AR_FLAGS) $@ $(LINUX_LIBRARY_OBJECTS)
-#	$(PCMD) mkdir -p $(LINUX_LIB_DIR)
-#	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
-#endif
-
 ifdef EXECUTABLES
-#$(STATIC_LINUX_LIBRARIES):
-#	# This is a fake target to override the default .a build
 $(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-$(PLATFORM).o $(STATIC_LINUX_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$$(source)-$(PLATFORM).o)
-	@echo "Building $(@F)..."
+	@echo "Building $(notdir $(MODULE_BASE_DIR))/$(LINUX_DIST_DIR)/$(@F)..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LD_FLAGS) $(LINUX_LIBS) \
 		-o $@ $(LINUX_BUILD_DIR)/$(@F)-$(PLATFORM).o \
 		$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$(source)-$(PLATFORM).o) \

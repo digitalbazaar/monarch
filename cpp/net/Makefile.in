@@ -1,6 +1,7 @@
 # Makefile to compile the module in this directory
 
-SOURCES = $(wildcard db/net/*.cpp)
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
 LIBRARIES = dbnet
 DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbmodest dbio dbcrypto dblogging
 DYNAMIC_WINDOWS_LIBRARIES = libeay32 ssleay32 

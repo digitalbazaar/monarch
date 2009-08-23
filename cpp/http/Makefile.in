@@ -1,6 +1,7 @@
 # Makefile to compile the module in this directory
 
-SOURCES = $(wildcard db/http/*.cpp)
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
 LIBRARIES = dbhttp
 DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbmodest dbio dbcrypto dblogging dbnet
 DYNAMIC_WINDOWS_LIBRARIES = libeay32 ssleay32

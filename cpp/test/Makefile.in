@@ -1,9 +1,12 @@
 # Makefile to compile the module in this directory
 
-SOURCES = $(wildcard db/test/*.cpp)
+HEADERS = $(wildcard test/*.h)
+SOURCES = $(wildcard *.cpp) \
+          $(wildcard test/*.cpp) 
 
 # conditional build of tests
 ifeq (@BUILD_TESTS@,yes)
+HEADER_DIST_DIR = dist/include/db
 
 ifeq (@BUILD_MYSQL@,yes)
 MODULE_CXX_FLAGS += -DHAVE_MYSQL

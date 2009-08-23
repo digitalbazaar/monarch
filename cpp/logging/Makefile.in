@@ -1,6 +1,7 @@
 # Makefile to compile the module in this directory
 
-SOURCES = $(wildcard db/logging/*.cpp)
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
 LIBRARIES = dblogging
 DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio
 # Control import/export behavior

@@ -13,7 +13,11 @@ BUILD_FOR_MACOS=@BUILD_FOR_MACOS@
 AR_FLAGS = cr
 DBCORE = @DBCOREDIR@
 INCLUDES = -I$(DBCORE)/dist/include 
+
 MODULE_BASE_DIR = $(shell pwd)
+ifndef HEADER_DIST_DIR
+HEADER_DIST_DIR = dist/include/db/$(notdir $(MODULE_BASE_DIR))
+endif
 
 ifdef PRINT_COMMANDS
 PCMD=
@@ -45,7 +49,10 @@ $(ALL_DIRECTORIES):
 
 clean: build-clean clean-libraries clean-objects
 
-build-objects: $(ALL_DIRECTORIES) $(ALL_HEADERS) $(ALL_SOURCES) $(ALL_OBJECTS)
+build-headers: $(ALL_HEADERS)
+	echo HEADERS: $(ALL_HEADERS)
+
+build-objects: $(ALL_DIRECTORIES) $(ALL_SOURCES) $(ALL_OBJECTS)
 
 build-libraries: $(ALL_DIRECTORIES) $(ALL_LIBRARIES)
 

@@ -1,6 +1,7 @@
 # Makefile to compile the module in this directory
 
-SOURCES = $(wildcard db/validation/*.cpp)
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
 LIBRARIES = dbvalidation
 DYNAMIC_LINK_LIBRARIES = dbrt dbutil
 

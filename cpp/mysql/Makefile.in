@@ -1,11 +1,13 @@
 # Makefile to compile the module in this directory
 
 ifeq (@BUILD_MYSQL@,yes)
-SOURCES = $(wildcard db/sql/mysql/*.cpp)
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
 LIBRARIES = dbmysql
 DYNAMIC_LINK_LIBRARIES = dbrt dbnet dbsql 
 DYNAMIC_WINDOWS_LIBRARIES = mysql
 DYNAMIC_MACOS_LIBRARIES = mysqlclient
+HEADER_DIST_DIR = dist/include/db/sql/mysql
 endif
 
 # ----------- Standard Makefile

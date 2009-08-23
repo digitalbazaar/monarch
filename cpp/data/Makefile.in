@@ -1,14 +1,20 @@
 # Makefile to compile the module in this directory
-
-SOURCES = $(wildcard db/data/*.cpp) \
-          $(wildcard db/data/avi/*.cpp) \
-          $(wildcard db/data/id3v2/*.cpp) \
-          $(wildcard db/data/json/*.cpp) \
-          $(wildcard db/data/mpeg/*.cpp) \
-          $(wildcard db/data/pdf/*.cpp) \
-          $(wildcard db/data/riff/*.cpp) \
-          $(wildcard db/data/xml/*.cpp)
-
+HEADERS = $(wildcard *.h) \
+          $(wildcard avi/*.h) \
+          $(wildcard id3v2/*.h) \
+          $(wildcard json/*.h) \
+          $(wildcard mpeg/*.h) \
+          $(wildcard pdf/*.h) \
+          $(wildcard riff/*.h) \
+          $(wildcard xml/*.h)
+SOURCES = $(wildcard *.cpp) \
+          $(wildcard avi/*.cpp) \
+          $(wildcard id3v2/*.cpp) \
+          $(wildcard json/*.cpp) \
+          $(wildcard mpeg/*.cpp) \
+          $(wildcard pdf/*.cpp) \
+          $(wildcard riff/*.cpp) \
+          $(wildcard xml/*.cpp)
 
 LIBRARIES = dbdata
 DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt dblogging

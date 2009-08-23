@@ -1,6 +1,7 @@
 # Makefile to compile the module in this directory
 
-SOURCES = $(wildcard db/app/*.cpp)
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
 LIBRARIES = dbapp
 DYNAMIC_LINK_LIBRARIES = dbrt dblogging dbio dbcrypto dbnet dbdata dbutil dbconfig
 

@@ -1,6 +1,7 @@
 # Makefile to compile the module in this directory
 
-SOURCES = $(wildcard db/fiber/*.cpp)
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
 
 # If we're building on MacOS, include the get/setcontext assembler files
 ifeq (@BUILD_FOR_MACOS@,yes)
