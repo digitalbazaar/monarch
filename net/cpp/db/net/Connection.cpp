@@ -132,7 +132,7 @@ inline bool Connection::isSecure()
 inline bool Connection::isClosed()
 {
    // check socket
-   return !getSocket()->isBound();
+   return !getSocket()->isConnected();
 }
 
 inline void Connection::close()

@@ -85,7 +85,7 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
 #ifdef MSG_DONTWAIT
             flags |= MSG_DONTWAIT;
 #endif
-            if(recv(fd, &buf, 1, flags) <= 0)
+            if(SOCKET_MACRO_recv(fd, &buf, 1, flags) <= 0)
             {
                // connection closed, or error
                rval = -1;
