@@ -34,7 +34,7 @@ def runTest(test):
 
    try:
       sp = subprocess.Popen([ \
-          '@DBCOREDIR@/test/cpp/dist/@PLATFORM@/' + test,],
+          '@DBCOREDIR@/cpp/test/dist/' + test,],
           env = testEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
       
       # Read the subprocess results

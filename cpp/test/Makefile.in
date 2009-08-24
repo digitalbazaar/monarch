@@ -1,74 +1,9 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard test/*.h)
-SOURCES = $(wildcard *.cpp) \
-          $(wildcard test/*.cpp) 
-
-# conditional build of tests
-ifeq (@BUILD_TESTS@,yes)
-HEADER_DIST_DIR = dist/include/db
-
-ifeq (@BUILD_MYSQL@,yes)
-MODULE_CXX_FLAGS += -DHAVE_MYSQL
-MYSQL_DBLIBS = dbmysql
-MYSQL_EXECUTABLES = test-mysql
-MYSQL_DYNAMIC_WINDOWS_LIBRARIES = mysql
-MYSQL_DYNAMIC_LINUX_LIBRARIES = mysqlclient
-MYSQL_DYNAMIC_MACOS_LIBRARIES = mysqlclient
-MYSQL_EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/mysql.dll
-endif
-
-ifeq (@BUILD_SPHINX@,yes)
-MODULE_CXX_FLAGS += -DHAVE_SPHINX
-SPHINX_DBLIBS = dbsphinx
-SPHINX_EXECUTABLES = test-sphinx
-endif
-
-EXECUTABLES = \
-	test-configmanager \
-	test-sharedlock-deadlock \
-	test-compress \
-	test-config \
-	test-crypto \
-	test-data \
-	test-dyno-perf \
-	test-event \
-	test-fiber \
-	test-fiber-yield \
-	test-http \
-	test-io \
-	test-logging \
-	test-mail \
-	test-mmap \
-	test-modest \
-	test-modexp \
-	test-net \
-	test-random \
-	test-rt \
-	$(SPHINX_EXECUTABLES) \
-	test-sqlite3 \
-	$(MYSQL_EXECUTABLES) \
-	test-ucontext \
-	test-upnp \
-	test-util \
-	test-validation
-
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)  
 LIBRARIES = dbtest
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbhttp dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation dbupnp $(SPHINX_DBLIBS) dbapp
-DYNAMIC_EXECUTABLE_LIBRARIES = dbtest
-
-LINUX_LIB_DIR = @DBCOREDIR@/libs/linux
-WINDOWS_LIB_DIR = @DBCOREDIR@/libs/windows
-MACOS_LIB_DIR = @DBCOREDIR@/libs/macos
-
-DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LINUX_LIBRARIES)
-DYNAMIC_MACOS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_MACOS_LIBRARIES)
-DYNAMIC_WINDOWS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_WINDOWS_LIBRARIES)
-
-EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/libexpat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(WINDOWS_LIB_DIR)/iconv2.dll $(WINDOWS_LIB_DIR)/charset1.dll $(MYSQL_EXTRA_WINDOWS_LIBRARIES) -lwsock32 -ldbtest
-
-# conditional build of tests
-endif
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
+

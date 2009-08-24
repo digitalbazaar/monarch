@@ -262,6 +262,7 @@ AC_CONFIG_FILES([
           cpp/sqlite3/Makefile
           cpp/mysql/Makefile
           cpp/test/Makefile
+          cpp/tests/Makefile
           cpp/upnp/Makefile
           cpp/util/Makefile
           cpp/validation/Makefile
@@ -283,7 +284,7 @@ AC_CONFIG_FILES([
 	installers/debian/changelog
 ])
 AC_CONFIG_FILES([dbcore-run], [chmod +x dbcore-run])
-AC_CONFIG_FILES([cpp/test/run-unit-tests.py], [chmod +x cpp/test/run-unit-tests.py])
+AC_CONFIG_FILES([cpp/tests/run-unit-tests.py], [chmod +x cpp/tests/run-unit-tests.py])
 AC_CONFIG_FILES([installers/debian/rules], [chmod +x installers/debian/rules])
 
 AC_OUTPUT

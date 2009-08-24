@@ -50,7 +50,7 @@ $(ALL_DIRECTORIES):
 clean: build-clean clean-libraries clean-objects
 
 build-headers: $(ALL_HEADERS)
-	echo HEADERS: $(ALL_HEADERS)
+	#echo HEADERS: $(ALL_HEADERS)
 
 build-objects: $(ALL_DIRECTORIES) $(ALL_SOURCES) $(ALL_OBJECTS)
 

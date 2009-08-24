@@ -39,12 +39,14 @@ $(LINUX_HEADER_FILES): $(ALL_DIRECTORIES)
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(DBCORE)/$(HEADER_DIST_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 
-$(LINUX_LIBRARY_SOURCES): build-setup $(ALL_DIRECTORIES) $(LINUX_HEADER_FILES)
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
-
+# You can build either multiple executables per directory, or multiple
+# libraries per directory, but not both.
 ifdef EXECUTABLES
 $(LINUX_EXECUTABLE_SOURCES): build-setup $(ALL_DIRECTORIES) $(LINUX_HEADER_FILES)
+	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+else
+$(LINUX_LIBRARY_SOURCES): build-setup $(ALL_DIRECTORIES) $(LINUX_HEADER_FILES)
+	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
 endif
 

@@ -22,7 +22,8 @@ SUBDIRS := cpp/3rdparty \
            cpp/mysql \
            cpp/upnp \
            cpp/app \
-           cpp/test
+           cpp/test \
+           cpp/tests
 
 INSTALL_LIBRARIES := \
 	cpp/app/dist/linux/libdbapp.so \
@@ -42,7 +43,6 @@ INSTALL_LIBRARIES := \
 	cpp/sql/dist/linux/libdbsql.so \
 	cpp/sqlite3/dist/linux/libdbsqlite3.so \
 	cpp/mysql/dist/linux/libdbmysql.so \
-	cpp/test/dist/linux/libdbtest.so \
 	cpp/upnp/dist/linux/libdbupnp.so \
 	cpp/util/dist/linux/libdbutil.so \
 	cpp/sphinx/dist/linux/libdbsphinx.so \
@@ -68,7 +68,7 @@ all:
 
 clean:
 	@$(foreach dir,$(SUBDIRS),MAKE_CLEAN_ACTIVE=true $(MAKE_DIR) clean &&) true
-	@rm -rf libs/*
+	@rm -rf dist
 	@echo "Cleaned all objects and libraries."
 
 # Note: When building for multiple archs this will see all the tests and
@@ -76,7 +76,7 @@ clean:
 #       it will work for single arch builds and is difficult to know which
 #       arch to specify otherwise.
 test: all
-	cpp/test/run-unit-tests.py
+	cpp/tests/run-unit-tests.py
 
 clean-docs:
 	rm -rf docs/cpp-api

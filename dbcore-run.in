@@ -3,8 +3,8 @@
 
 case "`uname -s`" in
    [Ll]inux)
-      LD_LIBRARY_PATH=@DBCOREDIR@/libs/linux "$@" ;;
+      LD_LIBRARY_PATH=@DBCOREDIR@/dist/lib "$@" ;;
    [Dd]arwin)
-      DYLD_LIBRARY_PATH=@DBCOREDIR@/libs/macos:/sw/lib "$@" ;;
+      DYLD_LIBRARY_PATH=@DBCOREDIR@/dist/lib:/sw/lib "$@" ;;
    *) echo "unknown platform"; exit 1 ;;
 esac
