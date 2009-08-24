@@ -636,17 +636,16 @@ bool AbstractSocket::isConnected()
 {
    if(mConnected)
    {
-      // check to see if the connection has been shutdown, by seeing
-      // if recv() will return 0 (do a peek so as not to disturb data)
-      char buf;
-      int flags = MSG_PEEK;
-#ifdef MSG_DONTWAIT
-      flags |= MSG_DONTWAIT;
-#endif
-      if(SOCKET_MACRO_recv(fd, &buf, 1, flags) <= 0)
+      // get the last error on the socket
+      int lastError;
+      socklen_t lastErrorLength = sizeof(lastError);
+      getsockopt(
+         mFileDescriptor, SOL_SOCKET, SO_ERROR,
+         (char*)&lastError, &lastErrorLength);
+      if(lastError == EPIPE)
       {
-         // connection closed, or error
-         errno = EBADF;
+         // connection severed
+         errno = lastError;
          close();
       }
    }
