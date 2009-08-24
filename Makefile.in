@@ -62,12 +62,12 @@ MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 .PHONY: all verbose clean test internal-docs clean-docs
 
 all: 
-	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-headers &&) true
+	@$(foreach dir,$(SUBDIRS),IGNORE_DEPENDENCIES=true $(MAKE_DIR) build-headers &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-objects build-libraries &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-executables &&) true
 
 clean:
-	@$(foreach dir,$(SUBDIRS),MAKE_CLEAN_ACTIVE=true $(MAKE_DIR) clean &&) true
+	@$(foreach dir,$(SUBDIRS),IGNORE_DEPENDENCIES=true $(MAKE_DIR) clean &&) true
 	@rm -rf dist
 	@echo "Cleaned all objects and libraries."
 

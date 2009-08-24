@@ -1,7 +1,7 @@
 # This file contains basic Makefile includes that contain all 
 # common building instructions for all binaries and packages.
 
-.PHONY: all build-setup build-clean build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries
+.PHONY: all build-setup build-clean build-directories build-headers build-objects build-libraries build-executables clean clean-objects clean-libraries
 
 all: build-objects build-libraries build-executables
 
@@ -50,7 +50,6 @@ $(ALL_DIRECTORIES):
 clean: build-clean clean-libraries clean-objects
 
 build-headers: $(ALL_HEADERS)
-	#echo HEADERS: $(ALL_HEADERS)
 
 build-objects: $(ALL_DIRECTORIES) $(ALL_SOURCES) $(ALL_OBJECTS)
 

@@ -31,7 +31,9 @@ ALL_LIBRARIES += $(LINUX_LIBRARIES)
 ALL_EXECUTABLES += $(LINUX_EXECUTABLES)
 ALL_DIRECTORIES += $(LINUX_BUILD_DIR) $(LINUX_DIST_DIR) $(LINUX_LIB_DIR)
 
-ifndef MAKE_CLEAN_ACTIVE
+# Ignore dependencies if specified in the Makefile. This will ensure that the
+# dependencies for all .cpp files are not pulled in and thus won't be built
+ifndef IGNORE_DEPENDENCIES
 -include $(LINUX_DEPENDENCIES)
 endif
 
@@ -57,20 +59,20 @@ clean-libraries:
 	$(PCMD) rm -rf $(LINUX_DIST_DIR)
 
 %-$(PLATFORM).o %-$(PLATFORM).P: %.cpp
-	@echo "Building $(notdir $(MODULE_BASE_DIR))/$(LINUX_BUILD_DIR)/$(basename $(notdir $@)).o..."
+	@echo "Compiling $(notdir $(MODULE_BASE_DIR))/$(LINUX_BUILD_DIR)/$(basename $(notdir $@)).o..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) -c -MD -o $(basename $@).o $(LINUX_INCLUDES) -I. $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
 %.so: $(LINUX_LIBRARY_OBJECTS)
-	@echo "Building $(notdir $(MODULE_BASE_DIR))/$(LINUX_DIST_DIR)/$(notdir $@)..."
+	@echo "Assembling $(notdir $(MODULE_BASE_DIR))/$(LINUX_DIST_DIR)/$(notdir $@)..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -shared -o $@ $(LINUX_LIBRARY_OBJECTS) $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
 	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(LINUX_LIB_DIR)/$(@F)
 
 ifdef EXECUTABLES
 $(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-$(PLATFORM).o $(STATIC_LINUX_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$$(source)-$(PLATFORM).o)
-	@echo "Building $(notdir $(MODULE_BASE_DIR))/$(LINUX_DIST_DIR)/$(@F)..."
+	@echo "Assembling $(notdir $(MODULE_BASE_DIR))/$(LINUX_DIST_DIR)/$(@F)..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LD_FLAGS) $(LINUX_LIBS) \
 		-o $@ $(LINUX_BUILD_DIR)/$(@F)-$(PLATFORM).o \
 		$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$(source)-$(PLATFORM).o) \
