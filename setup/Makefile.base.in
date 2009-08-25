@@ -14,9 +14,9 @@ AR_FLAGS = cr
 DBCORE = @DBCOREDIR@
 INCLUDES = -I$(DBCORE)/dist/include 
 
-MODULE_BASE_DIR = $(shell pwd)
+CWD = $(shell pwd)
 ifndef HEADER_DIST_DIR
-HEADER_DIST_DIR = dist/include/db/$(notdir $(MODULE_BASE_DIR))
+HEADER_DIST_DIR = dist/include/db/$(notdir $(CWD))
 endif
 
 ifdef PRINT_COMMANDS

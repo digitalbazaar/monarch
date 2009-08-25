@@ -7,7 +7,7 @@ LINUX_CXX_FLAGS = @CXXFLAGS@ -march=i686 -Wall -fPIC -DLINUX $(MODULE_CXX_FLAGS)
 LINUX_LD_FLAGS = @LDFLAGS@
 LINUX_INCLUDES = $(INCLUDES)
 LINUX_AR = @LINUX_AR@
-LINUX_BUILD_DIR = $(DBCORE)/build/$(subst $(DBCORE)/cpp/,,$(MODULE_BASE_DIR))
+LINUX_BUILD_DIR = $(DBCORE)/build/$(subst $(DBCORE)/cpp/,,$(CWD))
 LINUX_DIST_DIR = $(DBCORE)/dist
 LINUX_LIB_DIR = $(LINUX_DIST_DIR)/lib
 LINUX_BIN_DIR = $(LINUX_DIST_DIR)/bin
@@ -40,17 +40,17 @@ endif
 
 $(LINUX_HEADER_FILES): $(ALL_DIRECTORIES)
 	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(DBCORE)/$(HEADER_DIST_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) ln -sf $(subst $(DBCORE)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
 
 # You can build either multiple executables per directory, or multiple
 # libraries per directory, but not both.
 ifdef EXECUTABLES
 $(LINUX_EXECUTABLE_SOURCES): build-setup $(ALL_DIRECTORIES) $(LINUX_HEADER_FILES)
-	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(CWD)/,$@) $@
 else
 $(LINUX_LIBRARY_SOURCES): build-setup $(ALL_DIRECTORIES) $(LINUX_HEADER_FILES)
 	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(CWD)/,$@) $@
 endif
 
 clean-objects:
@@ -86,7 +86,7 @@ dump-variables:
 	@echo AR_FLAGS=$(AR_FLAGS)
 	@echo DBCORE=$(DBCORE)
 	@echo INCLUDES=$(INCLUDES)
-	@echo MODULE_BASE_DIR=$(MODULE_BASE_DIR)
+	@echo CWD=$(CWD)
 # Linux-specific variables
 	@echo LINUX_CXX=$(LINUX_CXX)
 	@echo LINUX_CXX_FLAGS=$(LINUX_CXX_FLAGS)
