@@ -57,7 +57,7 @@ clean-objects:
 	$(PCMD) rm -rf $(LINUX_BUILD_DIR)
 
 clean-libraries:
-	$(PCMD) rm -rf $(LINUX_DIST_DIR)
+	$(PCMD) rm -rf $(LINUX_LIBRARIES)
 
 %-$(PLATFORM).o %-$(PLATFORM).P: %.cpp
 	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
