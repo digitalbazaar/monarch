@@ -1,0 +1,10 @@
+# Makefile to compile the module in this directory
+
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
+LIBRARIES = dbsql
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbnet dblogging dbdata dbvalidation
+DYNAMIC_MACOS_LIBRARIES = dbio dbmodest dbcrypto
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base

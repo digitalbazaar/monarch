@@ -1,0 +1,12 @@
+# Makefile to compile the module in this directory
+
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
+LIBRARIES = dbsqlite3
+DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbio dbcrypto dbnet dbsql
+DYNAMIC_WINDOWS_LIBRARIES = sqlite3
+DYNAMIC_MACOS_LIBRARIES = sqlite3
+HEADER_DIST_DIR = dist/include/db/sql/sqlite3
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base

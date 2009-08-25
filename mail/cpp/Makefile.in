@@ -1,9 +1,0 @@
-# Makefile to compile the module in this directory
-
-SOURCES = $(wildcard db/mail/*.cpp)
-LIBRARIES = dbmail
-DYNAMIC_LINK_LIBRARIES = dbrt dbio dbnet dbutil dbdata
-DYNAMIC_MACOS_LIBRARIES = dblogging dbmodest dbcrypto dbcompress
-
-# ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base

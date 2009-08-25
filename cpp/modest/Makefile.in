@@ -1,0 +1,13 @@
+# Makefile to compile the module in this directory
+
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
+LIBRARIES = dbmodest
+
+DYNAMIC_LINK_LIBRARIES = dbrt
+# Control import/export behavior
+MODULE_WINDOWS_CXX_FLAGS = -DBUILD_DB_MODEST_DLL
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

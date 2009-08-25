@@ -1,52 +1,52 @@
 # The top-level Makefile that is used to build 
 
-SUBDIRS := 3rdparty/cpp \
-           rt/cpp \
-           util/cpp \
-           io/cpp \
-           compress/cpp \
-           logging/cpp \
-           modest/cpp \
-           fiber/cpp \
-           crypto/cpp \
-           event/cpp \
-           data/cpp \
-           net/cpp \
-           http/cpp \
-           config/cpp \
-           mail/cpp \
-           sphinx/cpp \
-           validation/cpp \
-           sql/cpp \
-           sqlite3/cpp \
-           mysql/cpp \
-           upnp/cpp \
-           app/cpp \
-           test/cpp
+SUBDIRS := cpp/3rdparty \
+           cpp/rt \
+           cpp/util \
+           cpp/io \
+           cpp/compress \
+           cpp/logging \
+           cpp/modest \
+           cpp/fiber \
+           cpp/crypto \
+           cpp/event \
+           cpp/data \
+           cpp/net \
+           cpp/http \
+           cpp/config \
+           cpp/mail \
+           cpp/sphinx \
+           cpp/validation \
+           cpp/sql \
+           cpp/sqlite3 \
+           cpp/mysql \
+           cpp/upnp \
+           cpp/app \
+           cpp/test \
+           cpp/tests
 
 INSTALL_LIBRARIES := \
-	app/cpp/dist/linux/libdbapp.so \
-	config/cpp/dist/linux/libdbconfig.so \
-	compress/cpp/dist/linux/libdbcompress.so \
-	crypto/cpp/dist/linux/libdbcrypto.so \
-	data/cpp/dist/linux/libdbdata.so \
-	event/cpp/dist/linux/libdbevent.so \
-	fiber/cpp/dist/linux/libdbfiber.so \
-	io/cpp/dist/linux/libdbio.so \
-	logging/cpp/dist/linux/libdblogging.so \
-	mail/cpp/dist/linux/libdbmail.so \
-	modest/cpp/dist/linux/libdbmodest.so \
-	net/cpp/dist/linux/libdbnet.so \
-	http/cpp/dist/linux/libdbhttp.so \
-	rt/cpp/dist/linux/libdbrt.so \
-	sql/cpp/dist/linux/libdbsql.so \
-	sqlite3/cpp/dist/linux/libdbsqlite3.so \
-	mysql/cpp/dist/linux/libdbmysql.so \
-	test/cpp/dist/linux/libdbtest.so \
-	upnp/cpp/dist/linux/libdbupnp.so \
-	util/cpp/dist/linux/libdbutil.so \
-	sphinx/cpp/dist/linux/libdbsphinx.so \
-	validation/cpp/dist/linux/libdbvalidation.so
+	dist/lib/libdbapp.so \
+	dist/lib/libdbconfig.so \
+	dist/lib/libdbcompress.so \
+	dist/lib/libdbcrypto.so \
+	dist/lib/libdbdata.so \
+	dist/lib/libdbevent.so \
+	dist/lib/libdbfiber.so \
+	dist/lib/libdbio.so \
+	dist/lib/libdblogging.so \
+	dist/lib/libdbmail.so \
+	dist/lib/libdbmodest.so \
+	dist/lib/libdbnet.so \
+	dist/lib/libdbhttp.so \
+	dist/lib/libdbrt.so \
+	dist/lib/libdbsql.so \
+	dist/lib/libdbsqlite3.so \
+	dist/lib/libdbmysql.so \
+	dist/lib/libdbupnp.so \
+	dist/lib/libdbutil.so \
+	dist/lib/libdbsphinx.so \
+	dist/lib/libdbvalidation.so
 
 ifndef PRINT_DIRECTORIES
 PRINT_DIRECTORIES_OPTS = --no-print-directory -s
@@ -62,12 +62,14 @@ MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 .PHONY: all verbose clean test internal-docs clean-docs
 
 all: 
+	@$(foreach dir,$(SUBDIRS),IGNORE_DEPENDENCIES=true $(MAKE_DIR) build-headers &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-objects build-libraries &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-executables &&) true
 
 clean:
-	@$(foreach dir,$(SUBDIRS),MAKE_CLEAN_ACTIVE=true $(MAKE_DIR) clean &&) true
-	@rm -rf libs/*
+	@$(foreach dir,$(SUBDIRS),IGNORE_DEPENDENCIES=true $(MAKE_DIR) clean &&) true
+	@rm -rf build
+	@rm -rf dist
 	@echo "Cleaned all objects and libraries."
 
 # Note: When building for multiple archs this will see all the tests and
@@ -75,7 +77,7 @@ clean:
 #       it will work for single arch builds and is difficult to know which
 #       arch to specify otherwise.
 test: all
-	test/cpp/run-unit-tests.py
+	cpp/tests/run-unit-tests.py
 
 clean-docs:
 	rm -rf docs/cpp-api
@@ -91,7 +93,7 @@ verbose-commands:
 	PRINT_DIRECTORIES=true PRINT_COMMANDS=true $(MAKE) all
 
 valgrind:
-	./dbcore-valgrind test/cpp/dist/linux/run-unit-tests
+	./dbcore-valgrind dist/bin/run-unit-tests
 
 packages:
 	@echo "Building Debian packages..."
@@ -111,9 +113,3 @@ install:
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).3.0 &&) true
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).3 &&) true
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)) &&) true
-
-deploy:
-	@cd setup && cap deploy_dbcore
-
-rollback:
-	@cd setup && cap rollback_dbcore

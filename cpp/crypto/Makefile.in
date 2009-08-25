@@ -1,0 +1,12 @@
+# Makefile to compile the module in this directory
+
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
+LIBRARIES = dbcrypto
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio 
+DYNAMIC_WINDOWS_LIBRARIES = libeay32
+DYNAMIC_MACOS_LIBRARIES = crypto ssl
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

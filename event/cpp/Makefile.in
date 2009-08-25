@@ -1,9 +1,0 @@
-# Makefile to compile the module in this directory
-
-SOURCES = $(wildcard db/event/*.cpp)
-LIBRARIES = dbevent
-DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbmodest
-
-# ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
-

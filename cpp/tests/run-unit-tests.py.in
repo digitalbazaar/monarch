@@ -1,0 +1,124 @@
+#!/usr/bin/env @PYTHON@
+#
+# Script to run all of the unit tests and produce output that is easily
+# readable.
+
+import re, subprocess
+
+# The total number of tests that were run
+gTotal = 0
+
+# The total number of passed tests that were run
+gPassed = 0
+
+# The total number of warnings for all tests that were run
+gWarnings = 0
+
+# The total number of failed tests
+gFailed = 0
+
+def runTest(test):
+   """Runs a specific unit test ensuring the output of the unit test is
+   dumped to the console in such a way as to make it easy to determine
+   if all of the tests succeeded."""
+   global gTotal
+   global gPassed
+   global gWarnings
+   global gFailed
+   
+   print "=== Running", test, "tests ==="
+
+   libPath = "@DBCOREDIR@/dist/lib:/sw/lib"
+   testEnv = { "LD_LIBRARY_PATH" : libPath, "DYLD_LIBRARY_PATH" : libPath,
+               "HOME" : "@DBCOREDIR@/dist/bin/" }
+
+   try:
+      sp = subprocess.Popen([ \
+          '@DBCOREDIR@/dist/bin/' + test,],
+          env = testEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+      
+      # Read the subprocess results
+      (stdoutData, stderrData) = sp.communicate()
+
+      # print the output of the tests when they complete
+      if(stdoutData == None):
+         return
+      else:
+         print stdoutData
+
+      # print any errors last
+      if(stderrData != None and len(stderrData) > 0):
+         print stderrData
+
+      # Generate the regular expression that will be used to match the
+      # output
+      tcStatusRe = re.compile('^Done\. Total:(\d+) Passed:(\d+) Failed:(\d+) Warnings:(\d+) Unknown:.*\.')
+
+      # Get all of the output lines that match the regular expression
+      mos = map(lambda line: tcStatusRe.search(line), stdoutData.split('\n'))
+      testResultLines = [mo.groups() for mo in mos if mo]
+
+      if not testResultLines:
+         print "ERROR: No test summary line for", test
+         gFailed += 1
+         return
+
+      # Initialize a couple of variables that we will use later
+      testResultLine = testResultLines[0]
+      
+      # Check to ensure that the test result line is a tuple and if it
+      # is, update the stats
+      if type(testResultLine) == type(()):
+         gTotal += int(testResultLine[0])
+         gPassed += int(testResultLine[1])
+         gFailed += int(testResultLine[2])
+         gWarnings += int(testResultLine[3])
+
+   except IOError:
+      print "ERROR: Exception while executing test"
+            
+def dumpStats():
+   """Prints the current test statistics."""
+   global gTotal
+   global gPassed
+   global gWarnings
+   global gFailed
+
+   print "Done. Total:%i Passed:%i Failed:%i Warnings:%i Unknown:0.\n" % \
+       (gTotal, gPassed, gFailed, gWarnings)
+
+# Run all of the platform/config-agnostic tests
+runTest("test-rt")
+runTest("test-sharedlock-deadlock")
+runTest("test-random")
+runTest("test-modest")
+runTest("test-util")
+runTest("test-io")
+runTest("test-crypto")
+runTest("test-net")
+runTest("test-http")
+runTest("test-event")
+runTest("test-ucontext")
+runTest("test-fiber")
+runTest("test-fiber-yield")
+runTest("test-mail")
+runTest("test-sqlite3")
+runTest("test-data")
+runTest("test-compress")
+runTest("test-config")
+runTest("test-configmanager")
+runTest("test-logging")
+runTest("test-validation")
+runTest("test-upnp")
+
+# Only run these unit(test if mysql was enabled
+if("@BUILD_MYSQL@" == "yes"):
+   runTest("test-mysql")
+
+# Only run these unit(tests if sphinx was enabled
+if("@BUILD_SPHINX@" == "yes"):
+   runTest("test-sphinx")
+
+# Dump all of the test statistics
+print "Full test run completed"
+dumpStats()

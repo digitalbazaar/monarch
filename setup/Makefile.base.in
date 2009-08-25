@@ -1,7 +1,7 @@
 # This file contains basic Makefile includes that contain all 
 # common building instructions for all binaries and packages.
 
-.PHONY: all build-setup build-clean build-directories build-objects build-libraries build-executables clean clean-objects clean-libraries
+.PHONY: all build-setup build-clean build-directories build-headers build-objects build-libraries build-executables clean clean-objects clean-libraries
 
 all: build-objects build-libraries build-executables
 
@@ -12,31 +12,12 @@ BUILD_FOR_MACOS=@BUILD_FOR_MACOS@
 
 AR_FLAGS = cr
 DBCORE = @DBCOREDIR@
-INCLUDES = \
-	-I$(DBCORE)/app/cpp \
-	-I$(DBCORE)/compress/cpp \
-	-I$(DBCORE)/config/cpp \
-	-I$(DBCORE)/crypto/cpp \
-	-I$(DBCORE)/data/cpp \
-	-I$(DBCORE)/event/cpp \
-	-I$(DBCORE)/fiber/cpp \
-	-I$(DBCORE)/http/cpp \
-	-I$(DBCORE)/io/cpp \
-	-I$(DBCORE)/logging/cpp \
-	-I$(DBCORE)/mail/cpp \
-	-I$(DBCORE)/modest/cpp \
-	-I$(DBCORE)/net/cpp \
-	-I$(DBCORE)/rt/cpp \
-	-I$(DBCORE)/sphinx/cpp \
-	-I$(DBCORE)/sql/cpp \
-	-I$(DBCORE)/sqlite3/cpp \
-	-I$(DBCORE)/mysql/cpp \
-	-I$(DBCORE)/test/cpp \
-	-I$(DBCORE)/upnp/cpp \
-	-I$(DBCORE)/util/cpp \
-	-I$(DBCORE)/validation/cpp
+INCLUDES = -I$(DBCORE)/dist/include 
 
-MODULE_BASE_DIR = $(shell pwd)
+CWD = $(shell pwd)
+ifndef HEADER_DIST_DIR
+HEADER_DIST_DIR = dist/include/db/$(notdir $(CWD))
+endif
 
 ifdef PRINT_COMMANDS
 PCMD=
@@ -67,6 +48,8 @@ $(ALL_DIRECTORIES):
 	mkdir -p $@
 
 clean: build-clean clean-libraries clean-objects
+
+build-headers: $(ALL_HEADERS)
 
 build-objects: $(ALL_DIRECTORIES) $(ALL_SOURCES) $(ALL_OBJECTS)
 

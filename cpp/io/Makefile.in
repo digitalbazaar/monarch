@@ -1,0 +1,12 @@
+# Makefile to compile the module in this directory
+
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)
+LIBRARIES = dbio
+DYNAMIC_LINK_LIBRARIES = dbrt dbutil
+# Control import/export behavior
+MODULE_WINDOWS_CXX_FLAGS = -DBUILD_DB_IO_DLL
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+

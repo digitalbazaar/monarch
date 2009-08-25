@@ -1,0 +1,9 @@
+# Makefile to compile the module in this directory
+
+HEADERS = $(wildcard *.h)
+SOURCES = $(wildcard *.cpp)  
+LIBRARIES = dbtest
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
+
