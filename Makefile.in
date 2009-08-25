@@ -26,27 +26,27 @@ SUBDIRS := cpp/3rdparty \
            cpp/tests
 
 INSTALL_LIBRARIES := \
-	cpp/app/dist/linux/libdbapp.so \
-	cpp/config/dist/linux/libdbconfig.so \
-	cpp/compress/dist/linux/libdbcompress.so \
-	cpp/crypto/dist/linux/libdbcrypto.so \
-	cpp/data/dist/linux/libdbdata.so \
-	cpp/event/dist/linux/libdbevent.so \
-	cpp/fiber/dist/linux/libdbfiber.so \
-	cpp/io/dist/linux/libdbio.so \
-	cpp/logging/dist/linux/libdblogging.so \
-	cpp/mail/dist/linux/libdbmail.so \
-	cpp/modest/dist/linux/libdbmodest.so \
-	cpp/net/dist/linux/libdbnet.so \
-	cpp/http/dist/linux/libdbhttp.so \
-	cpp/rt/dist/linux/libdbrt.so \
-	cpp/sql/dist/linux/libdbsql.so \
-	cpp/sqlite3/dist/linux/libdbsqlite3.so \
-	cpp/mysql/dist/linux/libdbmysql.so \
-	cpp/upnp/dist/linux/libdbupnp.so \
-	cpp/util/dist/linux/libdbutil.so \
-	cpp/sphinx/dist/linux/libdbsphinx.so \
-	cpp/validation/dist/linux/libdbvalidation.so
+	dist/lib/libdbapp.so \
+	dist/lib/libdbconfig.so \
+	dist/lib/libdbcompress.so \
+	dist/lib/libdbcrypto.so \
+	dist/lib/libdbdata.so \
+	dist/lib/libdbevent.so \
+	dist/lib/libdbfiber.so \
+	dist/lib/libdbio.so \
+	dist/lib/libdblogging.so \
+	dist/lib/libdbmail.so \
+	dist/lib/libdbmodest.so \
+	dist/lib/libdbnet.so \
+	dist/lib/libdbhttp.so \
+	dist/lib/libdbrt.so \
+	dist/lib/libdbsql.so \
+	dist/lib/libdbsqlite3.so \
+	dist/lib/libdbmysql.so \
+	dist/lib/libdbupnp.so \
+	dist/lib/libdbutil.so \
+	dist/lib/libdbsphinx.so \
+	dist/lib/libdbvalidation.so
 
 ifndef PRINT_DIRECTORIES
 PRINT_DIRECTORIES_OPTS = --no-print-directory -s
@@ -68,6 +68,7 @@ all:
 
 clean:
 	@$(foreach dir,$(SUBDIRS),IGNORE_DEPENDENCIES=true $(MAKE_DIR) clean &&) true
+	@rm -rf build
 	@rm -rf dist
 	@echo "Cleaned all objects and libraries."
 
@@ -92,7 +93,7 @@ verbose-commands:
 	PRINT_DIRECTORIES=true PRINT_COMMANDS=true $(MAKE) all
 
 valgrind:
-	./dbcore-valgrind cpp/test/dist/linux/run-unit-tests
+	./dbcore-valgrind dist/bin/run-unit-tests
 
 packages:
 	@echo "Building Debian packages..."

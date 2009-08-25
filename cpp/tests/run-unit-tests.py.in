@@ -30,11 +30,11 @@ def runTest(test):
 
    libPath = "@DBCOREDIR@/dist/lib:/sw/lib"
    testEnv = { "LD_LIBRARY_PATH" : libPath, "DYLD_LIBRARY_PATH" : libPath,
-               "HOME" : "@DBCOREDIR@/cpp/tests/dist/" }
+               "HOME" : "@DBCOREDIR@/dist/bin/" }
 
    try:
       sp = subprocess.Popen([ \
-          '@DBCOREDIR@/cpp/tests/dist/' + test,],
+          '@DBCOREDIR@/dist/bin/' + test,],
           env = testEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
       
       # Read the subprocess results
