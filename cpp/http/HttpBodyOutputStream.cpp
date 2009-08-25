@@ -28,7 +28,7 @@ FilterOutputStream(connection->getOutputStream(), false)
       if(strncasecmp(transferEncoding.c_str(), "chunked", 7) == 0)
       {
          mOutputStream = new HttpChunkedTransferOutputStream(
-            (ConnectionOutputStream*)mOutputStream, trailer);
+            static_cast<ConnectionOutputStream*>(mOutputStream), trailer);
          mCleanupOutputStream = true;
 
          // let chunked transfer output stream use its own buffering

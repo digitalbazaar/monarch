@@ -24,7 +24,7 @@ MySqlRow::~MySqlRow()
 
 static inline MYSQL_STMT* getStatementHandle(Statement* s)
 {
-   return ((MySqlStatement*)s)->getHandle();
+   return static_cast<MySqlStatement*>(s)->getHandle();
 }
 
 void MySqlRow::setFields(

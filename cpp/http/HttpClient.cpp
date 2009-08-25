@@ -59,12 +59,13 @@ bool HttpClient::connect(Url* url)
          // store ssl session if appropriate
          if(ssl != NULL)
          {
-            mSslSession = ((SslSocket*)mConnection->getSocket())->getSession();
+            mSslSession = (static_cast<SslSocket*>(mConnection->getSocket()))->
+               getSession();
          }
 
          // create request and response
-         mRequest = (HttpRequest*)mConnection->createRequest();
-         mResponse = (HttpResponse*)mRequest->createResponse();
+         mRequest = mConnection->createRequest();
+         mResponse = mRequest->createResponse();
 
          // set default timeouts
          mConnection->setReadTimeout(30000);
@@ -248,7 +249,7 @@ HttpConnection* HttpClient::createSslConnection(
    if(rval != NULL)
    {
       // store session
-      session = ((SslSocket*)rval->getSocket())->getSession();
+      session = static_cast<SslSocket*>(rval->getSocket())->getSession();
       cache.storeSession(url, session);
    }
 
@@ -270,7 +271,7 @@ HttpConnection* HttpClient::createConnection(
       {
          // create ssl socket, reuse passed session
          SslSocket* ss;
-         ss = new SslSocket(context, (TcpSocket*)s, true, true);
+         ss = new SslSocket(context, static_cast<TcpSocket*>(s), true, true);
          s = ss;
          ss->setSession(session);
 

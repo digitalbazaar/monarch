@@ -104,7 +104,7 @@ bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
 
       // operation's user data is the socket being serviced, either it is
       // the socket accepting connections or a socket that is servicing one
-      Socket* socket = (Socket*)op->getUserData();
+      Socket* socket = static_cast<Socket*>(op->getUserData());
 
       // if the socket isn't the accept socket, then it needs to be cleaned up
       if(socket != mSocket)
@@ -171,7 +171,7 @@ void ConnectionService::serviceConnection(void* s)
 {
    // ensure the Socket can be wrapped with at least standard data presentation
    bool secure = false;
-   Socket* socket = (Socket*)s;
+   Socket* socket = static_cast<Socket*>(s);
    Socket* wrapper = socket;
    if(mDataPresenter != NULL)
    {
