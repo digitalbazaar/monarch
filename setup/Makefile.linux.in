@@ -38,17 +38,18 @@ ifndef IGNORE_DEPENDENCIES
 -include $(LINUX_DEPENDENCIES)
 endif
 
-$(LINUX_HEADER_FILES): $(ALL_DIRECTORIES)
+$(LINUX_HEADER_FILES): 
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(DBCORE)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
 
 # You can build either multiple executables per directory, or multiple
 # libraries per directory, but not both.
 ifdef EXECUTABLES
-$(LINUX_EXECUTABLE_SOURCES): build-setup $(ALL_DIRECTORIES) $(LINUX_HEADER_FILES)
+$(LINUX_EXECUTABLE_SOURCES):
+	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(CWD)/,$@) $@
 else
-$(LINUX_LIBRARY_SOURCES): build-setup $(ALL_DIRECTORIES) $(LINUX_HEADER_FILES)
+$(LINUX_LIBRARY_SOURCES):
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(CWD)/,$@) $@
 endif
