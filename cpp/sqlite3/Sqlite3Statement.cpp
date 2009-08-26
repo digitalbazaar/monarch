@@ -11,7 +11,7 @@ using namespace db::sql;
 using namespace db::sql::sqlite3;
 using namespace db::rt;
 
-Sqlite3Statement::Sqlite3Statement(Sqlite3Connection *c, const char* sql) :
+Sqlite3Statement::Sqlite3Statement(Sqlite3Connection* c, const char* sql) :
    Statement(c, sql),
    mHandle(NULL),
    mRow(NULL)
