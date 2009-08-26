@@ -5,6 +5,7 @@
 #define db_sql_AbstractConnection_H
 
 #include "db/sql/Connection.h"
+#include "db/util/StringTools.h"
 
 namespace db
 {
