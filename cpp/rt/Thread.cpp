@@ -332,7 +332,7 @@ Thread* Thread::currentThread()
    pthread_once(&sThreadsInit, &initializeThreads);
 
    // get a pointer to the current thread
-   Thread* rval = (Thread*)pthread_getspecific(sCurrentThreadKey);
+   Thread* rval = static_cast<Thread*>(pthread_getspecific(sCurrentThreadKey));
    if(rval == NULL)
    {
       // create non-persistent thread
@@ -456,7 +456,7 @@ void Thread::exit(bool exitMain)
       // thread is main thread, clean up its per-thread values
       cleanupCurrentThreadKeyValue(thread);
       cleanupExceptionKeyValue(
-         (ExceptionRef*)pthread_getspecific(sExceptionKey));
+         static_cast<ExceptionRef*>(pthread_getspecific(sExceptionKey)));
 
       // ensure per-thread key values are NULL
       pthread_setspecific(sCurrentThreadKey, NULL);
@@ -481,7 +481,8 @@ void Thread::setException(ExceptionRef& e, bool caused)
    pthread_once(&sThreadsInit, &initializeThreads);
 
    // get the exception reference for the current thread
-   ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
+   ExceptionRef* ref =
+      static_cast<ExceptionRef*>(pthread_getspecific(sExceptionKey));
    if(ref == NULL)
    {
       // create the exception reference
@@ -508,7 +509,8 @@ ExceptionRef Thread::getException()
    pthread_once(&sThreadsInit, &initializeThreads);
 
    // get the exception reference for the current thread
-   ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
+   ExceptionRef* ref =
+      static_cast<ExceptionRef*>(pthread_getspecific(sExceptionKey));
    if(ref == NULL)
    {
       // create the exception reference
@@ -528,7 +530,8 @@ bool Thread::hasException()
    pthread_once(&sThreadsInit, &initializeThreads);
 
    // get the exception reference for the current thread
-   ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
+   ExceptionRef* ref =
+      static_cast<ExceptionRef*>(pthread_getspecific(sExceptionKey));
    if(ref != NULL)
    {
       // return true if the reference isn't to NULL
@@ -541,7 +544,8 @@ bool Thread::hasException()
 void Thread::clearException()
 {
    // get the exception reference for the current thread
-   ExceptionRef* ref = (ExceptionRef*)pthread_getspecific(sExceptionKey);
+   ExceptionRef* ref =
+      static_cast<ExceptionRef*>(pthread_getspecific(sExceptionKey));
    if(ref != NULL)
    {
       // clear the reference
@@ -649,7 +653,7 @@ void Thread::initializeThreads()
 void Thread::cleanupCurrentThreadKeyValue(void* thread)
 {
    // check for thread non-persistence
-   Thread* t = (Thread*)thread;
+   Thread* t = static_cast<Thread*>(thread);
    if(thread != NULL && !t->mPersistent)
    {
       delete t;
@@ -661,7 +665,7 @@ void Thread::cleanupExceptionKeyValue(void* er)
    if(er != NULL)
    {
       // clean up exception reference
-      ExceptionRef* ref = (ExceptionRef*)er;
+      ExceptionRef* ref = static_cast<ExceptionRef*>(er);
       delete ref;
    }
 }
@@ -691,7 +695,7 @@ void* Thread::execute(void* thread)
    if(isThreadIdValid(self))
    {
       // get the Thread object
-      Thread* t = (Thread*)thread;
+      Thread* t = static_cast<Thread*>(thread);
 
       // set thread specific data for current thread to the Thread
       pthread_setspecific(sCurrentThreadKey, t);

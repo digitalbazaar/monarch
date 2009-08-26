@@ -30,7 +30,8 @@ void SmtpClient::activateSsl(Connection* c)
 
    // switch underlying socket with an SSL socket
    Socket* s = new SslSocket(
-      mSslContext, (TcpSocket*)c->getSocket(), true, c->mustCleanupSocket());
+      mSslContext, static_cast<TcpSocket*>(c->getSocket()),
+      true, c->mustCleanupSocket());
    c->setSocket(s, true);
    c->setSecure(true);
 }

@@ -65,7 +65,7 @@ public:
     */
    virtual PrivateKey& operator*()
    {
-      return (PrivateKey&)AsymmetricKeyRef::operator*();
+      return static_cast<PrivateKey&>(AsymmetricKeyRef::operator*());
    }
 
    /**
@@ -75,7 +75,7 @@ public:
     */
    virtual PrivateKey* operator->()
    {
-      return (PrivateKey*)AsymmetricKeyRef::operator->();
+      return static_cast<PrivateKey*>(AsymmetricKeyRef::operator->());
    }
 };
 

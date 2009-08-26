@@ -36,7 +36,7 @@ FilterInputStream(connection->getInputStream(), false)
       {
          mChunkedTransfer = true;
          mInputStream = new HttpChunkedTransferInputStream(
-            (ConnectionInputStream*)mInputStream, trailer);
+            static_cast<ConnectionInputStream*>(mInputStream), trailer);
          mCleanupInputStream = true;
       }
    }

@@ -42,7 +42,8 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
    int rval = 0;
 
    // get underlying connection input stream
-   ConnectionInputStream* is = (ConnectionInputStream*)mInputStream;
+   ConnectionInputStream* is =
+      static_cast<ConnectionInputStream*>(mInputStream);
 
    if(mChunkBytesLeft == 0 && !mLastChunk)
    {

@@ -42,7 +42,7 @@ void OperationDispatcher::dispatchJobs()
    OperationImpl* impl = NULL;
 
    // get engine state
-   State* state = (State*)mEngine->getState();
+   State* state = static_cast<State*>(mEngine->getState());
 
    lock();
    {
@@ -54,7 +54,7 @@ void OperationDispatcher::dispatchJobs()
       for(list<Runnable*>::iterator i = mJobQueue.begin();
           impl == NULL && i != mJobQueue.end();)
       {
-         impl = (OperationImpl*)*i;
+         impl = static_cast<OperationImpl*>(*i);
 
          // lock engine state
          state->lock();
@@ -151,7 +151,7 @@ void OperationDispatcher::clearQueuedOperations()
       for(list<Runnable*>::iterator i = mJobQueue.begin();
           i != mJobQueue.end(); i++)
       {
-         mOpMap.erase((OperationImpl*)*i);
+         mOpMap.erase(static_cast<OperationImpl*>(*i));
       }
 
       // clear queue
@@ -180,14 +180,14 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
       // here if the map happens to hold the last reference to it
 
       // get operation reference
-      OperationImpl* impl = (OperationImpl*)t->getJob();
+      OperationImpl* impl = static_cast<OperationImpl*>(t->getJob());
       OperationMap::iterator i = mOpMap.find(impl);
       Operation& op = i->second;
 
       // do post-execution state mutation
       if(op->getStateMutator() != NULL)
       {
-         State* state = (State*)mEngine->getState();
+         State* state = static_cast<State*>(mEngine->getState());
          state->lock();
          {
             op->getStateMutator()->mutatePostExecutionState(state, op);
@@ -215,7 +215,7 @@ Operation OperationDispatcher::getCurrentOperation()
 
    // get the current thread's OperationImpl
    Thread* thread = Thread::currentThread();
-   OperationImpl* impl = (OperationImpl*)thread->getUserData();
+   OperationImpl* impl = static_cast<OperationImpl*>(thread->getUserData());
    if(impl != NULL)
    {
       OperationMap::iterator i = mOpMap.find(impl);

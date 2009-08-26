@@ -87,11 +87,11 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    hc.setWriteTimeout(30000);
 
    // create request
-   HttpRequest* request = (HttpRequest*)hc.createRequest();
+   HttpRequest* request = hc.createRequest();
    HttpRequestHeader* reqHeader = request->getHeader();
 
    // create response
-   HttpResponse* response = (HttpResponse*)request->createResponse();
+   HttpResponse* response = request->createResponse();
    HttpResponseHeader* resHeader = response->getHeader();
 
    // handle keep-alive (HTTP/1.1 keep-alive is on by default)

@@ -53,7 +53,7 @@ void Engine::stop()
 
 inline ImmutableState* Engine::getState()
 {
-   return (ImmutableState*)mState;
+   return static_cast<ImmutableState*>(mState);
 }
 
 inline ThreadPool* Engine::getThreadPool()

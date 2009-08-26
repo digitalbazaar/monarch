@@ -42,7 +42,7 @@ static int verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
       // get associated SSL socket
       SSL* ssl = (SSL*)X509_STORE_CTX_get_ex_data(
          ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
-      SslSocket* self = (SslSocket*)SSL_get_ex_data(ssl, 0);
+      SslSocket* self = static_cast<SslSocket*>(SSL_get_ex_data(ssl, 0));
 
       // get subject name
       X509* x509 = X509_STORE_CTX_get_current_cert(ctx);

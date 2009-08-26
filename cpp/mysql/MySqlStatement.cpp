@@ -88,7 +88,7 @@ bool MySqlStatement::initialize()
 {
    bool rval = true;
 
-   MySqlConnection* c = (MySqlConnection*)mConnection;
+   MySqlConnection* c = static_cast<MySqlConnection*>(mConnection);
 
    // initialize handle
    mHandle = mysql_stmt_init(c->getHandle());

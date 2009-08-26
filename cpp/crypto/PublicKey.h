@@ -64,7 +64,7 @@ public:
     */
    virtual PublicKey& operator*()
    {
-      return (PublicKey&)AsymmetricKeyRef::operator*();
+      return static_cast<PublicKey&>(AsymmetricKeyRef::operator*());
    }
 
    /**
@@ -74,7 +74,7 @@ public:
     */
    virtual PublicKey* operator->()
    {
-      return (PublicKey*)AsymmetricKeyRef::operator->();
+      return static_cast<PublicKey*>(AsymmetricKeyRef::operator->());
    }
 };
 

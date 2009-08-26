@@ -60,5 +60,5 @@ inline HttpRequestHeader* HttpRequest::getHeader()
 
 inline HttpConnection* HttpRequest::getConnection()
 {
-   return (HttpConnection*)mConnection;
+   return mConnection;
 }
