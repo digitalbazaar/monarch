@@ -63,8 +63,14 @@ bool Sqlite3Connection::connect(Url* url)
 
       if(rval)
       {
-         // open sqlite3 connection
-         int ec = sqlite3_open(db.c_str(), &mHandle);
+         // open sqlite3 connection, SQLITE_OPEN_NOMUTEX will allow
+         // multi-threaded access to the database as opposed to
+         // SQLITE_OPEN_FULLMUTEX which would serialize all access to
+         // the database
+         int ec = sqlite3_open_v2(
+            db.c_str(), &mHandle,
+            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX,
+            NULL);
          if(ec != SQLITE_OK)
          {
             // create exception, close connection
