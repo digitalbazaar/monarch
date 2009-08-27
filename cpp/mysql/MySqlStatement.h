@@ -27,6 +27,11 @@ class MySqlStatement : public db::sql::Statement
 {
 protected:
    /**
+    * The connection associated with this statement.
+    */
+   MySqlConnection* mConnection;
+
+   /**
     * The C mysql statement structure.
     */
    MYSQL_STMT* mHandle;
@@ -69,13 +74,22 @@ protected:
 public:
    /**
     * Creates a new Statement.
+    *
+    * @param sql the SQL for the statement.
     */
-   MySqlStatement(MySqlConnection* c, const char* sql);
+   MySqlStatement(const char* sql);
 
    /**
     * Destructs this Statement.
     */
    virtual ~MySqlStatement();
+
+   /**
+    * Gets the Connection that prepared this Statement.
+    *
+    * @return the Connection that prepared this Statement.
+    */
+   virtual Connection* getConnection();
 
    /**
     * Gets the mysql handle for this statement.
@@ -87,9 +101,11 @@ public:
    /**
     * Initializes this statement for use.
     *
+    * @param c the MySqlConnection that prepared this statement.
+    *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool initialize();
+   virtual bool initialize(MySqlConnection* c);
 
    /**
     * Sets the value of a 32-bit integer for a positional parameter.

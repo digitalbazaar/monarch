@@ -28,6 +28,11 @@ class Sqlite3Statement : public db::sql::Statement
 {
 protected:
    /**
+    * The connection associated with this statement.
+    */
+   Sqlite3Connection* mConnection;
+
+   /**
     * The C sqlite3 statement structure.
     */
    sqlite3_stmt* mHandle;
@@ -46,13 +51,22 @@ protected:
 public:
    /**
     * Creates a new Statement.
+    *
+    * @param sql the SQL for the statement.
     */
-   Sqlite3Statement(Sqlite3Connection* c, const char* sql);
+   Sqlite3Statement(const char* sql);
 
    /**
     * Destructs this Statement.
     */
    virtual ~Sqlite3Statement();
+
+   /**
+    * Gets the Connection that prepared this Statement.
+    *
+    * @return the Connection that prepared this Statement.
+    */
+   virtual Connection* getConnection();
 
    /**
     * Gets the sqlite3 handle for this statement.
@@ -64,9 +78,11 @@ public:
    /**
     * Initializes this statement for use.
     *
+    * @param c the Sqlite3Connection that prepared this statement.
+    *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool initialize();
+   virtual bool initialize(Sqlite3Connection* c);
 
    /**
     * Sets the value of a 32-bit integer for a positional parameter.

@@ -144,8 +144,8 @@ inline bool Sqlite3Connection::isConnected()
 Statement* Sqlite3Connection::createStatement(const char* sql)
 {
    // create statement
-   Sqlite3Statement* rval = new Sqlite3Statement(this, sql);
-   if(!rval->initialize())
+   Sqlite3Statement* rval = new Sqlite3Statement(sql);
+   if(!rval->initialize(this))
    {
       // delete statement if it could not be initialized
       delete rval;

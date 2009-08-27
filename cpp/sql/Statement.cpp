@@ -7,10 +7,9 @@
 
 using namespace db::sql;
 
-Statement::Statement(Connection* c, const char* sql)
+Statement::Statement(const char* sql) :
+   mSql(strdup(sql))
 {
-   mConnection = c;
-   mSql = strdup(sql);
 }
 
 Statement::~Statement()
@@ -21,9 +20,4 @@ Statement::~Statement()
 inline const char* Statement::getSql()
 {
    return mSql;
-}
-
-inline Connection* Statement::getConnection()
-{
-   return mConnection;
 }

@@ -11,8 +11,9 @@ using namespace db::sql;
 using namespace db::sql::mysql;
 using namespace db::rt;
 
-MySqlStatement::MySqlStatement(MySqlConnection *c, const char* sql) :
-   Statement(c, sql),
+MySqlStatement::MySqlStatement(const char* sql) :
+   Statement(sql),
+   mConnection(NULL),
    mHandle(NULL),
    mResult(NULL),
    mParamCount(0),
@@ -79,16 +80,21 @@ MySqlStatement::~MySqlStatement()
    }
 }
 
+Connection* MySqlStatement::getConnection()
+{
+   return mConnection;
+}
+
 inline MYSQL_STMT* MySqlStatement::getHandle()
 {
    return mHandle;
 }
 
-bool MySqlStatement::initialize()
+bool MySqlStatement::initialize(MySqlConnection* c)
 {
    bool rval = true;
 
-   MySqlConnection* c = static_cast<MySqlConnection*>(mConnection);
+   mConnection = c;
 
    // initialize handle
    mHandle = mysql_stmt_init(c->getHandle());

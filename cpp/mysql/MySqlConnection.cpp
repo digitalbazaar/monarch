@@ -175,8 +175,8 @@ bool MySqlConnection::query(const char* sql)
 Statement* MySqlConnection::createStatement(const char* sql)
 {
    // create statement
-   MySqlStatement* rval = new MySqlStatement(this, sql);
-   if(!rval->initialize())
+   MySqlStatement* rval = new MySqlStatement(sql);
+   if(!rval->initialize(this))
    {
       // delete statement if it could not be initialized
       delete rval;

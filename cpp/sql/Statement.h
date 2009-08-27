@@ -26,11 +26,6 @@ class Statement
 {
 protected:
    /**
-    * The connection associated with this statement.
-    */
-   Connection* mConnection;
-
-   /**
     * The SQL for this statement.
     */
    char* mSql;
@@ -38,8 +33,10 @@ protected:
 public:
    /**
     * Creates a new Statement.
+    *
+    * @param sql the SQL for the statement.
     */
-   Statement(Connection* c, const char* sql);
+   Statement(const char* sql);
 
    /**
     * Destructs this Statement.
@@ -56,7 +53,7 @@ public:
     *
     * @return the Connection that prepared this Statement.
     */
-   virtual Connection* getConnection();
+   virtual Connection* getConnection() = 0;
 
    /**
     * Sets the value of a 32-bit integer for a positional parameter.

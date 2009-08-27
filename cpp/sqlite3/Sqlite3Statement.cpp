@@ -11,8 +11,9 @@ using namespace db::sql;
 using namespace db::sql::sqlite3;
 using namespace db::rt;
 
-Sqlite3Statement::Sqlite3Statement(Sqlite3Connection* c, const char* sql) :
-   Statement(c, sql),
+Sqlite3Statement::Sqlite3Statement(const char* sql) :
+   Statement(sql),
+   mConnection(NULL),
    mHandle(NULL),
    mRow(NULL)
 {
@@ -33,16 +34,21 @@ Sqlite3Statement::~Sqlite3Statement()
    }
 }
 
+Connection* Sqlite3Statement::getConnection()
+{
+   return mConnection;
+}
+
 inline sqlite3_stmt* Sqlite3Statement::getHandle()
 {
    return mHandle;
 }
 
-bool Sqlite3Statement::initialize()
+bool Sqlite3Statement::initialize(Sqlite3Connection* c)
 {
    bool rval = true;
 
-   Sqlite3Connection* c = static_cast<Sqlite3Connection*>(mConnection);
+   mConnection = c;
 
    const char* tail;
    mState = sqlite3_prepare_v2(c->getHandle(), mSql, -1, &mHandle, &tail);
@@ -66,8 +72,7 @@ bool Sqlite3Statement::setInt32(unsigned int param, int32_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(
-         static_cast<Sqlite3Connection*>(mConnection));
+      ExceptionRef e = new Sqlite3Exception(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -83,8 +88,7 @@ bool Sqlite3Statement::setUInt32(unsigned int param, uint32_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(
-         static_cast<Sqlite3Connection*>(mConnection));
+      ExceptionRef e = new Sqlite3Exception(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -100,8 +104,7 @@ bool Sqlite3Statement::setInt64(unsigned int param, int64_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(
-         static_cast<Sqlite3Connection*>(mConnection));
+      ExceptionRef e = new Sqlite3Exception(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -117,8 +120,7 @@ bool Sqlite3Statement::setUInt64(unsigned int param, uint64_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(
-         static_cast<Sqlite3Connection*>(mConnection));
+      ExceptionRef e = new Sqlite3Exception(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -135,8 +137,7 @@ bool Sqlite3Statement::setText(unsigned int param, const char* value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(
-         static_cast<Sqlite3Connection*>(mConnection));
+      ExceptionRef e = new Sqlite3Exception(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -234,8 +235,7 @@ bool Sqlite3Statement::execute()
                // matter whether we use sqlite API v1 or v2, we still need
                // this here to get specific error message
                mState = sqlite3_reset(mHandle);
-               ExceptionRef e =new Sqlite3Exception(
-                  static_cast<Sqlite3Connection*>(mConnection));
+               ExceptionRef e =new Sqlite3Exception(mConnection);
                Exception::set(e);
                rval = false;
                break;
@@ -257,8 +257,7 @@ bool Sqlite3Statement::execute()
       default:
       {
          // driver error
-         ExceptionRef e =
-            new Sqlite3Exception(static_cast<Sqlite3Connection*>(mConnection));
+         ExceptionRef e = new Sqlite3Exception(mConnection);
          Exception::set(e);
          rval = false;
          break;
@@ -292,8 +291,7 @@ Row* Sqlite3Statement::fetch()
          default:
          {
             // error stepping statement
-            ExceptionRef e = new Sqlite3Exception(
-               static_cast<Sqlite3Connection*>(mConnection));
+            ExceptionRef e = new Sqlite3Exception(mConnection);
             Exception::set(e);
             reset();
             break;
@@ -325,8 +323,7 @@ bool Sqlite3Statement::reset()
    if(mState != SQLITE_OK)
    {
       // driver error
-      ExceptionRef e = new Sqlite3Exception(
-         static_cast<Sqlite3Connection*>(mConnection));
+      ExceptionRef e = new Sqlite3Exception(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -337,14 +334,13 @@ bool Sqlite3Statement::reset()
 bool Sqlite3Statement::getRowsChanged(uint64_t& rows)
 {
    // FIXME: handle exceptions
-   rows = sqlite3_changes(((Sqlite3Connection*)mConnection)->getHandle());
+   rows = sqlite3_changes(mConnection->getHandle());
    return true;
 }
 
 uint64_t Sqlite3Statement::getLastInsertRowId()
 {
-   return sqlite3_last_insert_rowid(
-      static_cast<Sqlite3Connection*>(mConnection)->getHandle());
+   return sqlite3_last_insert_rowid(mConnection->getHandle());
 }
 
 int Sqlite3Statement::getParameterIndex(const char* name)
