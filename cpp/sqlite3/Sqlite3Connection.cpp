@@ -103,48 +103,6 @@ void Sqlite3Connection::close()
    }
 }
 
-bool Sqlite3Connection::rollback()
-{
-   bool rval = true;
-
-   // save the reason for the rollback
-   ExceptionRef reason = Exception::get();
-
-   // FIXME: we could possibly remove this now that every statement is
-   // reset after execution or failure
-
-   // Note: This is necessary on the current version of sqlite3... all
-   // statements must be reset or finalized before doing a rollback:
-   for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
-       rval && i != mPreparedStmts.end(); i++)
-   {
-      Sqlite3Statement* s = (Sqlite3Statement*)i->second;
-      rval = s->reset();
-   }
-
-   if(rval)
-   {
-      // attempt to do the rollback
-      Statement* s = prepare("ROLLBACK");
-      rval = (s != NULL) && s->execute();
-   }
-
-   if(!rval)
-   {
-      ExceptionRef e = new Exception(
-         "Could not rollback transaction.",
-         "db.sql.Connection.TransactionRollbackError");
-      if(!reason.isNull())
-      {
-         e->getDetails()["rollbackReason"] =
-            Exception::convertToDynamicObject(reason);
-      }
-      Exception::push(e);
-   }
-
-   return rval;
-}
-
 inline bool Sqlite3Connection::isConnected()
 {
    return mHandle != NULL;

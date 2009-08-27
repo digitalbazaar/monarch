@@ -1256,6 +1256,132 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runSqlite3RollbackTest(TestRunner& tr)
+{
+   tr.group("rollback");
+
+   // create sqlite3 connection pool
+   Sqlite3ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:", 1);
+   ConnectionPoolRef pool(cp);
+   assertNoException();
+
+   // create database client
+   DatabaseClientRef dbc = new Sqlite3DatabaseClient();
+   dbc->setDebugLogging(true);
+   dbc->setReadConnectionPool(pool);
+   dbc->setWriteConnectionPool(pool);
+
+   tr.test("initialize");
+   {
+      dbc->initialize();
+   }
+   tr.passIfNoException();
+
+   Connection* c = cp->getConnection();
+
+   tr.test("define table");
+   {
+      SchemaObject schema;
+      schema["table"] = TABLE_TEST;
+
+      DatabaseClient::addSchemaColumn(schema,
+         "foo_id", "INTEGER PRIMARY KEY", "fooId", UInt64);
+      DatabaseClient::addSchemaColumn(schema,
+         "foo_string", "TEXT", "fooString", String);
+      DatabaseClient::addSchemaColumn(schema,
+         "foo_flag", "INTEGER", "fooFlag", Boolean);
+      DatabaseClient::addSchemaColumn(schema,
+         "foo_int32", "INTEGER", "fooInt32", Int32);
+
+      dbc->define(schema);
+   }
+   tr.passIfNoException();
+
+   tr.test("create table");
+   {
+      dbc->create(TABLE_TEST, false, c);
+   }
+   tr.passIfNoException();
+
+   tr.test("begin");
+   {
+      dbc->begin(c);
+   }
+   tr.passIfNoException();
+
+   tr.test("insert");
+   {
+      DynamicObject row;
+      row["fooString"] = "foobar";
+      row["fooFlag"] = true;
+      row["fooInt32"] = 3;
+      SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
+      dbc->execute(se, c);
+      assertNoException();
+      row["fooId"] = se->lastInsertRowId;
+
+      DynamicObject expect;
+      expect["fooId"] = 1;
+      expect["fooString"] = "foobar";
+      expect["fooFlag"] = true;
+      expect["fooInt32"] = 3;
+      if(expect != row)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(row);
+      }
+      assert(expect == row);
+   }
+   tr.passIfNoException();
+
+   tr.test("insert again");
+   {
+      DynamicObject row;
+      row["fooString"] = "foobar";
+      row["fooFlag"] = false;
+      row["fooInt32"] = 3;
+      SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
+      dbc->execute(se, c);
+      assertNoException();
+      row["fooId"] = se->lastInsertRowId;
+
+      DynamicObject expect;
+      expect["fooId"] = 2;
+      expect["fooString"] = "foobar";
+      expect["fooFlag"] = false;
+      expect["fooInt32"] = 3;
+      if(expect != row)
+      {
+         printf("expected:\n");
+         dumpDynamicObject(expect);
+         printf("got:\n");
+         dumpDynamicObject(row);
+      }
+      assert(expect == row);
+   }
+   tr.passIfNoException();
+
+   tr.test("select bogus");
+   {
+      DynamicObject where;
+      where["fooId"] = 1;
+      SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
+      se->sql.append("BADSQLBLAHBLAH");
+      dbc->execute(se, c);
+   }
+   tr.passIfException();
+
+   tr.test("rollback");
+   {
+      dbc->end(c, false);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 class Sqlite3ConnectionPoolTest : public Runnable
 {
 public:
@@ -1351,6 +1477,7 @@ public:
       runSqlite3ThreadTest(tr);
       runSqlite3ReuseTest(tr);
       runSqlite3DatabaseClientTest(tr);
+      runSqlite3RollbackTest(tr);
       return 0;
    }
 
