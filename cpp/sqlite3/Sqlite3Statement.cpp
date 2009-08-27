@@ -282,11 +282,8 @@ Row* Sqlite3Statement::fetch()
             rval = mRow;
             break;
          case SQLITE_DONE:
-            // no more rows, clean up row object
-            delete mRow;
-            mRow = NULL;
-            // reset to finalize statement
-            mState = sqlite3_reset(mHandle);
+            // no more rows, reset to finalize statement
+            reset();
             break;
          default:
          {

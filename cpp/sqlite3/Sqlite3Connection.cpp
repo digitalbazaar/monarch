@@ -126,7 +126,7 @@ bool Sqlite3Connection::rollback()
    {
       // attempt to do the rollback
       Statement* s = prepare("ROLLBACK");
-      rval = (s != NULL) && s->execute() && s->reset();
+      rval = (s != NULL) && s->execute();
    }
 
    if(!rval)
