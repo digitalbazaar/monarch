@@ -235,7 +235,7 @@ bool Sqlite3Statement::execute()
                // matter whether we use sqlite API v1 or v2, we still need
                // this here to get specific error message
                mState = sqlite3_reset(mHandle);
-               ExceptionRef e =new Sqlite3Exception(mConnection);
+               ExceptionRef e = new Sqlite3Exception(mConnection);
                Exception::set(e);
                rval = false;
                break;

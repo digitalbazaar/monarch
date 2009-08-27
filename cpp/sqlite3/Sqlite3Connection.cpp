@@ -110,6 +110,9 @@ bool Sqlite3Connection::rollback()
    // save the reason for the rollback
    ExceptionRef reason = Exception::get();
 
+   // FIXME: we could possibly remove this now that every statement is
+   // reset after execution or failure
+
    // Note: This is necessary on the current version of sqlite3... all
    // statements must be reset or finalized before doing a rollback:
    for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
