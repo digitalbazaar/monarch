@@ -678,8 +678,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      //runMySqlConnectionPoolTest(tr);
-      runMySqlDatabaseClientTest(tr);
+      runMySqlConnectionPoolTest(tr);
       return 0;
    }
 };

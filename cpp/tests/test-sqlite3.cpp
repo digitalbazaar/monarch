@@ -1359,8 +1359,7 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      //runSqlite3ConnectionPoolTest(tr);
-      runSqlite3DatabaseClientTest(tr);
+      runSqlite3ConnectionPoolTest(tr);
       return 0;
    }
 };
