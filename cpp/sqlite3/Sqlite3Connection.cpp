@@ -67,9 +67,11 @@ bool Sqlite3Connection::connect(Url* url)
          // multi-threaded access to the database as opposed to
          // SQLITE_OPEN_FULLMUTEX which would serialize all access to
          // the database
+         // FIXME: SQLITE_OPEN_NOMUTEX option disabled until OS distributions
+         // like ubuntu catch up with sqlite 3.6
          int ec = sqlite3_open_v2(
             db.c_str(), &mHandle,
-            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX,
+            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,// | SQLITE_OPEN_NOMUTEX,
             NULL);
          if(ec != SQLITE_OK)
          {
