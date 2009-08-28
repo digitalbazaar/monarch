@@ -238,6 +238,7 @@ bool Sqlite3Statement::execute()
                ExceptionRef e = new Sqlite3Exception(mConnection);
                Exception::set(e);
                rval = false;
+               reset();
                break;
             }
          }
