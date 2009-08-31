@@ -5,80 +5,91 @@
 MACOS_CXX = @MACOS_CXX@
 MACOS_CXX_FLAGS = @CXXFLAGS@ -Wall -fPIC -DMACOS $(MODULE_CXX_FLAGS) $(MODULE_MACOS_CXX_FLAGS) @DEFS@
 MACOS_LD_FLAGS = @LDFLAGS@ -Wl,-dylib_compatibility_version,@FULL_DOTTED_VERSION@ -Wl,-dylib_current_version,@FULL_DOTTED_VERSION@ -Wl,-flat_namespace
-MACOS_INCLUDES = $(INCLUDES) -I/sw/include
+MACOS_INCLUDES = $(INCLUDES) -I/sw/include 
 MACOS_LIB_DIR = $(DBCORE)/libs/macos
 MACOS_LIBS = -L$(MACOS_LIB_DIR)
 # Add default library location for Fink
 MACOS_LIBS += -L/sw/lib
 MACOS_AR = @MACOS_AR@
 MACOS_AS = @MACOS_AS@
-MACOS_BUILD_DIR = build/macos
-MACOS_DIST_DIR = dist/macos
+MACOS_BUILD_DIR = $(DBCORE)/build/$(subst $(DBCORE)/cpp/,,$(CWD))
+MACOS_DIST_DIR = $(DBCORE)/dist
+MACOS_LIB_DIR = $(MACOS_DIST_DIR)/lib
+MACOS_BIN_DIR = $(MACOS_DIST_DIR)/bin
 MACOS_CPP_SOURCES := $(filter %.cpp, $(SOURCES))
 MACOS_AS_SOURCES := $(filter %.S, $(SOURCES))
+MACOS_HEADER_FILES := $(patsubst %.h, $(DBCORE)/$(HEADER_DIST_DIR)/%.h, $(HEADERS))
 MACOS_LIBRARY_SOURCES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%.cpp, $(MACOS_CPP_SOURCES))  $(patsubst %.S,$(MACOS_BUILD_DIR)/%.S, $(MACOS_AS_SOURCES))
 MACOS_EXECUTABLE_SOURCES := $(patsubst %,$(MACOS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
 MACOS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.o, $(MACOS_CPP_SOURCES)) $(patsubst %.S,$(MACOS_BUILD_DIR)/%-asm-macos.o, $(MACOS_AS_SOURCES))
 MACOS_EXECUTABLE_OBJECTS := $(patsubst %,$(MACOS_BUILD_DIR)/%-macos.o, $(EXECUTABLES))
 DYNAMIC_MACOS_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_MACOS_LIBRARIES)
-MACOS_EXECUTABLES := $(patsubst %,$(MACOS_DIST_DIR)/%, $(EXECUTABLES))
+MACOS_EXECUTABLES := $(patsubst %,$(MACOS_BIN_DIR)/%, $(EXECUTABLES))
 MACOS_DEPENDENCIES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.P, $(MACOS_CPP_SOURCES))
 MACOS_DEPENDENCIES += $(patsubst %.cpp,%-macos.P, $(MACOS_EXECUTABLE_SOURCES))
 
-MACOS_LIBRARIES := $(patsubst %,$(MACOS_DIST_DIR)/lib%.dylib, $(LIBRARIES))
-#MACOS_LIBRARIES += $(patsubst %,$(MACOS_DIST_DIR)/lib%.a, $(LIBRARIES))
+MACOS_LIBRARIES := $(patsubst %,$(MACOS_LIB_DIR)/lib%.dylib, $(LIBRARIES))
+#MACOS_LIBRARIES += $(patsubst %,$(MACOS_LIB_DIR)/lib%.a, $(LIBRARIES))
 
+ALL_HEADERS += $(MACOS_HEADER_FILES)
 ALL_SOURCES += $(MACOS_LIBRARY_SOURCES) $(MACOS_EXECUTABLE_SOURCES)
 ALL_OBJECTS += $(MACOS_LIBRARY_OBJECTS) $(MACOS_EXECUTABLE_OBJECTS)
 ALL_LIBRARIES += $(MACOS_LIBRARIES)
 ALL_EXECUTABLES += $(MACOS_EXECUTABLES)
-ALL_DIRECTORIES += $(MACOS_BUILD_DIR) $(MACOS_DIST_DIR)
+ALL_DIRECTORIES += $(MACOS_BUILD_DIR) $(MACOS_DIST_DIR) $(MACOS_LIB_DIR) $(MACOS_BIN_DIR)
 
-ifndef MAKE_CLEAN_ACTIVE
+# Ignore dependencies if specified in the Makefile. This will ensure that the
+# dependencies for all .cpp files are not pulled in and thus won't be built
+ifndef IGNORE_DEPENDENCIES
 -include $(MACOS_DEPENDENCIES)
 endif
 
-clean-objects:
-	$(PCMD) rm -rf $(MACOS_BUILD_DIR)
-
-clean-libraries:
-	$(PCMD) rm -rf $(MACOS_DIST_DIR)
-
-$(MACOS_LIBRARY_SOURCES): build-setup
+$(MACOS_HEADER_FILES): 
 	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) ln -sf $(subst $(DBCORE)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
 
+# You can build either multiple executables per directory, or multiple
+# libraries per directory, but not both.
 ifdef EXECUTABLES
-$(MACOS_EXECUTABLE_SOURCES): build-setup
+$(MACOS_EXECUTABLE_SOURCES):
 	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(MODULE_BASE_DIR)/,$@) $@
+	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(CWD)/,$@) $@
+else
+$(MACOS_LIBRARY_SOURCES):
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(CWD)/,$@) $@
 endif
 
+clean-objects:
+	$(PCMD) rm -rf $(MACOS_LIBRARY_OBJECTS) $(MACOS_EXECUTABLE_OBJECTS)
+
+clean-libraries:
+	$(PCMD) rm -rf $(MACOS_LIBRARIES)
+
 %-asm-macos.o: %.S
-	echo "Building $(basename $@).o..."
+	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
 	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
 %-macos.o %-macos.P: %.cpp
-	@echo "Building $(basename $@).o..."
+	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
 	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
 %.dylib: $(MACOS_LIBRARY_OBJECTS)
-	@echo "Building $@..."
+	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
 	$(PCMD) mkdir -p $(MACOS_LIB_DIR)
 	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -install_name @DBCOREDIR@/libs/macos/$(@F) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
-	$(PCMD) ln -sf $(MODULE_BASE_DIR)/$@ $(MACOS_LIB_DIR)/$(@F)
 
 ifdef EXECUTABLES
 #$(STATIC_MACOS_LIBRARIES):
 #	# This is a fake target to override the default .dylib build
 $(MACOS_EXECUTABLES): $(MACOS_LIBRARY_SOURCES) $$(@F).cpp $(MACOS_BUILD_DIR)/$$(@F)-macos.o $(STATIC_MACOS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(MACOS_BUILD_DIR)/$$(source)-macos.o)
-	@echo "Building $(@F)..."
+	@echo "Assembling dist/bin/$(@F)..."
 	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -o $@ $(MACOS_BUILD_DIR)/$(@F)-macos.o \
 	$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(MACOS_BUILD_DIR)/$(source)-macos.o) \
 	$(DYNAMIC_MACOS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
@@ -91,7 +102,7 @@ dump-variables:
 	@echo AR_FLAGS=$(AR_FLAGS)
 	@echo DBCORE=$(DBCORE)
 	@echo INCLUDES=$(INCLUDES)
-	@echo MODULE_BASE_DIR=$(MODULE_BASE_DIR)
+	@echo CWD=$(CWD)
 
 # MacOS-specific variables
 	@echo MACOS_CXX=$(MACOS_CXX)
