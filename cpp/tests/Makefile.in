@@ -2,11 +2,12 @@
 
 # conditional build of tests
 ifeq (@BUILD_TESTS@,yes)
-SOURCES = $(wildcard *.cpp)
+
 
 ifeq (@BUILD_MYSQL@,yes)
 MODULE_CXX_FLAGS += -DHAVE_MYSQL
 MYSQL_DBLIBS = dbmysql
+MYSQL_SOURCES = test-mysql.cpp
 MYSQL_EXECUTABLES = test-mysql
 MYSQL_DYNAMIC_WINDOWS_LIBRARIES = mysql
 MYSQL_DYNAMIC_LINUX_LIBRARIES = mysqlclient
@@ -17,8 +18,37 @@ endif
 ifeq (@BUILD_SPHINX@,yes)
 MODULE_CXX_FLAGS += -DHAVE_SPHINX
 SPHINX_DBLIBS = dbsphinx
+SPHINX_SOURCES = test-sphinx.cpp
 SPHINX_EXECUTABLES = test-sphinx
 endif
+
+SOURCES = test-configmanager.cpp \
+	test-sharedlock-deadlock.cpp \
+	test-compress.cpp \
+	test-config.cpp \
+	test-crypto.cpp \
+	test-data.cpp \
+	test-dyno-perf.cpp \
+	test-event.cpp \
+	test-fiber.cpp \
+	test-fiber-yield.cpp \
+	test-http.cpp \
+	test-io.cpp \
+	test-logging.cpp \
+	test-mail.cpp \
+	test-mmap.cpp \
+	test-modest.cpp \
+	test-modexp.cpp \
+	test-net.cpp \
+	test-random.cpp \
+	test-rt.cpp \
+	$(SPHINX_SOURCES) \
+	test-sqlite3.cpp \
+	$(MYSQL_SOURCES) \
+	test-ucontext.cpp \
+	test-upnp.cpp \
+	test-util.cpp \
+	test-validation.cpp
 
 EXECUTABLES = \
 	test-configmanager \
@@ -52,9 +82,9 @@ EXECUTABLES = \
 DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbhttp dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation dbupnp $(SPHINX_DBLIBS) dbapp
 DYNAMIC_EXECUTABLE_LIBRARIES = dbtest
 
-LINUX_LIB_DIR = @DBCOREDIR@/libs/linux
-WINDOWS_LIB_DIR = @DBCOREDIR@/libs/windows
-MACOS_LIB_DIR = @DBCOREDIR@/libs/macos
+LINUX_LIB_DIR = @DBCOREDIR@/dist/lib
+WINDOWS_LIB_DIR = @DBCOREDIR@/dist/lib
+MACOS_LIB_DIR = @DBCOREDIR@/dist/lib
 
 DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LINUX_LIBRARIES)
 DYNAMIC_MACOS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_MACOS_LIBRARIES)
@@ -67,4 +97,3 @@ endif
 
 # ----------- Standard Makefile
 include @DBCOREDIR@/setup/Makefile.base
-
