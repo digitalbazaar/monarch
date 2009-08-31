@@ -55,7 +55,7 @@ $(LINUX_LIBRARY_SOURCES):
 endif
 
 clean-objects:
-	$(PCMD) rm -rf $(LINUX_BUILD_DIR)
+	$(PCMD) rm -rf $(LINUX_LIBRARY_OBJECTS) $(LINUX_EXECUTABLE_OBJECTS)
 
 clean-libraries:
 	$(PCMD) rm -rf $(LINUX_LIBRARIES)
