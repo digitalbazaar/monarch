@@ -3,10 +3,9 @@
 
 # MacOS-specific variables
 MACOS_CXX = @MACOS_CXX@
-MACOS_CXX_FLAGS = @CXXFLAGS@ -Wall -fPIC -DMACOS $(MODULE_CXX_FLAGS) $(MODULE_MACOS_CXX_FLAGS) @DEFS@
+MACOS_CXX_FLAGS = @CXXFLAGS@ -march=i686 -Wall -fPIC -DMACOS $(MODULE_CXX_FLAGS) $(MODULE_MACOS_CXX_FLAGS) @DEFS@
 MACOS_LD_FLAGS = @LDFLAGS@ -Wl,-dylib_compatibility_version,@FULL_DOTTED_VERSION@ -Wl,-dylib_current_version,@FULL_DOTTED_VERSION@ -Wl,-flat_namespace
 MACOS_INCLUDES = $(INCLUDES) -I/sw/include 
-MACOS_LIB_DIR = $(DBCORE)/libs/macos
 MACOS_LIBS = -L$(MACOS_LIB_DIR)
 # Add default library location for Fink
 MACOS_LIBS += -L/sw/lib
@@ -68,22 +67,22 @@ clean-libraries:
 
 %-asm-macos.o: %.S
 	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
-	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
+	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
 %-macos.o %-macos.P: %.cpp
 	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
-	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) -I. $(realpath $<)
+	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
 %.dylib: $(MACOS_LIBRARY_OBJECTS)
-	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
+	@echo "Assembling $(subst $(DBCORE)/,,$@)..."
 	$(PCMD) mkdir -p $(MACOS_LIB_DIR)
-	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -install_name @DBCOREDIR@/libs/macos/$(@F) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
+	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -install_name $(MACOS_LIB_DIR)/$(@F) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
 
 ifdef EXECUTABLES
 #$(STATIC_MACOS_LIBRARIES):

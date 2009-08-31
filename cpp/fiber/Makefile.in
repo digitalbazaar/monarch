@@ -5,7 +5,7 @@ SOURCES = $(wildcard *.cpp)
 
 # If we're building on MacOS, include the get/setcontext assembler files
 ifeq (@BUILD_FOR_MACOS@,yes)
-SOURCES += db/fiber/PortableUContextAsm.S
+SOURCES += PortableUContextAsm.S
 endif
 
 LIBRARIES = dbfiber
