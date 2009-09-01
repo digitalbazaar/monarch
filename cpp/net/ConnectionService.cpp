@@ -8,11 +8,13 @@
 #include "db/net/TcpSocket.h"
 #include "db/net/Internet6Address.h"
 #include "db/rt/RunnableDelegate.h"
+#include "db/util/Timer.h"
 
 using namespace std;
 using namespace db::modest;
 using namespace db::net;
 using namespace db::rt;
+using namespace db::util;
 
 ConnectionService::ConnectionService(
    Server* server,
@@ -197,16 +199,21 @@ void ConnectionService::serviceConnection(void* s)
          remote->getAddress(),
          remote->getPort());
 
-      // service connection
+      // service connection and time it
+      Timer t;
+      t.start();
       mServicer->serviceConnection(c);
+      uint64_t ms = t.getElapsedMilliseconds();
 
       // log connection
-      DB_CAT_DEBUG(DB_NET_CAT, "%s:%i serviced %s connection from %s:%i",
+      DB_CAT_DEBUG(DB_NET_CAT,
+         "%s:%i serviced %s connection from %s:%i in %llu ms",
          local->getAddress(),
          local->getPort(),
          secure ? "secure" : "non-secure",
          remote->getAddress(),
-         remote->getPort());
+         remote->getPort(),
+         ms);
 
       // close and clean up connection
       c->close();
