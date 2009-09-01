@@ -171,6 +171,10 @@ void ConnectionService::run()
 
 void ConnectionService::serviceConnection(void* s)
 {
+   // start connection service time
+   Timer t;
+   t.start();
+
    // ensure the Socket can be wrapped with at least standard data presentation
    bool secure = false;
    Socket* socket = static_cast<Socket*>(s);
@@ -199,9 +203,7 @@ void ConnectionService::serviceConnection(void* s)
          remote->getAddress(),
          remote->getPort());
 
-      // service connection and time it
-      Timer t;
-      t.start();
+      // service connection and get time
       mServicer->serviceConnection(c);
       uint64_t ms = t.getElapsedMilliseconds();
 
