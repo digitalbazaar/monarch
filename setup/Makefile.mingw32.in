@@ -71,18 +71,18 @@ clean-libraries:
 		rm -f $(basename $@).d
 
 %.dll: $(WINDOWS_LIBRARY_OBJECTS)
-	@echo "Assembling $(subst $(DBCORE)/,,$@)..."
+	@echo "Linking $(subst $(DBCORE)/,,$@)..."
 	$(PCMD) $(WINDOWS_DLLWRAP) $(WINDOWS_DLLWRAP_FLAGS) $(WINDOWS_LIBS) --output-def $(@:.dll=.def) --implib $(@:.dll=.lib) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=$(WINDOWS_LIB_DIR)/%.dll) $(EXTRA_WINDOWS_LIBRARIES)
 
 %.lib: $(WINDOWS_LIBRARY_OBJECTS)
-	@echo "Assembling $(subst $(DBCORE)/,,$@)..."
+	@echo "Linking $(subst $(DBCORE)/,,$@)..."
 	$(PCMD) $(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
 
 ifdef EXECUTABLES
 #$(STATIC_WINDOWS_LIBRARIES):
 #	# This is a fake target to override the default .lib build
 $(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $$(basename $$(@F)).cpp $(WINDOWS_BUILD_DIR)/$$(basename $$(@F))-windows.o $(STATIC_WINDOWS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(basename $$(@F)))_EXTRA_SOURCES),$(WINDOWS_BUILD_DIR)/$$(source)-windows.o)
-	@echo "Assembling dist/bin/$(@F)..."
+	@echo "Linking dist/bin/$(@F)..."
 	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) $(WINDOWS_LD_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(basename $(@F))-windows.o \
 	$(foreach source,$($(subst -,_,$(basename $(@F)))_EXTRA_SOURCES),$(WINDOWS_BUILD_DIR)/$(source)-windows.o) \
 	$(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
