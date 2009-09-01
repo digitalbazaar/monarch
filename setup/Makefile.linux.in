@@ -68,12 +68,12 @@ clean-libraries:
 		rm -f $(basename $@).d
 
 %.so: $(LINUX_LIBRARY_OBJECTS)
-	@echo "Assembling $(subst $(DBCORE)/,,$@)..."
+	@echo "Linking $(subst $(DBCORE)/,,$@)..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -shared -o $@ $(LINUX_LIBRARY_OBJECTS) $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
 
 ifdef EXECUTABLES
 $(LINUX_EXECUTABLES): $(LINUX_LIBRARY_SOURCES) $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-$(PLATFORM).o $(STATIC_LINUX_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$$(source)-$(PLATFORM).o)
-	@echo "Assembling dist/bin/$(@F)..."
+	@echo "Linking dist/bin/$(@F)..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LD_FLAGS) $(LINUX_LIBS) \
 		-o $@ $(LINUX_BUILD_DIR)/$(@F)-$(PLATFORM).o \
 		$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$(source)-$(PLATFORM).o) \
