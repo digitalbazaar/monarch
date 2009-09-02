@@ -159,9 +159,15 @@ bool MailSpool::getFirst(Mail* mail)
    return rval;
 }
 
-bool MailSpool::unwind()
+bool MailSpool::unwind(Mail* mail, bool* unwound)
 {
    bool rval = false;
+
+   if(unwound != NULL)
+   {
+      // no mail unwound yet
+      *unwound = false;
+   }
 
    Connection* c = mDbClient->getWriteConnection();
    if(c != NULL)
@@ -169,18 +175,43 @@ bool MailSpool::unwind()
       // begin a transaction
       if(mDbClient->begin(c))
       {
-         // get first mail ID in spool
-         DynamicObject members;
-         members["id"];
+         DynamicObject members(NULL);
+         if(mail == NULL)
+         {
+            // since we are not populating a mail object, only get the mail ID
+            members = DynamicObject();
+            members["id"];
+         }
          SqlExecutableRef se = mDbClient->selectOne(
-            SPOOL_TABLE_SPOOL, NULL, &members);
+            SPOOL_TABLE_SPOOL, NULL, members.isNull() ? NULL : &members);
          rval = !se.isNull() && mDbClient->execute(se, c);
          if(rval && se->rowsRetrieved == 1)
          {
-            // delete mail from spool
-            DynamicObject where = se->result;
-            se = mDbClient->remove(SPOOL_TABLE_SPOOL, &where);
-            rval = !se.isNull() && mDbClient->execute(se, c);
+            if(mail != NULL)
+            {
+               // populate the mail
+               char* str = const_cast<char*>(se->result["mail"]->getString());
+               int length = se->result["mail"]->length();
+               ByteBuffer bb(str, 0, length, length, false);
+               ByteArrayInputStream bais(&bb, false);
+               MailTemplateParser parser;
+               DynamicObject vars;
+               rval = parser.parse(mail, vars, false, &bais);
+            }
+
+            if(rval)
+            {
+               // delete mail from spool
+               DynamicObject where;
+               where["id"] = se->result["id"];
+               se = mDbClient->remove(SPOOL_TABLE_SPOOL, &where);
+               rval = !se.isNull() && mDbClient->execute(se, c);
+               if(rval && unwound != NULL)
+               {
+                  // a mail was unwound from the spool
+                  *unwound = true;
+               }
+            }
          }
 
          // end transaction

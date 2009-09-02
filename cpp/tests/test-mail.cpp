@@ -452,8 +452,8 @@ public:
    virtual int runInteractiveTests(TestRunner& tr)
    {
       //runSmtpClientTest(tr);
-      runMimeTest(tr);
-      //runFailedMailSendTest(tr);
+      //runMimeTest(tr);
+      runFailedMailSendTest(tr);
       return 0;
    }
 };
