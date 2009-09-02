@@ -331,7 +331,7 @@ public:
     * @param where an object that specifies some specific column values to
     *           filter on, NULL to include no WHERE clause.
     * @param members a specific map of member names to include, NULL to
-    *           include all members not in the WHERE.
+    *           include all members.
     *
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
@@ -350,7 +350,7 @@ public:
     * @param where an object that specifies some specific column values to
     *           filter on, NULL to include no WHERE clause.
     * @param members a specific map of member names to include, NULL to
-    *           include all members not in the WHERE.
+    *           include all members.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param start the starting row for the LIMIT, defaults to 0.
     *

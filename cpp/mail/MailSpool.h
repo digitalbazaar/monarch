@@ -6,6 +6,7 @@
 
 #include "db/mail/Mail.h"
 #include "db/io/File.h"
+#include "db/sql/DatabaseClient.h"
 
 namespace db
 {
@@ -21,36 +22,9 @@ class MailSpool
 {
 protected:
    /**
-    * A lock for modifying/reading from the spool.
+    * The database client for the spool database.
     */
-   db::rt::ExclusiveLock mSpoolLock;
-
-   /**
-    * The index of the first valid mail in the spool.
-    */
-   uint32_t mHead;
-
-   /**
-    * The index of the last valid mail in the spool.
-    */
-   uint32_t mTail;
-
-   /**
-    * The number of mails in the spool.
-    */
-   uint32_t mCount;
-
-   /**
-    * The spool file to use.
-    */
-   db::io::File mFile;
-
-   /**
-    * Creates or overwrites the index associated with the spool file.
-    *
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool writeIndex();
+   db::sql::DatabaseClientRef mDbClient;
 
 public:
    /**
@@ -64,32 +38,32 @@ public:
    virtual ~MailSpool();
 
    /**
-    * Locks the spool prohibiting other threads from modifying it.
+    * Initializes the spool for use.
+    *
+    * @param url the sqlite3 or file URL to the spool's database.
+    *
+    * @return true if successful, false if not.
     */
-   virtual void lock();
+   virtual bool initialize(const char* url);
 
    /**
-    * Unlocks the spool allowing other threads to modify it.
-    */
-   virtual void unlock();
-
-   /**
-    * Sets the spool file to use and reads in its associated index.
+    * Sets whether or not debug logging will be used when writing
+    * to the pool. Must be called after initialize.
     *
-    * @param file the spool file to use.
-    *
-    * @return true if successful, false if there was an exception.
+    * @param on true to turn on debug logging, false not to.
     */
-   virtual bool setFile(db::io::File& file);
+   virtual void setDebugLogging(bool on);
 
    /**
     * Spools the passed mail, adding it to the existing spool file.
     *
     * @param mail the Mail to spool.
+    * @param reason a dynamic object that explains the reason for the spooling,
+    *               NULL for none.
     *
     * @return true if successful, false if there was an exception.
     */
-   virtual bool spool(Mail* mail);
+   virtual bool spool(Mail* mail, db::rt::DynamicObject* reason);
 
    /**
     * Gets the first mail in the spool. Note: Make sure the spool is
@@ -115,6 +89,13 @@ public:
     * @return the number of mails.
     */
    virtual uint32_t getCount();
+
+   /**
+    * Clears the mail spool.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool clear();
 };
 
 } // end namespace mail

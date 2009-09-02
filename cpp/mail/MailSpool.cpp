@@ -10,260 +10,150 @@
 #include "db/io/ByteArrayInputStream.h"
 #include "db/io/FileInputStream.h"
 #include "db/io/FileOutputStream.h"
+#include "db/sql/Row.h"
+#include "db/sql/Statement.h"
+#include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
+#include "db/sql/sqlite3/Sqlite3DatabaseClient.h"
 #include "db/util/Data.h"
+#include "db/util/Date.h"
 
 using namespace db::data::json;
 using namespace db::io;
 using namespace db::mail;
 using namespace db::rt;
+using namespace db::sql;
+using namespace db::sql::sqlite3;
+using namespace db::util;
+
+#define SPOOL_TABLE_SPOOL   "spool"
 
 MailSpool::MailSpool() :
-   mFile((FileImpl*)NULL)
+   mDbClient(NULL)
 {
-   // spool empty thus far
-   mHead = mTail = mCount = 0;
 }
 
 MailSpool::~MailSpool()
 {
 }
 
-bool MailSpool::writeIndex()
+bool MailSpool::initialize(const char* url)
 {
-   bool rval;
+   bool rval = false;
 
-   if(mFile.isNull())
+   // create sqlite3 connection pool
+   ConnectionPoolRef pool(new Sqlite3ConnectionPool(url, 1));
+
+   // create database client
+   mDbClient = new Sqlite3DatabaseClient();
+   mDbClient->setDebugLogging(false);
+   mDbClient->setReadConnectionPool(pool);
+   mDbClient->setWriteConnectionPool(pool);
+   rval = mDbClient->initialize();
+
+   // define schemas:
+
+   // spool table
+   if(rval)
+   {
+      SchemaObject schema;
+      schema["table"] = SPOOL_TABLE_SPOOL;
+
+      DatabaseClient::addSchemaColumn(schema,
+         "id", "INTEGER PRIMARY KEY", "id", UInt64);
+      DatabaseClient::addSchemaColumn(schema,
+         "date", "TEXT", "date", String);
+      DatabaseClient::addSchemaColumn(schema,
+         "mail", "TEXT", "mail", String);
+      DatabaseClient::addSchemaColumn(schema,
+         "reason", "TEXT", "reason", String);
+
+      rval = mDbClient->define(schema);
+   }
+
+   // create tables
+   if(rval)
+   {
+      rval = mDbClient->create(SPOOL_TABLE_SPOOL, true);
+   }
+
+   if(!rval)
+   {
+      mDbClient.setNull();
+      ExceptionRef e = new Exception(
+         "Could not initialize mail spool.",
+         "db.mail.MailSpool.InitializeError");
+      e->getDetails()["url"] = url;
+      Exception::push(e);
+   }
+
+   return rval;
+}
+
+void MailSpool::setDebugLogging(bool on)
+{
+   mDbClient->setDebugLogging(on);
+}
+
+bool MailSpool::spool(Mail* mail, DynamicObject* reason)
+{
+   bool rval = false;
+
+   // build spool record
+   DynamicObject record;
+   record["date"] = Date().getUtcDateTime().c_str();
+   record["mail"] = mail->toTemplate().c_str();
+   if(reason != NULL)
+   {
+      record["reason"] =
+         JsonWriter::writeToString(*reason, true, false).c_str();
+   }
+
+   // insert spool record
+   SqlExecutableRef se = mDbClient->insert(SPOOL_TABLE_SPOOL, record);
+   rval = !se.isNull() && mDbClient->execute(se);
+   if(!rval)
    {
       ExceptionRef e = new Exception(
-         "Cannot write to mail spool, no spool file set.",
-         "db.mail.NoSpoolFile");
-      Exception::set(e);
-      rval = false;
+         "Could not spool mail.",
+         "db.mail.MailSpool.SpoolError");
+      Exception::push(e);
    }
-   else
-   {
-      // get associated index name
-      std::string name = mFile->getAbsolutePath();
-      name.append(".idx");
-      File file(name.c_str());
-      if((rval = file->mkdirs()))
-      {
-         // write out index data
-         FileOutputStream fos(file);
-         DynamicObject config;
-         config["head"] = mHead;
-         config["tail"] = mTail;
-         config["count"] = mCount;
-         JsonWriter writer;
-         rval = writer.write(config, &fos);
-         fos.close();
-      }
-   }
-
-   return rval;
-}
-
-void MailSpool::lock()
-{
-   mSpoolLock.lock();
-}
-
-void MailSpool::unlock()
-{
-   mSpoolLock.unlock();
-}
-
-bool MailSpool::setFile(File& file)
-{
-   bool rval;
-
-   lock();
-   {
-      // set file
-      mFile = file;
-
-      // read associated index
-      std::string name = mFile->getAbsolutePath();
-      name.append(".idx");
-      File file(name.c_str());
-      if(!file->exists())
-      {
-         // create new spool index
-         mHead = mTail = mCount = 0;
-         rval = writeIndex();
-      }
-      else
-      {
-         // read existing spool index
-         FileInputStream fis(file);
-         JsonReader reader;
-         DynamicObject config;
-         reader.start(config);
-         rval = reader.read(&fis) && reader.finish();
-         fis.close();
-
-         if(rval)
-         {
-            mHead = config["head"]->getUInt32();
-            mTail = config["tail"]->getUInt32();
-            mCount = config["count"]->getUInt32();
-         }
-      }
-   }
-   unlock();
-
-   return rval;
-}
-
-bool MailSpool::spool(Mail* mail)
-{
-   bool rval;
-
-   // convert mail to template
-   std::string tpl = mail->toTemplate();
-
-   lock();
-   {
-      if(mFile.isNull())
-      {
-         ExceptionRef e = new Exception(
-            "Cannot spool mail, no spool file set.",
-            "db.mail.NoSpoolFile");
-         Exception::set(e);
-         rval = false;
-      }
-      else
-      {
-         // write out mail entry
-         FileOutputStream fos(mFile, mCount > 0);
-
-         // entry = index + size + tpl
-         uint32_t idx = DB_UINT32_TO_LE(mTail);
-         uint32_t size = DB_UINT32_TO_LE(tpl.length());
-         rval =
-            fos.write((char*)&idx, 4) &&
-            fos.write((char*)&size, 4) &&
-            fos.write(tpl.c_str(), tpl.length());
-         fos.close();
-
-         // increment tail, count
-         mTail++;
-         mCount++;
-
-         // write out index
-         rval = rval && writeIndex();
-      }
-   }
-   unlock();
 
    return rval;
 }
 
 bool MailSpool::getFirst(Mail* mail)
 {
-   bool rval = true;
+   bool rval = false;
 
-   // keep track of whether or not the first mail was found in the spool
-   bool foundFirst = false;
-
-   lock();
-   {
-      if(mCount == 0)
-      {
-         ExceptionRef e = new Exception(
-            "Cannot get first mail from spool. Spool is empty.",
-            "db.mail.EmptySpool");
-         Exception::set(e);
-         rval = false;
-      }
-      else if(mFile.isNull())
-      {
-         ExceptionRef e = new Exception(
-            "Cannot read from spool, no spool file set.",
-            "db.mail.NoSpoolFile");
-         Exception::set(e);
-         rval = false;
-      }
-      else
-      {
-         // read from spool file
-         FileInputStream fis(mFile);
-         char b[2048];
-         int numBytes = 1;
-         uint32_t idx;
-         uint32_t size;
-
-         // skip mail entries until head is reached
-         while(numBytes > 0)
-         {
-            // read current index
-            if((numBytes = fis.read(b, 4)) == 4)
-            {
-               memcpy(&idx, b, 4);
-               idx = DB_UINT32_FROM_LE(idx);
-            }
-
-            // read current size
-            if((numBytes = fis.read(b, 4) == 4))
-            {
-               memcpy(&size, b, 4);
-               size = DB_UINT32_FROM_LE(size);
-            }
-
-            // read mail if current index is head
-            if(idx == mHead)
-            {
-               // read mail data
-               ByteBuffer bb(size);
-               int read = (int)(size > 2048 ? 2048 : size);
-               while(read > 0 && (numBytes = fis.read(b, read)) > 0)
-               {
-                  bb.put(b, numBytes, false);
-                  size -= numBytes;
-                  read = (int)(size > 2048 ? 2048 : size);
-               }
-
-               if(numBytes != -1)
-               {
-                  // parse mail data
-                  foundFirst = true;
-                  ByteArrayInputStream bais(&bb, false);
-                  MailTemplateParser parser;
-                  DynamicObject vars;
-                  rval = parser.parse(mail, vars, false, &bais);
-               }
-               break;
-            }
-            else
-            {
-               // skip mail data
-               if(fis.skip(size) < 0)
-               {
-                  // error while skipping
-                  numBytes = -1;
-               }
-            }
-         }
-
-         // close spool file
-         fis.close();
-
-         // IO error
-         if(numBytes < 0)
-         {
-            rval = false;
-         }
-      }
-   }
-   unlock();
-
-   if(rval && !foundFirst)
+   // get the first mail in the spool
+   SqlExecutableRef se = mDbClient->selectOne(SPOOL_TABLE_SPOOL);
+   rval = !se.isNull() && mDbClient->execute(se);
+   if(rval && se->rowsRetrieved == 0)
    {
       ExceptionRef e = new Exception(
-         "Could not read first mail from spool. Possibly corrupt spool file.",
-         "db.mail.CorruptSpoolFile");
+         "Spool is empty.",
+         "db.mail.MailSpool.Empty");
       Exception::set(e);
-      rval = false;
+   }
+   else
+   {
+      // parse mail data
+      char* str = const_cast<char*>(se->result["mail"]->getString());
+      int length = se->result["mail"]->length();
+      ByteBuffer bb(str, 0, length, length, false);
+      ByteArrayInputStream bais(&bb, false);
+      MailTemplateParser parser;
+      DynamicObject vars;
+      rval = parser.parse(mail, vars, false, &bais);
+   }
+
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not get mail from spool.",
+         "db.mail.MailSpool.GetMailError");
+      Exception::push(e);
    }
 
    return rval;
@@ -271,38 +161,92 @@ bool MailSpool::getFirst(Mail* mail)
 
 bool MailSpool::unwind()
 {
-   bool rval;
+   bool rval = false;
 
-   lock();
+   Connection* c = mDbClient->getWriteConnection();
+   if(c != NULL)
    {
-      if(mCount == 0)
+      // begin a transaction
+      if(mDbClient->begin(c))
       {
-         // nothing to do, spool is empty
-         rval = true;
-      }
-      else
-      {
-         // increment head, decrement count
-         mHead++;
-         mCount--;
-
-         if(mCount == 0)
+         // get first mail ID in spool
+         DynamicObject members;
+         members["id"];
+         SqlExecutableRef se = mDbClient->selectOne(
+            SPOOL_TABLE_SPOOL, NULL, &members);
+         rval = !se.isNull() && mDbClient->execute(se, c);
+         if(rval && se->rowsRetrieved == 1)
          {
-            // reset index, spool now empty
-            mHead = mTail = 0;
-            mFile->remove();
+            // delete mail from spool
+            DynamicObject where = se->result;
+            se = mDbClient->remove(SPOOL_TABLE_SPOOL, &where);
+            rval = !se.isNull() && mDbClient->execute(se, c);
          }
 
-         // write out index
-         rval = writeIndex();
+         // end transaction
+         rval = mDbClient->end(c, rval) && rval;
       }
+
+      c->close();
    }
-   unlock();
+
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not unwind mail spool.",
+         "db.mail.MailSpool.UnwindError");
+      Exception::push(e);
+   }
 
    return rval;
 }
 
 uint32_t MailSpool::getCount()
 {
-   return mCount;
+   uint32_t rval = 0;
+
+   Connection* c = mDbClient->getReadConnection();
+   if(c != NULL)
+   {
+      Statement* s = c->prepare("SELECT COUNT(*) FROM " SPOOL_TABLE_SPOOL);
+      if((s != NULL) && s->execute())
+      {
+         Row* row = s->fetch();
+         if(row != NULL)
+         {
+            uint64_t count;
+            if(row->getUInt64((unsigned int)0, count))
+            {
+               rval = (uint32_t)count;
+            }
+            s->fetch();
+         }
+      }
+
+      c->close();
+   }
+
+   return rval;
+}
+
+bool MailSpool::clear()
+{
+   bool rval = false;
+
+   Connection* c = mDbClient->getReadConnection();
+   if(c != NULL)
+   {
+      // drop tables and recreate them in a transaction
+      if(mDbClient->begin(c))
+      {
+         rval =
+            mDbClient->drop(SPOOL_TABLE_SPOOL, true, c) &&
+            mDbClient->create(SPOOL_TABLE_SPOOL, true, c);
+         rval = mDbClient->end(c, rval) && rval;
+      }
+
+      c->close();
+   }
+
+   return rval;
 }

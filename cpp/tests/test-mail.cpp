@@ -322,26 +322,27 @@ void mailSpoolTest(TestRunner& tr)
    string tpl1 = mail.toTemplate();
 
    // clean up old spool files
-   File file(TMPDIR "/bmtestspool");
-   File idxFile(TMPDIR "/bmtestspool.idx");
-   idxFile->remove();
+   File file(TMPDIR "/bmtestspool.db");
    file->remove();
 
    // create mail spool
    db::mail::MailSpool spool;
-   spool.setFile(file);
+   spool.initialize("file://" TMPDIR "/bmtestspool.db");
+   assertNoException();
+
+   DynamicObject reason;
+   reason = "could not send";
+
+   // spool mail
+   spool.spool(&mail, &reason);
    assertNoException();
 
    // spool mail
-   spool.spool(&mail);
+   spool.spool(&mail, &reason);
    assertNoException();
 
    // spool mail
-   spool.spool(&mail);
-   assertNoException();
-
-   // spool mail
-   spool.spool(&mail);
+   spool.spool(&mail, &reason);
    assertNoException();
 
    // get mail
@@ -382,8 +383,8 @@ void runFailedMailSendTest(TestRunner& tr)
 {
    tr.test("FailedMailSend");
 
-   // set url of mail server
-   Url url("");
+   // set url of bogus mail server
+   Url url("smtp://localhost:66000");
 
    // set mail
    db::mail::Mail mail;
@@ -395,8 +396,7 @@ void runFailedMailSendTest(TestRunner& tr)
 
    // create spool to store failed send
    db::mail::MailSpool spool;
-   File spoolFile("/tmp/testmailspool");
-   spool.setFile(spoolFile);
+   spool.initialize("file://" TMPDIR "/testmailspool.db");
 
    // send mail
    db::mail::SmtpClient c;
@@ -406,10 +406,11 @@ void runFailedMailSendTest(TestRunner& tr)
    {
       // check for network errors, we want to spool the mail
       ExceptionRef e = Exception::get();
-      if(strncmp(e->getType(), "db.net", 6) == 0)
+      if(!e->getCauseOfType("db.net", true).isNull())
       {
+         DynamicObject reason = Exception::getAsDynamicObject();
          Exception::clear();
-         spool.spool(&mail);
+         spool.spool(&mail, &reason);
          assertNoException();
 
          // now send the mail properly
