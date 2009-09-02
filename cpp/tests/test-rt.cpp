@@ -1484,7 +1484,27 @@ void runDynoDiffTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("basic");
+   tr.test("basic types");
+   {
+      DynamicObject d1;
+      d1 = true;
+
+      DynamicObject d2;
+      d2 = true;
+
+      DynamicObject diff;
+      assert(!d1.diff(d2, diff));
+
+      d2 = false;
+      DynamicObject expect;
+      expect["type"] = "valueChanged";
+      expect["source"] = true;
+      expect["target"] = false;
+      assert(d1.diff(d2, diff));
+   }
+   tr.passIfNoException();
+
+   tr.test("basic map");
    {
       DynamicObject d1;
       d1->setType(Map);
@@ -1493,21 +1513,61 @@ void runDynoDiffTest(TestRunner& tr)
       d2["a"] = true;
 
       DynamicObject expect;
-      expect["a"] = true;
+      DynamicObject diff;
 
       // d1 diff d2
-      DynamicObject diff;
+      expect->clear();
+      expect[0]["key"] = "a";
+      expect[0]["added"] = true;
       assert(d1.diff(d2, diff));
-      assert(diff == expect);
+      assertDynoCmp(diff, expect);
 
       // d2 diff d1 (reverse above)
-      diff->clear();
+      expect->clear();
+      expect[0]["key"] = "a";
+      expect[0]["removed"] = true;
+      assert(d2.diff(d1, diff));
+      assertDynoCmp(diff, expect);
+
+      // d1 diff d2 (changed value)
+      d1["a"] = false;
+      expect->clear();
+      expect[0]["key"] = "a";
+      expect[0]["changed"]["type"] = "valueChanged";
+      expect[0]["changed"]["source"] = false;
+      expect[0]["changed"]["target"] = true;
       assert(d1.diff(d2, diff));
-      assert(diff == expect);
+      assertDynoCmp(diff, expect);
    }
    tr.passIfNoException();
 
-   tr.test("deep");
+   tr.test("basic array");
+   {
+      DynamicObject d1;
+      d1->setType(Array);
+
+      DynamicObject d2;
+      d2[0] = true;
+
+      DynamicObject expect;
+
+      // d1 diff d2
+      DynamicObject diff;
+      expect[0]["index"] = 0;
+      expect[0]["added"] = true;
+      assert(d1.diff(d2, diff));
+      assertDynoCmp(diff, expect);
+
+      // d2 diff d1 (reverse above)
+      expect->clear();
+      expect[0]["index"] = 0;
+      expect[0]["removed"] = true;
+      assert(d2.diff(d1, diff));
+      assertDynoCmp(diff, expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("deep 1");
    {
       DynamicObject d1;
       d1->setType(Map);
@@ -1518,11 +1578,49 @@ void runDynoDiffTest(TestRunner& tr)
       d2["b"]["b1"] = "Hello, World!";
 
       DynamicObject expect;
-      expect = d2.clone();
+      expect[0]["key"] = "a";
+      expect[0]["added"] = d2["a"].clone();
+      expect[1]["key"] = "b";
+      expect[1]["added"] = d2["b"].clone();
 
       DynamicObject diff;
       assert(d1.diff(d2, diff));
-      assert(diff == expect);
+      assertDynoCmp(diff, expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("deep 2");
+   {
+      DynamicObject d1;
+      d1["a"]["same"] = true;
+      d1["a"]["ch"] = 234;
+      d1["a"]["rem"] = 1;
+      d1["b"]["b1"] = "Hello, World!";
+
+      DynamicObject d2;
+      d2["a"]["same"] = true;
+      d2["a"]["ch"] = 123;
+      d2["a"]["add"] = 2;
+      d2["c"]["c1"] = "Hello, World!";
+
+      DynamicObject expect;
+      expect[0]["key"] = "a";
+      expect[0]["changed"][0]["key"] = "ch";
+      expect[0]["changed"][0]["changed"]["type"] = "valueChanged";
+      expect[0]["changed"][0]["changed"]["source"] = 234;
+      expect[0]["changed"][0]["changed"]["target"] = 123;
+      expect[0]["changed"][1]["key"] = "rem";
+      expect[0]["changed"][1]["removed"] = 1;
+      expect[0]["changed"][2]["key"] = "add";
+      expect[0]["changed"][2]["added"] = 2;
+      expect[1]["key"] = "b";
+      expect[1]["removed"]["b1"] = "Hello, World!";
+      expect[2]["key"] = "c";
+      expect[2]["added"]["c1"] = "Hello, World!";
+
+      DynamicObject diff;
+      assert(d1.diff(d2, diff));
+      assertDynoCmp(diff, expect);
    }
    tr.passIfNoException();
 
@@ -1607,6 +1705,147 @@ void runDynoDiffTest(TestRunner& tr)
       // no diff when compared as strings
       assert(!(d1.diff(d2, diff, DynamicObject::DiffDoublesAsStrings)));
       assert(diff->length() == 0);
+   }
+   tr.passIfNoException();
+
+   tr.test("array no diff");
+   {
+      DynamicObject d1;
+      d1["a"][0] = "data";
+
+      DynamicObject d2;
+      d2["a"][0] = "data";
+
+      DynamicObject diff;
+      DynamicObject expect;
+      expect->setType(Map);
+      assert(!d1.diff(d2, diff));
+      assert(diff->length() == 0);
+      assert(!d2.diff(d1, diff));
+      assert(diff->length() == 0);
+   }
+   tr.passIfNoException();
+
+   tr.test("array added/removed diffs");
+   {
+      DynamicObject d1;
+      d1["a"]->setType(Array);
+
+      DynamicObject d2;
+      d2["a"]->setType(Array);
+      DynamicObject d3;
+      d3 = "data";
+      d2["a"]->append(d3);
+
+      DynamicObject diff;
+
+      {
+         DynamicObject expect;
+         expect[0]["key"] = "a";
+         expect[0]["changed"][0]["index"] = 0;
+         expect[0]["changed"][0]["added"] = "data";
+         assert(d1.diff(d2, diff));
+         assertDynoCmp(diff, expect);
+      }
+
+      {
+         DynamicObject expect;
+         expect[0]["key"] = "a";
+         expect[0]["changed"][0]["index"] = 0;
+         expect[0]["changed"][0]["removed"] = "data";
+         assert(d2.diff(d1, diff));
+         assertDynoCmp(diff, expect);
+      }
+   }
+   tr.passIfNoException();
+
+   tr.test("array changed diffs");
+   {
+      DynamicObject d1;
+      d1["a"][0] = "1";
+
+      DynamicObject d2;
+      d2["a"][0] = "2";
+
+      DynamicObject expect;
+      expect[0]["key"] = "a";
+      expect[0]["changed"][0]["index"] = 0;
+      expect[0]["changed"][0]["changed"]["type"] = "valueChanged";
+      expect[0]["changed"][0]["changed"]["source"] = "1";
+      expect[0]["changed"][0]["changed"]["target"] = "2";
+
+      DynamicObject diff;
+      assert(d1.diff(d2, diff));
+      assertDynoCmp(diff, expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("map no diff");
+   {
+      DynamicObject d1;
+      d1["a"]["b"] = "data";
+
+      DynamicObject d2;
+      d2["a"]["b"] = "data";
+
+      DynamicObject diff;
+      DynamicObject expect;
+      expect->setType(Map);
+      assert(!d1.diff(d2, diff));
+      assert(diff->length() == 0);
+      assert(!d2.diff(d1, diff));
+      assert(diff->length() == 0);
+   }
+   tr.passIfNoException();
+
+   tr.test("map added/removed diffs");
+   {
+      DynamicObject d1;
+      d1["a"]->setType(Map);
+
+      DynamicObject d2;
+      d2["a"]["b"] = "data";
+
+      DynamicObject diff;
+
+      {
+         DynamicObject expect;
+         expect[0]["key"] = "a";
+         expect[0]["changed"][0]["key"] = "b";
+         expect[0]["changed"][0]["added"] = "data";
+         assert(d1.diff(d2, diff));
+         assertDynoCmp(diff, expect);
+      }
+
+      {
+         DynamicObject expect;
+         expect[0]["key"] = "a";
+         expect[0]["changed"][0]["key"] = "b";
+         expect[0]["changed"][0]["removed"] = "data";
+         assert(d2.diff(d1, diff));
+         assertDynoCmp(diff, expect);
+      }
+   }
+   tr.passIfNoException();
+
+   tr.test("map changed diffs");
+   {
+      DynamicObject d1;
+      d1["a"][0] = "1";
+
+      DynamicObject d2;
+      d2["a"][0] = "2";
+
+      DynamicObject expect;
+      expect[0]["key"] = "a";
+      expect[0]["changed"][0]["index"] = 0;
+      expect[0]["changed"][0]["changed"]["type"] = "valueChanged";
+      expect[0]["changed"][0]["changed"]["source"] = "1";
+      expect[0]["changed"][0]["changed"]["target"] = "2";
+
+      DynamicObject diff;
+      assert(d1.diff(d2, diff));
+      assertDynoCmp(diff, expect);
    }
    tr.passIfNoException();
 
