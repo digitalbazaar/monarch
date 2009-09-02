@@ -34,11 +34,13 @@ bool Sqlite3Connection::connect(Url* url)
 {
    bool rval = false;
 
-   if(strncmp(url->getScheme().c_str(), "sqlite3", 7) != 0)
+   string scheme = url->getScheme();
+   if(strncmp(scheme.c_str(), "sqlite3", 7) != 0 &&
+      strncmp(scheme.c_str(), "file", 4) != 0)
    {
       ExceptionRef e = new Exception(
          "Could not connect to sqlite3 database, url scheme doesn't "
-         "start with 'sqlite3'.",
+         "start with 'sqlite3' or 'file'.",
          "db.sql.BadUrlScheme");
       e->getDetails()["url"] = url->toString().c_str();
       Exception::set(e);
