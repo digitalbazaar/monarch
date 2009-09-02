@@ -221,6 +221,19 @@ DynamicObject DynamicObject::clone()
  * object and the target object and places the result in the result object.
  * The comparison flags are passed to the diffing algorithm.
  *
+ * If differences are found, the result object will be an array with the
+ * differences.
+ * [
+ *    {
+ *       "key": <key>
+ *       "<type>": <value>
+ *    },
+ *    ...
+ * ]
+ * Where <key> is the source or target key, <type> is either
+ * "added", "removed", or "changed", and value is the added or
+ * removed value or a sub-diff result.
+ *
  * @param source the source object to compare against the target object.
  * @param target the target object that will be compared against the source
  *               object.
@@ -236,30 +249,159 @@ static bool _getMapDiff(
 {
    bool rval = false;
 
-   // Find everything that is in target and not in source
-   DynamicObjectIterator i = target.getIterator();
+   // keep track of keys we've checked
+   DynamicObject checked;
+   checked->setType(Map);
+
+   // Check all the source keys
+   DynamicObjectIterator i = source.getIterator();
    while(i->hasNext())
    {
       DynamicObject& next = i->next();
       const char* name = i->getName();
-      if(!source->hasMember(name))
-      {
-         // source does not have property that is in target,
-         // so add to diff
-         rval = true;
-         result[name] = next.clone();
-      }
-      else
+      checked[name] = true;
+      if(target->hasMember(name))
       {
          // recusively get sub-diff
          DynamicObject d;
-         if(source[name].diff(next, d, flags))
+         if(next.diff(target[name], d, flags))
          {
             // diff found, add it
+            if(!rval)
+            {
+               // first diff, init result array
+               result->setType(Array);
+               rval = true;
+            }
             rval = true;
-            result[name] = d;
+            DynamicObject& change = result->append();
+            change["key"] = name;
+            change["changed"] = d;
          }
       }
+      else
+      {
+         // key removed from target
+         if(!rval)
+         {
+            // first diff, init result array
+            result->setType(Array);
+            rval = true;
+         }
+         DynamicObject& change = result->append();
+         change["key"] = name;
+         change["removed"] = next.clone();
+      }
+   }
+
+   // Check for added target keys
+   DynamicObjectIterator ti = target.getIterator();
+   while(ti->hasNext())
+   {
+      DynamicObject& next = ti->next();
+      const char* name = ti->getName();
+      if(!checked->hasMember(name))
+      {
+         if(!rval)
+         {
+            // first diff, init result array
+            result->setType(Array);
+            rval = true;
+         }
+         DynamicObject& change = result->append();
+         change["key"] = name;
+         change["added"] = next.clone();
+      }
+   }
+
+   return rval;
+}
+
+/**
+ * The _getArrayDiff helper function gets the differences between the source
+ * object and the target object and places the result in the result object.
+ * The comparison flags are passed to the diffing algorithm.
+ *
+ * If differences are found, the result object will be an array with the
+ * differences.
+ * [
+ *    {
+ *       "index": <index>
+ *       "<type>": <value>
+ *    },
+ *    ...
+ * ]
+ * Where <index> is the source or target index, <type> is either
+ * "added", "removed", or "changed", and value is the added or
+ * removed value or a sub-diff result.
+ *
+ * @param source the source object to compare against the target object.
+ * @param target the target object that will be compared against the source
+ *               object.
+ * @param result the result of the diffing operation.
+ * @param flags the flags that will be passed to the recursive diffing
+ *              operation.
+ *
+ * @return true if there are differences, false otherwise.
+ */
+static bool _getArrayDiff(
+   DynamicObject& source, DynamicObject& target, DynamicObject& result,
+   uint32_t flags)
+{
+   bool rval = false;
+   int i;
+
+   // check for differences and removals
+   for(i = 0; i < source->length(); i++)
+   {
+      if(i >= target->length())
+      {
+         // we are beyond target length so items were removed
+         // check if first
+         if(!rval)
+         {
+            // first diff, init result array
+            result->setType(Array);
+            rval = true;
+         }
+         DynamicObject& change = result->append();
+         change["index"] = i;
+         change["removed"] = source[i].clone();
+      }
+      else
+      {
+         // check if items are the same
+         DynamicObject diff;
+         if(source[i].diff(target[i], diff, flags))
+         {
+            // diff found, check if first
+            if(!rval)
+            {
+               // first diff, init result array
+               result->setType(Array);
+               rval = true;
+            }
+            DynamicObject& change = result->append();
+            change["index"] = i;
+            change["changed"] = diff;
+         }
+      }
+   }
+
+   // check for additions
+   for(; i < target->length(); i++)
+   {
+      // we are beyond source length so items were added
+      // check if first
+      if(!rval)
+      {
+         // first diff, init result array
+         result->setType(Array);
+         rval = true;
+      }
+      DynamicObject& added = result->append();
+      added["index"] = i;
+      added["added"] = target[i];
    }
 
    return rval;
@@ -274,21 +416,21 @@ bool DynamicObject::diff(
    // clear any old values
    result->clear();
 
-   if(source.isNull() && target.isNull())
+   // flags for simple (ie, non-map and non-array) changes
+   bool hasTypeChange = false;
+   bool hasValueChange = false;
+
+   bool snull = source.isNull();
+   bool tnull = target.isNull();
+
+   if(snull && tnull)
    {
       // same: no diff
    }
-   else if(!source.isNull() && target.isNull())
+   else if((!snull && tnull) || (snull && !tnull))
    {
-      // <stuff> -> NULL: diff=NULL
-      rval = true;
-      result = "[DiffError: target object is NULL]";
-   }
-   else if(source.isNull() && !target.isNull())
-   {
-      // NULL -> <stuff> -or- types differ: diff=target
-      rval = true;
-      result = "[DiffError: source object is NULL]";
+      // source or target is null but other is not
+      hasTypeChange = true;
    }
    else
    {
@@ -317,15 +459,13 @@ bool DynamicObject::diff(
                         {
                            if(source->getInt64() != target->getInt64())
                            {
-                              rval = true;
-                              result = target.clone();
+                              hasValueChange = true;
                            }
                         }
                         // do unsigned comparison
                         else if(source->getUInt64() != target->getUInt64())
                         {
-                           rval = true;
-                           result = target.clone();
+                           hasValueChange = true;
                         }
 
                         // only break out of case if we're comparing
@@ -334,25 +474,22 @@ bool DynamicObject::diff(
                         break;
                      }
                   default:
-                     result = "[DiffError: type mismatch]";
-                     rval = true;
+                     hasTypeChange = true;
                }
             }
             else if(source != target)
             {
-               rval = true;
-               result = target.clone();
+               hasValueChange = true;
             }
             break;
          case Double:
             // compare doubles as strings if requested
             if((flags & DiffDoublesAsStrings) &&
-               source->getType() == target->getType())
+               target->getType() == Double)
             {
                if(strcmp(source->getString(), target->getString()) != 0)
                {
-                  rval = true;
-                  result = target.clone();
+                  hasValueChange = true;
                }
                // only break out of case if comparing as strings
                break;
@@ -361,73 +498,44 @@ bool DynamicObject::diff(
          case Boolean:
             if(source->getType() != target->getType())
             {
-               result = "[DiffError: type mismatch]";
-               rval = true;
+               hasTypeChange = true;
             }
             else if(source != target)
             {
-               rval = true;
-               result = target.clone();
+               hasValueChange = true;
             }
             break;
          case Map:
             if(source->getType() != target->getType())
             {
-               result = "[DiffError: type mismatch, expected Map]";
-               rval = true;
+               hasTypeChange = true;
             }
             else
             {
                // get the Map differences between source and target
-               rval = _getMapDiff(source, target, result, flags) || rval;
-               // get the Map differences between target and source
-               rval = _getMapDiff(target, source, result, flags) || rval;
+               rval = _getMapDiff(source, target, result, flags);
             }
             break;
          case Array:
             if(source->getType() != target->getType())
             {
-               result = "[DiffError: type mismatch, expected Array]";
-               rval = true;
+               hasTypeChange = true;
             }
             else
             {
-               // FIXME: since this code was copied from the config manager
-               // this only checks additions and updates not removals which
-               // is totally wrong... we need to fix this
-               DynamicObject temp;
-               temp->setType(Array);
-               DynamicObjectIterator i = target.getIterator();
-               for(int ii = 0; i->hasNext(); ii++)
-               {
-                  DynamicObject next = i->next();
-                  DynamicObject d;
-                  if(source->length() < (ii + 1) ||
-                     source[ii].diff(next, d, flags))
-                  {
-                     // diff found
-                     rval = true;
-                     temp[ii] = d;
-                  }
-                  else
-                  {
-                     // set the array value in temp to the value in source
-                     // FIXME: should this be set to null or something else
-                     // instead since there is no difference?
-                     temp[ii] = source[ii];
-                  }
-               }
-
-               // FIXME: check target for array indexes that are in source
-
-               // only set array to target if a diff was found
-               if(rval)
-               {
-                  result = temp;
-               }
+               // get the Array differences between source and target
+               rval = _getArrayDiff(source, target, result, flags);
             }
             break;
       }
+   }
+
+   if(hasTypeChange || hasValueChange)
+   {
+      rval = true;
+      result["type"] = hasTypeChange ? "typeChanged" : "valueChanged";
+      result["source"] = source;
+      result["target"] = target;
    }
 
    return rval;
