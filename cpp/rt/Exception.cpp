@@ -112,7 +112,7 @@ ExceptionRef Exception::getCauseOfType(const char* type, bool startsWith)
       if(startsWith)
       {
          // use optimized recursive method that only counts "type" length once
-         _getCauseOfType(*mCause, type, strlen(type));
+         rval = _getCauseOfType(*mCause, type, strlen(type));
       }
       else
       {
