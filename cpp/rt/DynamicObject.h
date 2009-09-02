@@ -273,6 +273,28 @@ public:
     * by doing a deep compare between both objects. The differences are written
     * to the given result object.
     *
+    * If differences are found, the result object will be a difference
+    * description.  For simple types the description is:
+    * {
+    *    "type": "valueChanged|typeChanged",
+    *    "source": <source object>,
+    *    "target": <target object>
+    * }
+    * Where the depends if the entire type changed or just the value. The
+    * source and target values are provided for reference.
+    *
+    * For Maps and Arrays the description is:
+    * [
+    *    {
+    *       "key|index": <key|index>,
+    *       "<type>": <value>
+    *    },
+    *    ...
+    * ]
+    * Where <key> or <index> is the source or target map key or array index
+    * <type> is either "added", "removed", or "changed", and <value> is the
+    * added or removed value or a sub-diff result.
+    *
     * @param target the object to generate differences against.
     * @param result the resulting differences if there are any.
     * @param flags the set of flags that enable or disable certain comparison
