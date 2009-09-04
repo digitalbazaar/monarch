@@ -80,7 +80,7 @@ void ConfigManager::clear()
    ConfigChangeListener* listener = getConfigChangeListener();
    if(listener != NULL)
    {
-      listener->configsCleared(this);
+      listener->configCleared(this);
    }
 }
 

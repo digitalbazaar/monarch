@@ -62,7 +62,7 @@ public:
     *
     * @param cm the ConfigManager.
     */
-   virtual void configsCleared(
+   virtual void configCleared(
       ConfigManager* cm) = 0;
 };
 
