@@ -86,15 +86,28 @@ void ConfigManager::clear()
 
 bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
 {
-   bool rval = recursiveAddConfig(config, include, dir);
+   bool rval;
+
+   // keep track of changed IDs
+   DynamicObject changedIds;
+   changedIds->setType(Map);
+   rval = recursiveAddConfig(config, include, dir, &changedIds);
 
    if(rval)
    {
-      // notify listener of configuration change
       ConfigChangeListener* listener = getConfigChangeListener();
       if(listener != NULL)
       {
+         // notify listener of configuration addition
          listener->configAdded(this, config[ID]->getString());
+
+         // notify listener of all related configuration changes
+         DynamicObjectIterator i = changedIds.getIterator();
+         while(i->hasNext())
+         {
+            i->next();
+            listener->configChanged(this, i->getName());
+         }
       }
    }
 
@@ -248,6 +261,10 @@ bool ConfigManager::removeConfig(ConfigId id)
 {
    bool rval = false;
 
+   // keep track of changed IDs
+   DynamicObject changedIds;
+   changedIds->setType(Map);
+
    // lock to modify internal storage
    mLock.lockExclusive();
    {
@@ -322,7 +339,9 @@ bool ConfigManager::removeConfig(ConfigId id)
          DynamicObjectIterator i = configIds.getIterator();
          while(i->hasNext())
          {
-            update(i->next()->getString());
+            ConfigId nextId = i->next()->getString();
+            changedIds[nextId];
+            update(nextId, &changedIds);
          }
       }
       else
@@ -338,11 +357,19 @@ bool ConfigManager::removeConfig(ConfigId id)
 
    if(rval)
    {
-      // notify listener of configuration change
       ConfigChangeListener* listener = getConfigChangeListener();
       if(listener != NULL)
       {
+         // notify listener of configuration removal
          listener->configRemoved(this, id);
+
+         // notify listener of all related configuration changes
+         DynamicObjectIterator i = changedIds.getIterator();
+         while(i->hasNext())
+         {
+            i->next();
+            listener->configChanged(this, i->getName());
+         }
       }
    }
 
@@ -353,8 +380,10 @@ bool ConfigManager::setConfig(Config& config)
 {
    bool rval = false;
 
-   // get config ID
+   // get config ID, store all changed IDs
    ConfigId id = config[ID]->getString();
+   DynamicObject changedIds;
+   changedIds->setType(Map);
 
    // lock to modify internal storage
    mLock.lockExclusive();
@@ -399,7 +428,7 @@ bool ConfigManager::setConfig(Config& config)
       else
       {
          mConfigs[id]["raw"] = config;
-         update(id);
+         update(id, &changedIds);
          rval = true;
       }
    }
@@ -407,11 +436,17 @@ bool ConfigManager::setConfig(Config& config)
 
    if(rval)
    {
-      // notify listener of configuration change
+      // notify listener of all configuration changes
       ConfigChangeListener* listener = getConfigChangeListener();
       if(listener != NULL)
       {
-         listener->configChanged(this, id);
+         changedIds[id];
+         DynamicObjectIterator i = changedIds.getIterator();
+         while(i->hasNext())
+         {
+            i->next();
+            listener->configChanged(this, i->getName());
+         }
       }
    }
 
@@ -446,7 +481,7 @@ bool ConfigManager::hasConfig(ConfigId id)
    return mConfigs->hasMember(id);
 }
 
-void ConfigManager::update(ConfigId id)
+void ConfigManager::update(ConfigId id, DynamicObject* changedIds)
 {
    // lock to modify internal storage
    mLock.lockExclusive();
@@ -459,14 +494,19 @@ void ConfigManager::update(ConfigId id)
       if(mConfigs[id]["raw"]->hasMember(GROUP) &&
          strcmp(id, mConfigs[id]["raw"][GROUP]->getString()) != 0)
       {
-         update(mConfigs[id]["raw"][GROUP]->getString());
+         update(mConfigs[id]["raw"][GROUP]->getString(), changedIds);
       }
 
       // update each child of config ID
       DynamicObjectIterator i = mConfigs[id]["children"].getIterator();
       while(i->hasNext())
       {
-         update(i->next()->getString());
+         ConfigId nextId = i->next()->getString();
+         if(changedIds != NULL)
+         {
+            (*changedIds)[nextId];
+         }
+         update(nextId, changedIds);
       }
    }
    mLock.unlockExclusive();
@@ -994,7 +1034,7 @@ static void _insertConfig(
 }
 
 bool ConfigManager::recursiveAddConfig(
-   Config& config, bool include, const char* dir)
+   Config& config, bool include, const char* dir, DynamicObject* changedIds)
 {
    bool rval = true;
 
@@ -1286,7 +1326,7 @@ bool ConfigManager::recursiveAddConfig(
          if(rval)
          {
             // only update related merged configs
-            update(id);
+            update(id, changedIds);
          }
       }
       mLock.unlockExclusive();

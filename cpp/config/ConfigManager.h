@@ -333,8 +333,9 @@ public:
     *
     * @param id the ID of the config to update (all related configs will be
     *           updated).
+    * @param changedIds an optional map to populate with changed config IDs.
     */
-   virtual void update(ConfigId id);
+   virtual void update(ConfigId id, db::rt::DynamicObject* changedIds = NULL);
 
    /**
     * Associates a value with a keyword such that variable replacement can
@@ -446,11 +447,13 @@ protected:
     * @param include true to process include directives, false to ignore them.
     * @param dir the directory of this config used for processing relative
     *            includes or NULL.
+    * @param changedIds an optional map to populate with changed config IDs.
     *
     * @return true if successful, false if an exception occurred.
     */
    virtual bool recursiveAddConfig(
-      Config& config, bool include, const char* dir);
+      Config& config, bool include, const char* dir,
+      db::rt::DynamicObject* changedIds = NULL);
 };
 
 #undef DLL_CLASS
