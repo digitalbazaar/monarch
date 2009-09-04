@@ -56,9 +56,25 @@ ConfigManager::~ConfigManager()
 DynamicObject ConfigManager::getDebugInfo()
 {
    DynamicObject debug;
-   debug["configs"] = mConfigs.clone();
-   debug["versions"] = mVersions.clone();
+
+   // read lock to clone configs and versions
+   mLock.lockShared();
+   {
+      debug["configs"] = mConfigs.clone();
+      debug["versions"] = mVersions.clone();
+   }
+   mLock.unlockShared();
+
    return debug;
+}
+
+void ConfigManager::clear()
+{
+   mLock.lockExclusive();
+   {
+      mConfigs->clear();
+   }
+   mLock.unlockExclusive();
 }
 
 /**
@@ -70,7 +86,7 @@ DynamicObject ConfigManager::getDebugInfo()
  * @param storage the config to use for storage.
  * @param raw the raw config to insert.
  */
-static void insertConfig(
+static void _insertConfig(
    ConfigManager::ConfigId id, Config& storage, Config& raw)
 {
    Config& c = storage[id];
@@ -93,7 +109,7 @@ static void insertConfig(
  * @param target the target config to update.
  * @param remove the config with entries to remove.
  */
-static void removeLeafNodes(Config& target, Config& remove)
+static void _removeLeafNodes(Config& target, Config& remove)
 {
    // for each config entry, remove leaf nodes from parent config
    ConfigIterator i = remove.getIterator();
@@ -117,7 +133,7 @@ static void removeLeafNodes(Config& target, Config& remove)
             // recurse to find leaf node
             else
             {
-               removeLeafNodes(target[i->getName()], next);
+               _removeLeafNodes(target[i->getName()], next);
             }
          }
          else
@@ -127,15 +143,6 @@ static void removeLeafNodes(Config& target, Config& remove)
          }
       }
    }
-}
-
-void ConfigManager::clear()
-{
-   mLock.lockExclusive();
-   {
-      mConfigs->clear();
-   }
-   mLock.unlockExclusive();
 }
 
 bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
@@ -227,16 +234,22 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
       // add special current directory keyword
       if(dir != NULL)
       {
+         mLock.lockExclusive();
          mKeywordMap["CURRENT_DIR"] = dir;
+         mLock.unlockExclusive();
       }
 
       // do keyword replacement (custom and special)
+      mLock.lockShared();
       replaceKeywords(config, mKeywordMap);
+      mLock.unlockShared();
 
       // remove special keywords
       if(dir != NULL)
       {
+         mLock.lockExclusive();
          mKeywordMap->removeMember("CURRENT_DIR");
+         mLock.unlockExclusive();
       }
    }
 
@@ -380,7 +393,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
             else
             {
                // insert config
-               insertConfig(id, mConfigs, config);
+               _insertConfig(id, mConfigs, config);
             }
 
             if(group)
@@ -783,14 +796,24 @@ void ConfigManager::update(ConfigId id)
 
 void ConfigManager::setKeyword(const char* keyword, const char* value)
 {
-   mKeywordMap[keyword] = value;
+   // lock to modify internal storage
+   mLock.lockExclusive();
+   {
+      mKeywordMap[keyword] = value;
+   }
+   mLock.unlockExclusive();
 }
 
 void ConfigManager::addVersion(const char* version)
 {
-   mVersions[version] = true;
-   DB_CAT_DEBUG(DB_CONFIG_CAT,
-      "Add version: \"%s\"", (version != NULL) ? version : "(none)");
+   // lock to modify internal storage
+   mLock.lockExclusive();
+   {
+      mVersions[version] = true;
+      DB_CAT_DEBUG(DB_CONFIG_CAT,
+         "Added version: \"%s\"", (version != NULL) ? version : "(none)");
+   }
+   mLock.unlockExclusive();
 }
 
 DynamicObject& ConfigManager::getVersions()
@@ -916,7 +939,7 @@ void ConfigManager::makeMergedConfig(ConfigId id)
          // remove appropriate entries from parent config
          if(raw->hasMember(REMOVE))
          {
-            removeLeafNodes(merged, raw[REMOVE]);
+            _removeLeafNodes(merged, raw[REMOVE]);
          }
 
          // merge appropriate entries
