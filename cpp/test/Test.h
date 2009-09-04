@@ -124,23 +124,37 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
    } while(0)
 
 /**
- * Assert DynamicObjects are equal.
+ * Assert named DynamicObjects are equal.
+ *
+ * @param name1 name of first DynamicObject
+ * @param dyno1 first DynamicObject
+ * @param name2 name of second DynamicObject
+ * @param dyno2 second DynamicObject
  */
-#define assertDynoCmp(a, b) \
+#define assertNamedDynoCmp(name1, dyno1, name2, dyno2) \
    do { \
-      if(!(a == b)) \
+      if(!(dyno1 == dyno2)) \
       { \
-         printf("\ndyno a=\n"); \
-         db::rt::DynamicObject d = a; \
+         printf("\n%s:\n", name1); \
+         db::rt::DynamicObject d = dyno1; \
          db::data::json::JsonWriter::writeToStdOut( \
             d, false, false); \
-         printf("dyno b=\n"); \
-         d = b; \
+         printf("%s:\n", name2); \
+         d = dyno2; \
          db::data::json::JsonWriter::writeToStdOut( \
             d, false, false); \
-         assert(a == b); \
+         assert(dyno1 == dyno2); \
       } \
    } while(0)
+
+/**
+ * Assert DynamicObjects are equal.
+ *
+ * @param dyno1 first DynamicObject
+ * @param dyno2 second DynamicObject
+ */
+#define assertDynoCmp(dyno1, dyno2) \
+   assertNamedDynoCmp("\ndyno a=\n", dyno1, "dyno b=\n", dyno2)
 
 } // end namespace test
 } // end namespace db

@@ -14,11 +14,11 @@ SUBDIRS := cpp/3rdparty \
            cpp/net \
            cpp/http \
            cpp/config \
-           cpp/mail \
            cpp/sphinx \
            cpp/validation \
            cpp/sql \
            cpp/sqlite3 \
+           cpp/mail \
            cpp/mysql \
            cpp/upnp \
            cpp/app \
