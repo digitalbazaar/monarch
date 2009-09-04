@@ -129,440 +129,6 @@ static void removeLeafNodes(Config& target, Config& remove)
    }
 }
 
-void ConfigManager::merge(Config& target, Config& source, bool append)
-{
-   if(source.isNull())
-   {
-      target = Config(NULL);
-   }
-   // if the source value is DEFAULT_VALUE then nothing needs to be done to
-   // the target to modify it and it can be skipped here
-   else if(
-      source->getType() != String ||
-      strcmp(source->getString(), DEFAULT_VALUE) != 0)
-   {
-      switch(source->getType())
-      {
-         case String:
-         case Boolean:
-         case Int32:
-         case UInt32:
-         case Int64:
-         case UInt64:
-         case Double:
-            target = source.clone();
-            break;
-         case Map:
-         {
-            target->setType(Map);
-            ConfigIterator i = source.getIterator();
-            while(i->hasNext())
-            {
-               Config& next = i->next();
-               merge(target[i->getName()], next, append);
-            }
-            break;
-         }
-         case Array:
-         {
-            // FIXME: only want to "append" if node is a leaf?
-            target->setType(Array);
-            int ii = (append ? target->length() : 0);
-            ConfigIterator i = source.getIterator();
-            for(; i->hasNext(); ii++)
-            {
-               merge(target[ii], i->next(), append);
-            }
-            break;
-         }
-      }
-   }
-}
-
-void ConfigManager::makeMergedConfig(ConfigId id)
-{
-   // only need to do work if merged config doesn't already exist
-   Config& config = mConfigs[id];
-   if(!config->hasMember("merged"))
-   {
-      // produce a merged configuration that contains only config values, not
-      // any "_special_" config format values
-      Config merged(NULL);
-
-      // if group, recombine members to rebuild RAW config
-      if(config->hasMember("members"))
-      {
-         // clear old raw config
-         Config& raw = config["raw"];
-         if(raw->hasMember(MERGE))
-         {
-            raw[MERGE]->clear();
-         }
-         if(raw->hasMember(APPEND))
-         {
-            raw[APPEND]->clear();
-         }
-         if(raw->hasMember(REMOVE))
-         {
-            raw[REMOVE]->clear();
-         }
-
-         // merge together raw configs together
-         ConfigIterator i = config["members"].getIterator();
-         while(i->hasNext())
-         {
-            Config& memberId = i->next();
-            Config& member = mConfigs[memberId->getString()]["raw"];
-
-            // merge the merge property (do not append)
-            if(member->hasMember(MERGE))
-            {
-               merge(raw[MERGE], member[MERGE], false);
-            }
-
-            // aggregate append properties
-            if(member->hasMember(APPEND))
-            {
-               merge(raw[APPEND], member[APPEND], true);
-            }
-
-            // aggregate remove properties
-            if(member->hasMember(REMOVE))
-            {
-               merge(raw[REMOVE], member[REMOVE], true);
-            }
-         }
-      }
-
-      // get raw configuration
-      Config& raw = config["raw"];
-
-      // get merged config from parent
-      if(raw->hasMember(PARENT))
-      {
-         ConfigId parent = raw[PARENT]->getString();
-         makeMergedConfig(parent);
-         merged = mConfigs[parent]["merged"].clone();
-
-         // remove appropriate entries from parent config
-         if(raw->hasMember(REMOVE))
-         {
-            removeLeafNodes(merged, raw[REMOVE]);
-         }
-
-         // merge appropriate entries
-         if(raw->hasMember(MERGE))
-         {
-            merge(merged, raw[MERGE], false);
-         }
-
-         // add append field
-         if(raw->hasMember(APPEND))
-         {
-            merge(merged, raw[APPEND], true);
-         }
-      }
-      else
-      {
-         // clone MERGE field, if it exists
-         if(raw->hasMember(MERGE))
-         {
-            merged = raw[MERGE].clone();
-
-            // add append field, if it exists
-            if(raw->hasMember(APPEND))
-            {
-               merge(merged, raw[APPEND], true);
-            }
-         }
-         // clone APPEND field, if it exists
-         else if(raw->hasMember(APPEND))
-         {
-            merged = raw[APPEND].clone();
-         }
-      }
-
-      // set merged config
-      config["merged"] = merged;
-   }
-}
-
-void ConfigManager::update(ConfigId id)
-{
-   // lock to modify internal storage
-   mLock.lockExclusive();
-   {
-      // reproduce merged config for config ID
-      mConfigs[id]->removeMember("merged");
-      makeMergedConfig(id);
-
-      // update group config (if not already the group)
-      if(mConfigs[id]["raw"]->hasMember(GROUP) &&
-         strcmp(id, mConfigs[id]["raw"][GROUP]->getString()) != 0)
-      {
-         update(mConfigs[id]["raw"][GROUP]->getString());
-      }
-
-      // update each child of config ID
-      DynamicObjectIterator i = mConfigs[id]["children"].getIterator();
-      while(i->hasNext())
-      {
-         update(i->next()->getString());
-      }
-   }
-   mLock.unlockExclusive();
-}
-
-struct _replaceKeywordsState_s
-{
-   ByteArrayInputStream* bais;
-   TemplateInputStream* tis;
-   ByteBuffer* output;
-   ByteArrayOutputStream* baos;
-};
-
-static void _replaceKeywords(
-   Config& config, DynamicObject& keywordMap,
-   struct _replaceKeywordsState_s* state)
-{
-   if(config.isNull())
-   {
-      // pass
-   }
-   else
-   {
-      switch(config->getType())
-      {
-         case String:
-         {
-            // setup template processing chain
-            state->bais->setByteArray(config->getString(), config->length());
-            state->tis->setVariables(keywordMap, true);
-            state->output->clear();
-            // reset input stream and parsing state
-            state->tis->setInputStream(state->bais);
-            state->tis->parse(state->baos);
-            state->output->putByte(0, 1, true);
-            // set new string
-            config = state->output->data();
-            break;
-         }
-         case Boolean:
-         case Int32:
-         case UInt32:
-         case Int64:
-         case UInt64:
-         case Double:
-            break;
-         case Map:
-         case Array:
-         {
-            ConfigIterator i = config.getIterator();
-            while(i->hasNext())
-            {
-               _replaceKeywords(i->next(), keywordMap, state);
-            }
-            break;
-         }
-      }
-   }
-}
-
-void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
-{
-   if(!config.isNull())
-   {
-      // only process includes and non-meta config info
-      const char* keys[] = {INCLUDE, MERGE, APPEND, REMOVE, NULL};
-      // only create state if needed
-      struct _replaceKeywordsState_s* state = NULL;
-      for(int i = 0; keys[i] != NULL; i++)
-      {
-         if(config->hasMember(keys[i]))
-         {
-            state = new struct _replaceKeywordsState_s;
-            state->bais = new ByteArrayInputStream(NULL, 0);
-            state->tis = new TemplateInputStream(state->bais, false);
-            state->output = new ByteBuffer(2048);
-            state->baos = new ByteArrayOutputStream(state->output, true);
-            // only create once
-            break;
-         }
-      }
-      // replace keywords
-      for(int i = 0; keys[i] != NULL; i++)
-      {
-         const char* key = keys[i];
-         if(config->hasMember(key))
-         {
-            _replaceKeywords(config[key], keywordMap, state);
-         }
-      }
-      if(state != NULL)
-      {
-         delete state->baos;
-         delete state->output;
-         delete state->tis;
-         delete state->bais;
-         delete state;
-      }
-   }
-}
-
-bool ConfigManager::diff(
-   Config& target, Config& config1, Config& config2, int level)
-{
-   bool rval = false;
-
-   if(config1.isNull() && config2.isNull())
-   {
-      // same: no diff
-   }
-   else if(!config1.isNull() && config2.isNull())
-   {
-      // <stuff> -> NULL: diff=NULL
-      rval = true;
-      target = Config(NULL);
-   }
-   else if((config1.isNull() && !config2.isNull()) ||
-      (config1->getType() != config2->getType()))
-   {
-      // NULL -> <stuff> -or- types differ: diff=config2
-      rval = true;
-      target = config2.clone();
-   }
-   else
-   {
-      // not null && same type: diff=deep compare
-      switch(config1->getType())
-      {
-         case String:
-         case Boolean:
-         case Int32:
-         case UInt32:
-         case Int64:
-         case UInt64:
-         case Double:
-            // compare simple types directly
-            if(config1 != config2)
-            {
-               // changed: diff=config2
-               rval = true;
-               target = config2.clone();
-            }
-            break;
-         case Map:
-         {
-            // compare config2 keys since we are only concerned with
-            // additions and updates, not removals
-            ConfigIterator i = config2.getIterator();
-            while(i->hasNext())
-            {
-               Config next = i->next();
-               const char* name = i->getName();
-               if(strcmp(name, TMP) != 0)
-               {
-                  // ignore ID, APPEND, and REMOVE properties
-                  if(level != 0 ||
-                     (strcmp(name, ID) != 0 &&
-                      strcmp(name, APPEND) != 0 &&
-                      strcmp(name, REMOVE) != 0))
-                  {
-                     if(!config1->hasMember(name))
-                     {
-                        // ensure VERSION, PARENT, and GROUP exist in both
-                        if(level == 0 &&
-                           (strcmp(name, VERSION) == 0 ||
-                            strcmp(name, PARENT) == 0 ||
-                            strcmp(name, GROUP) == 0))
-                        {
-                           // special property not in config1, so add to diff
-                           rval = true;
-                           target[name] = next.clone();
-                        }
-                     }
-                     else
-                     {
-                        // recusively get sub-diff
-                        Config d;
-                        if(diff(d, config1[name], next, level + 1))
-                        {
-                           // diff found, add it
-                           rval = true;
-                           target[name] = d;
-                        }
-                     }
-                  }
-               }
-            }
-            break;
-         }
-         case Array:
-         {
-            // compare config2 indexes since we are only concerned with
-            // additions and updates, not removals
-            Config temp;
-            temp->setType(Array);
-            ConfigIterator i = config2.getIterator();
-            for(int ii = 0; i->hasNext(); ii++)
-            {
-               DynamicObject next = i->next();
-               Config d;
-               if(diff(d, config1[ii], next, level + 1))
-               {
-                  // diff found
-                  rval = true;
-                  temp[ii] = d;
-               }
-               else
-               {
-                  // set keyword value
-                  temp[ii] = DEFAULT_VALUE;
-               }
-            }
-
-            // only set array to target if a diff was found
-            if(rval)
-            {
-               target = temp;
-            }
-
-            break;
-         }
-      }
-   }
-
-   return rval;
-}
-
-bool ConfigManager::checkConflicts(
-   ConfigId id, Config& existing, Config& config, bool isGroup)
-{
-   bool rval = true;
-
-   // calculate the conflict-diff between existing and config
-   Config d;
-   diff(d, existing, config, 0);
-
-   // check for parent, group, or merge conflicts
-   // version check done elsewhere
-   if(d->hasMember(PARENT) ||
-      d->hasMember(GROUP) ||
-      d->hasMember(MERGE))
-   {
-      ExceptionRef e = new Exception(
-         "Config conflict. Parent, group, or merge field differs for "
-         "a particular config ID.", "db.config.ConfigManager.ConfigConflict");
-      e->getDetails()["configId"] = id;
-      e->getDetails()["diff"] = d;
-      e->getDetails()["isGroup"] = isGroup;
-      Exception::set(e);
-      rval = false;
-   }
-
-   return rval;
-}
-
 void ConfigManager::clear()
 {
    mLock.lockExclusive();
@@ -1105,32 +671,6 @@ bool ConfigManager::removeConfig(ConfigId id)
    return rval;
 }
 
-Config ConfigManager::getConfig(ConfigId id, bool raw)
-{
-   Config rval(NULL);
-
-   if(mConfigs->hasMember(id))
-   {
-      rval = (raw ?
-         mConfigs[id]["raw"].clone() : mConfigs[id]["merged"]);
-   }
-   else
-   {
-      ExceptionRef e = new Exception(
-         "Could not get config. Invalid config ID.",
-         "db.config.ConfigManager.InvalidId");
-      e->getDetails()["id"] = id;
-      Exception::set(e);
-   }
-
-   return rval;
-}
-
-bool ConfigManager::hasConfig(ConfigId id)
-{
-   return mConfigs->hasMember(id);
-}
-
 bool ConfigManager::setConfig(Config& config)
 {
    bool rval = false;
@@ -1189,6 +729,58 @@ bool ConfigManager::setConfig(Config& config)
    return rval;
 }
 
+Config ConfigManager::getConfig(ConfigId id, bool raw)
+{
+   Config rval(NULL);
+
+   if(mConfigs->hasMember(id))
+   {
+      rval = (raw ?
+         mConfigs[id]["raw"].clone() : mConfigs[id]["merged"]);
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Could not get config. Invalid config ID.",
+         "db.config.ConfigManager.InvalidId");
+      e->getDetails()["id"] = id;
+      Exception::set(e);
+   }
+
+   return rval;
+}
+
+bool ConfigManager::hasConfig(ConfigId id)
+{
+   return mConfigs->hasMember(id);
+}
+
+void ConfigManager::update(ConfigId id)
+{
+   // lock to modify internal storage
+   mLock.lockExclusive();
+   {
+      // reproduce merged config for config ID
+      mConfigs[id]->removeMember("merged");
+      makeMergedConfig(id);
+
+      // update group config (if not already the group)
+      if(mConfigs[id]["raw"]->hasMember(GROUP) &&
+         strcmp(id, mConfigs[id]["raw"][GROUP]->getString()) != 0)
+      {
+         update(mConfigs[id]["raw"][GROUP]->getString());
+      }
+
+      // update each child of config ID
+      DynamicObjectIterator i = mConfigs[id]["children"].getIterator();
+      while(i->hasNext())
+      {
+         update(i->next()->getString());
+      }
+   }
+   mLock.unlockExclusive();
+}
+
 void ConfigManager::setKeyword(const char* keyword, const char* value)
 {
    mKeywordMap[keyword] = value;
@@ -1204,4 +796,412 @@ void ConfigManager::addVersion(const char* version)
 DynamicObject& ConfigManager::getVersions()
 {
    return mVersions;
+}
+
+void ConfigManager::merge(Config& target, Config& source, bool append)
+{
+   if(source.isNull())
+   {
+      target = Config(NULL);
+   }
+   // if the source value is DEFAULT_VALUE then nothing needs to be done to
+   // the target to modify it and it can be skipped here
+   else if(
+      source->getType() != String ||
+      strcmp(source->getString(), DEFAULT_VALUE) != 0)
+   {
+      switch(source->getType())
+      {
+         case String:
+         case Boolean:
+         case Int32:
+         case UInt32:
+         case Int64:
+         case UInt64:
+         case Double:
+            target = source.clone();
+            break;
+         case Map:
+         {
+            target->setType(Map);
+            ConfigIterator i = source.getIterator();
+            while(i->hasNext())
+            {
+               Config& next = i->next();
+               merge(target[i->getName()], next, append);
+            }
+            break;
+         }
+         case Array:
+         {
+            // FIXME: only want to "append" if node is a leaf?
+            target->setType(Array);
+            int ii = (append ? target->length() : 0);
+            ConfigIterator i = source.getIterator();
+            for(; i->hasNext(); ii++)
+            {
+               merge(target[ii], i->next(), append);
+            }
+            break;
+         }
+      }
+   }
+}
+
+void ConfigManager::makeMergedConfig(ConfigId id)
+{
+   // only need to do work if merged config doesn't already exist
+   Config& config = mConfigs[id];
+   if(!config->hasMember("merged"))
+   {
+      // produce a merged configuration that contains only config values, not
+      // any "_special_" config format values
+      Config merged(NULL);
+
+      // if group, recombine members to rebuild RAW config
+      if(config->hasMember("members"))
+      {
+         // clear old raw config
+         Config& raw = config["raw"];
+         if(raw->hasMember(MERGE))
+         {
+            raw[MERGE]->clear();
+         }
+         if(raw->hasMember(APPEND))
+         {
+            raw[APPEND]->clear();
+         }
+         if(raw->hasMember(REMOVE))
+         {
+            raw[REMOVE]->clear();
+         }
+
+         // merge together raw configs together
+         ConfigIterator i = config["members"].getIterator();
+         while(i->hasNext())
+         {
+            Config& memberId = i->next();
+            Config& member = mConfigs[memberId->getString()]["raw"];
+
+            // merge the merge property (do not append)
+            if(member->hasMember(MERGE))
+            {
+               merge(raw[MERGE], member[MERGE], false);
+            }
+
+            // aggregate append properties
+            if(member->hasMember(APPEND))
+            {
+               merge(raw[APPEND], member[APPEND], true);
+            }
+
+            // aggregate remove properties
+            if(member->hasMember(REMOVE))
+            {
+               merge(raw[REMOVE], member[REMOVE], true);
+            }
+         }
+      }
+
+      // get raw configuration
+      Config& raw = config["raw"];
+
+      // get merged config from parent
+      if(raw->hasMember(PARENT))
+      {
+         ConfigId parent = raw[PARENT]->getString();
+         makeMergedConfig(parent);
+         merged = mConfigs[parent]["merged"].clone();
+
+         // remove appropriate entries from parent config
+         if(raw->hasMember(REMOVE))
+         {
+            removeLeafNodes(merged, raw[REMOVE]);
+         }
+
+         // merge appropriate entries
+         if(raw->hasMember(MERGE))
+         {
+            merge(merged, raw[MERGE], false);
+         }
+
+         // add append field
+         if(raw->hasMember(APPEND))
+         {
+            merge(merged, raw[APPEND], true);
+         }
+      }
+      else
+      {
+         // clone MERGE field, if it exists
+         if(raw->hasMember(MERGE))
+         {
+            merged = raw[MERGE].clone();
+
+            // add append field, if it exists
+            if(raw->hasMember(APPEND))
+            {
+               merge(merged, raw[APPEND], true);
+            }
+         }
+         // clone APPEND field, if it exists
+         else if(raw->hasMember(APPEND))
+         {
+            merged = raw[APPEND].clone();
+         }
+      }
+
+      // set merged config
+      config["merged"] = merged;
+   }
+}
+
+struct _replaceKeywordsState_s
+{
+   ByteArrayInputStream* bais;
+   TemplateInputStream* tis;
+   ByteBuffer* output;
+   ByteArrayOutputStream* baos;
+};
+
+static void _replaceKeywords(
+   Config& config, DynamicObject& keywordMap,
+   struct _replaceKeywordsState_s* state)
+{
+   if(config.isNull())
+   {
+      // pass
+   }
+   else
+   {
+      switch(config->getType())
+      {
+         case String:
+         {
+            // setup template processing chain
+            state->bais->setByteArray(config->getString(), config->length());
+            state->tis->setVariables(keywordMap, true);
+            state->output->clear();
+            // reset input stream and parsing state
+            state->tis->setInputStream(state->bais);
+            state->tis->parse(state->baos);
+            state->output->putByte(0, 1, true);
+            // set new string
+            config = state->output->data();
+            break;
+         }
+         case Boolean:
+         case Int32:
+         case UInt32:
+         case Int64:
+         case UInt64:
+         case Double:
+            break;
+         case Map:
+         case Array:
+         {
+            ConfigIterator i = config.getIterator();
+            while(i->hasNext())
+            {
+               _replaceKeywords(i->next(), keywordMap, state);
+            }
+            break;
+         }
+      }
+   }
+}
+
+void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
+{
+   if(!config.isNull())
+   {
+      // only process includes and non-meta config info
+      const char* keys[] = {INCLUDE, MERGE, APPEND, REMOVE, NULL};
+      // only create state if needed
+      struct _replaceKeywordsState_s* state = NULL;
+      for(int i = 0; keys[i] != NULL; i++)
+      {
+         if(config->hasMember(keys[i]))
+         {
+            state = new struct _replaceKeywordsState_s;
+            state->bais = new ByteArrayInputStream(NULL, 0);
+            state->tis = new TemplateInputStream(state->bais, false);
+            state->output = new ByteBuffer(2048);
+            state->baos = new ByteArrayOutputStream(state->output, true);
+            // only create once
+            break;
+         }
+      }
+      // replace keywords
+      for(int i = 0; keys[i] != NULL; i++)
+      {
+         const char* key = keys[i];
+         if(config->hasMember(key))
+         {
+            _replaceKeywords(config[key], keywordMap, state);
+         }
+      }
+      if(state != NULL)
+      {
+         delete state->baos;
+         delete state->output;
+         delete state->tis;
+         delete state->bais;
+         delete state;
+      }
+   }
+}
+
+bool ConfigManager::diff(
+   Config& target, Config& config1, Config& config2, int level)
+{
+   bool rval = false;
+
+   if(config1.isNull() && config2.isNull())
+   {
+      // same: no diff
+   }
+   else if(!config1.isNull() && config2.isNull())
+   {
+      // <stuff> -> NULL: diff=NULL
+      rval = true;
+      target = Config(NULL);
+   }
+   else if((config1.isNull() && !config2.isNull()) ||
+      (config1->getType() != config2->getType()))
+   {
+      // NULL -> <stuff> -or- types differ: diff=config2
+      rval = true;
+      target = config2.clone();
+   }
+   else
+   {
+      // not null && same type: diff=deep compare
+      switch(config1->getType())
+      {
+         case String:
+         case Boolean:
+         case Int32:
+         case UInt32:
+         case Int64:
+         case UInt64:
+         case Double:
+            // compare simple types directly
+            if(config1 != config2)
+            {
+               // changed: diff=config2
+               rval = true;
+               target = config2.clone();
+            }
+            break;
+         case Map:
+         {
+            // compare config2 keys since we are only concerned with
+            // additions and updates, not removals
+            ConfigIterator i = config2.getIterator();
+            while(i->hasNext())
+            {
+               Config next = i->next();
+               const char* name = i->getName();
+               if(strcmp(name, TMP) != 0)
+               {
+                  // ignore ID, APPEND, and REMOVE properties
+                  if(level != 0 ||
+                     (strcmp(name, ID) != 0 &&
+                      strcmp(name, APPEND) != 0 &&
+                      strcmp(name, REMOVE) != 0))
+                  {
+                     if(!config1->hasMember(name))
+                     {
+                        // ensure VERSION, PARENT, and GROUP exist in both
+                        if(level == 0 &&
+                           (strcmp(name, VERSION) == 0 ||
+                            strcmp(name, PARENT) == 0 ||
+                            strcmp(name, GROUP) == 0))
+                        {
+                           // special property not in config1, so add to diff
+                           rval = true;
+                           target[name] = next.clone();
+                        }
+                     }
+                     else
+                     {
+                        // recusively get sub-diff
+                        Config d;
+                        if(diff(d, config1[name], next, level + 1))
+                        {
+                           // diff found, add it
+                           rval = true;
+                           target[name] = d;
+                        }
+                     }
+                  }
+               }
+            }
+            break;
+         }
+         case Array:
+         {
+            // compare config2 indexes since we are only concerned with
+            // additions and updates, not removals
+            Config temp;
+            temp->setType(Array);
+            ConfigIterator i = config2.getIterator();
+            for(int ii = 0; i->hasNext(); ii++)
+            {
+               DynamicObject next = i->next();
+               Config d;
+               if(diff(d, config1[ii], next, level + 1))
+               {
+                  // diff found
+                  rval = true;
+                  temp[ii] = d;
+               }
+               else
+               {
+                  // set keyword value
+                  temp[ii] = DEFAULT_VALUE;
+               }
+            }
+
+            // only set array to target if a diff was found
+            if(rval)
+            {
+               target = temp;
+            }
+
+            break;
+         }
+      }
+   }
+
+   return rval;
+}
+
+bool ConfigManager::checkConflicts(
+   ConfigId id, Config& existing, Config& config, bool isGroup)
+{
+   bool rval = true;
+
+   // calculate the conflict-diff between existing and config
+   Config d;
+   diff(d, existing, config, 0);
+
+   // check for parent, group, or merge conflicts
+   // version check done elsewhere
+   if(d->hasMember(PARENT) ||
+      d->hasMember(GROUP) ||
+      d->hasMember(MERGE))
+   {
+      ExceptionRef e = new Exception(
+         "Config conflict. Parent, group, or merge field differs for "
+         "a particular config ID.", "db.config.ConfigManager.ConfigConflict");
+      e->getDetails()["configId"] = id;
+      e->getDetails()["diff"] = d;
+      e->getDetails()["isGroup"] = isGroup;
+      Exception::set(e);
+      rval = false;
+   }
+
+   return rval;
 }

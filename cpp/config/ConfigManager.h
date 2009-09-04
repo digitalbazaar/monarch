@@ -207,66 +207,6 @@ protected:
     */
    db::rt::SharedLock mLock;
 
-   /**
-    * Merges source over data in target. Simple values are cloned. Arrays
-    * and Maps are iterated through recursively.
-    *
-    * @param target destination to merge into.
-    * @param source source to merge from.
-    * @param append true to append array values, false to merge them.
-    */
-   virtual void merge(Config& target, Config& source, bool append);
-
-   /**
-    * Merges raw and parent merged configs and stores them in the "merged"
-    * property for the given config ID. The merged configuration has no
-    * no "__special__" tags. This method assumes the lock for modifying
-    * internal storage is engaged in exclusive mode.
-    *
-    * @param id the config ID to create the merged config for.
-    */
-   virtual void makeMergedConfig(ConfigId id);
-
-   /**
-    * Replaces keyword values with appropriate values.  See the class docs.
-    *
-    * @param config the Config to process.
-    * @param keywordMap a map of strings to replacement values.
-    */
-   virtual void replaceKeywords(
-      Config& config, db::rt::DynamicObject& keywordMap);
-
-   /**
-    * Computes the differences from config1 to config2 and stores them in
-    * target. Only includes diff additions for main properties (i.e. VERSION,
-    * PARENT, GROUP), ignores all diffs in APPEND and REMOVE, and only includes
-    * diff updates in MERGE.
-    *
-    * @param diff the Config to write the diff to.
-    * @param config1 original Config.
-    * @param config2 the new Config.
-    * @param level set by recursive algorithm, must be initialized to 0.
-    *
-    * @return true if diff found, else false
-    */
-   virtual bool diff(
-      Config& target, Config& config1, Config& config2, int level = 0);
-
-   /**
-    * Helper method to check two configs for conflicts. There is a conflict
-    * between the two configs if "existing" has a main property (i.e. parent,
-    * group, version, etc.) or a merge value that differs from "config".
-    *
-    * @param id the config ID of the two configs.
-    * @param existing the existing config.
-    * @param config the new config.
-    * @param isGroup true if the given config ID is for a group, false if not.
-    *
-    * @return true if no conflict, false if conflict with exception set.
-    */
-   virtual bool checkConflicts(
-      ConfigId id, Config& existing, Config& config, bool isGroup);
-
 public:
    /**
     * Creates a new ConfigManager.
@@ -343,13 +283,14 @@ public:
    virtual bool removeConfig(ConfigId id);
 
    /**
-    * Check if a config with a specific ID exists.
+    * Sets the a particular config's raw data and updates any related
+    * configs.
     *
-    * @param id the Config's ID.
+    * @param config the config to update.
     *
-    * @return true if ID is valid, false if not.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual bool hasConfig(ConfigId id);
+   virtual bool setConfig(Config& config);
 
    /**
     * Gets a specific config by its ID. This method will return a clone
@@ -369,23 +310,13 @@ public:
    virtual Config getConfig(ConfigId id, bool raw = false);
 
    /**
-    * Sets the a particular config's raw data and updates any related
-    * configs.
+    * Check if a config with a specific ID exists.
     *
-    * @param config the config to update.
+    * @param id the Config's ID.
     *
-    * @return true if successful, false if an exception occurred.
+    * @return true if ID is valid, false if not.
     */
-   virtual bool setConfig(Config& config);
-
-   /**
-    * Associates a value with a keyword such that variable replacement can
-    * happen in JSON strings.
-    *
-    * @param keyword The keyword to use in the config manager.
-    * @param value The value to associate with the keyword.
-    */
-   virtual void setKeyword(const char* keyword, const char* value);
+   virtual bool hasConfig(ConfigId id);
 
    /**
     * Reproduces the merged config for the given config ID. This method is
@@ -396,6 +327,15 @@ public:
     *           updated).
     */
    virtual void update(ConfigId id);
+
+   /**
+    * Associates a value with a keyword such that variable replacement can
+    * happen in JSON strings.
+    *
+    * @param keyword The keyword to use in the config manager.
+    * @param value The value to associate with the keyword.
+    */
+   virtual void setKeyword(const char* keyword, const char* value);
 
    /**
     * Set the version of configurations this manager uses.  When adding a
@@ -415,6 +355,67 @@ public:
     * @return an Array of versions or an empty to accept all versions.
     */
    virtual db::rt::DynamicObject& getVersions();
+
+protected:
+   /**
+    * Merges source over data in target. Simple values are cloned. Arrays
+    * and Maps are iterated through recursively.
+    *
+    * @param target destination to merge into.
+    * @param source source to merge from.
+    * @param append true to append array values, false to merge them.
+    */
+   virtual void merge(Config& target, Config& source, bool append);
+
+   /**
+    * Merges raw and parent merged configs and stores them in the "merged"
+    * property for the given config ID. The merged configuration has no
+    * no "__special__" tags. This method assumes the lock for modifying
+    * internal storage is engaged in exclusive mode.
+    *
+    * @param id the config ID to create the merged config for.
+    */
+   virtual void makeMergedConfig(ConfigId id);
+
+   /**
+    * Replaces keyword values with appropriate values.  See the class docs.
+    *
+    * @param config the Config to process.
+    * @param keywordMap a map of strings to replacement values.
+    */
+   virtual void replaceKeywords(
+      Config& config, db::rt::DynamicObject& keywordMap);
+
+   /**
+    * Computes the differences from config1 to config2 and stores them in
+    * target. Only includes diff additions for main properties (i.e. VERSION,
+    * PARENT, GROUP), ignores all diffs in APPEND and REMOVE, and only includes
+    * diff updates in MERGE.
+    *
+    * @param diff the Config to write the diff to.
+    * @param config1 original Config.
+    * @param config2 the new Config.
+    * @param level set by recursive algorithm, must be initialized to 0.
+    *
+    * @return true if diff found, else false
+    */
+   virtual bool diff(
+      Config& target, Config& config1, Config& config2, int level = 0);
+
+   /**
+    * Helper method to check two configs for conflicts. There is a conflict
+    * between the two configs if "existing" has a main property (i.e. parent,
+    * group, version, etc.) or a merge value that differs from "config".
+    *
+    * @param id the config ID of the two configs.
+    * @param existing the existing config.
+    * @param config the new config.
+    * @param isGroup true if the given config ID is for a group, false if not.
+    *
+    * @return true if no conflict, false if conflict with exception set.
+    */
+   virtual bool checkConflicts(
+      ConfigId id, Config& existing, Config& config, bool isGroup);
 };
 
 #undef DLL_CLASS
