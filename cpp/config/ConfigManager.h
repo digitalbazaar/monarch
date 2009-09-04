@@ -30,6 +30,9 @@ namespace config
 typedef db::rt::DynamicObject Config;
 typedef db::rt::DynamicObjectIterator ConfigIterator;
 
+// forward declare config change listener
+class ConfigChangeListener;
+
 /**
  * A ConfigManager provides support for managing multiple sources of
  * configuration information. Each different configuration source (referred to
@@ -207,6 +210,11 @@ protected:
     */
    db::rt::SharedLock mLock;
 
+   /**
+    * An interface to report configuration changes to.
+    */
+   ConfigChangeListener* mConfigChangeListener;
+
 public:
    /**
     * Creates a new ConfigManager.
@@ -356,6 +364,20 @@ public:
     */
    virtual db::rt::DynamicObject& getVersions();
 
+   /**
+    * Sets the configuration change listener for this config manager.
+    *
+    * @param listener the listener to notify when a config changes.
+    */
+   virtual void setConfigChangeListener(ConfigChangeListener* listener);
+
+   /**
+    * Gets the configuration change listener for this config manager.
+    *
+    * @return the configuration change listener for this config manager.
+    */
+   ConfigChangeListener* getConfigChangeListener();
+
 protected:
    /**
     * Merges source over data in target. Simple values are cloned. Arrays
@@ -416,6 +438,19 @@ protected:
     */
    virtual bool checkConflicts(
       ConfigId id, Config& existing, Config& config, bool isGroup);
+
+   /**
+    * The recursive version of addConfig() called by addConfig().
+    *
+    * @param config the Config to add.
+    * @param include true to process include directives, false to ignore them.
+    * @param dir the directory of this config used for processing relative
+    *            includes or NULL.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool recursiveAddConfig(
+      Config& config, bool include, const char* dir);
 };
 
 #undef DLL_CLASS

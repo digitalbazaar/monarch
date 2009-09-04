@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "db/config/ConfigChangeListener.h"
 #include "db/data/json/JsonReader.h"
 #include "db/data/TemplateInputStream.h"
 #include "db/io/BufferedOutputStream.h"
@@ -40,7 +41,8 @@ const char* ConfigManager::INCLUDE     = "_include_";
 const char* ConfigManager::INCLUDE_EXT = ".config";
 const char* ConfigManager::TMP         = "_tmp_";
 
-ConfigManager::ConfigManager()
+ConfigManager::ConfigManager() :
+   mConfigChangeListener(NULL)
 {
    // initialize internal data structures
    mVersions->setType(Map);
@@ -71,376 +73,29 @@ DynamicObject ConfigManager::getDebugInfo()
 void ConfigManager::clear()
 {
    mLock.lockExclusive();
-   {
-      mConfigs->clear();
-   }
+   mConfigs->clear();
    mLock.unlockExclusive();
-}
 
-/**
- * A helper method to insert a config. This method assumes there is no
- * existing config with the passed ID and that any parent in the config is
- * valid.
- *
- * @param id the config ID of the config to insert.
- * @param storage the config to use for storage.
- * @param raw the raw config to insert.
- */
-static void _insertConfig(
-   ConfigManager::ConfigId id, Config& storage, Config& raw)
-{
-   Config& c = storage[id];
-   c["children"]->setType(Array);
-   c["raw"] = raw;
-
-   // if has parent
-   if(raw->hasMember(ConfigManager::PARENT))
+   // notify listener of configuration change
+   ConfigChangeListener* listener = getConfigChangeListener();
+   if(listener != NULL)
    {
-      // update parent's children
-      ConfigManager::ConfigId parent = raw[ConfigManager::PARENT]->getString();
-      storage[parent]["children"]->append() = id;
-   }
-}
-
-/**
- * A helper method that removes the config values from one config
- * from another config.
- *
- * @param target the target config to update.
- * @param remove the config with entries to remove.
- */
-static void _removeLeafNodes(Config& target, Config& remove)
-{
-   // for each config entry, remove leaf nodes from parent config
-   ConfigIterator i = remove.getIterator();
-   while(i->hasNext())
-   {
-      Config& next = i->next();
-
-      // proceed if value is in parent configuration
-      if(target->hasMember(i->getName()))
-      {
-         // FIXME: need a method to remove a single element from an array
-         // also -- this currently will not be able to differentiate
-         // between removing "index" X and removing value "Y" from an array
-         if(next->getType() == Map || next->getType() == Array)
-         {
-            // empty map/array leaf node to be removed
-            if(next->length() == 0)
-            {
-               target->removeMember(i->getName());
-            }
-            // recurse to find leaf node
-            else
-            {
-               _removeLeafNodes(target[i->getName()], next);
-            }
-         }
-         else
-         {
-            // primitive type leaf node to be removed
-            target->removeMember(i->getName());
-         }
-      }
+      listener->configsCleared(this);
    }
 }
 
 bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
 {
-   bool rval = true;
-
-   // get config ID
-   ConfigId id = "";
-   if(config->hasMember(ID))
-   {
-      id = config[ID]->getString();
-   }
-   else
-   {
-      ExceptionRef e = new Exception(
-         "No valid config ID found.",
-         "db.config.ConfigManager.MissingId");
-      Exception::set(e);
-      rval = false;
-   }
-
-   // ensure group ID doesn't match config ID
-   if(rval && config->hasMember(GROUP) &&
-      strcmp(id, config[GROUP]->getString()) == 0)
-   {
-      ExceptionRef e = new Exception(
-         "Group ID cannot be the same as config ID.",
-         "db.config.ConfigManager.ConfigConflict");
-      e->getDetails()["id"] = id;
-      Exception::set(e);
-      rval = false;
-   }
+   bool rval = recursiveAddConfig(config, include, dir);
 
    if(rval)
    {
-      // read lock to check version & parent
-      mLock.lockShared();
+      // notify listener of configuration change
+      ConfigChangeListener* listener = getConfigChangeListener();
+      if(listener != NULL)
       {
-         // check version is present
-         if(mVersions->length() > 0)
-         {
-            if(!config->hasMember(VERSION))
-            {
-               ExceptionRef e = new Exception(
-                  "No config file version found.",
-                  "db.config.ConfigManager.UnspecifiedVersion");
-               Exception::set(e);
-               rval = false;
-            }
-            else
-            {
-               // check for known version
-               const char* version = config[VERSION]->getString();
-               if(!mVersions->hasMember(version))
-               {
-                  ExceptionRef e = new Exception(
-                     "Unsupported config file version.",
-                     "db.config.ConfigManager.UnsupportedVersion");
-                  e->getDetails()["version"] = version;
-                  Exception::set(e);
-                  rval = false;
-               }
-            }
-         }
-
-         // if has parent
-         if(rval && config->hasMember(PARENT))
-         {
-            // ensure parent exists
-            ConfigId parent = config[PARENT]->getString();
-            if(!mConfigs->hasMember(parent))
-            {
-               ExceptionRef e = new Exception(
-                  "Invalid parent configuration file ID.",
-                  "db.config.ConfigManager.InvalidParent");
-               e->getDetails()["configId"] = id;
-               e->getDetails()["parentId"] = parent;
-               Exception::set(e);
-               rval = false;
-            }
-         }
+         listener->configAdded(this, config[ID]->getString());
       }
-      mLock.unlockShared();
-   }
-
-   // handle global keyword replacement
-   if(rval)
-   {
-      // add special current directory keyword
-      if(dir != NULL)
-      {
-         mLock.lockExclusive();
-         mKeywordMap["CURRENT_DIR"] = dir;
-         mLock.unlockExclusive();
-      }
-
-      // do keyword replacement (custom and special)
-      mLock.lockShared();
-      replaceKeywords(config, mKeywordMap);
-      mLock.unlockShared();
-
-      // remove special keywords
-      if(dir != NULL)
-      {
-         mLock.lockExclusive();
-         mKeywordMap->removeMember("CURRENT_DIR");
-         mLock.unlockExclusive();
-      }
-   }
-
-   // process includes
-   if(rval && include && config->hasMember(INCLUDE))
-   {
-      if(config[INCLUDE]->getType() != Array)
-      {
-         ExceptionRef e = new Exception(
-            "The include directive value must be an array.",
-            "db.config.ConfigManager.InvalidIncludeType");
-         e->getDetails()["configId"] = id;
-         e->getDetails()[INCLUDE] = config[INCLUDE];
-         Exception::set(e);
-         rval = false;
-      }
-      else
-      {
-         ConfigIterator i = config[INCLUDE].getIterator();
-         while(rval && i->hasNext())
-         {
-            Config& next = i->next();
-            bool load = true;
-            bool optional = false;
-            bool includeSubdirectories = false;
-            const char* path = NULL;
-
-            if(next->getType() == String)
-            {
-               path = next->getString();
-            }
-            else if(next->getType() == Map)
-            {
-               if(next->hasMember("path"))
-               {
-                  path = next["path"]->getString();
-               }
-               else
-               {
-                  ExceptionRef e = new Exception(
-                     "The include path is missing.",
-                     "db.config.ConfigManager.MissingIncludePath");
-                  e->getDetails()["configId"] = id;
-                  e->getDetails()[INCLUDE] = config[INCLUDE];
-                  Exception::set(e);
-                  rval = false;
-               }
-               // should include be loaded?
-               if(next->hasMember("load"))
-               {
-                  load = next["load"]->getBoolean();;
-               }
-               // is include optional?
-               if(next->hasMember("optional"))
-               {
-                  optional = next["optional"]->getBoolean();
-               }
-               // should subdirs be scanned too?
-               if(next->hasMember("includeSubdirectories"))
-               {
-                  includeSubdirectories =
-                     next["includeSubdirectories"]->getBoolean();
-               }
-            }
-            else
-            {
-               ExceptionRef e = new Exception(
-                  "The type of the include value is invalid.",
-                  "db.config.ConfigManager.InvalidIncludeType");
-               e->getDetails()["configId"] = id;
-               e->getDetails()[INCLUDE] = config[INCLUDE];
-               Exception::set(e);
-               rval = false;
-            }
-
-            // if load, then load the included config file
-            if(rval && load)
-            {
-               DB_CAT_DEBUG(DB_CONFIG_CAT, "Loading include: %s", path);
-               rval = addConfigFile(
-                  path, true, dir, optional, includeSubdirectories);
-            }
-         }
-      }
-   }
-
-   // add configuration
-   if(rval)
-   {
-      // lock to add config to internal storage
-      mLock.lockExclusive();
-      {
-         // get the group ID
-         ConfigId groupId = "";
-         bool group = false;
-         if(config->hasMember(GROUP))
-         {
-            group = true;
-            groupId = config[GROUP]->getString();
-         }
-
-         // if the config ID already exists, ensure there are no conflicts
-         bool mergeConfig = false;
-         if(mConfigs->hasMember(id))
-         {
-            mergeConfig = true;
-            rval = checkConflicts(id, mConfigs[id]["raw"], config, false);
-         }
-
-         // if the group ID already exists, ensure there are no conflicts
-         if(group && mConfigs->hasMember(groupId))
-         {
-            rval = checkConflicts(
-               groupId, mConfigs[groupId]["raw"], config, true);
-         }
-
-         if(rval)
-         {
-            if(mergeConfig)
-            {
-               Config& raw = mConfigs[id]["raw"];
-
-               // merge the merge property (do not append)
-               if(raw->hasMember(MERGE) || config->hasMember(MERGE))
-               {
-                  merge(raw[MERGE], config[MERGE], false);
-               }
-
-               // aggregate append properties
-               if(raw->hasMember(APPEND) || config->hasMember(APPEND))
-               {
-                  merge(raw[APPEND], config[APPEND], true);
-               }
-
-               // aggregate remove properties
-               if(raw->hasMember(REMOVE) || config->hasMember(REMOVE))
-               {
-                  merge(raw[REMOVE], config[REMOVE], true);
-               }
-            }
-            else
-            {
-               // insert config
-               _insertConfig(id, mConfigs, config);
-            }
-
-            if(group)
-            {
-               // add group if it does not exist
-               if(!mConfigs->hasMember(groupId))
-               {
-                  // insert blank group config, will be updated via update()
-                  Config& groupConfig = mConfigs[groupId];
-                  groupConfig["raw"][ID] = groupId;
-                  groupConfig["raw"][GROUP] = groupId;
-                  groupConfig["children"]->setType(Array);
-                  if(config->hasMember(PARENT))
-                  {
-                     groupConfig["raw"][PARENT] = config[PARENT]->getString();
-                  }
-                  groupConfig["members"]->append() = id;
-               }
-               // add member to group if not already in group
-               else
-               {
-                  bool add = true;
-                  Config& groupConfig = mConfigs[groupId];
-                  ConfigIterator i = groupConfig["members"].getIterator();
-                  while(add && i->hasNext())
-                  {
-                     Config& member = i->next();
-                     if(strcmp(member->getString(), id) == 0)
-                     {
-                        add = false;
-                     }
-                  }
-                  if(add)
-                  {
-                     groupConfig["members"]->append() = id;
-                  }
-               }
-            }
-         }
-
-         if(rval)
-         {
-            // only update related merged configs
-            update(id);
-         }
-      }
-      mLock.unlockExclusive();
    }
 
    return rval;
@@ -534,7 +189,9 @@ bool ConfigManager::addConfigFile(
                }
             }
             else if(
-               includeSubdirectories && name != "." && name != ".." &&
+               includeSubdirectories &&
+               strcmp(name.c_str(), ".") != 0 &&
+               strcmp(name.c_str(), "..") != 0 &&
                f->isDirectory())
             {
                configDirs.push_back(name);
@@ -550,8 +207,7 @@ bool ConfigManager::addConfigFile(
              rval && i != configFiles.end(); i++)
          {
             rval = addConfigFile(
-               (*i).c_str(), include, file->getAbsolutePath(),
-               false, false);
+               (*i).c_str(), include, file->getAbsolutePath(), false);
          }
 
          // load each dir in order
@@ -559,8 +215,7 @@ bool ConfigManager::addConfigFile(
              rval && i != configDirs.end(); i++)
          {
             const char* dir = (*i).c_str();
-            rval = addConfigFile(
-               dir, include, dir, false, false);
+            rval = addConfigFile(dir, include, dir, false);
          }
       }
       else
@@ -681,6 +336,16 @@ bool ConfigManager::removeConfig(ConfigId id)
    }
    mLock.unlockExclusive();
 
+   if(rval)
+   {
+      // notify listener of configuration change
+      ConfigChangeListener* listener = getConfigChangeListener();
+      if(listener != NULL)
+      {
+         listener->configRemoved(this, id);
+      }
+   }
+
    return rval;
 }
 
@@ -688,11 +353,12 @@ bool ConfigManager::setConfig(Config& config)
 {
    bool rval = false;
 
+   // get config ID
+   ConfigId id = config[ID]->getString();
+
    // lock to modify internal storage
    mLock.lockExclusive();
    {
-      ConfigId id = config[ID]->getString();
-
       // ensure the ID exists
       if(!mConfigs->hasMember(id))
       {
@@ -739,6 +405,16 @@ bool ConfigManager::setConfig(Config& config)
    }
    mLock.unlockExclusive();
 
+   if(rval)
+   {
+      // notify listener of configuration change
+      ConfigChangeListener* listener = getConfigChangeListener();
+      if(listener != NULL)
+      {
+         listener->configChanged(this, id);
+      }
+   }
+
    return rval;
 }
 
@@ -746,13 +422,15 @@ Config ConfigManager::getConfig(ConfigId id, bool raw)
 {
    Config rval(NULL);
 
+   mLock.lockShared();
    if(mConfigs->hasMember(id))
    {
-      rval = (raw ?
-         mConfigs[id]["raw"].clone() : mConfigs[id]["merged"]);
+      rval = (raw ? mConfigs[id]["raw"].clone() : mConfigs[id]["merged"]);
+      mLock.unlockShared();
    }
    else
    {
+      mLock.unlockShared();
       ExceptionRef e = new Exception(
          "Could not get config. Invalid config ID.",
          "db.config.ConfigManager.InvalidId");
@@ -821,6 +499,24 @@ DynamicObject& ConfigManager::getVersions()
    return mVersions;
 }
 
+void ConfigManager::setConfigChangeListener(ConfigChangeListener* listener)
+{
+   mLock.lockExclusive();
+   mConfigChangeListener = listener;
+   mLock.unlockExclusive();
+}
+
+ConfigChangeListener* ConfigManager::getConfigChangeListener()
+{
+   ConfigChangeListener* rval = NULL;
+
+   mLock.lockShared();
+   rval = mConfigChangeListener;
+   mLock.unlockShared();
+
+   return rval;
+}
+
 void ConfigManager::merge(Config& target, Config& source, bool append)
 {
    if(source.isNull())
@@ -866,6 +562,49 @@ void ConfigManager::merge(Config& target, Config& source, bool append)
                merge(target[ii], i->next(), append);
             }
             break;
+         }
+      }
+   }
+}
+
+/**
+ * A helper method that removes the config values from one config
+ * from another config.
+ *
+ * @param target the target config to update.
+ * @param remove the config with entries to remove.
+ */
+static void _removeLeafNodes(Config& target, Config& remove)
+{
+   // for each config entry, remove leaf nodes from parent config
+   ConfigIterator i = remove.getIterator();
+   while(i->hasNext())
+   {
+      Config& next = i->next();
+
+      // proceed if value is in parent configuration
+      if(target->hasMember(i->getName()))
+      {
+         // FIXME: need a method to remove a single element from an array
+         // also -- this currently will not be able to differentiate
+         // between removing "index" X and removing value "Y" from an array
+         if(next->getType() == Map || next->getType() == Array)
+         {
+            // empty map/array leaf node to be removed
+            if(next->length() == 0)
+            {
+               target->removeMember(i->getName());
+            }
+            // recurse to find leaf node
+            else
+            {
+               _removeLeafNodes(target[i->getName()], next);
+            }
+         }
+         else
+         {
+            // primitive type leaf node to be removed
+            target->removeMember(i->getName());
          }
       }
    }
@@ -1224,6 +963,333 @@ bool ConfigManager::checkConflicts(
       e->getDetails()["isGroup"] = isGroup;
       Exception::set(e);
       rval = false;
+   }
+
+   return rval;
+}
+
+/**
+ * A helper method to insert a config. This method assumes there is no
+ * existing config with the passed ID and that any parent in the config is
+ * valid.
+ *
+ * @param id the config ID of the config to insert.
+ * @param storage the config to use for storage.
+ * @param raw the raw config to insert.
+ */
+static void _insertConfig(
+   ConfigManager::ConfigId id, Config& storage, Config& raw)
+{
+   Config& c = storage[id];
+   c["children"]->setType(Array);
+   c["raw"] = raw;
+
+   // if has parent
+   if(raw->hasMember(ConfigManager::PARENT))
+   {
+      // update parent's children
+      ConfigManager::ConfigId parent = raw[ConfigManager::PARENT]->getString();
+      storage[parent]["children"]->append() = id;
+   }
+}
+
+bool ConfigManager::recursiveAddConfig(
+   Config& config, bool include, const char* dir)
+{
+   bool rval = true;
+
+   // get config ID
+   ConfigId id = "";
+   if(config->hasMember(ID))
+   {
+      id = config[ID]->getString();
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "No valid config ID found.",
+         "db.config.ConfigManager.MissingId");
+      Exception::set(e);
+      rval = false;
+   }
+
+   // ensure group ID doesn't match config ID
+   if(rval && config->hasMember(GROUP) &&
+      strcmp(id, config[GROUP]->getString()) == 0)
+   {
+      ExceptionRef e = new Exception(
+         "Group ID cannot be the same as config ID.",
+         "db.config.ConfigManager.ConfigConflict");
+      e->getDetails()["id"] = id;
+      Exception::set(e);
+      rval = false;
+   }
+
+   if(rval)
+   {
+      // read lock to check version & parent
+      mLock.lockShared();
+      {
+         // check version is present
+         if(mVersions->length() > 0)
+         {
+            if(!config->hasMember(VERSION))
+            {
+               ExceptionRef e = new Exception(
+                  "No config file version found.",
+                  "db.config.ConfigManager.UnspecifiedVersion");
+               Exception::set(e);
+               rval = false;
+            }
+            else
+            {
+               // check for known version
+               const char* version = config[VERSION]->getString();
+               if(!mVersions->hasMember(version))
+               {
+                  ExceptionRef e = new Exception(
+                     "Unsupported config file version.",
+                     "db.config.ConfigManager.UnsupportedVersion");
+                  e->getDetails()["version"] = version;
+                  Exception::set(e);
+                  rval = false;
+               }
+            }
+         }
+
+         // if has parent
+         if(rval && config->hasMember(PARENT))
+         {
+            // ensure parent exists
+            ConfigId parent = config[PARENT]->getString();
+            if(!mConfigs->hasMember(parent))
+            {
+               ExceptionRef e = new Exception(
+                  "Invalid parent configuration file ID.",
+                  "db.config.ConfigManager.InvalidParent");
+               e->getDetails()["configId"] = id;
+               e->getDetails()["parentId"] = parent;
+               Exception::set(e);
+               rval = false;
+            }
+         }
+      }
+      mLock.unlockShared();
+   }
+
+   // handle global keyword replacement
+   if(rval)
+   {
+      // add special current directory keyword
+      if(dir != NULL)
+      {
+         mLock.lockExclusive();
+         mKeywordMap["CURRENT_DIR"] = dir;
+         mLock.unlockExclusive();
+      }
+
+      // do keyword replacement (custom and special)
+      mLock.lockShared();
+      replaceKeywords(config, mKeywordMap);
+      mLock.unlockShared();
+
+      // remove special keywords
+      if(dir != NULL)
+      {
+         mLock.lockExclusive();
+         mKeywordMap->removeMember("CURRENT_DIR");
+         mLock.unlockExclusive();
+      }
+   }
+
+   // process includes
+   if(rval && include && config->hasMember(INCLUDE))
+   {
+      if(config[INCLUDE]->getType() != Array)
+      {
+         ExceptionRef e = new Exception(
+            "The include directive value must be an array.",
+            "db.config.ConfigManager.InvalidIncludeType");
+         e->getDetails()["configId"] = id;
+         e->getDetails()[INCLUDE] = config[INCLUDE];
+         Exception::set(e);
+         rval = false;
+      }
+      else
+      {
+         ConfigIterator i = config[INCLUDE].getIterator();
+         while(rval && i->hasNext())
+         {
+            Config& next = i->next();
+            bool load = true;
+            bool optional = false;
+            bool includeSubdirectories = false;
+            const char* path = NULL;
+
+            if(next->getType() == String)
+            {
+               path = next->getString();
+            }
+            else if(next->getType() == Map)
+            {
+               if(next->hasMember("path"))
+               {
+                  path = next["path"]->getString();
+               }
+               else
+               {
+                  ExceptionRef e = new Exception(
+                     "The include path is missing.",
+                     "db.config.ConfigManager.MissingIncludePath");
+                  e->getDetails()["configId"] = id;
+                  e->getDetails()[INCLUDE] = config[INCLUDE];
+                  Exception::set(e);
+                  rval = false;
+               }
+               // should include be loaded?
+               if(next->hasMember("load"))
+               {
+                  load = next["load"]->getBoolean();;
+               }
+               // is include optional?
+               if(next->hasMember("optional"))
+               {
+                  optional = next["optional"]->getBoolean();
+               }
+               // should subdirs be scanned too?
+               if(next->hasMember("includeSubdirectories"))
+               {
+                  includeSubdirectories =
+                     next["includeSubdirectories"]->getBoolean();
+               }
+            }
+            else
+            {
+               ExceptionRef e = new Exception(
+                  "The type of the include value is invalid.",
+                  "db.config.ConfigManager.InvalidIncludeType");
+               e->getDetails()["configId"] = id;
+               e->getDetails()[INCLUDE] = config[INCLUDE];
+               Exception::set(e);
+               rval = false;
+            }
+
+            // if load, then load the included config file
+            if(rval && load)
+            {
+               DB_CAT_DEBUG(DB_CONFIG_CAT, "Loading include: %s", path);
+               rval = addConfigFile(
+                  path, true, dir, optional, includeSubdirectories);
+            }
+         }
+      }
+   }
+
+   // add configuration
+   if(rval)
+   {
+      // lock to add config to internal storage
+      mLock.lockExclusive();
+      {
+         // get the group ID
+         ConfigId groupId = "";
+         bool group = false;
+         if(config->hasMember(GROUP))
+         {
+            group = true;
+            groupId = config[GROUP]->getString();
+         }
+
+         // if the config ID already exists, ensure there are no conflicts
+         bool mergeConfig = false;
+         if(mConfigs->hasMember(id))
+         {
+            mergeConfig = true;
+            rval = checkConflicts(id, mConfigs[id]["raw"], config, false);
+         }
+
+         // if the group ID already exists, ensure there are no conflicts
+         if(group && mConfigs->hasMember(groupId))
+         {
+            rval = checkConflicts(
+               groupId, mConfigs[groupId]["raw"], config, true);
+         }
+
+         if(rval)
+         {
+            if(mergeConfig)
+            {
+               Config& raw = mConfigs[id]["raw"];
+
+               // merge the merge property (do not append)
+               if(raw->hasMember(MERGE) || config->hasMember(MERGE))
+               {
+                  merge(raw[MERGE], config[MERGE], false);
+               }
+
+               // aggregate append properties
+               if(raw->hasMember(APPEND) || config->hasMember(APPEND))
+               {
+                  merge(raw[APPEND], config[APPEND], true);
+               }
+
+               // aggregate remove properties
+               if(raw->hasMember(REMOVE) || config->hasMember(REMOVE))
+               {
+                  merge(raw[REMOVE], config[REMOVE], true);
+               }
+            }
+            else
+            {
+               // insert config
+               _insertConfig(id, mConfigs, config);
+            }
+
+            if(group)
+            {
+               // add group if it does not exist
+               if(!mConfigs->hasMember(groupId))
+               {
+                  // insert blank group config, will be updated via update()
+                  Config& groupConfig = mConfigs[groupId];
+                  groupConfig["raw"][ID] = groupId;
+                  groupConfig["raw"][GROUP] = groupId;
+                  groupConfig["children"]->setType(Array);
+                  if(config->hasMember(PARENT))
+                  {
+                     groupConfig["raw"][PARENT] = config[PARENT]->getString();
+                  }
+                  groupConfig["members"]->append() = id;
+               }
+               // add member to group if not already in group
+               else
+               {
+                  bool add = true;
+                  Config& groupConfig = mConfigs[groupId];
+                  ConfigIterator i = groupConfig["members"].getIterator();
+                  while(add && i->hasNext())
+                  {
+                     Config& member = i->next();
+                     if(strcmp(member->getString(), id) == 0)
+                     {
+                        add = false;
+                     }
+                  }
+                  if(add)
+                  {
+                     groupConfig["members"]->append() = id;
+                  }
+               }
+            }
+         }
+
+         if(rval)
+         {
+            // only update related merged configs
+            update(id);
+         }
+      }
+      mLock.unlockExclusive();
    }
 
    return rval;
