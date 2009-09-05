@@ -441,6 +441,15 @@ protected:
       ConfigId id, Config& existing, Config& config, bool isGroup);
 
    /**
+    * A helper function that converts the old merged config value stored
+    * at each changed ID to a diff between the old merged config and the
+    * new merged config, removing any ID entries that have no difference.
+    *
+    * @param changedIds the map of config ID to old merged configs to update.
+    */
+   virtual void produceMergedDiffs(db::rt::DynamicObject& changedIds);
+
+   /**
     * The recursive version of addConfig() called by addConfig().
     *
     * @param config the Config to add.

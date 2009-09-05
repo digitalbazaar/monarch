@@ -44,9 +44,10 @@ public:
     *
     * @param cm the ConfigManager.
     * @param id the ID of the config.
+    * @param diff the diff between the old config and the new one.
     */
    virtual void configChanged(
-      ConfigManager* cm, ConfigManager::ConfigId id) = 0;
+      ConfigManager* cm, ConfigManager::ConfigId id, Config& diff) = 0;
 
    /**
     * Called by a ConfigManager when a config is removed.
