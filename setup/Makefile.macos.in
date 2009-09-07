@@ -86,8 +86,6 @@ clean-libraries:
 	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -install_name $(MACOS_LIB_DIR)/$(@F) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
 
 ifdef EXECUTABLES
-#$(STATIC_MACOS_LIBRARIES):
-#	# This is a fake target to override the default .dylib build
 $(MACOS_EXECUTABLES): $(MACOS_LIBRARY_SOURCES) $$(@F).cpp $(MACOS_BUILD_DIR)/$$(@F)-macos.o $(STATIC_MACOS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(MACOS_BUILD_DIR)/$$(source)-macos.o)
 	@echo "Linking dist/bin/$(@F)..."
 	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -o $@ $(MACOS_BUILD_DIR)/$(@F)-macos.o \

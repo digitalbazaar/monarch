@@ -79,8 +79,6 @@ clean-libraries:
 	$(PCMD) $(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
 
 ifdef EXECUTABLES
-#$(STATIC_WINDOWS_LIBRARIES):
-#	# This is a fake target to override the default .lib build
 $(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $$(basename $$(@F)).cpp $(WINDOWS_BUILD_DIR)/$$(basename $$(@F))-windows.o $(STATIC_WINDOWS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(basename $$(@F)))_EXTRA_SOURCES),$(WINDOWS_BUILD_DIR)/$$(source)-windows.o)
 	@echo "Linking dist/bin/$(@F)..."
 	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) $(WINDOWS_LD_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(basename $(@F))-windows.o \
