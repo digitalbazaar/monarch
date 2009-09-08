@@ -114,7 +114,7 @@ static struct _stats_data_s _stats[LastStatsType];
 #else
 #define _changeType(dyno, newType) \
    DB_STMT_START { \
-      dyno.mType = newType; \
+      dyno->mType = newType; \
    } DB_STMT_END
 #endif
 
