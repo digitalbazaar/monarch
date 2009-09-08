@@ -136,13 +136,16 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
       if(!(dyno1 == dyno2)) \
       { \
          printf("\n%s:\n", name1); \
-         db::rt::DynamicObject d = dyno1; \
          db::data::json::JsonWriter::writeToStdOut( \
-            d, false, false); \
+            dyno1, false, false); \
          printf("%s:\n", name2); \
-         d = dyno2; \
          db::data::json::JsonWriter::writeToStdOut( \
-            d, false, false); \
+            dyno2, false, false); \
+         printf("Difference:\n"); \
+         db::rt::DynamicObject diff; \
+         dyno1.diff(dyno2, diff); \
+         db::data::json::JsonWriter::writeToStdOut( \
+            diff, false, false); \
          assert(dyno1 == dyno2); \
       } \
    } while(0)
@@ -154,7 +157,7 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
  * @param dyno2 second DynamicObject
  */
 #define assertDynoCmp(dyno1, dyno2) \
-   assertNamedDynoCmp("\ndyno a=\n", dyno1, "dyno b=\n", dyno2)
+   assertNamedDynoCmp("dyno a", dyno1, "dyno b", dyno2)
 
 } // end namespace test
 } // end namespace db
