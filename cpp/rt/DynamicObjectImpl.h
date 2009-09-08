@@ -27,7 +27,8 @@ class DynamicObjectIteratorImpl;
  */
 enum DynamicObjectType
 {
-   String, Boolean, Int32, UInt32, Int64, UInt64, Double, Map, Array
+   String = 0, Boolean, Int32, UInt32, Int64, UInt64, Double, Map, Array,
+   LastDynamicObjectType = Array
 };
 
 /**
@@ -371,6 +372,33 @@ public:
     * Other: do nothing.
     */
    virtual void reverse();
+
+   /**
+    * Enable or disable debugging statistics.
+    *
+    * Note: Must be enabled with a compile time option.
+    *
+    * @param enable true to enable, false to disable.
+    *
+    * @return the previous enabled value
+    */
+   static bool enableStats(bool enable);
+
+   /**
+    * Clear debugging statistics.
+    *
+    * Note: Must be enabled with a compile time option.
+    */
+   static void clearStats();
+
+   /**
+    * Return a structure with DynamicObject debugging statistics.
+    *
+    * Note: Must be enabled with a compile time option.
+    *
+    * @return map of statistics if enabled else an empty map.
+    */
+   static DynamicObject getStats();
 
 protected:
    /**

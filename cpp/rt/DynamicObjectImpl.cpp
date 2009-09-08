@@ -6,6 +6,7 @@
 #include "db/rt/DynamicObjectImpl.h"
 
 #include "db/rt/DynamicObject.h"
+#include "db/util/Macros.h"
 
 #include <cstdlib>
 #include <cstdio>
@@ -15,8 +16,113 @@
 using namespace std;
 using namespace db::rt;
 
+
+#ifdef DB_DYNO_DEBUG
+
+/**
+ * When DB_DYNO_DEBUG is defined at compile time statistics will be kept on
+ * internal DynamicObject operations. This may have a performance impact.
+ * Some stats such as basic counts are atomic. However, some secondary stats
+ * such as maximums are not calculated in a thread safe way due to
+ * performance issues. Also note that the entire stats structure can not be
+ * syncronized so clearing and reading of the structure may be slightly
+ * inaccurate if other threads are asynchronously updating the stats.
+ */
+struct _stats_data_s
+{
+   struct {
+      uint64_t live;
+      uint64_t dead;
+      uint64_t max;
+   } counts;
+   struct {
+      uint64_t live;
+      uint64_t dead;
+      uint64_t max;
+   } bytes;
+};
+
+enum {
+   Object = LastDynamicObjectType + 1,
+   Key,
+   StringValue,
+   LastStatsType
+};
+
+static bool _stats_enabled;
+static struct _stats_data_s _stats[LastStatsType];
+
+#define STATS_INC(type) \
+   DB_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         uint64_t next = __sync_add_and_fetch(&_stats[type].counts.live, 1); \
+         if(next > _stats[type].counts.max) \
+         { \
+            _stats[type].counts.max = next; \
+         } \
+      } \
+   } DB_STMT_END
+
+#define STATS_BYTES_INC(type, n) \
+   DB_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         uint64_t next = __sync_add_and_fetch(&_stats[type].bytes.live, n); \
+         if(next > _stats[type].bytes.max) \
+         { \
+            _stats[type].bytes.max = next; \
+         } \
+      } \
+   } DB_STMT_END
+
+#define STATS_DEC(type) \
+   DB_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         __sync_sub_and_fetch(&_stats[type].counts.live, 1); \
+         __sync_add_and_fetch(&_stats[type].counts.dead, 1); \
+      } \
+   } DB_STMT_END
+
+#define STATS_BYTES_DEC(type, n) \
+   DB_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         __sync_sub_and_fetch(&_stats[type].bytes.live, n); \
+         __sync_add_and_fetch(&_stats[type].bytes.dead, n); \
+      } \
+   } DB_STMT_END
+
+#else
+
+// do debugging
+#define STATS_INC(type)
+#define STATS_BYTES_INC(type, n)
+#define STATS_DEC(type)
+#define STATS_BYTES_DEC(type, n)
+
+#endif // DB_DYNO_DEBUG
+
+#ifdef DB_DYNO_DEBUG
+#define _changeType(dyno, newType) \
+   DB_STMT_START { \
+      STATS_DEC(dyno->mType); \
+      dyno->mType = newType; \
+      STATS_INC(newType); \
+   } DB_STMT_END
+#else
+#define _changeType(dyno, newType) \
+   DB_STMT_START { \
+      dyno.mType = newType; \
+   } DB_STMT_END
+#endif
+
 DynamicObjectImpl::DynamicObjectImpl()
 {
+   STATS_INC(Object);
+   STATS_INC(String);
+
    mType = String;
    mString = NULL;
    mStringValue = NULL;
@@ -29,8 +135,13 @@ DynamicObjectImpl::~DynamicObjectImpl()
    // free cached string value
    if(mStringValue != NULL)
    {
+      STATS_DEC(StringValue);
+      STATS_BYTES_DEC(StringValue, strlen(mStringValue));
       free(mStringValue);
    }
+
+   STATS_DEC(mType);
+   STATS_DEC(Object);
 }
 
 void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
@@ -66,6 +177,8 @@ void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
          for(; i != value.mMap->end(); i++)
          {
             // create new map entry
+            STATS_INC(Key);
+            STATS_BYTES_INC(Key, strlen(i->first));
             mMap->insert(std::make_pair(strdup(i->first), i->second));
          }
          break;
@@ -88,49 +201,51 @@ void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
 void DynamicObjectImpl::operator=(const char* value)
 {
    freeData();
-   mType = String;
+   _changeType(this, String);
    mString = strdup(value);
+   STATS_INC(String);
+   STATS_BYTES_INC(String, strlen(value));
 }
 
 void DynamicObjectImpl::operator=(bool value)
 {
    freeData();
-   mType = Boolean;
+   _changeType(this, Boolean);
    mBoolean = value;
 }
 
 void DynamicObjectImpl::operator=(int32_t value)
 {
    freeData();
-   mType = Int32;
+   _changeType(this, Int32);
    mInt32 = value;
 }
 
 void DynamicObjectImpl::operator=(uint32_t value)
 {
    freeData();
-   mType = UInt32;
+   _changeType(this, UInt32);
    mUInt32 = value;
 }
 
 void DynamicObjectImpl::operator=(int64_t value)
 {
    freeData();
-   mType = Int64;
+   _changeType(this, Int64);
    mInt64 = value;
 }
 
 void DynamicObjectImpl::operator=(uint64_t value)
 {
    freeData();
-   mType = UInt64;
+   _changeType(this, UInt64);
    mUInt64 = value;
 }
 
 void DynamicObjectImpl::operator=(double value)
 {
    freeData();
-   mType = Double;
+   _changeType(this, Double);
    mDouble = value;
 }
 
@@ -149,6 +264,8 @@ DynamicObject& DynamicObjectImpl::operator[](const char* name)
    {
       // create new map entry
       DynamicObject dyno;
+      STATS_INC(Key);
+      STATS_BYTES_INC(Key, strlen(name));
       mMap->insert(std::make_pair(strdup(name), dyno));
       rval = &(*mMap)[name];
    }
@@ -456,14 +573,14 @@ void DynamicObjectImpl::setType(DynamicObjectType type)
          case Map:
          {
             freeData();
-            mType = Map;
+            _changeType(this, Map);
             mMap = new ObjectMap();
             break;
          }
          case Array:
          {
             freeData();
-            mType = Array;
+            _changeType(this, Array);
             mArray = new ObjectArray();
             break;
          }
@@ -509,6 +626,14 @@ const char* DynamicObjectImpl::getString() const
    else
    {
       char* str = (char*)(mStringValue);
+      if(str == NULL)
+      {
+         STATS_INC(StringValue);
+      }
+      else
+      {
+         STATS_BYTES_DEC(StringValue, strlen(str));
+      }
 
       // convert type as appropriate
       switch(mType)
@@ -539,9 +664,11 @@ const char* DynamicObjectImpl::getString() const
             str = (char*)realloc(str, 50);
             snprintf(str, 50, "%e", mDouble);
             break;
-         default: /* String, Map, Array, ... already handled*/
+         default: /* String, Map, Array, ... already handled */
             break;
       }
+
+      STATS_BYTES_INC(StringValue, strlen(str));
 
       // set generated value
       ((DynamicObjectImpl*)this)->mStringValue = str;
@@ -900,7 +1027,10 @@ void DynamicObjectImpl::freeMapKeys()
    // clean up member names
    for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); i++)
    {
-      free((char*)i->first);
+      char* key = (char*)i->first;
+      STATS_DEC(Key);
+      STATS_BYTES_DEC(Key, strlen(key));
+      free(key);
    }
 }
 
@@ -912,6 +1042,7 @@ void DynamicObjectImpl::freeData()
       case String:
          if(mString != NULL)
          {
+            STATS_BYTES_DEC(String, strlen(mString));
             free(mString);
             mString = NULL;
          }
@@ -942,7 +1073,10 @@ void DynamicObjectImpl::freeData()
 void DynamicObjectImpl::removeMember(ObjectMap::iterator iterator)
 {
    // clean up key and remove map entry
-   free((char*)iterator->first);
+   char* key = (char*)iterator->first;
+   STATS_DEC(Key);
+   STATS_BYTES_DEC(Key, strlen(key));
+   free(key);
    mMap->erase(iterator);
 }
 
@@ -1000,3 +1134,56 @@ void DynamicObjectImpl::setFormattedString(const char* format, va_list varargs)
       free(p);
    }
 }
+
+bool DynamicObjectImpl::enableStats(bool enable)
+{
+#ifdef DB_DYNO_DEBUG
+   bool rval = _stats_enabled;
+   _stats_enabled = enable;
+#else
+   bool rval = false;
+#endif
+   return rval;
+}
+
+void DynamicObjectImpl::clearStats()
+{
+#ifdef DB_DYNO_DEBUG
+   memset(&_stats, 0, sizeof(_stats));
+#endif
+}
+
+DynamicObject DynamicObjectImpl::getStats()
+{
+   DynamicObject rval;
+   rval->setType(Map);
+
+#ifdef DB_DYNO_DEBUG
+   #define GETSTAT(s, type) \
+      DB_STMT_START { \
+         DynamicObject& d = s[DB_STRINGIFY(type)]; \
+         d["counts"]["live"] = _stats[type].counts.live; \
+         d["counts"]["dead"] = _stats[type].counts.dead; \
+         d["counts"]["max"] = _stats[type].counts.max; \
+         d["bytes"]["live"] = _stats[type].bytes.live; \
+         d["bytes"]["dead"] = _stats[type].bytes.dead; \
+         d["bytes"]["max"] = _stats[type].bytes.max; \
+      } DB_STMT_END
+   GETSTAT(rval, Object);
+   GETSTAT(rval, String);
+   GETSTAT(rval, Boolean);
+   GETSTAT(rval, Int32);
+   GETSTAT(rval, UInt32);
+   GETSTAT(rval, Int64);
+   GETSTAT(rval, UInt64);
+   GETSTAT(rval, Double);
+   GETSTAT(rval, Map);
+   GETSTAT(rval, Array);
+   GETSTAT(rval, Key);
+   GETSTAT(rval, StringValue);
+   #undef GETSTAT
+#endif
+
+   return rval;
+}
+

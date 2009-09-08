@@ -204,8 +204,29 @@ if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
    DB_CXX_OPT_FLAGS="-O0 -fno-exceptions"
 fi
 
-CXXFLAGS="$CXXFLAGS $DB_CXX_OPT_FLAGS"
-AC_MSG_NOTICE(Using optimization flags: "$CXXFLAGS")
+AC_MSG_NOTICE(Using optimization flags: "$DB_CXX_OPT_FLAGS")
+
+dnl ----------------- debugging -----------------
+
+dnl low level DynamicObject statistics
+
+AC_ARG_ENABLE([dyno-debug],
+   AS_HELP_STRING([--enable-dyno-debug],
+      [enable DynamicObject debugging [[no]]]),
+   [
+      case "${enableval}" in
+         yes) DB_DYNO_DEBUG="-DDB_DYNO_DEBUG" ;;
+         no) ;;
+         *) AC_MSG_ERROR(bad value ${enableval} for --enable-dyno-debug) ;;
+      esac
+   ], [])  dnl Default value
+
+DB_DEBUG_FLAGS="$DB_DYNO_DEBUG"
+AC_MSG_NOTICE(Using debug flags: "$DB_DEBUG_FLAGS")
+
+dnl ----------------- flags -----------------
+
+CXXFLAGS="$CXXFLAGS $DB_CXX_OPT_FLAGS $DB_DEBUG_FLAGS"
 
 dnl ----------------- substitutions -----------------
 
@@ -317,6 +338,9 @@ if test "x$BUILD_FOR_MACOS" = "xyes"; then
 else
    echo "MacOS             : disabled (use --enable-macos to enable)"
 fi
+
+echo "Optimization Flags: $DB_CXX_OPT_FLAGS"
+echo "Debug Flags       : $DB_DEBUG_FLAGS"
 
 if test "x$BUILD_MYSQL" = "xyes"; then
    echo "MySQL             : enabled"

@@ -1393,6 +1393,9 @@ void App::cleanupLogging()
 
 int App::main(int argc, const char* argv[])
 {
+   // enable stats early
+   DynamicObjectImpl::enableStats(true);
+
    // Make command line vector
    for(int i = 0; i < argc; i++)
    {

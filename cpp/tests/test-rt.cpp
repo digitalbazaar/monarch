@@ -1980,6 +1980,107 @@ void runDynoReverseTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runDynoStatsTest(TestRunner& tr)
+{
+   tr.group("DynamicObject stats");
+
+#ifdef DB_DYNO_DEBUG
+   // zeroed stats
+   #define SETSTAT(s, field, livec, deadc, maxc, liveb, deadb, maxb) \
+      DB_STMT_START { \
+         DynamicObject& d = s[DB_STRINGIFY(field)]; \
+         d["counts"]["live"] = livec; \
+         d["counts"]["dead"] = deadc; \
+         d["counts"]["max"] = maxc; \
+         d["bytes"]["live"] = liveb; \
+         d["bytes"]["dead"] = deadb; \
+         d["bytes"]["max"] = maxb; \
+      } DB_STMT_END
+   DynamicObject zero;
+   SETSTAT(zero, Object, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, String, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, Boolean, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, Int32, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, UInt32, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, Int64, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, UInt64, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, Double, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, Map, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, Array, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, Key, 0, 0, 0, 0, 0, 0);
+   SETSTAT(zero, StringValue, 0, 0, 0, 0, 0, 0);
+
+   tr.test("clear");
+   {
+      DynamicObjectImpl::enableStats(false);
+      DynamicObjectImpl::clearStats();
+      DynamicObject stats = DynamicObjectImpl::getStats();
+      assertDynoCmp(stats, zero);
+   }
+   tr.passIfNoException();
+
+   tr.test("one live");
+   {
+      DynamicObjectImpl::clearStats();
+      DynamicObjectImpl::enableStats(true);
+      DynamicObject d;
+      DynamicObjectImpl::enableStats(false);
+      DynamicObject stats = DynamicObjectImpl::getStats();
+      DynamicObject expect = zero.clone();
+      SETSTAT(expect, Object, 1, 0, 1, 0, 0, 0);
+      SETSTAT(expect, String, 1, 0, 1, 0, 0, 0);
+      assertDynoCmp(stats, expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("one dead");
+   {
+      DynamicObjectImpl::clearStats();
+      DynamicObjectImpl::enableStats(true);
+      {
+         DynamicObject d;
+      }
+      DynamicObjectImpl::enableStats(false);
+      DynamicObject stats = DynamicObjectImpl::getStats();
+      DynamicObject expect = zero.clone();
+      SETSTAT(expect, Object, 0, 1, 1, 0, 0, 0);
+      SETSTAT(expect, String, 0, 1, 1, 0, 0, 0);
+      assertDynoCmp(stats, expect);
+   }
+   tr.passIfNoException();
+
+   // FIXME: expected results not correct and checked for accuracy yet
+   /*
+   tr.test("many sets");
+   {
+      DynamicObjectImpl::clearStats();
+      DynamicObjectImpl::enableStats(true);
+      {
+         DynamicObject d;
+         d->setType(Array);
+         DynamicObject& d2 = d->append();
+         d2 = "123";
+         d2 = "456";
+         d2 = "789";
+      }
+      DynamicObjectImpl::enableStats(false);
+      DynamicObject stats = DynamicObjectImpl::getStats();
+      DynamicObject expect = zero.clone();
+      SETSTAT(expect, Object, 0, 2, 2, 0, 0, 0);
+      SETSTAT(expect, Array, 0, 1, 1, 0, 0, 0);
+      SETSTAT(expect, String, 0, 3, 1, 0, 9, 3);
+      assertDynoCmp(stats, expect);
+   }
+   tr.passIfNoException();
+   */
+#else
+   tr.test("[stats disabled]");
+   tr.passIfNoException();
+#endif
+
+   tr.ungroup();
+}
+
 class RunnableDelegateClass
 {
 public:
@@ -2161,6 +2262,7 @@ public:
       runDynoDiffTest(tr);
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
+      runDynoStatsTest(tr);
       runRunnableDelegateTest(tr);
       return 0;
    }
