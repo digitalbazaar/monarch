@@ -3,6 +3,8 @@
  */
 #include "db/util/StringTools.h"
 
+#include "db/rt/DynamicObjectIterator.h"
+#include "db/util/StringTokenizer.h"
 #include "db/util/regex/Pattern.h"
 
 #include <cstring>
@@ -10,6 +12,7 @@
 #include <cstdlib>
 
 using namespace std;
+using namespace db::rt;
 using namespace db::util;
 using namespace db::util::regex;
 
@@ -115,5 +118,36 @@ string StringTools::format(const char* f, ...)
    va_start(ap, f);
    string rval = vformat(f, ap);
    va_end(ap);
+   return rval;
+}
+
+DynamicObject StringTools::split(const char* str, char delimiter)
+{
+   DynamicObject rval;
+   rval->setType(Array);
+
+   StringTokenizer st(str, delimiter, true);
+   while(st.hasNextToken())
+   {
+      rval->append() = st.nextToken();
+   }
+
+   return rval;
+}
+
+string StringTools::join(DynamicObject dyno, const char* glue)
+{
+   string rval;
+
+   DynamicObjectIterator i = dyno.getIterator();
+   while(i->hasNext())
+   {
+      if(rval.length() > 0)
+      {
+         rval.append(glue);
+      }
+      rval.append(i->next()->getString());
+   }
+
    return rval;
 }

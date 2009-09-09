@@ -4,6 +4,7 @@
 #ifndef db_util_StringTools_H
 #define db_util_StringTools_H
 
+#include "db/rt/DynamicObject.h"
 #include <cstring>
 #include <string>
 
@@ -85,6 +86,28 @@ public:
     * @return the std::string.
     */
    static std::string format(const char* f, ...);
+
+   /**
+    * Splits a string into a DynamicObject array using the given character
+    * delimiter to split on.
+    *
+    * @param str the string to split.
+    * @param delimeter the character to split on.
+    *
+    * @return the DynamicObject array.
+    */
+   static db::rt::DynamicObject split(const char* str, char delimiter);
+
+   /**
+    * Joins DynamicObject array or map values using the given string as
+    * the glue between elements.
+    *
+    * @param dyno the DynamicObject array or map.
+    * @param glue the string to use as glue.
+    *
+    * @return the joined string.
+    */
+   static std::string join(db::rt::DynamicObject dyno, const char* glue);
 };
 
 /**
