@@ -541,11 +541,11 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("remove");
+   tr.test("remove w/limit");
    {
       DynamicObject where;
       where["fooId"] = 1;
-      SqlExecutableRef se = dbc->remove(TABLE_TEST, &where);
+      SqlExecutableRef se = dbc->remove(TABLE_TEST, &where, 1);
       dbc->execute(se);
       assert(se->rowsAffected == 1);
    }

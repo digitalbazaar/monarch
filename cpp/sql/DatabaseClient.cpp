@@ -385,7 +385,9 @@ SqlExecutableRef DatabaseClient::select(
    return rval;
 }
 
-SqlExecutableRef DatabaseClient::remove(const char* table, DynamicObject* where)
+SqlExecutableRef DatabaseClient::remove(
+   const char* table, DynamicObject* where,
+   uint64_t limit, uint64_t start)
 {
    SqlExecutableRef rval(NULL);
 
@@ -410,6 +412,9 @@ SqlExecutableRef DatabaseClient::remove(const char* table, DynamicObject* where)
          buildParams(schema, rval->whereFilter, rval->params);
          appendWhereSql(rval->sql, rval->params, false);
       }
+
+      // append LIMIT clause
+      appendLimitSql(rval->sql, limit, start);
    }
 
    return rval;

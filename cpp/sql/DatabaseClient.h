@@ -365,15 +365,18 @@ public:
    /**
     * Creates an SqlExecutable that deletes from a table. If the given
     * "where" object is not NULL, its applicable members will define the
-    * WHERE clause of the UPDATE SQL.
+    * WHERE clause of the UPDATE SQL. An optional LIMIT may be specified.
     *
     * @param table the name of the table to DELETE FROM.
     * @param where the object with containing WHERE clause parameters.
+    * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
+    * @param start the starting row for the LIMIT, defaults to 0.
     *
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef remove(
-      const char* table, db::rt::DynamicObject* where);
+      const char* table, db::rt::DynamicObject* where,
+      uint64_t limit = 0, uint64_t start = 0);
 
    /**
     * Begins a database transaction.
