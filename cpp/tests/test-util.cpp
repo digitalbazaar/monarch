@@ -397,21 +397,21 @@ void runStringToolsTest(TestRunner& tr)
          // empty str
          {
             expected[0] = "";
-            dyno = StringTools::split("", ' ');
+            dyno = StringTools::split("", " ");
             assertDynoCmp(dyno, expected);
          }
 
          // no splits
          {
             expected[0] = "abc";
-            dyno = StringTools::split("abc", ' ');
+            dyno = StringTools::split("abc", " ");
             assertDynoCmp(dyno, expected);
          }
 
          // trailing split
          {
             expected[1] = "";
-            dyno = StringTools::split("abc.", '.');
+            dyno = StringTools::split("abc.", ".");
             assertDynoCmp(dyno, expected);
          }
 
@@ -420,7 +420,29 @@ void runStringToolsTest(TestRunner& tr)
             expected[0] = "a";
             expected[1] = "b";
             expected[2] = "c";
-            dyno = StringTools::split("a.b.c", '.');
+            dyno = StringTools::split("a.b.c", ".");
+            assertDynoCmp(dyno, expected);
+         }
+
+         // longer delimiter
+         {
+            expected[0] = "a";
+            expected[1] = "b";
+            expected[2] = "c";
+            dyno = StringTools::split("a123b123c", "123");
+            assertDynoCmp(dyno, expected);
+            dyno = StringTools::split("a...b...c", "...");
+            assertDynoCmp(dyno, expected);
+         }
+
+         // longer delimiter empty strings
+         {
+            expected[0] = "";
+            expected[1] = "";
+            expected[2] = "";
+            dyno = StringTools::split("......", "...");
+            assertDynoCmp(dyno, expected);
+            dyno = StringTools::split("123123", "123");
             assertDynoCmp(dyno, expected);
          }
       }
