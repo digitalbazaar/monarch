@@ -92,11 +92,11 @@ public:
     * delimiter to split on.
     *
     * @param str the string to split.
-    * @param delimeter the character to split on.
+    * @param delimeter the string to split on.
     *
     * @return the DynamicObject array.
     */
-   static db::rt::DynamicObject split(const char* str, char delimiter);
+   static db::rt::DynamicObject split(const char* str, const char* delimiter);
 
    /**
     * Joins DynamicObject array or map values using the given string as

@@ -121,7 +121,7 @@ string StringTools::format(const char* f, ...)
    return rval;
 }
 
-DynamicObject StringTools::split(const char* str, char delimiter)
+DynamicObject StringTools::split(const char* str, const char* delimiter)
 {
    DynamicObject rval;
    rval->setType(Array);

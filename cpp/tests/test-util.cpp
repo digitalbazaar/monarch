@@ -594,6 +594,65 @@ void runStringTokenizerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("tokenize forward w/long delimiter");
+   {
+      const char* str =
+         "These_x_words_x_are_x_delimited_x_by_x_x_x_surrounded_x_by_x_"
+         "underscores.";
+
+      /*
+      StringTokenizer st0(str, "_x_");
+      while(st0.hasNextToken())
+      {
+         printf("token='%s'\n", st0.nextToken());
+      }
+      */
+      StringTokenizer st(str, "_x_", true);
+      #define NT(str) \
+         do { \
+            assert(st.hasNextToken()); \
+            assertStrCmp(st.nextToken(), str); \
+         } while(0)
+      NT("These");
+      NT("words");
+      NT("are");
+      NT("delimited");
+      NT("by");
+      NT("x");
+      NT("surrounded");
+      NT("by");
+      NT("underscores.");
+      assert(!st.hasNextToken());
+      #undef NT
+   }
+   tr.passIfNoException();
+
+   tr.test("tokenize backward w/long delimiter");
+   {
+      const char* str =
+         "These_x_words_x_are_x_delimited_x_by_x_x_x_surrounded_x_by_x_"
+         "underscores.";
+
+      StringTokenizer st(str, "_x_", false);
+      #define NT(str) \
+         do { \
+            assert(st.hasPreviousToken()); \
+            assertStrCmp(st.previousToken(), str); \
+         } while(0)
+      NT("underscores.");
+      NT("by");
+      NT("surrounded");
+      NT("x");
+      NT("by");
+      NT("delimited");
+      NT("are");
+      NT("words");
+      NT("These");
+      assert(!st.hasPreviousToken());
+      #undef NT
+   }
+   tr.passIfNoException();
+
    tr.test("get first token");
    {
       const char* str = "This is a test of the StringTokenizer class.";
