@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
+#include "db/data/json/JsonWriter.h"
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
@@ -307,6 +308,58 @@ void runRegexTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.ungroup();
+}
+
+void runStringToolsTest(TestRunner& tr)
+{
+   tr.group("StringTools");
+
+   tr.test("trim");
+   {
+      string str;
+      string trimmed;
+
+      str = "";
+      trimmed = StringTools::trim(str);
+      assertStrCmp(trimmed.c_str(), "");
+
+      str = "a";
+      trimmed = StringTools::trim(str);
+      assertStrCmp(trimmed.c_str(), "a");
+
+      str = " a";
+      trimmed = StringTools::trim(str);
+      assertStrCmp(trimmed.c_str(), "a");
+
+      str = "a ";
+      trimmed = StringTools::trim(str);
+      assertStrCmp(trimmed.c_str(), "a");
+
+      str = " a ";
+      trimmed = StringTools::trim(str);
+      assertStrCmp(trimmed.c_str(), "a");
+
+      str = " a b ";
+      trimmed = StringTools::trim(str);
+      assertStrCmp(trimmed.c_str(), "a b");
+
+      str = " a b ";
+      trimmed = StringTools::trim(str, " b");
+      assertStrCmp(trimmed.c_str(), "a");
+
+      str = " a b ";
+      trimmed = StringTools::trim(str, " ab");
+      assertStrCmp(trimmed.c_str(), "");
+   }
+   tr.passIfNoException();
+
+   tr.test("replace");
+   {
+      // FIXME: add replace() tests
+   }
+   tr.passIfNoException();
+
    tr.test("replace all");
    {
 
@@ -314,6 +367,110 @@ void runRegexTest(TestRunner& tr)
       string exp = "Look for blue globs of blue matter in blue goo.";
       StringTools::regexReplaceAll(str, "green", "blue");
       assertStrCmp(str.c_str(), exp.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("format");
+   {
+      assertStrCmp(
+         StringTools::format("").c_str(),
+         "");
+      assertStrCmp(
+         StringTools::format("%s", "123").c_str(),
+         "123");
+      assertStrCmp(
+         StringTools::format("%d", 123).c_str(),
+         "123");
+      assertStrCmp(
+         StringTools::format("%d-%s", 123, "123").c_str(),
+         "123-123");
+   }
+   tr.passIfNoException();
+
+   tr.test("split");
+   {
+      {
+         DynamicObject dyno;
+         DynamicObject expected;
+         expected->setType(Array);
+
+         // empty str
+         {
+            expected[0] = "";
+            dyno = StringTools::split("", ' ');
+            assertDynoCmp(dyno, expected);
+         }
+
+         // no splits
+         {
+            expected[0] = "abc";
+            dyno = StringTools::split("abc", ' ');
+            assertDynoCmp(dyno, expected);
+         }
+
+         // trailing split
+         {
+            expected[1] = "";
+            dyno = StringTools::split("abc.", '.');
+            assertDynoCmp(dyno, expected);
+         }
+
+         // a few splits
+         {
+            expected[0] = "a";
+            expected[1] = "b";
+            expected[2] = "c";
+            dyno = StringTools::split("a.b.c", '.');
+            assertDynoCmp(dyno, expected);
+         }
+      }
+   }
+   tr.passIfNoException();
+
+   tr.test("join");
+   {
+      DynamicObject dyno;
+      dyno->setType(Array);
+      string str;
+
+      // no elements
+      {
+         str = StringTools::join(dyno, "");
+         assertStrCmp(str.c_str(), "");
+
+         str = StringTools::join(dyno, ".");
+         assertStrCmp(str.c_str(), "");
+      }
+
+      // one element
+      {
+         dyno[0] = "a";
+         str = StringTools::join(dyno, "");
+         assertStrCmp(str.c_str(), "a");
+
+         str = StringTools::join(dyno, ".");
+         assertStrCmp(str.c_str(), "a");
+      }
+
+      // two elements
+      {
+         dyno[1] = "b";
+         str = StringTools::join(dyno, "");
+         assertStrCmp(str.c_str(), "ab");
+
+         str = StringTools::join(dyno, ".");
+         assertStrCmp(str.c_str(), "a.b");
+      }
+
+      // many elements
+      {
+         dyno[2] = "c";
+         str = StringTools::join(dyno, "");
+         assertStrCmp(str.c_str(), "abc");
+
+         str = StringTools::join(dyno, ".");
+         assertStrCmp(str.c_str(), "a.b.c");
+      }
    }
    tr.passIfNoException();
 
@@ -670,6 +827,7 @@ public:
       runStringTokenizerTest(tr);
       runUniqueListTest(tr);
       runRegexTest(tr);
+      runStringToolsTest(tr);
       runDateTest(tr);
       runPathFormatterTest(tr);
       return 0;
