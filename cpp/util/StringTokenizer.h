@@ -99,13 +99,27 @@ public:
     * Creates a new StringTokenizer that tokenizes the passed string.
     *
     * @param str the string to tokenize.
-    * @param delimiter the delimiter character.
+    * @param delimiter the delimiter.
     * @param front if true, starts the token pointer at the front of the
     *              token list, if false, starts the token pointer at the
     *              back of the list (Note that this will not change token
     *              indexes).
     */
-   StringTokenizer(const char* str, char delimiter = '\n', bool front = true);
+   StringTokenizer(
+      const char* str, const char* delimiter = "\n", bool front = true);
+
+   /**
+    * Creates a new StringTokenizer that tokenizes the passed string.
+    *
+    * @param str the string to tokenize.
+    * @param delimiter the delimiter.
+    * @param front if true, starts the token pointer at the front of the
+    *              token list, if false, starts the token pointer at the
+    *              back of the list (Note that this will not change token
+    *              indexes).
+    */
+   StringTokenizer(
+      const char* str, char delimiter = '\n', bool front = true);
 
    /**
     * Destructs this StringTokenizer.
@@ -116,14 +130,26 @@ public:
     * Tokenizes the passed string.
     *
     * @param str the string to tokenize.
-    * @param delimiter the delimiter character.
+    * @param delimiter the delimiter.
     * @param front if true, starts the token pointer at the front of the
     *              token list, if false, starts the token pointer at the
     *              back of the list (Note that this will not change token
     *              indexes).
     */
    virtual void tokenize(
-      const char* str, char delimiter = '\n', bool front = true);
+      const char* str, const char* delimiter, bool front = true);
+
+   /**
+    * Tokenizes the passed string.
+    *
+    * @param str the string to tokenize.
+    * @param delimiter the delimiter.
+    * @param front if true, starts the token pointer at the front of the
+    *              token list, if false, starts the token pointer at the
+    *              back of the list (Note that this will not change token
+    *              indexes).
+    */
+   virtual void tokenize(const char* str, char delimiter, bool front = true);
 
    /**
     * Restarts the internal current token pointer.

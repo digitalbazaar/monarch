@@ -9,23 +9,40 @@
 
 using namespace db::util;
 
-StringTokenizer::StringTokenizer()
+StringTokenizer::StringTokenizer() :
+   mFirstToken(NULL),
+   mLastToken(NULL),
+   mNextToken(NULL),
+   mPrevToken(NULL),
+   mTokenCount(0),
+   mFirstFreeToken(NULL),
+   mFreeTokenCount(NULL)
 {
-   mFirstToken = mLastToken = mNextToken = mPrevToken = NULL;
-   mTokenCount = 0;
-
-   mFirstFreeToken = NULL;
-   mFreeTokenCount = 0;
 }
 
-StringTokenizer::StringTokenizer(const char* str, char delimiter, bool front)
+StringTokenizer::StringTokenizer(
+   const char* str, const char* delimiter, bool front) :
+   mFirstToken(NULL),
+   mLastToken(NULL),
+   mNextToken(NULL),
+   mPrevToken(NULL),
+   mTokenCount(0),
+   mFirstFreeToken(NULL),
+   mFreeTokenCount(NULL)
 {
-   mFirstToken = mLastToken = mNextToken = mPrevToken = NULL;
-   mTokenCount = 0;
+   tokenize(str, delimiter, front);
+}
 
-   mFirstFreeToken = NULL;
-   mFreeTokenCount = 0;
-
+StringTokenizer::StringTokenizer(
+   const char* str, char delimiter, bool front) :
+   mFirstToken(NULL),
+   mLastToken(NULL),
+   mNextToken(NULL),
+   mPrevToken(NULL),
+   mTokenCount(0),
+   mFirstFreeToken(NULL),
+   mFreeTokenCount(NULL)
+{
    tokenize(str, delimiter, front);
 }
 
@@ -51,7 +68,8 @@ void StringTokenizer::cleanupStringTokens(StringToken* first)
    }
 }
 
-void StringTokenizer::tokenize(const char* str, char delimiter, bool front)
+void StringTokenizer::tokenize(
+   const char* str, const char* delimiter, bool front)
 {
    // move tokens into free-list
    StringToken* next;
@@ -83,6 +101,9 @@ void StringTokenizer::tokenize(const char* str, char delimiter, bool front)
    mFirstToken = mLastToken = mNextToken = mPrevToken = NULL;
    mTokenCount = 0;
 
+   // get delimiter length
+   int dLen = strlen(delimiter);
+
    // find tokens in the passed string
    StringToken* token;
    const char* start = str;
@@ -112,7 +133,7 @@ void StringTokenizer::tokenize(const char* str, char delimiter, bool front)
       }
 
       // find the end of the token
-      end = strchr(start, delimiter);
+      end = strstr(start, delimiter);
       if(end != NULL)
       {
          // copy data into token
@@ -121,7 +142,7 @@ void StringTokenizer::tokenize(const char* str, char delimiter, bool front)
          token->data[(end - start)] = 0;
 
          // move start pointer
-         start = end + 1;
+         start = end + dLen;
       }
       else
       {
@@ -149,6 +170,14 @@ void StringTokenizer::tokenize(const char* str, char delimiter, bool front)
    }
 
    restartTokens(front);
+}
+
+void StringTokenizer::tokenize(const char* str, char delimiter, bool front)
+{
+   char tmp[2];
+   tmp[0] = delimiter;
+   tmp[1] = 0;
+   tokenize(str, tmp, front);
 }
 
 inline void StringTokenizer::restartTokens(bool front)
