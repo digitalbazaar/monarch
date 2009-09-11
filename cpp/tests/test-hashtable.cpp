@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ */
+#include "db/test/Test.h"
+#include "db/test/Tester.h"
+#include "db/test/TestRunner.h"
+#include "db/rt/HashTable.h"
+#include "db/rt/Runnable.h"
+#include "db/rt/RunnableDelegate.h"
+#include "db/rt/Thread.h"
+#include "db/util/Timer.h"
+
+using namespace std;
+using namespace db::test;
+using namespace db::rt;
+
+void runHashTableTests(TestRunner& tr)
+{
+   tr.group("HashTable");
+
+   tr.test("put");
+   {
+   }
+   tr.passIfNoException();
+
+   tr.test("get");
+   {
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
+void runHashTableConcurrencyTest(TestRunner& tr)
+{
+   tr.group("HashTable concurrency");
+
+   tr.test("single thread");
+   {
+   }
+   tr.passIfNoException();
+
+   tr.test("many threads");
+   {
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
+class DbHashTableTester : public db::test::Tester
+{
+public:
+   DbHashTableTester()
+   {
+      setName("HashTable");
+   }
+
+   /**
+    * Run automatic unit tests.
+    */
+   virtual int runAutomaticTests(TestRunner& tr)
+   {
+      runHashTableTests(tr);
+      return 0;
+   }
+
+   /**
+    * Runs interactive unit tests.
+    */
+   virtual int runInteractiveTests(TestRunner& tr)
+   {
+      runHashTableConcurrencyTest(tr);
+      return 0;
+   }
+};
+
+db::test::Tester* getDbHashTableTester() { return new DbHashTableTester(); }
+
+
+DB_TEST_MAIN(DbHashTableTester)

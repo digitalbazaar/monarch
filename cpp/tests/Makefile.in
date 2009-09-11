@@ -32,6 +32,7 @@ SOURCES = test-configmanager.cpp \
 	test-event.cpp \
 	test-fiber.cpp \
 	test-fiber-yield.cpp \
+	test-hashtable.cpp \
 	test-http.cpp \
 	test-io.cpp \
 	test-logging.cpp \
@@ -61,6 +62,7 @@ EXECUTABLES = \
 	test-event \
 	test-fiber \
 	test-fiber-yield \
+	test-hashtable \
 	test-http \
 	test-io \
 	test-logging \
