@@ -48,21 +48,6 @@ protected:
     */
    bool mFinished;
 
-   /**
-    * Cleans up the zip stream by deallocating any data associated with it
-    * if appropriate.
-    */
-   virtual void cleanupStream();
-
-   /**
-    * Creates an Exception from a zlib return value, if necessary.
-    *
-    * @param ret the zlib return value.
-    *
-    * @return true if an exception was created, false if not.
-    */
-   virtual bool createException(int ret);
-
 public:
    /**
     * Creates a new Deflater.
@@ -215,6 +200,23 @@ public:
     *         deflation/inflation.
     */
    virtual unsigned int getTotalOutputBytes();
+
+protected:
+   /**
+    * Cleans up the zip stream by deallocating any data associated with it
+    * if appropriate.
+    */
+   virtual void cleanupStream();
+
+   /**
+    * Creates an Exception from a zlib return value, if necessary.
+    *
+    * @param ret the zlib return value.
+    * @param dst the current destination buffer.
+    *
+    * @return true if an exception was created, false if not.
+    */
+   virtual bool createException(int ret, db::io::ByteBuffer* dst);
 };
 
 } // end namespace deflate

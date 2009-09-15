@@ -22,86 +22,6 @@ Deflater::~Deflater()
    Deflater::cleanupStream();
 }
 
-void Deflater::cleanupStream()
-{
-   // clean up previous stream
-   if(mFinished)
-   {
-      if(mDeflating)
-      {
-         deflateEnd(&mZipStream);
-      }
-      else
-      {
-         inflateEnd(&mZipStream);
-      }
-   }
-
-   // re-initialize stream (use defaults via Z_NULL)
-   mZipStream.zalloc = Z_NULL;
-   mZipStream.zfree = Z_NULL;
-   mZipStream.opaque = Z_NULL;
-   mZipStream.next_in = Z_NULL;
-   mZipStream.avail_in = 0;
-}
-
-bool Deflater::createException(int ret)
-{
-   bool rval = false;
-
-   Exception* e = NULL;
-
-   switch(ret)
-   {
-      case Z_OK:
-      case Z_STREAM_END:
-      case Z_BUF_ERROR:
-         // not an error, buffer just too small, space will be allocated
-         break;
-      case Z_MEM_ERROR:
-         // not enough memory
-         e = new Exception(
-            "Not enough memory for inflation/deflation.",
-            EXCEPTION_DEFLATE ".InsufficientMemory");
-         break;
-      case Z_VERSION_ERROR:
-         // zlib library version incompatible
-         e = new Exception(
-            "Incompatible zlib library version.",
-            EXCEPTION_DEFLATE ".IncompatibleVersion");
-         break;
-      case Z_STREAM_ERROR:
-         // invalid stream parameters
-         e = new Exception(
-            "Invalid zip stream parameters. Null pointer?",
-            EXCEPTION_DEFLATE ".InvalidZipStreamParams");
-         break;
-      default:
-         // something else went wrong
-         e = new Exception(
-            "Could not inflate/deflate.",
-            EXCEPTION_DEFLATE ".Error");
-         break;
-   }
-
-   if(e != NULL)
-   {
-      rval = true;
-
-      if(mZipStream.msg != NULL)
-      {
-         // use zlib stream error message as cause
-         ExceptionRef cause = new Exception(mZipStream.msg);
-         e->setCause(cause);
-      }
-
-      ExceptionRef ref = e;
-      Exception::set(ref);
-   }
-
-   return e;
-}
-
 bool Deflater::startDeflating(int level, bool raw)
 {
    // clean up previous stream
@@ -128,7 +48,7 @@ bool Deflater::startDeflating(int level, bool raw)
    mShouldFinish = false;
    mFinished = false;
 
-   return !createException(ret);
+   return !createException(ret, NULL);
 }
 
 bool Deflater::startInflating(bool raw)
@@ -153,7 +73,7 @@ bool Deflater::startInflating(bool raw)
    mShouldFinish = false;
    mFinished = false;
 
-   return !createException(ret);
+   return !createException(ret, NULL);
 }
 
 void Deflater::setInput(const char* b, int length, bool finish)
@@ -205,7 +125,7 @@ int Deflater::process(ByteBuffer* dst, bool resize)
          dst->extend(length);
 
          // handle potential exception
-         if(createException(ret))
+         if(createException(ret, dst))
          {
             rval = -1;
          }
@@ -301,4 +221,96 @@ unsigned int Deflater::getTotalInputBytes()
 unsigned int Deflater::getTotalOutputBytes()
 {
    return mZipStream.total_out;
+}
+
+void Deflater::cleanupStream()
+{
+   // clean up previous stream
+   if(mFinished)
+   {
+      if(mDeflating)
+      {
+         deflateEnd(&mZipStream);
+      }
+      else
+      {
+         inflateEnd(&mZipStream);
+      }
+   }
+
+   // re-initialize stream (use defaults via Z_NULL)
+   mZipStream.zalloc = Z_NULL;
+   mZipStream.zfree = Z_NULL;
+   mZipStream.opaque = Z_NULL;
+   mZipStream.next_in = Z_NULL;
+   mZipStream.avail_in = 0;
+}
+
+bool Deflater::createException(int ret, ByteBuffer* dst)
+{
+   bool rval = false;
+
+   Exception* e = NULL;
+
+   switch(ret)
+   {
+      case Z_OK:
+         // no error
+      case Z_STREAM_END:
+         // no error, returned by last call to deflate()/inflate()
+         break;
+      case Z_BUF_ERROR:
+         // returned when output buffer is too small or when there is no
+         // more input ... which is only an error if we requested the
+         // zip stream to finish but it couldn't even though our destination
+         // buffer is not full (missing inflation data)
+         if(mShouldFinish && dst != NULL && !dst->isFull())
+         {
+            e = new Exception(
+               "Not enough source data to finish inflation.",
+               EXCEPTION_DEFLATE ".MissingData");
+         }
+         break;
+      case Z_MEM_ERROR:
+         // not enough memory
+         e = new Exception(
+            "Not enough memory for inflation/deflation.",
+            EXCEPTION_DEFLATE ".InsufficientMemory");
+         break;
+      case Z_VERSION_ERROR:
+         // zlib library version incompatible
+         e = new Exception(
+            "Incompatible zlib library version.",
+            EXCEPTION_DEFLATE ".IncompatibleVersion");
+         break;
+      case Z_STREAM_ERROR:
+         // invalid stream parameters
+         e = new Exception(
+            "Invalid zip stream parameters. Null pointer?",
+            EXCEPTION_DEFLATE ".InvalidZipStreamParams");
+         break;
+      default:
+         // something else went wrong
+         e = new Exception(
+            "Could not inflate/deflate.",
+            EXCEPTION_DEFLATE ".Error");
+         break;
+   }
+
+   if(e != NULL)
+   {
+      rval = true;
+
+      if(mZipStream.msg != NULL)
+      {
+         // use zlib stream error message as cause
+         ExceptionRef cause = new Exception(mZipStream.msg);
+         e->setCause(cause);
+      }
+
+      ExceptionRef ref = e;
+      Exception::set(ref);
+   }
+
+   return e;
 }
