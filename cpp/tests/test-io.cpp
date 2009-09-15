@@ -350,34 +350,41 @@ void runFileTest(TestRunner& tr)
 
    File cdir(".");
 
-#ifdef WIN32
-   const char* name = ".";
-   const char* tmpFilename = "C:\\windows\\temp";
-   const char* tmpFilenameA = "C:\\windows\\temp\\DBCORETEST_a.txt";
-   const char* tmpFilenameB = "C:\\windows\\temp\\dir\\..\\file.txt";
-   const char* expectTmpFilenameB = "C:\\windows\\temp\\file.txt";
-   const char* tmpFilenameC = "C:\\windows\\temp\\DBCORETEST_c.txt";
-#else
-   const char* name = "/tmp";
-   const char* tmpFilename = "/tmp";
-   const char* tmpFilenameA = "/tmp/DBCORETEST_a.txt";
-   const char* tmpFilenameB = "/tmp/dir/../file.txt";
-   const char* expectTmpFilenameB = "/tmp/file.txt";
-   const char* tmpFilenameC = "/tmp/DBCORETEST_c.txt";
-#endif
+   string tmpFilename;
+   assert(File::getTemporaryDirectory(tmpFilename));
 
-   File tmp(tmpFilename);
-   File tmpFileA(tmpFilenameA);
-   File tmpFileB(tmpFilenameB);
-   File tmpFileC(tmpFilenameC);
+   string tmpFilenameA = tmpFilename;
+   tmpFilenameA.append(File::NAME_SEPARATOR);
+   tmpFilenameA.append("DBCORETEST_a.txt");
+
+   string tmpFilenameB = tmpFilename;
+   tmpFilenameB.append(File::NAME_SEPARATOR);
+   tmpFilenameB.append("dir");
+   tmpFilenameB.append(File::NAME_SEPARATOR);
+   tmpFilenameB.append("..");
+   tmpFilenameB.append(File::NAME_SEPARATOR);
+   tmpFilenameB.append("file.txt");
+
+   string expectTmpFilenameB = tmpFilename;
+   expectTmpFilenameB.append(File::NAME_SEPARATOR);
+   expectTmpFilenameB.append("file.txt");
+
+   string tmpFilenameC = tmpFilename;
+   tmpFilenameC.append(File::NAME_SEPARATOR);
+   tmpFilenameC.append("DBCORETEST_c.txt");
+
+   File tmp(tmpFilename.c_str());
+   File tmpFileA(tmpFilenameA.c_str());
+   File tmpFileB(tmpFilenameB.c_str());
+   File tmpFileC(tmpFilenameC.c_str());
    File junk("../../foo/../junk238jflk38sjf.txt");
    string np;
 
    tr.test("absolute paths");
    {
-      assertStrCmp(tmp->getAbsolutePath(), tmpFilename);
-      assertStrCmp(tmpFileA->getAbsolutePath(), tmpFilenameA);
-      assertStrCmp(tmpFileB->getAbsolutePath(), expectTmpFilenameB);
+      assertStrCmp(tmp->getAbsolutePath(), tmpFilename.c_str());
+      assertStrCmp(tmpFileA->getAbsolutePath(), tmpFilenameA.c_str());
+      assertStrCmp(tmpFileB->getAbsolutePath(), expectTmpFilenameB.c_str());
    }
    tr.passIfNoException();
 
@@ -444,7 +451,7 @@ void runFileTest(TestRunner& tr)
 
    tr.test("directory list");
    {
-      File dir(name);
+      File dir(tmpFilename.c_str());
       FileList files;
       dir->listFiles(files);
 
@@ -456,7 +463,7 @@ void runFileTest(TestRunner& tr)
 
    tr.test("get type");
    {
-      File dir(name);
+      File dir(tmpFilename.c_str());
       FileList files;
       dir->listFiles(files);
       IteratorRef<File> i = files->getIterator();

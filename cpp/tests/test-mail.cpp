@@ -9,18 +9,14 @@
 #include "db/mail/MailTemplateParser.h"
 #include "db/mail/MailSpool.h"
 #include "db/net/Url.h"
+#include "db/util/StringTools.h"
 
 using namespace std;
 using namespace db::io;
 using namespace db::net;
 using namespace db::test;
 using namespace db::rt;
-
-#ifdef WIN32
-#define TMPDIR "c:/WINDOWS/Temp"
-#else
-#define TMPDIR "/tmp"
-#endif
+using namespace db::util;
 
 #define VALID_SMTP_SERVER "smtp://mail.digitalbazaar.com:25"
 
@@ -321,13 +317,15 @@ void mailSpoolTest(TestRunner& tr)
    // get template
    string tpl1 = mail.toTemplate();
 
-   // clean up old spool files
-   File file(TMPDIR "/bmtestspool.db");
-   file->remove();
+   // get new tmp spool file
+   File file = File::createTempFile("spool");
 
    // create mail spool
    db::mail::MailSpool spool;
-   spool.initialize("file://" TMPDIR "/bmtestspool.db");
+   string spoolUrl = "file://";
+   spoolUrl.append(file->getAbsolutePath());
+   StringTools::replaceAll(spoolUrl, "\\", "/");
+   spool.initialize(spoolUrl.c_str());
    assertNoException();
 
    DynamicObject reason;
@@ -396,7 +394,11 @@ void runFailedMailSendTest(TestRunner& tr)
 
    // create spool to store failed send
    db::mail::MailSpool spool;
-   spool.initialize("file://" TMPDIR "/testmailspool.db");
+   File file = File::createTempFile("spool");
+   string spoolUrl = "file://";
+   spoolUrl.append(file->getAbsolutePath());
+   StringTools::replaceAll(spoolUrl, "\\", "/");
+   spool.initialize(spoolUrl.c_str());
 
    // send mail
    db::mail::SmtpClient c;
@@ -457,8 +459,6 @@ public:
       return 0;
    }
 };
-
-#undef TMPDIR
 
 db::test::Tester* getDbMailTester() { return new DbMailTester(); }
 
