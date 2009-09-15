@@ -37,12 +37,6 @@ using namespace db::util;
 #define SEP "/"
 #endif
 
-#ifdef WIN32
-#define TMPDIR "c:/WINDOWS/Temp"
-#else
-#define TMPDIR "/tmp"
-#endif
-
 void runStringEqualityTest(TestRunner& tr)
 {
    tr.test("string equality");
@@ -1173,7 +1167,6 @@ public:
 };
 
 #undef SEP
-#undef TMPDIR
 
 db::test::Tester* getDbIoTester() { return new DbIoTester(); }
 

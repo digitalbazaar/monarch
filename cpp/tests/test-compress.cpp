@@ -14,6 +14,7 @@
 #include "db/compress/deflate/Deflater.h"
 #include "db/compress/gzip/Gzipper.h"
 #include "db/compress/zip/Zipper.h"
+#include "db/crypto/MessageDigest.h"
 
 using namespace std;
 using namespace db::test;
@@ -21,25 +22,23 @@ using namespace db::compress;
 using namespace db::compress::deflate;
 using namespace db::compress::gzip;
 using namespace db::compress::zip;
+using namespace db::crypto;
 using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
-
-#ifdef WIN32
-#define TMPDIR "c:/WINDOWS/Temp"
-#else
-#define TMPDIR "/tmp"
-#endif
 
 void runDeflateTest(TestRunner& tr)
 {
    tr.group("Deflate");
 
-   // create test file
+   File original = File::createTempFile("deflate-original");
+   File deflated = File::createTempFile("deflate-deflated");
+   File inflated = File::createTempFile("deflate-inflated");
+
+   // create input test file
    tr.test("create test file");
    {
-      File testFile(TMPDIR "/brump.txt");
-      FileOutputStream fos(testFile);
+      FileOutputStream fos(original);
       string content = "brump brump brump 1234 brump brumper";
       for(int i = 0; i < 1000; i++)
       {
@@ -55,10 +54,8 @@ void runDeflateTest(TestRunner& tr)
       def.startDeflating(-1, true);
       assertNoException();
 
-      File in(TMPDIR "/brump.txt");
-      FileInputStream fis(in);
-      File out(TMPDIR "/brump.zip");
-      FileOutputStream fos(out);
+      FileInputStream fis(original);
+      FileOutputStream fos(deflated);
 
       MutatorInputStream mis(&fis, false, &def, false);
       char b[512];
@@ -79,10 +76,8 @@ void runDeflateTest(TestRunner& tr)
       def.startInflating(true);
       assertNoException();
 
-      File in(TMPDIR "/brump.zip");
-      FileInputStream fis(in);
-      File out(TMPDIR "/brump2.txt");
-      FileOutputStream fos(out);
+      FileInputStream fis(deflated);
+      FileOutputStream fos(inflated);
 
       MutatorInputStream mis(&fis, false, &def, false);
       char b[512];
@@ -95,8 +90,11 @@ void runDeflateTest(TestRunner& tr)
       fis.close();
       fos.close();
 
-      File testFile(TMPDIR "/brump.txt");
-      assert(testFile->getLength() == out->getLength());
+      MessageDigest md1("SHA1");
+      MessageDigest md2("SHA1");
+      assert(md1.digestFile(original));
+      assert(md2.digestFile(inflated));
+      assert(md1.getDigest() == md2.getDigest());
    }
    tr.passIfNoException();
 
@@ -106,10 +104,8 @@ void runDeflateTest(TestRunner& tr)
       def.startDeflating(-1, true);
       assertNoException();
 
-      File in(TMPDIR "/brump.txt");
-      FileInputStream fis(in);
-      File out(TMPDIR "/brump.zip");
-      FileOutputStream fos(out);
+      FileInputStream fis(original);
+      FileOutputStream fos(deflated);
 
       MutatorOutputStream mos(&fos, false, &def, false);
       char b[512];
@@ -130,10 +126,8 @@ void runDeflateTest(TestRunner& tr)
       def.startInflating(true);
       assertNoException();
 
-      File in(TMPDIR "/brump.zip");
-      FileInputStream fis(in);
-      File out(TMPDIR "/brump2.txt");
-      FileOutputStream fos(out);
+      FileInputStream fis(deflated);
+      FileOutputStream fos(inflated);
 
       MutatorOutputStream mos(&fos, false, &def, false);
       char b[512];
@@ -146,8 +140,11 @@ void runDeflateTest(TestRunner& tr)
       fis.close();
       mos.close();
 
-      File testFile(TMPDIR "/brump.txt");
-      assert(testFile->getLength() == out->getLength());
+      MessageDigest md1("SHA1");
+      MessageDigest md2("SHA1");
+      assert(md1.digestFile(original));
+      assert(md2.digestFile(inflated));
+      assert(md1.getDigest() == md2.getDigest());
    }
    tr.passIfNoException();
 
@@ -158,11 +155,14 @@ void runGzipTest(TestRunner& tr)
 {
    tr.group("Gzip");
 
+   File original = File::createTempFile("gzip-original");
+   File compressed = File::createTempFile("gzip-compressed");
+   File decompressed = File::createTempFile("gzip-decompressed");
+
    // create test file
    tr.test("create test file");
    {
-      File testFile(TMPDIR "/brump.txt");
-      FileOutputStream fos(testFile);
+      FileOutputStream fos(original);
       string content = "brump brump brump 1234 brump brumper";
       for(int i = 0; i < 1000; i++)
       {
@@ -178,10 +178,8 @@ void runGzipTest(TestRunner& tr)
       gzipper.startCompressing();
       assertNoException();
 
-      File in(TMPDIR "/brump.txt");
-      FileInputStream fis(in);
-      File out(TMPDIR "/brump.gz");
-      FileOutputStream fos(out);
+      FileInputStream fis(original);
+      FileOutputStream fos(compressed);
 
       MutatorInputStream mis(&fis, false, &gzipper, false);
       char b[512];
@@ -202,10 +200,8 @@ void runGzipTest(TestRunner& tr)
       gzipper.startDecompressing();
       assertNoException();
 
-      File in(TMPDIR "/brump.gz");
-      FileInputStream fis(in);
-      File out(TMPDIR "/brump2.txt");
-      FileOutputStream fos(out);
+      FileInputStream fis(compressed);
+      FileOutputStream fos(decompressed);
 
       MutatorInputStream mis(&fis, false, &gzipper, false);
       char b[512];
@@ -218,8 +214,11 @@ void runGzipTest(TestRunner& tr)
       fis.close();
       fos.close();
 
-      File testFile(TMPDIR "/brump.txt");
-      assert(testFile->getLength() == out->getLength());
+      MessageDigest md1("SHA1");
+      MessageDigest md2("SHA1");
+      assert(md1.digestFile(original));
+      assert(md2.digestFile(decompressed));
+      assert(md1.getDigest() == md2.getDigest());
    }
    tr.passIfNoException();
 
@@ -229,10 +228,8 @@ void runGzipTest(TestRunner& tr)
       gzipper.startCompressing();
       assertNoException();
 
-      File in(TMPDIR "/brump.txt");
-      FileInputStream fis(in);
-      File out(TMPDIR "/brump.gz");
-      FileOutputStream fos(out);
+      FileInputStream fis(original);
+      FileOutputStream fos(compressed);
 
       MutatorOutputStream mos(&fos, false, &gzipper, false);
       char b[512];
@@ -253,10 +250,8 @@ void runGzipTest(TestRunner& tr)
       gzipper.startDecompressing();
       assertNoException();
 
-      File in(TMPDIR "/brump.gz");
-      FileInputStream fis(in);
-      File out(TMPDIR "/brump2.txt");
-      FileOutputStream fos(out);
+      FileInputStream fis(compressed);
+      FileOutputStream fos(decompressed);
 
       MutatorOutputStream mos(&fos, false, &gzipper, false);
       char b[512];
@@ -269,14 +264,17 @@ void runGzipTest(TestRunner& tr)
       fis.close();
       mos.close();
 
-      File testFile(TMPDIR "/brump.txt");
-      assert(testFile->getLength() == out->getLength());
+      MessageDigest md1("SHA1");
+      MessageDigest md2("SHA1");
+      assert(md1.digestFile(original));
+      assert(md2.digestFile(decompressed));
+      assert(md1.getDigest() == md2.getDigest());
    }
    tr.passIfNoException();
 #if 0
    tr.test("gzip mp3");
    {
-      string filename = TMPDIR "/bmtestfile.mp3";
+      string filename = "/tmp/bmtestfile.mp3";
       File file(filename.c_str());
       if(!file.exists())
       {
@@ -287,7 +285,7 @@ void runGzipTest(TestRunner& tr)
       else
       {
          FileInputStream fis(file, false);
-         File out(TMPDIR "/bmtestfile.gz");
+         File out("/tmp/bmtestfile.gz");
          FileOutputStream fos(out, false);
 
          // create gzipper, buffer
@@ -321,12 +319,15 @@ void runZipTest(TestRunner& tr)
 {
    tr.group("Zip");
 
+   File a = File::createTempFile("a");
+   File b = File::createTempFile("b");
+   File c = File::createTempFile("c");
+
    // create test files
    tr.test("create test files");
    {
       {
-         File testFile(TMPDIR "/brump-a.txt");
-         FileOutputStream fos(testFile);
+         FileOutputStream fos(a);
          string content = "brump brump brump 1234 brump brumper";
          for(int i = 0; i < 500; i++)
          {
@@ -336,8 +337,7 @@ void runZipTest(TestRunner& tr)
       }
 
       {
-         File testFile(TMPDIR "/brump-b.txt");
-         FileOutputStream fos(testFile);
+         FileOutputStream fos(b);
          string content = "brump brump brump 1234 brump brumper";
          for(int i = 0; i < 1000; i++)
          {
@@ -347,8 +347,7 @@ void runZipTest(TestRunner& tr)
       }
 
       {
-         File testFile(TMPDIR "/brump-c.txt");
-         FileOutputStream fos(testFile);
+         FileOutputStream fos(c);
          string content = "brump brump brump 1234 brump brumper";
          for(int i = 0; i < 1500; i++)
          {
@@ -361,17 +360,12 @@ void runZipTest(TestRunner& tr)
 
    tr.test("zip files");
    {
-      File f1(TMPDIR "/brump-a.txt");
-      File f2(TMPDIR "/brump-b.txt");
-      File f3(TMPDIR "/brump-c.txt");
-
       FileList fl;
-      fl->add(f1);
-      fl->add(f2);
-      fl->add(f3);
+      fl->add(a);
+      fl->add(b);
+      fl->add(c);
 
-      File out(TMPDIR "/brump-zipped.zip");
-
+      File out = File::createTempFile("zipped");
       Zipper zipper;
       zipper.zip(fl, out);
    }
@@ -379,34 +373,30 @@ void runZipTest(TestRunner& tr)
 
    tr.test("archive-only files");
    {
-      File f1(TMPDIR "/brump-a.txt");
-      File f2(TMPDIR "/brump-b.txt");
-      File f3(TMPDIR "/brump-c.txt");
-
       Zipper zipper;
 
       ZipEntry ze1;
       ze1->setFilename("brump-a.txt");
-      ze1->setInputFile(f1);
+      ze1->setInputFile(a);
       ze1->disableCompression(true);
       zipper.addEntry(ze1);
 
       ZipEntry ze2;
       ze2->setFilename("brump-b.txt");
-      ze2->setInputFile(f2);
+      ze2->setInputFile(b);
       ze2->disableCompression(true);
       zipper.addEntry(ze2);
 
       ZipEntry ze3;
       ze3->setFilename("brump-c.txt");
-      ze3->setInputFile(f3);
+      ze3->setInputFile(c);
       ze3->disableCompression(true);
       zipper.addEntry(ze3);
 
       // get size estimate
       uint64_t outputSize = zipper.getEstimatedArchiveSize();
 
-      File out(TMPDIR "/brump-archived.zip");
+      File out = File::createTempFile("archived");
       FileOutputStream fos(out);
       char b[2048];
       int numBytes;
@@ -443,7 +433,7 @@ void runZipTest(TestRunner& tr)
 #if 0
    tr.test("zip mp3");
    {
-      string filename = TMPDIR "/bmtestfile.mp3";
+      string filename = "/tmp/bmtestfile.mp3";
       File file(filename.c_str());
       if(!file->exists())
       {
@@ -454,7 +444,7 @@ void runZipTest(TestRunner& tr)
       else
       {
          FileInputStream fis(file);
-         File out(TMPDIR "/bmtestfile.zip");
+         File out("/tmp/bmtestfile.zip");
          FileOutputStream fos(out, false);
 
          // create zipper, buffer
@@ -490,7 +480,7 @@ void runZipTest(TestRunner& tr)
 #if 0
    tr.test("archive-only mp3");
    {
-      string filename = TMPDIR "/bmtestfile.mp3";
+      string filename = "/tmp/bmtestfile.mp3";
       File file(filename.c_str());
       if(!file->exists())
       {
@@ -500,7 +490,7 @@ void runZipTest(TestRunner& tr)
       }
       else
       {
-         File out(TMPDIR "/bmtestfile.zip");
+         File out("/tmp/bmtestfile.zip");
          FileOutputStream fos(out, false);
 
          // create zipper, buffer
@@ -575,8 +565,6 @@ public:
       return 0;
    }
 };
-
-#undef TMPDIR
 
 db::test::Tester* getDbCompressTester() { return new DbCompressTester(); }
 
