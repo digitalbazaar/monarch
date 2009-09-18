@@ -67,7 +67,6 @@ all:
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-executables &&) true
 
 clean:
-	@$(foreach dir,$(SUBDIRS),IGNORE_DEPENDENCIES=true $(MAKE_DIR) clean &&) true
 	@rm -rf build
 	@rm -rf dist
 	@echo "Cleaned all objects and libraries."
