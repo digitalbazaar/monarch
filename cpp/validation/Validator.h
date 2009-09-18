@@ -77,6 +77,14 @@ public:
     * @return true if optional, false if mandatory.
     */
    virtual bool isOptional(ValidatorContext* context);
+
+   /**
+    * Returns the length of this validator.  For simple validators this will be
+    * one and for arrays and maps it will be a count of their validators.
+    *
+    * @return the length of the validator.
+    */
+   virtual size_t length();
 };
 
 // type definition for a reference counted Validator

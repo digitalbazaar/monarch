@@ -83,6 +83,11 @@ bool Array::isValid(
    return rval;
 }
 
+size_t Array::length()
+{
+   return mValidators.size();
+}
+
 void Array::addValidator(int index, Validator* validator)
 {
    mValidators.push_back(std::make_pair(index, validator));

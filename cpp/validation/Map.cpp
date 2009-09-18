@@ -84,6 +84,11 @@ bool Map::isValid(
    return rval;
 }
 
+size_t Map::length()
+{
+   return mValidators.size();
+}
+
 void Map::addValidator(const char* key, Validator* validator)
 {
    mValidators.push_back(std::make_pair(key, validator));

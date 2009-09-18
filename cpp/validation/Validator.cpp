@@ -42,3 +42,8 @@ bool Validator::isOptional(ValidatorContext* context)
 {
    return false;
 }
+
+size_t Validator::length()
+{
+   return 1;
+}

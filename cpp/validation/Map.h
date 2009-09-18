@@ -67,6 +67,13 @@ public:
    using Validator::isValid;
 
    /**
+    * Returns the number of validators in the map.
+    *
+    * @return the length of the validator.
+    */
+   virtual size_t length();
+
+   /**
     * Adds a key:validator pair.
     *
     * @param key a map key.

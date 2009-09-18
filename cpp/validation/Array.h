@@ -65,6 +65,13 @@ public:
    using Validator::isValid;
 
    /**
+    * Returns the number of validators in the array.
+    *
+    * @return the length of the validator.
+    */
+   virtual size_t length();
+
+   /**
     * Adds an index:validator pair.
     *
     * @param index an array index.
