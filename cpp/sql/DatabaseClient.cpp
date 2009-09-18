@@ -275,6 +275,12 @@ SqlExecutableRef DatabaseClient::insert(const char* table, DynamicObject& row)
    return insertOrReplace("INSERT", table, row);
 }
 
+SqlExecutableRef DatabaseClient::insertOrIgnore(
+   const char* table, DynamicObject& row)
+{
+   return insertOrReplace("INSERT OR IGNORE", table, row);
+}
+
 SqlExecutableRef DatabaseClient::replace(const char* table, DynamicObject& row)
 {
    return insertOrReplace("REPLACE", table, row);

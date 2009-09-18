@@ -276,6 +276,21 @@ public:
       const char* table, db::rt::DynamicObject& row);
 
    /**
+    * Creates an SqlExecutable that will insert a row into a table. All
+    * applicable values in the given object will be inserted into the given
+    * table, according to its schema. If a duplicate key error occurs, it
+    * will be ignored and no insert will occur. This can be checked by
+    * inspecting the rowsAffected property on the sql executable.
+    *
+    * @param table the name of the table to INSERT OR IGNORE INTO.
+    * @param row the object with data to insert as a row.
+    *
+    * @return the SqlExecutable if successful, NULL if an Exception occurred.
+    */
+   virtual SqlExecutableRef insertOrIgnore(
+      const char* table, db::rt::DynamicObject& row);
+
+   /**
     * Creates an SqlExecutable that will replace a row in a table. All
     * applicable values in the given object will be inserted into the given
     * table, according to its schema.
