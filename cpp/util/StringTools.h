@@ -108,6 +108,24 @@ public:
     * @return the joined string.
     */
    static std::string join(db::rt::DynamicObject dyno, const char* glue);
+
+   /**
+    * Converts the passed string to upper case.
+    *
+    * @param str the string to convert.
+    *
+    * @return the result.
+    */
+   static std::string toUpper(const char* str);
+
+   /**
+    * Converts the passed string to lower case.
+    *
+    * @param str the string to convert.
+    *
+    * @return the result.
+    */
+   static std::string toLower(const char* str);
 };
 
 /**

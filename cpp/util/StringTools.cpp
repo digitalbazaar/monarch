@@ -10,6 +10,7 @@
 #include <cstring>
 #include <cstdarg>
 #include <cstdlib>
+#include <algorithm>
 
 using namespace std;
 using namespace db::rt;
@@ -149,5 +150,19 @@ string StringTools::join(DynamicObject dyno, const char* glue)
       rval.append(i->next()->getString());
    }
 
+   return rval;
+}
+
+string StringTools::toUpper(const char* str)
+{
+   string rval = str;
+   std::transform(rval.begin(), rval.end(), rval.begin(), ::toupper);
+   return rval;
+}
+
+string StringTools::toLower(const char* str)
+{
+   string rval = str;
+   std::transform(rval.begin(), rval.end(), rval.begin(), ::tolower);
    return rval;
 }
