@@ -221,14 +221,10 @@ bool FileImpl::exists()
 
 bool FileImpl::remove()
 {
-   bool rval = false;
+   bool rval = true;
 
    int rc = ::remove(mAbsolutePath);
-   if(rc == 0)
-   {
-      rval = true;
-   }
-   else if(exists())
+   if(rc != 0 && exists())
    {
       // only set exception when the file exists and could not be removed
       ExceptionRef e = new Exception(
@@ -237,6 +233,7 @@ bool FileImpl::remove()
       e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
+      rval = false;
    }
 
    return rval;
