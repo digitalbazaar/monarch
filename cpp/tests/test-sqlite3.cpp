@@ -405,6 +405,26 @@ void runSqlite3ConnectionTest(TestRunner& tr)
    tr.pass();
 }
 
+void runSqlite3PrepareManyTest(TestRunner& tr)
+{
+   // testing create and cleanup of many statements
+   // originially used to help find a memory corruption bug
+   tr.test("Sqlite3 Prepare Many");
+   {
+      Sqlite3Connection c;
+      c.connect("sqlite3::memory:");
+      int n = 100;
+      while(n--)
+      {
+         c.prepare("SELECT 1");
+         c.cleanupPreparedStatements();
+      }
+      c.close();
+      assertNoException();
+   }
+   tr.pass();
+}
+
 void runSqlite3StatementTest(TestRunner& tr)
 {
    tr.group("Sqlite3 Statement");
@@ -1471,6 +1491,7 @@ public:
    virtual int runAutomaticTests(TestRunner& tr)
    {
       runSqlite3ConnectionTest(tr);
+      runSqlite3PrepareManyTest(tr);
       runSqlite3StatementTest(tr);
       runSqlite3TableTest(tr);
       runSqlite3TableMigrationTest(tr);
