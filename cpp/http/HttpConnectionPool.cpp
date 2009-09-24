@@ -19,8 +19,23 @@ HttpConnectionPool::~HttpConnectionPool()
 {
    for(PoolMap::iterator i = mPools.begin(); i != mPools.end(); i++)
    {
+      // clean up url key
       free((char*)i->first);
-      delete i->second;
+
+      // close any open connections
+      HttpConnectionList* pool = i->second;
+      for(HttpConnectionList::iterator hi = pool->begin();
+          hi != pool->end(); hi++)
+      {
+         if(!(*hi)->isClosed())
+         {
+            (*hi)->close();
+            (*hi).setNull();
+         }
+      }
+
+      // clean up pool
+      delete pool;
    }
 }
 
