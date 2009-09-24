@@ -455,6 +455,24 @@ unsigned int Url::getPort()
    return mPort;
 }
 
+string Url::getHostAndPort()
+{
+   string rval = mHost;
+   char tmp[10];
+   snprintf(tmp, 10, "%u", mPort);
+   rval.push_back(':');
+   rval.append(tmp);
+   return rval;
+}
+
+string Url::getSchemeHostAndPort()
+{
+   string rval = mScheme;
+   rval.append("://");
+   rval.append(getHostAndPort());
+   return rval;
+}
+
 unsigned int Url::getDefaultPort()
 {
    unsigned int rval = 0;

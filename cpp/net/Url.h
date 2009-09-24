@@ -292,6 +292,20 @@ public:
    virtual unsigned int getPort();
 
    /**
+    * Convenience method to get the host and port of this url.
+    *
+    * @return a "host:port" string.
+    */
+   virtual std::string getHostAndPort();
+
+   /**
+    * Convenience method to get the scheme, host, and port of this url.
+    *
+    * @return a "scheme://host:port" string.
+    */
+   virtual std::string getSchemeHostAndPort();
+
+   /**
     * Gets the default port for the scheme (protocol) of this url.
     *
     * @return the default port for the scheme (protocol) of this url.
