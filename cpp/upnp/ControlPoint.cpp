@@ -552,12 +552,12 @@ bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
       url.format("%s%s",
          wipcs["rootURL"]->getString(),
          wipcs["controlURL"]->getString());
-      HttpClient client;
-      if(client.createConnection(&url))
+      HttpConnectionRef conn = HttpClient::createConnection(&url);
+      if(!conn.isNull())
       {
-         SocketAddress* addr = client.getLocalAddress();
+         SocketAddress* addr = conn->getLocalAddress();
          pm["NewInternalClient"] = addr->getAddress();
-         client.disconnect();
+         conn->close();
       }
       else
       {
