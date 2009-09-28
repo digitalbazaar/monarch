@@ -76,6 +76,16 @@ bool HttpClient::connect(Url* url)
    return mConnection != NULL;
 }
 
+SocketAddress* HttpClient::getLocalAddress()
+{
+   return (mConnection != NULL) ? mConnection->getLocalAddress() : NULL;
+}
+
+SocketAddress* HttpClient::getRemoteAddress()
+{
+   return (mConnection != NULL) ? mConnection->getRemoteAddress() : NULL;
+}
+
 HttpResponse* HttpClient::get(Url* url, DynamicObject* headers, bool follow)
 {
    HttpResponse* rval = NULL;

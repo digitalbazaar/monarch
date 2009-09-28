@@ -541,11 +541,33 @@ bool ControlPoint::performAction(
 
 bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
 {
-   bool rval = false;
+   bool rval = true;
+
+   // if internal client is not specified, get it by connecting to gateway
+   if(!pm->hasMember("NewInternalClient") ||
+      pm["NewInternalClient"]->length() == 0)
+   {
+      // get the control url for the service
+      Url url;
+      url.format("%s%s",
+         wipcs["rootURL"]->getString(),
+         wipcs["controlURL"]->getString());
+      HttpClient client;
+      if(client.createConnection(&url))
+      {
+         SocketAddress* addr = client.getLocalAddress();
+         pm["NewInternalClient"] = addr->getAddress();
+         client.disconnect();
+      }
+      else
+      {
+         rval = false;
+      }
+   }
 
    // perform the action
    ActionResult result;
-   rval = performAction("AddPortMapping", pm, wipcs, result);
+   rval = rval && performAction("AddPortMapping", pm, wipcs, result);
 
    return rval;
 }

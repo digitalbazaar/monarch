@@ -83,6 +83,24 @@ public:
    virtual bool connect(db::net::Url* url);
 
    /**
+    * Gets the local address for this Connection. This address can be
+    * up-cast to an InternetAddress or Internet6Address based on
+    * the communication domain of the returned SocketAddress.
+    *
+    * @return the local address.
+    */
+   virtual db::net::SocketAddress* getLocalAddress();
+
+   /**
+    * Gets the remote address for this Connection. This address can be
+    * up-cast to an InternetAddress or Internet6Address based on
+    * the communication domain of the returned SocketAddress.
+    *
+    * @return the remote address.
+    */
+   virtual db::net::SocketAddress* getRemoteAddress();
+
+   /**
     * Sends an HTTP GET request and receives the response header. This
     * method will not receive the response content. The caller of this
     * method *MUST NOT* free the memory associated with the returned
