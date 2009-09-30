@@ -297,7 +297,8 @@ bool AbstractSocket::listen(unsigned int backlog)
    if(!isBound())
    {
       ExceptionRef e = new Exception(
-         "Cannot listen on unbound socket.", SOCKET_EXCEPTION_TYPE);
+         "Cannot listen on unbound socket.",
+         SOCKET_EXCEPTION_TYPE ".NotBound");
       Exception::set(e);
    }
    else
@@ -334,7 +335,8 @@ Socket* AbstractSocket::accept(unsigned int timeout)
    if(!isListening())
    {
       ExceptionRef e = new Exception(
-         "Cannot accept with a non-listening socket.", SOCKET_EXCEPTION_TYPE);
+         "Cannot accept with a non-listening socket.",
+         SOCKET_EXCEPTION_TYPE ".NotListening");
       Exception::set(e);
    }
    else
@@ -473,7 +475,8 @@ bool AbstractSocket::send(const char* b, int length)
    if(!isBound())
    {
       ExceptionRef e = new Exception(
-         "Cannot write to unbound socket.", SOCKET_EXCEPTION_TYPE);
+         "Cannot write to unbound socket.",
+         SOCKET_EXCEPTION_TYPE ".NotBound");
       Exception::set(e);
    }
    else
@@ -550,7 +553,8 @@ int AbstractSocket::receive(char* b, int length)
    if(!isBound())
    {
       ExceptionRef e = new Exception(
-         "Cannot read from unbound socket.", SOCKET_EXCEPTION_TYPE);
+         "Cannot read from unbound socket.",
+         SOCKET_EXCEPTION_TYPE ".NotBound");
       Exception::set(e);
    }
    else
@@ -661,7 +665,7 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
    {
       ExceptionRef e = new Exception(
          "Cannot get local address for an unbound socket.",
-         SOCKET_EXCEPTION_TYPE);
+         SOCKET_EXCEPTION_TYPE ".NotBound");
       Exception::set(e);
    }
    else
@@ -676,7 +680,7 @@ bool AbstractSocket::getLocalAddress(SocketAddress* address)
       if(error < 0)
       {
          ExceptionRef e = new Exception(
-            "Could not get Socket local address.",
+            "Could not get socket local address.",
             SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
@@ -700,7 +704,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
    {
       ExceptionRef e = new Exception(
          "Cannot get local address for an unconnected socket.",
-         SOCKET_EXCEPTION_TYPE);
+         SOCKET_EXCEPTION_TYPE ".Closed");
       Exception::set(e);
    }
    else
@@ -715,7 +719,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
       if(error < 0)
       {
          ExceptionRef e = new Exception(
-            "Could not get Socket remote address.",
+            "Could not get socket remote address.",
             SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
