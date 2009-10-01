@@ -167,10 +167,12 @@ public:
     * Scans the entire input stream, calling read() on it until it returns
     * 0 or -1.
     *
+    * @param total if not NULL, will return the total number of bytes read.
+    *
     * @return true if the entire stream was read, false if an exception
     *         occurred.
     */
-   virtual bool inspect();
+   virtual bool inspect(uint64_t* total = NULL);
 
    /**
     * Sets whether or not this InspectorInputStream should read the underlying

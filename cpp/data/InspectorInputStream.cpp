@@ -238,12 +238,25 @@ void InspectorInputStream::getInspectors(list<DataInspector*>& inspectors)
    }
 }
 
-bool InspectorInputStream::inspect()
+bool InspectorInputStream::inspect(uint64_t* total)
 {
    // scan entire stream
    char* b = (char*)malloc(2048);
    int numBytes;
-   while((numBytes = read(b, 2048)) > 0);
+   if(total != NULL)
+   {
+      // just do read
+      while((numBytes = read(b, 2048)) > 0);
+   }
+   else
+   {
+      // save total bytes read
+      *total = 0;
+      while((numBytes = read(b, 2048)) > 0)
+      {
+         *total += numBytes;
+      }
+   }
    free(b);
    return numBytes == 0;
 }
