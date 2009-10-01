@@ -243,7 +243,7 @@ bool InspectorInputStream::inspect(uint64_t* total)
    // scan entire stream
    char* b = (char*)malloc(2048);
    int numBytes;
-   if(total != NULL)
+   if(total == NULL)
    {
       // just do read
       while((numBytes = read(b, 2048)) > 0);
