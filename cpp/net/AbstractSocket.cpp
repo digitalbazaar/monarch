@@ -403,7 +403,7 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
       char addr[size];
       address->toSockAddr((sockaddr*)&addr, size);
 
-      // temporarily make socket non-blocking
+      // make socket non-blocking, blocking is handled via select
       SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
 
       // connect
@@ -451,12 +451,6 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
          mConnected = true;
       }
 
-      // FIXME: remove ifndef if winsock/mingw32 ever supports MSG_DONTWAIT
-#ifndef WIN32
-      // restore socket to blocking
-      SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, 0);
-#endif
-
       if(mConnected)
       {
          // initialize input and output
@@ -478,6 +472,7 @@ bool AbstractSocket::send(const char* b, int length)
          "Cannot write to unbound socket.",
          SOCKET_EXCEPTION_TYPE ".NotBound");
       Exception::set(e);
+      rval = false;
    }
    else
    {
@@ -651,6 +646,23 @@ bool AbstractSocket::isConnected()
          // connection severed
          errno = lastError;
          close();
+      }
+      else
+      {
+         // check to see if the connection has been shutdown, by seeing
+         // if recv() will return 0 (do a peek so as not to disturb data)
+         char buf;
+         int flags = MSG_PEEK;
+#ifdef MSG_DONTWAIT
+         flags |= MSG_DONTWAIT;
+#endif
+         int ret = SOCKET_MACRO_recv(mFileDescriptor, &buf, 1, flags);
+         if(ret == 0)
+         {
+            // connection severed
+            errno = EPIPE;
+            close();
+         }
       }
    }
 

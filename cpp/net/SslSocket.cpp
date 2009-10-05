@@ -308,8 +308,7 @@ bool SslSocket::send(const char* b, int length)
 
       // do SSL_write() (implicit handshake performed as necessary)
       int ret = 0;
-      bool closed = false;
-      while(rval && !closed && (ret <= SSL_write(mSSL, b, length)) <= 0)
+      while(rval && (ret = SSL_write(mSSL, b, length)) <= 0)
       {
          // get the last error
          int error = SSL_get_error(mSSL, ret);

@@ -233,10 +233,26 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                response->sendBody(&is);
             }
          }
-         // if the exception was not an interruption or socket error then
-         // send an internal server error response
-         else if(!e->isType("db.io.InterruptedException") &&
-                 !e->isType("db.net.Socket", true))
+         // if the exception was an interruption, then send a 503
+         else if(e->isType("db.io.InterruptedException") ||
+                 e->isType("db.rt.Interrupted"))
+         {
+            // send 503 Service Unavailable
+            const char* html =
+               "<html><body><h2>503 Service Unavailable</h2></body></html>";
+            resHeader->setStatus(503, "Service Unavailable");
+            resHeader->setField("Content-Type", "text/html");
+            resHeader->setField("Content-Length", 58);
+            resHeader->setField("Connection", "close");
+            if((noerror = response->sendHeader()))
+            {
+               ByteArrayInputStream is(html, 58);
+               noerror = response->sendBody(&is);
+            }
+         }
+         // if the exception was not a socket error then send an internal
+         // server error response
+         else if(!e->isType("db.net.Socket", true))
          {
             // send 500 Internal Server Error
             const char* html =
