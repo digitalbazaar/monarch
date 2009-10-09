@@ -68,8 +68,16 @@ bool ConnectionOutputStream::flush()
       }
 
       // send data through the socket output stream
-      if((rval = mConnection->getSocket()->getOutputStream()->write(
-         mUnflushed.data(), numBytes)))
+      OutputStream* os = mConnection->getSocket()->getOutputStream();
+      if(os == NULL)
+      {
+         ExceptionRef e = new Exception(
+            "Could not write to connection. Socket closed.",
+            "db.net.Socket.Closed");
+         Exception::set(e);
+         rval = false;
+      }
+      else if((rval = os->write(mUnflushed.data(), numBytes)))
       {
          // clear written bytes from buffer
          mUnflushed.clear(numBytes);
@@ -105,8 +113,16 @@ bool ConnectionOutputStream::flush()
       }
 
       // send data through the socket output stream
-      if((rval = mConnection->getSocket()->getOutputStream()->write(
-         mBuffer.data(), numBytes)))
+      OutputStream* os = mConnection->getSocket()->getOutputStream();
+      if(os == NULL)
+      {
+         ExceptionRef e = new Exception(
+            "Could not write to connection. Socket closed.",
+            "db.net.Socket.Closed");
+         Exception::set(e);
+         rval = false;
+      }
+      else if((rval = os->write(mBuffer.data(), numBytes)))
       {
          // clear written bytes from buffer
          mBuffer.clear(numBytes);
@@ -146,7 +162,11 @@ void ConnectionOutputStream::close()
    flush();
 
    // close socket output stream
-   mConnection->getSocket()->getOutputStream()->close();
+   OutputStream* os = mConnection->getSocket()->getOutputStream();
+   if(os != NULL)
+   {
+      os->close();
+   }
 }
 
 inline uint64_t ConnectionOutputStream::getBytesWritten()

@@ -40,7 +40,19 @@ inline int ConnectionInputStream::read(char* b, int length)
       }
 
       // read from the socket input stream
-      rval = mConnection->getSocket()->getInputStream()->read(b, length);
+      InputStream* is = mConnection->getSocket()->getInputStream();
+      if(is != NULL)
+      {
+         rval = is->read(b, length);
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Could not read from connection. Socket closed.",
+            "db.net.Socket.Closed");
+         Exception::set(e);
+         rval = -1;
+      }
    }
    else
    {
@@ -256,7 +268,11 @@ inline int ConnectionInputStream::peek(char* b, int length, bool block)
 inline void ConnectionInputStream::close()
 {
    // close socket input stream
-   mConnection->getSocket()->getInputStream()->close();
+   InputStream* is = mConnection->getSocket()->getInputStream();
+   if(is != NULL)
+   {
+      is->close();
+   }
 }
 
 inline uint64_t ConnectionInputStream::getBytesRead()
