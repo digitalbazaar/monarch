@@ -25,9 +25,34 @@ namespace rt
  * multiple Collectables contain references to each other it is possible that
  * their HeapObjects will never be garbage-collected.
  *
- * Collectables are *not* thread-safe by design (for speed). If two threads
- * need to modify a HeapObject at the same time, then a new Collectable
- * should be created and passed to one of the two threads.
+ * Collectables are *not* thread-safe by design (for speed). We use lock-free
+ * algorithms here to handle reference counting, and given that a DCAS
+ * (Double Compare And Swap) algorithm is not available in GCC, we cannot
+ * easily make use of that operation to atomically create references and
+ * increment their counts.
+ *
+ * Therefore, in the given scenario:
+ *
+ * Thread A has the only reference R1 to object X.
+ * Thread B has a reference R2 to some object other than X or to NULL.
+ *
+ * If Thread B tries to set R2 to R1's value whilst Thread A is setting R1 to
+ * NULL, then it is possible that:
+ *
+ * Thread B sees that R1 points to X.
+ * Thread A preempts and sets R1 to NULL, thereby collecting X.
+ * Thread B preempts and tries to increment X's reference count.
+ * Violation.
+ *
+ * Note: It should be safe to enter a similar situation where both R1 and R2
+ * reference the same object, however, if this can be avoided it should be.
+ *
+ * In order to avoid situations like this, the programmer is expected to always
+ * maintain enough references to HeapObjects that are being modified in more
+ * than one thread. Also, if a HeapObject needs to be modified concurrently,
+ * then a new Collectable must be created for each thread that needs to
+ * modify it. If the same Collectable is modified concurrently, the results
+ * are undefined.
  *
  * @author Dave Longley
  */
