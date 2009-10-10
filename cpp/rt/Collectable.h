@@ -54,7 +54,7 @@ protected:
        * add/fetch and sub/fetch functions.
        */
 #ifdef WIN32
-      volatile unsigned int count __attribute__ ((aligned (4)));
+      volatile unsigned int count __attribute__ ((aligned(4)));
 #else
       volatile unsigned int count;
 #endif
@@ -64,19 +64,7 @@ protected:
     * A reference to a HeapObject. When the HeapObject is NULL, this
     * reference is NULL.
     */
-   Reference* mReference;
-
-   /**
-    * Acquires the passed Reference.
-    *
-    * @param ref the Reference to acquire.
-    */
-   virtual void acquire(Reference* ref);
-
-   /**
-    * Releases the current Reference.
-    */
-   virtual void release();
+   volatile Reference* mReference;
 
 public:
    /**
@@ -153,6 +141,21 @@ public:
     * @return true if this Collectable's HeapObject is NULL, false if not.
     */
    virtual bool isNull() const;
+
+protected:
+   /**
+    * Acquires the passed Reference.
+    *
+    * @param ref the Reference to acquire.
+    */
+   virtual void acquire(volatile Reference* ref);
+
+   /**
+    * Releases the passed Reference.
+    *
+    * @param ref the Reference to release.
+    */
+   virtual void release(volatile Reference* ref);
 };
 
 template<typename HeapObject>
@@ -182,48 +185,7 @@ template<typename HeapObject>
 Collectable<HeapObject>::~Collectable()
 {
    // release reference
-   release();
-}
-
-template<typename HeapObject>
-void Collectable<HeapObject>::acquire(Reference* ref)
-{
-   if(ref != NULL)
-   {
-      // do atomic increment and fetch
-      // FIXME: remove ifdef once __sync_add_and_fetch is implemented in mingw
-#ifdef WIN32
-      InterlockedIncrement((long int*)&ref->count);
-#else
-      __sync_add_and_fetch(&ref->count, 1);
-#endif
-   }
-
-   mReference = ref;
-}
-
-template<typename HeapObject>
-void Collectable<HeapObject>::release()
-{
-   // old reference only needs to be released if it is not NULL
-   if(mReference != NULL)
-   {
-      // do atomic fetch and decrement, test return value
-      // FIXME: remove ifdef once __sync_sub_and_fetch is implemented in mingw
-#ifdef WIN32
-      if(InterlockedDecrement((long int*)&mReference->count) == 0)
-#else
-      if(__sync_sub_and_fetch(&mReference->count, 1) == 0)
-#endif
-      {
-         // this Collectable is responsible for deleting the reference
-         // if it was the last one
-         delete mReference->ptr;
-         delete mReference;
-      }
-
-      mReference = NULL;
-   }
+   release(mReference);
 }
 
 template<typename HeapObject>
@@ -232,9 +194,10 @@ Collectable<HeapObject>& Collectable<HeapObject>::operator=(
 {
    if(this != &rhs)
    {
-      // release old reference and acquire new one
-      release();
+      // acquire new reference, release old reference
+      volatile Reference* ref = mReference;
       acquire(rhs.mReference);
+      release(ref);
    }
 
    return *this;
@@ -243,11 +206,12 @@ Collectable<HeapObject>& Collectable<HeapObject>::operator=(
 template<typename HeapObject>
 bool Collectable<HeapObject>::operator==(const Collectable& rhs) const
 {
+   volatile Reference* lRef = mReference;
+   volatile Reference* rRef = rhs.mReference;
    return
       (this == &rhs) ||
-      (this->mReference == rhs.mReference) ||
-      (this->mReference != NULL && rhs.mReference != NULL &&
-       this->mReference->ptr == rhs.mReference->ptr);
+      (lRef == rRef) ||
+      (lRef != NULL && rRef != NULL && lRef->ptr == rRef->ptr);
 }
 
 template<typename HeapObject>
@@ -272,13 +236,53 @@ template<typename HeapObject>
 void Collectable<HeapObject>::setNull()
 {
    // release old reference
-   release();
+   release(mReference);
+   mReference = NULL;
 }
 
 template<typename HeapObject>
 bool Collectable<HeapObject>::isNull() const
 {
    return mReference == NULL;
+}
+
+template<typename HeapObject>
+void Collectable<HeapObject>::acquire(volatile Reference* ref)
+{
+   if(ref != NULL)
+   {
+      // do atomic increment and fetch
+      // FIXME: remove ifdef once __sync_add_and_fetch is implemented in mingw
+#ifdef WIN32
+      InterlockedIncrement((long int*)&ref->count);
+#else
+      __sync_add_and_fetch(&ref->count, 1);
+#endif
+   }
+
+   mReference = ref;
+}
+
+template<typename HeapObject>
+void Collectable<HeapObject>::release(volatile Reference* ref)
+{
+   // old reference only needs to be released if it is not NULL
+   if(ref != NULL)
+   {
+      // do atomic fetch and decrement, test return value
+      // FIXME: remove ifdef once __sync_sub_and_fetch is implemented in mingw
+#ifdef WIN32
+      if(InterlockedDecrement((long int*)&ref->count) == 0)
+#else
+      if(__sync_sub_and_fetch(&ref->count, 1) == 0)
+#endif
+      {
+         // this Collectable is responsible for deleting the reference
+         // if it was the last one
+         delete ref->ptr;
+         delete ref;
+      }
+   }
 }
 
 } // end namespace rt
