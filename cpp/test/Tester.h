@@ -10,7 +10,7 @@
 #include "db/test/TestRunner.h"
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
-#include "db/app/App.h"
+#include "db/app/AppPlugin.h"
 
 namespace db
 {
@@ -40,9 +40,14 @@ namespace test
  *
  * Author: David I. Lehn
  */
-class Tester : public db::app::App
+class Tester : public db::app::AppPlugin
 {
 protected:
+   /**
+    * Name of the tester.
+    */
+   char* mName;
+
    /**
     * Sub-Testers to run.
     */
@@ -58,6 +63,20 @@ public:
     * Deconstruct this Tester.
     */
    virtual ~Tester();
+
+   /**
+    * Set the name.
+    *
+    * @param name the name.
+    */
+   virtual void setName(const char* name);
+
+   /**
+    * Get the name.
+    *
+    * @return the name.
+    */
+   virtual const char* getName();
 
    /**
     * Get a specification of the command line paramters.
@@ -124,13 +143,14 @@ public:
     *
     * @return true on success, false and exception set on failure.
     */
-   virtual bool runApp();
+   virtual bool run();
 };
 
 /**
  * Macro to ease defining and starting a Tester.
  */
-#define DB_TEST_MAIN(testClassName) DB_DELEGATE_MAIN(testClassName)
+#define DB_TEST_MAIN(testClassName) DB_APP_PLUGIN_MAIN(testClassName)
+
 } // end namespace test
 } // end namespace db
 

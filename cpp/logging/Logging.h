@@ -26,8 +26,10 @@ public:
    /**
     * Initializes the category system, static categories, and the static Logger.
     * This MUST be called during application start-up.
+    *
+    * @return true on success, false on failure and exception set
     */
-   static void initialize();
+   static bool initialize();
 
    /**
     * Cleans up the static Logger, static categories, and category system.

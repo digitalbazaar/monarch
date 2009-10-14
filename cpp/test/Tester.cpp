@@ -17,8 +17,11 @@ using namespace db::config;
 using namespace db::rt;
 using namespace db::test;
 
-Tester::Tester()
+Tester::Tester() :
+   mName(NULL)
 {
+   mInfo["id"] = "db.test.Tester";
+   mInfo["dependencies"]->append() = "db.app.plugins.Common";
 }
 
 Tester::~Tester()
@@ -29,6 +32,21 @@ Tester::~Tester()
    {
       delete *i;
    }
+   setName(NULL);
+}
+
+void Tester::setName(const char* name)
+{
+   if(mName != NULL)
+   {
+      free(mName);
+   }
+   mName = (name != NULL) ? strdup(name) : NULL;
+}
+
+const char* Tester::getName()
+{
+   return mName;
 }
 
 DynamicObject Tester::getCommandLineSpecs()
@@ -92,38 +110,31 @@ DynamicObject Tester::getCommandLineSpecs()
 
 bool Tester::willParseCommandLine(std::vector<const char*>* args)
 {
-   bool rval = App::willParseCommandLine(args);
+   bool rval = AppPlugin::willParseCommandLine(args);
 
+   // set defaults
    if(rval)
    {
-      // set defaults
-      if(rval)
-      {
-         Config config;
-         config->setType(Map);
-         config[ConfigManager::ID] = "db.test.Tester defaults";
-         config[ConfigManager::GROUP] = "boot";
-         config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
+      Config meta = getApp()->getMetaConfig();
+      Config config =
+         App::makeMetaConfig(meta, "db.test.Tester defaults", "defaults");
 
-         Config& merge = config[ConfigManager::MERGE];
-         merge["db.test.Tester"]["level"] = TestRunner::Names;
-         merge["db.test.Tester"]["continueAfterException"] = false;
-         merge["db.test.Tester"]["test"] = "all";
+      Config& merge = config[ConfigManager::MERGE];
+      merge["db.test.Tester"]["level"] = TestRunner::Names;
+      merge["db.test.Tester"]["continueAfterException"] = false;
+      merge["db.test.Tester"]["test"] = "all";
 
-         rval = getConfigManager()->addConfig(config);
-      }
+      rval = getApp()->getConfigManager()->addConfig(config);
+   }
 
-      // config to hold potential command line options
-      if(rval)
-      {
-         Config config;
-         config->setType(Map);
-         config[ConfigManager::ID] = "db.test.Tester command line";
-         config[ConfigManager::PARENT] = getParentOfMainConfigGroup();
-         config[ConfigManager::GROUP] = getMainConfigGroup();
-         config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
-         rval = getConfigManager()->addConfig(config);
-      }
+   // config to hold potential command line options
+   if(rval)
+   {
+      Config meta = getApp()->getMetaConfig();
+      Config config =
+         App::makeMetaConfig(
+            meta, "db.test.Tester command line", "command line");
+      rval = getApp()->getConfigManager()->addConfig(config);
    }
 
    return rval;
@@ -131,12 +142,12 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
 
 bool Tester::didParseCommandLine()
 {
-   bool rval = App::didParseCommandLine();
+   bool rval = AppPlugin::didParseCommandLine();
 
    if(rval)
    {
       // to get values set on command line
-      Config rawConfig = getConfigManager()->getConfig(
+      Config rawConfig = getApp()->getConfigManager()->getConfig(
          "db.test.Tester command line", true);
       Config& config = rawConfig[ConfigManager::MERGE]["db.test.Tester"];
 
@@ -160,7 +171,7 @@ bool Tester::didParseCommandLine()
          config["automatic"] = true;
       }
 
-      rval = getConfigManager()->setConfig(rawConfig);
+      rval = getApp()->getConfigManager()->setConfig(rawConfig);
    }
 
    return rval;
@@ -176,7 +187,6 @@ void Tester::teardown(TestRunner& tr)
 
 void Tester::addTester(Tester* tester)
 {
-   tester->setOwner(this);
    mTesters.push_back(tester);
 }
 
@@ -193,9 +203,9 @@ int Tester::runInteractiveTests(TestRunner& tr)
 int Tester::runTests(TestRunner& tr)
 {
    int rval = 0;
-   Config cfg = getConfig()["db.test.Tester"];
+   Config cfg = getApp()->getConfig()["db.test.Tester"];
 
-   tr.group(mName);
+   tr.group(getName());
 
    setup(tr);
    assertNoException();
@@ -228,11 +238,11 @@ int Tester::runTests(TestRunner& tr)
    return rval;
 }
 
-bool Tester::runApp()
+bool Tester::run()
 {
    bool rval = true;
 
-   Config cfg = getConfig()["db.test.Tester"];
+   Config cfg = getApp()->getConfig()["db.test.Tester"];
    bool cont = cfg["continueAfterException"]->getBoolean();
    uint32_t cfgLevel = cfg["level"]->getUInt32();
    TestRunner::OutputLevel level;
@@ -246,13 +256,10 @@ bool Tester::runApp()
       default: level = TestRunner::Times; break;
    }
 
-   App* app = getOwner();
-   app = (app != NULL) ? app : this;
-
-   TestRunner tr(app, cont, level);
+   TestRunner tr(getApp(), cont, level);
 
    int exitStatus = runTests(tr);
-   app->setExitStatus(exitStatus);
+   getApp()->setExitStatus(exitStatus);
    rval = (exitStatus == 0);
    assertNoException();
 

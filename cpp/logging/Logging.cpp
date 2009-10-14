@@ -5,11 +5,13 @@
 
 using namespace db::logging;
 
-void Logging::initialize()
+bool Logging::initialize()
 {
    Category::initialize();
    LoggingCategories::initialize();
    Logger::initialize();
+
+   return true;
 }
 
 void Logging::cleanup()
