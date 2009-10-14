@@ -468,6 +468,20 @@ Config ConfigManager::getConfig(ConfigId id, bool raw)
    if(mConfigs->hasMember(id))
    {
       rval = (raw ? mConfigs[id]["raw"].clone() : mConfigs[id]["merged"]);
+
+      // implicit config groups do not have any raw configs, so do not
+      // return any here
+      if(raw && rval->hasMember(GROUP) &&
+         strcmp(id, rval[GROUP]->getString()) == 0)
+      {
+         ExceptionRef e = new Exception(
+            "Request for raw config with a group ID.",
+            "db.config.ConfigManager.InvalidId");
+         e->getDetails()["id"] = id;
+         Exception::set(e);
+         rval.setNull();
+      }
+
       mLock.unlockShared();
    }
    else
@@ -674,7 +688,8 @@ void ConfigManager::makeMergedConfig(ConfigId id)
    {
       // produce a merged configuration that contains only config values, not
       // any "_special_" config format values
-      Config merged(NULL);
+      Config merged;
+      merged->setType(Map);
 
       // if group, recombine members to rebuild RAW config
       if(config->hasMember("members"))
@@ -1075,7 +1090,7 @@ bool ConfigManager::recursiveAddConfig(
 
    // get config ID
    ConfigId id = "";
-   if(config->hasMember(ID))
+   if(!config.isNull() && config->hasMember(ID))
    {
       id = config[ID]->getString();
    }
@@ -1084,6 +1099,7 @@ bool ConfigManager::recursiveAddConfig(
       ExceptionRef e = new Exception(
          "No valid config ID found.",
          "db.config.ConfigManager.MissingId");
+      e->getDetails()["config"] = config;
       Exception::set(e);
       rval = false;
    }
@@ -1326,6 +1342,9 @@ bool ConfigManager::recursiveAddConfig(
                if(!mConfigs->hasMember(groupId))
                {
                   // insert blank group config, will be updated via update()
+                  // Note: Only implicit groups can have the same group ID
+                  // and config ID ... as their "raw" config is fake ... and
+                  // cannot be retrieved outside of the config manager.
                   Config& groupConfig = mConfigs[groupId];
                   groupConfig["raw"][ID] = groupId;
                   groupConfig["raw"][GROUP] = groupId;

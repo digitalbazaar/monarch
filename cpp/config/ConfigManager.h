@@ -309,6 +309,11 @@ public:
     * enforced only by policy and any modification to the config may have
     * undefined side effects.
     *
+    * Config groups can be retrieved via their group ID, however, they
+    * do not have any associated raw configuration, only a merged config
+    * can be retrieved. Requests for the raw config with a group ID will
+    * return a NULL config.
+    *
     * @param id the Config's ID.
     * @param raw true to get the raw config, false to get the config as merged
     *            with all up-tree parents.
