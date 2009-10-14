@@ -163,33 +163,11 @@ void _testConfigs(
    {
       printf("Testing app group raw config... ");
 
-      // create expect config
-      Config expect;
-
-      // set properties
-      expect[ConfigManager::ID] = "app";
-      expect[ConfigManager::PARENT] = "system";
-      expect[ConfigManager::GROUP] = "app";
-
-      // set merge info
-      Config& merge = expect[ConfigManager::MERGE];
-      merge["dogSays"] = "woof";
-      merge["fruits"]["banana"] = "yellow";
-      merge["fruits"]["pear"] = "green";
-      merge["vegetables"]["pepper"]->append() = "red";
-
-      // set append info
-      Config& append = expect[ConfigManager::APPEND];
-      append["path"]->append() = "/usr/bin";
-      append["path"]->append() = "/tmp/ui-tool";
-
-      // set remove info
-      Config& remove= expect[ConfigManager::REMOVE];
-      remove["vegetables"]["eggplant"] = "";
-
+      // invalid to request a raw groupid so check for that condition
       Config raw = cm.getConfig("app", true);
-      assertNoException();
-      assertDynoCmp(raw, expect);
+      assertException();
+      assert(raw.isNull());
+      Exception::clear();
 
       printf("PASS.\n");
    }
