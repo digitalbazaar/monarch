@@ -118,7 +118,7 @@ public:
     *
     * @param dyno the DynamicObject to write out.
     * @param stream the ostream to write to.
-    * @param compact true to use compact syntax, false no to.
+    * @param compact true to use compact syntax, false not to.
     * @param strict the JSON stream must start with an object or array.
     *
     * @return true on success, false with exception set on failure.
@@ -131,7 +131,7 @@ public:
     * Writes a DynamicObject as JSON to a string.
     *
     * @param dyno the DynamicObject to write out.
-    * @param compact true to use compact syntax, false no to.
+    * @param compact true to use compact syntax, false not to.
     * @param strict the JSON stream must start with an object or array.
     *
     * @return the string with JSON data on success, a blank string with
@@ -144,7 +144,7 @@ public:
     * Writes a DynamicObject as JSON to standard out.
     *
     * @param dyno the DynamicObject to write out.
-    * @param compact true to use compact syntax, false no to.
+    * @param compact true to use compact syntax, false not to.
     * @param strict the JSON stream must start with an object or array.
     *
     * @return true on success, false with exception set on failure.
