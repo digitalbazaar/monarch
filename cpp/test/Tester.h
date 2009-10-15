@@ -65,6 +65,13 @@ public:
    virtual ~Tester();
 
    /**
+    * Set the owner App for this and sub testers.
+    *
+    * @param app the App.
+    */
+   virtual void setApp(db::app::App* app);
+
+   /**
     * Set the name.
     *
     * @param name the name.
