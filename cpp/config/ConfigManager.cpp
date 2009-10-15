@@ -523,22 +523,36 @@ void ConfigManager::update(ConfigId id, DynamicObject* changedIds)
 
       if(changedIds != NULL)
       {
-         // save merged config for each child of config ID
-         // that has a merged config (we assume that we don't need to
-         // examine config changes if there is no merged config for
-         // the child because it has never been examined to begin with)
-         DynamicObjectIterator i = config["children"].getIterator();
-         while(i->hasNext())
+         /* Note: Here we only want to report changes for configs that have
+          * merged data. If a config does not have any merged data, then its
+          * values have not been used yet and so any changes are irrelevant
+          * and we can optimize them out. This is particularly useful during
+          * initialization of a config system.
+          *
+          * We also assume here that if the current config we are updating
+          * does not have a merged config, then it is necessary that none of
+          * its children can have a merged config either (as to generate a
+          * child's merged config, the parent merged config must be generated).
+          *
+          * Therefore, we only save current merged configs for children that
+          * have them. We will use these configs later to produce a diff for
+          * config change listeners.
+          */
+         if(config->hasMember("merged"))
          {
-            ConfigId nextId = i->next()->getString();
-            if(!(*changedIds)->hasMember(nextId))
+            DynamicObjectIterator i = config["children"].getIterator();
+            while(i->hasNext())
             {
-               if(config->hasMember("merged"))
+               ConfigId nextId = i->next()->getString();
+               if(!(*changedIds)->hasMember(nextId) &&
+                  mConfigs->hasMember(nextId))
                {
-                  // config doesn't have to be cloned because if it changes,
-                  // it will reference a new dynamic object ... we will just
-                  // keep a reference to the old one here
-                  (*changedIds)[nextId] = mConfigs[id]["merged"];
+                  Config& cfg = mConfigs[nextId];
+                  if(cfg->hasMember("merged"))
+                  {
+                     // save a reference to the old merged config
+                     (*changedIds)[nextId] = mConfigs[nextId]["merged"];
+                  }
                }
             }
          }
