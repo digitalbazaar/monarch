@@ -332,16 +332,6 @@ public:
    virtual bool hasConfig(ConfigId id);
 
    /**
-    * Enables or disabled auto-updates to configurations. This is particularly
-    * useful when initializing a configuration system. When auto-update is
-    * enabled, new merged configurations will be computed each time a
-    * configuration change is made.
-    *
-    * @param yes true to enable auto-updates, false to disable them.
-    */
-   virtual void enableAutoUpdate(bool yes);
-
-   /**
     * Reproduces the merged config for the given config ID. This method is
     * automatically called when adding, removing, or setting a config, it
     * should not ordinarily need to be called manually.

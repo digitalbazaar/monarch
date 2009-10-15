@@ -383,9 +383,6 @@ bool App::loadConfigs()
    // load ids in order
    if(rval)
    {
-      // disable config updates
-      getConfigManager()->enableAutoUpdate(false);
-
       ConfigIterator i = ids.getIterator();
       while(rval && i->hasNext())
       {
@@ -393,9 +390,6 @@ bool App::loadConfigs()
          rval = getConfigManager()->addConfig(
             meta["configs"][configId->getString()]);
       }
-
-      // enable config updates
-      getConfigManager()->enableAutoUpdate(true);
    }
 
    return rval;

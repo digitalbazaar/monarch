@@ -508,11 +508,6 @@ bool ConfigManager::hasConfig(ConfigId id)
    return mConfigs->hasMember(id);
 }
 
-void ConfigManager::enableAutoUpdate(bool yes)
-{
-   // FIXME:
-}
-
 void ConfigManager::update(ConfigId id, DynamicObject* changedIds)
 {
    // lock to modify internal storage
