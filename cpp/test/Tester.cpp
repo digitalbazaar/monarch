@@ -35,6 +35,18 @@ Tester::~Tester()
    setName(NULL);
 }
 
+void Tester::setApp(App* app)
+{
+   AppPlugin::setApp(app);
+
+   for(list<Tester*>::iterator i = mTesters.begin();
+      i != mTesters.end();
+      i++)
+   {
+      (*i)->setApp(app);
+   }
+}
+
 void Tester::setName(const char* name)
 {
    if(mName != NULL)
