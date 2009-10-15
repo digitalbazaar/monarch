@@ -101,6 +101,10 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
          // notify listener of configuration addition
          listener->configAdded(this, config[ID]->getString());
 
+         // FIXME: why aren't we locking while producing merged diffs?
+         // if a config is removed (like a user config is removed in bitmunk)
+         // we could end up with config corruption or a segfault, right?
+
          // produce merged diffs
          produceMergedDiffs(changedIds);
 
@@ -431,7 +435,7 @@ bool ConfigManager::setConfig(Config& config)
       }
       else
       {
-         changedIds[id] = getConfig(id, false);
+         changedIds[id] = mConfigs[id]["merged"];
          mConfigs[id]["raw"] = config;
          update(id, &changedIds);
          rval = true;
@@ -516,7 +520,10 @@ void ConfigManager::update(ConfigId id, DynamicObject* changedIds)
             ConfigId nextId = i->next()->getString();
             if(!(*changedIds)->hasMember(nextId))
             {
-               (*changedIds)[nextId] = getConfig(nextId, false);
+               // config doesn't have to be cloned because if it changes,
+               // it will reference a new dynamic object ... we will just
+               // keep a reference to the old one here
+               (*changedIds)[nextId] = mConfigs[id]["merged"];
             }
          }
       }
@@ -1049,11 +1056,15 @@ void ConfigManager::produceMergedDiffs(DynamicObject& changedIds)
    {
       Config& oldMerged = i->next();
       ConfigManager::ConfigId nextId = i->getName();
-      Config d;
-      Config newMerged = getConfig(nextId, false);
-      if(!newMerged.isNull() && diff(d, oldMerged, newMerged))
+      if(mConfigs->hasMember(nextId))
       {
-         changedIds[nextId] = d;
+         // diff new merged config with the old one we saved a copy of
+         Config d;
+         Config newMerged = mConfigs[nextId]["merged"];
+         if(diff(d, oldMerged, newMerged))
+         {
+            changedIds[nextId] = d;
+         }
       }
    }
 }
