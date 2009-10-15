@@ -26,6 +26,8 @@ using namespace db::io;
 using namespace db::rt;
 using namespace db::util;
 
+#define CONFIG_EXCEPTION   "db.config.ConfigManager"
+
 const char* ConfigManager::DEFAULT_VALUE = "_default_";
 const char* ConfigManager::VERSION       = "_version_";
 const char* ConfigManager::ID            = "_id_";
@@ -150,7 +152,7 @@ bool ConfigManager::addConfigFile(
          {
             ExceptionRef e = new Exception(
                "Configuration file not found.",
-               "db.config.ConfigManager.FileNotFound");
+               CONFIG_EXCEPTION ".FileNotFound");
             e->getDetails()["path"] = path;
             Exception::set(e);
             rval = false;
@@ -179,7 +181,7 @@ bool ConfigManager::addConfigFile(
          {
             ExceptionRef e = new Exception(
                "Configuration file load failure.",
-               "db.config.ConfigManager.ConfigFileError");
+               CONFIG_EXCEPTION ".ConfigFileError");
             e->getDetails()["path"] = path;
             Exception::push(e);
             rval = false;
@@ -242,7 +244,7 @@ bool ConfigManager::addConfigFile(
       {
          ExceptionRef e = new Exception(
             "Unknown configuration file type.",
-            "db.config.ConfigManager.FileNotFound");
+            CONFIG_EXCEPTION ".FileNotFound");
          Exception::set(e);
          rval = false;
       }
@@ -252,7 +254,7 @@ bool ConfigManager::addConfigFile(
    {
       ExceptionRef e = new Exception(
          "Invalid config file.",
-         "db.config.ConfigManager.InvalidConfigFile");
+         CONFIG_EXCEPTION ".InvalidConfigFile");
       e->getDetails()["path"] = path;
       if(dir != NULL)
       {
@@ -353,7 +355,7 @@ bool ConfigManager::removeConfig(ConfigId id)
       {
          ExceptionRef e = new Exception(
             "Could not remove config. Invalid config ID.",
-            "db.config.ConfigManager.InvalidId");
+            CONFIG_EXCEPTION ".InvalidId");
          e->getDetails()["id"] = id;
          Exception::set(e);
       }
@@ -401,7 +403,7 @@ bool ConfigManager::setConfig(Config& config)
       {
          ExceptionRef e = new Exception(
             "Could not set config. Invalid config ID.",
-            "db.config.ConfigManager.InvalidId");
+            CONFIG_EXCEPTION ".InvalidId");
          e->getDetails()["id"] = id;
          Exception::set(e);
       }
@@ -415,7 +417,7 @@ bool ConfigManager::setConfig(Config& config)
       {
          ExceptionRef e = new Exception(
             "Could not set config. Group changed.",
-            "db.config.ConfigManager.ConfigConflict");
+            CONFIG_EXCEPTION ".ConfigConflict");
          e->getDetails()["id"] = id;
          Exception::set(e);
       }
@@ -429,13 +431,13 @@ bool ConfigManager::setConfig(Config& config)
       {
          ExceptionRef e = new Exception(
             "Could not set config. Parent changed.",
-            "db.config.ConfigManager.ConfigConflict");
+            CONFIG_EXCEPTION ".ConfigConflict");
          e->getDetails()["id"] = id;
          Exception::set(e);
       }
       else
       {
-         changedIds[id] = mConfigs[id]["merged"];
+         changedIds[id] = getMergedConfig(id);
          mConfigs[id]["raw"] = config;
          update(id, &changedIds);
          rval = true;
@@ -471,7 +473,7 @@ Config ConfigManager::getConfig(ConfigId id, bool raw)
    mLock.lockShared();
    if(mConfigs->hasMember(id))
    {
-      rval = (raw ? mConfigs[id]["raw"].clone() : mConfigs[id]["merged"]);
+      rval = (raw ? mConfigs[id]["raw"].clone() : getMergedConfig(id));
 
       // implicit config groups do not have any raw configs, so do not
       // return any here
@@ -480,7 +482,7 @@ Config ConfigManager::getConfig(ConfigId id, bool raw)
       {
          ExceptionRef e = new Exception(
             "Request for raw config with a group ID.",
-            "db.config.ConfigManager.InvalidId");
+            CONFIG_EXCEPTION ".InvalidId");
          e->getDetails()["id"] = id;
          Exception::set(e);
          rval.setNull();
@@ -493,7 +495,7 @@ Config ConfigManager::getConfig(ConfigId id, bool raw)
       mLock.unlockShared();
       ExceptionRef e = new Exception(
          "Could not get config. Invalid config ID.",
-         "db.config.ConfigManager.InvalidId");
+         CONFIG_EXCEPTION ".InvalidId");
       e->getDetails()["id"] = id;
       Exception::set(e);
    }
@@ -506,41 +508,106 @@ bool ConfigManager::hasConfig(ConfigId id)
    return mConfigs->hasMember(id);
 }
 
+void ConfigManager::enableAutoUpdate(bool yes)
+{
+   // FIXME:
+}
+
 void ConfigManager::update(ConfigId id, DynamicObject* changedIds)
 {
    // lock to modify internal storage
    mLock.lockExclusive();
    {
+      // get config
+      Config& config = mConfigs[id];
+
       if(changedIds != NULL)
       {
          // save merged config for each child of config ID
-         DynamicObjectIterator i = mConfigs[id]["children"].getIterator();
+         // that has a merged config (we assume that we don't need to
+         // examine config changes if there is no merged config for
+         // the child because it has never been examined to begin with)
+         DynamicObjectIterator i = config["children"].getIterator();
          while(i->hasNext())
          {
             ConfigId nextId = i->next()->getString();
             if(!(*changedIds)->hasMember(nextId))
             {
-               // config doesn't have to be cloned because if it changes,
-               // it will reference a new dynamic object ... we will just
-               // keep a reference to the old one here
-               (*changedIds)[nextId] = mConfigs[id]["merged"];
+               if(config->hasMember("merged"))
+               {
+                  // config doesn't have to be cloned because if it changes,
+                  // it will reference a new dynamic object ... we will just
+                  // keep a reference to the old one here
+                  (*changedIds)[nextId] = mConfigs[id]["merged"];
+               }
             }
          }
       }
 
-      // reproduce merged config for config ID
-      mConfigs[id]->removeMember("merged");
-      makeMergedConfig(id);
+      // if updating a group, recombine members to rebuild RAW config
+      if(config->hasMember("members"))
+      {
+         // clear old raw config
+         Config& raw = config["raw"];
+         if(raw->hasMember(MERGE))
+         {
+            raw[MERGE]->clear();
+         }
+         if(raw->hasMember(APPEND))
+         {
+            raw[APPEND]->clear();
+         }
+         if(raw->hasMember(REMOVE))
+         {
+            raw[REMOVE]->clear();
+         }
+
+         // merge raw configs together
+         ConfigIterator i = config["members"].getIterator();
+         while(i->hasNext())
+         {
+            Config& memberId = i->next();
+            Config& member = mConfigs[memberId->getString()]["raw"];
+
+            // merge the merge property (do not append)
+            if(member->hasMember(MERGE))
+            {
+               merge(raw[MERGE], member[MERGE], false);
+            }
+
+            // aggregate append properties
+            if(member->hasMember(APPEND))
+            {
+               merge(raw[APPEND], member[APPEND], true);
+            }
+
+            // aggregate remove properties
+            if(member->hasMember(REMOVE))
+            {
+               merge(raw[REMOVE], member[REMOVE], true);
+            }
+         }
+      }
+
+      // wipe old merged config for config ID and replace it with a new one
+      // we only do this if there was an existing merged config, otherwise
+      // we don't bother as its correct merged config will be lazily created
+      // only once a user requests the config
+      if(config->hasMember("merged"))
+      {
+         config->removeMember("merged");
+         makeMergedConfig(id);
+      }
 
       // update group config (if not already the group)
-      if(mConfigs[id]["raw"]->hasMember(GROUP) &&
-         strcmp(id, mConfigs[id]["raw"][GROUP]->getString()) != 0)
+      if(config["raw"]->hasMember(GROUP) &&
+         strcmp(id, config["raw"][GROUP]->getString()) != 0)
       {
-         update(mConfigs[id]["raw"][GROUP]->getString(), changedIds);
+         update(config["raw"][GROUP]->getString(), changedIds);
       }
 
       // update each child of config ID
-      DynamicObjectIterator i = mConfigs[id]["children"].getIterator();
+      DynamicObjectIterator i = config["children"].getIterator();
       while(i->hasNext())
       {
          update(i->next()->getString(), changedIds);
@@ -698,51 +765,6 @@ void ConfigManager::makeMergedConfig(ConfigId id)
       Config merged;
       merged->setType(Map);
 
-      // if group, recombine members to rebuild RAW config
-      if(config->hasMember("members"))
-      {
-         // clear old raw config
-         Config& raw = config["raw"];
-         if(raw->hasMember(MERGE))
-         {
-            raw[MERGE]->clear();
-         }
-         if(raw->hasMember(APPEND))
-         {
-            raw[APPEND]->clear();
-         }
-         if(raw->hasMember(REMOVE))
-         {
-            raw[REMOVE]->clear();
-         }
-
-         // merge together raw configs together
-         ConfigIterator i = config["members"].getIterator();
-         while(i->hasNext())
-         {
-            Config& memberId = i->next();
-            Config& member = mConfigs[memberId->getString()]["raw"];
-
-            // merge the merge property (do not append)
-            if(member->hasMember(MERGE))
-            {
-               merge(raw[MERGE], member[MERGE], false);
-            }
-
-            // aggregate append properties
-            if(member->hasMember(APPEND))
-            {
-               merge(raw[APPEND], member[APPEND], true);
-            }
-
-            // aggregate remove properties
-            if(member->hasMember(REMOVE))
-            {
-               merge(raw[REMOVE], member[REMOVE], true);
-            }
-         }
-      }
-
       // get raw configuration
       Config& raw = config["raw"];
 
@@ -794,6 +816,23 @@ void ConfigManager::makeMergedConfig(ConfigId id)
       // set merged config
       config["merged"] = merged;
    }
+}
+
+Config ConfigManager::getMergedConfig(ConfigId id)
+{
+   Config rval(NULL);
+
+   if(mConfigs->hasMember(id))
+   {
+      if(!mConfigs[id]->hasMember("merged"))
+      {
+         // lazily produce the merged config
+         makeMergedConfig(id);
+      }
+      rval = mConfigs[id]["merged"];
+   }
+
+   return rval;
 }
 
 struct _replaceKeywordsState_s
@@ -1035,7 +1074,8 @@ bool ConfigManager::checkConflicts(
    {
       ExceptionRef e = new Exception(
          "Config conflict. Parent, group, or merge field differs for "
-         "a particular config ID.", "db.config.ConfigManager.ConfigConflict");
+         "a particular config ID.",
+         CONFIG_EXCEPTION ".ConfigConflict");
       e->getDetails()["configId"] = id;
       e->getDetails()["diff"] = d;
       e->getDetails()["isGroup"] = isGroup;
@@ -1060,7 +1100,7 @@ void ConfigManager::produceMergedDiffs(DynamicObject& changedIds)
       {
          // diff new merged config with the old one we saved a copy of
          Config d;
-         Config newMerged = mConfigs[nextId]["merged"];
+         Config newMerged = getMergedConfig(nextId);
          if(diff(d, oldMerged, newMerged))
          {
             changedIds[nextId] = d;
@@ -1109,7 +1149,7 @@ bool ConfigManager::recursiveAddConfig(
    {
       ExceptionRef e = new Exception(
          "No valid config ID found.",
-         "db.config.ConfigManager.MissingId");
+         CONFIG_EXCEPTION ".MissingId");
       e->getDetails()["config"] = config;
       Exception::set(e);
       rval = false;
@@ -1121,7 +1161,7 @@ bool ConfigManager::recursiveAddConfig(
    {
       ExceptionRef e = new Exception(
          "Group ID cannot be the same as config ID.",
-         "db.config.ConfigManager.ConfigConflict");
+         CONFIG_EXCEPTION ".ConfigConflict");
       e->getDetails()["id"] = id;
       Exception::set(e);
       rval = false;
@@ -1139,7 +1179,7 @@ bool ConfigManager::recursiveAddConfig(
             {
                ExceptionRef e = new Exception(
                   "No config file version found.",
-                  "db.config.ConfigManager.UnspecifiedVersion");
+                  CONFIG_EXCEPTION ".UnspecifiedVersion");
                Exception::set(e);
                rval = false;
             }
@@ -1151,7 +1191,7 @@ bool ConfigManager::recursiveAddConfig(
                {
                   ExceptionRef e = new Exception(
                      "Unsupported config file version.",
-                     "db.config.ConfigManager.UnsupportedVersion");
+                     CONFIG_EXCEPTION ".UnsupportedVersion");
                   e->getDetails()["version"] = version;
                   Exception::set(e);
                   rval = false;
@@ -1168,7 +1208,7 @@ bool ConfigManager::recursiveAddConfig(
             {
                ExceptionRef e = new Exception(
                   "Invalid parent configuration file ID.",
-                  "db.config.ConfigManager.InvalidParent");
+                  CONFIG_EXCEPTION ".InvalidParent");
                e->getDetails()["configId"] = id;
                e->getDetails()["parentId"] = parent;
                Exception::set(e);
@@ -1211,7 +1251,7 @@ bool ConfigManager::recursiveAddConfig(
       {
          ExceptionRef e = new Exception(
             "The include directive value must be an array.",
-            "db.config.ConfigManager.InvalidIncludeType");
+            CONFIG_EXCEPTION ".InvalidIncludeType");
          e->getDetails()["configId"] = id;
          e->getDetails()[INCLUDE] = config[INCLUDE];
          Exception::set(e);
@@ -1242,7 +1282,7 @@ bool ConfigManager::recursiveAddConfig(
                {
                   ExceptionRef e = new Exception(
                      "The include path is missing.",
-                     "db.config.ConfigManager.MissingIncludePath");
+                     CONFIG_EXCEPTION ".MissingIncludePath");
                   e->getDetails()["configId"] = id;
                   e->getDetails()[INCLUDE] = config[INCLUDE];
                   Exception::set(e);
@@ -1269,7 +1309,7 @@ bool ConfigManager::recursiveAddConfig(
             {
                ExceptionRef e = new Exception(
                   "The type of the include value is invalid.",
-                  "db.config.ConfigManager.InvalidIncludeType");
+                  CONFIG_EXCEPTION ".InvalidIncludeType");
                e->getDetails()["configId"] = id;
                e->getDetails()[INCLUDE] = config[INCLUDE];
                Exception::set(e);
