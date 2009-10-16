@@ -41,7 +41,7 @@ namespace app
  *
  * @author David I. Lehn
  */
-class App : public db::rt::Runnable
+class App
 {
 protected:
    /**
@@ -142,16 +142,6 @@ public:
     * Deconstruct this App instance.
     */
    virtual ~App();
-
-   /**
-    * Initialize this App.  This method MUST be called for non-delegates.
-    * If using a delegate then call setDelegate() before initiailize().  This
-    * method will call initConfigManager(), initConfigGroups(), and
-    * initConfigGroups() on the delegate.
-    *
-    * @return true on success, false and exception set on error.
-    */
-   virtual bool initialize();
 
    /**
     * Add an AppPlugin.
@@ -292,11 +282,6 @@ public:
     * @return true on success, false on failure and exception set
     */
    virtual bool loadConfigs();
-
-   /**
-    * Run the app and set mExitStatus.
-    */
-   virtual void run();
 
    /**
     * Parses the command line options that were passed to the application.

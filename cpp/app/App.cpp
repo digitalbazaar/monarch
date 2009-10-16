@@ -71,21 +71,6 @@ App::~App()
    cleanupConfigManager();
 }
 
-bool App::initialize()
-{
-   bool rval;
-
-   Config meta = getMetaConfig();
-   rval = initConfigManager() &&
-      mPlugins->initConfigManager() &&
-      mPlugins->willInitMetaConfig(meta) &&
-      mPlugins->initMetaConfig(meta) &&
-      mPlugins->didInitMetaConfig(meta) &&
-      loadConfigs();
-   // FIXME: need helper func to support multi-level delegates
-   return rval;
-}
-
 bool App::addPlugin(AppPluginRef plugin)
 {
    bool rval;
@@ -395,29 +380,6 @@ bool App::loadConfigs()
    }
 
    return rval;
-}
-
-void App::run()
-{
-   bool success;
-   bool loggingStarted = false;
-
-   loggingStarted = mPlugins->initializeLogging();
-   success = loggingStarted;
-
-   success = success &&
-      mPlugins->willRun() &&
-      mPlugins->run() &&
-      mPlugins->didRun();
-
-   if(loggingStarted)
-   {
-      mPlugins->cleanupLogging();
-   }
-   if(!success)
-   {
-      printException();
-   }
 }
 
 static DynamicObject* findPath(
@@ -1046,6 +1008,8 @@ int App::main(
 {
    bool success = true;
 
+   // seed random
+   Random::seed();
    // enable stats early
    DynamicObjectImpl::enableStats(true);
 
@@ -1070,7 +1034,14 @@ int App::main(
       success = addPlugin(*i);
    }
 
-   success = success && initialize();
+   Config meta = getMetaConfig();
+   success = success &&
+      initConfigManager() &&
+      mPlugins->initConfigManager() &&
+      mPlugins->willInitMetaConfig(meta) &&
+      mPlugins->initMetaConfig(meta) &&
+      mPlugins->didInitMetaConfig(meta) &&
+      loadConfigs();
 
    // add plugin specs to command line config
    if(success)
@@ -1115,38 +1086,29 @@ int App::main(
    }
 #endif
 
-   if(success)
+   success = success &&
+      initializeOpenSSL() &&
+      db::logging::Logging::initialize() &&
+      db::rt::Platform::initialize() &&
+      mPlugins->initializeLogging() &&
+      mPlugins->willRun() &&
+      mPlugins->run() &&
+      mPlugins->didRun();
+
+   if(!success)
    {
-      // seed random
-      Random::seed();
-
-      success =
-         initializeOpenSSL() &&
-         db::logging::Logging::initialize() &&
-         db::rt::Platform::initialize();
-
-      if(success)
-      {
-         Thread t(this);
-         t.start();
-         t.join();
-      }
-
-      db::rt::Platform::cleanup();
-      db::logging::Logging::cleanup();
-      cleanupOpenSSL();
+      printException();
    }
+
+   mPlugins->cleanupLogging();
+   db::rt::Platform::cleanup();
+   db::logging::Logging::cleanup();
+   cleanupOpenSSL();
 
    // cleanup winsock
 #ifdef WIN32
    WSACleanup();
 #endif
-
-   // print exception
-   if(!success)
-   {
-      printException();
-   }
 
    // if had an error and exit status not already set to failure then set it
    if(!success && mExitStatus != EXIT_SUCCESS)
