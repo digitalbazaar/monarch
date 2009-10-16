@@ -317,8 +317,8 @@ bool CommonAppPlugin::didParseCommandLine()
    // check logging level
    if(rval)
    {
-      const char* cfgLogLevel =
-         getApp()->getConfig()["app"]["logging"]["level"]->getString();
+      Config cfg = getApp()->getConfig();
+      const char* cfgLogLevel = cfg["app"]["logging"]["level"]->getString();
       Logger::Level level;
       bool found = Logger::stringToLevel(cfgLogLevel, level);
       if(!found)

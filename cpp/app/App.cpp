@@ -288,8 +288,10 @@ ConfigManager* App::getConfigManager()
 
 Config App::getConfig()
 {
+   // get config, but do not cache merged config to prevent config changes
+   // from being tracked until absolutely necessary
    return getConfigManager()->getConfig(
-      getMetaConfig()["groups"]["main"]->getString());
+      getMetaConfig()["groups"]["main"]->getString(), false, false);
 }
 
 Config App::getMetaConfig()
@@ -548,7 +550,7 @@ static bool getTarget(
    else if(spec->hasMember("config") && spec->hasMember("path"))
    {
       const char* path = spec["path"]->getString();
-      DynamicObject config = app->getConfig();
+      Config config = app->getConfig();
       DynamicObject* obj = findPath(config, path, false);
       if(obj != NULL)
       {
@@ -598,7 +600,7 @@ static bool setTarget(
    {
       const char* path = spec["path"]->getString();
       const char* configName = spec["config"]->getString();
-      DynamicObject rawConfig = app->getConfigManager()->getConfig(
+      Config rawConfig = app->getConfigManager()->getConfig(
          configName, true);
       rval = setTargetPath(rawConfig[ConfigManager::MERGE], path, value);
       if(rval)

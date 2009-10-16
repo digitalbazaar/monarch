@@ -437,7 +437,13 @@ bool ConfigManager::setConfig(Config& config)
       }
       else
       {
-         changedIds[id] = getMergedConfig(id, true);
+         // only include changed ID if this config's merged config has
+         // been generated before (indicating that someone could be
+         // watching for changes)
+         if(mConfigs[id]->hasMember("merged"))
+         {
+            changedIds[id] = getMergedConfig(id, false);
+         }
          mConfigs[id]["raw"] = config;
          update(id, &changedIds);
          rval = true;
@@ -780,21 +786,21 @@ void ConfigManager::makeMergedConfig(ConfigId id, Config* out)
       if(raw->hasMember(PARENT))
       {
          ConfigId parent = raw[PARENT]->getString();
-         if(out == NULL)
+         if(mConfigs[parent]->hasMember("merged"))
+         {
+            // parent already cached, so just clone it
+            merged = mConfigs[parent]["merged"].clone();
+         }
+         else if(out == NULL)
          {
             // caching is on, so generate and cache parent config
             makeMergedConfig(parent, NULL);
             merged = mConfigs[parent]["merged"].clone();
          }
-         else if(mConfigs[parent]->hasMember("merged"))
-         {
-            // parent already cached, so just clone it
-            merged = mConfigs[parent]["merged"].clone();
-         }
          else
          {
-            // caching is off, so generate parent config and store it
-            // in "merged"
+            // caching is off and parent config not yet cached, so
+            // generate parent config and store it in "merged"
             makeMergedConfig(parent, &merged);
          }
 
