@@ -317,10 +317,11 @@ public:
     * @param id the Config's ID.
     * @param raw true to get the raw config, false to get the config as merged
     *            with all up-tree parents.
+    * @param cache true to cache any generated merged config, false not to.
     *
     * @return the Config or NULL if the ID was invalid.
     */
-   virtual Config getConfig(ConfigId id, bool raw = false);
+   virtual Config getConfig(ConfigId id, bool raw = false, bool cache = true);
 
    /**
     * Check if a config with a specific ID exists.
@@ -402,17 +403,25 @@ protected:
     * internal storage is engaged in exclusive mode.
     *
     * @param id the config ID to create the merged config for.
+    * @param out the config to store the merged config in *if and only if*
+    *            the generated merged config should not be cached, NULL
+    *            to enable caching.
     */
-   virtual void makeMergedConfig(ConfigId id);
+   virtual void makeMergedConfig(ConfigId id, Config* out);
 
    /**
     * Gets a merged config, lazily creating that merged config if necessary.
+    * A merged config can be retrieved without caching it, which is
+    * particularly useful when first initializing a config system. If a merged
+    * config is not cached, it will not need to be updated when new configs
+    * are added to the system.
     *
     * @param id the Config's ID.
+    * @param cache true to cache any generated merged config, false not to.
     *
     * @return the Config or NULL if the ID was invalid.
     */
-   virtual Config getMergedConfig(ConfigId id);
+   virtual Config getMergedConfig(ConfigId id, bool cache);
 
    /**
     * Replaces keyword values with appropriate values.  See the class docs.

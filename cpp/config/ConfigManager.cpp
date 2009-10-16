@@ -437,7 +437,7 @@ bool ConfigManager::setConfig(Config& config)
       }
       else
       {
-         changedIds[id] = getMergedConfig(id);
+         changedIds[id] = getMergedConfig(id, true);
          mConfigs[id]["raw"] = config;
          update(id, &changedIds);
          rval = true;
@@ -466,14 +466,14 @@ bool ConfigManager::setConfig(Config& config)
    return rval;
 }
 
-Config ConfigManager::getConfig(ConfigId id, bool raw)
+Config ConfigManager::getConfig(ConfigId id, bool raw, bool cache)
 {
    Config rval(NULL);
 
    mLock.lockShared();
    if(mConfigs->hasMember(id))
    {
-      rval = (raw ? mConfigs[id]["raw"].clone() : getMergedConfig(id));
+      rval = (raw ? mConfigs[id]["raw"].clone() : getMergedConfig(id, cache));
 
       // implicit config groups do not have any raw configs, so do not
       // return any here
@@ -605,7 +605,7 @@ void ConfigManager::update(ConfigId id, DynamicObject* changedIds)
       if(config->hasMember("merged"))
       {
          config->removeMember("merged");
-         makeMergedConfig(id);
+         makeMergedConfig(id, NULL);
       }
 
       // update group config (if not already the group)
@@ -763,7 +763,7 @@ static void _removeLeafNodes(Config& target, Config& remove)
    }
 }
 
-void ConfigManager::makeMergedConfig(ConfigId id)
+void ConfigManager::makeMergedConfig(ConfigId id, Config* out)
 {
    // only need to do work if merged config doesn't already exist
    Config& config = mConfigs[id];
@@ -771,8 +771,7 @@ void ConfigManager::makeMergedConfig(ConfigId id)
    {
       // produce a merged configuration that contains only config values, not
       // any "_special_" config format values
-      Config merged;
-      merged->setType(Map);
+      Config merged(NULL);
 
       // get raw configuration
       Config& raw = config["raw"];
@@ -781,8 +780,23 @@ void ConfigManager::makeMergedConfig(ConfigId id)
       if(raw->hasMember(PARENT))
       {
          ConfigId parent = raw[PARENT]->getString();
-         makeMergedConfig(parent);
-         merged = mConfigs[parent]["merged"].clone();
+         if(out == NULL)
+         {
+            // caching is on, so generate and cache parent config
+            makeMergedConfig(parent, NULL);
+            merged = mConfigs[parent]["merged"].clone();
+         }
+         else if(mConfigs[parent]->hasMember("merged"))
+         {
+            // parent already cached, so just clone it
+            merged = mConfigs[parent]["merged"].clone();
+         }
+         else
+         {
+            // caching is off, so generate parent config and store it
+            // in "merged"
+            makeMergedConfig(parent, &merged);
+         }
 
          // remove appropriate entries from parent config
          if(raw->hasMember(REMOVE))
@@ -820,14 +834,33 @@ void ConfigManager::makeMergedConfig(ConfigId id)
          {
             merged = raw[APPEND].clone();
          }
+         else
+         {
+            // empty merged config
+            merged = Config();
+            merged->setType(Map);
+         }
       }
 
-      // set merged config
-      config["merged"] = merged;
+      if(out == NULL)
+      {
+         // caching is on, set merged config
+         config["merged"] = merged;
+      }
+      else
+      {
+         // caching is off, return generated config
+         *out = merged;
+      }
+   }
+   else if(out != NULL)
+   {
+      // return cached merged config
+      *out = config["merged"];
    }
 }
 
-Config ConfigManager::getMergedConfig(ConfigId id)
+Config ConfigManager::getMergedConfig(ConfigId id, bool cache)
 {
    Config rval(NULL);
 
@@ -836,9 +869,23 @@ Config ConfigManager::getMergedConfig(ConfigId id)
       if(!mConfigs[id]->hasMember("merged"))
       {
          // lazily produce the merged config
-         makeMergedConfig(id);
+         if(cache)
+         {
+            // generate and cache merged config
+            makeMergedConfig(id, NULL);
+            rval = mConfigs[id]["merged"];
+         }
+         else
+         {
+            // generate merged config but do not cache it
+            makeMergedConfig(id, &rval);
+         }
       }
-      rval = mConfigs[id]["merged"];
+      else
+      {
+         // use cached merged config
+         rval = mConfigs[id]["merged"];
+      }
    }
 
    return rval;
@@ -1109,7 +1156,7 @@ void ConfigManager::produceMergedDiffs(DynamicObject& changedIds)
       {
          // diff new merged config with the old one we saved a copy of
          Config d;
-         Config newMerged = getMergedConfig(nextId);
+         Config newMerged = getMergedConfig(nextId, true);
          if(diff(d, oldMerged, newMerged))
          {
             changedIds[nextId] = d;
