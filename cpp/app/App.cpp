@@ -39,7 +39,7 @@ using namespace db::rt;
 using namespace db::util;
 
 // declare table of openSSL mutexes
-pthread_mutex_t* App::sOpenSSLMutexes;
+pthread_mutex_t* App::sOpenSSLMutexes = NULL;
 
 App::App() :
    mProgramName(NULL),
@@ -992,15 +992,18 @@ void App::cleanupOpenSSL()
    CRYPTO_cleanup_all_ex_data();
 
    // destroy mutexes
-   int numLocks = CRYPTO_num_locks();
-   for(int i = 0; i < numLocks; i++)
+   if(sOpenSSLMutexes != NULL)
    {
-      // initialize mutex
-      pthread_mutex_destroy(&sOpenSSLMutexes[i]);
-   }
+      int numLocks = CRYPTO_num_locks();
+      for(int i = 0; i < numLocks; i++)
+      {
+         // initialize mutex
+         pthread_mutex_destroy(&sOpenSSLMutexes[i]);
+      }
 
-   // free mutexes
-   free(sOpenSSLMutexes);
+      // free mutexes
+      free(sOpenSSLMutexes);
+   }
 }
 
 int App::main(
@@ -1086,7 +1089,7 @@ int App::main(
    }
 #endif
 
-   success = success &&
+   success =
       initializeOpenSSL() &&
       db::logging::Logging::initialize() &&
       db::rt::Platform::initialize() &&
