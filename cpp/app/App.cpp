@@ -1089,7 +1089,7 @@ int App::main(
    }
 #endif
 
-   success =
+   success = success &&
       initializeOpenSSL() &&
       db::logging::Logging::initialize() &&
       db::rt::Platform::initialize() &&
