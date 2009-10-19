@@ -577,6 +577,13 @@ bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
    // perform the action
    ActionResult result;
    rval = rval && performAction("AddPortMapping", pm, wipcs, result);
+   if(!rval)
+   {
+      DB_CAT_ERROR(DB_UPNP_CAT,
+         "Failed to add port mapping: %s, %s",
+         JsonWriter::writeToString(pm).c_str(),
+         JsonWriter::writeToString(Exception::getAsDynamicObject()).c_str());
+   }
 
    return rval;
 }
