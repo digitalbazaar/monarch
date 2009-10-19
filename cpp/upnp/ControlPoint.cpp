@@ -561,8 +561,17 @@ bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
       }
       else
       {
+         DB_CAT_ERROR(DB_UPNP_CAT,
+            "Could not add port mapping, could not connect to '%s'.",
+            url.toString().c_str());
          rval = false;
       }
+   }
+
+   if(rval)
+   {
+      DB_CAT_DEBUG(DB_UPNP_CAT,
+         "Adding port mapping: %s", JsonWriter::writeToString(pm).c_str());
    }
 
    // perform the action
@@ -575,6 +584,9 @@ bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
 bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs, bool* dne)
 {
    bool rval = false;
+
+   DB_CAT_DEBUG(DB_UPNP_CAT,
+      "Removing port mapping: %s", JsonWriter::writeToString(pm).c_str());
 
    // initialize does not exist param
    if(dne != NULL)
