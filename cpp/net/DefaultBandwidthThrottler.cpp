@@ -71,7 +71,7 @@ int DefaultBandwidthThrottler::getAvailableBytes()
 
    mLock.lock();
    {
-      if(mRateLimit > 0)
+      if(mRateLimit > 0 && mAvailableBytes < (uint64_t)Math::MAX_INT_VALUE)
       {
          rval = mAvailableBytes;
       }
