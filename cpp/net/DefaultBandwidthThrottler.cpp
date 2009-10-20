@@ -41,7 +41,7 @@ bool DefaultBandwidthThrottler::requestBytes(int count, int& permitted)
          rval = limitBandwidth();
 
          // get the available bytes
-         int available = (uint64_t)Math::MAX_INT_VALUE ?
+         int available = (mAvailableBytes >= (uint64_t)Math::MAX_INT_VALUE) ?
             Math::MAX_INT_VALUE : (int)mAvailableBytes;
          permitted = (available > count ? count : available);
 
