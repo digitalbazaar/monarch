@@ -3,8 +3,11 @@
  */
 #include "db/net/BandwidthThrottlerChain.h"
 
+#include "db/util/Math.h"
+
 using namespace db::net;
 using namespace db::rt;
+using namespace db::util;
 
 BandwidthThrottlerChain::BandwidthThrottlerChain()
 {
@@ -36,7 +39,7 @@ bool BandwidthThrottlerChain::requestBytes(int count, int& permitted)
    if(!mChain.empty())
    {
       // request bytes from each throttler in the chain, limit max permitted
-      // to minimum permitted
+      // to minimum permitted by a throttler in the chain
       int maxPermitted = -1;
       for(ThrottlerChain::iterator i = mChain.begin();
           rval && i != mChain.end(); i++)
@@ -58,15 +61,27 @@ bool BandwidthThrottlerChain::requestBytes(int count, int& permitted)
    return rval;
 }
 
+int BandwidthThrottlerChain::getAvailableBytes()
+{
+   int rval = Math::MAX_INT_VALUE;
+
+   if(!mChain.empty())
+   {
+      rval = mChain.back()->getAvailableBytes();
+   }
+
+   return rval;
+}
+
 void BandwidthThrottlerChain::setRateLimit(int rateLimit)
 {
    if(!mChain.empty())
    {
-      mChain.front()->setRateLimit(rateLimit);
+      mChain.back()->setRateLimit(rateLimit);
    }
 }
 
 int BandwidthThrottlerChain::getRateLimit()
 {
-   return (mChain.empty() ? 0 : mChain.front()->getRateLimit());
+   return (mChain.empty() ? 0 : mChain.back()->getRateLimit());
 }

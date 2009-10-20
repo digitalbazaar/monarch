@@ -41,11 +41,15 @@ bool DefaultBandwidthThrottler::requestBytes(int count, int& permitted)
          rval = limitBandwidth();
 
          // get the available bytes
-         int available = getAvailableBytes();
+         int available = (uint64_t)Math::MAX_INT_VALUE ?
+            Math::MAX_INT_VALUE : (int)mAvailableBytes;
          permitted = (available > count ? count : available);
 
          // increment the bytes granted
          mBytesGranted += permitted;
+
+         // subtract the number of permitted bytes from the available bytes
+         mAvailableBytes -= permitted;
 
          // update last request time
          mLastRequestTime = System::getCurrentMilliseconds();
@@ -57,6 +61,26 @@ bool DefaultBandwidthThrottler::requestBytes(int count, int& permitted)
       // no rate limit, return the count
       permitted = count;
    }
+
+   return rval;
+}
+
+int DefaultBandwidthThrottler::getAvailableBytes()
+{
+   int rval = 0;
+
+   mLock.lock();
+   {
+      if(mRateLimit > 0)
+      {
+         rval = mAvailableBytes;
+      }
+      else
+      {
+         rval = Math::MAX_INT_VALUE;
+      }
+   }
+   mLock.unlock();
 
    return rval;
 }
@@ -79,7 +103,7 @@ void DefaultBandwidthThrottler::setRateLimit(int rateLimit)
    mLock.unlock();
 }
 
-inline int DefaultBandwidthThrottler::getRateLimit()
+int DefaultBandwidthThrottler::getRateLimit()
 {
    return mRateLimit;
 }
@@ -164,12 +188,6 @@ void DefaultBandwidthThrottler::updateAvailableBytes()
       0 : mAvailableBytes - mBytesGranted;
 }
 
-inline int DefaultBandwidthThrottler::getAvailableBytes()
-{
-   return (mAvailableBytes >= (uint64_t)Math::MAX_INT_VALUE ?
-      Math::MAX_INT_VALUE : (int)mAvailableBytes);
-}
-
 bool DefaultBandwidthThrottler::limitBandwidth()
 {
    bool rval = true;
@@ -180,9 +198,8 @@ bool DefaultBandwidthThrottler::limitBandwidth()
    // update the number of available bytes
    updateAvailableBytes();
 
-   // while there aren't any available bytes, sleep for the
-   // available byte time
-   while(rval && getAvailableBytes() == 0)
+   // while there aren't any available bytes, sleep for the available byte time
+   while(rval && mAvailableBytes == 0)
    {
       // unlock to sleep
       mLock.unlock();

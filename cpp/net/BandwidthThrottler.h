@@ -43,6 +43,13 @@ public:
    virtual bool requestBytes(int count, int& permitted) = 0;
 
    /**
+    * Gets the number of bytes that are currently available.
+    *
+    * @return the number of bytes that are currently available.
+    */
+   virtual int getAvailableBytes() = 0;
+
+   /**
     * Sets the rate limit in bytes/second. A value of 0 indicates no rate limit.
     *
     * @param rateLimit the bytes/second rate limit to use.

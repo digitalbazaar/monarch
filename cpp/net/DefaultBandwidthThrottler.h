@@ -23,7 +23,7 @@ protected:
    /**
     * The rate limit for this BandwidthThrottler.
     */
-   int mRateLimit;
+   volatile int mRateLimit;
 
    /**
     * The time (in milliseconds) at which a window began for requesting data.
@@ -50,7 +50,7 @@ protected:
    /**
     * The number of available bytes.
     */
-   uint64_t mAvailableBytes;
+   volatile uint64_t mAvailableBytes;
 
    /**
     * A lock for synchronizing the use of this throttler.
@@ -83,6 +83,13 @@ public:
     *         interrupted (with an Exception set), true otherwise.
     */
    virtual bool requestBytes(int count, int& permitted);
+
+   /**
+    * Gets the number of bytes that are currently available.
+    *
+    * @return the number of bytes that are currently available.
+    */
+   virtual int getAvailableBytes();
 
    /**
     * Sets the rate limit in bytes/second. A value of 0 indicates no rate limit.
@@ -138,13 +145,6 @@ protected:
     * Updates the number of bytes that are currently available.
     */
    virtual void updateAvailableBytes();
-
-   /**
-    * Gets the number of bytes that are currently available.
-    *
-    * @return the number of bytes that are currently available.
-    */
-   virtual int getAvailableBytes();
 
    /**
     * This method blocks until at least one byte is available without

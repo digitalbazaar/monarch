@@ -30,7 +30,10 @@ namespace net
  * Note: In order to improve performance and avoid deadlock, a chain must
  * not be altered while it is in use. The individual rate limits of the
  * throttlers in the chain may be changed at any time, but the members
- * of the chain and the order of the chain must not be changed.
+ * of the chain and the order of the chain must not be changed. It is expected,
+ * although not enforced, that any throttler in the chain will have a higher
+ * rate limit (allowing more data to pass over a unit of time) than any
+ * throttler that was added after it.
  *
  * @author Dave Longley
  */
@@ -82,17 +85,27 @@ public:
    virtual bool requestBytes(int count, int& permitted);
 
    /**
-    * Sets the rate limit in bytes/second of the first throttler in the chain.
-    * A value of 0 indicates no rate limit.
+    * Gets the number of bytes that are currently available from the last
+    * throttler in the chain (typically the most limited throttler).
+    *
+    * @return the number of bytes that are currently available.
+    */
+   virtual int getAvailableBytes();
+
+   /**
+    * Sets the rate limit in bytes/second of the last throttler (typically the
+    * most limited throttler) in the chain. A value of 0 indicates no rate
+    * limit.
     *
     * @param rateLimit the bytes/second rate limit to use.
     */
    virtual void setRateLimit(int rateLimit);
 
    /**
-    * Returns the rate limit of the first throttler in the chain.
+    * Returns the rate limit of the last throttler (typically the most limited
+    * throttler) in the chain.
     *
-    * @return the rate limit in bytes/second of the first throttler in
+    * @return the rate limit in bytes/second of the last throttler in
     *         the chain.
     */
    virtual int getRateLimit();
