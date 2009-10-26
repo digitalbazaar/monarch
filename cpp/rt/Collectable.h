@@ -210,7 +210,7 @@ template<typename HeapObject>
 Collectable<HeapObject>::~Collectable()
 {
    // release reference
-   release(mReference);
+   setNull();
 }
 
 template<typename HeapObject>
@@ -261,8 +261,9 @@ template<typename HeapObject>
 void Collectable<HeapObject>::setNull()
 {
    // release old reference
-   release(mReference);
+   volatile Reference* ref = mReference;
    mReference = NULL;
+   release(ref);
 }
 
 template<typename HeapObject>
