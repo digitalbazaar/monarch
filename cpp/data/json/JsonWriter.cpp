@@ -155,7 +155,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
                {
                   // end serializing member name, serialize member value
                   rval = ((mCompact) ?
-                     os->write("\":", 2) : os->write("\" : ", 4)) &&
+                     os->write("\":", 2) : os->write("\": ", 3)) &&
                      write(next, os, level + 1);
 
                   // serialize delimiter if appropriate
