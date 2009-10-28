@@ -138,7 +138,8 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
          case Map:
          {
             // start map serialization
-            rval = (mCompact) ? os->write("{", 1) : os->write("{\n", 2);
+            rval = (mCompact || dyno->length() == 0) ?
+               os->write("{", 1) : os->write("{\n", 2);
 
             // serialize each map member
             DynamicObjectIterator i = dyno.getIterator();
@@ -172,13 +173,18 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
             }
 
             // end map serialization
-            rval = writeIndentation(os, level) && os->write("}", 1);
+            if(dyno->length() > 0)
+            {
+               rval = rval && writeIndentation(os, level);
+            }
+            rval = rval && os->write("}", 1);
             break;
          }
          case Array:
          {
             // start array serialization
-            rval = (mCompact) ? os->write("[", 1) : os->write("[\n", 2);
+            rval = (mCompact || dyno->length() == 0) ?
+               os->write("[", 1) : os->write("[\n", 2);
 
             // serialize each array element
             DynamicObjectIterator i = dyno.getIterator();
@@ -203,7 +209,11 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
             }
 
             // end array serialization
-            rval = writeIndentation(os, level) && os->write("]", 1);
+            if(dyno->length() > 0)
+            {
+               rval = rval && writeIndentation(os, level);
+            }
+            rval = rval && os->write("]", 1);
             break;
          }
       }
