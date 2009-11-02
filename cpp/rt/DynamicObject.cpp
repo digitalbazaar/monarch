@@ -543,37 +543,40 @@ bool DynamicObject::diff(
 
 void DynamicObject::merge(DynamicObject& rhs, bool append)
 {
-   switch(rhs->getType())
+   if(!rhs.isNull())
    {
-      case String:
-      case Boolean:
-      case Int32:
-      case UInt32:
-      case Int64:
-      case UInt64:
-      case Double:
-         *this = rhs.clone();
-         break;
-      case Map:
+      switch(rhs->getType())
       {
-         (*this)->setType(Map);
-         DynamicObjectIterator i = rhs.getIterator();
-         while(i->hasNext())
+         case String:
+         case Boolean:
+         case Int32:
+         case UInt32:
+         case Int64:
+         case UInt64:
+         case Double:
+            *this = rhs.clone();
+            break;
+         case Map:
          {
-            DynamicObject& next = i->next();
-            (*this)[i->getName()].merge(next, append);
+            (*this)->setType(Map);
+            DynamicObjectIterator i = rhs.getIterator();
+            while(i->hasNext())
+            {
+               DynamicObject& next = i->next();
+               (*this)[i->getName()].merge(next, append);
+            }
+            break;
          }
-         break;
+         case Array:
+            (*this)->setType(Array);
+            DynamicObjectIterator i = rhs.getIterator();
+            int offset = (append ? (*this)->length() : 0);
+            for(int ii = 0; i->hasNext(); ii++)
+            {
+               (*this)[offset + ii].merge(i->next(), append);
+            }
+            break;
       }
-      case Array:
-         (*this)->setType(Array);
-         DynamicObjectIterator i = rhs.getIterator();
-         int offset = (append ? (*this)->length() : 0);
-         for(int ii = 0; i->hasNext(); ii++)
-         {
-            (*this)[offset + ii].merge(i->next(), append);
-         }
-         break;
    }
 }
 
