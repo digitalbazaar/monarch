@@ -479,7 +479,14 @@ Config ConfigManager::getConfig(ConfigId id, bool raw, bool cache)
    mLock.lockShared();
    if(mConfigs->hasMember(id))
    {
-      rval = (raw ? mConfigs[id]["raw"].clone() : getMergedConfig(id, cache));
+      // Note: We must return a clone of the cached config because it could
+      // be modified after it is returned and the shared lock has been
+      // released... such a modification could cause a race condition with
+      // the reference counting in Collectable.h (until this is fixed, we
+      // must continue to return a clone here)
+      rval = raw ?
+         mConfigs[id]["raw"].clone() :
+         getMergedConfig(id, cache).clone();
 
       // implicit config groups do not have any raw configs, so do not
       // return any here
