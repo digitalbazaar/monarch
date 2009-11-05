@@ -395,7 +395,7 @@ static bool doSoap(
                {
                   // soap fault received
                   ExceptionRef e = new Exception(
-                     "Soap fault received.",
+                     "Could not perform SOAP transfer. SOAP fault received.",
                      "db.upnp.SoapFault");
                   e->getDetails()["fault"] = sr["message"];
                   Exception::set(e);
@@ -421,11 +421,6 @@ static bool doSoap(
          "Could not perform SOAP transfer: %s",
          JsonWriter::writeToString(
             Exception::getAsDynamicObject()).c_str());
-
-      ExceptionRef e = new Exception(
-         "Could not perform soap transfer.",
-         "db.upnp.SoapTransferError");
-      Exception::push(e);
    }
 
    return rval;
