@@ -262,7 +262,11 @@ public:
     * @param format the format for the string.
     * @param ... the format parameters.
     */
-   virtual void format(const char* format, ...);
+   virtual void format(const char* format, ...)
+#ifdef __GNUC__
+      __attribute__ ((format (printf, 2, 3)))
+#endif
+         ;
 
    /**
     * Gets this object's value as a string. If the type of this object

@@ -168,7 +168,11 @@ public:
     *
     * @return false if the URL is malformed, true if not.
     */
-   virtual bool format(const char* format, ...);
+   virtual bool format(const char* format, ...)
+#ifdef __GNUC__
+      __attribute__ ((format (printf, 2, 3)))
+#endif
+         ;
 
    /**
     * Returns true if this url is relative, false if it is absolute.

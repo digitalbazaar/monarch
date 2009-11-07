@@ -113,11 +113,11 @@ static string vformat(const char* f, va_list ap)
    return rval;
 }
 
-string StringTools::format(const char* f, ...)
+string StringTools::format(const char* format, ...)
 {
    va_list ap;
-   va_start(ap, f);
-   string rval = vformat(f, ap);
+   va_start(ap, format);
+   string rval = vformat(format, ap);
    va_end(ap);
    return rval;
 }

@@ -85,7 +85,11 @@ public:
     *
     * @return the std::string.
     */
-   static std::string format(const char* f, ...);
+   static std::string format(const char* format, ...)
+#ifdef __GNUC__
+      __attribute__ ((format (printf, 1, 2)))
+#endif
+         ;
 
    /**
     * Splits a string into a DynamicObject array using the given character

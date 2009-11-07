@@ -336,7 +336,11 @@ public:
       const void* object,
       LogFlags flags,
       const char* format,
-      ...);
+      ...)
+#ifdef __GNUC__
+      __attribute__ ((format (printf, 7, 8)))
+#endif
+         ;
 
    /**
     * Logs a pre-formatted message from the default full log() method.
@@ -393,7 +397,11 @@ public:
       const void* object,
       LogFlags flags,
       const char* format,
-      ...);
+      ...)
+#ifdef __GNUC__
+      __attribute__ ((format (printf, 7, 8)))
+#endif
+         ;
 
    /**
     * Log a message to all loggers registered for a category and to loggers
@@ -435,7 +443,11 @@ public:
       const void* object,
       LogFlags flags,
       const char* format,
-      ...);
+      ...)
+#ifdef __GNUC__
+      __attribute__ ((format (printf, 6, 7)))
+#endif
+         ;
 
    /**
     * Add a logger for a category.  Any number of loggers can be added for a

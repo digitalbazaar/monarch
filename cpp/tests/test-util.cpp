@@ -372,9 +372,13 @@ void runStringToolsTest(TestRunner& tr)
 
    tr.test("format");
    {
+      // NOTE: zero-length format string will just cause a compiler warning
+      //assertStrCmp(
+      //   StringTools::format("").c_str(),
+      //   "");
       assertStrCmp(
-         StringTools::format("").c_str(),
-         "");
+         StringTools::format(" ").c_str(),
+         " ");
       assertStrCmp(
          StringTools::format("%s", "123").c_str(),
          "123");
