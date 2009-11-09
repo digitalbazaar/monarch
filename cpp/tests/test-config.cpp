@@ -85,6 +85,31 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("invalid set config");
+   {
+      ConfigManager cm;
+      Config cfg;
+      cfg[ConfigManager::ID] = "config";
+      cfg[ConfigManager::MERGE]["a"] = 0;
+      assert(!cm.setConfig(cfg));
+   }
+   tr.passIfException();
+
+   tr.test("double add config");
+   {
+      ConfigManager cm;
+      Config cfg;
+      cfg[ConfigManager::ID] = "config";
+      cfg[ConfigManager::MERGE]["a"] = 0;
+      assert(cm.addConfig(cfg));
+      cfg[ConfigManager::MERGE]["a"] = 1;
+      assert(cm.addConfig(cfg));
+      DynamicObject expect;
+      expect["a"] = 1;
+      assertDynoCmp(cm.getConfig("config"), expect);
+   }
+   tr.passIfNoException();
+
    tr.test("add");
    {
       DynamicObject expect;
