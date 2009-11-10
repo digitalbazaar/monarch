@@ -82,6 +82,7 @@ void _testConfigs(
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["eggplant"] = "purple";
       expect["vegetables"]["pepper"]->append() = "green";
+      expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("system", false);
       assertNoException();
@@ -116,6 +117,7 @@ void _testConfigs(
       expect["fruits"]["banana"] = "yellow";
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
+      expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("engine", false);
       assertNoException();
@@ -151,6 +153,7 @@ void _testConfigs(
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
+      expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("ui", false);
       assertNoException();
@@ -188,6 +191,7 @@ void _testConfigs(
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
+      expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("app", false);
       assertNoException();
@@ -262,6 +266,7 @@ void _testConfigs(
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
+      expect["vegetables"]["pepper"]->append() = "yellow";
       expect["bacon"]["cooked"] = "red";
       expect["bacon"]["raw"] = "pink";
 
@@ -299,6 +304,7 @@ void _testConfigs(
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
+      expect["vegetables"]["pepper"]->append() = "yellow";
       expect["bacon"]["cooked"] = "red";
       expect["shoes"] = "black";
 
@@ -347,6 +353,7 @@ void _testConfigs(
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
+      expect["vegetables"]["pepper"]->append() = "yellow";
       expect["bacon"]["cooked"] = "red";
       expect["bacon"]["raw"] = "pink";
       expect["added"] = true;
@@ -373,6 +380,7 @@ void _testConfigs(
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["pepper"]->append() = "red";
+      expect["vegetables"]["pepper"]->append() = "yellow";
       expect["bacon"]["cooked"] = "red";
       expect["shoes"] = "black";
       expect["added"] = true;
@@ -563,6 +571,7 @@ void _initConfigs(
       merge["vegetables"]["carrot"] = "orange";
       merge["vegetables"]["eggplant"] = "purple";
       merge["vegetables"]["pepper"]->append() = "green";
+      merge["vegetables"]["pepper"]->append() = "yellow";
    }
 
    // build engine config
