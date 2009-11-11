@@ -81,7 +81,9 @@ void _testConfigs(
       expect["fruits"]["apple"] = "red";
       expect["vegetables"]["carrot"] = "orange";
       expect["vegetables"]["eggplant"] = "purple";
-      expect["vegetables"]["pepper"]->append() = "green";
+      DynamicObject two;
+      two["one"] = "green";
+      expect["vegetables"]["pepper"]->append() = two;
       expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("system", false);
@@ -116,7 +118,10 @@ void _testConfigs(
       expect["fruits"]["apple"] = "red";
       expect["fruits"]["banana"] = "yellow";
       expect["vegetables"]["carrot"] = "orange";
-      expect["vegetables"]["pepper"]->append() = "red";
+      DynamicObject two;
+      two["one"] = "green";
+      two["two"] = "red";
+      expect["vegetables"]["pepper"]->append() = two;
       expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("engine", false);
@@ -152,7 +157,10 @@ void _testConfigs(
       expect["fruits"]["apple"] = "red";
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
-      expect["vegetables"]["pepper"]->append() = "red";
+      DynamicObject two;
+      two["one"] = "green";
+      two["two"] = "red";
+      expect["vegetables"]["pepper"]->append() = two;
       expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("ui", false);
@@ -190,7 +198,10 @@ void _testConfigs(
       expect["fruits"]["banana"] = "yellow";
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
-      expect["vegetables"]["pepper"]->append() = "red";
+      DynamicObject two;
+      two["one"] = "green";
+      two["two"] = "red";
+      expect["vegetables"]["pepper"]->append() = two;
       expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("app", false);
@@ -265,7 +276,10 @@ void _testConfigs(
       expect["fruits"]["banana"] = "yellow";
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
-      expect["vegetables"]["pepper"]->append() = "red";
+      DynamicObject two;
+      two["one"] = "green";
+      two["two"] = "red";
+      expect["vegetables"]["pepper"]->append() = two;
       expect["vegetables"]["pepper"]->append() = "yellow";
       expect["bacon"]["cooked"] = "red";
       expect["bacon"]["raw"] = "pink";
@@ -303,7 +317,10 @@ void _testConfigs(
       expect["fruits"]["banana"] = "yellow";
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
-      expect["vegetables"]["pepper"]->append() = "red";
+      DynamicObject two;
+      two["one"] = "green";
+      two["two"] = "red";
+      expect["vegetables"]["pepper"]->append() = two;
       expect["vegetables"]["pepper"]->append() = "yellow";
       expect["bacon"]["cooked"] = "red";
       expect["shoes"] = "black";
@@ -352,7 +369,10 @@ void _testConfigs(
       expect["fruits"]["banana"] = "yellow";
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
-      expect["vegetables"]["pepper"]->append() = "red";
+      DynamicObject two;
+      two["one"] = "green";
+      two["two"] = "red";
+      expect["vegetables"]["pepper"]->append() = two;
       expect["vegetables"]["pepper"]->append() = "yellow";
       expect["bacon"]["cooked"] = "red";
       expect["bacon"]["raw"] = "pink";
@@ -379,7 +399,10 @@ void _testConfigs(
       expect["fruits"]["banana"] = "yellow";
       expect["fruits"]["pear"] = "green";
       expect["vegetables"]["carrot"] = "orange";
-      expect["vegetables"]["pepper"]->append() = "red";
+      DynamicObject two;
+      two["one"] = "green";
+      two["two"] = "red";
+      expect["vegetables"]["pepper"]->append() = two;
       expect["vegetables"]["pepper"]->append() = "yellow";
       expect["bacon"]["cooked"] = "red";
       expect["shoes"] = "black";
@@ -570,7 +593,9 @@ void _initConfigs(
       merge["fruits"]["apple"] = "red";
       merge["vegetables"]["carrot"] = "orange";
       merge["vegetables"]["eggplant"] = "purple";
-      merge["vegetables"]["pepper"]->append() = "green";
+      DynamicObject two;
+      two["one"] = "green";
+      merge["vegetables"]["pepper"]->append() = two;
       merge["vegetables"]["pepper"]->append() = "yellow";
    }
 
@@ -585,7 +610,9 @@ void _initConfigs(
       Config& merge = engine[ConfigManager::MERGE];
       merge["dogSays"] = "woof";
       merge["fruits"]["banana"] = "yellow";
-      merge["vegetables"]["pepper"]->append() = "red";
+      DynamicObject two;
+      two["two"] = "red";
+      merge["vegetables"]["pepper"]->append() = two;
 
       // set append info
       Config& append = engine[ConfigManager::APPEND];
@@ -606,7 +633,9 @@ void _initConfigs(
       // set merge info
       Config& merge = ui[ConfigManager::MERGE];
       merge["fruits"]["pear"] = "green";
-      merge["vegetables"]["pepper"]->append() = "red";
+      DynamicObject two;
+      two["two"] = "red";
+      merge["vegetables"]["pepper"]->append() = two;
 
       // set append info
       Config& append = ui[ConfigManager::APPEND];
