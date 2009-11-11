@@ -384,7 +384,8 @@ int ByteBuffer::advanceOffset(int length)
 
 int ByteBuffer::reset(int length)
 {
-   // ensure that the most the offset is moved back is the existing offset
+   // ensure that the most the offset is moved back is to the beginning
+   // of the buffer
    int max = mOffset - mBuffer;
    int rval = (length > 0 ? (max < length ? max : length) : 0);
 
