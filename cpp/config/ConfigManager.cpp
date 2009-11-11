@@ -479,11 +479,23 @@ Config ConfigManager::getConfig(ConfigId id, bool raw, bool cache)
    mLock.lockShared();
    if(mConfigs->hasMember(id))
    {
-      // Note: We must return a clone of the cached config because it could
-      // be modified after it is returned and the shared lock has been
-      // released... such a modification could cause a race condition with
-      // the reference counting in Collectable.h (until this is fixed, we
-      // must continue to return a clone here)
+      /* Note: Returning a reference to the cached config instead of a clone
+       * should *not* result in a race condition here. The reason is that
+       * the merged config cannot be altered (due to the lock) while we're
+       * incrementing its reference count. Any potential race conditions
+       * with reference counting in Collectable.h should not be applicable
+       * here. Before we release the lock, we will have incremented the
+       * reference count on the config so that there should be no fear that
+       * the returned config object will be destroyed before the user drops
+       * their reference to it. We also do not modify the merged config by
+       * making changes to its underlying DynamicObject, rather we replace it
+       * entirely if and when a new merged config is generated. This avoids
+       * other potential race conditions.
+       *
+       * Regardless, we still clone the merged config here so that users that
+       * accidentally modify it will not interfere with other users that are
+       * also using the merged config.
+       */
       rval = raw ?
          mConfigs[id]["raw"].clone() :
          getMergedConfig(id, cache).clone();
