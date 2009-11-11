@@ -235,7 +235,7 @@ int ByteBuffer::put(InputStream* is, int length)
 
       // read some bytes
       rval = is->read(end(), length);
-      if(rval != -1)
+      if(rval > 0)
       {
          // update buffer length
          mLength += rval;
