@@ -171,6 +171,11 @@ int ConnectionInputStream::readCrlf(string& line)
             // we were blocking but still didn't get any peek bytes, so
             // we've hit the end of the stream
             eof = true;
+            if(offset == 1)
+            {
+               // include CR if we had one from a previous pass
+               line.push_back('\r');
+            }
          }
       }
       else
