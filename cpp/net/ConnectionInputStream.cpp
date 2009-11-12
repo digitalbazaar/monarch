@@ -146,26 +146,15 @@ int ConnectionInputStream::readCrlf(string& line)
    line.erase();
 
    // peek ahead
-   char b[1024];
+   int maxSize = 1023;
+   char b[maxSize + 1];
    int numBytes;
    bool block = false;
-   int readSize = 1023;
-   while(rval != 1 && (numBytes = peek(b, readSize, block)) != -1 &&
+   int offset = 0;
+   int readSize = maxSize;
+   while(rval != 1 && (numBytes = peek(b + offset, readSize, block)) != -1 &&
          (numBytes > 0 || !block))
    {
-      // read maximum amount
-      readSize = 1023;
-
-      // maximum line length of 1 MB
-      if(line.length() > (1024 << 10))
-      {
-         rval = -1;
-         ExceptionRef e = new Exception(
-            "Could not read CRLF, line too long.", "db.net.CRLFLineTooLong");
-         Exception::set(e);
-         break;
-      }
-
       if(numBytes <= 1)
       {
          // not enough peek bytes available, so activate blocking
@@ -173,58 +162,86 @@ int ConnectionInputStream::readCrlf(string& line)
       }
       else
       {
-         // peek bytes available, so deactivate blocking
-         block = false;
-
-         // ensure peek buffer ends in NULL byte
+         // ensure our peek buffer ends in NULL byte so we can use strchr()
+         // to find the next CR, and if were preserving a CR from the last
+         // pass by using offset=1, then add that offset to the number of
+         // bytes available in our buffer
+         numBytes += offset;
          b[numBytes] = 0;
 
-         // look for a CR
+         // now that peeked bytes are available, deactivate blocking, and
+         // reset the readSize and the offset
+         block = false;
+         readSize = maxSize;
+         offset = 0;
+
+         // look for a CR (which will either find a novel CR, or a CR from
+         // a previous pass where the CR was at the end of the buffer and
+         // was moved to the front of it)
          char* i = strchr(b, '\r');
          if(i == NULL)
          {
-            // CR not found, append all peeked bytes to string
+            // CR not found, append all peeked bytes to line and
+            // read and discard peeked bytes
             line.append(b, numBytes);
-
-            // read and discard
             read(b, numBytes);
          }
          else
          {
-            // null CR for copying
-            i[0] = 0;
+            // determine the length of the current partial line and append
+            // all peeked bytes up to but not including the CR to the line
+            int partial = i - b;
+            line.append(b, partial);
 
-            // append peeked bytes up until found CR to string
-            line.append(b);
-
-            // read and discard up until the CR
-            read(b, i - b);
-
-            // if there's room to check for an LF, do it
-            if((i - b) < (numBytes - 1))
+            // see if there are more bytes in the buffer after the CR
+            bool hasMore = (partial < (numBytes - 1));
+            if(hasMore)
             {
-               // see if the next character is a LF
+               // check for an LF that immediately follows the CR
                if(i[1] == '\n')
                {
-                  // CRLF found before end of stream
+                  // CRLF found before end of stream, so a valid CRLF line has
+                  // been found
                   rval = 1;
 
-                  // read and discard CRLF (2 characters)
-                  read(b, 2);
+                  // read and discard peeked bytes and CRLF (+2 chars)
+                  read(b, partial + 2);
                }
                else
                {
-                  // append CR to line, discard character
+                  // there is no following LF, so append the CR to the line,
+                  // as we haven't found a CRLF line only a partial line that
+                  // happens to have a CR in it
                   line.push_back('\r');
-                  read(b, 1);
+
+                  // read and discard peeked bytes and CR (+1 char)
+                  read(b, partial + 1);
                }
             }
             else
             {
-               // read 1 more byte to find the LF
-               readSize = 1;
+               // there is not enough peeked data to see if there is a
+               // LF following the CR we found, so keep the existing CR
+               // and read 1 more byte to check for it in the next pass
+               offset = readSize = 1;
+
+               // read and discard peeked bytes and CR (+1 char), then set CR
+               // at the beginning of the buffer so it can be found in the next
+               // pass
+               read(b, partial + 1);
+               b[0] = '\r';
             }
          }
+      }
+
+      // maximum line length of 1 MB
+      if(rval == 0 && line.length() > (1024 << 10))
+      {
+         rval = -1;
+         ExceptionRef e = new Exception(
+            "Could not read CRLF, line too long.", "db.net.CRLFLineTooLong");
+         Exception::set(e);
+         break;
       }
    }
 
