@@ -190,9 +190,9 @@ int ConnectionInputStream::readCrlf(string& line)
          if(i == NULL)
          {
             // CR not found, append all peeked bytes to the line and
-            // then read and discard them
+            // then discard them
             line.append(b, numBytes);
-            read(b, numBytes);
+            mPeekBuffer.advanceOffset(numBytes);
          }
          else
          {
@@ -212,8 +212,8 @@ int ConnectionInputStream::readCrlf(string& line)
                   // been found
                   rval = 1;
 
-                  // read and discard peeked bytes and CRLF (+2 chars)
-                  read(b, beforeCR + 2);
+                  // discard peeked bytes and CRLF (+2 chars)
+                  mPeekBuffer.advanceOffset(beforeCR + 2);
                }
                else
                {
@@ -222,22 +222,22 @@ int ConnectionInputStream::readCrlf(string& line)
                   // happens to have a CR in it
                   line.push_back('\r');
 
-                  // read and discard peeked bytes and solo CR (+1 char)
-                  read(b, beforeCR + 1);
+                  // discard peeked bytes and solo CR (+1 char)
+                  mPeekBuffer.advanceOffset(beforeCR + 1);
                }
             }
             else
             {
                // there is not enough peeked data to see if there is a
-               // LF following the CR we found, so only read and discard
-               // the partial line we appended so that the CR we found
-               // will stay alive in the underlying peek buffer and come
-               // back up at the front of the buffer in the next pass, also
-               // only read 2 bytes (CR+LF) because we may only have to look at
-               // the very next byte to read a full CRLF line and we don't
-               // want to block forever (or for a timeout) waiting for more
-               // data that won't ever arrive
-               read(b, beforeCR);
+               // LF following the CR we found, so only discard data
+               // before the CR so it will stay alive in the underlying peek
+               // buffer and come back up at the front of the buffer in the
+               // next pass, also only read 2 bytes (CR+LF) in the next pass
+               // because we may only have to look at the very next byte to
+               // read a full CRLF line and we don't want to block forever
+               // (or for a timeout) waiting for more data that won't ever
+               // arrive
+               mPeekBuffer.advanceOffset(beforeCR);
                readSize = 2;
             }
          }
