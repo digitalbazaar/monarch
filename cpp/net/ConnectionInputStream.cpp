@@ -143,29 +143,42 @@ int ConnectionInputStream::readCrlf(string& line)
 {
    int rval = 0;
 
+   // reset line and create buffer to parse for CRLFs
    line.erase();
-
-   // peek ahead
    int maxSize = 1023;
    char b[maxSize + 1];
+
+   // keep peeking ahead until there's an error or a line is completed either
+   // by CRLF or EOF
    int numBytes;
    bool block = false;
    int offset = 0;
    int readSize = maxSize;
-   while(rval != 1 && (numBytes = peek(b + offset, readSize, block)) != -1 &&
-         (numBytes > 0 || !block))
+   bool eof = false;
+   while(rval == 0 && !eof &&
+         (numBytes = peek(b + offset, readSize, block)) != -1)
    {
-      if(numBytes <= 1)
+      if(numBytes == 0)
       {
-         // not enough peek bytes available, so activate blocking
-         block = true;
+         if(!block)
+         {
+            // not enough peek bytes available, but we didn't block,
+            // so activate blocking to try and get more bytes
+            block = true;
+         }
+         else
+         {
+            // we were blocking but still didn't get any peek bytes, so
+            // we've hit the end of the stream
+            eof = true;
+         }
       }
       else
       {
-         // ensure our peek buffer ends in NULL byte so we can use strchr()
-         // to find the next CR, and if were preserving a CR from the last
-         // pass by using offset=1, then add that offset to the number of
-         // bytes available in our buffer
+         // NULL-terminate our buffer so we can use strchr() to find the
+         // next CR, and if were preserving a CR from the last pass by
+         // using offset=1, then add that offset to the number of bytes
+         // available in our buffer
          numBytes += offset;
          b[numBytes] = 0;
 
@@ -181,8 +194,8 @@ int ConnectionInputStream::readCrlf(string& line)
          char* i = strchr(b, '\r');
          if(i == NULL)
          {
-            // CR not found, append all peeked bytes to line and
-            // read and discard peeked bytes
+            // CR not found, append all peeked bytes to the line and
+            // then read and discard them
             line.append(b, numBytes);
             read(b, numBytes);
          }
@@ -227,7 +240,7 @@ int ConnectionInputStream::readCrlf(string& line)
 
                // read and discard peeked bytes and CR (+1 char), then set CR
                // at the beginning of the buffer so it can be found in the next
-               // pass
+               // pass (it won't be overwritten because offset=1)
                read(b, partial + 1);
                b[0] = '\r';
             }
