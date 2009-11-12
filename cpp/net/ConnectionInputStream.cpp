@@ -116,8 +116,8 @@ int ConnectionInputStream::readLine(string& line)
          // see if the next character is an eol -- and we've found a CRLF
          if(peek(&c, 1) > 0 && c == '\n')
          {
-            // read the character in and discard it
-            read(&c, 1);
+            // discard the character
+            mPeekBuffer.clear(1);
          }
 
          // set character to an eol since a carriage return is treated the same
