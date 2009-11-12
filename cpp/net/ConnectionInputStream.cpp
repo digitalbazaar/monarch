@@ -153,11 +153,10 @@ int ConnectionInputStream::readCrlf(string& line)
    // by CRLF or EOF
    int numBytes;
    bool block = false;
-   int offset = 0;
    int readSize = MAX_READ_SIZE;
    bool eof = false;
    while(rval == 0 && !eof &&
-         (numBytes = peek(b + offset, readSize, block)) != -1)
+         (numBytes = peek(b, readSize, block)) != -1)
    {
       if(numBytes == 0)
       {
@@ -172,31 +171,21 @@ int ConnectionInputStream::readCrlf(string& line)
             // we were blocking but still didn't get any peek bytes, so
             // we've hit the end of the stream
             eof = true;
-            if(offset == 1)
-            {
-               // include CR if we had one from a previous pass
-               line.push_back('\r');
-            }
          }
       }
       else
       {
          // NULL-terminate our buffer so we can use strchr() to find the
-         // next CR, and if were preserving a CR from the last pass by
-         // using offset=1, then add that offset to the number of bytes
-         // available in our buffer
-         numBytes += offset;
+         // next CR
          b[numBytes] = 0;
 
-         // now that peeked bytes are available, deactivate blocking, and
-         // reset the readSize and the offset
+         // now that peeked bytes are available, deactivate blocking and
+         // reset the readSize
          block = false;
          readSize = MAX_READ_SIZE;
-         offset = 0;
 
-         // look for a CR (which will either find a novel CR, or a CR from
-         // a previous pass where the CR was at the end of the buffer and
-         // was moved to the front of it)
+         // look for a CR (which will either find a novel CR, or a CR that
+         // we left in the underlying peek buffer from a previous pass)
          char* i = strchr(b, '\r');
          if(i == NULL)
          {
@@ -233,22 +222,23 @@ int ConnectionInputStream::readCrlf(string& line)
                   // happens to have a CR in it
                   line.push_back('\r');
 
-                  // read and discard peeked bytes and CR (+1 char)
+                  // read and discard peeked bytes and solo CR (+1 char)
                   read(b, partial + 1);
                }
             }
             else
             {
                // there is not enough peeked data to see if there is a
-               // LF following the CR we found, so keep the existing CR
-               // and read 1 more byte to check for it in the next pass
-               offset = readSize = 1;
-
-               // read and discard peeked bytes and CR (+1 char), then set CR
-               // at the beginning of the buffer so it can be found in the next
-               // pass (it won't be overwritten because offset=1)
-               read(b, partial + 1);
-               b[0] = '\r';
+               // LF following the CR we found, so only read and discard
+               // the partial line we appended so that the CR we found
+               // will stay alive in the underlying peek buffer and come
+               // back up at the front of the buffer in the next pass, also
+               // only read 1 more byte because we may only have to look at
+               // the very next byte to read a full CRLF line and we don't
+               // want to block forever (or for a timeout) waiting for more
+               // data that won't ever arrive
+               read(b, partial);
+               readSize = 1;
             }
          }
       }
