@@ -233,12 +233,12 @@ int ConnectionInputStream::readCrlf(string& line)
                // the partial line we appended so that the CR we found
                // will stay alive in the underlying peek buffer and come
                // back up at the front of the buffer in the next pass, also
-               // only read 1 more byte because we may only have to look at
+               // only read 2 bytes (CR+LF) because we may only have to look at
                // the very next byte to read a full CRLF line and we don't
                // want to block forever (or for a timeout) waiting for more
                // data that won't ever arrive
                read(b, beforeCR);
-               readSize = 1;
+               readSize = 2;
             }
          }
       }
