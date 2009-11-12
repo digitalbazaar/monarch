@@ -14,6 +14,8 @@ using namespace db::net;
 using namespace db::rt;
 using namespace db::util;
 
+#define MAX_READ_SIZE   1023
+
 ConnectionInputStream::ConnectionInputStream(Connection* c) :
    mConnection(c),
    mBytesRead(0),
@@ -145,15 +147,14 @@ int ConnectionInputStream::readCrlf(string& line)
 
    // reset line and create buffer to parse for CRLFs
    line.erase();
-   int maxSize = 1023;
-   char b[maxSize + 1];
+   char b[MAX_READ_SIZE + 1];
 
    // keep peeking ahead until there's an error or a line is completed either
    // by CRLF or EOF
    int numBytes;
    bool block = false;
    int offset = 0;
-   int readSize = maxSize;
+   int readSize = MAX_READ_SIZE;
    bool eof = false;
    while(rval == 0 && !eof &&
          (numBytes = peek(b + offset, readSize, block)) != -1)
@@ -190,7 +191,7 @@ int ConnectionInputStream::readCrlf(string& line)
          // now that peeked bytes are available, deactivate blocking, and
          // reset the readSize and the offset
          block = false;
-         readSize = maxSize;
+         readSize = MAX_READ_SIZE;
          offset = 0;
 
          // look for a CR (which will either find a novel CR, or a CR from
