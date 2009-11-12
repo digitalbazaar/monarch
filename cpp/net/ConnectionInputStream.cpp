@@ -192,7 +192,7 @@ int ConnectionInputStream::readCrlf(string& line)
             // CR not found, append all peeked bytes to the line and
             // then discard them
             line.append(b, numBytes);
-            mPeekBuffer.advanceOffset(numBytes);
+            mPeekBuffer.clear(numBytes);
          }
          else
          {
@@ -213,7 +213,7 @@ int ConnectionInputStream::readCrlf(string& line)
                   rval = 1;
 
                   // discard peeked bytes and CRLF (+2 chars)
-                  mPeekBuffer.advanceOffset(beforeCR + 2);
+                  mPeekBuffer.clear(beforeCR + 2);
                }
                else
                {
@@ -223,7 +223,7 @@ int ConnectionInputStream::readCrlf(string& line)
                   line.push_back('\r');
 
                   // discard peeked bytes and solo CR (+1 char)
-                  mPeekBuffer.advanceOffset(beforeCR + 1);
+                  mPeekBuffer.clear(beforeCR + 1);
                }
             }
             else
@@ -237,7 +237,7 @@ int ConnectionInputStream::readCrlf(string& line)
                // read a full CRLF line and we don't want to block forever
                // (or for a timeout) waiting for more data that won't ever
                // arrive
-               mPeekBuffer.advanceOffset(beforeCR);
+               mPeekBuffer.clear(beforeCR);
                readSize = 2;
             }
          }
