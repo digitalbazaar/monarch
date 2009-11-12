@@ -196,13 +196,13 @@ int ConnectionInputStream::readCrlf(string& line)
          }
          else
          {
-            // determine the length of the current partial line and append
+            // determine the length of the data before the CR and append
             // all peeked bytes up to but not including the CR to the line
-            int partial = i - b;
-            line.append(b, partial);
+            int beforeCR = i - b;
+            line.append(b, beforeCR);
 
             // see if there are more bytes in the buffer after the CR
-            bool hasMore = (partial < (numBytes - 1));
+            bool hasMore = ((beforeCR + 1) < numBytes);
             if(hasMore)
             {
                // check for an LF that immediately follows the CR
@@ -213,7 +213,7 @@ int ConnectionInputStream::readCrlf(string& line)
                   rval = 1;
 
                   // read and discard peeked bytes and CRLF (+2 chars)
-                  read(b, partial + 2);
+                  read(b, beforeCR + 2);
                }
                else
                {
@@ -223,7 +223,7 @@ int ConnectionInputStream::readCrlf(string& line)
                   line.push_back('\r');
 
                   // read and discard peeked bytes and solo CR (+1 char)
-                  read(b, partial + 1);
+                  read(b, beforeCR + 1);
                }
             }
             else
@@ -237,7 +237,7 @@ int ConnectionInputStream::readCrlf(string& line)
                // the very next byte to read a full CRLF line and we don't
                // want to block forever (or for a timeout) waiting for more
                // data that won't ever arrive
-               read(b, partial);
+               read(b, beforeCR);
                readSize = 1;
             }
          }
