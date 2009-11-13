@@ -31,10 +31,10 @@
 
 #ifndef __GNUC__
 #   define __WIN32_DLL_IMPORT __declspec(dllimport)
-#   define __WIN32_DLL_EXPORT __declspec(dllexport)
+#   define __WIN32_DLL_EXPORT 
 #else
 #   define __WIN32_DLL_IMPORT __attribute__((dllimport))
-#   define __WIN32_DLL_EXPORT __attribute__((dllexport))
+#   define __WIN32_DLL_EXPORT 
 #endif
 
 #endif

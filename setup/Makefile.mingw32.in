@@ -25,8 +25,8 @@ WINDOWS_EXECUTABLES := $(patsubst %,$(WINDOWS_BIN_DIR)/%.exe, $(EXECUTABLES))
 WINDOWS_DEPENDENCIES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-windows.P, $(SOURCES))
 WINDOWS_DEPENDENCIES += $(patsubst %.cpp,-windows%.P, $(WINDOWS_EXECUTABLE_SOURCES))
 
-WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_LIB_DIR)/%.lib, $(LIBRARIES))
-WINDOWS_LIBRARIES += $(patsubst %,$(WINDOWS_LIB_DIR)/%.dll, $(LIBRARIES))
+#WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_LIB_DIR)/%.lib, $(LIBRARIES))
+WINDOWS_LIBRARIES = $(patsubst %,$(WINDOWS_LIB_DIR)/%.dll, $(LIBRARIES))
 
 ALL_HEADERS += $(WINDOWS_HEADER_FILES)
 ALL_SOURCES += $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES)
@@ -72,7 +72,7 @@ clean-libraries:
 
 %.dll: $(WINDOWS_LIBRARY_OBJECTS)
 	@echo "Linking $(subst $(DBCORE)/,,$@)..."
-	$(PCMD) $(WINDOWS_DLLWRAP) $(WINDOWS_DLLWRAP_FLAGS) $(WINDOWS_LIBS) --output-def $(@:.dll=.def) --implib $(@:.dll=.lib) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=$(WINDOWS_LIB_DIR)/%.dll) $(EXTRA_WINDOWS_LIBRARIES)
+	$(PCMD) $(WINDOWS_CXX) -shared $(WINDOWS_LIBS) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
 
 %.lib: $(WINDOWS_LIBRARY_OBJECTS)
 	@echo "Linking $(subst $(DBCORE)/,,$@)..."
