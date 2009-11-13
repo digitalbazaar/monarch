@@ -72,7 +72,7 @@ clean-libraries:
 
 %.dll: $(WINDOWS_LIBRARY_OBJECTS)
 	@echo "Linking $(subst $(DBCORE)/,,$@)..."
-	$(PCMD) $(WINDOWS_CXX) -shared $(WINDOWS_LIBS) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
+	$(PCMD) $(WINDOWS_CXX) -shared $(WINDOWS_LD_FLAGS) $(WINDOWS_LIBS) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
 
 %.lib: $(WINDOWS_LIBRARY_OBJECTS)
 	@echo "Linking $(subst $(DBCORE)/,,$@)..."
