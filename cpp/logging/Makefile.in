@@ -4,8 +4,6 @@ HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
 LIBRARIES = dblogging
 DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio
-# Control import/export behavior
-MODULE_WINDOWS_CXX_FLAGS = -DBUILD_DB_LOGGING_DLL
 DYNAMIC_WINDOWS_LIBRARIES = dbcompress
 DYNAMIC_MACOS_LIBRARIES = dbcompress
 

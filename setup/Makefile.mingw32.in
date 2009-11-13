@@ -3,7 +3,8 @@
 
 # Windows-specific variables
 WINDOWS_CXX = @WINDOWS_CXX@
-WINDOWS_CXX_FLAGS = @CXXFLAGS@ -march=i686 -Wall -D_WIN32_WINNT=0x0501 $(MODULE_CXX_FLAGS) $(MODULE_WINDOWS_CXX_FLAGS) @DEFS@
+WINDOWS_CXX_FLAGS = @CXXFLAGS@ -march=i686 -Wall -D_WIN32_WINNT=0x0501 $(MODULE
+_CXX_FLAGS) @DEFS@
 WINDOWS_LD_FLAGS = @LDFLAGS@
 WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/cpp/3rdparty/pthread/include -I$(DBCORE)/cpp/3rdparty/openssl/include -I$(DBCORE)/cpp/3rdparty/expat/include -I$(DBCORE)/cpp/3rdparty/mysql/include -I$(DBCORE)/cpp/3rdparty/regex/include -I$(DBCORE)/cpp/3rdparty/sqlite3/include -I$(DBCORE)/cpp/3rdparty/zlib/include -I$(DBCORE)/cpp/3rdparty/iconv/include
 WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
