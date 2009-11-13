@@ -6,7 +6,6 @@
 
 #include "db/modest/ModuleInterface.h"
 #include "db/rt/Exception.h"
-#include "db/rt/WindowsSupport.h"
 
 namespace db
 {
@@ -127,24 +126,11 @@ public:
 extern "C" {
 #endif
 
-// define MODULE_API directive
-#ifdef WIN32
-   #ifdef BUILD_DB_MODEST_MODULE_DLL
-      #define DLL_DATA __WIN32_DLL_EXPORT extern
-   #else
-      #define DLL_DATA __WIN32_DLL_IMPORT
-   #endif
-#else
-   #define DLL_DATA extern
-#endif
-
-DLL_DATA db::modest::Module* createModestModule();
-DLL_DATA void freeModestModule(db::modest::Module* m);
+db::modest::Module* createModestModule();
+void freeModestModule(db::modest::Module* m);
 
 typedef db::modest::Module* (*CreateModestModuleFn)();
 typedef void (*FreeModestModuleFn)(db::modest::Module*);
-
-#undef DLL_DATA
 
 #ifdef __cplusplus
 }

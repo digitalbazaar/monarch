@@ -20,16 +20,6 @@ namespace db
 namespace net
 {
 
-#ifdef WIN32
-#   ifdef BUILD_DB_NET_DLL
-#      define DLL_CLASS __WIN32_DLL_EXPORT
-#   else
-#      define DLL_CLASS __WIN32_DLL_IMPORT
-#   endif
-#else
-#   define DLL_CLASS
-#endif
-
 /**
  * A Server communicates by using Connections that are established on
  * ports that this server listens to or by using Datagrams received on
@@ -40,7 +30,7 @@ namespace net
  *
  * @author Dave Longley
  */
-class DLL_CLASS Server
+class Server
 {
 public:
    /**

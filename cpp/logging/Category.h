@@ -9,7 +9,6 @@
 #include <list>
 
 #include "db/util/Macros.h"
-#include "db/rt/WindowsSupport.h"
 
 // Forward declaration
 namespace db
@@ -20,20 +19,8 @@ namespace db
    }
 }
 
-#ifdef WIN32
-#   ifdef BUILD_DB_LOGGING_DLL
-#      define DLL_DATA __WIN32_DLL_EXPORT extern
-#   else
-#      define DLL_DATA __WIN32_DLL_IMPORT
-#   endif
-#else
-#   define DLL_DATA extern
-#endif
-
-DLL_DATA db::logging::Category* DB_DEFAULT_CAT;
-DLL_DATA db::logging::Category* DB_ALL_CAT;
-
-#undef DLL_DATA
+extern db::logging::Category* DB_DEFAULT_CAT;
+extern db::logging::Category* DB_ALL_CAT;
 
 namespace db
 {

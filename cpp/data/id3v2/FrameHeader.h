@@ -4,8 +4,6 @@
 #ifndef db_data_id3v2_FrameHeader_H
 #define db_data_id3v2_FrameHeader_H
 
-#include "db/rt/WindowsSupport.h"
-
 #include <string>
 
 namespace db
@@ -14,16 +12,6 @@ namespace data
 {
 namespace id3v2
 {
-
-#ifdef WIN32
-#   ifdef BUILD_DB_DATA_DLL
-#      define DLL_CLASS __WIN32_DLL_EXPORT
-#   else
-#      define DLL_CLASS __WIN32_DLL_IMPORT
-#   endif
-#else
-#   define DLL_CLASS
-#endif
 
 /**
  * A FrameHeader stores the ID of an ID3 tag frame, its size, and some
@@ -36,7 +24,7 @@ namespace id3v2
  *
  * @author Dave Longley
  */
-class DLL_CLASS FrameHeader
+class FrameHeader
 {
 protected:
    /**

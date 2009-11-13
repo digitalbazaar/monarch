@@ -6,7 +6,6 @@
 
 #include "db/io/ByteBuffer.h"
 #include "db/rt/Exception.h"
-#include "db/rt/WindowsSupport.h"
 #include "db/util/Date.h"
 
 #include <string>
@@ -15,16 +14,6 @@ namespace db
 {
 namespace io
 {
-
-#ifdef WIN32
-#   ifdef BUILD_DB_IO_DLL
-#      define DLL_CLASS __WIN32_DLL_EXPORT
-#   else
-#      define DLL_CLASS __WIN32_DLL_IMPORT
-#   endif
-#else
-#   define DLL_CLASS
-#endif
 
 // forward declare file, file list
 class File;
@@ -312,7 +301,7 @@ public:
  *
  * @author Dave Longley
  */
-class DLL_CLASS File : public db::rt::Collectable<FileImpl>
+class File : public db::rt::Collectable<FileImpl>
 {
 public:
    /**
@@ -584,8 +573,6 @@ public:
     */
    static std::string join(const char* path1, const char* path2);
 };
-
-#undef DLL_CLASS
 
 } // end namespace io
 } // end namespace db

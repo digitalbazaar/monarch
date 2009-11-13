@@ -6,7 +6,6 @@
 
 #include "db/io/OutputStream.h"
 #include "db/rt/Collectable.h"
-#include "db/rt/WindowsSupport.h"
 #include "db/util/Date.h"
 #include "db/util/StringTools.h"
 
@@ -18,16 +17,6 @@ namespace db
 {
 namespace http
 {
-
-#ifdef WIN32
-#   ifdef BUILD_DB_HTTP_DLL
-#      define DLL_CLASS __WIN32_DLL_EXPORT
-#   else
-#      define DLL_CLASS __WIN32_DLL_IMPORT
-#   endif
-#else
-#   define DLL_CLASS
-#endif
 
 /**
  * An HttpHeader is the header for an HTTP Message. It contains a version
@@ -42,7 +31,7 @@ namespace http
  *
  * @author Dave Longley
  */
-class DLL_CLASS HttpHeader
+class HttpHeader
 {
 public:
    /**
@@ -309,8 +298,6 @@ public:
     */
    static void biCapitalize(char* name);
 };
-
-#undef DLL_CLASS
 
 // typedef for a counted reference to an HttpHeader
 typedef db::rt::Collectable<HttpHeader> HttpHeaderRef;

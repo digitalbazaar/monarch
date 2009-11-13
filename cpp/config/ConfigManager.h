@@ -7,22 +7,11 @@
 #include "db/rt/DynamicObject.h"
 #include "db/rt/DynamicObjectIterator.h"
 #include "db/rt/SharedLock.h"
-#include "db/rt/WindowsSupport.h"
 
 namespace db
 {
 namespace config
 {
-
-#ifdef WIN32
-#   ifdef BUILD_DB_CONFIG_DLL
-#      define DLL_CLASS __WIN32_DLL_EXPORT
-#   else
-#      define DLL_CLASS __WIN32_DLL_IMPORT
-#   endif
-#else
-#   define DLL_CLASS
-#endif
 
 #define DB_DEFAULT_CONFIG_VERSION "DB Config 3.0"
 
@@ -109,7 +98,7 @@ class ConfigChangeListener;
  * @author Dave Longley
  * @author Manu Sporny
  */
-class DLL_CLASS ConfigManager
+class ConfigManager
 {
 public:
    /**
@@ -487,8 +476,6 @@ protected:
       Config& config, bool include, const char* dir,
       db::rt::DynamicObject* changedIds = NULL);
 };
-
-#undef DLL_CLASS
 
 } // end namespace config
 } // end namespace db
