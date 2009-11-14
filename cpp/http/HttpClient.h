@@ -176,6 +176,8 @@ public:
     *                    any common name can be accepted, a NULL list adds
     *                    no special common names and only the url's host will
     *                    be used.
+    * @param includeHost true to include the host in any special list of
+    *                    common names, false not to.
     *
     * @return the HttpConnection to the url or NULL if an exception
     *         occurred.
@@ -185,7 +187,8 @@ public:
       db::net::SslContext* sslContext = NULL,
       db::net::SslSession* session = NULL,
       unsigned int timeout = 30,
-      db::rt::DynamicObject* commonNames = NULL);
+      db::rt::DynamicObject* commonNames = NULL,
+      bool includeHost = true);
 
    /**
     * Creates an SSL connection to the passed url. This is the preferred
@@ -207,6 +210,8 @@ public:
     *                    any common name can be accepted, a NULL list adds
     *                    no special common names and only the url's host will
     *                    be used.
+    * @param includeHost true to include the host in any special list of
+    *                    common names, false not to.
     *
     * @return the HttpConnection to the url or NULL if an exception
     *         occurred.
@@ -215,7 +220,8 @@ public:
       db::net::Url* url, db::net::SslContext& context,
       db::net::SslSessionCache& cache,
       unsigned int timeout = 30,
-      db::rt::DynamicObject* commonNames = NULL);
+      db::rt::DynamicObject* commonNames = NULL,
+      bool includeHost = true);
 
    /**
     * Creates a connection to the passed address.
@@ -234,6 +240,8 @@ public:
     *                    any common name can be accepted, a NULL list adds
     *                    no special common names and only the url's host will
     *                    be used.
+    * @param includeHost true to include the host in any special list of
+    *                    common names, false not to.
     *
     * @return the HttpConnection to the address or NULL if an exception
     *         occurred.
@@ -243,7 +251,8 @@ public:
       db::net::SslContext* context = NULL,
       db::net::SslSession* session = NULL,
       unsigned int timeout = 30,
-      db::rt::DynamicObject* commonNames = NULL);
+      db::rt::DynamicObject* commonNames = NULL,
+      bool includeHost = true);
 
 protected:
    /**

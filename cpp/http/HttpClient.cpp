@@ -236,16 +236,17 @@ void HttpClient::disconnect()
 
 HttpConnection* HttpClient::createConnection(
    Url* url, SslContext* context, SslSession* session,
-   unsigned int timeout, DynamicObject* commonNames)
+   unsigned int timeout, DynamicObject* commonNames, bool includeHost)
 {
    // create connection
    InternetAddress address(url->getHost().c_str(), url->getPort());
-   return createConnection(&address, context, session, timeout, commonNames);
+   return createConnection(
+      &address, context, session, timeout, commonNames, includeHost);
 }
 
 HttpConnection* HttpClient::createSslConnection(
    Url* url, SslContext& context, SslSessionCache& cache,
-   unsigned int timeout, DynamicObject* commonNames)
+   unsigned int timeout, DynamicObject* commonNames, bool includeHost)
 {
    HttpConnection* rval;
 
@@ -255,7 +256,7 @@ HttpConnection* HttpClient::createSslConnection(
    // create ssl connection
    rval = createConnection(
       url, &context, (session.isNull() ? NULL : &session), timeout,
-      commonNames);
+      commonNames, includeHost);
    if(rval != NULL)
    {
       // store session
@@ -268,7 +269,7 @@ HttpConnection* HttpClient::createSslConnection(
 
 HttpConnection* HttpClient::createConnection(
    InternetAddress* address, SslContext* context, SslSession* session,
-   unsigned int timeout, DynamicObject* commonNames)
+   unsigned int timeout, DynamicObject* commonNames, bool includeHost)
 {
    HttpConnection* rval = NULL;
 
@@ -295,8 +296,11 @@ HttpConnection* HttpClient::createConnection(
             // only add common names (and host) if length of list > 0
             if((*commonNames)->length() > 0)
             {
-               // always add host
-               ss->addVerifyCommonName(address->getHost());
+               // add host if applicable
+               if(includeHost)
+               {
+                  ss->addVerifyCommonName(address->getHost());
+               }
 
                // add all common names to be checked
                DynamicObjectIterator i = commonNames->getIterator();
