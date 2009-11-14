@@ -103,6 +103,8 @@ HttpConnectionRef HttpConnectionPool::getConnection(Url* url)
          if(rval.isNull())
          {
             // no idle connection available, drop connection list
+            free((char*)i->first);
+            delete i->second;
             mPools.erase(i);
          }
       }
