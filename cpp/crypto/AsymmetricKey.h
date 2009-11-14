@@ -28,11 +28,6 @@ protected:
     */
    EVP_PKEY* mKey;
 
-   /**
-    * The algorithm for this key.
-    */
-   char* mAlgorithm;
-
 public:
    /**
     * Creates a new AsymmetricKey from a PKEY structure.
