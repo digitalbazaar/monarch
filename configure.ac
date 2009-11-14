@@ -86,6 +86,7 @@ if test "$BUILD_FOR_WINDOWS" = "yes" ; then
       AC_PROG_CXX()
       WINDOWS_CXX="$CXX"
    fi
+   LDFLAGS="$LDFLAGS -Wl,--enable-auto-import"
    PLATFORM=windows
 fi
 
@@ -198,11 +199,6 @@ AC_ARG_WITH(opt-flags,
     [use FLAGS for optimization (-O -fno-exceptions)]),
   [DB_CXX_OPT_FLAGS="${withval}"],
   [DB_CXX_OPT_FLAGS="-O -fno-exceptions"]) dnl Default value
-
-dnl Turn optimization off for Windows
-if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
-   DB_CXX_OPT_FLAGS="-O0 -fno-exceptions"
-fi
 
 AC_MSG_NOTICE(Using optimization flags: "$DB_CXX_OPT_FLAGS")
 
