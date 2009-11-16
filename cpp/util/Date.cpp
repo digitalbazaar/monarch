@@ -131,12 +131,9 @@ string Date::getDateTime(TimeZone* tz)
    // %F = YYYY-MM-DD
    // %T = HH:MM:SS
    string rval;
-#ifdef WIN32
-   // windows fails on %T specifier
-   return format(rval, "%F %H:%M:%S", tz);
-#else
-   return format(rval, "%F %T", tz);
-#endif
+   // Note: windows fails on %F and %T specifiers, so
+   // we use the more compatible ones instead
+   return format(rval, "%Y-%m-%d %H:%M:%S", tz);
 }
 
 string Date::getUtcDateTime()
