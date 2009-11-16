@@ -957,6 +957,11 @@ bool File::getTemporaryDirectory(string& tmp)
       TCHAR path[MAX_PATH];
       GetTempPath(MAX_PATH, path);
       tmp = path;
+      // chop off trailing slash
+      if(tmp.length() > 0 && tmp[tmp.length() - 1] == '\\')
+      {
+         tmp.erase(tmp.length() - 1);
+      }
 #else
       tmp = "/tmp";
 #endif
