@@ -478,7 +478,7 @@ void runHttpServerTest(TestRunner& tr)
 
    // create server
    Server server(&k);
-   InternetAddress address("localhost", 19100);
+   InternetAddress address("0.0.0.0", 19100);
 
    // create SSL/generic http connection servicer
    HttpConnectionServicer hcs;
@@ -494,18 +494,21 @@ void runHttpServerTest(TestRunner& tr)
    TestHttpRequestServicer test1("/test");
    hcs.addRequestServicer(&test1, false);
 
+   uint64_t seconds = 30;
+
    if(server.start())
    {
-      printf("Server started.\n");
+      printf("\nServer started on %s and will run for %llu seconds.\n",
+         address.toString(false).c_str(), seconds);
    }
    else if(Exception::get() != NULL)
    {
-      printf("Server started with errors=%s\n",
+      printf("\nServer start failed with errors=%s\n",
          Exception::get()->getMessage());
    }
 
    // sleep
-   Thread::sleep(30000);
+   Thread::sleep(seconds * 1000);
 
    server.stop();
    printf("Server stopped.\n");
