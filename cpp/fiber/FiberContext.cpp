@@ -44,7 +44,7 @@ bool FiberContext::init(Fiber* fiber)
 {
 #ifdef WIN32
    // FIXME: win32 requires malloc to be used for the stack because mmap
-   // has issues at present
+   // currently only works with winxp SP2+
    void* stack = malloc(fiber->getStackSize());
    mAllocatedStack = (stack != NULL);
 #else

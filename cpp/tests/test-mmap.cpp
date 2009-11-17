@@ -50,7 +50,7 @@ int main()
       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
    if(func1Stack == MAP_FAILED)
    {
-      printf("failed to allocate func1 stack\n");
+      printf("failed to allocate func1 stack: %s\n", strerror(errno));
       exit(1);
    }
    printf("func1 stack allocated.\n");
@@ -61,17 +61,11 @@ int main()
       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
    if(func2Stack == MAP_FAILED)
    {
-      printf("failed to allocate func2 stack\n");
+      printf("failed to allocate func2 stack: %s\n", strerror(errno));
       exit(1);
    }
    printf("func2 stack allocated.\n");
 
-#ifdef WIN32
-   // FIXME: remove me
-   printf(
-      "WARNING: context switching disabled on win32 due to issues with using "
-      "mmap'd memory for stacks...\n");
-#else
    // make func1 context
    if(getcontext(&gFunc1Context) == -1)
    {
@@ -106,18 +100,18 @@ int main()
       printf("failed to swap from main to func1\n");
       exit(1);
    }
-#endif
+
    printf("main returned, de-allocating stacks...\n");
 
    if(munmap(func1Stack, stackSize) == -1)
    {
-      printf("failed to de-allocate func1 stack\n");
+      printf("failed to de-allocate func1 stack: %s\n", strerror(errno));
       exit(1);
    }
 
    if(munmap(func2Stack, stackSize) == -1)
    {
-      printf("failed to de-allocate func2 stack\n");
+      printf("failed to de-allocate func2 stack: %s\n", strerror(errno));
       exit(1);
    }
 
