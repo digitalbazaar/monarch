@@ -5,6 +5,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 
 static ucontext_t gMainContext;
 static ucontext_t gFunc1Context;
