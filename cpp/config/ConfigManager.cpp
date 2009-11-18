@@ -533,6 +533,27 @@ bool ConfigManager::hasConfig(ConfigId id)
    return mConfigs->hasMember(id);
 }
 
+DynamicObject ConfigManager::getIdsInGroup(ConfigId groupId)
+{
+   DynamicObject ids;
+
+   mLock.lockShared();
+   {
+      if(mConfigs->hasMember(groupId) &&
+         mConfigs[groupId]->hasMember("members"))
+      {
+         ids = mConfigs[groupId]["members"].clone();
+      }
+      else
+      {
+         ids->setType(Array);
+      }
+   }
+   mLock.unlockShared();
+
+   return ids;
+}
+
 void ConfigManager::update(ConfigId id, DynamicObject* changedIds)
 {
    // lock to modify internal storage

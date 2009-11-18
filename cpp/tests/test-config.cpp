@@ -385,6 +385,38 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("empty group ids");
+   {
+      ConfigManager cm;
+      DynamicObject expect;
+      expect->setType(Array);
+      assertDynoCmp(cm.getIdsInGroup("Not-A-Group"), expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("group ids");
+   {
+      ConfigManager cm;
+      DynamicObject c;
+
+      c[ConfigManager::ID] = "c0";
+      c[ConfigManager::GROUP] = "c";
+      assert(cm.addConfig(c));
+      assertNoException();
+
+      c[ConfigManager::ID] = "c1";
+      c[ConfigManager::GROUP] = "c";
+      assert(cm.addConfig(c));
+      assertNoException();
+
+      DynamicObject expect;
+      expect->setType(Array);
+      expect[0] = "c0";
+      expect[1] = "c1";
+      assertDynoCmp(cm.getIdsInGroup("c"), expect);
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
