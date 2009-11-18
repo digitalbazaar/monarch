@@ -111,6 +111,17 @@ typedef int socklen_t;
    #define O_NONBLOCK        1
 #endif
 
+// define socket shutdown options
+#ifndef SHUT_RD
+   #define SHUT_RD SD_RECEIVE
+#endif
+#ifndef SHUT_WR
+   #define SHUT_WR SD_SEND
+#endif
+#ifndef SHUT_RDWR
+   #define SHUT_RDWR SD_BOTH
+#endif
+
 // define getnameinfo()/getaddrinfo() constants
 /*
 #ifndef NI_NUMERICHOST

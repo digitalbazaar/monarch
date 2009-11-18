@@ -264,16 +264,15 @@ bool AbstractSocket::bind(SocketAddress* address)
       int error = SOCKET_MACRO_bind(mFileDescriptor, (sockaddr*)&addr, size);
       if(error < 0)
       {
-         // shutdown input/output
-         shutdownInput();
-         shutdownOutput();
-
          ExceptionRef e = new Exception(
             "Could not bind socket.", SOCKET_EXCEPTION_TYPE);
          e->getDetails()["error"] = strerror(errno);
          e->getDetails()["address"] = address->getAddress();
          e->getDetails()["port"] = address->getPort();
          Exception::set(e);
+
+         // close socket
+         close();
       }
       else
       {
@@ -608,7 +607,8 @@ void AbstractSocket::close()
       shutdownInput();
       shutdownOutput();
 
-      // close the socket
+      // shutdown and close the socket
+      SOCKET_MACRO_shutdown(mFileDescriptor, SHUT_RDWR);
       SOCKET_MACRO_close(mFileDescriptor);
 
       // file descriptor is invalid again
