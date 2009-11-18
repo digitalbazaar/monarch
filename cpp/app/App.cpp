@@ -1110,7 +1110,9 @@ int App::main(
 
    // cleanup winsock
 #ifdef WIN32
-   WSACleanup();
+   // FIXME: WSACleanup() crashes when called on windows (after a successful
+   // call to WSAStartup() ... so it has been disabled
+   //WSACleanup();
 #endif
 
    // if had an error and exit status not already set to failure then set it
