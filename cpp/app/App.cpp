@@ -1092,7 +1092,7 @@ int App::main(
             "Incompatible version of winsock.",
             "db.app.WinSockError");
          char tmp[10];
-         snprintf(tmp, 100, "%d.%d",
+         snprintf(tmp, 10, "%d.%d",
             LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
          e->getDetails()["version"] = tmp;
          e->getDetails()["requiredVersion"] = "2.2";
