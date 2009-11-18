@@ -1078,7 +1078,7 @@ int App::main(
    {
       // initialize winsock
       WSADATA wsaData;
-      if(WSAStartup(MAKEWORD(2, 0), &wsaData) < 0)
+      if(WSAStartup(MAKEWORD(2, 0), &wsaData) != 0)
       {
          ExceptionRef e = new Exception(
             "Error: Could not initialize winsock.",
