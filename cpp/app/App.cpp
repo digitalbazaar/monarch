@@ -1078,11 +1078,24 @@ int App::main(
    {
       // initialize winsock
       WSADATA wsaData;
-      if(WSAStartup(MAKEWORD(2, 0), &wsaData) != 0)
+      if(WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
       {
          ExceptionRef e = new Exception(
-            "Error: Could not initialize winsock.",
+            "Could not initialize winsock.",
             "db.app.WinSockError");
+         Exception::set(e);
+         success = false;
+      }
+      else if(LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2)
+      {
+         ExceptionRef e = new Exception(
+            "Incompatible version of winsock.",
+            "db.app.WinSockError");
+         char tmp[10];
+         snprintf(tmp, 100, "%d.%d",
+            LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
+         e->getDetails()["version"] = tmp;
+         e->getDetails()["requiredVersion"] = "2.2";
          Exception::set(e);
          success = false;
       }
