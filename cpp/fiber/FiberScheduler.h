@@ -38,10 +38,15 @@ protected:
    ContextList mContextList;
 
    /**
-    * A list of available FiberIds from exited fibers.
+    * The next fiber ID to try to assign.
     */
-   typedef std::list<FiberId> FiberIdFreeList;
-   FiberIdFreeList mFiberIdFreeList;
+   FiberId mNextFiberId;
+
+   /**
+    * Set to true if map of fibers must be checked when assigning a new
+    * fiber ID.
+    */
+   bool mCheckFiberMap;
 
    /**
     * A map of all fibers (fiber ID => fiber) in the scheduler.

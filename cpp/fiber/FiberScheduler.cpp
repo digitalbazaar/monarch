@@ -11,10 +11,13 @@ using namespace db::fiber;
 using namespace db::modest;
 using namespace db::rt;
 
-FiberScheduler::FiberScheduler()
+// max fiber ID is MAX(uint32)
+#define MAX_FIBER_ID 0xFFFFFFFF
+
+FiberScheduler::FiberScheduler() :
+   mNextFiberId(1),
+   mCheckFiberMap(false)
 {
-   // add first FiberId
-   mFiberIdFreeList.push_back(1);
 }
 
 FiberScheduler::~FiberScheduler()
@@ -89,14 +92,27 @@ FiberId FiberScheduler::addFiber(Fiber* fiber)
    // lock scheduler to add fiber
    mScheduleLock.lock();
    {
-      // get available FiberId
-      id = mFiberIdFreeList.front();
-      mFiberIdFreeList.pop_front();
-
-      // add new id if list is empty
-      if(mFiberIdFreeList.empty())
+      // get next available FiberId
+      id = mNextFiberId++;
+      if(mCheckFiberMap)
       {
-         mFiberIdFreeList.push_back(id + 1);
+         // Note: If there are MAX_FIBER_ID fibers concurrently in the system
+         // then this code will lock forever... so don't do that.
+         FiberMap::iterator i = mFiberMap.find(id);
+         while(i != mFiberMap.end())
+         {
+            id = mNextFiberId++;
+            if(id == MAX_FIBER_ID)
+            {
+               mNextFiberId = 1;
+            }
+            i = mFiberMap.find(id);
+         }
+      }
+      if(id == MAX_FIBER_ID)
+      {
+         mNextFiberId = 1;
+         mCheckFiberMap = true;
       }
 
       // assign id and scheduler to fiber
@@ -397,8 +413,7 @@ Fiber* FiberScheduler::nextFiber()
             case Fiber::Exited:
                fiber->setState(Fiber::Dead);
             case Fiber::Dead:
-               // add fiber ID to free list, remove fiber from scheduler
-               mFiberIdFreeList.push_front(fiber->getId());
+               // remove fiber from scheduler
                mFiberMap.erase(fiber->getId());
                delete fiber;
                fiber = NULL;
