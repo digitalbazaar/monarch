@@ -398,7 +398,7 @@ bool FileLogger::setFile(File& file, bool append)
       if(!file->exists())
       {
          // try to create the new file
-         if(!file->create())
+         if(!(file->mkdirs() && file->create()))
          {
             ExceptionRef e = new Exception(
                "Could not create new logging file.",
