@@ -390,12 +390,26 @@ bool FileLogger::setFile(File& file, bool append)
 
    mLock.lock();
    {
-      if(file->isWritable())
+      /* Note: Ensure that the new file can be used before closing the
+       * old one and changing to the new one, otherwise bail out.
+       */
+
+      // ensure the new file can be opened and is writable
+      if(!file->exists())
       {
-         close();
-         mFile = file;
+         // try to create the new file
+         if(!file->create())
+         {
+            ExceptionRef e = new Exception(
+               "Could not create new logging file.",
+               "db.logging.InvalidFile");
+            e->getDetails()["path"] = file->getPath();
+            Exception::push(e);
+            rval = false;
+         }
       }
-      else
+      // the new file already exists, ensure it is writable
+      else if(!file->isWritable())
       {
          ExceptionRef e = new Exception(
             "Logging file not writable.",
@@ -405,24 +419,16 @@ bool FileLogger::setFile(File& file, bool append)
          rval = false;
       }
 
+      // the new file exists and can be written to
       if(rval)
       {
-         if(file->exists())
-         {
-            if(!append)
-            {
-               mCurrentFileSize = 0;
-               rval = mFile->remove();
-            }
-            else
-            {
-               mCurrentFileSize = file->getLength();
-            }
-         }
-         else
-         {
-            mCurrentFileSize = 0;
-         }
+         // close and replace the old file
+         close();
+         mFile = file;
+
+         // get the current length of the file,
+         // if we're appending, use its current length, otherwise use 0
+         mCurrentFileSize = append ? file->getLength() : 0;
       }
 
       if(rval)
