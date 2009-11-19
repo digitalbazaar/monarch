@@ -1572,6 +1572,26 @@ void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfException();
 
+   tr.test("parse (invalid - missing variable)");
+   {
+      // create template
+      const char* tpl = "{a}{b}";
+
+      // create variable "a" and omit "b"
+      DynamicObject vars;
+      vars["a"] = "A!";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+   }
+   tr.passIfException();
+
    tr.test("parse (invalid - incomplete variable)");
    {
       // create template
