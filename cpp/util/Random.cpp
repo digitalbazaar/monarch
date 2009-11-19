@@ -48,9 +48,9 @@ uint64_t Random::next(uint64_t low, uint64_t high)
    lo += hi >> 15;
    lo = (lo & 0x7FFFFFFF) + (lo >> 31);
    r = gSeed = (uint32_t)lo;
+   return low + (uint64_t)((high - low) * r / (0x7FFFFFFF + 1.0));
 #else
    r = random();
-#endif
-
    return low + (uint64_t)((high - low) * r / (RAND_MAX + 1.0));
+#endif
 }
