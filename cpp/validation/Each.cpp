@@ -5,6 +5,8 @@
 
 #include "db/rt/DynamicObjectIterator.h"
 
+#include <cstdio>
+
 using namespace db::rt;
 using namespace db::validation;
 

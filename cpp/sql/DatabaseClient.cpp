@@ -9,6 +9,8 @@
 #include "db/sql/Row.h"
 #include "db/sql/Statement.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::data::json;
 using namespace db::logging;

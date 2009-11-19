@@ -10,6 +10,8 @@
 #include "db/upnp/DeviceDiscoverer.h"
 #include "db/upnp/SoapEnvelope.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::test;
 using namespace db::data::xml;

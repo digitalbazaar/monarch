@@ -11,6 +11,8 @@
 #include "db/sql/mysql/MySqlDatabaseClient.h"
 #include "db/util/Timer.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::test;
 using namespace db::rt;

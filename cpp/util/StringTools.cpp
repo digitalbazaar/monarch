@@ -10,6 +10,7 @@
 #include <cstring>
 #include <cstdarg>
 #include <cstdlib>
+#include <cstdio>
 #include <algorithm>
 
 using namespace std;

@@ -1095,7 +1095,7 @@ void File::split(const char* path, string& dirname, string& basename)
    else
    {
       // split on the last path name separator
-      char* pos = strrchr(path, NAME_SEPARATOR_CHAR);
+      const char* pos = strrchr(path, NAME_SEPARATOR_CHAR);
       if(pos != NULL)
       {
          pos++;

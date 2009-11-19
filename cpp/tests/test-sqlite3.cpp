@@ -11,6 +11,8 @@
 #include "db/sql/sqlite3/Sqlite3DatabaseClient.h"
 #include "db/util/Timer.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::rt;
 using namespace db::sql;

@@ -8,6 +8,7 @@
 #include "db/rt/Exception.h"
 
 #include <cstdlib>
+#include <cstdio>
 
 using namespace std;
 using namespace db::data;

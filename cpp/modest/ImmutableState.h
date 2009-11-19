@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <string>
+#include <inttypes.h>
 
 namespace db
 {

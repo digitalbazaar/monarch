@@ -8,6 +8,7 @@
 
 #include <openssl/bn.h>
 #include <string>
+#include <inttypes.h>
 
 namespace db
 {

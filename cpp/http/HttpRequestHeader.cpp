@@ -4,6 +4,7 @@
 #include "db/http/HttpRequestHeader.h"
 
 #include <cstdlib>
+#include <cstdio>
 
 using namespace std;
 using namespace db::http;

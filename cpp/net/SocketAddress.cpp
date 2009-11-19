@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 
 using namespace std;
 using namespace db::net;

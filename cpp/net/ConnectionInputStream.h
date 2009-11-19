@@ -8,6 +8,7 @@
 #include "db/io/ByteBuffer.h"
 
 #include <string>
+#include <inttypes.h>
 
 namespace db
 {

@@ -3,6 +3,7 @@
  */
 #include <iostream>
 #include <sstream>
+#include <cstdio>
 
 #include "db/test/Test.h"
 #include "db/test/Tester.h"

@@ -8,6 +8,7 @@
 
 #include <iconv.h>
 #include <string>
+#include <inttypes.h>
 
 namespace db
 {

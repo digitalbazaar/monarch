@@ -19,6 +19,7 @@
 #include "db/util/regex/Pattern.h"
 
 #include <cstdlib>
+#include <cstdio>
 
 using namespace std;
 using namespace db::test;

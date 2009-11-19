@@ -6,6 +6,7 @@
 // FIXME: replace iostream with cstdlib and printfs
 #include <iostream>
 #include <sstream>
+#include <cstdio>
 
 #include "db/data/json/JsonWriter.h"
 #include "db/io/OStreamOutputStream.h"

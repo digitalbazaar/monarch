@@ -7,6 +7,8 @@
 #include "db/rt/Runnable.h"
 #include "db/rt/System.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::config;
 using namespace db::test;

@@ -6,6 +6,8 @@
 #include "db/util/Base64Codec.h"
 #include "db/util/StringTools.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::mail;
 using namespace db::rt;

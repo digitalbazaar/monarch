@@ -54,7 +54,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
       {
          // ignore chunk-extension
          int sizeLength = chunkSize.length();
-         char* size = strchr(chunkSize.c_str(), ' ');
+         const char* size = strchr(chunkSize.c_str(), ' ');
          if(size != NULL)
          {
             sizeLength = size - chunkSize.c_str();

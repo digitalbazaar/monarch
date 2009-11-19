@@ -14,9 +14,20 @@ using namespace std;
 using namespace db::test;
 using namespace db::rt;
 
+struct KeyAsIndex
+{
+   int operator()(int key) const
+   {
+      return key;
+   }
+};
+
 void runHashTableTests(TestRunner& tr)
 {
    tr.group("HashTable");
+
+   // FIXME:
+   //HashTable<int, int, KeyAsIndex> table;
 
    tr.test("put");
    {

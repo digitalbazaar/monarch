@@ -15,6 +15,7 @@
 #include "db/data/json/JsonWriter.h"
 
 #include <cstdlib>
+#include <cstdio>
 #include <algorithm>
 #include <map>
 

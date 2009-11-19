@@ -4,6 +4,7 @@
 #include "db/fiber/FiberScheduler.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <setjmp.h>
 
 using namespace std;

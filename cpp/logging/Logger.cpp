@@ -10,6 +10,7 @@
 
 #include <sstream>
 #include <cstdlib>
+#include <cstdio>
 
 using namespace std;
 using namespace db::data::json;

@@ -15,6 +15,8 @@
 #include "db/rt/Runnable.h"
 #include "db/util/Timer.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::test;
 using namespace db::event;

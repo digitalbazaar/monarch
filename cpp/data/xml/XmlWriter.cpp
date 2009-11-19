@@ -6,6 +6,8 @@
 #include "db/rt/DynamicObjectIterator.h"
 #include "db/io/BufferedOutputStream.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::data;
 using namespace db::data::xml;

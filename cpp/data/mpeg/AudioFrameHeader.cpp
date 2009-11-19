@@ -5,6 +5,7 @@
 
 #include "db/rt/Exception.h"
 #include <math.h>
+#include <cstdio>
 
 using namespace std;
 using namespace db::io;

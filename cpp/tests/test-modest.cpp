@@ -6,6 +6,8 @@
 #include "db/test/TestRunner.h"
 #include "db/modest/Kernel.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::test;
 using namespace db::modest;

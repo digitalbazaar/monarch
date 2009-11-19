@@ -8,6 +8,8 @@
 #include "db/io/OutputStream.h"
 #include "db/net/SocketAddress.h"
 
+#include <inttypes.h>
+
 namespace db
 {
 namespace net

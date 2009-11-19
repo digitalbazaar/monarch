@@ -3,6 +3,8 @@
  */
 #include "db/validation/Array.h"
 
+#include <cstdio>
+
 using namespace db::rt;
 using namespace db::validation;
 

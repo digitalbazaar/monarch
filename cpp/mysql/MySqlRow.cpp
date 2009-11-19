@@ -6,6 +6,8 @@
 #include "db/sql/mysql/MySqlStatement.h"
 #include "db/sql/mysql/MySqlConnection.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::rt;
 using namespace db::sql;

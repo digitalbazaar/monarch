@@ -8,6 +8,8 @@
 #include "db/rt/DynamicObject.h"
 #include "db/validation/Validation.h"
 
+#include <cstdio>
+
 using namespace std;
 using namespace db::test;
 using namespace db::rt;

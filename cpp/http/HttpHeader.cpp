@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 
 using namespace std;
 using namespace db::io;
@@ -257,8 +258,8 @@ bool HttpHeader::parse(const string& str)
 
    bool startLine = hasStartLine();
    const char* start = str.c_str();
-   char* cr;
-   char* colon;
+   const char* cr;
+   const char* colon;
    while((cr = strchr(start, '\r')) != NULL)
    {
       // look for CRLF
