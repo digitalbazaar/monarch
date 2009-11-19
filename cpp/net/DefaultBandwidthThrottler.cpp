@@ -201,9 +201,11 @@ bool DefaultBandwidthThrottler::limitBandwidth()
    // while there aren't any available bytes, sleep for the available byte time
    while(rval && mAvailableBytes == 0)
    {
-      // unlock to sleep
+      uint64_t avt = getAvailableByteTime();
+
+      // unlock to sleep (sleep a maximum of 1 second at a time)
       mLock.unlock();
-      rval = Thread::sleep(getAvailableByteTime());
+      rval = Thread::sleep(avt > 1000 ? 1000 : avt);
       mLock.lock();
 
       // update the number of available bytes
