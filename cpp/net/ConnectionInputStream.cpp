@@ -239,6 +239,7 @@ int ConnectionInputStream::readCrlf(string& line)
                // arrive
                mPeekBuffer.clear(beforeCR);
                readSize = 2;
+               block = true;
             }
          }
       }
