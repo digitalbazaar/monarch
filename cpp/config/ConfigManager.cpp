@@ -945,10 +945,12 @@ struct _replaceKeywordsState_s
    ByteArrayOutputStream* baos;
 };
 
-static void _replaceKeywords(
+static bool _replaceKeywords(
    Config& config, DynamicObject& keywordMap,
    struct _replaceKeywordsState_s* state)
 {
+   bool rval = true;
+
    if(config.isNull())
    {
       // pass
@@ -965,10 +967,13 @@ static void _replaceKeywords(
             state->output->clear();
             // reset input stream and parsing state
             state->tis->setInputStream(state->bais);
-            state->tis->parse(state->baos);
-            state->output->putByte(0, 1, true);
-            // set new string
-            config = state->output->data();
+            rval = state->tis->parse(state->baos);
+            if(rval)
+            {
+               state->output->putByte(0, 1, true);
+               // set new string
+               config = state->output->data();
+            }
             break;
          }
          case Boolean:
@@ -982,48 +987,65 @@ static void _replaceKeywords(
          case Array:
          {
             ConfigIterator i = config.getIterator();
-            while(i->hasNext())
+            while(rval && i->hasNext())
             {
-               _replaceKeywords(i->next(), keywordMap, state);
+               rval = _replaceKeywords(i->next(), keywordMap, state);
             }
             break;
          }
       }
    }
+
+   return rval;
 }
 
-void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
+bool ConfigManager::replaceKeywords(
+   Config& config, DynamicObject& keywordMap, bool full)
 {
+   bool rval = true;
+
    if(!config.isNull())
    {
-      // only process includes and non-meta config info
-      const char* keys[] = {INCLUDE, MERGE, APPEND, REMOVE, NULL};
-      // only create state if needed
+      bool doReplacement = full;
       struct _replaceKeywordsState_s* state = NULL;
-      for(int i = 0; keys[i] != NULL; i++)
+      // only process includes and non-meta config info
+      static const char* keys[] = {INCLUDE, MERGE, APPEND, REMOVE, NULL};
+
+      if(!full)
       {
-         if(config->hasMember(keys[i]))
+         // only create state if needed
+         for(int i = 0; !doReplacement && keys[i] != NULL; i++)
          {
-            state = new struct _replaceKeywordsState_s;
-            state->bais = new ByteArrayInputStream(NULL, 0);
-            state->tis = new TemplateInputStream(state->bais, false);
-            state->output = new ByteBuffer(2048);
-            state->baos = new ByteArrayOutputStream(state->output, true);
-            // only create once
-            break;
+            doReplacement = config->hasMember(keys[i]);
          }
       }
-      // replace keywords
-      for(int i = 0; keys[i] != NULL; i++)
+      if(doReplacement)
       {
-         const char* key = keys[i];
-         if(config->hasMember(key))
+         // create state if needed
+         state = new struct _replaceKeywordsState_s;
+         state->bais = new ByteArrayInputStream(NULL, 0);
+         state->tis = new TemplateInputStream(state->bais, false);
+         state->output = new ByteBuffer(2048);
+         state->baos = new ByteArrayOutputStream(state->output, true);
+
+         if(full)
          {
-            _replaceKeywords(config[key], keywordMap, state);
+            rval = _replaceKeywords(config, keywordMap, state);
          }
-      }
-      if(state != NULL)
-      {
+         else
+         {
+            // replace just certain keywords
+            for(int i = 0; rval && keys[i] != NULL; i++)
+            {
+               const char* key = keys[i];
+               if(config->hasMember(key))
+               {
+                  rval = _replaceKeywords(config[key], keywordMap, state);
+               }
+            }
+         }
+
+         // clean up state
          delete state->baos;
          delete state->output;
          delete state->tis;
@@ -1031,6 +1053,8 @@ void ConfigManager::replaceKeywords(Config& config, DynamicObject& keywordMap)
          delete state;
       }
    }
+
+   return rval;
 }
 
 bool ConfigManager::diff(

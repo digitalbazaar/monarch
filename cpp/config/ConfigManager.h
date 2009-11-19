@@ -170,12 +170,17 @@ public:
 
    /**
     * Replaces keyword values with appropriate values.  See the class docs.
+    * The full flag controls replacement in the entire config or just in the
+    * common config keys (INCLUDE, MERGE, APPEND, REMOVE).
     *
     * @param config the Config to process.
     * @param keywordMap a map of strings to replacement values.
+    * @param full true to do entire config, false to limit keys (see above).
+    *
+    * @return true if successful, false if an exception occurred.
     */
-   static void replaceKeywords(
-      Config& config, db::rt::DynamicObject& keywordMap);
+   static bool replaceKeywords(
+      Config& config, db::rt::DynamicObject& keywordMap, bool full = false);
 
 protected:
    /**

@@ -417,6 +417,43 @@ void runConfigManagerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("replace keywords");
+   {
+      ConfigManager cm;
+      DynamicObject c;
+      bool success;
+
+      c[ConfigManager::ID] = "c";
+      c[ConfigManager::MERGE]["test"] = "{A}";
+      DynamicObject vars;
+      vars["A"] = "a";
+      success = ConfigManager::replaceKeywords(c, vars);
+      assertNoException();
+      assert(success);
+
+      DynamicObject expect;
+      expect[ConfigManager::ID] = "c";
+      expect[ConfigManager::MERGE]["test"] = "a";
+      assertDynoCmp(c, expect);
+   }
+   tr.passIfNoException();
+
+   tr.test("replace keywords (invalid keyword)");
+   {
+      ConfigManager cm;
+      DynamicObject c;
+      bool success;
+
+      c[ConfigManager::ID] = "c";
+      c[ConfigManager::MERGE]["test"] = "{UNKNOWN}";
+      DynamicObject vars;
+      vars["A"] = "a";
+      success = ConfigManager::replaceKeywords(c, vars);
+      assertException();
+      assert(!success);
+   }
+   tr.passIfException();
+
    tr.ungroup();
 }
 
