@@ -173,8 +173,10 @@ public:
     *
     * @param config the Config to process.
     * @param keywordMap a map of strings to replacement values.
+    *
+    * @return true if successful, false if an exception occurred.
     */
-   static void replaceKeywords(
+   static bool replaceKeywords(
       Config& config, db::rt::DynamicObject& keywordMap);
 
 protected:
