@@ -390,24 +390,39 @@ bool FileLogger::setFile(File& file, bool append)
 
    mLock.lock();
    {
-      close();
-      mFile = file;
-
-      if(file->exists())
+      if(file->isWritable())
       {
-         if(!append)
-         {
-            mCurrentFileSize = 0;
-            rval = mFile->remove();
-         }
-         else
-         {
-            mCurrentFileSize = file->getLength();
-         }
+         close();
+         mFile = file;
       }
       else
       {
-         mCurrentFileSize = 0;
+         ExceptionRef e = new Exception(
+            "Logging file not writable.",
+            "db.logging.InvalidFile");
+         e->getDetails()["path"] = file->getPath();
+         Exception::set(e);
+         rval = false;
+      }
+
+      if(rval)
+      {
+         if(file->exists())
+         {
+            if(!append)
+            {
+               mCurrentFileSize = 0;
+               rval = mFile->remove();
+            }
+            else
+            {
+               mCurrentFileSize = file->getLength();
+            }
+         }
+         else
+         {
+            mCurrentFileSize = 0;
+         }
       }
 
       if(rval)

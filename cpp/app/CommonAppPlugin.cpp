@@ -345,7 +345,7 @@ bool CommonAppPlugin::initializeLogging()
    // get logging config
    Config cfg = getApp()->getConfig()["app"]["logging"];
 
-   if(cfg["enabled"]->getBoolean())
+   if(rval && cfg["enabled"]->getBoolean())
    {
       // setup logging
       const char* logFile = cfg["log"]->getString();
@@ -360,48 +360,56 @@ bool CommonAppPlugin::initializeLogging()
          bool append = cfg["append"]->getBoolean();
          File f(logFile);
          FileLogger* fileLogger = new FileLogger();
-         fileLogger->setFile(f, append);
-         if(cfg["gzip"]->getBoolean())
+         rval = fileLogger->setFile(f, append);
+         if(rval)
          {
-            fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
+            if(cfg["gzip"]->getBoolean())
+            {
+               fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
+            }
+            fileLogger->setRotationFileSize(
+               cfg["rotationFileSize"]->getUInt64());
+            fileLogger->setMaxRotatedFiles(
+               cfg["maxRotatedFiles"]->getUInt32());
+            mLogger = fileLogger;
          }
-         fileLogger->setRotationFileSize(
-            cfg["rotationFileSize"]->getUInt64());
-         fileLogger->setMaxRotatedFiles(
-            cfg["maxRotatedFiles"]->getUInt32());
-         mLogger = fileLogger;
       }
-      // FIXME: add cfg option to pick categories to log
-      //Logger::addLogger(&mLogger, BM_..._CAT);
-      // FIXME: add cfg options for logging options
-      //logger.setDateFormat("%H:%M:%S");
-      //logger.setFlags(Logger::LogThread);
-      Logger::Level logLevel;
-      const char* levelStr = cfg["level"]->getString();
-      bool found = Logger::stringToLevel(levelStr, logLevel);
-      if(found)
-      {
-         mLogger->setLevel((Logger::Level)logLevel);
-      }
-      else
-      {
-         ExceptionRef e = new Exception(
-            "Invalid app.logging.level.", "bitmunk.app.ConfigError");
-         e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
-         Exception::set(e);
-         rval = false;
-      }
-      if(cfg["color"]->getBoolean())
-      {
-         mLogger->setFlags(Logger::LogColor);
-      }
-      if(cfg["location"]->getBoolean())
-      {
-         mLogger->setFlags(Logger::LogLocation);
-      }
-      Logger::addLogger(mLogger);
 
-      // NOTE: logging is now initialized.  use logging system after this point
+      if(rval)
+      {
+         // FIXME: add cfg option to pick categories to log
+         //Logger::addLogger(&mLogger, BM_..._CAT);
+         // FIXME: add cfg options for logging options
+         //logger.setDateFormat("%H:%M:%S");
+         //logger.setFlags(Logger::LogThread);
+         Logger::Level logLevel;
+         const char* levelStr = cfg["level"]->getString();
+         bool found = Logger::stringToLevel(levelStr, logLevel);
+         if(found)
+         {
+            mLogger->setLevel((Logger::Level)logLevel);
+         }
+         else
+         {
+            ExceptionRef e = new Exception(
+               "Invalid app.logging.level.", "bitmunk.app.ConfigError");
+            e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
+            Exception::set(e);
+            rval = false;
+         }
+         if(cfg["color"]->getBoolean())
+         {
+            mLogger->setFlags(Logger::LogColor);
+         }
+         if(cfg["location"]->getBoolean())
+         {
+            mLogger->setFlags(Logger::LogLocation);
+         }
+         Logger::addLogger(mLogger);
+
+         // NOTE: Logging is now initialized. Use standard logging system after
+         // NOTE: this point.
+      }
    }
 
    return rval;

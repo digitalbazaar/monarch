@@ -168,6 +168,15 @@ public:
     */
    static const char* TMP;
 
+   /**
+    * Replaces keyword values with appropriate values.  See the class docs.
+    *
+    * @param config the Config to process.
+    * @param keywordMap a map of strings to replacement values.
+    */
+   static void replaceKeywords(
+      Config& config, db::rt::DynamicObject& keywordMap);
+
 protected:
    /**
     * A map of acceptable versions or empty list to accept all versions.
@@ -322,6 +331,15 @@ public:
    virtual bool hasConfig(ConfigId id);
 
    /**
+    * Get ConfigIds in a group.
+    *
+    * @param id the Config's ID.
+    *
+    * @return DynamicObject Array with ids of configs in a group, if any.
+    */
+   virtual db::rt::DynamicObject getIdsInGroup(ConfigId groupId);
+
+   /**
     * Reproduces the merged config for the given config ID. This method is
     * automatically called when adding, removing, or setting a config, it
     * should not ordinarily need to be called manually.
@@ -411,15 +429,6 @@ protected:
     * @return the Config or NULL if the ID was invalid.
     */
    virtual Config getMergedConfig(ConfigId id, bool cache);
-
-   /**
-    * Replaces keyword values with appropriate values.  See the class docs.
-    *
-    * @param config the Config to process.
-    * @param keywordMap a map of strings to replacement values.
-    */
-   virtual void replaceKeywords(
-      Config& config, db::rt::DynamicObject& keywordMap);
 
    /**
     * Computes the differences from config1 to config2 and stores them in
