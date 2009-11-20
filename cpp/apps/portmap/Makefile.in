@@ -1,0 +1,12 @@
+# Makefile to compile the module in this directory
+
+EXECUTABLES = portmap
+
+DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbio dblogging dbcrypto dbnet dbhttp dbdata dbevent dbfiber dbsql dbsqlite3 dbmail dbconfig dbcompress dbvalidation dbapp dbupnp
+DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3
+DYNAMIC_WINDOWS_LIBRARIES = sqlite3
+
+EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/libexpat.dll -lws2_32
+
+# ----------- Standard Makefile
+include @DBCOREDIR@/setup/Makefile.base
