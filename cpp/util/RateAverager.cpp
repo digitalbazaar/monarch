@@ -39,7 +39,7 @@ void RateAverager::reset()
    }
    mLock.unlock();
 }
-
+#include <cstdio>
 void RateAverager::addItems(uint64_t count, uint64_t start)
 {
    /* Algorithm:
@@ -105,30 +105,30 @@ void RateAverager::addItems(uint64_t count, uint64_t start)
       // 4. get item rate
       double rate = ((double)count) / (now - start);
 
-      // 5.1. (Current) get time spent in current window
-      // limit start to beginning of current window
-      // (remember: "now" is always within the current window)
+      // 5. (Current) add proportional item count to current window
+      // (remember: "now" is always in the current window):
+
+      // if start falls before the current window start time, then we must
+      // only add the portion of our count to the current window that would
+      // occurred within its boundaries
       if(start < mCurrentWindow.getStartTime())
       {
-         start = mCurrentWindow.getStartTime();
+         // add item count for all time passed in the current window
+         mCurrentWindow.increaseItemCount(
+            (uint64_t)roundl(rate * mCurrentWindow.getTimePassed()));
+      }
+      else
+      {
+         // add the entire item count
+         mCurrentWindow.increaseItemCount(count);
       }
 
-      // 5.2 & 5.3 (Current) add proportional item count for current window
-      count = (uint64_t)roundl(rate * (now - start));
-      mCurrentWindow.increaseItemCount(count);
-
-      // 5.1 (Next) get time spent in next window
-      if(now >= mNextWindow.getStartTime())
+      // 5. (Next) add proportional item count to next window
+      if(now > mNextWindow.getStartTime())
       {
-         // limit start to beginning of next window
-         if(start < mNextWindow.getStartTime())
-         {
-            start = mNextWindow.getStartTime();
-         }
-
-         // 5.2 & 5.3 (Next) add proportional item count for next window
-         count = (uint64_t)roundl(rate * (now - start));
-         mNextWindow.increaseItemCount(count);
+         // add item count for all time passed in the next window
+         uint64_t passed = now - mNextWindow.getStartTime();
+         mCurrentWindow.increaseItemCount((uint64_t)roundl(rate * passed));
       }
    }
    mLock.unlock();
