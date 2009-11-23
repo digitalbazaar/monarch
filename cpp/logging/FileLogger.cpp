@@ -140,7 +140,6 @@ static bool findAvailablePath(
          snprintf(buf2, buflen2, "%s%s", buf, ext2);
          File f2(buf2);
          found = !f2->exists();
-         printf("buf2[%d]: %s\n", found, buf2);
       }
    }
 
