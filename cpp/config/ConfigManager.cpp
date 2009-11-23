@@ -1358,7 +1358,7 @@ bool ConfigManager::recursiveAddConfig(
 
       // do keyword replacement (custom and special)
       mLock.lockShared();
-      replaceKeywords(config, mKeywordMap);
+      rval = replaceKeywords(config, mKeywordMap);
       mLock.unlockShared();
 
       // remove special keywords

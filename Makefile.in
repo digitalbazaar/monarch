@@ -1,29 +1,34 @@
 # The top-level Makefile that is used to build 
 
-SUBDIRS := cpp/3rdparty \
-           cpp/rt \
-           cpp/util \
-           cpp/io \
-           cpp/compress \
-           cpp/logging \
-           cpp/modest \
-           cpp/fiber \
-           cpp/crypto \
-           cpp/event \
-           cpp/data \
-           cpp/net \
-           cpp/http \
-           cpp/config \
-           cpp/sphinx \
-           cpp/validation \
-           cpp/sql \
-           cpp/sqlite3 \
-           cpp/mail \
-           cpp/mysql \
-           cpp/upnp \
-           cpp/app \
-           cpp/test \
-           cpp/tests
+EXECUTABLE_SUBDIRS := \
+	cpp/apps/portmap \
+	cpp/tests
+
+SUBDIRS := \
+	cpp/3rdparty \
+	cpp/rt \
+	cpp/util \
+	cpp/io \
+	cpp/compress \
+	cpp/logging \
+	cpp/modest \
+	cpp/fiber \
+	cpp/crypto \
+	cpp/event \
+	cpp/data \
+	cpp/net \
+	cpp/http \
+	cpp/config \
+	cpp/sphinx \
+	cpp/validation \
+	cpp/sql \
+	cpp/sqlite3 \
+	cpp/mail \
+	cpp/mysql \
+	cpp/upnp \
+	cpp/app \
+	cpp/test \
+	$(EXECUTABLE_SUBDIRS)
 
 INSTALL_LIBRARIES := \
 	dist/lib/libdbapp.so \
@@ -64,7 +69,7 @@ MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 all: 
 	@$(foreach dir,$(SUBDIRS),IGNORE_DEPENDENCIES=true $(MAKE_DIR) build-headers &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-objects build-libraries &&) true
-	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-executables &&) true
+	@$(foreach dir,$(EXECUTABLE_SUBDIRS),$(MAKE_DIR) build-executables &&) true
 
 clean:
 	@rm -rf build

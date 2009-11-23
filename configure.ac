@@ -259,6 +259,7 @@ AC_CONFIG_FILES([
           cpp/3rdparty/Makefile
           Makefile
           cpp/app/Makefile
+          cpp/apps/portmap/Makefile
           cpp/compress/Makefile
           cpp/config/Makefile
           cpp/crypto/Makefile
