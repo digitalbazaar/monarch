@@ -15,6 +15,7 @@ RateAverager::RateAverager(uint64_t windowLength)
    reset();
 
    // set window lengths
+   mTotal.setLength(0);
    mCurrent.setLength(windowLength);
    mNext.setLength(windowLength);
 }
