@@ -5,7 +5,7 @@
 #define db_util_RateAverager_H
 
 #include "db/rt/ExclusiveLock.h"
-#include "db/util/TimeWindow.h"
+#include "db/util/RateWindow.h"
 
 namespace db
 {
@@ -19,29 +19,34 @@ namespace util
  * average rate with a reasonable degree of accuracy, it uses a sliding
  * time window.
  *
- * The total number of items that have passed through this RateAverager
- * during a window of time divided by the time passed in the window produces
- * the current average rate.
+ * A RateAverager uses 3 RateWindows.
  *
- * More specifically, this RateAverager uses 2 consecutive time windows for
- * storing item count increases. There is a "current window" and a
+ * One RateWindow is used to keep track of the total number of items that have
+ * passed through this RateAverager and the time during which they have passed.
+ * That RateWindow can always produce the total rate at which items have passed
+ * through this RateAverager.
+ *
+ * The other two RateWindows, together, produce a sliding window of time that
+ * measures the average current item rate. More specifically, these 2
+ * windows are arranged consecutively. There is a "current window" and a
  * "next window". The next window overlaps the current window by half of its
  * length. When a call is made to the RateAverager to increase the item count,
- * the item counts of the two windows are updated according to whether or not
- * the current time falls within their ranges.
+ * the item counts and item times of the two windows are updated according to
+ * whether or not the real time falls within their ranges. The "item time" is
+ * the amount of time it took to accumulate the items that are added to the
+ * RateAverager, which may be different from the amount of real time passed.
  *
  * The current window will move to the next window and a new next window
- * will be created as time progresses.
+ * will be created as real time progresses.
  *
- * To use a RateAverager, it must first be started. To update the number of
- * items that have passed through the RateAverager, call addItems() and
- * provide the number of items and the time at which the items you are
- * adding started accumulating. For instance, if a RateAverager is being
- * used to measure the number of bytes being read from some source, the
- * user of the RateAverager should record the absolute time, in milliseconds,
- * and then call the appropriate read method. Upon returning from the read,
- * the user should pass the number of bytes read (as "items") and the time the
- * read began to the RateAverager via addItems().
+ * To update the number of items that have passed through the RateAverager,
+ * call addItems() and provide the number of items and the time at which the
+ * items you are adding started accumulating. For instance, if a RateAverager
+ * is being used to measure the number of bytes being read from some source,
+ * the user of the RateAverager should record the absolute time, in
+ * milliseconds, and then call the appropriate read method. Upon returning from
+ * the read, the user should pass the number of bytes read (as "items") and the
+ * time the read began to the RateAverager via addItems().
  *
  * @author Dave Longley
  */
@@ -49,38 +54,19 @@ class RateAverager
 {
 protected:
    /**
-    * The total item count since the RateAverager started.
+    * The total rate window.
     */
-   uint64_t mItemCount;
+   RateWindow mTotal;
 
    /**
-    * The time (in milliseconds) that has passed since this RateAverager
-    * started.
+    * The current rate window.
     */
-   uint64_t mTimePassed;
+   RateWindow mCurrent;
 
    /**
-    * The earliest time that that was passed to addItems() so far. This is
-    * used to help ensure overlapping time segments are not double-counted.
+    * The next rate window.
     */
-   uint64_t mEarliestAddTime;
-
-   /**
-    * The last time that time (in milliseconds) that a rate was added to this
-    * window. This is used to help ensure overlapping time segments are not
-    * double-counted.
-    */
-   uint64_t mLastAddTime;
-
-   /**
-    * The current time window.
-    */
-   TimeWindow mCurrentWindow;
-
-   /**
-    * The next time window.
-    */
-   TimeWindow mNextWindow;
+   RateWindow mNext;
 
    /**
     * A lock for synchronizing this rate averager.
@@ -110,18 +96,15 @@ public:
    virtual void reset();
 
    /**
-    * Adds items to this RateAverager. This will affect the total item count
-    * and time passed and the item count and amount of time passed in the
-    * current window.
+    * Adds items to this RateAverager. This will affect both the total
+    * and current rate calculations.
     *
-    * The total item count will be increased by the number of items given and
-    * the total time passed will be increased by any interval of time between
-    * start and now that has not already been counted. This accounts for
-    * concurrent processes that may be adding items to the same RateAverager
-    * by ensuring that overlapping time periods are not double-counted.
+    * Care is taken to ensure that overlapping time segments will not
+    * be double-counted. This accounts for concurrent processes that may
+    * be adding items to the same RateAverager.
     *
     * Note: It is a programmer error to pass in a start time that is beyond
-    * now.
+    * the current system time.
     *
     * @param count the amount of items to increase the item count by.
     * @param start the time at which the items began accumulating.
@@ -136,7 +119,7 @@ public:
     * @return the amount of time (in milliseconds) that has passed while
     *         adding items to this RateAverager.
     */
-   virtual uint64_t getTimePassed();
+   virtual uint64_t getItemTime();
 
    /**
     * Gets the current rate in items per millisecond. The current rate is the
