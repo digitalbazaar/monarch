@@ -13,6 +13,7 @@
 #include "db/util/Date.h"
 #include "db/util/PathFormatter.h"
 #include "db/util/Random.h"
+#include "db/util/RateAverager.h"
 #include "db/util/StringTools.h"
 #include "db/util/StringTokenizer.h"
 #include "db/util/UniqueList.h"
@@ -783,6 +784,38 @@ void runPathFormatterTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+void runRateAveragerTest(TestRunner& tr)
+{
+   tr.test("RateAverager 10 items/sec");
+   {
+      RateAverager ra;
+      uint64_t start = System::getCurrentMilliseconds();
+      Thread::sleep(900);
+      ra.addItems(5, start);
+      Thread::sleep(100);
+      ra.addItems(5, start);
+      printf("cur=%1.4f i/s,tot=%1.4f i/s ... ",
+         ra.getItemsPerSecond(),
+         ra.getTotalItemsPerSecond());
+   }
+   tr.passIfNoException();
+
+   tr.test("RateAverager 10 items/sec again");
+   {
+      RateAverager ra;
+      uint64_t start = System::getCurrentMilliseconds();
+      ra.addItems(5, start);
+      Thread::sleep(900);
+      start = System::getCurrentMilliseconds();
+      Thread::sleep(100);
+      ra.addItems(5, start);
+      printf("cur=%1.4f i/s,tot=%1.4f i/s ... ",
+         ra.getItemsPerSecond(),
+         ra.getTotalItemsPerSecond());
+   }
+   tr.passIfNoException();
+}
+
 void runAnsiEscapeCodeTest(TestRunner& tr)
 {
    tr.group("ANSI Escape Codes");
@@ -926,6 +959,7 @@ public:
    {
       runAnsiEscapeCodeTest(tr);
       //runRandomTest(tr);
+      //runRateAveragerTest(tr);
       return 0;
    }
 };

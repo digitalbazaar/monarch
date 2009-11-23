@@ -25,310 +25,143 @@ RateAverager::~RateAverager()
 
 void RateAverager::reset()
 {
-   // not running
-   mRunning = false;
-
-   // reset start and stop times
-   setStartTime(0);
-   setStopTime(0);
-
-   // reset time passed
-   mTimePassed = 0;
-
-   // reset last time a rate was added
-   mLastAddTime = System::getCurrentMilliseconds();
-
-   // reset the windows
-   mCurrentWindow.reset();
-   mNextWindow.reset();
-
-   // reset total item count
-   mTotalItemCount = 0;
-}
-
-inline void RateAverager::setStartTime(uint64_t time)
-{
-   mStartTime = time;
-}
-
-inline void RateAverager::setStopTime(uint64_t time)
-{
-   mStopTime = time;
-}
-
-void RateAverager::setWindowStartTimes(uint64_t time)
-{
-   // set current window start time
-   mCurrentWindow.setStartTime(time);
-
-   // set next window start time
-   mNextWindow.setStartTime(time + getHalfWindowLength());
-}
-
-uint64_t RateAverager::getHalfWindowLength()
-{
-   return (uint64_t)roundl(getWindowLength() / 2.0);
-}
-
-void RateAverager::updateWindowLengths(uint64_t length)
-{
-   // set the current window length, adjusting items
-   mCurrentWindow.setLength(length, true);
-
-   // set the next window length, adjusting items
-   mNextWindow.setLength(length, true);
-
-   // update the next window start time
-   mNextWindow.setStartTime(
-      mCurrentWindow.getStartTime() + getHalfWindowLength());
-}
-
-void RateAverager::moveCurrentWindow()
-{
-   // set the current window to the next window
-   mCurrentWindow.setEqualTo(mNextWindow);
-
-   // reset the next window
-   mNextWindow.reset();
-
-   // set the next window start time
-   mNextWindow.setStartTime(
-      mCurrentWindow.getStartTime() + getHalfWindowLength());
-}
-
-void RateAverager::start(uint64_t time)
-{
    mLock.lock();
    {
-      if(!isRunning())
+      // reset vars
+      mItemCount = 0;
+      mTimePassed = 0;
+      mEarliestAddTime = 0;
+      mLastAddTime = 0;
+
+      // reset the windows
+      mCurrentWindow.reset();
+      mNextWindow.reset();
+   }
+   mLock.unlock();
+}
+
+void RateAverager::addItems(uint64_t count, uint64_t start)
+{
+   /* Algorithm:
+      1. Update the total item count.
+      2. Determine the amount of unique time to add to mTimePassed.
+      3. Update the windows based on the current time.
+      4. Calculate the item rate.
+      5. Determine how many items to add to each window:
+         1. Get how much time was spent in the window.
+         2. Multiply the time spent in the window by the rate.
+         3. Add the resulting items to the window.
+   */
+   mLock.lock();
+   {
+      // get the current time
+      uint64_t now = System::getCurrentMilliseconds();
+
+      // initialize earliest and last add times
+      if(mEarliestAddTime == 0)
       {
-         // reset
-         reset();
-
-         // now running
-         mRunning = true;
-
-         // set start time
-         setStartTime(time);
-
-         // set window start times
-         setWindowStartTimes(time);
+         mEarliestAddTime = mLastAddTime = start;
       }
-   }
-   mLock.unlock();
-}
 
-void RateAverager::stop()
-{
-   mLock.lock();
-   {
-      stop(getCurrentTime());
-   }
-   mLock.unlock();
-}
+      /* Note: In order to prevent double-counting overlapping time segments,
+         we keep track of the earliest start time passed to addItems() as
+         mEarliestAddTime and the last time addItems() was called as
+         mLastAddTime.
 
-void RateAverager::stop(uint64_t time)
-{
-   mLock.lock();
-   {
-      if(isRunning())
+         The start time passed to addItems() may have occurred before, at,
+         or after mEarliestAddTime. It may have also occurred before, at,
+         or after mLastAddTime. Here are the possible cases:
+
+         1. start < mEarliestAddTime:
+            interval = (mEarliestAddTime - start) + (now - mLastAddTime).
+         2. start >= mEarliestAddTime && start <= mLastAddTime:
+            interval = (now - mLastAddTime).
+         3. start >= mEarliestAddTime && start > mLastAddTime:
+            interval = (now - start).
+       */
+      uint64_t interval;
+      if(start < mEarliestAddTime)
       {
-         // no longer running
-         mRunning = false;
-
-         // set stop time
-         setStopTime(time);
+         interval = (mEarliestAddTime - start) + (now - mLastAddTime);
+         mEarliestAddTime = start;
       }
-   }
-   mLock.unlock();
-}
-
-void RateAverager::restart()
-{
-   mLock.lock();
-   {
-      restart(getCurrentTime(), 0);
-   }
-   mLock.unlock();
-}
-
-void RateAverager::restart(uint64_t stopTime, uint64_t startTime)
-{
-   mLock.lock();
-   {
-      stop(stopTime);
-      start(startTime);
-   }
-   mLock.unlock();
-}
-
-bool RateAverager::isRunning()
-{
-   bool rval = false;
-
-   mLock.lock();
-   {
-      rval = mRunning;
-   }
-   mLock.unlock();
-
-   return rval;
-}
-
-void RateAverager::addRate(uint64_t count)
-{
-   mLock.lock();
-   {
-      addRate(count, System::getCurrentMilliseconds() - mLastAddTime);
-   }
-   mLock.unlock();
-}
-
-void RateAverager::addRate(uint64_t count, uint64_t interval)
-{
-   mLock.lock();
-   {
-      // increase the time passed
-      mTimePassed += interval;
-
-      // get the remaining time in the current window
-      uint64_t remaining = mCurrentWindow.getRemainingTime();
-
-      // see if the interval can be added to the current window without
-      // overflowing
-      if(interval < remaining)
+      else if(start <= mLastAddTime)
       {
-         // get the overlap time between the current window and the next window
-         uint64_t overlap =
-            mCurrentWindow.getCurrentTime() + interval -
-            mNextWindow.getCurrentTime();
-
-         if(overlap > 0)
-         {
-            // get the portion of the item count in the overlap
-            double rate = TimeWindow::getItemsPerMillisecond(count, interval);
-            uint64_t portion = (uint64_t)roundl(rate * overlap);
-
-            // increase the next window count and time
-            mNextWindow.increaseItemCount(portion, overlap);
-         }
-
-         // add the count and interval to the current window
-         mCurrentWindow.increaseItemCount(count, interval);
+         interval = (now - mLastAddTime);
       }
       else
       {
-         // there is overflow, so we'll be moving windows
+         interval = (now - start);
+      }
 
-         // get the overflow of the interval that cannot be added to
-         // the current window
-         uint64_t overflow = interval - remaining;
+      // 1 & 2. update item count, time passed, and set new last add time
+      mItemCount += count;
+      mTimePassed += interval;
+      mLastAddTime = now;
 
-         // add the amount of time it takes to get the next window up to
-         // the end of the current window
-         overflow += mCurrentWindow.getEndTime() - mNextWindow.getCurrentTime();
+      // 3. update windows
+      updateWindows(now);
 
-         // get the remaining time in the next window
-         remaining = mNextWindow.getRemainingTime();
+      // 4. get item rate (do not divide by zero)
+      uint64_t passed = now - start;
+      double rate = (passed == 0) ? 0.0 : ((double)count) / passed;
 
-         // see if the overflow can be added to the next window
-         if(overflow < remaining)
+      // 5. (Current) add proportional item count to current window
+      // (remember: "now" is always in the current window so start can
+      // only be before the current window if it is less than "now"):
+      if(start < mCurrentWindow.getStartTime())
+      {
+         // start falls before current window, so only add the portion of
+         // the item count that occurred within the window
+         passed = mCurrentWindow.getTimePassed();
+         mCurrentWindow.increaseItemCount((uint64_t)roundl(rate * passed));
+      }
+      else
+      {
+         // items were all added within the window
+         mCurrentWindow.increaseItemCount(count);
+      }
+
+      // 5. (Next) add proportional item count to next window
+      // if now is within the next window
+      if(now > mNextWindow.getStartTime())
+      {
+         if(start < mNextWindow.getStartTime())
          {
-            // get the portion of the item count in the overflow
-            double rate = TimeWindow::getItemsPerMillisecond(count, interval);
-            uint64_t portion = (uint64_t)roundl(rate * overflow);
-
-            // increase the next window count and time
-            mNextWindow.increaseItemCount(portion, overflow);
-
-            // move the current window
-            moveCurrentWindow();
+            // start falls before next window, so only add the portion
+            // of the item count that occurred within the next window
+            passed = now - mNextWindow.getStartTime();
+            mNextWindow.increaseItemCount((uint64_t)roundl(rate * passed));
          }
          else
          {
-            // reset the windows
-            mCurrentWindow.reset();
-            mNextWindow.reset();
-
-            // set the current window start time to half of a window - 1
-            // before the the current time
-            uint64_t startTime = getCurrentTime() - getHalfWindowLength() - 1;
-            setWindowStartTimes(startTime);
-
-            // get the remainder of the interval that will be used
-            uint64_t remainder =
-               getCurrentTime() - mCurrentWindow.getStartTime();
-
-            // add the portion of the item count to the current window
-            double rate = TimeWindow::getItemsPerMillisecond(count, interval);
-            uint64_t portion = (uint64_t)roundl(rate * remainder);
-            mCurrentWindow.increaseItemCount(portion, remainder);
+            // items were added within the window
+            mNextWindow.increaseItemCount(count);
          }
       }
-
-      // add items to the total item count
-      mTotalItemCount += count;
-
-      // update the last rate add time
-      mLastAddTime = System::getCurrentMilliseconds();
    }
    mLock.unlock();
 }
 
-inline uint64_t RateAverager::getStartTime()
+uint64_t RateAverager::getTimePassed()
 {
-   return mStartTime;
+   return mTimePassed;
 }
 
-inline uint64_t RateAverager::getStopTime()
-{
-   return mStopTime;
-}
-
-inline uint64_t RateAverager::getCurrentTime()
-{
-   uint64_t rval = 0;
-
-   mLock.lock();
-   {
-      rval = getStartTime() + getTimePassed();
-   }
-   mLock.unlock();
-
-   return rval;
-}
-
-inline uint64_t RateAverager::getTimePassed()
-{
-   uint64_t rval = 0;
-
-   mLock.lock();
-   {
-      if(isRunning())
-      {
-         rval = mTimePassed;
-      }
-      else
-      {
-         rval = getStopTime() - getStartTime();
-      }
-   }
-   mLock.unlock();
-
-   return rval;
-}
-
-double RateAverager::getCurrentRate()
+double RateAverager::getItemsPerMillisecond()
 {
    double rval = 0.0;
 
    mLock.lock();
    {
-      // make sure that the current time is greater than 0
-      if(getCurrentTime() > 0)
+      // make sure that the time passed is greater than 0
+      if(getTimePassed() > 0)
       {
+         // update windows
+         updateWindows(System::getCurrentMilliseconds());
+
          // get the current window rate
-         rval = mCurrentWindow.getIncreaseRate();
+         rval = mCurrentWindow.getItemsPerMillisecond();
       }
    }
    mLock.unlock();
@@ -336,17 +169,57 @@ double RateAverager::getCurrentRate()
    return rval;
 }
 
-double RateAverager::getTotalRate()
+double RateAverager::getItemsPerSecond()
 {
    double rval = 0.0;
 
    mLock.lock();
    {
-      // make sure that the current time is greater than 0
-      if(getCurrentTime() > 0)
+      // make sure that the time passed is greater than 0
+      if(getTimePassed() > 0)
+      {
+         // update windows
+         updateWindows(System::getCurrentMilliseconds());
+
+         // get the current window rate
+         rval = mCurrentWindow.getItemsPerSecond();
+      }
+   }
+   mLock.unlock();
+
+   return rval;
+}
+
+double RateAverager::getTotalItemsPerMillisecond()
+{
+   double rval = 0.0;
+
+   mLock.lock();
+   {
+      // make sure that the time passed is greater than 0
+      if(getTimePassed() > 0)
+      {
+         // get the rate in items per millisecond
+         rval = TimeWindow::calcItemsPerMillisecond(
+            mItemCount, getTimePassed());
+      }
+   }
+   mLock.unlock();
+
+   return rval;
+}
+
+double RateAverager::getTotalItemsPerSecond()
+{
+   double rval = 0.0;
+
+   mLock.lock();
+   {
+      // make sure that the time passed is greater than 0
+      if(getTimePassed() > 0)
       {
          // get the rate in items per second
-         rval = TimeWindow::getItemsPerSecond(mTotalItemCount, getTimePassed());
+         rval = TimeWindow::calcItemsPerSecond(mItemCount, getTimePassed());
       }
    }
    mLock.unlock();
@@ -356,7 +229,7 @@ double RateAverager::getTotalRate()
 
 inline uint64_t RateAverager::getTotalItemCount()
 {
-   return mTotalItemCount;
+   return mItemCount;
 }
 
 void RateAverager::setWindowLength(uint64_t length)
@@ -388,7 +261,8 @@ uint64_t RateAverager::getEta(uint64_t count, bool current)
       if(count > 0)
       {
          // use either current or total rate
-         double rate = (current ? getCurrentRate() : getTotalRate());
+         double rate = current ?
+            getItemsPerSecond() : getTotalItemsPerSecond();
 
          // divide the remaining count by the rate
          rval = (uint64_t)roundl(count / rate);
@@ -397,4 +271,89 @@ uint64_t RateAverager::getEta(uint64_t count, bool current)
    mLock.unlock();
 
    return rval;
+}
+
+void RateAverager::setWindowStartTimes(uint64_t time)
+{
+   // set window start times (next overlaps with current by half)
+   mCurrentWindow.setStartTime(time);
+   mNextWindow.setStartTime(time + getHalfWindowLength());
+}
+
+void RateAverager::updateWindows(uint64_t now)
+{
+   /* Algorithm:
+      1. If now > end of next window, we need two new windows.
+      2. If now > end of current window, we need to move the windows.
+      3. If now < end of current window, we need to add time passed.
+
+      Note: Do not bother setting time passed on next window, only set it
+      on the current window.
+    */
+   if(now > mNextWindow.getEndTime())
+   {
+      // reset the windows
+      mCurrentWindow.reset();
+      mNextWindow.reset();
+
+      // always start at least 1 millisecond into the current window
+      setWindowStartTimes(now - 1);
+      mCurrentWindow.setTimePassed(1);
+   }
+   else if(now > mCurrentWindow.getEndTime())
+   {
+      // save how far we've gone passed the end of the current window
+      // (remember: next window starts halfway into current window)
+      uint64_t hwl = getHalfWindowLength();
+      uint64_t passed = now - mCurrentWindow.getEndTime() + hwl;
+
+      // set the current window to the next window and set time passed
+      mCurrentWindow.setEqualTo(mNextWindow);
+      mCurrentWindow.setTimePassed(passed);
+
+      // reset the next window and set its new start time
+      mNextWindow.reset();
+      mNextWindow.setStartTime(mCurrentWindow.getStartTime() + hwl);
+
+      // if we're into the next window already, then we must add items
+      // proportionally to it
+      if(mCurrentWindow.getCurrentTime() > mNextWindow.getStartTime())
+      {
+         passed = mCurrentWindow.getCurrentTime() - mNextWindow.getStartTime();
+         uint64_t count = mCurrentWindow.getItemsPerMillisecond() * passed;
+         mNextWindow.increaseItemCount(count);
+      }
+   }
+   // advance the time in the current window
+   else if(now > mCurrentWindow.getStartTime())
+   {
+      mCurrentWindow.setTimePassed(now - mCurrentWindow.getStartTime());
+   }
+}
+
+uint64_t RateAverager::getHalfWindowLength()
+{
+   return (uint64_t)roundl(getWindowLength() / 2.0);
+}
+
+void RateAverager::updateWindowLengths(uint64_t length)
+{
+   // set current window length
+   mCurrentWindow.setLength(length, true);
+
+   // set new window length and reset it
+   mNextWindow.setLength(length, false);
+   mNextWindow.reset();
+   mNextWindow.setStartTime(
+      mCurrentWindow.getStartTime() + getHalfWindowLength());
+
+   // if we're in the next window, add items from the current window
+   // proportionally
+   if(mCurrentWindow.getCurrentTime() > mNextWindow.getStartTime())
+   {
+      uint64_t passed =
+         mCurrentWindow.getCurrentTime() - mNextWindow.getStartTime();
+      uint64_t count = mCurrentWindow.getItemsPerMillisecond() * passed;
+      mNextWindow.increaseItemCount(count);
+   }
 }
