@@ -4,7 +4,7 @@
 #ifndef db_util_TimeWindow_H
 #define db_util_TimeWindow_H
 
-#include "db/rt/ExclusiveLock.h"
+#include <inttypes.h>
 
 namespace db
 {
@@ -16,7 +16,12 @@ namespace util
  * period of time. It can provide the rate at which the number of items
  * increased over that period of time.
  *
- * The time used in this window can be absolute or relative.
+ * The time used in this window is measured in millisecond units, but the
+ * start time and amount of time passed are relative to whatever system
+ * the user employs.
+ *
+ * This class does not provide any internal locking or thread synchronization,
+ * this must be performed appropriately by the user of this class.
  *
  * @author Dave Longley
  */
@@ -43,21 +48,6 @@ protected:
     */
    uint64_t mTimePassed;
 
-   /**
-    * The last time that time (in milliseconds) that time was added to this
-    * window. This is used to help convenience methods that can add the amount
-    * of time (in milliseconds) since the last addition of time to this
-    * window.
-    *
-    * Uses absolute time only.
-    */
-   uint64_t mLastAddTime;
-
-   /**
-    * A lock for synchronizing the time window.
-    */
-   db::rt::ExclusiveLock mLock;
-
 public:
    /**
     * Creates a new empty TimeWindow with the given maximum length for
@@ -79,7 +69,7 @@ public:
     * (a change in the start time) or at the end of the window (a change
     * in window length).
     *
-    * @param timeChange the change in window time.
+    * @param timeChange the change in window time (milliseconds).
     */
    virtual void adjustItemCount(uint64_t timeChange);
 
@@ -108,7 +98,7 @@ public:
     *
     * @return the current rate in items per second.
     */
-   virtual double getIncreaseRateInItemsPerMillisecond();
+   virtual double getItemsPerMillisecond();
 
    /**
     * Gets the current rate at which the item count is increasing in
@@ -117,7 +107,7 @@ public:
     *
     * @return the current rate in items per second.
     */
-   virtual double getIncreaseRate();
+   virtual double getItemsPerSecond();
 
    /**
     * Sets this window length in milliseconds. A value of 0 indicates
@@ -245,12 +235,11 @@ public:
    virtual void increaseTimePassed(uint64_t time);
 
    /**
-    * Adds the amount of time (in milliseconds) since the last time
-    * that time was added to this window to this window. If time was never
-    * added to this window, then the time since the last time this
-    * window was reset will be added to this window.
+    * Sets the time (in milliseconds) passed in this window.
+    *
+    * @param time the amount of time (in milliseconds) pased in this window.
     */
-   virtual void increaseTimePassedWithCurrentTime();
+   virtual void setTimePassed(uint64_t time);
 
    /**
     * Gets the item count for this window.
@@ -277,7 +266,7 @@ public:
     *
     * @return the rate in items per second.
     */
-   static double getItemsPerMillisecond(double items, double interval);
+   static double calcItemsPerMillisecond(double items, double interval);
 
    /**
     * Gets the rate in items per second given items and a time interval
@@ -289,7 +278,7 @@ public:
     *
     * @return the rate in items per second.
     */
-   static double getItemsPerSecond(double items, double interval);
+   static double calcItemsPerSecond(double items, double interval);
 };
 
 } // end namespace util
