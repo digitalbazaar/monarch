@@ -957,9 +957,9 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      //runAnsiEscapeCodeTest(tr);
+      runAnsiEscapeCodeTest(tr);
       //runRandomTest(tr);
-      runRateAveragerTest(tr);
+      //runRateAveragerTest(tr);
       return 0;
    }
 };
