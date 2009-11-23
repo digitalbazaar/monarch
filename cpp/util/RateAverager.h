@@ -81,6 +81,11 @@ public:
     * be over a long period of time, the shorter the window length the more
     * accurate an average rate will be over a shorter period of time.
     *
+    * Also, the length of the window acts like a snapshot of the current
+    * rate that will last as long as the window. The actual rate will only
+    * be affected by addItems() calls -- that is, it will only go to zero
+    * after a full window length has expired with no calls to addItems().
+    *
     * @param windowLength the length of the window to use in milliseconds.
     */
    RateAverager(uint64_t windowLength = 1000);
