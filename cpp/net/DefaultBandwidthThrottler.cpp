@@ -65,6 +65,17 @@ bool DefaultBandwidthThrottler::requestBytes(int count, int& permitted)
    return rval;
 }
 
+void DefaultBandwidthThrottler::addAvailableBytes(int bytes)
+{
+   mLock.lock();
+   {
+      // replace bytes for next call
+      mBytesGranted -= bytes;
+      mAvailableBytes += bytes;
+   }
+   mLock.unlock();
+}
+
 int DefaultBandwidthThrottler::getAvailableBytes()
 {
    int rval = 0;

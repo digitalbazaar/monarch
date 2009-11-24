@@ -61,6 +61,19 @@ bool BandwidthThrottlerChain::requestBytes(int count, int& permitted)
    return rval;
 }
 
+void BandwidthThrottlerChain::addAvailableBytes(int bytes)
+{
+   if(!mChain.empty())
+   {
+      // add bytes back to each throttler in the chain, starting in reverse
+      for(ThrottlerChain::reverse_iterator i = mChain.rbegin();
+          i != mChain.rend(); i++)
+      {
+         (*i)->addAvailableBytes(bytes);
+      }
+   }
+}
+
 int BandwidthThrottlerChain::getAvailableBytes()
 {
    int rval = Math::MAX_INT_VALUE;

@@ -28,7 +28,7 @@ ConnectionInputStream::~ConnectionInputStream()
 {
 }
 
-inline int ConnectionInputStream::read(char* b, int length)
+int ConnectionInputStream::read(char* b, int length)
 {
    int rval = 0;
 
@@ -46,6 +46,12 @@ inline int ConnectionInputStream::read(char* b, int length)
       if(is != NULL)
       {
          rval = is->read(b, length);
+
+         // add unused permitted bytes back to bandwidth throttler
+         if(rval != -1 && rval < length && bt != NULL)
+         {
+            bt->addAvailableBytes(length - rval);
+         }
       }
       else
       {

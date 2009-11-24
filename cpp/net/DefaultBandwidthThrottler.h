@@ -85,6 +85,15 @@ public:
    virtual bool requestBytes(int count, int& permitted);
 
    /**
+    * Adds available bytes. This method should be called when not all of the
+    * permitted bytes could be obtained and they should be made available
+    * again.
+    *
+    * @param bytes the number of bytes that should be made available.
+    */
+   virtual void addAvailableBytes(int bytes);
+
+   /**
     * Gets the number of bytes that are currently available.
     *
     * @return the number of bytes that are currently available.
