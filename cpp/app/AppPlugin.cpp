@@ -84,6 +84,16 @@ bool AppPlugin::didParseCommandLine()
    return true;
 }
 
+bool AppPlugin::willLoadConfigs()
+{
+   return true;
+}
+
+bool AppPlugin::didLoadConfigs()
+{
+   return true;
+}
+
 bool AppPlugin::initializeLogging()
 {
    return true;

@@ -90,6 +90,16 @@ public:
    /**
     * {@inheritDoc}
     */
+   virtual bool willLoadConfigs();
+
+   /**
+    * {@inheritDoc}
+    */
+   virtual bool didLoadConfigs();
+
+   /**
+    * {@inheritDoc}
+    */
    virtual bool initializeLogging();
 
    /**

@@ -384,20 +384,39 @@ bool CommonAppPlugin::initializeLogging()
       else
       {
          bool append = cfg["append"]->getBoolean();
-         File f(logFile);
-         FileLogger* fileLogger = new FileLogger();
-         rval = fileLogger->setFile(f, append);
+
+         // attempt to expand "~" (in case not handled natively)
+         string expandedLogFile;
+         if(!File::isPathAbsolute(logFile))
+         {
+            rval = File::expandUser(logFile, expandedLogFile);
+         }
+         else
+         {
+            expandedLogFile.assign(logFile);
+         }
+
          if(rval)
          {
-            if(cfg["gzip"]->getBoolean())
+            File f(expandedLogFile.c_str());
+            FileLogger* fileLogger = new FileLogger();
+            rval = fileLogger->setFile(f, append);
+            if(rval)
             {
-               fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
+               if(cfg["gzip"]->getBoolean())
+               {
+                  fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
+               }
+               fileLogger->setRotationFileSize(
+                  cfg["rotationFileSize"]->getUInt64());
+               fileLogger->setMaxRotatedFiles(
+                  cfg["maxRotatedFiles"]->getUInt32());
+               mLogger = fileLogger;
             }
-            fileLogger->setRotationFileSize(
-               cfg["rotationFileSize"]->getUInt64());
-            fileLogger->setMaxRotatedFiles(
-               cfg["maxRotatedFiles"]->getUInt32());
-            mLogger = fileLogger;
+            else
+            {
+               delete fileLogger;
+            }
          }
       }
 

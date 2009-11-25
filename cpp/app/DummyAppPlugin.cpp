@@ -61,6 +61,18 @@ DynamicObject DummyAppPlugin::getCommandLineSpecs()
    return rval;
 }
 
+bool DummyAppPlugin::willLoadConfigs()
+{
+   bool rval = AppPlugin::willLoadConfigs();
+   return rval;
+}
+
+bool DummyAppPlugin::didLoadConfigs()
+{
+   bool rval = AppPlugin::didLoadConfigs();
+   return rval;
+}
+
 bool DummyAppPlugin::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = AppPlugin::willParseCommandLine(args);
