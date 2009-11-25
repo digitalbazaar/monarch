@@ -622,13 +622,23 @@ static bool processOption(
          // path is first argument
          const char* path = **argsi;
 
-         // must have config for set
-         if(optSpec["set"]->hasMember("config"))
+         // set a path in a config or in a root object
+         if(optSpec["set"]->hasMember("config") ||
+            optSpec["set"]->hasMember("root"))
          {
             // re-use "arg" processing to set value
             DynamicObject subSpec;
-            // set config and path to use
-            subSpec["arg"]["config"] = optSpec["set"]["config"];
+            if(optSpec["set"]->hasMember("config"))
+            {
+               // set config to use
+               subSpec["arg"]["config"] = optSpec["set"]["config"];
+            }
+            else
+            {
+               // set root object to use
+               subSpec["arg"]["root"] = optSpec["set"]["root"];
+            }
+            // set path to use
             subSpec["arg"]["path"] = path;
             // FIXME: should copy all important fields
             if(optSpec->hasMember("isJsonValue"))
@@ -641,7 +651,7 @@ static bool processOption(
          {
             ExceptionRef e = new Exception(
                "Invalid command line spec. "
-               "The option does not specify a configuration to set.",
+               "The option does not specify a configuration or root to set.",
                "db.app.CommandLineError");
             e->getDetails()["option"] = opt;
             e->getDetails()["spec"] = optSpec;
