@@ -277,8 +277,13 @@ HttpConnection* HttpClient::createConnection(
    Socket* s = new TcpSocket();
    if(s->connect(address, timeout))
    {
-      // do SSL if appropriate
-      if(context != NULL)
+      // do non-SSL
+      if(context == NULL)
+      {
+         rval = new HttpConnection(new Connection(s, true), true);
+      }
+      // do SSL
+      else
       {
          // create ssl socket, reuse passed session
          SslSocket* ss;
@@ -313,13 +318,21 @@ HttpConnection* HttpClient::createConnection(
          }
 
          // start ssl session
-         ss->performHandshake();
+         if(ss->performHandshake())
+         {
+            rval = new HttpConnection(new Connection(s, true), true);
+         }
       }
-
-      rval = new HttpConnection(new Connection(s, true), true);
    }
-   else
+
+   if(rval == NULL)
    {
+      ExceptionRef e = new Exception(
+         "Could not establish HTTP connection.",
+         "db.http.ConnectError");
+      e->getDetails()["address"] = address->toString(false).c_str();
+      Exception::push(e);
+
       // close and clean up socket
       s->close();
       delete s;
