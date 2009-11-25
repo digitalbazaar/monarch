@@ -71,21 +71,23 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
    // hard-coded empty root
    if(rval)
    {
-      Config& config = meta["configs"]["db.app.root"];
+      const char* id = "db.app.root";
+      Config& config = meta["configs"][id];
 
       // no parent
       config[ConfigManager::GROUP] = meta["groups"]["root"]->getString();
-      config[ConfigManager::ID] = "db.app.root";
+      config[ConfigManager::ID] = id;
       config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
    }
 
    // hard-coded application boot-up defaults
    if(rval)
    {
-      Config& config = meta["configs"]["db.app.boot"];
+      const char* id = "db.app.boot";
+      Config& config = meta["configs"][id];
 
       config[ConfigManager::GROUP] = meta["groups"]["boot"]->getString();
-      config[ConfigManager::ID] = "db.app.boot";
+      config[ConfigManager::ID] = id;
       config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
 
       Config& merge = config[ConfigManager::MERGE];
@@ -104,6 +106,23 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
       merge["app"]["verbose"]["level"] = (uint64_t)0;
    }
 
+   // command line option config
+   if(rval)
+   {
+      const char* id = "db.app.commandLine";
+      Config& config = meta["options"][id];
+
+      config[ConfigManager::GROUP] =
+         meta["groups"]["command line"]->getString();
+      config[ConfigManager::ID] = id;
+      config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
+
+      config[ConfigManager::TMP]->setType(Map);
+      // must set since cmd line does read-modify-write directly on this config
+      Config& merge = config[ConfigManager::MERGE];
+      merge["app"]["verbose"]["level"] = (uint64_t)0;
+   }
+
    if(rval)
    {
       // defaults
@@ -113,8 +132,8 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
       App::makeMetaConfig(
          meta, "db.app.afterDefaults.empty", "after defaults");
 
-      // command line (using this id later, no need to add empty config)
-      App::makeMetaConfig(meta, "db.app.commandLine", "command line");
+      // command line
+      App::makeMetaConfig(meta, "db.app.commandLine.empty", "command line");
 
       // main
       App::makeMetaConfig(meta, "db.app.main.empty", "main");
@@ -165,101 +184,105 @@ DynamicObject CommonAppPlugin::getCommandLineSpecs()
 "\n";
 
    DynamicObject opt;
-   const char* clid = "db.app.commandLine";
+   Config tempOptions = getApp()->getMetaConfig()
+      ["options"]["db.app.commandLine"][ConfigManager::TMP];
+   Config options = getApp()->getMetaConfig()
+      ["options"]["db.app.commandLine"][ConfigManager::MERGE];
 
-   Config clConfig = getApp()->getCommandLineConfig();
    opt = spec["options"]->append();
    opt["short"] = "-h";
    opt["long"] = "--help";
-   opt["setTrue"]["target"] = clConfig["options"]["printHelp"];
+   opt["setTrue"]["root"] = tempOptions;
+   opt["setTrue"]["path"] = "printHelp";
 
    opt = spec["options"]->append();
    opt["short"] = "-V";
    opt["long"] = "--version";
-   opt["setTrue"]["target"] = clConfig["options"]["printVersion"];
+   opt["setTrue"]["root"] = tempOptions;
+   opt["setTrue"]["path"] = "printVersion";
 
    opt = spec["options"]->append();
    opt["short"] = "-v";
    opt["long"] = "--verbose";
-   opt["inc"]["config"] = clid;
+   opt["inc"]["root"] = options;
    opt["inc"]["path"] = "app.verbose.level";
 
    opt = spec["options"]->append();
    opt["long"] = "--no-log";
-   opt["setFalse"]["config"] = clid;
+   opt["setFalse"]["root"] = options;
    opt["setFalse"]["path"] = "app.logging.enabled";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-level";
-   opt["arg"]["config"] = clid;
+   opt["arg"]["root"] = options;
    opt["arg"]["path"] = "app.logging.level";
    opt["argError"] = "No log level specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--log";
-   opt["arg"]["config"] = clid;
+   opt["arg"]["root"] = options;
    opt["arg"]["path"] = "app.logging.log";
    opt["argError"] = "No log file specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
-   opt["setFalse"]["config"] = clid;
+   opt["setFalse"]["root"] = options;
    opt["setFalse"]["path"] = "app.logging.append";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-rotation-size";
-   opt["arg"]["config"] = clid;
+   opt["arg"]["root"] = options;
    opt["arg"]["path"] = "app.logging.rotationFileSize";
    opt["argError"] = "No rotation size specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-max-rotated";
-   opt["arg"]["config"] = clid;
+   opt["arg"]["root"] = options;
    opt["arg"]["path"] = "app.logging.maxRotatedFiles";
    opt["argError"] = "Max rotated files not specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-gzip";
-   opt["setTrue"]["config"] = clid;
+   opt["setTrue"]["root"] = options;
    opt["setTrue"]["path"] = "app.logging.gzip";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-no-gzip";
-   opt["setFalse"]["config"] = clid;
+   opt["setFalse"]["root"] = options;
    opt["setFalse"]["path"] = "app.logging.gzip";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-location";
-   opt["setTrue"]["config"] = clid;
+   opt["setTrue"]["root"] = options;
    opt["setTrue"]["path"] = "app.logging.location";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-color";
-   opt["setTrue"]["config"] = clid;
+   opt["setTrue"]["root"] = options;
    opt["setTrue"]["path"] = "app.logging.color";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-no-color";
-   opt["setFalse"]["config"] = clid;
+   opt["setFalse"]["root"] = options;
    opt["setFalse"]["path"] = "app.logging.color";
 
    opt = spec["options"]->append();
    opt["long"] = "--option";
-   opt["set"]["config"] = clid;
+   opt["set"]["root"] = options;
 
    opt = spec["options"]->append();
    opt["long"] = "--json-option";
-   opt["set"]["config"] = clid;
+   opt["set"]["root"] = options;
    opt["isJsonValue"] = true;
 
    opt = spec["options"]->append();
    opt["long"] = "--config-debug";
-   opt["setTrue"]["config"] = clid;
+   opt["setTrue"]["root"] = options;
    opt["setTrue"]["path"] = "app.config.debug";
 
    opt = spec["options"]->append();
    opt["long"] = "--config-dump";
-   opt["setTrue"]["config"] = clid;
+   opt["setTrue"]["root"] = options;
    opt["setTrue"]["path"] = "app.config.dump";
 
    DynamicObject specs = AppPlugin::getCommandLineSpecs();
@@ -271,11 +294,12 @@ bool CommonAppPlugin::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = AppPlugin::willParseCommandLine(args);
 
-   Config clConfig = getApp()->getCommandLineConfig();
+   Config tempOptions = getApp()->getMetaConfig()
+      ["options"]["db.app.commandLine"][ConfigManager::TMP];
 
    // temporary flags for command line processing
-   clConfig["options"]["printHelp"] = false;
-   clConfig["options"]["printVersion"] = false;
+   tempOptions["printHelp"] = false;
+   tempOptions["printVersion"] = false;
 
    return rval;
 }
@@ -284,13 +308,15 @@ bool CommonAppPlugin::didParseCommandLine()
 {
    bool rval = AppPlugin::didParseCommandLine();
 
-   Config clConfig = getApp()->getCommandLineConfig();
+   Config tempOptions = getApp()->getMetaConfig()
+      ["options"]["db.app.commandLine"][ConfigManager::TMP];
 
    // process help and version flags first
-   if(clConfig["options"]["printHelp"]->getBoolean())
+   if(tempOptions["printHelp"]->getBoolean())
    {
       printf("Usage: %s [options]\n", getApp()->getProgramName());
-      DynamicObjectIterator si = clConfig["specs"].getIterator();
+      DynamicObjectIterator si =
+         getApp()->getMetaConfig()["specs"].getIterator();
       while(si->hasNext())
       {
          DynamicObject& spec = si->next();
@@ -302,7 +328,7 @@ bool CommonAppPlugin::didParseCommandLine()
       // FIXME: change to known exit exception?
       exit(EXIT_SUCCESS);
    }
-   else if(clConfig["options"]["printVersion"]->getBoolean())
+   else if(tempOptions["printVersion"]->getBoolean())
    {
       // TODO: allow other version info (modules, etc) via delegate?
       const char* version = getApp()->getVersion();
@@ -332,8 +358,8 @@ bool CommonAppPlugin::didParseCommandLine()
    }
 
    // done with temporary command line config options
-   clConfig["options"]->removeMember("printHelp");
-   clConfig["options"]->removeMember("printVersion");
+   tempOptions->removeMember("printHelp");
+   tempOptions->removeMember("printVersion");
 
    return rval;
 }
@@ -392,7 +418,7 @@ bool CommonAppPlugin::initializeLogging()
          else
          {
             ExceptionRef e = new Exception(
-               "Invalid app.logging.level.", "bitmunk.app.ConfigError");
+               "Invalid app.logging.level.", "db.app.ConfigError");
             e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
             Exception::set(e);
             rval = false;

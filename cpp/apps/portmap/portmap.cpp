@@ -31,8 +31,8 @@ protected:
 public:
    PortMapApp()
    {
-      mInfo["id"] = "bitmunk.apps.PortMap";
-      mInfo["dependencies"]->append() = "bitmunk.app.App";
+      mInfo["id"] = "db.apps.PortMap";
+      mInfo["dependencies"]->append() = "db.app.App";
 
       // set defaults
       mOptions["command"] = "";

@@ -54,8 +54,10 @@ App::App() :
    setProgramName("(unknown)");
    setName("(unknown)");
 
-   mCLConfig->setType(Map);
-   mCLConfig["specs"]->setType(Array);
+   // command line option specs
+   mMetaConfig["specs"]->setType(Array);
+   // command line option storage
+   mMetaConfig["options"]->setType(Map);
 
    mMetaConfig["groups"]->setType(Map);
    mMetaConfig["parents"]->setType(Map);
@@ -237,11 +239,6 @@ int App::getExitStatus()
    return mExitStatus;
 }
 
-Config App::getCommandLineConfig()
-{
-   return mCLConfig;
-}
-
 bool App::initConfigManager()
 {
    // default implementation
@@ -339,11 +336,17 @@ static bool _orderIds(
    return rval;
 }
 
-bool App::loadConfigs()
+/**
+ * Sorts the configs in the meta config based on parent relationships and
+ * loads them in the proper order.
+ *
+ * @return true on success, false on failure and exception set
+ */
+static bool _loadConfigs(App* app)
 {
    bool rval = true;
 
-   Config meta = getMetaConfig();
+   Config meta = app->getMetaConfig();
 
    // ids to load in order
    DynamicObject ids;
@@ -374,9 +377,27 @@ bool App::loadConfigs()
       while(rval && i->hasNext())
       {
          DynamicObject& configId = i->next();
-         rval = getConfigManager()->addConfig(
+         rval = app->getConfigManager()->addConfig(
             meta["configs"][configId->getString()]);
       }
+   }
+
+   return rval;
+}
+
+/**
+ * Loads command line option configs from the meta config.
+ *
+ * @return true on success, false on failure and exception set
+ */
+static bool _loadOptionConfigs(App* app)
+{
+   bool rval = true;
+
+   ConfigIterator i = app->getMetaConfig()["options"].getIterator();
+   while(rval && i->hasNext())
+   {
+      rval = app->getConfigManager()->addConfig(i->next());
    }
 
    return rval;
@@ -866,7 +887,7 @@ bool App::parseCommandLine(vector<const char*>* args)
          do
          {
             const char* arg = *i;
-            DynamicObjectIterator si = mCLConfig["specs"].getIterator();
+            DynamicObjectIterator si = mMetaConfig["specs"].getIterator();
             while(rval && si->hasNext())
             {
                DynamicObject& spec = si->next();
@@ -911,7 +932,7 @@ bool App::parseCommandLine(vector<const char*>* args)
 
             // process arg for each spec
             bool found = false;
-            DynamicObjectIterator si = mCLConfig["specs"].getIterator();
+            DynamicObjectIterator si = mMetaConfig["specs"].getIterator();
             while(rval && si->hasNext())
             {
                DynamicObject& spec = si->next();
@@ -1044,7 +1065,7 @@ int App::main(
       mPlugins->willInitMetaConfig(meta) &&
       mPlugins->initMetaConfig(meta) &&
       mPlugins->didInitMetaConfig(meta) &&
-      loadConfigs();
+      _loadConfigs(this);
 
    // add plugin specs to command line config
    if(success)
@@ -1055,7 +1076,7 @@ int App::main(
          DynamicObjectIterator i = pluginSpecs.getIterator();
          while(i->hasNext())
          {
-            mCLConfig["specs"]->append(i->next());
+            mMetaConfig["specs"]->append(i->next());
          }
       }
       else
@@ -1071,7 +1092,8 @@ int App::main(
    success = success &&
       mPlugins->willParseCommandLine(&mCommandLineArgs) &&
       parseCommandLine(&mCommandLineArgs) &&
-      mPlugins->didParseCommandLine();
+      mPlugins->didParseCommandLine() &&
+      _loadOptionConfigs(this);
 
 #ifdef WIN32
    if(success)

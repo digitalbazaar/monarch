@@ -70,11 +70,6 @@ protected:
    std::vector<const char*> mCommandLineArgs;
 
    /**
-    * Temporary command line options and specs storage.
-    */
-   db::config::Config mCLConfig;
-
-   /**
     * Meta config. See getMetaConfig() for format.
     */
    db::config::Config mMetaConfig;
@@ -209,16 +204,6 @@ public:
    virtual int getExitStatus();
 
    /**
-    * Get the command line configuration.
-    *
-    * AppPlugins should add command line specs to the "specs" array of this
-    * config.
-    *
-    * @return the main config for this app.
-    */
-   virtual db::config::Config getCommandLineConfig();
-
-   /**
     * Set the ConfigManager.
     *
     * @param configManager the ConfigManager for this app.
@@ -244,10 +229,22 @@ public:
    /**
     * Gets the meta configuration object.
     *
-    * This mutable object is used to setup and load a hierarchy of configs. The
-    * format and default object is as follows:
+    * This mutable object is used for command line options and to setup and
+    * load a hierarchy of configs. The format and default object is as follows:
     *
     * {
+    *    # array of command line option specs
+    *    # see AppPlugin::getCommandLineSpecs()
+    *    "specs": [
+    *       <spec>,
+    *       ...
+    *    ],
+    *    # command line option configs indexed by id
+    *    "options": {
+    *       "<id>": <config>,
+    *       ...,
+    *    }
+    *
     *    # map of well-known ids that can be customized
     *    "groups": {
     *       "root": "root",
@@ -274,14 +271,6 @@ public:
     * @return the meta config.
     */
    virtual db::config::Config getMetaConfig();
-
-   /**
-    * Sorts the configs in the meta config based on parent relationships and
-    * loads them in the proper order.
-    *
-    * @return true on success, false on failure and exception set
-    */
-   virtual bool loadConfigs();
 
    /**
     * Parses the command line options that were passed to the application.
