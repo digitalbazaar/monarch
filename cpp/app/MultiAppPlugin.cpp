@@ -127,6 +127,26 @@ bool MultiAppPlugin::didParseCommandLine()
    return rval;
 }
 
+bool MultiAppPlugin::willLoadConfigs()
+{
+   bool rval = AppPlugin::willLoadConfigs();
+   for(PluginIterator i = mPlugins.begin(); rval && i != mPlugins.end(); i++)
+   {
+      rval = (*i)->willLoadConfigs();
+   }
+   return rval;
+}
+
+bool MultiAppPlugin::didLoadConfigs()
+{
+   bool rval = AppPlugin::didLoadConfigs();
+   for(PluginIterator i = mPlugins.begin(); rval && i != mPlugins.end(); i++)
+   {
+      rval = (*i)->didLoadConfigs();
+   }
+   return rval;
+}
+
 bool MultiAppPlugin::initializeLogging()
 {
    bool rval = AppPlugin::initializeLogging();

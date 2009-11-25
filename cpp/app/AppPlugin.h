@@ -278,6 +278,27 @@ public:
    virtual bool didParseCommandLine();
 
    /**
+    * Called before the App loads the configs setup in the meta config.
+    * Subclasses may use this hook to setup the config manager or do other
+    * preparation before configs are loaded.
+    *
+    * Subclasses MUST call the superclass implementation first.
+    *
+    * @return true on success, false on failure and exception set
+    */
+   virtual bool willLoadConfigs();
+
+   /**
+    * Called after the App loads configs from the meta config. Subclasses can
+    * use this hook to load other configs or do other processing.
+    *
+    * Subclasses MUST call the superclass implementation first.
+    *
+    * @return true on success, false on failure and exception set
+    */
+   virtual bool didLoadConfigs();
+
+   /**
     * Initialize logging.
     *
     * @return true on success, false on failure and exception set

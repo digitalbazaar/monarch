@@ -342,7 +342,7 @@ static bool _orderIds(
  *
  * @return true on success, false on failure and exception set
  */
-static bool _loadConfigs(App* app)
+static bool _loadMetaConfigs(App* app)
 {
    bool rval = true;
 
@@ -1078,7 +1078,7 @@ int App::main(
       mPlugins->willInitMetaConfig(meta) &&
       mPlugins->initMetaConfig(meta) &&
       mPlugins->didInitMetaConfig(meta) &&
-      _loadConfigs(this);
+      _loadMetaConfigs(this);
 
    // add plugin specs to command line config
    if(success)
@@ -1106,7 +1106,9 @@ int App::main(
       mPlugins->willParseCommandLine(&mCommandLineArgs) &&
       parseCommandLine(&mCommandLineArgs) &&
       mPlugins->didParseCommandLine() &&
-      _loadOptionConfigs(this);
+      mPlugins->willLoadConfigs() &&
+      _loadOptionConfigs(this) &&
+      mPlugins->didLoadConfigs();
 
 #ifdef WIN32
    if(success)
