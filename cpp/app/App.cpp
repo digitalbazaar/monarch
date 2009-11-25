@@ -639,9 +639,10 @@ static bool processOption(
          }
          else
          {
-            ExceptionRef e =
-               new Exception("Invalid command line spec.",
-                  "db.app.CommandLineError");
+            ExceptionRef e = new Exception(
+               "Invalid command line spec. "
+               "The option does not specify a configuration to set.",
+               "db.app.CommandLineError");
             e->getDetails()["option"] = opt;
             e->getDetails()["spec"] = optSpec;
             Exception::set(e);
@@ -720,9 +721,10 @@ static bool processOption(
                value = original->getDouble() + 1.0;
                break;
             default:
-               ExceptionRef e =
-                  new Exception("Invalid command line spec.",
-                     "db.app.CommandLineError");
+               ExceptionRef e = new Exception(
+                  "Invalid command line spec. "
+                  "The option cannot be increased because it is not a number.",
+                  "db.app.CommandLineError");
                e->getDetails()["option"] = opt;
                e->getDetails()["spec"] = optSpec;
                Exception::set(e);
@@ -761,9 +763,10 @@ static bool processOption(
                value = original->getDouble() - 1.0;
                break;
             default:
-               ExceptionRef e =
-                  new Exception("Invalid command line spec.",
-                     "db.app.CommandLineError");
+               ExceptionRef e = new Exception(
+                  "Invalid command line spec. "
+                  "The option cannot be decreased because it is not a number.",
+                  "db.app.CommandLineError");
                e->getDetails()["option"] = opt;
                e->getDetails()["spec"] = optSpec;
                Exception::set(e);
