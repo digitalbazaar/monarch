@@ -159,9 +159,10 @@ bool FileImpl::mkdirs()
 {
    bool rval = true;
 
-   // get path
+   // get path, save full path
    string path = (isDirectory() ?
       mAbsolutePath : File::parentname(mAbsolutePath));
+   string fullPath = path;
 
    // create stack of directories in the path
    vector<string> dirStack;
@@ -190,6 +191,7 @@ bool FileImpl::mkdirs()
             ExceptionRef e = new Exception(
                "Could not create directory.",
                "db.io.File.CreateDirectoryFailed");
+            e->getDetails()["fullPath"] = fullPath.c_str();
             e->getDetails()["path"] = path.c_str();
             e->getDetails()["error"] = strerror(errno);
             Exception::set(e);
