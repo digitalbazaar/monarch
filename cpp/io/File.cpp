@@ -21,6 +21,10 @@
 #include <errno.h>
 #include <vector>
 
+#if WIN32
+#define MAX_ERROR_SIZE 1024
+#endif
+
 using namespace std;
 using namespace db::io;
 using namespace db::rt;
@@ -67,12 +71,62 @@ using namespace db::util;
       StringTools::replaceAll(tmp, "/", "\\");
       return tmp;
    }
+
 #else
    const char* File::NAME_SEPARATOR = "/";
    const char File::NAME_SEPARATOR_CHAR = '/';
    const char* File::PATH_SEPARATOR = ":";
    const char File::PATH_SEPARATOR_CHAR = ':';
 #endif
+
+/**
+ * Define a special stat function so that windows vista and windows 7 don't
+ * cause all kinds of problems on their secret "junction" symbolic links. In
+ * other words, stat() fails on windows vista+ for their symbolic links.
+ *
+ * @param path the path to the file.
+ * @param st the stat struct to populate.
+ *
+ * @return 0 on success, -1 on error with errno set.
+ */
+static int _xPlatformStat(const char* path, struct stat* st)
+{
+#ifdef WIN32
+   int rc = stat(path, st);
+   if(rc != 0)
+   {
+      // save errno, stat may have only failed because the path refers
+      // to a symbolic link (windows vista and 7 will do that)... ensure
+      // that we can get the file attributes, and if so, set the stat struct
+      int savedErrno = errno;
+      DWORD attr = GetFileAttributes(path);
+      if(attr == INVALID_FILE_ATTRIBUTES)
+      {
+         // restore saved errno
+         errno = savedErrno;
+      }
+      else if(attr & FILE_ATTRIBUTE_DIRECTORY)
+      {
+         // found a windows secret junction directory thingy... it isn't
+         // quote a symbolic link but also isn't quite anything else
+         // FIXME: what do we set in the stat struct?
+         memset(st, 0, sizeof(st));
+         st->st_mode = S_IFDIR;
+      }
+      else
+      {
+         // FIXME: just fail, we don't know how to handle this yet...
+         // maybe we need to do a whole CreateFile() call followed by
+         // trying to read stat information followed by CloseHandle()
+         errno = savedErrno;
+      }
+   }
+
+   return rc;
+#else
+   return stat(path, st);
+#endif
+}
 
 FileImpl::FileImpl() :
    mRemoveOnCleanup(false)
@@ -181,21 +235,30 @@ bool FileImpl::mkdirs()
       dirStack.pop_back();
 
       // try to stat directory
-      rc = stat(path.c_str(), &s);
+      rc = _xPlatformStat(path.c_str(), &s);
       if(rc != 0)
       {
          // directory doesn't exist, so try to create it
          // Note: windows ignores permissions in mkdir(), always 0777
          if(mkdir(path.c_str(), 0777) < 0)
          {
-            ExceptionRef e = new Exception(
-               "Could not create directory.",
-               "db.io.File.CreateDirectoryFailed");
-            e->getDetails()["fullPath"] = fullPath.c_str();
-            e->getDetails()["path"] = path.c_str();
-            e->getDetails()["error"] = strerror(errno);
-            Exception::set(e);
-            rval = false;
+            // FIXME: if we got an EEXIST error, then the file exists and is a
+            // symbolic link on windows ... that's the only way the stat
+            // could have failed unless we've hit a race condition where
+            // a file or directory was created after we called stat()
+            // but before we called mkdir()... we need to handle this better
+            // on call platforms ... windows is making this confusing
+            if(errno != EEXIST)
+            {
+               ExceptionRef e = new Exception(
+                  "Could not create directory.",
+                  "db.io.File.CreateDirectoryFailed");
+               e->getDetails()["fullPath"] = fullPath.c_str();
+               e->getDetails()["path"] = path.c_str();
+               e->getDetails()["error"] = strerror(errno);
+               Exception::set(e);
+               rval = false;
+            }
          }
       }
    }
@@ -208,7 +271,7 @@ bool FileImpl::exists()
    bool rval = false;
 
    struct stat s;
-   int rc = stat(mAbsolutePath, &s);
+   int rc = _xPlatformStat(mAbsolutePath, &s);
    if(rc == 0)
    {
       rval = true;
@@ -322,7 +385,7 @@ const char* FileImpl::getExtension()
 off_t FileImpl::getLength()
 {
    struct stat s;
-   int rc = stat(mAbsolutePath, &s);
+   int rc = _xPlatformStat(mAbsolutePath, &s);
    if(rc != 0)
    {
       ExceptionRef e = new Exception(
@@ -346,7 +409,7 @@ FileImpl::Type FileImpl::getType(bool follow)
    if(follow)
    {
       // ensure follow links are followed with stat
-      rc = stat(mAbsolutePath, &s);
+      rc = _xPlatformStat(mAbsolutePath, &s);
    }
    else
    {
@@ -473,7 +536,7 @@ Date FileImpl::getModifiedDate()
    Date date(0);
 
    struct stat s;
-   if(stat(mAbsolutePath, &s) == 0)
+   if(_xPlatformStat(mAbsolutePath, &s) == 0)
    {
       date.setSeconds(s.st_mtime);
    }
