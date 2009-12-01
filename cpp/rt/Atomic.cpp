@@ -16,6 +16,12 @@ using namespace db::rt;
 void* Atomic::mallocAligned(size_t size)
 {
 #if 0//def WIN32
+   // FIXME: _aligned_malloc is defined by msvcrXX.dll ... which is giving
+   // us headaches figuring out with mingw32 ... for now, since we build with
+   // gcc, memory should already be aligned on the proper boundaries
+   // automatically ... but should we do some strange packing or other funny
+   // business like compiling using MSVC, we might want to revisit this
+
    // must align on a 32-bit boundary for windows
    return _aligned_malloc(size, ALIGN_BITS);
 #else
