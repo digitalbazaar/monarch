@@ -6,8 +6,16 @@
 
 #if 0
 
+#include "db/rt/Atomic.h"
+#include "db/rt/HazardPtrList.h"
+
+#include <inttypes.h>
+
 #ifdef WIN32
 #include <malloc.h>
+typedef aligned_uint32_t volatile uint32_t __attribute__ ((aligned(4)));
+#else
+typedef aligned_uint32_t volatile uint32_t;
 #endif
 
 namespace db
@@ -34,6 +42,63 @@ struct HashFunction
  * any locking. To achieve this, it relies upon the atomic compare-and-swap
  * operation.
  *
+ * This HashTable is stored as a linked-list of entry blocks. Each entry block
+ * is referred to as an EntryList. Each entry block constitutes a single
+ * hash table. There are multiple EntryLists so that this HashTable can be
+ * resized. During a resize, operations to get/put on the HashTable will
+ * need to iterate over this list. When a resize is complete, old EntryLists
+ * will be freed. To enable this behavior in a lock-free manner, a combination
+ * of hazard pointers and compare-and-swap operations are used.
+ *
+ * Here are two scenarios of two threads working concurrently, one that is
+ * moving EntryLists into a garbage list (GC) and another that is trying to
+ * use one of those EntryLists (GET). The first scenario demonstrates a
+ * successful acquisition of an EntryList that is now garbage, and the second
+ * shows a successful miss on acquiring that EntryList (which will result in
+ * the next EntryList being checked instead). Note that in the first case, this
+ * is not an error, the garbage EntryList will instruct the thread to look at
+ * the next EntryList via some state internal to it and its memory will not be
+ * freed by any thread performing garbage collection:
+ *
+ * Scenario 1
+ * ----------
+ * GET: Get a blank hazard pointer.
+ * GET: Set the hazard pointer to EntryList X.
+ * GET: Ensure X is still in the valid list (it is).
+ * GET: Proceed to use X.
+ * GC: Move X onto a garbage list.
+ * GC: Check X's reference count (it is 0).
+ * GC: Scan the list of hazard pointers for X (it is found).
+ * GET: Increase reference count on X (now 1, saving a future GC scan time).
+ * GC: Does not collect X.
+ *
+ * Scenario 2
+ * ----------
+ * GET: Get a blank hazard pointer.
+ * GET: Set the hazard pointer to EntryList X.
+ * GC: Move X onto a garbage list.
+ * GET: Entry X is still in the valid list (it is not).
+ * GET: Loop back and get a different EntryList Y.
+ * GC: Check X's reference count (it is 0).
+ * GC: Scan the list of hazard pointers for X (it is NOT found).
+ * GC: Collect X.
+ *
+ * To be more specific about how the garbage collection algorithm works:
+ *
+ * First, using a loop and compare-and-swap, remove N EntryLists from the
+ * shared garbage list and place them in a private temporary list A. Next,
+ * iterate over that list checking each EntryList for a reference count of 0.
+ * If the reference count is higher than 0, move the EntryList into another
+ * temporary list B. If the reference count is 0, scan the hazard pointer list
+ * for the EntryList. If it is not found, free the EntryList. If it is found,
+ * append the EntryList to B. When A is empty, check the valid list for
+ * EntryLists that are now considered garbage. Note that this will require
+ * getting a reference to the EntryList first so that competing GC threads will
+ * not free it while checking the garbage flag. If an EntryList is garbage,
+ * then CAS remove it from the valid list. Then append it to B. When all
+ * valid EntryLists have been checked, CAS prepend B onto the shared garbage
+ * list.
+ *
  * @author Dave Longley
  */
 template<typename _K, typename _V, typename _H>
@@ -47,6 +112,7 @@ protected:
     * 2. A sentinel that indicates a key is stored in a newer entries array.
     * 3. A tombstone that indicates a removed key.
     */
+   struct EntryList;
    struct Entry
    {
       // types of entries
@@ -57,19 +123,6 @@ protected:
          Tombstone
       };
 
-      // reference count for an entry, note that an assumption is made here
-      // that since an entry has to be heap-allocated and 32-bit aligned, so
-      // will the first value of the struct be automatically 32-bit aligned,
-      // but we put the special alignment in here anyway
-#ifdef WIN32
-      // FIXME: The compiler attribute is provided to ensure the count is
-      // 32-bit aligned so that it doesn't break fragile windows atomic
-      // code.
-      volatile unsigned int refCount __attribute__ ((aligned (32)));
-#else
-      volatile unsigned int refCount;
-#endif
-
       // data in the entry
       Type type;
       _K k;
@@ -79,47 +132,42 @@ protected:
          _V v;
          bool dead;
       };
+      EntryList* owner;
    };
 
    /**
     * An entry list has an array of entries, a capacity, and a pointer to
     * the next, newer EntryList (or NULL).
-    *
-    * FIXME: might need to store references to itself as a void pointer
-    * to be destroyed?
     */
    struct EntryList
    {
-      // reference count for an entry, note that an assumption is made here
-      // that since an entry has to be heap-allocated and 32-bit aligned, so
-      // will the first value of the struct be automatically 32-bit aligned,
-      // but we put the special alignment in here anyway
-#ifdef WIN32
-      // FIXME: The compiler attribute is provided to ensure the count is
-      // 32-bit aligned so that it doesn't break fragile windows atomic
-      // code.
-      volatile unsigned int refCount __attribute__ ((aligned(4)));
-#else
-      volatile unsigned int refCount;
-#endif
-
+      /* Note: Reference count for an entry, note that an assumption is made
+         here that since an entry has to be heap-allocated and 32-bit aligned,
+         so will the first value of the struct be automatically 32-bit aligned,
+         but we put the special alignment in here anyway. */
+      aligned_uint32_t refCount;
       Entry** entries;
       int capacity;
-
-#ifdef WIN32
-      // FIXME: The compiler attribute is provided to ensure this is
-      // 32-bit aligned so that it doesn't break fragile windows atomic
-      // code.
-      volatile EntryList* next __attribute__ ((aligned(4)));
-#else
-      volatile EntryList* next;
-#endif
+      EntryList* next;
+      bool garbage;
+      EntryList* nextGarbage;
    };
 
    /**
-    * The entry list.
+    * The entry first list.
     */
-   EntryList* mEntryList;
+#ifdef WIN32
+   /* MS Windows requires any variable written to in an atomic operation
+      to be aligned to the address size of the CPU. */
+   volatile EntryList* mHead __attribute__ ((aligned(4)));
+#else
+   volatile EntryList* mHead;
+#endif
+
+   /**
+    * A hazard pointer list for protecting access to entry lists.
+    */
+   HazardPtrList mHazardPtrs;
 
    /**
     * The maximum capacity of the hash table, meaning the maximum number of
@@ -190,88 +238,86 @@ public:
 
 protected:
    /**
-    * Allocates memory that is aligned such that it can be safely used in a
-    * Compare-And-Swap algorithm.
+    * Creates an empty EntryList.
     *
-    * @param size the size of the memory to allocate.
+    * @param capacity the capacity for the EntryList.
     *
-    * @return a pointer to the allocated memory.
+    * @return the new EntryList.
     */
-   virtual void* allocateCasableMemory(size_t size);
+   virtual EntryList* createEntryList(int capacity);
 
    /**
-    * Frees some CAS-able memory.
+    * Frees an EntryList.
     *
-    * @param ptr the pointer to the CAS-able memory to free.
+    * @param el the EntryList to free.
     */
-   virtual void freeCasableMemory(void* ptr);
+   virtual void freeEntryList(EntryList* el);
 
    /**
-    * Performs an atomic insert by using Compare And Swap (CAS).
+    * Creates a Value Entry.
     *
-    * @param dst the destination to write the new value to.
-    * @param oldVal the old value.
-    * @param newVal the new value.
+    * @param key the Entry key.
+    * @param value the Entry value.
     *
-    * @return true if successful, false if not.
-    */
-   virtual bool atomicInsert(void* dst, void* oldVal, void* newVal);
-
-   /**
-    * Creates a value entry.
-    *
-    * @param key the entry key.
-    * @param value the entry value.
-    *
-    * @return the new entry.
+    * @return the new Entry.
     */
    virtual Entry* createValue(const _K& key, const _V& value);
 
    /**
-    * Creates a sentinel entry.
+    * Creates a Sentinel Entry.
     *
-    * @param key the entry key.
+    * @param key the Entry key.
     *
-    * @return the new entry.
+    * @return the new Entry.
     */
    virtual Entry* createSentinel(const _K& key);
 
    /**
-    * Creates a tombstone entry.
+    * Creates a Tombstone Entry.
     *
-    * @param key the entry key.
+    * @param key the Entry key.
     *
-    * @return the new entry.
+    * @return the new Entry.
     */
    virtual Entry* createTombStone(const _K& key);
 
    /**
-    * Increases the ref count on an entry.
+    * Frees an Entry.
     *
-    * @param e the entry.
+    * @param e the Entry to free.
     */
-   virtual void refEntry(Entry* e);
+   virtual void freeEntry(Entry* e);
 
    /**
-    * Decreases the ref count on an entry.
+    * Increases the reference count on the next entry list. An assumption
+    * is made that the previous entry list already has a reference count
+    * greater than 0.
     *
-    * @param e the entry.
+    * @param ptr the hazard pointer to use.
+    * @param el the previous entry list, NULL to use the head.
+    *
+    * @return the next EntryList (can be NULL).
     */
-   virtual void unrefEntry(Entry* e);
+   virtual EntryList* refNextEntryList(HazardPtr* ptr, EntryList* prev);
 
    /**
-    * Increases the ref count on an entry list.
+    * Decreases the reference count on the given entry list.
     *
-    * @param el the entry list.
-    */
-   virtual void refEntryList(Entry* el);
-
-   /**
-    * Decreases the ref count on an entry list.
-    *
-    * @param el the entry list.
+    * @param el the entry list to decrease the reference count on.
     */
    virtual void unrefEntryList(Entry* el);
+
+   /**
+    * A helper function that gets the most current EntryList at
+    * the time at which this function was called. The reference count for
+    * the returned EntryList will be incremented and therefore must be
+    * decremented later by the caller.
+    *
+    * @param ptr the hazard pointer to use.
+    *
+    * @return the most current EntryList.
+    */
+   virtual EntryList* getCurrentEntryList(HazardPtr* ptr);
 
    /**
     * Atomically inserts an entry into an entries list and returns true
@@ -287,21 +333,23 @@ protected:
    virtual bool insertEntry(Entry** el, int idx, Entry* eOld, Entry* eNew);
 
    /**
-    * Gets the entry at the given index and increases its reference count. Make
-    * sure to call unrefEntry() when finished.
+    * Gets the entry at the given index in the table. The EntryList owner of
+    * the Entry must be unref'd when the Entry is no longer in use.
     *
+    * @param ptr the hazard pointer to use.
     * @param idx the index of the entry to retrieve.
     *
     * @return the entry or NULL if no such entry exists.
     */
-   virtual Entry* getEntry(int idx);
+   virtual Entry* getEntry(HazardPtr* ptr, int idx);
 
    /**
     * Resizes the table.
     *
+    * @param ptr the hazard pointer to use.
     * @param capacity the new capacity to use.
     */
-   virtual void resize(int capacity);
+   virtual void resize(HazardPtr* ptr, int capacity);
 };
 
 template<typename _K, typename _V, typename _H>
@@ -309,7 +357,7 @@ HashTable<_K, _V, _H>::HashTable(int capacity) :
    mCapacity(capacity),
    mLength(0)
 {
-   // FIXME:
+   // FIXME: create first EntryList
 }
 
 template<typename _K, typename _V, typename _H>
@@ -336,6 +384,8 @@ HashTable<_K, _V, _H>& HashTable<_K, _V, _H>::operator=(
 template<typename _K, typename _V, typename _H>
 void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
 {
+   // FIXME: unfinished! 11-29-2009
+
    /* Steps:
     *
     * 1. Create the entry for the table.
@@ -351,15 +401,20 @@ void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
     */
 
    // create a value entry
-   Entry* e = createValue(k, v);
+   Entry* eNew = createValue(k, v);
 
    // enter a spin loop that runs until the entry has been inserted
    bool inserted = false;
    while(!inserted)
    {
       // use the newest entries array (last in the linked list)
+      // FIXME: need to use getCurrentEntryList()
+      // and unrefEntryList() when finished
       EntryList* el = mEntryList;
       for(; el->next != NULL; el = el->next);
+
+      // set EntryList owner of the Entry
+      eNew->owner = el;
 
       // enter another spin loop to keep trying to insert the entry until
       // we do or we decide that we must insert into a newer table
@@ -375,7 +430,7 @@ void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
          if(eOld == NULL)
          {
             // there is no existing entry so try to insert
-            inserted = atomicInsert(el, i, eOld, eNew);
+            inserted = Atomic::CompareAndSwap(el + i, eOld, eNew);
          }
          else if(eOld->type == Entry::Sentinel)
          {
@@ -391,7 +446,7 @@ void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
             // entry
             if(&(eOld->k) == &k || (eOld->h == eNew->h && eOld->k == k))
             {
-               inserted = atomicInsert(el, i, eOld, eNew);
+               inserted = Atomic::compareAndSwap(el + i, eOld, eNew);
             }
             else if(i == mCapacity - 1)
             {
@@ -428,6 +483,7 @@ void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
 template<typename _K, typename _V, typename _H>
 _V* HashTable<_K, _V, _H>::get(const _K& k)
 {
+   // FIXME: unfinished! 11-29-2009
    _V* rval = NULL;
 
    /* Search our entries array looking to see if we have a key that matches or
@@ -476,46 +532,42 @@ _V* HashTable<_K, _V, _H>::get(const _K& k)
 }
 
 template<typename _K, typename _V, typename _H>
-void* HashTable<_K, _V, _H>::allocateCasableMemory(size_t size)
+HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::createEntryList(
+   int capacity)
 {
-#ifdef WIN32
-   // must align on a 32-bit boundary because windows is silly
-   // this can be removed once non-windows specific atomics are used
-   return _aligned_malloc(size, 32);
-#else
-   return malloc(size);
-#endif
-}
+   EntryList* el = static_cast<EntryList*>(
+      Atomic::mallocAligned(sizeof(EntryList)));
+   el->refCount = 0;
+   el->capacity = capacity;
+   el->entries = static_cast<Entry**>(malloc(capacity));
+   memset(el->entries, NULL, capacity);
+   el->next = NULL;
+   el->garbage = false;
+   el->nextGarbage = NULL;
+};
 
 template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::freeCasableMemory(void* ptr)
+void HashTable<_K, _V, _H>::freeEntryList(EntryList* el)
 {
-   if(ptr != NULL)
+   // free all entries
+   for(int i = 0; i < el->capacity; i++)
    {
-#ifdef WIN32
-      _aligned_free(ptr);
-#else
-      free(ptr);
-#endif
+      Entry* e = el->entries[i];
+      if(e != NULL)
+      {
+         free(e);
+      }
    }
-}
+
+   // free list
+   Atomic::freeAligned(el);
+};
 
 template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::atomicInsert(
-   void* dst, void* oldVal, void* newVal)
+HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::createValue(
+   const _K& key, const _V& value)
 {
-#ifdef WIN32
-   return (InterlockedCompareExchange(dst, newVal, oldVal) == oldVal);
-#else
-   return __sync_bool_compare_and_swap(dst, oldVal, newVal);
-#endif
-}
-
-template<typename _K, typename _V, typename _H>
-Entry* HashTable<_K, _V, _H>::createValue(const _K& key, const _V& value)
-{
-   Entry* e = static_cast<Entry*>(allocateCasableMemory(sizeof(Entry)));
-   e->refCount = 1;
+   Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
    e->type = Value;
    e->k = key;
    e->h = mHashFunction(key);
@@ -523,10 +575,10 @@ Entry* HashTable<_K, _V, _H>::createValue(const _K& key, const _V& value)
 };
 
 template<typename _K, typename _V, typename _H>
-Entry* HashTable<_K, _V, _H>::createSentinel(const _K& key)
+HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::createSentinel(
+   const _K& key)
 {
-   Entry* e = static_cast<Entry*>(allocateCasableMemory(sizeof(Entry)));
-   e->refCount = 1;
+   Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
    e->type = Sentinel;
    e->k = key;
    e->h = mHashFunction(key);
@@ -534,10 +586,10 @@ Entry* HashTable<_K, _V, _H>::createSentinel(const _K& key)
 };
 
 template<typename _K, typename _V, typename _H>
-Entry* HashTable<_K, _V, _H>::createTombstone(const _K& key)
+HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::createTombstone(
+   const _K& key)
 {
-   Entry* e = static_cast<Entry*>(allocateCasableMemory(sizeof(Entry)));
-   e->refCount = 1;
+   Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
    e->type = Tombstone;
    e->k = key;
    e->h = mHashFunction(key);
@@ -545,62 +597,103 @@ Entry* HashTable<_K, _V, _H>::createTombstone(const _K& key)
 };
 
 template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::insertEntry(
-   Entry** el, int idx, Entry* eOld, Entry* eNew)
+HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::refNextEntryList(
+   HazardPtr* ptr, EntryList* prev)
 {
-   return atomicInsert(el + idx, eOld, eNew);
+   EntryList* rval = NULL;
+
+   if(prev == NULL)
+   {
+      do
+      {
+         // attempt to protect the head EntryList with a hazard pointer
+         ptr->ptr = mHead;
+      }
+      // ensure the head hasn't changed
+      while(ptr->ptr != mHead);
+   }
+   else
+   {
+      /* The previous list is protected with a reference count and its
+         next pointer will only be investigated if we're looking to find
+         the end of the list or if we've been guaranteed (i.e. we found
+         a Sentinel Entry in the current list) to find a next EntryList.
+         Therefore, we don't need to do any special checks here. */
+      rval = ptr->next;
+   }
+
+   if(ptr->ptr != NULL)
+   {
+      // set return value and increment reference count
+      rval = static_cast<EntryList*>(ptr->ptr);
+      Atomic::addAndFetch(static_cast<aligned_int32_t*>(&rval->refCount), 1);
+   }
+
+   return rval;
 }
 
 template<typename _K, typename _V, typename _H>
-Entry* HashTable<_K, _V, _H>::getEntry(int idx)
+void HashTable<_K, _V, _H>::unrefEntryList(Entry* el)
+{
+   // decrement reference count
+   Atomic::subtractAndFetch(static_cast<aligned_int32_t>(&el->refCount), 1);
+}
+
+template<typename _K, typename _V, typename _H>
+HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::getCurrentEntryList(
+   HazardPtr* ptr)
+{
+   EntryList* rval = NULL;
+
+   // FIXME: should be just about finished ... 11-29-2009
+   // el should never be NULL because mHead can't be NULL per the design
+
+   // get the tail
+   EntryList* el = refNextEntryList(ptr, NULL);
+   while(el->next != NULL)
+   {
+      // get the next entry list, drop reference to old list
+      EntryList* next = refNextEntryList(ptr, el);
+      unrefEntryList(el);
+      el = next;
+   }
+
+   return rval;
+}
+
+template<typename _K, typename _V, typename _H>
+bool HashTable<_K, _V, _H>::insertEntry(
+   Entry** el, int idx, Entry* eOld, Entry* eNew)
+{
+   // FIXME: unfinished! 11-29-2009
+   return Atomic::compareAndSwap(el + idx, eOld, eNew);
+}
+
+template<typename _K, typename _V, typename _H>
+HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::getEntry(
+   HazardPtr* ptr, int idx)
 {
    Entry* rval = NULL;
 
-   // FIXME: we need to ensure that if we have access to an entries array
-   // here, it will not be destroyed by another thread that is performing
-   // a resize ... so we need to do some kind of reference counting ...
-   // and in addition to that, we need to ensure that once we leave this
-   // function the entry will not be destroyed ... so we need to reference
-   // count that as well...
+   /* Note: The next pointer in any EntryList is only initialized to NULL,
+      never later set to it. A value of NULL indicates that the EntryList
+      is the last one in this HashTable. Any other value indicates that
+      there is another EntryList with newer values. If an older list has
+      a Sentinel Entry, then there is guaranteed to be another list. Therefore,
+      there is a guarantee that following a non-NULL next pointer will always
+      result in finding a newer list, even if the current list has been marked
+      as garbage and is waiting for all references to it to be removed so
+      that it can be collected. */
 
-   // FIXME: references to entries should not pose a problem concerning
-   // memory clean up ... if someone has a pointer to an entry, then they
-   // must already have a reference to the list it resides in ... which
-   // will guarantee that an entry within that list cannot be destroyed
-   // once they drop the reference to that list they will already have a
-   // reference to the entry, again guaranteeing it won't be destroyed
-   // prematurely ... however ...
-   // entry list destruction is a problem in the current design ...
-   // when are entry lists destroyed? when no one has any reference to
-   // them any more ... when does that happen? when no one is looking in
-   // an old entry list for something any longer ...
-   // what if someone is searching through the entry lists ... and grabs
-   // a pointer to an entry list ... and then that entry list is dropped
-   // from the linked list of entry lists and its reference is destroyed
-   // ... when we go to increment the reference on the pointer that is
-   // looking at the list, we will explode
-
-   // FIXME: could add a "hazard pointer" to each thread ... that must
-   // be checked when doing clean up ... to use it:
-   // Thread A: myHazardPtr = &x;
-   // Thread A: ensure *myHazardPtr == *(&x) (CAS?) ... FAIL, x could be gone
-   // Thread B: save old x as y
-   // Thread B: set x to NULL
-   // Thread B: decrement y->ref via atomic, get result
-   // Thread B: if result == 0 AND no thread has stored the address of x
-   //           then delete x->object (delete fails in this case)
-   // Thread A: increment x->ref
-   // Thread A: store x
-   // Thread A: clear myHazardPtr
-   //
-   // What happens when you try to de-reference x? FAIL
-
-
-   // iterate through each entries list until a non-sentinel entry is found
+   /* Iterate through each EntryList until a non-sentinel entry is found,
+      the entry's owner will have its reference count increased, protecting
+      it from being freed. */
    bool found = false;
-   for(EntryList* el = mEntryList; !found && el != NULL; el = el->next)
+   EntryList* el = refNextEntryList(ptr, NULL);
+   while(!found && el != NULL)
    {
-      for(int i = 0; i < el->capacity; i++)
+      // check the entries for the given index
+      if(idx < el->capacity)
       {
          Entry* e = el->entries[idx];
          if(e->type != Sentinel)
@@ -609,14 +702,38 @@ Entry* HashTable<_K, _V, _H>::getEntry(int idx)
             rval = e;
          }
       }
+
+      if(!found)
+      {
+         // get the next entry list, drop reference to old list
+         EntryList* next = refNextEntryList(ptr, el);
+         unrefEntryList(el);
+         el = next;
+      }
    }
 
    return rval;
 }
 
 template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::resize(int capacity)
+void HashTable<_K, _V, _H>::resize(HazardPtr* ptr, int capacity)
 {
+   // FIXME: unfinished! 11-29-2009
+   // FIXME: we need to do put() in a big while loop ... which may involve
+   // multiple resize calls? that might be the most correct way to do it ...
+   // loop until the value is added ... calc the hash, try to add it, if we are
+   // out of room, run the resize algorithm, CAS onto the end of the last
+   // entry in the valid list ... we don't actually even need to check if it's
+   // garbage or not, we just CAS onto a NULL next ptr ... if it fails,
+   // then someone else was doing resizing and if it works and that list
+   // becomes garbage then someone else was resizing ... in both cases
+   // our work is finished because a resize() happened. ... loop back
+   // and try to put the value in again
+   // FIXME: this was written 11-29-2009 and needs to replace anything written
+   // below here
+
+   // FIXME: use getCurrentEntryList()
+
    // get the last entries array (last in linked list)
    EntryList* el = mEntryList;
    for(; el->next != NULL; el = el->next);
@@ -636,7 +753,7 @@ void HashTable<_K, _V, _H>::resize(int capacity)
 
       EntryList newList;
       newList->entries = malloc();
-      atomicInsert(dst, oldList, newList);
+      Atomic::compareAndSwap(dst, oldList, newList);
    }
 
 
@@ -647,7 +764,6 @@ void HashTable<_K, _V, _H>::resize(int capacity)
 
    // FIXME: do not copy tombstones
 }
-
 
 } // end namespace rt
 } // end namespace db
