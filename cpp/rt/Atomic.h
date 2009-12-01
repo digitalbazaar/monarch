@@ -8,6 +8,7 @@
 #include <inttypes.h>
 
 #ifdef WIN32
+#include <windows.h>
 // FIXME: get the CPU address size and use it instead of assuming 32
 #define ALIGN_BYTES 4
 #define ALIGN_BITS  32
@@ -60,28 +61,26 @@ public:
    static void freeAligned(void* ptr);
 
    /**
-    * Performs an atomic Add-And-Fetch. Adds the given value to the value at
+    * Performs an atomic Increment-And-Fetch. Increments the value at
     * the given destination.
     *
-    * @param dst the destination with the value to add to.
-    * @param value the value to add.
+    * @param dst the destination with the value to increment.
     *
     * @return the new value.
     */
    template<typename T>
-   static T addAndFetch(T* dst, T value);
+   static T incrementAndFetch(T* dst);
 
    /**
-    * Performs an atomic Subtract-And-Fetch. Subtracts the given value from
-    * the value at the given destination.
+    * Performs an atomic Decrement-And-Fetch. Decrements the value at
+    * the given destination.
     *
-    * @param dst the destination with the value to subtract from.
-    * @param value the value to subtract.
+    * @param dst the destination with the value to decrement.
     *
     * @return the new value.
     */
    template<typename T>
-   static T subtractAndFetch(T* dst, T value);
+   static T decrementAndFetch(T* dst);
 
    /**
     * Performs an atomic Compare-And-Swap (CAS). The given new value will only
@@ -101,22 +100,22 @@ public:
 };
 
 template<typename T>
-T Atomic::addAndFetch(T* dst, T value)
+T Atomic::incrementAndFetch(T* dst)
 {
 #ifdef WIN32
-   return InterlockedAdd(static_cast<LONG*>(dst), static_cast<LONG*>(value));
+   return InterlockedIncrement((LONG*)dst);
 #else
-   return __sync_add_and_fetch(dst, value);
+   return __sync_add_and_fetch(dst, 1);
 #endif
 }
 
 template<typename T>
-T Atomic::subtractAndFetch(T* dst, T value)
+T Atomic::decrementAndFetch(T* dst)
 {
 #ifdef WIN32
-   return addAndFetch(dst, -value);
+   return InterlockedDecrement((LONG*)dst);
 #else
-   return __sync_sub_and_fetch(dst, value);
+   return __sync_sub_and_fetch(dst, 1);
 #endif
 }
 
@@ -125,9 +124,7 @@ bool Atomic::compareAndSwap(T* dst, T oldVal, T newVal)
 {
 #ifdef WIN32
    return (InterlockedCompareExchange(
-      static_cast<LONG*>(dst),
-      static_cast<LONG*>(newVal),
-      static_cast<LONG*>(oldVal)) == oldVal);
+      (LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
 #else
    return __sync_bool_compare_and_swap(dst, oldVal, newVal);
 #endif
