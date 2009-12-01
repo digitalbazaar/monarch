@@ -264,7 +264,7 @@ void Collectable<HeapObject>::acquire(volatile Reference* ref)
    if(ref != NULL)
    {
       // do atomic increment and fetch
-      Atomic::incrementAndFetch(const_cast<aligned_int32_t*>(&ref->count));
+      Atomic::incrementAndFetch(&ref->count);
    }
 
    mReference = ref;
@@ -277,7 +277,7 @@ void Collectable<HeapObject>::release(volatile Reference* ref)
    if(ref != NULL)
    {
       // do atomic fetch and decrement, test return value
-      if(Atomic::decrementAndFetch(const_cast<aligned_int32_t*>(&ref->count)) == 0)
+      if(Atomic::decrementAndFetch(&ref->count) == 0)
       {
          // this Collectable is responsible for deleting the reference
          // if it was the last one
