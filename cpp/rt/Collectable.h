@@ -4,12 +4,7 @@
 #ifndef db_rt_Collectable_H
 #define db_rt_Collectable_H
 
-#include <cstddef>
-
-// FIXME: remove ifdef once atomic functions are implemented in mingw
-#ifdef WIN32
-#include <windows.h>
-#endif
+#include "db/rt/Atomic.h"
 
 namespace db
 {
@@ -72,17 +67,8 @@ protected:
 
       /**
        * A reference count for HeapObject.
-       *
-       * FIXME: The compiler attribute is provided to ensure the count is
-       * 32-bit aligned so that it doesn't break fragile windows atomic
-       * code. This can be removed once mingw32 is updated with atomic
-       * add/fetch and sub/fetch functions.
        */
-#ifdef WIN32
-      volatile unsigned int count __attribute__ ((aligned(4)));
-#else
-      volatile unsigned int count;
-#endif
+      volatile aligned_int32_t count;
    };
 
    /**
@@ -278,12 +264,7 @@ void Collectable<HeapObject>::acquire(volatile Reference* ref)
    if(ref != NULL)
    {
       // do atomic increment and fetch
-      // FIXME: remove ifdef once __sync_add_and_fetch is implemented in mingw
-#ifdef WIN32
-      InterlockedIncrement((long int*)&ref->count);
-#else
-      __sync_add_and_fetch(&ref->count, 1);
-#endif
+      Atomic::addAndFetch(const_cast<aligned_int32_t*>(&ref->count), 1);
    }
 
    mReference = ref;
@@ -296,12 +277,8 @@ void Collectable<HeapObject>::release(volatile Reference* ref)
    if(ref != NULL)
    {
       // do atomic fetch and decrement, test return value
-      // FIXME: remove ifdef once __sync_sub_and_fetch is implemented in mingw
-#ifdef WIN32
-      if(InterlockedDecrement((long int*)&ref->count) == 0)
-#else
-      if(__sync_sub_and_fetch(&ref->count, 1) == 0)
-#endif
+      if(Atomic::subtractAndFetch(
+         const_cast<aligned_int32_t*>(&ref->count), 1) == 0)
       {
          // this Collectable is responsible for deleting the reference
          // if it was the last one
