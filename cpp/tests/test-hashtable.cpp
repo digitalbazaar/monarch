@@ -27,25 +27,40 @@ void runHashTableTests(TestRunner& tr)
    tr.group("HashTable");
 
    HashTable<int, int, KeyAsHash> table;
-   int key = 1;
+   int hit = 1;
+   int miss = 2;
    int value = 7;
 
    tr.test("put");
    {
-      table.put(key, value);
+      table.put(hit, value);
    }
    tr.passIfNoException();
 
-   tr.test("get");
+   tr.test("get hit");
    {
       int num;
-      if(table.get(key, num))
+      if(table.get(hit, num))
       {
-         printf("GOT: %d => %d\n", key, num);
+         printf("GOT: %d => %d\n", hit, num);
       }
       else
       {
-         printf("VALUE FOR %d NOT FOUND\n", key);
+         printf("VALUE FOR %d NOT FOUND\n", hit);
+      }
+   }
+   tr.passIfNoException();
+
+   tr.test("get miss");
+   {
+      int num;
+      if(table.get(miss, num))
+      {
+         printf("GOT: %d => %d\n", miss, num);
+      }
+      else
+      {
+         printf("VALUE FOR %d NOT FOUND\n", miss);
       }
    }
    tr.passIfNoException();
