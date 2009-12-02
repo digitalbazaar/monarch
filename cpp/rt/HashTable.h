@@ -339,22 +339,36 @@ HashTable<_K, _V, _H>::HashTable(int capacity) :
 }
 
 template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::HashTable(const HashTable& copy)
+HashTable<_K, _V, _H>::HashTable(const HashTable& copy) :
+   mCapacity(capacity),
+   mLength(0)
 {
-   // FIXME:
+   // create the first EntryList
+   mHead = createEntryList(capacity);
+
+   // FIXME: iterate over the copy and put all of its entries
 }
 
 template<typename _K, typename _V, typename _H>
 HashTable<_K, _V, _H>::~HashTable()
 {
-   // FIXME: clean up all entry lists
+   // clean up all entry lists
+   EntryList* el = mHead;
+   while(el != NULL)
+   {
+      EntryList* tmp = el;
+      el = el->next;
+      freeEntryList(tmp);
+   }
 }
 
 template<typename _K, typename _V, typename _H>
 HashTable<_K, _V, _H>& HashTable<_K, _V, _H>::operator=(
    const HashTable& rhs)
 {
-   // FIXME:
+   // FIXME: clear this table
+
+   // FIXME: iterate over the copy and put all of its entries
 
    return *this;
 }
