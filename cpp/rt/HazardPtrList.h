@@ -18,13 +18,40 @@ namespace rt
 struct HazardPtr
 {
    bool active;
-   void* ptr;
+   void* value;
    HazardPtr* next;
 };
 
 /**
  * The Atomic class provides methods for doing atomic operations that are
  * supported by the system's CPU.
+ *
+ * The list is intended to be used to protect memory in the following manner:
+ *
+ * Create a shared HazardPtrList X.
+ *
+ * Thread A: Acquires a hazard pointer H via acquire() from X.
+ * Thread A: Sets H to value of a pointer P.
+ * Thread B: Might do something to change the value of P, storing the old value
+ *           of P so the memory located there can be freed.
+ * Thread A: Ensures that the value of H is still the same as the value of P.
+ *           If not, set H to the value of P again and repeat. Only once the
+ *           values are the same should the memory be considered protected by
+ *           this list (provided that Thread B checks this list before freeing
+ *           any related memory).
+ * Thread B: Before freeing the old value of P, make sure that that value is
+ *           not in X via isAddressInUse(). If it is, it is not permitted to
+ *           be freed. If it is not, then it is safe to free.
+ *
+ * Other programming/garbage collection paradigms may be employed on top of
+ * this HazardPtrList's protection such as reference counts. Atomically
+ * incrementing a reference count after protecting the memory with this
+ * HazardPtrList will allow garbage collector(s) to check a simple reference
+ * count for 0 before having to scan the entire HazardPtrList. This may save
+ * cycles. Do not forget, however, that once a reference count is found to
+ * be 0, this list still has to be scanned before freeing the memory because
+ * another thread may be in the middle of incrementing that reference count
+ * back up to 1.
  *
  * @author Dave Longley
  */
@@ -71,12 +98,16 @@ public:
    void release(HazardPtr* ptr);
 
    /**
-    * Gets the first hazard pointer in this list. This is most commonly
-    * used to iterate over the list to check for existing hazard pointers.
+    * Checks the hazard pointer list to see if any HazardPtrs are set to
+    * the given address. This method will determine if the memory at the
+    * given address is marked as being in use by a HazardPtr in this list.
     *
-    * @return the first hazard pointer in this list.
+    * @param addr the address to look for.
+    *
+    * @return true if at least one HazardPtr was set to the given address,
+    *         false if not.
     */
-   const HazardPtr* first();
+   bool isAddressInUse(void* addr);
 };
 
 } // end namespace rt

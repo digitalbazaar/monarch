@@ -36,7 +36,7 @@ HazardPtr* HazardPtrList::acquire()
    {
       rval = new HazardPtr;
       rval->active = true;
-      rval->ptr = NULL;
+      rval->value = NULL;
 
       // atomically push the pointer onto the head of the list
       volatile HazardPtr* old;
@@ -53,11 +53,24 @@ HazardPtr* HazardPtrList::acquire()
 
 void HazardPtrList::release(HazardPtr* ptr)
 {
-   ptr->ptr = NULL;
+   ptr->value = NULL;
    ptr->active = false;
 }
 
-const HazardPtr* HazardPtrList::first()
+bool HazardPtrList::isAddressInUse(void* addr)
 {
-   return const_cast<HazardPtr*>(mHead);
+   bool rval = false;
+
+   // search the list for the given address
+   for(HazardPtr* ptr = (HazardPtr*)mHead; !rval && ptr != NULL;
+       ptr = ptr->next)
+   {
+      if(ptr->value == addr)
+      {
+         // address found
+         rval = true;
+      }
+   }
+
+   return rval;
 }

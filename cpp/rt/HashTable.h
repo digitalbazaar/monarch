@@ -149,6 +149,7 @@ protected:
       Entry** entries;
       int capacity;
       EntryList* next;
+      bool old;
       bool garbage;
       EntryList* nextGarbage;
    };
@@ -486,12 +487,15 @@ _V* HashTable<_K, _V, _H>::get(const _K& k)
    // FIXME: unfinished! 11-29-2009
    _V* rval = NULL;
 
+   // acquire a hazard pointer
+   HazardPtr* ptr = mHazardPtrList->acquire();
+
    /* Search our entries array looking to see if we have a key that matches or
-    * if the entry for the given key does not exist. If we find an entry that
-    * matches the hash for our key, but the key does not match, then we must
-    * reprobe. We do so by incrementing our index by 1 since we handle
-    * collisions when inserting by simply increasing the index by 1 until we
-    * find an empty slot.
+      if the entry for the given key does not exist. If we find an entry that
+      matches the hash for our key, but the key does not match, then we must
+      reprobe. We do so by incrementing our index by 1 since we handle
+      collisions when inserting by simply increasing the index by 1 until we
+      find an empty slot.
     */
    int hash = mHashFunction(k);
    bool done = false;
@@ -528,6 +532,9 @@ _V* HashTable<_K, _V, _H>::get(const _K& k)
       unrefEntry(e);
    }
 
+   // release the hazard pointer
+   mHazardPtrList->release(ptr);
+
    return rval;
 }
 
@@ -542,6 +549,7 @@ HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::createEntryList(
    el->entries = static_cast<Entry**>(malloc(capacity));
    memset(el->entries, NULL, capacity);
    el->next = NULL;
+   el->old = false;
    el->garbage = false;
    el->nextGarbage = NULL;
 };
@@ -607,10 +615,10 @@ HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::refNextEntryList(
       do
       {
          // attempt to protect the head EntryList with a hazard pointer
-         ptr->ptr = mHead;
+         ptr->value = mHead;
       }
       // ensure the head hasn't changed
-      while(ptr->ptr != mHead);
+      while(ptr->value != mHead);
    }
    else
    {
@@ -622,11 +630,11 @@ HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::refNextEntryList(
       rval = ptr->next;
    }
 
-   if(ptr->ptr != NULL)
+   if(ptr->value != NULL)
    {
       // set return value and increment reference count
-      rval = static_cast<EntryList*>(ptr->ptr);
-      Atomic::addAndFetch(static_cast<aligned_int32_t*>(&rval->refCount), 1);
+      rval = static_cast<EntryList*>(ptr->value);
+      Atomic::incrementAndFetch(&rval->refCount);
    }
 
    return rval;
@@ -636,7 +644,7 @@ template<typename _K, typename _V, typename _H>
 void HashTable<_K, _V, _H>::unrefEntryList(Entry* el)
 {
    // decrement reference count
-   Atomic::subtractAndFetch(static_cast<aligned_int32_t>(&el->refCount), 1);
+   Atomic::decrementAndFetch(&el->refCount);
 }
 
 template<typename _K, typename _V, typename _H>
@@ -645,8 +653,8 @@ HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::getCurrentEntryList(
 {
    EntryList* rval = NULL;
 
-   // FIXME: should be just about finished ... 11-29-2009
-   // el should never be NULL because mHead can't be NULL per the design
+   /* Note: A call to refNextEntryList(ptr, NULL) will never return NULL
+      per the design of this HashTable. There is always a head EntryList. */
 
    // get the tail
    EntryList* el = refNextEntryList(ptr, NULL);
@@ -718,51 +726,57 @@ HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::getEntry(
 template<typename _K, typename _V, typename _H>
 void HashTable<_K, _V, _H>::resize(HazardPtr* ptr, int capacity)
 {
-   // FIXME: unfinished! 11-29-2009
-   // FIXME: we need to do put() in a big while loop ... which may involve
-   // multiple resize calls? that might be the most correct way to do it ...
-   // loop until the value is added ... calc the hash, try to add it, if we are
-   // out of room, run the resize algorithm, CAS onto the end of the last
-   // entry in the valid list ... we don't actually even need to check if it's
-   // garbage or not, we just CAS onto a NULL next ptr ... if it fails,
-   // then someone else was doing resizing and if it works and that list
-   // becomes garbage then someone else was resizing ... in both cases
-   // our work is finished because a resize() happened. ... loop back
-   // and try to put the value in again
-   // FIXME: this was written 11-29-2009 and needs to replace anything written
-   // below here
+   /* Note: When we call resize(), other threads might also be trying to
+      resize at the same time. Therefore, we allocate a new EntryList and
+      then try to CAS it onto the current EntryList. If it fails, then someone
+      else has already done the resize for us and we should deallocate the
+      EntryList we created and return. If it succeeds, then we either appended
+      our EntryList onto another EntryList that was marked as garbage while
+      we were doing work (which is ok, it will be collected later), or we
+      appended our EntryList as the most current valid EntryList. In either
+      case, the old current EntryList is marked as an old list. By marking
+      the list as old, subsequent calls to put() know to mark entries in
+      the old list as Sentinels.
 
-   // FIXME: use getCurrentEntryList()
+      Keep in mind that when resize() is called from put(), it is from within
+      a loop that will keep trying to put() the key/value pair into the table
+      until it is successful. If this resize fails for any reason, another
+      resize will have succeeded to provide room for the put() or this will
+      be called again until it succeeds.
+    */
 
-   // get the last entries array (last in linked list)
-   EntryList* el = mEntryList;
-   for(; el->next != NULL; el = el->next);
+   // get the current entry list (this also increases the refcount to it)
+   EntryList* el = getCurrentEntryList(ptr);
 
-   // FIXME: ignore double copies for now? don't worry about the extra
-   // work generated when two threads just so happen to want to resize at
-   // the same time? ... at least it's unlikely right now as we only resize
-   // on put() and we check to see if someone else has already started
-   // resizing first
+   // create the new entry list
+   EntryList* newList = createEntryList(capacity);
 
-   // if the capacity of the list is smaller than the requested capacity
-   // then create a new one
-   if(el->capacity < capacity)
+   // try to swap in the new list
+   if(Atomic::compareAndSwap(el->next, NULL, newList))
    {
-      // create the new entry list
-      EntryList* newList = new EntryList;
-
-      EntryList newList;
-      newList->entries = malloc();
-      Atomic::compareAndSwap(dst, oldList, newList);
+      // success, mark the old current list as old
+      el->old = true;
+   }
+   else
+   {
+      // failure, free the list we allocated
+      freeEntryList(newList);
    }
 
+   // decrement the refcount on the old current list
+   unrefEntryList(el);
+}
 
-   // FIXME: use a better capacity increase formula
-
-   // create table with the
-
-
-   // FIXME: do not copy tombstones
+template<typename _K, typename _V, typename _H>
+void HashTable<_K, _V, _H>::collectGarbage(HazardPtr* ptr)
+{
+   // 12-02-2009: figure this out
+   // FIXME: iterate over EntryLists, mark "old" lists that have only sentinels
+   // and tombstones as garbage
+   // FIXME: should other entries be moved into the new list? how costly will
+   // this operation be? should we call it from get? should we only move at
+   // most one entry? will this work cleanly with multiple intermediate old
+   // lists?
 }
 
 } // end namespace rt
