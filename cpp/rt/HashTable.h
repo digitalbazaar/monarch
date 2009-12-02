@@ -270,7 +270,7 @@ protected:
     *
     * @return the new Entry.
     */
-   virtual Entry* createValue(const _K& key, const _V& value);
+   virtual Entry* createEntry(const _K& key, const _V& value);
 
    /**
     * Frees an Entry.
@@ -296,7 +296,7 @@ protected:
     *
     * @param el the entry list to decrease the reference count on.
     */
-   virtual void unrefEntryList(Entry* el);
+   virtual void unrefEntryList(EntryList* el);
 
    /**
     * A helper function that gets the most current EntryList at
@@ -391,7 +391,7 @@ template<typename _K, typename _V, typename _H>
 HashTable<_K, _V, _H>::~HashTable()
 {
    // clean up all entry lists
-   EntryList* el = mHead;
+   EntryList* el = const_cast<EntryList*>(mHead);
    while(el != NULL)
    {
       EntryList* tmp = el;
@@ -429,7 +429,7 @@ bool HashTable<_K, _V, _H>::get(const _K& k, _V& v)
 {
    bool rval = false;
 
-   Entry* e;
+   Entry* e = NULL;
    rval = get(k, e);
    if(rval)
    {
@@ -451,7 +451,7 @@ bool HashTable<_K, _V, _H>::remove(const _K& k)
    while(!done)
    {
       // get the entry
-      Entry* e;
+      Entry* e = NULL;
       if(get(k, e))
       {
          // set type to tombstone
@@ -511,8 +511,7 @@ HashTable<_K, _V, _H>::createEntryList(int capacity)
    el->garbageEntries = NULL;
    el->capacity = capacity;
    el->length = 0;
-   el->entries = static_cast<Entry**>(malloc(capacity));
-   memset(el->entries, NULL, capacity);
+   el->entries = static_cast<Entry**>(calloc(capacity, sizeof(Entry*)));
    el->next = NULL;
    el->old = false;
    el->garbage = false;
@@ -529,23 +528,19 @@ void HashTable<_K, _V, _H>::freeEntryList(EntryList* el)
       Entry* e = el->entries[i];
       if(e != NULL)
       {
-         if(e->v != NULL)
-         {
-            delete e->v;
-         }
-         free(e);
+         freeEntry(e);
       }
    }
 
    // free all garbage entries
-   for(Entry* e = el->garbageEntries; e != NULL; e = e->garbageNext)
+   for(Entry* e = const_cast<Entry*>(el->garbageEntries); e != NULL;
+       e = e->garbageNext)
    {
-      if(e->v != NULL)
-      {
-         delete e->v;
-      }
-      free(e);
+      freeEntry(e);
    }
+
+   // free entries array
+   free(el->entries);
 
    // free list
    Atomic::freeAligned(el);
@@ -553,7 +548,7 @@ void HashTable<_K, _V, _H>::freeEntryList(EntryList* el)
 
 template<typename _K, typename _V, typename _H>
 struct HashTable<_K, _V, _H>::Entry*
-HashTable<_K, _V, _H>::createValue(const _K& key, const _V& value)
+HashTable<_K, _V, _H>::createEntry(const _K& key, const _V& value)
 {
    Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
    e->type = Entry::Value;
@@ -563,6 +558,16 @@ HashTable<_K, _V, _H>::createValue(const _K& key, const _V& value)
    e->garbageNext = NULL;
    return e;
 };
+
+template<typename _K, typename _V, typename _H>
+void HashTable<_K, _V, _H>::freeEntry(Entry* e)
+{
+   if(e->v != NULL)
+   {
+      delete e->v;
+   }
+   free(e);
+}
 
 template<typename _K, typename _V, typename _H>
 struct HashTable<_K, _V, _H>::EntryList*
@@ -575,10 +580,13 @@ HashTable<_K, _V, _H>::refNextEntryList(HazardPtr* ptr, EntryList* prev)
       do
       {
          // attempt to protect the head EntryList with a hazard pointer
-         ptr->value = mHead;
+         ptr->value = const_cast<EntryList*>(mHead);
       }
       // ensure the head hasn't changed
       while(ptr->value != mHead);
+
+      // set return value
+      rval = static_cast<EntryList*>(ptr->value);
    }
    else
    {
@@ -587,13 +595,12 @@ HashTable<_K, _V, _H>::refNextEntryList(HazardPtr* ptr, EntryList* prev)
          the end of the list or if we've been guaranteed (i.e. we found
          a Sentinel Entry in the current list) to find a next EntryList.
          Therefore, we don't need to do any special checks here. */
-      rval = ptr->next;
+      rval = prev->next;
    }
 
-   if(ptr->value != NULL)
+   if(rval != NULL)
    {
-      // set return value and increment reference count
-      rval = static_cast<EntryList*>(ptr->value);
+      // increment reference count
       Atomic::incrementAndFetch(&rval->refCount);
    }
 
@@ -601,7 +608,7 @@ HashTable<_K, _V, _H>::refNextEntryList(HazardPtr* ptr, EntryList* prev)
 }
 
 template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::unrefEntryList(Entry* el)
+void HashTable<_K, _V, _H>::unrefEntryList(EntryList* el)
 {
    // decrement reference count
    Atomic::decrementAndFetch(&el->refCount);
@@ -652,12 +659,14 @@ bool HashTable<_K, _V, _H>::replaceEntry(
       // move old entry to garbage list
       if(eOld != NULL)
       {
+         volatile Entry* veOld = const_cast<volatile Entry*>(eOld);
+         volatile Entry* oldHead;
          do
          {
-            eOld->garbageNext = el->garbageEntries;
+            oldHead = el->garbageEntries;
+            veOld->garbageNext = const_cast<Entry*>(oldHead);
          }
-         while(!Atomic::compareAndSwap(
-               el->garbageEntries, eOld->garbageNext, eOld));
+         while(!Atomic::compareAndSwap(&el->garbageEntries, oldHead, veOld));
       }
    }
 
@@ -693,7 +702,7 @@ HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
          Entry* e = el->entries[idx];
          if(e != NULL && e->type == Entry::Value)
          {
-            if(!e->old)
+            if(!el->old)
             {
                // the list is not old, so we found an up-to-date value
                found = true;
@@ -715,7 +724,7 @@ HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
                   &e->type, Entry::Value, Entry::Tombstone))
                {
                   // decrement list length
-                  Atomic::decrementAndFetch(el->length);
+                  Atomic::decrementAndFetch(&el->length);
                }
             }
          }
@@ -754,7 +763,7 @@ bool HashTable<_K, _V, _H>::put(
     */
 
    // create a value entry
-   Entry* eNew = createValue(k, v);
+   Entry* eNew = createEntry(k, v);
 
    // enter a spin loop that keep trying to insert while:
    // 1. we haven't inserted yet AND
@@ -786,7 +795,7 @@ bool HashTable<_K, _V, _H>::put(
          if(eOld == NULL)
          {
             // there is no existing entry so try to insert
-            inserted = replaceEntry(el + i, eOld, eNew);
+            inserted = replaceEntry(el, i, eOld, eNew);
             insertAttempted = true;
          }
          else if(eOld->type == Entry::Sentinel)
@@ -803,7 +812,7 @@ bool HashTable<_K, _V, _H>::put(
             // entry
             if(&(eOld->k) == &k || (eOld->h == eNew->h && eOld->k == k))
             {
-               inserted = replaceEntry(el + i, eOld, eNew);
+               inserted = replaceEntry(el, i, eOld, eNew);
                insertAttempted = true;
             }
             else if(i == maxIdx)
@@ -930,7 +939,7 @@ void HashTable<_K, _V, _H>::resize(HazardPtr* ptr, EntryList* el, int capacity)
       EntryList* newList = createEntryList(capacity);
 
       // try to swap in the new list
-      if(Atomic::compareAndSwap(el->next, NULL, newList))
+      if(Atomic::compareAndSwap(&el->next, (EntryList*)NULL, newList))
       {
          // success, mark the old current list as old
          el->old = true;

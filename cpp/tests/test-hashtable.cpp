@@ -14,7 +14,7 @@ using namespace std;
 using namespace db::test;
 using namespace db::rt;
 
-struct KeyAsIndex
+struct KeyAsHash
 {
    int operator()(int key) const
    {
@@ -26,8 +26,7 @@ void runHashTableTests(TestRunner& tr)
 {
    tr.group("HashTable");
 
-   // FIXME:
-   //HashTable<int, int, KeyAsIndex> table;
+   HashTable<int, int, KeyAsHash> table;
 
    tr.test("put");
    {

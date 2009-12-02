@@ -21,7 +21,8 @@ HazardPtr* HazardPtrList::acquire()
    volatile HazardPtr* rval = NULL;
 
    // find a hazard pointer that is inactive
-   for(HazardPtr* ptr = (HazardPtr*)mHead; ptr != NULL; ptr = ptr->next)
+   for(HazardPtr* ptr = const_cast<HazardPtr*>(mHead); ptr != NULL;
+       ptr = ptr->next)
    {
       // try to mark an inactive pointer as active
       if(!ptr->active && Atomic::compareAndSwap(&ptr->active, false, true))
@@ -43,7 +44,7 @@ HazardPtr* HazardPtrList::acquire()
       do
       {
          old = mHead;
-         rval->next = (HazardPtr*)old;
+         rval->next = const_cast<HazardPtr*>(old);
       }
       while(!Atomic::compareAndSwap(&mHead, old, rval));
    }
@@ -62,7 +63,7 @@ bool HazardPtrList::isAddressInUse(void* addr)
    bool rval = false;
 
    // search the list for the given address
-   for(HazardPtr* ptr = (HazardPtr*)mHead; !rval && ptr != NULL;
+   for(HazardPtr* ptr = const_cast<HazardPtr*>(mHead); !rval && ptr != NULL;
        ptr = ptr->next)
    {
       if(ptr->value == addr)
