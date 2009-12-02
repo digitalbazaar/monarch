@@ -638,6 +638,12 @@ bool HashTable<_K, _V, _H>::replaceEntry(
    rval = Atomic::compareAndSwap(el->entries + idx, eOld, eNew);
    if(rval)
    {
+      if(eOld == NULL || eOld->type == Entry::Tombstone)
+      {
+         // increment list length
+         Atomic::incrementAndFetch(&el->length);
+      }
+
       // FIXME: we need a way to clean up this garbage list other than
       // just whenever the owner EntryList gets cleaned up ... every time
       // a value is replaced for the same key, a garbage entry is going
@@ -781,11 +787,6 @@ bool HashTable<_K, _V, _H>::put(
          {
             // there is no existing entry so try to insert
             inserted = replaceEntry(el + i, eOld, eNew);
-            if(inserted)
-            {
-               // increment list length
-               Atomic::incrementAndFetch(&el->length);
-            }
             insertAttempted = true;
          }
          else if(eOld->type == Entry::Sentinel)
