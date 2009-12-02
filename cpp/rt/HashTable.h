@@ -311,20 +311,18 @@ protected:
    virtual EntryList* getCurrentEntryList(HazardPtr* ptr);
 
    /**
-    * Replaces an old entry with a new one.
+    * Replaces an old entry with a new one, if the old one hasn't changed.
     *
     * @param el the EntryList to update.
     * @param idx the index of the old entry.
     * @param eOld the old Entry.
     * @param eNew the new Entry.
-    * @param increase 1 to increase the list length, -1 to decrease, 0 to
-    *        do nothing.
     *
     * @return true if the replacement was successful, false if the old
     *         entry changed before the replacement could take place.
     */
    virtual bool replaceEntry(
-      EntryList* el, int idx, Entry* eOld, Entry* eNew, int increase);
+      EntryList* el, int idx, Entry* eOld, Entry* eNew);
 
    /**
     * Gets the entry at the given index in the table. The EntryList owner of
@@ -633,7 +631,7 @@ HashTable<_K, _V, _H>::getCurrentEntryList(HazardPtr* ptr)
 
 template<typename _K, typename _V, typename _H>
 bool HashTable<_K, _V, _H>::replaceEntry(
-   EntryList* el, int idx, Entry* eOld, Entry* eNew, int increase)
+   EntryList* el, int idx, Entry* eOld, Entry* eNew)
 {
    bool rval = false;
 
@@ -641,16 +639,6 @@ bool HashTable<_K, _V, _H>::replaceEntry(
    rval = Atomic::compareAndSwap(el->entries + idx, eOld, eNew);
    if(rval)
    {
-      switch(increase)
-      {
-         case 1:
-            Atomic::incrementAndFetch(&el->length);
-            break;
-         case -1:
-            Atomic::decrementAndFetch(&el->length);
-            break;
-      }
-
       // FIXME: we need a way to clean up this garbage list other than
       // just whenever the owner EntryList gets cleaned up ... every time
       // a value is replaced for the same key, a garbage entry is going
@@ -793,7 +781,12 @@ bool HashTable<_K, _V, _H>::put(
          if(eOld == NULL)
          {
             // there is no existing entry so try to insert
-            inserted = replaceEntry(el + i, eOld, eNew, 1);
+            inserted = replaceEntry(el + i, eOld, eNew);
+            if(inserted)
+            {
+               // increment list length
+               Atomic::incrementAndFetch(&el->length);
+            }
             insertAttempted = true;
          }
          else if(eOld->type == Entry::Sentinel)
@@ -810,7 +803,7 @@ bool HashTable<_K, _V, _H>::put(
             // entry
             if(&(eOld->k) == &k || (eOld->h == eNew->h && eOld->k == k))
             {
-               inserted = replaceEntry(el + i, eOld, eNew, 1);
+               inserted = replaceEntry(el + i, eOld, eNew);
                insertAttempted = true;
             }
             else if(i == maxIdx)
