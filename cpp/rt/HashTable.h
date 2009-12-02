@@ -116,12 +116,9 @@ protected:
       Type type;
       _K k;
       int h;
-      union
-      {
-         _V v;
-         bool dead;
-      };
+      _V* v;
       EntryList* owner;
+      Entry* garbageNext;
    };
 
    /**
@@ -135,12 +132,20 @@ protected:
          so will the first value of the struct be automatically 32-bit aligned,
          but we put the special alignment in here anyway. */
       aligned_uint32_t refCount;
+#ifdef WIN32
+      /* MS Windows requires any variable written to in an atomic operation
+         to be aligned to the address size of the CPU. */
+      volatile Entry* garbageEntries __attribute__ ((aligned(4)));
+#else
+      volatile Entry* garbageEntries;
+#endif
       Entry** entries;
       int capacity;
+      int length;
       EntryList* next;
       bool old;
       bool garbage;
-      EntryList* nextGarbage;
+      EntryList* garbageNext;
    };
 
    /**
@@ -165,12 +170,6 @@ protected:
     * as necessary.
     */
    int mCapacity;
-
-   /**
-    * The current length of the hash table, meaning the number of entries
-    * stored in it.
-    */
-   int mLength;
 
    /**
     * The function for producing hash codes from keys.
@@ -213,8 +212,12 @@ public:
     *
     * @param k the key.
     * @param v the value.
+    * @param replace true to replace an existing value, false to abort if
+    *        an existing value is found.
+    *
+    * @return true if the value was put in the table, false if not.
     */
-   virtual void put(const _K& k, const _V& v);
+   virtual bool put(const _K& k, const _V& v, bool replace = true);
 
    /**
     * Gets the value that is mapped to the passed key.
@@ -225,6 +228,22 @@ public:
     * @return true if the key was found, false if not.
     */
    virtual bool get(const _K& k, _V& v);
+
+   /**
+    * Removes the value that is mapped to the passed key.
+    *
+    * @param k the key to remove the value for.
+    *
+    * @return true if the value removed, false if the key did not exist.
+    */
+   virtual bool remove(const _K& k);
+
+   /**
+    * Gets the current length of this HashTable.
+    *
+    * @return the length of this HashTable.
+    */
+   virtual int length();
 
 protected:
    /**
@@ -252,24 +271,6 @@ protected:
     * @return the new Entry.
     */
    virtual Entry* createValue(const _K& key, const _V& value);
-
-   /**
-    * Creates a Sentinel Entry.
-    *
-    * @param key the Entry key.
-    *
-    * @return the new Entry.
-    */
-   virtual Entry* createSentinel(const _K& key);
-
-   /**
-    * Creates a Tombstone Entry.
-    *
-    * @param key the Entry key.
-    *
-    * @return the new Entry.
-    */
-   virtual Entry* createTombstone(const _K& key);
 
    /**
     * Frees an Entry.
@@ -310,6 +311,22 @@ protected:
    virtual EntryList* getCurrentEntryList(HazardPtr* ptr);
 
    /**
+    * Replaces an old entry with a new one.
+    *
+    * @param el the EntryList to update.
+    * @param idx the index of the old entry.
+    * @param eOld the old Entry.
+    * @param eNew the new Entry.
+    * @param increase 1 to increase the list length, -1 to decrease, 0 to
+    *        do nothing.
+    *
+    * @return true if the replacement was successful, false if the old
+    *         entry changed before the replacement could take place.
+    */
+   virtual bool replaceEntry(
+      EntryList* el, int idx, Entry* eOld, Entry* eNew, int increase);
+
+   /**
     * Gets the entry at the given index in the table. The EntryList owner of
     * the Entry must be unref'd when the Entry is no longer in use.
     *
@@ -319,6 +336,30 @@ protected:
     * @return the entry or NULL if no such entry exists.
     */
    virtual Entry* getEntry(HazardPtr* ptr, int idx);
+
+   /**
+    * Maps a key to a value in this HashTable.
+    *
+    * @param k the key.
+    * @param v the value.
+    * @param replace true to replace an existing value, false to abort if
+    *        an existing value is found.
+    * @param ptr the HazardPtr to use.
+    *
+    * @return true if the value was put in the table, false if not.
+    */
+   virtual bool put(const _K& k, const _V& v, bool replace, HazardPtr* ptr);
+
+   /**
+    * Gets the Entry that is mapped to the passed key. The owner EntryList
+    * must be unref'd.
+    *
+    * @param k the key to get the value for.
+    * @param e the entry with the value.
+    *
+    * @return true if the key was found, false if not.
+    */
+   virtual bool get(const _K& k, Entry* e);
 
    /**
     * Resizes the table.
@@ -332,8 +373,7 @@ protected:
 
 template<typename _K, typename _V, typename _H>
 HashTable<_K, _V, _H>::HashTable(int capacity) :
-   mCapacity(capacity),
-   mLength(0)
+   mCapacity(capacity)
 {
    // create first EntryList
    mHead = createEntryList(capacity);
@@ -341,8 +381,7 @@ HashTable<_K, _V, _H>::HashTable(int capacity) :
 
 template<typename _K, typename _V, typename _H>
 HashTable<_K, _V, _H>::HashTable(const HashTable& copy) :
-   mCapacity(copy.mCapacity),
-   mLength(0)
+   mCapacity(copy.mCapacity)
 {
    // create the first EntryList
    mHead = createEntryList(mCapacity);
@@ -375,109 +414,16 @@ HashTable<_K, _V, _H>& HashTable<_K, _V, _H>::operator=(
 }
 
 template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
+bool HashTable<_K, _V, _H>::put(const _K& k, const _V& v, bool replace)
 {
-   /* Steps:
+   bool rval = false;
 
-      1. Create the entry for the table.
-      2. Enter a spin loop that runs until the value is inserted.
-      3. Use the newest entries array.
-      4. Find the index to insert at.
-      5. Do a CAS to insert.
-      6. CAS may fail if another thread slipped in and modified the value
-         before us, so loop and try again.
-
-      Note: We may need to resize the table or we may discover that an old
-      entry is a sentinel, in which case we must insert into a new table.
-    */
-
-   // FIXME: need to do garbage collection and add code to move entries
-   // from old EntryLists into the latest one
-
-   // create a value entry
-   Entry* eNew = createValue(k, v);
-
-   // acquire a hazard pointer
+   // do put with an acquired hazard pointer
    HazardPtr* ptr = mHazardPtrs.acquire();
-
-   // enter a spin loop that runs until the entry has been inserted
-   bool inserted = false;
-   while(!inserted)
-   {
-      // use the newest entries array and its max index
-      EntryList* el = getCurrentEntryList(ptr);
-      int maxIdx = el->capacity - 1;
-
-      // set EntryList owner of the Entry
-      eNew->owner = el;
-
-      // enter another spin loop to keep trying to insert the entry until
-      // we do or we decide that we must insert into a newer table
-      bool useNewTable = false;
-      int i = eNew->h;
-      while(!inserted && !useNewTable)
-      {
-         // limit index to the max index
-         i &= maxIdx;
-
-         // get any existing entry
-         Entry* eOld = getEntry(ptr, i);
-         if(eOld == NULL)
-         {
-            // there is no existing entry so try to insert
-            inserted = Atomic::compareAndSwap(el + i, eOld, eNew);
-         }
-         else if(eOld->type == Entry::Sentinel)
-         {
-            // a sentinel entry tells us that there is a newer table where
-            // we have to do the insert
-            useNewTable = true;
-         }
-         // existing entry is replaceable value or tombstone
-         else
-         {
-            // if the entry key is at the same memory address or if the hashes
-            // match and the keys match, then we can replace the existing
-            // entry
-            if(&(eOld->k) == &k || (eOld->h == eNew->h && eOld->k == k))
-            {
-               inserted = Atomic::compareAndSwap(el + i, eOld, eNew);
-            }
-            else if(i == maxIdx)
-            {
-               // keys did not match and we've reached the end of the table, so
-               // we must use a new table
-               useNewTable = true;
-            }
-            else
-            {
-               // keys did not match, so we found a collision, increase the
-               // index by 1 and try again
-               i++;
-            }
-         }
-
-         if(eOld != NULL)
-         {
-            // unreference the old entry's owner list
-            unrefEntryList(eOld);
-         }
-      }
-
-      if(useNewTable)
-      {
-         // resize and then try insert again
-         // FIXME: use a better capacity increase formula
-         int capacity = (int)(el->capacity * 1.5 + 1);
-         resize(ptr, el, capacity);
-      }
-
-      // unreference the current list
-      unrefEntryList(el);
-   }
-
-   // release the hazard pointer
+   rval = put(k, v, replace, ptr);
    mHazardPtrs.release(ptr);
+
+   return rval;
 }
 
 template<typename _K, typename _V, typename _H>
@@ -485,39 +431,37 @@ bool HashTable<_K, _V, _H>::get(const _K& k, _V& v)
 {
    bool rval = false;
 
-   // acquire a hazard pointer
-   HazardPtr* ptr = mHazardPtrs.acquire();
-
-   /* Search our entries array looking to see if we have a key that matches or
-      if the entry for the given key does not exist. If we find an entry that
-      matches the hash for our key, but the key does not match, then we must
-      reprobe. We do so by incrementing our index by 1 since we handle
-      collisions when inserting by simply increasing the index by 1 until we
-      find an empty slot.
-    */
-   int hash = mHashFunction(k);
-   bool done = false;
-   for(int i = hash; !done; i++)
+   Entry* e;
+   rval = get(k, e);
+   if(rval)
    {
-      // limit index to capacity of table
-      i &= (mCapacity - 1);
+      // get value, unreference entry's list
+      v = *(e->v);
+      unrefEntryList(e->owner);
+   }
 
-      // get entry at index
-      Entry* e = getEntry(ptr, i);
-      if(e != NULL)
+   return rval;
+}
+
+template<typename _K, typename _V, typename _H>
+bool HashTable<_K, _V, _H>::remove(const _K& k)
+{
+   bool rval = false;
+
+   // loop until a value is set to a tombstone or the entry is not found
+   bool done = false;
+   while(!done)
+   {
+      // get the entry
+      Entry* e;
+      if(get(k, e))
       {
-         // if the entry key is at the same memory address or if the hashes
-         // match and the keys match, then we found the value we want
-         if(&(e->k) == &k || (e->h == hash && e->k == k))
+         // set type to tombstone
+         if(Atomic::compareAndSwap(&e->type, Entry::Value, Entry::Tombstone))
          {
-            v = e->v;
+            // decrease list's length
+            Atomic::decrementAndFetch(&e->owner->length);
             rval = done = true;
-         }
-         else if(i == mCapacity - 1)
-         {
-            // keys did not match and we've reached the end of the table, so
-            // the entry does not exist
-            done = true;
          }
 
          // unreference entry's list
@@ -525,9 +469,32 @@ bool HashTable<_K, _V, _H>::get(const _K& k, _V& v)
       }
       else
       {
-         // no such entry
          done = true;
       }
+   }
+
+   return rval;
+}
+
+template<typename _K, typename _V, typename _H>
+int HashTable<_K, _V, _H>::length()
+{
+   int rval = 0;
+
+   // acquire a hazard pointer
+   HazardPtr* ptr = mHazardPtrs.acquire();
+
+   // iterate over every entry list, adding lengths
+   EntryList* el = refNextEntryList(ptr, NULL);
+   while(el->next != NULL)
+   {
+      // add length
+      rval += el->length;
+
+      // get the next entry list, drop reference to old list
+      EntryList* next = refNextEntryList(ptr, el);
+      unrefEntryList(el);
+      el = next;
    }
 
    // release the hazard pointer
@@ -543,27 +510,43 @@ HashTable<_K, _V, _H>::createEntryList(int capacity)
    EntryList* el = static_cast<EntryList*>(
       Atomic::mallocAligned(sizeof(EntryList)));
    el->refCount = 0;
+   el->garbageEntries = NULL;
    el->capacity = capacity;
+   el->length = 0;
    el->entries = static_cast<Entry**>(malloc(capacity));
    memset(el->entries, NULL, capacity);
    el->next = NULL;
    el->old = false;
    el->garbage = false;
-   el->nextGarbage = NULL;
+   el->garbageNext = NULL;
    return el;
 };
 
 template<typename _K, typename _V, typename _H>
 void HashTable<_K, _V, _H>::freeEntryList(EntryList* el)
 {
-   // free all entries
+   // free all live entries
    for(int i = 0; i < el->capacity; i++)
    {
       Entry* e = el->entries[i];
       if(e != NULL)
       {
+         if(e->v != NULL)
+         {
+            delete e->v;
+         }
          free(e);
       }
+   }
+
+   // free all garbage entries
+   for(Entry* e = el->garbageEntries; e != NULL; e = e->garbageNext)
+   {
+      if(e->v != NULL)
+      {
+         delete e->v;
+      }
+      free(e);
    }
 
    // free list
@@ -578,31 +561,8 @@ HashTable<_K, _V, _H>::createValue(const _K& key, const _V& value)
    e->type = Entry::Value;
    e->k = key;
    e->h = mHashFunction(key);
-   e->v = value;
-   return e;
-};
-
-template<typename _K, typename _V, typename _H>
-struct HashTable<_K, _V, _H>::Entry*
-HashTable<_K, _V, _H>::createSentinel(const _K& key)
-{
-   Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
-   e->type = Entry::Sentinel;
-   e->k = key;
-   e->h = mHashFunction(key);
-   e->dead = false;
-   return e;
-};
-
-template<typename _K, typename _V, typename _H>
-struct HashTable<_K, _V, _H>::Entry*
-HashTable<_K, _V, _H>::createTombstone(const _K& key)
-{
-   Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
-   e->type = Entry::Tombstone;
-   e->k = key;
-   e->h = mHashFunction(key);
-   e->dead = true;
+   e->v = new _V(value);
+   e->garbageNext = NULL;
    return e;
 };
 
@@ -672,6 +632,46 @@ HashTable<_K, _V, _H>::getCurrentEntryList(HazardPtr* ptr)
 }
 
 template<typename _K, typename _V, typename _H>
+bool HashTable<_K, _V, _H>::replaceEntry(
+   EntryList* el, int idx, Entry* eOld, Entry* eNew, int increase)
+{
+   bool rval = false;
+
+   eNew->owner = el;
+   rval = Atomic::compareAndSwap(el->entries + idx, eOld, eNew);
+   if(rval)
+   {
+      switch(increase)
+      {
+         case 1:
+            Atomic::incrementAndFetch(&el->length);
+            break;
+         case -1:
+            Atomic::decrementAndFetch(&el->length);
+            break;
+      }
+
+      // FIXME: we need a way to clean up this garbage list other than
+      // just whenever the owner EntryList gets cleaned up ... every time
+      // a value is replaced for the same key, a garbage entry is going
+      // to be created
+
+      // move old entry to garbage list
+      if(eOld != NULL)
+      {
+         do
+         {
+            eOld->garbageNext = el->garbageEntries;
+         }
+         while(!Atomic::compareAndSwap(
+               el->garbageEntries, eOld->garbageNext, eOld));
+      }
+   }
+
+   return rval;
+}
+
+template<typename _K, typename _V, typename _H>
 struct HashTable<_K, _V, _H>::Entry*
 HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
 {
@@ -687,9 +687,9 @@ HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
       as garbage and is waiting for all references to it to be removed so
       that it can be collected. */
 
-   /* Iterate through each EntryList until a non-sentinel entry is found,
-      the entry's owner will have its reference count increased, protecting
-      it from being freed. */
+   /* Iterate through each EntryList until a non-old Value entry is found.
+      Note: The entry's owner will have its reference count increased,
+      protecting it from being freed. */
    bool found = false;
    EntryList* el = refNextEntryList(ptr, NULL);
    while(!found && el != NULL)
@@ -698,21 +698,212 @@ HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
       if(idx < el->capacity)
       {
          Entry* e = el->entries[idx];
-         if(e->type != Entry::Sentinel)
+         if(e != NULL && e->type == Entry::Value)
          {
-            found = true;
-            rval = e;
+            if(!e->old)
+            {
+               // the list is not old, so we found an up-to-date value
+               found = true;
+               rval = e;
+            }
+            else
+            {
+               /* We found a value in an old list so we're responsible for
+                  attempting to copy that value to the most current list.
+                  We attempt to do a put here, but we don't care if we
+                  fail. If we fail, then someone else has already put
+                  the value or an even newer value into the current list for
+                  us. We simply mark the old entry as a Sentinel.
+                */
+               put(e->k, *(e->v), false, ptr);
+
+               // set entry type to a sentinel
+               if(Atomic::compareAndSwap(
+                  &e->type, Entry::Value, Entry::Tombstone))
+               {
+                  // decrement list length
+                  Atomic::decrementAndFetch(el->length);
+               }
+            }
          }
       }
 
       if(!found)
       {
-         // get the next entry list, drop reference to old list
+         // get the next entry list, drop reference to the old list
          EntryList* next = refNextEntryList(ptr, el);
          unrefEntryList(el);
          el = next;
       }
    }
+
+   return rval;
+}
+
+template<typename _K, typename _V, typename _H>
+bool HashTable<_K, _V, _H>::put(
+   const _K& k, const _V& v, bool replace, HazardPtr* ptr)
+{
+   bool rval = false;
+
+   /* Steps:
+
+      1. Create the entry for the table.
+      2. Enter a spin loop that runs until the value is inserted.
+      3. Use the newest entries array.
+      4. Find the index to insert at.
+      5. Do a CAS to insert.
+      6. CAS may fail if another thread slipped in and modified the value
+         before us, so loop and try again.
+
+      Note: We may need to resize the table or we may discover that an old
+      entry is a sentinel, in which case we must insert into a new table.
+    */
+
+   // create a value entry
+   Entry* eNew = createValue(k, v);
+
+   // enter a spin loop that keep trying to insert while:
+   // 1. we haven't inserted yet AND
+   // 2. we're replacing existing values OR we haven't attempted an insert
+   bool inserted = false;
+   bool insertAttempted = false;
+   while(!inserted && (replace || !insertAttempted))
+   {
+      // use the newest entries array and its max index
+      EntryList* el = getCurrentEntryList(ptr);
+      int maxIdx = el->capacity - 1;
+
+      // set EntryList owner of the Entry
+      eNew->owner = el;
+
+      // enter another spin loop to keep trying to insert while:
+      // 1. we haven't decided we need a new table
+      // 2. we haven't inserted AND
+      // 3. we're replacing existing values OR we haven't attempted an insert
+      bool useNewTable = false;
+      int i = eNew->h;
+      while(!useNewTable && !inserted && (replace || !insertAttempted))
+      {
+         // limit index to the max index
+         i &= maxIdx;
+
+         // get any existing entry directly from the current list
+         Entry* eOld = el->entries[i];
+         if(eOld == NULL)
+         {
+            // there is no existing entry so try to insert
+            inserted = replaceEntry(el + i, eOld, eNew, 1);
+            insertAttempted = true;
+         }
+         else if(eOld->type == Entry::Sentinel)
+         {
+            // a sentinel entry tells us that there is a newer table where
+            // we have to do the insert
+            useNewTable = true;
+         }
+         // existing entry is replaceable value or a tombstone
+         else
+         {
+            // if the entry key is at the same memory address or if the hashes
+            // match and the keys match, then we can replace the existing
+            // entry
+            if(&(eOld->k) == &k || (eOld->h == eNew->h && eOld->k == k))
+            {
+               inserted = replaceEntry(el + i, eOld, eNew, 1);
+               insertAttempted = true;
+            }
+            else if(i == maxIdx)
+            {
+               // keys did not match and we've reached the end of the table, so
+               // we must use a new table
+               useNewTable = true;
+            }
+            else
+            {
+               // keys did not match, so we found a collision, increase the
+               // index by 1 and try again
+               i++;
+            }
+         }
+      }
+
+      if(inserted)
+      {
+         // insert was successful
+         rval = true;
+      }
+      else if(useNewTable)
+      {
+         // resize and then try insert again
+         // FIXME: use a better capacity increase formula
+         int capacity = (int)(el->capacity * 1.5 + 1);
+         resize(ptr, el, capacity);
+      }
+
+      // unreference the current list
+      unrefEntryList(el);
+   }
+
+   // FIXME: run garbage collection? how often?
+
+   return rval;
+}
+
+template<typename _K, typename _V, typename _H>
+bool HashTable<_K, _V, _H>::get(const _K& k, Entry* e)
+{
+   bool rval = false;
+
+   // acquire a hazard pointer
+   HazardPtr* ptr = mHazardPtrs.acquire();
+
+   /* Search our entries array looking to see if we have a key that matches or
+      if the entry for the given key does not exist. If we find an entry that
+      matches the hash for our key, but the key does not match, then we must
+      reprobe. We do so by incrementing our index by 1 since we handle
+      collisions when inserting by simply increasing the index by 1 until we
+      find an empty slot.
+    */
+   int hash = mHashFunction(k);
+   bool done = false;
+   for(int i = hash; !done; i++)
+   {
+      // limit index to capacity of table
+      i &= (mCapacity - 1);
+
+      // get entry at index
+      Entry* e = getEntry(ptr, i);
+      if(e != NULL)
+      {
+         // if the entry key is at the same memory address or if the hashes
+         // match and the keys match, then we found the value we want
+         if(&(e->k) == &k || (e->h == hash && e->k == k))
+         {
+            rval = done = true;
+         }
+         else if(i == mCapacity - 1)
+         {
+            // keys did not match and we've reached the end of the table, so
+            // the entry does not exist
+            done = true;
+         }
+
+         if(!rval)
+         {
+            // unreference entry's list
+            unrefEntryList(e->owner);
+         }
+      }
+      else
+      {
+         // no such entry
+         done = true;
+      }
+   }
+
+   // release the hazard pointer
+   mHazardPtrs.release(ptr);
 
    return rval;
 }
