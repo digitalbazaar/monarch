@@ -340,11 +340,11 @@ HashTable<_K, _V, _H>::HashTable(int capacity) :
 
 template<typename _K, typename _V, typename _H>
 HashTable<_K, _V, _H>::HashTable(const HashTable& copy) :
-   mCapacity(capacity),
+   mCapacity(copy.mCapacity),
    mLength(0)
 {
    // create the first EntryList
-   mHead = createEntryList(capacity);
+   mHead = createEntryList(mCapacity);
 
    // FIXME: iterate over the copy and put all of its entries
 }
