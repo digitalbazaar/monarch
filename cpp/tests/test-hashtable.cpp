@@ -27,14 +27,26 @@ void runHashTableTests(TestRunner& tr)
    tr.group("HashTable");
 
    HashTable<int, int, KeyAsHash> table;
+   int key = 1;
+   int value = 7;
 
    tr.test("put");
    {
+      table.put(key, value);
    }
    tr.passIfNoException();
 
    tr.test("get");
    {
+      int num;
+      if(table.get(key, num))
+      {
+         printf("GOT: %d => %d\n", key, num);
+      }
+      else
+      {
+         printf("VALUE FOR %d NOT FOUND\n", key);
+      }
    }
    tr.passIfNoException();
 

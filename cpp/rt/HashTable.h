@@ -353,11 +353,11 @@ protected:
     * must be unref'd.
     *
     * @param k the key to get the value for.
-    * @param e the entry with the value.
+    * @param e the entry pointer to be set.
     *
     * @return true if the key was found, false if not.
     */
-   virtual bool get(const _K& k, Entry* e);
+   virtual bool get(const _K& k, Entry*& e);
 
    /**
     * Resizes the table.
@@ -624,13 +624,13 @@ HashTable<_K, _V, _H>::getCurrentEntryList(HazardPtr* ptr)
       per the design of this HashTable. There is always a head EntryList. */
 
    // get the tail
-   EntryList* el = refNextEntryList(ptr, NULL);
-   while(el->next != NULL)
+   rval = refNextEntryList(ptr, NULL);
+   while(rval->next != NULL)
    {
       // get the next entry list, drop reference to old list
-      EntryList* next = refNextEntryList(ptr, el);
-      unrefEntryList(el);
-      el = next;
+      EntryList* next = refNextEntryList(ptr, rval);
+      unrefEntryList(rval);
+      rval = next;
    }
 
    return rval;
@@ -853,7 +853,7 @@ bool HashTable<_K, _V, _H>::put(
 }
 
 template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::get(const _K& k, Entry* e)
+bool HashTable<_K, _V, _H>::get(const _K& k, Entry*& e)
 {
    bool rval = false;
 
@@ -875,7 +875,7 @@ bool HashTable<_K, _V, _H>::get(const _K& k, Entry* e)
       i &= (mCapacity - 1);
 
       // get entry at index
-      Entry* e = getEntry(ptr, i);
+      e = getEntry(ptr, i);
       if(e != NULL)
       {
          // if the entry key is at the same memory address or if the hashes
