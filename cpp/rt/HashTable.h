@@ -220,10 +220,11 @@ public:
     * Gets the value that is mapped to the passed key.
     *
     * @param k the key to get the value for.
+    * @param v the value to be set.
     *
-    * @return the value or NULL if the value does not exist.
+    * @return true if the key was found, false if not.
     */
-   virtual _V* get(const _K& k);
+   virtual bool get(const _K& k, _V& v);
 
 protected:
    /**
@@ -480,9 +481,9 @@ void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
 }
 
 template<typename _K, typename _V, typename _H>
-_V* HashTable<_K, _V, _H>::get(const _K& k)
+bool HashTable<_K, _V, _H>::get(const _K& k, _V& v)
 {
-   _V* rval = NULL;
+   bool rval = false;
 
    // acquire a hazard pointer
    HazardPtr* ptr = mHazardPtrs.acquire();
@@ -509,8 +510,8 @@ _V* HashTable<_K, _V, _H>::get(const _K& k)
          // match and the keys match, then we found the value we want
          if(&(e->k) == &k || (e->h == hash && e->k == k))
          {
-            rval = &(e->v);
-            done = true;
+            v = e->v;
+            rval = done = true;
          }
          else if(i == mCapacity - 1)
          {
