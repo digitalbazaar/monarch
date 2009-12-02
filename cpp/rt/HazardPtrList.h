@@ -53,9 +53,9 @@ struct HazardPtr
  * another thread may be in the middle of incrementing that reference count
  * back up to 1.
  *
- * Another advantage of this approach is helps minimize the number of hazard
- * pointers required to do certain operations. If a hazard pointer is only
- * needed to protect memory while its reference count is being incremented,
+ * Another advantage of this approach is that it helps minimize the number of
+ * hazard pointers required to do certain operations. If a hazard pointer is
+ * only needed to protect memory while its reference count is being incremented,
  * then each thread should only ever need to acquire 1 hazard pointer.
  *
  * @author Dave Longley
