@@ -214,7 +214,6 @@ public:
     * @param k the key.
     * @param v the value.
     */
-   // FIXME: consider only implementing operators
    virtual void put(const _K& k, const _V& v);
 
    /**
