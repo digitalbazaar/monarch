@@ -4,19 +4,8 @@
 #ifndef db_rt_HashTable_H
 #define db_rt_HashTable_H
 
-#if 0
-
 #include "db/rt/Atomic.h"
 #include "db/rt/HazardPtrList.h"
-
-#include <inttypes.h>
-
-#ifdef WIN32
-#include <malloc.h>
-typedef aligned_uint32_t volatile uint32_t __attribute__ ((aligned(4)));
-#else
-typedef aligned_uint32_t volatile uint32_t;
-#endif
 
 namespace db
 {
@@ -280,7 +269,7 @@ protected:
     *
     * @return the new Entry.
     */
-   virtual Entry* createTombStone(const _K& key);
+   virtual Entry* createTombstone(const _K& key);
 
    /**
     * Frees an Entry.
@@ -321,19 +310,6 @@ protected:
    virtual EntryList* getCurrentEntryList(HazardPtr* ptr);
 
    /**
-    * Atomically inserts an entry into an entries list and returns true
-    * if successful.
-    *
-    * @param el the entries list to insert into.
-    * @param idx the index to insert at.
-    * @param eOld the old entry to replace.
-    * @param eNew the new entry to insert.
-    *
-    * @return true if successful, false if not.
-    */
-   virtual bool insertEntry(Entry** el, int idx, Entry* eOld, Entry* eNew);
-
-   /**
     * Gets the entry at the given index in the table. The EntryList owner of
     * the Entry must be unref'd when the Entry is no longer in use.
     *
@@ -348,9 +324,10 @@ protected:
     * Resizes the table.
     *
     * @param ptr the hazard pointer to use.
+    * @param el the current EntryList.
     * @param capacity the new capacity to use.
     */
-   virtual void resize(HazardPtr* ptr, int capacity);
+   virtual void resize(HazardPtr* ptr, EntryList* el, int capacity);
 };
 
 template<typename _K, typename _V, typename _H>
@@ -358,7 +335,8 @@ HashTable<_K, _V, _H>::HashTable(int capacity) :
    mCapacity(capacity),
    mLength(0)
 {
-   // FIXME: create first EntryList
+   // create first EntryList
+   mHead = createEntryList(capacity);
 }
 
 template<typename _K, typename _V, typename _H>
@@ -370,7 +348,7 @@ HashTable<_K, _V, _H>::HashTable(const HashTable& copy)
 template<typename _K, typename _V, typename _H>
 HashTable<_K, _V, _H>::~HashTable()
 {
-   // FIXME:
+   // FIXME: clean up all entry lists
 }
 
 template<typename _K, typename _V, typename _H>
@@ -385,34 +363,36 @@ HashTable<_K, _V, _H>& HashTable<_K, _V, _H>::operator=(
 template<typename _K, typename _V, typename _H>
 void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
 {
-   // FIXME: unfinished! 11-29-2009
-
    /* Steps:
-    *
-    * 1. Create the entry for the table.
-    * 2. Enter a spin loop that runs until the value is inserted.
-    * 3. Use the newest entries array.
-    * 4. Find the index to insert at.
-    * 5. Do a CAS to insert.
-    * 6. CAS may fail if another thread slipped in and modified the value
-    *    before us, so loop and try again.
-    *
-    * Note: We may need to resize the table or we may discover that an old
-    * entry is a sentinel, in which case we must insert into a new table.
+
+      1. Create the entry for the table.
+      2. Enter a spin loop that runs until the value is inserted.
+      3. Use the newest entries array.
+      4. Find the index to insert at.
+      5. Do a CAS to insert.
+      6. CAS may fail if another thread slipped in and modified the value
+         before us, so loop and try again.
+
+      Note: We may need to resize the table or we may discover that an old
+      entry is a sentinel, in which case we must insert into a new table.
     */
+
+   // FIXME: need to do garbage collection and add code to move entries
+   // from old EntryLists into the latest one
 
    // create a value entry
    Entry* eNew = createValue(k, v);
+
+   // acquire a hazard pointer
+   HazardPtr* ptr = mHazardPtrs.acquire();
 
    // enter a spin loop that runs until the entry has been inserted
    bool inserted = false;
    while(!inserted)
    {
-      // use the newest entries array (last in the linked list)
-      // FIXME: need to use getCurrentEntryList()
-      // and unrefEntryList() when finished
-      EntryList* el = mEntryList;
-      for(; el->next != NULL; el = el->next);
+      // use the newest entries array and its max index
+      EntryList* el = getCurrentEntryList(ptr);
+      int maxIdx = el->capacity - 1;
 
       // set EntryList owner of the Entry
       eNew->owner = el;
@@ -420,18 +400,18 @@ void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
       // enter another spin loop to keep trying to insert the entry until
       // we do or we decide that we must insert into a newer table
       bool useNewTable = false;
-      int idx = eNew->h;
+      int i = eNew->h;
       while(!inserted && !useNewTable)
       {
-         // limit index to capacity of table
-         i &= (mCapacity - 1);
+         // limit index to the max index
+         i &= maxIdx;
 
          // get any existing entry
-         Entry* eOld = getEntry(i);
+         Entry* eOld = getEntry(ptr, i);
          if(eOld == NULL)
          {
             // there is no existing entry so try to insert
-            inserted = Atomic::CompareAndSwap(el + i, eOld, eNew);
+            inserted = Atomic::compareAndSwap(el + i, eOld, eNew);
          }
          else if(eOld->type == Entry::Sentinel)
          {
@@ -449,7 +429,7 @@ void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
             {
                inserted = Atomic::compareAndSwap(el + i, eOld, eNew);
             }
-            else if(i == mCapacity - 1)
+            else if(i == maxIdx)
             {
                // keys did not match and we've reached the end of the table, so
                // we must use a new table
@@ -459,36 +439,40 @@ void HashTable<_K, _V, _H>::put(const _K& k, const _V& v)
             {
                // keys did not match, so we found a collision, increase the
                // index by 1 and try again
-               idx++;
+               i++;
             }
          }
 
-         // unreference the old entry
-         unrefEntry(eOld);
+         if(eOld != NULL)
+         {
+            // unreference the old entry's owner list
+            unrefEntryList(eOld);
+         }
       }
 
       if(useNewTable)
       {
-         // see if there is a newer table ... if not, then we must resize
-         // to create one
-         if(entries == mLastEntryList)
-         {
-            // resize and then try insert again
-            // FIXME: use a better capacity increase formula
-            resize((int)(mCapacity * 1.5 + 1));
-         }
+         // resize and then try insert again
+         // FIXME: use a better capacity increase formula
+         int capacity = (int)(el->capacity * 1.5 + 1);
+         resize(ptr, el, capacity);
       }
+
+      // unreference the current list
+      unrefEntryList(el);
    }
+
+   // release the hazard pointer
+   mHazardPtrs.release(ptr);
 }
 
 template<typename _K, typename _V, typename _H>
 _V* HashTable<_K, _V, _H>::get(const _K& k)
 {
-   // FIXME: unfinished! 11-29-2009
    _V* rval = NULL;
 
    // acquire a hazard pointer
-   HazardPtr* ptr = mHazardPtrList->acquire();
+   HazardPtr* ptr = mHazardPtrs.acquire();
 
    /* Search our entries array looking to see if we have a key that matches or
       if the entry for the given key does not exist. If we find an entry that
@@ -505,7 +489,7 @@ _V* HashTable<_K, _V, _H>::get(const _K& k)
       i &= (mCapacity - 1);
 
       // get entry at index
-      Entry* e = getEntry(i);
+      Entry* e = getEntry(ptr, i);
       if(e != NULL)
       {
          // if the entry key is at the same memory address or if the hashes
@@ -521,26 +505,26 @@ _V* HashTable<_K, _V, _H>::get(const _K& k)
             // the entry does not exist
             done = true;
          }
+
+         // unreference entry's list
+         unrefEntryList(e->owner);
       }
       else
       {
          // no such entry
          done = true;
       }
-
-      // unreference entry
-      unrefEntry(e);
    }
 
    // release the hazard pointer
-   mHazardPtrList->release(ptr);
+   mHazardPtrs.release(ptr);
 
    return rval;
 }
 
 template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::createEntryList(
-   int capacity)
+struct HashTable<_K, _V, _H>::EntryList*
+HashTable<_K, _V, _H>::createEntryList(int capacity)
 {
    EntryList* el = static_cast<EntryList*>(
       Atomic::mallocAligned(sizeof(EntryList)));
@@ -552,6 +536,7 @@ HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::createEntryList(
    el->old = false;
    el->garbage = false;
    el->nextGarbage = NULL;
+   return el;
 };
 
 template<typename _K, typename _V, typename _H>
@@ -572,41 +557,44 @@ void HashTable<_K, _V, _H>::freeEntryList(EntryList* el)
 };
 
 template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::createValue(
-   const _K& key, const _V& value)
+struct HashTable<_K, _V, _H>::Entry*
+HashTable<_K, _V, _H>::createValue(const _K& key, const _V& value)
 {
    Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
-   e->type = Value;
+   e->type = Entry::Value;
    e->k = key;
    e->h = mHashFunction(key);
    e->v = value;
+   return e;
 };
 
 template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::createSentinel(
-   const _K& key)
+struct HashTable<_K, _V, _H>::Entry*
+HashTable<_K, _V, _H>::createSentinel(const _K& key)
 {
    Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
-   e->type = Sentinel;
+   e->type = Entry::Sentinel;
    e->k = key;
    e->h = mHashFunction(key);
    e->dead = false;
+   return e;
 };
 
 template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::createTombstone(
-   const _K& key)
+struct HashTable<_K, _V, _H>::Entry*
+HashTable<_K, _V, _H>::createTombstone(const _K& key)
 {
    Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
-   e->type = Tombstone;
+   e->type = Entry::Tombstone;
    e->k = key;
    e->h = mHashFunction(key);
    e->dead = true;
+   return e;
 };
 
 template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::refNextEntryList(
-   HazardPtr* ptr, EntryList* prev)
+struct HashTable<_K, _V, _H>::EntryList*
+HashTable<_K, _V, _H>::refNextEntryList(HazardPtr* ptr, EntryList* prev)
 {
    EntryList* rval = NULL;
 
@@ -648,8 +636,8 @@ void HashTable<_K, _V, _H>::unrefEntryList(Entry* el)
 }
 
 template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::getCurrentEntryList(
-   HazardPtr* ptr)
+struct HashTable<_K, _V, _H>::EntryList*
+HashTable<_K, _V, _H>::getCurrentEntryList(HazardPtr* ptr)
 {
    EntryList* rval = NULL;
 
@@ -670,16 +658,8 @@ HashTable<_K, _V, _H>::EntryList* HashTable<_K, _V, _H>::getCurrentEntryList(
 }
 
 template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::insertEntry(
-   Entry** el, int idx, Entry* eOld, Entry* eNew)
-{
-   // FIXME: unfinished! 11-29-2009
-   return Atomic::compareAndSwap(el + idx, eOld, eNew);
-}
-
-template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::getEntry(
-   HazardPtr* ptr, int idx)
+struct HashTable<_K, _V, _H>::Entry*
+HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
 {
    Entry* rval = NULL;
 
@@ -704,7 +684,7 @@ HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::getEntry(
       if(idx < el->capacity)
       {
          Entry* e = el->entries[idx];
-         if(e->type != Sentinel)
+         if(e->type != Entry::Sentinel)
          {
             found = true;
             rval = e;
@@ -724,7 +704,7 @@ HashTable<_K, _V, _H>::Entry* HashTable<_K, _V, _H>::getEntry(
 }
 
 template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::resize(HazardPtr* ptr, int capacity)
+void HashTable<_K, _V, _H>::resize(HazardPtr* ptr, EntryList* el, int capacity)
 {
    /* Note: When we call resize(), other threads might also be trying to
       resize at the same time. Therefore, we allocate a new EntryList and
@@ -745,28 +725,26 @@ void HashTable<_K, _V, _H>::resize(HazardPtr* ptr, int capacity)
       be called again until it succeeds.
     */
 
-   // get the current entry list (this also increases the refcount to it)
-   EntryList* el = getCurrentEntryList(ptr);
-
-   // create the new entry list
-   EntryList* newList = createEntryList(capacity);
-
-   // try to swap in the new list
-   if(Atomic::compareAndSwap(el->next, NULL, newList))
+   // only bother resizing if our current list isn't already old
+   if(!el->old)
    {
-      // success, mark the old current list as old
-      el->old = true;
-   }
-   else
-   {
-      // failure, free the list we allocated
-      freeEntryList(newList);
-   }
+      // create the new entry list
+      EntryList* newList = createEntryList(capacity);
 
-   // decrement the refcount on the old current list
-   unrefEntryList(el);
+      // try to swap in the new list
+      if(Atomic::compareAndSwap(el->next, NULL, newList))
+      {
+         // success, mark the old current list as old
+         el->old = true;
+      }
+      else
+      {
+         // failure, free the list we allocated
+         freeEntryList(newList);
+      }
+   }
 }
-
+/*
 template<typename _K, typename _V, typename _H>
 void HashTable<_K, _V, _H>::collectGarbage(HazardPtr* ptr)
 {
@@ -778,9 +756,8 @@ void HashTable<_K, _V, _H>::collectGarbage(HazardPtr* ptr)
    // most one entry? will this work cleanly with multiple intermediate old
    // lists?
 }
+*/
 
 } // end namespace rt
 } // end namespace db
-#endif
-
 #endif
