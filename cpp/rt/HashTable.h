@@ -635,7 +635,6 @@ bool HashTable<_K, _V, _H>::replaceEntry(
 {
    bool rval = false;
 
-   eNew->owner = el;
    rval = Atomic::compareAndSwap(el->entries + idx, eOld, eNew);
    if(rval)
    {
