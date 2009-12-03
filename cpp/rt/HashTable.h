@@ -16,6 +16,7 @@ namespace rt
  * Defines a hash code function. This function produces a hash code from a key.
  */
 // FIXME: define a default hash function?
+// FIXME: will probably need a compare function as well
 template<typename _K>
 struct HashFunction
 {
@@ -326,7 +327,8 @@ protected:
 
    /**
     * Gets the entry at the given index in the table. The EntryList owner of
-    * the Entry must be unref'd when the Entry is no longer in use.
+    * the Entry must be unref'd when the Entry is no longer in use. The
+    * index will be capped at the capacity of each EntryList that is searched.
     *
     * @param ptr the hazard pointer to use.
     * @param idx the index of the entry to retrieve.
@@ -353,11 +355,10 @@ protected:
     * must be unref'd.
     *
     * @param k the key to get the value for.
-    * @param e the entry pointer to be set.
     *
-    * @return true if the key was found, false if not.
+    * @return the Entry or NULL if none exists.
     */
-   virtual bool get(const _K& k, Entry*& e);
+   virtual Entry* get(const _K& k);
 
    /**
     * Resizes the table.
@@ -429,13 +430,13 @@ bool HashTable<_K, _V, _H>::get(const _K& k, _V& v)
 {
    bool rval = false;
 
-   Entry* e = NULL;
-   rval = get(k, e);
-   if(rval)
+   Entry* e = get(k);
+   if(e != NULL)
    {
       // get value, unreference entry's list
       v = *(e->v);
       unrefEntryList(e->owner);
+      rval = true;
    }
 
    return rval;
@@ -451,8 +452,8 @@ bool HashTable<_K, _V, _H>::remove(const _K& k)
    while(!done)
    {
       // get the entry
-      Entry* e = NULL;
-      if(get(k, e))
+      Entry* e = get(k);
+      if(e != NULL)
       {
          // set type to tombstone
          if(Atomic::compareAndSwap(&e->type, Entry::Value, Entry::Tombstone))
@@ -696,36 +697,35 @@ HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
    EntryList* el = refNextEntryList(ptr, NULL);
    while(!found && el != NULL)
    {
-      // check the entries for the given index
-      if(idx < el->capacity)
-      {
-         Entry* e = el->entries[idx];
-         if(e != NULL && e->type == Entry::Value)
-         {
-            if(!el->old)
-            {
-               // the list is not old, so we found an up-to-date value
-               found = true;
-               rval = e;
-            }
-            else
-            {
-               /* We found a value in an old list so we're responsible for
-                  attempting to copy that value to the most current list.
-                  We attempt to do a put here, but we don't care if we
-                  fail. If we fail, then someone else has already put
-                  the value or an even newer value into the current list for
-                  us. We simply mark the old entry as a Sentinel.
-                */
-               put(e->k, *(e->v), false, ptr);
+      // check the entries for the given index, capped at maxIdx
+      int maxIdx = el->capacity - 1;
+      int i = (idx > maxIdx) ? maxIdx : idx;
 
-               // set entry type to a sentinel
-               if(Atomic::compareAndSwap(
-                  &e->type, Entry::Value, Entry::Tombstone))
-               {
-                  // decrement list length
-                  Atomic::decrementAndFetch(&el->length);
-               }
+      Entry* e = el->entries[i];
+      if(e != NULL && e->type == Entry::Value)
+      {
+         if(!el->old)
+         {
+            // the list is not old, so we found an up-to-date value
+            found = true;
+            rval = e;
+         }
+         else
+         {
+            /* We found a value in an old list so we're responsible for
+               attempting to copy that value to the most current list.
+               We attempt to do a put here, but we don't care if we
+               fail. If we fail, then someone else has already put
+               the value or an even newer value into the current list for
+               us. We simply mark the old entry as a Sentinel.
+             */
+            put(e->k, *(e->v), false, ptr);
+
+            // set entry type to a sentinel
+            if(Atomic::compareAndSwap(&e->type, Entry::Value, Entry::Sentinel))
+            {
+               // decrement list length
+               Atomic::decrementAndFetch(&el->length);
             }
          }
       }
@@ -788,7 +788,7 @@ bool HashTable<_K, _V, _H>::put(
       while(!useNewTable && !inserted && (replace || !insertAttempted))
       {
          // limit index to the max index
-         i &= maxIdx;
+         i = (i > maxIdx) ? maxIdx : i;
 
          // get any existing entry directly from the current list
          Entry* eOld = el->entries[i];
@@ -853,53 +853,47 @@ bool HashTable<_K, _V, _H>::put(
 }
 
 template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::get(const _K& k, Entry*& e)
+struct HashTable<_K, _V, _H>::Entry*
+HashTable<_K, _V, _H>::get(const _K& k)
 {
-   bool rval = false;
+   Entry* rval = NULL;
 
    // acquire a hazard pointer
    HazardPtr* ptr = mHazardPtrs.acquire();
 
-   /* Search our entries array looking to see if we have a key that matches or
-      if the entry for the given key does not exist. If we find an entry that
-      matches the hash for our key, but the key does not match, then we must
-      reprobe. We do so by incrementing our index by 1 since we handle
-      collisions when inserting by simply increasing the index by 1 until we
-      find an empty slot.
-    */
+   /* Search for an entry with a key that matches or determine there is no
+      entry with the given key. If we find an entry that matches the hash
+      for our key, but the key does not match, then we must reprobe. We do
+      so by incrementing our index by 1 since we handle collisions when
+      inserting by simply increasing the index by 1 until we find an empty
+      slot. */
    int hash = mHashFunction(k);
+   int i = hash;
    bool done = false;
-   for(int i = hash; !done; i++)
+   while(!done)
    {
-      // limit index to capacity of table
-      i &= (mCapacity - 1);
-
       // get entry at index
-      e = getEntry(ptr, i);
+      Entry* e = getEntry(ptr, i);
       if(e != NULL)
       {
          // if the entry key is at the same memory address or if the hashes
          // match and the keys match, then we found the value we want
          if(&(e->k) == &k || (e->h == hash && e->k == k))
          {
-            rval = done = true;
-         }
-         else if(i == mCapacity - 1)
-         {
-            // keys did not match and we've reached the end of the table, so
-            // the entry does not exist
+            rval = e;
             done = true;
          }
-
-         if(!rval)
+         // keys did not match
+         else
          {
-            // unreference entry's list
+            // unreference entry's list, reprobe
             unrefEntryList(e->owner);
+            i++;
          }
       }
       else
       {
-         // no such entry
+         // no entry at the given index
          done = true;
       }
    }

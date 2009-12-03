@@ -26,7 +26,27 @@ void runHashTableTests(TestRunner& tr)
 {
    tr.group("HashTable");
 
-   HashTable<int, int, KeyAsHash> table;
+   tr.test("complex");
+   {
+      HashTable<int, int, KeyAsHash> table(1);
+
+      table.put(1, 7);
+      table.put(2, 13);
+
+      int num;
+
+      assert(table.get(1, num));
+      assert(num == 7);
+      assert(table.get(2, num));
+      assert(num == 13);
+
+      assert(!table.get(99, num));
+   }
+   tr.passIfNoException();
+
+
+   /*
+   HashTable<int, int, KeyAsHash> table(1);
    int hit = 1;
    int miss = 2;
    int value = 7;
@@ -64,6 +84,7 @@ void runHashTableTests(TestRunner& tr)
       }
    }
    tr.passIfNoException();
+   */
 
    tr.ungroup();
 }
