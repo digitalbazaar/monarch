@@ -166,13 +166,6 @@ protected:
    HazardPtrList mHazardPtrs;
 
    /**
-    * The maximum capacity of the hash table, meaning the maximum number of
-    * entries that could be stored in it at present. The capacity will grow
-    * as necessary.
-    */
-   int mCapacity;
-
-   /**
     * The function for producing hash codes from keys.
     */
    _H mHashFunction;
@@ -371,19 +364,17 @@ protected:
 };
 
 template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::HashTable(int capacity) :
-   mCapacity(capacity)
+HashTable<_K, _V, _H>::HashTable(int capacity)
 {
    // create first EntryList
    mHead = createEntryList(capacity);
 }
 
 template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::HashTable(const HashTable& copy) :
-   mCapacity(copy.mCapacity)
+HashTable<_K, _V, _H>::HashTable(const HashTable& copy)
 {
    // create the first EntryList
-   mHead = createEntryList(mCapacity);
+   mHead = createEntryList(copy.mHead->capacity);
 
    // FIXME: iterate over the copy and put all of its entries
 }
