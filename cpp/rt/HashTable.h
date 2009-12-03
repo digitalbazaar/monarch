@@ -414,6 +414,13 @@ protected:
     * @param capacity the new capacity to use.
     */
    virtual void resize(HazardPtr* ptr, EntryList* el, int capacity);
+
+   /**
+    * Marks and/or collects garbage EntryLists.
+    *
+    * @param ptr the hazard pointer to use.
+    */
+   virtual void collectGarbage(HazardPtr* ptr);
 };
 
 template<typename _K, typename _V, typename _H, typename _E>
@@ -996,6 +1003,7 @@ bool HashTable<_K, _V, _H, _E>::put(
    }
 
    // FIXME: run garbage collection? how often?
+   collectGarbage(ptr);
 
    return rval;
 }
@@ -1095,7 +1103,7 @@ void HashTable<_K, _V, _H, _E>::resize(HazardPtr* ptr, EntryList* el, int capaci
       }
    }
 }
-/*
+
 template<typename _K, typename _V, typename _H, typename _E>
 void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
 {
@@ -1107,7 +1115,6 @@ void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
    // most one entry? will this work cleanly with multiple intermediate old
    // lists?
 }
-*/
 
 } // end namespace rt
 } // end namespace db
