@@ -58,7 +58,7 @@ void HazardPtrList::release(HazardPtr* ptr)
    ptr->active = false;
 }
 
-bool HazardPtrList::isAddressInUse(void* addr)
+bool HazardPtrList::isProtected(void* addr)
 {
    bool rval = false;
 

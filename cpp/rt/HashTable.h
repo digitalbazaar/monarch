@@ -173,12 +173,11 @@ protected:
       int length;
       EntryList* next;
       bool old;
-      bool garbage;
       EntryList* garbageNext;
    };
 
    /**
-    * The entry first list.
+    * The first EntryList.
     */
 #ifdef WIN32
    /* MS Windows requires any variable written to in an atomic operation
@@ -186,6 +185,17 @@ protected:
    volatile EntryList* mHead __attribute__ ((aligned(4)));
 #else
    volatile EntryList* mHead;
+#endif
+
+   /**
+    * The first garbage EntryList.
+    */
+#ifdef WIN32
+   /* MS Windows requires any variable written to in an atomic operation
+      to be aligned to the address size of the CPU. */
+   volatile EntryList* mGarbageHead __attribute__ ((aligned(4)));
+#else
+   volatile EntryList* mGarbageHead;
 #endif
 
    /**
@@ -264,6 +274,11 @@ public:
     * @return true if the value removed, false if the key did not exist.
     */
    virtual bool remove(const _K& k);
+
+   /**
+    * Removes all key value pairs from this HashTable.
+    */
+   virtual void clear();
 
    /**
     * Gets the current length of this HashTable.
@@ -424,14 +439,16 @@ protected:
 };
 
 template<typename _K, typename _V, typename _H, typename _E>
-HashTable<_K, _V, _H, _E>::HashTable(int capacity)
+HashTable<_K, _V, _H, _E>::HashTable(int capacity) :
+   mGarbageHead(NULL)
 {
    // create first EntryList
    mHead = createEntryList(capacity);
 }
 
 template<typename _K, typename _V, typename _H, typename _E>
-HashTable<_K, _V, _H, _E>::HashTable(const HashTable& copy)
+HashTable<_K, _V, _H, _E>::HashTable(const HashTable& copy) :
+   mGarbageHead(NULL)
 {
    // create the first EntryList
    mHead = createEntryList(copy.mHead->capacity);
@@ -442,12 +459,21 @@ HashTable<_K, _V, _H, _E>::HashTable(const HashTable& copy)
 template<typename _K, typename _V, typename _H, typename _E>
 HashTable<_K, _V, _H, _E>::~HashTable()
 {
-   // clean up all entry lists
+   // clean up all valid entry lists
    EntryList* el = const_cast<EntryList*>(mHead);
    while(el != NULL)
    {
       EntryList* tmp = el;
       el = el->next;
+      freeEntryList(tmp);
+   }
+
+   // clean up all garbage lists
+   el = const_cast<EntryList*>(mGarbageHead);
+   while(el != NULL)
+   {
+      EntryList* tmp = el;
+      el = el->garbageNext;
       freeEntryList(tmp);
    }
 }
@@ -456,7 +482,8 @@ template<typename _K, typename _V, typename _H, typename _E>
 HashTable<_K, _V, _H, _E>& HashTable<_K, _V, _H, _E>::operator=(
    const HashTable& rhs)
 {
-   // FIXME: clear this table
+   // remove all entries from this table
+   clear();
 
    // FIXME: iterate over the copy and put all of its entries
 
@@ -486,9 +513,9 @@ bool HashTable<_K, _V, _H, _E>::get(const _K& k, _V& v)
    {
       // get value, unreference entry and its list
       v = *(e->v);
-      EntryList* el = e->owner;
+      EntryList* owner = e->owner;
       unrefEntry(e);
-      unrefEntryList(el);
+      unrefEntryList(owner);
       rval = true;
    }
 
@@ -508,7 +535,8 @@ bool HashTable<_K, _V, _H, _E>::remove(const _K& k)
       Entry* e = get(k);
       if(e != NULL)
       {
-         // set type to tombstone
+         // set type to Tombstone (it must have been Value to be returned
+         // from get())
          if(Atomic::compareAndSwap(&e->type, Entry::Value, Entry::Tombstone))
          {
             // decrease list's length
@@ -517,9 +545,9 @@ bool HashTable<_K, _V, _H, _E>::remove(const _K& k)
          }
 
          // unreference entry and its list
-         EntryList* el = e->owner;
+         EntryList* owner = e->owner;
          unrefEntry(e);
-         unrefEntryList(el);
+         unrefEntryList(owner);
       }
       else
       {
@@ -528,6 +556,64 @@ bool HashTable<_K, _V, _H, _E>::remove(const _K& k)
    }
 
    return rval;
+}
+
+template<typename _K, typename _V, typename _H, typename _E>
+void HashTable<_K, _V, _H, _E>::clear()
+{
+   // acquire a hazard pointer
+   HazardPtr* ptr = mHazardPtrs.acquire();
+
+   // iterate over every entry list, removing every value
+   EntryList* el = refNextEntryList(ptr, NULL);
+   while(el != NULL)
+   {
+      for(int i = 0; i < el->capacity; i++)
+      {
+         // loop until a value is set to a tombstone or the entry is not found
+         bool done = false;
+         while(!done)
+         {
+            Entry* e = refEntry(ptr, el, i);
+            if(e != NULL)
+            {
+               // if the entry type is Value, set it to Tombstone
+               if(e->type == Entry::Value)
+               {
+                  // set type to tombstone
+                  if(Atomic::compareAndSwap(
+                     &e->type, Entry::Value, Entry::Tombstone))
+                  {
+                     // decrease list's length
+                     Atomic::decrementAndFetch(&e->owner->length);
+                     done = true;
+                  }
+               }
+               // any other type means we're done with this entry
+               else
+               {
+                  done = true;
+               }
+
+               // unreference entry
+               unrefEntry(e);
+            }
+            else
+            {
+               // no entry to clear
+               done = true;
+            }
+         }
+      }
+
+      // get the next entry list, drop reference to old list
+      EntryList* next = refNextEntryList(ptr, el);
+      unrefEntryList(el);
+      el = next;
+   }
+
+   // release the hazard pointer
+   mHazardPtrs.release(ptr);
 }
 
 template<typename _K, typename _V, typename _H, typename _E>
@@ -540,7 +626,7 @@ int HashTable<_K, _V, _H, _E>::length()
 
    // iterate over every entry list, adding lengths
    EntryList* el = refNextEntryList(ptr, NULL);
-   while(el->next != NULL)
+   while(el != NULL)
    {
       // add length
       rval += el->length;
@@ -570,7 +656,6 @@ HashTable<_K, _V, _H, _E>::createEntryList(int capacity)
    el->entries = static_cast<Entry**>(calloc(capacity, sizeof(Entry*)));
    el->next = NULL;
    el->old = false;
-   el->garbage = false;
    el->garbageNext = NULL;
    return el;
 };
@@ -657,8 +742,9 @@ HashTable<_K, _V, _H, _E>::refNextEntryList(HazardPtr* ptr, EntryList* prev)
 
    if(rval != NULL)
    {
-      // increment reference count
+      // increment reference count, clear hazard pointer
       Atomic::incrementAndFetch(&rval->refCount);
+      ptr->value = NULL;
    }
 
    return rval;
@@ -690,8 +776,9 @@ HashTable<_K, _V, _H, _E>::refEntry(HazardPtr* ptr, EntryList* el, int idx)
 
    if(rval != NULL)
    {
-      // increment reference count
+      // increment reference count, clear hazard pointer
       Atomic::incrementAndFetch(&rval->refCount);
+      ptr->value = NULL;
    }
 
    return rval;
@@ -764,7 +851,7 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
 
          // next garbage entry is no longer in use if its ref count is
          // zero AND no one has a hazard pointer to it
-         if(e->refCount == 0 && !mHazardPtrs.isAddressInUse(e))
+         if(e->refCount == 0 && !mHazardPtrs.isProtected(e))
          {
             freeEntry(const_cast<Entry*>(e));
          }
@@ -1002,7 +1089,7 @@ bool HashTable<_K, _V, _H, _E>::put(
       unrefEntryList(el);
    }
 
-   // FIXME: run garbage collection? how often?
+   // FIXME: run garbage collection how often? also run in get()?
    collectGarbage(ptr);
 
    return rval;
@@ -1043,9 +1130,9 @@ HashTable<_K, _V, _H, _E>::get(const _K& k)
          else
          {
             // unreference entry and entry's list, reprobe
-            EntryList* el = e->owner;
+            EntryList* owner = e->owner;
             unrefEntry(e);
-            unrefEntryList(el);
+            unrefEntryList(owner);
             i++;
          }
       }
@@ -1107,13 +1194,125 @@ void HashTable<_K, _V, _H, _E>::resize(HazardPtr* ptr, EntryList* el, int capaci
 template<typename _K, typename _V, typename _H, typename _E>
 void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
 {
-   // 12-02-2009: figure this out
-   // FIXME: iterate over EntryLists, mark "old" lists that have only sentinels
-   // and tombstones as garbage
-   // FIXME: should other entries be moved into the new list? how costly will
-   // this operation be? should we call it from get? should we only move at
-   // most one entry? will this work cleanly with multiple intermediate old
-   // lists?
+   // temporarily isolate the entire garbage list to this thread
+   EntryList* privateHead = NULL;
+   EntryList* privateTail = NULL;
+   if(mGarbageHead != NULL)
+   {
+      EntryList* head = NULL;
+      EntryList* tail = NULL;
+      do
+      {
+         head = const_cast<EntryList*>(mGarbageHead);
+      }
+      while(!Atomic::compareAndSwap(&mGarbageHead, head, (EntryList*)NULL));
+
+      // keep up to max garbage lists in a private list and get the tail for
+      // garbage to be added back to the shared list
+      const int max = 3;
+      EntryList* next = head;
+      int i = 0;
+      while(next != NULL)
+      {
+         if(i < max)
+         {
+            if(privateHead == NULL)
+            {
+               privateHead = head;
+            }
+            privateTail = head;
+            head = head->garbageNext;
+            privateTail->garbageNext = NULL;
+            i++;
+         }
+
+         if(next->garbageNext == NULL)
+         {
+            // found tail
+            tail = next;
+         }
+         next = next->garbageNext;
+      }
+
+      // prepend remaining garbage back onto the shared list
+      if(head != NULL)
+      {
+         EntryList* oldHead;
+         do
+         {
+            oldHead = const_cast<EntryList*>(mGarbageHead);
+            tail->garbageNext = oldHead;
+         }
+         while(!Atomic::compareAndSwap(&mGarbageHead, oldHead, head));
+      }
+   }
+
+   // if the first EntryList is old, has a length of 0, a refcount of 1 (we
+   // have the only reference), and is not protected by a hazard pointer, move
+   // it to the private list
+   EntryList* el = refNextEntryList(ptr, NULL);
+   if(el->old && el->length == 0 && el->refCount == 1 &&
+      !mHazardPtrs.isProtected(el))
+   {
+      // if we fail to remove the list from the head, then someone else has
+      // done our work for us
+      if(Atomic::compareAndSwap(&mHead, el, el->next))
+      {
+         // we are responsible for marking the list as garbage, so move it
+         // to our private garbage list
+         if(privateTail == NULL)
+         {
+            // start the private list
+            privateHead = privateTail = el;
+         }
+         else
+         {
+            // append to the private list
+            privateTail->garbageNext = el;
+            privateTail = el;
+         }
+      }
+   }
+   unrefEntryList(el);
+
+   // clean up the private garbage list as much as possible
+   EntryList* next = privateHead;
+   while(next != NULL)
+   {
+      // we can clean up the list if its reference count is 0 and it is not
+      // protected by the hazard pointer list
+      if(next->refCount == 0 && !mHazardPtrs.isProtected(next))
+      {
+         // update private head and tail
+         if(privateHead == privateTail)
+         {
+            privateHead = privateTail = NULL;
+         }
+         else
+         {
+            privateHead = next->garbageNext;
+         }
+
+         // save next entry list
+         EntryList* tmp = next;
+         next = next->garbageNext;
+
+         // free entry list
+         freeEntryList(tmp);
+      }
+   }
+
+   // prepend remaining private garbage back onto the shared list
+   if(privateHead != NULL)
+   {
+      EntryList* oldHead;
+      do
+      {
+         oldHead = const_cast<EntryList*>(mGarbageHead);
+         privateTail->garbageNext = oldHead;
+      }
+      while(!Atomic::compareAndSwap(&mGarbageHead, oldHead, privateHead));
+   }
 }
 
 } // end namespace rt

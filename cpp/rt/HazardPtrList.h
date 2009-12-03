@@ -40,7 +40,7 @@ struct HazardPtr
  *           this list (provided that Thread B checks this list before freeing
  *           any related memory).
  * Thread B: Before freeing the old value of P, make sure that that value is
- *           not in X via isAddressInUse(). If it is, it is not permitted to
+ *           not in X via isProtected(). If it is, it is not permitted to
  *           be freed. If it is not, then it is safe to free.
  *
  * Other programming/garbage collection paradigms may be employed on top of
@@ -105,14 +105,15 @@ public:
    /**
     * Checks the hazard pointer list to see if any HazardPtrs are set to
     * the given address. This method will determine if the memory at the
-    * given address is marked as being in use by a HazardPtr in this list.
+    * given address is marked as being in use by a HazardPtr in this list
+    * and should be protected from being freed.
     *
     * @param addr the address to look for.
     *
     * @return true if at least one HazardPtr was set to the given address,
     *         false if not.
     */
-   bool isAddressInUse(void* addr);
+   bool isProtected(void* addr);
 };
 
 } // end namespace rt
