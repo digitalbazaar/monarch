@@ -105,7 +105,7 @@ template<typename T>
 T Atomic::incrementAndFetch(volatile T* dst)
 {
 #ifdef WIN32
-   return InterlockedIncrement((volatile LONG*)dst);
+   return InterlockedIncrement((LONG*)dst);
 #else
    return __sync_add_and_fetch(dst, 1);
 #endif
@@ -115,7 +115,7 @@ template<typename T>
 T Atomic::decrementAndFetch(volatile T* dst)
 {
 #ifdef WIN32
-   return InterlockedDecrement((volatile LONG*)dst);
+   return InterlockedDecrement((LONG*)dst);
 #else
    return __sync_sub_and_fetch(dst, 1);
 #endif
@@ -126,7 +126,7 @@ bool Atomic::compareAndSwap(volatile T* dst, T oldVal, T newVal)
 {
 #ifdef WIN32
    return (InterlockedCompareExchange(
-      (volatile LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
+      (LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
 #else
    return __sync_bool_compare_and_swap(dst, oldVal, newVal);
 #endif
@@ -137,7 +137,7 @@ bool Atomic::compareAndSwap(volatile T** dst, T* oldVal, T* newVal)
 {
 #ifdef WIN32
    return (InterlockedCompareExchange(
-      (volatile LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
+      (LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
 #else
    return __sync_bool_compare_and_swap(dst, oldVal, newVal);
 #endif
