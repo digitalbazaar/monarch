@@ -114,6 +114,7 @@ protected:
       };
 
       // data in the entry
+      volatile aligned_uint32_t refCount;
 #ifdef WIN32
       /* MS Windows requires any variable written to in an atomic operation
          to be aligned to the address size of the CPU. */
@@ -134,7 +135,7 @@ protected:
     */
    struct EntryList
    {
-      /* Note: Reference count for an entry, note that an assumption is made
+      /* Note: Reference count for an EntryList, note that an assumption is made
          here that since an entry has to be heap-allocated and 32-bit aligned,
          so will the first value of the struct be automatically 32-bit aligned,
          but we put the special alignment in here anyway. */
@@ -285,7 +286,7 @@ protected:
     * greater than 0.
     *
     * @param ptr the hazard pointer to use.
-    * @param el the previous entry list, NULL to use the head.
+    * @param prev the previous entry list, NULL to use the head.
     *
     * @return the next EntryList (can be NULL).
     */
@@ -297,6 +298,25 @@ protected:
     * @param el the entry list to decrease the reference count on.
     */
    virtual void unrefEntryList(EntryList* el);
+
+   /**
+    * Gets and increments the reference count on the Entry at the given
+    * index.
+    *
+    * @param ptr the hazard pointer to use.
+    * @param el the EntryList to get the Entry in.
+    * @param idx the index of the Entry.
+    *
+    * @return the Entry (can be NULL), otherwise must be unref'd.
+    */
+   virtual Entry* refEntry(HazardPtr* ptr, EntryList* el, int idx);
+
+   /**
+    * Decreases the reference count on the given Entry.
+    *
+    * @param e the Entry to decrease the reference count on.
+    */
+   virtual void unrefEntry(Entry* e);
 
    /**
     * A helper function that gets the most current EntryList at
@@ -326,8 +346,9 @@ protected:
 
    /**
     * Gets the entry at the given index in the table. The EntryList owner of
-    * the Entry must be unref'd when the Entry is no longer in use. The
-    * index will be capped at the capacity of each EntryList that is searched.
+    * the Entry must be unref'd and the Entry itself must be unref'd once it
+    * is no longer in use. The index will be capped at the capacity of each
+    * EntryList that is searched.
     *
     * @param ptr the hazard pointer to use.
     * @param idx the index of the entry to retrieve.
@@ -430,9 +451,11 @@ bool HashTable<_K, _V, _H>::get(const _K& k, _V& v)
    Entry* e = get(k);
    if(e != NULL)
    {
-      // get value, unreference entry's list
+      // get value, unreference entry and its list
       v = *(e->v);
-      unrefEntryList(e->owner);
+      EntryList* el = e->owner;
+      unrefEntry(e);
+      unrefEntryList(el);
       rval = true;
    }
 
@@ -460,8 +483,10 @@ bool HashTable<_K, _V, _H>::remove(const _K& k)
             rval = done = true;
          }
 
-         // unreference entry's list
-         unrefEntryList(e->owner);
+         // unreference entry and its list
+         EntryList* el = e->owner;
+         unrefEntry(e);
+         unrefEntryList(el);
       }
       else
       {
@@ -549,6 +574,7 @@ struct HashTable<_K, _V, _H>::Entry*
 HashTable<_K, _V, _H>::createEntry(const _K& key, const _V& value)
 {
    Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
+   e->refCount = 0;
    e->type = Entry::Value;
    e->k = key;
    e->h = mHashFunction(key);
@@ -613,6 +639,39 @@ void HashTable<_K, _V, _H>::unrefEntryList(EntryList* el)
 }
 
 template<typename _K, typename _V, typename _H>
+struct HashTable<_K, _V, _H>::Entry*
+HashTable<_K, _V, _H>::refEntry(HazardPtr* ptr, EntryList* el, int idx)
+{
+   Entry* rval = NULL;
+
+   do
+   {
+      // attempt to protect the Entry with a hazard pointer
+      ptr->value = el->entries[idx];
+   }
+   // ensure the Entry hasn't changed
+   while(ptr->value != el->entries[idx]);
+
+   // set return value
+   rval = static_cast<Entry*>(ptr->value);
+
+   if(rval != NULL)
+   {
+      // increment reference count
+      Atomic::incrementAndFetch(&rval->refCount);
+   }
+
+   return rval;
+}
+
+template<typename _K, typename _V, typename _H>
+void HashTable<_K, _V, _H>::unrefEntry(Entry* e)
+{
+   // decrement reference count
+   Atomic::decrementAndFetch(&e->refCount);
+}
+
+template<typename _K, typename _V, typename _H>
 struct HashTable<_K, _V, _H>::EntryList*
 HashTable<_K, _V, _H>::getCurrentEntryList(HazardPtr* ptr)
 {
@@ -649,22 +708,75 @@ bool HashTable<_K, _V, _H>::replaceEntry(
          Atomic::incrementAndFetch(&el->length);
       }
 
-      // FIXME: we need a way to clean up this garbage list other than
-      // just whenever the owner EntryList gets cleaned up ... every time
-      // a value is replaced for the same key, a garbage entry is going
-      // to be created
+      // isolate the old garbage list, making it private to this thread
+      Entry* head;
+      do
+      {
+         head = const_cast<Entry*>(el->garbageEntries);
+      }
+      while(!Atomic::compareAndSwap(&el->garbageEntries, head, (Entry*)NULL));
 
-      // move old entry to garbage list
+      // free unused entries in the old list and build a new list from the
+      // entries that are still in use, also keep track of the tail of the
+      // new list so we can append eOld to it when we're finished
+      Entry* e = head;
+      Entry* tail;
+      Entry* next;
+      head = tail = NULL;
+      while(e != NULL)
+      {
+         // save next and then clear it
+         next = e->garbageNext;
+         e->garbageNext = NULL;
+
+         // next garbage entry is no longer in use if its ref count is
+         // zero AND no one has a hazard pointer to it
+         if(e->refCount == 0 && !mHazardPtrs.isAddressInUse(e))
+         {
+            freeEntry(const_cast<Entry*>(e));
+         }
+         else if(head == NULL)
+         {
+            // start the new garbage list
+            head = tail = e;
+         }
+         else
+         {
+            // append to the new garbage list
+            tail->garbageNext = e;
+            tail = e;
+         }
+
+         // go to next garbage entry
+         e = next;
+      }
+
+      // append old entry to the new garbage list
       if(eOld != NULL)
       {
-         volatile Entry* veOld = const_cast<volatile Entry*>(eOld);
-         volatile Entry* oldHead;
+         if(tail == NULL)
+         {
+            // start the new garbage list
+            head = tail = eOld;
+         }
+         else
+         {
+            // append to the new garbage lits
+            tail->garbageNext = eOld;
+            tail = eOld;
+         }
+      }
+
+      // prepend private garbage list to the shared garbage list
+      if(head != NULL)
+      {
+         Entry* oldHead;
          do
          {
-            oldHead = el->garbageEntries;
-            veOld->garbageNext = const_cast<Entry*>(oldHead);
+            oldHead = const_cast<Entry*>(el->garbageEntries);
+            tail->garbageNext = oldHead;
          }
-         while(!Atomic::compareAndSwap(&el->garbageEntries, oldHead, veOld));
+         while(!Atomic::compareAndSwap(&el->garbageEntries, oldHead, head));
       }
    }
 
@@ -698,7 +810,7 @@ HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
       int maxIdx = el->capacity - 1;
       int i = (idx > maxIdx) ? maxIdx : idx;
 
-      Entry* e = el->entries[i];
+      Entry* e = refEntry(ptr, el, i);
       if(e != NULL && e->type == Entry::Value)
       {
          if(!el->old)
@@ -729,6 +841,12 @@ HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
 
       if(!found)
       {
+         // unref the entry
+         if(e != NULL)
+         {
+            unrefEntry(e);
+         }
+
          // get the next entry list, drop reference to the old list
          EntryList* next = refNextEntryList(ptr, el);
          unrefEntryList(el);
@@ -788,7 +906,7 @@ bool HashTable<_K, _V, _H>::put(
          i = (i > maxIdx) ? maxIdx : i;
 
          // get any existing entry directly from the current list
-         Entry* eOld = el->entries[i];
+         Entry* eOld = refEntry(ptr, el, i);
          if(eOld == NULL)
          {
             // there is no existing entry so try to insert
@@ -800,6 +918,7 @@ bool HashTable<_K, _V, _H>::put(
             // a sentinel entry tells us that there is a newer table where
             // we have to do the insert
             useNewTable = true;
+            unrefEntry(eOld);
          }
          // existing entry is replaceable value or a tombstone
          else
@@ -827,6 +946,8 @@ bool HashTable<_K, _V, _H>::put(
                // index by 1 and try again
                i++;
             }
+
+            unrefEntry(eOld);
          }
       }
 
@@ -886,8 +1007,10 @@ HashTable<_K, _V, _H>::get(const _K& k)
          // keys did not match
          else
          {
-            // unreference entry's list, reprobe
-            unrefEntryList(e->owner);
+            // unreference entry and entry's list, reprobe
+            EntryList* el = e->owner;
+            unrefEntry(e);
+            unrefEntryList(el);
             i++;
          }
       }

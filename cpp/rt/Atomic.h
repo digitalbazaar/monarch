@@ -97,6 +97,8 @@ public:
     */
    template<typename T>
    static bool compareAndSwap(volatile T* dst, T oldVal, T newVal);
+   template<typename T>
+   static bool compareAndSwap(volatile T** dst, T* oldVal, T* newVal);
 };
 
 template<typename T>
@@ -121,6 +123,17 @@ T Atomic::decrementAndFetch(volatile T* dst)
 
 template<typename T>
 bool Atomic::compareAndSwap(volatile T* dst, T oldVal, T newVal)
+{
+#ifdef WIN32
+   return (InterlockedCompareExchange(
+      (volatile LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
+#else
+   return __sync_bool_compare_and_swap(dst, oldVal, newVal);
+#endif
+}
+
+template<typename T>
+bool Atomic::compareAndSwap(volatile T** dst, T* oldVal, T* newVal)
 {
 #ifdef WIN32
    return (InterlockedCompareExchange(
