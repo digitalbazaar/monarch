@@ -39,6 +39,10 @@ void runHashTableTests(TestRunner& tr)
       assert(num == 7);
       assert(table.get(2, num));
       assert(num == 13);
+      assert(!table.put(2, 10, false));
+      assert(table.put(2, 10));
+      assert(table.get(2, num));
+      assert(num == 10);
 
       assert(!table.get(99, num));
    }

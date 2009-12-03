@@ -803,7 +803,10 @@ bool HashTable<_K, _V, _H>::put(
             // entry
             if(&(eOld->k) == &k || (eOld->h == eNew->h && eOld->k == k))
             {
-               inserted = replaceEntry(el, i, eOld, eNew);
+               if(eOld->type == Entry::Tombstone || replace)
+               {
+                  inserted = replaceEntry(el, i, eOld, eNew);
+               }
                insertAttempted = true;
             }
             else if(i == maxIdx)
