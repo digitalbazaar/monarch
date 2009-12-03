@@ -15,12 +15,32 @@ namespace rt
 /**
  * Defines a hash code function. This function produces a hash code from a key.
  */
-// FIXME: define a default hash function?
-// FIXME: will probably need a compare function as well
 template<typename _K>
 struct HashFunction
 {
    int operator()(const _K& k) const;
+};
+
+/**
+ * Defines an equality function. This function returns true if two keys are
+ * equal, false if they are not.
+ */
+template<typename _K>
+struct EqualsFunction
+{
+   bool operator()(const _K& k1, const _K& k2) const;
+};
+
+/**
+ * The default equals function.
+ */
+template<typename _K>
+struct DefaultEqualsFunction : public EqualsFunction<_K>
+{
+   bool operator()(const _K& k1, const _K& k2) const
+   {
+      return k1 == k2;
+   };
 };
 
 /**
@@ -91,7 +111,8 @@ struct HashFunction
  *
  * @author Dave Longley
  */
-template<typename _K, typename _V, typename _H>
+template<typename _K, typename _V, typename _H,
+typename _E = DefaultEqualsFunction<_K> >
 class HashTable
 {
 protected:
@@ -176,6 +197,11 @@ protected:
     * The function for producing hash codes from keys.
     */
    _H mHashFunction;
+
+   /**
+    * The function for comparing keys for equality.
+    */
+   _E mEqualsFunction;
 
 public:
    /**
@@ -390,15 +416,15 @@ protected:
    virtual void resize(HazardPtr* ptr, EntryList* el, int capacity);
 };
 
-template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::HashTable(int capacity)
+template<typename _K, typename _V, typename _H, typename _E>
+HashTable<_K, _V, _H, _E>::HashTable(int capacity)
 {
    // create first EntryList
    mHead = createEntryList(capacity);
 }
 
-template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::HashTable(const HashTable& copy)
+template<typename _K, typename _V, typename _H, typename _E>
+HashTable<_K, _V, _H, _E>::HashTable(const HashTable& copy)
 {
    // create the first EntryList
    mHead = createEntryList(copy.mHead->capacity);
@@ -406,8 +432,8 @@ HashTable<_K, _V, _H>::HashTable(const HashTable& copy)
    // FIXME: iterate over the copy and put all of its entries
 }
 
-template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>::~HashTable()
+template<typename _K, typename _V, typename _H, typename _E>
+HashTable<_K, _V, _H, _E>::~HashTable()
 {
    // clean up all entry lists
    EntryList* el = const_cast<EntryList*>(mHead);
@@ -419,8 +445,8 @@ HashTable<_K, _V, _H>::~HashTable()
    }
 }
 
-template<typename _K, typename _V, typename _H>
-HashTable<_K, _V, _H>& HashTable<_K, _V, _H>::operator=(
+template<typename _K, typename _V, typename _H, typename _E>
+HashTable<_K, _V, _H, _E>& HashTable<_K, _V, _H, _E>::operator=(
    const HashTable& rhs)
 {
    // FIXME: clear this table
@@ -430,8 +456,8 @@ HashTable<_K, _V, _H>& HashTable<_K, _V, _H>::operator=(
    return *this;
 }
 
-template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::put(const _K& k, const _V& v, bool replace)
+template<typename _K, typename _V, typename _H, typename _E>
+bool HashTable<_K, _V, _H, _E>::put(const _K& k, const _V& v, bool replace)
 {
    bool rval = false;
 
@@ -443,8 +469,8 @@ bool HashTable<_K, _V, _H>::put(const _K& k, const _V& v, bool replace)
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::get(const _K& k, _V& v)
+template<typename _K, typename _V, typename _H, typename _E>
+bool HashTable<_K, _V, _H, _E>::get(const _K& k, _V& v)
 {
    bool rval = false;
 
@@ -462,8 +488,8 @@ bool HashTable<_K, _V, _H>::get(const _K& k, _V& v)
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::remove(const _K& k)
+template<typename _K, typename _V, typename _H, typename _E>
+bool HashTable<_K, _V, _H, _E>::remove(const _K& k)
 {
    bool rval = false;
 
@@ -497,8 +523,8 @@ bool HashTable<_K, _V, _H>::remove(const _K& k)
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-int HashTable<_K, _V, _H>::length()
+template<typename _K, typename _V, typename _H, typename _E>
+int HashTable<_K, _V, _H, _E>::length()
 {
    int rval = 0;
 
@@ -524,9 +550,9 @@ int HashTable<_K, _V, _H>::length()
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-struct HashTable<_K, _V, _H>::EntryList*
-HashTable<_K, _V, _H>::createEntryList(int capacity)
+template<typename _K, typename _V, typename _H, typename _E>
+struct HashTable<_K, _V, _H, _E>::EntryList*
+HashTable<_K, _V, _H, _E>::createEntryList(int capacity)
 {
    EntryList* el = static_cast<EntryList*>(
       Atomic::mallocAligned(sizeof(EntryList)));
@@ -542,8 +568,8 @@ HashTable<_K, _V, _H>::createEntryList(int capacity)
    return el;
 };
 
-template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::freeEntryList(EntryList* el)
+template<typename _K, typename _V, typename _H, typename _E>
+void HashTable<_K, _V, _H, _E>::freeEntryList(EntryList* el)
 {
    // free all live entries
    for(int i = 0; i < el->capacity; i++)
@@ -569,9 +595,9 @@ void HashTable<_K, _V, _H>::freeEntryList(EntryList* el)
    Atomic::freeAligned(el);
 };
 
-template<typename _K, typename _V, typename _H>
-struct HashTable<_K, _V, _H>::Entry*
-HashTable<_K, _V, _H>::createEntry(const _K& key, const _V& value)
+template<typename _K, typename _V, typename _H, typename _E>
+struct HashTable<_K, _V, _H, _E>::Entry*
+HashTable<_K, _V, _H, _E>::createEntry(const _K& key, const _V& value)
 {
    Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
    e->refCount = 0;
@@ -583,8 +609,8 @@ HashTable<_K, _V, _H>::createEntry(const _K& key, const _V& value)
    return e;
 };
 
-template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::freeEntry(Entry* e)
+template<typename _K, typename _V, typename _H, typename _E>
+void HashTable<_K, _V, _H, _E>::freeEntry(Entry* e)
 {
    if(e->v != NULL)
    {
@@ -593,9 +619,9 @@ void HashTable<_K, _V, _H>::freeEntry(Entry* e)
    free(e);
 }
 
-template<typename _K, typename _V, typename _H>
-struct HashTable<_K, _V, _H>::EntryList*
-HashTable<_K, _V, _H>::refNextEntryList(HazardPtr* ptr, EntryList* prev)
+template<typename _K, typename _V, typename _H, typename _E>
+struct HashTable<_K, _V, _H, _E>::EntryList*
+HashTable<_K, _V, _H, _E>::refNextEntryList(HazardPtr* ptr, EntryList* prev)
 {
    EntryList* rval = NULL;
 
@@ -631,16 +657,16 @@ HashTable<_K, _V, _H>::refNextEntryList(HazardPtr* ptr, EntryList* prev)
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::unrefEntryList(EntryList* el)
+template<typename _K, typename _V, typename _H, typename _E>
+void HashTable<_K, _V, _H, _E>::unrefEntryList(EntryList* el)
 {
    // decrement reference count
    Atomic::decrementAndFetch(&el->refCount);
 }
 
-template<typename _K, typename _V, typename _H>
-struct HashTable<_K, _V, _H>::Entry*
-HashTable<_K, _V, _H>::refEntry(HazardPtr* ptr, EntryList* el, int idx)
+template<typename _K, typename _V, typename _H, typename _E>
+struct HashTable<_K, _V, _H, _E>::Entry*
+HashTable<_K, _V, _H, _E>::refEntry(HazardPtr* ptr, EntryList* el, int idx)
 {
    Entry* rval = NULL;
 
@@ -664,16 +690,16 @@ HashTable<_K, _V, _H>::refEntry(HazardPtr* ptr, EntryList* el, int idx)
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::unrefEntry(Entry* e)
+template<typename _K, typename _V, typename _H, typename _E>
+void HashTable<_K, _V, _H, _E>::unrefEntry(Entry* e)
 {
    // decrement reference count
    Atomic::decrementAndFetch(&e->refCount);
 }
 
-template<typename _K, typename _V, typename _H>
-struct HashTable<_K, _V, _H>::EntryList*
-HashTable<_K, _V, _H>::getCurrentEntryList(HazardPtr* ptr)
+template<typename _K, typename _V, typename _H, typename _E>
+struct HashTable<_K, _V, _H, _E>::EntryList*
+HashTable<_K, _V, _H, _E>::getCurrentEntryList(HazardPtr* ptr)
 {
    EntryList* rval = NULL;
 
@@ -693,8 +719,8 @@ HashTable<_K, _V, _H>::getCurrentEntryList(HazardPtr* ptr)
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::replaceEntry(
+template<typename _K, typename _V, typename _H, typename _E>
+bool HashTable<_K, _V, _H, _E>::replaceEntry(
    EntryList* el, int idx, Entry* eOld, Entry* eNew)
 {
    bool rval = false;
@@ -783,9 +809,9 @@ bool HashTable<_K, _V, _H>::replaceEntry(
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-struct HashTable<_K, _V, _H>::Entry*
-HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
+template<typename _K, typename _V, typename _H, typename _E>
+struct HashTable<_K, _V, _H, _E>::Entry*
+HashTable<_K, _V, _H, _E>::getEntry(HazardPtr* ptr, int idx)
 {
    Entry* rval = NULL;
 
@@ -857,8 +883,8 @@ HashTable<_K, _V, _H>::getEntry(HazardPtr* ptr, int idx)
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-bool HashTable<_K, _V, _H>::put(
+template<typename _K, typename _V, typename _H, typename _E>
+bool HashTable<_K, _V, _H, _E>::put(
    const _K& k, const _V& v, bool replace, HazardPtr* ptr)
 {
    bool rval = false;
@@ -926,7 +952,8 @@ bool HashTable<_K, _V, _H>::put(
             // if the entry key is at the same memory address or if the hashes
             // match and the keys match, then we can replace the existing
             // entry
-            if(&(eOld->k) == &k || (eOld->h == eNew->h && eOld->k == k))
+            if(&(eOld->k) == &k ||
+               (eOld->h == eNew->h && mEqualsFunction(eOld->k, k)))
             {
                if(eOld->type == Entry::Tombstone || replace)
                {
@@ -973,9 +1000,9 @@ bool HashTable<_K, _V, _H>::put(
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-struct HashTable<_K, _V, _H>::Entry*
-HashTable<_K, _V, _H>::get(const _K& k)
+template<typename _K, typename _V, typename _H, typename _E>
+struct HashTable<_K, _V, _H, _E>::Entry*
+HashTable<_K, _V, _H, _E>::get(const _K& k)
 {
    Entry* rval = NULL;
 
@@ -1027,8 +1054,8 @@ HashTable<_K, _V, _H>::get(const _K& k)
    return rval;
 }
 
-template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::resize(HazardPtr* ptr, EntryList* el, int capacity)
+template<typename _K, typename _V, typename _H, typename _E>
+void HashTable<_K, _V, _H, _E>::resize(HazardPtr* ptr, EntryList* el, int capacity)
 {
    /* Note: When we call resize(), other threads might also be trying to
       resize at the same time. Therefore, we allocate a new EntryList and
@@ -1069,8 +1096,8 @@ void HashTable<_K, _V, _H>::resize(HazardPtr* ptr, EntryList* el, int capacity)
    }
 }
 /*
-template<typename _K, typename _V, typename _H>
-void HashTable<_K, _V, _H>::collectGarbage(HazardPtr* ptr)
+template<typename _K, typename _V, typename _H, typename _E>
+void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
 {
    // 12-02-2009: figure this out
    // FIXME: iterate over EntryLists, mark "old" lists that have only sentinels
