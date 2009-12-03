@@ -109,6 +109,11 @@ struct DefaultEqualsFunction : public EqualsFunction<_K>
  * valid EntryLists have been checked, CAS prepend B onto the shared garbage
  * list.
  *
+ * Note: Reference counts are kept for both EntryLists and Entries. The code
+ * is written such that the reference count for an EntryList that an Entry
+ * belongs to is always 1 if the Entry is being accessed. Assumptions that
+ * this will continue to hold true are made to simplify the code.
+ *
  * @author Dave Longley
  */
 template<typename _K, typename _V, typename _H,
