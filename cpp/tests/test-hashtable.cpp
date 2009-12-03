@@ -48,6 +48,21 @@ void runHashTableTests(TestRunner& tr)
       assert(num == 11);
 
       assert(!table.get(99, num));
+
+      HashTable<int, int, KeyAsHash> table2 = table;
+      num = 0;
+      assert(table.get(1, num));
+      assert(num == 7);
+      assert(table.get(2, num));
+      assert(num == 11);
+
+      HashTable<int, int, KeyAsHash> table3;
+      table3 = table;
+      num = 0;
+      assert(table.get(1, num));
+      assert(num == 7);
+      assert(table.get(2, num));
+      assert(num == 11);
    }
    tr.passIfNoException();
 

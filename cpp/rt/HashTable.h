@@ -453,7 +453,36 @@ HashTable<_K, _V, _H, _E>::HashTable(const HashTable& copy) :
    // create the first EntryList
    mHead = createEntryList(copy.mHead->capacity);
 
-   // FIXME: iterate over the copy and put all of its entries
+   // acquire a hazard pointer in the copy
+   HashTable& c = const_cast<HashTable&>(copy);
+   HazardPtr* ptr = c.mHazardPtrs.acquire();
+
+   // iterate over every entry list in copy, putting every value
+   EntryList* el = c.refNextEntryList(ptr, NULL);
+   while(el != NULL)
+   {
+      for(int i = 0; i < el->capacity; i++)
+      {
+         Entry* e = c.refEntry(ptr, el, i);
+         if(e != NULL)
+         {
+            // if the entry type is Value, put it into this table
+            if(e->type == Entry::Value)
+            {
+               put(e->k, *(e->v), false);
+            }
+            c.unrefEntry(e);
+         }
+      }
+
+      // get the next entry list, drop reference to old list
+      EntryList* next = c.refNextEntryList(ptr, el);
+      c.unrefEntryList(el);
+      el = next;
+   }
+
+   // release the hazard pointer
+   c.mHazardPtrs.release(ptr);
 }
 
 template<typename _K, typename _V, typename _H, typename _E>
@@ -485,7 +514,36 @@ HashTable<_K, _V, _H, _E>& HashTable<_K, _V, _H, _E>::operator=(
    // remove all entries from this table
    clear();
 
-   // FIXME: iterate over the copy and put all of its entries
+   // acquire a hazard pointer in the rhs
+   HashTable& r = const_cast<HashTable&>(rhs);
+   HazardPtr* ptr = r.mHazardPtrs.acquire();
+
+   // iterate over every entry list in rhs, putting every value
+   EntryList* el = r.refNextEntryList(ptr, NULL);
+   while(el != NULL)
+   {
+      for(int i = 0; i < el->capacity; i++)
+      {
+         Entry* e = r.refEntry(ptr, el, i);
+         if(e != NULL)
+         {
+            // if the entry type is Value, put it into this table
+            if(e->type == Entry::Value)
+            {
+               put(e->k, *(e->v), false);
+            }
+            r.unrefEntry(e);
+         }
+      }
+
+      // get the next entry list, drop reference to old list
+      EntryList* next = r.refNextEntryList(ptr, el);
+      r.unrefEntryList(el);
+      el = next;
+   }
+
+   // release the hazard pointer
+   r.mHazardPtrs.release(ptr);
 
    return *this;
 }
