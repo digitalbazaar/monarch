@@ -69,7 +69,7 @@ public:
     * @return the new value.
     */
    template<typename T>
-   static T incrementAndFetch(T* dst);
+   static T incrementAndFetch(volatile T* dst);
 
    /**
     * Performs an atomic Decrement-And-Fetch. Decrements the value at
@@ -80,7 +80,7 @@ public:
     * @return the new value.
     */
    template<typename T>
-   static T decrementAndFetch(T* dst);
+   static T decrementAndFetch(volatile T* dst);
 
    /**
     * Performs an atomic Compare-And-Swap (CAS). The given new value will only
@@ -96,35 +96,35 @@ public:
     * @return true if successful, false if not.
     */
    template<typename T>
-   static bool compareAndSwap(T* dst, T oldVal, T newVal);
+   static bool compareAndSwap(volatile T* dst, T oldVal, T newVal);
 };
 
 template<typename T>
-T Atomic::incrementAndFetch(T* dst)
+T Atomic::incrementAndFetch(volatile T* dst)
 {
 #ifdef WIN32
-   return InterlockedIncrement((LONG*)dst);
+   return InterlockedIncrement((volatile LONG*)dst);
 #else
    return __sync_add_and_fetch(dst, 1);
 #endif
 }
 
 template<typename T>
-T Atomic::decrementAndFetch(T* dst)
+T Atomic::decrementAndFetch(volatile T* dst)
 {
 #ifdef WIN32
-   return InterlockedDecrement((LONG*)dst);
+   return InterlockedDecrement((volatile LONG*)dst);
 #else
    return __sync_sub_and_fetch(dst, 1);
 #endif
 }
 
 template<typename T>
-bool Atomic::compareAndSwap(T* dst, T oldVal, T newVal)
+bool Atomic::compareAndSwap(volatile T* dst, T oldVal, T newVal)
 {
 #ifdef WIN32
    return (InterlockedCompareExchange(
-      (LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
+      (volatile LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
 #else
    return __sync_bool_compare_and_swap(dst, oldVal, newVal);
 #endif

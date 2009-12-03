@@ -108,13 +108,19 @@ protected:
       // types of entries
       enum Type
       {
-         Value,
+         Value = 0,
          Sentinel,
          Tombstone
       };
 
       // data in the entry
-      Type type;
+#ifdef WIN32
+      /* MS Windows requires any variable written to in an atomic operation
+         to be aligned to the address size of the CPU. */
+      volatile Type type __attribute__ ((aligned(4)));
+#else
+      volatile Type type;
+#endif
       _K k;
       int h;
       _V* v;
@@ -132,7 +138,7 @@ protected:
          here that since an entry has to be heap-allocated and 32-bit aligned,
          so will the first value of the struct be automatically 32-bit aligned,
          but we put the special alignment in here anyway. */
-      aligned_uint32_t refCount;
+      volatile aligned_uint32_t refCount;
 #ifdef WIN32
       /* MS Windows requires any variable written to in an atomic operation
          to be aligned to the address size of the CPU. */
