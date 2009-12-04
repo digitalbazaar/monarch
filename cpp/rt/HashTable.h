@@ -724,10 +724,12 @@ void HashTable<_K, _V, _H, _E>::freeEntryList(EntryList* el)
    }
 
    // free all garbage entries
-   for(Entry* e = const_cast<Entry*>(el->garbageEntries); e != NULL;
-       e = e->garbageNext)
+   Entry* e = const_cast<Entry*>(el->garbageEntries);
+   while(e != NULL)
    {
-      freeEntry(e);
+      Entry* tmp = e;
+      e = e->garbageNext;
+      freeEntry(tmp);
    }
 
    // free entries array
