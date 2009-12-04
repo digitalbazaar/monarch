@@ -14,6 +14,14 @@ HazardPtrList::HazardPtrList() :
 
 HazardPtrList::~HazardPtrList()
 {
+   // clean up all hazard pointers
+   HazardPtr* head = const_cast<HazardPtr*>(mHead);
+   while(head != NULL)
+   {
+      HazardPtr* tmp = head;
+      head = head->next;
+      delete tmp;
+   }
 }
 
 HazardPtr* HazardPtrList::acquire()
