@@ -10,6 +10,8 @@
 #include "db/rt/Thread.h"
 #include "db/util/Timer.h"
 
+#include <math.h>
+
 using namespace std;
 using namespace db::test;
 using namespace db::rt;
@@ -19,6 +21,38 @@ struct KeyAsHash
    int operator()(int key) const
    {
       return key;
+   }
+};
+
+struct AddressAsHash
+{
+   int operator()(const char* key) const
+   {
+      return (int)key;
+   }
+};
+
+struct JavaHashCodeAsHash
+{
+   int operator()(const char* key) const
+   {
+      // s[0]*31^(n-1) + s[1]*31^(n-2) + ... + s[n-1]
+      int n = strlen(key) - 1;
+      int hash = 0;
+      for(const char* ptr = key; ptr[0] != '\0'; ptr++)
+      {
+         hash += (int)ptr[0] * pow(31, n);
+         n--;
+      }
+      return hash;
+   }
+};
+
+struct StringEquals
+{
+   bool operator()(const char* key1, const char* key2)
+   {
+      return strcmp(key1, key2) == 0;
    }
 };
 
@@ -66,6 +100,38 @@ void runHashTableTests(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("static string");
+   {
+      HashTable<const char*, int, AddressAsHash> table;
+
+      table.put("foo", 7);
+      table.put("bar", 13);
+
+      int num;
+      assert(table.get("foo", num));
+      assert(num == 7);
+      assert(table.get("bar", num));
+      assert(num == 13);
+   }
+   tr.passIfNoException();
+
+   tr.test("dynamic string");
+   {
+      HashTable<const char*, int, JavaHashCodeAsHash, StringEquals> table;
+
+      table.put("foo", 7);
+      table.put("bar", 13);
+
+      string key1 = "foo";
+      string key2 = "bar";
+
+      int num;
+      assert(table.get(key1.c_str(), num));
+      assert(num == 7);
+      assert(table.get(key2.c_str(), num));
+      assert(num == 13);
+   }
+   tr.passIfNoException();
 
    /*
    HashTable<int, int, KeyAsHash> table(1);

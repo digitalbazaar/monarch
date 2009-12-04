@@ -391,19 +391,6 @@ protected:
       EntryList* el, int idx, Entry* eOld, Entry* eNew);
 
    /**
-    * Gets the entry at the given index in the table. The EntryList owner of
-    * the Entry must be unref'd and the Entry itself must be unref'd once it
-    * is no longer in use. The index will be capped at the capacity of each
-    * EntryList that is searched.
-    *
-    * @param ptr the hazard pointer to use.
-    * @param idx the index of the entry to retrieve.
-    *
-    * @return the entry or NULL if no such entry exists.
-    */
-   virtual Entry* getEntry(HazardPtr* ptr, int idx);
-
-   /**
     * Maps a key to a value in this HashTable.
     *
     * @param k the key.
@@ -424,7 +411,7 @@ protected:
     *
     * @return the Entry or NULL if none exists.
     */
-   virtual Entry* get(const _K& k);
+   virtual Entry* getEntry(const _K& k);
 
    /**
     * Resizes the table.
@@ -571,7 +558,7 @@ bool HashTable<_K, _V, _H, _E>::get(const _K& k, _V& v)
 {
    bool rval = false;
 
-   Entry* e = get(k);
+   Entry* e = getEntry(k);
    if(e != NULL)
    {
       // get value, unreference entry and its list
@@ -595,7 +582,7 @@ bool HashTable<_K, _V, _H, _E>::remove(const _K& k)
    while(!done)
    {
       // get the entry
-      Entry* e = get(k);
+      Entry* e = getEntry(k);
       if(e != NULL)
       {
          // set type to Tombstone (it must have been Value to be returned
@@ -967,80 +954,6 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
 }
 
 template<typename _K, typename _V, typename _H, typename _E>
-struct HashTable<_K, _V, _H, _E>::Entry*
-HashTable<_K, _V, _H, _E>::getEntry(HazardPtr* ptr, int idx)
-{
-   Entry* rval = NULL;
-
-   /* Note: The next pointer in any EntryList is only initialized to NULL,
-      never later set to it. A value of NULL indicates that the EntryList
-      is the last one in this HashTable. Any other value indicates that
-      there is another EntryList with newer values. If an older list has
-      a Sentinel Entry, then there is guaranteed to be another list. Therefore,
-      there is a guarantee that following a non-NULL next pointer will always
-      result in finding a newer list, even if the current list has been marked
-      as garbage and is waiting for all references to it to be removed so
-      that it can be collected. */
-
-   /* Iterate through each EntryList until a non-old Value entry is found.
-      Note: The entry's owner will have its reference count increased,
-      protecting it from being freed. */
-   bool found = false;
-   EntryList* el = refNextEntryList(ptr, NULL);
-   while(!found && el != NULL)
-   {
-      // check the entries for the given index, capped at maxIdx
-      int maxIdx = el->capacity - 1;
-      int i = (idx > maxIdx) ? maxIdx : idx;
-
-      Entry* e = refEntry(ptr, el, i);
-      if(e != NULL && e->type == Entry::Value)
-      {
-         if(!el->old)
-         {
-            // the list is not old, so we found an up-to-date value
-            found = true;
-            rval = e;
-         }
-         else
-         {
-            /* We found a value in an old list so we're responsible for
-               attempting to copy that value to the most current list.
-               We attempt to do a put here, but we don't care if we
-               fail. If we fail, then someone else has already put
-               the value or an even newer value into the current list for
-               us. We simply mark the old entry as a Sentinel.
-             */
-            put(e->k, *(e->v), false, ptr);
-
-            // set entry type to a sentinel
-            if(Atomic::compareAndSwap(&e->type, Entry::Value, Entry::Sentinel))
-            {
-               // decrement list length
-               Atomic::decrementAndFetch(&el->length);
-            }
-         }
-      }
-
-      if(!found)
-      {
-         // unref the entry
-         if(e != NULL)
-         {
-            unrefEntry(e);
-         }
-
-         // get the next entry list, drop reference to the old list
-         EntryList* next = refNextEntryList(ptr, el);
-         unrefEntryList(el);
-         el = next;
-      }
-   }
-
-   return rval;
-}
-
-template<typename _K, typename _V, typename _H, typename _E>
 bool HashTable<_K, _V, _H, _E>::put(
    const _K& k, const _V& v, bool replace, HazardPtr* ptr)
 {
@@ -1070,7 +983,7 @@ bool HashTable<_K, _V, _H, _E>::put(
    bool insertAttempted = false;
    while(!inserted && (replace || !insertAttempted))
    {
-      // use the newest entries array and its max index
+      // use the newest entries array and max index
       EntryList* el = getCurrentEntryList(ptr);
       int maxIdx = el->capacity - 1;
 
@@ -1081,13 +994,11 @@ bool HashTable<_K, _V, _H, _E>::put(
       // 1. we haven't decided we need a new table
       // 2. we haven't inserted AND
       // 3. we're replacing existing values OR we haven't attempted an insert
+      bool mustResize = false;
       bool useNewTable = false;
-      int i = eNew->h;
+      int i = eNew->h & maxIdx;
       while(!useNewTable && !inserted && (replace || !insertAttempted))
       {
-         // limit index to the max index
-         i = (i > maxIdx) ? maxIdx : i;
-
          // get any existing entry directly from the current list
          Entry* eOld = refEntry(ptr, el, i);
          if(eOld == NULL)
@@ -1123,6 +1034,7 @@ bool HashTable<_K, _V, _H, _E>::put(
                // keys did not match and we've reached the end of the table, so
                // we must use a new table
                useNewTable = true;
+               mustResize = true;
             }
             else
             {
@@ -1140,11 +1052,17 @@ bool HashTable<_K, _V, _H, _E>::put(
          // insert was successful
          rval = true;
       }
-      else if(useNewTable)
+      else if(mustResize)
       {
          // resize and then try insert again
          // FIXME: use a better capacity increase formula
          int capacity = (int)(el->capacity * 1.5 + 1);
+         if(capacity % 2 == 0)
+         {
+            // ensure capacity is always odd so that when we are reprobing
+            // we won't strip odd indexes
+            capacity++;
+         }
          resize(ptr, el, capacity);
       }
 
@@ -1160,7 +1078,7 @@ bool HashTable<_K, _V, _H, _E>::put(
 
 template<typename _K, typename _V, typename _H, typename _E>
 struct HashTable<_K, _V, _H, _E>::Entry*
-HashTable<_K, _V, _H, _E>::get(const _K& k)
+HashTable<_K, _V, _H, _E>::getEntry(const _K& k)
 {
    Entry* rval = NULL;
 
@@ -1173,36 +1091,72 @@ HashTable<_K, _V, _H, _E>::get(const _K& k)
       so by incrementing our index by 1 since we handle collisions when
       inserting by simply increasing the index by 1 until we find an empty
       slot. */
+
+   /* Note: The next pointer in any EntryList is only initialized to NULL,
+      never later set to it. A value of NULL indicates that the EntryList
+      is the last one in this HashTable. Any other value indicates that
+      there is another EntryList with newer values. If an older list has
+      a Sentinel Entry, then there is guaranteed to be another list.
+      Therefore, there is a guarantee that following a non-NULL next pointer
+      will always result in finding a newer list, even if the current list
+      has been marked as garbage and is waiting for all references to it to
+      be removed so that it can be collected. */
+
+   /* Iterate through each EntryList until a non-old Value entry is found.
+      Note: The entry and its list will have their reference counts increased,
+      protecting them from being freed. */
    int hash = mHashFunction(k);
-   int i = hash;
-   bool done = false;
-   while(!done)
+   EntryList* el = refNextEntryList(ptr, NULL);
+   while(rval == NULL && el != NULL)
    {
-      // get entry at index
-      Entry* e = getEntry(ptr, i);
-      if(e != NULL)
+      // check the entries for the given index, capped at maxIdx
+      int maxIdx = el->capacity - 1;
+      for(int i = hash & maxIdx; rval == NULL && i < el->capacity; i++)
       {
-         // if the entry key is at the same memory address or if the hashes
-         // match and the keys match, then we found the value we want
-         if(&(e->k) == &k || (e->h == hash && e->k == k))
+         Entry* e = refEntry(ptr, el, i);
+         if(e != NULL && e->type == Entry::Value)
          {
-            rval = e;
-            done = true;
+            /* If we found a value in an old list then we're responsible for
+               attempting to copy that value to the most current list. We
+               attempt to do a put here, but we don't care if we fail. If we
+               fail, then someone else has already put the value or an even
+               newer value into the current list for us. We simply mark the
+               old entry as a Sentinel. */
+            if(el->old)
+            {
+               put(e->k, *(e->v), false, ptr);
+
+               // set entry type to a sentinel
+               if(Atomic::compareAndSwap(
+                  &e->type, Entry::Value, Entry::Sentinel))
+               {
+                  // decrement list length
+                  Atomic::decrementAndFetch(&el->length);
+               }
+            }
+            /* If the entry key is at the same memory address or if the hashes
+               match and the keys match, then we found the value we want. If
+               the keys don't match, we'll reprobe via the for-loop. */
+            else if(&(e->k) == &k ||
+               (e->h == hash && mEqualsFunction(e->k, k)))
+            {
+               rval = e;
+            }
          }
-         // keys did not match
-         else
+
+         // only unref the entry if we aren't returning it
+         if(rval == NULL && e != NULL)
          {
-            // unreference entry and entry's list, reprobe
-            EntryList* owner = e->owner;
             unrefEntry(e);
-            unrefEntryList(owner);
-            i++;
          }
       }
-      else
+
+      if(rval == NULL)
       {
-         // no entry at the given index
-         done = true;
+         // get the next entry list, drop reference to the old list
+         EntryList* next = refNextEntryList(ptr, el);
+         unrefEntryList(el);
+         el = next;
       }
    }
 
@@ -1213,7 +1167,8 @@ HashTable<_K, _V, _H, _E>::get(const _K& k)
 }
 
 template<typename _K, typename _V, typename _H, typename _E>
-void HashTable<_K, _V, _H, _E>::resize(HazardPtr* ptr, EntryList* el, int capacity)
+void HashTable<_K, _V, _H, _E>::resize(
+   HazardPtr* ptr, EntryList* el, int capacity)
 {
    /* Note: When we call resize(), other threads might also be trying to
       resize at the same time. Therefore, we allocate a new EntryList and
