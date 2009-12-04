@@ -1176,17 +1176,18 @@ template<typename _K, typename _V, typename _H, typename _E>
 void HashTable<_K, _V, _H, _E>::resize(
    HazardPtr* ptr, EntryList* el, int capacity)
 {
-   /* Note: When we call resize(), other threads might also be trying to
-      resize at the same time. Therefore, we allocate a new EntryList and
-      then try to CAS it onto the current EntryList. If it fails, then someone
-      else has already done the resize for us and we should deallocate the
-      EntryList we created and return. If it succeeds, then we either appended
-      our EntryList onto another EntryList that was marked as garbage while
-      we were doing work (which is ok, it will be collected later), or we
-      appended our EntryList as the most current valid EntryList. In either
-      case, the old current EntryList is marked as an old list. By marking
-      the list as old, subsequent calls to put() know to mark entries in
-      the old list as Sentinels.
+   /* Note: When we call resize(), other threads might also be trying to resize
+      at the same time. Therefore, we allocate a new EntryList and then try to
+      CAS it onto the current EntryList. If it fails, then someone else has
+      already done the resize for us and we should deallocate the EntryList
+      we created and return. If it succeeds, we appended our EntryList as the
+      newest EntryList. Note that we could not have appended our EntryList onto
+      an EntryList that was marked as garbage because any EntryList that is
+      marked as garbage must have a next pointer that is not NULL because that
+      would make it the newest list, which is never garbage. In either case,
+      the old current EntryList is marked as an old list. By marking the list
+      as old, subsequent calls to put() know to mark entries in the old list
+      as Sentinels.
 
       Keep in mind that when resize() is called from put(), it is from within
       a loop that will keep trying to put() the key/value pair into the table
