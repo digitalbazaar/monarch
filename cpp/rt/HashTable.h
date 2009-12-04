@@ -1073,6 +1073,12 @@ bool HashTable<_K, _V, _H, _E>::put(
    // FIXME: run garbage collection how often? also run in get()?
    collectGarbage(ptr);
 
+   if(!rval)
+   {
+      // clean up created entry
+      freeEntry(eNew);
+   }
+
    return rval;
 }
 
