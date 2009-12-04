@@ -55,9 +55,7 @@ struct DefaultEqualsFunction : public EqualsFunction<_K>
  * This HashTable is stored as a linked-list of entry blocks. Each entry block
  * is referred to as an EntryList. Each entry block constitutes a single
  * hash table. There are multiple EntryLists so that this HashTable can be
- * resized. During a resize, operations to get/put on the HashTable will
- * need to iterate over this list. When a resize is complete, old EntryLists
- * will be freed. To enable this behavior in a lock-free manner, a combination
+ * resized. To enable this behavior in a lock-free manner, a combination
  * of hazard pointers and compare-and-swap operations are used.
  *
  * Here are two scenarios of two threads working concurrently, one that is
