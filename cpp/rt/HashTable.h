@@ -1272,11 +1272,9 @@ void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
    }
 
    // if the first EntryList is old, has a length of 0, a refcount of 1 (we
-   // have the only reference), and is not protected by a hazard pointer, move
-   // it to the private list
+   // have the only reference), then we can mark it as garbage
    EntryList* el = refNextEntryList(ptr, NULL);
-   if(el->old && el->length == 0 && el->refCount == 1 &&
-      !mHazardPtrs.isProtected(el))
+   if(el->old && el->length == 0 && el->refCount == 1)
    {
       // if we fail to remove the list from the head, then someone else has
       // done our work for us
