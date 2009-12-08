@@ -1,20 +1,27 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+#define __STDC_FORMAT_MACROS
+
 #include "db/test/Test.h"
 #include "db/test/Tester.h"
 #include "db/test/TestRunner.h"
+#include "db/rt/ExclusiveLock.h"
 #include "db/rt/HashTable.h"
 #include "db/rt/Runnable.h"
 #include "db/rt/RunnableDelegate.h"
+#include "db/rt/SharedLock.h"
 #include "db/rt/Thread.h"
 #include "db/util/Timer.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace std;
-using namespace db::test;
+using namespace db::config;
 using namespace db::rt;
+using namespace db::test;
+using namespace db::util;
 
 struct KeyAsHash
 {
@@ -177,16 +184,277 @@ void runHashTableTests(TestRunner& tr)
    tr.ungroup();
 }
 
-void runHashTableConcurrencyTest(TestRunner& tr)
+void runHashTableConcurrencyTest(
+   TestRunner& tr, uint32_t threads, uint32_t reads, uint32_t writes)
 {
    tr.group("HashTable concurrency");
 
-   tr.test("single thread");
+   char name[100];
+   snprintf(name, 100,
+      "RW threads:%" PRIu32
+      " reads:%" PRIu32
+      " writes:%" PRIu32,
+      threads, reads, writes);
+   tr.test(name);
    {
    }
    tr.passIfNoException();
 
-   tr.test("many threads");
+   tr.ungroup();
+}
+
+void runHashTableVsMapTest(
+   TestRunner& tr, uint32_t reads, uint32_t writes)
+{
+   int threads = 1;
+   char name[100];
+   tr.group("HashTable vs Map Single Thread");
+
+   bool csv = true;
+   const char* comment = csv ? "#" : "";
+   const char* sep = csv ? "," : " ";
+   uint32_t wr = writes + reads;
+
+   printf("%s w:%" PRIu32 " r:%" PRIu32 "\n", comment, reads, writes);
+   uint64_t mrdt, mwdt;
+   uint64_t hrdt, hwdt;
+
+   snprintf(name, 100,
+      "map RW"
+      " reads:%" PRIu32
+      " writes:%" PRIu32,
+      reads, writes);
+   tr.test(name);
+   {
+      uint64_t rstart, wstart;
+
+      map<int, uint32_t> m;
+
+      printf("%s map\n", comment);
+      printf(
+         "%1s%8s%s"
+         "%9s%s%9s%s"
+         "%9s%s%9s%s"
+         "%9s%s%9s\n",
+         comment, "threads", sep,
+         "total (s)", sep, "rw/s", sep,
+         "write (s)", sep, "w/s", sep,
+         "read (s)", sep, "r/s");
+
+      wstart = Timer::startTiming();
+      for(uint32_t i = 0; i < writes; i++)
+      {
+         m[0] = i;
+      }
+      mwdt = Timer::getMilliseconds(wstart);
+
+      uint32_t v;
+      rstart = Timer::startTiming();
+      for(uint32_t i = 0; i < reads; i++)
+      {
+         v = m[0];
+      }
+      mrdt = Timer::getMilliseconds(rstart);
+
+      uint64_t dt = mwdt + mrdt;
+      printf(
+         "%9d%s"
+         "%9.3f%s%9.0f%s"
+         "%9.3f%s%9.0f%s"
+         "%9.3f%s%9.0f\n",
+         threads, sep,
+         dt/1000.0, sep, wr/(double)dt, sep,
+         mwdt/1000.0, sep, writes/(double)mwdt, sep,
+         mrdt/1000.0, sep, reads/(double)mrdt);
+   }
+   tr.passIfNoException();
+
+   snprintf(name, 100,
+      "ht RW"
+      " reads:%" PRIu32
+      " writes:%" PRIu32,
+      reads, writes);
+   tr.test(name);
+   {
+      uint64_t rstart, wstart;
+
+      HashTable<int, uint32_t, KeyAsHash> h;
+
+      printf("%s ht\n", comment);
+      printf(
+         "%1s%8s%s"
+         "%9s%s%9s%s"
+         "%9s%s%9s%s"
+         "%9s%s%9s\n",
+         comment, "threads", sep,
+         "total (s)", sep, "rw/s", sep,
+         "write (s)", sep, "w/s", sep,
+         "read (s)", sep, "r/s");
+
+      wstart = Timer::startTiming();
+      for(uint32_t i = 0; i < writes; i++)
+      {
+         h.put(0, i);
+      }
+      hwdt = Timer::getMilliseconds(wstart);
+
+      uint32_t v;
+      rstart = Timer::startTiming();
+      for(uint32_t i = 0; i < reads; i++)
+      {
+         h.get(0, v);
+      }
+      hrdt = Timer::getMilliseconds(rstart);
+
+      uint64_t dt = hwdt + hrdt;
+      printf(
+         "%9d%s"
+         "%9.3f%s%9.0f%s"
+         "%9.3f%s%9.0f%s"
+         "%9.3f%s%9.0f\n",
+         threads, sep,
+         dt/1000.0, sep, wr/(double)dt, sep,
+         hwdt/1000.0, sep, writes/(double)hwdt, sep,
+         hrdt/1000.0, sep, reads/(double)hrdt);
+   }
+   tr.passIfNoException();
+
+   printf("%s ratio ht/m\n", comment);
+   printf(
+      "%9d%s"
+      "%9.3f%s%9s%s"
+      "%9.3f%s%9s%s"
+      "%9.3f%s%9s\n",
+      threads, sep,
+      ((double)hwdt+hrdt)/(mwdt+mrdt), sep, "", sep,
+      ((double)hwdt/mwdt), sep, "", sep,
+      ((double)hrdt/mrdt), sep, "");
+
+   snprintf(name, 100,
+      "map excl lock RW"
+      " reads:%" PRIu32
+      " writes:%" PRIu32,
+      reads, writes);
+   tr.test(name);
+   {
+      uint64_t rstart, wstart;
+
+      map<int, uint32_t> m;
+      ExclusiveLock lock;
+
+      printf("%s map exclusive lock\n", comment);
+      printf(
+         "%1s%8s%s"
+         "%9s%s%9s%s"
+         "%9s%s%9s%s"
+         "%9s%s%9s\n",
+         comment, "threads", sep,
+         "total (s)", sep, "rw/s", sep,
+         "write (s)", sep, "w/s", sep,
+         "read (s)", sep, "r/s");
+
+      wstart = Timer::startTiming();
+      for(uint32_t i = 0; i < writes; i++)
+      {
+         lock.lock();
+         m[0] = i;
+         lock.unlock();
+      }
+      mwdt = Timer::getMilliseconds(wstart);
+
+      uint32_t v;
+      rstart = Timer::startTiming();
+      for(uint32_t i = 0; i < reads; i++)
+      {
+         lock.lock();
+         v = m[0];
+         lock.unlock();
+      }
+      mrdt = Timer::getMilliseconds(rstart);
+
+      uint64_t dt = mwdt + mrdt;
+      printf(
+         "%9d%s"
+         "%9.3f%s%9.0f%s"
+         "%9.3f%s%9.0f%s"
+         "%9.3f%s%9.0f\n",
+         threads, sep,
+         dt/1000.0, sep, wr/(double)dt, sep,
+         mwdt/1000.0, sep, writes/(double)mwdt, sep,
+         mrdt/1000.0, sep, reads/(double)mrdt);
+   }
+   tr.passIfNoException();
+
+   snprintf(name, 100,
+      "map shared lock RW"
+      " reads:%" PRIu32
+      " writes:%" PRIu32,
+      reads, writes);
+   tr.test(name);
+   {
+      uint64_t rstart, wstart;
+
+      map<int, uint32_t> m;
+      SharedLock lock;
+
+      printf("%s map shared lock\n", comment);
+      printf(
+         "%1s%8s%s"
+         "%9s%s%9s%s"
+         "%9s%s%9s%s"
+         "%9s%s%9s\n",
+         comment, "threads", sep,
+         "total (s)", sep, "rw/s", sep,
+         "write (s)", sep, "w/s", sep,
+         "read (s)", sep, "r/s");
+
+      wstart = Timer::startTiming();
+      for(uint32_t i = 0; i < writes; i++)
+      {
+         lock.lockExclusive();
+         m[0] = i;
+         lock.unlockExclusive();
+      }
+      mwdt = Timer::getMilliseconds(wstart);
+
+      uint32_t v;
+      rstart = Timer::startTiming();
+      for(uint32_t i = 0; i < reads; i++)
+      {
+         lock.lockShared();
+         v = m[0];
+         lock.unlockShared();
+      }
+      mrdt = Timer::getMilliseconds(rstart);
+
+      uint64_t dt = mwdt + mrdt;
+      printf(
+         "%9d%s"
+         "%9.3f%s%9.0f%s"
+         "%9.3f%s%9.0f%s"
+         "%9.3f%s%9.0f\n",
+         threads, sep,
+         dt/1000.0, sep, wr/(double)dt, sep,
+         mwdt/1000.0, sep, writes/(double)mwdt, sep,
+         mrdt/1000.0, sep, reads/(double)mrdt);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
+void runHashTableVsMapThreadsTest(
+   TestRunner& tr, uint32_t threads, uint32_t reads, uint32_t writes)
+{
+   tr.group("HashTable vs Map Multiple Threads");
+
+   char name[100];
+   snprintf(name, 100,
+      "RW threads:%" PRIu32
+      " reads:%" PRIu32
+      " writes:%" PRIu32,
+      threads, reads, writes);
+   tr.test(name);
    {
    }
    tr.passIfNoException();
@@ -213,10 +481,45 @@ public:
 
    /**
     * Runs interactive unit tests.
+    *
+    * Options:
+    * --test all - run all tests
+    * --test threads - test thread concurrency
+    * --test map - test speed vs map (single threaded)
+    * --test mapthreads - test speed vs map (multiple threads w/ locked map)
+    * --option threads <n> - number of threads
+    * --option reads <n> - number of read operations
+    * --option writes <n> - number of write operations
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      runHashTableConcurrencyTest(tr);
+      Config cfg = tr.getApp()->getConfig();
+      const char* test = cfg["db.test.Tester"]["test"]->getString();
+      bool all = (strcmp(test, "all") == 0);
+
+      uint32_t threads =
+         cfg->hasMember("threads") ? cfg["threads"]->getUInt32() : 1;
+      uint32_t reads =
+         cfg->hasMember("reads") ? cfg["reads"]->getUInt32() : 1;
+      uint32_t writes =
+         cfg->hasMember("writes") ? cfg["writes"]->getUInt32() : 1;
+      //uint32_t loops =
+      //   cfg->hasMember("loops") ? cfg["loops"]->getUInt32() : 1;
+      //uint32_t ops =
+      //   cfg->hasMember("ops") ? cfg["ops"]->getUInt32() : 1;
+
+      if(all || (strcmp(test, "threads") == 0))
+      {
+         runHashTableConcurrencyTest(tr, threads, reads, writes);
+      }
+      if(all || (strcmp(test, "map") == 0))
+      {
+         runHashTableVsMapTest(tr, reads, writes);
+      }
+      if(all || (strcmp(test, "mapthreads") == 0))
+      {
+         runHashTableVsMapThreadsTest(tr, threads, reads, writes);
+      }
       return 0;
    }
 };
