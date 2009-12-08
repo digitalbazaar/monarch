@@ -1366,31 +1366,43 @@ void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
       }
    }
 
-   // if the first EntryList is old, has a length of 0, a refcount of 1 (we
-   // have the only reference), then we can mark it as garbage
-   EntryList* el = refNextEntryList(ptr, NULL);
-   if(el->old && el->length == 0 && el->refCount == 1)
+   /* Use a hazard pointer to protect the first EntryList (we optimize out
+      incrementing the reference count here). If it is old, has a length of 0,
+      and a ref count of 0, then we can mark it as garbage. This is safe to do.
+      Suppose another thread is just about to increment the ref count or does
+      so while we're marking this list as garbage. Since the old flag was set
+      before ref count was incremented, the put() call gaurantees that no new
+      entries will be written to the EntryList. It can only be read from. */
+   // attempt to protect the head EntryList with a hazard pointer
+   ptr->value = const_cast<EntryList*>(mHead);
+   // ensure the head hasn't changed, if it has, someone else has handled GC
+   if(ptr->value == mHead)
    {
-      // if we fail to remove the list from the head, then someone else has
-      // done our work for us
-      if(Atomic::compareAndSwap(&mHead, el, el->next))
+      EntryList* el = static_cast<EntryList*>(ptr->value);
+      if(el->old && el->length == 0 && el->refCount == 0)
       {
-         // we are responsible for marking the list as garbage, so move it
-         // to our private garbage list
-         if(privateTail == NULL)
+         // if we fail to remove the list from the head, then someone else has
+         // done our work for us
+         if(Atomic::compareAndSwap(&mHead, el, el->next))
          {
-            // start the private list
-            privateHead = privateTail = el;
-         }
-         else
-         {
-            // append to the private list
-            privateTail->garbageNext = el;
-            privateTail = el;
+            // we are responsible for marking the list as garbage, so move it
+            // to our private garbage list
+            if(privateTail == NULL)
+            {
+               // start the private list
+               privateHead = privateTail = el;
+            }
+            else
+            {
+               // append to the private list
+               privateTail->garbageNext = el;
+               privateTail = el;
+            }
          }
       }
    }
-   unrefEntryList(el);
+   // clear hazard pointer
+   ptr->value = NULL;
 
    // clean up the private garbage list as much as possible
    EntryList* next = privateHead;
