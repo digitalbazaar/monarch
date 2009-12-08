@@ -150,7 +150,7 @@ protected:
       int h;
       _V* v;
       EntryList* owner;
-      Entry* garbageNext;
+      Entry* next;
    };
 
    /**
@@ -170,6 +170,13 @@ protected:
       volatile Entry* garbageEntries __attribute__ ((aligned(4)));
 #else
       volatile Entry* garbageEntries;
+#endif
+#ifdef WIN32
+      /* MS Windows requires any variable written to in an atomic operation
+         to be aligned to the address size of the CPU. */
+      volatile Entry* freeEntries __attribute__ ((aligned(4)));
+#else
+      volatile Entry* freeEntries;
 #endif
       Entry** entries;
       int capacity;
@@ -310,12 +317,13 @@ protected:
    /**
     * Creates a Value Entry.
     *
+    * @param el the EntryList to create the Entry for.
     * @param key the Entry key.
     * @param value the Entry value.
     *
     * @return the new Entry.
     */
-   virtual Entry* createEntry(const _K& key, const _V& value);
+   virtual Entry* createEntry(EntryList* el, const _K& key, const _V& value);
 
    /**
     * Frees an Entry.
@@ -699,6 +707,7 @@ HashTable<_K, _V, _H, _E>::createEntryList(int capacity)
       Atomic::mallocAligned(sizeof(EntryList)));
    el->refCount = 0;
    el->garbageEntries = NULL;
+   el->freeEntries = NULL;
    el->capacity = capacity;
    el->length = 0;
    el->entries = static_cast<Entry**>(calloc(capacity, sizeof(Entry*)));
@@ -722,12 +731,25 @@ void HashTable<_K, _V, _H, _E>::freeEntryList(EntryList* el)
    }
 
    // free all garbage entries
-   Entry* e = const_cast<Entry*>(el->garbageEntries);
-   while(e != NULL)
    {
-      Entry* tmp = e;
-      e = e->garbageNext;
-      freeEntry(tmp);
+      Entry* e = const_cast<Entry*>(el->garbageEntries);
+      while(e != NULL)
+      {
+         Entry* tmp = e;
+         e = e->next;
+         freeEntry(tmp);
+      }
+   }
+
+   // free all free list entries
+   {
+      Entry* e = const_cast<Entry*>(el->freeEntries);
+      while(e != NULL)
+      {
+         Entry* tmp = e;
+         e = e->next;
+         freeEntry(tmp);
+      }
    }
 
    // free entries array
@@ -739,15 +761,45 @@ void HashTable<_K, _V, _H, _E>::freeEntryList(EntryList* el)
 
 template<typename _K, typename _V, typename _H, typename _E>
 struct HashTable<_K, _V, _H, _E>::Entry*
-HashTable<_K, _V, _H, _E>::createEntry(const _K& key, const _V& value)
+HashTable<_K, _V, _H, _E>::createEntry(
+   EntryList* el, const _K& key, const _V& value)
 {
-   Entry* e = static_cast<Entry*>(malloc(sizeof(Entry)));
+   Entry* e = NULL;
+
+   // try to reuse an Entry from the free list
+   if(el->freeEntries != NULL)
+   {
+      Entry* head;
+      do
+      {
+         head = const_cast<Entry*>(el->freeEntries);
+      }
+      while(!Atomic::compareAndSwap(&el->freeEntries, head, (Entry*)NULL));
+
+      if(head != NULL)
+      {
+         e = head;
+      }
+   }
+
+   if(e == NULL)
+   {
+      // create a new Entry, none were found on the free list
+      e = static_cast<Entry*>(malloc(sizeof(Entry)));
+      e->v = new _V(value);
+   }
+   else
+   {
+      *(e->v) = value;
+   }
+
    e->refCount = 0;
    e->type = Entry::Value;
    e->k = key;
    e->h = mHashFunction(key);
-   e->v = new _V(value);
-   e->garbageNext = NULL;
+   e->owner = el;
+   e->next = NULL;
+
    return e;
 };
 
@@ -886,24 +938,39 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
       }
       while(!Atomic::compareAndSwap(&el->garbageEntries, head, (Entry*)NULL));
 
-      // free unused entries in the old list and build a new list from the
-      // entries that are still in use, also keep track of the tail of the
-      // new list so we can append eOld to it when we're finished
+      /* Move unused entries in the old list into a private free list for
+         entries. That private list will be prepended to the shared free list
+         when we're finished here. Build a new list from the entries that are
+         still in use. Keep track of the tail of the new list so we can append
+         eOld to it when we're finished.
+       */
       Entry* e = head;
       Entry* tail;
       Entry* next;
-      head = tail = NULL;
+      Entry* freeHead = NULL;
+      Entry* freeTail = NULL;
+      head = tail = freeHead = freeTail = NULL;
       while(e != NULL)
       {
          // save next and then clear it
-         next = e->garbageNext;
-         e->garbageNext = NULL;
+         next = e->next;
+         e->next = NULL;
 
          // next garbage entry is no longer in use if its ref count is
          // zero AND no one has a hazard pointer to it
          if(e->refCount == 0 && !mHazardPtrs.isProtected(e))
          {
-            freeEntry(const_cast<Entry*>(e));
+            if(freeHead == NULL)
+            {
+               // start the new free list
+               freeHead = freeTail = e;
+            }
+            else
+            {
+               // append to the new free list
+               freeTail->next = e;
+               freeTail = e;
+            }
          }
          else if(head == NULL)
          {
@@ -913,7 +980,7 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
          else
          {
             // append to the new garbage list
-            tail->garbageNext = e;
+            tail->next = e;
             tail = e;
          }
 
@@ -932,9 +999,21 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
          else
          {
             // append to the new garbage lits
-            tail->garbageNext = eOld;
+            tail->next = eOld;
             tail = eOld;
          }
+      }
+
+      // prepend private free list to the shared free list
+      if(freeHead != NULL)
+      {
+         Entry* oldHead;
+         do
+         {
+            oldHead = const_cast<Entry*>(el->freeEntries);
+            freeTail->next = oldHead;
+         }
+         while(!Atomic::compareAndSwap(&el->freeEntries, oldHead, freeHead));
       }
 
       // prepend private garbage list to the shared garbage list
@@ -944,7 +1023,7 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
          do
          {
             oldHead = const_cast<Entry*>(el->garbageEntries);
-            tail->garbageNext = oldHead;
+            tail->next = oldHead;
          }
          while(!Atomic::compareAndSwap(&el->garbageEntries, oldHead, head));
       }
@@ -961,8 +1040,8 @@ bool HashTable<_K, _V, _H, _E>::put(
 
    /* Steps:
 
-      1. Create the entry for the table.
-      2. Enter a spin loop that runs until the value is inserted.
+      1. Enter a spin loop that runs until the value is inserted.
+      2. Create the entry for the table (if it hasn't been created yet).
       3. Use the newest entries array.
       4. Find the index to insert at.
       5. Do a CAS to insert.
@@ -973,8 +1052,7 @@ bool HashTable<_K, _V, _H, _E>::put(
       entry is a sentinel, in which case we must insert into a new table.
    */
 
-   // create a value entry
-   Entry* eNew = createEntry(k, v);
+   Entry* eNew = NULL;
 
    // enter a spin loop that keep trying to insert while we haven't attempted
    // an insert yet
@@ -986,8 +1064,16 @@ bool HashTable<_K, _V, _H, _E>::put(
       EntryList* el = getCurrentEntryList(ptr);
       int maxIdx = el->capacity - 1;
 
-      // set EntryList owner of the Entry
-      eNew->owner = el;
+      // create value entry as necessary
+      if(eNew == NULL)
+      {
+         eNew = createEntry(el, k, v);
+      }
+      else
+      {
+         // update EntryList owner of the Entry
+         eNew->owner = el;
+      }
 
       // enter another spin loop to keep trying to insert while:
       // 1. we haven't decided we need a new table
