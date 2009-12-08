@@ -967,21 +967,20 @@ bool HashTable<_K, _V, _H, _E>::put(
       4. Find the index to insert at.
       5. Do a CAS to insert.
       6. CAS may fail if another thread slipped in and modified the value
-         before us, so loop and try again.
+         before us, in which case we optimize by dropping the update.
 
       Note: We may need to resize the table or we may discover that an old
       entry is a sentinel, in which case we must insert into a new table.
-    */
+   */
 
    // create a value entry
    Entry* eNew = createEntry(k, v);
 
-   // enter a spin loop that keep trying to insert while:
-   // 1. we haven't inserted yet AND
-   // 2. we're replacing existing values OR we haven't attempted an insert
+   // enter a spin loop that keep trying to insert while we haven't attempted
+   // an insert yet
    bool inserted = false;
    bool insertAttempted = false;
-   while(!inserted && (replace || !insertAttempted))
+   while(!insertAttempted)
    {
       // use the newest entries array and max index
       EntryList* el = getCurrentEntryList(ptr);
@@ -992,20 +991,22 @@ bool HashTable<_K, _V, _H, _E>::put(
 
       // enter another spin loop to keep trying to insert while:
       // 1. we haven't decided we need a new table
-      // 2. we haven't inserted AND
-      // 3. we're replacing existing values OR we haven't attempted an insert
+      // 2. we haven't attempted an insert
       bool mustResize = false;
       bool useNewTable = false;
       int i = eNew->h & maxIdx;
-      while(!useNewTable && !inserted && (replace || !insertAttempted))
+      while(!useNewTable && !insertAttempted)
       {
          // get any existing entry directly from the current list
          Entry* eOld = refEntry(ptr, el, i);
          if(eOld == NULL)
          {
-            // there is no existing entry so try to insert
-            inserted = replaceEntry(el, i, eOld, eNew);
-            insertAttempted = true;
+            // there is no existing entry so try to insert ...
+            // replace entry may fail because some other thread just
+            // barely beat us here ... but we optimize by saying we
+            // actually lost the fight and were overwritten
+            replaceEntry(el, i, eOld, eNew);
+            inserted = insertAttempted = true;
          }
          else if(eOld->type == Entry::Sentinel)
          {
@@ -1023,9 +1024,16 @@ bool HashTable<_K, _V, _H, _E>::put(
             if(&(eOld->k) == &k ||
                (eOld->h == eNew->h && mEqualsFunction(eOld->k, k)))
             {
+               // we can only replace the existing entry if its a tombstone
+               // or if the replace flag is setting allowing us to replace
+               // any existing value
                if(eOld->type == Entry::Tombstone || replace)
                {
-                  inserted = replaceEntry(el, i, eOld, eNew);
+                  // replace entry may fail because some other thread just
+                  // barely beat us here ... but we optimize by saying we
+                  // actually lost the fight and were overwritten
+                  replaceEntry(el, i, eOld, eNew);
+                  inserted = true;
                }
                insertAttempted = true;
             }
