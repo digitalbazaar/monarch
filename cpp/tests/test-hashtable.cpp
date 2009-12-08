@@ -16,6 +16,7 @@
 #include "db/util/Timer.h"
 
 #include <cmath>
+#include <cstdio>
 
 using namespace std;
 using namespace db::config;
