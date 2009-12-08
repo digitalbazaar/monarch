@@ -49,7 +49,7 @@ struct JavaHashCodeAsHash
       int hash = 0;
       for(const char* ptr = key; ptr[0] != '\0'; ptr++)
       {
-         hash += (int)ptr[0] * pow(31, n);
+         hash += (int)ptr[0] * pow((double)31, n);
          n--;
       }
       return hash;
