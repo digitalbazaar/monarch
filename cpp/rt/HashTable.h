@@ -942,8 +942,7 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
          entries. That private list will be prepended to the shared free list
          when we're finished here. Build a new list from the entries that are
          still in use. Keep track of the tail of the new list so we can append
-         eOld to it when we're finished.
-       */
+         eOld to it when we're finished. */
       Entry* e = head;
       Entry* tail;
       Entry* next;
@@ -957,8 +956,9 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
          e->next = NULL;
 
          // next garbage entry is no longer in use if its ref count is
-         // zero AND no one has a hazard pointer to it
-         if(e->refCount == 0 && !mHazardPtrs.isProtected(e))
+         // zero AND no one has a hazard pointer to it AND check the ref count
+         // once more to ensure it hasn't increased during the protection check
+         if(e->refCount == 0 && !mHazardPtrs.isProtected(e) && e->refCount == 0)
          {
             if(freeHead == NULL)
             {
@@ -1396,9 +1396,12 @@ void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
    EntryList* next = privateHead;
    while(next != NULL)
    {
-      // we can clean up the list if its reference count is 0 and it is not
-      // protected by the hazard pointer list
-      if(next->refCount == 0 && !mHazardPtrs.isProtected(next))
+      // we can clean up the list if its reference count is 0, it is not
+      // protected by the hazard pointer list, and then check again to
+      // ensure the ref count hasn't increased during the protection check
+      if(next->refCount == 0 &&
+         !mHazardPtrs.isProtected(next) &&
+         next->refCount == 0)
       {
          // update private head and tail
          if(privateHead == privateTail)
