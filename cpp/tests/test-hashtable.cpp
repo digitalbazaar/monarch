@@ -398,7 +398,7 @@ void runHashTableConcurrencyTest(
 void runHashTableVsMapTest(
    TestRunner& tr,
    uint32_t threads, uint32_t loops, uint32_t slots,
-   uint32_t reads, uint32_t writes)
+   uint32_t reads, uint32_t writes, uint32_t initialSize)
 {
    char name[100];
    tr.group("HashTable vs Map Single Thread");
@@ -409,8 +409,8 @@ void runHashTableVsMapTest(
 
    printf("%s"
       " threads:%" PRIu32 " loops:%" PRIu32 " slots:%" PRIu32
-      " w:%" PRIu32 " r:%" PRIu32 "\n",
-      comment, threads, loops, slots, writes, reads);
+      " w:%" PRIu32 " r:%" PRIu32 " initSize:%" PRIu32 "\n",
+      comment, threads, loops, slots, writes, reads, initialSize);
    _hashMashHeader(comment, sep);
 
    if(threads == 1)
@@ -525,7 +525,7 @@ void runHashTableVsMapTest(
    tr.test(name);
    {
       _hashMashInfo(comment, "HashTable<int, uint32_t>");
-      HashTable<int, uint32_t, KeyAsHash> h;
+      HashTable<int, uint32_t, KeyAsHash> h(initialSize);
       Thread* t[threads];
       HashMashBase* mashers[threads];
       for(uint32_t i = 0; i < threads; i++)
@@ -635,6 +635,8 @@ public:
          cfg->hasMember("loops") ? cfg["loops"]->getUInt32() : 1;
       uint32_t slots =
          cfg->hasMember("slots") ? cfg["slots"]->getUInt32() : 1;
+      uint32_t initialSize =
+         cfg->hasMember("initialSize") ? cfg["initialSize"]->getUInt32() : 10;
 
       if(all || (strcmp(test, "threads") == 0))
       {
@@ -642,7 +644,8 @@ public:
       }
       if(all || (strcmp(test, "map") == 0))
       {
-         runHashTableVsMapTest(tr, threads, loops, slots, reads, writes);
+         runHashTableVsMapTest(
+            tr, threads, loops, slots, reads, writes, initialSize);
       }
       return 0;
    }
