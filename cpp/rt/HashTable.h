@@ -962,8 +962,8 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
       Entry* e = head;
       Entry* tail;
       Entry* next;
-      Entry* freeHead = NULL;
-      Entry* freeTail = NULL;
+      Entry* freeHead;
+      Entry* freeTail;
       head = tail = freeHead = freeTail = NULL;
       while(e != NULL)
       {
