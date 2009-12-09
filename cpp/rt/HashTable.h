@@ -446,15 +446,18 @@ HashTable<_K, _V, _H, _E>::HashTable(const HashTable& copy) :
 
    // acquire a hazard pointer in the copy
    HashTable& c = const_cast<HashTable&>(copy);
-   HazardPtr* ptr = c.mHazardPtrs.acquire();
+   HazardPtr* cPtr = c.mHazardPtrs.acquire();
+
+   // get a hazard pointer for this table
+   HazardPtr* ptr = mHazardPtrs.acquire();
 
    // iterate over every entry list in copy, putting every value
-   EntryList* el = c.refNextEntryList(ptr, NULL);
+   EntryList* el = c.refNextEntryList(cPtr, NULL);
    while(el != NULL)
    {
       for(int i = 0; i < el->capacity; i++)
       {
-         Entry* e = c.protectEntry(ptr, el, i);
+         Entry* e = c.protectEntry(cPtr, el, i);
          if(e != NULL)
          {
             // if the entry type is Value, put it into this table
@@ -463,25 +466,26 @@ HashTable<_K, _V, _H, _E>::HashTable(const HashTable& copy) :
                // copy key and value and unprotect entry
                _K key = e->k;
                _V value = *(e->v);
-               ptr->value = NULL;
-               put(key, value, false);
+               cPtr->value = NULL;
+               put(key, value, false, ptr);
             }
             else
             {
                // unprotect entry
-               ptr->value = NULL;
+               cPtr->value = NULL;
             }
          }
       }
 
       // get the next entry list, drop reference to old list
-      EntryList* next = c.refNextEntryList(ptr, el);
+      EntryList* next = c.refNextEntryList(cPtr, el);
       c.unrefEntryList(el);
       el = next;
    }
 
-   // release the hazard pointer
-   c.mHazardPtrs.release(ptr);
+   // release the hazard pointers
+   c.mHazardPtrs.release(cPtr);
+   mHazardPtrs.release(ptr);
 }
 
 template<typename _K, typename _V, typename _H, typename _E>
@@ -515,15 +519,18 @@ HashTable<_K, _V, _H, _E>& HashTable<_K, _V, _H, _E>::operator=(
 
    // acquire a hazard pointer in the rhs
    HashTable& r = const_cast<HashTable&>(rhs);
-   HazardPtr* ptr = r.mHazardPtrs.acquire();
+   HazardPtr* rPtr = r.mHazardPtrs.acquire();
+
+   // get a hazard pointer for this table
+   HazardPtr* ptr = mHazardPtrs.acquire();
 
    // iterate over every entry list in rhs, putting every value
-   EntryList* el = r.refNextEntryList(ptr, NULL);
+   EntryList* el = r.refNextEntryList(rPtr, NULL);
    while(el != NULL)
    {
       for(int i = 0; i < el->capacity; i++)
       {
-         Entry* e = r.protectEntry(ptr, el, i);
+         Entry* e = r.protectEntry(rPtr, el, i);
          if(e != NULL)
          {
             // if the entry type is Value, put it into this table
@@ -532,25 +539,26 @@ HashTable<_K, _V, _H, _E>& HashTable<_K, _V, _H, _E>::operator=(
                // copy key and value and unprotect entry
                _K key = e->k;
                _V value = *(e->v);
-               ptr->value = NULL;
-               put(key, value, false);
+               rPtr->value = NULL;
+               put(key, value, false, ptr);
             }
             else
             {
                // unprotect entry
-               ptr->value = NULL;
+               rPtr->value = NULL;
             }
          }
       }
 
       // get the next entry list, drop reference to old list
-      EntryList* next = r.refNextEntryList(ptr, el);
+      EntryList* next = r.refNextEntryList(rPtr, el);
       r.unrefEntryList(el);
       el = next;
    }
 
-   // release the hazard pointer
-   r.mHazardPtrs.release(ptr);
+   // release the hazard pointers
+   r.mHazardPtrs.release(rPtr);
+   mHazardPtrs.release(ptr);
 
    return *this;
 }
