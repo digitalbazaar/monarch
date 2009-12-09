@@ -1217,19 +1217,29 @@ HashTable<_K, _V, _H, _E>::getEntry(HazardPtr* ptr, const _K& k)
       has been marked as garbage and is waiting for all references to it to
       be removed so that it can be collected. */
 
-   /* Iterate through each EntryList until a non-old Value entry is found.
+   /* Iterate through each EntryList until a non-Sentinel is found. If an
+      old Value entry is found, we copy it to the new list. If an Entry with
+      a matching key is found, we return the Entry if it is a Value and we
+      return NULL if it is a Tombstone.
       Note: The entry and its list will have their reference counts increased,
       protecting them from being freed. */
+   bool done = false;
    int hash = mHashFunction(k);
    EntryList* el = refNextEntryList(ptr, NULL);
-   while(rval == NULL && el != NULL)
+   while(!done && el != NULL)
    {
       // check the entries for the given index, capped at maxIdx
+      bool listDone = false;
       int maxIdx = el->capacity - 1;
-      for(int i = hash & maxIdx; rval == NULL && i < el->capacity; i++)
+      for(int i = hash & maxIdx; !listDone && i < el->capacity; i++)
       {
          Entry* e = protectEntry(ptr, el, i);
-         if(e != NULL && e->type == Entry::Value)
+         if(e == NULL)
+         {
+            // there is no such entry in this list
+            listDone = true;
+         }
+         else if(e->type != Entry::Sentinel)
          {
             /* If we found a value in an old list then we're responsible for
                attempting to copy that value to the most current list. We
@@ -1237,7 +1247,7 @@ HashTable<_K, _V, _H, _E>::getEntry(HazardPtr* ptr, const _K& k)
                fail, then someone else has already put the value or an even
                newer value into the current list for us. We simply mark the
                old entry as a Sentinel. */
-            if(el->old)
+            if(e->type == Entry::Value && el->old)
             {
                /* Note: Do not reuse the existing hazard pointer, it is being
                   used to protect the current entry. */
@@ -1252,12 +1262,18 @@ HashTable<_K, _V, _H, _E>::getEntry(HazardPtr* ptr, const _K& k)
                }
             }
             /* If the entry key is at the same memory address or if the hashes
-               match and the keys match, then we found the value we want. If
-               the keys don't match, we'll reprobe via the for-loop. */
+               match and the keys match, then we found the value we want or
+               a tombstone. If the keys don't match, we'll reprobe via the
+               for-loop. */
             else if(&(e->k) == &k ||
                (e->h == hash && mEqualsFunction(e->k, k)))
             {
-               rval = e;
+               // if the entry is a value, return it
+               if(e->type == Entry::Value)
+               {
+                  rval = e;
+               }
+               done = listDone = true;
             }
          }
 
