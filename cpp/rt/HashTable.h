@@ -1352,51 +1352,51 @@ void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
    EntryList* privateTail = NULL;
    if(mGarbageHead != NULL)
    {
-      EntryList* head = NULL;
-      EntryList* tail = NULL;
-      do
+      // only do garbage collection if we successfully isolate the garbage
+      // list, otherwise we optimize this out as someone else happens to
+      // be doing collection at the same time as we are
+      EntryList* head = const_cast<EntryList*>(mGarbageHead);
+      if(Atomic::compareAndSwap(&mGarbageHead, head, (EntryList*)NULL))
       {
-         head = const_cast<EntryList*>(mGarbageHead);
-      }
-      while(!Atomic::compareAndSwap(&mGarbageHead, head, (EntryList*)NULL));
-
-      // keep up to max garbage lists in a private list and get the tail for
-      // garbage to be added back to the shared list
-      const int max = 3;
-      EntryList* next = head;
-      int i = 0;
-      while(next != NULL)
-      {
-         if(i < max)
+         // keep up to max garbage lists in a private list and get the tail for
+         // garbage to be added back to the shared list
+         EntryList* tail = NULL;
+         const int max = 3;
+         EntryList* next = head;
+         int i = 0;
+         while(next != NULL)
          {
-            if(privateHead == NULL)
+            if(i < max)
             {
-               privateHead = head;
+               if(privateHead == NULL)
+               {
+                  privateHead = head;
+               }
+               privateTail = head;
+               head = head->garbageNext;
+               privateTail->garbageNext = NULL;
+               i++;
             }
-            privateTail = head;
-            head = head->garbageNext;
-            privateTail->garbageNext = NULL;
-            i++;
+
+            if(next->garbageNext == NULL)
+            {
+               // found tail
+               tail = next;
+            }
+            next = next->garbageNext;
          }
 
-         if(next->garbageNext == NULL)
+         // prepend remaining garbage back onto the shared list
+         if(head != NULL)
          {
-            // found tail
-            tail = next;
+            EntryList* oldHead;
+            do
+            {
+               oldHead = const_cast<EntryList*>(mGarbageHead);
+               tail->garbageNext = oldHead;
+            }
+            while(!Atomic::compareAndSwap(&mGarbageHead, oldHead, head));
          }
-         next = next->garbageNext;
-      }
-
-      // prepend remaining garbage back onto the shared list
-      if(head != NULL)
-      {
-         EntryList* oldHead;
-         do
-         {
-            oldHead = const_cast<EntryList*>(mGarbageHead);
-            tail->garbageNext = oldHead;
-         }
-         while(!Atomic::compareAndSwap(&mGarbageHead, oldHead, head));
       }
    }
 
@@ -1409,7 +1409,8 @@ void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
       entries will be written to the EntryList. It can only be read from. */
    // attempt to protect the head EntryList with a hazard pointer
    ptr->value = const_cast<EntryList*>(mHead);
-   // ensure the head hasn't changed, if it has, someone else has handled GC
+   // ensure the head hasn't changed, if it has, someone else is handling GC
+   // and we don't bother with it
    if(ptr->value == mHead)
    {
       EntryList* el = static_cast<EntryList*>(ptr->value);
