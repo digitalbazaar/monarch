@@ -413,6 +413,8 @@ void runHashTableVsMapTest(
       comment, threads, loops, slots, writes, reads);
    _hashMashHeader(comment, sep);
 
+   // FIXME: this needs to be reworked to only run if there's a single
+   // thread
    /*
    snprintf(name, 100, "map RW reads:%" PRIu32 " writes:%" PRIu32,
       reads, writes);
