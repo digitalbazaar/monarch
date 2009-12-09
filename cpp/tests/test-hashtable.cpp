@@ -183,7 +183,198 @@ void runHashTableTests(TestRunner& tr)
    */
 
    tr.ungroup();
-}
+};
+
+/**
+ * Base stats for a Runnable that will mash on some data structures.
+ */
+class HashMashBase : public Runnable
+{
+public:
+   uint32_t mLoops; // number of times to loop writes-read process
+   uint32_t mSlots; // number of key slots to use
+   uint32_t mWrites; // write ops
+   uint32_t mReads; // read ops
+   uint32_t mOps; // total ops
+   uint64_t mWriteTime;
+   uint64_t mReadTime;
+   uint64_t mTime; // total time
+   HashMashBase(
+      uint32_t loops, uint32_t slots, uint32_t writes, uint32_t reads) :
+      mLoops(loops),
+      mSlots(slots),
+      mWrites(writes),
+      mReads(reads),
+      mOps(loops * (writes + reads)),
+      mWriteTime(0), mReadTime(0), mTime(0) {};
+   virtual ~HashMashBase() {};
+   virtual void run() {};
+};
+template<typename _K, typename _V>
+class HashMash : public HashMashBase
+{
+protected:
+   map<_K, _V>* mMap;
+   HashTable<_K, _V, KeyAsHash>* mHT;
+   ExclusiveLock* mExclusiveLock;
+   SharedLock* mSharedLock;
+public:
+   HashMash(
+      uint32_t loops, uint32_t slots, uint32_t writes, uint32_t reads,
+      map<_K, _V>* m,
+      HashTable<_K, _V, KeyAsHash>* h,
+      ExclusiveLock* exclusiveLock,
+      SharedLock* sharedLock) :
+      HashMashBase(loops, slots, writes, reads),
+      mMap(m),
+      mHT(h),
+      mExclusiveLock(exclusiveLock),
+      mSharedLock(sharedLock) {};
+   virtual ~HashMash() {};
+   virtual void run()
+   {
+      if(mMap) mashMap();
+      if(mHT) mashHT();
+   };
+   virtual void mashMap()
+   {
+      // initialize
+      for(uint32_t i = 0; i < mSlots; i++)
+      {
+         if(mExclusiveLock) mExclusiveLock->lock();
+         if(mSharedLock) mSharedLock->lockExclusive();
+         (*mMap)[i] = 0;
+         if(mExclusiveLock) mExclusiveLock->unlock();
+         if(mSharedLock) mSharedLock->unlockExclusive();
+      }
+      uint32_t slot = 0;
+      for(uint32_t loop = 0; loop < mLoops; loop++)
+      {
+         {
+            uint64_t start = Timer::startTiming();
+            for(uint32_t i = 0; i < mWrites; i++)
+            {
+               if(mExclusiveLock) mExclusiveLock->lock();
+               if(mSharedLock) mSharedLock->lockExclusive();
+               (*mMap)[slot++ % mSlots] = i;
+               if(mExclusiveLock) mExclusiveLock->unlock();
+               if(mSharedLock) mSharedLock->unlockExclusive();
+            }
+            mWriteTime += Timer::getMilliseconds(start);
+         }
+         {
+            uint32_t v;
+            uint64_t start = Timer::startTiming();
+            for(uint32_t i = 0; i < mReads; i++)
+            {
+               if(mExclusiveLock) mExclusiveLock->lock();
+               if(mSharedLock) mSharedLock->lockShared();
+               v = (*mMap)[slot++ % mSlots];
+               if(mExclusiveLock) mExclusiveLock->unlock();
+               if(mSharedLock) mSharedLock->unlockShared();
+            }
+            mReadTime += Timer::getMilliseconds(start);
+         }
+         mTime = mWriteTime + mReadTime;
+      }
+   };
+   virtual void mashHT()
+   {
+      // NOTE: the locks are probably going to be NULL but the code is here to
+      // normalize the timing of the conditional checking with the mashMap()
+      // call.
+      // initialize
+      for(uint32_t i = 0; i < mSlots; i++)
+      {
+         if(mExclusiveLock) mExclusiveLock->lock();
+         if(mSharedLock) mSharedLock->lockExclusive();
+         mHT->put(i, 0);
+         if(mExclusiveLock) mExclusiveLock->unlock();
+         if(mSharedLock) mSharedLock->unlockExclusive();
+      }
+      uint32_t slot = 0;
+      for(uint32_t loop = 0; loop < mLoops; loop++)
+      {
+         {
+            uint64_t start = Timer::startTiming();
+            for(uint32_t i = 0; i < mWrites; i++)
+            {
+               if(mExclusiveLock) mExclusiveLock->lock();
+               if(mSharedLock) mSharedLock->lockExclusive();
+               mHT->put(slot++ % mSlots, i);
+               if(mExclusiveLock) mExclusiveLock->unlock();
+               if(mSharedLock) mSharedLock->unlockExclusive();
+            }
+            mWriteTime += Timer::getMilliseconds(start);
+         }
+         {
+            uint32_t v;
+            uint64_t start = Timer::startTiming();
+            for(uint32_t i = 0; i < mReads; i++)
+            {
+               if(mExclusiveLock) mExclusiveLock->lock();
+               if(mSharedLock) mSharedLock->lockShared();
+               mHT->get(slot++ % mSlots, v);
+               if(mExclusiveLock) mExclusiveLock->unlock();
+               if(mSharedLock) mSharedLock->unlockShared();
+            }
+            mReadTime += Timer::getMilliseconds(start);
+         }
+         mTime = mWriteTime + mReadTime;
+      }
+   };
+};
+
+static void _hashMashHeader(const char* comment, const char* sep)
+{
+   printf(
+      "%1s"
+      "%8s%s%9s%s"
+      "%9s%s%9s%s"
+      "%9s%s%9s%s"
+      "%9s%s%9s\n",
+      comment,
+      "wall (s)", sep, "op/ms", sep,
+      "total (s)", sep, "op/ms", sep,
+      "write (s)", sep, "w/ms", sep,
+      "read (s)", sep, "r/ms");
+};
+
+static void _hashMashInfo(const char* comment, const char* info)
+{
+   printf("%s %s\n", comment, info);
+};
+
+static void _hashMashStats(
+   uint32_t threads, uint32_t loops, uint32_t slots,
+   uint32_t writes, uint32_t reads,
+   HashMashBase* hm[],
+   uint64_t wallTime,
+   const char* sep)
+{
+   uint64_t totalTime = 0;
+   uint64_t writeTime = 0;
+   uint64_t readTime = 0;
+   uint64_t threadOps = loops * (writes + reads);
+   uint64_t totalOps = threads * threadOps;
+   uint64_t writeOps = threads * loops * writes;
+   uint64_t readOps = threads * loops * reads;
+   for(uint32_t i = 0; i < threads; i++)
+   {
+      totalTime += hm[i]->mTime;
+      writeTime += hm[i]->mWriteTime;
+      readTime += hm[i]->mReadTime;
+   }
+   printf(
+      "%9.3f%s%9.0f%s"
+      "%9.3f%s%9.0f%s"
+      "%9.3f%s%9.0f%s"
+      "%9.3f%s%9.0f\n",
+      wallTime / 1000.0, sep, totalOps / (double)wallTime, sep,
+      totalTime / 1000.0, sep, totalOps / (double)totalTime, sep,
+      writeTime / 1000.0, sep, writeOps / (double)writeTime, sep,
+      readTime / 1000.0, sep, readOps / (double)readTime);
+};
 
 void runHashTableConcurrencyTest(
    TestRunner& tr, uint32_t threads, uint32_t reads, uint32_t writes)
@@ -205,258 +396,158 @@ void runHashTableConcurrencyTest(
 }
 
 void runHashTableVsMapTest(
-   TestRunner& tr, uint32_t reads, uint32_t writes)
+   TestRunner& tr,
+   uint32_t threads, uint32_t loops, uint32_t slots,
+   uint32_t reads, uint32_t writes)
 {
-   int threads = 1;
    char name[100];
    tr.group("HashTable vs Map Single Thread");
 
    bool csv = true;
    const char* comment = csv ? "#" : "";
    const char* sep = csv ? "," : " ";
-   uint32_t wr = writes + reads;
 
-   printf("%s w:%" PRIu32 " r:%" PRIu32 "\n", comment, reads, writes);
-   uint64_t mrdt, mwdt;
-   uint64_t hrdt, hwdt;
+   printf("%s"
+      " threads:%" PRIu32 " loops:%" PRIu32 " slots:%" PRIu32
+      " w:%" PRIu32 " r:%" PRIu32 "\n",
+      comment, threads, loops, slots, writes, reads);
+   _hashMashHeader(comment, sep);
 
-   snprintf(name, 100,
-      "map RW"
-      " reads:%" PRIu32
-      " writes:%" PRIu32,
+   snprintf(name, 100, "map RW reads:%" PRIu32 " writes:%" PRIu32,
       reads, writes);
    tr.test(name);
    {
-      uint64_t rstart, wstart;
-
+      _hashMashInfo(comment, "map<int, uint32_t>");
       map<int, uint32_t> m;
-
-      printf("%s map\n", comment);
-      printf(
-         "%1s%8s%s"
-         "%9s%s%9s%s"
-         "%9s%s%9s%s"
-         "%9s%s%9s\n",
-         comment, "threads", sep,
-         "total (s)", sep, "rw/s", sep,
-         "write (s)", sep, "w/s", sep,
-         "read (s)", sep, "r/s");
-
-      wstart = Timer::startTiming();
-      for(uint32_t i = 0; i < writes; i++)
+      Thread* t[threads];
+      HashMashBase* mashers[threads];
+      for(uint32_t i = 0; i < threads; i++)
       {
-         m[0] = i;
+         mashers[i] = new HashMash<int, uint32_t>(
+            loops, slots, writes, reads, &m, NULL, NULL, NULL);
+         t[i] = new Thread(mashers[i]);
       }
-      mwdt = Timer::getMilliseconds(wstart);
-
-      uint32_t v;
-      rstart = Timer::startTiming();
-      for(uint32_t i = 0; i < reads; i++)
+      uint64_t start = Timer::startTiming();
+      for(uint32_t i = 0; i < threads; i++)
       {
-         v = m[0];
+         t[i]->start();
       }
-      mrdt = Timer::getMilliseconds(rstart);
-
-      uint64_t dt = mwdt + mrdt;
-      printf(
-         "%9d%s"
-         "%9.3f%s%9.0f%s"
-         "%9.3f%s%9.0f%s"
-         "%9.3f%s%9.0f\n",
-         threads, sep,
-         dt/1000.0, sep, wr/(double)dt, sep,
-         mwdt/1000.0, sep, writes/(double)mwdt, sep,
-         mrdt/1000.0, sep, reads/(double)mrdt);
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         t[i]->join();
+      }
+      uint64_t wallTime = Timer::getMilliseconds(start);
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         delete mashers[i];
+         delete t[i];
+      }
+      _hashMashStats(
+         threads, loops, slots, writes, reads, mashers, wallTime, sep);
    }
    tr.passIfNoException();
 
-   snprintf(name, 100,
-      "ht RW"
-      " reads:%" PRIu32
-      " writes:%" PRIu32,
+   snprintf(name, 100, "map excl lock RW reads:%" PRIu32 " writes:%" PRIu32,
       reads, writes);
    tr.test(name);
    {
-      uint64_t rstart, wstart;
-
-      HashTable<int, uint32_t, KeyAsHash> h;
-
-      printf("%s ht\n", comment);
-      printf(
-         "%1s%8s%s"
-         "%9s%s%9s%s"
-         "%9s%s%9s%s"
-         "%9s%s%9s\n",
-         comment, "threads", sep,
-         "total (s)", sep, "rw/s", sep,
-         "write (s)", sep, "w/s", sep,
-         "read (s)", sep, "r/s");
-
-      wstart = Timer::startTiming();
-      for(uint32_t i = 0; i < writes; i++)
-      {
-         h.put(0, i);
-      }
-      hwdt = Timer::getMilliseconds(wstart);
-
-      uint32_t v;
-      rstart = Timer::startTiming();
-      for(uint32_t i = 0; i < reads; i++)
-      {
-         h.get(0, v);
-      }
-      hrdt = Timer::getMilliseconds(rstart);
-
-      uint64_t dt = hwdt + hrdt;
-      printf(
-         "%9d%s"
-         "%9.3f%s%9.0f%s"
-         "%9.3f%s%9.0f%s"
-         "%9.3f%s%9.0f\n",
-         threads, sep,
-         dt/1000.0, sep, wr/(double)dt, sep,
-         hwdt/1000.0, sep, writes/(double)hwdt, sep,
-         hrdt/1000.0, sep, reads/(double)hrdt);
-   }
-   tr.passIfNoException();
-
-   printf("%s ratio ht/m\n", comment);
-   printf(
-      "%9d%s"
-      "%9.3f%s%9s%s"
-      "%9.3f%s%9s%s"
-      "%9.3f%s%9s\n",
-      threads, sep,
-      ((double)hwdt+hrdt)/(mwdt+mrdt), sep, "", sep,
-      ((double)hwdt/mwdt), sep, "", sep,
-      ((double)hrdt/mrdt), sep, "");
-
-   snprintf(name, 100,
-      "map excl lock RW"
-      " reads:%" PRIu32
-      " writes:%" PRIu32,
-      reads, writes);
-   tr.test(name);
-   {
-      uint64_t rstart, wstart;
-
+      _hashMashInfo(comment, "map<int, uint32_t> w/ ExclusiveLock");
       map<int, uint32_t> m;
       ExclusiveLock lock;
-
-      printf("%s map exclusive lock\n", comment);
-      printf(
-         "%1s%8s%s"
-         "%9s%s%9s%s"
-         "%9s%s%9s%s"
-         "%9s%s%9s\n",
-         comment, "threads", sep,
-         "total (s)", sep, "rw/s", sep,
-         "write (s)", sep, "w/s", sep,
-         "read (s)", sep, "r/s");
-
-      wstart = Timer::startTiming();
-      for(uint32_t i = 0; i < writes; i++)
+      Thread* t[threads];
+      HashMashBase* mashers[threads];
+      for(uint32_t i = 0; i < threads; i++)
       {
-         lock.lock();
-         m[0] = i;
-         lock.unlock();
+         mashers[i] = new HashMash<int, uint32_t>(
+            loops, slots, writes, reads, &m, NULL, &lock, NULL);
+         t[i] = new Thread(mashers[i]);
       }
-      mwdt = Timer::getMilliseconds(wstart);
-
-      uint32_t v;
-      rstart = Timer::startTiming();
-      for(uint32_t i = 0; i < reads; i++)
+      uint64_t start = Timer::startTiming();
+      for(uint32_t i = 0; i < threads; i++)
       {
-         lock.lock();
-         v = m[0];
-         lock.unlock();
+         t[i]->start();
       }
-      mrdt = Timer::getMilliseconds(rstart);
-
-      uint64_t dt = mwdt + mrdt;
-      printf(
-         "%9d%s"
-         "%9.3f%s%9.0f%s"
-         "%9.3f%s%9.0f%s"
-         "%9.3f%s%9.0f\n",
-         threads, sep,
-         dt/1000.0, sep, wr/(double)dt, sep,
-         mwdt/1000.0, sep, writes/(double)mwdt, sep,
-         mrdt/1000.0, sep, reads/(double)mrdt);
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         t[i]->join();
+      }
+      uint64_t wallTime = Timer::getMilliseconds(start);
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         delete mashers[i];
+         delete t[i];
+      }
+      _hashMashStats(
+         threads, loops, slots, writes, reads, mashers, wallTime, sep);
    }
    tr.passIfNoException();
 
-   snprintf(name, 100,
-      "map shared lock RW"
-      " reads:%" PRIu32
-      " writes:%" PRIu32,
+   snprintf(name, 100, "map shared lock RW reads:%" PRIu32 " writes:%" PRIu32,
       reads, writes);
    tr.test(name);
    {
-      uint64_t rstart, wstart;
-
+      _hashMashInfo(comment, "map<int, uint32_t> w/ SharedLock");
       map<int, uint32_t> m;
       SharedLock lock;
-
-      printf("%s map shared lock\n", comment);
-      printf(
-         "%1s%8s%s"
-         "%9s%s%9s%s"
-         "%9s%s%9s%s"
-         "%9s%s%9s\n",
-         comment, "threads", sep,
-         "total (s)", sep, "rw/s", sep,
-         "write (s)", sep, "w/s", sep,
-         "read (s)", sep, "r/s");
-
-      wstart = Timer::startTiming();
-      for(uint32_t i = 0; i < writes; i++)
+      Thread* t[threads];
+      HashMashBase* mashers[threads];
+      for(uint32_t i = 0; i < threads; i++)
       {
-         lock.lockExclusive();
-         m[0] = i;
-         lock.unlockExclusive();
+         mashers[i] = new HashMash<int, uint32_t>(
+            loops, slots, writes, reads, &m, NULL, NULL, &lock);
+         t[i] = new Thread(mashers[i]);
       }
-      mwdt = Timer::getMilliseconds(wstart);
-
-      uint32_t v;
-      rstart = Timer::startTiming();
-      for(uint32_t i = 0; i < reads; i++)
+      uint64_t start = Timer::startTiming();
+      for(uint32_t i = 0; i < threads; i++)
       {
-         lock.lockShared();
-         v = m[0];
-         lock.unlockShared();
+         t[i]->start();
       }
-      mrdt = Timer::getMilliseconds(rstart);
-
-      uint64_t dt = mwdt + mrdt;
-      printf(
-         "%9d%s"
-         "%9.3f%s%9.0f%s"
-         "%9.3f%s%9.0f%s"
-         "%9.3f%s%9.0f\n",
-         threads, sep,
-         dt/1000.0, sep, wr/(double)dt, sep,
-         mwdt/1000.0, sep, writes/(double)mwdt, sep,
-         mrdt/1000.0, sep, reads/(double)mrdt);
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         t[i]->join();
+      }
+      uint64_t wallTime = Timer::getMilliseconds(start);
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         delete mashers[i];
+         delete t[i];
+      }
+      _hashMashStats(
+         threads, loops, slots, writes, reads, mashers, wallTime, sep);
    }
    tr.passIfNoException();
 
-   tr.ungroup();
-}
-
-void runHashTableVsMapThreadsTest(
-   TestRunner& tr, uint32_t threads, uint32_t reads, uint32_t writes)
-{
-   tr.group("HashTable vs Map Multiple Threads");
-
-   char name[100];
-   snprintf(name, 100,
-      "RW threads:%" PRIu32
-      " reads:%" PRIu32
-      " writes:%" PRIu32,
-      threads, reads, writes);
+   snprintf(name, 100, "ht RW reads:%" PRIu32 " writes:%" PRIu32,
+      reads, writes);
    tr.test(name);
    {
+      _hashMashInfo(comment, "HashTable<int, uint32_t>");
+      HashTable<int, uint32_t, KeyAsHash> h;
+      Thread* t[threads];
+      HashMashBase* mashers[threads];
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         mashers[i] = new HashMash<int, uint32_t>(
+            loops, slots, writes, reads, NULL, &h, NULL, NULL);
+         t[i] = new Thread(mashers[i]);
+      }
+      uint64_t start = Timer::startTiming();
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         t[i]->start();
+      }
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         t[i]->join();
+      }
+      uint64_t wallTime = Timer::getMilliseconds(start);
+      for(uint32_t i = 0; i < threads; i++)
+      {
+         delete mashers[i];
+         delete t[i];
+      }
+      _hashMashStats(
+         threads, loops, slots, writes, reads, mashers, wallTime, sep);
    }
    tr.passIfNoException();
 
@@ -486,11 +577,42 @@ public:
     * Options:
     * --test all - run all tests
     * --test threads - test thread concurrency
-    * --test map - test speed vs map (single threaded)
+    * --test map - test speed vs map (one or more threads)
     * --test mapthreads - test speed vs map (multiple threads w/ locked map)
     * --option threads <n> - number of threads
-    * --option reads <n> - number of read operations
-    * --option writes <n> - number of write operations
+    * --option ops <n> - number of reads and writes to do
+    * --option writes <n> - override ops option for number of write operations
+    * --option reads <n> - override ops option for number of read operations
+    * --option loops <n> - number of times to do writes-reads process
+    * --option slots <n> - number of map/hashtable keys to use
+    *
+    * Process will be to loop doing writes, then loop doing reads.  Adjust the
+    * loops, writes, and reads options to change the ratio of operations and
+    * their ordering. For example:
+    *   L=1, W=2, R=0 => WW
+    *   L=1, W=2, R=2 => WWRR
+    *   L=2, W=2, R=2 => WWRRWWRR
+    *   L=4, W=1, R=1 => WRWRWRWR
+    *   L=4, W=1, R=2 => WRRWRRWRRWRR
+    * The slots control a basic int key ordering based on the counter.
+    *   S=1 => d[0] d[0] d[0] ...
+    *   S=2 => d[0] d[1] d[0] d[1] ...
+    *   S=3 => d[0] d[1] d[3] d[0] ...
+    *
+    * A typical run uses options like:
+    * $ test-hashtable -i -l 0 --test map \
+    *   --option threads <threads> --option ops <ops> --option loops <loops>
+    *
+    * A more complex example is to have 4 threads (ie, for a quad core system)
+    * alternating between 5 writes and 95 reads 1000 times where there are 10
+    * keys, run this:
+    * $ test-hashtable -i -l 0 --test map \
+    *   --option threads 4 --option loops 1000 --option slots 10 \
+    *   --option writes 5 --option reads 95
+    * That performs 4 * 1000 * (5 + 95) = 400000 operations.
+    *
+    * Note that as you add threads or loops it multiplies the number of ops
+    * that are performed. Scale your values appropriately.
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
@@ -500,14 +622,16 @@ public:
 
       uint32_t threads =
          cfg->hasMember("threads") ? cfg["threads"]->getUInt32() : 1;
-      uint32_t reads =
-         cfg->hasMember("reads") ? cfg["reads"]->getUInt32() : 1;
+      uint32_t ops =
+         cfg->hasMember("ops") ? cfg["ops"]->getUInt32() : 0;
       uint32_t writes =
-         cfg->hasMember("writes") ? cfg["writes"]->getUInt32() : 1;
-      //uint32_t loops =
-      //   cfg->hasMember("loops") ? cfg["loops"]->getUInt32() : 1;
-      //uint32_t ops =
-      //   cfg->hasMember("ops") ? cfg["ops"]->getUInt32() : 1;
+         cfg->hasMember("writes") ? cfg["writes"]->getUInt32() : ops;
+      uint32_t reads =
+         cfg->hasMember("reads") ? cfg["reads"]->getUInt32() : ops;
+      uint32_t loops =
+         cfg->hasMember("loops") ? cfg["loops"]->getUInt32() : 1;
+      uint32_t slots =
+         cfg->hasMember("slots") ? cfg["slots"]->getUInt32() : 1;
 
       if(all || (strcmp(test, "threads") == 0))
       {
@@ -515,11 +639,7 @@ public:
       }
       if(all || (strcmp(test, "map") == 0))
       {
-         runHashTableVsMapTest(tr, reads, writes);
-      }
-      if(all || (strcmp(test, "mapthreads") == 0))
-      {
-         runHashTableVsMapThreadsTest(tr, threads, reads, writes);
+         runHashTableVsMapTest(tr, threads, loops, slots, reads, writes);
       }
       return 0;
    }
