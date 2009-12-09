@@ -1121,11 +1121,9 @@ bool HashTable<_K, _V, _H, _E>::put(
          // existing entry is replaceable value or a tombstone
          else
          {
-            // if the entry key is at the same memory address or if the hashes
-            // match and the keys match, then we can replace the existing
-            // entry
-            if(&(eOld->k) == &k ||
-               (eOld->h == eNew->h && mEqualsFunction(eOld->k, k)))
+            // if the hashes match and the keys are equal, then we can replace
+            // the existing entry
+            if(eOld->h == eNew->h && mEqualsFunction(eOld->k, k))
             {
                // we can only replace the existing entry if its a tombstone
                // or if the replace flag is setting allowing us to replace
@@ -1261,12 +1259,10 @@ HashTable<_K, _V, _H, _E>::getEntry(HazardPtr* ptr, const _K& k)
                   Atomic::decrementAndFetch(&el->length);
                }
             }
-            /* If the entry key is at the same memory address or if the hashes
-               match and the keys match, then we found the value we want or
-               a tombstone. If the keys don't match, we'll reprobe via the
-               for-loop. */
-            else if(&(e->k) == &k ||
-               (e->h == hash && mEqualsFunction(e->k, k)))
+            /* If the hashes match and the keys are equal, then we found the
+               value we want or a tombstone. If they don't, we'll reprobe via
+               the for-loop. */
+            else if(e->h == hash && mEqualsFunction(e->k, k))
             {
                // if the entry is a value, return it
                if(e->type == Entry::Value)
