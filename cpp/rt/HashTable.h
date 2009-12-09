@@ -947,12 +947,19 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
       }
 
       // isolate the old garbage list, making it private to this thread
-      Entry* head;
-      do
+      Entry* head = NULL;
+      if(el->garbageEntries != NULL)
       {
+         // if we fail to isolate the garbage list, then move on, someone
+         // else is handling it in another thread
          head = const_cast<Entry*>(el->garbageEntries);
+         if(!Atomic::compareAndSwap(
+            &el->garbageEntries, head, (Entry*)NULL))
+         {
+            // let the other thread handle the garbage entries
+            head = NULL;
+         }
       }
-      while(!Atomic::compareAndSwap(&el->garbageEntries, head, (Entry*)NULL));
 
       /* Move unused entries in the old list into a private free list for
          entries. That private list will be prepended to the shared free list
