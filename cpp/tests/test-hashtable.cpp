@@ -413,6 +413,7 @@ void runHashTableVsMapTest(
       comment, threads, loops, slots, writes, reads);
    _hashMashHeader(comment, sep);
 
+   /*
    snprintf(name, 100, "map RW reads:%" PRIu32 " writes:%" PRIu32,
       reads, writes);
    tr.test(name);
@@ -446,6 +447,7 @@ void runHashTableVsMapTest(
          threads, loops, slots, writes, reads, mashers, wallTime, sep);
    }
    tr.passIfNoException();
+   */
 
    snprintf(name, 100, "map excl lock RW reads:%" PRIu32 " writes:%" PRIu32,
       reads, writes);

@@ -138,7 +138,6 @@ protected:
       };
 
       // data in the entry
-      volatile aligned_uint32_t refCount;
 #ifdef WIN32
       /* MS Windows requires any variable written to in an atomic operation
          to be aligned to the address size of the CPU. */
@@ -352,23 +351,16 @@ protected:
    virtual void unrefEntryList(EntryList* el);
 
    /**
-    * Gets and increments the reference count on the Entry at the given
-    * index.
+    * Sets the given hazard pointer at the Entry at the given index. The
+    * hazard pointer must be set to NULL to unprotect the Entry.
     *
     * @param ptr the hazard pointer to use.
     * @param el the EntryList to get the Entry in.
     * @param idx the index of the Entry.
     *
-    * @return the Entry (can be NULL), otherwise must be unref'd.
+    * @return the Entry (can be NULL).
     */
-   virtual Entry* refEntry(HazardPtr* ptr, EntryList* el, int idx);
-
-   /**
-    * Decreases the reference count on the given Entry.
-    *
-    * @param e the Entry to decrease the reference count on.
-    */
-   virtual void unrefEntry(Entry* e);
+   virtual Entry* protectEntry(HazardPtr* ptr, EntryList* el, int idx);
 
    /**
     * A helper function that gets the most current EntryList at
@@ -413,11 +405,12 @@ protected:
     * Gets the Entry that is mapped to the passed key. The owner EntryList
     * must be unref'd.
     *
+    * @param ptr the HazardPtr to use.
     * @param k the key to get the value for.
     *
     * @return the Entry or NULL if none exists.
     */
-   virtual Entry* getEntry(const _K& k);
+   virtual Entry* getEntry(HazardPtr* ptr, const _K& k);
 
    /**
     * Resizes the table.
@@ -461,15 +454,23 @@ HashTable<_K, _V, _H, _E>::HashTable(const HashTable& copy) :
    {
       for(int i = 0; i < el->capacity; i++)
       {
-         Entry* e = c.refEntry(ptr, el, i);
+         Entry* e = c.protectEntry(ptr, el, i);
          if(e != NULL)
          {
             // if the entry type is Value, put it into this table
             if(e->type == Entry::Value)
             {
-               put(e->k, *(e->v), false);
+               // copy key and value and unprotect entry
+               _K key = e->k;
+               _V value = *(e->v);
+               ptr->value = NULL;
+               put(key, value, false);
             }
-            c.unrefEntry(e);
+            else
+            {
+               // unprotect entry
+               ptr->value = NULL;
+            }
          }
       }
 
@@ -522,15 +523,23 @@ HashTable<_K, _V, _H, _E>& HashTable<_K, _V, _H, _E>::operator=(
    {
       for(int i = 0; i < el->capacity; i++)
       {
-         Entry* e = r.refEntry(ptr, el, i);
+         Entry* e = r.protectEntry(ptr, el, i);
          if(e != NULL)
          {
             // if the entry type is Value, put it into this table
             if(e->type == Entry::Value)
             {
-               put(e->k, *(e->v), false);
+               // copy key and value and unprotect entry
+               _K key = e->k;
+               _V value = *(e->v);
+               ptr->value = NULL;
+               put(key, value, false);
             }
-            r.unrefEntry(e);
+            else
+            {
+               // unprotect entry
+               ptr->value = NULL;
+            }
          }
       }
 
@@ -564,15 +573,23 @@ bool HashTable<_K, _V, _H, _E>::get(const _K& k, _V& v)
 {
    bool rval = false;
 
-   Entry* e = getEntry(k);
+   // acquire a hazard pointer
+   HazardPtr* ptr = mHazardPtrs.acquire();
+
+   Entry* e = getEntry(ptr, k);
    if(e != NULL)
    {
-      // get value, unreference entry and its list
+      // get value, unprotect entry and unref its list
       v = *(e->v);
       EntryList* owner = e->owner;
-      unrefEntry(e);
+      mHazardPtrs.release(ptr);
       unrefEntryList(owner);
       rval = true;
+   }
+   else
+   {
+      // release unused hazard pointer
+      mHazardPtrs.release(ptr);
    }
 
    return rval;
@@ -583,12 +600,15 @@ bool HashTable<_K, _V, _H, _E>::remove(const _K& k)
 {
    bool rval = false;
 
+   // acquire a hazard pointer
+   HazardPtr* ptr = mHazardPtrs.acquire();
+
    // loop until a value is set to a tombstone or the entry is not found
    bool done = false;
    while(!done)
    {
       // get the entry
-      Entry* e = getEntry(k);
+      Entry* e = getEntry(ptr, k);
       if(e != NULL)
       {
          // set type to Tombstone (it must have been Value to be returned
@@ -602,7 +622,7 @@ bool HashTable<_K, _V, _H, _E>::remove(const _K& k)
 
          // unreference entry and its list
          EntryList* owner = e->owner;
-         unrefEntry(e);
+         ptr->value = NULL;
          unrefEntryList(owner);
       }
       else
@@ -610,6 +630,9 @@ bool HashTable<_K, _V, _H, _E>::remove(const _K& k)
          done = true;
       }
    }
+
+   // release the hazard pointer
+   mHazardPtrs.release(ptr);
 
    return rval;
 }
@@ -630,7 +653,7 @@ void HashTable<_K, _V, _H, _E>::clear()
          bool done = false;
          while(!done)
          {
-            Entry* e = refEntry(ptr, el, i);
+            Entry* e = protectEntry(ptr, el, i);
             if(e != NULL)
             {
                // if the entry type is Value, set it to Tombstone
@@ -651,8 +674,8 @@ void HashTable<_K, _V, _H, _E>::clear()
                   done = true;
                }
 
-               // unreference entry
-               unrefEntry(e);
+               // unprotect entry
+               ptr->value = NULL;
             }
             else
             {
@@ -793,7 +816,6 @@ HashTable<_K, _V, _H, _E>::createEntry(
       *(e->v) = value;
    }
 
-   e->refCount = 0;
    e->type = Entry::Value;
    e->k = key;
    e->h = mHashFunction(key);
@@ -861,7 +883,7 @@ void HashTable<_K, _V, _H, _E>::unrefEntryList(EntryList* el)
 
 template<typename _K, typename _V, typename _H, typename _E>
 struct HashTable<_K, _V, _H, _E>::Entry*
-HashTable<_K, _V, _H, _E>::refEntry(HazardPtr* ptr, EntryList* el, int idx)
+HashTable<_K, _V, _H, _E>::protectEntry(HazardPtr* ptr, EntryList* el, int idx)
 {
    Entry* rval = NULL;
 
@@ -876,21 +898,7 @@ HashTable<_K, _V, _H, _E>::refEntry(HazardPtr* ptr, EntryList* el, int idx)
    // set return value
    rval = static_cast<Entry*>(ptr->value);
 
-   if(rval != NULL)
-   {
-      // increment reference count, clear hazard pointer
-      Atomic::incrementAndFetch(&rval->refCount);
-      ptr->value = NULL;
-   }
-
    return rval;
-}
-
-template<typename _K, typename _V, typename _H, typename _E>
-void HashTable<_K, _V, _H, _E>::unrefEntry(Entry* e)
-{
-   // decrement reference count
-   Atomic::decrementAndFetch(&e->refCount);
 }
 
 template<typename _K, typename _V, typename _H, typename _E>
@@ -955,10 +963,12 @@ bool HashTable<_K, _V, _H, _E>::replaceEntry(
          next = e->next;
          e->next = NULL;
 
-         // next garbage entry is no longer in use if its ref count is
-         // zero AND no one has a hazard pointer to it AND check the ref count
-         // once more to ensure it hasn't increased during the protection check
-         if(e->refCount == 0 && !mHazardPtrs.isProtected(e) && e->refCount == 0)
+         /* Note: The next garbage entry is not in use if there's no hazard
+            pointer to it. Since the entry has been removed from any shared
+            list, no other threads can start trying to access it. There can
+            only be those threads that were already accessing it with the
+            protection of a hazard pointer. */
+         if(!mHazardPtrs.isProtected(e))
          {
             if(freeHead == NULL)
             {
@@ -1084,7 +1094,7 @@ bool HashTable<_K, _V, _H, _E>::put(
       while(!useNewTable && !insertAttempted)
       {
          // get any existing entry directly from the current list
-         Entry* eOld = refEntry(ptr, el, i);
+         Entry* eOld = protectEntry(ptr, el, i);
          if(eOld == NULL)
          {
             // there is no existing entry so try to insert ...
@@ -1099,7 +1109,6 @@ bool HashTable<_K, _V, _H, _E>::put(
             // a sentinel entry tells us that there is a newer table where
             // we have to do the insert
             useNewTable = true;
-            unrefEntry(eOld);
          }
          // existing entry is replaceable value or a tombstone
          else
@@ -1136,9 +1145,10 @@ bool HashTable<_K, _V, _H, _E>::put(
                // index by 1 and try again
                i++;
             }
-
-            unrefEntry(eOld);
          }
+
+         // unprotect old entry
+         ptr->value = NULL;
       }
 
       if(inserted)
@@ -1178,12 +1188,9 @@ bool HashTable<_K, _V, _H, _E>::put(
 
 template<typename _K, typename _V, typename _H, typename _E>
 struct HashTable<_K, _V, _H, _E>::Entry*
-HashTable<_K, _V, _H, _E>::getEntry(const _K& k)
+HashTable<_K, _V, _H, _E>::getEntry(HazardPtr* ptr, const _K& k)
 {
    Entry* rval = NULL;
-
-   // acquire a hazard pointer
-   HazardPtr* ptr = mHazardPtrs.acquire();
 
    /* Search for an entry with a key that matches or determine there is no
       entry with the given key. If we find an entry that matches the hash
@@ -1213,7 +1220,7 @@ HashTable<_K, _V, _H, _E>::getEntry(const _K& k)
       int maxIdx = el->capacity - 1;
       for(int i = hash & maxIdx; rval == NULL && i < el->capacity; i++)
       {
-         Entry* e = refEntry(ptr, el, i);
+         Entry* e = protectEntry(ptr, el, i);
          if(e != NULL && e->type == Entry::Value)
          {
             /* If we found a value in an old list then we're responsible for
@@ -1224,7 +1231,9 @@ HashTable<_K, _V, _H, _E>::getEntry(const _K& k)
                old entry as a Sentinel. */
             if(el->old)
             {
-               put(e->k, *(e->v), false, ptr);
+               /* Note: Do not reuse the existing hazard pointer, it is being
+                  used to protect the current entry. */
+               put(e->k, *(e->v), false);
 
                // set entry type to a sentinel
                if(Atomic::compareAndSwap(
@@ -1244,10 +1253,10 @@ HashTable<_K, _V, _H, _E>::getEntry(const _K& k)
             }
          }
 
-         // only unref the entry if we aren't returning it
+         // only unprotect the entry if we aren't returning it
          if(rval == NULL && e != NULL)
          {
-            unrefEntry(e);
+            ptr->value = NULL;
          }
       }
 
@@ -1259,9 +1268,6 @@ HashTable<_K, _V, _H, _E>::getEntry(const _K& k)
          el = next;
       }
    }
-
-   // release the hazard pointer
-   mHazardPtrs.release(ptr);
 
    return rval;
 }
