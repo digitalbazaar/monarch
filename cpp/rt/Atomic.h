@@ -69,7 +69,7 @@ public:
     * @return the new value.
     */
    template<typename T>
-   static T incrementAndFetch(volatile T* dst);
+   static inline T incrementAndFetch(volatile T* dst);
 
    /**
     * Performs an atomic Decrement-And-Fetch. Decrements the value at
@@ -80,7 +80,7 @@ public:
     * @return the new value.
     */
    template<typename T>
-   static T decrementAndFetch(volatile T* dst);
+   static inline T decrementAndFetch(volatile T* dst);
 
    /**
     * Performs an atomic Compare-And-Swap (CAS). The given new value will only
@@ -96,9 +96,9 @@ public:
     * @return true if successful, false if not.
     */
    template<typename T>
-   static bool compareAndSwap(volatile T* dst, T oldVal, T newVal);
+   static inline bool compareAndSwap(volatile T* dst, T oldVal, T newVal);
    template<typename T>
-   static bool compareAndSwap(volatile T** dst, T* oldVal, T* newVal);
+   static inline bool compareAndSwap(volatile T** dst, T* oldVal, T* newVal);
 };
 
 template<typename T>
