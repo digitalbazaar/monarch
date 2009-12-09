@@ -1272,8 +1272,9 @@ HashTable<_K, _V, _H, _E>::getEntry(HazardPtr* ptr, const _K& k)
                if(e->type == Entry::Value)
                {
                   rval = e;
+                  done = true;
                }
-               done = listDone = true;
+               listDone = true;
             }
          }
 
