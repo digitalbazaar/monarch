@@ -413,43 +413,42 @@ void runHashTableVsMapTest(
       comment, threads, loops, slots, writes, reads);
    _hashMashHeader(comment, sep);
 
-   // FIXME: this needs to be reworked to only run if there's a single
-   // thread
-   /*
-   snprintf(name, 100, "map RW reads:%" PRIu32 " writes:%" PRIu32,
-      reads, writes);
-   tr.test(name);
+   if(threads == 1)
    {
-      _hashMashInfo(comment, "map<int, uint32_t>");
-      map<int, uint32_t> m;
-      Thread* t[threads];
-      HashMashBase* mashers[threads];
-      for(uint32_t i = 0; i < threads; i++)
+      snprintf(name, 100, "map RW reads:%" PRIu32 " writes:%" PRIu32,
+         reads, writes);
+      tr.test(name);
       {
-         mashers[i] = new HashMash<int, uint32_t>(
-            loops, slots, writes, reads, &m, NULL, NULL, NULL);
-         t[i] = new Thread(mashers[i]);
+         _hashMashInfo(comment, "map<int, uint32_t>");
+         map<int, uint32_t> m;
+         Thread* t[threads];
+         HashMashBase* mashers[threads];
+         for(uint32_t i = 0; i < threads; i++)
+         {
+            mashers[i] = new HashMash<int, uint32_t>(
+               loops, slots, writes, reads, &m, NULL, NULL, NULL);
+            t[i] = new Thread(mashers[i]);
+         }
+         uint64_t start = Timer::startTiming();
+         for(uint32_t i = 0; i < threads; i++)
+         {
+            t[i]->start();
+         }
+         for(uint32_t i = 0; i < threads; i++)
+         {
+            t[i]->join();
+         }
+         uint64_t wallTime = Timer::getMilliseconds(start);
+         for(uint32_t i = 0; i < threads; i++)
+         {
+            delete mashers[i];
+            delete t[i];
+         }
+         _hashMashStats(
+            threads, loops, slots, writes, reads, mashers, wallTime, sep);
       }
-      uint64_t start = Timer::startTiming();
-      for(uint32_t i = 0; i < threads; i++)
-      {
-         t[i]->start();
-      }
-      for(uint32_t i = 0; i < threads; i++)
-      {
-         t[i]->join();
-      }
-      uint64_t wallTime = Timer::getMilliseconds(start);
-      for(uint32_t i = 0; i < threads; i++)
-      {
-         delete mashers[i];
-         delete t[i];
-      }
-      _hashMashStats(
-         threads, loops, slots, writes, reads, mashers, wallTime, sep);
+      tr.passIfNoException();
    }
-   tr.passIfNoException();
-   */
 
    snprintf(name, 100, "map excl lock RW reads:%" PRIu32 " writes:%" PRIu32,
       reads, writes);
