@@ -85,7 +85,7 @@ struct DefaultEqualsFunction : public EqualsFunction<_K>
  * GET: Get a blank hazard pointer.
  * GET: Set the hazard pointer to EntryList X.
  * GC: Move X onto a garbage list.
- * GET: Entry X is still in the valid list (it is not).
+ * GET: Ensure X is still in the valid list (it is not).
  * GET: Loop back and get a different EntryList Y.
  * GC: Check X's reference count (it is 0).
  * GC: Scan the list of hazard pointers for X (it is NOT found).
@@ -107,10 +107,11 @@ struct DefaultEqualsFunction : public EqualsFunction<_K>
  * valid EntryLists have been checked, CAS prepend B onto the shared garbage
  * list.
  *
- * Note: Reference counts are kept for both EntryLists and Entries. The code
- * is written such that the reference count for an EntryList that an Entry
- * belongs to is always 1 if the Entry is being accessed. Assumptions that
- * this will continue to hold true are made to simplify the code.
+ * Note: Reference counts are only kept for EntryLists. Entries are protected
+ * by hazard pointers. Also, the code is written such that the reference count
+ * for an EntryList that an Entry belongs to is always 1 if the Entry is being
+ * accessed. Assumptions that this will continue to hold true are made to
+ * simplify the code.
  *
  * @author Dave Longley
  */
