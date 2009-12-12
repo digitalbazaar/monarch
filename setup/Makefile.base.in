@@ -16,7 +16,7 @@ INCLUDES = -I$(MONARCH)/dist/include
 
 CWD = $(shell pwd)
 ifndef HEADER_DIST_DIR
-HEADER_DIST_DIR = dist/include/db/$(notdir $(CWD))
+HEADER_DIST_DIR = dist/include/monarch/$(notdir $(CWD))
 endif
 
 ifdef PRINT_COMMANDS

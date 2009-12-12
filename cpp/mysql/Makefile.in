@@ -7,7 +7,7 @@ LIBRARIES = dbmysql
 DYNAMIC_LINK_LIBRARIES = mort monet mosql 
 DYNAMIC_WINDOWS_LIBRARIES = mysql
 DYNAMIC_MACOS_LIBRARIES = mysqlclient
-HEADER_DIST_DIR = dist/include/db/sql/mysql
+HEADER_DIST_DIR = dist/include/monarch/sql/mysql
 endif
 
 # ----------- Standard Makefile
