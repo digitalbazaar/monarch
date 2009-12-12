@@ -5,10 +5,10 @@
 
 #include "monarch/rt/Exception.h"
 
-using namespace db::compress::deflate;
-using namespace db::compress::gzip;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::compress::deflate;
+using namespace monarch::compress::gzip;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 Gzipper::Gzipper()
 {

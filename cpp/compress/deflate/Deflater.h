@@ -25,7 +25,7 @@ namespace deflate
  *
  * @author Dave Longley
  */
-class Deflater : public virtual db::io::MutationAlgorithm
+class Deflater : public virtual monarch::io::MutationAlgorithm
 {
 protected:
    /**
@@ -129,7 +129,7 @@ public:
     * @return return the number of bytes written out, 0 if the buffer is
     *         empty or if there is no input, -1 if an exception occurred.
     */
-   virtual int process(db::io::ByteBuffer* dst, bool resize);
+   virtual int process(monarch::io::ByteBuffer* dst, bool resize);
 
    /**
     * Gets data out of the source ByteBuffer, mutates it in some implementation
@@ -167,7 +167,7 @@ public:
     * @return the MutationAlgorithm::Result.
     */
    virtual MutationAlgorithm::Result mutateData(
-      db::io::ByteBuffer* src, db::io::ByteBuffer* dst, bool finish);
+      monarch::io::ByteBuffer* src, monarch::io::ByteBuffer* dst, bool finish);
 
    /**
     * Returns the amount of input data available.
@@ -216,7 +216,7 @@ protected:
     *
     * @return true if an exception was created, false if not.
     */
-   virtual bool createException(int ret, db::io::ByteBuffer* dst);
+   virtual bool createException(int ret, monarch::io::ByteBuffer* dst);
 };
 
 } // end namespace deflate

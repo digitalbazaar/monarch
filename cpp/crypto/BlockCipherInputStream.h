@@ -18,7 +18,7 @@ namespace crypto
  *
  * @author Dave Longley
  */
-class BlockCipherInputStream : public db::io::FilterInputStream
+class BlockCipherInputStream : public monarch::io::FilterInputStream
 {
 protected:
    /**
@@ -34,7 +34,7 @@ protected:
    /**
     * A read buffer.
     */
-   db::io::ByteBuffer mReadBuffer;
+   monarch::io::ByteBuffer mReadBuffer;
 
    /**
     * Set to true once the current cipher has finished.
@@ -55,7 +55,7 @@ public:
     */
    BlockCipherInputStream(
       BlockCipher* cipher, bool cleanupCipher,
-      db::io::InputStream* os, bool cleanupStream);
+      monarch::io::InputStream* os, bool cleanupStream);
 
    /**
     * Destructs this BlockCipherInputStream.

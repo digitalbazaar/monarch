@@ -55,7 +55,7 @@ protected:
    /**
     * A lock for synchronizing the use of this throttler.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
 public:
    /**

@@ -73,7 +73,7 @@ public:
     *
     * @return true on success, false if an IO error occurs.
     */
-   virtual bool writeTo(db::io::OutputStream& os);
+   virtual bool writeTo(monarch::io::OutputStream& os);
 
    /**
     * Converts the header into a 12 byte array.

@@ -66,7 +66,7 @@ public:
 };
 
 // typedef for a reference-counted AsymmetricKey
-typedef db::rt::Collectable<AsymmetricKey> AsymmetricKeyRef;
+typedef monarch::rt::Collectable<AsymmetricKey> AsymmetricKeyRef;
 
 } // end namespace crypto
 } // end namespace db

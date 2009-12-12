@@ -161,14 +161,14 @@ public:
     *
     * @return the InputStream for reading from this Socket.
     */
-   virtual db::io::InputStream* getInputStream() = 0;
+   virtual monarch::io::InputStream* getInputStream() = 0;
 
    /**
     * Gets the OutputStream for writing to this Socket.
     *
     * @return the OutputStream for writing to this Socket.
     */
-   virtual db::io::OutputStream* getOutputStream() = 0;
+   virtual monarch::io::OutputStream* getOutputStream() = 0;
 
    /**
     * Sets the send timeout for this Socket. This is the amount of time that

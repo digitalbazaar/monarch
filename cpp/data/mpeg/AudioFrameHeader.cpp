@@ -8,9 +8,9 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::data::mpeg;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::data::mpeg;
 
 // initialize tables
 AudioBitrateTable AudioFrameHeader::sBitrateTable;

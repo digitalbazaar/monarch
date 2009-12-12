@@ -7,11 +7,11 @@
 #include "monarch/net/TcpSocket.h"
 #include "monarch/util/Data.h"
 
-using namespace db::sphinx;
-using namespace db::data;
-using namespace db::io;
-using namespace db::net;
-using namespace db::rt;
+using namespace monarch::sphinx;
+using namespace monarch::data;
+using namespace monarch::io;
+using namespace monarch::net;
+using namespace monarch::rt;
 
 SphinxClient::SphinxClient()
 {

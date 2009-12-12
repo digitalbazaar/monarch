@@ -18,7 +18,7 @@ namespace crypto
  *
  * @author Dave Longley
  */
-class DigitalSignatureInputStream : public db::io::FilterInputStream
+class DigitalSignatureInputStream : public monarch::io::FilterInputStream
 {
 protected:
    /**
@@ -46,7 +46,7 @@ public:
     */
    DigitalSignatureInputStream(
       DigitalSignature* ds, bool cleanupSignature,
-      db::io::InputStream* os, bool cleanupStream);
+      monarch::io::InputStream* os, bool cleanupStream);
 
    /**
     * Destructs this DigitalSignatureInputStream.

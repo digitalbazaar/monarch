@@ -13,11 +13,11 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::test;
-using namespace db::data::xml;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::upnp;
+using namespace monarch::test;
+using namespace monarch::data::xml;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::upnp;
 
 void runSoapEnvelopeTest(TestRunner& tr)
 {
@@ -285,7 +285,7 @@ void runPortMappingTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbUpnpTester : public db::test::Tester
+class DbUpnpTester : public monarch::test::Tester
 {
 public:
    DbUpnpTester()
@@ -314,7 +314,7 @@ public:
    }
 };
 
-db::test::Tester* getDbUpnpTester() { return new DbUpnpTester(); }
+monarch::test::Tester* getDbUpnpTester() { return new DbUpnpTester(); }
 
 
 DB_TEST_MAIN(DbUpnpTester)

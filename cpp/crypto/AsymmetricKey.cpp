@@ -4,7 +4,7 @@
 #include "monarch/crypto/AsymmetricKey.h"
 
 using namespace std;
-using namespace db::crypto;
+using namespace monarch::crypto;
 
 AsymmetricKey::AsymmetricKey(EVP_PKEY* pkey) :
    mKey(pkey)

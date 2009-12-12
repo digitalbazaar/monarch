@@ -5,8 +5,8 @@
 
 #include <cstring>
 
-using namespace db::io;
-using namespace db::logging;
+using namespace monarch::io;
+using namespace monarch::logging;
 
 OutputStreamLogger::OutputStreamLogger(OutputStream* stream, bool cleanup) :
    Logger()

@@ -4,7 +4,7 @@
 #include "monarch/rt/ThreadPool.h"
 
 using namespace std;
-using namespace db::rt;
+using namespace monarch::rt;
 
 ThreadPool::ThreadPool(unsigned int poolSize, size_t stackSize) :
    mThreadSemaphore(poolSize, true)

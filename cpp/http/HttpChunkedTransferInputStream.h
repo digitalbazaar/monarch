@@ -76,7 +76,7 @@ namespace http
  *
  * @author Dave Longley
  */
-class HttpChunkedTransferInputStream : public db::io::PeekInputStream
+class HttpChunkedTransferInputStream : public monarch::io::PeekInputStream
 {
 protected:
    /**
@@ -97,7 +97,7 @@ protected:
    /**
     * Stores the thread reading from this stream.
     */
-   db::rt::Thread* mThread;
+   monarch::rt::Thread* mThread;
 
 public:
    /**
@@ -107,7 +107,7 @@ public:
     * @param trailer the HttpTrailer to store the header trailers in.
     */
    HttpChunkedTransferInputStream(
-      db::net::ConnectionInputStream* is, HttpTrailer* trailer);
+      monarch::net::ConnectionInputStream* is, HttpTrailer* trailer);
 
    /**
     * Destructs this HttpChunkedTransferInputStream.

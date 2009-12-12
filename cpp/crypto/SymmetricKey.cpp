@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 
-using namespace db::crypto;
+using namespace monarch::crypto;
 
 SymmetricKey::SymmetricKey(const char* algorithm)
 {

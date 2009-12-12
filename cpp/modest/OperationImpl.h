@@ -29,15 +29,15 @@ namespace modest
  *
  * @author Dave Longley
  */
-class OperationImpl : protected db::rt::Runnable
+class OperationImpl : protected monarch::rt::Runnable
 {
 protected:
    /**
     * The Runnable for this Operation. A regular runnable or a
     * RunnableRef may be used.
     */
-   db::rt::Runnable* mRunnable;
-   db::rt::RunnableRef mRunnableReference;
+   monarch::rt::Runnable* mRunnable;
+   monarch::rt::RunnableRef mRunnableReference;
 
    /**
     * The guard that decides when this Operation can execute.
@@ -52,12 +52,12 @@ protected:
    /**
     * The Thread this Operation is executing on.
     */
-   db::rt::Thread* mThread;
+   monarch::rt::Thread* mThread;
 
    /**
     * A lock for modifying this Operation.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
    /**
     * Set to true if this Operation has started, false otherwise.
@@ -113,8 +113,8 @@ public:
     *
     * @param r the Runnable to execute (which can be NULL to only mutate state).
     */
-   OperationImpl(db::rt::Runnable& r);
-   OperationImpl(db::rt::RunnableRef& r);
+   OperationImpl(monarch::rt::Runnable& r);
+   OperationImpl(monarch::rt::RunnableRef& r);
 
    /**
     * Destructs this OperationImpl.
@@ -195,14 +195,14 @@ public:
     *
     * @return the Thread for this Operation.
     */
-   virtual db::rt::Thread* getThread();
+   virtual monarch::rt::Thread* getThread();
 
    /**
     * Gets the Runnable for this Operation.
     *
     * @return the Runnable for this Operation.
     */
-   virtual db::rt::Runnable* getRunnable();
+   virtual monarch::rt::Runnable* getRunnable();
 
    /**
     * Adds an OperationGuard to this Operation. This method must only be called

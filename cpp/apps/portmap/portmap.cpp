@@ -9,10 +9,10 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::data::json;
-using namespace db::net;
-using namespace db::rt;
-using namespace db::upnp;
+using namespace monarch::data::json;
+using namespace monarch::net;
+using namespace monarch::rt;
+using namespace monarch::upnp;
 
 #define CMD_INVALID 0
 #define CMD_LIST    1
@@ -20,7 +20,7 @@ using namespace db::upnp;
 #define CMD_ADD     3
 #define CMD_REMOVE  4
 
-class PortMapApp : public db::app::AppPlugin
+class PortMapApp : public monarch::app::AppPlugin
 {
 protected:
    /**

@@ -241,7 +241,7 @@ public:
     *         not exist on the path.
     */
    virtual bool getTokenizedPath(
-      db::rt::DynamicObject& result, const char* basePath = "");
+      monarch::rt::DynamicObject& result, const char* basePath = "");
 
    /**
     * Gets the query of this url, if one exists.
@@ -257,7 +257,7 @@ public:
     * @param vars the DynamicObject Map with key-value pairs to add to the
     *             query.
     */
-   virtual void addQueryVariables(db::rt::DynamicObject& vars);
+   virtual void addQueryVariables(monarch::rt::DynamicObject& vars);
 
    /**
     * Gets the variables from the query of this url.
@@ -271,7 +271,7 @@ public:
     * @return true if variables were present, false if not.
     */
    virtual bool getQueryVariables(
-      db::rt::DynamicObject& vars, bool asArrays = false);
+      monarch::rt::DynamicObject& vars, bool asArrays = false);
 
    /**
     * Combines the path and query of this url, if one exists.
@@ -370,7 +370,7 @@ public:
     *
     * @return the URL-form-encoded string.
     */
-   static std::string formEncode(db::rt::DynamicObject& form);
+   static std::string formEncode(monarch::rt::DynamicObject& form);
 
    /**
     * URL-form-decodes the passed string into a form.
@@ -385,11 +385,11 @@ public:
     * @return true if form data was found, false if not.
     */
    static bool formDecode(
-      db::rt::DynamicObject& form, const char* str, bool asArrays = false);
+      monarch::rt::DynamicObject& form, const char* str, bool asArrays = false);
 };
 
 // type definition for a reference collected Url
-typedef db::rt::Collectable<Url> UrlRef;
+typedef monarch::rt::Collectable<Url> UrlRef;
 
 } // end namespace net
 } // end namespace db

@@ -526,7 +526,7 @@ public:
 };
 
 // typedef for reference-counted ByteBuffer
-typedef db::rt::Collectable<ByteBuffer> ByteBufferRef;
+typedef monarch::rt::Collectable<ByteBuffer> ByteBufferRef;
 
 } // end namespace io
 } // end namespace db

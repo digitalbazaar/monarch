@@ -11,11 +11,11 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::data;
-using namespace db::data::json;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::data;
+using namespace monarch::data::json;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 // initialize read size
 unsigned int JsonReader::READ_SIZE = 4096;
@@ -609,7 +609,7 @@ bool JsonReader::finish()
 }
 
 bool JsonReader::readFromString(
-   db::rt::DynamicObject& dyno, const char* s, size_t slen, bool strict)
+   monarch::rt::DynamicObject& dyno, const char* s, size_t slen, bool strict)
 {
    bool rval;
 

@@ -22,7 +22,7 @@ class Sqlite3Connection;
  *
  * @author Dave Longley
  */
-class Sqlite3Exception : public db::sql::SqlException
+class Sqlite3Exception : public monarch::sql::SqlException
 {
 public:
    /**

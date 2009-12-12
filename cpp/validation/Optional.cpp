@@ -3,8 +3,8 @@
  */
 #include "monarch/validation/Optional.h"
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Optional::Optional(Validator* validator) :
    mValidator(validator)

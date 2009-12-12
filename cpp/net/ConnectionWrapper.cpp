@@ -3,7 +3,7 @@
  */
 #include "monarch/net/ConnectionWrapper.h"
 
-using namespace db::net;
+using namespace monarch::net;
 
 ConnectionWrapper::ConnectionWrapper(Connection* c, bool cleanup)
 {

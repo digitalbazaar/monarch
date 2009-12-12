@@ -6,7 +6,7 @@
 #include "monarch/rt/Thread.h"
 
 using namespace std;
-using namespace db::rt;
+using namespace monarch::rt;
 
 Semaphore::Semaphore(int permits, bool fair)
 {

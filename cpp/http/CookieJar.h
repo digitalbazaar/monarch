@@ -41,8 +41,8 @@ namespace http
  *                (must start with a dot).
  * @member version the optional version of the cookie.
  */
-typedef db::rt::DynamicObject Cookie;
-typedef db::rt::DynamicObjectIterator CookieIterator;
+typedef monarch::rt::DynamicObject Cookie;
+typedef monarch::rt::DynamicObjectIterator CookieIterator;
 
 /**
  * A CookieJar stores cookies and is capable of being serialized to or from
@@ -66,7 +66,7 @@ protected:
    /**
     * The current cookies, mapped by name to Cookie.
     */
-   db::rt::DynamicObject mCookies;
+   monarch::rt::DynamicObject mCookies;
 
 public:
    /**

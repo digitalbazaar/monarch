@@ -9,9 +9,9 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::test;
-using namespace db::modest;
-using namespace db::rt;
+using namespace monarch::test;
+using namespace monarch::modest;
+using namespace monarch::rt;
 
 class TestGuard : public OperationGuard
 {
@@ -224,7 +224,7 @@ public:
    }
 };
 
-db::test::Tester* getDbModestTester() { return new DbModestTester(); }
+monarch::test::Tester* getDbModestTester() { return new DbModestTester(); }
 
 
 DB_TEST_MAIN(DbModestTester)

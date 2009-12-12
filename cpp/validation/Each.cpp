@@ -7,8 +7,8 @@
 
 #include <cstdio>
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Each::Each(Validator* validator) :
    mValidator(validator)

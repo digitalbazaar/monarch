@@ -11,10 +11,10 @@
 #include "monarch/test/TestRunner.h"
 
 using namespace std;
-using namespace db::config;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::test;
+using namespace monarch::config;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::test;
 
 void runConfigManagerTest(TestRunner& tr)
 {
@@ -457,7 +457,7 @@ void runConfigManagerTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbConfigTester : public db::test::Tester
+class DbConfigTester : public monarch::test::Tester
 {
 public:
    DbConfigTester()
@@ -483,7 +483,7 @@ public:
    }
 };
 
-db::test::Tester* getDbConfigTester() { return new DbConfigTester(); }
+monarch::test::Tester* getDbConfigTester() { return new DbConfigTester(); }
 
 
 DB_TEST_MAIN(DbConfigTester)

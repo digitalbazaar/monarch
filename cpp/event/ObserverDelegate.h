@@ -20,7 +20,7 @@ namespace event
  * @author Dave Longley
  */
 template<typename HandlerType>
-class ObserverDelegate : public Observer, public db::rt::Runnable
+class ObserverDelegate : public Observer, public monarch::rt::Runnable
 {
 protected:
    /**
@@ -38,7 +38,7 @@ protected:
     * Typedef for handler's event w/dyno function.
     */
    typedef void (HandlerType::*EventWithDynoFunction)(
-      Event& e, db::rt::DynamicObject& userData);
+      Event& e, monarch::rt::DynamicObject& userData);
 
    /**
     * Typedef for freeing a handler's user-data.
@@ -73,7 +73,7 @@ protected:
    /**
     * The handler's dyno.
     */
-   db::rt::DynamicObject mDyno;
+   monarch::rt::DynamicObject mDyno;
 
    /**
     * The handler's free user-data function.
@@ -124,7 +124,7 @@ public:
     *             event occurs.
     */
    ObserverDelegate(
-      HandlerType* h, EventWithDynoFunction f, db::rt::DynamicObject& dyno);
+      HandlerType* h, EventWithDynoFunction f, monarch::rt::DynamicObject& dyno);
 
    /**
     * Creates a new Runnable ObserverDelegate with the specified observer
@@ -186,7 +186,7 @@ ObserverDelegate<HandlerType>::ObserverDelegate(
 
 template<class HandlerType>
 ObserverDelegate<HandlerType>::ObserverDelegate(
-   HandlerType* h, EventWithDynoFunction f, db::rt::DynamicObject& dyno) :
+   HandlerType* h, EventWithDynoFunction f, monarch::rt::DynamicObject& dyno) :
    mDyno(dyno),
    mEvent(NULL)
 {

@@ -32,8 +32,8 @@ namespace xml
  * @member data the data for the element.
  * @member children the children for the element, in Arrays keyed by name.
  */
-typedef db::rt::DynamicObject Element;
-typedef db::rt::DynamicObjectIterator ElementIterator;
+typedef monarch::rt::DynamicObject Element;
+typedef monarch::rt::DynamicObjectIterator ElementIterator;
 
 /**
  * An Attribute has a value and a namespace.
@@ -49,8 +49,8 @@ typedef db::rt::DynamicObjectIterator ElementIterator;
  * @member value the value of the attribute.
  * @member namespace the namespace for the attribute.
  */
-typedef db::rt::DynamicObject Attribute;
-typedef db::rt::DynamicObjectIterator AttributeIterator;
+typedef monarch::rt::DynamicObject Attribute;
+typedef monarch::rt::DynamicObjectIterator AttributeIterator;
 
 } // end namespace xml
 } // end namespace data

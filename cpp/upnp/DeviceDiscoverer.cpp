@@ -12,13 +12,13 @@
 #include "monarch/util/Timer.h"
 
 using namespace std;
-using namespace db::data::json;
-using namespace db::logging;
-using namespace db::http;
-using namespace db::net;
-using namespace db::rt;
-using namespace db::upnp;
-using namespace db::util;
+using namespace monarch::data::json;
+using namespace monarch::logging;
+using namespace monarch::http;
+using namespace monarch::net;
+using namespace monarch::rt;
+using namespace monarch::upnp;
+using namespace monarch::util;
 
 // the SSDP multicast address and port for device discovery
 #define SSDP_MULTICAST_ADDRESS  "239.255.255.250"

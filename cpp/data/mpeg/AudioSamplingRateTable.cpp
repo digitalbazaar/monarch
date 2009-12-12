@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 using namespace std;
-using namespace db::data::mpeg;
+using namespace monarch::data::mpeg;
 
 AudioSamplingRateTable::AudioSamplingRateTable()
 {

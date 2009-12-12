@@ -35,7 +35,7 @@ protected:
    /**
     * Arbitrary user state. Lazily created as needed.
     */
-   db::rt::DynamicObject* mState;
+   monarch::rt::DynamicObject* mState;
 
    /**
     * Path used during object traversal.
@@ -60,13 +60,13 @@ protected:
     * exceptions are being set. This is particularly useful for
     * producing helpful error messages for special validators like Any.
     */
-   db::rt::DynamicObject mResults;
+   monarch::rt::DynamicObject mResults;
 
 public:
    /**
     * Creates a new ValidatorContext.
     */
-   ValidatorContext(db::rt::DynamicObject* state = NULL);
+   ValidatorContext(monarch::rt::DynamicObject* state = NULL);
 
    /**
     * Destructs this ValidatorContext.
@@ -80,7 +80,7 @@ public:
     *
     * @return state object for this context.
     */
-   virtual db::rt::DynamicObject& getState();
+   virtual monarch::rt::DynamicObject& getState();
 
    /**
     * Sets the mask type for error data. This will control what data will
@@ -157,13 +157,13 @@ public:
     *
     * @return a DynamicObject to fill with details.
     */
-   virtual db::rt::DynamicObject addError(
-      const char* type, db::rt::DynamicObject* object = NULL);
+   virtual monarch::rt::DynamicObject addError(
+      const char* type, monarch::rt::DynamicObject* object = NULL);
 
    /**
     * Gets the current validation results.
     */
-   virtual db::rt::DynamicObject getResults();
+   virtual monarch::rt::DynamicObject getResults();
 
    /**
     * Clears the current validation results from this context.

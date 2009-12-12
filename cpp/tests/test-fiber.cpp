@@ -19,15 +19,15 @@
 #include <cmath>
 
 using namespace std;
-using namespace db::config;
-using namespace db::crypto;
-using namespace db::fiber;
-using namespace db::data::json;
-using namespace db::io;
-using namespace db::modest;
-using namespace db::rt;
-using namespace db::test;
-using namespace db::util;
+using namespace monarch::config;
+using namespace monarch::crypto;
+using namespace monarch::fiber;
+using namespace monarch::data::json;
+using namespace monarch::io;
+using namespace monarch::modest;
+using namespace monarch::rt;
+using namespace monarch::test;
+using namespace monarch::util;
 
 static inline void iterate()
 {
@@ -810,7 +810,7 @@ void runJsonTest(
    tr.passIfNoException();
 }
 
-class DbFiberTester : public db::test::Tester
+class DbFiberTester : public monarch::test::Tester
 {
 protected:
    /**
@@ -1050,7 +1050,7 @@ public:
    }
 };
 
-db::test::Tester* getDbFiberTester() { return new DbFiberTester(); }
+monarch::test::Tester* getDbFiberTester() { return new DbFiberTester(); }
 
 
 DB_TEST_MAIN(DbFiberTester)

@@ -4,7 +4,7 @@
 #include "monarch/data/id3v2/Tag.h"
 
 using namespace std;
-using namespace db::data::id3v2;
+using namespace monarch::data::id3v2;
 
 Tag::Tag()
 {

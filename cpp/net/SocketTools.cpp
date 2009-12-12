@@ -7,8 +7,8 @@
 #include "monarch/rt/Thread.h"
 #include "monarch/rt/System.h"
 
-using namespace db::net;
-using namespace db::rt;
+using namespace monarch::net;
+using namespace monarch::rt;
 
 int SocketTools::select(bool read, unsigned int fd, long long timeout)
 {

@@ -102,7 +102,7 @@ public:
     *
     * While isFormatRecognized() is false the only valid keys in this object
     * are:
-    * "type" (db::data::DataFormatInspector::DataFormatType) => false
+    * "type" (monarch::data::DataFormatInspector::DataFormatType) => false
     * "mime-type" (string) => "application/octet-stream"
     *
     * Once isFormatRecognized() returns true then "type" and "mime-type" should
@@ -114,7 +114,7 @@ public:
     *
     * @return the type specific details of this stream.
     */
-   virtual db::rt::DynamicObject getFormatDetails() = 0;
+   virtual monarch::rt::DynamicObject getFormatDetails() = 0;
 };
 
 } // end namespace data

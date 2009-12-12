@@ -13,11 +13,11 @@
 #include "monarch/app/CommonAppPlugin.h"
 
 using namespace std;
-using namespace db::app;
-using namespace db::config;
-using namespace db::io;
-using namespace db::logging;
-using namespace db::rt;
+using namespace monarch::app;
+using namespace monarch::config;
+using namespace monarch::io;
+using namespace monarch::logging;
+using namespace monarch::rt;
 
 CommonAppPlugin::CommonAppPlugin() :
    mLogger(NULL)
@@ -35,7 +35,7 @@ CommonAppPlugin::~CommonAppPlugin()
 
 bool CommonAppPlugin::willInitMetaConfig(Config& meta)
 {
-   bool rval = db::app::AppPlugin::willInitMetaConfig(meta);
+   bool rval = monarch::app::AppPlugin::willInitMetaConfig(meta);
 
    if(rval)
    {
@@ -66,7 +66,7 @@ bool CommonAppPlugin::willInitMetaConfig(Config& meta)
 
 bool CommonAppPlugin::initMetaConfig(Config& meta)
 {
-   bool rval = db::app::AppPlugin::initMetaConfig(meta);
+   bool rval = monarch::app::AppPlugin::initMetaConfig(meta);
 
    // hard-coded empty root
    if(rval)

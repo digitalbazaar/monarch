@@ -16,7 +16,7 @@ namespace io
  *
  * @author Dave Longley
  */
-class IOException : public db::rt::Exception
+class IOException : public monarch::rt::Exception
 {
 public:
    /**

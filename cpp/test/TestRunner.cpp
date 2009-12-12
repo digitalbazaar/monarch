@@ -10,11 +10,11 @@
 #include "monarch/rt/Exception.h"
 
 using namespace std;
-using namespace db::rt;
-using namespace db::test;
+using namespace monarch::rt;
+using namespace monarch::test;
 
 TestRunner::TestRunner(
-   db::app::App* app, bool doneOnException, OutputLevel outputLevel)
+   monarch::app::App* app, bool doneOnException, OutputLevel outputLevel)
 {
    mApp = app;
    mOutputLevel = outputLevel;
@@ -44,7 +44,7 @@ string TestRunner::getTestName()
    return res;
 }
 
-db::app::App* TestRunner::getApp()
+monarch::app::App* TestRunner::getApp()
 {
    return mApp;
 }

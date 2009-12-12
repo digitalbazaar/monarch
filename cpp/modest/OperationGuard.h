@@ -91,7 +91,7 @@ public:
 };
 
 // define a reference counted OperationGuard type
-typedef db::rt::Collectable<OperationGuard> OperationGuardRef;
+typedef monarch::rt::Collectable<OperationGuard> OperationGuardRef;
 
 } // end namespace modest
 } // end namespace db

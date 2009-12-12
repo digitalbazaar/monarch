@@ -7,9 +7,9 @@
 
 #include <cstdlib>
 
-using namespace db::rt;
-using namespace db::util::regex;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::util::regex;
+using namespace monarch::validation;
 
 Regex::Regex(const char* regex, const char* errorMessage) :
    Validator(errorMessage)
@@ -28,7 +28,7 @@ Regex::~Regex()
 }
 
 bool Regex::isValid(
-   db::rt::DynamicObject& obj,
+   monarch::rt::DynamicObject& obj,
    ValidatorContext* context)
 {
    bool rval = mStringValidator->isValid(obj, context);

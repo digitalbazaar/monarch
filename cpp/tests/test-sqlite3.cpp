@@ -14,23 +14,23 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::rt;
-using namespace db::sql;
-using namespace db::sql::sqlite3;
-using namespace db::test;
-using namespace db::util;
+using namespace monarch::rt;
+using namespace monarch::sql;
+using namespace monarch::sql::sqlite3;
+using namespace monarch::test;
+using namespace monarch::util;
 
 #define TABLE_TEST  "test"
 #define TABLE_TEST2 "test2"
 
-void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
+void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
 {
    if(tr != NULL)
    {
       tr->test("drop table");
    }
    {
-      db::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST);
+      monarch::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -50,7 +50,7 @@ void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
       tr->test("drop table 2");
    }
    {
-      db::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST2);
+      monarch::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST2);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -70,7 +70,7 @@ void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
       tr->test("create table");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST " (t TEXT, i INT)");
       assertNoException();
       int success = s->execute();
@@ -91,7 +91,7 @@ void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
       tr->test("create table 2");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST2 " (t TEXT, i INT)");
       assertNoException();
       int success = s->execute();
@@ -109,14 +109,14 @@ void createSqlite3Table(TestRunner* tr, db::sql::Connection* c)
 #endif
 }
 
-void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
+void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
 {
    if(tr != NULL)
    {
       tr->test("insert test 1");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
       assertNoException();
       int success = s->execute();
@@ -137,7 +137,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       tr->test("insert test 2");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('!tset', 4321)");
       assertNoException();
       int success = s->execute();
@@ -158,7 +158,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       tr->test("insert positional parameters");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES (?, ?)");
       assertNoException();
       s->setText(1, "boundpositional");
@@ -181,7 +181,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       tr->test("insert named parameters");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES (:first, :second)");
       assertNoException();
       s->setText(":first", "boundnamed");
@@ -204,7 +204,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       tr->test("select");
    }
    {
-      db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST);
+      monarch::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -257,7 +257,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       tr->test("insert test 1");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST2 " (t, i) VALUES ('test!', 1234)");
       assertNoException();
       int success = s->execute();
@@ -278,7 +278,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       tr->test("insert test 2");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST2 " (t, i) VALUES ('!tset', 4321)");
       assertNoException();
       int success = s->execute();
@@ -299,7 +299,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       tr->test("insert positional parameters");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST2 " (t, i) VALUES (?, ?)");
       assertNoException();
       s->setText(1, "boundpositional");
@@ -322,7 +322,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       tr->test("insert named parameters");
    }
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST2 " (t, i) VALUES (:first, :second)");
       assertNoException();
       s->setText(":first", "boundnamed");
@@ -345,7 +345,7 @@ void executeSqlite3Statements(TestRunner* tr, db::sql::Connection* c)
       tr->test("select");
    }
    {
-      db::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST2);
+      monarch::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST2);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -465,7 +465,7 @@ void runSqlite3TableTest(TestRunner& tr)
    // clean up table if it exists
    tr.test("drop table if exists");
    {
-      db::sql::Statement* s = c.prepare(
+      monarch::sql::Statement* s = c.prepare(
          "DROP TABLE IF EXISTS " TABLE_TEST);
       assertNoException();
       int success = s->execute();
@@ -477,7 +477,7 @@ void runSqlite3TableTest(TestRunner& tr)
    // create a fresh table
    tr.test("create table");
    {
-      db::sql::Statement* s = c.prepare(
+      monarch::sql::Statement* s = c.prepare(
          "CREATE TABLE " TABLE_TEST " (t TEXT, i INT)");
       assertNoException();
       int success = s->execute();
@@ -489,7 +489,7 @@ void runSqlite3TableTest(TestRunner& tr)
    // drop table
    tr.test("drop table");
    {
-      db::sql::Statement* s = c.prepare(
+      monarch::sql::Statement* s = c.prepare(
          "DROP TABLE " TABLE_TEST);
       assertNoException();
       int success = s->execute();
@@ -527,7 +527,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("create test table");
       {
-         db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         monarch::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -543,7 +543,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("rename");
       {
-         db::sql::Statement* s = c.prepare("ALTER TABLE t1 RENAME TO t1_old");
+         monarch::sql::Statement* s = c.prepare("ALTER TABLE t1 RENAME TO t1_old");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -553,7 +553,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("create new table");
       {
-         db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         monarch::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -563,7 +563,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("copy data");
       {
-         db::sql::Statement* s =
+         monarch::sql::Statement* s =
             c.prepare("INSERT INTO t1 SELECT * FROM t1_old");
          assertNoException();
          int success = s->execute();
@@ -574,7 +574,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("drop old table");
       {
-         db::sql::Statement* s = c.prepare("DROP TABLE t1_old");
+         monarch::sql::Statement* s = c.prepare("DROP TABLE t1_old");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -616,7 +616,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("create test table");
       {
-         db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         monarch::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -632,7 +632,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("create new temp table");
       {
-         db::sql::Statement* s =
+         monarch::sql::Statement* s =
             c.prepare("CREATE TEMPORARY TABLE t1_new (t TEXT, i INT)");
          assertNoException();
          int success = s->execute();
@@ -643,7 +643,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("copy data");
       {
-         db::sql::Statement* s =
+         monarch::sql::Statement* s =
             c.prepare("INSERT INTO t1_new SELECT * FROM t1");
          assertNoException();
          int success = s->execute();
@@ -654,7 +654,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("drop old table");
       {
-         db::sql::Statement* s = c.prepare("DROP TABLE t1");
+         monarch::sql::Statement* s = c.prepare("DROP TABLE t1");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -664,7 +664,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("create new table");
       {
-         db::sql::Statement* s =
+         monarch::sql::Statement* s =
             c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
          assertNoException();
          int success = s->execute();
@@ -675,7 +675,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("copy data");
       {
-         db::sql::Statement* s =
+         monarch::sql::Statement* s =
             c.prepare("INSERT INTO t1 SELECT * FROM t1_new");
          assertNoException();
          int success = s->execute();
@@ -686,7 +686,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("drop temp table");
       {
-         db::sql::Statement* s = c.prepare("DROP TABLE t1_new");
+         monarch::sql::Statement* s = c.prepare("DROP TABLE t1_new");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -727,7 +727,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("create test table");
       {
-         db::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
+         monarch::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -743,7 +743,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("create new temp table");
       {
-         db::sql::Statement* s =
+         monarch::sql::Statement* s =
             c.prepare("CREATE TEMPORARY TABLE t1_old AS SELECT * FROM t1");
          assertNoException();
          int success = s->execute();
@@ -754,7 +754,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("drop old table");
       {
-         db::sql::Statement* s = c.prepare("DROP TABLE t1");
+         monarch::sql::Statement* s = c.prepare("DROP TABLE t1");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -764,7 +764,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("create new table");
       {
-         db::sql::Statement* s =
+         monarch::sql::Statement* s =
             c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
          assertNoException();
          int success = s->execute();
@@ -775,7 +775,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("copy data");
       {
-         db::sql::Statement* s =
+         monarch::sql::Statement* s =
             c.prepare("INSERT INTO t1 SELECT * FROM t1_old");
          assertNoException();
          int success = s->execute();
@@ -786,7 +786,7 @@ void runSqlite3TableMigrationTest(TestRunner& tr)
 
       tr.test("drop temp table");
       {
-         db::sql::Statement* s = c.prepare("DROP TABLE t1_old");
+         monarch::sql::Statement* s = c.prepare("DROP TABLE t1_old");
          assertNoException();
          int success = s->execute();
          assertNoException();
@@ -835,7 +835,7 @@ void runSqlite3ThreadTest(TestRunner& tr)
    // use sqlite3 connection in this thread
    tr.test("connection created in separate thread");
    {
-      db::sql::Connection* c = runnable.connection;
+      monarch::sql::Connection* c = runnable.connection;
 
       // create table
       createSqlite3Table(NULL, c);
@@ -866,9 +866,9 @@ void runSqlite3ReuseTest(TestRunner& tr)
    tr.test("create table");
    {
       // create table
-      db::sql::Connection* c = cp.getConnection();
+      monarch::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST " (t TEXT, i INT)");
       assertNoException();
       int success = s->execute();
@@ -881,9 +881,9 @@ void runSqlite3ReuseTest(TestRunner& tr)
    tr.test("insert row");
    {
       // create table
-      db::sql::Connection* c = cp.getConnection();
+      monarch::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
       assertNoException();
       int success = s->execute();
@@ -896,9 +896,9 @@ void runSqlite3ReuseTest(TestRunner& tr)
    tr.test("select single row");
    {
       // select single row
-      db::sql::Connection* c = cp.getConnection();
+      monarch::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "SELECT * FROM " TABLE_TEST " WHERE i=:i LIMIT 1");
       assertNoException();
       s->setInt32(":i", 1234);
@@ -926,9 +926,9 @@ void runSqlite3ReuseTest(TestRunner& tr)
    tr.test("select single row again");
    {
       // select single row
-      db::sql::Connection* c = cp.getConnection();
+      monarch::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "SELECT * FROM " TABLE_TEST " WHERE i=:i LIMIT 1");
       assertNoException();
       s->setInt32(":i", 1234);
@@ -1412,7 +1412,7 @@ public:
 
    virtual void run()
    {
-      db::sql::Connection* c = pool->getConnection();
+      monarch::sql::Connection* c = pool->getConnection();
       executeSqlite3Statements(NULL, c);
       //executeSqlite3Statements(*tr, c);
       c->close();
@@ -1428,7 +1428,7 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
    assertNoException();
 
    // create table
-   db::sql::Connection* c = cp.getConnection();
+   monarch::sql::Connection* c = cp.getConnection();
    createSqlite3Table(NULL, c);
    c->close();
 
@@ -1479,7 +1479,7 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbSqlite3Tester : public db::test::Tester
+class DbSqlite3Tester : public monarch::test::Tester
 {
 public:
    DbSqlite3Tester()
@@ -1514,7 +1514,7 @@ public:
    }
 };
 
-db::test::Tester* getDbSqlite3Tester() { return new DbSqlite3Tester(); }
+monarch::test::Tester* getDbSqlite3Tester() { return new DbSqlite3Tester(); }
 
 
 DB_TEST_MAIN(DbSqlite3Tester)

@@ -9,10 +9,10 @@
 #include "monarch/io/OutputStream.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 
-using namespace db::io;
-using namespace db::http;
-using namespace db::net;
-using namespace db::rt;
+using namespace monarch::io;
+using namespace monarch::http;
+using namespace monarch::net;
+using namespace monarch::rt;
 
 HttpClient::HttpClient(SslContext* sc) :
    mConnection(NULL),

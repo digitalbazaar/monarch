@@ -72,7 +72,7 @@ protected:
    /**
     * The input file to use.
     */
-   db::io::File mInputFile;
+   monarch::io::File mInputFile;
 
 public:
    /**
@@ -132,7 +132,7 @@ public:
     *
     * @param date the last modification date for the file.
     */
-   virtual void setDate(db::util::Date* date);
+   virtual void setDate(monarch::util::Date* date);
 
    /**
     * Sets the last modification date for the file according to a
@@ -230,7 +230,7 @@ public:
     *
     * @param file the input file to use.
     */
-   virtual void setInputFile(db::io::File& file);
+   virtual void setInputFile(monarch::io::File& file);
 
    /**
     * Gets the associated input file with this entry. It may be null if
@@ -238,7 +238,7 @@ public:
     *
     * @return the associated input file.
     */
-   virtual db::io::File& getInputFile();
+   virtual monarch::io::File& getInputFile();
 };
 
 /**
@@ -246,7 +246,7 @@ public:
  *
  * @author Dave Longley
  */
-class ZipEntry : public db::rt::Collectable<ZipEntryImpl>
+class ZipEntry : public monarch::rt::Collectable<ZipEntryImpl>
 {
 public:
    /**

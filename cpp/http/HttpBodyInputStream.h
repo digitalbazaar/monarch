@@ -21,7 +21,7 @@ namespace http
  *
  * @author Dave Longley
  */
-class HttpBodyInputStream : public db::io::FilterInputStream
+class HttpBodyInputStream : public monarch::io::FilterInputStream
 {
 protected:
    /**

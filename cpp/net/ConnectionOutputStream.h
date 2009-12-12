@@ -27,7 +27,7 @@ class Connection;
  *
  * @author Dave Longley
  */
-class ConnectionOutputStream : public db::io::OutputStream
+class ConnectionOutputStream : public monarch::io::OutputStream
 {
 protected:
    /**
@@ -43,7 +43,7 @@ protected:
    /**
     * The ByteBuffer to fill before flushing.
     */
-   db::io::ByteBuffer mBuffer;
+   monarch::io::ByteBuffer mBuffer;
 
    /**
     * True if the buffer should be used, false if not. If this is false,
@@ -55,7 +55,7 @@ protected:
    /**
     * The ByteBuffer with data that couldn't be flushed due to non-blocking IO.
     */
-   db::io::ByteBuffer mUnflushed;
+   monarch::io::ByteBuffer mUnflushed;
 
 public:
    /**

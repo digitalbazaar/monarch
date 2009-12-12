@@ -50,7 +50,7 @@ protected:
     * Stores a reference to the first frame header with a given ID.
     * Uses StringComparator to compare IDs for FrameHeaders.
     */
-   typedef std::map<const char*, FrameHeader*, db::util::StringComparator>
+   typedef std::map<const char*, FrameHeader*, monarch::util::StringComparator>
       FrameHeaderMap;
    FrameHeaderMap mFrameHeaderMap;
 

@@ -30,7 +30,7 @@ class Row;
  *       "type": "DATABASE COLUMN TYPE" (same as used in CREATE TABLE SQL),
  *       "memberName": "columnName" (member name as used in an object)
  */
-typedef db::rt::DynamicObject SchemaObject;
+typedef monarch::rt::DynamicObject SchemaObject;
 
 /**
  * An SqlExecutable is an object that contains prepared statement SQL,
@@ -56,24 +56,24 @@ struct SqlExecutable
     * Stores an array of column name + column value parameters to be inserted
     * into a prepared statement.
     */
-   db::rt::DynamicObject params;
+   monarch::rt::DynamicObject params;
 
    /**
     * Stores an array of column schemas that are used to retrieve column
     * data after doing an SQL SELECT.
     */
-   db::rt::DynamicObject columnSchemas;
+   monarch::rt::DynamicObject columnSchemas;
 
    /**
     * An SQL WHERE filter. This is a map with member name => member values
     * that the SQL will be filtered on.
     */
-   db::rt::DynamicObject whereFilter;
+   monarch::rt::DynamicObject whereFilter;
 
    /**
     * Stores the result from a SELECT. This can either be one row or many.
     */
-   db::rt::DynamicObject result;
+   monarch::rt::DynamicObject result;
 
    /**
     * Stores the number of affected rows after execution.
@@ -114,12 +114,12 @@ struct SqlExecutable
       lastInsertRowId(0),
       returnRowsFound(false)
    {
-      params->setType(db::rt::Array);
+      params->setType(monarch::rt::Array);
    };
 };
 
 // type definition for a reference counted SqlExecutable
-typedef db::rt::Collectable<SqlExecutable> SqlExecutableRef;
+typedef monarch::rt::Collectable<SqlExecutable> SqlExecutableRef;
 
 /**
  * A DatabaseClient provides a simple interface to a database. The interface
@@ -157,12 +157,12 @@ protected:
    /**
     * Stores all schema objects, accessible via their table name.
     */
-   db::rt::DynamicObject mSchemas;
+   monarch::rt::DynamicObject mSchemas;
 
    /**
     * Stores the schema validator.
     */
-   db::validation::ValidatorRef mSchemaValidator;
+   monarch::validation::ValidatorRef mSchemaValidator;
 
 public:
    /**
@@ -208,14 +208,14 @@ public:
     *
     * @return a Connection or NULL if a connection could not be made.
     */
-   virtual db::sql::Connection* getReadConnection();
+   virtual monarch::sql::Connection* getReadConnection();
 
    /**
     * Gets a write connection from the write pool.
     *
     * @return a Connection or NULL if a connection could not be made.
     */
-   virtual db::sql::Connection* getWriteConnection();
+   virtual monarch::sql::Connection* getWriteConnection();
 
    /**
     * Defines the schema for a table. This will not do CREATE TABLE, it
@@ -273,7 +273,7 @@ public:
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef insert(
-      const char* table, db::rt::DynamicObject& row);
+      const char* table, monarch::rt::DynamicObject& row);
 
    /**
     * Creates an SqlExecutable that will insert a row into a table. All
@@ -288,7 +288,7 @@ public:
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef insertOrIgnore(
-      const char* table, db::rt::DynamicObject& row);
+      const char* table, monarch::rt::DynamicObject& row);
 
    /**
     * Creates an SqlExecutable that will replace a row in a table. All
@@ -301,7 +301,7 @@ public:
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef replace(
-      const char* table, db::rt::DynamicObject& row);
+      const char* table, monarch::rt::DynamicObject& row);
 
    /**
     * Creates an SqlExecutable that will insert a row into a table and if
@@ -315,7 +315,7 @@ public:
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef insertOnDuplicateKeyUpdate(
-      const char* table, db::rt::DynamicObject& row);
+      const char* table, monarch::rt::DynamicObject& row);
 
    /**
     * Creates an SqlExecutable that will update a row in a table. All
@@ -333,8 +333,8 @@ public:
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef update(
-      const char* table, db::rt::DynamicObject& row,
-      db::rt::DynamicObject* where = NULL,
+      const char* table, monarch::rt::DynamicObject& row,
+      monarch::rt::DynamicObject* where = NULL,
       uint64_t limit = 0, uint64_t start = 0);
 
    /**
@@ -352,8 +352,8 @@ public:
     */
    virtual SqlExecutableRef selectOne(
       const char* table,
-      db::rt::DynamicObject* where = NULL,
-      db::rt::DynamicObject* members = NULL);
+      monarch::rt::DynamicObject* where = NULL,
+      monarch::rt::DynamicObject* members = NULL);
 
    /**
     * Creates an SqlExecutable that will select column values from the
@@ -373,8 +373,8 @@ public:
     */
    virtual SqlExecutableRef select(
       const char* table,
-      db::rt::DynamicObject* where = NULL,
-      db::rt::DynamicObject* members = NULL,
+      monarch::rt::DynamicObject* where = NULL,
+      monarch::rt::DynamicObject* members = NULL,
       uint64_t limit = 0, uint64_t start = 0);
 
    /**
@@ -390,7 +390,7 @@ public:
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef remove(
-      const char* table, db::rt::DynamicObject* where,
+      const char* table, monarch::rt::DynamicObject* where,
       uint64_t limit = 0, uint64_t start = 0);
 
    /**
@@ -446,8 +446,8 @@ public:
     */
    virtual void buildParams(
       SchemaObject& schema,
-      db::rt::DynamicObject& members,
-      db::rt::DynamicObject& params,
+      monarch::rt::DynamicObject& members,
+      monarch::rt::DynamicObject& params,
       const char* tableAlias = NULL);
 
    /**
@@ -473,9 +473,9 @@ public:
     */
    virtual void buildColumnSchemas(
       SchemaObject& schema,
-      db::rt::DynamicObject* excludeMembers,
-      db::rt::DynamicObject* includeMembers,
-      db::rt::DynamicObject& columnSchemas,
+      monarch::rt::DynamicObject* excludeMembers,
+      monarch::rt::DynamicObject* includeMembers,
+      monarch::rt::DynamicObject& columnSchemas,
       const char* tableAlias = NULL);
 
    /**
@@ -486,7 +486,7 @@ public:
     * @param params the list of parameters to generate the SQL from.
     */
    virtual void appendValuesSql(
-      std::string& sql, db::rt::DynamicObject& params);
+      std::string& sql, monarch::rt::DynamicObject& params);
 
    /**
     * Appends the SQL " col1,col2,..." to an SQL statement.
@@ -495,7 +495,7 @@ public:
     * @param columnSchemas the column schemas array to generate the SQL from.
     */
    virtual void appendColumnNames(
-      std::string& sql, db::rt::DynamicObject& columnSchemas);
+      std::string& sql, monarch::rt::DynamicObject& columnSchemas);
 
    /**
     * Appends the SQL " WHERE col1=? AND col2=? ..." to an SQL statement.
@@ -505,7 +505,7 @@ public:
     * @param useTableAlias true to use a table alias, false not to.
     */
    virtual void appendWhereSql(
-      std::string& sql, db::rt::DynamicObject& params, bool useTableAlias);
+      std::string& sql, monarch::rt::DynamicObject& params, bool useTableAlias);
 
    /**
     * Appends the SQL " LIMIT <start>,<limit>" to an SQL statement.
@@ -526,7 +526,7 @@ public:
     * @param params the list of parameters to generate the SQL from.
     */
    virtual void appendSetSql(
-      std::string& sql, db::rt::DynamicObject& params);
+      std::string& sql, monarch::rt::DynamicObject& params);
 
    /**
     * Sets the parameters for a statement.
@@ -536,7 +536,7 @@ public:
     *
     * @return true if successful, false if an Exception occurred.
     */
-   virtual bool setParams(Statement* s, db::rt::DynamicObject& params);
+   virtual bool setParams(Statement* s, monarch::rt::DynamicObject& params);
 
    /**
     * Gets row data from a row returned from a statement.
@@ -548,7 +548,7 @@ public:
     * @return true if successful, false if an Exception occured.
     */
    virtual bool getRowData(
-      db::rt::DynamicObject& columnSchemas, Row* r, db::rt::DynamicObject& row);
+      monarch::rt::DynamicObject& columnSchemas, Row* r, monarch::rt::DynamicObject& row);
 
    /**
     * Creates SELECT SQL text and the associated parameters and column
@@ -567,9 +567,9 @@ public:
     */
    std::string createSelectSql(
       SchemaObject& schema,
-      db::rt::DynamicObject* where, db::rt::DynamicObject* members,
+      monarch::rt::DynamicObject* where, monarch::rt::DynamicObject* members,
       uint64_t limit, uint64_t start,
-      db::rt::DynamicObject& params, db::rt::DynamicObject& columnSchemas,
+      monarch::rt::DynamicObject& params, monarch::rt::DynamicObject& columnSchemas,
       const char* tableAlias);
 
    /**
@@ -584,7 +584,7 @@ public:
    static void addSchemaColumn(
       SchemaObject& schema,
       const char* name, const char* type,
-      const char* memberName, db::rt::DynamicObjectType memberType);
+      const char* memberName, monarch::rt::DynamicObjectType memberType);
 
 protected:
    /**
@@ -599,11 +599,11 @@ protected:
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef insertOrReplace(
-      const char* cmd, const char* table, db::rt::DynamicObject& row);
+      const char* cmd, const char* table, monarch::rt::DynamicObject& row);
 };
 
 // type definition for a reference counted DatabaseClient
-typedef db::rt::Collectable<DatabaseClient> DatabaseClientRef;
+typedef monarch::rt::Collectable<DatabaseClient> DatabaseClientRef;
 
 } // end namespace sql
 } // end namespace db

@@ -17,7 +17,7 @@ namespace io
  *
  * @author Dave Longley
  */
-class IgnoreOutputStream : public db::io::FilterOutputStream
+class IgnoreOutputStream : public monarch::io::FilterOutputStream
 {
 protected:
    /**

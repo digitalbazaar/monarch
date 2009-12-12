@@ -42,7 +42,7 @@ protected:
    /**
     * An SSL context for handling SSL connections.
     */
-   db::net::SslContext* mSslContext;
+   monarch::net::SslContext* mSslContext;
 
    /**
     * Set to true if this client created its own ssl context.
@@ -52,7 +52,7 @@ protected:
    /**
     * Store the previous SSL session.
     */
-   db::net::SslSession mSslSession;
+   monarch::net::SslSession mSslSession;
 
 public:
    /**
@@ -61,7 +61,7 @@ public:
     * @param sc the SslContext to use for https connections, NULL to create
     *           one.
     */
-   HttpClient(db::net::SslContext* sc = NULL);
+   HttpClient(monarch::net::SslContext* sc = NULL);
 
    /**
     * Destructs this HttpClient.
@@ -80,7 +80,7 @@ public:
     *
     * @return true if this client is connected, false if not.
     */
-   virtual bool connect(db::net::Url* url);
+   virtual bool connect(monarch::net::Url* url);
 
    /**
     * Gets the local address for this Connection. This address can be
@@ -89,7 +89,7 @@ public:
     *
     * @return the local address.
     */
-   virtual db::net::SocketAddress* getLocalAddress();
+   virtual monarch::net::SocketAddress* getLocalAddress();
 
    /**
     * Gets the remote address for this Connection. This address can be
@@ -98,7 +98,7 @@ public:
     *
     * @return the remote address.
     */
-   virtual db::net::SocketAddress* getRemoteAddress();
+   virtual monarch::net::SocketAddress* getRemoteAddress();
 
    /**
     * Sends an HTTP GET request and receives the response header. This
@@ -117,7 +117,7 @@ public:
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* get(
-      db::net::Url* url, db::rt::DynamicObject* headers = NULL,
+      monarch::net::Url* url, monarch::rt::DynamicObject* headers = NULL,
       bool follow = true);
 
    /**
@@ -138,8 +138,8 @@ public:
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* post(
-      db::net::Url* url, db::rt::DynamicObject* headers,
-      db::io::InputStream* is,
+      monarch::net::Url* url, monarch::rt::DynamicObject* headers,
+      monarch::io::InputStream* is,
       HttpTrailer* trailer = NULL, bool skipContinue = true);
 
    /**
@@ -152,7 +152,7 @@ public:
     * @return false if an IO exception occurred, true if not.
     */
    virtual bool receiveContent(
-      db::io::OutputStream* os, HttpTrailer* trailer = NULL);
+      monarch::io::OutputStream* os, HttpTrailer* trailer = NULL);
 
    /**
     * Disconnects this client, if it is connected.
@@ -183,11 +183,11 @@ public:
     *         occurred.
     */
    static HttpConnection* createConnection(
-      db::net::Url* url,
-      db::net::SslContext* sslContext = NULL,
-      db::net::SslSession* session = NULL,
+      monarch::net::Url* url,
+      monarch::net::SslContext* sslContext = NULL,
+      monarch::net::SslSession* session = NULL,
       unsigned int timeout = 30,
-      db::rt::DynamicObject* commonNames = NULL,
+      monarch::rt::DynamicObject* commonNames = NULL,
       bool includeHost = true);
 
    /**
@@ -217,10 +217,10 @@ public:
     *         occurred.
     */
    static HttpConnection* createSslConnection(
-      db::net::Url* url, db::net::SslContext& context,
-      db::net::SslSessionCache& cache,
+      monarch::net::Url* url, monarch::net::SslContext& context,
+      monarch::net::SslSessionCache& cache,
       unsigned int timeout = 30,
-      db::rt::DynamicObject* commonNames = NULL,
+      monarch::rt::DynamicObject* commonNames = NULL,
       bool includeHost = true);
 
    /**
@@ -247,11 +247,11 @@ public:
     *         occurred.
     */
    static HttpConnection* createConnection(
-      db::net::InternetAddress* address,
-      db::net::SslContext* context = NULL,
-      db::net::SslSession* session = NULL,
+      monarch::net::InternetAddress* address,
+      monarch::net::SslContext* context = NULL,
+      monarch::net::SslSession* session = NULL,
       unsigned int timeout = 30,
-      db::rt::DynamicObject* commonNames = NULL,
+      monarch::rt::DynamicObject* commonNames = NULL,
       bool includeHost = true);
 
 protected:
@@ -261,7 +261,7 @@ protected:
     * @param h the HttpHeader to update.
     * @param headers the header fields to set.
     */
-   virtual void setCustomHeaders(HttpHeader* h, db::rt::DynamicObject& headers);
+   virtual void setCustomHeaders(HttpHeader* h, monarch::rt::DynamicObject& headers);
 };
 
 } // end namespace http

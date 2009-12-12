@@ -163,7 +163,7 @@ protected:
    /**
     * Internal data structures lock.
     */
-   db::rt::SharedLock mLock;
+   monarch::rt::SharedLock mLock;
 
    /**
     * A multimap of log categories to many loggers.
@@ -306,7 +306,7 @@ public:
     * @return true if the text was written, false if not.
     */
    bool vLog(
-      db::logging::Category* cat,
+      monarch::logging::Category* cat,
       Level level,
       const char* location,
       const void* object,
@@ -330,7 +330,7 @@ public:
     * @return true if the text was written, false if not.
     */
    bool log(
-      db::logging::Category* cat,
+      monarch::logging::Category* cat,
       Level level,
       const char* location,
       const void* object,
@@ -368,8 +368,8 @@ public:
     * @param va_list the log message args
     */
    static void vLogToLoggers(
-      db::logging::Category* registeredCat,
-      db::logging::Category* messageCat,
+      monarch::logging::Category* registeredCat,
+      monarch::logging::Category* messageCat,
       Level level,
       const char* location,
       const void* object,
@@ -390,8 +390,8 @@ public:
     * @param ... the log message args
     */
    static void logToLoggers(
-      db::logging::Category* registeredCat,
-      db::logging::Category* messageCat,
+      monarch::logging::Category* registeredCat,
+      monarch::logging::Category* messageCat,
       Level level,
       const char* location,
       const void* object,
@@ -416,7 +416,7 @@ public:
     * @param va_list the log message args
     */
    static void vLogToLoggers(
-      db::logging::Category* cat,
+      monarch::logging::Category* cat,
       Level level,
       const char* location,
       const void* object,
@@ -437,7 +437,7 @@ public:
     * @param ... the log message args
     */
    static void logToLoggers(
-      db::logging::Category* cat,
+      monarch::logging::Category* cat,
       Level level,
       const char* location,
       const void* object,
@@ -457,7 +457,7 @@ public:
     * @param category the category to use.  Defaults to the default category.
     */
    static void addLogger(Logger* logger,
-      db::logging::Category* category = DB_ALL_CAT);
+      monarch::logging::Category* category = DB_ALL_CAT);
 
    /**
     * Remove a logger for a category.  This will remove the first match if
@@ -467,7 +467,7 @@ public:
     * @param category the category to use.  Defaults to a generic category.
     */
    static void removeLogger(Logger* logger,
-      db::logging::Category* category = DB_ALL_CAT);
+      monarch::logging::Category* category = DB_ALL_CAT);
 
    /**
     * Clear all loggers.

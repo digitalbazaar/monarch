@@ -27,7 +27,7 @@ namespace validation
 class Type : public Validator
 {
 protected:
-   db::rt::DynamicObjectType mType;
+   monarch::rt::DynamicObjectType mType;
 
 public:
    /**
@@ -35,7 +35,7 @@ public:
     *
     * @param errorMessage custom error message
     */
-   Type(db::rt::DynamicObjectType type, const char* errorMessage = NULL);
+   Type(monarch::rt::DynamicObjectType type, const char* errorMessage = NULL);
 
    /**
     * Destructs this validator.
@@ -51,7 +51,7 @@ public:
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
-      db::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& obj,
       ValidatorContext* context);
    using Validator::isValid;
 };

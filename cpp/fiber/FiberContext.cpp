@@ -6,7 +6,7 @@
 #include "monarch/fiber/Fiber.h"
 #include <cstring>
 
-using namespace db::fiber;
+using namespace monarch::fiber;
 
 FiberContext::FiberContext() :
    mAllocatedStack(false),

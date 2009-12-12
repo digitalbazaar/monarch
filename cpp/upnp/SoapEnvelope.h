@@ -22,7 +22,7 @@ namespace upnp
  * @param namespace the namespace URI that defines the XML elements.
  * @param params the parameters for the message (a map).
  */
-typedef db::rt::DynamicObject SoapMessage;
+typedef monarch::rt::DynamicObject SoapMessage;
 
 /**
  * A SoapResult is the result of a parsed SoapEnvelope. It may or may not
@@ -31,7 +31,7 @@ typedef db::rt::DynamicObject SoapMessage;
  * @param fault a boolean that is set to true if the result is a fault.
  * @param message the SoapMessage.
  */
-typedef db::rt::DynamicObject SoapResult;
+typedef monarch::rt::DynamicObject SoapResult;
 
 /**
  * A SoapEnvelope object can create and parse SOAP envelopes that are used
@@ -69,7 +69,7 @@ public:
     *
     * @return true if successful, false if not.
     */
-   virtual bool parse(db::io::InputStream* is, SoapResult& result);
+   virtual bool parse(monarch::io::InputStream* is, SoapResult& result);
 };
 
 } // end namespace upnp

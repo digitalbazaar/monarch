@@ -5,9 +5,9 @@
 
 #include "monarch/util/StringTools.h"
 
-using namespace db::rt;
-using namespace db::util;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::util;
+using namespace monarch::validation;
 
 CompareText::CompareText(const char* text, const char* errorMessage) :
    Validator(errorMessage),

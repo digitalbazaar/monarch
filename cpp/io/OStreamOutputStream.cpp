@@ -6,8 +6,8 @@
 #include "monarch/rt/Exception.h"
 
 using namespace std;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 OStreamOutputStream::OStreamOutputStream(ostream* stream)
 {

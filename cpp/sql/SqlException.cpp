@@ -7,8 +7,8 @@
 
 #include <string>
 
-using namespace db::sql;
-using namespace db::rt;
+using namespace monarch::sql;
+using namespace monarch::rt;
 
 SqlException::SqlException(
    const char* message, const char* type, int code) :

@@ -3,7 +3,7 @@
  */
 #include "monarch/modest/StateMutatorChain.h"
 
-using namespace db::modest;
+using namespace monarch::modest;
 
 StateMutatorChain::StateMutatorChain(
    StateMutator* g1, StateMutator* g2)

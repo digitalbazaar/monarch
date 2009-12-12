@@ -11,12 +11,12 @@
 #include "monarch/logging/Logging.h"
 
 using namespace std;
-using namespace db::data::json;
-using namespace db::data::xml;
-using namespace db::io;
-using namespace db::logging;
-using namespace db::rt;
-using namespace db::upnp;
+using namespace monarch::data::json;
+using namespace monarch::data::xml;
+using namespace monarch::io;
+using namespace monarch::logging;
+using namespace monarch::rt;
+using namespace monarch::upnp;
 
 #define SOAP_NS_URI        "http://schemas.xmlsoap.org/soap/envelope"
 #define SOAP_NS_PREFIX     "soap"

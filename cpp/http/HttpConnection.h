@@ -18,7 +18,7 @@ namespace http
  *
  * @author Dave Longley
  */
-class HttpConnection : public db::net::ConnectionWrapper
+class HttpConnection : public monarch::net::ConnectionWrapper
 {
 protected:
    /**
@@ -34,7 +34,7 @@ protected:
    /**
     * A buffer for reading/writing.
     */
-   db::io::ByteBuffer mBuffer;
+   monarch::io::ByteBuffer mBuffer;
 
 public:
    /**
@@ -44,7 +44,7 @@ public:
     * @param cleanup true to clean up the Connection when this HttpConnection
     *                is destructed, false to leave it alone.
     */
-   HttpConnection(db::net::Connection* c, bool cleanup);
+   HttpConnection(monarch::net::Connection* c, bool cleanup);
 
    /**
     * Destructs this HttpConnection.
@@ -93,7 +93,7 @@ public:
     * @return true if the body was sent, false if an Exception occurred.
     */
    virtual bool sendBody(
-      HttpHeader* header, db::io::InputStream* is,
+      HttpHeader* header, monarch::io::InputStream* is,
       HttpTrailer* trailer = NULL);
 
    /**
@@ -111,7 +111,7 @@ public:
     *
     * @return the heap-allocated OutputStream for sending a message body.
     */
-   virtual db::io::OutputStream* getBodyOutputStream(
+   virtual monarch::io::OutputStream* getBodyOutputStream(
       HttpHeader* header, HttpTrailer* trailer = NULL);
 
    /**
@@ -126,7 +126,7 @@ public:
     * @return true if the body was received, false if an Exception occurred.
     */
    virtual bool receiveBody(
-      HttpHeader* header, db::io::OutputStream* os,
+      HttpHeader* header, monarch::io::OutputStream* os,
       HttpTrailer* trailer = NULL);
 
    /**
@@ -142,7 +142,7 @@ public:
     *
     * @return the heap-allocated InputStream for receiving a message body.
     */
-   virtual db::io::InputStream* getBodyInputStream(
+   virtual monarch::io::InputStream* getBodyInputStream(
       HttpHeader* header, HttpTrailer* trailer = NULL);
 
    /**
@@ -179,7 +179,7 @@ public:
 };
 
 // typedef for a counted reference to an HttpConnection
-typedef db::rt::Collectable<HttpConnection> HttpConnectionRef;
+typedef monarch::rt::Collectable<HttpConnection> HttpConnectionRef;
 
 } // end namespace http
 } // end namespace db

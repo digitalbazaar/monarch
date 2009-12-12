@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 #ifdef WIN32
 // windows rand() is shared amongst threads, and even seeding each individual

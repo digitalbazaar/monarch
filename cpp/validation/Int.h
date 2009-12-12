@@ -102,7 +102,7 @@ public:
     * @param type type of integer (UInt32, Int32, UInt64, In64)
     * @param errorMessage custom error message
     */
-   Int(db::rt::DynamicObjectType type, const char* errorMessage = NULL);
+   Int(monarch::rt::DynamicObjectType type, const char* errorMessage = NULL);
 
    /**
     * Creates a new validator.
@@ -125,7 +125,7 @@ public:
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
-      db::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& obj,
       ValidatorContext* context);
    using Validator::isValid;
 };

@@ -23,8 +23,8 @@ namespace gzip
  * @author Dave Longley
  */
 class Gzipper :
-public virtual db::io::MutationAlgorithm,
-protected db::compress::deflate::Deflater
+public virtual monarch::io::MutationAlgorithm,
+protected monarch::compress::deflate::Deflater
 {
 protected:
    /**
@@ -62,7 +62,7 @@ protected:
    /**
     * A buffer for storing the header/trailer.
     */
-   db::io::ByteBuffer mBuffer;
+   monarch::io::ByteBuffer mBuffer;
 
    /**
     * Used to calculate the CRC-32 as the data is processed.
@@ -182,7 +182,7 @@ public:
     * @return return the number of bytes written out, 0 if the buffer is
     *         empty or if there is no input, -1 if an exception occurred.
     */
-   virtual int process(db::io::ByteBuffer* dst, bool resize);
+   virtual int process(monarch::io::ByteBuffer* dst, bool resize);
 
    /**
     * Returns the amount of input data available.

@@ -3,10 +3,10 @@
  */
 #include "monarch/data/avi/AviStreamFormat.h"
 
-using namespace db::data;
-using namespace db::data::avi;
-using namespace db::data::riff;
-using namespace db::io;
+using namespace monarch::data;
+using namespace monarch::data::avi;
+using namespace monarch::data::riff;
+using namespace monarch::io;
 
 AviStreamFormat::AviStreamFormat() :
    mRiffHeader(CHUNK_ID)

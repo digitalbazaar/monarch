@@ -24,7 +24,7 @@ class Sqlite3Connection;
  * @author Dave Longley
  * @author David I. Lehn
  */
-class Sqlite3Statement : public db::sql::Statement
+class Sqlite3Statement : public monarch::sql::Statement
 {
 protected:
    /**

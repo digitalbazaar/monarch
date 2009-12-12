@@ -20,7 +20,7 @@ class In : public Validator
 {
 protected:
    /* Object with valid contents */
-   db::rt::DynamicObject mContents;
+   monarch::rt::DynamicObject mContents;
 
 public:
    /**
@@ -28,7 +28,7 @@ public:
     *
     * @param errorMessage custom error message
     */
-   In(db::rt::DynamicObject& contents, const char* errorMessage = NULL);
+   In(monarch::rt::DynamicObject& contents, const char* errorMessage = NULL);
 
    /**
     * Destructs this validator.
@@ -44,7 +44,7 @@ public:
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
-      db::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& obj,
       ValidatorContext* context);
    using Validator::isValid;
 };

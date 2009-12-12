@@ -30,13 +30,13 @@
 #include "monarch/util/StringTools.h"
 
 using namespace std;
-using namespace db::test;
-using namespace db::io;
-using namespace db::modest;
-using namespace db::net;
-using namespace db::http;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::test;
+using namespace monarch::io;
+using namespace monarch::modest;
+using namespace monarch::net;
+using namespace monarch::http;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 void runHttpHeaderTest(TestRunner& tr)
 {
@@ -766,7 +766,7 @@ void runPingTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbHttpTester : public db::test::Tester
+class DbHttpTester : public monarch::test::Tester
 {
 public:
    DbHttpTester()
@@ -798,7 +798,7 @@ public:
    }
 };
 
-db::test::Tester* getDbHttpTester() { return new DbHttpTester(); }
+monarch::test::Tester* getDbHttpTester() { return new DbHttpTester(); }
 
 
 DB_TEST_MAIN(DbHttpTester)

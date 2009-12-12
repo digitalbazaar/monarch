@@ -21,7 +21,7 @@ namespace mpeg
  *
  * @author Dave Longley
  */
-class AudioCrc16 : db::util::Crc16
+class AudioCrc16 : monarch::util::Crc16
 {
 public:
    /**

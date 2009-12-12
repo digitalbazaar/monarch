@@ -15,7 +15,7 @@ namespace rt
 /**
  * An Exception is raised when some kind of unhandled behavior occurs.
  *
- * In the current implementation of db::rt, a single Exception is stored in
+ * In the current implementation of monarch::rt, a single Exception is stored in
  * thread-local memory for each thread. Whenever an Object's method needs to
  * raise an Exception, it calls Exception::set() with a dynamically allocated
  * Exception (or derivative). The memory cleanup will be handled by the thread

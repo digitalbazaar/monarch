@@ -4,8 +4,8 @@
 #include "monarch/event/ObserverList.h"
 
 using namespace std;
-using namespace db::event;
-using namespace db::rt;
+using namespace monarch::event;
+using namespace monarch::rt;
 
 ObserverList::ObserverList()
 {

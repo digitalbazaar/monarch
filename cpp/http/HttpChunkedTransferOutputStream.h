@@ -76,7 +76,7 @@ namespace http
  * @author Dave Longley
  */
 class HttpChunkedTransferOutputStream :
-public db::io::BufferedOutputStream
+public monarch::io::BufferedOutputStream
 {
 protected:
    /**
@@ -87,7 +87,7 @@ protected:
    /**
     * The output buffer.
     */
-   db::io::ByteBuffer mOutputBuffer;
+   monarch::io::ByteBuffer mOutputBuffer;
 
    /**
     * The HttpTrailer to use for header trailers.
@@ -115,7 +115,7 @@ public:
     *                  by leaving room for the terminating 2 bytes of CRLF.
     */
    HttpChunkedTransferOutputStream(
-      db::net::ConnectionOutputStream* os,
+      monarch::net::ConnectionOutputStream* os,
       HttpTrailer* trailer, int chunkSize = 1022);
 
    /**

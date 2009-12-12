@@ -61,7 +61,7 @@ public:
     * @return the number of bytes read, 0 if the end of the data has been
     *         reached, or -1 if an exception occurred.
     */
-   virtual int getFrame(db::io::ByteBuffer* dst, bool resize) = 0;
+   virtual int getFrame(monarch::io::ByteBuffer* dst, bool resize) = 0;
 };
 
 } // end namespace id3v2

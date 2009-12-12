@@ -4,8 +4,8 @@
 #include "monarch/modest/ModuleLibrary.h"
 
 using namespace std;
-using namespace db::modest;
-using namespace db::rt;
+using namespace monarch::modest;
+using namespace monarch::rt;
 
 ModuleLibrary::ModuleLibrary(Kernel* k)
 {

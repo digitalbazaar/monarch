@@ -15,9 +15,9 @@
 #include <cstring>
 
 using namespace std;
-using namespace db::crypto;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::crypto;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 #define EXCEPTION_UNSUPPORTED_ALGORITHM "db.crypto.UnsupportedAlgorithm"
 #define EXCEPTION_PRIVATE_KEY_IO        "db.crypto.PrivateKey.IO"

@@ -50,7 +50,7 @@ protected:
    /**
     * A lock for starting/stopping this Engine.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
 public:
    /**
@@ -99,7 +99,7 @@ public:
     *
     * @return this Engine's ThreadPool.
     */
-   virtual db::rt::ThreadPool* getThreadPool();
+   virtual monarch::rt::ThreadPool* getThreadPool();
 
    /**
     * Gets this Engine's OperationDispatcher.

@@ -17,12 +17,12 @@
 #include <algorithm>
 
 using namespace std;
-using namespace db::compress::gzip;
-using namespace db::logging;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
-using namespace db::util::regex;
+using namespace monarch::compress::gzip;
+using namespace monarch::logging;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
+using namespace monarch::util::regex;
 
 #define DEFAULT_MAX_ROTATED_FILES 5
 #define DEFAULT_COMPRESSION_THREAD_POOL_SIZE 2

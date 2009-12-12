@@ -14,7 +14,7 @@ namespace mail
 
 /**
  * A MailTemplateParser is used to parse templates that contain email messages
- * with specially marked variables. See db::data::TemplateInputStream for
+ * with specially marked variables. See monarch::data::TemplateInputStream for
  * variable rules. Variables may appear in any part of the email message.
  *
  * In addition to parsing variables, this parser will parse message headers
@@ -63,8 +63,8 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool parse(
-      Mail* mail, db::rt::DynamicObject& vars, bool strict,
-      db::io::InputStream* is);
+      Mail* mail, monarch::rt::DynamicObject& vars, bool strict,
+      monarch::io::InputStream* is);
 };
 
 } // end namespace mail

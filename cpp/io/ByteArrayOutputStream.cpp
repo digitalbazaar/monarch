@@ -5,8 +5,8 @@
 
 #include "monarch/io/IOException.h"
 
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 ByteArrayOutputStream::ByteArrayOutputStream(ByteBuffer* b, bool resize)
 {

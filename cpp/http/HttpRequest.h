@@ -86,7 +86,7 @@ public:
     *
     * @return true if the body was sent, false if an Exception occurred.
     */
-   virtual bool sendBody(db::io::InputStream* is, HttpTrailer* trailer = NULL);
+   virtual bool sendBody(monarch::io::InputStream* is, HttpTrailer* trailer = NULL);
 
    /**
     * Gets a heap-allocated OutputStream for sending a message body. The
@@ -103,7 +103,7 @@ public:
     *
     * @return the heap-allocated OutputStream for sending a message body.
     */
-   virtual db::io::OutputStream* getBodyOutputStream(
+   virtual monarch::io::OutputStream* getBodyOutputStream(
       HttpTrailer* trailer = NULL);
 
    /**
@@ -117,7 +117,7 @@ public:
     * @return true if the body was received, false if an Exception occurred.
     */
    virtual bool receiveBody(
-      db::io::OutputStream* os, HttpTrailer* trailer = NULL);
+      monarch::io::OutputStream* os, HttpTrailer* trailer = NULL);
 
    /**
     * Gets a heap-allocated InputStream for receiving a message body. The
@@ -131,7 +131,7 @@ public:
     *
     * @return the heap-allocated InputStream for receiving a message body.
     */
-   virtual db::io::InputStream* getBodyInputStream(HttpTrailer* trailer = NULL);
+   virtual monarch::io::InputStream* getBodyInputStream(HttpTrailer* trailer = NULL);
 
    /**
     * Gets the header for this request. This will not receive the header
@@ -150,7 +150,7 @@ public:
 };
 
 // typedef for a counted reference to an HttpRequest
-typedef db::rt::Collectable<HttpRequest> HttpRequestRef;
+typedef monarch::rt::Collectable<HttpRequest> HttpRequestRef;
 
 } // end namespace http
 } // end namespace db

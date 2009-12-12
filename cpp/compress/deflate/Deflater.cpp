@@ -5,9 +5,9 @@
 
 #include "monarch/rt/Exception.h"
 
-using namespace db::compress::deflate;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::compress::deflate;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 #define EXCEPTION_DEFLATE "db.compress.deflate"
 

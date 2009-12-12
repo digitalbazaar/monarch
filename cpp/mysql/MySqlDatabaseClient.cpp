@@ -3,9 +3,9 @@
  */
 #include "monarch/sql/mysql/MySqlDatabaseClient.h"
 
-using namespace db::rt;
-using namespace db::sql;
-using namespace db::sql::mysql;
+using namespace monarch::rt;
+using namespace monarch::sql;
+using namespace monarch::sql::mysql;
 
 MySqlDatabaseClient::MySqlDatabaseClient()
 {
@@ -16,7 +16,7 @@ MySqlDatabaseClient::~MySqlDatabaseClient()
 }
 
 SqlExecutableRef MySqlDatabaseClient::insertOnDuplicateKeyUpdate(
-   const char* table, db::rt::DynamicObject& row)
+   const char* table, monarch::rt::DynamicObject& row)
 {
    SqlExecutableRef rval(NULL);
 

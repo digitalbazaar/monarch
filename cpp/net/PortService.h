@@ -21,7 +21,7 @@ class Server;
  *
  * @author Dave Longley
  */
-class PortService : public db::rt::Runnable
+class PortService : public monarch::rt::Runnable
 {
 protected:
    /**
@@ -42,7 +42,7 @@ protected:
    /**
     * The Operation used to run this service.
     */
-   db::modest::Operation mOperation;
+   monarch::modest::Operation mOperation;
 
    /**
     * Initializes this service and creates the Operation for running it,
@@ -53,7 +53,7 @@ protected:
     * @return the Operation for running this service, or NULL if the
     *         service could not be initialized.
     */
-   virtual db::modest::Operation initialize() = 0;
+   virtual monarch::modest::Operation initialize() = 0;
 
    /**
     * Called to clean up resources for this service that were created or

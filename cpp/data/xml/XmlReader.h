@@ -39,17 +39,17 @@ protected:
    /**
     * An exception, if one occurred during parsing.
     */
-   db::rt::ExceptionRef mException;
+   monarch::rt::ExceptionRef mException;
 
    /**
     * A stack of DynamicObjects.
     */
-   std::list<db::rt::DynamicObject*> mDynoStack;
+   std::list<monarch::rt::DynamicObject*> mDynoStack;
 
    /**
     * A stack of DynamicObjectTypes.
     */
-   std::list<db::rt::DynamicObjectType> mTypeStack;
+   std::list<monarch::rt::DynamicObjectType> mTypeStack;
 
    /**
     * The character encoding.
@@ -83,7 +83,7 @@ public:
     *
     * @param dyno the DynamicObject for the object to deserialize.
     */
-   virtual void start(db::rt::DynamicObject& dyno);
+   virtual void start(monarch::rt::DynamicObject& dyno);
 
    /**
     * This method reads xml from the passed InputStream until the end of
@@ -104,7 +104,7 @@ public:
     *
     * @return true if the read succeeded, false if an Exception occurred.
     */
-   virtual bool read(db::io::InputStream* is);
+   virtual bool read(monarch::io::InputStream* is);
 
    /**
     * Finishes deserializing an object from xml. This method must be called
@@ -212,7 +212,7 @@ protected:
     *
     * @return the associated DynamicObjectType.
     */
-   static db::rt::DynamicObjectType tagNameToType(const char* name);
+   static monarch::rt::DynamicObjectType tagNameToType(const char* name);
 
    /**
     * Parses the local name from the passed fully qualified name. The passed

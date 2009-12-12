@@ -34,7 +34,7 @@ protected:
    /**
     * A shared lock for accessing the list.
     */
-   db::rt::SharedLock mLock;
+   monarch::rt::SharedLock mLock;
 
    /**
     * Set to true to clean up the memory for the SocketDataPresenters in this
@@ -79,7 +79,7 @@ public:
 };
 
 // type definition for reference counted SocketDataPresenterList
-typedef db::rt::Collectable<SocketDataPresenterList> SocketDataPresenterListRef;
+typedef monarch::rt::Collectable<SocketDataPresenterList> SocketDataPresenterListRef;
 
 } // end namespace net
 } // end namespace db

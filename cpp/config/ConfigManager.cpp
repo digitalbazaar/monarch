@@ -19,12 +19,12 @@
 #include "monarch/util/StringTools.h"
 
 using namespace std;
-using namespace db::config;
-using namespace db::data;
-using namespace db::data::json;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::config;
+using namespace monarch::data;
+using namespace monarch::data::json;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 #define CONFIG_EXCEPTION   "db.config.ConfigManager"
 

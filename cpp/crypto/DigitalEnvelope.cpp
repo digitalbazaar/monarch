@@ -13,9 +13,9 @@
 #include <cstring>
 
 using namespace std;
-using namespace db::crypto;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::crypto;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 DigitalEnvelope::DigitalEnvelope() : AbstractBlockCipher(true)
 {

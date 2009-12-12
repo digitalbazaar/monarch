@@ -26,7 +26,7 @@ namespace http
  *
  * @author Dave Longley
  */
-class HttpConnectionServicer : public db::net::ConnectionServicer
+class HttpConnectionServicer : public monarch::net::ConnectionServicer
 {
 protected:
    /**
@@ -39,7 +39,7 @@ protected:
     * that require non-secure connections.
     */
    typedef std::map<
-      const char*, HttpRequestServicer*, db::util::StringComparator>
+      const char*, HttpRequestServicer*, monarch::util::StringComparator>
       ServicerMap;
    ServicerMap mNonSecureServicers;
 
@@ -52,7 +52,7 @@ protected:
    /**
     * A lock for manipulating request servicers.
     */
-   db::rt::SharedLock mRequestServicerLock;
+   monarch::rt::SharedLock mRequestServicerLock;
 
    /**
     * Finds an HttpRequestServicer for the given path in the given map.
@@ -87,7 +87,7 @@ public:
     *
     * @param c the Connection to service.
     */
-   virtual void serviceConnection(db::net::Connection* c);
+   virtual void serviceConnection(monarch::net::Connection* c);
 
    /**
     * Adds an HttpRequestServicer. If a servicer already exists at the given

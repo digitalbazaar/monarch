@@ -41,7 +41,7 @@ public:
     *
     * @param dyno the DynamicObject for the object to deserialize.
     */
-   virtual void start(db::rt::DynamicObject& dyno) = 0;
+   virtual void start(monarch::rt::DynamicObject& dyno) = 0;
 
    /**
     * This method reads from the passed InputStream until the end of the
@@ -62,7 +62,7 @@ public:
     *
     * @return true if the read succeeded, false if an Exception occurred.
     */
-   virtual bool read(db::io::InputStream* is) = 0;
+   virtual bool read(monarch::io::InputStream* is) = 0;
 
    /**
     * Finishes deserializing an object. This method must be called to

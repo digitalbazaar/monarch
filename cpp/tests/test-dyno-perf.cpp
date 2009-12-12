@@ -10,9 +10,9 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::config;
-using namespace db::test;
-using namespace db::rt;
+using namespace monarch::config;
+using namespace monarch::test;
+using namespace monarch::rt;
 
 static bool header = true;
 
@@ -104,7 +104,7 @@ void runDynoIterTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbDynoPerfTester : public db::test::Tester
+class DbDynoPerfTester : public monarch::test::Tester
 {
 public:
    DbDynoPerfTester()
@@ -136,7 +136,7 @@ public:
    }
 };
 
-db::test::Tester* getDbDynoPerfTester() { return new DbDynoPerfTester(); }
+monarch::test::Tester* getDbDynoPerfTester() { return new DbDynoPerfTester(); }
 
 
 DB_TEST_MAIN(DbDynoPerfTester)

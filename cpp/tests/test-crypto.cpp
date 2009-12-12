@@ -24,11 +24,11 @@
 #include "monarch/util/Date.h"
 
 using namespace std;
-using namespace db::test;
-using namespace db::crypto;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::test;
+using namespace monarch::crypto;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 void runMessageDigestTest(TestRunner& tr)
 {
@@ -1278,7 +1278,7 @@ void runBigDecimalTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbCryptoTester : public db::test::Tester
+class DbCryptoTester : public monarch::test::Tester
 {
 public:
    DbCryptoTester()
@@ -1315,7 +1315,7 @@ public:
    }
 };
 
-db::test::Tester* getDbCryptoTester() { return new DbCryptoTester(); }
+monarch::test::Tester* getDbCryptoTester() { return new DbCryptoTester(); }
 
 
 DB_TEST_MAIN(DbCryptoTester)

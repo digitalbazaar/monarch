@@ -7,8 +7,8 @@
 
 #include <sqlite3.h>
 
-using namespace db::sql;
-using namespace db::sql::sqlite3;
+using namespace monarch::sql;
+using namespace monarch::sql::sqlite3;
 
 Sqlite3Exception::Sqlite3Exception(Sqlite3Connection* c) :
    SqlException("", "db.sql.sqlite3.Sqlite3")

@@ -24,7 +24,7 @@ class MySqlStatement;
  *
  * @author Dave Longley
  */
-class MySqlRow : public db::sql::Row
+class MySqlRow : public monarch::sql::Row
 {
 protected:
    /**

@@ -25,7 +25,7 @@ class Sqlite3Statement;
  * @author Dave Longley
  * @author David I. Lehn
  */
-class Sqlite3Connection : public db::sql::AbstractConnection
+class Sqlite3Connection : public monarch::sql::AbstractConnection
 {
 protected:
    /**
@@ -61,8 +61,8 @@ public:
     *
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool connect(db::net::Url* url);
-   using db::sql::AbstractConnection::connect;
+   virtual bool connect(monarch::net::Url* url);
+   using monarch::sql::AbstractConnection::connect;
 
    /**
     * Closes this connection.

@@ -17,15 +17,15 @@
 #include "monarch/crypto/MessageDigest.h"
 
 using namespace std;
-using namespace db::test;
-using namespace db::compress;
-using namespace db::compress::deflate;
-using namespace db::compress::gzip;
-using namespace db::compress::zip;
-using namespace db::crypto;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::test;
+using namespace monarch::compress;
+using namespace monarch::compress::deflate;
+using namespace monarch::compress::gzip;
+using namespace monarch::compress::zip;
+using namespace monarch::crypto;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 void runDeflateTest(TestRunner& tr)
 {
@@ -537,7 +537,7 @@ void runZipTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbCompressTester : public db::test::Tester
+class DbCompressTester : public monarch::test::Tester
 {
 public:
    DbCompressTester()
@@ -550,7 +550,7 @@ public:
     */
    virtual int runAutomaticTests(TestRunner& tr)
    {
-      // db::compress tests
+      // monarch::compress tests
       runDeflateTest(tr);
       runGzipTest(tr);
       runZipTest(tr);
@@ -566,7 +566,7 @@ public:
    }
 };
 
-db::test::Tester* getDbCompressTester() { return new DbCompressTester(); }
+monarch::test::Tester* getDbCompressTester() { return new DbCompressTester(); }
 
 
 DB_TEST_MAIN(DbCompressTester)

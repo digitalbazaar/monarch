@@ -11,7 +11,7 @@
 #include <malloc.h>
 #endif
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 void* Atomic::mallocAligned(size_t size)
 {

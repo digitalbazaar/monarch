@@ -11,9 +11,9 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::test;
-using namespace db::rt;
-namespace v = db::validation;
+using namespace monarch::test;
+using namespace monarch::rt;
+namespace v = monarch::validation;
 
 // Use to dump out expected exceptions
 #define _dump false
@@ -1083,7 +1083,7 @@ void runAnyExceptionsTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbValidationTester : public db::test::Tester
+class DbValidationTester : public monarch::test::Tester
 {
 public:
    DbValidationTester()
@@ -1114,7 +1114,7 @@ public:
 
 #undef _dump
 
-db::test::Tester* getDbValidationTester() { return new DbValidationTester(); }
+monarch::test::Tester* getDbValidationTester() { return new DbValidationTester(); }
 
 
 DB_TEST_MAIN(DbValidationTester)

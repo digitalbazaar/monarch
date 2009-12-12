@@ -6,10 +6,10 @@
 #include "monarch/util/Timer.h"
 
 using namespace std;
-using namespace db::event;
-using namespace db::modest;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::event;
+using namespace monarch::modest;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 EventDaemon::EventData::EventData(Event& e, uint32_t i, int c, int r) :
    event(e),

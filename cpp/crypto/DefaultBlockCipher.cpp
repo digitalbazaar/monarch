@@ -8,9 +8,9 @@
 
 #include <openssl/err.h>
 
-using namespace db::crypto;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::crypto;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 DefaultBlockCipher::DefaultBlockCipher() : AbstractBlockCipher(true)
 {

@@ -6,8 +6,8 @@
 #include "monarch/modest/Engine.h"
 
 using namespace std;
-using namespace db::modest;
-using namespace db::rt;
+using namespace monarch::modest;
+using namespace monarch::rt;
 
 OperationDispatcher::OperationDispatcher(Engine* e) :
    ThreadPool(100),

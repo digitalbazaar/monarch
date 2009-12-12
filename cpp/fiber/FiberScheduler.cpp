@@ -8,9 +8,9 @@
 #include <setjmp.h>
 
 using namespace std;
-using namespace db::fiber;
-using namespace db::modest;
-using namespace db::rt;
+using namespace monarch::fiber;
+using namespace monarch::modest;
+using namespace monarch::rt;
 
 // max fiber ID is MAX(uint32)
 #define MAX_FIBER_ID 0xFFFFFFFF

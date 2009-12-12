@@ -6,8 +6,8 @@
 #include "monarch/util/Data.h"
 #include <zlib.h>
 
-using namespace db::compress::gzip;
-using namespace db::io;
+using namespace monarch::compress::gzip;
+using namespace monarch::io;
 
 Trailer::Trailer()
 {

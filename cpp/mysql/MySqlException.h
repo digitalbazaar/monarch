@@ -23,7 +23,7 @@ class MySqlStatement;
  *
  * @author Dave Longley
  */
-class MySqlException : public db::sql::SqlException
+class MySqlException : public monarch::sql::SqlException
 {
 public:
    /**

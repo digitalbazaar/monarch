@@ -24,7 +24,7 @@ namespace data
  *
  * @author Dave Longley
  */
-class InspectorInputStream : public db::io::FilterInputStream
+class InspectorInputStream : public monarch::io::FilterInputStream
 {
 protected:
    /**
@@ -54,7 +54,7 @@ protected:
     * The data inspectors (stored along with their meta-data).
     */
    typedef std::map<
-      const char*, DataInspectorMetaData, db::util::StringComparator>
+      const char*, DataInspectorMetaData, monarch::util::StringComparator>
       InspectorMap;
    InspectorMap mInspectors;
 
@@ -68,7 +68,7 @@ protected:
    /**
     * An internal buffer for storing data read from the underlying stream.
     */
-   db::io::ByteBuffer mReadBuffer;
+   monarch::io::ByteBuffer mReadBuffer;
 
    /**
     * Stores the number of bytes that have been inspected and can be
@@ -97,7 +97,7 @@ public:
     * @param cleanup true to clean up the passed InputStream when destructing,
     *                false not to.
     */
-   InspectorInputStream(db::io::InputStream* is, bool cleanup = false);
+   InspectorInputStream(monarch::io::InputStream* is, bool cleanup = false);
 
    /**
     * Creates a new InspectorInputStream.

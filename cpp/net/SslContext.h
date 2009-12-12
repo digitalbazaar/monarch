@@ -31,7 +31,7 @@ protected:
    /**
     * A lock for generating new SSLs.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
 public:
    /**
@@ -67,7 +67,7 @@ public:
     *
     * @return true if the certificate loaded, false if an Exception occurred.
     */
-   virtual bool setCertificate(db::io::File& certFile);
+   virtual bool setCertificate(monarch::io::File& certFile);
 
    /**
     * Sets the PEM-formatted private key for this SSL context to use.
@@ -76,7 +76,7 @@ public:
     *
     * @return true if the private key loaded, false if an Exception occurred.
     */
-   virtual bool setPrivateKey(db::io::File& pkeyFile);
+   virtual bool setPrivateKey(monarch::io::File& pkeyFile);
 
    /**
     * Sets the peer authentication mode for this SSL context. If peer
@@ -108,7 +108,7 @@ public:
     *
     * @return true if the CAs were set properly, false if an Exception occurred.
     */
-   virtual bool setVerifyCAs(db::io::File* caFile, db::io::File* caDir);
+   virtual bool setVerifyCAs(monarch::io::File* caFile, monarch::io::File* caDir);
 
    /**
     * Repeatedly call ERR_get_error and build an Array of error messages with
@@ -116,11 +116,11 @@ public:
     *
     * @return an Array of error strings.  May be empty.
     */
-   static db::rt::DynamicObject getSslErrorStrings();
+   static monarch::rt::DynamicObject getSslErrorStrings();
 };
 
 // type definition for reference counted SslContext
-typedef db::rt::Collectable<SslContext> SslContextRef;
+typedef monarch::rt::Collectable<SslContext> SslContextRef;
 
 } // end namespace net
 } // end namespace db

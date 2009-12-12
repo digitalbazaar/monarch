@@ -31,7 +31,7 @@ protected:
    /**
     * A lock for registering/unregistering/messaging fibers.
     */
-   db::rt::SharedLock mMessageLock;
+   monarch::rt::SharedLock mMessageLock;
 
 public:
    /**
@@ -72,7 +72,7 @@ public:
     *
     * @return true if the message was delivered, false if no such fiber exists.
     */
-   virtual bool sendMessage(FiberId id, db::rt::DynamicObject& msg);
+   virtual bool sendMessage(FiberId id, monarch::rt::DynamicObject& msg);
 };
 
 } // end namespace fiber

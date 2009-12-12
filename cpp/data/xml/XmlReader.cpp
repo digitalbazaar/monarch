@@ -4,10 +4,10 @@
 #include "monarch/data/xml/XmlReader.h"
 
 using namespace std;
-using namespace db::data;
-using namespace db::data::xml;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::data;
+using namespace monarch::data::xml;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 // initialize encoding
 const char* XmlReader::CHAR_ENCODING = "UTF-8";

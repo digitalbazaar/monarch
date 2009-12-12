@@ -40,7 +40,7 @@ namespace test
  *
  * Author: David I. Lehn
  */
-class Tester : public db::app::AppPlugin
+class Tester : public monarch::app::AppPlugin
 {
 protected:
    /**
@@ -69,7 +69,7 @@ public:
     *
     * @param app the App.
     */
-   virtual void setApp(db::app::App* app);
+   virtual void setApp(monarch::app::App* app);
 
    /**
     * Set the name.
@@ -90,7 +90,7 @@ public:
     *
     * @return the command line specs
     */
-   virtual db::rt::DynamicObject getCommandLineSpecs();
+   virtual monarch::rt::DynamicObject getCommandLineSpecs();
 
    /**
     * Setup default option values.
@@ -112,38 +112,38 @@ public:
    /**
     * Setup before running tests.
     */
-   virtual void setup(db::test::TestRunner& tr);
+   virtual void setup(monarch::test::TestRunner& tr);
 
    /**
     * Teardown after running tests.
     */
-   virtual void teardown(db::test::TestRunner& tr);
+   virtual void teardown(monarch::test::TestRunner& tr);
 
    /**
     * Add a Tester.
     */
-   virtual void addTester(db::test::Tester* tester);
+   virtual void addTester(monarch::test::Tester* tester);
 
    /**
     * Run automatic unit tests.
     *
     * @return exit status. 0 for success.
     */
-   virtual int runAutomaticTests(db::test::TestRunner& tr);
+   virtual int runAutomaticTests(monarch::test::TestRunner& tr);
 
    /**
     * Runs interactive unit tests.
     *
     * @return exit status. 0 for success.
     */
-   virtual int runInteractiveTests(db::test::TestRunner& tr);
+   virtual int runInteractiveTests(monarch::test::TestRunner& tr);
 
    /**
     * Run testers and call runAutomaticTests() and runInteractiveTests().
     *
     * @return exit status. 0 for success.
     */
-   virtual int runTests(db::test::TestRunner& tr);
+   virtual int runTests(monarch::test::TestRunner& tr);
 
    /**
     * Run all tests and set exit status.

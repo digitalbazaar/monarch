@@ -37,8 +37,8 @@ namespace app
  * @member id the ID of the plugin.
  * @member dependencies an array of AppPluginIds that this plugin depends on.
  */
-typedef db::rt::DynamicObject AppPluginInfo;
-typedef db::rt::DynamicObjectIterator AppPluginInfoIterator;
+typedef monarch::rt::DynamicObject AppPluginInfo;
+typedef monarch::rt::DynamicObjectIterator AppPluginInfoIterator;
 typedef const char* AppPluginId;
 
 // forward declaration
@@ -104,7 +104,7 @@ public:
     *
     * @return true on success, false and exception on failure.
     */
-   virtual bool willInitMetaConfig(db::config::Config& meta);
+   virtual bool willInitMetaConfig(monarch::config::Config& meta);
 
    /**
     * Initialize the meta config as needed. Note that subclasses may override
@@ -117,7 +117,7 @@ public:
     *
     * @return true on success, false and exception on failure.
     */
-   virtual bool initMetaConfig(db::config::Config& meta);
+   virtual bool initMetaConfig(monarch::config::Config& meta);
 
    /**
     * Called after initMetaConfig().
@@ -128,7 +128,7 @@ public:
     *
     * @return true on success, false and exception on failure.
     */
-   virtual bool didInitMetaConfig(db::config::Config& meta);
+   virtual bool didInitMetaConfig(monarch::config::Config& meta);
 
    /**
     * Set the owner App.
@@ -250,7 +250,7 @@ public:
     *
     * @return an array of command line spec
     */
-   virtual db::rt::DynamicObject getCommandLineSpecs();
+   virtual monarch::rt::DynamicObject getCommandLineSpecs();
 
    /**
     * Called before the default App processes the command line arguments.
@@ -338,7 +338,7 @@ public:
 };
 
 // type definition for a reference-counted AppPlugin
-typedef db::rt::Collectable<AppPlugin> AppPluginRef;
+typedef monarch::rt::Collectable<AppPlugin> AppPluginRef;
 
 } // end namespace app
 } // end namespace db

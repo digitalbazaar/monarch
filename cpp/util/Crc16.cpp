@@ -3,7 +3,7 @@
  */
 #include "monarch/util/Crc16.h"
 
-using namespace db::util;
+using namespace monarch::util;
 
 // initialize the registers table
 short Crc16::sRegisterTable[256];

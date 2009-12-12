@@ -41,12 +41,12 @@ protected:
    /**
     * A lock for waiting and modifying this waiter.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
    /**
     * The types of events to wait on.
     */
-   db::rt::DynamicObject mEventTypes;
+   monarch::rt::DynamicObject mEventTypes;
 
    /**
     * A stack of events that have occurred.
@@ -93,7 +93,7 @@ public:
     *                  subset of an event for it to be received by this waiter.
     */
    virtual void start(
-      const char* event, db::rt::DynamicObject* condition = NULL);
+      const char* event, monarch::rt::DynamicObject* condition = NULL);
 
    /**
     * Fire the first type of event. This is a convenience to fire the event

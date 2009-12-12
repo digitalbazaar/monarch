@@ -18,7 +18,7 @@ namespace event
  *
  * @author Dave Longley
  */
-class EventDaemon : public db::rt::Runnable
+class EventDaemon : public monarch::rt::Runnable
 {
 protected:
    /**
@@ -47,7 +47,7 @@ protected:
    /**
     * A lock for modifying the EventList and waiting.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
    /**
     * EventController to schedule events with.
@@ -57,7 +57,7 @@ protected:
    /**
     * The operation running this daemon.
     */
-   db::modest::Operation mOperation;
+   monarch::modest::Operation mOperation;
 
    /**
     * Set to true when this daemon is running.
@@ -99,7 +99,7 @@ public:
     * @param ec the EventController to use.
     */
    virtual void start(
-      db::modest::OperationRunner* opRunner,
+      monarch::modest::OperationRunner* opRunner,
       EventController* ec);
 
    /**

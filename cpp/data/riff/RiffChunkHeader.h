@@ -76,7 +76,7 @@ public:
     *
     * @return true on success, false if an IO error occurs.
     */
-   virtual bool writeTo(db::io::OutputStream& os);
+   virtual bool writeTo(monarch::io::OutputStream& os);
 
    /**
     * Converts the chunk header into an 8 byte array.

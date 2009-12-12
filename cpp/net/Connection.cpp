@@ -5,8 +5,8 @@
 
 #include "monarch/net/Internet6Address.h"
 
-using namespace db::net;
-using namespace db::rt;
+using namespace monarch::net;
+using namespace monarch::rt;
 
 Connection::Connection(Socket* s, bool cleanup) :
    mSocket(s),

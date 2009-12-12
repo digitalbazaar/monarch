@@ -40,19 +40,19 @@
 #include "monarch/util/Timer.h"
 
 using namespace std;
-using namespace db::test;
-using namespace db::data;
-//using namespace db::data::avi;
-using namespace db::data::json;
-//using namespace db::data::mpeg;
-using namespace db::data::riff;
-using namespace db::data::xml;
-using namespace db::io;
-using namespace db::modest;
-using namespace db::net;
-using namespace db::http;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::test;
+using namespace monarch::data;
+//using namespace monarch::data::avi;
+using namespace monarch::data::json;
+//using namespace monarch::data::mpeg;
+using namespace monarch::data::riff;
+using namespace monarch::data::xml;
+using namespace monarch::io;
+using namespace monarch::modest;
+using namespace monarch::net;
+using namespace monarch::http;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 void runJsonValidTest(TestRunner& tr)
 {
@@ -1766,7 +1766,7 @@ void runJsonReaderSpeedTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbDataTester : public db::test::Tester
+class DbDataTester : public monarch::test::Tester
 {
 public:
    DbDataTester()
@@ -1819,7 +1819,7 @@ public:
    }
 };
 
-db::test::Tester* getDbDataTester() { return new DbDataTester(); }
+monarch::test::Tester* getDbDataTester() { return new DbDataTester(); }
 
 
 DB_TEST_MAIN(DbDataTester)

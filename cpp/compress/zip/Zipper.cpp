@@ -10,10 +10,10 @@
 
 #include <cstring>
 
-using namespace db::compress::zip;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::compress::zip;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 // define zip version
 const uint16_t Zipper::ZIP_VERSION = 20;

@@ -6,8 +6,8 @@
 #include "monarch/fiber/FiberScheduler.h"
 #include "monarch/fiber/FiberMessageCenter.h"
 
-using namespace db::fiber;
-using namespace db::rt;
+using namespace monarch::fiber;
+using namespace monarch::rt;
 
 MessagableFiber::MessagableFiber(FiberMessageCenter* fmc, size_t stackSize) :
    Fiber(stackSize)
@@ -33,7 +33,7 @@ void MessagableFiber::run()
    mMessageCenter->unregisterFiber(this);
 }
 
-void MessagableFiber::addMessage(db::rt::DynamicObject& msg)
+void MessagableFiber::addMessage(monarch::rt::DynamicObject& msg)
 {
    // lock to enqueue message
    mMessageLock.lock();

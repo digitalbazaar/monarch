@@ -72,18 +72,18 @@ public:
     *
     * @return the subject information for this certificate.
     */
-   virtual db::rt::DynamicObject getSubject();
+   virtual monarch::rt::DynamicObject getSubject();
 
    /**
     * Gets the issuer information for this certificate.
     *
     * @return the issuer information for this certificate.
     */
-   virtual db::rt::DynamicObject getIssuer();
+   virtual monarch::rt::DynamicObject getIssuer();
 };
 
 // typedef for a reference-counted X509Certificate
-typedef db::rt::Collectable<X509Certificate> X509CertificateRef;
+typedef monarch::rt::Collectable<X509Certificate> X509CertificateRef;
 
 } // end namespace crypto
 } // end namespace db

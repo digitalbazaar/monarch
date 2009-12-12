@@ -19,7 +19,7 @@ namespace validation
 class Equals : public Validator
 {
 protected:
-   db::rt::DynamicObject mObject;
+   monarch::rt::DynamicObject mObject;
 
 public:
    /**
@@ -28,7 +28,7 @@ public:
     * @param object object to validate against.
     * @param errorMessage custom error message.
     */
-   Equals(db::rt::DynamicObject& object, const char* errorMessage = NULL);
+   Equals(monarch::rt::DynamicObject& object, const char* errorMessage = NULL);
 
    /**
     * Creates a new validator.
@@ -60,7 +60,7 @@ public:
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
-      db::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& obj,
       ValidatorContext* context);
    using Validator::isValid;
 };

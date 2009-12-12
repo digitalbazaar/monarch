@@ -3,8 +3,8 @@
  */
 #include "monarch/validation/Max.h"
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Max::Max(int size, const char* errorMessage) :
    Validator(errorMessage),

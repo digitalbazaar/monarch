@@ -3,8 +3,8 @@
  */
 #include "monarch/sql/sqlite3/Sqlite3ConnectionPool.h"
 
-using namespace db::sql;
-using namespace db::sql::sqlite3;
+using namespace monarch::sql;
+using namespace monarch::sql::sqlite3;
 
 Sqlite3ConnectionPool::Sqlite3ConnectionPool(
    const char* url, unsigned int poolSize) :

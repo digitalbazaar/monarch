@@ -30,7 +30,7 @@ protected:
    /**
     * The map of types to event id.
     */
-   db::rt::DynamicObject mTypeMap;
+   monarch::rt::DynamicObject mTypeMap;
 
    /**
     * The next event id to be assigned.
@@ -40,7 +40,7 @@ protected:
    /**
     * A lock for manipulating the type map.
     */
-   db::rt::SharedLock mMapLock;
+   monarch::rt::SharedLock mMapLock;
 
    /**
     * Gets the event ID for the passed event type, assigning a new ID if
@@ -87,7 +87,7 @@ public:
     */
    virtual void registerObserver(
       Observer* observer, const char* type,
-      db::rt::DynamicObject* filter = NULL);
+      monarch::rt::DynamicObject* filter = NULL);
 
    /**
     * Registers an observer for several events. The passed eventTypes object
@@ -101,7 +101,7 @@ public:
     *                   "filter: EventFilter} OR string).
     */
    virtual void registerObserver(
-      Observer* observer, db::rt::DynamicObject& eventTypes);
+      Observer* observer, monarch::rt::DynamicObject& eventTypes);
 
    /**
     * Unregisters an observer for a certain event type. If the event type
@@ -120,7 +120,7 @@ public:
     * @param eventTypes the list of event types to unregister the observer for.
     */
    virtual void unregisterObserver(
-      Observer* observer, db::rt::DynamicObject& eventTypes);
+      Observer* observer, monarch::rt::DynamicObject& eventTypes);
 
    /**
     * Unregisters an observer entirely.

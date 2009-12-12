@@ -23,7 +23,7 @@ protected:
    /**
     * The default logger.
     */
-   db::logging::Logger* mLogger;
+   monarch::logging::Logger* mLogger;
 
 public:
    /**
@@ -39,17 +39,17 @@ public:
    /**
     * {@inheritDoc}
     */
-   virtual bool willInitMetaConfig(db::config::Config& meta);
+   virtual bool willInitMetaConfig(monarch::config::Config& meta);
 
    /**
     * {@inheritDoc}
     */
-   virtual bool initMetaConfig(db::config::Config& meta);
+   virtual bool initMetaConfig(monarch::config::Config& meta);
 
    /**
     * {@inheritDoc}
     */
-   virtual db::rt::DynamicObject getCommandLineSpecs();
+   virtual monarch::rt::DynamicObject getCommandLineSpecs();
 
    /**
     * {@inheritDoc}

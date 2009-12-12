@@ -6,7 +6,7 @@
 #include "monarch/rt/System.h"
 #include "monarch/rt/Thread.h"
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 ExclusiveLock::ExclusiveLock()
 {

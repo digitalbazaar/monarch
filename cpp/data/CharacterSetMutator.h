@@ -21,7 +21,7 @@ namespace data
  *
  * @author Dave Longley
  */
-class CharacterSetMutator : public db::io::MutationAlgorithm
+class CharacterSetMutator : public monarch::io::MutationAlgorithm
 {
 protected:
    /**
@@ -109,8 +109,8 @@ public:
     *
     * @return the MutationAlgorithm::Result.
     */
-   virtual db::io::MutationAlgorithm::Result mutateData(
-      db::io::ByteBuffer* src, db::io::ByteBuffer* dst, bool finish);
+   virtual monarch::io::MutationAlgorithm::Result mutateData(
+      monarch::io::ByteBuffer* src, monarch::io::ByteBuffer* dst, bool finish);
 
    /**
     * Returns whether or not this mutator has finished converting.

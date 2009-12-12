@@ -3,8 +3,8 @@
  */
 #include "monarch/crypto/BlockCipherInputStream.h"
 
-using namespace db::crypto;
-using namespace db::io;
+using namespace monarch::crypto;
+using namespace monarch::io;
 
 BlockCipherInputStream::BlockCipherInputStream(
    BlockCipher* cipher, bool cleanupCipher,

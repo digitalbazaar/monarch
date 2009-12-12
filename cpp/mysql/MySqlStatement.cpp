@@ -7,9 +7,9 @@
 #include "monarch/sql/mysql/MySqlRow.h"
 
 using namespace std;
-using namespace db::sql;
-using namespace db::sql::mysql;
-using namespace db::rt;
+using namespace monarch::sql;
+using namespace monarch::sql::mysql;
+using namespace monarch::rt;
 
 MySqlStatement::MySqlStatement(const char* sql) :
    Statement(sql),

@@ -3,7 +3,7 @@
  */
 #include "monarch/io/BufferedOutputStream.h"
 
-using namespace db::io;
+using namespace monarch::io;
 
 BufferedOutputStream::BufferedOutputStream(
    ByteBuffer* b, OutputStream* os, bool cleanup) :

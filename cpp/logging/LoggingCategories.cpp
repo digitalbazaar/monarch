@@ -3,7 +3,7 @@
  */
 #include "monarch/logging/LoggingCategories.h"
 
-using namespace db::logging;
+using namespace monarch::logging;
 
 // DO NOT INITIALIZE THESE VARIABLES!
 // These are not initialized on purpose due to initialization code issues.

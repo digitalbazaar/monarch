@@ -6,8 +6,8 @@
 #include <algorithm>
 
 using namespace std;
-using namespace db::rt;
-using namespace db::sql;
+using namespace monarch::rt;
+using namespace monarch::sql;
 
 AbstractConnectionPool::AbstractConnectionPool(
    const char* url, unsigned int poolSize) :

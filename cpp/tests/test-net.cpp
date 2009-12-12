@@ -28,13 +28,13 @@
 #include "monarch/util/StringTools.h"
 
 using namespace std;
-using namespace db::data;
-using namespace db::test;
-using namespace db::io;
-using namespace db::modest;
-using namespace db::net;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::data;
+using namespace monarch::test;
+using namespace monarch::io;
+using namespace monarch::modest;
+using namespace monarch::net;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 void runAddressResolveTest(TestRunner& tr)
 {
@@ -1479,7 +1479,7 @@ void runServerDatagramTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbNetTester : public db::test::Tester
+class DbNetTester : public monarch::test::Tester
 {
 public:
    DbNetTester()
@@ -1518,7 +1518,7 @@ public:
    }
 };
 
-db::test::Tester* getDbNetTester() { return new DbNetTester(); }
+monarch::test::Tester* getDbNetTester() { return new DbNetTester(); }
 
 
 DB_TEST_MAIN(DbNetTester)

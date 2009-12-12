@@ -3,7 +3,7 @@
  */
 #include "monarch/io/FilterInputStream.h"
 
-using namespace db::io;
+using namespace monarch::io;
 
 FilterInputStream::FilterInputStream(InputStream* is, bool cleanup) :
    mInputStream(NULL),

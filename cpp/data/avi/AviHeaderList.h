@@ -58,7 +58,7 @@ protected:
    /**
     * The Header List RIFF header.
     */
-   db::data::riff::RiffListHeader mRiffHeader;
+   monarch::data::riff::RiffListHeader mRiffHeader;
 
    /**
     * The main AviHeader for this header list.
@@ -88,7 +88,7 @@ public:
     *
     * @return true on success, false on an Exception.
     */
-   virtual bool writeTo(db::io::OutputStream& os);
+   virtual bool writeTo(monarch::io::OutputStream& os);
 
    /**
     * Converts the chunk header from a byte array with at least 8 bytes.

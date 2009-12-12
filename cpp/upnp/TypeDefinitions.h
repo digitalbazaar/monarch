@@ -248,9 +248,9 @@ namespace upnp
  * May be relative to base URL. Specified by UPnP vendor. Single URL.
  * -----------------------------------------------------------------------
  */
-typedef db::rt::DynamicObject Device;
-typedef db::rt::DynamicObject DeviceList;
-typedef db::rt::DynamicObjectIterator DeviceIterator;
+typedef monarch::rt::DynamicObject Device;
+typedef monarch::rt::DynamicObject DeviceList;
+typedef monarch::rt::DynamicObjectIterator DeviceIterator;
 
 /**
  * A UPnP Service represents a service that supports the UPnP protocol. A
@@ -335,9 +335,9 @@ typedef db::rt::DynamicObjectIterator DeviceIterator;
  * <eventSubURL></eventSubURL>. Specified by UPnP vendor. Single URL.
  * -----------------------------------------------------------------------
  */
-typedef db::rt::DynamicObject Service;
-typedef db::rt::DynamicObject ServiceList;
-typedef db::rt::DynamicObjectIterator ServiceIterator;
+typedef monarch::rt::DynamicObject Service;
+typedef monarch::rt::DynamicObject ServiceList;
+typedef monarch::rt::DynamicObjectIterator ServiceIterator;
 
 /**
  * A UPnP ServiceDescription is an XML document that describes a UPnP Service.
@@ -643,7 +643,7 @@ typedef db::rt::DynamicObjectIterator ServiceIterator;
  * content, and (b) any unknown attributes and their values.
  * -----------------------------------------------------------------------
  */
-typedef db::rt::DynamicObject ServiceDescription;
+typedef monarch::rt::DynamicObject ServiceDescription;
 
 /**
  * A UPnP ServiceAction is an XML serializable action that a UPnP Service can
@@ -697,13 +697,13 @@ typedef db::rt::DynamicObject ServiceDescription;
  * have >= 0 parameters.) Contains the following sub element(s):
  * -----------------------------------------------------------------------
  */
-typedef db::rt::DynamicObject Action;
-typedef db::rt::DynamicObjectIterator ActionIterator;
+typedef monarch::rt::DynamicObject Action;
+typedef monarch::rt::DynamicObjectIterator ActionIterator;
 
 /**
  * An ActionResult is a map of named return values.
  */
-typedef db::rt::DynamicObject ActionResult;
+typedef monarch::rt::DynamicObject ActionResult;
 
 /**
  * A PortMapping object is used to add or remove a port mapping entry
@@ -723,7 +723,7 @@ typedef db::rt::DynamicObject ActionResult;
  * @param NewPortMappingDescription a string describing the mapping.
  * @param NewLeaseDuration 0 for infinite, X seconds for lease.
  */
-typedef db::rt::DynamicObject PortMapping;
+typedef monarch::rt::DynamicObject PortMapping;
 
 } // end namespace upnp
 } // end namespace db

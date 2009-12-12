@@ -31,8 +31,8 @@ class ConnectionServicer;
  */
 class ConnectionService :
 public PortService,
-public db::modest::OperationGuard,
-public db::modest::StateMutator
+public monarch::modest::OperationGuard,
+public monarch::modest::StateMutator
 {
 protected:
    /**
@@ -63,7 +63,7 @@ protected:
    /**
     * A list of Operations running ConnectionServicers.
     */
-   db::modest::OperationList mRunningServicers;
+   monarch::modest::OperationList mRunningServicers;
 
    /**
     * Initializes this service and creates the Operation for running it,
@@ -74,7 +74,7 @@ protected:
     * @return the Operation for running this service, or NULL if the
     *         service could not be initialized.
     */
-   virtual db::modest::Operation initialize();
+   virtual monarch::modest::Operation initialize();
 
    /**
     * Called to clean up resources for this service that were created or
@@ -129,7 +129,7 @@ public:
     *         checked for possible cancelation.
     */
    virtual bool canExecuteOperation(
-      db::modest::ImmutableState* s, db::modest::Operation& op);
+      monarch::modest::ImmutableState* s, monarch::modest::Operation& op);
 
    /**
     * This method allows for custom conditions to be checked that require
@@ -160,7 +160,7 @@ public:
     *         with this guard before it executes, false if not.
     */
    virtual bool mustCancelOperation(
-      db::modest::ImmutableState* s, db::modest::Operation& op);
+      monarch::modest::ImmutableState* s, monarch::modest::Operation& op);
 
    /**
     * Alters the passed State directly before an Operation executes.
@@ -169,7 +169,7 @@ public:
     * @param op the Operation to be executed.
     */
    virtual void mutatePreExecutionState(
-      db::modest::State* s, db::modest::Operation& op);
+      monarch::modest::State* s, monarch::modest::Operation& op);
 
    /**
     * Alters the passed State directly after an Operation finishes or
@@ -182,7 +182,7 @@ public:
     * @param op the Operation that finished or was canceled.
     */
    virtual void mutatePostExecutionState(
-      db::modest::State* s, db::modest::Operation& op);
+      monarch::modest::State* s, monarch::modest::Operation& op);
 
    /**
     * Runs this ConnectionService.

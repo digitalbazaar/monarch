@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 using namespace std;
-using namespace db::util;
+using namespace monarch::util;
 
 const char Base64Codec::sIndexToBase64[] =
 {

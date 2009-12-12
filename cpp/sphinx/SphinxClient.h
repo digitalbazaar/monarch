@@ -17,15 +17,15 @@ namespace sphinx
 {
 
 // define sphinx types
-typedef db::rt::DynamicObject SphinxAttribute;
-typedef db::rt::DynamicObject SphinxAttributeList;
-typedef db::rt::DynamicObjectIterator SphinxAttributeIterator;
-typedef db::rt::DynamicObject SphinxFilter;
-typedef db::rt::DynamicObjectIterator SphinxFilterIterator;
-typedef db::rt::DynamicObject SphinxMatch;
-typedef db::rt::DynamicObject SphinxCommand;
-typedef db::rt::DynamicObject SphinxResponse;
-typedef db::rt::DynamicObjectIterator SphinxWeightIterator;
+typedef monarch::rt::DynamicObject SphinxAttribute;
+typedef monarch::rt::DynamicObject SphinxAttributeList;
+typedef monarch::rt::DynamicObjectIterator SphinxAttributeIterator;
+typedef monarch::rt::DynamicObject SphinxFilter;
+typedef monarch::rt::DynamicObjectIterator SphinxFilterIterator;
+typedef monarch::rt::DynamicObject SphinxMatch;
+typedef monarch::rt::DynamicObject SphinxCommand;
+typedef monarch::rt::DynamicObject SphinxResponse;
+typedef monarch::rt::DynamicObjectIterator SphinxWeightIterator;
 
 // searchd commands
 #define SPHINX_SEARCHD_CMD_SEARCH   0
@@ -103,7 +103,7 @@ protected:
     *
     * @return the integer read.
     */
-   virtual uint32_t readUInt32(db::io::ByteBuffer* b, bool limit);
+   virtual uint32_t readUInt32(monarch::io::ByteBuffer* b, bool limit);
 
    /**
     * Reads an 8-byte big-endian uint64 from the passed buffer.
@@ -114,7 +114,7 @@ protected:
     *
     * @return the integer read.
     */
-   virtual uint64_t readUInt64(db::io::ByteBuffer* b, bool limit);
+   virtual uint64_t readUInt64(monarch::io::ByteBuffer* b, bool limit);
 
    /**
     * Serializes the passed SphinxCommand to the passed ByteBuffer.
@@ -122,7 +122,7 @@ protected:
     * @param cmd the sphinx query to serialize.
     * @param b the ByteBuffer to write the serialized query to.
     */
-   virtual void serializeQuery(SphinxCommand& cmd, db::io::ByteBuffer* b);
+   virtual void serializeQuery(SphinxCommand& cmd, monarch::io::ByteBuffer* b);
 
    /**
     * Serializes the passed SphinxCommand to the passed ByteBuffer.
@@ -130,7 +130,7 @@ protected:
     * @param cmd the sphinx update to serialize.
     * @param b the ByteBuffer to write the serialized update to.
     */
-   virtual void serializeUpdate(SphinxCommand& cmd, db::io::ByteBuffer* b);
+   virtual void serializeUpdate(SphinxCommand& cmd, monarch::io::ByteBuffer* b);
 
    /**
     * Serializes the passed SphinxCommand to the passed ByteBuffer.
@@ -138,7 +138,7 @@ protected:
     * @param cmd the sphinx command to serialize.
     * @param b the ByteBuffer to write the serialized command to.
     */
-   virtual void serializeCommand(SphinxCommand& cmd, db::io::ByteBuffer* b);
+   virtual void serializeCommand(SphinxCommand& cmd, monarch::io::ByteBuffer* b);
 
    /**
     * Parses a query response from the server.
@@ -148,7 +148,7 @@ protected:
     *
     * @return true if successfully parsed, false if an exception occurred.
     */
-   virtual bool parseQueryResponse(db::io::ByteBuffer* b, SphinxResponse& sr);
+   virtual bool parseQueryResponse(monarch::io::ByteBuffer* b, SphinxResponse& sr);
 
    /**
     * Parses the response from the server.
@@ -162,7 +162,7 @@ protected:
     */
    virtual bool parseResponse(
       SphinxCommand& cmd, unsigned short status,
-      db::io::ByteBuffer* b, SphinxResponse& sr);
+      monarch::io::ByteBuffer* b, SphinxResponse& sr);
 
    /**
     * Checks the searchd protocol version used on the passed connection.
@@ -171,7 +171,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool checkVersion(db::net::Connection* c);
+   virtual bool checkVersion(monarch::net::Connection* c);
 
    /**
     * Receives a response from the searchd server.
@@ -183,7 +183,7 @@ protected:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool receiveResponse(
-      db::net::Connection* c, SphinxCommand& cmd, SphinxResponse& response);
+      monarch::net::Connection* c, SphinxCommand& cmd, SphinxResponse& response);
 
 public:
    /**
@@ -207,7 +207,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool execute(
-      db::net::Url& url, SphinxCommand& cmd, SphinxResponse& response);
+      monarch::net::Url& url, SphinxCommand& cmd, SphinxResponse& response);
 };
 
 } // end namespace sphinx

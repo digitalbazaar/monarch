@@ -19,7 +19,7 @@ namespace data
  * @author David I. Lehn
  * @author Dave Longley
  */
-class DynamicObjectInputStream : public db::io::InputStream
+class DynamicObjectInputStream : public monarch::io::InputStream
 {
 protected:
    /**
@@ -31,7 +31,7 @@ protected:
    /**
     * The DynamicObject to read from.
     */
-   db::rt::DynamicObject mDyno;
+   monarch::rt::DynamicObject mDyno;
 
    /**
     * The DynamicObjectWriter for writing out data.
@@ -46,12 +46,12 @@ protected:
    /**
     * A buffer for storing temporary data to be read out.
     */
-   db::io::ByteBuffer mBuffer;
+   monarch::io::ByteBuffer mBuffer;
 
    /**
     * A ByteArrayInputStream for reading data from the read buffer.
     */
-   db::io::ByteArrayInputStream mBufferInputStream;
+   monarch::io::ByteArrayInputStream mBufferInputStream;
 
 public:
    /**
@@ -63,7 +63,7 @@ public:
     *                leave it alone.
     */
    DynamicObjectInputStream(
-      db::rt::DynamicObject& dyno, DynamicObjectWriter* writer, bool cleanup);
+      monarch::rt::DynamicObject& dyno, DynamicObjectWriter* writer, bool cleanup);
 
    /**
     * Destructs this DynamicObject.

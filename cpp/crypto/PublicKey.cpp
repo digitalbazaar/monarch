@@ -3,7 +3,7 @@
  */
 #include "monarch/crypto/PublicKey.h"
 
-using namespace db::crypto;
+using namespace monarch::crypto;
 
 PublicKey::PublicKey(EVP_PKEY* pkey) : AsymmetricKey(pkey)
 {

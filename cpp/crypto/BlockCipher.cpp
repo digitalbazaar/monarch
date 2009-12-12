@@ -3,8 +3,8 @@
  */
 #include "monarch/crypto/BlockCipher.h"
 
-using namespace db::io;
-using namespace db::crypto;
+using namespace monarch::io;
+using namespace monarch::crypto;
 
 BlockCipher::BlockCipher()
 {

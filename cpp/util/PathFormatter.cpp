@@ -6,7 +6,7 @@
 #include <cstring>
 
 using namespace std;
-using namespace db::util;
+using namespace monarch::util;
 
 string& PathFormatter::formatFilename(string& str)
 {

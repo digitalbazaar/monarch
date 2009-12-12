@@ -111,7 +111,7 @@ public:
     *
     * @return true if successful, false if an error occured.
     */
-   virtual bool digestFile(db::io::File& file);
+   virtual bool digestFile(monarch::io::File& file);
 
 protected:
    /**

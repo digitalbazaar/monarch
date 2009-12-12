@@ -28,7 +28,7 @@ class Connection;
  *
  * @author Dave Longley
  */
-class ConnectionInputStream : public db::io::InputStream
+class ConnectionInputStream : public monarch::io::InputStream
 {
 protected:
    /**
@@ -44,7 +44,7 @@ protected:
    /**
     * A buffer for peeking ahead.
     */
-   db::io::ByteBuffer mPeekBuffer;
+   monarch::io::ByteBuffer mPeekBuffer;
 
    /**
     * Set to true while peeking.

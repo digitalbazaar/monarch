@@ -5,8 +5,8 @@
 
 #include "monarch/rt/System.h"
 
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 Timer::Timer() :
    mStartTime(0)

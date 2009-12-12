@@ -29,7 +29,7 @@ protected:
     * comparator to compare hostnames.
     */
    typedef std::map<
-      const char*, db::net::SslSession, db::util::StringCaseComparator>
+      const char*, monarch::net::SslSession, monarch::util::StringCaseComparator>
       SessionMap;
    SessionMap mSessions;
 
@@ -41,7 +41,7 @@ protected:
    /**
     * A lock for modifying the session map.
     */
-   db::rt::SharedLock mLock;
+   monarch::rt::SharedLock mLock;
 
 public:
    /**
@@ -92,7 +92,7 @@ public:
 };
 
 // type definition for a reference counted SslSessionCache
-typedef db::rt::Collectable<SslSessionCache> SslSessionCacheRef;
+typedef monarch::rt::Collectable<SslSessionCache> SslSessionCacheRef;
 
 } // end namespace net
 } // end namespace db

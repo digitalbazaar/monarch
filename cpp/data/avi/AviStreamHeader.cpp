@@ -5,10 +5,10 @@
 
 #include <cstring>
 
-using namespace db::data;
-using namespace db::data::avi;
-using namespace db::data::riff;
-using namespace db::io;
+using namespace monarch::data;
+using namespace monarch::data::avi;
+using namespace monarch::data::riff;
+using namespace monarch::io;
 
 AviStreamHeader::AviStreamHeader() :
    mRiffHeader(CHUNK_ID)

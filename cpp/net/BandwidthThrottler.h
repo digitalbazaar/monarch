@@ -74,7 +74,7 @@ public:
 };
 
 // typedef for a reference counted BandwidthThrottler
-typedef db::rt::Collectable<BandwidthThrottler> BandwidthThrottlerRef;
+typedef monarch::rt::Collectable<BandwidthThrottler> BandwidthThrottlerRef;
 
 } // end namespace net
 } // end namespace db

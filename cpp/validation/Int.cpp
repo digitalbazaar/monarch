@@ -11,8 +11,8 @@
 #include <inttypes.h>
 
 using namespace std;
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Int::Int(int64_t min, int64_t max, const char* errorMessage) :
    Validator(errorMessage)

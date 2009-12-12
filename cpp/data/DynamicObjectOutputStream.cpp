@@ -3,9 +3,9 @@
  */
 #include "monarch/data/DynamicObjectOutputStream.h"
 
-using namespace db::data;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::data;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 DynamicObjectOutputStream::DynamicObjectOutputStream(
    DynamicObject& dyno, DynamicObjectReader* reader, bool cleanup) :

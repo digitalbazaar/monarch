@@ -19,7 +19,7 @@ namespace mysql
  *
  * @author Dave Longley
  */
-class MySqlDatabaseClient : public db::sql::DatabaseClient
+class MySqlDatabaseClient : public monarch::sql::DatabaseClient
 {
 public:
    /**
@@ -45,7 +45,7 @@ public:
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef insertOnDuplicateKeyUpdate(
-      const char* table, db::rt::DynamicObject& row);
+      const char* table, monarch::rt::DynamicObject& row);
 };
 
 } // end namespace mysql

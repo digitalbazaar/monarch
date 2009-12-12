@@ -37,7 +37,7 @@ public:
 /**
  * The SslSession type is a reference counted container for an SSL_SESSION.
  */
-typedef db::rt::Collectable<SslSessionImpl> SslSession;
+typedef monarch::rt::Collectable<SslSessionImpl> SslSession;
 
 } // end namespace net
 } // end namespace db

@@ -6,8 +6,8 @@
 #include "monarch/net/SslSocket.h"
 #include "monarch/net/SocketDefinitions.h"
 
-using namespace db::net;
-using namespace db::rt;
+using namespace monarch::net;
+using namespace monarch::rt;
 
 SslSocketDataPresenter::SslSocketDataPresenter(SslContext* context)
 {

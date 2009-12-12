@@ -3,8 +3,8 @@
  */
 #include "monarch/sql/mysql/MySqlConnectionPool.h"
 
-using namespace db::sql;
-using namespace db::sql::mysql;
+using namespace monarch::sql;
+using namespace monarch::sql::mysql;
 
 MySqlConnectionPool::MySqlConnectionPool(
    const char* url, unsigned int poolSize) :

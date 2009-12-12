@@ -12,11 +12,11 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::data::json;
-using namespace db::logging;
-using namespace db::rt;
-using namespace db::sql;
-namespace v = db::validation;
+using namespace monarch::data::json;
+using namespace monarch::logging;
+using namespace monarch::rt;
+using namespace monarch::sql;
+namespace v = monarch::validation;
 
 #define DBC_EXCEPTION "db.sql.DatabaseClient"
 
@@ -85,12 +85,12 @@ void DatabaseClient::setDebugLogging(bool enabled)
    mDebugLogging = enabled;
 }
 
-void DatabaseClient::setReadConnectionPool(db::sql::ConnectionPoolRef& pool)
+void DatabaseClient::setReadConnectionPool(monarch::sql::ConnectionPoolRef& pool)
 {
    mReadPool = pool;
 }
 
-void DatabaseClient::setWriteConnectionPool(db::sql::ConnectionPoolRef& pool)
+void DatabaseClient::setWriteConnectionPool(monarch::sql::ConnectionPoolRef& pool)
 {
    mWritePool = pool;
 }

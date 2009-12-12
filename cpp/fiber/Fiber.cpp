@@ -5,8 +5,8 @@
 
 #include "monarch/fiber/FiberScheduler.h"
 
-using namespace db::fiber;
-using namespace db::rt;
+using namespace monarch::fiber;
+using namespace monarch::rt;
 
 #define DEFAULT_STACK_SIZE 0x2000 // 8k
 

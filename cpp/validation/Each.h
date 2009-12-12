@@ -33,7 +33,7 @@ protected:
     * @return true if obj is valid, false and exception set otherwise.
     */
    bool isArrayValid(
-      db::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& obj,
       ValidatorContext* context);
 
    /**
@@ -45,7 +45,7 @@ protected:
     * @return true if obj is valid, false and exception set otherwise.
     */
    bool isMapValid(
-      db::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& obj,
       ValidatorContext* context);
 
 public:
@@ -68,7 +68,7 @@ public:
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
-      db::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& obj,
       ValidatorContext* context);
    using Validator::isValid;
 };

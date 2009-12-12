@@ -5,8 +5,8 @@
 
 #include "monarch/util/Math.h"
 
-using namespace db::data;
-using namespace db::util;
+using namespace monarch::data;
+using namespace monarch::util;
 
 AbstractDataFormatInspector::AbstractDataFormatInspector()
 {

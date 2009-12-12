@@ -143,8 +143,8 @@ public:
     */
    virtual X509CertificateRef createCertificate(
       PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
-      db::rt::DynamicObject& subject, db::rt::DynamicObject& issuer,
-      db::util::Date* startDate, db::util::Date* endDate);
+      monarch::rt::DynamicObject& subject, monarch::rt::DynamicObject& issuer,
+      monarch::util::Date* startDate, monarch::util::Date* endDate);
 
    /**
     * Loads an X.509 certificate from a PEM formatted string. A PEM formatted

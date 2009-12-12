@@ -30,7 +30,7 @@ protected:
    /**
     * The data for this datagram.
     */
-   db::io::ByteBuffer mBuffer;
+   monarch::io::ByteBuffer mBuffer;
 
 public:
    /**
@@ -97,7 +97,7 @@ public:
     *
     * @return the data buffer for this datagram.
     */
-   virtual db::io::ByteBuffer* getBuffer();
+   virtual monarch::io::ByteBuffer* getBuffer();
 
    /**
     * Assigns the data for this datagram to the passed string. The
@@ -117,7 +117,7 @@ public:
 };
 
 // typedef for a reference counted Datagram
-typedef db::rt::Collectable<Datagram> DatagramRef;
+typedef monarch::rt::Collectable<Datagram> DatagramRef;
 
 } // end namespace net
 } // end namespace db

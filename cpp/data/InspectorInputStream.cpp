@@ -7,8 +7,8 @@
 #include <cstring>
 
 using namespace std;
-using namespace db::io;
-using namespace db::data;
+using namespace monarch::io;
+using namespace monarch::data;
 
 InspectorInputStream::InspectorInputStream(InputStream* is, bool cleanup) :
    FilterInputStream(is, cleanup),

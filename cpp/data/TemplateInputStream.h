@@ -38,18 +38,18 @@ namespace data
  *
  * @author Dave Longley
  */
-class TemplateInputStream : public db::io::FilterInputStream
+class TemplateInputStream : public monarch::io::FilterInputStream
 {
 protected:
    /**
     * A buffer that stores data read from the template.
     */
-   db::io::ByteBuffer mTemplate;
+   monarch::io::ByteBuffer mTemplate;
 
    /**
     * A buffer that stores parsed data.
     */
-   db::io::ByteBuffer mParsed;
+   monarch::io::ByteBuffer mParsed;
 
    /**
     * Stores the current line number in the template.
@@ -74,7 +74,7 @@ protected:
    /**
     * The variables to use to populate the template.
     */
-   db::rt::DynamicObject mVars;
+   monarch::rt::DynamicObject mVars;
 
    /**
     * True to raise exceptions if the template has variables that
@@ -123,8 +123,8 @@ public:
     *                false not to.
     */
    TemplateInputStream(
-      db::rt::DynamicObject& vars, bool strict,
-      db::io::InputStream* is, bool cleanup = false);
+      monarch::rt::DynamicObject& vars, bool strict,
+      monarch::io::InputStream* is, bool cleanup = false);
 
    /**
     * Creates a new TemplateInputStream that reads a template from the
@@ -135,7 +135,7 @@ public:
     * @param cleanup true to clean up the passed InputStream when destructing,
     *                false not to.
     */
-   TemplateInputStream(db::io::InputStream* is, bool cleanup = false);
+   TemplateInputStream(monarch::io::InputStream* is, bool cleanup = false);
 
    /**
     * Destructs this TemplateInputStream.
@@ -149,7 +149,7 @@ public:
     * @param cleanup true to clean up the passed InputStream when destructing,
     *                false not to.
     */
-   void setInputStream(db::io::InputStream* is, bool cleanup = false);
+   void setInputStream(monarch::io::InputStream* is, bool cleanup = false);
 
    /**
     * Sets the variables to use when parsing the template. The passed "vars"
@@ -161,7 +161,7 @@ public:
     * @param strict true to raise an exception if the passed variables do not
     *               have a variable that is found in the template, false if not.
     */
-   virtual void setVariables(db::rt::DynamicObject& vars, bool strict = false);
+   virtual void setVariables(monarch::rt::DynamicObject& vars, bool strict = false);
 
    /**
     * Reads some bytes from the stream. This method will block until at least
@@ -186,7 +186,7 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool parse(db::io::OutputStream* os);
+   virtual bool parse(monarch::io::OutputStream* os);
 };
 
 } // end namespace data

@@ -33,7 +33,7 @@ protected:
    /**
     * A lock for modifying the list.
     */
-  db::rt::ExclusiveLock mLock;
+  monarch::rt::ExclusiveLock mLock;
 
 public:
    /**
@@ -141,7 +141,7 @@ public:
     *
     * @return an iterator over the Operations in this list.
     */
-   virtual db::rt::IteratorRef<Operation> getIterator();
+   virtual monarch::rt::IteratorRef<Operation> getIterator();
 };
 
 } // end namespace modest

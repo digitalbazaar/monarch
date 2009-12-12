@@ -3,7 +3,7 @@
  */
 #include "monarch/net/SslSessionCache.h"
 
-using namespace db::net;
+using namespace monarch::net;
 
 SslSessionCache::SslSessionCache(unsigned int capacity)
 {

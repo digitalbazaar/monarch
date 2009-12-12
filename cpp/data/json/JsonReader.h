@@ -181,12 +181,12 @@ protected:
    /**
     * A stack of DynamicObjects.
     */
-   std::vector<db::rt::DynamicObject> mDynoStack;
+   std::vector<monarch::rt::DynamicObject> mDynoStack;
 
    /**
     * The final target DynamicObject set from start().
     */
-   db::rt::DynamicObject* mTarget;
+   monarch::rt::DynamicObject* mTarget;
 
    /**
     * The read size in bytes.
@@ -259,7 +259,7 @@ public:
     *
     * @param dyno the DynamicObject for the object to deserialize.
     */
-   virtual void start(db::rt::DynamicObject& dyno);
+   virtual void start(monarch::rt::DynamicObject& dyno);
 
    /**
     * This method reads JSON from the passed InputStream until the end of
@@ -281,7 +281,7 @@ public:
     *
     * @return true if the read succeeded, false if an Exception occurred.
     */
-   virtual bool read(db::io::InputStream* is);
+   virtual bool read(monarch::io::InputStream* is);
 
    /**
     * Finishes deserializing an object from JSON. This method should be called
@@ -302,7 +302,7 @@ public:
     * @return true on success, false and exception set on failure.
     */
    static bool readFromString(
-      db::rt::DynamicObject& dyno, const char* s, size_t slen,
+      monarch::rt::DynamicObject& dyno, const char* s, size_t slen,
       bool strict = true);
 };
 

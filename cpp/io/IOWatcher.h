@@ -40,7 +40,7 @@ public:
 };
 
 // typedef for a reference-counted IOWatcher
-typedef db::rt::Collectable<IOWatcher> IOWatcherRef;
+typedef monarch::rt::Collectable<IOWatcher> IOWatcherRef;
 
 } // end namespace io
 } // end namespace db

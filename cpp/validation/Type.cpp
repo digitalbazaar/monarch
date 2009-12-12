@@ -3,10 +3,10 @@
  */
 #include "monarch/validation/Type.h"
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
-Type::Type(db::rt::DynamicObjectType type, const char* errorMessage) :
+Type::Type(monarch::rt::DynamicObjectType type, const char* errorMessage) :
    Validator(errorMessage),
    mType(type)
 {

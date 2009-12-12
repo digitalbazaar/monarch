@@ -78,7 +78,7 @@ public:
     *
     * @return the compiled Pattern or NULL if an exception occurred.
     */
-   static db::rt::Collectable<Pattern> compile(
+   static monarch::rt::Collectable<Pattern> compile(
       const char* regex, bool matchCase = true, bool subMatches = true);
 
    /**
@@ -95,7 +95,7 @@ public:
 };
 
 // typedef for a reference counted Pattern class
-typedef db::rt::Collectable<Pattern> PatternRef;
+typedef monarch::rt::Collectable<Pattern> PatternRef;
 
 } // end namespace regex
 } // end namespace util

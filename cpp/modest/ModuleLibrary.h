@@ -100,7 +100,7 @@ protected:
    /**
     * A lock for synchronously loading/unloading modules.
     */
-   db::rt::ExclusiveLock mLoadLock;
+   monarch::rt::ExclusiveLock mLoadLock;
 
    /**
     * Finds a loaded Module by its ID.

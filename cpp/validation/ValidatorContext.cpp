@@ -7,8 +7,8 @@
 
 #include <cstdlib>
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 ValidatorContext::ValidatorContext(DynamicObject* state) :
    mResults(NULL)
@@ -34,7 +34,7 @@ ValidatorContext::~ValidatorContext()
    }
 }
 
-db::rt::DynamicObject& ValidatorContext::getState()
+monarch::rt::DynamicObject& ValidatorContext::getState()
 {
    return *mState;
 }

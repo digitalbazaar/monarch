@@ -29,7 +29,7 @@ namespace sql
  * @author Mike Johnson
  */
 class AbstractConnectionPool :
-public virtual db::rt::ExclusiveLock, public ConnectionPool
+public virtual monarch::rt::ExclusiveLock, public ConnectionPool
 {
 protected:
    /**
@@ -42,7 +42,7 @@ protected:
     * This semaphore is used to regulate the number of connections that
     * are available in this pool.
     */
-   db::rt::Semaphore mConnectionSemaphore;
+   monarch::rt::Semaphore mConnectionSemaphore;
 
    /**
     * The list of active connections in this pool.
@@ -57,13 +57,13 @@ protected:
    /**
     * A lock for modifying the connection lists.
     */
-   db::rt::ExclusiveLock mListLock;
+   monarch::rt::ExclusiveLock mListLock;
 
    /**
     * The database driver parameters in URL form for creating database
     * connections.
     */
-   db::net::Url mUrl;
+   monarch::net::Url mUrl;
 
    /**
     * The expire time for Connections (in milliseconds).

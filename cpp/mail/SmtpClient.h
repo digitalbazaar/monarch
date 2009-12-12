@@ -26,7 +26,7 @@ protected:
    /**
     * An SSL context for doing TLS communication.
     */
-   db::net::SslContext* mSslContext;
+   monarch::net::SslContext* mSslContext;
 
    /**
     * Turns on TLS for an smtp connection by wrapping the underlying
@@ -34,7 +34,7 @@ protected:
     *
     * @param c the smtp connection.
     */
-   virtual void activateSsl(db::net::Connection* c);
+   virtual void activateSsl(monarch::net::Connection* c);
 
    /**
     * Receives the smtp server's response code for the last send verb.
@@ -43,14 +43,14 @@ protected:
     *
     * @return the received code or -1 if an exception occurred.
     */
-   virtual int getResponseCode(db::net::Connection* c);
+   virtual int getResponseCode(monarch::net::Connection* c);
 
    /**
     * Sends a CRLF to end a sent verb.
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool sendCrlf(db::net::Connection* c);
+   virtual bool sendCrlf(monarch::net::Connection* c);
 
    /**
     * Sends the "HELO" verb to the server.
@@ -60,7 +60,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool helo(db::net::Connection* c, const char* domain);
+   virtual bool helo(monarch::net::Connection* c, const char* domain);
 
    /**
     * Sends the "MAIL FROM:" verb to the server.
@@ -70,7 +70,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool mailFrom(db::net::Connection* c, const char* address);
+   virtual bool mailFrom(monarch::net::Connection* c, const char* address);
 
    /**
     * Sends the "RCPT TO:" verb to the server.
@@ -80,7 +80,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool rcptTo(db::net::Connection* c, const char* address);
+   virtual bool rcptTo(monarch::net::Connection* c, const char* address);
 
    /**
     * Sends the "DATA" verb to the server.
@@ -89,7 +89,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool startData(db::net::Connection* c);
+   virtual bool startData(monarch::net::Connection* c);
 
    /**
     * Sends the message to the server.
@@ -99,7 +99,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool sendMessage(db::net::Connection* c, Mail* mail);
+   virtual bool sendMessage(monarch::net::Connection* c, Mail* mail);
 
    /**
     * Sends the data delimiter signaling the end of data to the server.
@@ -108,7 +108,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool endData(db::net::Connection* c);
+   virtual bool endData(monarch::net::Connection* c);
 
    /**
     * Sends the "QUIT" verb to the server.
@@ -117,7 +117,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool quit(db::net::Connection* c);
+   virtual bool quit(monarch::net::Connection* c);
 
    /**
     * Sends mail over the passed connection to an smtp server.
@@ -128,7 +128,7 @@ protected:
     * @return true if the mail was sent successfully, false if an exception
     *         occurred.
     */
-   virtual bool sendMail(db::net::Connection* c, Mail* mail);
+   virtual bool sendMail(monarch::net::Connection* c, Mail* mail);
 
 public:
    /**
@@ -150,7 +150,7 @@ public:
     * @return true if the mail was sent successfully, false if an exception
     *         occurred.
     */
-   virtual bool sendMail(db::net::Url* url, Mail* mail);
+   virtual bool sendMail(monarch::net::Url* url, Mail* mail);
 };
 
 } // end namespace mail

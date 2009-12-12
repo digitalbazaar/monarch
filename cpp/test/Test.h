@@ -20,7 +20,7 @@ namespace test
  *
  * @return true on success, false and exception on failure.
  */
-bool dumpException(db::rt::ExceptionRef& e);
+bool dumpException(monarch::rt::ExceptionRef& e);
 
 /**
  * Dump exception details of current exception if present.
@@ -38,7 +38,7 @@ bool dumpException();
  * @param indent indent level
  */
 void dumpDynamicObjectText_(
-   db::rt::DynamicObject& dyno, db::rt::DynamicObjectIterator doi = NULL,
+   monarch::rt::DynamicObject& dyno, monarch::rt::DynamicObjectIterator doi = NULL,
    int indent = 0);
 
 /**
@@ -46,7 +46,7 @@ void dumpDynamicObjectText_(
  *
  * @param dyno DynamicObject to dump.
  */
-void dumpDynamicObjectText(db::rt::DynamicObject& dyno);
+void dumpDynamicObjectText(monarch::rt::DynamicObject& dyno);
 
 /**
  * Write DynamicObject JSON to an ostream.
@@ -58,7 +58,7 @@ void dumpDynamicObjectText(db::rt::DynamicObject& dyno);
  * @return true on success, false and exception on failure.
  */
 bool dynamicObjectToOStream(
-   db::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false);
+   monarch::rt::DynamicObject& dyno, std::ostream& stream, bool compact = false);
 
 /**
  * Write DynamicObject JSON to a string.
@@ -71,7 +71,7 @@ bool dynamicObjectToOStream(
  * @return true on success, false and exception on failure.
  */
 bool dynamicObjectToString(
-   db::rt::DynamicObject& dyno, std::string& str, bool compact = false);
+   monarch::rt::DynamicObject& dyno, std::string& str, bool compact = false);
 
 /**
  * Dump DynamicObject details as JSON to cout.
@@ -81,18 +81,18 @@ bool dynamicObjectToString(
  *
  * @return true on success, false and exception on failure.
  */
-bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
+bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
 
 /**
  * Check and dump exception condition.
  */
 #define assertNoException() \
    do { \
-      if(db::rt::Exception::isSet()) \
+      if(monarch::rt::Exception::isSet()) \
       { \
-         db::rt::ExceptionRef e = db::rt::Exception::get(); \
-         db::test::dumpException(e); \
-         assert(!db::rt::Exception::isSet()); \
+         monarch::rt::ExceptionRef e = monarch::rt::Exception::get(); \
+         monarch::test::dumpException(e); \
+         assert(!monarch::rt::Exception::isSet()); \
       } \
    } while(0)
 
@@ -101,13 +101,13 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
  */
 #define assertException() \
    do { \
-      if(!db::rt::Exception::isSet()) \
+      if(!monarch::rt::Exception::isSet()) \
       { \
-         db::rt::ExceptionRef e = \
-            new db::rt::Exception( \
+         monarch::rt::ExceptionRef e = \
+            new monarch::rt::Exception( \
                "Test expected an Exception but there wasn't one!"); \
-         db::test::dumpException(e); \
-         assert(db::rt::Exception::isSet()); \
+         monarch::test::dumpException(e); \
+         assert(monarch::rt::Exception::isSet()); \
       } \
    } while(0)
 
@@ -136,15 +136,15 @@ bool dumpDynamicObject(db::rt::DynamicObject& dyno, bool compact = false);
       if(!(dyno1 == dyno2)) \
       { \
          printf("\n%s:\n", name1); \
-         db::data::json::JsonWriter::writeToStdOut( \
+         monarch::data::json::JsonWriter::writeToStdOut( \
             dyno1, false, false); \
          printf("%s:\n", name2); \
-         db::data::json::JsonWriter::writeToStdOut( \
+         monarch::data::json::JsonWriter::writeToStdOut( \
             dyno2, false, false); \
          printf("Difference:\n"); \
-         db::rt::DynamicObject diff; \
+         monarch::rt::DynamicObject diff; \
          dyno1.diff(dyno2, diff); \
-         db::data::json::JsonWriter::writeToStdOut( \
+         monarch::data::json::JsonWriter::writeToStdOut( \
             diff, false, false); \
          assert(dyno1 == dyno2); \
       } \

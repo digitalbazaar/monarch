@@ -5,8 +5,8 @@
 
 #include <openssl/evp.h>
 
-using namespace db::crypto;
-using namespace db::rt;
+using namespace monarch::crypto;
+using namespace monarch::rt;
 
 X509Certificate::X509Certificate(X509* x509) :
    mX509(x509),

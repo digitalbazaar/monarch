@@ -6,10 +6,10 @@
 #include "monarch/net/InternetAddress.h"
 
 using namespace std;
-using namespace db::io;
-using namespace db::mail;
-using namespace db::net;
-using namespace db::rt;
+using namespace monarch::io;
+using namespace monarch::mail;
+using namespace monarch::net;
+using namespace monarch::rt;
 
 SmtpClient::SmtpClient()
 {

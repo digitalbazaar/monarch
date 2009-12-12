@@ -11,7 +11,7 @@
 #include "monarch/rt/SharedLock.h"
 
 using namespace std;
-using namespace db::rt;
+using namespace monarch::rt;
 
 class DeadlockRunnable : public Runnable
 {

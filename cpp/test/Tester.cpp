@@ -12,10 +12,10 @@
 #include "monarch/rt/Thread.h"
 
 using namespace std;
-using namespace db::app;
-using namespace db::config;
-using namespace db::rt;
-using namespace db::test;
+using namespace monarch::app;
+using namespace monarch::config;
+using namespace monarch::rt;
+using namespace monarch::test;
 
 Tester::Tester() :
    mName(NULL)

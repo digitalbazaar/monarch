@@ -7,8 +7,8 @@
 
 #include <cstring>
 
-using namespace db::modest;
-using namespace db::rt;
+using namespace monarch::modest;
+using namespace monarch::rt;
 
 ModuleLoader::ModuleLoader()
 {

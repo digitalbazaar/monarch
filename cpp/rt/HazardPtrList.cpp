@@ -5,7 +5,7 @@
 
 #include "monarch/rt/Atomic.h"
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 HazardPtrList::HazardPtrList() :
    mHead(NULL)

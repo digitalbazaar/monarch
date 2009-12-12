@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 // create thread initializer
 pthread_once_t Thread::sThreadsInit = PTHREAD_ONCE_INIT;

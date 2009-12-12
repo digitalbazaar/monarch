@@ -126,11 +126,11 @@ public:
 extern "C" {
 #endif
 
-db::modest::Module* createModestModule();
-void freeModestModule(db::modest::Module* m);
+monarch::modest::Module* createModestModule();
+void freeModestModule(monarch::modest::Module* m);
 
-typedef db::modest::Module* (*CreateModestModuleFn)();
-typedef void (*FreeModestModuleFn)(db::modest::Module*);
+typedef monarch::modest::Module* (*CreateModestModuleFn)();
+typedef void (*FreeModestModuleFn)(monarch::modest::Module*);
 
 #ifdef __cplusplus
 }

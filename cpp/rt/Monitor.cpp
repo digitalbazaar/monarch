@@ -6,7 +6,7 @@
 #include "monarch/rt/Thread.h"
 #include "monarch/rt/TimeFunctions.h"
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 Monitor::Monitor()
 {

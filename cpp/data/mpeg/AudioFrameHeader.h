@@ -239,7 +239,7 @@ protected:
    /**
     * The header data as a byte array.
     */
-   db::io::ByteBuffer* mData;
+   monarch::io::ByteBuffer* mData;
 
    /**
     * A helper function for interpreting the header data as unsigned chars.
@@ -518,7 +518,7 @@ public:
     *
     * @return the header data as a byte array.
     */
-   virtual db::io::ByteBuffer* getBytes();
+   virtual monarch::io::ByteBuffer* getBytes();
 
    /**
     * Converts this frame header to a string representation.

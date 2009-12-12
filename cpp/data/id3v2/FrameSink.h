@@ -39,7 +39,7 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool startFrame(db::data::id3v2::FrameHeader* header) = 0;
+   virtual bool startFrame(monarch::data::id3v2::FrameHeader* header) = 0;
 
    /**
     * Writes frame data to this sink for the current frame header. The source
@@ -49,7 +49,7 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool putFrameData(db::io::ByteBuffer* src) = 0;
+   virtual bool putFrameData(monarch::io::ByteBuffer* src) = 0;
 };
 
 } // end namespace id3v2

@@ -5,7 +5,7 @@
 
 #include <cstring>
 
-using namespace db::io;
+using namespace monarch::io;
 
 ByteArrayInputStream::ByteArrayInputStream(const char* b, int length)
 {

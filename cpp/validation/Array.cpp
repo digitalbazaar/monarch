@@ -5,8 +5,8 @@
 
 #include <cstdio>
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Array::Array()
 {
@@ -39,7 +39,7 @@ bool Array::isValid(
 {
    bool rval = true;
 
-   if(!obj.isNull() && obj->getType() == db::rt::Array)
+   if(!obj.isNull() && obj->getType() == monarch::rt::Array)
    {
       std::vector<std::pair<int,Validator*> >::iterator i;
       for(i = mValidators.begin(); i != mValidators.end(); i++)

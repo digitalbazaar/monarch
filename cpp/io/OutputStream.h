@@ -74,7 +74,7 @@ public:
 };
 
 // typedef for a counted reference to an OutputStream
-typedef db::rt::Collectable<OutputStream> OutputStreamRef;
+typedef monarch::rt::Collectable<OutputStream> OutputStreamRef;
 
 } // end namespace io
 } // end namespace db

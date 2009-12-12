@@ -22,7 +22,7 @@ namespace http
  *
  * @author Dave Longley
  */
-class HttpBodyOutputStream : public db::io::FilterOutputStream
+class HttpBodyOutputStream : public monarch::io::FilterOutputStream
 {
 protected:
    /**

@@ -14,10 +14,10 @@
 #include "monarch/logging/OutputStreamLogger.h"
 
 using namespace std;
-using namespace db::test;
-using namespace db::io;
-using namespace db::logging;
-using namespace db::rt;
+using namespace monarch::test;
+using namespace monarch::io;
+using namespace monarch::logging;
+using namespace monarch::rt;
 
 #ifdef WIN32
 #define TMPDIR "c:/WINDOWS/Temp"
@@ -431,7 +431,7 @@ void runLevelTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbLoggingTester : public db::test::Tester
+class DbLoggingTester : public monarch::test::Tester
 {
 public:
    DbLoggingTester()
@@ -462,7 +462,7 @@ public:
 
 #undef TMPDIR
 
-db::test::Tester* getDbLoggingTester() { return new DbLoggingTester(); }
+monarch::test::Tester* getDbLoggingTester() { return new DbLoggingTester(); }
 
 
 DB_TEST_MAIN(DbLoggingTester)

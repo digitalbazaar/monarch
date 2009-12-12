@@ -22,7 +22,7 @@ namespace data
  * @author David I. Lehn
  * @author Dave Longley
  */
-class DynamicObjectOutputStream : public db::io::OutputStream
+class DynamicObjectOutputStream : public monarch::io::OutputStream
 {
 protected:
    /**
@@ -38,7 +38,7 @@ protected:
    /**
     * A ByteArrayInputStream for reading the output to this stream.
     */
-   db::io::ByteArrayInputStream mInputStream;
+   monarch::io::ByteArrayInputStream mInputStream;
 
 public:
    /**
@@ -52,7 +52,7 @@ public:
     *                to leave it alone.
     */
    DynamicObjectOutputStream(
-      db::rt::DynamicObject& dyno, DynamicObjectReader* reader, bool cleanup);
+      monarch::rt::DynamicObject& dyno, DynamicObjectReader* reader, bool cleanup);
 
    /**
     * Destructs this DynamicObjectOutputStream.

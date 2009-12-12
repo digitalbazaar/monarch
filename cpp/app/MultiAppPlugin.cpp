@@ -4,9 +4,9 @@
 #include "monarch/app/MultiAppPlugin.h"
 
 using namespace std;
-using namespace db::app;
-using namespace db::config;
-using namespace db::rt;
+using namespace monarch::app;
+using namespace monarch::config;
+using namespace monarch::rt;
 
 typedef vector<AppPluginRef>::iterator PluginIterator;
 

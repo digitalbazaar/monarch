@@ -13,8 +13,8 @@
 
 #include <cstring>
 
-using namespace db::crypto;
-using namespace db::rt;
+using namespace monarch::crypto;
+using namespace monarch::rt;
 
 SymmetricKeyFactory::SymmetricKeyFactory()
 {

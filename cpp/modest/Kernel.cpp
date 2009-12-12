@@ -3,8 +3,8 @@
  */
 #include "monarch/modest/Kernel.h"
 
-using namespace db::modest;
-using namespace db::rt;
+using namespace monarch::modest;
+using namespace monarch::rt;
 
 Kernel::Kernel()
 {
@@ -43,7 +43,7 @@ const char* Kernel::getVersion()
 
 Kernel* createModestKernel()
 {
-   return new db::modest::Kernel();
+   return new monarch::modest::Kernel();
 }
 
 void freeModestKernel(Kernel* k)

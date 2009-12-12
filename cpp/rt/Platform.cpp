@@ -5,7 +5,7 @@
 
 #include <stddef.h>
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 // Note: do not initialize these, they are automatically
 // initialized to NULL before main -- and sometimes if dlopen

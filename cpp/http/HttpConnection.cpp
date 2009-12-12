@@ -13,10 +13,10 @@
 #include "monarch/rt/Thread.h"
 
 using namespace std;
-using namespace db::io;
-using namespace db::http;
-using namespace db::net;
-using namespace db::rt;
+using namespace monarch::io;
+using namespace monarch::http;
+using namespace monarch::net;
+using namespace monarch::rt;
 
 HttpConnection::HttpConnection(Connection* c, bool cleanup) :
    ConnectionWrapper(c, cleanup)

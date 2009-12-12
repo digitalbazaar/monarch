@@ -83,7 +83,7 @@ public:
     * @return true if no exception occurred, false if not.
     */
    virtual bool update(
-      const char* in, int inLength, db::io::ByteBuffer* out, bool resize);
+      const char* in, int inLength, monarch::io::ByteBuffer* out, bool resize);
 
    /**
     * Puts the final chunk of encrypted or decrypted data into a ByteBuffer,
@@ -98,7 +98,7 @@ public:
     *
     * @return true if no exception occurred, false if not.
     */
-   virtual bool finish(db::io::ByteBuffer* out, bool resize);
+   virtual bool finish(monarch::io::ByteBuffer* out, bool resize);
 
    /**
     * Gets the cipher block size.

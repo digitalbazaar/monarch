@@ -19,8 +19,8 @@ namespace db
    }
 }
 
-extern db::logging::Category* DB_DEFAULT_CAT;
-extern db::logging::Category* DB_ALL_CAT;
+extern monarch::logging::Category* DB_DEFAULT_CAT;
+extern monarch::logging::Category* DB_ALL_CAT;
 
 namespace db
 {

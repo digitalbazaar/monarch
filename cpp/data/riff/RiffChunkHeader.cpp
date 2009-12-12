@@ -5,9 +5,9 @@
 
 #include "monarch/util/Data.h"
 
-using namespace db::data;
-using namespace db::data::riff;
-using namespace db::io;
+using namespace monarch::data;
+using namespace monarch::data::riff;
+using namespace monarch::io;
 
 RiffChunkHeader::RiffChunkHeader(fourcc_t id, int size)
 {

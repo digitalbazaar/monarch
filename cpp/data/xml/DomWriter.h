@@ -36,7 +36,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool write(Element& e, db::io::OutputStream* os, int level);
+   virtual bool write(Element& e, monarch::io::OutputStream* os, int level);
 
    /**
     * Recursively serializes the passed DynamicObject to XML.
@@ -50,8 +50,8 @@ protected:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool writeWithNamespaceSupport(
-      Element& dyno, db::io::OutputStream* os, int level,
-      db::rt::DynamicObject& nsPrefixMap);
+      Element& dyno, monarch::io::OutputStream* os, int level,
+      monarch::rt::DynamicObject& nsPrefixMap);
 
 public:
    /**
@@ -73,7 +73,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::rt::DynamicObject& root, db::io::OutputStream* os);
+      monarch::rt::DynamicObject& root, monarch::io::OutputStream* os);
 };
 
 } // end namespace xml

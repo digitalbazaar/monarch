@@ -7,9 +7,9 @@
 
 #include <cstring>
 
-using namespace db::data;
-using namespace db::data::avi;
-using namespace db::io;
+using namespace monarch::data;
+using namespace monarch::data::avi;
+using namespace monarch::io;
 
 BitMapInfoHeader::BitMapInfoHeader()
 {

@@ -10,8 +10,8 @@
 #include <cstring>
 
 using namespace std;
-using namespace db::crypto;
-using namespace db::io;
+using namespace monarch::crypto;
+using namespace monarch::io;
 
 BigInteger::BigInteger(unsigned long long value)
 {

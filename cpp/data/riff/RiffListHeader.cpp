@@ -3,9 +3,9 @@
  */
 #include "monarch/data/riff/RiffListHeader.h"
 
-using namespace db::data;
-using namespace db::data::riff;
-using namespace db::io;
+using namespace monarch::data;
+using namespace monarch::data::riff;
+using namespace monarch::io;
 
 RiffListHeader::RiffListHeader(fourcc_t id, uint32_t size) :
    mChunkHeader(CHUNK_ID, size + 4)

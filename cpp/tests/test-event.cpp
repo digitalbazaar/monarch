@@ -18,11 +18,11 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::test;
-using namespace db::event;
-using namespace db::modest;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::test;
+using namespace monarch::event;
+using namespace monarch::modest;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 class TestObserver : public Observer
 {
@@ -812,7 +812,7 @@ void runObserverSelfUnregister(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbEventTester : public db::test::Tester
+class DbEventTester : public monarch::test::Tester
 {
 public:
    DbEventTester()
@@ -847,7 +847,7 @@ public:
    }
 };
 
-db::test::Tester* getDbEventTester() { return new DbEventTester(); }
+monarch::test::Tester* getDbEventTester() { return new DbEventTester(); }
 
 
 DB_TEST_MAIN(DbEventTester)

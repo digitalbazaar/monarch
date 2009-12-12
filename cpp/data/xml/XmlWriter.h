@@ -60,7 +60,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool writeIndentation(db::io::OutputStream* os, int level);
+   virtual bool writeIndentation(monarch::io::OutputStream* os, int level);
 
    /**
     * Recursively serializes the passed DynamicObject to XML.
@@ -72,7 +72,7 @@ protected:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::rt::DynamicObject& dyno, db::io::OutputStream* os, int level);
+      monarch::rt::DynamicObject& dyno, monarch::io::OutputStream* os, int level);
 
 public:
    /**
@@ -94,7 +94,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::rt::DynamicObject& dyno, db::io::OutputStream* os);
+      monarch::rt::DynamicObject& dyno, monarch::io::OutputStream* os);
 
    /**
     * Sets the starting indentation level and the number of spaces

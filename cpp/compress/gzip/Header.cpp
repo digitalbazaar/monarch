@@ -13,9 +13,9 @@
 #include <string>
 
 using namespace std;
-using namespace db::compress::gzip;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::compress::gzip;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 Header::Header()
 {

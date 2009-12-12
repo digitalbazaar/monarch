@@ -3,7 +3,7 @@
  */
 #include "monarch/crypto/CryptoHashAlgorithm.h"
 
-using namespace db::crypto;
+using namespace monarch::crypto;
 
 CryptoHashAlgorithm::CryptoHashAlgorithm()
 {

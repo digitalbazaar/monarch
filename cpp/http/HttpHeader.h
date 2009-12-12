@@ -53,7 +53,7 @@ protected:
     * compare field names.
     */
    typedef std::multimap<
-      const char*, std::string, db::util::StringCaseComparator>
+      const char*, std::string, monarch::util::StringCaseComparator>
       FieldMap;
    FieldMap mFields;
 
@@ -247,7 +247,7 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool write(db::io::OutputStream* os);
+   virtual bool write(monarch::io::OutputStream* os);
 
    /**
     * Sets the GMT date for this header. A value of NULL will set the date
@@ -255,7 +255,7 @@ public:
     *
     * @param date the date to use (NULL to use the current date).
     */
-   virtual void setDate(db::util::Date* date = NULL);
+   virtual void setDate(monarch::util::Date* date = NULL);
 
    /**
     * Gets the GMT date for this header.
@@ -264,7 +264,7 @@ public:
     *
     * @return the GMT date for this header, false if no date header exists.
     */
-   virtual bool getDate(db::util::Date& date);
+   virtual bool getDate(monarch::util::Date& date);
 
    /**
     * Returns true if this header has a Content-Length field that is non-zero
@@ -300,7 +300,7 @@ public:
 };
 
 // typedef for a counted reference to an HttpHeader
-typedef db::rt::Collectable<HttpHeader> HttpHeaderRef;
+typedef monarch::rt::Collectable<HttpHeader> HttpHeaderRef;
 
 } // end namespace http
 } // end namespace db

@@ -56,7 +56,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool writeIndentation(db::io::OutputStream* os, int level);
+   virtual bool writeIndentation(monarch::io::OutputStream* os, int level);
 
    /**
     * Recursively serializes an object to JSON using the passed DynamicObject.
@@ -68,7 +68,7 @@ protected:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::rt::DynamicObject& dyno, db::io::OutputStream* os, int level);
+      monarch::rt::DynamicObject& dyno, monarch::io::OutputStream* os, int level);
 
 public:
    /**
@@ -95,7 +95,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::rt::DynamicObject& dyno, db::io::OutputStream* os);
+      monarch::rt::DynamicObject& dyno, monarch::io::OutputStream* os);
 
    /**
     * Sets the starting indentation level and the number of spaces
@@ -124,7 +124,7 @@ public:
     * @return true on success, false with exception set on failure.
     */
    static bool writeToOStream(
-      db::rt::DynamicObject dyno, std::ostream& stream, bool compact = false,
+      monarch::rt::DynamicObject dyno, std::ostream& stream, bool compact = false,
       bool strict = true);
 
    /**
@@ -138,7 +138,7 @@ public:
     *         exception set on failure.
     */
    static std::string writeToString(
-      db::rt::DynamicObject dyno, bool compact = false, bool strict = true);
+      monarch::rt::DynamicObject dyno, bool compact = false, bool strict = true);
 
    /**
     * Writes a DynamicObject as JSON to standard out.
@@ -150,7 +150,7 @@ public:
     * @return true on success, false with exception set on failure.
     */
    static bool writeToStdOut(
-      db::rt::DynamicObject dyno, bool compact = false, bool strict = true);
+      monarch::rt::DynamicObject dyno, bool compact = false, bool strict = true);
 };
 
 } // end namespace json

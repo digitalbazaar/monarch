@@ -25,7 +25,7 @@ class Sqlite3Statement;
  * @author Dave Longley
  * @author David I. Lehn
  */
-class Sqlite3Row : public db::sql::Row
+class Sqlite3Row : public monarch::sql::Row
 {
 protected:
    /**

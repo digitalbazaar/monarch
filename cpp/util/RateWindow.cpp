@@ -7,8 +7,8 @@
 
 #include <math.h>
 
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 RateWindow::RateWindow(uint64_t length) :
    mLength(length)

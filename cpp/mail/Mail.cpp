@@ -9,9 +9,9 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::mail;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::mail;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 Mail::Mail()
 {

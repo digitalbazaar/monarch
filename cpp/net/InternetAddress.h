@@ -113,7 +113,7 @@ public:
 };
 
 // typedef for reference counted InternetAddress
-typedef db::rt::Collectable<InternetAddress> InternetAddressRef;
+typedef monarch::rt::Collectable<InternetAddress> InternetAddressRef;
 
 } // end namespace net
 } // end namespace db

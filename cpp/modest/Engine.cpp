@@ -5,8 +5,8 @@
 
 #include "monarch/modest/OperationDispatcher.h"
 
-using namespace db::rt;
-using namespace db::modest;
+using namespace monarch::rt;
+using namespace monarch::modest;
 
 Engine::Engine()
 {

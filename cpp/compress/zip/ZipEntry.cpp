@@ -8,10 +8,10 @@
 #include <cstdlib>
 #include <cstring>
 
-using namespace db::compress::zip;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::compress::zip;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 // define compression methods (DEFLATE = 8)
 const uint16_t ZipEntry::COMPRESSION_NONE = 0;

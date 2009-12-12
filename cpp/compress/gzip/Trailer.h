@@ -71,7 +71,7 @@ public:
     *
     * @param b the ByteBuffer to write to.
     */
-   virtual void convertToBytes(db::io::ByteBuffer* b);
+   virtual void convertToBytes(monarch::io::ByteBuffer* b);
 
    /**
     * Sets the CRC-32 value for this trailer.

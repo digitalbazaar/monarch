@@ -56,7 +56,7 @@ namespace event
  *
  * @author Dave Longley
  */
-class Observable : public db::rt::Runnable
+class Observable : public monarch::rt::Runnable
 {
 protected:
    /**
@@ -92,17 +92,17 @@ protected:
    /**
     * The OperationRunner for running operations.
     */
-   db::modest::OperationRunner* mOpRunner;
+   monarch::modest::OperationRunner* mOpRunner;
 
    /**
     * The Operation used to run this Observable.
     */
-   db::modest::Operation mOperation;
+   monarch::modest::Operation mOperation;
 
    /**
     * The current list of Operations being used to process events.
     */
-   db::modest::OperationList mOpList;
+   monarch::modest::OperationList mOpList;
 
    /**
     * The dispatch condition. Set to true when events can be dispatched,
@@ -119,7 +119,7 @@ protected:
     * The queue lock is engaged while the event queue is being updated
     * or examined.
     */
-   db::rt::ExclusiveLock mQueueLock;
+   monarch::rt::ExclusiveLock mQueueLock;
 
    /**
     * The registration lock is engaged to while dispatching an event,
@@ -128,7 +128,7 @@ protected:
     * event processing to allow event handlers to register/unregister
     * observers.
     */
-   db::rt::ExclusiveLock mRegistrationLock;
+   monarch::rt::ExclusiveLock mRegistrationLock;
 
 public:
    /**
@@ -157,7 +157,7 @@ public:
     *               in an event in order for it to be sent to the Observer.
     */
    virtual void registerObserver(
-      Observer* observer, EventId id, db::rt::DynamicObject* filter = NULL);
+      Observer* observer, EventId id, monarch::rt::DynamicObject* filter = NULL);
 
    /**
     * Unregisters an Observer from this Observable for the given EventId. The
@@ -224,7 +224,7 @@ public:
     *
     * @param opRunner the OperationRunner to use to start this Observable.
     */
-   virtual void start(db::modest::OperationRunner* opRunner);
+   virtual void start(monarch::modest::OperationRunner* opRunner);
 
    /**
     * Stops this Observable. This causes this Observable to stop dispatching
@@ -263,7 +263,7 @@ protected:
     *                 must be waited on to complete.
     */
    virtual void dispatchEvent(
-      Event& e, EventId id, db::modest::OperationList& waitList);
+      Event& e, EventId id, monarch::modest::OperationList& waitList);
 
    /**
     * Dispatches a single event to all associated Observers and waits

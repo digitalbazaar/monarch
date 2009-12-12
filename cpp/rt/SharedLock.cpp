@@ -3,7 +3,7 @@
  */
 #include "monarch/rt/SharedLock.h"
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 /*
  Note: On Windows & Mac OS only, it is possible for the current

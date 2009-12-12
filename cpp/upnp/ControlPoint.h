@@ -41,7 +41,7 @@ public:
     *
     * @return true if successful, false if not.
     */
-   virtual bool getDescription(db::net::Url* url, std::string& description);
+   virtual bool getDescription(monarch::net::Url* url, std::string& description);
 
    /**
     * Gets the description for a device.
@@ -81,7 +81,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool performAction(
-      const char* actionName, db::rt::DynamicObject& params,
+      const char* actionName, monarch::rt::DynamicObject& params,
       Service& service, ActionResult& result);
 
    /**

@@ -40,7 +40,7 @@ public:
     * @member cpuSubType secondary CPU architecture type
     * @member capabilities OS, CPU, and hardware dependent features
     */
-   typedef db::rt::DynamicObject PlatformInfo;
+   typedef monarch::rt::DynamicObject PlatformInfo;
 
 public:
    /**

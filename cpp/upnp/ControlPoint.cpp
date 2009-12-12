@@ -13,15 +13,15 @@
 #include "monarch/util/StringTools.h"
 
 using namespace std;
-using namespace db::data::json;
-using namespace db::data::xml;
-using namespace db::http;
-using namespace db::io;
-using namespace db::logging;
-using namespace db::net;
-using namespace db::rt;
-using namespace db::upnp;
-using namespace db::util;
+using namespace monarch::data::json;
+using namespace monarch::data::xml;
+using namespace monarch::http;
+using namespace monarch::io;
+using namespace monarch::logging;
+using namespace monarch::net;
+using namespace monarch::rt;
+using namespace monarch::upnp;
+using namespace monarch::util;
 
 ControlPoint::ControlPoint()
 {

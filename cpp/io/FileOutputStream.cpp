@@ -8,8 +8,8 @@
 #include <cstring>
 
 using namespace std;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 FileOutputStream::FileOutputStream(File& file, bool append) :
    mFile(file),

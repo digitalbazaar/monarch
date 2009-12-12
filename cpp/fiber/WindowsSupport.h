@@ -37,7 +37,7 @@ typedef struct stack_t
 typedef CONTEXT mcontext_t;
 
 // Note: Current ucontext implementation does not use uc_link because
-// it is not needed by db::fiber.
+// it is not needed by monarch::fiber.
 
 // declare user context type using minimum POSIX fields
 typedef struct ucontext_t
@@ -99,7 +99,7 @@ int swapcontext(ucontext_t* oucp, const ucontext_t* ucp);
  */
 int makecontext(ucontext_t* ucp, void (*func)(), int argc, ...);
 
-// Note: The mmap functions may be moved in the future to db::rt and given
+// Note: The mmap functions may be moved in the future to monarch::rt and given
 // a more full implementation. At present, they only handle anonymous
 // virtual memory allocation.
 

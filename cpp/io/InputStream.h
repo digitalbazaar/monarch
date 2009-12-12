@@ -92,7 +92,7 @@ public:
 };
 
 // typedef for a counted reference to an InputStream
-typedef db::rt::Collectable<InputStream> InputStreamRef;
+typedef monarch::rt::Collectable<InputStream> InputStreamRef;
 
 } // end namespace io
 } // end namespace db

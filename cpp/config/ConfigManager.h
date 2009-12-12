@@ -16,8 +16,8 @@ namespace config
 #define DB_DEFAULT_CONFIG_VERSION "DB Config 3.0"
 
 // typedef for a config and its iterator
-typedef db::rt::DynamicObject Config;
-typedef db::rt::DynamicObjectIterator ConfigIterator;
+typedef monarch::rt::DynamicObject Config;
+typedef monarch::rt::DynamicObjectIterator ConfigIterator;
 
 // forward declare config change listener
 class ConfigChangeListener;
@@ -180,20 +180,20 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    static bool replaceKeywords(
-      Config& config, db::rt::DynamicObject& keywordMap, bool full = false);
+      Config& config, monarch::rt::DynamicObject& keywordMap, bool full = false);
 
 protected:
    /**
     * A map of acceptable versions or empty list to accept all versions.
     * Uses the VERSION key of a config.
     */
-   db::rt::DynamicObject mVersions;
+   monarch::rt::DynamicObject mVersions;
 
    /**
     * A map of replacement keywords that can be used on strings contained in
     * configuration files.
     */
-   db::rt::DynamicObject mKeywordMap;
+   monarch::rt::DynamicObject mKeywordMap;
 
    /**
     * The stored configurations. This object has the following format:
@@ -211,7 +211,7 @@ protected:
    /**
     * A lock for modifying the internal configuration data.
     */
-   db::rt::SharedLock mLock;
+   monarch::rt::SharedLock mLock;
 
    /**
     * An interface to report configuration changes to.
@@ -234,7 +234,7 @@ public:
     *
     * @return debug info
     */
-   virtual db::rt::DynamicObject getDebugInfo();
+   virtual monarch::rt::DynamicObject getDebugInfo();
 
    /**
     * Clear all configurations. Invalidates previous addConfig() ids.
@@ -342,7 +342,7 @@ public:
     *
     * @return DynamicObject Array with ids of configs in a group, if any.
     */
-   virtual db::rt::DynamicObject getIdsInGroup(ConfigId groupId);
+   virtual monarch::rt::DynamicObject getIdsInGroup(ConfigId groupId);
 
    /**
     * Reproduces the merged config for the given config ID. This method is
@@ -353,7 +353,7 @@ public:
     *           updated).
     * @param changedIds an optional map to populate with changed config IDs.
     */
-   virtual void update(ConfigId id, db::rt::DynamicObject* changedIds = NULL);
+   virtual void update(ConfigId id, monarch::rt::DynamicObject* changedIds = NULL);
 
    /**
     * Associates a value with a keyword such that variable replacement can
@@ -381,7 +381,7 @@ public:
     *
     * @return an Array of versions or an empty to accept all versions.
     */
-   virtual db::rt::DynamicObject& getVersions();
+   virtual monarch::rt::DynamicObject& getVersions();
 
    /**
     * Sets the configuration change listener for this config manager.
@@ -473,7 +473,7 @@ protected:
     *
     * @param changedIds the map of config ID to old merged configs to update.
     */
-   virtual void produceMergedDiffs(db::rt::DynamicObject& changedIds);
+   virtual void produceMergedDiffs(monarch::rt::DynamicObject& changedIds);
 
    /**
     * The recursive version of addConfig() called by addConfig().
@@ -488,7 +488,7 @@ protected:
     */
    virtual bool recursiveAddConfig(
       Config& config, bool include, const char* dir,
-      db::rt::DynamicObject* changedIds = NULL);
+      monarch::rt::DynamicObject* changedIds = NULL);
 };
 
 } // end namespace config

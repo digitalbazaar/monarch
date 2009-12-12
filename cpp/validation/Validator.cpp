@@ -5,8 +5,8 @@
 
 #include <cstdlib>
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Validator::Validator(const char* errorMessage)
 {
@@ -22,14 +22,14 @@ Validator::~Validator()
 }
 
 bool Validator::isValid(
-      db::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& obj,
       ValidatorContext* context)
 {
    context->addSuccess();
    return true;
 }
 
-bool Validator::isValid(db::rt::DynamicObject& obj)
+bool Validator::isValid(monarch::rt::DynamicObject& obj)
 {
    bool rval;
    ValidatorContext* ctx = new ValidatorContext();

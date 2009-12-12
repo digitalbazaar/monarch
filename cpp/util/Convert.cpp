@@ -9,8 +9,8 @@
 //#include <sstream>
 
 using namespace std;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 // initialize hexadecimal characters strings for fast lookups
 const char Convert::HEX_CHARS[16] =

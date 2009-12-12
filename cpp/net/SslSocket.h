@@ -60,12 +60,12 @@ protected:
    /**
     * The stream for reading from the Socket.
     */
-   db::io::InputStream* mInputStream;
+   monarch::io::InputStream* mInputStream;
 
    /**
     * The stream for writing to the Socket.
     */
-   db::io::OutputStream* mOutputStream;
+   monarch::io::OutputStream* mOutputStream;
 
    /**
     * The X.509 subject common name to check for in a peer certificate.
@@ -195,14 +195,14 @@ public:
     *
     * @return the InputStream for reading from this Socket.
     */
-   virtual db::io::InputStream* getInputStream();
+   virtual monarch::io::InputStream* getInputStream();
 
    /**
     * Gets the OutputStream for writing to this Socket.
     *
     * @return the OutputStream for writing to this Socket.
     */
-   virtual db::io::OutputStream* getOutputStream();
+   virtual monarch::io::OutputStream* getOutputStream();
 
 protected:
    /**

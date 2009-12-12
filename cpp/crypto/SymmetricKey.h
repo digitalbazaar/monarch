@@ -172,7 +172,7 @@ public:
 };
 
 // typedef for a reference-counted SymmetricKey
-typedef db::rt::Collectable<SymmetricKey> SymmetricKeyRef;
+typedef monarch::rt::Collectable<SymmetricKey> SymmetricKeyRef;
 
 } // end namespace crypto
 } // end namespace db

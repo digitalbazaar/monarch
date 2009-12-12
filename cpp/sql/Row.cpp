@@ -3,7 +3,7 @@
  */
 #include "monarch/sql/Row.h"
 
-using namespace db::sql;
+using namespace monarch::sql;
 
 Row::Row(Statement* s)
 {

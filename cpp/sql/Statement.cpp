@@ -5,7 +5,7 @@
 
 #include <cstdlib>
 
-using namespace db::sql;
+using namespace monarch::sql;
 
 Statement::Statement(const char* sql) :
    mSql(strdup(sql))

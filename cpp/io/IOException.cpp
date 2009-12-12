@@ -3,8 +3,8 @@
  */
 #include "monarch/io/IOException.h"
 
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 IOException::IOException(
    const char* message, const char* type, int code) :

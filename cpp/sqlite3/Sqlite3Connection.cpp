@@ -7,11 +7,11 @@
 #include "monarch/io/File.h"
 
 using namespace std;
-using namespace db::io;
-using namespace db::sql;
-using namespace db::sql::sqlite3;
-using namespace db::net;
-using namespace db::rt;
+using namespace monarch::io;
+using namespace monarch::sql;
+using namespace monarch::sql::sqlite3;
+using namespace monarch::net;
+using namespace monarch::rt;
 
 Sqlite3Connection::Sqlite3Connection()
 {

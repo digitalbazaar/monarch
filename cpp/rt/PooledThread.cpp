@@ -6,7 +6,7 @@
 #include "monarch/rt/ThreadPool.h"
 #include "monarch/rt/System.h"
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 PooledThread::PooledThread(
    ThreadPool* pool, uint32_t expireTime) : Thread(this)

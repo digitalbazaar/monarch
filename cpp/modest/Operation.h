@@ -30,7 +30,7 @@ namespace modest
  *
  * @author Dave Longley
  */
-class Operation : public db::rt::Collectable<OperationImpl>
+class Operation : public monarch::rt::Collectable<OperationImpl>
 {
 public:
    /**
@@ -38,8 +38,8 @@ public:
     *
     * @param r the Runnable to use (which can be NULL to only mutate state).
     */
-   Operation(db::rt::Runnable& r);
-   Operation(db::rt::RunnableRef& r);
+   Operation(monarch::rt::Runnable& r);
+   Operation(monarch::rt::RunnableRef& r);
 
    /**
     * Creates a new Operation reference to the passed OperationImpl.

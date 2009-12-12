@@ -17,7 +17,7 @@ namespace fiber
 class FiberMessageCenter;
 
 // typedef for a queue of fiber messages
-typedef std::list<db::rt::DynamicObject> FiberMessageQueue;
+typedef std::list<monarch::rt::DynamicObject> FiberMessageQueue;
 
 /**
  * A MessagableFiber is a Fiber that can receive messages. The Fiber processes
@@ -66,7 +66,7 @@ protected:
    /**
     * A lock for manipulating this fiber's message queues.
     */
-   db::rt::ExclusiveLock mMessageLock;
+   monarch::rt::ExclusiveLock mMessageLock;
 
    /**
     * Two message queues that are swapped with one another appropriately. At
@@ -113,7 +113,7 @@ public:
     *
     * @param msg the message to add.
     */
-   virtual void addMessage(db::rt::DynamicObject& msg);
+   virtual void addMessage(monarch::rt::DynamicObject& msg);
 
    /**
     * A MessagableFiber can only be put to sleep when it has no incoming
@@ -144,7 +144,7 @@ protected:
     *
     * @return true if the message was delivered, false if no such fiber exists.
     */
-   virtual bool sendMessage(FiberId id, db::rt::DynamicObject& msg);
+   virtual bool sendMessage(FiberId id, monarch::rt::DynamicObject& msg);
 
    /**
     * Processes messages, retrieved via getMessages(), and performs whatever

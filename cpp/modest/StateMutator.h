@@ -56,7 +56,7 @@ public:
 };
 
 // define a reference counted StateMutator type
-typedef db::rt::Collectable<StateMutator> StateMutatorRef;
+typedef monarch::rt::Collectable<StateMutator> StateMutatorRef;
 
 } // end namespace modest
 } // end namespace db

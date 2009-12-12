@@ -8,10 +8,10 @@
 #include <mysql/errmsg.h>
 
 using namespace std;
-using namespace db::sql;
-using namespace db::sql::mysql;
-using namespace db::net;
-using namespace db::rt;
+using namespace monarch::sql;
+using namespace monarch::sql::mysql;
+using namespace monarch::net;
+using namespace monarch::rt;
 
 MySqlConnection::MySqlConnection()
 {

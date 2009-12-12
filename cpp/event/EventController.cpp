@@ -6,8 +6,8 @@
 #include "monarch/rt/DynamicObjectIterator.h"
 
 using namespace std;
-using namespace db::event;
-using namespace db::rt;
+using namespace monarch::event;
+using namespace monarch::rt;
 
 #define TOPLEVEL_ID 1
 

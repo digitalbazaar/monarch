@@ -50,7 +50,7 @@ public:
     * @return true if obj is valid, false and exception set otherwise.
     */
    virtual bool isValid(
-      db::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& obj,
       ValidatorContext* context);
 
    /**
@@ -60,7 +60,7 @@ public:
     *
     * @return true if obj is valid, false and exception set otherwise.
     */
-   virtual bool isValid(db::rt::DynamicObject& obj);
+   virtual bool isValid(monarch::rt::DynamicObject& obj);
 
    /**
     * Returns if this validator is optional or mandatory.  This method will
@@ -88,7 +88,7 @@ public:
 };
 
 // type definition for a reference counted Validator
-typedef db::rt::Collectable<Validator> ValidatorRef;
+typedef monarch::rt::Collectable<Validator> ValidatorRef;
 
 } // end namespace validation
 } // end namespace db

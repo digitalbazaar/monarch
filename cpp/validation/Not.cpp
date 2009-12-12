@@ -3,8 +3,8 @@
  */
 #include "monarch/validation/Not.h"
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Not::Not(Validator* validator, const char* errorMessage) :
    Validator(errorMessage),
@@ -18,7 +18,7 @@ Not::~Not()
 }
 
 bool Not::isValid(
-   db::rt::DynamicObject& obj,
+   monarch::rt::DynamicObject& obj,
    ValidatorContext* context)
 {
    // save value

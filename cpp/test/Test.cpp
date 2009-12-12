@@ -12,12 +12,12 @@
 #include "monarch/io/OStreamOutputStream.h"
 
 using namespace std;
-using namespace db::data::json;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::test;
+using namespace monarch::data::json;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::test;
 
-bool db::test::dumpException(ExceptionRef& e)
+bool monarch::test::dumpException(ExceptionRef& e)
 {
    bool rval;
 
@@ -29,7 +29,7 @@ bool db::test::dumpException(ExceptionRef& e)
    return rval;
 }
 
-bool db::test::dumpException()
+bool monarch::test::dumpException()
 {
    bool rval = true;
 
@@ -42,7 +42,7 @@ bool db::test::dumpException()
    return rval;
 }
 
-void db::test::dumpDynamicObjectText_(
+void monarch::test::dumpDynamicObjectText_(
    DynamicObject& dyno, DynamicObjectIterator doi, int indent)
 {
    for(int i = 0; i < indent; i++)
@@ -97,25 +97,25 @@ void db::test::dumpDynamicObjectText_(
    }
 }
 
-void db::test::dumpDynamicObjectText(DynamicObject& dyno)
+void monarch::test::dumpDynamicObjectText(DynamicObject& dyno)
 {
    dumpDynamicObjectText_(dyno, NULL, 0);
 }
 
-bool db::test::dynamicObjectToOStream(
+bool monarch::test::dynamicObjectToOStream(
    DynamicObject& dyno, ostream& stream, bool compact)
 {
    return JsonWriter::writeToOStream(dyno, stream, compact);
 }
 
-bool db::test::dynamicObjectToString(
+bool monarch::test::dynamicObjectToString(
    DynamicObject& dyno, string& str, bool compact)
 {
    str = JsonWriter::writeToString(dyno, compact);
    return str.length() > 0;
 }
 
-bool db::test::dumpDynamicObject(DynamicObject& dyno, bool compact)
+bool monarch::test::dumpDynamicObject(DynamicObject& dyno, bool compact)
 {
    return JsonWriter::writeToStdOut(dyno, compact);
 }

@@ -20,7 +20,7 @@ namespace crypto
  *
  * @author Dave Longley
  */
-class CryptoHashAlgorithm : public db::util::HashAlgorithm
+class CryptoHashAlgorithm : public monarch::util::HashAlgorithm
 {
 protected:
    /**

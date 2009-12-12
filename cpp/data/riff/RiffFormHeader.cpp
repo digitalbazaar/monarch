@@ -3,8 +3,8 @@
  */
 #include "monarch/data/riff/RiffFormHeader.h"
 
-using namespace db::data;
-using namespace db::data::riff;
+using namespace monarch::data;
+using namespace monarch::data::riff;
 
 RiffFormHeader::RiffFormHeader(fourcc_t form, uint32_t fileSize) :
    RiffListHeader(form, fileSize)

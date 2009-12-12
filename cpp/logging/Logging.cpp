@@ -3,7 +3,7 @@
  */
 #include "monarch/logging/Logging.h"
 
-using namespace db::logging;
+using namespace monarch::logging;
 
 bool Logging::initialize()
 {

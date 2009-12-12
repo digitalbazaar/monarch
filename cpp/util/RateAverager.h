@@ -71,7 +71,7 @@ protected:
    /**
     * A lock for synchronizing this rate averager.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
 public:
    /**

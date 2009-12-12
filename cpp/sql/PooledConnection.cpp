@@ -5,9 +5,9 @@
 
 #include "monarch/sql/AbstractConnectionPool.h"
 
-using namespace db::net;
-using namespace db::rt;
-using namespace db::sql;
+using namespace monarch::net;
+using namespace monarch::rt;
+using namespace monarch::sql;
 
 PooledConnection::PooledConnection(
    AbstractConnectionPool* pool, Connection* connection)

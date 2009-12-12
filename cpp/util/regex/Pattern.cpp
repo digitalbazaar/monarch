@@ -8,8 +8,8 @@
 #include "monarch/rt/Exception.h"
 
 using namespace std;
-using namespace db::rt;
-using namespace db::util::regex;
+using namespace monarch::rt;
+using namespace monarch::util::regex;
 
 Pattern::Pattern()
 {

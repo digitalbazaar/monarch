@@ -9,9 +9,9 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::rt;
-using namespace db::sql;
-using namespace db::sql::mysql;
+using namespace monarch::rt;
+using namespace monarch::sql;
+using namespace monarch::sql::mysql;
 
 MySqlRow::MySqlRow(MySqlStatement* s) : Row(s)
 {

@@ -40,7 +40,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      db::rt::DynamicObject& dyno, db::io::OutputStream* os) = 0;
+      monarch::rt::DynamicObject& dyno, monarch::io::OutputStream* os) = 0;
 
    /**
     * Sets the starting indentation level and the number of spaces

@@ -8,9 +8,9 @@
 #include <cstring>
 
 using namespace std;
-using namespace db::net;
-using namespace db::sql;
-using namespace db::rt;
+using namespace monarch::net;
+using namespace monarch::sql;
+using namespace monarch::rt;
 
 AbstractConnection::AbstractConnection() :
    mUrl(NULL)

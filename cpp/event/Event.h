@@ -34,7 +34,7 @@ namespace event
  *
  * @author Dave Longley
  */
-typedef db::rt::DynamicObject Event;
+typedef monarch::rt::DynamicObject Event;
 typedef uint64_t EventId;
 
 /**
@@ -44,7 +44,7 @@ typedef uint64_t EventId;
  *
  * @author Dave Longley
  */
-typedef db::rt::DynamicObject EventFilter;
+typedef monarch::rt::DynamicObject EventFilter;
 
 } // end namespace event
 } // end namespace db

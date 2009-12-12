@@ -14,12 +14,12 @@
 #include <cmath>
 
 using namespace std;
-using namespace db::config;
-using namespace db::fiber;
-using namespace db::modest;
-using namespace db::rt;
-using namespace db::test;
-using namespace db::util;
+using namespace monarch::config;
+using namespace monarch::fiber;
+using namespace monarch::modest;
+using namespace monarch::rt;
+using namespace monarch::test;
+using namespace monarch::util;
 
 class TestFiber : public Fiber
 {
@@ -79,7 +79,7 @@ void runFiberYieldTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbFiberYieldTester : public db::test::Tester
+class DbFiberYieldTester : public monarch::test::Tester
 {
 public:
    DbFiberYieldTester()
@@ -105,7 +105,7 @@ public:
    }
 };
 
-db::test::Tester* getDbFiberYieldTester() { return new DbFiberYieldTester(); }
+monarch::test::Tester* getDbFiberYieldTester() { return new DbFiberYieldTester(); }
 
 
 DB_TEST_MAIN(DbFiberYieldTester)

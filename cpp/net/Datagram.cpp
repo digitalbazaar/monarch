@@ -7,8 +7,8 @@
 #include <cstring>
 
 using namespace std;
-using namespace db::io;
-using namespace db::net;
+using namespace monarch::io;
+using namespace monarch::net;
 
 Datagram::Datagram(int capacity) :
    mAddress(NULL),

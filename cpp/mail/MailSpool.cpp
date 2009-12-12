@@ -17,13 +17,13 @@
 #include "monarch/util/Data.h"
 #include "monarch/util/Date.h"
 
-using namespace db::data::json;
-using namespace db::io;
-using namespace db::mail;
-using namespace db::rt;
-using namespace db::sql;
-using namespace db::sql::sqlite3;
-using namespace db::util;
+using namespace monarch::data::json;
+using namespace monarch::io;
+using namespace monarch::mail;
+using namespace monarch::rt;
+using namespace monarch::sql;
+using namespace monarch::sql::sqlite3;
+using namespace monarch::util;
 
 #define SPOOL_TABLE_SPOOL   "spool"
 

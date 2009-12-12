@@ -8,8 +8,8 @@
 
 #include <mysql/mysql.h>
 
-using namespace db::sql;
-using namespace db::sql::mysql;
+using namespace monarch::sql;
+using namespace monarch::sql::mysql;
 
 MySqlException::MySqlException(MySqlConnection* c) :
    SqlException("", "db.sql.mysql.MySql")

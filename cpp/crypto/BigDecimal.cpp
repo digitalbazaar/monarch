@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 using namespace std;
-using namespace db::crypto;
+using namespace monarch::crypto;
 
 BigDecimal::BigDecimal(long double value)
 {

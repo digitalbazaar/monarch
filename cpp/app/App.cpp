@@ -31,12 +31,12 @@
 #include "monarch/util/StringTokenizer.h"
 
 using namespace std;
-using namespace db::app;
-using namespace db::config;
-using namespace db::data::json;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::app;
+using namespace monarch::config;
+using namespace monarch::data::json;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 // declare table of openSSL mutexes
 pthread_mutex_t* App::sOpenSSLMutexes = NULL;
@@ -1141,8 +1141,8 @@ int App::main(
 
    success = success &&
       initializeOpenSSL() &&
-      db::logging::Logging::initialize() &&
-      db::rt::Platform::initialize() &&
+      monarch::logging::Logging::initialize() &&
+      monarch::rt::Platform::initialize() &&
       mPlugins->initializeLogging() &&
       mPlugins->willRun() &&
       mPlugins->run() &&
@@ -1154,8 +1154,8 @@ int App::main(
    }
 
    mPlugins->cleanupLogging();
-   db::rt::Platform::cleanup();
-   db::logging::Logging::cleanup();
+   monarch::rt::Platform::cleanup();
+   monarch::logging::Logging::cleanup();
    cleanupOpenSSL();
 
    // cleanup winsock

@@ -114,7 +114,7 @@ public:
 };
 
 // type definition for a reference counted ConnectionPool
-typedef db::rt::Collectable<ConnectionPool> ConnectionPoolRef;
+typedef monarch::rt::Collectable<ConnectionPool> ConnectionPoolRef;
 
 } // end namespace sql
 } // end namespace db

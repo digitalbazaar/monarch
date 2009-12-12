@@ -484,7 +484,7 @@ public:
     *
     * @param b the ByteBuffer to write to.
     */
-   void toBytes(db::io::ByteBuffer* b);
+   void toBytes(monarch::io::ByteBuffer* b);
 
    /**
     * Gets the value of this BigInteger as a decimal string.

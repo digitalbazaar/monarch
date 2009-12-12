@@ -54,7 +54,7 @@ protected:
    /**
     * A lock for modifying the bandwidth throttlers.
     */
-   db::rt::SharedLock mBandwidthThrottlerLock;
+   monarch::rt::SharedLock mBandwidthThrottlerLock;
 
    /**
     * The BandwidthThrottler for reading.

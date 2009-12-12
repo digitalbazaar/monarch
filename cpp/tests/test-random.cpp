@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 class RandomRunnable : public Runnable
 {

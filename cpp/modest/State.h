@@ -21,7 +21,7 @@ namespace modest
  *
  * @author Dave Longley
  */
-class State : public virtual db::rt::ExclusiveLock, public ImmutableState
+class State : public virtual monarch::rt::ExclusiveLock, public ImmutableState
 {
 protected:
    /**

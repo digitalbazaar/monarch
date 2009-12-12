@@ -19,10 +19,10 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::config;
-using namespace db::rt;
-using namespace db::test;
-using namespace db::util;
+using namespace monarch::config;
+using namespace monarch::rt;
+using namespace monarch::test;
+using namespace monarch::util;
 
 struct KeyAsHash
 {
@@ -629,7 +629,7 @@ void runHashTableVsMapTest(
    tr.ungroup();
 }
 
-class DbHashTableTester : public db::test::Tester
+class DbHashTableTester : public monarch::test::Tester
 {
 public:
    DbHashTableTester()
@@ -723,7 +723,7 @@ public:
    }
 };
 
-db::test::Tester* getDbHashTableTester() { return new DbHashTableTester(); }
+monarch::test::Tester* getDbHashTableTester() { return new DbHashTableTester(); }
 
 
 DB_TEST_MAIN(DbHashTableTester)

@@ -5,8 +5,8 @@
 
 #include "monarch/http/HttpRequest.h"
 
-using namespace db::io;
-using namespace db::http;
+using namespace monarch::io;
+using namespace monarch::http;
 
 HttpResponse::HttpResponse(HttpRequest* request)
 {

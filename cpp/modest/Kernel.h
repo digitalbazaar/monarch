@@ -87,11 +87,11 @@ public:
 extern "C" {
 #endif
 
-db::modest::Kernel* createModestKernel();
-void freeModestKernel(db::modest::Kernel* k);
+monarch::modest::Kernel* createModestKernel();
+void freeModestKernel(monarch::modest::Kernel* k);
 
-typedef db::modest::Kernel* (*CreateModestKernelFn)();
-typedef void (*FreeModestKernelFn)(db::modest::Kernel*);
+typedef monarch::modest::Kernel* (*CreateModestKernelFn)();
+typedef void (*FreeModestKernelFn)(monarch::modest::Kernel*);
 
 #ifdef __cplusplus
 }

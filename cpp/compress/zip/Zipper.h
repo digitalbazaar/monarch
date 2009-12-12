@@ -168,12 +168,12 @@ protected:
    /**
     * The Deflater used to handle compression.
     */
-   db::compress::deflate::Deflater mDeflater;
+   monarch::compress::deflate::Deflater mDeflater;
 
    /**
     * A ByteBuffer for processing data.
     */
-   db::io::ByteBuffer mBuffer;
+   monarch::io::ByteBuffer mBuffer;
 
    /**
     * Typedef for a list of zip entries.
@@ -266,7 +266,7 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool zip(db::io::FileList& fl, db::io::File& out);
+   virtual bool zip(monarch::io::FileList& fl, monarch::io::File& out);
 
    /**
     * Writes a new ZipEntry.
@@ -279,7 +279,7 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool writeEntry(ZipEntry& ze, db::io::OutputStream* os);
+   virtual bool writeEntry(ZipEntry& ze, monarch::io::OutputStream* os);
 
    /**
     * Reads the next ZipEntry from the given InputStream and then orients
@@ -291,7 +291,7 @@ public:
     * @return 1 if an entry was read, 0 if there are no more entries, or -1 if
     *         an exception occurred.
     */
-   virtual int readEntry(ZipEntry& ze, db::io::InputStream* is);
+   virtual int readEntry(ZipEntry& ze, monarch::io::InputStream* is);
 
    /**
     * Writes the passed data, for the current ZipEntry, to the passed
@@ -303,7 +303,7 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool write(char* b, int length, db::io::OutputStream* os);
+   virtual bool write(char* b, int length, monarch::io::OutputStream* os);
 
    /**
     * Reads some data from the current ZipEntry into the passed array of
@@ -327,7 +327,7 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool finish(db::io::OutputStream* os);
+   virtual bool finish(monarch::io::OutputStream* os);
 
 protected:
    /**
@@ -338,7 +338,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool writeLocalFileHeader(ZipEntry& ze, db::io::OutputStream* os);
+   virtual bool writeLocalFileHeader(ZipEntry& ze, monarch::io::OutputStream* os);
 
    /**
     * Reads an entry from a local file header.
@@ -348,7 +348,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool readLocalFileHeader(ZipEntry& ze, db::io::InputStream* is);
+   virtual bool readLocalFileHeader(ZipEntry& ze, monarch::io::InputStream* is);
 
    /**
     * Writes out the file header for an entry for the central directory.
@@ -358,7 +358,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool writeFileHeader(ZipEntry& ze, db::io::OutputStream* os);
+   virtual bool writeFileHeader(ZipEntry& ze, monarch::io::OutputStream* os);
 
    /**
     * Reads an entry from a file header from the central directory.
@@ -368,7 +368,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool readFileHeader(ZipEntry& ze, db::io::InputStream* is);
+   virtual bool readFileHeader(ZipEntry& ze, monarch::io::InputStream* is);
 
    /**
     * Finishes writing the current entry.
@@ -377,7 +377,7 @@ protected:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool finishCurrentEntry(db::io::OutputStream* os);
+   virtual bool finishCurrentEntry(monarch::io::OutputStream* os);
 };
 
 } // end namespace zip

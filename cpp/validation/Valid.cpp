@@ -3,8 +3,8 @@
  */
 #include "monarch/validation/Valid.h"
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Valid::Valid()
 {

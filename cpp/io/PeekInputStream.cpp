@@ -3,7 +3,7 @@
  */
 #include "monarch/io/PeekInputStream.h"
 
-using namespace db::io;
+using namespace monarch::io;
 
 PeekInputStream::PeekInputStream(InputStream* is, bool cleanup) :
    FilterInputStream(is, cleanup),

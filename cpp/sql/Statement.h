@@ -199,7 +199,7 @@ public:
 };
 
 // type definition for a reference counted Statement
-typedef db::rt::Collectable<Statement> StatementRef;
+typedef monarch::rt::Collectable<Statement> StatementRef;
 
 } // end namespace sql
 } // end namespace db

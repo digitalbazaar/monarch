@@ -37,13 +37,13 @@ protected:
     * A map of url string to pools of idle http connections.
     */
    typedef std::map<
-      const char*, HttpConnectionList*, db::util::StringComparator> PoolMap;
+      const char*, HttpConnectionList*, monarch::util::StringComparator> PoolMap;
    PoolMap mPools;
 
    /**
     * A lock for manipulating the pool map.
     */
-   db::rt::ExclusiveLock mPoolsLock;
+   monarch::rt::ExclusiveLock mPoolsLock;
 
 public:
    /**
@@ -62,7 +62,7 @@ public:
     * @param url the url for the connection.
     * @param conn the idle connection to add.
     */
-   virtual void addConnection(db::net::Url* url, HttpConnectionRef conn);
+   virtual void addConnection(monarch::net::Url* url, HttpConnectionRef conn);
 
    /**
     * Gets an idle connection from this pool to a particular url. If no
@@ -72,11 +72,11 @@ public:
     *
     * @return the available connection, NULL if none is available.
     */
-   virtual HttpConnectionRef getConnection(db::net::Url* url);
+   virtual HttpConnectionRef getConnection(monarch::net::Url* url);
 };
 
 // typedef for a counted reference to an HttpConnectionPool
-typedef db::rt::Collectable<HttpConnectionPool> HttpConnectionPoolRef;
+typedef monarch::rt::Collectable<HttpConnectionPool> HttpConnectionPoolRef;
 
 } // end namespace http
 } // end namespace db

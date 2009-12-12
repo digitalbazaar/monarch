@@ -21,8 +21,8 @@ namespace modest
  * @author Dave Longley
  */
 class OperationDispatcher :
-protected db::rt::ThreadPool,
-protected db::rt::JobDispatcher
+protected monarch::rt::ThreadPool,
+protected monarch::rt::JobDispatcher
 {
 protected:
    /**
@@ -102,7 +102,7 @@ public:
     *
     * @param t the thread that completed its job.
     */
-   virtual void jobCompleted(db::rt::PooledThread* t);
+   virtual void jobCompleted(monarch::rt::PooledThread* t);
 
    /**
     * Gets the current thread's Operation. This method assumes that you
@@ -119,7 +119,7 @@ public:
     *
     * @return the therad pool for running Operations.
     */
-   virtual db::rt::ThreadPool* getThreadPool();
+   virtual monarch::rt::ThreadPool* getThreadPool();
 
    /**
     * Gets the number of Operations that are in the queue to be executed.

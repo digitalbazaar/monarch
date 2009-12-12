@@ -5,8 +5,8 @@
 
 #include "monarch/net/Server.h"
 
-using namespace db::modest;
-using namespace db::net;
+using namespace monarch::modest;
+using namespace monarch::net;
 
 DatagramService::DatagramService(
    Server* server, InternetAddress* address, DatagramServicer* servicer,

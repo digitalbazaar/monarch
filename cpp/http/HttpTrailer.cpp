@@ -3,7 +3,7 @@
  */
 #include "monarch/http/HttpTrailer.h"
 
-using namespace db::http;
+using namespace monarch::http;
 
 HttpTrailer::HttpTrailer()
 {

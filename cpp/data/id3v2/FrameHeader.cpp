@@ -8,7 +8,7 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::data::id3v2;
+using namespace monarch::data::id3v2;
 
 // initialize static variables
 const int FrameHeader::HEADER_SIZE = 10;
@@ -245,7 +245,7 @@ void FrameHeader::convertIntToBytes(int integer, char* b)
 {
    unsigned char* ub = (unsigned char*)b;
 
-   // FIXME: remove method, use db::Data byte ordering macro
+   // FIXME: remove method, use monarch::Data byte ordering macro
 
    for(int i = 0; i < 4; i++)
    {
@@ -257,7 +257,7 @@ int FrameHeader::convertBytesToInt(const char* b)
 {
    int rval = 0;
 
-   // FIXME: remove method, use db::Data byte ordering macro
+   // FIXME: remove method, use monarch::Data byte ordering macro
 
    unsigned char* ub = (unsigned char*)b;
 

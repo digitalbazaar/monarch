@@ -148,7 +148,7 @@ public:
     * @param eventTypes the list of event types to unregister all observers for.
     */
    virtual void unregisterFrom(
-      EventController* ec, db::rt::DynamicObject& eventTypes);
+      EventController* ec, monarch::rt::DynamicObject& eventTypes);
 
    /**
     * Clears this list of all of its Observers.

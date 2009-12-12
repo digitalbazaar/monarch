@@ -14,19 +14,19 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::test;
-using namespace db::rt;
-using namespace db::sql;
-using namespace db::sql::mysql;
-using namespace db::util;
+using namespace monarch::test;
+using namespace monarch::rt;
+using namespace monarch::sql;
+using namespace monarch::sql::mysql;
+using namespace monarch::util;
 
 #define TABLE_TEST "test.dbmysqltest"
 
-void createMySqlTable(TestRunner& tr, db::sql::Connection* c)
+void createMySqlTable(TestRunner& tr, monarch::sql::Connection* c)
 {
    tr.test("drop table");
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "DROP TABLE IF EXISTS " TABLE_TEST);
       assertNoException();
       s->execute();
@@ -35,7 +35,7 @@ void createMySqlTable(TestRunner& tr, db::sql::Connection* c)
 
    tr.test("create table");
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST
          " (id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, "
          "PRIMARY KEY (id))");
@@ -45,11 +45,11 @@ void createMySqlTable(TestRunner& tr, db::sql::Connection* c)
    tr.passIfNoException();
 }
 
-void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
+void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
 {
    tr.test("insert test 1");
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
       assertNoException();
       s->execute();
@@ -59,7 +59,7 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
 
    tr.test("insert test 2");
    {
-      db::sql::Statement* s = c->prepare(
+      monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('!tset', 4321)");
       assertNoException();
       s->execute();
@@ -69,7 +69,7 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
 
    tr.test("insert positional parameters test");
    {
-      db::sql::Statement* s;
+      monarch::sql::Statement* s;
       //unsigned long long start = System::getCurrentMilliseconds();
       for(int i = 0; i < 20; i++)
       {
@@ -88,7 +88,7 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
 
    tr.test("select test");
    {
-      db::sql::Statement* s = c->prepare("SELECT t, i FROM " TABLE_TEST);
+      monarch::sql::Statement* s = c->prepare("SELECT t, i FROM " TABLE_TEST);
       assertNoException();
       s->execute();
       assertNoException();
@@ -127,7 +127,7 @@ void executeMySqlStatements(TestRunner& tr, db::sql::Connection* c)
 
    tr.test("select command ordering test");
    {
-      db::sql::Statement* s = c->prepare("SELECT t, i FROM " TABLE_TEST);
+      monarch::sql::Statement* s = c->prepare("SELECT t, i FROM " TABLE_TEST);
       assertNoException();
       s->execute();
       assertNoException();
@@ -586,7 +586,7 @@ public:
 
    virtual void run()
    {
-      db::sql::Connection* c = pool->getConnection();
+      monarch::sql::Connection* c = pool->getConnection();
       executeMySqlStatements(*tr, c);
       c->close();
    }
@@ -602,7 +602,7 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
    assertNoException();
 
    // create table
-   db::sql::Connection* c = cp.getConnection();
+   monarch::sql::Connection* c = cp.getConnection();
    createMySqlTable(tr, c);
    c->close();
 
@@ -656,7 +656,7 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbMySqlTester : public db::test::Tester
+class DbMySqlTester : public monarch::test::Tester
 {
 public:
    DbMySqlTester()
@@ -685,7 +685,7 @@ public:
    }
 };
 
-db::test::Tester* getDbMySqlTester() { return new DbMySqlTester(); }
+monarch::test::Tester* getDbMySqlTester() { return new DbMySqlTester(); }
 
 
 DB_TEST_MAIN(DbMySqlTester)

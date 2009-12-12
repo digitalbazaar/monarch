@@ -8,8 +8,8 @@
 #include <cstdlib>
 
 using namespace std;
-using namespace db::event;
-using namespace db::rt;
+using namespace monarch::event;
+using namespace monarch::rt;
 
 EventWaiter::EventWaiter(EventController* ec)
 {

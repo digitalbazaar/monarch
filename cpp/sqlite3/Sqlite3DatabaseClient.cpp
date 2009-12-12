@@ -3,9 +3,9 @@
  */
 #include "monarch/sql/sqlite3/Sqlite3DatabaseClient.h"
 
-using namespace db::rt;
-using namespace db::sql;
-using namespace db::sql::sqlite3;
+using namespace monarch::rt;
+using namespace monarch::sql;
+using namespace monarch::sql::sqlite3;
 
 Sqlite3DatabaseClient::Sqlite3DatabaseClient()
 {

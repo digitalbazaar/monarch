@@ -72,7 +72,7 @@ public:
     *
     * @return the Iterator for the list.
     */
-   virtual db::rt::Iterator<T>* getIterator();
+   virtual monarch::rt::Iterator<T>* getIterator();
 };
 
 template<typename T>
@@ -80,7 +80,7 @@ bool UniqueList<T>::add(const T& obj)
 {
    bool rval = true;
 
-   db::rt::Iterator<T>* i = getIterator();
+   monarch::rt::Iterator<T>* i = getIterator();
    while(rval && i->hasNext())
    {
       rval = !(i->next() == obj);
@@ -100,7 +100,7 @@ bool UniqueList<T>::remove(const T& obj)
 {
    bool rval = false;
 
-   db::rt::Iterator<T>* i = getIterator();
+   monarch::rt::Iterator<T>* i = getIterator();
    while(!rval && i->hasNext())
    {
       T& t = i->next();
@@ -130,9 +130,9 @@ unsigned int UniqueList<T>::count()
 }
 
 template<typename T>
-db::rt::Iterator<T>* UniqueList<T>::getIterator()
+monarch::rt::Iterator<T>* UniqueList<T>::getIterator()
 {
-   return new db::rt::ListIterator<T>(mList);
+   return new monarch::rt::ListIterator<T>(mList);
 }
 
 } // end namespace util

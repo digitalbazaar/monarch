@@ -47,7 +47,7 @@ protected:
    /**
     * The modest OperationRunner used to run this server.
     */
-   db::modest::OperationRunner* mOperationRunner;
+   monarch::modest::OperationRunner* mOperationRunner;
 
    /**
     * A list of available ServiceIds from removed services.
@@ -79,7 +79,7 @@ protected:
    /**
     * A lock for synchronizing the use of this server.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
    /**
     * Connection service is a friend so it can access the connection count.
@@ -92,7 +92,7 @@ public:
     *
     * @param opRunner the OperationRunner used to run this Server.
     */
-   Server(db::modest::OperationRunner* opRunner);
+   Server(monarch::modest::OperationRunner* opRunner);
 
    /**
     * Destructs this Server.
@@ -171,7 +171,7 @@ public:
     *
     * @return the OperationRunner used to run Operations for this server.
     */
-   virtual db::modest::OperationRunner* getOperationRunner();
+   virtual monarch::modest::OperationRunner* getOperationRunner();
 
    /**
     * Sets the maximum number of concurrent connections this server should

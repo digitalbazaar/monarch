@@ -23,10 +23,10 @@
 #include <cstdio>
 
 using namespace std;
-using namespace db::test;
-using namespace db::rt;
-using namespace db::util;
-using namespace db::util::regex;
+using namespace monarch::test;
+using namespace monarch::rt;
+using namespace monarch::util;
+using namespace monarch::util::regex;
 
 void runBase64Test(TestRunner& tr)
 {
@@ -927,7 +927,7 @@ void runRandomTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbUtilTester : public db::test::Tester
+class DbUtilTester : public monarch::test::Tester
 {
 public:
    DbUtilTester()
@@ -964,7 +964,7 @@ public:
    }
 };
 
-db::test::Tester* getDbUtilTester() { return new DbUtilTester(); }
+monarch::test::Tester* getDbUtilTester() { return new DbUtilTester(); }
 
 
 DB_TEST_MAIN(DbUtilTester)

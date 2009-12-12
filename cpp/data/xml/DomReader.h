@@ -32,7 +32,7 @@ protected:
     * Stores the namespace declaration information before each call to
     * startElement, where it gets added to the current element and cleared.
     */
-   db::rt::DynamicObject mNamespacePrefixMap;
+   monarch::rt::DynamicObject mNamespacePrefixMap;
 
 public:
    /**

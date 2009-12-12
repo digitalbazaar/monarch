@@ -54,7 +54,7 @@ public:
     *
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool connect(db::net::Url* url) = 0;
+   virtual bool connect(monarch::net::Url* url) = 0;
 
    /**
     * Prepares a Statement for execution. The Statement, if valid, is stored
@@ -107,7 +107,7 @@ public:
 };
 
 // type definition for reference counted Connection
-typedef db::rt::Collectable<Connection> ConnectionRef;
+typedef monarch::rt::Collectable<Connection> ConnectionRef;
 
 } // end namespace sql
 } // end namespace db

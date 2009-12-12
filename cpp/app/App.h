@@ -28,9 +28,9 @@ namespace app
  *
  * int main(int argc, const char* argv[])
  * {
- *    db::app::App app;
- *    std::vector<db::app::AppPluginRef> plugins;
- *    db::app::AppPluginRef plugin = new MyPlugin;
+ *    monarch::app::App app;
+ *    std::vector<monarch::app::AppPluginRef> plugins;
+ *    monarch::app::AppPluginRef plugin = new MyPlugin;
  *    plugins.push_back(plugin);
  *    ...
  *    return app.main(argc, argv, &plugins);
@@ -72,12 +72,12 @@ protected:
    /**
     * Meta config. See getMetaConfig() for format.
     */
-   db::config::Config mMetaConfig;
+   monarch::config::Config mMetaConfig;
 
    /**
     * ConfigManager for this App.
     */
-   db::config::ConfigManager* mConfigManager;
+   monarch::config::ConfigManager* mConfigManager;
 
    /**
     * Clean up the ConfigManager.
@@ -210,21 +210,21 @@ public:
     * @param cleanup true to cleanup this manager, false not to.
     */
    virtual void setConfigManager(
-      db::config::ConfigManager* configManager, bool cleanup = true);
+      monarch::config::ConfigManager* configManager, bool cleanup = true);
 
    /**
     * Gets this app's ConfigManager.
     *
     * @return the ConfigManager for this app.
     */
-   virtual db::config::ConfigManager* getConfigManager();
+   virtual monarch::config::ConfigManager* getConfigManager();
 
    /**
     * Convenience for getConfigManager()->getConfig(getMainConfigGroup()).
     *
     * @return the main config for this app.
     */
-   virtual db::config::Config getConfig();
+   virtual monarch::config::Config getConfig();
 
    /**
     * Gets the meta configuration object.
@@ -270,7 +270,7 @@ public:
     *
     * @return the meta config.
     */
-   virtual db::config::Config getMetaConfig();
+   virtual monarch::config::Config getMetaConfig();
 
    /**
     * Parses the command line options that were passed to the application.
@@ -307,7 +307,7 @@ public:
     */
    virtual int main(
       int argc, const char* argv[],
-      std::vector<db::app::AppPluginRef>* plugins = NULL,
+      std::vector<monarch::app::AppPluginRef>* plugins = NULL,
       bool standard = true);
 
    /**
@@ -315,7 +315,7 @@ public:
     *
     * @param e the exception to print.
     */
-   static void printException(db::rt::ExceptionRef& e);
+   static void printException(monarch::rt::ExceptionRef& e);
 
    /**
     * Pretty print an exception to a given output stream.
@@ -323,7 +323,7 @@ public:
     * @param e the exception to print.
     * @param s the output stream.
     */
-   static void printException(db::rt::ExceptionRef& e, std::ostream& s);
+   static void printException(monarch::rt::ExceptionRef& e, std::ostream& s);
 
    /**
     * Pretty print last exception.
@@ -343,8 +343,8 @@ public:
     *
     * @return true on success, false and exception on failure.
     */
-   static db::config::Config makeMetaConfig(
-      db::config::Config& meta,
+   static monarch::config::Config makeMetaConfig(
+      monarch::config::Config& meta,
       const char* id = NULL,
       const char* groupId = NULL);
 };
@@ -358,9 +358,9 @@ public:
 #define DB_APP_PLUGIN_MAIN(appPluginClassName)                \
 int main(int argc, const char* argv[])                        \
 {                                                             \
-   db::app::App app;                                          \
-   std::vector<db::app::AppPluginRef> plugins;                \
-   db::app::AppPluginRef plugin = new appPluginClassName;     \
+   monarch::app::App app;                                          \
+   std::vector<monarch::app::AppPluginRef> plugins;                \
+   monarch::app::AppPluginRef plugin = new appPluginClassName;     \
    plugins.push_back(plugin);                                 \
    return app.main(argc, argv, &plugins);                     \
 }

@@ -8,7 +8,7 @@
 
 #include <cstdlib>
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 Exception::Exception(const char* message, const char* type, int code)
 {

@@ -3,7 +3,7 @@
  */
 #include "monarch/io/IOMonitor.h"
 
-using namespace db::io;
+using namespace monarch::io;
 
 IOMonitor::IOMonitor()
 {

@@ -15,10 +15,10 @@ namespace mail
 {
 
 // typedefs for Address and AddressList
-typedef db::rt::DynamicObject Address;
-typedef db::rt::DynamicObject AddressList;
-typedef db::rt::DynamicObjectIterator AddressIterator;
-typedef db::rt::DynamicObject Message;
+typedef monarch::rt::DynamicObject Address;
+typedef monarch::rt::DynamicObject AddressList;
+typedef monarch::rt::DynamicObjectIterator AddressIterator;
+typedef monarch::rt::DynamicObject Message;
 
 /**
  * A Mail is a class that represents an email message.

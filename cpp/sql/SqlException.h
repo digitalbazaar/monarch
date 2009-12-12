@@ -16,7 +16,7 @@ namespace sql
  *
  * @author Dave Longley
  */
-class SqlException : public db::rt::Exception
+class SqlException : public monarch::rt::Exception
 {
 public:
    /**

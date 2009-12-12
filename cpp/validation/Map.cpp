@@ -3,8 +3,8 @@
  */
 #include "monarch/validation/Map.h"
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Map::Map()
 {
@@ -37,7 +37,7 @@ bool Map::isValid(
 {
    bool rval = true;
 
-   if(!obj.isNull() && obj->getType() == db::rt::Map)
+   if(!obj.isNull() && obj->getType() == monarch::rt::Map)
    {
       std::vector<std::pair<const char*,Validator*> >::iterator i;
       for(i = mValidators.begin(); i != mValidators.end(); i++)

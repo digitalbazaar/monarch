@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <cstring>
 
-using namespace db::util;
+using namespace monarch::util;
 
 StringTokenizer::StringTokenizer() :
    mFirstToken(NULL),

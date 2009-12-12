@@ -47,22 +47,22 @@ public:
    /**
     * {@inheritDoc}
     */
-   virtual bool willInitMetaConfig(db::config::Config& meta);
+   virtual bool willInitMetaConfig(monarch::config::Config& meta);
 
    /**
     * {@inheritDoc}
     */
-   virtual bool initMetaConfig(db::config::Config& meta);
+   virtual bool initMetaConfig(monarch::config::Config& meta);
 
    /**
     * {@inheritDoc}
     */
-   virtual bool didInitMetaConfig(db::config::Config& meta);
+   virtual bool didInitMetaConfig(monarch::config::Config& meta);
 
    /**
     * {@inheritDoc}
     */
-   virtual db::rt::DynamicObject getCommandLineSpecs();
+   virtual monarch::rt::DynamicObject getCommandLineSpecs();
 
    /**
     * {@inheritDoc}

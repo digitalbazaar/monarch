@@ -10,14 +10,14 @@
 #include "monarch/test/TestRunner.h"
 
 using namespace std;
-using namespace db::sphinx;
-using namespace db::data::json;
-using namespace db::io;
-using namespace db::net;
-using namespace db::rt;
-using namespace db::test;
+using namespace monarch::sphinx;
+using namespace monarch::data::json;
+using namespace monarch::io;
+using namespace monarch::net;
+using namespace monarch::rt;
+using namespace monarch::test;
 
-void runSphinxClientTest(TestRunner &tr, db::test::Tester& tester)
+void runSphinxClientTest(TestRunner &tr, monarch::test::Tester& tester)
 {
    tr.group("SphinxClient");
 
@@ -55,7 +55,7 @@ void runSphinxClientTest(TestRunner &tr, db::test::Tester& tester)
    tr.ungroup();
 }
 
-class DbSphinxClientTester : public db::test::Tester
+class DbSphinxClientTester : public monarch::test::Tester
 {
 public:
    DbSphinxClientTester()
@@ -81,7 +81,7 @@ public:
    }
 };
 
-db::test::Tester* getDbSphinxClientTester() { return new DbSphinxClientTester(); }
+monarch::test::Tester* getDbSphinxClientTester() { return new DbSphinxClientTester(); }
 
 
 DB_TEST_MAIN(DbSphinxClientTester)

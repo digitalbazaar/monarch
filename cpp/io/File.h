@@ -292,7 +292,7 @@ public:
     *
     * @return date this file was last modified or Date(0) on error.
     */
-   virtual db::util::Date getModifiedDate();
+   virtual monarch::util::Date getModifiedDate();
 };
 
 /**
@@ -301,7 +301,7 @@ public:
  *
  * @author Dave Longley
  */
-class File : public db::rt::Collectable<FileImpl>
+class File : public monarch::rt::Collectable<FileImpl>
 {
 public:
    /**
@@ -325,7 +325,7 @@ public:
     * @param path an optional path name.
     */
    File(const char* path) :
-      db::rt::Collectable<FileImpl>(new FileImpl(path)) {};
+      monarch::rt::Collectable<FileImpl>(new FileImpl(path)) {};
 
    /**
     * Creates a File object.
@@ -333,7 +333,7 @@ public:
     * @param impl the FileImpl to reference.
     */
    File(FileImpl* impl) :
-      db::rt::Collectable<FileImpl>(impl) {};
+      monarch::rt::Collectable<FileImpl>(impl) {};
 
    /**
     * Destructs this File.

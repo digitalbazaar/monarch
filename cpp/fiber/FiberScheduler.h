@@ -23,13 +23,13 @@ namespace fiber
  *
  * @author Dave Longley
  */
-class FiberScheduler : public db::rt::Runnable
+class FiberScheduler : public monarch::rt::Runnable
 {
 protected:
    /**
     * The list of Operations to run Fibers on.
     */
-   db::modest::OperationList mOpList;
+   monarch::modest::OperationList mOpList;
 
    /**
     * A list of scheduler contexts.
@@ -68,17 +68,17 @@ protected:
    /**
     * An exclusive lock for scheduling the next fiber.
     */
-   db::rt::ExclusiveLock mScheduleLock;
+   monarch::rt::ExclusiveLock mScheduleLock;
 
    /**
     * An exclusive lock for waiting for fibers.
     */
-   db::rt::ExclusiveLock mFiberWaitLock;
+   monarch::rt::ExclusiveLock mFiberWaitLock;
 
    /**
     * An exclusive lock for waiting for the fiber list to empty.
     */
-   db::rt::ExclusiveLock mNoFibersWaitLock;
+   monarch::rt::ExclusiveLock mNoFibersWaitLock;
 
 public:
    /**
@@ -99,7 +99,7 @@ public:
     * @param numOps the number of Operations to run fibers on.
     */
    virtual void start(
-      db::modest::OperationRunner* opRunner, int numOps);
+      monarch::modest::OperationRunner* opRunner, int numOps);
 
    /**
     * Stops this FiberScheduler. This method will not cause its Fibers to

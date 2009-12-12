@@ -7,9 +7,9 @@
 
 #include "monarch/rt/Exception.h"
 
-using namespace db::data;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::data;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 #define BUFFER_SIZE 2048
 #define EOL         '\n'

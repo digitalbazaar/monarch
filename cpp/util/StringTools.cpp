@@ -14,9 +14,9 @@
 #include <algorithm>
 
 using namespace std;
-using namespace db::rt;
-using namespace db::util;
-using namespace db::util::regex;
+using namespace monarch::rt;
+using namespace monarch::util;
+using namespace monarch::util::regex;
 
 string& StringTools::trim(string& str, const string& trimChars)
 {

@@ -15,11 +15,11 @@
 #include "monarch/test/Test.h"
 
 using namespace std;
-using namespace db::config;
-using namespace db::data::json;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::test;
+using namespace monarch::config;
+using namespace monarch::data::json;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::test;
 
 #ifdef WIN32
 #define TMPDIR "c:/WINDOWS/Temp"

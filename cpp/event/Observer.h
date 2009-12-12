@@ -40,7 +40,7 @@ public:
 };
 
 // type definition for a reference-counted Observer
-typedef db::rt::Collectable<Observer> ObserverRef;
+typedef monarch::rt::Collectable<Observer> ObserverRef;
 
 } // end namespace event
 } // end namespace db

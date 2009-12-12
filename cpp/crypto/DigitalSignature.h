@@ -129,7 +129,7 @@ public:
 };
 
 // typedef for a counted reference to a DigitalSignature
-typedef db::rt::Collectable<DigitalSignature> DigitalSignatureRef;
+typedef monarch::rt::Collectable<DigitalSignature> DigitalSignatureRef;
 
 } // end namespace crypto
 } // end namespace db

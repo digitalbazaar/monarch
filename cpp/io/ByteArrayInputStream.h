@@ -18,7 +18,7 @@ namespace io
  *
  * @author Dave Longley
  */
-class ByteArrayInputStream : public db::io::InputStream
+class ByteArrayInputStream : public monarch::io::InputStream
 {
 protected:
    /**

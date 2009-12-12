@@ -3,7 +3,7 @@
  */
 #include "monarch/io/TruncateInputStream.h"
 
-using namespace db::io;
+using namespace monarch::io;
 
 TruncateInputStream::TruncateInputStream(
    uint64_t max, InputStream* is, bool cleanup) :

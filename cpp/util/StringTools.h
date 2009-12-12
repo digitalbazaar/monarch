@@ -100,7 +100,7 @@ public:
     *
     * @return the DynamicObject array.
     */
-   static db::rt::DynamicObject split(const char* str, const char* delimiter);
+   static monarch::rt::DynamicObject split(const char* str, const char* delimiter);
 
    /**
     * Joins DynamicObject array or map values using the given string as
@@ -111,7 +111,7 @@ public:
     *
     * @return the joined string.
     */
-   static std::string join(db::rt::DynamicObject dyno, const char* glue);
+   static std::string join(monarch::rt::DynamicObject dyno, const char* glue);
 
    /**
     * Converts the passed string to upper case.

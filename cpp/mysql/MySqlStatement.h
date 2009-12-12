@@ -23,7 +23,7 @@ class MySqlConnection;
  *
  * @author Dave Longley
  */
-class MySqlStatement : public db::sql::Statement
+class MySqlStatement : public monarch::sql::Statement
 {
 protected:
    /**

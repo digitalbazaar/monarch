@@ -25,10 +25,10 @@
 #include <cstdlib>
 
 using namespace std;
-using namespace db::test;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::test;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 // redefine this here to make testing easier via cpp string concatination
 #ifdef WIN32
@@ -1137,7 +1137,7 @@ void runIOMonitorTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbIoTester : public db::test::Tester
+class DbIoTester : public monarch::test::Tester
 {
 public:
    DbIoTester()
@@ -1175,7 +1175,7 @@ public:
 
 #undef SEP
 
-db::test::Tester* getDbIoTester() { return new DbIoTester(); }
+monarch::test::Tester* getDbIoTester() { return new DbIoTester(); }
 
 
 DB_TEST_MAIN(DbIoTester)

@@ -3,8 +3,8 @@
  */
 #include "monarch/modest/Operation.h"
 
-using namespace db::modest;
-using namespace db::rt;
+using namespace monarch::modest;
+using namespace monarch::rt;
 
 Operation::Operation(Runnable& r) :
    Collectable<OperationImpl>(new OperationImpl(r))

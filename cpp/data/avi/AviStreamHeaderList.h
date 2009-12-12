@@ -58,7 +58,7 @@ protected:
    /**
     * The AVI stream header RIFF header.
     */
-   db::data::riff::RiffListHeader mRiffHeader;
+   monarch::data::riff::RiffListHeader mRiffHeader;
 
    /**
     * The Stream Header.
@@ -94,7 +94,7 @@ public:
     *
     * @exception true on success, false on an Exception.
     */
-   virtual bool writeTo(db::io::OutputStream& os);
+   virtual bool writeTo(monarch::io::OutputStream& os);
 
    /**
     * Converts this AviStreamHeaderList from a byte array.

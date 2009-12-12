@@ -19,7 +19,7 @@ namespace sqlite3
  *
  * @author Dave Longley
  */
-class Sqlite3DatabaseClient : public db::sql::DatabaseClient
+class Sqlite3DatabaseClient : public monarch::sql::DatabaseClient
 {
 public:
    /**
@@ -52,8 +52,8 @@ public:
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef update(
-      const char* table, db::rt::DynamicObject& row,
-      db::rt::DynamicObject* where = NULL,
+      const char* table, monarch::rt::DynamicObject& row,
+      monarch::rt::DynamicObject* where = NULL,
       uint64_t limit = 0, uint64_t start = 0);
 };
 

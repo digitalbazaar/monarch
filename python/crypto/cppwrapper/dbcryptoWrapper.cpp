@@ -13,28 +13,28 @@ using namespace std;
 
 MessageDigest::MessageDigest(const string& algorithm)
 {
-   _md = new db::crypto::MessageDigest(algorithm);
+   _md = new monarch::crypto::MessageDigest(algorithm);
 }
 
 MessageDigest::~MessageDigest()
 {
-   delete ((db::crypto::MessageDigest*)_md);
+   delete ((monarch::crypto::MessageDigest*)_md);
 }
    
 void MessageDigest::reset()
 {
-   ((db::crypto::MessageDigest*)_md)->reset();
+   ((monarch::crypto::MessageDigest*)_md)->reset();
 }
 
 void MessageDigest::update(const string& b)
 {
-   ((db::crypto::MessageDigest*)_md)->update(b.c_str(), b.length());
+   ((monarch::crypto::MessageDigest*)_md)->update(b.c_str(), b.length());
 }
 
 string MessageDigest::getValue()
 {
-   db::crypto::MessageDigest* md =
-      (db::crypto::MessageDigest*)_md;
+   monarch::crypto::MessageDigest* md =
+      (monarch::crypto::MessageDigest*)_md;
    
    unsigned int length = md->getValueLength();
    char value[length];
@@ -45,7 +45,7 @@ string MessageDigest::getValue()
 
 string MessageDigest::getDigest()
 {
-   return ((db::crypto::MessageDigest*)_md)->getDigest();
+   return ((monarch::crypto::MessageDigest*)_md)->getDigest();
 }
 
 PrivateKey::PrivateKey()
@@ -57,7 +57,7 @@ PrivateKey::~PrivateKey()
 {
    if(_key != NULL)
    {
-      delete ((db::crypto::PrivateKey*)_key);
+      delete ((monarch::crypto::PrivateKey*)_key);
    }
 }
 
@@ -75,7 +75,7 @@ DigitalSignature* PrivateKey::createSignature()
 
 string PrivateKey::getAlgorithm()
 {
-   return ((db::crypto::PrivateKey*)_key)->getAlgorithm();
+   return ((monarch::crypto::PrivateKey*)_key)->getAlgorithm();
 }
 
 PublicKey::PublicKey()
@@ -87,7 +87,7 @@ PublicKey::~PublicKey()
 {
    if(_key != NULL)
    {
-      delete ((db::crypto::PublicKey*)_key);
+      delete ((monarch::crypto::PublicKey*)_key);
    }
 }
 
@@ -105,40 +105,40 @@ DigitalSignature* PublicKey::createSignature()
 
 string PublicKey::getAlgorithm()
 {
-   return ((db::crypto::PublicKey*)_key)->getAlgorithm();
+   return ((monarch::crypto::PublicKey*)_key)->getAlgorithm();
 }
 
 DigitalSignature::DigitalSignature(PrivateKey* key)
 {
-   _signature = new db::crypto::DigitalSignature(
-      (db::crypto::PrivateKey*)key->_key);
+   _signature = new monarch::crypto::DigitalSignature(
+      (monarch::crypto::PrivateKey*)key->_key);
 }
 
 DigitalSignature::DigitalSignature(PublicKey* key)
 {
-   _signature = new db::crypto::DigitalSignature(
-      (db::crypto::PublicKey*)key->_key);
+   _signature = new monarch::crypto::DigitalSignature(
+      (monarch::crypto::PublicKey*)key->_key);
 }
 
 DigitalSignature::~DigitalSignature()
 {
-   delete ((db::crypto::DigitalSignature*)_signature);
+   delete ((monarch::crypto::DigitalSignature*)_signature);
 }
 
 void DigitalSignature::reset()
 {
-   ((db::crypto::DigitalSignature*)_signature)->reset();
+   ((monarch::crypto::DigitalSignature*)_signature)->reset();
 }
 
 void DigitalSignature::update(const string& b)
 {
-   ((db::crypto::DigitalSignature*)_signature)->update(b.c_str(), b.length());
+   ((monarch::crypto::DigitalSignature*)_signature)->update(b.c_str(), b.length());
 }
 
 string DigitalSignature::getValue()
 {
-   db::crypto::DigitalSignature* sig =
-      (db::crypto::DigitalSignature*)_signature;
+   monarch::crypto::DigitalSignature* sig =
+      (monarch::crypto::DigitalSignature*)_signature;
    
    unsigned int length = sig->getValueLength();
    char value[length];
@@ -149,18 +149,18 @@ string DigitalSignature::getValue()
 
 bool DigitalSignature::verify(const string& b) 
 {
-   return ((db::crypto::DigitalSignature*)_signature)->verify(
+   return ((monarch::crypto::DigitalSignature*)_signature)->verify(
       b.c_str(), b.length());
 }
 
 KeyFactory::KeyFactory()
 {
-   _aKeyFactory = new db::crypto::AsymmetricKeyFactory();
+   _aKeyFactory = new monarch::crypto::AsymmetricKeyFactory();
 }
 
 KeyFactory::~KeyFactory()
 {
-   delete ((db::crypto::AsymmetricKeyFactory*)_aKeyFactory);
+   delete ((monarch::crypto::AsymmetricKeyFactory*)_aKeyFactory);
 }
 
 bool KeyFactory::createKeyPair(
@@ -170,21 +170,21 @@ bool KeyFactory::createKeyPair(
    
    if(privateKey->_key != NULL)
    {
-      delete ((db::crypto::PrivateKey*)privateKey->_key);
+      delete ((monarch::crypto::PrivateKey*)privateKey->_key);
       privateKey->_key = NULL;
    }
    
    if(publicKey->_key != NULL)
    {
-      delete ((db::crypto::PublicKey*)publicKey->_key);
+      delete ((monarch::crypto::PublicKey*)publicKey->_key);
       publicKey->_key = NULL;
    }
    
-   db::crypto::AsymmetricKeyFactory* f =
-      (db::crypto::AsymmetricKeyFactory*)_aKeyFactory;
+   monarch::crypto::AsymmetricKeyFactory* f =
+      (monarch::crypto::AsymmetricKeyFactory*)_aKeyFactory;
    
-   db::crypto::PrivateKey** priKey;
-   db::crypto::PublicKey** pubKey;
+   monarch::crypto::PrivateKey** priKey;
+   monarch::crypto::PublicKey** pubKey;
    if(f->createKeyPair(algorithm.c_str(), priKey, pubKey))
    {
       privateKey->_key = *priKey;
@@ -200,15 +200,15 @@ bool KeyFactory::loadPrivateKeyFromPem(
 {
    bool rval = false;
    
-   db::crypto::AsymmetricKeyFactory* f =
-      (db::crypto::AsymmetricKeyFactory*)_aKeyFactory;
+   monarch::crypto::AsymmetricKeyFactory* f =
+      (monarch::crypto::AsymmetricKeyFactory*)_aKeyFactory;
    
-   db::crypto::PrivateKey* k = f->loadPrivateKeyFromPem(pem, password);
+   monarch::crypto::PrivateKey* k = f->loadPrivateKeyFromPem(pem, password);
    if(k != NULL)
    {
       if(key->_key != NULL)
       {
-         delete ((db::crypto::PrivateKey*)key->_key);
+         delete ((monarch::crypto::PrivateKey*)key->_key);
          key->_key = NULL;
       }
       
@@ -224,13 +224,13 @@ string KeyFactory::writePrivateKeyToPem(
 {
    string rval;
    
-   db::crypto::AsymmetricKeyFactory* f =
-      (db::crypto::AsymmetricKeyFactory*)_aKeyFactory;
+   monarch::crypto::AsymmetricKeyFactory* f =
+      (monarch::crypto::AsymmetricKeyFactory*)_aKeyFactory;
    
    if(key->_key != NULL)
    {
       rval = f->writePrivateKeyToPem(
-         (db::crypto::PrivateKey*)key->_key, password);
+         (monarch::crypto::PrivateKey*)key->_key, password);
    }
    
    return rval;
@@ -240,15 +240,15 @@ bool KeyFactory::loadPublicKeyFromPem(PublicKey* key, const string& pem)
 {
    bool rval = false;
    
-   db::crypto::AsymmetricKeyFactory* f =
-      (db::crypto::AsymmetricKeyFactory*)_aKeyFactory;
+   monarch::crypto::AsymmetricKeyFactory* f =
+      (monarch::crypto::AsymmetricKeyFactory*)_aKeyFactory;
    
-   db::crypto::PublicKey* k = f->loadPublicKeyFromPem(pem);
+   monarch::crypto::PublicKey* k = f->loadPublicKeyFromPem(pem);
    if(k != NULL)
    {
       if(key->_key != NULL)
       {
-         delete ((db::crypto::PublicKey*)key->_key);
+         delete ((monarch::crypto::PublicKey*)key->_key);
          key->_key = NULL;
       }
       
@@ -263,12 +263,12 @@ string KeyFactory::writePublicKeyToPem(PublicKey* key)
 {
    string rval;
    
-   db::crypto::AsymmetricKeyFactory* f =
-      (db::crypto::AsymmetricKeyFactory*)_aKeyFactory;
+   monarch::crypto::AsymmetricKeyFactory* f =
+      (monarch::crypto::AsymmetricKeyFactory*)_aKeyFactory;
    
    if(key->_key != NULL)
    {
-      rval = f->writePublicKeyToPem((db::crypto::PublicKey*)key->_key);
+      rval = f->writePublicKeyToPem((monarch::crypto::PublicKey*)key->_key);
    }
    
    return rval;

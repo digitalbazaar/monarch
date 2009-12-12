@@ -82,7 +82,7 @@ public:
 };
 
 // typedef for a counted reference to an HttpTrailer
-typedef db::rt::Collectable<HttpTrailer> HttpTrailerRef;
+typedef monarch::rt::Collectable<HttpTrailer> HttpTrailerRef;
 
 } // end namespace http
 } // end namespace db

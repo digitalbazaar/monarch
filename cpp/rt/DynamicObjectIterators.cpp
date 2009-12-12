@@ -3,7 +3,7 @@
  */
 #include "monarch/rt/DynamicObjectIterators.h"
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 /* Single */
 

@@ -3,8 +3,8 @@
  */
 #include "monarch/validation/Min.h"
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 Min::Min(int size, const char* errorMessage) :
    Validator(errorMessage),

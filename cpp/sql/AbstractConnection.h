@@ -25,13 +25,13 @@ protected:
    /**
     * The database driver parameters in URL form for this connection.
     */
-   db::net::UrlRef mUrl;
+   monarch::net::UrlRef mUrl;
 
    /**
     * A map of sql to prepared statements for this connection using
     * case-insensitive comparator to compare sql statements.
     */
-   typedef std::map<const char*, Statement*, db::util::StringCaseComparator>
+   typedef std::map<const char*, Statement*, monarch::util::StringCaseComparator>
       PreparedStmtMap;
    PreparedStmtMap mPreparedStmts;
 
@@ -64,7 +64,7 @@ public:
     *
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool connect(db::net::Url* url) = 0;
+   virtual bool connect(monarch::net::Url* url) = 0;
 
    /**
     * Prepares a Statement for execution. The Statement, if valid, is stored

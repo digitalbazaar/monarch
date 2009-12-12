@@ -22,13 +22,13 @@ namespace logging
  * @author David I. Lehn
  * @author Manu Sporny
  */
-class OutputStreamLogger : public db::logging::Logger
+class OutputStreamLogger : public monarch::logging::Logger
 {
 protected:
    /**
     * The file output stream to write logging information to.
     */
-   db::io::OutputStream* mStream;
+   monarch::io::OutputStream* mStream;
 
    /**
     * Flag to cleanup the output stream.
@@ -38,7 +38,7 @@ protected:
    /**
     * Lock for critical sections.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
 public:
    /**
@@ -48,7 +48,7 @@ public:
     * @param cleanup if the stream should be cleaned up.
     */
    OutputStreamLogger(
-      db::io::OutputStream* stream = NULL, bool cleanup = false);
+      monarch::io::OutputStream* stream = NULL, bool cleanup = false);
 
    /**
     * Overloaded to ensure that the stream gets closed when garbage
@@ -61,7 +61,7 @@ public:
     *
     * @return the print stream for this logger.
     */
-   virtual db::io::OutputStream* getOutputStream();
+   virtual monarch::io::OutputStream* getOutputStream();
 
    /**
     * Close and cleanup stream if cleanup flag set and stream exists.
@@ -75,7 +75,7 @@ public:
     * @param cleanup if the logger handles cleanup of this stream.
     * @param closeCurrent if the logger should close current stream.
     */
-   virtual void setOutputStream(db::io::OutputStream* os, bool cleanup = false,
+   virtual void setOutputStream(monarch::io::OutputStream* os, bool cleanup = false,
       bool closeCurrent = true);
 
    /**

@@ -95,7 +95,7 @@ public:
     *
     * @return true if successful, false if an SqlException occurred.
     */
-   virtual bool connect(db::net::Url* url);
+   virtual bool connect(monarch::net::Url* url);
 
    /**
     * Prepares a Statement for execution. The Statement, if valid, is stored

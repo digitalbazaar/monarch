@@ -7,8 +7,8 @@
 #include <cstring>
 
 using namespace std;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 TimeZone::TimeZone(unsigned int minutesWest)
 {

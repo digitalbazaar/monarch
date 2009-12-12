@@ -24,7 +24,7 @@ protected:
    /**
     * The database client for the spool database.
     */
-   db::sql::DatabaseClientRef mDbClient;
+   monarch::sql::DatabaseClientRef mDbClient;
 
 public:
    /**
@@ -63,7 +63,7 @@ public:
     *
     * @return true if successful, false if there was an exception.
     */
-   virtual bool spool(Mail* mail, db::rt::DynamicObject* reason);
+   virtual bool spool(Mail* mail, monarch::rt::DynamicObject* reason);
 
    /**
     * Gets the first mail in the spool. Note: If you are using getCount() to

@@ -7,9 +7,9 @@
 #include "monarch/sql/sqlite3/Sqlite3Row.h"
 
 using namespace std;
-using namespace db::sql;
-using namespace db::sql::sqlite3;
-using namespace db::rt;
+using namespace monarch::sql;
+using namespace monarch::sql::sqlite3;
+using namespace monarch::rt;
 
 Sqlite3Statement::Sqlite3Statement(const char* sql) :
    Statement(sql),

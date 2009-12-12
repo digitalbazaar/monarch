@@ -5,8 +5,8 @@
 
 #include "monarch/rt/DynamicObjectIterator.h"
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 In::In(DynamicObject& contents, const char* errorMessage) :
    Validator(errorMessage),

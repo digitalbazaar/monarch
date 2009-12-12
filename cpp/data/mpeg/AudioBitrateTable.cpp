@@ -4,7 +4,7 @@
 #include "monarch/data/mpeg/AudioBitrateTable.h"
 
 using namespace std;
-using namespace db::data::mpeg;
+using namespace monarch::data::mpeg;
 
 AudioBitrateTable::AudioBitrateTable()
 {

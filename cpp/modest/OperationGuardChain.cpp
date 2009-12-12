@@ -5,7 +5,7 @@
 
 #include "monarch/modest/Operation.h"
 
-using namespace db::modest;
+using namespace monarch::modest;
 
 OperationGuardChain::OperationGuardChain(
    OperationGuard* g1, OperationGuard* g2)

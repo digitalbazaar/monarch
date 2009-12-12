@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <cctype>
 
-using namespace db::rt;
+using namespace monarch::rt;
 
 DynamicObject::DynamicObject() :
    Collectable<DynamicObjectImpl>(new DynamicObjectImpl())

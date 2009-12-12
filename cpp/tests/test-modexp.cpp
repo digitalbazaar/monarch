@@ -8,11 +8,11 @@
 #include "monarch/util/Timer.h"
 
 using namespace std;
-using namespace db::test;
-using namespace db::crypto;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::test;
+using namespace monarch::crypto;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 void runModExpTest(TestRunner& tr)
 {
@@ -53,7 +53,7 @@ void runModExpTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbModExpTester : public db::test::Tester
+class DbModExpTester : public monarch::test::Tester
 {
 public:
    DbModExpTester()
@@ -79,7 +79,7 @@ public:
    }
 };
 
-db::test::Tester* getDbModExpTester() { return new DbModExpTester(); }
+monarch::test::Tester* getDbModExpTester() { return new DbModExpTester(); }
 
 
 DB_TEST_MAIN(DbModExpTester)

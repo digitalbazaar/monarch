@@ -7,10 +7,10 @@
 #include "monarch/rt/Exception.h"
 
 using namespace std;
-using namespace db::data;
-using namespace db::io;
-using namespace db::mail;
-using namespace db::rt;
+using namespace monarch::data;
+using namespace monarch::io;
+using namespace monarch::mail;
+using namespace monarch::rt;
 
 MailTemplateParser::MailTemplateParser()
 {

@@ -5,9 +5,9 @@
 
 #include "monarch/io/ByteArrayOutputStream.h"
 
-using namespace db::data;
-using namespace db::io;
-using namespace db::rt;
+using namespace monarch::data;
+using namespace monarch::io;
+using namespace monarch::rt;
 
 DynamicObjectInputStream::DynamicObjectInputStream(
    DynamicObject& dyno, DynamicObjectWriter* writer, bool cleanup) :

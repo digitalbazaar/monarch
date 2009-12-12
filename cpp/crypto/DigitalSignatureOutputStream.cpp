@@ -3,8 +3,8 @@
  */
 #include "monarch/crypto/DigitalSignatureOutputStream.h"
 
-using namespace db::crypto;
-using namespace db::io;
+using namespace monarch::crypto;
+using namespace monarch::io;
 
 DigitalSignatureOutputStream::DigitalSignatureOutputStream(
    DigitalSignature* ds, bool cleanupSignature,

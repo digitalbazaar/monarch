@@ -24,7 +24,7 @@ namespace logging
  * @author David I. Lehn
  * @author Manu Sporny
  */
-class FileLogger : public db::logging::OutputStreamLogger
+class FileLogger : public monarch::logging::OutputStreamLogger
 {
 public:
    enum {
@@ -38,7 +38,7 @@ protected:
    /**
     * The current log file.
     */
-   db::io::File mFile;
+   monarch::io::File mFile;
 
    /**
     * The file size when file rotation is performed.
@@ -61,7 +61,7 @@ protected:
    /**
     * Lock to serialize logging output and logger adjustment.
     */
-   db::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
 
    /**
     * Rotate the log file.  The current file is renamed to include a timestamp
@@ -82,12 +82,12 @@ protected:
    /**
     * Job dispatcher for compression jobs.
     */
-   db::rt::JobDispatcher mCompressionJobDispatcher;
+   monarch::rt::JobDispatcher mCompressionJobDispatcher;
 
    /**
     * Lock used to wait on compression completion.
     */
-   db::rt::ExclusiveLock mCompressionWaitLock;
+   monarch::rt::ExclusiveLock mCompressionWaitLock;
 
 public:
    /**
@@ -95,7 +95,7 @@ public:
     *
     * @param file the File for the logger.
     */
-   FileLogger(db::io::File* file = NULL);
+   FileLogger(monarch::io::File* file = NULL);
 
    /**
     * Overloaded to ensure that the stream gets closed when garbage
@@ -120,7 +120,7 @@ public:
     *
     * @return true if succesful, false and exception set if not.
     */
-   virtual bool setFile(db::io::File& file, bool append = true);
+   virtual bool setFile(monarch::io::File& file, bool append = true);
 
    /**
     * Sets the log file size (in bytes) that triggers rotation. Setting the
@@ -159,7 +159,7 @@ public:
     *
     * @return the compression job dispatcher.
     */
-   virtual db::rt::JobDispatcher& getCompressionJobDispatcher();
+   virtual monarch::rt::JobDispatcher& getCompressionJobDispatcher();
 
    /**
     * Gzip compress a file.
@@ -177,7 +177,7 @@ public:
     *
     * @return the file for this logger.
     */
-   virtual db::io::File& getFile();
+   virtual monarch::io::File& getFile();
 
    /**
     * Outputs a message and rotates the file as needed based on size.

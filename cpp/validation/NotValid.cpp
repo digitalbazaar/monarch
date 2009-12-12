@@ -3,8 +3,8 @@
  */
 #include "monarch/validation/NotValid.h"
 
-using namespace db::rt;
-using namespace db::validation;
+using namespace monarch::rt;
+using namespace monarch::validation;
 
 NotValid::NotValid(const char* errorMessage) :
    Validator(errorMessage)

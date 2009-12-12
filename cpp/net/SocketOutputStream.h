@@ -17,7 +17,7 @@ namespace net
  *
  * @author Dave Longley
  */
-class SocketOutputStream : public db::io::OutputStream
+class SocketOutputStream : public monarch::io::OutputStream
 {
 protected:
    /**

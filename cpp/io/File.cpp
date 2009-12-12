@@ -26,9 +26,9 @@
 #endif
 
 using namespace std;
-using namespace db::io;
-using namespace db::rt;
-using namespace db::util;
+using namespace monarch::io;
+using namespace monarch::rt;
+using namespace monarch::util;
 
 #ifdef WIN32
    const char* File::NAME_SEPARATOR = "\\";

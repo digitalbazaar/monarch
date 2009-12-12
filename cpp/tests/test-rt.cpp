@@ -20,8 +20,8 @@
 #include <map>
 
 using namespace std;
-using namespace db::test;
-using namespace db::rt;
+using namespace monarch::test;
+using namespace monarch::rt;
 
 void runTimeTest(TestRunner& tr)
 {
@@ -2235,7 +2235,7 @@ void runRunnableDelegateTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbRtTester : public db::test::Tester
+class DbRtTester : public monarch::test::Tester
 {
 public:
    DbRtTester()
@@ -2279,7 +2279,7 @@ public:
    }
 };
 
-db::test::Tester* getDbRtTester() { return new DbRtTester(); }
+monarch::test::Tester* getDbRtTester() { return new DbRtTester(); }
 
 
 DB_TEST_MAIN(DbRtTester)

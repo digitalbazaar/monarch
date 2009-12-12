@@ -89,7 +89,7 @@ protected:
    /**
     * A ByteBuffer for storing an "extra field."
     */
-   db::io::ByteBuffer mExtraField;
+   monarch::io::ByteBuffer mExtraField;
 
    /**
     * True if the FNAME flag is set, meaning an ISO 8859-1 (LATIN-1) filename
@@ -193,7 +193,7 @@ public:
     *
     * @param b the ByteBuffer to write to.
     */
-   virtual void convertToBytes(db::io::ByteBuffer* b);
+   virtual void convertToBytes(monarch::io::ByteBuffer* b);
 
    /**
     * Sets the FHCRC flag. If true, this header uses a CRC, if false, it does not.

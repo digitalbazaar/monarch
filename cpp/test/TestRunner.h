@@ -52,7 +52,7 @@ protected:
    /**
     * App running this test.
     */
-   db::app::App* mApp;
+   monarch::app::App* mApp;
 
    /**
     * Total number of started tests.
@@ -106,7 +106,7 @@ public:
     * @param outputLevel OutputLevel to use.
     */
    TestRunner(
-      db::app::App* app, bool doneOnException, OutputLevel outputLevel = Names);
+      monarch::app::App* app, bool doneOnException, OutputLevel outputLevel = Names);
 
    /**
     * Destructs this TestRunner.
@@ -118,7 +118,7 @@ public:
     *
     * @return the app for this TestRunner.
     */
-   virtual db::app::App* getApp();
+   virtual monarch::app::App* getApp();
 
    /**
     * Get the output level.
