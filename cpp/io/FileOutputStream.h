@@ -4,8 +4,8 @@
 #ifndef db_io_FileOutputStream_H
 #define db_io_FileOutputStream_H
 
-#include "db/io/File.h"
-#include "db/io/OutputStream.h"
+#include "monarch/io/File.h"
+#include "monarch/io/OutputStream.h"
 
 #include <cstdio>
 

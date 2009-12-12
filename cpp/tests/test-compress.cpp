@@ -1,20 +1,20 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/io/File.h"
-#include "db/io/FileInputStream.h"
-#include "db/io/FileOutputStream.h"
-#include "db/io/FileList.h"
-#include "db/io/OStreamOutputStream.h"
-#include "db/io/MutatorInputStream.h"
-#include "db/io/MutatorOutputStream.h"
-#include "db/compress/deflate/Deflater.h"
-#include "db/compress/gzip/Gzipper.h"
-#include "db/compress/zip/Zipper.h"
-#include "db/crypto/MessageDigest.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
+#include "monarch/io/File.h"
+#include "monarch/io/FileInputStream.h"
+#include "monarch/io/FileOutputStream.h"
+#include "monarch/io/FileList.h"
+#include "monarch/io/OStreamOutputStream.h"
+#include "monarch/io/MutatorInputStream.h"
+#include "monarch/io/MutatorOutputStream.h"
+#include "monarch/compress/deflate/Deflater.h"
+#include "monarch/compress/gzip/Gzipper.h"
+#include "monarch/compress/zip/Zipper.h"
+#include "monarch/crypto/MessageDigest.h"
 
 using namespace std;
 using namespace db::test;

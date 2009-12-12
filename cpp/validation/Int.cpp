@@ -4,9 +4,9 @@
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
 
-#include "db/validation/Int.h"
+#include "monarch/validation/Int.h"
 
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 #include <inttypes.h>
 

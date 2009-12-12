@@ -4,7 +4,7 @@
 #ifndef db_crypto_AbstractBlockCipher_H
 #define db_crypto_AbstractBlockCipher_H
 
-#include "db/crypto/BlockCipher.h"
+#include "monarch/crypto/BlockCipher.h"
 
 #include <openssl/evp.h>
 #include <string>

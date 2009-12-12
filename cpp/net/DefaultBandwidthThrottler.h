@@ -4,8 +4,8 @@
 #ifndef db_net_DefaultBandwidthThrottler_H
 #define db_net_DefaultBandwidthThrottler_H
 
-#include "db/net/BandwidthThrottler.h"
-#include "db/rt/ExclusiveLock.h"
+#include "monarch/net/BandwidthThrottler.h"
+#include "monarch/rt/ExclusiveLock.h"
 
 namespace db
 {

@@ -4,9 +4,9 @@
 #ifndef db_config_ConfigManager_H
 #define db_config_ConfigManager_H
 
-#include "db/rt/DynamicObject.h"
-#include "db/rt/DynamicObjectIterator.h"
-#include "db/rt/SharedLock.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObjectIterator.h"
+#include "monarch/rt/SharedLock.h"
 
 namespace db
 {

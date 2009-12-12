@@ -4,7 +4,7 @@
 #ifndef db_modest_StateMutatorChain_H
 #define db_modest_StateMutatorChain_H
 
-#include "db/modest/StateMutator.h"
+#include "monarch/modest/StateMutator.h"
 
 namespace db
 {

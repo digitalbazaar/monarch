@@ -4,9 +4,9 @@
 #ifndef db_modest_Kernel_H
 #define db_modest_Kernel_H
 
-#include "db/modest/Engine.h"
-#include "db/modest/ModuleLibrary.h"
-#include "db/modest/OperationRunner.h"
+#include "monarch/modest/Engine.h"
+#include "monarch/modest/ModuleLibrary.h"
+#include "monarch/modest/OperationRunner.h"
 
 namespace db
 {

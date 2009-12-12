@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/PortService.h"
+#include "monarch/net/PortService.h"
 
-#include "db/net/Server.h"
+#include "monarch/net/Server.h"
 
 #include <cstdlib>
 

@@ -8,9 +8,9 @@
 #include <sched.h>
 #include <signal.h>
 
-#include "db/rt/ExclusiveLock.h"
-#include "db/rt/Exception.h"
-#include "db/rt/Runnable.h"
+#include "monarch/rt/ExclusiveLock.h"
+#include "monarch/rt/Exception.h"
+#include "monarch/rt/Runnable.h"
 
 namespace db
 {

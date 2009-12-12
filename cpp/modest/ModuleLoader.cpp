@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/modest/ModuleLoader.h"
+#include "monarch/modest/ModuleLoader.h"
 
-#include "db/rt/DynamicLibrary.h"
+#include "monarch/rt/DynamicLibrary.h"
 
 #include <cstring>
 

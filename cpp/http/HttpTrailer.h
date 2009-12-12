@@ -4,8 +4,8 @@
 #ifndef db_http_HttpTrailer_H
 #define db_http_HttpTrailer_H
 
-#include "db/http/HttpHeader.h"
-#include "db/rt/Collectable.h"
+#include "monarch/http/HttpHeader.h"
+#include "monarch/rt/Collectable.h"
 
 namespace db
 {

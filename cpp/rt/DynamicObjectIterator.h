@@ -4,8 +4,8 @@
 #ifndef db_rt_DynamicObjectIterator_H
 #define db_rt_DynamicObjectIterator_H
 
-#include "db/rt/Iterator.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/rt/Iterator.h"
+#include "monarch/rt/DynamicObject.h"
 
 namespace db
 {

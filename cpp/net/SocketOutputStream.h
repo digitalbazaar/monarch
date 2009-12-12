@@ -4,8 +4,8 @@
 #ifndef db_net_SocketOutputStream_H
 #define db_net_SocketOutputStream_H
 
-#include "db/io/OutputStream.h"
-#include "db/net/Socket.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/net/Socket.h"
 
 namespace db
 {

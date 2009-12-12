@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/validation/In.h"
+#include "monarch/validation/In.h"
 
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 using namespace db::rt;
 using namespace db::validation;

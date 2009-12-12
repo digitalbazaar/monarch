@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/avi/AviHeader.h"
+#include "monarch/data/avi/AviHeader.h"
 
-#include "db/util/Data.h"
+#include "monarch/util/Data.h"
 
 #include <cstring>
 

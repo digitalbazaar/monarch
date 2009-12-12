@@ -4,10 +4,10 @@
 #ifndef db_net_ConnectionService_H
 #define db_net_ConnectionService_H
 
-#include "db/modest/OperationList.h"
-#include "db/net/Connection.h"
-#include "db/net/PortService.h"
-#include "db/net/SocketDataPresenter.h"
+#include "monarch/modest/OperationList.h"
+#include "monarch/net/Connection.h"
+#include "monarch/net/PortService.h"
+#include "monarch/net/SocketDataPresenter.h"
 
 namespace db
 {

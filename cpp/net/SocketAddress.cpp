@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/SocketAddress.h"
+#include "monarch/net/SocketAddress.h"
 
-#include "db/net/SocketDefinitions.h"
-#include "db/rt/Exception.h"
+#include "monarch/net/SocketDefinitions.h"
+#include "monarch/rt/Exception.h"
 
 #include <cstdlib>
 #include <cstring>

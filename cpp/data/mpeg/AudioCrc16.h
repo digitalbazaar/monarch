@@ -4,8 +4,8 @@
 #ifndef db_data_mpeg_Crc16_H
 #define db_data_mpeg_Crc16_H
 
-#include "db/util/Crc16.h"
-#include "db/data/mpeg/AudioFrameHeader.h"
+#include "monarch/util/Crc16.h"
+#include "monarch/data/mpeg/AudioFrameHeader.h"
 
 namespace db
 {

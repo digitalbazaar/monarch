@@ -4,9 +4,9 @@
 #ifndef db_sql_DatabaseClient_H
 #define db_sql_DatabaseClient_H
 
-#include "db/sql/ConnectionPool.h"
-#include "db/rt/DynamicObject.h"
-#include "db/validation/Validation.h"
+#include "monarch/sql/ConnectionPool.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/validation/Validation.h"
 
 namespace db
 {

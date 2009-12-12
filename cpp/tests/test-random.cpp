@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/util/Random.h"
-#include "db/util/Math.h"
-#include "db/rt/Thread.h"
+#include "monarch/util/Random.h"
+#include "monarch/util/Math.h"
+#include "monarch/rt/Thread.h"
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -10,8 +10,8 @@
 #include <list>
 #include <string>
 
-#include "db/rt/SharedLock.h"
-#include "db/logging/Category.h"
+#include "monarch/rt/SharedLock.h"
+#include "monarch/logging/Category.h"
 
 namespace db
 {

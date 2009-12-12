@@ -6,8 +6,8 @@
 
 #include <sqlite3.h>
 
-#include "db/sql/Statement.h"
-#include "db/sql/sqlite3/Sqlite3Row.h"
+#include "monarch/sql/Statement.h"
+#include "monarch/sql/sqlite3/Sqlite3Row.h"
 
 namespace db
 {

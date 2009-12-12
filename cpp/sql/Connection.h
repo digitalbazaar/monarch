@@ -4,9 +4,9 @@
 #ifndef db_sql_Connection_H
 #define db_sql_Connection_H
 
-#include "db/net/Url.h"
-#include "db/sql/SqlException.h"
-#include "db/rt/Collectable.h"
+#include "monarch/net/Url.h"
+#include "monarch/sql/SqlException.h"
+#include "monarch/rt/Collectable.h"
 
 namespace db
 {

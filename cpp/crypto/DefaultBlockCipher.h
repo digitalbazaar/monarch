@@ -4,8 +4,8 @@
 #ifndef db_crypto_DefaultBlockCipher_H
 #define db_crypto_DefaultBlockCipher_H
 
-#include "db/crypto/AbstractBlockCipher.h"
-#include "db/crypto/SymmetricKey.h"
+#include "monarch/crypto/AbstractBlockCipher.h"
+#include "monarch/crypto/SymmetricKey.h"
 
 namespace db
 {

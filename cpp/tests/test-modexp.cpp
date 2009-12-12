@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/crypto/BigInteger.h"
-#include "db/util/Timer.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
+#include "monarch/crypto/BigInteger.h"
+#include "monarch/util/Timer.h"
 
 using namespace std;
 using namespace db::test;

@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/fiber/MessagableFiber.h"
+#include "monarch/fiber/MessagableFiber.h"
 
-#include "db/fiber/FiberScheduler.h"
-#include "db/fiber/FiberMessageCenter.h"
+#include "monarch/fiber/FiberScheduler.h"
+#include "monarch/fiber/FiberMessageCenter.h"
 
 using namespace db::fiber;
 using namespace db::rt;

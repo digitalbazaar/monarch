@@ -4,9 +4,9 @@
 #ifndef db_mail_MailSpool_H
 #define db_mail_MailSpool_H
 
-#include "db/mail/Mail.h"
-#include "db/io/File.h"
-#include "db/sql/DatabaseClient.h"
+#include "monarch/mail/Mail.h"
+#include "monarch/io/File.h"
+#include "monarch/sql/DatabaseClient.h"
 
 namespace db
 {

@@ -4,12 +4,12 @@
 #ifndef db_net_Connection_H
 #define db_net_Connection_H
 
-#include "db/rt/SharedLock.h"
-#include "db/net/Socket.h"
-#include "db/net/SocketAddress.h"
-#include "db/net/BandwidthThrottler.h"
-#include "db/net/ConnectionInputStream.h"
-#include "db/net/ConnectionOutputStream.h"
+#include "monarch/rt/SharedLock.h"
+#include "monarch/net/Socket.h"
+#include "monarch/net/SocketAddress.h"
+#include "monarch/net/BandwidthThrottler.h"
+#include "monarch/net/ConnectionInputStream.h"
+#include "monarch/net/ConnectionOutputStream.h"
 
 namespace db
 {

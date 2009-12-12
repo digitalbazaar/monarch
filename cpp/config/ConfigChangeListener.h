@@ -4,7 +4,7 @@
 #ifndef db_config_ConfigChangeListener_H
 #define db_config_ConfigChangeListener_H
 
-#include "db/config/ConfigManager.h"
+#include "monarch/config/ConfigManager.h"
 
 namespace db
 {

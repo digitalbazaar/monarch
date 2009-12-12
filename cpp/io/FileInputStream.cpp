@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/io/FileInputStream.h"
+#include "monarch/io/FileInputStream.h"
 
-#include "db/io/FileFunctions.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/io/FileFunctions.h"
+#include "monarch/rt/DynamicObject.h"
 
 #include <cstring>
 #include <cstdlib>

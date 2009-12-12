@@ -4,9 +4,9 @@
 #ifndef db_http_HttpChunkedTransferOutputStream_H
 #define db_http_HttpChunkedTransferOutputStream_H
 
-#include "db/io/BufferedOutputStream.h"
-#include "db/net/ConnectionOutputStream.h"
-#include "db/http/HttpTrailer.h"
+#include "monarch/io/BufferedOutputStream.h"
+#include "monarch/net/ConnectionOutputStream.h"
+#include "monarch/http/HttpTrailer.h"
 
 namespace db
 {

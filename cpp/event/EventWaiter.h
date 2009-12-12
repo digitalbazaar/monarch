@@ -4,8 +4,8 @@
 #ifndef db_event_EventWaiter_H
 #define db_event_EventWaiter_H
 
-#include "db/event/Observable.h"
-#include "db/event/EventController.h"
+#include "monarch/event/Observable.h"
+#include "monarch/event/EventController.h"
 
 namespace db
 {

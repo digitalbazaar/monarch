@@ -4,8 +4,8 @@
 #ifndef db_modest_OperationGuard_H
 #define db_modest_OperationGuard_H
 
-#include "db/rt/Collectable.h"
-#include "db/modest/ImmutableState.h"
+#include "monarch/rt/Collectable.h"
+#include "monarch/modest/ImmutableState.h"
 
 namespace db
 {

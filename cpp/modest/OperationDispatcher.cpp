@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/modest/OperationDispatcher.h"
+#include "monarch/modest/OperationDispatcher.h"
 
-#include "db/modest/Engine.h"
+#include "monarch/modest/Engine.h"
 
 using namespace std;
 using namespace db::modest;

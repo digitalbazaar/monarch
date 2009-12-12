@@ -4,7 +4,7 @@
 #ifndef db_modest_ModuleLoader_H
 #define db_modest_ModuleLoader_H
 
-#include "db/modest/Module.h"
+#include "monarch/modest/Module.h"
 
 namespace db
 {

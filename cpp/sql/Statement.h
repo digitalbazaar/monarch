@@ -4,8 +4,8 @@
 #ifndef db_sql_Statement_H
 #define db_sql_Statement_H
 
-#include "db/sql/Connection.h"
-#include "db/rt/Collectable.h"
+#include "monarch/sql/Connection.h"
+#include "monarch/rt/Collectable.h"
 
 namespace db
 {

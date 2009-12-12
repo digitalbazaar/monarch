@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/compress/gzip/Trailer.h"
+#include "monarch/compress/gzip/Trailer.h"
 
-#include "db/util/Data.h"
+#include "monarch/util/Data.h"
 #include <zlib.h>
 
 using namespace db::compress::gzip;

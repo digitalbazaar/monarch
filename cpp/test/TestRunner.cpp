@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/test/TestRunner.h"
+#include "monarch/test/TestRunner.h"
 
 #include <cassert>
 #include <iostream>
 
-#include "db/test/Test.h"
-#include "db/rt/Exception.h"
+#include "monarch/test/Test.h"
+#include "monarch/rt/Exception.h"
 
 using namespace std;
 using namespace db::rt;

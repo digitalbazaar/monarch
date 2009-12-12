@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/mpeg/AudioFrameHeader.h"
+#include "monarch/data/mpeg/AudioFrameHeader.h"
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 #include <math.h>
 #include <cstdio>
 

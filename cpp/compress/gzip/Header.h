@@ -4,7 +4,7 @@
 #ifndef db_compress_gzip_Header_H
 #define db_compress_gzip_Header_H
 
-#include "db/io/ByteBuffer.h"
+#include "monarch/io/ByteBuffer.h"
 
 namespace db
 {

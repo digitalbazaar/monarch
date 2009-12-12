@@ -4,7 +4,7 @@
 #ifndef db_net_SocketWrapper_H
 #define db_net_SocketWrapper_H
 
-#include "db/net/Socket.h"
+#include "monarch/net/Socket.h"
 
 namespace db
 {

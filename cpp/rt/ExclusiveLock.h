@@ -4,7 +4,7 @@
 #ifndef db_rt_ExclusiveLock_H
 #define db_rt_ExclusiveLock_H
 
-#include "db/rt/Monitor.h"
+#include "monarch/rt/Monitor.h"
 
 namespace db
 {

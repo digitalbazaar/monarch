@@ -4,8 +4,8 @@
 #ifndef db_crypto_MessageDigest_H
 #define db_crypto_MessageDigest_H
 
-#include "db/crypto/CryptoHashAlgorithm.h"
-#include "db/io/File.h"
+#include "monarch/crypto/CryptoHashAlgorithm.h"
+#include "monarch/io/File.h"
 
 #include <string>
 

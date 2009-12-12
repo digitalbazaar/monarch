@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/io/ByteArrayInputStream.h"
+#include "monarch/io/ByteArrayInputStream.h"
 
 #include <cstring>
 

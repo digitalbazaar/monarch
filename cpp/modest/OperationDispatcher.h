@@ -4,9 +4,9 @@
 #ifndef db_modest_OperationDispatcher_H
 #define db_modest_OperationDispatcher_H
 
-#include "db/rt/JobDispatcher.h"
-#include "db/modest/Operation.h"
-#include "db/modest/Engine.h"
+#include "monarch/rt/JobDispatcher.h"
+#include "monarch/modest/Operation.h"
+#include "monarch/modest/Engine.h"
 
 namespace db
 {

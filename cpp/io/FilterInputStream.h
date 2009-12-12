@@ -4,7 +4,7 @@
 #ifndef db_io_FilterInputStream_H
 #define db_io_FilterInputStream_H
 
-#include "db/io/InputStream.h"
+#include "monarch/io/InputStream.h"
 
 namespace db
 {

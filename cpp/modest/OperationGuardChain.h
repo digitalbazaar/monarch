@@ -4,7 +4,7 @@
 #ifndef db_modest_OperationGuardChain_H
 #define db_modest_OperationGuardChain_H
 
-#include "db/modest/OperationGuard.h"
+#include "monarch/modest/OperationGuard.h"
 
 namespace db
 {

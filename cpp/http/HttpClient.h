@@ -4,12 +4,12 @@
 #ifndef db_http_HttpClient_H
 #define db_http_HttpClient_H
 
-#include "db/http/HttpConnection.h"
-#include "db/http/HttpRequest.h"
-#include "db/http/HttpResponse.h"
-#include "db/net/SslContext.h"
-#include "db/net/SslSessionCache.h"
-#include "db/net/Url.h"
+#include "monarch/http/HttpConnection.h"
+#include "monarch/http/HttpRequest.h"
+#include "monarch/http/HttpResponse.h"
+#include "monarch/net/SslContext.h"
+#include "monarch/net/SslSessionCache.h"
+#include "monarch/net/Url.h"
 
 namespace db
 {

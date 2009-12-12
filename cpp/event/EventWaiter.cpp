@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/event/EventWaiter.h"
+#include "monarch/event/EventWaiter.h"
 
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 #include <cstdlib>
 

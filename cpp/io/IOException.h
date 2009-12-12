@@ -4,7 +4,7 @@
 #ifndef db_io_IOException_H
 #define db_io_IOException_H
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 namespace db
 {

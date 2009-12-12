@@ -4,8 +4,8 @@
 #ifndef db_net_ConnectionOutputStream_H
 #define db_net_ConnectionOutputStream_H
 
-#include "db/io/ByteBuffer.h"
-#include "db/io/OutputStream.h"
+#include "monarch/io/ByteBuffer.h"
+#include "monarch/io/OutputStream.h"
 
 #include <inttypes.h>
 

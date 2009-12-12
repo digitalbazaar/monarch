@@ -4,10 +4,10 @@
 #ifndef db_mail_SmtpClient_H
 #define db_mail_SmtpClient_H
 
-#include "db/net/Connection.h"
-#include "db/net/SslSocket.h"
-#include "db/net/Url.h"
-#include "db/mail/Mail.h"
+#include "monarch/net/Connection.h"
+#include "monarch/net/SslSocket.h"
+#include "monarch/net/Url.h"
+#include "monarch/mail/Mail.h"
 
 namespace db
 {

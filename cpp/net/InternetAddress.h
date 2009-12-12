@@ -4,8 +4,8 @@
 #ifndef db_net_InternetAddress_H
 #define db_net_InternetAddress_H
 
-#include "db/net/SocketAddress.h"
-#include "db/rt/Collectable.h"
+#include "monarch/net/SocketAddress.h"
+#include "monarch/rt/Collectable.h"
 
 namespace db
 {

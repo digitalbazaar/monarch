@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/event/EventDaemon.h"
+#include "monarch/event/EventDaemon.h"
 
-#include "db/util/Timer.h"
+#include "monarch/util/Timer.h"
 
 using namespace std;
 using namespace db::event;

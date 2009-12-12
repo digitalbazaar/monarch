@@ -4,8 +4,8 @@
 #ifndef db_rt_DynamicObject_H
 #define db_rt_DynamicObject_H
 
-#include "db/rt/Collectable.h"
-#include "db/rt/DynamicObjectImpl.h"
+#include "monarch/rt/Collectable.h"
+#include "monarch/rt/DynamicObjectImpl.h"
 
 #include <inttypes.h>
 

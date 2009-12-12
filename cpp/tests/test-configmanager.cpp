@@ -7,12 +7,12 @@
  * the simplest config files can be loaded and that the simplest configuration
  * values can be combined and merged together, including groups.
  */
-#include "db/config/ConfigManager.h"
-#include "db/data/json/JsonReader.h"
-#include "db/data/json/JsonWriter.h"
-#include "db/io/FileInputStream.h"
-#include "db/io/FileOutputStream.h"
-#include "db/test/Test.h"
+#include "monarch/config/ConfigManager.h"
+#include "monarch/data/json/JsonReader.h"
+#include "monarch/data/json/JsonWriter.h"
+#include "monarch/io/FileInputStream.h"
+#include "monarch/io/FileOutputStream.h"
+#include "monarch/test/Test.h"
 
 using namespace std;
 using namespace db::config;

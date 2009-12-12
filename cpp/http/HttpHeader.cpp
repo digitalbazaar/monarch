@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpHeader.h"
+#include "monarch/http/HttpHeader.h"
 
-#include "db/util/StringTools.h"
+#include "monarch/util/StringTools.h"
 
 #include <cstdlib>
 #include <cstring>

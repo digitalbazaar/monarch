@@ -6,8 +6,8 @@
 
 #include <inttypes.h>
 
-#include "db/io/OutputStream.h"
-#include "db/data/riff/RiffChunkHeader.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/data/riff/RiffChunkHeader.h"
 
 namespace db
 {

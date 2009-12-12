@@ -4,7 +4,7 @@
 #ifndef db_util_Crc16_H
 #define db_util_Crc16_H
 
-#include "db/util/HashAlgorithm.h"
+#include "monarch/util/HashAlgorithm.h"
 
 namespace db
 {

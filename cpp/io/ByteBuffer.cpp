@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/io/ByteBuffer.h"
+#include "monarch/io/ByteBuffer.h"
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 #include <cstdlib>
 #include <cstring>

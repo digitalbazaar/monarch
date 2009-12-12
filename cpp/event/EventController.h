@@ -4,9 +4,9 @@
 #ifndef db_event_EventController_H
 #define db_event_EventController_H
 
-#include "db/event/Observable.h"
-#include "db/rt/DynamicObject.h"
-#include "db/rt/SharedLock.h"
+#include "monarch/event/Observable.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/SharedLock.h"
 
 namespace db
 {

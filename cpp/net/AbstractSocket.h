@@ -4,9 +4,9 @@
 #ifndef db_net_AbstractSocket_H
 #define db_net_AbstractSocket_H
 
-#include "db/net/Socket.h"
-#include "db/io/InputStream.h"
-#include "db/io/OutputStream.h"
+#include "monarch/net/Socket.h"
+#include "monarch/io/InputStream.h"
+#include "monarch/io/OutputStream.h"
 
 #include <string>
 

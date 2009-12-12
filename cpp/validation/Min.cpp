@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/validation/Min.h"
+#include "monarch/validation/Min.h"
 
 using namespace db::rt;
 using namespace db::validation;

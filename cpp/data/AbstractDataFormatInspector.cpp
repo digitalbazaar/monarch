@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/AbstractDataFormatInspector.h"
+#include "monarch/data/AbstractDataFormatInspector.h"
 
-#include "db/util/Math.h"
+#include "monarch/util/Math.h"
 
 using namespace db::data;
 using namespace db::util;

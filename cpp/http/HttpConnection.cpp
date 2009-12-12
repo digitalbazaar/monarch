@@ -1,16 +1,16 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpConnection.h"
+#include "monarch/http/HttpConnection.h"
 
-#include "db/io/IOException.h"
-#include "db/http/HttpRequest.h"
-#include "db/http/HttpResponse.h"
-#include "db/http/HttpBodyInputStream.h"
-#include "db/http/HttpBodyOutputStream.h"
-#include "db/http/HttpChunkedTransferInputStream.h"
-#include "db/http/HttpChunkedTransferOutputStream.h"
-#include "db/rt/Thread.h"
+#include "monarch/io/IOException.h"
+#include "monarch/http/HttpRequest.h"
+#include "monarch/http/HttpResponse.h"
+#include "monarch/http/HttpBodyInputStream.h"
+#include "monarch/http/HttpBodyOutputStream.h"
+#include "monarch/http/HttpChunkedTransferInputStream.h"
+#include "monarch/http/HttpChunkedTransferOutputStream.h"
+#include "monarch/rt/Thread.h"
 
 using namespace std;
 using namespace db::io;

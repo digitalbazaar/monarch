@@ -4,10 +4,10 @@
 #ifndef db_http_HttpRequest_H
 #define db_http_HttpRequest_H
 
-#include "db/io/InputStream.h"
-#include "db/io/OutputStream.h"
-#include "db/http/HttpRequestHeader.h"
-#include "db/http/HttpTrailer.h"
+#include "monarch/io/InputStream.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/http/HttpRequestHeader.h"
+#include "monarch/http/HttpTrailer.h"
 
 namespace db
 {

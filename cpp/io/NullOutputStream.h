@@ -4,7 +4,7 @@
 #ifndef db_io_NullOutputStream_H
 #define db_io_NullOutputStream_H
 
-#include "db/io/OutputStream.h"
+#include "monarch/io/OutputStream.h"
 
 namespace db
 {

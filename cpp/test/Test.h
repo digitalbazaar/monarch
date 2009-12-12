@@ -4,9 +4,9 @@
 #ifndef db_test_Test_H
 #define db_test_Test_H
 
-#include "db/rt/Exception.h"
-#include "db/rt/DynamicObject.h"
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/rt/Exception.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 #include <string>
 #include <cassert>
 

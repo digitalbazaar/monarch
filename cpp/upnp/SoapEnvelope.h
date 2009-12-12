@@ -4,8 +4,8 @@
 #ifndef db_upnp_SoapEnvelope_H
 #define db_upnp_SoapEnvelope_H
 
-#include "db/io/InputStream.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/io/InputStream.h"
+#include "monarch/rt/DynamicObject.h"
 
 #include <string>
 

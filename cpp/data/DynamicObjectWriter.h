@@ -4,8 +4,8 @@
 #ifndef db_data_DynamicObjectWriter_H
 #define db_data_DynamicObjectWriter_H
 
-#include "db/io/OutputStream.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/rt/DynamicObject.h"
 
 namespace db
 {

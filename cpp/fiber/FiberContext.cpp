@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/fiber/FiberContext.h"
+#include "monarch/fiber/FiberContext.h"
 
-#include "db/fiber/Fiber.h"
+#include "monarch/fiber/Fiber.h"
 #include <cstring>
 
 using namespace db::fiber;

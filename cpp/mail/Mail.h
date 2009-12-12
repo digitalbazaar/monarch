@@ -4,8 +4,8 @@
 #ifndef db_mail_Mail_H
 #define db_mail_Mail_H
 
-#include "db/rt/DynamicObject.h"
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 #include <string>
 

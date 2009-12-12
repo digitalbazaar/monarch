@@ -4,8 +4,8 @@
 #ifndef db_sql_ConnectionPool_H
 #define db_sql_ConnectionPool_H
 
-#include "db/sql/PooledConnection.h"
-#include "db/rt/Collectable.h"
+#include "monarch/sql/PooledConnection.h"
+#include "monarch/rt/Collectable.h"
 
 namespace db
 {

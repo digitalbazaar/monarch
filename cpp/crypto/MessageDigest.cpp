@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/crypto/MessageDigest.h"
+#include "monarch/crypto/MessageDigest.h"
 
-#include "db/io/FileInputStream.h"
-#include "db/util/Convert.h"
-#include "db/rt/DynamicObject.h"
-#include "db/rt/Exception.h"
+#include "monarch/io/FileInputStream.h"
+#include "monarch/util/Convert.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/Exception.h"
 
 #include <cstring>
 

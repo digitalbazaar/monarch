@@ -4,8 +4,8 @@
 #ifndef db_util_RateAverager_H
 #define db_util_RateAverager_H
 
-#include "db/rt/ExclusiveLock.h"
-#include "db/util/RateWindow.h"
+#include "monarch/rt/ExclusiveLock.h"
+#include "monarch/util/RateWindow.h"
 
 namespace db
 {

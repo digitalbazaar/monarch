@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/crypto/SymmetricKey.h"
+#include "monarch/crypto/SymmetricKey.h"
 
 #include <cstdlib>
 #include <cstring>

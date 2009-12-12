@@ -4,7 +4,7 @@
 #ifndef db_io_TruncateInputStream_H
 #define db_io_TruncateInputStream_H
 
-#include "db/io/FilterInputStream.h"
+#include "monarch/io/FilterInputStream.h"
 
 #include <inttypes.h>
 

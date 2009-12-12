@@ -4,9 +4,9 @@
 #ifndef db_data_id3v2_Tag_H
 #define db_data_id3v2_Tag_H
 
-#include "db/data/id3v2/TagHeader.h"
-#include "db/data/id3v2/FrameHeader.h"
-#include "db/util/StringTools.h"
+#include "monarch/data/id3v2/TagHeader.h"
+#include "monarch/data/id3v2/FrameHeader.h"
+#include "monarch/util/StringTools.h"
 
 #include <list>
 #include <map>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/avi/AviStreamHeader.h"
+#include "monarch/data/avi/AviStreamHeader.h"
 
 #include <cstring>
 

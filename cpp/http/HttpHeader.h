@@ -4,10 +4,10 @@
 #ifndef db_http_HttpHeader_H
 #define db_http_HttpHeader_H
 
-#include "db/io/OutputStream.h"
-#include "db/rt/Collectable.h"
-#include "db/util/Date.h"
-#include "db/util/StringTools.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/rt/Collectable.h"
+#include "monarch/util/Date.h"
+#include "monarch/util/StringTools.h"
 
 #include <cstring>
 #include <map>

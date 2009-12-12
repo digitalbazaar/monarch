@@ -4,7 +4,7 @@
 #ifndef db_data_json_JsonReader_H
 #define db_data_json_JsonReader_H
 
-#include "db/data/DynamicObjectReader.h"
+#include "monarch/data/DynamicObjectReader.h"
 
 #include <vector>
 #include <string>

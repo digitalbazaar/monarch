@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/sql/sqlite3/Sqlite3Statement.h"
+#include "monarch/sql/sqlite3/Sqlite3Statement.h"
 
-#include "db/sql/sqlite3/Sqlite3Connection.h"
-#include "db/sql/sqlite3/Sqlite3Row.h"
+#include "monarch/sql/sqlite3/Sqlite3Connection.h"
+#include "monarch/sql/sqlite3/Sqlite3Row.h"
 
 using namespace std;
 using namespace db::sql;

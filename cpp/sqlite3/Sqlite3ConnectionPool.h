@@ -4,8 +4,8 @@
 #ifndef db_sql_sqlite3_Sqlite3ConnectionPool_H
 #define db_sql_sqlite3_Sqlite3ConnectionPool_H
 
-#include "db/sql/AbstractConnectionPool.h"
-#include "db/sql/sqlite3/Sqlite3Connection.h"
+#include "monarch/sql/AbstractConnectionPool.h"
+#include "monarch/sql/sqlite3/Sqlite3Connection.h"
 
 namespace db
 {

@@ -4,8 +4,8 @@
 #ifndef db_net_ConnectionWrapper_H
 #define db_net_ConnectionWrapper_H
 
-#include "db/net/Connection.h"
-#include "db/net/InternetAddress.h"
+#include "monarch/net/Connection.h"
+#include "monarch/net/InternetAddress.h"
 
 namespace db
 {

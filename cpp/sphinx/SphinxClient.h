@@ -4,12 +4,12 @@
 #ifndef db_sphinx_SphinxClient_H
 #define db_sphinx_SphinxClient_H
 
-#include "db/data/Data.h"
-#include "db/io/ByteBuffer.h"
-#include "db/net/Connection.h"
-#include "db/net/Url.h"
-#include "db/rt/DynamicObject.h"
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/data/Data.h"
+#include "monarch/io/ByteBuffer.h"
+#include "monarch/net/Connection.h"
+#include "monarch/net/Url.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 namespace db
 {

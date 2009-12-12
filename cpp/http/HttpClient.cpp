@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpClient.h"
+#include "monarch/http/HttpClient.h"
 
-#include "db/net/TcpSocket.h"
-#include "db/net/SslSocket.h"
-#include "db/io/InputStream.h"
-#include "db/io/OutputStream.h"
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/net/TcpSocket.h"
+#include "monarch/net/SslSocket.h"
+#include "monarch/io/InputStream.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 using namespace db::io;
 using namespace db::http;

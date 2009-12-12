@@ -5,7 +5,7 @@
 #define db_data_mpeg_SamplingRateTable_H
 
 #include <map>
-#include "db/data/mpeg/AudioCharacteristics.h"
+#include "monarch/data/mpeg/AudioCharacteristics.h"
 
 #include <cstring>
 

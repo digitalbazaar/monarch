@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/TcpSocket.h"
+#include "monarch/net/TcpSocket.h"
 
-#include "db/net/SocketDefinitions.h"
-#include "db/io/PeekInputStream.h"
-#include "db/net/SocketInputStream.h"
-#include "db/net/SocketOutputStream.h"
+#include "monarch/net/SocketDefinitions.h"
+#include "monarch/io/PeekInputStream.h"
+#include "monarch/net/SocketInputStream.h"
+#include "monarch/net/SocketOutputStream.h"
 
 #include <cstring>
 

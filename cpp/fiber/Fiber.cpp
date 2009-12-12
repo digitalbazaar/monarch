@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/fiber/Fiber.h"
+#include "monarch/fiber/Fiber.h"
 
-#include "db/fiber/FiberScheduler.h"
+#include "monarch/fiber/FiberScheduler.h"
 
 using namespace db::fiber;
 using namespace db::rt;

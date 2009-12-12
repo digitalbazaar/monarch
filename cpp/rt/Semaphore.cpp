@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/rt/Semaphore.h"
+#include "monarch/rt/Semaphore.h"
 
-#include "db/rt/Thread.h"
+#include "monarch/rt/Thread.h"
 
 using namespace std;
 using namespace db::rt;

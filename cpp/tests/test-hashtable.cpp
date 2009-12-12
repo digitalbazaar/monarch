@@ -4,16 +4,16 @@
 #define __STDC_CONSTANT_MACROS
 #define __STDC_FORMAT_MACROS
 
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/rt/ExclusiveLock.h"
-#include "db/rt/HashTable.h"
-#include "db/rt/Runnable.h"
-#include "db/rt/RunnableDelegate.h"
-#include "db/rt/SharedLock.h"
-#include "db/rt/Thread.h"
-#include "db/util/Timer.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
+#include "monarch/rt/ExclusiveLock.h"
+#include "monarch/rt/HashTable.h"
+#include "monarch/rt/Runnable.h"
+#include "monarch/rt/RunnableDelegate.h"
+#include "monarch/rt/SharedLock.h"
+#include "monarch/rt/Thread.h"
+#include "monarch/util/Timer.h"
 
 #include <cmath>
 #include <cstdio>

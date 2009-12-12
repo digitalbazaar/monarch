@@ -6,8 +6,8 @@
 
 #include <mysql/mysql.h>
 
-#include "db/sql/Statement.h"
-#include "db/sql/mysql/MySqlRow.h"
+#include "monarch/sql/Statement.h"
+#include "monarch/sql/mysql/MySqlRow.h"
 
 namespace db
 {

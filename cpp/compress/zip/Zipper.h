@@ -4,9 +4,9 @@
 #ifndef db_compress_zip_Zipper_H
 #define db_compress_zip_Zipper_H
 
-#include "db/compress/deflate/Deflater.h"
-#include "db/compress/zip/ZipEntry.h"
-#include "db/io/FileList.h"
+#include "monarch/compress/deflate/Deflater.h"
+#include "monarch/compress/zip/ZipEntry.h"
+#include "monarch/io/FileList.h"
 
 #include <list>
 

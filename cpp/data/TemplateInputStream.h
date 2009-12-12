@@ -4,9 +4,9 @@
 #ifndef db_data_TemplateInputStream_H
 #define db_data_TemplateInputStream_H
 
-#include "db/io/ByteBuffer.h"
-#include "db/io/FilterInputStream.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/io/ByteBuffer.h"
+#include "monarch/io/FilterInputStream.h"
+#include "monarch/rt/DynamicObject.h"
 
 namespace db
 {

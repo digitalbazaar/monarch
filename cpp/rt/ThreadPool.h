@@ -4,8 +4,8 @@
 #ifndef db_rt_ThreadPool_H
 #define db_rt_ThreadPool_H
 
-#include "db/rt/Semaphore.h"
-#include "db/rt/PooledThread.h"
+#include "monarch/rt/Semaphore.h"
+#include "monarch/rt/PooledThread.h"
 
 #include <list>
 

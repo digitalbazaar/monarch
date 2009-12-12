@@ -6,8 +6,8 @@
 
 #include <sqlite3.h>
 
-#include "db/sql/AbstractConnection.h"
-#include "db/sql/sqlite3/Sqlite3Exception.h"
+#include "monarch/sql/AbstractConnection.h"
+#include "monarch/sql/sqlite3/Sqlite3Exception.h"
 
 namespace db
 {

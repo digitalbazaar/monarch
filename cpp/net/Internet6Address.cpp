@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/Internet6Address.h"
+#include "monarch/net/Internet6Address.h"
 
-#include "db/net/WindowsSupport.h"
-#include "db/rt/DynamicObject.h"
-#include "db/rt/Exception.h"
+#include "monarch/net/WindowsSupport.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/Exception.h"
 
 #include <cstdlib>
 #include <cstring>

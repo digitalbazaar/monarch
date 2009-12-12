@@ -4,8 +4,8 @@
 #ifndef db_rt_HashTable_H
 #define db_rt_HashTable_H
 
-#include "db/rt/Atomic.h"
-#include "db/rt/HazardPtrList.h"
+#include "monarch/rt/Atomic.h"
+#include "monarch/rt/HazardPtrList.h"
 
 namespace db
 {

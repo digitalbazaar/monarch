@@ -4,8 +4,8 @@
 #ifndef db_fiber_MessagableFiber_H
 #define db_fiber_MessagableFiber_H
 
-#include "db/fiber/Fiber.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/fiber/Fiber.h"
+#include "monarch/rt/DynamicObject.h"
 
 #include <list>
 

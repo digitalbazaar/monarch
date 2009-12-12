@@ -4,8 +4,8 @@
 #ifndef db_data_xml_DomReader_H
 #define db_data_xml_DomReader_H
 
-#include "db/data/xml/XmlReader.h"
-#include "db/data/xml/DomTypes.h"
+#include "monarch/data/xml/XmlReader.h"
+#include "monarch/data/xml/DomTypes.h"
 
 namespace db
 {

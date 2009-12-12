@@ -4,8 +4,8 @@
 #ifndef db_upnp_ControlPoint_H
 #define db_upnp_ControlPoint_H
 
-#include "db/net/Url.h"
-#include "db/upnp/TypeDefinitions.h"
+#include "monarch/net/Url.h"
+#include "monarch/upnp/TypeDefinitions.h"
 
 #include <string>
 

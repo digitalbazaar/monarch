@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/rt/Atomic.h"
+#include "monarch/rt/Atomic.h"
 
 // include NULL
 #include <cstddef>

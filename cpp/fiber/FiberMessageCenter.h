@@ -4,8 +4,8 @@
 #ifndef db_fiber_FiberMessageCenter_H
 #define db_fiber_FiberMessageCenter_H
 
-#include "db/fiber/MessagableFiber.h"
-#include "db/rt/SharedLock.h"
+#include "monarch/fiber/MessagableFiber.h"
+#include "monarch/rt/SharedLock.h"
 
 #include <map>
 

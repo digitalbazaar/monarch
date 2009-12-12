@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/mail/MailTemplateParser.h"
+#include "monarch/mail/MailTemplateParser.h"
 
-#include "db/data/TemplateInputStream.h"
-#include "db/rt/Exception.h"
+#include "monarch/data/TemplateInputStream.h"
+#include "monarch/rt/Exception.h"
 
 using namespace std;
 using namespace db::data;

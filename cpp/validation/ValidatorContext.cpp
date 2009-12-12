@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/validation/ValidatorContext.h"
+#include "monarch/validation/ValidatorContext.h"
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 #include <cstdlib>
 

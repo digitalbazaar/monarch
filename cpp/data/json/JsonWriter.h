@@ -4,7 +4,7 @@
 #ifndef db_data_json_JsonWriter_H
 #define db_data_json_JsonWriter_H
 
-#include "db/data/DynamicObjectWriter.h"
+#include "monarch/data/DynamicObjectWriter.h"
 
 #include <ostream>
 

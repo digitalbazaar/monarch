@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
-#include "db/rt/Thread.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/rt/Thread.h"
+#include "monarch/rt/DynamicObject.h"
 
 #include <cstdlib>
 

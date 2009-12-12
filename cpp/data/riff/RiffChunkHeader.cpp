@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2005-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/riff/RiffChunkHeader.h"
+#include "monarch/data/riff/RiffChunkHeader.h"
 
-#include "db/util/Data.h"
+#include "monarch/util/Data.h"
 
 using namespace db::data;
 using namespace db::data::riff;

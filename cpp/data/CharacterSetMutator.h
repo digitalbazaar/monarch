@@ -4,7 +4,7 @@
 #ifndef db_data_CharacterSetMutator_H
 #define db_data_CharacterSetMutator_H
 
-#include "db/io/MutationAlgorithm.h"
+#include "monarch/io/MutationAlgorithm.h"
 
 #include <iconv.h>
 #include <string>

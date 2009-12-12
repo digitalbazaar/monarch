@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/util/regex/Pattern.h"
+#include "monarch/util/regex/Pattern.h"
 
 #include <string>
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 using namespace std;
 using namespace db::rt;

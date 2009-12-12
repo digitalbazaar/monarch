@@ -2,11 +2,11 @@
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/rt/DynamicObject.h"
-#include "db/validation/Validation.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/validation/Validation.h"
 
 #include <cstdio>
 

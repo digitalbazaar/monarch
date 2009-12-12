@@ -4,7 +4,7 @@
 #ifndef db_rt_HazardPtrList_H
 #define db_rt_HazardPtrList_H
 
-#include "db/rt/Atomic.h"
+#include "monarch/rt/Atomic.h"
 
 namespace db
 {

@@ -4,8 +4,8 @@
 #ifndef db_rt_PooledThread_H
 #define db_rt_PooledThread_H
 
-#include "db/rt/Thread.h"
-#include "db/rt/Semaphore.h"
+#include "monarch/rt/Thread.h"
+#include "monarch/rt/Semaphore.h"
 
 namespace db
 {

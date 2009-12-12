@@ -4,8 +4,8 @@
 #ifndef db_crypto_X509Certificate_H
 #define db_crypto_X509Certificate_H
 
-#include "db/crypto/PublicKey.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/crypto/PublicKey.h"
+#include "monarch/rt/DynamicObject.h"
 
 #include <openssl/x509.h>
 

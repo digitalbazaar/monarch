@@ -4,7 +4,7 @@
 #ifndef db_crypto_SymmetricKeyFactory_H
 #define db_crypto_SymmetricKeyFactory_H
 
-#include "db/crypto/SymmetricKey.h"
+#include "monarch/crypto/SymmetricKey.h"
 
 namespace db
 {

@@ -4,7 +4,7 @@
 #ifndef db_net_Internet6Address_H
 #define db_net_Internet6Address_H
 
-#include "db/net/InternetAddress.h"
+#include "monarch/net/InternetAddress.h"
 
 namespace db
 {

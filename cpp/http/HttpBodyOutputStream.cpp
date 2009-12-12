@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpBodyOutputStream.h"
+#include "monarch/http/HttpBodyOutputStream.h"
 
-#include "db/http/HttpChunkedTransferOutputStream.h"
-#include "db/rt/DynamicObject.h"
-#include "db/util/Math.h"
+#include "monarch/http/HttpChunkedTransferOutputStream.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/util/Math.h"
 
 using namespace std;
 using namespace db::io;

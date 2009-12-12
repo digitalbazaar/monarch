@@ -4,7 +4,7 @@
 #ifndef db_crypto_PublicKey_H
 #define db_crypto_PublicKey_H
 
-#include "db/crypto/AsymmetricKey.h"
+#include "monarch/crypto/AsymmetricKey.h"
 
 namespace db
 {

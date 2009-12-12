@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/Server.h"
+#include "monarch/net/Server.h"
 
-#include "db/net/ConnectionService.h"
-#include "db/net/DatagramService.h"
+#include "monarch/net/ConnectionService.h"
+#include "monarch/net/DatagramService.h"
 
 #include <algorithm>
 

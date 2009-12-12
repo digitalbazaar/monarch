@@ -4,7 +4,7 @@
 #ifndef db_compress_deflate_Deflater_H
 #define db_compress_deflate_Deflater_H
 
-#include "db/io/MutationAlgorithm.h"
+#include "monarch/io/MutationAlgorithm.h"
 
 #include <zlib.h>
 

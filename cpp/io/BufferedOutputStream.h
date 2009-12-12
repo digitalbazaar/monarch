@@ -4,8 +4,8 @@
 #ifndef db_io_BufferedOutputStream_H
 #define db_io_BufferedOutputStream_H
 
-#include "db/io/FilterOutputStream.h"
-#include "db/io/ByteBuffer.h"
+#include "monarch/io/FilterOutputStream.h"
+#include "monarch/io/ByteBuffer.h"
 
 namespace db
 {

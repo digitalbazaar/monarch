@@ -4,10 +4,10 @@
 #ifndef db_app_AppPlugin_H
 #define db_app_AppPlugin_H
 
-#include "db/logging/Logging.h"
-#include "db/rt/Runnable.h"
-#include "db/rt/Exception.h"
-#include "db/config/ConfigManager.h"
+#include "monarch/logging/Logging.h"
+#include "monarch/rt/Runnable.h"
+#include "monarch/rt/Exception.h"
+#include "monarch/config/ConfigManager.h"
 
 namespace db
 {

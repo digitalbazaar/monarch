@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/io/IOException.h"
+#include "monarch/io/IOException.h"
 
 using namespace db::io;
 using namespace db::rt;

@@ -4,7 +4,7 @@
 #ifndef db_logging_LoggingCategories_H
 #define db_logging_LoggingCategories_H
 
-#include "db/logging/Category.h"
+#include "monarch/logging/Category.h"
 
 // This is a list of pre-defined logging categories that can be used by any
 // module that would like to log messages to a specific category.

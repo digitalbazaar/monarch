@@ -4,7 +4,7 @@
 #ifndef db_crypto_CryptoHashAlgorithm_H
 #define db_crypto_CryptoHashAlgorithm_H
 
-#include "db/util/HashAlgorithm.h"
+#include "monarch/util/HashAlgorithm.h"
 
 #include <openssl/evp.h>
 

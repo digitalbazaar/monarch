@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/upnp/SoapEnvelope.h"
+#include "monarch/upnp/SoapEnvelope.h"
 
-#include "db/data/json/JsonWriter.h"
-#include "db/data/xml/DomReader.h"
-#include "db/data/xml/DomWriter.h"
-#include "db/io/ByteArrayInputStream.h"
-#include "db/io/ByteArrayOutputStream.h"
-#include "db/logging/Logging.h"
+#include "monarch/data/json/JsonWriter.h"
+#include "monarch/data/xml/DomReader.h"
+#include "monarch/data/xml/DomWriter.h"
+#include "monarch/io/ByteArrayInputStream.h"
+#include "monarch/io/ByteArrayOutputStream.h"
+#include "monarch/logging/Logging.h"
 
 using namespace std;
 using namespace db::data::json;

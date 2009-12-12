@@ -4,8 +4,8 @@
 #ifndef db_modest_Module_H
 #define db_modest_Module_H
 
-#include "db/modest/ModuleInterface.h"
-#include "db/rt/Exception.h"
+#include "monarch/modest/ModuleInterface.h"
+#include "monarch/rt/Exception.h"
 
 namespace db
 {

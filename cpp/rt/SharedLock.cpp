@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/rt/SharedLock.h"
+#include "monarch/rt/SharedLock.h"
 
 using namespace db::rt;
 

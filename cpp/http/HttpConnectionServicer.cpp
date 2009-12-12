@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpConnectionServicer.h"
+#include "monarch/http/HttpConnectionServicer.h"
 
-#include "db/http/HttpRequest.h"
-#include "db/http/HttpResponse.h"
-#include "db/io/ByteArrayInputStream.h"
+#include "monarch/http/HttpRequest.h"
+#include "monarch/http/HttpResponse.h"
+#include "monarch/io/ByteArrayInputStream.h"
 
 #include <cstdlib>
 

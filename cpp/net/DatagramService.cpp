@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/DatagramService.h"
+#include "monarch/net/DatagramService.h"
 
-#include "db/net/Server.h"
+#include "monarch/net/Server.h"
 
 using namespace db::modest;
 using namespace db::net;

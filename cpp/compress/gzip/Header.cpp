@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/compress/gzip/Header.h"
+#include "monarch/compress/gzip/Header.h"
 
-#include "db/rt/Exception.h"
-#include "db/rt/System.h"
-#include "db/util/Data.h"
+#include "monarch/rt/Exception.h"
+#include "monarch/rt/System.h"
+#include "monarch/util/Data.h"
 #include <zlib.h>
 
 #include <cstdlib>

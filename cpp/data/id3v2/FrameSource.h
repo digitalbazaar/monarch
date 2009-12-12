@@ -4,8 +4,8 @@
 #ifndef db_data_id3v2_FrameSource_H
 #define db_data_id3v2_FrameSource_H
 
-#include "db/data/id3v2/FrameHeader.h"
-#include "db/io/ByteBuffer.h"
+#include "monarch/data/id3v2/FrameHeader.h"
+#include "monarch/io/ByteBuffer.h"
 
 namespace db
 {

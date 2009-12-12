@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/xml/DomWriter.h"
+#include "monarch/data/xml/DomWriter.h"
 
-#include "db/rt/DynamicObjectIterator.h"
-#include "db/io/BufferedOutputStream.h"
+#include "monarch/rt/DynamicObjectIterator.h"
+#include "monarch/io/BufferedOutputStream.h"
 
 using namespace std;
 using namespace db::data;

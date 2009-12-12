@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/validation/CompareText.h"
+#include "monarch/validation/CompareText.h"
 
-#include "db/util/StringTools.h"
+#include "monarch/util/StringTools.h"
 
 using namespace db::rt;
 using namespace db::util;

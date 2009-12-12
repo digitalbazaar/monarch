@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/SocketOutputStream.h"
+#include "monarch/net/SocketOutputStream.h"
 
 using namespace db::io;
 using namespace db::net;

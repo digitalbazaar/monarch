@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/compress/zip/Zipper.h"
+#include "monarch/compress/zip/Zipper.h"
 
-#include "db/io/FileInputStream.h"
-#include "db/io/FileOutputStream.h"
-#include "db/rt/Iterator.h"
-#include "db/util/Data.h"
+#include "monarch/io/FileInputStream.h"
+#include "monarch/io/FileOutputStream.h"
+#include "monarch/rt/Iterator.h"
+#include "monarch/util/Data.h"
 
 #include <cstring>
 

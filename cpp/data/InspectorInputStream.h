@@ -4,10 +4,10 @@
 #ifndef db_data_InspectorInputStream_H
 #define db_data_InspectorInputStream_H
 
-#include "db/io/FilterInputStream.h"
-#include "db/io/ByteBuffer.h"
-#include "db/data/DataInspector.h"
-#include "db/util/StringTools.h"
+#include "monarch/io/FilterInputStream.h"
+#include "monarch/io/ByteBuffer.h"
+#include "monarch/data/DataInspector.h"
+#include "monarch/util/StringTools.h"
 
 #include <map>
 #include <list>

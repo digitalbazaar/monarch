@@ -4,7 +4,7 @@
 #ifndef db_crypto_BlockCipher_H
 #define db_crypto_BlockCipher_H
 
-#include "db/io/ByteBuffer.h"
+#include "monarch/io/ByteBuffer.h"
 
 #include <inttypes.h>
 

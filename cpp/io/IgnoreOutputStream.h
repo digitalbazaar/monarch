@@ -4,7 +4,7 @@
 #ifndef db_io_IgnoreOutputStream_H
 #define db_io_IgnoreOutputStream_H
 
-#include "db/io/FilterOutputStream.h"
+#include "monarch/io/FilterOutputStream.h"
 
 namespace db
 {

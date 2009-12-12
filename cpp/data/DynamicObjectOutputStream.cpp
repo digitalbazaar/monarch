@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/DynamicObjectOutputStream.h"
+#include "monarch/data/DynamicObjectOutputStream.h"
 
 using namespace db::data;
 using namespace db::io;

@@ -4,9 +4,9 @@
 #ifndef db_data_DynamicObjectOutputStream_H
 #define db_data_DynamicObjectOutputStream_H
 
-#include "db/io/OutputStream.h"
-#include "db/io/ByteArrayInputStream.h"
-#include "db/data/DynamicObjectReader.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/io/ByteArrayInputStream.h"
+#include "monarch/data/DynamicObjectReader.h"
 
 namespace db
 {

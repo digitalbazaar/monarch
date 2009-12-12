@@ -4,8 +4,8 @@
 #ifndef db_database_PooledConnection_H
 #define db_database_PooledConnection_H
 
-#include "db/sql/Connection.h"
-#include "db/sql/SqlException.h"
+#include "monarch/sql/Connection.h"
+#include "monarch/sql/SqlException.h"
 
 namespace db
 {

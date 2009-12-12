@@ -6,11 +6,11 @@
 
 #include <list>
 
-#include "db/data/avi/AviHeader.h"
-#include "db/data/avi/AviStreamHeaderList.h"
-#include "db/data/riff/RiffListHeader.h"
-#include "db/io/OutputStream.h"
-#include "db/logging/Logging.h"
+#include "monarch/data/avi/AviHeader.h"
+#include "monarch/data/avi/AviStreamHeaderList.h"
+#include "monarch/data/riff/RiffListHeader.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/logging/Logging.h"
 
 namespace db
 {

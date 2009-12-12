@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/crypto/SymmetricKeyFactory.h"
+#include "monarch/crypto/SymmetricKeyFactory.h"
 
-#include "db/rt/System.h"
-#include "db/rt/DynamicObject.h"
-#include "db/rt/Exception.h"
+#include "monarch/rt/System.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/Exception.h"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>

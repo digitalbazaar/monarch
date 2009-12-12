@@ -4,8 +4,8 @@
 #ifndef db_io_PeekInputStream_H
 #define db_io_PeekInputStream_H
 
-#include "db/io/FilterInputStream.h"
-#include "db/io/ByteBuffer.h"
+#include "monarch/io/FilterInputStream.h"
+#include "monarch/io/ByteBuffer.h"
 
 namespace db
 {

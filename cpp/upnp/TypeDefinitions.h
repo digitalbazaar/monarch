@@ -4,8 +4,8 @@
 #ifndef db_upnp_TypeDefinitions_H
 #define db_upnp_TypeDefinitions_H
 
-#include "db/rt/DynamicObject.h"
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 namespace db
 {

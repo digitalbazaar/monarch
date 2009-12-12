@@ -4,7 +4,7 @@
 #ifndef db_util_StringTools_H
 #define db_util_StringTools_H
 
-#include "db/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObject.h"
 #include <cstring>
 #include <string>
 

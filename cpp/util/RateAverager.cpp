@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/util/RateAverager.h"
+#include "monarch/util/RateAverager.h"
 
-#include "db/rt/System.h"
+#include "monarch/rt/System.h"
 
 #include <math.h>
 

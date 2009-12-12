@@ -3,10 +3,10 @@
  */
 #define __STDC_LIMIT_MACROS
 
-#include "db/rt/DynamicObjectImpl.h"
+#include "monarch/rt/DynamicObjectImpl.h"
 
-#include "db/rt/DynamicObject.h"
-#include "db/util/Macros.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/util/Macros.h"
 
 #include <cstdlib>
 #include <cstdio>

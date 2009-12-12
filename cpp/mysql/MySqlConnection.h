@@ -6,8 +6,8 @@
 
 #include <mysql/mysql.h>
 
-#include "db/sql/AbstractConnection.h"
-#include "db/sql/mysql/MySqlException.h"
+#include "monarch/sql/AbstractConnection.h"
+#include "monarch/sql/mysql/MySqlException.h"
 
 namespace db
 {

@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/util/regex/Pattern.h"
-#include "db/validation/Regex.h"
-#include "db/validation/Type.h"
+#include "monarch/util/regex/Pattern.h"
+#include "monarch/validation/Regex.h"
+#include "monarch/validation/Type.h"
 
 #include <cstdlib>
 

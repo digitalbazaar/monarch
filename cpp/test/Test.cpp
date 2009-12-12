@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/test/Test.h"
+#include "monarch/test/Test.h"
 
 // FIXME: replace iostream with cstdlib and printfs
 #include <iostream>
 #include <sstream>
 #include <cstdio>
 
-#include "db/data/json/JsonWriter.h"
-#include "db/io/OStreamOutputStream.h"
+#include "monarch/data/json/JsonWriter.h"
+#include "monarch/io/OStreamOutputStream.h"
 
 using namespace std;
 using namespace db::data::json;

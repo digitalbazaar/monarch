@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/app/App.h"
-#include "db/data/json/JsonWriter.h"
-#include "db/upnp/ControlPoint.h"
-#include "db/upnp/DeviceDiscoverer.h"
+#include "monarch/app/App.h"
+#include "monarch/data/json/JsonWriter.h"
+#include "monarch/upnp/ControlPoint.h"
+#include "monarch/upnp/DeviceDiscoverer.h"
 
 #include <cstdio>
 

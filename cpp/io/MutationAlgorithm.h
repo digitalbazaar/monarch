@@ -4,7 +4,7 @@
 #ifndef db_io_MutationAlgorithm_H
 #define db_io_MutationAlgorithm_H
 
-#include "db/io/ByteBuffer.h"
+#include "monarch/io/ByteBuffer.h"
 
 namespace db
 {

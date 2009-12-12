@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/io/MutatorInputStream.h"
+#include "monarch/io/MutatorInputStream.h"
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 using namespace db::io;
 using namespace db::rt;

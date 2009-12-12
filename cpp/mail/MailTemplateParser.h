@@ -4,8 +4,8 @@
 #ifndef db_mail_MailTemplateParser_H
 #define db_mail_MailTemplateParser_H
 
-#include "db/mail/Mail.h"
-#include "db/io/InputStream.h"
+#include "monarch/mail/Mail.h"
+#include "monarch/io/InputStream.h"
 
 namespace db
 {

@@ -4,8 +4,8 @@
 #ifndef db_modest_State_H
 #define db_modest_State_H
 
-#include "db/modest/ImmutableState.h"
-#include "db/rt/ExclusiveLock.h"
+#include "monarch/modest/ImmutableState.h"
+#include "monarch/rt/ExclusiveLock.h"
 
 #include <map>
 #include <cstring>

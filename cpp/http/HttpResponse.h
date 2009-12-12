@@ -4,8 +4,8 @@
 #ifndef db_http_HttpResponse_H
 #define db_http_HttpResponse_H
 
-#include "db/http/HttpResponseHeader.h"
-#include "db/http/HttpConnection.h"
+#include "monarch/http/HttpResponseHeader.h"
+#include "monarch/http/HttpConnection.h"
 
 namespace db
 {

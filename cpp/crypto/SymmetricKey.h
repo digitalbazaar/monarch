@@ -5,7 +5,7 @@
 #define db_crypto_SymmetricKey_H
 
 #include <string>
-#include "db/rt/Collectable.h"
+#include "monarch/rt/Collectable.h"
 
 namespace db
 {

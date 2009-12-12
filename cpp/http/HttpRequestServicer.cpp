@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpRequestServicer.h"
+#include "monarch/http/HttpRequestServicer.h"
 
 #include <cstdlib>
 #include <cstring>

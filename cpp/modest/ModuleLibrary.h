@@ -4,9 +4,9 @@
 #ifndef db_modest_ModuleLibrary_H
 #define db_modest_ModuleLibrary_H
 
-#include "db/rt/Exception.h"
-#include "db/rt/ExclusiveLock.h"
-#include "db/modest/ModuleLoader.h"
+#include "monarch/rt/Exception.h"
+#include "monarch/rt/ExclusiveLock.h"
+#include "monarch/modest/ModuleLoader.h"
 
 #include <map>
 #include <list>

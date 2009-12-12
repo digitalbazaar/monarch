@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/modest/OperationList.h"
+#include "monarch/modest/OperationList.h"
 
 #include <algorithm>
-#include "db/rt/ListIterator.h"
+#include "monarch/rt/ListIterator.h"
 
 using namespace std;
 using namespace db::modest;

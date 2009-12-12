@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/modest/OperationImpl.h"
+#include "monarch/modest/OperationImpl.h"
 
-#include "db/modest/OperationDispatcher.h"
+#include "monarch/modest/OperationDispatcher.h"
 
 using namespace db::modest;
 using namespace db::rt;

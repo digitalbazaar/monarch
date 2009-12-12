@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/crypto/X509Certificate.h"
+#include "monarch/crypto/X509Certificate.h"
 
 #include <openssl/evp.h>
 

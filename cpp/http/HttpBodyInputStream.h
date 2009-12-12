@@ -4,9 +4,9 @@
 #ifndef db_http_HttpBodyInputStream_H
 #define db_http_HttpBodyInputStream_H
 
-#include "db/io/FilterInputStream.h"
-#include "db/http/HttpConnection.h"
-#include "db/http/HttpTrailer.h"
+#include "monarch/io/FilterInputStream.h"
+#include "monarch/http/HttpConnection.h"
+#include "monarch/http/HttpTrailer.h"
 
 namespace db
 {

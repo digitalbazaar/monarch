@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpRequest.h"
+#include "monarch/http/HttpRequest.h"
 
-#include "db/http/HttpConnection.h"
-#include "db/http/HttpResponse.h"
+#include "monarch/http/HttpConnection.h"
+#include "monarch/http/HttpResponse.h"
 
 using namespace db::io;
 using namespace db::http;

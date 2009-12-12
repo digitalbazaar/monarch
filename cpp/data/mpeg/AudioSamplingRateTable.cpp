@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/mpeg/AudioSamplingRateTable.h"
+#include "monarch/data/mpeg/AudioSamplingRateTable.h"
 
 #include <cstdlib>
 

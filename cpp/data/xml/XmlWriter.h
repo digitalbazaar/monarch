@@ -4,7 +4,7 @@
 #ifndef db_data_xml_XmlWriter_H
 #define db_data_xml_XmlWriter_H
 
-#include "db/data/DynamicObjectWriter.h"
+#include "monarch/data/DynamicObjectWriter.h"
 
 #include <string>
 

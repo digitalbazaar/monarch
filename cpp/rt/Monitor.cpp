@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/rt/Monitor.h"
+#include "monarch/rt/Monitor.h"
 
-#include "db/rt/Thread.h"
-#include "db/rt/TimeFunctions.h"
+#include "monarch/rt/Thread.h"
+#include "monarch/rt/TimeFunctions.h"
 
 using namespace db::rt;
 

@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/SslSocketDataPresenter.h"
+#include "monarch/net/SslSocketDataPresenter.h"
 
-#include "db/net/SslSocket.h"
-#include "db/net/SocketDefinitions.h"
+#include "monarch/net/SslSocket.h"
+#include "monarch/net/SocketDefinitions.h"
 
 using namespace db::net;
 using namespace db::rt;

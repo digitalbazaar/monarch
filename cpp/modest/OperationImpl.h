@@ -4,9 +4,9 @@
 #ifndef db_modest_OperationImpl_H
 #define db_modest_OperationImpl_H
 
-#include "db/rt/Thread.h"
-#include "db/modest/OperationGuardChain.h"
-#include "db/modest/StateMutatorChain.h"
+#include "monarch/rt/Thread.h"
+#include "monarch/modest/OperationGuardChain.h"
+#include "monarch/modest/StateMutatorChain.h"
 
 namespace db
 {

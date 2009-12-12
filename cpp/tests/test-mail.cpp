@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/io/ByteArrayInputStream.h"
-#include "db/mail/SmtpClient.h"
-#include "db/mail/MailTemplateParser.h"
-#include "db/mail/MailSpool.h"
-#include "db/net/Url.h"
-#include "db/util/StringTools.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
+#include "monarch/io/ByteArrayInputStream.h"
+#include "monarch/mail/SmtpClient.h"
+#include "monarch/mail/MailTemplateParser.h"
+#include "monarch/mail/MailSpool.h"
+#include "monarch/net/Url.h"
+#include "monarch/util/StringTools.h"
 
 using namespace std;
 using namespace db::io;

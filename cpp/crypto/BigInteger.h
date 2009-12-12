@@ -4,7 +4,7 @@
 #ifndef db_crypto_BigInteger_H
 #define db_crypto_BigInteger_H
 
-#include "db/io/ByteBuffer.h"
+#include "monarch/io/ByteBuffer.h"
 
 #include <openssl/bn.h>
 #include <string>

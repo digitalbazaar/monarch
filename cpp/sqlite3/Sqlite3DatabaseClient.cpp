@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/sql/sqlite3/Sqlite3DatabaseClient.h"
+#include "monarch/sql/sqlite3/Sqlite3DatabaseClient.h"
 
 using namespace db::rt;
 using namespace db::sql;

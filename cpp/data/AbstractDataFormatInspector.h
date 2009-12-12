@@ -4,8 +4,8 @@
 #ifndef db_data_AbstractDataFormatInspector_H
 #define db_data_AbstractDataFormatInspector_H
 
-#include "db/data/DataFormatInspector.h"
-#include "db/data/DataInspector.h"
+#include "monarch/data/DataFormatInspector.h"
+#include "monarch/data/DataInspector.h"
 
 namespace db
 {

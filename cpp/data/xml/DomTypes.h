@@ -4,8 +4,8 @@
 #ifndef db_data_xml_DomTypes_H
 #define db_data_xml_DomTypes_H
 
-#include "db/rt/DynamicObject.h"
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 namespace db
 {

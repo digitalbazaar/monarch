@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/BandwidthThrottlerChain.h"
+#include "monarch/net/BandwidthThrottlerChain.h"
 
-#include "db/util/Math.h"
+#include "monarch/util/Math.h"
 
 using namespace db::net;
 using namespace db::rt;

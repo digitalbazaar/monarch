@@ -6,9 +6,9 @@
 
 #include <map>
 
-#include "db/logging/Logger.h"
-#include "db/io/OutputStream.h"
-#include "db/rt/ExclusiveLock.h"
+#include "monarch/logging/Logger.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/rt/ExclusiveLock.h"
 
 namespace db
 {

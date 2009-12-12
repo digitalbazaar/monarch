@@ -4,8 +4,8 @@
 #ifndef db_io_MutatorOutputStream_H
 #define db_io_MutatorOutputStream_H
 
-#include "db/io/FilterOutputStream.h"
-#include "db/io/MutationAlgorithm.h"
+#include "monarch/io/FilterOutputStream.h"
+#include "monarch/io/MutationAlgorithm.h"
 
 namespace db
 {

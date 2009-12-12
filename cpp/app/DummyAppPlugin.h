@@ -4,7 +4,7 @@
 #ifndef db_app_DummyAppPlugin_H
 #define db_app_DummyAppPlugin_H
 
-#include "db/app/AppPlugin.h"
+#include "monarch/app/AppPlugin.h"
 
 namespace db
 {

@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/io/ByteArrayInputStream.h"
-#include "db/data/xml/DomTypes.h"
-#include "db/upnp/ControlPoint.h"
-#include "db/upnp/DeviceDiscoverer.h"
-#include "db/upnp/SoapEnvelope.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
+#include "monarch/io/ByteArrayInputStream.h"
+#include "monarch/data/xml/DomTypes.h"
+#include "monarch/upnp/ControlPoint.h"
+#include "monarch/upnp/DeviceDiscoverer.h"
+#include "monarch/upnp/SoapEnvelope.h"
 
 #include <cstdio>
 

@@ -4,7 +4,7 @@
 #ifndef db_rt_DynamicObjectImpl_H
 #define db_rt_DynamicObjectImpl_H
 
-#include "db/rt/ExclusiveLock.h"
+#include "monarch/rt/ExclusiveLock.h"
 
 #include <map>
 #include <vector>

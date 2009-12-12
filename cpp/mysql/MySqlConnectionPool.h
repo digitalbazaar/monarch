@@ -4,8 +4,8 @@
 #ifndef db_sql_mysql_MySqlConnectionPool_H
 #define db_sql_mysql_MySqlConnectionPool_H
 
-#include "db/sql/AbstractConnectionPool.h"
-#include "db/sql/mysql/MySqlConnection.h"
+#include "monarch/sql/AbstractConnectionPool.h"
+#include "monarch/sql/mysql/MySqlConnection.h"
 
 namespace db
 {

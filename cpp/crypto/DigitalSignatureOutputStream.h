@@ -4,8 +4,8 @@
 #ifndef db_crypto_DigitalSignatureOutputStream_H
 #define db_crypto_DigitalSignatureOutputStream_H
 
-#include "db/io/FilterOutputStream.h"
-#include "db/crypto/DigitalSignature.h"
+#include "monarch/io/FilterOutputStream.h"
+#include "monarch/crypto/DigitalSignature.h"
 
 namespace db
 {

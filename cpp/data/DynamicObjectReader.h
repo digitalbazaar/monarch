@@ -4,8 +4,8 @@
 #ifndef db_data_DynamicObjectReader_H
 #define db_data_DynamicObjectReader_H
 
-#include "db/rt/DynamicObject.h"
-#include "db/io/InputStream.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/io/InputStream.h"
 
 namespace db
 {

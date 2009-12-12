@@ -4,9 +4,9 @@
 #ifndef db_compress_gzip_Gzipper_H
 #define db_compress_gzip_Gzipper_H
 
-#include "db/compress/deflate/Deflater.h"
-#include "db/compress/gzip/Header.h"
-#include "db/compress/gzip/Trailer.h"
+#include "monarch/compress/deflate/Deflater.h"
+#include "monarch/compress/gzip/Header.h"
+#include "monarch/compress/gzip/Trailer.h"
 
 namespace db
 {

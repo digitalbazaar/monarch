@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/ConnectionInputStream.h"
+#include "monarch/net/ConnectionInputStream.h"
 
-#include "db/net/Connection.h"
-#include "db/util/Math.h"
+#include "monarch/net/Connection.h"
+#include "monarch/util/Math.h"
 
 #include <cstring>
 

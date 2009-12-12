@@ -4,9 +4,9 @@
 #ifndef db_fiber_FiberScheduler_H
 #define db_fiber_FiberScheduler_H
 
-#include "db/modest/OperationList.h"
-#include "db/modest/OperationRunner.h"
-#include "db/fiber/Fiber.h"
+#include "monarch/modest/OperationList.h"
+#include "monarch/modest/OperationRunner.h"
+#include "monarch/fiber/Fiber.h"
 
 #include <map>
 

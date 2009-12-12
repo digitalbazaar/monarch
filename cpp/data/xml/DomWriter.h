@@ -4,8 +4,8 @@
 #ifndef db_data_xml_DomWriter_H
 #define db_data_xml_DomWriter_H
 
-#include "db/data/xml/XmlWriter.h"
-#include "db/data/xml/DomTypes.h"
+#include "monarch/data/xml/XmlWriter.h"
+#include "monarch/data/xml/DomTypes.h"
 
 namespace db
 {

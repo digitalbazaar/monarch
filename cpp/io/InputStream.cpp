@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/io/InputStream.h"
+#include "monarch/io/InputStream.h"
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 using namespace db::io;
 using namespace db::rt;

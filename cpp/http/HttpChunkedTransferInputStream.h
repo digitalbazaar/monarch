@@ -4,10 +4,10 @@
 #ifndef db_http_HttpChunkedTransferInputStream_H
 #define db_http_HttpChunkedTransferInputStream_H
 
-#include "db/io/PeekInputStream.h"
-#include "db/net/ConnectionInputStream.h"
-#include "db/http/HttpTrailer.h"
-#include "db/rt/Thread.h"
+#include "monarch/io/PeekInputStream.h"
+#include "monarch/net/ConnectionInputStream.h"
+#include "monarch/http/HttpTrailer.h"
+#include "monarch/rt/Thread.h"
 
 namespace db
 {

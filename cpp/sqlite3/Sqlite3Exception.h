@@ -4,7 +4,7 @@
 #ifndef db_sql_sqlite3_Sqlite3Exception_H
 #define db_sql_sqlite3_Sqlite3Exception_H
 
-#include "db/sql/SqlException.h"
+#include "monarch/sql/SqlException.h"
 
 namespace db
 {

@@ -4,8 +4,8 @@
 #ifndef db_net_PortService_H
 #define db_net_PortService_H
 
-#include "db/net/InternetAddress.h"
-#include "db/modest/Operation.h"
+#include "monarch/net/InternetAddress.h"
+#include "monarch/modest/Operation.h"
 
 namespace db
 {

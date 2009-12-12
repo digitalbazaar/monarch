@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/crypto/AbstractBlockCipher.h"
+#include "monarch/crypto/AbstractBlockCipher.h"
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 #include <cstring>
 

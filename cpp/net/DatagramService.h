@@ -4,8 +4,8 @@
 #ifndef db_net_DatagramService_H
 #define db_net_DatagramService_H
 
-#include "db/net/PortService.h"
-#include "db/net/DatagramServicer.h"
+#include "monarch/net/PortService.h"
+#include "monarch/net/DatagramServicer.h"
 
 namespace db
 {

@@ -4,7 +4,7 @@
 #ifndef db_io_OStreamOutputStream_H
 #define db_io_OStreamOutputStream_H
 
-#include "db/io/OutputStream.h"
+#include "monarch/io/OutputStream.h"
 
 #include <ostream>
 

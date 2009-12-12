@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/DynamicObjectInputStream.h"
+#include "monarch/data/DynamicObjectInputStream.h"
 
-#include "db/io/ByteArrayOutputStream.h"
+#include "monarch/io/ByteArrayOutputStream.h"
 
 using namespace db::data;
 using namespace db::io;

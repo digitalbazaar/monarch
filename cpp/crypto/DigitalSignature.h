@@ -4,9 +4,9 @@
 #ifndef db_crypto_DigitalSignature_H
 #define db_crypto_DigitalSignature_H
 
-#include "db/crypto/CryptoHashAlgorithm.h"
-#include "db/crypto/PrivateKey.h"
-#include "db/crypto/PublicKey.h"
+#include "monarch/crypto/CryptoHashAlgorithm.h"
+#include "monarch/crypto/PrivateKey.h"
+#include "monarch/crypto/PublicKey.h"
 
 namespace db
 {

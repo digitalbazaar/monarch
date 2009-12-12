@@ -4,8 +4,8 @@
 #ifndef db_data_DataFormatInspector_H
 #define db_data_DataFormatInspector_H
 
-#include "db/data/DataInspector.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/data/DataInspector.h"
+#include "monarch/rt/DynamicObject.h"
 
 #include <string>
 

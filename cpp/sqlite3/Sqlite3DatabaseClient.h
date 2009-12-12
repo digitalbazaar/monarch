@@ -4,7 +4,7 @@
 #ifndef db_sql_sqlite3_Sqlite3DatabaseClient_H
 #define db_sql_sqlite3_Sqlite3DatabaseClient_H
 
-#include "db/sql/DatabaseClient.h"
+#include "monarch/sql/DatabaseClient.h"
 
 namespace db
 {

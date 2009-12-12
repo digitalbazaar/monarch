@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/crypto/DefaultBlockCipher.h"
+#include "monarch/crypto/DefaultBlockCipher.h"
 
-#include "db/crypto/SymmetricKeyFactory.h"
-#include "db/rt/Exception.h"
+#include "monarch/crypto/SymmetricKeyFactory.h"
+#include "monarch/rt/Exception.h"
 
 #include <openssl/err.h>
 

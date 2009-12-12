@@ -6,7 +6,7 @@
 
 #include <inttypes.h>
 
-#include "db/io/OutputStream.h"
+#include "monarch/io/OutputStream.h"
 
 namespace db
 {

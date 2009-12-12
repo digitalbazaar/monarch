@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpChunkedTransferInputStream.h"
+#include "monarch/http/HttpChunkedTransferInputStream.h"
 
-#include "db/rt/DynamicObject.h"
-#include "db/util/Convert.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/util/Convert.h"
 
 #include <cstdlib>
 #include <climits>

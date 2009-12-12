@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpChunkedTransferOutputStream.h"
+#include "monarch/http/HttpChunkedTransferOutputStream.h"
 
-#include "db/util/Convert.h"
+#include "monarch/util/Convert.h"
 
 using namespace std;
 using namespace db::io;

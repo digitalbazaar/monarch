@@ -4,9 +4,9 @@
 #ifndef db_event_Observable_H
 #define db_event_Observable_H
 
-#include "db/modest/OperationList.h"
-#include "db/modest/OperationRunner.h"
-#include "db/event/Observer.h"
+#include "monarch/modest/OperationList.h"
+#include "monarch/modest/OperationRunner.h"
+#include "monarch/event/Observer.h"
 
 #include <list>
 #include <map>

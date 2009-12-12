@@ -4,9 +4,9 @@
 #ifndef db_http_CookieJar_H
 #define db_http_CookieJar_H
 
-#include "db/http/HttpHeader.h"
-#include "db/rt/DynamicObject.h"
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/http/HttpHeader.h"
+#include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 namespace db
 {

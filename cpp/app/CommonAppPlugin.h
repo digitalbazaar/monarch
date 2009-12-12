@@ -4,8 +4,8 @@
 #ifndef db_app_CommonAppPlugin_H
 #define db_app_CommonAppPlugin_H
 
-#include "db/app/AppPlugin.h"
-#include "db/logging/Logging.h"
+#include "monarch/app/AppPlugin.h"
+#include "monarch/logging/Logging.h"
 
 namespace db
 {

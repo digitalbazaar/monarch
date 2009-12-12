@@ -4,10 +4,10 @@
 #ifndef db_data_mpeg_FrameHeader_H
 #define db_data_mpeg_FrameHeader_H
 
-#include "db/io/ByteBuffer.h"
-#include "db/data/mpeg/AudioCharacteristics.h"
-#include "db/data/mpeg/AudioBitrateTable.h"
-#include "db/data/mpeg/AudioSamplingRateTable.h"
+#include "monarch/io/ByteBuffer.h"
+#include "monarch/data/mpeg/AudioCharacteristics.h"
+#include "monarch/data/mpeg/AudioBitrateTable.h"
+#include "monarch/data/mpeg/AudioSamplingRateTable.h"
 
 #include <string>
 

@@ -4,9 +4,9 @@
 #ifndef db_net_Datagram_H
 #define db_net_Datagram_H
 
-#include "db/io/ByteBuffer.h"
-#include "db/net/InternetAddress.h"
-#include "db/rt/Collectable.h"
+#include "monarch/io/ByteBuffer.h"
+#include "monarch/net/InternetAddress.h"
+#include "monarch/rt/Collectable.h"
 
 namespace db
 {

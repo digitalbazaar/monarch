@@ -4,8 +4,8 @@
 #ifndef db_modest_StateMutator_H
 #define db_modest_StateMutator_H
 
-#include "db/rt/Collectable.h"
-#include "db/modest/State.h"
+#include "monarch/rt/Collectable.h"
+#include "monarch/modest/State.h"
 
 namespace db
 {

@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/compress/zip/ZipEntry.h"
+#include "monarch/compress/zip/ZipEntry.h"
 
-#include "db/rt/System.h"
+#include "monarch/rt/System.h"
 
 #include <cstdlib>
 #include <cstring>

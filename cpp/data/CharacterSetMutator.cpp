@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/CharacterSetMutator.h"
+#include "monarch/data/CharacterSetMutator.h"
 
-#include "db/rt/Exception.h"
-#include "db/io/ByteArrayInputStream.h"
-#include "db/io/MutatorInputStream.h"
+#include "monarch/rt/Exception.h"
+#include "monarch/io/ByteArrayInputStream.h"
+#include "monarch/io/MutatorInputStream.h"
 #include <errno.h>
 #include <cstdlib>
 

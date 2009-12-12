@@ -5,13 +5,13 @@
 #include <sstream>
 #include <cstdio>
 
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/io/OStreamOutputStream.h"
-#include "db/logging/Logging.h"
-#include "db/logging/FileLogger.h"
-#include "db/logging/OutputStreamLogger.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
+#include "monarch/io/OStreamOutputStream.h"
+#include "monarch/logging/Logging.h"
+#include "monarch/logging/FileLogger.h"
+#include "monarch/logging/OutputStreamLogger.h"
 
 using namespace std;
 using namespace db::test;

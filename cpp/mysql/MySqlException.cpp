@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/sql/mysql/MySqlException.h"
+#include "monarch/sql/mysql/MySqlException.h"
 
-#include "db/sql/mysql/MySqlConnection.h"
-#include "db/sql/mysql/MySqlStatement.h"
+#include "monarch/sql/mysql/MySqlConnection.h"
+#include "monarch/sql/mysql/MySqlStatement.h"
 
 #include <mysql/mysql.h>
 

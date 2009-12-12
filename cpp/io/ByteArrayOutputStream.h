@@ -4,8 +4,8 @@
 #ifndef db_io_ByteArrayOutputStream_H
 #define db_io_ByteArrayOutputStream_H
 
-#include "db/io/ByteBuffer.h"
-#include "db/io/OutputStream.h"
+#include "monarch/io/ByteBuffer.h"
+#include "monarch/io/OutputStream.h"
 
 namespace db
 {

@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/sql/SqlException.h"
+#include "monarch/sql/SqlException.h"
 
-#include "db/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObject.h"
 
 #include <string>
 

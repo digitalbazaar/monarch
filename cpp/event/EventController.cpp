@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/event/EventController.h"
+#include "monarch/event/EventController.h"
 
-#include "db/rt/DynamicObjectIterator.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 using namespace std;
 using namespace db::event;

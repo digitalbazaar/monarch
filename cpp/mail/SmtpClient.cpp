@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/mail/SmtpClient.h"
+#include "monarch/mail/SmtpClient.h"
 
-#include "db/net/InternetAddress.h"
+#include "monarch/net/InternetAddress.h"
 
 using namespace std;
 using namespace db::io;

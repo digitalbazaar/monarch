@@ -4,8 +4,8 @@
 #ifndef db_http_HttpRequestServicer_H
 #define db_http_HttpRequestServicer_H
 
-#include "db/http/HttpRequest.h"
-#include "db/http/HttpResponse.h"
+#include "monarch/http/HttpRequest.h"
+#include "monarch/http/HttpResponse.h"
 
 namespace db
 {

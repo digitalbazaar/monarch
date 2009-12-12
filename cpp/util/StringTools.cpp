@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/util/StringTools.h"
+#include "monarch/util/StringTools.h"
 
-#include "db/rt/DynamicObjectIterator.h"
-#include "db/util/StringTokenizer.h"
-#include "db/util/regex/Pattern.h"
+#include "monarch/rt/DynamicObjectIterator.h"
+#include "monarch/util/StringTokenizer.h"
+#include "monarch/util/regex/Pattern.h"
 
 #include <cstring>
 #include <cstdarg>

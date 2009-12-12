@@ -6,9 +6,9 @@
  */
 #include <cstdio>
 
-#include "db/rt/Thread.h"
-#include "db/rt/ExclusiveLock.h"
-#include "db/rt/SharedLock.h"
+#include "monarch/rt/Thread.h"
+#include "monarch/rt/ExclusiveLock.h"
+#include "monarch/rt/SharedLock.h"
 
 using namespace std;
 using namespace db::rt;

@@ -4,10 +4,10 @@
 #ifndef db_modest_OperationRunner_H
 #define db_modest_OperationRunner_H
 
-#include "db/rt/Runnable.h"
-#include "db/modest/Operation.h"
-#include "db/modest/OperationGuard.h"
-#include "db/modest/StateMutator.h"
+#include "monarch/rt/Runnable.h"
+#include "monarch/modest/Operation.h"
+#include "monarch/modest/OperationGuard.h"
+#include "monarch/modest/StateMutator.h"
 
 namespace db
 {

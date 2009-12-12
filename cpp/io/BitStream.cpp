@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/io/BitStream.h"
+#include "monarch/io/BitStream.h"
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 #include <cstdlib>
 

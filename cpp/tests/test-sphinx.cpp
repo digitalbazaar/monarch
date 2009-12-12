@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/sphinx/SphinxClient.h"
-#include "db/data/json/JsonWriter.h"
-#include "db/io/OStreamOutputStream.h"
-#include "db/rt/Exception.h"
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
+#include "monarch/sphinx/SphinxClient.h"
+#include "monarch/data/json/JsonWriter.h"
+#include "monarch/io/OStreamOutputStream.h"
+#include "monarch/rt/Exception.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
 
 using namespace std;
 using namespace db::sphinx;

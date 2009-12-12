@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/data/TemplateInputStream.h"
+#include "monarch/data/TemplateInputStream.h"
 
 #include <string>
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 using namespace db::data;
 using namespace db::io;

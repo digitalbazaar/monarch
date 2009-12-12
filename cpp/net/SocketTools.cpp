@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/SocketTools.h"
+#include "monarch/net/SocketTools.h"
 
-#include "db/net/WindowsSupport.h"
-#include "db/rt/Thread.h"
-#include "db/rt/System.h"
+#include "monarch/net/WindowsSupport.h"
+#include "monarch/rt/Thread.h"
+#include "monarch/rt/System.h"
 
 using namespace db::net;
 using namespace db::rt;

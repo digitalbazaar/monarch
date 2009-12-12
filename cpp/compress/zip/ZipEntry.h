@@ -4,11 +4,11 @@
 #ifndef db_compress_zip_ZipEntry_H
 #define db_compress_zip_ZipEntry_H
 
-#include "db/rt/Collectable.h"
-#include "db/io/File.h"
-#include "db/io/InputStream.h"
-#include "db/io/OutputStream.h"
-#include "db/util/Date.h"
+#include "monarch/rt/Collectable.h"
+#include "monarch/io/File.h"
+#include "monarch/io/InputStream.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/util/Date.h"
 
 namespace db
 {

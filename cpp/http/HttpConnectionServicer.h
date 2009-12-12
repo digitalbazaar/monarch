@@ -4,11 +4,11 @@
 #ifndef db_http_HttpConnectionServicer_H
 #define db_http_HttpConnectionServicer_H
 
-#include "db/rt/SharedLock.h"
-#include "db/net/ConnectionServicer.h"
-#include "db/http/HttpConnection.h"
-#include "db/http/HttpRequestServicer.h"
-#include "db/util/StringTools.h"
+#include "monarch/rt/SharedLock.h"
+#include "monarch/net/ConnectionServicer.h"
+#include "monarch/http/HttpConnection.h"
+#include "monarch/http/HttpRequestServicer.h"
+#include "monarch/util/StringTools.h"
 
 #include <map>
 #include <string>

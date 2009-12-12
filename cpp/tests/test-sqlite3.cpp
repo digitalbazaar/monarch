@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/test/Test.h"
-#include "db/test/Tester.h"
-#include "db/test/TestRunner.h"
-#include "db/rt/Thread.h"
-#include "db/sql/Row.h"
-#include "db/sql/sqlite3/Sqlite3Connection.h"
-#include "db/sql/sqlite3/Sqlite3ConnectionPool.h"
-#include "db/sql/sqlite3/Sqlite3DatabaseClient.h"
-#include "db/util/Timer.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
+#include "monarch/rt/Thread.h"
+#include "monarch/sql/Row.h"
+#include "monarch/sql/sqlite3/Sqlite3Connection.h"
+#include "monarch/sql/sqlite3/Sqlite3ConnectionPool.h"
+#include "monarch/sql/sqlite3/Sqlite3DatabaseClient.h"
+#include "monarch/util/Timer.h"
 
 #include <cstdio>
 

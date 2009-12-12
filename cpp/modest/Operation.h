@@ -4,8 +4,8 @@
 #ifndef db_modest_Operation_H
 #define db_modest_Operation_H
 
-#include "db/rt/Collectable.h"
-#include "db/modest/OperationImpl.h"
+#include "monarch/rt/Collectable.h"
+#include "monarch/modest/OperationImpl.h"
 
 namespace db
 {

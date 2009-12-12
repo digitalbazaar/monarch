@@ -6,9 +6,9 @@
 
 #include <openssl/ssl.h>
 
-#include "db/io/File.h"
-#include "db/net/TcpSocket.h"
-#include "db/rt/ExclusiveLock.h"
+#include "monarch/io/File.h"
+#include "monarch/net/TcpSocket.h"
+#include "monarch/rt/ExclusiveLock.h"
 
 namespace db
 {

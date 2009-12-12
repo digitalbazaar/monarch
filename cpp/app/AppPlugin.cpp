@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/app/AppPlugin.h"
+#include "monarch/app/AppPlugin.h"
 
 using namespace std;
 using namespace db::app;

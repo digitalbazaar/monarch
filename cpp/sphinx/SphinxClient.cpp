@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/sphinx/SphinxClient.h"
+#include "monarch/sphinx/SphinxClient.h"
 
-#include "db/net/InternetAddress.h"
-#include "db/net/TcpSocket.h"
-#include "db/util/Data.h"
+#include "monarch/net/InternetAddress.h"
+#include "monarch/net/TcpSocket.h"
+#include "monarch/util/Data.h"
 
 using namespace db::sphinx;
 using namespace db::data;

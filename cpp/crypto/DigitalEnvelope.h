@@ -4,10 +4,10 @@
 #ifndef db_crypto_DigitalEnvelope_H
 #define db_crypto_DigitalEnvelope_H
 
-#include "db/crypto/AbstractBlockCipher.h"
-#include "db/crypto/PrivateKey.h"
-#include "db/crypto/PublicKey.h"
-#include "db/crypto/SymmetricKey.h"
+#include "monarch/crypto/AbstractBlockCipher.h"
+#include "monarch/crypto/PrivateKey.h"
+#include "monarch/crypto/PublicKey.h"
+#include "monarch/crypto/SymmetricKey.h"
 
 namespace db
 {

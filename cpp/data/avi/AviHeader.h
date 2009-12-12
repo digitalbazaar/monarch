@@ -4,8 +4,8 @@
 #ifndef db_data_avi_AviHeader_H
 #define db_data_avi_AviHeader_H
 
-#include "db/io/OutputStream.h"
-#include "db/data/riff/RiffChunkHeader.h"
+#include "monarch/io/OutputStream.h"
+#include "monarch/data/riff/RiffChunkHeader.h"
 
 namespace db
 {

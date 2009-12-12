@@ -4,8 +4,8 @@
 #ifndef db_sql_AbstractConnection_H
 #define db_sql_AbstractConnection_H
 
-#include "db/sql/Connection.h"
-#include "db/util/StringTools.h"
+#include "monarch/sql/Connection.h"
+#include "monarch/util/StringTools.h"
 
 namespace db
 {

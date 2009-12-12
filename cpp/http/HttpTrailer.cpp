@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/http/HttpTrailer.h"
+#include "monarch/http/HttpTrailer.h"
 
 using namespace db::http;
 

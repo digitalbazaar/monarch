@@ -4,7 +4,7 @@
 #ifndef db_net_BandwidthThrottlerChain_H
 #define db_net_BandwidthThrottlerChain_H
 
-#include "db/net/BandwidthThrottler.h"
+#include "monarch/net/BandwidthThrottler.h"
 
 #include <vector>
 

@@ -4,9 +4,9 @@
 #ifndef db_http_HttpConnectionPool_H
 #define db_http_HttpConnectionPool_H
 
-#include "db/http/HttpConnection.h"
-#include "db/net/Url.h"
-#include "db/util/StringTools.h"
+#include "monarch/http/HttpConnection.h"
+#include "monarch/net/Url.h"
+#include "monarch/util/StringTools.h"
 
 #include <map>
 #include <list>

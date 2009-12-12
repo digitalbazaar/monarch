@@ -4,8 +4,8 @@
 #ifndef db_rt_Exception_H
 #define db_rt_Exception_H
 
-#include "db/rt/Collectable.h"
-#include "db/rt/DynamicObject.h"
+#include "monarch/rt/Collectable.h"
+#include "monarch/rt/DynamicObject.h"
 
 namespace db
 {

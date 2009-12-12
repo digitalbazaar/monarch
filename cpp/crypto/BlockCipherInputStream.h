@@ -4,8 +4,8 @@
 #ifndef db_crypto_BlockCipherInputStream_H
 #define db_crypto_BlockCipherInputStream_H
 
-#include "db/io/FilterInputStream.h"
-#include "db/crypto/BlockCipher.h"
+#include "monarch/io/FilterInputStream.h"
+#include "monarch/crypto/BlockCipher.h"
 
 namespace db
 {

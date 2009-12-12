@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/crypto/DigitalSignatureInputStream.h"
+#include "monarch/crypto/DigitalSignatureInputStream.h"
 
 using namespace db::crypto;
 using namespace db::io;

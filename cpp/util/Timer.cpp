@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/util/Timer.h"
+#include "monarch/util/Timer.h"
 
-#include "db/rt/System.h"
+#include "monarch/rt/System.h"
 
 using namespace db::rt;
 using namespace db::util;

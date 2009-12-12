@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/validation/NotValid.h"
+#include "monarch/validation/NotValid.h"
 
 using namespace db::rt;
 using namespace db::validation;

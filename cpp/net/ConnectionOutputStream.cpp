@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/Connection.h"
+#include "monarch/net/Connection.h"
 
-#include "db/rt/Exception.h"
-#include "db/util/Math.h"
+#include "monarch/rt/Exception.h"
+#include "monarch/util/Math.h"
 
 using namespace db::io;
 using namespace db::net;

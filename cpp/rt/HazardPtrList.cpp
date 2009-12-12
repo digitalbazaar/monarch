@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/rt/HazardPtrList.h"
+#include "monarch/rt/HazardPtrList.h"
 
-#include "db/rt/Atomic.h"
+#include "monarch/rt/Atomic.h"
 
 using namespace db::rt;
 

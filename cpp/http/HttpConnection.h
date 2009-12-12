@@ -4,9 +4,9 @@
 #ifndef db_http_HttpConnection_H
 #define db_http_HttpConnection_H
 
-#include "db/net/ConnectionWrapper.h"
-#include "db/http/HttpRequest.h"
-#include "db/http/HttpTrailer.h"
+#include "monarch/net/ConnectionWrapper.h"
+#include "monarch/http/HttpRequest.h"
+#include "monarch/http/HttpTrailer.h"
 
 namespace db
 {

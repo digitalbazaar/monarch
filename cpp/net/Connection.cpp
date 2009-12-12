@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/net/Connection.h"
+#include "monarch/net/Connection.h"
 
-#include "db/net/Internet6Address.h"
+#include "monarch/net/Internet6Address.h"
 
 using namespace db::net;
 using namespace db::rt;

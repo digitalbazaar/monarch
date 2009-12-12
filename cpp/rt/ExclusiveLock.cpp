@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/rt/ExclusiveLock.h"
+#include "monarch/rt/ExclusiveLock.h"
 
-#include "db/rt/System.h"
-#include "db/rt/Thread.h"
+#include "monarch/rt/System.h"
+#include "monarch/rt/Thread.h"
 
 using namespace db::rt;
 

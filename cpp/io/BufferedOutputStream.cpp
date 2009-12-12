@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/io/BufferedOutputStream.h"
+#include "monarch/io/BufferedOutputStream.h"
 
 using namespace db::io;
 

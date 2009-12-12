@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/compress/gzip/Gzipper.h"
+#include "monarch/compress/gzip/Gzipper.h"
 
-#include "db/rt/Exception.h"
+#include "monarch/rt/Exception.h"
 
 using namespace db::compress::deflate;
 using namespace db::compress::gzip;

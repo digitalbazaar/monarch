@@ -4,8 +4,8 @@
 #ifndef db_net_SocketInputStream_H
 #define db_net_SocketInputStream_H
 
-#include "db/io/InputStream.h"
-#include "db/net/Socket.h"
+#include "monarch/io/InputStream.h"
+#include "monarch/net/Socket.h"
 
 namespace db
 {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/util/Base64Codec.h"
+#include "monarch/util/Base64Codec.h"
 
 #include <cstring>
 #include <cstdlib>

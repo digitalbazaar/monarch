@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/logging/LoggingCategories.h"
+#include "monarch/logging/LoggingCategories.h"
 
 using namespace db::logging;
 

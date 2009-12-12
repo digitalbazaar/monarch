@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/sql/PooledConnection.h"
+#include "monarch/sql/PooledConnection.h"
 
-#include "db/sql/AbstractConnectionPool.h"
+#include "monarch/sql/AbstractConnectionPool.h"
 
 using namespace db::net;
 using namespace db::rt;

@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/test/Tester.h"
+#include "monarch/test/Tester.h"
 
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
 
-#include "db/test/Test.h"
-#include "db/rt/Exception.h"
-#include "db/rt/Thread.h"
+#include "monarch/test/Test.h"
+#include "monarch/rt/Exception.h"
+#include "monarch/rt/Thread.h"
 
 using namespace std;
 using namespace db::app;

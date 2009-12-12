@@ -4,11 +4,11 @@
 #ifndef db_logging_Logging_H
 #define db_logging_Logging_H
 
-#include "db/util/Macros.h"
-#include "db/logging/Category.h"
-#include "db/logging/Logger.h"
+#include "monarch/util/Macros.h"
+#include "monarch/logging/Category.h"
+#include "monarch/logging/Logger.h"
 // Include DB categories for convienience:
-#include "db/logging/LoggingCategories.h"
+#include "monarch/logging/LoggingCategories.h"
 
 namespace db
 {

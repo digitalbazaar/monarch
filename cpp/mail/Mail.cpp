@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/mail/Mail.h"
+#include "monarch/mail/Mail.h"
 
-#include "db/util/Base64Codec.h"
-#include "db/util/StringTools.h"
+#include "monarch/util/Base64Codec.h"
+#include "monarch/util/StringTools.h"
 
 #include <cstdio>
 

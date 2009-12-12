@@ -4,8 +4,8 @@
 #ifndef db_modest_OperationList_H
 #define db_modest_OperationList_H
 
-#include "db/modest/OperationRunner.h"
-#include "db/rt/Iterator.h"
+#include "monarch/modest/OperationRunner.h"
+#include "monarch/rt/Iterator.h"
 
 #include <list>
 

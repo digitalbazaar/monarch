@@ -4,8 +4,8 @@
 #ifndef db_data_avi_AviStreamFormat_H
 #define db_data_avi_AviStreamFormat_H
 
-#include "db/data/riff/RiffChunkHeader.h"
-#include "db/io/OutputStream.h"
+#include "monarch/data/riff/RiffChunkHeader.h"
+#include "monarch/io/OutputStream.h"
 
 namespace db
 {

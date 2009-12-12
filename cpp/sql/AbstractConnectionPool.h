@@ -4,12 +4,12 @@
 #ifndef db_sql_AbstractConnectionPool_H
 #define db_sql_AbstractConnectionPool_H
 
-#include "db/net/Url.h"
-#include "db/rt/ExclusiveLock.h"
-#include "db/rt/Semaphore.h"
-#include "db/rt/System.h"
-#include "db/sql/ConnectionPool.h"
-#include "db/sql/PooledConnection.h"
+#include "monarch/net/Url.h"
+#include "monarch/rt/ExclusiveLock.h"
+#include "monarch/rt/Semaphore.h"
+#include "monarch/rt/System.h"
+#include "monarch/sql/ConnectionPool.h"
+#include "monarch/sql/PooledConnection.h"
 
 #include <list>
 

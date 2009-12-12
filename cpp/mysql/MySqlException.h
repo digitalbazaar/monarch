@@ -4,7 +4,7 @@
 #ifndef db_sql_mysql_MySqlException_H
 #define db_sql_mysql_MySqlException_H
 
-#include "db/sql/SqlException.h"
+#include "monarch/sql/SqlException.h"
 
 namespace db
 {

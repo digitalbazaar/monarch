@@ -4,7 +4,7 @@
 #ifndef db_upnp_DeviceDiscoverer_H
 #define db_upnp_DeviceDiscoverer_H
 
-#include "db/upnp/TypeDefinitions.h"
+#include "monarch/upnp/TypeDefinitions.h"
 
 namespace db
 {

@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/event/Observable.h"
+#include "monarch/event/Observable.h"
 
-#include "db/rt/DynamicObjectIterator.h"
-#include "db/rt/Iterator.h"
-#include "db/event/ObserverDelegate.h"
+#include "monarch/rt/DynamicObjectIterator.h"
+#include "monarch/rt/Iterator.h"
+#include "monarch/event/ObserverDelegate.h"
 #include <algorithm>
 
 using namespace std;

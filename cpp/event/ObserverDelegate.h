@@ -4,8 +4,8 @@
 #ifndef db_event_ObserverDelegate_H
 #define db_event_ObserverDelegate_H
 
-#include "db/event/Observer.h"
-#include "db/rt/Runnable.h"
+#include "monarch/event/Observer.h"
+#include "monarch/rt/Runnable.h"
 
 namespace db
 {

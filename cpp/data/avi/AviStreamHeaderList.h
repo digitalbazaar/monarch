@@ -4,11 +4,11 @@
 #ifndef db_data_avi_AviStreamHeaderList_H
 #define db_data_avi_AviStreamHeaderList_H
 
-#include "db/data/avi/AviStreamData.h"
-#include "db/data/avi/AviStreamFormat.h"
-#include "db/data/avi/AviStreamHeader.h"
-#include "db/data/riff/RiffListHeader.h"
-#include "db/io/OutputStream.h"
+#include "monarch/data/avi/AviStreamData.h"
+#include "monarch/data/avi/AviStreamFormat.h"
+#include "monarch/data/avi/AviStreamHeader.h"
+#include "monarch/data/riff/RiffListHeader.h"
+#include "monarch/io/OutputStream.h"
 
 namespace db
 {

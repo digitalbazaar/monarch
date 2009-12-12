@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#include "db/modest/ModuleLibrary.h"
+#include "monarch/modest/ModuleLibrary.h"
 
 using namespace std;
 using namespace db::modest;

@@ -4,8 +4,8 @@
 #ifndef db_net_DatagramSocket_H
 #define db_net_DatagramSocket_H
 
-#include "db/net/Datagram.h"
-#include "db/net/UdpSocket.h"
+#include "monarch/net/Datagram.h"
+#include "monarch/net/UdpSocket.h"
 
 namespace db
 {
