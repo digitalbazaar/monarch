@@ -26,7 +26,7 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-#define CONFIG_EXCEPTION   "db.config.ConfigManager"
+#define CONFIG_EXCEPTION   "monarch.config.ConfigManager"
 
 const char* ConfigManager::DEFAULT_VALUE = "_default_";
 const char* ConfigManager::VERSION       = "_version_";

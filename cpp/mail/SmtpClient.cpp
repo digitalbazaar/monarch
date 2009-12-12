@@ -252,7 +252,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
          // code was not the expected one
          ExceptionRef e = new Exception(
             "Unexpected SMTP server response code,",
-            "db.mail.UnexpectedSmtpCode");
+            "monarch.mail.UnexpectedSmtpCode");
          details["code"] = code;
          e->getDetails() = details;
          Exception::set(e);
@@ -271,7 +271,7 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
    {
       ExceptionRef e = new Exception(
          "No mail recipients specified.",
-         "db.mail.NoMailRecipients");
+         "monarch.mail.NoMailRecipients");
       e->getDetails()["sender"] =
          mail->getSender()["smtpEncoding"]->getString();
       e->getDetails()["subject"] =
@@ -289,7 +289,7 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
       {
          ExceptionRef e = new Exception(
             "Failed to setup SMTP host address.",
-            "db.mail.SmtpAddressLookupFailure");
+            "monarch.mail.SmtpAddressLookupFailure");
          e->getDetails()["host"] = url->getHost().c_str();
          e->getDetails()["port"] = url->getPort();
          Exception::push(e);
@@ -310,7 +310,7 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
          {
             ExceptionRef e = new Exception(
                "Failed to send mail.",
-               "db.mail.MailSendFailed");
+               "monarch.mail.MailSendFailed");
             e->getDetails()["host"] = url->getHost().c_str();
             e->getDetails()["port"] = url->getPort();
             Exception::push(e);
@@ -320,7 +320,7 @@ bool SmtpClient::sendMail(Url* url, Mail* mail)
       {
          ExceptionRef e = new Exception(
             "Failed to connect to SMTP host.",
-            "db.mail.SmtpConnectionFailure");
+            "monarch.mail.SmtpConnectionFailure");
          e->getDetails()["host"] = url->getHost().c_str();
          e->getDetails()["port"] = url->getPort();
          Exception::push(e);

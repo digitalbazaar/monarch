@@ -121,7 +121,7 @@ HttpResponse* HttpClient::get(Url* url, DynamicObject* headers, bool follow)
                ExceptionRef e = new Exception(
                   "Got redirect response code, but could not redirect. "
                   "No location field in header.",
-                  "db.net.http.InvalidRedirect");
+                  "monarch.net.http.InvalidRedirect");
                e->getDetails()["statusCode"] = code;
                Exception::set(e);
             }
@@ -200,7 +200,7 @@ bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
    {
       ExceptionRef e = new Exception(
          "Could not receive HTTP content, not connected.",
-         "db.net.http.NotConnected");
+         "monarch.net.http.NotConnected");
       Exception::set(e);
    }
    else
@@ -329,7 +329,7 @@ HttpConnection* HttpClient::createConnection(
    {
       ExceptionRef e = new Exception(
          "Could not establish HTTP connection.",
-         "db.http.ConnectError");
+         "monarch.http.ConnectError");
       e->getDetails()["address"] = address->toString(false).c_str();
       Exception::push(e);
 

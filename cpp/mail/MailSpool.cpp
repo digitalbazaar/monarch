@@ -81,7 +81,7 @@ bool MailSpool::initialize(const char* url)
       mDbClient.setNull();
       ExceptionRef e = new Exception(
          "Could not initialize mail spool.",
-         "db.mail.MailSpool.InitializeError");
+         "monarch.mail.MailSpool.InitializeError");
       e->getDetails()["url"] = url;
       Exception::push(e);
    }
@@ -115,7 +115,7 @@ bool MailSpool::spool(Mail* mail, DynamicObject* reason)
    {
       ExceptionRef e = new Exception(
          "Could not spool mail.",
-         "db.mail.MailSpool.SpoolError");
+         "monarch.mail.MailSpool.SpoolError");
       Exception::push(e);
    }
 
@@ -133,7 +133,7 @@ bool MailSpool::getFirst(Mail* mail)
    {
       ExceptionRef e = new Exception(
          "Spool is empty.",
-         "db.mail.MailSpool.Empty");
+         "monarch.mail.MailSpool.Empty");
       Exception::set(e);
    }
    else
@@ -152,7 +152,7 @@ bool MailSpool::getFirst(Mail* mail)
    {
       ExceptionRef e = new Exception(
          "Could not get mail from spool.",
-         "db.mail.MailSpool.GetMailError");
+         "monarch.mail.MailSpool.GetMailError");
       Exception::push(e);
    }
 
@@ -225,7 +225,7 @@ bool MailSpool::unwind(Mail* mail, bool* unwound)
    {
       ExceptionRef e = new Exception(
          "Could not unwind mail spool.",
-         "db.mail.MailSpool.UnwindError");
+         "monarch.mail.MailSpool.UnwindError");
       Exception::push(e);
    }
 

@@ -692,7 +692,7 @@ public:
    virtual int runInteractiveTests(TestRunner& tr)
    {
       Config cfg = tr.getApp()->getConfig();
-      const char* test = cfg["db.test.Tester"]["test"]->getString();
+      const char* test = cfg["monarch.test.Tester"]["test"]->getString();
       bool all = (strcmp(test, "all") == 0);
 
       uint32_t threads =

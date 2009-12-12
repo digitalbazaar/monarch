@@ -30,7 +30,7 @@ public:
     */
    SqlException(
       const char* message = "",
-      const char* type = "db.sql.Sql", int code = 0);
+      const char* type = "monarch.sql.Sql", int code = 0);
 
    /**
     * Destructs this SqlException.

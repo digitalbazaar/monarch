@@ -19,10 +19,10 @@ using namespace monarch::crypto;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-#define EXCEPTION_UNSUPPORTED_ALGORITHM "db.crypto.UnsupportedAlgorithm"
-#define EXCEPTION_PRIVATE_KEY_IO        "db.crypto.PrivateKey.IO"
-#define EXCEPTION_PUBLIC_KEY_IO         "db.crypto.PublicKey.IO"
-#define EXCEPTION_CERTIFICATE_IO        "db.crypto.Certificate.IO"
+#define EXCEPTION_UNSUPPORTED_ALGORITHM "monarch.crypto.UnsupportedAlgorithm"
+#define EXCEPTION_PRIVATE_KEY_IO        "monarch.crypto.PrivateKey.IO"
+#define EXCEPTION_PUBLIC_KEY_IO         "monarch.crypto.PublicKey.IO"
+#define EXCEPTION_CERTIFICATE_IO        "monarch.crypto.Certificate.IO"
 
 AsymmetricKeyFactory::AsymmetricKeyFactory()
 {
@@ -531,7 +531,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
    {
       ExceptionRef e = new Exception(
          "Could not create X.509 certificate.",
-         "db.crypto.Certificate.CreationError");
+         "monarch.crypto.Certificate.CreationError");
       e->getDetails()["subject"] = subject.clone();
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);

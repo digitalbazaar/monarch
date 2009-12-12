@@ -31,8 +31,8 @@ protected:
 public:
    PortMapApp()
    {
-      mInfo["id"] = "db.apps.PortMap";
-      mInfo["dependencies"]->append() = "db.app.App";
+      mInfo["id"] = "monarch.apps.PortMap";
+      mInfo["dependencies"]->append() = "monarch.app.App";
 
       // set defaults
       mOptions["command"] = "";

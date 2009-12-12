@@ -10,8 +10,8 @@ using namespace monarch::rt;
 
 DummyAppPlugin::DummyAppPlugin()
 {
-   mInfo["id"] = "db.app.plugin.Dummy";
-   //mInfo["dependencies"]->append() = "db.app.plugins.Common";
+   mInfo["id"] = "monarch.app.plugin.Dummy";
+   //mInfo["dependencies"]->append() = "monarch.app.plugins.Common";
 }
 
 DummyAppPlugin::~DummyAppPlugin()

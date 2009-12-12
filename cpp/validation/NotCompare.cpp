@@ -28,8 +28,8 @@ bool NotCompare::isValid(
    {
       rval = false;
       DynamicObject detail =
-         context->addError("db.validation.TypeError");
-      detail["validator"] = "db.validator.NotCompare";
+         context->addError("monarch.validation.TypeError");
+      detail["validator"] = "monarch.validator.NotCompare";
       detail["message"] = "The given object type must a mapping (Map) type";
    }
    else
@@ -47,8 +47,8 @@ bool NotCompare::isValid(
 
          context->pushPath(mKey1);
          DynamicObject detail =
-            context->addError("db.validation.NotCompareFailure", &obj);
-         detail["validator"] = "db.validator.NotCompare";
+            context->addError("monarch.validation.NotCompareFailure", &obj);
+         detail["validator"] = "monarch.validator.NotCompare";
          detail["message"] =
             mErrorMessage ? mErrorMessage :
                "The two objects that were given are required "

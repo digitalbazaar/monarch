@@ -353,7 +353,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
                b->clear(4);
                attr["value"] = 0.0;
                ExceptionRef e = new Exception(
-                  "Sphinx floats unimplemented.", "db.sphinx.Sphinx");
+                  "Sphinx floats unimplemented.", "monarch.sphinx.Sphinx");
                Exception::set(e);
                rval = false;
                break;
@@ -487,7 +487,7 @@ bool SphinxClient::parseResponse(
       default:
       {
          ExceptionRef e = new Exception(
-            "Invalid searchd status code.", "db.sphinx.Sphinx");
+            "Invalid searchd status code.", "monarch.sphinx.Sphinx");
          Exception::set(e);
          break;
       }
@@ -507,7 +507,7 @@ bool SphinxClient::checkVersion(Connection* c)
       // could not read version
       ExceptionRef e = new Exception(
          "Could not read searchd protocol version.",
-         "db.sphinx.BadProtocol");
+         "monarch.sphinx.BadProtocol");
       Exception::set(e);
    }
    else
@@ -519,7 +519,7 @@ bool SphinxClient::checkVersion(Connection* c)
          // unsupported protocol version
          ExceptionRef e = new Exception(
             "Unsupported searchd protocol version.",
-            "db.sphinx.UnsupportedProtocolVersion");
+            "monarch.sphinx.UnsupportedProtocolVersion");
          e->getDetails()["version"] = version;
          Exception::set(e);
       }
@@ -547,7 +547,7 @@ bool SphinxClient::receiveResponse(
    {
       // error receiving header
       ExceptionRef e = new Exception(
-         "Could not receive response header.", "db.sphinx.Sphinx");
+         "Could not receive response header.", "monarch.sphinx.Sphinx");
       (numBytes == -1) ? Exception::push(e) : Exception::set(e);
    }
    else
@@ -567,7 +567,7 @@ bool SphinxClient::receiveResponse(
       if(length > 1048576*8)
       {
          ExceptionRef e = new Exception(
-            "Response data was larger than 8MB.", "db.sphinx.ResponseTooLarge");
+            "Response data was larger than 8MB.", "monarch.sphinx.ResponseTooLarge");
          Exception::set(e);
       }
       else
@@ -588,7 +588,7 @@ bool SphinxClient::receiveResponse(
          {
             // error receiving response data
             ExceptionRef e = new Exception(
-               "Could not receive response.", "db.sphinx.ReadError");
+               "Could not receive response.", "monarch.sphinx.ReadError");
             (numBytes == -1) ? Exception::push(e) : Exception::set(e);
          }
       }

@@ -32,7 +32,7 @@ MessageDigest::MessageDigest(const char* algorithm, bool persistent)
    {
       // unsupported algorithm
       ExceptionRef e = new Exception(
-         "Unsupported hash algorithm.", "db.crypto.UnsupportedAlgorithm");
+         "Unsupported hash algorithm.", "monarch.crypto.UnsupportedAlgorithm");
       e->getDetails()["algorithm"] = algorithm;
       Exception::set(e);
    }

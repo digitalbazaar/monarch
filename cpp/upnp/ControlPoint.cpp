@@ -74,7 +74,7 @@ bool ControlPoint::getDescription(Url* url, string& description)
                // error getting description
                ExceptionRef e = new Exception(
                   "HTTP transmission error.",
-                  "db.upnp.HttpError");
+                  "monarch.upnp.HttpError");
                e->getDetails()["statusMessage"] =
                   response->getHeader()->getStatusMessage();
                e->getDetails()["statusCode"] =
@@ -388,7 +388,7 @@ static bool doSoap(
                   // failure to parse response
                   ExceptionRef e = new Exception(
                      "Could not parse soap response.",
-                     "db.upnp.InvalidSoapResponse");
+                     "monarch.upnp.InvalidSoapResponse");
                   Exception::push(e);
                }
                else if(sr["fault"]->getBoolean())
@@ -396,7 +396,7 @@ static bool doSoap(
                   // soap fault received
                   ExceptionRef e = new Exception(
                      "Could not perform SOAP transfer. SOAP fault received.",
-                     "db.upnp.SoapFault");
+                     "monarch.upnp.SoapFault");
                   e->getDetails()["fault"] = sr["message"];
                   Exception::set(e);
                   rval = false;
@@ -513,7 +513,7 @@ bool ControlPoint::performAction(
    {
       ExceptionRef e = new Exception(
          "Service has no such action.",
-         "db.upnp.NoSuchAction");
+         "monarch.upnp.NoSuchAction");
       e->getDetails()["actionName"] = actionName;
       e->getDetails()["serviceType"] = service["serviceType"]->getString();
       e->getDetails()["serviceId"] = service["serviceId"]->getString();

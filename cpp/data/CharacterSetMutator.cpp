@@ -43,7 +43,7 @@ bool CharacterSetMutator::setCharacterSets(const char* from, const char* to)
       {
          ExceptionRef e = new Exception(
             "Could not close conversion descriptor.",
-            "db.data.CharacterSetMutator.CloseError");
+            "monarch.data.CharacterSetMutator.CloseError");
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
          rval = false;
@@ -61,7 +61,7 @@ bool CharacterSetMutator::setCharacterSets(const char* from, const char* to)
       {
          ExceptionRef e = new Exception(
             "Could not open conversion descriptor.",
-            "db.data.CharacterSetMutator.OpenError");
+            "monarch.data.CharacterSetMutator.OpenError");
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
          rval = false;
@@ -80,7 +80,7 @@ bool CharacterSetMutator::reset()
       ExceptionRef e = new Exception(
          "Could not reset CharacterSetMutator, "
          "no character sets specified yet.",
-         "db.data.CharacterSetMutator.NoCharacterSets");
+         "monarch.data.CharacterSetMutator.NoCharacterSets");
       Exception::set(e);
       rval = false;
    }
@@ -91,7 +91,7 @@ bool CharacterSetMutator::reset()
       {
          ExceptionRef e = new Exception(
             "Could not reset CharacterSetMutator.",
-            "db.data.CharacterSetMutator.ResetError");
+            "monarch.data.CharacterSetMutator.ResetError");
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
          rval = false;
@@ -156,7 +156,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
                {
                   ExceptionRef e = new Exception(
                      "Invalid multibyte sequence.",
-                     "db.data.CharacterSetMutator.InvalidMultibyteSequence");
+                     "monarch.data.CharacterSetMutator.InvalidMultibyteSequence");
                   e->getDetails()["error"] = strerror(errno);
                   Exception::set(e);
                   rval = MutationAlgorithm::Error;
@@ -189,7 +189,7 @@ MutationAlgorithm::Result CharacterSetMutator::mutateData(
                {
                   ExceptionRef e = new Exception(
                      "Conversion error.",
-                     "db.data.CharacterSetMutator.Error");
+                     "monarch.data.CharacterSetMutator.Error");
                   e->getDetails()["error"] = strerror(errno);
                   Exception::set(e);
                   rval = MutationAlgorithm::Error;

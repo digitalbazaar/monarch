@@ -56,7 +56,7 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
       {
          // could not load create or free functions
          ExceptionRef e = new Exception(
-            "Could not load module.", "db.modest.BadModule");
+            "Could not load module.", "monarch.modest.BadModule");
          e->getDetails()["filename"] = filename;
          e->getDetails()["error"] = error;
          Exception::set(e);
@@ -67,7 +67,7 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
       // failed to open module
       char* error = dlerror();
       ExceptionRef e = new Exception(
-         "Could not open module file.", "db.modest.BadModuleFile");
+         "Could not open module file.", "monarch.modest.BadModuleFile");
       e->getDetails()["filename"] = filename;
       e->getDetails()["error"] = error;
       Exception::set(e);

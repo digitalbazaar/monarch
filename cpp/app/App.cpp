@@ -320,7 +320,7 @@ static bool _orderIds(
       if(!found)
       {
          ExceptionRef e = new Exception(
-            "Could not find parent config.", "db.app.ConfigError");
+            "Could not find parent config.", "monarch.app.ConfigError");
          e->getDetails()["id"] = id;
          e->getDetails()["parent"] = parent;
          Exception::push(e);
@@ -448,7 +448,7 @@ static DynamicObject* findPath(
          {
             ExceptionRef e = new Exception(
                "Internal DynamicObject path parse error.",
-               "db.app.CommandLineError");
+               "monarch.app.CommandLineError");
             e->getDetails()["path"] = path;
             Exception::set(e);
             target = NULL;
@@ -461,7 +461,7 @@ static DynamicObject* findPath(
                {
                   ExceptionRef e = new Exception(
                      "DynamicObject path not found.",
-                     "db.app.CommandLineError");
+                     "monarch.app.CommandLineError");
                   e->getDetails()["path"] = path;
                   Exception::set(e);
                   target = NULL;
@@ -523,7 +523,7 @@ static bool getTarget(
          if(setExceptions)
          {
             ExceptionRef e = new Exception("Object path not found.",
-               "db.app.CommandLineError");
+               "monarch.app.CommandLineError");
             e->getDetails()["path"] = path;
             Exception::set(e);
          }
@@ -544,7 +544,7 @@ static bool getTarget(
          if(setExceptions)
          {
             ExceptionRef e = new Exception("Object path not found.",
-               "db.app.CommandLineError");
+               "monarch.app.CommandLineError");
             e->getDetails()["path"] = path;
             Exception::set(e);
          }
@@ -556,7 +556,7 @@ static bool getTarget(
       if(setExceptions)
       {
          ExceptionRef e = new Exception("Invalid option spec.",
-            "db.app.CommandLineError");
+            "monarch.app.CommandLineError");
          e->getDetails()["spec"] = spec;
          Exception::set(e);
       }
@@ -594,7 +594,7 @@ static bool setTarget(
    else
    {
       ExceptionRef e = new Exception("Invalid option spec.",
-         "db.app.CommandLineError");
+         "monarch.app.CommandLineError");
       e->getDetails()["spec"] = spec;
       Exception::set(e);
       rval = false;
@@ -652,7 +652,7 @@ static bool processOption(
             ExceptionRef e = new Exception(
                "Invalid command line spec. "
                "The option does not specify a configuration or root to set.",
-               "db.app.CommandLineError");
+               "monarch.app.CommandLineError");
             e->getDetails()["option"] = opt;
             e->getDetails()["spec"] = optSpec;
             Exception::set(e);
@@ -734,7 +734,7 @@ static bool processOption(
                ExceptionRef e = new Exception(
                   "Invalid command line spec. "
                   "The option cannot be increased because it is not a number.",
-                  "db.app.CommandLineError");
+                  "monarch.app.CommandLineError");
                e->getDetails()["option"] = opt;
                e->getDetails()["spec"] = optSpec;
                Exception::set(e);
@@ -776,7 +776,7 @@ static bool processOption(
                ExceptionRef e = new Exception(
                   "Invalid command line spec. "
                   "The option cannot be decreased because it is not a number.",
-                  "db.app.CommandLineError");
+                  "monarch.app.CommandLineError");
                e->getDetails()["option"] = opt;
                e->getDetails()["spec"] = optSpec;
                Exception::set(e);
@@ -840,7 +840,7 @@ static bool processOption(
       // FIXME implement
       ExceptionRef e =
          new Exception("args target not implemented yet",
-            "db.app.CommandLineError");
+            "monarch.app.CommandLineError");
       Exception::set(e);
       rval = false;
    }
@@ -867,13 +867,13 @@ static bool processOption(
       {
          e = new Exception(
             optSpec["argError"]->getString(),
-            "db.app.CommandLineError");
+            "monarch.app.CommandLineError");
       }
       else
       {
          e = new Exception(
             "Not enough arguments for option.",
-            "db.app.CommandLineError");
+            "monarch.app.CommandLineError");
          e->getDetails()["option"] = opt;
       }
       Exception::set(e);
@@ -971,7 +971,7 @@ bool App::parseCommandLine(vector<const char*>* args)
             if(rval && !found)
             {
                ExceptionRef e =
-                  new Exception("Unknown option.", "db.app.CommandLineError");
+                  new Exception("Unknown option.", "monarch.app.CommandLineError");
                e->getDetails()["option"] = opt;
                Exception::set(e);
                rval = false;
@@ -1096,7 +1096,7 @@ int App::main(
       {
          ExceptionRef e = new Exception(
             "Plugin command line specs are not an array.",
-            "db.app.CommandLineError");
+            "monarch.app.CommandLineError");
          Exception::set(e);
          success = false;
       }
@@ -1119,7 +1119,7 @@ int App::main(
       {
          ExceptionRef e = new Exception(
             "Could not initialize winsock.",
-            "db.app.WinSockError");
+            "monarch.app.WinSockError");
          Exception::set(e);
          success = false;
       }
@@ -1127,7 +1127,7 @@ int App::main(
       {
          ExceptionRef e = new Exception(
             "Incompatible version of winsock.",
-            "db.app.WinSockError");
+            "monarch.app.WinSockError");
          char tmp[10];
          snprintf(tmp, 10, "%d.%d",
             LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));

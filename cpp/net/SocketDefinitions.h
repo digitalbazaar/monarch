@@ -4,9 +4,9 @@
 #ifndef db_net_SocketDefinitions_H
 #define db_net_SocketDefinitions_H
 
-#define SOCKET_EXCEPTION_TYPE         "db.net.Socket"
-#define SOCKET_TIMEOUT_EXCEPTION_TYPE "db.net.SocketTimeout"
-#define SSL_EXCEPTION_TYPE            "db.net.SSL"
+#define SOCKET_EXCEPTION_TYPE         "monarch.net.Socket"
+#define SOCKET_TIMEOUT_EXCEPTION_TYPE "monarch.net.SocketTimeout"
+#define SSL_EXCEPTION_TYPE            "monarch.net.SSL"
 
 #ifdef WIN32
    // windows socket library

@@ -224,7 +224,7 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
             if(mCrc32 != mTrailer->getCrc32())
             {
                ExceptionRef e = new Exception(
-                  "Bad gzip CRC.", "db.compress.gzip.BadCrc");
+                  "Bad gzip CRC.", "monarch.compress.gzip.BadCrc");
                Exception::set(e);
                rval = -1;
             }

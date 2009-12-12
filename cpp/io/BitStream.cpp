@@ -107,7 +107,7 @@ bool BitStream::appendFromString(const char* str, int length)
       {
          ExceptionRef e = new Exception(
             "Could not convert BitStream from string, invalid character '%c' "
-            "at position %d.", "db.io.BitStream.InvalidBitChar");
+            "at position %d.", "monarch.io.BitStream.InvalidBitChar");
          Exception::set(e);
          rval = false;
       }

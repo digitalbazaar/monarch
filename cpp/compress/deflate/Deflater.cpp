@@ -9,7 +9,7 @@ using namespace monarch::compress::deflate;
 using namespace monarch::io;
 using namespace monarch::rt;
 
-#define EXCEPTION_DEFLATE "db.compress.deflate"
+#define EXCEPTION_DEFLATE "monarch.compress.deflate"
 
 Deflater::Deflater()
 {

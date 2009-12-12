@@ -62,8 +62,8 @@ bool Array::isValid(
          {
             rval = false;
             DynamicObject detail =
-               context->addError("db.validation.MissingIndex", &obj);
-            detail["validator"] = "db.validator.Array";
+               context->addError("monarch.validation.MissingIndex", &obj);
+            detail["validator"] = "monarch.validator.Array";
             detail["index"] = i->first;
          }
       }
@@ -72,8 +72,8 @@ bool Array::isValid(
    {
       rval = false;
       DynamicObject detail =
-         context->addError("db.validation.TypeError", &obj);
-      detail["validator"] = "db.validator.Array";
+         context->addError("monarch.validation.TypeError", &obj);
+      detail["validator"] = "monarch.validator.Array";
       detail["message"] = "The given object type must be an Array.";
    }
 

@@ -100,7 +100,7 @@ bool MutatorOutputStream::write(const char* b, int length)
                mResult = MutationAlgorithm::Error;
                ExceptionRef e = new Exception(
                   "Insufficient data for mutation algorithm.",
-                  "db.io.MutationException");
+                  "monarch.io.MutationException");
                Exception::set(e);
                rval = false;
             }

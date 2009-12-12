@@ -39,7 +39,7 @@ bool MySqlConnection::connect(Url* url)
       ExceptionRef e = new Exception(
          "Could not connect to mysql database. "
          "Url scheme doesn't start with 'mysql'",
-         "db.sql.BadUrlScheme");
+         "monarch.sql.BadUrlScheme");
       e->getDetails()["url"] = url->toString().c_str();
       Exception::set(e);
    }

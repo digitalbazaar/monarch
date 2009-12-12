@@ -101,7 +101,7 @@ bool Url::setUrl(const char* format, va_list varargs)
    {
       ExceptionRef e = new Exception(
          "Could not set url. Formatted string could not be malloc'd.",
-         "db.net.Url.BadMalloc");
+         "monarch.net.Url.BadMalloc");
       e->getDetails()["format"] = format;
       Exception::set(e);
       rval = false;
@@ -155,7 +155,7 @@ bool Url::setUrl(const string& url)
       {
          ExceptionRef e = new Exception(
             "Url scheme contains invalid start character.",
-            "db.net.MalformedUrl");
+            "monarch.net.MalformedUrl");
          e->getDetails()["url"] = url.c_str();
          e->getDetails()["relative"] = mRelative;
          Exception::set(e);
@@ -173,7 +173,7 @@ bool Url::setUrl(const string& url)
             {
                ExceptionRef e = new Exception(
                   "Url scheme contains invalid characters.",
-                  "db.net.MalformedUrl");
+                  "monarch.net.MalformedUrl");
                e->getDetails()["url"] = url.c_str();
                e->getDetails()["relative"] = mRelative;
                Exception::set(e);

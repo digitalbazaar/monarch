@@ -115,7 +115,7 @@ string SoapEnvelope::create(SoapMessage& msg)
    {
       ExceptionRef e = new Exception(
          "Could not create soap envelope.",
-         "db.upnp.InvalidSoapEnvelope");
+         "monarch.upnp.InvalidSoapEnvelope");
       Exception::push(e);
    }
 
@@ -205,7 +205,7 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
       {
          ExceptionRef e = new Exception(
             "Invalid or no soap body found in response envelope.",
-            "db.upnp.InvalidSoapEnvelope");
+            "monarch.upnp.InvalidSoapEnvelope");
          Exception::set(e);
       }
       else

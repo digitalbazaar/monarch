@@ -40,8 +40,8 @@ bool Regex::isValid(
       if(!rval)
       {
          DynamicObject detail =
-            context->addError("db.validation.ValueError", &obj);
-         detail["validator"] = "db.validator.Regex";
+            context->addError("monarch.validation.ValueError", &obj);
+         detail["validator"] = "monarch.validator.Regex";
          if(mErrorMessage)
          {
             detail["message"] = mErrorMessage;

@@ -22,7 +22,7 @@ using namespace monarch::rt;
 CommonAppPlugin::CommonAppPlugin() :
    mLogger(NULL)
 {
-   mInfo["id"] = "db.app.plugins.Common";
+   mInfo["id"] = "monarch.app.plugins.Common";
    // default is to depend on this plugin so clear the dependency loop.
    mInfo["dependencies"]->clear();
 }
@@ -71,7 +71,7 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
    // hard-coded empty root
    if(rval)
    {
-      const char* id = "db.app.root";
+      const char* id = "monarch.app.root";
       Config& config = meta["configs"][id];
 
       // no parent
@@ -83,7 +83,7 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
    // hard-coded application boot-up defaults
    if(rval)
    {
-      const char* id = "db.app.boot";
+      const char* id = "monarch.app.boot";
       Config& config = meta["configs"][id];
 
       config[ConfigManager::GROUP] = meta["groups"]["boot"]->getString();
@@ -109,7 +109,7 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
    // command line option config
    if(rval)
    {
-      const char* id = "db.app.commandLine";
+      const char* id = "monarch.app.commandLine";
       Config& config = meta["options"][id];
 
       config[ConfigManager::GROUP] =
@@ -127,16 +127,16 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
    {
       // defaults
       App::makeMetaConfig(
-         meta, "db.app.beforeDefaults.empty", "before defaults");
-      App::makeMetaConfig(meta, "db.app.defaults.empty", "defaults");
+         meta, "monarch.app.beforeDefaults.empty", "before defaults");
+      App::makeMetaConfig(meta, "monarch.app.defaults.empty", "defaults");
       App::makeMetaConfig(
-         meta, "db.app.afterDefaults.empty", "after defaults");
+         meta, "monarch.app.afterDefaults.empty", "after defaults");
 
       // command line
-      App::makeMetaConfig(meta, "db.app.commandLine.empty", "command line");
+      App::makeMetaConfig(meta, "monarch.app.commandLine.empty", "command line");
 
       // main
-      App::makeMetaConfig(meta, "db.app.main.empty", "main");
+      App::makeMetaConfig(meta, "monarch.app.main.empty", "main");
    }
 
    return rval;
@@ -185,9 +185,9 @@ DynamicObject CommonAppPlugin::getCommandLineSpecs()
 
    DynamicObject opt;
    Config tempOptions = getApp()->getMetaConfig()
-      ["options"]["db.app.commandLine"][ConfigManager::TMP];
+      ["options"]["monarch.app.commandLine"][ConfigManager::TMP];
    Config options = getApp()->getMetaConfig()
-      ["options"]["db.app.commandLine"][ConfigManager::MERGE];
+      ["options"]["monarch.app.commandLine"][ConfigManager::MERGE];
 
    opt = spec["options"]->append();
    opt["short"] = "-h";
@@ -295,7 +295,7 @@ bool CommonAppPlugin::willParseCommandLine(std::vector<const char*>* args)
    bool rval = AppPlugin::willParseCommandLine(args);
 
    Config tempOptions = getApp()->getMetaConfig()
-      ["options"]["db.app.commandLine"][ConfigManager::TMP];
+      ["options"]["monarch.app.commandLine"][ConfigManager::TMP];
 
    // temporary flags for command line processing
    tempOptions["printHelp"] = false;
@@ -309,7 +309,7 @@ bool CommonAppPlugin::didParseCommandLine()
    bool rval = AppPlugin::didParseCommandLine();
 
    Config tempOptions = getApp()->getMetaConfig()
-      ["options"]["db.app.commandLine"][ConfigManager::TMP];
+      ["options"]["monarch.app.commandLine"][ConfigManager::TMP];
 
    // process help and version flags first
    if(tempOptions["printHelp"]->getBoolean())
@@ -350,7 +350,7 @@ bool CommonAppPlugin::didParseCommandLine()
       if(!found)
       {
          ExceptionRef e =
-            new Exception("Invalid log level.", "db.app.CommandLineError");
+            new Exception("Invalid log level.", "monarch.app.CommandLineError");
          e->getDetails()["level"] = cfgLogLevel;
          Exception::set(e);
          rval = false;
@@ -437,7 +437,7 @@ bool CommonAppPlugin::initializeLogging()
          else
          {
             ExceptionRef e = new Exception(
-               "Invalid app.logging.level.", "db.app.ConfigError");
+               "Invalid app.logging.level.", "monarch.app.ConfigError");
             e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
             Exception::set(e);
             rval = false;

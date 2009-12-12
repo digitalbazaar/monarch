@@ -45,7 +45,7 @@ bool PortService::start()
       // set exception
       ExceptionRef e = new Exception(
          "Port service failed to start.",
-         "db.net.PortService.StartFailed");
+         "monarch.net.PortService.StartFailed");
       e->getDetails()["name"] = mName;
       Exception::push(e);
 

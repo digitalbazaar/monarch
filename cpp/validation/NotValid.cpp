@@ -19,8 +19,8 @@ bool NotValid::isValid(
    DynamicObject& obj,
    ValidatorContext* context)
 {
-   DynamicObject detail = context->addError("db.validation.NotValid", &obj);
-   detail["validator"] = "db.validator.NotValid";
+   DynamicObject detail = context->addError("monarch.validation.NotValid", &obj);
+   detail["validator"] = "monarch.validator.NotValid";
    if(mErrorMessage)
    {
       detail["message"] = mErrorMessage;

@@ -27,8 +27,8 @@ bool Type::isValid(DynamicObject& obj, ValidatorContext* context)
             "null" :
             DynamicObject::descriptionForType(obj->getType());
 
-      DynamicObject detail = context->addError("db.validation.TypeError", &obj);
-      detail["validator"] = "db.validator.Type";
+      DynamicObject detail = context->addError("monarch.validation.TypeError", &obj);
+      detail["validator"] = "monarch.validator.Type";
       // FIXME: localize -- lehn
       // FIXME: really? do we need to mention this, because we'd have to
       //        do this for every string in the system.. -- manu

@@ -200,7 +200,7 @@ bool FileImpl::create()
    {
       ExceptionRef e = new Exception(
          "Could not create file",
-         "db.io.File.CreateFailed");
+         "monarch.io.File.CreateFailed");
       e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
@@ -252,7 +252,7 @@ bool FileImpl::mkdirs()
             {
                ExceptionRef e = new Exception(
                   "Could not create directory.",
-                  "db.io.File.CreateDirectoryFailed");
+                  "monarch.io.File.CreateDirectoryFailed");
                e->getDetails()["fullPath"] = fullPath.c_str();
                e->getDetails()["path"] = path.c_str();
                e->getDetails()["error"] = strerror(errno);
@@ -294,7 +294,7 @@ bool FileImpl::remove()
       // only set exception when the file exists and could not be removed
       ExceptionRef e = new Exception(
          "Could not delete file.",
-         "db.io.File.DeleteFailed");
+         "monarch.io.File.DeleteFailed");
       e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
@@ -326,7 +326,7 @@ bool FileImpl::rename(File& file)
    {
       ExceptionRef e = new Exception(
          "Could not rename file.",
-         "db.io.File.RenameFailed");
+         "monarch.io.File.RenameFailed");
       e->getDetails()["oldName"] = mAbsolutePath;
       e->getDetails()["newName"] = file->getAbsolutePath();
       e->getDetails()["error"] = strerror(errno);
@@ -390,7 +390,7 @@ off_t FileImpl::getLength()
    {
       ExceptionRef e = new Exception(
          "Could not stat file.",
-         "db.io.File.StatFailed");
+         "monarch.io.File.StatFailed");
       e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);
       Exception::set(e);
@@ -594,7 +594,7 @@ bool File::readBytes(ByteBuffer* buffer)
    {
       ExceptionRef e = new Exception(
          "Could not read entire file. Buffer is full.",
-         "db.io.File.InsufficientBufferSpace");
+         "monarch.io.File.InsufficientBufferSpace");
       Exception::set(e);
       rval = false;
    }
@@ -728,7 +728,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
       {
          ExceptionRef e = new Exception(
             "Could not normalize relative path.",
-            "db.io.File.BadNormalization");
+            "monarch.io.File.BadNormalization");
          e->getDetails()["path"] = path;
          Exception::set(e);
          rval = false;
@@ -781,7 +781,7 @@ bool File::expandUser(const char* path, string& expandedPath)
       {
          ExceptionRef e = new Exception(
             "Only current user supported (ie, \"~/...\").",
-            "db.io.File.NotImplemented");
+            "monarch.io.File.NotImplemented");
          Exception::set(e);
          rval = false;
       }
@@ -823,7 +823,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             ExceptionRef e = new Exception(
                "No USERPROFILE environment variable set for "
                "'%USERPROFILE%' expansion.",
-               "db.io.File.UserProfileNotSet");
+               "monarch.io.File.UserProfileNotSet");
             Exception::set(e);
             rval = false;
          }
@@ -844,7 +844,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             ExceptionRef e = new Exception(
                "No USERPROFILE environment variable set for "
                "'%USERPROFILE%' expansion.",
-               "db.io.File.UserProfileNotSet");
+               "monarch.io.File.UserProfileNotSet");
             Exception::set(e);
             rval = false;
          }
@@ -866,7 +866,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             ExceptionRef e = new Exception(
                "No HOMEDRIVE environment variable set for "
                "'%HOMEDRIVE%' expansion.",
-               "db.io.File.HomeDriveNotSet");
+               "monarch.io.File.HomeDriveNotSet");
             Exception::set(e);
             rval = false;
          }
@@ -876,7 +876,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             ExceptionRef e = new Exception(
                "No HOMEPATH environment variable set for "
                "'%HOMEPATH%' expansion.",
-               "db.io.File.HomePathNotSet");
+               "monarch.io.File.HomePathNotSet");
             Exception::set(e);
             rval = false;
          }
@@ -906,7 +906,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             ExceptionRef e = new Exception(
                "No HOMEDRIVE environment variable set for "
                "'%HOMEDRIVE%' expansion.",
-               "db.io.File.HomeDroveNotSet");
+               "monarch.io.File.HomeDroveNotSet");
             Exception::set(e);
             rval = false;
          }
@@ -927,7 +927,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             ExceptionRef e = new Exception(
                "No HOMEPATH environment variable set for "
                "'%HOMEPATH%' expansion.",
-               "db.io.File.HomePathNotSet");
+               "monarch.io.File.HomePathNotSet");
             Exception::set(e);
             rval = false;
          }
@@ -948,7 +948,7 @@ bool File::expandUser(const char* path, string& expandedPath)
             // no HOME set
             ExceptionRef e = new Exception(
                "No HOME environment variable set for '~' expansion.",
-               "db.io.File.HomeNotSet");
+               "monarch.io.File.HomeNotSet");
             Exception::set(e);
             rval = false;
          }
@@ -1000,7 +1000,7 @@ bool File::getCurrentWorkingDirectory(string& cwd)
             // path was too large for getcwd
             ExceptionRef e = new Exception(
                "Could not get current working directory, path too long.",
-               "db.io.File.PathTooLong");
+               "monarch.io.File.PathTooLong");
             Exception::set(e);
             rval = false;
          }
@@ -1101,7 +1101,7 @@ File File::createTempFile(const char* prefix, const char* dir)
       {
          ExceptionRef e = new Exception(
             "Could not create temp file.",
-            "db.io.File.CreateTempFileFailed");
+            "monarch.io.File.CreateTempFileFailed");
          if(filename.length() > 0)
          {
             e->getDetails()["path"] = filename.c_str();

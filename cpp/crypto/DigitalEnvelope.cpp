@@ -114,7 +114,7 @@ bool DigitalEnvelope::startSealing(
 
          ExceptionRef e = new Exception(
             "Could not start opening envelope.",
-            "db.crypto.DigitalEnvelope.SealError");
+            "monarch.crypto.DigitalEnvelope.SealError");
          e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
          Exception::set(e);
       }
@@ -160,7 +160,7 @@ bool DigitalEnvelope::startOpening(
       {
          ExceptionRef e = new Exception(
             "Could not start opening envelope.",
-            "db.crypto.DigitalEnvelope.OpenError");
+            "monarch.crypto.DigitalEnvelope.OpenError");
          e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
          Exception::set(e);
       }
@@ -190,7 +190,7 @@ bool DigitalEnvelope::update(
          {
             ExceptionRef e = new Exception(
                "Could not seal envelope data.",
-               "db.crypto.DigitalEnvelope.SealError");
+               "monarch.crypto.DigitalEnvelope.SealError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::set(e);
          }
@@ -208,7 +208,7 @@ bool DigitalEnvelope::update(
          {
             ExceptionRef e = new Exception(
                "Could not open envelope data.",
-               "db.crypto.DigitalEnvelope.OpenError");
+               "monarch.crypto.DigitalEnvelope.OpenError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::set(e);
          }
@@ -249,7 +249,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
          {
             ExceptionRef e = new Exception(
                "Could not finish sealing envelope.",
-               "db.crypto.DigitalEnvelope.SealError");
+               "monarch.crypto.DigitalEnvelope.SealError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::set(e);
          }
@@ -265,7 +265,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
          {
             ExceptionRef e = new Exception(
                "Could not finish opening envelope.",
-               "db.crypto.DigitalEnvelope.OpenError");
+               "monarch.crypto.DigitalEnvelope.OpenError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::set(e);
          }
@@ -281,7 +281,7 @@ bool DigitalEnvelope::finish(char* out, int& length)
    {
       ExceptionRef e = new Exception(
          "Cannot finish envelope; envelope not started.",
-         "db.crypto.DigitalEnvelope.MethodCallOutOfOrder");
+         "monarch.crypto.DigitalEnvelope.MethodCallOutOfOrder");
       Exception::set(e);
    }
 

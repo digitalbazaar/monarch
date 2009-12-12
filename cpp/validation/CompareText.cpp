@@ -37,8 +37,8 @@ bool CompareText::isValid(DynamicObject& obj, ValidatorContext* context)
       if(!rval)
       {
          DynamicObject detail = context->addError(
-            "db.validation.CompareTextFailure", &obj);
-         detail["validator"] = "db.validator.CompareText";
+            "monarch.validation.CompareTextFailure", &obj);
+         detail["validator"] = "monarch.validator.CompareText";
          detail["message"] = (mErrorMessage != NULL ?
             mErrorMessage :
             "The two text strings that were given are required "

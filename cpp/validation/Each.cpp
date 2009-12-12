@@ -88,8 +88,8 @@ bool Each::isValid(
    {
       rval = false;
       DynamicObject detail =
-         context->addError("db.validation.TypeError", &obj);
-      detail["validator"] = "db.validator.Each";
+         context->addError("monarch.validation.TypeError", &obj);
+      detail["validator"] = "monarch.validator.Each";
       char exp[100];
       snprintf(exp, 100, "%s | %s",
          DynamicObject::descriptionForType(Map),

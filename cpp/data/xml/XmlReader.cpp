@@ -16,7 +16,7 @@ const char* XmlReader::CHAR_ENCODING = "UTF-8";
 unsigned int XmlReader::READ_SIZE = 4096;
 
 // base exception name
-#define XML_READER_EXCEPTION "db.data.xml.XmlReader"
+#define XML_READER_EXCEPTION "monarch.data.xml.XmlReader"
 
 XmlReader::XmlReader() :
    mStarted(false),

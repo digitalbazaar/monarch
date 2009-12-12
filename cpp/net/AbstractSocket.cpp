@@ -122,14 +122,14 @@ bool AbstractSocket::select(bool read, long long timeout)
          {
             // interrupted exception
             e = new Exception(
-               "Socket read interrupted.", "db.io.InterruptedException");
+               "Socket read interrupted.", "monarch.io.InterruptedException");
             e->getDetails()["error"] = strerror(errno);
          }
          else
          {
             // interrupted exception
             e = new Exception(
-               "Socket write interrupted.", "db.io.InterruptedException");
+               "Socket write interrupted.", "monarch.io.InterruptedException");
             e->getDetails()["error"] = strerror(errno);
          }
       }

@@ -36,7 +36,7 @@ bool FileInputStream::ensureOpen()
       {
          ExceptionRef e = new Exception(
             "Could not open file.",
-            "db.io.File.NotFound");
+            "monarch.io.File.NotFound");
          e->getDetails()["path"] = mFile->getAbsolutePath();
          Exception::set(e);
          rval = false;
@@ -45,7 +45,7 @@ bool FileInputStream::ensureOpen()
       {
          ExceptionRef e = new Exception(
             "Could not open file.",
-            "db.io.File.AccessDenied");
+            "monarch.io.File.AccessDenied");
          e->getDetails()["path"] = mFile->getAbsolutePath();
          Exception::set(e);
          rval = false;
@@ -57,7 +57,7 @@ bool FileInputStream::ensureOpen()
          {
             ExceptionRef e = new Exception(
                "Could not open file stream.",
-               "db.io.File.OpenFailed");
+               "monarch.io.File.OpenFailed");
             e->getDetails()["path"] = mFile->getAbsolutePath();
             e->getDetails()["error"] = strerror(errno);
             Exception::set(e);
@@ -86,7 +86,7 @@ int FileInputStream::read(char* b, int length)
          {
             ExceptionRef e = new Exception(
                "Could not read file.",
-               "db.io.File.ReadError");
+               "monarch.io.File.ReadError");
             e->getDetails()["path"] = mFile->getAbsolutePath();
             e->getDetails()["error"] = strerror(errno);
             Exception::set(e);
@@ -135,7 +135,7 @@ long long FileInputStream::skip(long long count)
       {
          ExceptionRef e = new Exception(
             "Could not read file.",
-            "db.io.File.ReadError");
+            "monarch.io.File.ReadError");
          e->getDetails()["path"] = mFile->getAbsolutePath();
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
@@ -165,7 +165,7 @@ int FileInputStream::readLine(string& line, char delimiter)
          {
             ExceptionRef e = new Exception(
                "Could not read file.",
-               "db.io.File.ReadError");
+               "monarch.io.File.ReadError");
             e->getDetails()["path"] = mFile->getAbsolutePath();
             e->getDetails()["error"] = strerror(errno);
             Exception::set(e);

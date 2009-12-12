@@ -38,7 +38,7 @@ void runValidatorTest(TestRunner& tr)
       assertException();
       if(_dump) dumpException();
       assertStrCmp(
-         Exception::get()->getType(), "db.validation.ValidationError");
+         Exception::get()->getType(), "monarch.validation.ValidationError");
       assertStrCmp(
          Exception::get()->getMessage(),
          "The given object does not meet all of the data validation "

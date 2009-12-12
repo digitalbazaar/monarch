@@ -217,8 +217,8 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       {
          // exception occurred while receiving header
          ExceptionRef e = Exception::get();
-         if(e->isType("db.net.http.BadHeader") ||
-            e->isType("db.net.http.BadRequest"))
+         if(e->isType("monarch.net.http.BadHeader") ||
+            e->isType("monarch.net.http.BadRequest"))
          {
             // send 400 Bad Request
             const char* html =
@@ -234,8 +234,8 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             }
          }
          // if the exception was an interruption, then send a 503
-         else if(e->isType("db.io.InterruptedException") ||
-                 e->isType("db.rt.Interrupted"))
+         else if(e->isType("monarch.io.InterruptedException") ||
+                 e->isType("monarch.rt.Interrupted"))
          {
             // send 503 Service Unavailable
             const char* html =
@@ -252,7 +252,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
          }
          // if the exception was not a socket error then send an internal
          // server error response
-         else if(!e->isType("db.net.Socket", true))
+         else if(!e->isType("monarch.net.Socket", true))
          {
             // send 500 Internal Server Error
             const char* html =
@@ -323,7 +323,7 @@ bool HttpConnectionServicer::addRequestServicer(
    {
       ExceptionRef e = new Exception(
          "Could not add http request servicer. Path already in use.",
-         "db.net.http.DuplicatePath");
+         "monarch.net.http.DuplicatePath");
       e->getDetails()["path"] = path;
       Exception::set(e);
    }

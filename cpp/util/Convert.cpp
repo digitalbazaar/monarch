@@ -144,7 +144,7 @@ bool Convert::hexToBytes(
    {
       ExceptionRef e = new Exception(
          "Invalid hex value.",
-         "db.util.ConversionError");
+         "monarch.util.ConversionError");
       Exception::set(e);
    }
 
@@ -161,7 +161,7 @@ bool Convert::hexToInt(
       rval = false;
       ExceptionRef e = new Exception(
          "Hex value too large.",
-         "db.util.ConversionError");
+         "monarch.util.ConversionError");
       Exception::set(e);
    }
    else
@@ -183,7 +183,7 @@ bool Convert::hexToInt(
    {
       ExceptionRef e = new Exception(
          "Invalid hex value.",
-         "db.util.ConversionError");
+         "monarch.util.ConversionError");
       Exception::set(e);
    }
 

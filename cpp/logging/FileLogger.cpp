@@ -401,7 +401,7 @@ bool FileLogger::setFile(File& file, bool append)
          {
             ExceptionRef e = new Exception(
                "Could not create new logging file.",
-               "db.logging.InvalidFile");
+               "monarch.logging.InvalidFile");
             e->getDetails()["path"] = file->getPath();
             Exception::push(e);
             rval = false;
@@ -412,7 +412,7 @@ bool FileLogger::setFile(File& file, bool append)
       {
          ExceptionRef e = new Exception(
             "Logging file not writable.",
-            "db.logging.InvalidFile");
+            "monarch.logging.InvalidFile");
          e->getDetails()["path"] = file->getPath();
          Exception::set(e);
          rval = false;

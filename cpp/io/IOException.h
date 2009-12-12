@@ -30,7 +30,7 @@ public:
     */
    IOException(
       const char* message = "",
-      const char* type = "db.io.IO", int code = 0);
+      const char* type = "monarch.io.IO", int code = 0);
 
    /**
     * Destructs this IOException.

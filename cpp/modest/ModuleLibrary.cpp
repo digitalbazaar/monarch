@@ -65,7 +65,7 @@ Module* ModuleLibrary::loadModule(const char* filename)
                // could not initialize module, so unload it
                ExceptionRef e = new Exception(
                   "Could not initialize module.",
-                  "db.modest.ModuleInitializationError");
+                  "monarch.modest.ModuleInitializationError");
                e->getDetails()["filename"] = filename;
                e->getDetails()["name"] = mi->module->getId().name;
                e->getDetails()["version"] = mi->module->getId().version;
@@ -78,7 +78,7 @@ Module* ModuleLibrary::loadModule(const char* filename)
             // module is already loaded, set exception and unload it
             ExceptionRef e = new Exception(
                "Could not load module, module already loaded.",
-               "db.modest.DuplicateModule");
+               "monarch.modest.DuplicateModule");
             e->getDetails()["filename"] = filename;
             e->getDetails()["name"] = mi->module->getId().name;
             e->getDetails()["version"] = mi->module->getId().version;

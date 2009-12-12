@@ -108,7 +108,7 @@ static bool checkVariableError(const char* start, const char* pos)
       ExceptionRef e = new Exception(
          "Variable names must start with a letter and contain only "
          "alphanumeric characters.",
-         "db.data.TemplateInputStream.InvalidVariable");
+         "monarch.data.TemplateInputStream.InvalidVariable");
       Exception::set(e);
    }
 
@@ -146,7 +146,7 @@ bool TemplateInputStream::process(const char* pos)
             // error, invalid escaped character
             ExceptionRef e = new Exception(
                "Unknown escaped character.",
-               "db.data.TemplateInputStream.InvalidEscape");
+               "monarch.data.TemplateInputStream.InvalidEscape");
             e->getDetails()["character"] = std::string(1, pos[0]).c_str();
             Exception::set(e);
             rval = false;
@@ -214,7 +214,7 @@ bool TemplateInputStream::process(const char* pos)
                      "The substitution variable is currently not defined. "
                      "Variable substitution cannot occur with an undefined "
                      "variable.",
-                     "db.data.TemplateInputStream.VariableNotFound");
+                     "monarch.data.TemplateInputStream.VariableNotFound");
                   e->getDetails()["name"] = varname;
                   Exception::set(e);
                   rval = false;
@@ -287,7 +287,7 @@ int TemplateInputStream::read(char* b, int length)
             {
                ExceptionRef e = new Exception(
                   "Incomplete variable or variable name too large.",
-                  "db.data.TemplateInputStream.InvalidVariable");
+                  "monarch.data.TemplateInputStream.InvalidVariable");
                Exception::set(e);
                parseError = true;
             }
@@ -308,7 +308,7 @@ int TemplateInputStream::read(char* b, int length)
             // in the parse exception
             ExceptionRef e = new Exception(
                "Template parser error.",
-               "db.data.TemplateInputStream.ParseError");
+               "monarch.data.TemplateInputStream.ParseError");
             e->getDetails()["line"] = mLineNumber;
             e->getDetails()["position"] = mPosition;
             e->getDetails()["near"] = nearStr;
@@ -331,7 +331,7 @@ int TemplateInputStream::read(char* b, int length)
    {
       ExceptionRef e = new Exception(
          "Incomplete escape sequence at the end of the template.",
-         "db.data.TemplateInputStream.IncompleteTemplate");
+         "monarch.data.TemplateInputStream.IncompleteTemplate");
       Exception::set(e);
       rval = -1;
    }

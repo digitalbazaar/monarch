@@ -57,7 +57,7 @@ int ConnectionInputStream::read(char* b, int length)
       {
          ExceptionRef e = new Exception(
             "Could not read from connection. Socket closed.",
-            "db.net.Socket.Closed");
+            "monarch.net.Socket.Closed");
          Exception::set(e);
          rval = -1;
       }
@@ -255,7 +255,7 @@ int ConnectionInputStream::readCrlf(string& line)
       {
          rval = -1;
          ExceptionRef e = new Exception(
-            "Could not read CRLF, line too long.", "db.net.CRLFLineTooLong");
+            "Could not read CRLF, line too long.", "monarch.net.CRLFLineTooLong");
          Exception::set(e);
          break;
       }

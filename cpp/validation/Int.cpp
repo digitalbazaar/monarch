@@ -124,8 +124,8 @@ bool Int::isValid(
    if(!rval)
    {
       DynamicObject detail =
-         context->addError("db.validation.ValueError", &obj);
-      detail["validator"] = "db.validator.Int";
+         context->addError("monarch.validation.ValueError", &obj);
+      detail["validator"] = "monarch.validator.Int";
       detail["message"] =
          mErrorMessage ? mErrorMessage :
             "The given value type is required to be an integer.";
@@ -185,8 +185,8 @@ bool Int::isValid(
       if(!rval)
       {
          DynamicObject detail =
-            context->addError("db.validation.ValueError", &obj);
-         detail["validator"] = "db.validator.Int";
+            context->addError("monarch.validation.ValueError", &obj);
+         detail["validator"] = "monarch.validator.Int";
          detail["message"] = mErrorMessage ? mErrorMessage :
             "The given integer value is less than the required minimum "
             "integer value.";
@@ -216,8 +216,8 @@ bool Int::isValid(
       if(!rval)
       {
          DynamicObject detail =
-            context->addError("db.validation.ValueError", &obj);
-         detail["validator"] = "db.validator.Int";
+            context->addError("monarch.validation.ValueError", &obj);
+         detail["validator"] = "monarch.validator.Int";
          detail["message"] = mErrorMessage ? mErrorMessage :
             "The given integer value is greater than the allowable maximum "
             "integer value.";

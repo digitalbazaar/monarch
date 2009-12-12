@@ -24,8 +24,8 @@ bool Null::isValid(
    if(!rval)
    {
       DynamicObject detail =
-         context->addError("db.validation.NotNullError", &obj);
-      detail["validator"] = "db.validator.Null";
+         context->addError("monarch.validation.NotNullError", &obj);
+      detail["validator"] = "monarch.validator.Null";
       detail["expectedValue"] = "null";
       if(mErrorMessage)
       {

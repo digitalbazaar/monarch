@@ -308,7 +308,7 @@ void runEventControllerTest(TestRunner& tr)
    tr.pass();
 }
 
-#define DBTDONE "db.test.done"
+#define DBTDONE "monarch.test.done"
 class TestEventTrigger : public Runnable
 {
 public:

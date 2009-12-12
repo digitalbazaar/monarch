@@ -35,7 +35,7 @@ bool AbstractConnection::connect(const char* url)
    {
       ExceptionRef e = new Exception(
          "Invalid database url.",
-         "db.sql.Connection.InvalidUrl");
+         "monarch.sql.Connection.InvalidUrl");
       e->getDetails()["url"] = url;
       Exception::push(e);
    }
@@ -84,7 +84,7 @@ bool AbstractConnection::begin()
    {
       ExceptionRef e = new Exception(
          "Could not begin transaction.",
-         "db.sql.Connection.TransactionBeginError");
+         "monarch.sql.Connection.TransactionBeginError");
       Exception::push(e);
    }
 
@@ -101,7 +101,7 @@ bool AbstractConnection::commit()
    {
       ExceptionRef e = new Exception(
          "Could not commit transaction.",
-         "db.sql.Connection.TransactionCommitError");
+         "monarch.sql.Connection.TransactionCommitError");
       Exception::push(e);
    }
 
@@ -122,7 +122,7 @@ bool AbstractConnection::rollback()
    {
       ExceptionRef e = new Exception(
          "Could not rollback transaction.",
-         "db.sql.Connection.TransactionRollbackError");
+         "monarch.sql.Connection.TransactionRollbackError");
       if(!reason.isNull())
       {
          e->getDetails()["rollbackReason"] =

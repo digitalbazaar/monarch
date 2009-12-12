@@ -139,14 +139,14 @@ DynamicObject ValidatorContext::addError(
             "The given object does not meet all of the data validation "
             "requirements. Please examine the error details for more "
             "information about the specific requirements.",
-            "db.validation.ValidationError");
+            "monarch.validation.ValidationError");
          Exception::set(e);
       }
       else
       {
          e = Exception::get();
          // Check if we are adding to a ValidationError
-         if(!e->isType("db.validation.ValidationError"))
+         if(!e->isType("monarch.validation.ValidationError"))
          {
             // FIXME: this is a bit bogus. If validation checking keeps causing
             // other exceptions then a long cause chain could be generated
@@ -155,7 +155,7 @@ DynamicObject ValidatorContext::addError(
                "The given object does not meet all of the data validation "
                "requirements. Please examine the error details for more "
                "information about the specific requirements.",
-               "db.validation.ValidationError");
+               "monarch.validation.ValidationError");
             Exception::push(e);
          }
       }

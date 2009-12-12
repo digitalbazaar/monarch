@@ -68,7 +68,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
             // the chunk size could not be read!
             ExceptionRef e = new Exception(
                "Invalid HTTP chunk size.",
-               "db.net.http.BadChunkedEncoding");
+               "monarch.net.http.BadChunkedEncoding");
             Exception::set(e);
             rval = -1;
          }
@@ -87,7 +87,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
             // the chunk size could not be read!
             ExceptionRef e = new Exception(
                "Could not read HTTP chunk size. End of stream.",
-               "db.net.http.EndOfStream");
+               "monarch.net.http.EndOfStream");
             Exception::set(e);
             rval = -1;
          }
@@ -100,7 +100,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
                // the chunk size could not be read!
                e = new Exception(
                   "Could not read HTTP chunk size.",
-                  "db.net.http.BadChunkedEncoding");
+                  "monarch.net.http.BadChunkedEncoding");
                Exception::push(e);
             }
          }
@@ -126,7 +126,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
       {
          ExceptionRef e = new Exception(
             "Could not read HTTP chunk.",
-            "db.net.http.BadChunkedEncoding");
+            "monarch.net.http.BadChunkedEncoding");
          Exception::set(e);
          rval = -1;
       }
@@ -165,7 +165,7 @@ int HttpChunkedTransferInputStream::read(char* b, int length)
          // was read, then whole chunk wasn't read
          ExceptionRef e = new Exception(
             "Could not read entire HTTP chunk.",
-            "db.net.http.BadChunkedEncoding");
+            "monarch.net.http.BadChunkedEncoding");
          Exception::set(e);
          rval = -1;
       }

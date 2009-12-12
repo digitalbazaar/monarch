@@ -101,7 +101,7 @@ bool SocketAddress::fromString(const char* str)
    {
       ExceptionRef e = new Exception(
          "Could not parse SocketAddress from string.",
-         "db.net.SocketAddress.ParseError");
+         "monarch.net.SocketAddress.ParseError");
       e->getDetails()["string"] = str;
       Exception::set(e);
       rval = false;

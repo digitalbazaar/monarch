@@ -12,7 +12,7 @@ using namespace monarch::sql;
 using namespace monarch::sql::mysql;
 
 MySqlException::MySqlException(MySqlConnection* c) :
-   SqlException("", "db.sql.mysql.MySql")
+   SqlException("", "monarch.sql.mysql.MySql")
 {
    setCode(mysql_errno(c->getHandle()));
    setMessage(mysql_error(c->getHandle()));

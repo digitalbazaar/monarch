@@ -20,8 +20,8 @@ using namespace monarch::test;
 Tester::Tester() :
    mName(NULL)
 {
-   mInfo["id"] = "db.test.Tester";
-   mInfo["dependencies"]->append() = "db.app.plugins.Common";
+   mInfo["id"] = "monarch.test.Tester";
+   mInfo["dependencies"]->append() = "monarch.app.plugins.Common";
 }
 
 Tester::~Tester()
@@ -85,30 +85,30 @@ DynamicObject Tester::getCommandLineSpecs()
    opt = spec["options"]->append();
    opt["short"] = "-l";
    opt["long"] = "--level";
-   opt["arg"]["config"] = "db.test.Tester command line";
+   opt["arg"]["config"] = "monarch.test.Tester command line";
    opt["arg"]["path"] = "db\\.test\\.Tester.level";
 
    opt = spec["options"]->append();
    opt["short"] = "-c";
-   opt["setTrue"]["config"] = "db.test.Tester command line";
+   opt["setTrue"]["config"] = "monarch.test.Tester command line";
    opt["setTrue"]["path"] = "db\\.test\\.Tester.continueAfterException";
 
    opt = spec["options"]->append();
    opt["short"] = "-a";
    opt["long"] = "--automatic";
-   opt["setTrue"]["config"] = "db.test.Tester command line";
+   opt["setTrue"]["config"] = "monarch.test.Tester command line";
    opt["setTrue"]["path"] = "db\\.test\\.Tester.__cl_automatic";
 
    opt = spec["options"]->append();
    opt["short"] = "-i";
    opt["long"] = "--interactive";
-   opt["setTrue"]["config"] = "db.test.Tester command line";
+   opt["setTrue"]["config"] = "monarch.test.Tester command line";
    opt["setTrue"]["path"] = "db\\.test\\.Tester.__cl_interactive";
 
    opt = spec["options"]->append();
    opt["short"] = "-t";
    opt["long"] = "--test";
-   opt["arg"]["config"] = "db.test.Tester command line";
+   opt["arg"]["config"] = "monarch.test.Tester command line";
    opt["arg"]["path"] = "db\\.test\\.Tester.test";
 
    //DynamicObject specs = AppDelegate::getCommandLineSpecs();
@@ -129,12 +129,12 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
    {
       Config meta = getApp()->getMetaConfig();
       Config config =
-         App::makeMetaConfig(meta, "db.test.Tester defaults", "defaults");
+         App::makeMetaConfig(meta, "monarch.test.Tester defaults", "defaults");
 
       Config& merge = config[ConfigManager::MERGE];
-      merge["db.test.Tester"]["level"] = TestRunner::Names;
-      merge["db.test.Tester"]["continueAfterException"] = false;
-      merge["db.test.Tester"]["test"] = "all";
+      merge["monarch.test.Tester"]["level"] = TestRunner::Names;
+      merge["monarch.test.Tester"]["continueAfterException"] = false;
+      merge["monarch.test.Tester"]["test"] = "all";
 
       rval = getApp()->getConfigManager()->addConfig(config);
    }
@@ -145,7 +145,7 @@ bool Tester::willParseCommandLine(std::vector<const char*>* args)
       Config meta = getApp()->getMetaConfig();
       Config config =
          App::makeMetaConfig(
-            meta, "db.test.Tester command line", "command line");
+            meta, "monarch.test.Tester command line", "command line");
       rval = getApp()->getConfigManager()->addConfig(config);
    }
 
@@ -160,8 +160,8 @@ bool Tester::didParseCommandLine()
    {
       // to get values set on command line
       Config rawConfig = getApp()->getConfigManager()->getConfig(
-         "db.test.Tester command line", true);
-      Config& config = rawConfig[ConfigManager::MERGE]["db.test.Tester"];
+         "monarch.test.Tester command line", true);
+      Config& config = rawConfig[ConfigManager::MERGE]["monarch.test.Tester"];
 
       // if interactive, assume no automatic, else only automatic enabled
       if(config->hasMember("__cl_interactive") &&
@@ -215,7 +215,7 @@ int Tester::runInteractiveTests(TestRunner& tr)
 int Tester::runTests(TestRunner& tr)
 {
    int rval = 0;
-   Config cfg = getApp()->getConfig()["db.test.Tester"];
+   Config cfg = getApp()->getConfig()["monarch.test.Tester"];
 
    tr.group(getName());
 
@@ -254,7 +254,7 @@ bool Tester::run()
 {
    bool rval = true;
 
-   Config cfg = getApp()->getConfig()["db.test.Tester"];
+   Config cfg = getApp()->getConfig()["monarch.test.Tester"];
    bool cont = cfg["continueAfterException"]->getBoolean();
    uint32_t cfgLevel = cfg["level"]->getUInt32();
    TestRunner::OutputLevel level;

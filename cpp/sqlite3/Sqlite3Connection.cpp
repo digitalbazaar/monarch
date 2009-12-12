@@ -41,7 +41,7 @@ bool Sqlite3Connection::connect(Url* url)
       ExceptionRef e = new Exception(
          "Could not connect to sqlite3 database, url scheme doesn't "
          "start with 'sqlite3' or 'file'.",
-         "db.sql.BadUrlScheme");
+         "monarch.sql.BadUrlScheme");
       e->getDetails()["url"] = url->toString().c_str();
       Exception::set(e);
    }

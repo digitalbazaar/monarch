@@ -73,7 +73,7 @@ bool ConnectionOutputStream::flush()
       {
          ExceptionRef e = new Exception(
             "Could not write to connection. Socket closed.",
-            "db.net.Socket.Closed");
+            "monarch.net.Socket.Closed");
          Exception::set(e);
          rval = false;
       }
@@ -118,7 +118,7 @@ bool ConnectionOutputStream::flush()
       {
          ExceptionRef e = new Exception(
             "Could not write to connection. Socket closed.",
-            "db.net.Socket.Closed");
+            "monarch.net.Socket.Closed");
          Exception::set(e);
          rval = false;
       }

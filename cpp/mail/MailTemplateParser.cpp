@@ -58,7 +58,7 @@ static bool parseLine(
             ExceptionRef e = new Exception(
                "Parse error while parsing mail template. Mail header "
                "is malformed or non-existant.",
-               "db.mail.InvalidHeader");
+               "monarch.mail.InvalidHeader");
             Exception::set(e);
             rval = false;
          }
@@ -174,7 +174,7 @@ bool MailTemplateParser::parse(
             ExceptionRef e = new Exception(
                "Message line too long. SMTP requires that lines be no longer "
                "than 1000 bytes, including the terminating CRLF.",
-               "db.mail.LineTooLong");
+               "monarch.mail.LineTooLong");
             Exception::set(e);
             rval = false;
          }

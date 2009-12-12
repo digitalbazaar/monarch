@@ -152,7 +152,7 @@ public:
     *
     * setException() can be used to stop this method from setting exceptions.
     *
-    * @param type type of this error in "db.validation.MaxError" format.
+    * @param type type of this error in "monarch.validation.MaxError" format.
     * @param object object that caused this error.
     *
     * @return a DynamicObject to fill with details.

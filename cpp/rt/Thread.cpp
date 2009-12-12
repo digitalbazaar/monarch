@@ -125,7 +125,7 @@ bool Thread::start(size_t stackSize)
             {
                ExceptionRef e = new Exception(
                   "Could not start thread. Not enough system resources.",
-                  "db.rt.Thread.InsufficientResources");
+                  "monarch.rt.Thread.InsufficientResources");
                e->getDetails()["error"] = strerror(errno);
                Exception::set(e);
                break;
@@ -134,7 +134,7 @@ bool Thread::start(size_t stackSize)
             {
                ExceptionRef e = new Exception(
                   "Could not start thread. Invalid thread parameters.",
-                  "db.rt.Thread.InvalidParameters");
+                  "monarch.rt.Thread.InvalidParameters");
                e->getDetails()["error"] = strerror(errno);
                Exception::set(e);
                break;
@@ -143,7 +143,7 @@ bool Thread::start(size_t stackSize)
             {
                ExceptionRef e = new Exception(
                   "Could not start thread. Not authorized.",
-                  "db.rt.Thread.AccessDenied");
+                  "monarch.rt.Thread.AccessDenied");
                e->getDetails()["error"] = strerror(errno);
                Exception::set(e);
                break;
@@ -152,7 +152,7 @@ bool Thread::start(size_t stackSize)
             {
                ExceptionRef e = new Exception(
                   "Could not start thread. Not enough memory.",
-                  "db.rt.Thread.InsufficientMemory");
+                  "monarch.rt.Thread.InsufficientMemory");
                e->getDetails()["error"] = strerror(errno);
                Exception::set(e);
                break;
@@ -161,7 +161,7 @@ bool Thread::start(size_t stackSize)
             {
                ExceptionRef e = new Exception(
                   "Could not start thread.",
-                  "db.rt.Thread.Error");
+                  "monarch.rt.Thread.Error");
                e->getDetails()["error"] = strerror(errno);
                Exception::set(e);
                break;
@@ -195,7 +195,7 @@ Exception* Thread::createInterruptedException()
 {
    Exception* rval = NULL;
 
-   rval = new Exception("Thread interrupted", "db.rt.Interrupted");
+   rval = new Exception("Thread interrupted", "monarch.rt.Interrupted");
    const char* name = getName();
    rval->getDetails()["name"] = ((name == NULL) ? "" : name);
 

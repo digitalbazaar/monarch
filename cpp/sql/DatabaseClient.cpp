@@ -18,7 +18,7 @@ using namespace monarch::rt;
 using namespace monarch::sql;
 namespace v = monarch::validation;
 
-#define DBC_EXCEPTION "db.sql.DatabaseClient"
+#define DBC_EXCEPTION "monarch.sql.DatabaseClient"
 
 // FIXME: The goal behind returning SqlExecutables from the methods in this
 // class is to transition to a system where a developer can manually construct

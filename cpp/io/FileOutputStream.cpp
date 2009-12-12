@@ -43,7 +43,7 @@ bool FileOutputStream::write(const char* b, int length)
          // error
          ExceptionRef e = new Exception(
             "Could not write to file.",
-            "db.io.File.WriteError");
+            "monarch.io.File.WriteError");
          e->getDetails()["path"] = mFile->getAbsolutePath();
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
@@ -92,7 +92,7 @@ bool FileOutputStream::ensureOpen()
       {
          ExceptionRef e = new Exception(
             "Could not open file stream.",
-            "db.io.File.OpenFailed");
+            "monarch.io.File.OpenFailed");
          e->getDetails()["path"] = mFile->getAbsolutePath();
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);

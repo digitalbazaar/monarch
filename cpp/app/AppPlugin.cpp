@@ -11,9 +11,9 @@ using namespace monarch::rt;
 AppPlugin::AppPlugin() :
    mApp(NULL)
 {
-   mInfo["id"] = "db.app.plugin.Unknown";
+   mInfo["id"] = "monarch.app.plugin.Unknown";
    mInfo["dependencies"]->setType(Array);
-   mInfo["dependencies"]->append() = "db.app.plugins.Common";
+   mInfo["dependencies"]->append() = "monarch.app.plugins.Common";
 }
 
 AppPlugin::~AppPlugin()

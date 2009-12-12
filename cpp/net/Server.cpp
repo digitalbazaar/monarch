@@ -148,7 +148,7 @@ bool Server::start()
             // reset exception as cause
             ExceptionRef ex = new Exception(
                "Could not start server. At least one port service failed.",
-               "db.net.Server.PortServiceFailed");
+               "monarch.net.Server.PortServiceFailed");
             ex->setCause(e);
             Exception::set(ex);
          }

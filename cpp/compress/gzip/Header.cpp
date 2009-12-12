@@ -80,7 +80,7 @@ int Header::convertFromBytes(char* b, int length)
       {
          ExceptionRef e = new Exception(
             "Data is not in gzip format.",
-            "db.compress.gzip.InvalidHeader");
+            "monarch.compress.gzip.InvalidHeader");
          Exception::set(e);
          rval = -1;
       }
@@ -91,7 +91,7 @@ int Header::convertFromBytes(char* b, int length)
          {
             ExceptionRef e = new Exception(
                "Data is not compressed using DEFLATE.",
-               "db.compress.gzip.InvalidCompressionMethod");
+               "monarch.compress.gzip.InvalidCompressionMethod");
             Exception::set(e);
             rval = -1;
          }
@@ -203,7 +203,7 @@ int Header::convertFromBytes(char* b, int length)
                   {
                      ExceptionRef e = new Exception(
                         "Bad CRC in gzip header.",
-                        "db.compress.gzip.BadHeaderCrc");
+                        "monarch.compress.gzip.BadHeaderCrc");
                      Exception::set(e);
                      rval = -1;
                   }

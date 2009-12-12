@@ -280,7 +280,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
                string temp(1, c);
                ExceptionRef e = new Exception(
                   "Invalid escape code.",
-                  "db.data.json.JsonReader.InvalidEscapeCode");
+                  "monarch.data.json.JsonReader.InvalidEscapeCode");
                e->getDetails()["escapeCode"] = temp.c_str();
                Exception::set(e);
                rval = false;
@@ -485,7 +485,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
       {
          ExceptionRef e = new Exception(
             "Invalid input.",
-            "db.data.json.JsonReader.InvalidInput");
+            "monarch.data.json.JsonReader.InvalidInput");
          Exception::set(e);
          rval = false;
          break;
@@ -495,7 +495,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
       {
          ExceptionRef e = new Exception(
             "Invalid JSON parse state.",
-            "db.data.json.JsonReader.InvalidParseState");
+            "monarch.data.json.JsonReader.InvalidParseState");
          Exception::set(e);
          rval = false;
          break;
@@ -530,7 +530,7 @@ bool JsonReader::read(InputStream* is)
       // reader not started
       ExceptionRef e = new Exception(
          "Cannot read yet, JsonReader not started.",
-         "db.data.json.JsonReader.NotStarted");
+         "monarch.data.json.JsonReader.NotStarted");
       Exception::set(e);
       rval = false;
    }
@@ -562,7 +562,7 @@ bool JsonReader::read(InputStream* is)
             "JSON parser error at line %d, position %d, near \"%s\"\n",
             mLineNumber, position, temp);
          ExceptionRef e = new Exception(
-            msg, "db.data.json.JsonReader.ParseError");
+            msg, "monarch.data.json.JsonReader.ParseError");
          e->getDetails()["line"] = mLineNumber;
          e->getDetails()["position"] = position;
          e->getDetails()["near"] = temp;
@@ -589,13 +589,13 @@ bool JsonReader::finish()
       {
          e = new Exception(
             "No JSON top-level Object or Array found.",
-            "db.data.json.JsonReader.ParseError");
+            "monarch.data.json.JsonReader.ParseError");
       }
       else
       {
          e = new Exception(
             "No JSON value found.",
-            "db.data.json.JsonReader.ParseError");
+            "monarch.data.json.JsonReader.ParseError");
       }
       Exception::set(e);
       rval = false;

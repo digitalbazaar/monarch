@@ -57,7 +57,7 @@ bool DefaultBlockCipher::startEncrypting(SymmetricKey* symmetricKey)
       {
          ExceptionRef e = new Exception(
             "Could not start encrypting.",
-            "db.crypto.BlockCipher.StartEncryptionError");
+            "monarch.crypto.BlockCipher.StartEncryptionError");
          e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
          Exception::set(e);
       }
@@ -92,7 +92,7 @@ bool DefaultBlockCipher::startDecrypting(SymmetricKey* symmetricKey)
       {
          ExceptionRef e = new Exception(
             "Could not start decrypting.",
-            "db.crypto.BlockCipher.StartDecryptionError");
+            "monarch.crypto.BlockCipher.StartDecryptionError");
          e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
          Exception::set(e);
       }
@@ -122,7 +122,7 @@ bool DefaultBlockCipher::update(
          {
             ExceptionRef e = new Exception(
                "Could not encrypt data.",
-               "db.crypto.BlockCipher.EncryptionError");
+               "monarch.crypto.BlockCipher.EncryptionError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::set(e);
          }
@@ -140,7 +140,7 @@ bool DefaultBlockCipher::update(
          {
             ExceptionRef e = new Exception(
                "Could not decrypt data.",
-               "db.crypto.BlockCipher.DecryptionError");
+               "monarch.crypto.BlockCipher.DecryptionError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::set(e);
          }
@@ -157,7 +157,7 @@ bool DefaultBlockCipher::update(
    {
       ExceptionRef e = new Exception(
          "Cannot update cipher; cipher not started.",
-         "db.crypto.BlockCipher.MethodCallOutOfOrder");
+         "monarch.crypto.BlockCipher.MethodCallOutOfOrder");
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }
@@ -184,7 +184,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
          {
             ExceptionRef e = new Exception(
                "Could not finish encrypting.",
-               "db.crypto.BlockCipher.EncryptionError");
+               "monarch.crypto.BlockCipher.EncryptionError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::set(e);
          }
@@ -201,7 +201,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
          {
             ExceptionRef e = new Exception(
                "Could not finish decrypting.",
-               "db.crypto.BlockCipher.DecryptionError");
+               "monarch.crypto.BlockCipher.DecryptionError");
             e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
             Exception::set(e);
          }
@@ -217,7 +217,7 @@ bool DefaultBlockCipher::finish(char* out, int& length)
    {
       ExceptionRef e = new Exception(
          "Cannot finish cipher; cipher not started.",
-         "db.crypto.BlockCipher.MethodCallOutOfOrder");
+         "monarch.crypto.BlockCipher.MethodCallOutOfOrder");
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
       Exception::set(e);
    }

@@ -241,7 +241,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os)
       {
          ExceptionRef e = new Exception(
             "No JSON top-level Map or Array found.",
-            "db.data.json.JsonWriter.InvalidJson");
+            "monarch.data.json.JsonWriter.InvalidJson");
          Exception::set(e);
          rval = false;
       }

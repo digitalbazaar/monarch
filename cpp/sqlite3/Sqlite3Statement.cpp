@@ -250,7 +250,7 @@ bool Sqlite3Statement::execute()
          ExceptionRef e = new Exception(
             "Statement state is invalid. Did you call reset() to reuse "
             "the statement? (Connections should do this automatically).",
-            "db.sql.sqlite3.BadState");
+            "monarch.sql.sqlite3.BadState");
          Exception::set(e);
          rval = false;
          break;

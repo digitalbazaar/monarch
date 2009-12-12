@@ -21,7 +21,7 @@ int InputStream::peek(char* b, int length, bool block)
    // extending classes must implement this method if they want support
    ExceptionRef e = new Exception(
       "InputStream::peek() is not implemented.",
-      "db.io.NotImplemented.");
+      "monarch.io.NotImplemented.");
    Exception::set(e);
    return -1;
 }

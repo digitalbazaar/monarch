@@ -128,14 +128,14 @@ int HttpBodyInputStream::read(char* b, int length)
             // future so this kind of exception can be recovered from
             ExceptionRef e = new Exception(
                "Receiving HTTP content body interrupted.",
-               "db.io.InterruptedException");
+               "monarch.io.InterruptedException");
             Exception::set(e);
          }
          else
          {
             ExceptionRef e = new Exception(
                "Could not receive all HTTP content bytes.",
-               "db.io.IO");
+               "monarch.io.IO");
             Exception::set(e);
          }
       }

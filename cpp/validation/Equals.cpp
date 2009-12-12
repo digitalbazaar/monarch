@@ -36,8 +36,8 @@ bool Equals::isValid(
    if(!rval)
    {
       DynamicObject detail =
-         context->addError("db.validation.EqualityFailure", &obj);
-      detail["validator"] = "db.validator.Equals";
+         context->addError("monarch.validation.EqualityFailure", &obj);
+      detail["validator"] = "monarch.validator.Equals";
       detail["expectedValue"] = mObject;
       if(mErrorMessage)
       {

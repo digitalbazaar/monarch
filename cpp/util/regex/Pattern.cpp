@@ -85,7 +85,7 @@ PatternRef Pattern::compile(const char* regex, bool matchCase, bool subMatches)
       p.setNull();
 
       ExceptionRef e = new Exception(
-         "Invalid regular expression.", "db.util.InvalidRegex");
+         "Invalid regular expression.", "monarch.util.InvalidRegex");
       e->getDetails()["error"] = str;
       Exception::set(e);
    }

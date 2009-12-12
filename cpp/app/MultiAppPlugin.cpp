@@ -12,7 +12,7 @@ typedef vector<AppPluginRef>::iterator PluginIterator;
 
 MultiAppPlugin::MultiAppPlugin()
 {
-   mInfo["id"] = "db.app.plugin.Multi";
+   mInfo["id"] = "monarch.app.plugin.Multi";
 }
 
 MultiAppPlugin::~MultiAppPlugin()

@@ -30,7 +30,7 @@ bool OStreamOutputStream::write(const char* b, int length)
    if(!(rval = !mStream->fail()))
    {
       ExceptionRef e = new Exception(
-         "Could not write to ostream.", "db.io.IO");
+         "Could not write to ostream.", "monarch.io.IO");
       Exception::set(e);
    }
 
