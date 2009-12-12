@@ -31,27 +31,27 @@ SUBDIRS := \
 	$(EXECUTABLE_SUBDIRS)
 
 INSTALL_LIBRARIES := \
-	dist/lib/libdbapp.so \
-	dist/lib/libdbconfig.so \
-	dist/lib/libdbcompress.so \
-	dist/lib/libdbcrypto.so \
-	dist/lib/libdbdata.so \
-	dist/lib/libdbevent.so \
-	dist/lib/libdbfiber.so \
-	dist/lib/libdbio.so \
-	dist/lib/libdblogging.so \
-	dist/lib/libdbmail.so \
-	dist/lib/libdbmodest.so \
-	dist/lib/libdbnet.so \
-	dist/lib/libdbhttp.so \
-	dist/lib/libdbrt.so \
-	dist/lib/libdbsql.so \
-	dist/lib/libdbsqlite3.so \
-	dist/lib/libdbmysql.so \
-	dist/lib/libdbupnp.so \
-	dist/lib/libdbutil.so \
-	dist/lib/libdbsphinx.so \
-	dist/lib/libdbvalidation.so
+	dist/lib/libmoapp.so \
+	dist/lib/libmoconfig.so \
+	dist/lib/libmocompress.so \
+	dist/lib/libmocrypto.so \
+	dist/lib/libmodata.so \
+	dist/lib/libmoevent.so \
+	dist/lib/libmofiber.so \
+	dist/lib/libmoio.so \
+	dist/lib/libmologging.so \
+	dist/lib/libmomail.so \
+	dist/lib/libmomodest.so \
+	dist/lib/libmonet.so \
+	dist/lib/libmohttp.so \
+	dist/lib/libmort.so \
+	dist/lib/libmosql.so \
+	dist/lib/libmosqlite3.so \
+	dist/lib/libmomysql.so \
+	dist/lib/libmoupnp.so \
+	dist/lib/libmoutil.so \
+	dist/lib/libmosphinx.so \
+	dist/lib/libmovalidation.so
 
 ifndef PRINT_DIRECTORIES
 PRINT_DIRECTORIES_OPTS = --no-print-directory -s
