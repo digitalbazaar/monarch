@@ -1,4 +1,4 @@
-Name: DBCORE
+Name: MONARCH
 Description: Digital Bazaar Core Libraries
 Version: 0.0.0
 Cflags: @@CFLAGS@@

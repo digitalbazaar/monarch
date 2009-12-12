@@ -12,13 +12,13 @@ MACOS_LIBS = -L$(MACOS_LIB_DIR)
 MACOS_LIBS += -L/sw/lib
 MACOS_AR = @MACOS_AR@
 MACOS_AS = @MACOS_AS@
-MACOS_BUILD_DIR = $(DBCORE)/build/$(subst $(DBCORE)/cpp/,,$(CWD))
-MACOS_DIST_DIR = $(DBCORE)/dist
+MACOS_BUILD_DIR = $(MONARCH)/build/$(subst $(MONARCH)/cpp/,,$(CWD))
+MACOS_DIST_DIR = $(MONARCH)/dist
 MACOS_LIB_DIR = $(MACOS_DIST_DIR)/lib
 MACOS_BIN_DIR = $(MACOS_DIST_DIR)/bin
 MACOS_CPP_SOURCES := $(filter %.cpp, $(SOURCES))
 MACOS_AS_SOURCES := $(filter %.S, $(SOURCES))
-MACOS_HEADER_FILES := $(patsubst %.h, $(DBCORE)/$(HEADER_DIST_DIR)/%.h, $(HEADERS))
+MACOS_HEADER_FILES := $(patsubst %.h, $(MONARCH)/$(HEADER_DIST_DIR)/%.h, $(HEADERS))
 MACOS_LIBRARY_SOURCES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%.cpp, $(MACOS_CPP_SOURCES))  $(patsubst %.S,$(MACOS_BUILD_DIR)/%.S, $(MACOS_AS_SOURCES))
 MACOS_EXECUTABLE_SOURCES := $(patsubst %,$(MACOS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
 MACOS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.o, $(MACOS_CPP_SOURCES)) $(patsubst %.S,$(MACOS_BUILD_DIR)/%-asm-macos.o, $(MACOS_AS_SOURCES))
@@ -46,7 +46,7 @@ endif
 
 $(MACOS_HEADER_FILES): 
 	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(DBCORE)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
+	$(PCMD) ln -sf $(subst $(MONARCH)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
 
 # You can build either multiple executables per directory, or multiple
 # libraries per directory, but not both.
@@ -67,21 +67,21 @@ clean-libraries:
 	$(PCMD) rm -rf $(MACOS_LIBRARIES)
 
 %-asm-macos.o: %.S
-	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
+	@echo "Compiling build/$(subst .P,.o,$(subst $(MONARCH)/build/,,$@))..."
 	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
 %-macos.o %-macos.P: %.cpp
-	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
+	@echo "Compiling build/$(subst .P,.o,$(subst $(MONARCH)/build/,,$@))..."
 	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
 %.dylib: $(MACOS_LIBRARY_OBJECTS)
-	@echo "Linking $(subst $(DBCORE)/,,$@)..."
+	@echo "Linking $(subst $(MONARCH)/,,$@)..."
 	$(PCMD) mkdir -p $(MACOS_LIB_DIR)
 	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -install_name $(MACOS_LIB_DIR)/$(@F) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
 
@@ -98,7 +98,7 @@ dump-variables:
 	@echo BUILD_FOR_WINDOWS=$(BUILD_FOR_WINDOWS)
 	@echo BUILD_FOR_MACOS=$(BUILD_FOR_MACOS)
 	@echo AR_FLAGS=$(AR_FLAGS)
-	@echo DBCORE=$(DBCORE)
+	@echo MONARCH=$(MONARCH)
 	@echo INCLUDES=$(INCLUDES)
 	@echo CWD=$(CWD)
 

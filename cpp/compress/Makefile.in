@@ -18,4 +18,4 @@ STATIC_WINDOWS_LIBRARIES = z
 DYNAMIC_MACOS_LIBRARIES = z
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base

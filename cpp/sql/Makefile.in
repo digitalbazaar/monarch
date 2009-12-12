@@ -7,4 +7,4 @@ DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbnet dblogging dbdata dbvalidation
 DYNAMIC_MACOS_LIBRARIES = dbio dbmodest dbcrypto
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base

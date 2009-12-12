@@ -8,5 +8,5 @@ DYNAMIC_WINDOWS_LIBRARIES = libeay32
 DYNAMIC_MACOS_LIBRARIES = crypto ssl
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base
 

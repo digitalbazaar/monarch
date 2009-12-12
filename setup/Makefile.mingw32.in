@@ -5,18 +5,18 @@
 WINDOWS_CXX = @WINDOWS_CXX@
 WINDOWS_CXX_FLAGS = @CXXFLAGS@ -march=i686 -Wall -D_WIN32_WINNT=0x0501 $(MODULE_CXX_FLAGS) @DEFS@
 WINDOWS_LD_FLAGS = @LDFLAGS@
-WINDOWS_INCLUDES = $(INCLUDES) -I$(DBCORE)/cpp/3rdparty/pthread/include -I$(DBCORE)/cpp/3rdparty/openssl/include -I$(DBCORE)/cpp/3rdparty/expat/include -I$(DBCORE)/cpp/3rdparty/mysql/include -I$(DBCORE)/cpp/3rdparty/regex/include -I$(DBCORE)/cpp/3rdparty/sqlite3/include -I$(DBCORE)/cpp/3rdparty/zlib/include -I$(DBCORE)/cpp/3rdparty/iconv/include
+WINDOWS_INCLUDES = $(INCLUDES) -I$(MONARCH)/cpp/3rdparty/pthread/include -I$(MONARCH)/cpp/3rdparty/openssl/include -I$(MONARCH)/cpp/3rdparty/expat/include -I$(MONARCH)/cpp/3rdparty/mysql/include -I$(MONARCH)/cpp/3rdparty/regex/include -I$(MONARCH)/cpp/3rdparty/sqlite3/include -I$(MONARCH)/cpp/3rdparty/zlib/include -I$(MONARCH)/cpp/3rdparty/iconv/include
 WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
 WINDOWS_AR = @WINDOWS_AR@
 WINDOWS_AS = @WINDOWS_AS@
 DYNAMIC_WINDOWS_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_WINDOWS_LIBRARIES)
 WINDOWS_DLLWRAP = @WINDOWS_DLLWRAP@
 WINDOWS_DLLWRAP_FLAGS = --as=$(WINDOWS_AS) --export-all --driver-name $(WINDOWS_CXX) -s
-WINDOWS_BUILD_DIR = $(DBCORE)/build/$(subst $(DBCORE)/cpp/,,$(CWD))
-WINDOWS_DIST_DIR = $(DBCORE)/dist
+WINDOWS_BUILD_DIR = $(MONARCH)/build/$(subst $(MONARCH)/cpp/,,$(CWD))
+WINDOWS_DIST_DIR = $(MONARCH)/dist
 WINDOWS_LIB_DIR = $(WINDOWS_DIST_DIR)/lib
 WINDOWS_BIN_DIR = $(WINDOWS_DIST_DIR)/bin
-WINDOWS_HEADER_FILES := $(patsubst %.h, $(DBCORE)/$(HEADER_DIST_DIR)/%.h, $(HEADERS))
+WINDOWS_HEADER_FILES := $(patsubst %.h, $(MONARCH)/$(HEADER_DIST_DIR)/%.h, $(HEADERS))
 WINDOWS_LIBRARY_SOURCES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%.cpp, $(SOURCES))
 WINDOWS_EXECUTABLE_SOURCES := $(patsubst %,$(WINDOWS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
 WINDOWS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-windows.o, $(SOURCES))
@@ -43,7 +43,7 @@ endif
 
 $(WINDOWS_HEADER_FILES): 
 	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(DBCORE)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
+	$(PCMD) ln -sf $(subst $(MONARCH)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
 
 # You can build either multiple executables per directory, or multiple
 # libraries per directory, but not both.
@@ -64,18 +64,18 @@ clean-libraries:
 	$(PCMD) rm -rf $(WINDOWS_LIBRARIES)
 
 %-windows.o %-windows.P: %.cpp $(WINDOWS_HEADER_FILES)
-	@echo "Compiling build/$(subst .P,.o,$(subst $(DBCORE)/build/,,$@))..."
+	@echo "Compiling build/$(subst .P,.o,$(subst $(MONARCH)/build/,,$@))..."
 	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -c -MD -o $(basename $@).o $(WINDOWS_INCLUDES) -I. $<
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
 %.dll: $(WINDOWS_LIBRARY_OBJECTS)
-	@echo "Linking $(subst $(DBCORE)/,,$@)..."
+	@echo "Linking $(subst $(MONARCH)/,,$@)..."
 	$(PCMD) $(WINDOWS_CXX) -shared $(WINDOWS_LD_FLAGS) $(WINDOWS_LIBS) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
 
 %.lib: $(WINDOWS_LIBRARY_OBJECTS)
-	@echo "Linking $(subst $(DBCORE)/,,$@)..."
+	@echo "Linking $(subst $(MONARCH)/,,$@)..."
 	$(PCMD) $(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
 
 ifdef EXECUTABLES
@@ -91,7 +91,7 @@ dump-variables:
 	@echo BUILD_FOR_WINDOWS=$(BUILD_FOR_WINDOWS)
 	@echo BUILD_FOR_MACOS=$(BUILD_FOR_MACOS)
 	@echo AR_FLAGS=$(AR_FLAGS)
-	@echo DBCORE=$(DBCORE)
+	@echo MONARCH=$(MONARCH)
 	@echo INCLUDES=$(INCLUDES)
 	@echo MODULE_BASE_DIR=$(MODULE_BASE_DIR)
 # Windows-specific variables

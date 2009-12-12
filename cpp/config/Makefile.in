@@ -7,5 +7,5 @@ DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio dbdata dblogging
 DYNAMIC_MACOS_LIBRARIES = dbcompress
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base
 

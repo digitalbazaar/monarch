@@ -22,4 +22,4 @@ DYNAMIC_WINDOWS_LIBRARIES = libexpat iconv2 charset1
 DYNAMIC_MACOS_LIBRARIES = iconv charset expat dbcompress
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base

@@ -480,7 +480,7 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = @DBCOREDIR@/3rdparty
+EXCLUDE                = @MONARCH_DIR@/3rdparty
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix filesystem feature) are excluded 
@@ -988,7 +988,7 @@ SEARCH_INCLUDES        = YES
 # contain include files that are not input files but should be processed by 
 # the preprocessor.
 
-INCLUDE_PATH           = @DBCOREDIR@/config/cpp/db @DBCOREDIR@/crypto/cpp/db @DBCOREDIR@/data/cpp/db @DBCOREDIR@/event/cpp/db @DBCOREDIR@/io/cpp/db @DBCOREDIR@/mail/cpp/db @DBCOREDIR@/modest/cpp/db @DBCOREDIR@/net/cpp/db @DBCOREDIR@/rt/cpp/db @DBCOREDIR@/sql/cpp/db @DBCOREDIR@/test/cpp/db @DBCOREDIR@/util/cpp/db
+INCLUDE_PATH           = @MONARCH_DIR@/config/cpp/db @MONARCH_DIR@/crypto/cpp/db @MONARCH_DIR@/data/cpp/db @MONARCH_DIR@/event/cpp/db @MONARCH_DIR@/io/cpp/db @MONARCH_DIR@/mail/cpp/db @MONARCH_DIR@/modest/cpp/db @MONARCH_DIR@/net/cpp/db @MONARCH_DIR@/rt/cpp/db @MONARCH_DIR@/sql/cpp/db @MONARCH_DIR@/test/cpp/db @MONARCH_DIR@/util/cpp/db
 
 # You can use the INCLUDE_FILE_PATTERNS tag to specify one or more wildcard 
 # patterns (like *.h and *.hpp) to filter out the header-files in the 

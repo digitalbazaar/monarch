@@ -11,4 +11,4 @@ HEADER_DIST_DIR = dist/include/db/sql/mysql
 endif
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base

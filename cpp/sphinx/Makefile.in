@@ -9,4 +9,4 @@ DYNAMIC_WINDOWS_LIBRARIES =
 endif
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base

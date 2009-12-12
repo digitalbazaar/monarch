@@ -355,7 +355,7 @@ void runFileTest(TestRunner& tr)
 
    string tmpFilenameA = tmpFilename;
    tmpFilenameA.append(File::NAME_SEPARATOR);
-   tmpFilenameA.append("DBCORETEST_a.txt");
+   tmpFilenameA.append("MONARCHTEST_a.txt");
 
    string tmpFilenameB = tmpFilename;
    tmpFilenameB.append(File::NAME_SEPARATOR);
@@ -371,7 +371,7 @@ void runFileTest(TestRunner& tr)
 
    string tmpFilenameC = tmpFilename;
    tmpFilenameC.append(File::NAME_SEPARATOR);
-   tmpFilenameC.append("DBCORETEST_c.txt");
+   tmpFilenameC.append("MONARCHTEST_c.txt");
 
    File tmp(tmpFilename.c_str());
    File tmpFileA(tmpFilenameA.c_str());

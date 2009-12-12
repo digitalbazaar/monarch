@@ -8,4 +8,4 @@ DYNAMIC_WINDOWS_LIBRARIES = pthreadGCE2
 STATIC_WINDOWS_LIBRARIES = pthreadGCE2
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base

@@ -9,4 +9,4 @@ EXTRA_WINDOWS_LIBRARIES = -lws2_32
 DYNAMIC_MACOS_LIBRARIES = crypto ssl
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base

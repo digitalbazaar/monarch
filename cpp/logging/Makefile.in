@@ -8,5 +8,5 @@ DYNAMIC_WINDOWS_LIBRARIES = dbcompress
 DYNAMIC_MACOS_LIBRARIES = dbcompress
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base
 

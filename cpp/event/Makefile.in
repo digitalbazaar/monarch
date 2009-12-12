@@ -6,5 +6,5 @@ LIBRARIES = dbevent
 DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbmodest
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base
 

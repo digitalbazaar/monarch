@@ -12,5 +12,5 @@ LIBRARIES = dbfiber
 DYNAMIC_LINK_LIBRARIES = dbrt dbmodest
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base
 

@@ -1,6 +1,6 @@
 # Makefile to compile the module in this directory
 
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
 build-libraries:

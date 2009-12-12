@@ -84,9 +84,9 @@ EXECUTABLES = \
 DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbhttp dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation dbupnp $(SPHINX_DBLIBS) dbapp
 DYNAMIC_EXECUTABLE_LIBRARIES = dbtest
 
-LINUX_LIB_DIR = @DBCOREDIR@/dist/lib
-WINDOWS_LIB_DIR = @DBCOREDIR@/dist/lib
-MACOS_LIB_DIR = @DBCOREDIR@/dist/lib
+LINUX_LIB_DIR = @MONARCH_DIR@/dist/lib
+WINDOWS_LIB_DIR = @MONARCH_DIR@/dist/lib
+MACOS_LIB_DIR = @MONARCH_DIR@/dist/lib
 
 DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LINUX_LIBRARIES)
 DYNAMIC_MACOS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_MACOS_LIBRARIES)
@@ -98,4 +98,4 @@ EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/
 endif
 
 # ----------- Standard Makefile
-include @DBCOREDIR@/setup/Makefile.base
+include @MONARCH_DIR@/setup/Makefile.base

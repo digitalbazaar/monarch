@@ -11,8 +11,8 @@ BUILD_FOR_WINDOWS=@BUILD_FOR_WINDOWS@
 BUILD_FOR_MACOS=@BUILD_FOR_MACOS@
 
 AR_FLAGS = cr
-DBCORE = $(realpath @DBCOREDIR@)
-INCLUDES = -I$(DBCORE)/dist/include 
+MONARCH = $(realpath @MONARCH_DIR@)
+INCLUDES = -I$(MONARCH)/dist/include 
 
 CWD = $(shell pwd)
 ifndef HEADER_DIST_DIR
@@ -29,13 +29,13 @@ endif
 .SECONDEXPANSION:
 
 ifeq ($(BUILD_FOR_LINUX),yes)
-include @DBCOREDIR@/setup/Makefile.linux
+include @MONARCH_DIR@/setup/Makefile.linux
 endif
 ifeq ($(BUILD_FOR_MACOS),yes)
-include @DBCOREDIR@/setup/Makefile.macos
+include @MONARCH_DIR@/setup/Makefile.macos
 endif
 ifeq ($(BUILD_FOR_WINDOWS),yes)
-include @DBCOREDIR@/setup/Makefile.mingw32
+include @MONARCH_DIR@/setup/Makefile.mingw32
 endif
 
 # Platform-agnostic build rules 

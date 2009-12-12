@@ -28,13 +28,13 @@ def runTest(test):
    
    print "=== Running", test, "tests ==="
 
-   libPath = "@DBCOREDIR@/dist/lib:/sw/lib"
+   libPath = "@MONARCH_DIR@/dist/lib:/sw/lib"
    testEnv = { "LD_LIBRARY_PATH" : libPath, "DYLD_LIBRARY_PATH" : libPath,
-               "HOME" : "@DBCOREDIR@/dist/bin/" }
+               "HOME" : "@MONARCH_DIR@/dist/bin/" }
 
    try:
       sp = subprocess.Popen([ \
-          '@DBCOREDIR@/dist/bin/' + test,],
+          '@MONARCH_DIR@/dist/bin/' + test,],
           env = testEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
       
       # Read the subprocess results

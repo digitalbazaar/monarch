@@ -6,7 +6,7 @@ AC_INIT([monarch],[3.2],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
 
 # Setup standard build environment variables
-DBCOREDIR=`pwd`
+MONARCH_DIR=`pwd`
 # Note: 'date -R' not portable to MacOS
 DATE_RFC_2822=`date +"%a, %d %b %Y %H:%M:%S %z"`
 DATE_YMD=`date +%Y%m%d`
@@ -228,7 +228,7 @@ dnl ----------------- substitutions -----------------
 
 # Make all the proper substitutions
 AC_SUBST(PLATFORM)
-AC_SUBST(DBCOREDIR)
+AC_SUBST(MONARCH_DIR)
 
 AC_SUBST(DATE_RFC_2822)
 AC_SUBST(FULL_VERSION)
