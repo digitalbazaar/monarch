@@ -53,7 +53,7 @@ AC_ARG_ENABLE([macos],
       esac
    ], [BUILD_FOR_MACOS=no])  dnl Default value
 
-echo -e "\n--------- Configuring DB Core Build Environment -----------"
+echo -e "\n--------- Configuring Monarch Build Environment -----------"
 
 # Check the system type
 AC_CANONICAL_BUILD()
@@ -308,7 +308,7 @@ AC_CONFIG_FILES([installers/debian/rules], [chmod +x installers/debian/rules])
 AC_OUTPUT
 
 # Dump the build configuration
-echo -e "\n--------- DB Core Build Environment -----------"
+echo -e "\n--------- Monarch Build Environment -----------"
 echo "System            : $PACKAGE_NAME $FULL_VERSION"
 echo "Build system      : $build_cpu-$build_vendor-$build_os"
 if test "x$BUILD_FOR_LINUX" = "xyes"; then

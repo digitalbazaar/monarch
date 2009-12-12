@@ -1,5 +1,5 @@
 #!/bin/sh
-# Basic script to setup proper environment for running a DB Core app
+# Basic script to setup proper environment for running a Monarch app
 
 case "`uname -s`" in
    [Ll]inux)

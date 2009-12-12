@@ -1,5 +1,5 @@
 Name: MONARCH
-Description: Digital Bazaar Core Libraries
+Description: Monarch - The Modular Networking Architecture
 Version: 0.0.0
 Cflags: @@CFLAGS@@
 Libs: @@LIBS@@ -lpthread -lcrypto -lssl -lexpat -lsqlite3
