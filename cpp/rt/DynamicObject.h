@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_DynamicObject_H
-#define db_rt_DynamicObject_H
+#ifndef monarch_rt_DynamicObject_H
+#define monarch_rt_DynamicObject_H
 
 #include "monarch/rt/Collectable.h"
 #include "monarch/rt/DynamicObjectImpl.h"
 
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -333,5 +333,5 @@ public:
 };
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

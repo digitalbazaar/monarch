@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_fiber_MessagableFiber_H
-#define db_fiber_MessagableFiber_H
+#ifndef monarch_fiber_MessagableFiber_H
+#define monarch_fiber_MessagableFiber_H
 
 #include "monarch/fiber/Fiber.h"
 #include "monarch/rt/DynamicObject.h"
 
 #include <list>
 
-namespace db
+namespace monarch
 {
 namespace fiber
 {
@@ -154,5 +154,5 @@ protected:
 };
 
 } // end namespace fiber
-} // end namespace db
+} // end namespace monarch
 #endif

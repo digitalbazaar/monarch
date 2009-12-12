@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_OutputStream_H
-#define db_io_OutputStream_H
+#ifndef monarch_io_OutputStream_H
+#define monarch_io_OutputStream_H
 
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -77,5 +77,5 @@ public:
 typedef monarch::rt::Collectable<OutputStream> OutputStreamRef;
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

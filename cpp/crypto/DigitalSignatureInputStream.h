@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_DigitalSignatureInputStream_H
-#define db_crypto_DigitalSignatureInputStream_H
+#ifndef monarch_crypto_DigitalSignatureInputStream_H
+#define monarch_crypto_DigitalSignatureInputStream_H
 
 #include "monarch/io/FilterInputStream.h"
 #include "monarch/crypto/DigitalSignature.h"
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -86,5 +86,5 @@ public:
 };
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

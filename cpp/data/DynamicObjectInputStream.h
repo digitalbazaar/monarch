@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_DynamicObjectInputStream_H
-#define db_data_DynamicObjectInputStream_H
+#ifndef monarch_data_DynamicObjectInputStream_H
+#define monarch_data_DynamicObjectInputStream_H
 
 #include "monarch/data/DynamicObjectWriter.h"
 #include "monarch/io/ByteArrayInputStream.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -94,5 +94,5 @@ public:
 };
 
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

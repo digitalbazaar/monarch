@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_TimeFunctions_H
-#define db_rt_TimeFunctions_H
+#ifndef monarch_rt_TimeFunctions_H
+#define monarch_rt_TimeFunctions_H
 
 /**
  * This header provides some cross-platform definitions for time functions.

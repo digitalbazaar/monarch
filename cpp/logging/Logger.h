@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_logging_Logger_H
-#define db_logging_Logger_H
+#ifndef monarch_logging_Logger_H
+#define monarch_logging_Logger_H
 
 #include <cstdarg>
 #include <map>
@@ -13,7 +13,7 @@
 #include "monarch/rt/SharedLock.h"
 #include "monarch/logging/Category.h"
 
-namespace db
+namespace monarch
 {
 namespace logging
 {
@@ -488,5 +488,5 @@ public:
 };
 
 } // end namespace logging
-} // end namespace db
+} // end namespace monarch
 #endif

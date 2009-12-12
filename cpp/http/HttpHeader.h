@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpHeader_H
-#define db_http_HttpHeader_H
+#ifndef monarch_http_HttpHeader_H
+#define monarch_http_HttpHeader_H
 
 #include "monarch/io/OutputStream.h"
 #include "monarch/rt/Collectable.h"
@@ -13,7 +13,7 @@
 #include <map>
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -303,5 +303,5 @@ public:
 typedef monarch::rt::Collectable<HttpHeader> HttpHeaderRef;
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

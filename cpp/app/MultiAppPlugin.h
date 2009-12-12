@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_app_MultiAppPlugin_H
-#define db_app_MultiAppPlugin_H
+#ifndef monarch_app_MultiAppPlugin_H
+#define monarch_app_MultiAppPlugin_H
 
 #include "monarch/app/AppPlugin.h"
 
-namespace db
+namespace monarch
 {
 namespace app
 {
@@ -124,6 +124,6 @@ public:
 };
 
 } // end namespace app
-} // end namespace db
+} // end namespace monarch
 
 #endif

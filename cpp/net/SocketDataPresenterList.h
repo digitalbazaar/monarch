@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_SocketDataPresenterList_H
-#define db_net_SocketDataPresenterList_H
+#ifndef monarch_net_SocketDataPresenterList_H
+#define monarch_net_SocketDataPresenterList_H
 
 #include "monarch/rt/Collectable.h"
 #include "monarch/rt/SharedLock.h"
@@ -10,7 +10,7 @@
 
 #include <vector>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -82,5 +82,5 @@ public:
 typedef monarch::rt::Collectable<SocketDataPresenterList> SocketDataPresenterListRef;
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

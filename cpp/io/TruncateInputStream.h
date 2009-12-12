@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_TruncateInputStream_H
-#define db_io_TruncateInputStream_H
+#ifndef monarch_io_TruncateInputStream_H
+#define monarch_io_TruncateInputStream_H
 
 #include "monarch/io/FilterInputStream.h"
 
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -66,5 +66,5 @@ public:
 };
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

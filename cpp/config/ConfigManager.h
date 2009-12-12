@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_config_ConfigManager_H
-#define db_config_ConfigManager_H
+#ifndef monarch_config_ConfigManager_H
+#define monarch_config_ConfigManager_H
 
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/rt/SharedLock.h"
 
-namespace db
+namespace monarch
 {
 namespace config
 {
@@ -492,5 +492,5 @@ protected:
 };
 
 } // end namespace config
-} // end namespace db
+} // end namespace monarch
 #endif

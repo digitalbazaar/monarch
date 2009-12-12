@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_ModuleLoader_H
-#define db_modest_ModuleLoader_H
+#ifndef monarch_modest_ModuleLoader_H
+#define monarch_modest_ModuleLoader_H
 
 #include "monarch/modest/Module.h"
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -69,5 +69,5 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

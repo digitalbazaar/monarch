@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_event_EventController_H
-#define db_event_EventController_H
+#ifndef monarch_event_EventController_H
+#define monarch_event_EventController_H
 
 #include "monarch/event/Observable.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/SharedLock.h"
 
-namespace db
+namespace monarch
 {
 namespace event
 {
@@ -174,6 +174,6 @@ public:
 };
 
 } // end namespace event
-} // end namespace db
+} // end namespace monarch
 
 #endif

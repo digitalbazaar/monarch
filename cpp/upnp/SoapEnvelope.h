@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_upnp_SoapEnvelope_H
-#define db_upnp_SoapEnvelope_H
+#ifndef monarch_upnp_SoapEnvelope_H
+#define monarch_upnp_SoapEnvelope_H
 
 #include "monarch/io/InputStream.h"
 #include "monarch/rt/DynamicObject.h"
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace upnp
 {
@@ -73,5 +73,5 @@ public:
 };
 
 } // end namespace upnp
-} // end namespace db
+} // end namespace monarch
 #endif

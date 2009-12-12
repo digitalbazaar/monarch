@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_sql_AbstractConnection_H
-#define db_sql_AbstractConnection_H
+#ifndef monarch_sql_AbstractConnection_H
+#define monarch_sql_AbstractConnection_H
 
 #include "monarch/sql/Connection.h"
 #include "monarch/util/StringTools.h"
 
-namespace db
+namespace monarch
 {
 namespace sql
 {
@@ -138,5 +138,5 @@ protected:
 };
 
 } // end namespace sql
-} // end namespace db
+} // end namespace monarch
 #endif

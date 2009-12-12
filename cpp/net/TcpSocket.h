@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_TcpSocket_H
-#define db_net_TcpSocket_H
+#ifndef monarch_net_TcpSocket_H
+#define monarch_net_TcpSocket_H
 
 #include "monarch/net/AbstractSocket.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -56,5 +56,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

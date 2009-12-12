@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_StateMutator_H
-#define db_modest_StateMutator_H
+#ifndef monarch_modest_StateMutator_H
+#define monarch_modest_StateMutator_H
 
 #include "monarch/rt/Collectable.h"
 #include "monarch/modest/State.h"
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -59,5 +59,5 @@ public:
 typedef monarch::rt::Collectable<StateMutator> StateMutatorRef;
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

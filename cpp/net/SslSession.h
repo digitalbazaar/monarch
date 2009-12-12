@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_SslSession_H
-#define db_net_SslSession_H
+#ifndef monarch_net_SslSession_H
+#define monarch_net_SslSession_H
 
 #include "monarch/rt/Collectable.h"
 
 #include <openssl/ssl.h>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -40,5 +40,5 @@ public:
 typedef monarch::rt::Collectable<SslSessionImpl> SslSession;
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

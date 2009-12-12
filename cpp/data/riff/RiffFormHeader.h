@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2005-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_riff_RiffFormHeader_H
-#define db_data_riff_RiffFormHeader_H
+#ifndef monarch_data_riff_RiffFormHeader_H
+#define monarch_data_riff_RiffFormHeader_H
 
 #include <inttypes.h>
 
 #include "monarch/io/OutputStream.h"
 #include "monarch/data/riff/RiffListHeader.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -103,5 +103,5 @@ public:
 
 } // end namespace riff
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

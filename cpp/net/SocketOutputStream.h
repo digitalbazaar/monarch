@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_SocketOutputStream_H
-#define db_net_SocketOutputStream_H
+#ifndef monarch_net_SocketOutputStream_H
+#define monarch_net_SocketOutputStream_H
 
 #include "monarch/io/OutputStream.h"
 #include "monarch/net/Socket.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -51,5 +51,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

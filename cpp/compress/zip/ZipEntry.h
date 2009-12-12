@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_compress_zip_ZipEntry_H
-#define db_compress_zip_ZipEntry_H
+#ifndef monarch_compress_zip_ZipEntry_H
+#define monarch_compress_zip_ZipEntry_H
 
 #include "monarch/rt/Collectable.h"
 #include "monarch/io/File.h"
@@ -10,7 +10,7 @@
 #include "monarch/io/OutputStream.h"
 #include "monarch/util/Date.h"
 
-namespace db
+namespace monarch
 {
 namespace compress
 {
@@ -275,5 +275,5 @@ public:
 
 } // end namespace zip
 } // end namespace compress
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_FilterInputStream_H
-#define db_io_FilterInputStream_H
+#ifndef monarch_io_FilterInputStream_H
+#define monarch_io_FilterInputStream_H
 
 #include "monarch/io/InputStream.h"
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -114,5 +114,5 @@ public:
 };
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

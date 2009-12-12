@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_MessageDigest_H
-#define db_crypto_MessageDigest_H
+#ifndef monarch_crypto_MessageDigest_H
+#define monarch_crypto_MessageDigest_H
 
 #include "monarch/crypto/CryptoHashAlgorithm.h"
 #include "monarch/io/File.h"
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -123,5 +123,5 @@ protected:
 };
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

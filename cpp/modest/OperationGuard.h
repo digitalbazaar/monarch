@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_OperationGuard_H
-#define db_modest_OperationGuard_H
+#ifndef monarch_modest_OperationGuard_H
+#define monarch_modest_OperationGuard_H
 
 #include "monarch/rt/Collectable.h"
 #include "monarch/modest/ImmutableState.h"
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -94,5 +94,5 @@ public:
 typedef monarch::rt::Collectable<OperationGuard> OperationGuardRef;
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

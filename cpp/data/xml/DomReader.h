@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_xml_DomReader_H
-#define db_data_xml_DomReader_H
+#ifndef monarch_data_xml_DomReader_H
+#define monarch_data_xml_DomReader_H
 
 #include "monarch/data/xml/XmlReader.h"
 #include "monarch/data/xml/DomTypes.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -103,5 +103,5 @@ protected:
 
 } // end namespace xml
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

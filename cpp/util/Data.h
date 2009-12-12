@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_util_Data_H
-#define db_util_Data_H
+#ifndef monarch_util_Data_H
+#define monarch_util_Data_H
 
 #include <inttypes.h>
 
@@ -13,7 +13,7 @@
 #include <arpa/inet.h>
 #endif
 
-namespace db
+namespace monarch
 {
 namespace util
 {
@@ -86,5 +86,5 @@ namespace util
 #define DB_UINT64_FROM_BE(val) DB_UINT64_TO_BE(val)
 
 } // end namespace util
-} // end namespace db
+} // end namespace monarch
 #endif

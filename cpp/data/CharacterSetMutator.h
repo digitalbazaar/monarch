@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_CharacterSetMutator_H
-#define db_data_CharacterSetMutator_H
+#ifndef monarch_data_CharacterSetMutator_H
+#define monarch_data_CharacterSetMutator_H
 
 #include "monarch/io/MutationAlgorithm.h"
 
@@ -10,7 +10,7 @@
 #include <string>
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -146,5 +146,5 @@ public:
 };
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

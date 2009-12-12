@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_mpeg_Crc16_H
-#define db_data_mpeg_Crc16_H
+#ifndef monarch_data_mpeg_Crc16_H
+#define monarch_data_mpeg_Crc16_H
 
 #include "monarch/util/Crc16.h"
 #include "monarch/data/mpeg/AudioFrameHeader.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -89,5 +89,5 @@ public:
 
 } // end namespace mpeg
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

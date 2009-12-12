@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_X509Certificate_H
-#define db_crypto_X509Certificate_H
+#ifndef monarch_crypto_X509Certificate_H
+#define monarch_crypto_X509Certificate_H
 
 #include "monarch/crypto/PublicKey.h"
 #include "monarch/rt/DynamicObject.h"
 
 #include <openssl/x509.h>
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -86,5 +86,5 @@ public:
 typedef monarch::rt::Collectable<X509Certificate> X509CertificateRef;
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

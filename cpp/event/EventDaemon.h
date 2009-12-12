@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_event_EventDaemon_H
-#define db_event_EventDaemon_H
+#ifndef monarch_event_EventDaemon_H
+#define monarch_event_EventDaemon_H
 
 #include "monarch/event/EventController.h"
 
-namespace db
+namespace monarch
 {
 namespace event
 {
@@ -162,6 +162,6 @@ public:
 };
 
 } // end namespace event
-} // end namespace db
+} // end namespace monarch
 
 #endif

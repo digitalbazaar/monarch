@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_Url_H
-#define db_net_Url_H
+#ifndef monarch_net_Url_H
+#define monarch_net_Url_H
 
 #include "monarch/rt/DynamicObject.h"
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -392,5 +392,5 @@ public:
 typedef monarch::rt::Collectable<Url> UrlRef;
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_fiber_FiberScheduler_H
-#define db_fiber_FiberScheduler_H
+#ifndef monarch_fiber_FiberScheduler_H
+#define monarch_fiber_FiberScheduler_H
 
 #include "monarch/modest/OperationList.h"
 #include "monarch/modest/OperationRunner.h"
@@ -10,7 +10,7 @@
 
 #include <map>
 
-namespace db
+namespace monarch
 {
 namespace fiber
 {
@@ -199,5 +199,5 @@ protected:
 };
 
 } // end namespace fiber
-} // end namespace db
+} // end namespace monarch
 #endif

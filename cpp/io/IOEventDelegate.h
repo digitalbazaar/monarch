@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_IOEventDelegate_H
-#define db_io_IOEventDelegate_H
+#ifndef monarch_io_IOEventDelegate_H
+#define monarch_io_IOEventDelegate_H
 
 #include "monarch/io/IOWatcher.h"
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -95,5 +95,5 @@ void IOEventDelegate<T>::setCallback(T* obj, callback cb)
 }
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

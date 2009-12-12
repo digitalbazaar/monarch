@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_FileFunctions_H
-#define db_io_FileFunctions_H
+#ifndef monarch_io_FileFunctions_H
+#define monarch_io_FileFunctions_H
 
 #include <unistd.h>
 

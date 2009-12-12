@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpBodyOutputStream_H
-#define db_http_HttpBodyOutputStream_H
+#ifndef monarch_http_HttpBodyOutputStream_H
+#define monarch_http_HttpBodyOutputStream_H
 
 #include "monarch/io/FilterOutputStream.h"
 #include "monarch/http/HttpConnection.h"
 #include "monarch/http/HttpTrailer.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -79,5 +79,5 @@ public:
 };
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

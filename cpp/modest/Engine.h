@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_Engine_H
-#define db_modest_Engine_H
+#ifndef monarch_modest_Engine_H
+#define monarch_modest_Engine_H
 
 #include "monarch/modest/State.h"
 #include "monarch/modest/Operation.h"
 #include "monarch/rt/ThreadPool.h"
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -110,5 +110,5 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

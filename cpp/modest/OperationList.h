@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_OperationList_H
-#define db_modest_OperationList_H
+#ifndef monarch_modest_OperationList_H
+#define monarch_modest_OperationList_H
 
 #include "monarch/modest/OperationRunner.h"
 #include "monarch/rt/Iterator.h"
 
 #include <list>
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -145,5 +145,5 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

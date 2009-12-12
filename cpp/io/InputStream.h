@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_InputStream_H
-#define db_io_InputStream_H
+#ifndef monarch_io_InputStream_H
+#define monarch_io_InputStream_H
 
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -95,5 +95,5 @@ public:
 typedef monarch::rt::Collectable<InputStream> InputStreamRef;
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

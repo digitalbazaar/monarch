@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_database_PooledConnection_H
-#define db_database_PooledConnection_H
+#ifndef monarch_database_PooledConnection_H
+#define monarch_database_PooledConnection_H
 
 #include "monarch/sql/Connection.h"
 #include "monarch/sql/SqlException.h"
 
-namespace db
+namespace monarch
 {
 namespace sql
 {
@@ -155,6 +155,6 @@ public:
 };
 
 } // end namespace sql
-} // end namespace db
+} // end namespace monarch
 
 #endif

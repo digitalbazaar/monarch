@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_SymmetricKey_H
-#define db_crypto_SymmetricKey_H
+#ifndef monarch_crypto_SymmetricKey_H
+#define monarch_crypto_SymmetricKey_H
 
 #include <string>
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -175,5 +175,5 @@ public:
 typedef monarch::rt::Collectable<SymmetricKey> SymmetricKeyRef;
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

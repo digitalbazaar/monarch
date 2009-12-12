@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_InspectorInputStream_H
-#define db_data_InspectorInputStream_H
+#ifndef monarch_data_InspectorInputStream_H
+#define monarch_data_InspectorInputStream_H
 
 #include "monarch/io/FilterInputStream.h"
 #include "monarch/io/ByteBuffer.h"
@@ -13,7 +13,7 @@
 #include <list>
 #include <cstring>
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -185,5 +185,5 @@ public:
 };
 
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

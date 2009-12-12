@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_logging_Category_H
-#define db_logging_Category_H
+#ifndef monarch_logging_Category_H
+#define monarch_logging_Category_H
 
 #include <map>
 #include <utility>
@@ -11,7 +11,7 @@
 #include "monarch/util/Macros.h"
 
 // Forward declaration
-namespace db
+namespace monarch
 {
    namespace logging
    {
@@ -22,7 +22,7 @@ namespace db
 extern monarch::logging::Category* DB_DEFAULT_CAT;
 extern monarch::logging::Category* DB_ALL_CAT;
 
-namespace db
+namespace monarch
 {
 namespace logging
 {
@@ -149,5 +149,5 @@ public:
 };
 
 } // end namespace logging
-} // end namespace db
+} // end namespace monarch
 #endif

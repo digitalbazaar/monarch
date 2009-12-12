@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_InternetAddress_H
-#define db_net_InternetAddress_H
+#ifndef monarch_net_InternetAddress_H
+#define monarch_net_InternetAddress_H
 
 #include "monarch/net/SocketAddress.h"
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -116,5 +116,5 @@ public:
 typedef monarch::rt::Collectable<InternetAddress> InternetAddressRef;
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

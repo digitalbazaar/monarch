@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_NullSocketDataPresenter_H
-#define db_net_NullSocketDataPresenter_H
+#ifndef monarch_net_NullSocketDataPresenter_H
+#define monarch_net_NullSocketDataPresenter_H
 
 #include "monarch/net/SocketDataPresenter.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -54,5 +54,5 @@ inline Socket* NullSocketDataPresenter::createPresentationWrapper(
 }
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

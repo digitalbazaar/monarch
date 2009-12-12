@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_app_App_H
-#define db_app_App_H
+#ifndef monarch_app_App_H
+#define monarch_app_App_H
 
 #include <ostream>
 
@@ -14,7 +14,7 @@
 
 #include <vector>
 
-namespace db
+namespace monarch
 {
 namespace app
 {
@@ -366,6 +366,6 @@ int main(int argc, const char* argv[])                        \
 }
 
 } // end namespace app
-} // end namespace db
+} // end namespace monarch
 
 #endif

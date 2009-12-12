@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_ByteBuffer_H
-#define db_io_ByteBuffer_H
+#ifndef monarch_io_ByteBuffer_H
+#define monarch_io_ByteBuffer_H
 
 #include "monarch/io/InputStream.h"
 #include "monarch/io/OutputStream.h"
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -529,5 +529,5 @@ public:
 typedef monarch::rt::Collectable<ByteBuffer> ByteBufferRef;
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

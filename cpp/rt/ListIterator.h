@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_ListIterator_H
-#define db_rt_ListIterator_H
+#ifndef monarch_rt_ListIterator_H
+#define monarch_rt_ListIterator_H
 
 #include "monarch/rt/Iterator.h"
 #include <list>
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -98,5 +98,5 @@ void ListIterator<T>::remove()
 }
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_sql_SqlException_H
-#define db_sql_SqlException_H
+#ifndef monarch_sql_SqlException_H
+#define monarch_sql_SqlException_H
 
 #include "monarch/rt/Exception.h"
 
-namespace db
+namespace monarch
 {
 namespace sql
 {
@@ -53,5 +53,5 @@ public:
 };
 
 } // end namespace sql
-} // end namespace db
+} // end namespace monarch
 #endif

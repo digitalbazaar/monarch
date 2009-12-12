@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_HazardPtrList_H
-#define db_rt_HazardPtrList_H
+#ifndef monarch_rt_HazardPtrList_H
+#define monarch_rt_HazardPtrList_H
 
 #include "monarch/rt/Atomic.h"
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -117,5 +117,5 @@ public:
 };
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

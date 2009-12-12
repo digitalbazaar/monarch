@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_sphinx_SphinxClient_H
-#define db_sphinx_SphinxClient_H
+#ifndef monarch_sphinx_SphinxClient_H
+#define monarch_sphinx_SphinxClient_H
 
 #include "monarch/data/Data.h"
 #include "monarch/io/ByteBuffer.h"
@@ -11,7 +11,7 @@
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 
-namespace db
+namespace monarch
 {
 namespace sphinx
 {
@@ -211,6 +211,6 @@ public:
 };
 
 } // end namespace sphinx
-} // end namespace db
+} // end namespace monarch
 
 #endif

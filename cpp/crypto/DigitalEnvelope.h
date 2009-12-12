@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_DigitalEnvelope_H
-#define db_crypto_DigitalEnvelope_H
+#ifndef monarch_crypto_DigitalEnvelope_H
+#define monarch_crypto_DigitalEnvelope_H
 
 #include "monarch/crypto/AbstractBlockCipher.h"
 #include "monarch/crypto/PrivateKey.h"
 #include "monarch/crypto/PublicKey.h"
 #include "monarch/crypto/SymmetricKey.h"
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -180,5 +180,5 @@ public:
 };
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_upnp_ControlPoint_H
-#define db_upnp_ControlPoint_H
+#ifndef monarch_upnp_ControlPoint_H
+#define monarch_upnp_ControlPoint_H
 
 #include "monarch/net/Url.h"
 #include "monarch/upnp/TypeDefinitions.h"
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace upnp
 {
@@ -153,5 +153,5 @@ public:
 };
 
 } // end namespace upnp
-} // end namespace db
+} // end namespace monarch
 #endif

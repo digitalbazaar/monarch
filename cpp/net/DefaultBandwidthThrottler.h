@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_DefaultBandwidthThrottler_H
-#define db_net_DefaultBandwidthThrottler_H
+#ifndef monarch_net_DefaultBandwidthThrottler_H
+#define monarch_net_DefaultBandwidthThrottler_H
 
 #include "monarch/net/BandwidthThrottler.h"
 #include "monarch/rt/ExclusiveLock.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -167,5 +167,5 @@ protected:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

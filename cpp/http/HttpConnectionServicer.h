@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpConnectionServicer_H
-#define db_http_HttpConnectionServicer_H
+#ifndef monarch_http_HttpConnectionServicer_H
+#define monarch_http_HttpConnectionServicer_H
 
 #include "monarch/rt/SharedLock.h"
 #include "monarch/net/ConnectionServicer.h"
@@ -13,7 +13,7 @@
 #include <map>
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -141,5 +141,5 @@ public:
 };
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

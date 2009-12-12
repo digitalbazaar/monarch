@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_FileList_H
-#define db_io_FileList_H
+#ifndef monarch_io_FileList_H
+#define monarch_io_FileList_H
 
 #include "monarch/util/UniqueList.h"
 #include "monarch/io/File.h"
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -35,5 +35,5 @@ public:
 };
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

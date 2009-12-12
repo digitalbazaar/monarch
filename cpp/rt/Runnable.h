@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_Runnable_H
-#define db_rt_Runnable_H
+#ifndef monarch_rt_Runnable_H
+#define monarch_rt_Runnable_H
 
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -39,5 +39,5 @@ public:
 typedef Collectable<Runnable> RunnableRef;
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

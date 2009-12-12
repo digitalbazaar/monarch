@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_util_Convert_H
-#define db_util_Convert_H
+#ifndef monarch_util_Convert_H
+#define monarch_util_Convert_H
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace util
 {
@@ -142,5 +142,5 @@ public:
 };
 
 } // end namespace util
-} // end namespace db
+} // end namespace monarch
 #endif

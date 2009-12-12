@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_util_UniqueList_H
-#define db_util_UniqueList_H
+#ifndef monarch_util_UniqueList_H
+#define monarch_util_UniqueList_H
 
 #include "monarch/rt/ListIterator.h"
 
-namespace db
+namespace monarch
 {
 namespace util
 {
@@ -136,5 +136,5 @@ monarch::rt::Iterator<T>* UniqueList<T>::getIterator()
 }
 
 } // end namespace util
-} // end namespace db
+} // end namespace monarch
 #endif

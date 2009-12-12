@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_sql_mysql_MySqlDatabaseClient_H
-#define db_sql_mysql_MySqlDatabaseClient_H
+#ifndef monarch_sql_mysql_MySqlDatabaseClient_H
+#define monarch_sql_mysql_MySqlDatabaseClient_H
 
 #include "monarch/sql/DatabaseClient.h"
 
-namespace db
+namespace monarch
 {
 namespace sql
 {
@@ -50,5 +50,5 @@ public:
 
 } // end namespace mysql
 } // end namespace sql
-} // end namespace db
+} // end namespace monarch
 #endif

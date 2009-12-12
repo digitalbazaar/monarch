@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_test_Tester_H
-#define db_test_Tester_H
+#ifndef monarch_test_Tester_H
+#define monarch_test_Tester_H
 
 #include <list>
 
@@ -12,7 +12,7 @@
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/app/AppPlugin.h"
 
-namespace db
+namespace monarch
 {
 namespace test
 {
@@ -159,6 +159,6 @@ public:
 #define DB_TEST_MAIN(testClassName) DB_APP_PLUGIN_MAIN(testClassName)
 
 } // end namespace test
-} // end namespace db
+} // end namespace monarch
 
 #endif

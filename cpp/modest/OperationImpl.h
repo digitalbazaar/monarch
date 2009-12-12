@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_OperationImpl_H
-#define db_modest_OperationImpl_H
+#ifndef monarch_modest_OperationImpl_H
+#define monarch_modest_OperationImpl_H
 
 #include "monarch/rt/Thread.h"
 #include "monarch/modest/OperationGuardChain.h"
 #include "monarch/modest/StateMutatorChain.h"
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -263,5 +263,5 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_xml_XmlReader_H
-#define db_data_xml_XmlReader_H
+#ifndef monarch_data_xml_XmlReader_H
+#define monarch_data_xml_XmlReader_H
 
 #include "monarch/data/DynamicObjectReader.h"
 #include "monarch/rt/Exception.h"
@@ -10,7 +10,7 @@
 #include <expat.h>
 #include <list>
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -236,5 +236,5 @@ protected:
 
 } // end namespace xml
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

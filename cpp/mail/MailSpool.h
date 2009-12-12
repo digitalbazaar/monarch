@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_mail_MailSpool_H
-#define db_mail_MailSpool_H
+#ifndef monarch_mail_MailSpool_H
+#define monarch_mail_MailSpool_H
 
 #include "monarch/mail/Mail.h"
 #include "monarch/io/File.h"
 #include "monarch/sql/DatabaseClient.h"
 
-namespace db
+namespace monarch
 {
 namespace mail
 {
@@ -118,5 +118,5 @@ public:
 };
 
 } // end namespace mail
-} // end namespace db
+} // end namespace monarch
 #endif

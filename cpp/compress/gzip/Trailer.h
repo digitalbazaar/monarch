@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_compress_gzip_Trailer_H
-#define db_compress_gzip_Trailer_H
+#ifndef monarch_compress_gzip_Trailer_H
+#define monarch_compress_gzip_Trailer_H
 
 #include "monarch/io/ByteBuffer.h"
 
-namespace db
+namespace monarch
 {
 namespace compress
 {
@@ -104,5 +104,5 @@ public:
 
 } // end namespace gzip
 } // end namespace compress
-} // end namespace db
+} // end namespace monarch
 #endif

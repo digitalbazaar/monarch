@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpResponse_H
-#define db_http_HttpResponse_H
+#ifndef monarch_http_HttpResponse_H
+#define monarch_http_HttpResponse_H
 
 #include "monarch/http/HttpResponseHeader.h"
 #include "monarch/http/HttpConnection.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -149,5 +149,5 @@ public:
 typedef monarch::rt::Collectable<HttpResponse> HttpResponseRef;
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

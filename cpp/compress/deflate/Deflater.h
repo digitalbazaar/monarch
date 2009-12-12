@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_compress_deflate_Deflater_H
-#define db_compress_deflate_Deflater_H
+#ifndef monarch_compress_deflate_Deflater_H
+#define monarch_compress_deflate_Deflater_H
 
 #include "monarch/io/MutationAlgorithm.h"
 
 #include <zlib.h>
 
-namespace db
+namespace monarch
 {
 namespace compress
 {
@@ -221,5 +221,5 @@ protected:
 
 } // end namespace deflate
 } // end namespace compress
-} // end namespace db
+} // end namespace monarch
 #endif

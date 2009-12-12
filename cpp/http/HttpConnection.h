@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpConnection_H
-#define db_http_HttpConnection_H
+#ifndef monarch_http_HttpConnection_H
+#define monarch_http_HttpConnection_H
 
 #include "monarch/net/ConnectionWrapper.h"
 #include "monarch/http/HttpRequest.h"
 #include "monarch/http/HttpTrailer.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -182,5 +182,5 @@ public:
 typedef monarch::rt::Collectable<HttpConnection> HttpConnectionRef;
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

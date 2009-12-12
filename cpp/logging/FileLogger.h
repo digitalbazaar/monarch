@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_logging_FileLogger_H
-#define db_logging_FileLogger_H
+#ifndef monarch_logging_FileLogger_H
+#define monarch_logging_FileLogger_H
 
 #include "monarch/io/File.h"
 #include "monarch/logging/OutputStreamLogger.h"
 #include "monarch/rt/ExclusiveLock.h"
 #include "monarch/rt/JobDispatcher.h"
 
-namespace db
+namespace monarch
 {
 namespace logging
 {
@@ -189,5 +189,5 @@ public:
 };
 
 } // end namespace logging
-} // end namespace db
+} // end namespace monarch
 #endif

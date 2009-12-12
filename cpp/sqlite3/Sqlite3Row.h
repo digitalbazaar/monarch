@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_sql_sqlite3_Sqlite3Row_h
-#define db_sql_sqlite3_Sqlite3Row_h
+#ifndef monarch_sql_sqlite3_Sqlite3Row_h
+#define monarch_sql_sqlite3_Sqlite3Row_h
 
 #include <sqlite3.h>
 
 #include "monarch/sql/Row.h"
 
-namespace db
+namespace monarch
 {
 namespace sql
 {
@@ -180,5 +180,5 @@ protected:
 
 } // end namespace sqlite3
 } // end namespace sql
-} // end namespace db
+} // end namespace monarch
 #endif

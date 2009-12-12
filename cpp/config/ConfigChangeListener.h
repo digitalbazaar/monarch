@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_config_ConfigChangeListener_H
-#define db_config_ConfigChangeListener_H
+#ifndef monarch_config_ConfigChangeListener_H
+#define monarch_config_ConfigChangeListener_H
 
 #include "monarch/config/ConfigManager.h"
 
-namespace db
+namespace monarch
 {
 namespace config
 {
@@ -68,5 +68,5 @@ public:
 };
 
 } // end namespace config
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_State_H
-#define db_modest_State_H
+#ifndef monarch_modest_State_H
+#define monarch_modest_State_H
 
 #include "monarch/modest/ImmutableState.h"
 #include "monarch/rt/ExclusiveLock.h"
@@ -10,7 +10,7 @@
 #include <map>
 #include <cstring>
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -196,5 +196,5 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

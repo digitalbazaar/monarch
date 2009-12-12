@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_BlockCipher_H
-#define db_crypto_BlockCipher_H
+#ifndef monarch_crypto_BlockCipher_H
+#define monarch_crypto_BlockCipher_H
 
 #include "monarch/io/ByteBuffer.h"
 
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -136,5 +136,5 @@ public:
 };
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

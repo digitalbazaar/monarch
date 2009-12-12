@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_IOWatcher_H
-#define db_io_IOWatcher_H
+#ifndef monarch_io_IOWatcher_H
+#define monarch_io_IOWatcher_H
 
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -43,5 +43,5 @@ public:
 typedef monarch::rt::Collectable<IOWatcher> IOWatcherRef;
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

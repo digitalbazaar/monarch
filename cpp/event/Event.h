@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_event_Event_H
-#define db_event_Event_H
+#ifndef monarch_event_Event_H
+#define monarch_event_Event_H
 
 #include "monarch/rt/DynamicObject.h"
 
-namespace db
+namespace monarch
 {
 namespace event
 {
@@ -47,5 +47,5 @@ typedef uint64_t EventId;
 typedef monarch::rt::DynamicObject EventFilter;
 
 } // end namespace event
-} // end namespace db
+} // end namespace monarch
 #endif

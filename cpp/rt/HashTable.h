@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_HashTable_H
-#define db_rt_HashTable_H
+#ifndef monarch_rt_HashTable_H
+#define monarch_rt_HashTable_H
 
 #include "monarch/rt/Atomic.h"
 #include "monarch/rt/HazardPtrList.h"
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -1484,5 +1484,5 @@ void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
 }
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

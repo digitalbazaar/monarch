@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpRequest_H
-#define db_http_HttpRequest_H
+#ifndef monarch_http_HttpRequest_H
+#define monarch_http_HttpRequest_H
 
 #include "monarch/io/InputStream.h"
 #include "monarch/io/OutputStream.h"
 #include "monarch/http/HttpRequestHeader.h"
 #include "monarch/http/HttpTrailer.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -153,5 +153,5 @@ public:
 typedef monarch::rt::Collectable<HttpRequest> HttpRequestRef;
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

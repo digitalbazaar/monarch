@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_PortService_H
-#define db_net_PortService_H
+#ifndef monarch_net_PortService_H
+#define monarch_net_PortService_H
 
 #include "monarch/net/InternetAddress.h"
 #include "monarch/modest/Operation.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -111,5 +111,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

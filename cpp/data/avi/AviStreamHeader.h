@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_avi_AviStreamHeader_H
-#define db_data_avi_AviStreamHeader_H
+#ifndef monarch_data_avi_AviStreamHeader_H
+#define monarch_data_avi_AviStreamHeader_H
 
 #include "monarch/data/riff/RiffChunkHeader.h"
 #include "monarch/io/OutputStream.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -155,5 +155,5 @@ public:
 
 } // end namespace avi
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

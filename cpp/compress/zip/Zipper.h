@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_compress_zip_Zipper_H
-#define db_compress_zip_Zipper_H
+#ifndef monarch_compress_zip_Zipper_H
+#define monarch_compress_zip_Zipper_H
 
 #include "monarch/compress/deflate/Deflater.h"
 #include "monarch/compress/zip/ZipEntry.h"
@@ -10,7 +10,7 @@
 
 #include <list>
 
-namespace db
+namespace monarch
 {
 namespace compress
 {
@@ -382,5 +382,5 @@ protected:
 
 } // end namespace zip
 } // end namespace compress
-} // end namespace db
+} // end namespace monarch
 #endif

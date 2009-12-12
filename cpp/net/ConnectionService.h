@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_ConnectionService_H
-#define db_net_ConnectionService_H
+#ifndef monarch_net_ConnectionService_H
+#define monarch_net_ConnectionService_H
 
 #include "monarch/modest/OperationList.h"
 #include "monarch/net/Connection.h"
 #include "monarch/net/PortService.h"
 #include "monarch/net/SocketDataPresenter.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -221,5 +221,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

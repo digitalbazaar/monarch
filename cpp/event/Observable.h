@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_event_Observable_H
-#define db_event_Observable_H
+#ifndef monarch_event_Observable_H
+#define monarch_event_Observable_H
 
 #include "monarch/modest/OperationList.h"
 #include "monarch/modest/OperationRunner.h"
@@ -12,7 +12,7 @@
 #include <map>
 #include <vector>
 
-namespace db
+namespace monarch
 {
 namespace event
 {
@@ -280,5 +280,5 @@ protected:
 };
 
 } // end namespace event
-} // end namespace db
+} // end namespace monarch
 #endif

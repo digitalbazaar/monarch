@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_validation_ValidatorList_H
-#define db_validation_ValidatorList_H
+#ifndef monarch_validation_ValidatorList_H
+#define monarch_validation_ValidatorList_H
 
 #include "monarch/validation/Validator.h"
 #include <vector>
 
-namespace db
+namespace monarch
 {
 namespace validation
 {
@@ -70,5 +70,5 @@ public:
 };
 
 } // end namespace validation
-} // end namespace db
+} // end namespace monarch
 #endif

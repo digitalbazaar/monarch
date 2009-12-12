@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_upnp_DeviceDiscoverer_H
-#define db_upnp_DeviceDiscoverer_H
+#ifndef monarch_upnp_DeviceDiscoverer_H
+#define monarch_upnp_DeviceDiscoverer_H
 
 #include "monarch/upnp/TypeDefinitions.h"
 
-namespace db
+namespace monarch
 {
 namespace upnp
 {
@@ -52,5 +52,5 @@ public:
 };
 
 } // end namespace upnp
-} // end namespace db
+} // end namespace monarch
 #endif

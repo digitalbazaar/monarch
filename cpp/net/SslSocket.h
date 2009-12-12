@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_SslSocket_H
-#define db_net_SslSocket_H
+#ifndef monarch_net_SslSocket_H
+#define monarch_net_SslSocket_H
 
 #include "monarch/net/TcpSocket.h"
 #include "monarch/net/SocketWrapper.h"
@@ -12,7 +12,7 @@
 #include <openssl/ssl.h>
 #include <vector>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -225,5 +225,5 @@ protected:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

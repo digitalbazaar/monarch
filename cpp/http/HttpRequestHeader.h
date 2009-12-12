@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpRequestHeader_H
-#define db_http_HttpRequestHeader_H
+#ifndef monarch_http_HttpRequestHeader_H
+#define monarch_http_HttpRequestHeader_H
 
 #include "monarch/http/HttpHeader.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -122,5 +122,5 @@ public:
 };
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_logging_LoggingCategories_H
-#define db_logging_LoggingCategories_H
+#ifndef monarch_logging_LoggingCategories_H
+#define monarch_logging_LoggingCategories_H
 
 #include "monarch/logging/Category.h"
 
@@ -27,7 +27,7 @@ extern monarch::logging::Category* DB_SQL_CAT;
 extern monarch::logging::Category* DB_UPNP_CAT;
 extern monarch::logging::Category* DB_UTIL_CAT;
 
-namespace db
+namespace monarch
 {
 namespace logging
 {
@@ -54,6 +54,6 @@ public:
 };
 
 } // end namespace logging
-} // end namespace db
+} // end namespace monarch
 
 #endif

@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_fiber_Fiber_H
-#define db_fiber_Fiber_H
+#ifndef monarch_fiber_Fiber_H
+#define monarch_fiber_Fiber_H
 
 #include "monarch/fiber/FiberContext.h"
 
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace fiber
 {
@@ -225,5 +225,5 @@ public:
 };
 
 } // end namespace fiber
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_DigitalSignature_H
-#define db_crypto_DigitalSignature_H
+#ifndef monarch_crypto_DigitalSignature_H
+#define monarch_crypto_DigitalSignature_H
 
 #include "monarch/crypto/CryptoHashAlgorithm.h"
 #include "monarch/crypto/PrivateKey.h"
 #include "monarch/crypto/PublicKey.h"
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -132,5 +132,5 @@ public:
 typedef monarch::rt::Collectable<DigitalSignature> DigitalSignatureRef;
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

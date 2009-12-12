@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpRequestServicer_H
-#define db_http_HttpRequestServicer_H
+#ifndef monarch_http_HttpRequestServicer_H
+#define monarch_http_HttpRequestServicer_H
 
 #include "monarch/http/HttpRequest.h"
 #include "monarch/http/HttpResponse.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -77,5 +77,5 @@ public:
 };
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

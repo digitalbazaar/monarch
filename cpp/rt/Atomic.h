@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_Atomic_H
-#define db_rt_Atomic_H
+#ifndef monarch_rt_Atomic_H
+#define monarch_rt_Atomic_H
 
 #include <cstdlib>
 #include <inttypes.h>
@@ -27,7 +27,7 @@ typedef uint16_t aligned_uint16_t;
 typedef uint32_t aligned_uint32_t;
 #endif
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -144,5 +144,5 @@ bool Atomic::compareAndSwap(volatile T** dst, T* oldVal, T* newVal)
 }
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

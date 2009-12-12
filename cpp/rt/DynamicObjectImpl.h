@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_DynamicObjectImpl_H
-#define db_rt_DynamicObjectImpl_H
+#ifndef monarch_rt_DynamicObjectImpl_H
+#define monarch_rt_DynamicObjectImpl_H
 
 #include "monarch/rt/ExclusiveLock.h"
 
@@ -13,7 +13,7 @@
 
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -432,5 +432,5 @@ protected:
 };
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

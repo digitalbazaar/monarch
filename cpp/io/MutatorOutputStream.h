@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_MutatorOutputStream_H
-#define db_io_MutatorOutputStream_H
+#ifndef monarch_io_MutatorOutputStream_H
+#define monarch_io_MutatorOutputStream_H
 
 #include "monarch/io/FilterOutputStream.h"
 #include "monarch/io/MutationAlgorithm.h"
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -139,5 +139,5 @@ public:
 };
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

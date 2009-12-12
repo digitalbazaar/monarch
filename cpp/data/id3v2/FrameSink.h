@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_id3v2_FrameSink_H
-#define db_data_id3v2_FrameSink_H
+#ifndef monarch_data_id3v2_FrameSink_H
+#define monarch_data_id3v2_FrameSink_H
 
 #include "monarch/data/id3v2/FrameHeader.h"
 #include "monarch/io/ByteBuffer.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -54,5 +54,5 @@ public:
 
 } // end namespace id3v2
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_DatagramSocket_H
-#define db_net_DatagramSocket_H
+#ifndef monarch_net_DatagramSocket_H
+#define monarch_net_DatagramSocket_H
 
 #include "monarch/net/Datagram.h"
 #include "monarch/net/UdpSocket.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -72,5 +72,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

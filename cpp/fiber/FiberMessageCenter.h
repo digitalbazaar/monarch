@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_fiber_FiberMessageCenter_H
-#define db_fiber_FiberMessageCenter_H
+#ifndef monarch_fiber_FiberMessageCenter_H
+#define monarch_fiber_FiberMessageCenter_H
 
 #include "monarch/fiber/MessagableFiber.h"
 #include "monarch/rt/SharedLock.h"
 
 #include <map>
 
-namespace db
+namespace monarch
 {
 namespace fiber
 {
@@ -76,5 +76,5 @@ public:
 };
 
 } // end namespace fiber
-} // end namespace db
+} // end namespace monarch
 #endif

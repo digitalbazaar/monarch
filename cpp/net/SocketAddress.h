@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_SocketAddress_H
-#define db_net_SocketAddress_H
+#ifndef monarch_net_SocketAddress_H
+#define monarch_net_SocketAddress_H
 
 #include <string>
 
 // forward declare socket address
 struct sockaddr;
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -160,5 +160,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

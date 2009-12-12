@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_validation_Validation_H
-#define db_validation_Validation_H
+#ifndef monarch_validation_Validation_H
+#define monarch_validation_Validation_H
 
 /* Top-level include for all the standard Validators */
 

@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_mpeg_SamplingRateTable_H
-#define db_data_mpeg_SamplingRateTable_H
+#ifndef monarch_data_mpeg_SamplingRateTable_H
+#define monarch_data_mpeg_SamplingRateTable_H
 
 #include <map>
 #include "monarch/data/mpeg/AudioCharacteristics.h"
 
 #include <cstring>
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -122,5 +122,5 @@ public:
 
 } // end namespace mpeg
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_sql_mysql_Statement_H
-#define db_sql_mysql_Statement_H
+#ifndef monarch_sql_mysql_Statement_H
+#define monarch_sql_mysql_Statement_H
 
 #include <mysql/mysql.h>
 
 #include "monarch/sql/Statement.h"
 #include "monarch/sql/mysql/MySqlRow.h"
 
-namespace db
+namespace monarch
 {
 namespace sql
 {
@@ -263,5 +263,5 @@ protected:
 
 } // end namespace mysql
 } // end namespace sql
-} // end namespace db
+} // end namespace monarch
 #endif

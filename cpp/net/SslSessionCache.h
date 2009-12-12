@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_SslSessionCache_H
-#define db_net_SslSessionCache_H
+#ifndef monarch_net_SslSessionCache_H
+#define monarch_net_SslSessionCache_H
 
 #include "monarch/net/SslSession.h"
 #include "monarch/net/Url.h"
@@ -11,7 +11,7 @@
 
 #include <map>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -95,5 +95,5 @@ public:
 typedef monarch::rt::Collectable<SslSessionCache> SslSessionCacheRef;
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

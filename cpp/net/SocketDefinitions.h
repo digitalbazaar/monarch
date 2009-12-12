@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_SocketDefinitions_H
-#define db_net_SocketDefinitions_H
+#ifndef monarch_net_SocketDefinitions_H
+#define monarch_net_SocketDefinitions_H
 
 #define SOCKET_EXCEPTION_TYPE         "monarch.net.Socket"
 #define SOCKET_TIMEOUT_EXCEPTION_TYPE "monarch.net.SocketTimeout"

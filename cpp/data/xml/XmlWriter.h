@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_xml_XmlWriter_H
-#define db_data_xml_XmlWriter_H
+#ifndef monarch_data_xml_XmlWriter_H
+#define monarch_data_xml_XmlWriter_H
 
 #include "monarch/data/DynamicObjectWriter.h"
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -115,5 +115,5 @@ public:
 
 } // end namespace xml
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

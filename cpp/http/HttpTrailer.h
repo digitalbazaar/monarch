@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpTrailer_H
-#define db_http_HttpTrailer_H
+#ifndef monarch_http_HttpTrailer_H
+#define monarch_http_HttpTrailer_H
 
 #include "monarch/http/HttpHeader.h"
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -85,5 +85,5 @@ public:
 typedef monarch::rt::Collectable<HttpTrailer> HttpTrailerRef;
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

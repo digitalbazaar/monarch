@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpChunkedTransferInputStream_H
-#define db_http_HttpChunkedTransferInputStream_H
+#ifndef monarch_http_HttpChunkedTransferInputStream_H
+#define monarch_http_HttpChunkedTransferInputStream_H
 
 #include "monarch/io/PeekInputStream.h"
 #include "monarch/net/ConnectionInputStream.h"
 #include "monarch/http/HttpTrailer.h"
 #include "monarch/rt/Thread.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -136,5 +136,5 @@ public:
 };
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_Thread_H
-#define db_rt_Thread_H
+#ifndef monarch_rt_Thread_H
+#define monarch_rt_Thread_H
 
 #include <pthread.h>
 #include <sched.h>
@@ -12,7 +12,7 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/rt/Runnable.h"
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -441,5 +441,5 @@ protected:
 };
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

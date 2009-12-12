@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_AbstractSocket_H
-#define db_net_AbstractSocket_H
+#ifndef monarch_net_AbstractSocket_H
+#define monarch_net_AbstractSocket_H
 
 #include "monarch/net/Socket.h"
 #include "monarch/io/InputStream.h"
@@ -10,7 +10,7 @@
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -421,5 +421,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

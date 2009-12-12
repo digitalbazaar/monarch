@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_ConnectionWrapper_H
-#define db_net_ConnectionWrapper_H
+#ifndef monarch_net_ConnectionWrapper_H
+#define monarch_net_ConnectionWrapper_H
 
 #include "monarch/net/Connection.h"
 #include "monarch/net/InternetAddress.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -250,5 +250,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_Exception_H
-#define db_rt_Exception_H
+#ifndef monarch_rt_Exception_H
+#define monarch_rt_Exception_H
 
 #include "monarch/rt/Collectable.h"
 #include "monarch/rt/DynamicObject.h"
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -260,5 +260,5 @@ public:
 typedef Collectable<Exception> ExceptionRef;
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

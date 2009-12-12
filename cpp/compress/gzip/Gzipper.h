@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_compress_gzip_Gzipper_H
-#define db_compress_gzip_Gzipper_H
+#ifndef monarch_compress_gzip_Gzipper_H
+#define monarch_compress_gzip_Gzipper_H
 
 #include "monarch/compress/deflate/Deflater.h"
 #include "monarch/compress/gzip/Header.h"
 #include "monarch/compress/gzip/Trailer.h"
 
-namespace db
+namespace monarch
 {
 namespace compress
 {
@@ -210,5 +210,5 @@ public:
 
 } // end namespace gzip
 } // end namespace compress
-} // end namespace db
+} // end namespace monarch
 #endif

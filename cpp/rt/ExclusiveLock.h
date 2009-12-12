@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_ExclusiveLock_H
-#define db_rt_ExclusiveLock_H
+#ifndef monarch_rt_ExclusiveLock_H
+#define monarch_rt_ExclusiveLock_H
 
 #include "monarch/rt/Monitor.h"
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -131,6 +131,6 @@ public:
 };
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 
 #endif

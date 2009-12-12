@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_SocketTools_H
-#define db_net_SocketTools_H
+#ifndef monarch_net_SocketTools_H
+#define monarch_net_SocketTools_H
 
 #include "monarch/net/SocketDefinitions.h"
 #include <sys/types.h>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -83,5 +83,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

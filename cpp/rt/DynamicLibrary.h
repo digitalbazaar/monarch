@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_DynamicLibrary_H
-#define db_rt_DynamicLibrary_H
+#ifndef monarch_rt_DynamicLibrary_H
+#define monarch_rt_DynamicLibrary_H
 
 #ifndef WIN32
 #include <dlfcn.h>

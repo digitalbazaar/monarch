@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_Operation_H
-#define db_modest_Operation_H
+#ifndef monarch_modest_Operation_H
+#define monarch_modest_Operation_H
 
 #include "monarch/rt/Collectable.h"
 #include "monarch/modest/OperationImpl.h"
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -55,5 +55,5 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

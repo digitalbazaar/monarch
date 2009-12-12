@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_util_AnsiEscapeCodes_H
-#define db_util_AnsiEscapeCodes_H
+#ifndef monarch_util_AnsiEscapeCodes_H
+#define monarch_util_AnsiEscapeCodes_H
 
 /**
  * ANSI Escape Codes

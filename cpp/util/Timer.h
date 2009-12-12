@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_util_Timer_H
-#define db_util_Timer_H
+#ifndef monarch_util_Timer_H
+#define monarch_util_Timer_H
 
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace util
 {
@@ -102,5 +102,5 @@ public:
 };
 
 } // end namespace util
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_xml_DomTypes_H
-#define db_data_xml_DomTypes_H
+#ifndef monarch_data_xml_DomTypes_H
+#define monarch_data_xml_DomTypes_H
 
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -54,5 +54,5 @@ typedef monarch::rt::DynamicObjectIterator AttributeIterator;
 
 } // end namespace xml
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

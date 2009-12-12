@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_sql_sqlite3_Sqlite3Exception_H
-#define db_sql_sqlite3_Sqlite3Exception_H
+#ifndef monarch_sql_sqlite3_Sqlite3Exception_H
+#define monarch_sql_sqlite3_Sqlite3Exception_H
 
 #include "monarch/sql/SqlException.h"
 
-namespace db
+namespace monarch
 {
 namespace sql
 {
@@ -40,5 +40,5 @@ public:
 
 } // end namespace sqlite3
 } // end namespace sql
-} // end namespace db
+} // end namespace monarch
 #endif

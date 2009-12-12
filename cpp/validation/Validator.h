@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_validation_Validator_H
-#define db_validation_Validator_H
+#ifndef monarch_validation_Validator_H
+#define monarch_validation_Validator_H
 
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/validation/ValidatorContext.h"
@@ -10,7 +10,7 @@
 #include <vector>
 #include <cstdarg>
 
-namespace db
+namespace monarch
 {
 namespace validation
 {
@@ -91,5 +91,5 @@ public:
 typedef monarch::rt::Collectable<Validator> ValidatorRef;
 
 } // end namespace validation
-} // end namespace db
+} // end namespace monarch
 #endif

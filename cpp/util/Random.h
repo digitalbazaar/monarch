@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_util_Random_H
-#define db_util_Random_H
+#ifndef monarch_util_Random_H
+#define monarch_util_Random_H
 
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace util
 {
@@ -47,5 +47,5 @@ protected:
 };
 
 } // end namespace util
-} // end namespace db
+} // end namespace monarch
 #endif

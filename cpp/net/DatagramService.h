@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_DatagramService_H
-#define db_net_DatagramService_H
+#ifndef monarch_net_DatagramService_H
+#define monarch_net_DatagramService_H
 
 #include "monarch/net/PortService.h"
 #include "monarch/net/DatagramServicer.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -76,5 +76,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

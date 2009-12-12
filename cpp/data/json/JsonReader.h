@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
  */
-#ifndef db_data_json_JsonReader_H
-#define db_data_json_JsonReader_H
+#ifndef monarch_data_json_JsonReader_H
+#define monarch_data_json_JsonReader_H
 
 #include "monarch/data/DynamicObjectReader.h"
 
 #include <vector>
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -308,5 +308,5 @@ public:
 
 } // end namespace json
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

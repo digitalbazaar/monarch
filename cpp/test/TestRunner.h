@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_test_TestRunner_H
-#define db_test_TestRunner_H
+#ifndef monarch_test_TestRunner_H
+#define monarch_test_TestRunner_H
 
 #include <vector>
 #include <string>
 
 #include "monarch/app/App.h"
 
-namespace db
+namespace monarch
 {
 namespace test
 {
@@ -206,6 +206,6 @@ public:
 };
 
 } // end namespace test
-} // end namespace db
+} // end namespace monarch
 
 #endif

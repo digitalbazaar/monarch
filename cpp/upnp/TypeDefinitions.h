@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_upnp_TypeDefinitions_H
-#define db_upnp_TypeDefinitions_H
+#ifndef monarch_upnp_TypeDefinitions_H
+#define monarch_upnp_TypeDefinitions_H
 
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 
-namespace db
+namespace monarch
 {
 namespace upnp
 {
@@ -726,6 +726,6 @@ typedef monarch::rt::DynamicObject ActionResult;
 typedef monarch::rt::DynamicObject PortMapping;
 
 } // end namespace upnp
-} // end namespace db
+} // end namespace monarch
 
 #endif

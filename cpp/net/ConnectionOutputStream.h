@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_ConnectionOutputStream_H
-#define db_net_ConnectionOutputStream_H
+#ifndef monarch_net_ConnectionOutputStream_H
+#define monarch_net_ConnectionOutputStream_H
 
 #include "monarch/io/ByteBuffer.h"
 #include "monarch/io/OutputStream.h"
 
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -111,5 +111,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

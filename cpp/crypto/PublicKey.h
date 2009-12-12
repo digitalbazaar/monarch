@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_PublicKey_H
-#define db_crypto_PublicKey_H
+#ifndef monarch_crypto_PublicKey_H
+#define monarch_crypto_PublicKey_H
 
 #include "monarch/crypto/AsymmetricKey.h"
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -79,5 +79,5 @@ public:
 };
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

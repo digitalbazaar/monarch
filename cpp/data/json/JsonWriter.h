@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_json_JsonWriter_H
-#define db_data_json_JsonWriter_H
+#ifndef monarch_data_json_JsonWriter_H
+#define monarch_data_json_JsonWriter_H
 
 #include "monarch/data/DynamicObjectWriter.h"
 
 #include <ostream>
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -155,5 +155,5 @@ public:
 
 } // end namespace json
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

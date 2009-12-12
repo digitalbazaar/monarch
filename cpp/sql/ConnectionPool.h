@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_sql_ConnectionPool_H
-#define db_sql_ConnectionPool_H
+#ifndef monarch_sql_ConnectionPool_H
+#define monarch_sql_ConnectionPool_H
 
 #include "monarch/sql/PooledConnection.h"
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace sql
 {
@@ -117,5 +117,5 @@ public:
 typedef monarch::rt::Collectable<ConnectionPool> ConnectionPoolRef;
 
 } // end namespace sql
-} // end namespace db
+} // end namespace monarch
 #endif

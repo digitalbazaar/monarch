@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_id3v2_TagHeaderv2_H
-#define db_data_id3v2_TagHeaderv2_H
+#ifndef monarch_data_id3v2_TagHeaderv2_H
+#define monarch_data_id3v2_TagHeaderv2_H
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -259,5 +259,5 @@ public:
 
 } // end namespace id3v2
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

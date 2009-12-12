@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_logging_OutputStreamLogger_H
-#define db_logging_OutputStreamLogger_H
+#ifndef monarch_logging_OutputStreamLogger_H
+#define monarch_logging_OutputStreamLogger_H
 
 #include <map>
 
@@ -10,7 +10,7 @@
 #include "monarch/io/OutputStream.h"
 #include "monarch/rt/ExclusiveLock.h"
 
-namespace db
+namespace monarch
 {
 namespace logging
 {
@@ -93,5 +93,5 @@ public:
 };
 
 } // end namespace logging
-} // end namespace db
+} // end namespace monarch
 #endif

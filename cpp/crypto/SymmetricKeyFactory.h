@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_SymmetricKeyFactory_H
-#define db_crypto_SymmetricKeyFactory_H
+#ifndef monarch_crypto_SymmetricKeyFactory_H
+#define monarch_crypto_SymmetricKeyFactory_H
 
 #include "monarch/crypto/SymmetricKey.h"
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -52,5 +52,5 @@ public:
 };
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

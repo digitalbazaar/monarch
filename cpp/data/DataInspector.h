@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_DataInspector_H
-#define db_data_DataInspector_H
+#ifndef monarch_data_DataInspector_H
+#define monarch_data_DataInspector_H
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -69,5 +69,5 @@ public:
 };
 
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

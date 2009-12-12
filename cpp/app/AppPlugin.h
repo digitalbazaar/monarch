@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_app_AppPlugin_H
-#define db_app_AppPlugin_H
+#ifndef monarch_app_AppPlugin_H
+#define monarch_app_AppPlugin_H
 
 #include "monarch/logging/Logging.h"
 #include "monarch/rt/Runnable.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/config/ConfigManager.h"
 
-namespace db
+namespace monarch
 {
 namespace app
 {
@@ -341,6 +341,6 @@ public:
 typedef monarch::rt::Collectable<AppPlugin> AppPluginRef;
 
 } // end namespace app
-} // end namespace db
+} // end namespace monarch
 
 #endif

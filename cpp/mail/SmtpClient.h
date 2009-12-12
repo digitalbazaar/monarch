@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_mail_SmtpClient_H
-#define db_mail_SmtpClient_H
+#ifndef monarch_mail_SmtpClient_H
+#define monarch_mail_SmtpClient_H
 
 #include "monarch/net/Connection.h"
 #include "monarch/net/SslSocket.h"
 #include "monarch/net/Url.h"
 #include "monarch/mail/Mail.h"
 
-namespace db
+namespace monarch
 {
 namespace mail
 {
@@ -154,5 +154,5 @@ public:
 };
 
 } // end namespace mail
-} // end namespace db
+} // end namespace monarch
 #endif

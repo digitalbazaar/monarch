@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_DataFormatInspector_H
-#define db_data_DataFormatInspector_H
+#ifndef monarch_data_DataFormatInspector_H
+#define monarch_data_DataFormatInspector_H
 
 #include "monarch/data/DataInspector.h"
 #include "monarch/rt/DynamicObject.h"
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -118,5 +118,5 @@ public:
 };
 
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_test_Test_H
-#define db_test_Test_H
+#ifndef monarch_test_Test_H
+#define monarch_test_Test_H
 
 #include "monarch/rt/Exception.h"
 #include "monarch/rt/DynamicObject.h"
@@ -10,7 +10,7 @@
 #include <string>
 #include <cassert>
 
-namespace db
+namespace monarch
 {
 namespace test
 {
@@ -160,6 +160,6 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
    assertNamedDynoCmp("dyno a", dyno1, "dyno b", dyno2)
 
 } // end namespace test
-} // end namespace db
+} // end namespace monarch
 
 #endif

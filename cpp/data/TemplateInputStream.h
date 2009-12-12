@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_TemplateInputStream_H
-#define db_data_TemplateInputStream_H
+#ifndef monarch_data_TemplateInputStream_H
+#define monarch_data_TemplateInputStream_H
 
 #include "monarch/io/ByteBuffer.h"
 #include "monarch/io/FilterInputStream.h"
 #include "monarch/rt/DynamicObject.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -190,5 +190,5 @@ public:
 };
 
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

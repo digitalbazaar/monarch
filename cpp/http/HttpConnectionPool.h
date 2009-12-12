@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpConnectionPool_H
-#define db_http_HttpConnectionPool_H
+#ifndef monarch_http_HttpConnectionPool_H
+#define monarch_http_HttpConnectionPool_H
 
 #include "monarch/http/HttpConnection.h"
 #include "monarch/net/Url.h"
@@ -11,7 +11,7 @@
 #include <map>
 #include <list>
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -79,5 +79,5 @@ public:
 typedef monarch::rt::Collectable<HttpConnectionPool> HttpConnectionPoolRef;
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

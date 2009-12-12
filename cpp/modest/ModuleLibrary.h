@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_ModuleLibrary_H
-#define db_modest_ModuleLibrary_H
+#ifndef monarch_modest_ModuleLibrary_H
+#define monarch_modest_ModuleLibrary_H
 
 #include "monarch/rt/Exception.h"
 #include "monarch/rt/ExclusiveLock.h"
@@ -11,7 +11,7 @@
 #include <map>
 #include <list>
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -189,5 +189,5 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

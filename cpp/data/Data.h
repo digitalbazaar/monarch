@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_Data_H
-#define db_data_Data_H
+#ifndef monarch_data_Data_H
+#define monarch_data_Data_H
 
 #include <inttypes.h>
 
 #include "monarch/util/Macros.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -128,5 +128,5 @@ typedef uint32_t fourcc_t;
    (char)(((fourcc)>>24) & 0xff)
 
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

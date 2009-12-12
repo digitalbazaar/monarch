@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_fiber_FiberContext_H
-#define db_fiber_FiberContext_H
+#ifndef monarch_fiber_FiberContext_H
+#define monarch_fiber_FiberContext_H
 
 #if defined(WIN32)
   #include "monarch/fiber/WindowsSupport.h"
@@ -16,7 +16,7 @@
   #include <sys/mman.h>
 #endif
 
-namespace db
+namespace monarch
 {
 namespace fiber
 {
@@ -95,5 +95,5 @@ public:
 };
 
 } // end namespace fiber
-} // end namespace db
+} // end namespace monarch
 #endif

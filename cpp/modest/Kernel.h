@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_Kernel_H
-#define db_modest_Kernel_H
+#ifndef monarch_modest_Kernel_H
+#define monarch_modest_Kernel_H
 
 #include "monarch/modest/Engine.h"
 #include "monarch/modest/ModuleLibrary.h"
 #include "monarch/modest/OperationRunner.h"
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -80,7 +80,7 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 
 // prevent C++ name mangling
 #ifdef __cplusplus

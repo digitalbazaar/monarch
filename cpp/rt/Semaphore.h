@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_Semaphore_H
-#define db_rt_Semaphore_H
+#ifndef monarch_rt_Semaphore_H
+#define monarch_rt_Semaphore_H
 
 #include "monarch/rt/ExclusiveLock.h"
 #include <list>
 #include <map>
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -220,5 +220,5 @@ public:
 };
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

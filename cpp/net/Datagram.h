@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_Datagram_H
-#define db_net_Datagram_H
+#ifndef monarch_net_Datagram_H
+#define monarch_net_Datagram_H
 
 #include "monarch/io/ByteBuffer.h"
 #include "monarch/net/InternetAddress.h"
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -120,5 +120,5 @@ public:
 typedef monarch::rt::Collectable<Datagram> DatagramRef;
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

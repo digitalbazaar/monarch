@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_rt_RunnableDelegate_H
-#define db_rt_RunnableDelegate_H
+#ifndef monarch_rt_RunnableDelegate_H
+#define monarch_rt_RunnableDelegate_H
 
 #include "monarch/rt/Runnable.h"
 
-namespace db
+namespace monarch
 {
 namespace rt
 {
@@ -399,5 +399,5 @@ DynamicObject RunnableDelegate<RunnableType>::getDynamicObject()
 }
 
 } // end namespace rt
-} // end namespace db
+} // end namespace monarch
 #endif

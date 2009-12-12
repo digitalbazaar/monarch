@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_CookieJar_H
-#define db_http_CookieJar_H
+#ifndef monarch_http_CookieJar_H
+#define monarch_http_CookieJar_H
 
 #include "monarch/http/HttpHeader.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -178,5 +178,5 @@ public:
 };
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_StateMutatorChain_H
-#define db_modest_StateMutatorChain_H
+#ifndef monarch_modest_StateMutatorChain_H
+#define monarch_modest_StateMutatorChain_H
 
 #include "monarch/modest/StateMutator.h"
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -71,5 +71,5 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

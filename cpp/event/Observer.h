@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_event_Observer_H
-#define db_event_Observer_H
+#ifndef monarch_event_Observer_H
+#define monarch_event_Observer_H
 
 #include "monarch/event/Event.h"
 
-namespace db
+namespace monarch
 {
 namespace event
 {
@@ -43,5 +43,5 @@ public:
 typedef monarch::rt::Collectable<Observer> ObserverRef;
 
 } // end namespace event
-} // end namespace db
+} // end namespace monarch
 #endif

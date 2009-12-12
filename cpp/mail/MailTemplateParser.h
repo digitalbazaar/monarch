@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_mail_MailTemplateParser_H
-#define db_mail_MailTemplateParser_H
+#ifndef monarch_mail_MailTemplateParser_H
+#define monarch_mail_MailTemplateParser_H
 
 #include "monarch/mail/Mail.h"
 #include "monarch/io/InputStream.h"
 
-namespace db
+namespace monarch
 {
 namespace mail
 {
@@ -68,5 +68,5 @@ public:
 };
 
 } // end namespace mail
-} // end namespace db
+} // end namespace monarch
 #endif

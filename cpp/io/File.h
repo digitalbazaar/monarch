@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_File_H
-#define db_io_File_H
+#ifndef monarch_io_File_H
+#define monarch_io_File_H
 
 #include "monarch/io/ByteBuffer.h"
 #include "monarch/rt/Exception.h"
@@ -10,7 +10,7 @@
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -575,5 +575,5 @@ public:
 };
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_BandwidthThrottler_H
-#define db_net_BandwidthThrottler_H
+#ifndef monarch_net_BandwidthThrottler_H
+#define monarch_net_BandwidthThrottler_H
 
 #include "monarch/rt/Collectable.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -77,5 +77,5 @@ public:
 typedef monarch::rt::Collectable<BandwidthThrottler> BandwidthThrottlerRef;
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

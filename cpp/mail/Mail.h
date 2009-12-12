@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_mail_Mail_H
-#define db_mail_Mail_H
+#ifndef monarch_mail_Mail_H
+#define monarch_mail_Mail_H
 
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace mail
 {
@@ -203,5 +203,5 @@ public:
 };
 
 } // end namespace mail
-} // end namespace db
+} // end namespace monarch
 #endif

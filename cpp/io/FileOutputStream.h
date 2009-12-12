@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_FileOutputStream_H
-#define db_io_FileOutputStream_H
+#ifndef monarch_io_FileOutputStream_H
+#define monarch_io_FileOutputStream_H
 
 #include "monarch/io/File.h"
 #include "monarch/io/OutputStream.h"
 
 #include <cstdio>
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -107,5 +107,5 @@ protected:
 };
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

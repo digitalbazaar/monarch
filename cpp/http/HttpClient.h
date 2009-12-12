@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpClient_H
-#define db_http_HttpClient_H
+#ifndef monarch_http_HttpClient_H
+#define monarch_http_HttpClient_H
 
 #include "monarch/http/HttpConnection.h"
 #include "monarch/http/HttpRequest.h"
@@ -11,7 +11,7 @@
 #include "monarch/net/SslSessionCache.h"
 #include "monarch/net/Url.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -265,5 +265,5 @@ protected:
 };
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

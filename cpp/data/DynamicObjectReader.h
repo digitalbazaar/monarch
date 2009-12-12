@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_data_DynamicObjectReader_H
-#define db_data_DynamicObjectReader_H
+#ifndef monarch_data_DynamicObjectReader_H
+#define monarch_data_DynamicObjectReader_H
 
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/io/InputStream.h"
 
-namespace db
+namespace monarch
 {
 namespace data
 {
@@ -74,5 +74,5 @@ public:
 };
 
 } // end namespace data
-} // end namespace db
+} // end namespace monarch
 #endif

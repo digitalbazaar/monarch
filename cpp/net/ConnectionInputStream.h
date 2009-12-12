@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_ConnectionInputStream_H
-#define db_net_ConnectionInputStream_H
+#ifndef monarch_net_ConnectionInputStream_H
+#define monarch_net_ConnectionInputStream_H
 
 #include "monarch/io/InputStream.h"
 #include "monarch/io/ByteBuffer.h"
@@ -10,7 +10,7 @@
 #include <string>
 #include <inttypes.h>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -158,5 +158,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

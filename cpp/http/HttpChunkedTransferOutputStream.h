@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_http_HttpChunkedTransferOutputStream_H
-#define db_http_HttpChunkedTransferOutputStream_H
+#ifndef monarch_http_HttpChunkedTransferOutputStream_H
+#define monarch_http_HttpChunkedTransferOutputStream_H
 
 #include "monarch/io/BufferedOutputStream.h"
 #include "monarch/net/ConnectionOutputStream.h"
 #include "monarch/http/HttpTrailer.h"
 
-namespace db
+namespace monarch
 {
 namespace http
 {
@@ -159,5 +159,5 @@ public:
 };
 
 } // end namespace http
-} // end namespace db
+} // end namespace monarch
 #endif

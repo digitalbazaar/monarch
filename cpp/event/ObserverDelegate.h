@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_event_ObserverDelegate_H
-#define db_event_ObserverDelegate_H
+#ifndef monarch_event_ObserverDelegate_H
+#define monarch_event_ObserverDelegate_H
 
 #include "monarch/event/Observer.h"
 #include "monarch/rt/Runnable.h"
 
-namespace db
+namespace monarch
 {
 namespace event
 {
@@ -250,5 +250,5 @@ void ObserverDelegate<HandlerType>::run()
 }
 
 } // end namespace event
-} // end namespace db
+} // end namespace monarch
 #endif

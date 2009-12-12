@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_util_Date_H
-#define db_util_Date_H
+#ifndef monarch_util_Date_H
+#define monarch_util_Date_H
 
 #include "monarch/rt/System.h"
 #include "monarch/util/TimeZone.h"
 
 #include <string>
 
-namespace db
+namespace monarch
 {
 namespace util
 {
@@ -197,5 +197,5 @@ public:
 };
 
 } // end namespace util
-} // end namespace db
+} // end namespace monarch
 #endif

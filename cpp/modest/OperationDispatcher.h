@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_modest_OperationDispatcher_H
-#define db_modest_OperationDispatcher_H
+#ifndef monarch_modest_OperationDispatcher_H
+#define monarch_modest_OperationDispatcher_H
 
 #include "monarch/rt/JobDispatcher.h"
 #include "monarch/modest/Operation.h"
 #include "monarch/modest/Engine.h"
 
-namespace db
+namespace monarch
 {
 namespace modest
 {
@@ -139,5 +139,5 @@ public:
 };
 
 } // end namespace modest
-} // end namespace db
+} // end namespace monarch
 #endif

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_WindowsSupport_H
-#define db_net_WindowsSupport_H
+#ifndef monarch_net_WindowsSupport_H
+#define monarch_net_WindowsSupport_H
 
 #include "monarch/net/SocketDefinitions.h"
 

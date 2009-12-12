@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_logging_Logging_H
-#define db_logging_Logging_H
+#ifndef monarch_logging_Logging_H
+#define monarch_logging_Logging_H
 
 #include "monarch/util/Macros.h"
 #include "monarch/logging/Category.h"
@@ -10,7 +10,7 @@
 // Include DB categories for convienience:
 #include "monarch/logging/LoggingCategories.h"
 
-namespace db
+namespace monarch
 {
 namespace logging
 {
@@ -175,5 +175,5 @@ static inline void DB_X(monarch::a a, monarch::b b, const char* loc,
 #endif
 
 } // end namespace logging
-} // end namespace db
+} // end namespace monarch
 #endif

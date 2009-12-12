@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_SslContext_H
-#define db_net_SslContext_H
+#ifndef monarch_net_SslContext_H
+#define monarch_net_SslContext_H
 
 #include <openssl/ssl.h>
 
@@ -10,7 +10,7 @@
 #include "monarch/net/TcpSocket.h"
 #include "monarch/rt/ExclusiveLock.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -123,5 +123,5 @@ public:
 typedef monarch::rt::Collectable<SslContext> SslContextRef;
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

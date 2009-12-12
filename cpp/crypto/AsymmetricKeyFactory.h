@@ -1,15 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_crypto_AsymmetricKeyFactory_H
-#define db_crypto_AsymmetricKeyFactory_H
+#ifndef monarch_crypto_AsymmetricKeyFactory_H
+#define monarch_crypto_AsymmetricKeyFactory_H
 
 #include "monarch/crypto/PrivateKey.h"
 #include "monarch/crypto/PublicKey.h"
 #include "monarch/crypto/X509Certificate.h"
 #include "monarch/util/Date.h"
 
-namespace db
+namespace monarch
 {
 namespace crypto
 {
@@ -172,5 +172,5 @@ public:
 };
 
 } // end namespace crypto
-} // end namespace db
+} // end namespace monarch
 #endif

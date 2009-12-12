@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_sql_AbstractConnectionPool_H
-#define db_sql_AbstractConnectionPool_H
+#ifndef monarch_sql_AbstractConnectionPool_H
+#define monarch_sql_AbstractConnectionPool_H
 
 #include "monarch/net/Url.h"
 #include "monarch/rt/ExclusiveLock.h"
@@ -13,7 +13,7 @@
 
 #include <list>
 
-namespace db
+namespace monarch
 {
 namespace sql
 {
@@ -202,5 +202,5 @@ public:
 };
 
 } // end namespace sql
-} // end namespace db
+} // end namespace monarch
 #endif

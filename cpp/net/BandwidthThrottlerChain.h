@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_BandwidthThrottlerChain_H
-#define db_net_BandwidthThrottlerChain_H
+#ifndef monarch_net_BandwidthThrottlerChain_H
+#define monarch_net_BandwidthThrottlerChain_H
 
 #include "monarch/net/BandwidthThrottler.h"
 
 #include <vector>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -121,5 +121,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

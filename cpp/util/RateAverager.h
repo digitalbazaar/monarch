@@ -1,13 +1,13 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_util_RateAverager_H
-#define db_util_RateAverager_H
+#ifndef monarch_util_RateAverager_H
+#define monarch_util_RateAverager_H
 
 #include "monarch/rt/ExclusiveLock.h"
 #include "monarch/util/RateWindow.h"
 
-namespace db
+namespace monarch
 {
 namespace util
 {
@@ -237,5 +237,5 @@ protected:
 };
 
 } // end namespace util
-} // end namespace db
+} // end namespace monarch
 #endif

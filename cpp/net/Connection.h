@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_Connection_H
-#define db_net_Connection_H
+#ifndef monarch_net_Connection_H
+#define monarch_net_Connection_H
 
 #include "monarch/rt/SharedLock.h"
 #include "monarch/net/Socket.h"
@@ -11,7 +11,7 @@
 #include "monarch/net/ConnectionInputStream.h"
 #include "monarch/net/ConnectionOutputStream.h"
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -269,5 +269,5 @@ public:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif

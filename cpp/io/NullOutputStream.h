@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_io_NullOutputStream_H
-#define db_io_NullOutputStream_H
+#ifndef monarch_io_NullOutputStream_H
+#define monarch_io_NullOutputStream_H
 
 #include "monarch/io/OutputStream.h"
 
-namespace db
+namespace monarch
 {
 namespace io
 {
@@ -43,5 +43,5 @@ public:
 };
 
 } // end namespace io
-} // end namespace db
+} // end namespace monarch
 #endif

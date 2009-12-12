@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef db_net_Server_H
-#define db_net_Server_H
+#ifndef monarch_net_Server_H
+#define monarch_net_Server_H
 
 #include "monarch/modest/OperationRunner.h"
 #include "monarch/modest/OperationList.h"
@@ -15,7 +15,7 @@
 #include <list>
 #include <map>
 
-namespace db
+namespace monarch
 {
 namespace net
 {
@@ -221,5 +221,5 @@ protected:
 };
 
 } // end namespace net
-} // end namespace db
+} // end namespace monarch
 #endif
