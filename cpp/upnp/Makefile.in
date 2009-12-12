@@ -2,8 +2,8 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dbupnp
-DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbmodest dbio dbcrypto dbnet dbhttp dblogging dbdata
+LIBRARIES = moupnp
+DYNAMIC_LINK_LIBRARIES = mort moutil momodest moio mocrypto monet mohttp mologging modata
 
 DYNAMIC_WINDOWS_LIBRARIES = libgnurx-0
 STATIC_WINDOWS_LIBRARIES = libgnurx-0

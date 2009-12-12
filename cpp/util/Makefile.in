@@ -4,8 +4,8 @@ HEADERS = $(wildcard *.h) \
           $(wildcard regex/*.h)
 SOURCES = $(wildcard *.cpp) \
           $(wildcard regex/*.cpp)
-LIBRARIES = dbutil
-DYNAMIC_LINK_LIBRARIES = dbrt
+LIBRARIES = moutil
+DYNAMIC_LINK_LIBRARIES = mort
 
 DYNAMIC_WINDOWS_LIBRARIES = libgnurx-0
 STATIC_WINDOWS_LIBRARIES = libgnurx-0

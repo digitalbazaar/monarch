@@ -4,7 +4,7 @@ ifeq (@BUILD_SPHINX@,yes)
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
 LIBRARIES = dbsphinx
-DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbcrypto dbio dbnet
+DYNAMIC_LINK_LIBRARIES = mort moutil mocrypto moio monet
 DYNAMIC_WINDOWS_LIBRARIES =
 endif
 

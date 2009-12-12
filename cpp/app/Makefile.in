@@ -2,13 +2,13 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dbapp
-DYNAMIC_LINK_LIBRARIES = dbrt dblogging dbio dbcrypto dbnet dbdata dbutil dbconfig
+LIBRARIES = moapp
+DYNAMIC_LINK_LIBRARIES = mort mologging moio mocrypto monet modata moutil moconfig
 
 DYNAMIC_WINDOWS_LIBRARIES = pthreadGCE2 mgwz libgnurx-0 libeay32 ssleay32
 STATIC_WINDOWS_LIBRARIES = pthreadGCE2 z libgnurx-0
 EXTRA_WINDOWS_LIBRARIES = -lws2_32
-DYNAMIC_MACOS_LIBRARIES = crypto ssl dbmodest dbcompress
+DYNAMIC_MACOS_LIBRARIES = crypto ssl momodest mocompress
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

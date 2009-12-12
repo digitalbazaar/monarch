@@ -2,8 +2,8 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dbsqlite3
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbio dbcrypto dbnet dbsql
+LIBRARIES = mosqlite3
+DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mocrypto monet mosql
 DYNAMIC_WINDOWS_LIBRARIES = sqlite3
 DYNAMIC_MACOS_LIBRARIES = sqlite3
 HEADER_DIST_DIR = dist/include/db/sql/sqlite3

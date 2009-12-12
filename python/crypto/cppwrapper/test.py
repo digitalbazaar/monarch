@@ -1,7 +1,7 @@
-import dbcrypto
-from dbcrypto import *
+import mocrypto
+from mocrypto import *
 
-dbcrypto_init()
+mocrypto_init()
 
 kf = KeyFactory()
 privateKey = PrivateKey()
@@ -45,4 +45,4 @@ pem = keyFile.read();
 loaded = kf.loadPrivateKeyFromPem(privateKey, pem, "password")
 print "loaded: %s" % loaded
 
-dbcrypto_cleanup()
+mocrypto_cleanup()

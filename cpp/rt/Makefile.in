@@ -2,7 +2,7 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dbrt
+LIBRARIES = mort
 
 DYNAMIC_WINDOWS_LIBRARIES = pthreadGCE2
 STATIC_WINDOWS_LIBRARIES = pthreadGCE2

@@ -8,8 +8,8 @@ ifeq (@BUILD_FOR_MACOS@,yes)
 SOURCES += PortableUContextAsm.S
 endif
 
-LIBRARIES = dbfiber
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest
+LIBRARIES = mofiber
+DYNAMIC_LINK_LIBRARIES = mort momodest
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

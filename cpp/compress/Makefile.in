@@ -9,8 +9,8 @@ SOURCES = $(wildcard *.cpp) \
           $(wildcard gzip/*.cpp) \
           $(wildcard zip/*.cpp)
 
-LIBRARIES = dbcompress
-DYNAMIC_LINK_LIBRARIES = dbrt dbio dbutil
+LIBRARIES = mocompress
+DYNAMIC_LINK_LIBRARIES = mort moio moutil
 
 DYNAMIC_WINDOWS_LIBRARIES = mgwz
 STATIC_WINDOWS_LIBRARIES = z

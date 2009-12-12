@@ -2,9 +2,9 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dbmail
-DYNAMIC_LINK_LIBRARIES = dbrt dbio dbnet dbutil dbdata dbsql dbsqlite3
-DYNAMIC_MACOS_LIBRARIES = dblogging dbmodest dbcrypto dbcompress
+LIBRARIES = momail
+DYNAMIC_LINK_LIBRARIES = mort moio monet moutil modata mosql mosqlite3
+DYNAMIC_MACOS_LIBRARIES = mologging momodest mocrypto mocompress
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

@@ -2,8 +2,8 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dbio
-DYNAMIC_LINK_LIBRARIES = dbrt dbutil
+LIBRARIES = moio
+DYNAMIC_LINK_LIBRARIES = mort moutil
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

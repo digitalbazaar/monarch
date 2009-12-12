@@ -2,8 +2,8 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dbevent
-DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbmodest
+LIBRARIES = moevent
+DYNAMIC_LINK_LIBRARIES = mort moutil momodest
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

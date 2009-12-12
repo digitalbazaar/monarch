@@ -16,10 +16,10 @@ SOURCES = $(wildcard *.cpp) \
           $(wildcard riff/*.cpp) \
           $(wildcard xml/*.cpp)
 
-LIBRARIES = dbdata
-DYNAMIC_LINK_LIBRARIES = dbio dbutil dbrt dblogging
+LIBRARIES = modata
+DYNAMIC_LINK_LIBRARIES = moio moutil mort mologging
 DYNAMIC_WINDOWS_LIBRARIES = libexpat iconv2 charset1
-DYNAMIC_MACOS_LIBRARIES = iconv charset expat dbcompress
+DYNAMIC_MACOS_LIBRARIES = iconv charset expat mocompress
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

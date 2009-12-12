@@ -2,7 +2,7 @@
 
 EXECUTABLES = portmap
 
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbio dblogging dbcrypto dbnet dbhttp dbdata dbevent dbfiber dbsql dbsqlite3 dbmail dbconfig dbcompress dbvalidation dbapp dbupnp
+DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mologging mocrypto monet mohttp modata moevent mofiber mosql mosqlite3 momail moconfig mocompress movalidation moapp moupnp
 DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3
 DYNAMIC_WINDOWS_LIBRARIES = sqlite3
 

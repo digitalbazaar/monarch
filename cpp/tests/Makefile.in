@@ -81,7 +81,7 @@ EXECUTABLES = \
 	test-util \
 	test-validation
 
-DYNAMIC_LINK_LIBRARIES = dbrt dbmodest dbutil dbfiber dbio dblogging dbcrypto dbnet dbhttp dbdata dbsql dbsqlite3 $(MYSQL_DBLIBS) dbevent dbmail dbconfig dbcompress dbvalidation dbupnp $(SPHINX_DBLIBS) dbapp
+DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_DBLIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_DBLIBS) moapp
 DYNAMIC_EXECUTABLE_LIBRARIES = dbtest
 
 LINUX_LIB_DIR = @MONARCH_DIR@/dist/lib

@@ -2,10 +2,10 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dblogging
-DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio
-DYNAMIC_WINDOWS_LIBRARIES = dbcompress
-DYNAMIC_MACOS_LIBRARIES = dbcompress
+LIBRARIES = mologging
+DYNAMIC_LINK_LIBRARIES = mort moutil moio
+DYNAMIC_WINDOWS_LIBRARIES = mocompress
+DYNAMIC_MACOS_LIBRARIES = mocompress
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

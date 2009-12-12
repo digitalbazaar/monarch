@@ -4,7 +4,7 @@ HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)  
 LIBRARIES = dbtest
 
-DYNAMIC_LINK_LIBRARIES = dbrt dbdata dbapp dbconfig
+DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

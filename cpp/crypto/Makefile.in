@@ -2,8 +2,8 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dbcrypto
-DYNAMIC_LINK_LIBRARIES = dbrt dbutil dbio 
+LIBRARIES = mocrypto
+DYNAMIC_LINK_LIBRARIES = mort moutil moio 
 DYNAMIC_WINDOWS_LIBRARIES = libeay32
 DYNAMIC_MACOS_LIBRARIES = crypto ssl
 

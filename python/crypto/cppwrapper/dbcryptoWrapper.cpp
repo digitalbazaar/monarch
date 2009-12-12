@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007 Digital Bazaar, Inc.  All rights reserved.
  */
-#include "dbcryptoWrapper.h"
+#include "mocryptoWrapper.h"
 
 #include "monarch/crypto/MessageDigest.h"
 #include "monarch/crypto/PrivateKey.h"

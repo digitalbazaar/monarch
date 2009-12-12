@@ -1,7 +1,7 @@
-%module dbcrypto
+%module mocrypto
 
 %{
-#include "dbcryptoWrapper.h"
+#include "mocryptoWrapper.h"
 #include <openssl/ssl.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -9,16 +9,16 @@
 %}
 
 %include std_string.i
-%include "dbcryptoWrapper.h"
+%include "mocryptoWrapper.h"
 
 %inline %{
-void dbcrypto_init()
+void mocrypto_init()
 {
    ERR_load_crypto_strings();
    OpenSSL_add_all_algorithms();
 }
 
-void dbcrypto_cleanup()
+void mocrypto_cleanup()
 {
    // clean up SSL
    ERR_remove_state(0);
