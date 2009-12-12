@@ -305,7 +305,7 @@ static void runColorLoggingTestAll(TestRunner& tr)
    DB_INFO("[info message]");
    DB_DEBUG("[debug message]");
 
-   // test known dbcore categories
+   // test known Monarch categories
    DB_CAT_DEBUG(DB_APP_CAT, "[cat:DB_APP_CAT]");
    DB_CAT_DEBUG(DB_CONFIG_CAT, "[cat:DB_CONFIG_CAT]");
    DB_CAT_DEBUG(DB_CRYPTO_CAT, "[cat:DB_DATA_CAT]");

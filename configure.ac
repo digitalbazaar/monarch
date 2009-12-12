@@ -2,7 +2,7 @@
 # Usage: Run ./configure once 
 # Author: Manu Sporny
 
-AC_INIT([dbcore],[3.2],[support@digitalbazaar.com])
+AC_INIT([monarch],[3.2],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
 
 # Setup standard build environment variables
@@ -301,7 +301,7 @@ fi
 AC_CONFIG_FILES([
 	installers/debian/changelog
 ])
-AC_CONFIG_FILES([dbcore-run], [chmod +x dbcore-run])
+AC_CONFIG_FILES([monarch-run], [chmod +x monarch-run])
 AC_CONFIG_FILES([cpp/tests/run-unit-tests.py], [chmod +x cpp/tests/run-unit-tests.py])
 AC_CONFIG_FILES([installers/debian/rules], [chmod +x installers/debian/rules])
 

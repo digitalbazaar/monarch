@@ -97,7 +97,7 @@ verbose-commands:
 	PRINT_DIRECTORIES=true PRINT_COMMANDS=true $(MAKE) all
 
 valgrind:
-	./dbcore-valgrind dist/bin/run-unit-tests
+	./monarch-valgrind dist/bin/run-unit-tests
 
 packages:
 	@echo "Building Debian packages..."
@@ -106,13 +106,13 @@ packages:
 	@ln -s installers/debian debian
 	@dpkg-buildpackage -us -uc -rfakeroot -b 
 	@echo "Moving packages to installers/packages..."
-	@rm ../libdbcore3*changes
+	@rm ../monarch3*changes
 	@mkdir -p installers/packages
-	@mv ../libdbcore3*deb installers/packages
+	@mv ../monarch3*deb installers/packages
 
 install:
 	@mkdir -p $(PREFIX)/usr/lib
-	@echo "Installing dbcore libraries in $(PREFIX)/usr/lib..."
+	@echo "Installing Monarch libraries in $(PREFIX)/usr/lib..."
 	@$(foreach lib,$(INSTALL_LIBRARIES),install -m 644 $(lib) $(PREFIX)/usr/lib/$(notdir $(lib)).@FULL_VERSION@ &&) true
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).3.0 &&) true
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).3 &&) true

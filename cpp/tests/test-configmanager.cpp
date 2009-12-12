@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  *
- * This test file is used to test the dbcore ConfigManager without the need
- * for it to use the dbcore App Tester framework -- which itself depends on
+ * This test file is used to test the Monarch ConfigManager without the need
+ * for it to use the Monarch App Tester framework -- which itself depends on
  * the ConfigManager. Only simple tests are run, namely tests to ensure that
  * the simplest config files can be loaded and that the simplest configuration
  * values can be combined and merged together, including groups.

@@ -20,7 +20,7 @@ s() {
 	omag=$5
 	fn=s-${host}-m${mode}-d${dyno}-t${tmag}-o${omag}.csv
 	echo '#' ${fn}
-	echo $ROOTDIR/dbcore-run $BINDIR/test-fiber \
+	echo $ROOTDIR/monarch-run $BINDIR/test-fiber \
 		-i -l 0 -t jsonmatrix \
 		--json-option csv true \
 		--option mode ${mode} \
@@ -46,7 +46,7 @@ s1() {
 	tag=$1; shift;
 	fn=s-${host}-m${mode}-d${dyno}-t${tlin}.${tmag}.${tmin}.${tmax}-o${olin}.${omag}.${omin}.${omax}-ol${oploops}-${tag}.csv
 	echo '#' ${fn}
-	$ROOTDIR/dbcore-run $BINDIR/test-fiber \
+	$ROOTDIR/monarch-run $BINDIR/test-fiber \
 		-i -l 0 -t jsonmatrix \
 		--json-option csv true \
 		--option mode ${mode} \

@@ -40,7 +40,7 @@ ds.update(digest)
 verified = ds.verify(sig)
 
 print "verified=%s" % verified
-keyFile = open("/work/src/dbcpp/dbcore/trunk/crypto/python/cppwrapper/storedkey.pem")
+keyFile = open("/work/src/dbcpp/monarch/trunk/crypto/python/cppwrapper/storedkey.pem")
 pem = keyFile.read();
 loaded = kf.loadPrivateKeyFromPem(privateKey, pem, "password")
 print "loaded: %s" % loaded

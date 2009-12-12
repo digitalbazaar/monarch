@@ -2,7 +2,7 @@
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  *
  * This test file is used to test deadlock issues with the SharedLock
- * class absent any use of the dbcore App Tester framework.
+ * class absent any use of the Monarch App Tester framework.
  */
 #include <cstdio>
 
