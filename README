@@ -1,0 +1,11 @@
+Introduction
+------------
+
+Monarch is a set of libraries and tools for creating high-performance
+REST-based, native JSON Web Services. Monarch is best suited for sites 
+that rely on lots and lots of AJAX calls to provide their core
+functionality.
+
+Features
+--------
+
