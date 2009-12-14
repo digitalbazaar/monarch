@@ -3,7 +3,7 @@
 ifeq (@BUILD_MYSQL@,yes)
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
-LIBRARIES = dbmysql
+LIBRARIES = momysql
 DYNAMIC_LINK_LIBRARIES = mort monet mosql 
 DYNAMIC_WINDOWS_LIBRARIES = mysql
 DYNAMIC_MACOS_LIBRARIES = mysqlclient

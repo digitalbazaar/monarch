@@ -2,7 +2,7 @@
 
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)  
-LIBRARIES = dbtest
+LIBRARIES = motest
 
 DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig
 

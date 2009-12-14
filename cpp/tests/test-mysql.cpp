@@ -20,7 +20,7 @@ using namespace monarch::sql;
 using namespace monarch::sql::mysql;
 using namespace monarch::util;
 
-#define TABLE_TEST "test.dbmysqltest"
+#define TABLE_TEST "test.momysqltest"
 
 void createMySqlTable(TestRunner& tr, monarch::sql::Connection* c)
 {

@@ -6,7 +6,7 @@ ifeq (@BUILD_TESTS@,yes)
 
 ifeq (@BUILD_MYSQL@,yes)
 MODULE_CXX_FLAGS += -DHAVE_MYSQL
-MYSQL_DBLIBS = dbmysql
+MYSQL_DBLIBS = momysql
 MYSQL_SOURCES = test-mysql.cpp
 MYSQL_EXECUTABLES = test-mysql
 MYSQL_DYNAMIC_WINDOWS_LIBRARIES = mysql
@@ -17,7 +17,7 @@ endif
 
 ifeq (@BUILD_SPHINX@,yes)
 MODULE_CXX_FLAGS += -DHAVE_SPHINX
-SPHINX_DBLIBS = dbsphinx
+SPHINX_DBLIBS = mosphinx
 SPHINX_SOURCES = test-sphinx.cpp
 SPHINX_EXECUTABLES = test-sphinx
 endif
@@ -82,7 +82,7 @@ EXECUTABLES = \
 	test-validation
 
 DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_DBLIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_DBLIBS) moapp
-DYNAMIC_EXECUTABLE_LIBRARIES = dbtest
+DYNAMIC_EXECUTABLE_LIBRARIES = motest
 
 LINUX_LIB_DIR = @MONARCH_DIR@/dist/lib
 WINDOWS_LIB_DIR = @MONARCH_DIR@/dist/lib
@@ -92,7 +92,7 @@ DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LINUX
 DYNAMIC_MACOS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_MACOS_LIBRARIES)
 DYNAMIC_WINDOWS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_WINDOWS_LIBRARIES)
 
-EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/libexpat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(WINDOWS_LIB_DIR)/iconv2.dll $(WINDOWS_LIB_DIR)/charset1.dll $(MYSQL_EXTRA_WINDOWS_LIBRARIES) -lws2_32 -ldbtest
+EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/libexpat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(WINDOWS_LIB_DIR)/iconv2.dll $(WINDOWS_LIB_DIR)/charset1.dll $(MYSQL_EXTRA_WINDOWS_LIBRARIES) -lws2_32 -lmotest
 
 # conditional build of tests
 endif
