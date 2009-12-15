@@ -29,7 +29,8 @@ protected:
     * comparator to compare hostnames.
     */
    typedef std::map<
-      const char*, monarch::net::SslSession, monarch::util::StringCaseComparator>
+      const char*, monarch::net::SslSession,
+      monarch::util::StringCaseComparator>
       SessionMap;
    SessionMap mSessions;
 

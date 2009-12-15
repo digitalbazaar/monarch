@@ -5,8 +5,8 @@ Copyright (c) 2005-2006 Russ Cox,
 Massachusetts Institute of Technology
 
 Permission is hereby granted, io_free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-												"Software"), to deal in the Software without restriction, including
+a copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including
 without limitation the rights to use, copy, modify, merge, publish,
 distribute, sublicense, and/or sell copies of the Software, and to
 permit persons to whom the Software is furnished to do so, subject to
@@ -34,7 +34,9 @@ void makecontext(ucontext_t *ucp, void (*func)(void), int argc, ...)
 	unsigned long *sp, *tos;
 	va_list arg;
 
-	tos = (unsigned long*)ucp->uc_stack.ss_sp + ucp->uc_stack.ss_size / sizeof(unsigned long);
+	tos =
+	   (unsigned long*)ucp->uc_stack.ss_sp +
+	   ucp->uc_stack.ss_size / sizeof(unsigned long);
 	sp = tos - 16;
 	ucp->mc.pc = (long)func;
 	ucp->mc.sp = (long)sp;
@@ -49,12 +51,16 @@ void makecontext(ucontext_t *ucp, void (*func)(void), int argc, ...)
 {
 	uintptr_t *sp;
 
-	sp = (uintptr_t *)ucp->uc_stack.ss_sp + ucp->uc_stack.ss_size / sizeof(void *);
+	sp =
+	   (uintptr_t *)ucp->uc_stack.ss_sp +
+	   ucp->uc_stack.ss_size / sizeof(void *);
 	sp -= argc;
-	sp = (uintptr_t*)((uintptr_t)sp - (uintptr_t)sp % 16);	/* 16-align for OS X */
+	/* 16-align for OS X */
+	sp = (uintptr_t*)((uintptr_t)sp - (uintptr_t)sp % 16);
 	memmove(sp, &argc + 1, argc * sizeof(uintptr_t));
 
-	*--sp = 0;		/* return address */
+	/* return address */
+	*--sp = 0;
 	ucp->uc_mcontext.mc_eip = (long)func;
 	ucp->uc_mcontext.mc_esp = (long)sp;
 }

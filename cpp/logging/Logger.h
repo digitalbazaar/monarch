@@ -60,7 +60,8 @@ public:
        * The debug data level setting. Errors, warnings, info, debug,
        * and debug data will be logged.
        *
-       * Debug data log output includes any data associated with debug log output.
+       * Debug data log output includes any data associated with debug log
+       * output.
        */
       DebugData,
       /**

@@ -138,7 +138,8 @@ protected:
     * @param cmd the sphinx command to serialize.
     * @param b the ByteBuffer to write the serialized command to.
     */
-   virtual void serializeCommand(SphinxCommand& cmd, monarch::io::ByteBuffer* b);
+   virtual void serializeCommand(
+      SphinxCommand& cmd, monarch::io::ByteBuffer* b);
 
    /**
     * Parses a query response from the server.
@@ -148,7 +149,8 @@ protected:
     *
     * @return true if successfully parsed, false if an exception occurred.
     */
-   virtual bool parseQueryResponse(monarch::io::ByteBuffer* b, SphinxResponse& sr);
+   virtual bool parseQueryResponse(
+      monarch::io::ByteBuffer* b, SphinxResponse& sr);
 
    /**
     * Parses the response from the server.
@@ -183,7 +185,8 @@ protected:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool receiveResponse(
-      monarch::net::Connection* c, SphinxCommand& cmd, SphinxResponse& response);
+      monarch::net::Connection* c,
+      SphinxCommand& cmd, SphinxResponse& response);
 
 public:
    /**

@@ -255,7 +255,8 @@ int ConnectionInputStream::readCrlf(string& line)
       {
          rval = -1;
          ExceptionRef e = new Exception(
-            "Could not read CRLF, line too long.", "monarch.net.CRLFLineTooLong");
+            "Could not read CRLF, line too long.",
+            "monarch.net.CRLFLineTooLong");
          Exception::set(e);
          break;
       }

@@ -567,7 +567,8 @@ bool SphinxClient::receiveResponse(
       if(length > 1048576*8)
       {
          ExceptionRef e = new Exception(
-            "Response data was larger than 8MB.", "monarch.sphinx.ResponseTooLarge");
+            "Response data was larger than 8MB.",
+            "monarch.sphinx.ResponseTooLarge");
          Exception::set(e);
       }
       else

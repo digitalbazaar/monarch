@@ -98,7 +98,9 @@ bool Internet6Address::setHost(const char* host)
    // get address information
    if(getaddrinfo(host, NULL, &hints, &res) != 0)
    {
-      ExceptionRef e = new Exception("Unknown host.", "monarch.net.UnknownHost");
+      ExceptionRef e = new Exception(
+         "Unknown host.",
+         "monarch.net.UnknownHost");
       e->getDetails()["host"] = host;
       Exception::set(e);
    }

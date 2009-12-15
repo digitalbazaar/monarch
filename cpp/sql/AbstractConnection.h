@@ -31,7 +31,8 @@ protected:
     * A map of sql to prepared statements for this connection using
     * case-insensitive comparator to compare sql statements.
     */
-   typedef std::map<const char*, Statement*, monarch::util::StringCaseComparator>
+   typedef std::map<
+      const char*, Statement*, monarch::util::StringCaseComparator>
       PreparedStmtMap;
    PreparedStmtMap mPreparedStmts;
 

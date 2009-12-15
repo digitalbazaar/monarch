@@ -41,7 +41,8 @@ public:
     *
     * @return true if successful, false if not.
     */
-   virtual bool getDescription(monarch::net::Url* url, std::string& description);
+   virtual bool getDescription(
+      monarch::net::Url* url, std::string& description);
 
    /**
     * Gets the description for a device.

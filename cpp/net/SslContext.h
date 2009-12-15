@@ -108,7 +108,8 @@ public:
     *
     * @return true if the CAs were set properly, false if an Exception occurred.
     */
-   virtual bool setVerifyCAs(monarch::io::File* caFile, monarch::io::File* caDir);
+   virtual bool setVerifyCAs(
+      monarch::io::File* caFile, monarch::io::File* caDir);
 
    /**
     * Repeatedly call ERR_get_error and build an Array of error messages with

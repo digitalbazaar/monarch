@@ -107,7 +107,8 @@ static inline void DB_X(monarch::a a, monarch::b b, const char* loc,
  * Log a warning message.
  */
 #define DB_CAT_OBJECT_WARNING(cat, object, args...) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, monarch::logging::Logger::Warning, object, ##args)
+   DB_CAT_LEVEL_OBJECT_LOG( \
+      cat, monarch::logging::Logger::Warning, object, ##args)
 #define DB_CAT_WARNING(cat, args...) \
    DB_CAT_LEVEL_LOG(cat, monarch::logging::Logger::Warning, ##args)
 #define DB_WARNING(args...) \
@@ -145,7 +146,8 @@ static inline void DB_X(monarch::a a, monarch::b b, const char* loc,
  */
 #ifndef DB_NDEBUG
 #define DB_CAT_OBJECT_DEBUG_DATA(cat, object, args...) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, monarch::logging::Logger::DebugData, object, ##args)
+   DB_CAT_LEVEL_OBJECT_LOG( \
+      cat, monarch::logging::Logger::DebugData, object, ##args)
 #define DB_CAT_DEBUG_DATA(cat, args...) \
    DB_CAT_LEVEL_LOG(cat, monarch::logging::Logger::DebugData, ##args)
 #define DB_DEBUG_DATA(args...) \
@@ -162,7 +164,8 @@ static inline void DB_X(monarch::a a, monarch::b b, const char* loc,
  */
 #ifndef DB_NDEBUG
 #define DB_CAT_OBJECT_DEBUG_DETAIL(cat, object, args...) \
-   DB_CAT_LEVEL_OBJECT_LOG(cat, monarch::logging::Logger::DebugDetail, object, ##args)
+   DB_CAT_LEVEL_OBJECT_LOG( \
+      cat, monarch::logging::Logger::DebugDetail, object, ##args)
 #define DB_CAT_DEBUG_DETAIL(cat, args...) \
    DB_CAT_LEVEL_LOG(cat, monarch::logging::Logger::DebugDetail, ##args)
 #define DB_DEBUG_DETAIL(args...) \

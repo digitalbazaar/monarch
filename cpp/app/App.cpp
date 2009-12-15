@@ -970,8 +970,9 @@ bool App::parseCommandLine(vector<const char*>* args)
             }
             if(rval && !found)
             {
-               ExceptionRef e =
-                  new Exception("Unknown option.", "monarch.app.CommandLineError");
+               ExceptionRef e = new Exception(
+                  "Unknown option.",
+                  "monarch.app.CommandLineError");
                e->getDetails()["option"] = opt;
                Exception::set(e);
                rval = false;

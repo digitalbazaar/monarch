@@ -40,7 +40,8 @@ public:
     * @param key1 second key to use
     * @param errorMessage custom error message
     */
-   NotCompare(const char* key0, const char* key2, const char* errorMessage = NULL);
+   NotCompare(
+      const char* key0, const char* key2, const char* errorMessage = NULL);
 
    /**
     * Destructs this validator.
