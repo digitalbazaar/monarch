@@ -2,10 +2,259 @@ Introduction
 ------------
 
 Monarch is a set of libraries and tools for creating high-performance
-REST-based, native JSON Web Services. Monarch is best suited for sites 
+REST-based, native JSON Web Services. Monarch is best suited for sites
 that rely on lots and lots of AJAX calls to provide their core
 functionality.
 
 Features
 --------
 
+* Native and cross-platform - works on Windows, Mac OS X and Linux.
+* Scalability - designed to scale easily with multi-cpu/multi-core systems.
+* Efficient - small executable size and very high-performance.
+* Modular - use as much or as little as is required for your software.
+* Crypto - complete cryptography stack supporting SSL and TLS.
+* Network-centric - everything necessary to create a high-performance AJAX
+                    backend including light-weight, high-performance, 
+                    multi-threaded HTTP server.
+* Streaming - Built to stream all input and output, thus saving on memory
+              and disk usage. Capable of in-line encryption, steganography
+              and decryption of audio and video data.
+* Integration - integrates with other network services like SMTP, UPnP, and
+                MySQL.
+* Micro-kernel - Microkernel architecture that allows hundreds of thousands
+                 of simultaneous micro-processes (fibers) to operate without
+                 operating system intervention.
+* Validation - Ensures validity of incoming or outgoing JSON data to AJAX
+               front-end services.
+
+Getting Started
+---------------
+
+To compile and run on Linux:
+
+autoconf
+./configure
+make
+
+To compile and run on Intel Mac OS X:
+
+autoconf
+./configure --enable-macos
+make
+
+To compile for Windows XP, Vista, 7:
+* You must have the mingw32 compiler toolchain - the easiest way to get
+this working is to use Linux and cross-compile for Windows.
+
+autoconf
+./configure --enable-windows
+make
+
+
+To test the various subsystems in Linux and Mac OS X:
+
+make test
+
+
+System Details
+--------------
+
+The Monarch project was originally created as a set of support libraries
+that form the foundation for Bitmunk and similar projects. It needed to
+provide APIs for robust, small, and fast cross-platform network-dependent
+applications. An overview of each subsystem library is provided below:
+
+moapp
+-----
+A generic framework for quickly setting up applications that use Monarch's
+configuration system and logging capabilities and have the ability to
+specify and parse command line options.
+
+mocompress
+----------
+Provides APIs for using gzip and DEFLATE compression and decompression
+and for creating ZIP archives.
+
+moconfig
+--------
+Provides a versatile configuration system with "tiered"
+support. Configuration objects can be created and arranged in an arbitrary
+hierarchical order that allows for easy setting and overriding of default
+options at various levels. For example, an application may be configured
+such that it has system defaults, system user defaults, and application
+user defaults as well as having custom user options. Configuration
+objects can be serialized and deserialized in JSON format. Configuration
+objects can also be spread across multiple files and include multiple
+configuration files if desired.
+
+mocrypto
+--------
+Provides APIs for encryption, decryption, digital signatures, secure
+asymmetic and symmetric key generation, X.509 certificates, crypto hash
+functions, and arbitrary precision big integer and big decimal support.
+
+modata
+------
+Provides APIs for JSON and XML serialization and deserialization. This
+includes serializing and deserializing DynamicObjects. Other APIs include
+support for inspecting data for file formats and data structures for
+parsing file formats such as MPEG, AVI, RIFF, and ID3v2. A simple template
+parser that can search and replace template variables with other values
+is also available.
+
+moevent
+-------
+Provides APIs for a complete event monitoring system. Events can be
+registered, scheduled, and received in a multithreaded environment. Event
+taps may be created that allow events of different types to be grouped
+together so that event observers can more easily monitor similar
+events. Observers may also specify filters on event data to limit the
+events they receive. Objects that can wait to proceed until particular
+events have been received can easily be created. Event daemons can be
+created to periodically schedule certain events.
+
+mohttp
+------
+Provides APIs that support the basics of HTTP/1.1. This includes the
+ability to read and write HTTP headers and entity bodies with or without
+chunked transfer-encoding, the ability to specify HTTP trailers, service
+HTTP connections and handle HTTP requests (including keep-alive support),
+and the ability to read and write cookies. Also included is a simple
+HTTP client.
+
+moio
+----
+Provides APIs for input and output. This includes the ability to read and
+write from files and to create an arbitrary chain of input and output
+streams. Also included is a stream mutation API for quickly writing or
+reusing objects that alter data as it is read or written, with applicable
+uses including encryption/decryption, compression/decompression, and
+data encoding/decoding. APIs for dynamic bit streams and byte buffers
+and a File object for performing simple file system operations like
+creating and deleting files and directories and manipulating paths
+is provided. Future work will include APIs for easily working with
+highly-scalable, asynchronous, event-based IO.
+
+mologging
+---------
+Provides APIs for logging arbitrary information to an arbitrary location,
+with built-in support for writing to log files, including file rotation
+support. The APIs include printf-style macros that allow for more compact
+logging calls.
+
+momail
+------
+Provides APIs for a Simple Mail Transfer Protocol client. Included is
+a mail template parser for easily sending generic/bulk emails and  mail
+spool for when mail fails to be sent.
+
+monet
+-----
+Provides APIs for quickly and easily setting up cross-platform network
+communication in an application. This includes a fast and small generic
+server that uses abstract port services that perform duties as specified
+by a developer. Built-in port services include a simple datagram service
+for handling generic UDP traffic, and a simple connection service for
+handling generic TCP traffic. The http library builds on top of this
+library to provide HTTP connection and request services that can be
+easily customized. Included is a simple Socket API and the ability to
+specify data presentation layers along with port services. Built-in data
+presentation layers include SSL (and TLS) support. The library abstracts
+away socket data presentation layers such that multiple layers can be
+supported on a single port service, allowing, for instance, SSL and
+non-SSL traffic to be handled on a single port. Also included is the
+ability to cache and reuse SSL sessions, parse and resolve internet
+addresses (IPv4 and IPv6), bandwidth throttling and URL parsing.
+
+mort
+----
+Provides APIs for cross-platform dynamic objects, threads, thread
+pools, atomic instructions, exclusive and shared locks, semaphores,
+hazard pointers, a lock-free hash table, getting and manipulating
+system time, reference-counted smart pointers, runnable interfaces and
+runnable delegates for wrapping functions or class members as runnables
+for threads, and a generic job dispatcher for efficiently queuing and
+handling work in a multithreaded environment.
+
+momodest
+--------
+Provides APIs for a microkernel that provides an engine for scheduling,
+monitoring, and performing generic jobs and an infrastructure for
+extending that kernel with modules that can utilize that engine,
+share access to running operations. Also available is a shared state
+machine that can be used to help determine when to schedule and/or cancel
+particular operations. Each operation that is scheduled with the engine
+can provide an operation guard that can synchronously check the shared
+state machine (or other arbitrary location) for a particular set of
+circumstances before allowing the operation to be run. Operations may
+also mutate the state of the machine in ways that can affect all other
+operations in the system. Extending modules can provide their own unique
+interfaces so that other modules can take advantage of the features
+they provide. All operations that run on any given module are unified
+via the microkernel's engine, giving a developer the ability to limit
+the number of threads used and the ability to interrupt and terminate
+all operations or a group of operations as necessary. Operations can be
+waited on for completion or queried for completion or cancelation.
+
+mofiber
+-------
+Provides APIs that build on top of the modest microkernel to provide
+cooperative multitasking fibers. Each fiber can specify its maximum stack
+size and will run developer supplied code. Each fiber can be yielded or
+put to sleep as necessary to allow other fibers to run. Switching contexts
+is done is user space. The fiber scheduler can run on multiple operations
+(multiple threads) using modest's engine, allowing for maximum scalability
+and utilization of multiple-core machines. Any fiber can be scheduled
+to run on any thread. Writing code for a fiber is seamless because the
+yield() or sleep() calls swap out the current fiber stack for another
+one, returning to exactly where the fiber left once the yield or sleep is
+complete. Messaging fibers can be created that can send messages to one
+another to control more complex behavior. Future work will include the
+ability to seamlessly incorporate asynchronous IO with fibers so that when
+reads and writes need to occur a fiber will sleep until data is ready,
+sparing the use of a waiting thread and allowing for greater scalability.
+
+mosql
+-----
+Provides unified APIs for accessing databases. Database connections
+and statements use abstracted interfaces that hide the underlying
+database format and protocol from the developer for maximum reuse and
+replacability. The ability to prepare and execute arbitrary SQL statements
+is provided. A connection pool is also available to obtain better
+performance for network-based databases such as mysql. Also included
+is an abstract database client that provides an simpler programming
+interface with functions like insert(), update(), and select().
+
+mosqlite3
+---------
+Provides an sqlite3 implementation for the monarch sql library.
+
+momysql
+-------
+Provides a mysql implementation for the monarch sql library.
+
+mosphinx
+--------
+Provides a client for performing searches and working with a sphinx
+server.
+
+motest
+------
+Provides APIs for a unit test architecture.
+
+moupnp
+------
+Provides APIs for working with UPnP devices to forward ports, etc.
+
+moutil
+------
+Provides APIs for getting random numbers, averaging transfer rates, doing
+base64 encoding and decoding, getting CRC-16s, creating timers, getting
+and manipulating dates, and handling strings and regular expressions.
+
+movalidation
+------------
+Provides APIs for validating data. Validators can ensure that data is of
+a particular type, ie a string, integer, regular expression, or is a map
+or array. Validators can also ensure that data contains particular values.
