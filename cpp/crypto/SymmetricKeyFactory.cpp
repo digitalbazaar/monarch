@@ -47,7 +47,8 @@ bool SymmetricKeyFactory::createRandomKey(
    {
       // unknown algorithm
       ExceptionRef e = new Exception(
-         "Key algorithm is not supported.", "monarch.crypto.UnsupportedAlgorithm");
+         "Key algorithm is not supported.",
+         "monarch.crypto.UnsupportedAlgorithm");
       e->getDetails()["algorithm"] = algorithm;
       Exception::set(e);
       rval = false;

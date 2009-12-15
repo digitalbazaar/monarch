@@ -85,12 +85,14 @@ void DatabaseClient::setDebugLogging(bool enabled)
    mDebugLogging = enabled;
 }
 
-void DatabaseClient::setReadConnectionPool(monarch::sql::ConnectionPoolRef& pool)
+void DatabaseClient::setReadConnectionPool(
+   monarch::sql::ConnectionPoolRef& pool)
 {
    mReadPool = pool;
 }
 
-void DatabaseClient::setWriteConnectionPool(monarch::sql::ConnectionPoolRef& pool)
+void DatabaseClient::setWriteConnectionPool(
+   monarch::sql::ConnectionPoolRef& pool)
 {
    mWritePool = pool;
 }

@@ -133,7 +133,8 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
          meta, "monarch.app.afterDefaults.empty", "after defaults");
 
       // command line
-      App::makeMetaConfig(meta, "monarch.app.commandLine.empty", "command line");
+      App::makeMetaConfig(
+         meta, "monarch.app.commandLine.empty", "command line");
 
       // main
       App::makeMetaConfig(meta, "monarch.app.main.empty", "main");
@@ -349,8 +350,9 @@ bool CommonAppPlugin::didParseCommandLine()
       bool found = Logger::stringToLevel(cfgLogLevel, level);
       if(!found)
       {
-         ExceptionRef e =
-            new Exception("Invalid log level.", "monarch.app.CommandLineError");
+         ExceptionRef e = new Exception(
+            "Invalid log level.",
+            "monarch.app.CommandLineError");
          e->getDetails()["level"] = cfgLogLevel;
          Exception::set(e);
          rval = false;
