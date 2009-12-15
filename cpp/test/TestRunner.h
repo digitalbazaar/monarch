@@ -106,7 +106,8 @@ public:
     * @param outputLevel OutputLevel to use.
     */
    TestRunner(
-      monarch::app::App* app, bool doneOnException, OutputLevel outputLevel = Names);
+      monarch::app::App* app, bool doneOnException, OutputLevel outputLevel
+      = Names);
 
    /**
     * Destructs this TestRunner.

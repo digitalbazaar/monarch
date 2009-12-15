@@ -548,7 +548,8 @@ public:
     * @return true if successful, false if an Exception occured.
     */
    virtual bool getRowData(
-      monarch::rt::DynamicObject& columnSchemas, Row* r, monarch::rt::DynamicObject& row);
+      monarch::rt::DynamicObject& columnSchemas,
+      Row* r, monarch::rt::DynamicObject& row);
 
    /**
     * Creates SELECT SQL text and the associated parameters and column
@@ -569,7 +570,8 @@ public:
       SchemaObject& schema,
       monarch::rt::DynamicObject* where, monarch::rt::DynamicObject* members,
       uint64_t limit, uint64_t start,
-      monarch::rt::DynamicObject& params, monarch::rt::DynamicObject& columnSchemas,
+      monarch::rt::DynamicObject& params,
+      monarch::rt::DynamicObject& columnSchemas,
       const char* tableAlias);
 
    /**

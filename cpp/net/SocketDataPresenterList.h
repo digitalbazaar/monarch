@@ -79,7 +79,8 @@ public:
 };
 
 // type definition for reference counted SocketDataPresenterList
-typedef monarch::rt::Collectable<SocketDataPresenterList> SocketDataPresenterListRef;
+typedef monarch::rt::Collectable<SocketDataPresenterList>
+   SocketDataPresenterListRef;
 
 } // end namespace net
 } // end namespace monarch
