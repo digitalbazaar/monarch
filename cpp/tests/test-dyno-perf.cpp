@@ -139,4 +139,4 @@ public:
 monarch::test::Tester* getDbDynoPerfTester() { return new DbDynoPerfTester(); }
 
 
-DB_TEST_MAIN(DbDynoPerfTester)
+MO_TEST_MAIN(DbDynoPerfTester)

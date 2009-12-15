@@ -27,7 +27,7 @@ bool RiffFormHeader::convertFromBytes(const char* b, int length)
          // make sure chunk identifier is LIST
          if(mChunkHeader.getIdentifier() == CHUNK_ID)
          {
-            mId = DB_FOURCC_FROM_STR(b + RiffChunkHeader::HEADER_SIZE);
+            mId = MO_FOURCC_FROM_STR(b + RiffChunkHeader::HEADER_SIZE);
             rval = true;
          }
       }

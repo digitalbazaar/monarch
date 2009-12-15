@@ -260,16 +260,16 @@ bool Zipper::finish(OutputStream* os)
          rval = writeFileHeader(*i, os);
          cdSize += (*i)->getFileHeaderSize();
       }
-      cdSize = DB_UINT32_TO_LE(cdSize);
+      cdSize = MO_UINT32_TO_LE(cdSize);
 
       // write out end of central directory record
       if(rval)
       {
-         uint32_t cdesig = DB_UINT32_TO_LE(CDE_SIGNATURE);
+         uint32_t cdesig = MO_UINT32_TO_LE(CDE_SIGNATURE);
          uint16_t diskNumber = 0;
-         uint16_t entries = DB_UINT16_TO_LE(mWrittenEntries.size());
+         uint16_t entries = MO_UINT16_TO_LE(mWrittenEntries.size());
          uint16_t zipCommentLength = 0;
-         uint32_t offset = DB_UINT32_TO_LE(mCentralDirectoryOffset);
+         uint32_t offset = MO_UINT32_TO_LE(mCentralDirectoryOffset);
 
          // write out end of central directory record signature
          // write out this disk number (0)
@@ -301,15 +301,15 @@ bool Zipper::finish(OutputStream* os)
 
 bool Zipper::writeLocalFileHeader(ZipEntry& ze, OutputStream* os)
 {
-   uint32_t lfhsig = DB_UINT32_TO_LE(LFH_SIGNATURE);
-   uint16_t zipver = DB_UINT16_TO_LE(ZIP_VERSION);
-   uint16_t gpflag = DB_UINT16_TO_LE(mGpBitFlag);
-   uint16_t compmd = DB_UINT16_TO_LE(ze->getCompressionMethod());
-   uint32_t dosTime = DB_UINT32_TO_LE(ze->getDosTime());
+   uint32_t lfhsig = MO_UINT32_TO_LE(LFH_SIGNATURE);
+   uint16_t zipver = MO_UINT16_TO_LE(ZIP_VERSION);
+   uint16_t gpflag = MO_UINT16_TO_LE(mGpBitFlag);
+   uint16_t compmd = MO_UINT16_TO_LE(ze->getCompressionMethod());
+   uint32_t dosTime = MO_UINT32_TO_LE(ze->getDosTime());
    uint32_t crc = 0;
    uint32_t size = 0;
    uint16_t cfnLength = strlen(ze->getFilename());
-   uint16_t fnLength = DB_UINT16_TO_LE(cfnLength);
+   uint16_t fnLength = MO_UINT16_TO_LE(cfnLength);
    uint16_t exLength = 0;
 
    // write local file header signature
@@ -348,23 +348,23 @@ bool Zipper::readLocalFileHeader(ZipEntry& ze, InputStream* is)
 
 bool Zipper::writeFileHeader(ZipEntry& ze, OutputStream* os)
 {
-   uint32_t cdssig = DB_UINT32_TO_LE(CDS_SIGNATURE);
-   uint16_t zipver = DB_UINT16_TO_LE(ZIP_VERSION);
-   uint16_t gpflag = DB_UINT16_TO_LE(mGpBitFlag);
-   uint16_t compmd = DB_UINT16_TO_LE(ze->getCompressionMethod());
-   uint32_t dosTime = DB_UINT32_TO_LE(ze->getDosTime());
-   uint32_t crc = DB_UINT32_TO_LE(ze->getCrc32());
-   uint32_t cSize = DB_UINT32_TO_LE(ze->getCompressedSize());
-   uint32_t ucSize = DB_UINT32_TO_LE(ze->getUncompressedSize());
+   uint32_t cdssig = MO_UINT32_TO_LE(CDS_SIGNATURE);
+   uint16_t zipver = MO_UINT16_TO_LE(ZIP_VERSION);
+   uint16_t gpflag = MO_UINT16_TO_LE(mGpBitFlag);
+   uint16_t compmd = MO_UINT16_TO_LE(ze->getCompressionMethod());
+   uint32_t dosTime = MO_UINT32_TO_LE(ze->getDosTime());
+   uint32_t crc = MO_UINT32_TO_LE(ze->getCrc32());
+   uint32_t cSize = MO_UINT32_TO_LE(ze->getCompressedSize());
+   uint32_t ucSize = MO_UINT32_TO_LE(ze->getUncompressedSize());
    uint16_t cfnLength = strlen(ze->getFilename());
-   uint16_t fnLength = DB_UINT16_TO_LE(cfnLength);
+   uint16_t fnLength = MO_UINT16_TO_LE(cfnLength);
    uint16_t exLength = 0;
    uint16_t cfcLength = strlen(ze->getFileComment());
-   uint16_t fcLength = DB_UINT16_TO_LE(cfcLength);
+   uint16_t fcLength = MO_UINT16_TO_LE(cfcLength);
    uint16_t diskNumber = 0;
    uint16_t internalAttr = 0;
    uint32_t externalAttr = 0;
-   uint32_t offset = DB_UINT32_TO_LE(ze->getLocalFileHeaderOffset());
+   uint32_t offset = MO_UINT32_TO_LE(ze->getLocalFileHeaderOffset());
 
    // write central file header signature
    // write version made by
@@ -453,10 +453,10 @@ bool Zipper::finishCurrentEntry(OutputStream* os)
 
       if(rval)
       {
-         uint32_t dadsig = DB_UINT32_TO_LE(DAD_SIGNATURE);
-         uint32_t crc = DB_UINT32_TO_LE(ze->getCrc32());
-         uint32_t cSize = DB_UINT32_TO_LE(ze->getCompressedSize());
-         uint32_t ucSize = DB_UINT32_TO_LE(ze->getUncompressedSize());
+         uint32_t dadsig = MO_UINT32_TO_LE(DAD_SIGNATURE);
+         uint32_t crc = MO_UINT32_TO_LE(ze->getCrc32());
+         uint32_t cSize = MO_UINT32_TO_LE(ze->getCompressedSize());
+         uint32_t ucSize = MO_UINT32_TO_LE(ze->getUncompressedSize());
 
          // write out data descriptor signature
          // write out crc

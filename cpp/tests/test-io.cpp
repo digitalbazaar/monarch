@@ -1178,4 +1178,4 @@ public:
 monarch::test::Tester* getDbIoTester() { return new DbIoTester(); }
 
 
-DB_TEST_MAIN(DbIoTester)
+MO_TEST_MAIN(DbIoTester)

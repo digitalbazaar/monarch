@@ -1053,4 +1053,4 @@ public:
 monarch::test::Tester* getDbFiberTester() { return new DbFiberTester(); }
 
 
-DB_TEST_MAIN(DbFiberTester)
+MO_TEST_MAIN(DbFiberTester)

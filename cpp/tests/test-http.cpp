@@ -801,4 +801,4 @@ public:
 monarch::test::Tester* getDbHttpTester() { return new DbHttpTester(); }
 
 
-DB_TEST_MAIN(DbHttpTester)
+MO_TEST_MAIN(DbHttpTester)

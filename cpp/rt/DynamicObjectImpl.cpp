@@ -17,10 +17,10 @@ using namespace std;
 using namespace monarch::rt;
 
 
-#ifdef DB_DYNO_DEBUG
+#ifdef MO_DYNO_DEBUG
 
 /**
- * When DB_DYNO_DEBUG is defined at compile time statistics will be kept on
+ * When MO_DYNO_DEBUG is defined at compile time statistics will be kept on
  * internal DynamicObject operations. This may have a performance impact.
  * Some stats such as basic counts are atomic. However, some secondary stats
  * such as maximums are not calculated in a thread safe way due to
@@ -53,7 +53,7 @@ static bool _stats_enabled;
 static struct _stats_data_s _stats[LastStatsType];
 
 #define STATS_INC(type) \
-   DB_STMT_START { \
+   MO_STMT_START { \
       if(_stats_enabled) \
       { \
          uint64_t next = __sync_add_and_fetch(&_stats[type].counts.live, 1); \
@@ -62,10 +62,10 @@ static struct _stats_data_s _stats[LastStatsType];
             _stats[type].counts.max = next; \
          } \
       } \
-   } DB_STMT_END
+   } MO_STMT_END
 
 #define STATS_BYTES_INC(type, n) \
-   DB_STMT_START { \
+   MO_STMT_START { \
       if(_stats_enabled) \
       { \
          uint64_t next = __sync_add_and_fetch(&_stats[type].bytes.live, n); \
@@ -74,25 +74,25 @@ static struct _stats_data_s _stats[LastStatsType];
             _stats[type].bytes.max = next; \
          } \
       } \
-   } DB_STMT_END
+   } MO_STMT_END
 
 #define STATS_DEC(type) \
-   DB_STMT_START { \
+   MO_STMT_START { \
       if(_stats_enabled) \
       { \
          __sync_sub_and_fetch(&_stats[type].counts.live, 1); \
          __sync_add_and_fetch(&_stats[type].counts.dead, 1); \
       } \
-   } DB_STMT_END
+   } MO_STMT_END
 
 #define STATS_BYTES_DEC(type, n) \
-   DB_STMT_START { \
+   MO_STMT_START { \
       if(_stats_enabled) \
       { \
          __sync_sub_and_fetch(&_stats[type].bytes.live, n); \
          __sync_add_and_fetch(&_stats[type].bytes.dead, n); \
       } \
-   } DB_STMT_END
+   } MO_STMT_END
 
 #else
 
@@ -102,20 +102,20 @@ static struct _stats_data_s _stats[LastStatsType];
 #define STATS_DEC(type)
 #define STATS_BYTES_DEC(type, n)
 
-#endif // DB_DYNO_DEBUG
+#endif // MO_DYNO_DEBUG
 
-#ifdef DB_DYNO_DEBUG
+#ifdef MO_DYNO_DEBUG
 #define _changeType(dyno, newType) \
-   DB_STMT_START { \
+   MO_STMT_START { \
       STATS_DEC(dyno->mType); \
       dyno->mType = newType; \
       STATS_INC(newType); \
-   } DB_STMT_END
+   } MO_STMT_END
 #else
 #define _changeType(dyno, newType) \
-   DB_STMT_START { \
+   MO_STMT_START { \
       dyno->mType = newType; \
-   } DB_STMT_END
+   } MO_STMT_END
 #endif
 
 DynamicObjectImpl::DynamicObjectImpl()
@@ -1135,7 +1135,7 @@ void DynamicObjectImpl::setFormattedString(const char* format, va_list varargs)
 
 bool DynamicObjectImpl::enableStats(bool enable)
 {
-#ifdef DB_DYNO_DEBUG
+#ifdef MO_DYNO_DEBUG
    bool rval = _stats_enabled;
    _stats_enabled = enable;
 #else
@@ -1146,7 +1146,7 @@ bool DynamicObjectImpl::enableStats(bool enable)
 
 void DynamicObjectImpl::clearStats()
 {
-#ifdef DB_DYNO_DEBUG
+#ifdef MO_DYNO_DEBUG
    memset(&_stats, 0, sizeof(_stats));
 #endif
 }
@@ -1156,17 +1156,17 @@ DynamicObject DynamicObjectImpl::getStats()
    DynamicObject rval;
    rval->setType(Map);
 
-#ifdef DB_DYNO_DEBUG
+#ifdef MO_DYNO_DEBUG
    #define GETSTAT(s, type) \
-      DB_STMT_START { \
-         DynamicObject& d = s[DB_STRINGIFY(type)]; \
+      MO_STMT_START { \
+         DynamicObject& d = s[MO_STRINGIFY(type)]; \
          d["counts"]["live"] = _stats[type].counts.live; \
          d["counts"]["dead"] = _stats[type].counts.dead; \
          d["counts"]["max"] = _stats[type].counts.max; \
          d["bytes"]["live"] = _stats[type].bytes.live; \
          d["bytes"]["dead"] = _stats[type].bytes.dead; \
          d["bytes"]["max"] = _stats[type].bytes.max; \
-      } DB_STMT_END
+      } MO_STMT_END
    GETSTAT(rval, Object);
    GETSTAT(rval, String);
    GETSTAT(rval, Boolean);

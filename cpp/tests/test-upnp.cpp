@@ -317,4 +317,4 @@ public:
 monarch::test::Tester* getDbUpnpTester() { return new DbUpnpTester(); }
 
 
-DB_TEST_MAIN(DbUpnpTester)
+MO_TEST_MAIN(DbUpnpTester)

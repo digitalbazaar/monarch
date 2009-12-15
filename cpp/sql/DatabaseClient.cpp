@@ -474,7 +474,7 @@ bool DatabaseClient::execute(SqlExecutableRef& se, Connection* c)
 
       if(mDebugLogging)
       {
-         DB_CAT_DEBUG(DB_SQL_CAT,
+         MO_CAT_DEBUG(MO_SQL_CAT,
             "SqlExecutable:\n"
             "sql: %s\n"
             "write: %s\n"

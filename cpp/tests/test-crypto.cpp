@@ -1318,4 +1318,4 @@ public:
 monarch::test::Tester* getDbCryptoTester() { return new DbCryptoTester(); }
 
 
-DB_TEST_MAIN(DbCryptoTester)
+MO_TEST_MAIN(DbCryptoTester)

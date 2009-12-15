@@ -35,11 +35,11 @@ int Trailer::convertFromBytes(char* b, int length)
 
       // read crc-32
       bb.get((char*)&mCrc32, 4);
-      mCrc32 = DB_UINT32_FROM_LE(mCrc32);
+      mCrc32 = MO_UINT32_FROM_LE(mCrc32);
 
       // read input size
       bb.get((char*)&mInputSize, 4);
-      mInputSize = DB_UINT32_FROM_LE(mInputSize);
+      mInputSize = MO_UINT32_FROM_LE(mInputSize);
    }
 
    return rval;
@@ -48,8 +48,8 @@ int Trailer::convertFromBytes(char* b, int length)
 void Trailer::convertToBytes(ByteBuffer* b)
 {
    // write crc-32 and input size
-   uint32_t crc32 = DB_UINT32_TO_LE(mCrc32);
-   uint32_t isize = DB_UINT32_TO_LE(mInputSize);
+   uint32_t crc32 = MO_UINT32_TO_LE(mCrc32);
+   uint32_t isize = MO_UINT32_TO_LE(mInputSize);
    b->put((char*)&crc32, 4, true);
    b->put((char*)&isize, 4, true);
 }

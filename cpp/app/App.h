@@ -355,7 +355,7 @@ public:
  *
  * @param appPluginClassName class name of an AppPlugin subclass.
  */
-#define DB_APP_PLUGIN_MAIN(appPluginClassName)                \
+#define MO_APP_PLUGIN_MAIN(appPluginClassName)                \
 int main(int argc, const char* argv[])                        \
 {                                                             \
    monarch::app::App app;                                          \

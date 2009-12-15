@@ -34,7 +34,7 @@ bool ControlPoint::getDescription(Url* url, string& description)
 {
    bool rval = false;
 
-   DB_CAT_DEBUG(DB_UPNP_CAT,
+   MO_CAT_DEBUG(MO_UPNP_CAT,
       "Getting UPnP description from url '%s'...",
       url->toString().c_str());
 
@@ -51,7 +51,7 @@ bool ControlPoint::getDescription(Url* url, string& description)
       HttpResponse* response = client.get(&path, &headers);
       if((rval = (response != NULL)))
       {
-         DB_CAT_DEBUG(DB_UPNP_CAT,
+         MO_CAT_DEBUG(MO_UPNP_CAT,
             "Get UPnP description response header:\n%s",
             response->getHeader()->toString().c_str());
 
@@ -60,7 +60,7 @@ bool ControlPoint::getDescription(Url* url, string& description)
          ByteArrayOutputStream baos(&bb, true);
          if((rval = client.receiveContent(&baos)))
          {
-            DB_CAT_DEBUG(DB_UPNP_CAT,
+            MO_CAT_DEBUG(MO_UPNP_CAT,
                "Get UPnP description response body:\n%s",
                string(bb.data(), bb.length()).c_str());
             if(response->getHeader()->getStatusCode() < 400)
@@ -89,7 +89,7 @@ bool ControlPoint::getDescription(Url* url, string& description)
 
    if(!rval)
    {
-      DB_CAT_ERROR(DB_UPNP_CAT,
+      MO_CAT_ERROR(MO_UPNP_CAT,
          "Failed to get UPnP description from url '%s': %s",
          url->toString().c_str(),
          JsonWriter::writeToString(
@@ -103,7 +103,7 @@ bool ControlPoint::getDescription(Url* url, string& description)
 static void parseDevice(
    Device& device, Element& root, const char* rootUrl, bool sub)
 {
-   DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing device from xml: %s",
+   MO_CAT_DEBUG(MO_UPNP_CAT, "Parsing device from xml: %s",
       JsonWriter::writeToString(root).c_str());
 
    // get basic device info
@@ -182,7 +182,7 @@ static void parseDevice(
       }
    }
 
-   DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed device: %s",
+   MO_CAT_DEBUG(MO_UPNP_CAT, "Parsed device: %s",
       JsonWriter::writeToString(device).c_str());
 }
 
@@ -240,7 +240,7 @@ bool ControlPoint::getServiceDescription(Service& service)
       reader.start(root);
       if((rval = reader.read(&bais) && reader.finish()))
       {
-         DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing service from xml: %s",
+         MO_CAT_DEBUG(MO_UPNP_CAT, "Parsing service from xml: %s",
             JsonWriter::writeToString(root).c_str());
 
          // parse out actions
@@ -310,7 +310,7 @@ bool ControlPoint::getServiceDescription(Service& service)
 
    if(rval)
    {
-      DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed service: %s",
+      MO_CAT_DEBUG(MO_UPNP_CAT, "Parsed service: %s",
          JsonWriter::writeToString(service).c_str());
    }
 
@@ -343,7 +343,7 @@ static bool doSoap(
          service["rootURL"]->getString(),
          service["controlURL"]->getString());
 
-      DB_CAT_DEBUG(DB_UPNP_CAT,
+      MO_CAT_DEBUG(MO_UPNP_CAT,
          "Sending SOAP message to url '%s':\n%s",
          url.toString().c_str(), envelope.c_str());
 
@@ -366,7 +366,7 @@ static bool doSoap(
          HttpResponse* response = client.post(&path, &headers, &bais);
          if((rval = (response != NULL)))
          {
-            DB_CAT_DEBUG(DB_UPNP_CAT,
+            MO_CAT_DEBUG(MO_UPNP_CAT,
                "Received response header:\n%s",
                response->getHeader()->toString().c_str());
 
@@ -375,7 +375,7 @@ static bool doSoap(
             ByteArrayOutputStream baos(&bb, true);
             if((rval = client.receiveContent(&baos)))
             {
-               DB_CAT_DEBUG(DB_UPNP_CAT,
+               MO_CAT_DEBUG(MO_UPNP_CAT,
                   "Received SOAP message:\n%s",
                   string(bb.data(), bb.length()).c_str());
 
@@ -417,7 +417,7 @@ static bool doSoap(
 
    if(!rval)
    {
-      DB_CAT_ERROR(DB_UPNP_CAT,
+      MO_CAT_ERROR(MO_UPNP_CAT,
          "Could not perform SOAP transfer: %s",
          JsonWriter::writeToString(
             Exception::getAsDynamicObject()).c_str());
@@ -448,7 +448,7 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
             // found wan device
             wd = next;
 
-            DB_CAT_DEBUG(DB_UPNP_CAT,
+            MO_CAT_DEBUG(MO_UPNP_CAT,
                "Found device '" UPNP_DEVICE_TYPE_WAN "'");
          }
       }
@@ -470,7 +470,7 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
             // found wan connection device
             wcd = next;
 
-            DB_CAT_DEBUG(DB_UPNP_CAT,
+            MO_CAT_DEBUG(MO_UPNP_CAT,
                "Found device '" UPNP_DEVICE_TYPE_WAN_CONNECTION "'");
          }
       }
@@ -492,7 +492,7 @@ Service ControlPoint::getWanIpConnectionService(Device& igd)
             // found wan ip connection service
             wipcs = next;
 
-            DB_CAT_DEBUG(DB_UPNP_CAT,
+            MO_CAT_DEBUG(MO_UPNP_CAT,
                "Found service '" UPNP_SERVICE_TYPE_WAN_IP_CONNECTION "'");
          }
       }
@@ -556,7 +556,7 @@ bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
       }
       else
       {
-         DB_CAT_ERROR(DB_UPNP_CAT,
+         MO_CAT_ERROR(MO_UPNP_CAT,
             "Could not add port mapping, could not connect to '%s'.",
             url.toString().c_str());
          rval = false;
@@ -565,7 +565,7 @@ bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
 
    if(rval)
    {
-      DB_CAT_DEBUG(DB_UPNP_CAT,
+      MO_CAT_DEBUG(MO_UPNP_CAT,
          "Adding port mapping: %s", JsonWriter::writeToString(pm).c_str());
    }
 
@@ -574,7 +574,7 @@ bool ControlPoint::addPortMapping(PortMapping& pm, Service& wipcs)
    rval = rval && performAction("AddPortMapping", pm, wipcs, result);
    if(!rval)
    {
-      DB_CAT_ERROR(DB_UPNP_CAT,
+      MO_CAT_ERROR(MO_UPNP_CAT,
          "Failed to add port mapping: %s, %s",
          JsonWriter::writeToString(pm).c_str(),
          JsonWriter::writeToString(Exception::getAsDynamicObject()).c_str());
@@ -587,7 +587,7 @@ bool ControlPoint::removePortMapping(PortMapping& pm, Service& wipcs, bool* dne)
 {
    bool rval = false;
 
-   DB_CAT_DEBUG(DB_UPNP_CAT,
+   MO_CAT_DEBUG(MO_UPNP_CAT,
       "Removing port mapping: %s", JsonWriter::writeToString(pm).c_str());
 
    // initialize does not exist param

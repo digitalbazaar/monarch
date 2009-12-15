@@ -86,7 +86,7 @@ bool AviHeaderList::convertFromBytes(const char* b, int length)
                else
                {
                   // invalid stream header list
-                  DB_CAT_ERROR(DB_DATA_CAT, "AviHeaderList: "
+                  MO_CAT_ERROR(MO_DATA_CAT, "AviHeaderList: "
                      "Invalid stream header list detected at offset %d",
                      offset);
                   break;

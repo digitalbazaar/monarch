@@ -58,10 +58,10 @@ void runLoggingTest(TestRunner& tr)
    Logger::addLogger(&flog);
 
    // basic tests of levels
-   DB_ERROR("[error message]");
-   DB_WARNING("[warning message]");
-   DB_INFO("[info message]");
-   DB_DEBUG("[debug message]");
+   MO_ERROR("[error message]");
+   MO_WARNING("[warning message]");
+   MO_INFO("[info message]");
+   MO_DEBUG("[debug message]");
 
    tr.passIfNoException();
 
@@ -71,29 +71,29 @@ void runLoggingTest(TestRunner& tr)
 
    // Create a test Logger and category
    OutputStreamLogger testLogger(&stdoutOS);
-   Category TEST_CAT("DB_TEST", "DB Test Suite", NULL);
+   Category TEST_CAT("MO_TEST", "DB Test Suite", NULL);
 
    // add logger for specific category
    Logger::addLogger(&testLogger, &TEST_CAT);
 
    // category test
-   DB_CAT_ERROR(&TEST_CAT, "[(TEST_CAT,DB_ALL_CAT) error message]");
+   MO_CAT_ERROR(&TEST_CAT, "[(TEST_CAT,MO_ALL_CAT) error message]");
 
    // cat error with object address
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "[(TEST,ALL) error w/ object]");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "[(TEST,ALL) error w/ object]");
 
    // check for cat logger removal
    Logger::removeLogger(&testLogger, &TEST_CAT);
-   DB_CAT_ERROR(&TEST_CAT, "[(!TEST,ALL) error message]");
+   MO_CAT_ERROR(&TEST_CAT, "[(!TEST,ALL) error message]");
 
    tr.passIfNoException();
 
    /////////////////
 
-   tr.test("DB_ALL_CAT");
+   tr.test("MO_ALL_CAT");
 
-   DB_DEBUG("ALL from DB_DEFAULT_CAT");
-   DB_CAT_DEBUG(&TEST_CAT, "ALL from TEST_CAT");
+   MO_DEBUG("ALL from MO_DEFAULT_CAT");
+   MO_CAT_DEBUG(&TEST_CAT, "ALL from TEST_CAT");
 
    tr.passIfNoException();
 
@@ -104,36 +104,36 @@ void runLoggingTest(TestRunner& tr)
    Logger::LoggerFlags old = defaultLogger.getFlags();
 
    defaultLogger.setAllFlags(0);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "none");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "none");
 
    defaultLogger.setAllFlags(Logger::LogDefaultFlags);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "default");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "default");
 
    defaultLogger.setAllFlags(Logger::LogVerboseFlags);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "verbose");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "verbose");
 
    defaultLogger.setAllFlags(Logger::LogDate);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Date");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Date");
 
    defaultLogger.setAllFlags(Logger::LogThread);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Thread");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Thread");
 
    defaultLogger.setAllFlags(Logger::LogObject);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Object");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Object");
 
    defaultLogger.setAllFlags(Logger::LogLevel);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Level");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Level");
 
    defaultLogger.setAllFlags(Logger::LogCategory);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Category");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Category");
 
    defaultLogger.setAllFlags(Logger::LogLocation);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Location");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Location");
 
    defaultLogger.setAllFlags(Logger::LogDate | Logger::LogThread |
       Logger::LogObject | Logger::LogLevel |
       Logger::LogCategory | Logger::LogLocation);
-   DB_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "all");
+   MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "all");
 
    defaultLogger.setAllFlags(old);
 
@@ -143,9 +143,9 @@ void runLoggingTest(TestRunner& tr)
 
    tr.test("object");
 
-   DB_CAT_OBJECT_DEBUG(DB_DEFAULT_CAT, &obj, "object");
-   DB_CAT_OBJECT_DEBUG(DB_DEFAULT_CAT, (void*)1, "object @ 0x1");
-   DB_CAT_OBJECT_DEBUG(DB_DEFAULT_CAT, NULL, "NULL object");
+   MO_CAT_OBJECT_DEBUG(MO_DEFAULT_CAT, &obj, "object");
+   MO_CAT_OBJECT_DEBUG(MO_DEFAULT_CAT, (void*)1, "object @ 0x1");
+   MO_CAT_OBJECT_DEBUG(MO_DEFAULT_CAT, NULL, "NULL object");
 
    tr.passIfNoException();
 
@@ -156,7 +156,7 @@ void runLoggingTest(TestRunner& tr)
    // re-add default logger
    Logger::addLogger(&defaultLogger);
    // check if message is logged twice
-   DB_DEBUG("double test");
+   MO_DEBUG("double test");
    // remove it
    Logger::removeLogger(&defaultLogger);
 
@@ -166,7 +166,7 @@ void runLoggingTest(TestRunner& tr)
 
    tr.test("varargs");
 
-   DB_ERROR("10=%d \"foo\"=\"%s\"", 10, "foo");
+   MO_ERROR("10=%d \"foo\"=\"%s\"", 10, "foo");
 
    tr.passIfNoException();
 
@@ -176,10 +176,10 @@ void runLoggingTest(TestRunner& tr)
 
    DynamicObject dyno;
    dyno["logging"] = "is fun";
-   //DB_DYNO_DEBUG(&dyno, "dyno smart pointer 1");
+   //MO_DYNO_DEBUG(&dyno, "dyno smart pointer 1");
 
    DynamicObject dyno2 = dyno;
-   //DB_DYNO_DEBUG(&dyno2, "dyno smart pointer 2");
+   //MO_DYNO_DEBUG(&dyno2, "dyno smart pointer 2");
 
    tr.passIfNoException();
 
@@ -201,7 +201,7 @@ void runLoggingTest(TestRunner& tr)
    Logger::clearLoggers();
 
    // Try to output
-   DB_DEBUG("Error if I am logged.");
+   MO_DEBUG("Error if I am logged.");
 
    assert(oss.str().length() == 0);
 
@@ -244,7 +244,7 @@ static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
 
    for(int i = 0; i < 500; i++)
    {
-      DB_DEBUG("[%05d] 01234567890123456789012345678901234567890123456789", i);
+      MO_DEBUG("[%05d] 01234567890123456789012345678901234567890123456789", i);
    }
 
    Logger::removeLogger(&flog);
@@ -300,27 +300,27 @@ void runLogRotationTest(TestRunner& tr)
 static void runColorLoggingTestAll(TestRunner& tr)
 {
    // test of levels
-   DB_ERROR("[error message]");
-   DB_WARNING("[warning message]");
-   DB_INFO("[info message]");
-   DB_DEBUG("[debug message]");
+   MO_ERROR("[error message]");
+   MO_WARNING("[warning message]");
+   MO_INFO("[info message]");
+   MO_DEBUG("[debug message]");
 
    // test known Monarch categories
-   DB_CAT_DEBUG(DB_APP_CAT, "[cat:DB_APP_CAT]");
-   DB_CAT_DEBUG(DB_CONFIG_CAT, "[cat:DB_CONFIG_CAT]");
-   DB_CAT_DEBUG(DB_CRYPTO_CAT, "[cat:DB_DATA_CAT]");
-   DB_CAT_DEBUG(DB_DATA_CAT, "[cat:DB_DATA_CAT]");
-   DB_CAT_DEBUG(DB_EVENT_CAT, "[cat:DB_EVENT_CAT]");
-   DB_CAT_DEBUG(DB_GUI_CAT, "[cat:DB_GUI_CAT]");
-   DB_CAT_DEBUG(DB_IO_CAT, "[cat:DB_IO_CAT]");
-   DB_CAT_DEBUG(DB_LOGGING_CAT, "[cat:DB_LOGGING_CAT]");
-   DB_CAT_DEBUG(DB_MAIL_CAT, "[cat:DB_MAIL_CAT]");
-   DB_CAT_DEBUG(DB_MODEST_CAT, "[cat:DB_MODEST_CAT]");
-   DB_CAT_DEBUG(DB_NET_CAT, "[cat:DB_NET_CAT]");
-   DB_CAT_DEBUG(DB_RT_CAT, "[cat:DB_RT_CAT]");
-   DB_CAT_DEBUG(DB_SPHINX_CAT, "[cat:DB_SPHINX_CAT]");
-   DB_CAT_DEBUG(DB_SQL_CAT, "[cat:DB_SQL_CAT]");
-   DB_CAT_DEBUG(DB_UTIL_CAT, "[cat:DB_UTIL_CAT]");
+   MO_CAT_DEBUG(MO_APP_CAT, "[cat:MO_APP_CAT]");
+   MO_CAT_DEBUG(MO_CONFIG_CAT, "[cat:MO_CONFIG_CAT]");
+   MO_CAT_DEBUG(MO_CRYPTO_CAT, "[cat:MO_DATA_CAT]");
+   MO_CAT_DEBUG(MO_DATA_CAT, "[cat:MO_DATA_CAT]");
+   MO_CAT_DEBUG(MO_EVENT_CAT, "[cat:MO_EVENT_CAT]");
+   MO_CAT_DEBUG(MO_GUI_CAT, "[cat:MO_GUI_CAT]");
+   MO_CAT_DEBUG(MO_IO_CAT, "[cat:MO_IO_CAT]");
+   MO_CAT_DEBUG(MO_LOGGING_CAT, "[cat:MO_LOGGING_CAT]");
+   MO_CAT_DEBUG(MO_MAIL_CAT, "[cat:MO_MAIL_CAT]");
+   MO_CAT_DEBUG(MO_MODEST_CAT, "[cat:MO_MODEST_CAT]");
+   MO_CAT_DEBUG(MO_NET_CAT, "[cat:MO_NET_CAT]");
+   MO_CAT_DEBUG(MO_RT_CAT, "[cat:MO_RT_CAT]");
+   MO_CAT_DEBUG(MO_SPHINX_CAT, "[cat:MO_SPHINX_CAT]");
+   MO_CAT_DEBUG(MO_SQL_CAT, "[cat:MO_SQL_CAT]");
+   MO_CAT_DEBUG(MO_UTIL_CAT, "[cat:MO_UTIL_CAT]");
 }
 
 void runColorLoggingTest(TestRunner& tr)
@@ -465,4 +465,4 @@ public:
 monarch::test::Tester* getDbLoggingTester() { return new DbLoggingTester(); }
 
 
-DB_TEST_MAIN(DbLoggingTester)
+MO_TEST_MAIN(DbLoggingTester)

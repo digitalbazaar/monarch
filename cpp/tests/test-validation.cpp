@@ -1117,4 +1117,4 @@ public:
 monarch::test::Tester* getDbValidationTester() { return new DbValidationTester(); }
 
 
-DB_TEST_MAIN(DbValidationTester)
+MO_TEST_MAIN(DbValidationTester)

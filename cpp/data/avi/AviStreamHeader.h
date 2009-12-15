@@ -87,7 +87,7 @@ public:
    /**
     * Chunk fourcc id "strh".
     */
-   static const fourcc_t CHUNK_ID = DB_FOURCC_FROM_CHARS('s','t','r','h');
+   static const fourcc_t CHUNK_ID = MO_FOURCC_FROM_CHARS('s','t','r','h');
 
 protected:
    /**

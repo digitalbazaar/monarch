@@ -456,4 +456,4 @@ public:
 /**
  * Create main() for the PortMap app
  */
-DB_APP_PLUGIN_MAIN(PortMapApp);
+MO_APP_PLUGIN_MAIN(PortMapApp);

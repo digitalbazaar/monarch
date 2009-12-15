@@ -688,4 +688,4 @@ public:
 monarch::test::Tester* getDbMySqlTester() { return new DbMySqlTester(); }
 
 
-DB_TEST_MAIN(DbMySqlTester)
+MO_TEST_MAIN(DbMySqlTester)

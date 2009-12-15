@@ -298,7 +298,7 @@ public:
     *
     * @param cat the message category name or NULL
     * @param level the message level
-    * @param location the location of this log call or NULL (see DB_STRLOC)
+    * @param location the location of this log call or NULL (see MO_STRLOC)
     * @param object a source object or NULL
     * @param flags flags for this message
     * @param format the log message format (printf style)
@@ -322,7 +322,7 @@ public:
     *
     * @param cat the message category name or NULL
     * @param level the message level
-    * @param location the location of this log call or NULL (see DB_STRLOC)
+    * @param location the location of this log call or NULL (see MO_STRLOC)
     * @param object a source object or NULL
     * @param flags flags for this message
     * @param format the log message format (printf style)
@@ -362,7 +362,7 @@ public:
     * @param registeredCat send to loggers registered with this category
     * @param messageCat the message category
     * @param level the message level
-    * @param location the location of this log call (or NULL) (see DB_STRLOC)
+    * @param location the location of this log call (or NULL) (see MO_STRLOC)
     * @param object a source object or NULL
     * @param flags flags for this message
     * @param format the log message format (printf style)
@@ -384,7 +384,7 @@ public:
     * @param registeredCat send to loggers registered with this category
     * @param messageCat the message category
     * @param level the message level
-    * @param location the location of this log call (or NULL) (see DB_STRLOC)
+    * @param location the location of this log call (or NULL) (see MO_STRLOC)
     * @param object a source object or NULL
     * @param flags flags for this message
     * @param format the log message format (printf style)
@@ -410,7 +410,7 @@ public:
     *
     * @param cat the message category
     * @param level the message level
-    * @param location the location of this log call (or NULL) (see DB_STRLOC)
+    * @param location the location of this log call (or NULL) (see MO_STRLOC)
     * @param object a source object or NULL
     * @param flags flags for this message
     * @param format the log message format (printf style)
@@ -431,7 +431,7 @@ public:
     *
     * @param cat the message category
     * @param level the message level
-    * @param location the location of this log call (or NULL) (see DB_STRLOC)
+    * @param location the location of this log call (or NULL) (see MO_STRLOC)
     * @param object a source object or NULL
     * @param flags flags for this message
     * @param format the log message format (printf style)
@@ -458,7 +458,7 @@ public:
     * @param category the category to use.  Defaults to the default category.
     */
    static void addLogger(Logger* logger,
-      monarch::logging::Category* category = DB_ALL_CAT);
+      monarch::logging::Category* category = MO_ALL_CAT);
 
    /**
     * Remove a logger for a category.  This will remove the first match if
@@ -468,7 +468,7 @@ public:
     * @param category the category to use.  Defaults to a generic category.
     */
    static void removeLogger(Logger* logger,
-      monarch::logging::Category* category = DB_ALL_CAT);
+      monarch::logging::Category* category = MO_ALL_CAT);
 
    /**
     * Clear all loggers.

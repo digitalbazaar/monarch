@@ -89,7 +89,7 @@ bool App::addPlugin(AppPluginRef plugin)
 Config App::makeMetaConfig(Config& meta, const char* id, const char* groupId)
 {
    Config rval;
-   rval[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
+   rval[ConfigManager::VERSION] = MO_DEFAULT_CONFIG_VERSION;
    if(groupId != NULL)
    {
       const char* g = meta["groups"][groupId]->getString();

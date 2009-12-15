@@ -254,7 +254,7 @@ void Header::convertToBytes(ByteBuffer* b)
    uint32_t time = System::getCurrentMilliseconds() / 1000;
 
    // write the MTIME (modification time)
-   time = DB_UINT32_TO_LE(time);
+   time = MO_UINT32_TO_LE(time);
    b->put((char*)&time, 4, true);
 
    // write the XFL (extra flags), no extra flags
@@ -273,7 +273,7 @@ void Header::convertToBytes(ByteBuffer* b)
       mCrc = (crc & 0xffff);
 
       // write the crc-16
-      uint32_t crc16 = DB_UINT16_TO_LE(mCrc);
+      uint32_t crc16 = MO_UINT16_TO_LE(mCrc);
       b->put((char*)&crc16, 2, true);
    }
 }

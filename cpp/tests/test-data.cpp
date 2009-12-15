@@ -1266,7 +1266,7 @@ void runSwapTest(TestRunner& tr)
    tr.test("16");
    {
       uint16_t v = 0x0123;
-      uint16_t s = DB_UINT16_SWAP_LE_BE(v);
+      uint16_t s = MO_UINT16_SWAP_LE_BE(v);
       uint16_t e = 0x2301;
       assert(s == e);
    }
@@ -1275,7 +1275,7 @@ void runSwapTest(TestRunner& tr)
    tr.test("32");
    {
       uint32_t v = 0x01234567U;
-      uint32_t s = DB_UINT32_SWAP_LE_BE(v);;
+      uint32_t s = MO_UINT32_SWAP_LE_BE(v);;
       uint32_t e = 0x67452301U;
       assert(s == e);
    }
@@ -1284,7 +1284,7 @@ void runSwapTest(TestRunner& tr)
    tr.test("64");
    {
       uint64_t v = 0x0123456789abcdefULL;
-      uint64_t s = DB_UINT64_SWAP_LE_BE(v);
+      uint64_t s = MO_UINT64_SWAP_LE_BE(v);
       uint64_t e = 0xefcdab8967452301ULL;
       assert(s == e);
    }
@@ -1299,16 +1299,16 @@ void runFourccTest(TestRunner& tr)
 
    tr.test("create");
    {
-      fourcc_t fc = DB_FOURCC_FROM_CHARS('T','E','S','T');
-      fourcc_t fs = DB_FOURCC_FROM_STR("TEST");
+      fourcc_t fc = MO_FOURCC_FROM_CHARS('T','E','S','T');
+      fourcc_t fs = MO_FOURCC_FROM_STR("TEST");
       assert(fc == fs);
 
       char b[4];
-      DB_FOURCC_TO_STR(fs, b);
+      MO_FOURCC_TO_STR(fs, b);
       assert(strncmp(b, "TEST", 4) == 0);
 
       char sb[13];
-      snprintf(sb, 13, "fourcc[%" DB_FOURCC_FORMAT "]", DB_FOURCC_ARGS(fs));
+      snprintf(sb, 13, "fourcc[%" MO_FOURCC_FORMAT "]", MO_FOURCC_ARGS(fs));
       assertStrCmp(sb, "fourcc[TEST]");
    }
    tr.passIfNoException();
@@ -1317,36 +1317,36 @@ void runFourccTest(TestRunner& tr)
    {
       uint8_t m = 0xff;
       uint8_t z = 0x00;
-      assert(DB_FOURCC_MASK(1) == DB_FOURCC_FROM_CHARS(m,z,z,z));
-      assert(DB_FOURCC_MASK(2) == DB_FOURCC_FROM_CHARS(m,m,z,z));
-      assert(DB_FOURCC_MASK(3) == DB_FOURCC_FROM_CHARS(m,m,m,z));
-      assert(DB_FOURCC_MASK(4) == DB_FOURCC_FROM_CHARS(m,m,m,m));
+      assert(MO_FOURCC_MASK(1) == MO_FOURCC_FROM_CHARS(m,z,z,z));
+      assert(MO_FOURCC_MASK(2) == MO_FOURCC_FROM_CHARS(m,m,z,z));
+      assert(MO_FOURCC_MASK(3) == MO_FOURCC_FROM_CHARS(m,m,m,z));
+      assert(MO_FOURCC_MASK(4) == MO_FOURCC_FROM_CHARS(m,m,m,m));
    }
    tr.passIfNoException();
 
    tr.test("cmp");
    {
-      fourcc_t f = DB_FOURCC_FROM_STR("TEST");
-      assert(DB_FOURCC_CMP_STR(f, "TEST"));
-      assert(!DB_FOURCC_CMP_STR(f, "xxxx"));
-      assert(f == DB_FOURCC_FROM_STR("TEST"));
-      assert(f != DB_FOURCC_FROM_STR("xxxx"));
+      fourcc_t f = MO_FOURCC_FROM_STR("TEST");
+      assert(MO_FOURCC_CMP_STR(f, "TEST"));
+      assert(!MO_FOURCC_CMP_STR(f, "xxxx"));
+      assert(f == MO_FOURCC_FROM_STR("TEST"));
+      assert(f != MO_FOURCC_FROM_STR("xxxx"));
    }
    tr.passIfNoException();
 
    tr.test("ncmp");
    {
-      fourcc_t f = DB_FOURCC_FROM_STR("TEST");
+      fourcc_t f = MO_FOURCC_FROM_STR("TEST");
 
-      assert(DB_FOURCC_NCMP_STR(f, "Txxx", 1));
-      assert(DB_FOURCC_NCMP_STR(f, "TExx", 2));
-      assert(DB_FOURCC_NCMP_STR(f, "TESx", 3));
-      assert(DB_FOURCC_NCMP_STR(f, "TEST", 4));
+      assert(MO_FOURCC_NCMP_STR(f, "Txxx", 1));
+      assert(MO_FOURCC_NCMP_STR(f, "TExx", 2));
+      assert(MO_FOURCC_NCMP_STR(f, "TESx", 3));
+      assert(MO_FOURCC_NCMP_STR(f, "TEST", 4));
 
-      assert(!DB_FOURCC_NCMP_STR(f, "xxxx", 1));
-      assert(!DB_FOURCC_NCMP_STR(f, "xxxx", 2));
-      assert(!DB_FOURCC_NCMP_STR(f, "xxxx", 3));
-      assert(!DB_FOURCC_NCMP_STR(f, "xxxx", 4));
+      assert(!MO_FOURCC_NCMP_STR(f, "xxxx", 1));
+      assert(!MO_FOURCC_NCMP_STR(f, "xxxx", 2));
+      assert(!MO_FOURCC_NCMP_STR(f, "xxxx", 3));
+      assert(!MO_FOURCC_NCMP_STR(f, "xxxx", 4));
    }
    tr.passIfNoException();
 
@@ -1360,7 +1360,7 @@ void runRiffTest(TestRunner& tr)
 
    tr.test("chunk");
    {
-      fourcc_t fourcc = DB_FOURCC_FROM_STR("TEST");
+      fourcc_t fourcc = MO_FOURCC_FROM_STR("TEST");
       uint32_t size = 0x01020304;
       RiffChunkHeader chunk(fourcc, size);
       assert(chunk.getIdentifier() == fourcc);
@@ -1822,4 +1822,4 @@ public:
 monarch::test::Tester* getDbDataTester() { return new DbDataTester(); }
 
 
-DB_TEST_MAIN(DbDataTester)
+MO_TEST_MAIN(DbDataTester)

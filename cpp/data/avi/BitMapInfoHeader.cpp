@@ -24,7 +24,7 @@ uint32_t BitMapInfoHeader::readDWord(int offset)
 
    if((offset + 4) <= HEADER_SIZE)
    {
-      rval = DB_UINT32_FROM_LE(*((uint32_t*)(mData + offset)));
+      rval = MO_UINT32_FROM_LE(*((uint32_t*)(mData + offset)));
    }
 
    return rval;

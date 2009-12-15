@@ -13,7 +13,7 @@ namespace monarch
 namespace config
 {
 
-#define DB_DEFAULT_CONFIG_VERSION "DB Config 3.0"
+#define MO_DEFAULT_CONFIG_VERSION "DB Config 3.0"
 
 // typedef for a config and its iterator
 typedef monarch::rt::DynamicObject Config;
@@ -377,7 +377,7 @@ public:
     * Return a Map of versions this manager is configured to accept.  Acceptable
     * versions are set to true.
     *
-    * This map is initialized with DB_DEFAULT_CONFIG_VERSION.
+    * This map is initialized with MO_DEFAULT_CONFIG_VERSION.
     *
     * @return an Array of versions or an empty to accept all versions.
     */

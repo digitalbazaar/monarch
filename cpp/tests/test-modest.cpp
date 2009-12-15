@@ -227,4 +227,4 @@ public:
 monarch::test::Tester* getDbModestTester() { return new DbModestTester(); }
 
 
-DB_TEST_MAIN(DbModestTester)
+MO_TEST_MAIN(DbModestTester)

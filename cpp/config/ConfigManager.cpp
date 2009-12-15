@@ -49,7 +49,7 @@ ConfigManager::ConfigManager() :
    // initialize internal data structures
    mVersions->setType(Map);
    mKeywordMap->setType(Map);
-   //addVersion(DB_DEFAULT_CONFIG_VERSION);
+   //addVersion(MO_DEFAULT_CONFIG_VERSION);
    mConfigs->setType(Map);
 }
 
@@ -161,7 +161,7 @@ bool ConfigManager::addConfigFile(
       else if(file->isFile())
       {
          // read in configuration
-         DB_CAT_DEBUG(DB_CONFIG_CAT,
+         MO_CAT_DEBUG(MO_CONFIG_CAT,
             "Loading config file: %s", fullPath.c_str());
          FileInputStream is(file);
          JsonReader r;
@@ -189,7 +189,7 @@ bool ConfigManager::addConfigFile(
       }
       else if(file->isDirectory())
       {
-         DB_CAT_DEBUG(DB_CONFIG_CAT,
+         MO_CAT_DEBUG(MO_CONFIG_CAT,
             "Loading config directory: %s", fullPath.c_str());
          FileList list;
          file->listFiles(list);
@@ -687,7 +687,7 @@ void ConfigManager::addVersion(const char* version)
    mLock.lockExclusive();
    {
       mVersions[version] = true;
-      DB_CAT_DEBUG(DB_CONFIG_CAT,
+      MO_CAT_DEBUG(MO_CONFIG_CAT,
          "Added version: \"%s\"", (version != NULL) ? version : "(none)");
    }
    mLock.unlockExclusive();
@@ -1445,7 +1445,7 @@ bool ConfigManager::recursiveAddConfig(
             // if load, then load the included config file
             if(rval && load)
             {
-               DB_CAT_DEBUG(DB_CONFIG_CAT, "Loading include: %s", path);
+               MO_CAT_DEBUG(MO_CONFIG_CAT, "Loading include: %s", path);
                rval = addConfigFile(
                   path, true, dir, optional, includeSubdirectories);
             }

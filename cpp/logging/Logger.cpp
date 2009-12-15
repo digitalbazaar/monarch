@@ -105,34 +105,34 @@ const char* Logger::levelToString(Level level, bool color)
          break;
       case Error:
          rval = color
-            ? DB_ANSI_CSI DB_ANSI_BOLD DB_ANSI_SEP
-              DB_ANSI_BG_RED DB_ANSI_SEP
-              DB_ANSI_FG_WHITE DB_ANSI_SGR
-              "ERROR" DB_ANSI_OFF
+            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
+              MO_ANSI_BG_RED MO_ANSI_SEP
+              MO_ANSI_FG_WHITE MO_ANSI_SGR
+              "ERROR" MO_ANSI_OFF
             : "ERROR";
          break;
       case Warning:
          rval = color
-            ? DB_ANSI_CSI DB_ANSI_BOLD DB_ANSI_SEP
-              DB_ANSI_BG_HI_YELLOW DB_ANSI_SEP
-              DB_ANSI_FG_BLACK DB_ANSI_SGR
-              "WARNING" DB_ANSI_OFF
+            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
+              MO_ANSI_BG_HI_YELLOW MO_ANSI_SEP
+              MO_ANSI_FG_BLACK MO_ANSI_SGR
+              "WARNING" MO_ANSI_OFF
             : "WARNING";
          break;
       case Info:
          rval = color
-            ? DB_ANSI_CSI DB_ANSI_BOLD DB_ANSI_SEP
-              DB_ANSI_BG_HI_BLUE DB_ANSI_SEP
-              DB_ANSI_FG_WHITE DB_ANSI_SGR
-              "INFO" DB_ANSI_OFF
+            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
+              MO_ANSI_BG_HI_BLUE MO_ANSI_SEP
+              MO_ANSI_FG_WHITE MO_ANSI_SGR
+              "INFO" MO_ANSI_OFF
             : "INFO";
          break;
       case Debug:
          rval = color
-            ? DB_ANSI_CSI DB_ANSI_BOLD DB_ANSI_SEP
-              DB_ANSI_BG_BLACK DB_ANSI_SEP
-              DB_ANSI_FG_HI_WHITE DB_ANSI_SGR
-              "DEBUG" DB_ANSI_OFF
+            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
+              MO_ANSI_BG_BLACK MO_ANSI_SEP
+              MO_ANSI_FG_HI_WHITE MO_ANSI_SGR
+              "DEBUG" MO_ANSI_OFF
             : "DEBUG";
          break;
       case DebugData:
@@ -421,7 +421,7 @@ bool Logger::vLog(
                // always returns "" vs NULL so check if it's an empty string
                if(ansi[0] != '\0')
                {
-                  logText.append(DB_ANSI_OFF);
+                  logText.append(MO_ANSI_OFF);
                }
             }
             else
@@ -540,7 +540,7 @@ void Logger::vLogToLoggers(
    vLogToLoggers(cat, cat, level, location, object, flags, format, varargs);
    // Log to loggers registered for all categories
    vLogToLoggers(
-      DB_ALL_CAT, cat, level, location, object, flags, format, varargs);
+      MO_ALL_CAT, cat, level, location, object, flags, format, varargs);
 }
 
 void Logger::logToLoggers(

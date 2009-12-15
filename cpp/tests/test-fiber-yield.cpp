@@ -108,4 +108,4 @@ public:
 monarch::test::Tester* getDbFiberYieldTester() { return new DbFiberYieldTester(); }
 
 
-DB_TEST_MAIN(DbFiberYieldTester)
+MO_TEST_MAIN(DbFiberYieldTester)

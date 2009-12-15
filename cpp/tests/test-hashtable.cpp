@@ -726,4 +726,4 @@ public:
 monarch::test::Tester* getDbHashTableTester() { return new DbHashTableTester(); }
 
 
-DB_TEST_MAIN(DbHashTableTester)
+MO_TEST_MAIN(DbHashTableTester)

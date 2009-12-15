@@ -823,47 +823,47 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
    tr.test("color");
    {
       const char* fg[] = {
-         "black   ", DB_ANSI_FG_BLACK,
-         "red     ", DB_ANSI_FG_RED,
-         "green   ", DB_ANSI_FG_GREEN,
-         "yellow  ", DB_ANSI_FG_YELLOW,
-         "blue    ", DB_ANSI_FG_BLUE,
-         "magenta ", DB_ANSI_FG_MAGENTA,
-         "cyan    ", DB_ANSI_FG_CYAN,
-         "white   ", DB_ANSI_FG_WHITE,
+         "black   ", MO_ANSI_FG_BLACK,
+         "red     ", MO_ANSI_FG_RED,
+         "green   ", MO_ANSI_FG_GREEN,
+         "yellow  ", MO_ANSI_FG_YELLOW,
+         "blue    ", MO_ANSI_FG_BLUE,
+         "magenta ", MO_ANSI_FG_MAGENTA,
+         "cyan    ", MO_ANSI_FG_CYAN,
+         "white   ", MO_ANSI_FG_WHITE,
          NULL
       };
       const char* bg[] = {
-         "black   ", DB_ANSI_BG_BLACK,
-         "red     ", DB_ANSI_BG_RED,
-         "green   ", DB_ANSI_BG_GREEN,
-         "yellow  ", DB_ANSI_BG_YELLOW,
-         "blue    ", DB_ANSI_BG_BLUE,
-         "magenta ", DB_ANSI_BG_MAGENTA,
-         "cyan    ", DB_ANSI_BG_CYAN,
-         "white   ", DB_ANSI_BG_WHITE,
+         "black   ", MO_ANSI_BG_BLACK,
+         "red     ", MO_ANSI_BG_RED,
+         "green   ", MO_ANSI_BG_GREEN,
+         "yellow  ", MO_ANSI_BG_YELLOW,
+         "blue    ", MO_ANSI_BG_BLUE,
+         "magenta ", MO_ANSI_BG_MAGENTA,
+         "cyan    ", MO_ANSI_BG_CYAN,
+         "white   ", MO_ANSI_BG_WHITE,
          NULL
       };
       const char* fg_hi[] = {
-         "black   ", DB_ANSI_FG_HI_BLACK,
-         "red     ", DB_ANSI_FG_HI_RED,
-         "green   ", DB_ANSI_FG_HI_GREEN,
-         "yellow  ", DB_ANSI_FG_HI_YELLOW,
-         "blue    ", DB_ANSI_FG_HI_BLUE,
-         "magenta ", DB_ANSI_FG_HI_MAGENTA,
-         "cyan    ", DB_ANSI_FG_HI_CYAN,
-         "white   ", DB_ANSI_FG_HI_WHITE,
+         "black   ", MO_ANSI_FG_HI_BLACK,
+         "red     ", MO_ANSI_FG_HI_RED,
+         "green   ", MO_ANSI_FG_HI_GREEN,
+         "yellow  ", MO_ANSI_FG_HI_YELLOW,
+         "blue    ", MO_ANSI_FG_HI_BLUE,
+         "magenta ", MO_ANSI_FG_HI_MAGENTA,
+         "cyan    ", MO_ANSI_FG_HI_CYAN,
+         "white   ", MO_ANSI_FG_HI_WHITE,
          NULL
       };
       const char* bg_hi[] = {
-         "black   ", DB_ANSI_BG_HI_BLACK,
-         "red     ", DB_ANSI_BG_HI_RED,
-         "green   ", DB_ANSI_BG_HI_GREEN,
-         "yellow  ", DB_ANSI_BG_HI_YELLOW,
-         "blue    ", DB_ANSI_BG_HI_BLUE,
-         "magenta ", DB_ANSI_BG_HI_MAGENTA,
-         "cyan    ", DB_ANSI_BG_HI_CYAN,
-         "white   ", DB_ANSI_BG_HI_WHITE,
+         "black   ", MO_ANSI_BG_HI_BLACK,
+         "red     ", MO_ANSI_BG_HI_RED,
+         "green   ", MO_ANSI_BG_HI_GREEN,
+         "yellow  ", MO_ANSI_BG_HI_YELLOW,
+         "blue    ", MO_ANSI_BG_HI_BLUE,
+         "magenta ", MO_ANSI_BG_HI_MAGENTA,
+         "cyan    ", MO_ANSI_BG_HI_CYAN,
+         "white   ", MO_ANSI_BG_HI_WHITE,
          NULL
       };
 
@@ -874,8 +874,8 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
             for(int fgi = 0; fg[fgi] != NULL; fgi += 2) \
             { \
                printf( \
-                  DB_ANSI_CSI "%s" DB_ANSI_SEP "%s" DB_ANSI_SGR \
-                  "%s" DB_ANSI_OFF, \
+                  MO_ANSI_CSI "%s" MO_ANSI_SEP "%s" MO_ANSI_SGR \
+                  "%s" MO_ANSI_OFF, \
                   fg[fgi+1], bg[bgi+1], fg[fgi]); \
             } \
             printf("\n"); \
@@ -888,23 +888,23 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
       #undef TABLE
 
       #define TXT "Digital Bazaar, Inc."
-      #define S DB_ANSI_CSI
-      #define E DB_ANSI_SGR TXT DB_ANSI_OFF "\n"
-      printf("reset:            " S DB_ANSI_RESET E);
-      printf("bold:             " S DB_ANSI_BOLD E);
-      printf("faint:            " S DB_ANSI_FAINT E);
-      printf("italic:           " S DB_ANSI_ITALIC E);
-      printf("underline single: " S DB_ANSI_UNDERLINE_SINGLE E);
-      printf("blink slow:       " S DB_ANSI_BLINK_SLOW E);
-      printf("blink rapid:      " S DB_ANSI_BLINK_RAPID E);
-      printf("negative:         " S DB_ANSI_NEGATIVE E);
-      printf("conceal:          " S DB_ANSI_CONCEAL E);
-      printf("underline double: " S DB_ANSI_UNDERLINE_DOUBLE E);
-      printf("normal:           " S DB_ANSI_NORMAL E);
-      printf("underline none:   " S DB_ANSI_UNDERLINE_NONE E);
-      printf("blink off:        " S DB_ANSI_BLINK_OFF E);
-      printf("positive:         " S DB_ANSI_POSITIVE E);
-      printf("reveal:           " S DB_ANSI_REVEAL E);
+      #define S MO_ANSI_CSI
+      #define E MO_ANSI_SGR TXT MO_ANSI_OFF "\n"
+      printf("reset:            " S MO_ANSI_RESET E);
+      printf("bold:             " S MO_ANSI_BOLD E);
+      printf("faint:            " S MO_ANSI_FAINT E);
+      printf("italic:           " S MO_ANSI_ITALIC E);
+      printf("underline single: " S MO_ANSI_UNDERLINE_SINGLE E);
+      printf("blink slow:       " S MO_ANSI_BLINK_SLOW E);
+      printf("blink rapid:      " S MO_ANSI_BLINK_RAPID E);
+      printf("negative:         " S MO_ANSI_NEGATIVE E);
+      printf("conceal:          " S MO_ANSI_CONCEAL E);
+      printf("underline double: " S MO_ANSI_UNDERLINE_DOUBLE E);
+      printf("normal:           " S MO_ANSI_NORMAL E);
+      printf("underline none:   " S MO_ANSI_UNDERLINE_NONE E);
+      printf("blink off:        " S MO_ANSI_BLINK_OFF E);
+      printf("positive:         " S MO_ANSI_POSITIVE E);
+      printf("reveal:           " S MO_ANSI_REVEAL E);
       #undef TXT
       #undef S
       #undef E
@@ -967,4 +967,4 @@ public:
 monarch::test::Tester* getDbUtilTester() { return new DbUtilTester(); }
 
 
-DB_TEST_MAIN(DbUtilTester)
+MO_TEST_MAIN(DbUtilTester)

@@ -84,4 +84,4 @@ public:
 monarch::test::Tester* getDbSphinxClientTester() { return new DbSphinxClientTester(); }
 
 
-DB_TEST_MAIN(DbSphinxClientTester)
+MO_TEST_MAIN(DbSphinxClientTester)

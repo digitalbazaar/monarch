@@ -33,8 +33,8 @@ bool RiffChunkHeader::writeTo(OutputStream& os)
 
 void RiffChunkHeader::convertToBytes(char* b)
 {
-   DB_FOURCC_TO_STR(mId, b);
-   *(uint32_t*)(b + 4) = DB_UINT32_TO_LE(mChunkSize);
+   MO_FOURCC_TO_STR(mId, b);
+   *(uint32_t*)(b + 4) = MO_UINT32_TO_LE(mChunkSize);
 }
 
 bool RiffChunkHeader::convertFromBytes(const char* b, int length)
@@ -43,8 +43,8 @@ bool RiffChunkHeader::convertFromBytes(const char* b, int length)
 
    if(b != NULL && length >= HEADER_SIZE)
    {
-      mId = DB_FOURCC_FROM_STR(b);
-      mChunkSize = DB_UINT32_FROM_LE(*((uint32_t*)(b + 4)));
+      mId = MO_FOURCC_FROM_STR(b);
+      mChunkSize = MO_UINT32_FROM_LE(*((uint32_t*)(b + 4)));
       rval = true;
    }
 

@@ -77,7 +77,7 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
       // no parent
       config[ConfigManager::GROUP] = meta["groups"]["root"]->getString();
       config[ConfigManager::ID] = id;
-      config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
+      config[ConfigManager::VERSION] = MO_DEFAULT_CONFIG_VERSION;
    }
 
    // hard-coded application boot-up defaults
@@ -88,7 +88,7 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
 
       config[ConfigManager::GROUP] = meta["groups"]["boot"]->getString();
       config[ConfigManager::ID] = id;
-      config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
+      config[ConfigManager::VERSION] = MO_DEFAULT_CONFIG_VERSION;
 
       Config& merge = config[ConfigManager::MERGE];
       merge["app"]["debug"]["init"] = false;
@@ -115,7 +115,7 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
       config[ConfigManager::GROUP] =
          meta["groups"]["command line"]->getString();
       config[ConfigManager::ID] = id;
-      config[ConfigManager::VERSION] = DB_DEFAULT_CONFIG_VERSION;
+      config[ConfigManager::VERSION] = MO_DEFAULT_CONFIG_VERSION;
 
       config[ConfigManager::TMP]->setType(Map);
       // must set since cmd line does read-modify-write directly on this config

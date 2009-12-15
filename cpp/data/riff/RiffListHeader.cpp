@@ -27,7 +27,7 @@ bool RiffListHeader::writeTo(OutputStream& os)
 void RiffListHeader::convertToBytes(char* b)
 {
    mChunkHeader.convertToBytes(b);
-   DB_FOURCC_TO_STR(mId, b + RiffChunkHeader::HEADER_SIZE);
+   MO_FOURCC_TO_STR(mId, b + RiffChunkHeader::HEADER_SIZE);
 }
 
 bool RiffListHeader::convertFromBytes(const char* b, int length)
@@ -41,7 +41,7 @@ bool RiffListHeader::convertFromBytes(const char* b, int length)
          // make sure chunk identifier is LIST
          if(mChunkHeader.getIdentifier() == CHUNK_ID)
          {
-            mId = DB_FOURCC_FROM_STR(b + RiffChunkHeader::HEADER_SIZE);
+            mId = MO_FOURCC_FROM_STR(b + RiffChunkHeader::HEADER_SIZE);
             rval = true;
          }
       }

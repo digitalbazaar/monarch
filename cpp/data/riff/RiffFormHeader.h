@@ -54,7 +54,7 @@ public:
    /**
     * The chunk header id for a RIFFs chunk.
     */
-   static const fourcc_t CHUNK_ID = DB_FOURCC_FROM_CHARS('R','I','F','F');
+   static const fourcc_t CHUNK_ID = MO_FOURCC_FROM_CHARS('R','I','F','F');
 
    /**
     * Constructs a Riff Form header with the passed parameters.

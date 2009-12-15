@@ -25,7 +25,7 @@ uint32_t SphinxClient::readUInt32(ByteBuffer* b, bool limit)
 {
    uint32_t i = 0;
    b->get((char*)&i, 4);
-   i = DB_UINT32_FROM_BE(i);
+   i = MO_UINT32_FROM_BE(i);
 
    if(limit)
    {
@@ -39,7 +39,7 @@ uint64_t SphinxClient::readUInt64(ByteBuffer* b, bool limit)
 {
    uint64_t i = 0;
    b->get((char*)&i, 8);
-   i = DB_UINT64_FROM_BE(i);
+   i = MO_UINT64_FROM_BE(i);
 
    if(limit)
    {
@@ -70,31 +70,31 @@ void SphinxClient::serializeQuery(SphinxCommand& cmd, ByteBuffer* b)
    uint32_t gdLength = strlen(groupDistinct);
 
    // get query integers and handle endianness (to big-endian)
-   uint32_t matchOffset = DB_UINT32_TO_BE(cmd["matchOffset"]->getUInt32());
-   uint32_t matchCount = DB_UINT32_TO_BE(cmd["matchCount"]->getUInt32());
-   uint32_t matchMode = DB_UINT32_TO_BE(cmd["matchMode"]->getUInt32());
-   uint32_t rankMode = DB_UINT32_TO_BE(cmd["rankMode"]->getUInt32());
-   uint32_t sortMode = DB_UINT32_TO_BE(cmd["sortMode"]->getUInt32());
-   uint32_t sortBy = DB_UINT32_TO_BE(cmd["sortBy"]->getUInt32());
-   uint32_t queryLength = DB_UINT32_TO_BE(qLength);
-   uint32_t weightCount = DB_UINT32_TO_BE(cmd["weights"]->length());
-   uint32_t indexesLength = DB_UINT32_TO_BE(indxsLength);
-   uint32_t id64Flag = DB_UINT32_TO_BE(1);
-   uint64_t minId = DB_UINT64_TO_BE(cmd["minId"]->getUInt64());
-   uint64_t maxId = DB_UINT64_TO_BE(cmd["maxId"]->getUInt64());
-   uint32_t filterCount = DB_UINT32_TO_BE(cmd["filters"]->length());
-   uint32_t groupFunction = DB_UINT32_TO_BE(cmd["groupFunction"]->getUInt32());
-   uint32_t groupByLength = DB_UINT32_TO_BE(gbyLength);
-   uint32_t groupSortLength = DB_UINT32_TO_BE(gsLength);
-   uint32_t maxMatches = DB_UINT32_TO_BE(cmd["maxMatches"]->getUInt32());
-   uint32_t cutoff = DB_UINT32_TO_BE(cmd["cutoff"]->getUInt32());
-   uint32_t retryCount = DB_UINT32_TO_BE(cmd["retryCount"]->getUInt32());
-   uint32_t retryDelay = DB_UINT32_TO_BE(cmd["retryDelay"]->getUInt32());
-   uint32_t groupDistinctLength = DB_UINT32_TO_BE(gdLength);
+   uint32_t matchOffset = MO_UINT32_TO_BE(cmd["matchOffset"]->getUInt32());
+   uint32_t matchCount = MO_UINT32_TO_BE(cmd["matchCount"]->getUInt32());
+   uint32_t matchMode = MO_UINT32_TO_BE(cmd["matchMode"]->getUInt32());
+   uint32_t rankMode = MO_UINT32_TO_BE(cmd["rankMode"]->getUInt32());
+   uint32_t sortMode = MO_UINT32_TO_BE(cmd["sortMode"]->getUInt32());
+   uint32_t sortBy = MO_UINT32_TO_BE(cmd["sortBy"]->getUInt32());
+   uint32_t queryLength = MO_UINT32_TO_BE(qLength);
+   uint32_t weightCount = MO_UINT32_TO_BE(cmd["weights"]->length());
+   uint32_t indexesLength = MO_UINT32_TO_BE(indxsLength);
+   uint32_t id64Flag = MO_UINT32_TO_BE(1);
+   uint64_t minId = MO_UINT64_TO_BE(cmd["minId"]->getUInt64());
+   uint64_t maxId = MO_UINT64_TO_BE(cmd["maxId"]->getUInt64());
+   uint32_t filterCount = MO_UINT32_TO_BE(cmd["filters"]->length());
+   uint32_t groupFunction = MO_UINT32_TO_BE(cmd["groupFunction"]->getUInt32());
+   uint32_t groupByLength = MO_UINT32_TO_BE(gbyLength);
+   uint32_t groupSortLength = MO_UINT32_TO_BE(gsLength);
+   uint32_t maxMatches = MO_UINT32_TO_BE(cmd["maxMatches"]->getUInt32());
+   uint32_t cutoff = MO_UINT32_TO_BE(cmd["cutoff"]->getUInt32());
+   uint32_t retryCount = MO_UINT32_TO_BE(cmd["retryCount"]->getUInt32());
+   uint32_t retryDelay = MO_UINT32_TO_BE(cmd["retryDelay"]->getUInt32());
+   uint32_t groupDistinctLength = MO_UINT32_TO_BE(gdLength);
    uint32_t anchorFlag = 0;
-   uint32_t maxQueryTime = DB_UINT32_TO_BE(cmd["maxQueryTime"]->getUInt32());
-   uint32_t indexWeightCount = DB_UINT32_TO_BE(cmd["indexWeights"]->length());
-   uint32_t fieldWeightCount = DB_UINT32_TO_BE(cmd["fieldWeights"]->length());
+   uint32_t maxQueryTime = MO_UINT32_TO_BE(cmd["maxQueryTime"]->getUInt32());
+   uint32_t indexWeightCount = MO_UINT32_TO_BE(cmd["indexWeights"]->length());
+   uint32_t fieldWeightCount = MO_UINT32_TO_BE(cmd["fieldWeights"]->length());
 
    // serialize match info
    b->put((char*)&matchOffset, 4, true);
@@ -117,7 +117,7 @@ void SphinxClient::serializeQuery(SphinxCommand& cmd, ByteBuffer* b)
    while(swi->hasNext())
    {
       DynamicObject& dyno = swi->next();
-      weight = DB_UINT32_TO_BE(dyno->getUInt32());
+      weight = MO_UINT32_TO_BE(dyno->getUInt32());
       b->put((char*)&weight, 4, true);
    }
 
@@ -139,9 +139,9 @@ void SphinxClient::serializeQuery(SphinxCommand& cmd, ByteBuffer* b)
 
       // get filter name, type, and exclude flag
       const char* name = filter["name"]->getString();
-      uint32_t nameLength = DB_UINT32_TO_BE(strlen(name));
-      uint32_t type = DB_UINT32_TO_BE(filter["type"]->getUInt32());
-      uint32_t excludeFlag = DB_UINT32_TO_BE(
+      uint32_t nameLength = MO_UINT32_TO_BE(strlen(name));
+      uint32_t type = MO_UINT32_TO_BE(filter["type"]->getUInt32());
+      uint32_t excludeFlag = MO_UINT32_TO_BE(
          (filter["exclude"]->getBoolean() ? 1 : 0));
 
       // serialize name and type
@@ -155,14 +155,14 @@ void SphinxClient::serializeQuery(SphinxCommand& cmd, ByteBuffer* b)
          {
             // serialize count and values
             filter["values"]->setType(Array);
-            uint32_t count = DB_UINT32_TO_BE(filter["values"]->length());
+            uint32_t count = MO_UINT32_TO_BE(filter["values"]->length());
             b->put((char*)&count, 4, true);
             DynamicObjectIterator vi = filter["values"].getIterator();
             uint32_t value;
             while(vi->hasNext())
             {
                DynamicObject& dyno = vi->next();
-               value = DB_UINT32_TO_BE(dyno->getUInt32());
+               value = MO_UINT32_TO_BE(dyno->getUInt32());
                b->put((char*)&value, 4, true);
             }
             break;
@@ -170,8 +170,8 @@ void SphinxClient::serializeQuery(SphinxCommand& cmd, ByteBuffer* b)
          case SPHINX_FILTER_RANGE:
          {
             // serialize min and max
-            uint32_t min = DB_UINT32_TO_BE(filter["min"]->getUInt32());
-            uint32_t max = DB_UINT32_TO_BE(filter["max"]->getUInt32());
+            uint32_t min = MO_UINT32_TO_BE(filter["min"]->getUInt32());
+            uint32_t max = MO_UINT32_TO_BE(filter["max"]->getUInt32());
             b->put((char*)&min, 4, true);
             b->put((char*)&max, 4, true);
             break;
@@ -204,7 +204,7 @@ void SphinxClient::serializeQuery(SphinxCommand& cmd, ByteBuffer* b)
    while(swi->hasNext())
    {
       DynamicObject& dyno = swi->next();
-      weight = DB_UINT32_TO_BE(dyno->getUInt32());
+      weight = MO_UINT32_TO_BE(dyno->getUInt32());
       b->put((char*)&weight, 4, true);
    }
 
@@ -217,7 +217,7 @@ void SphinxClient::serializeQuery(SphinxCommand& cmd, ByteBuffer* b)
    while(swi->hasNext())
    {
       DynamicObject& dyno = swi->next();
-      weight = DB_UINT32_TO_BE(dyno->getUInt32());
+      weight = MO_UINT32_TO_BE(dyno->getUInt32());
       b->put((char*)&weight, 4, true);
    }
 }
@@ -235,18 +235,18 @@ void SphinxClient::serializeCommand(SphinxCommand& cmd, ByteBuffer* b)
    switch(command)
    {
       case SPHINX_SEARCHD_CMD_SEARCH:
-         commandVersion = DB_UINT16_TO_BE(SPHINX_SEARCHD_CMDVER_SEARCH);
+         commandVersion = MO_UINT16_TO_BE(SPHINX_SEARCHD_CMDVER_SEARCH);
          break;
       case SPHINX_SEARCHD_CMD_EXCERPT:
-         commandVersion = DB_UINT16_TO_BE(SPHINX_SEARCHD_CMDVER_EXCERPT);
+         commandVersion = MO_UINT16_TO_BE(SPHINX_SEARCHD_CMDVER_EXCERPT);
          break;
       case SPHINX_SEARCHD_CMD_UPDATE:
-         commandVersion = DB_UINT16_TO_BE(SPHINX_SEARCHD_CMDVER_UPDATE);
+         commandVersion = MO_UINT16_TO_BE(SPHINX_SEARCHD_CMDVER_UPDATE);
          break;
    }
-   command = DB_UINT16_TO_BE(command);
+   command = MO_UINT16_TO_BE(command);
    uint32_t dataLength = 0;
-   uint32_t requestCount = DB_UINT32_TO_BE(1);
+   uint32_t requestCount = MO_UINT32_TO_BE(1);
 
    // serialize request header, leaving room for the data length
    b->put((char*)&command, 2, true);
@@ -265,7 +265,7 @@ void SphinxClient::serializeCommand(SphinxCommand& cmd, ByteBuffer* b)
    }
 
    // update the data length (length - 8 byte header)
-   dataLength = DB_UINT32_TO_BE(b->length() - 8);
+   dataLength = MO_UINT32_TO_BE(b->length() - 8);
    memcpy(b->data() + 4, (char*)&dataLength, 4);
 }
 
@@ -513,7 +513,7 @@ bool SphinxClient::checkVersion(Connection* c)
    else
    {
       // handle endianness (from big endian)
-      version = DB_UINT32_FROM_BE(version);
+      version = MO_UINT32_FROM_BE(version);
       if(version < 1)
       {
          // unsupported protocol version
@@ -526,7 +526,7 @@ bool SphinxClient::checkVersion(Connection* c)
       else
       {
          // send our protocol version (1)
-         version = DB_UINT32_TO_BE(1);
+         version = MO_UINT32_TO_BE(1);
          rval = c->getOutputStream()->write((char*)&version, 4);
       }
    }
@@ -559,9 +559,9 @@ bool SphinxClient::receiveResponse(
       memcpy(&status, header, 2);
       memcpy(&version, header + 2, 2);
       memcpy(&length, header + 4, 4);
-      status = DB_UINT16_FROM_BE(status);
-      version = DB_UINT16_FROM_BE(version);
-      length = DB_UINT32_FROM_BE(length);
+      status = MO_UINT16_FROM_BE(status);
+      version = MO_UINT16_FROM_BE(version);
+      length = MO_UINT32_FROM_BE(length);
 
       // if length exceeds 8 MB -- we've got a problem (sphinx max packet size)
       if(length > 1048576*8)

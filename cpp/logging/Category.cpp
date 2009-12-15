@@ -10,8 +10,8 @@ using namespace monarch::logging;
 
 // DO NOT INITIALIZE THESE VARIABLES!
 // These are not initialized on purpose due to initialization code issues.
-Category* DB_DEFAULT_CAT;
-Category* DB_ALL_CAT;
+Category* MO_DEFAULT_CAT;
+Category* MO_ALL_CAT;
 
 Category::Category(const char* id, const char* name, const char* description) :
    mId(NULL),
@@ -34,11 +34,11 @@ Category::~Category()
 
 void Category::initialize()
 {
-   DB_DEFAULT_CAT = new Category(
-      "DB_DEFAULT",
+   MO_DEFAULT_CAT = new Category(
+      "MO_DEFAULT",
       "Default",
       "Default category for general use");
-   DB_ALL_CAT = new Category(
+   MO_ALL_CAT = new Category(
       NULL,
       NULL,
       "Pseudo-category that matches ALL other categories");
@@ -46,11 +46,11 @@ void Category::initialize()
 
 void Category::cleanup()
 {
-   delete DB_DEFAULT_CAT;
-   DB_DEFAULT_CAT = NULL;
+   delete MO_DEFAULT_CAT;
+   MO_DEFAULT_CAT = NULL;
 
-   delete DB_ALL_CAT;
-   DB_ALL_CAT = NULL;
+   delete MO_ALL_CAT;
+   MO_ALL_CAT = NULL;
 }
 
 void Category::setId(const char* id)

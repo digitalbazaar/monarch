@@ -486,4 +486,4 @@ public:
 monarch::test::Tester* getDbConfigTester() { return new DbConfigTester(); }
 
 
-DB_TEST_MAIN(DbConfigTester)
+MO_TEST_MAIN(DbConfigTester)

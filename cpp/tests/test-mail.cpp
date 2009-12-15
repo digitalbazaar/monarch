@@ -463,4 +463,4 @@ public:
 monarch::test::Tester* getDbMailTester() { return new DbMailTester(); }
 
 
-DB_TEST_MAIN(DbMailTester)
+MO_TEST_MAIN(DbMailTester)

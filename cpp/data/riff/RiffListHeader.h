@@ -39,7 +39,7 @@ public:
    /**
     * The chunk header id for a list chunk.
     */
-   static const fourcc_t CHUNK_ID = DB_FOURCC_FROM_CHARS('L','I','S','T');
+   static const fourcc_t CHUNK_ID = MO_FOURCC_FROM_CHARS('L','I','S','T');
 
 protected:
    /**

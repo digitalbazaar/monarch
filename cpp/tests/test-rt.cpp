@@ -1985,18 +1985,18 @@ void runDynoStatsTest(TestRunner& tr)
 {
    tr.group("DynamicObject stats");
 
-#ifdef DB_DYNO_DEBUG
+#ifdef MO_DYNO_DEBUG
    // zeroed stats
    #define SETSTAT(s, field, livec, deadc, maxc, liveb, deadb, maxb) \
-      DB_STMT_START { \
-         DynamicObject& d = s[DB_STRINGIFY(field)]; \
+      MO_STMT_START { \
+         DynamicObject& d = s[MO_STRINGIFY(field)]; \
          d["counts"]["live"] = livec; \
          d["counts"]["dead"] = deadc; \
          d["counts"]["max"] = maxc; \
          d["bytes"]["live"] = liveb; \
          d["bytes"]["dead"] = deadb; \
          d["bytes"]["max"] = maxb; \
-      } DB_STMT_END
+      } MO_STMT_END
    DynamicObject zero;
    SETSTAT(zero, Object, 0, 0, 0, 0, 0, 0);
    SETSTAT(zero, String, 0, 0, 0, 0, 0, 0);
@@ -2282,4 +2282,4 @@ public:
 monarch::test::Tester* getDbRtTester() { return new DbRtTester(); }
 
 
-DB_TEST_MAIN(DbRtTester)
+MO_TEST_MAIN(DbRtTester)

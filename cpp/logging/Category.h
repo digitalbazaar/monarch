@@ -19,8 +19,8 @@ namespace monarch
    }
 }
 
-extern monarch::logging::Category* DB_DEFAULT_CAT;
-extern monarch::logging::Category* DB_ALL_CAT;
+extern monarch::logging::Category* MO_DEFAULT_CAT;
+extern monarch::logging::Category* MO_ALL_CAT;
 
 namespace monarch
 {

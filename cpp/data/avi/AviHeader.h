@@ -92,7 +92,7 @@ public:
    /**
     * Chunk fourcc id "avih".
     */
-   static const fourcc_t CHUNK_ID = DB_FOURCC_FROM_CHARS('a','v','i','h');
+   static const fourcc_t CHUNK_ID = MO_FOURCC_FROM_CHARS('a','v','i','h');
 
    /**
     * Indicates whether or not the AVI has an Index Chunk.

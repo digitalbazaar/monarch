@@ -166,7 +166,7 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
    reader.start(root);
    if((rval = reader.read(is) && reader.finish()))
    {
-      DB_CAT_DEBUG(DB_UPNP_CAT, "Parsing SOAP envelope: %s",
+      MO_CAT_DEBUG(MO_UPNP_CAT, "Parsing SOAP envelope: %s",
          JsonWriter::writeToString(root).c_str());
 
       // ensure there is a body in the response
@@ -210,7 +210,7 @@ bool SoapEnvelope::parse(InputStream* is, SoapResult& result)
       }
       else
       {
-         DB_CAT_DEBUG(DB_UPNP_CAT, "Parsed SOAP result: %s",
+         MO_CAT_DEBUG(MO_UPNP_CAT, "Parsed SOAP result: %s",
             JsonWriter::writeToString(result).c_str());
       }
    }

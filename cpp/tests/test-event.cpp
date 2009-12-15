@@ -850,4 +850,4 @@ public:
 monarch::test::Tester* getDbEventTester() { return new DbEventTester(); }
 
 
-DB_TEST_MAIN(DbEventTester)
+MO_TEST_MAIN(DbEventTester)

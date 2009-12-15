@@ -7,146 +7,146 @@ using namespace monarch::logging;
 
 // DO NOT INITIALIZE THESE VARIABLES!
 // These are not initialized on purpose due to initialization code issues.
-Category* DB_APP_CAT;
-Category* DB_CONFIG_CAT;
-Category* DB_CRYPTO_CAT;
-Category* DB_DATA_CAT;
-Category* DB_EVENT_CAT;
-Category* DB_GUI_CAT;
-Category* DB_HTTP_CAT;
-Category* DB_IO_CAT;
-Category* DB_LOGGING_CAT;
-Category* DB_MAIL_CAT;
-Category* DB_MODEST_CAT;
-Category* DB_NET_CAT;
-Category* DB_RT_CAT;
-Category* DB_SPHINX_CAT;
-Category* DB_SQL_CAT;
-Category* DB_UPNP_CAT;
-Category* DB_UTIL_CAT;
+Category* MO_APP_CAT;
+Category* MO_CONFIG_CAT;
+Category* MO_CRYPTO_CAT;
+Category* MO_DATA_CAT;
+Category* MO_EVENT_CAT;
+Category* MO_GUI_CAT;
+Category* MO_HTTP_CAT;
+Category* MO_IO_CAT;
+Category* MO_LOGGING_CAT;
+Category* MO_MAIL_CAT;
+Category* MO_MODEST_CAT;
+Category* MO_NET_CAT;
+Category* MO_RT_CAT;
+Category* MO_SPHINX_CAT;
+Category* MO_SQL_CAT;
+Category* MO_UPNP_CAT;
+Category* MO_UTIL_CAT;
 
 void LoggingCategories::initialize()
 {
-   DB_APP_CAT = new Category(
-      "DB_APP",
+   MO_APP_CAT = new Category(
+      "MO_APP",
       "DB Application",
       NULL);
-   DB_CONFIG_CAT = new Category(
-      "DB_CONFIG",
+   MO_CONFIG_CAT = new Category(
+      "MO_CONFIG",
       "DB Config",
       NULL);
-   DB_CRYPTO_CAT = new Category(
-      "DB_CRYPTO",
+   MO_CRYPTO_CAT = new Category(
+      "MO_CRYPTO",
       "DB Cryptography",
       NULL);
-   DB_DATA_CAT = new Category(
-      "DB_DATA",
+   MO_DATA_CAT = new Category(
+      "MO_DATA",
       "DB Data",
       NULL);
-   DB_EVENT_CAT = new Category(
-      "DB_EVENT",
+   MO_EVENT_CAT = new Category(
+      "MO_EVENT",
       "DB Event",
       NULL);
-   DB_GUI_CAT = new Category(
-      "DB_GUI",
+   MO_GUI_CAT = new Category(
+      "MO_GUI",
       "DB Graphical User Interface",
       NULL);
-   DB_HTTP_CAT = new Category(
-      "DB_HTTP",
+   MO_HTTP_CAT = new Category(
+      "MO_HTTP",
       "DB Http",
       NULL);
-   DB_IO_CAT = new Category(
-      "DB_IO",
+   MO_IO_CAT = new Category(
+      "MO_IO",
       "DB Input/Output",
       NULL);
-   DB_LOGGING_CAT = new Category(
-      "DB_LOGGING",
+   MO_LOGGING_CAT = new Category(
+      "MO_LOGGING",
       "DB Logging",
       NULL);
-   DB_MAIL_CAT = new Category(
-      "DB_MAIL",
+   MO_MAIL_CAT = new Category(
+      "MO_MAIL",
       "DB Mail",
       NULL);
-   DB_MODEST_CAT = new Category(
-      "DB_MODEST",
+   MO_MODEST_CAT = new Category(
+      "MO_MODEST",
       "DB Modest Engine",
       NULL);
-   DB_NET_CAT = new Category(
-      "DB_NET",
+   MO_NET_CAT = new Category(
+      "MO_NET",
       "DB Networking",
       NULL);
-   DB_RT_CAT = new Category(
-      "DB_RT",
+   MO_RT_CAT = new Category(
+      "MO_RT",
       "DB Runtime",
       NULL);
-   DB_SPHINX_CAT = new Category(
-      "DB_SPHINX",
+   MO_SPHINX_CAT = new Category(
+      "MO_SPHINX",
       "DB Sphinx",
       NULL);
-   DB_SQL_CAT = new Category(
-      "DB_SQL",
+   MO_SQL_CAT = new Category(
+      "MO_SQL",
       "DB SQL",
       NULL);
-   DB_UPNP_CAT = new Category(
-      "DB_UPNP",
+   MO_UPNP_CAT = new Category(
+      "MO_UPNP",
       "DB UPnP",
       NULL);
-   DB_UTIL_CAT = new Category(
-      "DB_UTIL",
+   MO_UTIL_CAT = new Category(
+      "MO_UTIL",
       "DB Utilities",
       NULL);
 }
 
 void LoggingCategories::cleanup()
 {
-   delete DB_APP_CAT;
-   DB_APP_CAT = NULL;
+   delete MO_APP_CAT;
+   MO_APP_CAT = NULL;
 
-   delete DB_CONFIG_CAT;
-   DB_CONFIG_CAT = NULL;
+   delete MO_CONFIG_CAT;
+   MO_CONFIG_CAT = NULL;
 
-   delete DB_CRYPTO_CAT;
-   DB_CRYPTO_CAT = NULL;
+   delete MO_CRYPTO_CAT;
+   MO_CRYPTO_CAT = NULL;
 
-   delete DB_DATA_CAT;
-   DB_DATA_CAT = NULL;
+   delete MO_DATA_CAT;
+   MO_DATA_CAT = NULL;
 
-   delete DB_EVENT_CAT;
-   DB_EVENT_CAT = NULL;
+   delete MO_EVENT_CAT;
+   MO_EVENT_CAT = NULL;
 
-   delete DB_GUI_CAT;
-   DB_GUI_CAT = NULL;
+   delete MO_GUI_CAT;
+   MO_GUI_CAT = NULL;
 
-   delete DB_HTTP_CAT;
-   DB_HTTP_CAT = NULL;
+   delete MO_HTTP_CAT;
+   MO_HTTP_CAT = NULL;
 
-   delete DB_IO_CAT;
-   DB_IO_CAT = NULL;
+   delete MO_IO_CAT;
+   MO_IO_CAT = NULL;
 
-   delete DB_LOGGING_CAT;
-   DB_LOGGING_CAT = NULL;
+   delete MO_LOGGING_CAT;
+   MO_LOGGING_CAT = NULL;
 
-   delete DB_MAIL_CAT;
-   DB_MAIL_CAT = NULL;
+   delete MO_MAIL_CAT;
+   MO_MAIL_CAT = NULL;
 
-   delete DB_MODEST_CAT;
-   DB_MODEST_CAT = NULL;
+   delete MO_MODEST_CAT;
+   MO_MODEST_CAT = NULL;
 
-   delete DB_NET_CAT;
-   DB_NET_CAT = NULL;
+   delete MO_NET_CAT;
+   MO_NET_CAT = NULL;
 
-   delete DB_RT_CAT;
-   DB_RT_CAT = NULL;
+   delete MO_RT_CAT;
+   MO_RT_CAT = NULL;
 
-   delete DB_SPHINX_CAT;
-   DB_SPHINX_CAT = NULL;
+   delete MO_SPHINX_CAT;
+   MO_SPHINX_CAT = NULL;
 
-   delete DB_SQL_CAT;
-   DB_SQL_CAT = NULL;
+   delete MO_SQL_CAT;
+   MO_SQL_CAT = NULL;
 
-   delete DB_UPNP_CAT;
-   DB_UPNP_CAT = NULL;
+   delete MO_UPNP_CAT;
+   MO_UPNP_CAT = NULL;
 
-   delete DB_UTIL_CAT;
-   DB_UTIL_CAT = NULL;
+   delete MO_UTIL_CAT;
+   MO_UTIL_CAT = NULL;
 }

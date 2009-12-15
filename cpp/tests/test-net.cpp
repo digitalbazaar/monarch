@@ -1521,4 +1521,4 @@ public:
 monarch::test::Tester* getDbNetTester() { return new DbNetTester(); }
 
 
-DB_TEST_MAIN(DbNetTester)
+MO_TEST_MAIN(DbNetTester)

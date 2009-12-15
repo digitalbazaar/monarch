@@ -11,25 +11,25 @@
 /**
  * Macro statement wrapper.  Adapted from glib.
  * Use:
- * if(x) DB_STMT_START { ... } DB_STMT_END; else ...
+ * if(x) MO_STMT_START { ... } MO_STMT_END; else ...
  */
-#define DB_STMT_START do
-#define DB_STMT_END while (0)
+#define MO_STMT_START do
+#define MO_STMT_END while (0)
 
 /**
  * Macro to do nothing, useful to disable debug macros.
  */
-#define DB_STMT_EMPTY DB_STMT_START {} DB_STMT_END;
+#define MO_STMT_EMPTY MO_STMT_START {} MO_STMT_END;
 
 /**
  * Convert argument to a string
  */
-#define DB_STRINGIFY_ARG(arg) #arg
-#define DB_STRINGIFY(arg) DB_STRINGIFY_ARG(arg)
+#define MO_STRINGIFY_ARG(arg) #arg
+#define MO_STRINGIFY(arg) MO_STRINGIFY_ARG(arg)
 
 /**
  * String representing the current code location.
  */
-#define DB_STRLOC __FILE__ ":" DB_STRINGIFY(__LINE__)
+#define MO_STRLOC __FILE__ ":" MO_STRINGIFY(__LINE__)
 
 #endif

@@ -24,7 +24,7 @@ namespace test
  * following.  Use the #ifdef so the cpp can be built without main() for use
  * in a combined test executable.
  *
- * #ifdef DB_TEST_BUILD_MAIN
+ * #ifdef MO_TEST_BUILD_MAIN
  * int main(int argc, const char* argv[])
  * {
  *    App app;
@@ -36,7 +36,7 @@ namespace test
  * #endif
  *
  * A macro is provided to do similar:
- * DB_TEST_MAIN(DbIoTester)
+ * MO_TEST_MAIN(DbIoTester)
  *
  * Author: David I. Lehn
  */
@@ -156,7 +156,7 @@ public:
 /**
  * Macro to ease defining and starting a Tester.
  */
-#define DB_TEST_MAIN(testClassName) DB_APP_PLUGIN_MAIN(testClassName)
+#define MO_TEST_MAIN(testClassName) MO_APP_PLUGIN_MAIN(testClassName)
 
 } // end namespace test
 } // end namespace monarch

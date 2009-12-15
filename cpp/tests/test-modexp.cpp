@@ -82,4 +82,4 @@ public:
 monarch::test::Tester* getDbModExpTester() { return new DbModExpTester(); }
 
 
-DB_TEST_MAIN(DbModExpTester)
+MO_TEST_MAIN(DbModExpTester)

@@ -196,7 +196,7 @@ void ConnectionService::serviceConnection(void* s)
       SocketAddress* remote = c->getRemoteAddress();
 
       // log connection
-      DB_CAT_DEBUG(DB_NET_CAT, "%s:%i servicing %s connection from %s:%i",
+      MO_CAT_DEBUG(MO_NET_CAT, "%s:%i servicing %s connection from %s:%i",
          local->getAddress(),
          local->getPort(),
          secure ? "secure" : "non-secure",
@@ -208,7 +208,7 @@ void ConnectionService::serviceConnection(void* s)
       uint64_t ms = t.getElapsedMilliseconds();
 
       // log connection
-      DB_CAT_DEBUG(DB_NET_CAT,
+      MO_CAT_DEBUG(MO_NET_CAT,
          "%s:%i serviced %s connection from %s:%i in %llu ms",
          local->getAddress(),
          local->getPort(),

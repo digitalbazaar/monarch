@@ -240,7 +240,7 @@ int DeviceDiscoverer::discover(
       // create and send discover request datagram
       DatagramRef request = new Datagram(groupAddr);
       request->assignString(requestHeader.toString().c_str());
-      DB_CAT_DEBUG(DB_UPNP_CAT, "Sending UPnP request:\n%s",
+      MO_CAT_DEBUG(MO_UPNP_CAT, "Sending UPnP request:\n%s",
          requestHeader.toString().c_str());
       if(socket.send(request))
       {
@@ -265,14 +265,14 @@ int DeviceDiscoverer::discover(
                ExceptionRef e = Exception::get();
                if(e->isType("monarch.net.SocketTimeout"))
                {
-                  DB_CAT_DEBUG(DB_UPNP_CAT, "UPnP request timed out.");
+                  MO_CAT_DEBUG(MO_UPNP_CAT, "UPnP request timed out.");
 
                   // exception indicates timed out
                   remaining = 0;
                }
                else
                {
-                  DB_CAT_ERROR(DB_UPNP_CAT,
+                  MO_CAT_ERROR(MO_UPNP_CAT,
                      "UPnP request error: %s",
                      JsonWriter::writeToString(
                         Exception::getAsDynamicObject()).c_str());
@@ -284,12 +284,12 @@ int DeviceDiscoverer::discover(
             else
             {
                // parse ssdp response
-               DB_CAT_DEBUG(DB_UPNP_CAT, "Received UPnP response:\n%s",
+               MO_CAT_DEBUG(MO_UPNP_CAT, "Received UPnP response:\n%s",
                   response->getString().c_str());
                Device device = parseDevice(response->getString().c_str());
                if(device.isNull())
                {
-                  DB_CAT_ERROR(DB_UPNP_CAT,
+                  MO_CAT_ERROR(MO_UPNP_CAT,
                      "UPnP response parse error: %s",
                      JsonWriter::writeToString(
                         Exception::getAsDynamicObject()).c_str());
@@ -299,7 +299,7 @@ int DeviceDiscoverer::discover(
                }
                else
                {
-                  DB_CAT_DEBUG(DB_UPNP_CAT,
+                  MO_CAT_DEBUG(MO_UPNP_CAT,
                      "Found UPnP device: %s",
                      JsonWriter::writeToString(device).c_str());
 
