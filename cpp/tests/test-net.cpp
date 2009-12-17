@@ -1218,7 +1218,7 @@ void runServerDynamicServiceTest(TestRunner& tr)
       k.getEngine()->start();
 
       // create server
-      Server server(&k);
+      Server server;
       InternetAddress address1("0.0.0.0", 0);
       InternetAddress address2("0.0.0.0", 0);
 
@@ -1227,7 +1227,7 @@ void runServerDynamicServiceTest(TestRunner& tr)
       Server::ServiceId id1 = server.addConnectionService(&address1, &tcs1);
       assert(id1 != 0);
 
-      server.start();
+      server.start(&k);
       assertNoException();
 
       // create generic service
@@ -1353,7 +1353,7 @@ void runServerSslConnectionTest(TestRunner& tr)
    k.getEngine()->start();
 
    // create server
-   Server server(&k);
+   Server server;
    InternetAddress address("localhost", 19100);
 
    // set up SSL context
@@ -1377,7 +1377,7 @@ void runServerSslConnectionTest(TestRunner& tr)
 //   list.add(&presenter2);
 //   server.addConnectionService(&address, &tcs1, &list);
 
-   assert(server.start());
+   assert(server.start(&k));
    printf("Server started.\n");
 
    BlastConnections bc(&address, true);
@@ -1451,14 +1451,14 @@ void runServerDatagramTest(TestRunner& tr)
    k.getEngine()->start();
 
    // create server
-   Server server(&k);
+   Server server;
    InternetAddress address("localhost", 10080);
 
    // create datagram service
    TestDatagramServicer tds;
    server.addDatagramService(&address, &tds);
 
-   if(server.start())
+   if(server.start(&k))
    {
       printf("Server started.\n");
    }

@@ -26,6 +26,7 @@ SUBDIRS := \
 	cpp/mail \
 	cpp/mysql \
 	cpp/upnp \
+	cpp/kernel \
 	cpp/app \
 	cpp/test \
 	$(EXECUTABLE_SUBDIRS)
@@ -39,6 +40,7 @@ INSTALL_LIBRARIES := \
 	dist/lib/libmoevent.so \
 	dist/lib/libmofiber.so \
 	dist/lib/libmoio.so \
+	dist/lib/libmokernel.so \
 	dist/lib/libmologging.so \
 	dist/lib/libmomail.so \
 	dist/lib/libmomodest.so \

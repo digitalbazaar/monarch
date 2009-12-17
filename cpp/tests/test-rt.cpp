@@ -1,6 +1,9 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/test/Test.h"
 #include "monarch/test/Tester.h"
 #include "monarch/test/TestRunner.h"
@@ -34,6 +37,17 @@ void runTimeTest(TestRunner& tr)
    uint64_t end = System::getCurrentMilliseconds();
 
    printf("Time end=%llu\n", end);
+
+   tr.pass();
+}
+
+void runCpuInfoTest(TestRunner& tr)
+{
+   tr.test("CPU info");
+
+   uint32_t count = System::getCpuCoreCount();
+
+   printf("# cores=%" PRIu32 "\n", count);
 
    tr.pass();
 }
@@ -2275,6 +2289,7 @@ public:
    {
       runInteractiveSharedLockTest(tr);
       runTimeTest(tr);
+      runCpuInfoTest(tr);
       return 0;
    }
 };

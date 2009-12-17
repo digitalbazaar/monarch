@@ -15,8 +15,8 @@ using namespace monarch::rt;
 
 Server::ServiceId Server::sInvalidServiceId = 0;
 
-Server::Server(OperationRunner* opRunner) :
-   mOperationRunner(opRunner),
+Server::Server() :
+   mOperationRunner(NULL),
    mRunning(false),
    mMaxConnections(100),
    mCurrentConnections(0)
@@ -115,7 +115,7 @@ bool Server::removePortService(ServiceId id)
    return rval;
 }
 
-bool Server::start()
+bool Server::start(OperationRunner* opRunner)
 {
    bool rval = true;
 
@@ -125,6 +125,7 @@ bool Server::start()
       {
          // now running
          mRunning = true;
+         mOperationRunner = opRunner;
 
          // no connections yet
          mCurrentConnections = 0;
@@ -183,6 +184,7 @@ void Server::stop()
          mCurrentConnections = 0;
 
          // no longer running
+         mOperationRunner = NULL;
          mRunning = false;
       }
    }

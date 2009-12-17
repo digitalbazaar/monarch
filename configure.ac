@@ -268,6 +268,7 @@ AC_CONFIG_FILES([
           cpp/fiber/Makefile
           cpp/http/Makefile
           cpp/io/Makefile
+          cpp/kernel/Makefile
           cpp/logging/Makefile
           cpp/mail/Makefile
           cpp/modest/Makefile

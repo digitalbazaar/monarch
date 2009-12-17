@@ -17,6 +17,7 @@ extern monarch::logging::Category* MO_EVENT_CAT;
 extern monarch::logging::Category* MO_GUI_CAT;
 extern monarch::logging::Category* MO_HTTP_CAT;
 extern monarch::logging::Category* MO_IO_CAT;
+extern monarch::logging::Category* MO_KERNEL_CAT;
 extern monarch::logging::Category* MO_LOGGING_CAT;
 extern monarch::logging::Category* MO_MAIL_CAT;
 extern monarch::logging::Category* MO_MODEST_CAT;

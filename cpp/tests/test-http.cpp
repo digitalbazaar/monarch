@@ -477,7 +477,7 @@ void runHttpServerTest(TestRunner& tr)
    k.getEngine()->start();
 
    // create server
-   Server server(&k);
+   Server server;
    InternetAddress address("0.0.0.0", 19100);
 
    // create SSL/generic http connection servicer
@@ -496,7 +496,7 @@ void runHttpServerTest(TestRunner& tr)
 
    uint64_t seconds = 30;
 
-   if(server.start())
+   if(server.start(&k))
    {
       printf("\nServer started on %s and will run for %llu seconds.\n",
          address.toString(false).c_str(), seconds);
@@ -691,7 +691,7 @@ void runPingTest(TestRunner& tr)
    k.getEngine()->start();
 
    // create server
-   Server server(&k);
+   Server server;
    InternetAddress address("localhost", 19100);
 
 //   // create SSL/generic ping connection servicer
@@ -718,7 +718,7 @@ void runPingTest(TestRunner& tr)
    PingHttpRequestServicer test1("/test");
    hcs.addRequestServicer(&test1, false);
 
-   if(server.start())
+   if(server.start(&k))
    {
       printf("Server started.\n");
    }

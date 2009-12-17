@@ -28,6 +28,13 @@ public:
     * @return the current time in milliseconds.
     */
    static uint64_t getCurrentMilliseconds();
+
+   /**
+    * Gets the number of cores/cpus.
+    *
+    * @return the number of cores/cpus.
+    */
+   static uint32_t getCpuCoreCount();
 };
 
 } // end namespace rt

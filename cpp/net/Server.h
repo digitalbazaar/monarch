@@ -88,11 +88,9 @@ protected:
 
 public:
    /**
-    * Creates a new Server that runs using the passed modest OperationRunner.
-    *
-    * @param opRunner the OperationRunner used to run this Server.
+    * Creates a new Server.
     */
-   Server(monarch::modest::OperationRunner* opRunner);
+   Server();
 
    /**
     * Destructs this Server.
@@ -149,10 +147,12 @@ public:
     * Starts this server if it isn't already running. If any service fails to
     * start, an exception will be set and start will fail.
     *
+    * @param opRunner the OperationRunner used to run this Server.
+    *
     * @return true if all of the services for this server started, false if
     *         at least one failed.
     */
-   virtual bool start();
+   virtual bool start(monarch::modest::OperationRunner* opRunner);
 
    /**
     * Stops this server if it is running.

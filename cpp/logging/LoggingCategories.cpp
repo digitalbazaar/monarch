@@ -15,6 +15,7 @@ Category* MO_EVENT_CAT;
 Category* MO_GUI_CAT;
 Category* MO_HTTP_CAT;
 Category* MO_IO_CAT;
+Category* MO_KERNEL_CAT;
 Category* MO_LOGGING_CAT;
 Category* MO_MAIL_CAT;
 Category* MO_MODEST_CAT;
@@ -58,6 +59,10 @@ void LoggingCategories::initialize()
    MO_IO_CAT = new Category(
       "MO_IO",
       "DB Input/Output",
+      NULL);
+   MO_LOGGING_CAT = new Category(
+      "MO_KERNEL",
+      "MO Kernel",
       NULL);
    MO_LOGGING_CAT = new Category(
       "MO_LOGGING",
@@ -122,6 +127,9 @@ void LoggingCategories::cleanup()
 
    delete MO_IO_CAT;
    MO_IO_CAT = NULL;
+
+   delete MO_KERNEL_CAT;
+   MO_KERNEL_CAT = NULL;
 
    delete MO_LOGGING_CAT;
    MO_LOGGING_CAT = NULL;
