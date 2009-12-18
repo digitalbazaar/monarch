@@ -30,35 +30,35 @@ void LoggingCategories::initialize()
 {
    MO_APP_CAT = new Category(
       "MO_APP",
-      "DB Application",
+      "MO Application",
       NULL);
    MO_CONFIG_CAT = new Category(
       "MO_CONFIG",
-      "DB Config",
+      "MO Config",
       NULL);
    MO_CRYPTO_CAT = new Category(
       "MO_CRYPTO",
-      "DB Cryptography",
+      "MO Cryptography",
       NULL);
    MO_DATA_CAT = new Category(
       "MO_DATA",
-      "DB Data",
+      "MO Data",
       NULL);
    MO_EVENT_CAT = new Category(
       "MO_EVENT",
-      "DB Event",
+      "MO Event",
       NULL);
    MO_GUI_CAT = new Category(
       "MO_GUI",
-      "DB Graphical User Interface",
+      "MO Graphical User Interface",
       NULL);
    MO_HTTP_CAT = new Category(
       "MO_HTTP",
-      "DB Http",
+      "MO Http",
       NULL);
    MO_IO_CAT = new Category(
       "MO_IO",
-      "DB Input/Output",
+      "MO Input/Output",
       NULL);
    MO_LOGGING_CAT = new Category(
       "MO_KERNEL",
@@ -66,39 +66,39 @@ void LoggingCategories::initialize()
       NULL);
    MO_LOGGING_CAT = new Category(
       "MO_LOGGING",
-      "DB Logging",
+      "MO Logging",
       NULL);
    MO_MAIL_CAT = new Category(
       "MO_MAIL",
-      "DB Mail",
+      "MO Mail",
       NULL);
    MO_MODEST_CAT = new Category(
       "MO_MODEST",
-      "DB Modest Engine",
+      "MO Modest Engine",
       NULL);
    MO_NET_CAT = new Category(
       "MO_NET",
-      "DB Networking",
+      "MO Networking",
       NULL);
    MO_RT_CAT = new Category(
       "MO_RT",
-      "DB Runtime",
+      "MO Runtime",
       NULL);
    MO_SPHINX_CAT = new Category(
       "MO_SPHINX",
-      "DB Sphinx",
+      "MO Sphinx",
       NULL);
    MO_SQL_CAT = new Category(
       "MO_SQL",
-      "DB SQL",
+      "MO SQL",
       NULL);
    MO_UPNP_CAT = new Category(
       "MO_UPNP",
-      "DB UPnP",
+      "MO UPnP",
       NULL);
    MO_UTIL_CAT = new Category(
       "MO_UTIL",
-      "DB Utilities",
+      "MO Utilities",
       NULL);
 }
 
