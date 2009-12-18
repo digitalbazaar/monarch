@@ -86,30 +86,30 @@ DynamicObject Tester::getCommandLineSpecs()
    opt["short"] = "-l";
    opt["long"] = "--level";
    opt["arg"]["config"] = "monarch.test.Tester command line";
-   opt["arg"]["path"] = "db\\.test\\.Tester.level";
+   opt["arg"]["path"] = "monarch\\.test\\.Tester.level";
 
    opt = spec["options"]->append();
    opt["short"] = "-c";
    opt["setTrue"]["config"] = "monarch.test.Tester command line";
-   opt["setTrue"]["path"] = "db\\.test\\.Tester.continueAfterException";
+   opt["setTrue"]["path"] = "monarch\\.test\\.Tester.continueAfterException";
 
    opt = spec["options"]->append();
    opt["short"] = "-a";
    opt["long"] = "--automatic";
    opt["setTrue"]["config"] = "monarch.test.Tester command line";
-   opt["setTrue"]["path"] = "db\\.test\\.Tester.__cl_automatic";
+   opt["setTrue"]["path"] = "monarch\\.test\\.Tester.__cl_automatic";
 
    opt = spec["options"]->append();
    opt["short"] = "-i";
    opt["long"] = "--interactive";
    opt["setTrue"]["config"] = "monarch.test.Tester command line";
-   opt["setTrue"]["path"] = "db\\.test\\.Tester.__cl_interactive";
+   opt["setTrue"]["path"] = "monarch\\.test\\.Tester.__cl_interactive";
 
    opt = spec["options"]->append();
    opt["short"] = "-t";
    opt["long"] = "--test";
    opt["arg"]["config"] = "monarch.test.Tester command line";
-   opt["arg"]["path"] = "db\\.test\\.Tester.test";
+   opt["arg"]["path"] = "monarch\\.test\\.Tester.test";
 
    //DynamicObject specs = AppDelegate::getCommandLineSpecs();
    // don't read App superclass options
