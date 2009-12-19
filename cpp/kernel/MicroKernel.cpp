@@ -72,10 +72,12 @@ bool MicroKernel::start(Config& cfg)
    v::ValidatorRef v =
       new v::Map(
          "modulePath", new v::Type(String),
-         "maxThreadCount", new v::All(
-            new v::Int(0, UINT32_MAX - minThreads,
-               "maxThreadCount must be at least 1."),
-            NULL),
+         "maxThreadCount", new v::Int(
+            1, UINT32_MAX - minThreads,
+            "maxThreadCount must be at least 1."),
+         "maxConnectionCount", new v::Optional(new v::Int(
+            1, UINT32_MAX - 1,
+            "maxConnectionCount must be at least 1.")),
          NULL);
    if(!v->isValid(cfg))
    {
@@ -125,6 +127,13 @@ bool MicroKernel::start(Config& cfg)
          // start server if one exists
          if(mServer != NULL)
          {
+            // set max connection count
+            if(cfg->hasMember("maxConnectionCount"))
+            {
+               mServer->setMaxConnectionCount(
+                  cfg["maxConnectionCount"]->getUInt32());
+            }
+
             if(mServer->start(this))
             {
                MO_CAT_INFO(MO_KERNEL_CAT, "Server started.");
