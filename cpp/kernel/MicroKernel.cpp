@@ -3,6 +3,7 @@
  */
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
+#define __STDC_FORMAT_MACROS
 
 #include "monarch/kernel/MicroKernel.h"
 
@@ -98,13 +99,16 @@ bool MicroKernel::start(Config& cfg)
 
       // start engine
       getEngine()->start();
-      MO_CAT_INFO(MO_KERNEL_CAT, "Engine started.");
+      MO_CAT_INFO(MO_KERNEL_CAT,
+         "Engine started using %" PRIu32 " maximum threads.",
+         maxAuxiliary + minThreads);
 
       // start fiber scheduler if one exists
       if(mFiberScheduler != NULL)
       {
          mFiberScheduler->start(this, cores);
-         MO_CAT_INFO(MO_KERNEL_CAT, "FiberScheduler started.");
+         MO_CAT_INFO(MO_KERNEL_CAT,
+            "FiberScheduler started using %" PRIu32 " cpu cores.", cores);
       }
 
       // load modules
