@@ -30,75 +30,75 @@ void LoggingCategories::initialize()
 {
    MO_APP_CAT = new Category(
       "MO_APP",
-      "MO Application",
+      "Monarch Application",
       NULL);
    MO_CONFIG_CAT = new Category(
       "MO_CONFIG",
-      "MO Config",
+      "Monarch Config",
       NULL);
    MO_CRYPTO_CAT = new Category(
       "MO_CRYPTO",
-      "MO Cryptography",
+      "Monarch Cryptography",
       NULL);
    MO_DATA_CAT = new Category(
       "MO_DATA",
-      "MO Data",
+      "Monarch Data",
       NULL);
    MO_EVENT_CAT = new Category(
       "MO_EVENT",
-      "MO Event",
+      "Monarch Event",
       NULL);
    MO_GUI_CAT = new Category(
       "MO_GUI",
-      "MO Graphical User Interface",
+      "Monarch Graphical User Interface",
       NULL);
    MO_HTTP_CAT = new Category(
       "MO_HTTP",
-      "MO Http",
+      "Monarch Http",
       NULL);
    MO_IO_CAT = new Category(
       "MO_IO",
-      "MO Input/Output",
+      "Monarch Input/Output",
       NULL);
    MO_LOGGING_CAT = new Category(
       "MO_KERNEL",
-      "MO Kernel",
+      "Monarch Kernel",
       NULL);
    MO_LOGGING_CAT = new Category(
       "MO_LOGGING",
-      "MO Logging",
+      "Monarch Logging",
       NULL);
    MO_MAIL_CAT = new Category(
       "MO_MAIL",
-      "MO Mail",
+      "Monarch Mail",
       NULL);
    MO_MODEST_CAT = new Category(
       "MO_MODEST",
-      "MO Modest Engine",
+      "Monarch Modest Engine",
       NULL);
    MO_NET_CAT = new Category(
       "MO_NET",
-      "MO Networking",
+      "Monarch Networking",
       NULL);
    MO_RT_CAT = new Category(
       "MO_RT",
-      "MO Runtime",
+      "Monarch Runtime",
       NULL);
    MO_SPHINX_CAT = new Category(
       "MO_SPHINX",
-      "MO Sphinx",
+      "Monarch Sphinx",
       NULL);
    MO_SQL_CAT = new Category(
       "MO_SQL",
-      "MO SQL",
+      "Monarch SQL",
       NULL);
    MO_UPNP_CAT = new Category(
       "MO_UPNP",
-      "MO UPnP",
+      "Monarch UPnP",
       NULL);
    MO_UTIL_CAT = new Category(
       "MO_UTIL",
-      "MO Utilities",
+      "Monarch Utilities",
       NULL);
 }
 
