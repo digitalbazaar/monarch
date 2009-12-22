@@ -399,9 +399,10 @@ bool MicroKernel::checkDependencies(ModuleList& pending)
        successfully initialized in. In the latter case, at least one module
        could not have its dependencies met and we have error'ed out.
        */
-      bool moved = false;
+      bool moved;
       do
       {
+         moved = false;
          for(ModuleList::iterator i = pending.begin(); i != pending.end();)
          {
             // get dependency info for the current pending module
