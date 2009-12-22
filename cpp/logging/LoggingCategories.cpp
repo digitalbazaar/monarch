@@ -60,7 +60,7 @@ void LoggingCategories::initialize()
       "MO_IO",
       "Monarch Input/Output",
       NULL);
-   MO_LOGGING_CAT = new Category(
+   MO_KERNEL_CAT = new Category(
       "MO_KERNEL",
       "Monarch Kernel",
       NULL);
