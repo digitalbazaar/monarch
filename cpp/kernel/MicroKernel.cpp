@@ -100,8 +100,9 @@ bool MicroKernel::start(Config& cfg)
       // start engine
       getEngine()->start();
       MO_CAT_INFO(MO_KERNEL_CAT,
-         "Engine started using %" PRIu32 " maximum threads.",
-         maxAuxiliary + minThreads);
+         "Engine started using %" PRIu32
+         " microkernel threads and %" PRIu32 " auxiliary threads.",
+         minThreads, maxAuxiliary);
 
       // start fiber scheduler if one exists
       if(mFiberScheduler != NULL)
