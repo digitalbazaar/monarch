@@ -160,6 +160,14 @@ bool MicroKernel::start(Config& cfg)
       }
    }
 
+   if(rval && mEventController != NULL)
+   {
+      // schedule microkernel started event
+      Event e;
+      e["type"] = "monarch.kernel.MicroKernel.started";
+      mEventController->schedule(e);
+   }
+
    return rval;
 }
 
