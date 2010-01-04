@@ -25,8 +25,7 @@ namespace kernel
  * arbitrary modular userspace services to extend its functionality. These
  * services are provided by what are called MicroKernelModules. They may
  * contain arbitrary code and can take advantage of the operation, fiber,
- * and event scheduling capabilities of the MicroKernel as well as its built-in
- * server.
+ * event scheduling, and server capabilities of the MicroKernel.
  *
  * @author Dave Longley
  */
@@ -101,8 +100,17 @@ protected:
 
 public:
    /**
-    * Creates a new MicroKernel with a default ConfigManager, FiberScheduler,
-    * FiberMessageCenter, EventController, EventDaemon, and Server.
+    * Creates a new MicroKernel with no specified ConfigManager, FiberScheduler,
+    * FiberMessageCenter, EventController, EventDaemon, or Server. To assign
+    * any of these objects to this MicroKernel, call their associated set()
+    * method.
+    *
+    * For instance, to set up a MicroKernel with a ConfigManager and
+    * EventController:
+    *
+    * MicroKernel k;
+    * k.setConfigManager(new ConfigManager(), true);
+    * k.setEventController(new EventController(), true);
     */
    MicroKernel();
 
