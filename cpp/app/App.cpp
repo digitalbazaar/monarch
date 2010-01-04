@@ -1048,8 +1048,9 @@ int App::main(
 
    // seed random
    Random::seed();
-   // enable stats early
+   // clear & enable stats early
    DynamicObjectImpl::enableStats(true);
+   DynamicObjectImpl::clearStats();
 
    // Make command line vector
    for(int i = 0; i < argc; i++)
