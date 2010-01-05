@@ -56,28 +56,28 @@ public:
     *
     * @param value the value for this BigInteger.
     */
-   BigInteger(unsigned long long value);
+   BigInteger(uint64_t value);
 
    /**
     * Creates a new BigInteger with the specified value.
     *
     * @param value the value for this BigInteger.
     */
-   BigInteger(long long value);
+   BigInteger(int64_t value);
 
    /**
     * Creates a new BigInteger with the specified value.
     *
     * @param value the value for this BigInteger.
     */
-   BigInteger(int value);
+   BigInteger(uint32_t value = 0);
 
    /**
     * Creates a new BigInteger with the specified value.
     *
     * @param value the value for this BigInteger.
     */
-   BigInteger(unsigned int value = 0);
+   BigInteger(int32_t value);
 
    /**
     * Creates a new BigInteger with the specified value.
@@ -121,7 +121,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(unsigned long long rhs);
+   BigInteger& operator=(uint64_t rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -130,7 +130,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(long long rhs);
+   BigInteger& operator=(int64_t rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -139,7 +139,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(unsigned int rhs);
+   BigInteger& operator=(uint32_t rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -148,7 +148,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(int rhs);
+   BigInteger& operator=(int32_t rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -185,7 +185,7 @@ public:
     * @return true if this BigInteger is equal to the passed 64-bit integer,
     *         false if not.
     */
-   bool operator==(long long rhs);
+   bool operator==(int64_t rhs);
 
    /**
     * Returns true if this BigInteger is not equal to the passed one.
@@ -205,7 +205,7 @@ public:
     * @return true if this BigInteger is not equal to the passed 64-bit integer,
     *         false if not.
     */
-   bool operator!=(long long rhs);
+   bool operator!=(int64_t rhs);
 
    /**
     * Returns true if this BigInteger is less than the passed one.
