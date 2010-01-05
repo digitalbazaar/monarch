@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/http/HttpBodyInputStream.h"
 
 #include "monarch/http/HttpChunkedTransferInputStream.h"
@@ -79,7 +81,7 @@ int HttpBodyInputStream::read(char* b, int length)
          mBytesReceived += rval;
 
          // update http connection content bytes read (reset as necessary)
-         if(mConnection->getContentBytesRead() > Math::HALF_MAX_LONG_VALUE)
+         if(mConnection->getContentBytesRead() > (UINT64_MAX / 2))
          {
             mConnection->setContentBytesRead(0);
          }
@@ -98,8 +100,7 @@ int HttpBodyInputStream::read(char* b, int length)
    else
    {
       // read in from connection, decrement stored content length as read
-      int cl = (mContentLength > Math::MAX_INT_VALUE ?
-         Math::MAX_INT_VALUE : mContentLength);
+      int cl = (mContentLength > INT32_MAX ? INT32_MAX : mContentLength);
       length = (cl < length ? cl : length);
       if(mContentLength > 0 && (rval = mInputStream->read(b, length)) > 0)
       {
@@ -108,7 +109,7 @@ int HttpBodyInputStream::read(char* b, int length)
          mBytesReceived += rval;
 
          // update http connection content bytes read (reset as necessary)
-         if(mConnection->getContentBytesRead() > Math::HALF_MAX_LONG_VALUE)
+         if(mConnection->getContentBytesRead() > (UINT64_MAX / 2))
          {
             mConnection->setContentBytesRead(0);
          }

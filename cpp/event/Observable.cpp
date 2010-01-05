@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/event/Observable.h"
 
 #include "monarch/rt/DynamicObjectIterator.h"
@@ -13,7 +15,7 @@ using namespace monarch::event;
 using namespace monarch::modest;
 using namespace monarch::rt;
 
-#define MAX_SEQ_ID (uint64_t)0xffffffffffffffffULL
+#define MAX_SEQ_ID UINT64_MAX
 
 Observable::Observable() :
    mDispatch(false),
@@ -541,3 +543,4 @@ void Observable::dispatchEvents()
    // unlock event queue
    mQueueLock.unlock();
 }
+				

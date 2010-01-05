@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/http/HttpBodyOutputStream.h"
 
 #include "monarch/http/HttpChunkedTransferOutputStream.h"
@@ -67,7 +69,7 @@ bool HttpBodyOutputStream::write(const char* b, int length)
       if(length > 0)
       {
          // update http connection content bytes written (reset as necessary)
-         if(mConnection->getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)
+         if(mConnection->getContentBytesWritten() > (UINT64_MAX / 2))
          {
             mConnection->setContentBytesWritten(0);
          }
@@ -90,7 +92,7 @@ bool HttpBodyOutputStream::finish()
       if((rval = mOutputStream->flush() && mOutputStream->finish()))
       {
          // update http connection content bytes written (reset as necessary)
-         if(mConnection->getContentBytesWritten() > Math::HALF_MAX_LONG_VALUE)
+         if(mConnection->getContentBytesWritten() > (UINT64_MAX / 2))
          {
             mConnection->setContentBytesWritten(0);
          }

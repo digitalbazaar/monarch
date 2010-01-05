@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/net/BandwidthThrottlerChain.h"
 
 #include "monarch/util/Math.h"
@@ -76,7 +78,7 @@ void BandwidthThrottlerChain::addAvailableBytes(int bytes)
 
 int BandwidthThrottlerChain::getAvailableBytes()
 {
-   int rval = Math::MAX_INT_VALUE;
+   int rval = INT32_MAX;
 
    if(!mChain.empty())
    {

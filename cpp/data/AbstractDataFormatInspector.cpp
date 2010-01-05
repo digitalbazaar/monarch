@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/data/AbstractDataFormatInspector.h"
 
 #include "monarch/util/Math.h"
@@ -42,8 +44,7 @@ int AbstractDataFormatInspector::inspectData(const char* b, int length)
       // skip bytes as appropriate
       if(mSkipBytes > 0)
       {
-         int sb = (mSkipBytes > (unsigned long long)Math::MAX_INT_VALUE ?
-            Math::MAX_INT_VALUE : mSkipBytes);
+         int sb = (mSkipBytes > (uint64_t)INT32_MAX ? INT32_MAX : mSkipBytes);
          rval = (sb < length ? sb : length);
          mSkipBytes -= rval;
       }

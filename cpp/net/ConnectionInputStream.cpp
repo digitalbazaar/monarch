@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/net/ConnectionInputStream.h"
 
 #include "monarch/net/Connection.h"
@@ -71,7 +73,7 @@ int ConnectionInputStream::read(char* b, int length)
    if(rval > 0 && !mPeeking)
    {
       // update bytes read (reset as necessary)
-      if(mBytesRead > Math::HALF_MAX_LONG_VALUE)
+      if(mBytesRead > (UINT64_MAX / 2))
       {
          mBytesRead = 0;
       }
