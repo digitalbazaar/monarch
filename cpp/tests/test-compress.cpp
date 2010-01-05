@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/test/Test.h"
 #include "monarch/test/Tester.h"
 #include "monarch/test/TestRunner.h"
@@ -506,7 +508,7 @@ void runZipTest(TestRunner& tr)
          zipper.addEntry(ze);
 
          //uint64_t totalSize = zipper.getEstimatedArchiveSize();
-         //printf("Estimated total size: %llu\n", totalSize);
+         //printf("Estimated total size: %" PRIu64 "\n", totalSize);
 
          while(zipper.hasNextEntry())
          {

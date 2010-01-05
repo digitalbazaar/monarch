@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/net/ConnectionService.h"
 
 #include "monarch/logging/Logging.h"
@@ -209,7 +211,7 @@ void ConnectionService::serviceConnection(void* s)
 
       // log connection
       MO_CAT_DEBUG(MO_NET_CAT,
-         "%s:%i serviced %s connection from %s:%i in %llu ms",
+         "%s:%i serviced %s connection from %s:%i in %" PRIu64 " ms",
          local->getAddress(),
          local->getPort(),
          secure ? "secure" : "non-secure",

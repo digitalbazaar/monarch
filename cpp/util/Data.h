@@ -29,8 +29,8 @@ namespace util
  */
 // FIXME optimize, use other macros/asm/funcs (htonl), etc
 #define MO_UINT16_SWAP_LE_BE_CONSTANT(val) \
-   ((((uint16_t)(val) & (uint16_t)0x00FF) << 8) | \
-    (((uint16_t)(val) & (uint16_t)0xFF00) >> 8))
+   ((((uint16_t)(val) & UINT16_C(0x00FF)) << 8) | \
+    (((uint16_t)(val) & UINT16_C(0xFF00)) >> 8))
 #define MO_UINT16_SWAP_LE_BE(val) MO_UINT16_SWAP_LE_BE_CONSTANT(val)
 
 /**
@@ -38,10 +38,10 @@ namespace util
  */
 // FIXME optimize, use other macros/asm/funcs (htonl), etc
 #define MO_UINT32_SWAP_LE_BE_CONSTANT(val) \
-   ((((uint32_t)(val) & (uint32_t)0x000000FFU) << 24) | \
-    (((uint32_t)(val) & (uint32_t)0x0000FF00U) << 8) | \
-    (((uint32_t)(val) & (uint32_t)0x00FF0000U) >> 8) | \
-    (((uint32_t)(val) & (uint32_t)0xFF000000U) >> 24))
+   ((((uint32_t)(val) & UINT32_C(0x000000FF)) << 24) | \
+    (((uint32_t)(val) & UINT32_C(0x0000FF00)) << 8) | \
+    (((uint32_t)(val) & UINT32_C(0x00FF0000)) >> 8) | \
+    (((uint32_t)(val) & UINT32_C(0xFF000000)) >> 24))
 #define MO_UINT32_SWAP_LE_BE(val) MO_UINT32_SWAP_LE_BE_CONSTANT(val)
 
 /**
@@ -49,14 +49,14 @@ namespace util
  */
 // FIXME optimize, use other macros/asm/funcs (htonl), etc
 #define MO_UINT64_SWAP_LE_BE_CONSTANT(val) \
-   ((((uint64_t)(val) & (uint64_t)0x00000000000000FFULL) << 56) | \
-    (((uint64_t)(val) & (uint64_t)0x000000000000FF00ULL) << 40) | \
-    (((uint64_t)(val) & (uint64_t)0x0000000000FF0000ULL) << 24) | \
-    (((uint64_t)(val) & (uint64_t)0x00000000FF000000ULL) <<  8) | \
-    (((uint64_t)(val) & (uint64_t)0x000000FF00000000ULL) >>  8) | \
-    (((uint64_t)(val) & (uint64_t)0x0000FF0000000000ULL) >> 24) | \
-    (((uint64_t)(val) & (uint64_t)0x00FF000000000000ULL) >> 40) | \
-    (((uint64_t)(val) & (uint64_t)0xFF00000000000000ULL) >> 56))
+   ((((uint64_t)(val) & UINT64_C(0x00000000000000FF)) << 56) | \
+    (((uint64_t)(val) & UINT64_C(0x000000000000FF00)) << 40) | \
+    (((uint64_t)(val) & UINT64_C(0x0000000000FF0000)) << 24) | \
+    (((uint64_t)(val) & UINT64_C(0x00000000FF000000)) <<  8) | \
+    (((uint64_t)(val) & UINT64_C(0x000000FF00000000)) >>  8) | \
+    (((uint64_t)(val) & UINT64_C(0x0000FF0000000000)) >> 24) | \
+    (((uint64_t)(val) & UINT64_C(0x00FF000000000000)) >> 40) | \
+    (((uint64_t)(val) & UINT64_C(0xFF00000000000000)) >> 56))
 #define MO_UINT64_SWAP_LE_BE(val) MO_UINT64_SWAP_LE_BE_CONSTANT(val)
 
 #if BYTE_ORDER == LITTLE_ENDIAN

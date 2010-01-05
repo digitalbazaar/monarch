@@ -2,6 +2,7 @@
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
+#define __STDC_FORMAT_MACROS
 
 #include "monarch/rt/DynamicObjectImpl.h"
 
@@ -745,19 +746,19 @@ const char* DynamicObjectImpl::getString() const
             break;
          case Int32:
             str = (char*)realloc(str, 12);
-            snprintf(str, 12, "%i", mInt32);
+            snprintf(str, 12, "%" PRIi32, mInt32);
             break;
          case UInt32:
             str = (char*)realloc(str, 11);
-            snprintf(str, 11, "%u", mUInt32);
+            snprintf(str, 11, "%" PRIu32, mUInt32);
             break;
          case Int64:
             str = (char*)realloc(str, 22);
-            snprintf(str, 22, "%lli", mInt64);
+            snprintf(str, 22, "%" PRIi64, mInt64);
             break;
          case UInt64:
             str = (char*)realloc(str, 21);
-            snprintf(str, 21, "%llu", mUInt64);
+            snprintf(str, 21, "%" PRIu64, mUInt64);
             break;
          case Double:
             // use default precision of 6

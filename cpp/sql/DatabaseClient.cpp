@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/sql/DatabaseClient.h"
 
 #include "monarch/data/json/JsonWriter.h"
@@ -822,12 +824,12 @@ void DatabaseClient::appendLimitSql(string& sql, uint64_t limit, uint64_t start)
 
       if(start > 0)
       {
-         snprintf(tmp, 21, "%llu", start);
+         snprintf(tmp, 21, "%" PRIu64, start);
          sql.append(tmp);
          sql.append(",");
       }
 
-      snprintf(tmp, 21, "%llu", limit);
+      snprintf(tmp, 21, "%" PRIu64, limit);
       sql.append(tmp);
    }
 }

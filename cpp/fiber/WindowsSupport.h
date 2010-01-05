@@ -31,7 +31,7 @@ typedef struct stack_t
    void* ss_sp;    // stack pointer
    int ss_flags;   // flags
    size_t ss_size; // size of stack
-};
+} stack_t;
 
 // use windows.h CONTEXT object for actual thread context
 typedef CONTEXT mcontext_t;
@@ -46,7 +46,7 @@ typedef struct ucontext_t
    sigset_t uc_sigmask;        // signal mask (unused in windows)
    stack_t uc_stack;           // stack
    mcontext_t uc_mcontext;     // OS thread context
-};
+} ucontext_t;
 
 /**
  * Initializes the passed user context to the currently active context.

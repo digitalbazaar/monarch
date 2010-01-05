@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
 
 #include <cstdlib>
 
@@ -98,12 +99,12 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
       merge["app"]["logging"]["level"] = "warning";
       merge["app"]["logging"]["log"] = "-";
       merge["app"]["logging"]["append"] = true;
-      merge["app"]["logging"]["rotationFileSize"] = (uint64_t)(2000000ULL);
-      merge["app"]["logging"]["maxRotatedFiles"] = (uint32_t)10;
+      merge["app"]["logging"]["rotationFileSize"] = UINT64_C(2000000);
+      merge["app"]["logging"]["maxRotatedFiles"] = (uint32_t)UINT32_C(10);
       merge["app"]["logging"]["gzip"] = true;
       merge["app"]["logging"]["location"] = false;
       merge["app"]["logging"]["color"] = false;
-      merge["app"]["verbose"]["level"] = (uint64_t)0;
+      merge["app"]["verbose"]["level"] = UINT64_C(0);
    }
 
    // command line option config
@@ -120,7 +121,7 @@ bool CommonAppPlugin::initMetaConfig(Config& meta)
       config[ConfigManager::TMP]->setType(Map);
       // must set since cmd line does read-modify-write directly on this config
       Config& merge = config[ConfigManager::MERGE];
-      merge["app"]["verbose"]["level"] = (uint64_t)0;
+      merge["app"]["verbose"]["level"] = UINT64_C(0);
    }
 
    if(rval)

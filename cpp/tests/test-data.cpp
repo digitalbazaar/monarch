@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+
 #include <iostream>
 #include <sstream>
 
@@ -1283,9 +1285,9 @@ void runSwapTest(TestRunner& tr)
 
    tr.test("64");
    {
-      uint64_t v = 0x0123456789abcdefULL;
+      uint64_t v = UINT64_C(0x0123456789abcdef);
       uint64_t s = MO_UINT64_SWAP_LE_BE(v);
-      uint64_t e = 0xefcdab8967452301ULL;
+      uint64_t e = UINT64_C(0xefcdab8967452301);
       assert(s == e);
    }
    tr.pass();

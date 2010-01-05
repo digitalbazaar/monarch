@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+
 #include "monarch/rt/System.h"
 
 // include NULL
@@ -27,7 +29,7 @@ uint64_t System::getCurrentMilliseconds()
 
    // get total number of milliseconds
    // 1 millisecond is 1000 microseconds
-   rval = now.tv_sec * 1000ULL + (uint64_t)(now.tv_usec / 1000.0);
+   rval = now.tv_sec * UINT64_C(1000) + (uint64_t)(now.tv_usec / 1000.0);
 
    return rval;
 }

@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#define __STDC_CONSTANT_MACROS
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/test/Test.h"
@@ -32,11 +31,11 @@ void runTimeTest(TestRunner& tr)
 
    uint64_t start = System::getCurrentMilliseconds();
 
-   printf("Time start=%llu\n", start);
+   printf("Time start=%" PRIu64 "\n", start);
 
    uint64_t end = System::getCurrentMilliseconds();
 
-   printf("Time end=%llu\n", end);
+   printf("Time end=%" PRIu64 "\n", end);
 
    tr.pass();
 }

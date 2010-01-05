@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/test/Test.h"
 #include "monarch/test/Tester.h"
 #include "monarch/test/TestRunner.h"
@@ -554,7 +556,7 @@ void runEventDaemonTest(TestRunner& tr)
          ew.popEvent();
       }
       uint64_t time = Timer::getMilliseconds(startTime);
-      printf("time=%llu...", time);
+      printf("time=%" PRIu64 "...", time);
    }
    tr.pass();
 
@@ -592,7 +594,7 @@ void runEventDaemonTest(TestRunner& tr)
          ew.popEvent();
       }
       uint64_t time = Timer::getMilliseconds(startTime);
-      printf("time=%llu...", time);
+      printf("time=%" PRIu64 "...", time);
    }
    tr.pass();
 
@@ -657,7 +659,7 @@ void runEventDaemonSharedEventTest(TestRunner& tr)
          ew2.popEvent();
       }
       uint64_t time = Timer::getMilliseconds(startTime);
-      printf("time=%llu...", time);
+      printf("time=%" PRIu64 "...", time);
       assert(!ew1.waitForEvent(300));
       assert(count == 10);
    }
@@ -725,7 +727,7 @@ void runInteractiveEventDaemonTest(TestRunner& tr)
       uint64_t startTime = Timer::startTiming();
       ew.waitForEvent();
       uint64_t time = Timer::getMilliseconds(startTime);
-      printf("EVENT TIME: %llu\n", time);
+      printf("EVENT TIME: %" PRIu64 "\n", time);
    }
    tr.pass();
 
@@ -747,7 +749,7 @@ void runInteractiveEventDaemonTest(TestRunner& tr)
          ew.popEvent();
       }
       uint64_t time = Timer::getMilliseconds(startTime);
-      printf("EVENT TIME: %llu\n", time);
+      printf("EVENT TIME: %" PRIu64 "\n", time);
    }
    tr.pass();
 

@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/http/HttpHeader.h"
 
 #include "monarch/util/StringTools.h"
@@ -74,10 +76,10 @@ const char* HttpHeader::getVersion()
    return mVersion;
 }
 
-void HttpHeader::setField(const char* name, long long value)
+void HttpHeader::setField(const char* name, int64_t value)
 {
    char temp[25];
-   sprintf(temp, "%lli", value);
+   snprintf(temp, 22, "%" PRIi64, value);
    setField(name, temp);
 }
 

@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/io/File.h"
 #include "monarch/io/FileInputStream.h"
@@ -498,7 +500,7 @@ void runHttpServerTest(TestRunner& tr)
 
    if(server.start(&k))
    {
-      printf("\nServer started on %s and will run for %llu seconds.\n",
+      printf("\nServer started on %s and will run for %" PRIu64 " seconds.\n",
          address.toString(false).c_str(), seconds);
    }
    else if(Exception::get() != NULL)
@@ -735,13 +737,13 @@ void runPingTest(TestRunner& tr)
    FileOutputStream fos(file);
    HttpClient client;
 
-   unsigned long long start = System::getCurrentMilliseconds();
+   uint64_t start = System::getCurrentMilliseconds();
 
    client.connect(&url);
    client.get(&url, NULL);
    client.receiveContent(&fos, &trailer);
 
-   unsigned long long end = System::getCurrentMilliseconds();
+   uint64_t end = System::getCurrentMilliseconds();
 
    client.disconnect();
 
@@ -754,13 +756,13 @@ void runPingTest(TestRunner& tr)
    // stop kernel engine
    k.getEngine()->stop();
 
-   unsigned long long millis = end - start;
-   printf("Connection Time: %llu\n", millis);
+   uint64_t millis = end - start;
+   printf("Connection Time: %" PRIu64 "\n", millis);
 
 //   unsigned long long millis = test1.end - test1.start;
 //   long double cps = ((long double)pcs.serviced) / millis * 1000.0;
 //   printf("Connections serviced: %d\n", pcs.serviced);
-//   printf("Time: llu\n", millis);
+//   printf("Time: %" PRIu64 "\n", millis);
 //   printf("Connections/Second: %Lf\n", cps);
 
    tr.passIfNoException();

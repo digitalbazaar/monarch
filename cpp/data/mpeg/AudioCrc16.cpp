@@ -3,7 +3,7 @@
  */
 #include "monarch/data/mpeg/AudioCrc16.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace monarch::data::mpeg;
 

@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/util/Random.h"
 #include "monarch/util/Math.h"
 #include "monarch/rt/Thread.h"
@@ -23,7 +25,7 @@ public:
 
       for(int i = 1; i <= count; i++)
       {
-         printf("%i: %llu\n", i, Random::next(1, 1000000000));
+         printf("%i: %" PRIu64 "\n", i, Random::next(1, 1000000000));
       }
 
       printf("Done. Total:1 Passed:1 Failed:0 Warnings:0 Unknown:0.");

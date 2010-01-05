@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/io/File.h"
 
 #include "monarch/io/FileFunctions.h"
@@ -20,6 +22,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <vector>
+#include <inttypes.h>
 
 #if WIN32
 #define MAX_ERROR_SIZE 1024
@@ -1055,7 +1058,7 @@ File File::createTempFile(const char* prefix, const char* dir)
       {
          // try to get unique temporary path name
          time = System::getCurrentMilliseconds();
-         snprintf(num, 22, "%llu", time % 1000);
+         snprintf(num, 22, "%" PRIu64, time % 1000);
          num[4] = 0;
          for(int n = 0; num[n] != 0; n++)
          {

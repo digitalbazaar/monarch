@@ -133,7 +133,7 @@ public:
     * @param name the name of the header field to set.
     * @param value the value for the header field.
     */
-   virtual void setField(const char* name, long long value);
+   virtual void setField(const char* name, int64_t value);
 
    /**
     * Sets a header field, replacing any existing ones.
@@ -189,7 +189,7 @@ public:
     *
     * @return true if the header field exists, false if not.
     */
-   virtual bool getField(const char* name, long long& value, int index = 0);
+   virtual bool getField(const char* name, int64_t& value, int index = 0);
 
    /**
     * Gets a header field value.
