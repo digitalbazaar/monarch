@@ -166,7 +166,6 @@ uint32_t AviHeader::getDataRate()
    return readDWord(44);
 }
 
-
 double AviHeader::getFrameRate()
 {
    double rval = 0.0;
