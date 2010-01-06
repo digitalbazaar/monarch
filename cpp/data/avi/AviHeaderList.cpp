@@ -16,6 +16,7 @@ AviHeaderList::AviHeaderList() :
 
 AviHeaderList::~AviHeaderList()
 {
+   freeStreamHeaderLists();
 }
 
 bool AviHeaderList::writeTo(OutputStream& os)
@@ -32,11 +33,11 @@ bool AviHeaderList::writeTo(OutputStream& os)
    }
 
    // write each stream header list
-   for(list<AviStreamHeaderList>::iterator i = mStreamHeaderLists.begin();
-      i != mStreamHeaderLists.end() && rval;
-      i++)
+   for(StreamHeaderLists::iterator i = mStreamHeaderLists.begin();
+       i != mStreamHeaderLists.end() && rval; i++)
    {
-      rval = (*i).writeTo(os);
+      AviStreamHeaderList* hl = *i;
+      rval = hl->writeTo(os);
    }
 
    return rval;
@@ -74,18 +75,24 @@ bool AviHeaderList::convertFromBytes(const char* b, int length)
             // convert all stream header lists
             while(length > 0)
             {
-               AviStreamHeaderList list;
-               if(list.convertFromBytes(b + offset, length))
+               AviStreamHeaderList* list = new AviStreamHeaderList();
+               if(list->convertFromBytes(b + offset, length))
                {
+                  MO_CAT_DEBUG_DETAIL(MO_DATA_CAT, "AviHeaderList: "
+                     "AviStreamHeaderList read, size=%d",
+                     list->getListSize());
+
+                  // append list
                   mStreamHeaderLists.push_back(list);
 
                   // move to next stream header list
-                  offset += list.getSize();
-                  length -= list.getSize();
+                  offset += list->getSize();
+                  length -= list->getSize();
                }
                else
                {
                   // invalid stream header list
+                  delete list;
                   MO_CAT_ERROR(MO_DATA_CAT, "AviHeaderList: "
                      "Invalid stream header list detected at offset %d",
                      offset);
@@ -114,4 +121,19 @@ int AviHeaderList::getSize()
 AviHeader& AviHeaderList::getMainHeader()
 {
    return mMainHeader;
+}
+
+std::vector<AviStreamHeaderList*>& AviHeaderList::getStreamHeaderLists()
+{
+   return mStreamHeaderLists;
+}
+
+void AviHeaderList::freeStreamHeaderLists()
+{
+   for(StreamHeaderLists::iterator i = mStreamHeaderLists.begin();
+       i != mStreamHeaderLists.end(); i++)
+   {
+      delete *i;
+   }
+   mStreamHeaderLists.clear();
 }

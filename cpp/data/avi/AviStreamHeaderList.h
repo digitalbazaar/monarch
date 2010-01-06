@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_avi_AviStreamHeaderList_H
 #define monarch_data_avi_AviStreamHeaderList_H
 
-#include "monarch/data/avi/AviStreamData.h"
 #include "monarch/data/avi/AviStreamFormat.h"
 #include "monarch/data/avi/AviStreamHeader.h"
 #include "monarch/data/riff/RiffListHeader.h"
@@ -63,17 +62,12 @@ protected:
    /**
     * The Stream Header.
     */
-   AviStreamHeader mStreamHeader;
+   AviStreamHeader* mStreamHeader;
 
    /**
     * The Stream Format.
     */
-   AviStreamFormat mStreamFormat;
-
-   /**
-    * The Stream Data.
-    */
-   AviStreamData mStreamData;
+   AviStreamFormat* mStreamFormat;
 
 public:
    /**
@@ -126,6 +120,36 @@ public:
     * @return the size of this AviStreamHeaderList.
     */
    virtual int getSize();
+
+   /**
+    * Sets the stream header for this list. The header will be deleted on
+    * destruction or when a new header is assigned.
+    *
+    * @param h the heap-allocated stream header for this list.
+    */
+   virtual void setStreamHeader(AviStreamHeader* h);
+
+   /**
+    * Gets the stream header for this list.
+    *
+    * @return the stream header for this list.
+    */
+   virtual AviStreamHeader* getStreamHeader();
+
+   /**
+    * Sets the stream format for this list. The format will be deleted on
+    * destruction or when a new format is assigned.
+    *
+    * @param f the heap-allocated stream format for this list.
+    */
+   virtual void setStreamFormat(AviStreamFormat* f);
+
+   /**
+    * Gets the stream format for this list.
+    *
+    * @return the stream format for this list.
+    */
+   virtual AviStreamFormat* getStreamFormat();
 };
 
 } // end namespace avi

@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_avi_AviHeaderList_H
 #define monarch_data_avi_AviHeaderList_H
-
-#include <list>
 
 #include "monarch/data/avi/AviHeader.h"
 #include "monarch/data/avi/AviStreamHeaderList.h"
 #include "monarch/data/riff/RiffListHeader.h"
 #include "monarch/io/OutputStream.h"
 #include "monarch/logging/Logging.h"
+
+#include <vector>
 
 namespace monarch
 {
@@ -68,7 +68,8 @@ protected:
    /**
     * The AviStreamHeaderLists in this header list.
     */
-   std::list<AviStreamHeaderList> mStreamHeaderLists;
+   typedef std::vector<AviStreamHeaderList*> StreamHeaderLists;
+   StreamHeaderLists mStreamHeaderLists;
 
 public:
    /**
@@ -91,7 +92,9 @@ public:
    virtual bool writeTo(monarch::io::OutputStream& os);
 
    /**
-    * Converts the chunk header from a byte array with at least 8 bytes.
+    * Converts from a byte array with at least enough bytes for the chunk
+    * header and the main AviHeader. If more bytes are available, then
+    * an attempt will be made to parse AviStreamHeaderLists.
     *
     * @param b the byte array to convert from.
     * @param length the number of valid bytes in the buffer.
@@ -120,6 +123,19 @@ public:
     * @return the main AviHeader.
     */
    virtual AviHeader& getMainHeader();
+
+   /**
+    * Gets the list of AviStreamHeaderLists.
+    *
+    * @return the list of AviStreamHeaderLists.
+    */
+   std::vector<AviStreamHeaderList*>& getStreamHeaderLists();
+
+protected:
+   /**
+    * Frees AviStreamHeaderLists.
+    */
+   virtual void freeStreamHeaderLists();
 };
 
 } // end namespace avi
