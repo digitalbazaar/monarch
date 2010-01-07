@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_avi_AviStreamHeader_H
 #define monarch_data_avi_AviStreamHeader_H
@@ -151,6 +151,77 @@ public:
     * @return the size of this AviStreamHeader.
     */
    virtual int getSize();
+
+   /**
+    * Gets the fourcc type for the stream.
+    *
+    * @return the fourcc type for the stream.
+    */
+   virtual fourcc_t getType();
+
+   /**
+    * Gets the fourcc handler (compressor or decompressor) for the data.
+    *
+    * @return the fourcc handler.
+    */
+   virtual fourcc_t getHandler();
+
+   /**
+    * Gets the initial frames (how far the audio data is ahead of the video
+    * data).
+    *
+    * @return the initial frames.
+    */
+   virtual uint32_t getInitialFrames();
+
+   /**
+    * Gets the time scale.
+    *
+    * @return the time scale.
+    */
+   virtual uint32_t getTimeScale();
+
+   /**
+    * Gets the rate (divide by time scale to get frame rate).
+    *
+    * @return the rate.
+    */
+   virtual uint32_t getRate();
+
+   /**
+    * Gets the stream start time (in rate/scale).
+    *
+    * @return the stream start time.
+    */
+   virtual uint32_t getStartTime();
+
+   /**
+    * Gets the length of the stream (in rate/scale).
+    *
+    * @return the length of the stream.
+    */
+   virtual uint32_t getLength();
+
+   /**
+    * Gets the suggested buffer size.
+    *
+    * @return the suggested buffer size.
+    */
+   virtual uint32_t getSuggestedBufferSize();
+
+   /**
+    * Gets the stream quality.
+    *
+    * @return the stream quality.
+    */
+   virtual uint32_t getQuality();
+
+   /**
+    * Gets the sample size.
+    *
+    * @return the sample size.
+    */
+   virtual uint32_t getSampleSize();
 };
 
 } // end namespace avi

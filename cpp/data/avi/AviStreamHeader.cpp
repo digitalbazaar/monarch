@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/avi/AviStreamHeader.h"
+
+#include "monarch/util/Data.h"
 
 #include <cstring>
 
@@ -17,6 +19,18 @@ AviStreamHeader::AviStreamHeader() :
 
 AviStreamHeader::~AviStreamHeader()
 {
+}
+
+static uint32_t _readDWord(char* data, int offset)
+{
+   uint32_t rval = 0;
+
+   if((offset + 4) <= AviStreamHeader::HEADER_SIZE)
+   {
+      rval = MO_UINT32_FROM_LE(*((uint32_t*)(data + offset)));
+   }
+
+   return rval;
 }
 
 bool AviStreamHeader::writeTo(OutputStream& os)
@@ -69,4 +83,55 @@ int AviStreamHeader::getChunkSize()
 int AviStreamHeader::getSize()
 {
    return getChunkSize() + RiffChunkHeader::HEADER_SIZE;
+}
+
+fourcc_t AviStreamHeader::getType()
+{
+   return MO_FOURCC_FROM_STR(mData);
+}
+
+fourcc_t AviStreamHeader::getHandler()
+{
+   return MO_FOURCC_FROM_STR(mData + 4);
+}
+
+uint32_t AviStreamHeader::getInitialFrames()
+{
+   // skip DWORD flags and DWORD reserved
+   return _readDWord(mData, 16);
+}
+
+uint32_t AviStreamHeader::getTimeScale()
+{
+   return _readDWord(mData, 20);
+}
+
+uint32_t AviStreamHeader::getRate()
+{
+   return _readDWord(mData, 24);
+}
+
+uint32_t AviStreamHeader::getStartTime()
+{
+   return _readDWord(mData, 28);
+}
+
+uint32_t AviStreamHeader::getLength()
+{
+   return _readDWord(mData, 32);
+}
+
+uint32_t AviStreamHeader::getSuggestedBufferSize()
+{
+   return _readDWord(mData, 36);
+}
+
+uint32_t AviStreamHeader::getQuality()
+{
+   return _readDWord(mData, 40);
+}
+
+uint32_t AviStreamHeader::getSampleSize()
+{
+   return _readDWord(mData, 44);
 }
