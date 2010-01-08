@@ -4,7 +4,7 @@ ifeq (@BUILD_MYSQL@,yes)
 HEADERS = $(wildcard *.h)
 SOURCES = $(wildcard *.cpp)
 LIBRARIES = momysql
-DYNAMIC_LINK_LIBRARIES = mort monet mosql 
+DYNAMIC_LINK_LIBRARIES = mort monet mosql mysqlclient
 DYNAMIC_WINDOWS_LIBRARIES = mysql
 DYNAMIC_MACOS_LIBRARIES = mysqlclient
 HEADER_DIST_DIR = dist/include/monarch/sql/mysql
