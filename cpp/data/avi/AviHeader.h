@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_avi_AviHeader_H
 #define monarch_data_avi_AviHeader_H
@@ -130,15 +130,6 @@ protected:
     * The data for this chunk, not including its header.
     */
    char mData[HEADER_SIZE];
-
-   /**
-    * Reads a DWORD from the internal data and discards an IO error.
-    *
-    * @param offset the offset to read from.
-    *
-    * @return the read DWORD.
-    */
-   uint32_t readDWord(int offset);
 
 public:
    /**

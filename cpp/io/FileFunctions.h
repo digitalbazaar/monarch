@@ -4,6 +4,7 @@
 #ifndef monarch_io_FileFunctions_H
 #define monarch_io_FileFunctions_H
 
+#include <cstdio>
 #include <unistd.h>
 
 /**

@@ -4,7 +4,7 @@
 #ifndef monarch_util_Math_H
 #define monarch_util_Math_H
 
-#include <math.h>
+#include <cmath>
 
 namespace monarch
 {
@@ -25,32 +25,6 @@ private:
    Math() {};
 
 public:
-   /**
-    * The maximum unsigned integer value.
-    */
-   static const unsigned int MAX_UINT_VALUE = 0xffffffff;
-
-   /**
-    * The maximum signed integer value.
-    */
-   static const int MAX_INT_VALUE = MAX_UINT_VALUE / 2;
-
-   /**
-    * The maximum unsigned long long value.
-    */
-   static const unsigned long long MAX_ULONG_VALUE = 0xffffffffffffffffULL;
-
-   /**
-    * The half of the maximum signed long long value.
-    */
-   static const unsigned long HALF_MAX_LONG_VALUE =
-      (unsigned long)(MAX_ULONG_VALUE / 2);
-
-   /**
-    * The maximum signed long long value.
-    */
-   static const long long MAX_LONG_VALUE = HALF_MAX_LONG_VALUE;
-
    // Note: Commented out because the C functions are simple enough --
    // just use them and they are faster.
 //   /**

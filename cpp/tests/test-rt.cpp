@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
-#define __STDC_CONSTANT_MACROS
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/test/Test.h"
@@ -32,11 +31,11 @@ void runTimeTest(TestRunner& tr)
 
    uint64_t start = System::getCurrentMilliseconds();
 
-   printf("Time start=%llu\n", start);
+   printf("Time start=%" PRIu64 "\n", start);
 
    uint64_t end = System::getCurrentMilliseconds();
 
-   printf("Time end=%llu\n", end);
+   printf("Time end=%" PRIu64 "\n", end);
 
    tr.pass();
 }
@@ -1999,11 +1998,10 @@ void runDynoStatsTest(TestRunner& tr)
 {
    tr.group("DynamicObject stats");
 
-#ifdef MO_DYNO_DEBUG
+#ifdef MO_DYNO_COUNTS
    // zeroed stats
-   #define SETSTAT(s, field, livec, deadc, maxc, liveb, deadb, maxb) \
+   #define SETSTAT(d, livec, deadc, maxc, liveb, deadb, maxb) \
       MO_STMT_START { \
-         DynamicObject& d = s[MO_STRINGIFY(field)]; \
          d["counts"]["live"] = livec; \
          d["counts"]["dead"] = deadc; \
          d["counts"]["max"] = maxc; \
@@ -2011,19 +2009,26 @@ void runDynoStatsTest(TestRunner& tr)
          d["bytes"]["dead"] = deadb; \
          d["bytes"]["max"] = maxb; \
       } MO_STMT_END
+   #define SETTYPESTAT(s, field, livec, deadc, maxc, liveb, deadb, maxb) \
+      MO_STMT_START { \
+         DynamicObject& d = s[MO_STRINGIFY(field)]; \
+         SETSTAT(d, livec, deadc, maxc, liveb, deadb, maxb); \
+      } MO_STMT_END
    DynamicObject zero;
-   SETSTAT(zero, Object, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, String, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, Boolean, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, Int32, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, UInt32, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, Int64, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, UInt64, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, Double, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, Map, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, Array, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, Key, 0, 0, 0, 0, 0, 0);
-   SETSTAT(zero, StringValue, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, Object, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, String, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, Boolean, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, Int32, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, UInt32, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, Int64, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, UInt64, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, Double, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, Map, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, Array, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, Key, 0, 0, 0, 0, 0, 0);
+   SETTYPESTAT(zero, StringValue, 0, 0, 0, 0, 0, 0);
+   zero["KeyCounts"]["count"] = 0;
+   zero["KeyCounts"]["keys"]->setType(Map);
 
    tr.test("clear");
    {
@@ -2036,30 +2041,30 @@ void runDynoStatsTest(TestRunner& tr)
 
    tr.test("one live");
    {
-      DynamicObjectImpl::clearStats();
       DynamicObjectImpl::enableStats(true);
+      DynamicObjectImpl::clearStats();
       DynamicObject d;
       DynamicObjectImpl::enableStats(false);
       DynamicObject stats = DynamicObjectImpl::getStats();
       DynamicObject expect = zero.clone();
-      SETSTAT(expect, Object, 1, 0, 1, 0, 0, 0);
-      SETSTAT(expect, String, 1, 0, 1, 0, 0, 0);
+      SETTYPESTAT(expect, Object, 1, 0, 1, 0, 0, 0);
+      SETTYPESTAT(expect, String, 1, 0, 1, 0, 0, 0);
       assertDynoCmp(stats, expect);
    }
    tr.passIfNoException();
 
    tr.test("one dead");
    {
-      DynamicObjectImpl::clearStats();
       DynamicObjectImpl::enableStats(true);
+      DynamicObjectImpl::clearStats();
       {
          DynamicObject d;
       }
       DynamicObjectImpl::enableStats(false);
       DynamicObject stats = DynamicObjectImpl::getStats();
       DynamicObject expect = zero.clone();
-      SETSTAT(expect, Object, 0, 1, 1, 0, 0, 0);
-      SETSTAT(expect, String, 0, 1, 1, 0, 0, 0);
+      SETTYPESTAT(expect, Object, 0, 1, 1, 0, 0, 0);
+      SETTYPESTAT(expect, String, 0, 1, 1, 0, 0, 0);
       assertDynoCmp(stats, expect);
    }
    tr.passIfNoException();
@@ -2081,13 +2086,35 @@ void runDynoStatsTest(TestRunner& tr)
       DynamicObjectImpl::enableStats(false);
       DynamicObject stats = DynamicObjectImpl::getStats();
       DynamicObject expect = zero.clone();
-      SETSTAT(expect, Object, 0, 2, 2, 0, 0, 0);
-      SETSTAT(expect, Array, 0, 1, 1, 0, 0, 0);
-      SETSTAT(expect, String, 0, 3, 1, 0, 9, 3);
+      SETTYPESTAT(expect, Object, 0, 2, 2, 0, 0, 0);
+      SETTYPESTAT(expect, Array, 0, 1, 1, 0, 0, 0);
+      SETTYPESTAT(expect, String, 0, 3, 1, 0, 9, 3);
       assertDynoCmp(stats, expect);
    }
    tr.passIfNoException();
    */
+
+   tr.test("key counts");
+   {
+      DynamicObjectImpl::enableStats(true);
+      DynamicObjectImpl::clearStats();
+      {
+         DynamicObject d;
+         d["key1"] = true;
+      }
+      DynamicObjectImpl::enableStats(false);
+      DynamicObject stats = DynamicObjectImpl::getStats();
+      DynamicObject expect = zero.clone();
+      SETTYPESTAT(expect, Object, 0, 2, 2, 0, 0, 0);
+      SETTYPESTAT(expect, Map, 0, 1, 1, 0, 0, 0);
+      SETTYPESTAT(expect, Boolean, 0, 1, 1, 0, 0, 0);
+      SETTYPESTAT(expect, Key, 0, 1, 1, 0, 4, 4);
+      SETTYPESTAT(expect, String, 0, 2, 1, 0, 0, 0);
+      expect["KeyCounts"]["count"] = 1;
+      SETSTAT(expect["KeyCounts"]["keys"]["key1"], 0, 1, 1, 0, 4, 4);
+      assertDynoCmp(stats, expect);
+   }
+   tr.passIfNoException();
 #else
    tr.test("[stats disabled]");
    tr.passIfNoException();

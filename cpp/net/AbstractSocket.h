@@ -110,7 +110,7 @@ protected:
     *
     * @return false if an exception occurred, true if not.
     */
-   virtual bool select(bool read, long long timeout);
+   virtual bool select(bool read, int64_t timeout);
 
    /**
     * Acquiring a file descriptor for this Socket. This method must be called

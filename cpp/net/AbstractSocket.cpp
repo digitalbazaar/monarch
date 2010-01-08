@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+
 #include "monarch/net/AbstractSocket.h"
 
 #include "monarch/net/WindowsSupport.h"
@@ -107,7 +109,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    return rval;
 }
 
-bool AbstractSocket::select(bool read, long long timeout)
+bool AbstractSocket::select(bool read, int64_t timeout)
 {
    Exception* e = NULL;
 
@@ -349,7 +351,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
          {
             // reset fd to zero (no error), wait for a connection
             fd = 0;
-            if(select(true, timeout * 1000LL))
+            if(select(true, timeout * INT64_C(1000)))
             {
                fd = SOCKET_MACRO_accept(mFileDescriptor, NULL, NULL);
             }
@@ -418,7 +420,7 @@ bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
             // no error
             case EAGAIN:
                // wait until the connection can be written to
-               if(select(false, timeout * 1000LL))
+               if(select(false, timeout * INT64_C(1000)))
                {
                   // now connected and bound
                   mBound = true;

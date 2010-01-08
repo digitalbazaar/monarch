@@ -1,6 +1,9 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/sphinx/SphinxClient.h"
 
 #include "monarch/net/InternetAddress.h"
@@ -323,7 +326,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
       uint32_t weight = readUInt32(b, false);
 
       // convert to doc ID to string
-      //sprintf(docIdStr, "%llu", docId);
+      //sprintf(docIdStr, "%" PRIu64, docId);
 
       SphinxMatch& match = sr["matches"]->append();
       //[docIdStr];

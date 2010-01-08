@@ -2,11 +2,15 @@
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
+#define __STDC_FORMAT_MACROS
 
 #include "monarch/rt/DynamicObjectImpl.h"
 
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/util/Macros.h"
+#ifdef MO_DYNO_KEY_COUNTS
+#include "monarch/rt/ExclusiveLock.h"
+#endif
 
 #include <cstdlib>
 #include <cstdio>
@@ -16,11 +20,10 @@
 using namespace std;
 using namespace monarch::rt;
 
-
-#ifdef MO_DYNO_DEBUG
+#if defined(MO_DYNO_COUNTS) || defined(MO_DYNO_KEY_COUNTS)
 
 /**
- * When MO_DYNO_DEBUG is defined at compile time statistics will be kept on
+ * When MO_DYNO_*COUNTS is defined at compile time statistics will be kept on
  * internal DynamicObject operations. This may have a performance impact.
  * Some stats such as basic counts are atomic. However, some secondary stats
  * such as maximums are not calculated in a thread safe way due to
@@ -42,6 +45,56 @@ struct _stats_data_s
    } bytes;
 };
 
+static bool _stats_enabled;
+
+#define _STATS_INC(stat) \
+   MO_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         uint64_t next = \
+            __sync_add_and_fetch(&(stat)->counts.live, 1); \
+         if(next > (stat)->counts.max) \
+         { \
+            (stat)->counts.max = next; \
+         } \
+      } \
+   } MO_STMT_END
+
+#define _STATS_BYTES_INC(stat, n) \
+   MO_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         uint64_t next = \
+            __sync_add_and_fetch(&(stat)->bytes.live, n); \
+         if(next > (stat)->bytes.max) \
+         { \
+            (stat)->bytes.max = next; \
+         } \
+      } \
+   } MO_STMT_END
+
+#define _STATS_DEC(stat) \
+   MO_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         __sync_sub_and_fetch(&(stat)->counts.live, 1); \
+         __sync_add_and_fetch(&(stat)->counts.dead, 1); \
+      } \
+   } MO_STMT_END
+
+#define _STATS_BYTES_DEC(stat, n) \
+   MO_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         __sync_sub_and_fetch(&(stat)->bytes.live, n); \
+         __sync_add_and_fetch(&(stat)->bytes.dead, n); \
+      } \
+   } MO_STMT_END
+
+#endif // MO_DYNO_COUNTS || MO_DYNO_KEY_COUNTS */
+
+#ifdef MO_DYNO_COUNTS
+
 enum {
    Object = LastDynamicObjectType + 1,
    Key,
@@ -49,79 +102,124 @@ enum {
    LastStatsType
 };
 
-static bool _stats_enabled;
-static struct _stats_data_s _stats[LastStatsType];
+static struct _stats_data_s _stats_counts[LastStatsType];
 
-#define STATS_INC(type) \
-   MO_STMT_START { \
-      if(_stats_enabled) \
-      { \
-         uint64_t next = __sync_add_and_fetch(&_stats[type].counts.live, 1); \
-         if(next > _stats[type].counts.max) \
-         { \
-            _stats[type].counts.max = next; \
-         } \
-      } \
-   } MO_STMT_END
-
-#define STATS_BYTES_INC(type, n) \
-   MO_STMT_START { \
-      if(_stats_enabled) \
-      { \
-         uint64_t next = __sync_add_and_fetch(&_stats[type].bytes.live, n); \
-         if(next > _stats[type].bytes.max) \
-         { \
-            _stats[type].bytes.max = next; \
-         } \
-      } \
-   } MO_STMT_END
-
-#define STATS_DEC(type) \
-   MO_STMT_START { \
-      if(_stats_enabled) \
-      { \
-         __sync_sub_and_fetch(&_stats[type].counts.live, 1); \
-         __sync_add_and_fetch(&_stats[type].counts.dead, 1); \
-      } \
-   } MO_STMT_END
-
-#define STATS_BYTES_DEC(type, n) \
-   MO_STMT_START { \
-      if(_stats_enabled) \
-      { \
-         __sync_sub_and_fetch(&_stats[type].bytes.live, n); \
-         __sync_add_and_fetch(&_stats[type].bytes.dead, n); \
-      } \
-   } MO_STMT_END
+#define STATS_COUNTS_INC(type) \
+   _STATS_INC(&_stats_counts[(type)]);
+#define STATS_COUNTS_BYTES_INC(type, n) \
+   _STATS_BYTES_INC(&_stats_counts[(type)], (n));
+#define STATS_COUNTS_DEC(type) \
+   _STATS_DEC(&_stats_counts[(type)]);
+#define STATS_COUNTS_BYTES_DEC(type, n) \
+   _STATS_BYTES_DEC(&_stats_counts[(type)], (n));
 
 #else
 
 // do debugging
-#define STATS_INC(type)
-#define STATS_BYTES_INC(type, n)
-#define STATS_DEC(type)
-#define STATS_BYTES_DEC(type, n)
+#define STATS_COUNTS_INC(type)
+#define STATS_COUNTS_BYTES_INC(type, n)
+#define STATS_COUNTS_DEC(type)
+#define STATS_COUNTS_BYTES_DEC(type, n)
 
-#endif // MO_DYNO_DEBUG
+#endif // MO_DYNO_COUNTS
 
-#ifdef MO_DYNO_DEBUG
+#ifdef MO_DYNO_COUNTS
 #define _changeType(dyno, newType) \
    MO_STMT_START { \
-      STATS_DEC(dyno->mType); \
-      dyno->mType = newType; \
-      STATS_INC(newType); \
+      STATS_COUNTS_DEC((dyno)->mType); \
+      dyno->mType = (newType); \
+      STATS_COUNTS_INC((newType)); \
    } MO_STMT_END
 #else
 #define _changeType(dyno, newType) \
    MO_STMT_START { \
-      dyno->mType = newType; \
+      (dyno)->mType = (newType); \
    } MO_STMT_END
-#endif
+#endif // MO_DYNO_COUNTS
+
+#ifdef MO_DYNO_KEY_COUNTS
+
+typedef std::map<const char*, struct _stats_data_s,
+   DynamicObjectImpl::MemberComparator>
+   _StatsKeyMap;
+static _StatsKeyMap _stats_key_counts;
+static monarch::rt::ExclusiveLock _stats_key_counts_lock;
+
+#define STATS_KEY_COUNTS_INC(key) \
+   MO_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         struct _stats_data_s* s; \
+         _stats_key_counts_lock.lock(); \
+         if(_stats_key_counts.count((key)) == 0) \
+         { \
+            s = &_stats_key_counts[strdup((key))]; \
+         } \
+         else \
+         { \
+            s = &_stats_key_counts[(key)]; \
+         } \
+         _stats_key_counts_lock.unlock(); \
+         _STATS_INC(s); \
+      } \
+   } MO_STMT_END
+
+#define STATS_KEY_COUNTS_BYTES_INC(key, n) \
+   MO_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         struct _stats_data_s* s; \
+         _stats_key_counts_lock.lock(); \
+         if(_stats_key_counts.count((key)) == 0) \
+         { \
+            s = &_stats_key_counts[strdup((key))]; \
+         } \
+         else \
+         { \
+            s = &_stats_key_counts[(key)]; \
+         } \
+         _stats_key_counts_lock.unlock(); \
+         _STATS_BYTES_INC(s, (n)); \
+      } \
+   } MO_STMT_END
+
+#define STATS_KEY_COUNTS_DEC(key) \
+   MO_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         struct _stats_data_s* s; \
+         _stats_key_counts_lock.lock(); \
+         s = &_stats_key_counts[(key)]; \
+         _stats_key_counts_lock.unlock(); \
+         _STATS_DEC(s); \
+      } \
+   } MO_STMT_END
+
+#define STATS_KEY_COUNTS_BYTES_DEC(key, n) \
+   MO_STMT_START { \
+      if(_stats_enabled) \
+      { \
+         struct _stats_data_s* s; \
+         _stats_key_counts_lock.lock(); \
+         s = &_stats_key_counts[(key)]; \
+         _stats_key_counts_lock.unlock(); \
+         _STATS_BYTES_DEC(s, (n)); \
+      } \
+   } MO_STMT_END
+
+#else
+
+#define STATS_KEY_COUNTS_INC(key)
+#define STATS_KEY_COUNTS_BYTES_INC(key, n)
+#define STATS_KEY_COUNTS_DEC(key)
+#define STATS_KEY_COUNTS_BYTES_DEC(key, n)
+
+#endif // MO_DYNO_KEY_COUNTS
 
 DynamicObjectImpl::DynamicObjectImpl()
 {
-   STATS_INC(Object);
-   STATS_INC(String);
+   STATS_COUNTS_INC(Object);
+   STATS_COUNTS_INC(String);
 
    mType = String;
    mString = NULL;
@@ -135,13 +233,13 @@ DynamicObjectImpl::~DynamicObjectImpl()
    // free cached string value
    if(mStringValue != NULL)
    {
-      STATS_DEC(StringValue);
-      STATS_BYTES_DEC(StringValue, strlen(mStringValue));
+      STATS_COUNTS_DEC(StringValue);
+      STATS_COUNTS_BYTES_DEC(StringValue, strlen(mStringValue));
       free(mStringValue);
    }
 
-   STATS_DEC(mType);
-   STATS_DEC(Object);
+   STATS_COUNTS_DEC(mType);
+   STATS_COUNTS_DEC(Object);
 }
 
 void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
@@ -177,8 +275,10 @@ void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
          for(; i != value.mMap->end(); i++)
          {
             // create new map entry
-            STATS_INC(Key);
-            STATS_BYTES_INC(Key, strlen(i->first));
+            STATS_COUNTS_INC(Key);
+            STATS_COUNTS_BYTES_INC(Key, strlen(i->first));
+            STATS_KEY_COUNTS_INC(i->first);
+            STATS_KEY_COUNTS_BYTES_INC(i->first, strlen(i->first));
             mMap->insert(std::make_pair(strdup(i->first), i->second));
          }
          break;
@@ -203,8 +303,8 @@ void DynamicObjectImpl::operator=(const char* value)
    freeData();
    _changeType(this, String);
    mString = strdup(value);
-   STATS_INC(String);
-   STATS_BYTES_INC(String, strlen(value));
+   STATS_COUNTS_INC(String);
+   STATS_COUNTS_BYTES_INC(String, strlen(value));
 }
 
 void DynamicObjectImpl::operator=(bool value)
@@ -264,8 +364,10 @@ DynamicObject& DynamicObjectImpl::operator[](const char* name)
    {
       // create new map entry
       DynamicObject dyno;
-      STATS_INC(Key);
-      STATS_BYTES_INC(Key, strlen(name));
+      STATS_COUNTS_INC(Key);
+      STATS_COUNTS_BYTES_INC(Key, strlen(name));
+      STATS_KEY_COUNTS_INC(name);
+      STATS_KEY_COUNTS_BYTES_INC(name, strlen(name));
       mMap->insert(std::make_pair(strdup(name), dyno));
       rval = &(*mMap)[name];
    }
@@ -628,11 +730,11 @@ const char* DynamicObjectImpl::getString() const
       char* str = (char*)(mStringValue);
       if(str == NULL)
       {
-         STATS_INC(StringValue);
+         STATS_COUNTS_INC(StringValue);
       }
       else
       {
-         STATS_BYTES_DEC(StringValue, strlen(str));
+         STATS_COUNTS_BYTES_DEC(StringValue, strlen(str));
       }
 
       // convert type as appropriate
@@ -644,19 +746,19 @@ const char* DynamicObjectImpl::getString() const
             break;
          case Int32:
             str = (char*)realloc(str, 12);
-            snprintf(str, 12, "%i", mInt32);
+            snprintf(str, 12, "%" PRIi32, mInt32);
             break;
          case UInt32:
             str = (char*)realloc(str, 11);
-            snprintf(str, 11, "%u", mUInt32);
+            snprintf(str, 11, "%" PRIu32, mUInt32);
             break;
          case Int64:
             str = (char*)realloc(str, 22);
-            snprintf(str, 22, "%lli", mInt64);
+            snprintf(str, 22, "%" PRIi64, mInt64);
             break;
          case UInt64:
             str = (char*)realloc(str, 21);
-            snprintf(str, 21, "%llu", mUInt64);
+            snprintf(str, 21, "%" PRIu64, mUInt64);
             break;
          case Double:
             // use default precision of 6
@@ -668,7 +770,7 @@ const char* DynamicObjectImpl::getString() const
             break;
       }
 
-      STATS_BYTES_INC(StringValue, strlen(str));
+      STATS_COUNTS_BYTES_INC(StringValue, strlen(str));
 
       // set generated value
       ((DynamicObjectImpl*)this)->mStringValue = str;
@@ -1028,8 +1130,10 @@ void DynamicObjectImpl::freeMapKeys()
    for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); i++)
    {
       char* key = (char*)i->first;
-      STATS_DEC(Key);
-      STATS_BYTES_DEC(Key, strlen(key));
+      STATS_COUNTS_DEC(Key);
+      STATS_COUNTS_BYTES_DEC(Key, strlen(key));
+      STATS_KEY_COUNTS_DEC(key);
+      STATS_KEY_COUNTS_BYTES_DEC(key, strlen(key));
       free(key);
    }
 }
@@ -1042,7 +1146,7 @@ void DynamicObjectImpl::freeData()
       case String:
          if(mString != NULL)
          {
-            STATS_BYTES_DEC(String, strlen(mString));
+            STATS_COUNTS_BYTES_DEC(String, strlen(mString));
             free(mString);
             mString = NULL;
          }
@@ -1072,8 +1176,10 @@ void DynamicObjectImpl::removeMember(ObjectMap::iterator iterator)
 {
    // clean up key and remove map entry
    char* key = (char*)iterator->first;
-   STATS_DEC(Key);
-   STATS_BYTES_DEC(Key, strlen(key));
+   STATS_COUNTS_DEC(Key);
+   STATS_COUNTS_BYTES_DEC(Key, strlen(key));
+   STATS_KEY_COUNTS_DEC(key);
+   STATS_KEY_COUNTS_BYTES_DEC(key, strlen(key));
    free(key);
    mMap->erase(iterator);
 }
@@ -1135,7 +1241,7 @@ void DynamicObjectImpl::setFormattedString(const char* format, va_list varargs)
 
 bool DynamicObjectImpl::enableStats(bool enable)
 {
-#ifdef MO_DYNO_DEBUG
+#ifdef MO_DYNO_COUNTS
    bool rval = _stats_enabled;
    _stats_enabled = enable;
 #else
@@ -1146,8 +1252,11 @@ bool DynamicObjectImpl::enableStats(bool enable)
 
 void DynamicObjectImpl::clearStats()
 {
-#ifdef MO_DYNO_DEBUG
-   memset(&_stats, 0, sizeof(_stats));
+#ifdef MO_DYNO_COUNTS
+   memset(&_stats_counts, 0, sizeof(_stats_counts));
+   _stats_key_counts_lock.lock();
+   _stats_key_counts.clear();
+   _stats_key_counts_lock.unlock();
 #endif
 }
 
@@ -1156,16 +1265,23 @@ DynamicObject DynamicObjectImpl::getStats()
    DynamicObject rval;
    rval->setType(Map);
 
-#ifdef MO_DYNO_DEBUG
+#if defined(MO_DYNO_COUNTS) || defined(MO_DYNO_KEY_COUNTS)
+   #define MAKESTAT(d, s) \
+      MO_STMT_START { \
+         d["counts"]["live"] = s.counts.live; \
+         d["counts"]["dead"] = s.counts.dead; \
+         d["counts"]["max"] = s.counts.max; \
+         d["bytes"]["live"] = s.bytes.live; \
+         d["bytes"]["dead"] = s.bytes.dead; \
+         d["bytes"]["max"] = s.bytes.max; \
+      } MO_STMT_END
+#endif // defined(MO_DYNO_COUNTS) || defined(MO_DYNO_KEY_COUNTS)
+
+#ifdef MO_DYNO_COUNTS
    #define GETSTAT(s, type) \
       MO_STMT_START { \
          DynamicObject& d = s[MO_STRINGIFY(type)]; \
-         d["counts"]["live"] = _stats[type].counts.live; \
-         d["counts"]["dead"] = _stats[type].counts.dead; \
-         d["counts"]["max"] = _stats[type].counts.max; \
-         d["bytes"]["live"] = _stats[type].bytes.live; \
-         d["bytes"]["dead"] = _stats[type].bytes.dead; \
-         d["bytes"]["max"] = _stats[type].bytes.max; \
+         MAKESTAT(d, _stats_counts[type]); \
       } MO_STMT_END
    GETSTAT(rval, Object);
    GETSTAT(rval, String);
@@ -1180,8 +1296,25 @@ DynamicObject DynamicObjectImpl::getStats()
    GETSTAT(rval, Key);
    GETSTAT(rval, StringValue);
    #undef GETSTAT
-#endif
+#endif // MO_DYNO_COUNTS
+
+#ifdef MO_DYNO_KEY_COUNTS
+   {
+      _stats_key_counts_lock.lock();
+      DynamicObject& d = rval["KeyCounts"];
+      d["count"] = _stats_key_counts.size();
+      d["keys"]->setType(Map);
+      _StatsKeyMap::iterator i =
+         _stats_key_counts.begin();
+      for(; i != _stats_key_counts.end(); i++)
+      {
+         // create new stat entry
+         DynamicObject& s = d["keys"][i->first];
+         MAKESTAT(s, _stats_key_counts[i->first]);
+      }
+      _stats_key_counts_lock.unlock();
+   }
+#endif // MO_DYNO_KEY_COUNTS
 
    return rval;
 }
-

@@ -579,6 +579,38 @@ bool MicroKernel::loadModules(const char* path)
       rval = checkDependencies(pending);
    }
 
+   // iterate over list and validate successfully loaded modules
+   for(ModuleList::iterator i = mModuleList.begin();
+       rval && i != mModuleList.end(); i++)
+   {
+      MicroKernelModule* m = *i;
+      MO_CAT_INFO(MO_KERNEL_CAT,
+         "Validating MicroKernel module: %s v%s",
+         m->getId().name, m->getId().version);
+
+      if(!m->validate(this))
+      {
+         ExceptionRef e = new Exception(
+            "Failed to validate module.",
+            "monarch.kernel.ModuleValidationFailure");
+         e->getDetails()["module"] = m->getDependencyInfo();
+         Exception::push(e);
+
+         // log exception details
+         MO_CAT_ERROR(MO_KERNEL_CAT,
+            "Exception while validating MicroKernel module: %s.",
+            JsonWriter::writeToString(
+               Exception::getAsDynamicObject()).c_str());
+         rval = false;
+      }
+      else
+      {
+         MO_CAT_INFO(MO_KERNEL_CAT,
+            "Validated MicroKernel module: %s v%s",
+            m->getId().name, m->getId().version);
+      }
+   }
+
    // iterate over list and initialize successfully loaded modules
    for(ModuleList::iterator i = mModuleList.begin();
        rval && i != mModuleList.end(); i++)

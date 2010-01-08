@@ -5,7 +5,7 @@
 
 #include "monarch/rt/System.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace monarch::rt;
 using namespace monarch::util;

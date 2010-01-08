@@ -1,13 +1,15 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/net/DefaultBandwidthThrottler.h"
 
 #include "monarch/rt/System.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/util/Math.h"
 
-#include <math.h>
+#include <cmath>
 
 using namespace monarch::net;
 using namespace monarch::rt;
@@ -41,8 +43,8 @@ bool DefaultBandwidthThrottler::requestBytes(int count, int& permitted)
          rval = limitBandwidth();
 
          // get the available bytes
-         int available = (mAvailableBytes >= (uint64_t)Math::MAX_INT_VALUE) ?
-            Math::MAX_INT_VALUE : (int)mAvailableBytes;
+         int available = (mAvailableBytes >= (uint64_t)INT32_MAX) ?
+            INT32_MAX : (int)mAvailableBytes;
          permitted = (available > count ? count : available);
 
          // increment the bytes granted
@@ -82,13 +84,13 @@ int DefaultBandwidthThrottler::getAvailableBytes()
 
    mLock.lock();
    {
-      if(mRateLimit > 0 && mAvailableBytes < (uint64_t)Math::MAX_INT_VALUE)
+      if(mRateLimit > 0 && mAvailableBytes < (uint64_t)INT32_MAX)
       {
          rval = mAvailableBytes;
       }
       else
       {
-         rval = Math::MAX_INT_VALUE;
+         rval = INT32_MAX;
       }
    }
    mLock.unlock();

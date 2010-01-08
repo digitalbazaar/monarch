@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
 
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/test/Test.h"
@@ -921,7 +922,7 @@ void runRandomTest(TestRunner& tr)
       Random::seed();
       for(int i = 0; i < 10000; i++)
       {
-         printf("%llu\n", Random::next(1, 1000000000));
+         printf("%" PRIu64 "\n", Random::next(1, 1000000000));
       }
    }
    tr.passIfNoException();

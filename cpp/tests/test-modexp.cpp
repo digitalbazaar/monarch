@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/test/Test.h"
 #include "monarch/test/Tester.h"
 #include "monarch/test/TestRunner.h"
@@ -43,7 +45,7 @@ void runModExpTest(TestRunner& tr)
       timer.start();
       BigInteger r = b.modexp(e, m);
       totalTime += timer.getElapsedMilliseconds();
-      //printf("remainder: %s, %llu ms\n",
+      //printf("remainder: %s, %" PRIu64 " ms\n",
       //   r.toString().c_str(), timer.getElapsedMilliseconds());
    }
 

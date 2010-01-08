@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/avi/AviStreamHeaderList.h"
 
@@ -9,7 +9,9 @@ using namespace monarch::data::riff;
 using namespace monarch::io;
 
 AviStreamHeaderList::AviStreamHeaderList() :
-   mRiffHeader(CHUNK_ID)
+   mRiffHeader(CHUNK_ID),
+   mStreamHeader(NULL),
+   mStreamFormat(NULL)
 {
 }
 
@@ -22,21 +24,12 @@ bool AviStreamHeaderList::writeTo(OutputStream& os)
    bool rval;
 
    // write RIFF header
-   // write stream header
-   // write stream format
+   // write stream header, if exists
+   // write stream format, if exists
    rval =
       mRiffHeader.writeTo(os) &&
-      mStreamHeader.writeTo(os) &&
-      mStreamFormat.writeTo(os);
-
-   if(rval)
-   {
-      // write stream data, if present
-      if(mStreamData.getChunkSize() > 0)
-      {
-         rval = mStreamData.writeTo(os);
-      }
-   }
+      (mStreamHeader == NULL || mStreamHeader->writeTo(os)) &&
+      (mStreamFormat == NULL || mStreamFormat->writeTo(os));
 
    return rval;
 }
@@ -45,12 +38,22 @@ bool AviStreamHeaderList::convertFromBytes(const char* b, int length)
 {
    bool rval = false;
 
+   // clean up stream header and format
+   setStreamHeader(NULL);
+   setStreamFormat(NULL);
+
    // convert the RIFF header
    if(mRiffHeader.convertFromBytes(b, length) &&
       mRiffHeader.getIdentifier() == CHUNK_ID)
    {
-      // make sure there is enough data to convert the header
-      if(length >= getSize())
+      // if there is enough data, convert the components
+      // FIXME: this includes 'strd' ... which we ignore
+      if(length < getSize())
+      {
+         // do not convert components
+         rval = true;
+      }
+      else
       {
          // step forward past RIFF header
          b += RiffListHeader::HEADER_SIZE;
@@ -59,28 +62,19 @@ bool AviStreamHeaderList::convertFromBytes(const char* b, int length)
          length = (int)mRiffHeader.getListSize();
 
          // convert header
-         if(mStreamHeader.convertFromBytes(b, length))
+         setStreamHeader(new AviStreamHeader());
+         if(mStreamHeader->convertFromBytes(b, length))
          {
             // step forward past header
-            b += mStreamHeader.getSize();
-            length -= mStreamHeader.getSize();
+            b += mStreamHeader->getSize();
+            length -= mStreamHeader->getSize();
 
             // convert format
-            if(mStreamFormat.convertFromBytes(b, length))
+            setStreamFormat(new AviStreamFormat());
+            if(mStreamFormat->convertFromBytes(b, length))
             {
-               // header list converted, 'strd' is not used
+               // header list converted, 'strd' is ignored
                rval = true;
-
-               // step forward past format
-               b += mStreamFormat.getSize();
-               length -= mStreamFormat.getSize();
-
-               // look for stream data anyway
-               if(length > 0)
-               {
-                  // convert stream data
-                  mStreamData.convertFromBytes(b, length);
-               }
             }
          }
       }
@@ -103,4 +97,32 @@ int AviStreamHeaderList::getListSize()
 int AviStreamHeaderList::getSize()
 {
    return getListSize() + RiffListHeader::HEADER_SIZE;
+}
+
+void AviStreamHeaderList::setStreamHeader(AviStreamHeader* h)
+{
+   if(mStreamHeader != NULL)
+   {
+      delete mStreamHeader;
+   }
+   mStreamHeader = h;
+}
+
+AviStreamHeader* AviStreamHeaderList::getStreamHeader()
+{
+   return mStreamHeader;
+}
+
+void AviStreamHeaderList::setStreamFormat(AviStreamFormat* f)
+{
+   if(mStreamFormat != NULL)
+   {
+      delete mStreamFormat;
+   }
+   mStreamFormat = f;
+}
+
+AviStreamFormat* AviStreamHeaderList::getStreamFormat()
+{
+   return mStreamFormat;
 }

@@ -4,7 +4,7 @@
 #include "monarch/data/mpeg/AudioFrameHeader.h"
 
 #include "monarch/rt/Exception.h"
-#include <math.h>
+#include <cmath>
 #include <cstdio>
 
 using namespace std;

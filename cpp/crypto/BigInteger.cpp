@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/crypto/BigInteger.h"
 
 // FIXME: if asserts are not compiled in, and an error occurs, math will be off
@@ -13,7 +15,7 @@ using namespace std;
 using namespace monarch::crypto;
 using namespace monarch::io;
 
-BigInteger::BigInteger(unsigned long long value)
+BigInteger::BigInteger(uint64_t value)
 {
    initialize();
 
@@ -23,7 +25,7 @@ BigInteger::BigInteger(unsigned long long value)
    }
 }
 
-BigInteger::BigInteger(long long value)
+BigInteger::BigInteger(int64_t value)
 {
    initialize();
 
@@ -33,7 +35,7 @@ BigInteger::BigInteger(long long value)
    }
 }
 
-BigInteger::BigInteger(unsigned int value)
+BigInteger::BigInteger(uint32_t value)
 {
    initialize();
 
@@ -43,7 +45,7 @@ BigInteger::BigInteger(unsigned int value)
    }
 }
 
-BigInteger::BigInteger(int value)
+BigInteger::BigInteger(int32_t value)
 {
    initialize();
 
@@ -109,34 +111,34 @@ BigInteger& BigInteger::operator=(const BigInteger& rhs)
    return *this;
 }
 
-BigInteger& BigInteger::operator=(unsigned long long rhs)
+BigInteger& BigInteger::operator=(uint64_t rhs)
 {
    char temp[22];
-   sprintf(temp, "%llu", rhs);
+   snprintf(temp, 22, "%" PRIu64, rhs);
    *this = temp;
 
    return *this;
 }
 
-BigInteger& BigInteger::operator=(long long rhs)
+BigInteger& BigInteger::operator=(int64_t rhs)
 {
    char temp[22];
-   sprintf(temp, "%lli", rhs);
+   snprintf(temp, 22, "%" PRIi64, rhs);
    *this = temp;
 
    return *this;
 }
 
-BigInteger& BigInteger::operator=(unsigned int rhs)
+BigInteger& BigInteger::operator=(uint32_t rhs)
 {
    int rc = (rhs == 0 ? BN_zero(mBigNum) : BN_set_word(mBigNum, rhs));
    assert(rc == 1);
    return *this;
 }
 
-BigInteger& BigInteger::operator=(int rhs)
+BigInteger& BigInteger::operator=(int32_t rhs)
 {
-   *this = (long long)rhs;
+   *this = (int64_t)rhs;
    return *this;
 }
 
@@ -171,7 +173,7 @@ bool BigInteger::operator==(const BigInteger& rhs)
    return BN_cmp(mBigNum, rhs.mBigNum) == 0;
 }
 
-bool BigInteger::operator==(long long rhs)
+bool BigInteger::operator==(int64_t rhs)
 {
    return getInt64() == rhs;
 }
@@ -181,7 +183,7 @@ bool BigInteger::operator!=(const BigInteger& rhs)
    return !(*this == rhs);
 }
 
-bool BigInteger::operator!=(long long rhs)
+bool BigInteger::operator!=(int64_t rhs)
 {
    return !(*this == rhs);
 }

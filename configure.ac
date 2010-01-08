@@ -180,14 +180,14 @@ AC_ARG_ENABLE([log-line-numbers],
       [disable log line numbers [[no]]]),
    [
    case "${enableval}" in
-      yes) DB_DISABLE_LOG_LINE_NUMBERS=no ;;
-      no)  DB_DISABLE_LOG_LINE_NUMBERS=yes ;;
+      yes) MO_DISABLE_LOG_LINE_NUMBERS=no ;;
+      no)  MO_DISABLE_LOG_LINE_NUMBERS=yes ;;
       *)   AC_MSG_ERROR(bad value ${enableval} for --enable-log-line-numbers) ;;
    esac
    ],
-   [DB_DISABLE_LOG_LINE_NUMBERS=no]) dnl Default value
-if test "x$DB_DISABLE_LOG_LINE_NUMBERS" = xyes; then
-   AC_DEFINE(DB_DISABLE_LOG_LINE_NUMBERS, 1,
+   [MO_DISABLE_LOG_LINE_NUMBERS=no]) dnl Default value
+if test "x$MO_DISABLE_LOG_LINE_NUMBERS" = xyes; then
+   AC_DEFINE(MO_DISABLE_LOG_LINE_NUMBERS, 1,
       [Enable log line numbers.])
 fi
 
@@ -197,32 +197,43 @@ dnl option to override default c++ optimization (often -g -O2)
 AC_ARG_WITH(opt-flags,
   AC_HELP_STRING([--with-opt-flags=FLAGS],
     [use FLAGS for optimization (-O -fno-exceptions)]),
-  [DB_CXX_OPT_FLAGS="${withval}"],
-  [DB_CXX_OPT_FLAGS="-O -fno-exceptions"]) dnl Default value
+  [MO_CXX_OPT_FLAGS="${withval}"],
+  [MO_CXX_OPT_FLAGS="-O -fno-exceptions"]) dnl Default value
 
-AC_MSG_NOTICE(Using optimization flags: "$DB_CXX_OPT_FLAGS")
+AC_MSG_NOTICE(Using optimization flags: "$MO_CXX_OPT_FLAGS")
 
-dnl ----------------- debugging -----------------
+dnl ----------------- DynamicObject statistics -----------------
 
 dnl low level DynamicObject statistics
 
-AC_ARG_ENABLE([dyno-debug],
-   AS_HELP_STRING([--enable-dyno-debug],
-      [enable DynamicObject debugging [[no]]]),
+AC_ARG_ENABLE([dyno-counts],
+   AS_HELP_STRING([--enable-dyno-counts],
+      [enable DynamicObject type counts [[no]]]),
    [
       case "${enableval}" in
-         yes) DB_DYNO_DEBUG="-DDB_DYNO_DEBUG" ;;
+         yes) MO_DYNO_COUNTS="-DMO_DYNO_COUNTS" ;;
          no) ;;
-         *) AC_MSG_ERROR(bad value ${enableval} for --enable-dyno-debug) ;;
+         *) AC_MSG_ERROR(bad value ${enableval} for --enable-dyno-counts) ;;
       esac
    ], [])  dnl Default value
 
-DB_DEBUG_FLAGS="$DB_DYNO_DEBUG"
-AC_MSG_NOTICE(Using debug flags: "$DB_DEBUG_FLAGS")
+AC_ARG_ENABLE([dyno-key-counts],
+   AS_HELP_STRING([--enable-dyno-key-counts],
+      [enable DynamicObject Map key counts [[no]]]),
+   [
+      case "${enableval}" in
+         yes) MO_DYNO_KEY_COUNTS="-DMO_DYNO_KEY_COUNTS" ;;
+         no) ;;
+         *) AC_MSG_ERROR(bad value ${enableval} for --enable-dyno-key-counts) ;;
+      esac
+   ], [])  dnl Default value
+
+MO_DEBUG_FLAGS="$MO_DYNO_COUNTS $MO_DYNO_KEY_COUNTS"
+AC_MSG_NOTICE(Using debug flags: "$MO_DEBUG_FLAGS")
 
 dnl ----------------- flags -----------------
 
-CXXFLAGS="$CXXFLAGS $DB_CXX_OPT_FLAGS $DB_DEBUG_FLAGS"
+CXXFLAGS="$CXXFLAGS $MO_CXX_OPT_FLAGS $MO_DEBUG_FLAGS"
 
 dnl ----------------- substitutions -----------------
 
@@ -337,8 +348,8 @@ else
    echo "MacOS             : disabled (use --enable-macos to enable)"
 fi
 
-echo "Optimization Flags: $DB_CXX_OPT_FLAGS"
-echo "Debug Flags       : $DB_DEBUG_FLAGS"
+echo "Optimization Flags: $MO_CXX_OPT_FLAGS"
+echo "Debug Flags       : $MO_DEBUG_FLAGS"
 
 if test "x$BUILD_MYSQL" = "xyes"; then
    echo "MySQL             : enabled"
@@ -358,7 +369,7 @@ else
    echo "Tests             : disabled (use --enable-tests to enable)"
 fi
 
-if test "x$DB_DISABLE_LOG_LINE_NUMBERS" = "xyes"; then
+if test "x$MO_DISABLE_LOG_LINE_NUMBERS" = "xyes"; then
    echo "Log line numbers  : disabled (use --enable-log-line-numbers to enable)"
 else
    echo "Log line numbers  : enabled"

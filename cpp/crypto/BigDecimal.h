@@ -116,42 +116,35 @@ public:
     *
     * @param value the value for this BigDecimal.
     */
-   BigDecimal(long double value = 0);
+   BigDecimal(double value = 0.0);
 
    /**
     * Creates a new BigDecimal with the specified value.
     *
     * @param value the value for this BigDecimal.
     */
-   BigDecimal(double value);
+   BigDecimal(int64_t value);
 
    /**
     * Creates a new BigDecimal with the specified value.
     *
     * @param value the value for this BigDecimal.
     */
-   BigDecimal(long long value);
+   BigDecimal(uint64_t value);
 
    /**
     * Creates a new BigDecimal with the specified value.
     *
     * @param value the value for this BigDecimal.
     */
-   BigDecimal(unsigned long long value);
+   BigDecimal(int32_t value);
 
    /**
     * Creates a new BigDecimal with the specified value.
     *
     * @param value the value for this BigDecimal.
     */
-   BigDecimal(int value);
-
-   /**
-    * Creates a new BigDecimal with the specified value.
-    *
-    * @param value the value for this BigDecimal.
-    */
-   BigDecimal(unsigned int value);
+   BigDecimal(uint32_t value);
 
    /**
     * Creates a new BigDecimal with the specified value.
@@ -195,15 +188,6 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(long double rhs);
-
-   /**
-    * Sets this BigDecimal's value to the passed value.
-    *
-    * @param value the new value for this BigDecimal.
-    *
-    * @return this BigDecimal.
-    */
    BigDecimal& operator=(double rhs);
 
    /**
@@ -213,7 +197,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(long long rhs);
+   BigDecimal& operator=(int64_t rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -222,7 +206,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(unsigned long long rhs);
+   BigDecimal& operator=(uint64_t rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -231,7 +215,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(int rhs);
+   BigDecimal& operator=(int32_t rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -240,7 +224,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(unsigned int rhs);
+   BigDecimal& operator=(uint32_t rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -277,7 +261,7 @@ public:
     * @return true if this BigDecimal is equal to the passed double,
     *         false if not.
     */
-   bool operator==(long double rhs);
+   bool operator==(double rhs);
 
    /**
     * Returns true if this BigDecimal is not equal to the passed one.
@@ -297,7 +281,7 @@ public:
     * @return true if this BigDecimal is not equal to the passed double,
     *         false if not.
     */
-   bool operator!=(long double rhs);
+   bool operator!=(double rhs);
 
    /**
     * Returns true if this BigDecimal is less than the passed one.
@@ -454,7 +438,7 @@ public:
     *
     * @return the value of this BigDecimal as a double.
     */
-   long double getDouble() const;
+   double getDouble() const;
 
    /**
     * Sets the number of digits of precision for this BigDecimal for

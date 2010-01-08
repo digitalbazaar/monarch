@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+
 #include "monarch/net/SocketTools.h"
 
 #include "monarch/net/WindowsSupport.h"
@@ -36,7 +38,7 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
 
    // set 20 millisecond interrupt check timeout (necessary because
    // windows lacks SIGNAL support to do interruptions properly)
-   long long intck = 20LL;
+   long long intck = INT64_C(20);
 
    // keep selecting (polling) until timeout is reached
    long long remaining = (timeout <= 0) ? intck : timeout;
@@ -52,7 +54,7 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
    {
       // create intck millisecond timeout (1 millisecond is 1000 microseconds)
       to.tv_sec = 0;
-      to.tv_usec = (remaining < intck ? remaining : intck) * 1000LL;
+      to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
    }
 
    unsigned long long start = System::getCurrentMilliseconds();
@@ -123,7 +125,7 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
 
          // reset timeout
          to.tv_sec = 0;
-         to.tv_usec = intck * 1000LL;
+         to.tv_usec = intck * INT64_C(1000);
       }
 
       if(timeout != 0)
@@ -132,7 +134,7 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
          end = System::getCurrentMilliseconds();
          remaining -= (end - start);
          start = end;
-         to.tv_usec = (remaining < intck ? remaining : intck) * 1000LL;
+         to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
       }
    }
 
@@ -168,8 +170,8 @@ int SocketTools::select(
 //   if(timeout > 0)
 //   {
 //      // set timeout (1 millisecond is 1000 microseconds)
-//      to.tv_sec = timeout / 1000LL;
-//      to.tv_usec = (timeout % 1000LL) * 1000LL;
+//      to.tv_sec = timeout / INT64_C(1000);
+//      to.tv_usec = (timeout % INT64_C(1000)) * INT64_C(1000);
 //      tv = &to;
 //   }
 //
@@ -235,7 +237,7 @@ int SocketTools::select(
 
    // set 20 millisecond interrupt check timeout (necessary because
    // windows lacks SIGNAL support to do interruptions properly)
-   long long intck = 20LL;
+   long long intck = INT64_C(20);
 
    // keep selecting (polling) until timeout is reached
    long long remaining = (timeout <= 0) ? intck : timeout;
@@ -251,7 +253,7 @@ int SocketTools::select(
    {
       // create 20 millisecond timeout (1 millisecond is 1000 microseconds)
       to.tv_sec = 0;
-      to.tv_usec = (remaining < intck ? remaining : intck) * 1000LL;
+      to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
    }
 
    unsigned long long start = System::getCurrentMilliseconds();
@@ -295,7 +297,7 @@ int SocketTools::select(
 
          // reset timeout
          to.tv_sec = 0;
-         to.tv_usec = intck * 1000LL;
+         to.tv_usec = intck * INT64_C(1000);
       }
 
       if(timeout != 0)
@@ -304,7 +306,7 @@ int SocketTools::select(
          end = System::getCurrentMilliseconds();
          remaining -= (end - start);
          start = end;
-         to.tv_usec = (remaining < intck ? remaining : intck) * 1000LL;
+         to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
       }
    }
 
@@ -320,3 +322,4 @@ int SocketTools::select(
 
    return rval;
 }
+	

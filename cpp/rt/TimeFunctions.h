@@ -4,6 +4,8 @@
 #ifndef monarch_rt_TimeFunctions_H
 #define monarch_rt_TimeFunctions_H
 
+#define __STDC_CONSTANT_MACROS
+
 /**
  * This header provides some cross-platform definitions for time functions.
  *
@@ -20,6 +22,7 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <sys/timeb.h>
+#include <inttypes.h>
 
 //// prevent C++ name mangling
 //#ifdef __cplusplus
@@ -50,11 +53,7 @@ inline static long long gGetTimeZoneMinutesWest()
 // define time between the epoch (01/01/1970) and UTC (01/01/1601)
 // measured in 10ths of a microsecond (which is equal to 100 nanoseconds
 // as is the increment for UTC)
-#ifndef __GNUC__
-   #define EPOCH_UTC_TENTHMICROSECS_DELTA 116444736000000000i64
-#else
-   #define EPOCH_UTC_TENTHMICROSECS_DELTA 116444736000000000LL
-#endif
+#define EPOCH_UTC_TENTHMICROSECS_DELTA INT64_C(116444736000000000)
 
 // include windows headers for obtaining time
 #include <windows.h>
@@ -122,11 +121,11 @@ inline static int gettimeofday(struct timeval* tv, struct timezone* tz)
       now.time -= EPOCH_UTC_TENTHMICROSECS_DELTA;
 
       // get time in microseconds
-      now.time /= 10ULL;
+      now.time /= UINT64_C(10);
 
       // store time in seconds and microseconds (1 microsecond = 1000000 sec)
-      tv->tv_sec  = (unsigned long long)(now.time / 1000000ULL);
-      tv->tv_usec = (unsigned long long)(now.time % 1000000ULL);
+      tv->tv_sec  = (unsigned long long)(now.time / UINT64_C(1000000));
+      tv->tv_usec = (unsigned long long)(now.time % UINT64_C(1000000));
    }
 
    // populate timezone
@@ -355,7 +354,7 @@ inline static struct tm* gmtime_r(const time_t* timep, struct tm* result)
 inline static struct tm* localtime_r(const time_t* timep, struct tm* result)
 {
    // remove the minutes west (as seconds) to the passed time
-   time_t local = *timep - (gGetTimeZoneMinutesWest() * 60LL);
+   time_t local = *timep - (gGetTimeZoneMinutesWest() * 60);
 
    // get the UTC time
    return gmtime_r(&local, result);
@@ -638,7 +637,7 @@ inline static time_t timegm(struct tm* tm)
    if(rval != -1)
    {
       // subtract seconds west to get to GMT time
-      rval -= gGetTimeZoneMinutesWest() * 60LL;
+      rval -= gGetTimeZoneMinutesWest() * 60;
    }
 
    return rval;

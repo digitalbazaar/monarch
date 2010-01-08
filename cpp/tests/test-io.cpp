@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/test/Test.h"
 #include "monarch/test/Tester.h"
 #include "monarch/test/TestRunner.h"
@@ -51,7 +53,7 @@ void runStringEqualityTest(TestRunner& tr)
       if(str == "");
    }
    end = System::getCurrentMilliseconds();
-   printf("String == \"\" time: %llu ms\n", (end - start));
+   printf("String == \"\" time: %" PRIu64 " ms\n", (end - start));
 
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -59,7 +61,7 @@ void runStringEqualityTest(TestRunner& tr)
       if(str.length() == 0);
    }
    end = System::getCurrentMilliseconds();
-   printf("String.length() == 0 time: %llu ms\n", (end - start));
+   printf("String.length() == 0 time: %" PRIu64 " ms\n", (end - start));
 
    // Note: test demonstrates that comparing to length is about 6 times faster
 
@@ -80,7 +82,7 @@ void runStringAppendCharTest(TestRunner& tr)
       if(str.length() == 1 && str[0] == '/');
    }
    end = System::getCurrentMilliseconds();
-   printf("String.length() == 1 && str[0] == '/' time: %llu ms\n",
+   printf("String.length() == 1 && str[0] == '/' time: %" PRIu64 " ms\n",
       (end - start));
 
    start = System::getCurrentMilliseconds();
@@ -89,7 +91,7 @@ void runStringAppendCharTest(TestRunner& tr)
       if(str == "/");
    }
    end = System::getCurrentMilliseconds();
-   printf("String == \"/\" time: %llu ms\n", (end - start));
+   printf("String == \"/\" time: %" PRIu64 " ms\n", (end - start));
 
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -97,7 +99,7 @@ void runStringAppendCharTest(TestRunner& tr)
       if(strcmp(str.c_str(), "/") == 0);
    }
    end = System::getCurrentMilliseconds();
-   printf("strcmp(String.c_str(), \"/\") == 0 time: %llu ms\n",
+   printf("strcmp(String.c_str(), \"/\") == 0 time: %" PRIu64 " ms\n",
       (end - start));
 
    string version = "HTTP/1.0";
@@ -107,7 +109,7 @@ void runStringAppendCharTest(TestRunner& tr)
       if(version == "HTTP/1.0");
    }
    end = System::getCurrentMilliseconds();
-   printf("String == \"HTTP/1.0\" time: %llu ms\n", (end - start));
+   printf("String == \"HTTP/1.0\" time: %" PRIu64 " ms\n", (end - start));
 
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -115,7 +117,7 @@ void runStringAppendCharTest(TestRunner& tr)
       if(strcmp(version.c_str(), "HTTP/1.0") == 0);
    }
    end = System::getCurrentMilliseconds();
-   printf("strcmp(String.c_str(), \"HTTP/1.0\") == 0 time: %llu ms\n",
+   printf("strcmp(String.c_str(), \"HTTP/1.0\") == 0 time: %" PRIu64 " ms\n",
       (end - start));
 
    start = System::getCurrentMilliseconds();
@@ -124,7 +126,7 @@ void runStringAppendCharTest(TestRunner& tr)
       str.append(1, '/');
    }
    end = System::getCurrentMilliseconds();
-   printf("String.append(1, '/') time: %llu ms\n", (end - start));
+   printf("String.append(1, '/') time: %" PRIu64 " ms\n", (end - start));
 
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 10000; i++)
@@ -132,7 +134,7 @@ void runStringAppendCharTest(TestRunner& tr)
       str.append("/");
    }
    end = System::getCurrentMilliseconds();
-   printf("String.append(\"/\") time: %llu ms\n", (end - start));
+   printf("String.append(\"/\") time: %" PRIu64 " ms\n", (end - start));
 
    string space = " ";
    start = System::getCurrentMilliseconds();
@@ -141,7 +143,7 @@ void runStringAppendCharTest(TestRunner& tr)
       str.append("this" + space + "is a sentence");
    }
    end = System::getCurrentMilliseconds();
-   printf("String inline append time: %llu ms\n", (end - start));
+   printf("String inline append time: %" PRIu64 " ms\n", (end - start));
 
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 10000; i++)
@@ -151,7 +153,7 @@ void runStringAppendCharTest(TestRunner& tr)
       str.append("is a sentence");
    }
    end = System::getCurrentMilliseconds();
-   printf("String multiline append time: %llu ms\n", (end - start));
+   printf("String multiline append time: %" PRIu64 " ms\n", (end - start));
 
    tr.passIfNoException();
 }
@@ -170,7 +172,7 @@ void runStringCompareTest(TestRunner& tr)
       if(str1 == "blah");
    }
    end = System::getCurrentMilliseconds();
-   printf("std::string compare time: %llu ms\n", (end - start));
+   printf("std::string compare time: %" PRIu64 " ms\n", (end - start));
 
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -178,7 +180,7 @@ void runStringCompareTest(TestRunner& tr)
       if(strcmp(str2, "blah") == 0);
    }
    end = System::getCurrentMilliseconds();
-   printf("char* compare time: %llu ms\n", (end - start));
+   printf("char* compare time: %" PRIu64 " ms\n", (end - start));
 
    tr.passIfNoException();
 }

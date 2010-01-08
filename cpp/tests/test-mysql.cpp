@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/test/Test.h"
 #include "monarch/test/Tester.h"
 #include "monarch/test/TestRunner.h"
@@ -82,7 +84,7 @@ void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
          assertNoException();
       }
       //unsigned long long end = System::getCurrentMilliseconds();
-      //printf("TIME=%llu ms\n", (end - start));
+      //printf("TIME=%" PRIu64 " ms\n", (end - start));
    }
    tr.passIfNoException();
 

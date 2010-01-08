@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_kernel_MicroKernelModule_H
 #define monarch_kernel_MicroKernelModule_H
@@ -103,6 +103,18 @@ public:
     * @return the dependency information.
     */
    virtual monarch::rt::DynamicObject getDependencyInfo() = 0;
+
+   /**
+    * Performs whatever configuration (or other) validation is necessary
+    * before initialize(MicroKernel*) is called on this Module. This will be
+    * called before initialize(MicroKernel*) is called on any of this Module's
+    * dependencies.
+    *
+    * @param k the MicroKernel.
+    *
+    * @return true if validated, false if an Exception occurred.
+    */
+   virtual bool validate(MicroKernel* k) = 0;
 
    /**
     * Initializes this Module with the passed MicroKernel.

@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/net/Connection.h"
 
 #include "monarch/rt/Exception.h"
@@ -83,7 +85,7 @@ bool ConnectionOutputStream::flush()
          mUnflushed.clear(numBytes);
 
          // update bytes written (reset as necessary)
-         if(mBytesWritten > Math::HALF_MAX_LONG_VALUE)
+         if(mBytesWritten > (UINT64_MAX / 2))
          {
             mBytesWritten = 0;
          }
@@ -128,7 +130,7 @@ bool ConnectionOutputStream::flush()
          mBuffer.clear(numBytes);
 
          // update bytes written (reset as necessary)
-         if(mBytesWritten > Math::HALF_MAX_LONG_VALUE)
+         if(mBytesWritten > (UINT64_MAX / 2))
          {
             mBytesWritten = 0;
          }

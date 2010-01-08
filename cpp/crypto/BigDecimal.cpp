@@ -1,22 +1,14 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/crypto/BigDecimal.h"
 
 #include <cstdlib>
 
 using namespace std;
 using namespace monarch::crypto;
-
-BigDecimal::BigDecimal(long double value)
-{
-   initialize();
-
-   if(value != 0)
-   {
-      *this = value;
-   }
-}
 
 BigDecimal::BigDecimal(double value)
 {
@@ -28,7 +20,7 @@ BigDecimal::BigDecimal(double value)
    }
 }
 
-BigDecimal::BigDecimal(long long value)
+BigDecimal::BigDecimal(int64_t value)
 {
    initialize();
 
@@ -38,7 +30,7 @@ BigDecimal::BigDecimal(long long value)
    }
 }
 
-BigDecimal::BigDecimal(unsigned long long value)
+BigDecimal::BigDecimal(uint64_t value)
 {
    initialize();
 
@@ -48,7 +40,7 @@ BigDecimal::BigDecimal(unsigned long long value)
    }
 }
 
-BigDecimal::BigDecimal(int value)
+BigDecimal::BigDecimal(int32_t value)
 {
    initialize();
 
@@ -58,7 +50,7 @@ BigDecimal::BigDecimal(int value)
    }
 }
 
-BigDecimal::BigDecimal(unsigned int value)
+BigDecimal::BigDecimal(uint32_t value)
 {
    initialize();
 
@@ -151,14 +143,6 @@ BigDecimal& BigDecimal::operator=(const BigDecimal& rhs)
    return *this;
 }
 
-BigDecimal& BigDecimal::operator=(long double rhs)
-{
-   // convert double to string
-   char temp[1024];
-   snprintf(temp, 1024, "%.*Lf", mPrecision, rhs);
-   return *this = temp;
-}
-
 BigDecimal& BigDecimal::operator=(double rhs)
 {
    // convert double to string
@@ -167,35 +151,35 @@ BigDecimal& BigDecimal::operator=(double rhs)
    return *this = temp;
 }
 
-BigDecimal& BigDecimal::operator=(long long rhs)
+BigDecimal& BigDecimal::operator=(int64_t rhs)
 {
-   // convert long to string
+   // convert int64_t to string
    char temp[22];
-   snprintf(temp, 22, "%lli", rhs);
+   snprintf(temp, 22, "%" PRIi64, rhs);
    return *this = temp;
 }
 
-BigDecimal& BigDecimal::operator=(unsigned long long rhs)
+BigDecimal& BigDecimal::operator=(uint64_t rhs)
 {
-   // convert long to string
+   // convert uint64_t to string
    char temp[22];
-   snprintf(temp, 22, "%llu", rhs);
+   snprintf(temp, 22, "%" PRIu64, rhs);
    return *this = temp;
 }
 
-BigDecimal& BigDecimal::operator=(int rhs)
+BigDecimal& BigDecimal::operator=(int32_t rhs)
 {
-   // convert int to string
+   // convert int32_t to string
    char temp[12];
-   snprintf(temp, 12, "%i", rhs);
+   snprintf(temp, 12, "%" PRIi32, rhs);
    return *this = temp;
 }
 
-BigDecimal& BigDecimal::operator=(unsigned int rhs)
+BigDecimal& BigDecimal::operator=(uint32_t rhs)
 {
-   // convert int to string
+   // convert uint32_t to string
    char temp[12];
-   snprintf(temp, 12, "%u", rhs);
+   snprintf(temp, 12, "%" PRIu32, rhs);
    return *this = temp;
 }
 
@@ -270,7 +254,7 @@ bool BigDecimal::operator==(const BigDecimal& rhs)
    return this->mSignificand == temp.mSignificand;
 }
 
-bool BigDecimal::operator==(long double rhs)
+bool BigDecimal::operator==(double rhs)
 {
    return getDouble() == rhs;
 }
@@ -280,7 +264,7 @@ bool BigDecimal::operator!=(const BigDecimal& rhs)
    return !(*this == rhs);
 }
 
-bool BigDecimal::operator!=(long double rhs)
+bool BigDecimal::operator!=(double rhs)
 {
    return !(*this == rhs);
 }
@@ -479,7 +463,7 @@ bool BigDecimal::isNegative() const
    return mSignificand.isNegative();
 }
 
-long double BigDecimal::getDouble() const
+double BigDecimal::getDouble() const
 {
    // get value as a string
    // parse long double
