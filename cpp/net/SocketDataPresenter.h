@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_SocketDataPresenter_H
 #define monarch_net_SocketDataPresenter_H
 
 #include "monarch/net/Socket.h"
+#include "monarch/rt/Collectable.h"
 
 namespace monarch
 {
@@ -49,6 +50,9 @@ public:
     */
    virtual Socket* createPresentationWrapper(Socket* s, bool& secure) = 0;
 };
+
+// type definition for reference counted SocketDataPresenter
+typedef monarch::rt::Collectable<SocketDataPresenter> SocketDataPresenterRef;
 
 } // end namespace net
 } // end namespace monarch
