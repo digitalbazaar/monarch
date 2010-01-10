@@ -161,7 +161,8 @@ public:
     * @param strict true to raise an exception if the passed variables do not
     *               have a variable that is found in the template, false if not.
     */
-   virtual void setVariables(monarch::rt::DynamicObject& vars, bool strict = false);
+   virtual void setVariables(
+      monarch::rt::DynamicObject& vars, bool strict = false);
 
    /**
     * Reads some bytes from the stream. This method will block until at least
