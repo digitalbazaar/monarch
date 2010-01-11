@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -1594,11 +1594,11 @@ void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfException();
 
-   tr.test("parse (invalid - incomplete variable)");
+   tr.test("parse (invalid - incomplete markup)");
    {
       // create template
       const char* tpl =
-         "{eggs}{bacon}{ham}{sausage}{incompleteVariable";
+         "{eggs}{bacon}{ham}{sausage}{incompleteMarkup";
 
       // create variables
       DynamicObject vars;
@@ -1654,6 +1654,67 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertStrCmp("222", output.data());
    }
    tr.passIfNoException();
+
+   tr.test("parse (each)");
+   {
+      // create template
+      const char* tpl =
+         "{:each items item}\n"
+         "The item is '{item}'\n"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->append() = "item1";
+      vars["items"]->append() = "item2";
+      vars["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "The item is 'item1'\n"
+         "The item is 'item2'\n"
+         "The item is 'item3'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (invalid - each)");
+   {
+      // create template
+      const char* tpl =
+         "{:each items item}\n"
+         "The item is '{item}'\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->append() = "item1";
+      vars["items"]->append() = "item2";
+      vars["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+   }
+   tr.passIfException();
 
    tr.ungroup();
 }
