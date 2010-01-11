@@ -1951,21 +1951,24 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "{:each foo.items item}"
          "{:if item == 'item1'}"
          "The first item is '{item}'\n"
-         "{:elseif item == 'item2'}"
+         "{:elseif item == 2}"
          "The second item is '{item}'\n"
          "{:elseif item == foo.third}"
-         "The third item is a secret.\n"
-         "{:else}"
+         "The third item is a secret\n"
+         "{:elseif item < 5}"
          "The fourth item is '{item}'\n"
+         "{:else}"
+         "The fifth item is '{item}'\n"
          "{:endif}"
          "{:endeach}";
 
       // create variables
       DynamicObject vars;
       vars["foo"]["items"]->append() = "item1";
-      vars["foo"]["items"]->append() = "item2";
+      vars["foo"]["items"]->append() = 2;
       vars["foo"]["items"]->append() = "secret";
-      vars["foo"]["items"]->append() = "item4";
+      vars["foo"]["items"]->append() = 4;
+      vars["foo"]["items"]->append() = "item5";
       vars["foo"]["third"] = "secret";
 
       // create template input stream
@@ -1980,9 +1983,10 @@ void runTemplateInputStreamTest(TestRunner& tr)
 
       const char* expect =
          "The first item is 'item1'\n"
-         "The second item is 'item2'\n"
-         "The third item is a secret.\n"
-         "The fourth item is 'item4'\n";
+         "The second item is '2'\n"
+         "The third item is a secret\n"
+         "The fourth item is '4'\n"
+         "The fifth item is 'item5'\n";
 
       // null-terminate output
       output.putByte(0, 1, true);

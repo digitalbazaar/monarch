@@ -82,7 +82,7 @@ bool DynamicObject::operator>=(const DynamicObject& rhs) const
 
 bool DynamicObject::operator>(const DynamicObject& rhs) const
 {
-   return (*this != rhs) && !(*this > rhs);
+   return (*this != rhs) && !(*this < rhs);
 }
 
 bool DynamicObject::operator<=(const DynamicObject& rhs) const
