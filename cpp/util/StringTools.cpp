@@ -137,6 +137,38 @@ DynamicObject StringTools::split(const char* str, const char* delimiter)
    return rval;
 }
 
+string StringTools::join(
+   DynamicObject dyno, const char* glue, int start, int end)
+{
+   string rval;
+
+   if(end == -1)
+   {
+      end = dyno->length();
+   }
+
+   int n = 0;
+   DynamicObjectIterator i = dyno.getIterator();
+   while(i->hasNext())
+   {
+      if(n >= start && n < end)
+      {
+         if(rval.length() > 0)
+         {
+            rval.append(glue);
+         }
+         rval.append(i->next()->getString());
+      }
+      else
+      {
+         i->next();
+      }
+      n++;
+   }
+
+   return rval;
+}
+
 string StringTools::join(DynamicObject dyno, const char* glue)
 {
    string rval;

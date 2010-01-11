@@ -104,6 +104,21 @@ public:
       const char* str, const char* delimiter);
 
    /**
+    * Joins a DynamicObject array or map values using the given string as
+    * the glue between elements.
+    *
+    * @param dyno the DynamicObject array or map.
+    * @param glue the string to use as glue.
+    * @param start the DynamicObject starting index (inclusive).
+    * @param end the DynamicObject ending index (exclusive), -1 for length.
+    *
+    * @return the joined string.
+    */
+   static std::string join(
+      monarch::rt::DynamicObject dyno, const char* glue,
+      int start, int end = -1);
+
+   /**
     * Joins DynamicObject array or map values using the given string as
     * the glue between elements.
     *

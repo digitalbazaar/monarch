@@ -245,14 +245,13 @@ protected:
     * Runs the given command.
     *
     * @param cmd the command to run.
-    * @param varname the name of the associated variable or NULL.
-    * @param loopname the name of the associated loop or NULL.
+    * @param params the parameters for the command.
     * @param newPosition the position after the command.
     *
     * @return true if successful, false if not.
     */
    virtual bool runCommand(
-      int cmd, const char* varname, const char* loopname, int newPosition);
+      int cmd, monarch::rt::DynamicObject& params, int newPosition);
 
    /**
     * Finds the variable with the given varname.

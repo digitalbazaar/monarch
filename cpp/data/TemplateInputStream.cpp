@@ -7,6 +7,7 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/util/StringTools.h"
 
+using namespace std;
 using namespace monarch::data;
 using namespace monarch::io;
 using namespace monarch::rt;
@@ -18,13 +19,13 @@ using namespace monarch::util;
 #define MARKUP_END     '}'
 #define SPECIAL        "\n\\{}"
 
-#define BUFFER_SIZE 2048
-#define CMD_UNKNOWN 0
-#define CMD_REPLACE 1
-#define CMD_COMMENT 2
-#define CMD_EACH    3
-#define CMD_END     4
-#define CMD_INCLUDE 5
+#define BUFFER_SIZE   2048
+#define CMD_UNKNOWN   0
+#define CMD_REPLACE   1
+#define CMD_COMMENT   2
+#define CMD_EACH      3
+#define CMD_END       4
+#define CMD_INCLUDE   5
 
 #define EXCEPTION_SYNTAX "monarch.data.TemplateInputStream.SyntaxError"
 
@@ -327,21 +328,17 @@ static bool checkMarkupError(const char* start, const char* pos)
  * Gets the parameters from markup.
  *
  * @param markup the markup.
- * @param command set to the parsed command.
- * @param varname set to the parsed variable name.
- * @param loopname set to the parsed loop variable name.
+ * @param cmd to set to the parsed command.
+ * @param params the array of parameters to populate.
  *
  * @return true if successful, false if a parse exception occurred.
  */
-static bool _parseMarkup(
-   char* markup, int& cmd, char*& varname, char*& loopname)
+static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
 {
    bool rval = true;
 
-   // initialize command, start of variable name, and any loop
+   // initialize command
    cmd = CMD_UNKNOWN;
-   varname = markup;
-   loopname = NULL;
 
    // determine command by examining first char of markup
    switch(markup[0])
@@ -353,30 +350,20 @@ static bool _parseMarkup(
       // ':' is a command
       case ':':
       {
-         // command ends with a space, varname may follow
+         // move past ':'
          markup++;
-         varname = (char*)strstr(markup, " ");
-         if(varname != NULL)
-         {
-            // terminate markup
-            varname[0] = 0;
 
-            // update varname start
-            varname++;
-            if(varname[0] == 0)
-            {
-               varname = NULL;
-            }
-         }
+         // parse params as delimited by spaces
+         params = StringTools::split(markup, " ");
 
          // check for a valid command
-         if(strcmp(markup, "each") == 0)
+         const char* cmdChk = params[0]->getString();
+         if(strcmp(cmdChk, "each") == 0)
          {
             cmd = CMD_EACH;
 
-            // find the loop name
-            loopname = (char*)strstr(varname, " ");
-            if(loopname == NULL || loopname[1] == 0)
+            // ensure there is a loop name
+            if(params[2]->length() == 0)
             {
                ExceptionRef e = new Exception(
                   "Each command must declare a loop variable.",
@@ -384,18 +371,12 @@ static bool _parseMarkup(
                Exception::set(e);
                rval = false;
             }
-            else
-            {
-               // terminate varname, move loopname to start
-               loopname[0] = 0;
-               loopname++;
-            }
          }
-         else if(strcmp(markup, "end") == 0)
+         else if(strcmp(cmdChk, "end") == 0)
          {
             cmd = CMD_END;
 
-            if(varname != NULL)
+            if(params->length() > 1)
             {
                ExceptionRef e = new Exception(
                   "End command must not be followed by a variable.",
@@ -404,12 +385,11 @@ static bool _parseMarkup(
                rval = false;
             }
          }
-         else if(strcmp(markup, "include") == 0)
+         else if(strcmp(cmdChk, "include") == 0)
          {
             cmd = CMD_INCLUDE;
 
-            // varname contains the file path
-            if(varname == NULL)
+            if(params[1]->length() == 0)
             {
                ExceptionRef e = new Exception(
                   "Include command must be followed by a filename.",
@@ -433,6 +413,7 @@ static bool _parseMarkup(
       // default is a variable replacement
       default:
          cmd = CMD_REPLACE;
+         params[0] = markup;
          break;
    }
 
@@ -600,12 +581,11 @@ bool TemplateInputStream::process(const char* pos)
 
             // get markup parameters
             int cmd;
-            char* varname = NULL;
-            char* loopname = NULL;
+            DynamicObject params;
             int newPosition = mPosition + len + 1;
             rval =
-               _parseMarkup(markup, cmd, varname, loopname) &&
-               runCommand(cmd, varname, loopname, newPosition);
+               _parseMarkup(markup, cmd, params) &&
+               runCommand(cmd, params, newPosition);
 
             if(rval)
             {
@@ -621,7 +601,7 @@ bool TemplateInputStream::process(const char* pos)
 }
 
 bool TemplateInputStream::runCommand(
-   int cmd, const char* varname, const char* loopname, int newPosition)
+   int cmd, DynamicObject& params, int newPosition)
 {
    bool rval = true;
 
@@ -636,7 +616,7 @@ bool TemplateInputStream::runCommand(
       case CMD_REPLACE:
       {
          // find variable
-         DynamicObject var = findVariable(varname);
+         DynamicObject var = findVariable(params[0]->getString());
          if(var.isNull())
          {
             rval = !mStrict;
@@ -652,7 +632,7 @@ bool TemplateInputStream::runCommand(
       case CMD_EACH:
       {
          // find variable
-         DynamicObject var = findVariable(varname);
+         DynamicObject var = findVariable(params[1]->getString());
          if(var.isNull())
          {
             rval = !mStrict;
@@ -661,7 +641,7 @@ bool TemplateInputStream::runCommand(
          {
             // create a loop
             Loop loop;
-            loop.name = loopname;
+            loop.name = params[2]->getString();
             loop.i = var.getIterator();
             if(loop.i->hasNext())
             {
@@ -720,7 +700,8 @@ bool TemplateInputStream::runCommand(
       case CMD_INCLUDE:
       {
          // create an input stream for reading the template file
-         File file(varname);
+         string path = StringTools::join(params, " ", 1);
+         File file(path.c_str());
          FileInputStream* fis = new FileInputStream(file);
          mInclude = new TemplateInputStream(
             mVars, mStrict, fis, true);
