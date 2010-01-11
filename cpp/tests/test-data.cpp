@@ -1696,6 +1696,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
    {
       // create template
       const char* tpl =
+         "Item count: {items.length}\n"
          "{:each items item}"
          "The item is '{item}'\n"
          "{:endeach}";
@@ -1717,6 +1718,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertNoException();
 
       const char* expect =
+         "Item count: 3\n"
          "The item is 'item1'\n"
          "The item is 'item2'\n"
          "The item is 'item3'\n";

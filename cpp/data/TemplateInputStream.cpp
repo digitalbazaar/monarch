@@ -24,6 +24,7 @@ using namespace monarch::util;
 #define CMD_REPLACE   1
 #define CMD_COMMENT   2
 #define CMD_EACH      3
+// FIXME: consider adding EACHELSE for empty loops
 #define CMD_ENDEACH   4
 #define CMD_INCLUDE   5
 #define CMD_IF        6
@@ -1032,7 +1033,7 @@ DynamicObject TemplateInputStream::findVariable(const char* varname)
    // scan all names
    bool missing = false;
    DynamicObjectIterator i = names.getIterator();
-   while(!missing && i->hasNext())
+   while(rval.isNull() && !missing && i->hasNext())
    {
       DynamicObject& d = i->next();
       const char* key = d->getString();
@@ -1050,6 +1051,12 @@ DynamicObject TemplateInputStream::findVariable(const char* varname)
             // var found
             rval = vars[key];
          }
+      }
+      // see if the key is special-case "length"
+      else if(strcmp(key, "length") == 0)
+      {
+         rval = DynamicObject();
+         rval = vars->length();
       }
       else
       {
