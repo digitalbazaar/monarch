@@ -1716,6 +1716,91 @@ void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfException();
 
+   tr.test("parse (empty each)");
+   {
+      // create template
+      const char* tpl =
+         "Items:\n"
+         "{:each items item}"
+         "The item is '{item}'\n"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->setType(Array);
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Items:\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (include)");
+   {
+      // write out template
+      File file = File::createTempFile("test");
+      FileOutputStream fos(file);
+      const char* include =
+         "{:each items item}"
+         "The item is '{item}'\n"
+         "{:end}";
+      fos.write(include, strlen(include));
+      fos.close();
+      assertNoException();
+
+      // create template
+      const char* path = file->getAbsolutePath();
+      int len = 100 + strlen(path);
+      char tpl[len + 1];
+      snprintf(tpl, len,
+         "Items:\n"
+         "{:include %s}", path);
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->append() = "item1";
+      vars["items"]->append() = "item2";
+      vars["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Items:\n"
+         "The item is 'item1'\n"
+         "The item is 'item2'\n"
+         "The item is 'item3'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
