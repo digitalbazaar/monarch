@@ -156,6 +156,15 @@ int TemplateInputStream::read(char* b, int length)
                Exception::set(e);
                parseError = true;
             }
+            // corner-case where loop does not terminate
+            else if(!mLoops.empty() && mTemplate.isEmpty() && mEndOfStream)
+            {
+               ExceptionRef e = new Exception(
+                  "Incomplete 'each' loop. No matching 'end' found.",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               parseError = true;
+            }
             else if(!mParsingMarkup && !mEscapeOn)
             {
                // no special characters in buffer
@@ -205,6 +214,15 @@ int TemplateInputStream::read(char* b, int length)
       ExceptionRef e = new Exception(
          "Incomplete escape sequence at the end of the template.",
          "monarch.data.TemplateInputStream.IncompleteTemplate");
+      Exception::set(e);
+      rval = -1;
+   }
+   // corner-case where loop does not terminate
+   else if(!mLoops.empty() && mTemplate.isEmpty() && mEndOfStream)
+   {
+      ExceptionRef e = new Exception(
+         "Incomplete 'each' loop. No matching 'end' found.",
+         EXCEPTION_SYNTAX);
       Exception::set(e);
       rval = -1;
    }

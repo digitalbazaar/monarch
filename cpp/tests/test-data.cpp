@@ -1659,7 +1659,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
    {
       // create template
       const char* tpl =
-         "{:each items item}\n"
+         "{:each items item}"
          "The item is '{item}'\n"
          "{:end}";
 
