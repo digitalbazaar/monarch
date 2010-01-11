@@ -50,7 +50,8 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
    FilterInputStream(is, cleanup),
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
-   mStrict(false)
+   mStrict(false),
+   mInclude(NULL)
 {
    resetState();
    mVars->setType(Map);
@@ -58,6 +59,7 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
 
 TemplateInputStream::~TemplateInputStream()
 {
+   resetState();
 }
 
 void TemplateInputStream::setInputStream(InputStream* is, bool cleanup)
