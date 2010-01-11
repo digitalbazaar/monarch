@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -1594,11 +1594,11 @@ void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfException();
 
-   tr.test("parse (invalid - incomplete variable)");
+   tr.test("parse (invalid - incomplete markup)");
    {
       // create template
       const char* tpl =
-         "{eggs}{bacon}{ham}{sausage}{incompleteVariable";
+         "{eggs}{bacon}{ham}{sausage}{incompleteMarkup";
 
       // create variables
       DynamicObject vars;
@@ -1652,6 +1652,221 @@ void runTemplateInputStreamTest(TestRunner& tr)
 
       // assert expected value
       assertStrCmp("222", output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (each)");
+   {
+      // create template
+      const char* tpl =
+         "{:each items item}"
+         "The item is '{item}'\n"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->append() = "item1";
+      vars["items"]->append() = "item2";
+      vars["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "The item is 'item1'\n"
+         "The item is 'item2'\n"
+         "The item is 'item3'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (invalid - each)");
+   {
+      // create template
+      const char* tpl =
+         "{:each items item}\n"
+         "The item is '{item}'\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->append() = "item1";
+      vars["items"]->append() = "item2";
+      vars["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+   }
+   tr.passIfException();
+
+   tr.test("parse (empty each)");
+   {
+      // create template
+      const char* tpl =
+         "Items:\n"
+         "{:each items item}"
+         "The item is '{item}'\n"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->setType(Array);
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Items:\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (include)");
+   {
+      // write out template
+      File file = File::createTempFile("test");
+      FileOutputStream fos(file);
+      const char* include =
+         "{:each items item}"
+         "The item is '{item}'\n"
+         "{:end}";
+      fos.write(include, strlen(include));
+      fos.close();
+      assertNoException();
+
+      // create template
+      const char* path = file->getAbsolutePath();
+      int len = 100 + strlen(path);
+      char tpl[len + 1];
+      snprintf(tpl, len,
+         "Items:\n"
+         "{:include %s}", path);
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->append() = "item1";
+      vars["items"]->append() = "item2";
+      vars["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Items:\n"
+         "The item is 'item1'\n"
+         "The item is 'item2'\n"
+         "The item is 'item3'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (cascaded include)");
+   {
+      // write out template 1
+      File file1 = File::createTempFile("test");
+      {
+         FileOutputStream fos(file1);
+         const char* include =
+            "{:each items item}"
+            "The item is '{item}'\n"
+            "{:end}";
+         fos.write(include, strlen(include));
+         fos.close();
+         assertNoException();
+      }
+
+      // write out template 2
+      File file2 = File::createTempFile("test");
+      {
+         FileOutputStream fos(file2);
+         const char* path = file1->getAbsolutePath();
+         int len = 100 + strlen(path);
+         char tpl[len + 1];
+         snprintf(tpl, len,
+            "Items:\n"
+            "{:include %s}", path);
+         fos.write(tpl, strlen(tpl));
+         fos.close();
+         assertNoException();
+      }
+
+      // create template
+      const char* path = file2->getAbsolutePath();
+      int len = 100 + strlen(path);
+      char tpl[len + 1];
+      snprintf(tpl, len,
+         "Double include:\n"
+         "{:include %s}", path);
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->append() = "item1";
+      vars["items"]->append() = "item2";
+      vars["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Double include:\n"
+         "Items:\n"
+         "The item is 'item1'\n"
+         "The item is 'item2'\n"
+         "The item is 'item3'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
 
