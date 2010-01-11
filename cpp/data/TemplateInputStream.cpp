@@ -98,6 +98,7 @@ int TemplateInputStream::read(char* b, int length)
          if(rval == 0)
          {
             // end of include
+            mInclude->close();
             delete mInclude;
             mInclude = NULL;
          }
@@ -265,6 +266,7 @@ void TemplateInputStream::resetState()
    mLoops.clear();
    if(mInclude != NULL)
    {
+      mInclude->close();
       delete mInclude;
       mInclude = NULL;
    }
