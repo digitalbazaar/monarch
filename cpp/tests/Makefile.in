@@ -7,6 +7,7 @@ ifeq (@BUILD_TESTS@,yes)
 ifeq (@BUILD_MYSQL@,yes)
 MODULE_CXX_FLAGS += -DHAVE_MYSQL
 MYSQL_DBLIBS = momysql
+MYSQL_HEADERS = test-mysql.h
 MYSQL_SOURCES = test-mysql.cpp
 MYSQL_EXECUTABLES = test-mysql
 MYSQL_DYNAMIC_WINDOWS_LIBRARIES = mysql
@@ -21,6 +22,8 @@ SPHINX_DBLIBS = mosphinx
 SPHINX_SOURCES = test-sphinx.cpp
 SPHINX_EXECUTABLES = test-sphinx
 endif
+
+HEADERS = $(MYSQL_HEADERS)
 
 SOURCES = test-configmanager.cpp \
 	test-sharedlock-deadlock.cpp \
