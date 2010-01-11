@@ -24,8 +24,12 @@ using namespace monarch::util;
 #define CMD_REPLACE   1
 #define CMD_COMMENT   2
 #define CMD_EACH      3
-#define CMD_END       4
+#define CMD_ENDEACH   4
 #define CMD_INCLUDE   5
+#define CMD_IF        6
+#define CMD_ELSEIF    7
+#define CMD_ELSE      8
+#define CMD_ENDIF     9
 
 #define EXCEPTION_SYNTAX "monarch.data.TemplateInputStream.SyntaxError"
 
@@ -164,7 +168,7 @@ int TemplateInputStream::read(char* b, int length)
             else if(!mLoops.empty() && mTemplate.isEmpty() && mEndOfStream)
             {
                ExceptionRef e = new Exception(
-                  "Incomplete 'each' loop. No matching 'end' found.",
+                  "Incomplete 'each' loop. No matching 'endeach' found.",
                   EXCEPTION_SYNTAX);
                Exception::set(e);
                parseError = true;
@@ -172,7 +176,7 @@ int TemplateInputStream::read(char* b, int length)
             else if(!mParsingMarkup && !mEscapeOn)
             {
                // no special characters in buffer
-               if(mEmptyLoop)
+               if(mEmptyLoop || mFalseCondition)
                {
                   mTemplate.advanceOffset(mTemplate.length() - 1);
                }
@@ -193,7 +197,7 @@ int TemplateInputStream::read(char* b, int length)
       !mLoops.empty() && mTemplate.isEmpty() && mEndOfStream)
    {
       ExceptionRef e = new Exception(
-         "Incomplete 'each' loop. No matching 'end' found.",
+         "Incomplete 'each' loop. No matching 'endeach' found.",
          EXCEPTION_SYNTAX);
       Exception::set(e);
       parseError = true;
@@ -265,8 +269,10 @@ void TemplateInputStream::resetState()
    mParsingMarkup = false;
    mEscapeOn = false;
    mEmptyLoop = false;
+   mFalseCondition = false;
    mEndOfStream = false;
    mLoops.clear();
+   mConditions.clear();
    if(mInclude != NULL)
    {
       mInclude->close();
@@ -340,6 +346,8 @@ static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
    // initialize command
    cmd = CMD_UNKNOWN;
 
+   // FIXME: use monarch::validation here if not dependent on monarch::data
+
    // determine command by examining first char of markup
    switch(markup[0])
    {
@@ -362,24 +370,27 @@ static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
          {
             cmd = CMD_EACH;
 
-            // ensure there is a loop name
+            // {:each collection item}
             if(params[2]->length() == 0)
             {
                ExceptionRef e = new Exception(
-                  "Each command must declare a loop variable.",
+                  "Invalid 'each' syntax. "
+                  "Syntax: {:each <collection> <item>}",
                   EXCEPTION_SYNTAX);
                Exception::set(e);
                rval = false;
             }
          }
-         else if(strcmp(cmdChk, "end") == 0)
+         else if(strcmp(cmdChk, "endeach") == 0)
          {
-            cmd = CMD_END;
+            cmd = CMD_ENDEACH;
 
+            // {:endeach}
             if(params->length() > 1)
             {
                ExceptionRef e = new Exception(
-                  "End command must not be followed by a variable.",
+                  "Invalid 'endeach' syntax. "
+                  "Syntax: {:endeach}",
                   EXCEPTION_SYNTAX);
                Exception::set(e);
                rval = false;
@@ -389,10 +400,72 @@ static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
          {
             cmd = CMD_INCLUDE;
 
+            // {:include /path/to/file}
             if(params[1]->length() == 0)
             {
                ExceptionRef e = new Exception(
-                  "Include command must be followed by a filename.",
+                  "Invalid 'include' syntax. "
+                  "Syntax: {:include </path/to/file>}",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+         }
+         else if(strcmp(cmdChk, "if") == 0)
+         {
+            cmd = CMD_IF;
+
+            // {:if variable <comparator> value}
+            if(params->length() < 4)
+            {
+               ExceptionRef e = new Exception(
+                  "Invalid 'if' syntax. "
+                  "Syntax: {:if <variable> <operator> <value>}",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+         }
+         else if(strcmp(cmdChk, "elseif") == 0)
+         {
+            cmd = CMD_ELSEIF;
+
+            // {:elseif variable >= value}
+            if(params->length() < 4)
+            {
+               ExceptionRef e = new Exception(
+                  "Invalid 'elseif' syntax. "
+                  "Syntax: {:elseif <variable> <operator> <value>}",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+         }
+         else if(strcmp(cmdChk, "else") == 0)
+         {
+            cmd = CMD_ELSE;
+
+            // {:else}
+            if(params->length() > 1)
+            {
+               ExceptionRef e = new Exception(
+                  "Invalid 'else' syntax. "
+                  "Syntax: {:else}",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+         }
+         else if(strcmp(cmdChk, "endif") == 0)
+         {
+            cmd = CMD_ENDIF;
+
+            // {:endif}
+            if(params->length() > 1)
+            {
+               ExceptionRef e = new Exception(
+                  "Invalid 'endif' syntax. "
+                  "Syntax: {:endif}",
                   EXCEPTION_SYNTAX);
                Exception::set(e);
                rval = false;
@@ -432,21 +505,18 @@ const char* TemplateInputStream::getNext()
    {
       // get the current loop
       Loop& loop = mLoops.back();
-      if(loop.complete)
+      // iterate if template data has reached loop's end and loop has next
+      // if the loop has no next, it will be cleaned up by process()
+      if(loop.complete && mPosition == loop.end && loop.i->hasNext())
       {
-         // iterate if template data has reached loop's end and loop has next
-         // if the loop has no next, it will be cleaned up by process()
-         if(mPosition == loop.end && loop.i->hasNext())
-         {
-            loop.current = loop.i->next();
+         loop.current = loop.i->next();
 
-            // reset template data to beginning of loop
-            mTemplate.reset(loop.end - loop.start + 1);
-            mLineNumber = loop.line;
-            mLineColumn = loop.column;
-            mPosition = loop.start;
-            start = mTemplate.data();
-         }
+         // reset template data to beginning of loop
+         mTemplate.reset(loop.end - loop.start);
+         mLineNumber = loop.line;
+         mLineColumn = loop.column;
+         mPosition = loop.start;
+         start = mTemplate.data();
       }
    }
 
@@ -483,7 +553,7 @@ bool TemplateInputStream::process(const char* pos)
          case ESCAPE:
          {
             // write escaped character, turn escape off
-            if(mEmptyLoop)
+            if(mEmptyLoop || mFalseCondition)
             {
                mTemplate.advanceOffset(1);
             }
@@ -519,9 +589,9 @@ bool TemplateInputStream::process(const char* pos)
             // increase line number, reset column, and get character
             mLineNumber++;
             mLineColumn = 0;
-            mPosition++;
             int len = (pos - mTemplate.data()) + 1;
-            if(mEmptyLoop)
+            mPosition += len;
+            if(mEmptyLoop || mFalseCondition)
             {
                mTemplate.advanceOffset(len);
             }
@@ -538,7 +608,7 @@ bool TemplateInputStream::process(const char* pos)
             int len = pos - mTemplate.data();
             mLineColumn += len + 1;
             mPosition += len + 1;
-            if(mEmptyLoop)
+            if(mEmptyLoop || mFalseCondition)
             {
                mTemplate.advanceOffset(len);
             }
@@ -556,7 +626,7 @@ bool TemplateInputStream::process(const char* pos)
             int len = pos - mTemplate.data();
             mLineColumn += len + 1;
             mPosition += len + 1;
-            if(mEmptyLoop)
+            if(mEmptyLoop || mFalseCondition)
             {
                mTemplate.advanceOffset(len);
             }
@@ -600,6 +670,95 @@ bool TemplateInputStream::process(const char* pos)
    return rval;
 }
 
+int TemplateInputStream::compare(DynamicObject& params)
+{
+   int rval = 0;
+
+   // syntax: {:if/elseif varname operator value}
+   const char* varname = params[1]->getString();
+   const char* op = params[2]->getString();
+   DynamicObject value = params[3];
+
+   // find first variable
+   DynamicObject var = findVariable(varname);
+   if(var.isNull() && mStrict)
+   {
+      rval = -1;
+   }
+
+   // find second variable
+   if(rval != -1)
+   {
+      const char* v = value->getString();
+      if(v[0] == '\'' || v[0] == '"')
+      {
+         // remove first and last quotes, will compare as a string
+         string str = v;
+         value = StringTools::trim(str, "'").c_str();
+      }
+      else if(v[0] == '-' || (v[0] >= '0' && v[0] <= '9'))
+      {
+         // will compare as a number
+         if(v[0] == '-')
+         {
+            value->setType(Int64);
+         }
+         else
+         {
+            value->setType(UInt64);
+         }
+      }
+      else
+      {
+         // try to get a variable
+         value = findVariable(v);
+         if(value.isNull() && mStrict)
+         {
+            rval = -1;
+         }
+      }
+   }
+
+   // do comparison
+   if(rval != -1)
+   {
+      if(strcmp(op, "==") == 0)
+      {
+         rval = (var == value) ? 1 : 0;
+      }
+      else if(strcmp(op, ">") == 0)
+      {
+         rval = (var > value) ? 1 : 0;
+      }
+      else if(strcmp(op, ">=") == 0)
+      {
+         rval = (var >= value) ? 1 : 0;
+      }
+      else if(strcmp(op, "<") == 0)
+      {
+         rval = (var < value) ? 1 : 0;
+      }
+      else if(strcmp(op, "<=") == 0)
+      {
+         rval = (var <= value) ? 1 : 0;
+      }
+      else if(strcmp(op, "!=") == 0)
+      {
+         rval = (var != value) ? 1 : 0;
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Invalid operator.",
+            EXCEPTION_SYNTAX);
+         e->getDetails()["operator"] = op;
+         Exception::set(e);
+      }
+   }
+
+   return rval;
+}
+
 bool TemplateInputStream::runCommand(
    int cmd, DynamicObject& params, int newPosition)
 {
@@ -621,7 +780,7 @@ bool TemplateInputStream::runCommand(
          {
             rval = !mStrict;
          }
-         else if(!mEmptyLoop)
+         else if(!mEmptyLoop && !mFalseCondition)
          {
             // write value out to parsed data buffer
             const char* value = var->getString();
@@ -663,13 +822,13 @@ bool TemplateInputStream::runCommand(
          }
          break;
       }
-      case CMD_END:
+      case CMD_ENDEACH:
       {
          // check last loop
          if(mLoops.empty())
          {
             ExceptionRef e = new Exception(
-               "End has no matching Each.",
+               "'endeach' has no matching 'each'.",
                EXCEPTION_SYNTAX);
             Exception::set(e);
             rval = false;
@@ -705,6 +864,131 @@ bool TemplateInputStream::runCommand(
          FileInputStream* fis = new FileInputStream(file);
          mInclude = new TemplateInputStream(
             mVars, mStrict, fis, true);
+         break;
+      }
+      case CMD_IF:
+      {
+         // create new condition
+         DynamicObject condition;
+         condition["met"] = false;
+         mConditions.push_back(condition);
+
+         // do comparison
+         switch(compare(params))
+         {
+            // condition met
+            case 1:
+               condition["met"] = true;
+               mFalseCondition = false;
+               break;
+            // condition not met
+            case 0:
+               mFalseCondition = true;
+               break;
+            // exception
+            case -1:
+               rval = false;
+               break;
+         }
+         break;
+      }
+      case CMD_ELSEIF:
+      {
+         // check last condition
+         if(mConditions.empty())
+         {
+            ExceptionRef e = new Exception(
+               "'elseif' has no matching 'if'.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            DynamicObject& condition = mConditions.back();
+
+            // if we've met the condition, then our condition is now false
+            if(condition["met"]->getBoolean())
+            {
+               mFalseCondition = true;
+            }
+            // see if the condition of the elseif is met
+            else
+            {
+               // do comparison
+               switch(compare(params))
+               {
+                  // condition met
+                  case 1:
+                     condition["met"] = true;
+                     mFalseCondition = false;
+                     break;
+                  // condition not met
+                  case 0:
+                     mFalseCondition = true;
+                     break;
+                  // exception
+                  case -1:
+                     rval = false;
+                     break;
+               }
+            }
+         }
+         break;
+      }
+      case CMD_ELSE:
+      {
+         // check last condition
+         if(mConditions.empty())
+         {
+            ExceptionRef e = new Exception(
+               "'else' has no matching 'if'.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            DynamicObject& condition = mConditions.back();
+
+            // if we've met the condition, the else is false
+            if(condition["met"]->getBoolean())
+            {
+               mFalseCondition = true;
+            }
+            // the else is true if we haven't met the condition
+            else
+            {
+               mFalseCondition = false;
+               condition["met"] = true;
+            }
+         }
+         break;
+      }
+      case CMD_ENDIF:
+      {
+         // check last condition
+         if(mConditions.empty())
+         {
+            ExceptionRef e = new Exception(
+               "'endif' has no matching 'if'.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            // condition is complete, so remove it
+            mConditions.pop_back();
+
+            // see if we're inside of a false condition
+            mFalseCondition = false;
+            if(!mConditions.empty())
+            {
+               DynamicObject& condition = mConditions.back();
+               mFalseCondition = !condition["result"]->getBoolean();
+            }
+         }
          break;
       }
    }

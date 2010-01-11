@@ -75,6 +75,21 @@ bool DynamicObject::operator<(const DynamicObject& rhs) const
    return rval;
 }
 
+bool DynamicObject::operator>=(const DynamicObject& rhs) const
+{
+   return (*this == rhs) || (*this > rhs);
+}
+
+bool DynamicObject::operator>(const DynamicObject& rhs) const
+{
+   return (*this != rhs) && !(*this > rhs);
+}
+
+bool DynamicObject::operator<=(const DynamicObject& rhs) const
+{
+   return (*this == rhs) || (*this < rhs);
+}
+
 void DynamicObject::operator=(const char* value)
 {
    *mReference->ptr = value;

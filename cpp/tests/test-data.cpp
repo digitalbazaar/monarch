@@ -1661,7 +1661,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       const char* tpl =
          "{:each foo.items item}"
          "The item is '{item}'\n"
-         "{:end}";
+         "{:endeach}";
 
       // create variables
       DynamicObject vars;
@@ -1698,7 +1698,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       const char* tpl =
          "{:each items item}"
          "The item is '{item}'\n"
-         "{:end}";
+         "{:endeach}";
 
       // create variables
       DynamicObject vars;
@@ -1760,7 +1760,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Items:\n"
          "{:each items item}"
          "The item is '{item}'\n"
-         "{:end}";
+         "{:endeach}";
 
       // create variables
       DynamicObject vars;
@@ -1795,7 +1795,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       const char* include =
          "{:each items item}"
          "The item is '{item}'\n"
-         "{:end}";
+         "{:endeach}";
       fos.write(include, strlen(include));
       fos.close();
       assertNoException();
@@ -1847,7 +1847,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          const char* include =
             "{:each items item}"
             "The item is '{item}'\n"
-            "{:end}";
+            "{:endeach}";
          fos.write(include, strlen(include));
          fos.close();
          assertNoException();
@@ -1898,6 +1898,91 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "The item is 'item1'\n"
          "The item is 'item2'\n"
          "The item is 'item3'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (if)");
+   {
+      // create template
+      const char* tpl =
+         "{:each foo.items item}"
+         "{:if item == 'item1'}"
+         "The item is '{item}'\n"
+         "{:endif}"
+         "{:endeach}";
+
+      // create variables
+      DynamicObject vars;
+      vars["foo"]["items"]->append() = "item1";
+      vars["foo"]["items"]->append() = "item2";
+      vars["foo"]["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "The item is 'item1'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (if/elseif/else)");
+   {
+      // create template
+      const char* tpl =
+         "{:each foo.items item}"
+         "{:if item == 'item1'}"
+         "The first item is '{item}'\n"
+         "{:elseif item == 'item2'}"
+         "The second item is '{item}'\n"
+         "{:elseif item == foo.third}"
+         "The third item is a secret.\n"
+         "{:else}"
+         "The fourth item is '{item}'\n"
+         "{:endif}"
+         "{:endeach}";
+
+      // create variables
+      DynamicObject vars;
+      vars["foo"]["items"]->append() = "item1";
+      vars["foo"]["items"]->append() = "item2";
+      vars["foo"]["items"]->append() = "secret";
+      vars["foo"]["items"]->append() = "item4";
+      vars["foo"]["third"] = "secret";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "The first item is 'item1'\n"
+         "The second item is 'item2'\n"
+         "The third item is a secret.\n"
+         "The fourth item is 'item4'\n";
 
       // null-terminate output
       output.putByte(0, 1, true);

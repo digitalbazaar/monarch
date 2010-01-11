@@ -10,7 +10,7 @@
 #include "monarch/rt/DynamicObjectIterator.h"
 
 #include <string>
-#include <list>
+#include <vector>
 
 namespace monarch
 {
@@ -95,6 +95,11 @@ protected:
    bool mEmptyLoop;
 
    /**
+    * Set to true if currently inside of a false condition.
+    */
+   bool mFalseCondition;
+
+   /**
     * The variables to use to populate the template.
     */
    monarch::rt::DynamicObject mVars;
@@ -131,8 +136,15 @@ protected:
    /**
     * A stack of loop variables declared by commands in a template.
     */
-   typedef std::list<Loop> LoopStack;
+   typedef std::vector<Loop> LoopStack;
    LoopStack mLoops;
+
+   /**
+    * A stack of condition objects to check before determining if a template
+    * section is applicable or not.
+    */
+   typedef std::vector<monarch::rt::DynamicObject> ConditionStack;
+   ConditionStack mConditions;
 
    /**
     * An InputStream for reading from an included template.
@@ -254,13 +266,22 @@ protected:
       int cmd, monarch::rt::DynamicObject& params, int newPosition);
 
    /**
+    * Handles a conditional by comparing a variable.
+    *
+    * @param params the associated parameters.
+    *
+    * @return 1 if the comparison is true, 0 for false, -1 for exception.
+    */
+   virtual int compare(monarch::rt::DynamicObject& params);
+
+   /**
     * Finds the variable with the given varname.
     *
     * @param varname the name of the variable.
     *
     * @return the variable or NULL if not found (exception set in Strict mode).
     */
-   monarch::rt::DynamicObject findVariable(const char* varname);
+   virtual monarch::rt::DynamicObject findVariable(const char* varname);
 };
 
 } // end namespace data

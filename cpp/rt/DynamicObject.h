@@ -83,8 +83,10 @@ public:
 
    /**
     * Compares this DynamicObject to another one for equality. If the
-    * DynamicObjects are the same type, and have the same value or contain
-    * all the same values (for Maps/Arrays), then they are equal.
+    * DynamicObjects are the same type and have the same value or contain
+    * all the same values (for Maps/Arrays), then they are equal. If the
+    * DynamicObjects have different types but their string values are
+    * equivalent, then they are equal.
     *
     * @param rhs the DynamicObject to compare to this one.
     *
@@ -132,6 +134,40 @@ public:
     *         not.
     */
    virtual bool operator<(const DynamicObject& rhs) const;
+
+   /**
+    * Compares this DynamicObject to another one to see if it is less than
+    * or equal it.
+    *
+    * @param rhs the DynamicObject to compare to this one.
+    *
+    * @return true if this DynamicObject is less than or equal to the passed
+    *         one, false if not.
+    */
+   virtual bool operator<=(const DynamicObject& rhs) const;
+
+   /**
+    * Compares this DynamicObject to another one to see if it is greater than
+    * it. If the first DynamicObject is not equal and not greater than the
+    * second, then it is less.
+    *
+    * @param rhs the DynamicObject to compare to this one.
+    *
+    * @return true if this DynamicObject is greater than the passed one, false
+    *         if not.
+    */
+   virtual bool operator>(const DynamicObject& rhs) const;
+
+   /**
+    * Compares this DynamicObject to another one to see if it is greater than
+    * or equal it.
+    *
+    * @param rhs the DynamicObject to compare to this one.
+    *
+    * @return true if this DynamicObject is greater than or equal to the passed
+    *         one, false if not.
+    */
+   virtual bool operator>=(const DynamicObject& rhs) const;
 
    /**
     * Sets this object's value to a string.
