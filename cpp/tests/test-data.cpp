@@ -1655,6 +1655,43 @@ void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (map)");
+   {
+      // create template
+      const char* tpl =
+         "{:each foo.items item}"
+         "The item is '{item}'\n"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["foo"]["items"]->append() = "item1";
+      vars["foo"]["items"]->append() = "item2";
+      vars["foo"]["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "The item is 'item1'\n"
+         "The item is 'item2'\n"
+         "The item is 'item3'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
    tr.test("parse (each)");
    {
       // create template
