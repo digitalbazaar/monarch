@@ -15,6 +15,11 @@
 
 #include <cstdio>
 
+// You must create this file in order for the tests to work. Please
+// see the file named "test-mysql.h.template" in the current directory
+// for details
+#include "monarch/tests/test-mysql.h"
+
 using namespace std;
 using namespace monarch::test;
 using namespace monarch::rt;
@@ -172,7 +177,8 @@ void runMySqlConnectionTest(TestRunner& tr)
    tr.test("MySql Connection");
 
    MySqlConnection c;
-   c.connect("mysql://dbreadclient:k288m2s8f6gk39a@omega.digitalbazaar.com/test");
+   c.connect("mysql://" MYSQL_READ_USER ":" MYSQL_PASSWORD "@"
+      MYSQL_HOST "/test");
    c.close();
    assertNoException();
 
@@ -190,7 +196,7 @@ void runMySqlStatementTest(TestRunner& tr)
    Exception::clear();
 
    MySqlConnection c;
-   c.connect("mysql://dbwriteclient:k288m2s8f6gk39a@omega.digitalbazaar.com");
+   c.connect("mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST);
    assertNoException();
 
    // create table
@@ -217,9 +223,9 @@ void runMySqlDatabaseClientTest(TestRunner& tr)
 
    // create mysql connection pools
    ConnectionPoolRef readPool = new MySqlConnectionPool(
-      "mysql://dbreadclient:k288m2s8f6gk39a@omega.digitalbazaar.com", 1);
+      "mysql://" MYSQL_READ_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 1);
    ConnectionPoolRef writePool = new MySqlConnectionPool(
-      "mysql://dbwriteclient:k288m2s8f6gk39a@omega.digitalbazaar.com", 1);
+      "mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 1);
    assertNoException();
 
    // create database client
@@ -600,7 +606,7 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
 
    // create mysql connection pool
    MySqlConnectionPool cp(
-      "mysql://dbwriteclient:k288m2s8f6gk39a@omega.digitalbazaar.com", 100);
+      "mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 100);
    assertNoException();
 
    // create table

@@ -1,0 +1,10 @@
+/**
+ * You must rename this file to "test-mysql.h" and fill in the values for
+ * the MySQL database server that you are using in order for the test to
+ * work.
+ */
+#define MYSQL_HOST ""
+#define MYSQL_READ_USER ""
+#define MYSQL_WRITE_USER ""
+#define MYSQL_PASSWORD ""
+
