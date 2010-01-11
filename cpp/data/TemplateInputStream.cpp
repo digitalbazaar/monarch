@@ -436,7 +436,7 @@ const char* TemplateInputStream::getNext()
             loop.current = loop.i->next();
 
             // reset template data to beginning of loop
-            mTemplate.reset(loop.end - loop.start);
+            mTemplate.reset(loop.end - loop.start + 1);
             mLineNumber = loop.line;
             mLineColumn = loop.column;
             mPosition = loop.start;
