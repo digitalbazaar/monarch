@@ -87,7 +87,7 @@ int TemplateInputStream::read(char* b, int length)
          -We are out of template data.
    */
    bool parseError = false;
-   while(mParsed.length() < length && rval != -1 &&
+   while(mParsed.length() < length && rval != -1 && !parseError &&
          !(mTemplate.freeSpace() < 2 && !mParsed.isEmpty()) &&
          (mInclude != NULL || !mEndOfStream || !mTemplate.isEmpty()))
    {
@@ -182,25 +182,36 @@ int TemplateInputStream::read(char* b, int length)
          // remove null-terminator
          mTemplate.trim(1);
       }
+   }
 
-      if(parseError)
-      {
-         // create "near" string that failed parsing
-         char nearStr[mTemplate.length() + 1];
-         nearStr[mTemplate.length()] = 0;
-         strncpy(nearStr, mTemplate.data(), mTemplate.length());
+   // corner-case where loop does not terminate
+   if(rval != -1 && !parseError &&
+      !mLoops.empty() && mTemplate.isEmpty() && mEndOfStream)
+   {
+      ExceptionRef e = new Exception(
+         "Incomplete 'each' loop. No matching 'end' found.",
+         EXCEPTION_SYNTAX);
+      Exception::set(e);
+      parseError = true;
+   }
 
-         // include line, position, and part of string that was parsed
-         // in the parse exception
-         ExceptionRef e = new Exception(
-            "Template parser error.",
-            "monarch.data.TemplateInputStream.ParseError");
-         e->getDetails()["line"] = mLineNumber;
-         e->getDetails()["column"] = mLineColumn;
-         e->getDetails()["near"] = nearStr;
-         Exception::push(e);
-         rval = -1;
-      }
+   if(parseError)
+   {
+      // create "near" string that failed parsing
+      char nearStr[mTemplate.length() + 1];
+      nearStr[mTemplate.length()] = 0;
+      strncpy(nearStr, mTemplate.data(), mTemplate.length());
+
+      // include line, position, and part of string that was parsed
+      // in the parse exception
+      ExceptionRef e = new Exception(
+         "Template parser error.",
+         "monarch.data.TemplateInputStream.ParseError");
+      e->getDetails()["line"] = mLineNumber;
+      e->getDetails()["column"] = mLineColumn;
+      e->getDetails()["near"] = nearStr;
+      Exception::push(e);
+      rval = -1;
    }
 
    // return any parsed data
@@ -214,15 +225,6 @@ int TemplateInputStream::read(char* b, int length)
       ExceptionRef e = new Exception(
          "Incomplete escape sequence at the end of the template.",
          "monarch.data.TemplateInputStream.IncompleteTemplate");
-      Exception::set(e);
-      rval = -1;
-   }
-   // corner-case where loop does not terminate
-   else if(!mLoops.empty() && mTemplate.isEmpty() && mEndOfStream)
-   {
-      ExceptionRef e = new Exception(
-         "Incomplete 'each' loop. No matching 'end' found.",
-         EXCEPTION_SYNTAX);
       Exception::set(e);
       rval = -1;
    }
@@ -664,7 +666,8 @@ bool TemplateInputStream::runCommand(
             }
             else
             {
-               loop.current.setNull();
+               // use an empty value for an empty loop
+               loop.current = "";
                loop.empty = true;
                mEmptyLoop = true;
             }
@@ -690,7 +693,7 @@ bool TemplateInputStream::runCommand(
          else
          {
             Loop& loop = mLoops.back();
-            if(loop.complete && !loop.i->hasNext())
+            if(loop.empty || (loop.complete && !loop.i->hasNext()))
             {
                // loop is complete, so remove it
                mLoops.pop_back();
