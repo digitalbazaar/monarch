@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_StringTools_H
 #define monarch_util_StringTools_H
@@ -100,7 +100,8 @@ public:
     *
     * @return the DynamicObject array.
     */
-   static monarch::rt::DynamicObject split(const char* str, const char* delimiter);
+   static monarch::rt::DynamicObject split(
+      const char* str, const char* delimiter);
 
    /**
     * Joins DynamicObject array or map values using the given string as

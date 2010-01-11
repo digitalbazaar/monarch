@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_TemplateInputStream_H
 #define monarch_data_TemplateInputStream_H
@@ -7,6 +7,10 @@
 #include "monarch/io/ByteBuffer.h"
 #include "monarch/io/FilterInputStream.h"
 #include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObjectIterator.h"
+
+#include <string>
+#include <list>
 
 namespace monarch
 {
@@ -15,19 +19,28 @@ namespace data
 
 /**
  * A TemplateInputStream is used to parse templates that contain text with
- * specially marked variables.
+ * special markup. Markup may be used to do variable replacement, iterate
+ * over variables, and include other templates.
  *
- * A template is a string of text with variable names that are delimited by
- * starting with a '{' and ending with a '}'. To include a regular '{' or
- * '}' character then it must be escaped with a '\'. If a '\' is to appear in
- * the message, it must be escaped like so: '\\'.
+ * Markup is delimited by starting with a '{' and ending with a '}'. To include
+ * a regular '{' or '}' character then it must be escaped with a '\'. If a '\'
+ * is to appear in the message, it must be escaped like so: '\\'.
  *
  * If curly braces are not matched or variable names do not start with a
  * letter and contain only alphanumeric characters, a parser error will be
- * raised. Variable names may not exceed 2046 characters.
+ * raised. Markup may not exceed 2046 characters. Recognized commands begin
+ * with a ':'. To iterate over each member of a map or array, the following
+ * syntax is used:
  *
- * The variable values are stored in a DynamicObject. If the variable value
- * is a basic value like a string, boolean, or number, then the variable name
+ * {:each mycollection item}
+ * The value of each item in mycollection will be here: {item}
+ * {:end}
+ *
+ * To include another template, the following syntax is used:
+ * {:include /path/to/myfile.tpl}
+ *
+ * Variable values are stored in a DynamicObject. If the variable value is
+ * a basic value like a string, boolean, or number, then the variable name
  * will simply be replaced with the value from the DynamicObject. If the
  * value is a map, then the variable name will be replaced by a comma-delimited
  * list of key-value pairs. If the value is an array, then the variable name
@@ -57,19 +70,29 @@ protected:
    int mLineNumber;
 
    /**
+    * Stores the current line column in the template.
+    */
+   int mLineColumn;
+
+   /**
     * Stores the current position in the template.
     */
    int mPosition;
 
    /**
-    * Set to true if currently parsing a variable.
+    * Set to true if currently parsing markup.
     */
-   bool mParsingVariable;
+   bool mParsingMarkup;
 
    /**
     * Set to true if currently escaping a character.
     */
    bool mEscapeOn;
+
+   /**
+    * Set to true if currently inside of an empty loop.
+    */
+   bool mEmptyLoop;
 
    /**
     * The variables to use to populate the template.
@@ -83,32 +106,38 @@ protected:
    bool mStrict;
 
    /**
-    * Set to true once the end of the underlying stream is reached.
+    * A variable for keeping track of when the end of the stream
+    * has been reached.
     */
    bool mEndOfStream;
 
    /**
-    * Reset parsing state.
+    * A loop has a name, an associated iterator, and state information for
+    * navigating the template buffer.
     */
-   virtual void resetState();
+   struct Loop
+   {
+      std::string name;
+      monarch::rt::DynamicObjectIterator i;
+      monarch::rt::DynamicObject current;
+      bool empty;
+      int line;
+      int column;
+      int start;
+      int end;
+      bool complete;
+   };
 
    /**
-    * Gets a pointer to the next character to process.
-    *
-    * @param start the starting point.
-    *
-    * @return the pointer to the next character to process.
+    * A stack of loop variables declared by commands in a template.
     */
-   virtual const char* getNext(const char* start);
+   typedef std::list<Loop> LoopStack;
+   LoopStack mLoops;
 
    /**
-    * Processes the character at the given position in the template buffer.
-    *
-    * @param pos the position of the character.
-    *
-    * @return true if successful, false if not.
+    * An InputStream for reading from an included template.
     */
-   virtual bool process(const char* pos);
+   monarch::io::InputStream* mInclude;
 
 public:
    /**
@@ -149,7 +178,8 @@ public:
     * @param cleanup true to clean up the passed InputStream when destructing,
     *                false not to.
     */
-   void setInputStream(monarch::io::InputStream* is, bool cleanup = false);
+   virtual void setInputStream(
+      monarch::io::InputStream* is, bool cleanup = false);
 
    /**
     * Sets the variables to use when parsing the template. The passed "vars"
@@ -188,6 +218,50 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool parse(monarch::io::OutputStream* os);
+
+protected:
+   /**
+    * Reset parsing state.
+    */
+   virtual void resetState();
+
+   /**
+    * Gets a pointer to the next character to process.
+    *
+    * @return the pointer to the next character to process.
+    */
+   virtual const char* getNext();
+
+   /**
+    * Processes the character at the given position in the template buffer.
+    *
+    * @param pos the position of the character.
+    *
+    * @return true if successful, false if not.
+    */
+   virtual bool process(const char* pos);
+
+   /**
+    * Runs the given command.
+    *
+    * @param cmd the command to run.
+    * @param varname the name of the associated variable or NULL.
+    * @param loopname the name of the associated loop or NULL.
+    * @param newPosition the position after the command.
+    *
+    * @return true if successful, false if not.
+    */
+   virtual bool runCommand(
+      int cmd, const char* varname, const char* loopname, int newPosition);
+
+   /**
+    * Finds the variable with the given varname.
+    *
+    * @param varname the name of the variable.
+    *
+    * @return the variable or NULL if not found (exception set in Strict mode).
+    */
+   monarch::rt::DynamicObject findVariable(const char* varname);
 };
 
 } // end namespace data
