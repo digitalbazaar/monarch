@@ -5,6 +5,7 @@
 #define monarch_data_TemplateInputStream_H
 
 #include "monarch/io/ByteBuffer.h"
+#include "monarch/io/File.h"
 #include "monarch/io/FilterInputStream.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
@@ -151,6 +152,11 @@ protected:
     */
    monarch::io::InputStream* mInclude;
 
+   /**
+    * An include directory for templates.
+    */
+   monarch::io::File mIncludeDir;
+
 public:
    /**
     * Creates a new TemplateInputStream that reads a template from the
@@ -162,10 +168,12 @@ public:
     * @param is the underlying InputStream to read from.
     * @param cleanup true to clean up the passed InputStream when destructing,
     *                false not to.
+    * @param includeDir an include directory for other templates.
     */
    TemplateInputStream(
       monarch::rt::DynamicObject& vars, bool strict,
-      monarch::io::InputStream* is, bool cleanup = false);
+      monarch::io::InputStream* is, bool cleanup = false,
+      const char* includeDir = NULL);
 
    /**
     * Creates a new TemplateInputStream that reads a template from the
@@ -205,6 +213,13 @@ public:
     */
    virtual void setVariables(
       monarch::rt::DynamicObject& vars, bool strict = false);
+
+   /**
+    * Sets the include directory for included templates.
+    *
+    * @param dir an include directory for other templates.
+    */
+   virtual void setIncludeDirectory(const char* dir);
 
    /**
     * Reads some bytes from the stream. This method will block until at least

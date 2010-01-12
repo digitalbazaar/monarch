@@ -40,16 +40,22 @@ using namespace monarch::util;
 // features -- so an eventual rewrite is required.
 
 TemplateInputStream::TemplateInputStream(
-   DynamicObject& vars, bool strict, InputStream* is, bool cleanup) :
+   DynamicObject& vars, bool strict, InputStream* is, bool cleanup,
+   const char* includeDir) :
    FilterInputStream(is, cleanup),
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
    mVars(vars),
    mStrict(strict),
-   mInclude(NULL)
+   mInclude(NULL),
+   mIncludeDir((FileImpl*)NULL)
 {
    resetState();
    mVars->setType(Map);
+   if(includeDir != NULL)
+   {
+      mIncludeDir = File(includeDir);
+   }
 }
 
 TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
@@ -57,7 +63,8 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
    mStrict(false),
-   mInclude(NULL)
+   mInclude(NULL),
+   mIncludeDir((FileImpl*)NULL)
 {
    resetState();
    mVars->setType(Map);
@@ -79,6 +86,11 @@ void TemplateInputStream::setVariables(DynamicObject& vars, bool strict)
    mVars = vars;
    mVars->setType(Map);
    mStrict = strict;
+}
+
+void TemplateInputStream::setIncludeDirectory(const char* dir)
+{
+   mIncludeDir = File(dir);
 }
 
 int TemplateInputStream::read(char* b, int length)
@@ -931,6 +943,11 @@ bool TemplateInputStream::runCommand(
             }
          }
 
+         // build path is path is not absolute
+         if(!File::isPathAbsolute(path.c_str()) && !mIncludeDir.isNull())
+         {
+            path = File::join(path.c_str(), mIncludeDir->getAbsolutePath());
+         }
          File file(path.c_str());
          FileInputStream* fis = new FileInputStream(file);
          mInclude = new TemplateInputStream(mVars, mStrict, fis, true);
