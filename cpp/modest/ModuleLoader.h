@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_modest_ModuleLoader_H
 #define monarch_modest_ModuleLoader_H
@@ -59,6 +59,18 @@ public:
     * @return the loaded Module's info or NULL if an Exception occurred.
     */
    virtual ModuleInfo* loadModule(const char* filename);
+
+   /**
+    * Loads a Module using the given functions. The allocated ModuleInfo
+    * will be freed when unloadModule(ModuleInfo*) is called.
+    *
+    * @param cm the create module function.
+    * @param fm the free module function.
+    *
+    * @return the loaded Module's info or NULL if an Exception occurred.
+    */
+   virtual ModuleInfo* loadModule(
+      CreateModestModuleFn cm, FreeModestModuleFn fm);
 
    /**
     * Unloads the passed Module.

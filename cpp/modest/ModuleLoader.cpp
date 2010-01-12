@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/modest/ModuleLoader.h"
 
@@ -46,11 +46,8 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
 
       if(error == NULL)
       {
-         // create ModuleInfo
-         rval = new ModuleInfo();
+         rval = loadModule(create, free);
          rval->handle = handle;
-         rval->module = create();
-         rval->freeModule = free;
       }
       else
       {
@@ -76,13 +73,30 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
    return rval;
 }
 
+ModuleInfo* ModuleLoader::loadModule(
+   CreateModestModuleFn cm, FreeModestModuleFn fm)
+{
+   ModuleInfo* rval = NULL;
+
+   // create ModuleInfo
+   rval = new ModuleInfo();
+   rval->handle = NULL;
+   rval->module = cm();
+   rval->freeModule = fm;
+
+   return rval;
+}
+
 void ModuleLoader::unloadModule(ModuleInfo* mi)
 {
    // free module
    mi->freeModule(mi->module);
 
-   // close handle
-   dlclose(mi->handle);
+   if(mi->handle != NULL)
+   {
+      // close handle
+      dlclose(mi->handle);
+   }
 
    // delete module info
    delete mi;

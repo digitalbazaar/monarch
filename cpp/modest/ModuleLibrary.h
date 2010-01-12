@@ -143,6 +143,16 @@ public:
    virtual Module* loadModule(const char* filename);
 
    /**
+    * Loads a Module into this ModuleLibrary, if it has not already been loaded.
+    *
+    * @param cm the create module function.
+    * @param fm the free module function.
+    *
+    * @return the Module, if it was loaded, NULL if not (an Exception occurred).
+    */
+   virtual Module* loadModule(CreateModestModuleFn cm, FreeModestModuleFn fm);
+
+   /**
     * Unloads a Module from this ModuleLibrary, if it is loaded.
     *
     * @param id the ModuleId of the Module to unload.
@@ -186,6 +196,18 @@ public:
     *         or it has no interface.
     */
    virtual ModuleInterface* getModuleInterface(const ModuleId* id);
+
+protected:
+   /**
+    * Checks a ModuleInfo to see if it has already been loaded. If it has,
+    * it will be unloaded with an Exception set.
+    *
+    * @param mi the ModuleInfo to check.
+    * @param filename the filename the Module was loaded from, NULL if none.
+    *
+    * @return the Module if it hasn't already been loaded, NULL if it has.
+    */
+   virtual Module* loadOnce(ModuleInfo* mi, const char* filename);
 };
 
 } // end namespace modest
