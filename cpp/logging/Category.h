@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_logging_Category_H
 #define monarch_logging_Category_H
@@ -8,6 +8,7 @@
 #include <utility>
 #include <list>
 
+#include "monarch/util/AnsiEscapeCodes.h"
 #include "monarch/util/Macros.h"
 
 // Forward declaration
