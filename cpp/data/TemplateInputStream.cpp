@@ -950,7 +950,9 @@ bool TemplateInputStream::runCommand(
          }
          File file(path.c_str());
          FileInputStream* fis = new FileInputStream(file);
-         mInclude = new TemplateInputStream(mVars, mStrict, fis, true);
+         mInclude = new TemplateInputStream(
+            mVars, mStrict, fis, true,
+            mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
          break;
       }
       case CMD_IF:
