@@ -1803,18 +1803,16 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertNoException();
 
       // create template
-      const char* path = file->getAbsolutePath();
-      int len = 100 + strlen(path);
-      char tpl[len + 1];
-      snprintf(tpl, len,
+      const char* tpl =
          "Items:\n"
-         "{:include %s}", path);
+         "{:include myfile}";
 
       // create variables
       DynamicObject vars;
       vars["items"]->append() = "item1";
       vars["items"]->append() = "item2";
       vars["items"]->append() = "item3";
+      vars["myfile"] = file->getAbsolutePath();
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -1864,7 +1862,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          char tpl[len + 1];
          snprintf(tpl, len,
             "Items:\n"
-            "{:include %s}", path);
+            "{:include '%s'}", path);
          fos.write(tpl, strlen(tpl));
          fos.close();
          assertNoException();
@@ -1876,7 +1874,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       char tpl[len + 1];
       snprintf(tpl, len,
          "Double include:\n"
-         "{:include %s}", path);
+         "{:include '%s'}", path);
 
       // create variables
       DynamicObject vars;

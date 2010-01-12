@@ -664,6 +664,11 @@ bool TemplateInputStream::process(const char* pos)
                mLineColumn += len + 1;
                mPosition = newPosition;
             }
+            else
+            {
+               // reset template data
+               mTemplate.reset(len + 1);
+            }
          }
       }
    }
@@ -861,10 +866,32 @@ bool TemplateInputStream::runCommand(
       {
          // create an input stream for reading the template file
          string path = StringTools::join(params, " ", 1);
+         if(path.at(0) == '\'' || path.at(0) == '"')
+         {
+            // remove first and last quotes
+            StringTools::trim(path, "'");
+         }
+         else
+         {
+            // try to find a variable
+            DynamicObject var = findVariable(path.c_str());
+            if(var.isNull())
+            {
+               ExceptionRef e = new Exception(
+                  "'include' variable not defined.",
+                  "monarch.data.TemplateInputStream.VariableNotDefined");
+               Exception::set(e);
+               rval = false;
+            }
+            else
+            {
+               path = var->getString();
+            }
+         }
+
          File file(path.c_str());
          FileInputStream* fis = new FileInputStream(file);
-         mInclude = new TemplateInputStream(
-            mVars, mStrict, fis, true);
+         mInclude = new TemplateInputStream(mVars, mStrict, fis, true);
          break;
       }
       case CMD_IF:
