@@ -73,7 +73,7 @@ public:
     * @param serverName the default server name for this servicer.
     */
    HttpConnectionServicer(
-      const char* serverName = "Modest Http Server v1.0");
+      const char* serverName = "Monarch Http Server v1.0");
 
    /**
     * Destructs this HttpConnectionServicer.
