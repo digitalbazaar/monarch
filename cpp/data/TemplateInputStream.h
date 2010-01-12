@@ -278,10 +278,12 @@ protected:
     * Finds the variable with the given varname.
     *
     * @param varname the name of the variable.
+    * @param strict use strict mode.
     *
     * @return the variable or NULL if not found (exception set in Strict mode).
     */
-   virtual monarch::rt::DynamicObject findVariable(const char* varname);
+   virtual monarch::rt::DynamicObject findVariable(
+      const char* varname, bool strict);
 };
 
 } // end namespace data

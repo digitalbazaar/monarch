@@ -1762,11 +1762,13 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Items:\n"
          "{:each items item}"
          "The item is '{item}'\n"
-         "{:endeach}";
+         "{:endeach}"
+         "{:if end}end{:endif}\n";
 
       // create variables
       DynamicObject vars;
       vars["items"]->setType(Array);
+      vars["end"] = true;
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -1779,7 +1781,8 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertNoException();
 
       const char* expect =
-         "Items:\n";
+         "Items:\n"
+         "end\n";
 
       // null-terminate output
       output.putByte(0, 1, true);

@@ -416,8 +416,9 @@ static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
          {
             cmd = CMD_IF;
 
-            // {:if variable <comparator> value}
-            if(params->length() < 4)
+            // {:if variable <comparator> value} OR
+            // {:if variable}
+            if(params->length() != 2 && params->length() != 4)
             {
                ExceptionRef e = new Exception(
                   "Invalid 'if' syntax. "
@@ -431,8 +432,9 @@ static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
          {
             cmd = CMD_ELSEIF;
 
-            // {:elseif variable >= value}
-            if(params->length() < 4)
+            // {:elseif variable >= value} OR
+            // {:elseif variable}
+            if(params->length() != 2 && params->length() != 4)
             {
                ExceptionRef e = new Exception(
                   "Invalid 'elseif' syntax. "
@@ -682,19 +684,22 @@ int TemplateInputStream::compare(DynamicObject& params)
 
    // syntax: {:if/elseif varname operator value}
    const char* varname = params[1]->getString();
-   const char* op = params[2]->getString();
-   DynamicObject value = params[3];
+   bool singleVar = (params->length() == 2);
+   const char* op = NULL;
+   DynamicObject value(NULL);
 
    // find first variable
-   DynamicObject var = findVariable(varname);
-   if(var.isNull() && mStrict)
+   DynamicObject var = findVariable(varname, !singleVar && mStrict);
+   if(var.isNull() && !singleVar)
    {
       rval = -1;
    }
 
    // find second variable
-   if(rval != -1)
+   if(rval != -1 && !singleVar)
    {
+      op = params[2]->getString();
+      value = params[3];
       const char* v = value->getString();
       if(v[0] == '\'' || v[0] == '"')
       {
@@ -714,10 +719,15 @@ int TemplateInputStream::compare(DynamicObject& params)
             value->setType(UInt64);
          }
       }
+      else if(strcmp(v, "true") == 0 || strcmp(v, "false") == 0)
+      {
+         // will compare as a boolean
+         value->setType(Boolean);
+      }
       else
       {
          // try to get a variable
-         value = findVariable(v);
+         value = findVariable(v, mStrict);
          if(value.isNull() && mStrict)
          {
             rval = -1;
@@ -728,7 +738,38 @@ int TemplateInputStream::compare(DynamicObject& params)
    // do comparison
    if(rval != -1)
    {
-      if(strcmp(op, "==") == 0)
+      if(singleVar)
+      {
+         if(var.isNull())
+         {
+            // undefined var result in false comparison
+            rval = 0;
+         }
+         else
+         {
+            switch(var->getType())
+            {
+               case Boolean:
+                  rval = var->getBoolean() ? 1 : 0;
+                  break;
+               case Int32:
+               case UInt32:
+               case Int64:
+               case UInt64:
+               case Double:
+                  // any value other than 0 is true
+                  rval = (var->getInt32() != 0) ? 1 : 0;
+                  break;
+               case String:
+               case Map:
+               case Array:
+                  // always true
+                  rval = true;
+                  break;
+            }
+         }
+      }
+      else if(strcmp(op, "==") == 0)
       {
          rval = (var == value) ? 1 : 0;
       }
@@ -785,7 +826,7 @@ bool TemplateInputStream::runCommand(
          DynamicObject d = StringTools::split(varname, "|");
 
          // find variable
-         DynamicObject var = findVariable(d[0]->getString());
+         DynamicObject var = findVariable(d[0]->getString(), mStrict);
          if(var.isNull())
          {
             rval = !mStrict;
@@ -802,7 +843,7 @@ bool TemplateInputStream::runCommand(
       case CMD_EACH:
       {
          // find variable
-         DynamicObject var = findVariable(params[1]->getString());
+         DynamicObject var = findVariable(params[1]->getString(), mStrict);
          if(var.isNull())
          {
             rval = !mStrict;
@@ -855,7 +896,7 @@ bool TemplateInputStream::runCommand(
                // if we're in an empty loop, see if we exited finally
                if(mEmptyLoop)
                {
-                  mEmptyLoop = (mLoops.empty() || !mLoops.back().empty);
+                  mEmptyLoop = (!mLoops.empty() && mLoops.back().empty);
                }
             }
             else
@@ -879,13 +920,9 @@ bool TemplateInputStream::runCommand(
          else
          {
             // try to find a variable
-            DynamicObject var = findVariable(path.c_str());
+            DynamicObject var = findVariable(path.c_str(), true);
             if(var.isNull())
             {
-               ExceptionRef e = new Exception(
-                  "'include' variable not defined.",
-                  "monarch.data.TemplateInputStream.VariableNotDefined");
-               Exception::set(e);
                rval = false;
             }
             else
@@ -1029,7 +1066,8 @@ bool TemplateInputStream::runCommand(
    return rval;
 }
 
-DynamicObject TemplateInputStream::findVariable(const char* varname)
+DynamicObject TemplateInputStream::findVariable(
+   const char* varname, bool strict)
 {
    DynamicObject rval(NULL);
 
@@ -1098,7 +1136,7 @@ DynamicObject TemplateInputStream::findVariable(const char* varname)
    }
 
    // set exception if variable missing and strict is on
-   if(missing && mStrict)
+   if(missing && strict)
    {
       ExceptionRef e = new Exception(
          "The substitution variable is not defined. "
