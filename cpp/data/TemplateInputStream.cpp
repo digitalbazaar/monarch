@@ -780,8 +780,12 @@ bool TemplateInputStream::runCommand(
       }
       case CMD_REPLACE:
       {
+         // separate on pipes
+         const char* varname = params[0]->getString();
+         DynamicObject d = StringTools::split(varname, "|");
+
          // find variable
-         DynamicObject var = findVariable(params[0]->getString());
+         DynamicObject var = findVariable(d[0]->getString());
          if(var.isNull())
          {
             rval = !mStrict;
@@ -790,6 +794,7 @@ bool TemplateInputStream::runCommand(
          {
             // write value out to parsed data buffer
             const char* value = var->getString();
+            // FIXME: handle pipes (d[1]...d[n])
             mParsed.put(value, strlen(value), true);
          }
          break;
