@@ -81,6 +81,11 @@ protected:
    int mPosition;
 
    /**
+    * The start of the last markup.
+    */
+   int mMarkupStart;
+
+   /**
     * Set to true if currently parsing markup.
     */
    bool mParsingMarkup;
@@ -89,6 +94,11 @@ protected:
     * Set to true if currently escaping a character.
     */
    bool mEscapeOn;
+
+   /**
+    * Set to true if currently inside of a comment.
+    */
+   bool mCommentOn;
 
    /**
     * Set to true if currently inside of an empty loop.

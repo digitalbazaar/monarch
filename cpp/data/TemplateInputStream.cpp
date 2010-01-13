@@ -17,20 +17,23 @@ using namespace monarch::util;
 #define ESCAPE         '\\'
 #define MARKUP_START   '{'
 #define MARKUP_END     '}'
-#define SPECIAL        "\n\\{}"
+#define COMMENT        '*'
+#define COMMENT_END    "*}"
+#define SPECIAL        "\n\\{}*"
 
 #define BUFFER_SIZE   2048
 #define CMD_UNKNOWN   0
 #define CMD_REPLACE   1
-#define CMD_COMMENT   2
-#define CMD_EACH      3
+#define CMD_COMMENT_1 2
+#define CMD_COMMENT_N 3
+#define CMD_EACH      4
 // FIXME: consider adding EACHELSE for empty loops
-#define CMD_ENDEACH   4
-#define CMD_INCLUDE   5
-#define CMD_IF        6
-#define CMD_ELSEIF    7
-#define CMD_ELSE      8
-#define CMD_ENDIF     9
+#define CMD_ENDEACH   5
+#define CMD_INCLUDE   6
+#define CMD_IF        7
+#define CMD_ELSEIF    8
+#define CMD_ELSE      9
+#define CMD_ENDIF     10
 
 #define EXCEPTION_SYNTAX "monarch.data.TemplateInputStream.SyntaxError"
 
@@ -281,6 +284,7 @@ void TemplateInputStream::resetState()
    mPosition = 0;
    mParsingMarkup = false;
    mEscapeOn = false;
+   mCommentOn = false;
    mEmptyLoop = false;
    mFalseCondition = false;
    mEndOfStream = false;
@@ -302,15 +306,12 @@ void TemplateInputStream::resetState()
  *
  * @return true if there was no error, false if there was.
  */
-static bool checkMarkupError(const char* start, const char* pos)
+static bool _checkMarkupError(const char* start, const char* pos)
 {
    bool rval = true;
 
    switch(pos[0])
    {
-      // FIXME: this code disallows escaping characters in markup,
-      // which is a problem now that filenames can be used for
-      // the "include" command (currently only a big problem on windows)
       case EOL:
       case ESCAPE:
       case MARKUP_START:
@@ -364,10 +365,22 @@ static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
    // determine command by examining first char of markup
    switch(markup[0])
    {
-      // '*' is a comment
+      // '*' is a comment (single line, or multi-line)
       case '*':
-         cmd = CMD_COMMENT;
+      {
+         // determine if comment is a single line or not
+         int len = strlen(markup);
+         if(markup[len - 1] == '*')
+         {
+            // single-line comment
+            cmd = CMD_COMMENT_1;
+         }
+         else
+         {
+            cmd = CMD_COMMENT_N;
+         }
          break;
+      }
       // ':' is a command
       case ':':
       {
@@ -515,33 +528,48 @@ const char* TemplateInputStream::getNext()
    // get default starting position for finding next special character
    const char* start = mTemplate.data();
 
-   // see if we're in a loop
-   if(!mLoops.empty())
+   if(mCommentOn)
    {
-      // get the current loop
-      Loop& loop = mLoops.back();
-      // iterate if template data has reached loop's end and loop has next
-      // if the loop has no next, it will be cleaned up by process()
-      if(loop.complete && mPosition == loop.end && loop.i->hasNext())
+      // search until the comment end is found
+      start = strstr(start, COMMENT_END);
+      if(start != NULL)
       {
-         loop.current = loop.i->next();
-
-         // reset template data to beginning of loop
-         mTemplate.reset(loop.end - loop.start);
-         mLineNumber = loop.line;
-         mLineColumn = loop.column;
-         mPosition = loop.start;
-         start = mTemplate.data();
+         // turn off comment and move past it to end of markup
+         mCommentOn = false;
+         start += 1;
       }
    }
 
-   if(mEscapeOn)
+   if(start != NULL)
    {
-      rval = (start[0] == 0 ? NULL : start);
-   }
-   else
-   {
-      rval = strpbrk(start, SPECIAL);
+      // see if we're in a loop
+      if(!mLoops.empty())
+      {
+         // get the current loop
+         Loop& loop = mLoops.back();
+         // iterate if template data has reached loop's end and loop has next
+         // if the loop has no next, it will be cleaned up by process()
+         if(loop.complete && mPosition == loop.end && loop.i->hasNext())
+         {
+            loop.current = loop.i->next();
+
+            // reset template data to beginning of loop
+            mTemplate.reset(loop.end - loop.start);
+            mLineNumber = loop.line;
+            mLineColumn = loop.column;
+            mPosition = loop.start;
+            start = mTemplate.data();
+         }
+      }
+
+      if(mEscapeOn)
+      {
+         rval = (start[0] == 0 ? NULL : start);
+      }
+      else
+      {
+         rval = strpbrk(start, SPECIAL);
+      }
    }
 
    return rval;
@@ -553,8 +581,16 @@ bool TemplateInputStream::process(const char* pos)
 
    if(mParsingMarkup)
    {
-      // handle invalid markup
-      rval = checkMarkupError(mTemplate.data(), pos);
+      if(!mCommentOn && mMarkupStart == mPosition && pos[0] == COMMENT)
+      {
+         // comment now on
+         mCommentOn = true;
+      }
+      else if(!mEscapeOn)
+      {
+         // handle invalid markup
+         rval = _checkMarkupError(mTemplate.data(), pos);
+      }
    }
 
    if(rval && mEscapeOn)
@@ -641,6 +677,7 @@ bool TemplateInputStream::process(const char* pos)
             int len = pos - mTemplate.data();
             mLineColumn += len + 1;
             mPosition += len + 1;
+            mMarkupStart = mPosition;
             if(mEmptyLoop || mFalseCondition)
             {
                mTemplate.advanceOffset(len);
@@ -683,6 +720,24 @@ bool TemplateInputStream::process(const char* pos)
                // reset template data
                mTemplate.reset(len + 1);
             }
+
+            break;
+         }
+         case COMMENT:
+         {
+            // increase line column, and get character
+            mLineColumn++;
+            int len = (pos - mTemplate.data()) + 1;
+            mPosition += len;
+            if(mEmptyLoop || mFalseCondition || mCommentOn)
+            {
+               mTemplate.advanceOffset(len);
+            }
+            else
+            {
+               mTemplate.get(&mParsed, len, true);
+            }
+            break;
          }
       }
    }
@@ -826,9 +881,16 @@ bool TemplateInputStream::runCommand(
    // handle command
    switch(cmd)
    {
-      case CMD_COMMENT:
+      case CMD_COMMENT_1:
       {
-         // ignore comment
+         // comment off, single line comment
+         mCommentOn = false;
+         break;
+      }
+      case CMD_COMMENT_N:
+      {
+         // comment now on
+         mCommentOn = true;
          break;
       }
       case CMD_REPLACE:

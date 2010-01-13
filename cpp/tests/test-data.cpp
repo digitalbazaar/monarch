@@ -1436,6 +1436,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "From: testuser@bitmunk.com\r\n"
          "To: support@bitmunk.com\r\n"
          "Cc: support@bitmunk.com\r\n"
+         "{*singlelinecomment*}"
          "Bcc: {bccAddress1}\r\n"
          "\r\n"
          "This is the test body. I want $10.00.\n"
@@ -1445,7 +1446,10 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "2 slashes before variable \\\\\\\\{bccAddress1}.\n"
          "Slash before escaped variable \\\\\\{bccAddress1\\}.\n"
          "2 slashes before escaped variable \\\\\\\\\\{bccAddress1\\}.\n"
-         "{eggs}{bacon}{ham}{sausage}.";
+         "{eggs}{bacon}{ham}{sausage}.\n"
+         "{* This is a multiple line comment \n"
+         "  {foo} that should not show \\up at all }\n"
+         "*}";
 
       // create variables
       DynamicObject vars;
@@ -1478,7 +1482,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "2 slashes before variable \\\\support@bitmunk.com.\n"
          "Slash before escaped variable \\{bccAddress1}.\n"
          "2 slashes before escaped variable \\\\{bccAddress1}.\n"
-         "This is a number 5.";
+         "This is a number 5.\n";
 
       // null-terminate output
       output.putByte(0, 1, true);
