@@ -1664,6 +1664,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
    {
       // create template
       const char* tpl =
+         "The number five: {foo.five.1}\n"
          "{:each foo.items item key}"
          "The item is '{item}', key is '{key}'\n"
          "{:endeach}";
@@ -1673,6 +1674,8 @@ void runTemplateInputStreamTest(TestRunner& tr)
       vars["foo"]["items"]->append() = "item1";
       vars["foo"]["items"]->append() = "item2";
       vars["foo"]["items"]->append() = "item3";
+      vars["foo"]["five"]->append() = 4;
+      vars["foo"]["five"]->append() = 5;
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -1685,6 +1688,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertNoException();
 
       const char* expect =
+         "The number five: 5\n"
          "The item is 'item1', key is '0'\n"
          "The item is 'item2', key is '1'\n"
          "The item is 'item3', key is '2'\n";

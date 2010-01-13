@@ -1197,8 +1197,19 @@ DynamicObject TemplateInputStream::findVariable(
       DynamicObject& d = i->next();
       const char* key = d->getString();
 
-      // FIXME: add support for indexing arrays?
-      if(vars->hasMember(key))
+      // determine if key is a number or string
+      bool isNum = true;
+      for(const char* ptr = key; isNum && *ptr != 0; ptr++)
+      {
+         if(*ptr < '0' || *ptr > '9')
+         {
+            isNum = false;
+         }
+      }
+      int num = isNum ? d->getInt32() : 0;
+
+      // check for a key in vars
+      if(!isNum && vars->hasMember(key))
       {
          if(i->hasNext())
          {
@@ -1209,6 +1220,20 @@ DynamicObject TemplateInputStream::findVariable(
          {
             // var found
             rval = vars[key];
+         }
+      }
+      // check for an index in vars
+      else if(isNum && vars->getType() == Array && num < vars->length())
+      {
+         if(i->hasNext())
+         {
+            // next var found, but must go deeper in the tree
+            vars = vars[num];
+         }
+         else
+         {
+            // var found
+            rval = vars[num];
          }
       }
       // see if the key is special-case "length"
