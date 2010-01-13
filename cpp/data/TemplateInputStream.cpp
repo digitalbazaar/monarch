@@ -929,7 +929,7 @@ bool TemplateInputStream::runCommand(
          else
          {
             Loop& loop = mLoops.back();
-            if(loop.empty || (loop.complete && !loop.i->hasNext()))
+            if(loop.empty || !loop.i->hasNext())
             {
                // loop is complete, so remove it
                mLoops.pop_back();
