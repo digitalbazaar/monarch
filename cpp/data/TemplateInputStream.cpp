@@ -19,14 +19,13 @@ using namespace monarch::util;
 #define MARKUP_END     '}'
 #define COMMENT        '*'
 #define COMMENT_END    "*}"
-#define SPECIAL        "\n\\{}*"
+#define SPECIAL        "\n\\{}"
 
 #define BUFFER_SIZE   2048
 #define CMD_UNKNOWN   0
 #define CMD_REPLACE   1
-#define CMD_COMMENT_1 2
-#define CMD_COMMENT_N 3
-#define CMD_EACH      4
+#define CMD_COMMENT   2
+#define CMD_EACH      3
 // FIXME: consider adding EACHELSE for empty loops
 #define CMD_ENDEACH   5
 #define CMD_INCLUDE   6
@@ -368,17 +367,7 @@ static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
       // '*' is a comment (single line, or multi-line)
       case '*':
       {
-         // determine if comment is a single line or not
-         int len = strlen(markup);
-         if(markup[len - 1] == '*')
-         {
-            // single-line comment
-            cmd = CMD_COMMENT_1;
-         }
-         else
-         {
-            cmd = CMD_COMMENT_N;
-         }
+         cmd = CMD_COMMENT;
          break;
       }
       // ':' is a command
@@ -528,14 +517,18 @@ const char* TemplateInputStream::getNext()
    // get default starting position for finding next special character
    const char* start = mTemplate.data();
 
-   if(mCommentOn)
+   // if comment is off but we found "{*", then turn on comment
+   if(!mCommentOn && mParsingMarkup && mMarkupStart == mPosition &&
+      start[0] == COMMENT)
    {
+      mCommentOn = true;
+      start++;
+
       // search until the comment end is found
       start = strstr(start, COMMENT_END);
       if(start != NULL)
       {
-         // turn off comment and move past it to end of markup
-         mCommentOn = false;
+         // move past comment to end of markup
          start += 1;
       }
    }
@@ -581,16 +574,8 @@ bool TemplateInputStream::process(const char* pos)
 
    if(mParsingMarkup)
    {
-      if(!mCommentOn && mMarkupStart == mPosition && pos[0] == COMMENT)
-      {
-         // comment now on
-         mCommentOn = true;
-      }
-      else if(!mEscapeOn)
-      {
-         // handle invalid markup
-         rval = _checkMarkupError(mTemplate.data(), pos);
-      }
+      // handle invalid markup
+      rval = _checkMarkupError(mTemplate.data(), pos);
    }
 
    if(rval && mEscapeOn)
@@ -721,22 +706,6 @@ bool TemplateInputStream::process(const char* pos)
                mTemplate.reset(len + 1);
             }
 
-            break;
-         }
-         case COMMENT:
-         {
-            // increase line column, and get character
-            mLineColumn++;
-            int len = (pos - mTemplate.data()) + 1;
-            mPosition += len;
-            if(mEmptyLoop || mFalseCondition || mCommentOn)
-            {
-               mTemplate.advanceOffset(len);
-            }
-            else
-            {
-               mTemplate.get(&mParsed, len, true);
-            }
             break;
          }
       }
@@ -881,16 +850,10 @@ bool TemplateInputStream::runCommand(
    // handle command
    switch(cmd)
    {
-      case CMD_COMMENT_1:
+      case CMD_COMMENT:
       {
-         // comment off, single line comment
+         // comment now off
          mCommentOn = false;
-         break;
-      }
-      case CMD_COMMENT_N:
-      {
-         // comment now on
-         mCommentOn = true;
          break;
       }
       case CMD_REPLACE:
@@ -1008,7 +971,7 @@ bool TemplateInputStream::runCommand(
          // build path is path is not absolute
          if(!File::isPathAbsolute(path.c_str()) && !mIncludeDir.isNull())
          {
-            path = File::join(path.c_str(), mIncludeDir->getAbsolutePath());
+            path = File::join(mIncludeDir->getAbsolutePath(), path.c_str());
          }
          File file(path.c_str());
          FileInputStream* fis = new FileInputStream(file);
