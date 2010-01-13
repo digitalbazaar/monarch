@@ -1920,7 +1920,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       // create template
       const char* tpl =
          "{:each foo.items item}"
-         "{:if bar}bar{:endif}"
+         "{:if bar}{bar}{:endif}"
          "{:if item == 'item1'}"
          "The item is '{item}'\n"
          "{:endif}"

@@ -858,22 +858,26 @@ bool TemplateInputStream::runCommand(
       }
       case CMD_REPLACE:
       {
-         // separate on pipes
-         const char* varname = params[0]->getString();
-         DynamicObject d = StringTools::split(varname, "|");
+         // only do replacement if not inside an empty loop or false condition
+         if(!mEmptyLoop && !mFalseCondition)
+         {
+            // separate on pipes
+            const char* varname = params[0]->getString();
+            DynamicObject d = StringTools::split(varname, "|");
 
-         // find variable
-         DynamicObject var = findVariable(d[0]->getString(), mStrict);
-         if(var.isNull())
-         {
-            rval = !mStrict;
-         }
-         else if(!mEmptyLoop && !mFalseCondition)
-         {
-            // write value out to parsed data buffer
-            const char* value = var->getString();
-            // FIXME: handle pipes (d[1]...d[n])
-            mParsed.put(value, strlen(value), true);
+            // find variable
+            DynamicObject var = findVariable(d[0]->getString(), mStrict);
+            if(var.isNull())
+            {
+               rval = !mStrict;
+            }
+            else if(!mEmptyLoop && !mFalseCondition)
+            {
+               // write value out to parsed data buffer
+               const char* value = var->getString();
+               // FIXME: handle pipes (d[1]...d[n])
+               mParsed.put(value, strlen(value), true);
+            }
          }
          break;
       }
@@ -947,37 +951,41 @@ bool TemplateInputStream::runCommand(
       }
       case CMD_INCLUDE:
       {
-         // create an input stream for reading the template file
-         string path = StringTools::join(params, " ", 1);
-         if(path.at(0) == '\'' || path.at(0) == '"')
+         // only do include if not inside an empty loop or false condition
+         if(!mEmptyLoop && !mFalseCondition)
          {
-            // remove first and last quotes
-            StringTools::trim(path, "'");
-         }
-         else
-         {
-            // try to find a variable
-            DynamicObject var = findVariable(path.c_str(), true);
-            if(var.isNull())
+            // create an input stream for reading the template file
+            string path = StringTools::join(params, " ", 1);
+            if(path.at(0) == '\'' || path.at(0) == '"')
             {
-               rval = false;
+               // remove first and last quotes
+               StringTools::trim(path, "'");
             }
             else
             {
-               path = var->getString();
+               // try to find a variable
+               DynamicObject var = findVariable(path.c_str(), true);
+               if(var.isNull())
+               {
+                  rval = false;
+               }
+               else
+               {
+                  path = var->getString();
+               }
             }
-         }
 
-         // build path is path is not absolute
-         if(!File::isPathAbsolute(path.c_str()) && !mIncludeDir.isNull())
-         {
-            path = File::join(mIncludeDir->getAbsolutePath(), path.c_str());
+            // build path is path is not absolute
+            if(!File::isPathAbsolute(path.c_str()) && !mIncludeDir.isNull())
+            {
+               path = File::join(mIncludeDir->getAbsolutePath(), path.c_str());
+            }
+            File file(path.c_str());
+            FileInputStream* fis = new FileInputStream(file);
+            mInclude = new TemplateInputStream(
+               mVars, mStrict, fis, true,
+               mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
          }
-         File file(path.c_str());
-         FileInputStream* fis = new FileInputStream(file);
-         mInclude = new TemplateInputStream(
-            mVars, mStrict, fis, true,
-            mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
          break;
       }
       case CMD_IF:
