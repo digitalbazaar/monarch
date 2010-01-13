@@ -993,24 +993,29 @@ bool TemplateInputStream::runCommand(
          // create new condition
          DynamicObject condition;
          condition["met"] = false;
+         condition["ignore"] = mFalseCondition;
          mConditions.push_back(condition);
 
-         // do comparison
-         switch(compare(params))
+         // only handle if not in a false condition
+         if(!mFalseCondition)
          {
-            // condition met
-            case 1:
-               condition["met"] = true;
-               mFalseCondition = false;
-               break;
-            // condition not met
-            case 0:
-               mFalseCondition = true;
-               break;
-            // exception
-            case -1:
-               rval = false;
-               break;
+            // do comparison
+            switch(compare(params))
+            {
+               // condition met
+               case 1:
+                  condition["met"] = true;
+                  mFalseCondition = false;
+                  break;
+               // condition not met
+               case 0:
+                  mFalseCondition = true;
+                  break;
+               // exception
+               case -1:
+                  rval = false;
+                  break;
+            }
          }
          break;
       }
@@ -1027,32 +1032,35 @@ bool TemplateInputStream::runCommand(
          }
          else
          {
+            // only handle if not ignoring
             DynamicObject& condition = mConditions.back();
-
-            // if we've met the condition, then our condition is now false
-            if(condition["met"]->getBoolean())
+            if(!condition["ignore"]->getBoolean())
             {
-               mFalseCondition = true;
-            }
-            // see if the condition of the elseif is met
-            else
-            {
-               // do comparison
-               switch(compare(params))
+               // if we've met the condition, then our condition is now false
+               if(condition["met"]->getBoolean())
                {
-                  // condition met
-                  case 1:
-                     condition["met"] = true;
-                     mFalseCondition = false;
-                     break;
-                  // condition not met
-                  case 0:
-                     mFalseCondition = true;
-                     break;
-                  // exception
-                  case -1:
-                     rval = false;
-                     break;
+                  mFalseCondition = true;
+               }
+               // see if the condition of the elseif is met
+               else
+               {
+                  // do comparison
+                  switch(compare(params))
+                  {
+                     // condition met
+                     case 1:
+                        condition["met"] = true;
+                        mFalseCondition = false;
+                        break;
+                     // condition not met
+                     case 0:
+                        mFalseCondition = true;
+                        break;
+                     // exception
+                     case -1:
+                        rval = false;
+                        break;
+                  }
                }
             }
          }
@@ -1071,18 +1079,21 @@ bool TemplateInputStream::runCommand(
          }
          else
          {
+            // only handle if not ignoring
             DynamicObject& condition = mConditions.back();
-
-            // if we've met the condition, the else is false
-            if(condition["met"]->getBoolean())
+            if(!condition["ignore"]->getBoolean())
             {
-               mFalseCondition = true;
-            }
-            // the else is true if we haven't met the condition
-            else
-            {
-               mFalseCondition = false;
-               condition["met"] = true;
+               // if we've met the condition, the else is false
+               if(condition["met"]->getBoolean())
+               {
+                  mFalseCondition = true;
+               }
+               // the else is true if we haven't met the condition
+               else
+               {
+                  mFalseCondition = false;
+                  condition["met"] = true;
+               }
             }
          }
          break;
@@ -1100,15 +1111,22 @@ bool TemplateInputStream::runCommand(
          }
          else
          {
+            // get condition
+            DynamicObject condition = mConditions.back();
+
             // condition is complete, so remove it
             mConditions.pop_back();
 
-            // see if we're inside of a false condition
-            mFalseCondition = false;
-            if(!mConditions.empty())
+            // only handle state change if not ignoring
+            if(!condition["ignore"]->getBoolean())
             {
-               DynamicObject& condition = mConditions.back();
-               mFalseCondition = !condition["result"]->getBoolean();
+               // see if we're inside of a false condition
+               mFalseCondition = false;
+               if(!mConditions.empty())
+               {
+                  DynamicObject& condition = mConditions.back();
+                  mFalseCondition = !condition["met"]->getBoolean();
+               }
             }
          }
          break;
