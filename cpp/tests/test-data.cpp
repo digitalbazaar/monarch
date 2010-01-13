@@ -1437,6 +1437,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "To: support@bitmunk.com\r\n"
          "Cc: support@bitmunk.com\r\n"
          "{*singlelinecomment*}"
+         "{* another comment *}"
          "Bcc: {bccAddress1}\r\n"
          "\r\n"
          "This is the test body. I want $10.00.\n"
