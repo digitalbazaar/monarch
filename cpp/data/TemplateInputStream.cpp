@@ -385,7 +385,8 @@ static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
          {
             cmd = CMD_EACH;
 
-            // {:each collection item}
+            // {:each collection item} OR
+            // {:each collection item key}
             if(params[2]->length() == 0)
             {
                ExceptionRef e = new Exception(
@@ -893,7 +894,8 @@ bool TemplateInputStream::runCommand(
          {
             // create a loop
             Loop loop;
-            loop.name = params[2]->getString();
+            loop.item = params[2]->getString();
+            loop.key = params[3]->getString();
             loop.i = var.getIterator();
             if(loop.i->hasNext())
             {
@@ -1150,16 +1152,33 @@ DynamicObject TemplateInputStream::findVariable(
    if(!mLoops.empty())
    {
       DynamicObject name = names.first();
+      const char* nm = name->getString();
       for(LoopStack::reverse_iterator ri = mLoops.rbegin();
           ri != mLoops.rend(); ri++)
       {
-         if(strcmp(ri->name.c_str(), name->getString()) == 0)
+         if(strcmp(ri->item.c_str(), nm) == 0)
          {
             // loop variable found, put it in a map so that the
             // code below to move down the tree is consistent
             vars = DynamicObject();
-            vars[ri->name.c_str()] = ri->current;
+            vars[nm] = ri->current;
             break;
+         }
+         else if(strcmp(ri->key.c_str(), nm) == 0)
+         {
+            // loop variable found (as the key), put it in a map so
+            // that the code below to move down the tree is consistent
+            vars = DynamicObject();
+            if(ri->i->getName() != NULL)
+            {
+               // use name
+               vars[nm] = ri->i->getName();
+            }
+            else
+            {
+               // use index
+               vars[nm] = ri->i->getIndex();
+            }
          }
       }
    }

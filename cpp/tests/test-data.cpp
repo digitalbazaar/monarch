@@ -1664,8 +1664,8 @@ void runTemplateInputStreamTest(TestRunner& tr)
    {
       // create template
       const char* tpl =
-         "{:each foo.items item}"
-         "The item is '{item}'\n"
+         "{:each foo.items item key}"
+         "The item is '{item}', key is '{key}'\n"
          "{:endeach}";
 
       // create variables
@@ -1685,9 +1685,9 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertNoException();
 
       const char* expect =
-         "The item is 'item1'\n"
-         "The item is 'item2'\n"
-         "The item is 'item3'\n";
+         "The item is 'item1', key is '0'\n"
+         "The item is 'item2', key is '1'\n"
+         "The item is 'item3', key is '2'\n";
 
       // null-terminate output
       output.putByte(0, 1, true);
@@ -1702,15 +1702,15 @@ void runTemplateInputStreamTest(TestRunner& tr)
       // create template
       const char* tpl =
          "Item count: {items.length}\n"
-         "{:each items item}"
-         "The item is '{item}'\n"
+         "{:each items item key}"
+         "The item is '{item}', key is '{key}'\n"
          "{:endeach}";
 
       // create variables
       DynamicObject vars;
-      vars["items"]->append() = "item1";
-      vars["items"]->append() = "item2";
-      vars["items"]->append() = "item3";
+      vars["items"]["a"] = "item1";
+      vars["items"]["b"] = "item2";
+      vars["items"]["c"] = "item3";
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -1724,9 +1724,9 @@ void runTemplateInputStreamTest(TestRunner& tr)
 
       const char* expect =
          "Item count: 3\n"
-         "The item is 'item1'\n"
-         "The item is 'item2'\n"
-         "The item is 'item3'\n";
+         "The item is 'item1', key is 'a'\n"
+         "The item is 'item2', key is 'b'\n"
+         "The item is 'item3', key is 'c'\n";
 
       // null-terminate output
       output.putByte(0, 1, true);

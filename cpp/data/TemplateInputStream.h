@@ -128,12 +128,13 @@ protected:
    bool mEndOfStream;
 
    /**
-    * A loop has a name, an associated iterator, and state information for
-    * navigating the template buffer.
+    * A loop has a item name, an optional key name, an associated iterator,
+    * and state information for navigating the template buffer.
     */
    struct Loop
    {
-      std::string name;
+      std::string item;
+      std::string key;
       monarch::rt::DynamicObjectIterator i;
       monarch::rt::DynamicObject current;
       bool empty;
