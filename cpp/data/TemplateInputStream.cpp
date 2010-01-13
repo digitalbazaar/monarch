@@ -188,7 +188,7 @@ int TemplateInputStream::read(char* b, int length)
                Exception::set(e);
                parseError = true;
             }
-            else if(!mParsingMarkup && !mEscapeOn)
+            else if(!mParsingMarkup && !mEscapeOn && mInclude == NULL)
             {
                // no special characters in buffer
                if(mEmptyLoop || mFalseCondition)
