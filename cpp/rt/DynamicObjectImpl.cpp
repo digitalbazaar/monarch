@@ -1254,6 +1254,8 @@ void DynamicObjectImpl::clearStats()
 {
 #ifdef MO_DYNO_COUNTS
    memset(&_stats_counts, 0, sizeof(_stats_counts));
+#endif
+#ifdef MO_DYNO_KEY_COUNTS
    _stats_key_counts_lock.lock();
    _stats_key_counts.clear();
    _stats_key_counts_lock.unlock();
