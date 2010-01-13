@@ -1438,7 +1438,6 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Cc: support@bitmunk.com\r\n"
          "{*singlelinecomment*}"
          "{* another comment *}"
-         "{:if foo}foo{:endif}"
          "Bcc: {bccAddress1}\r\n"
          "\r\n"
          "This is the test body. I want $10.00.\n"
@@ -1921,6 +1920,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       // create template
       const char* tpl =
          "{:each foo.items item}"
+         "{:if bar}bar{:endif}"
          "{:if item == 'item1'}"
          "The item is '{item}'\n"
          "{:endif}"
