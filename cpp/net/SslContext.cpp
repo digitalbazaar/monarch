@@ -76,6 +76,17 @@ SslContext::~SslContext()
    {
       SSL_CTX_free(mContext);
    }
+
+   // clean up all virtual hosts
+   while(!mVirtualHosts.empty())
+   {
+      VirtualHostMap::iterator i = mVirtualHosts.begin();
+      VirtualHost* vh = i->second;
+      mVirtualHosts.erase(i);
+      free(vh->name);
+      vh->ctx.setNull();
+      free(vh);
+   }
 }
 
 SSL* SslContext::createSSL(TcpSocket* socket, bool client)
