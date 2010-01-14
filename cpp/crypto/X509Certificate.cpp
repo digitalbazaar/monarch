@@ -116,23 +116,25 @@ DynamicObject X509Certificate::getExtensions()
          const char* name = OBJ_nid2sn(nid);
 
          // convert data into extension stack pointer
-         void* stackPtr;
+         ASN1_VALUE* asn1Stack;
          const unsigned char* data = ext->value->data;
 
          // see if the item pointer is set
          if(method->it != NULL)
          {
-            stackPtr = ASN1_item_d2i(
+            asn1Stack = ASN1_item_d2i(
                NULL, &data, ext->value->length, ASN1_ITEM_ptr(method->it));
          }
          else
          {
-            stackPtr = method->d2i(NULL, &data, ext->value->length);
+            asn1Stack = (ASN1_VALUE*)method->d2i(
+               NULL, &data, ext->value->length);
          }
 
          // get extension value stack
          DynamicObject values;
-         STACK_OF(CONF_VALUE)* stack = method->i2v(method, stackPtr, NULL);
+         values->setType(Array);
+         STACK_OF(CONF_VALUE)* stack = method->i2v(method, asn1Stack, NULL);
          for(int n = 0; n < sk_CONF_VALUE_num(stack); n++)
          {
             CONF_VALUE* nval = sk_CONF_VALUE_value(stack, n);
@@ -150,6 +152,20 @@ DynamicObject X509Certificate::getExtensions()
                d["value"] = nval->value;
             }
             values->append(d);
+            X509V3_conf_free(nval);
+         }
+
+         // free configuration value stack
+         sk_free(stack);
+
+         // call appropriate free function
+         if(method->it)
+         {
+            ASN1_item_free(asn1Stack, ASN1_ITEM_ptr(method->it));
+         }
+         else
+         {
+            method->ext_free(asn1Stack);
          }
 
          // add values
