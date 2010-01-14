@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/X509Certificate.h"
 
 #include <openssl/evp.h>
+#include <openssl/x509v3.h>
 
 using namespace monarch::crypto;
 using namespace monarch::rt;
@@ -54,7 +55,7 @@ PublicKeyRef& X509Certificate::getPublicKey()
  * @param name the X509_name, i.e. X509_get_subject_name(mX509).
  * @param output the map to populate.
  */
-static void getX509NameValues(X509_NAME* name, DynamicObject& output)
+static void _getX509NameValues(X509_NAME* name, DynamicObject& output)
 {
    output->setType(Map);
 
@@ -84,7 +85,7 @@ DynamicObject X509Certificate::getSubject()
 {
    // build subject
    DynamicObject rval;
-   getX509NameValues(X509_get_subject_name(mX509), rval);
+   _getX509NameValues(X509_get_subject_name(mX509), rval);
    return rval;
 }
 
@@ -92,6 +93,69 @@ DynamicObject X509Certificate::getIssuer()
 {
    // build issuer
    DynamicObject rval;
-   getX509NameValues(X509_get_issuer_name(mX509), rval);
+   _getX509NameValues(X509_get_issuer_name(mX509), rval);
+   return rval;
+}
+
+DynamicObject X509Certificate::getExtensions()
+{
+   DynamicObject rval;
+   rval->setType(Map);
+
+   int count = X509_get_ext_count(mX509);
+   for(int i = 0; i < count; i++)
+   {
+      // get extension and v3 extension method
+      X509_EXTENSION* ext = X509_get_ext(mX509, i);
+      X509V3_EXT_METHOD* method = X509V3_EXT_get(ext);
+      if(method != NULL)
+      {
+         // get extension name
+         ASN1_OBJECT* obj = X509_EXTENSION_get_object(ext);
+         int nid = OBJ_obj2nid(obj);
+         const char* name = OBJ_nid2sn(nid);
+
+         // convert data into extension stack pointer
+         void* stackPtr;
+         const unsigned char* data = ext->value->data;
+
+         // see if the item pointer is set
+         if(method->it != NULL)
+         {
+            stackPtr = ASN1_item_d2i(
+               NULL, &data, ext->value->length, ASN1_ITEM_ptr(method->it));
+         }
+         else
+         {
+            stackPtr = method->d2i(NULL, &data, ext->value->length);
+         }
+
+         // get extension value stack
+         DynamicObject values;
+         STACK_OF(CONF_VALUE)* stack = method->i2v(method, stackPtr, NULL);
+         for(int n = 0; n < sk_CONF_VALUE_num(stack); n++)
+         {
+            CONF_VALUE* nval = sk_CONF_VALUE_value(stack, n);
+            DynamicObject d;
+            if(nval->section)
+            {
+               d["section"] = nval->section;
+            }
+            if(nval->name)
+            {
+               d["name"] = nval->name;
+            }
+            if(nval->value)
+            {
+               d["value"] = nval->value;
+            }
+            values->append(d);
+         }
+
+         // add values
+         rval[name] = values;
+      }
+   }
+
    return rval;
 }

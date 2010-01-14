@@ -629,7 +629,8 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
    string outPrivatePem = factory.writePrivateKeyToPem(privateKey, NULL);
    string outPublicPem = factory.writePublicKeyToPem(publicKey);
 
-   // generate a self-signed X.509 certificate
+   // generate a self-signed X.509 v3 certificate
+   uint32_t version = 0x2;
    DynamicObject subject;
    subject["CN"] = "localhost";
    subject["OU"] = "Disorganized Unit";
@@ -646,9 +647,22 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
    Date tomorrow;
    tomorrow.addSeconds(24 * 60 * 60);
 
+   // set serial number
+   uint32_t serial = 0;
+
+   // set extensions
+   DynamicObject extensions;
+   extensions->setType(Map);
+   extensions["basicConstraints"] = "critical,CA:FALSE";
+   extensions["keyUsage"] =
+      "critical,digitalSignature,nonRepudiation,"
+      "keyEncipherment,dataEncipherment";
+   extensions["extendedKeyUsage"] = "serverAuth,clientAuth";
+
    X509CertificateRef cert;
    cert = factory.createCertificate(
-      privateKey, publicKey, subject, subject, &yesterday, &tomorrow);
+      version, privateKey, publicKey,
+      subject, subject, &yesterday, &tomorrow, serial, &extensions);
    assertNoException();
    assert(!cert.isNull());
 
@@ -660,8 +674,7 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
    // assert that subjects and issuers are the same
    DynamicObject certSubject = cert->getSubject();
    DynamicObject certIssuer = cert->getIssuer();
-   //dumpDynamicObject(subject);
-   //dumpDynamicObject(certSubject);
+   DynamicObject exts = cert->getExtensions();
    assert(certSubject == subject);
    assert(certSubject == certIssuer);
 
@@ -673,6 +686,12 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
       printf("Private Key PEM=\n%s\n", outPrivatePem.c_str());
       printf("Public Key PEM=\n%s\n", outPublicPem.c_str());
       printf("X.509 Certificate PEM=\n%s\n", outCertPem.c_str());
+      printf("X.509 Certificate subject:\n");
+      dumpDynamicObject(certSubject);
+      printf("X.509 Certificate issuer:\n");
+      dumpDynamicObject(certIssuer);
+      printf("X.509 Certificate extensions:\n");
+      dumpDynamicObject(exts);
    }
 
    // read in certificate

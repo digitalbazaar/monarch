@@ -80,6 +80,13 @@ public:
     * @return the issuer information for this certificate.
     */
    virtual monarch::rt::DynamicObject getIssuer();
+
+   /**
+    * Gets the extension information for this certificate.
+    *
+    * @return the extension information for this certificate.
+    */
+   virtual monarch::rt::DynamicObject getExtensions();
 };
 
 // typedef for a reference-counted X509Certificate

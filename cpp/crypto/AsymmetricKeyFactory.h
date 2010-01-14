@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_crypto_AsymmetricKeyFactory_H
 #define monarch_crypto_AsymmetricKeyFactory_H
@@ -122,6 +122,7 @@ public:
     * where the issuer is the same as the subject to create a self-signed
     * certificate.
     *
+    * @param version the X.509 version to use (0x0 = 1, 0x1 = 2, 0x2 = 3).
     * @param privateKey the private key to sign with.
     * @param publicKey the public key for the certificate.
     * @param subject the subject information in a map:
@@ -138,13 +139,17 @@ public:
     *                  NULL for now.
     * @param endDate the ending date at which the certificate is valid,
     *                NULL for now.
+    * @param serial the serial number to use.
+    * @param extensions any extensions to include.
     *
     * @return the X.509 certificate, NULL if an exception occurred.
     */
    virtual X509CertificateRef createCertificate(
+      uint32_t version,
       PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
       monarch::rt::DynamicObject& subject, monarch::rt::DynamicObject& issuer,
-      monarch::util::Date* startDate, monarch::util::Date* endDate);
+      monarch::util::Date* startDate, monarch::util::Date* endDate,
+      uint32_t serial, monarch::rt::DynamicObject* extensions);
 
    /**
     * Loads an X.509 certificate from a PEM formatted string. A PEM formatted

@@ -1,16 +1,18 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/AsymmetricKeyFactory.h"
 
 #include "monarch/rt/System.h"
 #include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/util/Math.h"
 
 #include <openssl/err.h>
 #include <openssl/pem.h>
 #include <openssl/rand.h>
+#include <openssl/x509v3.h>
 
 #include <cstring>
 
@@ -368,9 +370,11 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
 }
 
 X509CertificateRef AsymmetricKeyFactory::createCertificate(
+   uint32_t version,
    PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
    DynamicObject& subject, DynamicObject& issuer,
-   Date* startDate, Date* endDate)
+   Date* startDate, Date* endDate, uint32_t serial,
+   DynamicObject* extensions)
 {
    X509CertificateRef rval(NULL);
 
@@ -396,14 +400,14 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
     */
 
    bool pass;
+   bool extError = false;
 
-   // create certificate object, v1 (0x0)
-   // (we don't have any optional stuff)
+   // create certificate object, v1 = 0x0, v2 = 0x1, v3 = 0x2
    X509* x509 = X509_new();
-   pass = (X509_set_version(x509, 0) != 0);
+   pass = (X509_set_version(x509, version) != 0);
 
-   // set serial number to 0
-   pass = pass && ASN1_INTEGER_set(X509_get_serialNumber(x509), 0);
+   // set serial number
+   pass = pass && ASN1_INTEGER_set(X509_get_serialNumber(x509), serial);
 
    // get starting date and ending dates in seconds relative to now
    time_t now = Date().getSeconds();
@@ -495,6 +499,45 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
          (const unsigned char*)issuer["ST"]->getString(), -1, -1, 0);
    }
 
+   // add extensions, if any
+   if(pass && version >= 0x2 && extensions != NULL)
+   {
+      X509V3_CTX ctx;
+      // ctx, issuer, subject, request, revocation list, flags
+      X509V3_set_ctx(&ctx, NULL, x509, NULL, NULL, 0);
+      X509_EXTENSION* ext;
+
+      // add extensions, examples of extensions are:
+      // "basicConstraints" => "critical,CA:FALSE"
+      // "basicConstraints" => "critical,CA:TRUE"
+      // "keyUsage" => "digitalSignature,keyEncipherment"
+      // "keyUsage" => "keyCertSign,cRLSign"
+      // "authorityKeyIdentifier" => "keyid, issuer:always"
+      // "extendedKeyUsage" => "serverAuth,clientAuth"
+      DynamicObjectIterator i = extensions->getIterator();
+      while(pass && i->hasNext())
+      {
+         DynamicObject& conf = i->next();
+         ext = X509V3_EXT_conf(
+            NULL, &ctx, (char*)i->getName(), (char*)conf->getString());
+         if(ext == NULL)
+         {
+            ExceptionRef e = new Exception(
+               "Could not add extension.",
+               "monarch.crypto.Certificate.InvalidExtension");
+            e->getDetails()["name"] = i->getName();
+            Exception::set(e);
+            pass = false;
+            extError = true;
+         }
+         else
+         {
+            X509_add_ext(x509, ext, -1);
+            X509_EXTENSION_free(ext);
+         }
+      }
+   }
+
    // sign certificate
    if(pass)
    {
@@ -533,8 +576,12 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
          "Could not create X.509 certificate.",
          "monarch.crypto.Certificate.CreationError");
       e->getDetails()["subject"] = subject.clone();
+      if(extensions != NULL)
+      {
+         e->getDetails()["extensions"] = extensions->clone();
+      }
       e->getDetails()["error"] = ERR_error_string(ERR_get_error(), NULL);
-      Exception::set(e);
+      extError ? Exception::push(e) : Exception::set(e);
    }
 
    return rval;
