@@ -9,11 +9,14 @@
 
 #include <openssl/err.h>
 
+using namespace monarch::crypto;
 using namespace monarch::io;
 using namespace monarch::net;
 using namespace monarch::rt;
 
-SslContext::SslContext(const char* protocol, bool client)
+SslContext::SslContext(const char* protocol, bool client) :
+   mPrivateKey(NULL),
+   mCertificate(NULL)
 {
    if(protocol == NULL || strcmp(protocol, "ALL") == 0)
    {
@@ -125,6 +128,30 @@ bool SslContext::setCertificate(File& certFile)
       Exception::set(e);
       rval = false;
    }
+   else
+   {
+      // clear any old certificate
+      mCertificate.setNull();
+   }
+
+   return rval;
+}
+
+bool SslContext::setCertificate(X509CertificateRef& cert)
+{
+   bool rval = true;
+
+   // set certificate
+   if(SSL_CTX_use_certificate(mContext, cert->getX509()) != 1)
+   {
+      // an error occurred
+      ExceptionRef e = new Exception(
+         "Could not set SSL certificate.",
+         SSL_EXCEPTION_TYPE);
+      e->getDetails()["error"] = SslContext::getSslErrorStrings();
+      Exception::set(e);
+      rval = false;
+   }
 
    return rval;
 }
@@ -142,6 +169,31 @@ bool SslContext::setPrivateKey(File& pkeyFile)
          "Could not set SSL private key.",
          SSL_EXCEPTION_TYPE);
       e->getDetails()["filename"] = pkeyFile->getAbsolutePath();
+      e->getDetails()["error"] = SslContext::getSslErrorStrings();
+      Exception::set(e);
+      rval = false;
+   }
+   else
+   {
+      // clear any old private key
+      mPrivateKey.setNull();
+   }
+
+   return rval;
+}
+
+bool SslContext::setPrivateKey(PrivateKeyRef& pkey)
+{
+   bool rval = true;
+
+   // set private key
+   if(SSL_CTX_use_PrivateKey(mContext, pkey->getPKEY()) != 1)
+   {
+      // an error occurred
+      ExceptionRef e = new Exception(
+         "Could not set SSL private key.",
+         SSL_EXCEPTION_TYPE);
+      e->getDetails()["error"] = SslContext::getSslErrorStrings();
       Exception::set(e);
       rval = false;
    }

@@ -6,6 +6,8 @@
 
 #include <openssl/ssl.h>
 
+#include "monarch/crypto/PrivateKey.h"
+#include "monarch/crypto/X509Certificate.h"
 #include "monarch/io/File.h"
 #include "monarch/net/TcpSocket.h"
 #include "monarch/rt/ExclusiveLock.h"
@@ -29,6 +31,16 @@ protected:
     * The SSL context object.
     */
    SSL_CTX* mContext;
+
+   /**
+    * A private key, if not provided via a file.
+    */
+   monarch::crypto::PrivateKeyRef mPrivateKey;
+
+   /**
+    * An X.509 Certificate, if not provided via a file.
+    */
+   monarch::crypto::X509CertificateRef mCertificate;
 
    /**
     * A lock for generating new SSLs.
@@ -98,6 +110,19 @@ public:
    virtual bool setCertificate(monarch::io::File& certFile);
 
    /**
+    * Sets the default certificate for this SSL context to use.
+    *
+    * If a server name is added to this context and it matches the server name
+    * provided in a TLS SNI extension, it will be used instead. If there is
+    * no match, this private key will be used.
+    *
+    * @param cert the certificate to use.
+    *
+    * @return true if the certificate loaded, false if an Exception occurred.
+    */
+   virtual bool setCertificate(monarch::crypto::X509CertificateRef& cert);
+
+   /**
     * Sets the default PEM-formatted private key for this SSL context to use.
     *
     * If a server name is added to this context and it matches the server name
@@ -109,6 +134,19 @@ public:
     * @return true if the private key loaded, false if an Exception occurred.
     */
    virtual bool setPrivateKey(monarch::io::File& pkeyFile);
+
+   /**
+    * Sets the default private key for this SSL context to use.
+    *
+    * If a server name is added to this context and it matches the server name
+    * provided in a TLS SNI extension, it will be used instead. If there is
+    * no match, this certificate will be used.
+    *
+    * @param pkeyFile the private key to use.
+    *
+    * @return true if the private key loaded, false if an Exception occurred.
+    */
+   virtual bool setPrivateKey(monarch::crypto::PrivateKeyRef& pkey);
 
    /**
     * Adds a virtual host to this context. If a client uses a TLS SNI
