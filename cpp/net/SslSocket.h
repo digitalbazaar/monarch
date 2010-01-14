@@ -73,6 +73,11 @@ protected:
    typedef std::vector<const char*> VerifyCommonNameList;
    VerifyCommonNameList mVerifyCommonNames;
 
+   /**
+    * The server name to send in a TLS SNI extension.
+    */
+   char* mVirtualHost;
+
 public:
    /**
     * Creates a new SslSocket that wraps the passed TcpSocket.
@@ -144,6 +149,16 @@ public:
     * @return true if the common name matches one in the list, false if not.
     */
    virtual bool verifyCommonName(const char* commonName);
+
+   /**
+    * Sets the server name to send in a TLS SNI extension. This is the name
+    * of the server that a client is trying to contact.
+    *
+    * @param name the name of the virtual host server to contact.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool setVirtualHost(const char* name);
 
    /**
     * Explicitly performs an SSL handshake to initiate communications. A

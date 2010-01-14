@@ -32,7 +32,7 @@ using namespace monarch::rt;
  *         verification failures, but any errors that were set will be
  *         available in X509_STORE_CTX.
  */
-static int verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
+static int _verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
 {
    // only check common name for peer certificate, which is at depth level 0
    // and only check if the certificate was properly signed/verified
@@ -88,7 +88,8 @@ static int verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
 
 SslSocket::SslSocket(
    SslContext* context, TcpSocket* socket, bool client, bool cleanup) :
-   SocketWrapper(socket, cleanup)
+   SocketWrapper(socket, cleanup),
+   mVirtualHost(NULL)
 {
    // create ssl object
    mSSL = context->createSSL(socket, client);
@@ -131,6 +132,11 @@ SslSocket::~SslSocket()
          free((char*)*i);
       }
    }
+
+   if(mVirtualHost != NULL)
+   {
+      free(mVirtualHost);
+   }
 }
 
 void SslSocket::setSession(SslSession* session)
@@ -158,7 +164,7 @@ void SslSocket::addVerifyCommonName(const char* commonName)
    // set verify callback (retain verify mode) if adding first common name
    if(mVerifyCommonNames.size() == 1)
    {
-      SSL_set_verify(mSSL, mSSL->verify_mode, verifyCallback);
+      SSL_set_verify(mSSL, mSSL->verify_mode, _verifyCallback);
    }
 }
 
@@ -205,6 +211,11 @@ bool SslSocket::verifyCommonName(const char* commonName)
    }
 
    return rval;
+}
+
+bool SslSocket::setVirtualHost(const char* name)
+{
+   return SSL_set_tlsext_host_name(mSSL, name) == 1;
 }
 
 bool SslSocket::performHandshake()

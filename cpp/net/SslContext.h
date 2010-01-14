@@ -9,6 +9,8 @@
 #include "monarch/io/File.h"
 #include "monarch/net/TcpSocket.h"
 #include "monarch/rt/ExclusiveLock.h"
+#include "monarch/rt/SharedLock.h"
+#include "monarch/util/StringTools.h"
 
 namespace monarch
 {
@@ -31,7 +33,29 @@ protected:
    /**
     * A lock for generating new SSLs.
     */
-   monarch::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mContextLock;
+
+   /**
+    * A shared lock for reading/writing virtual hosts.
+    */
+   monarch::rt::SharedLock mVirtualHostLock;
+
+   /**
+    * A virtual host has a name and alternative SslContext.
+    */
+   struct VirtualHost
+   {
+      char* name;
+      monarch::rt::Collectable<SslContext> ctx;
+   };
+
+   /**
+    * Storage for virtual hosts.
+    */
+   typedef std::map<
+      const char*, VirtualHost*, monarch::util::StringComparator>
+      VirtualHostMap;
+   VirtualHostMap mVirtualHosts;
 
 public:
    /**
@@ -61,7 +85,11 @@ public:
    virtual SSL* createSSL(TcpSocket* socket, bool client);
 
    /**
-    * Sets the PEM-formatted certificate for this SSL context to use.
+    * Sets the default PEM-formatted certificate for this SSL context to use.
+    *
+    * If a server name is added to this context and it matches the server name
+    * provided in a TLS SNI extension, it will be used instead. If there is
+    * no match, this private key will be used.
     *
     * @param certFile the file with the PEM-formatted certificate to use.
     *
@@ -70,13 +98,56 @@ public:
    virtual bool setCertificate(monarch::io::File& certFile);
 
    /**
-    * Sets the PEM-formatted private key for this SSL context to use.
+    * Sets the default PEM-formatted private key for this SSL context to use.
+    *
+    * If a server name is added to this context and it matches the server name
+    * provided in a TLS SNI extension, it will be used instead. If there is
+    * no match, this certificate will be used.
     *
     * @param pkeyFile the file with the PEM-formatted private key to use.
     *
     * @return true if the private key loaded, false if an Exception occurred.
     */
    virtual bool setPrivateKey(monarch::io::File& pkeyFile);
+
+   /**
+    * Adds a virtual host to this context. If a client uses a TLS SNI
+    * extension to specifically request a server with the given name, then
+    * the given alternate SslContext will be used. Otherwise, the certificate
+    * and private key from this SslContext will be used.
+    *
+    * @param name the name of the virtual host server.
+    * @param ctx the SslContext to use.
+    *
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool addVirtualHost(
+      const char* name,
+      monarch::rt::Collectable<SslContext>& ctx);
+
+   /**
+    * Removes a virtual host from this context. No special SslContext will be
+    * used if a client requests the given server name via a TLS SNI extension.
+    *
+    * @param name the name of the virtual host to remove.
+    *
+    * @return true if removed, false if not.
+    */
+   virtual bool removeVirtualHost(const char* name);
+
+   /**
+    * Called internally when a Server Name Indication (SNI) TLS extension is
+    * detected. This method will choose the correct SSL context to use. If a
+    * matching virtual host cannot be found for the given server name, then
+    * the default SSL context will be used.
+    *
+    * @param s the SSL for the connection.
+    *
+    * @return SSL_TLSEXT_ERR_OK if a matching virtual host was found,
+    *         SSL_TLSEXT_ERR_ALERT_WARNING if the default host will be used,
+    *         SSL_TLSEXT_ERR_NOACK if no server name could be read.
+    */
+   virtual int handleSni(SSL* s);
 
    /**
     * Sets the peer authentication mode for this SSL context. If peer

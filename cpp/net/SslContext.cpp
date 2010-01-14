@@ -3,6 +3,7 @@
  */
 #include "monarch/net/SslContext.h"
 
+#include "monarch/logging/Logging.h"
 #include "monarch/net/SocketDefinitions.h"
 #include "monarch/rt/DynamicObject.h"
 
@@ -50,7 +51,7 @@ SslContext::SslContext(const char* protocol, bool client)
    SSL_CTX_set_session_cache_mode(mContext, SSL_SESS_CACHE_SERVER);
 
    // set SSL session context ID
-   const char* id = "DBSSLCTXID";
+   const char* id = "MOSSLCTXID";
    SSL_CTX_set_session_id_context(
       mContext, (const unsigned char*)id, strlen(id));
 
@@ -79,9 +80,9 @@ SslContext::~SslContext()
 
 SSL* SslContext::createSSL(TcpSocket* socket, bool client)
 {
-   mLock.lock();
+   mContextLock.lock();
    SSL* ssl = SSL_new(mContext);
-   mLock.unlock();
+   mContextLock.unlock();
 
    // set connect state on SSL
    if(client)
@@ -132,6 +133,121 @@ bool SslContext::setPrivateKey(File& pkeyFile)
       e->getDetails()["filename"] = pkeyFile->getAbsolutePath();
       Exception::set(e);
       rval = false;
+   }
+
+   return rval;
+}
+
+int _sniCallback(SSL* s, int* al, void* arg)
+{
+   SslContext* sc = static_cast<SslContext*>(arg);
+   return sc->handleSni(s);
+}
+
+bool SslContext::addVirtualHost(const char* name, SslContextRef& ctx)
+{
+   bool rval = true;
+
+   mVirtualHostLock.lockExclusive();
+   VirtualHostMap::iterator i = mVirtualHosts.find(name);
+   if(i != mVirtualHosts.end())
+   {
+      mVirtualHostLock.unlockExclusive();
+      ExceptionRef e = new Exception(
+         "Could not add virtual host. Entry already exists.",
+         SSL_EXCEPTION_TYPE ".DuplicateVirtualHost");
+      e->getDetails()["name"] = name;
+      Exception::set(e);
+      rval = false;
+   }
+   else
+   {
+      if(mVirtualHosts.size() == 0)
+      {
+         // set SNI callback
+         rval =
+            SSL_CTX_set_tlsext_servername_callback(mContext, _sniCallback) &&
+            SSL_CTX_set_tlsext_servername_arg(mContext, this);
+      }
+
+      // create and add the virtual host entry
+      VirtualHost* vh = new VirtualHost;
+      vh->name = strdup(name);
+      vh->ctx = ctx;
+      mVirtualHosts[vh->name] = vh;
+      mVirtualHostLock.unlockExclusive();
+   }
+
+   return rval;
+}
+
+bool SslContext::removeVirtualHost(const char* name)
+{
+   bool rval = true;
+
+   mVirtualHostLock.lockExclusive();
+   VirtualHostMap::iterator i = mVirtualHosts.find(name);
+   if(i == mVirtualHosts.end())
+   {
+      mVirtualHostLock.unlockExclusive();
+      ExceptionRef e = new Exception(
+         "Could not remove virtual host. Entry not found.",
+         SSL_EXCEPTION_TYPE ".VirtualHostNotFound");
+      e->getDetails()["name"] = name;
+      Exception::set(e);
+      rval = false;
+   }
+   else
+   {
+      // remove entry from map
+      VirtualHost* vh = i->second;
+      mVirtualHosts.erase(i);
+      mVirtualHostLock.unlockExclusive();
+
+      // clean up entry
+      free(vh->name);
+      vh->ctx.setNull();
+      delete vh;
+   }
+
+   return rval;
+}
+
+int SslContext::handleSni(SSL* s)
+{
+   int rval = SSL_TLSEXT_ERR_OK;
+
+   // get the server name from TLS SNI extension
+   const char* name = SSL_get_servername(s, TLSEXT_NAMETYPE_host_name);
+   if(name)
+   {
+      // try to find a matching virtual host
+      mVirtualHostLock.lockShared();
+      VirtualHostMap::iterator i = mVirtualHosts.find(name);
+      if(i != mVirtualHosts.end())
+      {
+         MO_CAT_DEBUG(MO_NET_CAT,
+            "Using TLS SNI virtual host '%s'", name);
+
+         // switch contexts and copy options
+         VirtualHost* vh = i->second;
+         SSL_set_SSL_CTX(s, vh->ctx->mContext);
+         SSL_set_options(s, SSL_CTX_get_options(vh->ctx->mContext));
+      }
+      else
+      {
+         MO_CAT_DEBUG(MO_NET_CAT,
+            "TLS SNI virtual host '%s' not found, using default host", name);
+
+         // issue a warning, but keep the same context
+         rval = SSL_TLSEXT_ERR_ALERT_WARNING;
+      }
+      mVirtualHostLock.unlockShared();
+   }
+   else
+   {
+      // error in retrieving name
+      rval = SSL_TLSEXT_ERR_NOACK;
    }
 
    return rval;
