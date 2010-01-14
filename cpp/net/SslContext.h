@@ -130,10 +130,12 @@ public:
     * used if a client requests the given server name via a TLS SNI extension.
     *
     * @param name the name of the virtual host to remove.
+    * @param ctx set to the virtual host's SslContext, if found.
     *
     * @return true if removed, false if not.
     */
-   virtual bool removeVirtualHost(const char* name);
+   virtual bool removeVirtualHost(
+      const char* name, monarch::rt::Collectable<SslContext>& ctx);
 
    /**
     * Called internally when a Server Name Indication (SNI) TLS extension is

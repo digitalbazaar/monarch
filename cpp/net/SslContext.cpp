@@ -181,7 +181,7 @@ bool SslContext::addVirtualHost(const char* name, SslContextRef& ctx)
    return rval;
 }
 
-bool SslContext::removeVirtualHost(const char* name)
+bool SslContext::removeVirtualHost(const char* name, SslContextRef& ctx)
 {
    bool rval = true;
 
@@ -206,6 +206,7 @@ bool SslContext::removeVirtualHost(const char* name)
 
       // clean up entry
       free(vh->name);
+      ctx = vh->ctx;
       vh->ctx.setNull();
       delete vh;
    }
