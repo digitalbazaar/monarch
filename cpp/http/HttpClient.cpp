@@ -236,17 +236,19 @@ void HttpClient::disconnect()
 
 HttpConnection* HttpClient::createConnection(
    Url* url, SslContext* context, SslSession* session,
-   unsigned int timeout, DynamicObject* commonNames, bool includeHost)
+   unsigned int timeout, DynamicObject* commonNames, bool includeHost,
+   const char* vHost)
 {
    // create connection
    InternetAddress address(url->getHost().c_str(), url->getPort());
    return createConnection(
-      &address, context, session, timeout, commonNames, includeHost);
+      &address, context, session, timeout, commonNames, includeHost, vHost);
 }
 
 HttpConnection* HttpClient::createSslConnection(
    Url* url, SslContext& context, SslSessionCache& cache,
-   unsigned int timeout, DynamicObject* commonNames, bool includeHost)
+   unsigned int timeout, DynamicObject* commonNames, bool includeHost,
+   const char* vHost)
 {
    HttpConnection* rval;
 
@@ -256,7 +258,7 @@ HttpConnection* HttpClient::createSslConnection(
    // create ssl connection
    rval = createConnection(
       url, &context, (session.isNull() ? NULL : &session), timeout,
-      commonNames, includeHost);
+      commonNames, includeHost, vHost);
    if(rval != NULL)
    {
       // store session
@@ -269,7 +271,8 @@ HttpConnection* HttpClient::createSslConnection(
 
 HttpConnection* HttpClient::createConnection(
    InternetAddress* address, SslContext* context, SslSession* session,
-   unsigned int timeout, DynamicObject* commonNames, bool includeHost)
+   unsigned int timeout, DynamicObject* commonNames, bool includeHost,
+   const char* vHost)
 {
    HttpConnection* rval = NULL;
 
@@ -290,6 +293,12 @@ HttpConnection* HttpClient::createConnection(
          ss = new SslSocket(context, static_cast<TcpSocket*>(s), true, true);
          s = ss;
          ss->setSession(session);
+
+         // use virtual host, if provided
+         if(vHost != NULL)
+         {
+            ss->setVirtualHost(vHost);
+         }
 
          // no special common names, so use default: url host
          if(commonNames == NULL)

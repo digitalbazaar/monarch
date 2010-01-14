@@ -178,6 +178,7 @@ public:
     *                    be used.
     * @param includeHost true to include the host in any special list of
     *                    common names, false not to.
+    * @param vHost a virtual host to contact, if using TLS.
     *
     * @return the HttpConnection to the url or NULL if an exception
     *         occurred.
@@ -188,7 +189,8 @@ public:
       monarch::net::SslSession* session = NULL,
       unsigned int timeout = 30,
       monarch::rt::DynamicObject* commonNames = NULL,
-      bool includeHost = true);
+      bool includeHost = true,
+      const char* vHost = NULL);
 
    /**
     * Creates an SSL connection to the passed url. This is the preferred
@@ -212,6 +214,7 @@ public:
     *                    be used.
     * @param includeHost true to include the host in any special list of
     *                    common names, false not to.
+    * @param vHost a virtual host to contact, if using TLS.
     *
     * @return the HttpConnection to the url or NULL if an exception
     *         occurred.
@@ -221,7 +224,8 @@ public:
       monarch::net::SslSessionCache& cache,
       unsigned int timeout = 30,
       monarch::rt::DynamicObject* commonNames = NULL,
-      bool includeHost = true);
+      bool includeHost = true,
+      const char* vHost = NULL);
 
    /**
     * Creates a connection to the passed address.
@@ -242,6 +246,7 @@ public:
     *                    be used.
     * @param includeHost true to include the host in any special list of
     *                    common names, false not to.
+    * @param vHost a virtual host to contact, if using TLS.
     *
     * @return the HttpConnection to the address or NULL if an exception
     *         occurred.
@@ -252,7 +257,8 @@ public:
       monarch::net::SslSession* session = NULL,
       unsigned int timeout = 30,
       monarch::rt::DynamicObject* commonNames = NULL,
-      bool includeHost = true);
+      bool includeHost = true,
+      const char* vHost = NULL);
 
 protected:
    /**
@@ -261,7 +267,8 @@ protected:
     * @param h the HttpHeader to update.
     * @param headers the header fields to set.
     */
-   virtual void setCustomHeaders(HttpHeader* h, monarch::rt::DynamicObject& headers);
+   virtual void setCustomHeaders(
+      HttpHeader* h, monarch::rt::DynamicObject& headers);
 };
 
 } // end namespace http
