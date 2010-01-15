@@ -487,6 +487,14 @@ public:
    void toBytes(monarch::io::ByteBuffer* b);
 
    /**
+    * Writes this BigInteger to a raw byte buffer. Use getNumBytes() to
+    * determine the size necessary.
+    *
+    * @param b the raw byte buffer to write to.
+    */
+   void toBytes(char* b);
+
+   /**
     * Gets the value of this BigInteger as a decimal string.
     *
     * @return the string.

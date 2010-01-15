@@ -403,6 +403,12 @@ void BigInteger::toBytes(ByteBuffer* b)
    b->extend(size);
 }
 
+void BigInteger::toBytes(char* b)
+{
+   // write the number out
+   BN_bn2bin(mBigNum, (unsigned char*)b);
+}
+
 string BigInteger::toString() const
 {
    char* s = BN_bn2dec(mBigNum);
