@@ -510,6 +510,15 @@ public:
    std::string toHex();
 
    /**
+    * Gets the underlying BIGNUM* structure.
+    *
+    * This *does not* clone the structure.
+    *
+    * @return the underlying BIGNUM* structure.
+    */
+   BIGNUM* getBIGNUM();
+
+   /**
     * Generates a cryptographically strong random number with the given
     * number of bits.
     *

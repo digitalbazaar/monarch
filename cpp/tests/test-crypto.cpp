@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -648,7 +648,7 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
    tomorrow.addSeconds(24 * 60 * 60);
 
    // set serial number
-   uint32_t serial = 0;
+   BigInteger serial(78);
 
    // set extensions
    DynamicObject extensions;

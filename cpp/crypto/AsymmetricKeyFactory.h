@@ -4,6 +4,7 @@
 #ifndef monarch_crypto_AsymmetricKeyFactory_H
 #define monarch_crypto_AsymmetricKeyFactory_H
 
+#include "monarch/crypto/BigInteger.h"
 #include "monarch/crypto/PrivateKey.h"
 #include "monarch/crypto/PublicKey.h"
 #include "monarch/crypto/X509Certificate.h"
@@ -149,7 +150,7 @@ public:
       PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
       monarch::rt::DynamicObject& subject, monarch::rt::DynamicObject& issuer,
       monarch::util::Date* startDate, monarch::util::Date* endDate,
-      uint32_t serial, monarch::rt::DynamicObject* extensions);
+      BigInteger& serial, monarch::rt::DynamicObject* extensions);
 
    /**
     * Loads an X.509 certificate from a PEM formatted string. A PEM formatted

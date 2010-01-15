@@ -373,7 +373,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
    uint32_t version,
    PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
    DynamicObject& subject, DynamicObject& issuer,
-   Date* startDate, Date* endDate, uint32_t serial,
+   Date* startDate, Date* endDate, BigInteger& serial,
    DynamicObject* extensions)
 {
    X509CertificateRef rval(NULL);
@@ -407,7 +407,8 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
    pass = (X509_set_version(x509, version) != 0);
 
    // set serial number
-   pass = pass && ASN1_INTEGER_set(X509_get_serialNumber(x509), serial);
+   pass = pass && BN_to_ASN1_INTEGER(
+      serial.getBIGNUM(), X509_get_serialNumber(x509));
 
    // get starting date and ending dates in seconds relative to now
    time_t now = Date().getSeconds();

@@ -427,6 +427,11 @@ string BigInteger::toHex()
    return str;
 }
 
+BIGNUM* BigInteger::getBIGNUM()
+{
+   return mBigNum;
+}
+
 BigInteger BigInteger::random(int bits, int top, bool bottom)
 {
    BigInteger rval;
