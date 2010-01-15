@@ -185,7 +185,7 @@ public:
     *
     * @return SSL_TLSEXT_ERR_OK if a matching virtual host was found,
     *         SSL_TLSEXT_ERR_ALERT_WARNING if the default host will be used,
-    *         SSL_TLSEXT_ERR_NOACK if no server name could be read.
+    *         SSL_TLSEXT_ERR_NOACK if no name was received from the client.
     */
    virtual int handleSni(SSL* s);
 

@@ -315,7 +315,7 @@ int SslContext::handleSni(SSL* s)
    }
    else
    {
-      // error in retrieving name
+      // no name sent, do not acknowledge, just use default host
       rval = SSL_TLSEXT_ERR_NOACK;
    }
 
