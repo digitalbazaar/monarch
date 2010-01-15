@@ -34,7 +34,7 @@ protected:
    typedef std::list<HttpConnectionRef> HttpConnectionList;
 
    /**
-    * A map of url string to pools of idle http connections.
+    * A map of url key to pools of idle http connections.
     */
    typedef std::map<
       const char*, HttpConnectionList*, monarch::util::StringComparator> PoolMap;
@@ -61,18 +61,24 @@ public:
     *
     * @param url the url for the connection.
     * @param conn the idle connection to add.
+    * @param vHost an optional virtual host identifier, if the URL references
+    *           a virtual host in some custom fashion.
     */
-   virtual void addConnection(monarch::net::Url* url, HttpConnectionRef conn);
+   virtual void addConnection(
+      monarch::net::Url* url, HttpConnectionRef conn, const char* vHost = NULL);
 
    /**
     * Gets an idle connection from this pool to a particular url. If no
     * connection is available, returns NULL.
     *
     * @param url the url to get a connection to.
+    * @param vHost an optional virtual host identifier, if the URL references
+    *           a virtual host in some custom fashion.
     *
     * @return the available connection, NULL if none is available.
     */
-   virtual HttpConnectionRef getConnection(monarch::net::Url* url);
+   virtual HttpConnectionRef getConnection(
+      monarch::net::Url* url, const char* vHost = NULL);
 };
 
 // typedef for a counted reference to an HttpConnectionPool

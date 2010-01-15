@@ -39,20 +39,25 @@ HttpConnectionPool::~HttpConnectionPool()
    }
 }
 
-static string _getUrlKey(Url* url)
+static string _getUrlKey(Url* url, const char* vHost)
 {
    // build url key
    string key = url->getSchemeHostAndPort();
-   key = StringTools::toLower(key.c_str());
+   if(vHost != NULL)
+   {
+      key.push_back(':');
+      key.append(vHost);
+   }
    return key;
 }
 
-void HttpConnectionPool::addConnection(Url* url, HttpConnectionRef conn)
+void HttpConnectionPool::addConnection(
+   Url* url, HttpConnectionRef conn, const char* vHost)
 {
    mPoolsLock.lock();
    {
       // get url key
-      string key = _getUrlKey(url);
+      string key = _getUrlKey(url, vHost);
 
       // find existing connection list
       HttpConnectionList* pool = NULL;
@@ -74,14 +79,14 @@ void HttpConnectionPool::addConnection(Url* url, HttpConnectionRef conn)
    mPoolsLock.unlock();
 }
 
-HttpConnectionRef HttpConnectionPool::getConnection(Url* url)
+HttpConnectionRef HttpConnectionPool::getConnection(Url* url, const char* vHost)
 {
    HttpConnectionRef rval(NULL);
 
    mPoolsLock.lock();
    {
       // get url key
-      string key = _getUrlKey(url);
+      string key = _getUrlKey(url, vHost);
 
       // get existing connection list
       PoolMap::iterator i = mPools.find(key.c_str());
