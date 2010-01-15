@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SslSessionCache.h"
 
+using namespace std;
 using namespace monarch::net;
 
 SslSessionCache::SslSessionCache(unsigned int capacity)
@@ -19,13 +20,27 @@ SslSessionCache::~SslSessionCache()
    }
 }
 
-void SslSessionCache::storeSession(const char* host, SslSession& session)
+static string _getSessionKey(const char* host, const char* vHost)
+{
+   string key;
+   key.append(host);
+   if(vHost != NULL)
+   {
+      key.push_back(':');
+      key.append(vHost);
+   }
+   return key;
+}
+
+void SslSessionCache::storeSession(
+   const char* host, SslSession& session, const char* vHost)
 {
    // lock to write to cache
    mLock.lockExclusive();
    {
       // find existing session
-      SessionMap::iterator i = mSessions.find(host);
+      string key = _getSessionKey(host, vHost);
+      SessionMap::iterator i = mSessions.find(key.c_str());
       if(i != mSessions.end())
       {
          // update existing entry
@@ -41,25 +56,27 @@ void SslSessionCache::storeSession(const char* host, SslSession& session)
       else
       {
          // insert new entry
-         mSessions.insert(std::make_pair(strdup(host), session));
+         mSessions.insert(std::make_pair(strdup(key.c_str()), session));
       }
    }
    mLock.unlockExclusive();
 }
 
-inline void SslSessionCache::storeSession(Url* url, SslSession& session)
+inline void SslSessionCache::storeSession(
+   Url* url, SslSession& session, const char* vHost)
 {
-   storeSession(url->getAuthority().c_str(), session);
+   storeSession(url->getAuthority().c_str(), session, vHost);
 }
 
-SslSession SslSessionCache::getSession(const char* host)
+SslSession SslSessionCache::getSession(const char* host, const char* vHost)
 {
    SslSession rval(NULL);
 
    // lock to read from cache
    mLock.lockShared();
    {
-      SessionMap::iterator i = mSessions.find(host);
+      string key = _getSessionKey(host, vHost);
+      SessionMap::iterator i = mSessions.find(key.c_str());
       if(i != mSessions.end())
       {
          rval = i->second;
@@ -70,7 +87,7 @@ SslSession SslSessionCache::getSession(const char* host)
    return rval;
 }
 
-inline SslSession SslSessionCache::getSession(Url* url)
+inline SslSession SslSessionCache::getSession(Url* url, const char* vHost)
 {
-   return getSession(url->getAuthority().c_str());
+   return getSession(url->getAuthority().c_str(), vHost);
 }

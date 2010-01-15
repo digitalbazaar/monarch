@@ -263,7 +263,7 @@ HttpConnection* HttpClient::createSslConnection(
    {
       // store session
       session = static_cast<SslSocket*>(rval->getSocket())->getSession();
-      cache.storeSession(url, session);
+      cache.storeSession(url, session, vHost);
    }
 
    return rval;

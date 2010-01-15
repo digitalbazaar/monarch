@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_SslSessionCache_H
 #define monarch_net_SslSessionCache_H
@@ -25,12 +25,10 @@ class SslSessionCache
 {
 protected:
    /**
-    * A mapping of hostnames to re-usable SSL sessions using case-insensitive
-    * comparator to compare hostnames.
+    * A mapping of session keys to re-usable SSL sessions.
     */
    typedef std::map<
-      const char*, monarch::net::SslSession,
-      monarch::util::StringCaseComparator>
+      const char*, monarch::net::SslSession, monarch::util::StringComparator>
       SessionMap;
    SessionMap mSessions;
 
@@ -62,34 +60,40 @@ public:
     *
     * @param host the host (including port) for the session.
     * @param session the session to store.
+    * @param vHost an associated virtual host, if applicable.
     */
-   virtual void storeSession(const char* host, SslSession& session);
+   virtual void storeSession(
+      const char* host, SslSession& session, const char* vHost = NULL);
 
    /**
     * Stores an SSL session in this cache.
     *
     * @param url the url for the session.
     * @param session the session to store.
+    * @param vHost an associated virtual host, if applicable.
     */
-   virtual void storeSession(Url* url, SslSession& session);
+   virtual void storeSession(
+      Url* url, SslSession& session, const char* vHost = NULL);
 
    /**
     * Gets a stored SSL session from the cache, if one exists.
     *
     * @param host the host for the session.
+    * @param vHost an associated virtual host, if applicable.
     *
     * @return the SslSession (set to NULL if none exists).
     */
-   virtual SslSession getSession(const char* host);
+   virtual SslSession getSession(const char* host, const char* vHost = NULL);
 
    /**
     * Gets a stored SSL session from the cache, if one exists.
     *
     * @param url the url for the session.
+    * @param vHost an associated virtual host, if applicable.
     *
     * @return the SslSession (set to NULL if none exists).
     */
-   virtual SslSession getSession(Url* url);
+   virtual SslSession getSession(Url* url, const char* vHost = NULL);
 };
 
 // type definition for a reference counted SslSessionCache
