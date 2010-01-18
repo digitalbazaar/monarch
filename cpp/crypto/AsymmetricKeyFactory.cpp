@@ -440,64 +440,34 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
    // MBSTRING_UTF8 means the entry is of type utf-8 "bytes"
    // first -1 tells the function to use strlen() to get the length
    // second -1 and 0 tells the function to append the entry
-   pass = pass &&
-      X509_NAME_add_entry_by_txt(
-         sname, "CN", MBSTRING_UTF8,
-         (const unsigned char*)subject["CN"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
-         sname, "OU", MBSTRING_UTF8,
-         (const unsigned char*)subject["OU"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
-         sname, "O", MBSTRING_UTF8,
-         (const unsigned char*)subject["O"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
-         sname, "C", MBSTRING_UTF8,
-         (const unsigned char*)subject["C"]->getString(), -1, -1, 0);
-
-   // locality and state considered optional
-   if(pass && subject->hasMember("L"))
+   if(pass)
    {
-      pass = X509_NAME_add_entry_by_txt(
-         sname, "L", MBSTRING_UTF8,
-         (const unsigned char*)subject["L"]->getString(), -1, -1, 0);
-   }
-   if(pass && subject->hasMember("ST"))
-   {
-      pass = X509_NAME_add_entry_by_txt(
-         sname, "ST", MBSTRING_UTF8,
-         (const unsigned char*)subject["ST"]->getString(), -1, -1, 0);
+      DynamicObjectIterator i = subject.getIterator();
+      while(pass && i->hasNext())
+      {
+         DynamicObject& value = i->next();
+         const char* name = i->getName();
+         pass = X509_NAME_add_entry_by_txt(
+            sname, name, MBSTRING_UTF8,
+            (const unsigned char*)value->getString(), -1, -1, 0);
+      }
    }
 
    // get the issuer so its entry can be modified
    X509_NAME* iname = X509_get_issuer_name(x509);
 
-   // build issuer (same fields as subject)
-   pass = pass &&
-      X509_NAME_add_entry_by_txt(
-         iname, "CN", MBSTRING_UTF8,
-         (const unsigned char*)issuer["CN"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
-         iname, "OU", MBSTRING_UTF8,
-         (const unsigned char*)issuer["OU"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
-         iname, "O", MBSTRING_UTF8,
-         (const unsigned char*)issuer["O"]->getString(), -1, -1, 0) &&
-      X509_NAME_add_entry_by_txt(
-         iname, "C", MBSTRING_UTF8,
-         (const unsigned char*)issuer["C"]->getString(), -1, -1, 0);
-
-   // locality and state considered optional
-   if(pass && issuer->hasMember("L"))
+   // build issuer
+   if(pass)
    {
-      pass = X509_NAME_add_entry_by_txt(
-         iname, "L", MBSTRING_UTF8,
-         (const unsigned char*)issuer["L"]->getString(), -1, -1, 0);
-   }
-   if(pass && issuer->hasMember("ST"))
-   {
-      pass = X509_NAME_add_entry_by_txt(
-         iname, "ST", MBSTRING_UTF8,
-         (const unsigned char*)issuer["ST"]->getString(), -1, -1, 0);
+      DynamicObjectIterator i = issuer.getIterator();
+      while(pass && i->hasNext())
+      {
+         DynamicObject& value = i->next();
+         const char* name = i->getName();
+         pass = X509_NAME_add_entry_by_txt(
+            iname, name, MBSTRING_UTF8,
+            (const unsigned char*)value->getString(), -1, -1, 0);
+      }
    }
 
    // add extensions, if any
