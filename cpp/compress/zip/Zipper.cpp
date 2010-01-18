@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+
 #include "monarch/compress/zip/Zipper.h"
 
 #include "monarch/io/FileInputStream.h"

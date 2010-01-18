@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2005-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+
 #include "monarch/data/riff/RiffChunkHeader.h"
 
 #include "monarch/util/Data.h"

@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+
 #include "monarch/compress/gzip/Trailer.h"
 
 #include "monarch/util/Data.h"
