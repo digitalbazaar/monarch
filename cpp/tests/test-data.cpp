@@ -1448,7 +1448,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Slash before escaped variable \\{:ldelim}bccAddress1{:rdelim}.\n"
          "2 slashes before escaped variable "
          "\\\\{:literal}{bccAddress1}{:end}.\n"
-         "{eggs}{bacon}{ham}{sausage}.\n"
+         "{eggs}{bacon}{ham|capitalize}{sausage}.\n"
          "{* This is a multiple line comment \n"
          "  {foo} that should not show \\up at all }\n"
          "*}";
@@ -1485,7 +1485,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "2 slashes before variable \\\\support@bitmunk.com.\n"
          "Slash before escaped variable \\{bccAddress1}.\n"
          "2 slashes before escaped variable \\\\{bccAddress1}.\n"
-         "This is a number 5.\n";
+         "This is a Number 5.\n";
 
       // null-terminate output
       output.putByte(0, 1, true);
@@ -2010,6 +2010,71 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
+
+   tr.test("parse (pipe)");
+   {
+      // create template
+      const char* tpl =
+         "Item count: {items.length}\n"
+         "{:each from=items as=item key=key}"
+         "The item is '{item|escape}', capitalized key is '{key|capitalize}'\n"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]["apple"] = "item&1";
+      vars["items"]["banana"] = "item&2";
+      vars["items"]["cherry"] = "item&3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Item count: 3\n"
+         "The item is 'item&amp;1', capitalized key is 'Apple'\n"
+         "The item is 'item&amp;2', capitalized key is 'Banana'\n"
+         "The item is 'item&amp;3', capitalized key is 'Cherry'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (invalid pipe)");
+   {
+      // create template
+      const char* tpl =
+         "Item count: {items.length}\n"
+         "{:each from=items as=item key=key}"
+         "The item is '{item|unknown}', key is '{key}'\n"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]["a"] = "item1";
+      vars["items"]["b"] = "item2";
+      vars["items"]["c"] = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+   }
+   tr.passIfException();
 
    tr.ungroup();
 }

@@ -561,6 +561,7 @@ bool TemplateInputStream::parseTemplateBuffer()
                Pipe* data = new Pipe;
                data->type = Pipe::pipe_undefined;
                data->params = NULL;
+               data->func = NULL;
                Construct* c = new Construct;
                c->type = Construct::Pipe;
                c->data = data;
@@ -718,7 +719,7 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
          Command* data = static_cast<Command*>(c->data);
          data->text.append(mTemplate.data(), len);
 
-         // if found, skip ending delimiter
+         // if found, skip ending construct delimiter
          if(rval != 0)
          {
             len++;
@@ -734,7 +735,7 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
          Variable* data = static_cast<Variable*>(c->data);
          data->name.append(mTemplate.data(), len);
 
-         // if found, skip ending delimiter
+         // if found, skip ending construct delimiter
          if(rval != 0)
          {
             len++;
@@ -749,12 +750,6 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
          Construct* c = mConstructs.back();
          Pipe* data = static_cast<Pipe*>(c->data);
          data->text.append(mTemplate.data(), len);
-
-         // if found, skip ending delimiter
-         if(rval != 0)
-         {
-            len++;
-         }
          mTemplate.clear(len);
          mColumn += len;
          break;
@@ -777,17 +772,8 @@ void TemplateInputStream::attachConstruct()
 
 void TemplateInputStream::prevState()
 {
-   /*if(mStateStack.empty())
-   {
-      // use first state
-      mState = FindConstruct;
-   }
-   else
-   */
-   {
-      mState = mStateStack.back();
-      mStateStack.pop_back();
-   }
+   mState = mStateStack.back();
+   mStateStack.pop_back();
 }
 
 bool TemplateInputStream::parseConstruct()
@@ -1269,11 +1255,86 @@ bool TemplateInputStream::parseVariable(Variable* v)
    return _validateVariableName(v->name.c_str());
 }
 
+static bool _pipe_escape(string& value)
+{
+   bool rval = true;
+
+   for(string::size_type i = 0; i < value.length(); i++)
+   {
+      switch(value[i])
+      {
+         case '<':
+            value.replace(i, 1, "&lt;");
+            i += 3;
+            break;
+         case '>':
+            value.replace(i, 1, "&gt;");
+            i += 3;
+            break;
+         case '&':
+            value.replace(i, 1, "&amp;");
+            i += 4;
+            break;
+         case '\'':
+            value.replace(i, 1, "&apos;");
+            i += 5;
+            break;
+         case '"':
+            value.replace(i, 1, "&quot;");
+            i += 5;
+            break;
+         default:
+            break;
+      }
+   }
+
+   return rval;
+};
+
+static bool _pipe_capitalize(string& value)
+{
+   bool rval = true;
+
+   DynamicObject tokens = StringTools::split(value.c_str(), " ");
+   DynamicObjectIterator i = tokens.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& token = i->next();
+      if(token->length() > 0)
+      {
+         string tmp = StringTools::toLower(token->getString());
+         tmp[0] = toupper(tmp[0]);
+         token = tmp.c_str();
+      }
+   }
+   value = StringTools::join(tokens, " ");
+
+   return rval;
+};
+
 bool TemplateInputStream::parsePipe(Pipe* p)
 {
    bool rval = true;
 
-   // FIXME: no pipes implemented yet
+   if(strcmp(p->text.c_str(), "escape") == 0)
+   {
+      p->type = Pipe::pipe_escape;
+      p->func = &_pipe_escape;
+   }
+   else if(strcmp(p->text.c_str(), "capitalize") == 0)
+   {
+      p->type = Pipe::pipe_capitalize;
+      p->func = &_pipe_capitalize;
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Unknown pipe.",
+         EXCEPTION_SYNTAX);
+      e->getDetails()["pipe"] = p->text.c_str();
+      Exception::set(e);
+      rval = false;
+   }
 
    return rval;
 }
@@ -1575,20 +1636,8 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
       for(ConstructStack::iterator i = c->children.begin();
           rval && i != c->children.end(); i++)
       {
-         // FIXME: use function pointers for this?
          Pipe* p = static_cast<Pipe*>((*i)->data);
-         switch(p->type)
-         {
-            case Pipe::pipe_undefined:
-               // FIXME: set exception
-               break;
-            case Pipe::pipe_escape:
-               // FIXME: do some kind of escaping
-               break;
-            case Pipe::pipe_alphabetize:
-               // FIXME: do some kind of alphabetizing
-               break;
-         }
+         rval = p->func(value);
       }
 
       // write out variable value
