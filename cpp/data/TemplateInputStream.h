@@ -121,12 +121,6 @@ protected:
    };
 
    /**
-    * A pipe function that modifies the given string, returning false if
-    * an exception occurred.
-    */
-   typedef bool (*PipeFunction)(std::string& value);
-
-   /**
     * A pipe modifies the output of a variable.
     */
    struct Pipe
@@ -140,6 +134,15 @@ protected:
       Type type;
       std::string text;
       monarch::rt::DynamicObject* params;
+      void* userData;
+
+      /**
+       * A pipe function that modifies the given string, returning false if
+       * an exception occurred.
+       */
+      typedef bool (*PipeFunction)(
+         std::string& value,
+         monarch::rt::DynamicObject* params, void* userData);
       PipeFunction func;
    };
 

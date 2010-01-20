@@ -2017,7 +2017,8 @@ void runTemplateInputStreamTest(TestRunner& tr)
       const char* tpl =
          "Item count: {items.length}\n"
          "{:each from=items as=item key=key}"
-         "The item is '{item|escape}', capitalized key is '{key|capitalize}'\n"
+         "The item is '{item|escape|escape(url)}', "
+         "capitalized key is '{key|capitalize}'\n"
          "{:end}";
 
       // create variables
@@ -2038,9 +2039,9 @@ void runTemplateInputStreamTest(TestRunner& tr)
 
       const char* expect =
          "Item count: 3\n"
-         "The item is 'item&amp;1', capitalized key is 'Apple'\n"
-         "The item is 'item&amp;2', capitalized key is 'Banana'\n"
-         "The item is 'item&amp;3', capitalized key is 'Cherry'\n";
+         "The item is 'item%26amp%3B1', capitalized key is 'Apple'\n"
+         "The item is 'item%26amp%3B2', capitalized key is 'Banana'\n"
+         "The item is 'item%26amp%3B3', capitalized key is 'Cherry'\n";
 
       // null-terminate output
       output.putByte(0, 1, true);

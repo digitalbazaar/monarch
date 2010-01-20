@@ -4,12 +4,14 @@
 #include "monarch/data/TemplateInputStream.h"
 
 #include "monarch/io/FileInputStream.h"
+#include "monarch/net/Url.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/util/StringTools.h"
 
 using namespace std;
 using namespace monarch::data;
 using namespace monarch::io;
+using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 
@@ -562,6 +564,7 @@ bool TemplateInputStream::parseTemplateBuffer()
                data->type = Pipe::pipe_undefined;
                data->params = NULL;
                data->func = NULL;
+               data->userData = NULL;
                Construct* c = new Construct;
                c->type = Construct::Pipe;
                c->data = data;
@@ -1255,43 +1258,54 @@ bool TemplateInputStream::parseVariable(Variable* v)
    return _validateVariableName(v->name.c_str());
 }
 
-static bool _pipe_escape(string& value)
+static bool _pipe_escape(
+   string& value, DynamicObject* params, void* userData)
 {
    bool rval = true;
 
-   for(string::size_type i = 0; i < value.length(); i++)
+   if(params == NULL)
    {
-      switch(value[i])
+      // default to xml escaping
+      for(string::size_type i = 0; i < value.length(); i++)
       {
-         case '<':
-            value.replace(i, 1, "&lt;");
-            i += 3;
-            break;
-         case '>':
-            value.replace(i, 1, "&gt;");
-            i += 3;
-            break;
-         case '&':
-            value.replace(i, 1, "&amp;");
-            i += 4;
-            break;
-         case '\'':
-            value.replace(i, 1, "&apos;");
-            i += 5;
-            break;
-         case '"':
-            value.replace(i, 1, "&quot;");
-            i += 5;
-            break;
-         default:
-            break;
+         switch(value[i])
+         {
+            case '<':
+               value.replace(i, 1, "&lt;");
+               i += 3;
+               break;
+            case '>':
+               value.replace(i, 1, "&gt;");
+               i += 3;
+               break;
+            case '&':
+               value.replace(i, 1, "&amp;");
+               i += 4;
+               break;
+            case '\'':
+               value.replace(i, 1, "&apos;");
+               i += 5;
+               break;
+            case '"':
+               value.replace(i, 1, "&quot;");
+               i += 5;
+               break;
+            default:
+               break;
+         }
       }
+   }
+   else if(strcmp((*params)["type"]->getString(), "url") == 0)
+   {
+      // do URL encode
+      value = Url::encode(value.c_str(), value.length());
    }
 
    return rval;
 };
 
-static bool _pipe_capitalize(string& value)
+static bool _pipe_capitalize(
+   string& value, DynamicObject* params, void* userData)
 {
    bool rval = true;
 
@@ -1316,10 +1330,30 @@ bool TemplateInputStream::parsePipe(Pipe* p)
 {
    bool rval = true;
 
-   if(strcmp(p->text.c_str(), "escape") == 0)
+   if(strncmp(p->text.c_str(), "escape", 6) == 0)
    {
       p->type = Pipe::pipe_escape;
       p->func = &_pipe_escape;
+
+      if(strcmp(p->text.c_str(), "escape(url)") == 0)
+      {
+         // add params, use URL encoding
+         p->params = new DynamicObject();
+         (*p->params)["type"] = "url";
+      }
+      else if(strcmp(p->text.c_str(), "escape") == 0)
+      {
+         // no params
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Unknown escape type.",
+            EXCEPTION_SYNTAX);
+         e->getDetails()["pipe"] = p->text.c_str();
+         Exception::set(e);
+         rval = false;
+      }
    }
    else if(strcmp(p->text.c_str(), "capitalize") == 0)
    {
@@ -1637,7 +1671,7 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
           rval && i != c->children.end(); i++)
       {
          Pipe* p = static_cast<Pipe*>((*i)->data);
-         rval = p->func(value);
+         rval = p->func(value, p->params, p->userData);
       }
 
       // write out variable value
