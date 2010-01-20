@@ -2017,7 +2017,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       const char* tpl =
          "Item count: {items.length}\n"
          "{:each from=items as=item key=key}"
-         "The item is '{item|escape|escape(url)}', "
+         "The item is '{item|escape|escape('url')}', "
          "capitalized key is '{key|capitalize}'\n"
          "{:end}";
 

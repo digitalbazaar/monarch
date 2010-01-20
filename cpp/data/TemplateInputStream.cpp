@@ -1335,7 +1335,7 @@ bool TemplateInputStream::parsePipe(Pipe* p)
       p->type = Pipe::pipe_escape;
       p->func = &_pipe_escape;
 
-      if(strcmp(p->text.c_str(), "escape(url)") == 0)
+      if(strcmp(p->text.c_str(), "escape('url')") == 0)
       {
          // add params, use URL encoding
          p->params = new DynamicObject();
