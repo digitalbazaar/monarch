@@ -24,21 +24,22 @@ namespace data
  * over variables, and include other templates.
  *
  * Markup is delimited by starting with a '{' and ending with a '}'. To include
- * a regular '{' or '}' character then it must be escaped with a '\'. If a '\'
- * is to appear in the message, it must be escaped like so: '\\'.
+ * a regular '{' or '}' character, it must be escaped using the 'literal'
+ * command, ie:
+ *
+ * "I want to see two braces here {:literal}{}{:endliteral}"
  *
  * If curly braces are not matched or variable names do not start with a
  * letter and contain only alphanumeric characters, a parser error will be
- * raised. Markup may not exceed 2046 characters. Recognized commands begin
- * with a ':'. To iterate over each member of a map or array, the following
- * syntax is used:
+ * raised. Recognized commands begin with a ':'. To iterate over each member
+ * of a map or array, the following syntax is used:
  *
- * {:each mycollection item}
+ * {:each from=mycollection as=item}
  * The value of each item in mycollection will be here: {item}
  * {:end}
  *
  * To include another template, the following syntax is used:
- * {:include /path/to/myfile.tpl}
+ * {:include '/path/to/myfile.tpl'}
  *
  * Variable values are stored in a DynamicObject. If the variable value is
  * a basic value like a string, boolean, or number, then the variable name
@@ -56,6 +57,141 @@ class TemplateInputStream : public monarch::io::FilterInputStream
 {
 protected:
    /**
+    * A construct is a single node in the template syntax tree.
+    */
+   struct Construct
+   {
+      enum Type
+      {
+         Undefined,
+         Root,
+         Literal,
+         Comment,
+         Command,
+         Variable,
+         Pipe
+      };
+      Type type;
+      void* data;
+      std::vector<Construct*> children;
+      int line;
+      int column;
+      Construct* parent;
+      int childIndex;
+   };
+
+   /**
+    * A stack of the current constructs being parsed.
+    */
+   typedef std::vector<Construct*> ConstructStack;
+   ConstructStack mConstructs;
+
+   /**
+    * A literal contains text that is to be read out "as is".
+    */
+   struct Literal
+   {
+      std::string text;
+   };
+
+   /**
+    * A command directs the template input stream to take a particular action
+    * to produce output.
+    */
+   struct Command
+   {
+      enum Type
+      {
+         cmd_undefined,
+         cmd_include,
+         cmd_literal,
+         cmd_end,
+         cmd_each,
+         cmd_if,
+         cmd_elseif,
+         cmd_else
+      };
+      Type type;
+      std::string text;
+      monarch::rt::DynamicObject* params;
+      bool requiresEnd;
+   };
+
+   /**
+    * A pipe modifies the output of a variable.
+    */
+   struct Pipe
+   {
+      enum Type
+      {
+         pipe_undefined,
+         pipe_escape,
+         pipe_alphabetize
+      };
+      Type type;
+      std::string text;
+      monarch::rt::DynamicObject* params;
+   };
+
+   /**
+    * A variable references, by name, either a variable passed to the template
+    * input stream or one declared within a template. The resulting output will
+    * be the value of the referenced variable. Variable output may be altered
+    * using pipes.
+    */
+   struct Variable
+   {
+      std::string name;
+   };
+
+   /**
+    * A loop has a item name, an optional key name, an optional index name,
+    * an associated iterator, and current value.
+    */
+   struct Loop
+   {
+      std::string item;
+      std::string key;
+      std::string index;
+      monarch::rt::DynamicObjectIterator i;
+      monarch::rt::DynamicObject current;
+   };
+
+   /**
+    * A stack of loops declared by commands in a template.
+    */
+   typedef std::vector<Loop*> LoopStack;
+   LoopStack mLoops;
+
+   /**
+    * Stores the current state.
+    */
+   enum State
+   {
+      FindConstruct = 0,
+      ParseConstructType,
+      ParseLiteral,
+      SkipComment,
+      ParseCommand,
+      ParseVariable,
+      ParsePipe,
+      CreateOutput,
+      Done
+   };
+   State mState;
+   std::vector<State> mStateStack;
+
+   /**
+    * Stores the current line number in the template.
+    */
+   int mLine;
+
+   /**
+    * Stores the current line column in the template.
+    */
+   int mColumn;
+
+   /**
     * A buffer that stores data read from the template.
     */
    monarch::io::ByteBuffer mTemplate;
@@ -66,49 +202,16 @@ protected:
    monarch::io::ByteBuffer mParsed;
 
    /**
-    * Stores the current line number in the template.
+    * Set to true when the parser is blocked and requires more input from
+    * the underlying stream to proceed.
     */
-   int mLineNumber;
+   bool mBlocked;
 
    /**
-    * Stores the current line column in the template.
+    * A variable for keeping track of when the end of the stream
+    * has been reached.
     */
-   int mLineColumn;
-
-   /**
-    * Stores the current position in the template.
-    */
-   int mPosition;
-
-   /**
-    * The start of the last markup.
-    */
-   int mMarkupStart;
-
-   /**
-    * Set to true if currently parsing markup.
-    */
-   bool mParsingMarkup;
-
-   /**
-    * Set to true if currently escaping a character.
-    */
-   bool mEscapeOn;
-
-   /**
-    * Set to true if currently inside of a comment.
-    */
-   bool mCommentOn;
-
-   /**
-    * Set to true if currently inside of an empty loop.
-    */
-   bool mEmptyLoop;
-
-   /**
-    * Set to true if currently inside of a false condition.
-    */
-   bool mFalseCondition;
+   bool mEndOfStream;
 
    /**
     * The variables to use to populate the template.
@@ -120,48 +223,6 @@ protected:
     * are not found in "mVars", false not to.
     */
    bool mStrict;
-
-   /**
-    * A variable for keeping track of when the end of the stream
-    * has been reached.
-    */
-   bool mEndOfStream;
-
-   /**
-    * A loop has a item name, an optional key name, an associated iterator,
-    * and state information for navigating the template buffer.
-    */
-   struct Loop
-   {
-      std::string item;
-      std::string key;
-      monarch::rt::DynamicObjectIterator i;
-      monarch::rt::DynamicObject current;
-      bool empty;
-      int line;
-      int column;
-      int start;
-      int end;
-      bool complete;
-   };
-
-   /**
-    * A stack of loop variables declared by commands in a template.
-    */
-   typedef std::vector<Loop> LoopStack;
-   LoopStack mLoops;
-
-   /**
-    * A stack of condition objects to check before determining if a template
-    * section is applicable or not.
-    */
-   typedef std::vector<monarch::rt::DynamicObject> ConditionStack;
-   ConditionStack mConditions;
-
-   /**
-    * An InputStream for reading from an included template.
-    */
-   monarch::io::InputStream* mInclude;
 
    /**
     * An include directory for templates.
@@ -259,37 +320,117 @@ public:
 
 protected:
    /**
-    * Reset parsing state.
+    * Fills the template buffer using the underlying stream when more data
+    * is needed.
+    *
+    * @return true if successful, false if an exception occurred.
     */
-   virtual void resetState();
+   virtual bool fillTemplateBuffer();
 
    /**
-    * Gets a pointer to the next character to process.
+    * Parses the data in the template buffer according to the current parser
+    * state. If possible, data will be cleared from the template buffer and
+    * more nodes will be added to the internal syntax tree. This method only
+    * helps to build the internal syntax tree, it does not apply any variables
+    * to that tree.
     *
-    * @return the pointer to the next character to process.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual const char* getNext();
+   virtual bool parseTemplateBuffer();
 
    /**
-    * Processes the character at the given position in the template buffer.
+    * Called from parseTemplateBuffer() to consume data in the template buffer
+    * according to the current state.
     *
-    * @param pos the position of the character.
+    * @param ptr a pointer to the character that was searched for in the buffer,
+    *           when combined with the current state it will determine how much
+    *           data to consume, NULL if the character was not found.
     *
-    * @return true if successful, false if not.
+    * @return a copy of the last character that was searched for or 0 if the
+    *         character searched for was not found.
     */
-   virtual bool process(const char* pos);
+   virtual char consumeTemplate(const char* ptr);
 
    /**
-    * Runs the given command.
-    *
-    * @param cmd the command to run.
-    * @param params the parameters for the command.
-    * @param newPosition the position after the command.
-    *
-    * @return true if successful, false if not.
+    * Attaches the last parsed construct to the syntax tree. Not all parsed
+    * constructs are added, some are optimized out (like comments).
     */
-   virtual bool runCommand(
-      int cmd, monarch::rt::DynamicObject& params, int newPosition);
+   virtual void attachConstruct();
+
+   /**
+    * Sets the current state to the previous state.
+    */
+   virtual void prevState();
+
+   /**
+    * Parses the current construct, ensuring it is valid and attaching it
+    * to the syntax tree, and returns to the previous state as appropriate.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool parseConstruct();
+
+   /**
+    * Called from within parseConstruct() to parses the current command,
+    * ensuring it is valid.
+    *
+    * @param c the command's construct.
+    * @param cmd the command.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool parseCommand(Construct* c, Command* cmd);
+
+   /**
+    * Called from within parseConstruct() to parses the current variable,
+    * ensuring it is valid.
+    *
+    * @param v the variable.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool parseVariable(Variable* v);
+
+   /**
+    * Called from within parseConstruct() to parses the current pipe,
+    * ensuring it is valid.
+    *
+    * @param p the pipe.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool parsePipe(Pipe* p);
+
+   /**
+    * Creates the parsed output, to be read from this input stream, by
+    * combining the given variables with the already prepared syntax tree. This
+    * function is called recursively along the syntax tree.
+    *
+    * @param c the current construct to use to produce output.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool writeConstruct(Construct* c);
+
+   /**
+    * Writes the parsed output for the given command.
+    *
+    * @param c the construct for the command.
+    * @param cmd the command.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool writeCommand(Construct* c, Command* cmd);
+
+   /**
+    * Writes the parsed output for the given variable.
+    *
+    * @param c the construct for the variable.
+    * @param v the variable.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool writeVariable(Construct* c, Variable* v);
 
    /**
     * Handles a conditional by comparing a variable.
@@ -310,6 +451,44 @@ protected:
     */
    virtual monarch::rt::DynamicObject findVariable(
       const char* varname, bool strict);
+
+   /**
+    * Sets a parse exception with the given line and column numbers and
+    * near string. Any existing exception will be set as the exception cause.
+    *
+    * @param line the line number.
+    * @param column the column number.
+    * @param near the near string.
+    */
+   virtual void setParseException(int line, int column, const char* near);
+
+   /**
+    * Frees the passed pipe.
+    *
+    * @param p the pipe to free.
+    */
+   virtual void freePipe(Pipe* p);
+
+   /**
+    * Frees the passed command and all of its children.
+    *
+    * @param c the command to free.
+    */
+   virtual void freeCommand(Command* c);
+
+   /**
+    * Frees the passed construct and all of its children.
+    *
+    * @param c the construct to free.
+    */
+   virtual void freeConstruct(Construct* c);
+
+   /**
+    * Resets the parsing state, freeing any existing syntax tree.
+    *
+    * @param createRoot true to create a new root construct, false not to.
+    */
+   virtual void resetState(bool createRoot = true);
 };
 
 } // end namespace data

@@ -13,33 +13,45 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-#define EOL            '\n'
-#define ESCAPE         '\\'
-#define MARKUP_START   '{'
-#define MARKUP_END     '}'
-#define COMMENT        '*'
-#define COMMENT_END    "*}"
-#define SPECIAL        "\n\\{}"
+#define EOL                '\n'
+#define START_CONSTRUCT    "{"
+#define END_CONSTRUCT      "}"
+#define END_CONSTRUCT_CHAR '}'
+#define END_LITERAL        "{:end}"
+#define START_COMMENT      "*"
+#define START_COMMENT_CHAR '*'
+#define END_COMMENT        "*}"
+#define END_COMMENT_LEN    2
+#define START_COMMAND      ":"
+#define START_COMMAND_CHAR ':'
+
+#define START_VARIABLE "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#define START_PIPE     "|"
 
 #define BUFFER_SIZE   2048
-#define CMD_UNKNOWN   0
-#define CMD_REPLACE   1
-#define CMD_COMMENT   2
-#define CMD_EACH      3
-// FIXME: consider adding EACHELSE for empty loops
-#define CMD_ENDEACH   5
-#define CMD_INCLUDE   6
-#define CMD_IF        7
-#define CMD_ELSEIF    8
-#define CMD_ELSE      9
-#define CMD_ENDIF     10
+#define MAX_BUFFER    0xFFFFFFFF
 
-#define EXCEPTION_SYNTAX "monarch.data.TemplateInputStream.SyntaxError"
+#define EXCEPTION_TIS       "monarch.data.TemplateInputStream"
+#define EXCEPTION_STATE     EXCEPTION_TIS ".InvalidState"
+#define EXCEPTION_SYNTAX    EXCEPTION_TIS ".SyntaxError"
+#define EXCEPTION_CONSTRUCT EXCEPTION_TIS ".InvalidConstruct"
 
-// FIXME: This implementation is hacky at best and needs a better overall
-// design pattern to follow, the code flow and current state of the parser
-// is non-obvious. This is primarily due to the addition of unexpected
-// features -- so an eventual rewrite is required.
+/* Note: This implementation is based on correctness. It has not yet been
+ * optimized for speed or memory efficiency. */
+
+/**
+ * Valid comparison operators.
+ */
+enum CompareOp
+{
+   op_single = 0,
+   op_eq,
+   op_neq,
+   op_gt,
+   op_lt,
+   op_gteq,
+   op_lteq
+};
 
 TemplateInputStream::TemplateInputStream(
    DynamicObject& vars, bool strict, InputStream* is, bool cleanup,
@@ -49,7 +61,6 @@ TemplateInputStream::TemplateInputStream(
    mParsed(BUFFER_SIZE),
    mVars(vars),
    mStrict(strict),
-   mInclude(NULL),
    mIncludeDir((FileImpl*)NULL)
 {
    resetState();
@@ -65,7 +76,6 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
    mStrict(false),
-   mInclude(NULL),
    mIncludeDir((FileImpl*)NULL)
 {
    resetState();
@@ -74,7 +84,7 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
 
 TemplateInputStream::~TemplateInputStream()
 {
-   resetState();
+   resetState(false);
 }
 
 void TemplateInputStream::setInputStream(InputStream* is, bool cleanup)
@@ -97,163 +107,59 @@ void TemplateInputStream::setIncludeDirectory(const char* dir)
 
 int TemplateInputStream::read(char* b, int length)
 {
-   int rval = 0;
+   int rval = -1;
 
-   /* Should keep reading while:
-      1. We haven't parsed <length> bytes.
-      2. There is no error.
-      3. The template buffer isn't full with parsed data waiting.
-      4. Either:
-         -We are processing an include.
-         -We are not at the end of the stream.
-         -We are out of template data.
-   */
-   bool parseError = false;
-   while(mParsed.length() < length && rval != -1 && !parseError &&
-         !(mTemplate.freeSpace() < 2 && !mParsed.isEmpty()) &&
-         (mInclude != NULL || !mEndOfStream || !mTemplate.isEmpty()))
+   // keep reading until error or state is done
+   bool error = false;
+   while(!error && mState < CreateOutput)
    {
-      // if there is an include, read from it
-      if(mInclude != NULL)
+      // fill the template buffer
+      if(mBlocked)
       {
-         rval = mParsed.put(mInclude, mParsed.freeSpace());
-         if(rval == 0)
-         {
-            // end of include
-            mInclude->close();
-            delete mInclude;
-            mInclude = NULL;
-         }
-         else if(rval == -1)
-         {
-            // error while parsing an include is considered a parse error
-            parseError = true;
-         }
+         error = !fillTemplateBuffer();
       }
-      // if we haven't reached the end of the stream, get more template data
-      else if(!mEndOfStream)
+      // parse the template buffer
+      else
       {
-         // allocate more space for the template if necessary
-         if(mTemplate.freeSpace() < 2)
-         {
-            if(mLoops.empty())
-            {
-               // we aren't in a loop, so try to free up space
-               mTemplate.allocateSpace(mTemplate.freeSpace(), false);
-            }
-            else if(mParsed.isEmpty())
-            {
-               // we have to increase the template buffer because we can't
-               // parse more data without doing so
-               mTemplate.resize(mTemplate.capacity() * 2);
-            }
-         }
-
-         // leave room for null-terminator
-         rval = mTemplate.put(mInputStream, mTemplate.freeSpace() - 1);
-         mEndOfStream = (rval == 0);
-      }
-
-      // if no error, no include, and there is space for more parsed data
-      if(rval != -1 && mInclude == NULL && !mParsed.isFull())
-      {
-         // add null-terminator to template data to use string functions
-         mTemplate.putByte(0, 1, false);
-
-         // process all special characters
-         const char* pos;
-         while(mInclude == NULL && !mParsed.isFull() &&
-               !parseError && (pos = getNext()) != NULL)
-         {
-            parseError = !process(pos);
-         }
-
-         if(!parseError)
-         {
-            // corner-case where markup does not terminate
-            if(mParsingMarkup && (mTemplate.isFull() || mEndOfStream))
-            {
-               ExceptionRef e = new Exception(
-                  "Incomplete markup or markup too large.",
-                  EXCEPTION_SYNTAX);
-               Exception::set(e);
-               parseError = true;
-            }
-            // corner-case where loop does not terminate
-            else if(!mLoops.empty() && mTemplate.isEmpty() && mEndOfStream)
-            {
-               ExceptionRef e = new Exception(
-                  "Incomplete 'each' loop. No matching 'endeach' found.",
-                  EXCEPTION_SYNTAX);
-               Exception::set(e);
-               parseError = true;
-            }
-            else if(!mParsingMarkup && !mEscapeOn && mInclude == NULL)
-            {
-               // no special characters in buffer
-               if(mEmptyLoop || mFalseCondition)
-               {
-                  mTemplate.advanceOffset(mTemplate.length() - 1);
-               }
-               else
-               {
-                  mTemplate.get(&mParsed, mTemplate.length() - 1, false);
-               }
-            }
-         }
-
-         // remove null-terminator
-         mTemplate.trim(1);
+         error = !parseTemplateBuffer();
       }
    }
 
-   // corner-case where loop does not terminate
-   if(rval != -1 && !parseError &&
-      !mLoops.empty() && mTemplate.isEmpty() && mEndOfStream)
-   {
-      ExceptionRef e = new Exception(
-         "Incomplete 'each' loop. No matching 'endeach' found.",
-         EXCEPTION_SYNTAX);
-      Exception::set(e);
-      parseError = true;
-   }
-
-   if(parseError)
+   if(error)
    {
       // create "near" string that failed parsing
-      char nearStr[mTemplate.length() + 1];
-      nearStr[mTemplate.length()] = 0;
-      strncpy(nearStr, mTemplate.data(), mTemplate.length());
+      int len = max(mTemplate.length(), 50);
+      char near[len + 1];
+      near[len] = 0;
+      strncpy(near, mTemplate.data(), len);
 
-      // include line, position, and part of string that was parsed
-      // in the parse exception
-      ExceptionRef e = new Exception(
-         "Template parser error.",
-         "monarch.data.TemplateInputStream.ParseError");
-      e->getDetails()["line"] = mLineNumber;
-      e->getDetails()["column"] = mLineColumn;
-      e->getDetails()["near"] = nearStr;
-      Exception::push(e);
-      rval = -1;
+      // set parse exception
+      setParseException(mLine, mColumn, near);
+   }
+   else if(mState == CreateOutput)
+   {
+      // generate output
+      if(writeConstruct(mConstructs.back()))
+      {
+         // done parsing
+         mState = Done;
+      }
+      else
+      {
+         // error
+         rval = -1;
+      }
    }
 
-   // return any parsed data
-   if(rval != -1 && !mParsed.isEmpty())
+   if(mState == Done)
    {
+      // get parsed data
       rval = mParsed.get(b, length);
-   }
-   // corner-case where template ends in an escape character
-   else if(mEndOfStream && mEscapeOn)
-   {
-      ExceptionRef e = new Exception(
-         "Incomplete escape sequence at the end of the template.",
-         "monarch.data.TemplateInputStream.IncompleteTemplate");
-      Exception::set(e);
-      rval = -1;
    }
 
    return rval;
 }
+
 
 bool TemplateInputStream::parse(OutputStream* os)
 {
@@ -274,442 +180,1359 @@ bool TemplateInputStream::parse(OutputStream* os)
    return rval;
 }
 
-void TemplateInputStream::resetState()
+static int _trimQuotes(string& value)
 {
-   mTemplate.clear();
-   mParsed.clear();
-   mLineNumber = 0;
-   mLineColumn = 0;
-   mPosition = 0;
-   mParsingMarkup = false;
-   mEscapeOn = false;
-   mCommentOn = false;
-   mEmptyLoop = false;
-   mFalseCondition = false;
-   mEndOfStream = false;
-   mLoops.clear();
-   mConditions.clear();
-   if(mInclude != NULL)
-   {
-      mInclude->close();
-      delete mInclude;
-      mInclude = NULL;
-   }
-}
+   int rval = 0;
 
-/**
- * Checks for a markup error.
- *
- * @param start the start of the data.
- * @param pos the position.
- *
- * @return true if there was no error, false if there was.
- */
-static bool _checkMarkupError(const char* start, const char* pos)
-{
-   bool rval = true;
-
-   switch(pos[0])
+   if(value.at(0) == '\'')
    {
-      case EOL:
-      case ESCAPE:
-      case MARKUP_START:
+      if(value.at(value.length() -1) == '\'')
       {
-         // invalid character in markup
-         rval = false;
-         break;
+         StringTools::trim(value, "'");
+         rval = 1;
       }
-      case MARKUP_END:
+      else
       {
-         if((pos - start) == 0)
-         {
-            // empty markup
-            rval = false;
-         }
-         break;
+         // mismatched quotes
+         rval = -1;
       }
-      default:
-         break;
    }
-
-   if(!rval)
+   else if(value.at(0) == '"')
    {
-      ExceptionRef e = new Exception(
-         "Template markup must contain a comment, variable, or command.",
-         EXCEPTION_SYNTAX);
-      Exception::set(e);
+      if(value.at(value.length() -1) == '"')
+      {
+         StringTools::trim(value, "\"");
+         rval = 1;
+      }
+      else
+      {
+         // mismatched quotes
+         rval = -1;
+      }
    }
 
    return rval;
 }
 
-/**
- * Gets the parameters from markup.
- *
- * @param markup the markup.
- * @param cmd to set to the parsed command.
- * @param params the array of parameters to populate.
- *
- * @return true if successful, false if a parse exception occurred.
- */
-static bool _parseMarkup(char* markup, int& cmd, DynamicObject& params)
+static bool _validateVariableName(const char* v)
 {
    bool rval = true;
 
-   // initialize command
-   cmd = CMD_UNKNOWN;
-
-   // FIXME: use monarch::validation here if not dependent on monarch::data
-
-   // determine command by examining first char of markup
-   switch(markup[0])
+   // can't be empty
+   int len = strlen(v);
+   if(len == 0)
    {
-      // '*' is a comment (single line, or multi-line)
-      case '*':
+      ExceptionRef e = new Exception(
+         "No variable name specified.",
+         EXCEPTION_SYNTAX);
+      Exception::set(e);
+      rval = false;
+   }
+   // must be alpha-numeric, etc.
+   else
+   {
+      for(int i = 0; rval && i < len; i++)
       {
-         cmd = CMD_COMMENT;
+         char c = v[i];
+         if(!(c >= 'a' && c <= 'z') &&
+            !(c >= 'A' && c <= 'Z') &&
+            !(c >= '0' && c <= '9') &&
+            c != '_' && c != '.')
+         {
+            ExceptionRef e = new Exception(
+               "Variable name must contain only alphanumeric characters, "
+               "underscores, or the '.' object delimiter.",
+               EXCEPTION_SYNTAX);
+            e->getDetails()["variable"] = v;
+            Exception::set(e);
+            rval = false;
+         }
+      }
+   }
+
+   return rval;
+}
+
+static bool _validateOperator(const char* op, CompareOp& out)
+{
+   bool rval = true;
+
+   if(strcmp(op, "==") == 0)
+   {
+      out = op_eq;
+   }
+   else if(strcmp(op, "!=") == 0)
+   {
+      out = op_neq;
+   }
+   else if(strcmp(op, ">") == 0)
+   {
+      out = op_gt;
+   }
+   else if(strcmp(op, ">=") == 0)
+   {
+      out = op_gteq;
+   }
+   else if(strcmp(op, "<") == 0)
+   {
+      out = op_lt;
+   }
+   else if(strcmp(op, "<=") == 0)
+   {
+      out = op_lteq;
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Invalid operator.",
+         EXCEPTION_SYNTAX);
+      e->getDetails()["operator"] = op;
+      Exception::set(e);
+      rval = false;
+   }
+
+   return rval;
+}
+
+bool TemplateInputStream::fillTemplateBuffer()
+{
+   bool rval = true;
+
+   if(mEndOfStream)
+   {
+      // no more data can be read, if this is an error, get the
+      // specific exception string
+      const char* err = NULL;
+      switch(mState)
+      {
+         case FindConstruct:
+            // not an error
+            mBlocked = false;
+
+            // attach any literal
+            attachConstruct();
+            if(mConstructs.back()->type == Construct::Root)
+            {
+               // finished, create output
+               mState = CreateOutput;
+            }
+            else
+            {
+               // go to previous state
+               prevState();
+            }
+            break;
+         case ParseLiteral:
+            err = "Incomplete literal.";
+            break;
+         case ParseConstructType:
+            err = "Incomplete construct.";
+            break;
+         case SkipComment:
+            err = "Incomplete comment.";
+            break;
+         case ParseCommand:
+            err = "Incomplete command.";
+            break;
+         case ParseVariable:
+            err = "Incomplete variable.";
+            break;
+         case ParsePipe:
+            err = "Incomplete pipe.";
+            break;
+         default:
+         {
+            ExceptionRef e = new Exception(
+               "Invalid parser state.",
+               EXCEPTION_STATE);
+            Exception::set(e);
+            rval = false;
+            break;
+         }
+      }
+
+      if(err != NULL)
+      {
+         // set exception
+         ExceptionRef e = new Exception(
+            err, EXCEPTION_SYNTAX);
+         Exception::set(e);
+         rval = false;
+      }
+   }
+   else
+   {
+      // if the template buffer is already full, grow it
+      // the template buffer is full if it only has room for the
+      // null-terminator
+      if(mTemplate.freeSpace() == 1)
+      {
+         mTemplate.resize(mTemplate.capacity() * 2);
+      }
+
+      // fill template buffer, leaving room for null-terminator for string ops
+      int num = mTemplate.put(mInputStream, mTemplate.freeSpace() - 1);
+      mEndOfStream = (num == 0);
+      rval = (num != -1);
+
+      // no longer blocked
+      mBlocked = false;
+   }
+
+   return rval;
+}
+
+bool TemplateInputStream::parseTemplateBuffer()
+{
+   bool rval = true;
+
+   // add null-terminator to template data to use string ops
+   mTemplate.putByte(0, 1, false);
+   const char* ptr = NULL;
+   char ret;
+
+   // parse template buffer based on state
+   switch(mState)
+   {
+      case FindConstruct:
+      {
+         // search for starting construct
+         ptr = strpbrk(mTemplate.data(), START_CONSTRUCT);
+         if(mConstructs.back()->type != Construct::Literal)
+         {
+            // no construct found, start new literal to capture text
+            Construct* c = new Construct;
+            c->type = Construct::Literal;
+            c->data = new Literal;
+            c->line = mLine;
+            c->column = mColumn;
+            c->parent = mConstructs.back();
+            c->childIndex = max(
+               0, (int)mConstructs.back()->children.size() - 1);
+            mConstructs.push_back(c);
+         }
+
+         ret = consumeTemplate(ptr);
+         if(ret != 0)
+         {
+            // end of literal text found
+            attachConstruct();
+
+            // starting construct found
+            Construct* c = new Construct;
+            c->type = Construct::Undefined;
+            c->data = NULL;
+            c->line = mLine;
+            c->column = mColumn;
+            c->parent = mConstructs.back();
+            c->childIndex = max(
+               0, (int)mConstructs.back()->children.size() - 1);
+            mConstructs.push_back(c);
+            mStateStack.push_back(mState);
+            mState = ParseConstructType;
+         }
          break;
       }
-      // ':' is a command
-      case ':':
+      case ParseConstructType:
       {
-         // move past ':'
-         markup++;
-
-         // parse params as delimited by spaces
-         params = StringTools::split(markup, " ");
-
-         // check for a valid command
-         const char* cmdChk = params[0]->getString();
-         if(strcmp(cmdChk, "each") == 0)
+         // scan for type of construct
+         ptr = strpbrk(mTemplate.data(),
+            START_COMMENT START_COMMAND START_VARIABLE);
+         ret = consumeTemplate(ptr);
+         if(ret == 0)
          {
-            cmd = CMD_EACH;
-
-            // {:each collection item} OR
-            // {:each collection item key}
-            if(params[2]->length() == 0)
+            ExceptionRef e = new Exception(
+               "No comment, command, or variable found in markup.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            switch(ret)
             {
-               ExceptionRef e = new Exception(
-                  "Invalid 'each' syntax. "
-                  "Syntax: {:each <collection> <item>}",
-                  EXCEPTION_SYNTAX);
-               Exception::set(e);
-               rval = false;
+               case START_COMMENT_CHAR:
+               {
+                  Construct* c = mConstructs.back();
+                  c->type = Construct::Comment;
+                  mState = SkipComment;
+                  break;
+               }
+               case START_COMMAND_CHAR:
+               {
+                  Command* data = new Command;
+                  data->type = Command::cmd_undefined;
+                  data->params = NULL;
+                  data->requiresEnd = false;
+                  Construct* c = mConstructs.back();
+                  c->type = Construct::Command;
+                  c->data = data;
+                  mState = ParseCommand;
+                  break;
+               }
+               // variable start
+               default:
+               {
+                  Construct* c = mConstructs.back();
+                  c->type = Construct::Variable;
+                  c->data = new Variable;
+                  mState = ParseVariable;
+                  break;
+               }
             }
          }
-         else if(strcmp(cmdChk, "endeach") == 0)
+         break;
+      }
+      case ParseLiteral:
+      {
+         // search for ending literal
+         ptr = strstr(mTemplate.data(), END_LITERAL);
+         ret = consumeTemplate(ptr);
+         if(ret != 0)
          {
-            cmd = CMD_ENDEACH;
-
-            // {:endeach}
-            if(params->length() > 1)
+            // end of literal found
+            rval = parseConstruct();
+         }
+         break;
+      }
+      case SkipComment:
+      {
+         // scan for the end of the comment
+         ptr = strstr(mTemplate.data(), END_COMMENT);
+         ret = consumeTemplate(ptr);
+         if(ret != 0)
+         {
+            // clean up comment, return to previous state
+            Construct* c = mConstructs.back();
+            mConstructs.pop_back();
+            freeConstruct(c);
+            prevState();
+         }
+         break;
+      }
+      case ParseCommand:
+      {
+         // scan for the end of the command
+         ptr = strpbrk(mTemplate.data(), END_CONSTRUCT);
+         ret = consumeTemplate(ptr);
+         if(ret != 0)
+         {
+            rval = parseConstruct();
+         }
+         break;
+      }
+      case ParseVariable:
+      {
+         // scan for the end of the markup or the start of a pipe
+         ptr = strpbrk(mTemplate.data(), END_CONSTRUCT START_PIPE);
+         ret = consumeTemplate(ptr);
+         if(ret != 0)
+         {
+            if(ret == END_CONSTRUCT_CHAR)
             {
-               ExceptionRef e = new Exception(
-                  "Invalid 'endeach' syntax. "
-                  "Syntax: {:endeach}",
-                  EXCEPTION_SYNTAX);
-               Exception::set(e);
-               rval = false;
+               // variable finished
+               rval = parseConstruct();
+            }
+            else
+            {
+               // start parsing pipe
+               Pipe* data = new Pipe;
+               data->type = Pipe::pipe_undefined;
+               data->params = NULL;
+               Construct* c = new Construct;
+               c->type = Construct::Pipe;
+               c->data = data;
+               c->line = mLine;
+               c->column = mColumn;
+               c->parent = mConstructs.back();
+               c->childIndex = max(
+                  0, (int)mConstructs.back()->children.size() - 1);
+               mConstructs.push_back(c);
+               mStateStack.push_back(mState);
+               mState = ParsePipe;
             }
          }
-         else if(strcmp(cmdChk, "include") == 0)
+         break;
+      }
+      case ParsePipe:
+      {
+         // scan for the end of the construct or the start of a pipe
+         ptr = strpbrk(mTemplate.data(), END_CONSTRUCT START_PIPE);
+         ret = consumeTemplate(ptr);
+         if(ret != 0)
          {
-            cmd = CMD_INCLUDE;
+            // pipe finished
+            rval = parseConstruct();
+         }
+         break;
+      }
+      default:
+      {
+         ExceptionRef e = new Exception(
+            "Invalid parser state.",
+            EXCEPTION_STATE);
+         Exception::set(e);
+         rval = false;
+         break;
+      }
+   }
 
-            // {:include /path/to/file}
-            if(params[1]->length() == 0)
+   // remove null-terminator
+   mTemplate.trim(1);
+
+   return rval;
+}
+
+char TemplateInputStream::consumeTemplate(const char* ptr)
+{
+   char rval = 0;
+
+   if(ptr == NULL)
+   {
+      // more data needed
+      mBlocked = true;
+
+      // set pointer to end of template buffer (before null-terminator)
+      ptr = mTemplate.end() - 1;
+   }
+   else
+   {
+      rval = *ptr;
+   }
+
+   // maximum amount of data to consume
+   int len = ptr - mTemplate.data();
+
+   switch(mState)
+   {
+      case FindConstruct:
+      case ParseLiteral:
+      case SkipComment:
+      case ParseCommand:
+      {
+         // count EOLs
+         for(int i = 0; i < len; i++)
+         {
+            if(mTemplate.data()[i] == EOL)
             {
-               ExceptionRef e = new Exception(
-                  "Invalid 'include' syntax. "
-                  "Syntax: {:include </path/to/file>}",
-                  EXCEPTION_SYNTAX);
-               Exception::set(e);
-               rval = false;
+               mLine++;
+               mColumn = 0;
+            }
+            else
+            {
+               mColumn++;
             }
          }
-         else if(strcmp(cmdChk, "if") == 0)
-         {
-            cmd = CMD_IF;
+         break;
+      }
+      default:
+         // EOLs illegal, prevented elsewhere
+         break;
+   }
 
-            // {:if variable <comparator> value} OR
-            // {:if variable}
-            if(params->length() != 2 && params->length() != 4)
+   switch(mState)
+   {
+      case FindConstruct:
+      case ParseLiteral:
+      case SkipComment:
+      {
+         if(mState == FindConstruct || mState == ParseLiteral)
+         {
+            // write text to literal
+            Construct* c = mConstructs.back();
+            Literal* data = static_cast<Literal*>(c->data);
+            data->text.append(mTemplate.data(), len);
+            mTemplate.clear(len);
+         }
+         else
+         {
+            // skip comment entirely
+            mTemplate.clear(len);
+         }
+
+         // see if ending delimiter found
+         if(rval != 0)
+         {
+            switch(mState)
             {
-               ExceptionRef e = new Exception(
-                  "Invalid 'if' syntax. "
-                  "Syntax: {:if <variable> <operator> <value>}",
-                  EXCEPTION_SYNTAX);
-               Exception::set(e);
-               rval = false;
+               case FindConstruct:
+               {
+                  // skip starting construct char
+                  len = 1;
+                  break;
+               }
+               case ParseLiteral:
+               {
+                  // skip nothing, should be at {:end} command
+                  len = 0;
+                  break;
+               }
+               case SkipComment:
+               {
+                  // skip ending comment tag
+                  len = END_COMMENT_LEN;
+                  break;
+               }
+               default:
+                  // not possible
+                  break;
+            }
+
+            // skip ending delimiters, advance column by len
+            mTemplate.clear(len);
+            mColumn += len;
+         }
+         break;
+      }
+      case ParseConstructType:
+      {
+         // nothing to consume
+         break;
+      }
+      case ParseCommand:
+      {
+         // write text to command
+         Construct* c = mConstructs.back();
+         Command* data = static_cast<Command*>(c->data);
+         data->text.append(mTemplate.data(), len);
+
+         // if found, skip ending delimiter
+         if(rval != 0)
+         {
+            len++;
+         }
+         mTemplate.clear(len);
+         mColumn += len;
+         break;
+      }
+      case ParseVariable:
+      {
+         // write text to variable name
+         Construct* c = mConstructs.back();
+         Variable* data = static_cast<Variable*>(c->data);
+         data->name.append(mTemplate.data(), len);
+
+         // if found, skip ending delimiter
+         if(rval != 0)
+         {
+            len++;
+         }
+         mTemplate.clear(len);
+         mColumn += len;
+         break;
+      }
+      case ParsePipe:
+      {
+         // write text to pipe
+         Construct* c = mConstructs.back();
+         Pipe* data = static_cast<Pipe*>(c->data);
+         data->text.append(mTemplate.data(), len);
+
+         // if found, skip ending delimiter
+         if(rval != 0)
+         {
+            len++;
+         }
+         mTemplate.clear(len);
+         mColumn += len;
+         break;
+      }
+      default:
+         // prevented via other code
+         break;
+   }
+
+   return rval;
+}
+
+void TemplateInputStream::attachConstruct()
+{
+   Construct* child = mConstructs.back();
+   mConstructs.pop_back();
+   Construct* parent = mConstructs.back();
+   parent->children.push_back(child);
+}
+
+void TemplateInputStream::prevState()
+{
+   mState = mStateStack.back();
+   mStateStack.pop_back();
+}
+
+bool TemplateInputStream::parseConstruct()
+{
+   bool rval = true;
+
+   // get last construct
+   Construct* c = mConstructs.back();
+   switch(c->type)
+   {
+      case Construct::Undefined:
+      case Construct::Root:
+      case Construct::Comment:
+      {
+         ExceptionRef e = new Exception(
+            "Invalid parser state.",
+            EXCEPTION_STATE);
+         Exception::set(e);
+         rval = false;
+         break;
+      }
+      case Construct::Literal:
+      {
+         // nothing to parse, add construct, return to previous state
+         attachConstruct();
+         prevState();
+         break;
+      }
+      case Construct::Command:
+      {
+         Command* cmd = static_cast<Command*>(c->data);
+         rval = parseCommand(c, cmd);
+         if(rval)
+         {
+            if(cmd->type == Command::cmd_literal)
+            {
+               // switch to parse a literal
+               mState = ParseLiteral;
+               Construct* literal = new Construct;
+               literal->type = Construct::Literal;
+               literal->data = new Literal;
+               literal->line = mLine;
+               literal->column = mColumn;
+               literal->parent = mConstructs.back();
+               literal->childIndex = max(
+                  0, (int)mConstructs.back()->children.size() - 1);
+               mConstructs.push_back(literal);
+            }
+            else if(cmd->type == Command::cmd_end)
+            {
+               // end the previous command
+               Construct* parent = c->parent;
+               if(parent->type != Construct::Command ||
+                  !static_cast<Command*>(parent->data)->requiresEnd)
+               {
+                  ExceptionRef e = new Exception(
+                     "Mismatched 'end' command.",
+                     EXCEPTION_SYNTAX);
+                  Exception::set(e);
+                  rval = false;
+               }
+               else
+               {
+                  // delete end command
+                  mConstructs.pop_back();
+                  freeConstruct(c);
+
+                  // add previous command, return to previous state
+                  attachConstruct();
+                  prevState();
+               }
+            }
+            else if(!cmd->requiresEnd)
+            {
+               // add command, return to previous state
+               attachConstruct();
+               prevState();
+            }
+            else
+            {
+               // do not add command (will be done when 'end' command is
+               // encountered), but return to previous state
+               prevState();
             }
          }
-         else if(strcmp(cmdChk, "elseif") == 0)
+         break;
+      }
+      case Construct::Variable:
+      {
+         rval = parseVariable(static_cast<Variable*>(c->data));
+         if(rval)
          {
-            cmd = CMD_ELSEIF;
+            // add variable, return to previous state
+            attachConstruct();
+            prevState();
+         }
+         break;
+      }
+      case Construct::Pipe:
+      {
+         rval = parsePipe(static_cast<Pipe*>(c->data));
+         if(rval)
+         {
+            //add pipe, return to previous state
+            attachConstruct();
+            prevState();
+         }
+         break;
+      }
+   }
 
-            // {:elseif variable >= value} OR
-            // {:elseif variable}
-            if(params->length() != 2 && params->length() != 4)
+   return rval;
+}
+
+bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
+{
+   bool rval = true;
+
+   // tokenize text (skip START_COMMAND character)
+   DynamicObject tokens = StringTools::split(cmd->text.c_str() + 1, " ");
+
+   // check for a valid command type
+   const char* cmdName = tokens[0]->getString();
+   if(strcmp(cmdName, "include") == 0)
+   {
+      cmd->type = Command::cmd_include;
+      cmd->requiresEnd = false;
+   }
+   else if(strcmp(cmdName, "literal") == 0)
+   {
+      cmd->type = Command::cmd_literal;
+      cmd->requiresEnd = true;
+   }
+   else if(strcmp(cmdName, "end") == 0)
+   {
+      cmd->type = Command::cmd_end;
+      cmd->requiresEnd = false;
+   }
+   else if(strcmp(cmdName, "each") == 0)
+   {
+      cmd->type = Command::cmd_each;
+      cmd->requiresEnd = true;
+   }
+   else if(strcmp(cmdName, "if") == 0)
+   {
+      cmd->type = Command::cmd_if;
+      cmd->requiresEnd = true;
+   }
+   else if(strcmp(cmdName, "elseif") == 0)
+   {
+      cmd->type = Command::cmd_elseif;
+      cmd->requiresEnd = false;
+   }
+   else if(strcmp(cmdName, "else") == 0)
+   {
+      cmd->type = Command::cmd_else;
+      cmd->requiresEnd = false;
+   }
+
+   // build params
+   DynamicObject params;
+   params->setType(Map);
+
+   switch(cmd->type)
+   {
+      case Command::cmd_include:
+      {
+         // {:include <var>|'/path/to/file'}
+         if(tokens->length() < 2)
+         {
+            // invalid number of tokens
+            rval = false;
+         }
+         else
+         {
+            // join all params after "include" as var/filename
+            string path = StringTools::join(tokens, " ", 1);
+            switch(_trimQuotes(path))
             {
-               ExceptionRef e = new Exception(
-                  "Invalid 'elseif' syntax. "
-                  "Syntax: {:elseif <variable> <operator> <value>}",
-                  EXCEPTION_SYNTAX);
-               Exception::set(e);
-               rval = false;
+               case -1:
+                  // mismatched quotes
+                  rval = false;
+                  break;
+               case 0:
+                  // it must be a variable
+                  rval = _validateVariableName(path.c_str());
+                  if(rval)
+                  {
+                     params["var"] = path.c_str();
+                  }
+                  break;
+               case 1:
+                  rval = (path.length() > 0);
+                  if(rval)
+                  {
+                     // found a path
+                     params["path"] = path.c_str();
+                  }
+                  break;
             }
          }
-         else if(strcmp(cmdChk, "else") == 0)
+         break;
+      }
+      case Command::cmd_literal:
+      {
+         // {:literal}
+         if(tokens->length() != 1)
          {
-            cmd = CMD_ELSE;
-
-            // {:else}
-            if(params->length() > 1)
+            rval = false;
+         }
+         break;
+      }
+      case Command::cmd_end:
+      {
+         // {:end}
+         if(tokens->length() != 1)
+         {
+            rval = false;
+         }
+         break;
+      }
+      case Command::cmd_each:
+      {
+         // {:each from=<from> as=<item> [key=<key>] [index=<index>]}
+         DynamicObjectIterator i = tokens.getIterator();
+         i->next();
+         while(rval && i->hasNext())
+         {
+            DynamicObject kv = StringTools::split(i->next()->getString(), "=");
+            if(kv->length() != 2)
             {
-               ExceptionRef e = new Exception(
-                  "Invalid 'else' syntax. "
-                  "Syntax: {:else}",
-                  EXCEPTION_SYNTAX);
-               Exception::set(e);
                rval = false;
             }
-         }
-         else if(strcmp(cmdChk, "endif") == 0)
-         {
-            cmd = CMD_ENDIF;
-
-            // {:endif}
-            if(params->length() > 1)
+            else
             {
-               ExceptionRef e = new Exception(
-                  "Invalid 'endif' syntax. "
-                  "Syntax: {:endif}",
-                  EXCEPTION_SYNTAX);
-               Exception::set(e);
+               // add key-value pair
+               params[kv[0]->getString()] = kv[1]->getString();
+            }
+         }
+
+         // validate key-value pairs (ignores unknown key-value pairs)
+         rval =
+            params->hasMember("from") &&
+            params->hasMember("as") &&
+            _validateVariableName(params["from"]->getString()) &&
+            _validateVariableName(params["as"]->getString()) &&
+            (!params->hasMember("key") ||
+             _validateVariableName(params["key"]->getString())) &&
+            (!params->hasMember("index") ||
+             _validateVariableName(params["index"]->getString()));
+         break;
+      }
+      case Command::cmd_if:
+      case Command::cmd_elseif:
+      {
+         if(cmd->type == Command::cmd_elseif)
+         {
+            // ensure 'elseif' is the child of an 'if'
+            Command* data = NULL;
+            if(c->parent->type == Construct::Command)
+            {
+               data = static_cast<Command*>(c->parent->data);
+               if(data->type != Command::cmd_if)
+               {
+                  // 'elseif' does not follow an 'if'
+                  data = NULL;
+               }
+            }
+            rval = (data != NULL);
+         }
+
+         // {:if <lhs> <operator> <rhs>} OR
+         // {:if <lhs>}
+         if(rval && (tokens->length() < 2))
+         {
+            // invalid number of tokens
+            rval = false;
+         }
+         else if(rval)
+         {
+            CompareOp op = op_single;
+            rval = _validateVariableName(tokens[1]->getString());
+            if(rval && tokens->length() > 2)
+            {
+               string rhs;
+               rval =
+                  _validateOperator(tokens[2]->getString(), op) &&
+                  tokens[3]->length() > 0;
+               if(rval)
+               {
+                  // join all params after operator as rhs
+                  params["rhs"]["isVar"] = false;
+                  rhs = StringTools::join(tokens, " ", 3);
+                  switch(_trimQuotes(rhs))
+                  {
+                     case -1:
+                        // mismatched quotes
+                        rval = false;
+                        break;
+                     case 0:
+                        if(rhs.at(0) == '-' ||
+                           (rhs.at(0) >= '0' && rhs.at(0) <= '9'))
+                        {
+                           // rhs is a number
+                           params["rhs"]["value"] = rhs.c_str();
+                           if(rhs.at(0) == '-')
+                           {
+                              // signed number
+                              params["rhs"]["value"]->setType(Int64);
+                           }
+                           else
+                           {
+                              // unsigned number
+                              params["rhs"]["value"]->setType(UInt64);
+                           }
+                        }
+                        else if(strcmp(rhs.c_str(), "true") == 0 ||
+                                strcmp(rhs.c_str(), "false") == 0)
+                        {
+                           // rhs is a boolean
+                           params["rhs"]["value"] = rhs.c_str();
+                           params["rhs"]["value"]->setType(Boolean);
+                        }
+                        else
+                        {
+                           // rhs is a variable
+                           rval = _validateVariableName(rhs.c_str());
+                           if(rval)
+                           {
+                              params["rhs"]["isVar"] = true;
+                              params["rhs"]["value"] = rhs.c_str();
+                           }
+                        }
+                        break;
+                     case 1:
+                        // rhs is a string
+                        params["rhs"]["value"] = rhs.c_str();
+                        break;
+                  }
+                  rval = rval && (rhs.length() > 0);
+               }
+            }
+            if(rval)
+            {
+               params["lhs"] = tokens[1]->getString();
+               params["op"] = op;
+            }
+         }
+         break;
+      }
+      case Command::cmd_else:
+      {
+         // ensure the 'else' is a child of an 'if'
+         Command* data = NULL;
+         if(c->parent->type == Construct::Command)
+         {
+            data = static_cast<Command*>(c->parent->data);
+            if(data->type != Command::cmd_if)
+            {
+               // 'else' does not follow an 'if'
+               data = NULL;
+            }
+         }
+
+         // {:else}
+         if(data == NULL || tokens->length() != 1)
+         {
+            rval = false;
+         }
+         break;
+      }
+      default:
+      {
+         ExceptionRef e = new Exception(
+            "Unknown command.",
+            EXCEPTION_SYNTAX);
+         e->getDetails()["command"] = cmdName;
+         Exception::set(e);
+         rval = false;
+      }
+   }
+
+   if(rval)
+   {
+      // set command params
+      cmd->params = new DynamicObject(params);
+   }
+   else
+   {
+      // handle syntax error
+      const char* err = NULL;
+      switch(cmd->type)
+      {
+         case Command::cmd_include:
+         {
+            err =
+               "Invalid 'include' syntax. "
+               "Syntax: {:include <var>|'/path/to/file'}";
+            break;
+         }
+         case Command::cmd_literal:
+         {
+            err =
+               "Invalid 'literal' syntax. "
+               "Syntax: {:literal}";
+            break;
+         }
+         case Command::cmd_each:
+         {
+            err =
+               "Invalid 'each' syntax. Syntax: "
+               "{:each from=<from> as=<item> [key=<key>]|[index=<index>]}";
+            break;
+         }
+         case Command::cmd_if:
+         {
+            err =
+               "Invalid 'if' syntax. Syntax: "
+               "{:if <lhs> <operator> <rhs>}";
+            break;
+         }
+         case Command::cmd_elseif:
+         {
+            err =
+               "Invalid 'elseif' syntax. An 'elseif' must follow an 'if' or "
+               "another 'elseif' and must have this syntax: "
+               "{:elseif <lhs> <operator> <rhs>}";
+            break;
+         }
+         case Command::cmd_else:
+         {
+            err =
+               "Invalid 'else' syntax. An 'else' must follow an 'if' or "
+               "an 'elseif' and must have this syntax: "
+               "{:else}";
+            break;
+         }
+         default:
+            // unknown command, not a syntax error
+            break;
+      }
+      if(err != NULL)
+      {
+         ExceptionRef e = new Exception(err, EXCEPTION_SYNTAX);
+         Exception::set(e);
+      }
+   }
+
+   return rval;
+}
+
+bool TemplateInputStream::parseVariable(Variable* v)
+{
+   return _validateVariableName(v->name.c_str());
+}
+
+bool TemplateInputStream::parsePipe(Pipe* p)
+{
+   bool rval = true;
+
+   // FIXME: no pipes implemented yet
+
+   return rval;
+}
+
+bool TemplateInputStream::writeConstruct(Construct* c)
+{
+   bool rval = true;
+
+   switch(c->type)
+   {
+      case Construct::Undefined:
+      case Construct::Comment:
+      case Construct::Pipe:
+      {
+         ExceptionRef e = new Exception(
+            "Invalid construct in syntax tree.",
+            EXCEPTION_CONSTRUCT);
+         Exception::set(e);
+         rval = false;
+         break;
+      }
+      case Construct::Root:
+      {
+         // iterate over children
+         for(ConstructStack::iterator i = c->children.begin();
+             rval && i != c->children.end(); i++)
+         {
+            rval = writeConstruct(*i);
+         }
+         break;
+      }
+      case Construct::Literal:
+      {
+         // write literal text out
+         Literal* data = static_cast<Literal*>(c->data);
+         mParsed.put(data->text.c_str(), data->text.length(), true);
+         break;
+      }
+      case Construct::Command:
+      {
+         rval = writeCommand(c, static_cast<Command*>(c->data));
+         break;
+      }
+      case Construct::Variable:
+      {
+         rval = writeVariable(c, static_cast<Variable*>(c->data));
+         break;
+      }
+   }
+
+   return rval;
+}
+
+bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
+{
+   bool rval = true;
+
+   // handle command
+   switch(cmd->type)
+   {
+      case Command::cmd_undefined:
+      {
+         ExceptionRef e = new Exception(
+            "Unknown command.",
+            EXCEPTION_SYNTAX);
+         Exception::set(e);
+         setParseException(c->line, c->line, cmd->text.substr(0, 50).c_str());
+         rval = false;
+         break;
+      }
+      case Command::cmd_include:
+      {
+         // {:include <var>|'/path/to/file'}
+         DynamicObject& params = *cmd->params;
+         string path;
+
+         if(params->hasMember("var"))
+         {
+            // try to find a variable
+            DynamicObject var = findVariable(params["var"]->getString(), true);
+            if(var.isNull())
+            {
+               setParseException(
+                  c->line, c->column, cmd->text.substr(0, 50).c_str());
                rval = false;
+            }
+            else
+            {
+               path = var->getString();
             }
          }
          else
          {
-            // unknown command
-            ExceptionRef e = new Exception(
-               "The given command is not known.",
-               EXCEPTION_SYNTAX);
-            e->getDetails()["command"] = markup;
-            Exception::set(e);
-            rval = false;
+            path = params["path"]->getString();
          }
-         break;
-      }
-      // default is a variable replacement
-      default:
-         cmd = CMD_REPLACE;
-         params[0] = markup;
-         break;
-   }
 
-   return rval;
-}
-
-const char* TemplateInputStream::getNext()
-{
-   const char* rval = NULL;
-
-   // get default starting position for finding next special character
-   const char* start = mTemplate.data();
-
-   // if comment is off but we found "{*", then turn on comment
-   if(!mCommentOn && mParsingMarkup && mMarkupStart == mPosition &&
-      start[0] == COMMENT)
-   {
-      mCommentOn = true;
-      start++;
-
-      // search until the comment end is found
-      start = strstr(start, COMMENT_END);
-      if(start != NULL)
-      {
-         // move past comment to end of markup
-         start += 1;
-      }
-   }
-
-   if(start != NULL)
-   {
-      // see if we're in a loop
-      if(!mLoops.empty())
-      {
-         // get the current loop
-         Loop& loop = mLoops.back();
-         // iterate if template data has reached loop's end and loop has next
-         // if the loop has no next, it will be cleaned up by process()
-         if(loop.complete && mPosition == loop.end && loop.i->hasNext())
+         if(rval)
          {
-            loop.current = loop.i->next();
+            // build full path if path is not absolute
+            if(!File::isPathAbsolute(path.c_str()) && !mIncludeDir.isNull())
+            {
+               path = File::join(mIncludeDir->getAbsolutePath(), path.c_str());
+            }
 
-            // reset template data to beginning of loop
-            mTemplate.reset(loop.end - loop.start);
-            mLineNumber = loop.line;
-            mLineColumn = loop.column;
-            mPosition = loop.start;
-            start = mTemplate.data();
+            // fill parsed buffer with include data
+            File file(path.c_str());
+            FileInputStream* fis = new FileInputStream(file);
+            TemplateInputStream* tis = new TemplateInputStream(
+               mVars, mStrict, fis, true,
+               mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
+            mParsed.allocateSpace(file->getLength() & MAX_BUFFER, true);
+            int num = mParsed.fill(tis);
+            tis->close();
+            delete tis;
+            rval = (num != -1);
          }
+         break;
       }
+      case Command::cmd_literal:
+      {
+         // write literal child
+         for(ConstructStack::iterator ci = c->children.begin();
+             rval && ci != c->children.end(); ci++)
+         {
+            rval = writeConstruct(*ci);
+         }
+         break;
+      }
+      case Command::cmd_each:
+      {
+         // {:each from=<from> as=<item> [key=<key>]|[index=<index>]}
+         DynamicObject& params = *cmd->params;
+         const char* from = params["from"]->getString();
+         const char* item = params["as"]->getString();
 
-      if(mEscapeOn)
-      {
-         rval = (start[0] == 0 ? NULL : start);
+         // find variable
+         DynamicObject var = findVariable(from, mStrict);
+         if(var.isNull())
+         {
+            // either write no output, or set an exception
+            rval = !mStrict;
+         }
+         else
+         {
+            // create loop with local variables
+            Loop* loop = new Loop;
+            loop->item = item;
+            if(params->hasMember("key"))
+            {
+               loop->key = params["key"]->getString();
+            }
+            if(params->hasMember("index"))
+            {
+               loop->index = params["index"]->getString();
+            }
+            loop->i = var.getIterator();
+            mLoops.push_back(loop);
+
+            // do loop iterations
+            while(rval && loop->i->hasNext())
+            {
+               // set current loop item
+               loop->current = loop->i->next();
+
+               // iterate over children, producing output
+               for(ConstructStack::iterator ci = c->children.begin();
+                   rval && ci != c->children.end(); ci++)
+               {
+                  rval = writeConstruct(*ci);
+               }
+            }
+
+            // clean up loop
+            mLoops.pop_back();
+            delete loop;
+         }
+         break;
       }
-      else
+      // cmd_elseif and cmd_else are children of cmd_if
+      case Command::cmd_if:
       {
-         rval = strpbrk(start, SPECIAL);
+         // do 'if' comparison
+         bool met = false;
+         switch(compare(*cmd->params))
+         {
+            case 1:
+               // condition met
+               met = true;
+               break;
+            case 0:
+               // condition not met
+               break;
+            case -1:
+               // exception
+               rval = false;
+               break;
+         }
+
+         // iterate over children, checking 'elseif' and 'else' conditionals,
+         // and writing out children where the conditions are met
+         for(ConstructStack::iterator ci = c->children.begin();
+             rval && ci != c->children.end(); ci++)
+         {
+            // determine if the child is an 'elseif' or 'else' command
+            Construct* child = *ci;
+            Command* conditional = NULL;
+            bool isConditional = false;
+            if(child->type == Construct::Command)
+            {
+               conditional = static_cast<Command*>(child->data);
+               isConditional =
+                  conditional->type == Command::cmd_elseif ||
+                  conditional->type == Command::cmd_else;
+               if(met && isConditional)
+               {
+                  // conditional already met, so skip remaining children
+                  break;
+               }
+            }
+
+            // condition not yet met, check conditional
+            if(!met && isConditional)
+            {
+               if(conditional->type == Command::cmd_else)
+               {
+                  // 'else' is always true if 'if' was false
+                  met = true;
+               }
+               else
+               {
+                  // do 'elseif' comparison
+                  switch(compare(*conditional->params))
+                  {
+                     case 1:
+                        // condition met
+                        met = true;
+                        break;
+                     case 0:
+                        // condition not met
+                        break;
+                     case -1:
+                        // exception
+                        rval = false;
+                        break;
+                  }
+               }
+            }
+
+            // write non-conditional children out
+            if(met && !isConditional)
+            {
+               rval = writeConstruct(child);
+            }
+         }
+         break;
+      }
+      case Command::cmd_elseif:
+      case Command::cmd_else:
+      default:
+      {
+         ExceptionRef e = new Exception(
+            "Invalid construct in syntax tree.",
+            EXCEPTION_CONSTRUCT);
+         Exception::set(e);
+         rval = false;
+         break;
       }
    }
 
    return rval;
 }
 
-bool TemplateInputStream::process(const char* pos)
+bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
 {
    bool rval = true;
 
-   if(mParsingMarkup)
+   DynamicObject var = findVariable(v->name.c_str(), mStrict);
+   if(var.isNull())
    {
-      // handle invalid markup
-      rval = _checkMarkupError(mTemplate.data(), pos);
+      // error if in strict mode
+      rval = !mStrict;
    }
-
-   if(rval && mEscapeOn)
+   else
    {
-      // escape IS on
-      // character after ESCAPE must be MARKUP_START, MARKUP_END, or ESCAPE
-      switch(pos[0])
+      // handle pipes
+      string value = var->getString();
+      for(ConstructStack::iterator i = c->children.begin();
+          rval && i != c->children.end(); i++)
       {
-         case MARKUP_START:
-         case MARKUP_END:
-         case ESCAPE:
+         // FIXME: use function pointers for this?
+         Pipe* p = static_cast<Pipe*>((*i)->data);
+         switch(p->type)
          {
-            // write escaped character, turn escape off
-            if(mEmptyLoop || mFalseCondition)
-            {
-               mTemplate.advanceOffset(1);
-            }
-            else
-            {
-               mTemplate.get(&mParsed, 1, true);
-            }
-            mEscapeOn = false;
-            mLineColumn++;
-            mPosition++;
-            break;
-         }
-         default:
-         {
-            // error, invalid escaped character
-            ExceptionRef e = new Exception(
-               "Unknown escaped character.",
-               EXCEPTION_SYNTAX);
-            e->getDetails()["character"] = std::string(1, pos[0]).c_str();
-            Exception::set(e);
-            rval = false;
-            break;
+            case Pipe::pipe_undefined:
+               // FIXME: set exception
+               break;
+            case Pipe::pipe_escape:
+               // FIXME: do some kind of escaping
+               break;
+            case Pipe::pipe_alphabetize:
+               // FIXME: do some kind of alphabetizing
+               break;
          }
       }
-   }
-   else if(rval)
-   {
-      // escape is NOT on
-      switch(pos[0])
+
+      // write out variable value
+      if(rval)
       {
-         case EOL:
-         {
-            // increase line number, reset column, and get character
-            mLineNumber++;
-            mLineColumn = 0;
-            int len = (pos - mTemplate.data()) + 1;
-            mPosition += len;
-            if(mEmptyLoop || mFalseCondition)
-            {
-               mTemplate.advanceOffset(len);
-            }
-            else
-            {
-               mTemplate.get(&mParsed, len, true);
-            }
-            break;
-         }
-         case ESCAPE:
-         {
-            // escape on, write data before ESCAPE and skip it
-            mEscapeOn = true;
-            int len = pos - mTemplate.data();
-            mLineColumn += len + 1;
-            mPosition += len + 1;
-            if(mEmptyLoop || mFalseCondition)
-            {
-               mTemplate.advanceOffset(len);
-            }
-            else
-            {
-               mTemplate.get(&mParsed, len, true);
-            }
-            mTemplate.advanceOffset(1);
-            break;
-         }
-         case MARKUP_START:
-         {
-            // parsing markup on, write data before MARKUP_START and skip it
-            mParsingMarkup = true;
-            int len = pos - mTemplate.data();
-            mLineColumn += len + 1;
-            mPosition += len + 1;
-            mMarkupStart = mPosition;
-            if(mEmptyLoop || mFalseCondition)
-            {
-               mTemplate.advanceOffset(len);
-            }
-            else
-            {
-               mTemplate.get(&mParsed, len, true);
-            }
-            mTemplate.advanceOffset(1);
-            break;
-         }
-         case MARKUP_END:
-         {
-            // no longer parsing markup
-            mParsingMarkup = false;
-
-            // get markup, clear MARKUP_END
-            int len = pos - mTemplate.data();
-            char markup[len + 1];
-            markup[len] = 0;
-            mTemplate.get(markup, len);
-            mTemplate.advanceOffset(1);
-
-            // get markup parameters
-            int cmd;
-            DynamicObject params;
-            int newPosition = mPosition + len + 1;
-            rval =
-               _parseMarkup(markup, cmd, params) &&
-               runCommand(cmd, params, newPosition);
-
-            if(rval)
-            {
-               // no error, update column and position
-               mLineColumn += len + 1;
-               mPosition = newPosition;
-            }
-            else
-            {
-               // reset template data
-               mTemplate.reset(len + 1);
-            }
-
-            break;
-         }
+         mParsed.put(value.c_str(), value.length(), true);
       }
+   }
+
+   if(!rval)
+   {
+      setParseException(c->line, c->column, v->name.c_str());
    }
 
    return rval;
@@ -719,419 +1542,93 @@ int TemplateInputStream::compare(DynamicObject& params)
 {
    int rval = 0;
 
-   // syntax: {:if/elseif varname operator value}
-   const char* varname = params[1]->getString();
-   bool singleVar = (params->length() == 2);
-   const char* op = NULL;
-   DynamicObject value(NULL);
+   // get operator
+   CompareOp op = static_cast<CompareOp>(params["op"]->getInt32());
 
-   // find first variable
-   DynamicObject var = findVariable(varname, !singleVar && mStrict);
-   if(var.isNull() && !singleVar)
+   // find lhs variable (if doing a single var op, strict is off, it just
+   // means the comparison fails if the var does not exist)
+   DynamicObject lhs = findVariable(
+      params["lhs"]->getString(), (op != op_single) && mStrict);
+   if(lhs.isNull() && op != op_single)
    {
       rval = -1;
    }
 
-   // find second variable
-   if(rval != -1 && !singleVar)
+   // find rhs variable
+   DynamicObject rhs(NULL);
+   if(rval != -1 && op != op_single)
    {
-      op = params[2]->getString();
-      value = params[3];
-      const char* v = value->getString();
-      if(v[0] == '\'' || v[0] == '"')
+      if(params["rhs"]["isVar"]->getBoolean())
       {
-         // remove first and last quotes, will compare as a string
-         string str = v;
-         value = StringTools::trim(str, "'").c_str();
-      }
-      else if(v[0] == '-' || (v[0] >= '0' && v[0] <= '9'))
-      {
-         // will compare as a number
-         if(v[0] == '-')
-         {
-            value->setType(Int64);
-         }
-         else
-         {
-            value->setType(UInt64);
-         }
-      }
-      else if(strcmp(v, "true") == 0 || strcmp(v, "false") == 0)
-      {
-         // will compare as a boolean
-         value->setType(Boolean);
-      }
-      else
-      {
-         // try to get a variable
-         value = findVariable(v, mStrict);
-         if(value.isNull() && mStrict)
+         // rhs variable must exist
+         rhs = findVariable(params["rhs"]["value"]->getString(), true);
+         if(rhs.isNull())
          {
             rval = -1;
          }
+      }
+      else
+      {
+         // use value directly (has its type already set)
+         rhs = params["rhs"]["value"];
       }
    }
 
    // do comparison
    if(rval != -1)
    {
-      if(singleVar)
+      switch(op)
       {
-         if(var.isNull())
+         case op_single:
          {
-            // undefined var result in false comparison
-            rval = 0;
-         }
-         else
-         {
-            switch(var->getType())
+            if(lhs.isNull())
             {
-               case Boolean:
-                  rval = var->getBoolean() ? 1 : 0;
-                  break;
-               case Int32:
-               case UInt32:
-               case Int64:
-               case UInt64:
-               case Double:
-                  // any value other than 0 is true
-                  rval = (var->getInt32() != 0) ? 1 : 0;
-                  break;
-               case String:
-               case Map:
-               case Array:
-                  // always true
-                  rval = true;
-                  break;
-            }
-         }
-      }
-      else if(strcmp(op, "==") == 0)
-      {
-         rval = (var == value) ? 1 : 0;
-      }
-      else if(strcmp(op, ">") == 0)
-      {
-         rval = (var > value) ? 1 : 0;
-      }
-      else if(strcmp(op, ">=") == 0)
-      {
-         rval = (var >= value) ? 1 : 0;
-      }
-      else if(strcmp(op, "<") == 0)
-      {
-         rval = (var < value) ? 1 : 0;
-      }
-      else if(strcmp(op, "<=") == 0)
-      {
-         rval = (var <= value) ? 1 : 0;
-      }
-      else if(strcmp(op, "!=") == 0)
-      {
-         rval = (var != value) ? 1 : 0;
-      }
-      else
-      {
-         ExceptionRef e = new Exception(
-            "Invalid operator.",
-            EXCEPTION_SYNTAX);
-         e->getDetails()["operator"] = op;
-         Exception::set(e);
-      }
-   }
-
-   return rval;
-}
-
-bool TemplateInputStream::runCommand(
-   int cmd, DynamicObject& params, int newPosition)
-{
-   bool rval = true;
-
-   // handle command
-   switch(cmd)
-   {
-      case CMD_COMMENT:
-      {
-         // comment now off
-         mCommentOn = false;
-         break;
-      }
-      case CMD_REPLACE:
-      {
-         // only do replacement if not inside an empty loop or false condition
-         if(!mEmptyLoop && !mFalseCondition)
-         {
-            // separate on pipes
-            const char* varname = params[0]->getString();
-            DynamicObject d = StringTools::split(varname, "|");
-
-            // find variable
-            DynamicObject var = findVariable(d[0]->getString(), mStrict);
-            if(var.isNull())
-            {
-               rval = !mStrict;
-            }
-            else if(!mEmptyLoop && !mFalseCondition)
-            {
-               // write value out to parsed data buffer
-               const char* value = var->getString();
-               // FIXME: handle pipes (d[1]...d[n])
-               mParsed.put(value, strlen(value), true);
-            }
-         }
-         break;
-      }
-      case CMD_EACH:
-      {
-         // find variable
-         DynamicObject var = findVariable(params[1]->getString(), mStrict);
-         if(var.isNull())
-         {
-            rval = !mStrict;
-         }
-         else
-         {
-            // create a loop
-            Loop loop;
-            loop.item = params[2]->getString();
-            loop.key = params[3]->getString();
-            loop.i = var.getIterator();
-            if(loop.i->hasNext())
-            {
-               loop.current = loop.i->next();
-               loop.empty = false;
+               // undefined var results in false
+               rval = 0;
             }
             else
             {
-               // use an empty value for an empty loop
-               loop.current = "";
-               loop.empty = true;
-               mEmptyLoop = true;
-            }
-            loop.line = mLineNumber;
-            loop.column = mLineColumn;
-            loop.start = loop.end = newPosition;
-            loop.complete = false;
-            mLoops.push_back(loop);
-         }
-         break;
-      }
-      case CMD_ENDEACH:
-      {
-         // check last loop
-         if(mLoops.empty())
-         {
-            ExceptionRef e = new Exception(
-               "'endeach' has no matching 'each'.",
-               EXCEPTION_SYNTAX);
-            Exception::set(e);
-            rval = false;
-         }
-         else
-         {
-            Loop& loop = mLoops.back();
-            if(loop.empty || !loop.i->hasNext())
-            {
-               // loop is complete, so remove it
-               mLoops.pop_back();
-
-               // if we're in an empty loop, see if we exited finally
-               if(mEmptyLoop)
+               switch(lhs->getType())
                {
-                  mEmptyLoop = (!mLoops.empty() && mLoops.back().empty);
+                  case Boolean:
+                     rval = lhs->getBoolean() ? 1 : 0;
+                     break;
+                  case Int32:
+                  case UInt32:
+                  case Int64:
+                  case UInt64:
+                  case Double:
+                     // any value other than 0 is true
+                     rval = (lhs->getInt32() != 0) ? 1 : 0;
+                     break;
+                  case String:
+                  case Map:
+                  case Array:
+                     // always true, variable is defined
+                     rval = true;
+                     break;
                }
             }
-            else
-            {
-               // loop is now complete, store its end position
-               loop.end = newPosition;
-               loop.complete = true;
-            }
+            break;
          }
-         break;
-      }
-      case CMD_INCLUDE:
-      {
-         // only do include if not inside an empty loop or false condition
-         if(!mEmptyLoop && !mFalseCondition)
-         {
-            // create an input stream for reading the template file
-            string path = StringTools::join(params, " ", 1);
-            if(path.at(0) == '\'' || path.at(0) == '"')
-            {
-               // remove first and last quotes
-               StringTools::trim(path, "'");
-            }
-            else
-            {
-               // try to find a variable
-               DynamicObject var = findVariable(path.c_str(), true);
-               if(var.isNull())
-               {
-                  rval = false;
-               }
-               else
-               {
-                  path = var->getString();
-               }
-            }
-
-            // build path is path is not absolute
-            if(!File::isPathAbsolute(path.c_str()) && !mIncludeDir.isNull())
-            {
-               path = File::join(mIncludeDir->getAbsolutePath(), path.c_str());
-            }
-            File file(path.c_str());
-            FileInputStream* fis = new FileInputStream(file);
-            mInclude = new TemplateInputStream(
-               mVars, mStrict, fis, true,
-               mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
-         }
-         break;
-      }
-      case CMD_IF:
-      {
-         // create new condition
-         DynamicObject condition;
-         condition["met"] = false;
-         condition["ignore"] = mFalseCondition;
-         mConditions.push_back(condition);
-
-         // only handle if not in a false condition
-         if(!mFalseCondition)
-         {
-            // do comparison
-            switch(compare(params))
-            {
-               // condition met
-               case 1:
-                  condition["met"] = true;
-                  mFalseCondition = false;
-                  break;
-               // condition not met
-               case 0:
-                  mFalseCondition = true;
-                  break;
-               // exception
-               case -1:
-                  rval = false;
-                  break;
-            }
-         }
-         break;
-      }
-      case CMD_ELSEIF:
-      {
-         // check last condition
-         if(mConditions.empty())
-         {
-            ExceptionRef e = new Exception(
-               "'elseif' has no matching 'if'.",
-               EXCEPTION_SYNTAX);
-            Exception::set(e);
-            rval = false;
-         }
-         else
-         {
-            // only handle if not ignoring
-            DynamicObject& condition = mConditions.back();
-            if(!condition["ignore"]->getBoolean())
-            {
-               // if we've met the condition, then our condition is now false
-               if(condition["met"]->getBoolean())
-               {
-                  mFalseCondition = true;
-               }
-               // see if the condition of the elseif is met
-               else
-               {
-                  // do comparison
-                  switch(compare(params))
-                  {
-                     // condition met
-                     case 1:
-                        condition["met"] = true;
-                        mFalseCondition = false;
-                        break;
-                     // condition not met
-                     case 0:
-                        mFalseCondition = true;
-                        break;
-                     // exception
-                     case -1:
-                        rval = false;
-                        break;
-                  }
-               }
-            }
-         }
-         break;
-      }
-      case CMD_ELSE:
-      {
-         // check last condition
-         if(mConditions.empty())
-         {
-            ExceptionRef e = new Exception(
-               "'else' has no matching 'if'.",
-               EXCEPTION_SYNTAX);
-            Exception::set(e);
-            rval = false;
-         }
-         else
-         {
-            // only handle if not ignoring
-            DynamicObject& condition = mConditions.back();
-            if(!condition["ignore"]->getBoolean())
-            {
-               // if we've met the condition, the else is false
-               if(condition["met"]->getBoolean())
-               {
-                  mFalseCondition = true;
-               }
-               // the else is true if we haven't met the condition
-               else
-               {
-                  mFalseCondition = false;
-                  condition["met"] = true;
-               }
-            }
-         }
-         break;
-      }
-      case CMD_ENDIF:
-      {
-         // check last condition
-         if(mConditions.empty())
-         {
-            ExceptionRef e = new Exception(
-               "'endif' has no matching 'if'.",
-               EXCEPTION_SYNTAX);
-            Exception::set(e);
-            rval = false;
-         }
-         else
-         {
-            // get condition
-            DynamicObject condition = mConditions.back();
-
-            // condition is complete, so remove it
-            mConditions.pop_back();
-
-            // only handle state change if not ignoring
-            if(!condition["ignore"]->getBoolean())
-            {
-               // see if we're inside of a false condition
-               mFalseCondition = false;
-               if(!mConditions.empty())
-               {
-                  DynamicObject& condition = mConditions.back();
-                  mFalseCondition = !condition["met"]->getBoolean();
-               }
-            }
-         }
-         break;
+         case op_eq:
+            rval = (lhs == rhs) ? 1 : 0;
+            break;
+         case op_neq:
+            rval = (lhs != rhs) ? 1 : 0;
+            break;
+         case op_gt:
+            rval = (lhs > rhs) ? 1 : 0;
+            break;
+         case op_gteq:
+            rval = (lhs >= rhs) ? 1 : 0;
+            break;
+         case op_lt:
+            rval = (lhs < rhs) ? 1 : 0;
+            break;
+         case op_lteq:
+            rval = (lhs <= rhs) ? 1 : 0;
+            break;
       }
    }
 
@@ -1156,29 +1653,35 @@ DynamicObject TemplateInputStream::findVariable(
       for(LoopStack::reverse_iterator ri = mLoops.rbegin();
           ri != mLoops.rend(); ri++)
       {
-         if(strcmp(ri->item.c_str(), nm) == 0)
+         Loop* loop = *ri;
+         if(strcmp(loop->item.c_str(), nm) == 0)
          {
             // loop variable found, put it in a map so that the
             // code below to move down the tree is consistent
             vars = DynamicObject();
-            vars[nm] = ri->current;
+            vars[nm] = loop->current;
             break;
          }
-         else if(strcmp(ri->key.c_str(), nm) == 0)
+         else if(strcmp(loop->key.c_str(), nm) == 0)
          {
             // loop variable found (as the key), put it in a map so
             // that the code below to move down the tree is consistent
             vars = DynamicObject();
-            if(ri->i->getName() != NULL)
+            if(loop->i->getName() != NULL)
             {
                // use name
-               vars[nm] = ri->i->getName();
+               vars[nm] = loop->i->getName();
             }
             else
             {
                // use index
-               vars[nm] = ri->i->getIndex();
+               vars[nm] = loop->i->getIndex();
             }
+         }
+         else if(strcmp(loop->item.c_str(), nm) == 0)
+         {
+            vars = DynamicObject();
+            vars[nm] = loop->i->getIndex();
          }
       }
    }
@@ -1262,4 +1765,104 @@ DynamicObject TemplateInputStream::findVariable(
    }
 
    return rval;
+}
+
+void TemplateInputStream::setParseException(
+   int line, int column, const char* near)
+{
+   // include line, position, and part of string that was parsed
+   // in the parse exception
+   ExceptionRef e = new Exception(
+      "Template parser error.",
+      "monarch.data.TemplateInputStream.ParseError");
+   e->getDetails()["line"] = line;
+   e->getDetails()["column"] = column;
+   e->getDetails()["near"] = near;
+   Exception::push(e);
+}
+
+void TemplateInputStream::freePipe(Pipe* p)
+{
+   if(p->params != NULL)
+   {
+      delete p->params;
+   }
+   delete p;
+}
+
+void TemplateInputStream::freeCommand(Command* c)
+{
+   if(c->params != NULL)
+   {
+      delete c->params;
+   }
+   delete c;
+}
+
+void TemplateInputStream::freeConstruct(Construct* c)
+{
+   // clean up data
+   if(c->data != NULL)
+   {
+      switch(c->type)
+      {
+         case Construct::Literal:
+            delete static_cast<Literal*>(c->data);
+            break;
+         case Construct::Command:
+            freeCommand(static_cast<Command*>(c->data));
+            break;
+         case Construct::Variable:
+            delete static_cast<Variable*>(c->data);
+            break;
+         case Construct::Pipe:
+            freePipe(static_cast<Pipe*>(c->data));
+            break;
+         default:
+            // should not happen, data is NULL for other types
+            break;
+      }
+   }
+
+   // clean up children
+   for(ConstructStack::iterator i = c->children.begin();
+       i != c->children.end(); i++)
+   {
+      freeConstruct(*i);
+   }
+
+   // free construct
+   delete c;
+}
+
+void TemplateInputStream::resetState(bool createRoot)
+{
+   mState = FindConstruct;
+   mTemplate.clear();
+   mParsed.clear();
+   mLine = 1;
+   mColumn = 0;
+   mBlocked = true;
+   mEndOfStream = false;
+   mLoops.clear();
+
+   // free constructs
+   if(!mConstructs.empty())
+   {
+      freeConstruct(mConstructs.front());
+      mConstructs.clear();
+   }
+
+   if(createRoot)
+   {
+      // create root construct
+      Construct* root = new Construct;
+      root->type = Construct::Root;
+      root->data = NULL;
+      root->line = 0;
+      root->column = 0;
+      root->parent = NULL;
+      root->childIndex = 0;
+      mConstructs.push_back(root);
+   }
 }
