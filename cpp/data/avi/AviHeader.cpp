@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+
 #include "monarch/data/avi/AviHeader.h"
 
 #include "monarch/util/Data.h"

@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
+
 #include "monarch/data/avi/OdmlHeader.h"
 
 #include "monarch/util/Data.h"
