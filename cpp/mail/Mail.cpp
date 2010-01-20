@@ -259,7 +259,7 @@ string Mail::getTransferEncodedBody()
 
    return rval;
 }
-#include "monarch/test/Test.h"
+
 string Mail::toTemplate()
 {
    string str;
