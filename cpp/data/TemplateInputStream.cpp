@@ -306,20 +306,42 @@ bool TemplateInputStream::fillTemplateBuffer()
       switch(mState)
       {
          case FindConstruct:
-            // not an error
-            mBlocked = false;
-
-            // attach any literal
+            // unblock and attach literal
             attachConstruct();
             if(mConstructs.back()->type == Construct::Root)
             {
                // finished, create output
+               mBlocked = false;
                mState = CreateOutput;
+            }
+            else if(mConstructs.back()->type == Construct::Command)
+            {
+               Command* cmd = static_cast<Command*>(mConstructs.back()->data);
+               if(cmd->requiresEnd)
+               {
+                  ExceptionRef e = new Exception(
+                     "Command requires an 'end' construct.",
+                     EXCEPTION_SYNTAX);
+                  e->getDetails()["command"] = cmd->text.c_str();
+                  Exception::set(e);
+                  rval = false;
+               }
+               else
+               {
+                  ExceptionRef e = new Exception(
+                     "Invalid parser state.",
+                     EXCEPTION_STATE);
+                  Exception::set(e);
+                  rval = false;
+               }
             }
             else
             {
-               // go to previous state
-               prevState();
+               ExceptionRef e = new Exception(
+                  "Invalid parser state.",
+                  EXCEPTION_STATE);
+               Exception::set(e);
+               rval = false;
             }
             break;
          case ParseLiteral:
@@ -755,8 +777,17 @@ void TemplateInputStream::attachConstruct()
 
 void TemplateInputStream::prevState()
 {
-   mState = mStateStack.back();
-   mStateStack.pop_back();
+   /*if(mStateStack.empty())
+   {
+      // use first state
+      mState = FindConstruct;
+   }
+   else
+   */
+   {
+      mState = mStateStack.back();
+      mStateStack.pop_back();
+   }
 }
 
 bool TemplateInputStream::parseConstruct()
@@ -1838,6 +1869,7 @@ void TemplateInputStream::freeConstruct(Construct* c)
 void TemplateInputStream::resetState(bool createRoot)
 {
    mState = FindConstruct;
+   mStateStack.clear();
    mTemplate.clear();
    mParsed.clear();
    mLine = 1;
@@ -1847,10 +1879,10 @@ void TemplateInputStream::resetState(bool createRoot)
    mLoops.clear();
 
    // free constructs
-   if(!mConstructs.empty())
+   while(!mConstructs.empty())
    {
-      freeConstruct(mConstructs.front());
-      mConstructs.clear();
+      freeConstruct(mConstructs.back());
+      mConstructs.pop_back();
    }
 
    if(createRoot)
