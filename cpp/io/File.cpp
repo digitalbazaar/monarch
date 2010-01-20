@@ -578,6 +578,7 @@ bool File::readBytes(ByteBuffer* buffer)
 
    // read into the buffer until full (error, not enough space),
    // or until EOF (success)
+   int readBytes = 0;
    FileInputStream* fis = new FileInputStream(*this);
    int numBytes = -1;
    while(!buffer->isFull() &&
@@ -585,6 +586,7 @@ bool File::readBytes(ByteBuffer* buffer)
    {
       // extend buffer by amount read
       buffer->extend(numBytes);
+      readBytes += numBytes;
    }
    fis->close();
    delete fis;
@@ -593,7 +595,9 @@ bool File::readBytes(ByteBuffer* buffer)
    {
       rval = false;
    }
-   else if(numBytes != 0 && buffer->isFull())
+   else if(
+      numBytes != 0 && buffer->isFull() &&
+      readBytes < (*this)->getLength())
    {
       ExceptionRef e = new Exception(
          "Could not read entire file. Buffer is full.",
