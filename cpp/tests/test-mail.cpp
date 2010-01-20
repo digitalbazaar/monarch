@@ -186,12 +186,12 @@ void runMailTemplateParser(TestRunner& tr)
       "Bcc: {bccAddress1}\r\n"
       "\r\n"
       "This is the test body. I want $10.00.\n"
-      "I used a variable: \\{bccAddress1\\} with the value of "
+      "I used a variable: {:ldelim}bccAddress1{:rdelim} with the value of "
       "'{bccAddress1}'.\n"
-      "Slash before variable \\\\{bccAddress1}.\n"
-      "2 slashes before variable \\\\\\\\{bccAddress1}.\n"
-      "Slash before escaped variable \\\\\\{bccAddress1\\}.\n"
-      "2 slashes before escaped variable \\\\\\\\\\{bccAddress1\\}.\n"
+      "Slash before variable \\{bccAddress1}.\n"
+      "2 slashes before variable \\\\{bccAddress1}.\n"
+      "Slash before escaped variable \\{:ldelim}bccAddress1{:rdelim}.\n"
+      "2 slashes before escaped variable \\\\{:ldelim}bccAddress1{:rdelim}.\n"
       "{eggs}{bacon}{ham}{sausage}.";
 
    // create template parser
@@ -239,11 +239,12 @@ void runMailTemplateParser(TestRunner& tr)
       "To: support@bitmunk.com\r\n"
       "\r\n"
       "This is the test body. I want $10.00.\r\n"
-      "I used a variable: \\{bccAddress1\\} with the value of 'support@bitmunk.com'.\r\n"
-      "Slash before variable \\\\support@bitmunk.com.\r\n"
-      "2 slashes before variable \\\\\\\\support@bitmunk.com.\r\n"
-      "Slash before escaped variable \\\\\\{bccAddress1\\}.\r\n"
-      "2 slashes before escaped variable \\\\\\\\\\{bccAddress1\\}.\r\n"
+      "I used a variable: {:ldelim}bccAddress1{:rdelim} with the value "
+      "of 'support@bitmunk.com'.\r\n"
+      "Slash before variable \\support@bitmunk.com.\r\n"
+      "2 slashes before variable \\\\support@bitmunk.com.\r\n"
+      "Slash before escaped variable \\{:ldelim}bccAddress1{:rdelim}.\r\n"
+      "2 slashes before escaped variable \\\\{:ldelim}bccAddress1{:rdelim}.\r\n"
       "This is a number 5.\r\n";
 
    assertStrCmp(generatedTemplate.c_str(), genExpect);
@@ -288,12 +289,12 @@ void mailSpoolTest(TestRunner& tr)
       "Bcc: {bccAddress1}\r\n"
       "\r\n"
       "This is the test body. I want $10.00.\n"
-      "I used a variable: \\{bccAddress1\\} with the value of "
-      "'{bccAddress1}'.\n"
-      "Slash before variable \\\\{bccAddress1}.\n"
-      "2 slashes before variable \\\\\\\\{bccAddress1}.\n"
-      "Slash before escaped variable \\\\\\{bccAddress1\\}.\n"
-      "2 slashes before escaped variable \\\\\\\\\\{bccAddress1\\}.\n"
+      "I used a variable: {:ldelim}bccAddress1{:rdelim} with the value "
+      "of '{bccAddress1}'.\r\n"
+      "Slash before variable \\{bccAddress1}.\r\n"
+      "2 slashes before variable \\\\{bccAddress1}.\r\n"
+      "Slash before escaped variable \\{:ldelim}bccAddress1{:rdelim}.\r\n"
+      "2 slashes before escaped variable \\\\{:ldelim}bccAddress1{:rdelim}.\r\n"
       "{eggs}{bacon}{ham}{sausage}.";
 
    // create template parser

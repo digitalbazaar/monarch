@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/mail/Mail.h"
 
@@ -259,7 +259,7 @@ string Mail::getTransferEncodedBody()
 
    return rval;
 }
-
+#include "monarch/test/Test.h"
 string Mail::toTemplate()
 {
    string str;
@@ -297,10 +297,20 @@ string Mail::toTemplate()
    // add body
    str.append(mMessage["body"]->getString());
 
-   // escape all '{', '}', and '\'
-   StringTools::replaceAll(str, "\\", "\\\\");
-   StringTools::replaceAll(str, "{", "\\{");
-   StringTools::replaceAll(str, "}", "\\}");
+   // escape all '{'
+   StringTools::replaceAll(str, "{", "{:ldelim}");
+
+   // escape all '}' that do not follow '{:ldelim'
+   string::size_type pos = str.find('}');
+   while(pos != string::npos)
+   {
+      if(pos < 8 || strncmp(str.c_str() + pos - 8, "{:ldelim}", 9) != 0)
+      {
+         str.replace(pos, 1, "{:rdelim}");
+         pos += 8;
+      }
+      pos = str.find('}', pos + 1);
+   }
 
    return str;
 }

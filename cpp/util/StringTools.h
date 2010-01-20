@@ -72,11 +72,13 @@ public:
     * @param str the string to operate on.
     * @param regex the regular expression to match.
     * @param replace the string to replace "find" with.
+    * @param matchCase true to match case, false for case-insensitive.
     *
     * @return a reference to "str".
     */
    static std::string& regexReplaceAll(
-      std::string& str, const std::string& regex, const std::string& replace);
+      std::string& str, const std::string& regex,
+      const std::string& replace, bool matchCase = true);
 
    /**
     * Creates an std::string from a printf format.

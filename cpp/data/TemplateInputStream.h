@@ -25,9 +25,10 @@ namespace data
  *
  * Markup is delimited by starting with a '{' and ending with a '}'. To include
  * a regular '{' or '}' character, it must be escaped using the 'literal'
- * command, ie:
+ * command or the ldelim/rdelim commands, ie:
  *
  * "I want to see two braces here {:literal}{}{:endliteral}"
+ * "I want to see two braces here {:ldelim}{:rdelim}"
  *
  * If curly braces are not matched or variable names do not start with a
  * letter and contain only alphanumeric characters, a parser error will be
@@ -106,6 +107,8 @@ protected:
          cmd_include,
          cmd_literal,
          cmd_end,
+         cmd_ldelim,
+         cmd_rdelim,
          cmd_each,
          cmd_if,
          cmd_elseif,

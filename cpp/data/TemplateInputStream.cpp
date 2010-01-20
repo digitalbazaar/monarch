@@ -926,6 +926,16 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       cmd->type = Command::cmd_end;
       cmd->requiresEnd = false;
    }
+   else if(strcmp(cmdName, "ldelim") == 0)
+   {
+      cmd->type = Command::cmd_ldelim;
+      cmd->requiresEnd = false;
+   }
+   else if(strcmp(cmdName, "rdelim") == 0)
+   {
+      cmd->type = Command::cmd_rdelim;
+      cmd->requiresEnd = false;
+   }
    else if(strcmp(cmdName, "each") == 0)
    {
       cmd->type = Command::cmd_each;
@@ -991,18 +1001,12 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          }
          break;
       }
+      // single token commands
       case Command::cmd_literal:
-      {
-         // {:literal}
-         if(tokens->length() != 1)
-         {
-            rval = false;
-         }
-         break;
-      }
       case Command::cmd_end:
+      case Command::cmd_ldelim:
+      case Command::cmd_rdelim:
       {
-         // {:end}
          if(tokens->length() != 1)
          {
             rval = false;
@@ -1195,6 +1199,27 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                "Syntax: {:literal}";
             break;
          }
+         case Command::cmd_end:
+         {
+            err =
+               "Invalid 'end' syntax. "
+               "Syntax: {:end}";
+            break;
+         }
+         case Command::cmd_ldelim:
+         {
+            err =
+               "Invalid 'ldelim' syntax. "
+               "Syntax: {:ldelim}";
+            break;
+         }
+         case Command::cmd_rdelim:
+         {
+            err =
+               "Invalid 'rdelim' syntax. "
+               "Syntax: {:rdelim}";
+            break;
+         }
          case Command::cmd_each:
          {
             err =
@@ -1375,6 +1400,18 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          {
             rval = writeConstruct(*ci);
          }
+         break;
+      }
+      case Command::cmd_ldelim:
+      {
+         // write start of construct
+         mParsed.put(START_CONSTRUCT, 1, true);
+         break;
+      }
+      case Command::cmd_rdelim:
+      {
+         // write end of construct
+         mParsed.put(END_CONSTRUCT, 1, true);
          break;
       }
       case Command::cmd_each:

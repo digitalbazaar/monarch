@@ -61,10 +61,10 @@ string& StringTools::replaceAll(
 }
 
 string& StringTools::regexReplaceAll(
-   string& str, const string& regex, const string& replace)
+   string& str, const string& regex, const string& replace, bool matchCase)
 {
    // compile regex pattern
-   PatternRef p = Pattern::compile(regex.c_str());
+   PatternRef p = Pattern::compile(regex.c_str(), matchCase);
    if(!p.isNull())
    {
       // replace all matches
