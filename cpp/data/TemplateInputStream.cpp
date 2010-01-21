@@ -130,7 +130,7 @@ int TemplateInputStream::read(char* b, int length)
    if(error)
    {
       // create "near" string that failed parsing
-      int len = max(mTemplate.length(), 50);
+      int len = min(mTemplate.length(), 50);
       char near[len + 1];
       near[len] = 0;
       strncpy(near, mTemplate.data(), len);
@@ -308,9 +308,15 @@ bool TemplateInputStream::fillTemplateBuffer()
       switch(mState)
       {
          case FindConstruct:
-            // unblock and attach literal
-            attachConstruct();
-            if(mConstructs.back()->type == Construct::Root)
+         {
+            Construct* c = mConstructs.back();
+            if(c->type == Construct::Literal)
+            {
+               // unblock and attach literal
+               attachConstruct();
+            }
+            c = mConstructs.back();
+            if(c->type == Construct::Root)
             {
                // finished, create output
                mBlocked = false;
@@ -325,6 +331,8 @@ bool TemplateInputStream::fillTemplateBuffer()
                      "Command requires an 'end' construct.",
                      EXCEPTION_SYNTAX);
                   e->getDetails()["command"] = cmd->text.c_str();
+                  e->getDetails()["line"] = c->line;
+                  e->getDetails()["column"] = c->column;
                   Exception::set(e);
                   rval = false;
                }
@@ -346,6 +354,7 @@ bool TemplateInputStream::fillTemplateBuffer()
                rval = false;
             }
             break;
+         }
          case ParseLiteral:
             err = "Incomplete literal.";
             break;
@@ -412,8 +421,7 @@ bool TemplateInputStream::parseTemplateBuffer()
 
    // add null-terminator to template data to use string ops
    mTemplate.putByte(0, 1, false);
-   const char* ptr = NULL;
-   char ret;
+   const char* ptr = mTemplate.data();
 
    // parse template buffer based on state
    switch(mState)
@@ -421,114 +429,50 @@ bool TemplateInputStream::parseTemplateBuffer()
       case FindConstruct:
       {
          // search for starting construct
-         ptr = strpbrk(mTemplate.data(), START_CONSTRUCT);
-         if(mConstructs.back()->type != Construct::Literal)
-         {
-            // no construct found, start new literal to capture text
-            Construct* c = new Construct;
-            c->type = Construct::Literal;
-            c->data = new Literal;
-            c->line = mLine;
-            c->column = mColumn;
-            c->parent = mConstructs.back();
-            c->childIndex = max(
-               0, (int)mConstructs.back()->children.size() - 1);
-            mConstructs.push_back(c);
-         }
-         consumeTemplate(ptr);
+         ptr = strpbrk(ptr, START_CONSTRUCT);
+         rval = consumeTemplate(ptr);
          break;
       }
       case ParseConstructType:
       {
          // scan for type of construct
-         ptr = strpbrk(mTemplate.data(),
-            START_COMMENT START_COMMAND START_VARIABLE);
-         consumeTemplate(ptr);
+         ptr = strpbrk(ptr, START_COMMENT START_COMMAND START_VARIABLE);
+         rval = consumeTemplate(ptr);
          break;
       }
       case ParseLiteral:
       {
          // search for ending literal
-         ptr = strstr(mTemplate.data(), END_LITERAL);
-         ret = consumeTemplate(ptr);
-         if(ret != 0)
-         {
-            // end of literal found
-            rval = parseConstruct();
-         }
+         ptr = strstr(ptr, END_LITERAL);
+         rval = consumeTemplate(ptr);
          break;
       }
       case SkipComment:
       {
          // scan for the end of the comment
-         ptr = strstr(mTemplate.data(), END_COMMENT);
-         ret = consumeTemplate(ptr);
-         if(ret != 0)
-         {
-            // clean up comment, return to previous state
-            Construct* c = mConstructs.back();
-            mConstructs.pop_back();
-            freeConstruct(c);
-            prevState();
-         }
+         ptr = strstr(ptr, END_COMMENT);
+         rval = consumeTemplate(ptr);
          break;
       }
       case ParseCommand:
       {
          // scan for the end of the command
-         ptr = strpbrk(mTemplate.data(), END_CONSTRUCT);
-         ret = consumeTemplate(ptr);
-         if(ret != 0)
-         {
-            rval = parseConstruct();
-         }
+         ptr = strpbrk(ptr, END_CONSTRUCT);
+         rval = consumeTemplate(ptr);
          break;
       }
       case ParseVariable:
       {
          // scan for the end of the markup or the start of a pipe
-         ptr = strpbrk(mTemplate.data(), END_CONSTRUCT START_PIPE);
-         ret = consumeTemplate(ptr);
-         if(ret != 0)
-         {
-            if(ret == END_CONSTRUCT_CHAR)
-            {
-               // variable finished
-               rval = parseConstruct();
-            }
-            else
-            {
-               // start parsing pipe
-               Pipe* data = new Pipe;
-               data->type = Pipe::pipe_undefined;
-               data->params = NULL;
-               data->func = NULL;
-               data->userData = NULL;
-               Construct* c = new Construct;
-               c->type = Construct::Pipe;
-               c->data = data;
-               c->line = mLine;
-               c->column = mColumn;
-               c->parent = mConstructs.back();
-               c->childIndex = max(
-                  0, (int)mConstructs.back()->children.size() - 1);
-               mConstructs.push_back(c);
-               mStateStack.push_back(mState);
-               mState = ParsePipe;
-            }
-         }
+         ptr = strpbrk(ptr, END_CONSTRUCT START_PIPE);
+         rval = consumeTemplate(ptr);
          break;
       }
       case ParsePipe:
       {
          // scan for the end of the construct or the start of a pipe
-         ptr = strpbrk(mTemplate.data(), END_CONSTRUCT START_PIPE);
-         ret = consumeTemplate(ptr);
-         if(ret != 0)
-         {
-            // pipe finished
-            rval = parseConstruct();
-         }
+         ptr = strpbrk(ptr, END_CONSTRUCT START_PIPE);
+         rval = consumeTemplate(ptr);
          break;
       }
       default:
@@ -548,27 +492,26 @@ bool TemplateInputStream::parseTemplateBuffer()
    return rval;
 }
 
-char TemplateInputStream::consumeTemplate(const char* ptr)
+bool TemplateInputStream::consumeTemplate(const char* ptr)
 {
-   char rval = 0;
+   bool rval = true;
 
+   // save character at 'ptr', 0 for NULL
+   char ret = (ptr == NULL) ? 0 : *ptr;
+
+   // if seek character not found
    if(ptr == NULL)
    {
-      // more data needed
-      mBlocked = true;
-
       // set pointer to end of template buffer (before null-terminator)
+      // and set indicator that more data is needed
       ptr = mTemplate.end() - 1;
-   }
-   else
-   {
-      rval = *ptr;
+      mBlocked = true;
    }
 
-   // maximum amount of data to consume
+   // get minimum amount of data to consume
    int len = ptr - mTemplate.data();
 
-   // handle EOLs
+   // increment current line and column number
    switch(mState)
    {
       case FindConstruct:
@@ -596,83 +539,104 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
          break;
    }
 
+   // handle parsing
    switch(mState)
    {
       case FindConstruct:
-      case ParseLiteral:
-      case SkipComment:
       {
+         // if len > 0, then we must capture text before the next construct
          if(len > 0)
          {
-            if(mState == FindConstruct || mState == ParseLiteral)
+            if(mConstructs.back()->type != Construct::Literal)
             {
-               // write text to literal
-               Construct* c = mConstructs.back();
-               Literal* data = static_cast<Literal*>(c->data);
-               data->text.append(mTemplate.data(), len);
-               mTemplate.clear(len);
+               // no construct found, start new literal to capture text
+               Construct* c = new Construct;
+               c->type = Construct::Literal;
+               c->data = new Literal;
+               c->line = mLine;
+               c->column = mColumn;
+               c->parent = mConstructs.back();
+               c->childIndex = max(
+                  0, (int)mConstructs.back()->children.size() - 1);
+               mConstructs.push_back(c);
             }
-            else
-            {
-               // skip comment entirely
-               mTemplate.clear(len);
-            }
-         }
 
-         // see if delimiter found
-         if(rval != 0)
+            // write text to literal, consume data
+            Construct* c = mConstructs.back();
+            Literal* data = static_cast<Literal*>(c->data);
+            data->text.append(mTemplate.data(), len);
+            mTemplate.clear(len);
+         }
+         // see if starting construct was found
+         if(ret != 0)
          {
-            switch(mState)
+            if(mConstructs.back()->type == Construct::Literal)
             {
-               case FindConstruct:
-               {
-                  // end of literal text found
-                  attachConstruct();
-
-                  // starting construct found
-                  Construct* c = new Construct;
-                  c->type = Construct::Undefined;
-                  c->data = NULL;
-                  c->line = mLine;
-                  c->column = mColumn;
-                  c->parent = mConstructs.back();
-                  c->childIndex = max(
-                     0, (int)mConstructs.back()->children.size() - 1);
-                  mConstructs.push_back(c);
-                  mStateStack.push_back(mState);
-                  mState = ParseConstructType;
-
-                  // skip starting construct char
-                  mTemplate.clear(1);
-                  mColumn++;
-                  break;
-               }
-               case ParseLiteral:
-               {
-                  // skip nothing, should be at {:end} command
-                  len = 0;
-                  break;
-               }
-               case SkipComment:
-               {
-                  // skip ending comment tag
-                  len = END_COMMENT_LEN;
-                  mTemplate.clear(len);
-                  mColumn += len;
-                  break;
-               }
-               default:
-                  // not possible
-                  break;
+               // end of literal text
+               attachConstruct();
             }
+
+            // starting construct found
+            Construct* c = new Construct;
+            c->type = Construct::Undefined;
+            c->data = NULL;
+            c->line = mLine;
+            c->column = mColumn;
+            c->parent = mConstructs.back();
+            c->childIndex = max(
+               0, (int)mConstructs.back()->children.size() - 1);
+            mConstructs.push_back(c);
+            mStateStack.push_back(mState);
+            mState = ParseConstructType;
+
+            // skip starting construct char
+            mTemplate.clear(1);
+            mColumn++;
          }
+         break;
+      }
+      case ParseLiteral:
+      {
+         // write text to literal
+         Construct* c = mConstructs.back();
+         Literal* data = static_cast<Literal*>(c->data);
+         data->text.append(mTemplate.data(), len);
+         if(ret != 0)
+         {
+            // end of literal found, parse it
+            rval = parseConstruct();
+         }
+         if(rval)
+         {
+            // consume data
+            mTemplate.clear(len);
+         }
+         break;
+      }
+      case SkipComment:
+      {
+         if(ret != 0)
+         {
+            // end of comment found, skip it too
+            len += END_COMMENT_LEN;
+            mColumn += END_COMMENT_LEN;
+
+            // clean up comment (optimized out),
+            // return to previous state
+            Construct* c = mConstructs.back();
+            mConstructs.pop_back();
+            freeConstruct(c);
+            prevState();
+         }
+         // consume data
+         mTemplate.clear(len);
          break;
       }
       case ParseConstructType:
       {
-         // if construct type not found at the beginning of the data
+         // if construct type not found or not at the beginning of the data
          // and template isn't empty, it is an error
-         if(!mTemplate.isEmpty() && (rval == 0 || len != 0))
+         if((ret == 0 || len != 0) && !mTemplate.isEmpty())
          {
             ExceptionRef e = new Exception(
                "No comment, command, or variable found in construct.",
@@ -680,10 +644,12 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
             Exception::set(e);
             rval = false;
          }
-         else if(rval != 0)
+         // construct type found, there will be no data to consume
+         else if(ret != 0)
          {
-            switch(rval)
+            switch(ret)
             {
+               // comment start
                case START_COMMENT_CHAR:
                {
                   Construct* c = mConstructs.back();
@@ -691,6 +657,7 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
                   mState = SkipComment;
                   break;
                }
+               // command start
                case START_COMMAND_CHAR:
                {
                   Command* data = new Command;
@@ -722,14 +689,18 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
          Construct* c = mConstructs.back();
          Command* data = static_cast<Command*>(c->data);
          data->text.append(mTemplate.data(), len);
-
-         // if found, skip ending construct delimiter
-         if(rval != 0)
+         if(ret != 0)
          {
+            // finished, skip ending construct delimiter, parse it
             len++;
+            rval = parseConstruct();
          }
-         mTemplate.clear(len);
-         mColumn += len;
+         if(rval)
+         {
+            // consume data
+            mTemplate.clear(len);
+            mColumn += len;
+         }
          break;
       }
       case ParseVariable:
@@ -738,14 +709,42 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
          Construct* c = mConstructs.back();
          Variable* data = static_cast<Variable*>(c->data);
          data->name.append(mTemplate.data(), len);
-
-         // if found, skip ending construct delimiter
-         if(rval != 0)
+         if(ret != 0)
          {
+            // finished, skip ending construct/starting pipe delimiter
             len++;
+            if(ret == END_CONSTRUCT_CHAR)
+            {
+               // variable finished
+               rval = parseConstruct();
+            }
+            else
+            {
+               // pipe found, start parsing it
+               Pipe* data = new Pipe;
+               data->type = Pipe::pipe_undefined;
+               data->params = NULL;
+               data->func = NULL;
+               data->userData = NULL;
+               Construct* c = new Construct;
+               c->type = Construct::Pipe;
+               c->data = data;
+               c->line = mLine;
+               c->column = mColumn;
+               c->parent = mConstructs.back();
+               c->childIndex = max(
+                  0, (int)mConstructs.back()->children.size() - 1);
+               mConstructs.push_back(c);
+               mStateStack.push_back(mState);
+               mState = ParsePipe;
+            }
          }
-         mTemplate.clear(len);
-         mColumn += len;
+         if(rval)
+         {
+            // consume data
+            mTemplate.clear(len);
+            mColumn += len;
+         }
          break;
       }
       case ParsePipe:
@@ -754,8 +753,17 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
          Construct* c = mConstructs.back();
          Pipe* data = static_cast<Pipe*>(c->data);
          data->text.append(mTemplate.data(), len);
-         mTemplate.clear(len);
-         mColumn += len;
+         if(ret != 0)
+         {
+            // finished, parse construct
+            rval = parseConstruct();
+         }
+         if(rval)
+         {
+            // consume data
+            mTemplate.clear(len);
+            mColumn += len;
+         }
          break;
       }
       default:
@@ -1159,9 +1167,6 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
             "Unknown command.",
             EXCEPTION_SYNTAX);
          e->getDetails()["command"] = cmdName;
-         e->getDetails()["line"] = c->line;
-         e->getDetails()["column"] = c->column;
-         e->getDetails()["near"] = cmd->text.c_str();
          Exception::set(e);
          rval = false;
       }
@@ -1250,9 +1255,6 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       if(err != NULL)
       {
          ExceptionRef e = new Exception(err, EXCEPTION_SYNTAX);
-         e->getDetails()["line"] = c->line;
-         e->getDetails()["column"] = c->column;
-         e->getDetails()["near"] = cmd->text.c_str();
          Exception::set(e);
       }
    }
@@ -1268,9 +1270,6 @@ bool TemplateInputStream::parseVariable(Construct* c, Variable* v)
       ExceptionRef e = new Exception(
          "Invalid variable syntax. "
          "Syntax: {<variable>[|pipe1][|pipe2]}");
-      e->getDetails()["line"] = c->line;
-      e->getDetails()["column"] = c->column;
-      e->getDetails()["near"] = v->name.c_str();
       Exception::push(e);
    }
    return rval;
@@ -1368,9 +1367,6 @@ bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
          ExceptionRef e = new Exception(
             "Unknown escape type.",
             EXCEPTION_SYNTAX);
-         e->getDetails()["line"] = c->line;
-         e->getDetails()["column"] = c->column;
-         e->getDetails()["near"] = p->text.c_str();
          Exception::set(e);
          rval = false;
       }
@@ -1385,9 +1381,6 @@ bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
       ExceptionRef e = new Exception(
          "Unknown pipe.",
          EXCEPTION_SYNTAX);
-      e->getDetails()["line"] = c->line;
-      e->getDetails()["column"] = c->column;
-      e->getDetails()["near"] = p->text.c_str();
       Exception::set(e);
       rval = false;
    }

@@ -342,27 +342,26 @@ protected:
 
    /**
     * Parses the data in the template buffer according to the current parser
-    * state. If possible, data will be cleared from the template buffer and
-    * more nodes will be added to the internal syntax tree. This method only
-    * helps to build the internal syntax tree, it does not apply any variables
-    * to that tree.
+    * state. If possible, constructs will be added to the internal syntax tree
+    * and data will be cleared from the template buffer. This method only helps
+    * to build the internal syntax tree, it does not apply any variables to
+    * that tree.
     *
     * @return true if successful, false if an exception occurred.
     */
    virtual bool parseTemplateBuffer();
 
    /**
-    * Called from parseTemplateBuffer() to consume data in the template buffer
-    * according to the current state.
+    * Called from parseTemplateBuffer() to parse and consume data in the
+    * template buffer according to the current state.
     *
     * @param ptr a pointer to the character that was searched for in the buffer,
     *           when combined with the current state it will determine how much
     *           data to consume, NULL if the character was not found.
     *
-    * @return a copy of the last character that was searched for or 0 if the
-    *         character searched for was not found.
+    * @return true if successful, false if an exception occurred.
     */
-   virtual char consumeTemplate(const char* ptr);
+   virtual bool consumeTemplate(const char* ptr);
 
    /**
     * Attaches the last parsed construct to the syntax tree. Not all parsed
