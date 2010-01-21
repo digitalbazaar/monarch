@@ -26,6 +26,7 @@ using namespace monarch::util;
 #define END_COMMENT_LEN    2
 #define START_COMMAND      ":"
 #define START_COMMAND_CHAR ':'
+#define VAR_OPERATORS      "+-"
 
 #define START_VARIABLE "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define START_PIPE     "|"
@@ -222,6 +223,11 @@ static bool _validateVariableName(const char* v, const char** op)
 {
    bool rval = true;
 
+   if(op != NULL)
+   {
+      *op = NULL;
+   }
+
    // can't be empty
    int len = strlen(v);
    if(len == 0)
@@ -283,6 +289,60 @@ static bool _validateVariableName(const char* v, const char** op)
          e->getDetails()["variable"] = v;
          Exception::set(e);
       }
+   }
+
+   return rval;
+}
+
+static bool _parseRhs(string& value, DynamicObject& rhs, const char** op)
+{
+   bool rval = true;
+
+   if(op != NULL)
+   {
+      *op = NULL;
+   }
+
+   rhs["isVar"] = false;
+   switch(_trimQuotes(value))
+   {
+      // mismatched quotes
+      case -1:
+         rval = false;
+         break;
+      // no quotes, must be a number or boolean
+      case 0:
+         // number or boolean can't be empty string
+         if(value.length() == 0)
+         {
+            rval = false;
+         }
+         else
+         {
+            // set value and determine type
+            rhs["value"] = value.c_str();
+            if(strcmp(value.c_str(), "true") == 0 ||
+               strcmp(value.c_str(), "false") == 0)
+            {
+               rhs["value"]->setType(Boolean);
+            }
+            else
+            {
+               rhs["value"]->setType(
+                  DynamicObject::determineType(value.c_str()));
+            }
+
+            if(rhs["value"]->getType() == String)
+            {
+               rhs["isVar"] = true;
+               rval = _validateVariableName(value.c_str(), op);
+            }
+         }
+         break;
+      // rhs is a string
+      case 1:
+         rhs["value"] = value.c_str();
+         break;
    }
 
    return rval;
@@ -1021,28 +1081,12 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          {
             // join all params after "include" as var/filename
             string path = StringTools::join(tokens, " ", 1);
-            switch(_trimQuotes(path))
+            const char* op = NULL;
+            rval = _parseRhs(path, params, &op);
+            if(rval && (params["value"]->getType() != String || op != NULL))
             {
-               case -1:
-                  // mismatched quotes
-                  rval = false;
-                  break;
-               case 0:
-                  // it must be a variable
-                  rval = _validateVariableName(path.c_str(), NULL);
-                  if(rval)
-                  {
-                     params["var"] = path.c_str();
-                  }
-                  break;
-               case 1:
-                  rval = (path.length() > 0);
-                  if(rval)
-                  {
-                     // found a path
-                     params["path"] = path.c_str();
-                  }
-                  break;
+               // no operators, must be a string
+               rval = false;
             }
          }
          break;
@@ -1150,58 +1194,8 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                if(rval)
                {
                   // join all params after operator as rhs
-                  params["rhs"]["isVar"] = false;
                   rhs = StringTools::join(tokens, " ", 3);
-                  switch(_trimQuotes(rhs))
-                  {
-                     case -1:
-                        // mismatched quotes
-                        rval = false;
-                        break;
-                     case 0:
-                        if(rhs.length() == 0)
-                        {
-                           rval = false;
-                        }
-                        else if(rhs.at(0) == '-' ||
-                           (rhs.at(0) >= '0' && rhs.at(0) <= '9'))
-                        {
-                           // rhs is a number
-                           params["rhs"]["value"] = rhs.c_str();
-                           if(rhs.at(0) == '-')
-                           {
-                              // signed number
-                              params["rhs"]["value"]->setType(Int64);
-                           }
-                           else
-                           {
-                              // unsigned number
-                              params["rhs"]["value"]->setType(UInt64);
-                           }
-                        }
-                        else if(strcmp(rhs.c_str(), "true") == 0 ||
-                                strcmp(rhs.c_str(), "false") == 0)
-                        {
-                           // rhs is a boolean
-                           params["rhs"]["value"] = rhs.c_str();
-                           params["rhs"]["value"]->setType(Boolean);
-                        }
-                        else
-                        {
-                           // rhs is a variable
-                           rval = _validateVariableName(rhs.c_str(), NULL);
-                           if(rval)
-                           {
-                              params["rhs"]["isVar"] = true;
-                              params["rhs"]["value"] = rhs.c_str();
-                           }
-                        }
-                        break;
-                     case 1:
-                        // rhs is a string
-                        params["rhs"]["value"] = rhs.c_str();
-                        break;
-                  }
+                  rval = _parseRhs(rhs, params["rhs"], NULL);
                }
             }
             if(rval)
@@ -1256,62 +1250,18 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
 
                // validate key as a variable name
                const char* name = kv[0]->getString();
-               rval = _validateVariableName(name, NULL);
+               const char* op = NULL;
+               rval = _validateVariableName(name, &op);
+               if(rval && op != NULL)
+               {
+                  // can't have operators on lhs
+                  rval = false;
+               }
+
                if(rval)
                {
                   params["lhs"] = name;
-
-                  // trim quotes off of rhs
-                  switch(_trimQuotes(rhs))
-                  {
-                     case -1:
-                        // mismatched quotes
-                        rval = false;
-                        break;
-                     case 0:
-                        if(rhs.length() == 0)
-                        {
-                           rval = false;
-                        }
-                        else if(rhs.at(0) == '-' ||
-                           (rhs.at(0) >= '0' && rhs.at(0) <= '9'))
-                        {
-                           // rhs is a number
-                           params["rhs"]["value"] = rhs.c_str();
-                           if(rhs.at(0) == '-')
-                           {
-                              // signed number
-                              params["rhs"]["value"]->setType(Int64);
-                           }
-                           else
-                           {
-                              // unsigned number
-                              params["rhs"]["value"]->setType(UInt64);
-                           }
-                        }
-                        else if(strcmp(rhs.c_str(), "true") == 0 ||
-                                strcmp(rhs.c_str(), "false") == 0)
-                        {
-                           // rhs is a boolean
-                           params["rhs"]["value"] = rhs.c_str();
-                           params["rhs"]["value"]->setType(Boolean);
-                        }
-                        else
-                        {
-                           // rhs is a variable
-                           rval = _validateVariableName(rhs.c_str(), NULL);
-                           if(rval)
-                           {
-                              params["rhs"]["isVar"] = true;
-                              params["rhs"]["value"] = rhs.c_str();
-                           }
-                        }
-                        break;
-                     case 1:
-                        // rhs is a string
-                        params["rhs"]["value"] = rhs.c_str();
-                        break;
-                  }
+                  rval = _parseRhs(rhs, params["rhs"], NULL);
                }
             }
          }
@@ -1662,10 +1612,11 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          DynamicObject& params = *cmd->params;
          string path;
 
-         if(params->hasMember("var"))
+         if(params["isVar"]->getBoolean())
          {
             // try to find a variable
-            DynamicObject var = findVariable(params["var"]->getString(), true);
+            DynamicObject var = findVariable(
+               params["value"]->getString(), true);
             if(var.isNull())
             {
                setParseException(
@@ -1679,7 +1630,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          }
          else
          {
-            path = params["path"]->getString();
+            path = params["value"]->getString();
          }
 
          if(rval)
@@ -2093,6 +2044,9 @@ DynamicObject TemplateInputStream::findVariable(
    const char* varname, bool strict)
 {
    DynamicObject rval(NULL);
+
+   // if the variable has an operator, split it out
+   //const char* op = strptok(
 
    // split varname by period delimiters, drill-down
    // into tree of maps looking for variable
