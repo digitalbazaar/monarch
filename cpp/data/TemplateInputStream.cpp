@@ -879,7 +879,7 @@ bool TemplateInputStream::parseConstruct()
       }
       case Construct::Variable:
       {
-         rval = parseVariable(static_cast<Variable*>(c->data));
+         rval = parseVariable(c, static_cast<Variable*>(c->data));
          if(rval)
          {
             // add variable, return to previous state
@@ -890,7 +890,7 @@ bool TemplateInputStream::parseConstruct()
       }
       case Construct::Pipe:
       {
-         rval = parsePipe(static_cast<Pipe*>(c->data));
+         rval = parsePipe(c, static_cast<Pipe*>(c->data));
          if(rval)
          {
             //add pipe, return to previous state
@@ -1171,6 +1171,9 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
             "Unknown command.",
             EXCEPTION_SYNTAX);
          e->getDetails()["command"] = cmdName;
+         e->getDetails()["line"] = c->line;
+         e->getDetails()["column"] = c->column;
+         e->getDetails()["near"] = cmd->text.c_str();
          Exception::set(e);
          rval = false;
       }
@@ -1259,6 +1262,9 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       if(err != NULL)
       {
          ExceptionRef e = new Exception(err, EXCEPTION_SYNTAX);
+         e->getDetails()["line"] = c->line;
+         e->getDetails()["column"] = c->column;
+         e->getDetails()["near"] = cmd->text.c_str();
          Exception::set(e);
       }
    }
@@ -1266,9 +1272,20 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
    return rval;
 }
 
-bool TemplateInputStream::parseVariable(Variable* v)
+bool TemplateInputStream::parseVariable(Construct* c, Variable* v)
 {
-   return _validateVariableName(v->name.c_str());
+   bool rval = _validateVariableName(v->name.c_str());
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Invalid variable syntax. "
+         "Syntax: {<variable>[|pipe1][|pipe2]}");
+      e->getDetails()["line"] = c->line;
+      e->getDetails()["column"] = c->column;
+      e->getDetails()["near"] = v->name.c_str();
+      Exception::push(e);
+   }
+   return rval;
 }
 
 static bool _pipe_escape(
@@ -1339,7 +1356,7 @@ static bool _pipe_capitalize(
    return rval;
 };
 
-bool TemplateInputStream::parsePipe(Pipe* p)
+bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
 {
    bool rval = true;
 
@@ -1363,7 +1380,9 @@ bool TemplateInputStream::parsePipe(Pipe* p)
          ExceptionRef e = new Exception(
             "Unknown escape type.",
             EXCEPTION_SYNTAX);
-         e->getDetails()["pipe"] = p->text.c_str();
+         e->getDetails()["line"] = c->line;
+         e->getDetails()["column"] = c->column;
+         e->getDetails()["near"] = p->text.c_str();
          Exception::set(e);
          rval = false;
       }
@@ -1378,7 +1397,9 @@ bool TemplateInputStream::parsePipe(Pipe* p)
       ExceptionRef e = new Exception(
          "Unknown pipe.",
          EXCEPTION_SYNTAX);
-      e->getDetails()["pipe"] = p->text.c_str();
+      e->getDetails()["line"] = c->line;
+      e->getDetails()["column"] = c->column;
+      e->getDetails()["near"] = p->text.c_str();
       Exception::set(e);
       rval = false;
    }

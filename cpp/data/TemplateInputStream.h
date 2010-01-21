@@ -398,21 +398,23 @@ protected:
     * Called from within parseConstruct() to parses the current variable,
     * ensuring it is valid.
     *
+    * @param c the variable's construct.
     * @param v the variable.
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool parseVariable(Variable* v);
+   virtual bool parseVariable(Construct* c, Variable* v);
 
    /**
     * Called from within parseConstruct() to parses the current pipe,
     * ensuring it is valid.
     *
+    * @param c the pipe's construct.
     * @param p the pipe.
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool parsePipe(Pipe* p);
+   virtual bool parsePipe(Construct* c, Pipe* p);
 
    /**
     * Creates the parsed output, to be read from this input stream, by
