@@ -218,7 +218,7 @@ static int _trimQuotes(string& value)
    return rval;
 }
 
-static bool _validateVariableName(const char* v)
+static bool _validateVariableName(const char* v, const char** op)
 {
    bool rval = true;
 
@@ -235,22 +235,53 @@ static bool _validateVariableName(const char* v)
    // must be alpha-numeric, etc.
    else
    {
+      // variable can be followed by an operator
+      bool hasOp = false;
       for(int i = 0; rval && i < len; i++)
       {
          char c = v[i];
-         if(!(c >= 'a' && c <= 'z') &&
-            !(c >= 'A' && c <= 'Z') &&
-            !(c >= '0' && c <= '9') &&
-            c != '_' && c != '.')
+         if(hasOp)
          {
-            ExceptionRef e = new Exception(
-               "Variable name must contain only alphanumeric characters, "
-               "underscores, or the '.' object delimiter.",
-               EXCEPTION_SYNTAX);
-            e->getDetails()["variable"] = v;
-            Exception::set(e);
-            rval = false;
+            if(!(c >= 'a' && c <= 'z') &&
+               !(c >= 'A' && c <= 'Z') &&
+               !(c >= '0' && c <= '9') &&
+               c != '_' && c != '.')
+            {
+               rval = false;
+            }
          }
+         else
+         {
+            if(!(c >= 'a' && c <= 'z') &&
+               !(c >= 'A' && c <= 'Z') &&
+               !(c >= '0' && c <= '9') &&
+               c != '_' && c != '.')
+            {
+               if(c == '+' || c == '-')
+               {
+                  hasOp = true;
+                  if(op != NULL)
+                  {
+                     *op = v + i;
+                  }
+               }
+               else
+               {
+                  rval = false;
+               }
+            }
+         }
+      }
+      if(!rval)
+      {
+         ExceptionRef e = new Exception(
+            "Variable name must contain only alphanumeric characters, "
+            "underscores, or the '.' object delimiter. If it has an operator, "
+            "then it must fall between two variables or between a variable "
+            "and a number.",
+            EXCEPTION_SYNTAX);
+         e->getDetails()["variable"] = v;
+         Exception::set(e);
       }
    }
 
@@ -998,7 +1029,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                   break;
                case 0:
                   // it must be a variable
-                  rval = _validateVariableName(path.c_str());
+                  rval = _validateVariableName(path.c_str(), NULL);
                   if(rval)
                   {
                      params["var"] = path.c_str();
@@ -1051,12 +1082,12 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          rval =
             params->hasMember("from") &&
             params->hasMember("as") &&
-            _validateVariableName(params["from"]->getString()) &&
-            _validateVariableName(params["as"]->getString()) &&
+            _validateVariableName(params["from"]->getString(), NULL) &&
+            _validateVariableName(params["as"]->getString(), NULL) &&
             (!params->hasMember("key") ||
-             _validateVariableName(params["key"]->getString())) &&
+             _validateVariableName(params["key"]->getString(), NULL)) &&
             (!params->hasMember("index") ||
-             _validateVariableName(params["index"]->getString()));
+             _validateVariableName(params["index"]->getString(), NULL));
          break;
       }
       case Command::cmd_eachelse:
@@ -1109,7 +1140,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          else if(rval)
          {
             CompareOp op = op_single;
-            rval = _validateVariableName(tokens[1]->getString());
+            rval = _validateVariableName(tokens[1]->getString(), NULL);
             if(rval && tokens->length() > 2)
             {
                string rhs;
@@ -1158,7 +1189,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                         else
                         {
                            // rhs is a variable
-                           rval = _validateVariableName(rhs.c_str());
+                           rval = _validateVariableName(rhs.c_str(), NULL);
                            if(rval)
                            {
                               params["rhs"]["isVar"] = true;
@@ -1225,7 +1256,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
 
                // validate key as a variable name
                const char* name = kv[0]->getString();
-               rval = _validateVariableName(name);
+               rval = _validateVariableName(name, NULL);
                if(rval)
                {
                   params["lhs"] = name;
@@ -1268,7 +1299,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                         else
                         {
                            // rhs is a variable
-                           rval = _validateVariableName(rhs.c_str());
+                           rval = _validateVariableName(rhs.c_str(), NULL);
                            if(rval)
                            {
                               params["rhs"]["isVar"] = true;
@@ -1296,7 +1327,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          else
          {
             // validate variable name
-            rval = _validateVariableName(tokens[1]->getString());
+            rval = _validateVariableName(tokens[1]->getString(), NULL);
             if(rval)
             {
                params["lhs"] = tokens[1]->getString();
@@ -1429,7 +1460,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
 
 bool TemplateInputStream::parseVariable(Construct* c, Variable* v)
 {
-   bool rval = _validateVariableName(v->name.c_str());
+   bool rval = _validateVariableName(v->name.c_str(), NULL);
    if(!rval)
    {
       ExceptionRef e = new Exception(
