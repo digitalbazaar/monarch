@@ -259,7 +259,7 @@ int ByteBuffer::fill(InputStream* is, int length)
       // determine how much to read
       length = (length > 0 && length < fs ? length : fs);
 
-      // read until amount received or stream empty
+      // read until amount received or stream empty/buffer full
       int numBytes = 1;
       while(length > 0 && numBytes > 0)
       {

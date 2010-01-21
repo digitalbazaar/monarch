@@ -1390,6 +1390,12 @@ bool TemplateInputStream::writeConstruct(Construct* c)
 {
    bool rval = true;
 
+   // grow parsed buffer if full
+   if(mParsed.isFull())
+   {
+      mParsed.resize(mParsed.capacity() * 2);
+   }
+
    switch(c->type)
    {
       case Construct::Undefined:
@@ -1493,7 +1499,17 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                mVars, mStrict, fis, true,
                mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
             mParsed.allocateSpace(file->getLength() & MAX_BUFFER, true);
-            int num = mParsed.fill(tis);
+            int num;
+            do
+            {
+               num = mParsed.fill(tis);
+               if(num != 0 && mParsed.isFull())
+               {
+                  // grow parsed buffer
+                  mParsed.resize(mParsed.capacity() * 2);
+               }
+            }
+            while(num > 0);
             tis->close();
             delete tis;
             rval = (num != -1);
