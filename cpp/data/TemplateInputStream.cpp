@@ -67,6 +67,7 @@ TemplateInputStream::TemplateInputStream(
 {
    resetState();
    mVars->setType(Map);
+   mLocalVars->setType(Map);
    if(includeDir != NULL)
    {
       mIncludeDir = File(includeDir);
@@ -82,6 +83,7 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
 {
    resetState();
    mVars->setType(Map);
+   mLocalVars->setType(Map);
 }
 
 TemplateInputStream::~TemplateInputStream()
@@ -954,6 +956,16 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       cmd->type = Command::cmd_else;
       cmd->requiresEnd = false;
    }
+   else if(strcmp(cmdName, "set") == 0)
+   {
+      cmd->type = Command::cmd_set;
+      cmd->requiresEnd = false;
+   }
+   else if(strcmp(cmdName, "unset") == 0)
+   {
+      cmd->type = Command::cmd_unset;
+      cmd->requiresEnd = false;
+   }
 
    // build params
    DynamicObject params;
@@ -1090,7 +1102,11 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                         rval = false;
                         break;
                      case 0:
-                        if(rhs.at(0) == '-' ||
+                        if(rhs.length() == 0)
+                        {
+                           rval = false;
+                        }
+                        else if(rhs.at(0) == '-' ||
                            (rhs.at(0) >= '0' && rhs.at(0) <= '9'))
                         {
                            // rhs is a number
@@ -1129,7 +1145,6 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                         params["rhs"]["value"] = rhs.c_str();
                         break;
                   }
-                  rval = rval && (rhs.length() > 0);
                }
             }
             if(rval)
@@ -1161,6 +1176,108 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          }
          break;
       }
+      case Command::cmd_set:
+      {
+         // {:set <name>=<var>}
+         if(tokens->length() < 2)
+         {
+            rval = false;
+         }
+         else
+         {
+            // join all tokens after command name
+            string rhs = StringTools::join(tokens, " ", 1);
+            DynamicObject kv = StringTools::split(rhs.c_str(), "=");
+            if(kv->length() < 2)
+            {
+               rval = false;
+            }
+            else
+            {
+               // join all tokens after equals as rhs
+               rhs = StringTools::join(kv, "=", 1);
+
+               // validate key as a variable name
+               const char* name = kv[0]->getString();
+               rval = _validateVariableName(name);
+               if(rval)
+               {
+                  params["lhs"] = name;
+
+                  // trim quotes off of rhs
+                  switch(_trimQuotes(rhs))
+                  {
+                     case -1:
+                        // mismatched quotes
+                        rval = false;
+                        break;
+                     case 0:
+                        if(rhs.length() == 0)
+                        {
+                           rval = false;
+                        }
+                        else if(rhs.at(0) == '-' ||
+                           (rhs.at(0) >= '0' && rhs.at(0) <= '9'))
+                        {
+                           // rhs is a number
+                           params["rhs"]["value"] = rhs.c_str();
+                           if(rhs.at(0) == '-')
+                           {
+                              // signed number
+                              params["rhs"]["value"]->setType(Int64);
+                           }
+                           else
+                           {
+                              // unsigned number
+                              params["rhs"]["value"]->setType(UInt64);
+                           }
+                        }
+                        else if(strcmp(rhs.c_str(), "true") == 0 ||
+                                strcmp(rhs.c_str(), "false") == 0)
+                        {
+                           // rhs is a boolean
+                           params["rhs"]["value"] = rhs.c_str();
+                           params["rhs"]["value"]->setType(Boolean);
+                        }
+                        else
+                        {
+                           // rhs is a variable
+                           rval = _validateVariableName(rhs.c_str());
+                           if(rval)
+                           {
+                              params["rhs"]["isVar"] = true;
+                              params["rhs"]["value"] = rhs.c_str();
+                           }
+                        }
+                        break;
+                     case 1:
+                        // rhs is a string
+                        params["rhs"]["value"] = rhs.c_str();
+                        break;
+                  }
+               }
+            }
+         }
+         break;
+      }
+      case Command::cmd_unset:
+      {
+         // {:unset <name>}
+         if(tokens->length() != 2)
+         {
+            rval = false;
+         }
+         else
+         {
+            // validate variable name
+            rval = _validateVariableName(tokens[1]->getString());
+            if(rval)
+            {
+               params["lhs"] = tokens[1]->getString();
+            }
+         }
+         break;
+      }
       default:
       {
          ExceptionRef e = new Exception(
@@ -1187,7 +1304,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          {
             err =
                "Invalid 'include' syntax. "
-               "Syntax: {:include <var>|'/path/to/file'}";
+               "Syntax: {:include <var>|'/path/to/file' [<name>=<var>]}";
             break;
          }
          case Command::cmd_literal:
@@ -1200,22 +1317,22 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          case Command::cmd_end:
          {
             err =
-               "Invalid 'end' syntax. "
-               "Syntax: {:end}";
+               "Invalid 'end' syntax. Syntax: "
+               "{:end}";
             break;
          }
          case Command::cmd_ldelim:
          {
             err =
-               "Invalid 'ldelim' syntax. "
-               "Syntax: {:ldelim}";
+               "Invalid 'ldelim' syntax. Syntax: "
+               "{:ldelim}";
             break;
          }
          case Command::cmd_rdelim:
          {
             err =
-               "Invalid 'rdelim' syntax. "
-               "Syntax: {:rdelim}";
+               "Invalid 'rdelim' syntax. Syntax: "
+               "{:rdelim}";
             break;
          }
          case Command::cmd_each:
@@ -1246,6 +1363,20 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                "Invalid 'else' syntax. An 'else' must follow an 'if' or "
                "an 'elseif' and must have this syntax: "
                "{:else}";
+            break;
+         }
+         case Command::cmd_set:
+         {
+            err =
+               "Invalid 'set' syntax. Syntax: "
+               "{:set <name>=<var>}";
+            break;
+         }
+         case Command::cmd_unset:
+         {
+            err =
+               "Invalid 'unset' syntax. Syntax: "
+               "{:unset <name>}";
             break;
          }
          default:
@@ -1462,7 +1593,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
       }
       case Command::cmd_include:
       {
-         // {:include <var>|'/path/to/file'}
+         // {:include <var>|'/path/to/file' [<name>=<var>]}
          DynamicObject& params = *cmd->params;
          string path;
 
@@ -1500,6 +1631,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             TemplateInputStream* tis = new TemplateInputStream(
                mVars, mStrict, fis, true,
                mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
+            tis->mLocalVars = mLocalVars;
             mParsed.allocateSpace(file->getLength() & MAX_BUFFER, true);
             int num;
             do
@@ -1666,6 +1798,41 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                rval = writeConstruct(child);
             }
          }
+         break;
+      }
+      case Command::cmd_set:
+      {
+         DynamicObject& params = *cmd->params;
+
+         // find rhs variable
+         DynamicObject rhs(NULL);
+         if(params["rhs"]["isVar"]->getBoolean())
+         {
+            // rhs variable must exist
+            rhs = findVariable(params["rhs"]["value"]->getString(), true);
+            if(rhs.isNull())
+            {
+               rval = false;
+            }
+         }
+         else
+         {
+            // use value directly (has its type already set)
+            rhs = params["rhs"]["value"];
+         }
+
+         if(rval)
+         {
+            // set local variable
+            findLocalVariable(params["lhs"]->getString(), &rhs, false);
+         }
+         break;
+      }
+      case Command::cmd_unset:
+      {
+         // set local variable
+         DynamicObject& params = *cmd->params;
+         findLocalVariable(params["lhs"]->getString(), NULL, true);
          break;
       }
       case Command::cmd_elseif:
@@ -1868,11 +2035,105 @@ DynamicObject TemplateInputStream::findVariable(
       }
    }
 
-   // check global vars if loop is not found
+   // check local vars if still not found
    if(vars.isNull())
    {
-      vars = mVars;
+      rval = findLocalVariable(varname, NULL, false);
    }
+
+   // check global vars if still not found
+   if(rval.isNull())
+   {
+      if(vars.isNull())
+      {
+         vars = mVars;
+      }
+
+      // scan all names
+      bool missing = false;
+      DynamicObjectIterator i = names.getIterator();
+      while(rval.isNull() && !missing && i->hasNext())
+      {
+         DynamicObject& d = i->next();
+         const char* key = d->getString();
+
+         // determine if key is a number or string
+         bool isNum = true;
+         for(const char* ptr = key; isNum && *ptr != 0; ptr++)
+         {
+            if(*ptr < '0' || *ptr > '9')
+            {
+               isNum = false;
+            }
+         }
+         int num = isNum ? d->getInt32() : 0;
+
+         // check for a key in vars
+         if(!isNum && vars->hasMember(key))
+         {
+            if(i->hasNext())
+            {
+               // next var found, but must go deeper in the tree
+               vars = vars[key];
+            }
+            else
+            {
+               // var found
+               rval = vars[key];
+            }
+         }
+         // check for an index in vars
+         else if(isNum && vars->getType() == Array && num < vars->length())
+         {
+            if(i->hasNext())
+            {
+               // next var found, but must go deeper in the tree
+               vars = vars[num];
+            }
+            else
+            {
+               // var found
+               rval = vars[num];
+            }
+         }
+         // see if the key is special-case "length"
+         else if(!i->hasNext() && strcmp(key, "length") == 0)
+         {
+            rval = DynamicObject();
+            rval = vars->length();
+         }
+         else
+         {
+            // var is missing
+            missing = true;
+         }
+      }
+   }
+
+   // set exception if variable missing and strict is on
+   if(rval.isNull() && strict)
+   {
+      ExceptionRef e = new Exception(
+         "The substitution variable is not defined. "
+         "Variable substitution cannot occur with an "
+         "undefined variable.",
+         EXCEPTION_TIS ".VariableNotDefined");
+      e->getDetails()["name"] = varname;
+      Exception::set(e);
+   }
+
+   return rval;
+}
+#include "monarch/data/json/JsonWriter.h"
+DynamicObject TemplateInputStream::findLocalVariable(
+   const char* varname, DynamicObject* set, bool unset)
+{
+   DynamicObject rval(NULL);
+
+   // split varname by period delimiters, drill-down
+   // into tree of maps looking for variable
+   DynamicObject names = StringTools::split(varname, ".");
+   DynamicObject vars = mLocalVars;
 
    // scan all names
    bool missing = false;
@@ -1894,56 +2155,121 @@ DynamicObject TemplateInputStream::findVariable(
       int num = isNum ? d->getInt32() : 0;
 
       // check for a key in vars
-      if(!isNum && vars->hasMember(key))
+      if(!isNum)
       {
-         if(i->hasNext())
+         if(vars->hasMember(key))
          {
-            // next var found, but must go deeper in the tree
-            vars = vars[key];
+            if(i->hasNext())
+            {
+               // next var found, but must go deeper in the tree
+               vars = vars[key];
+            }
+            else if(set != NULL)
+            {
+               // set the var
+               vars[key] = *set;
+               rval = *set;
+            }
+            else if(unset)
+            {
+               // unset the var
+               vars->removeMember(key);
+               missing = true;
+            }
+            else
+            {
+               // return the var
+               rval = vars[key];
+            }
+         }
+         else if(set != NULL)
+         {
+            if(i->hasNext())
+            {
+               // create a map to store the key in, then go deeper
+               vars[key]->setType(Map);
+               vars = vars[key];
+            }
+            else
+            {
+               // set the variable
+               vars[key] = *set;
+               rval = *set;
+            }
+         }
+         // see if the key is special-case "length"
+         else if(!i->hasNext() && strcmp(key, "length") == 0)
+         {
+            rval = DynamicObject();
+            rval = vars->length();
          }
          else
          {
-            // var found
-            rval = vars[key];
+            // var not found
+            missing = true;
          }
       }
       // check for an index in vars
-      else if(isNum && vars->getType() == Array && num < vars->length())
+      else if(isNum)
       {
-         if(i->hasNext())
+         if(i->hasNext() && vars->getType() == Array && num < vars->length())
          {
             // next var found, but must go deeper in the tree
             vars = vars[num];
          }
+         else if(vars->getType() == Array && num < vars->length())
+         {
+            if(set != NULL)
+            {
+               if(i->hasNext())
+               {
+                  // create a map to store the var in, then go deeper
+                  vars[num]->setType(Map);
+                  vars = vars[num];
+               }
+               else
+               {
+                  // set the var
+                  vars[num] = *set;
+                  rval = *set;
+               }
+            }
+            else if(unset)
+            {
+               // unset the var
+               vars[num] = false;
+               missing = true;
+            }
+            else
+            {
+               // return the var
+               rval = vars[num];
+            }
+         }
+         else if(set != NULL)
+         {
+            if(i->hasNext())
+            {
+               // create a map to store the var in, then go deeper
+               vars[num]->setType(Map);
+               vars = vars[num];
+            }
+            else
+            {
+               // set the var
+               vars[num] = *set;
+               rval = *set;
+            }
+         }
          else
          {
-            // var found
-            rval = vars[num];
+            missing = true;
          }
-      }
-      // see if the key is special-case "length"
-      else if(strcmp(key, "length") == 0)
-      {
-         rval = DynamicObject();
-         rval = vars->length();
       }
       else
       {
-         // var is missing
          missing = true;
       }
-   }
-
-   // set exception if variable missing and strict is on
-   if(missing && strict)
-   {
-      ExceptionRef e = new Exception(
-         "The substitution variable is not defined. "
-         "Variable substitution cannot occur with an "
-         "undefined variable.",
-         "monarch.data.TemplateInputStream.VariableNotDefined");
-      e->getDetails()["name"] = varname;
-      Exception::set(e);
    }
 
    return rval;
@@ -1956,7 +2282,7 @@ void TemplateInputStream::setParseException(
    // in the parse exception
    ExceptionRef e = new Exception(
       "Template parser error.",
-      "monarch.data.TemplateInputStream.ParseError");
+      EXCEPTION_TIS ".ParseError");
    e->getDetails()["line"] = line;
    e->getDetails()["column"] = column;
    e->getDetails()["near"] = near;
@@ -2027,6 +2353,7 @@ void TemplateInputStream::resetState(bool createRoot)
    mBlocked = true;
    mEndOfStream = false;
    mLoops.clear();
+   mLocalVars->clear();
 
    // free constructs
    while(!mConstructs.empty())

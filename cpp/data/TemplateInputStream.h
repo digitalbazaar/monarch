@@ -112,7 +112,9 @@ protected:
          cmd_each,
          cmd_if,
          cmd_elseif,
-         cmd_else
+         cmd_else,
+         cmd_set,
+         cmd_unset
       };
       Type type;
       std::string text;
@@ -232,6 +234,12 @@ protected:
    monarch::rt::DynamicObject mVars;
 
    /**
+    * Variables that have been set from within a template that can override
+    * mVars.
+    */
+   monarch::rt::DynamicObject mLocalVars;
+
+   /**
     * True to raise exceptions if the template has variables that
     * are not found in "mVars", false not to.
     */
@@ -294,7 +302,7 @@ public:
     *
     * @param vars the variables to use.
     * @param strict true to raise an exception if the passed variables do not
-    *               have a variable that is found in the template, false if not.
+    *           have a variable that is found in the template, false if not.
     */
    virtual void setVariables(
       monarch::rt::DynamicObject& vars, bool strict = false);
@@ -465,6 +473,18 @@ protected:
     */
    virtual monarch::rt::DynamicObject findVariable(
       const char* varname, bool strict);
+
+   /**
+    * Finds the local variable with the given varname.
+    *
+    * @param varname the name of the variable.
+    * @param set non-NULL to set the variable.
+    * @param unset true to unset the variable.
+    *
+    * @return the local variable or NULL if not found.
+    */
+   virtual monarch::rt::DynamicObject findLocalVariable(
+      const char* varname, monarch::rt::DynamicObject* set, bool unset);
 
    /**
     * Sets a parse exception with the given line and column numbers and

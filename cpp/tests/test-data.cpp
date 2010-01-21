@@ -2077,6 +2077,64 @@ void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfException();
 
+   tr.test("parse (set/unset)");
+   {
+      // create template
+      const char* tpl =
+         "{:if foo}"
+            "bar was {bar}\n"
+            "{:set bar='some text'}"
+            "bar is now '{bar}'\n"
+            "{:set mymap.foo=bar}"
+            "mymap.foo is now '{mymap.foo}'\n"
+            "{:unset bar}"
+            "bar is back to {bar}\n"
+            "mymap.foo is still '{mymap.foo}'\n"
+            "{:set bar=true}"
+            "{:if bar == true}"
+               "{:set mymap.foo=bar}"
+               "mymap.foo is now {mymap.foo}\n"
+               "{:set mymap.foo.0='in an array'}"
+               "mymap.foo.0 is '{mymap.foo.0}'\n"
+               "{:unset mymap}"
+               "{:set mynumber=17}"
+               "mynumber is {mynumber}\n"
+            "{:end}"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["foo"] = true;
+      vars["bar"] = 12;
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "bar was 12\n"
+         "bar is now 'some text'\n"
+         "mymap.foo is now 'some text'\n"
+         "bar is back to 12\n"
+         "mymap.foo is still 'some text'\n"
+         "mymap.foo is now true\n"
+         "mymap.foo.0 is 'in an array'\n"
+         "mynumber is 17\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
