@@ -2145,6 +2145,10 @@ void runTemplateInputStreamTest(TestRunner& tr)
                "{:unset mymap}"
                "{:set mynumber=17}"
                "mynumber is {mynumber}\n"
+               "{:set mynumber=mynumber+1}"
+               "mynumber incremented to {mynumber}\n"
+               "{:set mynumber=mynumber-2}"
+               "mynumber decremented to {mynumber}\n"
             "{:end}"
          "{:end}";
 
@@ -2171,7 +2175,9 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "mymap.foo is still 'some text'\n"
          "mymap.foo is now true\n"
          "mymap.foo.0 is 'in an array'\n"
-         "mynumber is 17\n";
+         "mynumber is 17\n"
+         "mynumber incremented to 18\n"
+         "mynumber decremented to 16\n";
 
       // null-terminate output
       output.putByte(0, 1, true);

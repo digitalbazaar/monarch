@@ -242,11 +242,11 @@ static bool _validateVariableName(const char* v, const char** op)
    else
    {
       // variable can be followed by an operator
-      bool hasOp = false;
+      int opIndex = -1;
       for(int i = 0; rval && i < len; i++)
       {
          char c = v[i];
-         if(hasOp)
+         if(opIndex != -1)
          {
             if(!(c >= 'a' && c <= 'z') &&
                !(c >= 'A' && c <= 'Z') &&
@@ -265,7 +265,7 @@ static bool _validateVariableName(const char* v, const char** op)
             {
                if(c == '+' || c == '-')
                {
-                  hasOp = true;
+                  opIndex = i;
                   if(op != NULL)
                   {
                      *op = v + i;
@@ -278,6 +278,14 @@ static bool _validateVariableName(const char* v, const char** op)
             }
          }
       }
+
+      // ensure there is a rhs after the operator
+      if(rval && opIndex != -1 && opIndex + 1 >= len)
+      {
+         rval = false;
+      }
+
+      // validation error
       if(!rval)
       {
          ExceptionRef e = new Exception(
@@ -2045,12 +2053,32 @@ DynamicObject TemplateInputStream::findVariable(
 {
    DynamicObject rval(NULL);
 
-   // if the variable has an operator, split it out
-   //const char* op = strptok(
+   // if the variable has an operator w/rhs, get it
+   string lhs = varname;
+   const char* opPtr = strpbrk(varname, VAR_OPERATORS);
+   char op = 0;
+   DynamicObject rhs(NULL);
+   if(opPtr != NULL)
+   {
+      op = *opPtr;
+      lhs = lhs.substr(0, opPtr - varname);
+
+      string value(opPtr + 1);
+      DynamicObject tmp;
+      _parseRhs(value, tmp, NULL);
+      if(tmp["isVar"]->getBoolean())
+      {
+         rhs = findVariable(tmp["value"]->getString(), strict);
+      }
+      else
+      {
+         rhs = tmp["value"];
+      }
+   }
 
    // split varname by period delimiters, drill-down
    // into tree of maps looking for variable
-   DynamicObject names = StringTools::split(varname, ".");
+   DynamicObject names = StringTools::split(lhs.c_str(), ".");
    DynamicObject vars(NULL);
 
    // first check loops, in reverse order
@@ -2097,7 +2125,7 @@ DynamicObject TemplateInputStream::findVariable(
    // check local vars if still not found
    if(vars.isNull())
    {
-      rval = findLocalVariable(varname, NULL, false);
+      rval = findLocalVariable(lhs.c_str(), NULL, false);
    }
 
    // check global vars if still not found
@@ -2170,15 +2198,65 @@ DynamicObject TemplateInputStream::findVariable(
    }
 
    // set exception if variable missing and strict is on
-   if(rval.isNull() && strict)
+   if(rval.isNull())
    {
-      ExceptionRef e = new Exception(
-         "The substitution variable is not defined. "
-         "Variable substitution cannot occur with an "
-         "undefined variable.",
-         EXCEPTION_TIS ".VariableNotDefined");
-      e->getDetails()["name"] = varname;
-      Exception::set(e);
+      if(strict)
+      {
+         ExceptionRef e = new Exception(
+            "The substitution variable is not defined. "
+            "Variable substitution cannot occur with an "
+            "undefined variable.",
+            EXCEPTION_TIS ".VariableNotDefined");
+         e->getDetails()["name"] = varname;
+         Exception::set(e);
+      }
+   }
+   // handle operation
+   else if(op != 0)
+   {
+      if(rhs.isNull())
+      {
+         // if strict is on, set an error, otherwise, just skip the operation
+         if(strict)
+         {
+            ExceptionRef e = new Exception(
+               "The variable to the right of the operator is not defined. "
+               "Variable operators cannot be applied with an undefined "
+               "variable.",
+               EXCEPTION_TIS ".VariableNotDefined");
+            e->getDetails()["name"] = varname;
+            Exception::set(e);
+         }
+      }
+      else
+      {
+         switch(op)
+         {
+            case '+':
+            {
+               // add lhs to rhs
+               DynamicObject tmp = rval;
+               rval = DynamicObject();
+               rval = tmp->getUInt64() + rhs->getUInt64();
+               break;
+            }
+            case '-':
+            {
+               // subtract rhs from lhs
+               DynamicObject tmp = rval;
+               rval = DynamicObject();
+               if(rhs->getType() == Int32 || rhs->getType() == Int64)
+               {
+                  rval = tmp->getInt64() - rhs->getInt64();
+               }
+               else
+               {
+                  rval = tmp->getUInt64() - rhs->getUInt64();
+               }
+               break;
+            }
+         }
+      }
    }
 
    return rval;
