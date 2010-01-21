@@ -1971,11 +1971,15 @@ void runTemplateInputStreamTest(TestRunner& tr)
    {
       // create template
       const char* tpl =
-         "{:each from=foo.items as=item}"
+         "{:each from=foo.items as=item index=index}"
          "{:if bar}{bar}{:end}"
          "{:if item == 'item1'}"
          "The item is '{item}'\n"
+         "{:set found=index}"
          "{:end}"
+         "{:end}"
+         "{:if found == foo.special-1}"
+         "The item is special\n"
          "{:end}";
 
       // create variables
@@ -1983,6 +1987,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       vars["foo"]["items"]->append() = "item1";
       vars["foo"]["items"]->append() = "item2";
       vars["foo"]["items"]->append() = "item3";
+      vars["foo"]["special"] = 1;
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -1995,7 +2000,8 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertNoException();
 
       const char* expect =
-         "The item is 'item1'\n";
+         "The item is 'item1'\n"
+         "The item is special\n";
 
       // null-terminate output
       output.putByte(0, 1, true);

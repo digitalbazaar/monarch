@@ -2114,7 +2114,7 @@ DynamicObject TemplateInputStream::findVariable(
                vars[nm] = loop->i->getIndex();
             }
          }
-         else if(strcmp(loop->item.c_str(), nm) == 0)
+         else if(strcmp(loop->index.c_str(), nm) == 0)
          {
             vars = DynamicObject();
             vars[nm] = loop->i->getIndex();
