@@ -111,6 +111,8 @@ protected:
          cmd_rdelim,
          cmd_each,
          cmd_eachelse,
+         cmd_loop,
+         cmd_loopelse,
          cmd_if,
          cmd_elseif,
          cmd_else,
@@ -161,16 +163,38 @@ protected:
    };
 
    /**
-    * A loop has a item name, an optional key name, an optional index name,
-    * an associated iterator, and current value.
+    * A loop has a type and data associated with that particular type.
     */
    struct Loop
    {
-      std::string item;
-      std::string key;
-      std::string index;
-      monarch::rt::DynamicObjectIterator i;
-      monarch::rt::DynamicObject current;
+      enum Type
+      {
+         loop_each,
+         loop_for
+      };
+      Type type;
+
+      struct EachData
+      {
+         std::string item;
+         std::string key;
+         std::string index;
+         monarch::rt::DynamicObjectIterator i;
+         monarch::rt::DynamicObject current;
+      };
+      struct ForData
+      {
+         int start;
+         int until;
+         int step;
+         int i;
+         std::string index;
+      };
+      union
+      {
+         EachData* eachData;
+         ForData* forData;
+      };
    };
 
    /**

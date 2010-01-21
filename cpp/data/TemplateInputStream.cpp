@@ -356,6 +356,12 @@ static bool _parseRhs(string& value, DynamicObject& rhs, const char** op)
    return rval;
 }
 
+static bool _parseRhs(const char* value, DynamicObject& rhs, const char** op)
+{
+   string str(value);
+   return _parseRhs(value, rhs, op);
+}
+
 static bool _validateOperator(const char* op, CompareOp& out)
 {
    bool rval = true;
@@ -1045,6 +1051,16 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       cmd->type = Command::cmd_eachelse;
       cmd->requiresEnd = false;
    }
+   else if(strcmp(cmdName, "loop") == 0)
+   {
+      cmd->type = Command::cmd_loop;
+      cmd->requiresEnd = true;
+   }
+   else if(strcmp(cmdName, "loopelse") == 0)
+   {
+      cmd->type = Command::cmd_loopelse;
+      cmd->requiresEnd = false;
+   }
    else if(strcmp(cmdName, "if") == 0)
    {
       cmd->type = Command::cmd_if;
@@ -1157,6 +1173,59 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          }
 
          // {:eachelse}
+         if(data == NULL || tokens->length() != 1)
+         {
+            rval = false;
+         }
+         break;
+      }
+      case Command::cmd_loop:
+      {
+         // {:loop start=<start> until=<until> [step=<step>] [index=<index>]}
+         DynamicObjectIterator i = tokens.getIterator();
+         i->next();
+         while(rval && i->hasNext())
+         {
+            DynamicObject kv = StringTools::split(i->next()->getString(), "=");
+            if(kv->length() != 2)
+            {
+               rval = false;
+            }
+            else
+            {
+               // add key-value pair
+               params[kv[0]->getString()] = kv[1]->getString();
+            }
+         }
+
+         // validate key-value pairs (ignores unknown key-value pairs)
+         DynamicObject rhs;
+         rval =
+            params->hasMember("start") &&
+            params->hasMember("until") &&
+            _parseRhs(params["start"]->getString(), rhs, NULL) &&
+            _parseRhs(params["until"]->getString(), rhs, NULL) &&
+            (!params->hasMember("step") ||
+             _parseRhs(params["key"]->getString(), rhs, NULL)) &&
+            (!params->hasMember("index") ||
+             _validateVariableName(params["index"]->getString(), NULL));
+         break;
+      }
+      case Command::cmd_loopelse:
+      {
+         // ensure the 'loopelse' is a child of an 'loop'
+         Command* data = NULL;
+         if(c->parent->type == Construct::Command)
+         {
+            data = static_cast<Command*>(c->parent->data);
+            if(data->type != Command::cmd_loop)
+            {
+               // 'loopelse' does not follow a 'loop'
+               data = NULL;
+            }
+         }
+
+         // {:loopelse}
          if(data == NULL || tokens->length() != 1)
          {
             rval = false;
@@ -1363,6 +1432,22 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                "Invalid 'eachelse' syntax. An 'eachelse' must follow an "
                "'each' and must have this syntax: "
                "{:eachelse}";
+            break;
+         }
+         case Command::cmd_loop:
+         {
+            err =
+               "Invalid 'loop' syntax. Syntax: "
+               "{:loop start=<start> until=<until> "
+               "[step=<step>]|[index=<index>]}";
+            break;
+         }
+         case Command::cmd_loopelse:
+         {
+            err =
+               "Invalid 'loopelse' syntax. A 'loopelse' must follow a "
+               "'loop' and must have this syntax: "
+               "{:loopelse}";
             break;
          }
          case Command::cmd_if:
@@ -1722,24 +1807,27 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          {
             // create loop with local variables
             Loop* loop = new Loop;
-            loop->item = item;
+            Loop::EachData* data = new Loop::EachData;
+            loop->type = Loop::loop_each;
+            loop->eachData = data;
+            data->item = item;
             if(params->hasMember("key"))
             {
-               loop->key = params["key"]->getString();
+               data->key = params["key"]->getString();
             }
             if(params->hasMember("index"))
             {
-               loop->index = params["index"]->getString();
+               data->index = params["index"]->getString();
             }
-            loop->i = var.getIterator();
+            data->i = var.getIterator();
             mLoops.push_back(loop);
-            bool doElse = !loop->i->hasNext();
+            bool doElse = !data->i->hasNext();
 
             // do loop iterations
-            while(rval && loop->i->hasNext())
+            while(rval && data->i->hasNext())
             {
                // set current loop item
-               loop->current = loop->i->next();
+               data->current = data->i->next();
 
                // iterate over children, producing output
                for(ConstructStack::iterator ci = c->children.begin();
@@ -1759,6 +1847,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
 
             // clean up loop
             mLoops.pop_back();
+            delete loop->eachData;
             delete loop;
 
             // handle 'eachelse' command
@@ -1777,6 +1866,121 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                   else if(child->type == Construct::Command &&
                      static_cast<Command*>(child->data)->type ==
                         Command::cmd_eachelse)
+                  {
+                     elseFound = true;
+                  }
+               }
+            }
+         }
+         break;
+      }
+      case Command::cmd_loop:
+      {
+         // {:loop start=<start> until=<until> [step=<step>]|[index=<index>]}
+         DynamicObject& params = *cmd->params;
+
+         // parse 'start', 'until', and 'step'
+         DynamicObject values;
+         values["start"];
+         values["until"];
+         if(params->hasMember("step"))
+         {
+            values["step"];
+         }
+         {
+            DynamicObjectIterator i = values.getIterator();
+            while(i->hasNext())
+            {
+               DynamicObject& value = i->next();
+               DynamicObject rhs;
+               _parseRhs(params["start"]->getString(), rhs, NULL);
+               if(rhs["isVar"]->getBoolean())
+               {
+                  value= findVariable(rhs["value"]->getString(), true);
+                  if(value.isNull())
+                  {
+                     rval = false;
+                  }
+               }
+               else if(rhs["value"]->getType() != UInt64 &&
+                       rhs["value"]->getType() != Int64)
+               {
+                  // cannot be a string
+                  ExceptionRef e = new Exception(
+                     "'loop' parameter must be a number.",
+                     EXCEPTION_SYNTAX);
+                  e->getDetails()["parameter"] = i->getName();
+                  Exception::set(e);
+                  setParseException(
+                     c->line, c->line, cmd->text.substr(0, 50).c_str());
+                  rval = false;
+               }
+               else
+               {
+                  value = rhs["value"];
+               }
+            }
+         }
+
+         if(rval)
+         {
+            // create loop with local variables
+            Loop* loop = new Loop;
+            Loop::ForData* data = new Loop::ForData;
+            loop->type = Loop::loop_for;
+            loop->forData = data;
+            data->start = values["start"]->getInt32();
+            data->until = values["until"]->getInt32();
+            data->i = data->start;
+            data->step = values->hasMember("step") ?
+               values["step"]->getInt32() : 1;
+            if(params->hasMember("index"))
+            {
+               data->index = params["index"]->getString();
+            }
+            mLoops.push_back(loop);
+            bool doElse = (data->start >= data->until);
+
+            // do loop iterations
+            for(; data->i < data->until; data->i += data->step)
+            {
+               // iterate over children, producing output
+               for(ConstructStack::iterator ci = c->children.begin();
+                   rval && ci != c->children.end(); ci++)
+               {
+                  // stop at 'loopelse' child
+                  Construct* child = *ci;
+                  if(child->type == Construct::Command &&
+                     static_cast<Command*>(child->data)->type ==
+                        Command::cmd_loopelse)
+                  {
+                     break;
+                  }
+                  rval = writeConstruct(*ci);
+               }
+            }
+
+            // clean up loop
+            mLoops.pop_back();
+            delete loop->forData;
+            delete loop;
+
+            // handle 'loopelse' command
+            if(doElse)
+            {
+               // write constructs after 'loopelse', if one is found
+               bool elseFound = false;
+               for(ConstructStack::iterator ci = c->children.begin();
+                   rval && ci != c->children.end(); ci++)
+               {
+                  Construct* child = *ci;
+                  if(elseFound)
+                  {
+                     rval = writeConstruct(*ci);
+                  }
+                  else if(child->type == Construct::Command &&
+                     static_cast<Command*>(child->data)->type ==
+                        Command::cmd_loopelse)
                   {
                      elseFound = true;
                   }
@@ -1899,6 +2103,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          break;
       }
       case Command::cmd_eachelse:
+      case Command::cmd_loopelse:
       case Command::cmd_elseif:
       case Command::cmd_else:
       default:
@@ -2090,34 +2295,47 @@ DynamicObject TemplateInputStream::findVariable(
           ri != mLoops.rend(); ri++)
       {
          Loop* loop = *ri;
-         if(strcmp(loop->item.c_str(), nm) == 0)
+         if(loop->type == Loop::loop_each)
          {
-            // loop variable found, put it in a map so that the
-            // code below to move down the tree is consistent
-            vars = DynamicObject();
-            vars[nm] = loop->current;
-            break;
-         }
-         else if(strcmp(loop->key.c_str(), nm) == 0)
-         {
-            // loop variable found (as the key), put it in a map so
-            // that the code below to move down the tree is consistent
-            vars = DynamicObject();
-            if(loop->i->getName() != NULL)
+            Loop::EachData* data = loop->eachData;
+            if(strcmp(data->item.c_str(), nm) == 0)
             {
-               // use name
-               vars[nm] = loop->i->getName();
+               // loop variable found, put it in a map so that the
+               // code below to move down the tree is consistent
+               vars = DynamicObject();
+               vars[nm] = data->current;
+               break;
             }
-            else
+            else if(strcmp(data->key.c_str(), nm) == 0)
             {
-               // use index
-               vars[nm] = loop->i->getIndex();
+               // loop variable found (as the key), put it in a map so
+               // that the code below to move down the tree is consistent
+               vars = DynamicObject();
+               if(data->i->getName() != NULL)
+               {
+                  // use name
+                  vars[nm] = data->i->getName();
+               }
+               else
+               {
+                  // use index
+                  vars[nm] = data->i->getIndex();
+               }
+            }
+            else if(strcmp(data->index.c_str(), nm) == 0)
+            {
+               vars = DynamicObject();
+               vars[nm] = data->i->getIndex();
             }
          }
-         else if(strcmp(loop->index.c_str(), nm) == 0)
+         else if(loop->type == Loop::loop_for)
          {
-            vars = DynamicObject();
-            vars[nm] = loop->i->getIndex();
+            Loop::ForData* data = loop->forData;
+            if(strcmp(data->index.c_str(), nm) == 0)
+            {
+               vars = DynamicObject();
+               vars[nm] = data->i;
+            }
          }
       }
    }
