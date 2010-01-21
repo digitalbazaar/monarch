@@ -1647,6 +1647,14 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             tis->close();
             delete tis;
             rval = (num != -1);
+            if(!rval)
+            {
+               ExceptionRef e = new Exception(
+                  "An exception occurred in an included file.",
+                  EXCEPTION_TIS ".IncludeException");
+               e->getDetails()["filename"] = file->getAbsolutePath();
+               Exception::push(e);
+            }
          }
          break;
       }
