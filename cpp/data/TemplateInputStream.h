@@ -110,6 +110,7 @@ protected:
          cmd_ldelim,
          cmd_rdelim,
          cmd_each,
+         cmd_eachelse,
          cmd_if,
          cmd_elseif,
          cmd_else,

@@ -1742,6 +1742,52 @@ void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (eachelse)");
+   {
+      // create template
+      const char* tpl =
+         "Item count: {items.length}\n"
+         "{:each from=items as=item key=key}"
+         "The item is '{item}', key is '{key}'\n"
+         "{:eachelse}"
+         "There are no items.\n"
+         "{:end}"
+         "{:set items.a='item1'}"
+         "Item count: {items.length}\n"
+         "{:each from=items as=item key=key}"
+         "The item is '{item}', key is '{key}'\n"
+         "{:eachelse}"
+         "There are no items.\n"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->setType(Array);
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Item count: 0\n"
+         "There are no items.\n"
+         "Item count: 1\n"
+         "The item is 'item1', key is 'a'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
    tr.test("parse (invalid - each)");
    {
       // create template

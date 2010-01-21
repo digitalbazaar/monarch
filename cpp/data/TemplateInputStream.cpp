@@ -941,6 +941,11 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       cmd->type = Command::cmd_each;
       cmd->requiresEnd = true;
    }
+   else if(strcmp(cmdName, "eachelse") == 0)
+   {
+      cmd->type = Command::cmd_eachelse;
+      cmd->requiresEnd = false;
+   }
    else if(strcmp(cmdName, "if") == 0)
    {
       cmd->type = Command::cmd_if;
@@ -1052,6 +1057,27 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
              _validateVariableName(params["key"]->getString())) &&
             (!params->hasMember("index") ||
              _validateVariableName(params["index"]->getString()));
+         break;
+      }
+      case Command::cmd_eachelse:
+      {
+         // ensure the 'eachelse' is a child of an 'each'
+         Command* data = NULL;
+         if(c->parent->type == Construct::Command)
+         {
+            data = static_cast<Command*>(c->parent->data);
+            if(data->type != Command::cmd_each)
+            {
+               // 'eachelse' does not follow an 'each'
+               data = NULL;
+            }
+         }
+
+         // {:eachelse}
+         if(data == NULL || tokens->length() != 1)
+         {
+            rval = false;
+         }
          break;
       }
       case Command::cmd_if:
@@ -1340,6 +1366,14 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
             err =
                "Invalid 'each' syntax. Syntax: "
                "{:each from=<from> as=<item> [key=<key>]|[index=<index>]}";
+            break;
+         }
+         case Command::cmd_eachelse:
+         {
+            err =
+               "Invalid 'eachelse' syntax. An 'eachelse' must follow an "
+               "'each' and must have this syntax: "
+               "{:eachelse}";
             break;
          }
          case Command::cmd_if:
@@ -1709,6 +1743,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             }
             loop->i = var.getIterator();
             mLoops.push_back(loop);
+            bool doElse = !loop->i->hasNext();
 
             // do loop iterations
             while(rval && loop->i->hasNext())
@@ -1720,6 +1755,14 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                for(ConstructStack::iterator ci = c->children.begin();
                    rval && ci != c->children.end(); ci++)
                {
+                  // stop at 'eachelse' child
+                  Construct* child = *ci;
+                  if(child->type == Construct::Command &&
+                     static_cast<Command*>(child->data)->type ==
+                        Command::cmd_eachelse)
+                  {
+                     break;
+                  }
                   rval = writeConstruct(*ci);
                }
             }
@@ -1727,6 +1770,28 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             // clean up loop
             mLoops.pop_back();
             delete loop;
+
+            // handle 'eachelse' command
+            if(doElse)
+            {
+               // write constructs after 'eachelse', if one is found
+               bool elseFound = false;
+               for(ConstructStack::iterator ci = c->children.begin();
+                   rval && ci != c->children.end(); ci++)
+               {
+                  Construct* child = *ci;
+                  if(elseFound)
+                  {
+                     rval = writeConstruct(*ci);
+                  }
+                  else if(child->type == Construct::Command &&
+                     static_cast<Command*>(child->data)->type ==
+                        Command::cmd_eachelse)
+                  {
+                     elseFound = true;
+                  }
+               }
+            }
          }
          break;
       }
@@ -1843,6 +1908,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          findLocalVariable(params["lhs"]->getString(), NULL, true);
          break;
       }
+      case Command::cmd_eachelse:
       case Command::cmd_elseif:
       case Command::cmd_else:
       default:
@@ -2132,7 +2198,7 @@ DynamicObject TemplateInputStream::findVariable(
 
    return rval;
 }
-#include "monarch/data/json/JsonWriter.h"
+
 DynamicObject TemplateInputStream::findLocalVariable(
    const char* varname, DynamicObject* set, bool unset)
 {
