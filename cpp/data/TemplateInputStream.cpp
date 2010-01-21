@@ -30,7 +30,7 @@ using namespace monarch::util;
 #define START_VARIABLE "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define START_PIPE     "|"
 
-#define BUFFER_SIZE   2048
+#define BUFFER_SIZE   20//2048
 #define MAX_BUFFER    0xFFFFFFFF
 
 #define EXCEPTION_TIS       "monarch.data.TemplateInputStream"
@@ -465,11 +465,15 @@ bool TemplateInputStream::parseTemplateBuffer()
          ret = consumeTemplate(ptr);
          if(ret == 0)
          {
-            ExceptionRef e = new Exception(
-               "No comment, command, or variable found in markup.",
-               EXCEPTION_SYNTAX);
-            Exception::set(e);
-            rval = false;
+            // if not blocked, then invalid construct
+            if(!mBlocked)
+            {
+               ExceptionRef e = new Exception(
+                  "No comment, command, or variable found in construct.",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
          }
          else
          {
@@ -662,18 +666,21 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
       case ParseLiteral:
       case SkipComment:
       {
-         if(mState == FindConstruct || mState == ParseLiteral)
+         if(len > 0)
          {
-            // write text to literal
-            Construct* c = mConstructs.back();
-            Literal* data = static_cast<Literal*>(c->data);
-            data->text.append(mTemplate.data(), len);
-            mTemplate.clear(len);
-         }
-         else
-         {
-            // skip comment entirely
-            mTemplate.clear(len);
+            if(mState == FindConstruct || mState == ParseLiteral)
+            {
+               // write text to literal
+               Construct* c = mConstructs.back();
+               Literal* data = static_cast<Literal*>(c->data);
+               data->text.append(mTemplate.data(), len);
+               mTemplate.clear(len);
+            }
+            else
+            {
+               // skip comment entirely
+               mTemplate.clear(len);
+            }
          }
 
          // see if ending delimiter found
@@ -712,6 +719,12 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
       }
       case ParseConstructType:
       {
+         // handle corner case where construct started at the end of the buffer
+         if(rval == 0 && mTemplate.isEmpty())
+         {
+            mBlocked = true;
+         }
+
          // nothing to consume
          break;
       }
