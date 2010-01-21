@@ -30,7 +30,7 @@ using namespace monarch::util;
 #define START_VARIABLE "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define START_PIPE     "|"
 
-#define BUFFER_SIZE   20//2048
+#define BUFFER_SIZE   2048
 #define MAX_BUFFER    0xFFFFFFFF
 
 #define EXCEPTION_TIS       "monarch.data.TemplateInputStream"
