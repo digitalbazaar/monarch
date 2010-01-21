@@ -646,7 +646,7 @@ char TemplateInputStream::consumeTemplate(const char* ptr)
             if(mTemplate.data()[i] == EOL)
             {
                mLine++;
-               mColumn = 0;
+               mColumn = 1;
             }
             else
             {
@@ -2021,8 +2021,7 @@ void TemplateInputStream::resetState(bool createRoot)
    mStateStack.clear();
    mTemplate.clear();
    mParsed.clear();
-   mLine = 1;
-   mColumn = 0;
+   mLine = mColumn = 1;
    mBlocked = true;
    mEndOfStream = false;
    mLoops.clear();
