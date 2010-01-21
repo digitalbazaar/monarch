@@ -664,10 +664,10 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbMySqlTester : public monarch::test::Tester
+class MoMySqlTester : public monarch::test::Tester
 {
 public:
-   DbMySqlTester()
+   MoMySqlTester()
    {
       setName("mysql");
    }
@@ -693,7 +693,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbMySqlTester() { return new DbMySqlTester(); }
+monarch::test::Tester* getMoMySqlTester() { return new MoMySqlTester(); }
 
 
-MO_TEST_MAIN(DbMySqlTester)
+MO_TEST_MAIN(MoMySqlTester)

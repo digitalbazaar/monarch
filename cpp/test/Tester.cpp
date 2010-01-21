@@ -113,7 +113,7 @@ DynamicObject Tester::getCommandLineSpecs()
 
    //DynamicObject specs = AppDelegate::getCommandLineSpecs();
    // don't read App superclass options
-   // FIXME need to break up base App and DbApp
+   // FIXME need to break up base App and MoApp
    DynamicObject specs;
    specs->setType(Array);
    specs->append(spec);

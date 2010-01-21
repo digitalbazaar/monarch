@@ -28,7 +28,7 @@ namespace test
  * int main(int argc, const char* argv[])
  * {
  *    App app;
- *    DbIoTester tester;
+ *    MoIoTester tester;
  *    app.setDelegate(tester);
  *    app.initialize();
  *    return app.main(argc, argv);
@@ -36,7 +36,7 @@ namespace test
  * #endif
  *
  * A macro is provided to do similar:
- * MO_TEST_MAIN(DbIoTester)
+ * MO_TEST_MAIN(MoIoTester)
  *
  * Author: David I. Lehn
  */

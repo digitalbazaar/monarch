@@ -431,10 +431,10 @@ void runLevelTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbLoggingTester : public monarch::test::Tester
+class MoLoggingTester : public monarch::test::Tester
 {
 public:
-   DbLoggingTester()
+   MoLoggingTester()
    {
       setName("logging");
    }
@@ -462,7 +462,7 @@ public:
 
 #undef TMPDIR
 
-monarch::test::Tester* getDbLoggingTester() { return new DbLoggingTester(); }
+monarch::test::Tester* getMoLoggingTester() { return new MoLoggingTester(); }
 
 
-MO_TEST_MAIN(DbLoggingTester)
+MO_TEST_MAIN(MoLoggingTester)

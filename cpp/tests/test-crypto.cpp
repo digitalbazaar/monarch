@@ -1303,10 +1303,10 @@ void runBigDecimalTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbCryptoTester : public monarch::test::Tester
+class MoCryptoTester : public monarch::test::Tester
 {
 public:
-   DbCryptoTester()
+   MoCryptoTester()
    {
       setName("crypto");
    }
@@ -1340,7 +1340,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbCryptoTester() { return new DbCryptoTester(); }
+monarch::test::Tester* getMoCryptoTester() { return new MoCryptoTester(); }
 
 
-MO_TEST_MAIN(DbCryptoTester)
+MO_TEST_MAIN(MoCryptoTester)

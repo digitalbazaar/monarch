@@ -2190,10 +2190,10 @@ void runJsonReaderSpeedTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbDataTester : public monarch::test::Tester
+class MoDataTester : public monarch::test::Tester
 {
 public:
-   DbDataTester()
+   MoDataTester()
    {
       setName("data");
    }
@@ -2243,7 +2243,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbDataTester() { return new DbDataTester(); }
+monarch::test::Tester* getMoDataTester() { return new MoDataTester(); }
 
 
-MO_TEST_MAIN(DbDataTester)
+MO_TEST_MAIN(MoDataTester)

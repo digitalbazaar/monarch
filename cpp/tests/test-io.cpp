@@ -1139,10 +1139,10 @@ void runIOMonitorTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbIoTester : public monarch::test::Tester
+class MoIoTester : public monarch::test::Tester
 {
 public:
-   DbIoTester()
+   MoIoTester()
    {
       setName("io");
    }
@@ -1177,7 +1177,7 @@ public:
 
 #undef SEP
 
-monarch::test::Tester* getDbIoTester() { return new DbIoTester(); }
+monarch::test::Tester* getMoIoTester() { return new MoIoTester(); }
 
 
-MO_TEST_MAIN(DbIoTester)
+MO_TEST_MAIN(MoIoTester)

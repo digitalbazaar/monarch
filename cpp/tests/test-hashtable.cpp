@@ -629,10 +629,10 @@ void runHashTableVsMapTest(
    tr.ungroup();
 }
 
-class DbHashTableTester : public monarch::test::Tester
+class MoHashTableTester : public monarch::test::Tester
 {
 public:
-   DbHashTableTester()
+   MoHashTableTester()
    {
       setName("HashTable");
    }
@@ -723,7 +723,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbHashTableTester() { return new DbHashTableTester(); }
+monarch::test::Tester* getMoHashTableTester() { return new MoHashTableTester(); }
 
 
-MO_TEST_MAIN(DbHashTableTester)
+MO_TEST_MAIN(MoHashTableTester)

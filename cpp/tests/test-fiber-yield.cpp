@@ -79,10 +79,10 @@ void runFiberYieldTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbFiberYieldTester : public monarch::test::Tester
+class MoFiberYieldTester : public monarch::test::Tester
 {
 public:
-   DbFiberYieldTester()
+   MoFiberYieldTester()
    {
       setName("fiber yield");
    }
@@ -105,7 +105,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbFiberYieldTester() { return new DbFiberYieldTester(); }
+monarch::test::Tester* getMoFiberYieldTester() { return new MoFiberYieldTester(); }
 
 
-MO_TEST_MAIN(DbFiberYieldTester)
+MO_TEST_MAIN(MoFiberYieldTester)

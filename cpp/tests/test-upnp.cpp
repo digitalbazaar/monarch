@@ -285,10 +285,10 @@ void runPortMappingTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbUpnpTester : public monarch::test::Tester
+class MoUpnpTester : public monarch::test::Tester
 {
 public:
-   DbUpnpTester()
+   MoUpnpTester()
    {
       setName("upnp");
    }
@@ -314,7 +314,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbUpnpTester() { return new DbUpnpTester(); }
+monarch::test::Tester* getMoUpnpTester() { return new MoUpnpTester(); }
 
 
-MO_TEST_MAIN(DbUpnpTester)
+MO_TEST_MAIN(MoUpnpTester)

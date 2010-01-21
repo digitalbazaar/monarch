@@ -55,10 +55,10 @@ void runSphinxClientTest(TestRunner &tr, monarch::test::Tester& tester)
    tr.ungroup();
 }
 
-class DbSphinxClientTester : public monarch::test::Tester
+class MoSphinxClientTester : public monarch::test::Tester
 {
 public:
-   DbSphinxClientTester()
+   MoSphinxClientTester()
    {
       setName("SphinxClient");
    }
@@ -81,7 +81,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbSphinxClientTester() { return new DbSphinxClientTester(); }
+monarch::test::Tester* getMoSphinxClientTester() { return new MoSphinxClientTester(); }
 
 
-MO_TEST_MAIN(DbSphinxClientTester)
+MO_TEST_MAIN(MoSphinxClientTester)

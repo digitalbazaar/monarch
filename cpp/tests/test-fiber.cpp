@@ -810,7 +810,7 @@ void runJsonTest(
    tr.passIfNoException();
 }
 
-class DbFiberTester : public monarch::test::Tester
+class MoFiberTester : public monarch::test::Tester
 {
 protected:
    /**
@@ -908,7 +908,7 @@ protected:
    }
 
 public:
-   DbFiberTester()
+   MoFiberTester()
    {
       setName("fiber");
    }
@@ -1050,7 +1050,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbFiberTester() { return new DbFiberTester(); }
+monarch::test::Tester* getMoFiberTester() { return new MoFiberTester(); }
 
 
-MO_TEST_MAIN(DbFiberTester)
+MO_TEST_MAIN(MoFiberTester)

@@ -457,10 +457,10 @@ void runConfigManagerTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbConfigTester : public monarch::test::Tester
+class MoConfigTester : public monarch::test::Tester
 {
 public:
-   DbConfigTester()
+   MoConfigTester()
    {
       setName("config");
    }
@@ -483,7 +483,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbConfigTester() { return new DbConfigTester(); }
+monarch::test::Tester* getMoConfigTester() { return new MoConfigTester(); }
 
 
-MO_TEST_MAIN(DbConfigTester)
+MO_TEST_MAIN(MoConfigTester)

@@ -198,10 +198,10 @@ void runModestTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbModestTester : public Tester
+class MoModestTester : public Tester
 {
 public:
-   DbModestTester()
+   MoModestTester()
    {
       setName("modest");
    }
@@ -224,7 +224,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbModestTester() { return new DbModestTester(); }
+monarch::test::Tester* getMoModestTester() { return new MoModestTester(); }
 
 
-MO_TEST_MAIN(DbModestTester)
+MO_TEST_MAIN(MoModestTester)

@@ -1479,10 +1479,10 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbSqlite3Tester : public monarch::test::Tester
+class MoSqlite3Tester : public monarch::test::Tester
 {
 public:
-   DbSqlite3Tester()
+   MoSqlite3Tester()
    {
       setName("sqlite3");
    }
@@ -1514,7 +1514,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbSqlite3Tester() { return new DbSqlite3Tester(); }
+monarch::test::Tester* getMoSqlite3Tester() { return new MoSqlite3Tester(); }
 
 
-MO_TEST_MAIN(DbSqlite3Tester)
+MO_TEST_MAIN(MoSqlite3Tester)

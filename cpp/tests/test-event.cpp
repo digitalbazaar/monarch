@@ -814,10 +814,10 @@ void runObserverSelfUnregister(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbEventTester : public monarch::test::Tester
+class MoEventTester : public monarch::test::Tester
 {
 public:
-   DbEventTester()
+   MoEventTester()
    {
       setName("event");
    }
@@ -849,7 +849,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbEventTester() { return new DbEventTester(); }
+monarch::test::Tester* getMoEventTester() { return new MoEventTester(); }
 
 
-MO_TEST_MAIN(DbEventTester)
+MO_TEST_MAIN(MoEventTester)

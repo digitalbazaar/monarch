@@ -1479,10 +1479,10 @@ void runServerDatagramTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbNetTester : public monarch::test::Tester
+class MoNetTester : public monarch::test::Tester
 {
 public:
-   DbNetTester()
+   MoNetTester()
    {
       setName("net");
    }
@@ -1518,7 +1518,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbNetTester() { return new DbNetTester(); }
+monarch::test::Tester* getMoNetTester() { return new MoNetTester(); }
 
 
-MO_TEST_MAIN(DbNetTester)
+MO_TEST_MAIN(MoNetTester)

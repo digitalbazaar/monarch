@@ -768,10 +768,10 @@ void runPingTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbHttpTester : public monarch::test::Tester
+class MoHttpTester : public monarch::test::Tester
 {
 public:
-   DbHttpTester()
+   MoHttpTester()
    {
       setName("http");
    }
@@ -800,7 +800,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbHttpTester() { return new DbHttpTester(); }
+monarch::test::Tester* getMoHttpTester() { return new MoHttpTester(); }
 
 
-MO_TEST_MAIN(DbHttpTester)
+MO_TEST_MAIN(MoHttpTester)

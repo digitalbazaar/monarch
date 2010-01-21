@@ -1083,10 +1083,10 @@ void runAnyExceptionsTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbValidationTester : public monarch::test::Tester
+class MoValidationTester : public monarch::test::Tester
 {
 public:
-   DbValidationTester()
+   MoValidationTester()
    {
       setName("validation");
    }
@@ -1114,7 +1114,7 @@ public:
 
 #undef _dump
 
-monarch::test::Tester* getDbValidationTester() { return new DbValidationTester(); }
+monarch::test::Tester* getMoValidationTester() { return new MoValidationTester(); }
 
 
-MO_TEST_MAIN(DbValidationTester)
+MO_TEST_MAIN(MoValidationTester)

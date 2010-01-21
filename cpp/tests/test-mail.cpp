@@ -431,10 +431,10 @@ void runFailedMailSendTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbMailTester : public monarch::test::Tester
+class MoMailTester : public monarch::test::Tester
 {
 public:
-   DbMailTester()
+   MoMailTester()
    {
       setName("mail");
    }
@@ -461,7 +461,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbMailTester() { return new DbMailTester(); }
+monarch::test::Tester* getMoMailTester() { return new MoMailTester(); }
 
 
-MO_TEST_MAIN(DbMailTester)
+MO_TEST_MAIN(MoMailTester)

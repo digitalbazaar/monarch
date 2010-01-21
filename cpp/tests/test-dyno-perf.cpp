@@ -104,10 +104,10 @@ void runDynoIterTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbDynoPerfTester : public monarch::test::Tester
+class MoDynoPerfTester : public monarch::test::Tester
 {
 public:
-   DbDynoPerfTester()
+   MoDynoPerfTester()
    {
       setName("dyno-perf");
    }
@@ -136,7 +136,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbDynoPerfTester() { return new DbDynoPerfTester(); }
+monarch::test::Tester* getMoDynoPerfTester() { return new MoDynoPerfTester(); }
 
 
-MO_TEST_MAIN(DbDynoPerfTester)
+MO_TEST_MAIN(MoDynoPerfTester)

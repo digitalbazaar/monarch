@@ -2276,10 +2276,10 @@ void runRunnableDelegateTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbRtTester : public monarch::test::Tester
+class MoRtTester : public monarch::test::Tester
 {
 public:
-   DbRtTester()
+   MoRtTester()
    {
       setName("rt");
    }
@@ -2321,7 +2321,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbRtTester() { return new DbRtTester(); }
+monarch::test::Tester* getMoRtTester() { return new MoRtTester(); }
 
 
-MO_TEST_MAIN(DbRtTester)
+MO_TEST_MAIN(MoRtTester)

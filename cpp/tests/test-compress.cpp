@@ -539,10 +539,10 @@ void runZipTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class DbCompressTester : public monarch::test::Tester
+class MoCompressTester : public monarch::test::Tester
 {
 public:
-   DbCompressTester()
+   MoCompressTester()
    {
       setName("compress");
    }
@@ -568,7 +568,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbCompressTester() { return new DbCompressTester(); }
+monarch::test::Tester* getMoCompressTester() { return new MoCompressTester(); }
 
 
-MO_TEST_MAIN(DbCompressTester)
+MO_TEST_MAIN(MoCompressTester)

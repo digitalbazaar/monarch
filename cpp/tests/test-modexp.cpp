@@ -55,10 +55,10 @@ void runModExpTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbModExpTester : public monarch::test::Tester
+class MoModExpTester : public monarch::test::Tester
 {
 public:
-   DbModExpTester()
+   MoModExpTester()
    {
       setName("modexp");
    }
@@ -81,7 +81,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbModExpTester() { return new DbModExpTester(); }
+monarch::test::Tester* getMoModExpTester() { return new MoModExpTester(); }
 
 
-MO_TEST_MAIN(DbModExpTester)
+MO_TEST_MAIN(MoModExpTester)

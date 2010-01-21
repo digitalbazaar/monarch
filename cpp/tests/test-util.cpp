@@ -928,10 +928,10 @@ void runRandomTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class DbUtilTester : public monarch::test::Tester
+class MoUtilTester : public monarch::test::Tester
 {
 public:
-   DbUtilTester()
+   MoUtilTester()
    {
       setName("util");
    }
@@ -965,7 +965,7 @@ public:
    }
 };
 
-monarch::test::Tester* getDbUtilTester() { return new DbUtilTester(); }
+monarch::test::Tester* getMoUtilTester() { return new MoUtilTester(); }
 
 
-MO_TEST_MAIN(DbUtilTester)
+MO_TEST_MAIN(MoUtilTester)
