@@ -1792,6 +1792,17 @@ static bool _pipe_regex(
    return rval;
 }
 
+static bool _pipe_default(
+   string& value, DynamicObject& params, void* userData)
+{
+   bool rval = true;
+   if(value.length() == 0)
+   {
+      value.append(params[0]->getString());
+   }
+   return rval;
+}
+
 bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
 {
    bool rval = true;
@@ -1884,6 +1895,20 @@ bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
             ExceptionRef e = new Exception(
                "The regular expression and replacement text must be "
                "given as parameters to the 'regex' pipe.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
+      }
+      else if(strcmp(name.c_str(), "default") == 0)
+      {
+         p->type = Pipe::pipe_default;
+         p->func = &_pipe_default;
+         if(p->params == NULL || (*p->params)->length() < 1)
+         {
+            ExceptionRef e = new Exception(
+               "The replacement text for undefined or empty string variables "
+               "must be given as a parameter to the 'default' pipe.",
                EXCEPTION_SYNTAX);
             Exception::set(e);
             rval = false;
@@ -2390,6 +2415,7 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
    bool rval = true;
 
    // try to find the variable
+   string value;
    DynamicObject var = findVariable(v->params, mStrict);
    if(var.isNull())
    {
@@ -2398,8 +2424,12 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
    }
    else
    {
+      value = var->getString();
+   }
+
+   if(rval)
+   {
       // handle pipes
-      string value = var->getString();
       for(ConstructStack::iterator i = c->children.begin();
           rval && i != c->children.end(); i++)
       {

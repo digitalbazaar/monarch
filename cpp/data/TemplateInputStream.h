@@ -136,7 +136,8 @@ protected:
          pipe_escape,
          pipe_capitalize,
          pipe_replace,
-         pipe_regex
+         pipe_regex,
+         pipe_default
       };
       Type type;
       std::string text;

@@ -2220,7 +2220,9 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "{:end}"
          "Replaced 'c' in '{cat}' with a 'br': {cat|replace('c','br')}\n"
          "Regex replaced '{foobar}' with '"
-         "{foobar|regex('o\\{2\\}','oot')}'\n";
+         "{foobar|regex('o\\{2\\}','oot')}'\n"
+         "Default (undefined): {undefined|default('N/A')}\n"
+         "Default (empty string): {empty|default('N/A')}\n";
 
       // create variables
       DynamicObject vars;
@@ -2229,10 +2231,11 @@ void runTemplateInputStreamTest(TestRunner& tr)
       vars["items"]["cherry"] = "item&3";
       vars["cat"] = "cat";
       vars["foobar"] = "foobar";
+      vars["empty"] = "";
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
-      TemplateInputStream tis(vars, true, &bais, false);
+      TemplateInputStream tis(vars, false, &bais, false);
 
       // parse entire template
       ByteBuffer output(2048);
@@ -2246,7 +2249,9 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "The item is 'item%26amp%3B2', capitalized key is 'Banana'\n"
          "The item is 'item%26amp%3B3', capitalized key is 'Cherry'\n"
          "Replaced 'c' in 'cat' with a 'br': brat\n"
-         "Regex replaced 'foobar' with 'footbar'\n";
+         "Regex replaced 'foobar' with 'footbar'\n"
+         "Default (undefined): N/A\n"
+         "Default (empty string): N/A\n";
 
       // null-terminate output
       output.putByte(0, 1, true);
