@@ -159,7 +159,8 @@ protected:
     */
    struct Variable
    {
-      std::string name;
+      std::string text;
+      monarch::rt::DynamicObject params;
    };
 
    /**
@@ -438,6 +439,28 @@ protected:
    virtual bool parseVariable(Construct* c, Variable* v);
 
    /**
+    * Parses the given variable text.
+    *
+    * @param text the variable text to parse.
+    * @param params set to the parsed output.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool parseVariableText(
+      const char* text, monarch::rt::DynamicObject& params);
+
+   /**
+    * Parses an expression. An expression may contain variables or constants.
+    *
+    * @param exp the expression to parse.
+    * @param params set to the parsed output.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool parseExpression(
+      const char* exp, monarch::rt::DynamicObject& params);
+
+   /**
     * Called from within parseConstruct() to parses the current pipe,
     * ensuring it is valid.
     *
@@ -489,27 +512,28 @@ protected:
    virtual int compare(monarch::rt::DynamicObject& params);
 
    /**
-    * Finds the variable with the given varname.
+    * Attempts to finds a variable.
     *
-    * @param varname the name of the variable.
+    * @param params the parameters that identity the variable.
     * @param strict use strict mode.
     *
     * @return the variable or NULL if not found (exception set in Strict mode).
     */
    virtual monarch::rt::DynamicObject findVariable(
-      const char* varname, bool strict);
+      monarch::rt::DynamicObject& params, bool strict);
 
    /**
     * Finds the local variable with the given varname.
     *
-    * @param varname the name of the variable.
+    * @param params the parameters that identity the variable.
     * @param set non-NULL to set the variable.
     * @param unset true to unset the variable.
     *
     * @return the local variable or NULL if not found.
     */
    virtual monarch::rt::DynamicObject findLocalVariable(
-      const char* varname, monarch::rt::DynamicObject* set, bool unset);
+      monarch::rt::DynamicObject& params,
+      monarch::rt::DynamicObject* set, bool unset);
 
    /**
     * Sets a parse exception with the given line and column numbers and

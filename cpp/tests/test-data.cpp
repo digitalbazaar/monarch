@@ -1666,7 +1666,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
    {
       // create template
       const char* tpl =
-         "The number five: {foo.five.1}\n"
+         "The number five: {foo.five[1]}\n"
          "{:each from=foo.items as=item key=key}"
          "The item is '{item}', key is '{key}'\n"
          "{:end}";
@@ -1848,7 +1848,153 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
+#if 0
+   tr.test("parse (loop)");
+   {
+      // create template
+      const char* tpl =
+         "Item count: {items.length}\n"
+         "{:loop start=0 until=items.length index=current}"
+         "The item is '{item.current}', current is '{current}'\n"
+         "{:end}";
 
+      // create variables
+      DynamicObject vars;
+      vars["items"]["a"] = "item1";
+      vars["items"]["b"] = "item2";
+      vars["items"]["c"] = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Item count: 3\n"
+         "The item is 'item1', current is 0\n"
+         "The item is 'item2', current is 1\n"
+         "The item is 'item3', current is 2\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (loopelse)");
+   {
+      // create template
+      const char* tpl =
+         "Item count: {items.length}\n"
+         "{:loop start=0 until=items.length index=current}"
+         "The item is '{item}', key is '{key}'\n"
+         "{:eachelse}"
+         "There are no items.\n"
+         "{:end}"
+         "{:set items.a='item1'}"
+         "Item count: {items.length}\n"
+         "{:each from=items as=item key=key}"
+         "The item is '{item}', key is '{key}'\n"
+         "{:eachelse}"
+         "There are no items.\n"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->setType(Array);
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Item count: 0\n"
+         "There are no items.\n"
+         "Item count: 1\n"
+         "The item is 'item1', key is 'a'\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (invalid - loop)");
+   {
+      // create template
+      const char* tpl =
+         "{:each from=items as=item}\n"
+         "The item is '{item}'\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->append() = "item1";
+      vars["items"]->append() = "item2";
+      vars["items"]->append() = "item3";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+   }
+   tr.passIfException();
+
+   tr.test("parse (empty loop)");
+   {
+      // create template
+      const char* tpl =
+         "Items:\n"
+         "{:each from=items as=item}"
+         "The item is '{item}'\n"
+         "{:end}"
+         "{:if end}end{:end}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->setType(Array);
+      vars["end"] = true;
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "Items:\n"
+         "end\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+#endif
    tr.test("parse (include)");
    {
       // write out template

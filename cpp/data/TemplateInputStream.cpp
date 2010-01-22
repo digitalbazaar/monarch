@@ -38,6 +38,7 @@ using namespace monarch::util;
 #define EXCEPTION_STATE     EXCEPTION_TIS ".InvalidState"
 #define EXCEPTION_SYNTAX    EXCEPTION_TIS ".SyntaxError"
 #define EXCEPTION_CONSTRUCT EXCEPTION_TIS ".InvalidConstruct"
+#define EXCEPTION_UNDEFINED EXCEPTION_TIS ".VariableNotDefined"
 
 /* Note: This implementation is based on correctness. It has not yet been
  * optimized for speed or memory efficiency. */
@@ -219,147 +220,24 @@ static int _trimQuotes(string& value)
    return rval;
 }
 
-static bool _validateVariableName(const char* v, const char** op)
+static bool _validateVariableKey(const char* text, bool period)
 {
    bool rval = true;
 
-   if(op != NULL)
+   // can only contain these characters:
+   for(const char* ptr = text; *ptr != 0; ptr++)
    {
-      *op = NULL;
-   }
-
-   // can't be empty
-   int len = strlen(v);
-   if(len == 0)
-   {
-      ExceptionRef e = new Exception(
-         "No variable name specified.",
-         EXCEPTION_SYNTAX);
-      Exception::set(e);
-      rval = false;
-   }
-   // must be alpha-numeric, etc.
-   else
-   {
-      // variable can be followed by an operator
-      int opIndex = -1;
-      for(int i = 0; rval && i < len; i++)
-      {
-         char c = v[i];
-         if(opIndex != -1)
-         {
-            if(!(c >= 'a' && c <= 'z') &&
-               !(c >= 'A' && c <= 'Z') &&
-               !(c >= '0' && c <= '9') &&
-               c != '_' && c != '.')
-            {
-               rval = false;
-            }
-         }
-         else
-         {
-            if(!(c >= 'a' && c <= 'z') &&
-               !(c >= 'A' && c <= 'Z') &&
-               !(c >= '0' && c <= '9') &&
-               c != '_' && c != '.')
-            {
-               if(c == '+' || c == '-')
-               {
-                  opIndex = i;
-                  if(op != NULL)
-                  {
-                     *op = v + i;
-                  }
-               }
-               else
-               {
-                  rval = false;
-               }
-            }
-         }
-      }
-
-      // ensure there is a rhs after the operator
-      if(rval && opIndex != -1 && opIndex + 1 >= len)
+      char c = *ptr;
+      if(!(c >= 'a' && c <= 'z') &&
+         !(c >= 'A' && c <= 'Z') &&
+         !(c >= '0' && c <= '9') &&
+         c != '_' && (!period || c != '.'))
       {
          rval = false;
-      }
-
-      // validation error
-      if(!rval)
-      {
-         ExceptionRef e = new Exception(
-            "Variable name must contain only alphanumeric characters, "
-            "underscores, or the '.' object delimiter. If it has an operator, "
-            "then it must fall between two variables or between a variable "
-            "and a number.",
-            EXCEPTION_SYNTAX);
-         e->getDetails()["variable"] = v;
-         Exception::set(e);
       }
    }
 
    return rval;
-}
-
-static bool _parseRhs(string& value, DynamicObject& rhs, const char** op)
-{
-   bool rval = true;
-
-   if(op != NULL)
-   {
-      *op = NULL;
-   }
-
-   rhs["isVar"] = false;
-   switch(_trimQuotes(value))
-   {
-      // mismatched quotes
-      case -1:
-         rval = false;
-         break;
-      // no quotes, must be a number or boolean
-      case 0:
-         // number or boolean can't be empty string
-         if(value.length() == 0)
-         {
-            rval = false;
-         }
-         else
-         {
-            // set value and determine type
-            rhs["value"] = value.c_str();
-            if(strcmp(value.c_str(), "true") == 0 ||
-               strcmp(value.c_str(), "false") == 0)
-            {
-               rhs["value"]->setType(Boolean);
-            }
-            else
-            {
-               rhs["value"]->setType(
-                  DynamicObject::determineType(value.c_str()));
-            }
-
-            if(rhs["value"]->getType() == String)
-            {
-               rhs["isVar"] = true;
-               rval = _validateVariableName(value.c_str(), op);
-            }
-         }
-         break;
-      // rhs is a string
-      case 1:
-         rhs["value"] = value.c_str();
-         break;
-   }
-
-   return rval;
-}
-
-static bool _parseRhs(const char* value, DynamicObject& rhs, const char** op)
-{
-   string str(value);
-   return _parseRhs(value, rhs, op);
 }
 
 static bool _validateOperator(const char* op, CompareOp& out)
@@ -812,10 +690,10 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
       }
       case ParseVariable:
       {
-         // write text to variable name
+         // write text to variable
          Construct* c = mConstructs.back();
          Variable* data = static_cast<Variable*>(c->data);
-         data->name.append(mTemplate.data(), len);
+         data->text.append(mTemplate.data(), len);
          if(ret != 0)
          {
             // finished, skip ending construct/starting pipe delimiter
@@ -1105,9 +983,10 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          {
             // join all params after "include" as var/filename
             string path = StringTools::join(tokens, " ", 1);
-            const char* op = NULL;
-            rval = _parseRhs(path, params, &op);
-            if(rval && (params["value"]->getType() != String || op != NULL))
+            rval = parseExpression(path.c_str(), params);
+            if(rval &&
+               (params["value"]->getType() != String ||
+                params->hasMember("op")))
             {
                // no operators, must be a string
                rval = false;
@@ -1130,6 +1009,8 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       case Command::cmd_each:
       {
          // {:each from=<from> as=<item> [key=<key>] [index=<index>]}
+         DynamicObject tmp;
+         tmp->setType(Map);
          DynamicObjectIterator i = tokens.getIterator();
          i->next();
          while(rval && i->hasNext())
@@ -1142,20 +1023,32 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
             else
             {
                // add key-value pair
-               params[kv[0]->getString()] = kv[1]->getString();
+               tmp[kv[0]->getString()] = kv[1]->getString();
             }
          }
 
          // validate key-value pairs (ignores unknown key-value pairs)
          rval =
-            params->hasMember("from") &&
-            params->hasMember("as") &&
-            _validateVariableName(params["from"]->getString(), NULL) &&
-            _validateVariableName(params["as"]->getString(), NULL) &&
-            (!params->hasMember("key") ||
-             _validateVariableName(params["key"]->getString(), NULL)) &&
-            (!params->hasMember("index") ||
-             _validateVariableName(params["index"]->getString(), NULL));
+            tmp->hasMember("from") &&
+            tmp->hasMember("as") &&
+            parseVariableText(tmp["from"]->getString(), params["from"]) &&
+            _validateVariableKey(tmp["as"]->getString(), false) &&
+            (!tmp->hasMember("key") ||
+             _validateVariableKey(tmp["key"]->getString(), false)) &&
+            (!tmp->hasMember("index") ||
+             _validateVariableKey(tmp["index"]->getString(), false));
+         if(rval)
+         {
+            params["as"] = tmp["as"];
+            if(tmp->hasMember("key"))
+            {
+               params["key"] = tmp["key"];
+            }
+            if(tmp->hasMember("index"))
+            {
+               params["index"] = tmp["index"];
+            }
+         }
          break;
       }
       case Command::cmd_eachelse:
@@ -1182,6 +1075,8 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       case Command::cmd_loop:
       {
          // {:loop start=<start> until=<until> [step=<step>] [index=<index>]}
+         DynamicObject tmp;
+         tmp->setType(Map);
          DynamicObjectIterator i = tokens.getIterator();
          i->next();
          while(rval && i->hasNext())
@@ -1194,21 +1089,59 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
             else
             {
                // add key-value pair
-               params[kv[0]->getString()] = kv[1]->getString();
+               tmp[kv[0]->getString()] = kv[1]->getString();
             }
          }
 
          // validate key-value pairs (ignores unknown key-value pairs)
-         DynamicObject rhs;
          rval =
-            params->hasMember("start") &&
-            params->hasMember("until") &&
-            _parseRhs(params["start"]->getString(), rhs, NULL) &&
-            _parseRhs(params["until"]->getString(), rhs, NULL) &&
-            (!params->hasMember("step") ||
-             _parseRhs(params["key"]->getString(), rhs, NULL)) &&
-            (!params->hasMember("index") ||
-             _validateVariableName(params["index"]->getString(), NULL));
+            tmp->hasMember("start") &&
+            tmp->hasMember("until") &&
+            parseExpression(tmp["start"]->getString(), params["start"]) &&
+            parseExpression(tmp["until"]->getString(), params["until"]) &&
+            (!tmp->hasMember("step") ||
+             parseExpression(tmp["key"]->getString(), params["step"])) &&
+            (!tmp->hasMember("index") ||
+            _validateVariableKey(tmp["index"]->getString(), false));
+         if(rval)
+         {
+            if(!params["start"]["isVar"]->getBoolean() &&
+               params["start"]["value"]->getType() != UInt64 &&
+               params["start"]["value"]->getType() != Int64)
+            {
+               ExceptionRef e = new Exception(
+                  "'loop' 'start' must be a number.",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+            else if(!params["until"]["isVar"]->getBoolean() &&
+               params["until"]["value"]->getType() != UInt64 &&
+               params["until"]["value"]->getType() != Int64)
+            {
+               ExceptionRef e = new Exception(
+                  "'loop' 'until' must be a number.",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+            else if(params->hasMember("step") &&
+               !params["step"]["isVar"]->getBoolean() &&
+               params["step"]["value"]->getType() != UInt64 &&
+               params["step"]["value"]->getType() != Int64)
+            {
+               ExceptionRef e = new Exception(
+                  "'loop' 'step' must be a number.",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+         }
+
+         if(rval && tmp->hasMember("index"))
+         {
+            params["index"] = tmp["index"];
+         }
          break;
       }
       case Command::cmd_loopelse:
@@ -1261,7 +1194,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          else if(rval)
          {
             CompareOp op = op_single;
-            rval = _validateVariableName(tokens[1]->getString(), NULL);
+            rval = parseVariableText(tokens[1]->getString(), params["lhs"]);
             if(rval && tokens->length() > 2)
             {
                string rhs;
@@ -1272,12 +1205,11 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
                {
                   // join all params after operator as rhs
                   rhs = StringTools::join(tokens, " ", 3);
-                  rval = _parseRhs(rhs, params["rhs"], NULL);
+                  rval = parseExpression(rhs.c_str(), params["rhs"]);
                }
             }
             if(rval)
             {
-               params["lhs"] = tokens[1]->getString();
                params["op"] = op;
             }
          }
@@ -1313,32 +1245,28 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          }
          else
          {
-            // join all tokens after command name
-            string rhs = StringTools::join(tokens, " ", 1);
-            DynamicObject kv = StringTools::split(rhs.c_str(), "=");
+            // join all tokens after command name, and then split on '='
+            DynamicObject kv = StringTools::split(
+               StringTools::join(tokens, " ", 1).c_str(), "=");
             if(kv->length() < 2)
             {
                rval = false;
             }
             else
             {
-               // join all tokens after equals as rhs
-               rhs = StringTools::join(kv, "=", 1);
-
-               // validate key as a variable name
-               const char* name = kv[0]->getString();
-               const char* op = NULL;
-               rval = _validateVariableName(name, &op);
-               if(rval && op != NULL)
+               // parse key as a variable
+               const char* key = kv[0]->getString();
+               rval = parseVariableText(key, params["lhs"]);
+               if(rval && params["lhs"]->hasMember("op"))
                {
                   // can't have operators on lhs
                   rval = false;
                }
-
                if(rval)
                {
-                  params["lhs"] = name;
-                  rval = _parseRhs(rhs, params["rhs"], NULL);
+                  // join all tokens after equals as rhs
+                  string rhs = StringTools::join(kv, "=", 1);
+                  rval = parseExpression(rhs.c_str(), params["rhs"]);
                }
             }
          }
@@ -1353,11 +1281,12 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          }
          else
          {
-            // validate variable name
-            rval = _validateVariableName(tokens[1]->getString(), NULL);
-            if(rval)
+            // parse variable text
+            rval = parseVariableText(tokens[1]->getString(), params["lhs"]);
+            if(rval && params["lhs"]->hasMember("op"))
             {
-               params["lhs"] = tokens[1]->getString();
+               // can't have operators on lhs
+               rval = false;
             }
          }
          break;
@@ -1503,7 +1432,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
 
 bool TemplateInputStream::parseVariable(Construct* c, Variable* v)
 {
-   bool rval = _validateVariableName(v->name.c_str(), NULL);
+   bool rval = parseVariableText(v->text.c_str(), v->params);
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -1511,6 +1440,227 @@ bool TemplateInputStream::parseVariable(Construct* c, Variable* v)
          "Syntax: {<variable>[|pipe1][|pipe2]}");
       Exception::push(e);
    }
+   return rval;
+}
+
+bool TemplateInputStream::parseVariableText(
+   const char* text, DynamicObject& params)
+{
+   bool rval = true;
+
+   string txt(text);
+
+   // text can't be empty
+   if(txt.length() == 0)
+   {
+      ExceptionRef e = new Exception(
+         "No variable name specified.",
+         EXCEPTION_SYNTAX);
+      Exception::set(e);
+      rval = false;
+   }
+
+   // build name components:
+   // (name will be a sequential array of keys and indexes that can be
+   // followed to find the variable)
+   params->setType(Map);
+   params["name"]->setType(Array);
+   params["text"] = text;
+   const char* start = txt.c_str();
+   const char* ptr;
+   do
+   {
+      // look for accessors operators
+      ptr = strpbrk(start, ".[" VAR_OPERATORS);
+      if(ptr == NULL)
+      {
+         if(*start != 0)
+         {
+            // final key component found
+            string str(start);
+            rval = _validateVariableKey(str.c_str(), true);
+            if(rval)
+            {
+               DynamicObject& key = params["name"]->append();
+               key["key"] = str.c_str();
+            }
+         }
+      }
+      else
+      {
+         if(ptr > start)
+         {
+            // another key component found
+            string str(start, ptr - start);
+            rval = _validateVariableKey(str.c_str(), true);
+            if(rval)
+            {
+               DynamicObject& key = params["name"]->append();
+               key["key"] = str.c_str();
+            }
+         }
+         else if(params["name"]->length() == 0)
+         {
+            // the first component cannot be an index
+            ExceptionRef e = new Exception(
+               "Array accessor must follow a variable name.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
+
+         if(rval && *ptr == '[')
+         {
+            // array accessor found, search for ']'
+            start = ptr + 1;
+            ptr = strpbrk(start, "]");
+            if(ptr == NULL)
+            {
+               ExceptionRef e = new Exception(
+                  "Mismatched '['",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+            else if(ptr == start)
+            {
+               ExceptionRef e = new Exception(
+                  "Empty '[]'",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+            else
+            {
+               // parse the index as an expression
+               DynamicObject exp;
+               string str(start, ptr - start);
+               rval = parseExpression(str.c_str(), exp);
+               if(rval && !exp["isVar"]->getBoolean())
+               {
+                  // if index is not a variable, it *must* be an integer
+                  switch(exp["value"]->getType())
+                  {
+                     case Int64:
+                     case UInt64:
+                     case Int32:
+                     case UInt32:
+                        // valid type
+                        break;
+                     default:
+                     {
+                        // invalid type
+                        ExceptionRef e = new Exception(
+                           "Invalid index given for array accessor.",
+                           EXCEPTION_SYNTAX);
+                        Exception::set(e);
+                        rval = false;
+                        break;
+                     }
+                  }
+               }
+
+               if(rval)
+               {
+                  // save index component, move past ']'
+                  DynamicObject& index = params["name"]->append();
+                  index["index"] = exp;
+                  start = ptr + 1;
+               }
+            }
+         }
+         else if(rval && *ptr == '.')
+         {
+            // object accessor found, just skip it
+            start = ptr + 1;
+         }
+         else if(rval)
+         {
+            // operator found, parse remainder as an expression
+            params["op"] = *ptr;
+            string rhs(ptr + 1);
+            rval = parseExpression(rhs.c_str(), params["rhs"]);
+            ptr = NULL;
+            break;
+         }
+      }
+   }
+   while(rval && ptr != NULL);
+
+   // validation error
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Variable name must contain only alphanumeric characters, "
+         "underscores, the '.' object accessor, or the '[]' array accessor. "
+         "If it has an operator, then it must fall between two variables "
+         "or before a constant.",
+         EXCEPTION_SYNTAX);
+      e->getDetails()["variable"] = text;
+      Exception::set(e);
+   }
+
+   return rval;
+}
+
+bool TemplateInputStream::parseExpression(
+   const char* exp, DynamicObject& params)
+{
+   bool rval = true;
+
+   params["isVar"] = false;
+   string value(exp);
+   switch(_trimQuotes(value))
+   {
+      // mismatched quotes
+      case -1:
+      {
+         ExceptionRef e = new Exception(
+            "Mismatched quotes.",
+            EXCEPTION_SYNTAX);
+         Exception::set(e);
+         rval = false;
+         break;
+      }
+      // no quotes, must be a number, boolean, or variable
+      case 0:
+         // can't be empty string
+         if(value.length() == 0)
+         {
+            ExceptionRef e = new Exception(
+               "Expression is empty.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            // set value and determine type
+            params["value"] = value.c_str();
+            if(strcmp(value.c_str(), "true") == 0 ||
+               strcmp(value.c_str(), "false") == 0)
+            {
+               params["value"]->setType(Boolean);
+            }
+            else
+            {
+               params["value"]->setType(
+                  DynamicObject::determineType(value.c_str()));
+            }
+
+            if(params["value"]->getType() == String)
+            {
+               params["isVar"] = true;
+               rval = parseVariableText(value.c_str(), params["var"]);
+            }
+         }
+         break;
+      // rhs is a string
+      case 1:
+         params["value"] = value.c_str();
+         break;
+   }
+
    return rval;
 }
 
@@ -1707,9 +1857,8 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
 
          if(params["isVar"]->getBoolean())
          {
-            // try to find a variable
-            DynamicObject var = findVariable(
-               params["value"]->getString(), true);
+            // try to find the variable
+            DynamicObject var = findVariable(params["var"], true);
             if(var.isNull())
             {
                setParseException(
@@ -1793,12 +1942,10 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
       {
          // {:each from=<from> as=<item> [key=<key>]|[index=<index>]}
          DynamicObject& params = *cmd->params;
-         const char* from = params["from"]->getString();
-         const char* item = params["as"]->getString();
 
-         // find variable
-         DynamicObject var = findVariable(from, mStrict);
-         if(var.isNull())
+         // find 'from' variable
+         DynamicObject from = findVariable(params["from"], mStrict);
+         if(from.isNull())
          {
             // either write no output, or set an exception
             rval = !mStrict;
@@ -1810,7 +1957,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             Loop::EachData* data = new Loop::EachData;
             loop->type = Loop::loop_each;
             loop->eachData = data;
-            data->item = item;
+            data->item = params["as"]->getString();
             if(params->hasMember("key"))
             {
                data->key = params["key"]->getString();
@@ -1819,7 +1966,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             {
                data->index = params["index"]->getString();
             }
-            data->i = var.getIterator();
+            data->i = from.getIterator();
             mLoops.push_back(loop);
             bool doElse = !data->i->hasNext();
 
@@ -1892,32 +2039,24 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             while(i->hasNext())
             {
                DynamicObject& value = i->next();
-               DynamicObject rhs;
-               _parseRhs(params["start"]->getString(), rhs, NULL);
-               if(rhs["isVar"]->getBoolean())
+               DynamicObject& p = params[i->getName()];
+               if(p["isVar"]->getBoolean())
                {
-                  value= findVariable(rhs["value"]->getString(), true);
+                  value = findVariable(p["var"], true);
                   if(value.isNull())
                   {
+                     ExceptionRef e = new Exception(
+                        "'loop' parameter is undefined.",
+                        EXCEPTION_UNDEFINED);
+                     e->getDetails()["parameter"] = i->getName();
+                     Exception::set(e);
+                     setParseException(c->line, c->column, cmd->text.c_str());
                      rval = false;
                   }
                }
-               else if(rhs["value"]->getType() != UInt64 &&
-                       rhs["value"]->getType() != Int64)
-               {
-                  // cannot be a string
-                  ExceptionRef e = new Exception(
-                     "'loop' parameter must be a number.",
-                     EXCEPTION_SYNTAX);
-                  e->getDetails()["parameter"] = i->getName();
-                  Exception::set(e);
-                  setParseException(
-                     c->line, c->line, cmd->text.substr(0, 50).c_str());
-                  rval = false;
-               }
                else
                {
-                  value = rhs["value"];
+                  value = p["value"];
                }
             }
          }
@@ -2076,7 +2215,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          if(params["rhs"]["isVar"]->getBoolean())
          {
             // rhs variable must exist
-            rhs = findVariable(params["rhs"]["value"]->getString(), true);
+            rhs = findVariable(params["rhs"]["var"], true);
             if(rhs.isNull())
             {
                rval = false;
@@ -2091,7 +2230,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          if(rval)
          {
             // set local variable
-            findLocalVariable(params["lhs"]->getString(), &rhs, false);
+            findLocalVariable(params["lhs"], &rhs, false);
          }
          break;
       }
@@ -2099,7 +2238,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
       {
          // set local variable
          DynamicObject& params = *cmd->params;
-         findLocalVariable(params["lhs"]->getString(), NULL, true);
+         findLocalVariable(params["lhs"], NULL, true);
          break;
       }
       case Command::cmd_eachelse:
@@ -2124,7 +2263,8 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
 {
    bool rval = true;
 
-   DynamicObject var = findVariable(v->name.c_str(), mStrict);
+   // try to find the variable
+   DynamicObject var = findVariable(v->params, mStrict);
    if(var.isNull())
    {
       // error if in strict mode
@@ -2150,7 +2290,7 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
 
    if(!rval)
    {
-      setParseException(c->line, c->column, v->name.c_str());
+      setParseException(c->line, c->column, v->text.c_str());
    }
 
    return rval;
@@ -2166,7 +2306,7 @@ int TemplateInputStream::compare(DynamicObject& params)
    // find lhs variable (if doing a single var op, strict is off, it just
    // means the comparison fails if the var does not exist)
    DynamicObject lhs = findVariable(
-      params["lhs"]->getString(), (op != op_single) && mStrict);
+      params["lhs"], (op != op_single) && mStrict);
    if(lhs.isNull() && op != op_single)
    {
       rval = -1;
@@ -2178,8 +2318,8 @@ int TemplateInputStream::compare(DynamicObject& params)
    {
       if(params["rhs"]["isVar"]->getBoolean())
       {
-         // rhs variable must exist
-         rhs = findVariable(params["rhs"]["value"]->getString(), true);
+         // rhs variable must exist, error if it doesn't
+         rhs = findVariable(params["rhs"]["var"], true);
          if(rhs.isNull())
          {
             rval = -1;
@@ -2254,43 +2394,26 @@ int TemplateInputStream::compare(DynamicObject& params)
 }
 
 DynamicObject TemplateInputStream::findVariable(
-   const char* varname, bool strict)
+   DynamicObject& params, bool strict)
 {
    DynamicObject rval(NULL);
 
-   // if the variable has an operator w/rhs, get it
-   string lhs = varname;
-   const char* opPtr = strpbrk(varname, VAR_OPERATORS);
-   char op = 0;
-   DynamicObject rhs(NULL);
-   if(opPtr != NULL)
-   {
-      op = *opPtr;
-      lhs = lhs.substr(0, opPtr - varname);
+   // store the variable in 'lhs', there may be an associated 'rhs' later
+   DynamicObject lhs(NULL);
 
-      string value(opPtr + 1);
-      DynamicObject tmp;
-      _parseRhs(value, tmp, NULL);
-      if(tmp["isVar"]->getBoolean())
-      {
-         rhs = findVariable(tmp["value"]->getString(), strict);
-      }
-      else
-      {
-         rhs = tmp["value"];
-      }
-   }
-
-   // split varname by period delimiters, drill-down
-   // into tree of maps looking for variable
-   DynamicObject names = StringTools::split(lhs.c_str(), ".");
+   /* See if the first name component of the variable is in a loop. If it is,
+      then set 'vars' to a new map and set the loop variable to a key matching
+      the first name component. This map will be searched through later for the
+      remaining components of the variable's name. If the first component is
+      not found in a loop, then 'vars' will be NULL and, if the variable cannot
+      be found locally, then the global map will be searched in the same way
+      that the loop map would be. */
    DynamicObject vars(NULL);
-
-   // first check loops, in reverse order
    if(!mLoops.empty())
    {
-      DynamicObject name = names.first();
-      const char* nm = name->getString();
+      // check loops, in reverse order
+      DynamicObject name = params["name"].first();
+      const char* nm = name["key"]->getString();
       for(LoopStack::reverse_iterator ri = mLoops.rbegin();
           ri != mLoops.rend(); ri++)
       {
@@ -2300,16 +2423,14 @@ DynamicObject TemplateInputStream::findVariable(
             Loop::EachData* data = loop->eachData;
             if(strcmp(data->item.c_str(), nm) == 0)
             {
-               // loop variable found, put it in a map so that the
-               // code below to move down the tree is consistent
+               // loop variable found, save it in a map
                vars = DynamicObject();
                vars[nm] = data->current;
                break;
             }
             else if(strcmp(data->key.c_str(), nm) == 0)
             {
-               // loop variable found (as the key), put it in a map so
-               // that the code below to move down the tree is consistent
+               // loop variable found (as the key), save it in a map
                vars = DynamicObject();
                if(data->i->getName() != NULL)
                {
@@ -2324,6 +2445,7 @@ DynamicObject TemplateInputStream::findVariable(
             }
             else if(strcmp(data->index.c_str(), nm) == 0)
             {
+               // loop variable found (as the index), save it in a map
                vars = DynamicObject();
                vars[nm] = data->i->getIndex();
             }
@@ -2333,6 +2455,7 @@ DynamicObject TemplateInputStream::findVariable(
             Loop::ForData* data = loop->forData;
             if(strcmp(data->index.c_str(), nm) == 0)
             {
+               // loop variable found (as the index), save it in a map
                vars = DynamicObject();
                vars[nm] = data->i;
             }
@@ -2340,83 +2463,120 @@ DynamicObject TemplateInputStream::findVariable(
       }
    }
 
-   // check local vars if still not found
+   /* If we will not be searching in a loop for the variable, check the
+      declared local variables for it. */
    if(vars.isNull())
    {
-      rval = findLocalVariable(lhs.c_str(), NULL, false);
+      lhs = findLocalVariable(params, NULL, false);
    }
 
-   // check global vars if still not found
-   if(rval.isNull())
+   // if the variable is not a local one
+   if(lhs.isNull())
    {
+      // if the variable is not in a loop, check the global vars
       if(vars.isNull())
       {
          vars = mVars;
       }
 
-      // scan all names
+      // iterate over the name components of the variable
       bool missing = false;
-      DynamicObjectIterator i = names.getIterator();
-      while(rval.isNull() && !missing && i->hasNext())
+      DynamicObjectIterator i = params["name"].getIterator();
+      while(lhs.isNull() && !missing && i->hasNext())
       {
-         DynamicObject& d = i->next();
-         const char* key = d->getString();
+         // get the next name component
+         DynamicObject& next = i->next();
 
-         // determine if key is a number or string
-         bool isNum = true;
-         for(const char* ptr = key; isNum && *ptr != 0; ptr++)
+         // component is a key (name.key)
+         if(next->hasMember("key"))
          {
-            if(*ptr < '0' || *ptr > '9')
+            // check for key in vars
+            const char* key = next["key"]->getString();
+            if(vars->hasMember(key))
             {
-               isNum = false;
+               if(i->hasNext())
+               {
+                  // var found, but there are more components
+                  vars = vars[key];
+               }
+               else
+               {
+                  // final var found
+                  lhs = vars[key];
+               }
             }
-         }
-         int num = isNum ? d->getInt32() : 0;
-
-         // check for a key in vars
-         if(!isNum && vars->hasMember(key))
-         {
-            if(i->hasNext())
+            // see if the key is special-case "length"
+            else if(!i->hasNext() && strcmp(key, "length") == 0)
             {
-               // next var found, but must go deeper in the tree
-               vars = vars[key];
+               // create a variable to store the length
+               lhs = DynamicObject();
+               lhs = vars->length();
             }
             else
             {
-               // var found
-               rval = vars[key];
+               // var is missing
+               missing = true;
             }
          }
-         // check for an index in vars
-         else if(isNum && vars->getType() == Array && num < vars->length())
+         // component is an index (name[index])
+         else if(vars->getType() == Array)
          {
-            if(i->hasNext())
+            // get the index value
+            int index = 0;
+            DynamicObject& tmp = next["index"];
+            if(tmp["isVar"]->getBoolean())
             {
-               // next var found, but must go deeper in the tree
-               vars = vars[num];
+               // find the index value
+               DynamicObject tmp = findVariable(tmp["var"], true);
+               if(tmp.isNull())
+               {
+                  missing = true;
+               }
+               else
+               {
+                  index = tmp->getInt32();
+               }
             }
             else
             {
-               // var found
-               rval = vars[num];
+               index = tmp["value"]->getInt32();
             }
-         }
-         // see if the key is special-case "length"
-         else if(!i->hasNext() && strcmp(key, "length") == 0)
-         {
-            rval = DynamicObject();
-            rval = vars->length();
+
+            // proceed if the index value is not missing
+            if(!missing)
+            {
+               // check for the index in vars
+               if(index < vars->length())
+               {
+                  if(i->hasNext())
+                  {
+                     // var found, but there are more components
+                     vars = vars[index];
+                  }
+                  else
+                  {
+                     // final var found
+                     lhs = vars[index];
+                  }
+               }
+               else
+               {
+                  // index is out of bounds, var is missing
+                  missing = true;
+               }
+            }
          }
          else
          {
-            // var is missing
+            // name component is an index, but vars is not an array,
+            // so var is missing
             missing = true;
          }
       }
    }
 
    // set exception if variable missing and strict is on
-   if(rval.isNull())
+   if(lhs.isNull())
    {
       if(strict)
       {
@@ -2424,14 +2584,25 @@ DynamicObject TemplateInputStream::findVariable(
             "The substitution variable is not defined. "
             "Variable substitution cannot occur with an "
             "undefined variable.",
-            EXCEPTION_TIS ".VariableNotDefined");
-         e->getDetails()["name"] = varname;
+            EXCEPTION_UNDEFINED);
+         e->getDetails()["name"] = params["text"]->getString();
          Exception::set(e);
       }
    }
    // handle operation
-   else if(op != 0)
+   else if(params->hasMember("op"))
    {
+      // get rhs
+      DynamicObject rhs(NULL);
+      if(params["rhs"]["isVar"]->getBoolean())
+      {
+         rhs = findVariable(params["rhs"]["var"], true);
+      }
+      else
+      {
+         rhs = params["rhs"]["value"];
+      }
+
       if(rhs.isNull())
       {
          // if strict is on, set an error, otherwise, just skip the operation
@@ -2441,82 +2612,73 @@ DynamicObject TemplateInputStream::findVariable(
                "The variable to the right of the operator is not defined. "
                "Variable operators cannot be applied with an undefined "
                "variable.",
-               EXCEPTION_TIS ".VariableNotDefined");
-            e->getDetails()["name"] = varname;
+               EXCEPTION_UNDEFINED);
+            e->getDetails()["name"] = params["text"]->getString();
             Exception::set(e);
          }
       }
       else
       {
+         char op = params["op"]->getString()[0];
          switch(op)
          {
             case '+':
             {
                // add lhs to rhs
-               DynamicObject tmp = rval;
                rval = DynamicObject();
-               rval = tmp->getUInt64() + rhs->getUInt64();
+               rval = lhs->getUInt64() + rhs->getUInt64();
                break;
             }
             case '-':
             {
                // subtract rhs from lhs
-               DynamicObject tmp = rval;
                rval = DynamicObject();
                if(rhs->getType() == Int32 || rhs->getType() == Int64)
                {
-                  rval = tmp->getInt64() - rhs->getInt64();
+                  rval = lhs->getInt64() - rhs->getInt64();
                }
                else
                {
-                  rval = tmp->getUInt64() - rhs->getUInt64();
+                  rval = lhs->getUInt64() - rhs->getUInt64();
                }
                break;
             }
          }
       }
    }
+   // no operation, return lhs
+   else
+   {
+      rval = lhs;
+   }
 
    return rval;
 }
 
 DynamicObject TemplateInputStream::findLocalVariable(
-   const char* varname, DynamicObject* set, bool unset)
+   DynamicObject& params, DynamicObject* set, bool unset)
 {
    DynamicObject rval(NULL);
 
-   // split varname by period delimiters, drill-down
-   // into tree of maps looking for variable
-   DynamicObject names = StringTools::split(varname, ".");
+   // iterate over the name components of the variable
    DynamicObject vars = mLocalVars;
-
-   // scan all names
    bool missing = false;
-   DynamicObjectIterator i = names.getIterator();
+   DynamicObjectIterator i = params["name"].getIterator();
    while(rval.isNull() && !missing && i->hasNext())
    {
-      DynamicObject& d = i->next();
-      const char* key = d->getString();
+      // get the next name component
+      DynamicObject& next = i->next();
 
-      // determine if key is a number or string
-      bool isNum = true;
-      for(const char* ptr = key; isNum && *ptr != 0; ptr++)
+      // component is a key (name.key)
+      if(next->hasMember("key"))
       {
-         if(*ptr < '0' || *ptr > '9')
-         {
-            isNum = false;
-         }
-      }
-      int num = isNum ? d->getInt32() : 0;
-
-      // check for a key in vars
-      if(!isNum)
-      {
+         // check for key in vars
+         const char* key = next["key"]->getString();
          if(vars->hasMember(key))
          {
             if(i->hasNext())
             {
-               // next var found, but must go deeper in the tree
+               // var found, but there are more components
                vars = vars[key];
             }
             else if(set != NULL)
@@ -2533,10 +2695,11 @@ DynamicObject TemplateInputStream::findLocalVariable(
             }
             else
             {
-               // return the var
+               // final var found
                rval = vars[key];
             }
          }
+         // key not in vars, but if we are setting, we add it
          else if(set != NULL)
          {
             if(i->hasNext())
@@ -2555,75 +2718,92 @@ DynamicObject TemplateInputStream::findLocalVariable(
          // see if the key is special-case "length"
          else if(!i->hasNext() && strcmp(key, "length") == 0)
          {
+            // create a variable to store the length
             rval = DynamicObject();
             rval = vars->length();
          }
          else
          {
-            // var not found
+            // var is missing
             missing = true;
          }
       }
-      // check for an index in vars
-      else if(isNum)
+      // component is an index (name[index])
+      else
       {
-         if(i->hasNext() && vars->getType() == Array && num < vars->length())
+         int index;
+         DynamicObject& tmp = next["index"];
+         if(tmp["isVar"]->getBoolean())
          {
-            // next var found, but must go deeper in the tree
-            vars = vars[num];
-         }
-         else if(vars->getType() == Array && num < vars->length())
-         {
-            if(set != NULL)
+            // find the index value
+            DynamicObject tmp = findVariable(tmp["var"], true);
+            if(tmp.isNull())
             {
-               if(i->hasNext())
-               {
-                  // create a map to store the var in, then go deeper
-                  vars[num]->setType(Map);
-                  vars = vars[num];
-               }
-               else
-               {
-                  // set the var
-                  vars[num] = *set;
-                  rval = *set;
-               }
-            }
-            else if(unset)
-            {
-               // unset the var
-               vars[num] = false;
                missing = true;
             }
             else
             {
-               // return the var
-               rval = vars[num];
-            }
-         }
-         else if(set != NULL)
-         {
-            if(i->hasNext())
-            {
-               // create a map to store the var in, then go deeper
-               vars[num]->setType(Map);
-               vars = vars[num];
-            }
-            else
-            {
-               // set the var
-               vars[num] = *set;
-               rval = *set;
+               index = tmp->getInt32();
             }
          }
          else
          {
-            missing = true;
+            index = tmp["value"]->getInt32();
          }
-      }
-      else
-      {
-         missing = true;
+
+         // proceed if the index value is not missing
+         if(!missing)
+         {
+            // check for the index in vars
+            if(vars->getType() == Array && index < vars->length())
+            {
+               if(i->hasNext())
+               {
+                  // var found, but there are more components
+                  vars = vars[index];
+               }
+               else if(set != NULL)
+               {
+                  // set the var
+                  vars[index] = *set;
+                  rval = *set;
+               }
+               else if(unset)
+               {
+                  // unset the var
+                  vars[index] = false;
+                  missing = true;
+               }
+               else
+               {
+                  // final var found
+                  rval = vars[index];
+               }
+            }
+            // vars is not an array or index is out of bounds,
+            // but we are setting the var, so do it
+            else if(set != NULL)
+            {
+               if(i->hasNext())
+               {
+                  // create a map to store the var in, then go deeper
+                  vars[index]->setType(Map);
+                  vars = vars[index];
+               }
+               else
+               {
+                  // set the var
+                  vars[index] = *set;
+                  rval = *set;
+               }
+            }
+            else
+            {
+               // index is out of bounds (nothing to unset if it is on),
+               // var is missing
+               missing = true;
+            }
+         }
       }
    }
 
