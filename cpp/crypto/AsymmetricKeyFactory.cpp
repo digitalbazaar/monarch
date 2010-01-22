@@ -372,9 +372,9 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
 X509CertificateRef AsymmetricKeyFactory::createCertificate(
    uint32_t version,
    PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
-   DynamicObject& subject, DynamicObject& issuer,
+   DynamicObject subject, DynamicObject issuer,
    Date* startDate, Date* endDate, BigInteger& serial,
-   DynamicObject* extensions)
+   DynamicObject* extensions, X509CertificateRef* issuerCert)
 {
    X509CertificateRef rval(NULL);
 
@@ -474,8 +474,9 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
    if(pass && version >= 0x2 && extensions != NULL)
    {
       X509V3_CTX ctx;
+      X509* issuerX509 = (issuerCert == NULL) ? NULL : (*issuerCert)->getX509();
       // ctx, issuer, subject, request, revocation list, flags
-      X509V3_set_ctx(&ctx, NULL, x509, NULL, NULL, 0);
+      X509V3_set_ctx(&ctx, issuerX509, x509, NULL, NULL, 0);
       X509_EXTENSION* ext;
 
       // add extensions, examples of extensions are:

@@ -662,7 +662,7 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
    X509CertificateRef cert;
    cert = factory.createCertificate(
       version, privateKey, publicKey,
-      subject, subject, &yesterday, &tomorrow, serial, &extensions);
+      subject, subject, &yesterday, &tomorrow, serial, &extensions, NULL);
    assertNoException();
    assert(!cert.isNull());
 

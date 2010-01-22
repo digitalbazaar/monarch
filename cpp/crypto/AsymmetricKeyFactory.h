@@ -142,15 +142,17 @@ public:
     *                NULL for now.
     * @param serial the serial number to use.
     * @param extensions any extensions to include.
+    * @param issuerCert the issuer certificate to use, NULL for none.
     *
     * @return the X.509 certificate, NULL if an exception occurred.
     */
    virtual X509CertificateRef createCertificate(
       uint32_t version,
       PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
-      monarch::rt::DynamicObject& subject, monarch::rt::DynamicObject& issuer,
+      monarch::rt::DynamicObject subject, monarch::rt::DynamicObject issuer,
       monarch::util::Date* startDate, monarch::util::Date* endDate,
-      BigInteger& serial, monarch::rt::DynamicObject* extensions);
+      BigInteger& serial, monarch::rt::DynamicObject* extensions,
+      X509CertificateRef* issuerCert);
 
    /**
     * Loads an X.509 certificate from a PEM formatted string. A PEM formatted
