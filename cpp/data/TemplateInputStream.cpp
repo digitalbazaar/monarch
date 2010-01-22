@@ -1577,7 +1577,7 @@ bool TemplateInputStream::parseVariableText(
          else if(rval)
          {
             // operator found, parse remainder as an expression
-            params["op"] = *ptr;
+            params["op"] = string(1, *ptr).c_str();
             string rhs(ptr + 1);
             rval = parseExpression(rhs.c_str(), params["rhs"]);
             ptr = NULL;
