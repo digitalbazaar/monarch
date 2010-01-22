@@ -2527,14 +2527,14 @@ DynamicObject TemplateInputStream::findVariable(
             if(tmp["isVar"]->getBoolean())
             {
                // find the index value
-               DynamicObject tmp = findVariable(tmp["var"], true);
-               if(tmp.isNull())
+               DynamicObject value = findVariable(tmp["var"], true);
+               if(value.isNull())
                {
                   missing = true;
                }
                else
                {
-                  index = tmp->getInt32();
+                  index = value->getInt32();
                }
             }
             else
@@ -2736,14 +2736,14 @@ DynamicObject TemplateInputStream::findLocalVariable(
          if(tmp["isVar"]->getBoolean())
          {
             // find the index value
-            DynamicObject tmp = findVariable(tmp["var"], true);
-            if(tmp.isNull())
+            DynamicObject value = findVariable(tmp["var"], true);
+            if(value.isNull())
             {
                missing = true;
             }
             else
             {
-               index = tmp->getInt32();
+               index = value->getInt32();
             }
          }
          else

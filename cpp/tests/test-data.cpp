@@ -1848,21 +1848,21 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
-#if 0
+
    tr.test("parse (loop)");
    {
       // create template
       const char* tpl =
          "Item count: {items.length}\n"
          "{:loop start=0 until=items.length index=current}"
-         "The item is '{item.current}', current is '{current}'\n"
+         "The item is '{items[current]}', index is {current}\n"
          "{:end}";
 
       // create variables
       DynamicObject vars;
-      vars["items"]["a"] = "item1";
-      vars["items"]["b"] = "item2";
-      vars["items"]["c"] = "item3";
+      vars["items"]->append() = "item1";
+      vars["items"]->append() = "item2";
+      vars["items"]->append() = "item3";
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -1876,9 +1876,9 @@ void runTemplateInputStreamTest(TestRunner& tr)
 
       const char* expect =
          "Item count: 3\n"
-         "The item is 'item1', current is 0\n"
-         "The item is 'item2', current is 1\n"
-         "The item is 'item3', current is 2\n";
+         "The item is 'item1', index is 0\n"
+         "The item is 'item2', index is 1\n"
+         "The item is 'item3', index is 2\n";
 
       // null-terminate output
       output.putByte(0, 1, true);
@@ -1894,15 +1894,15 @@ void runTemplateInputStreamTest(TestRunner& tr)
       const char* tpl =
          "Item count: {items.length}\n"
          "{:loop start=0 until=items.length index=current}"
-         "The item is '{item}', key is '{key}'\n"
-         "{:eachelse}"
+         "The item is '{items[current]}', index is {current}\n"
+         "{:loopelse}"
          "There are no items.\n"
          "{:end}"
-         "{:set items.a='item1'}"
+         "{:set items[0]='item1'}"
          "Item count: {items.length}\n"
-         "{:each from=items as=item key=key}"
-         "The item is '{item}', key is '{key}'\n"
-         "{:eachelse}"
+         "{:loop start=0 until=items.length index=current}"
+         "The item is '{items[current]}', index is {current}\n"
+         "{:loopelse}"
          "There are no items.\n"
          "{:end}";
 
@@ -1924,7 +1924,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Item count: 0\n"
          "There are no items.\n"
          "Item count: 1\n"
-         "The item is 'item1', key is 'a'\n";
+         "The item is 'item1', index is 0\n";
 
       // null-terminate output
       output.putByte(0, 1, true);
@@ -1938,8 +1938,8 @@ void runTemplateInputStreamTest(TestRunner& tr)
    {
       // create template
       const char* tpl =
-         "{:each from=items as=item}\n"
-         "The item is '{item}'\n";
+         "{:loop start=0 until=items.length}\n"
+         "The item is '{items[current]}'\n";
 
       // create variables
       DynamicObject vars;
@@ -1963,8 +1963,8 @@ void runTemplateInputStreamTest(TestRunner& tr)
       // create template
       const char* tpl =
          "Items:\n"
-         "{:each from=items as=item}"
-         "The item is '{item}'\n"
+         "{:loop start=0 until=items.length index=current}"
+         "The item is '{items[current]}'\n"
          "{:end}"
          "{:if end}end{:end}\n";
 
@@ -1994,7 +1994,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
-#endif
+
    tr.test("parse (include)");
    {
       // write out template
