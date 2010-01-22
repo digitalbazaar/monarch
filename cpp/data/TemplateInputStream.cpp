@@ -27,6 +27,8 @@ using namespace monarch::util;
 #define START_COMMAND      ":"
 #define START_COMMAND_CHAR ':'
 #define VAR_OPERATORS      "+-"
+#define ESCAPE             "\\"
+#define ESCAPE_CHAR        '\\'
 
 #define START_VARIABLE "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define START_PIPE     "|"
@@ -192,7 +194,7 @@ static int _trimQuotes(string& value)
 
    if(value.at(0) == '\'')
    {
-      if(value.at(value.length() -1) == '\'')
+      if(value.at(value.length() - 1) == '\'')
       {
          StringTools::trim(value, "'");
          rval = 1;
@@ -205,7 +207,7 @@ static int _trimQuotes(string& value)
    }
    else if(value.at(0) == '"')
    {
-      if(value.at(value.length() -1) == '"')
+      if(value.at(value.length() - 1) == '"')
       {
          StringTools::trim(value, "\"");
          rval = 1;
@@ -448,15 +450,15 @@ bool TemplateInputStream::parseTemplateBuffer()
       }
       case ParseVariable:
       {
-         // scan for the end of the markup or the start of a pipe
-         ptr = strpbrk(ptr, END_CONSTRUCT START_PIPE);
+         // scan for the end of the construct, the start of a pipe, or escape
+         ptr = strpbrk(ptr, END_CONSTRUCT START_PIPE ESCAPE);
          rval = consumeTemplate(ptr);
          break;
       }
       case ParsePipe:
       {
-         // scan for the end of the construct or the start of a pipe
-         ptr = strpbrk(ptr, END_CONSTRUCT START_PIPE);
+         // scan for the end of the construct, the start of a pipe, or escape
+         ptr = strpbrk(ptr, END_CONSTRUCT START_PIPE ESCAPE);
          rval = consumeTemplate(ptr);
          break;
       }
@@ -484,236 +486,95 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
    // save character at 'ptr', 0 for NULL
    char ret = (ptr == NULL) ? 0 : *ptr;
 
-   // if seek character not found
-   if(ptr == NULL)
+   // if ESCAPE is found but at the end of the template, block to get
+   // escaped character
+   if(ret == ESCAPE_CHAR && ptr == (mTemplate.end() - 1))
    {
-      // set pointer to end of template buffer (before null-terminator)
-      // and set indicator that more data is needed
-      ptr = mTemplate.end() - 1;
       mBlocked = true;
    }
-
-   // get minimum amount of data to consume
-   int len = ptr - mTemplate.data();
-
-   // increment current line and column number
-   switch(mState)
+   else
    {
-      case FindConstruct:
-      case ParseLiteral:
-      case SkipComment:
-      case ParseCommand:
+      // if seek character not found
+      if(ptr == NULL)
       {
-         // count EOLs
-         for(int i = 0; i < len; i++)
-         {
-            if(mTemplate.data()[i] == EOL)
-            {
-               mLine++;
-               mColumn = 1;
-            }
-            else
-            {
-               mColumn++;
-            }
-         }
-         break;
+         // set pointer to end of template buffer (before null-terminator)
+         // and set indicator that more data is needed
+         ptr = mTemplate.end() - 1;
+         mBlocked = true;
       }
-      default:
-         // EOLs illegal, prevented elsewhere
-         break;
-   }
 
-   // handle parsing
-   switch(mState)
-   {
-      case FindConstruct:
+      // get minimum amount of data to consume
+      int len = ptr - mTemplate.data();
+
+      // increment current line and column number
+      switch(mState)
       {
-         // if len > 0, then we must capture text before the next construct
-         if(len > 0)
+         case FindConstruct:
+         case ParseLiteral:
+         case SkipComment:
+         case ParseCommand:
          {
-            if(mConstructs.back()->type != Construct::Literal)
+            // count EOLs
+            for(int i = 0; i < len; i++)
             {
-               // no construct found, start new literal to capture text
+               if(mTemplate.data()[i] == EOL)
+               {
+                  mLine++;
+                  mColumn = 1;
+               }
+               else
+               {
+                  mColumn++;
+               }
+            }
+            break;
+         }
+         default:
+            // EOLs illegal, prevented elsewhere
+            break;
+      }
+
+      // handle parsing
+      switch(mState)
+      {
+         case FindConstruct:
+         {
+            // if len > 0, then we must capture text before the next construct
+            if(len > 0)
+            {
+               if(mConstructs.back()->type != Construct::Literal)
+               {
+                  // no construct found, start new literal to capture text
+                  Construct* c = new Construct;
+                  c->type = Construct::Literal;
+                  c->data = new Literal;
+                  c->line = mLine;
+                  c->column = mColumn;
+                  c->parent = mConstructs.back();
+                  c->childIndex = max(
+                     0, (int)mConstructs.back()->children.size() - 1);
+                  mConstructs.push_back(c);
+               }
+
+               // write text to literal, consume data
+               Construct* c = mConstructs.back();
+               Literal* data = static_cast<Literal*>(c->data);
+               data->text.append(mTemplate.data(), len);
+               mTemplate.clear(len);
+            }
+            // see if starting construct was found
+            if(ret != 0)
+            {
+               if(mConstructs.back()->type == Construct::Literal)
+               {
+                  // end of literal text
+                  attachConstruct();
+               }
+
+               // starting construct found
                Construct* c = new Construct;
-               c->type = Construct::Literal;
-               c->data = new Literal;
-               c->line = mLine;
-               c->column = mColumn;
-               c->parent = mConstructs.back();
-               c->childIndex = max(
-                  0, (int)mConstructs.back()->children.size() - 1);
-               mConstructs.push_back(c);
-            }
-
-            // write text to literal, consume data
-            Construct* c = mConstructs.back();
-            Literal* data = static_cast<Literal*>(c->data);
-            data->text.append(mTemplate.data(), len);
-            mTemplate.clear(len);
-         }
-         // see if starting construct was found
-         if(ret != 0)
-         {
-            if(mConstructs.back()->type == Construct::Literal)
-            {
-               // end of literal text
-               attachConstruct();
-            }
-
-            // starting construct found
-            Construct* c = new Construct;
-            c->type = Construct::Undefined;
-            c->data = NULL;
-            c->line = mLine;
-            c->column = mColumn;
-            c->parent = mConstructs.back();
-            c->childIndex = max(
-               0, (int)mConstructs.back()->children.size() - 1);
-            mConstructs.push_back(c);
-            mStateStack.push_back(mState);
-            mState = ParseConstructType;
-
-            // skip starting construct char
-            mTemplate.clear(1);
-            mColumn++;
-         }
-         break;
-      }
-      case ParseLiteral:
-      {
-         // write text to literal
-         Construct* c = mConstructs.back();
-         Literal* data = static_cast<Literal*>(c->data);
-         data->text.append(mTemplate.data(), len);
-         if(ret != 0)
-         {
-            // end of literal found, parse it
-            rval = parseConstruct();
-         }
-         if(rval)
-         {
-            // consume data
-            mTemplate.clear(len);
-         }
-         break;
-      }
-      case SkipComment:
-      {
-         if(ret != 0)
-         {
-            // end of comment found, skip it too
-            len += END_COMMENT_LEN;
-            mColumn += END_COMMENT_LEN;
-
-            // clean up comment (optimized out),
-            // return to previous state
-            Construct* c = mConstructs.back();
-            mConstructs.pop_back();
-            freeConstruct(c);
-            prevState();
-         }
-         // consume data
-         mTemplate.clear(len);
-         break;
-      }
-      case ParseConstructType:
-      {
-         // if construct type not found or not at the beginning of the data
-         // and template isn't empty, it is an error
-         if((ret == 0 || len != 0) && !mTemplate.isEmpty())
-         {
-            ExceptionRef e = new Exception(
-               "No comment, command, or variable found in construct.",
-               EXCEPTION_SYNTAX);
-            Exception::set(e);
-            rval = false;
-         }
-         // construct type found, there will be no data to consume
-         else if(ret != 0)
-         {
-            switch(ret)
-            {
-               // comment start
-               case START_COMMENT_CHAR:
-               {
-                  Construct* c = mConstructs.back();
-                  c->type = Construct::Comment;
-                  mState = SkipComment;
-                  break;
-               }
-               // command start
-               case START_COMMAND_CHAR:
-               {
-                  Command* data = new Command;
-                  data->type = Command::cmd_undefined;
-                  data->params = NULL;
-                  data->requiresEnd = false;
-                  Construct* c = mConstructs.back();
-                  c->type = Construct::Command;
-                  c->data = data;
-                  mState = ParseCommand;
-                  break;
-               }
-               // variable start
-               default:
-               {
-                  Construct* c = mConstructs.back();
-                  c->type = Construct::Variable;
-                  c->data = new Variable;
-                  mState = ParseVariable;
-                  break;
-               }
-            }
-         }
-         break;
-      }
-      case ParseCommand:
-      {
-         // write text to command
-         Construct* c = mConstructs.back();
-         Command* data = static_cast<Command*>(c->data);
-         data->text.append(mTemplate.data(), len);
-         if(ret != 0)
-         {
-            // finished, skip ending construct delimiter, parse it
-            len++;
-            rval = parseConstruct();
-         }
-         if(rval)
-         {
-            // consume data
-            mTemplate.clear(len);
-            mColumn += len;
-         }
-         break;
-      }
-      case ParseVariable:
-      {
-         // write text to variable
-         Construct* c = mConstructs.back();
-         Variable* data = static_cast<Variable*>(c->data);
-         data->text.append(mTemplate.data(), len);
-         if(ret != 0)
-         {
-            // finished, skip ending construct/starting pipe delimiter
-            len++;
-            if(ret == END_CONSTRUCT_CHAR)
-            {
-               // variable finished
-               rval = parseConstruct();
-            }
-            else
-            {
-               // pipe found, start parsing it
-               Pipe* data = new Pipe;
-               data->type = Pipe::pipe_undefined;
-               data->params = NULL;
-               data->func = NULL;
-               data->userData = NULL;
-               Construct* c = new Construct;
-               c->type = Construct::Pipe;
-               c->data = data;
+               c->type = Construct::Undefined;
+               c->data = NULL;
                c->line = mLine;
                c->column = mColumn;
                c->parent = mConstructs.back();
@@ -721,39 +582,205 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
                   0, (int)mConstructs.back()->children.size() - 1);
                mConstructs.push_back(c);
                mStateStack.push_back(mState);
-               mState = ParsePipe;
+               mState = ParseConstructType;
+
+               // skip starting construct char
+               mTemplate.clear(1);
+               mColumn++;
             }
+            break;
          }
-         if(rval)
+         case ParseLiteral:
          {
+            // write text to literal
+            Construct* c = mConstructs.back();
+            Literal* data = static_cast<Literal*>(c->data);
+            data->text.append(mTemplate.data(), len);
+            if(ret != 0)
+            {
+               // end of literal found, parse it
+               rval = parseConstruct();
+            }
+            if(rval)
+            {
+               // consume data
+               mTemplate.clear(len);
+            }
+            break;
+         }
+         case SkipComment:
+         {
+            if(ret != 0)
+            {
+               // end of comment found, skip it too
+               len += END_COMMENT_LEN;
+               mColumn += END_COMMENT_LEN;
+
+               // clean up comment (optimized out),
+               // return to previous state
+               Construct* c = mConstructs.back();
+               mConstructs.pop_back();
+               freeConstruct(c);
+               prevState();
+            }
             // consume data
             mTemplate.clear(len);
-            mColumn += len;
+            break;
          }
-         break;
-      }
-      case ParsePipe:
-      {
-         // write text to pipe
-         Construct* c = mConstructs.back();
-         Pipe* data = static_cast<Pipe*>(c->data);
-         data->text.append(mTemplate.data(), len);
-         if(ret != 0)
+         case ParseConstructType:
          {
-            // finished, parse construct
-            rval = parseConstruct();
+            // if construct type not found or not at the beginning of the data
+            // and template isn't empty, it is an error
+            if((ret == 0 || len != 0) && !mTemplate.isEmpty())
+            {
+               ExceptionRef e = new Exception(
+                  "No comment, command, or variable found in construct.",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+            // construct type found, there will be no data to consume
+            else if(ret != 0)
+            {
+               switch(ret)
+               {
+                  // comment start
+                  case START_COMMENT_CHAR:
+                  {
+                     Construct* c = mConstructs.back();
+                     c->type = Construct::Comment;
+                     mState = SkipComment;
+                     break;
+                  }
+                  // command start
+                  case START_COMMAND_CHAR:
+                  {
+                     Command* data = new Command;
+                     data->type = Command::cmd_undefined;
+                     data->params = NULL;
+                     data->requiresEnd = false;
+                     Construct* c = mConstructs.back();
+                     c->type = Construct::Command;
+                     c->data = data;
+                     mState = ParseCommand;
+                     break;
+                  }
+                  // variable start
+                  default:
+                  {
+                     Construct* c = mConstructs.back();
+                     c->type = Construct::Variable;
+                     c->data = new Variable;
+                     mState = ParseVariable;
+                     break;
+                  }
+               }
+            }
+            break;
          }
-         if(rval)
+         case ParseCommand:
          {
-            // consume data
-            mTemplate.clear(len);
-            mColumn += len;
+            // write text to command
+            Construct* c = mConstructs.back();
+            Command* data = static_cast<Command*>(c->data);
+            data->text.append(mTemplate.data(), len);
+            if(ret != 0)
+            {
+               // finished, skip ending construct delimiter, parse it
+               len++;
+               rval = parseConstruct();
+            }
+            if(rval)
+            {
+               // consume data
+               mTemplate.clear(len);
+               mColumn += len;
+            }
+            break;
          }
-         break;
+         case ParseVariable:
+         {
+            // write text to variable
+            Construct* c = mConstructs.back();
+            Variable* data = static_cast<Variable*>(c->data);
+            data->text.append(mTemplate.data(), len);
+            if(ret != 0)
+            {
+               // finished, skip ending construct/starting pipe/escape char
+               len++;
+               if(ret == END_CONSTRUCT_CHAR)
+               {
+                  // variable finished
+                  rval = parseConstruct();
+               }
+               else if(ret == ESCAPE_CHAR)
+               {
+                  // include escaped character in variable data
+                  data->text.push_back(*(mTemplate.data() + len));
+                  len++;
+               }
+               else
+               {
+                  // pipe found, start parsing it
+                  Pipe* data = new Pipe;
+                  data->type = Pipe::pipe_undefined;
+                  data->params = NULL;
+                  data->func = NULL;
+                  data->userData = NULL;
+                  Construct* c = new Construct;
+                  c->type = Construct::Pipe;
+                  c->data = data;
+                  c->line = mLine;
+                  c->column = mColumn;
+                  c->parent = mConstructs.back();
+                  c->childIndex = max(
+                     0, (int)mConstructs.back()->children.size() - 1);
+                  mConstructs.push_back(c);
+                  mStateStack.push_back(mState);
+                  mState = ParsePipe;
+               }
+            }
+            if(rval)
+            {
+               // consume data
+               mTemplate.clear(len);
+               mColumn += len;
+            }
+            break;
+         }
+         case ParsePipe:
+         {
+            // write text to pipe
+            Construct* c = mConstructs.back();
+            Pipe* data = static_cast<Pipe*>(c->data);
+            data->text.append(mTemplate.data(), len);
+            if(ret != 0)
+            {
+               if(ret == ESCAPE_CHAR)
+               {
+                  // skip escape, include escaped character in pipe data
+                  len++;
+                  data->text.push_back(*(mTemplate.data() + len));
+                  len++;
+               }
+               else
+               {
+                  // finished, parse construct
+                  rval = parseConstruct();
+               }
+            }
+            if(rval)
+            {
+               // consume data
+               mTemplate.clear(len);
+               mColumn += len;
+            }
+            break;
+         }
+         default:
+            // prevented via other code
+            break;
       }
-      default:
-         // prevented via other code
-         break;
    }
 
    return rval;
@@ -1665,11 +1692,11 @@ bool TemplateInputStream::parseExpression(
 }
 
 static bool _pipe_escape(
-   string& value, DynamicObject* params, void* userData)
+   string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
 
-   if(params == NULL)
+   if(params->length() == 0)
    {
       // default to xml escaping
       for(string::size_type i = 0; i < value.length(); i++)
@@ -1701,17 +1728,30 @@ static bool _pipe_escape(
          }
       }
    }
-   else if(strcmp((*params)["type"]->getString(), "url") == 0)
+   else
    {
-      // do URL encode
-      value = Url::encode(value.c_str(), value.length());
+      DynamicObject& type = params[0];
+
+      if(strcmp(type->getString(), "url") == 0)
+      {
+         // do URL encode
+         value = Url::encode(value.c_str(), value.length());
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Unknown escape type.",
+            EXCEPTION_SYNTAX);
+         Exception::set(e);
+         rval = false;
+      }
    }
 
    return rval;
 };
 
 static bool _pipe_capitalize(
-   string& value, DynamicObject* params, void* userData)
+   string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
 
@@ -1732,46 +1772,132 @@ static bool _pipe_capitalize(
    return rval;
 };
 
+static bool _pipe_replace(
+   string& value, DynamicObject& params, void* userData)
+{
+   bool rval = true;
+   string find = params[0]->getString();
+   string replace = params[1]->getString();
+   StringTools::replaceAll(value, find, replace);
+   return rval;
+}
+
+static bool _pipe_regex(
+   string& value, DynamicObject& params, void* userData)
+{
+   bool rval = true;
+   string find = params[0]->getString();
+   string replace = params[1]->getString();
+   StringTools::regexReplaceAll(value, find, replace);
+   return rval;
+}
+
 bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
 {
    bool rval = true;
 
-   if(strncmp(p->text.c_str(), "escape", 6) == 0)
+   // parse name and parameters of pipe
+   string::size_type lp = p->text.find('(');
+   string::size_type rp = p->text.rfind(')');
+   if((lp == string::npos && rp != string::npos) ||
+      (rp == string::npos && lp != string::npos) ||
+      (lp > rp))
    {
-      p->type = Pipe::pipe_escape;
-      p->func = &_pipe_escape;
+      // must have both parenthesis, in order, or none at all
+      ExceptionRef e = new Exception(
+         "Mismatched parentheses.",
+         EXCEPTION_SYNTAX);
+      Exception::set(e);
+      rval = false;
+   }
+   else
+   {
+      // get pipe name and arguments
+      string name;
+      if(lp != string::npos)
+      {
+         name = p->text.substr(0, lp);
+         if(lp != rp)
+         {
+            // build params
+            DynamicObject params;
+            params->setType(Array);
 
-      if(strcmp(p->text.c_str(), "escape('url')") == 0)
-      {
-         // add params, use URL encoding
-         p->params = new DynamicObject();
-         (*p->params)["type"] = "url";
+            // split params on comma
+            string str = p->text.substr(lp + 1, rp - lp - 1);
+            DynamicObject tokens = StringTools::split(str.c_str(), ",");
+            DynamicObjectIterator i = tokens.getIterator();
+            while(rval && i->hasNext())
+            {
+               // trim whitespace
+               string token = i->next()->getString();
+               StringTools::trim(token, " ");
+
+               // parse token as an expression
+               DynamicObject& param = params->append();
+               rval = parseExpression(token.c_str(), param);
+            }
+
+            if(rval)
+            {
+               // save params
+               p->params = new DynamicObject(params);
+            }
+         }
       }
-      else if(strcmp(p->text.c_str(), "escape") == 0)
+      else
       {
-         // no params
+         name = p->text;
+      }
+
+      // find pipe type by name
+      if(strcmp(name.c_str(), "escape") == 0)
+      {
+         p->type = Pipe::pipe_escape;
+         p->func = &_pipe_escape;
+      }
+      else if(strcmp(name.c_str(), "capitalize") == 0)
+      {
+         p->type = Pipe::pipe_capitalize;
+         p->func = &_pipe_capitalize;
+      }
+      else if(strcmp(name.c_str(), "replace") == 0)
+      {
+         p->type = Pipe::pipe_replace;
+         p->func = &_pipe_replace;
+         if(p->params == NULL || (*p->params)->length() < 2)
+         {
+            ExceptionRef e = new Exception(
+               "The capture and replacement text must be "
+               "given as parameters to the 'replace' pipe.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
+      }
+      else if(strcmp(name.c_str(), "regex") == 0)
+      {
+         p->type = Pipe::pipe_regex;
+         p->func = &_pipe_regex;
+         if(p->params == NULL || (*p->params)->length() < 2)
+         {
+            ExceptionRef e = new Exception(
+               "The regular expression and replacement text must be "
+               "given as parameters to the 'regex' pipe.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
       }
       else
       {
          ExceptionRef e = new Exception(
-            "Unknown escape type.",
+            "Unknown pipe.",
             EXCEPTION_SYNTAX);
+         e->getDetails()["pipe"] = name.c_str();
          Exception::set(e);
          rval = false;
       }
-   }
-   else if(strcmp(p->text.c_str(), "capitalize") == 0)
-   {
-      p->type = Pipe::pipe_capitalize;
-      p->func = &_pipe_capitalize;
-   }
-   else
-   {
-      ExceptionRef e = new Exception(
-         "Unknown pipe.",
-         EXCEPTION_SYNTAX);
-      Exception::set(e);
-      rval = false;
    }
 
    return rval;
@@ -2278,7 +2404,36 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
           rval && i != c->children.end(); i++)
       {
          Pipe* p = static_cast<Pipe*>((*i)->data);
-         rval = p->func(value, p->params, p->userData);
+
+         DynamicObject params;
+         params->setType(Array);
+         if(p->params != NULL)
+         {
+            // resolve variables in pipe parameters
+            DynamicObjectIterator pi = (*p->params).getIterator();
+            while(rval && pi->hasNext())
+            {
+               DynamicObject& next = pi->next();
+               if(next["isVar"]->getBoolean())
+               {
+                  DynamicObject var = findVariable(next["var"], true);
+                  if(var.isNull())
+                  {
+                     rval = false;
+                  }
+                  else
+                  {
+                     params->append(var);
+                  }
+               }
+               else
+               {
+                  params->append() = next["value"].clone();
+               }
+            }
+         }
+
+         rval = rval && p->func(value, params, p->userData);
       }
 
       // write out variable value

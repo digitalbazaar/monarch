@@ -134,7 +134,9 @@ protected:
       {
          pipe_undefined,
          pipe_escape,
-         pipe_capitalize
+         pipe_capitalize,
+         pipe_replace,
+         pipe_regex
       };
       Type type;
       std::string text;
@@ -147,7 +149,7 @@ protected:
        */
       typedef bool (*PipeFunction)(
          std::string& value,
-         monarch::rt::DynamicObject* params, void* userData);
+         monarch::rt::DynamicObject& params, void* userData);
       PipeFunction func;
    };
 

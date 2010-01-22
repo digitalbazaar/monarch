@@ -2217,13 +2217,18 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "{:each from=items as=item key=key}"
          "The item is '{item|escape|escape('url')}', "
          "capitalized key is '{key|capitalize}'\n"
-         "{:end}";
+         "{:end}"
+         "Replaced 'c' in '{cat}' with a 'br': {cat|replace('c','br')}\n"
+         "Regex replaced '{foobar}' with '"
+         "{foobar|regex('o\\{2\\}','oot')}'\n";
 
       // create variables
       DynamicObject vars;
       vars["items"]["apple"] = "item&1";
       vars["items"]["banana"] = "item&2";
       vars["items"]["cherry"] = "item&3";
+      vars["cat"] = "cat";
+      vars["foobar"] = "foobar";
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -2239,7 +2244,9 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Item count: 3\n"
          "The item is 'item%26amp%3B1', capitalized key is 'Apple'\n"
          "The item is 'item%26amp%3B2', capitalized key is 'Banana'\n"
-         "The item is 'item%26amp%3B3', capitalized key is 'Cherry'\n";
+         "The item is 'item%26amp%3B3', capitalized key is 'Cherry'\n"
+         "Replaced 'c' in 'cat' with a 'br': brat\n"
+         "Regex replaced 'foobar' with 'footbar'\n";
 
       // null-terminate output
       output.putByte(0, 1, true);
