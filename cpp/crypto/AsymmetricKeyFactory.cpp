@@ -445,11 +445,10 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
       DynamicObjectIterator i = subject.getIterator();
       while(pass && i->hasNext())
       {
-         DynamicObject& value = i->next();
-         const char* name = i->getName();
+         DynamicObject& item = i->next();
          pass = X509_NAME_add_entry_by_txt(
-            sname, name, MBSTRING_UTF8,
-            (const unsigned char*)value->getString(), -1, -1, 0);
+            sname, item["type"]->getString(), MBSTRING_UTF8,
+            (const unsigned char*)item["value"]->getString(), -1, -1, 0);
       }
    }
 
@@ -462,11 +461,10 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
       DynamicObjectIterator i = issuer.getIterator();
       while(pass && i->hasNext())
       {
-         DynamicObject& value = i->next();
-         const char* name = i->getName();
+         DynamicObject& item = i->next();
          pass = X509_NAME_add_entry_by_txt(
-            iname, name, MBSTRING_UTF8,
-            (const unsigned char*)value->getString(), -1, -1, 0);
+            iname, item["type"]->getString(), MBSTRING_UTF8,
+            (const unsigned char*)item["value"]->getString(), -1, -1, 0);
       }
    }
 
@@ -489,15 +487,17 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
       DynamicObjectIterator i = extensions->getIterator();
       while(pass && i->hasNext())
       {
-         DynamicObject& conf = i->next();
+         DynamicObject& item = i->next();
          ext = X509V3_EXT_conf(
-            NULL, &ctx, (char*)i->getName(), (char*)conf->getString());
+            NULL, &ctx,
+            (char*)item["type"]->getString(),
+            (char*)item["value"]->getString());
          if(ext == NULL)
          {
             ExceptionRef e = new Exception(
                "Could not add extension.",
                "monarch.crypto.Certificate.InvalidExtension");
-            e->getDetails()["name"] = i->getName();
+            e->getDetails()["type"] = item["type"]->getString();
             Exception::set(e);
             pass = false;
             extError = true;

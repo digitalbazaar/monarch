@@ -53,11 +53,11 @@ PublicKeyRef& X509Certificate::getPublicKey()
  * value, "C" (country) value, etc. will be added to the output map.
  *
  * @param name the X509_name, i.e. X509_get_subject_name(mX509).
- * @param output the map to populate.
+ * @param output the array to populate.
  */
 static void _getX509NameValues(X509_NAME* name, DynamicObject& output)
 {
-   output->setType(Map);
+   output->setType(Array);
 
    unsigned char* value;
    X509_NAME_ENTRY* entry;
@@ -75,7 +75,9 @@ static void _getX509NameValues(X509_NAME* name, DynamicObject& output)
       const char* sn = OBJ_nid2sn(nid);
       if(ASN1_STRING_to_UTF8(&value, str) != -1)
       {
-         output[sn] = value;
+         DynamicObject& item = output->append();
+         item["type"] = sn;
+         item["value"] = value;
          OPENSSL_free(value);
       }
    }
@@ -100,7 +102,7 @@ DynamicObject X509Certificate::getIssuer()
 DynamicObject X509Certificate::getExtensions()
 {
    DynamicObject rval;
-   rval->setType(Map);
+   rval->setType(Array);
 
    int count = X509_get_ext_count(mX509);
    for(int i = 0; i < count; i++)
@@ -145,7 +147,7 @@ DynamicObject X509Certificate::getExtensions()
             }
             if(nval->name)
             {
-               d["name"] = nval->name;
+               d["type"] = nval->name;
             }
             if(nval->value)
             {
@@ -168,8 +170,10 @@ DynamicObject X509Certificate::getExtensions()
             method->ext_free(asn1Stack);
          }
 
-         // add values
-         rval[name] = values;
+         // add extension values
+         DynamicObject& e = rval->append();
+         e["type"] = name;
+         e["value"] = values;
       }
    }
 

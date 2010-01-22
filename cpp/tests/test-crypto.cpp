@@ -632,12 +632,18 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
    // generate a self-signed X.509 v3 certificate
    uint32_t version = 0x2;
    DynamicObject subject;
-   subject["CN"] = "localhost";
-   subject["OU"] = "Disorganized Unit";
-   subject["O"] = "Fake Inc.";
-   subject["L"] = "Blacksburg";
-   subject["ST"] = "Virginia";
-   subject["C"] = "US";
+   subject[0]["type"] = "C";
+   subject[0]["value"] = "US";
+   subject[1]["type"] = "ST";
+   subject[1]["value"] = "Virginia";
+   subject[2]["type"] = "L";
+   subject[2]["value"] = "Blacksburg";
+   subject[3]["type"] = "O";
+   subject[3]["value"] = "Fake Inc.";
+   subject[4]["type"] = "OU";
+   subject[4]["value"] = "Disorganized Unit";
+   subject[5]["type"] = "CN";
+   subject[5]["value"] = "localhost";
 
    // certificate is valid starting yesterday
    Date yesterday;
@@ -652,12 +658,14 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
 
    // set extensions
    DynamicObject extensions;
-   extensions->setType(Map);
-   extensions["basicConstraints"] = "critical,CA:FALSE";
-   extensions["keyUsage"] =
+   extensions[0]["type"] = "basicConstraints";
+   extensions[0]["value"] = "critical,CA:FALSE";
+   extensions[1]["type"] = "keyUsage";
+   extensions[1]["value"] =
       "critical,digitalSignature,nonRepudiation,"
       "keyEncipherment,dataEncipherment";
-   extensions["extendedKeyUsage"] = "serverAuth,clientAuth";
+   extensions[2]["type"] = "extendedKeyUsage";
+   extensions[2]["value"] = "serverAuth,clientAuth";
 
    X509CertificateRef cert;
    cert = factory.createCertificate(

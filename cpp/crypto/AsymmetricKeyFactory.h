@@ -126,13 +126,14 @@ public:
     * @param version the X.509 version to use (0x0 = 1, 0x1 = 2, 0x2 = 3).
     * @param privateKey the private key to sign with.
     * @param publicKey the public key for the certificate.
-    * @param subject the subject information in a map:
-    *    CN: Common Name (site's domain, i.e. localhost, myserver.com)
-    *    OU: Organizational Unit
-    *    O : Organization
-    *    L : Locality (city, i.e. New York)
-    *    ST: State (i.e., Virginia)
+    * @param subject the subject information in an array with each item having
+    *    type-value pairs:
     *    C : Country (i.e., US)
+    *    ST: State (i.e., Virginia)
+    *    L : Locality (city, i.e. New York)
+    *    O : Organization
+    *    OU: Organizational Unit
+    *    CN: Common Name (site's domain, i.e. localhost, myserver.com)
     * @param issuer the issuer of the certificate (same fields as subject),
     *               can be the same object as the subject to create a
     *               self-signed certificate.
@@ -141,7 +142,7 @@ public:
     * @param endDate the ending date at which the certificate is valid,
     *                NULL for now.
     * @param serial the serial number to use.
-    * @param extensions any extensions to include.
+    * @param extensions any extensions to include (array of type-value pairs).
     * @param issuerCert the issuer certificate to use, NULL for none.
     *
     * @return the X.509 certificate, NULL if an exception occurred.
