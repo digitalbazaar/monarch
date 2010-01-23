@@ -479,6 +479,52 @@ bool TemplateInputStream::parseTemplateBuffer()
    return rval;
 }
 
+static char _getEscapeSequence(char c)
+{
+   char rval = 0;
+
+   switch(c)
+   {
+      case 'b':
+         rval = '\b';
+         break;
+      case 'n':
+         rval = '\n';
+         break;
+      case 'r':
+         rval = '\r';
+         break;
+      case 't':
+         rval = '\t';
+         break;
+      case '{':
+         rval = '{';
+         break;
+      case '}':
+         rval = '}';
+         break;
+      case '\'':
+         rval = '\'';
+         break;
+      case '"':
+         rval = '"';
+         break;
+      default:
+      {
+         ExceptionRef e = new Exception(
+            "Invalid escape sequence.",
+            EXCEPTION_SYNTAX);
+         string str = "\\";
+         str.push_back(c);
+         e->getDetails()["sequence"] = str.c_str();
+         Exception::set(e);
+         break;
+      }
+   }
+
+   return rval;
+}
+
 bool TemplateInputStream::consumeTemplate(const char* ptr)
 {
    bool rval = true;
@@ -715,9 +761,19 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
                }
                else if(ret == ESCAPE_CHAR)
                {
-                  // include escaped character in variable data
-                  data->text.push_back(*(mTemplate.data() + len));
-                  len++;
+                  // get escape sequence
+                  char ch = _getEscapeSequence(*(mTemplate.data() + len));
+                  if(ch == 0)
+                  {
+                     // invalid escape sequence
+                     rval = false;
+                  }
+                  else
+                  {
+                     // add sequence, skip character
+                     data->text.push_back(ch);
+                     len++;
+                  }
                }
                else
                {
@@ -758,10 +814,22 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
             {
                if(ret == ESCAPE_CHAR)
                {
-                  // skip escape, include escaped character in pipe data
+                  // skip escape
                   len++;
-                  data->text.push_back(*(mTemplate.data() + len));
-                  len++;
+
+                  // get escape sequence
+                  char ch = _getEscapeSequence(*(mTemplate.data() + len));
+                  if(ch == 0)
+                  {
+                     // invalid escape sequence
+                     rval = false;
+                  }
+                  else
+                  {
+                     // add sequence, skip character
+                     data->text.push_back(ch);
+                     len++;
+                  }
                }
                else
                {
