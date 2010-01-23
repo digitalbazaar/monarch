@@ -67,7 +67,8 @@ TemplateInputStream::TemplateInputStream(
    mParsed(BUFFER_SIZE),
    mVars(vars),
    mStrict(strict),
-   mIncludeDir((FileImpl*)NULL)
+   mIncludeDir((FileImpl*)NULL),
+   mStripStartingEol(false)
 {
    resetState();
    mVars->setType(Map);
@@ -83,7 +84,8 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
    mStrict(false),
-   mIncludeDir((FileImpl*)NULL)
+   mIncludeDir((FileImpl*)NULL),
+   mStripStartingEol(false)
 {
    resetState();
    mVars->setType(Map);
@@ -111,6 +113,11 @@ void TemplateInputStream::setVariables(DynamicObject& vars, bool strict)
 void TemplateInputStream::setIncludeDirectory(const char* dir)
 {
    mIncludeDir = File(dir);
+}
+
+void TemplateInputStream::setStripStartingEol(bool on)
+{
+   mStripStartingEol = on;
 }
 
 int TemplateInputStream::read(char* b, int length)
@@ -2033,7 +2040,17 @@ bool TemplateInputStream::writeConstruct(Construct* c)
       {
          // write literal text out
          Literal* data = static_cast<Literal*>(c->data);
-         mParsed.put(data->text.c_str(), data->text.length(), true);
+
+         // handle stripping a starting EOL
+         if(mStripStartingEol &&
+            data->text.length() > 0 && data->text[0] == EOL)
+         {
+            mParsed.put(data->text.c_str() + 1, data->text.length() - 1, true);
+         }
+         else
+         {
+            mParsed.put(data->text.c_str(), data->text.length(), true);
+         }
          break;
       }
       case Construct::Command:
@@ -2109,6 +2126,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                mVars, mStrict, fis, true,
                mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
             tis->mLocalVars = mLocalVars;
+            tis->setStripStartingEol(mStripStartingEol);
             mParsed.allocateSpace(file->getLength() & MAX_BUFFER, true);
             int num;
             do

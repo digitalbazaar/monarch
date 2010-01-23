@@ -279,6 +279,11 @@ protected:
     */
    monarch::io::File mIncludeDir;
 
+   /**
+    * True to strip a starting EOL from a literal when outputting.
+    */
+   bool mStripStartingEol;
+
 public:
    /**
     * Creates a new TemplateInputStream that reads a template from the
@@ -286,10 +291,10 @@ public:
     *
     * @param vars the template variables to use.
     * @param strict true to raise an exception if the passed variables do not
-    *               have a variable that is found in the template, false if not.
+    *           have a variable that is found in the template, false if not.
     * @param is the underlying InputStream to read from.
     * @param cleanup true to clean up the passed InputStream when destructing,
-    *                false not to.
+    *           false not to.
     * @param includeDir an include directory for other templates.
     */
    TemplateInputStream(
@@ -304,7 +309,7 @@ public:
     *
     * @param is the underlying InputStream to read from.
     * @param cleanup true to clean up the passed InputStream when destructing,
-    *                false not to.
+    *           false not to.
     */
    TemplateInputStream(monarch::io::InputStream* is, bool cleanup = false);
 
@@ -342,6 +347,16 @@ public:
     * @param dir an include directory for other templates.
     */
    virtual void setIncludeDirectory(const char* dir);
+
+   /**
+    * Sets whether or not a starting end-of-line character, if found at the
+    * beginning of a literal, should be stripped from the generated output.
+    *
+    * This if off by default.
+    *
+    * @param on true to strip a starting EOL from a literal, false not to.
+    */
+   virtual void setStripStartingEol(bool on);
 
    /**
     * Reads some bytes from the stream. This method will block until at least
