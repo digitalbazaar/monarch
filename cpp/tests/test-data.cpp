@@ -2233,7 +2233,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       vars["cat"] = "cat";
       vars["foobar"] = "foobar";
       vars["empty"] = "";
-      vars["eol"] = "\n";
+      vars["eol"] = "none\n";
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -2254,7 +2254,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Regex replaced 'foobar' with 'footbar'\n"
          "Default (undefined): N/A\n"
          "Default (empty string): N/A\n"
-         "<html><body></br></body></html>\n";
+         "<html><body>none</br></body></html>\n";
 
       // null-terminate output
       output.putByte(0, 1, true);
