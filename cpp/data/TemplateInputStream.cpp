@@ -26,7 +26,7 @@ using namespace monarch::util;
 #define END_COMMENT_LEN    2
 #define START_COMMAND      ":"
 #define START_COMMAND_CHAR ':'
-#define VAR_OPERATORS      "+-"
+#define VAR_OPERATORS      "+-*/%"
 #define ESCAPE             "\\"
 #define ESCAPE_CHAR        '\\'
 
@@ -2811,20 +2811,81 @@ DynamicObject TemplateInputStream::findVariable(
             {
                // add lhs to rhs
                rval = DynamicObject();
-               rval = lhs->getUInt64() + rhs->getUInt64();
+               if(lhs->getType() == Double || rhs->getType() == Double)
+               {
+                  rval = lhs->getDouble() + rhs->getDouble();
+               }
+               else
+               {
+                  rval = lhs->getUInt64() + rhs->getUInt64();
+               }
                break;
             }
             case '-':
             {
                // subtract rhs from lhs
                rval = DynamicObject();
-               if(rhs->getType() == Int32 || rhs->getType() == Int64)
+               if(lhs->getType() == Double || rhs->getType() == Double)
+               {
+                  rval = lhs->getDouble() - rhs->getDouble();
+               }
+               else if(rhs->getType() == Int32 || rhs->getType() == Int64)
                {
                   rval = lhs->getInt64() - rhs->getInt64();
                }
                else
                {
                   rval = lhs->getUInt64() - rhs->getUInt64();
+               }
+               break;
+            }
+            case '*':
+            {
+               // multiply lhs by rhs
+               rval = DynamicObject();
+               if(lhs->getType() == Double || rhs->getType() == Double)
+               {
+                  rval = lhs->getDouble() * rhs->getDouble();
+               }
+               else if(rhs->getType() == Int32 || rhs->getType() == Int64)
+               {
+                  rval = lhs->getInt64() * rhs->getInt64();
+               }
+               else
+               {
+                  rval = lhs->getUInt64() * rhs->getUInt64();
+               }
+               break;
+            }
+            case '/':
+            {
+               // divide lhs by rhs
+               rval = DynamicObject();
+               if(lhs->getType() == Double || rhs->getType() == Double)
+               {
+                  rval = lhs->getDouble() / rhs->getDouble();
+               }
+               else if(rhs->getType() == Int32 || rhs->getType() == Int64)
+               {
+                  rval = lhs->getInt64() / rhs->getInt64();
+               }
+               else
+               {
+                  rval = lhs->getUInt64() / rhs->getUInt64();
+               }
+               break;
+            }
+            case '%':
+            {
+               // multiply lhs by rhs
+               rval = DynamicObject();
+               if(rhs->getType() == Int32 || rhs->getType() == Int64)
+               {
+                  rval = lhs->getInt64() % rhs->getInt64();
+               }
+               else
+               {
+                  rval = lhs->getUInt64() % rhs->getUInt64();
                }
                break;
             }
