@@ -3063,7 +3063,7 @@ DynamicObject TemplateInputStream::findLocalVariable(
       // component is an index (name[index])
       else
       {
-         int index;
+         int index = 0;
          DynamicObject& tmp = next["index"];
          if(tmp["isVar"]->getBoolean())
          {
