@@ -559,9 +559,9 @@ protected:
     *
     * @param line the line number.
     * @param column the column number.
-    * @param near the near string.
+    * @param nearStr the near string.
     */
-   virtual void setParseException(int line, int column, const char* near);
+   virtual void setParseException(int line, int column, const char* nearStr);
 
    /**
     * Frees the passed pipe.

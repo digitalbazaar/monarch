@@ -3143,7 +3143,7 @@ DynamicObject TemplateInputStream::findLocalVariable(
 }
 
 void TemplateInputStream::setParseException(
-   int line, int column, const char* near)
+   int line, int column, const char* nearStr)
 {
    // include line, position, and part of string that was parsed
    // in the parse exception
@@ -3152,7 +3152,7 @@ void TemplateInputStream::setParseException(
       EXCEPTION_TIS ".ParseError");
    e->getDetails()["line"] = line;
    e->getDetails()["column"] = column;
-   e->getDetails()["near"] = near;
+   e->getDetails()["near"] = nearStr;
    Exception::push(e);
 }
 
