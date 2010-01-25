@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 
@@ -543,4 +543,3 @@ void Observable::dispatchEvents()
    // unlock event queue
    mQueueLock.unlock();
 }
-				
