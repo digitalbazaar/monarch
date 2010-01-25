@@ -144,12 +144,12 @@ int TemplateInputStream::read(char* b, int length)
    {
       // create "near" string that failed parsing
       int len = min(mTemplate.length(), 50);
-      char near[len + 1];
-      near[len] = 0;
-      strncpy(near, mTemplate.data(), len);
+      char nearStr[len + 1];
+      nearStr[len] = 0;
+      strncpy(nearStr, mTemplate.data(), len);
 
       // set parse exception
-      setParseException(mLine, mColumn, near);
+      setParseException(mLine, mColumn, nearStr);
    }
    else if(mState == CreateOutput)
    {
