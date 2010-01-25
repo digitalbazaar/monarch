@@ -15,9 +15,9 @@ SUBDIRS := \
 	cpp/fiber \
 	cpp/crypto \
 	cpp/event \
-	cpp/data \
 	cpp/net \
 	cpp/http \
+	cpp/data \
 	cpp/config \
 	cpp/sphinx \
 	cpp/validation \
