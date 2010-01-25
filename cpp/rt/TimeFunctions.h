@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_TimeFunctions_H
 #define monarch_rt_TimeFunctions_H
-
-#define __STDC_CONSTANT_MACROS
 
 /**
  * This header provides some cross-platform definitions for time functions.
