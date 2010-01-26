@@ -1878,6 +1878,14 @@ static bool _pipe_default(
    return rval;
 }
 
+static bool _pipe_truncate(
+   string& value, DynamicObject& params, void* userData)
+{
+   bool rval = true;
+   value = value.substr(0, params[0]->getUInt32());
+   return rval;
+}
+
 bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
 {
    bool rval = true;
@@ -1984,6 +1992,21 @@ bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
             ExceptionRef e = new Exception(
                "The replacement text for undefined or empty string variables "
                "must be given as a parameter to the 'default' pipe.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
+         }
+      }
+      else if(strcmp(name.c_str(), "truncate") == 0)
+      {
+         p->type = Pipe::pipe_truncate;
+         p->func = &_pipe_truncate;
+         if(p->params == NULL || (*p->params)->length() < 1)
+         {
+            ExceptionRef e = new Exception(
+               "The maximum number of characters to allow in the text before "
+               "truncating must be given as a parameter to the "
+               "'truncate' pipe.",
                EXCEPTION_SYNTAX);
             Exception::set(e);
             rval = false;
