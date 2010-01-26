@@ -2224,7 +2224,8 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Default (undefined): {undefined|default('N/A')}\n"
          "Default (empty string): {empty|default('N/A')}\n"
          "<html><body>{eol|replace('\n','</br>')}</body></html>\n"
-         "Truncated 'foobar' to '{foobar|truncate(3)}'\n";
+         "Truncated 'foobar' to '{foobar|truncate(3)}'\n"
+         "Truncated 'foobar' to '{foobar|truncate(3,'')}'\n";
 
       // create variables
       DynamicObject vars;
@@ -2256,6 +2257,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          "Default (undefined): N/A\n"
          "Default (empty string): N/A\n"
          "<html><body>none</br></body></html>\n"
+         "Truncated 'foobar' to '...'\n"
          "Truncated 'foobar' to 'foo'\n";
 
       // null-terminate output

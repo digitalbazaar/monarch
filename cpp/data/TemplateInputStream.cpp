@@ -1882,7 +1882,30 @@ static bool _pipe_truncate(
    string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
-   value = value.substr(0, params[0]->getUInt32());
+   string::size_type len = value.length();
+   string::size_type max = params[0]->getUInt32();
+   if(len > max)
+   {
+      string end = "...";
+      if(params->length() > 1)
+      {
+         // get custom ending (other than "...")
+         end = params[1]->getString();
+      }
+
+      if(end.length() > max)
+      {
+         // show the first few characters of end
+         value = end.substr(0, max);
+      }
+      else
+      {
+         // cut value by max, leaving room for end, append end
+         value = value.substr(0, max - end.length());
+         value.append(end);
+      }
+   }
+
    return rval;
 }
 
