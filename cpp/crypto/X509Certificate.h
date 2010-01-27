@@ -87,6 +87,19 @@ public:
     * @return the extension information for this certificate.
     */
    virtual monarch::rt::DynamicObject getExtensions();
+
+   /**
+    * A convenience method that gets a field value from a subject or issuer
+    * based on its shortname, ie "CN" will get the value of the common name
+    * in the given subject or issuer.
+    *
+    * @param subjectOrIssuer a certificate subject or issuer.
+    * @param sn the shortname, ie "CN" for common name, "O" for organization.
+    *
+    * @return the value of the given shortname.
+    */
+   static std::string getField(
+      monarch::rt::DynamicObject& subjectOrIssuer, const char* sn);
 };
 
 // typedef for a reference-counted X509Certificate

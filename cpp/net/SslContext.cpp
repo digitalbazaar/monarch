@@ -15,6 +15,7 @@ using namespace monarch::net;
 using namespace monarch::rt;
 
 SslContext::SslContext(const char* protocol, bool client) :
+   mVirtualHost(NULL),
    mPrivateKey(NULL),
    mCertificate(NULL)
 {
@@ -74,21 +75,25 @@ SslContext::SslContext(const char* protocol, bool client) :
 
 SslContext::~SslContext()
 {
+   // clean up all virtual hosts
+   while(!mVirtualHosts.empty())
+   {
+      VirtualHostMap::iterator i = mVirtualHosts.begin();
+      SslContextRef ctx = i->second;
+      mVirtualHosts.erase(i);
+      ctx.setNull();
+   }
+
    // free context
    if(mContext != NULL)
    {
       SSL_CTX_free(mContext);
    }
 
-   // clean up all virtual hosts
-   while(!mVirtualHosts.empty())
+   // free virtual hostname
+   if(mVirtualHost != NULL)
    {
-      VirtualHostMap::iterator i = mVirtualHosts.begin();
-      VirtualHost* vh = i->second;
-      mVirtualHosts.erase(i);
-      free(vh->name);
-      vh->ctx.setNull();
-      free(vh);
+      free(mVirtualHost);
    }
 }
 
@@ -109,6 +114,20 @@ SSL* SslContext::createSSL(TcpSocket* socket, bool client)
    }
 
    return ssl;
+}
+
+void SslContext::setVirtualHost(const char* vHost)
+{
+   if(mVirtualHost != NULL)
+   {
+      free(mVirtualHost);
+   }
+   mVirtualHost = strdup(vHost);
+}
+
+const char* SslContext::getVirtualHost()
+{
+   return mVirtualHost;
 }
 
 bool SslContext::setCertificate(File& certFile)
@@ -207,38 +226,48 @@ int _sniCallback(SSL* s, int* al, void* arg)
    return sc->handleSni(s);
 }
 
-bool SslContext::addVirtualHost(const char* name, SslContextRef& ctx)
+bool SslContext::addVirtualHost(SslContextRef& ctx)
 {
    bool rval = true;
 
-   mVirtualHostLock.lockExclusive();
-   VirtualHostMap::iterator i = mVirtualHosts.find(name);
-   if(i != mVirtualHosts.end())
+   if(ctx->getVirtualHost() == NULL)
    {
-      mVirtualHostLock.unlockExclusive();
       ExceptionRef e = new Exception(
-         "Could not add virtual host. Entry already exists.",
-         SSL_EXCEPTION_TYPE ".DuplicateVirtualHost");
-      e->getDetails()["name"] = name;
+         "Could not add virtual host. No virtual hostname set on the "
+         "given context.",
+         SSL_EXCEPTION_TYPE ".NullVirtualHost");
       Exception::set(e);
       rval = false;
    }
    else
    {
-      if(mVirtualHosts.size() == 0)
+      const char* name = ctx->getVirtualHost();
+      mVirtualHostLock.lockExclusive();
+      VirtualHostMap::iterator i = mVirtualHosts.find(name);
+      if(i != mVirtualHosts.end())
       {
-         // set SNI callback
-         rval =
-            SSL_CTX_set_tlsext_servername_callback(mContext, _sniCallback) &&
-            SSL_CTX_set_tlsext_servername_arg(mContext, this);
+         mVirtualHostLock.unlockExclusive();
+         ExceptionRef e = new Exception(
+            "Could not add virtual host. Entry already exists.",
+            SSL_EXCEPTION_TYPE ".DuplicateVirtualHost");
+         e->getDetails()["name"] = name;
+         Exception::set(e);
+         rval = false;
       }
+      else
+      {
+         if(mVirtualHosts.size() == 0)
+         {
+            // set SNI callback
+            rval =
+               SSL_CTX_set_tlsext_servername_callback(mContext, _sniCallback) &&
+               SSL_CTX_set_tlsext_servername_arg(mContext, this);
+         }
 
-      // create and add the virtual host entry
-      VirtualHost* vh = new VirtualHost;
-      vh->name = strdup(name);
-      vh->ctx = ctx;
-      mVirtualHosts[vh->name] = vh;
-      mVirtualHostLock.unlockExclusive();
+         // add the virtual host entry
+         mVirtualHosts[name] = ctx;
+         mVirtualHostLock.unlockExclusive();
+      }
    }
 
    return rval;
@@ -263,20 +292,18 @@ bool SslContext::removeVirtualHost(const char* name, SslContextRef* ctx)
    else
    {
       // remove entry from map
-      VirtualHost* vh = i->second;
+      SslContextRef oldCtx = i->second;
       mVirtualHosts.erase(i);
       mVirtualHostLock.unlockExclusive();
 
       // save context
       if(ctx != NULL)
       {
-         *ctx = vh->ctx;
+         *ctx = oldCtx;
       }
 
       // clean up entry
-      free(vh->name);
-      vh->ctx.setNull();
-      delete vh;
+      oldCtx.setNull();
    }
 
    return rval;
@@ -299,11 +326,12 @@ int SslContext::handleSni(SSL* s)
             "Using TLS SNI virtual host '%s'", name);
 
          // switch contexts and copy options
-         VirtualHost* vh = i->second;
-         SSL_set_SSL_CTX(s, vh->ctx->mContext);
-         SSL_set_options(s, SSL_CTX_get_options(vh->ctx->mContext));
+         SSL_CTX* ctx = i->second->mContext;
+         SSL_set_SSL_CTX(s, ctx);
+         SSL_set_options(s, SSL_CTX_get_options(ctx));
       }
-      else
+      // see if default virtual host does not match
+      else if(mVirtualHost == NULL || strcmp(mVirtualHost, name) != 0)
       {
          MO_CAT_DEBUG(MO_NET_CAT,
             "TLS SNI virtual host '%s' not found, using default host", name);

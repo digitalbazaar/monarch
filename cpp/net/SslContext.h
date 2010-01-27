@@ -33,6 +33,11 @@ protected:
    SSL_CTX* mContext;
 
    /**
+    * A virtual hostname for this context.
+    */
+   char* mVirtualHost;
+
+   /**
     * A private key, if not provided via a file.
     */
    monarch::crypto::PrivateKeyRef mPrivateKey;
@@ -53,19 +58,11 @@ protected:
    monarch::rt::SharedLock mVirtualHostLock;
 
    /**
-    * A virtual host has a name and alternative SslContext.
-    */
-   struct VirtualHost
-   {
-      char* name;
-      monarch::rt::Collectable<SslContext> ctx;
-   };
-
-   /**
     * Storage for virtual hosts.
     */
    typedef std::map<
-      const char*, VirtualHost*, monarch::util::StringComparator>
+      const char*, monarch::rt::Collectable<SslContext>,
+      monarch::util::StringComparator>
       VirtualHostMap;
    VirtualHostMap mVirtualHosts;
 
@@ -95,6 +92,20 @@ public:
     * @return the created SSL object.
     */
    virtual SSL* createSSL(TcpSocket* socket, bool client);
+
+   /**
+    * Sets the virtual hostname for this context.
+    *
+    * @param vHost the virtual hostname to use.
+    */
+   virtual void setVirtualHost(const char* vHost);
+
+   /**
+    * Gets the virtual hostname for this context.
+    *
+    * @return the virtual hostname for this context, NULL for none.
+    */
+   virtual const char* getVirtualHost();
 
    /**
     * Sets the default PEM-formatted certificate for this SSL context to use.
@@ -154,14 +165,11 @@ public:
     * the given alternate SslContext will be used. Otherwise, the certificate
     * and private key from this SslContext will be used.
     *
-    * @param name the name of the virtual host server.
-    * @param ctx the SslContext to use.
+    * @param ctx the SslContext to use, with a virtual hostname set.
     *
     * @return true if successful, false if an Exception occurred.
     */
-   virtual bool addVirtualHost(
-      const char* name,
-      monarch::rt::Collectable<SslContext>& ctx);
+   virtual bool addVirtualHost(monarch::rt::Collectable<SslContext>& ctx);
 
    /**
     * Removes a virtual host from this context. No special SslContext will be

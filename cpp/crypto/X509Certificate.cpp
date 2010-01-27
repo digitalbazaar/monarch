@@ -3,9 +3,12 @@
  */
 #include "monarch/crypto/X509Certificate.h"
 
+#include "monarch/rt/DynamicObjectIterator.h"
+
 #include <openssl/evp.h>
 #include <openssl/x509v3.h>
 
+using namespace std;
 using namespace monarch::crypto;
 using namespace monarch::rt;
 
@@ -50,7 +53,7 @@ PublicKeyRef& X509Certificate::getPublicKey()
  * Gets the field names and values for a particular X509_NAME.
  *
  * For instance, if the subject name is passed, then the "CN" (common name)
- * value, "C" (country) value, etc. will be added to the output map.
+ * value, "C" (country) value, etc. will be added to the output.
  *
  * @param name the X509_name, i.e. X509_get_subject_name(mX509).
  * @param output the array to populate.
@@ -174,6 +177,24 @@ DynamicObject X509Certificate::getExtensions()
          DynamicObject& e = rval->append();
          e["type"] = name;
          e["value"] = values;
+      }
+   }
+
+   return rval;
+}
+
+string X509Certificate::getField(DynamicObject& subjectOrIssuer, const char* sn)
+{
+   string rval;
+
+   DynamicObjectIterator i = subjectOrIssuer.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& entry = i->next();
+      if(strcmp(entry["type"]->getString(), sn) == 0)
+      {
+         rval = entry["value"]->getString();
+         break;
       }
    }
 
