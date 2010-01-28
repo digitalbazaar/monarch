@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_io_File_H
 #define monarch_io_File_H
@@ -98,6 +98,15 @@ public:
     * @return true if the file was created, false if not.
     */
    virtual bool create();
+
+   /**
+    * Creates a new unique file, failing if the file already exists.
+    *
+    * @param mode the file mode (ie permissions for the file).
+    *
+    * @return true if the file was created, false if not.
+    */
+   virtual bool createUnique(mode_t mode = 0600);
 
    /**
     * Creates all directories in this file's path that do not already exist.

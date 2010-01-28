@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -202,7 +202,31 @@ bool FileImpl::create()
    else
    {
       ExceptionRef e = new Exception(
-         "Could not create file",
+         "Could not create file.",
+         "monarch.io.File.CreateFailed");
+      e->getDetails()["path"] = mAbsolutePath;
+      e->getDetails()["error"] = strerror(errno);
+      Exception::set(e);
+   }
+
+   return rval;
+}
+
+bool FileImpl::createUnique(mode_t mode)
+{
+   bool rval = false;
+
+   int fd = open(mAbsolutePath, O_CREAT | O_EXCL, mode);
+   if(fd != -1)
+   {
+      close(fd);
+      rval = true;
+   }
+
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not create unique file.",
          "monarch.io.File.CreateFailed");
       e->getDetails()["path"] = mAbsolutePath;
       e->getDetails()["error"] = strerror(errno);

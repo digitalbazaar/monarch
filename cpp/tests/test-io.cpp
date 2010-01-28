@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -943,6 +943,30 @@ void runFileTest(TestRunner& tr)
       assert(!file->exists());
    }
    tr.passIfNoException();
+
+   tr.test("create unique file");
+   {
+      File file = File::createTempFile("tmp.");
+      assert(!file.isNull());
+      string path = file->getAbsolutePath();
+      file->remove();
+      assert(file->createUnique());
+      file->setRemoveOnCleanup(true);
+   }
+   tr.passIfNoException();
+
+   tr.test("create unique file twice failure");
+   {
+      File file = File::createTempFile("tmp.");
+      assert(!file.isNull());
+      string path = file->getAbsolutePath();
+      file->remove();
+      assert(file->createUnique());
+      file->setRemoveOnCleanup(true);
+      assertNoException();
+      file->createUnique();
+   }
+   tr.passIfException();
 
    tr.ungroup();
 }
