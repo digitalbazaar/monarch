@@ -322,7 +322,7 @@ AC_OUTPUT
 # Write a proper .gitignore file based on files that are generated
 GIT_IGNORE_FILES=".gitignore build dist autom4te.cache config.log config.status configure"
 GIT_IGNORE_FILES+=$ac_config_files
-echo $GIT_IGNORE_FILES | sed -e "s/ /\n/g" >> .gitignore
+echo $GIT_IGNORE_FILES | sed -e "s/ /\n/g" > .gitignore
 
 # Dump the build configuration
 echo -e "\n--------- Monarch Build Environment -----------"
