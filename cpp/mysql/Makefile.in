@@ -6,7 +6,7 @@ SOURCES = $(wildcard *.cpp)
 LIBRARIES = momysql
 DYNAMIC_LINK_LIBRARIES = mort monet mosql mysqlclient
 DYNAMIC_WINDOWS_LIBRARIES = mysql
-DYNAMIC_MACOS_LIBRARIES = mysqlclient
+DYNAMIC_MACOS_LIBRARIES = mysqlclient moutil momodest moio mocrypto mologging mocompress modata movalidation
 HEADER_DIST_DIR = dist/include/monarch/sql/mysql
 endif
 

@@ -5,7 +5,7 @@ SOURCES = $(wildcard *.cpp)
 LIBRARIES = mosqlite3
 DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mocrypto monet mosql
 DYNAMIC_WINDOWS_LIBRARIES = sqlite3
-DYNAMIC_MACOS_LIBRARIES = sqlite3
+DYNAMIC_MACOS_LIBRARIES = sqlite3 mologging mocompress modata movalidation
 HEADER_DIST_DIR = dist/include/monarch/sql/sqlite3
 
 # ----------- Standard Makefile

@@ -6,6 +6,7 @@ SOURCES = $(wildcard *.cpp)
 LIBRARIES = mosphinx
 DYNAMIC_LINK_LIBRARIES = mort moutil mocrypto moio monet
 DYNAMIC_WINDOWS_LIBRARIES =
+DYNAMIC_MACOS_LIBRARIES = momodest mologging mocompress
 endif
 
 # ----------- Standard Makefile

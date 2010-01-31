@@ -83,7 +83,7 @@ clean-libraries:
 %.dylib: $(MACOS_LIBRARY_OBJECTS)
 	@echo "Linking $(subst $(MONARCH)/,,$@)..."
 	$(PCMD) mkdir -p $(MACOS_LIB_DIR)
-	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -install_name $(MACOS_LIB_DIR)/$(@F) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
+	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -dynamiclib -install_name @loader_path/$(@F) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
 
 ifdef EXECUTABLES
 $(MACOS_EXECUTABLES): $(MACOS_LIBRARY_SOURCES) $$(@F).cpp $(MACOS_BUILD_DIR)/$$(@F)-macos.o $(STATIC_MACOS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(MACOS_BUILD_DIR)/$$(source)-macos.o)

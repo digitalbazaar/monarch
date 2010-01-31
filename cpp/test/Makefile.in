@@ -5,6 +5,7 @@ SOURCES = $(wildcard *.cpp)
 LIBRARIES = motest
 
 DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig
+DYNAMIC_MACOS_LIBRARIES = moio moutil mologging monet mocompress momodest mocrypto
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base
