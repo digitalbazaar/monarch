@@ -2659,7 +2659,8 @@ int TemplateInputStream::compare(DynamicObject& params)
       params["lhs"], (op != op_single) && mStrict);
    if(lhs.isNull() && op != op_single)
    {
-      rval = -1;
+      // error if using strict variables, comparison fails if not
+      rval = mStrict ? -1 : 0;
    }
 
    // find rhs variable
