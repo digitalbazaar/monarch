@@ -2257,6 +2257,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
       {
          // {:each from=<from> as=<item> [key=<key>]|[index=<index>]}
          DynamicObject& params = *cmd->params;
+         bool doElse = true;
 
          // find 'from' variable
          DynamicObject from = findVariable(params["from"], mStrict);
@@ -2283,7 +2284,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             }
             data->i = from.getIterator();
             mLoops.push_back(loop);
-            bool doElse = !data->i->hasNext();
+            doElse = !data->i->hasNext();
 
             // do loop iterations
             while(rval && data->i->hasNext())
@@ -2311,26 +2312,26 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             mLoops.pop_back();
             delete loop->eachData;
             delete loop;
+         }
 
-            // handle 'eachelse' command
-            if(doElse)
+         // handle 'eachelse' command
+         if(rval && doElse)
+         {
+            // write constructs after 'eachelse', if one is found
+            bool elseFound = false;
+            for(ConstructStack::iterator ci = c->children.begin();
+                rval && ci != c->children.end(); ci++)
             {
-               // write constructs after 'eachelse', if one is found
-               bool elseFound = false;
-               for(ConstructStack::iterator ci = c->children.begin();
-                   rval && ci != c->children.end(); ci++)
+               Construct* child = *ci;
+               if(elseFound)
                {
-                  Construct* child = *ci;
-                  if(elseFound)
-                  {
-                     rval = writeConstruct(*ci);
-                  }
-                  else if(child->type == Construct::Command &&
-                     static_cast<Command*>(child->data)->type ==
-                        Command::cmd_eachelse)
-                  {
-                     elseFound = true;
-                  }
+                  rval = writeConstruct(*ci);
+               }
+               else if(child->type == Construct::Command &&
+                  static_cast<Command*>(child->data)->type ==
+                     Command::cmd_eachelse)
+               {
+                  elseFound = true;
                }
             }
          }
