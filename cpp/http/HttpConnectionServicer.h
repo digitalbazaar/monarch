@@ -138,6 +138,18 @@ public:
     */
    virtual HttpRequestServicer* removeRequestServicer(
       const char* path, bool secure);
+
+   /**
+    * Gets the HttpRequestServicer at the given path. Only the given
+    * path will be checked for a servicer, not any of the path's parents.
+    *
+    * @param path the path to get the servicer for.
+    * @param secure true if the servicer is secure, false if it is non-secure.
+    *
+    * @return the HttpRequestServicer that was found, or NULL if none was.
+    */
+   virtual HttpRequestServicer* getRequestServicer(
+      const char* path, bool secure);
 };
 
 } // end namespace http

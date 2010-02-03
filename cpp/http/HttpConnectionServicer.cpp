@@ -361,7 +361,7 @@ HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
          if(i != mSecureServicers.end())
          {
             rval = i->second;
-            mSecureServicers.erase(path);
+            mSecureServicers.erase(i);
          }
       }
       else
@@ -370,7 +370,36 @@ HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
          if(i != mNonSecureServicers.end())
          {
             rval = i->second;
-            mNonSecureServicers.erase(path);
+            mNonSecureServicers.erase(i);
+         }
+      }
+   }
+   mRequestServicerLock.unlockExclusive();
+
+   return rval;
+}
+
+HttpRequestServicer* HttpConnectionServicer::getRequestServicer(
+   const char* path, bool secure)
+{
+   HttpRequestServicer* rval = NULL;
+
+   mRequestServicerLock.lockExclusive();
+   {
+      if(secure)
+      {
+         ServicerMap::iterator i = mSecureServicers.find(path);
+         if(i != mSecureServicers.end())
+         {
+            rval = i->second;
+         }
+      }
+      else
+      {
+         ServicerMap::iterator i = mNonSecureServicers.find(path);
+         if(i != mNonSecureServicers.end())
+         {
+            rval = i->second;
          }
       }
    }
