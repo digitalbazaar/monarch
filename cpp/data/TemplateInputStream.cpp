@@ -2173,13 +2173,6 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             path = params["file"]["value"]->getString();
          }
 
-         // determine if the output is to be stored in a variable or not
-         bool storeInVar = false;
-         if(rval && params->hasMember("as"))
-         {
-            storeInVar = true;
-         }
-
          if(rval)
          {
             // build full path if path is not absolute
@@ -2222,7 +2215,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                e->getDetails()["filename"] = file->getAbsolutePath();
                Exception::push(e);
             }
-            else if(storeInVar)
+            else if(params->hasMember("as"))
             {
                // copy data into a variable
                int size = mParsed.length() - len;
