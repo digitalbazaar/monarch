@@ -2011,7 +2011,10 @@ void runTemplateInputStreamTest(TestRunner& tr)
       // create template
       const char* tpl =
          "Items:\n"
-         "{:include myfile}";
+         "{:include file=myfile}"
+         "Again:\n"
+         "{:include file=myfile as=foo}"
+         "{foo}";
 
       // create variables
       DynamicObject vars;
@@ -2032,6 +2035,10 @@ void runTemplateInputStreamTest(TestRunner& tr)
 
       const char* expect =
          "Items:\n"
+         "The item is 'item1'\n"
+         "The item is 'item2'\n"
+         "The item is 'item3'\n"
+         "Again:\n"
          "The item is 'item1'\n"
          "The item is 'item2'\n"
          "The item is 'item3'\n";
@@ -2068,7 +2075,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
          char tpl[len + 1];
          snprintf(tpl, len,
             "Items:\n"
-            "{:include '%s'}", path);
+            "{:include file='%s'}", path);
          fos.write(tpl, strlen(tpl));
          fos.close();
          assertNoException();
@@ -2080,7 +2087,7 @@ void runTemplateInputStreamTest(TestRunner& tr)
       char tpl[len + 1];
       snprintf(tpl, len,
          "Double include:\n"
-         "{:include '%s'}", path);
+         "{:include file='%s'}", path);
 
       // create variables
       DynamicObject vars;

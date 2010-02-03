@@ -1075,22 +1075,38 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
    {
       case Command::cmd_include:
       {
-         // {:include <var>|'/path/to/file'}
-         if(tokens->length() < 2)
+         // {:include file=<var>|'/path/to/file' [as=<name>]}
+         DynamicObject tmp;
+         tmp->setType(Map);
+         DynamicObjectIterator i = tokens.getIterator();
+         i->next();
+         while(rval && i->hasNext())
          {
-            // invalid number of tokens
-            rval = false;
-         }
-         else
-         {
-            // join all params after "include" as var/filename
-            string path = StringTools::join(tokens, " ", 1);
-            rval = parseExpression(path.c_str(), params);
-            if(rval &&
-               (params["value"]->getType() != String ||
-                params->hasMember("op")))
+            DynamicObject kv = StringTools::split(i->next()->getString(), "=");
+            if(kv->length() != 2)
             {
-               // no operators, must be a string
+               rval = false;
+            }
+            else
+            {
+               // add key-value pair
+               tmp[kv[0]->getString()] = kv[1]->getString();
+            }
+         }
+
+         // validate key-value pairs (ignores unknown key-value pairs)
+         rval =
+            tmp->hasMember("file") &&
+            parseExpression(tmp["file"]->getString(), params["file"]) &&
+            (!tmp->hasMember("as") ||
+            parseVariableText(tmp["as"]->getString(), params["as"]));
+         if(rval)
+         {
+            // no operators permitted, must be a string
+            if((!params["file"]["isVar"]->getBoolean() &&
+               params["file"]["value"]->getType() != String) ||
+               params["file"]->hasMember("op"))
+            {
                rval = false;
             }
          }
@@ -1419,7 +1435,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          {
             err =
                "Invalid 'include' syntax. "
-               "Syntax: {:include <var>|'/path/to/file' [<name>=<var>]}";
+               "Syntax: {:include file=<var>|'/path/to/file' [as=<name>]}";
             break;
          }
          case Command::cmd_literal:
@@ -2133,14 +2149,14 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
       }
       case Command::cmd_include:
       {
-         // {:include <var>|'/path/to/file' [<name>=<var>]}
+         // {:include file=<var>|'/path/to/file' [<as>=<name>]}
          DynamicObject& params = *cmd->params;
          string path;
 
-         if(params["isVar"]->getBoolean())
+         if(params["file"]["isVar"]->getBoolean())
          {
             // try to find the variable
-            DynamicObject var = findVariable(params["var"], true);
+            DynamicObject var = findVariable(params["file"]["var"], true);
             if(var.isNull())
             {
                setParseException(
@@ -2154,7 +2170,14 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          }
          else
          {
-            path = params["value"]->getString();
+            path = params["file"]["value"]->getString();
+         }
+
+         // determine if the output is to be stored in a variable or not
+         bool storeInVar = false;
+         if(rval && params->hasMember("as"))
+         {
+            storeInVar = true;
          }
 
          if(rval)
@@ -2173,6 +2196,9 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
             tis->mLocalVars = mLocalVars;
             tis->setStripStartingEol(mStripStartingEol);
+
+            // write to parse buffer, keep track of old length
+            int len = mParsed.length();
             mParsed.allocateSpace(file->getLength() & MAX_BUFFER, true);
             int num;
             do
@@ -2195,6 +2221,19 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                   EXCEPTION_TIS ".IncludeException");
                e->getDetails()["filename"] = file->getAbsolutePath();
                Exception::push(e);
+            }
+            else if(storeInVar)
+            {
+               // copy data into a variable
+               int size = mParsed.length() - len;
+               string value;
+               value.append(mParsed.end() - size, size);
+               mParsed.trim(size);
+
+               // set local variable
+               DynamicObject rhs;
+               rhs = value.c_str();
+               findLocalVariable(params["as"], &rhs, false);
             }
          }
          break;
