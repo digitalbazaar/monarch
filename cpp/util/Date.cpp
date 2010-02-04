@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/Date.h"
 
@@ -51,9 +51,14 @@ inline int Date::month()
    return mBrokenDownTime.tm_mon;
 }
 
-inline int Date::year()
+inline int Date::yearSince1900()
 {
    return mBrokenDownTime.tm_year;
+}
+
+inline int Date::year()
+{
+   return 1900 + mBrokenDownTime.tm_year;
 }
 
 void Date::setDosTime(unsigned int dosTime)

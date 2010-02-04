@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_Date_H
 #define monarch_util_Date_H
@@ -87,6 +87,13 @@ public:
 
    /**
     * Gets the year for this date (since 1900).
+    *
+    * @return the year for this date.
+    */
+   virtual int yearSince1900();
+
+   /**
+    * Gets the full year for this date.
     *
     * @return the year for this date.
     */
