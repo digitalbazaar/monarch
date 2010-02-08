@@ -3233,6 +3233,8 @@ void TemplateInputStream::setParseException(
    e->getDetails()["line"] = line;
    e->getDetails()["column"] = column;
    e->getDetails()["near"] = nearStr;
+   e->getDetails()["vars"] = mVars;
+   e->getDetails()["localVars"] = mLocalVars;
    Exception::push(e);
 }
 
