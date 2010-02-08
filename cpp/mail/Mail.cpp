@@ -45,17 +45,48 @@ bool Mail::setAddress(Address& a, const char* address)
    // set address
    a["address"] = address;
 
+   // parse these forms of addresses:
+   //  user@example.com
+   //  <user@example.com>
+   //  User <user@example.com>
+   //  "Example User" <user@example.com>
+
+   // find mailbox
+   size_t alen = strlen(address);
+   string mailbox;
+
+   if(alen > 0)
+   {
+      // assume simple mailbox with no display name
+      const char* mbstart = address;
+      const char* mbend = address + alen;
+
+      // check if this appears to have a "<...>" enclosed mailbox part
+      if(*(mbend - 1) == '>')
+      {
+         mbend--;
+         // find starting '<'
+         mbstart = strrchr(address, '<');
+         // in corner case of missing start '<' just assume mailbox is
+         // everything up to closing '>'
+         if(mbstart != NULL)
+         {
+            // advance over '<'
+            mbstart++;
+         }
+      }
+      mailbox.assign(mbstart, mbend - mbstart);
+   }
+
    // check for domain
-   const char* at = strchr(address, '@');
+   const char* at = strchr(mailbox.c_str(), '@');
    if(at != NULL)
    {
       // set domain
       a["domain"] = (at + 1);
 
       // set smtp encoding of address
-      char temp[strlen(address) + 3];
-      sprintf(temp, "<%s>", address);
-      a["smtpEncoding"] = temp;
+      a["smtpEncoding"]->format("<%s>", mailbox.c_str());
 
       rval = true;
    }

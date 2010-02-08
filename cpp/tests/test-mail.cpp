@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
-#include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/mail/SmtpClient.h"
 #include "monarch/mail/MailTemplateParser.h"
 #include "monarch/mail/MailSpool.h"
 #include "monarch/net/Url.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/Tester.h"
+#include "monarch/test/TestRunner.h"
 #include "monarch/util/StringTools.h"
 
 using namespace std;
@@ -276,6 +277,79 @@ void runMailTemplateParser(TestRunner& tr)
    tr.passIfNoException();
 }
 
+static void _runMailboxTest(
+   TestRunner& tr, const char* address, const char* domain, const char* smtp)
+{
+   const int buflen = 1000;
+   char buf[buflen];
+
+   snprintf(buf, 256, "Mailbox(%s)", address);
+
+   tr.test(buf);
+
+   // simple mail template
+   const char* tpl = "To: %s\r\n";
+   bool success;
+
+   // create template parser
+   monarch::mail::MailTemplateParser parser;
+
+   // create test
+   snprintf(buf, buflen, tpl, address);
+
+   // create input stream
+   ByteArrayInputStream bais(buf, strlen(buf));
+
+   // create variables
+   DynamicObject vars;
+   vars->setType(Map);
+
+   // parse mail
+   monarch::mail::Mail mail;
+   success = parser.parse(&mail, vars, false, &bais);
+   assertNoException();
+   assert(success);
+
+   monarch::mail::AddressList expect;
+   monarch::mail::Address addr = expect->append();
+   addr["address"] = address;
+   addr["domain"] = domain;
+   addr["smtpEncoding"] = smtp;
+
+   // get parsed recipients
+   monarch::mail::AddressList alist = mail.getRecipients();
+
+   assertNamedDynoCmp("AddressList", alist, "Expect", expect);
+
+   tr.passIfNoException();
+}
+
+void runMailboxTest(TestRunner& tr)
+{
+   tr.group("Mailbox");
+
+   // Check various forms of address parsing:
+   //  user@example.com
+   //  <user@example.com>
+   //  User <user@example.com>
+   //  "Example User" <user@example.com>
+
+   _runMailboxTest(
+      tr, "user@example.com", "example.com", "<user@example.com>");
+   _runMailboxTest(
+      tr, "<user@example.com>", "example.com", "<user@example.com>");
+   _runMailboxTest(
+      tr, "User <user@example.com>", "example.com", "<user@example.com>");
+   _runMailboxTest(
+      tr, "\"Example User\" <user@example.com>", "example.com",
+      "<user@example.com>");
+   _runMailboxTest(
+      tr, "\"<Example User>\" <user@example.com>", "example.com",
+      "<user@example.com>");
+
+   tr.ungroup();
+}
+
 void mailSpoolTest(TestRunner& tr)
 {
    tr.test("MailSpool");
@@ -445,6 +519,7 @@ public:
    virtual int runAutomaticTests(TestRunner& tr)
    {
       runMailTemplateParser(tr);
+      runMailboxTest(tr);
       mailSpoolTest(tr);
       return 0;
    }
