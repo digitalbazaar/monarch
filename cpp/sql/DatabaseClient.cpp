@@ -633,8 +633,8 @@ void DatabaseClient::buildParams(
    DynamicObjectIterator i = schema["columns"].getIterator();
    while(i->hasNext())
    {
-      DynamicObject& next = i->next();
-      const char* memberName = next["memberName"]->getString();
+      DynamicObject& column = i->next();
+      const char* memberName = column["memberName"]->getString();
 
       // if the members map contains the given member name, create a param
       // for it and append it to the params array
@@ -642,8 +642,24 @@ void DatabaseClient::buildParams(
       {
          // add param
          DynamicObject& param = params->append();
-         param["name"] = next["name"];
+         param["name"] = column["name"];
          param["value"] = members[memberName];
+         DynamicObjectType type = column["memberType"]->getType();
+         if(param["value"]->getType() == Array)
+         {
+            // coerce each item type
+            DynamicObjectIterator ai = param["value"].getIterator();
+            while(ai->hasNext())
+            {
+               DynamicObject& item = ai->next();
+               item->setType(type);
+            }
+         }
+         else
+         {
+            // coerce type
+            param["value"]->setType(type);
+         }
          if(tableAlias != NULL)
          {
             param["tableAlias"] = taObj;

@@ -29,6 +29,7 @@ class Row;
  *     "column_name": {} of
  *       "type": "DATABASE COLUMN TYPE" (same as used in CREATE TABLE SQL),
  *       "memberName": "columnName" (member name as used in an object)
+ *       "memberType": the expected member type
  */
 typedef monarch::rt::DynamicObject SchemaObject;
 
