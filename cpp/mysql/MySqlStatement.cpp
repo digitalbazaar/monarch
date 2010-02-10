@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/mysql/MySqlStatement.h"
 
 #include "monarch/sql/mysql/MySqlConnection.h"
 #include "monarch/sql/mysql/MySqlRow.h"
+#include "monarch/util/Data.h"
 
 using namespace std;
 using namespace monarch::sql;
@@ -43,13 +44,11 @@ MySqlStatement::~MySqlStatement()
          switch(mParamBindings[i].buffer_type)
          {
             case MYSQL_TYPE_LONG:
-               delete (int*)mParamBindings[i].buffer;
-               break;
             case MYSQL_TYPE_LONGLONG:
-               delete (long long*)mParamBindings[i].buffer;
+               free(mParamBindings[i].buffer);
                break;
             case MYSQL_TYPE_BLOB:
-               delete (unsigned long*)mParamBindings[i].length;
+               free(mParamBindings[i].length);
                break;
             default:
                // nothing to clean up
@@ -139,18 +138,20 @@ bool MySqlStatement::setInt32(unsigned int param, int32_t value)
       // param is 1 higher than bind index
       param--;
 
-      if(mExecuted)
+      if(!mExecuted)
       {
-         // clean up previously set parameter
-         delete (int*)mParamBindings[param].buffer;
-         //memset(mParamBindings, 0, sizeof(mParamBindings));
+         // we haven't executed before, so allocate space for the integer
+         mParamBindings[param].buffer = malloc(sizeof(value));
       }
+
+      // FIXME: ensure value is in the correct byte order
+      //value = MO_INT32_TO_LE(value);
 
       // MYSQL_TYPE_LONG should be a 32-bit int INTEGER field,
       // length = 0 for ints
       // since the integer is stack-allocated, we must heap-allocate it here
       mParamBindings[param].buffer_type = MYSQL_TYPE_LONG;
-      mParamBindings[param].buffer = (char*)new int(value);
+      memcpy(mParamBindings[param].buffer, &value, sizeof(value));
       mParamBindings[param].is_null = 0;
       mParamBindings[param].length = 0;
       mParamBindings[param].is_unsigned = 0;
@@ -168,18 +169,19 @@ bool MySqlStatement::setUInt32(unsigned int param, uint32_t value)
       // param is 1 higher than bind index
       param--;
 
-      if(mExecuted)
+      if(!mExecuted)
       {
-         // clean up previously set parameter
-         delete (int*)mParamBindings[param].buffer;
-         //memset(mParamBindings, 0, sizeof(mParamBindings));
+         // we haven't executed before, so allocate space for the integer
+         mParamBindings[param].buffer = malloc(sizeof(value));
       }
+
+      // ensure value is in the correct byte order
+      value = MO_UINT32_TO_LE(value);
 
       // MYSQL_TYPE_LONG should be a 32-bit int INTEGER field,
       // length = 0 for ints
-      // since the integer is stack-allocated, we must heap-allocate it here
       mParamBindings[param].buffer_type = MYSQL_TYPE_LONG;
-      mParamBindings[param].buffer = (char*)new unsigned int(value);
+      memcpy(mParamBindings[param].buffer, &value, sizeof(value));
       mParamBindings[param].is_null = 0;
       mParamBindings[param].length = 0;
       mParamBindings[param].is_unsigned = 1;
@@ -197,18 +199,19 @@ bool MySqlStatement::setInt64(unsigned int param, int64_t value)
       // param is 1 higher than bind index
       param--;
 
-      if(mExecuted)
+      if(!mExecuted)
       {
-         // clean up previously set parameter
-         delete (long long*)mParamBindings[param].buffer;
-         //memset(mParamBindings, 0, sizeof(mParamBindings));
+         // we haven't executed before, so allocate space for the integer
+         mParamBindings[param].buffer = malloc(sizeof(value));
       }
+
+      // FIXME: ensure value is in the correct byte order
+      //value = MO_INT64_TO_LE(value);
 
       // MYSQL_TYPE_LONGLONG should be a 64-bit int BIGINT field,
       // length = 0 for ints
-      // since the integer is stack-allocated, we must heap-allocate it here
       mParamBindings[param].buffer_type = MYSQL_TYPE_LONGLONG;
-      mParamBindings[param].buffer = (char*)new long long(value);
+      memcpy(mParamBindings[param].buffer, &value, sizeof(value));
       mParamBindings[param].is_null = 0;
       mParamBindings[param].length = 0;
       mParamBindings[param].is_unsigned = 0;
@@ -226,18 +229,19 @@ bool MySqlStatement::setUInt64(unsigned int param, uint64_t value)
       // param is 1 higher than bind index
       param--;
 
-      if(mExecuted)
+      if(!mExecuted)
       {
-         // clean up previously set parameter
-         delete (long long*)mParamBindings[param].buffer;
-         //memset(mParamBindings, 0, sizeof(mParamBindings));
+         // we haven't executed before, so allocate space for the integer
+         mParamBindings[param].buffer = malloc(sizeof(value));
       }
+
+      // ensure value is in the correct byte order
+      value = MO_UINT64_TO_LE(value);
 
       // MYSQL_TYPE_LONGLONG should be a 64-bit int BIGINT field,
       // length = 0 for ints
-      // since the integer is stack-allocated, we must heap-allocate it here
       mParamBindings[param].buffer_type = MYSQL_TYPE_LONGLONG;
-      mParamBindings[param].buffer = (char*)new unsigned long long(value);
+      memcpy(mParamBindings[param].buffer, &value, sizeof(value));
       mParamBindings[param].is_null = 0;
       mParamBindings[param].length = 0;
       mParamBindings[param].is_unsigned = 1;
@@ -254,20 +258,23 @@ bool MySqlStatement::setText(unsigned int param, const char* value)
    {
       // param is 1 higher than bind index
       param--;
+      unsigned long len = strlen(value);
 
-      if(mExecuted)
+      if(!mExecuted)
       {
-         // clean up previously set parameter
-         delete (unsigned long*)mParamBindings[param].length;
-         //memset(mParamBindings, 0, sizeof(mParamBindings));
+         // we haven't executed before, so allocate space for the length
+         mParamBindings[param].length = (unsigned long*)malloc(sizeof(len));
       }
+
+      // FIXME: ensure length is in the correct byte order
+      //len = MO_UINT32_TO_LE(len);
 
       // MYSQL_TYPE_BLOB should be a BLOB or TEXT field
       // length is heap-allocated and cleaned up later
       mParamBindings[param].buffer_type = MYSQL_TYPE_BLOB;
       mParamBindings[param].buffer = (char*)value;
       mParamBindings[param].is_null = 0;
-      mParamBindings[param].length = new unsigned long(strlen(value));
+      memcpy(mParamBindings[param].length, &len, sizeof(len));
    }
 
    return rval;
