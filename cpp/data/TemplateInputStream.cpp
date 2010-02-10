@@ -148,8 +148,11 @@ int TemplateInputStream::read(char* b, int length)
       nearStr[len] = 0;
       strncpy(nearStr, mTemplate.data(), len);
 
-      // set parse exception
+      // set parse exception, include vars
       setParseException(mLine, mColumn, nearStr);
+      ExceptionRef e = Exception::get();
+      e->getDetails()["vars"] = mVars;
+      e->getDetails()["localVars"] = mLocalVars;
    }
    else if(mState == CreateOutput)
    {
@@ -163,6 +166,12 @@ int TemplateInputStream::read(char* b, int length)
       {
          // error
          rval = -1;
+         ExceptionRef e = new Exception(
+            "Could not generate template output.",
+            EXCEPTION_TIS ".OutputError");
+         e->getDetails()["vars"] = mVars;
+         e->getDetails()["localVars"] = mLocalVars;
+         Exception::push(e);
       }
    }
 
@@ -3233,8 +3242,6 @@ void TemplateInputStream::setParseException(
    e->getDetails()["line"] = line;
    e->getDetails()["column"] = column;
    e->getDetails()["near"] = nearStr;
-   e->getDetails()["vars"] = mVars;
-   e->getDetails()["localVars"] = mLocalVars;
    Exception::push(e);
 }
 
