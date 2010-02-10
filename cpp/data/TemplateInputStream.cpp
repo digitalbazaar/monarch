@@ -692,8 +692,8 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
          case ParseConstructType:
          {
             // if construct type not found or not at the beginning of the data
-            // and template isn't empty, it is an error
-            if((ret == 0 || len != 0) && !mTemplate.isEmpty())
+            // and template isn't empty (null-terminator only), it is an error
+            if((ret == 0 || len != 0) && mTemplate.length() != 1)
             {
                ExceptionRef e = new Exception(
                   "No comment, command, or variable found in construct.",
