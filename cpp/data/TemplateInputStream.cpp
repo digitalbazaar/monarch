@@ -2222,6 +2222,13 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                   "An exception occurred in an included file.",
                   EXCEPTION_TIS ".IncludeException");
                e->getDetails()["filename"] = file->getAbsolutePath();
+
+               // remove vars from included file, they are the same and there
+               // is no need to include them twice (they will be included here
+               // higher up)
+               ExceptionRef cause = Exception::get();
+               cause->getDetails()->removeMember("vars");
+               cause->getDetails()->removeMember("localVars");
                Exception::push(e);
             }
             else if(params->hasMember("as"))
