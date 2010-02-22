@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_kernel_MicroKernel_H
 #define monarch_kernel_MicroKernel_H
@@ -120,13 +120,14 @@ public:
    virtual ~MicroKernel();
 
    /**
-    * Starts this MicroKernel and loads its modules.
+    * Starts this MicroKernel. To load MicroKernelModules, call loadModules()
+    * after a successful start.
     *
     * @param cfg a configuration with the following:
-    *    modulePath: the file system path to the modules to load.
     *    maxThreadCount: the maximum number of threads for auxiliary
     *       operations, note that this excludes operations that must run
     *       to process events or schedule fibers, etc.
+    *    maxConnectionCount: the maximum number of server connections.
     *
     * @return true on success, false on failure with exception set.
     */
@@ -136,6 +137,15 @@ public:
     * Stops this MicroKernel and unloads its modules.
     */
    virtual void stop();
+
+   /**
+    * Loads all MicroKernelModules in the current path.
+    *
+    * @param path the path to use to load the modules.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool loadModules(const char* path);
 
    /**
     * Gets the current thread's Operation. *DO NOT* call this if you
@@ -281,15 +291,6 @@ protected:
     *         ready to be initialized, false if not.
     */
    virtual bool checkDependencies(ModuleList& pending);
-
-   /**
-    * Loads all MicroKernelModules according to the current configuration.
-    *
-    * @param path the path to use to load the modules.
-    *
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool loadModules(const char* path);
 
    /**
     * Unloads all MicroKernelModules according to the current configuration.

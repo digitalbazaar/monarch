@@ -105,18 +105,6 @@ public:
    virtual monarch::rt::DynamicObject getDependencyInfo() = 0;
 
    /**
-    * Performs whatever configuration (or other) validation is necessary
-    * before initialize(MicroKernel*) is called on this Module. This will be
-    * called before initialize(MicroKernel*) is called on any of this Module's
-    * dependencies.
-    *
-    * @param k the MicroKernel.
-    *
-    * @return true if validated, false if an Exception occurred.
-    */
-   virtual bool validate(MicroKernel* k) = 0;
-
-   /**
     * Initializes this Module with the passed MicroKernel.
     *
     * @param k the MicroKernel.

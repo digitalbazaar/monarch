@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
@@ -72,7 +72,6 @@ bool MicroKernel::start(Config& cfg)
 
    v::ValidatorRef v =
       new v::Map(
-         "modulePath", new v::Type(String),
          "maxThreadCount", new v::Int(
             1, UINT32_MAX - minThreads,
             "maxThreadCount must be at least 1."),
@@ -112,51 +111,41 @@ bool MicroKernel::start(Config& cfg)
             "FiberScheduler started using %" PRIu32 " cpu cores.", cores);
       }
 
-      // load modules
-      if(loadModules(cfg["modulePath"]->getString()))
+      // start event controller if one exists
+      if(mEventController != NULL)
       {
-         // start event controller if one exists
-         if(mEventController != NULL)
-         {
-            mEventController->start(this);
-            MO_CAT_INFO(MO_KERNEL_CAT, "EventController started.");
-         }
-
-         // start event daemon if one exists
-         if(mEventDaemon != NULL)
-         {
-            mEventDaemon->start(this, mEventController);
-            MO_CAT_INFO(MO_KERNEL_CAT, "EventDaemon started.");
-         }
-
-         // start server if one exists
-         if(mServer != NULL)
-         {
-            // set max connection count
-            if(cfg->hasMember("maxConnectionCount"))
-            {
-               mServer->setMaxConnectionCount(
-                  cfg["maxConnectionCount"]->getUInt32());
-            }
-
-            if(mServer->start(this))
-            {
-               MO_CAT_INFO(MO_KERNEL_CAT, "Server started.");
-            }
-            else
-            {
-               // server failed to start, stop microkernel
-               MO_CAT_ERROR(MO_KERNEL_CAT, "Server start failed.");
-               stop();
-               rval = false;
-            }
-         }
+         mEventController->start(this);
+         MO_CAT_INFO(MO_KERNEL_CAT, "EventController started.");
       }
-      else
+
+      // start event daemon if one exists
+      if(mEventDaemon != NULL)
       {
-         // module loading failed, stop kernel
-         stop();
-         rval = false;
+         mEventDaemon->start(this, mEventController);
+         MO_CAT_INFO(MO_KERNEL_CAT, "EventDaemon started.");
+      }
+
+      // start server if one exists
+      if(mServer != NULL)
+      {
+         // set max connection count
+         if(cfg->hasMember("maxConnectionCount"))
+         {
+            mServer->setMaxConnectionCount(
+               cfg["maxConnectionCount"]->getUInt32());
+         }
+
+         if(mServer->start(this))
+         {
+            MO_CAT_INFO(MO_KERNEL_CAT, "Server started.");
+         }
+         else
+         {
+            // server failed to start, stop microkernel
+            MO_CAT_ERROR(MO_KERNEL_CAT, "Server start failed.");
+            stop();
+            rval = false;
+         }
       }
    }
 
@@ -207,6 +196,111 @@ void MicroKernel::stop()
    // stop engine
    getEngine()->stop();
    MO_CAT_INFO(MO_KERNEL_CAT, "Engine stopped.");
+}
+
+bool MicroKernel::loadModules(const char* path)
+{
+   bool rval = true;
+
+   MO_CAT_INFO(MO_KERNEL_CAT, "Loading modules from %s", path);
+
+   // create a list of pending MicroKernelModules
+   ModuleList pending;
+
+   // FIXME: split the modules path into individual directories
+   // (add support for more than one module directory)
+   File moduleDir(path);
+
+   // get a list of all the files in the modules directory
+   FileList files;
+   moduleDir->listFiles(files);
+
+   // load all modules
+   ModuleLibrary* lib = getModuleLibrary();
+   IteratorRef<File> i = files->getIterator();
+   while(rval && i->hasNext())
+   {
+      File& file = i->next();
+      if(file->isFile())
+      {
+         Module* module = lib->loadModule(file->getAbsolutePath());
+         if(module != NULL)
+         {
+            // update modules list if module is MicroKernelModule
+            MicroKernelModule* m = dynamic_cast<MicroKernelModule*>(module);
+            if(m != NULL)
+            {
+               pending.push_back(m);
+               MO_CAT_INFO(MO_KERNEL_CAT, "Loaded MicroKernel module: %s",
+                  file->getAbsolutePath());
+            }
+            else
+            {
+               MO_CAT_INFO(MO_KERNEL_CAT, "Loaded Modest module: %s",
+                  file->getAbsolutePath());
+            }
+         }
+         else
+         {
+            MO_CAT_ERROR(MO_KERNEL_CAT,
+               "Exception while loading module: %s.",
+               JsonWriter::writeToString(
+                  Exception::getAsDynamicObject()).c_str());
+            rval = false;
+         }
+      }
+   }
+
+   if(rval)
+   {
+      // check dependencies for all pending modules
+      rval = checkDependencies(pending);
+   }
+
+   // iterate over list and initialize successfully loaded modules
+   for(ModuleList::iterator i = mModuleList.begin();
+       rval && i != mModuleList.end(); i++)
+   {
+      MicroKernelModule* m = *i;
+      MO_CAT_INFO(MO_KERNEL_CAT,
+         "Initializing MicroKernel module: %s v%s",
+         m->getId().name, m->getId().version);
+
+      if(!m->initialize(this))
+      {
+         ExceptionRef e = new Exception(
+            "Failed to initialize module.",
+            "monarch.kernel.ModuleInitializationFailure");
+         e->getDetails()["module"] = m->getDependencyInfo();
+         Exception::push(e);
+
+         // log exception details
+         MO_CAT_ERROR(MO_KERNEL_CAT,
+            "Exception while initializing MicroKernel module: %s.",
+            JsonWriter::writeToString(
+               Exception::getAsDynamicObject()).c_str());
+         rval = false;
+      }
+      else
+      {
+         MO_CAT_INFO(MO_KERNEL_CAT,
+            "Initialized MicroKernel module: %s v%s",
+            m->getId().name, m->getId().version);
+      }
+   }
+
+   if(rval)
+   {
+      MO_CAT_INFO(MO_KERNEL_CAT, "Modules loaded.");
+   }
+   else
+   {
+      // unload modules, all modules *must* load and initialize properly
+      // to continue and this is not the case here
+      unloadModules();
+   }
+
+   return rval;
 }
 
 Operation MicroKernel::currentOperation()
@@ -515,143 +609,6 @@ bool MicroKernel::checkDependencies(ModuleList& pending)
    if(rval)
    {
       MO_CAT_INFO(MO_KERNEL_CAT, "Module dependencies met.");
-   }
-
-   return rval;
-}
-
-bool MicroKernel::loadModules(const char* path)
-{
-   bool rval = true;
-
-   MO_CAT_INFO(MO_KERNEL_CAT, "Loading modules from %s", path);
-
-   // create a list of pending MicroKernelModules
-   ModuleList pending;
-
-   // FIXME: split the modules path into individual directories
-   // (add support for more than one module directory)
-   File moduleDir(path);
-
-   // get a list of all the files in the modules directory
-   FileList files;
-   moduleDir->listFiles(files);
-
-   // load all modules
-   ModuleLibrary* lib = getModuleLibrary();
-   IteratorRef<File> i = files->getIterator();
-   while(rval && i->hasNext())
-   {
-      File& file = i->next();
-      if(file->isFile())
-      {
-         Module* module = lib->loadModule(file->getAbsolutePath());
-         if(module != NULL)
-         {
-            // update modules list if module is MicroKernelModule
-            MicroKernelModule* m = dynamic_cast<MicroKernelModule*>(module);
-            if(m != NULL)
-            {
-               pending.push_back(m);
-               MO_CAT_INFO(MO_KERNEL_CAT, "Loaded MicroKernel module: %s",
-                  file->getAbsolutePath());
-            }
-            else
-            {
-               MO_CAT_INFO(MO_KERNEL_CAT, "Loaded Modest module: %s",
-                  file->getAbsolutePath());
-            }
-         }
-         else
-         {
-            MO_CAT_ERROR(MO_KERNEL_CAT,
-               "Exception while loading module: %s.",
-               JsonWriter::writeToString(
-                  Exception::getAsDynamicObject()).c_str());
-            rval = false;
-         }
-      }
-   }
-
-   if(rval)
-   {
-      // check dependencies for all pending modules
-      rval = checkDependencies(pending);
-   }
-
-   // iterate over list and validate successfully loaded modules
-   for(ModuleList::iterator i = mModuleList.begin();
-       rval && i != mModuleList.end(); i++)
-   {
-      MicroKernelModule* m = *i;
-      MO_CAT_INFO(MO_KERNEL_CAT,
-         "Validating MicroKernel module: %s v%s",
-         m->getId().name, m->getId().version);
-
-      if(!m->validate(this))
-      {
-         ExceptionRef e = new Exception(
-            "Failed to validate module.",
-            "monarch.kernel.ModuleValidationFailure");
-         e->getDetails()["module"] = m->getDependencyInfo();
-         Exception::push(e);
-
-         // log exception details
-         MO_CAT_ERROR(MO_KERNEL_CAT,
-            "Exception while validating MicroKernel module: %s.",
-            JsonWriter::writeToString(
-               Exception::getAsDynamicObject()).c_str());
-         rval = false;
-      }
-      else
-      {
-         MO_CAT_INFO(MO_KERNEL_CAT,
-            "Validated MicroKernel module: %s v%s",
-            m->getId().name, m->getId().version);
-      }
-   }
-
-   // iterate over list and initialize successfully loaded modules
-   for(ModuleList::iterator i = mModuleList.begin();
-       rval && i != mModuleList.end(); i++)
-   {
-      MicroKernelModule* m = *i;
-      MO_CAT_INFO(MO_KERNEL_CAT,
-         "Initializing MicroKernel module: %s v%s",
-         m->getId().name, m->getId().version);
-
-      if(!m->initialize(this))
-      {
-         ExceptionRef e = new Exception(
-            "Failed to initialize module.",
-            "monarch.kernel.ModuleInitializationFailure");
-         e->getDetails()["module"] = m->getDependencyInfo();
-         Exception::push(e);
-
-         // log exception details
-         MO_CAT_ERROR(MO_KERNEL_CAT,
-            "Exception while initializing MicroKernel module: %s.",
-            JsonWriter::writeToString(
-               Exception::getAsDynamicObject()).c_str());
-         rval = false;
-      }
-      else
-      {
-         MO_CAT_INFO(MO_KERNEL_CAT,
-            "Initialized MicroKernel module: %s v%s",
-            m->getId().name, m->getId().version);
-      }
-   }
-
-   if(rval)
-   {
-      MO_CAT_INFO(MO_KERNEL_CAT, "Modules loaded.");
-   }
-   else
-   {
-      // unload modules, all modules *must* load and initialize properly
-      // to continue and this is not the case here
-      unloadModules();
    }
 
    return rval;
