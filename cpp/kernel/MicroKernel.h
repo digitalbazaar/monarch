@@ -98,6 +98,26 @@ protected:
    typedef std::list<MicroKernelModule*> ModuleList;
    ModuleList mModuleList;
 
+   /**
+    * Stores the number of CPU cores detected.
+    */
+   uint32_t mCoresDetected;
+
+   /**
+    * Stores the minimum number of threads required to run the kernel.
+    */
+   uint32_t mMinRequiredThreads;
+
+   /**
+    * The maximum number of auxiliary threads to permit.
+    */
+   uint32_t mMaxAuxThreads;
+
+   /**
+    * The maximum number of server connections to permit.
+    */
+   uint32_t mMaxConnections;
+
 public:
    /**
     * Creates a new MicroKernel with no specified ConfigManager, FiberScheduler,
@@ -123,15 +143,9 @@ public:
     * Starts this MicroKernel. To load MicroKernelModules, call loadModules()
     * after a successful start.
     *
-    * @param cfg a configuration with the following:
-    *    maxThreadCount: the maximum number of threads for auxiliary
-    *       operations, note that this excludes operations that must run
-    *       to process events or schedule fibers, etc.
-    *    maxConnectionCount: the maximum number of server connections.
-    *
     * @return true on success, false on failure with exception set.
     */
-   virtual bool start(monarch::config::Config& cfg);
+   virtual bool start();
 
    /**
     * Stops this MicroKernel and unloads its modules.
@@ -185,6 +199,20 @@ public:
     */
    virtual void getModuleApisByType(
       const char* type, std::list<MicroKernelModuleApi*>& apiList);
+
+   /**
+    * Sets the maximum number of auxiliary threads to permit.
+    *
+    * @param count the number of auxiliary threads to permit.
+    */
+   virtual void setMaxAuxiliaryThreads(uint32_t count);
+
+   /**
+    * Sets the maximum number of server connections to permit.
+    *
+    * @param count the number of server connections to permit.
+    */
+   virtual void setMaxServerConnections(uint32_t count);
 
    /**
     * Sets this MicroKernel's ConfigManager.

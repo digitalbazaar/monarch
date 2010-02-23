@@ -40,8 +40,11 @@ MicroKernel::MicroKernel() :
    mEventDaemon(NULL),
    mCleanupEventDaemon(false),
    mServer(NULL),
-   mCleanupServer(false)
+   mCleanupServer(false),
+   mMaxConnections(100)
 {
+   // set default maximum auxiliary threads
+   setMaxAuxiliaryThreads(100);
 }
 
 MicroKernel::~MicroKernel()
@@ -54,98 +57,52 @@ MicroKernel::~MicroKernel()
    MicroKernel::setServer(NULL, false);
 }
 
-bool MicroKernel::start(Config& cfg)
+bool MicroKernel::start()
 {
    bool rval = true;
 
-   // get the number of cpu cores (for optimal fiber scheduling)
-   uint32_t cores = System::getCpuCoreCount();
+   // start engine
+   getEngine()->start();
+   MO_CAT_INFO(MO_KERNEL_CAT,
+      "Engine started using %" PRIu32
+      " microkernel threads and %" PRIu32 " auxiliary threads.",
+      mMinRequiredThreads, mMaxAuxThreads);
 
-   // set min thread count:
-   // 1. fiber scheduler (# cores)
-   // 2. event controller (2, one for dispatching, one for handling)
-   // 3. event daemon (1)
-   uint32_t minThreads =
-      (mFiberScheduler != NULL ? cores : 0) +
-      (mEventController != NULL ? 2 : 0) +
-      (mEventDaemon != NULL ? 1 : 0);
-
-   v::ValidatorRef v =
-      new v::Map(
-         "maxThreadCount", new v::Int(
-            1, UINT32_MAX - minThreads,
-            "maxThreadCount must be at least 1."),
-         "maxConnectionCount", new v::Optional(new v::Int(
-            1, UINT32_MAX - 1,
-            "maxConnectionCount must be at least 1.")),
-         NULL);
-   if(!v->isValid(cfg))
+   // start fiber scheduler if one exists
+   if(mFiberScheduler != NULL)
    {
-      ExceptionRef e = new Exception(
-         "Invalid MicroKernel configuration.",
-         "monarch.kernel.InvalidConfig");
-      Exception::push(e);
-      rval = false;
-   }
-   else
-   {
-      // get the number of cpu cores (for optimal fiber scheduling)
-      uint32_t cores = System::getCpuCoreCount();
-
-      // set threads used by the engine
-      uint32_t maxAuxiliary = cfg["maxThreadCount"]->getUInt32();
-      getEngine()->getThreadPool()->setPoolSize(maxAuxiliary + minThreads);
-
-      // start engine
-      getEngine()->start();
+      mFiberScheduler->start(this, mCoresDetected);
       MO_CAT_INFO(MO_KERNEL_CAT,
-         "Engine started using %" PRIu32
-         " microkernel threads and %" PRIu32 " auxiliary threads.",
-         minThreads, maxAuxiliary);
+         "FiberScheduler started using %" PRIu32 " cpu cores.", mCoresDetected);
+   }
 
-      // start fiber scheduler if one exists
-      if(mFiberScheduler != NULL)
+   // start event controller if one exists
+   if(mEventController != NULL)
+   {
+      mEventController->start(this);
+      MO_CAT_INFO(MO_KERNEL_CAT, "EventController started.");
+   }
+
+   // start event daemon if one exists
+   if(mEventDaemon != NULL)
+   {
+      mEventDaemon->start(this, mEventController);
+      MO_CAT_INFO(MO_KERNEL_CAT, "EventDaemon started.");
+   }
+
+   // start server if one exists
+   if(mServer != NULL)
+   {
+      if(mServer->start(this))
       {
-         mFiberScheduler->start(this, cores);
-         MO_CAT_INFO(MO_KERNEL_CAT,
-            "FiberScheduler started using %" PRIu32 " cpu cores.", cores);
+         MO_CAT_INFO(MO_KERNEL_CAT, "Server started.");
       }
-
-      // start event controller if one exists
-      if(mEventController != NULL)
+      else
       {
-         mEventController->start(this);
-         MO_CAT_INFO(MO_KERNEL_CAT, "EventController started.");
-      }
-
-      // start event daemon if one exists
-      if(mEventDaemon != NULL)
-      {
-         mEventDaemon->start(this, mEventController);
-         MO_CAT_INFO(MO_KERNEL_CAT, "EventDaemon started.");
-      }
-
-      // start server if one exists
-      if(mServer != NULL)
-      {
-         // set max connection count
-         if(cfg->hasMember("maxConnectionCount"))
-         {
-            mServer->setMaxConnectionCount(
-               cfg["maxConnectionCount"]->getUInt32());
-         }
-
-         if(mServer->start(this))
-         {
-            MO_CAT_INFO(MO_KERNEL_CAT, "Server started.");
-         }
-         else
-         {
-            // server failed to start, stop microkernel
-            MO_CAT_ERROR(MO_KERNEL_CAT, "Server start failed.");
-            stop();
-            rval = false;
-         }
+         // server failed to start, stop microkernel
+         MO_CAT_ERROR(MO_KERNEL_CAT, "Server start failed.");
+         stop();
+         rval = false;
       }
    }
 
@@ -353,6 +310,33 @@ void MicroKernel::getModuleApisByType(
       {
          apiList.push_back((*i)->getApi(this));
       }
+   }
+}
+
+void MicroKernel::setMaxAuxiliaryThreads(uint32_t count)
+{
+   mMaxAuxThreads = count;
+
+   // get the number of cpu cores (for optimal fiber scheduling)
+   mCoresDetected = System::getCpuCoreCount();
+
+   // set min thread count:
+   // 1. fiber scheduler (# cores)
+   // 2. event controller (2, one for dispatching, one for handling)
+   // 3. event daemon (1)
+   mMinRequiredThreads =
+      (mFiberScheduler != NULL ? mCoresDetected : 0) +
+      (mEventController != NULL ? 2 : 0) +
+      (mEventDaemon != NULL ? 1 : 0);
+   mEngine->getThreadPool()->setPoolSize(mMinRequiredThreads + count);
+}
+
+void MicroKernel::setMaxServerConnections(uint32_t count)
+{
+   mMaxConnections = count;
+   if(mServer != NULL)
+   {
+      mServer->setMaxConnectionCount(count);
    }
 }
 
