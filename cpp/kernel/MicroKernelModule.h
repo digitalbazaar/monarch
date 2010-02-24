@@ -43,15 +43,15 @@ class MicroKernel;
  * The order of loading a MicroKernelModule is as follows:
  *
  * Modest Layer:
- * 1. Load module as a Modest module.
- * 2. Call initialize(monarch::modest::Kernel*).
- * 3. On success, give control over to the MicroKernel Layer.
+ * 1. Modest Kernel loads a module as a Modest module.
+ * 2. Modest Kernel calls initialize(monarch::modest::Kernel*).
+ * 3. On success, Modest Kernel gives control over to the MicroKernel Layer.
  *
  * MicroKernel Layer:
- * 1. Get dependency information from the MicroKernelModule.
- * 2. Resolve dependency information and load and initialize any other
- *    MicroKernelModules the module depends on.
- * 3. Call initialize(monarch::kernel::MicroKernel*).
+ * 1. MicroKernel gets dependency information from the MicroKernelModuleApi.
+ * 2. MicroKernel resolves dependency information and loads and initializes any
+ *    other MicroKernelModules the module depends on.
+ * 3. MicroKernel calls initialize(monarch::kernel::MicroKernel*).
  *
  * @author Dave Longley
  */
