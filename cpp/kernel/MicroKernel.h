@@ -27,6 +27,10 @@ namespace kernel
  * contain arbitrary code and can take advantage of the operation, fiber,
  * event scheduling, and server capabilities of the MicroKernel.
  *
+ * A MicroKernel extends the basic Modest Kernel by providing the additional
+ * capabilities listed above. Its MicroKernelModules also extend Modest
+ * Modules by providing a built-in dependency resolution system.
+ *
  * @author Dave Longley
  */
 class MicroKernel : public monarch::modest::Kernel

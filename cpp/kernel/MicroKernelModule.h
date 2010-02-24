@@ -40,6 +40,19 @@ class MicroKernel;
  * functionality. If a module has no API (it may not need one or it may only
  * provide a web-API), then it should return NULL from the getApi() method.
  *
+ * The order of loading a MicroKernelModule is as follows:
+ *
+ * Modest Layer:
+ * 1. Load module as a Modest module.
+ * 2. Call initialize(monarch::modest::Kernel*).
+ * 3. On success, give control over to the MicroKernel Layer.
+ *
+ * MicroKernel Layer:
+ * 1. Get dependency information from the MicroKernelModule.
+ * 2. Resolve dependency information and load and initialize any other
+ *    MicroKernelModules the module depends on.
+ * 3. Call initialize(monarch::kernel::MicroKernel*).
+ *
  * @author Dave Longley
  */
 class MicroKernelModule : public monarch::modest::Module
@@ -74,6 +87,15 @@ public:
    /**
     * Initializes this Module with the modest Kernel once it has been loaded.
     *
+    * This call will automatically be made by the lower-level modest Kernel to
+    * initialize any special basic functionality that does not depend on other
+    * modules. Typically, this method does not need to be overwritten when
+    * writing a new MicroKernelModule. Instead, the initialize(MicroKernel*)
+    * call that takes a MicroKernel must be implemented. That call will
+    * automatically be made after this call and after any dependencies are
+    * resolved. That call will provide direct access to the MicroKernel and its
+    * capabilities.
+    *
     * @param k the the modest Kernel to initialize with.
     *
     * @return true if the module initialized, false if not (with
@@ -82,7 +104,8 @@ public:
    virtual bool initialize(monarch::modest::Kernel* k);
 
    /**
-    * Cleans up this Module just prior to its unloading.
+    * Cleans up this Module just prior to its unloading. This will
+    * automatically be called after cleanup(MicroKernel*).
     *
     * @param k the modest Kernel that is unloading this Module.
     */
@@ -105,7 +128,9 @@ public:
    virtual monarch::rt::DynamicObject getDependencyInfo() = 0;
 
    /**
-    * Initializes this Module with the passed MicroKernel.
+    * Initializes this MicroKernelModule with the passed MicroKernel. This call
+    * will be made after the lower-level initialize(Kernel*) call and after any
+    * other MicroKernelModule dependencies have been resolved.
     *
     * @param k the MicroKernel.
     *
@@ -114,7 +139,7 @@ public:
    virtual bool initialize(MicroKernel* k) = 0;
 
    /**
-    * Cleans up this Module just prior to its unloading.
+    * Cleans up this MicroKernelModule just prior to its unloading.
     *
     * @param k the MicroKernel.
     */
