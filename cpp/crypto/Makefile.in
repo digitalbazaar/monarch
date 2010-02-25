@@ -1,8 +1,9 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)
 LIBRARIES = mocrypto
+mocrypto_HEADERS = $(wildcard *.h)
+mocrypto_SOURCES = $(wildcard *.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort moutil moio 
 DYNAMIC_WINDOWS_LIBRARIES = libeay32
 DYNAMIC_MACOS_LIBRARIES = crypto ssl

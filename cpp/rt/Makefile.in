@@ -1,8 +1,8 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)
 LIBRARIES = mort
+mort_HEADERS = $(wildcard *.h)
+mort_SOURCES = $(wildcard *.cpp)
 
 DYNAMIC_WINDOWS_LIBRARIES = pthreadGCE2
 STATIC_WINDOWS_LIBRARIES = pthreadGCE2

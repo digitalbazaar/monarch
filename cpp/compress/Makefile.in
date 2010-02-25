@@ -1,15 +1,17 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h) \
-          $(wildcard deflate/*.h) \
-          $(wildcard gzip/*.h) \
-          $(wildcard zip/*.h)
-SOURCES = $(wildcard *.cpp) \
-          $(wildcard deflate/*.cpp) \
-          $(wildcard gzip/*.cpp) \
-          $(wildcard zip/*.cpp)
-
 LIBRARIES = mocompress
+mocompress_HEADERS = \
+	$(wildcard *.h) \
+	$(wildcard deflate/*.h) \
+	$(wildcard gzip/*.h) \
+	$(wildcard zip/*.h)
+mocompress_SOURCES = \
+	$(wildcard *.cpp) \
+	$(wildcard deflate/*.cpp) \
+	$(wildcard gzip/*.cpp) \
+	$(wildcard zip/*.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort moio moutil
 
 DYNAMIC_WINDOWS_LIBRARIES = mgwz

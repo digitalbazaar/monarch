@@ -1,9 +1,11 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)
 LIBRARIES = mokernel
+mokernel_HEADERS = $(wildcard *.h)
+mokernel_SOURCES = $(wildcard *.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort moutil momodest mofiber moconfig moio mocrypto moevent mologging monet modata movalidation
+
 DYNAMIC_WINDOWS_LIBRARIES = libeay32 ssleay32 
 DYNAMIC_MACOS_LIBRARIES = crypto ssl mocompress
 

@@ -1,8 +1,9 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)
 LIBRARIES = moevent
+moevent_HEADERS = $(wildcard *.h)
+moevent_SOURCES = $(wildcard *.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort moutil momodest
 
 # ----------- Standard Makefile

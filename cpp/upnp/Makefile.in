@@ -1,9 +1,11 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)
 LIBRARIES = moupnp
+moupnp_HEADERS = $(wildcard *.h)
+moupnp_SOURCES = $(wildcard *.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort moutil momodest moio mocrypto monet mohttp mologging modata
+
 DYNAMIC_MACOS_LIBRARIES = mocompress
 
 DYNAMIC_WINDOWS_LIBRARIES = libgnurx-0

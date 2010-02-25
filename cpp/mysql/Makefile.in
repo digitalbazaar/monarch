@@ -1,10 +1,12 @@
 # Makefile to compile the module in this directory
 
 ifeq (@BUILD_MYSQL@,yes)
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)
 LIBRARIES = momysql
+momysql_HEADERS = $(wildcard *.h)
+momysql_SOURCES = $(wildcard *.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort monet mosql mysqlclient
+
 DYNAMIC_WINDOWS_LIBRARIES = mysql
 DYNAMIC_MACOS_LIBRARIES = mysqlclient moutil momodest moio mocrypto mologging mocompress modata movalidation
 HEADER_DIST_DIR = dist/include/monarch/sql/mysql

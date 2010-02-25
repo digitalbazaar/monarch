@@ -25,38 +25,20 @@ endif
 
 HEADERS = $(MYSQL_HEADERS)
 
-SOURCES = test-configmanager.cpp \
-	test-sharedlock-deadlock.cpp \
-	test-compress.cpp \
-	test-config.cpp \
-	test-crypto.cpp \
-	test-data.cpp \
-	test-dyno-perf.cpp \
-	test-event.cpp \
-	test-fiber.cpp \
-	test-fiber-yield.cpp \
-	test-hashtable.cpp \
-	test-http.cpp \
-	test-io.cpp \
-	test-logging.cpp \
-	test-mail.cpp \
-	test-mmap.cpp \
-	test-modest.cpp \
-	test-modexp.cpp \
-	test-net.cpp \
-	test-random.cpp \
-	test-rt.cpp \
-	$(SPHINX_SOURCES) \
-	test-sqlite3.cpp \
-	$(MYSQL_SOURCES) \
-	test-ucontext.cpp \
-	test-upnp.cpp \
-	test-util.cpp \
-	test-validation.cpp
-
 EXECUTABLES = \
 	test-configmanager \
 	test-sharedlock-deadlock \
+	test-mmap \
+	test-random \
+	test-ucontext
+
+# Macro to setup building simple one source file libraries.
+define setup_test_mod
+LIBRARIES += mo$(1)
+mo$(subst -,_,$(1))_SOURCES = $(1).cpp
+endef
+
+TEST_MODS = \
 	test-compress \
 	test-config \
 	test-crypto \
@@ -70,21 +52,21 @@ EXECUTABLES = \
 	test-io \
 	test-logging \
 	test-mail \
-	test-mmap \
 	test-modest \
 	test-modexp \
 	test-net \
-	test-random \
 	test-rt \
 	$(SPHINX_EXECUTABLES) \
 	test-sqlite3 \
 	$(MYSQL_EXECUTABLES) \
-	test-ucontext \
 	test-upnp \
 	test-util \
 	test-validation
 
-DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_DBLIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_DBLIBS) moapp
+$(foreach mod,$(TEST_MODS),$(eval $(call setup_test_mod,$(mod))))
+
+
+DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_DBLIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_DBLIBS) moapp mokernel
 DYNAMIC_EXECUTABLE_LIBRARIES = motest
 
 LINUX_LIB_DIR = @MONARCH_DIR@/dist/lib

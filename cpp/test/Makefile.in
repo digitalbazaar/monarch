@@ -1,10 +1,11 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)  
 LIBRARIES = motest
+motest_HEADERS = $(wildcard *.h)
+motest_SOURCES = $(wildcard *.cpp)  
 
 DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig
+
 DYNAMIC_MACOS_LIBRARIES = moio moutil mologging monet mocompress momodest mocrypto
 
 # ----------- Standard Makefile

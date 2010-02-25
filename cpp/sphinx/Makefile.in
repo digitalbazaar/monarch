@@ -1,10 +1,12 @@
 # Makefile to compile the module in this directory
 
 ifeq (@BUILD_SPHINX@,yes)
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)
 LIBRARIES = mosphinx
+mosphinx_HEADERS = $(wildcard *.h)
+mosphinx_SOURCES = $(wildcard *.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort moutil mocrypto moio monet
+
 DYNAMIC_WINDOWS_LIBRARIES =
 DYNAMIC_MACOS_LIBRARIES = momodest mologging mocompress
 endif

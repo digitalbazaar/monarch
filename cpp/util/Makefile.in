@@ -1,10 +1,13 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h) \
-          $(wildcard regex/*.h)
-SOURCES = $(wildcard *.cpp) \
-          $(wildcard regex/*.cpp)
 LIBRARIES = moutil
+moutil_HEADERS = \
+	$(wildcard *.h) \
+	$(wildcard regex/*.h)
+moutil_SOURCES = \
+	$(wildcard *.cpp) \
+	$(wildcard regex/*.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort
 
 DYNAMIC_WINDOWS_LIBRARIES = libgnurx-0

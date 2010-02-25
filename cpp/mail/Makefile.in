@@ -1,9 +1,11 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)
 LIBRARIES = momail
+momail_HEADERS = $(wildcard *.h)
+momail_SOURCES = $(wildcard *.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort moio monet moutil modata mosql mosqlite3
+
 DYNAMIC_MACOS_LIBRARIES = mologging momodest mocrypto mocompress movalidation
 
 # ----------- Standard Makefile

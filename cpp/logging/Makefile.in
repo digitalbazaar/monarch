@@ -1,9 +1,11 @@
 # Makefile to compile the module in this directory
 
-HEADERS = $(wildcard *.h)
-SOURCES = $(wildcard *.cpp)
 LIBRARIES = mologging
+mologging_HEADERS = $(wildcard *.h)
+mologging_SOURCES = $(wildcard *.cpp)
+
 DYNAMIC_LINK_LIBRARIES = mort moutil moio
+
 DYNAMIC_WINDOWS_LIBRARIES = mocompress
 DYNAMIC_MACOS_LIBRARIES = mocompress
 

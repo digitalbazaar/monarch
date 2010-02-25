@@ -1,22 +1,25 @@
 # Makefile to compile the module in this directory
-HEADERS = $(wildcard *.h) \
-          $(wildcard avi/*.h) \
-          $(wildcard id3v2/*.h) \
-          $(wildcard json/*.h) \
-          $(wildcard mpeg/*.h) \
-          $(wildcard pdf/*.h) \
-          $(wildcard riff/*.h) \
-          $(wildcard xml/*.h)
-SOURCES = $(wildcard *.cpp) \
-          $(wildcard avi/*.cpp) \
-          $(wildcard id3v2/*.cpp) \
-          $(wildcard json/*.cpp) \
-          $(wildcard mpeg/*.cpp) \
-          $(wildcard pdf/*.cpp) \
-          $(wildcard riff/*.cpp) \
-          $(wildcard xml/*.cpp)
 
 LIBRARIES = modata
+modata_HEADERS = \
+	$(wildcard *.h) \
+	$(wildcard avi/*.h) \
+	$(wildcard id3v2/*.h) \
+	$(wildcard json/*.h) \
+	$(wildcard mpeg/*.h) \
+	$(wildcard pdf/*.h) \
+	$(wildcard riff/*.h) \
+	$(wildcard xml/*.h)
+modata_SOURCES = \
+	$(wildcard *.cpp) \
+	$(wildcard avi/*.cpp) \
+	$(wildcard id3v2/*.cpp) \
+	$(wildcard json/*.cpp) \
+	$(wildcard mpeg/*.cpp) \
+	$(wildcard pdf/*.cpp) \
+	$(wildcard riff/*.cpp) \
+	$(wildcard xml/*.cpp)
+
 DYNAMIC_LINK_LIBRARIES = moio moutil mort mologging monet
 DYNAMIC_WINDOWS_LIBRARIES = libexpat iconv2 charset1
 DYNAMIC_MACOS_LIBRARIES = iconv charset expat mocompress momodest mocrypto

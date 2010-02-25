@@ -1,12 +1,10 @@
 # Makefile to compile the module in this directory
 
-EXECUTABLES = portmap
+LIBRARIES = moportmap
+moportmap_HEADERS = $(wildcard *.h)
+moportmap_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mologging mocrypto monet mohttp modata moevent mofiber mosql mosqlite3 momail moconfig mocompress movalidation moapp moupnp
-DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3
-DYNAMIC_WINDOWS_LIBRARIES = sqlite3
-
-EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/libexpat.dll -lws2_32
+DYNAMIC_LINK_LIBRARIES = mort moutil
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

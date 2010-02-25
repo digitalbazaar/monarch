@@ -12,6 +12,47 @@ LINUX_DIST_DIR = $(MONARCH)/dist
 LINUX_LIB_DIR = $(LINUX_DIST_DIR)/lib
 LINUX_BIN_DIR = $(LINUX_DIST_DIR)/bin
 LINUX_LIBS = -L$(LINUX_LIB_DIR) -L/usr/lib/mysql
+
+# convert text into something appropriate for a var
+# for instance:
+#   PROG = my-app-name
+#   $(call varize,$(PROG))_LIBS = ...
+# would result in:
+#   my_app_name_LIBS = ...
+#
+# @param $(1) name to convert
+# @return name suitable for a make variable name
+define varize
+$(subst -,_,$(1))
+endef
+
+# Define rules for building a library.
+#
+# To setup a library for building:
+# - add its base name to LIBRARIES
+# - convert name as with the varize macro
+# - add lib specific values:
+#   - sources to name_SOURCES
+#   - headers to name_HEADERS
+#   - extra objects to name_OBJS
+#   - extra objects to name_OBJS
+#
+# Creates name__SOURCES_OBJS out of name_SOURCES list.
+# Creates name__OBJS from __SOURCES_OBJS and _OBJS
+# Sets up .so dependencies on __OBJS.
+#
+# @param $(1) library name
+# @return make rules for the library
+define LIBRARY_template
+SOURCES += $$($(call varize,$(1))_SOURCES)
+HEADERS += $$($(call varize,$(1))_HEADERS)
+$(call varize,$(1))__SOURCES_OBJS = $$(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-$(PLATFORM).o,$$($(call varize,$(1))_SOURCES))
+$(call varize,$(1))__OBJS = $$($(call varize,$(1))__SOURCES_OBJS) $$($(call varize,$(1))_OBJS)
+$(LINUX_DIST_DIR)/lib/lib$(1).so: $$($(call varize,$(1))__OBJS)
+endef
+
+$(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_template,$(lib))))
+
 LINUX_HEADER_FILES := $(patsubst %.h, $(MONARCH)/$(HEADER_DIST_DIR)/%.h, $(HEADERS))
 LINUX_LIBRARY_SOURCES := $(patsubst %.cpp, $(LINUX_BUILD_DIR)/%.cpp, $(SOURCES))
 LINUX_EXECUTABLE_SOURCES := $(patsubst %, $(LINUX_BUILD_DIR)/%.cpp, $(EXECUTABLES))
@@ -41,18 +82,12 @@ endif
 $(LINUX_HEADER_FILES): 
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(MONARCH)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
-
-# You can build either multiple executables per directory, or multiple
-# libraries per directory, but not both.
-ifdef EXECUTABLES
-$(LINUX_EXECUTABLE_SOURCES):
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(CWD)/,$@) $@
-else
 $(LINUX_LIBRARY_SOURCES):
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(CWD)/,$@) $@
-endif
+$(LINUX_EXECUTABLE_SOURCES):
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(LINUX_BUILD_DIR)/,$(CWD)/,$@) $@
 
 clean-objects:
 	$(PCMD) rm -rf $(LINUX_LIBRARY_OBJECTS) $(LINUX_EXECUTABLE_OBJECTS)
@@ -67,16 +102,14 @@ clean-libraries:
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
-%.so: $(LINUX_LIBRARY_OBJECTS)
-	@echo "Linking $(subst $(MONARCH)/,,$@)..."
-	$(PCMD) $(LINUX_CXX) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -shared -o $@ $(LINUX_LIBRARY_OBJECTS) $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
+%.so:
+	$(PCMD) $(LINUX_CXX) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -shared -o $@ $^ $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
 
 ifdef EXECUTABLES
-$(LINUX_EXECUTABLES): $$(@F).cpp $(LINUX_BUILD_DIR)/$$(@F)-$(PLATFORM).o $(STATIC_LINUX_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$$(source)-$(PLATFORM).o)
+$(LINUX_EXECUTABLES): $(LINUX_BUILD_DIR)/$$(@F)-$(PLATFORM).o $(STATIC_LINUX_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$$(source)-$(PLATFORM).o)
 	@echo "Linking dist/bin/$(@F)..."
 	$(PCMD) $(LINUX_CXX) $(LINUX_CXX_FLAGS) $(LINUX_LD_FLAGS) $(LINUX_LIBS) \
-		-o $@ $(LINUX_BUILD_DIR)/$(@F)-$(PLATFORM).o \
-		$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$(source)-$(PLATFORM).o) \
+		-o $@ $^ \
 		$(DYNAMIC_LINUX_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
 endif
 
