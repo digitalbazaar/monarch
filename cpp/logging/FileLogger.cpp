@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/logging/FileLogger.h"
 
 #include "monarch/compress/gzip/Gzipper.h"
+#include "monarch/io/ByteArrayOutputStream.h"
 #include "monarch/io/FileList.h"
 #include "monarch/io/FileInputStream.h"
 #include "monarch/io/FileOutputStream.h"
@@ -31,6 +32,7 @@ using namespace monarch::util::regex;
 FileLogger::FileLogger(File* file) :
    OutputStreamLogger(),
    mFile((FileImpl*)NULL),
+   mInMemoryLog(0),
    mRotationFileSize(0),
    mCurrentFileSize(0),
    mMaxRotatedFiles(DEFAULT_MAX_ROTATED_FILES),
@@ -421,6 +423,29 @@ bool FileLogger::setFile(File& file, bool append)
       // the new file exists and can be written to
       if(rval)
       {
+         // if the in-memory buffer was in use, write it to the file
+         // and reclaim its memory
+         if(mInMemoryLog.length() > 0)
+         {
+            FileOutputStream fos(file);
+            if(mInMemoryLog.get(&fos) != -1)
+            {
+               mInMemoryLog.free();
+            }
+            else
+            {
+               ExceptionRef e = new Exception(
+                  "Could not write existing in-memory log to file.",
+                  "monarch.logging.InMemoryLogError");
+               Exception::push(e);
+               rval = false;
+            }
+            fos.close();
+         }
+      }
+
+      if(rval)
+      {
          // close and replace the old file
          close();
          mFile = file;
@@ -434,6 +459,33 @@ bool FileLogger::setFile(File& file, bool append)
       {
          OutputStream* s = new FileOutputStream(mFile, append);
          setOutputStream(s, true, false);
+      }
+   }
+   mLock.unlock();
+
+   return rval;
+}
+
+bool FileLogger::setInMemoryLog(int size)
+{
+   bool rval = false;
+
+   mLock.lock();
+   {
+      if(!mFile.isNull())
+      {
+         ExceptionRef e = new Exception(
+            "Cannot set an in-memory log. A file has already been set.",
+            "monarch.logging.FileAlreadySet");
+         Exception::set(e);
+      }
+      else
+      {
+         mInMemoryLog.resize(size);
+         ByteArrayOutputStream* baos =
+            new ByteArrayOutputStream(&mInMemoryLog, false);
+         setOutputStream(baos, true, false);
+         rval = true;
       }
    }
    mLock.unlock();
@@ -487,7 +539,11 @@ void FileLogger::log(const char* message, size_t length)
    {
       mCurrentFileSize += length;
       OutputStreamLogger::log(message, length);
-      if(mRotationFileSize != 0 && mCurrentFileSize >= mRotationFileSize)
+
+      // do log file rotation (do not rotate if writing to in-memory log)
+      if(mRotationFileSize != 0 &&
+         mCurrentFileSize >= mRotationFileSize &&
+         mInMemoryLog.length() == 0)
       {
          bool success = rotate();
          // FIXME how to handle exceptions?

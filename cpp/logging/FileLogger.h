@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_logging_FileLogger_H
 #define monarch_logging_FileLogger_H
@@ -27,7 +27,8 @@ namespace logging
 class FileLogger : public monarch::logging::OutputStreamLogger
 {
 public:
-   enum {
+   enum
+   {
       /**
        * Gzip compress rotated logs.
        */
@@ -39,6 +40,12 @@ protected:
     * The current log file.
     */
    monarch::io::File mFile;
+
+   /**
+    * A buffer for temporarily storing logging data before a file is
+    * assigned.
+    */
+   monarch::io::ByteBuffer mInMemoryLog;
 
    /**
     * The file size when file rotation is performed.
@@ -104,8 +111,20 @@ public:
    virtual ~FileLogger();
 
    /**
+    * Enables temporary in-memory logging up to a certain size, in bytes. Any
+    * logging prior to setting a file for this logger will be written to
+    * memory, up to the given size.
+    *
+    * If a file has already been set, this method will fail with an exception.
+    *
+    * @param size the maximum size for in-memory logging.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool setInMemoryLog(int size);
+
+   /**
     * Close the file and cleanup if requested.
-    * the next call.
     */
    virtual void close();
 
