@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include <iostream>
 #include <sstream>
@@ -62,6 +62,28 @@ void runLoggingTest(TestRunner& tr)
    MO_WARNING("[warning message]");
    MO_INFO("[info message]");
    MO_DEBUG("[debug message]");
+
+   tr.passIfNoException();
+
+   /////////////////
+
+   tr.test("in-memory first");
+
+   // create 2-stage file logger, first in-memory, then file
+   File file2(TMPDIR "/test-logging2.log");
+   FileLogger flog2;
+   assert(flog2.setInMemoryLog(16384));
+   // log default category to the file
+   Logger::addLogger(&flog2);
+
+   // basic tests of levels
+   MO_ERROR("[error message]");
+   MO_WARNING("[warning message]");
+   MO_INFO("[info message]");
+   MO_DEBUG("[debug message]");
+
+   // now set log file, dumping in-memory to file
+   flog2.setFile(file2);
 
    tr.passIfNoException();
 
@@ -225,7 +247,7 @@ void runLoggingTest(TestRunner& tr)
 static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
 {
    char fnr[200];
-   snprintf(fnr, 200, "/db-test-logging-rotation-%d-%d%s.log",
+   snprintf(fnr, 200, "/monarch-test-logging-rotation-%d-%d%s.log",
       (int)maxFiles, (int)maxSize, compress ? "-gz" : "");
    string fn;
    fn.append(TMPDIR);
