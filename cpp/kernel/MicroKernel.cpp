@@ -155,6 +155,100 @@ void MicroKernel::stop()
    MO_CAT_INFO(MO_KERNEL_CAT, "Engine stopped.");
 }
 
+/**
+ * Gets a MicroKernelModule from a modest Module, if one exists.
+ *
+ * @param m the modest Module.
+ * @param file the file the modest Module was loaded from, NULL if none.
+ * @param mkm to be set to the MicroKernelModule if one was found, NULL if not.
+ *
+ * @return true if on success, false if an exception occurred.
+ */
+inline static bool _getMicroKernelModule(
+   Module* m, File* file, MicroKernelModule** mkm)
+{
+   bool rval = true;
+
+   if(m != NULL)
+   {
+      const ModuleId& id = m->getId();
+
+      string from;
+      if(file != NULL)
+      {
+         from = " (";
+         from.append((*file)->getAbsolutePath());
+         from.push_back(')');
+      }
+
+      // update modules list if module is MicroKernelModule
+      *mkm = dynamic_cast<MicroKernelModule*>(m);
+      if(*mkm != NULL)
+      {
+         MO_CAT_INFO(MO_KERNEL_CAT,
+            "Loaded MicroKernel module: %s v%s%s",
+            id.name, id.version, from.c_str());
+      }
+      else
+      {
+         MO_CAT_INFO(MO_KERNEL_CAT,
+            "Loaded Modest module: %s v%s%s",
+            id.name, id.version, from.c_str());
+      }
+   }
+   else
+   {
+      MO_CAT_ERROR(MO_KERNEL_CAT,
+         "Exception while loading module: %s.",
+         JsonWriter::writeToString(Exception::getAsDynamicObject()).c_str());
+      rval = false;
+   }
+
+   return rval;
+}
+
+/**
+ * Initializes a MicroKernelModule.
+ *
+ * @param k the MicroKernel.
+ * @param m the MicroKernelModule to initialize.
+ *
+ * @return true if successful, false if not.
+ */
+inline static bool _initializeMicroKernelModule(
+   MicroKernel* k, MicroKernelModule* m)
+{
+   bool rval = true;
+
+   const ModuleId& id = m->getId();
+
+   MO_CAT_INFO(MO_KERNEL_CAT,
+      "Initializing MicroKernel module: %s v%s", id.name, id.version);
+
+   if(m->initialize(k))
+   {
+      MO_CAT_INFO(MO_KERNEL_CAT,
+         "Initialized MicroKernel module: %s v%s", id.name, id.version);
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Failed to initialize module.",
+         "monarch.kernel.ModuleInitializationFailure");
+      e->getDetails()["module"] = m->getDependencyInfo();
+      Exception::push(e);
+
+      // log exception details
+      MO_CAT_ERROR(MO_KERNEL_CAT,
+         "Exception while initializing MicroKernel module: %s.",
+         JsonWriter::writeToString(
+            Exception::getAsDynamicObject()).c_str());
+      rval = false;
+   }
+
+   return rval;
+}
+
 bool MicroKernel::loadModules(const char* path)
 {
    bool rval = true;
@@ -181,29 +275,11 @@ bool MicroKernel::loadModules(const char* path)
       if(file->isFile())
       {
          Module* module = lib->loadModule(file->getAbsolutePath());
-         if(module != NULL)
+         MicroKernelModule* m;
+         rval = _getMicroKernelModule(module, &file, &m);
+         if(rval && m != NULL)
          {
-            // update modules list if module is MicroKernelModule
-            MicroKernelModule* m = dynamic_cast<MicroKernelModule*>(module);
-            if(m != NULL)
-            {
-               pending.push_back(m);
-               MO_CAT_INFO(MO_KERNEL_CAT, "Loaded MicroKernel module: %s",
-                  file->getAbsolutePath());
-            }
-            else
-            {
-               MO_CAT_INFO(MO_KERNEL_CAT, "Loaded Modest module: %s",
-                  file->getAbsolutePath());
-            }
-         }
-         else
-         {
-            MO_CAT_ERROR(MO_KERNEL_CAT,
-               "Exception while loading module: %s.",
-               JsonWriter::writeToString(
-                  Exception::getAsDynamicObject()).c_str());
-            rval = false;
+            pending.push_back(m);
          }
       }
    }
@@ -218,32 +294,7 @@ bool MicroKernel::loadModules(const char* path)
    for(ModuleList::iterator i = mModuleList.begin();
        rval && i != mModuleList.end(); i++)
    {
-      MicroKernelModule* m = *i;
-      MO_CAT_INFO(MO_KERNEL_CAT,
-         "Initializing MicroKernel module: %s v%s",
-         m->getId().name, m->getId().version);
-
-      if(!m->initialize(this))
-      {
-         ExceptionRef e = new Exception(
-            "Failed to initialize module.",
-            "monarch.kernel.ModuleInitializationFailure");
-         e->getDetails()["module"] = m->getDependencyInfo();
-         Exception::push(e);
-
-         // log exception details
-         MO_CAT_ERROR(MO_KERNEL_CAT,
-            "Exception while initializing MicroKernel module: %s.",
-            JsonWriter::writeToString(
-               Exception::getAsDynamicObject()).c_str());
-         rval = false;
-      }
-      else
-      {
-         MO_CAT_INFO(MO_KERNEL_CAT,
-            "Initialized MicroKernel module: %s v%s",
-            m->getId().name, m->getId().version);
-      }
+      rval = _initializeMicroKernelModule(this, *i);
    }
 
    if(rval)
@@ -255,6 +306,33 @@ bool MicroKernel::loadModules(const char* path)
       // unload modules, all modules *must* load and initialize properly
       // to continue and this is not the case here
       unloadModules();
+   }
+
+   return rval;
+}
+
+bool MicroKernel::loadModule(CreateModestModuleFn cm, FreeModestModuleFn fm)
+{
+   bool rval = true;
+
+   ModuleLibrary* lib = getModuleLibrary();
+   Module* module = lib->loadModule(cm, fm);
+   MicroKernelModule* m;
+   rval = _getMicroKernelModule(module, NULL, &m);
+   if(rval && m != NULL)
+   {
+      ModuleList pending;
+      pending.push_back(m);
+
+      // check dependencies and initialize
+      rval =
+         checkDependencies(pending) &&
+         _initializeMicroKernelModule(this, m);
+      if(!rval)
+      {
+         // dependency check or initialize failed, so unload module
+         lib->unloadModule(&m->getId());
+      }
    }
 
    return rval;

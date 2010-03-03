@@ -166,6 +166,17 @@ public:
    virtual bool loadModules(const char* path);
 
    /**
+    * Loads a MicroKernelModule from a modest Module, checking its dependencies,
+    * etc.
+    *
+    * @param cm the create module function.
+    * @param fm the free module function.
+    *
+    * @return true if it was loaded, false if not (an Exception occurred).
+    */
+   virtual bool loadModule(CreateModestModuleFn cm, FreeModestModuleFn fm);
+
+   /**
     * Gets the current thread's Operation. *DO NOT* call this if you
     * aren't sure the current thread is on an Operation, it may result
     * in memory corruption. It is safe to call this inside of a btp
