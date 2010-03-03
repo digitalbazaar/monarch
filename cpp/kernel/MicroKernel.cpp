@@ -164,7 +164,7 @@ void MicroKernel::stop()
  *
  * @return true if on success, false if an exception occurred.
  */
-inline static bool _getMicroKernelModule(
+static bool _getMicroKernelModule(
    Module* m, File* file, MicroKernelModule** mkm)
 {
    bool rval = true;
@@ -215,8 +215,7 @@ inline static bool _getMicroKernelModule(
  *
  * @return true if successful, false if not.
  */
-inline static bool _initializeMicroKernelModule(
-   MicroKernel* k, MicroKernelModule* m)
+static bool _initializeMicroKernelModule(MicroKernel* k, MicroKernelModule* m)
 {
    bool rval = true;
 
