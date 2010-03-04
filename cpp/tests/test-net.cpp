@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/ByteArrayInputStream.h"
@@ -18,6 +18,7 @@
 #include "monarch/net/NullSocketDataPresenter.h"
 #include "monarch/net/SslSocketDataPresenter.h"
 #include "monarch/net/SocketDataPresenterList.h"
+#include "monarch/net/SocketTools.h"
 #include "monarch/rt/System.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
@@ -1507,6 +1508,8 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
+      printf("\nLocal hostname: %s\n", SocketTools::getHostname().c_str());
+
       runInterruptServerSocketTest(tr);
 //      runSslSocketTest(tr);
 //      runServerSocketTest(tr);

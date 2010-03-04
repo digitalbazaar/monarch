@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_SocketTools_H
 #define monarch_net_SocketTools_H
 
 #include "monarch/net/SocketDefinitions.h"
 #include <sys/types.h>
+#include <string>
 
 namespace monarch
 {
@@ -80,6 +81,13 @@ public:
    static int select(
       int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
       long long timeout, const sigset_t* sigmask = NULL);
+
+   /**
+    * Gets the hostname for the local machine.
+    *
+    * @return the hostname for the local machine.
+    */
+   static std::string getHostname();
 };
 
 } // end namespace net
