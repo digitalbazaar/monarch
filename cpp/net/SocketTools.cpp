@@ -14,9 +14,9 @@
 using namespace monarch::net;
 using namespace monarch::rt;
 
-//#ifndef HOST_NAME_MAX
-//#define HOST_NAME_MAX 255
-//#endif
+#ifndef HOST_NAME_MAX
+#define HOST_NAME_MAX 255
+#endif
 
 int SocketTools::select(bool read, unsigned int fd, long long timeout)
 {
