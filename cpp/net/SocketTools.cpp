@@ -9,8 +9,14 @@
 #include "monarch/rt/Thread.h"
 #include "monarch/rt/System.h"
 
+#include <limits.h>
+
 using namespace monarch::net;
 using namespace monarch::rt;
+
+#ifndef HOST_NAME_MAX
+#define HOST_NAME_MAX 255
+#endif
 
 int SocketTools::select(bool read, unsigned int fd, long long timeout)
 {
@@ -321,4 +327,12 @@ int SocketTools::select(
    }
 
    return rval;
+}
+
+std::string SocketTools::getHostname()
+{
+   char tmp[HOST_NAME_MAX + 1];
+   memset(tmp, 0, HOST_NAME_MAX + 1);
+   gethostname(tmp, HOST_NAME_MAX);
+   return tmp;
 }
