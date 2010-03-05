@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -664,6 +664,73 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runMySqlStatementBuilderTest(TestRunner& tr)
+{
+   tr.group("MySql StatementBuilder");
+
+   // create mysql connection pool
+   MySqlConnectionPool cp(
+      "mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 100);
+   assertNoException();
+
+/*
+   // create table
+   monarch::sql::Connection* c = cp.getConnection();
+   createMySqlTable(tr, c);
+   c->close();
+
+   // create connection test threads
+   int testCount = 300;
+   MySqlConnectionPoolTest tests[testCount];
+   Thread* threads[testCount];
+
+   // create threads, set pool for tests
+   for(int i = 0; i < testCount; i++)
+   {
+      tests[i].pool = &cp;
+      tests[i].tr = &tr;
+      threads[i] = new Thread(&tests[i]);
+   }
+
+   uint64_t startTime = Timer::startTiming();
+
+   // run connection threads
+   for(int i = 0; i < testCount; i++)
+   {
+      while(!threads[i]->start(131072))
+      {
+         threads[i - 1]->join();
+      }
+   }
+
+   // join threads
+   for(int i = 0; i < testCount; i++)
+   {
+      threads[i]->join();
+   }
+
+   double seconds = Timer::getSeconds(startTime);
+
+   // clean up threads
+   for(int i = 0; i < testCount; i++)
+   {
+      delete threads[i];
+   }
+
+   // clean up mysql
+   mysql_library_end();
+
+   // print report
+   printf("\nNumber of independent connection uses: %d\n", testCount);
+   printf("Number of pooled connections created: %d\n",
+      cp.getConnectionCount());
+   printf("Total time: %g seconds\n", seconds);
+
+   */
+
+   tr.ungroup();
+}
+
 class MoMySqlTester : public monarch::test::Tester
 {
 public:
@@ -688,7 +755,8 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      runMySqlConnectionPoolTest(tr);
+      //runMySqlConnectionPoolTest(tr);
+      runMySqlStatementBuilderTest(tr);
       return 0;
    }
 };
