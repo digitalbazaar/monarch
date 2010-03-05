@@ -680,6 +680,27 @@ void runInteractiveSharedLockTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runCollectableTest(TestRunner& tr)
+{
+   tr.group("Collectable");
+
+   tr.test("basic");
+   {
+      Collectable<int> c = new int(10);
+   }
+   tr.passIfNoException();
+
+   tr.test("relinquish");
+   {
+      Collectable<int> c = new int(10);
+      int* foo = c.relinquish();
+      delete foo;
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 void runDynamicObjectTest(TestRunner& tr)
 {
    tr.test("DynamicObject");
@@ -2293,6 +2314,7 @@ public:
       runThreadPoolTest(tr);
       runJobDispatcherTest(tr);
       runSharedLockTest(tr);
+      runCollectableTest(tr);
       runDynamicObjectTest(tr);
       runDynoClearTest(tr);
       runDynoConversionTest(tr);
