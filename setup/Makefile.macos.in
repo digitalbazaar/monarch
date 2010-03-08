@@ -1,5 +1,5 @@
-# This file contains platform-specific Makefile rules for building 
-# Mac OSX binaries and packages.
+# This file contains platform-specific Makefile rules for building
+# Mac OS X binaries and packages.
 
 # MacOS-specific variables
 MACOS_CXX = @MACOS_CXX@
@@ -16,20 +16,61 @@ MACOS_BUILD_DIR = $(MONARCH)/build/$(subst $(MONARCH)/cpp/,,$(CWD))
 MACOS_DIST_DIR = $(MONARCH)/dist
 MACOS_LIB_DIR = $(MACOS_DIST_DIR)/lib
 MACOS_BIN_DIR = $(MACOS_DIST_DIR)/bin
+
+# convert text into something appropriate for a var
+# for instance:
+#   PROG = my-app-name
+#   $(call varize,$(PROG))_LIBS = ...
+# would result in:
+#   my_app_name_LIBS = ...
+#
+# @param $(1) name to convert
+# @return name suitable for a make variable name
+define varize
+$(subst -,_,$(1))
+endef
+
+# Define rules for building a library.
+#
+# To setup a library for building:
+# - add its base name to LIBRARIES
+# - convert name as with the varize macro
+# - add lib specific values:
+#   - sources to name_SOURCES
+#   - headers to name_HEADERS
+#   - extra objects to name_OBJS
+#   - extra objects to name_OBJS
+#
+# Creates name__SOURCES_OBJS out of name_SOURCES list.
+# Creates name__OBJS from __SOURCES_OBJS and _OBJS
+# Sets up dynamic lib dependencies on __OBJS.
+#
+# @param $(1) library name
+# @return make rules for the library
+define LIBRARY_template
+SOURCES += $$($(call varize,$(1))_SOURCES)
+HEADERS += $$($(call varize,$(1))_HEADERS)
+$(call varize,$(1))__SOURCES_OBJS = $$(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-$(PLATFORM).o,$$($(call varize,$(1))_SOURCES))
+$(call varize,$(1))__OBJS = $$($(call varize,$(1))__SOURCES_OBJS) $$($(call varize,$(1))_OBJS)
+$(MACOS_DIST_DIR)/lib/$(LIB_PREFIX)$(1).$(DYNAMIC_LIB_EXT): $$($(call varize,$(1))__OBJS)
+endef
+
+$(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_template,$(lib))))
+
 MACOS_CPP_SOURCES := $(filter %.cpp, $(SOURCES))
 MACOS_AS_SOURCES := $(filter %.S, $(SOURCES))
 MACOS_HEADER_FILES := $(patsubst %.h, $(MONARCH)/$(HEADER_DIST_DIR)/%.h, $(HEADERS))
 MACOS_LIBRARY_SOURCES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%.cpp, $(MACOS_CPP_SOURCES))  $(patsubst %.S,$(MACOS_BUILD_DIR)/%.S, $(MACOS_AS_SOURCES))
 MACOS_EXECUTABLE_SOURCES := $(patsubst %,$(MACOS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
-MACOS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.o, $(MACOS_CPP_SOURCES)) $(patsubst %.S,$(MACOS_BUILD_DIR)/%-asm-macos.o, $(MACOS_AS_SOURCES))
-MACOS_EXECUTABLE_OBJECTS := $(patsubst %,$(MACOS_BUILD_DIR)/%-macos.o, $(EXECUTABLES))
+MACOS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-$(PLATFORM).o, $(MACOS_CPP_SOURCES)) $(patsubst %.S,$(MACOS_BUILD_DIR)/%-asm-$(PLATFORM).o, $(MACOS_AS_SOURCES))
+MACOS_EXECUTABLE_OBJECTS := $(patsubst %,$(MACOS_BUILD_DIR)/%-$(PLATFORM).o, $(EXECUTABLES))
 DYNAMIC_MACOS_LIBRARIES := $(DYNAMIC_LINK_LIBRARIES) $(DYNAMIC_MACOS_LIBRARIES)
 MACOS_EXECUTABLES := $(patsubst %,$(MACOS_BIN_DIR)/%, $(EXECUTABLES))
-MACOS_DEPENDENCIES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-macos.P, $(MACOS_CPP_SOURCES))
-MACOS_DEPENDENCIES += $(patsubst %.cpp,%-macos.P, $(MACOS_EXECUTABLE_SOURCES))
+MACOS_DEPENDENCIES := $(patsubst %.cpp,$(MACOS_BUILD_DIR)/%-$(PLATFORM).P, $(MACOS_CPP_SOURCES))
+MACOS_DEPENDENCIES += $(patsubst %.cpp,%-$(PLATFORM).P, $(MACOS_EXECUTABLE_SOURCES))
 
-MACOS_LIBRARIES := $(patsubst %,$(MACOS_LIB_DIR)/lib%.dylib, $(LIBRARIES))
-#MACOS_LIBRARIES += $(patsubst %,$(MACOS_LIB_DIR)/lib%.a, $(LIBRARIES))
+MACOS_LIBRARIES := $(patsubst %,$(MACOS_LIB_DIR)/$(LIB_PREFIX)%.$(DYNAMIC_LIB_EXT), $(LIBRARIES))
+#MACOS_LIBRARIES += $(patsubst %,$(MACOS_LIB_DIR)/$(LIB_PREFIX)%.$(STATIC_LIB_EXT), $(LIBRARIES))
 
 ALL_HEADERS += $(MACOS_HEADER_FILES)
 ALL_SOURCES += $(MACOS_LIBRARY_SOURCES) $(MACOS_EXECUTABLE_SOURCES)
@@ -47,18 +88,12 @@ endif
 $(MACOS_HEADER_FILES): 
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(MONARCH)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
-
-# You can build either multiple executables per directory, or multiple
-# libraries per directory, but not both.
-ifdef EXECUTABLES
-$(MACOS_EXECUTABLE_SOURCES):
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(CWD)/,$@) $@
-else
 $(MACOS_LIBRARY_SOURCES):
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(CWD)/,$@) $@
-endif
+$(MACOS_EXECUTABLE_SOURCES):
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(MACOS_BUILD_DIR)/,$(CWD)/,$@) $@
 
 clean-objects:
 	$(PCMD) rm -rf $(MACOS_LIBRARY_OBJECTS) $(MACOS_EXECUTABLE_OBJECTS)
@@ -66,31 +101,30 @@ clean-objects:
 clean-libraries:
 	$(PCMD) rm -rf $(MACOS_LIBRARIES)
 
-%-asm-macos.o: %.S
+%-asm-$(PLATFORM).o: %.S
 	@echo "Compiling build/$(subst .P,.o,$(subst $(MONARCH)/build/,,$@))..."
 	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
-%-macos.o %-macos.P: %.cpp
+%-$(PLATFORM).o %-$(PLATFORM).P: %.cpp
 	@echo "Compiling build/$(subst .P,.o,$(subst $(MONARCH)/build/,,$@))..."
 	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) -c -MD -o $(basename $@).o $(MACOS_INCLUDES) $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
-%.dylib: $(MACOS_LIBRARY_OBJECTS)
+%.$(DYNAMIC_LIB_EXT):
 	@echo "Linking $(subst $(MONARCH)/,,$@)..."
-	$(PCMD) mkdir -p $(MACOS_LIB_DIR)
-	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -dynamiclib -install_name @loader_path/$(@F) $(MACOS_LIBS) -shared -o $@ $(MACOS_LIBRARY_OBJECTS) $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
+	$(PCMD) $(MACOS_CXX) $(MACOS_LD_FLAGS) -dynamiclib -install_name @loader_path/$(@F) $(MACOS_LIBS) -shared -o $@ $^ $(DYNAMIC_MACOS_LIBRARIES:%=-l%)
 
 ifdef EXECUTABLES
-$(MACOS_EXECUTABLES): $(MACOS_LIBRARY_SOURCES) $$(@F).cpp $(MACOS_BUILD_DIR)/$$(@F)-macos.o $(STATIC_MACOS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(MACOS_BUILD_DIR)/$$(source)-macos.o)
+$(MACOS_EXECUTABLES): $(MACOS_BUILD_DIR)/$$(@F)-$(PLATFORM).o $(STATIC_MACOS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(MACOS_BUILD_DIR)/$$(source)-$(PLATFORM).o)
 	@echo "Linking dist/bin/$(@F)..."
-	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) $(MACOS_LD_FLAGS) $(MACOS_LIBS) -o $@ $(MACOS_BUILD_DIR)/$(@F)-macos.o \
-	$(foreach source,$($(subst -,_,$(@F))_EXTRA_SOURCES),$(MACOS_BUILD_DIR)/$(source)-macos.o) \
-	$(DYNAMIC_MACOS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
+	$(PCMD) $(MACOS_CXX) $(MACOS_CXX_FLAGS) $(MACOS_LD_FLAGS) $(MACOS_LIBS) \
+		-o $@ $^ \
+		$(DYNAMIC_MACOS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%)
 endif
 
 dump-variables:
@@ -109,6 +143,7 @@ dump-variables:
 	@echo MACOS_LIB_DIR=$(MACOS_LIB_DIR)
 	@echo MACOS_LIBS=$(MACOS_LIBS)
 	@echo MACOS_AR=$(MACOS_AR)
+	@echo MACOS_AS=$(MACOS_AS)
 	@echo MACOS_BUILD_DIR=$(MACOS_BUILD_DIR)
 	@echo MACOS_DIST_DIR=$(MACOS_DIST_DIR)
 	@echo DYNAMIC_MACOS_LIBRARIES=$(DYNAMIC_MACOS_LIBRARIES)

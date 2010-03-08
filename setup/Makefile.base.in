@@ -29,12 +29,29 @@ endif
 .SECONDEXPANSION:
 
 ifeq ($(BUILD_FOR_LINUX),yes)
+PLATFORM_NAME=LINUX
+PN=$(PLATFORM_NAME)
+LIB_PREFIX=lib
+DYNAMIC_LIB_EXT=so
+STATIC_LIB_EXT=a
 include @MONARCH_DIR@/setup/Makefile.linux
 endif
+
 ifeq ($(BUILD_FOR_MACOS),yes)
+PLATFORM_NAME=MACOS
+PN=$(PLATFORM_NAME)
+LIB_PREFIX=lib
+DYNAMIC_LIB_EXT=dylib
+STATIC_LIB_EXT=a
 include @MONARCH_DIR@/setup/Makefile.macos
 endif
+
 ifeq ($(BUILD_FOR_WINDOWS),yes)
+PLATFORM_NAME=WINDOWS
+PN=$(PLATFORM_NAME)
+LIB_PREFIX=
+DYNAMIC_LIB_EXT=dll
+STATIC_LIB_EXT=lib
 include @MONARCH_DIR@/setup/Makefile.mingw32
 endif
 

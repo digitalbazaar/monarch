@@ -5,7 +5,16 @@
 WINDOWS_CXX = @WINDOWS_CXX@
 WINDOWS_CXX_FLAGS = @CXXFLAGS@ -march=i686 -Wall -D_WIN32_WINNT=0x0501 $(MODULE_CXX_FLAGS) @DEFS@
 WINDOWS_LD_FLAGS = @LDFLAGS@
-WINDOWS_INCLUDES = $(INCLUDES) -I$(MONARCH)/cpp/3rdparty/pthread/include -I$(MONARCH)/cpp/3rdparty/openssl/include -I$(MONARCH)/cpp/3rdparty/expat/include -I$(MONARCH)/cpp/3rdparty/mysql/include -I$(MONARCH)/cpp/3rdparty/regex/include -I$(MONARCH)/cpp/3rdparty/sqlite3/include -I$(MONARCH)/cpp/3rdparty/zlib/include -I$(MONARCH)/cpp/3rdparty/iconv/include
+WINDOWS_INCLUDES = \
+	$(INCLUDES) \
+	-I$(MONARCH)/cpp/3rdparty/pthread/include \
+	-I$(MONARCH)/cpp/3rdparty/openssl/include \
+	-I$(MONARCH)/cpp/3rdparty/expat/include \
+	-I$(MONARCH)/cpp/3rdparty/mysql/include \
+	-I$(MONARCH)/cpp/3rdparty/regex/include \
+	-I$(MONARCH)/cpp/3rdparty/sqlite3/include \
+	-I$(MONARCH)/cpp/3rdparty/zlib/include \
+	-I$(MONARCH)/cpp/3rdparty/iconv/include
 WINDOWS_LIBS = -L$(WINDOWS_LIB_DIR)
 WINDOWS_AR = @WINDOWS_AR@
 WINDOWS_AS = @WINDOWS_AS@
@@ -16,17 +25,60 @@ WINDOWS_BUILD_DIR = $(MONARCH)/build/$(subst $(MONARCH)/cpp/,,$(CWD))
 WINDOWS_DIST_DIR = $(MONARCH)/dist
 WINDOWS_LIB_DIR = $(WINDOWS_DIST_DIR)/lib
 WINDOWS_BIN_DIR = $(WINDOWS_DIST_DIR)/bin
+
+# convert text into something appropriate for a var
+# for instance:
+#   PROG = my-app-name
+#   $(call varize,$(PROG))_LIBS = ...
+# would result in:
+#   my_app_name_LIBS = ...
+#
+# @param $(1) name to convert
+# @return name suitable for a make variable name
+define varize
+$(subst -,_,$(1))
+endef
+
+# Define rules for building a library.
+#
+# To setup a library for building:
+# - add its base name to LIBRARIES
+# - convert name as with the varize macro
+# - add lib specific values:
+#   - sources to name_SOURCES
+#   - headers to name_HEADERS
+#   - extra objects to name_OBJS
+#   - extra objects to name_OBJS
+#
+# Creates name__SOURCES_OBJS out of name_SOURCES list.
+# Creates name__OBJS from __SOURCES_OBJS and _OBJS
+# Sets up dynamic lib dependencies on __OBJS.
+#
+# @param $(1) library name
+# @return make rules for the library
+define LIBRARY_template
+SOURCES += $$($(call varize,$(1))_SOURCES)
+HEADERS += $$($(call varize,$(1))_HEADERS)
+$(call varize,$(1))__SOURCES_OBJS = $$(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-$(PLATFORM).o,$$($(call varize,$(1))_SOURCES))
+$(call varize,$(1))__OBJS = $$($(call varize,$(1))__SOURCES_OBJS) $$($(call varize,$(1))_OBJS)
+$(WINDOWS_DIST_DIR)/lib/$(LIB_PREFIX)$(1).$(DYNAMIC_LIB_EXT): $$($(call varize,$(1))__OBJS)
+endef
+
+$(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_template,$(lib))))
+
+WINDOWS_CPP_SOURCES := $(filter %.cpp, $(SOURCES))
+WINDOWS_AS_SOURCES := $(filter %.S, $(SOURCES))
 WINDOWS_HEADER_FILES := $(patsubst %.h, $(MONARCH)/$(HEADER_DIST_DIR)/%.h, $(HEADERS))
 WINDOWS_LIBRARY_SOURCES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%.cpp, $(SOURCES))
 WINDOWS_EXECUTABLE_SOURCES := $(patsubst %,$(WINDOWS_BUILD_DIR)/%.cpp, $(EXECUTABLES))
-WINDOWS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-windows.o, $(SOURCES))
-WINDOWS_EXECUTABLE_OBJECTS := $(patsubst %,$(WINDOWS_BUILD_DIR)/%-windows.o, $(EXECUTABLES))
+WINDOWS_LIBRARY_OBJECTS := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-$(PLATFORM).o, $(SOURCES))
+WINDOWS_EXECUTABLE_OBJECTS := $(patsubst %,$(WINDOWS_BUILD_DIR)/%-$(PLATFORM).o, $(EXECUTABLES))
 WINDOWS_EXECUTABLES := $(patsubst %,$(WINDOWS_BIN_DIR)/%.exe, $(EXECUTABLES))
-WINDOWS_DEPENDENCIES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-windows.P, $(SOURCES))
-WINDOWS_DEPENDENCIES += $(patsubst %.cpp,-windows%.P, $(WINDOWS_EXECUTABLE_SOURCES))
+WINDOWS_DEPENDENCIES := $(patsubst %.cpp,$(WINDOWS_BUILD_DIR)/%-$(PLATFORM).P, $(SOURCES))
+WINDOWS_DEPENDENCIES += $(patsubst %.cpp,-$(PLATFORM)%.P, $(WINDOWS_EXECUTABLE_SOURCES))
 
-#WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_LIB_DIR)/%.lib, $(LIBRARIES))
-WINDOWS_LIBRARIES = $(patsubst %,$(WINDOWS_LIB_DIR)/%.dll, $(LIBRARIES))
+WINDOWS_LIBRARIES := $(patsubst %,$(WINDOWS_LIB_DIR)/$(LIB_PREFIX)%.$(DYNAMIC_LIB_EXT), $(LIBRARIES))
+#WINDOWS_LIBRARIES += $(patsubst %,$(WINDOWS_LIB_DIR)/$(LIB_PREFIX)%.$(STATIC_LIB_EXT), $(LIBRARIES))
 
 ALL_HEADERS += $(WINDOWS_HEADER_FILES)
 ALL_SOURCES += $(WINDOWS_LIBRARY_SOURCES) $(WINDOWS_EXECUTABLE_SOURCES)
@@ -38,52 +90,53 @@ ALL_DIRECTORIES += $(WINDOWS_BUILD_DIR) $(WINDOWS_DIST_DIR) $(WINDOWS_LIB_DIR) $
 # Ignore dependencies if specified in the Makefile. This will ensure that the
 # dependencies for all .cpp files are not pulled in and thus won't be built
 ifndef IGNORE_DEPENDENCIES
--include $(LINUX_DEPENDENCIES)
+-include $(WINDOWS_DEPENDENCIES)
 endif
 
 $(WINDOWS_HEADER_FILES): 
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(MONARCH)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
-
-# You can build either multiple executables per directory, or multiple
-# libraries per directory, but not both.
-ifdef EXECUTABLES
-$(WINDOWS_EXECUTABLE_SOURCES):
-	$(PCMD) mkdir -p $(dir $@)
-	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(CWD)/,$@) $@
-else
 $(WINDOWS_LIBRARY_SOURCES):
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(CWD)/,$@) $@
-endif
+$(WINDOWS_EXECUTABLE_SOURCES):
+	$(PCMD) mkdir -p $(dir $@)
+	$(PCMD) ln -sf $(subst $(WINDOWS_BUILD_DIR)/,$(CWD)/,$@) $@
 
 clean-objects:
-	$(PCMD) rm -rf $(WINDOWS_BUILD_DIR)
+	$(PCMD) rm -rf $(WINDOWS_LIBRARY_OBJECTS) $(WINDOWS_EXECUTABLE_OBJECTS)
 
 clean-libraries:
 	$(PCMD) rm -rf $(WINDOWS_LIBRARIES)
 
-%-windows.o %-windows.P: %.cpp $(WINDOWS_HEADER_FILES)
+%-asm-$(PLATFORM).o: %.S
+	@echo "Compiling build/$(subst .P,.o,$(subst $(MONARCH)/build/,,$@))..."
+	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -c -MD -o $(basename $@).o $(WINDOWS_INCLUDES) $(realpath $<)
+	$(PCMD) cp $(basename $@).d $(basename $@).P; \
+		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
+		rm -f $(basename $@).d
+
+%-$(PLATFORM).o %-$(PLATFORM).P: %.cpp
 	@echo "Compiling build/$(subst .P,.o,$(subst $(MONARCH)/build/,,$@))..."
 	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) -c -MD -o $(basename $@).o $(WINDOWS_INCLUDES) -I. $<
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
-%.dll: $(WINDOWS_LIBRARY_OBJECTS)
+%.$(DYNAMIC_LIB_EXT):
 	@echo "Linking $(subst $(MONARCH)/,,$@)..."
-	$(PCMD) $(WINDOWS_CXX) -shared $(WINDOWS_LD_FLAGS) $(WINDOWS_LIBS) -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
+	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_LD_FLAGS) $(WINDOWS_LIBS) -shared -o $@ $^ $(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
 
-%.lib: $(WINDOWS_LIBRARY_OBJECTS)
+%.$(STATIC_LIB_EXT): $(WINDOWS_LIBRARY_OBJECTS)
 	@echo "Linking $(subst $(MONARCH)/,,$@)..."
-	$(PCMD) $(WINDOWS_AR) $(AR_FLAGS) $@ $(WINDOWS_LIBRARY_OBJECTS)
+	$(PCMD) $(WINDOWS_AR) $(AR_FLAGS) $@ $^
 
 ifdef EXECUTABLES
-$(WINDOWS_EXECUTABLES): $(WINDOWS_LIBRARY_SOURCES) $$(basename $$(@F)).cpp $(WINDOWS_BUILD_DIR)/$$(basename $$(@F))-windows.o $(STATIC_WINDOWS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(basename $$(@F)))_EXTRA_SOURCES),$(WINDOWS_BUILD_DIR)/$$(source)-windows.o)
+$(WINDOWS_EXECUTABLES): $(WINDOWS_BUILD_DIR)/$$(basename $$(@F))-$(PLATFORM).o $(STATIC_WINDOWS_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(basename $$(@F)))_EXTRA_SOURCES),$(WINDOWS_BUILD_DIR)/$$(source)-$(PLATFORM).o)
 	@echo "Linking dist/bin/$(@F)..."
-	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) $(WINDOWS_LD_FLAGS) -L$(WINDOWS_LIB_DIR) -o $@ $(WINDOWS_BUILD_DIR)/$(basename $(@F))-windows.o \
-	$(foreach source,$($(subst -,_,$(basename $(@F)))_EXTRA_SOURCES),$(WINDOWS_BUILD_DIR)/$(source)-windows.o) \
-	$(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
+	$(PCMD) $(WINDOWS_CXX) $(WINDOWS_CXX_FLAGS) $(WINDOWS_LD_FLAGS) $(WINDOWS_LIBS) \
+		-o $@ $^ \
+		$(DYNAMIC_WINDOWS_LIBRARIES:%=-l%) $(DYNAMIC_EXECUTABLE_LIBRARIES:%=-l%) $(EXTRA_WINDOWS_LIBRARIES)
 endif
 
 dump-variables:
@@ -93,7 +146,8 @@ dump-variables:
 	@echo AR_FLAGS=$(AR_FLAGS)
 	@echo MONARCH=$(MONARCH)
 	@echo INCLUDES=$(INCLUDES)
-	@echo MODULE_BASE_DIR=$(MODULE_BASE_DIR)
+	@echo CWD=$(CWD)
+
 # Windows-specific variables
 	@echo WINDOWS_CXX=$(WINDOWS_CXX)
 	@echo WINDOWS_CXX_FLAGS=$(WINDOWS_CXX_FLAGS)
@@ -102,11 +156,11 @@ dump-variables:
 	@echo WINDOWS_LIBS=$(WINDOWS_LIBS)
 	@echo WINDOWS_AR=$(WINDOWS_AR)
 	@echo WINDOWS_AS=$(WINDOWS_AS)
+	@echo WINDOWS_BUILD_DIR=$(WINDOWS_BUILD_DIR)
+	@echo WINDOWS_DIST_DIR=$(WINDOWS_DIST_DIR)
 	@echo DYNAMIC_WINDOWS_LIBRARIES=$(DYNAMIC_WINDOWS_LIBRARIES)
 	@echo WINDOWS_DLLWRAP=$(WINDOWS_DLLWRAP)
 	@echo WINDOWS_DLLWRAP_FLAGS=$(WINDOWS_DLLWRAP_FLAGS)
-	@echo WINDOWS_BUILD_DIR=$(WINDOWS_BUILD_DIR)
-	@echo WINDOWS_DIST_DIR=$(WINDOWS_DIST_DIR)
 	@echo WINDOWS_LIBRARY_SOURCES=$(WINDOWS_LIBRARY_SOURCES)
 	@echo WINDOWS_EXECUTABLE_SOURCES=$(WINDOWS_EXECUTABLE_SOURCES)
 	@echo WINDOWS_LIBRARY_OBJECTS=$(WINDOWS_LIBRARY_OBJECTS)

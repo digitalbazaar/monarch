@@ -67,6 +67,7 @@ AC_CHECK_PROGS(PYTHON, python2.5 python2.4, not found)
 if test "$BUILD_FOR_LINUX" = "yes" ; then
    AC_PROG_CXX()
    AC_CHECK_PROG(LINUX_AR, ar, ar, not found)
+   AC_CHECK_PROG(LINUX_AS, as, as, not found)
    LINUX_CXX="$CXX"
    PLATFORM=linux
 fi
@@ -332,6 +333,7 @@ if test "x$BUILD_FOR_LINUX" = "xyes"; then
    echo "Linux             : enabled"
    echo "Linux C++ compiler: $LINUX_CXX"
    echo "Linux C++ archiver: $LINUX_AR"
+   echo "Linux assembler   : $LINUX_AS"
 else
    echo "Linux             : disabled (use --enable-linux to enable)"
 fi
