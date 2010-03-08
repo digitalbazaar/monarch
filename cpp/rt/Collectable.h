@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_Collectable_H
 #define monarch_rt_Collectable_H
@@ -69,6 +69,12 @@ protected:
        * A reference count for HeapObject.
        */
       volatile aligned_int32_t count;
+
+      /**
+       * Greater than 1 if ownership over the HeapObject's memory has been
+       * relinquished and, therefore, it should not be deleted.
+       */
+      volatile aligned_int32_t relinquished;
    };
 
    /**
@@ -153,6 +159,22 @@ public:
     */
    virtual bool isNull() const;
 
+   /**
+    * Relinquishes memory ownership over this Collectable's HeapObject. This
+    * Collectable and all others that were referencing the same HeapObject will
+    * no longer be responsible for deleting the HeapObject.
+    *
+    * More Collectables may be created from this one (ie via the equals
+    * operator) and point at the HeapObject, however, when the reference count
+    * for the HeapObject eventually reaches zero, its memory will not be
+    * collected by any Collectable. Memory reclamation must be done manually,
+    * or a brand new Collectable must be manually constructed to wrap the
+    * HeapObject again.
+    *
+    * @return the relinquished HeapObject.
+    */
+   virtual HeapObject* relinquish();
+
 protected:
    /**
     * Acquires the passed Reference.
@@ -182,6 +204,7 @@ Collectable<HeapObject>::Collectable(HeapObject* ptr)
       mReference = new Reference;
       mReference->ptr = ptr;
       mReference->count = 1;
+      mReference->relinquished = 0;
    }
 }
 
@@ -259,6 +282,22 @@ bool Collectable<HeapObject>::isNull() const
 }
 
 template<typename HeapObject>
+HeapObject* Collectable<HeapObject>::relinquish()
+{
+   HeapObject* rval = NULL;
+
+   volatile Reference* ref = mReference;
+   if(ref != NULL)
+   {
+      // do atomic increment and fetch
+      Atomic::incrementAndFetch(&ref->relinquished);
+      rval = ref->ptr;
+   }
+
+   return rval;
+}
+
+template<typename HeapObject>
 void Collectable<HeapObject>::acquire(volatile Reference* ref)
 {
    if(ref != NULL)
@@ -279,9 +318,15 @@ void Collectable<HeapObject>::release(volatile Reference* ref)
       // do atomic fetch and decrement, test return value
       if(Atomic::decrementAndFetch(&ref->count) == 0)
       {
+         // this Collectable is responsible for deleting the HeapObject if
+         // it was the last one and memory ownership was not relinquished
+         if(ref->relinquished == 0)
+         {
+            delete ref->ptr;
+         }
+
          // this Collectable is responsible for deleting the reference
          // if it was the last one
-         delete ref->ptr;
          delete ref;
       }
    }
