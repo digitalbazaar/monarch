@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/InternetAddress.h"
 
 #include "monarch/net/WindowsSupport.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/Exception.h"
+#include "monarch/net/SocketTools.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -204,10 +205,21 @@ string InternetAddress::toString(bool simple)
    }
    else
    {
-      int length = 100 + strlen(getHost()) + strlen(getAddress());
+      string host;
+      if(strcmp(getAddress(), "0.0.0.0") == 0)
+      {
+         // use local hostname
+         host = SocketTools::getHostname();
+      }
+      else
+      {
+         host = getHost();
+      }
+
+      int length = 100 + host.length() + strlen(getAddress());
       char temp[length];
       snprintf(temp, length, "InternetAddress [%s:%u,%s:%u]",
-         getHost(), getPort(), getAddress(), getPort());
+         host.c_str(), getPort(), getAddress(), getPort());
       rval = temp;
    }
 
