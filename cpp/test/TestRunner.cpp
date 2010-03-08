@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/test/TestRunner.h"
 
 #include <cassert>
-#include <iostream>
+#include <cstdio>
 
 #include "monarch/test/Test.h"
 #include "monarch/rt/Exception.h"
@@ -137,8 +137,8 @@ void TestRunner::test(const char* name)
    {
       case Names:
       case Times:
-         cout << getTestName() << "... ";
-         cout.flush();
+         printf("%s... ", getTestName().c_str());
+         fflush(stdout);;
          break;
       default:
          break;
@@ -152,13 +152,13 @@ void TestRunner::pass()
    switch(mOutputLevel)
    {
       case Progress:
-         cout << ".";
-         cout.flush();
+         printf(".");;
+         fflush(stdout);
          break;
       case Names:
       case Times:
-         cout << "PASS." << endl;
-         cout.flush();
+         printf("PASS.\n");
+         fflush(stdout);
          break;
       default:
          break;
@@ -212,17 +212,17 @@ void TestRunner::fail(const char* reason)
    switch(mOutputLevel)
    {
       case Progress:
-         cout << "F";
-         cout.flush();
+         printf("F");
+         fflush(stdout);
          break;
       case Names:
       case Times:
-         cout << "FAIL." << endl;
+         printf("FAIL.\n");
          if(reason != NULL)
          {
-            cout << reason << endl;
+            printf("%s\n", reason);
          }
-         cout.flush();
+         fflush(stdout);
          break;
       default:
          break;
@@ -235,21 +235,13 @@ void TestRunner::warning(const char* reason)
    switch(mOutputLevel)
    {
       case Progress:
-         cout << "W";
-         cout.flush();
+         printf("W");
+         fflush(stdout);
          break;
       case Names:
       case Times:
-         cout << "WARNING: ";
-         if(reason != NULL)
-         {
-            cout << reason << endl;
-         }
-         else
-         {
-            cout << "(no reason given)" << endl;
-         }
-         cout.flush();
+         printf("WARNING: %s", (reason != NULL) ? reason : "(no reason given)");
+         fflush(stdout);
          break;
       default:
          break;
@@ -270,19 +262,14 @@ void TestRunner::done()
          // Progress just prints chars so force a newline if tests were done
          if(mTotal > 0)
          {
-            cout << endl;
+            printf("\n");
          }
          // fall through
       case Final:
       case Names:
       case Times:
-         cout << "Done.";
-         cout << " Total:" << mTotal;
-         cout << " Passed:" << mPassed;
-         cout << " Failed:" << mFailed;
-         cout << " Warnings:" << mWarnings;
-         cout << " Unknown:" << unknown;
-         cout << "." << endl;
+         printf("Done. Total:%u Passed:%u Failed:%u Warnings:%u Unknown:%u\n",
+            mTotal, mPassed, mFailed, mWarnings, unknown);
          break;
       default:
          break;
