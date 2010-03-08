@@ -288,8 +288,9 @@ public:
    virtual bool isWritable();
 
    /**
-    * Populates a list with all of the Files in this File, if this File is
-    * a directory. Each File added to the list will be heap-allocated, and it
+    * If this File is a directory, populates a list with all of the Files in
+    * the directory. If this File is a file, then populate a list with just the
+    * file itself. Each File added to the list will be heap-allocated, and it
     * is assumed that the passed list will manage their memory.
     *
     * @param files the FileList to populate.

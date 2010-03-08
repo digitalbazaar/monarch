@@ -556,6 +556,11 @@ void FileImpl::listFiles(FileList& files)
          closedir(dir);
       }
    }
+   else if(isFile())
+   {
+      File file(mPath);
+      files->add(file);
+   }
 }
 
 Date FileImpl::getModifiedDate()
