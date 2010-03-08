@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_logging_Logging_H
 #define monarch_logging_Logging_H
@@ -7,7 +7,7 @@
 #include "monarch/util/Macros.h"
 #include "monarch/logging/Category.h"
 #include "monarch/logging/Logger.h"
-// Include DB categories for convienience:
+// Include standard categories for convienience:
 #include "monarch/logging/LoggingCategories.h"
 
 namespace monarch

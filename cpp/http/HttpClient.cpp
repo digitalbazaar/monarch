@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/HttpClient.h"
 
@@ -99,7 +99,7 @@ HttpResponse* HttpClient::get(Url* url, DynamicObject* headers, bool follow)
       mRequest->getHeader()->setVersion("HTTP/1.1");
       mRequest->getHeader()->clearFields();
       mRequest->getHeader()->setField("Host", url->getAuthority());
-      mRequest->getHeader()->setField("User-Agent", "DB Http Client/2.0");
+      mRequest->getHeader()->setField("User-Agent", "Monarch Http Client/2.0");
 
       if(headers != NULL)
       {
@@ -159,7 +159,7 @@ HttpResponse* HttpClient::post(
       mRequest->getHeader()->setVersion("HTTP/1.1");
       mRequest->getHeader()->clearFields();
       mRequest->getHeader()->setField("Host", url->getAuthority());
-      mRequest->getHeader()->setField("User-Agent", "DB Http Client/2.0");
+      mRequest->getHeader()->setField("User-Agent", "Monarch Http Client/2.0");
 
       if(headers != NULL)
       {

@@ -93,7 +93,7 @@ void runLoggingTest(TestRunner& tr)
 
    // Create a test Logger and category
    OutputStreamLogger testLogger(&stdoutOS);
-   Category TEST_CAT("MO_TEST", "DB Test Suite", NULL);
+   Category TEST_CAT("MO_TEST", "Monarch Test Suite", NULL);
 
    // add logger for specific category
    Logger::addLogger(&testLogger, &TEST_CAT);

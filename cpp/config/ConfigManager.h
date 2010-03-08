@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_config_ConfigManager_H
 #define monarch_config_ConfigManager_H
@@ -13,7 +13,12 @@ namespace monarch
 namespace config
 {
 
-#define MO_DEFAULT_CONFIG_VERSION "DB Config 3.0"
+// Monarch config version strings
+#define MO_CONFIG_VERSION_3_0 "Monarch Config 3.0"
+#define MO_DEFAULT_CONFIG_VERSION MO_CONFIG_VERSION_3_0
+
+// Older config version string compatibility
+#define DB_CONFIG_VERSION_3_0 "DB Config 3.0"
 
 // typedef for a config and its iterator
 typedef monarch::rt::DynamicObject Config;

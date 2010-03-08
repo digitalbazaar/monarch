@@ -6,7 +6,7 @@ ifeq (@BUILD_TESTS@,yes)
 
 ifeq (@BUILD_MYSQL@,yes)
 MODULE_CXX_FLAGS += -DHAVE_MYSQL
-MYSQL_DBLIBS = momysql
+MYSQL_LIBS = momysql
 MYSQL_HEADERS = test-mysql.h
 MYSQL_SOURCES = test-mysql.cpp
 MYSQL_EXECUTABLES = test-mysql
@@ -18,7 +18,7 @@ endif
 
 ifeq (@BUILD_SPHINX@,yes)
 MODULE_CXX_FLAGS += -DHAVE_SPHINX
-SPHINX_DBLIBS = mosphinx
+SPHINX_LIBS = mosphinx
 SPHINX_SOURCES = test-sphinx.cpp
 SPHINX_EXECUTABLES = test-sphinx
 endif
@@ -66,7 +66,7 @@ TEST_MODS = \
 $(foreach mod,$(TEST_MODS),$(eval $(call setup_test_mod,$(mod))))
 
 
-DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_DBLIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_DBLIBS) moapp mokernel
+DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_LIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_LIBS) moapp mokernel motest
 DYNAMIC_EXECUTABLE_LIBRARIES = motest
 
 LINUX_LIB_DIR = @MONARCH_DIR@/dist/lib

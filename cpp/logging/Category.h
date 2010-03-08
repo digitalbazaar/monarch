@@ -64,8 +64,8 @@ public:
     *
     * @param id a string identifier for this category.  The id should be in the
     *        form DOMAIN_CLASS[_SUBCLASS...].  DOMAIN is a major project id
-    *        such as "DB" for Digital Bazaar Core or "BM" for Bitmunk.  CLASS
-    *        is a sub-system such as MAIL, NET, RT, etc.  Break down the class
+    *        such as "MO" for Monarch or "BM" for Bitmunk.  CLASS is a
+    *        sub-system such as MAIL, NET, RT, etc.  Break down the class
     *        further into sub-classes if needed.  There is no parenting of
     *        categories (yet).  May be NULL.
     * @param name a more human readable name for this logger compared to the
