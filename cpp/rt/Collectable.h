@@ -74,7 +74,7 @@ protected:
        * Greater than 1 if ownership over the HeapObject's memory has been
        * relinquished and, therefore, it should not be deleted.
        */
-      volatile aligned_int32_t relinquished;
+      volatile int8_t relinquished;
    };
 
    /**
