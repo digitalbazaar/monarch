@@ -14,42 +14,51 @@ LINUX_DIST_DIR = $(MONARCH)/dist
 LINUX_LIB_DIR = $(LINUX_DIST_DIR)/lib
 LINUX_BIN_DIR = $(LINUX_DIST_DIR)/bin
 
-# convert text into something appropriate for a var
+# Convert text into something appropriate for a var.
 # for instance:
 #   PROG = my-app-name
-#   $(call varize,$(PROG))_LIBS = ...
+#   $(call makevar,$(PROG))_LIBS = ...
 # would result in:
 #   my_app_name_LIBS = ...
 #
 # @param $(1) name to convert
 # @return name suitable for a make variable name
-define varize
-$(subst -,_,$(1))
+define makevar
+$(subst .,_,$(subst -,_,$(1)))
 endef
 
 # Define rules for building a library.
 #
 # To setup a library for building:
 # - add its base name to LIBRARIES
-# - convert name as with the varize macro
+# - convert name as with the makevar macro
 # - add lib specific values:
 #   - sources to name_SOURCES
 #   - headers to name_HEADERS
 #   - extra objects to name_OBJS
-#   - extra objects to name_OBJS
+#   - extra libs to name_LIBS
 #
 # Creates name__SOURCES_OBJS out of name_SOURCES list.
 # Creates name__OBJS from __SOURCES_OBJS and _OBJS
-# Sets up dynamic lib dependencies on __OBJS.
+# Creates libname__LIBS from _LIBS
+# Sets up dynamic lib dependencies on __OBJS and __LIBS
 #
 # @param $(1) library name
+# @param $(2) library var name
 # @return make rules for the library
+define _LIBRARY_template
+SOURCES += $$($(2)_SOURCES)
+HEADERS += $$($(2)_HEADERS)
+$(2)__SOURCES_OBJS += $$(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-$(PLATFORM).o,$$($(2)_SOURCES))
+$(2)__OBJS += $$($(2)__SOURCES_OBJS) $$($(2)_OBJS)
+$(2)__DEPS += $$($(2)__OBJS)
+$(call makevar,$(LIB_PREFIX)$(1).$(DYNAMIC_LIB_EXT)__LIBS) = $$($(2)_LIBS)
+$(LINUX_DIST_DIR)/lib/$(LIB_PREFIX)$(1).$(DYNAMIC_LIB_EXT): $$($(2)__DEPS)
+endef
+
+# Similar to _LIBRARY_template but automatically defines the lib var name
 define LIBRARY_template
-SOURCES += $$($(call varize,$(1))_SOURCES)
-HEADERS += $$($(call varize,$(1))_HEADERS)
-$(call varize,$(1))__SOURCES_OBJS = $$(patsubst %.cpp,$(LINUX_BUILD_DIR)/%-$(PLATFORM).o,$$($(call varize,$(1))_SOURCES))
-$(call varize,$(1))__OBJS = $$($(call varize,$(1))__SOURCES_OBJS) $$($(call varize,$(1))_OBJS)
-$(LINUX_DIST_DIR)/lib/$(LIB_PREFIX)$(1).$(DYNAMIC_LIB_EXT): $$($(call varize,$(1))__OBJS)
+$(call _LIBRARY_template,$(lib),$(call makevar,$(1)))
 endef
 
 $(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_template,$(lib))))
@@ -114,7 +123,7 @@ clean-libraries:
 
 %.$(DYNAMIC_LIB_EXT):
 	@echo "Linking $(subst $(MONARCH)/,,$@)..."
-	$(PCMD) $(LINUX_CXX) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -shared -o $@ $^ $(DYNAMIC_LINUX_LIBRARIES:%=-l%)
+	$(PCMD) $(LINUX_CXX) $(LINUX_LD_FLAGS) $(LINUX_LIBS) -shared -o $@ $^ $(DYNAMIC_LINUX_LIBRARIES:%=-l%) $($(call makevar,$(@F)__LIBS):%=-l%)
 
 ifdef EXECUTABLES
 $(LINUX_EXECUTABLES): $(LINUX_BUILD_DIR)/$$(@F)-$(PLATFORM).o $(STATIC_LINUX_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(LINUX_BUILD_DIR)/$$(source)-$(PLATFORM).o)
