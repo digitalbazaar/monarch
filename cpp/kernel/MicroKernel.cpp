@@ -244,10 +244,10 @@ bool MicroKernel::loadModules(const char* path)
       }
    }
 
+   // check dependencies for all pending modules
    ModuleList uninitialized;
    if(rval)
    {
-      // check dependencies for all pending modules
       rval = checkDependencies(pending, uninitialized);
    }
 
@@ -264,8 +264,9 @@ bool MicroKernel::loadModules(const char* path)
    }
    else
    {
-      // unload modules, all uninitialized modules *must* load and initialize
-      // properly to continue and this is not the case here
+      // all uninitialized modules *must* load and initialize and at least
+      // one failed here, so unload any pending or uninitialized modules
+      unloadModules(pending);
       unloadModules(uninitialized);
    }
 
