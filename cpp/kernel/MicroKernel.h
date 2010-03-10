@@ -329,16 +329,35 @@ protected:
     * Checks the dependencies for MicroKernelModules.
     *
     * @param pending the pending ModuleList.
+    * @param uninitialized the list to move dependency-met modules into.
     *
     * @return true if all dependencies have been met and the modules are
     *         ready to be initialized, false if not.
     */
-   virtual bool checkDependencies(ModuleList& pending);
+   virtual bool checkDependencies(
+      ModuleList& pending, ModuleList& uninitialized);
 
    /**
-    * Unloads all MicroKernelModules according to the current configuration.
+    * Initializes a MicroKernelModule.
+    *
+    * @param m the MicroKernelModule to initialize.
+    *
+    * @return true if successful, false if not.
     */
-   virtual void unloadModules();
+   virtual bool initializeMicroKernelModule(MicroKernelModule* m);
+
+   /**
+    * Unloads all MicroKernelModules in the given list.
+    *
+    * @param modules the list of modules to unload.
+    */
+   virtual void unloadModules(ModuleList& modules);
+
+   /**
+    * Unloads all modules that have been loaded, including
+    * non-MicroKernelModules.
+    */
+   virtual void unloadAllModules();
 };
 
 } // end namespace kernel

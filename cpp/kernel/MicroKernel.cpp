@@ -15,6 +15,8 @@
 #include "monarch/rt/System.h"
 #include "monarch/validation/Validation.h"
 
+#include <algorithm>
+
 using namespace std;
 using namespace monarch::config;
 using namespace monarch::data::json;
@@ -140,8 +142,8 @@ void MicroKernel::stop()
       MO_CAT_INFO(MO_KERNEL_CAT, "EventController stopped.");
    }
 
-   // unload modules
-   unloadModules();
+   // unload all modules
+   unloadAllModules();
 
    // stop fiber scheduler, if any
    if(mFiberScheduler != NULL)
@@ -207,47 +209,6 @@ static bool _getMicroKernelModule(
    return rval;
 }
 
-/**
- * Initializes a MicroKernelModule.
- *
- * @param k the MicroKernel.
- * @param m the MicroKernelModule to initialize.
- *
- * @return true if successful, false if not.
- */
-static bool _initializeMicroKernelModule(MicroKernel* k, MicroKernelModule* m)
-{
-   bool rval = true;
-
-   const ModuleId& id = m->getId();
-
-   MO_CAT_INFO(MO_KERNEL_CAT,
-      "Initializing MicroKernel module: %s v%s", id.name, id.version);
-
-   if(m->initialize(k))
-   {
-      MO_CAT_INFO(MO_KERNEL_CAT,
-         "Initialized MicroKernel module: %s v%s", id.name, id.version);
-   }
-   else
-   {
-      ExceptionRef e = new Exception(
-         "Failed to initialize module.",
-         "monarch.kernel.ModuleInitializationFailure");
-      e->getDetails()["module"] = m->getDependencyInfo();
-      Exception::push(e);
-
-      // log exception details
-      MO_CAT_ERROR(MO_KERNEL_CAT,
-         "Exception while initializing MicroKernel module: %s.",
-         JsonWriter::writeToString(
-            Exception::getAsDynamicObject()).c_str());
-      rval = false;
-   }
-
-   return rval;
-}
-
 bool MicroKernel::loadModules(const char* path)
 {
    bool rval = true;
@@ -283,17 +244,18 @@ bool MicroKernel::loadModules(const char* path)
       }
    }
 
+   // check dependencies for all pending modules
+   ModuleList uninitialized;
    if(rval)
    {
-      // check dependencies for all pending modules
-      rval = checkDependencies(pending);
+      rval = checkDependencies(pending, uninitialized);
    }
 
    // iterate over list and initialize successfully loaded modules
-   for(ModuleList::iterator i = mModuleList.begin();
-       rval && i != mModuleList.end(); i++)
+   for(ModuleList::iterator i = uninitialized.begin();
+       rval && i != uninitialized.end(); i++)
    {
-      rval = _initializeMicroKernelModule(this, *i);
+      rval = initializeMicroKernelModule(*i);
    }
 
    if(rval)
@@ -302,9 +264,10 @@ bool MicroKernel::loadModules(const char* path)
    }
    else
    {
-      // unload modules, all modules *must* load and initialize properly
-      // to continue and this is not the case here
-      unloadModules();
+      // all uninitialized modules *must* load and initialize and at least
+      // one failed here, so unload any pending or uninitialized modules
+      unloadModules(pending);
+      unloadModules(uninitialized);
    }
 
    return rval;
@@ -324,13 +287,14 @@ bool MicroKernel::loadModule(CreateModestModuleFn cm, FreeModestModuleFn fm)
       pending.push_back(m);
 
       // check dependencies and initialize
+      ModuleList uninitialized;
       rval =
-         checkDependencies(pending) &&
-         _initializeMicroKernelModule(this, m);
+         checkDependencies(pending, uninitialized) &&
+         initializeMicroKernelModule(m);
       if(!rval)
       {
-         // dependency check or initialize failed, so unload module
-         lib->unloadModule(&m->getId());
+         // dependency check or initialize failed, unload module
+         unloadModules(uninitialized);
       }
    }
 
@@ -507,7 +471,8 @@ Server* MicroKernel::getServer()
    return mServer;
 }
 
-bool MicroKernel::checkDependencies(ModuleList& pending)
+bool MicroKernel::checkDependencies(
+   ModuleList& pending, ModuleList& uninitialized)
 {
    bool rval = true;
 
@@ -550,23 +515,30 @@ bool MicroKernel::checkDependencies(ModuleList& pending)
 
    if(rval)
    {
-      /* There are two lists we work with to determine module load order:
-       1. mModuleList
-       2. pending
+      /* There are three lists we work with to determine module load order:
+       1. dependencies
+       2. uninitialized
+       3. pending
 
-       When we begin, mModuleList is empty. It will be populated with modules
-       that have had their dependencies met. This is done by removing a module
-       from the pending list and adding it to mModuleList. A module can only be
-       removed from that list once all of its dependencies have been found in
-       mModuleList. The pending list will be repeatedly iterated until it is
-       empty (having moved all modules into mModuleList) or until no modules
-       could be moved out of its list and into mModuleList in a single pass.
+       When we begin, the dependencies and uninitialized lists are empty. The
+       dependencies list will first be populated with any already-initialized
+       modules from mModuleList. Both dependencies and uninitalized will be
+       populated with modules that have had their dependencies met but that
+       haven't been initialized yet. This is done by removing a module from
+       pending and adding it to uninitialized and to dependencies. A module can
+       only be removed from pending once all of its dependencies have been
+       found in the dependencies list. The pending list will be repeatedly
+       iterated until it is empty (having moved all modules into the
+       uninitialized list) or until no modules could be moved out of its list
+       and into the unintialized list in a single pass.
 
        In the former case, we are successful and all modules have had their
        dependencies met and they are sorted in an order they can be
        successfully initialized in. In the latter case, at least one module
-       could not have its dependencies met and we have error'ed out.
-       */
+       could not have its dependencies met and we have error'ed out. */
+
+      // construct the dependencies list from already-initialized modules
+      ModuleList dependencies = mModuleList;
       bool moved;
       do
       {
@@ -593,9 +565,9 @@ bool MicroKernel::checkDependencies(ModuleList& pending)
                // depends on a module with a specific name
                if(dep->hasMember("name"))
                {
-                  // check for a name that matches in mModulesList
-                  for(ModuleList::iterator mi = mModuleList.begin();
-                      !met && mi != mModuleList.end(); mi++)
+                  // check for a name that matches in dependencies
+                  for(ModuleList::iterator mi = dependencies.begin();
+                      !met && mi != dependencies.end(); mi++)
                   {
                      DynamicObject di = (*mi)->getDependencyInfo();
                      if(di["name"] == dep["name"])
@@ -615,9 +587,9 @@ bool MicroKernel::checkDependencies(ModuleList& pending)
                // there is a common interface per type)
                else
                {
-                  // check for a type that matches in the mModulesControl list
-                  for(ModuleList::iterator mi = mModuleList.begin();
-                      !met && mi != mModuleList.end(); mi++)
+                  // check for a type that matches in the dependencies list
+                  for(ModuleList::iterator mi = dependencies.begin();
+                      !met && mi != dependencies.end(); mi++)
                   {
                      DynamicObject di = (*mi)->getDependencyInfo();
                      if(di["type"] == dep["type"])
@@ -632,9 +604,11 @@ bool MicroKernel::checkDependencies(ModuleList& pending)
             if(met)
             {
                // all dependencies for the current pending module have been
-               // met, so clear it from the pending list and add it to
-               // mModuleList so it can be initialized later
-               mModuleList.push_back(*i);
+               // met, so clear it from the pending list and add it to both
+               // the dependencies list and the uninitialized list so it can
+               // be initialized later
+               dependencies.push_back(*i);
+               uninitialized.push_back(*i);
                i = pending.erase(i);
 
                // at least one module has been moved out of pending
@@ -675,23 +649,78 @@ bool MicroKernel::checkDependencies(ModuleList& pending)
    return rval;
 }
 
-void MicroKernel::unloadModules()
+bool MicroKernel::initializeMicroKernelModule(MicroKernelModule* m)
 {
-   // iterate over list and clean up modules -- doing so in reverse order
-   for(ModuleList::reverse_iterator ri = mModuleList.rbegin();
-       ri != mModuleList.rend(); ri++)
+   bool rval = true;
+
+   const ModuleId& id = m->getId();
+
+   MO_CAT_INFO(MO_KERNEL_CAT,
+      "Initializing MicroKernel module: %s v%s", id.name, id.version);
+
+   // add module to list of modules that have attempted initialization
+   mModuleList.push_back(m);
+
+   if(m->initialize(this))
    {
-      MicroKernelModule* m = *ri;
       MO_CAT_INFO(MO_KERNEL_CAT,
-         "Cleaning up MicroKernel module: %s v%s",
-         m->getId().name, m->getId().version);
-      m->cleanup(this);
+         "Initialized MicroKernel module: %s v%s", id.name, id.version);
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Failed to initialize module.",
+         "monarch.kernel.ModuleInitializationFailure");
+      e->getDetails()["module"] = m->getDependencyInfo();
+      Exception::push(e);
+
+      // log exception details
+      MO_CAT_ERROR(MO_KERNEL_CAT,
+         "Exception while initializing MicroKernel module: %s.",
+         JsonWriter::writeToString(
+            Exception::getAsDynamicObject()).c_str());
+      rval = false;
    }
 
-   // clear list
-   mModuleList.clear();
+   return rval;
+}
 
-   // unload all modules
+void MicroKernel::unloadModules(ModuleList& modules)
+{
+   // unload modules in reverse order from the list
+   ModuleLibrary* lib = getModuleLibrary();
+   while(!modules.empty())
+   {
+      MicroKernelModule* m = modules.back();
+
+      // if module is in mModuleList then it has been initialized with this
+      // MicroKernel and needs corresponding clean up, otherwise it only needs
+      // to be unloaded
+      if(m == mModuleList.back())
+      {
+         MO_CAT_INFO(MO_KERNEL_CAT,
+            "Cleaning up MicroKernel module: %s v%s",
+            m->getId().name, m->getId().version);
+         m->cleanup(this);
+         mModuleList.pop_back();
+      }
+
+      // unload the module
+      lib->unloadModule(&m->getId());
+
+      // if this list isn't mModuleList, then remove the unloaded module
+      if(&modules != &mModuleList)
+      {
+         modules.pop_back();
+      }
+   }
+}
+
+void MicroKernel::unloadAllModules()
+{
+   unloadModules(mModuleList);
+
+   // unload all non-MicroKernelModules
    ModuleLibrary* lib = getModuleLibrary();
    lib->unloadAllModules();
 }
