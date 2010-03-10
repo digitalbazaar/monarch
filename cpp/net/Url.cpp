@@ -653,9 +653,25 @@ string Url::formEncode(DynamicObject& form)
       }
 
       // url-encode and append form field
-      rval.append(encode(i->getName(), strlen(i->getName())));
-      rval.push_back('=');
-      rval.append(encode(next->getString(), strlen(next->getString())));
+      if(next->getType() == Array)
+      {
+         // handle array of values
+         DynamicObjectIterator ai = next.getIterator();
+         while(ai->hasNext())
+         {
+            DynamicObject& item = ai->next();
+            rval.append(encode(i->getName(), strlen(i->getName())));
+            rval.push_back('=');
+            rval.append(encode(item->getString(), strlen(item->getString())));
+         }
+      }
+      else
+      {
+         // handle single value
+         rval.append(encode(i->getName(), strlen(i->getName())));
+         rval.push_back('=');
+         rval.append(encode(next->getString(), strlen(next->getString())));
+      }
    }
 
    return rval;
