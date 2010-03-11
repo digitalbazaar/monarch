@@ -23,6 +23,7 @@ uint64_t System::getCurrentMilliseconds()
 {
    uint64_t rval = 0;
 
+   // FIXME: consider using clock_gettime(), at least on *nix
    // get the current time of day
    struct timeval now;
    gettimeofday(&now, NULL);
