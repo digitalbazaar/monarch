@@ -1244,6 +1244,54 @@ void File::splitext(
    }
 }
 
+string File::join(const char* path1, const char* path2)
+{
+#ifdef WIN32
+   // handle windows slashes mess
+   string tmp1 = flipSlashes(path1);
+   string tmp2 = flipSlashes(path2);
+   path1 = tmp1.c_str();
+   path2 = tmp2.c_str();
+#endif
+
+   // start with path1
+   string path = path1;
+
+   // skip if path2 empty
+   if(strlen(path2) > 0)
+   {
+      string::size_type plen = path.length();
+      if(plen == 0)
+      {
+         // empty path1 so just assign path2
+         path.assign(path2);
+      }
+      else
+      {
+         bool path1HasSep = (path[plen - 1] == NAME_SEPARATOR_CHAR);
+         bool path2HasSep = (path2[0] == NAME_SEPARATOR_CHAR);
+         if(!path1HasSep && !path2HasSep)
+         {
+            // no trailing path1 separator or leading path2 separator
+            path.push_back(NAME_SEPARATOR_CHAR);
+            path.append(path2);
+         }
+         else if(path1HasSep && path2HasSep)
+         {
+            // trailing and leading slash, skip one
+            path.append(path2 + 1);
+         }
+         else
+         {
+            // only one of trailing or leading, just append
+            path.append(path2);
+         }
+      }
+   }
+
+   return path;
+}
+
 string File::parentname(const char* path)
 {
 #ifdef WIN32
@@ -1370,50 +1418,44 @@ bool File::isPathRoot(const char* path)
    return rval;
 }
 
-string File::join(const char* path1, const char* path2)
+FileList File::parsePath(const char* path)
 {
-#ifdef WIN32
-   // handle windows slashes mess
-   string tmp1 = flipSlashes(path1);
-   string tmp2 = flipSlashes(path2);
-   path1 = tmp1.c_str();
-   path2 = tmp2.c_str();
-#endif
+   FileList rval;
 
-   // start with path1
-   string path = path1;
-
-   // skip if path2 empty
-   if(strlen(path2) > 0)
+   // split path by path-separator
+   const char* start = path;
+   const char* end = start;
+   do
    {
-      string::size_type plen = path.length();
-      if(plen == 0)
+      end = strchr(end, File::PATH_SEPARATOR_CHAR);
+      if(end == NULL)
       {
-         // empty path1 so just assign path2
-         path.assign(path2);
+         // set end to the end of start
+         end = start + strlen(start);
+      }
+
+      // get index of path-separator, relative to start
+      int i = end - start;
+
+      // determine if path-separator is escaped
+      if(i > 0 && start[i - 1] == '\\' && (i == 1 || start[i - 2] != '\\'))
+      {
+         end++;
       }
       else
       {
-         bool path1HasSep = (path[plen - 1] == NAME_SEPARATOR_CHAR);
-         bool path2HasSep = (path2[0] == NAME_SEPARATOR_CHAR);
-         if(!path1HasSep && !path2HasSep)
+         if(i > 0)
          {
-            // no trailing path1 separator or leading path2 separator
-            path.push_back(NAME_SEPARATOR_CHAR);
-            path.append(path2);
+            // found a non-empty file/directory
+            string str(start, i);
+            File file(str.c_str());
+            rval->add(file);
          }
-         else if(path1HasSep && path2HasSep)
-         {
-            // trailing and leading slash, skip one
-            path.append(path2 + 1);
-         }
-         else
-         {
-            // only one of trailing or leading, just append
-            path.append(path2);
-         }
+         end++;
+         start = end;
       }
    }
+   while(*start != 0);
 
-   return path;
+   return rval;
 }

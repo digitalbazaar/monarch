@@ -968,6 +968,24 @@ void runFileTest(TestRunner& tr)
    }
    tr.passIfException();
 
+   tr.test("parse path");
+   {
+#if WIN32
+#else
+      FileList files = File::parsePath("/tmp/a:/tmp/b\\:c::/tmp/d\\\\:/tmp/e");
+      IteratorRef<File> i = files->getIterator();
+      assert(i->hasNext());
+      assertStrCmp(i->next()->getAbsolutePath(), "/tmp/a");
+      assert(i->hasNext());
+      assertStrCmp(i->next()->getAbsolutePath(), "/tmp/b\\:c");
+      assert(i->hasNext());
+      assertStrCmp(i->next()->getAbsolutePath(), "/tmp/d\\\\");
+      assert(i->hasNext());
+      assertStrCmp(i->next()->getAbsolutePath(), "/tmp/e");
+#endif
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
