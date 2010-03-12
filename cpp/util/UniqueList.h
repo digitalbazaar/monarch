@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_UniqueList_H
 #define monarch_util_UniqueList_H
@@ -56,6 +56,15 @@ public:
    virtual bool remove(const T& obj);
 
    /**
+    * Concatenates another list onto this one.
+    *
+    * @param rhs another list to concatenate onto this one.
+    *
+    * @return true if all items were added, false if at least one was not.
+    */
+   virtual bool concat(UniqueList<T>& rhs);
+
+   /**
     * Clears this list.
     */
    virtual void clear();
@@ -108,6 +117,24 @@ bool UniqueList<T>::remove(const T& obj)
       {
          i->remove();
          rval = true;
+      }
+   }
+   delete i;
+
+   return rval;
+}
+
+template<typename T>
+bool UniqueList<T>::concat(UniqueList<T>& rhs)
+{
+   bool rval = true;
+
+   monarch::rt::Iterator<T>* i = rhs.getIterator();
+   while(i->hasNext())
+   {
+      if(!add(i->next()))
+      {
+         rval = false;
       }
    }
    delete i;
