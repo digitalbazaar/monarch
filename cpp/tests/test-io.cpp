@@ -982,6 +982,7 @@ void runFileTest(TestRunner& tr)
       assertStrCmp(i->next()->getAbsolutePath(), "/tmp/d\\\\");
       assert(i->hasNext());
       assertStrCmp(i->next()->getAbsolutePath(), "/tmp/e");
+      assert(!i->hasNext());
 #endif
    }
    tr.passIfNoException();

@@ -1451,7 +1451,10 @@ FileList File::parsePath(const char* path)
             File file(str.c_str());
             rval->add(file);
          }
-         end++;
+         if(*end != 0)
+         {
+            end++;
+         }
          start = end;
       }
    }
