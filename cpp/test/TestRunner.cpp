@@ -13,6 +13,8 @@ using namespace std;
 using namespace monarch::rt;
 using namespace monarch::test;
 
+const char* TestRunner::DEFAULT = "default";
+
 TestRunner::TestRunner(
    monarch::app::App* app, bool doneOnException, OutputLevel outputLevel)
 {
@@ -23,6 +25,7 @@ TestRunner::TestRunner(
    mWarnings = 0;
    mFailed = 0;
    mDoneOnException = doneOnException;
+   enableTest(DEFAULT);
 }
 
 TestRunner::~TestRunner()
@@ -52,6 +55,22 @@ monarch::app::App* TestRunner::getApp()
 TestRunner::OutputLevel TestRunner::getOutputLevel()
 {
    return mOutputLevel;
+}
+
+void TestRunner::enableTest(std::string test, bool enabled)
+{
+   mTests[test] = enabled;
+}
+
+bool TestRunner::isTestEnabled(std::string test)
+{
+   std::map<string, bool>::iterator i = mTests.find(test);
+   return (i != mTests.end()) ? i->second : false;
+}
+
+bool TestRunner::isDefaultEnabled()
+{
+   return isTestEnabled(DEFAULT);
 }
 
 /**
@@ -121,7 +140,7 @@ const char* TestRunner::levelToString(OutputLevel level)
 
 void TestRunner::group(const char* name)
 {
-   mTestPath.push_back(string(name) + "/");
+   mTestPath.push_back(string((name != NULL) ? name : "") + "/");
 }
 
 void TestRunner::ungroup()

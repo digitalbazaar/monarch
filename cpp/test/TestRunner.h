@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_test_TestRunner_H
 #define monarch_test_TestRunner_H
 
-#include <vector>
+#include <map>
 #include <string>
+#include <vector>
 
 #include "monarch/app/App.h"
 
@@ -16,6 +17,12 @@ namespace test
 
 /**
  * A TestRunner keeps unit test stats and has test utilties.
+ *
+ * Testing systems can set tests to run with enableTest(...). Testing code
+ * should check if a test is enabled with isTestEnabled(...) before running
+ * tests. Multiple tests may be enabled at once. A default mode is enabled that
+ * can be checked with the TestRunner::DEFAULT value ("default") or special
+ * isDefaultEnabled() method.
  *
  * @author David I. Lehn
  */
@@ -47,6 +54,11 @@ public:
        */
       Times
    };
+
+   /**
+    * Default test to run.
+    */
+   static const char* DEFAULT;
 
 protected:
    /**
@@ -90,6 +102,11 @@ protected:
    std::vector<std::string> mTestPath;
 
    /**
+    * Enabled status of tests.
+    */
+   std::map<std::string, bool> mTests;
+
+  /**
     * Get a test name based on current mTests stack.
     *
     * @returns test name
@@ -106,8 +123,8 @@ public:
     * @param outputLevel OutputLevel to use.
     */
    TestRunner(
-      monarch::app::App* app, bool doneOnException, OutputLevel outputLevel
-      = Names);
+      monarch::app::App* app, bool doneOnException,
+      OutputLevel outputLevel = Names);
 
    /**
     * Destructs this TestRunner.
@@ -127,6 +144,27 @@ public:
     * @return the output level.
     */
    virtual OutputLevel getOutputLevel();
+
+   /**
+    * Set the enabled status of a test.
+    */
+   virtual void enableTest(std::string test, bool enabled = true);
+
+   /**
+    * Get the enabled status of a test.
+    *
+    * @param test the test name to check.
+    *
+    * @return true if test is enabled.
+    */
+   virtual bool isTestEnabled(std::string test);
+
+   /**
+    * Get the enabled status of the special default test.
+    *
+    * @return true if default test is enabled.
+    */
+   virtual bool isDefaultEnabled();
 
    /**
     * Case insensitive conversion from string to OuputLevel.
