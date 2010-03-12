@@ -12,6 +12,7 @@
 #include "monarch/kernel/MicroKernelModule.h"
 #include "monarch/modest/Kernel.h"
 #include "monarch/net/Server.h"
+#include "monarch/io/FileList.h"
 
 #include <list>
 
@@ -164,6 +165,16 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool loadModules(const char* path);
+
+   /**
+    * Loads all MicroKernelModules in the given list of paths, where each
+    * path may be a file or a directory.
+    *
+    * @param paths the list of paths to load modules from.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool loadModules(monarch::io::FileList& paths);
 
    /**
     * Loads a MicroKernelModule from a modest Module, checking its dependencies,

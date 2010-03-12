@@ -13,6 +13,7 @@
 #include "monarch/logging/Logging.h"
 #include "monarch/modest/OperationDispatcher.h"
 #include "monarch/rt/System.h"
+#include "monarch/util/StringTokenizer.h"
 #include "monarch/validation/Validation.h"
 
 #include <algorithm>
@@ -211,35 +212,84 @@ static bool _getMicroKernelModule(
 
 bool MicroKernel::loadModules(const char* path)
 {
-   bool rval = true;
-
    MO_CAT_INFO(MO_KERNEL_CAT, "Loading modules from %s", path);
 
-   // create a list of pending MicroKernelModules
-   ModuleList pending;
+   // split the modules path into individual paths of files/directories
+   FileList paths = File::parsePath(path);
+   return loadModules(paths);
+}
 
-   // FIXME: split the modules path into individual directories
-   // (add support for more than one module directory)
-   File moduleDir(path);
+/**
+ * Loads a module from a file, putting it into one of two lists: if the module
+ * is a micro-kernel module it goes into one list, if not, it goes into
+ * another.
+ *
+ * @param file the file to load the module from.
+ * @param lib the module library to load with.
+ * @param mkms the list to put MicroKernelModules into.
+ * @param nonMkms the list to put non-MicroKernelModules into.
+ *
+ * @return true if the module loaded, false if an exception occurred.
+ */
+static bool _loadModuleFromFile(
+   File& file, ModuleLibrary* lib,
+   std::list<MicroKernelModule*>& mkms,
+   std::list<Module*>& nonMkms)
+{
+   bool rval = false;
 
-   // get a list of all the files in the modules directory
-   FileList files;
-   moduleDir->listFiles(files);
-
-   // load all modules
-   ModuleLibrary* lib = getModuleLibrary();
-   IteratorRef<File> i = files->getIterator();
-   while(rval && i->hasNext())
+   Module* module = lib->loadModule(file->getAbsolutePath());
+   MicroKernelModule* mkm;
+   rval = _getMicroKernelModule(module, &file, &mkm);
+   if(rval)
    {
-      File& file = i->next();
-      if(file->isFile())
+      if(mkm != NULL)
       {
-         Module* module = lib->loadModule(file->getAbsolutePath());
-         MicroKernelModule* m;
-         rval = _getMicroKernelModule(module, &file, &m);
-         if(rval && m != NULL)
+         mkms.push_back(mkm);
+      }
+      else
+      {
+         nonMkms.push_back(module);
+      }
+   }
+
+   return rval;
+}
+
+bool MicroKernel::loadModules(FileList& paths)
+{
+   bool rval = true;
+
+   // create a list of pending MicroKernelModules and a list for
+   // non-MicroKernelModules
+   ModuleList pending;
+   std::list<Module*> nonMkms;
+
+   // iterate over paths (might be files or directories) adding pending modules
+   ModuleLibrary* lib = getModuleLibrary();
+   IteratorRef<File> pi = paths->getIterator();
+   while(rval && pi->hasNext())
+   {
+      File& file = pi->next();
+      if(!file->isDirectory())
+      {
+         // load from the file or symbolic link
+         rval = _loadModuleFromFile(file, lib, pending, nonMkms);
+      }
+      else
+      {
+         // list all files in the directory
+         // Note: this code intentionally does not recurse directories
+         FileList files;
+         file->listFiles(files);
+         IteratorRef<File> fi = files->getIterator();
+         while(rval && fi->hasNext())
          {
-            pending.push_back(m);
+            File& f = fi->next();
+            if(!f->isDirectory())
+            {
+               rval = _loadModuleFromFile(f, lib, pending, nonMkms);
+            }
          }
       }
    }
@@ -268,6 +318,17 @@ bool MicroKernel::loadModules(const char* path)
       // one failed here, so unload any pending or uninitialized modules
       unloadModules(pending);
       unloadModules(uninitialized);
+
+      // unload non-MicroKernelModules
+      for(std::list<Module*>::iterator i = nonMkms.begin();
+          i != nonMkms.end(); i++)
+      {
+         Module* m = *i;
+         MO_CAT_INFO(MO_KERNEL_CAT,
+            "Cleaning up Modest module: %s v%s",
+            m->getId().name, m->getId().version);
+         lib->unloadModule(&m->getId());
+      }
    }
 
    return rval;
