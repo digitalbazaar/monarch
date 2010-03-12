@@ -523,6 +523,18 @@ public:
       const char* sep = ".");
 
    /**
+    * Join two paths with a name separator.  A trailing separator on the first
+    * path or a leading separator on the second path will first be removed to
+    * result in only a single name separator.
+    *
+    * @param path1 first path.
+    * @param path2 second path.
+    *
+    * @return a string with the joined paths.
+    */
+   static std::string join(const char* path1, const char* path2);
+
+   /**
     * Gets the parent directory of the passed path. Works for both files
     * and directories. If the passed path is "/", then "/" will be returned.
     *
@@ -571,16 +583,13 @@ public:
    static bool isPathRoot(const char* path);
 
    /**
-    * Join two paths with a name separator.  A trailing separator on the first
-    * path or a leading separator on the second path will first be removed to
-    * result in only a single name separator.
+    * Parses a path into list of files and/or directories.
     *
-    * @param path1 first path.
-    * @param path2 second path.
+    * @param path the path to parse.
     *
-    * @return a string with the joined paths.
+    * @return the resulting list of files and/or directories.
     */
-   static std::string join(const char* path1, const char* path2);
+   static FileList parsePath(const char* path);
 };
 
 } // end namespace io
