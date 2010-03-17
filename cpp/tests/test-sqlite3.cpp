@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/sql/Row.h"
 #include "monarch/sql/sqlite3/Sqlite3Connection.h"
@@ -1479,18 +1478,9 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoSqlite3Tester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoSqlite3Tester()
-   {
-      setName("sqlite3");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runSqlite3ConnectionTest(tr);
       runSqlite3PrepareManyTest(tr);
@@ -1501,20 +1491,12 @@ public:
       runSqlite3ReuseTest(tr);
       runSqlite3DatabaseClientTest(tr);
       runSqlite3RollbackTest(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("sqlite3-connection-pool"))
    {
       runSqlite3ConnectionPoolTest(tr);
-      return 0;
    }
-};
+   return true;
+}
 
-monarch::test::Tester* getMoSqlite3Tester() { return new MoSqlite3Tester(); }
-
-
-MO_TEST_MAIN(MoSqlite3Tester)
+MO_TEST_MODULE_FN("monarch.tests.sqlite3.test", "1.0", run)

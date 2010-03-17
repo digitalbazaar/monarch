@@ -4,8 +4,7 @@
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/sql/Row.h"
 #include "monarch/sql/mysql/MySqlConnection.h"
@@ -731,37 +730,23 @@ void runMySqlStatementBuilderTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoMySqlTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoMySqlTester()
-   {
-      setName("mysql");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runMySqlConnectionTest(tr);
       runMySqlStatementTest(tr);
       runMySqlDatabaseClientTest(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("mysql-connection-pool"))
    {
-      //runMySqlConnectionPoolTest(tr);
-      runMySqlStatementBuilderTest(tr);
-      return 0;
+      runMySqlConnectionPoolTest(tr);
    }
-};
+   if(tr.isTestEnabled("mysql-statement-builder"))
+   {
+      runMySqlStatementBuilderTest(tr);
+   }
+   return true;
+}
 
-monarch::test::Tester* getMoMySqlTester() { return new MoMySqlTester(); }
-
-
-MO_TEST_MAIN(MoMySqlTester)
+MO_TEST_MODULE_FN("monarch.tests.mysql.test", "1.0", run)

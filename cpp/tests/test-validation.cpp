@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/validation/Validation.h"
 
@@ -1083,38 +1082,19 @@ void runAnyExceptionsTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoValidationTester : public monarch::test::Tester
-{
-public:
-   MoValidationTester()
-   {
-      setName("validation");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
-   {
-      runValidatorTest(tr);
-      return 0;
-   }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
-   {
-//      runRegexTest(tr);
-//      runDateTest(tr);
-      runAnyExceptionsTest(tr);
-      return 0;
-   }
-};
-
 #undef _dump
 
-monarch::test::Tester* getMoValidationTester() { return new MoValidationTester(); }
+static bool run(TestRunner& tr)
+{
+   if(tr.isDefaultEnabled())
+   {
+      runValidatorTest(tr);
+   }
+   if(tr.isTestEnabled("any-exception"))
+   {
+      runAnyExceptionsTest(tr);
+   }
+   return true;
+}
 
-
-MO_TEST_MAIN(MoValidationTester)
+MO_TEST_MODULE_FN("monarch.tests.validation.test", "1.0", run)

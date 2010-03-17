@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/config/ConfigManager.h"
 #include "monarch/data/json/JsonWriter.h"
@@ -7,8 +7,7 @@
 #include "monarch/io/FileOutputStream.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 
 using namespace std;
 using namespace monarch::config;
@@ -457,33 +456,13 @@ void runConfigManagerTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoConfigTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoConfigTester()
-   {
-      setName("config");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runConfigManagerTest(tr);
-      return 0;
    }
+   return true;
+}
 
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
-   {
-      return 0;
-   }
-};
-
-monarch::test::Tester* getMoConfigTester() { return new MoConfigTester(); }
-
-
-MO_TEST_MAIN(MoConfigTester)
+MO_TEST_MODULE_FN("monarch.tests.config.test", "1.0", run)

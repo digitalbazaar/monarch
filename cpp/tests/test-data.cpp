@@ -7,8 +7,7 @@
 #include <sstream>
 
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/io/ByteArrayInputStream.h"
@@ -2478,18 +2477,9 @@ void runJsonReaderSpeedTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoDataTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoDataTester()
-   {
-      setName("data");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runJsonValidTest(tr);
       runJsonInvalidTest(tr);
@@ -2517,21 +2507,12 @@ public:
       runTemplateInputStreamTest(tr);
 
       runCharacterSetMutatorTest(tr);
-
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("json-reader-speed"))
    {
       runJsonReaderSpeedTest(tr);
-      return 0;
    }
-};
+   return true;
+}
 
-monarch::test::Tester* getMoDataTester() { return new MoDataTester(); }
-
-
-MO_TEST_MAIN(MoDataTester)
+MO_TEST_MODULE_FN("monarch.tests.data.test", "1.0", run)

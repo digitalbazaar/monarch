@@ -1,0 +1,13 @@
+# Makefile to compile the module in this directory
+
+LIBRARIES = motester
+motester_HEADERS = $(wildcard *.h)
+motester_SOURCES = $(wildcard *.cpp)
+
+DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig motest
+
+DYNAMIC_MACOS_LIBRARIES = \
+   moio moutil mologging monet mocompress momodest mocrypto
+
+# ----------- Standard Makefile
+include @MONARCH_DIR@/setup/Makefile.base

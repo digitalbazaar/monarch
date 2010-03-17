@@ -23,8 +23,7 @@
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/util/Date.h"
 #include "monarch/util/StringTools.h"
 
@@ -768,6 +767,8 @@ void runDatagramTest(TestRunner& tr)
       //printf("Sockets closed.\n");
    }
    tr.passIfNoException();
+
+   tr.ungroup();
 }
 
 void runUrlEncodeTest(TestRunner& tr)
@@ -1480,18 +1481,9 @@ void runServerDatagramTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class MoNetTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoNetTester()
-   {
-      setName("net");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runAddressResolveTest(tr);
       runSocketTest(tr);
@@ -1500,28 +1492,40 @@ public:
       runDatagramTest(tr);
       runUrlEncodeTest(tr);
       runUrlTest(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("local-hostname"))
    {
       printf("\nLocal hostname: %s\n", SocketTools::getHostname().c_str());
-
-      runInterruptServerSocketTest(tr);
-//      runSslSocketTest(tr);
-//      runServerSocketTest(tr);
-//      runSslServerSocketTest(tr);
-//      runTcpClientServerTest(tr);
-//      runServerSslConnectionTest(tr);
-//      runServerDatagramTest(tr);
-      return 0;
    }
-};
+   if(tr.isTestEnabled("interrupt-server-socket"))
+   {
+      runInterruptServerSocketTest(tr);
+   }
+   if(tr.isTestEnabled("ssl-socket"))
+   {
+      runSslSocketTest(tr);
+   }
+   if(tr.isTestEnabled("server-socket"))
+   {
+      runServerSocketTest(tr);
+   }
+   if(tr.isTestEnabled("ssl-server-socket"))
+   {
+      runSslServerSocketTest(tr);
+   }
+   if(tr.isTestEnabled("tcp-client-server"))
+   {
+      runTcpClientServerTest(tr);
+   }
+   if(tr.isTestEnabled("server-ssl-connection"))
+   {
+      runServerSslConnectionTest(tr);
+   }
+   if(tr.isTestEnabled("server-datagram"))
+   {
+      runServerDatagramTest(tr);
+   }
+   return true;
+}
 
-monarch::test::Tester* getMoNetTester() { return new MoNetTester(); }
-
-
-MO_TEST_MAIN(MoNetTester)
+MO_TEST_MODULE_FN("monarch.tests.net.test", "1.0", run)

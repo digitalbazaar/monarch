@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/rt/ExclusiveLock.h"
 #include "monarch/rt/Runnable.h"
 #include "monarch/rt/RunnableDelegate.h"
@@ -14,7 +14,7 @@
 #include "monarch/rt/SharedLock.h"
 #include "monarch/rt/System.h"
 #include "monarch/rt/JobDispatcher.h"
-#include "monarch/data/json/JsonWriter.h"
+#include "monarch/util/Macros.h"
 
 #include <cstdlib>
 #include <cstdio>
@@ -2297,18 +2297,9 @@ void runRunnableDelegateTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoRtTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoRtTester()
-   {
-      setName("rt");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runThreadTest(tr);
       runThreadPoolTest(tr);
@@ -2328,22 +2319,20 @@ public:
       runDynoReverseTest(tr);
       runDynoStatsTest(tr);
       runRunnableDelegateTest(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("cpu-info"))
+   {
+      runCpuInfoTest(tr);
+   }
+   if(tr.isTestEnabled("time"))
+   {
+      runTimeTest(tr);
+   }
+   if(tr.isTestEnabled("slow-shared-lock"))
    {
       runInteractiveSharedLockTest(tr);
-      runTimeTest(tr);
-      runCpuInfoTest(tr);
-      return 0;
    }
-};
+   return true;
+}
 
-monarch::test::Tester* getMoRtTester() { return new MoRtTester(); }
-
-
-MO_TEST_MAIN(MoRtTester)
+MO_TEST_MODULE_FN("monarch.tests.rt.test", "1.0", run)

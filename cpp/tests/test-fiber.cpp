@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/crypto/BigDecimal.h"
 #include "monarch/crypto/AsymmetricKeyFactory.h"
 #include "monarch/crypto/DigitalSignature.h"
@@ -810,247 +809,236 @@ void runJsonTest(
    tr.passIfNoException();
 }
 
-class MoFiberTester : public monarch::test::Tester
+/**
+ * Calculate size of a test array.
+ *
+ * @param lin true if linear, false if log
+ * @param min min value
+ * @param max max value
+ * @param mag log base 10 magnitude max
+ */
+static int calculateTestArraySize(bool lin, int min, int max, int mag)
 {
-protected:
-   /**
-    * Calculate size of a test array.
-    *
-    * @param lin true if linear, false if log
-    * @param min min value
-    * @param max max value
-    * @param mag log base 10 magnitude max
-    */
-   virtual int calculateTestArraySize(bool lin, int min, int max, int mag)
+   int rval;
+   if(lin)
    {
-      int rval;
-      if(lin)
+      rval = max - min + 1;
+   }
+   else
+   {
+      // full from 1 to 10^mag
+      //int full = 9*mag + 1;
+      // FIXME find algorithm for num vals between min/max for log 10 n
+      rval = 0;
+      // loop over base 10 log vals from 1 to 10*tmag
+      int p = 1;
+      for(int e = 0; e < mag; e++)
       {
-         rval = max - min + 1;
-      }
-      else
-      {
-         // full from 1 to 10^mag
-         //int full = 9*mag + 1;
-         // FIXME find algorithm for num vals between min/max for log 10 n
-         rval = 0;
-         // loop over base 10 log vals from 1 to 10*tmag
-         int p = 1;
-         for(int e = 0; e < mag; e++)
+         for(int n = 0; n < 9; n++)
          {
-            for(int n = 0; n < 9; n++)
+            int val = (n + 1) * p;
+            if(val >= min && val <= max)
             {
-               int val = (n + 1) * p;
-               if(val >= min && val <= max)
+               rval++;
+            }
+         }
+         p = p * 10;
+      }
+
+      // add final value if needed
+      int last = (int)pow((double)10, mag);
+      if(last <= max)
+      {
+         rval++;
+      }
+   }
+   return rval;
+}
+
+/**
+ * Fill a test array.  If lin, then from min to max, else all log base 10
+ * values from 1 to 10^mag between min and max.
+ *
+ * @param d the test array to fill
+ * @param lin true if linear, false if log
+ * @param min min value
+ * @param max max value
+ * @param mag log base 10 magnitude max
+ */
+static void fillTestArray(int* d, bool lin, int min, int max, int mag)
+{
+   if(lin)
+   {
+      for(int i = min; i <= max; i++)
+      {
+         d[i - min] = i;
+      }
+   }
+   else
+   {
+      // current index
+      int i = 0;
+      // base 10 log vals from 1 to 10*tmag
+      int p = 1;
+      for(int e = 0; e < mag; e++)
+      {
+         for(int n = 0; n < 9; n++)
+         {
+            int val = (n + 1) * p;
+            if(val >= min && val <= max)
+            {
+               d[i] = val;
+               i++;
+            }
+         }
+         p = p * 10;
+      }
+
+      // add final value if needed
+      int last = (int)pow((double)10, mag);
+      if(last <= max)
+      {
+         d[i] = last;
+      }
+   }
+}
+
+/**
+ * Runs speed test.
+ *
+ * Options:
+ * --test all - run all tests
+ * --test sign - signing test
+ * --test json - run one json encode/decode test
+ * --test jsonmatrix - run a matrix of json encode/decode tests
+ * --option loops <n> - number of times to run each individual test
+ * --option dyno 1 - complex dynamic object
+ * --option dyno 2 - trivial "{}" dynamic object
+ * --option csv true - output in CSV format
+ * --option mode fibers - use fibers for ops with 'threads' threads
+ * --option mode modest - use modest operations for ops with 'threads'
+ *                        thread pool size
+ * --option mode threads - use 'threads' threads for ops
+ * --option threads <n> - how many threads to use (direct or pool size)
+ * --option ops <n> - how many operations to perform
+ * --option oploops <n> - how many times to run each operation
+ *
+ * For jsonmatrix:
+ * For the threads (t) and operations (o) parameters an array will be
+ * created of test values.  Then each combination of t and o values will be
+ * tested.  The values will range from 1 to [t,o]max on a base 10 log scale
+ * by default.  The min and max values can be specified with [t,o]min and
+ * [t,o]max.  If [t,o]lin is true then the values will be linear between min
+ * and max.
+ *
+ * --option tmag <n> - max log thread magnitude
+ * --option tmin <n> - min number of threads
+ * --option tmax <n> - max number of threads
+ * --option tlin <true|false> - if true, use linear scale from tmin to tmax
+ * (similar for operations via omag/omin/omax/olin)
+ */
+static int runFiberCompareTest(TestRunner& tr)
+{
+   Config cfg = tr.getApp()->getConfig();
+   bool all = tr.isTestEnabled("all");
+
+   if(/*all ||*/
+      tr.isTestEnabled("json") ||
+      tr.isTestEnabled("jsonmatrix"))
+   {
+      // number of loops for each test
+      int loops = cfg->hasMember("loops") ? cfg["loops"]->getInt32() : 1;
+      // number of loops in each op (can be used to increase cpu load)
+      int oploops =
+         cfg->hasMember("oploops") ? cfg["oploops"]->getInt32() : 1;
+      // dyno to use (check code)
+      int dyno = cfg->hasMember("dyno") ? cfg["dyno"]->getInt32() : 1;
+      // CSV output mode
+      bool csv = cfg->hasMember("csv") ? cfg["csv"]->getBoolean() : false;
+      // test mode: fibers, modest, or threads
+      const char* mode = cfg->hasMember("mode") ?
+         cfg["mode"]->getString() : "fibers";
+
+      if(all || tr.isTestEnabled("json"))
+      {
+         // number of threads
+         int threads = cfg->hasMember("threads") ?
+            cfg["threads"]->getInt32() : 1;
+         // number of ops - (fibers, operations)
+         int ops = cfg->hasMember("ops") ?
+            cfg["ops"]->getInt32() : 1;
+         for(int i = 0; i < loops; i++)
+         {
+            runJsonTest(tr, mode, threads, ops, oploops, dyno, csv);
+         }
+      }
+
+      if(all || tr.isTestEnabled("jsonmatrix"))
+      {
+         bool tlin = cfg->hasMember("tlin") ?
+            cfg["tlin"]->getBoolean() : false;
+         int tmag = cfg->hasMember("tmag") ?
+            cfg["tmag"]->getInt32() : 1;
+         int tmin = cfg->hasMember("tmin") ?
+            cfg["tmin"]->getInt32() : 1;
+         int tmax = cfg->hasMember("tmax") ?
+            cfg["tmax"]->getInt32() :
+               (tlin ? 10 : (int)pow((double)10, tmag));
+
+         bool olin = cfg->hasMember("olin") ?
+            cfg["olin"]->getBoolean() : false;
+         int omag = cfg->hasMember("omag") ?
+            cfg["omag"]->getInt32() : 1;
+         int omin = cfg->hasMember("omin") ?
+            cfg["omin"]->getInt32() : 1;
+         int omax = cfg->hasMember("omax") ?
+            cfg["omax"]->getInt32() :
+               (olin ? 10 : (int)pow((double)10, omag));
+
+         // make the thread and ops count arrays
+         int tsize = calculateTestArraySize(tlin, tmin, tmax, tmag);
+         int td[tsize];
+         fillTestArray(td, tlin, tmin, tmax, tmag);
+
+         int osize = calculateTestArraySize(olin, omin, omax, omag);
+         int od[osize];
+         fillTestArray(od, olin, omin, omax, omag);
+
+         // matrix of threads vs ops
+         for(int ti = 0; ti < tsize; ti++)
+         {
+            for(int oi = 0; oi < osize; oi++)
+            {
+               for(int i = 0; i < loops; i++)
                {
-                  rval++;
+                  //printf("test: t:%d o:%d\n", td[ti], od[oi]);
+                  runJsonTest(tr, mode, td[ti], od[oi], oploops, dyno, csv);
                }
             }
-            p = p * 10;
-         }
-
-         // add final value if needed
-         int last = (int)pow((double)10, mag);
-         if(last <= max)
-         {
-            rval++;
-         }
-      }
-      return rval;
-   }
-
-   /**
-    * Fill a test array.  If lin, then from min to max, else all log base 10
-    * values from 1 to 10^mag between min and max.
-    *
-    * @param d the test array to fill
-    * @param lin true if linear, false if log
-    * @param min min value
-    * @param max max value
-    * @param mag log base 10 magnitude max
-    */
-   virtual void fillTestArray(int* d, bool lin, int min, int max, int mag)
-   {
-      if(lin)
-      {
-         for(int i = min; i <= max; i++)
-         {
-            d[i - min] = i;
-         }
-      }
-      else
-      {
-         // current index
-         int i = 0;
-         // base 10 log vals from 1 to 10*tmag
-         int p = 1;
-         for(int e = 0; e < mag; e++)
-         {
-            for(int n = 0; n < 9; n++)
-            {
-               int val = (n + 1) * p;
-               if(val >= min && val <= max)
-               {
-                  d[i] = val;
-                  i++;
-               }
-            }
-            p = p * 10;
-         }
-
-         // add final value if needed
-         int last = (int)pow((double)10, mag);
-         if(last <= max)
-         {
-            d[i] = last;
          }
       }
    }
 
-public:
-   MoFiberTester()
-   {
-      setName("fiber");
-   }
+   return 0;
+}
 
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+static bool run(TestRunner& tr)
+{
+   if(tr.isDefaultEnabled())
    {
       runFiberTest(tr);
       runFiberSpeedTest(tr);
       //runFiberSpeedTest2(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    *
-    * Options:
-    * --test all - run all tests
-    * --test sign - signing test
-    * --test json - run one json encode/decode test
-    * --test jsonmatrix - run a matrix of json encode/decode tests
-    * --option loops <n> - number of times to run each individual test
-    * --option dyno 1 - complex dynamic object
-    * --option dyno 2 - trivial "{}" dynamic object
-    * --option csv true - output in CSV format
-    * --option mode fibers - use fibers for ops with 'threads' threads
-    * --option mode modest - use modest operations for ops with 'threads'
-    *                        thread pool size
-    * --option mode threads - use 'threads' threads for ops
-    * --option threads <n> - how many threads to use (direct or pool size)
-    * --option ops <n> - how many operations to perform
-    * --option oploops <n> - how many times to run each operation
-    *
-    * For jsonmatrix:
-    * For the threads (t) and operations (o) parameters an array will be
-    * created of test values.  Then each combination of t and o values will be
-    * tested.  The values will range from 1 to [t,o]max on a base 10 log scale
-    * by default.  The min and max values can be specified with [t,o]min and
-    * [t,o]max.  If [t,o]lin is true then the values will be linear between min
-    * and max.
-    *
-    * --option tmag <n> - max log thread magnitude
-    * --option tmin <n> - min number of threads
-    * --option tmax <n> - max number of threads
-    * --option tlin <true|false> - if true, use linear scale from tmin to tmax
-    * (similar for operations via omag/omin/omax/olin)
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("sign"))
    {
-      Config cfg = tr.getApp()->getConfig();
-      const char* test = cfg["monarch.test.Tester"]["test"]->getString();
-      bool all = (strcmp(test, "all") == 0);
-
-      if(all || (strcmp(test, "sign") == 0))
-      {
-         runConcurrentSigningTest(tr);
-      }
-
-      if(/*all ||*/
-         (strcmp(test, "json") == 0) ||
-         (strcmp(test, "jsonmatrix") == 0))
-      {
-         // number of loops for each test
-         int loops = cfg->hasMember("loops") ? cfg["loops"]->getInt32() : 1;
-         // number of loops in each op (can be used to increase cpu load)
-         int oploops =
-            cfg->hasMember("oploops") ? cfg["oploops"]->getInt32() : 1;
-         // dyno to use (check code)
-         int dyno = cfg->hasMember("dyno") ? cfg["dyno"]->getInt32() : 1;
-         // CSV output mode
-         bool csv = cfg->hasMember("csv") ? cfg["csv"]->getBoolean() : false;
-         // test mode: fibers, modest, or threads
-         const char* mode = cfg->hasMember("mode") ?
-            cfg["mode"]->getString() : "fibers";
-
-         if(all || (strcmp(test, "json") == 0))
-         {
-            // number of threads
-            int threads = cfg->hasMember("threads") ?
-               cfg["threads"]->getInt32() : 1;
-            // number of ops - (fibers, operations)
-            int ops = cfg->hasMember("ops") ?
-               cfg["ops"]->getInt32() : 1;
-            for(int i = 0; i < loops; i++)
-            {
-               runJsonTest(tr, mode, threads, ops, oploops, dyno, csv);
-            }
-         }
-
-         if(all || (strcmp(test, "jsonmatrix") == 0))
-         {
-            bool tlin = cfg->hasMember("tlin") ?
-               cfg["tlin"]->getBoolean() : false;
-            int tmag = cfg->hasMember("tmag") ?
-               cfg["tmag"]->getInt32() : 1;
-            int tmin = cfg->hasMember("tmin") ?
-               cfg["tmin"]->getInt32() : 1;
-            int tmax = cfg->hasMember("tmax") ?
-               cfg["tmax"]->getInt32() :
-                  (tlin ? 10 : (int)pow((double)10, tmag));
-
-            bool olin = cfg->hasMember("olin") ?
-               cfg["olin"]->getBoolean() : false;
-            int omag = cfg->hasMember("omag") ?
-               cfg["omag"]->getInt32() : 1;
-            int omin = cfg->hasMember("omin") ?
-               cfg["omin"]->getInt32() : 1;
-            int omax = cfg->hasMember("omax") ?
-               cfg["omax"]->getInt32() :
-                  (olin ? 10 : (int)pow((double)10, omag));
-
-            // make the thread and ops count arrays
-            int tsize = calculateTestArraySize(tlin, tmin, tmax, tmag);
-            int td[tsize];
-            fillTestArray(td, tlin, tmin, tmax, tmag);
-
-            int osize = calculateTestArraySize(olin, omin, omax, omag);
-            int od[osize];
-            fillTestArray(od, olin, omin, omax, omag);
-
-            // matrix of threads vs ops
-            for(int ti = 0; ti < tsize; ti++)
-            {
-               for(int oi = 0; oi < osize; oi++)
-               {
-                  for(int i = 0; i < loops; i++)
-                  {
-                     //printf("test: t:%d o:%d\n", td[ti], od[oi]);
-                     runJsonTest(tr, mode, td[ti], od[oi], oploops, dyno, csv);
-                  }
-               }
-            }
-         }
-      }
-
-      return 0;
+      runConcurrentSigningTest(tr);
    }
-};
+   if(tr.isTestEnabled("fiber-compare"))
+   {
+      runFiberCompareTest(tr);
+   }
+   return true;
+}
 
-monarch::test::Tester* getMoFiberTester() { return new MoFiberTester(); }
-
-
-MO_TEST_MAIN(MoFiberTester)
+MO_TEST_MODULE_FN("monarch.tests.fiber.test", "1.0", run)

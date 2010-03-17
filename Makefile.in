@@ -2,6 +2,8 @@
 
 EXECUTABLE_SUBDIRS := \
 	cpp/apps/portmap \
+	cpp/apps/monarch \
+	cpp/apps/tester \
 	cpp/tests
 
 SUBDIRS := \

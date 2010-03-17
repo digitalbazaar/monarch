@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/data/xml/DomTypes.h"
 #include "monarch/upnp/ControlPoint.h"
@@ -285,36 +284,17 @@ void runPortMappingTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoUpnpTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoUpnpTester()
-   {
-      setName("upnp");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runSoapEnvelopeTest(tr);
-
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("port-mapping"))
    {
       runPortMappingTest(tr);
-
-      return 0;
    }
-};
+   return true;
+}
 
-monarch::test::Tester* getMoUpnpTester() { return new MoUpnpTester(); }
-
-
-MO_TEST_MAIN(MoUpnpTester)
+MO_TEST_MODULE_FN("monarch.tests.upnp.test", "1.0", run)

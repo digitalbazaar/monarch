@@ -6,8 +6,7 @@
 #include <cstdio>
 
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/io/OStreamOutputStream.h"
 #include "monarch/logging/Logging.h"
 #include "monarch/logging/FileLogger.h"
@@ -453,38 +452,27 @@ void runLevelTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoLoggingTester : public monarch::test::Tester
-{
-public:
-   MoLoggingTester()
-   {
-      setName("logging");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
-   {
-      runLevelTest(tr);
-      return 0;
-   }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
-   {
-      runLoggingTest(tr);
-      runLogRotationTest(tr);
-      runColorLoggingTest(tr);
-      return 0;
-   }
-};
-
 #undef TMPDIR
 
-monarch::test::Tester* getMoLoggingTester() { return new MoLoggingTester(); }
+static bool run(TestRunner& tr)
+{
+   if(tr.isDefaultEnabled())
+   {
+      runLevelTest(tr);
+   }
+   if(tr.isTestEnabled("logging"))
+   {
+      runLoggingTest(tr);
+   }
+   if(tr.isTestEnabled("log-rotation"))
+   {
+      runLogRotationTest(tr);
+   }
+   if(tr.isTestEnabled("color-logging"))
+   {
+      runColorLoggingTest(tr);
+   }
+   return true;
+}
 
-
-MO_TEST_MAIN(MoLoggingTester)
+MO_TEST_MODULE_FN("monarch.tests.logging.test", "1.0", run)

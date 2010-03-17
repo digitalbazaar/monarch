@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -26,8 +26,7 @@
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/util/Date.h"
 #include "monarch/util/StringTools.h"
 
@@ -768,39 +767,31 @@ void runPingTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class MoHttpTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoHttpTester()
-   {
-      setName("http");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runHttpHeaderTest(tr);
       runHttpNormalizePath(tr);
       runCookieTest(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("http-server"))
    {
       runHttpServerTest(tr);
-//      runHttpClientGetTest(tr);
-//      runHttpClientPostTest(tr);
-//      runPingTest(tr);
-      return 0;
    }
-};
+   if(tr.isTestEnabled("http-client-get"))
+   {
+      runHttpClientGetTest(tr);
+   }
+   if(tr.isTestEnabled("http-client-post"))
+   {
+      runHttpClientPostTest(tr);
+   }
+   if(tr.isTestEnabled("ping"))
+   {
+      runPingTest(tr);
+   }
+   return true;
+}
 
-monarch::test::Tester* getMoHttpTester() { return new MoHttpTester(); }
-
-
-MO_TEST_MAIN(MoHttpTester)
+MO_TEST_MODULE_FN("monarch.tests.http.test", "1.0", run)

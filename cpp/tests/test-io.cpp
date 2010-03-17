@@ -4,8 +4,7 @@
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/io/IOMonitor.h"
 #include "monarch/io/File.h"
 #include "monarch/io/FileInputStream.h"
@@ -21,6 +20,7 @@
 #include "monarch/io/MutatorInputStream.h"
 #include "monarch/io/MutatorOutputStream.h"
 #include "monarch/io/TruncateInputStream.h"
+#include "monarch/modest/Module.h"
 #include "monarch/rt/System.h"
 #include "monarch/util/StringTools.h"
 
@@ -1182,18 +1182,11 @@ void runIOMonitorTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoIoTester : public monarch::test::Tester
-{
-public:
-   MoIoTester()
-   {
-      setName("io");
-   }
+#undef SEP
 
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+static bool run(TestRunner& tr)
+{
+   if(tr.isDefaultEnabled())
    {
       runByteBufferTest(tr);
       runByteArrayInputStreamTest(tr);
@@ -1203,24 +1196,15 @@ public:
       runFileInputStreamTest(tr);
       runTruncateInputStreamTest(tr);
       //runIOMonitorTest(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("timing"))
    {
       runStringEqualityTest(tr);
       runStringAppendCharTest(tr);
       runStringCompareTest(tr);
-      return 0;
    }
-};
 
-#undef SEP
+   return true;
+}
 
-monarch::test::Tester* getMoIoTester() { return new MoIoTester(); }
-
-
-MO_TEST_MAIN(MoIoTester)
+MO_TEST_MODULE_FN("monarch.tests.io.test", "1.0", run)

@@ -264,39 +264,39 @@ AC_SUBST(WINDOWS_AS)
 AC_SUBST(WINDOWS_DLLWRAP)
 AC_SUBST(MACOS_AS)
 
-AC_SUBST(JAVADOC)
-
 # Generating files
 AC_CONFIG_FILES([
-          cpp/3rdparty/Makefile
-          Makefile
-          cpp/app/Makefile
-          cpp/apps/portmap/Makefile
-          cpp/compress/Makefile
-          cpp/config/Makefile
-          cpp/crypto/Makefile
-          cpp/data/Makefile
-          cpp/event/Makefile
-          cpp/fiber/Makefile
-          cpp/http/Makefile
-          cpp/io/Makefile
-          cpp/kernel/Makefile
-          cpp/logging/Makefile
-          cpp/mail/Makefile
-          cpp/modest/Makefile
-          cpp/net/Makefile
-          cpp/rt/Makefile
-          setup/Makefile.base
-          setup/docs.doxygen
-          cpp/sphinx/Makefile
-          cpp/sql/Makefile
-          cpp/sqlite3/Makefile
-          cpp/mysql/Makefile
-          cpp/test/Makefile
-          cpp/tests/Makefile
-          cpp/upnp/Makefile
-          cpp/util/Makefile
-          cpp/validation/Makefile
+   Makefile
+   setup/Makefile.base
+   setup/docs.doxygen
+   cpp/3rdparty/Makefile
+   cpp/app/Makefile
+   cpp/apps/monarch/Makefile
+   cpp/apps/portmap/Makefile
+   cpp/apps/tester/Makefile
+   cpp/compress/Makefile
+   cpp/config/Makefile
+   cpp/crypto/Makefile
+   cpp/data/Makefile
+   cpp/event/Makefile
+   cpp/fiber/Makefile
+   cpp/http/Makefile
+   cpp/io/Makefile
+   cpp/kernel/Makefile
+   cpp/logging/Makefile
+   cpp/mail/Makefile
+   cpp/modest/Makefile
+   cpp/mysql/Makefile
+   cpp/net/Makefile
+   cpp/rt/Makefile
+   cpp/sphinx/Makefile
+   cpp/sql/Makefile
+   cpp/sqlite3/Makefile
+   cpp/test/Makefile
+   cpp/tests/Makefile
+   cpp/upnp/Makefile
+   cpp/util/Makefile
+   cpp/validation/Makefile
 ])
 
 # Generate the platform-specific build file
@@ -312,7 +312,7 @@ fi
 
 # Generate scripts and configuration files for release
 AC_CONFIG_FILES([
-	installers/debian/changelog
+   installers/debian/changelog
 ])
 AC_CONFIG_FILES([monarch-run], [chmod +x monarch-run])
 AC_CONFIG_FILES([cpp/tests/run-unit-tests.py], [chmod +x cpp/tests/run-unit-tests.py])

@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/util/AnsiEscapeCodes.h"
 #include "monarch/util/Base64Codec.h"
 #include "monarch/util/Convert.h"
@@ -928,18 +927,10 @@ void runRandomTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class MoUtilTester : public monarch::test::Tester
-{
-public:
-   MoUtilTester()
-   {
-      setName("util");
-   }
 
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+static bool run(TestRunner& tr)
+{
+   if(tr.isDefaultEnabled())
    {
       runBase64Test(tr);
       runCrcTest(tr);
@@ -950,22 +941,20 @@ public:
       runStringToolsTest(tr);
       runDateTest(tr);
       runPathFormatterTest(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("ansi-escape-codes"))
    {
       runAnsiEscapeCodeTest(tr);
-      //runRandomTest(tr);
-      //runRateAveragerTest(tr);
-      return 0;
    }
-};
+   if(tr.isTestEnabled("random"))
+   {
+      runRandomTest(tr);
+   }
+   if(tr.isTestEnabled("rate-averager"))
+   {
+      runRateAveragerTest(tr);
+   }
+   return true;
+}
 
-monarch::test::Tester* getMoUtilTester() { return new MoUtilTester(); }
-
-
-MO_TEST_MAIN(MoUtilTester)
+MO_TEST_MODULE_FN("monarch.tests.util.test", "1.0", run)

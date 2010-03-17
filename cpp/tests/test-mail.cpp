@@ -8,8 +8,7 @@
 #include "monarch/mail/MailSpool.h"
 #include "monarch/net/Url.h"
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/util/StringTools.h"
 
 using namespace std;
@@ -505,38 +504,27 @@ void runFailedMailSendTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class MoMailTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoMailTester()
-   {
-      setName("mail");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runMailTemplateParser(tr);
       runMailboxTest(tr);
       mailSpoolTest(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("smtp-client"))
    {
-      //runSmtpClientTest(tr);
-      //runMimeTest(tr);
-      runFailedMailSendTest(tr);
-      return 0;
+      runSmtpClientTest(tr);
    }
-};
+   if(tr.isTestEnabled("mime"))
+   {
+      runMimeTest(tr);
+   }
+   if(tr.isTestEnabled("failed-mail-send"))
+   {
+      runFailedMailSendTest(tr);
+   }
+   return true;
+}
 
-monarch::test::Tester* getMoMailTester() { return new MoMailTester(); }
-
-
-MO_TEST_MAIN(MoMailTester)
+MO_TEST_MODULE_FN("monarch.tests.mail.test", "1.0", run)

@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc.  All rights reserved.
  */
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/fiber/FiberScheduler.h"
 #include "monarch/modest/Kernel.h"
 #include "monarch/util/Timer.h"
@@ -79,33 +78,13 @@ void runFiberYieldTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoFiberYieldTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoFiberYieldTester()
-   {
-      setName("fiber yield");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
-   {
-      return 0;
-   }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("fiber-yield"))
    {
       runFiberYieldTest(tr);
-      return 0;
    }
-};
+   return true;
+}
 
-monarch::test::Tester* getMoFiberYieldTester() { return new MoFiberYieldTester(); }
-
-
-MO_TEST_MAIN(MoFiberYieldTester)
+MO_TEST_MODULE_FN("monarch.tests.fiber-yield.test", "1.0", run)

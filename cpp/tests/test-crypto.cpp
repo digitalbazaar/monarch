@@ -6,8 +6,7 @@
 #include <sstream>
 
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/crypto/AsymmetricKeyFactory.h"
 #include "monarch/crypto/BigDecimal.h"
@@ -1311,18 +1310,9 @@ void runBigDecimalTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoCryptoTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoCryptoTester()
-   {
-      setName("crypto");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runMessageDigestTest(tr);
       runCipherTest(tr, "AES256");
@@ -1335,20 +1325,12 @@ public:
       runX509CertificateCreationTest(tr, false);
       runBigIntegerTest(tr);
       runBigDecimalTest(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("x509-certificate-creation"))
    {
       runX509CertificateCreationTest(tr, true);
-      return 0;
    }
-};
+   return true;
+}
 
-monarch::test::Tester* getMoCryptoTester() { return new MoCryptoTester(); }
-
-
-MO_TEST_MAIN(MoCryptoTester)
+MO_TEST_MODULE_FN("monarch.tests.crypto.test", "1.0", run)

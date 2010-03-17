@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sphinx/SphinxClient.h"
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/OStreamOutputStream.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 
 using namespace std;
 using namespace monarch::sphinx;
@@ -17,7 +16,7 @@ using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::test;
 
-void runSphinxClientTest(TestRunner &tr, monarch::test::Tester& tester)
+void runSphinxClientTest(TestRunner &tr)
 {
    tr.group("SphinxClient");
 
@@ -55,33 +54,13 @@ void runSphinxClientTest(TestRunner &tr, monarch::test::Tester& tester)
    tr.ungroup();
 }
 
-class MoSphinxClientTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoSphinxClientTester()
+   if(tr.isDefaultEnabled())
    {
-      setName("SphinxClient");
+      runSphinxClientTest(tr);
    }
+   return true;
+}
 
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
-   {
-      runSphinxClientTest(tr, *this);
-      return 0;
-   }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
-   {
-      return 0;
-   }
-};
-
-monarch::test::Tester* getMoSphinxClientTester() { return new MoSphinxClientTester(); }
-
-
-MO_TEST_MAIN(MoSphinxClientTester)
+MO_TEST_MODULE_FN("monarch.tests.sphinx.test", "1.0", run)

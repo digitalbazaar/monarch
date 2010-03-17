@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/rt/ExclusiveLock.h"
 #include "monarch/rt/HashTable.h"
 #include "monarch/rt/Runnable.h"
@@ -629,101 +628,94 @@ void runHashTableVsMapTest(
    tr.ungroup();
 }
 
-class MoHashTableTester : public monarch::test::Tester
+/**
+ * Runs interactive unit tests.
+ *
+ * Options:
+ * --test all - run all tests
+ * --test threads - test thread concurrency
+ * --test map - test speed vs map (one or more threads)
+ * --test mapthreads - test speed vs map (multiple threads w/ locked map)
+ * --option threads <n> - number of threads
+ * --option ops <n> - number of reads and writes to do
+ * --option writes <n> - override ops option for number of write operations
+ * --option reads <n> - override ops option for number of read operations
+ * --option loops <n> - number of times to do writes-reads process
+ * --option slots <n> - number of map/hashtable keys to use
+ *
+ * Process will be to loop doing writes, then loop doing reads.  Adjust the
+ * loops, writes, and reads options to change the ratio of operations and
+ * their ordering. For example:
+ *   L=1, W=2, R=0 => WW
+ *   L=1, W=2, R=2 => WWRR
+ *   L=2, W=2, R=2 => WWRRWWRR
+ *   L=4, W=1, R=1 => WRWRWRWR
+ *   L=4, W=1, R=2 => WRRWRRWRRWRR
+ * The slots control a basic int key ordering based on the counter.
+ *   S=1 => d[0] d[0] d[0] ...
+ *   S=2 => d[0] d[1] d[0] d[1] ...
+ *   S=3 => d[0] d[1] d[3] d[0] ...
+ *
+ * A typical run uses options like:
+ * $ test-hashtable -i -l 0 --test map \
+ *   --option threads <threads> --option ops <ops> --option loops <loops>
+ *
+ * A more complex example is to have 4 threads (ie, for a quad core system)
+ * alternating between 5 writes and 95 reads 1000 times where there are 10
+ * keys, run this:
+ * $ test-hashtable -i -l 0 --test map \
+ *   --option threads 4 --option loops 1000 --option slots 10 \
+ *   --option writes 5 --option reads 95
+ * That performs 4 * 1000 * (5 + 95) = 400000 operations.
+ *
+ * Note that as you add threads or loops it multiplies the number of ops
+ * that are performed. Scale your values appropriately.
+ */
+static int runInteractiveTests(TestRunner& tr)
 {
-public:
-   MoHashTableTester()
-   {
-      setName("HashTable");
-   }
+   Config cfg = tr.getApp()->getConfig();
+   bool all = tr.isTestEnabled("all");
 
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   uint32_t threads =
+      cfg->hasMember("threads") ? cfg["threads"]->getUInt32() : 1;
+   uint32_t ops =
+      cfg->hasMember("ops") ? cfg["ops"]->getUInt32() : 0;
+   uint32_t writes =
+      cfg->hasMember("writes") ? cfg["writes"]->getUInt32() : ops;
+   uint32_t reads =
+      cfg->hasMember("reads") ? cfg["reads"]->getUInt32() : ops;
+   uint32_t loops =
+      cfg->hasMember("loops") ? cfg["loops"]->getUInt32() : 1;
+   uint32_t slots =
+      cfg->hasMember("slots") ? cfg["slots"]->getUInt32() : 1;
+   uint32_t initialSize =
+      cfg->hasMember("initialSize") ? cfg["initialSize"]->getUInt32() : 10;
+
+   if(all || tr.isTestEnabled("threads"))
+   {
+      runHashTableConcurrencyTest(tr, threads, reads, writes);
+   }
+   if(all || tr.isTestEnabled("map"))
+   {
+      runHashTableVsMapTest(
+         tr, threads, loops, slots, reads, writes, initialSize);
+   }
+   return 0;
+}
+
+static bool run(TestRunner& tr)
+{
+   if(tr.isDefaultEnabled())
    {
       runHashTableTests(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    *
-    * Options:
-    * --test all - run all tests
-    * --test threads - test thread concurrency
-    * --test map - test speed vs map (one or more threads)
-    * --test mapthreads - test speed vs map (multiple threads w/ locked map)
-    * --option threads <n> - number of threads
-    * --option ops <n> - number of reads and writes to do
-    * --option writes <n> - override ops option for number of write operations
-    * --option reads <n> - override ops option for number of read operations
-    * --option loops <n> - number of times to do writes-reads process
-    * --option slots <n> - number of map/hashtable keys to use
-    *
-    * Process will be to loop doing writes, then loop doing reads.  Adjust the
-    * loops, writes, and reads options to change the ratio of operations and
-    * their ordering. For example:
-    *   L=1, W=2, R=0 => WW
-    *   L=1, W=2, R=2 => WWRR
-    *   L=2, W=2, R=2 => WWRRWWRR
-    *   L=4, W=1, R=1 => WRWRWRWR
-    *   L=4, W=1, R=2 => WRRWRRWRRWRR
-    * The slots control a basic int key ordering based on the counter.
-    *   S=1 => d[0] d[0] d[0] ...
-    *   S=2 => d[0] d[1] d[0] d[1] ...
-    *   S=3 => d[0] d[1] d[3] d[0] ...
-    *
-    * A typical run uses options like:
-    * $ test-hashtable -i -l 0 --test map \
-    *   --option threads <threads> --option ops <ops> --option loops <loops>
-    *
-    * A more complex example is to have 4 threads (ie, for a quad core system)
-    * alternating between 5 writes and 95 reads 1000 times where there are 10
-    * keys, run this:
-    * $ test-hashtable -i -l 0 --test map \
-    *   --option threads 4 --option loops 1000 --option slots 10 \
-    *   --option writes 5 --option reads 95
-    * That performs 4 * 1000 * (5 + 95) = 400000 operations.
-    *
-    * Note that as you add threads or loops it multiplies the number of ops
-    * that are performed. Scale your values appropriately.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("all") ||
+      tr.isTestEnabled("threads") ||
+      tr.isTestEnabled("map"))
    {
-      Config cfg = tr.getApp()->getConfig();
-      const char* test = cfg["monarch.test.Tester"]["test"]->getString();
-      bool all = (strcmp(test, "all") == 0);
-
-      uint32_t threads =
-         cfg->hasMember("threads") ? cfg["threads"]->getUInt32() : 1;
-      uint32_t ops =
-         cfg->hasMember("ops") ? cfg["ops"]->getUInt32() : 0;
-      uint32_t writes =
-         cfg->hasMember("writes") ? cfg["writes"]->getUInt32() : ops;
-      uint32_t reads =
-         cfg->hasMember("reads") ? cfg["reads"]->getUInt32() : ops;
-      uint32_t loops =
-         cfg->hasMember("loops") ? cfg["loops"]->getUInt32() : 1;
-      uint32_t slots =
-         cfg->hasMember("slots") ? cfg["slots"]->getUInt32() : 1;
-      uint32_t initialSize =
-         cfg->hasMember("initialSize") ? cfg["initialSize"]->getUInt32() : 10;
-
-      if(all || (strcmp(test, "threads") == 0))
-      {
-         runHashTableConcurrencyTest(tr, threads, reads, writes);
-      }
-      if(all || (strcmp(test, "map") == 0))
-      {
-         runHashTableVsMapTest(
-            tr, threads, loops, slots, reads, writes, initialSize);
-      }
-      return 0;
+      runInteractiveTests(tr);
    }
-};
+   return true;
+}
 
-monarch::test::Tester* getMoHashTableTester() { return new MoHashTableTester(); }
-
-
-MO_TEST_MAIN(MoHashTableTester)
+MO_TEST_MODULE_FN("monarch.tests.hashtable.test", "1.0", run)

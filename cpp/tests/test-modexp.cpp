@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/crypto/BigInteger.h"
 #include "monarch/util/Timer.h"
 
@@ -55,33 +54,13 @@ void runModExpTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class MoModExpTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoModExpTester()
-   {
-      setName("modexp");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runModExpTest(tr);
-      return 0;
    }
+   return true;
+}
 
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
-   {
-      return 0;
-   }
-};
-
-monarch::test::Tester* getMoModExpTester() { return new MoModExpTester(); }
-
-
-MO_TEST_MAIN(MoModExpTester)
+MO_TEST_MODULE_FN("monarch.tests.modex.test", "1.0", run)

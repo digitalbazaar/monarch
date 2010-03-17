@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/modest/Kernel.h"
@@ -814,18 +813,9 @@ void runObserverSelfUnregister(TestRunner& tr)
    tr.passIfNoException();
 }
 
-class MoEventTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoEventTester()
-   {
-      setName("event");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
+   if(tr.isDefaultEnabled())
    {
       runEventTest(tr);
       runObserverDelegateTest(tr);
@@ -836,20 +826,12 @@ public:
       runEventDaemonTest(tr);
       runEventDaemonSharedEventTest(tr);
       runObserverSelfUnregister(tr);
-      return 0;
    }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("event-daemon"))
    {
       runInteractiveEventDaemonTest(tr);
-      return 0;
    }
-};
+   return true;
+}
 
-monarch::test::Tester* getMoEventTester() { return new MoEventTester(); }
-
-
-MO_TEST_MAIN(MoEventTester)
+MO_TEST_MODULE_FN("monarch.tests.event.test", "1.0", run)

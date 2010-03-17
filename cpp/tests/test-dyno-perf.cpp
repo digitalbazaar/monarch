@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/test/Test.h"
-#include "monarch/test/Tester.h"
-#include "monarch/test/TestRunner.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/rt/Runnable.h"
 #include "monarch/rt/System.h"
 
@@ -104,26 +103,9 @@ void runDynoIterTest(TestRunner& tr)
    tr.ungroup();
 }
 
-class MoDynoPerfTester : public monarch::test::Tester
+static bool run(TestRunner& tr)
 {
-public:
-   MoDynoPerfTester()
-   {
-      setName("dyno-perf");
-   }
-
-   /**
-    * Run automatic unit tests.
-    */
-   virtual int runAutomaticTests(TestRunner& tr)
-   {
-      return 0;
-   }
-
-   /**
-    * Runs interactive unit tests.
-    */
-   virtual int runInteractiveTests(TestRunner& tr)
+   if(tr.isTestEnabled("dyno-perf"))
    {
       Config cfg = tr.getApp()->getConfig();
       // number of loops for each test
@@ -132,11 +114,8 @@ public:
       {
          runDynoIterTest(tr);
       }
-      return 0;
    }
-};
+   return true;
+}
 
-monarch::test::Tester* getMoDynoPerfTester() { return new MoDynoPerfTester(); }
-
-
-MO_TEST_MAIN(MoDynoPerfTester)
+MO_TEST_MODULE_FN("monarch.tests.dyno-perf.test", "1.0", run)
