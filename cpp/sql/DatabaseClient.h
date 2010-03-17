@@ -37,15 +37,14 @@ typedef monarch::rt::DynamicObject SchemaObject;
  * An ObjRelMap provides a mapping between an object and a relational database.
  *
  * ObjRelMap: {} of
- *    "type": object-type
- *    "members": [] of
- *       "memberName": the member name
- *       "objectType": "_col" OR "_fkey" or object-type
- *       "column": if _col or _fkey, then database column name
- *       "memberType": if _col or _fkey the expected member type
- *       FIXME: stuff for _fkey mappings
- *       FIXME: stuff for transformations
- *
+ *    "objectType": object-type
+ *    "members": {} of
+ *       "member-name": {} of
+ *          "objectType": "_col" OR "_fkey" or object-type
+ *          "column": if _col or _fkey, then database column name
+ *          "memberType": if _col or _fkey the expected member type
+ *          FIXME: stuff for _fkey mappings
+ *          FIXME: stuff for transformations
  */
 typedef monarch::rt::DynamicObject ObjRelMap;
 
@@ -263,6 +262,15 @@ public:
     * @return the schema for the table or NULL if it does not exist.
     */
    virtual SchemaObject getSchema(const char* table);
+
+   /**
+    * Sets an object-relational (OR) mapping for an object type.
+    *
+    * @param orMap the OR mapping to set.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool setObjRelMap(ObjRelMap& orMap);
 
    /**
     * Gets an object-relational (OR) mapping for an object type.

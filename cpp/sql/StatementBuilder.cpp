@@ -1,21 +1,28 @@
 /*
  * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/sql/StatementBuilder.h"
 
+#include "monarch/data/json/JsonWriter.h"
+#include "monarch/logging/Logging.h"
 #include "monarch/rt/DynamicObjectIterator.h"
+#include "monarch/sql/Row.h"
 #include "monarch/sql/Statement.h"
 #include "monarch/util/StringTools.h"
 
 #include <cstdio>
 #include <cstring>
 
-#define MAX_ALIAS_COUNTER 1 << 16
-
 using namespace std;
+using namespace monarch::data::json;
+using namespace monarch::logging;
 using namespace monarch::rt;
 using namespace monarch::sql;
 using namespace monarch::util;
+
+#define MAX_ALIAS_COUNTER 1 << 16
 
 StatementBuilder::StatementBuilder(DatabaseClientRef& dbc) :
    mDatabaseClient(dbc),
@@ -85,6 +92,9 @@ bool StatementBuilder::execute(Connection* c)
    rval = createSql(statements);
    if(rval)
    {
+      // FIXME: remove me
+      printf("StatementBuilder: SQL EXECUTION DISABLED.\n");
+#if 0
       // get a connection from the pool if one wasn't passed in
       Connection* conn = (c != NULL) ? c :
          (mStatementType == StatementBuilder::Get ?
@@ -150,6 +160,7 @@ bool StatementBuilder::execute(Connection* c)
             rval = (*i)->execute();
          }
       }
+#endif
    }
 
    return rval;
@@ -188,7 +199,7 @@ const char* StatementBuilder::assignAlias(const char* table)
 
 bool StatementBuilder::createSql(DynamicObject& statements)
 {
-   bool rval = true;
+   bool rval;
 
    /* Algorithm to convert statement type, any input object, and conditional
       restrictions into SQL statement(s):
@@ -216,13 +227,13 @@ bool StatementBuilder::createSql(DynamicObject& statements)
 
       switch(mStatementType)
       {
-         case Add:
+         case StatementBuilder::Add:
             rval = createAddSql(mapping, statements);
             break;
-         case Update:
+         case StatementBuilder::Update:
             rval = createUpdateSql(mapping, statements);
             break;
-         case Get:
+         case StatementBuilder::Get:
             rval = createGetSql(mapping, statements);
             break;
       }
@@ -299,6 +310,15 @@ bool StatementBuilder::createAddSql(
             "INSERT INTO %s (%s) VALUES (%s)",
             table, columns.c_str(), values.c_str()).c_str();
       }
+
+      int idx = statements["sql"]->length() - 1;
+      MO_CAT_DEBUG(MO_SQL_CAT,
+         "Generated SQL:\n"
+         "sql: %s\n"
+         "params: %s\n",
+         statements["sql"][idx]->getString(),
+         JsonWriter::writeToString(
+            statements["params"][idx], false, false).c_str());
    }
 
    return rval;
@@ -370,6 +390,15 @@ bool StatementBuilder::createUpdateSql(
       statements["sql"]->append() = StringTools::format(
          "UPDATE %s AS %s SET %s",
          table, alias, sets.c_str()).c_str();
+
+      int idx = statements["sql"]->length() - 1;
+      MO_CAT_DEBUG(MO_SQL_CAT,
+         "Generated SQL:\n"
+         "sql: %s\n"
+         "params: %s\n",
+         statements["sql"][idx]->getString(),
+         JsonWriter::writeToString(
+            statements["params"][idx], false, false).c_str());
    }
 
    return rval;
@@ -452,6 +481,15 @@ bool StatementBuilder::createGetSql(
          sql.append(joins);
       }
       statements["sql"]->append() = sql.c_str();
+
+      int idx = statements["sql"]->length() - 1;
+      MO_CAT_DEBUG(MO_SQL_CAT,
+         "Generated SQL:\n"
+         "sql: %s\n"
+         "params: %s\n",
+         statements["sql"][idx]->getString(),
+         JsonWriter::writeToString(
+            statements["params"][idx], false, false).c_str());
    }
 
    return rval;

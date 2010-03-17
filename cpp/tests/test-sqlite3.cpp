@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/test/Test.h"
 #include "monarch/test/Tester.h"
 #include "monarch/test/TestRunner.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/sql/Row.h"
+#include "monarch/sql/StatementBuilder.h"
 #include "monarch/sql/sqlite3/Sqlite3Connection.h"
 #include "monarch/sql/sqlite3/Sqlite3ConnectionPool.h"
 #include "monarch/sql/sqlite3/Sqlite3DatabaseClient.h"
@@ -1479,6 +1480,92 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runSqlite3StatementBuilderTest(TestRunner& tr)
+{
+   tr.group("Sqlite3 StatementBuilder");
+
+   /* ObjRelMap: {} of
+   *    "objectType": object-type
+   *    "members": {} of
+   *       "member-name": {} of
+   *          "objectType": "_col" OR "_fkey" or object-type
+   *          "table": if _col or _fkey, then database table name
+   *          "column": if _col or _fkey, then database column name
+   *          "memberType": if _col or _fkey the expected member type
+   *          FIXME: stuff for _fkey mappings
+   *          FIXME: stuff for transformations
+   */
+
+   // create sqlite3 connection pool
+   Sqlite3ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:", 1);
+   ConnectionPoolRef pool(cp);
+   assertNoException();
+
+   // create database client
+   DatabaseClientRef dbc = new Sqlite3DatabaseClient();
+   dbc->setDebugLogging(true);
+   dbc->setReadConnectionPool(pool);
+   dbc->setWriteConnectionPool(pool);
+   dbc->initialize();
+   assertNoException();
+
+   // define an object type
+   tr.test("set OR map");
+   {
+      ObjRelMap orMap;
+      orMap["objectType"] = "Test";
+
+      // id column
+      {
+         DynamicObject& col = orMap["members"]["id"];
+         col["objectType"] = "_col";
+         col["table"] = TABLE_TEST;
+         col["column"] = "id";
+         col["memberType"]->setType(String);
+      }
+
+      // t column
+      {
+         DynamicObject& col = orMap["members"]["description"];
+         col["objectType"] = "_col";
+         col["table"] = TABLE_TEST;
+         col["column"] = "t";
+         col["memberType"]->setType(String);
+      }
+
+      // i column
+      {
+         DynamicObject& col = orMap["members"]["number"];
+         col["objectType"] = "_col";
+         col["table"] = TABLE_TEST;
+         col["column"] = "i";
+         col["memberType"]->setType(UInt64);
+      }
+
+      dbc->setObjRelMap(orMap);
+   }
+   tr.passIfNoException();
+
+   monarch::sql::Connection* c = dbc->getWriteConnection();
+   createSqlite3Table(&tr, c);
+
+   tr.test("add Test object");
+   {
+      DynamicObject testObj;
+      testObj["id"] = "123";
+      testObj["description"] = "My test object description";
+      testObj["number"] = 10;
+
+      StatementBuilder sb(dbc);
+      sb.add("Test", testObj).execute(c);
+   }
+   tr.passIfNoException();
+
+   c->close();
+
+   tr.ungroup();
+}
+
 class MoSqlite3Tester : public monarch::test::Tester
 {
 public:
@@ -1509,7 +1596,8 @@ public:
     */
    virtual int runInteractiveTests(TestRunner& tr)
    {
-      runSqlite3ConnectionPoolTest(tr);
+      //runSqlite3ConnectionPoolTest(tr);
+      runSqlite3StatementBuilderTest(tr);
       return 0;
    }
 };

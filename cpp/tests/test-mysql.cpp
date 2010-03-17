@@ -8,6 +8,7 @@
 #include "monarch/test/TestRunner.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/sql/Row.h"
+#include "monarch/sql/StatementBuilder.h"
 #include "monarch/sql/mysql/MySqlConnection.h"
 #include "monarch/sql/mysql/MySqlConnectionPool.h"
 #include "monarch/sql/mysql/MySqlDatabaseClient.h"
@@ -668,65 +669,89 @@ void runMySqlStatementBuilderTest(TestRunner& tr)
 {
    tr.group("MySql StatementBuilder");
 
-   // create mysql connection pool
-   MySqlConnectionPool cp(
-      "mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 100);
+   /* ObjRelMap: {} of
+   *    "objectType": object-type
+   *    "members": {} of
+   *       "member-name": {} of
+   *          "objectType": "_col" OR "_fkey" or object-type
+   *          "table": if _col or _fkey, then database table name
+   *          "column": if _col or _fkey, then database column name
+   *          "memberType": if _col or _fkey the expected member type
+   *          FIXME: stuff for _fkey mappings
+   *          FIXME: stuff for transformations
+   */
+
+   // create mysql connection pools
+   ConnectionPoolRef readPool = new MySqlConnectionPool(
+      "mysql://" MYSQL_READ_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 1);
+   ConnectionPoolRef writePool = new MySqlConnectionPool(
+      "mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 1);
    assertNoException();
 
-/*
-   // create table
-   monarch::sql::Connection* c = cp.getConnection();
-   createMySqlTable(tr, c);
-   c->close();
+   // create database client
+   DatabaseClientRef dbc = new MySqlDatabaseClient();
+   dbc->setDebugLogging(true);
+   dbc->setReadConnectionPool(readPool);
+   dbc->setWriteConnectionPool(writePool);
+   dbc->initialize();
+   assertNoException();
 
-   // create connection test threads
-   int testCount = 300;
-   MySqlConnectionPoolTest tests[testCount];
-   Thread* threads[testCount];
-
-   // create threads, set pool for tests
-   for(int i = 0; i < testCount; i++)
+   // define an object type
+   tr.test("set OR map");
    {
-      tests[i].pool = &cp;
-      tests[i].tr = &tr;
-      threads[i] = new Thread(&tests[i]);
-   }
+      ObjRelMap orMap;
+      orMap["objectType"] = "Test";
 
-   uint64_t startTime = Timer::startTiming();
-
-   // run connection threads
-   for(int i = 0; i < testCount; i++)
-   {
-      while(!threads[i]->start(131072))
+      // id column
       {
-         threads[i - 1]->join();
+         DynamicObject& col = orMap["members"]["id"];
+         col["objectType"] = "_col";
+         col["table"] = TABLE_TEST;
+         col["column"] = "id";
+         col["memberType"]->setType(String);
       }
-   }
 
-   // join threads
-   for(int i = 0; i < testCount; i++)
+      // t column
+      {
+         DynamicObject& col = orMap["members"]["description"];
+         col["objectType"] = "_col";
+         col["table"] = TABLE_TEST;
+         col["column"] = "t";
+         col["memberType"]->setType(String);
+      }
+
+      // i column
+      {
+         DynamicObject& col = orMap["members"]["number"];
+         col["objectType"] = "_col";
+         col["table"] = TABLE_TEST;
+         col["column"] = "i";
+         col["memberType"]->setType(UInt64);
+      }
+
+      dbc->setObjRelMap(orMap);
+   }
+   tr.passIfNoException();
+
+   monarch::sql::Connection* c = dbc->getWriteConnection();
+   createMySqlTable(tr, c);
+
+   tr.test("add Test object");
    {
-      threads[i]->join();
-   }
+      DynamicObject testObj;
+      testObj["id"] = "123";
+      testObj["description"] = "My test object description";
+      testObj["number"] = 10;
 
-   double seconds = Timer::getSeconds(startTime);
-
-   // clean up threads
-   for(int i = 0; i < testCount; i++)
-   {
-      delete threads[i];
+      StatementBuilder sb(dbc);
+      sb.add("Test", testObj).execute(c);
    }
+   tr.passIfNoException();
+
+   c->close();
 
    // clean up mysql
    mysql_library_end();
-
-   // print report
-   printf("\nNumber of independent connection uses: %d\n", testCount);
-   printf("Number of pooled connections created: %d\n",
-      cp.getConnectionCount());
-   printf("Total time: %g seconds\n", seconds);
-
-   */
 
    tr.ungroup();
 }

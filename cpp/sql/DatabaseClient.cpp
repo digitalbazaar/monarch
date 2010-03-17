@@ -80,39 +80,22 @@ bool DatabaseClient::initialize()
          NULL)),
       NULL);
 
-#if 0
-   // FIXME:
+   // FIXME: fill out validator
    // create OR map validator
    mOrMapValidator = new v::Map(
-      "table", new v::All(
-         new v::Type(String),
-         new v::Min(1, "Table name must be at least 1 character long."),
-         NULL),
-      "columns", new v::All(
-         new v::Type(Array),
-         new v::Min(1, "There must be at least 1 column in a table."),
+      "objectType", new v::Type(String),
+      "members", new v::All(
+         new v::Type(Map),
          new v::Each(new v::Map(
-            "name", new v::Type(String),
-            "type", new v::Type(String),
-            "memberName", new v::Type(String),
-            "memberType", new v::Any(
-               new v::Int(),
-               new v::Type(Boolean),
+            "objectType", new v::Type(String),
+            "table", new v::Optional(new v::All(
                new v::Type(String),
-               new v::Type(Double),
-               NULL),
+               new v::Min(1, "Table name must be at least 1 character long."),
+               NULL)),
             NULL)),
          NULL),
-      "indices", new v::Optional(new v::All(
-         new v::Type(Array),
-         new v::Each(new v::Type(String)),
-         NULL)),
-      "restraints", new v::Optional(new v::All(
-         new v::Type(Array),
-         new v::Each(new v::Type(String)),
-         NULL)),
       NULL);
-#endif
+
    return rval;
 }
 
@@ -203,6 +186,20 @@ SchemaObject DatabaseClient::getSchema(const char* table)
    return rval;
 }
 
+bool DatabaseClient::setObjRelMap(ObjRelMap& orMap)
+{
+   bool rval = false;
+
+   // validate OR map
+   rval = mOrMapValidator->isValid(orMap);
+   if(rval)
+   {
+      mOrMaps[orMap["objectType"]->getString()] = orMap;
+   }
+
+   return rval;
+}
+
 ObjRelMap DatabaseClient::getObjRelMap(const char* objType)
 {
    ObjRelMap rval(NULL);
@@ -215,7 +212,10 @@ ObjRelMap DatabaseClient::getObjRelMap(const char* objType)
          DBC_EXCEPTION ".InvalidObjectType");
       e->getDetails()["objType"] = objType;
       Exception::set(e);
-      rval = false;
+   }
+   else
+   {
+      rval = mOrMaps[objType];
    }
 
    return rval;
@@ -281,7 +281,7 @@ static void _mapMember()
 bool DatabaseClient::mapInstance(
    const char* objType, DynamicObject& obj, DynamicObject& mapping)
 {
-   bool rval = true;
+   bool rval = false;
 
    /* Algorithm to create a column mapping to the values in the given
       object:
@@ -309,13 +309,9 @@ bool DatabaseClient::mapInstance(
 
    // get OR map for the given object type
    ObjRelMap orMap = getObjRelMap(objType);
-   if(orMap.isNull())
+   if(!orMap.isNull())
    {
-      // FIXME: object type is invalid, no OR map defined, set exception
-      rval = false;
-   }
-   else
-   {
+      rval = true;
       DynamicObjectIterator i = obj.getIterator();
       while(rval && i->hasNext())
       {
@@ -345,6 +341,9 @@ bool DatabaseClient::mapInstance(
                // FIXME: if member is a map, then just one
                // FIXME: any other type should be an error
             }
+
+            // add entry to instance mapping
+            mapping->append(entry);
          }
       }
    }
