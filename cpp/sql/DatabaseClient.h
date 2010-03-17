@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_DatabaseClient_H
 #define monarch_sql_DatabaseClient_H
@@ -24,14 +24,30 @@ class Row;
  * attributes in an input/output object.
  *
  * SchemaObject: {} of
- *   "table": "tableName",
+ *   "table": "tableName"
  *   "columns": [] of
  *     "column_name": {} of
- *       "type": "DATABASE COLUMN TYPE" (same as used in CREATE TABLE SQL),
+ *       "type": "DATABASE COLUMN TYPE" (same as used in CREATE TABLE SQL)
  *       "memberName": "columnName" (member name as used in an object)
  *       "memberType": the expected member type
  */
 typedef monarch::rt::DynamicObject SchemaObject;
+
+/**
+ * An ObjRelMap provides a mapping between an object and a relational database.
+ *
+ * ObjRelMap: {} of
+ *    "type": object-type
+ *    "members": [] of
+ *       "memberName": the member name
+ *       "objectType": "_col" OR "_fkey" or object-type
+ *       "column": if _col or _fkey, then database column name
+ *       "memberType": if _col or _fkey the expected member type
+ *       FIXME: stuff for _fkey mappings
+ *       FIXME: stuff for transformations
+ *
+ */
+typedef monarch::rt::DynamicObject ObjRelMap;
 
 /**
  * An SqlExecutable is an object that contains prepared statement SQL,
@@ -165,6 +181,16 @@ protected:
     */
    monarch::validation::ValidatorRef mSchemaValidator;
 
+   /**
+    * Stores all OR map objects, accessible via their object type.
+    */
+   monarch::rt::DynamicObject mOrMaps;
+
+   /**
+    * Stores the OR map validator.
+    */
+   monarch::validation::ValidatorRef mOrMapValidator;
+
 public:
    /**
     * Creates a new DatabaseClient.
@@ -232,9 +258,35 @@ public:
    /**
     * Gets a schema for a table.
     *
+    * @param table the table to get the schema for.
+    *
     * @return the schema for the table or NULL if it does not exist.
     */
    virtual SchemaObject getSchema(const char* table);
+
+   /**
+    * Gets an object-relational (OR) mapping for an object type.
+    *
+    * @param objType the object type to get the mapping for.
+    *
+    * @return the OR map for the given object type or NULL if it does not exist.
+    */
+   virtual ObjRelMap getObjRelMap(const char* objType);
+
+   /**
+    * Uses an Object-Relational (OR) mapping to produce a mapping for a
+    * particular object instance.
+    *
+    * @param objType the type of object.
+    * @param obj the object instance.
+    * @param mapping the mapping object to populate.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool mapInstance(
+      const char* objType,
+      monarch::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& mapping);
 
    /**
     * Creates a table via CREATE TABLE. The schema for the table must have

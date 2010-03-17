@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -38,6 +38,7 @@ DatabaseClient::DatabaseClient() :
    mWritePool(NULL)
 {
    mSchemas->setType(Map);
+   mOrMaps->setType(Map);
 }
 
 DatabaseClient::~DatabaseClient()
@@ -79,6 +80,39 @@ bool DatabaseClient::initialize()
          NULL)),
       NULL);
 
+#if 0
+   // FIXME:
+   // create OR map validator
+   mOrMapValidator = new v::Map(
+      "table", new v::All(
+         new v::Type(String),
+         new v::Min(1, "Table name must be at least 1 character long."),
+         NULL),
+      "columns", new v::All(
+         new v::Type(Array),
+         new v::Min(1, "There must be at least 1 column in a table."),
+         new v::Each(new v::Map(
+            "name", new v::Type(String),
+            "type", new v::Type(String),
+            "memberName", new v::Type(String),
+            "memberType", new v::Any(
+               new v::Int(),
+               new v::Type(Boolean),
+               new v::Type(String),
+               new v::Type(Double),
+               NULL),
+            NULL)),
+         NULL),
+      "indices", new v::Optional(new v::All(
+         new v::Type(Array),
+         new v::Each(new v::Type(String)),
+         NULL)),
+      "restraints", new v::Optional(new v::All(
+         new v::Type(Array),
+         new v::Each(new v::Type(String)),
+         NULL)),
+      NULL);
+#endif
    return rval;
 }
 
@@ -168,6 +202,158 @@ SchemaObject DatabaseClient::getSchema(const char* table)
 
    return rval;
 }
+
+ObjRelMap DatabaseClient::getObjRelMap(const char* objType)
+{
+   ObjRelMap rval(NULL);
+
+   // ensure the OR map exists
+   if(!mOrMaps->hasMember(objType))
+   {
+      ExceptionRef e = new Exception(
+         "No object-relational mapping defined for the given object type.",
+         DBC_EXCEPTION ".InvalidObjectType");
+      e->getDetails()["objType"] = objType;
+      Exception::set(e);
+      rval = false;
+   }
+
+   return rval;
+}
+#if 0
+static void _mapMember()
+{
+   /*
+    [] of
+    {
+       "table": <tablename>
+       "columns":
+          <name>: value
+       "lock": true/false
+    }
+
+    for where clauses:
+    [] of
+    {
+       "table": <tablename>
+       "columns":
+          <name>: value
+       "operator": <operator> (ie =,<>,<,>)
+       "delimiter": <delimiter> (ie AND, OR)
+    }
+
+    */
+
+
+   /* Algorithm to convert an object with members to tables and columns.
+
+      End result:
+      A grouping of table => column => member.
+      This allows the SQL to be created from the table names and columns and
+      parameterized placeholders to be set for each one ... and for the
+      parameters to be set to the members.
+
+      To get there:
+      We need to be able to pass an object type and object member to a schema
+      and get the table name and column.
+
+      FIXME: How do we handle foreign key issues?
+
+      We need to get the key for the member because that's what we will be
+      updating/inserting into the table or selecting on.
+
+      We could have table=>column=>member ... where member has "value"
+      and could also have keyTable=>keys,values (where keys and values are
+      columns in the key table that would allow the key to be found from the
+      value given in the member.
+
+      Then *either* JOIN syntax or a separate lookup could be performed to
+      get the appropriate key to match the member's value... which would then
+      be set in "key" or something.
+
+      Would be nice to have all of this consolidated somehow in the returned
+      object?
+
+
+    */
+}
+#endif
+bool DatabaseClient::mapInstance(
+   const char* objType, DynamicObject& obj, DynamicObject& mapping)
+{
+   bool rval = true;
+
+   /* Algorithm to create a column mapping to the values in the given
+      object:
+
+      1. Get the schema for the object type.
+      2. Iterate over the members provided in the object, getting each one's
+         associated table and column.
+      3. Fill the column mapping output with the table name, column, and value.
+   */
+
+   /* ObjRelMap: {} of
+   *    "type": object-type
+   *    "members": {} of
+   *       "member-name": {} of
+   *          "objectType": "_col" OR "_fkey" or object-type
+   *          "table": if _col or _fkey, then database table name
+   *          "column": if _col or _fkey, then database column name
+   *          "memberType": if _col or _fkey the expected member type
+   *          FIXME: stuff for _fkey mappings
+   *          FIXME: stuff for transformations
+   */
+
+   // initialize mapping
+   mapping->setType(Array);
+
+   // get OR map for the given object type
+   ObjRelMap orMap = getObjRelMap(objType);
+   if(orMap.isNull())
+   {
+      // FIXME: object type is invalid, no OR map defined, set exception
+      rval = false;
+   }
+   else
+   {
+      DynamicObjectIterator i = obj.getIterator();
+      while(rval && i->hasNext())
+      {
+         DynamicObject& member = i->next();
+         if(orMap["members"]->hasMember(i->getName()))
+         {
+            // start building an instance mapping entry
+            DynamicObject entry(NULL);
+
+            // OR map has the given member, get the info for it
+            DynamicObject& info = orMap["members"][i->getName()];
+
+            // handle mapping based on member's object type
+            const char* ot = info["objectType"]->getString();
+            if(strcmp(ot, "_col") == 0 || strcmp(ot, "_fkey") == 0)
+            {
+               // clone OR map info, munge datatype
+               // FIXME: validate data type from instance object
+               entry = info.clone();
+               entry["value"] = member.clone();
+               entry["value"]->setType(entry["memberType"]->getType());
+            }
+            // entry is another object
+            else
+            {
+               // FIXME: if member is an array, then N objects of other type
+               // FIXME: if member is a map, then just one
+               // FIXME: any other type should be an error
+            }
+         }
+      }
+   }
+
+   return rval;
+}
+
+// FIXME: old stuff below
+
 
 bool DatabaseClient::create(
    const char* table, bool ignoreIfExists, Connection* c)

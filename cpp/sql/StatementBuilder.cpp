@@ -207,7 +207,7 @@ bool StatementBuilder::createSql(DynamicObject& statements)
 
    // get an OR mapping for the given object instance
    DynamicObject mapping;
-   rval = mDatabaseClient->getMapping(mObjectType.c_str(), mObject, mapping);
+   rval = mDatabaseClient->mapInstance(mObjectType.c_str(), mObject, mapping);
    if(rval)
    {
       // setup sql to be run and associated params
