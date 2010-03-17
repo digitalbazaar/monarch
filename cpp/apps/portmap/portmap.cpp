@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/app/App.h"
+#include "monarch/app/AppPluginFactory.h"
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/upnp/ControlPoint.h"
 #include "monarch/upnp/DeviceDiscoverer.h"
@@ -9,7 +10,9 @@
 #include <cstdio>
 
 using namespace std;
+using namespace monarch::app;
 using namespace monarch::data::json;
+using namespace monarch::modest;
 using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::upnp;
@@ -20,7 +23,16 @@ using namespace monarch::upnp;
 #define CMD_ADD     3
 #define CMD_REMOVE  4
 
-class PortMapApp : public monarch::app::AppPlugin
+#define PLUGIN_NAME "monarch.apps.portmap.PortMap"
+
+namespace monarch
+{
+namespace apps
+{
+namespace portmap
+{
+
+class PortMapApp : public AppPlugin
 {
 protected:
    /**
@@ -31,9 +43,6 @@ protected:
 public:
    PortMapApp()
    {
-      mInfo["id"] = "monarch.apps.PortMap";
-      mInfo["dependencies"]->append() = "monarch.app.App";
-
       // set defaults
       mOptions["command"] = "";
       mOptions["externalPort"] = (uint32_t)0;
@@ -453,7 +462,34 @@ public:
    };
 };
 
-/**
- * Create main() for the PortMap app
- */
-MO_APP_PLUGIN_MAIN(PortMapApp);
+class PortMapAppFactory :
+   public AppPluginFactory
+{
+public:
+   PortMapAppFactory() :
+      AppPluginFactory(PLUGIN_NAME, "1.0")
+   {
+      addDependency("monarch.app.Monarch", "1.0");
+   }
+
+   virtual ~PortMapAppFactory() {}
+
+   virtual AppPluginRef createAppPlugin()
+   {
+      return new PortMapApp();
+   }
+};
+
+} // end namespace portmap
+} // end namespace apps
+} // end namespace monarch
+
+Module* createModestModule()
+{
+   return new monarch::apps::portmap::PortMapAppFactory();
+}
+
+void freeModestModule(Module* m)
+{
+   delete m;
+}
