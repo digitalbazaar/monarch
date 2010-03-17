@@ -9,7 +9,6 @@
 
 #include <cstdio>
 #include <cstring>
-#include <vector>
 
 #define MAX_ALIAS_COUNTER 1 << 16
 
@@ -18,241 +17,447 @@ using namespace monarch::rt;
 using namespace monarch::sql;
 using namespace monarch::util;
 
-enum ClauseType
-{
-   ClauseNone,
-   ClauseSql,
-   ClauseSelect,
-   ClauseInsert,
-   ClauseUpdate,
-   ClauseJoin,
-   ClauseWhere,
-   ClauseOrderBy,
-   ClauseLimit,
-   ClauseGroup,
-   ClauseUngroup,
-   ClauseDone
-};
-
-typedef vector<ClauseType> StateStack;
-typedef vector<DynamicObject> DynoStack;
-
 StatementBuilder::StatementBuilder(DatabaseClientRef& dbc) :
    mDatabaseClient(dbc),
-   mStatement(NULL),
-   mWrite(false),
-   mAliasCounter(0)
+   mStatementType(StatementBuilder::Get),
+   mAliasCounter(0),
+   mObject(NULL)
 {
    mAliases->setType(Map);
    mUsedAliases->setType(Map);
-   mClauses->setType(Array);
 }
 
 StatementBuilder::~StatementBuilder()
 {
    // FIXME: add code to finish out result sets
+
+   // FIXME: might need to make StatementBuilder an abstract/extendable class
+   // with methods to be implemented by mysql/sqlite/whatever to provide the
+   // actual SQL to execute queries
 }
 
-/**
- * Assigns an alias to the given table, if one has not already been assigned.
- *
- * @param aliases the map of tables to aliases to update.
- * @param used the map of used aliases to tables to check and update.
- * @param counter the alias counter.
- * @param table the table to assign an alias to.
- */
-static void _assignAlias(
-   DynamicObject& aliases, DynamicObject& used, int& counter, const char* table)
+StatementBuilder& StatementBuilder::add(const char* type, DynamicObject& obj)
 {
-   if(!aliases[table]->hasMember("alias"))
+   mStatementType = StatementBuilder::Add;
+   mObjectType = type;
+   mObject = obj;
+   return *this;
+}
+
+StatementBuilder& StatementBuilder::update(const char* type, DynamicObject& obj)
+{
+   mStatementType = StatementBuilder::Update;
+   mObjectType = type;
+   mObject = obj;
+   return *this;
+}
+
+StatementBuilder& StatementBuilder::get(const char* type)
+{
+   mStatementType = StatementBuilder::Get;
+   mObjectType = type;
+   mObject.setNull();
+   return *this;
+}
+
+StatementBuilder& StatementBuilder::where()
+{
+   // FIXME:
+   return *this;
+}
+
+StatementBuilder& StatementBuilder::limit()
+{
+   // FIXME:
+   return *this;
+}
+
+bool StatementBuilder::execute(Connection* c)
+{
+   bool rval;
+
+   // FIXME: don't clear cache, reuse it ... provided that the connection is
+   // the same one
+   mStatementCache.clear();
+
+   // create SQL
+   DynamicObject statements;
+   rval = createSql(statements);
+   if(rval)
    {
-      char tmp[20];
-      do
+      // get a connection from the pool if one wasn't passed in
+      Connection* conn = (c != NULL) ? c :
+         (mStatementType == StatementBuilder::Get ?
+            mDatabaseClient->getReadConnection() :
+            mDatabaseClient->getWriteConnection());
+      if(conn != NULL)
       {
-         snprintf(tmp, 20, "__t%d", counter);
-      }
-      while(used->hasMember(tmp) && counter < MAX_ALIAS_COUNTER);
-      aliases[table]["alias"] = tmp;
-      used[tmp] = table;
-   }
-}
-
-StatementBuilder& StatementBuilder::sql(const char* sql)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["clause"] = ClauseSql;
-   clause["sql"] = sql;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::setParams(DynamicObject& params)
-{
-   // FIXME: implement me
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::alias(const char* table, const char* alias)
-{
-   mAliases[table]["alias"] = alias;
-   mUsedAliases[alias] = table;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::alias(
-   const char* table, const char* field, const char* alias)
-{
-   mAliases[table]["fields"][field] = alias;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::select(
-   const char* table, const char* fields)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseSelect;
-   clause["table"] = table;
-   clause["fields"] = fields;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::join(
-   const char* t1, const char* f1, const char* t2, const char* f2)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseJoin;
-   clause["t1"] = t1;
-   clause["f1"] = f1;
-   clause["t2"] = t2;
-   clause["f2"] = f1;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::insert(
-   const char* table, DynamicObject& fields)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseInsert;
-   clause["table"] = table;
-   clause["fields"] = fields;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::insert(
-   const char* table, const char* fields)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseInsert;
-   clause["table"] = table;
-   clause["fields"] = fields;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::update(
-   const char* table, DynamicObject& fields)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseUpdate;
-   clause["table"] = table;
-   clause["fields"] = fields;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::update(
-   const char* table, const char* fields)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseUpdate;
-   clause["table"] = table;
-   clause["fields"] = fields;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::where(
-   const char* table, DynamicObject& fields, const char* logicalOp)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseWhere;
-   clause["table"] = table;
-   clause["fields"] = fields;
-   clause["logicalOp"] = logicalOp;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::orderBy(
-   const char* table, const char* fields)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseOrderBy;
-   clause["table"] = table;
-   clause["fields"] = fields;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::limit(uint64_t start, uint64_t num)
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseLimit;
-   clause["start"] = start;
-   clause["num"] = num;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::group()
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseGroup;
-   return *this;
-}
-
-StatementBuilder& StatementBuilder::ungroup()
-{
-   DynamicObject& clause = mClauses->append();
-   clause["type"] = ClauseUngroup;
-   return *this;
-}
-
-bool StatementBuilder::execute(DynamicObject* params, Connection* c)
-{
-   bool rval = false;
-
-   // get a connection from the pool if one wasn't passed in
-   Connection* conn = (c != NULL) ? c :
-      (mWrite ?
-         mDatabaseClient->getWriteConnection() :
-         mDatabaseClient->getReadConnection());
-   if(conn != NULL)
-   {
-      // prepare the statement if necessary
-      DynamicObject p;
-      if(mStatement == NULL)
-      {
-         // create the SQL and original params
-         string sql;
-         if(createSql(sql, p))
+         DynamicObject& sql = statements["sql"];
+         DynamicObject& params = statements["params"];
+         int len = sql->length();
+         for(int i = 0; rval && i < len; i++)
          {
-            mStatement = conn->prepare(sql.c_str());
-         }
-      }
+            // prepare the statement
+            Statement* s = conn->prepare(sql[i]->getString());
+            rval = (s != NULL);
+            if(rval)
+            {
+               // cache the statement
+               mStatementCache.push_back(s);
 
-      // execute the statement
-      if(mStatement != NULL)
-      {
-         // FIXME: either use generated or provided params
-         if(params == NULL)
+               // set the parameters
+               int count = 1;
+               DynamicObjectIterator pi = params[i].getIterator();
+               while(rval && pi->hasNext())
+               {
+                  DynamicObject& param = pi->next();
+                  switch(param->getType())
+                  {
+                     case Int32:
+                        rval = s->setInt32(count, param->getInt32());
+                        break;
+                     case UInt32:
+                        rval = s->setInt32(count, param->getUInt32());
+                        break;
+                     case Int64:
+                        rval = s->setInt32(count, param->getInt64());
+                        break;
+                     case UInt64:
+                        rval = s->setInt32(count, param->getUInt64());
+                        break;
+                     default:
+                        rval = s->setText(count, param->getString());
+                        break;
+                  }
+                  count++;
+               }
+            }
+         }
+
+         // FIXME: this will not work for SELECT ... unless there is only
+         // one statement permitted ... instead we'll have to do something
+         // much more complicated, as we need to do all fetches for each
+         // SELECT all together unless we're using more than 1 connection
+         // either that, or we pull all objects out first and store them
+         // locally ... which may be preferrable... but would prevent
+         // streaming implementations (which are non-existant in our current
+         // code ... and seem pretty rare in general)
+
+         // execute all statements
+         for(StatementCache::iterator i = mStatementCache.begin();
+             rval && i != mStatementCache.end(); i++)
          {
-            params = &p;
+            rval = (*i)->execute();
          }
-         // FIXME: convert parameters into appropriate column types, etc.
-
-         // set the parameters and execute
-         // FIXME: set params
-         mStatement->execute();
       }
    }
 
    return rval;
 }
 
+DynamicObject StatementBuilder::fetch()
+{
+   DynamicObject rval(NULL);
+
+   // FIXME: will probably call fetchAll() on every statement ... and
+   // then return them all or one object with this call
+   // ... will need to store the object type the statement applies to
+   // so we can get data out
+
+   // FIXME: implement me
+
+   return rval;
+}
+
+const char* StatementBuilder::assignAlias(const char* table)
+{
+   if(!mAliases[table]->hasMember("alias"))
+   {
+      char tmp[20];
+      do
+      {
+         snprintf(tmp, 20, "__t%d", mAliasCounter);
+      }
+      while(mUsedAliases->hasMember(tmp) && mAliasCounter < MAX_ALIAS_COUNTER);
+      mAliases[table]["alias"] = tmp;
+      mUsedAliases[tmp] = table;
+   }
+
+   return mAliases[table]["alias"]->getString();
+}
+
+bool StatementBuilder::createSql(DynamicObject& statements)
+{
+   bool rval = true;
+
+   /* Algorithm to convert statement type, any input object, and conditional
+      restrictions into SQL statement(s):
+
+      1. Get an OR mapping for the particular input object instance.
+      2. There may be more than 1 statement that needs to be executed to
+         complete an object insert or update, so start with the first one, as
+         specified in the schema order.
+      For each statement:
+         1. If the statement is "add" then build an INSERT statement.
+         2. If the statement is "update" then build an UPDATE statement.
+         3. If the statement is "get" then build a SELECT statement.
+         4. Determine, from the schema, if row-level locks should be applied
+            while updating/selecting related rows. Apply the SQL appropriately.
+   */
+
+   // get an OR mapping for the given object instance
+   DynamicObject mapping;
+   rval = mDatabaseClient->getMapping(mObjectType.c_str(), mObject, mapping);
+   if(rval)
+   {
+      // setup sql to be run and associated params
+      statements["sql"]->setType(Array);
+      statements["params"]->setType(Array);
+
+      switch(mStatementType)
+      {
+         case Add:
+            rval = createAddSql(mapping, statements);
+            break;
+         case Update:
+            rval = createUpdateSql(mapping, statements);
+            break;
+         case Get:
+            rval = createGetSql(mapping, statements);
+            break;
+      }
+   }
+
+   return rval;
+}
+// FIXME: change to be implemented by individual drivers, ie mysql,sqlite
+bool StatementBuilder::createAddSql(
+   DynamicObject& mapping, DynamicObject& statements)
+{
+   bool rval = true;
+
+   // for each table create another SQL statement
+   DynamicObjectIterator mi = mapping.getIterator();
+   while(mi->hasNext())
+   {
+      DynamicObject& entry = mi->next();
+      // FIXME: how will we handle sharded tables?
+      const char* table = entry["table"]->getString();
+      DynamicObject& params = statements["params"]->append();
+      params->setType(Array);
+
+      // build columns to be inserted, values string, and parameters
+      string columns;
+      string values;
+      DynamicObjectIterator ci = entry["columns"].getIterator();
+      while(ci->hasNext())
+      {
+         DynamicObject& member = ci->next();
+         columns.append(ci->getName());
+         values.push_back('?');
+         params->append(member);
+         if(ci->hasNext())
+         {
+            columns.push_back(',');
+            values.push_back(',');
+         }
+      }
+
+      // if any foreign key look ups are required, build an INSERT-SELECT
+      // statement, otherwise build a vanilla INSERT statement
+      if(entry->hasMember("foreignKeys"))
+      {
+         // add sub-select for each foreign key
+         DynamicObjectIterator fi = entry["foreignKeys"].getIterator();
+         while(fi->hasNext())
+         {
+            DynamicObject& fkey = fi->next();
+            if(values.length() > 0)
+            {
+               columns.push_back(',');
+               values.push_back(',');
+            }
+
+            // assign an alias to the foreign key table
+            const char* fkeyAlias = assignAlias(fkey["table"]->getString());
+            columns.append(fkey["fcolumn"]->getString());
+            values.append(StringTools::format(
+               ",(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
+               fkeyAlias, fkey["key"]->getString(),
+               fkey["table"]->getString(), fkeyAlias,
+               fkeyAlias, fkey["column"]->getString()));
+            params->append(fkey["value"]);
+         }
+
+         statements["sql"]->append() = StringTools::format(
+            "INSERT INTO %s (%s) SELECT %s",
+            table, columns.c_str(), values.c_str()).c_str();
+      }
+      else
+      {
+         statements["sql"]->append() = StringTools::format(
+            "INSERT INTO %s (%s) VALUES (%s)",
+            table, columns.c_str(), values.c_str()).c_str();
+      }
+   }
+
+   return rval;
+}
+
+bool StatementBuilder::createUpdateSql(
+   DynamicObject& mapping, DynamicObject& statements)
+{
+   bool rval = true;
+
+   // for each table create another SQL statement
+   DynamicObjectIterator mi = mapping.getIterator();
+   while(mi->hasNext())
+   {
+      DynamicObject& entry = mi->next();
+      // FIXME: how will we handle sharded tables?
+      const char* table = entry["table"]->getString();
+      DynamicObject& params = statements["params"]->append();
+      params->setType(Array);
+
+      // assign an alias to the table
+      const char* alias = assignAlias(table);
+
+      // build columns to be updated and parameters
+      string sets;
+      DynamicObjectIterator ci = entry["columns"].getIterator();
+      while(ci->hasNext())
+      {
+         DynamicObject& member = ci->next();
+         sets.append(StringTools::format("%s.%s=?", alias, ci->getName()));
+         params->append(member);
+         if(ci->hasNext())
+         {
+            sets.push_back(',');
+         }
+      }
+
+      // if any foreign key look ups are required, build set statements
+      // using sub-selects
+      if(entry->hasMember("foreignKeys"))
+      {
+         // add sub-select for each foreign key
+         DynamicObjectIterator fi = entry["foreignKeys"].getIterator();
+         while(fi->hasNext())
+         {
+            DynamicObject& fkey = fi->next();
+
+            // assign an alias to the foreign key table
+            const char* fkeyAlias = assignAlias(fkey["table"]->getString());
+            sets.append(StringTools::format(
+               ",(SELECT %s.%s FROM %s AS %s WHERE %s=?)",
+               fkeyAlias,
+               fkey["key"]->getString(),
+               fkey["table"]->getString(),
+               fkeyAlias,
+               fkey["column"]->getString()));
+            params->append(fkey["value"]);
+            if(fi->hasNext())
+            {
+               sets.push_back(',');
+            }
+         }
+      }
+
+      // FIXME: add where clause and params
+
+      // FIXME: handle row-level locking
+
+      statements["sql"]->append() = StringTools::format(
+         "UPDATE %s AS %s SET %s",
+         table, alias, sets.c_str()).c_str();
+   }
+
+   return rval;
+}
+
+bool StatementBuilder::createGetSql(
+   DynamicObject& mapping, DynamicObject& statements)
+{
+   bool rval = true;
+
+   // for each table create another SQL statement
+   DynamicObjectIterator mi = mapping.getIterator();
+   while(mi->hasNext())
+   {
+      DynamicObject& entry = mi->next();
+      // FIXME: how will we handle sharded tables?
+      const char* table = entry["table"]->getString();
+      DynamicObject& params = statements["params"]->append();
+      params->setType(Array);
+
+      // assign an alias to the table
+      const char* alias = assignAlias(table);
+
+      // build columns to be selected
+      string columns;
+      DynamicObjectIterator ci = entry["columns"].getIterator();
+      while(ci->hasNext())
+      {
+         ci->next();
+         columns.append(StringTools::format("%s.%s", alias, ci->getName()));
+         if(ci->hasNext())
+         {
+            columns.push_back(',');
+         }
+      }
+
+      // handle any foreign key look ups, building joins
+      string joins;
+      if(entry->hasMember("foreignKeys"))
+      {
+         // add sub-select for each foreign key
+         DynamicObjectIterator fi = entry["foreignKeys"].getIterator();
+         while(fi->hasNext())
+         {
+            DynamicObject& fkey = fi->next();
+
+            // assign an alias to the foreign key table
+            const char* fkeyAlias = assignAlias(fkey["table"]->getString());
+
+            columns.append(StringTools::format("%s.%s",
+               fkeyAlias, fkey["column"]->getString()));
+            if(fi->hasNext())
+            {
+               columns.push_back(',');
+            }
+
+            if(joins.length() > 0)
+            {
+               joins.push_back(' ');
+            }
+
+            joins.append(StringTools::format(
+               "JOIN %s AS %s ON %s.%s=%s.%s",
+               fkey["table"]->getString(), fkeyAlias,
+               alias, fkey["fkey"]->getString(),
+               fkeyAlias, fkey["key"]->getString()));
+         }
+      }
+
+      // FIXME: handle where clause and params
+
+      // FIXME: handle row-level locking
+
+      string sql = StringTools::format(
+         "SELECT %s FROM %s AS %s",
+         columns.c_str(), table, alias);
+      if(joins.length() > 0)
+      {
+         sql.push_back(' ');
+         sql.append(joins);
+      }
+      statements["sql"]->append() = sql.c_str();
+   }
+
+   return rval;
+}
+
+#if 0
 /**
  * Gets a column name from the given schema, given a field name that can
  * refer to a member or a column name.
@@ -446,244 +651,4 @@ static bool _getColumns(
 
    return rval;
 }
-
-bool StatementBuilder::createSql(string& sql, DynamicObject& params)
-{
-   bool rval = true;
-
-   /* Algorithm:
-
-      Go through every clause building up the SQL statement. For clauses of the
-      same type, data that will need to be added to the end of the clause is
-      stored until it can be applied at the end of the full clause (when the
-      clause type changes). For instance, several SELECT clauses may follow one
-      another. In this case, the SQL is modified to add "SELECT" and all of the
-      fields, qualified by the appropriate table aliases. Only once all of the
-      fields have been added can the "FROM" SQL be added with the first table,
-      followed by any appropriate joins. If the next clause change is the start
-      of a parenthetical group, the data will be stored on a stack until it is
-      popped back off after the group ends.
-
-      While the SQL statement is built, the list of parameters is also built.
-    */
-
-   ClauseType state = ClauseNone;
-   StateStack stateStack;
-   DynoStack dataStack;
-   DynamicObject data(NULL);
-   params->setType(Array);
-
-   // add an ending clause
-   {
-      DynamicObject& clause = mClauses->append();
-      clause["type"] = ClauseDone;
-   }
-
-   DynamicObjectIterator i = mClauses.getIterator();
-   while(rval && i->hasNext())
-   {
-      DynamicObject& clause = i->next();
-      ClauseType ct = ClauseType(clause["type"]->getInt32());
-
-      // assign an alias to any table in the clause
-      if(clause->hasMember("table"))
-      {
-         _assignAlias(
-            mAliases, mUsedAliases, mAliasCounter,
-            clause["table"]->getString());
-      }
-
-      // handle changing state
-      if(state != ct)
-      {
-         // end previous state
-         switch(state)
-         {
-            case ClauseSelect:
-            {
-               const char* table = data["from"]->getString();
-               sql.append(" FROM ");
-               sql.append(table);
-               sql.push_back(' ');
-               sql.append(mAliases[table]["alias"]->getString());
-               break;
-            }
-            case ClauseInsert:
-            {
-               sql.append(") VALUES (");
-               sql.append(data["values"]->getString());
-               sql.push_back(')');
-               break;
-            }
-            default:
-               // nothing to do in other cases
-               break;
-         }
-
-         // add white space for separation of next clause
-         sql.push_back(' ');
-      }
-
-      // handle new state
-      switch(ct)
-      {
-         case ClauseSql:
-         {
-            // add raw SQL, but do not change state
-            sql.append(clause["sql"]->getString());
-            break;
-         }
-         case ClauseSelect:
-         {
-            // changing state
-            if(ct != state)
-            {
-               sql.append("SELECT");
-               data = DynamicObject();
-               data["from"] = clause["table"];
-               state = ct;
-            }
-
-            // add columns to sql
-            rval = _getColumns(sql, mDatabaseClient, mAliases, clause, NULL);
-            break;
-         }
-         case ClauseInsert:
-         {
-            // changing state
-            if(ct != state)
-            {
-               sql.append("INSERT INTO ");
-               sql.append(clause["table"]->getString());
-               sql.append(" (");
-               data = DynamicObject();
-               data["values"] = "";
-               state = ct;
-            }
-
-            int count = 0;
-            rval = _getColumns(
-               sql, mDatabaseClient, mAliases, clause, &count);
-            if(rval && count > 0)
-            {
-               // build parameter placeholder '?' values string, also
-               // add parameters if the fields are not strings
-               // FIXME:
-               string values = data["values"]->getString();
-               for(int n = 0; n < count; n++)
-               {
-                  if(values.length() > 0)
-                  {
-                     values.append(",?");
-                  }
-                  else
-                  {
-                     values.push_back('?');
-                  }
-
-               }
-               data["values"] = values.c_str();
-            }
-/*
-               DynamicObjectIterator fi = clause["fields"].getIterator();
-               while(fi->hasNext())
-               {
-                  DynamicObject& value = fi->next();
-                  if(fields.length() > 0)
-                  {
-                     fields.push_back(',');
-                  }
-                  if(values.length() > 0)
-                  {
-                     values.push_back(',');
-                  }
-                  fields.append(fi->getName());
-                  params->append(value);
-                  values.push_back('?');
-               }
-               data["values"] = values.c_str();
-               rval = _getColumns(
-                  sql, mDatabaseClient, mAliases,
-                  clause, fields.c_str(), NULL);
-            }*/
-            break;
-         }
-         case ClauseUpdate:
-         {
-            // changing state
-            if(ct != state)
-            {
-               sql.append("UPDATE ");
-               sql.append(clause["table"]->getString());
-               sql.append(" SET ");
-               data.setNull();
-               state = ct;
-            }
-
-            // fields is a string of comma-delimited fields
-            if(clause["fields"]->getType() == String)
-            {
-               rval = _getColumns(sql, mDatabaseClient, mAliases, clause, NULL);
-            }
-            // assume fields is a map of key-value pairs
-            else
-            {
-               // gather keys as fields and values as params
-               string fields;
-               DynamicObjectIterator fi = clause["fields"].getIterator();
-               while(fi->hasNext())
-               {
-                  DynamicObject& value = fi->next();
-                  if(fields.length() > 0)
-                  {
-                     fields.push_back(',');
-                  }
-                  fields.append(fi->getName());
-                  params->append(value);
-               }
-            }
-            break;
-         }
-         case ClauseJoin:
-         {
-            break;
-         }
-         case ClauseWhere:
-         {
-            break;
-         }
-         case ClauseOrderBy:
-         {
-            break;
-         }
-         case ClauseLimit:
-         {
-            break;
-         }
-         case ClauseGroup:
-         {
-            // start parenthetical, save state and data
-            sql.push_back('(');
-            stateStack.push_back(state);
-            dataStack.push_back(data);
-            state = ct;
-            break;
-         }
-         case ClauseUngroup:
-         {
-            // end parenthetical, revert to previous state
-            sql.push_back(')');
-            state = stateStack.back();
-            stateStack.pop_back();
-            data = dataStack.back();
-            dataStack.pop_back();
-            break;
-         }
-         default:
-            // FIXME: handle me
-            break;
-      }
-   }
-
-   return rval;
-}
+#endif
