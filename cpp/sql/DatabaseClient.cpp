@@ -299,6 +299,7 @@ bool DatabaseClient::mapInstance(
    *          "objectType": "_col" OR "_fkey" or object-type
    *          "table": if _col or _fkey, then database table name
    *          "column": if _col or _fkey, then database column name
+   *          "columnType": if _col or _fkey the expected column type
    *          "memberType": if _col or _fkey the expected member type
    *          FIXME: stuff for _fkey mappings
    *          FIXME: stuff for transformations
@@ -355,13 +356,13 @@ bool DatabaseClient::mapInstance(
                {
                   const char* col = info["column"]->getString();
                   entry["columns"][col] = member.clone();
-                  entry["columns"][col]->setType(info["memberType"]->getType());
+                  entry["columns"][col]->setType(info["columnType"]->getType());
                }
                else
                {
                   DynamicObject fkey = info.clone();
                   fkey["value"] = member.clone();
-                  fkey["value"]->setType(info["memberType"]->getType());
+                  fkey["value"]->setType(info["columnType"]->getType());
                   entry["foreignKeys"]->append(fkey);
                }
             }

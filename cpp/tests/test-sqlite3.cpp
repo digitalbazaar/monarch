@@ -1521,6 +1521,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
          col["objectType"] = "_col";
          col["table"] = TABLE_TEST;
          col["column"] = "id";
+         col["columnType"]->setType(UInt64);
          col["memberType"]->setType(String);
       }
 
@@ -1530,6 +1531,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
          col["objectType"] = "_col";
          col["table"] = TABLE_TEST;
          col["column"] = "t";
+         col["columnType"]->setType(String);
          col["memberType"]->setType(String);
       }
 
@@ -1539,6 +1541,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
          col["objectType"] = "_col";
          col["table"] = TABLE_TEST;
          col["column"] = "i";
+         col["columnType"]->setType(UInt64);
          col["memberType"]->setType(UInt64);
       }
 
