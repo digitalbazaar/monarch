@@ -1,18 +1,17 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_app_App_H
 #define monarch_app_App_H
 
 #include <ostream>
+#include <vector>
 
 #include "monarch/rt/Runnable.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/config/ConfigManager.h"
 #include "monarch/app/AppPlugin.h"
 #include "monarch/app/MultiAppPlugin.h"
-
-#include <vector>
 
 namespace monarch
 {
@@ -22,28 +21,37 @@ namespace app
 /**
  * Top-level class for applications.
  *
- * This class provides basic functionality. Custom app functionality is
- * provided by AppPlugins. To run an App, create an App instance, optionally
- * add plugins to it, and call App::main():
+ * This class provides basic app functionality. Custom app functionality is
+ * provided by AppPlugins. Normal use of this class is to have the program
+ * main(...) call App::main(...).
  *
- * int main(int argc, const char* argv[])
- * {
- *    monarch::app::App app;
- *    std::vector<monarch::app::AppPluginRef> plugins;
- *    monarch::app::AppPluginRef plugin = new MyPlugin;
- *    plugins.push_back(plugin);
- *    ...
- *    return app.main(argc, argv, &plugins);
- * }
- *
- * Most functionality is delegated to plugins. See the AppPlugin documentation
- * for plugin details.
+ * App will load up the Monarch, Config, Logging, and Kernel AppPlugins.
+ * Other functionality can be provided by loading more plugins with command
+ * line options or programatically from loaded modules. The App will create
+ * and load AppPlugins created by all modules of type
+ * "monarch.app.AppPluginFactory".
  *
  * @author David I. Lehn
  */
 class App
 {
+public:
+   /**
+    * Run mode of the app.
+    */
+   enum Mode {
+      /** Bootstrap mode. */
+      BOOTSTRAP,
+      /** Main mode. */
+      NORMAL
+   };
+
 protected:
+   /**
+    * The run mode.
+    */
+   Mode mMode;
+
    /**
     * Program name for this App.  Taken from the command line args.
     */
@@ -137,6 +145,22 @@ public:
     * Deconstruct this App instance.
     */
    virtual ~App();
+
+   /**
+    * Set the bootstrap mode.
+    *
+    * @param mode the bootstrap mode.
+    *
+    * @return true on success, false and exception set on error.
+    */
+   virtual bool setMode(Mode mode);
+
+   /**
+    * Get the app run mode.
+    *
+    * @return the run mode of the app.
+    */
+   virtual Mode getMode();
 
    /**
     * Add an AppPlugin.
@@ -273,6 +297,13 @@ public:
    virtual monarch::config::Config getMetaConfig();
 
    /**
+    * Get the command line args used for this app.
+    *
+    * @return the command line args.
+    */
+   virtual std::vector<const char*>* getCommandLine();
+
+   /**
     * Parses the command line options that were passed to the application.
     * Implementations may call exit() depending on the arguments.  For normal
     * errors it is preferable to return false and set an exception.
@@ -296,19 +327,23 @@ public:
    virtual void cleanupOpenSSL();
 
    /**
-    * Add plugins, initialize the app and plugins, and run the app.
+    * Run the app. Plugins can be added before this is called.
+    *
+    * @param args the command line arguments.
+    *
+    * @return true on success, false on failure and exception set
+    */
+   virtual int start(std::vector<const char*>* args);
+
+   /**
+    * Complete top-level Monarch App process.
     *
     * @param argc number of command line arguments.
     * @param argv command line arguments.
-    * @param plugins list of plugins to add to an app.
-    * @param standard if true then also add standard plugins.
     *
     * @return exit status. 0 for success.
     */
-   virtual int main(
-      int argc, const char* argv[],
-      std::vector<monarch::app::AppPluginRef>* plugins = NULL,
-      bool standard = true);
+   static int main(int argc, const char* argv[]);
 
    /**
     * Pretty print an exception.
@@ -340,30 +375,16 @@ public:
     * @param meta the meta config.
     * @param id the config id.
     * @param groupId the group id.
+    * @param section section for this config ("configs" or "options").
     *
-    * @return true on success, false and exception on failure.
+    * @return the new config.
     */
    static monarch::config::Config makeMetaConfig(
       monarch::config::Config& meta,
       const char* id = NULL,
-      const char* groupId = NULL);
+      const char* groupId = NULL,
+      const char* section = "configs");
 };
-
-/**
- * Macro to create a simple main() that creates an app, adds a plugin to it,
- * and calls App::main().
- *
- * @param appPluginClassName class name of an AppPlugin subclass.
- */
-#define MO_APP_PLUGIN_MAIN(appPluginClassName)                \
-int main(int argc, const char* argv[])                        \
-{                                                             \
-   monarch::app::App app;                                          \
-   std::vector<monarch::app::AppPluginRef> plugins;                \
-   monarch::app::AppPluginRef plugin = new appPluginClassName;     \
-   plugins.push_back(plugin);                                 \
-   return app.main(argc, argv, &plugins);                     \
-}
 
 } // end namespace app
 } // end namespace monarch

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/app/AppPlugin.h"
 
@@ -11,14 +11,20 @@ using namespace monarch::rt;
 AppPlugin::AppPlugin() :
    mApp(NULL)
 {
-   mInfo["id"] = "monarch.app.plugin.Unknown";
-   mInfo["dependencies"]->setType(Array);
-   mInfo["dependencies"]->append() = "monarch.app.plugins.Common";
 }
 
 AppPlugin::~AppPlugin()
 {
    mApp = NULL;
+}
+
+bool AppPlugin::initialize()
+{
+   return true;
+}
+
+void AppPlugin::cleanup()
+{
 }
 
 bool AppPlugin::willAddToApp(App* app)
@@ -60,11 +66,6 @@ void AppPlugin::setApp(App* app)
 App* AppPlugin::getApp()
 {
    return mApp;
-}
-
-AppPluginInfo AppPlugin::getInfo()
-{
-   return mInfo;
 }
 
 DynamicObject AppPlugin::getCommandLineSpecs()

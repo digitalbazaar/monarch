@@ -1,12 +1,9 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef monarch_app_AppPlugin_H
-#define monarch_app_AppPlugin_H
+#ifndef monarch_app_AppPlugin_h
+#define monarch_app_AppPlugin_h
 
-#include "monarch/logging/Logging.h"
-#include "monarch/rt/Runnable.h"
-#include "monarch/rt/Exception.h"
 #include "monarch/config/ConfigManager.h"
 
 namespace monarch
@@ -24,23 +21,6 @@ namespace app
  * @author David I. Lehn
  */
 
-/**
- * AppPluginInfo contains information about a particular plugin. The dependency
- * information is used to sort plugins so they run methods in a known order.
- *
- * AppPluginInfo
- * {
- *    "id" : AppPluginId,
- *    "dependencies": [] (AppPluginId)
- * }
- *
- * @member id the ID of the plugin.
- * @member dependencies an array of AppPluginIds that this plugin depends on.
- */
-typedef monarch::rt::DynamicObject AppPluginInfo;
-typedef monarch::rt::DynamicObjectIterator AppPluginInfoIterator;
-typedef const char* AppPluginId;
-
 // forward declaration
 class App;
 
@@ -52,21 +32,28 @@ protected:
     */
    App* mApp;
 
-   /**
-    * AppPluginInfo for this plugin.
-    */
-   AppPluginInfo mInfo;
-
 public:
    /**
-    * Create an App instance.
+    * Create an AppPlugin instance.
     */
    AppPlugin();
 
    /**
-    * Deconstruct this App instance.
+    * Deconstruct this AppPlugin instance.
     */
    virtual ~AppPlugin();
+
+   /**
+    * Initializes this plugin.
+    *
+    * @return true if initialized, false if an Exception occurred.
+    */
+   virtual bool initialize();
+
+   /**
+    * Cleans up this plugin.
+    */
+   virtual void cleanup();
 
    /**
     * Called before a plugin is added to an app.  A plugin can refuse to be
@@ -143,13 +130,6 @@ public:
     * @return the owner App.
     */
    virtual App* getApp();
-
-   /**
-    * Get the AppPluginInfo for this plugin.
-    *
-    * @return the AppPluginInfo.
-    */
-   virtual AppPluginInfo getInfo();
 
    /**
     * Get command line specifications for default paramters.  Subclasses MUST

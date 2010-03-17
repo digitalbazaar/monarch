@@ -9,15 +9,35 @@ using namespace monarch::config;
 using namespace monarch::rt;
 
 typedef vector<AppPluginRef>::iterator PluginIterator;
+typedef vector<AppPluginRef>::reverse_iterator PluginReverseIterator;
 
 MultiAppPlugin::MultiAppPlugin()
 {
-   mInfo["id"] = "monarch.app.plugin.Multi";
 }
 
 MultiAppPlugin::~MultiAppPlugin()
 {
-   mApp = NULL;
+}
+
+bool MultiAppPlugin::initialize()
+{
+   bool rval = AppPlugin::initialize();
+
+   for(PluginIterator i = mPlugins.begin(); rval && i != mPlugins.end(); i++)
+   {
+      rval = (*i)->initialize();
+   }
+   return rval;
+}
+
+void MultiAppPlugin::cleanup()
+{
+   AppPlugin::cleanup();
+
+   for(PluginReverseIterator i = mPlugins.rbegin(); i != mPlugins.rend(); i++)
+   {
+      (*i)->cleanup();
+   }
 }
 
 void MultiAppPlugin::addPlugin(AppPluginRef plugin)
@@ -160,7 +180,9 @@ bool MultiAppPlugin::initializeLogging()
 bool MultiAppPlugin::cleanupLogging()
 {
    bool rval = AppPlugin::cleanupLogging();
-   for(PluginIterator i = mPlugins.begin(); rval && i != mPlugins.end(); i++)
+   for(PluginReverseIterator i = mPlugins.rbegin();
+      rval && i != mPlugins.rend();
+      i++)
    {
       rval = (*i)->cleanupLogging();
    }

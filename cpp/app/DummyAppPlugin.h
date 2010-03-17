@@ -32,6 +32,16 @@ public:
    /**
     * {@inheritDoc}
     */
+   virtual bool initialize();
+
+   /**
+    * {@inheritDoc}
+    */
+   virtual void cleanup();
+
+   /**
+    * {@inheritDoc}
+    */
    virtual bool willAddToApp(App* app);
 
    /**

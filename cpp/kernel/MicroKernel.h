@@ -36,6 +36,9 @@ namespace kernel
  */
 class MicroKernel : public monarch::modest::Kernel
 {
+public:
+   typedef std::list<MicroKernelModuleApi*> ModuleApiList;
+
 protected:
    /**
     * ConfigManager for this MicroKernel.
@@ -224,7 +227,7 @@ public:
     * @param apiList the list to put the API into.
     */
    virtual void getModuleApisByType(
-      const char* type, std::list<MicroKernelModuleApi*>& apiList);
+      const char* type, ModuleApiList& apiList);
 
    /**
     * Sets the maximum number of auxiliary threads to permit.

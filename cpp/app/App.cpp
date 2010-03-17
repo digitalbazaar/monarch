@@ -15,7 +15,10 @@
 #include <sstream>
 #include <vector>
 
-#include "monarch/app/CommonAppPlugin.h"
+#include "monarch/app/ConfigPlugin.h"
+#include "monarch/app/KernelPlugin.h"
+#include "monarch/app/LoggingPlugin.h"
+#include "monarch/app/MonarchPlugin.h"
 #include "monarch/app/MultiAppPlugin.h"
 #include "monarch/data/json/JsonReader.h"
 #include "monarch/data/json/JsonWriter.h"
@@ -25,7 +28,6 @@
 #include "monarch/io/File.h"
 #include "monarch/io/OStreamOutputStream.h"
 #include "monarch/rt/Exception.h"
-#include "monarch/rt/Platform.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/util/Random.h"
 #include "monarch/util/StringTokenizer.h"
@@ -42,6 +44,7 @@ using namespace monarch::util;
 pthread_mutex_t* App::sOpenSSLMutexes = NULL;
 
 App::App() :
+   mMode(NORMAL),
    mProgramName(NULL),
    mName(NULL),
    mVersion(NULL),
@@ -73,6 +76,17 @@ App::~App()
    cleanupConfigManager();
 }
 
+bool App::setMode(Mode mode)
+{
+   mMode = mode;
+   return true;
+}
+
+App::Mode App::getMode()
+{
+   return mMode;
+}
+
 bool App::addPlugin(AppPluginRef plugin)
 {
    bool rval;
@@ -83,23 +97,28 @@ bool App::addPlugin(AppPluginRef plugin)
       mPlugins->addPlugin(plugin);
       rval = plugin->didAddToApp(this);
    }
-   return true;
+   return rval;
 }
 
-Config App::makeMetaConfig(Config& meta, const char* id, const char* groupId)
+Config App::makeMetaConfig(
+   Config& meta, const char* id, const char* groupId, const char* section)
 {
    Config rval;
    rval[ConfigManager::VERSION] = MO_DEFAULT_CONFIG_VERSION;
    if(groupId != NULL)
    {
       const char* g = meta["groups"][groupId]->getString();
-      rval[ConfigManager::PARENT] = meta["parents"][g]->getString();
+      // check for null parent for root groups
+      if(!meta["parents"][g].isNull())
+      {
+         rval[ConfigManager::PARENT] = meta["parents"][g]->getString();
+      }
       rval[ConfigManager::GROUP] = g;
    }
    if(id != NULL)
    {
       rval[ConfigManager::ID] = id;
-      meta["configs"][id] = rval;
+      meta[section][id] = rval;
    }
 
    return rval;
@@ -397,7 +416,9 @@ static bool _loadOptionConfigs(App* app)
    ConfigIterator i = app->getMetaConfig()["options"].getIterator();
    while(rval && i->hasNext())
    {
-      rval = app->getConfigManager()->addConfig(i->next());
+      //rval = app->getConfigManager()->addConfig(i->next());
+      Config& next = i->next();
+      rval = app->getConfigManager()->addConfig(next);
    }
 
    return rval;
@@ -882,6 +903,11 @@ static bool processOption(
    return rval;
 }
 
+vector<const char*>* App::getCommandLine()
+{
+   return &mCommandLineArgs;
+}
+
 bool App::parseCommandLine(vector<const char*>* args)
 {
    bool rval = true;
@@ -968,7 +994,8 @@ bool App::parseCommandLine(vector<const char*>* args)
                   }
                }
             }
-            if(rval && !found)
+
+            if(rval && !found && mMode != BOOTSTRAP)
             {
                ExceptionRef e = new Exception(
                   "Unknown option.",
@@ -1041,41 +1068,57 @@ void App::cleanupOpenSSL()
    }
 }
 
-int App::main(
-   int argc, const char* argv[], vector<AppPluginRef>* plugins, bool standard)
+#ifdef WIN32
+static bool _initializeWinSock()
+{
+   bool rval = true;
+
+   WSADATA wsaData;
+   if(WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+   {
+      ExceptionRef e = new Exception(
+         "Could not initialize winsock.",
+         "monarch.app.WinSockError");
+      Exception::set(e);
+      rval = false;
+   }
+   else if(LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2)
+   {
+      ExceptionRef e = new Exception(
+         "Incompatible version of winsock.",
+         "monarch.app.WinSockError");
+      e->getDetails()["version"]->format(
+         "%d.%d", LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
+      e->getDetails()["requiredVersion"] = "2.2";
+      Exception::set(e);
+      rval = false;
+   }
+
+   return rval;
+}
+
+static void _cleanupWinSock()
+{
+   // FIXME: WSACleanup() crashes when called on windows (after a successful
+   // call to WSAStartup() ... so it has been disabled
+   //WSACleanup();
+}
+#endif
+
+int App::start(vector<const char*>* args)
 {
    bool success = true;
 
-   // seed random
-   Random::seed();
-   // clear & enable stats early
-   DynamicObjectImpl::enableStats(true);
-   DynamicObjectImpl::clearStats();
-
-   // Make command line vector
-   for(int i = 0; i < argc; i++)
-   {
-      mCommandLineArgs.push_back(argv[i]);
-   }
+   // Make local copy of command line args
+   mCommandLineArgs = *args;
 
    // setup program name from command line
    setProgramName(mCommandLineArgs[0]);
 
-   if(standard)
-   {
-      AppPlugin* common = new CommonAppPlugin;
-      success = addPlugin(common);
-   }
-   for(vector<AppPluginRef>::iterator i = plugins->begin();
-      success && i != plugins->end();
-      i++)
-   {
-      success = addPlugin(*i);
-   }
-
    Config meta = getMetaConfig();
    success = success &&
       initConfigManager() &&
+      mPlugins->initialize() &&
       mPlugins->initConfigManager() &&
       mPlugins->willInitMetaConfig(meta) &&
       mPlugins->initMetaConfig(meta) &&
@@ -1112,68 +1155,96 @@ int App::main(
       _loadOptionConfigs(this) &&
       mPlugins->didLoadConfigs();
 
-#ifdef WIN32
-   if(success)
+   if(getMode() == App::BOOTSTRAP)
    {
-      // initialize winsock
-      WSADATA wsaData;
-      if(WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-      {
-         ExceptionRef e = new Exception(
-            "Could not initialize winsock.",
-            "monarch.app.WinSockError");
-         Exception::set(e);
-         success = false;
-      }
-      else if(LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2)
-      {
-         ExceptionRef e = new Exception(
-            "Incompatible version of winsock.",
-            "monarch.app.WinSockError");
-         char tmp[10];
-         snprintf(tmp, 10, "%d.%d",
-            LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
-         e->getDetails()["version"] = tmp;
-         e->getDetails()["requiredVersion"] = "2.2";
-         Exception::set(e);
-         success = false;
-      }
-   }
+#ifdef WIN32
+      success = success && _initializeWinSock();
 #endif
+      success = success && initializeOpenSSL();
+   }
 
    success = success &&
-      initializeOpenSSL() &&
-      monarch::logging::Logging::initialize() &&
-      monarch::rt::Platform::initialize() &&
       mPlugins->initializeLogging() &&
       mPlugins->willRun() &&
       mPlugins->run() &&
       mPlugins->didRun();
 
+   mPlugins->cleanupLogging();
+   mPlugins->cleanup();
+   if(getMode() == App::BOOTSTRAP)
+   {
+      cleanupOpenSSL();
+#ifdef WIN32
+      _cleanupWinSock();
+#endif
+   }
+
+   // make sure exit status reflects if an error occurred
    if(!success)
+   {
+      if(Exception::isSet() && Exception::get()->isType("monarch.app.Exit"))
+      {
+         setExitStatus(Exception::get()->getCode());
+      }
+      else if(getExitStatus() == EXIT_SUCCESS)
+      {
+         setExitStatus(EXIT_FAILURE);
+      }
+   }
+
+   return getExitStatus();
+}
+
+int App::main(int argc, const char* argv[])
+{
+   int rval = EXIT_FAILURE;
+   bool success;
+
+   // seed random
+   Random::seed();
+   // clear & enable stats early
+   DynamicObjectImpl::enableStats(true);
+   DynamicObjectImpl::clearStats();
+
+   // Plugin used in both bootstrap and main modes.
+   AppPluginRef mp = new MonarchPlugin;
+   AppPluginRef cp = new ConfigPlugin;
+   AppPluginRef lp = new LoggingPlugin;
+   AppPluginRef kp = new KernelPlugin;
+
+   // Perform a bootstrap run of an app to setup for real app.
+   {
+      App app;
+      success =
+         app.setMode(App::BOOTSTRAP) &&
+         app.addPlugin(mp) &&
+         app.addPlugin(cp) &&
+         app.addPlugin(lp) &&
+         app.addPlugin(kp);
+      if(success)
+      {
+         // Make command line vector
+         vector<const char*> args;
+         for(int i = 0; i < argc; i++)
+         {
+            args.push_back(argv[i]);
+         }
+
+         // start app
+         rval = app.start(&args);
+      }
+      success = (rval == EXIT_SUCCESS);
+   }
+
+   // print exception if make sure exit status reflects if an error occurred
+   if(!success &&
+      Exception::isSet() &&
+      !Exception::get()->isType("monarch.app.Exit"))
    {
       printException();
    }
 
-   mPlugins->cleanupLogging();
-   monarch::rt::Platform::cleanup();
-   monarch::logging::Logging::cleanup();
-   cleanupOpenSSL();
-
-   // cleanup winsock
-#ifdef WIN32
-   // FIXME: WSACleanup() crashes when called on windows (after a successful
-   // call to WSAStartup() ... so it has been disabled
-   //WSACleanup();
-#endif
-
-   // if had an error and exit status not already set to failure then set it
-   if(!success && mExitStatus != EXIT_SUCCESS)
-   {
-      mExitStatus = EXIT_FAILURE;
-   }
-
    Thread::exit();
 
-   return mExitStatus;
+   return rval;
 }

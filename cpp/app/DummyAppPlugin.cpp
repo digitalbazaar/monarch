@@ -10,13 +10,21 @@ using namespace monarch::rt;
 
 DummyAppPlugin::DummyAppPlugin()
 {
-   mInfo["id"] = "monarch.app.plugin.Dummy";
-   //mInfo["dependencies"]->append() = "monarch.app.plugins.Common";
 }
 
 DummyAppPlugin::~DummyAppPlugin()
 {
-   mApp = NULL;
+}
+
+bool DummyAppPlugin::initialize()
+{
+   bool rval = AppPlugin::initialize();
+   return rval;
+}
+
+void DummyAppPlugin::cleanup()
+{
+   AppPlugin::cleanup();
 }
 
 bool DummyAppPlugin::willAddToApp(App* app)
@@ -61,18 +69,6 @@ DynamicObject DummyAppPlugin::getCommandLineSpecs()
    return rval;
 }
 
-bool DummyAppPlugin::willLoadConfigs()
-{
-   bool rval = AppPlugin::willLoadConfigs();
-   return rval;
-}
-
-bool DummyAppPlugin::didLoadConfigs()
-{
-   bool rval = AppPlugin::didLoadConfigs();
-   return rval;
-}
-
 bool DummyAppPlugin::willParseCommandLine(std::vector<const char*>* args)
 {
    bool rval = AppPlugin::willParseCommandLine(args);
@@ -82,6 +78,18 @@ bool DummyAppPlugin::willParseCommandLine(std::vector<const char*>* args)
 bool DummyAppPlugin::didParseCommandLine()
 {
    bool rval = AppPlugin::didParseCommandLine();
+   return rval;
+}
+
+bool DummyAppPlugin::willLoadConfigs()
+{
+   bool rval = AppPlugin::willLoadConfigs();
+   return rval;
+}
+
+bool DummyAppPlugin::didLoadConfigs()
+{
+   bool rval = AppPlugin::didLoadConfigs();
    return rval;
 }
 
