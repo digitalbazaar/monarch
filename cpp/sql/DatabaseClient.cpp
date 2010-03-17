@@ -306,11 +306,14 @@ bool DatabaseClient::mapInstance(
 
    // initialize mapping
    mapping->setType(Array);
+   mapping["tables"]->setType(Map);
+   mapping["entries"]->setType(Array);
 
    // get OR map for the given object type
    ObjRelMap orMap = getObjRelMap(objType);
    if(!orMap.isNull())
    {
+      // FIXME: if object is NULL, then we want to get ALL members
       rval = true;
       DynamicObjectIterator i = obj.getIterator();
       while(rval && i->hasNext())
@@ -326,13 +329,41 @@ bool DatabaseClient::mapInstance(
 
             // handle mapping based on member's object type
             const char* ot = info["objectType"]->getString();
-            if(strcmp(ot, "_col") == 0 || strcmp(ot, "_fkey") == 0)
+            bool isCol = (strcmp(ot, "_col") == 0);
+            bool isFKey = (strcmp(ot, "_fkey") == 0);
+            if(isCol || isFKey)
             {
-               // clone OR map info, munge datatype
-               // FIXME: validate data type from instance object
-               entry = info.clone();
-               entry["value"] = member.clone();
-               entry["value"]->setType(entry["memberType"]->getType());
+               const char* table = info["table"]->getString();
+               if(mapping["tables"]->hasMember(table))
+               {
+                  // update existing entry
+                  entry = mapping["tables"][table];
+               }
+               else
+               {
+                  // add a new entry
+                  entry = mapping["entries"]->append();
+                  entry["table"] = info["table"];
+                  entry["columns"]->setType(Array);
+                  entry["foreignKeys"]->setType(Array);
+                  mapping["tables"][table] = entry;
+               }
+
+               // set information and munge datatype
+               // FIXME: validate data type
+               if(isCol)
+               {
+                  const char* col = info["column"]->getString();
+                  entry["columns"][col] = member.clone();
+                  entry["columns"][col]->setType(info["memberType"]->getType());
+               }
+               else
+               {
+                  DynamicObject fkey = info.clone();
+                  fkey["value"] = member.clone();
+                  fkey["value"]->setType(info["memberType"]->getType());
+                  entry["foreignKeys"]->append(fkey);
+               }
             }
             // entry is another object
             else
@@ -341,9 +372,6 @@ bool DatabaseClient::mapInstance(
                // FIXME: if member is a map, then just one
                // FIXME: any other type should be an error
             }
-
-            // add entry to instance mapping
-            mapping->append(entry);
          }
       }
    }

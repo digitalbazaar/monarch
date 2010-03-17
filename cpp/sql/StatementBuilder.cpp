@@ -59,11 +59,18 @@ StatementBuilder& StatementBuilder::update(const char* type, DynamicObject& obj)
    return *this;
 }
 
-StatementBuilder& StatementBuilder::get(const char* type)
+StatementBuilder& StatementBuilder::get(const char* type, DynamicObject* obj)
 {
    mStatementType = StatementBuilder::Get;
    mObjectType = type;
-   mObject.setNull();
+   if(obj == NULL)
+   {
+      mObject.setNull();
+   }
+   else
+   {
+      mObject = *obj;
+   }
    return *this;
 }
 
@@ -221,6 +228,10 @@ bool StatementBuilder::createSql(DynamicObject& statements)
    rval = mDatabaseClient->mapInstance(mObjectType.c_str(), mObject, mapping);
    if(rval)
    {
+      MO_CAT_DEBUG_DATA(MO_SQL_CAT,
+         "Generated instance mapping:%s\n",
+         JsonWriter::writeToString(mapping, false, false).c_str());
+
       // setup sql to be run and associated params
       statements["sql"]->setType(Array);
       statements["params"]->setType(Array);
@@ -248,7 +259,7 @@ bool StatementBuilder::createAddSql(
    bool rval = true;
 
    // for each table create another SQL statement
-   DynamicObjectIterator mi = mapping.getIterator();
+   DynamicObjectIterator mi = mapping["entries"].getIterator();
    while(mi->hasNext())
    {
       DynamicObject& entry = mi->next();
@@ -276,7 +287,7 @@ bool StatementBuilder::createAddSql(
 
       // if any foreign key look ups are required, build an INSERT-SELECT
       // statement, otherwise build a vanilla INSERT statement
-      if(entry->hasMember("foreignKeys"))
+      if(entry["foreignKeys"]->length() > 0)
       {
          // add sub-select for each foreign key
          DynamicObjectIterator fi = entry["foreignKeys"].getIterator();
@@ -314,7 +325,7 @@ bool StatementBuilder::createAddSql(
       int idx = statements["sql"]->length() - 1;
       MO_CAT_DEBUG(MO_SQL_CAT,
          "Generated SQL:\n"
-         "sql: %s\n"
+         "sql: '%s'\n"
          "params: %s\n",
          statements["sql"][idx]->getString(),
          JsonWriter::writeToString(
@@ -330,7 +341,7 @@ bool StatementBuilder::createUpdateSql(
    bool rval = true;
 
    // for each table create another SQL statement
-   DynamicObjectIterator mi = mapping.getIterator();
+   DynamicObjectIterator mi = mapping["entries"].getIterator();
    while(mi->hasNext())
    {
       DynamicObject& entry = mi->next();
@@ -394,7 +405,7 @@ bool StatementBuilder::createUpdateSql(
       int idx = statements["sql"]->length() - 1;
       MO_CAT_DEBUG(MO_SQL_CAT,
          "Generated SQL:\n"
-         "sql: %s\n"
+         "sql: '%s'\n"
          "params: %s\n",
          statements["sql"][idx]->getString(),
          JsonWriter::writeToString(
@@ -410,7 +421,7 @@ bool StatementBuilder::createGetSql(
    bool rval = true;
 
    // for each table create another SQL statement
-   DynamicObjectIterator mi = mapping.getIterator();
+   DynamicObjectIterator mi = mapping["entries"].getIterator();
    while(mi->hasNext())
    {
       DynamicObject& entry = mi->next();
@@ -485,7 +496,7 @@ bool StatementBuilder::createGetSql(
       int idx = statements["sql"]->length() - 1;
       MO_CAT_DEBUG(MO_SQL_CAT,
          "Generated SQL:\n"
-         "sql: %s\n"
+         "sql: '%s'\n"
          "params: %s\n",
          statements["sql"][idx]->getString(),
          JsonWriter::writeToString(

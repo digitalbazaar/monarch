@@ -101,7 +101,7 @@ public:
     * Starts building a statement that will update objects of the given type
     * by the given object.
     *
-    * @param type the type of objects to update, as defined in a related schema.
+    * @param type the type of objects to update, as defined in an OR map.
     * @param obj the object with update values.
     *
     * @return a reference to this StatementBuilder to permit chaining.
@@ -112,11 +112,13 @@ public:
    /**
     * Starts building a statement that will get objects of the given type.
     *
-    * @param type the type of objects to get, as defined in a related schema.
+    * @param type the type of objects to get, as defined in an OR map.
+    * @param obj an object with the members to be populated, NULL for all.
     *
     * @return a reference to this StatementBuilder to permit chaining.
     */
-   virtual StatementBuilder& get(const char* type);
+   virtual StatementBuilder& get(
+      const char* type, monarch::rt::DynamicObject* obj = NULL);
 
    /**
     * Places restrictions on the objects to get or set.

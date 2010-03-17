@@ -1561,6 +1561,31 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("update Test object");
+   {
+      DynamicObject testObj;
+      testObj["id"] = "123";
+      testObj["description"] = "A different test object description";
+      testObj["number"] = 12;
+
+      StatementBuilder sb(dbc);
+      sb.update("Test", testObj).execute(c);
+   }
+   tr.passIfNoException();
+
+   tr.test("get Test object");
+   {
+      // FIXME: pass in NULL object to get all members
+      DynamicObject testObj;
+      testObj["id"];
+      testObj["description"];
+      testObj["number"];
+
+      StatementBuilder sb(dbc);
+      sb.get("Test", &testObj).execute(c);
+   }
+   tr.passIfNoException();
+
    c->close();
 
    tr.ungroup();
