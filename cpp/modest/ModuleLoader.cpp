@@ -47,7 +47,18 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
       if(error == NULL)
       {
          rval = loadModule(create, free);
-         rval->handle = handle;
+         if(rval != NULL)
+         {
+            rval->handle = handle;
+         }
+         else
+         {
+            // could not load module due to loadModule(c,f) exception
+            ExceptionRef e = new Exception(
+               "Could not load module.", "monarch.modest.BadModule");
+            e->getDetails()["filename"] = filename;
+            Exception::push(e);
+         }
       }
       else
       {
@@ -78,11 +89,23 @@ ModuleInfo* ModuleLoader::loadModule(
 {
    ModuleInfo* rval = NULL;
 
-   // create ModuleInfo
-   rval = new ModuleInfo();
-   rval->handle = NULL;
-   rval->module = cm();
-   rval->freeModule = fm;
+   Module* module = cm();
+
+   if(module != NULL)
+   {
+      // create ModuleInfo
+      rval = new ModuleInfo();
+      rval->handle = NULL;
+      rval->module = module;
+      rval->freeModule = fm;
+   }
+   else
+   {
+      // create returned NULL
+      ExceptionRef e = new Exception(
+         "Failed to create module.", "monarch.modest.ModuleCreationFailure");
+      Exception::push(e);
+   }
 
    return rval;
 }
