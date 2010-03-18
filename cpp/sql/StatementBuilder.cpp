@@ -194,7 +194,7 @@ const char* StatementBuilder::assignAlias(const char* table)
       char tmp[20];
       do
       {
-         snprintf(tmp, 20, "__t%d", mAliasCounter);
+         snprintf(tmp, 20, "__t%d", mAliasCounter++);
       }
       while(mUsedAliases->hasMember(tmp) && mAliasCounter < MAX_ALIAS_COUNTER);
       mAliases[table]["alias"] = tmp;
@@ -301,13 +301,13 @@ bool StatementBuilder::createAddSql(
             }
 
             // assign an alias to the foreign key table
-            const char* fkeyAlias = assignAlias(fkey["table"]->getString());
+            const char* fkeyAlias = assignAlias(fkey["ftable"]->getString());
             columns.append(fkey["fcolumn"]->getString());
             values.append(StringTools::format(
-               ",(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
-               fkeyAlias, fkey["key"]->getString(),
-               fkey["table"]->getString(), fkeyAlias,
-               fkeyAlias, fkey["column"]->getString()));
+               "(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
+               fkeyAlias, fkey["fkey"]->getString(),
+               fkey["ftable"]->getString(), fkeyAlias,
+               fkeyAlias, fkey["fcolumn"]->getString()));
             params->append(fkey["value"]);
          }
 
@@ -369,7 +369,7 @@ bool StatementBuilder::createUpdateSql(
 
       // if any foreign key look ups are required, build set statements
       // using sub-selects
-      if(entry->hasMember("foreignKeys"))
+      if(entry["foreignKeys"]->length() > 0)
       {
          // add sub-select for each foreign key
          DynamicObjectIterator fi = entry["foreignKeys"].getIterator();
@@ -378,14 +378,14 @@ bool StatementBuilder::createUpdateSql(
             DynamicObject& fkey = fi->next();
 
             // assign an alias to the foreign key table
-            const char* fkeyAlias = assignAlias(fkey["table"]->getString());
+            const char* fkeyAlias = assignAlias(fkey["ftable"]->getString());
             sets.append(StringTools::format(
-               ",(SELECT %s.%s FROM %s AS %s WHERE %s=?)",
+               ",%s.%s=(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
+               alias, fkey["column"]->getString(),
+               fkeyAlias, fkey["fkey"]->getString(),
+               fkey["ftable"]->getString(),
                fkeyAlias,
-               fkey["key"]->getString(),
-               fkey["table"]->getString(),
-               fkeyAlias,
-               fkey["column"]->getString()));
+               fkeyAlias, fkey["fcolumn"]->getString()));
             params->append(fkey["value"]);
             if(fi->hasNext())
             {
@@ -448,7 +448,7 @@ bool StatementBuilder::createGetSql(
 
       // handle any foreign key look ups, building joins
       string joins;
-      if(entry->hasMember("foreignKeys"))
+      if(entry["foreignKeys"]->length() > 0)
       {
          // add sub-select for each foreign key
          DynamicObjectIterator fi = entry["foreignKeys"].getIterator();
@@ -457,25 +457,20 @@ bool StatementBuilder::createGetSql(
             DynamicObject& fkey = fi->next();
 
             // assign an alias to the foreign key table
-            const char* fkeyAlias = assignAlias(fkey["table"]->getString());
+            const char* fkeyAlias = assignAlias(fkey["ftable"]->getString());
+            columns.append(StringTools::format(",%s.%s",
+               fkeyAlias, fkey["fcolumn"]->getString()));
 
-            columns.append(StringTools::format("%s.%s",
-               fkeyAlias, fkey["column"]->getString()));
-            if(fi->hasNext())
-            {
-               columns.push_back(',');
-            }
-
+            // add join
             if(joins.length() > 0)
             {
                joins.push_back(' ');
             }
-
             joins.append(StringTools::format(
                "JOIN %s AS %s ON %s.%s=%s.%s",
-               fkey["table"]->getString(), fkeyAlias,
-               alias, fkey["fkey"]->getString(),
-               fkeyAlias, fkey["key"]->getString()));
+               fkey["ftable"]->getString(), fkeyAlias,
+               alias, fkey["column"]->getString(),
+               fkeyAlias, fkey["fkey"]->getString()));
          }
       }
 
