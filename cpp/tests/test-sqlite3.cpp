@@ -1623,6 +1623,51 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("update Test object w/id 123");
+   {
+      DynamicObject testObj;
+      testObj["id"] = "123";
+      testObj["description"] = "A different test object description";
+      testObj["number"] = 12;
+      testObj["type"] = "type2";
+
+      DynamicObject where;
+      where["id"] = "123";
+
+      StatementBuilder sb(dbc);
+      sb.update("Test", testObj).where("Test", where).execute(c);
+   }
+   tr.passIfNoException();
+
+   tr.test("update Test object where number > 12");
+   {
+      DynamicObject testObj;
+      testObj["id"] = "123";
+      testObj["description"] = "A different test object description";
+      testObj["number"] = 12;
+      testObj["type"] = "type2";
+
+      DynamicObject where;
+      where["number"] = "12";
+
+      StatementBuilder sb(dbc);
+      sb.update("Test", testObj).where("Test", where, ">").execute(c);
+   }
+   tr.passIfNoException();
+
+   tr.test("update Test object add number +1 where number >= 12");
+   {
+      DynamicObject update;
+      update["number"] = 1;
+
+      DynamicObject where;
+      where["number"] = "12";
+
+      StatementBuilder sb(dbc);
+      sb.update("Test", update, "+=").where("Test", where, ">=").execute(c);
+   }
+   tr.passIfNoException();
+
    tr.test("get full Test object");
    {
       StatementBuilder sb(dbc);

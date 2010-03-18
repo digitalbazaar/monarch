@@ -48,9 +48,9 @@ StatementBuilder& StatementBuilder::add(const char* type, DynamicObject& obj)
 {
    mStatementType = StatementBuilder::Add;
    DynamicObject entry;
-   entry["info"]["type"] = "add";
    entry["type"] = type;
    entry["object"] = obj;
+   entry["info"]["type"] = "add";
    mObjects->append(entry);
    return *this;
 }
@@ -60,6 +60,7 @@ StatementBuilder& StatementBuilder::update(
 {
    mStatementType = StatementBuilder::Update;
    DynamicObject entry;
+   entry["type"] = type;
    entry["object"] = obj;
    entry["info"]["type"] = "set";
    entry["info"]["op"] = op;
@@ -71,7 +72,6 @@ StatementBuilder& StatementBuilder::get(const char* type, DynamicObject* obj)
 {
    mStatementType = StatementBuilder::Get;
    DynamicObject entry;
-   entry["info"]["type"] = "get";
    entry["type"] = type;
    if(obj == NULL)
    {
@@ -81,6 +81,7 @@ StatementBuilder& StatementBuilder::get(const char* type, DynamicObject* obj)
    {
       entry["object"] = *obj;
    }
+   entry["info"]["type"] = "get";
    mObjects->append(entry);
    return *this;
 }
