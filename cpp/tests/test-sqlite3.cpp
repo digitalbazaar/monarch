@@ -1623,17 +1623,20 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("get Test object");
+   tr.test("get full Test object");
    {
-      // FIXME: pass in NULL object to get all members
+      StatementBuilder sb(dbc);
+      sb.get("Test").limit(1).execute(c);
+   }
+   tr.passIfNoException();
+
+   tr.test("get Test object IDs");
+   {
       DynamicObject testObj;
       testObj["id"];
-      testObj["description"];
-      testObj["number"];
-      testObj["type"];
 
       StatementBuilder sb(dbc);
-      sb.get("Test", &testObj).limit(1).execute(c);
+      sb.get("Test", &testObj).execute(c);
    }
    tr.passIfNoException();
 

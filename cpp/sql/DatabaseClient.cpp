@@ -314,19 +314,18 @@ bool DatabaseClient::mapInstance(
    ObjRelMap orMap = getObjRelMap(objType);
    if(!orMap.isNull())
    {
-      // FIXME: if object is NULL, then we want to get ALL members
       rval = true;
-      DynamicObjectIterator i = obj.getIterator();
+      DynamicObjectIterator i = orMap["members"].getIterator();
       while(rval && i->hasNext())
       {
-         DynamicObject& member = i->next();
-         if(orMap["members"]->hasMember(i->getName()))
+         // get OR member info
+         DynamicObject& info = i->next();
+
+         // if object is NULL, then we want to get ALL members
+         if(obj.isNull() || obj->hasMember(i->getName()))
          {
             // start building an instance mapping entry
             DynamicObject entry(NULL);
-
-            // OR map has the given member, get the info for it
-            DynamicObject& info = orMap["members"][i->getName()];
 
             // handle mapping based on member's object type
             const char* ot = info["objectType"]->getString();
@@ -355,13 +354,27 @@ bool DatabaseClient::mapInstance(
                if(isCol)
                {
                   const char* col = info["column"]->getString();
-                  entry["columns"][col] = member.clone();
+                  if(obj.isNull())
+                  {
+                     entry["columns"][col];
+                  }
+                  else
+                  {
+                     entry["columns"][col] = obj[i->getName()].clone();
+                  }
                   entry["columns"][col]->setType(info["columnType"]->getType());
                }
                else
                {
                   DynamicObject fkey = info.clone();
-                  fkey["value"] = member.clone();
+                  if(obj.isNull())
+                  {
+                     fkey["value"];
+                  }
+                  else
+                  {
+                     fkey["value"] = obj[i->getName()].clone();
+                  }
                   fkey["value"]->setType(info["columnType"]->getType());
                   entry["foreignKeys"]->append(fkey);
                }
