@@ -1626,7 +1626,6 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    tr.test("update Test object w/id 123");
    {
       DynamicObject testObj;
-      testObj["id"] = "123";
       testObj["description"] = "A different test object description";
       testObj["number"] = 12;
       testObj["type"] = "type2";
@@ -1667,6 +1666,12 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       sb.update("Test", update, "+=").where("Test", where, ">=").execute(c);
    }
    tr.passIfNoException();
+
+   // FIXME: test array params
+   // FIXME: test LIKE
+   // FIXME: test range
+   // FIXME: enum
+   // FIXME: test chaining updates (and w/diff operators)
 
    tr.test("get full Test object");
    {

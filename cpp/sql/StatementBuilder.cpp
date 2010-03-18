@@ -491,9 +491,6 @@ bool StatementBuilder::createGetSql(
 {
    bool rval = true;
 
-   // FIXME: no support yet for getting columns from one table and using
-   // a where clause in another table
-
    // for each table create another SQL statement
    DynamicObjectIterator mi = mapping["entries"].getIterator();
    while(mi->hasNext())
