@@ -28,7 +28,8 @@ StatementBuilder::StatementBuilder(DatabaseClientRef& dbc) :
    mDatabaseClient(dbc),
    mStatementType(StatementBuilder::Get),
    mAliasCounter(0),
-   mObject(NULL)
+   mObject(NULL),
+   mLimit(NULL)
 {
    mAliases->setType(Map);
    mUsedAliases->setType(Map);
@@ -80,9 +81,11 @@ StatementBuilder& StatementBuilder::where()
    return *this;
 }
 
-StatementBuilder& StatementBuilder::limit()
+StatementBuilder& StatementBuilder::limit(int count, int start)
 {
-   // FIXME:
+   mLimit = DynamicObject();
+   mLimit["count"] = count;
+   mLimit["start"] = start;
    return *this;
 }
 
@@ -395,12 +398,28 @@ bool StatementBuilder::createUpdateSql(
       }
 
       // FIXME: add where clause and params
+      string where;
+
+      // handle limit clause
+      string limit;
+      if(!mLimit.isNull())
+      {
+         limit = " LIMIT ";
+         if(mLimit["start"]->getUInt32() > 0)
+         {
+            limit.append(mLimit["start"]->getString());
+            limit.push_back(',');
+         }
+         limit.append(mLimit["count"]->getString());
+      }
 
       // FIXME: handle row-level locking
+      string lock;
 
       statements["sql"]->append() = StringTools::format(
-         "UPDATE %s AS %s SET %s",
-         table, alias, sets.c_str()).c_str();
+         "UPDATE %s AS %s SET %s%s%s%s",
+         table, alias, sets.c_str(),
+         where.c_str(), limit.c_str(), lock.c_str()).c_str();
 
       int idx = statements["sql"]->length() - 1;
       MO_CAT_DEBUG(MO_SQL_CAT,
@@ -462,31 +481,37 @@ bool StatementBuilder::createGetSql(
                fkeyAlias, fkey["fcolumn"]->getString()));
 
             // add join
-            if(joins.length() > 0)
-            {
-               joins.push_back(' ');
-            }
             joins.append(StringTools::format(
-               "JOIN %s AS %s ON %s.%s=%s.%s",
+               " JOIN %s AS %s ON %s.%s=%s.%s",
                fkey["ftable"]->getString(), fkeyAlias,
                alias, fkey["column"]->getString(),
                fkeyAlias, fkey["fkey"]->getString()));
          }
       }
 
-      // FIXME: handle where clause and params
+      // FIXME: add where clause and params
+      string where;
+
+      // handle limit clause
+      string limit;
+      if(!mLimit.isNull())
+      {
+         limit = " LIMIT ";
+         if(mLimit["start"]->getUInt32() > 0)
+         {
+            limit.append(mLimit["start"]->getString());
+            limit.push_back(',');
+         }
+         limit.append(mLimit["count"]->getString());
+      }
 
       // FIXME: handle row-level locking
+      string lock;
 
-      string sql = StringTools::format(
-         "SELECT %s FROM %s AS %s",
-         columns.c_str(), table, alias);
-      if(joins.length() > 0)
-      {
-         sql.push_back(' ');
-         sql.append(joins);
-      }
-      statements["sql"]->append() = sql.c_str();
+      statements["sql"]->append() = StringTools::format(
+         "SELECT %s FROM %s AS %s%s%s%s%s",
+         columns.c_str(), table, alias,
+         joins.c_str(), where.c_str(), limit.c_str(), lock.c_str()).c_str();
 
       int idx = statements["sql"]->length() - 1;
       MO_CAT_DEBUG(MO_SQL_CAT,

@@ -1520,9 +1520,12 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       ObjRelMap orMap;
       orMap["objectType"] = "Test";
 
+      // define the object's members
+      DynamicObject& members = orMap["members"];
+
       // id column
       {
-         DynamicObject& entry = orMap["members"]["id"];
+         DynamicObject& entry = members["id"];
          entry["objectType"] = "_col";
          entry["table"] = TABLE_TEST_1;
          entry["column"] = "id";
@@ -1532,7 +1535,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       // t column
       {
-         DynamicObject& entry = orMap["members"]["description"];
+         DynamicObject& entry = members["description"];
          entry["objectType"] = "_col";
          entry["table"] = TABLE_TEST_1;
          entry["column"] = "t";
@@ -1542,7 +1545,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       // i column
       {
-         DynamicObject& entry = orMap["members"]["number"];
+         DynamicObject& entry = members["number"];
          entry["objectType"] = "_col";
          entry["table"] = TABLE_TEST_1;
          entry["column"] = "i";
@@ -1550,9 +1553,9 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
          entry["memberType"]->setType(UInt32);
       }
 
-      // type_id foreign key
+      // type w/foreign key
       {
-         DynamicObject& entry = orMap["members"]["type"];
+         DynamicObject& entry = members["type"];
          entry["objectType"] = "_fkey";
          entry["table"] = TABLE_TEST_1;
          entry["column"] = "type";
@@ -1630,7 +1633,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       testObj["type"];
 
       StatementBuilder sb(dbc);
-      sb.get("Test", &testObj).execute(c);
+      sb.get("Test", &testObj).limit(1).execute(c);
    }
    tr.passIfNoException();
 

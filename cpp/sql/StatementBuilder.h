@@ -73,6 +73,11 @@ protected:
    typedef std::vector<Statement*> StatementCache;
    StatementCache mStatementCache;
 
+   /**
+    * Stores a limit for the number of objects to return.
+    */
+   monarch::rt::DynamicObject mLimit;
+
 public:
    /**
     * Creates a new StatementBuilder.
@@ -141,7 +146,7 @@ public:
     *
     * @return a reference to this StatementBuilder to permit chaining.
     */
-   virtual StatementBuilder& limit();
+   virtual StatementBuilder& limit(int count, int start = 0);
 
    /**
     * Prepares and executes the built SQL statement(s).
