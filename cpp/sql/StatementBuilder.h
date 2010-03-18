@@ -63,9 +63,9 @@ protected:
    std::string mObjectType;
 
    /**
-    * The input object.
+    * The input objects.
     */
-   monarch::rt::DynamicObject mObject;
+   monarch::rt::DynamicObject mObjects;
 
    /**
     * A cache of the prepared statements.
@@ -108,11 +108,14 @@ public:
     *
     * @param type the type of objects to update, as defined in an OR map.
     * @param obj the object with update values.
+    * @param op an operational operator to use to set members to their
+    *           values (defaults to '=').
     *
     * @return a reference to this StatementBuilder to permit chaining.
     */
    virtual StatementBuilder& update(
-      const char* type, monarch::rt::DynamicObject& obj);
+      const char* type, monarch::rt::DynamicObject& obj,
+      const char* op = "=");
 
    /**
     * Starts building a statement that will get objects of the given type.
@@ -126,7 +129,19 @@ public:
       const char* type, monarch::rt::DynamicObject* obj = NULL);
 
    /**
-    * Places restrictions on the objects to get or set.
+    * Adds more object members to be set to an update statement.
+    *
+    * @param members the object with update values.
+    * @param op an operational operator to use to set members to their
+    *           values (defaults to '=').
+    *
+    * @return a reference to this StatementBuilder to permit chaining.
+    */
+   virtual StatementBuilder& set(
+      monarch::rt::DynamicObject& members, const char* op = "=");
+
+   /**
+    * Places restrictions on the objects to get or update.
     *
     * If the statement being built will retrieve objects, then the given
     * params will provide conditionals to restrict the objects to retrieve.
@@ -134,9 +149,19 @@ public:
     * If the statement being built will update objects, then the given
     * params will provide conditionals to restrict the objects to update.
     *
+    * @param conditions an object with members whose values will be used to
+    *           create conditional restrictions in the current statement.
+    * @param compareOp an operational operator to use to compare members to
+    *           their values (defaults to '=').
+    * @param boolOp the boolean operator to use to combine multiple member
+    *           comparisons (defaults to "AND").
+    *
     * @return a reference to this StatementBuilder to permit chaining.
     */
-   virtual StatementBuilder& where();
+   virtual StatementBuilder& where(
+      monarch::rt::DynamicObject& conditions,
+      const char* compareOp = "=",
+      const char* boolOp = "AND");
 
    /**
     * Limits the number of objects to update or get.

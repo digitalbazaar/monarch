@@ -28,11 +28,11 @@ StatementBuilder::StatementBuilder(DatabaseClientRef& dbc) :
    mDatabaseClient(dbc),
    mStatementType(StatementBuilder::Get),
    mAliasCounter(0),
-   mObject(NULL),
    mLimit(NULL)
 {
    mAliases->setType(Map);
    mUsedAliases->setType(Map);
+   mObjects->setType(Array);
 }
 
 StatementBuilder::~StatementBuilder()
@@ -47,37 +47,62 @@ StatementBuilder::~StatementBuilder()
 StatementBuilder& StatementBuilder::add(const char* type, DynamicObject& obj)
 {
    mStatementType = StatementBuilder::Add;
+   // FIXME: include object type along side object entry
    mObjectType = type;
-   mObject = obj;
+   DynamicObject entry;
+   entry["info"]["type"] = "add";
+   entry["object"] = obj;
+   mObjects->append(entry);
    return *this;
 }
 
-StatementBuilder& StatementBuilder::update(const char* type, DynamicObject& obj)
+StatementBuilder& StatementBuilder::update(
+   const char* type, DynamicObject& obj, const char* op)
 {
    mStatementType = StatementBuilder::Update;
    mObjectType = type;
-   mObject = obj;
-   return *this;
+   mObjects->clear();
+   return set(obj, op);
 }
 
 StatementBuilder& StatementBuilder::get(const char* type, DynamicObject* obj)
 {
    mStatementType = StatementBuilder::Get;
    mObjectType = type;
+   mObjects->clear();
+   DynamicObject entry;
+   entry["info"]["type"] = "get";
    if(obj == NULL)
    {
-      mObject.setNull();
+      entry["object"].setNull();
    }
    else
    {
-      mObject = *obj;
+      entry["object"] = *obj;
    }
+   mObjects->append(entry);
    return *this;
 }
 
-StatementBuilder& StatementBuilder::where()
+StatementBuilder& StatementBuilder::set(DynamicObject& members, const char* op)
 {
-   // FIXME:
+   DynamicObject entry;
+   entry["object"] = members;
+   entry["info"]["type"] = "set";
+   entry["info"]["op"] = op;
+   mObjects->append(entry);
+   return *this;
+}
+
+StatementBuilder& StatementBuilder::where(
+   DynamicObject& conditions, const char* compareOp, const char* boolOp)
+{
+   DynamicObject entry;
+   entry["object"] = conditions;
+   entry["info"]["type"] = "where";
+   entry["info"]["compareOp"] = compareOp;
+   entry["info"]["boolOp"] = boolOp;
+   mObjects->append(entry);
    return *this;
 }
 
@@ -209,7 +234,7 @@ const char* StatementBuilder::assignAlias(const char* table)
 
 bool StatementBuilder::createSql(DynamicObject& statements)
 {
-   bool rval;
+   bool rval = true;
 
    /* Algorithm to convert statement type, any input object, and conditional
       restrictions into SQL statement(s):
@@ -226,13 +251,20 @@ bool StatementBuilder::createSql(DynamicObject& statements)
             while updating/selecting related rows. Apply the SQL appropriately.
    */
 
-   // get an OR mapping for the given object instance
+   // build the OR mapping by combining every object instance
    DynamicObject mapping;
-   rval = mDatabaseClient->mapInstance(mObjectType.c_str(), mObject, mapping);
+   DynamicObjectIterator i = mObjects.getIterator();
+   while(rval && i->hasNext())
+   {
+      DynamicObject& entry = i->next();
+      rval = mDatabaseClient->mapInstance(
+         mObjectType.c_str(), entry["object"], mapping, &entry["info"]);
+   }
+
    if(rval)
    {
       MO_CAT_DEBUG_DATA(MO_SQL_CAT,
-         "Generated instance mapping:%s\n",
+         "Generated instance mapping:\n%s\n",
          JsonWriter::writeToString(mapping, false, false).c_str());
 
       // setup sql to be run and associated params
@@ -255,7 +287,7 @@ bool StatementBuilder::createSql(DynamicObject& statements)
 
    return rval;
 }
-// FIXME: change to be implemented by individual drivers, ie mysql,sqlite
+
 bool StatementBuilder::createAddSql(
    DynamicObject& mapping, DynamicObject& statements)
 {
@@ -277,10 +309,10 @@ bool StatementBuilder::createAddSql(
       DynamicObjectIterator ci = entry["columns"].getIterator();
       while(ci->hasNext())
       {
-         DynamicObject& member = ci->next();
-         columns.append(ci->getName());
+         DynamicObject& column = ci->next();
+         columns.append(column["name"]->getString());
          values.push_back('?');
-         params->append(member);
+         params->append(column["value"]);
          if(ci->hasNext())
          {
             columns.push_back(',');
@@ -356,17 +388,42 @@ bool StatementBuilder::createUpdateSql(
       // assign an alias to the table
       const char* alias = assignAlias(table);
 
-      // build columns to be updated and parameters
-      string sets;
+      // build set and where clauses
+      string where;
+      string boolOp;
+      string set;
       DynamicObjectIterator ci = entry["columns"].getIterator();
       while(ci->hasNext())
       {
-         DynamicObject& member = ci->next();
-         sets.append(StringTools::format("%s.%s=?", alias, ci->getName()));
-         params->append(member);
-         if(ci->hasNext())
+         DynamicObject& column = ci->next();
+         const char* t = column["userData"]["type"]->getString();
+
+         // add set column
+         if(strcmp(t, "set") == 0)
          {
-            sets.push_back(',');
+            if(set.length() > 0)
+            {
+               set.push_back(',');
+            }
+            set.append(StringTools::format("%s.%s%s?",
+               alias, column["name"]->getString(),
+               column["userData"]["op"]->getString()));
+            params->append(column["value"]);
+         }
+         // add where column
+         else if(strcmp(t, "where") == 0)
+         {
+            if(boolOp.length() > 0)
+            {
+               where.push_back(' ');
+               where.append(boolOp);
+               where.push_back(' ');
+            }
+            boolOp = column["userData"]["boolOp"]->getString();
+            where.append(StringTools::format("%s.%s%s?",
+               alias, column["name"]->getString(),
+               column["userData"]["compareOp"]->getString()));
+            params->append(column["value"]);
          }
       }
 
@@ -382,7 +439,7 @@ bool StatementBuilder::createUpdateSql(
 
             // assign an alias to the foreign key table
             const char* fkeyAlias = assignAlias(fkey["ftable"]->getString());
-            sets.append(StringTools::format(
+            set.append(StringTools::format(
                ",%s.%s=(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
                alias, fkey["column"]->getString(),
                fkeyAlias, fkey["fkey"]->getString(),
@@ -392,13 +449,10 @@ bool StatementBuilder::createUpdateSql(
             params->append(fkey["value"]);
             if(fi->hasNext())
             {
-               sets.push_back(',');
+               set.push_back(',');
             }
          }
       }
-
-      // FIXME: add where clause and params
-      string where;
 
       // handle limit clause
       string limit;
@@ -417,9 +471,10 @@ bool StatementBuilder::createUpdateSql(
       string lock;
 
       statements["sql"]->append() = StringTools::format(
-         "UPDATE %s AS %s SET %s%s%s%s",
-         table, alias, sets.c_str(),
-         where.c_str(), limit.c_str(), lock.c_str()).c_str();
+         "UPDATE %s AS %s SET %s%s%s%s%s",
+         table, alias, set.c_str(),
+         (where.length() == 0) ? "" : " WHERE ",where.c_str(),
+         limit.c_str(), lock.c_str()).c_str();
 
       int idx = statements["sql"]->length() - 1;
       MO_CAT_DEBUG(MO_SQL_CAT,
@@ -452,16 +507,40 @@ bool StatementBuilder::createGetSql(
       // assign an alias to the table
       const char* alias = assignAlias(table);
 
-      // build columns to be selected
+      // build columns to get and where clause
+      string where;
+      string boolOp;
       string columns;
       DynamicObjectIterator ci = entry["columns"].getIterator();
       while(ci->hasNext())
       {
-         ci->next();
-         columns.append(StringTools::format("%s.%s", alias, ci->getName()));
-         if(ci->hasNext())
+         DynamicObject& column = ci->next();
+         const char* t = column["userData"]["type"]->getString();
+
+         // add column to get
+         if(strcmp(t, "get") == 0)
          {
-            columns.push_back(',');
+            if(columns.length() > 0)
+            {
+               columns.push_back(',');
+            }
+            columns.append(StringTools::format("%s.%s",
+               alias, column["name"]->getString()));
+         }
+         // add where column
+         else if(strcmp(t, "where") == 0)
+         {
+            if(boolOp.length() > 0)
+            {
+               where.push_back(' ');
+               where.append(boolOp);
+               where.push_back(' ');
+            }
+            boolOp = column["userData"]["boolOp"]->getString();
+            where.append(StringTools::format("%s.%s%s?",
+               alias, column["name"]->getString(),
+               column["userData"]["compareOp"]->getString()));
+            params->append(column["value"]);
          }
       }
 
@@ -489,9 +568,6 @@ bool StatementBuilder::createGetSql(
          }
       }
 
-      // FIXME: add where clause and params
-      string where;
-
       // handle limit clause
       string limit;
       if(!mLimit.isNull())
@@ -509,9 +585,10 @@ bool StatementBuilder::createGetSql(
       string lock;
 
       statements["sql"]->append() = StringTools::format(
-         "SELECT %s FROM %s AS %s%s%s%s%s",
-         columns.c_str(), table, alias,
-         joins.c_str(), where.c_str(), limit.c_str(), lock.c_str()).c_str();
+         "SELECT %s FROM %s AS %s%s%s%s%s%s",
+         columns.c_str(), table, alias, joins.c_str(),
+         (where.length() == 0) ? "" : " WHERE ",where.c_str(),
+         limit.c_str(), lock.c_str()).c_str();
 
       int idx = statements["sql"]->length() - 1;
       MO_CAT_DEBUG(MO_SQL_CAT,
@@ -525,199 +602,3 @@ bool StatementBuilder::createGetSql(
 
    return rval;
 }
-
-#if 0
-/**
- * Gets a column name from the given schema, given a field name that can
- * refer to a member or a column name.
- *
- * @param field the name of the field (member or column name).
- *
- * @return column the related column from the schema or NULL if none exists.
- */
-static DynamicObject _getColumn(SchemaObject& schema, const char* field)
-{
-   DynamicObject rval(NULL);
-
-   // see if the field is a member name first
-   if(schema["memberToIndex"]->hasMember(field))
-   {
-      int index = schema["memberToIndex"][field]->getInt32();
-      rval = schema["columns"][index];
-   }
-   // see if the field is a column name
-   else if(schema["columnToIndex"]->hasMember(field))
-   {
-      int index = schema["columnToIndex"][field]->getInt32();
-      rval = schema["columns"][index];
-   }
-   // no such field
-   else
-   {
-      ExceptionRef e = new Exception(
-         "Unknown member or column name.",
-         "monarch.sql.UnknownField");
-      e->getDetails()["field"] = field;
-      Exception::set(e);
-   }
-
-   return rval;
-}
-
-/**
- * Gets the SQL for a list of columns based on the current clause type.
- *
- * For a SELECT clause, a string-delimited list of table-aliased columns
- * will be created.
- *
- * For an INSERT clause, a string-delimited list of columns will be created.
- *
- * For an UPDATE clause, a string-delimited list of "<columnName>=?" will be
- * created.
- *
- * For a WHERE clause, a logical operator delimited list of comparisons.
- *
- * @param columns the string to append the column list to.
- * @param dbc the DatabaseClient to use.
- * @param aliases the alias map.
- * @param clause the current clause.
- * @param count set to the total count of columns.
- */
-static bool _getColumns(
-   string& columns, DatabaseClientRef& dbc,
-   DynamicObject& aliases, DynamicObject& clause, int* count)
-{
-   bool rval = true;
-
-   const char* table = clause["table"]->getString();
-   rval = dbc->checkForSchema(table);
-
-   if(rval)
-   {
-      ClauseType ct = ClauseType(clause["type"]->getInt32());
-
-      // fields is either a string delimited list of fields or it is
-      // a map of field name to parameter
-      DynamicObject fields(NULL);
-      if(clause["fields"]->getType() == String)
-      {
-         fields = StringTools::split(clause["fields"]->getString(), ",");
-      }
-      else
-      {
-         fields = clause["fields"];
-      }
-
-      const char* alias = aliases[table]["alias"]->getString();
-      SchemaObject schema = dbc->getSchema(table);
-
-      int counter = 0;
-      bool first = true;
-      DynamicObject column(NULL);
-      DynamicObjectIterator i = fields.getIterator();
-      while(rval && i->hasNext())
-      {
-         DynamicObject& value = i->next();
-
-         // get column related to field
-         const char* field = (fields->getType() == Map) ?
-            i->getName() : value->getString();
-         column = _getColumn(schema, field);
-         if(column.isNull())
-         {
-            // no such column
-            rval = false;
-         }
-         else
-         {
-            counter++;
-
-            if(first)
-            {
-               first = false;
-            }
-            else if(ct == ClauseWhere)
-            {
-               // append logical operator delimiter
-               columns.push_back(' ');
-               columns.append(clause["logicalOp"]->getString());
-               columns.push_back(' ');
-            }
-            else
-            {
-               // append comma delimiter
-               columns.push_back(',');
-            }
-
-            // FIXME: how to handle transforms like: LOWER(HEX(foo))?
-
-            if(ct == ClauseSelect)
-            {
-               // prepend table alias
-               columns.append(alias);
-               columns.push_back('.');
-            }
-
-            // add column name
-            columns.append(column["name"]->getString());
-
-            if(ct == ClauseSelect)
-            {
-               // add field alias, if any
-               if(aliases[table]["fields"]->hasMember(field))
-               {
-                  columns.append(" AS ");
-                  columns.append(aliases[table]["fields"][field]->getString());
-               }
-            }
-            else if(ct == ClauseUpdate)
-            {
-               // add field setter
-               columns.append("=?");
-            }
-            else if(ct == ClauseWhere)
-            {
-               if(value->getType() == String)
-               {
-                  // use default operator
-                  columns.append("=?");
-               }
-               else if(value->getType() == Map)
-               {
-                  // specific operator
-                  columns.append(value["operator"]->getString());
-                  columns.push_back('?');
-               }
-               else if(value->getType() == Array)
-               {
-                  // use IN clause
-                  bool firstIn = false;
-                  columns.append(" IN (");
-                  DynamicObjectIterator vi = value.getIterator();
-                  while(vi->hasNext())
-                  {
-                     if(firstIn)
-                     {
-                        firstIn = false;
-                     }
-                     else
-                     {
-                        columns.push_back(',');
-                     }
-                     columns.push_back('?');
-                  }
-                  columns.append(")");
-               }
-            }
-         }
-      }
-
-      if(rval && count != NULL)
-      {
-         *count = counter;
-      }
-   }
-
-   return rval;
-}
-#endif

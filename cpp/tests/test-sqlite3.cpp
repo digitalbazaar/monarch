@@ -1640,6 +1640,16 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("get Test objects of type2");
+   {
+      DynamicObject testObj;
+      testObj["type"] = "type2";
+
+      StatementBuilder sb(dbc);
+      sb.get("Test").where(testObj, "=").execute(c);
+   }
+   tr.passIfNoException();
+
    c->close();
 
    tr.ungroup();

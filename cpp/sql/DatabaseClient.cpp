@@ -279,7 +279,9 @@ static void _mapMember()
 }
 #endif
 bool DatabaseClient::mapInstance(
-   const char* objType, DynamicObject& obj, DynamicObject& mapping)
+   const char* objType,
+   DynamicObject& obj, DynamicObject& mapping,
+   DynamicObject* userData)
 {
    bool rval = false;
 
@@ -353,16 +355,22 @@ bool DatabaseClient::mapInstance(
                // FIXME: validate data type
                if(isCol)
                {
-                  const char* col = info["column"]->getString();
+                  DynamicObject column;
+                  column["name"] = info["column"];
                   if(obj.isNull())
                   {
-                     entry["columns"][col];
+                     column["value"];
                   }
                   else
                   {
-                     entry["columns"][col] = obj[i->getName()].clone();
+                     column["value"] = obj[i->getName()].clone();
                   }
-                  entry["columns"][col]->setType(info["columnType"]->getType());
+                  column["value"]->setType(info["columnType"]->getType());
+                  if(userData != NULL)
+                  {
+                     column["userData"] = *userData;
+                  }
+                  entry["columns"]->append(column);
                }
                else
                {
@@ -376,6 +384,10 @@ bool DatabaseClient::mapInstance(
                      fkey["value"] = obj[i->getName()].clone();
                   }
                   fkey["value"]->setType(info["columnType"]->getType());
+                  if(userData != NULL)
+                  {
+                     fkey["userData"] = *userData;
+                  }
                   entry["foreignKeys"]->append(fkey);
                }
             }
@@ -385,6 +397,7 @@ bool DatabaseClient::mapInstance(
                // FIXME: if member is an array, then N objects of other type
                // FIXME: if member is a map, then just one
                // FIXME: any other type should be an error
+               // FIXME: make sure to add userData to entry
             }
          }
       }

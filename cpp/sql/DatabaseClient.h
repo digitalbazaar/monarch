@@ -288,13 +288,16 @@ public:
     * @param objType the type of object.
     * @param obj the object instance.
     * @param mapping the mapping object to populate.
+    * @param userData a user-data object to include with every column, foreign
+    *           key or sub-object entry.
     *
     * @return true if successful, false if an exception occurred.
     */
    virtual bool mapInstance(
       const char* objType,
       monarch::rt::DynamicObject& obj,
-      monarch::rt::DynamicObject& mapping);
+      monarch::rt::DynamicObject& mapping,
+      monarch::rt::DynamicObject* userData = NULL);
 
    /**
     * Creates a table via CREATE TABLE. The schema for the table must have
