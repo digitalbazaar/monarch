@@ -308,7 +308,6 @@ bool DatabaseClient::mapInstance(
    */
 
    // initialize mapping
-   mapping->setType(Array);
    mapping["tables"]->setType(Map);
    mapping["entries"]->setType(Array);
 

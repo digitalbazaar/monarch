@@ -47,10 +47,9 @@ StatementBuilder::~StatementBuilder()
 StatementBuilder& StatementBuilder::add(const char* type, DynamicObject& obj)
 {
    mStatementType = StatementBuilder::Add;
-   // FIXME: include object type along side object entry
-   mObjectType = type;
    DynamicObject entry;
    entry["info"]["type"] = "add";
+   entry["type"] = type;
    entry["object"] = obj;
    mObjects->append(entry);
    return *this;
@@ -60,18 +59,20 @@ StatementBuilder& StatementBuilder::update(
    const char* type, DynamicObject& obj, const char* op)
 {
    mStatementType = StatementBuilder::Update;
-   mObjectType = type;
-   mObjects->clear();
-   return set(obj, op);
+   DynamicObject entry;
+   entry["object"] = obj;
+   entry["info"]["type"] = "set";
+   entry["info"]["op"] = op;
+   mObjects->append(entry);
+   return *this;
 }
 
 StatementBuilder& StatementBuilder::get(const char* type, DynamicObject* obj)
 {
    mStatementType = StatementBuilder::Get;
-   mObjectType = type;
-   mObjects->clear();
    DynamicObject entry;
    entry["info"]["type"] = "get";
+   entry["type"] = type;
    if(obj == NULL)
    {
       entry["object"].setNull();
@@ -84,20 +85,12 @@ StatementBuilder& StatementBuilder::get(const char* type, DynamicObject* obj)
    return *this;
 }
 
-StatementBuilder& StatementBuilder::set(DynamicObject& members, const char* op)
-{
-   DynamicObject entry;
-   entry["object"] = members;
-   entry["info"]["type"] = "set";
-   entry["info"]["op"] = op;
-   mObjects->append(entry);
-   return *this;
-}
-
 StatementBuilder& StatementBuilder::where(
-   DynamicObject& conditions, const char* compareOp, const char* boolOp)
+   const char* type, DynamicObject& conditions,
+   const char* compareOp, const char* boolOp)
 {
    DynamicObject entry;
+   entry["type"] = type;
    entry["object"] = conditions;
    entry["info"]["type"] = "where";
    entry["info"]["compareOp"] = compareOp;
@@ -194,6 +187,9 @@ bool StatementBuilder::execute(Connection* c)
          {
             rval = (*i)->execute();
          }
+
+         // FIXME: fetch data, clear objects
+         mObjects->clear();
       }
 #endif
    }
@@ -258,7 +254,7 @@ bool StatementBuilder::createSql(DynamicObject& statements)
    {
       DynamicObject& entry = i->next();
       rval = mDatabaseClient->mapInstance(
-         mObjectType.c_str(), entry["object"], mapping, &entry["info"]);
+         entry["type"]->getString(), entry["object"], mapping, &entry["info"]);
    }
 
    if(rval)
@@ -473,7 +469,7 @@ bool StatementBuilder::createUpdateSql(
       statements["sql"]->append() = StringTools::format(
          "UPDATE %s AS %s SET %s%s%s%s%s",
          table, alias, set.c_str(),
-         (where.length() == 0) ? "" : " WHERE ",where.c_str(),
+         (where.length() == 0) ? "" : " WHERE ", where.c_str(),
          limit.c_str(), lock.c_str()).c_str();
 
       int idx = statements["sql"]->length() - 1;
@@ -493,6 +489,9 @@ bool StatementBuilder::createGetSql(
    DynamicObject& mapping, DynamicObject& statements)
 {
    bool rval = true;
+
+   // FIXME: no support yet for getting columns from one table and using
+   // a where clause in another table
 
    // for each table create another SQL statement
    DynamicObjectIterator mi = mapping["entries"].getIterator();
@@ -546,6 +545,8 @@ bool StatementBuilder::createGetSql(
 
       // handle any foreign key look ups, building joins
       string joins;
+      DynamicObject joinTables;
+      joinTables->setType(Map);
       if(entry["foreignKeys"]->length() > 0)
       {
          // add sub-select for each foreign key
@@ -553,18 +554,45 @@ bool StatementBuilder::createGetSql(
          while(fi->hasNext())
          {
             DynamicObject& fkey = fi->next();
+            const char* t = fkey["userData"]["type"]->getString();
 
             // assign an alias to the foreign key table
-            const char* fkeyAlias = assignAlias(fkey["ftable"]->getString());
-            columns.append(StringTools::format(",%s.%s",
-               fkeyAlias, fkey["fcolumn"]->getString()));
+            const char* fkeyTable = fkey["ftable"]->getString();
+            const char* fkeyAlias = assignAlias(fkeyTable);
 
-            // add join
-            joins.append(StringTools::format(
-               " JOIN %s AS %s ON %s.%s=%s.%s",
-               fkey["ftable"]->getString(), fkeyAlias,
-               alias, fkey["column"]->getString(),
-               fkeyAlias, fkey["fkey"]->getString()));
+            // add a select column
+            if(strcmp(t, "get") == 0)
+            {
+               columns.append(StringTools::format(",%s.%s",
+                  fkeyAlias, fkey["fcolumn"]->getString()));
+            }
+            // add where conditional
+            else if(strcmp(t, "where") == 0)
+            {
+               if(boolOp.length() > 0)
+               {
+                  where.push_back(' ');
+                  where.append(boolOp);
+                  where.push_back(' ');
+               }
+               boolOp = fkey["userData"]["boolOp"]->getString();
+               where.append(StringTools::format("%s.%s%s?",
+                  fkeyAlias, fkey["fcolumn"]->getString(),
+                  fkey["userData"]["compareOp"]->getString()));
+               params->append(fkey["value"]);
+            }
+
+            // FIXME: support joining on more than 1 column?
+            // add join only once
+            if(!joinTables->hasMember(fkeyTable))
+            {
+               joins.append(StringTools::format(
+                  " JOIN %s AS %s ON %s.%s=%s.%s",
+                  fkeyTable, fkeyAlias,
+                  alias, fkey["column"]->getString(),
+                  fkeyAlias, fkey["fkey"]->getString()));
+               joinTables[fkeyTable] = true;
+            }
          }
       }
 
@@ -587,7 +615,7 @@ bool StatementBuilder::createGetSql(
       statements["sql"]->append() = StringTools::format(
          "SELECT %s FROM %s AS %s%s%s%s%s%s",
          columns.c_str(), table, alias, joins.c_str(),
-         (where.length() == 0) ? "" : " WHERE ",where.c_str(),
+         (where.length() == 0) ? "" : " WHERE ", where.c_str(),
          limit.c_str(), lock.c_str()).c_str();
 
       int idx = statements["sql"]->length() - 1;

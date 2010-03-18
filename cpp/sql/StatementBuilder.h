@@ -58,11 +58,6 @@ protected:
    int mAliasCounter;
 
    /**
-    * The type for the input object.
-    */
-   std::string mObjectType;
-
-   /**
     * The input objects.
     */
    monarch::rt::DynamicObject mObjects;
@@ -129,18 +124,6 @@ public:
       const char* type, monarch::rt::DynamicObject* obj = NULL);
 
    /**
-    * Adds more object members to be set to an update statement.
-    *
-    * @param members the object with update values.
-    * @param op an operational operator to use to set members to their
-    *           values (defaults to '=').
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& set(
-      monarch::rt::DynamicObject& members, const char* op = "=");
-
-   /**
     * Places restrictions on the objects to get or update.
     *
     * If the statement being built will retrieve objects, then the given
@@ -149,6 +132,7 @@ public:
     * If the statement being built will update objects, then the given
     * params will provide conditionals to restrict the objects to update.
     *
+    * @param type the type of object for the conditions.
     * @param conditions an object with members whose values will be used to
     *           create conditional restrictions in the current statement.
     * @param compareOp an operational operator to use to compare members to
@@ -159,6 +143,7 @@ public:
     * @return a reference to this StatementBuilder to permit chaining.
     */
    virtual StatementBuilder& where(
+      const char* type,
       monarch::rt::DynamicObject& conditions,
       const char* compareOp = "=",
       const char* boolOp = "AND");

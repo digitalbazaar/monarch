@@ -1646,7 +1646,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       testObj["type"] = "type2";
 
       StatementBuilder sb(dbc);
-      sb.get("Test").where(testObj, "=").execute(c);
+      sb.get("Test").where("Test", testObj, "=").execute(c);
    }
    tr.passIfNoException();
 
