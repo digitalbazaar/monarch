@@ -286,6 +286,26 @@ DynamicObject StatementBuilder::fetch()
    return mResults;
 }
 
+void StatementBuilder::blockAliases(DynamicObject& mapping)
+{
+   DynamicObjectIterator i = mapping["entries"].getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& entry = i->next();
+
+      // block table from being used as an alias
+      mUsedAliases[entry["table"]->getString()] = true;
+
+      // block foreign key tables from being used as aliases
+      DynamicObjectIterator fi = entry["fkeys"].getIterator();
+      while(fi->hasNext())
+      {
+         DynamicObject& fkey = fi->next();
+         mUsedAliases[fkey["ftable"]->getString()] = true;
+      }
+   }
+}
+
 const char* StatementBuilder::assignAlias(const char* table)
 {
    if(!mAliases[table]->hasMember("alias"))
@@ -293,7 +313,7 @@ const char* StatementBuilder::assignAlias(const char* table)
       char tmp[20];
       do
       {
-         snprintf(tmp, 20, "__t%d", mAliasCounter++);
+         snprintf(tmp, 20, "t%d", ++mAliasCounter);
       }
       while(mUsedAliases->hasMember(tmp) && mAliasCounter < MAX_ALIAS_COUNTER);
       mAliases[table]["alias"] = tmp;
@@ -322,6 +342,11 @@ bool StatementBuilder::createSql(DynamicObject& statements)
             while updating/selecting related rows. Apply the SQL appropriately.
    */
 
+   // clear old aliases
+   mAliases->clear();
+   mUsedAliases->clear();
+   mAliasCounter = 0;
+
    // build the OR mapping by combining every object instance
    DynamicObject mapping;
    DynamicObjectIterator i = mObjects.getIterator();
@@ -337,6 +362,9 @@ bool StatementBuilder::createSql(DynamicObject& statements)
       MO_CAT_DEBUG_DATA(MO_SQL_CAT,
          "Generated instance mapping:\n%s\n",
          JsonWriter::writeToString(mapping, false, false).c_str());
+
+      // block the use of any tables in the mapping as aliases
+      blockAliases(mapping);
 
       // setup sql to be run, associated params, and row information for fetch
       statements["sql"]->setType(Array);
@@ -408,13 +436,14 @@ bool StatementBuilder::createAddSql(
             }
 
             // assign an alias to the foreign key table
-            const char* fkeyAlias = assignAlias(fkey["ftable"]->getString());
+            const char* ftable = fkey["ftable"]->getString();
+            const char* falias = assignAlias(ftable);
             columns.append(fkey["fcolumn"]->getString());
             values.append(StringTools::format(
                "(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
-               fkeyAlias, fkey["fkey"]->getString(),
-               fkey["ftable"]->getString(), fkeyAlias,
-               fkeyAlias, fkey["fcolumn"]->getString()));
+               falias, fkey["fkey"]->getString(),
+               ftable, falias,
+               falias, fkey["fcolumn"]->getString()));
             params->append(fkey["value"]);
          }
 
@@ -509,14 +538,14 @@ bool StatementBuilder::createUpdateSql(
          DynamicObject& fkey = fi->next();
 
          // assign an alias to the foreign key table
-         const char* fkeyAlias = assignAlias(fkey["ftable"]->getString());
+         const char* ftable = fkey["ftable"]->getString();
+         const char* falias = assignAlias(ftable);
          set.append(StringTools::format(
             ",%s.%s=(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
             alias, fkey["column"]->getString(),
-            fkeyAlias, fkey["fkey"]->getString(),
-            fkey["ftable"]->getString(),
-            fkeyAlias,
-            fkeyAlias, fkey["fcolumn"]->getString()));
+            falias, fkey["fkey"]->getString(),
+            ftable, falias,
+            falias, fkey["fcolumn"]->getString()));
          params->append(fkey["value"]);
          if(fi->hasNext())
          {
@@ -632,14 +661,14 @@ bool StatementBuilder::createGetSql(
          const char* t = fkey["userData"]["type"]->getString();
 
          // assign an alias to the foreign key table
-         const char* fkeyTable = fkey["ftable"]->getString();
-         const char* fkeyAlias = assignAlias(fkeyTable);
+         const char* ftable = fkey["ftable"]->getString();
+         const char* falias = assignAlias(ftable);
 
          // add a select column
          if(strcmp(t, "get") == 0)
          {
             columns.append(StringTools::format(",%s.%s",
-               fkeyAlias, fkey["fcolumn"]->getString()));
+               falias, fkey["fcolumn"]->getString()));
 
             // add row entry for fetching column later
             rows->append(fkey);
@@ -655,21 +684,21 @@ bool StatementBuilder::createGetSql(
             }
             boolOp = fkey["userData"]["boolOp"]->getString();
             where.append(StringTools::format("%s.%s%s?",
-               fkeyAlias, fkey["fcolumn"]->getString(),
+               falias, fkey["fcolumn"]->getString(),
                fkey["userData"]["compareOp"]->getString()));
             params->append(fkey["value"]);
          }
 
          // FIXME: support joining on more than 1 column?
          // add join only once
-         if(!joinTables->hasMember(fkeyTable))
+         if(!joinTables->hasMember(ftable))
          {
             joins.append(StringTools::format(
                " JOIN %s AS %s ON %s.%s=%s.%s",
-               fkeyTable, fkeyAlias,
+               ftable, falias,
                alias, fkey["column"]->getString(),
-               fkeyAlias, fkey["fkey"]->getString()));
-            joinTables[fkeyTable] = true;
+               falias, fkey["fkey"]->getString()));
+            joinTables[ftable] = true;
          }
       }
 

@@ -182,6 +182,14 @@ public:
 
 protected:
    /**
+    * Blocks the use of any alias that matches a table name in the given
+    * mapping.
+    *
+    * @param mapping the mapping to scan for table names.
+    */
+   virtual void blockAliases(monarch::rt::DynamicObject& mapping);
+
+   /**
     * Assigns an alias to the given table, if one has not already been assigned.
     *
     * @param table the table to assign an alias to.

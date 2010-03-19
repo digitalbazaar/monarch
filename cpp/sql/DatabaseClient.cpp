@@ -312,7 +312,7 @@ bool DatabaseClient::mapInstance(
                entry = mapping["entries"]->append();
                entry["table"] = info["table"];
                entry["columns"]->setType(Array);
-               entry["foreignKeys"]->setType(Array);
+               entry["fkeys"]->setType(Array);
                mapping["tables"][table] = entry;
             }
 
