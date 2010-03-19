@@ -38,11 +38,6 @@ StatementBuilder::StatementBuilder(DatabaseClientRef& dbc) :
 
 StatementBuilder::~StatementBuilder()
 {
-   // FIXME: add code to finish out result sets
-
-   // FIXME: might need to make StatementBuilder an abstract/extendable class
-   // with methods to be implemented by mysql/sqlite/whatever to provide the
-   // actual SQL to execute queries
 }
 
 StatementBuilder& StatementBuilder::add(const char* type, DynamicObject& obj)
