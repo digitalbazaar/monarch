@@ -63,15 +63,20 @@ protected:
    monarch::rt::DynamicObject mObjects;
 
    /**
+    * Stores a limit for the number of objects to return.
+    */
+   monarch::rt::DynamicObject mLimit;
+
+   /**
     * A cache of the prepared statements.
     */
    typedef std::vector<Statement*> StatementCache;
    StatementCache mStatementCache;
 
    /**
-    * Stores a limit for the number of objects to return.
+    * Fetched results from a get statement.
     */
-   monarch::rt::DynamicObject mLimit;
+   monarch::rt::DynamicObject mResults;
 
 public:
    /**
@@ -169,9 +174,9 @@ public:
    virtual bool execute(monarch::sql::Connection* c = NULL);
 
    /**
-    * Fetches the next object (following a get() call).
+    * Fetches the result objects (following a get() call).
     *
-    * @return the next object, NULL if there are no more to fetch.
+    * @return an array of result objects.
     */
    virtual monarch::rt::DynamicObject fetch();
 

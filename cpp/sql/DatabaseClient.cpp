@@ -262,14 +262,17 @@ bool DatabaseClient::mapInstance(
     *    "entries": [
     *       "table": the database table name
     *       "columns": [
-    *          "name": the name of the column
+    *          (cloned info from the OR mapping) +
+    *          "member": the object member name
     *          "value": the value for the column (to apply via an operator,
-    *             coerced according to columnType)
+    *             coerced to columnType)
     *          "userData": as given to this call
     *       ],
     *       "fkeys": [
-    *          (cloned fkey entry from the OR mapping) +
-    *          "value": the value for "fcolumn" (coerced according to columnType)
+    *          (cloned info from the OR mapping) +
+    *          "member": the object member name
+    *          "value": the value for "fcolumn" (coerced to columnType)
+    *          "userData": as given to this call
     *       ]
     *    ]
     * }
@@ -313,8 +316,9 @@ bool DatabaseClient::mapInstance(
                mapping["tables"][table] = entry;
             }
 
-            // clone info add user-data
+            // clone info, add member name and user-data
             DynamicObject d = info.clone();
+            d["member"] = i->getName();
             if(userData != NULL)
             {
                d["userData"] = *userData;

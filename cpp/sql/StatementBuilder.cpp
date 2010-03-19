@@ -28,7 +28,8 @@ StatementBuilder::StatementBuilder(DatabaseClientRef& dbc) :
    mDatabaseClient(dbc),
    mStatementType(StatementBuilder::Get),
    mAliasCounter(0),
-   mLimit(NULL)
+   mLimit(NULL),
+   mResults(NULL)
 {
    mAliases->setType(Map);
    mUsedAliases->setType(Map);
@@ -173,23 +174,105 @@ bool StatementBuilder::execute(Connection* c)
             }
          }
 
-         // FIXME: this will not work for SELECT ... unless there is only
-         // one statement permitted ... instead we'll have to do something
-         // much more complicated, as we need to do all fetches for each
-         // SELECT all together unless we're using more than 1 connection
-         // either that, or we pull all objects out first and store them
-         // locally ... which may be preferrable... but would prevent
-         // streaming implementations (which are non-existant in our current
-         // code ... and seem pretty rare in general)
-
-         // execute all statements
-         for(StatementCache::iterator i = mStatementCache.begin();
-             rval && i != mStatementCache.end(); i++)
+         // initialize results for get statement
+         if(mStatementType == Statement::Get)
          {
-            rval = (*i)->execute();
+            mResults = DynamicObject();
+            mResults->setType(Array);
          }
 
-         // FIXME: fetch data, clear objects
+         // execute all statements
+         for(int i = 0; rval && i < mStatementCache.size(); i++)
+         {
+            Statement* s = mStatementCache[i];
+            rval = s->execute();
+
+            // fetch related rows if doing a get statement
+            if(rval && mStatementType == Statement::Get)
+            {
+               DynamicObject& cols = statements["rows"][i];
+
+               // possible data types
+               string text;
+               uint32_t ui32;
+               uint64_t ui64;
+               int32_t i32;
+               int64_t i64;
+
+               // fetch rows
+               Row* row;
+               while((row = s->fetch()) != NULL)
+               {
+                  DynamicObject& result = mResults->append();
+                  result->setType(Map);
+                  DynamicObjectIterator ci = cols.getIterator();
+                  while(ci->hasNext())
+                  {
+                     DynamicObject& column = ci->next();
+                     DynamicObjectType ct = column["columnType"]->getType();
+                     const char* member = column["member"]->getString();
+                     unsigned int idx = ci->getIndex() + 1;
+                     switch(ct)
+                     {
+                        case Int32:
+                           rval = row->getUInt64(idx, i32);
+                           if(rval)
+                           {
+                              row[member] = i32;
+                           }
+                           break;
+                        case UInt32:
+                           rval = row->getUInt64(idx, ui32);
+                           if(rval)
+                           {
+                              row[member] = ui32;
+                           }
+                           break;
+                        case Int64:
+                           rval = row->getUInt64(idx, i64);
+                           if(rval)
+                           {
+                              row[member] = i64;
+                           }
+                           break;
+                        case UInt64:
+                           rval = row->getUInt64(idx, ui64);
+                           if(rval)
+                           {
+                              row[member] = ui64;
+                           }
+                           break;
+                        case String:
+                           rval = row->getText(idx, text);
+                           if(rval)
+                           {
+                              row[member] = text.c_str();
+                           }
+                           break;
+                        default:
+                        {
+                           // invalid column type
+                           ExceptionRef e = new Exception(
+                              "Invalid column type.",
+                              "monarch.sql.StatementBuilder.InvalidColumnType");
+                           e->getDetails()["columnType"] =
+                              DynamicObject::descriptionForType(ct);
+                           rval = false;
+                           break;
+                        }
+                     }
+
+                     if(rval)
+                     {
+                        // coerce member type
+                        row[member]->setType(column["memberType"]->getType());
+                     }
+                  }
+               }
+            }
+         }
+
+         // clear objects
          mObjects->clear();
       }
 #endif
@@ -200,16 +283,7 @@ bool StatementBuilder::execute(Connection* c)
 
 DynamicObject StatementBuilder::fetch()
 {
-   DynamicObject rval(NULL);
-
-   // FIXME: will probably call fetchAll() on every statement ... and
-   // then return them all or one object with this call
-   // ... will need to store the object type the statement applies to
-   // so we can get data out
-
-   // FIXME: implement me
-
-   return rval;
+   return mResults;
 }
 
 const char* StatementBuilder::assignAlias(const char* table)
@@ -264,9 +338,10 @@ bool StatementBuilder::createSql(DynamicObject& statements)
          "Generated instance mapping:\n%s\n",
          JsonWriter::writeToString(mapping, false, false).c_str());
 
-      // setup sql to be run and associated params
+      // setup sql to be run, associated params, and row information for fetch
       statements["sql"]->setType(Array);
       statements["params"]->setType(Array);
+      statements["rows"]->setType(Array);
 
       switch(mStatementType)
       {
@@ -417,6 +492,8 @@ bool StatementBuilder::createUpdateSql(
                where.push_back(' ');
             }
             boolOp = column["userData"]["boolOp"]->getString();
+
+            // FIXME: handle case where value is an array, do WHERE IN
             where.append(StringTools::format("%s.%s%s?",
                alias, column["column"]->getString(),
                column["userData"]["compareOp"]->getString()));
@@ -496,6 +573,8 @@ bool StatementBuilder::createGetSql(
       const char* table = entry["table"]->getString();
       DynamicObject& params = statements["params"]->append();
       params->setType(Array);
+      DynamicObject& rows = statements["rows"]->append();
+      rows->setType(Array);
 
       // assign an alias to the table
       const char* alias = assignAlias(table);
@@ -519,6 +598,9 @@ bool StatementBuilder::createGetSql(
             }
             columns.append(StringTools::format("%s.%s",
                alias, column["column"]->getString()));
+
+            // add row entry for fetching column later
+            rows->append(column);
          }
          // add where column
          else if(strcmp(t, "where") == 0)
@@ -530,6 +612,8 @@ bool StatementBuilder::createGetSql(
                where.push_back(' ');
             }
             boolOp = column["userData"]["boolOp"]->getString();
+
+            // FIXME: handle case where value is an array, do WHERE IN
             where.append(StringTools::format("%s.%s%s?",
                alias, column["column"]->getString(),
                column["userData"]["compareOp"]->getString()));
@@ -556,6 +640,9 @@ bool StatementBuilder::createGetSql(
          {
             columns.append(StringTools::format(",%s.%s",
                fkeyAlias, fkey["fcolumn"]->getString()));
+
+            // add row entry for fetching column later
+            rows->append(fkey);
          }
          // add where conditional
          else if(strcmp(t, "where") == 0)
