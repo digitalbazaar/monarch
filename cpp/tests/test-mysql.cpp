@@ -708,6 +708,7 @@ void runMySqlStatementBuilderTest(TestRunner& tr)
          entry["group"] = "columns";
          entry["table"] = TABLE_TEST;
          entry["column"] = "id";
+         entry["columnType"]->setType(UInt64);
          entry["memberType"]->setType(String);
       }
 
@@ -717,6 +718,7 @@ void runMySqlStatementBuilderTest(TestRunner& tr)
          entry["group"] = "columns";
          entry["table"] = TABLE_TEST;
          entry["column"] = "t";
+         entry["columnType"]->setType(String);
          entry["memberType"]->setType(String);
       }
 
@@ -726,6 +728,7 @@ void runMySqlStatementBuilderTest(TestRunner& tr)
          entry["group"] = "columns";
          entry["table"] = TABLE_TEST;
          entry["column"] = "i";
+         entry["columnType"]->setType(UInt64);
          entry["memberType"]->setType(UInt64);
       }
 

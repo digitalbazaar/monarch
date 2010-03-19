@@ -175,61 +175,6 @@ public:
     */
    virtual monarch::rt::DynamicObject fetch();
 
-#if 0
-   /**
-    * Starts a WHERE clause or adds fields to an existing one. The where
-    * conditions will be concatenated together using the given logical operator,
-    * which can be "AND" or "OR". The fields parameter contains key-value pairs.
-    * The key is a member or column name. The value is either a value to
-    * compare against using "=" or it is a map with a "value" parameter and
-    * an "operator" parameter like "<", "<>", or "LIKE".
-    *
-    * Example:
-    *
-    * DynamicObject fields;
-    * fields["foo"] = "bar";
-    * fields["foo2"]["value"] = 10;
-    * fields["foo2"]["operator"] = "<";
-    *
-    * .select("mytable", "foo,foo2")
-    * .where("mytable", fields, "AND")
-    *
-    * Produces:
-    * SELECT foo,foo2 FROM mytable WHERE (foo='bar' AND foo2<10)
-    *
-    * @param table the name of the table with the fields.
-    * @param fields a map of members or column names to the associated data to
-    *           compare against, where if the data is a map, it will contain
-    *           a "value" and an "operator" to use.
-    * @param logicalOp either "AND" or "OR", defaults to "AND".
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& where(
-      const char* table, monarch::rt::DynamicObject& fields,
-      const char* logicalOp = "AND");
-
-   /**
-    * Starts an ORDER BY clause or adds fields to an existing one.
-    *
-    * @param table the name of the table the fields belong to.
-    * @param fields the comma-delimited fields to order by.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& orderBy(const char* table, const char* fields);
-
-   /**
-    * Adds a limit clause.
-    *
-    * @param start the starting limit.
-    * @param num the number to limit.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& limit(uint64_t start, uint64_t num);
-
-#endif
 protected:
    /**
     * Assigns an alias to the given table, if one has not already been assigned.
