@@ -122,9 +122,6 @@ bool StatementBuilder::execute(Connection* c)
    rval = createSql(statements);
    if(rval)
    {
-      // FIXME: remove me
-      printf("StatementBuilder: SQL EXECUTION DISABLED.\n");
-#if 0
       // get a connection from the pool if one wasn't passed in
       Connection* conn = (c != NULL) ? c :
          (mStatementType == StatementBuilder::Get ?
@@ -175,78 +172,80 @@ bool StatementBuilder::execute(Connection* c)
          }
 
          // initialize results for get statement
-         if(mStatementType == Statement::Get)
+         if(mStatementType == StatementBuilder::Get)
          {
             mResults = DynamicObject();
             mResults->setType(Array);
          }
 
          // execute all statements
-         for(int i = 0; rval && i < mStatementCache.size(); i++)
+         for(int i = 0; rval && i < (int)mStatementCache.size(); i++)
          {
             Statement* s = mStatementCache[i];
             rval = s->execute();
 
+            // FIXME: handle inserts that result in a last auto-increment key
+
             // fetch related rows if doing a get statement
-            if(rval && mStatementType == Statement::Get)
+            if(rval && mStatementType == StatementBuilder::Get)
             {
                DynamicObject& cols = statements["rows"][i];
 
                // possible data types
                string text;
-               uint32_t ui32;
-               uint64_t ui64;
                int32_t i32;
+               uint32_t ui32;
                int64_t i64;
+               uint64_t ui64;
 
                // fetch rows
                Row* row;
-               while((row = s->fetch()) != NULL)
+               while(rval && ((row = s->fetch()) != NULL))
                {
                   DynamicObject& result = mResults->append();
                   result->setType(Map);
                   DynamicObjectIterator ci = cols.getIterator();
-                  while(ci->hasNext())
+                  while(rval && ci->hasNext())
                   {
                      DynamicObject& column = ci->next();
                      DynamicObjectType ct = column["columnType"]->getType();
                      const char* member = column["member"]->getString();
-                     unsigned int idx = ci->getIndex() + 1;
+                     unsigned int idx = ci->getIndex();
                      switch(ct)
                      {
                         case Int32:
-                           rval = row->getUInt64(idx, i32);
+                           rval = row->getInt32(idx, i32);
                            if(rval)
                            {
-                              row[member] = i32;
+                              result[member] = i32;
                            }
                            break;
                         case UInt32:
-                           rval = row->getUInt64(idx, ui32);
+                           rval = row->getUInt32(idx, ui32);
                            if(rval)
                            {
-                              row[member] = ui32;
+                              result[member] = ui32;
                            }
                            break;
                         case Int64:
-                           rval = row->getUInt64(idx, i64);
+                           rval = row->getInt64(idx, i64);
                            if(rval)
                            {
-                              row[member] = i64;
+                              result[member] = i64;
                            }
                            break;
                         case UInt64:
                            rval = row->getUInt64(idx, ui64);
                            if(rval)
                            {
-                              row[member] = ui64;
+                              result[member] = ui64;
                            }
                            break;
                         case String:
                            rval = row->getText(idx, text);
                            if(rval)
                            {
-                              row[member] = text.c_str();
+                              result[member] = text.c_str();
                            }
                            break;
                         default:
@@ -265,17 +264,26 @@ bool StatementBuilder::execute(Connection* c)
                      if(rval)
                      {
                         // coerce member type
-                        row[member]->setType(column["memberType"]->getType());
+                        result[member]->setType(
+                           column["memberType"]->getType());
                      }
                   }
                }
+
+               // finish out result set
+               while(row != NULL)
+               {
+                  row = s->fetch();
+               }
             }
+
+            // reset statement
+            s->reset();
          }
 
          // clear objects
          mObjects->clear();
       }
-#endif
    }
 
    return rval;
@@ -285,6 +293,8 @@ DynamicObject StatementBuilder::fetch()
 {
    return mResults;
 }
+
+// FIXME: add method to get number of rows/objects inserted/updated
 
 void StatementBuilder::blockAliases(DynamicObject& mapping)
 {
@@ -438,7 +448,7 @@ bool StatementBuilder::createAddSql(
             // assign an alias to the foreign key table
             const char* ftable = fkey["ftable"]->getString();
             const char* falias = assignAlias(ftable);
-            columns.append(fkey["fcolumn"]->getString());
+            columns.append(fkey["column"]->getString());
             values.append(StringTools::format(
                "(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
                falias, fkey["fkey"]->getString(),
@@ -487,11 +497,14 @@ bool StatementBuilder::createUpdateSql(
       params->setType(Array);
 
       // assign an alias to the table
-      const char* alias = assignAlias(table);
+      // FIXME: table aliases disabled for compatibility
+      //const char* alias = assignAlias(table);
 
       // build set and where clauses
       string where;
       string boolOp;
+      DynamicObject whereParams;
+      whereParams->setType(Array);
       string set;
       DynamicObjectIterator ci = entry["columns"].getIterator();
       while(ci->hasNext())
@@ -506,9 +519,33 @@ bool StatementBuilder::createUpdateSql(
             {
                set.push_back(',');
             }
-            set.append(StringTools::format("%s.%s%s?",
-               alias, column["column"]->getString(),
-               column["userData"]["op"]->getString()));
+
+            // convert self-updating ops
+            const char* op = column["userData"]["op"]->getString();
+            if(strcmp(op, "+=") == 0 ||
+               strcmp(op, "/=") == 0 ||
+               strcmp(op, "*=") == 0 ||
+               strcmp(op, "/=") == 0)
+            {
+               /*
+               op = StringTools::format("%s.%s=%s.%s%c?",
+                  alias, column["column"]->getString(),
+                  alias, column["column"]->getString(),
+                  op[0]).c_str();
+               */
+               set.append(StringTools::format("%s=%s%c?",
+                  column["column"]->getString(),
+                  column["column"]->getString(), op[0]));
+            }
+            else
+            {
+               /*
+               set.append(StringTools::format("%s.%s%s?",
+                  alias, column["column"]->getString(), op));
+               */
+               set.append(StringTools::format("%s%s?",
+                  column["column"]->getString(), op));
+            }
             params->append(column["value"]);
          }
          // add where column
@@ -523,10 +560,15 @@ bool StatementBuilder::createUpdateSql(
             boolOp = column["userData"]["boolOp"]->getString();
 
             // FIXME: handle case where value is an array, do WHERE IN
+            where.append(StringTools::format("%s%s?",
+               column["column"]->getString(),
+               column["userData"]["compareOp"]->getString()));
+            /*
             where.append(StringTools::format("%s.%s%s?",
                alias, column["column"]->getString(),
                column["userData"]["compareOp"]->getString()));
-            params->append(column["value"]);
+            */
+            whereParams->append(column["value"]);
          }
       }
 
@@ -539,7 +581,9 @@ bool StatementBuilder::createUpdateSql(
 
          // assign an alias to the foreign key table
          const char* ftable = fkey["ftable"]->getString();
-         const char* falias = assignAlias(ftable);
+         // FIXME: table aliases disabled for compatibility
+         //const char* falias = assignAlias(ftable);
+         /*
          set.append(StringTools::format(
             ",%s.%s=(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
             alias, fkey["column"]->getString(),
@@ -547,11 +591,21 @@ bool StatementBuilder::createUpdateSql(
             ftable, falias,
             falias, fkey["fcolumn"]->getString()));
          params->append(fkey["value"]);
+         */
+         set.append(StringTools::format(
+            ",%s=(SELECT %s FROM %s WHERE %s=?)",
+            fkey["column"]->getString(),
+            fkey["fkey"]->getString(),
+            ftable, fkey["fcolumn"]->getString()));
+         params->append(fkey["value"]);
          if(fi->hasNext())
          {
             set.push_back(',');
          }
       }
+
+      // append where params to params
+      params.merge(whereParams, true);
 
       // handle limit clause
       string limit;
@@ -569,9 +623,17 @@ bool StatementBuilder::createUpdateSql(
       // FIXME: handle row-level locking
       string lock;
 
+      /*
       statements["sql"]->append() = StringTools::format(
          "UPDATE %s AS %s SET %s%s%s%s%s",
          table, alias, set.c_str(),
+         (where.length() == 0) ? "" : " WHERE ", where.c_str(),
+         limit.c_str(), lock.c_str()).c_str();
+      */
+
+      statements["sql"]->append() = StringTools::format(
+         "UPDATE %s SET %s%s%s%s%s",
+         table, set.c_str(),
          (where.length() == 0) ? "" : " WHERE ", where.c_str(),
          limit.c_str(), lock.c_str()).c_str();
 
@@ -610,6 +672,8 @@ bool StatementBuilder::createGetSql(
 
       // build columns to get and where clause
       string where;
+      DynamicObject whereParams;
+      whereParams->setType(Array);
       string boolOp;
       string columns;
       DynamicObjectIterator ci = entry["columns"].getIterator();
@@ -646,7 +710,7 @@ bool StatementBuilder::createGetSql(
             where.append(StringTools::format("%s.%s%s?",
                alias, column["column"]->getString(),
                column["userData"]["compareOp"]->getString()));
-            params->append(column["value"]);
+            whereParams->append(column["value"]);
          }
       }
 
@@ -686,7 +750,7 @@ bool StatementBuilder::createGetSql(
             where.append(StringTools::format("%s.%s%s?",
                falias, fkey["fcolumn"]->getString(),
                fkey["userData"]["compareOp"]->getString()));
-            params->append(fkey["value"]);
+            whereParams->append(fkey["value"]);
          }
 
          // FIXME: support joining on more than 1 column?
@@ -701,6 +765,9 @@ bool StatementBuilder::createGetSql(
             joinTables[ftable] = true;
          }
       }
+
+      // append where params to params
+      params.merge(whereParams, true);
 
       // handle limit clause
       string limit;

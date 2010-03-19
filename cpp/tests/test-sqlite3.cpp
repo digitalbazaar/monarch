@@ -4,6 +4,7 @@
 #include "monarch/test/Test.h"
 #include "monarch/test/Tester.h"
 #include "monarch/test/TestRunner.h"
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/sql/Row.h"
 #include "monarch/sql/StatementBuilder.h"
@@ -1575,15 +1576,15 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
 
    monarch::sql::Connection* c = dbc->getWriteConnection();
 
-   // create test tables
-   tr.test("create tables");
+   // initialize database for testing
+   tr.test("initialize database");
    {
       monarch::sql::Statement* s;
 
       s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST_1
          " (id INTEGER UNSIGNED PRIMARY KEY, t TEXT, i INTEGER UNSIGNED,"
-         "type_id BIGINT UNSIGNED)");
+         "type BIGINT UNSIGNED)");
       assert(s != NULL);
       s->execute();
       assertNoException();
@@ -1591,6 +1592,20 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST_2
          " (type_id INTEGER UNSIGNED PRIMARY KEY, type_value TEXT)");
+      assert(s != NULL);
+      s->execute();
+      assertNoException();
+
+      s = c->prepare(
+         "INSERT INTO " TABLE_TEST_2 " (type_id,type_value) "
+         "VALUES (1,'type1')");
+      assert(s != NULL);
+      s->execute();
+      assertNoException();
+
+      s = c->prepare(
+         "INSERT INTO " TABLE_TEST_2 " (type_id,type_value) "
+         "VALUES (2,'type2')");
       assert(s != NULL);
       s->execute();
       assertNoException();
@@ -1610,6 +1625,26 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("get");
+   {
+      StatementBuilder sb(dbc);
+      sb.get("Test").limit(1).execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "123";
+      result["description"] = "My test object description";
+      result["number"] = 10;
+      result["type"] = "type1";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb.fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
    tr.test("update Test object");
    {
       DynamicObject testObj;
@@ -1623,11 +1658,30 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("get");
+   {
+      StatementBuilder sb(dbc);
+      sb.get("Test").limit(1).execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "123";
+      result["description"] = "A different test object description";
+      result["number"] = 12;
+      result["type"] = "type2";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb.fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
    tr.test("update Test object w/id 123");
    {
       DynamicObject testObj;
-      testObj["description"] = "A different test object description";
-      testObj["number"] = 12;
+      testObj["description"] = "Yet another test object description";
       testObj["type"] = "type2";
 
       DynamicObject where;
@@ -1638,11 +1692,31 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("get");
+   {
+      StatementBuilder sb(dbc);
+      sb.get("Test").limit(1).execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "123";
+      result["description"] = "Yet another test object description";
+      result["number"] = 12;
+      result["type"] = "type2";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb.fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
    tr.test("update Test object where number > 12");
    {
       DynamicObject testObj;
       testObj["id"] = "123";
-      testObj["description"] = "A different test object description";
+      testObj["description"] = "This should not show up";
       testObj["number"] = 12;
       testObj["type"] = "type2";
 
@@ -1651,6 +1725,26 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilder sb(dbc);
       sb.update("Test", testObj).where("Test", where, ">").execute(c);
+   }
+   tr.passIfNoException();
+
+   tr.test("get");
+   {
+      StatementBuilder sb(dbc);
+      sb.get("Test").limit(1).execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "123";
+      result["description"] = "Yet another test object description";
+      result["number"] = 12;
+      result["type"] = "type2";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb.fetch();
+      assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
 
@@ -1667,18 +1761,31 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("get");
+   {
+      StatementBuilder sb(dbc);
+      sb.get("Test").limit(1).execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "123";
+      result["description"] = "Yet another test object description";
+      result["number"] = 13;
+      result["type"] = "type2";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb.fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
    // FIXME: test array params
    // FIXME: test LIKE
    // FIXME: test range
    // FIXME: enum
    // FIXME: test chaining updates (and w/diff operators)
-
-   tr.test("get full Test object");
-   {
-      StatementBuilder sb(dbc);
-      sb.get("Test").limit(1).execute(c);
-   }
-   tr.passIfNoException();
 
    tr.test("get Test object IDs");
    {
@@ -1687,6 +1794,16 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilder sb(dbc);
       sb.get("Test", &testObj).execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "123";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb.fetch();
+      assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
 
@@ -1697,6 +1814,19 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilder sb(dbc);
       sb.get("Test").where("Test", testObj, "=").execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "123";
+      result["description"] = "Yet another test object description";
+      result["number"] = 13;
+      result["type"] = "type2";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb.fetch();
+      assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
 
