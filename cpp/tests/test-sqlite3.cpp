@@ -1526,7 +1526,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       // id column
       {
          DynamicObject& entry = members["id"];
-         entry["objectType"] = "_col";
+         entry["group"] = "columns";
          entry["table"] = TABLE_TEST_1;
          entry["column"] = "id";
          entry["columnType"]->setType(UInt64);
@@ -1536,7 +1536,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       // t column
       {
          DynamicObject& entry = members["description"];
-         entry["objectType"] = "_col";
+         entry["group"] = "columns";
          entry["table"] = TABLE_TEST_1;
          entry["column"] = "t";
          entry["columnType"]->setType(String);
@@ -1546,7 +1546,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       // i column
       {
          DynamicObject& entry = members["number"];
-         entry["objectType"] = "_col";
+         entry["group"] = "columns";
          entry["table"] = TABLE_TEST_1;
          entry["column"] = "i";
          entry["columnType"]->setType(UInt32);
@@ -1556,7 +1556,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       // type w/foreign key
       {
          DynamicObject& entry = members["type"];
-         entry["objectType"] = "_fkey";
+         entry["group"] = "fkeys";
          entry["table"] = TABLE_TEST_1;
          entry["column"] = "type";
          entry["ftable"] = TABLE_TEST_2;

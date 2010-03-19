@@ -704,29 +704,29 @@ void runMySqlStatementBuilderTest(TestRunner& tr)
 
       // id column
       {
-         DynamicObject& col = orMap["members"]["id"];
-         col["objectType"] = "_col";
-         col["table"] = TABLE_TEST;
-         col["column"] = "id";
-         col["memberType"]->setType(String);
+         DynamicObject& entry = orMap["members"]["id"];
+         entry["group"] = "columns";
+         entry["table"] = TABLE_TEST;
+         entry["column"] = "id";
+         entry["memberType"]->setType(String);
       }
 
       // t column
       {
-         DynamicObject& col = orMap["members"]["description"];
-         col["objectType"] = "_col";
-         col["table"] = TABLE_TEST;
-         col["column"] = "t";
-         col["memberType"]->setType(String);
+         DynamicObject& entry = orMap["members"]["description"];
+         entry["group"] = "columns";
+         entry["table"] = TABLE_TEST;
+         entry["column"] = "t";
+         entry["memberType"]->setType(String);
       }
 
       // i column
       {
-         DynamicObject& col = orMap["members"]["number"];
-         col["objectType"] = "_col";
-         col["table"] = TABLE_TEST;
-         col["column"] = "i";
-         col["memberType"]->setType(UInt64);
+         DynamicObject& entry = orMap["members"]["number"];
+         entry["group"] = "columns";
+         entry["table"] = TABLE_TEST;
+         entry["column"] = "i";
+         entry["memberType"]->setType(UInt64);
       }
 
       dbc->setObjRelMap(orMap);

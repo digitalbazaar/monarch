@@ -307,7 +307,7 @@ bool StatementBuilder::createAddSql(
       while(ci->hasNext())
       {
          DynamicObject& column = ci->next();
-         columns.append(column["name"]->getString());
+         columns.append(column["column"]->getString());
          values.push_back('?');
          params->append(column["value"]);
          if(ci->hasNext())
@@ -319,10 +319,10 @@ bool StatementBuilder::createAddSql(
 
       // if any foreign key look ups are required, build an INSERT-SELECT
       // statement, otherwise build a vanilla INSERT statement
-      if(entry["foreignKeys"]->length() > 0)
+      if(entry["fkeys"]->length() > 0)
       {
          // add sub-select for each foreign key
-         DynamicObjectIterator fi = entry["foreignKeys"].getIterator();
+         DynamicObjectIterator fi = entry["fkeys"].getIterator();
          while(fi->hasNext())
          {
             DynamicObject& fkey = fi->next();
@@ -403,7 +403,7 @@ bool StatementBuilder::createUpdateSql(
                set.push_back(',');
             }
             set.append(StringTools::format("%s.%s%s?",
-               alias, column["name"]->getString(),
+               alias, column["column"]->getString(),
                column["userData"]["op"]->getString()));
             params->append(column["value"]);
          }
@@ -418,7 +418,7 @@ bool StatementBuilder::createUpdateSql(
             }
             boolOp = column["userData"]["boolOp"]->getString();
             where.append(StringTools::format("%s.%s%s?",
-               alias, column["name"]->getString(),
+               alias, column["column"]->getString(),
                column["userData"]["compareOp"]->getString()));
             params->append(column["value"]);
          }
@@ -426,28 +426,24 @@ bool StatementBuilder::createUpdateSql(
 
       // if any foreign key look ups are required, build set statements
       // using sub-selects
-      if(entry["foreignKeys"]->length() > 0)
+      DynamicObjectIterator fi = entry["fkeys"].getIterator();
+      while(fi->hasNext())
       {
-         // add sub-select for each foreign key
-         DynamicObjectIterator fi = entry["foreignKeys"].getIterator();
-         while(fi->hasNext())
-         {
-            DynamicObject& fkey = fi->next();
+         DynamicObject& fkey = fi->next();
 
-            // assign an alias to the foreign key table
-            const char* fkeyAlias = assignAlias(fkey["ftable"]->getString());
-            set.append(StringTools::format(
-               ",%s.%s=(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
-               alias, fkey["column"]->getString(),
-               fkeyAlias, fkey["fkey"]->getString(),
-               fkey["ftable"]->getString(),
-               fkeyAlias,
-               fkeyAlias, fkey["fcolumn"]->getString()));
-            params->append(fkey["value"]);
-            if(fi->hasNext())
-            {
-               set.push_back(',');
-            }
+         // assign an alias to the foreign key table
+         const char* fkeyAlias = assignAlias(fkey["ftable"]->getString());
+         set.append(StringTools::format(
+            ",%s.%s=(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
+            alias, fkey["column"]->getString(),
+            fkeyAlias, fkey["fkey"]->getString(),
+            fkey["ftable"]->getString(),
+            fkeyAlias,
+            fkeyAlias, fkey["fcolumn"]->getString()));
+         params->append(fkey["value"]);
+         if(fi->hasNext())
+         {
+            set.push_back(',');
          }
       }
 
@@ -522,7 +518,7 @@ bool StatementBuilder::createGetSql(
                columns.push_back(',');
             }
             columns.append(StringTools::format("%s.%s",
-               alias, column["name"]->getString()));
+               alias, column["column"]->getString()));
          }
          // add where column
          else if(strcmp(t, "where") == 0)
@@ -535,7 +531,7 @@ bool StatementBuilder::createGetSql(
             }
             boolOp = column["userData"]["boolOp"]->getString();
             where.append(StringTools::format("%s.%s%s?",
-               alias, column["name"]->getString(),
+               alias, column["column"]->getString(),
                column["userData"]["compareOp"]->getString()));
             params->append(column["value"]);
          }
@@ -545,52 +541,48 @@ bool StatementBuilder::createGetSql(
       string joins;
       DynamicObject joinTables;
       joinTables->setType(Map);
-      if(entry["foreignKeys"]->length() > 0)
+      DynamicObjectIterator fi = entry["fkeys"].getIterator();
+      while(fi->hasNext())
       {
-         // add sub-select for each foreign key
-         DynamicObjectIterator fi = entry["foreignKeys"].getIterator();
-         while(fi->hasNext())
+         DynamicObject& fkey = fi->next();
+         const char* t = fkey["userData"]["type"]->getString();
+
+         // assign an alias to the foreign key table
+         const char* fkeyTable = fkey["ftable"]->getString();
+         const char* fkeyAlias = assignAlias(fkeyTable);
+
+         // add a select column
+         if(strcmp(t, "get") == 0)
          {
-            DynamicObject& fkey = fi->next();
-            const char* t = fkey["userData"]["type"]->getString();
-
-            // assign an alias to the foreign key table
-            const char* fkeyTable = fkey["ftable"]->getString();
-            const char* fkeyAlias = assignAlias(fkeyTable);
-
-            // add a select column
-            if(strcmp(t, "get") == 0)
+            columns.append(StringTools::format(",%s.%s",
+               fkeyAlias, fkey["fcolumn"]->getString()));
+         }
+         // add where conditional
+         else if(strcmp(t, "where") == 0)
+         {
+            if(boolOp.length() > 0)
             {
-               columns.append(StringTools::format(",%s.%s",
-                  fkeyAlias, fkey["fcolumn"]->getString()));
+               where.push_back(' ');
+               where.append(boolOp);
+               where.push_back(' ');
             }
-            // add where conditional
-            else if(strcmp(t, "where") == 0)
-            {
-               if(boolOp.length() > 0)
-               {
-                  where.push_back(' ');
-                  where.append(boolOp);
-                  where.push_back(' ');
-               }
-               boolOp = fkey["userData"]["boolOp"]->getString();
-               where.append(StringTools::format("%s.%s%s?",
-                  fkeyAlias, fkey["fcolumn"]->getString(),
-                  fkey["userData"]["compareOp"]->getString()));
-               params->append(fkey["value"]);
-            }
+            boolOp = fkey["userData"]["boolOp"]->getString();
+            where.append(StringTools::format("%s.%s%s?",
+               fkeyAlias, fkey["fcolumn"]->getString(),
+               fkey["userData"]["compareOp"]->getString()));
+            params->append(fkey["value"]);
+         }
 
-            // FIXME: support joining on more than 1 column?
-            // add join only once
-            if(!joinTables->hasMember(fkeyTable))
-            {
-               joins.append(StringTools::format(
-                  " JOIN %s AS %s ON %s.%s=%s.%s",
-                  fkeyTable, fkeyAlias,
-                  alias, fkey["column"]->getString(),
-                  fkeyAlias, fkey["fkey"]->getString()));
-               joinTables[fkeyTable] = true;
-            }
+         // FIXME: support joining on more than 1 column?
+         // add join only once
+         if(!joinTables->hasMember(fkeyTable))
+         {
+            joins.append(StringTools::format(
+               " JOIN %s AS %s ON %s.%s=%s.%s",
+               fkeyTable, fkeyAlias,
+               alias, fkey["column"]->getString(),
+               fkeyAlias, fkey["fkey"]->getString()));
+            joinTables[fkeyTable] = true;
          }
       }
 

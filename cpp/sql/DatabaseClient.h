@@ -40,11 +40,20 @@ typedef monarch::rt::DynamicObject SchemaObject;
  *    "objectType": object-type
  *    "members": {} of
  *       "member-name": {} of
- *          "objectType": "_col" OR "_fkey" or object-type
- *          "column": if _col or _fkey, then database column name
- *          "memberType": if _col or _fkey the expected member type
- *          FIXME: stuff for _fkey mappings
- *          FIXME: stuff for transformations
+ *          "group": "columns" or "fkeys"
+ *          "table": the table for the object data
+ *          "column": the column for the object data (or foreign key if an fkey)
+ *          "columnType": the data type for the column (or fcolumn if an fkey)
+ *          "memberType": the data type for the member
+ *          (if mappingType is "fkey")
+ *          "ftable": the table with a key to store in "table" that maps to
+ *             the object data
+ *          "fkey": the column in "ftable" with the key to store in "table"
+ *          "fcolumn": the column in "ftable" with the object data
+ *          "encode": an array of database transformation functions to encode
+ *             data that is entering the database
+ *          "decode": an array of database transformation functions to decode
+ *             data that is coming from the database
  */
 typedef monarch::rt::DynamicObject ObjRelMap;
 

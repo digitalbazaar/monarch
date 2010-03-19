@@ -81,17 +81,35 @@ bool DatabaseClient::initialize()
       NULL);
 
    // FIXME: fill out validator
-   // create OR map validator
+   // create OR mapping validator
    mOrMapValidator = new v::Map(
       "objectType", new v::Type(String),
       "members", new v::All(
          new v::Type(Map),
-         new v::Each(new v::Map(
-            "objectType", new v::Type(String),
-            "table", new v::Optional(new v::All(
-               new v::Type(String),
-               new v::Min(1, "Table name must be at least 1 character long."),
-               NULL)),
+         new v::Each(new v::All(
+            new v::Map(
+               "table", new v::All(
+                  new v::Type(String),
+                  new v::Min(1, "Table must be at least 1 character long."),
+                  NULL),
+               "column", new v::All(
+                  new v::Type(String),
+                  new v::Min(1, "Column must be at least 1 character long."),
+                  NULL),
+               "columnType", new v::Valid(),
+               "memberType", new v::Valid(),
+               NULL),
+            new v::Any(
+               new v::Map(
+                  "group", new v::Equals("columns"),
+                  NULL),
+               new v::Map(
+                  "group", new v::Equals("fkeys"),
+                  "ftable", new v::Type(String),
+                  "fkey", new v::Type(String),
+                  "fcolumn", new v::Type(String),
+                  NULL),
+               NULL),
             NULL)),
          NULL),
       NULL);
@@ -220,64 +238,7 @@ ObjRelMap DatabaseClient::getObjRelMap(const char* objType)
 
    return rval;
 }
-#if 0
-static void _mapMember()
-{
-   /*
-    [] of
-    {
-       "table": <tablename>
-       "columns":
-          <name>: value
-       "lock": true/false
-    }
 
-    for where clauses:
-    [] of
-    {
-       "table": <tablename>
-       "columns":
-          <name>: value
-       "operator": <operator> (ie =,<>,<,>)
-       "delimiter": <delimiter> (ie AND, OR)
-    }
-
-    */
-
-
-   /* Algorithm to convert an object with members to tables and columns.
-
-      End result:
-      A grouping of table => column => member.
-      This allows the SQL to be created from the table names and columns and
-      parameterized placeholders to be set for each one ... and for the
-      parameters to be set to the members.
-
-      To get there:
-      We need to be able to pass an object type and object member to a schema
-      and get the table name and column.
-
-      FIXME: How do we handle foreign key issues?
-
-      We need to get the key for the member because that's what we will be
-      updating/inserting into the table or selecting on.
-
-      We could have table=>column=>member ... where member has "value"
-      and could also have keyTable=>keys,values (where keys and values are
-      columns in the key table that would allow the key to be found from the
-      value given in the member.
-
-      Then *either* JOIN syntax or a separate lookup could be performed to
-      get the appropriate key to match the member's value... which would then
-      be set in "key" or something.
-
-      Would be nice to have all of this consolidated somehow in the returned
-      object?
-
-
-    */
-}
-#endif
 bool DatabaseClient::mapInstance(
    const char* objType,
    DynamicObject& obj, DynamicObject& mapping,
@@ -285,27 +246,34 @@ bool DatabaseClient::mapInstance(
 {
    bool rval = false;
 
-   /* Algorithm to create a column mapping to the values in the given
-      object:
+   /* Algorithm to create a column mapping to the values in the given object:
 
-      1. Get the schema for the object type.
-      2. Iterate over the members provided in the object, getting each one's
-         associated table and column.
-      3. Fill the column mapping output with the table name, column, and value.
+      1. Get the OR mapping for the object type.
+      2. Iterate over the members in the mapping, assigning each one's
+         associated information to a matching member in the instance object.
+      3. Include any values from the instance object in the instance mapping
+         validating and coercing types as needed.
    */
 
-   /* ObjRelMap: {} of
-   *    "type": object-type
-   *    "members": {} of
-   *       "member-name": {} of
-   *          "objectType": "_col" OR "_fkey" or object-type
-   *          "table": if _col or _fkey, then database table name
-   *          "column": if _col or _fkey, then database column name
-   *          "columnType": if _col or _fkey the expected column type
-   *          "memberType": if _col or _fkey the expected member type
-   *          FIXME: stuff for _fkey mappings
-   *          FIXME: stuff for transformations
-   */
+   /* The instance mapping format:
+    *
+    * mapping: {
+    *    "tables": {} of table name to table entry
+    *    "entries": [
+    *       "table": the database table name
+    *       "columns": [
+    *          "name": the name of the column
+    *          "value": the value for the column (to apply via an operator,
+    *             coerced according to columnType)
+    *          "userData": as given to this call
+    *       ],
+    *       "fkeys": [
+    *          (cloned fkey entry from the OR mapping) +
+    *          "value": the value for "fcolumn" (coerced according to columnType)
+    *       ]
+    *    ]
+    * }
+    */
 
    // initialize mapping
    mapping["tables"]->setType(Map);
@@ -328,86 +296,53 @@ bool DatabaseClient::mapInstance(
             // start building an instance mapping entry
             DynamicObject entry(NULL);
 
-            // handle mapping based on member's object type
-            const char* ot = info["objectType"]->getString();
-            bool isCol = (strcmp(ot, "_col") == 0);
-            bool isFKey = (strcmp(ot, "_fkey") == 0);
-            if(isCol || isFKey)
+            // add/update entry based on table
+            const char* table = info["table"]->getString();
+            if(mapping["tables"]->hasMember(table))
             {
-               const char* table = info["table"]->getString();
-               if(mapping["tables"]->hasMember(table))
-               {
-                  // update existing entry
-                  entry = mapping["tables"][table];
-               }
-               else
-               {
-                  // add a new entry
-                  entry = mapping["entries"]->append();
-                  entry["table"] = info["table"];
-                  entry["columns"]->setType(Array);
-                  entry["foreignKeys"]->setType(Array);
-                  mapping["tables"][table] = entry;
-               }
-
-               // set information and munge datatype
-               // FIXME: validate data type
-               if(isCol)
-               {
-                  DynamicObject column;
-                  column["name"] = info["column"];
-                  if(obj.isNull())
-                  {
-                     column["value"];
-                  }
-                  else
-                  {
-                     column["value"] = obj[i->getName()].clone();
-                  }
-                  column["value"]->setType(info["columnType"]->getType());
-                  if(userData != NULL)
-                  {
-                     column["userData"] = *userData;
-                  }
-                  entry["columns"]->append(column);
-               }
-               else
-               {
-                  DynamicObject fkey = info.clone();
-                  if(obj.isNull())
-                  {
-                     fkey["value"];
-                  }
-                  else
-                  {
-                     fkey["value"] = obj[i->getName()].clone();
-                  }
-                  fkey["value"]->setType(info["columnType"]->getType());
-                  if(userData != NULL)
-                  {
-                     fkey["userData"] = *userData;
-                  }
-                  entry["foreignKeys"]->append(fkey);
-               }
+               // update existing entry
+               entry = mapping["tables"][table];
             }
-            // entry is another object
             else
             {
-               // FIXME: if member is an array, then N objects of other type
-               // FIXME: if member is a map, then just one
-               // FIXME: any other type should be an error
-               // FIXME: make sure to add userData to entry
+               // add a new entry
+               entry = mapping["entries"]->append();
+               entry["table"] = info["table"];
+               entry["columns"]->setType(Array);
+               entry["foreignKeys"]->setType(Array);
+               mapping["tables"][table] = entry;
             }
+
+            // clone info add user-data
+            DynamicObject d = info.clone();
+            if(userData != NULL)
+            {
+               d["userData"] = *userData;
+            }
+
+            // set value
+            if(obj.isNull())
+            {
+               d["value"];
+            }
+            else
+            {
+               // FIXME: validate data type
+               d["value"] = obj[i->getName()].clone();
+            }
+
+            // coerce data type to match column type
+            d["value"]->setType(d["columnType"]->getType());
+
+            // add to entry based on group
+            entry[info["group"]->getString()]->append(d);
          }
       }
    }
 
    return rval;
 }
-
 // FIXME: old stuff below
-
-
 bool DatabaseClient::create(
    const char* table, bool ignoreIfExists, Connection* c)
 {
