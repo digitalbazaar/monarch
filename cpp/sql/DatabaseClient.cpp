@@ -83,10 +83,13 @@ bool DatabaseClient::initialize()
          NULL)),
       NULL);
 
-   // FIXME: fill out validator
    // create OR mapping validator
    mOrMapValidator = new v::Map(
       "objectType", new v::Type(String),
+      "autoIncrement", new v::Optional(new v::All(
+         new v::Type(Map),
+         new v::Each(new v::Type(String)),
+         NULL)),
       "members", new v::All(
          new v::Type(Map),
          new v::Each(new v::All(
@@ -316,6 +319,11 @@ bool DatabaseClient::mapInstance(
                entry["table"] = info["table"];
                entry["columns"]->setType(Array);
                entry["fkeys"]->setType(Array);
+               if(orMap->hasMember("autoIncrement") &&
+                  orMap["autoIncrement"]->hasMember(table))
+               {
+                  entry["autoIncrement"] = orMap["autoIncrement"][table];
+               }
                mapping["tables"][table] = entry;
             }
 

@@ -168,114 +168,14 @@ bool SqlStatementBuilder::execute(Connection* c)
             }
          }
 
-         // initialize results for get statement
-         if(mStatementType == StatementBuilder::Get)
-         {
-            mResults = DynamicObject();
-            mResults->setType(Array);
-         }
+         // initialize results
+         mResults = DynamicObject();
 
          // execute all statements
          for(int i = 0; rval && i < (int)mStatementCache.size(); i++)
          {
             Statement* s = mStatementCache[i];
-            rval = s->execute();
-
-            // FIXME: handle inserts that result in a last auto-increment key
-
-            // fetch related rows if doing a get statement
-            if(rval && mStatementType == StatementBuilder::Get)
-            {
-               DynamicObject& cols = statements["rows"][i];
-
-               // possible data types
-               string text;
-               int32_t i32;
-               uint32_t ui32;
-               int64_t i64;
-               uint64_t ui64;
-
-               // fetch rows
-               Row* row;
-               while(rval && ((row = s->fetch()) != NULL))
-               {
-                  DynamicObject& result = mResults->append();
-                  result->setType(Map);
-                  DynamicObjectIterator ci = cols.getIterator();
-                  while(rval && ci->hasNext())
-                  {
-                     DynamicObject& column = ci->next();
-                     DynamicObjectType ct = column["columnType"]->getType();
-                     const char* member = column["member"]->getString();
-                     unsigned int idx = ci->getIndex();
-                     switch(ct)
-                     {
-                        case Int32:
-                           rval = row->getInt32(idx, i32);
-                           if(rval)
-                           {
-                              result[member] = i32;
-                           }
-                           break;
-                        case UInt32:
-                           rval = row->getUInt32(idx, ui32);
-                           if(rval)
-                           {
-                              result[member] = ui32;
-                           }
-                           break;
-                        case Int64:
-                           rval = row->getInt64(idx, i64);
-                           if(rval)
-                           {
-                              result[member] = i64;
-                           }
-                           break;
-                        case UInt64:
-                           rval = row->getUInt64(idx, ui64);
-                           if(rval)
-                           {
-                              result[member] = ui64;
-                           }
-                           break;
-                        case String:
-                           rval = row->getText(idx, text);
-                           if(rval)
-                           {
-                              result[member] = text.c_str();
-                           }
-                           break;
-                        default:
-                        {
-                           // invalid column type
-                           ExceptionRef e = new Exception(
-                              "Invalid column type.",
-                              "monarch.sql.StatementBuilder.InvalidColumnType");
-                           e->getDetails()["columnType"] =
-                              DynamicObject::descriptionForType(ct);
-                           rval = false;
-                           break;
-                        }
-                     }
-
-                     if(rval)
-                     {
-                        // coerce member type
-                        result[member]->setType(
-                           column["memberType"]->getType());
-                     }
-                  }
-               }
-
-               // finish out result set
-               while(row != NULL)
-               {
-                  row = s->fetch();
-               }
-            }
-
-            // reset statement
-            s->reset();
+            rval = s->execute() && getResults(s, i, statements) && s->reset();
          }
 
          // clear objects
@@ -290,8 +190,6 @@ DynamicObject SqlStatementBuilder::fetch()
 {
    return mResults;
 }
-
-// FIXME: add method to get number of rows/objects inserted/updated
 
 void SqlStatementBuilder::blockAliases(DynamicObject& mapping)
 {
@@ -377,6 +275,7 @@ bool SqlStatementBuilder::createSql(DynamicObject& statements)
       statements["sql"]->setType(Array);
       statements["params"]->setType(Array);
       statements["rows"]->setType(Array);
+      statements["tables"]->setType(Array);
 
       switch(mStatementType)
       {
@@ -463,6 +362,14 @@ bool SqlStatementBuilder::createAddSql(
          statements["sql"]->append() = StringTools::format(
             "INSERT INTO %s (%s) VALUES (%s)",
             table, columns.c_str(), values.c_str()).c_str();
+      }
+
+      // add auto-increment field, if any
+      DynamicObject& t = statements["tables"]->append();
+      t["table"] = table;
+      if(entry->hasMember("autoIncrement"))
+      {
+         t["autoIncrement"] = entry["autoIncrement"];
       }
 
       int idx = statements["sql"]->length() - 1;
@@ -634,6 +541,10 @@ bool SqlStatementBuilder::createUpdateSql(
          (where.length() == 0) ? "" : " WHERE ", where.c_str(),
          limit.c_str(), lock.c_str()).c_str();
 
+      // add table information
+      DynamicObject& t = statements["tables"]->append();
+      t["table"] = table;
+
       int idx = statements["sql"]->length() - 1;
       MO_CAT_DEBUG(MO_SQL_CAT,
          "Generated SQL:\n"
@@ -788,6 +699,10 @@ bool SqlStatementBuilder::createGetSql(
          (where.length() == 0) ? "" : " WHERE ", where.c_str(),
          limit.c_str(), lock.c_str()).c_str();
 
+      // add table information
+      DynamicObject& t = statements["tables"]->append();
+      t["table"] = table;
+
       int idx = statements["sql"]->length() - 1;
       MO_CAT_DEBUG(MO_SQL_CAT,
          "Generated SQL:\n"
@@ -796,6 +711,133 @@ bool SqlStatementBuilder::createGetSql(
          statements["sql"][idx]->getString(),
          JsonWriter::writeToString(
             statements["params"][idx], false, false).c_str());
+   }
+
+   return rval;
+}
+
+bool SqlStatementBuilder::getResults(
+   Statement* s, int idx, DynamicObject& statements)
+{
+   bool rval = true;
+
+   if(mStatementType != StatementBuilder::Get)
+   {
+      mResults->setType(Map);
+      mResults["changed"]->setType(UInt64);
+      mResults["tables"]->setType(Map);
+
+      // handle inserts that produce an auto-increment key
+      DynamicObject& t = statements["tables"][idx];
+      if(mStatementType == StatementBuilder::Add &&
+         t->hasMember("autoIncrement"))
+      {
+         mResults["ids"]->setType(Map);
+         mResults["ids"][t["autoIncrement"]->getString()] =
+            s->getLastInsertRowId();
+      }
+
+      // get rows changed
+      uint64_t rows;
+      rval = s->getRowsChanged(rows);
+      if(rval)
+      {
+         mResults["tables"][t["table"]->getString()]["changed"] = rows;
+         if(mResults["changed"]->getUInt64() < rows)
+         {
+            mResults["changed"] = rows;
+         }
+      }
+   }
+   else
+   {
+      // fetch related rows
+      mResults->setType(Array);
+      DynamicObject& cols = statements["rows"][idx];
+
+      // possible data types
+      string text;
+      int32_t i32;
+      uint32_t ui32;
+      int64_t i64;
+      uint64_t ui64;
+
+      // fetch rows
+      Row* row;
+      while(rval && ((row = s->fetch()) != NULL))
+      {
+         DynamicObject& result = mResults->append();
+         result->setType(Map);
+         DynamicObjectIterator ci = cols.getIterator();
+         while(rval && ci->hasNext())
+         {
+            DynamicObject& column = ci->next();
+            DynamicObjectType ct = column["columnType"]->getType();
+            const char* member = column["member"]->getString();
+            unsigned int col = ci->getIndex();
+            switch(ct)
+            {
+               case Int32:
+                  rval = row->getInt32(col, i32);
+                  if(rval)
+                  {
+                     result[member] = i32;
+                  }
+                  break;
+               case UInt32:
+                  rval = row->getUInt32(col, ui32);
+                  if(rval)
+                  {
+                     result[member] = ui32;
+                  }
+                  break;
+               case Int64:
+                  rval = row->getInt64(col, i64);
+                  if(rval)
+                  {
+                     result[member] = i64;
+                  }
+                  break;
+               case UInt64:
+                  rval = row->getUInt64(col, ui64);
+                  if(rval)
+                  {
+                     result[member] = ui64;
+                  }
+                  break;
+               case String:
+                  rval = row->getText(col, text);
+                  if(rval)
+                  {
+                     result[member] = text.c_str();
+                  }
+                  break;
+               default:
+               {
+                  // invalid column type
+                  ExceptionRef e = new Exception(
+                     "Invalid column type.",
+                     "monarch.sql.StatementBuilder.InvalidColumnType");
+                  e->getDetails()["columnType"] =
+                     DynamicObject::descriptionForType(ct);
+                  rval = false;
+                  break;
+               }
+            }
+
+            if(rval)
+            {
+               // coerce member type
+               result[member]->setType(column["memberType"]->getType());
+            }
+         }
+      }
+
+      // finish out result set
+      while(row != NULL)
+      {
+         row = s->fetch();
+      }
    }
 
    return rval;

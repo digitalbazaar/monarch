@@ -236,6 +236,19 @@ protected:
    virtual bool createGetSql(
       monarch::rt::DynamicObject& mapping,
       monarch::rt::DynamicObject& statements);
+
+   /**
+    * Gets the results from an SQL statement.
+    *
+    * @param s the current SQL statement.
+    * @param idx the statement index in "statements".
+    * @param statements the object with all statements, params, and row info.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool getResults(
+      monarch::sql::Statement* s, int idx,
+      monarch::rt::DynamicObject& statements);
 };
 
 } // end namespace sql

@@ -127,7 +127,14 @@ public:
    virtual bool execute(monarch::sql::Connection* c = NULL) = 0;
 
    /**
-    * Fetches the result objects (following a get() call).
+    * Fetches the result objects, following a get() call. If the the call
+    * was add() then each result object will contain an "ids" map with the
+    * auto-increment ID values mapped to their member names according to the
+    * OR mapping. Another field "changed" will contain the number of objects
+    * changed by an add() or update() call.
+    *
+    * The result object may also contain a "tables" map with table names
+    * mapped to changed rows for each individual table modified.
     *
     * @return an array of result objects.
     */

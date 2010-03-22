@@ -39,6 +39,8 @@ typedef monarch::rt::DynamicObject SchemaObject;
  *
  * ObjRelMap: {} of
  *    "objectType": object-type
+ *    "autoIncrement": {} of
+ *       "table-name": "member-name"
  *    "members": {} of
  *       "member-name": {} of
  *          "group": "columns" or "fkeys"
