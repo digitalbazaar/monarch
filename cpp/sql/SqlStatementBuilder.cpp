@@ -294,6 +294,44 @@ bool SqlStatementBuilder::createSql(DynamicObject& statements)
    return rval;
 }
 
+static string _column(DynamicObject& column, const char* col)
+{
+   string rval;
+   string end;
+   if(column->hasMember("decode"))
+   {
+      DynamicObjectIterator i = column["decode"].getIterator();
+      while(i->hasNext())
+      {
+         rval.append(i->next()->getString());
+         rval.push_back('(');
+         end.push_back(')');
+      }
+   }
+   rval.append(col);
+   rval.append(end);
+   return rval;
+}
+
+static string _param(DynamicObject& column)
+{
+   string rval;
+   string end;
+   if(column->hasMember("encode"))
+   {
+      DynamicObjectIterator i = column["encode"].getIterator();
+      while(i->hasNext())
+      {
+         rval.append(i->next()->getString());
+         rval.push_back('(');
+         end.push_back(')');
+      }
+   }
+   rval.push_back('?');
+   rval.append(end);
+   return rval;
+}
+
 bool SqlStatementBuilder::createAddSql(
    DynamicObject& mapping, DynamicObject& statements)
 {
@@ -317,7 +355,7 @@ bool SqlStatementBuilder::createAddSql(
       {
          DynamicObject& column = ci->next();
          columns.append(column["column"]->getString());
-         values.push_back('?');
+         values.append(_param(column));
          params->append(column["value"]);
          if(ci->hasNext())
          {
@@ -346,10 +384,11 @@ bool SqlStatementBuilder::createAddSql(
             const char* falias = assignAlias(ftable);
             columns.append(fkey["column"]->getString());
             values.append(StringTools::format(
-               "(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
+               "(SELECT %s.%s FROM %s AS %s WHERE %s.%s=%s)",
                falias, fkey["fkey"]->getString(),
                ftable, falias,
-               falias, fkey["fcolumn"]->getString()));
+               falias, fkey["fcolumn"]->getString(),
+               _param(fkey).c_str()));
             params->append(fkey["value"]);
          }
 
@@ -444,11 +483,12 @@ bool SqlStatementBuilder::createUpdateSql(
             else
             {
                /*
-               set.append(StringTools::format("%s.%s%s?",
-                  alias, column["column"]->getString(), op));
+               set.append(StringTools::format("%s.%s%s%s",
+                  alias, column["column"]->getString(), op,
+                  _param(column).c_str()));
                */
-               set.append(StringTools::format("%s%s?",
-                  column["column"]->getString(), op));
+               set.append(StringTools::format("%s%s%s",
+                  column["column"]->getString(), op, _param(column).c_str()));
             }
             params->append(column["value"]);
          }
@@ -464,13 +504,15 @@ bool SqlStatementBuilder::createUpdateSql(
             boolOp = column["userData"]["boolOp"]->getString();
 
             // FIXME: handle case where value is an array, do WHERE IN
-            where.append(StringTools::format("%s%s?",
+            where.append(StringTools::format("%s%s%s",
                column["column"]->getString(),
-               column["userData"]["compareOp"]->getString()));
+               column["userData"]["compareOp"]->getString(),
+               _param(column).c_str()));
             /*
-            where.append(StringTools::format("%s.%s%s?",
+            where.append(StringTools::format("%s.%s%s%s",
                alias, column["column"]->getString(),
-               column["userData"]["compareOp"]->getString()));
+               column["userData"]["compareOp"]->getString(),
+               _param(column).c_str()));
             */
             whereParams->append(column["value"]);
          }
@@ -489,18 +531,20 @@ bool SqlStatementBuilder::createUpdateSql(
          //const char* falias = assignAlias(ftable);
          /*
          set.append(StringTools::format(
-            ",%s.%s=(SELECT %s.%s FROM %s AS %s WHERE %s.%s=?)",
+            ",%s.%s=(SELECT %s.%s FROM %s AS %s WHERE %s.%s=%s)",
             alias, fkey["column"]->getString(),
             falias, fkey["fkey"]->getString(),
             ftable, falias,
-            falias, fkey["fcolumn"]->getString()));
+            falias, fkey["fcolumn"]->getString(),
+            _param(fkey).c_str()));
          params->append(fkey["value"]);
          */
          set.append(StringTools::format(
-            ",%s=(SELECT %s FROM %s WHERE %s=?)",
+            ",%s=(SELECT %s FROM %s WHERE %s=%s)",
             fkey["column"]->getString(),
             fkey["fkey"]->getString(),
-            ftable, fkey["fcolumn"]->getString()));
+            ftable, fkey["fcolumn"]->getString(),
+            _param(fkey).c_str()));
          params->append(fkey["value"]);
          if(fi->hasNext())
          {
@@ -590,6 +634,8 @@ bool SqlStatementBuilder::createGetSql(
          DynamicObject& column = ci->next();
          const char* t = column["userData"]["type"]->getString();
 
+         // FIXME: handle "decode" function array from column entry
+
          // add column to get
          if(strcmp(t, "get") == 0)
          {
@@ -597,8 +643,9 @@ bool SqlStatementBuilder::createGetSql(
             {
                columns.push_back(',');
             }
-            columns.append(StringTools::format("%s.%s",
-               alias, column["column"]->getString()));
+            columns.append(
+               _column(column, StringTools::format("%s.%s",
+               alias, column["column"]->getString()).c_str()));
 
             // add row entry for fetching column later
             rows->append(column);
@@ -639,8 +686,9 @@ bool SqlStatementBuilder::createGetSql(
          // add a select column
          if(strcmp(t, "get") == 0)
          {
-            columns.append(StringTools::format(",%s.%s",
-               falias, fkey["fcolumn"]->getString()));
+            columns.append(
+               _column(fkey, StringTools::format(",%s.%s",
+               falias, fkey["fcolumn"]->getString()).c_str()));
 
             // add row entry for fetching column later
             rows->append(fkey);
@@ -655,9 +703,10 @@ bool SqlStatementBuilder::createGetSql(
                where.push_back(' ');
             }
             boolOp = fkey["userData"]["boolOp"]->getString();
-            where.append(StringTools::format("%s.%s%s?",
+            where.append(StringTools::format("%s.%s%s%s",
                falias, fkey["fcolumn"]->getString(),
-               fkey["userData"]["compareOp"]->getString()));
+               fkey["userData"]["compareOp"]->getString(),
+               _param(fkey).c_str()));
             whereParams->append(fkey["value"]);
          }
 

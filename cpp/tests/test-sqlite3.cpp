@@ -1559,6 +1559,17 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
          entry["memberType"]->setType(String);
       }
 
+      // lower case text column
+      {
+         DynamicObject& entry = members["lower"];
+         entry["group"] = "columns";
+         entry["table"] = TABLE_TEST_1;
+         entry["column"] = "lowertext";
+         entry["encode"]->append() = "LOWER";
+         entry["columnType"]->setType(String);
+         entry["memberType"]->setType(String);
+      }
+
       dbc->setObjRelMap(orMap);
    }
    tr.passIfNoException();
@@ -1576,7 +1587,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST_1
          " (id INTEGER PRIMARY KEY, t TEXT, i INTEGER UNSIGNED,"
-         "type BIGINT UNSIGNED)");
+         "type BIGINT UNSIGNED, lowertext TEXT)");
       assert(s != NULL);
       s->execute();
       assertNoException();
@@ -1610,6 +1621,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       testObj["description"] = "My test object description";
       testObj["number"] = 10;
       testObj["type"] = "type1";
+      testObj["lower"] = "LOWERCASE";
 
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->add("Test", testObj)->execute(c);
@@ -1636,6 +1648,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       result["description"] = "My test object description";
       result["number"] = 10;
       result["type"] = "type1";
+      result["lower"] = "lowercase";
 
       DynamicObject expect;
       expect->append(result);
@@ -1677,6 +1690,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       result["description"] = "A different test object description";
       result["number"] = 12;
       result["type"] = "type2";
+      result["lower"] = "lowercase";
 
       DynamicObject expect;
       expect->append(result);
@@ -1719,6 +1733,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       result["description"] = "Yet another test object description";
       result["number"] = 12;
       result["type"] = "type2";
+      result["lower"] = "lowercase";
 
       DynamicObject expect;
       expect->append(result);
@@ -1763,6 +1778,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       result["description"] = "Yet another test object description";
       result["number"] = 12;
       result["type"] = "type2";
+      result["lower"] = "lowercase";
 
       DynamicObject expect;
       expect->append(result);
@@ -1804,6 +1820,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       result["description"] = "Yet another test object description";
       result["number"] = 13;
       result["type"] = "type2";
+      result["lower"] = "lowercase";
 
       DynamicObject expect;
       expect->append(result);
@@ -1853,6 +1870,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       result["description"] = "Yet another test object description";
       result["number"] = 13;
       result["type"] = "type2";
+      result["lower"] = "lowercase";
 
       DynamicObject expect;
       expect->append(result);
