@@ -106,6 +106,8 @@ public:
       const char* compareOp = "=",
       const char* boolOp = "AND") = 0;
 
+   // FIXME: add method to request total number of matching objects
+
    /**
     * Limits the number of objects to update or get.
     *
@@ -139,6 +141,8 @@ public:
     * @return an array of result objects.
     */
    virtual monarch::rt::DynamicObject fetch() = 0;
+
+   // FIXME: add method for getting total number of matching objects
 };
 
 // type definition for a reference counted StatementBuilder
