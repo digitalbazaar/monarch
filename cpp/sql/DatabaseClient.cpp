@@ -10,6 +10,7 @@
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/sql/Row.h"
 #include "monarch/sql/Statement.h"
+#include "monarch/sql/SqlStatementBuilder.h"
 
 #include <cstdio>
 
@@ -31,6 +32,8 @@ namespace v = monarch::validation;
 // constructed for the SqlExecutable object -- so changing its data members
 // should be completely fine and internal to that class and this class' use
 // of that class.
+// FIXME: StatementBuilder replaces SqlExecutable which is now deprecated
+// 03-22-2010
 
 DatabaseClient::DatabaseClient() :
    mDebugLogging(false),
@@ -345,6 +348,11 @@ bool DatabaseClient::mapInstance(
    }
 
    return rval;
+}
+
+StatementBuilderRef DatabaseClient::createStatementBuilder()
+{
+   return new SqlStatementBuilder(this);
 }
 // FIXME: old stuff below
 bool DatabaseClient::create(

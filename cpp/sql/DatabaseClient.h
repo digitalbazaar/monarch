@@ -5,6 +5,7 @@
 #define monarch_sql_DatabaseClient_H
 
 #include "monarch/sql/ConnectionPool.h"
+#include "monarch/sql/StatementBuilder.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/validation/Validation.h"
 
@@ -13,7 +14,7 @@ namespace monarch
 namespace sql
 {
 
-// forward declare row
+// forward declarations
 class Row;
 
 /**
@@ -307,6 +308,13 @@ public:
       monarch::rt::DynamicObject& obj,
       monarch::rt::DynamicObject& mapping,
       monarch::rt::DynamicObject* userData = NULL);
+
+   /**
+    * Creates a StatementBuilder.
+    *
+    * @return the created StatementBuilder.
+    */
+   virtual StatementBuilderRef createStatementBuilder();
 
    /**
     * Creates a table via CREATE TABLE. The schema for the table must have

@@ -746,8 +746,8 @@ void runMySqlStatementBuilderTest(TestRunner& tr)
       testObj["description"] = "My test object description";
       testObj["number"] = 10;
 
-      StatementBuilder sb(dbc);
-      sb.add("Test", testObj).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->add("Test", testObj)->execute(c);
    }
    tr.passIfNoException();
 

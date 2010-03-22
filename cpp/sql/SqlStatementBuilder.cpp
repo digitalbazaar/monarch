@@ -3,7 +3,7 @@
  */
 #define __STDC_FORMAT_MACROS
 
-#include "monarch/sql/StatementBuilder.h"
+#include "monarch/sql/SqlStatementBuilder.h"
 
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/logging/Logging.h"
@@ -24,23 +24,24 @@ using namespace monarch::util;
 
 #define MAX_ALIAS_COUNTER 1 << 16
 
-StatementBuilder::StatementBuilder(DatabaseClientRef& dbc) :
+SqlStatementBuilder::SqlStatementBuilder(DatabaseClient* dbc) :
    mDatabaseClient(dbc),
-   mStatementType(StatementBuilder::Get),
    mAliasCounter(0),
    mLimit(NULL),
    mResults(NULL)
 {
+   mStatementType = StatementBuilder::Get;
    mAliases->setType(Map);
    mUsedAliases->setType(Map);
    mObjects->setType(Array);
 }
 
-StatementBuilder::~StatementBuilder()
+SqlStatementBuilder::~SqlStatementBuilder()
 {
 }
 
-StatementBuilder& StatementBuilder::add(const char* type, DynamicObject& obj)
+StatementBuilder* SqlStatementBuilder::add(
+   const char* type, DynamicObject& obj)
 {
    mStatementType = StatementBuilder::Add;
    DynamicObject entry;
@@ -48,10 +49,10 @@ StatementBuilder& StatementBuilder::add(const char* type, DynamicObject& obj)
    entry["object"] = obj;
    entry["info"]["type"] = "add";
    mObjects->append(entry);
-   return *this;
+   return this;
 }
 
-StatementBuilder& StatementBuilder::update(
+StatementBuilder* SqlStatementBuilder::update(
    const char* type, DynamicObject& obj, const char* op)
 {
    mStatementType = StatementBuilder::Update;
@@ -61,10 +62,11 @@ StatementBuilder& StatementBuilder::update(
    entry["info"]["type"] = "set";
    entry["info"]["op"] = op;
    mObjects->append(entry);
-   return *this;
+   return this;
 }
 
-StatementBuilder& StatementBuilder::get(const char* type, DynamicObject* obj)
+StatementBuilder* SqlStatementBuilder::get(
+   const char* type, DynamicObject* obj)
 {
    mStatementType = StatementBuilder::Get;
    DynamicObject entry;
@@ -79,10 +81,10 @@ StatementBuilder& StatementBuilder::get(const char* type, DynamicObject* obj)
    }
    entry["info"]["type"] = "get";
    mObjects->append(entry);
-   return *this;
+   return this;
 }
 
-StatementBuilder& StatementBuilder::where(
+StatementBuilder* SqlStatementBuilder::where(
    const char* type, DynamicObject& conditions,
    const char* compareOp, const char* boolOp)
 {
@@ -93,18 +95,18 @@ StatementBuilder& StatementBuilder::where(
    entry["info"]["compareOp"] = compareOp;
    entry["info"]["boolOp"] = boolOp;
    mObjects->append(entry);
-   return *this;
+   return this;
 }
 
-StatementBuilder& StatementBuilder::limit(int count, int start)
+StatementBuilder* SqlStatementBuilder::limit(int count, int start)
 {
    mLimit = DynamicObject();
    mLimit["count"] = count;
    mLimit["start"] = start;
-   return *this;
+   return this;
 }
 
-bool StatementBuilder::execute(Connection* c)
+bool SqlStatementBuilder::execute(Connection* c)
 {
    bool rval;
 
@@ -284,14 +286,14 @@ bool StatementBuilder::execute(Connection* c)
    return rval;
 }
 
-DynamicObject StatementBuilder::fetch()
+DynamicObject SqlStatementBuilder::fetch()
 {
    return mResults;
 }
 
 // FIXME: add method to get number of rows/objects inserted/updated
 
-void StatementBuilder::blockAliases(DynamicObject& mapping)
+void SqlStatementBuilder::blockAliases(DynamicObject& mapping)
 {
    DynamicObjectIterator i = mapping["entries"].getIterator();
    while(i->hasNext())
@@ -311,7 +313,7 @@ void StatementBuilder::blockAliases(DynamicObject& mapping)
    }
 }
 
-const char* StatementBuilder::assignAlias(const char* table)
+const char* SqlStatementBuilder::assignAlias(const char* table)
 {
    if(!mAliases[table]->hasMember("alias"))
    {
@@ -328,7 +330,7 @@ const char* StatementBuilder::assignAlias(const char* table)
    return mAliases[table]["alias"]->getString();
 }
 
-bool StatementBuilder::createSql(DynamicObject& statements)
+bool SqlStatementBuilder::createSql(DynamicObject& statements)
 {
    bool rval = true;
 
@@ -393,7 +395,7 @@ bool StatementBuilder::createSql(DynamicObject& statements)
    return rval;
 }
 
-bool StatementBuilder::createAddSql(
+bool SqlStatementBuilder::createAddSql(
    DynamicObject& mapping, DynamicObject& statements)
 {
    bool rval = true;
@@ -476,7 +478,7 @@ bool StatementBuilder::createAddSql(
    return rval;
 }
 
-bool StatementBuilder::createUpdateSql(
+bool SqlStatementBuilder::createUpdateSql(
    DynamicObject& mapping, DynamicObject& statements)
 {
    bool rval = true;
@@ -645,7 +647,7 @@ bool StatementBuilder::createUpdateSql(
    return rval;
 }
 
-bool StatementBuilder::createGetSql(
+bool SqlStatementBuilder::createGetSql(
    DynamicObject& mapping, DynamicObject& statements)
 {
    bool rval = true;

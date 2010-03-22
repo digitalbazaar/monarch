@@ -1620,15 +1620,15 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       testObj["number"] = 10;
       testObj["type"] = "type1";
 
-      StatementBuilder sb(dbc);
-      sb.add("Test", testObj).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->add("Test", testObj)->execute(c);
    }
    tr.passIfNoException();
 
    tr.test("get");
    {
-      StatementBuilder sb(dbc);
-      sb.get("Test").limit(1).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
       assertNoException();
 
       DynamicObject result;
@@ -1640,7 +1640,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject expect;
       expect->append(result);
 
-      DynamicObject results = sb.fetch();
+      DynamicObject results = sb->fetch();
       assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
@@ -1653,15 +1653,15 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       testObj["number"] = 12;
       testObj["type"] = "type2";
 
-      StatementBuilder sb(dbc);
-      sb.update("Test", testObj).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->update("Test", testObj)->execute(c);
    }
    tr.passIfNoException();
 
    tr.test("get");
    {
-      StatementBuilder sb(dbc);
-      sb.get("Test").limit(1).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
       assertNoException();
 
       DynamicObject result;
@@ -1673,7 +1673,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject expect;
       expect->append(result);
 
-      DynamicObject results = sb.fetch();
+      DynamicObject results = sb->fetch();
       assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
@@ -1687,15 +1687,15 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject where;
       where["id"] = "123";
 
-      StatementBuilder sb(dbc);
-      sb.update("Test", testObj).where("Test", where).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->update("Test", testObj)->where("Test", where)->execute(c);
    }
    tr.passIfNoException();
 
    tr.test("get");
    {
-      StatementBuilder sb(dbc);
-      sb.get("Test").limit(1).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
       assertNoException();
 
       DynamicObject result;
@@ -1707,7 +1707,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject expect;
       expect->append(result);
 
-      DynamicObject results = sb.fetch();
+      DynamicObject results = sb->fetch();
       assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
@@ -1723,15 +1723,15 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject where;
       where["number"] = "12";
 
-      StatementBuilder sb(dbc);
-      sb.update("Test", testObj).where("Test", where, ">").execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->update("Test", testObj)->where("Test", where, ">")->execute(c);
    }
    tr.passIfNoException();
 
    tr.test("get");
    {
-      StatementBuilder sb(dbc);
-      sb.get("Test").limit(1).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
       assertNoException();
 
       DynamicObject result;
@@ -1743,7 +1743,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject expect;
       expect->append(result);
 
-      DynamicObject results = sb.fetch();
+      DynamicObject results = sb->fetch();
       assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
@@ -1756,15 +1756,15 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject where;
       where["number"] = "12";
 
-      StatementBuilder sb(dbc);
-      sb.update("Test", update, "+=").where("Test", where, ">=").execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->update("Test", update, "+=")->where("Test", where, ">=")->execute(c);
    }
    tr.passIfNoException();
 
    tr.test("get");
    {
-      StatementBuilder sb(dbc);
-      sb.get("Test").limit(1).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
       assertNoException();
 
       DynamicObject result;
@@ -1776,7 +1776,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject expect;
       expect->append(result);
 
-      DynamicObject results = sb.fetch();
+      DynamicObject results = sb->fetch();
       assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
@@ -1792,8 +1792,8 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject testObj;
       testObj["id"];
 
-      StatementBuilder sb(dbc);
-      sb.get("Test", &testObj).execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test", &testObj)->execute(c);
       assertNoException();
 
       DynamicObject result;
@@ -1802,7 +1802,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject expect;
       expect->append(result);
 
-      DynamicObject results = sb.fetch();
+      DynamicObject results = sb->fetch();
       assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
@@ -1812,8 +1812,8 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject testObj;
       testObj["type"] = "type2";
 
-      StatementBuilder sb(dbc);
-      sb.get("Test").where("Test", testObj, "=").execute(c);
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->where("Test", testObj, "=")->execute(c);
       assertNoException();
 
       DynamicObject result;
@@ -1825,7 +1825,7 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
       DynamicObject expect;
       expect->append(result);
 
-      DynamicObject results = sb.fetch();
+      DynamicObject results = sb->fetch();
       assertDynoCmp(expect, results);
    }
    tr.passIfNoException();
