@@ -662,9 +662,10 @@ bool SqlStatementBuilder::createGetSql(
             boolOp = column["userData"]["boolOp"]->getString();
 
             // FIXME: handle case where value is an array, do WHERE IN
-            where.append(StringTools::format("%s.%s%s?",
+            where.append(StringTools::format("%s.%s%s%s",
                alias, column["column"]->getString(),
-               column["userData"]["compareOp"]->getString()));
+               column["userData"]["compareOp"]->getString(),
+               _param(column).c_str()));
             whereParams->append(column["value"]);
          }
       }

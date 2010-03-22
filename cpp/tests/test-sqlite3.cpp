@@ -1880,6 +1880,30 @@ void runSqlite3StatementBuilderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("get Test objects with 'lower'='LOWERCASE'");
+   {
+      DynamicObject testObj;
+      testObj["lower"] = "LOWERCASE";
+
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->where("Test", testObj, "=")->execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "1";
+      result["description"] = "Yet another test object description";
+      result["number"] = 13;
+      result["type"] = "type2";
+      result["lower"] = "lowercase";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
    c->close();
 
    tr.ungroup();
