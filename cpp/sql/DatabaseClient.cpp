@@ -322,7 +322,10 @@ bool DatabaseClient::mapInstance(
                if(orMap->hasMember("autoIncrement") &&
                   orMap["autoIncrement"]->hasMember(table))
                {
-                  entry["autoIncrement"] = orMap["autoIncrement"][table];
+                  const char* id = orMap["autoIncrement"][table]->getString();
+                  entry["autoIncrement"]["id"] = id;
+                  entry["autoIncrement"]["type"]->setType(
+                     orMap["members"][id]["columnType"]->getType());
                }
                mapping["tables"][table] = entry;
             }

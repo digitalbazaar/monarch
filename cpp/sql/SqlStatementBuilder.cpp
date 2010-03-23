@@ -782,9 +782,10 @@ bool SqlStatementBuilder::getResults(
       if(mStatementType == StatementBuilder::Add &&
          t->hasMember("autoIncrement"))
       {
+         const char* id = t["autoIncrement"]["id"]->getString();
          mResults["ids"]->setType(Map);
-         mResults["ids"][t["autoIncrement"]->getString()] =
-            s->getLastInsertRowId();
+         mResults["ids"][id] = s->getLastInsertRowId();
+         mResults["ids"][id]->setType(t["autoIncrement"]["type"]->getType());
       }
 
       // get rows changed
