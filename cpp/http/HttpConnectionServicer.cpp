@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/HttpConnectionServicer.h"
 
 #include "monarch/http/HttpRequest.h"
 #include "monarch/http/HttpResponse.h"
 #include "monarch/io/ByteArrayInputStream.h"
+#include "monarch/logging/Logging.h"
 
 #include <cstdlib>
 
 using namespace std;
 using namespace monarch::io;
 using namespace monarch::http;
+using namespace monarch::logging;
 using namespace monarch::net;
 using namespace monarch::rt;
 
@@ -265,6 +267,23 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             {
                ByteArrayInputStream is(html, 60);
                noerror = response->sendBody(&is);
+            }
+         }
+         else
+         {
+            // log socket error
+            if(e->getDetails()->hasMember("error"))
+            {
+               MO_CAT_ERROR(MO_HTTP_CAT,
+                  "Connection error: ['%s','%s','%s']\n",
+                  e->getMessage(), e->getType(),
+                  e->getDetails()["error"]->getString());
+            }
+            else
+            {
+               MO_CAT_ERROR(MO_HTTP_CAT,
+                  "Connection error: ['%s','%s']\n",
+                  e->getMessage(), e->getType());
             }
          }
       }
