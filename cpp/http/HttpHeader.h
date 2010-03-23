@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_http_HttpHeader_H
 #define monarch_http_HttpHeader_H
@@ -144,12 +144,25 @@ public:
    virtual void setField(const char* name, const std::string& value);
 
    /**
-    * Adds another field without replacing one of the same name.
+    * Adds another field without replacing one of the same name. Two fields
+    * and their values will be listed in the header. To append to another
+    * field value to a single field using a delimiter, call appendFieldValue().
     *
     * @param name the name of the header field to add.
     * @param value the value for the header field.
     */
    virtual void addField(const char* name, const std::string& value);
+
+   /**
+    * Appends another field value to a field, using the given delimiter if the
+    * field already had a value.
+    *
+    * @param name the name of the header field to append a value to.
+    * @param value the value to append.
+    * @param delimiter the delimiter to use if necessary.
+    */
+   virtual void appendFieldValue(
+      const char* name, const std::string& value, const char* delimiter = ", ");
 
    /**
     * Removes a header field. This will remove all fields with the given name.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -132,6 +132,18 @@ void HttpHeader::addField(const char* name, const string& value)
    }
 }
 
+void HttpHeader::appendFieldValue(
+   const char* name, const string& value, const char* delimiter)
+{
+   string old = getFieldValue(name);
+   if(old.length() > 0)
+   {
+      old.append(delimiter);
+   }
+   old.append(value);
+   setField(name, old);
+}
+
 void HttpHeader::removeField(const char* name)
 {
    // erase field
@@ -192,7 +204,7 @@ int HttpHeader::getFieldCount()
    return mFields.size();
 }
 
-bool HttpHeader::getField(const char* name, long long& value, int index)
+bool HttpHeader::getField(const char* name, int64_t& value, int index)
 {
    bool rval = false;
 
