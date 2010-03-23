@@ -7,6 +7,7 @@
 #include "monarch/http/HttpResponse.h"
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/logging/Logging.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 #include <cstdlib>
 
@@ -274,10 +275,21 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             // log socket error
             if(e->getDetails()->hasMember("error"))
             {
+               // build error string
+               string error;
+               DynamicObjectIterator i =
+                  e->getDetails()["error"].getIterator();
+               while(i->hasNext())
+               {
+                  error.append(i->next()->getString());
+                  if(i->hasNext())
+                  {
+                     error.push_back(',');
+                  }
+               }
                MO_CAT_ERROR(MO_HTTP_CAT,
                   "Connection error: ['%s','%s','%s']\n",
-                  e->getMessage(), e->getType(),
-                  e->getDetails()["error"]->getString());
+                  e->getMessage(), e->getType(), error.c_str());
             }
             else
             {
