@@ -75,14 +75,14 @@ public:
     *                   are idle in order for them to expire -- if 0 is passed
     *                   then connections will never expire.
     */
-   virtual void setConnectionExpireTime(unsigned long long expireTime) = 0;
+   virtual void setConnectionExpireTime(uint64_t expireTime) = 0;
 
    /**
     * Gets the expire time for all connections.
     *
     * @return the expire time for all connections.
     */
-   virtual unsigned long long getConnectionExpireTime() = 0;
+   virtual uint64_t getConnectionExpireTime() = 0;
 
    /**
     * Gets the current number of connections in the pool.

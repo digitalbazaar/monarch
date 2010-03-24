@@ -49,7 +49,7 @@ public:
     *         it timed out, -1 if an error occurred and errno is set
     *         appropriately.
     */
-   static int select(bool read, unsigned int fd, long long timeout);
+   static int select(bool read, unsigned int fd, int64_t timeout);
 
    /**
     * Causes the current thread to wait until one or more of the given
@@ -80,7 +80,7 @@ public:
     */
    static int select(
       int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
-      long long timeout, const sigset_t* sigmask = NULL);
+      int64_t timeout, const sigset_t* sigmask = NULL);
 
    /**
     * Gets the hostname for the local machine.

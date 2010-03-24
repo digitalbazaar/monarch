@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 
@@ -29,7 +29,7 @@ void AbstractDataFormatInspector::setFormatRecognized(bool recognized)
    mDataSatisfied = true;
 }
 
-void AbstractDataFormatInspector::setSkipBytes(long long count)
+void AbstractDataFormatInspector::setSkipBytes(int64_t count)
 {
    mSkipBytes = count;
 }
@@ -86,7 +86,7 @@ bool AbstractDataFormatInspector::keepInspecting()
    return mInspectAfterSatisfied;
 }
 
-unsigned long long AbstractDataFormatInspector::getBytesInspected()
+uint64_t AbstractDataFormatInspector::getBytesInspected()
 {
    return mBytesInspected;
 }

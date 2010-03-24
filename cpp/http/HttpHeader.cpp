@@ -448,7 +448,7 @@ bool HttpHeader::getDate(Date& date)
 
 bool HttpHeader::hasContent()
 {
-   long long length = 0;
+   int64_t length = 0;
    getField("Content-Length", length);
    return (length != 0 || hasField("Transfer-Encoding"));
 }

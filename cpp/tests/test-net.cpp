@@ -1391,7 +1391,7 @@ void runServerSslConnectionTest(TestRunner& tr)
    Thread t7(&bc);
    Thread t8(&bc);
 
-   unsigned long long start = System::getCurrentMilliseconds();
+   uint64_t start = System::getCurrentMilliseconds();
 
    size_t stackSize = 131072;
    t1.start(stackSize);
@@ -1413,7 +1413,7 @@ void runServerSslConnectionTest(TestRunner& tr)
 //   t8.join();
 //   printf("all client threads joined.\n");
 
-   unsigned long long end = System::getCurrentMilliseconds();
+   uint64_t end = System::getCurrentMilliseconds();
 
    // stop server
    server.stop();

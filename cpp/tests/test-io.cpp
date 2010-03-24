@@ -45,7 +45,7 @@ void runStringEqualityTest(TestRunner& tr)
 
    // Note: string length doesn't appear to matter
    string str = "blah";
-   unsigned long long start, end;
+   uint64_t start, end;
 
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -74,7 +74,7 @@ void runStringAppendCharTest(TestRunner& tr)
 
    // Note: string length doesn't appear to matter
    string str = "blah";
-   unsigned long long start, end;
+   uint64_t start, end;
 
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)
@@ -164,7 +164,7 @@ void runStringCompareTest(TestRunner& tr)
 
    string str1 = "blah";
    char str2[] = "blah";
-   unsigned long long start, end;
+   uint64_t start, end;
 
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; i++)

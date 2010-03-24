@@ -78,7 +78,7 @@ void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
    tr.test("insert positional parameters test");
    {
       monarch::sql::Statement* s;
-      //unsigned long long start = System::getCurrentMilliseconds();
+      //uint64_t start = System::getCurrentMilliseconds();
       for(int i = 0; i < 20; i++)
       {
          s = c->prepare("INSERT INTO " TABLE_TEST " (t, i) VALUES (?, ?)");
@@ -89,7 +89,7 @@ void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
          assert(s->getLastInsertRowId() > 0);
          assertNoException();
       }
-      //unsigned long long end = System::getCurrentMilliseconds();
+      //uint64_t end = System::getCurrentMilliseconds();
       //printf("TIME=%" PRIu64 " ms\n", (end - start));
    }
    tr.passIfNoException();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/Convert.h"
 
@@ -238,14 +238,14 @@ string Convert::intToUpperHex(unsigned int n)
 
 // Note: Commented out because the C functions are simple enough --
 // just use them and they are faster.
-//string Convert::integerToString(long long n)
+//string Convert::integerToString(int64_t n)
 //{
 //   ostringstream oss;
 //   oss << n;
 //   return oss.str();
 //}
 //
-//bool Convert::stringToInteger(const char* s, long long& n, int base)
+//bool Convert::stringToInteger(const char* s, int64_t& n, int base)
 //{
 //   char* endptr = NULL;
 //   n = strtoll(s, &endptr, base);

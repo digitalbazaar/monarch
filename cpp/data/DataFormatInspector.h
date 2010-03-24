@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_DataFormatInspector_H
 #define monarch_data_DataFormatInspector_H
@@ -95,7 +95,7 @@ public:
     *
     * @return the number of bytes inspected so far.
     */
-   virtual unsigned long long getBytesInspected() = 0;
+   virtual uint64_t getBytesInspected() = 0;
 
    /**
     * Gets the type specific details of this stream.

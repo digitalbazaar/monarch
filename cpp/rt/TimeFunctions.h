@@ -32,7 +32,7 @@
  *
  * @return the number of minutes west of GMT the current time zone is.
  */
-inline static long long gGetTimeZoneMinutesWest()
+inline static int64_t gGetTimeZoneMinutesWest()
 {
    struct timeb time;
    ftime(&time);
@@ -122,8 +122,8 @@ inline static int gettimeofday(struct timeval* tv, struct timezone* tz)
       now.time /= UINT64_C(10);
 
       // store time in seconds and microseconds (1 microsecond = 1000000 sec)
-      tv->tv_sec  = (unsigned long long)(now.time / UINT64_C(1000000));
-      tv->tv_usec = (unsigned long long)(now.time % UINT64_C(1000000));
+      tv->tv_sec  = (uint64_t)(now.time / UINT64_C(1000000));
+      tv->tv_usec = (uint64_t)(now.time % UINT64_C(1000000));
    }
 
    // populate timezone

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/FileInputStream.h"
 
@@ -104,9 +104,9 @@ int FileInputStream::read(char* b, int length)
    return rval;
 }
 
-long long FileInputStream::skip(long long count)
+int64_t FileInputStream::skip(int64_t count)
 {
-   long long rval = -1;
+   int64_t rval = -1;
 
    if(ensureOpen())
    {
