@@ -188,6 +188,28 @@ public:
    virtual bool loadModule(CreateModestModuleFn cm, FreeModestModuleFn fm);
 
    /**
+    * Unloads a Module, if it is loaded. If the Module is a MicroKernelModule
+    * then any other MicroKernelModules that depend on it will be unloaded
+    * first.
+    *
+    * @param name the name of the Module to unload.
+    *
+    * @return true if the module unloaded, false if not.
+    */
+   virtual bool unloadModule(const char* name);
+
+   /**
+    * Unloads a Module, if it is loaded. If the Module is a MicroKernelModule
+    * then any other MicroKernelModules that depend on it will be unloaded
+    * first.
+    *
+    * @param id the ModuleId of the Module to unload.
+    *
+    * @return true if the module unloaded, false if not.
+    */
+   virtual bool unloadModule(const monarch::modest::ModuleId* id);
+
+   /**
     * Gets the current thread's Operation. *DO NOT* call this if you
     * aren't sure the current thread is on an Operation, it may result
     * in memory corruption. It is safe to call this inside of a btp
@@ -337,7 +359,18 @@ public:
 
 protected:
    /**
-    * Checks the dependencies for MicroKernelModules.
+    * Checks the dependency information for a single pending MicroKernelModule.
+    *
+    * @param dependencies the list of modules that can be depended on.
+    * @param di the dependency information for a module to be loaded.
+    *
+    * @return true if the dependency information has been met, false if not.
+    */
+   virtual bool checkDependencyInfo(
+      ModuleList& dependencies, monarch::rt::DynamicObject& di);
+
+   /**
+    * Checks the dependencies for a list of pending MicroKernelModules.
     *
     * @param pending the pending ModuleList.
     * @param uninitialized the list to move dependency-met modules into.
