@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_modest_ModuleLibrary_H
 #define monarch_modest_ModuleLibrary_H
@@ -38,6 +38,12 @@ class Kernel;
  */
 class ModuleLibrary
 {
+public:
+   /**
+    * A list of Modules.
+    */
+   typedef std::list<Module*> ModuleList;
+
 protected:
    /**
     * An IdComparator compares two module IDs.
@@ -94,7 +100,6 @@ protected:
    /**
     * A list that maintains the order in which Modules were loaded.
     */
-   typedef std::list<const ModuleId*> ModuleList;
    ModuleList mLoadOrder;
 
    /**
@@ -198,6 +203,13 @@ public:
     *         or it has no interface.
     */
    virtual ModuleInterface* getModuleInterface(const ModuleId* id);
+
+   /**
+    * Populates a list of all loaded modules in the order they were loaded.
+    *
+    * @param list the list to populate.
+    */
+   virtual void getModules(ModuleList& list);
 
 protected:
    /**
