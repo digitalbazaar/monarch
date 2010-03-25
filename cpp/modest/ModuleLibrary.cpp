@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/modest/ModuleLibrary.h"
 
@@ -7,9 +7,9 @@ using namespace std;
 using namespace monarch::modest;
 using namespace monarch::rt;
 
-ModuleLibrary::ModuleLibrary(Kernel* k)
+ModuleLibrary::ModuleLibrary(Kernel* k) :
+   mKernel(k)
 {
-   mKernel = k;
 }
 
 ModuleLibrary::~ModuleLibrary()
@@ -98,7 +98,8 @@ bool ModuleLibrary::unloadModule(const ModuleId* id)
          for(ModuleList::iterator li = mLoadOrder.begin();
              li != mLoadOrder.end(); li++)
          {
-            if(**li == *id)
+            Module* m = *li;
+            if(m->getId() == *id)
             {
                mLoadOrder.erase(li);
                break;
@@ -136,7 +137,7 @@ void ModuleLibrary::unloadAllModules()
       while(!mLoadOrder.empty())
       {
          // find ModuleInfo
-         ModuleMap::iterator i = mModules.find(mLoadOrder.back());
+         ModuleMap::iterator i = mModules.find(&mLoadOrder.back()->getId());
          ModuleInfo* mi = i->second;
 
          // remove module from map and list
@@ -201,6 +202,11 @@ ModuleInterface* ModuleLibrary::getModuleInterface(const ModuleId* id)
    return rval;
 }
 
+void ModuleLibrary::getModules(ModuleList& list)
+{
+   list.insert(list.end(), mLoadOrder.begin(), mLoadOrder.end());
+}
+
 Module* ModuleLibrary::loadOnce(ModuleInfo* mi, const char* filename)
 {
    Module* rval = NULL;
@@ -213,7 +219,7 @@ Module* ModuleLibrary::loadOnce(ModuleInfo* mi, const char* filename)
       {
          // add Module to the map and list
          mModules[&mi->module->getId()] = mi;
-         mLoadOrder.push_back(&mi->module->getId());
+         mLoadOrder.push_back(mi->module);
          rval = mi->module;
       }
       else
