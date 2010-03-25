@@ -158,6 +158,17 @@ public:
    virtual void stop();
 
    /**
+    * Loads a modest Module or a MicroKernelModule from a file. If the module
+    * is a MicroKernelModule, then its dependencies will be checked and it
+    * will be initialized.
+    *
+    * @param filename the filename to use to load the module.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual monarch::modest::Module* loadModule(const char* filename);
+
+   /**
     * Loads all MicroKernelModules in the current path.
     *
     * @param path the path to use to load the modules.

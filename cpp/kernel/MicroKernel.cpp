@@ -210,6 +210,48 @@ static bool _getMicroKernelModule(
    return rval;
 }
 
+Module* MicroKernel::loadModule(const char* filename)
+{
+   Module* rval = NULL;
+
+   MO_CAT_INFO(MO_KERNEL_CAT, "Loading module from %s", filename);
+
+   File file(filename);
+   if(file->isDirectory())
+   {
+      ExceptionRef e = new Exception(
+         "Could not load module. File is a directory.",
+         "monarch.kernel.InvalidModuleFile");
+      e->getDetails()["filename"] = filename;
+      Exception::set(e);
+   }
+   else
+   {
+      ModuleLibrary* lib = getModuleLibrary();
+      rval = lib->loadModule(filename);
+      MicroKernelModule* m;
+      if(_getMicroKernelModule(rval, NULL, &m) && m != NULL)
+      {
+         ModuleList pending;
+         pending.push_back(m);
+
+         // check dependencies and initialize
+         ModuleList uninitialized;
+         bool pass =
+            checkDependencies(pending, uninitialized) &&
+            initializeMicroKernelModule(m);
+         if(!pass)
+         {
+            // dependency check or initialize failed, unload module
+            unloadModules(uninitialized);
+            rval = NULL;
+         }
+      }
+   }
+
+   return rval;
+}
+
 bool MicroKernel::loadModules(const char* path)
 {
    MO_CAT_INFO(MO_KERNEL_CAT, "Loading modules from %s", path);
@@ -229,19 +271,16 @@ bool MicroKernel::loadModules(const char* path)
  * @param mkms the list to put MicroKernelModules into.
  * @param nonMkms the list to put non-MicroKernelModules into.
  *
- * @return true if the module loaded, false if an exception occurred.
+ * @return the Module that was loaded, NULL if an exception occurred.
  */
-static bool _loadModuleFromFile(
+static Module* _loadModuleFromFile(
    File& file, ModuleLibrary* lib,
    std::list<MicroKernelModule*>& mkms,
    std::list<Module*>& nonMkms)
 {
-   bool rval = false;
-
-   Module* module = lib->loadModule(file->getAbsolutePath());
+   Module* rval = lib->loadModule(file->getAbsolutePath());
    MicroKernelModule* mkm;
-   rval = _getMicroKernelModule(module, &file, &mkm);
-   if(rval)
+   if(_getMicroKernelModule(rval, &file, &mkm))
    {
       if(mkm != NULL)
       {
@@ -249,7 +288,7 @@ static bool _loadModuleFromFile(
       }
       else
       {
-         nonMkms.push_back(module);
+         nonMkms.push_back(rval);
       }
    }
 
@@ -274,7 +313,7 @@ bool MicroKernel::loadModules(FileList& paths)
       if(!file->isDirectory())
       {
          // load from the file or symbolic link
-         rval = _loadModuleFromFile(file, lib, pending, nonMkms);
+         rval = (_loadModuleFromFile(file, lib, pending, nonMkms) != NULL);
       }
       else
       {
@@ -288,7 +327,7 @@ bool MicroKernel::loadModules(FileList& paths)
             File& f = fi->next();
             if(!f->isDirectory())
             {
-               rval = _loadModuleFromFile(f, lib, pending, nonMkms);
+               rval = (_loadModuleFromFile(f, lib, pending, nonMkms) != NULL);
             }
          }
       }
