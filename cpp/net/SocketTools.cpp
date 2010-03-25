@@ -18,7 +18,7 @@ using namespace monarch::rt;
 #define HOST_NAME_MAX 255
 #endif
 
-int SocketTools::select(bool read, unsigned int fd, long long timeout)
+int SocketTools::select(bool read, unsigned int fd, int64_t timeout)
 {
    int rval = 0;
 
@@ -44,10 +44,10 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
 
    // set 20 millisecond interrupt check timeout (necessary because
    // windows lacks SIGNAL support to do interruptions properly)
-   long long intck = INT64_C(20);
+   int64_t intck = INT64_C(20);
 
    // keep selecting (polling) until timeout is reached
-   long long remaining = (timeout <= 0) ? intck : timeout;
+   int64_t remaining = (timeout <= 0) ? intck : timeout;
 
    struct timeval to;
    if(timeout < 0)
@@ -63,8 +63,8 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
       to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
    }
 
-   unsigned long long start = System::getCurrentMilliseconds();
-   unsigned long long end;
+   uint64_t start = System::getCurrentMilliseconds();
+   uint64_t end;
 
    Thread* t = Thread::currentThread();
    while(remaining > 0 && rval == 0 && !t->isInterrupted())
@@ -165,7 +165,7 @@ int SocketTools::select(bool read, unsigned int fd, long long timeout)
 
 int SocketTools::select(
    int nfds, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
-   long long timeout, const sigset_t* sigmask)
+   int64_t timeout, const sigset_t* sigmask)
 {
    int rval = 0;
 
@@ -243,10 +243,10 @@ int SocketTools::select(
 
    // set 20 millisecond interrupt check timeout (necessary because
    // windows lacks SIGNAL support to do interruptions properly)
-   long long intck = INT64_C(20);
+   int64_t intck = INT64_C(20);
 
    // keep selecting (polling) until timeout is reached
-   long long remaining = (timeout <= 0) ? intck : timeout;
+   int64_t remaining = (timeout <= 0) ? intck : timeout;
 
    struct timeval to;
    if(timeout < 0)
@@ -262,8 +262,8 @@ int SocketTools::select(
       to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
    }
 
-   unsigned long long start = System::getCurrentMilliseconds();
-   unsigned long long end;
+   uint64_t start = System::getCurrentMilliseconds();
+   uint64_t end;
 
    Thread* t = Thread::currentThread();
    while(remaining > 0 && rval == 0 && !t->isInterrupted())

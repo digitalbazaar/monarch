@@ -156,8 +156,10 @@ public:
     * Unloads a Module from this ModuleLibrary, if it is loaded.
     *
     * @param id the ModuleId of the Module to unload.
+    *
+    * @return true if the module unloaded, false if not.
     */
-   virtual void unloadModule(const ModuleId* id);
+   virtual bool unloadModule(const ModuleId* id);
 
    /**
     * Unloads all Modules from this ModuleLibrary, in the reverse order

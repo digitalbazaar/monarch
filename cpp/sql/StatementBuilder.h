@@ -4,7 +4,8 @@
 #ifndef monarch_sql_StatementBuilder_H
 #define monarch_sql_StatementBuilder_H
 
-#include "monarch/sql/DatabaseClient.h"
+#include "monarch/rt/Collectable.h"
+#include "monarch/sql/Connection.h"
 
 namespace monarch
 {
@@ -12,24 +13,10 @@ namespace sql
 {
 
 /**
- * A StatementBuilder is used to construct and execute SQL statements in a
- * way that abstracts away the actual SQL. This provides a way to write more
- * concise, reusable, and maintainable database client code.
- *
- * A StatementBuilder makes use of a DatabaseClient to determine the
- * appropriate object-relational mappings between object members and database
- * columns.
- *
- * A special sql() method is provided to allow any custom SQL to be added
- * to a statement while it is being constructed. This SQL will be added
- * literally to the current statement, therefore it will not be processed in
- * a way that will transform object members into column names.
- *
- * There are several methods provided to build SQL statements, ie select(),
- * insert(), join(). For those methods that take field names as parameters,
- * the field names may either be object member names or column names. A
- * preference will be given to searching for member names first when checking
- * the associated table's schema.
+ * A StatementBuilder is used to construct and execute database statements in a
+ * way that abstracts away the actual database language (ie SQL) and interface.
+ * This provides a way to write more concise, reusable, and maintainable
+ * database client code.
  *
  * @author Dave Longley
  */
@@ -37,284 +24,129 @@ class StatementBuilder
 {
 protected:
    /**
-    * The DatabaseClient to use.
+    * The type of statement(s).
     */
-   DatabaseClientRef mDatabaseClient;
-
-   /**
-    * The prepared SQL statement.
-    */
-   monarch::sql::Statement* mStatement;
-
-   /**
-    * Flag indicating whether or not the statement can modify the database.
-    */
-   bool mWrite;
-
-   /**
-    * A mapping of tables to aliases.
-    */
-   monarch::rt::DynamicObject mAliases;
-
-   /**
-    * A map of used aliases for detecting conflicts.
-    */
-   monarch::rt::DynamicObject mUsedAliases;
-
-   /**
-    * The counter for auto-assigned aliases.
-    */
-   int mAliasCounter;
-
-   /**
-    * The array of SQL clauses for building an SQL statement.
-    */
-   monarch::rt::DynamicObject mClauses;
+   enum StatementType
+   {
+      Add,
+      Update,
+      Get
+   } mStatementType;
 
 public:
    /**
     * Creates a new StatementBuilder.
-    *
-    * @param dbc the DatabaseClient to use.
     */
-   StatementBuilder(DatabaseClientRef& dbc);
+   StatementBuilder() {};
 
    /**
     * Destructs this StatementBuilder.
     */
-   virtual ~StatementBuilder();
+   virtual ~StatementBuilder() {};
 
    /**
-    * Adds whatever custom SQL is desired to the current statement.
+    * Starts building a statement that will add an object.
     *
-    * @param sql the SQL to add to the current statement.
+    * @param type the type of object.
+    * @param obj the object to insert.
     *
     * @return a reference to this StatementBuilder to permit chaining.
     */
-   virtual StatementBuilder& sql(const char* sql);
+   virtual StatementBuilder* add(
+      const char* type, monarch::rt::DynamicObject& obj) = 0;
 
    /**
-    * Provides an array of parameters to use. This method will replace any
-    * existing parameters.
+    * Starts building a statement that will update objects of the given type
+    * by the given object.
     *
-    * @param params an array of key-value pairs, where the key is a field name
-    *           and the value is the value for the field (or an array of
-    *           values).
+    * @param type the type of objects to update, as defined in an OR map.
+    * @param obj the object with update values.
+    * @param op an operational operator to use to set members to their
+    *           values (defaults to '=').
     *
     * @return a reference to this StatementBuilder to permit chaining.
     */
-   virtual StatementBuilder& setParams(monarch::rt::DynamicObject& params);
+   virtual StatementBuilder* update(
+      const char* type, monarch::rt::DynamicObject& obj,
+      const char* op = "=") = 0;
 
    /**
-    * Creates an alias for a table. Aliases for tables will be created
-    * automatically if using built-in methods like join(). But if custom
-    * sql() needs to be written, then alias() is a useful method.
+    * Starts building a statement that will get objects of the given type.
     *
-    * Example:
-    *
-    * .select("mytable", "foo")
-    * .alias("mytable", "t1")
-    * .select("mytable2", "bar")
-    * .sql("JOIN mytable2 t2 ON t2.foo=t1.foo")
-    *
-    * @param table the name of the table.
-    * @param alias the alias for the table.
+    * @param type the type of objects to get, as defined in an OR map.
+    * @param obj an object with the members to be populated, NULL for all.
     *
     * @return a reference to this StatementBuilder to permit chaining.
     */
-   virtual StatementBuilder& alias(const char* table, const char* alias);
+   virtual StatementBuilder* get(
+      const char* type, monarch::rt::DynamicObject* obj = NULL) = 0;
 
    /**
-    * Creates an alias for a field.
+    * Places restrictions on the objects to get or update.
     *
-    * Example:
+    * If the statement being built will retrieve objects, then the given
+    * params will provide conditionals to restrict the objects to retrieve.
     *
-    * .select("mytable", "foo")
-    * .alias("mytable", "foo", "bar")
+    * If the statement being built will update objects, then the given
+    * params will provide conditionals to restrict the objects to update.
     *
-    * Now the member or column "foo" will be returned as "bar" in the result.
-    *
-    * @param table the name of the associated table.
-    * @param field the name of the field.
-    * @param alias the alias for the field.
+    * @param type the type of object for the conditions.
+    * @param conditions an object with members whose values will be used to
+    *           create conditional restrictions in the current statement.
+    * @param compareOp an operational operator to use to compare members to
+    *           their values (defaults to '=').
+    * @param boolOp the boolean operator to use to combine multiple member
+    *           comparisons (defaults to "AND", FIXME: use an enum).
     *
     * @return a reference to this StatementBuilder to permit chaining.
     */
-   virtual StatementBuilder& alias(
-      const char* table, const char* field, const char* alias);
+   virtual StatementBuilder* where(
+      const char* type,
+      monarch::rt::DynamicObject& conditions,
+      const char* compareOp = "=",
+      const char* boolOp = "AND") = 0;
+
+   // FIXME: add method to request total number of matching objects
 
    /**
-    * Starts a SELECT clause or adds fields to a current one.
+    * Limits the number of objects to update or get.
     *
-    * @param table the name of the table to select the fields from.
-    * @param fields a string containing the comma-delimited names of the fields
-    *           to select, where the field names may be member names or column
-    *           names.
+    * @param count the number of objects to limit to.
+    * @param start the starting row index.
     *
     * @return a reference to this StatementBuilder to permit chaining.
     */
-   virtual StatementBuilder& select(const char* table, const char* fields);
+   virtual StatementBuilder* limit(int count, int start = 0) = 0;
 
    /**
-    * Indicates the fields to perform a JOIN on. The first table is the
-    * table being joined, the second is the other table with a field to
-    * join on. In other words, the SQL created will be similar to:
+    * Prepares and executes the built database statement(s).
     *
-    * JOIN t1 ON t1.f1=t2.f2
-    *
-    * @param t1 the name of the first table with a field to join on.
-    * @param f1 the name of the first table's field to join on.
-    * @param t2 the name of the second table with a field to join on.
-    * @param f2 the name of the second table's field to join on.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& join(
-      const char* t1, const char* f1, const char* t2, const char* f2);
-
-   /**
-    * Starts an INSERT clause or adds fields to an existing one.
-    *
-    * @param table the name of the table to insert into.
-    * @param fields a map of members or column names to the associated data to
-    *           insert.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& insert(
-      const char* table, monarch::rt::DynamicObject& fields);
-
-   /**
-    * Starts an INSERT clause or adds fields to an existing one. This method
-    * is used when the data for the insert will come from the database itself,
-    * ie through a sub-SELECT.
-    *
-    * @param table the name of the table to insert into.
-    * @param fields a comma-delimited list of fields that are to be inserted.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& insert(const char* table, const char* fields);
-
-   /**
-    * Starts an UPDATE clause or adds fields to an existing one.
-    *
-    * @param table the name of the table to update.
-    * @param fields a map of members or column names to the associated data to
-    *           update.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& update(
-      const char* table, monarch::rt::DynamicObject& fields);
-
-   /**
-    * Starts an UPDATE clause or adds fields to an existing one. This method
-    * is used when the data for the update will come from the database itself,
-    * ie through a sub-SELECT.
-    *
-    * @param table the name of the table to update.
-    * @param fields a comma-delimited list of fields that are to be updated.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& update(const char* table, const char* fields);
-
-   /**
-    * Starts a WHERE clause or adds fields to an existing one. The where
-    * conditions will be concatenated together using the given logical operator,
-    * which can be "AND" or "OR". The fields parameter contains key-value pairs.
-    * The key is a member or column name. The value is either a value to
-    * compare against using "=" or it is a map with a "value" parameter and
-    * an "operator" parameter like "<", "<>", or "LIKE".
-    *
-    * Example:
-    *
-    * DynamicObject fields;
-    * fields["foo"] = "bar";
-    * fields["foo2"]["value"] = 10;
-    * fields["foo2"]["operator"] = "<";
-    *
-    * .select("mytable", "foo,foo2")
-    * .where("mytable", fields, "AND")
-    *
-    * Produces:
-    * SELECT foo,foo2 FROM mytable WHERE (foo='bar' AND foo2<10)
-    *
-    * @param table the name of the table with the fields.
-    * @param fields a map of members or column names to the associated data to
-    *           compare against, where if the data is a map, it will contain
-    *           a "value" and an "operator" to use.
-    * @param logicalOp either "AND" or "OR", defaults to "AND".
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& where(
-      const char* table, monarch::rt::DynamicObject& fields,
-      const char* logicalOp = "AND");
-
-   /**
-    * Starts an ORDER BY clause or adds fields to an existing one.
-    *
-    * @param table the name of the table the fields belong to.
-    * @param fields the comma-delimited fields to order by.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& orderBy(const char* table, const char* fields);
-
-   /**
-    * Adds a limit clause.
-    *
-    * @param start the starting limit.
-    * @param num the number to limit.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& limit(uint64_t start, uint64_t num);
-
-   /**
-    * Starts a parenthetical group.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& group();
-
-   /**
-    * Stops a parenthetical group.
-    *
-    * @return a reference to this StatementBuilder to permit chaining.
-    */
-   virtual StatementBuilder& ungroup();
-
-   /**
-    * Prepares and executes the built SQL statement. Once this has been called,
-    * the statement cannot be modified.
-    *
-    * @param params optional parameters to use instead of those provided
-    *           during statement construction (typically done to reuse a
-    *           statement), NULL to use those provided during construction.
     * @param c the connection to use, NULL to obtain one from the database
     *           client's pool.
     *
     * @return true if successful, false if an Exception occurred.
     */
-   virtual bool execute(
-      monarch::rt::DynamicObject* params = NULL,
-      monarch::sql::Connection* c = NULL);
+   virtual bool execute(monarch::sql::Connection* c = NULL) = 0;
 
-protected:
    /**
-    * Creates the full SQL for the statement and builds an array of parameters
-    * for it.
+    * Fetches the result objects, following a get() call. If the the call
+    * was add() then each result object will contain an "ids" map with the
+    * auto-increment ID values mapped to their member names according to the
+    * OR mapping. Another field "changed" will contain the number of objects
+    * changed by an add() or update() call.
     *
-    * @param sql the SQL string to populate.
-    * @param params the parameters array to populate.
+    * The result object may also contain a "tables" map with table names
+    * mapped to changed rows for each individual table modified.
     *
-    * @return true if successful, false if an Exception occurred.
+    * @return an array of result objects.
     */
-   virtual bool createSql(std::string& sql, monarch::rt::DynamicObject& params);
+   virtual monarch::rt::DynamicObject fetch() = 0;
+
+   // FIXME: add method for getting total number of matching objects
 };
+
+// type definition for a reference counted StatementBuilder
+typedef monarch::rt::Collectable<StatementBuilder> StatementBuilderRef;
 
 } // end namespace sql
 } // end namespace monarch

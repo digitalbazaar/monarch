@@ -161,6 +161,17 @@ public:
    virtual void stop();
 
    /**
+    * Loads a modest Module or a MicroKernelModule from a file. If the module
+    * is a MicroKernelModule, then its dependencies will be checked and it
+    * will be initialized.
+    *
+    * @param filename the filename to use to load the module.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual monarch::modest::Module* loadModule(const char* filename);
+
+   /**
     * Loads all MicroKernelModules in the current path.
     *
     * @param path the path to use to load the modules.
@@ -189,6 +200,28 @@ public:
     * @return true if it was loaded, false if not (an Exception occurred).
     */
    virtual bool loadModule(CreateModestModuleFn cm, FreeModestModuleFn fm);
+
+   /**
+    * Unloads a Module, if it is loaded. If the Module is a MicroKernelModule
+    * then any other MicroKernelModules that depend on it will be unloaded
+    * first.
+    *
+    * @param name the name of the Module to unload.
+    *
+    * @return true if the module unloaded, false if not.
+    */
+   virtual bool unloadModule(const char* name);
+
+   /**
+    * Unloads a Module, if it is loaded. If the Module is a MicroKernelModule
+    * then any other MicroKernelModules that depend on it will be unloaded
+    * first.
+    *
+    * @param id the ModuleId of the Module to unload.
+    *
+    * @return true if the module unloaded, false if not.
+    */
+   virtual bool unloadModule(const monarch::modest::ModuleId* id);
 
    /**
     * Gets the current thread's Operation. *DO NOT* call this if you
@@ -340,7 +373,18 @@ public:
 
 protected:
    /**
-    * Checks the dependencies for MicroKernelModules.
+    * Checks the dependency information for a single pending MicroKernelModule.
+    *
+    * @param dependencies the list of modules that can be depended on.
+    * @param di the dependency information for a module to be loaded.
+    *
+    * @return true if the dependency information has been met, false if not.
+    */
+   virtual bool checkDependencyInfo(
+      ModuleList& dependencies, monarch::rt::DynamicObject& di);
+
+   /**
+    * Checks the dependencies for a list of pending MicroKernelModules.
     *
     * @param pending the pending ModuleList.
     * @param uninitialized the list to move dependency-met modules into.

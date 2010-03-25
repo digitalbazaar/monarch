@@ -76,13 +76,19 @@ Module* ModuleLibrary::loadModule(
    return rval;
 }
 
-void ModuleLibrary::unloadModule(const ModuleId* id)
+bool ModuleLibrary::unloadModule(const ModuleId* id)
 {
+   bool rval = true;
+
    mLoadLock.lock();
    {
       // find module
       ModuleMap::iterator i = mModules.find(id);
-      if(i != mModules.end())
+      if(i == mModules.end())
+      {
+         rval = false;
+      }
+      else
       {
          // get module
          ModuleInfo* mi = i->second;
@@ -105,6 +111,21 @@ void ModuleLibrary::unloadModule(const ModuleId* id)
       }
    }
    mLoadLock.unlock();
+
+   if(!rval)
+   {
+      // could not find module
+      ExceptionRef e = new Exception(
+         "Could not find module.",
+         "monarch.modest.InvalidModuleId");
+      e->getDetails()["name"] = id->name;
+      if(id->version != NULL)
+      {
+         e->getDetails()["version"] = id->version;
+      }
+   }
+
+   return rval;
 }
 
 void ModuleLibrary::unloadAllModules()

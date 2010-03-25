@@ -658,8 +658,8 @@ public:
 class PingConnectionServicer : public ConnectionServicer
 {
 public:
-   unsigned long long start;
-   unsigned long long end;
+   uint64_t start;
+   uint64_t end;
    unsigned int serviced;
 
    PingConnectionServicer()
@@ -758,11 +758,11 @@ void runPingTest(TestRunner& tr)
    uint64_t millis = end - start;
    printf("Connection Time: %" PRIu64 "\n", millis);
 
-//   unsigned long long millis = test1.end - test1.start;
-//   long double cps = ((long double)pcs.serviced) / millis * 1000.0;
+//   uint64_t millis = test1.end - test1.start;
+//   double cps = ((double)pcs.serviced) / millis * 1000.0;
 //   printf("Connections serviced: %d\n", pcs.serviced);
 //   printf("Time: %" PRIu64 "\n", millis);
-//   printf("Connections/Second: %Lf\n", cps);
+//   printf("Connections/Second: %f\n", cps);
 
    tr.passIfNoException();
 }

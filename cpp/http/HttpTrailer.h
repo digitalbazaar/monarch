@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_http_HttpTrailer_H
 #define monarch_http_HttpTrailer_H
@@ -37,7 +37,7 @@ protected:
    /**
     * The content length for the associated message body.
     */
-   unsigned long long mContentLength;
+   int64_t mContentLength;
 
 public:
    /**
@@ -57,21 +57,21 @@ public:
     *
     * @param contentLength the length of the content that was sent or received.
     */
-   virtual void update(unsigned long long contentLength);
+   virtual void update(int64_t contentLength);
 
    /**
     * Explicitly set the content length in this trailer.
     *
     * @param contentLength the content length to set.
     */
-   virtual void setContentLength(unsigned long long contentLength);
+   virtual void setContentLength(int64_t contentLength);
 
    /**
     * Gets the content length provided in an update to this trailer.
     *
     * @return the content length provided in an update to this trailer.
     */
-   virtual unsigned long long getContentLength();
+   virtual int64_t getContentLength();
 
    /**
     * Gets the type of header this is.

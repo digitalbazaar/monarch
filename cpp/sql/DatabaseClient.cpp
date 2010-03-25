@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -10,6 +10,7 @@
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/sql/Row.h"
 #include "monarch/sql/Statement.h"
+#include "monarch/sql/SqlStatementBuilder.h"
 
 #include <cstdio>
 
@@ -31,6 +32,8 @@ namespace v = monarch::validation;
 // constructed for the SqlExecutable object -- so changing its data members
 // should be completely fine and internal to that class and this class' use
 // of that class.
+// FIXME: StatementBuilder replaces SqlExecutable which is now deprecated
+// 03-22-2010
 
 DatabaseClient::DatabaseClient() :
    mDebugLogging(false),
@@ -38,6 +41,7 @@ DatabaseClient::DatabaseClient() :
    mWritePool(NULL)
 {
    mSchemas->setType(Map);
+   mOrMaps->setType(Map);
 }
 
 DatabaseClient::~DatabaseClient()
@@ -77,6 +81,43 @@ bool DatabaseClient::initialize()
          new v::Type(Array),
          new v::Each(new v::Type(String)),
          NULL)),
+      NULL);
+
+   // create OR mapping validator
+   mOrMapValidator = new v::Map(
+      "objectType", new v::Type(String),
+      "autoIncrement", new v::Optional(new v::All(
+         new v::Type(Map),
+         new v::Each(new v::Type(String)),
+         NULL)),
+      "members", new v::All(
+         new v::Type(Map),
+         new v::Each(new v::All(
+            new v::Map(
+               "table", new v::All(
+                  new v::Type(String),
+                  new v::Min(1, "Table must be at least 1 character long."),
+                  NULL),
+               "column", new v::All(
+                  new v::Type(String),
+                  new v::Min(1, "Column must be at least 1 character long."),
+                  NULL),
+               "columnType", new v::Valid(),
+               "memberType", new v::Valid(),
+               NULL),
+            new v::Any(
+               new v::Map(
+                  "group", new v::Equals("columns"),
+                  NULL),
+               new v::Map(
+                  "group", new v::Equals("fkeys"),
+                  "ftable", new v::Type(String),
+                  "fkey", new v::Type(String),
+                  "fcolumn", new v::Type(String),
+                  NULL),
+               NULL),
+            NULL)),
+         NULL),
       NULL);
 
    return rval;
@@ -169,6 +210,162 @@ SchemaObject DatabaseClient::getSchema(const char* table)
    return rval;
 }
 
+bool DatabaseClient::setObjRelMap(ObjRelMap& orMap)
+{
+   bool rval = false;
+
+   // validate OR map
+   rval = mOrMapValidator->isValid(orMap);
+   if(rval)
+   {
+      mOrMaps[orMap["objectType"]->getString()] = orMap;
+   }
+
+   return rval;
+}
+
+ObjRelMap DatabaseClient::getObjRelMap(const char* objType)
+{
+   ObjRelMap rval(NULL);
+
+   // ensure the OR map exists
+   if(!mOrMaps->hasMember(objType))
+   {
+      ExceptionRef e = new Exception(
+         "No object-relational mapping defined for the given object type.",
+         DBC_EXCEPTION ".InvalidObjectType");
+      e->getDetails()["objType"] = objType;
+      Exception::set(e);
+   }
+   else
+   {
+      rval = mOrMaps[objType];
+   }
+
+   return rval;
+}
+
+bool DatabaseClient::mapInstance(
+   const char* objType,
+   DynamicObject& obj, DynamicObject& mapping,
+   DynamicObject* userData)
+{
+   bool rval = false;
+
+   /* Algorithm to create a column mapping to the values in the given object:
+
+      1. Get the OR mapping for the object type.
+      2. Iterate over the members in the mapping, assigning each one's
+         associated information to a matching member in the instance object.
+      3. Include any values from the instance object in the instance mapping
+         validating and coercing types as needed.
+   */
+
+   /* The instance mapping format:
+    *
+    * mapping: {
+    *    "tables": {} of table name to table entry
+    *    "entries": [
+    *       "table": the database table name
+    *       "columns": [
+    *          (cloned info from the OR mapping) +
+    *          "member": the object member name
+    *          "value": the value for the column (to apply via an operator,
+    *             coerced to columnType)
+    *          "userData": as given to this call
+    *       ],
+    *       "fkeys": [
+    *          (cloned info from the OR mapping) +
+    *          "member": the object member name
+    *          "value": the value for "fcolumn" (coerced to columnType)
+    *          "userData": as given to this call
+    *       ]
+    *    ]
+    * }
+    */
+
+   // initialize mapping
+   mapping["tables"]->setType(Map);
+   mapping["entries"]->setType(Array);
+
+   // get OR map for the given object type
+   ObjRelMap orMap = getObjRelMap(objType);
+   if(!orMap.isNull())
+   {
+      rval = true;
+      DynamicObjectIterator i = orMap["members"].getIterator();
+      while(rval && i->hasNext())
+      {
+         // get OR member info
+         DynamicObject& info = i->next();
+
+         // if object is NULL, then we want to get ALL members
+         if(obj.isNull() || obj->hasMember(i->getName()))
+         {
+            // start building an instance mapping entry
+            DynamicObject entry(NULL);
+
+            // add/update entry based on table
+            const char* table = info["table"]->getString();
+            if(mapping["tables"]->hasMember(table))
+            {
+               // update existing entry
+               entry = mapping["tables"][table];
+            }
+            else
+            {
+               // add a new entry
+               entry = mapping["entries"]->append();
+               entry["table"] = info["table"];
+               entry["columns"]->setType(Array);
+               entry["fkeys"]->setType(Array);
+               if(orMap->hasMember("autoIncrement") &&
+                  orMap["autoIncrement"]->hasMember(table))
+               {
+                  const char* id = orMap["autoIncrement"][table]->getString();
+                  entry["autoIncrement"]["id"] = id;
+                  entry["autoIncrement"]["type"]->setType(
+                     orMap["members"][id]["columnType"]->getType());
+               }
+               mapping["tables"][table] = entry;
+            }
+
+            // clone info, add member name and user-data
+            DynamicObject d = info.clone();
+            d["member"] = i->getName();
+            if(userData != NULL)
+            {
+               d["userData"] = *userData;
+            }
+
+            // set value
+            if(obj.isNull())
+            {
+               d["value"];
+            }
+            else
+            {
+               // FIXME: validate data type
+               d["value"] = obj[i->getName()].clone();
+            }
+
+            // coerce data type to match column type
+            d["value"]->setType(d["columnType"]->getType());
+
+            // add to entry based on group
+            entry[info["group"]->getString()]->append(d);
+         }
+      }
+   }
+
+   return rval;
+}
+
+StatementBuilderRef DatabaseClient::createStatementBuilder()
+{
+   return new SqlStatementBuilder(this);
+}
+// FIXME: old stuff below
 bool DatabaseClient::create(
    const char* table, bool ignoreIfExists, Connection* c)
 {

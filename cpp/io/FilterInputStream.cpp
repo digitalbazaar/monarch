@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/FilterInputStream.h"
 
@@ -38,7 +38,7 @@ inline int FilterInputStream::peek(char* b, int length, bool block)
    return mInputStream->peek(b, length, block);
 }
 
-inline long long FilterInputStream::skip(long long count)
+inline int64_t FilterInputStream::skip(int64_t count)
 {
    return InputStream::skip(count);
 }

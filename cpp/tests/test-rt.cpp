@@ -1049,7 +1049,7 @@ void runDynoClearTest(TestRunner& tr)
    assert(d->getType() == UInt32);
    assert(d->getBoolean() == false);
 
-   d = (long long)1;
+   d = (int64_t)1;
    assert(d->getType() == Int64);
    d->clear();
    assert(d->getType() == Int64);

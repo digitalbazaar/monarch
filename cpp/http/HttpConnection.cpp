@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/HttpConnection.h"
 
@@ -92,7 +92,7 @@ bool HttpConnection::sendBody(
    HttpBodyOutputStream os(this, header, trailer);
 
    // determine how much content needs to be read
-   long long contentLength = 0;
+   int64_t contentLength = 0;
    bool lengthUnspecified = true;
    if(header->getField("Content-Length", contentLength) && contentLength >= 0)
    {
@@ -121,9 +121,8 @@ bool HttpConnection::sendBody(
       // do specified length transfer:
 
       // read in content, write out to connection
-      unsigned long long contentRemaining = contentLength;
-      unsigned int readSize = (contentRemaining < length) ?
-         contentRemaining : length;
+      int64_t contentRemaining = contentLength;
+      int readSize = (contentRemaining < length) ? contentRemaining : length;
       while(rval && contentRemaining > 0 &&
             (numBytes = mBuffer.put(is, readSize)) > 0)
       {

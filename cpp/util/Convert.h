@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_Convert_H
 #define monarch_util_Convert_H
@@ -127,7 +127,7 @@ public:
 //    *
 //    * @return the string.
 //    */
-//   static std::string integerToString(long long n);
+//   static std::string integerToString(int64_t n);
 //
 //   /**
 //    * Converts a string to an integer.
@@ -138,7 +138,7 @@ public:
 //    *
 //    * @return true if the string could be converted to an integer, false if not.
 //    */
-//   static bool stringToInteger(const char* s, long long& n, int base = 10);
+//   static bool stringToInteger(const char* s, int64_t& n, int base = 10);
 };
 
 } // end namespace util

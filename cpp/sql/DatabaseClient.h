@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_DatabaseClient_H
 #define monarch_sql_DatabaseClient_H
 
 #include "monarch/sql/ConnectionPool.h"
+#include "monarch/sql/StatementBuilder.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/validation/Validation.h"
 
@@ -13,7 +14,7 @@ namespace monarch
 namespace sql
 {
 
-// forward declare row
+// forward declarations
 class Row;
 
 /**
@@ -24,14 +25,40 @@ class Row;
  * attributes in an input/output object.
  *
  * SchemaObject: {} of
- *   "table": "tableName",
+ *   "table": "tableName"
  *   "columns": [] of
  *     "column_name": {} of
- *       "type": "DATABASE COLUMN TYPE" (same as used in CREATE TABLE SQL),
+ *       "type": "DATABASE COLUMN TYPE" (same as used in CREATE TABLE SQL)
  *       "memberName": "columnName" (member name as used in an object)
  *       "memberType": the expected member type
  */
 typedef monarch::rt::DynamicObject SchemaObject;
+
+/**
+ * An ObjRelMap provides a mapping between an object and a relational database.
+ *
+ * ObjRelMap: {} of
+ *    "objectType": object-type
+ *    "autoIncrement": {} of
+ *       "table-name": "member-name"
+ *    "members": {} of
+ *       "member-name": {} of
+ *          "group": "columns" or "fkeys"
+ *          "table": the table for the object data
+ *          "column": the column for the object data (or foreign key if an fkey)
+ *          "columnType": the data type for the column (or fcolumn if an fkey)
+ *          "memberType": the data type for the member
+ *          (if mappingType is "fkey")
+ *          "ftable": the table with a key to store in "table" that maps to
+ *             the object data
+ *          "fkey": the column in "ftable" with the key to store in "table"
+ *          "fcolumn": the column in "ftable" with the object data
+ *          "encode": an array of database transformation functions to encode
+ *             data that is entering the database
+ *          "decode": an array of database transformation functions to decode
+ *             data that is coming from the database
+ */
+typedef monarch::rt::DynamicObject ObjRelMap;
 
 /**
  * An SqlExecutable is an object that contains prepared statement SQL,
@@ -165,6 +192,16 @@ protected:
     */
    monarch::validation::ValidatorRef mSchemaValidator;
 
+   /**
+    * Stores all OR map objects, accessible via their object type.
+    */
+   monarch::rt::DynamicObject mOrMaps;
+
+   /**
+    * Stores the OR map validator.
+    */
+   monarch::validation::ValidatorRef mOrMapValidator;
+
 public:
    /**
     * Creates a new DatabaseClient.
@@ -232,9 +269,54 @@ public:
    /**
     * Gets a schema for a table.
     *
+    * @param table the table to get the schema for.
+    *
     * @return the schema for the table or NULL if it does not exist.
     */
    virtual SchemaObject getSchema(const char* table);
+
+   /**
+    * Sets an object-relational (OR) mapping for an object type.
+    *
+    * @param orMap the OR mapping to set.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool setObjRelMap(ObjRelMap& orMap);
+
+   /**
+    * Gets an object-relational (OR) mapping for an object type.
+    *
+    * @param objType the object type to get the mapping for.
+    *
+    * @return the OR map for the given object type or NULL if it does not exist.
+    */
+   virtual ObjRelMap getObjRelMap(const char* objType);
+
+   /**
+    * Uses an Object-Relational (OR) mapping to produce a mapping for a
+    * particular object instance.
+    *
+    * @param objType the type of object.
+    * @param obj the object instance.
+    * @param mapping the mapping object to populate.
+    * @param userData a user-data object to include with every column, foreign
+    *           key or sub-object entry.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool mapInstance(
+      const char* objType,
+      monarch::rt::DynamicObject& obj,
+      monarch::rt::DynamicObject& mapping,
+      monarch::rt::DynamicObject* userData = NULL);
+
+   /**
+    * Creates a StatementBuilder.
+    *
+    * @return the created StatementBuilder.
+    */
+   virtual StatementBuilderRef createStatementBuilder();
 
    /**
     * Creates a table via CREATE TABLE. The schema for the table must have

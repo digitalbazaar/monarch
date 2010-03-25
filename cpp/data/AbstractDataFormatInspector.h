@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_AbstractDataFormatInspector_H
 #define monarch_data_AbstractDataFormatInspector_H
@@ -43,13 +43,13 @@ protected:
    /**
     * The total number of bytes inspected so far.
     */
-   unsigned long long mBytesInspected;
+   uint64_t mBytesInspected;
 
    /**
     * Stores the current number of bytes that the specific inspection
     * implementation can skip over.
     */
-   unsigned long long mSkipBytes;
+   uint64_t mSkipBytes;
 
    /**
     * Called when enough data has been inspected for this inspector to
@@ -67,7 +67,7 @@ protected:
     * @param count the current number of bytes that the inspection algorithm
     *              can skip over.
     */
-   virtual void setSkipBytes(long long count);
+   virtual void setSkipBytes(int64_t count);
 
 public:
    /**
@@ -140,7 +140,7 @@ public:
     *
     * @return the number of bytes inspected so far.
     */
-   virtual unsigned long long getBytesInspected();
+   virtual uint64_t getBytesInspected();
 
    /**
     * Inspects the data in the passed buffer and tries to detect its

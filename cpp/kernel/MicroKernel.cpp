@@ -210,6 +210,48 @@ static bool _getMicroKernelModule(
    return rval;
 }
 
+Module* MicroKernel::loadModule(const char* filename)
+{
+   Module* rval = NULL;
+
+   MO_CAT_INFO(MO_KERNEL_CAT, "Loading module from %s", filename);
+
+   File file(filename);
+   if(file->isDirectory())
+   {
+      ExceptionRef e = new Exception(
+         "Could not load module. File is a directory.",
+         "monarch.kernel.InvalidModuleFile");
+      e->getDetails()["filename"] = filename;
+      Exception::set(e);
+   }
+   else
+   {
+      ModuleLibrary* lib = getModuleLibrary();
+      rval = lib->loadModule(filename);
+      MicroKernelModule* m;
+      if(_getMicroKernelModule(rval, NULL, &m) && m != NULL)
+      {
+         ModuleList pending;
+         pending.push_back(m);
+
+         // check dependencies and initialize
+         ModuleList uninitialized;
+         bool pass =
+            checkDependencies(pending, uninitialized) &&
+            initializeMicroKernelModule(m);
+         if(!pass)
+         {
+            // dependency check or initialize failed, unload module
+            unloadModules(uninitialized);
+            rval = NULL;
+         }
+      }
+   }
+
+   return rval;
+}
+
 bool MicroKernel::loadModules(const char* path)
 {
    MO_CAT_INFO(MO_KERNEL_CAT, "Loading modules from %s", path);
@@ -229,19 +271,16 @@ bool MicroKernel::loadModules(const char* path)
  * @param mkms the list to put MicroKernelModules into.
  * @param nonMkms the list to put non-MicroKernelModules into.
  *
- * @return true if the module loaded, false if an exception occurred.
+ * @return the Module that was loaded, NULL if an exception occurred.
  */
-static bool _loadModuleFromFile(
+static Module* _loadModuleFromFile(
    File& file, ModuleLibrary* lib,
    std::list<MicroKernelModule*>& mkms,
    std::list<Module*>& nonMkms)
 {
-   bool rval = false;
-
-   Module* module = lib->loadModule(file->getAbsolutePath());
+   Module* rval = lib->loadModule(file->getAbsolutePath());
    MicroKernelModule* mkm;
-   rval = _getMicroKernelModule(module, &file, &mkm);
-   if(rval)
+   if(_getMicroKernelModule(rval, &file, &mkm))
    {
       if(mkm != NULL)
       {
@@ -249,7 +288,7 @@ static bool _loadModuleFromFile(
       }
       else
       {
-         nonMkms.push_back(module);
+         nonMkms.push_back(rval);
       }
    }
 
@@ -274,7 +313,7 @@ bool MicroKernel::loadModules(FileList& paths)
       if(!file->isDirectory())
       {
          // load from the file or symbolic link
-         rval = _loadModuleFromFile(file, lib, pending, nonMkms);
+         rval = (_loadModuleFromFile(file, lib, pending, nonMkms) != NULL);
       }
       else
       {
@@ -288,7 +327,7 @@ bool MicroKernel::loadModules(FileList& paths)
             File& f = fi->next();
             if(!f->isDirectory())
             {
-               rval = _loadModuleFromFile(f, lib, pending, nonMkms);
+               rval = (_loadModuleFromFile(f, lib, pending, nonMkms) != NULL);
             }
          }
       }
@@ -356,6 +395,81 @@ bool MicroKernel::loadModule(CreateModestModuleFn cm, FreeModestModuleFn fm)
       {
          // dependency check or initialize failed, unload module
          unloadModules(uninitialized);
+      }
+   }
+
+   return rval;
+}
+
+bool MicroKernel::unloadModule(const char* name)
+{
+   ModuleId id(name, NULL);
+   return unloadModule(&id);
+}
+
+bool MicroKernel::unloadModule(const ModuleId* id)
+{
+   bool rval = true;
+
+   ModuleLibrary* lib = getModuleLibrary();
+   Module* m = lib->getModule(id);
+   if(m == NULL)
+   {
+      // module not found
+      rval = false;
+   }
+   else
+   {
+      // see if the module is a MicroKernelModule
+      MicroKernelModule* mkm = dynamic_cast<MicroKernelModule*>(m);
+      if(mkm == NULL)
+      {
+         // just a vanilla modest module, unload it
+         lib->unloadModule(id);
+      }
+      else
+      {
+         // find the iterator for the module to remove (assume it exists
+         // otherwise there is some bug in the code)
+         ModuleList::iterator start = find(
+            mModuleList.begin(), mModuleList.end(), mkm);
+
+         // start a list of modules that will not be unloaded (this includes
+         // all modules before the target module and possibly some after)
+         ModuleList keep;
+         for(ModuleList::iterator i = mModuleList.begin(); i != start; i++)
+         {
+            keep.push_back(*i);
+         }
+
+         // start collecting modules to unload and others to keep
+         ModuleList unload;
+         for(ModuleList::iterator i = start; i != mModuleList.end(); i++)
+         {
+            MicroKernelModule* curr = *i;
+            if(curr == mkm)
+            {
+               // always unload the target module
+               unload.push_back(curr);
+            }
+            else
+            {
+               // see if the current module will still have its dependencies
+               // met by the modules that aren't being removed
+               DynamicObject depInfo = curr->getDependencyInfo();
+               if(checkDependencyInfo(keep, depInfo))
+               {
+                  keep.push_back(curr);
+               }
+               else
+               {
+                  unload.push_back(curr);
+               }
+            }
+         }
+
+         // unload modules
+         unloadModules(unload);
       }
    }
 
@@ -532,6 +646,64 @@ Server* MicroKernel::getServer()
    return mServer;
 }
 
+bool MicroKernel::checkDependencyInfo(
+   ModuleList& dependencies, DynamicObject& di)
+{
+   bool rval = true;
+
+   // iterate over dependencies until one is not met or until they've
+   // all been successfully checked
+   DynamicObjectIterator depi = di["dependencies"].getIterator();
+   while(rval && depi->hasNext())
+   {
+      // see if dependency is met
+      DynamicObject& dep = depi->next();
+
+      // assume dependency not met yet
+      rval = false;
+
+      // depends on a module with a specific name
+      if(dep->hasMember("name"))
+      {
+         // check for a name that matches in dependencies
+         for(ModuleList::iterator mi = dependencies.begin();
+             !rval && mi != dependencies.end(); mi++)
+         {
+            DynamicObject di = (*mi)->getDependencyInfo();
+            if(di["name"] == dep["name"])
+            {
+               // name matches, check version if necessary
+               if(!dep->hasMember("version") ||
+                  di["version"] == dep["version"])
+               {
+                  // name and version (if needed) are a match,
+                  // so this dependency has been met
+                  rval = true;
+               }
+            }
+         }
+      }
+      // depends on any module of a certain type (typically
+      // there is a common interface per type)
+      else
+      {
+         // check for a type that matches in the dependencies list
+         for(ModuleList::iterator mi = dependencies.begin();
+             !rval && mi != dependencies.end(); mi++)
+         {
+            DynamicObject di = (*mi)->getDependencyInfo();
+            if(di["type"] == dep["type"])
+            {
+               // type matches, so this dependency has been met
+               rval = true;
+            }
+         }
+      }
+   }
+
+   return rval;
+}
+
 bool MicroKernel::checkDependencies(
    ModuleList& pending, ModuleList& uninitialized)
 {
@@ -606,63 +778,9 @@ bool MicroKernel::checkDependencies(
          moved = false;
          for(ModuleList::iterator i = pending.begin(); i != pending.end();)
          {
-            // get dependency info for the current pending module
+            // check dependency info for the current pending module
             DynamicObject depInfo = (*i)->getDependencyInfo();
-
-            // default to all dependencies met... change if one is found that
-            // has not been met
-            bool met = true;
-
-            // iterate over dependencies until one is not met or until they've
-            // all been successfully checked
-            DynamicObjectIterator depi = depInfo["dependencies"].getIterator();
-            while(met && depi->hasNext())
-            {
-               DynamicObject& dep = depi->next();
-
-               // dependency not yet met
-               met = false;
-
-               // depends on a module with a specific name
-               if(dep->hasMember("name"))
-               {
-                  // check for a name that matches in dependencies
-                  for(ModuleList::iterator mi = dependencies.begin();
-                      !met && mi != dependencies.end(); mi++)
-                  {
-                     DynamicObject di = (*mi)->getDependencyInfo();
-                     if(di["name"] == dep["name"])
-                     {
-                        // name matches, check version if necessary
-                        if(!dep->hasMember("version") ||
-                           di["version"] == dep["version"])
-                        {
-                           // name and version (if needed) are a match,
-                           // so this dependency has been met
-                           met = true;
-                        }
-                     }
-                  }
-               }
-               // depends on any module of a certain type (typically
-               // there is a common interface per type)
-               else
-               {
-                  // check for a type that matches in the dependencies list
-                  for(ModuleList::iterator mi = dependencies.begin();
-                      !met && mi != dependencies.end(); mi++)
-                  {
-                     DynamicObject di = (*mi)->getDependencyInfo();
-                     if(di["type"] == dep["type"])
-                     {
-                        // type matches, so this dependency has been met
-                        met = true;
-                     }
-                  }
-               }
-            }
-
-            if(met)
+            if(checkDependencyInfo(dependencies, depInfo))
             {
                // all dependencies for the current pending module have been
                // met, so clear it from the pending list and add it to both
@@ -757,13 +875,14 @@ void MicroKernel::unloadModules(ModuleList& modules)
       // if module is in mModuleList then it has been initialized with this
       // MicroKernel and needs corresponding clean up, otherwise it only needs
       // to be unloaded
-      if(m == mModuleList.back())
+      ModuleList::iterator i = find(mModuleList.begin(), mModuleList.end(), m);
+      if(i != mModuleList.end())
       {
          MO_CAT_INFO(MO_KERNEL_CAT,
             "Cleaning up MicroKernel module: %s v%s",
             m->getId().name, m->getId().version);
          m->cleanup(this);
-         mModuleList.pop_back();
+         mModuleList.erase(i);
       }
 
       // unload the module

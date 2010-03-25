@@ -5,6 +5,7 @@
 #include "monarch/test/TestModule.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/sql/Row.h"
+#include "monarch/sql/StatementBuilder.h"
 #include "monarch/sql/sqlite3/Sqlite3Connection.h"
 #include "monarch/sql/sqlite3/Sqlite3ConnectionPool.h"
 #include "monarch/sql/sqlite3/Sqlite3DatabaseClient.h"
@@ -19,8 +20,11 @@ using namespace monarch::sql::sqlite3;
 using namespace monarch::test;
 using namespace monarch::util;
 
-#define TABLE_TEST  "test"
-#define TABLE_TEST2 "test2"
+#define TABLE_TEST_1 "test_1"
+#define TABLE_TEST_2 "test_2"
+#define TABLE_TEST_3 "test_3"
+#define TABLE_TEST_4 "test_4"
+#define TABLE_TEST_5 "test_5"
 
 void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
 {
@@ -29,7 +33,8 @@ void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
       tr->test("drop table");
    }
    {
-      monarch::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST);
+      monarch::sql::Statement* s = c->prepare(
+         "DROP TABLE IF EXISTS " TABLE_TEST_1);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -49,7 +54,8 @@ void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
       tr->test("drop table 2");
    }
    {
-      monarch::sql::Statement* s = c->prepare("DROP TABLE IF EXISTS " TABLE_TEST2);
+      monarch::sql::Statement* s = c->prepare(
+         "DROP TABLE IF EXISTS " TABLE_TEST_2);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -70,7 +76,7 @@ void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "CREATE TABLE IF NOT EXISTS " TABLE_TEST " (t TEXT, i INT)");
+         "CREATE TABLE IF NOT EXISTS " TABLE_TEST_1 " (t TEXT, i INT)");
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -91,7 +97,7 @@ void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "CREATE TABLE IF NOT EXISTS " TABLE_TEST2 " (t TEXT, i INT)");
+         "CREATE TABLE IF NOT EXISTS " TABLE_TEST_2 " (t TEXT, i INT)");
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -116,7 +122,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
+         "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES ('test!', 1234)");
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -137,7 +143,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST " (t, i) VALUES ('!tset', 4321)");
+         "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES ('!tset', 4321)");
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -158,7 +164,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST " (t, i) VALUES (?, ?)");
+         "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES (?, ?)");
       assertNoException();
       s->setText(1, "boundpositional");
       s->setInt32(2, 2222);
@@ -181,7 +187,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST " (t, i) VALUES (:first, :second)");
+         "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES (:first, :second)");
       assertNoException();
       s->setText(":first", "boundnamed");
       s->setInt32(":second", 2223);
@@ -203,7 +209,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
       tr->test("select");
    }
    {
-      monarch::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST);
+      monarch::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST_1);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -257,7 +263,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST2 " (t, i) VALUES ('test!', 1234)");
+         "INSERT INTO " TABLE_TEST_2 " (t, i) VALUES ('test!', 1234)");
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -278,7 +284,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST2 " (t, i) VALUES ('!tset', 4321)");
+         "INSERT INTO " TABLE_TEST_2 " (t, i) VALUES ('!tset', 4321)");
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -299,7 +305,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST2 " (t, i) VALUES (?, ?)");
+         "INSERT INTO " TABLE_TEST_2 " (t, i) VALUES (?, ?)");
       assertNoException();
       s->setText(1, "boundpositional");
       s->setInt32(2, 2222);
@@ -322,7 +328,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
    }
    {
       monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST2 " (t, i) VALUES (:first, :second)");
+         "INSERT INTO " TABLE_TEST_2 " (t, i) VALUES (:first, :second)");
       assertNoException();
       s->setText(":first", "boundnamed");
       s->setInt32(":second", 2223);
@@ -344,7 +350,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
       tr->test("select");
    }
    {
-      monarch::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST2);
+      monarch::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST_2);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -465,7 +471,7 @@ void runSqlite3TableTest(TestRunner& tr)
    tr.test("drop table if exists");
    {
       monarch::sql::Statement* s = c.prepare(
-         "DROP TABLE IF EXISTS " TABLE_TEST);
+         "DROP TABLE IF EXISTS " TABLE_TEST_1);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -477,7 +483,7 @@ void runSqlite3TableTest(TestRunner& tr)
    tr.test("create table");
    {
       monarch::sql::Statement* s = c.prepare(
-         "CREATE TABLE " TABLE_TEST " (t TEXT, i INT)");
+         "CREATE TABLE " TABLE_TEST_1 " (t TEXT, i INT)");
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -489,7 +495,7 @@ void runSqlite3TableTest(TestRunner& tr)
    tr.test("drop table");
    {
       monarch::sql::Statement* s = c.prepare(
-         "DROP TABLE " TABLE_TEST);
+         "DROP TABLE " TABLE_TEST_1);
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -868,7 +874,7 @@ void runSqlite3ReuseTest(TestRunner& tr)
       monarch::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
       monarch::sql::Statement* s = c->prepare(
-         "CREATE TABLE IF NOT EXISTS " TABLE_TEST " (t TEXT, i INT)");
+         "CREATE TABLE IF NOT EXISTS " TABLE_TEST_1 " (t TEXT, i INT)");
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -883,7 +889,7 @@ void runSqlite3ReuseTest(TestRunner& tr)
       monarch::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
       monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
+         "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES ('test!', 1234)");
       assertNoException();
       int success = s->execute();
       assertNoException();
@@ -898,7 +904,7 @@ void runSqlite3ReuseTest(TestRunner& tr)
       monarch::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
       monarch::sql::Statement* s = c->prepare(
-         "SELECT * FROM " TABLE_TEST " WHERE i=:i LIMIT 1");
+         "SELECT * FROM " TABLE_TEST_1 " WHERE i=:i LIMIT 1");
       assertNoException();
       s->setInt32(":i", 1234);
       int success = s->execute();
@@ -928,7 +934,7 @@ void runSqlite3ReuseTest(TestRunner& tr)
       monarch::sql::Connection* c = cp.getConnection();
       assert(c != NULL);
       monarch::sql::Statement* s = c->prepare(
-         "SELECT * FROM " TABLE_TEST " WHERE i=:i LIMIT 1");
+         "SELECT * FROM " TABLE_TEST_1 " WHERE i=:i LIMIT 1");
       assertNoException();
       s->setInt32(":i", 1234);
       int success = s->execute();
@@ -979,7 +985,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    tr.test("define table");
    {
       SchemaObject schema;
-      schema["table"] = TABLE_TEST;
+      schema["table"] = TABLE_TEST_1;
 
       DatabaseClient::addSchemaColumn(schema,
          "foo_id", "INTEGER PRIMARY KEY", "fooId", UInt64);
@@ -996,13 +1002,13 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
 
    tr.test("create table");
    {
-      dbc->create(TABLE_TEST, false);
+      dbc->create(TABLE_TEST_1, false);
    }
    tr.passIfNoException();
 
    tr.test("create table if not exists");
    {
-      dbc->create(TABLE_TEST, true);
+      dbc->create(TABLE_TEST_1, true);
    }
    tr.passIfNoException();
 
@@ -1012,7 +1018,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = true;
       row["fooInt32"] = 3;
-      SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
+      SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
@@ -1039,7 +1045,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = false;
       row["fooInt32"] = 3;
-      SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
+      SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
@@ -1064,7 +1070,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooId"] = 1;
-      SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
+      SqlExecutableRef se = dbc->selectOne(TABLE_TEST_1, &where);
       dbc->execute(se);
       assertNoException();
 
@@ -1090,7 +1096,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       where["fooId"] = 1;
       DynamicObject members;
       members["fooString"];
-      SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where, &members);
+      SqlExecutableRef se = dbc->selectOne(TABLE_TEST_1, &where, &members);
       dbc->execute(se);
       assertNoException();
 
@@ -1111,7 +1117,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooInt32"] = 3;
-      SqlExecutableRef se = dbc->select(TABLE_TEST, &where, NULL, 5);
+      SqlExecutableRef se = dbc->select(TABLE_TEST_1, &where, NULL, 5);
       dbc->execute(se);
       assertNoException();
 
@@ -1144,7 +1150,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "foobar2";
       DynamicObject where;
       where["fooId"] = 2;
-      SqlExecutableRef se = dbc->update(TABLE_TEST, row, &where);
+      SqlExecutableRef se = dbc->update(TABLE_TEST_1, row, &where);
       dbc->execute(se);
       assert(se->rowsAffected = 1);
    }
@@ -1156,7 +1162,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "bar";
       DynamicObject where;
       where["fooId"] = 2;
-      SqlExecutableRef se = dbc->update(TABLE_TEST, row, &where, 1);
+      SqlExecutableRef se = dbc->update(TABLE_TEST_1, row, &where, 1);
       dbc->execute(se);
       assert(se->rowsAffected = 1);
    }
@@ -1166,7 +1172,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooString"] = "bar";
-      SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
+      SqlExecutableRef se = dbc->selectOne(TABLE_TEST_1, &where);
       dbc->execute(se);
       assertNoException();
 
@@ -1190,7 +1196,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooString"] = "bar";
-      SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
+      SqlExecutableRef se = dbc->select(TABLE_TEST_1, &where);
       dbc->execute(se);
       assertNoException();
 
@@ -1215,7 +1221,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject where;
       where["fooString"]->append() = "bar";
       where["fooString"]->append() = "foobar";
-      SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
+      SqlExecutableRef se = dbc->select(TABLE_TEST_1, &where);
       dbc->execute(se);
       assertNoException();
 
@@ -1246,7 +1252,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooId"] = 1;
-      SqlExecutableRef se = dbc->remove(TABLE_TEST, &where);
+      SqlExecutableRef se = dbc->remove(TABLE_TEST_1, &where);
       dbc->execute(se);
       assert(se->rowsAffected == 1);
    }
@@ -1254,7 +1260,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
 
    tr.test("select again");
    {
-      SqlExecutableRef se = dbc->select(TABLE_TEST);
+      SqlExecutableRef se = dbc->select(TABLE_TEST_1);
       dbc->execute(se);
       assertNoException();
 
@@ -1303,7 +1309,7 @@ void runSqlite3RollbackTest(TestRunner& tr)
    tr.test("define table");
    {
       SchemaObject schema;
-      schema["table"] = TABLE_TEST;
+      schema["table"] = TABLE_TEST_1;
 
       DatabaseClient::addSchemaColumn(schema,
          "foo_id", "INTEGER PRIMARY KEY", "fooId", UInt64);
@@ -1320,7 +1326,7 @@ void runSqlite3RollbackTest(TestRunner& tr)
 
    tr.test("create table");
    {
-      dbc->create(TABLE_TEST, false, c);
+      dbc->create(TABLE_TEST_1, false, c);
    }
    tr.passIfNoException();
 
@@ -1336,7 +1342,7 @@ void runSqlite3RollbackTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = true;
       row["fooInt32"] = 3;
-      SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
+      SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se, c);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
@@ -1363,7 +1369,7 @@ void runSqlite3RollbackTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = false;
       row["fooInt32"] = 3;
-      SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
+      SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se, c);
       assertNoException();
       row["fooId"] = se->lastInsertRowId;
@@ -1388,7 +1394,7 @@ void runSqlite3RollbackTest(TestRunner& tr)
    {
       DynamicObject where;
       where["fooId"] = 1;
-      SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
+      SqlExecutableRef se = dbc->selectOne(TABLE_TEST_1, &where);
       se->sql.append("BADSQLBLAHBLAH");
       dbc->execute(se, c);
    }
@@ -1478,6 +1484,429 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
+void runSqlite3StatementBuilderTest(TestRunner& tr)
+{
+   tr.group("Sqlite3 StatementBuilder");
+
+   // create sqlite3 connection pool
+   Sqlite3ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:", 1);
+   ConnectionPoolRef pool(cp);
+   assertNoException();
+
+   // create database client
+   DatabaseClientRef dbc = new Sqlite3DatabaseClient();
+   dbc->setDebugLogging(true);
+   dbc->setReadConnectionPool(pool);
+   dbc->setWriteConnectionPool(pool);
+   dbc->initialize();
+   assertNoException();
+
+   // define Test object type
+   tr.test("set Test OR map");
+   {
+      ObjRelMap orMap;
+      orMap["objectType"] = "Test";
+
+      // define auto-increment members
+      DynamicObject& autoIncrement = orMap["autoIncrement"];
+      autoIncrement[TABLE_TEST_1] = "id";
+
+      // define the object's members
+      DynamicObject& members = orMap["members"];
+
+      // id column
+      {
+         DynamicObject& entry = members["id"];
+         entry["group"] = "columns";
+         entry["table"] = TABLE_TEST_1;
+         entry["column"] = "id";
+         entry["columnType"]->setType(UInt64);
+         entry["memberType"]->setType(String);
+      }
+
+      // t column
+      {
+         DynamicObject& entry = members["description"];
+         entry["group"] = "columns";
+         entry["table"] = TABLE_TEST_1;
+         entry["column"] = "t";
+         entry["columnType"]->setType(String);
+         entry["memberType"]->setType(String);
+      }
+
+      // i column
+      {
+         DynamicObject& entry = members["number"];
+         entry["group"] = "columns";
+         entry["table"] = TABLE_TEST_1;
+         entry["column"] = "i";
+         entry["columnType"]->setType(UInt32);
+         entry["memberType"]->setType(UInt32);
+      }
+
+      // type w/foreign key
+      {
+         DynamicObject& entry = members["type"];
+         entry["group"] = "fkeys";
+         entry["table"] = TABLE_TEST_1;
+         entry["column"] = "type";
+         entry["ftable"] = TABLE_TEST_2;
+         entry["fkey"] = "type_id";
+         entry["fcolumn"] = "type_value";
+         entry["columnType"]->setType(String);
+         entry["memberType"]->setType(String);
+      }
+
+      // lower case text column
+      {
+         DynamicObject& entry = members["lower"];
+         entry["group"] = "columns";
+         entry["table"] = TABLE_TEST_1;
+         entry["column"] = "lowertext";
+         entry["encode"]->append() = "LOWER";
+         entry["columnType"]->setType(String);
+         entry["memberType"]->setType(String);
+      }
+
+      dbc->setObjRelMap(orMap);
+   }
+   tr.passIfNoException();
+
+   // FIXME: define a complex object type with hierarchy and foreign keys
+   // FIXME: get the actual data out
+
+   monarch::sql::Connection* c = dbc->getWriteConnection();
+
+   // initialize database for testing
+   tr.test("initialize database");
+   {
+      monarch::sql::Statement* s;
+
+      s = c->prepare(
+         "CREATE TABLE IF NOT EXISTS " TABLE_TEST_1
+         " (id INTEGER PRIMARY KEY, t TEXT, i INTEGER UNSIGNED,"
+         "type BIGINT UNSIGNED, lowertext TEXT)");
+      assert(s != NULL);
+      s->execute();
+      assertNoException();
+
+      s = c->prepare(
+         "CREATE TABLE IF NOT EXISTS " TABLE_TEST_2
+         " (type_id INTEGER UNSIGNED PRIMARY KEY, type_value TEXT)");
+      assert(s != NULL);
+      s->execute();
+      assertNoException();
+
+      s = c->prepare(
+         "INSERT INTO " TABLE_TEST_2 " (type_id,type_value) "
+         "VALUES (1,'type1')");
+      assert(s != NULL);
+      s->execute();
+      assertNoException();
+
+      s = c->prepare(
+         "INSERT INTO " TABLE_TEST_2 " (type_id,type_value) "
+         "VALUES (2,'type2')");
+      assert(s != NULL);
+      s->execute();
+      assertNoException();
+   }
+   tr.passIfNoException();
+
+   tr.test("add Test object");
+   {
+      DynamicObject testObj;
+      testObj["description"] = "My test object description";
+      testObj["number"] = 10;
+      testObj["type"] = "type1";
+      testObj["lower"] = "LOWERCASE";
+
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->add("Test", testObj)->execute(c);
+      assertNoException();
+
+      DynamicObject expect;
+      expect["ids"]["id"] = "1";
+      expect["changed"] = (uint64_t)1;
+      expect["tables"][TABLE_TEST_1]["changed"] = (uint64_t)1;
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("get");
+   {
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "1";
+      result["description"] = "My test object description";
+      result["number"] = 10;
+      result["type"] = "type1";
+      result["lower"] = "lowercase";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("update Test object");
+   {
+      DynamicObject testObj;
+      testObj["id"] = "1";
+      testObj["description"] = "A different test object description";
+      testObj["number"] = 12;
+      testObj["type"] = "type2";
+
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->update("Test", testObj)->execute(c);
+      assertNoException();
+
+      DynamicObject expect;
+      expect["changed"] = (uint64_t)1;
+      expect["tables"][TABLE_TEST_1]["changed"] = (uint64_t)1;
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("get");
+   {
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "1";
+      result["description"] = "A different test object description";
+      result["number"] = 12;
+      result["type"] = "type2";
+      result["lower"] = "lowercase";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("update Test object w/id 123");
+   {
+      DynamicObject testObj;
+      testObj["description"] = "Yet another test object description";
+      testObj["type"] = "type2";
+
+      DynamicObject where;
+      where["id"] = "1";
+
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->update("Test", testObj)->where("Test", where)->execute(c);
+      assertNoException();
+
+      DynamicObject expect;
+      expect["changed"] = (uint64_t)1;
+      expect["tables"][TABLE_TEST_1]["changed"] = (uint64_t)1;
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("get");
+   {
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "1";
+      result["description"] = "Yet another test object description";
+      result["number"] = 12;
+      result["type"] = "type2";
+      result["lower"] = "lowercase";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("update Test object where number > 12");
+   {
+      DynamicObject testObj;
+      testObj["id"] = "1";
+      testObj["description"] = "This should not show up";
+      testObj["number"] = 12;
+      testObj["type"] = "type2";
+
+      DynamicObject where;
+      where["number"] = "12";
+
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->update("Test", testObj)->where("Test", where, ">")->execute(c);
+      assertNoException();
+
+      DynamicObject expect;
+      expect["changed"] = (uint64_t)0;
+      expect["tables"][TABLE_TEST_1]["changed"] = (uint64_t)0;
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("get");
+   {
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "1";
+      result["description"] = "Yet another test object description";
+      result["number"] = 12;
+      result["type"] = "type2";
+      result["lower"] = "lowercase";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("update Test object add number +1 where number >= 12");
+   {
+      DynamicObject update;
+      update["number"] = 1;
+
+      DynamicObject where;
+      where["number"] = "12";
+
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->update("Test", update, "+=")->where("Test", where, ">=")->execute(c);
+      assertNoException();
+
+      DynamicObject expect;
+      expect["changed"] = (uint64_t)1;
+      expect["tables"][TABLE_TEST_1]["changed"] = (uint64_t)1;
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("get");
+   {
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->limit(1)->execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "1";
+      result["description"] = "Yet another test object description";
+      result["number"] = 13;
+      result["type"] = "type2";
+      result["lower"] = "lowercase";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   // FIXME: test array params
+   // FIXME: test LIKE
+   // FIXME: test range
+   // FIXME: enum
+   // FIXME: test chaining updates (and w/diff operators)
+
+   tr.test("get Test object IDs");
+   {
+      DynamicObject testObj;
+      testObj["id"];
+
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test", &testObj)->execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "1";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("get Test objects of type2");
+   {
+      DynamicObject testObj;
+      testObj["type"] = "type2";
+
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->where("Test", testObj, "=")->execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "1";
+      result["description"] = "Yet another test object description";
+      result["number"] = 13;
+      result["type"] = "type2";
+      result["lower"] = "lowercase";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   tr.test("get Test objects with 'lower'='LOWERCASE'");
+   {
+      DynamicObject testObj;
+      testObj["lower"] = "LOWERCASE";
+
+      StatementBuilderRef sb = dbc->createStatementBuilder();
+      sb->get("Test")->where("Test", testObj, "=")->execute(c);
+      assertNoException();
+
+      DynamicObject result;
+      result["id"] = "1";
+      result["description"] = "Yet another test object description";
+      result["number"] = 13;
+      result["type"] = "type2";
+      result["lower"] = "lowercase";
+
+      DynamicObject expect;
+      expect->append(result);
+
+      DynamicObject results = sb->fetch();
+      assertDynoCmp(expect, results);
+   }
+   tr.passIfNoException();
+
+   c->close();
+
+   tr.ungroup();
+}
+
 static bool run(TestRunner& tr)
 {
    if(tr.isDefaultEnabled())
@@ -1495,6 +1924,10 @@ static bool run(TestRunner& tr)
    if(tr.isTestEnabled("sqlite3-connection-pool"))
    {
       runSqlite3ConnectionPoolTest(tr);
+   }
+   if(tr.isTestEnabled("sqlite3-statement-builder"))
+   {
+      runSqlite3StatementBuilderTest(tr);
    }
    return true;
 }
