@@ -1306,6 +1306,7 @@ bool ConfigManager::recursiveAddConfig(
                ExceptionRef e = new Exception(
                   "No config file version found.",
                   CONFIG_EXCEPTION ".UnspecifiedVersion");
+               e->getDetails()["id"] = id;
                Exception::set(e);
                rval = false;
             }
@@ -1318,6 +1319,7 @@ bool ConfigManager::recursiveAddConfig(
                   ExceptionRef e = new Exception(
                      "Unsupported config file version.",
                      CONFIG_EXCEPTION ".UnsupportedVersion");
+                  e->getDetails()["id"] = id;
                   e->getDetails()["version"] = version;
                   Exception::set(e);
                   rval = false;
