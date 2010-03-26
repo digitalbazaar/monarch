@@ -40,11 +40,6 @@ class Tester : public monarch::app::AppPlugin
 {
 protected:
    /**
-    * Name of the tester.
-    */
-   char* mName;
-
-   /**
     * Kernel used to get test modules.
     */
    monarch::kernel::MicroKernel* mKernel;

@@ -65,6 +65,9 @@ App::App() :
    mMetaConfig["groups"]->setType(Map);
    mMetaConfig["parents"]->setType(Map);
    mMetaConfig["configs"]->setType(Map);
+
+   // FIXME: might change mConfigManager to a member of App instead of a pointer
+   setConfigManager(new ConfigManager);
 }
 
 App::~App()
@@ -260,9 +263,6 @@ int App::getExitStatus()
 
 bool App::initConfigManager()
 {
-   // default implementation
-   setConfigManager(new ConfigManager);
-
    return true;
 }
 

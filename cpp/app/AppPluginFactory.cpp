@@ -38,6 +38,7 @@ DynamicObject AppPluginFactory::getDependencyInfo()
 
 bool AppPluginFactory::initialize(MicroKernel* k)
 {
+   mMicroKernel = k;
    return true;
 }
 

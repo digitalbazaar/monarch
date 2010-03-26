@@ -33,6 +33,11 @@ protected:
     */
    monarch::rt::DynamicObject mInfo;
 
+   /**
+    * MicroKernel used for this App.
+    */
+   monarch::kernel::MicroKernel* mMicroKernel;
+
 public:
    /**
     * Create an AppPluginFactory instance.

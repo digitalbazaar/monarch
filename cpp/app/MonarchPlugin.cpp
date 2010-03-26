@@ -55,7 +55,6 @@ void MonarchPlugin::cleanup()
 
 bool MonarchPlugin::initConfigManager()
 {
-   getApp()->setConfigManager(&mConfigManager, false);
    // Set the known valid config manager versions.
    // Using explicit versions here. Code generating new configs should use
    // MO_DEFAULT_CONFIG_VERSION. Leave DEFAULT out here so that when the

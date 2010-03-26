@@ -21,12 +21,6 @@ namespace app
  */
 class MonarchPlugin : public AppPlugin
 {
-protected:
-   /**
-    * An app ConfigManager.
-    */
-   monarch::config::ConfigManager mConfigManager;
-
 public:
    /**
     * {@inheritDoc}

@@ -16,15 +16,17 @@ using namespace monarch::test;
 const char* TestRunner::DEFAULT = "default";
 
 TestRunner::TestRunner(
-   monarch::app::App* app, bool doneOnException, OutputLevel outputLevel)
+   monarch::app::App* app, monarch::kernel::MicroKernel* k,
+   bool doneOnException, OutputLevel outputLevel) :
+   mApp(app),
+   mMicroKernel(k),
+   mTotal(0),
+   mPassed(0),
+   mFailed(0),
+   mWarnings(0),
+   mOutputLevel(outputLevel),
+   mDoneOnException(doneOnException)
 {
-   mApp = app;
-   mOutputLevel = outputLevel;
-   mTotal = 0;
-   mPassed = 0;
-   mWarnings = 0;
-   mFailed = 0;
-   mDoneOnException = doneOnException;
    enableTest(DEFAULT);
 }
 
@@ -50,6 +52,11 @@ string TestRunner::getTestName()
 monarch::app::App* TestRunner::getApp()
 {
    return mApp;
+}
+
+monarch::kernel::MicroKernel* TestRunner::getMicroKernel()
+{
+   return mMicroKernel;
 }
 
 TestRunner::OutputLevel TestRunner::getOutputLevel()

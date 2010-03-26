@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "monarch/app/App.h"
+#include "monarch/kernel/MicroKernel.h"
 
 namespace monarch
 {
@@ -67,6 +68,11 @@ protected:
    monarch::app::App* mApp;
 
    /**
+    * MicroKernel running this test.
+    */
+   monarch::kernel::MicroKernel* mMicroKernel;
+
+   /**
     * Total number of started tests.
     */
    unsigned int mTotal;
@@ -117,14 +123,15 @@ public:
    /**
     * Creates a new TestRunner.
     *
-    * @param app app running the tests.
+    * @param app App running the tests.
+    * @param k MicroKernel used to run the tests.
     * @param doneOnException if exception caught then call done() and
     *                        fail via assert.
     * @param outputLevel OutputLevel to use.
     */
    TestRunner(
-      monarch::app::App* app, bool doneOnException,
-      OutputLevel outputLevel = Names);
+      monarch::app::App* app, monarch::kernel::MicroKernel* k,
+      bool doneOnException, OutputLevel outputLevel = Names);
 
    /**
     * Destructs this TestRunner.
@@ -132,11 +139,18 @@ public:
    virtual ~TestRunner();
 
    /**
-    * Get the app for this TestRunner.
+    * Get the App for this TestRunner.
     *
-    * @return the app for this TestRunner.
+    * @return the App for this TestRunner.
     */
    virtual monarch::app::App* getApp();
+
+   /**
+    * Get the MicroKernel for this TestRunner.
+    *
+    * @return the MicroKernel for this TestRunner.
+    */
+   virtual monarch::kernel::MicroKernel* getMicroKernel();
 
    /**
     * Get the output level.

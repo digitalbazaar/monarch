@@ -172,10 +172,11 @@ bool KernelPlugin::runApp()
 
       // get kernel config
       Config cfg = getApp()->getConfig()[PLUGIN_NAME];
+      App* app = new App;
 
       // create and start kernel
       mKernel = new MicroKernel();
-      mKernel->setConfigManager(getApp()->getConfigManager(), false);
+      mKernel->setConfigManager(app->getConfigManager(), false);
       mKernel->setFiberScheduler(new FiberScheduler(), true);
       mKernel->setFiberMessageCenter(new FiberMessageCenter(), true);
       mKernel->setEventController(new EventController(), true);
@@ -240,7 +241,6 @@ bool KernelPlugin::runApp()
 
          if(rval)
          {
-            App app;
             {
                // create AppPlugins from all loaded AppPluginFactories
                MicroKernel::ModuleApiList factories;
@@ -249,9 +249,13 @@ bool KernelPlugin::runApp()
                for(MicroKernel::ModuleApiList::iterator i = factories.begin();
                   rval && i != factories.end(); i++)
                {
+                  ModuleId id = dynamic_cast<Module*>(*i)->getId();
                   AppPluginFactory* f = dynamic_cast<AppPluginFactory*>(*i);
                   AppPluginRef p = f->createAppPlugin();
-                  rval = app.addPlugin(p);
+                  MO_CAT_OBJECT_INFO(
+                     MO_KERNEL_CAT, app,
+                     "Adding AppPlugin to App: %s v%s.", id.name, id.version);
+                  rval = app->addPlugin(p);
                }
             }
 
@@ -297,7 +301,7 @@ bool KernelPlugin::runApp()
             if(rval)
             {
                // run sub app
-               status = app.start(getApp()->getCommandLine());
+               status = app->start(getApp()->getCommandLine());
                rval = (status == EXIT_SUCCESS);
             }
 
@@ -342,10 +346,12 @@ bool KernelPlugin::runApp()
 
             if(!rval)
             {
-               getApp()->setExitStatus(app.getExitStatus());
+               getApp()->setExitStatus(app->getExitStatus());
             }
          }
 
+         delete app;
+         app = NULL;
 
          // FIXME: actually stopping microkernel, not just node
          // stop node
@@ -362,6 +368,12 @@ bool KernelPlugin::runApp()
       {
          MO_CAT_ERROR(MO_KERNEL_CAT, "Kernel start failed: %s",
             JsonWriter::writeToString(Exception::getAsDynamicObject()).c_str());
+      }
+
+      if(app != NULL)
+      {
+         delete app;
+         app = NULL;
       }
 
       // clean up kernel

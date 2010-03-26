@@ -10,8 +10,7 @@
 #include "monarch/test/Test.h"
 #include "monarch/test/Testable.h"
 
-// FIXME: header copy command is messed up
-#include "monarch/tester/Tester.h"
+#include "monarch/apps/tester/Tester.h"
 
 using namespace std;
 using namespace monarch::app;
@@ -133,7 +132,7 @@ bool Tester::run()
       default: level = TestRunner::Times; break;
    }
 
-   TestRunner tr(getApp(), cont, level);
+   TestRunner tr(getApp(), mKernel, cont, level);
 
    tr.group(NULL);
 
@@ -215,9 +214,6 @@ bool Tester::run()
 class TesterFactory :
    public AppPluginFactory
 {
-protected:
-   MicroKernel* mKernel;
-
 public:
    TesterFactory() :
       AppPluginFactory(PLUGIN_NAME, "1.0")
@@ -228,15 +224,9 @@ public:
 
    virtual ~TesterFactory() {}
 
-   bool initialize(MicroKernel* k)
-   {
-      mKernel = k;
-      return true;
-   }
-
    virtual AppPluginRef createAppPlugin()
    {
-      return new Tester(mKernel);
+      return new Tester(mMicroKernel);
    }
 };
 
