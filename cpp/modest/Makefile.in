@@ -4,7 +4,7 @@ LIBRARIES = momodest
 momodest_HEADERS = $(wildcard *.h)
 momodest_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort
+DYNAMIC_LINK_LIBRARIES += mort
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

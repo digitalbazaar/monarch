@@ -8,10 +8,11 @@ moutil_SOURCES = \
 	$(wildcard *.cpp) \
 	$(wildcard regex/*.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort
+DYNAMIC_LINK_LIBRARIES += mort
 
-DYNAMIC_WINDOWS_LIBRARIES = libgnurx-0
-STATIC_WINDOWS_LIBRARIES = libgnurx-0
+ifeq (@BUILD_FOR_WINDOWS@,yes)
+DYNAMIC_LINK_LIBRARIES += libgnurx-0
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

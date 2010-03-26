@@ -4,8 +4,9 @@ LIBRARIES = mort
 mort_HEADERS = $(wildcard *.h)
 mort_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_WINDOWS_LIBRARIES = pthreadGCE2
-STATIC_WINDOWS_LIBRARIES = pthreadGCE2
+ifeq (@BUILD_FOR_WINDOWS@,yes)
+DYNAMIC_LINK_LIBRARIES += pthreadGCE2
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

@@ -4,10 +4,7 @@ LIBRARIES = mologging
 mologging_HEADERS = $(wildcard *.h)
 mologging_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort moutil moio
-
-DYNAMIC_WINDOWS_LIBRARIES = mocompress
-DYNAMIC_MACOS_LIBRARIES = mocompress
+DYNAMIC_LINK_LIBRARIES += mort moutil moio mocompress
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

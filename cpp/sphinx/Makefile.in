@@ -5,10 +5,12 @@ LIBRARIES = mosphinx
 mosphinx_HEADERS = $(wildcard *.h)
 mosphinx_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort moutil mocrypto moio monet
+DYNAMIC_LINK_LIBRARIES += mort moutil mocrypto moio monet
 
-DYNAMIC_WINDOWS_LIBRARIES =
-DYNAMIC_MACOS_LIBRARIES = momodest mologging mocompress
+ifeq (@BUILD_FOR_MACOS@,yes)
+DYNAMIC_LINK_LIBRARIES += momodest mologging mocompress
+endif
+
 endif
 
 # ----------- Standard Makefile

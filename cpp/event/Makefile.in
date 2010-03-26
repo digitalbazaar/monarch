@@ -4,7 +4,7 @@ LIBRARIES = moevent
 moevent_HEADERS = $(wildcard *.h)
 moevent_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort moutil momodest
+DYNAMIC_LINK_LIBRARIES += mort moutil momodest
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

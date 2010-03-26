@@ -2,16 +2,21 @@
 # Usage: Run ./configure once 
 # Author: Manu Sporny
 
-AC_INIT([monarch],[3.2],[support@digitalbazaar.com])
+AC_INIT([monarch],[3.2.1],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
 
-# Setup standard build environment variables
-MONARCH_DIR=`pwd`
+# Versioning
+MONARCH_VERSION_MAJOR=3
+MONARCH_VERSION_MINOR=2
+MONARCH_VERSION_MICRO=1
 # Note: 'date -R' not portable to MacOS
 DATE_RFC_2822=`date +"%a, %d %b %Y %H:%M:%S %z"`
 DATE_YMD=`date +%Y%m%d`
-FULL_VERSION=${PACKAGE_VERSION}-${DATE_YMD}
 FULL_DOTTED_VERSION=${PACKAGE_VERSION}
+FULL_VERSION=${PACKAGE_VERSION}-${DATE_YMD}
+
+# Setup standard build environment variables
+MONARCH_DIR=`pwd`
 
 # Check for particular build options
 AC_ARG_ENABLE([linux],
@@ -66,26 +71,22 @@ AC_CHECK_PROGS(PYTHON, python2.5 python2.4, not found)
 # Conditional setup for Linux build
 if test "$BUILD_FOR_LINUX" = "yes" ; then
    AC_PROG_CXX()
-   AC_CHECK_PROG(LINUX_AR, ar, ar, not found)
-   AC_CHECK_PROG(LINUX_AS, as, as, not found)
-   LINUX_CXX="$CXX"
+   AC_CHECK_PROG(AR, ar, ar, not found)
+   AC_CHECK_PROG(AS, as, as, not found)
    PLATFORM=linux
 fi
 
 # Conditional setup for Windows build
 if test "$BUILD_FOR_WINDOWS" = "yes" ; then
-   AC_CHECK_PROG(WINDOWS_CXX, i586-mingw32msvc-g++, 
+   AC_CHECK_PROG(CXX, i586-mingw32msvc-g++,
                  i586-mingw32msvc-g++, not found)
-   AC_CHECK_PROG(WINDOWS_AR, i586-mingw32msvc-ar, 
+   AC_CHECK_PROG(AR, i586-mingw32msvc-ar,
                  i586-mingw32msvc-ar, not found)
-   AC_CHECK_PROG(WINDOWS_DLLWRAP, i586-mingw32msvc-dllwrap,
-                 i586-mingw32msvc-dllwrap, not found)
-   AC_CHECK_PROG(WINDOWS_AS, i586-mingw32msvc-as,
+   AC_CHECK_PROG(AS, i586-mingw32msvc-as,
                  i586-mingw32msvc-as, not found)
    # If the mingw32 compiler wasn't found, use the system default
-   if test "$WINDOWS_CXX" = "not found" ; then
+   if test "$CXX" = "not found" ; then
       AC_PROG_CXX()
-      WINDOWS_CXX="$CXX"
    fi
    LDFLAGS="$LDFLAGS -Wl,--enable-auto-import"
    PLATFORM=windows
@@ -94,9 +95,8 @@ fi
 # Conditional setup for MacOS build
 if test "$BUILD_FOR_MACOS" = "yes" ; then
    AC_PROG_CXX(g++-4 g++)
-   AC_CHECK_PROG(MACOS_AR, ar, ar, not found)
-   AC_CHECK_PROG(MACOS_AS, as, as, not found)
-   MACOS_CXX="$CXX"
+   AC_CHECK_PROG(AR, ar, ar, not found)
+   AC_CHECK_PROG(AS, as, as, not found)
    LDFLAGS="$LDFLAGS -L/sw/lib"
    PLATFORM=macos
 fi
@@ -242,27 +242,18 @@ dnl ----------------- substitutions -----------------
 AC_SUBST(PLATFORM)
 AC_SUBST(MONARCH_DIR)
 
+AC_SUBST(MONARCH_VERSION_MAJOR)
+AC_SUBST(MONARCH_VERSION_MINOR)
+AC_SUBST(MONARCH_VERSION_MICRO)
 AC_SUBST(DATE_RFC_2822)
-AC_SUBST(FULL_VERSION)
 AC_SUBST(FULL_DOTTED_VERSION)
+AC_SUBST(FULL_VERSION)
 
 AC_SUBST(BUILD_FOR_LINUX)
 AC_SUBST(BUILD_FOR_WINDOWS)
 AC_SUBST(BUILD_FOR_MACOS)
 
-AC_SUBST(LINUX_CXX)
-AC_SUBST(WINDOWS_CXX)
-AC_SUBST(MACOS_CXX)
-
 AC_SUBST(PYTHON)
-
-AC_SUBST(LINUX_AR)
-AC_SUBST(WINDOWS_AR)
-AC_SUBST(MACOS_AR)
-
-AC_SUBST(WINDOWS_AS)
-AC_SUBST(WINDOWS_DLLWRAP)
-AC_SUBST(MACOS_AS)
 
 # Generating files
 AC_CONFIG_FILES([
@@ -299,17 +290,6 @@ AC_CONFIG_FILES([
    cpp/validation/Makefile
 ])
 
-# Generate the platform-specific build file
-if test "$BUILD_FOR_LINUX" = "yes" ; then
-AC_CONFIG_FILES([ setup/Makefile.linux ])
-fi
-if test "$BUILD_FOR_MACOS" = "yes" ; then
-AC_CONFIG_FILES([ setup/Makefile.macos ])
-fi
-if test "$BUILD_FOR_WINDOWS" = "yes" ; then
-AC_CONFIG_FILES([ setup/Makefile.mingw32 ])
-fi
-
 # Generate scripts and configuration files for release
 AC_CONFIG_FILES([
    installers/debian/changelog
@@ -329,31 +309,26 @@ echo $GIT_IGNORE_FILES | tr ' ' '\n' > .gitignore
 echo -e "\n--------- Monarch Build Environment -----------"
 echo "System            : $PACKAGE_NAME $FULL_VERSION"
 echo "Build system      : $build_cpu-$build_vendor-$build_os"
+echo "Build platform    : $PLATFORM"
+
 if test "x$BUILD_FOR_LINUX" = "xyes"; then
    echo "Linux             : enabled"
-   echo "Linux C++ compiler: $LINUX_CXX"
-   echo "Linux C++ archiver: $LINUX_AR"
-   echo "Linux assembler   : $LINUX_AS"
 else
    echo "Linux             : disabled (use --enable-linux to enable)"
 fi
 if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
    echo "Win32             : enabled"
-   echo "Win32 C++ compiler: $WINDOWS_CXX"
-   echo "Win32 C++ archiver: $WINDOWS_AR"
-   echo "Win32 assembler   : $WINDOWS_AS"
-   echo "Win32 DLL wrapper : $WINDOWS_DLLWRAP"
 else
    echo "Win32             : disabled (use --enable-windows to enable)"
 fi
 if test "x$BUILD_FOR_MACOS" = "xyes"; then
    echo "MacOS             : enabled"
-   echo "MacOS C++ compiler: $MACOS_CXX"
-   echo "MacOS C++ archiver: $MACOS_AR"
-   echo "MacOS assembler   : $MACOS_AS"
 else
    echo "MacOS             : disabled (use --enable-macos to enable)"
 fi
+echo "C++ compiler      : $CXX"
+echo "C++ archiver      : $AR"
+echo "Assembler         : $AS"
 
 echo "Optimization Flags: $MO_CXX_OPT_FLAGS"
 echo "Debug Flags       : $MO_DEBUG_FLAGS"

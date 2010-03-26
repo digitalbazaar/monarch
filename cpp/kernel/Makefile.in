@@ -4,10 +4,14 @@ LIBRARIES = mokernel
 mokernel_HEADERS = $(wildcard *.h)
 mokernel_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort moutil momodest mofiber moconfig moio mocrypto moevent mologging monet modata movalidation
+DYNAMIC_LINK_LIBRARIES += mort moutil momodest mofiber moconfig moio mocrypto moevent mologging monet modata movalidation
 
-DYNAMIC_WINDOWS_LIBRARIES = libeay32 ssleay32 
-DYNAMIC_MACOS_LIBRARIES = crypto ssl mocompress
+ifeq (@BUILD_FOR_MACOS@,yes)
+DYNAMIC_LINK_LIBRARIES += crypto ssl mocompress
+endif
+ifeq (@BUILD_FOR_WINDOWS@,yes)
+DYNAMIC_LINK_LIBRARIES += libeay32 ssleay32 
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

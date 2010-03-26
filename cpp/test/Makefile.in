@@ -4,10 +4,12 @@ LIBRARIES = motest
 motest_HEADERS = $(wildcard *.h)
 motest_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig
+DYNAMIC_LINK_LIBRARIES += mort modata moapp moconfig
 
-DYNAMIC_MACOS_LIBRARIES = \
+ifeq (@BUILD_FOR_MACOS@,yes)
+DYNAMIC_LINK_LIBRARIES += \
    moio moutil mologging monet mocompress momodest mocrypto
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

@@ -1,14 +1,15 @@
 /*
  * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
-#include "monarch/test/Test.h"
-#include "monarch/test/TestModule.h"
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/sql/Row.h"
 #include "monarch/sql/StatementBuilder.h"
 #include "monarch/sql/sqlite3/Sqlite3Connection.h"
 #include "monarch/sql/sqlite3/Sqlite3ConnectionPool.h"
 #include "monarch/sql/sqlite3/Sqlite3DatabaseClient.h"
+#include "monarch/test/Test.h"
+#include "monarch/test/TestModule.h"
 #include "monarch/util/Timer.h"
 
 #include <cstdio>

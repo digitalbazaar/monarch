@@ -10,10 +10,16 @@ MYSQL_LIBS = momysql
 MYSQL_HEADERS = test-mysql.h
 MYSQL_SOURCES = test-mysql.cpp
 MYSQL_EXECUTABLES = test-mysql
-MYSQL_DYNAMIC_WINDOWS_LIBRARIES = mysql
-MYSQL_DYNAMIC_LINUX_LIBRARIES = mysqlclient
-MYSQL_DYNAMIC_MACOS_LIBRARIES = mysqlclient
-MYSQL_EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/mysql.dll
+ifeq (@BUILD_FOR_LINUX@,yes)
+MYSQL_DYNAMIC_LIBRARIES = mysqlclient
+endif
+ifeq (@BUILD_FOR_MACOS@,yes)
+MYSQL_DYNAMIC_LIBRARIES = mysqlclient
+endif
+ifeq (@BUILD_FOR_WINDOWS@,yes)
+MYSQL_DYNAMIC_LIBRARIES = mysql
+MYSQL_EXECUTABLE_LIBRARIES = mysql
+endif
 endif
 
 ifeq (@BUILD_SPHINX@,yes)
@@ -69,15 +75,16 @@ $(foreach mod,$(TEST_MODS),$(eval $(call setup_test_mod,$(mod))))
 DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_LIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_LIBS) moapp mokernel motest
 DYNAMIC_EXECUTABLE_LIBRARIES = motest
 
-LINUX_LIB_DIR = @MONARCH_DIR@/dist/lib
-WINDOWS_LIB_DIR = @MONARCH_DIR@/dist/lib
-MACOS_LIB_DIR = @MONARCH_DIR@/dist/lib
-
-DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LINUX_LIBRARIES)
-DYNAMIC_MACOS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_MACOS_LIBRARIES)
-DYNAMIC_WINDOWS_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_WINDOWS_LIBRARIES)
-
-EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/libexpat.dll $(WINDOWS_LIB_DIR)/sqlite3.dll $(WINDOWS_LIB_DIR)/iconv2.dll $(WINDOWS_LIB_DIR)/charset1.dll $(MYSQL_EXTRA_WINDOWS_LIBRARIES) -lws2_32 -lmotest
+ifeq (@BUILD_FOR_LINUX@,yes)
+DYNAMIC_LINK_LIBRARIES += pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LIBRARIES)
+endif
+ifeq (@BUILD_FOR_MACOS@,yes)
+DYNAMIC_LINK_LIBRARIES += sqlite3 $(MYSQL_DYNAMIC_LIBRARIES)
+endif
+ifeq (@BUILD_FOR_WINDOWS@,yes)
+DYNAMIC_LINK_LIBRARIES += sqlite3 $(MYSQL_DYNAMIC_LIBRARIES)
+DYNAMIC_EXECUTABLE_LIBRARIES += pthreadGCE2 libeay32 ssleay32 libexpat sqlite3 iconv2 charset1 $(MYSQL_EXECUTABLE_LIBRARIES) ws2_32 motest
+endif
 
 # conditional build of tests
 endif

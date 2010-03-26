@@ -4,9 +4,11 @@ LIBRARIES = momail
 momail_HEADERS = $(wildcard *.h)
 momail_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort moio monet moutil modata mosql mosqlite3
+DYNAMIC_LINK_LIBRARIES += mort moio monet moutil modata mosql mosqlite3
 
-DYNAMIC_MACOS_LIBRARIES = mologging momodest mocrypto mocompress movalidation
+ifeq (@BUILD_FOR_MACOS@,yes)
+DYNAMIC_LINK_LIBRARIES += mologging momodest mocrypto mocompress movalidation
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

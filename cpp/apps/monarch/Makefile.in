@@ -3,10 +3,14 @@
 EXECUTABLES = monarch
 
 DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mologging mocrypto monet mohttp modata moevent mofiber mosql mosqlite3 momail moconfig mocompress movalidation moapp moupnp mokernel
-DYNAMIC_LINUX_LIBRARIES = pthread crypto ssl expat sqlite3
-DYNAMIC_WINDOWS_LIBRARIES = sqlite3
 
-EXTRA_WINDOWS_LIBRARIES = $(WINDOWS_LIB_DIR)/pthreadGCE2.dll $(WINDOWS_LIB_DIR)/libeay32.dll $(WINDOWS_LIB_DIR)/ssleay32.dll $(WINDOWS_LIB_DIR)/libexpat.dll -lws2_32
+ifeq (@BUILD_FOR_LINUX@,yes)
+DYNAMIC_LINK_LIBRARIES += pthread crypto ssl expat sqlite3
+endif
+ifeq (@BUILD_FOR_WINDOWS@,yes)
+DYNAMIC_LINK_LIBRARIES += sqlite3
+DYNAMIC_EXECUTABLE_LIBRARIES += pthreadGCE2 libeay32 ssleay32 libexpat ws2_32
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

@@ -11,51 +11,88 @@ BUILD_FOR_WINDOWS=@BUILD_FOR_WINDOWS@
 BUILD_FOR_MACOS=@BUILD_FOR_MACOS@
 
 AR_FLAGS = cr
+
 MONARCH = $(realpath @MONARCH_DIR@)
-INCLUDES = -I$(MONARCH)/dist/include 
+TOP_SRC_DIR = $(MONARCH)
+TOP_BUILD_DIR = $(MONARCH)
+
+INCLUDES += -I$(TOP_BUILD_DIR)/dist/include 
 
 CWD = $(shell pwd)
 ifndef HEADER_DIST_DIR
 HEADER_DIST_DIR = dist/include/monarch/$(notdir $(CWD))
 endif
 
+# Build rules common to each platform
 ifdef PRINT_COMMANDS
 PCMD=
 else
 PCMD=@
 endif
 
-# Platform-specific variables and build rules
 .SECONDEXPANSION:
+
+# Variables for all platforms
+
+CXX ?= @CXX@
+MO_CXX_FLAGS += @CXXFLAGS@ @DEFS@ -Wall
+MO_LD_FLAGS += @LDFLAGS@
+MO_INCLUDES += $(INCLUDES)
+MO_LIBS += -L$(MO_LIB_DIR)
+AR ?= @AR@
+AS ?= @AS@
+
+# Platform-specific variables
 
 ifeq ($(BUILD_FOR_LINUX),yes)
 PLATFORM_NAME=LINUX
-PN=$(PLATFORM_NAME)
 LIB_PREFIX=lib
 DYNAMIC_LIB_EXT=so
 STATIC_LIB_EXT=a
-include @MONARCH_DIR@/setup/Makefile.linux
+EXECUTABLE_EXT=
+MO_CXX_FLAGS += -march=i686 -fPIC -DLINUX $(MODULE_CXX_FLAGS) $(MODULE_LINUX_CXX_FLAGS)
+MO_LIBS += -L/usr/lib/mysql
 endif
 
 ifeq ($(BUILD_FOR_MACOS),yes)
 PLATFORM_NAME=MACOS
-PN=$(PLATFORM_NAME)
 LIB_PREFIX=lib
 DYNAMIC_LIB_EXT=dylib
 STATIC_LIB_EXT=a
-include @MONARCH_DIR@/setup/Makefile.macos
+EXECUTABLE_EXT=
+# TODO: support build target config and use -march=i686/powerpc/etc
+MO_CXX_FLAGS += -fPIC -DMACOS $(MODULE_CXX_FLAGS) $(MODULE_MACOS_CXX_FLAGS)
+MO_LD_FLAGS += -Wl,-flat_namespace
+MO_LIB_LD_FLAGS += \
+	-Wl,-dylib_compatibility_version,@FULL_DOTTED_VERSION@ \
+	-Wl,-dylib_current_version,@FULL_DOTTED_VERSION@
+# Add default location for Fink
+MO_INCLUDES += -I/sw/include 
+MO_LIBS += -L/sw/lib
 endif
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
 PLATFORM_NAME=WINDOWS
-PN=$(PLATFORM_NAME)
 LIB_PREFIX=
 DYNAMIC_LIB_EXT=dll
 STATIC_LIB_EXT=lib
-include @MONARCH_DIR@/setup/Makefile.mingw32
+EXECUTABLE_EXT=.exe
+MO_CXX_FLAGS += -march=i686 -D_WIN32_WINNT=0x0501 $(MODULE_CXX_FLAGS)
+MO_LD_FLAGS += -Wl,--enable-auto-import
+MO_INCLUDES += \
+	-I$(TOP_SRC_DIR)/cpp/3rdparty/pthread/include \
+	-I$(TOP_SRC_DIR)/cpp/3rdparty/openssl/include \
+	-I$(TOP_SRC_DIR)/cpp/3rdparty/expat/include \
+	-I$(TOP_SRC_DIR)/cpp/3rdparty/mysql/include \
+	-I$(TOP_SRC_DIR)/cpp/3rdparty/regex/include \
+	-I$(TOP_SRC_DIR)/cpp/3rdparty/sqlite3/include \
+	-I$(TOP_SRC_DIR)/cpp/3rdparty/zlib/include \
+	-I$(TOP_SRC_DIR)/cpp/3rdparty/iconv/include
 endif
 
 # Platform-agnostic build rules 
+
+include $(TOP_SRC_DIR)/setup/monarch.mk
 
 build-setup:
 

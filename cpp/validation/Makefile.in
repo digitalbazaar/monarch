@@ -4,7 +4,7 @@ LIBRARIES = movalidation
 movalidation_HEADERS = $(wildcard *.h)
 movalidation_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort moutil
+DYNAMIC_LINK_LIBRARIES += mort moutil
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

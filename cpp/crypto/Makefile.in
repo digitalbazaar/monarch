@@ -4,9 +4,14 @@ LIBRARIES = mocrypto
 mocrypto_HEADERS = $(wildcard *.h)
 mocrypto_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort moutil moio 
-DYNAMIC_WINDOWS_LIBRARIES = libeay32
-DYNAMIC_MACOS_LIBRARIES = crypto ssl
+DYNAMIC_LINK_LIBRARIES += mort moutil moio 
+
+ifeq (@BUILD_FOR_MACOS@,yes)
+DYNAMIC_LINK_LIBRARIES += crypto ssl
+endif
+ifeq (@BUILD_FOR_WINDOWS@,yes)
+DYNAMIC_LINK_LIBRARIES += libeay32
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

@@ -5,11 +5,16 @@ LIBRARIES = momysql
 momysql_HEADERS = $(wildcard *.h)
 momysql_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort monet mosql mysqlclient
-
-DYNAMIC_WINDOWS_LIBRARIES = mysql
-DYNAMIC_MACOS_LIBRARIES = mysqlclient moutil momodest moio mocrypto mologging mocompress modata movalidation
+DYNAMIC_LINK_LIBRARIES += mort monet mosql mysqlclient
 HEADER_DIST_DIR = dist/include/monarch/sql/mysql
+
+ifeq (@BUILD_FOR_MACOS@,yes)
+DYNAMIC_LINK_LIBRARIES += mysql
+endif
+ifeq (@BUILD_FOR_WINDOWS@,yes)
+DYNAMIC_LINK_LIBRARIES += mysqlclient moutil momodest moio mocrypto mologging mocompress modata movalidation
+endif
+
 endif
 
 # ----------- Standard Makefile
