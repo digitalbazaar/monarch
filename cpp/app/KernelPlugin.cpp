@@ -88,9 +88,8 @@ DynamicObject KernelPlugin::getCommandLineSpecs()
    spec["help"] =
 "Module options:\n"
 "  -m, --module-path PATH\n"
-"                      A colon separated list of module files, directories of\n"
-"                      modules, y list where extension modules\n"
-"                      are stored. May be specified multiple times.\n"
+"                      A colon separated list of modules or directories where\n"
+"                      modules are stored. May be specified multiple times.\n"
 "                      Loaded after modules in MONARCH_MODULE_PATH.\n"
 "      --no-module-path-env\n"
 "                      Disable MONARCH_MODULE_PATH.\n"
