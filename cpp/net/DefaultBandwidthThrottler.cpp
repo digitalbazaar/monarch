@@ -122,8 +122,10 @@ void DefaultBandwidthThrottler::resetWindowTime()
    // set the current window time
    mWindowTime = System::getCurrentMilliseconds();
 
-   // reset the bytes already granted in this window
+   // reset bytes already granted, available bytes, and request time
    mBytesGranted = 0;
+   mAvailableBytes = 0;
+   mLastRequestTime = mWindowTime;
 }
 
 void DefaultBandwidthThrottler::updateWindowTime()
@@ -159,7 +161,7 @@ void DefaultBandwidthThrottler::updateWindowTime()
       //
       // If the assumption fails, and, for instance, it takes more
       // than one second for a single byte to be transferred or bytes
-      // are only requested ever so often, then the requester will
+      // are only requested every so often, then the requester will
       // have to wait a maximum of one second to acquire another byte.
       resetWindowTime();
    }
