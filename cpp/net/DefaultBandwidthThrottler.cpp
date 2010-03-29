@@ -174,7 +174,7 @@ inline uint64_t DefaultBandwidthThrottler::getWindowTime()
    return mWindowTime;
 }
 
-void DefaultBandwidthThrottler::updateAvailableByteTime()
+inline void DefaultBandwidthThrottler::updateAvailableByteTime()
 {
    // the amount of time until a byte is available is 1000 milliseconds
    // divided by the rate in bytes/second, with a minimum of 1 millisecond
