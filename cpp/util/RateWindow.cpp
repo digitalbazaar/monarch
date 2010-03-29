@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/RateWindow.h"
 
@@ -37,6 +37,8 @@ void RateWindow::setEqualTo(RateWindow& window)
    mTimePassed = window.getTimePassed();
    mItemCount = window.getItemCount();
    mItemTime = window.getItemTime();
+   mEarliestAddTime = mEarliestAddTime;
+   mLastAddTime = mLastAddTime;
 }
 
 void RateWindow::setLength(uint64_t length)
@@ -83,7 +85,7 @@ uint64_t RateWindow::getCurrentTime()
    return getStartTime() + getTimePassed();
 }
 
-uint64_t RateWindow::getRemainingTime()
+uint64_t RateWindow::getTimeRemaining()
 {
    return getEndTime() - getCurrentTime();
 }
@@ -121,6 +123,11 @@ bool RateWindow::isTimeInWindow(uint64_t time)
       (getLength() == 0 || time < getEndTime());
 }
 
+uint64_t RateWindow::getLastAddTime()
+{
+   return mLastAddTime;
+}
+
 void RateWindow::setItemCount(uint64_t count)
 {
    mItemCount = count;
@@ -145,11 +152,20 @@ void RateWindow::addItems(uint64_t count, uint64_t start, uint64_t now)
 {
    // Note: start *must* be before now, and now *must* be >= getStartTime()
 
-   // if start is before this window, then adjust count and start
+   // save rate for count adjustments
+   double rate = ((double)count) / (now - start);
+
+   // if start is before this window, then adjust
    if(start < getStartTime())
    {
-      double rate = ((double)count) / (now - start);
       start = getStartTime();
+      count = (uint64_t)roundl(rate * (now - start));
+   }
+
+   // if now is after this window, then adjust
+   if(getLength() > 0 && now > getEndTime())
+   {
+      now = getEndTime();
       count = (uint64_t)roundl(rate * (now - start));
    }
 
@@ -187,11 +203,11 @@ void RateWindow::addItems(uint64_t count, uint64_t start, uint64_t now)
       }
       else if(start <= mLastAddTime)
       {
-         interval = (now - mLastAddTime);
+         interval = now - mLastAddTime;
       }
       else
       {
-         interval = (now - start);
+         interval = now - start;
       }
 
       // update item count, item time, and set new last add time

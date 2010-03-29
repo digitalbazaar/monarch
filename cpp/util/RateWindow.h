@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_TimeWindow_H
 #define monarch_util_TimeWindow_H
@@ -177,7 +177,7 @@ public:
     *
     * @return the amount of time (in milliseconds) left in this window.
     */
-   virtual uint64_t getRemainingTime();
+   virtual uint64_t getTimeRemaining();
 
    /**
     * Sets the time (in milliseconds) passed in this window. This will not
@@ -213,6 +213,14 @@ public:
     * @return true if the passed time is in this window, false if not.
     */
    virtual bool isTimeInWindow(uint64_t time);
+
+   /**
+    * Gets the last time (in milliseconds) that items were added to this window.
+    *
+    * @return the last time (in milliseconds) that items were added to this
+    *    window.
+    */
+   virtual uint64_t getLastAddTime();
 
    /**
     * Sets the item count in this window. The item time will be unaffected.
