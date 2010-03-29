@@ -40,8 +40,9 @@ EXECUTABLES = \
 
 # Macro to setup building simple one source file libraries.
 define setup_test_mod
-LIBRARIES += mo$(1)
+MODULES += mo$(1)
 mo$(subst -,_,$(1))_SOURCES = $(1).cpp
+mo$(subst -,_,$(1))_MOD_DIR = tests
 endef
 
 TEST_MODS = \

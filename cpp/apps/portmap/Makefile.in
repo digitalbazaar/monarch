@@ -1,8 +1,9 @@
 # Makefile to compile the module in this directory
 
-LIBRARIES = moportmap
+MODULES = moportmap
 moportmap_HEADERS = $(wildcard *.h)
 moportmap_SOURCES = $(wildcard *.cpp)
+moportmap_MOD_DIR = apps
 
 DYNAMIC_LINK_LIBRARIES += mort moutil
 

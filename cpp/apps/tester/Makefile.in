@@ -1,8 +1,9 @@
 # Makefile to compile the module in this directory
 
-LIBRARIES = motester
+MODULES = motester
 motester_HEADERS = $(wildcard *.h)
 motester_SOURCES = $(wildcard *.cpp)
+motester_MOD_DIR = apps
 
 HEADER_DIST_DIR = dist/include/monarch/apps/tester
 
