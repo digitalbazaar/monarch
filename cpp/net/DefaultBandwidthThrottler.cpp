@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 
@@ -15,14 +15,10 @@ using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-DefaultBandwidthThrottler::DefaultBandwidthThrottler(int rateLimit)
+DefaultBandwidthThrottler::DefaultBandwidthThrottler(int rateLimit) :
+   mLastRequestTime(0),
+   mAvailableBytes(0)
 {
-   // initialize the last request time
-   mLastRequestTime = System::getCurrentMilliseconds();
-
-   // initialize the available number of bytes
-   mAvailableBytes = 0;
-
    // set the rate limit (will also reset the window time if necessary)
    setRateLimit(rateLimit);
 }
@@ -71,7 +67,7 @@ void DefaultBandwidthThrottler::addAvailableBytes(int bytes)
 {
    mLock.lock();
    {
-      // replace bytes for next call
+      // not all bytes were read/written/used, replace bytes for next call
       mBytesGranted -= bytes;
       mAvailableBytes += bytes;
    }
