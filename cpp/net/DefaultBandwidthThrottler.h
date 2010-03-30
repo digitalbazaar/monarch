@@ -53,6 +53,11 @@ protected:
    volatile uint64_t mAvailableBytes;
 
    /**
+    * The number of threads waiting for available bytes.
+    */
+   volatile uint32_t mWaiters;
+
+   /**
     * A lock for synchronizing the use of this throttler.
     */
    monarch::rt::ExclusiveLock mLock;

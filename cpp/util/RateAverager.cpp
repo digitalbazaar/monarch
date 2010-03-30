@@ -61,11 +61,6 @@ void RateAverager::addItems(uint64_t count, uint64_t start)
    mLock.unlock();
 }
 
-uint64_t RateAverager::getItemTime()
-{
-   return mTotal.getItemTime();
-}
-
 double RateAverager::getItemsPerMillisecond()
 {
    double rval = 0.0;
@@ -127,6 +122,11 @@ double RateAverager::getTotalItemsPerSecond()
 uint64_t RateAverager::getTotalItemCount()
 {
    return mTotal.getItemCount();
+}
+
+uint64_t RateAverager::getTotalItemTime()
+{
+   return mTotal.getItemTime();
 }
 
 void RateAverager::setWindowLength(uint64_t length)
