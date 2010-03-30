@@ -4,7 +4,7 @@ LIBRARIES = moio
 moio_HEADERS = $(wildcard *.h)
 moio_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES += mort moutil
+DYNAMIC_LINK_LIBRARIES = mort moutil
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

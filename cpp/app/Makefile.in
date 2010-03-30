@@ -4,14 +4,10 @@ LIBRARIES = moapp
 moapp_HEADERS = $(wildcard *.h)
 moapp_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES += mort mologging moio mocrypto monet modata moutil moconfig
+DYNAMIC_LINK_LIBRARIES = mort mologging moio mocrypto monet modata moutil moconfig
 
-ifeq (@BUILD_FOR_MACOS@,yes)
-DYNAMIC_LINK_LIBRARIES += crypto ssl momodest mocompress
-endif
-ifeq (@BUILD_FOR_WINDOWS@,yes)
-DYNAMIC_LINK_LIBRARIES += pthreadGCE2 mgwz libgnurx-0 libeay32 ssleay32 ws2_32
-endif
+DYNAMIC_MACOS_LINK_LIBRARIES = crypto ssl momodest mocompress
+DYNAMIC_WINDOWS_LINK_LIBRARIES = pthreadGCE2 mgwz libgnurx-0 libeay32 ssleay32 ws2_32
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

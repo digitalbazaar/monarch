@@ -4,14 +4,10 @@ LIBRARIES = moupnp
 moupnp_HEADERS = $(wildcard *.h)
 moupnp_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES += mort moutil momodest moio mocrypto monet mohttp mologging modata
+DYNAMIC_LINK_LIBRARIES = mort moutil momodest moio mocrypto monet mohttp mologging modata
 
-ifeq (@BUILD_FOR_MACOS@,yes)
-DYNAMIC_LINK_LIBRARIES += mocompress
-endif
-ifeq (@BUILD_FOR_WINDOWS@,yes)
-DYNAMIC_LINK_LIBRARIES += libgnurx-0
-endif
+DYNAMIC_MACOS_LINK_LIBRARIES = mocompress
+DYNAMIC_WINDOWS_LINK_LIBRARIES = libgnurx-0
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

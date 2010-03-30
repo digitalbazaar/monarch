@@ -5,7 +5,7 @@ moportmap_HEADERS = $(wildcard *.h)
 moportmap_SOURCES = $(wildcard *.cpp)
 moportmap_MOD_DIR = apps
 
-DYNAMIC_LINK_LIBRARIES += mort moutil
+DYNAMIC_LINK_LIBRARIES = mort moutil
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

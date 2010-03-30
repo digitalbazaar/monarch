@@ -76,16 +76,10 @@ $(foreach mod,$(TEST_MODS),$(eval $(call setup_test_mod,$(mod))))
 DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_LIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_LIBS) moapp mokernel motest
 DYNAMIC_EXECUTABLE_LIBRARIES = motest
 
-ifeq (@BUILD_FOR_LINUX@,yes)
-DYNAMIC_LINK_LIBRARIES += pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LIBRARIES)
-endif
-ifeq (@BUILD_FOR_MACOS@,yes)
-DYNAMIC_LINK_LIBRARIES += sqlite3 $(MYSQL_DYNAMIC_LIBRARIES)
-endif
-ifeq (@BUILD_FOR_WINDOWS@,yes)
-DYNAMIC_LINK_LIBRARIES += sqlite3 $(MYSQL_DYNAMIC_LIBRARIES)
-DYNAMIC_EXECUTABLE_LIBRARIES += pthreadGCE2 libeay32 ssleay32 libexpat sqlite3 iconv2 charset1 $(MYSQL_EXECUTABLE_LIBRARIES) ws2_32 motest
-endif
+DYNAMIC_LINUX_LINK_LIBRARIES = pthread crypto ssl expat sqlite3 $(MYSQL_DYNAMIC_LIBRARIES)
+DYNAMIC_MACOS_LINK_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_LIBRARIES)
+DYNAMIC_WINDOWS_LINK_LIBRARIES = sqlite3 $(MYSQL_DYNAMIC_LIBRARIES)
+DYNAMIC_WINDOWS_EXECUTABLE_LIBRARIES = pthreadGCE2 libeay32 ssleay32 libexpat sqlite3 iconv2 charset1 $(MYSQL_EXECUTABLE_LIBRARIES) ws2_32 motest
 
 # conditional build of tests
 endif

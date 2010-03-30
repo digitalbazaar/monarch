@@ -4,14 +4,10 @@ LIBRARIES = mohttp
 mohttp_HEADERS = $(wildcard *.h)
 mohttp_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES += mort moutil momodest moio mocrypto mologging monet
+DYNAMIC_LINK_LIBRARIES = mort moutil momodest moio mocrypto mologging monet
 
-ifeq (@BUILD_FOR_MACOS@,yes)
-DYNAMIC_LINK_LIBRARIES += crypto ssl
-endif
-ifeq (@BUILD_FOR_WINDOWS@,yes)
-DYNAMIC_LINK_LIBRARIES += libeay32 ssleay32 ws2_32
-endif
+DYNAMIC_MACOS_LINK_LIBRARIES = crypto ssl
+DYNAMIC_WINDOWS_LINK_LIBRARIES = libeay32 ssleay32 ws2_32
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

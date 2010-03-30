@@ -12,14 +12,10 @@ mocompress_SOURCES = \
 	$(wildcard gzip/*.cpp) \
 	$(wildcard zip/*.cpp)
 
-DYNAMIC_LINK_LIBRARIES += mort moio moutil
+DYNAMIC_LINK_LIBRARIES = mort moio moutil
 
-ifeq (@BUILD_FOR_MACOS@,yes)
-DYNAMIC_LINK_LIBRARIES += z
-endif
-ifeq (@BUILD_FOR_WINDOWS@,yes)
-DYNAMIC_LINK_LIBRARIES += mgwz
-endif
+DYNAMIC_MACOS_LINK_LIBRARIES = z
+DYNAMIC_WINDOWS_LINK_LIBRARIES = mgwz
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base
