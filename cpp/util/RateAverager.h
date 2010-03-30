@@ -117,16 +117,6 @@ public:
    virtual void addItems(uint64_t count, uint64_t start);
 
    /**
-    * Gets the amount of time (in milliseconds) that have passed while adding
-    * items to this RateAverager. This time will only change when items are
-    * added.
-    *
-    * @return the amount of time (in milliseconds) that has passed while
-    *         adding items to this RateAverager.
-    */
-   virtual uint64_t getItemTime();
-
-   /**
     * Gets the current rate in items per millisecond. The current rate is the
     * average rate in the current time window.
     *
@@ -174,6 +164,16 @@ public:
     * @return the total number of items passed through this RateAverager.
     */
    virtual uint64_t getTotalItemCount();
+
+   /**
+    * Gets the total amount of time (in milliseconds) that has passed while
+    * adding items to this RateAverager. This time will only change when items
+    * are added.
+    *
+    * @return the amount of time (in milliseconds) that has passed while
+    *         adding items to this RateAverager.
+    */
+   virtual uint64_t getTotalItemTime();
 
    /**
     * Sets the window length in milliseconds. The larger the window, the

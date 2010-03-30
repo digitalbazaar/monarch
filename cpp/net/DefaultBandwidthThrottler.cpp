@@ -17,7 +17,8 @@ using namespace monarch::util;
 
 DefaultBandwidthThrottler::DefaultBandwidthThrottler(int rateLimit) :
    mLastRequestTime(0),
-   mAvailableBytes(0)
+   mAvailableBytes(0),
+   mWaiters(0)
 {
    // set the rate limit (will also reset the window time if necessary)
    setRateLimit(rateLimit);
@@ -125,44 +126,31 @@ void DefaultBandwidthThrottler::resetWindowTime()
    // reset bytes already granted, available bytes, and request time
    mBytesGranted = 0;
    mAvailableBytes = 0;
-   mLastRequestTime = mWindowTime;
+   mLastRequestTime = 0;
 }
 
 void DefaultBandwidthThrottler::updateWindowTime()
 {
-   // get the current time
-   uint64_t now = System::getCurrentMilliseconds();
+   /* Cap the number of bytes granted per window at maximum uint32 value
+      so that there isn't any overflow. This should also be a sufficiently
+      large enough number such that rate calculations aren't affected
+      very often at all.
 
-   // Cap the number of bytes granted per window at maximum uint value
-   // so that there isn't any overflow. This should also be a sufficiently
-   // large enough number such that rate calculations aren't affected
-   // very often at all.
-   if(mBytesGranted > 0xffffffff)
+      If it has been more than 100 milliseconds since the last request for
+      bytes and there are no waiters, then reset the time window.
+
+      The window time is reset in this case because it is assumed that the
+      request is for a new transfer and we do not want to accumulate a lot of
+      available bytes while no transfers are taking place -- as that would lead
+      to granting a burst of too many bytes at once and going over the rate
+      limit. This reset will not take place if any thread is already waiting
+      for bytes to become available, so there is no risk of an infinite reset
+      loop.
+   */
+   uint64_t now = System::getCurrentMilliseconds();
+   if(mBytesGranted > (uint64_t)INT32_MAX ||
+      (mWaiters == 0 && (now - mLastRequestTime) > 100))
    {
-      resetWindowTime();
-   }
-   else if(now - mLastRequestTime > 3000)
-   {
-      // If it has been more than 3 seconds since the last request
-      // for bytes, then reset the time window.
-      //
-      // 3 seconds was chosen because the minimum rate limit is
-      // 1 byte per second. So if a request is made at that rate limit
-      // then at least one byte would be available after one second.
-      //
-      // If it subsequently actually takes one second to transfer the
-      // byte, then the next request would be somewhere shortly after
-      // 2 seconds.
-      //
-      // It is assumed that any request more than a second later
-      // involves a different transfer so we shouldn't store up a
-      // lot of available bytes (by failing to reset the window) for
-      // that transfer artificially bloating its rate.
-      //
-      // If the assumption fails, and, for instance, it takes more
-      // than one second for a single byte to be transferred or bytes
-      // are only requested every so often, then the requester will
-      // have to wait a maximum of one second to acquire another byte.
       resetWindowTime();
    }
 }
@@ -209,6 +197,9 @@ bool DefaultBandwidthThrottler::limitBandwidth()
    // update the number of available bytes
    updateAvailableBytes();
 
+   // thread will wait for available bytes now
+   mWaiters++;
+
    // while there aren't any available bytes, sleep for the available byte time
    while(rval && mAvailableBytes == 0)
    {
@@ -222,6 +213,9 @@ bool DefaultBandwidthThrottler::limitBandwidth()
       // update the number of available bytes
       updateAvailableBytes();
    }
+
+   // thread finished waiting
+   mWaiters--;
 
    return rval;
 }
