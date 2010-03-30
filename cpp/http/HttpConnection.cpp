@@ -54,6 +54,8 @@ bool HttpConnection::receiveHeader(HttpHeader* header)
    string headerStr;
    string line;
    ConnectionInputStream* is = getInputStream();
+   // FIXME: read a few bytes first to check for valid HTTP data to prevent
+   // DOS attacks? add maximum line cap param to readCrlf() on input stream?
    int read;
    while((read = is->readCrlf(line)) > 0 && line.length() > 0)
    {
