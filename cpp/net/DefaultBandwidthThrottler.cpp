@@ -136,29 +136,20 @@ void DefaultBandwidthThrottler::updateWindowTime()
       large enough number such that rate calculations aren't affected
       very often at all.
 
-      If it has been more than 1 second since the last request for bytes,
-      then reset the time window.
-
-      1 second was chosen because the minimum rate limit is 1 byte per second.
-      A thread will only wait up to a maximum of 1 second for a byte to become
-      available, at which point that byte will be granted. If it has been more
-      than a second since the last request for a byte and threads are waiting
-      for a byte, then it is safe to reset the window time.
+      If it has been more than 100 milliseconds since the last request for
+      bytes and there are no waiters, then reset the time window.
 
       The window time is reset in this case because it is assumed that the
       request is for a new transfer and we do not want to accumulate a lot of
       available bytes while no transfers are taking place -- as that would lead
       to granting a burst of too many bytes at once and going over the rate
-      limit.
-
-      If the assumption fails, and, for instance, it takes more than one
-      second for a single byte to be transferred or bytes are only requested
-      every so often, then the requester will have to wait a maximum of one
-      second to acquire another byte.
+      limit. This reset will not take place if any thread is already waiting
+      for bytes to become available, so there is no risk of an infinite reset
+      loop.
    */
    uint64_t now = System::getCurrentMilliseconds();
    if(mBytesGranted > (uint64_t)INT32_MAX ||
-      (mWaiters == 0 && (now - mLastRequestTime) > 1000))
+      (mWaiters == 0 && (now - mLastRequestTime) > 100))
    {
       resetWindowTime();
    }
