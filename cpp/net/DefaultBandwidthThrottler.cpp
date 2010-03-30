@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 
@@ -15,14 +15,10 @@ using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-DefaultBandwidthThrottler::DefaultBandwidthThrottler(int rateLimit)
+DefaultBandwidthThrottler::DefaultBandwidthThrottler(int rateLimit) :
+   mLastRequestTime(0),
+   mAvailableBytes(0)
 {
-   // initialize the last request time
-   mLastRequestTime = System::getCurrentMilliseconds();
-
-   // initialize the available number of bytes
-   mAvailableBytes = 0;
-
    // set the rate limit (will also reset the window time if necessary)
    setRateLimit(rateLimit);
 }
@@ -71,7 +67,7 @@ void DefaultBandwidthThrottler::addAvailableBytes(int bytes)
 {
    mLock.lock();
    {
-      // replace bytes for next call
+      // not all bytes were read/written/used, replace bytes for next call
       mBytesGranted -= bytes;
       mAvailableBytes += bytes;
    }
@@ -126,8 +122,10 @@ void DefaultBandwidthThrottler::resetWindowTime()
    // set the current window time
    mWindowTime = System::getCurrentMilliseconds();
 
-   // reset the bytes already granted in this window
+   // reset bytes already granted, available bytes, and request time
    mBytesGranted = 0;
+   mAvailableBytes = 0;
+   mLastRequestTime = mWindowTime;
 }
 
 void DefaultBandwidthThrottler::updateWindowTime()
@@ -163,7 +161,7 @@ void DefaultBandwidthThrottler::updateWindowTime()
       //
       // If the assumption fails, and, for instance, it takes more
       // than one second for a single byte to be transferred or bytes
-      // are only requested ever so often, then the requester will
+      // are only requested every so often, then the requester will
       // have to wait a maximum of one second to acquire another byte.
       resetWindowTime();
    }
@@ -216,9 +214,9 @@ bool DefaultBandwidthThrottler::limitBandwidth()
    {
       uint64_t avt = getAvailableByteTime();
 
-      // unlock to sleep (sleep a maximum of 1 second at a time)
+      // unlock to sleep
       mLock.unlock();
-      rval = Thread::sleep(avt > 1000 ? 1000 : avt);
+      rval = Thread::sleep(avt);
       mLock.lock();
 
       // update the number of available bytes

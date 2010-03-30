@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/RateAverager.h"
 
@@ -72,10 +72,8 @@ double RateAverager::getItemsPerMillisecond()
 
    mLock.lock();
    {
-      // update windows
+      // update windows and get the current window rate
       updateWindows(System::getCurrentMilliseconds());
-
-      // get the current window rate
       rval = mCurrent.getItemsPerMillisecond();
    }
    mLock.unlock();
@@ -89,10 +87,8 @@ double RateAverager::getItemsPerSecond()
 
    mLock.lock();
    {
-      // update windows
+      // update windows and get the current window rate
       updateWindows(System::getCurrentMilliseconds());
-
-      // get the current window rate
       rval = mCurrent.getItemsPerSecond();
    }
    mLock.unlock();
@@ -140,10 +136,7 @@ void RateAverager::setWindowLength(uint64_t length)
       // the window length must be at least two because two windows that
       // are 1/2 of the window length apart are always stored -- and
       // this RateAverager is only accurate to 1 whole millisecond
-      length = (2 > length) ? 2 : length;
-
-      // update window lengths
-      updateWindowLengths(length);
+      updateWindowLengths((2 > length) ? 2 : length);
    }
    mLock.unlock();
 }
@@ -157,19 +150,18 @@ uint64_t RateAverager::getEta(uint64_t count, bool current)
 {
    uint64_t rval = 0;
 
-   mLock.lock();
+   if(count > 0)
    {
-      if(count > 0)
+      mLock.lock();
       {
          // use either current or total rate
-         double rate = current ?
-            getItemsPerSecond() : getTotalItemsPerSecond();
+         double rate = current ? getItemsPerSecond() : getTotalItemsPerSecond();
 
          // divide the remaining count by the rate
          rval = (uint64_t)roundl(count / rate);
       }
+      mLock.unlock();
    }
-   mLock.unlock();
 
    return rval;
 }
@@ -183,13 +175,13 @@ void RateAverager::setWindowStartTimes(uint64_t time)
 
 void RateAverager::updateWindows(uint64_t now)
 {
-   /* Algorithm:
-      1. If now > end of next window, we need two new windows.
-      2. If now > end of current window, we need to move the windows.
-      3. If now < end of current window, we need to add time passed.
+   // update total current time
+   mTotal.setCurrentTime(now);
 
-      Note: Do not bother setting time passed on next window, only set it
-      on the current window.
+   /* Algorithm:
+      1. If now >= end of next window, we need two new windows.
+      2. If now >= end of current window, we need to move the windows.
+      3. If now < end of current window, we need to add time passed.
     */
    if(now >= mNext.getEndTime())
    {
@@ -197,25 +189,22 @@ void RateAverager::updateWindows(uint64_t now)
       mCurrent.reset();
       mNext.reset();
 
-      // always start at least 1 millisecond into the current window
+      // set start times 1 millisecond in the past because item start time
+      // must be before now (see usage of addItems())
       setWindowStartTimes(now - 1);
-      mCurrent.setTimePassed(1);
    }
    else if(now >= mCurrent.getEndTime())
    {
-      // save how far we've gone passed the end of the current window
-      // (remember: next window starts halfway into current window)
-      uint64_t hwl = getHalfWindowLength();
-      uint64_t passed = now - mCurrent.getEndTime() + hwl;
-
       // set the current window to the next window and set time passed
       mCurrent.setEqualTo(mNext);
-      mCurrent.setTimePassed(passed);
 
       // reset the next window and set its new start time
       mNext.reset();
-      mNext.setStartTime(mCurrent.getStartTime() + hwl);
+      mNext.setStartTime(mCurrent.getStartTime() + getHalfWindowLength());
    }
+
+   // update current window time
+   mCurrent.setCurrentTime(now);
 }
 
 uint64_t RateAverager::getHalfWindowLength()

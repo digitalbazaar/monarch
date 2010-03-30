@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_RateAverager_H
 #define monarch_util_RateAverager_H
@@ -88,7 +88,7 @@ public:
     *
     * @param windowLength the length of the window to use in milliseconds.
     */
-   RateAverager(uint64_t windowLength = 1000);
+   RateAverager(uint64_t windowLength = 2000);
 
    /**
     * Destructs this RateAverager.
