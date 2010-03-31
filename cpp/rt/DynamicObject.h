@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_DynamicObject_H
 #define monarch_rt_DynamicObject_H
@@ -241,7 +241,25 @@ public:
     *
     * @return the DynamicObject.
     */
+   virtual DynamicObject& operator[](const char* name) const;
+
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
+    *
+    * @param name the name of the member.
+    *
+    * @return the DynamicObject.
+    */
    virtual DynamicObject& operator[](const unsigned char* name);
+
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
+    *
+    * @param name the name of the member.
+    *
+    * @return the DynamicObject.
+    */
+   virtual DynamicObject& operator[](const unsigned char* name) const;
 
    /**
     * Gets a DynamicObject from a DynamicObjectImpl based on its index. A
@@ -253,6 +271,17 @@ public:
     * @return the DynamicObject.
     */
    virtual DynamicObject& operator[](int index);
+
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its index. A
+    * negative index will index in reverse, with -1 referring to the last
+    * element.
+    *
+    * @param index the index of the member.
+    *
+    * @return the DynamicObject.
+    */
+   virtual DynamicObject& operator[](int index) const;
 
    /**
     * Gets a reference-counted DynamicObjectIterator for iterating over
@@ -270,6 +299,15 @@ public:
     * @return a DynamicObject.
     */
    virtual DynamicObject first() const;
+
+   /**
+    * Gets a reference-counted DynamicObject for the last member or
+    * array element in this object. If this DynamicObject is not a map
+    * or array, then a reference to this object will be returned.
+    *
+    * @return a DynamicObject.
+    */
+   virtual DynamicObject last() const;
 
    /**
     * Clones this DynamicObject and returns it.

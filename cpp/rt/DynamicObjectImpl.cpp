@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 #define __STDC_FORMAT_MACROS
@@ -1006,6 +1006,19 @@ bool DynamicObjectImpl::hasMember(const char* name) const
    return rval;
 }
 
+void DynamicObjectImpl::removeMember(const char* name)
+{
+   if(mType == Map)
+   {
+      ObjectMap::iterator i = mMap->find(name);
+      if(i != mMap->end())
+      {
+         removeMember(i);
+      }
+   }
+}
+
+
 int DynamicObjectImpl::indexOf(DynamicObject& obj) const
 {
    int rval = -1;
@@ -1021,18 +1034,6 @@ int DynamicObjectImpl::indexOf(DynamicObject& obj) const
    }
 
    return rval;
-}
-
-void DynamicObjectImpl::removeMember(const char* name)
-{
-   if(mType == Map)
-   {
-      ObjectMap::iterator i = mMap->find(name);
-      if(i != mMap->end())
-      {
-         removeMember(i);
-      }
-   }
 }
 
 void DynamicObjectImpl::clear()
