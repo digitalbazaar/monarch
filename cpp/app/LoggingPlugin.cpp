@@ -70,7 +70,7 @@ bool LoggingPlugin::initMetaConfig(Config& meta)
       c["log"] = "-";
       c["append"] = true;
       c["rotationFileSize"] = UINT64_C(2000000);
-      c["maxRotatedFiles"] = (uint32_t)UINT32_C(10);
+      c["maxRotatedFiles"] = UINT32_C(10);
       c["gzip"] = true;
       c["location"] = false;
       c["color"] = false;
@@ -190,7 +190,8 @@ bool LoggingPlugin::initializeLogging()
    // get logging config
    Config cfg = getApp()->getConfig()[PLUGIN_NAME];
 
-   if(rval && cfg["enabled"]->getBoolean())
+   if(rval && getApp()->getMode() == App::BOOTSTRAP &&
+      cfg["enabled"]->getBoolean())
    {
       // setup logging
       const char* logFile = cfg["log"]->getString();
