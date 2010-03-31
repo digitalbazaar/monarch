@@ -1479,7 +1479,7 @@ bool ConfigManager::recursiveAddConfig(
          }
 
          // if the group ID already exists, ensure there are no conflicts
-         if(group && mConfigs->hasMember(groupId))
+         if(rval && group && mConfigs->hasMember(groupId))
          {
             rval = checkConflicts(
                groupId, mConfigs[groupId]["raw"], config, true);
