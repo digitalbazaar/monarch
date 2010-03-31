@@ -52,6 +52,7 @@ bool ConfigPlugin::initMetaConfig(Config& meta)
       c["configs"]->setType(Map);
       c["debug"] = false;
       c["dump"] = false;
+      c["dumpAll"] = false;
       c["dumpMeta"] = false;
       c["keywords"]->setType(Map);
    }
@@ -81,7 +82,9 @@ DynamicObject ConfigPlugin::getCommandLineSpecs()
 "      --json-option NAME JSONVALUE\n"
 "                      Set dotted config path NAME to the decoded JSONVALUE.\n"
 "      --config-debug  Debug the configuration loading process to stdout.\n"
-"      --config-dump   Dump the raw configuration storage to stdout.\n"
+"      --config-dump   Dump main configuration to stdout.\n"
+"      --config-dump-all\n"
+"                      Dump the raw configuration storage to stdout.\n"
 "      --config-dump-meta\n"
 "                      Dump the raw meta configuration storage to stdout.\n"
 "  -r, --resource-path PATH\n"
@@ -117,6 +120,10 @@ DynamicObject ConfigPlugin::getCommandLineSpecs()
    opt = spec["options"]->append();
    opt["long"] = "--config-dump";
    opt["setTrue"]["target"] = configOptions["dump"];
+
+   opt = spec["options"]->append();
+   opt["long"] = "--config-dump-all";
+   opt["setTrue"]["target"] = configOptions["dumpAll"];
 
    opt = spec["options"]->append();
    opt["long"] = "--config-dump-meta";
@@ -224,11 +231,15 @@ bool ConfigPlugin::didLoadConfigs()
 
 bool ConfigPlugin::run()
 {
-   bool rval = AppPlugin::didLoadConfigs();
+   bool rval = AppPlugin::run();
 
-   if(rval)
+   if(rval && getApp()->getMode() != App::BOOTSTRAP)
    {
       if(getApp()->getConfig()[PLUGIN_NAME]["dump"]->getBoolean())
+      {
+         JsonWriter::writeToStdOut(getApp()->getConfig());
+      }
+      if(getApp()->getConfig()[PLUGIN_NAME]["dumpAll"]->getBoolean())
       {
          JsonWriter::writeToStdOut(
             getApp()->getConfigManager()->getDebugInfo());
