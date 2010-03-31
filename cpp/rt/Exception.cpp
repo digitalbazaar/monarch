@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/Exception.h"
 
@@ -63,6 +63,11 @@ bool Exception::isType(const char* type, bool startsWith)
    }
 
    return rval;
+}
+
+bool Exception::hasType(const char* type, bool startsWith)
+{
+   return isType(type, startsWith) || hasCauseOfType(type, startsWith);
 }
 
 void Exception::setCode(int code)
@@ -132,6 +137,11 @@ ExceptionRef Exception::getCauseOfType(const char* type, bool startsWith)
    return rval;
 }
 
+bool Exception::hasCauseOfType(const char* type, bool startsWith)
+{
+   return !getCauseOfType(type, startsWith).isNull();
+}
+
 DynamicObject& Exception::getDetails()
 {
    if(mDetails->isNull())
@@ -177,6 +187,23 @@ DynamicObject Exception::getAsDynamicObject()
 {
    ExceptionRef e = Exception::get();
    return Exception::convertToDynamicObject(e);
+}
+
+ExceptionRef Exception::getExceptionOfType(
+   ExceptionRef& e, const char* type, bool startsWith)
+{
+   ExceptionRef rval(NULL);
+
+   if(e->isType(type, startsWith))
+   {
+      rval = e;
+   }
+   else
+   {
+      rval = e->getCauseOfType(type, startsWith);
+   }
+
+   return rval;
 }
 
 DynamicObject Exception::convertToDynamicObject(ExceptionRef& e)
