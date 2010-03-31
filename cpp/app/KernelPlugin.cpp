@@ -15,6 +15,7 @@
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/event/EventWaiter.h"
 #include "monarch/logging/Logging.h"
+#include "monarch/validation/Validation.h"
 
 #include "monarch/app/KernelPlugin.h"
 
@@ -30,6 +31,7 @@ using namespace monarch::logging;
 using namespace monarch::modest;
 using namespace monarch::net;
 using namespace monarch::rt;
+namespace v = monarch::validation;
 
 #define PLUGIN_NAME "monarch.app.Kernel"
 #define PLUGIN_CL_CFG_ID PLUGIN_NAME ".commandLine"
@@ -121,6 +123,40 @@ DynamicObject KernelPlugin::getCommandLineSpecs()
    DynamicObject specs = AppPlugin::getCommandLineSpecs();
    specs->append(spec);
    return specs;
+}
+
+/**
+ * Validates the wait events.
+ *
+ * @param waitEvents the wait events.
+ *
+ * @return true if successful, false if an exception occurred.
+ */
+static bool _validateWaitEvents(DynamicObject& waitEvents)
+{
+   bool rval = false;
+
+   // create validator for node configuration
+   v::ValidatorRef v = new v::All(
+      new v::Type(Array),
+      new v::Each(
+         new v::Map(
+            "id", new v::Type(String),
+            "type", new v::Type(String),
+            NULL)),
+      NULL);
+
+   rval = v->isValid(waitEvents);
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Invalid AppPlugin wait event configuration.",
+         "monarch.app.Kernel.InvalidWaitEvents");
+      e->getDetails()["waitEvents"] = waitEvents;
+      Exception::push(e);
+   }
+
+   return rval;
 }
 
 bool KernelPlugin::didParseCommandLine()
@@ -265,36 +301,35 @@ bool KernelPlugin::runApp()
             waiter.start("monarch.kernel.Kernel.shutdown");
             waiter.start("monarch.kernel.Kernel.restart");
 
-            // collect event counts and start waiting for them
-            // make a map of event ids to a counter
+            // make a map of event types to waiting ids
             DynamicObject waitEvents;
             waitEvents->setType(Map);
-            // get the event config
             {
-               // map of arrays of event ids
-               Config cfgWaitEvents =
-                  getApp()->getConfig()[PLUGIN_NAME]["waitEvents"];
-               DynamicObjectIterator i = cfgWaitEvents.getIterator();
-               while(i->hasNext())
+               // array of events and counts
+               DynamicObject appWaitEvents = app->getWaitEvents();
+               rval = _validateWaitEvents(appWaitEvents);
+               JsonWriter::writeToStdOut(appWaitEvents);
+               DynamicObjectIterator i = appWaitEvents.getIterator();
+               while(rval && i->hasNext())
                {
-                  DynamicObjectIterator ii = i->next().getIterator();
-                  while(ii->hasNext())
+                  DynamicObject next = i->next();
+                  const char* id = next["id"]->getString();
+                  const char* type = next["type"]->getString();
+                  if(!waitEvents->hasMember(type))
                   {
-                     const char* type = i->next()->getString();
-                     uint32_t count = 1;
-                     if(waitEvents->hasMember(type))
-                     {
-                        count += waitEvents[type]->getUInt32();
-                     }
-                     waitEvents[type] = count;
-                     // first time seeing event, start waiting for it
-                     if(count == 1)
-                     {
-                        waiter.start(type);
-                     }
+                     DynamicObject newInfo;
+                     newInfo["ids"]->setType(Array);
+                     waitEvents[type] = newInfo;
                   }
+                  DynamicObject newId;
+                  newId = id;
+                  waitEvents[type]["ids"]->append(newId);
+                  // start waiting for event
+                  waiter.start(type);
                }
             }
+            JsonWriter::writeToStdOut(waitEvents);
+
 
             int status;
             if(rval)
@@ -308,8 +343,10 @@ bool KernelPlugin::runApp()
             // checking for exception in case of success with an exit exception
             if(rval && !Exception::isSet())
             {
+               JsonWriter::writeToStdOut(waitEvents);
                while(mState == Running && waitEvents->length() != 0)
                {
+                  JsonWriter::writeToStdOut(waitEvents);
                   waiter.waitForEvent();
                   Event e = waiter.popEvent();
                   const char* type = e["type"]->getString();
@@ -327,16 +364,7 @@ bool KernelPlugin::runApp()
                   {
                      if(waitEvents->hasMember(type))
                      {
-                        uint32_t count = waitEvents[type]->getUInt32();
-                        count--;
-                        if(count == 0)
-                        {
-                           waitEvents->removeMember(type);
-                        }
-                        else
-                        {
-                           waitEvents[type] = count;
-                        }
+                        waitEvents->removeMember(type);
                      }
                   }
                }

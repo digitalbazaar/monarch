@@ -38,6 +38,13 @@ bool AppPlugin::didAddToApp(App* app)
    return true;
 }
 
+DynamicObject AppPlugin::getWaitEvents()
+{
+   DynamicObject rval;
+   rval->setType(Array);
+   return rval;
+}
+
 bool AppPlugin::initConfigManager()
 {
    return true;

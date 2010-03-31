@@ -75,6 +75,21 @@ public:
    virtual bool didAddToApp(App* app);
 
    /**
+    * Get the wait events for this plugin.
+    *
+    * The return value from plugins should be an array of objects of the form:
+    * {
+    *    "id": "{waiterId(string)}",
+    *    "type": "{waitEventType(string)}",
+    * }
+    * May return an empty. Subclasses should normally call the superclass
+    * method and add events to the returned array.
+    *
+    * @return the plugin wait events.
+    */
+   virtual monarch::rt::DynamicObject getWaitEvents();
+
+   /**
     * Initialize the app config manager. Can be used by plugins to replace or
     * configure the app's config manager.
     *

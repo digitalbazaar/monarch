@@ -39,6 +39,12 @@ bool DummyAppPlugin::didAddToApp(App* app)
    return rval;
 }
 
+DynamicObject DummyAppPlugin::getWaitEvents()
+{
+   DynamicObject rval = AppPlugin::getWaitEvents();
+   return rval;
+}
+
 bool DummyAppPlugin::initConfigManager()
 {
    bool rval = AppPlugin::initConfigManager();

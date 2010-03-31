@@ -52,6 +52,11 @@ public:
    /**
     * {@inheritDoc}
     */
+   virtual monarch::rt::DynamicObject getWaitEvents();
+
+   /**
+    * {@inheritDoc}
+    */
    virtual bool initConfigManager();
 
    /**

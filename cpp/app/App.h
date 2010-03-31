@@ -172,6 +172,14 @@ public:
    virtual bool addPlugin(AppPluginRef plugin);
 
    /**
+    * Get all the wait events from all AppPlugins. See
+    * AppPlugin::getWaitEvents() for more details.
+    *
+    * @return the combined plugin wait events.
+    */
+   virtual monarch::rt::DynamicObject getWaitEvents();
+
+   /**
     * Set the program name.
     *
     * @param name the program name.

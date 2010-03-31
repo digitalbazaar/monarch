@@ -68,6 +68,24 @@ bool MultiAppPlugin::didAddToApp(App* app)
    return rval;
 }
 
+DynamicObject MultiAppPlugin::getWaitEvents()
+{
+   DynamicObject rval = AppPlugin::getWaitEvents();
+
+   for(PluginIterator i = mPlugins.begin(); i != mPlugins.end(); i++)
+   {
+      DynamicObject waitEvents = (*i)->getWaitEvents();
+      DynamicObjectIterator wei = waitEvents.getIterator();
+      while(wei->hasNext())
+      {
+         rval->append(wei->next());
+      }
+
+      rval = (*i)->getWaitEvents();
+   }
+   return rval;
+}
+
 bool MultiAppPlugin::initConfigManager()
 {
    bool rval = AppPlugin::initConfigManager();

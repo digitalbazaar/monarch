@@ -103,6 +103,11 @@ bool App::addPlugin(AppPluginRef plugin)
    return rval;
 }
 
+DynamicObject App::getWaitEvents()
+{
+   return mPlugins->getWaitEvents();
+}
+
 Config App::makeMetaConfig(
    Config& meta, const char* id, const char* groupId, const char* section)
 {
@@ -416,9 +421,7 @@ static bool _loadOptionConfigs(App* app)
    ConfigIterator i = app->getMetaConfig()["options"].getIterator();
    while(rval && i->hasNext())
    {
-      //rval = app->getConfigManager()->addConfig(i->next());
-      Config& next = i->next();
-      rval = app->getConfigManager()->addConfig(next);
+      rval = app->getConfigManager()->addConfig(i->next());
    }
 
    return rval;
