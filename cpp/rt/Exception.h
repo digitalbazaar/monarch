@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_Exception_H
 #define monarch_rt_Exception_H
@@ -109,6 +109,22 @@ public:
    virtual bool isType(const char* type, bool startsWith = false);
 
    /**
+    * Checks this Exception and its cause stack/chain for an Exception of
+    * the given type. If one is found, true is returned. Otherwise, false
+    * is returned.
+    *
+    * @param type the type to look for.
+    * @param startsWith false to only return true if the passed type string
+    *        matches the exact type of the cause (the default behavior),
+    *        true to return true if the cause's type starts with the
+    *        given type.
+    *
+    * @return true if an Exception with the given type in this Exception,
+    *         false if not.
+    */
+   virtual bool hasType(const char* type, bool startsWith = false);
+
+   /**
     * Sets the code for this Exception.
     *
     * @param code the code for this Exception.
@@ -152,6 +168,22 @@ public:
     */
    virtual Collectable<Exception> getCauseOfType(
       const char* type, bool startsWith = false);
+
+   /**
+    * Checks the cause stack/chain in this Exception for an Exception of
+    * the given type. If one is found, true is returned. Otherwise, false
+    * is returned.
+    *
+    * @param type the type to look for.
+    * @param startsWith false to only return true if the passed type string
+    *        matches the exact type of the cause (the default behavior),
+    *        true to return true if the cause's type starts with the
+    *        given type.
+    *
+    * @return true if an Exception of the given type is found in this
+    *         Exception's stack/chain of causes, false if not.
+    */
+   virtual bool hasCauseOfType(const char* type, bool startsWith = false);
 
    /**
     * Gets the details for this Exception. If there were no details
@@ -228,6 +260,24 @@ public:
     * its count).
     */
    static void clear();
+
+   /**
+    * Checks the given Exception and its cause stack/chain for an Exception of
+    * the given type. If one is found, it is returned. Otherwise, NULL is
+    * returned.
+    *
+    * @param e the Exception to check.
+    * @param type the type to look for.
+    * @param startsWith false to only return true if the passed type string
+    *        matches the exact type of the cause (the default behavior),
+    *        true to return true if the cause's type starts with the
+    *        given type.
+    *
+    * @return the Exception with the given type, if found in the given
+    *         Exception.
+    */
+   static Collectable<Exception> getExceptionOfType(
+      Collectable<Exception>& e, const char* type, bool startsWith = false);
 
    /**
     * Gets the last exception as a DynamicObject.

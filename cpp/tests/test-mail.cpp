@@ -482,7 +482,7 @@ void runFailedMailSendTest(TestRunner& tr)
    {
       // check for network errors, we want to spool the mail
       ExceptionRef e = Exception::get();
-      if(!e->getCauseOfType("monarch.net", true).isNull())
+      if(e->hasType("monarch.net", true))
       {
          DynamicObject reason = Exception::getAsDynamicObject();
          Exception::clear();
