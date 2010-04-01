@@ -36,6 +36,8 @@ namespace v = monarch::validation;
 #define PLUGIN_NAME "monarch.app.Kernel"
 #define PLUGIN_CL_CFG_ID PLUGIN_NAME ".commandLine"
 
+#define SHUTDOWN_EVENT_TYPE "monarch.kernel.Kernel.shutdown"
+#define RESTART_EVENT_TYPE "monarch.kernel.Kernel.restart"
 
 KernelPlugin::KernelPlugin() :
    mState(Stopped),
@@ -287,8 +289,7 @@ bool KernelPlugin::runApp()
                   ModuleId id = dynamic_cast<Module*>(*i)->getId();
                   AppPluginFactory* f = dynamic_cast<AppPluginFactory*>(*i);
                   AppPluginRef p = f->createAppPlugin();
-                  MO_CAT_OBJECT_INFO(
-                     MO_KERNEL_CAT, app,
+                  MO_CAT_INFO(MO_KERNEL_CAT,
                      "Adding AppPlugin to App: %s v%s.", id.name, id.version);
                   rval = app->addPlugin(p);
                }
@@ -298,8 +299,12 @@ bool KernelPlugin::runApp()
             // used to wait for plugins to complete or for kernel control events
             EventWaiter waiter(mKernel->getEventController());
             // wait for generic kernel events
-            waiter.start("monarch.kernel.Kernel.shutdown");
-            waiter.start("monarch.kernel.Kernel.restart");
+            MO_CAT_INFO(MO_KERNEL_CAT,
+               "EventWaiter waiting: kernel on \"%s\"", SHUTDOWN_EVENT_TYPE);
+            waiter.start(SHUTDOWN_EVENT_TYPE);
+            MO_CAT_INFO(MO_KERNEL_CAT,
+               "EventWaiter waiting: kernel on \"%s\"", RESTART_EVENT_TYPE);
+            waiter.start(RESTART_EVENT_TYPE);
 
             // make a map of event types to waiting ids
             DynamicObject waitEvents;
@@ -308,7 +313,6 @@ bool KernelPlugin::runApp()
                // array of events and counts
                DynamicObject appWaitEvents = app->getWaitEvents();
                rval = _validateWaitEvents(appWaitEvents);
-               JsonWriter::writeToStdOut(appWaitEvents);
                DynamicObjectIterator i = appWaitEvents.getIterator();
                while(rval && i->hasNext())
                {
@@ -325,11 +329,11 @@ bool KernelPlugin::runApp()
                   newId = id;
                   waitEvents[type]["ids"]->append(newId);
                   // start waiting for event
+                  MO_CAT_INFO(MO_KERNEL_CAT,
+                     "EventWaiter waiting: \"%s\" on \"%s\"", id, type);
                   waiter.start(type);
                }
             }
-            JsonWriter::writeToStdOut(waitEvents);
-
 
             int status;
             if(rval)
@@ -343,20 +347,18 @@ bool KernelPlugin::runApp()
             // checking for exception in case of success with an exit exception
             if(rval && !Exception::isSet())
             {
-               JsonWriter::writeToStdOut(waitEvents);
                while(mState == Running && waitEvents->length() != 0)
                {
-                  JsonWriter::writeToStdOut(waitEvents);
                   waiter.waitForEvent();
                   Event e = waiter.popEvent();
                   const char* type = e["type"]->getString();
                   MO_CAT_INFO(MO_KERNEL_CAT,
                      "EventWaiter got event: %s", type);
-                  if(strcmp("monarch.kernel.Kernel.shutdown", type) == 0)
+                  if(strcmp(SHUTDOWN_EVENT_TYPE, type) == 0)
                   {
                      mState = Stopping;
                   }
-                  else if(strcmp("monarch.kernel.Kernel.restart", type) == 0)
+                  else if(strcmp(RESTART_EVENT_TYPE, type) == 0)
                   {
                      mState = Restarting;
                   }
