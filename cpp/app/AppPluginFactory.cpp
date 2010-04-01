@@ -11,7 +11,8 @@ using namespace monarch::modest;
 using namespace monarch::rt;
 
 AppPluginFactory::AppPluginFactory(const char* name, const char* version) :
-   MicroKernelModule(name, version)
+   MicroKernelModule(name, version),
+   mMicroKernel(NULL)
 {
    mInfo["name"] = name;
    mInfo["version"] = version;
