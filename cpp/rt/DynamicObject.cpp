@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/DynamicObject.h"
 
@@ -135,12 +135,27 @@ DynamicObject& DynamicObject::operator[](const char* name)
    return (*mReference->ptr)[name];
 }
 
+DynamicObject& DynamicObject::operator[](const char* name) const
+{
+   return (*mReference->ptr)[name];
+}
+
 DynamicObject& DynamicObject::operator[](const unsigned char* name)
 {
    return operator[]((const char*)name);
 }
 
+DynamicObject& DynamicObject::operator[](const unsigned char* name) const
+{
+   return operator[]((const char*)name);
+}
+
 DynamicObject& DynamicObject::operator[](int index)
+{
+   return (*mReference->ptr)[index];
+}
+
+DynamicObject& DynamicObject::operator[](int index) const
 {
    return (*mReference->ptr)[index];
 }
@@ -169,11 +184,74 @@ DynamicObject DynamicObject::first() const
 {
    DynamicObject rval(NULL);
 
-   // return first result of iterator
-   DynamicObjectIterator i = getIterator();
-   if(i->hasNext())
+   switch((*this)->getType())
    {
-      rval = i->next();
+      case String:
+      case Boolean:
+      case Int32:
+      case UInt32:
+      case Int64:
+      case UInt64:
+      case Double:
+         rval = *this;
+         break;
+      case Map:
+      {
+         // return first result of iterator
+         DynamicObjectIterator i = getIterator();
+         if(i->hasNext())
+         {
+            rval = i->next();
+         }
+         break;
+      }
+      case Array:
+      {
+         if((*this)->length() > 0)
+         {
+            rval = (*this)[0];
+         }
+         break;
+      }
+   }
+
+   return rval;
+}
+
+DynamicObject DynamicObject::last() const
+{
+   DynamicObject rval(NULL);
+
+   switch((*this)->getType())
+   {
+      case String:
+      case Boolean:
+      case Int32:
+      case UInt32:
+      case Int64:
+      case UInt64:
+      case Double:
+         rval = *this;
+         break;
+      case Map:
+      {
+         // return last result of iterator
+         DynamicObjectIterator i = getIterator();
+         while(i->hasNext())
+         {
+            rval = i->next();
+         }
+         break;
+      }
+      case Array:
+      {
+         int len = (*this)->length();
+         if(len > 0)
+         {
+            rval = (*this)[len - 1];
+         }
+         break;
+      }
    }
 
    return rval;
