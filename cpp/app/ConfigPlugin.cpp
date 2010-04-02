@@ -115,19 +115,23 @@ DynamicObject ConfigPlugin::getCommandLineSpecs()
 
    opt = spec["options"]->append();
    opt["long"] = "--config-debug";
-   opt["setTrue"]["target"] = configOptions["debug"];
+   opt["setTrue"]["root"] = configOptions;
+   opt["setTrue"]["path"] = "debug";
 
    opt = spec["options"]->append();
    opt["long"] = "--config-dump";
-   opt["setTrue"]["target"] = configOptions["dump"];
+   opt["setTrue"]["root"] = configOptions;
+   opt["setTrue"]["path"] = "dump";
 
    opt = spec["options"]->append();
    opt["long"] = "--config-dump-all";
-   opt["setTrue"]["target"] = configOptions["dumpAll"];
+   opt["setTrue"]["root"] = configOptions;
+   opt["setTrue"]["path"] = "dumpAll";
 
    opt = spec["options"]->append();
    opt["long"] = "--config-dump-meta";
-   opt["setTrue"]["target"] = configOptions["dumpMeta"];
+   opt["setTrue"]["root"] = configOptions;
+   opt["setTrue"]["path"] = "dumpMeta";
 
    opt = spec["options"]->append();
    opt["short"] = "-r";
