@@ -186,7 +186,8 @@ bool MonarchPlugin::didParseCommandLine()
       Config& cfg = getApp()->getMetaConfig()
          ["options"][PLUGIN_CL_CFG_ID][ConfigManager::MERGE][PLUGIN_NAME];
 
-      if(rval && cfg["printHelp"]->getBoolean())
+      if(rval && cfg->hasMember("printHelp") &&
+         cfg["printHelp"]->getBoolean())
       {
          printf("Usage: %s [options]\n", getApp()->getProgramName());
          DynamicObjectIterator si =
@@ -206,7 +207,8 @@ bool MonarchPlugin::didParseCommandLine()
          Exception::set(e);
          rval = false;
       }
-      if(rval && cfg["printVersion"]->getBoolean())
+      if(rval && cfg->hasMember("printVersion") &&
+         cfg["printVersion"]->getBoolean())
       {
          // TODO: allow other version info (modules, etc) via delegate?
          const char* version = getApp()->getVersion();

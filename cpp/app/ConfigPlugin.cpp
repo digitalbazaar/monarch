@@ -206,7 +206,7 @@ bool ConfigPlugin::willLoadConfigs()
 
       // default to warnings, can use command line option to be more verbose
       Logger::Level logLevel = Logger::Warning;
-      if(options["debug"]->getBoolean())
+      if(options->hasMember("debug") && options["debug"]->getBoolean())
       {
          logLevel = Logger::Debug;
       }

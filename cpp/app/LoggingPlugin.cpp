@@ -82,7 +82,7 @@ bool LoggingPlugin::initMetaConfig(Config& meta)
       Config c =
          App::makeMetaConfig(
             meta, PLUGIN_CL_CFG_ID, "command line", "options");
-      c[ConfigManager::MERGE]->setType(Map);
+      c[ConfigManager::MERGE][PLUGIN_NAME]->setType(Map);
    }
 
    return rval;
