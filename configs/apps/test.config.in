@@ -1,0 +1,13 @@
+{
+   "_id_": "monarch.apps.test",
+   "_version_": "Monarch Config 3.0",
+   "_group_": "main",
+   "_append_": {
+      "monarch.app.Kernel": {
+         "modulePath": [
+            "@MONARCH_DIR@/dist/modules/apps/libmotester.so",
+            "@MONARCH_DIR@/dist/modules/tests"
+         ]
+      }
+   }
+}

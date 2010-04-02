@@ -260,6 +260,7 @@ AC_CONFIG_FILES([
    Makefile
    setup/Makefile.base
    setup/docs.doxygen
+   configs/apps/test.config
    cpp/3rdparty/Makefile
    cpp/app/Makefile
    cpp/apps/monarch/Makefile
