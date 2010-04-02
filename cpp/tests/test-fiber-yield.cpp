@@ -48,7 +48,7 @@ public:
    }
 };
 
-void runFiberYieldTest(TestRunner& tr)
+static void runFiberYieldTest(TestRunner& tr)
 {
    tr.group("Fiber Yield");
 

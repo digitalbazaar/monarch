@@ -18,7 +18,7 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::upnp;
 
-void runSoapEnvelopeTest(TestRunner& tr)
+static void runSoapEnvelopeTest(TestRunner& tr)
 {
    tr.group("SoapEnvelope");
 
@@ -121,7 +121,7 @@ void runSoapEnvelopeTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runPortMappingTest(TestRunner& tr)
+static void runPortMappingTest(TestRunner& tr)
 {
    tr.group("PortMapping");
 

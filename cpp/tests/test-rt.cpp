@@ -25,7 +25,7 @@ using namespace std;
 using namespace monarch::test;
 using namespace monarch::rt;
 
-void runTimeTest(TestRunner& tr)
+static void runTimeTest(TestRunner& tr)
 {
    tr.test("Time");
 
@@ -40,7 +40,7 @@ void runTimeTest(TestRunner& tr)
    tr.pass();
 }
 
-void runCpuInfoTest(TestRunner& tr)
+static void runCpuInfoTest(TestRunner& tr)
 {
    tr.test("CPU info");
 
@@ -163,7 +163,7 @@ public:
    }
 };
 
-void runThreadTest(TestRunner& tr)
+static void runThreadTest(TestRunner& tr)
 {
    tr.test("Thread");
 
@@ -233,7 +233,7 @@ public:
    }
 };
 
-void runThreadPoolTest(TestRunner& tr)
+static void runThreadPoolTest(TestRunner& tr)
 {
    tr.test("ThreadPool");
 
@@ -265,7 +265,7 @@ void runThreadPoolTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runJobDispatcherTest(TestRunner& tr)
+static void runJobDispatcherTest(TestRunner& tr)
 {
    tr.test("JobDispatcher");
 
@@ -459,7 +459,7 @@ static void _runSharedLockDeadlockTest()
    t2.join();
 }
 
-void runSharedLockTest(TestRunner& tr)
+static void runSharedLockTest(TestRunner& tr)
 {
    tr.group("SharedLock");
 
@@ -609,7 +609,7 @@ public:
    }
 };
 
-void runInteractiveSharedLockTest(TestRunner& tr)
+static void runInteractiveSharedLockTest(TestRunner& tr)
 {
    tr.group("SharedLock");
 
@@ -680,7 +680,7 @@ void runInteractiveSharedLockTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runCollectableTest(TestRunner& tr)
+static void runCollectableTest(TestRunner& tr)
 {
    tr.group("Collectable");
 
@@ -701,7 +701,7 @@ void runCollectableTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDynamicObjectTest(TestRunner& tr)
+static void runDynamicObjectTest(TestRunner& tr)
 {
    tr.test("DynamicObject");
 
@@ -1025,7 +1025,7 @@ void runDynamicObjectTest(TestRunner& tr)
    tr.pass();
 }
 
-void runDynoClearTest(TestRunner& tr)
+static void runDynoClearTest(TestRunner& tr)
 {
    tr.test("DynamicObject clear");
 
@@ -1078,7 +1078,7 @@ void runDynoClearTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runDynoConversionTest(TestRunner& tr)
+static void runDynoConversionTest(TestRunner& tr)
 {
    tr.test("DynamicObject conversion");
 
@@ -1108,7 +1108,7 @@ void runDynoConversionTest(TestRunner& tr)
    tr.pass();
 }
 
-void runDynoRemoveTest(TestRunner& tr)
+static void runDynoRemoveTest(TestRunner& tr)
 {
    tr.group("DynamicObject remove");
 
@@ -1209,7 +1209,7 @@ void runDynoRemoveTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDynoIndexTest(TestRunner& tr)
+static void runDynoIndexTest(TestRunner& tr)
 {
    tr.group("DynamicObject index");
 
@@ -1305,7 +1305,7 @@ void runDynoIndexTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDynoTypeTest(TestRunner& tr)
+static void runDynoTypeTest(TestRunner& tr)
 {
    tr.group("DynamicObject types");
 
@@ -1347,7 +1347,7 @@ void runDynoTypeTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDynoAppendTest(TestRunner& tr)
+static void runDynoAppendTest(TestRunner& tr)
 {
    tr.group("DynamicObject append");
 
@@ -1390,7 +1390,7 @@ void runDynoAppendTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDynoMergeTest(TestRunner& tr)
+static void runDynoMergeTest(TestRunner& tr)
 {
    tr.group("DynamicObject merge");
 
@@ -1502,7 +1502,7 @@ void runDynoMergeTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDynoDiffTest(TestRunner& tr)
+static void runDynoDiffTest(TestRunner& tr)
 {
    tr.group("DynamicObject diff");
 
@@ -1887,7 +1887,7 @@ void runDynoDiffTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDynoCopyTest(TestRunner& tr)
+static void runDynoCopyTest(TestRunner& tr)
 {
    tr.group("DynamicObject copy");
 
@@ -1958,7 +1958,7 @@ void runDynoCopyTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDynoReverseTest(TestRunner& tr)
+static void runDynoReverseTest(TestRunner& tr)
 {
    tr.group("DynamicObject reverse");
 
@@ -2015,7 +2015,7 @@ void runDynoReverseTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDynoStatsTest(TestRunner& tr)
+static void runDynoStatsTest(TestRunner& tr)
 {
    tr.group("DynamicObject stats");
 
@@ -2197,7 +2197,7 @@ static void _runDynoFunction(DynamicObject& dyno)
    dyno["counter"] = dyno["counter"]->getUInt32() + 1;
 };
 
-void runRunnableDelegateTest(TestRunner& tr)
+static void runRunnableDelegateTest(TestRunner& tr)
 {
    tr.group("RunnableDelegate");
 

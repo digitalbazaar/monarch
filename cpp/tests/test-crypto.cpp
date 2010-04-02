@@ -31,7 +31,7 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-void runMessageDigestTest(TestRunner& tr)
+static void runMessageDigestTest(TestRunner& tr)
 {
    tr.group("MessageDigest");
 
@@ -107,7 +107,7 @@ void runMessageDigestTest(TestRunner& tr)
 }
 
 
-void runCipherTest(TestRunner& tr, const char* algorithm)
+static void runCipherTest(TestRunner& tr, const char* algorithm)
 {
    tr.group("Cipher");
 
@@ -258,7 +258,7 @@ void runCipherTest(TestRunner& tr, const char* algorithm)
    tr.ungroup();
 }
 
-void runAsymmetricKeyLoadingTest(TestRunner& tr)
+static void runAsymmetricKeyLoadingTest(TestRunner& tr)
 {
    tr.test("Asymmetric Key Loading");
 
@@ -323,7 +323,7 @@ void runAsymmetricKeyLoadingTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
+static void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
 {
    tr.test("DSA Asymmetric Key Creation");
 
@@ -372,7 +372,7 @@ void runDsaAsymmetricKeyCreationTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
+static void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
 {
    tr.test("RSA Asymmetric Key Creation");
 
@@ -421,7 +421,7 @@ void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runDigitalSignatureInputStreamTest(TestRunner& tr)
+static void runDigitalSignatureInputStreamTest(TestRunner& tr)
 {
    tr.test("DigitalSignatureInputStream");
 
@@ -476,7 +476,7 @@ void runDigitalSignatureInputStreamTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runDigitalSignatureOutputStreamTest(TestRunner& tr)
+static void runDigitalSignatureOutputStreamTest(TestRunner& tr)
 {
    tr.test("DigitalSignatureOutputStream");
 
@@ -530,7 +530,7 @@ void runDigitalSignatureOutputStreamTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runEnvelopeTest(TestRunner& tr)
+static void runEnvelopeTest(TestRunner& tr)
 {
    tr.test("Envelope");
 
@@ -606,7 +606,7 @@ void runEnvelopeTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runX509CertificateCreationTest(TestRunner& tr, bool print)
+static void runX509CertificateCreationTest(TestRunner& tr, bool print)
 {
    tr.test("X.509 Certificate Creation");
 
@@ -713,7 +713,7 @@ void runX509CertificateCreationTest(TestRunner& tr, bool print)
    tr.passIfNoException();
 }
 
-void runBigIntegerTest(TestRunner& tr)
+static void runBigIntegerTest(TestRunner& tr)
 {
    tr.test("BigInteger");
 
@@ -743,7 +743,7 @@ void runBigIntegerTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runBigDecimalTest(TestRunner& tr)
+static void runBigDecimalTest(TestRunner& tr)
 {
    tr.group("BigDecimal");
 

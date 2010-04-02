@@ -29,7 +29,7 @@ using namespace monarch::util;
 
 #define TABLE_TEST "test.momysqltest"
 
-void createMySqlTable(TestRunner& tr, monarch::sql::Connection* c)
+static void createMySqlTable(TestRunner& tr, monarch::sql::Connection* c)
 {
    tr.test("drop table");
    {
@@ -52,7 +52,7 @@ void createMySqlTable(TestRunner& tr, monarch::sql::Connection* c)
    tr.passIfNoException();
 }
 
-void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
+static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
 {
    tr.test("insert test 1");
    {
@@ -172,7 +172,7 @@ void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
    tr.passIfNoException();
 }
 
-void runMySqlConnectionTest(TestRunner& tr)
+static void runMySqlConnectionTest(TestRunner& tr)
 {
    tr.test("MySql Connection");
 
@@ -188,7 +188,7 @@ void runMySqlConnectionTest(TestRunner& tr)
    tr.pass();
 }
 
-void runMySqlStatementTest(TestRunner& tr)
+static void runMySqlStatementTest(TestRunner& tr)
 {
    tr.group("MySql Statement");
 
@@ -217,7 +217,7 @@ void runMySqlStatementTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runMySqlDatabaseClientTest(TestRunner& tr)
+static void runMySqlDatabaseClientTest(TestRunner& tr)
 {
    tr.group("DatabaseClient");
 
@@ -600,7 +600,7 @@ public:
    }
 };
 
-void runMySqlConnectionPoolTest(TestRunner& tr)
+static void runMySqlConnectionPoolTest(TestRunner& tr)
 {
    tr.group("MySql ConnectionPool");
 
@@ -664,7 +664,7 @@ void runMySqlConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runMySqlStatementBuilderTest(TestRunner& tr)
+static void runMySqlStatementBuilderTest(TestRunner& tr)
 {
    tr.group("MySql StatementBuilder");
 

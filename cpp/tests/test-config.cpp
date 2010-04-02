@@ -15,7 +15,7 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::test;
 
-void runConfigManagerTest(TestRunner& tr)
+static void runConfigManagerTest(TestRunner& tr)
 {
    tr.group("ConfigManager");
 

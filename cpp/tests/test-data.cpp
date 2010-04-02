@@ -55,7 +55,7 @@ using namespace monarch::http;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-void runJsonValidTest(TestRunner& tr)
+static void runJsonValidTest(TestRunner& tr)
 {
    tr.group("JSON (Valid)");
 
@@ -141,7 +141,7 @@ void runJsonValidTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runJsonInvalidTest(TestRunner& tr)
+static void runJsonInvalidTest(TestRunner& tr)
 {
    tr.group("JSON (Invalid)");
 
@@ -206,7 +206,7 @@ void runJsonInvalidTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runJsonDJDTest(TestRunner& tr)
+static void runJsonDJDTest(TestRunner& tr)
 {
    tr.group("JSON (Dyno->JSON->Dyno)");
 
@@ -282,7 +282,7 @@ void runJsonDJDTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runJsonInvalidDJTest(TestRunner& tr)
+static void runJsonInvalidDJTest(TestRunner& tr)
 {
    tr.group("JSON (Invalid Dyno->JSON)");
 
@@ -371,7 +371,7 @@ static DynamicObject makeJSONTests()
    return td;
 }
 
-void runJsonVerifyDJDTest(TestRunner& tr)
+static void runJsonVerifyDJDTest(TestRunner& tr)
 {
    tr.group("JSON (Verify Dyno->JSON->Dyno)");
 
@@ -456,7 +456,8 @@ static DynamicObject makeJSONValueTests()
 
    return td;
 }
-void runJsonValueVerifyJDTest(TestRunner& tr)
+
+static void runJsonValueVerifyJDTest(TestRunner& tr)
 {
    tr.group("JSON (verify value fragments)");
 
@@ -493,7 +494,7 @@ void runJsonValueVerifyJDTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runJsonIOStreamTest(TestRunner& tr)
+static void runJsonIOStreamTest(TestRunner& tr)
 {
    tr.group("JSON I/O");
 
@@ -521,7 +522,7 @@ void runJsonIOStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runXmlReaderTest(TestRunner& tr)
+static void runXmlReaderTest(TestRunner& tr)
 {
    tr.test("XmlReader");
 
@@ -704,7 +705,7 @@ void runXmlReaderTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runXmlWriterTest(TestRunner& tr)
+static void runXmlWriterTest(TestRunner& tr)
 {
    tr.test("XmlWriter");
 
@@ -871,7 +872,7 @@ void runXmlWriterTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runXmlReadWriteTest(TestRunner& tr)
+static void runXmlReadWriteTest(TestRunner& tr)
 {
    tr.test("XmlReadWrite");
 
@@ -1031,7 +1032,7 @@ void runXmlReadWriteTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runXmlIOStreamTest(TestRunner& tr)
+static void runXmlIOStreamTest(TestRunner& tr)
 {
    tr.group("XML I/O");
 
@@ -1059,7 +1060,7 @@ void runXmlIOStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDomReadWriteTest(TestRunner& tr)
+static void runDomReadWriteTest(TestRunner& tr)
 {
    tr.test("DomReadWrite");
 
@@ -1105,7 +1106,7 @@ void runDomReadWriteTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runDomReadWriteNamespaceTest(TestRunner& tr)
+static void runDomReadWriteNamespaceTest(TestRunner& tr)
 {
    tr.test("DomReadWriteNamespace");
 
@@ -1143,7 +1144,7 @@ void runDomReadWriteNamespaceTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runDomWriteNamespaceTest(TestRunner& tr)
+static void runDomWriteNamespaceTest(TestRunner& tr)
 {
    tr.test("DomWriteNamespace");
 
@@ -1221,7 +1222,7 @@ void runDomWriteNamespaceTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runDomReaderCrashTest(TestRunner& tr)
+static void runDomReaderCrashTest(TestRunner& tr)
 {
    // this test will segfault if it fails
    tr.test("DomReader Crash");
@@ -1258,7 +1259,7 @@ void runDomReaderCrashTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runSwapTest(TestRunner& tr)
+static void runSwapTest(TestRunner& tr)
 {
    tr.group("byte order swapping");
 
@@ -1294,7 +1295,7 @@ void runSwapTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runFourccTest(TestRunner& tr)
+static void runFourccTest(TestRunner& tr)
 {
    tr.group("FOURCC");
 
@@ -1355,7 +1356,7 @@ void runFourccTest(TestRunner& tr)
 }
 
 
-void runRiffTest(TestRunner& tr)
+static void runRiffTest(TestRunner& tr)
 {
    tr.group("RIFF");
 
@@ -1410,7 +1411,7 @@ void runRiffTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runAviTest(TestRunner& tr)
+static void runAviTest(TestRunner& tr)
 {
    tr.group("AVI");
 
@@ -1423,7 +1424,7 @@ void runAviTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runTemplateInputStreamTest(TestRunner& tr)
+static void runTemplateInputStreamTest(TestRunner& tr)
 {
    tr.group("TemplateInputStream");
 
@@ -2411,7 +2412,7 @@ static DynamicObject makeJsonTestDyno2()
    return d;
 }
 
-void runCharacterSetMutatorTest(TestRunner& tr)
+static void runCharacterSetMutatorTest(TestRunner& tr)
 {
    tr.group("CharacterSetMutator");
 
@@ -2454,7 +2455,7 @@ void runCharacterSetMutatorTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runJsonReaderSpeedTest(TestRunner& tr)
+static void runJsonReaderSpeedTest(TestRunner& tr)
 {
    tr.group("JsonReader speed");
 

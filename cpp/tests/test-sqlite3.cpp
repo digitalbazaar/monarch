@@ -27,7 +27,7 @@ using namespace monarch::util;
 #define TABLE_TEST_4 "test_4"
 #define TABLE_TEST_5 "test_5"
 
-void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
+static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
 {
    if(tr != NULL)
    {
@@ -115,7 +115,8 @@ void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
 #endif
 }
 
-void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
+static void executeSqlite3Statements(
+   TestRunner* tr, monarch::sql::Connection* c)
 {
    if(tr != NULL)
    {
@@ -401,7 +402,7 @@ void executeSqlite3Statements(TestRunner* tr, monarch::sql::Connection* c)
 #endif
 }
 
-void runSqlite3ConnectionTest(TestRunner& tr)
+static void runSqlite3ConnectionTest(TestRunner& tr)
 {
    tr.test("Sqlite3 Connection");
 
@@ -413,7 +414,7 @@ void runSqlite3ConnectionTest(TestRunner& tr)
    tr.pass();
 }
 
-void runSqlite3PrepareManyTest(TestRunner& tr)
+static void runSqlite3PrepareManyTest(TestRunner& tr)
 {
    // testing create and cleanup of many statements
    // originially used to help find a memory corruption bug
@@ -433,7 +434,7 @@ void runSqlite3PrepareManyTest(TestRunner& tr)
    tr.pass();
 }
 
-void runSqlite3StatementTest(TestRunner& tr)
+static void runSqlite3StatementTest(TestRunner& tr)
 {
    tr.group("Sqlite3 Statement");
 
@@ -458,7 +459,7 @@ void runSqlite3StatementTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runSqlite3TableTest(TestRunner& tr)
+static void runSqlite3TableTest(TestRunner& tr)
 {
    tr.group("Sqlite3 Table");
 
@@ -513,7 +514,7 @@ void runSqlite3TableTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runSqlite3TableMigrationTest(TestRunner& tr)
+static void runSqlite3TableMigrationTest(TestRunner& tr)
 {
    tr.group("Sqlite3 Table Migration (1)");
    {
@@ -828,7 +829,7 @@ public:
    }
 };
 
-void runSqlite3ThreadTest(TestRunner& tr)
+static void runSqlite3ThreadTest(TestRunner& tr)
 {
    tr.group("Sqlite3 multithread");
 
@@ -858,7 +859,7 @@ void runSqlite3ThreadTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runSqlite3ReuseTest(TestRunner& tr)
+static void runSqlite3ReuseTest(TestRunner& tr)
 {
    tr.group("Reuse");
 
@@ -962,7 +963,7 @@ void runSqlite3ReuseTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runSqlite3DatabaseClientTest(TestRunner& tr)
+static void runSqlite3DatabaseClientTest(TestRunner& tr)
 {
    tr.group("DatabaseClient");
 
@@ -1284,7 +1285,7 @@ void runSqlite3DatabaseClientTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runSqlite3RollbackTest(TestRunner& tr)
+static void runSqlite3RollbackTest(TestRunner& tr)
 {
    tr.group("rollback");
 
@@ -1425,7 +1426,7 @@ public:
    }
 };
 
-void runSqlite3ConnectionPoolTest(TestRunner& tr)
+static void runSqlite3ConnectionPoolTest(TestRunner& tr)
 {
    tr.group("Sqlite3 ConnectionPool");
 
@@ -1485,7 +1486,7 @@ void runSqlite3ConnectionPoolTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runSqlite3StatementBuilderTest(TestRunner& tr)
+static void runSqlite3StatementBuilderTest(TestRunner& tr)
 {
    tr.group("Sqlite3 StatementBuilder");
 

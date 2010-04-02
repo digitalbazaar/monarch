@@ -126,7 +126,7 @@ public:
    }
 };
 
-void runModestTest(TestRunner& tr)
+static void runModestTest(TestRunner& tr)
 {
    tr.test("Modest Engine");
 

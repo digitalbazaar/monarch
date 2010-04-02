@@ -15,7 +15,7 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-void runModExpTest(TestRunner& tr)
+static void runModExpTest(TestRunner& tr)
 {
    tr.test("modexp");
 

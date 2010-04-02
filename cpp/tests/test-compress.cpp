@@ -28,7 +28,7 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-void runDeflateTest(TestRunner& tr)
+static void runDeflateTest(TestRunner& tr)
 {
    tr.group("Deflate");
 
@@ -152,7 +152,7 @@ void runDeflateTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runGzipTest(TestRunner& tr)
+static void runGzipTest(TestRunner& tr)
 {
    tr.group("Gzip");
 
@@ -316,7 +316,7 @@ void runGzipTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runZipTest(TestRunner& tr)
+static void runZipTest(TestRunner& tr)
 {
    tr.group("Zip");
 

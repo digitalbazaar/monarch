@@ -24,7 +24,7 @@ using namespace monarch::rt;
 #define TMPDIR "/tmp"
 #endif
 
-void runLoggingTest(TestRunner& tr)
+static void runLoggingTest(TestRunner& tr)
 {
    int obj;
    tr.group("Logging");
@@ -271,7 +271,7 @@ static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
    Logger::removeLogger(&flog);
 }
 
-void runLogRotationTest(TestRunner& tr)
+static void runLogRotationTest(TestRunner& tr)
 {
    tr.group("Log Rotation");
 
@@ -344,7 +344,7 @@ static void runColorLoggingTestAll(TestRunner& tr)
    MO_CAT_DEBUG(MO_UTIL_CAT, "[cat:MO_UTIL_CAT]");
 }
 
-void runColorLoggingTest(TestRunner& tr)
+static void runColorLoggingTest(TestRunner& tr)
 {
    tr.group("color");
 
@@ -421,7 +421,7 @@ static const struct l2s_s l2s[] = {
    {NULL, Logger::None}
 };
 
-void runLevelTest(TestRunner& tr)
+static void runLevelTest(TestRunner& tr)
 {
    tr.group("Levels");
 

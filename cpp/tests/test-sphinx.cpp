@@ -16,7 +16,7 @@ using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::test;
 
-void runSphinxClientTest(TestRunner &tr)
+static void runSphinxClientTest(TestRunner &tr)
 {
    tr.group("SphinxClient");
 

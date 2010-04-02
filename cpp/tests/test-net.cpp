@@ -36,7 +36,7 @@ using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-void runAddressResolveTest(TestRunner& tr)
+static void runAddressResolveTest(TestRunner& tr)
 {
    tr.test("Address Resolution");
 
@@ -116,7 +116,7 @@ void runAddressResolveTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runSocketTest(TestRunner& tr)
+static void runSocketTest(TestRunner& tr)
 {
    tr.test("Socket");
 
@@ -193,7 +193,7 @@ void runSocketTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runSslSocketTest(TestRunner& tr)
+static void runSslSocketTest(TestRunner& tr)
 {
    tr.test("SSL Socket");
 
@@ -260,7 +260,7 @@ void runSslSocketTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runServerSocketTest(TestRunner& tr, bool passIfException = false)
+static void runServerSocketTest(TestRunner& tr, bool passIfException = false)
 {
    tr.test("Server Socket");
 
@@ -326,7 +326,7 @@ void runServerSocketTest(TestRunner& tr, bool passIfException = false)
    }
 }
 
-void runSslServerSocketTest(TestRunner& tr)
+static void runSslServerSocketTest(TestRunner& tr)
 {
    tr.test("SSL Server Socket");
 
@@ -413,7 +413,7 @@ void runSslServerSocketTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runTcpClientServerTest(TestRunner& tr)
+static void runTcpClientServerTest(TestRunner& tr)
 {
    tr.test("TCP Client/Server");
 
@@ -493,7 +493,7 @@ void runTcpClientServerTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runUdpClientServerTest(TestRunner& tr)
+static void runUdpClientServerTest(TestRunner& tr)
 {
    tr.test("UDP Client/Server");
    {
@@ -571,7 +571,7 @@ void runUdpClientServerTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runDatagramTest(TestRunner& tr)
+static void runDatagramTest(TestRunner& tr)
 {
    tr.group("Datagram");
 
@@ -771,7 +771,7 @@ void runDatagramTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runUrlEncodeTest(TestRunner& tr)
+static void runUrlEncodeTest(TestRunner& tr)
 {
    tr.test("Url Encode/Decode");
 
@@ -785,7 +785,12 @@ void runUrlEncodeTest(TestRunner& tr)
    tr.pass();
 }
 
-void dumpUrl(Url url)
+static void dumpUrl(Url url)
+#ifdef __GNUC__
+      __attribute__ ((unused))
+#endif
+      ;
+static void dumpUrl(Url url)
 {
    if(Exception::isSet())
    {
@@ -809,7 +814,7 @@ void dumpUrl(Url url)
    }
 }
 
-void runUrlTest(TestRunner& tr)
+static void runUrlTest(TestRunner& tr)
 {
    tr.test("Url");
 
@@ -1114,7 +1119,7 @@ public:
    }
 };
 
-void runInterruptServerSocketTest(TestRunner& tr)
+static void runInterruptServerSocketTest(TestRunner& tr)
 {
    tr.test("Thread Interrupt");
 
@@ -1211,7 +1216,7 @@ class TestConnectionServicer3 : public ConnectionServicer
    }
 };
 
-void runServerDynamicServiceTest(TestRunner& tr)
+static void runServerDynamicServiceTest(TestRunner& tr)
 {
    tr.test("Server dynamic service");
    {
@@ -1346,7 +1351,7 @@ public:
    }
 };
 
-void runServerSslConnectionTest(TestRunner& tr)
+static void runServerSslConnectionTest(TestRunner& tr)
 {
    tr.test("Server SSL Connection");
 
@@ -1444,7 +1449,7 @@ class TestDatagramServicer : public DatagramServicer
    }
 };
 
-void runServerDatagramTest(TestRunner& tr)
+static void runServerDatagramTest(TestRunner& tr)
 {
    tr.test("Server Datagram");
 

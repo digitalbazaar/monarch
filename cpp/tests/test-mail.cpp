@@ -20,7 +20,7 @@ using namespace monarch::util;
 
 #define VALID_SMTP_SERVER "smtp://mail.digitalbazaar.com:25"
 
-void runSmtpClientTest(TestRunner& tr)
+static void runSmtpClientTest(TestRunner& tr)
 {
    tr.test("SmtpClient");
 
@@ -45,7 +45,7 @@ void runSmtpClientTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runMimeTest(TestRunner& tr)
+static void runMimeTest(TestRunner& tr)
 {
    tr.group("Mime");
 
@@ -173,7 +173,7 @@ void runMimeTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runMailTemplateParser(TestRunner& tr)
+static void runMailTemplateParser(TestRunner& tr)
 {
    tr.test("MailTemplateParser");
 
@@ -323,7 +323,7 @@ static void _runMailboxTest(
    tr.passIfNoException();
 }
 
-void runMailboxTest(TestRunner& tr)
+static void runMailboxTest(TestRunner& tr)
 {
    tr.group("Mailbox");
 
@@ -349,7 +349,7 @@ void runMailboxTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void mailSpoolTest(TestRunner& tr)
+static void mailSpoolTest(TestRunner& tr)
 {
    tr.test("MailSpool");
 
@@ -451,7 +451,7 @@ void mailSpoolTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runFailedMailSendTest(TestRunner& tr)
+static void runFailedMailSendTest(TestRunner& tr)
 {
    tr.test("FailedMailSend");
 

@@ -28,7 +28,7 @@ using namespace monarch::rt;
 using namespace monarch::util;
 using namespace monarch::util::regex;
 
-void runBase64Test(TestRunner& tr)
+static void runBase64Test(TestRunner& tr)
 {
    const char* expected = "YmNkZQ==";
 
@@ -74,7 +74,7 @@ void runBase64Test(TestRunner& tr)
    tr.pass();
 }
 
-void runCrcTest(TestRunner& tr)
+static void runCrcTest(TestRunner& tr)
 {
    tr.group("CRC");
 
@@ -104,7 +104,7 @@ void runCrcTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runConvertTest(TestRunner& tr)
+static void runConvertTest(TestRunner& tr)
 {
    tr.test("Convert");
 
@@ -220,7 +220,7 @@ void runConvertTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runRegexTest(TestRunner& tr)
+static void runRegexTest(TestRunner& tr)
 {
    tr.group("Regex");
 
@@ -313,7 +313,7 @@ void runRegexTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runStringToolsTest(TestRunner& tr)
+static void runStringToolsTest(TestRunner& tr)
 {
    tr.group("StringTools");
 
@@ -505,7 +505,7 @@ void runStringToolsTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runDateTest(TestRunner& tr)
+static void runDateTest(TestRunner& tr)
 {
    tr.group("Date");
 
@@ -565,7 +565,7 @@ void runDateTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runStringTokenizerTest(TestRunner& tr)
+static void runStringTokenizerTest(TestRunner& tr)
 {
    tr.group("StringTokenizer");
 
@@ -716,7 +716,7 @@ void runStringTokenizerTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runUniqueListTest(TestRunner& tr)
+static void runUniqueListTest(TestRunner& tr)
 {
    tr.test("UniqueList");
 
@@ -768,7 +768,7 @@ void runUniqueListTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runPathFormatterTest(TestRunner& tr)
+static void runPathFormatterTest(TestRunner& tr)
 {
    tr.test("PathFormatter");
    {
@@ -784,7 +784,7 @@ void runPathFormatterTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runRateAveragerTest(TestRunner& tr)
+static void runRateAveragerTest(TestRunner& tr)
 {
    tr.test("RateAverager 10 items/sec");
    {
@@ -816,7 +816,7 @@ void runRateAveragerTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runAnsiEscapeCodeTest(TestRunner& tr)
+static void runAnsiEscapeCodeTest(TestRunner& tr)
 {
    tr.group("ANSI Escape Codes");
 
@@ -914,7 +914,7 @@ void runAnsiEscapeCodeTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runRandomTest(TestRunner& tr)
+static void runRandomTest(TestRunner& tr)
 {
    tr.test("Random");
    {

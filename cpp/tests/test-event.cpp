@@ -91,7 +91,7 @@ public:
    }
 };
 
-void runEventTest(TestRunner& tr)
+static void runEventTest(TestRunner& tr)
 {
    tr.test("Event");
 
@@ -132,7 +132,7 @@ void runEventTest(TestRunner& tr)
    tr.pass();
 }
 
-void runObserverDelegateTest(TestRunner& tr)
+static void runObserverDelegateTest(TestRunner& tr)
 {
    tr.test("ObserverDelegate");
 
@@ -201,7 +201,7 @@ public:
    }
 };
 
-void runObserverDelegateDynoTest(TestRunner& tr)
+static void runObserverDelegateDynoTest(TestRunner& tr)
 {
    tr.test("ObserverDelegate Dyno");
 
@@ -240,7 +240,7 @@ void runObserverDelegateDynoTest(TestRunner& tr)
    tr.pass();
 }
 
-void runEventControllerTest(TestRunner& tr)
+static void runEventControllerTest(TestRunner& tr)
 {
    tr.test("EventController");
 
@@ -340,7 +340,7 @@ public:
    }
 };
 
-void runEventWaiterTest(TestRunner& tr)
+static void runEventWaiterTest(TestRunner& tr)
 {
    tr.group("EventWaiter");
 
@@ -408,7 +408,7 @@ void runEventWaiterTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runEventFilterTest(TestRunner& tr)
+static void runEventFilterTest(TestRunner& tr)
 {
    tr.group("EventFilter");
 
@@ -515,7 +515,7 @@ void runEventFilterTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runEventDaemonTest(TestRunner& tr)
+static void runEventDaemonTest(TestRunner& tr)
 {
    tr.group("EventDaemon");
 
@@ -609,7 +609,7 @@ void runEventDaemonTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runEventDaemonSharedEventTest(TestRunner& tr)
+static void runEventDaemonSharedEventTest(TestRunner& tr)
 {
    tr.group("EventDaemon");
 
@@ -690,7 +690,7 @@ void runEventDaemonSharedEventTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runInteractiveEventDaemonTest(TestRunner& tr)
+static void runInteractiveEventDaemonTest(TestRunner& tr)
 {
    tr.group("EventDaemon");
 
@@ -786,7 +786,7 @@ public:
    }
 };
 
-void runObserverSelfUnregister(TestRunner& tr)
+static void runObserverSelfUnregister(TestRunner& tr)
 {
    tr.test("Observer self-unregister");
    {

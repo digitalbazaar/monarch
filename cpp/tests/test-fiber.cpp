@@ -172,7 +172,7 @@ public:
    }
 };
 
-void runFiberTest(TestRunner& tr)
+static void runFiberTest(TestRunner& tr)
 {
    tr.group("Fibers");
 
@@ -316,7 +316,7 @@ public:
    }
 };
 
-void runFiberSpeedTest(TestRunner& tr)
+static void runFiberSpeedTest(TestRunner& tr)
 {
    tr.group("Fiber speed");
 
@@ -391,7 +391,7 @@ void runFiberSpeedTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runFiberSpeedTest2(TestRunner& tr)
+static void runFiberSpeedTest2(TestRunner& tr)
 {
    tr.group("Fiber speed 2");
 
@@ -472,7 +472,7 @@ public:
    }
 };
 
-void runConcurrentSigningTest(TestRunner& tr)
+static void runConcurrentSigningTest(TestRunner& tr)
 {
    tr.group("DigitalSignature fiber concurrency");
 
@@ -649,7 +649,7 @@ static bool header = true;
  * @param dyno id of dyno to use.  1=complex 2=simple
  * @param csv output in CSV format with '#' comments and spaces around data
  */
-void runJsonTest(
+static void runJsonTest(
    TestRunner& tr,
    const char* mode, int threads, int ops, int oploops, int dyno, bool csv)
 {

@@ -39,7 +39,7 @@ using namespace monarch::http;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-void runHttpHeaderTest(TestRunner& tr)
+static void runHttpHeaderTest(TestRunner& tr)
 {
    tr.group("HttpHeader");
 
@@ -178,7 +178,7 @@ void runHttpHeaderTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runHttpNormalizePath(TestRunner& tr)
+static void runHttpNormalizePath(TestRunner& tr)
 {
    tr.test("Http normalize path");
 
@@ -235,7 +235,7 @@ void runHttpNormalizePath(TestRunner& tr)
    tr.pass();
 }
 
-void runCookieTest(TestRunner& tr)
+static void runCookieTest(TestRunner& tr)
 {
    tr.group("Http Cookie");
 
@@ -460,7 +460,7 @@ public:
    }
 };
 
-void runHttpServerTest(TestRunner& tr)
+static void runHttpServerTest(TestRunner& tr)
 {
    tr.test("Http Server");
 
@@ -520,7 +520,7 @@ void runHttpServerTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runHttpClientGetTest(TestRunner& tr)
+static void runHttpClientGetTest(TestRunner& tr)
 {
    tr.test("Http Client GET");
 
@@ -569,7 +569,7 @@ void runHttpClientGetTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runHttpClientPostTest(TestRunner& tr)
+static void runHttpClientPostTest(TestRunner& tr)
 {
    tr.test("Http Client POST");
 
@@ -683,7 +683,7 @@ public:
    }
 };
 
-void runPingTest(TestRunner& tr)
+static void runPingTest(TestRunner& tr)
 {
    tr.test("Ping");
 

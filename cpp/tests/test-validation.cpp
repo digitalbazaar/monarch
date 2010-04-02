@@ -17,7 +17,7 @@ namespace v = monarch::validation;
 // Use to dump out expected exceptions
 #define _dump false
 
-void runValidatorTest(TestRunner& tr)
+static void runValidatorTest(TestRunner& tr)
 {
    tr.group("Validator");
 
@@ -999,7 +999,7 @@ void runValidatorTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runAnyExceptionsTest(TestRunner& tr)
+static void runAnyExceptionsTest(TestRunner& tr)
 {
    tr.group("Any validator exceptions");
 

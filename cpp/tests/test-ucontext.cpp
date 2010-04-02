@@ -10,7 +10,7 @@ static ucontext_t gMainContext;
 static ucontext_t gFunc1Context;
 static ucontext_t gFunc2Context;
 
-void func1(int i)
+static void func1(int i)
 {
    printf("func1 running with argument %i...\n", i);
    printf("func1 swapping in func2...\n");
@@ -27,7 +27,7 @@ void func1(int i)
    }
 }
 
-void func2(int i)
+static void func2(int i)
 {
    printf("func2 running with argument %i...\n", i);
    printf("func2 swapping in func1...\n");

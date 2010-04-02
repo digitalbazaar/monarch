@@ -135,7 +135,7 @@ struct StringEquals
    }
 };
 
-void runHashTableTests(TestRunner& tr)
+static void runHashTableTests(TestRunner& tr)
 {
    tr.group("HashTable");
 
@@ -447,7 +447,7 @@ static void _hashMashStats(
       readTime / 1000.0, sep, readOps / (double)readTime);
 };
 
-void runHashTableConcurrencyTest(
+static void runHashTableConcurrencyTest(
    TestRunner& tr, uint32_t threads, uint32_t reads, uint32_t writes)
 {
    tr.group("HashTable concurrency");
@@ -466,7 +466,7 @@ void runHashTableConcurrencyTest(
    tr.ungroup();
 }
 
-void runHashTableVsMapTest(
+static void runHashTableVsMapTest(
    TestRunner& tr,
    uint32_t threads, uint32_t loops, uint32_t slots,
    uint32_t reads, uint32_t writes, uint32_t initialSize)

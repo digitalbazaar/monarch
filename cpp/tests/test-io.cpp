@@ -39,7 +39,7 @@ using namespace monarch::util;
 #define SEP "/"
 #endif
 
-void runStringEqualityTest(TestRunner& tr)
+static void runStringEqualityTest(TestRunner& tr)
 {
    tr.test("string equality");
 
@@ -68,7 +68,7 @@ void runStringEqualityTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runStringAppendCharTest(TestRunner& tr)
+static void runStringAppendCharTest(TestRunner& tr)
 {
    tr.test("string append char");
 
@@ -158,7 +158,7 @@ void runStringAppendCharTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runStringCompareTest(TestRunner& tr)
+static void runStringCompareTest(TestRunner& tr)
 {
    tr.test("string compare");
 
@@ -185,7 +185,7 @@ void runStringCompareTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runByteBufferTest(TestRunner& tr)
+static void runByteBufferTest(TestRunner& tr)
 {
    tr.test("ByteBuffer");
 
@@ -230,7 +230,7 @@ void runByteBufferTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runByteArrayInputStreamTest(TestRunner& tr)
+static void runByteArrayInputStreamTest(TestRunner& tr)
 {
    tr.test("ByteArrayInputStream");
 
@@ -251,7 +251,7 @@ void runByteArrayInputStreamTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runByteArrayOutputStreamTest(TestRunner& tr)
+static void runByteArrayOutputStreamTest(TestRunner& tr)
 {
    tr.test("ByteArrayOutputStream");
 
@@ -304,7 +304,7 @@ void runByteArrayOutputStreamTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-void runBitStreamTest(TestRunner& tr)
+static void runBitStreamTest(TestRunner& tr)
 {
    tr.group("BitStream");
 
@@ -346,7 +346,7 @@ void runBitStreamTest(TestRunner& tr)
 
 #endif
 
-void runFileTest(TestRunner& tr)
+static void runFileTest(TestRunner& tr)
 {
    tr.group("File");
 
@@ -990,7 +990,7 @@ void runFileTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runFileInputStreamTest(TestRunner& tr)
+static void runFileInputStreamTest(TestRunner& tr)
 {
    tr.group("FileInputStream");
 
@@ -1120,7 +1120,7 @@ void runFileInputStreamTest(TestRunner& tr)
    tr.ungroup();
 }
 
-void runTruncateInputStreamTest(TestRunner& tr)
+static void runTruncateInputStreamTest(TestRunner& tr)
 {
    tr.group("TruncateInputStream");
 
@@ -1154,7 +1154,7 @@ public:
    }
 };
 
-void runIOMonitorTest(TestRunner& tr)
+static void runIOMonitorTest(TestRunner& tr)
 {
    tr.group("IOMonitor");
 

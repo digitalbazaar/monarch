@@ -66,7 +66,7 @@ static void runDynoIterTest1(
    tr.passIfNoException();
 }
 
-void runDynoIterTest(TestRunner& tr)
+static void runDynoIterTest(TestRunner& tr)
 {
    tr.group("DynamicObject iter perf");
 

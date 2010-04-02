@@ -27,7 +27,7 @@ using namespace monarch::test;
 #define TMPDIR "/tmp"
 #endif
 
-void _writeConfig(Config& config, const char* path)
+static void _writeConfig(Config& config, const char* path)
 {
    File file(path);
    FileOutputStream fos(file);
@@ -38,7 +38,7 @@ void _writeConfig(Config& config, const char* path)
    assertNoException();
 }
 
-void _readConfig(Config& config, const char* path)
+static void _readConfig(Config& config, const char* path)
 {
    File file(path);
    FileInputStream fis(file);
@@ -49,7 +49,7 @@ void _readConfig(Config& config, const char* path)
    assertNoException();
 }
 
-void _testConfigs(
+static void _testConfigs(
    ConfigManager& cm,
    Config& system,
    Config& engine, Config& ui,
@@ -416,7 +416,7 @@ void _testConfigs(
    }
 }
 
-void _testConfigs(
+static void _testConfigs(
    Config& system,
    Config& engine, Config& ui,
    Config& user1, Config& user2,
@@ -487,7 +487,7 @@ void _testConfigs(
    _testConfigs(cm, system, engine, ui, user1, user2, child2);
 }
 
-void _testConfigFiles(
+static void _testConfigFiles(
    const char* systemPath,
    const char* enginePath,
    const char* uiPath,
@@ -574,7 +574,7 @@ void _testConfigFiles(
    _testConfigs(system, engine, ui, user1, user2, child2);
 }
 
-void _initConfigs(
+static void _initConfigs(
    Config& system,
    Config& engine, Config& ui,
    Config& user1, Config& user2,
@@ -703,7 +703,7 @@ void _initConfigs(
    }
 }
 
-void testConfigFiles()
+static void testConfigFiles()
 {
    // create configs
    Config system;
@@ -744,7 +744,7 @@ void testConfigs()
    _testConfigs(system, engine, ui, user1, user2, child2);
 }
 
-void testFailures()
+static void testFailures()
 {
    // FIXME: failure tests could be more comprehensive
 
