@@ -1,10 +1,162 @@
 #!/bin/sh
-# Basic script to setup proper environment for running a Monarch app
+# Script to setup and run a Monarch based application
+# Copyright 2010 Digital Bazaar, Inc.
 
-case "`uname -s`" in
+# To extend to for other projects:
+# - create a new shell script
+# - set MONARCH to the path to the monarch binary
+# - set LIB_PATH to platform specific library path
+# - set APP_PATH to string of space separated directories
+# - set VALGRIND_SUPP if needed
+# - source this script
+
+MODE=default
+MODE_OPTIONS=
+CMD=
+CMD_ARGS=
+
+# Only set vars if not already set.
+if [ "x${MONARCH}" = x ]; then
+   MONARCH="@MONARCH_DIR@/dist/bin/monarch"
+fi
+if [ "x${LIB_PATH}" = x ]; then
+   LIB_PATH="@MONARCH_DIR@/dist/lib"
+fi
+if [ "x${APP_PATH}" = x ]; then
+   APP_PATH="@MONARCH_DIR@/configs/apps"
+fi
+if [ "x${VALGRIND_SUPP}" = x ]; then
+   VALGRIND_SUPP="@MONARCH_DIR@/monarch.supp"
+fi
+
+help() {
+    echo "Usage: $0 [MODE [[OPTIONS] --cmd]] COMMAND [ARGUMENTS]"
+    echo
+    echo "Normal mode:"
+    echo "   $0 COMMAND [ARGUMENTS]"
+    echo
+    echo "GDB mode:"
+    echo "   $0 gdb COMMAND [ARGUMENTS]"
+    echo "   $0 gdb [OPTIONS] --cmd COMMAND [ARGUMENTS]"
+    echo
+    echo "Valgrind mode:"
+    echo "   $0 valgrind COMMAND [ARGUMENTS]"
+    echo "   $0 valgrind [OPTIONS] --cmd COMMAND [ARGUMENTS]"
+    echo
+    echo "The COMMAND to run is searched in following order:"
+    echo "   \"monarch\": The plain monarch application."
+    echo "   app-name: Name of a known application."
+    echo "   config-path: Path to an application configuration."
+    echo "   app-path: Path to an application binary or script."
+}
+
+# Check for special modes and set command
+if [ $# -ge 1 ]; then
+   case "$1" in
+      gdb|valgrind)
+         MODE=$1
+         shift
+         # if "-" options are present, read until "--cmd"
+         if [ $# -ne 0 -a `echo $1 | cut -c 1` = '-' ]; then
+            while [ $# -ne 0 -a "$1" != "--cmd" ]; do
+               MODE_OPTIONS="${MODE_OPTIONS} $1"
+               shift;
+            done;
+         fi
+         CMD=$1
+         shift
+         ;;
+      help|--help|-h|-\?)
+         MODE=help
+         shift
+         ;;
+      *)
+         MODE=default
+         CMD=$1
+         shift
+         ;;
+   esac
+else
+   help
+   exit 1
+fi
+
+# Find command
+found=0
+# plain monarch app or help mode
+if [ "x${CMD}" = xmonarch -o "x${MODE}" = xhelp ]; then
+   CMD_ARGS=
+   found=1
+fi
+if [ ${found} -eq 0 ]; then
+   # known app name
+   for dir in ${APP_PATH}; do
+      cfg="${dir}/${CMD}.config"
+      if [ -e ${cfg} ]; then
+         CMD_ARGS="${CMD_ARGS} -c ${cfg}"
+         found=1
+      fi
+   done
+fi
+if [ ${found} -eq 0 ]; then
+   # app config file path
+   if [ -e "${CMD}" ]; then
+      case "${CMD}" in
+         *.config)
+            CMD_ARGS="${CMD_ARGS} -c ${CMD}"
+            found=1 ;;
+      esac
+   fi
+fi
+if [ ${found} -eq 0 ]; then
+   # binary or script path
+   if [ -x ${CMD} ]; then
+      # replace monarch command
+      MONARCH=${CMD}
+      found=1
+   fi
+fi
+
+if [ ${found} -eq 0 ]; then
+   echo "ERROR: Monarch command not found: ${CMD}"
+   exit 1
+fi
+
+# Setup appropriate environment
+PLATFORM=`uname -s`
+case "${PLATFORM}" in
    [Ll]inux)
-      LD_LIBRARY_PATH=@MONARCH_DIR@/dist/lib "$@" ;;
+      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LIB_PATH}" ;;
    [Dd]arwin)
-      DYLD_LIBRARY_PATH=@MONARCH_DIR@/dist/lib:/sw/lib "$@" ;;
-   *) echo "unknown platform"; exit 1 ;;
+      export DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH}:${LIB_PATH}:/sw/lib" ;;
+   *)
+      echo "ERROR: Unknown platform: ${PLATFORM}"
+      exit 1 ;;
+esac
+
+case "${MODE}" in
+   default)
+      ${MONARCH} ${CMD_ARGS} "$@"
+      ;;
+   gdb)
+      # Run the Monarch app in GDB. Command line options are passed to the
+      # monarch application.
+      gdb ${MODE_OPTIONS} --args ${MONARCH} ${CMD_ARGS} "$@"
+      ;;
+   valgrind)
+      valgrind \
+         --suppressions=${VALGRIND_SUPP} \
+         --show-reachable=yes \
+         --tool=memcheck \
+         --leak-check=full \
+         ${MODE_OPTIONS} \
+         ${MONARCH} ${CMD_ARGS} "$@"
+      ;;
+   help)
+      help
+      ;;
+   *)
+      help
+      exit 1
+      ;;
 esac
