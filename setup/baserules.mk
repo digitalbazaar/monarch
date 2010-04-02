@@ -109,6 +109,14 @@ ifndef IGNORE_DEPENDENCIES
 -include $(DEPENDENCIES)
 endif
 
+# Whether or not to print commands as they are being executed, helpful for
+# debugging the build system.
+ifdef PRINT_COMMANDS
+PCMD=
+else
+PCMD=@
+endif
+
 $(HEADER_FILES): 
 	$(PCMD) mkdir -p $(dir $@)
 	$(PCMD) ln -sf $(subst $(TOP_BUILD_DIR)/$(HEADER_DIST_DIR)/,$(CWD)/,$@) $@
