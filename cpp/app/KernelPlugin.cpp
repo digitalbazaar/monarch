@@ -59,10 +59,8 @@ bool KernelPlugin::initMetaConfig(Config& meta)
       Config& c =
          App::makeMetaConfig(meta, PLUGIN_NAME ".defaults", "defaults")
             [ConfigManager::MERGE][PLUGIN_NAME];
-      // modulePath is a map of arrays
-      // Keys are unique per module path source to allow for configured other
-      // lists of paths. Values are arrays of files or dirs to load.
-      c["modulePath"]->setType(Map);
+      // modulePath is an array of module paths
+      c["modulePath"]->setType(Array);
       c["env"] = true;
       c["printModuleVersions"] = false;
       c["maxThreadCount"] = UINT32_C(100);
@@ -79,8 +77,8 @@ bool KernelPlugin::initMetaConfig(Config& meta)
    {
       Config& c = App::makeMetaConfig(
          meta, PLUGIN_CL_CFG_ID, "command line", "options")
-            [ConfigManager::MERGE][PLUGIN_NAME];
-      c["modulePath"][PLUGIN_CL_CFG_ID]->setType(Array);
+            [ConfigManager::APPEND][PLUGIN_NAME];
+      c["modulePath"]->setType(Array);
    }
 
    return rval;
@@ -109,7 +107,7 @@ DynamicObject KernelPlugin::getCommandLineSpecs()
    opt = spec["options"]->append();
    opt["short"] = "-m";
    opt["long"] = "--module-path";
-   opt["append"] = configOptions["modulePath"][PLUGIN_CL_CFG_ID];
+   opt["append"] = configOptions["modulePath"];
    opt["argError"] = "No path specified.";
 
    opt = spec["options"]->append();
@@ -172,7 +170,8 @@ bool KernelPlugin::didParseCommandLine()
       Config& cfg = getApp()->getMetaConfig()
          ["options"][PLUGIN_CL_CFG_ID][ConfigManager::MERGE][PLUGIN_NAME];
 
-      if(cfg["printModuleVersions"]->getBoolean())
+      if(cfg->hasMember("printModuleVersions") &&
+         cfg["printModuleVersions"]->getBoolean())
       {
          // FIXME: print out module info
          /*
@@ -242,6 +241,7 @@ bool KernelPlugin::runApp()
          // Collect all module paths so they can be loaded in bulk.
          // This helps to avoid issues with needing to specify load order
          // explicitly.
+         /*
          FileList modulePaths;
          ConfigIterator mpMods = cfg["modulePath"].getIterator();
          while(rval && mpMods->hasNext())
@@ -253,6 +253,15 @@ bool KernelPlugin::runApp()
                FileList pathList = File::parsePath(path);
                modulePaths->concat(*pathList);
             }
+         }
+         */
+         FileList modulePaths;
+         ConfigIterator mpMods = cfg["modulePath"].getIterator();
+         while(rval && mpMods->hasNext())
+         {
+            const char* path = mpMods->next()->getString();
+            FileList pathList = File::parsePath(path);
+            modulePaths->concat(*pathList);
          }
          // load all module paths at once
          rval = mKernel->loadModules(modulePaths);
