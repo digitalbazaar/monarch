@@ -252,6 +252,29 @@ Module* MicroKernel::loadModule(const char* filename)
    return rval;
 }
 
+MicroKernelModule* MicroKernel::loadMicroKernelModule(const char* filename)
+{
+   MicroKernelModule* rval = NULL;
+
+   Module* m = loadModule(filename);
+   if(m != NULL)
+   {
+      rval = dynamic_cast<MicroKernelModule*>(m);
+      if(rval == NULL)
+      {
+         // unload non-MicroKernelModule
+         getModuleLibrary()->unloadModule(&m->getId());
+         ExceptionRef e = new Exception(
+            "Module is not a MicroKernelModule.",
+            "monarch.kernel.InvalidMicroKernelModuleFile");
+         e->getDetails()["filename"] = filename;
+         Exception::set(e);
+      }
+   }
+
+   return rval;
+}
+
 bool MicroKernel::loadModules(const char* path)
 {
    MO_CAT_INFO(MO_KERNEL_CAT, "Loading modules from %s", path);
