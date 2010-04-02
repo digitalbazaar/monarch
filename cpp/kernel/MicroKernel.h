@@ -172,6 +172,16 @@ public:
    virtual monarch::modest::Module* loadModule(const char* filename);
 
    /**
+    * Loads a MicroKernelModule from a file. If the module is not a
+    * MicroKernelModule then it will be unloaded.
+    *
+    * @param filename the filename to use to load the module.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual MicroKernelModule* loadMicroKernelModule(const char* filename);
+
+   /**
     * Loads all MicroKernelModules in the current path.
     *
     * @param path the path to use to load the modules.
