@@ -69,7 +69,7 @@ $(2)__OBJS += $$($(2)__SOURCES_OBJS) $$($(2)_OBJS)
 $(2)__DEPS += $$($(2)__OBJS)
 $(3): $$($(2)__DEPS)
 $(call makevar,$(LIB_PREFIX)$(1).$(DYNAMIC_LIB_EXT)__LIBS) = $$($(2)_LIBS)
-LIBRARIES += $(3)
+OUTPUT_LIBRARIES += $(3)
 endef
 
 # Build rules for LIBRARIES
@@ -99,7 +99,7 @@ DEPENDENCIES += $(patsubst %.cpp, %-$(PLATFORM).P, $(EXECUTABLE_SOURCES))
 ALL_HEADERS += $(HEADER_FILES)
 ALL_SOURCES += $(LIBRARY_SOURCES) $(EXECUTABLE_SOURCES)
 ALL_OBJECTS += $(LIBRARY_OBJECTS) $(EXECUTABLE_OBJECTS)
-ALL_LIBRARIES += $(LIBRARIES)
+ALL_LIBRARIES += $(OUTPUT_LIBRARIES)
 ALL_EXECUTABLES += $(EXECUTABLES)
 ALL_DIRECTORIES += $(BUILD_DIR) $(DIST_DIR) $(LIB_DIR) $(BIN_DIR)
 
@@ -123,7 +123,7 @@ clean-objects:
 	$(PCMD) rm -rf $(LIBRARY_OBJECTS) $(EXECUTABLE_OBJECTS)
 
 clean-libraries:
-	$(PCMD) rm -rf $(LIBRARIES)
+	$(PCMD) rm -rf $(OUTPUT_LIBRARIES)
 
 %-asm-$(PLATFORM).o: %.S
 	@echo "Compiling build/$(subst .P,.o,$(subst $(TOP_BUILD_DIR)/build/,,$@))..."
@@ -196,6 +196,7 @@ dump-variables:
 	@echo EXECUTABLES=$(EXECUTABLES)
 	@echo DEPENDENCIES=$(DEPENDENCIES)
 	@echo LIBRARIES=$(LIBRARIES)
+	@echo OUTPUT_LIBRARIES=$(OUTPUT_LIBRARIES)
 
 	@echo ALL_SOURCES=$(ALL_SOURCES)
 	@echo ALL_OBJECTS=$(ALL_OBJECTS)

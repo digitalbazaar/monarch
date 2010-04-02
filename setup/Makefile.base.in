@@ -37,7 +37,6 @@ endif
 CXX ?= @CXX@
 CXX_FLAGS += @CXXFLAGS@ @DEFS@ -Wall
 LD_FLAGS += @LDFLAGS@
-INCLUDES += $(INCLUDES)
 LIBS += -L$(LIB_DIR)
 AR ?= @AR@
 AS ?= @AS@
