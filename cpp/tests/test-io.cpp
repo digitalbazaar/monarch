@@ -39,6 +39,9 @@ using namespace monarch::util;
 #define SEP "/"
 #endif
 
+namespace mo_test_io
+{
+
 static void runStringEqualityTest(TestRunner& tr)
 {
    tr.test("string equality");
@@ -1195,7 +1198,6 @@ static bool run(TestRunner& tr)
       runFileTest(tr);
       runFileInputStreamTest(tr);
       runTruncateInputStreamTest(tr);
-      //runIOMonitorTest(tr);
    }
    if(tr.isTestEnabled("timing"))
    {
@@ -1203,8 +1205,14 @@ static bool run(TestRunner& tr)
       runStringAppendCharTest(tr);
       runStringCompareTest(tr);
    }
+   if(tr.isTestEnabled("io-monitor"))
+   {
+      runIOMonitorTest(tr);
+   }
 
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.io.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.io.test", "1.0", mo_test_io::run)

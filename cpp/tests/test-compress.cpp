@@ -28,6 +28,9 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
 
+namespace mo_test_compress
+{
+
 static void runDeflateTest(TestRunner& tr)
 {
    tr.group("Deflate");
@@ -549,4 +552,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.compress.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.compress.test", "1.0", mo_test_compress::run)

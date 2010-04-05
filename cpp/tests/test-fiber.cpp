@@ -28,6 +28,9 @@ using namespace monarch::rt;
 using namespace monarch::test;
 using namespace monarch::util;
 
+namespace mo_test_fiber
+{
+
 static inline void iterate()
 {
    BigDecimal bd1("80932149813491423134299827397162412482");
@@ -1028,7 +1031,6 @@ static bool run(TestRunner& tr)
    {
       runFiberTest(tr);
       runFiberSpeedTest(tr);
-      //runFiberSpeedTest2(tr);
    }
    if(tr.isTestEnabled("sign"))
    {
@@ -1038,7 +1040,13 @@ static bool run(TestRunner& tr)
    {
       runFiberCompareTest(tr);
    }
+   if(tr.isTestEnabled("fiber-speed"))
+   {
+      runFiberSpeedTest2(tr);
+   }
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.fiber.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.fiber.test", "1.0", mo_test_fiber::run)

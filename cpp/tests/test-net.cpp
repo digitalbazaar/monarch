@@ -36,6 +36,9 @@ using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 
+namespace mo_test_net
+{
+
 static void runAddressResolveTest(TestRunner& tr)
 {
    tr.test("Address Resolution");
@@ -1533,4 +1536,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.net.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.net.test", "1.0", mo_test_net::run)

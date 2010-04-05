@@ -15,6 +15,9 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::test;
 
+namespace mo_test_config
+{
+
 static void runConfigManagerTest(TestRunner& tr)
 {
    tr.group("ConfigManager");
@@ -465,4 +468,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.config.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.config.test", "1.0", mo_test_config::run)

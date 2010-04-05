@@ -18,6 +18,9 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::upnp;
 
+namespace mo_test_upnp
+{
+
 static void runSoapEnvelopeTest(TestRunner& tr)
 {
    tr.group("SoapEnvelope");
@@ -297,4 +300,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.upnp.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.upnp.test", "1.0", mo_test_upnp::run)

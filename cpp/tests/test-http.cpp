@@ -39,6 +39,9 @@ using namespace monarch::http;
 using namespace monarch::rt;
 using namespace monarch::util;
 
+namespace mo_test_http
+{
+
 static void runHttpHeaderTest(TestRunner& tr)
 {
    tr.group("HttpHeader");
@@ -794,4 +797,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.http.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.http.test", "1.0", mo_test_http::run)

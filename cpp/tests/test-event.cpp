@@ -25,6 +25,9 @@ using namespace monarch::modest;
 using namespace monarch::rt;
 using namespace monarch::util;
 
+namespace mo_test_event
+{
+
 class TestObserver : public Observer
 {
 public:
@@ -834,4 +837,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.event.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.event.test", "1.0", mo_test_event::run)

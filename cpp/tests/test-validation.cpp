@@ -17,6 +17,9 @@ namespace v = monarch::validation;
 // Use to dump out expected exceptions
 #define _dump false
 
+namespace mo_test_validation
+{
+
 static void runValidatorTest(TestRunner& tr)
 {
    tr.group("Validator");
@@ -1097,4 +1100,7 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.validation.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN(
+   "monarch.tests.validation.test", "1.0", mo_test_validation::run)

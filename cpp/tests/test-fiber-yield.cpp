@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/test/Test.h"
 #include "monarch/test/TestModule.h"
@@ -19,6 +19,9 @@ using namespace monarch::modest;
 using namespace monarch::rt;
 using namespace monarch::test;
 using namespace monarch::util;
+
+namespace mo_test_fiber_yield
+{
 
 class TestFiber : public Fiber
 {
@@ -87,4 +90,7 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.fiber-yield.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN(
+   "monarch.tests.fiber-yield.test", "1.0", mo_test_fiber_yield::run)

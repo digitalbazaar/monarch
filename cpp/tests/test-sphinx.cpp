@@ -16,6 +16,9 @@ using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::test;
 
+namespace mo_test_sphinx
+{
+
 static void runSphinxClientTest(TestRunner &tr)
 {
    tr.group("SphinxClient");
@@ -63,4 +66,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.sphinx.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.sphinx.test", "1.0", mo_test_sphinx::run)

@@ -27,6 +27,9 @@ using namespace monarch::util;
 #define TABLE_TEST_4 "test_4"
 #define TABLE_TEST_5 "test_5"
 
+namespace mo_test_sqlite3
+{
+
 static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
 {
    if(tr != NULL)
@@ -1934,4 +1937,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.sqlite3.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.sqlite3.test", "1.0", mo_test_sqlite3::run)

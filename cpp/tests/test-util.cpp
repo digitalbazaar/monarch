@@ -28,6 +28,9 @@ using namespace monarch::rt;
 using namespace monarch::util;
 using namespace monarch::util::regex;
 
+namespace mo_test_util
+{
+
 static void runBase64Test(TestRunner& tr)
 {
    const char* expected = "YmNkZQ==";
@@ -957,4 +960,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.util.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.util.test", "1.0", mo_test_util::run)

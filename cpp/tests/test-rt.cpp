@@ -25,6 +25,9 @@ using namespace std;
 using namespace monarch::test;
 using namespace monarch::rt;
 
+namespace mo_test_rt
+{
+
 static void runTimeTest(TestRunner& tr)
 {
    tr.test("Time");
@@ -2335,4 +2338,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.rt.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.rt.test", "1.0", mo_test_rt::run)

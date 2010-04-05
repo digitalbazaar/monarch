@@ -15,6 +15,9 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
 
+namespace mo_test_modexp
+{
+
 static void runModExpTest(TestRunner& tr)
 {
    tr.test("modexp");
@@ -63,4 +66,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.modex.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.modex.test", "1.0", mo_test_modexp::run)

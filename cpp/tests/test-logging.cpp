@@ -24,6 +24,9 @@ using namespace monarch::rt;
 #define TMPDIR "/tmp"
 #endif
 
+namespace mo_test_logging
+{
+
 static void runLoggingTest(TestRunner& tr)
 {
    int obj;
@@ -475,4 +478,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.logging.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.logging.test", "1.0", mo_test_logging::run)

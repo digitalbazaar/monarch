@@ -20,6 +20,9 @@ using namespace monarch::util;
 
 #define VALID_SMTP_SERVER "smtp://mail.digitalbazaar.com:25"
 
+namespace mo_test_mail
+{
+
 static void runSmtpClientTest(TestRunner& tr)
 {
    tr.test("SmtpClient");
@@ -527,4 +530,6 @@ static bool run(TestRunner& tr)
    return true;
 }
 
-MO_TEST_MODULE_FN("monarch.tests.mail.test", "1.0", run)
+} // end namespace
+
+MO_TEST_MODULE_FN("monarch.tests.mail.test", "1.0", mo_test_mail::run)
