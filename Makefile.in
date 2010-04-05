@@ -63,7 +63,9 @@ endif
 ifdef PRINT_COMMANDS
 PRINT_COMMANDS_OPTS = PRINT_COMMANDS=$(PRINT_COMMANDS)
 endif
-MAKE_JOB_OPTS ?= -j -l 5.0
+# Maximum load is the number of CPU cores + 1
+MAX_LOAD = $(shell (cat /proc/cpuinfo | grep -i ^processor && echo processor) | wc -l)
+MAKE_JOB_OPTS ?= -j -l $(MAX_LOAD).0
 
 MAKE_CMD = $(PRINT_COMMANDS_OPTS) $(MAKE) $(MAKE_JOB_OPTS) $(PRINT_DIRECTORIES_OPTS)
 MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
