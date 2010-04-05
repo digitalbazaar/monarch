@@ -4,16 +4,16 @@ include @MONARCH_DIR@/setup/Makefile.base
 
 ifeq ($(BUILD_FOR_WINDOWS),yes)
 build-libraries:
-	@mkdir -p $(MO_LIB_DIR)
-	@ln -sf $(CWD)/pthread/pthreadGCE2.dll $(MO_LIB_DIR)/pthreadGCE2.dll
-	@ln -sf $(CWD)/openssl/libeay32.dll $(MO_LIB_DIR)/libeay32.dll
-	@ln -sf $(CWD)/openssl/ssleay32.dll $(MO_LIB_DIR)/ssleay32.dll
-	@ln -sf $(CWD)/expat/libexpat.dll $(MO_LIB_DIR)/libexpat.dll
-	@ln -sf $(CWD)/iconv/libiconv2.dll $(MO_LIB_DIR)/iconv2.dll
-	@ln -sf $(CWD)/iconv/libiconv2.dll $(MO_LIB_DIR)/libiconv2.dll
-	@ln -sf $(CWD)/iconv/libcharset1.dll $(MO_LIB_DIR)/charset1.dll
-	@ln -sf $(CWD)/regex/libgnurx-0.dll $(MO_LIB_DIR)/libgnurx-0.dll
-	@ln -sf $(CWD)/sqlite3/sqlite3.dll $(MO_LIB_DIR)/sqlite3.dll
-	@ln -sf $(CWD)/zlib/mgwz.dll $(MO_LIB_DIR)/mgwz.dll
-	@zcat /usr/share/doc/mingw32-runtime/mingwm10.dll.gz > $(MO_LIB_DIR)/mingwm10.dll
+	@mkdir -p $(LIB_DIR)
+	@ln -sf $(CWD)/pthread/pthreadGCE2.dll $(LIB_DIR)/pthreadGCE2.dll
+	@ln -sf $(CWD)/openssl/libeay32.dll $(LIB_DIR)/libeay32.dll
+	@ln -sf $(CWD)/openssl/ssleay32.dll $(LIB_DIR)/ssleay32.dll
+	@ln -sf $(CWD)/expat/libexpat.dll $(LIB_DIR)/libexpat.dll
+	@ln -sf $(CWD)/iconv/libiconv2.dll $(LIB_DIR)/iconv2.dll
+	@ln -sf $(CWD)/iconv/libiconv2.dll $(LIB_DIR)/libiconv2.dll
+	@ln -sf $(CWD)/iconv/libcharset1.dll $(LIB_DIR)/charset1.dll
+	@ln -sf $(CWD)/regex/libgnurx-0.dll $(LIB_DIR)/libgnurx-0.dll
+	@ln -sf $(CWD)/sqlite3/sqlite3.dll $(LIB_DIR)/sqlite3.dll
+	@ln -sf $(CWD)/zlib/mgwz.dll $(LIB_DIR)/mgwz.dll
+	@zcat /usr/share/doc/mingw32-runtime/mingwm10.dll.gz > $(LIB_DIR)/mingwm10.dll
 endif
