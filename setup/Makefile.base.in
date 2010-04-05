@@ -34,12 +34,12 @@ endif
 
 # Variables for all platforms
 
-CXX ?= @CXX@
+CXX = @CXX@
 CXX_FLAGS += @CXXFLAGS@ @DEFS@ -Wall
 LD_FLAGS += @LDFLAGS@
 LIBS += -L$(LIB_DIR)
-AR ?= @AR@
-AS ?= @AS@
+AR = @AR@
+AS = @AS@
 
 # Platform-specific variables
 
@@ -61,8 +61,6 @@ LIB_PREFIX=lib
 DYNAMIC_LIB_EXT=dylib
 STATIC_LIB_EXT=a
 EXECUTABLE_EXT=
-# mac will pre-define CXX to g++ (wrong version), so force configured value here
-CXX = @CXX@
 # TODO: support build target config and use -march=i686/powerpc/etc
 CXX_FLAGS += -fPIC -DMACOS $(MODULE_CXX_FLAGS) $(MODULE_MACOS_CXX_FLAGS)
 LD_FLAGS += -Wl,-flat_namespace
