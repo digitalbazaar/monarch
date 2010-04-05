@@ -74,6 +74,10 @@ if test "$BUILD_FOR_LINUX" = "yes" ; then
    AC_CHECK_PROG(AR, ar, ar, not found)
    AC_CHECK_PROG(AS, as, as, not found)
    PLATFORM=linux
+   LIB_PREFIX=lib
+   DYNAMIC_LIB_EXT=so
+   STATIC_LIB_EXT=a
+   EXECUTABLE_EXT=
 fi
 
 # Conditional setup for Windows build
@@ -90,6 +94,10 @@ if test "$BUILD_FOR_WINDOWS" = "yes" ; then
    fi
    LDFLAGS="$LDFLAGS -Wl,--enable-auto-import"
    PLATFORM=windows
+   LIB_PREFIX=
+   DYNAMIC_LIB_EXT=dll
+   STATIC_LIB_EXT=a
+   EXECUTABLE_EXT=.exe
 fi
 
 # Conditional setup for MacOS build
@@ -99,6 +107,10 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
    AC_CHECK_PROG(AS, as, as, not found)
    LDFLAGS="$LDFLAGS -L/sw/lib"
    PLATFORM=macos
+   LIB_PREFIX=lib
+   DYNAMIC_LIB_EXT=dylib
+   STATIC_LIB_EXT=a
+   EXECUTABLE_EXT=
 fi
 
 AC_ARG_ENABLE([sphinx],
@@ -252,6 +264,12 @@ AC_SUBST(FULL_VERSION)
 AC_SUBST(BUILD_FOR_LINUX)
 AC_SUBST(BUILD_FOR_WINDOWS)
 AC_SUBST(BUILD_FOR_MACOS)
+
+# Platform variables
+AC_SUBST(LIB_PREFIX)
+AC_SUBST(DYNAMIC_LIB_EXT)
+AC_SUBST(STATIC_LIB_EXT)
+AC_SUBST(EXECUTABLE_EXT)
 
 AC_SUBST(PYTHON)
 
