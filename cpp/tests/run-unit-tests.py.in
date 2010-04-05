@@ -17,7 +17,7 @@ gWarnings = 0
 # The total number of failed tests
 gFailed = 0
 
-def runTest(test):
+def runTest(test, binary = False):
    """Runs a specific unit test ensuring the output of the unit test is
    dumped to the console in such a way as to make it easy to determine
    if all of the tests succeeded."""
@@ -33,9 +33,14 @@ def runTest(test):
                "HOME" : "@MONARCH_DIR@/dist/bin/" }
 
    try:
-      sp = subprocess.Popen([ \
-          '@MONARCH_DIR@/dist/bin/' + test,],
-          env = testEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+      if(binary):
+          sp = subprocess.Popen([ \
+              '@MONARCH_DIR@/dist/bin/' + test,],
+              env = testEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+      else:
+          sp = subprocess.Popen([ \
+              '@MONARCH_DIR@/dist/bin/monarch', '-c', '@MONARCH_DIR@/configs/apps/test.config', '--test-module', test,],
+              env = testEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
       
       # Read the subprocess results
       (stdoutData, stderrData) = sp.communicate()
@@ -88,36 +93,37 @@ def dumpStats():
        (gTotal, gPassed, gFailed, gWarnings)
 
 # Run all of the platform/config-agnostic tests
-runTest("test-rt")
-runTest("test-sharedlock-deadlock")
-runTest("test-random")
-runTest("test-modest")
-runTest("test-util")
-runTest("test-io")
-runTest("test-crypto")
-runTest("test-net")
-runTest("test-http")
-runTest("test-event")
-runTest("test-ucontext")
-runTest("test-fiber")
-runTest("test-fiber-yield")
-runTest("test-mail")
-runTest("test-sqlite3")
-runTest("test-data")
-runTest("test-compress")
-runTest("test-config")
-runTest("test-configmanager")
-runTest("test-logging")
-runTest("test-validation")
-runTest("test-upnp")
+runTest("monarch.tests.rt.test")
+runTest("test-sharedlock-deadlock", True)
+runTest("test-random", True)
+runTest("monarch.tests.hashtable.test")
+runTest("monarch.tests.modest.test")
+runTest("monarch.tests.util.test")
+runTest("monarch.tests.io.test")
+runTest("monarch.tests.crypto.test")
+runTest("monarch.tests.net.test")
+runTest("monarch.tests.http.test")
+runTest("monarch.tests.event.test")
+runTest("test-ucontext", True)
+runTest("monarch.tests.fiber.test")
+runTest("monarch.tests.fiber-yield.test")
+runTest("monarch.tests.mail.test")
+runTest("monarch.tests.sqlite3.test")
+runTest("monarch.tests.data.test")
+runTest("monarch.tests.compress.test")
+runTest("monarch.tests.config.test")
+runTest("test-configmanager", True)
+runTest("monarch.tests.logging.test")
+runTest("monarch.tests.validation.test")
+runTest("monarch.tests.upnp.test")
 
 # Only run these unit(test if mysql was enabled
 if("@BUILD_MYSQL@" == "yes"):
-   runTest("test-mysql")
+   runTest("monarch.tests.mysql.test")
 
 # Only run these unit(tests if sphinx was enabled
 if("@BUILD_SPHINX@" == "yes"):
-   runTest("test-sphinx")
+   runTest("monarch.tests.sphinx.test")
 
 # Dump all of the test statistics
 print "Full test run completed"

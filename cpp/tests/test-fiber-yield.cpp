@@ -37,17 +37,17 @@ public:
 
    virtual void run()
    {
-      printf("Running test fiber '%d'\n", getId());
+      //printf("Running test fiber '%d'\n", getId());
 
       int i = 0;
       for(; i < count; i++)
       {
-         printf("Test fiber '%d' yielding...\n", getId());
+         //printf("Test fiber '%d' yielding...\n", getId());
          yield();
-         printf("Test fiber '%d' continuing.\n", getId());
+         //printf("Test fiber '%d' continuing.\n", getId());
       }
 
-      printf("Test fiber '%d' done with '%d' iterations.\n", getId(), i);
+      //printf("Test fiber '%d' done with '%d' iterations.\n", getId(), i);
    }
 };
 

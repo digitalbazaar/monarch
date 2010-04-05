@@ -294,7 +294,7 @@ void TestRunner::done()
       case Final:
       case Names:
       case Times:
-         printf("Done. Total:%u Passed:%u Failed:%u Warnings:%u Unknown:%u\n",
+         printf("Done. Total:%u Passed:%u Failed:%u Warnings:%u Unknown:%u.\n",
             mTotal, mPassed, mFailed, mWarnings, unknown);
          break;
       default:
