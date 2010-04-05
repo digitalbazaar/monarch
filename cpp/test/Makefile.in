@@ -4,7 +4,7 @@ LIBRARIES = motest
 motest_HEADERS = $(wildcard *.h)
 motest_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig
+DYNAMIC_LINK_LIBRARIES = mort modata mokernel moapp moconfig
 
 DYNAMIC_MACOS_LINK_LIBRARIES = moio moutil mologging monet mocompress momodest mocrypto
 
