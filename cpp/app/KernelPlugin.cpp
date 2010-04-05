@@ -63,8 +63,8 @@ bool KernelPlugin::initMetaConfig(Config& meta)
       c["modulePath"]->setType(Array);
       c["env"] = true;
       c["printModuleVersions"] = false;
-      c["maxThreadCount"] = UINT32_C(100);
-      c["maxConnectionCount"] = UINT32_C(100);
+      c["maxThreadCount"] = (uint32_t)100;
+      c["maxConnectionCount"] = (uint32_t)100;
       // waitEvents is a map of arrays of event ids. The map keys should be
       // unique such as plugin ids. The kernel will wait for all these events
       // to occur before exiting. (Some special kernel events also can cause

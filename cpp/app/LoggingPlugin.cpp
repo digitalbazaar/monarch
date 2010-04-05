@@ -69,8 +69,8 @@ bool LoggingPlugin::initMetaConfig(Config& meta)
       c["level"] = "warning";
       c["log"] = "-";
       c["append"] = true;
-      c["rotationFileSize"] = UINT64_C(2000000);
-      c["maxRotatedFiles"] = UINT32_C(10);
+      c["rotationFileSize"] = (uint64_t)2000000;
+      c["maxRotatedFiles"] = (uint32_t)10;
       c["gzip"] = true;
       c["location"] = false;
       c["color"] = false;
