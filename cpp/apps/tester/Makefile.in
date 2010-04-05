@@ -9,7 +9,7 @@ HEADER_DIST_DIR = dist/include/monarch/apps/tester
 
 DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig motest
 
-DYNAMIC_MACOS_LINK_LIBRARIES = moio moutil mologging monet mocompress momodest mocrypto
+DYNAMIC_MACOS_LINK_LIBRARIES = mofiber moio moutil mologging monet mocompress momodest moevent mocrypto movalidation mokernel moapp
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

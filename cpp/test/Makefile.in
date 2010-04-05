@@ -6,7 +6,7 @@ motest_SOURCES = $(wildcard *.cpp)
 
 DYNAMIC_LINK_LIBRARIES = mort modata mokernel moapp moconfig
 
-DYNAMIC_MACOS_LINK_LIBRARIES = moio moutil mologging monet mocompress momodest mocrypto
+DYNAMIC_MACOS_LINK_LIBRARIES = moio moutil mologging monet mocompress momodest mofiber moevent mocrypto movalidation
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

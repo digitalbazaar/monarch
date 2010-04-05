@@ -6,7 +6,7 @@ moapp_SOURCES = $(wildcard *.cpp)
 
 DYNAMIC_LINK_LIBRARIES = mort mologging moio mocrypto monet modata moutil moconfig
 
-DYNAMIC_MACOS_LINK_LIBRARIES = crypto ssl momodest mocompress
+DYNAMIC_MACOS_LINK_LIBRARIES = crypto ssl momodest mofiber mocompress moevent movalidation mokernel
 DYNAMIC_WINDOWS_LINK_LIBRARIES = pthreadGCE2 mgwz libgnurx-0 libeay32 ssleay32 ws2_32
 
 # ----------- Standard Makefile
