@@ -102,7 +102,7 @@ DynamicObject ConfigPlugin::getCommandLineSpecs()
    opt["short"] = "-c";
    opt["long"] = "--config";
    opt["append"] = configOptions["configs"];
-   opt["argError"] = "No file specified.";
+   opt["argError"] = "No config file specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--option";
