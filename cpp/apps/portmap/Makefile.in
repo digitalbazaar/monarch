@@ -8,6 +8,7 @@ moportmap_MOD_DIR = apps
 DYNAMIC_LINK_LIBRARIES = mort moutil
 
 DYNAMIC_MACOS_LINK_LIBRARIES = momodest mofiber moio moevent moconfig mocrypto mocompress monet mohttp mologging movalidation mokernel modata moupnp moapp
+DYNAMIC_WINDOWS_LINK_LIBRARIES = momodest mofiber moio moevent moconfig mocrypto mocompress monet mohttp mologging movalidation mokernel modata moupnp moapp
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

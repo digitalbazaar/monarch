@@ -169,7 +169,7 @@ endif
 	$(PCMD) $(AR) $(AR_FLAGS) $@ $^
 
 ifdef EXECUTABLES
-$(EXECUTABLES): $(BUILD_DIR)/$$(@F)-$(PLATFORM).o $(STATIC_EXECUTABLE_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(BUILD_DIR)/$$(source)-$(PLATFORM).o)
+$(EXECUTABLES): $(BUILD_DIR)/$$(basename $$(@F))-$(PLATFORM).o $(STATIC_EXECUTABLE_LIBRARIES) $$(foreach source,$$($$(subst -,_,$$(@F))_EXTRA_SOURCES),$(BUILD_DIR)/$$(source)-$(PLATFORM).o)
 	@echo "Linking dist/bin/$(@F)..."
 	$(PCMD) mkdir -p $(@D)
 	$(PCMD) $(CXX) $(CXX_FLAGS) $(LD_FLAGS) $(LIBS) \
