@@ -26,6 +26,9 @@ const ModuleId& MicroKernelModule::getId()
 
 bool MicroKernelModule::initialize(Kernel* k)
 {
+   // FIXME: consider renaming initialize/cleanup() here or in modest or both
+   // to help eliminate confusion over what gets call when
+
    // nothing to do for modest initialization
    return true;
 }
