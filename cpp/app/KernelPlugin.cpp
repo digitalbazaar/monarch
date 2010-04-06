@@ -241,25 +241,11 @@ bool KernelPlugin::runApp()
          // Collect all module paths so they can be loaded in bulk.
          // This helps to avoid issues with needing to specify load order
          // explicitly.
-         /*
          FileList modulePaths;
-         ConfigIterator mpMods = cfg["modulePath"].getIterator();
-         while(rval && mpMods->hasNext())
+         ConfigIterator mpi = cfg["modulePath"].getIterator();
+         while(rval && mpi->hasNext())
          {
-            ConfigIterator mpPaths = mpMods->next().getIterator();
-            while(rval && mpPaths->hasNext())
-            {
-               const char* path = mpPaths->next()->getString();
-               FileList pathList = File::parsePath(path);
-               modulePaths->concat(*pathList);
-            }
-         }
-         */
-         FileList modulePaths;
-         ConfigIterator mpMods = cfg["modulePath"].getIterator();
-         while(rval && mpMods->hasNext())
-         {
-            const char* path = mpMods->next()->getString();
+            const char* path = mpi->next()->getString();
             FileList pathList = File::parsePath(path);
             modulePaths->concat(*pathList);
          }
