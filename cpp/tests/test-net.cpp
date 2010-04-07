@@ -1091,6 +1091,38 @@ static void runUrlTest(TestRunner& tr)
          "http://bitmunk.com?date=2008-01-01+00%3A00%3A01");
    }
 
+   {
+      string path = "/p0/p1/p2/p3/p4";
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1/p2/p3");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1/p2");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/");
+   }
+
+   {
+      string path = "/p0/p1/p2/p3/p4/";
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1/p2/p3");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1/p2");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/");
+   }
+
    tr.pass();
 }
 

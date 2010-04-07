@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_Url_H
 #define monarch_net_Url_H
@@ -322,6 +322,15 @@ public:
     * @return the string representation for this url.
     */
    virtual std::string toString() const;
+
+   /**
+    * Gets the parent path of the given path.
+    *
+    * @param path the path to get the parent path of.
+    *
+    * @return the parent path.
+    */
+   static std::string getParentPath(const char* path);
 
    /**
     * URL-encodes the passed string.

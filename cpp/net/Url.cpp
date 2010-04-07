@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/Url.h"
 
@@ -527,6 +527,38 @@ string Url::toString() const
    }
 
    return str;
+}
+
+string Url::getParentPath(const char* path)
+{
+   string rval = path;
+
+   // erase sub-path from the end of path
+   path = rval.c_str();
+   int len = rval.length();
+   const char* end = strrchr(path, '/');
+
+   // if end is at the end of path, we need to get a new end in order
+   // to get to the parent (ie: input: "/foo/bar/", parent we want: "/foo")
+   if(end != NULL && end[1] == 0)
+   {
+      rval.erase(--len);
+      path = rval.c_str();
+      end = strrchr(path, '/');
+   }
+
+   if(end == NULL || end == path)
+   {
+      // return root path if not found or at beginning of path
+      rval = "/";
+   }
+   else
+   {
+      // erase starting at end
+      rval.erase(end - path);
+   }
+
+   return rval;
 }
 
 string Url::encode(const char* str, unsigned int length)
