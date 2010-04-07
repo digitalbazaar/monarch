@@ -101,6 +101,11 @@ void Platform::cleanup()
 const char* Platform::getDynamicLibraryPrefix(const char* os)
 {
    const char* rval = NULL;
+   // get current os as a default
+   if(os == NULL)
+   {
+      os = getCurrent()["os"]->getString();
+   }
    if(os != NULL && (*sCommonInfo)["os"]->hasMember(os))
    {
       rval = (*sCommonInfo)["os"][os]["dynamicLibPrefix"]->getString();
@@ -111,6 +116,10 @@ const char* Platform::getDynamicLibraryPrefix(const char* os)
 const char* Platform::getDynamicLibraryExt(const char* os)
 {
    const char* rval = NULL;
+   if(os == NULL)
+   {
+      os = getCurrent()["os"]->getString();
+   }
    if(os != NULL && (*sCommonInfo)["os"]->hasMember(os))
    {
       rval = (*sCommonInfo)["os"][os]["dynamicLibExt"]->getString();

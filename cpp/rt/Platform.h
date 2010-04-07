@@ -60,17 +60,24 @@ public:
    /**
     * Gets the dynamic library prefix for a specific operating system.
     * For example, no prefix ("") for Windows, "lib" for Mac OS X and Linux.
+    * Known operating system names are "linux", "macos", and "windows".
+    *
+    * @param os operating system name to check for or NULL for the current os.
     *
     * @return the dynamic library extension or NULL if not known.
     */
-   static const char* getDynamicLibraryPrefix(const char* os);
+   static const char* getDynamicLibraryPrefix(const char* os = NULL);
 
    /**
     * Gets the dynamic library extension for a specific operating system.
+    * For example, "dll" for Windows, "dylib" for Mac OS X, and "so" for Linux.
+    * Known operating system names are "linux", "macos", and "windows".
+    *
+    * @param os operating system name to check for or NULL for the current os.
     *
     * @return the dynamic library extension or NULL if not known.
     */
-   static const char* getDynamicLibraryExt(const char* os);
+   static const char* getDynamicLibraryExt(const char* os = NULL);
 
    /**
     * Gets information for the current platform. The returned PlatformInfo
