@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_RunnableDelegate_H
 #define monarch_rt_RunnableDelegate_H
@@ -61,27 +61,40 @@ template<> class RunnableDelegate<void> : public Runnable
    Type mType;
 
    /**
-    * The object's run function.
+    * Data for a no-param run function.
     */
-   union
+   struct NoParamData
    {
-      RunFunction mFunction;
-      RunWithParamFunction mParamFunction;
-      RunWithDynoFunction mDynoFunction;
+      RunFunction runFunction;
    };
 
    /**
-    * The object's free param function.
+    * Data for a user-data run function.
     */
-   FreeParamFunction mFreeParamFunction;
+   struct ParamData
+   {
+      RunWithParamFunction runFunction;
+      FreeParamFunction freeFunction;
+      void* param;
+   };
 
    /**
-    * The parameter to use with the run function.
+    * Data for a dynamic object run function.
+    */
+   struct DynoData
+   {
+      RunWithDynoFunction runFunction;
+      DynamicObject* param;
+   };
+
+   /**
+    * The type-specific data.
     */
    union
    {
-      void* mParam;
-      DynamicObject* mDyno;
+      NoParamData* mNoParamData;
+      ParamData* mParamData;
+      DynoData* mDynoData;
    };
 
 public:
@@ -90,10 +103,11 @@ public:
     *
     * @param f the object's run function.
     */
-   RunnableDelegate(RunFunction f)
+   RunnableDelegate(RunFunction f) :
+      mType(NoParam)
    {
-      mType = NoParam;
-      mFunction = f;
+      mNoParamData = new NoParamData;
+      mNoParamData->runFunction = f;
    };
 
    /**
@@ -105,12 +119,13 @@ public:
     * @param fp the object's function to free the parameter (can be NULL).
     */
    RunnableDelegate(
-      RunWithParamFunction f, void* param, FreeParamFunction fp = NULL)
+      RunWithParamFunction f, void* param, FreeParamFunction fp = NULL) :
+      mType(Param)
    {
-      mType = Param;
-      mParamFunction = f;
-      mParam = param;
-      mFreeParamFunction = fp;
+      mParamData = new ParamData;
+      mParamData->runFunction = f;
+      mParamData->freeFunction = fp;
+      mParamData->param = param;
    };
 
    /**
@@ -118,13 +133,14 @@ public:
     * dyno parameter for the function.
     *
     * @param f the object's run w/dyno function.
-    * @param dyno the parameter for the run w/dyno function.
+    * @param param the parameter for the run w/dyno function.
     */
-   RunnableDelegate(RunWithDynoFunction f, DynamicObject& param)
+   RunnableDelegate(RunWithDynoFunction f, DynamicObject& param) :
+      mType(DynoParam)
    {
-      mType = DynoParam;
-      mDynoFunction = f;
-      mDyno = new DynamicObject(param);
+      mDynoData = new DynoData;
+      mDynoData->runFunction = f;
+      mDynoData->param = new DynamicObject(param);
    };
 
    /**
@@ -132,13 +148,22 @@ public:
     */
    virtual ~RunnableDelegate()
    {
-      if(mType == Param && mParam != NULL && mFreeParamFunction != NULL)
+      switch(mType)
       {
-         (*mFreeParamFunction)(mParam);
-      }
-      else if(mType == DynoParam)
-      {
-         delete mDyno;
+         case NoParam:
+            delete mNoParamData;
+            break;
+         case Param:
+            if(mParamData->param != NULL && mParamData->freeFunction != NULL)
+            {
+               (*(mParamData->freeFunction))(mParamData->param);
+            }
+            delete mParamData;
+            break;
+         case DynoParam:
+            delete mDynoData->param;
+            delete mDynoData;
+            break;
       }
    }
 
@@ -151,15 +176,15 @@ public:
       {
          case NoParam:
             // call run function
-            (*mFunction)();
+            (*(mNoParamData->runFunction))();
             break;
          case Param:
             // call run w/param function
-            (*mParamFunction)(mParam);
+            (*(mParamData->runFunction))(mParamData->param);
             break;
          case DynoParam:
             // call run w/dyno function
-            (*mDynoFunction)(*mDyno);
+            (*(mDynoData->runFunction))(*mDynoData->param);
             break;
       }
    }
@@ -171,7 +196,7 @@ public:
     */
    virtual void* getParam()
    {
-      return mParam;
+      return mParamData->param;
    }
 
    /**
@@ -182,9 +207,9 @@ public:
    virtual DynamicObject getDynamicObject()
    {
       DynamicObject rval(NULL);
-      if(mDyno != NULL)
+      if(mDynoData->param != NULL)
       {
-         rval = *mDyno;
+         rval = *mDynoData->param;
       }
       return rval;
    }
@@ -236,27 +261,40 @@ protected:
    RunnableType* mObject;
 
    /**
-    * The object's run function.
+    * Data for a no-param run function.
     */
-   union
+   struct NoParamData
    {
-      RunFunction mFunction;
-      RunWithParamFunction mParamFunction;
-      RunWithDynoFunction mDynoFunction;
+      RunFunction runFunction;
    };
 
    /**
-    * The object's free param function.
+    * Data for a void* run function.
     */
-   FreeParamFunction mFreeParamFunction;
+   struct ParamData
+   {
+      RunWithParamFunction runFunction;
+      FreeParamFunction freeFunction;
+      void* param;
+   };
 
    /**
-    * The parameter to use with the run function.
+    * Data for a dynamic object run function.
+    */
+   struct DynoData
+   {
+      RunWithDynoFunction runFunction;
+      DynamicObject* param;
+   };
+
+   /**
+    * The run function data.
     */
    union
    {
-      void* mParam;
-      DynamicObject* mDyno;
+      NoParamData* mNoParamData;
+      ParamData* mParamData;
+      DynoData* mDynoData;
    };
 
 public:
@@ -320,44 +358,57 @@ public:
 
 template<typename RunnableType>
 RunnableDelegate<RunnableType>::RunnableDelegate(
-   RunnableType* obj, RunFunction f)
+   RunnableType* obj, RunFunction f) :
+   mType(NoParam),
+   mObject(obj)
 {
-   mType = NoParam;
-   mObject = obj;
-   mFunction = f;
+   mNoParamData = new NoParamData;
+   mNoParamData->runFunction = f;
 }
 
 template<typename RunnableType>
 RunnableDelegate<RunnableType>::RunnableDelegate(
-   RunnableType* obj, RunWithParamFunction f, void* param, FreeParamFunction fp)
+   RunnableType* obj, RunWithParamFunction f,
+   void* param, FreeParamFunction fp) :
+   mType(Param),
+   mObject(obj)
 {
-   mType = Param;
-   mObject = obj;
-   mParamFunction = f;
-   mParam = param;
-   mFreeParamFunction = fp;
+   mParamData = new ParamData;
+   mParamData->runFunction = f;
+   mParamData->freeFunction = fp;
+   mParamData->param = param;
 }
 
 template<typename RunnableType>
 RunnableDelegate<RunnableType>::RunnableDelegate(
-   RunnableType* obj, RunWithDynoFunction f, DynamicObject& param)
+   RunnableType* obj, RunWithDynoFunction f, DynamicObject& param) :
+   mType(DynoParam),
+   mObject(obj)
 {
-   mType = DynoParam;
-   mObject = obj;
-   mDynoFunction = f;
-   mDyno = new DynamicObject(param);
+   mDynoData = new DynoData;
+   mDynoData->runFunction = f;
+   mDynoData->param = new DynamicObject(param);
 }
 
 template<typename RunnableType>
 RunnableDelegate<RunnableType>::~RunnableDelegate()
 {
-   if(mType == Param && mParam != NULL && mFreeParamFunction != NULL)
+   switch(mType)
    {
-      (mObject->*mFreeParamFunction)(mParam);
-   }
-   else if(mType == DynoParam)
-   {
-      delete mDyno;
+      case NoParam:
+         delete mNoParamData;
+         break;
+      case Param:
+         if(mParamData->param != NULL && mParamData->freeFunction != NULL)
+         {
+            (mObject->*(mParamData->freeFunction))(mParamData->param);
+         }
+         delete mParamData;
+         break;
+      case DynoParam:
+         delete mDynoData->param;
+         delete mDynoData;
+         break;
    }
 }
 
@@ -368,15 +419,15 @@ void RunnableDelegate<RunnableType>::run()
    {
       case NoParam:
          // call object's run function
-         (mObject->*mFunction)();
+         (mObject->*(mNoParamData->runFunction))();
          break;
       case Param:
          // call object's run w/param function
-         (mObject->*mParamFunction)(mParam);
+         (mObject->*(mParamData->runFunction))(mParamData->param);
          break;
       case DynoParam:
          // call object's run w/dyno function
-         (mObject->*mDynoFunction)(*mDyno);
+         (mObject->*(mDynoData->runFunction))(*mDynoData->param);
          break;
    }
 }
@@ -384,16 +435,16 @@ void RunnableDelegate<RunnableType>::run()
 template<typename RunnableType>
 void* RunnableDelegate<RunnableType>::getParam()
 {
-   return mParam;
+   return mParamData->param;
 }
 
 template<typename RunnableType>
 DynamicObject RunnableDelegate<RunnableType>::getDynamicObject()
 {
    DynamicObject rval(NULL);
-   if(mDyno != NULL)
+   if(mDynoData->param != NULL)
    {
-      rval = *mDyno;
+      rval = *mDynoData->param;
    }
    return rval;
 }

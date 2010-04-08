@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_event_ObserverDelegate_H
 #define monarch_event_ObserverDelegate_H
@@ -24,26 +24,41 @@ class ObserverDelegate : public Observer, public monarch::rt::Runnable
 {
 protected:
    /**
+    * Enum for types of event delegate.
+    */
+   enum Type
+   {
+      EventOnly,
+      EventWithParam,
+      EventWithDyno,
+      Runnable
+   };
+
+   /**
     * Typedef for handler's event function.
     */
-   typedef void (HandlerType::*EventFunction)(Event& e);
+   typedef void (HandlerType::*EventFunction)(Event&);
 
    /**
     * Typedef for handler's event w/user-data function.
     */
-   typedef void (HandlerType::*EventWithUserDataFunction)(
-      Event& e, void* userData);
+   typedef void (HandlerType::*EventWithParamFunction)(Event&, void*);
 
    /**
     * Typedef for handler's event w/dyno function.
     */
    typedef void (HandlerType::*EventWithDynoFunction)(
-      Event& e, monarch::rt::DynamicObject& userData);
+      Event&, monarch::rt::DynamicObject&);
 
    /**
     * Typedef for freeing a handler's user-data.
     */
-   typedef void (HandlerType::*FreeUserDataFunction)(void* userData);
+   typedef void (HandlerType::*FreeParamFunction)(void* param);
+
+   /**
+    * The type of event delegate.
+    */
+   Type mType;
 
    /**
     * The actual handler object.
@@ -51,44 +66,51 @@ protected:
    HandlerType* mHandler;
 
    /**
-    * The handler's event function.
+    * Data for an event only function.
     */
-   EventFunction mFunction;
+   struct EventOnlyData
+   {
+      EventFunction handleFunction;
+   };
 
    /**
-    * The handler's event w/user-data function.
+    * Data for an event w/user-data function.
     */
-   EventWithUserDataFunction mUserDataFunction;
+   struct EventWithParamData
+   {
+      EventWithParamFunction handleFunction;
+      FreeParamFunction freeFunction;
+      void* param;
+   };
 
    /**
-    * The handler's event w/dyno function.
+    * Data for an event w/dyno function.
     */
-   EventWithDynoFunction mDynoFunction;
+   struct EventWithDynoData
+   {
+      EventWithDynoFunction handleFunction;
+      monarch::rt::DynamicObject* param;
+   };
 
    /**
-    * The handler's user-data.
+    * Data for a runnable event delegate.
     */
-   void* mUserData;
+   struct RunnableData
+   {
+      Observer* observer;
+      Event* event;
+   };
 
    /**
-    * The handler's dyno.
+    * The type-specific data.
     */
-   monarch::rt::DynamicObject mDyno;
-
-   /**
-    * The handler's free user-data function.
-    */
-   FreeUserDataFunction mFreeUserDataFunction;
-
-   /**
-    * An observer to handle an event with.
-    */
-   Observer* mObserver;
-
-   /**
-    * An event to handle.
-    */
-   Event mEvent;
+   union
+   {
+      EventOnlyData* mEventOnly;
+      EventWithParamData* mEventWithParam;
+      EventWithDynoData* mEventWithDyno;
+      RunnableData* mRunnable;
+   };
 
 public:
    /**
@@ -106,13 +128,12 @@ public:
     *
     * @param h the actual handler object.
     * @param f the handler's function for handling an Event w/user-data.
-    * @param userData the user-data to pass to the function when an
-    *                 event occurs.
+    * @param param the user-data to pass to the function when an event occurs.
     * @param ff a function to call to free the passed user-data, NULL for none.
     */
    ObserverDelegate(
-      HandlerType* h, EventWithUserDataFunction f, void* userData,
-      FreeUserDataFunction ff = NULL);
+      HandlerType* h, EventWithParamFunction f, void* param,
+      FreeParamFunction ff = NULL);
 
    /**
     * Creates a new ObserverDelegate with the specified handler object and
@@ -120,11 +141,12 @@ public:
     *
     * @param h the actual handler object.
     * @param f the handler's function for handling an Event w/user-data.
-    * @param dyno the DynamicObject to pass to the function when the
-    *             event occurs.
+    * @param param the DynamicObject to pass to the function when the
+    *           event occurs.
     */
    ObserverDelegate(
-      HandlerType* h, EventWithDynoFunction f, monarch::rt::DynamicObject& dyno);
+      HandlerType* h,
+      EventWithDynoFunction f, monarch::rt::DynamicObject& param);
 
    /**
     * Creates a new Runnable ObserverDelegate with the specified observer
@@ -156,97 +178,100 @@ public:
 template<class HandlerType>
 ObserverDelegate<HandlerType>::ObserverDelegate(
    HandlerType* h, EventFunction f) :
-   mDyno(NULL),
-   mEvent(NULL)
+   mType(EventOnly),
+   mHandler(h)
 {
-   mHandler = h;
-   mFunction = f;
-   mUserDataFunction = NULL;
-   mFreeUserDataFunction = NULL;
-   mDynoFunction = NULL;
-   mUserData = NULL;
-   mObserver = NULL;
+   mEventOnly = new EventOnlyData;
+   mEventOnly->handleFunction = f;
 }
 
 template<class HandlerType>
 ObserverDelegate<HandlerType>::ObserverDelegate(
-   HandlerType* h, EventWithUserDataFunction f,
-   void* userData, FreeUserDataFunction ff) :
-   mDyno(NULL),
-   mEvent(NULL)
+   HandlerType* h, EventWithParamFunction f,
+   void* param, FreeParamFunction ff) :
+   mType(EventWithParam),
+   mHandler(h)
 {
-   mHandler = h;
-   mFunction = NULL;
-   mUserDataFunction = f;
-   mFreeUserDataFunction = ff;
-   mDynoFunction = NULL;
-   mUserData = userData;
-   mObserver = NULL;
+   mEventWithParam = new EventWithParamData;
+   mEventWithParam->handleFunction = f;
+   mEventWithParam->freeFunction = ff;
+   mEventWithParam->param = param;
 }
 
 template<class HandlerType>
 ObserverDelegate<HandlerType>::ObserverDelegate(
-   HandlerType* h, EventWithDynoFunction f, monarch::rt::DynamicObject& dyno) :
-   mDyno(dyno),
-   mEvent(NULL)
+   HandlerType* h, EventWithDynoFunction f, monarch::rt::DynamicObject& param) :
+   mType(EventWithDyno),
+   mHandler(h)
 {
-   mHandler = h;
-   mFunction = NULL;
-   mUserDataFunction = NULL;
-   mFreeUserDataFunction = NULL;
-   mDynoFunction = f;
-   mUserData = NULL;
-   mObserver = NULL;
+   mEventWithDyno = new EventWithDynoData;
+   mEventWithDyno->handleFunction = f;
+   mEventWithDyno->param = new monarch::rt::DynamicObject(param);
 }
 
 template<class HandlerType>
-ObserverDelegate<HandlerType>::ObserverDelegate(
-   Observer* observer, Event& e) :
-   mDyno(NULL),
-   mEvent(e)
+ObserverDelegate<HandlerType>::ObserverDelegate(Observer* observer, Event& e) :
+   mType(Runnable)
 {
-   mHandler = NULL;
-   mFunction = NULL;
-   mUserDataFunction = NULL;
-   mFreeUserDataFunction = NULL;
-   mDynoFunction = NULL;
-   mUserData = NULL;
-   mObserver = observer;
+   mRunnable = new RunnableData;
+   mRunnable->observer = observer;
+   mRunnable->event = new Event(e);
 }
 
 template<class HandlerType>
 ObserverDelegate<HandlerType>::~ObserverDelegate()
 {
-   if(mFreeUserDataFunction != NULL && mUserData != NULL)
+   switch(mType)
    {
-      (mHandler->*mFreeUserDataFunction)(mUserData);
+      case EventOnly:
+         delete mEventOnly;
+         break;
+      case EventWithParam:
+         if(mEventWithParam->param != NULL &&
+            mEventWithParam->freeFunction != NULL)
+         {
+            (mHandler->*(mEventWithParam->freeFunction))(
+               mEventWithParam->param);
+         }
+         delete mEventWithParam;
+         break;
+      case EventWithDyno:
+         delete mEventWithDyno->param;
+         delete mEventWithDyno;
+         break;
+      case Runnable:
+         delete mRunnable->event;
+         delete mRunnable;
+         break;
    }
 }
 
 template<class HandlerType>
 void ObserverDelegate<HandlerType>::eventOccurred(Event& e)
 {
-   if(mFunction != NULL)
+   switch(mType)
    {
-      // call handle event function on handler
-      (mHandler->*mFunction)(e);
-   }
-   else if(mUserDataFunction != NULL)
-   {
-      // call handle event w/user-data function on handler
-      (mHandler->*mUserDataFunction)(e, mUserData);
-   }
-   else if(mDynoFunction != NULL)
-   {
-      // call handle event w/dyno function on handler
-      (mHandler->*mDynoFunction)(e, mDyno);
+      case EventOnly:
+         (mHandler->*(mEventOnly->handleFunction))(e);
+         break;
+      case EventWithParam:
+         (mHandler->*(mEventWithParam->handleFunction))(
+            e, mEventWithParam->param);
+         break;
+      case EventWithDyno:
+         (mHandler->*(mEventWithDyno->handleFunction))(
+            e, *mEventWithDyno->param);
+         break;
+      case Runnable:
+         // nothing to do here, event is fired from run()
+         break;
    }
 }
 
 template<class HandlerType>
 void ObserverDelegate<HandlerType>::run()
 {
-   mObserver->eventOccurred(mEvent);
+   mRunnable->observer->eventOccurred(*mRunnable->event);
 }
 
 } // end namespace event
