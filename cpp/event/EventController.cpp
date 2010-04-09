@@ -142,8 +142,8 @@ void EventController::removeParent(const char* child, const char* parent)
    mMapLock.unlockShared();
 }
 
-void EventController::schedule(Event& event)
+void EventController::schedule(Event& event, bool async)
 {
    EventId id = getEventId(event["type"]->getString());
-   Observable::schedule(event, id, true);
+   Observable::schedule(event, id, async);
 }

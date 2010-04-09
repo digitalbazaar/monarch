@@ -155,8 +155,10 @@ public:
     * can be delivered to registered observers of that event type.
     *
     * @param event the event to schedule for dispatching to observers.
+    * @param async true for queue for asynchronous dispatch, false to dispatch
+    *           immediately.
     */
-   virtual void schedule(Event& event);
+   virtual void schedule(Event& event, bool async = true);
 
    /**
     * Starts this Observable. This causes this Observable to start dispatching
