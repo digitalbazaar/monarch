@@ -2,7 +2,7 @@
 
 EXECUTABLES = monarch
 
-DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mologging mocrypto monet mohttp modata moevent mofiber mosql mosqlite3 momail moconfig mocompress movalidation moapp moupnp mokernel
+DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mologging mocrypto monet mohttp modata moevent mofiber mosql mosqlite3 moconfig mocompress movalidation moapp moupnp mokernel
 
 DYNAMIC_LINUX_LINK_LIBRARIES = pthread crypto ssl expat sqlite3
 DYNAMIC_WINDOWS_LINK_LIBRARIES = sqlite3
