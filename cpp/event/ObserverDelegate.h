@@ -31,7 +31,7 @@ protected:
       EventOnly,
       EventWithParam,
       EventWithDyno,
-      Runnable
+      EventRunnable
    };
 
    /**
@@ -95,7 +95,7 @@ protected:
    /**
     * Data for a runnable event delegate.
     */
-   struct RunnableData
+   struct EventRunnableData
    {
       Observer* observer;
       Event* event;
@@ -109,7 +109,7 @@ protected:
       EventOnlyData* mEventOnly;
       EventWithParamData* mEventWithParam;
       EventWithDynoData* mEventWithDyno;
-      RunnableData* mRunnable;
+      EventRunnableData* mEventRunnable;
    };
 
 public:
@@ -211,11 +211,11 @@ ObserverDelegate<HandlerType>::ObserverDelegate(
 
 template<class HandlerType>
 ObserverDelegate<HandlerType>::ObserverDelegate(Observer* observer, Event& e) :
-   mType(Runnable)
+   mType(EventRunnable)
 {
-   mRunnable = new RunnableData;
-   mRunnable->observer = observer;
-   mRunnable->event = new Event(e);
+   mEventRunnable = new EventRunnableData;
+   mEventRunnable->observer = observer;
+   mEventRunnable->event = new Event(e);
 }
 
 template<class HandlerType>
@@ -239,9 +239,9 @@ ObserverDelegate<HandlerType>::~ObserverDelegate()
          delete mEventWithDyno->param;
          delete mEventWithDyno;
          break;
-      case Runnable:
-         delete mRunnable->event;
-         delete mRunnable;
+      case EventRunnable:
+         delete mEventRunnable->event;
+         delete mEventRunnable;
          break;
    }
 }
@@ -262,7 +262,7 @@ void ObserverDelegate<HandlerType>::eventOccurred(Event& e)
          (mHandler->*(mEventWithDyno->handleFunction))(
             e, *mEventWithDyno->param);
          break;
-      case Runnable:
+      case EventRunnable:
          // nothing to do here, event is fired from run()
          break;
    }
@@ -271,7 +271,7 @@ void ObserverDelegate<HandlerType>::eventOccurred(Event& e)
 template<class HandlerType>
 void ObserverDelegate<HandlerType>::run()
 {
-   mRunnable->observer->eventOccurred(*mRunnable->event);
+   mEventRunnable->observer->eventOccurred(*mEventRunnable->event);
 }
 
 } // end namespace event
