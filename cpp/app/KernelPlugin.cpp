@@ -295,10 +295,10 @@ bool KernelPlugin::runApp()
             EventWaiter waiter(mKernel->getEventController());
             // wait for generic kernel events
             MO_CAT_INFO(MO_KERNEL_CAT,
-               "EventWaiter waiting: kernel on \"%s\"", SHUTDOWN_EVENT_TYPE);
+               "EventWaiter: kernel waiting on \"%s\"", SHUTDOWN_EVENT_TYPE);
             waiter.start(SHUTDOWN_EVENT_TYPE);
             MO_CAT_INFO(MO_KERNEL_CAT,
-               "EventWaiter waiting: kernel on \"%s\"", RESTART_EVENT_TYPE);
+               "EventWaiter: kernel waiting on \"%s\"", RESTART_EVENT_TYPE);
             waiter.start(RESTART_EVENT_TYPE);
 
             // make a map of event types to waiting ids
@@ -325,7 +325,7 @@ bool KernelPlugin::runApp()
                   waitEvents[type]["ids"]->append(newId);
                   // start waiting for event
                   MO_CAT_INFO(MO_KERNEL_CAT,
-                     "EventWaiter waiting: \"%s\" on \"%s\"", id, type);
+                     "EventWaiter: \"%s\" waiting on \"%s\"", id, type);
                   waiter.start(type);
                }
             }
