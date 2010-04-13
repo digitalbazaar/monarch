@@ -140,12 +140,14 @@ clean-libraries:
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
 
+ifndef OVERRIDE_OP_BUILDRULE
 %-$(PLATFORM).o %-$(PLATFORM).P: %.cpp
 	@echo "Compiling build/$(subst .P,.o,$(subst $(TOP_BUILD_DIR)/build/,,$@))..."
 	$(PCMD) $(CXX) $(CXX_FLAGS) -c -MD -o $(basename $@).o $(INCLUDES) $(realpath $<)
 	$(PCMD) cp $(basename $@).d $(basename $@).P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/' < $(basename $@).d >> $(basename $@).P; \
 		rm -f $(basename $@).d
+endif
 
 ifeq ($(BUILD_FOR_MACOS),yes)
 
