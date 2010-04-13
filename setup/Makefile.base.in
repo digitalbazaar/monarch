@@ -59,7 +59,6 @@ ifeq ($(BUILD_FOR_MACOS),yes)
 PLATFORM_NAME=MACOS
 # TODO: support build target config and use -march=i686/powerpc/etc
 CXX_FLAGS += -fPIC -DMACOS $(MODULE_CXX_FLAGS) $(MODULE_MACOS_CXX_FLAGS)
-LD_FLAGS += -Wl,-flat_namespace
 LIB_LD_FLAGS += \
 	-Wl,-dylib_compatibility_version,@FULL_DOTTED_VERSION@ \
 	-Wl,-dylib_current_version,@FULL_DOTTED_VERSION@
