@@ -162,7 +162,7 @@ bool ConfigManager::addConfigFile(
       {
          // read in configuration
          MO_CAT_DEBUG(MO_CONFIG_CAT,
-            "Loading config file: %s", fullPath.c_str());
+            "Loading config file: \"%s\"", fullPath.c_str());
          FileInputStream is(file);
          JsonReader r;
          Config cfg;
@@ -190,7 +190,7 @@ bool ConfigManager::addConfigFile(
       else if(file->isDirectory())
       {
          MO_CAT_DEBUG(MO_CONFIG_CAT,
-            "Loading config directory: %s", fullPath.c_str());
+            "Loading config directory: \"%s\"", fullPath.c_str());
          FileList list;
          file->listFiles(list);
 
@@ -1447,7 +1447,7 @@ bool ConfigManager::recursiveAddConfig(
             // if load, then load the included config file
             if(rval && load)
             {
-               MO_CAT_DEBUG(MO_CONFIG_CAT, "Loading include: %s", path);
+               MO_CAT_DEBUG(MO_CONFIG_CAT, "Loading include: \"%s\"", path);
                rval = addConfigFile(
                   path, true, dir, optional, includeSubdirectories);
             }

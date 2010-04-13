@@ -286,7 +286,8 @@ bool KernelPlugin::runApp()
                   AppPluginFactory* f = dynamic_cast<AppPluginFactory*>(*i);
                   AppPluginRef p = f->createAppPlugin();
                   MO_CAT_INFO(MO_KERNEL_CAT,
-                     "Adding AppPlugin to App: %s v%s.", id.name, id.version);
+                     "Adding AppPlugin to App: \"%s\" version: \"%s\".",
+                     id.name, id.version);
                   rval = app->addPlugin(p);
                }
             }

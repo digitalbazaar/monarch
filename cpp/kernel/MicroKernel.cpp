@@ -189,13 +189,13 @@ static bool _getMicroKernelModule(
       if(*mkm != NULL)
       {
          MO_CAT_INFO(MO_KERNEL_CAT,
-            "Loaded MicroKernel module: %s v%s%s",
+            "Loaded MicroKernel module: \"%s\" version: \"%s\"%s",
             id.name, id.version, from.c_str());
       }
       else
       {
          MO_CAT_INFO(MO_KERNEL_CAT,
-            "Loaded Modest module: %s v%s%s",
+            "Loaded Modest module: \"%s\" version: \"%s\"%s",
             id.name, id.version, from.c_str());
       }
    }
@@ -214,7 +214,7 @@ Module* MicroKernel::loadModule(const char* filename)
 {
    Module* rval = NULL;
 
-   MO_CAT_INFO(MO_KERNEL_CAT, "Loading module from %s", filename);
+   MO_CAT_INFO(MO_KERNEL_CAT, "Loading module from \"%s\"", filename);
 
    File file(filename);
    if(file->isDirectory())
@@ -277,7 +277,7 @@ MicroKernelModule* MicroKernel::loadMicroKernelModule(const char* filename)
 
 bool MicroKernel::loadModules(const char* path)
 {
-   MO_CAT_INFO(MO_KERNEL_CAT, "Loading modules from %s", path);
+   MO_CAT_INFO(MO_KERNEL_CAT, "Loading modules from \"%s\"", path);
 
    // split the modules path into individual paths of files/directories
    FileList paths = File::parsePath(path);
@@ -387,7 +387,7 @@ bool MicroKernel::loadModules(FileList& paths)
       {
          Module* m = *i;
          MO_CAT_INFO(MO_KERNEL_CAT,
-            "Cleaning up Modest module: %s v%s",
+            "Cleaning up Modest module: \"%s\" version: \"%s\"",
             m->getId().name, m->getId().version);
          lib->unloadModule(&m->getId());
       }
@@ -858,7 +858,8 @@ bool MicroKernel::initializeMicroKernelModule(MicroKernelModule* m)
    const ModuleId& id = m->getId();
 
    MO_CAT_INFO(MO_KERNEL_CAT,
-      "Initializing MicroKernel module: %s v%s", id.name, id.version);
+      "Initializing MicroKernel module: \"%s\" version: \"%s\"",
+      id.name, id.version);
 
    // add module to list of modules that have attempted initialization
    mModuleList.push_back(m);
@@ -866,7 +867,8 @@ bool MicroKernel::initializeMicroKernelModule(MicroKernelModule* m)
    if(m->initialize(this))
    {
       MO_CAT_INFO(MO_KERNEL_CAT,
-         "Initialized MicroKernel module: %s v%s", id.name, id.version);
+         "Initialized MicroKernel module: \"%s\" version: \"%s\"",
+         id.name, id.version);
    }
    else
    {
@@ -902,7 +904,7 @@ void MicroKernel::unloadModules(ModuleList& modules)
       if(i != mModuleList.end())
       {
          MO_CAT_INFO(MO_KERNEL_CAT,
-            "Cleaning up MicroKernel module: %s v%s",
+            "Cleaning up MicroKernel module: \"%s\" version: \"%s\"",
             m->getId().name, m->getId().version);
          m->cleanup(this);
          mModuleList.erase(i);
