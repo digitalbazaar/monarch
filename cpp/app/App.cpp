@@ -1205,7 +1205,7 @@ int App::main(int argc, const char* argv[])
 
    // seed random
    Random::seed();
-   // clear & enable stats early
+   // enable & clear stats early
    DynamicObjectImpl::enableStats(true);
    DynamicObjectImpl::clearStats();
 
