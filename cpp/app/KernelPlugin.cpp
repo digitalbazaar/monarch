@@ -75,10 +75,10 @@ bool KernelPlugin::initMetaConfig(Config& meta)
    // command line options
    if(rval)
    {
-      Config& c = App::makeMetaConfig(
-         meta, PLUGIN_CL_CFG_ID, "command line", "options")
-            [ConfigManager::APPEND][PLUGIN_NAME];
-      c["modulePath"]->setType(Array);
+      Config c = App::makeMetaConfig(
+         meta, PLUGIN_CL_CFG_ID, "command line", "options");
+      c[ConfigManager::APPEND][PLUGIN_NAME]["modulePath"]->setType(Array);
+      c[ConfigManager::MERGE][PLUGIN_NAME]->setType(Map);
    }
 
    return rval;
@@ -100,25 +100,26 @@ DynamicObject KernelPlugin::getCommandLineSpecs()
 "\n";
 
    DynamicObject opt;
-   Config& options = getApp()->getMetaConfig()
-      ["options"][PLUGIN_CL_CFG_ID][ConfigManager::MERGE];
-   Config& configOptions = options[PLUGIN_NAME];
+   Config& options = getApp()->getMetaConfig()["options"][PLUGIN_CL_CFG_ID];
+   Config& oa = options[ConfigManager::APPEND];
+   Config& om = options[ConfigManager::MERGE];
 
    opt = spec["options"]->append();
    opt["short"] = "-m";
    opt["long"] = "--module-path";
-   opt["append"] = configOptions["modulePath"];
+   opt["append"]["root"] = oa;
+   opt["append"]["path"] = PLUGIN_NAME ".modulePath";
    opt["argError"] = "No path specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--no-module-path-env";
-   opt["setFalse"]["root"] = configOptions;
-   opt["setFalse"]["path"] = "env";
+   opt["setFalse"]["root"] = om;
+   opt["setFalse"]["path"] = PLUGIN_NAME ".env";
 
    opt = spec["options"]->append();
    opt["long"] = "--module-versions";
-   opt["setTrue"]["root"] = configOptions;
-   opt["setTrue"]["path"] = "printModuleVersions";
+   opt["setTrue"]["root"] = om;
+   opt["setTrue"]["path"] = PLUGIN_NAME ".printModuleVersions";
 
    DynamicObject specs = AppPlugin::getCommandLineSpecs();
    specs->append(spec);
