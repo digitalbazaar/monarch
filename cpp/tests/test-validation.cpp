@@ -91,6 +91,27 @@ static void runValidatorTest(TestRunner& tr)
    }
 
    {
+      tr.test("member");
+      DynamicObject dv;
+      dv["a"] = 0;
+      dv["b"] = true;
+      DynamicObject dnv;
+      dnv["c"] = false;
+      dnv["d"] = "false";
+
+      v::All v0(
+         new v::Member("a", "'a' does not exist"),
+         new v::Member("b"),
+         NULL);
+      assert(v0.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("invalid members");
+      assert(!v0.isValid(dnv));
+      tr.passIfException();
+   }
+
+   {
       tr.test("types");
       DynamicObject dv;
       dv["int32"] = (int32_t)-123;

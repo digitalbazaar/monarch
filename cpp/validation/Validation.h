@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_Validation_H
 #define monarch_validation_Validation_H
@@ -17,6 +17,7 @@
 #include "monarch/validation/Int.h"
 #include "monarch/validation/Map.h"
 #include "monarch/validation/Max.h"
+#include "monarch/validation/Member.h"
 #include "monarch/validation/Min.h"
 #include "monarch/validation/Not.h"
 #include "monarch/validation/NotCompare.h"
