@@ -48,6 +48,10 @@ help() {
     echo "   app-name: Name of a known application."
     echo "   config-path: Path to an application configuration."
     echo "   app-path: Path to an application binary or script."
+    echo
+    echo "Special COMMANDS:"
+    echo "   [help|--help|-h|-?]: This help message."
+    echo "   [list|-l]: List known config file commands."
 }
 
 # Check for special modes and set command
@@ -64,6 +68,10 @@ if [ $# -ge 1 ]; then
             done;
          fi
          CMD=$1
+         shift
+         ;;
+      --list|-l)
+         MODE=list
          shift
          ;;
       help|--help|-h|-\?)
@@ -151,6 +159,9 @@ case "${MODE}" in
          --leak-check=full \
          ${MODE_OPTIONS} \
          ${MONARCH} ${CMD_ARGS} "$@"
+      ;;
+   list)
+      (for dir in ${APP_PATH}; do (cd $dir && ls *config); done) | sed -e 's/.config$//g' | sort
       ;;
    help)
       help
