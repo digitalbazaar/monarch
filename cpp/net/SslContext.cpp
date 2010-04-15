@@ -23,26 +23,34 @@ SslContext::SslContext(const char* protocol, bool client) :
    {
       // use all available protocols
       mContext = SSL_CTX_new(SSLv23_method());
+
+      // disable SSLv2 by default because it has poor security
+      SSL_CTX_set_options(mContext, SSL_OP_NO_SSLv2);
    }
-   else if(strcmp(protocol, "SSLv2") == 0)
+   else if(strcmp(protocol, "TLS") == 0)
    {
-      // use only SSLv2
-      mContext = SSL_CTX_new(SSLv2_method());
+      // use only TLS
+      mContext = SSL_CTX_new(TLSv1_method());
    }
    else if(strcmp(protocol, "SSLv3") == 0)
    {
       // use only SSLv3
       mContext = SSL_CTX_new(SSLv3_method());
    }
+   else if(strcmp(protocol, "ALL+2") == 0)
+   {
+      // use all available protocols (allow SSLv2)
+      mContext = SSL_CTX_new(SSLv23_method());
+   }
    else if(strcmp(protocol, "SSLv23") == 0)
    {
       // use SSLv2 or SSLv3
       mContext = SSL_CTX_new(SSLv23_method());
    }
-   else if(strcmp(protocol, "TLS") == 0)
+   else if(strcmp(protocol, "SSLv2") == 0)
    {
-      // use only TLS
-      mContext = SSL_CTX_new(TLSv1_method());
+      // use only SSLv2
+      mContext = SSL_CTX_new(SSLv2_method());
    }
 
    // turn on all options (this enables a bunch of bug fixes for various

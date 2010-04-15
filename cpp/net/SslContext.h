@@ -72,7 +72,9 @@ public:
     * setPeerAuthentication(client).
     *
     * @param protocol the protocol to be used for this context. ("SSLv2",
-    *        "SSLv3", "SSLv23", "TLS", "ALL", or NULL for default of ALL).
+    *        "SSLv3", "SSLv23", "TLS", "ALL", or NULL for default of ALL,
+    *        Note: ALL will disable SSLv2 by default because it has poor
+    *        security, "ALL+2" will not disable it).
     * @param client true for a client context, false for a server context.
     */
    SslContext(const char* protocol, bool client);
