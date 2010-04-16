@@ -101,25 +101,24 @@ DynamicObject KernelPlugin::getCommandLineSpecs()
 
    DynamicObject opt;
    Config& options = getApp()->getMetaConfig()["options"][PLUGIN_CL_CFG_ID];
-   Config& oa = options[ConfigManager::APPEND];
-   Config& om = options[ConfigManager::MERGE];
+   Config& oa = options[ConfigManager::APPEND][PLUGIN_NAME];
+   Config& om = options[ConfigManager::MERGE][PLUGIN_NAME];
 
    opt = spec["options"]->append();
    opt["short"] = "-m";
    opt["long"] = "--module-path";
-   opt["append"]["root"] = oa;
-   opt["append"]["path"] = PLUGIN_NAME ".modulePath";
-   opt["argError"] = "No path specified.";
+   opt["append"] = oa["modulePath"];
+   opt["argError"] = "No module path specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--no-module-path-env";
    opt["setFalse"]["root"] = om;
-   opt["setFalse"]["path"] = PLUGIN_NAME ".env";
+   opt["setFalse"]["path"] = "env";
 
    opt = spec["options"]->append();
    opt["long"] = "--module-versions";
    opt["setTrue"]["root"] = om;
-   opt["setTrue"]["path"] = PLUGIN_NAME ".printModuleVersions";
+   opt["setTrue"]["path"] = "printModuleVersions";
 
    DynamicObject specs = AppPlugin::getCommandLineSpecs();
    specs->append(spec);

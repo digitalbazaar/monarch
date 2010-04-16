@@ -46,10 +46,9 @@ bool ConfigPlugin::initMetaConfig(Config& meta)
       Config& c =
          App::makeMetaConfig(meta, PLUGIN_NAME ".defaults", "defaults")
             [ConfigManager::MERGE][PLUGIN_NAME];
-      // configs is a map of arrays
-      // Keys are unique per module path source to allow for configured other
-      // lists of paths. Values are arrays of files or dirs to load.
-      c["configs"]->setType(Map);
+      // configs is an array of files or dirs to load.
+      // other configs should append to this array
+      c["configs"]->setType(Array);
       c["debug"] = false;
       c["dump"] = false;
       c["dumpAll"] = false;
@@ -60,11 +59,10 @@ bool ConfigPlugin::initMetaConfig(Config& meta)
    // command line options
    if(rval)
    {
-      Config& c = App::makeMetaConfig(
-         meta, PLUGIN_CL_CFG_ID, "command line", "options")
-            [ConfigManager::MERGE][PLUGIN_NAME];
-      c["configs"][PLUGIN_CL_CFG_ID]->setType(Array);
-      c["keywords"]->setType(Map);
+      Config c = App::makeMetaConfig(
+         meta, PLUGIN_CL_CFG_ID, "command line", "options");
+      c[ConfigManager::APPEND][PLUGIN_NAME]["configs"]->setType(Array);
+      c[ConfigManager::MERGE][PLUGIN_NAME]["keywords"]->setType(Map);
    }
 
    return rval;
@@ -94,14 +92,14 @@ DynamicObject ConfigPlugin::getCommandLineSpecs()
 "\n";
 
    DynamicObject opt;
-   Config& options = getApp()->getMetaConfig()
-      ["options"][PLUGIN_CL_CFG_ID][ConfigManager::MERGE];
-   Config& configOptions = options[PLUGIN_NAME];
+   Config& options = getApp()->getMetaConfig()["options"][PLUGIN_CL_CFG_ID];
+   Config& oa = options[ConfigManager::APPEND][PLUGIN_NAME];
+   Config& om = options[ConfigManager::MERGE][PLUGIN_NAME];
 
    opt = spec["options"]->append();
    opt["short"] = "-c";
    opt["long"] = "--config";
-   opt["append"] = configOptions["configs"];
+   opt["append"] = oa["configs"];
    opt["argError"] = "No config file specified.";
 
    opt = spec["options"]->append();
@@ -115,28 +113,28 @@ DynamicObject ConfigPlugin::getCommandLineSpecs()
 
    opt = spec["options"]->append();
    opt["long"] = "--config-debug";
-   opt["setTrue"]["root"] = configOptions;
+   opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "debug";
 
    opt = spec["options"]->append();
    opt["long"] = "--config-dump";
-   opt["setTrue"]["root"] = configOptions;
+   opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "dump";
 
    opt = spec["options"]->append();
    opt["long"] = "--config-dump-all";
-   opt["setTrue"]["root"] = configOptions;
+   opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "dumpAll";
 
    opt = spec["options"]->append();
    opt["long"] = "--config-dump-meta";
-   opt["setTrue"]["root"] = configOptions;
+   opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "dumpMeta";
 
    opt = spec["options"]->append();
    opt["short"] = "-r";
    opt["long"] = "--resource-path";
-   opt["arg"]["root"] = configOptions["keywords"];
+   opt["arg"]["root"] = om["keywords"];
    opt["arg"]["path"] = "RESOURCE_PATH";
    opt["argError"] = "No resource path specified.";
 
