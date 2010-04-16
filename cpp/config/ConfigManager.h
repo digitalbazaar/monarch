@@ -446,15 +446,18 @@ protected:
     * PARENT, GROUP), ignores all diffs in APPEND and REMOVE, and only includes
     * diff updates in MERGE.
     *
-    * @param diff the Config to write the diff to.
+    * @param diff the Config to write the diff (new conflicting changes) to.
     * @param config1 original Config.
     * @param config2 the new Config.
     * @param level set by recursive algorithm, must be initialized to 0.
+    * @param details for storing the details about the cause of the conflict,
+    *           NULL not to store it.
     *
-    * @return true if diff found, else false
+    * @return true if diff found, else false.
     */
    virtual bool diff(
-      Config& target, Config& config1, Config& config2, int level = 0);
+      Config& target, Config& config1, Config& config2, int level = 0,
+      monarch::rt::DynamicObject* details = NULL);
 
    /**
     * Helper method to check two configs for conflicts. There is a conflict

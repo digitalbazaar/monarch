@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/config/ConfigManager.h"
 
@@ -1069,7 +1069,8 @@ bool ConfigManager::replaceKeywords(
 }
 
 bool ConfigManager::diff(
-   Config& target, Config& config1, Config& config2, int level)
+   Config& target, Config& config1, Config& config2, int level,
+   DynamicObject* details)
 {
    bool rval = false;
 
@@ -1082,13 +1083,34 @@ bool ConfigManager::diff(
       // <stuff> -> NULL: diff=NULL
       rval = true;
       target = Config(NULL);
+      if(details != NULL)
+      {
+         (*details)["message"] = "New config is NULL. Existing config is not.";
+      }
    }
-   else if((config1.isNull() && !config2.isNull()) ||
-      (config1->getType() != config2->getType()))
+   else if(config1.isNull() && !config2.isNull())
    {
-      // NULL -> <stuff> -or- types differ: diff=config2
+      // NULL -> <stuff>: diff=config2
       rval = true;
       target = config2.clone();
+      if(details != NULL)
+      {
+         (*details)["message"] = "Existing config is NULL. New config is not.";
+      }
+   }
+   else if(config1->getType() != config2->getType())
+   {
+      // types differ: diff=config2
+      rval = true;
+      target = config2.clone();
+      if(details != NULL)
+      {
+         (*details)["message"] = "Config types are not the same.";
+         (*details)["existing"] =
+            DynamicObject::descriptionForType(config1->getType());
+         (*details)["new"] =
+            DynamicObject::descriptionForType(config2->getType());
+      }
    }
    else
    {
@@ -1108,6 +1130,13 @@ bool ConfigManager::diff(
                // changed: diff=config2
                rval = true;
                target = config2.clone();
+               if(details != NULL)
+               {
+                  (*details)["message"] =
+                     "Existing primitive type value does not match.";
+                  (*details)["existing"] = config1.clone();
+                  (*details)["new"] = config2.clone();
+               }
             }
             break;
          case Map:
@@ -1138,13 +1167,32 @@ bool ConfigManager::diff(
                            // special property not in config1, so add to diff
                            rval = true;
                            target[name] = next.clone();
+                           if(details != NULL)
+                           {
+                              (*details)["message"] =
+                                 "A version, parent, or group exists in the "
+                                 "new config but doesn't in the existing "
+                                 "config.";
+                              (*details)["conflict"] = name;
+                           }
                         }
                      }
                      else
                      {
                         // recusively get sub-diff
                         Config d;
-                        if(diff(d, config1[name], next, level + 1))
+                        if(details != NULL)
+                        {
+                           DynamicObject sd;
+                           if(diff(d, config1[name], next, level + 1, &sd))
+                           {
+                              // diff found, add it
+                              rval = true;
+                              target[name] = d;
+                              (*details)[name] = sd;
+                           }
+                        }
+                        else if(diff(d, config1[name], next, level + 1))
                         {
                            // diff found, add it
                            rval = true;
@@ -1162,12 +1210,33 @@ bool ConfigManager::diff(
             // additions and updates, not removals
             Config temp;
             temp->setType(Array);
+            if(details != NULL)
+            {
+               (*details)->setType(Array);
+            }
             ConfigIterator i = config2.getIterator();
             for(int ii = 0; i->hasNext(); ii++)
             {
                DynamicObject next = i->next();
                Config d;
-               if(diff(d, config1[ii], next, level + 1))
+               if(details != NULL)
+               {
+                  DynamicObject sd;
+                  if(diff(d, config1[ii], next, level + 1, &sd))
+                  {
+                     // diff found
+                     rval = true;
+                     temp[ii] = d;
+                     (*details)[ii] = sd;
+                  }
+                  else
+                  {
+                     // set keyword value
+                     temp[ii] = DEFAULT_VALUE;
+                     (*details)[ii]->setType(Map);
+                  }
+               }
+               else if(diff(d, config1[ii], next, level + 1))
                {
                   // diff found
                   rval = true;
@@ -1201,7 +1270,8 @@ bool ConfigManager::checkConflicts(
 
    // calculate the conflict-diff between existing and config
    Config d;
-   diff(d, existing, config, 0);
+   DynamicObject details;
+   diff(d, existing, config, 0, &details);
 
    // check for parent, group, or merge conflicts
    // version check done elsewhere
@@ -1216,6 +1286,7 @@ bool ConfigManager::checkConflicts(
       e->getDetails()["configId"] = id;
       e->getDetails()["diff"] = d;
       e->getDetails()["isGroup"] = isGroup;
+      e->getDetails()["details"] = details;
       Exception::set(e);
       rval = false;
    }
