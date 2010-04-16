@@ -56,7 +56,7 @@ bool KernelPlugin::initMetaConfig(Config& meta)
    // defaults
    if(rval)
    {
-      Config& c =
+      Config c =
          App::makeMetaConfig(meta, PLUGIN_NAME ".defaults", "defaults")
             [ConfigManager::MERGE][PLUGIN_NAME];
       // modulePath is an array of module paths

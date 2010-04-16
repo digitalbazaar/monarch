@@ -123,7 +123,7 @@ bool MonarchPlugin::initMetaConfig(Config& meta)
    // defaults
    if(rval)
    {
-      Config& c = App::makeMetaConfig(
+      Config c = App::makeMetaConfig(
          meta, PLUGIN_NAME ".defaults", "defaults")
             [ConfigManager::MERGE][PLUGIN_NAME];
       c["printHelp"] = false;

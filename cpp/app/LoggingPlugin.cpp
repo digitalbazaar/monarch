@@ -62,7 +62,7 @@ bool LoggingPlugin::initMetaConfig(Config& meta)
    if(rval)
    {
       const char* id = PLUGIN_NAME ".defaults";
-      Config& c =
+      Config c =
          App::makeMetaConfig(meta, id, "defaults")
          [ConfigManager::MERGE][PLUGIN_NAME];
       c["enabled"] = true;
