@@ -119,7 +119,7 @@ packages:
 install:
 	@mkdir -p $(PREFIX)/usr/lib
 	@echo "Installing Monarch libraries in $(PREFIX)/usr/lib..."
-	@$(foreach lib,$(INSTALL_LIBRARIES),install -m 644 $(lib) $(PREFIX)/usr/lib/$(notdir $(lib)).@FULL_VERSION@ &&) true
-	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).@FULL_DOTTED_VERSION@ &&) true
-	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).@MONARCH_VERSION_MAJOR@ &&) true
-	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)) &&) true
+	@$(foreach lib,$(INSTALL_LIBRARIES),install -m 644 $(lib) $(PREFIX)/usr/lib/$(notdir $(lib)).@FULL_DOTTED_VERSION@ &&) true
+	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_DOTTED_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).@MONARCH_VERSION_MAJOR@.@MONARCH_VERSION_MINOR@ &&) true
+	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_DOTTED_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).@MONARCH_VERSION_MAJOR@ &&) true
+	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_DOTTED_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)) &&) true
