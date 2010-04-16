@@ -43,7 +43,7 @@ bool ConfigPlugin::initMetaConfig(Config& meta)
    // defaults
    if(rval)
    {
-      Config& c =
+      Config c =
          App::makeMetaConfig(meta, PLUGIN_NAME ".defaults", "defaults")
             [ConfigManager::MERGE][PLUGIN_NAME];
       // configs is an array of files or dirs to load.
@@ -154,19 +154,16 @@ bool ConfigPlugin::didParseCommandLine()
       Config& cfg = getApp()->getMetaConfig()["options"][PLUGIN_CL_CFG_ID];
 
       DynamicObjectIterator i =
-         cfg[ConfigManager::MERGE][PLUGIN_NAME]["configs"].getIterator();
+         cfg[ConfigManager::APPEND][PLUGIN_NAME]["configs"].getIterator();
+
       while(i->hasNext())
       {
-         DynamicObjectIterator ci = i->next().getIterator();
-         while(ci->hasNext())
-         {
-            DynamicObject& next = ci->next();
-            Config& inc = cfg[ConfigManager::INCLUDE]->append();
-            inc["path"] = next->getString();
-            inc["load"] = true;
-            inc["optional"] = false;
-            inc["includeSubdirectories"] = true;
-         }
+         DynamicObject& next = i->next();
+         Config& inc = cfg[ConfigManager::INCLUDE]->append();
+         inc["path"] = next->getString();
+         inc["load"] = true;
+         inc["optional"] = false;
+         inc["includeSubdirectories"] = true;
       }
    }
 
