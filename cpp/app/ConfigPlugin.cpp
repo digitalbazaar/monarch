@@ -104,11 +104,11 @@ DynamicObject ConfigPlugin::getCommandLineSpecs()
 
    opt = spec["options"]->append();
    opt["long"] = "--option";
-   opt["set"]["root"] = options;
+   opt["set"]["root"] = options[ConfigManager::MERGE];
 
    opt = spec["options"]->append();
    opt["long"] = "--json-option";
-   opt["set"]["root"] = options;
+   opt["set"]["root"] = options[ConfigManager::MERGE];
    opt["isJsonValue"] = true;
 
    opt = spec["options"]->append();
