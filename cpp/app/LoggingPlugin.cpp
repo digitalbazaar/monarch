@@ -201,7 +201,7 @@ DynamicObject LoggingPlugin::getCommandLineSpecs()
  *
  * @return true if logging to stdout.
  */
-static bool _isLoggingToStdOut(Config& cfg)
+static bool _loggingToStdOut(Config& cfg)
 {
    return cfg->hasMember("log") && strcmp(cfg["log"]->getString(), "-") == 0;
 }
@@ -213,7 +213,7 @@ static bool _isLoggingToStdOut(Config& cfg)
  *
  * @return true if logging is delayed.
  */
-static bool _isDelayed(Config& cfg)
+static bool _delayed(Config& cfg)
 {
    return cfg->hasMember("delayOpen") && cfg["delayOpen"]->getBoolean();
 }
@@ -229,7 +229,7 @@ bool LoggingPlugin::didParseCommandLine()
    // stdout.  avoids issues with loading command line options that use config
    // variables not yet defined.
    if(rval && getApp()->getMode() == App::BOOTSTRAP &&
-      _isDelayed(options) && !_isLoggingToStdOut(options))
+      _delayed(options) && !_loggingToStdOut(options))
    {
       options->removeMember("log");
    }
@@ -249,9 +249,9 @@ bool LoggingPlugin::initializeLogging()
 
    FileLogger* fileLogger = NULL;
    bool bootstrap = getApp()->getMode() == App::BOOTSTRAP;
-   bool delayed = _isDelayed(cfg);
+   bool delayed = _delayed(cfg);
    bool enabled = cfg["enabled"]->getBoolean();
-   bool stdoutlog = !delayed && _isLoggingToStdOut(cfg);
+   bool stdoutlog = !delayed && _loggingToStdOut(cfg);
 
    // setup logger when enabled and in bootstrap mode
    if(rval && enabled && bootstrap)
@@ -269,7 +269,8 @@ bool LoggingPlugin::initializeLogging()
          {
             // set arbitrary 32k log size in delayed mode
             // can add cmd line option to set this if needed
-            // FIXME: would be better if this were dynamic with a max
+            // FIXME: would be better if this were dynamic with a max to avoid
+            // FIXME: over or under allocation.
             rval = fileLogger->setInMemoryLog(32*1024);
          }
          if(rval)
@@ -321,8 +322,8 @@ bool LoggingPlugin::initializeLogging()
       ((bootstrap && !delayed && !stdoutlog) || (!bootstrap && delayed)))
    {
       const char* logFile = cfg["log"]->getString();
-      // attempt to expand "~" (in case not handled natively)
       string expandedLogFile;
+      // attempt to expand "~", else just use plain value
       if(!File::isPathAbsolute(logFile))
       {
          rval = File::expandUser(logFile, expandedLogFile);
@@ -336,12 +337,14 @@ bool LoggingPlugin::initializeLogging()
       {
          File f(expandedLogFile.c_str());
          // if delayed, get the real file logger
+         // otherwise we're in bootstrap mode and it's already set
          if(delayed)
          {
             fileLogger =
                getApp()->getParentApp()->getLoggingPlugin()->getFileLogger();
          }
 
+         // sanity check in case fileLogger not set yet
          if(fileLogger)
          {
             bool append = cfg["append"]->getBoolean();
@@ -358,23 +361,6 @@ bool LoggingPlugin::initializeLogging()
                   cfg["maxRotatedFiles"]->getUInt32());
             }
          }
-      }
-
-      if(rval)
-      {
-         if(cfg["gzip"]->getBoolean())
-         {
-            fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
-         }
-         fileLogger->setRotationFileSize(
-            cfg["rotationFileSize"]->getUInt64());
-         fileLogger->setMaxRotatedFiles(
-            cfg["maxRotatedFiles"]->getUInt32());
-         mLogger = fileLogger;
-      }
-      else
-      {
-         delete fileLogger;
       }
    }
 
