@@ -100,7 +100,7 @@ DynamicObject KernelPlugin::getCommandLineSpecs()
 "\n";
 
    DynamicObject opt;
-   Config& options = getApp()->getMetaConfig()["options"][PLUGIN_CL_CFG_ID];
+   Config options = getApp()->getMetaConfig()["options"][PLUGIN_CL_CFG_ID];
    Config& oa = options[ConfigManager::APPEND][PLUGIN_NAME];
    Config& om = options[ConfigManager::MERGE][PLUGIN_NAME];
 
@@ -209,6 +209,7 @@ bool KernelPlugin::runApp()
       // get kernel config
       Config cfg = getApp()->getConfig()[PLUGIN_NAME];
       App* app = new App;
+      app->setParentApp(getApp());
 
       // create and start kernel
       mKernel = new MicroKernel();

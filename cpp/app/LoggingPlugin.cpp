@@ -74,6 +74,7 @@ bool LoggingPlugin::initMetaConfig(Config& meta)
       c["gzip"] = true;
       c["location"] = false;
       c["color"] = false;
+      c["delayOpen"] = false;
    }
 
    // command line options
@@ -113,6 +114,11 @@ DynamicObject LoggingPlugin::getCommandLineSpecs()
 "      --log-no-color  Log without ANSI color codes. (default: false)\n"
 "      --log-location  Log source code locations.\n"
 "                      (compile time option, default: false)\n"
+"      --log-delay-open\n"
+"                      Delay opening of the --log file until after configs are\n"
+"                      loaded. Log messages will be queued. Can be used if the\n"
+"                      log filename requires custom config variables.\n"
+"                      (default: no delay)\n"
 "\n";
 
    DynamicObject opt;
@@ -178,9 +184,57 @@ DynamicObject LoggingPlugin::getCommandLineSpecs()
    opt["setFalse"]["root"] = options;
    opt["setFalse"]["path"] = "color";
 
+   opt = spec["options"]->append();
+   opt["long"] = "--log-delay-open";
+   opt["setTrue"]["root"] = options;
+   opt["setTrue"]["path"] = "delayOpen";
+
    DynamicObject specs = AppPlugin::getCommandLineSpecs();
    specs->append(spec);
    return specs;
+}
+
+/**
+ * Check if log file is special stdout "-" value.
+ *
+ * @param cfg the current logging config
+ *
+ * @return true if logging to stdout.
+ */
+static bool _isLoggingToStdOut(Config& cfg)
+{
+   return cfg->hasMember("log") && strcmp(cfg["log"]->getString(), "-") == 0;
+}
+
+/**
+ * Check if logging is in delayed mode.
+ *
+ * @param cfg the current logging config
+ *
+ * @return true if logging is delayed.
+ */
+static bool _isDelayed(Config& cfg)
+{
+   return cfg->hasMember("delayOpen") && cfg["delayOpen"]->getBoolean();
+}
+
+bool LoggingPlugin::didParseCommandLine()
+{
+   bool rval = AppPlugin::didParseCommandLine();
+
+   Config options = getApp()->getMetaConfig()
+      ["options"][PLUGIN_CL_CFG_ID][ConfigManager::MERGE][PLUGIN_NAME];
+
+   // remove the log if in bootstrap mode, logging delayed, and not logging to
+   // stdout.  avoids issues with loading command line options that use config
+   // variables not yet defined.
+   if(rval && getApp()->getMode() == App::BOOTSTRAP &&
+      _isDelayed(options) && !_isLoggingToStdOut(options))
+   {
+      options->removeMember("log");
+   }
+
+   return rval;
 }
 
 bool LoggingPlugin::initializeLogging()
@@ -189,13 +243,20 @@ bool LoggingPlugin::initializeLogging()
 
    // get logging config
    Config cfg = getApp()->getConfig()[PLUGIN_NAME];
+   // NOTE: might need to get parent config in non-bootstrap mode to ensure
+   // consistent config for the setup below.  non-bootstrap configs could
+   // overwrite these options and cause havoc.
 
-   if(rval && getApp()->getMode() == App::BOOTSTRAP &&
-      cfg["enabled"]->getBoolean())
+   FileLogger* fileLogger = NULL;
+   bool bootstrap = getApp()->getMode() == App::BOOTSTRAP;
+   bool delayed = _isDelayed(cfg);
+   bool enabled = cfg["enabled"]->getBoolean();
+   bool stdoutlog = !delayed && _isLoggingToStdOut(cfg);
+
+   // setup logger when enabled and in bootstrap mode
+   if(rval && enabled && bootstrap)
    {
-      // setup logging
-      const char* logFile = cfg["log"]->getString();
-      if(strcmp(logFile, "-") == 0)
+      if(stdoutlog)
       {
          OutputStream* logStream = new FileOutputStream(
             FileOutputStream::StdOut);
@@ -203,40 +264,22 @@ bool LoggingPlugin::initializeLogging()
       }
       else
       {
-         bool append = cfg["append"]->getBoolean();
-
-         // attempt to expand "~" (in case not handled natively)
-         string expandedLogFile;
-         if(!File::isPathAbsolute(logFile))
+         fileLogger = new FileLogger();
+         if(delayed)
          {
-            rval = File::expandUser(logFile, expandedLogFile);
+            // set arbitrary 32k log size in delayed mode
+            // can add cmd line option to set this if needed
+            // FIXME: would be better if this were dynamic with a max
+            rval = fileLogger->setInMemoryLog(32*1024);
+         }
+         if(rval)
+         {
+            mLogger = fileLogger;
          }
          else
          {
-            expandedLogFile.assign(logFile);
-         }
-
-         if(rval)
-         {
-            File f(expandedLogFile.c_str());
-            FileLogger* fileLogger = new FileLogger();
-            rval = fileLogger->setFile(f, append);
-            if(rval)
-            {
-               if(cfg["gzip"]->getBoolean())
-               {
-                  fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
-               }
-               fileLogger->setRotationFileSize(
-                  cfg["rotationFileSize"]->getUInt64());
-               fileLogger->setMaxRotatedFiles(
-                  cfg["maxRotatedFiles"]->getUInt32());
-               mLogger = fileLogger;
-            }
-            else
-            {
-               delete fileLogger;
-            }
+            delete fileLogger;
+            fileLogger = NULL;
          }
       }
 
@@ -270,10 +313,87 @@ bool LoggingPlugin::initializeLogging()
          {
             mLogger->setFlags(Logger::LogLocation);
          }
+      }
+   }
+
+   // setup new logging file if and when needed
+   if(rval && enabled &&
+      ((bootstrap && !delayed && !stdoutlog) || (!bootstrap && delayed)))
+   {
+      const char* logFile = cfg["log"]->getString();
+      // attempt to expand "~" (in case not handled natively)
+      string expandedLogFile;
+      if(!File::isPathAbsolute(logFile))
+      {
+         rval = File::expandUser(logFile, expandedLogFile);
+      }
+      else
+      {
+         expandedLogFile.assign(logFile);
+      }
+
+      if(rval)
+      {
+         File f(expandedLogFile.c_str());
+         // if delayed, get the real file logger
+         if(delayed)
+         {
+            fileLogger =
+               getApp()->getParentApp()->getLoggingPlugin()->getFileLogger();
+         }
+
+         if(fileLogger)
+         {
+            bool append = cfg["append"]->getBoolean();
+            rval = fileLogger->setFile(f, append);
+            if(rval)
+            {
+               if(cfg["gzip"]->getBoolean())
+               {
+                  fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
+               }
+               fileLogger->setRotationFileSize(
+                  cfg["rotationFileSize"]->getUInt64());
+               fileLogger->setMaxRotatedFiles(
+                  cfg["maxRotatedFiles"]->getUInt32());
+            }
+         }
+      }
+
+      if(rval)
+      {
+         if(cfg["gzip"]->getBoolean())
+         {
+            fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
+         }
+         fileLogger->setRotationFileSize(
+            cfg["rotationFileSize"]->getUInt64());
+         fileLogger->setMaxRotatedFiles(
+            cfg["maxRotatedFiles"]->getUInt32());
+         mLogger = fileLogger;
+      }
+      else
+      {
+         delete fileLogger;
+      }
+   }
+
+   // add logger after setup complete when in bootstrap mode
+   if(rval && enabled)
+   {
+      if(bootstrap)
+      {
          Logger::addLogger(mLogger);
 
          // NOTE: Logging is now initialized. Use standard logging system after
          // NOTE: this point.
+         MO_CAT_DEBUG(MO_LOGGING_CAT, "%s initialized.",
+            delayed ? " Delayed logging" : "Logging");
+      }
+      else if(delayed)
+      {
+         // logging now fully setup
+         MO_CAT_DEBUG(MO_LOGGING_CAT, "Logging fully initialized.");
       }
    }
 
@@ -292,6 +412,11 @@ bool LoggingPlugin::cleanupLogging()
    }
 
    return rval;
+}
+
+FileLogger* LoggingPlugin::getFileLogger()
+{
+   return dynamic_cast<FileLogger*>(mLogger);
 }
 
 class LoggingPluginFactory :

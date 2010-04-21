@@ -11,6 +11,7 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/config/ConfigManager.h"
 #include "monarch/app/AppPlugin.h"
+#include "monarch/app/LoggingPlugin.h"
 #include "monarch/app/MultiAppPlugin.h"
 
 namespace monarch
@@ -51,6 +52,16 @@ protected:
     * The run mode.
     */
    Mode mMode;
+
+   /**
+    * Parent of this app or NULL.
+    */
+   App* mParentApp;
+
+   /**
+    * The Apps LoggingPlugin.
+    */
+   LoggingPlugin* mLoggingPlugin;
 
    /**
     * Program name for this App.  Taken from the command line args.
@@ -161,6 +172,35 @@ public:
     * @return the run mode of the app.
     */
    virtual Mode getMode();
+
+   /**
+    * Set the parent app.
+    *
+    * @param parent the parent App.
+    */
+   virtual void setParentApp(App* parent);
+
+   /**
+    * Get the parent app or NULL if none. This can be used to get the bootstrap
+    * app.
+    *
+    * @return the parent app.
+    */
+   virtual App* getParentApp();
+
+   /**
+    * Set the LoggingPlugin.
+    *
+    * @param logger the LoggingPlugin.
+    */
+   virtual void setLoggingPlugin(LoggingPlugin* logger);
+
+   /**
+    * Get the LoggingPlugin.
+    *
+    * @return the LoggingPlugin.
+    */
+   virtual LoggingPlugin* getLoggingPlugin();
 
    /**
     * Add an AppPlugin.

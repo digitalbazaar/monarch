@@ -6,6 +6,7 @@
 
 #include "monarch/app/AppPlugin.h"
 #include "monarch/logging/Logging.h"
+#include "monarch/logging/FileLogger.h"
 #include "monarch/modest/Module.h"
 
 namespace monarch
@@ -60,12 +61,25 @@ public:
    /**
     * {@inheritDoc}
     */
+   virtual bool didParseCommandLine();
+
+   /**
+    * {@inheritDoc}
+    */
    virtual bool initializeLogging();
 
    /**
     * {@inheritDoc}
     */
    virtual bool cleanupLogging();
+
+   /**
+    * Get the current FileLogger or NULL if the current logger is not a
+    * FileLogger or is not yet set.
+    *
+    * @return the FileLogger or NULL
+    */
+   virtual monarch::logging::FileLogger* getFileLogger();
 };
 
 /**

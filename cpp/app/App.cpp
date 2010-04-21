@@ -45,6 +45,8 @@ pthread_mutex_t* App::sOpenSSLMutexes = NULL;
 
 App::App() :
    mMode(NORMAL),
+   mParentApp(NULL),
+   mLoggingPlugin(NULL),
    mProgramName(NULL),
    mName(NULL),
    mVersion(NULL),
@@ -72,6 +74,8 @@ App::App() :
 
 App::~App()
 {
+   setParentApp(NULL);
+   setLoggingPlugin(NULL);
    delete mPlugins;
    setProgramName(NULL);
    setName(NULL);
@@ -88,6 +92,26 @@ bool App::setMode(Mode mode)
 App::Mode App::getMode()
 {
    return mMode;
+}
+
+void App::setParentApp(App* parent)
+{
+   mParentApp = parent;
+}
+
+App* App::getParentApp()
+{
+   return mParentApp;
+}
+
+void App::setLoggingPlugin(LoggingPlugin* logger)
+{
+   mLoggingPlugin = logger;
+}
+
+LoggingPlugin* App::getLoggingPlugin()
+{
+   return mLoggingPlugin;
 }
 
 bool App::addPlugin(AppPluginRef plugin)
@@ -911,6 +935,16 @@ vector<const char*>* App::getCommandLine()
    return &mCommandLineArgs;
 }
 
+/**
+ * Check if a string is likely an option rather than an option argument.
+ *
+ * @return true if likely an option, false otherwise
+ */
+static bool _isLikelyOption(const char* str)
+{
+   return str != NULL && strlen(str) != 0 && str[0] == '-';
+}
+
 bool App::parseCommandLine(vector<const char*>* args)
 {
    bool rval = true;
@@ -923,7 +957,7 @@ bool App::parseCommandLine(vector<const char*>* args)
       const char* arg = *i;
 
       // check if we are at end of options
-      if(strcmp(arg, "--") == 0 || strlen(arg) == 0 || arg[0] != '-')
+      if(strcmp(arg, "--") == 0 || !_isLikelyOption(arg))
       {
          // add rest of args to all specs where "args" key is present
          do
@@ -998,14 +1032,32 @@ bool App::parseCommandLine(vector<const char*>* args)
                }
             }
 
-            if(rval && !found && mMode != BOOTSTRAP)
+            // handle unknown options
+            if(rval && !found)
             {
-               ExceptionRef e = new Exception(
-                  "Unknown option.",
-                  "monarch.app.CommandLineError");
-               e->getDetails()["option"] = opt;
-               Exception::set(e);
-               rval = false;
+               if(mMode == BOOTSTRAP)
+               {
+                  // try to consume option args
+                  // FIXME: this can fail to catch some errors and might fail
+                  // for some complex arg handlers (?). A simple failure case
+                  // is specifying too many args for an option. This code will
+                  // consume those in bootstrap mode but it will fail later.
+                  // There may be some edge cases where this matters.
+                  while((i + 1) != args->end() && !_isLikelyOption(*(i + 1)))
+                  {
+                     i++;
+                  }
+               }
+               else
+               {
+                  // raise exception for unknown options when not in bootstrap mode
+                  ExceptionRef e = new Exception(
+                     "Unknown option.",
+                     "monarch.app.CommandLineError");
+                  e->getDetails()["option"] = opt;
+                  Exception::set(e);
+                  rval = false;
+               }
             }
          }
       }
@@ -1218,6 +1270,9 @@ int App::main(int argc, const char* argv[])
    // Perform a bootstrap run of an app to setup for real app.
    {
       App app;
+
+      app.setLoggingPlugin(dynamic_cast<LoggingPlugin*>(&(*lp)));
+
       success =
          app.setMode(App::BOOTSTRAP) &&
          app.addPlugin(mp) &&
