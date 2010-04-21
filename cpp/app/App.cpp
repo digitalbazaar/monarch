@@ -1226,6 +1226,7 @@ int App::start(vector<const char*>* args)
 
    mPlugins->cleanupLogging();
    mPlugins->cleanup();
+   mPlugins->clearPlugins();
    if(getMode() == App::BOOTSTRAP)
    {
       cleanupOpenSSL();

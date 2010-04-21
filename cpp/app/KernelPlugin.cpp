@@ -208,7 +208,7 @@ bool KernelPlugin::runApp()
 
       // get kernel config
       Config cfg = getApp()->getConfig()[PLUGIN_NAME];
-      App* app = new App;
+      App* app = new App();
       app->setParentApp(getApp());
 
       // create and start kernel
@@ -376,9 +376,6 @@ bool KernelPlugin::runApp()
             }
          }
 
-         delete app;
-         app = NULL;
-
          // FIXME: actually stopping microkernel, not just node
          // stop node
          MO_CAT_INFO(MO_KERNEL_CAT,
@@ -396,13 +393,8 @@ bool KernelPlugin::runApp()
             JsonWriter::writeToString(Exception::getAsDynamicObject()).c_str());
       }
 
-      if(app != NULL)
-      {
-         delete app;
-         app = NULL;
-      }
-
-      // clean up kernel
+      // clean up
+      delete app;
       delete mKernel;
       mKernel = NULL;
    }

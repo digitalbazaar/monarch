@@ -46,6 +46,11 @@ void MultiAppPlugin::addPlugin(AppPluginRef plugin)
    // FIXME: sort based on dependency info
 }
 
+void MultiAppPlugin::clearPlugins()
+{
+   mPlugins.clear();
+}
+
 bool MultiAppPlugin::willAddToApp(App* app)
 {
    bool rval = AppPlugin::willAddToApp(app);

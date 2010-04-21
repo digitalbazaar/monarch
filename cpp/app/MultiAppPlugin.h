@@ -43,6 +43,11 @@ public:
    virtual void addPlugin(AppPluginRef plugin);
 
    /**
+    * Clear all AppPlugins.
+    */
+   virtual void clearPlugins();
+
+   /**
     * {@inheritDoc}
     */
    virtual bool initialize();
