@@ -124,7 +124,7 @@ bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
 }
 
 bool ConfigManager::addConfigFile(
-   const char* path, bool include, const char* dir,
+   const char* path, bool processIncludes, const char* dir,
    bool optional, bool processSubdirectories)
 {
    bool rval = true;
@@ -134,6 +134,14 @@ bool ConfigManager::addConfigFile(
    // empty paths will behave like current dir
    bool addPath = path != NULL && (strlen(path) != 0 || !optional);
 
+   MO_CAT_DEBUG(MO_CONFIG_CAT,
+      "Adding config file: \"%s\" from: \"%s\" "
+      "flags: %s,%s,%s",
+      path,
+      dir != NULL ? dir : "{CURRENT_DIR}",
+      processIncludes ? "inc" : "no-inc",
+      optional ? "opt" : "not-opt",
+      processSubdirectories ? "subdirs" : "no-subdirs");
    if(addPath)
    {
       rval = File::expandUser(path, userPath);
@@ -182,7 +190,7 @@ bool ConfigManager::addConfigFile(
          {
             // include path to config (necessary for CURRENT_DIR replacement)
             string dirname = File::dirname(fullPath.c_str());
-            rval = addConfig(cfg, include, dirname.c_str());
+            rval = addConfig(cfg, processIncludes, dirname.c_str());
          }
 
          if(!rval)
@@ -237,7 +245,7 @@ bool ConfigManager::addConfigFile(
              rval && i != configFiles.end(); i++)
          {
             rval = addConfigFile(
-               (*i).c_str(), include, file->getAbsolutePath(), false);
+               (*i).c_str(), processIncludes, file->getAbsolutePath(), false);
          }
 
          // load each dir in order
@@ -245,7 +253,7 @@ bool ConfigManager::addConfigFile(
              rval && i != configDirs.end(); i++)
          {
             const char* dir = (*i).c_str();
-            rval = addConfigFile(dir, include, dir, false);
+            rval = addConfigFile(dir, processIncludes, dir, false);
          }
       }
       else
@@ -264,7 +272,7 @@ bool ConfigManager::addConfigFile(
          "Invalid config file.",
          CONFIG_EXCEPTION ".InvalidConfigFile");
       e->getDetails()["path"] = path;
-      e->getDetails()["processIncludes"] = include;
+      e->getDetails()["processIncludes"] = processIncludes;
       e->getDetails()["optional"] = optional;
       e->getDetails()["processSubdirectories"] = processSubdirectories;
       if(dir != NULL)
@@ -1526,10 +1534,9 @@ bool ConfigManager::recursiveAddConfig(
                rval = false;
             }
 
-            // if load and non-empty path, then load the included config file
+            // load is set to do so
             if(rval && load)
             {
-               MO_CAT_DEBUG(MO_CONFIG_CAT, "Loading include: \"%s\"", path);
                rval = addConfigFile(
                   path, true, dir, optional, includeSubdirectories);
             }
