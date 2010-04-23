@@ -275,6 +275,7 @@ AC_SUBST(PYTHON)
 
 # Generating files
 AC_CONFIG_FILES([
+   .gitignore
    Makefile
    setup/Makefile.base
    setup/docs.doxygen
@@ -317,12 +318,11 @@ AC_CONFIG_FILES([monarch-run], [chmod +x monarch-run])
 AC_CONFIG_FILES([cpp/tests/run-unit-tests.py], [chmod +x cpp/tests/run-unit-tests.py])
 AC_CONFIG_FILES([installers/debian/rules], [chmod +x installers/debian/rules])
 
-AC_OUTPUT
+# add newlines to internal output file list
+CONFIGURE_GENERATED_FILES="`echo $ac_config_files | tr ' ' '\n'`"
+AC_SUBST(CONFIGURE_GENERATED_FILES)
 
-# Write a proper .gitignore file based on files that are generated
-GIT_IGNORE_FILES=".gitignore build dist autom4te.cache config.log config.status configure"
-GIT_IGNORE_FILES="$GIT_IGNORE_FILES $ac_config_files"
-echo $GIT_IGNORE_FILES | tr ' ' '\n' > .gitignore
+AC_OUTPUT
 
 # Dump the build configuration
 echo -e "\n--------- Monarch Build Environment -----------"
