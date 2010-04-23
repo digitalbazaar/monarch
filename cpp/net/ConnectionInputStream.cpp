@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 
@@ -28,6 +28,17 @@ ConnectionInputStream::ConnectionInputStream(Connection* c) :
 
 ConnectionInputStream::~ConnectionInputStream()
 {
+}
+
+inline static void _updateBytesRead(uint64_t& br, int amount)
+{
+   // update bytes read (reset as necessary)
+   if(br > (UINT64_MAX / 2))
+   {
+      br = 0;
+   }
+
+   br += amount;
 }
 
 int ConnectionInputStream::read(char* b, int length)
@@ -72,13 +83,7 @@ int ConnectionInputStream::read(char* b, int length)
 
    if(rval > 0 && !mPeeking)
    {
-      // update bytes read (reset as necessary)
-      if(mBytesRead > (UINT64_MAX / 2))
-      {
-         mBytesRead = 0;
-      }
-
-      mBytesRead += rval;
+      _updateBytesRead(mBytesRead, rval);
    }
 
    return rval;
@@ -126,6 +131,7 @@ int ConnectionInputStream::readLine(string& line)
          {
             // discard the character
             mPeekBuffer.clear(1);
+            _updateBytesRead(mBytesRead, 1);
          }
 
          // set character to an eol since a carriage return is treated the same
@@ -201,6 +207,7 @@ int ConnectionInputStream::readCrlf(string& line)
             // then discard them
             line.append(b, numBytes);
             mPeekBuffer.clear(numBytes);
+            _updateBytesRead(mBytesRead, numBytes);
          }
          else
          {
@@ -222,6 +229,7 @@ int ConnectionInputStream::readCrlf(string& line)
 
                   // discard peeked bytes and CRLF (+2 chars)
                   mPeekBuffer.clear(beforeCR + 2);
+                  _updateBytesRead(mBytesRead, beforeCR + 2);
                }
                else
                {
@@ -232,6 +240,7 @@ int ConnectionInputStream::readCrlf(string& line)
 
                   // discard peeked bytes and solo CR (+1 char)
                   mPeekBuffer.clear(beforeCR + 1);
+                  _updateBytesRead(mBytesRead, beforeCR + 1);
                }
             }
             else
@@ -246,6 +255,7 @@ int ConnectionInputStream::readCrlf(string& line)
                // (or for a timeout) waiting for more data that won't ever
                // arrive
                mPeekBuffer.clear(beforeCR);
+               _updateBytesRead(mBytesRead, beforeCR);
                readSize = 2;
                block = true;
             }
