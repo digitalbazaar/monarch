@@ -1154,8 +1154,9 @@ static bool _initializeWinSock()
 
 static void _cleanupWinSock()
 {
-   // FIXME: WSACleanup() crashes when called on windows (after a successful
-   // call to WSAStartup() ... so it has been disabled
+   // Note: WSACleanup() crashes when called on windows (after a successful
+   // call to WSAStartup() because openSSL automatically calls it ... since
+   // it can't handle being called twice it has been disabled here
    //WSACleanup();
 }
 #endif
