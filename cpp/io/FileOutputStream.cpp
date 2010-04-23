@@ -11,10 +11,11 @@ using namespace std;
 using namespace monarch::io;
 using namespace monarch::rt;
 
-FileOutputStream::FileOutputStream(File& file, bool append) :
+FileOutputStream::FileOutputStream(File& file, bool append, int bufferMode) :
    mFile(file),
    mAppend(append),
-   mHandle(NULL)
+   mHandle(NULL),
+   mBufferMode(bufferMode)
 {
 }
 
@@ -97,6 +98,21 @@ bool FileOutputStream::ensureOpen()
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
          rval = false;
+      }
+      else
+      {
+         // set buffer mode
+         if(setvbuf(mHandle, (char *) NULL, mBufferMode, 0) != 0)
+         {
+            ExceptionRef e = new Exception(
+               "Could not set file buffer mode.",
+               "monarch.io.File.BufferModeFailure");
+            e->getDetails()["path"] = mFile->getAbsolutePath();
+            e->getDetails()["mode"] = mBufferMode;
+            e->getDetails()["error"] = strerror(errno);
+            Exception::set(e);
+            rval = false;
+         }
       }
    }
 

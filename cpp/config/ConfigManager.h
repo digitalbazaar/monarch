@@ -276,17 +276,18 @@ public:
     * Adds a configuration file or directory of files with addConfig().
     *
     * @param path the file or directory of files to parse and add.
-    * @param include true to process include directives, false to ignore them.
+    * @param processIncludes true to process include directives, false to
+    *        ignore them.
     * @param dir the directory of this config used for processing relative
-    *            includes or NULL.
+    *        includes or NULL.
     * @param optional true to suppress failure if path is not found,
-    *                 false to require path to be present.
+    *        false to require path to be present.
     * @param processSubdirectories true to process subdirs as dirs of configs.
     *
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfigFile(
-      const char* path, bool include = true, const char* dir = NULL,
+      const char* path, bool processIncludes = true, const char* dir = NULL,
       bool optional = false, bool processSubdirectories = false);
 
    /**

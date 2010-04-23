@@ -47,14 +47,22 @@ protected:
     */
    FILE* mHandle;
 
+   /**
+    * The file buffer mode.
+    */
+   int mBufferMode;
+
 public:
    /**
     * Creates a new FileOutputStream that opens the passed File for writing.
     *
     * @param file the File to write to.
     * @param append true to append to the File if it exists, false to overwrite.
+    * @param bufferMode the buffering mode to use with this file. See
+    *        setvbuf(3) for values.
     */
-   FileOutputStream(File& file, bool append = false);
+   FileOutputStream(
+      File& file, bool append = false, int bufferMode = _IOFBF);
 
    /**
     * Creates a new FileOutputStream that uses either stdout or stderror for

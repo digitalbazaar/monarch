@@ -457,7 +457,7 @@ bool FileLogger::setFile(File& file, bool append)
 
       if(rval)
       {
-         OutputStream* s = new FileOutputStream(mFile, append);
+         OutputStream* s = new FileOutputStream(mFile, append, _IOLBF);
          setOutputStream(s, true, false);
       }
    }
