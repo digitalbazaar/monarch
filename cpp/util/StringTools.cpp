@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/StringTools.h"
 
@@ -197,5 +197,25 @@ string StringTools::toLower(const char* str)
 {
    string rval = str;
    std::transform(rval.begin(), rval.end(), rval.begin(), ::tolower);
+   return rval;
+}
+
+string StringTools::upperCaseWords(const char* words)
+{
+   string rval;
+
+   StringTokenizer st;
+   st.tokenize(words, ' ');
+   while(st.hasNextToken())
+   {
+      const char* token = st.nextToken();
+      if(token[0] != '\0')
+      {
+         rval.push_back(' ');
+         rval.push_back(::toupper(token[0]));
+         rval.append(token + 1);
+      }
+   }
+
    return rval;
 }

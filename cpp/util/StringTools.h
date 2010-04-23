@@ -148,6 +148,16 @@ public:
     * @return the result.
     */
    static std::string toLower(const char* str);
+
+   /**
+    * Returns a new string where all of the words in the given string have
+    * their first letter uppercased.
+    *
+    * @param words the words string to uppercase.
+    *
+    * @return the uppercased words string.
+    */
+   static std::string upperCaseWords(const char* words);
 };
 
 /**
