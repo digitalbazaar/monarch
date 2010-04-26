@@ -1388,34 +1388,33 @@ bool ConfigManager::recursiveAddConfig(
       // read lock to check version & parent
       mLock.lockShared();
       {
-         // check version is present
-         if(mVersions->length() > 0)
+         // if config has version, check it is supported
+         if(config->hasMember(VERSION))
          {
-            if(!config->hasMember(VERSION))
+            // check for known version
+            const char* version = config[VERSION]->getString();
+            if(!mVersions->hasMember(version))
             {
                ExceptionRef e = new Exception(
-                  "No config file version found.",
-                  CONFIG_EXCEPTION ".UnspecifiedVersion");
+                  "Unsupported config file version.",
+                  CONFIG_EXCEPTION ".UnsupportedVersion");
                e->getDetails()["id"] = id;
+               e->getDetails()["version"] = version;
                Exception::set(e);
                rval = false;
             }
-            else
-            {
-               // check for known version
-               const char* version = config[VERSION]->getString();
-               if(!mVersions->hasMember(version))
-               {
-                  ExceptionRef e = new Exception(
-                     "Unsupported config file version.",
-                     CONFIG_EXCEPTION ".UnsupportedVersion");
-                  e->getDetails()["id"] = id;
-                  e->getDetails()["version"] = version;
-                  Exception::set(e);
-                  rval = false;
-               }
-            }
          }
+         /*
+         else if(mStrict)
+         {
+            ExceptionRef e = new Exception(
+               "No config file version found.",
+               CONFIG_EXCEPTION ".UnspecifiedVersion");
+            e->getDetails()["id"] = id;
+            Exception::set(e);
+            rval = false;
+         }
+         */
 
          // if has parent
          if(rval && config->hasMember(PARENT))

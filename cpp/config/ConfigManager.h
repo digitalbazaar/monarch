@@ -383,7 +383,8 @@ public:
     * Return a Map of versions this manager is configured to accept.  Acceptable
     * versions are set to true.
     *
-    * This map is initialized with MO_DEFAULT_CONFIG_VERSION.
+    * This map is initialized with MO_DEFAULT_CONFIG_VERSION and other versions
+    * that can be loaded.
     *
     * @return an Array of versions or an empty to accept all versions.
     */
