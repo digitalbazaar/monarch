@@ -348,26 +348,22 @@ static void runConfigManagerTest(TestRunner& tr)
       assert(cm.addConfig(c));
       assertNoException();
 
+      // config has no version - no check done - pass
       cm.addVersion("1");
-      assert(!cm.addConfig(c));
-      assertException();
-      Exception::clear();
+      assert(cm.addConfig(c));
+      assertNoException();
 
-      c[ConfigManager::VERSION] = "2";
-      cm.removeConfig("config");
-      assert(!cm.addConfig(c));
-      assertException();
-      Exception::clear();
-
+      // config has known version - pass
       c[ConfigManager::VERSION] = "1";
       assert(cm.addConfig(c));
       assertNoException();
+      assert(cm.removeConfig("config"));
 
+      // config has unknown version - fail
       c[ConfigManager::VERSION] = "2";
-      cm.removeConfig("config");
-      cm.addVersion("2");
-      assert(cm.addConfig(c));
-      assertNoException();
+      assert(!cm.addConfig(c));
+      assertException();
+      Exception::clear();
    }
    tr.passIfNoException();
 
