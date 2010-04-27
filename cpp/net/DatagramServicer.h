@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_DatagramServicer_H
 #define monarch_net_DatagramServicer_H
 
+#include "monarch/modest/Operation.h"
 #include "monarch/net/DatagramSocket.h"
 
 namespace monarch
@@ -44,8 +45,10 @@ public:
     * Receives Datagrams from the passed DatagramSocket and services them.
     *
     * @param s the DatagramSocket with Datagrams to service.
+    * @param op the current Operation, to be checked for interruptions.
     */
-   virtual void serviceDatagrams(DatagramSocket* s) = 0;
+   virtual void serviceDatagrams(
+      DatagramSocket* s, monarch::modest::Operation& op) = 0;
 };
 
 } // end namespace net

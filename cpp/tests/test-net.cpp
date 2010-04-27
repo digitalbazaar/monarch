@@ -1477,9 +1477,21 @@ static void runServerSslConnectionTest(TestRunner& tr)
 
 class TestDatagramServicer : public DatagramServicer
 {
-   void serviceDatagrams(DatagramSocket* s)
+   void serviceDatagrams(DatagramSocket* s, Operation& op)
    {
       printf("Servicing datagrams.\n");
+
+      while(!op->isInterrupted())
+      {
+         // create a datagram
+         InternetAddressRef ia = new InternetAddress();
+         DatagramRef d = new Datagram(ia, 1024);
+         if(s->receive(d))
+         {
+            printf("Got message: %s\n", d->getString().c_str());
+         }
+      }
+
       printf("Finished servicing datagrams.\n");
    }
 };
@@ -1494,11 +1506,14 @@ static void runServerDatagramTest(TestRunner& tr)
 
    // create server
    Server server;
-   InternetAddress address("localhost", 10080);
+   InternetAddressRef sa = new InternetAddress("localhost", 10080);
 
    // create datagram service
    TestDatagramServicer tds;
-   server.addDatagramService(&address, &tds);
+   // also test connection service running at the same time on same address
+   TestConnectionServicer1 foo;
+   server.addConnectionService(&(*sa), &foo);
+   server.addDatagramService(&(*sa), &tds);
 
    if(server.start(&k))
    {
@@ -1510,6 +1525,21 @@ static void runServerDatagramTest(TestRunner& tr)
          Exception::get()->getMessage());
    }
 
+   // create datagram client
+   InternetAddressRef ca = new InternetAddress("localhost", 0);
+   DatagramSocket client;
+   client.bind(&(*ca));
+   assertNoException();
+
+   // create a datagram
+   DatagramRef d = new Datagram(sa);
+   d->assignString("Hello there, Server.");
+
+   // send the datagram with the client
+   client.send(d);
+   assertNoException();
+
+   // wait
    Thread::sleep(10000);
 
    server.stop();

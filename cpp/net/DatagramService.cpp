@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/DatagramService.h"
 
@@ -11,10 +11,10 @@ using namespace monarch::net;
 DatagramService::DatagramService(
    Server* server, InternetAddress* address, DatagramServicer* servicer,
    const char* name) :
-   PortService(server, address, name)
+   PortService(server, address, name),
+   mServicer(servicer),
+   mSocket(NULL)
 {
-   mServicer = servicer;
-   mSocket = NULL;
 }
 
 DatagramService::~DatagramService()
@@ -53,7 +53,7 @@ void DatagramService::cleanup()
 void DatagramService::run()
 {
    // service datagrams
-   mServicer->serviceDatagrams(mSocket);
+   mServicer->serviceDatagrams(mSocket, mOperation);
 
    // close socket
    mSocket->close();
