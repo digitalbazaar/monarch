@@ -101,8 +101,13 @@ bool FileOutputStream::ensureOpen()
       }
       else
       {
-         // set buffer mode
-         if(setvbuf(mHandle, (char *) NULL, mBufferMode, 0) != 0)
+         // set buffer mode (windows thinks 0 is an invalid argument for the
+         // buffer size so we use the defined BUFSIZ minimum buffer size)
+#ifdef WIN32
+         if(setvbuf(mHandle, (char*)NULL, mBufferMode, BUFSIZ) != 0)
+#else
+         if(setvbuf(mHandle, (char*)NULL, mBufferMode, 0) != 0)
+#endif
          {
             ExceptionRef e = new Exception(
                "Could not set file buffer mode.",
