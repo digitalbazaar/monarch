@@ -303,7 +303,12 @@ bool FileImpl::exists()
    {
       rval = true;
    }
-   else
+   else if(errno == EACCES)
+   {
+      // file exists, just no access to it
+      rval = true;
+   }
+   else if(errno == ENOENT)
    {
       // does not set an exception intentionally, the file just doesn't exist
    }
