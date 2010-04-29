@@ -334,8 +334,8 @@ bool FileLogger::rotate()
          File& file = i->next();
          const char* nextpath = file->getAbsolutePath();
          // dummy vars
-         unsigned int _start;
-         unsigned int _end;
+         int _start;
+         int _end;
          // check prefix then tail
          if(strncmp(path, nextpath, pathlen) == 0 &&
             pattern->match(nextpath + pathlen, 0, _start, _end))

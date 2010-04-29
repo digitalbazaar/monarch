@@ -56,9 +56,7 @@ public:
     *
     * @return true if a match was found, false if not.
     */
-   virtual bool match(
-      const char* str, unsigned int offset,
-      unsigned int& start, unsigned int& end);
+   virtual bool match(const char* str, int offset, int& start, int& end);
 
    /**
     * Matches this pattern against the given string.

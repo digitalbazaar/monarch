@@ -561,6 +561,21 @@ string Url::getParentPath(const char* path)
    return rval;
 }
 
+void Url::parseHostAndPort(const char* input, string& host, string& port)
+{
+   const char* colon = strchr(input, ':');
+   if(colon != NULL)
+   {
+      host.assign(input, (colon - input));
+      port.assign(colon + 1);
+   }
+   else
+   {
+      host = input;
+      port.clear();
+   }
+}
+
 string Url::encode(const char* str, unsigned int length)
 {
    string rval;

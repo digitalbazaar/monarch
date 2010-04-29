@@ -70,7 +70,7 @@ protected:
    /**
     * The number of tokens.
     */
-   unsigned int mTokenCount;
+   int mTokenCount;
 
    /**
     * A pointer to the first free-list token.
@@ -80,7 +80,7 @@ protected:
    /**
     * The number of free-list tokens.
     */
-   unsigned int mFreeTokenCount;
+   int mFreeTokenCount;
 
    /**
     * Cleans up the passed list of StringTokens.
@@ -209,7 +209,7 @@ public:
     *
     * @return the number of tokens.
     */
-   virtual unsigned int getTokenCount();
+   virtual int getTokenCount();
 };
 
 } // end namespace util

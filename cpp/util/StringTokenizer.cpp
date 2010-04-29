@@ -251,7 +251,7 @@ const char* StringTokenizer::getToken(int i)
    return rval;
 }
 
-inline unsigned int StringTokenizer::getTokenCount()
+inline int StringTokenizer::getTokenCount()
 {
    return mTokenCount;
 }

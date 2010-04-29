@@ -248,8 +248,8 @@ static void runRegexTest(TestRunner& tr)
 
    tr.test("compiled match");
    {
-      unsigned int _start;
-      unsigned int _end;
+      int _start;
+      int _end;
       {
          PatternRef pat = Pattern::compile("moo");
          assert(pat->match("moo", 0, _start, _end));
@@ -286,10 +286,10 @@ static void runRegexTest(TestRunner& tr)
    tr.test("sub-match");
    {
       string submatches = "Look for green globs of green matter in green goo.";
-      PatternRef p = Pattern::compile("green");
+      PatternRef p = Pattern::compile("green", true, true);
 
-      unsigned int start, end;
-      unsigned int index = 0;
+      int start, end;
+      int index = 0;
 
       assert(p->match(submatches.c_str(), index, start, end));
       assert(start == 9);

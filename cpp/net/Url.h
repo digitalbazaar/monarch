@@ -333,6 +333,16 @@ public:
    static std::string getParentPath(const char* path);
 
    /**
+    * Parses a 'host:port' string into a hostname string and port string.
+    *
+    * @param input the 'host:port' string.
+    * @param host the string to store the hostname in.
+    * @param port the string to store the port in.
+    */
+   static void parseHostAndPort(
+      const char* input, std::string& host, std::string& port);
+
+   /**
     * URL-encodes the passed string.
     *
     * @param str the string to URL-encode.

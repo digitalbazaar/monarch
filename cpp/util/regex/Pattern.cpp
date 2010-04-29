@@ -26,9 +26,7 @@ inline regex_t& Pattern::getStorage()
    return mStorage;
 }
 
-bool Pattern::match(
-   const char* str, unsigned int offset,
-   unsigned int& start, unsigned int& end)
+bool Pattern::match(const char* str, int offset, int& start, int& end)
 {
    bool rval = false;
 

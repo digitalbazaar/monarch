@@ -64,12 +64,12 @@ string& StringTools::regexReplaceAll(
    string& str, const string& regex, const string& replace, bool matchCase)
 {
    // compile regex pattern
-   PatternRef p = Pattern::compile(regex.c_str(), matchCase);
+   PatternRef p = Pattern::compile(regex.c_str(), matchCase, true);
    if(!p.isNull())
    {
       // replace all matches
-      unsigned int start, end;
-      unsigned int index = 0;
+      int start, end;
+      int index = 0;
       while(p->match(str.c_str(), index, start, end))
       {
          str.replace(start, end - start, replace);
