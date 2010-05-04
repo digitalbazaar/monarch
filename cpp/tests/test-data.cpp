@@ -2408,6 +2408,46 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (date pipe)");
+   {
+      // create template
+      const char* tpl =
+         "{mydate|date('%Y-%m-%d')}\n"
+         "{longdate|date('%Y-%m-%d','%a, %d %b %Y %H:%M:%S')}\n"
+         "{longdate|date('%Y-%m-%d','%a, %d %b %Y %H:%M:%S','UTC')}\n"
+         "{longdate|date('%Y-%m-%d','%a, %d %b %Y %H:%M:%S','','')}\n"
+         "{longdate|date('%Y-%m-%d %H:%M:%S','%a, %d %b %Y %H:%M:%S','','')}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["mydate"] = "2010-01-01 00:01:00";
+      vars["longdate"] = "Sat, 21 Jan 2006 03:15:46";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      const char* expect =
+         "2010-01-01\n"
+         "2006-01-21\n"
+         "2006-01-21\n"
+         "2006-01-21\n"
+         "2006-01-21 03:15:46\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 

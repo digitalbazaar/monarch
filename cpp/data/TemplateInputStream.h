@@ -140,7 +140,8 @@ protected:
          pipe_regex,
          pipe_default,
          pipe_truncate,
-         pipe_json
+         pipe_json,
+         pipe_date
       };
       Type type;
       std::string text;

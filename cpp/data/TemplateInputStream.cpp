@@ -1975,6 +1975,44 @@ static bool _pipe_json(
    return true;
 }
 
+static bool _pipe_date(
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
+{
+   bool rval = true;
+   const char* outFormat = params[0]->getString();
+   const char* inFormat = params->length() > 1 ?
+      params[1]->getString() : "%Y-%m-%d %H:%M:%S";
+   const char* inTz = params->length() > 2 ? params[2]->getString() : "UTC";
+   const char* outTz = params->length() > 3 ? params[3]->getString() : "UTC";
+   Date d;
+   TimeZone tz1 = TimeZone::getTimeZone(inTz);
+   TimeZone tz2 = TimeZone::getTimeZone(outTz);
+   rval = d.parse(value.c_str(), inFormat, &tz1);
+   if(rval)
+   {
+      value = d.toString(outFormat, &tz2);
+      rval = (value.length() > 0);
+      if(!rval)
+      {
+         ExceptionRef e = new Exception(
+            "Invalid date output format.",
+            EXCEPTION_SYNTAX);
+         e->getDetails()["outFormat"] = outFormat;
+         Exception::set(e);
+      }
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Could not parse date.",
+         EXCEPTION_SYNTAX);
+      e->getDetails()["date"] = value.c_str();
+      e->getDetails()["expectedFormat"] = inFormat;
+      Exception::set(e);
+   }
+   return rval;
+}
+
 bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
 {
    bool rval = true;
@@ -2007,18 +2045,42 @@ bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
             params->setType(Array);
 
             // split params on comma
+            string token;
             string str = p->text.substr(lp + 1, rp - lp - 1);
             DynamicObject tokens = StringTools::split(str.c_str(), ",");
             DynamicObjectIterator i = tokens.getIterator();
             while(rval && i->hasNext())
             {
-               // trim whitespace
-               string token = i->next()->getString();
-               StringTools::trim(token, " ");
+               // append to the previous token if it exists
+               if(token.length() > 0)
+               {
+                  token.append(i->next()->getString());
+               }
+               else
+               {
+                  token = i->next()->getString();
+               }
 
-               // parse token as an expression
-               DynamicObject& param = params->append();
-               rval = parseExpression(token.c_str(), param);
+               // there might be a comma within the param, so if a token
+               // starts with a quote but doesn't end with one and we're not
+               // on the last token, then add the comma to the token
+               int last = token.length() - 1;
+               if(i->hasNext() && last > 0 &&
+                  ((token[0] == '\'' && token[last] != '\'') ||
+                  (token[0] == '"' && token[last] != '"')))
+               {
+                  token.push_back(',');
+               }
+               else
+               {
+                  // trim whitespace
+                  StringTools::trim(token, " ");
+
+                  // parse token as an expression
+                  DynamicObject& param = params->append();
+                  rval = parseExpression(token.c_str(), param);
+                  token.clear();
+               }
             }
 
             if(rval)
@@ -2105,6 +2167,23 @@ bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
       {
          p->type = Pipe::pipe_json;
          p->func = &_pipe_json;
+      }
+      else if(strcmp(name.c_str(), "date") == 0)
+      {
+         p->type = Pipe::pipe_date;
+         p->func = &_pipe_date;
+         if(p->params == NULL || (*p->params)->length() < 1)
+         {
+            ExceptionRef e = new Exception(
+               "The output format for the date must be given as a "
+               "parameter to the 'date' pipe.",
+               EXCEPTION_SYNTAX);
+            e->getDetails()["syntax"] =
+               "<var>|date('<out format>', "
+               "['<in format>', ['<out timezone>', ['<in timezone>']]])";
+            Exception::set(e);
+            rval = false;
+         }
       }
       else
       {

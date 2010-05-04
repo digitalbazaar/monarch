@@ -154,7 +154,7 @@ string& Date::format(string& str, const char* format, TimeZone* tz)
    // apply time zone
    if(tz == NULL)
    {
-      // get local time
+      // no time zone provided, use local time
       localtime_r(&mSecondsSinceEpoch, &time);
    }
    else if(tz->getMinutesWest() != 0)
@@ -186,18 +186,29 @@ bool Date::parse(const char* str, const char* format, TimeZone* tz)
    {
       rval = true;
 
+      // get UTC time in seconds since epoch
+      mSecondsSinceEpoch = timegm(&mBrokenDownTime);
+
+      time_t mw = 0;
       if(tz == NULL)
       {
-         // get local time
-         mSecondsSinceEpoch = mktime(&mBrokenDownTime);
+         // no timezone provided, default to local time
+         TimeZone local = TimeZone::getTimeZone();
+         mw = local.getMinutesWest();
       }
       else
       {
-         // get gmt time (applies no timezone)
-         mSecondsSinceEpoch = timegm(&mBrokenDownTime);
+         // use given timezone
+         mw = tz->getMinutesWest();
       }
 
-      // ensure broken down time is in GMT and totally filled out
+      if(mw != 0)
+      {
+         // add minutes west and get time
+         mSecondsSinceEpoch += tz->getMinutesWest() * 60UL;
+      }
+
+      // ensure broken down time is totally filled out
       // (strptime may not populate all fields)
       gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
    }
