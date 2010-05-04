@@ -117,7 +117,8 @@ protected:
          cmd_elseif,
          cmd_else,
          cmd_set,
-         cmd_unset
+         cmd_unset,
+         cmd_dump
       };
       Type type;
       std::string text;
@@ -138,7 +139,8 @@ protected:
          pipe_replace,
          pipe_regex,
          pipe_default,
-         pipe_truncate
+         pipe_truncate,
+         pipe_json
       };
       Type type;
       std::string text;
@@ -146,10 +148,11 @@ protected:
       void* userData;
 
       /**
-       * A pipe function that modifies the given string, returning false if
-       * an exception occurred.
+       * A pipe function that modifies the given variable or string value,
+       * returning false if an exception occurred.
        */
       typedef bool (*PipeFunction)(
+         monarch::rt::DynamicObject& var,
          std::string& value,
          monarch::rt::DynamicObject& params, void* userData);
       PipeFunction func;

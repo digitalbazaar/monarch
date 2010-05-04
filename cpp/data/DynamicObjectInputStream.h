@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_DynamicObjectInputStream_H
 #define monarch_data_DynamicObjectInputStream_H
@@ -63,7 +63,8 @@ public:
     *                leave it alone.
     */
    DynamicObjectInputStream(
-      monarch::rt::DynamicObject& dyno, DynamicObjectWriter* writer, bool cleanup);
+      monarch::rt::DynamicObject& dyno, DynamicObjectWriter* writer,
+      bool cleanup);
 
    /**
     * Destructs this DynamicObject.

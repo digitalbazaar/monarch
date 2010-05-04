@@ -2368,6 +2368,46 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (dump)");
+   {
+      // create template
+      const char* tpl =
+         "{:set foo='A'}"
+         "{:dump foo}\n"
+         "{foo|json}\n"
+         "{:set bar='B'}"
+         "{:dump}";
+
+      DynamicObject vars;
+      vars["foobar"] = "C";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoException();
+
+      DynamicObject expectVars;
+      expectVars["localVars"]["foo"] = "A";
+      expectVars["localVars"]["bar"] = "B";
+      expectVars["vars"]["foobar"] = "C";
+      string expect =
+         "\"A\"\n"
+         "\"A\"\n";
+      expect.append(JsonWriter::writeToString(expectVars, false, false));
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect.c_str(), output.data());
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 

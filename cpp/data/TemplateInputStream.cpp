@@ -3,6 +3,8 @@
  */
 #include "monarch/data/TemplateInputStream.h"
 
+#include "monarch/data/DynamicObjectInputStream.h"
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/FileInputStream.h"
 #include "monarch/net/Url.h"
 #include "monarch/rt/Exception.h"
@@ -10,6 +12,7 @@
 
 using namespace std;
 using namespace monarch::data;
+using namespace monarch::data::json;
 using namespace monarch::io;
 using namespace monarch::net;
 using namespace monarch::rt;
@@ -1075,6 +1078,11 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       cmd->type = Command::cmd_unset;
       cmd->requiresEnd = false;
    }
+   else if(strcmp(cmdName, "dump") == 0 || strcmp(cmdName, "print") == 0)
+   {
+      cmd->type = Command::cmd_dump;
+      cmd->requiresEnd = false;
+   }
 
    // build params
    DynamicObject params;
@@ -1418,6 +1426,25 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          }
          break;
       }
+      case Command::cmd_dump:
+      {
+         // {:dump <var>}
+         if(tokens->length() == 2)
+         {
+            // parse variable text
+            rval = parseVariableText(tokens[1]->getString(), params["lhs"]);
+            if(rval && params["lhs"]->hasMember("op"))
+            {
+               // can't have operators on dump
+               rval = false;
+            }
+         }
+         else if(tokens->length() > 2)
+         {
+            rval = false;
+         }
+         break;
+      }
       default:
       {
          ExceptionRef e = new Exception(
@@ -1541,6 +1568,13 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
             err =
                "Invalid 'unset' syntax. Syntax: "
                "{:unset <name>}";
+            break;
+         }
+         case Command::cmd_dump:
+         {
+            err =
+               "Invalid 'dump' syntax. Syntax: "
+               "{:dump [<var>]}";
             break;
          }
          default:
@@ -1792,7 +1826,7 @@ bool TemplateInputStream::parseExpression(
 }
 
 static bool _pipe_escape(
-   string& value, DynamicObject& params, void* userData)
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
 
@@ -1851,7 +1885,7 @@ static bool _pipe_escape(
 };
 
 static bool _pipe_capitalize(
-   string& value, DynamicObject& params, void* userData)
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
 
@@ -1873,7 +1907,7 @@ static bool _pipe_capitalize(
 };
 
 static bool _pipe_replace(
-   string& value, DynamicObject& params, void* userData)
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
    string find = params[0]->getString();
@@ -1883,7 +1917,7 @@ static bool _pipe_replace(
 }
 
 static bool _pipe_regex(
-   string& value, DynamicObject& params, void* userData)
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
    string find = params[0]->getString();
@@ -1893,7 +1927,7 @@ static bool _pipe_regex(
 }
 
 static bool _pipe_default(
-   string& value, DynamicObject& params, void* userData)
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
    if(value.length() == 0)
@@ -1904,7 +1938,7 @@ static bool _pipe_default(
 }
 
 static bool _pipe_truncate(
-   string& value, DynamicObject& params, void* userData)
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
    string::size_type len = value.length();
@@ -1932,6 +1966,13 @@ static bool _pipe_truncate(
    }
 
    return rval;
+}
+
+static bool _pipe_json(
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
+{
+   value = JsonWriter::writeToString(var, false, false);
+   return true;
 }
 
 bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
@@ -2059,6 +2100,11 @@ bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
             Exception::set(e);
             rval = false;
          }
+      }
+      else if(strcmp(name.c_str(), "json") == 0)
+      {
+         p->type = Pipe::pipe_json;
+         p->func = &_pipe_json;
       }
       else
       {
@@ -2568,9 +2614,39 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
       }
       case Command::cmd_unset:
       {
-         // set local variable
+         // unset local variable
          DynamicObject& params = *cmd->params;
          findLocalVariable(params["lhs"], NULL, true);
+         break;
+      }
+      case Command::cmd_dump:
+      {
+         // find variable, if one was provided
+         DynamicObject& params = *cmd->params;
+         DynamicObject var(NULL);
+         if(params->hasMember("lhs"))
+         {
+            var = findVariable(params["lhs"], true);
+            if(var.isNull())
+            {
+               // var must exist
+               rval = false;
+            }
+         }
+         else
+         {
+            var = DynamicObject();
+            var["vars"] = mVars;
+            var["localVars"] = mLocalVars;
+         }
+         if(rval)
+         {
+            // dump variable (non-strict json)
+            JsonWriter writer(false);
+            writer.setCompact(false);
+            DynamicObjectInputStream dois(var, &writer, false);
+            mParsed.put(&dois);
+         }
          break;
       }
       case Command::cmd_eachelse:
@@ -2627,14 +2703,14 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
                DynamicObject& next = pi->next();
                if(next["isVar"]->getBoolean())
                {
-                  DynamicObject var = findVariable(next["var"], true);
-                  if(var.isNull())
+                  DynamicObject pvar = findVariable(next["var"], true);
+                  if(pvar.isNull())
                   {
                      rval = false;
                   }
                   else
                   {
-                     params->append(var);
+                     params->append(pvar);
                   }
                }
                else
@@ -2644,7 +2720,7 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
             }
          }
 
-         rval = rval && p->func(value, params, p->userData);
+         rval = rval && p->func(var, value, params, p->userData);
       }
 
       // write out variable value
