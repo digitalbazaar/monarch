@@ -581,41 +581,103 @@ bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
    }
    else
    {
-      // compare based on string values
-      switch(mType)
+      // FIXME: make isNumber() and isNumeric() functions?
+
+      // determine if lhs is a number and is negative
+      bool lhsDouble = (mType == Double);
+      bool lhsNumber = false;
+      bool lhsNegative = false;
+      if(mType == Int32 || mType == Int64 || lhsDouble)
       {
-         case String:
-         case Boolean:
-         case Int32:
-         case Int64:
-         case UInt32:
-         case UInt64:
-         case Double:
-            switch(rhs.mType)
+         lhsNegative = getDouble() < 0;
+         lhsNumber = true;
+      }
+      else if(mType == UInt32 || mType == UInt64)
+      {
+         lhsNumber = true;
+      }
+
+      // determine if rhs is a number and is negative
+      bool rhsDouble = (rhs.mType == Double);
+      bool rhsNumber = false;
+      bool rhsNegative = false;
+      if(rhs.mType == Int32 || rhs.mType == Int64 || rhsDouble)
+      {
+         rhsNegative = getDouble() < 0;
+         rhsNumber = true;
+      }
+      else if(rhs.mType == UInt32 || rhs.mType == UInt64)
+      {
+         rhsNumber = true;
+      }
+
+      // do number comparison if both lhs and rhs are numbers
+      if(lhsNumber && rhsNumber)
+      {
+         if(lhsNegative == rhsNegative)
+         {
+            if(lhsDouble || rhsDouble)
             {
-               case String:
-               case Boolean:
-               case Int32:
-               case UInt32:
-               case Int64:
-               case UInt64:
-               case Double:
-                  rval = (strcmp(getString(), rhs.getString()) < 0);
-                  break;
-               default:
-                  // maps/arrays "greater/equal" to other types
-                  rval = false;
-                  break;
+               rval = getDouble() < rhs.getDouble();
             }
-            break;
-         case Map:
-            // map is "less" than array, nothing else
-            rval = (rhs.mType == Array);
-            break;
-         case Array:
-            // array is "greatest" type
+            else if(lhsNegative || rhsNegative)
+            {
+               rval = getInt64() < rhs.getInt64();
+            }
+            else
+            {
+               rval = getUInt64() < rhs.getUInt64();
+            }
+         }
+         else if(lhsNegative)
+         {
+            // lhs is negative, rhs is not
+            rval = true;
+         }
+         else
+         {
+            // rhs is negative, lhs is not
             rval = false;
-            break;
+         }
+      }
+      else
+      {
+         // compare based on string values
+         switch(mType)
+         {
+            case String:
+            case Boolean:
+            case Int32:
+            case Int64:
+            case UInt32:
+            case UInt64:
+            case Double:
+               switch(rhs.mType)
+               {
+                  case String:
+                  case Boolean:
+                  case Int32:
+                  case UInt32:
+                  case Int64:
+                  case UInt64:
+                  case Double:
+                     rval = (strcmp(getString(), rhs.getString()) < 0);
+                     break;
+                  default:
+                     // maps/arrays "greater/equal" to other types
+                     rval = false;
+                     break;
+               }
+               break;
+            case Map:
+               // map is "less" than array, nothing else
+               rval = (rhs.mType == Array);
+               break;
+            case Array:
+               // array is "greatest" type
+               rval = false;
+               break;
+         }
       }
    }
 
