@@ -2413,10 +2413,13 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       // create template
       const char* tpl =
          "{mydate|date('%Y-%m-%d')}\n"
+         "{mydate|date('%Y-%m-%d','',0,0)}\n"
          "{longdate|date('%Y-%m-%d','%a, %d %b %Y %H:%M:%S')}\n"
          "{longdate|date('%Y-%m-%d','%a, %d %b %Y %H:%M:%S','UTC')}\n"
          "{longdate|date('%Y-%m-%d','%a, %d %b %Y %H:%M:%S','','')}\n"
-         "{longdate|date('%Y-%m-%d %H:%M:%S','%a, %d %b %Y %H:%M:%S','','')}\n";
+         "{longdate|date('%Y-%m-%d %H:%M:%S','%a, %d %b %Y %H:%M:%S','','')}\n"
+         "{longdate|date('%Y-%m-%d %H:%M:%S','%a, %d %b %Y %H:%M:%S',0,60)}\n"
+         "{longdate|date('%Y-%m-%d %H:%M:%S','%a, %d %b %Y %H:%M:%S',0,-60)}\n";
 
       // create variables
       DynamicObject vars;
@@ -2435,10 +2438,13 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       const char* expect =
          "2010-01-01\n"
+         "2010-01-01\n"
          "2006-01-21\n"
          "2006-01-21\n"
          "2006-01-21\n"
-         "2006-01-21 03:15:46\n";
+         "2006-01-21 03:15:46\n"
+         "2006-01-21 02:15:46\n"
+         "2006-01-21 04:15:46\n";
 
       // null-terminate output
       output.putByte(0, 1, true);

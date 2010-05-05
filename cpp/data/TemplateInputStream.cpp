@@ -1982,15 +1982,44 @@ static bool _pipe_date(
    const char* outFormat = params[0]->getString();
    const char* inFormat = params->length() > 1 ?
       params[1]->getString() : "%Y-%m-%d %H:%M:%S";
-   const char* inTz = params->length() > 2 ? params[2]->getString() : "UTC";
-   const char* outTz = params->length() > 3 ? params[3]->getString() : "UTC";
+   if(strlen(inFormat) == 0)
+   {
+      inFormat = "%Y-%m-%d %H:%M:%S";
+   }
+
+   TimeZone inTz;
+   TimeZone outTz;
+   // get in timezone
+   if(params->length() > 2)
+   {
+      // get in timezone
+      if(params[2]->getType() != String)
+      {
+         inTz = TimeZone(params[2]->getInt64());
+      }
+      else
+      {
+         inTz = TimeZone::getTimeZone(params[2]->getString());
+      }
+   }
+   // get out timezone
+   if(params->length() > 3)
+   {
+      if(params[3]->getType() != String)
+      {
+         outTz = TimeZone(params[3]->getInt64());
+      }
+      else
+      {
+         outTz = TimeZone::getTimeZone(params[3]->getString());
+      }
+   }
+
    Date d;
-   TimeZone tz1 = TimeZone::getTimeZone(inTz);
-   TimeZone tz2 = TimeZone::getTimeZone(outTz);
-   rval = d.parse(value.c_str(), inFormat, &tz1);
+   rval = d.parse(value.c_str(), inFormat, &inTz);
    if(rval)
    {
-      value = d.toString(outFormat, &tz2);
+      value = d.toString(outFormat, &outTz);
       rval = (value.length() > 0);
       if(!rval)
       {
