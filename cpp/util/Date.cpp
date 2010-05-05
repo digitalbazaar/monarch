@@ -205,7 +205,7 @@ bool Date::parse(const char* str, const char* format, TimeZone* tz)
       if(mw != 0)
       {
          // add minutes west and get time
-         mSecondsSinceEpoch += mw * 60UL;
+         mSecondsSinceEpoch += mw * 60;
       }
 
       // ensure broken down time is totally filled out

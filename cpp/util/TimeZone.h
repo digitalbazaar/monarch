@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_TimeZone_H
 #define monarch_util_TimeZone_H
@@ -22,16 +22,16 @@ protected:
    /**
     * The number of minutes west of GMT.
     */
-   unsigned int mMinutesWest;
+   time_t mMinutesWest;
 
+public:
    /**
     * Creates a new TimeZone with the given number of minutes west of GMT.
     *
     * @param minutesWest the number of minutes west of GMT.
     */
-   TimeZone(unsigned int minutesWest = 0);
+   TimeZone(time_t minutesWest = 0);
 
-public:
    /**
     * Destructs this TimeZone.
     */
@@ -42,7 +42,7 @@ public:
     *
     * @return the number of minutes west of GMT.
     */
-   virtual unsigned int getMinutesWest();
+   virtual time_t getMinutesWest();
 
    /**
     * Gets a TimeZone from its abbreviation.

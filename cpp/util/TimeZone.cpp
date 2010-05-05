@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/TimeZone.h"
+
 #include "monarch/rt/System.h"
 
 #include <cstring>
@@ -10,16 +11,16 @@ using namespace std;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-TimeZone::TimeZone(unsigned int minutesWest)
+TimeZone::TimeZone(time_t minutesWest) :
+   mMinutesWest(minutesWest)
 {
-   mMinutesWest = minutesWest;
 }
 
 TimeZone::~TimeZone()
 {
 }
 
-inline unsigned int TimeZone::getMinutesWest()
+inline time_t TimeZone::getMinutesWest()
 {
    return mMinutesWest;
 }
