@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_DynamicLibrary_H
 #define monarch_rt_DynamicLibrary_H
@@ -11,8 +11,9 @@
 #include <windows.h>
 
 // these flags are not used in windows
-#define RTLD_NOW 0
-#define RTLD_GLOBAL 0
+#define RTLD_LAZY     0x00001
+#define RTLD_NOW      0x00002
+#define RTLD_GLOBAL   0x00100
 
 /**
  * Opens a dynamic library.
