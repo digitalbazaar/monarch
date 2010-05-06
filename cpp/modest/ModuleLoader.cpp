@@ -23,7 +23,7 @@ ModuleInfo* ModuleLoader::loadModule(const char* filename)
    ModuleInfo* rval = NULL;
 
    // open library
-   void* handle = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
+   void* handle = dlopen(filename, RTLD_LAZY | RTLD_GLOBAL);
    if(handle != NULL)
    {
       CreateModestModuleFn create;
