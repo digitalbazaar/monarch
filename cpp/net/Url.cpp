@@ -375,20 +375,29 @@ bool Url::getTokenizedPath(DynamicObject& result, const char* basePath)
 {
    bool rval = false;
 
+   // initialize result to an array
+   result->setType(Array);
+
+   // start tokenizing after the base path
    const char* start = strstr(mPath.c_str(), basePath);
    if(start != NULL)
    {
       rval = true;
 
-      // split path up by forward slashes
-      const char* tok;
-      StringTokenizer st(start + strlen(basePath), '/');
-      for(int i = 0; st.hasNextToken(); i++)
+      // there are no tokens if the URL path is the same as the base path
+      start += strlen(basePath);
+      if(start[0] != '\0')
       {
-         tok = st.nextToken();
+         // split path up by forward slashes
+         const char* tok;
+         StringTokenizer st(start, '/');
+         for(int i = 0; st.hasNextToken(); i++)
+         {
+            tok = st.nextToken();
 
-         // url-decode token, set dynamic object value and type
-         result[i] = decode(tok, strlen(tok)).c_str();
+            // url-decode token, set dynamic object value and type
+            result[i] = decode(tok, strlen(tok)).c_str();
+         }
       }
    }
 
