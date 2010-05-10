@@ -716,6 +716,35 @@ static void runStringTokenizerTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("empty str, empty token");
+   {
+      StringTokenizer st("", '/');
+      assert(st.hasNextToken());
+      assertStrCmp(st.nextToken(), "");
+      assert(!st.hasNextToken());
+   }
+   tr.passIfNoException();
+
+   tr.test("simple str, same token");
+   {
+      StringTokenizer st("/", '/');
+      assert(st.hasNextToken());
+      assertStrCmp(st.nextToken(), "");
+      assert(st.hasNextToken());
+      assertStrCmp(st.nextToken(), "");
+      assert(!st.hasNextToken());
+   }
+   tr.passIfNoException();
+
+   tr.test("simple str, diff token");
+   {
+      StringTokenizer st("/", 'X');
+      assert(st.hasNextToken());
+      assertStrCmp(st.nextToken(), "/");
+      assert(!st.hasNextToken());
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
