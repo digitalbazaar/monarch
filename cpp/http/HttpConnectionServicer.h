@@ -64,6 +64,14 @@ protected:
    };
 
    /**
+    * Sorts ServiceDomains.
+    */
+   struct ServiceDomainSorter
+   {
+      bool operator()(const ServiceDomain* a, const ServiceDomain* b);
+   };
+
+   /**
     * The ServiceDomains supported by this HttpConnectionServicer.
     */
    typedef std::vector<ServiceDomain*> ServiceDomainList;

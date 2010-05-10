@@ -10,6 +10,7 @@
 #include "monarch/rt/DynamicObjectIterator.h"
 
 #include <cstdlib>
+#include <algorithm>
 
 using namespace std;
 using namespace monarch::io;
@@ -303,6 +304,65 @@ static PatternRef _compileDomainRegex(const char* domain)
    return rval;
 }
 
+static int _countWildcards(const char* domain)
+{
+   int rval = 0;
+   for(; *domain != '\0'; domain++)
+   {
+      if(*domain == '*')
+      {
+         rval++;
+      }
+   }
+   return rval;
+}
+
+/**
+ * Sort function that roughly sorts domains by how specific they are. The
+ * fewer the wildcards, the "lesser" the value. If wildcard counts are the
+ * same, then the shorter string is used.
+ *
+ * @param a ServiceDomain 1.
+ * @param a ServiceDomain 2.
+ *
+ * @return true if a is less than b.
+ */
+bool HttpConnectionServicer::ServiceDomainSorter::operator()(
+   const ServiceDomain* a, const ServiceDomain* b)
+{
+   bool rval = false;
+
+   // the 'all' wildcard is never less, so skip it
+   if(strcmp(a->domain, "*") != 0)
+   {
+      // a is always less than the 'all' wildcard
+      if(strcmp(b->domain, "*") == 0)
+      {
+         rval = true;
+      }
+      else
+      {
+         // count wildcards in the domains
+         int wc_a = _countWildcards(a->domain);
+         int wc_b = _countWildcards(b->domain);
+
+         // if wildcard counts are the same, the longer string is less specific
+         if(wc_a == wc_b)
+         {
+            // a is less than b if a is longer
+            rval = (strlen(a->domain) > strlen(b->domain));
+         }
+         // if a count is less than b count, a is less
+         else if(wc_a < wc_b)
+         {
+            rval = true;
+         }
+      }
+   }
+
+   return rval;
+}
+
 bool HttpConnectionServicer::addRequestServicer(
    HttpRequestServicer* s, bool secure, const char* domain)
 {
@@ -343,6 +403,9 @@ bool HttpConnectionServicer::addRequestServicer(
             {
                sd->nonSecureMap[path] = s;
             }
+
+            // sort domains
+            sort(mDomains.begin(), mDomains.end(), ServiceDomainSorter());
          }
          else
          {
