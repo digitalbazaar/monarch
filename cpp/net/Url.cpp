@@ -193,6 +193,9 @@ bool Url::setUrl(const string& url)
       index = 0;
    }
 
+   // parse the scheme specific part if the URL is relative (the entire URL
+   // is the scheme specific part) or if the URL is absolute and has a scheme
+   // specific part (the colon is not at the end of the url)
    if(rval && (mRelative || (index < url.length() - 1)))
    {
       // get scheme specific part
