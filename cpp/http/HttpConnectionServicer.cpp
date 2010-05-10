@@ -17,69 +17,26 @@ using namespace monarch::http;
 using namespace monarch::logging;
 using namespace monarch::net;
 using namespace monarch::rt;
+using namespace monarch::util;
+using namespace monarch::util::regex;
 
-HttpConnectionServicer::HttpConnectionServicer(const char* serverName)
+HttpConnectionServicer::HttpConnectionServicer(const char* serverName) :
+   mServerName(strdup(serverName))
 {
-   mServerName = strdup(serverName);
 }
 
 HttpConnectionServicer::~HttpConnectionServicer()
 {
    free(mServerName);
-}
 
-HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
-   char* path, ServicerMap& servicerMap)
-{
-   HttpRequestServicer* rval = NULL;
-
-   // strip any query
-   if(path != NULL)
+   // free domains
+   for(ServiceDomainList::iterator i = mDomains.begin();
+       i != mDomains.end(); i++)
    {
-      char* end = strrchr(path, '?');
-      if(end != NULL)
-      {
-         end[0] = 0;
-      }
+      ServiceDomain* sd = *i;
+      free(sd->domain);
+      delete sd;
    }
-
-   mRequestServicerLock.lockShared();
-   {
-      // try to find servicer for path
-      ServicerMap::iterator i;
-      while(rval == NULL && path != NULL)
-      {
-         i = servicerMap.find(path);
-         if(i != servicerMap.end())
-         {
-            rval = i->second;
-         }
-         else if(strlen(path) > 1)
-         {
-            // try to find servicer at parent path
-            char* end = strrchr(path, '/');
-            if(end != NULL)
-            {
-               // if parent is root (end == path), set path to "/"
-               // if parent is not root, clear last slash
-               end[(end == path) ? 1 : 0] = 0;
-            }
-            else
-            {
-               // no path left to search
-               path = NULL;
-            }
-         }
-         else
-         {
-            // no path left to search
-            path = NULL;
-         }
-      }
-   }
-   mRequestServicerLock.unlockShared();
-
-   return rval;
 }
 
 void HttpConnectionServicer::serviceConnection(Connection* c)
@@ -157,10 +114,7 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
             HttpRequestServicer* hrs = NULL;
 
             // find secure/non-secure servicer
-            hrs = hc.isSecure() ?
-               findRequestServicer(outPath, mSecureServicers) :
-               findRequestServicer(outPath, mNonSecureServicers);
-
+            hrs = findRequestServicer(host, outPath, hc.isSecure());
             if(hrs != NULL)
             {
                // service request
@@ -320,121 +274,257 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    hc.close();
 }
 
+static PatternRef _compileDomainRegex(const char* domain)
+{
+   PatternRef rval(NULL);
+
+   string regex = "^";
+   regex.append(domain);
+   regex.append("$");
+
+   // escape all periods
+   StringTools::replaceAll(regex, ".", "\\.");
+
+   // replace all wildcards with (.*)
+   StringTools::replaceAll(regex, "*", ".*");
+
+   // try to compile the pattern (match case, no-sub matches allowed)
+   rval = Pattern::compile(regex.c_str(), true, false);
+   if(rval.isNull())
+   {
+      ExceptionRef e = new Exception(
+         "Could not add http request servicer. Invalid domain format.",
+         "monarch.net.http.InvalidDomainFormat");
+      e->getDetails()["domain"] = domain;
+      e->getDetails()["regex"] = regex.c_str();
+      Exception::push(e);
+   }
+
+   return rval;
+}
+
 bool HttpConnectionServicer::addRequestServicer(
-   HttpRequestServicer* s, bool secure)
+   HttpRequestServicer* s, bool secure, const char* domain)
 {
    bool rval = false;
 
-   const char* path = s->getPath();
-
-   mRequestServicerLock.lockExclusive();
+   // try to compile domain regex first
+   PatternRef regex = _compileDomainRegex(domain);
+   rval = !regex.isNull();
+   if(rval)
    {
-      if(secure)
+      const char* path = s->getPath();
+      mDomainLock.lockExclusive();
       {
-         ServicerMap::iterator i = mSecureServicers.find(path);
-         if(i == mSecureServicers.end())
+         // try to find exact domain
+         ServiceDomain* sd = NULL;
+         for(ServiceDomainList::iterator i = mDomains.begin();
+             sd == NULL && i != mDomains.end(); i++)
          {
-            mSecureServicers[path] = s;
-            rval = true;
+            if(strcmp((*i)->domain, domain) == 0)
+            {
+               sd = *i;
+            }
+         }
+
+         // add a new domain if one wasn't found
+         if(sd == NULL)
+         {
+            // insert new domain
+            sd = new ServiceDomain;
+            sd->domain = strdup(domain);
+            sd->regex = regex;
+            mDomains.push_back(sd);
+            if(secure)
+            {
+               sd->secureMap[path] = s;
+            }
+            else
+            {
+               sd->nonSecureMap[path] = s;
+            }
+         }
+         else
+         {
+            // see if a servicer already exists
+            ServicerMap& sm = secure ? sd->secureMap : sd->nonSecureMap;
+            ServicerMap::iterator si = sm.find(path);
+            if(si == sm.end())
+            {
+               sm[path] = s;
+            }
+            else
+            {
+               // servicer already exists
+               ExceptionRef e = new Exception(
+                  "Could not add http request servicer. "
+                  "Domain/path combination is already in use.",
+                  "monarch.net.http.DuplicateEntry");
+               e->getDetails()["domain"] = domain;
+               e->getDetails()["path"] = path;
+               Exception::set(e);
+               rval = false;
+            }
          }
       }
-      else
-      {
-         ServicerMap::iterator i = mNonSecureServicers.find(path);
-         if(i == mNonSecureServicers.end())
-         {
-            mNonSecureServicers[path] = s;
-            rval = true;
-         }
-      }
-   }
-   mRequestServicerLock.unlockExclusive();
-
-   if(!rval)
-   {
-      ExceptionRef e = new Exception(
-         "Could not add http request servicer. Path already in use.",
-         "monarch.net.http.DuplicatePath");
-      e->getDetails()["path"] = path;
-      Exception::set(e);
+      mDomainLock.unlockExclusive();
    }
 
    return rval;
 }
 
 void HttpConnectionServicer::removeRequestServicer(
-   HttpRequestServicer* s, bool secure)
+   HttpRequestServicer* s, bool secure, const char* domain)
 {
-   mRequestServicerLock.lockExclusive();
-   {
-      if(secure)
-      {
-         mSecureServicers.erase(s->getPath());
-      }
-      else
-      {
-         mNonSecureServicers.erase(s->getPath());
-      }
-   }
-   mRequestServicerLock.unlockExclusive();
+   removeRequestServicer(s->getPath(), secure, domain);
 }
 
 HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
-   const char* path, bool secure)
+   const char* path, bool secure, const char* domain)
 {
    HttpRequestServicer* rval = NULL;
 
-   mRequestServicerLock.lockExclusive();
+   mDomainLock.lockExclusive();
    {
-      if(secure)
+      // try to find exact domain
+      for(ServiceDomainList::iterator i = mDomains.begin();
+          rval == NULL && i != mDomains.end(); i++)
       {
-         ServicerMap::iterator i = mSecureServicers.find(path);
-         if(i != mSecureServicers.end())
+         ServiceDomain* sd = *i;
+         if(strcmp(sd->domain, domain) == 0)
          {
-            rval = i->second;
-            mSecureServicers.erase(i);
-         }
-      }
-      else
-      {
-         ServicerMap::iterator i = mNonSecureServicers.find(path);
-         if(i != mNonSecureServicers.end())
-         {
-            rval = i->second;
-            mNonSecureServicers.erase(i);
+            // domain matched, look for servicer
+            ServicerMap& sm = secure ? sd->secureMap : sd->nonSecureMap;
+            ServicerMap::iterator si = sm.find(path);
+            if(si != sm.end())
+            {
+               // get servicer and erase its list entry
+               rval = si->second;
+               sm.erase(si);
+
+               // if domain is now empty, erase it
+               if(sd->secureMap.empty() && sd->nonSecureMap.empty())
+               {
+                  mDomains.erase(i);
+                  free(sd->domain);
+                  delete sd;
+               }
+            }
          }
       }
    }
-   mRequestServicerLock.unlockExclusive();
+   mDomainLock.unlockExclusive();
 
    return rval;
 }
 
 HttpRequestServicer* HttpConnectionServicer::getRequestServicer(
-   const char* path, bool secure)
+   const char* path, bool secure, const char* domain)
 {
    HttpRequestServicer* rval = NULL;
 
-   mRequestServicerLock.lockExclusive();
+   mDomainLock.lockShared();
    {
-      if(secure)
+      // try to find exact domain
+      for(ServiceDomainList::iterator i = mDomains.begin();
+          rval == NULL && i != mDomains.end(); i++)
       {
-         ServicerMap::iterator i = mSecureServicers.find(path);
-         if(i != mSecureServicers.end())
+         ServiceDomain* sd = *i;
+         if(strcmp(sd->domain, domain) == 0)
          {
-            rval = i->second;
-         }
-      }
-      else
-      {
-         ServicerMap::iterator i = mNonSecureServicers.find(path);
-         if(i != mNonSecureServicers.end())
-         {
-            rval = i->second;
+            // domain matched, look for servicer
+            ServicerMap& sm = secure ? sd->secureMap : sd->nonSecureMap;
+            ServicerMap::iterator si = sm.find(path);
+            if(si != sm.end())
+            {
+               rval = si->second;
+            }
          }
       }
    }
-   mRequestServicerLock.unlockExclusive();
+   mDomainLock.unlockShared();
+
+   return rval;
+}
+
+HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
+   std::string& host, char* path, bool secure)
+{
+   HttpRequestServicer* rval = NULL;
+
+   // strip any port number from host
+   size_t pos = host.find(':');
+   if(pos != string::npos)
+   {
+      host.erase(pos);
+   }
+
+   // strip any query from path
+   if(path != NULL)
+   {
+      char* end = strrchr(path, '?');
+      if(end != NULL)
+      {
+         end[0] = 0;
+      }
+   }
+
+   // get a copy of the path to reuse
+   int len = strlen(path);
+   char tmp[len + 1];
+   strcpy(tmp, path);
+
+   mDomainLock.lockShared();
+   {
+      // try to find regex-matching domain
+      for(ServiceDomainList::iterator i = mDomains.begin();
+          rval == NULL && i != mDomains.end(); i++)
+      {
+         ServiceDomain* sd = *i;
+         if(sd->regex->match(host.c_str()))
+         {
+            // domain matched, look for servicer
+            ServicerMap& sm = secure ? sd->secureMap : sd->nonSecureMap;
+
+            // reset path
+            strcpy(path, tmp);
+
+            // try to find servicer for path
+            ServicerMap::iterator si;
+            while(rval == NULL && path != NULL)
+            {
+               si = sm.find(path);
+               if(si != sm.end())
+               {
+                  // servicer found
+                  rval = si->second;
+               }
+               else if(strlen(path) > 1)
+               {
+                  // try to find servicer at parent path
+                  char* end = strrchr(path, '/');
+                  if(end != NULL)
+                  {
+                     // if parent is root (end == path), set path to "/"
+                     // if parent is not root, clear last slash
+                     end[(end == path) ? 1 : 0] = 0;
+                  }
+                  else
+                  {
+                     // no path left to search
+                     path = NULL;
+                  }
+               }
+               else
+               {
+                  // no path left to search
+                  path = NULL;
+               }
+            }
+         }
+      }
+   }
+   mDomainLock.unlockShared();
 
    return rval;
 }
