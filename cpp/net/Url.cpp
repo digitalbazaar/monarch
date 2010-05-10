@@ -314,6 +314,12 @@ bool Url::setUrl(const string& url)
       }
    }
 
+   // if port not set, use default port
+   if(mPort == 0)
+   {
+      mPort = getDefaultPort();
+   }
+
    return rval;
 }
 
@@ -337,6 +343,11 @@ bool Url::format(const char* format, ...)
 bool Url::isRelative() const
 {
    return mRelative;
+}
+
+void Url::setScheme(const char* scheme)
+{
+   mScheme = scheme;
 }
 
 const string& Url::getScheme()
@@ -463,8 +474,13 @@ const string& Url::getHost()
    return mHost;
 }
 
-unsigned int Url::getPort()
+int Url::getPort()
 {
+   // set default port
+   if(mPort == 0)
+   {
+      mPort = getDefaultPort();
+   }
    return mPort;
 }
 
@@ -486,9 +502,9 @@ string Url::getSchemeHostAndPort()
    return rval;
 }
 
-unsigned int Url::getDefaultPort()
+int Url::getDefaultPort()
 {
-   unsigned int rval = 0;
+   int rval = 0;
 
    if(strcmp(getScheme().c_str(), "http") == 0)
    {

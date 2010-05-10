@@ -86,7 +86,7 @@ protected:
    /**
     * The port for this url, if one exists.
     */
-   unsigned int mPort;
+   int mPort;
 
    /**
     * Sets this Url to the passed formatted string.
@@ -180,6 +180,13 @@ public:
     * @return true if this url is relative, false if it is absolute.
     */
    virtual bool isRelative() const;
+
+   /**
+    * Sets the scheme for this url.
+    *
+    * @param scheme the new scheme to use.
+    */
+   virtual void setScheme(const char* scheme);
 
    /**
     * Gets the scheme for this url.
@@ -293,7 +300,7 @@ public:
     *
     * @return the port of this url.
     */
-   virtual unsigned int getPort();
+   virtual int getPort();
 
    /**
     * Convenience method to get the host and port of this url.
@@ -314,7 +321,7 @@ public:
     *
     * @return the default port for the scheme (protocol) of this url.
     */
-   virtual unsigned int getDefaultPort();
+   virtual int getDefaultPort();
 
    /**
     * Writes this url to a string.
