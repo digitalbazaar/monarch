@@ -188,7 +188,7 @@ bool Url::setUrl(const string& url)
       index = 0;
    }
 
-   if(rval && index < url.length() - 1)
+   if(rval && (mRelative || (index < url.length() - 1)))
    {
       // get scheme specific part
       if(mRelative)
