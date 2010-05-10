@@ -19,7 +19,9 @@ using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-Url::Url()
+Url::Url() :
+   mRelative(true),
+   mPort(0)
 {
 }
 
@@ -119,6 +121,9 @@ Url& Url::operator=(const Url& rhs)
 bool Url::setUrl(const string& url)
 {
    bool rval = true;
+
+   // initialize
+   mPort = 0;
 
    // find the first colon
    string::size_type index = 0;

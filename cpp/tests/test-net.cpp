@@ -788,12 +788,12 @@ static void runUrlEncodeTest(TestRunner& tr)
    tr.pass();
 }
 
-static void dumpUrl(Url url)
+static void dumpUrl(Url& url)
 #ifdef __GNUC__
       __attribute__ ((unused))
 #endif
       ;
-static void dumpUrl(Url url)
+static void dumpUrl(Url& url)
 {
    if(Exception::isSet())
    {
@@ -921,6 +921,41 @@ static void runUrlTest(TestRunner& tr)
    }
 
    {
+      Url url("/");
+
+      //dumpUrl(url);
+      assert(!Exception::isSet());
+      assertStrCmp(url.getPath().c_str(), "/");
+      assertStrCmp(url.getQuery().c_str(), "");
+
+      DynamicObject tokens;
+      assert(url.getTokenizedPath(tokens, "/"));
+      assert(tokens->length() == 0);
+
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->length() == 0);
+   }
+
+   {
+      Url url("/?key1=value1");
+
+      //dumpUrl(url);
+      assert(!Exception::isSet());
+      assertStrCmp(url.getPath().c_str(), "/");
+      assertStrCmp(url.getQuery().c_str(), "key1=value1");
+
+      DynamicObject tokens;
+      assert(url.getTokenizedPath(tokens, "/"));
+      assert(tokens->length() == 0);
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->length() == 1);
+      assertStrCmp(vars["key1"]->getString(), "value1");
+   }
+
+   {
       Url url(
          "/path/param1/10001?key1=value1&key2=value2&key3=two%20words%3D2");
 
@@ -933,11 +968,13 @@ static void runUrlTest(TestRunner& tr)
 
       DynamicObject tokens;
       assert(url.getTokenizedPath(tokens, "/path/"));
+      assert(tokens->length() == 2);
       assertStrCmp(tokens[0]->getString(), "param1");
       assert(tokens[1]->getInt32() == 10001);
 
       DynamicObject vars;
       assert(url.getQueryVariables(vars));
+      assert(vars->length() == 3);
       assertStrCmp(vars["key1"]->getString(), "value1");
       assertStrCmp(vars["key2"]->getString(), "value2");
       assertStrCmp(vars["key3"]->getString(), "two words=2");
