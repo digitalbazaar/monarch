@@ -116,12 +116,13 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
  */
 #define assertStrCmp(a, b) \
    do { \
-      const char* _a = a; \
-      const char* _b = b; \
-      if(strcmp(_a, _b) != 0) \
+      std::string _a = a; \
+      std::string _b = b; \
+      if(strcmp(_a.c_str(), _b.c_str()) != 0) \
       { \
-         printf("\nstring a=\n'%s'\nstring b=\n'%s'\n", _a, _b); \
-         assert(std::strcmp(_a, _b) == 0); \
+         printf("\nstring a=\n'%s'\nstring b=\n'%s'\n", \
+            _a.c_str(), _b.c_str()); \
+         assert(std::strcmp(_a.c_str(), _b.c_str()) == 0); \
       } \
    } while(0)
 
