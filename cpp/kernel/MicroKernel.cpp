@@ -68,7 +68,7 @@ bool MicroKernel::start()
    getEngine()->start();
    MO_CAT_INFO(MO_KERNEL_CAT,
       "Engine started using %" PRIu32
-      " microkernel threads and %" PRIu32 " auxiliary threads.",
+      " microkernel thread(s) and %" PRIu32 " auxiliary thread(s).",
       mMinRequiredThreads, mMaxAuxThreads);
 
    // start fiber scheduler if one exists
@@ -76,7 +76,8 @@ bool MicroKernel::start()
    {
       mFiberScheduler->start(this, mCoresDetected);
       MO_CAT_INFO(MO_KERNEL_CAT,
-         "FiberScheduler started using %" PRIu32 " cpu cores.", mCoresDetected);
+         "FiberScheduler started using %" PRIu32 " cpu core(s).",
+         mCoresDetected);
    }
 
    // start event controller if one exists
