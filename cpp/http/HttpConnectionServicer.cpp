@@ -323,7 +323,7 @@ static int _countWildcards(const char* domain)
  * same, then the shorter string is used.
  *
  * @param a ServiceDomain 1.
- * @param a ServiceDomain 2.
+ * @param b ServiceDomain 2.
  *
  * @return true if a is less than b.
  */
