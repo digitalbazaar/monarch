@@ -142,21 +142,25 @@ void FiberScheduler::run()
    mScheduleLock.unlock();
 
    // continue scheduling fibers while this thread is not interrupted
+   Fiber* fiber = NULL;
    bool tryInit = true;
    Thread* t = Thread::currentThread();
    while(!t->isInterrupted())
    {
       // synchronously get the next fiber to schedule
-      Fiber* fiber = nextFiber();
-
-      // if there is no fiber to schedule
-      if(fiber == NULL)
+      mScheduleLock.lock();
       {
-         // wait until one is available
-         waitForFiber();
+         fiber = nextFiber();
+         if(fiber == NULL)
+         {
+            // no fiber to schedule, so wait for one
+            mScheduleLock.wait();
+         }
       }
-      // else a fiber has been found
-      else
+      mScheduleLock.unlock();
+
+      // a fiber has been found
+      if(fiber != NULL)
       {
          // fiber's state can only be set to New if it
          // hasn't ever been run yet, so no need to lock here
@@ -385,86 +389,72 @@ Fiber* FiberScheduler::nextFiber()
 {
    Fiber* rval = NULL;
 
-   // lock scheduling while iterating over and modifying fiber queue
-   mScheduleLock.lock();
+   // schedule lock engaged, look for a fiber that can be scheduled:
+
+   // cycle through fibers not more than once
+   FiberId cycleEnd = 0;
+   for(FiberQueue::iterator i = mFiberQueue.begin();
+       rval == NULL && i != mFiberQueue.end() && (*i)->getId() != cycleEnd;)
    {
-      // look for a fiber that can be scheduled:
+      // pop fiber off queue
+      Fiber* fiber = *i;
+      i = mFiberQueue.erase(i);
 
-      // cycle through fibers not more than once
-      FiberId cycleEnd = 0;
-      for(FiberQueue::iterator i = mFiberQueue.begin();
-          rval == NULL && i != mFiberQueue.end() && (*i)->getId() != cycleEnd;)
+      // check state of fiber
+      switch(fiber->getState())
       {
-         // pop fiber off queue
-         Fiber* fiber = *i;
-         i = mFiberQueue.erase(i);
-
-         // check state of fiber
-         switch(fiber->getState())
-         {
-            // if a fiber is waking, set it to running and schedule it
-            case Fiber::Waking:
-               fiber->setState(Fiber::Running);
-            // if fiber is new or running, it can be scheduled
-            case Fiber::New:
-            case Fiber::Running:
-               rval = fiber;
-               break;
-            // exited or dead fibers must be deleted
-            case Fiber::Exited:
-               fiber->setState(Fiber::Dead);
-            case Fiber::Dead:
-               // remove fiber from scheduler
-               mFiberMap.erase(fiber->getId());
-               delete fiber;
-               fiber = NULL;
-               break;
-            // a sleeping fiber should *NEVER* be in the queue
-            case Fiber::Sleeping:
-               fprintf(stderr,
-                  "A sleeping fiber was scheduled to run, which should "
-                  "never *ever* happen. The fiber code is broken.\n");
-               ::exit(1);
-               break;
-         }
-
-         // if current fiber cannot be scheduled
-         if(rval == NULL && fiber != NULL)
-         {
-            // push fiber onto end of queue
-            mFiberQueue.push_back(fiber);
-
-            // ensure current fiber is not checked again
-            if(cycleEnd == 0)
-            {
-               cycleEnd = fiber->getId();
-            }
-         }
+         // if a fiber is waking, set it to running and schedule it
+         case Fiber::Waking:
+            fiber->setState(Fiber::Running);
+         // if fiber is new or running, it can be scheduled
+         case Fiber::New:
+         case Fiber::Running:
+            rval = fiber;
+            break;
+         // exited or dead fibers must be deleted
+         case Fiber::Exited:
+            fiber->setState(Fiber::Dead);
+         case Fiber::Dead:
+            // remove fiber from scheduler
+            mFiberMap.erase(fiber->getId());
+            delete fiber;
+            fiber = NULL;
+            break;
+         // a sleeping fiber should *NEVER* be in the queue
+         case Fiber::Sleeping:
+            fprintf(stderr,
+               "A sleeping fiber was scheduled to run, which should "
+               "never *ever* happen. The fiber code is broken.\n");
+            ::exit(1);
+            break;
       }
 
-      if(mFiberMap.empty())
+      // if current fiber cannot be scheduled
+      if(rval == NULL && fiber != NULL)
       {
-         // notify that no fibers are available
-         noFibersAvailable();
+         // push fiber onto end of queue
+         mFiberQueue.push_back(fiber);
+
+         // ensure current fiber is not checked again
+         if(cycleEnd == 0)
+         {
+            cycleEnd = fiber->getId();
+         }
       }
    }
-   mScheduleLock.unlock();
+
+   if(mFiberMap.empty())
+   {
+      // notify that no fibers are available
+      noFibersAvailable();
+   }
 
    return rval;
 }
 
 inline void FiberScheduler::fiberAvailable()
 {
-   mFiberWaitLock.lock();
-   mFiberWaitLock.notifyAll();
-   mFiberWaitLock.unlock();
-}
-
-inline void FiberScheduler::waitForFiber()
-{
-   mFiberWaitLock.lock();
-   mFiberWaitLock.wait();
-   mFiberWaitLock.unlock();
+   mScheduleLock.notifyAll();
 }
 
 inline void FiberScheduler::noFibersAvailable()

@@ -71,11 +71,6 @@ protected:
    monarch::rt::ExclusiveLock mScheduleLock;
 
    /**
-    * An exclusive lock for waiting for fibers.
-    */
-   monarch::rt::ExclusiveLock mFiberWaitLock;
-
-   /**
     * An exclusive lock for waiting for the fiber list to empty.
     */
    monarch::rt::ExclusiveLock mNoFibersWaitLock;
@@ -185,12 +180,6 @@ protected:
     * Called to notify operations that a fiber is available to be scheduled.
     */
    virtual void fiberAvailable();
-
-   /**
-    * Called to cause the current operation to wait for a fiber to become
-    * available to be scheduled.
-    */
-   virtual void waitForFiber();
 
    /**
     * Called to notify that no fibers are in the system.
