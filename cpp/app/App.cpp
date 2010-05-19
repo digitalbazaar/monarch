@@ -591,7 +591,7 @@ bool App::configurePlugin(AppPlugin* plugin)
    // create command line config for plugin
    Config cfg = makeConfig(PLUGIN_CL, "command line");
    DynamicObject meta = getMetaConfig();
-   meta["pluginOptions"][PLUGIN_CL] = cfg;
+   meta["pluginOptions"] = cfg;
 
    // 1. Initialize plugin.
    // 2. Initialize configs.
