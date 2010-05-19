@@ -4,11 +4,15 @@
 #include "monarch/app/CmdLineParser.h"
 
 #include "monarch/app/App.h"
+#include "monarch/data/json/JsonReader.h"
+#include "monarch/io/ByteArrayInputStream.h"
+#include "monarch/util/StringTokenizer.h"
 
 using namespace std;
 using namespace monarch::app;
 using namespace monarch::config;
 using namespace monarch::data::json;
+using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
 
@@ -143,7 +147,7 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
          {
             string tmp;
             tmp.push_back('-');
-            tmp.push_back(arg[shorti]);
+            tmp.push_back(option[shorti]);
             DynamicObject& opt = opts->append();
             opt["consumed"] = false;
             opt["short"] = tmp.c_str();
@@ -562,7 +566,7 @@ static bool _processOption(
 
             // parse out the path and value
             const char* arg = opt["value"]->getString();
-            const char* eq = strstr(arg, '=');
+            const char* eq = strchr(arg, '=');
             if(eq == NULL)
             {
                ExceptionRef e = new Exception(
@@ -597,7 +601,7 @@ static bool _processOption(
                // JSON value conversion, use non-strict reader
                JsonReader jr(false);
                string tmp = value->getString();
-               ByteArrayInputStream is(tmp, tmp.length());
+               ByteArrayInputStream is(tmp.c_str(), tmp.length());
                jr.start(value);
                rval = jr.read(&is) && jr.finish();
             }
@@ -617,7 +621,7 @@ static bool _processOption(
                // no type in spec so preserve old type
                else
                {
-                  _getTarget(app, optSpec[key], valueType, false);
+                  _getTarget(app, optSpec[key], vt, false);
                }
 
                // set type and target

@@ -58,7 +58,12 @@ public:
    /**
     * {@inheritDoc}
     */
-   virtual bool initMetaConfig(monarch::config::Config& meta);
+   virtual bool initConfigs(monarch::config::Config& defaults);
+
+   /**
+    * {@inheritDoc}
+    */
+   virtual bool initCommandLineConfig(monarch::config::Config& cfg);
 
    /**
     * Get a specification of the command line paramters.

@@ -4,6 +4,8 @@
 #ifndef monarch_app_AppConfig_H
 #define monarch_app_AppConfig_H
 
+#include "monarch/logging/Logging.h"
+
 namespace monarch
 {
 namespace app
@@ -53,10 +55,11 @@ public:
     * be called after parsing and processing the command line options.
     *
     * @param app the App to load the command line configs for.
+    * @param plugin true to load plugin configs, false to load main configs.
     *
     * @return true if successful, false on failure with exception set.
     */
-   virtual bool loadCommandLineConfigs(App* app);
+   virtual bool loadCommandLineConfigs(App* app, bool plugin);
 
    /**
     * Configures logging for an App.

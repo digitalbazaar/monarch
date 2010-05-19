@@ -10,11 +10,14 @@
 #include <openssl/rand.h>
 #include <openssl/engine.h>
 
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/ByteArrayOutputStream.h"
 #include "monarch/io/FileOutputStream.h"
 #include "monarch/util/StringTools.h"
 
+using namespace std;
 using namespace monarch::app;
+using namespace monarch::data::json;
 using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
@@ -77,11 +80,11 @@ static void _printException(ExceptionRef& e, OutputStream* os, int level)
          "%smessage: %s\n"
          "%sdetails: %s\n"
          "%scause:   %s\n",
-         e->getType(),
-         e->getCode(),
-         e->getMessage(),
-         details.bytes(),
-         cause.bytes());
+         indent, e->getType(),
+         indent, e->getCode(),
+         indent, e->getMessage(),
+         indent, details.bytes(),
+         indent, cause.bytes());
    }
    os->write(str.c_str(), str.length());
 }
@@ -142,7 +145,7 @@ static void _cleanupWinSock()
 }
 #endif
 
-static bool _initNetworking()
+bool AppTools::initializeNetworking()
 {
    bool rval = true;
 #ifdef WIN32
@@ -151,7 +154,7 @@ static bool _initNetworking()
    return rval && initializeOpenSSL();
 }
 
-static bool _cleanupNetworking()
+void AppTools::cleanupNetworking()
 {
    cleanupOpenSSL();
 #ifdef WIN32
@@ -187,8 +190,8 @@ bool AppTools::initializeOpenSSL()
    pthread_mutexattr_destroy(&mutexAttr);
 
    // set openSSL multi-threaded callbacks
-   CRYPTO_set_id_callback(&App::openSSLSetId);
-   CRYPTO_set_locking_callback(&App::openSSLHandleLock);
+   CRYPTO_set_id_callback(&AppTools::openSSLSetId);
+   CRYPTO_set_locking_callback(&AppTools::openSSLHandleLock);
 
    return true;
 }

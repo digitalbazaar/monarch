@@ -4,7 +4,7 @@
 #ifndef monarch_app_AppPlugin_h
 #define monarch_app_AppPlugin_h
 
-#include "monarch/rt/DynamicObject.h"
+#include "monarch/config/ConfigManager.h"
 
 namespace monarch
 {
@@ -68,11 +68,26 @@ public:
    virtual void cleanup();
 
    /**
-    * Called to create and initialize configs.
+    * Called to create and initialize configs. Typically default config values
+    * are added to the given defaults config. However, other configs can be
+    * initialized and added to the ConfigManager if desired. A specific config
+    * is used for command line options and should be initialized in the
+    * initCommandLineConfig() call.
+    *
+    * @param defaults the defaults config to initialize.
     *
     * @return true on success, false with exception set on failure.
     */
-   virtual bool initConfigs();
+   virtual bool initConfigs(monarch::config::Config& defaults);
+
+   /**
+    * Called to initialize the command line config.
+    *
+    * @param cfg the command line config to initialize.
+    *
+    * @return true on success, false with exception set on failure.
+    */
+   virtual bool initCommandLineConfig(monarch::config::Config& cfg);
 
    /**
     * Gets the command line specification for this plugin. The spec is in the
@@ -200,7 +215,7 @@ public:
     *    "id": "{waiterId(string)}",
     *    "type": "{waitEventType(string)}",
     * }
-    * May return an empty map.
+    * This function should return an empty array if there are no wait events.
     *
     * @return the plugin wait events.
     */

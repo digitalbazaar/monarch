@@ -5,6 +5,7 @@
 #define monarch_app_App_H
 
 #include "monarch/kernel/MicroKernel.h"
+#include "monarch/app/AppPlugin.h"
 
 namespace monarch
 {
@@ -181,8 +182,8 @@ public:
     * @return the config.
     */
    virtual monarch::config::Config makeConfig(
-      monarch::config::ConfigId id,
-      monarch::config::ConfigId groupId);
+      monarch::config::ConfigManager::ConfigId id,
+      monarch::config::ConfigManager::ConfigId groupId);
 
    /**
     * Gets the meta configuration object.
@@ -209,11 +210,13 @@ public:
     *       <spec>,
     *       ...
     *    ],
-    *    # command line option configs indexed by id
+    *    # builtin command line option configs indexed by id
     *    "options": {
     *       "<id>": <config>,
     *       ...,
     *    }
+    *    # plugin command line option configs
+    *    "pluginOptions": <config>
     * }
     *
     * @return the meta config.
@@ -253,15 +256,21 @@ protected:
     * Configures the AppPlugin.
     *
     * @param plugin the AppPlugin to configure.
+    *
+    * @return true on success, false on failure with exception set.
     */
-   virtual void configurePlugin(AppPlugin* plugin);
+   virtual bool configurePlugin(AppPlugin* plugin);
 
    /**
     * Runs the AppPlugin.
     *
+    * @param plugin the AppPlugin to run.
+    * @param waitEvents the events to wait for while the plugin runs.
+    *
     * @return true on success, false on failure with exception set.
     */
-   virtual bool runAppPlugin();
+   virtual bool runPlugin(
+      AppPlugin* plugin, monarch::rt::DynamicObject& waitEvents);
 };
 
 } // end namespace app

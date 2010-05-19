@@ -5,6 +5,7 @@
 #define monarch_app_AppTools_H
 
 #include "monarch/rt/Exception.h"
+#include "monarch/io/OutputStream.h"
 
 namespace monarch
 {

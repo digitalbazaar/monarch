@@ -33,34 +33,22 @@ Tester::~Tester()
 {
 }
 
-bool Tester::initMetaConfig(Config& meta)
+bool Tester::initConfigs(Config& defaults)
 {
-   bool rval = monarch::app::AppPlugin::initMetaConfig(meta);
-
    // defaults
-   if(rval)
-   {
-      Config& c =
-         App::makeMetaConfig(meta, PLUGIN_NAME ".defaults", "defaults")
-            [ConfigManager::MERGE][PLUGIN_NAME];
-      c["level"] = TestRunner::Names;
-      c["continueAfterException"] = false;
-      c["tests"]->setType(Map);
-      c["modules"]->setType(Map);
-   }
+   Config& c = defaults[ConfigManager::MERGE][PLUGIN_NAME];
+   c["level"] = TestRunner::Names;
+   c["continueAfterException"] = false;
+   c["tests"]->setType(Map);
+   c["modules"]->setType(Map);
+   return true;
+}
 
-   // command line options
-   if(rval)
-   {
-      Config& c =
-         App::makeMetaConfig(
-            meta, PLUGIN_CL_CFG_ID, "command line", "options")
-            [ConfigManager::MERGE][PLUGIN_NAME];
-      c["tests"][PLUGIN_CL_CFG_ID]->setType(Array);
-      c["modules"][PLUGIN_CL_CFG_ID]->setType(Array);
-   }
-
-   return rval;
+bool Tester::initCommandLineConfig(Config& cfg)
+{
+   Config& c = cfg[ConfigManager::MERGE][PLUGIN_NAME];
+   c["tests"][PLUGIN_CL_CFG_ID]->setType(Array);
+   c["modules"][PLUGIN_CL_CFG_ID]->setType(Array);
 }
 
 DynamicObject Tester::getCommandLineSpecs()

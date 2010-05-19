@@ -6,24 +6,40 @@
 #include "monarch/app/AppConfig.h"
 #include "monarch/app/AppPluginFactory.h"
 #include "monarch/app/AppTools.h"
+#include "monarch/app/CmdLineParser.h"
 #include "monarch/data/json/JsonWriter.h"
+#include "monarch/event/EventWaiter.h"
 #include "monarch/logging/Logging.h"
 #include "monarch/io/File.h"
+#include "monarch/rt/Platform.h"
 #include "monarch/rt/Thread.h"
 #include "monarch/util/Random.h"
+#include "monarch/validation/Validation.h"
+
+#include <cstdio>
 
 using namespace std;
 using namespace monarch::app;
 using namespace monarch::config;
 using namespace monarch::data::json;
-using namespace monarch::kernel;
+using namespace monarch::event;
+using namespace monarch::fiber;
 using namespace monarch::io;
+using namespace monarch::kernel;
+using namespace monarch::modest;
+using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
+namespace v = monarch::validation;
 
 #define MONARCH_APP       "monarch.app.App"
 #define MONARCH_CONFIG    "monarch.app.Config"
 #define MONARCH_KERNEL    "monarch.app.Kernel"
+#define PLUGIN            "monarch.app.AppPlugin"
+#define PLUGIN_CL         "monarch.app.AppPlugin.commandLine"
+
+#define SHUTDOWN_EVENT_TYPE   "monarch.kernel.Kernel.shutdown"
+#define RESTART_EVENT_TYPE    "monarch.kernel.Kernel.restart"
 
 App::App() :
    mProgramName(NULL),
@@ -114,14 +130,15 @@ Config App::getConfig()
    return getConfigManager()->getConfig("main", false, false);
 }
 
-Config App::makeConfig(ConfigId id, ConfigId groupId)
+Config App::makeConfig(
+   ConfigManager::ConfigId id, ConfigManager::ConfigId groupId)
 {
    Config rval;
    rval[ConfigManager::VERSION] = MO_DEFAULT_CONFIG_VERSION;
    if(groupId != NULL)
    {
       // look up group parent
-      Config raw = mConfigManager->getConfig(groupId, true);
+      Config raw = getConfigManager()->getConfig(groupId, true);
       if(!raw.isNull() && raw->hasMember(ConfigManager::PARENT))
       {
          rval[ConfigManager::PARENT] = raw[ConfigManager::PARENT];
@@ -162,9 +179,9 @@ int App::start(int argc, const char* argv[])
 
       // parse the command line into options
       CmdLineParser cmdp;
-      DynamicObject& meta = getMetaConfig();
+      DynamicObject meta = getMetaConfig();
       DynamicObject& options = meta["commandLine"];
-      success = cmdp.parseCommandLine(argc, argv, options);
+      success = cmdp.parse(argc, argv, options);
 
       printf("PARSE COMMAND LINE SUCCESS: %d\n%s\n",
          success, JsonWriter::writeToString(options).c_str());
@@ -193,7 +210,7 @@ int App::start(int argc, const char* argv[])
 
       // load config files, setup logging
       success =
-         ac.loadCommandLineConfigs(this) &&
+         ac.loadCommandLineConfigs(this, false) &&
          ac.configureLogging(this);
       if(success)
       {
@@ -213,8 +230,8 @@ int App::start(int argc, const char* argv[])
          mKernel->setMaxServerConnections(c["maxConnectionCount"]->getUInt32());
 
          // start kernel
-         rval = mKernel->start();
-         if(!rval)
+         success = mKernel->start();
+         if(!success)
          {
             MO_CAT_ERROR(MO_APP_CAT, "Kernel start failed: %s",
                JsonWriter::writeToString(
@@ -226,10 +243,10 @@ int App::start(int argc, const char* argv[])
 
             // run app
             mState = Running;
-            rval = run();
+            success = run();
 
             // stop kernel
-            MO_CAT_INFO(MO_APP_CAT, !rval ?
+            MO_CAT_INFO(MO_APP_CAT, !success ?
                "Stopping kernel due to exception." :
                ((mState == Restarting) ?
                   "Stopping kernel for restart..." :
@@ -243,7 +260,8 @@ int App::start(int argc, const char* argv[])
       }
 
       // clean up
-      ac.cleanupLogging();
+      // FIXME: change after adding logger ref-counting
+      ac.cleanupLogging(this);
       delete mKernel;
       mKernel = NULL;
    }
@@ -310,11 +328,12 @@ int App::main(int argc, const char* argv[])
 /**
  * Prints help and version if specified in the given config.
  *
+ * @param app the App.
  * @param cfg the main app config.
  *
  * @return true if the help was printed and the app should quit, false if not.
  */
-static bool _printHelp(Config& cfg)
+static bool _printHelp(App* app, Config& cfg)
 {
    bool quit = false;
 
@@ -360,40 +379,50 @@ static AppPlugin* _loadPlugin(App* app, MicroKernelModule** module)
 {
    AppPlugin* plugin = NULL;
 
-   // load app plugin
+   // get plugin path
    MicroKernel* k = app->getKernel();
-   Config cfg = getConfig()[MONARCH_APP];
-   module = mKernel->loadMicroKernelModule(cfg["appPlugin"]->getString());
-   if(module != NULL)
+   Config cfg = app->getConfig()[MONARCH_APP];
+   if(cfg["plugin"]->length() == 0)
    {
-      AppPluginFactory* apf = dynamic_cast<AppPluginFactory*>(
-         module->getApi(k));
-      if(apf == NULL)
+      // create dummy plugin
+      plugin = new AppPlugin();
+      *module = NULL;
+   }
+   else
+   {
+      // load plugin
+      *module = k->loadMicroKernelModule(cfg["plugin"]->getString());
+      if(*module != NULL)
       {
-         // unload module, fail
-         k->unloadModule(&module->getId());
-         ExceptionRef e = new Exception(
-            "Could not load AppPluginFactory.",
-            "monarch.app.InvalidAppPlugin");
-         Exception::set(e);
-         module = NULL;
-      }
-      else
-      {
-         // create app plugin
-         plugin = apf->createAppPlugin();
-         if(plugin == NULL)
+         AppPluginFactory* apf = dynamic_cast<AppPluginFactory*>(
+            (*module)->getApi(k));
+         if(apf == NULL)
          {
             // unload module, fail
-            k->unloadModule(&module->getId());
-            module = NULL;
+            k->unloadModule(&(*module)->getId());
+            ExceptionRef e = new Exception(
+               "Could not load AppPluginFactory.",
+               "monarch.app.InvalidAppPlugin");
+            Exception::set(e);
+            *module = NULL;
+         }
+         else
+         {
+            // create app plugin
+            plugin = apf->createAppPlugin();
+            if(plugin == NULL)
+            {
+               // unload module, fail
+               k->unloadModule(&(*module)->getId());
+               *module = NULL;
+            }
          }
       }
    }
 
-   if(module != NULL)
+   if(*module != NULL)
    {
-      ModuleId& id = module->getId();
+      const ModuleId& id = (*module)->getId();
       MO_CAT_INFO(MO_APP_CAT,
          "Loaded AppPluginFactory: \"%s\" version: \"%s\".",
          id.name, id.version);
@@ -412,12 +441,56 @@ static AppPlugin* _loadPlugin(App* app, MicroKernelModule** module)
 static void _unloadPlugin(
    App* app, MicroKernelModule* module, AppPlugin* plugin)
 {
-   AppPluginFactory* apf = dynamic_cast<AppPluginFactory*>(module->getApi());
-   apf->destroyAppPlugin(plugin);
-   MO_CAT_INFO(MO_APP_CAT,
-      "Unloading AppPluginFactory: \"%s\" version: \"%s\".",
-      id.name, id.version);
-   mKernel->unloadModule(&module->getId());
+   if(module != NULL)
+   {
+      MicroKernel* k = app->getKernel();
+      AppPluginFactory* apf = dynamic_cast<AppPluginFactory*>(
+         module->getApi(k));
+      apf->destroyAppPlugin(plugin);
+      const ModuleId& id = module->getId();
+      MO_CAT_INFO(MO_APP_CAT,
+         "Unloading AppPluginFactory: \"%s\" version: \"%s\".",
+         id.name, id.version);
+      k->unloadModule(&id);
+   }
+   else
+   {
+      // delete dummy plugin
+      delete plugin;
+   }
+}
+
+/**
+ * Validates plugin wait events.
+ *
+ * @param waitEvents plugin wait events.
+ *
+ * @return true if successful, false if an exception occurred.
+ */
+static bool _validateWaitEvents(DynamicObject& waitEvents)
+{
+   bool rval = false;
+
+   // create validator for plugin wait events
+   v::ValidatorRef v = new v::All(
+      new v::Type(Array),
+      new v::Each(
+         new v::Map(
+            "id", new v::Type(String),
+            "type", new v::Type(String),
+            NULL)),
+      NULL);
+   rval = v->isValid(waitEvents);
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Invalid AppPlugin wait event configuration.",
+         "monarch.app.InvalidWaitEvents");
+      e->getDetails()["waitEvents"] = waitEvents;
+      Exception::push(e);
+   }
+
+   return rval;
 }
 
 bool App::run()
@@ -446,7 +519,7 @@ bool App::run()
          rval = _validateWaitEvents(waitEvents);
 
          // print help if requested
-         quit = rval && _printHelp(cfg);
+         quit = rval && _printHelp(this, cfg);
       }
    }
 
@@ -480,23 +553,23 @@ bool App::run()
       rval = mKernel->loadModules(modulePaths);
       if(rval && cfg[MONARCH_KERNEL]["printModuleVersions"]->getBoolean())
       {
-         Config& cfg = getApp()->getConfig()[MONARCH_KERNEL];
-         if(cfg->hasMember("printModuleVersions") &&
-            cfg["printModuleVersions"]->getBoolean())
-         {
-            // FIXME: print out module info
-         }
+         // FIXME: print out module info
+         ExceptionRef e = new Exception(
+            "Module version printing not implemented.",
+            "monarch.app.NotImplemented");
+         Exception::set(e);
+         rval = false;
       }
 
       // run app plugin
-      rval = rval && runAppPlugin(plugin, waitEvents);
+      rval = rval && runPlugin(plugin, waitEvents);
    }
 
    // clean up plugin
    if(plugin != NULL)
    {
       plugin->cleanup();
-      _unloadPlugin(app, module, plugin);
+      _unloadPlugin(this, module, plugin);
    }
 
    return rval;
@@ -504,29 +577,42 @@ bool App::run()
 
 bool App::configurePlugin(AppPlugin* plugin)
 {
+   // create defaults config for plugin
+   Config defaults = makeConfig(PLUGIN ".defaults", "defaults");
+
+   // create command line config for plugin
+   Config cfg = makeConfig(PLUGIN_CL, "command line");
+   DynamicObject meta = getMetaConfig();
+   meta["pluginOptions"][PLUGIN_CL] = cfg;
+
    // 1. Initialize plugin.
    // 2. Initialize configs.
    // 3. Process command line options.
    // 4. Load external config files.
    plugin->setApp(this);
-   bool rval = plugin->initialize() && plugin->initConfigs();
+   bool rval =
+      plugin->initialize() &&
+      plugin->initConfigs(defaults) &&
+      plugin->initCommandLineConfig(cfg);
    if(rval)
    {
-      DynamicObject options = getMetaConfig()["commandLine"];
+      AppConfig ac;
+      CmdLineParser cmdp;
+      DynamicObject options = meta["commandLine"];
       DynamicObject spec = plugin->getCommandLineSpec();
-      getMetaConfig["specs"]->append(spec);
+      getMetaConfig()["specs"]->append(spec);
       rval =
-         _processCommandLineSpec(spec, options) &&
-         _checkUnknownOptions(options) &&
-         plugin->willLoadConfigFiles() &&
-         _addCommandLineConfig(plugin->getName()) &&
-         plugin->didLoadConfigFiles();
+         cmdp.processSpec(this, spec, options) &&
+         cmdp.checkUnknownOptions(options) &&
+         plugin->willLoadConfigs() &&
+         ac.loadCommandLineConfigs(this, true) &&
+         plugin->didLoadConfigs();
    }
 
    return rval;
 }
 
-bool App::runAppPlugin(AppPlugin* plugin, DynamicObject& waitEvents)
+bool App::runPlugin(AppPlugin* plugin, DynamicObject& waitEvents)
 {
    bool rval = true;
 

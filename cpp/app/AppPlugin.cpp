@@ -39,7 +39,12 @@ void AppPlugin::cleanup()
 {
 }
 
-bool AppPlugin::initConfigs()
+bool AppPlugin::initConfigs(Config& defaults)
+{
+   return true;
+}
+
+bool AppPlugin::initCommandLineConfig(Config& cfg)
 {
    return true;
 }
@@ -57,11 +62,6 @@ bool AppPlugin::willLoadConfigs()
 }
 
 bool AppPlugin::didLoadConfigs()
-{
-   return true;
-}
-
-bool AppPlugin::run()
 {
    return true;
 }
