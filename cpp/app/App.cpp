@@ -137,6 +137,9 @@ Config App::makeConfig(
    rval[ConfigManager::VERSION] = MO_DEFAULT_CONFIG_VERSION;
    if(groupId != NULL)
    {
+      // set group ID
+      rval[ConfigManager::GROUP] = groupId;
+
       // look up group parent
       Config raw = getConfigManager()->getConfig(groupId, true);
       if(!raw.isNull() && raw->hasMember(ConfigManager::PARENT))
@@ -209,10 +212,15 @@ int App::start(int argc, const char* argv[])
       }
 
       // load config files, setup logging
-      success =
+      success = success &&
          ac.loadCommandLineConfigs(this, false) &&
          ac.configureLogging(this);
-      if(success)
+      if(!success)
+      {
+         // failed to start
+         mState = Stopped;
+      }
+      else
       {
          // [re]start the kernel
          MO_CAT_INFO(MO_APP_CAT, (mState == Restarting) ?

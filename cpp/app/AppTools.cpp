@@ -72,20 +72,18 @@ static void _printException(ExceptionRef& e, OutputStream* os, int level)
    {
       str = "Exception:\n";
    }
-   else
-   {
-      str = StringTools::format(
-         "%stype:    %s\n"
-         "%scode:    %d\n"
-         "%smessage: %s\n"
-         "%sdetails: %s\n"
-         "%scause:   %s\n",
-         indent, e->getType(),
-         indent, e->getCode(),
-         indent, e->getMessage(),
-         indent, details.bytes(),
-         indent, cause.bytes());
-   }
+
+   str.append(StringTools::format(
+      "%stype:    %s\n"
+      "%scode:    %d\n"
+      "%smessage: %s\n"
+      "%sdetails: %s\n"
+      "%scause:   %s\n",
+      indent, e->getType(),
+      indent, e->getCode(),
+      indent, e->getMessage(),
+      indent, details.bytes(),
+      indent, cause.bytes()));
    os->write(str.c_str(), str.length());
 }
 

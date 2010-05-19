@@ -166,7 +166,6 @@ static bool _initGeneralConfig(App* app)
          MONARCH_APP ".commandLine.empty", "command line")) &&
       cm->addConfig(app->makeConfig(
          MONARCH_APP ".main.empty", "main"));
-
    if(rval)
    {
       Config cfg = app->makeConfig(MONARCH_APP ".defaults", "defaults");
