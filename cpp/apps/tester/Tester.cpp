@@ -1,8 +1,7 @@
 /*
  * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
-#include <cstdio>
-#include <cstdlib>
+#include "monarch/apps/tester/Tester.h"
 
 #include "monarch/app/AppPluginFactory.h"
 #include "monarch/kernel/MicroKernel.h"
@@ -10,7 +9,8 @@
 #include "monarch/test/Test.h"
 #include "monarch/test/Testable.h"
 
-#include "monarch/apps/tester/Tester.h"
+#include <cstdio>
+#include <cstdlib>
 
 using namespace std;
 using namespace monarch::app;
@@ -24,8 +24,7 @@ using namespace monarch::test;
 #define PLUGIN_NAME "monarch.apps.tester.Tester"
 #define PLUGIN_CL_CFG_ID PLUGIN_NAME ".commandLine"
 
-Tester::Tester(MicroKernel* k) :
-   mKernel(k)
+Tester::Tester()
 {
 }
 
@@ -113,7 +112,7 @@ bool Tester::run()
       default: level = TestRunner::Times; break;
    }
 
-   TestRunner tr(getApp(), mKernel, cont, level);
+   TestRunner tr(getApp(), cont, level);
 
    tr.group(NULL);
 
@@ -164,8 +163,9 @@ bool Tester::run()
 
    // load all monarch.test.TestModules and run them
    {
+      MicroKernel* k = getApp()->getKernel();
       MicroKernel::ModuleApiList tests;
-      mKernel->getModuleApisByType("monarch.test.TestModule", tests);
+      k->getModuleApisByType("monarch.test.TestModule", tests);
       for(MicroKernel::ModuleApiList::iterator i = tests.begin();
          rval && i != tests.end(); i++)
       {
@@ -199,15 +199,13 @@ public:
    TesterFactory() :
       AppPluginFactory(PLUGIN_NAME, "1.0")
    {
-      addDependency("monarch.app.Config", "1.0");
-      addDependency("monarch.app.Logging", "1.0");
    }
 
    virtual ~TesterFactory() {}
 
    virtual AppPlugin* createAppPlugin()
    {
-      return new Tester(mMicroKernel);
+      return new Tester();
    }
 };
 

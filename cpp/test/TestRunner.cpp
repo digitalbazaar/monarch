@@ -3,11 +3,11 @@
  */
 #include "monarch/test/TestRunner.h"
 
-#include <cassert>
-#include <cstdio>
-
 #include "monarch/test/Test.h"
 #include "monarch/rt/Exception.h"
+
+#include <cassert>
+#include <cstdio>
 
 using namespace std;
 using namespace monarch::rt;
@@ -16,10 +16,8 @@ using namespace monarch::test;
 const char* TestRunner::DEFAULT = "default";
 
 TestRunner::TestRunner(
-   monarch::app::App* app, monarch::kernel::MicroKernel* k,
-   bool doneOnException, OutputLevel outputLevel) :
+   monarch::app::App* app, bool doneOnException, OutputLevel outputLevel) :
    mApp(app),
-   mMicroKernel(k),
    mTotal(0),
    mPassed(0),
    mFailed(0),
@@ -52,11 +50,6 @@ string TestRunner::getTestName()
 monarch::app::App* TestRunner::getApp()
 {
    return mApp;
-}
-
-monarch::kernel::MicroKernel* TestRunner::getMicroKernel()
-{
-   return mMicroKernel;
 }
 
 TestRunner::OutputLevel TestRunner::getOutputLevel()

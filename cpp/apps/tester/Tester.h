@@ -4,11 +4,7 @@
 #ifndef monarch_apps_tester_Tester_h
 #define monarch_apps_tester_Tester_h
 
-#include <list>
-
 #include "monarch/app/AppPlugin.h"
-#include "monarch/kernel/MicroKernel.h"
-#include "monarch/rt/DynamicObject.h"
 #include "monarch/test/TestRunner.h"
 
 namespace monarch
@@ -38,17 +34,11 @@ namespace tester
  */
 class Tester : public monarch::app::AppPlugin
 {
-protected:
-   /**
-    * Kernel used to get test modules.
-    */
-   monarch::kernel::MicroKernel* mKernel;
-
 public:
    /**
     * Create a Tester.
     */
-   Tester(monarch::kernel::MicroKernel* k);
+   Tester();
 
    /**
     * Deconstruct this Tester.

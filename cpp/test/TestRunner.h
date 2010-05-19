@@ -68,11 +68,6 @@ protected:
    monarch::app::App* mApp;
 
    /**
-    * MicroKernel running this test.
-    */
-   monarch::kernel::MicroKernel* mMicroKernel;
-
-   /**
     * Total number of started tests.
     */
    unsigned int mTotal;
@@ -124,13 +119,12 @@ public:
     * Creates a new TestRunner.
     *
     * @param app App running the tests.
-    * @param k MicroKernel used to run the tests.
     * @param doneOnException if exception caught then call done() and
-    *                        fail via assert.
+    *           fail via assert.
     * @param outputLevel OutputLevel to use.
     */
    TestRunner(
-      monarch::app::App* app, monarch::kernel::MicroKernel* k,
+      monarch::app::App* app,
       bool doneOnException, OutputLevel outputLevel = Names);
 
    /**
@@ -144,13 +138,6 @@ public:
     * @return the App for this TestRunner.
     */
    virtual monarch::app::App* getApp();
-
-   /**
-    * Get the MicroKernel for this TestRunner.
-    *
-    * @return the MicroKernel for this TestRunner.
-    */
-   virtual monarch::kernel::MicroKernel* getMicroKernel();
 
    /**
     * Get the output level.

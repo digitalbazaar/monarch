@@ -468,7 +468,6 @@ public:
    PortMapAppFactory() :
       AppPluginFactory(PLUGIN_NAME, "1.0")
    {
-      addDependency("monarch.app.Monarch", "1.0");
    }
 
    virtual ~PortMapAppFactory() {}
