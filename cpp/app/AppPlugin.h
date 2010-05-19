@@ -72,7 +72,7 @@ public:
     * are added to the given defaults config. However, other configs can be
     * initialized and added to the ConfigManager if desired. A specific config
     * is used for command line options and should be initialized in the
-    * initCommandLineConfig() call.
+    * getCommandLineSpec() call.
     *
     * @param defaults the defaults config to initialize.
     *
@@ -81,17 +81,8 @@ public:
    virtual bool initConfigs(monarch::config::Config& defaults);
 
    /**
-    * Called to initialize the command line config.
-    *
-    * @param cfg the command line config to initialize.
-    *
-    * @return true on success, false with exception set on failure.
-    */
-   virtual bool initCommandLineConfig(monarch::config::Config& cfg);
-
-   /**
-    * Gets the command line specification for this plugin. The spec is in the
-    * following format:
+    * Initializes the command line configuration for this plugin and gets the
+    * related command line specification. The spec is in the following format:
     *
     * Spec = {
     *    "options" = [ OptionSpec[, ...] ],
@@ -186,9 +177,12 @@ public:
     * -v, --verbose: set verbose mode for use by apps
     * --log-level: parse and set a log level variable
     *
+    * @param cfg the command line config to initialize and use in the spec.
+    *
     * @return the command line specification for this AppPlugin.
     */
-   virtual monarch::rt::DynamicObject getCommandLineSpec();
+   virtual monarch::rt::DynamicObject getCommandLineSpec(
+      monarch::config::Config& cfg);
 
    /**
     * Called before an App loads any of its unloaded config files. Subclasses

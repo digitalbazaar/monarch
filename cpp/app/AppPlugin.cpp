@@ -44,15 +44,10 @@ bool AppPlugin::initConfigs(Config& defaults)
    return true;
 }
 
-bool AppPlugin::initCommandLineConfig(Config& cfg)
-{
-   return true;
-}
-
-DynamicObject AppPlugin::getCommandLineSpec()
+DynamicObject AppPlugin::getCommandLineSpec(Config& cfg)
 {
    DynamicObject spec;
-   spec->setType(Array);
+   spec->setType(Map);
    return spec;
 }
 

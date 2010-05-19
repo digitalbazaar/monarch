@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace monarch::app;
+using namespace monarch::config;
 using namespace monarch::data::json;
 using namespace monarch::modest;
 using namespace monarch::net;
@@ -58,7 +59,7 @@ public:
 
    virtual ~PortMapApp() {};
 
-   virtual DynamicObject getCommandLineSpecs()
+   virtual DynamicObject getCommandLineSpec(Config& cfg)
    {
       DynamicObject spec;
       spec["help"] =
@@ -148,9 +149,7 @@ public:
       opt["argError"] = "Verbose must be true or false.";
       opt["arg"]["target"] = mOptions["verbose"];
 
-      DynamicObject specs = AppPlugin::getCommandLineSpecs();
-      specs->append(spec);
-      return specs;
+      return spec;
    };
 
    /**
@@ -474,7 +473,7 @@ public:
 
    virtual ~PortMapAppFactory() {}
 
-   virtual AppPluginRef createAppPlugin()
+   virtual AppPlugin* createAppPlugin()
    {
       return new PortMapApp();
    }

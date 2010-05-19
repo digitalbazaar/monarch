@@ -44,15 +44,13 @@ bool Tester::initConfigs(Config& defaults)
    return true;
 }
 
-bool Tester::initCommandLineConfig(Config& cfg)
+DynamicObject Tester::getCommandLineSpec(Config& cfg)
 {
+   // initialize config
    Config& c = cfg[ConfigManager::MERGE][PLUGIN_NAME];
    c["tests"][PLUGIN_CL_CFG_ID]->setType(Array);
    c["modules"][PLUGIN_CL_CFG_ID]->setType(Array);
-}
 
-DynamicObject Tester::getCommandLineSpecs()
-{
    DynamicObject spec;
    spec["help"] =
 "Test options:\n"
@@ -71,35 +69,30 @@ DynamicObject Tester::getCommandLineSpecs()
 "\n";
 
    DynamicObject opt;
-   Config& cfg = getApp()->getMetaConfig()
-      ["options"][PLUGIN_CL_CFG_ID][ConfigManager::MERGE][PLUGIN_NAME];
 
    opt = spec["options"]->append();
    opt["short"] = "-l";
    opt["long"] = "--level";
-   opt["arg"]["root"] = cfg;
+   opt["arg"]["root"] = c;
    opt["arg"]["path"] = "level";
 
    opt = spec["options"]->append();
    opt["short"] = "-c";
-   opt["setTrue"]["root"] = cfg;
+   opt["setTrue"]["root"] = c;
    opt["setTrue"]["path"] = "continueAfterException";
 
    opt = spec["options"]->append();
    opt["short"] = "-t";
    opt["long"] = "--test";
-   opt["append"] = cfg["tests"][PLUGIN_CL_CFG_ID];
+   opt["append"] = c["tests"][PLUGIN_CL_CFG_ID];
    opt["argError"] = "No type specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--test-module";
-   opt["append"] = cfg["modules"][PLUGIN_CL_CFG_ID];
+   opt["append"] = c["modules"][PLUGIN_CL_CFG_ID];
    opt["argError"] = "No module specified.";
 
-   DynamicObject specs;
-   specs->setType(Array);
-   specs->append(spec);
-   return specs;
+   return spec;
 }
 
 bool Tester::run()
@@ -212,7 +205,7 @@ public:
 
    virtual ~TesterFactory() {}
 
-   virtual AppPluginRef createAppPlugin()
+   virtual AppPlugin* createAppPlugin()
    {
       return new Tester(mMicroKernel);
    }

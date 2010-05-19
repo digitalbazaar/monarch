@@ -647,7 +647,7 @@ bool CmdLineParser::processSpec(
    bool rval = true;
 
    // iterate over spec
-   DynamicObjectIterator si = spec.getIterator();
+   DynamicObjectIterator si = spec["options"].getIterator();
    while(rval && si->hasNext())
    {
       DynamicObject& optSpec = si->next();

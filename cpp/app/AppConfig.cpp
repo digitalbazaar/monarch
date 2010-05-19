@@ -316,13 +316,13 @@ static DynamicObject _getGeneralCmdLineSpec(App* app)
    Config options = app->getMetaConfig()["options"][MONARCH_APP];
    Config& om = options[ConfigManager::MERGE][MONARCH_APP];
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["short"] = "-h";
    opt["long"] = "--help";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "printHelp";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["short"] = "-V";
    opt["long"] = "--version";
    opt["setTrue"]["root"] = om;
@@ -366,13 +366,13 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
    Config& oa = options[ConfigManager::APPEND][MONARCH_CONFIG];
    Config& om = options[ConfigManager::MERGE][MONARCH_CONFIG];
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["short"] = "-h";
    opt["long"] = "--help";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "printHelp";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["short"] = "-V";
    opt["long"] = "--version";
    opt["setTrue"]["root"] = om;
@@ -382,42 +382,42 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
    // config (["include"]["config"] = the unloaded config to update)
    // FIXME: need to add an option to load AppPlugin configs that won't be
    // loaded until after the AppPlugin loads
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["short"] = "-c";
    opt["long"] = "--config";
    opt["append"] = oa["configs"];
    opt["argError"] = "No config file specified.";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--option";
    opt["set"]["root"] = om;
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--json-option";
    opt["set"]["root"] = om;
    opt["isJsonValue"] = true;
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--config-debug";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "debug";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--config-dump";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "dump";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--config-dump-all";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "dumpAll";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--config-dump-meta";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "dumpMeta";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["short"] = "-r";
    opt["long"] = "--resource-path";
    opt["keyword"] = "RESOURCE_PATH";
@@ -462,66 +462,66 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
    Config options = app->getMetaConfig()["options"][MONARCH_LOGGING_CL];
    Config& om = options[ConfigManager::MERGE][MONARCH_LOGGING];
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--no-log";
    opt["setFalse"]["root"] = om;
    opt["setFalse"]["path"] = "enabled";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-level";
    opt["arg"]["root"] = om;
    opt["arg"]["path"] = "level";
    opt["argError"] = "No log level specified.";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log";
    opt["arg"]["root"] = om;
    opt["arg"]["path"] = "log";
    opt["argError"] = "No log file specified.";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
    opt["setFalse"]["root"] = om;
    opt["setFalse"]["path"] = "append";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-rotation-size";
    opt["arg"]["root"] = om;
    opt["arg"]["path"] = "rotationFileSize";
    opt["argError"] = "No rotation size specified.";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-max-rotated";
    opt["arg"]["root"] = om;
    opt["arg"]["path"] = "maxRotatedFiles";
    opt["argError"] = "Max rotated files not specified.";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-gzip";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "gzip";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-no-gzip";
    opt["setFalse"]["root"] = om;
    opt["setFalse"]["path"] = "gzip";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-location";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "location";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-color";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "color";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-no-color";
    opt["setFalse"]["root"] = om;
    opt["setFalse"]["path"] = "color";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--log-delay-open";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "delayOpen";
@@ -549,18 +549,18 @@ static DynamicObject _getKernelCmdLineSpec(App* app)
    Config& oa = options[ConfigManager::APPEND][MONARCH_KERNEL];
    Config& om = options[ConfigManager::MERGE][MONARCH_KERNEL];
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["short"] = "-m";
    opt["long"] = "--module-path";
    opt["append"] = oa["modulePath"];
    opt["argError"] = "No module path specified.";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--no-module-path-env";
    opt["setFalse"]["root"] = om;
    opt["setFalse"]["path"] = "env";
 
-   opt = spec->append();
+   opt = spec["options"]->append();
    opt["long"] = "--module-versions";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "printModuleVersions";

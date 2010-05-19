@@ -63,17 +63,11 @@ public:
    /**
     * {@inheritDoc}
     */
-   virtual bool initCommandLineConfig(monarch::config::Config& cfg);
+   virtual monarch::rt::DynamicObject getCommandLineSpec(
+      monarch::config::Config& cfg);
 
    /**
-    * Get a specification of the command line paramters.
-    *
-    * @return the command line specs
-    */
-   virtual monarch::rt::DynamicObject getCommandLineSpecs();
-
-   /**
-    * Run all tests and set exit status.
+    * Runs all tests and sets exit status.
     *
     * @return true on success, false and exception set on failure.
     */

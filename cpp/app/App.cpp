@@ -592,14 +592,13 @@ bool App::configurePlugin(AppPlugin* plugin)
    plugin->setApp(this);
    bool rval =
       plugin->initialize() &&
-      plugin->initConfigs(defaults) &&
-      plugin->initCommandLineConfig(cfg);
+      plugin->initConfigs(defaults);
    if(rval)
    {
       AppConfig ac;
       CmdLineParser cmdp;
       DynamicObject options = meta["commandLine"];
-      DynamicObject spec = plugin->getCommandLineSpec();
+      DynamicObject spec = plugin->getCommandLineSpec(cfg);
       getMetaConfig()["specs"]->append(spec);
       rval =
          cmdp.processSpec(this, spec, options) &&
