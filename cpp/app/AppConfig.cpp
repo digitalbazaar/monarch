@@ -312,7 +312,7 @@ static DynamicObject _getGeneralCmdLineSpec(App* app)
 "\n";
 
    DynamicObject opt;
-   Config options = app->getMetaConfig()["options"][MONARCH_APP];
+   Config options = app->getMetaConfig()["options"][MONARCH_APP_CL];
    Config& om = options[ConfigManager::MERGE][MONARCH_APP];
 
    opt = spec["options"]->append();

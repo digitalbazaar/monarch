@@ -208,7 +208,7 @@ int App::start(int argc, const char* argv[])
       DynamicObjectIterator si = meta["specs"].getIterator();
       while(success && si->hasNext())
       {
-         success = cmdp.processSpec(this, si->next(), options);
+         success = cmdp.processSpec(this, si->next(), options["options"]);
       }
 
       // load config files, setup logging
@@ -609,8 +609,8 @@ bool App::configurePlugin(AppPlugin* plugin)
       DynamicObject spec = plugin->getCommandLineSpec(cfg);
       getMetaConfig()["specs"]->append(spec);
       rval =
-         cmdp.processSpec(this, spec, options) &&
-         cmdp.checkUnknownOptions(options) &&
+         cmdp.processSpec(this, spec, options["options"]) &&
+         cmdp.checkUnknownOptions(options["options"]) &&
          plugin->willLoadConfigs() &&
          ac.loadCommandLineConfigs(this, true) &&
          plugin->didLoadConfigs();
