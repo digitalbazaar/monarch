@@ -1,155 +1,82 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_app_AppPlugin_h
 #define monarch_app_AppPlugin_h
 
-#include "monarch/config/ConfigManager.h"
+#include "monarch/rt/DynamicObject.h"
 
 namespace monarch
 {
 namespace app
 {
 
-/**
- * AppPlugins provide the main functionality of an App. Plugins allow an app
- * to be extended with new command line options, configuration settings, and
- * runtime behavior.
- *
- * This class provides a base plugin that can be used for subclasses.
- *
- * @author David I. Lehn
- */
-
 // forward declaration
 class App;
 
+/**
+ * An AppPlugin provides the custom behavior for an App. It allows an App to
+ * be extended with new command line options, configuration settings, and
+ * runs the App's custom behavior.
+ *
+ * @author Dave Longley
+ * @author David I. Lehn
+ */
 class AppPlugin
 {
 protected:
    /**
-    * App owner of this plugin.
+    * The App owner of this AppPlugin.
     */
    App* mApp;
 
 public:
    /**
-    * Create an AppPlugin instance.
+    * Creates a AppPlugin instance.
     */
    AppPlugin();
 
    /**
-    * Deconstruct this AppPlugin instance.
+    * Deconstructs this AppPlugin instance.
     */
    virtual ~AppPlugin();
 
    /**
-    * Initializes this plugin.
-    *
-    * @return true if initialized, false if an Exception occurred.
-    */
-   virtual bool initialize();
-
-   /**
-    * Cleans up this plugin.
-    */
-   virtual void cleanup();
-
-   /**
-    * Called before a plugin is added to an app.  A plugin can refuse to be
-    * added by returning false.
-    *
-    * @param app the app plugin is being added to.
-    *
-    * @return true on success, false and exception on failure.
-    */
-   virtual bool willAddToApp(App* app);
-
-   /**
-    * Called after a plugin has been added to an app.
-    *
-    * @param app the app plugin was added to.
-    *
-    * @return true on success, false and exception on failure.
-    */
-   virtual bool didAddToApp(App* app);
-
-   /**
-    * Get the wait events for this plugin.
-    *
-    * The return value from plugins should be an array of objects of the form:
-    * {
-    *    "id": "{waiterId(string)}",
-    *    "type": "{waitEventType(string)}",
-    * }
-    * May return an empty. Subclasses should normally call the superclass
-    * method and add events to the returned array.
-    *
-    * @return the plugin wait events.
-    */
-   virtual monarch::rt::DynamicObject getWaitEvents();
-
-   /**
-    * Initialize the app config manager. Can be used by plugins to replace or
-    * configure the app's config manager.
-    *
-    * @return true on success, false and exception on failure.
-    */
-   virtual bool initConfigManager();
-
-   /**
-    * Called before initMetaConfig(). Used to initialize group and parent ids.
-    *
-    * Subclasses should call the superclass method.
-    *
-    * @param meta the meta config.
-    *
-    * @return true on success, false and exception on failure.
-    */
-   virtual bool willInitMetaConfig(monarch::config::Config& meta);
-
-   /**
-    * Initialize the meta config as needed. Note that subclasses may override
-    * common group and parent ids in willInitMetaConfig() so the current values
-    * should be used.
-    *
-    * Subclasses should call the superclass method.
-    *
-    * @param meta the meta config.
-    *
-    * @return true on success, false and exception on failure.
-    */
-   virtual bool initMetaConfig(monarch::config::Config& meta);
-
-   /**
-    * Called after initMetaConfig().
-    *
-    * Subclasses should call the superclass method.
-    *
-    * @param meta the meta config.
-    *
-    * @return true on success, false and exception on failure.
-    */
-   virtual bool didInitMetaConfig(monarch::config::Config& meta);
-
-   /**
-    * Set the owner App.
+    * Sets the owner App.
     *
     * @param app the App.
     */
    virtual void setApp(App* app);
 
    /**
-    * Get the owner App.
+    * Gets the owner App.
     *
     * @return the owner App.
     */
    virtual App* getApp();
 
    /**
-    * Get command line specifications for default paramters.  Subclasses MUST
-    * call the superclass implementation and append their spec to the return
-    * value from that call.  The spec is in the following format:
+    * Performs custom initialization.
+    *
+    * @return true if successful, false with exception set on failure.
+    */
+   virtual bool initialize();
+
+   /**
+    * Performs custom clean up.
+    */
+   virtual void cleanup();
+
+   /**
+    * Called to create and initialize configs.
+    *
+    * @return true on success, false with exception set on failure.
+    */
+   virtual bool initConfigs();
+
+   /**
+    * Gets the command line specification for this plugin. The spec is in the
+    * following format:
     *
     * Spec = {
     *    "options" = [ OptionSpec[, ...] ],
@@ -176,7 +103,7 @@ public:
     *    ...
     * }
     *
-    * Action keys which consume arguments cannot appear in parallel.  Actions
+    * Action keys which consume arguments cannot appear in parallel. Actions
     * which do not, such as setTrue/setFalse/inc/dec, can appear in parallel.
     *
     * Options that specify a "target" specify target options that can be one
@@ -186,12 +113,12 @@ public:
     * A relative path from a root DynamicObject:
     * ...["arg"]["root"] = <dyno>
     * ...["arg"]["path"] = <string path>
-    * A relative path in a named raw config.  Will be set after changing.
+    * A relative path in a named raw config. Will be set after changing.
     * ...["arg"]["config"] = <raw config name>
     * ...["arg"]["path"] = <string path>
     *
-    * Paths are split on '.'.  If a segment matches r"[^\]*\$" it is joined
-    * with the next segment.  Ie, if last char is a '\' but the last two chars
+    * Paths are split on '.'. If a segment matches r"[^\]*\$" it is joined
+    * with the next segment. Ie, if last char is a '\' but the last two chars
     * are not "\\" then a join occurs but last '\' is dropped.
     *
     * For example, following paths are applied to a target:
@@ -202,9 +129,9 @@ public:
     * "a\\b.c" => target["a\\b"]["c"]
     *
     * If "isJsonValue" exists and is true then the value argument will be
-    * decoded as a JSON value.  It can be any text that could appear as a JSON
-    * value.  (In other words, it does not have JSON top-level {} or []
-    * requirement)
+    * decoded as a JSON value. It can be any text that could appear as a JSON
+    * value. (In other words, it does not have JSON top-level {} or []
+    * requirement).
     *
     * The type of the new value will be either the type of a special "type"
     * object, the type of an existing object, or will default to a string.
@@ -219,11 +146,11 @@ public:
     * If option found then increment or decrement DynamicObject value by 1:
     * "inc": target | [ target[, ...] ]
     * "dec": target | [ target[, ...] ]
-    * Note: This will read/write to a specific DynamicObject.  Interaction with
+    * Note: This will read/write to a specific DynamicObject. Interaction with
     *       a multi-level ConfigManager setup may not be straightforward.
     *
     * Read next argument or arguments, convert to the DynamicObject type, and
-    * store them.  On error use argError message.  The command line must have
+    * store them. On error use argError message. The command line must have
     * enough arguments to satisfy the args array length.
     * "arg": DynamicObject
     * "args": [ target[, ...] ]
@@ -232,9 +159,10 @@ public:
     * Append arg or args to an Array DynamicObject:
     * "append": target
     *
-    * Set a named config value.  Reads the first argument as a path.  The "set"
-    * target is used to find the final target.  Then this target is assigned
-    * the next argument via the above "arg" process.
+    * Set a named config value. Reads its argument as a key=value pair. The
+    * key will be read as a path. The "set" target is used to find the final
+    * target via the path. Then this target is assigned the next argument via
+    * the above "arg" process.
     * "set": target
     *
     * The default implementation will parse the following parameters:
@@ -243,97 +171,48 @@ public:
     * -v, --verbose: set verbose mode for use by apps
     * --log-level: parse and set a log level variable
     *
-    * @return an array of command line spec
+    * @return the command line specification for this AppPlugin.
     */
-   virtual monarch::rt::DynamicObject getCommandLineSpecs();
+   virtual monarch::rt::DynamicObject getCommandLineSpec();
 
    /**
-    * Called before the default App processes the command line arguments.
-    * Subclasses may use this hook to process arguments in a read-only mode.
+    * Called before an App loads any of its unloaded config files. Subclasses
+    * may use this hook to do preparation before configs are loaded.
     *
-    * This hook should be used if a delegate needs to processes arguments
-    * before normal default App processing.
-    *
-    * Subclasses MUST call the superclass implementation first.
-    *
-    * @param args read-only vector of command line arguments.
-    *
-    * @return true on success, false on failure and exception set
-    */
-   virtual bool willParseCommandLine(std::vector<const char*>* args);
-
-   /**
-    * Called after the App processes the command line arguments.  Subclasses
-    * may use this hook to check and process the command line args.
-    *
-    * Subclasses MUST call the superclass implementation first.
-    *
-    * @return true on success, false on failure and exception set
-    */
-   virtual bool didParseCommandLine();
-
-   /**
-    * Called before the App loads the configs setup in the meta config.
-    * Subclasses may use this hook to setup the config manager or do other
-    * preparation before configs are loaded.
-    *
-    * Subclasses MUST call the superclass implementation first.
-    *
-    * @return true on success, false on failure and exception set
+    * @return true on success, false on failure with exception set.
     */
    virtual bool willLoadConfigs();
 
    /**
-    * Called after the App loads configs from the meta config. Subclasses can
-    * use this hook to load other configs or do other processing.
+    * Called after an App loads config files. Subclasses can use this hook to
+    * load other configs or do other processing.
     *
-    * Subclasses MUST call the superclass implementation first.
-    *
-    * @return true on success, false on failure and exception set
+    * @return true on success, false on failure with exception set.
     */
    virtual bool didLoadConfigs();
 
    /**
-    * Initialize logging.
+    * Gets the wait events for this plugin. These events will be waited for
+    * by a parent App's kernel before it stops.
     *
-    * @return true on success, false on failure and exception set
+    * The return value from plugins should be an array of objects of the form:
+    * {
+    *    "id": "{waiterId(string)}",
+    *    "type": "{waitEventType(string)}",
+    * }
+    * May return an empty map.
+    *
+    * @return the plugin wait events.
     */
-   virtual bool initializeLogging();
+   virtual monarch::rt::DynamicObject getWaitEvents();
 
    /**
-    * Cleanup logging.
+    * Runs this AppPlugin.
     *
-    * @return true on success, false on failure and exception set
-    */
-   virtual bool cleanupLogging();
-
-   /**
-    * Called before run().
-    *
-    * @return true on success, false on failure and exception set
-    */
-   virtual bool willRun();
-
-   /**
-    * Run the app plugin.
-    *
-    * If logging options need to be set on the apps config, do so in
-    * willRun().
-    *
-    * @return true on success, false on failure and exception set
+    * @return true on success, false with exception set on failure.
     */
    virtual bool run();
-
-   /**
-    * Called after run().
-    *
-    * @return true on success, false on failure and exception set
-    */
-   virtual bool didRun();
 };
-
-// type definition for a reference-counted AppPlugin
-typedef monarch::rt::Collectable<AppPlugin> AppPluginRef;
 
 } // end namespace app
 } // end namespace monarch

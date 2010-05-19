@@ -4,7 +4,7 @@
 #include "monarch/app/App.h"
 
 /**
- * Top-level warpper for Monarch App.
+ * Runs the Top-level Monarch App.
  *
  * @param argc number of command line args.
  * @param argv command line args.

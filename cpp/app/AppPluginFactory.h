@@ -94,11 +94,18 @@ public:
       monarch::kernel::MicroKernel* k);
 
    /**
-    * Creates a reference counted AppPlugin object.
+    * Creates an AppPlugin object.
     *
     * @return the created AppPlugin object or NULL if an exception occurred.
     */
-   virtual AppPluginRef createAppPlugin() = 0;
+   virtual AppPlugin* createAppPlugin() = 0;
+
+   /**
+    * Destroys an AppPlugin object.
+    *
+    * @param plugin the AppPlugin to destroy.
+    */
+   virtual void destroyAppPlugin(AppPlugin* plugin);
 };
 
 /**

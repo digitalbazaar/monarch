@@ -3,6 +3,8 @@
  */
 #include "monarch/app/AppPlugin.h"
 
+#include "monarch/app/App.h"
+
 using namespace std;
 using namespace monarch::app;
 using namespace monarch::config;
@@ -18,53 +20,6 @@ AppPlugin::~AppPlugin()
    mApp = NULL;
 }
 
-bool AppPlugin::initialize()
-{
-   return true;
-}
-
-void AppPlugin::cleanup()
-{
-}
-
-bool AppPlugin::willAddToApp(App* app)
-{
-   return true;
-}
-
-bool AppPlugin::didAddToApp(App* app)
-{
-   setApp(app);
-   return true;
-}
-
-DynamicObject AppPlugin::getWaitEvents()
-{
-   DynamicObject rval;
-   rval->setType(Array);
-   return rval;
-}
-
-bool AppPlugin::initConfigManager()
-{
-   return true;
-}
-
-bool AppPlugin::willInitMetaConfig(Config& meta)
-{
-   return true;
-}
-
-bool AppPlugin::initMetaConfig(Config& meta)
-{
-   return true;
-}
-
-bool AppPlugin::didInitMetaConfig(Config& meta)
-{
-   return true;
-}
-
 void AppPlugin::setApp(App* app)
 {
    mApp = app;
@@ -75,21 +30,25 @@ App* AppPlugin::getApp()
    return mApp;
 }
 
-DynamicObject AppPlugin::getCommandLineSpecs()
-{
-   DynamicObject specs;
-   specs->setType(Array);
-   return specs;
-}
-
-bool AppPlugin::willParseCommandLine(std::vector<const char*>* args)
+bool AppPlugin::initialize()
 {
    return true;
 }
 
-bool AppPlugin::didParseCommandLine()
+void AppPlugin::cleanup()
+{
+}
+
+bool AppPlugin::initConfigs()
 {
    return true;
+}
+
+DynamicObject AppPlugin::getCommandLineSpec()
+{
+   DynamicObject spec;
+   spec->setType(Array);
+   return spec;
 }
 
 bool AppPlugin::willLoadConfigs()
@@ -102,27 +61,19 @@ bool AppPlugin::didLoadConfigs()
    return true;
 }
 
-bool AppPlugin::initializeLogging()
-{
-   return true;
-}
-
-bool AppPlugin::cleanupLogging()
-{
-   return true;
-}
-
-bool AppPlugin::willRun()
-{
-   return true;
-}
-
 bool AppPlugin::run()
 {
    return true;
 }
 
-bool AppPlugin::didRun()
+DynamicObject AppPlugin::getWaitEvents()
+{
+   DynamicObject rval;
+   rval->setType(Array);
+   return rval;
+}
+
+bool AppPlugin::run()
 {
    return true;
 }

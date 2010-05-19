@@ -270,7 +270,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfig(
-      Config& config, bool include = true, const char* dir = NULL);
+      Config config, bool include = true, const char* dir = NULL);
 
    /**
     * Adds a configuration file or directory of files with addConfig().
@@ -307,7 +307,7 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool setConfig(Config& config);
+   virtual bool setConfig(Config config);
 
    /**
     * Gets a specific config by its ID. This method will return a clone
@@ -342,7 +342,7 @@ public:
    virtual bool hasConfig(ConfigId id);
 
    /**
-    * Get ConfigIds in a group.
+    * Gets the ConfigIds in a group.
     *
     * @param id the Config's ID.
     *
@@ -359,7 +359,8 @@ public:
     *           updated).
     * @param changedIds an optional map to populate with changed config IDs.
     */
-   virtual void update(ConfigId id, monarch::rt::DynamicObject* changedIds = NULL);
+   virtual void update(
+      ConfigId id, monarch::rt::DynamicObject* changedIds = NULL);
 
    /**
     * Associates a value with a keyword such that variable replacement can

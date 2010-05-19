@@ -52,6 +52,11 @@ MicroKernelModuleApi* AppPluginFactory::getApi(MicroKernel* k)
    return this;
 }
 
+void AppPluginFactory::destroyAppPlugin(AppPlugin* plugin)
+{
+   delete plugin;
+}
+
 void monarch::app::freeAppPluginFactory(Module* m)
 {
    delete m;

@@ -4,15 +4,7 @@
 #ifndef monarch_app_App_H
 #define monarch_app_App_H
 
-#include <ostream>
-#include <vector>
-
-#include "monarch/rt/Runnable.h"
-#include "monarch/rt/Exception.h"
-#include "monarch/config/ConfigManager.h"
-#include "monarch/app/AppPlugin.h"
-#include "monarch/app/LoggingPlugin.h"
-#include "monarch/app/MultiAppPlugin.h"
+#include "monarch/kernel/MicroKernel.h"
 
 namespace monarch
 {
@@ -20,61 +12,36 @@ namespace app
 {
 
 /**
- * Top-level class for applications.
+ * An App is a top-level class for applications.
  *
- * This class provides basic app functionality. Custom app functionality is
- * provided by AppPlugins. Normal use of this class is to have the program
- * main(...) call App::main(...).
+ * This class provides basic app functionality: ie: parameter parsing, logging,
+ * configuration and a MicroKernel. Specific application functionality is
+ * provided by a custom-written AppPlugin. Normal use of this class is to have
+ * the program main(...) call App::main(...).
  *
- * App will load up the Monarch, Config, Logging, and Kernel AppPlugins.
- * Other functionality can be provided by loading more plugins with command
- * line options or programatically from loaded modules. The App will create
- * and load AppPlugins created by all modules of type
- * "monarch.app.AppPluginFactory".
+ * An AppPlugin is created by an AppPluginFactory which is a specific type of
+ * MicroKernelModule. Additional modules may be loaded after the AppPlugin is
+ * loaded using command line options or programmatically from other loaded
+ * modules.
  *
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class App
 {
-public:
-   /**
-    * Run mode of the app.
-    */
-   enum Mode {
-      /** Bootstrap mode. */
-      BOOTSTRAP,
-      /** Main mode. */
-      NORMAL
-   };
-
 protected:
    /**
-    * The run mode.
-    */
-   Mode mMode;
-
-   /**
-    * Parent of this app or NULL.
-    */
-   App* mParentApp;
-
-   /**
-    * The Apps LoggingPlugin.
-    */
-   LoggingPlugin* mLoggingPlugin;
-
-   /**
-    * Program name for this App.  Taken from the command line args.
+    * Program name for this App. Taken from the command line args.
     */
    char* mProgramName;
 
    /**
-    * Name of this App
+    * Name of this App.
     */
    char* mName;
 
    /**
-    * Version of this App
+    * Version of this App.
     */
    char* mVersion;
 
@@ -84,205 +51,111 @@ protected:
    int mExitStatus;
 
    /**
-    * Command line arguments converted to a mutable vector.
+    * The meta config for this App. Contains unloaded config file paths and
+    * command line option configs.
     */
-   std::vector<const char*> mCommandLineArgs;
+   monarch::rt::DynamicObject mMetaConfig;
 
    /**
-    * Meta config. See getMetaConfig() for format.
+    * The MicroKernel for this App.
     */
-   monarch::config::Config mMetaConfig;
+   monarch::kernel::MicroKernel* mKernel;
 
    /**
-    * ConfigManager for this App.
+    * The app state types.
     */
-   monarch::config::ConfigManager* mConfigManager;
+   enum State
+   {
+      // App is stopped.
+      Stopped,
+      // In the process of starting the app.
+      Starting,
+      // App has been started and is running.
+      Running,
+      // In the process of restarting the app.
+      Restarting,
+      // In the process of stopping the app.
+      Stopping
+   };
 
    /**
-    * Clean up the ConfigManager.
+    * The current app state.
     */
-   bool mCleanupConfigManager;
-
-   /**
-    * A table of pthread mutexes for openSSL.
-    */
-   static pthread_mutex_t* sOpenSSLMutexes;
-
-   /**
-    * A callback function required by OpenSSL for multi-threaded applications.
-    *
-    * This method will return the current thread's ID.
-    *
-    * @return the current thread's ID.
-    */
-   static unsigned long openSSLSetId();
-
-   /**
-    * A callback function required by OpenSSL for multi-threaded applications.
-    *
-    * It sets the n-th lock if mode & CRYPTO_LOCK, and releases it otherwise.
-    *
-    * @param mode the current mode.
-    * @param n the lock number to alter.
-    * @param file the current source file (unused).
-    * @param line the line in the file (unused).
-    */
-   static void openSSLHandleLock(int mode, int n, const char* file, int line);
-
-   /**
-    * Create and initialize the app config manager.
-    *
-    * @return true on success, false and exception on failure.
-    */
-   virtual bool initConfigManager();
-
-   /**
-    * Perform ConfigManager specific cleanup if required.
-    */
-   virtual void cleanupConfigManager();
-
-   /**
-    * List of AppPlugins.
-    */
-   MultiAppPlugin* mPlugins;
+   State mState;
 
 public:
    /**
-    * Create an App instance.
+    * Creates an App instance.
     */
    App();
 
    /**
-    * Deconstruct this App instance.
+    * Deconstructs this App instance.
     */
    virtual ~App();
 
    /**
-    * Set the bootstrap mode.
-    *
-    * @param mode the bootstrap mode.
-    *
-    * @return true on success, false and exception set on error.
-    */
-   virtual bool setMode(Mode mode);
-
-   /**
-    * Get the app run mode.
-    *
-    * @return the run mode of the app.
-    */
-   virtual Mode getMode();
-
-   /**
-    * Set the parent app.
-    *
-    * @param parent the parent App.
-    */
-   virtual void setParentApp(App* parent);
-
-   /**
-    * Get the parent app or NULL if none. This can be used to get the bootstrap
-    * app.
-    *
-    * @return the parent app.
-    */
-   virtual App* getParentApp();
-
-   /**
-    * Set the LoggingPlugin.
-    *
-    * @param logger the LoggingPlugin.
-    */
-   virtual void setLoggingPlugin(LoggingPlugin* logger);
-
-   /**
-    * Get the LoggingPlugin.
-    *
-    * @return the LoggingPlugin.
-    */
-   virtual LoggingPlugin* getLoggingPlugin();
-
-   /**
-    * Add an AppPlugin.
-    *
-    * @param plugin an AppPlugin.
-    *
-    * @return true on success, false and exception set on error.
-    */
-   virtual bool addPlugin(AppPluginRef plugin);
-
-   /**
-    * Get all the wait events from all AppPlugins. See
-    * AppPlugin::getWaitEvents() for more details.
-    *
-    * @return the combined plugin wait events.
-    */
-   virtual monarch::rt::DynamicObject getWaitEvents();
-
-   /**
-    * Set the program name.
+    * Sets the program name.
     *
     * @param name the program name.
     */
    virtual void setProgramName(const char* name);
 
    /**
-    * Get the program name.
+    * Gets the program name.
     *
     * @return the program name.
     */
    virtual const char* getProgramName();
 
    /**
-    * Set the name.
+    * Sets the application name.
     *
     * @param name the name.
     */
    virtual void setName(const char* name);
 
    /**
-    * Get the name.
+    * Gets the application name.
     *
     * @return the name.
     */
    virtual const char* getName();
 
    /**
-    * Set the version.
+    * Sets the version.
     *
     * @param name the version.
     */
    virtual void setVersion(const char* version);
 
    /**
-    * Get the version.
+    * Gets the version.
     *
     * @return the version.
     */
    virtual const char* getVersion();
 
    /**
-    * Set the application exit status.
+    * Sets the application exit status.
     *
     * @param status the application exit status.
     */
    virtual void setExitStatus(int exitStatus);
 
    /**
-    * Get the application exit status.
+    * Gets the application exit status.
     *
     * @return the application exit status.
     */
    virtual int getExitStatus();
 
    /**
-    * Set the ConfigManager.
+    * Gets this app's MicroKernel.
     *
-    * @param configManager the ConfigManager for this app.
-    * @param cleanup true to cleanup this manager, false not to.
+    * @return the MicroKernel for this app.
     */
-   virtual void setConfigManager(
-      monarch::config::ConfigManager* configManager, bool cleanup = true);
+   virtual monarch::kernel::MicroKernel* getKernel();
 
    /**
     * Gets this app's ConfigManager.
@@ -299,12 +172,37 @@ public:
    virtual monarch::config::Config getConfig();
 
    /**
+    * Makes a builtin config by setting its ID, group, parent, and version. It
+    * must be added to the ConfigManager once it has been filled out.
+    *
+    * @param id the ID for the config.
+    * @param group the group for the config.
+    *
+    * @return the config.
+    */
+   virtual monarch::config::Config makeConfig(
+      monarch::config::ConfigId id,
+      monarch::config::ConfigId groupId);
+
+   /**
     * Gets the meta configuration object.
     *
-    * This mutable object is used for command line options and to setup and
-    * load a hierarchy of configs. The format and default object is as follows:
+    * This mutable object is used for command line options and to store config
+    * file paths for loading. The format and default object is as follows:
     *
     * {
+    *    # the parsed command line
+    *    "commandLine": [
+    *       "options": [
+    *          "consumed": <true/false>,
+    *          "short"/"long": <option>,
+    *          "value": <value>
+    *       ],
+    *       "extra": [
+    *          <arg>,
+    *          ...
+    *       ]
+    *    ],
     *    # array of command line option specs
     *    # see AppPlugin::getCommandLineSpecs()
     *    "specs": [
@@ -316,28 +214,6 @@ public:
     *       "<id>": <config>,
     *       ...,
     *    }
-    *
-    *    # map of well-known ids that can be customized
-    *    "groups": {
-    *       "root": "root",
-    *       "boot": "boot",
-    *       "defaults": "defaults",
-    *       "command line": "command line",
-    *       "main": "main"
-    *    },
-    *    # map of parents of well-known ids that can be customized
-    *    "parents": {
-    *       "root": null,
-    *       "boot": "root",
-    *       "defaults": "boot",
-    *       "command line": "defaults",
-    *       "main": "command line"
-    *    },
-    *    # map of configs indexed by id
-    *    "configs": {
-    *       "<id>": <config>,
-    *       ...
-    *    }
     * }
     *
     * @return the meta config.
@@ -345,46 +221,18 @@ public:
    virtual monarch::config::Config getMetaConfig();
 
    /**
-    * Get the command line args used for this app.
+    * Runs the App. If specified in the configuration, an AppPlugin will be
+    * run that customizes the behavior of the application.
     *
-    * @return the command line args.
+    * @param argc number of command line arguments.
+    * @param argv command line arguments.
+    *
+    * @return exit status. 0 for success.
     */
-   virtual std::vector<const char*>* getCommandLine();
+   virtual int start(int argc, const char* argv[]);
 
    /**
-    * Parses the command line options that were passed to the application.
-    * Implementations may call exit() depending on the arguments.  For normal
-    * errors it is preferable to return false and set an exception.
-    *
-    * @param args read-write vector of command line paramters.
-    *
-    * @return true on success, false on failure and exception set
-    */
-   virtual bool parseCommandLine(std::vector<const char*>* args);
-
-   /**
-    * Initialize OpenSSL.
-    *
-    * @return true on success, false on failure and exception set
-    */
-   virtual bool initializeOpenSSL();
-
-   /**
-    * Cleanup OpenSSL.
-    */
-   virtual void cleanupOpenSSL();
-
-   /**
-    * Run the app. Plugins can be added before this is called.
-    *
-    * @param args the command line arguments.
-    *
-    * @return true on success, false on failure and exception set
-    */
-   virtual int start(std::vector<const char*>* args);
-
-   /**
-    * Complete top-level Monarch App process.
+    * Called from ::main() to run a top-level App.
     *
     * @param argc number of command line arguments.
     * @param argv command line arguments.
@@ -393,45 +241,27 @@ public:
     */
    static int main(int argc, const char* argv[]);
 
+protected:
    /**
-    * Pretty print an exception.
+    * Runs this App.
     *
-    * @param e the exception to print.
+    * @return true on success, false on failure with exception set.
     */
-   static void printException(monarch::rt::ExceptionRef& e);
+   virtual bool run();
 
    /**
-    * Pretty print an exception to a given output stream.
+    * Configures the AppPlugin.
     *
-    * @param e the exception to print.
-    * @param s the output stream.
+    * @param plugin the AppPlugin to configure.
     */
-   static void printException(monarch::rt::ExceptionRef& e, std::ostream& s);
+   virtual void configurePlugin(AppPlugin* plugin);
 
    /**
-    * Pretty print last exception.
-    */
-   static void printException();
-
-   /**
-    * Make a default empty config. If an id is given it will be added to the
-    * config and used as a key to add the config to the meta config. If a group
-    * id is given it is considered to be a common name id and the real group
-    * id is looked up in the meta config before adding it to the new config.
-    * The parent of the new config will be looked up with the resolved group id.
+    * Runs the AppPlugin.
     *
-    * @param meta the meta config.
-    * @param id the config id.
-    * @param groupId the group id.
-    * @param section section for this config ("configs" or "options").
-    *
-    * @return the new config.
+    * @return true on success, false on failure with exception set.
     */
-   static monarch::config::Config makeMetaConfig(
-      monarch::config::Config& meta,
-      const char* id = NULL,
-      const char* groupId = NULL,
-      const char* section = "configs");
+   virtual bool runAppPlugin();
 };
 
 } // end namespace app

@@ -86,7 +86,7 @@ void ConfigManager::clear()
    }
 }
 
-bool ConfigManager::addConfig(Config& config, bool include, const char* dir)
+bool ConfigManager::addConfig(Config config, bool include, const char* dir)
 {
    bool rval;
 
@@ -405,7 +405,7 @@ bool ConfigManager::removeConfig(ConfigId id)
    return rval;
 }
 
-bool ConfigManager::setConfig(Config& config)
+bool ConfigManager::setConfig(Config config)
 {
    bool rval = false;
 
@@ -519,13 +519,17 @@ Config ConfigManager::getConfig(ConfigId id, bool raw, bool cache)
          mConfigs[id]["raw"].clone() :
          getMergedConfig(id, cache).clone();
 
+      // FIXME: remove this limitation and make a note in header that a "raw"
+      // group config is auto-generated so it shouldn't be used to set a group
+
       // implicit config groups do not have any raw configs, so do not
       // return any here
       if(raw && rval->hasMember(GROUP) &&
          strcmp(id, rval[GROUP]->getString()) == 0)
       {
          ExceptionRef e = new Exception(
-            "Request for raw config with a group ID.",
+            "Invalid request for a raw config with a group ID. There is no "
+            "raw config for a group.",
             CONFIG_EXCEPTION ".InvalidId");
          e->getDetails()["id"] = id;
          Exception::set(e);

@@ -176,6 +176,8 @@ static void _testConfigs(
 
       // invalid to request a raw groupid so check for that condition
       Config raw = cm.getConfig("app", true);
+      printf("\nRAW APP:\n");
+      JsonWriter::writeToStdOut(raw);
       assertException();
       assert(raw.isNull());
       Exception::clear();
