@@ -246,7 +246,7 @@ static bool _initLoggingConfig(App* app)
    c["enabled"] = true;
    c["level"] = "warning";
    c["log"] = "-";
-   c["useHome"] = false;
+   c["logHome"] = "-";
    c["append"] = true;
    c["rotationFileSize"] = (uint64_t)2000000;
    c["maxRotatedFiles"] = (uint32_t)10;
@@ -434,7 +434,7 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
 "                      i[nfo], d[ebug], debug-data, debug-detail, m[ax].\n"
 "                      (default: \"warning\")\n"
 "      --log LOG       Set log file. Use \"-\" for stdout. (default: \"-\")\n"
-"      --log-to-home   Write the log file to the application's home directory (default: false).\n"
+"      --log-home LOG  Write log file to the application's home directory.\n"
 "      --log-overwrite Overwrite log file instead of appending. (default: false)\n"
 "      --log-rotation-size SIZE\n"
 "                      Log size that triggers rotation in bytes. 0 to disable.\n"
@@ -472,9 +472,10 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
    opt["argError"] = "No log file specified.";
 
    opt = spec["options"]->append();
-   opt["long"] = "--log-to-home";
-   opt["setTrue"]["root"] = om;
-   opt["setTrue"]["path"] = "useHome";
+   opt["long"] = "--log-home";
+   opt["arg"]["root"] = om;
+   opt["arg"]["path"] = "logHome";
+   opt["argError"] = "No log file specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
@@ -674,7 +675,9 @@ bool AppConfig::loadCommandLineConfigs(App* app, bool plugin)
  */
 static bool _loggingToStdOut(Config& cfg)
 {
-   return cfg->hasMember("log") && strcmp(cfg["log"]->getString(), "-") == 0;
+   return
+      strcmp(cfg["log"]->getString(), "-") == 0 &&
+      strcmp(cfg["logHome"]->getString(), "-") == 0;
 }
 
 bool AppConfig::configureLogging(App* app)
@@ -695,41 +698,32 @@ bool AppConfig::configureLogging(App* app)
       }
       else
       {
-         // get log file
-         const char* logFile = cfg["log"]->getString();
-
-         // attempt to expand "~"
-         string expandedLogFile;
-         if(logFile[0] == '~')
+         // determine if writing to app home dir or not
+         string logFile;
+         bool logHome = (cfg["logHome"]->length() > 0);
+         if(logHome)
          {
-            rval = File::expandUser(logFile, expandedLogFile);
+            // prepend home dir
+            logFile = File::join(
+               app->getConfig()[MONARCH_APP]["home"]->getString(),
+               cfg["logHome"]->getString());
          }
          else
          {
-            // prepend home if specified
-            if(cfg["useHome"]->getBoolean())
-            {
-               expandedLogFile = File::join(
-                  app->getConfig()[MONARCH_APP]["home"]->getString(),
-                  logFile);
-            }
-            else
-            {
-               expandedLogFile.assign(logFile);
-            }
+            // get log file
+            logFile = cfg["log"]->getString();
+         }
 
-            // do expansion if necessary
-            if(!File::isPathAbsolute(expandedLogFile.c_str()))
-            {
-               rval = File::expandUser(
-                  expandedLogFile.c_str(), expandedLogFile);
-            }
+         // expand non-absolute paths (handle "~", relative path)
+         if(!File::isPathAbsolute(logFile.c_str()))
+         {
+            rval = File::expandUser(logFile.c_str(), logFile);
          }
 
          if(rval)
          {
             // create file logger and set file
-            File file(expandedLogFile.c_str());
+            File file(logFile.c_str());
             bool append = cfg["append"]->getBoolean();
             mLogger = fileLogger = new FileLogger();
             rval = fileLogger->setFile(file, append);
