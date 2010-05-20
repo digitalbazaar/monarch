@@ -111,8 +111,8 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
          {
             ExceptionRef e = new Exception(
                "Command line parsing error. Options must be a hyphen followed "
-               "by a single character start or be a double-hyphen followed "
-               "by a keyword.",
+               "by a single character options or be a double-hyphen followed "
+               "by a keyword. One argument may follow an option.",
                CMDLINE_ERROR);
             e->getDetails()["option"] = option;
             Exception::set(e);
@@ -125,12 +125,6 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
          DynamicObject& opt = opts->append();
          opt["consumed"] = false;
          opt["long"] = option;
-
-         // store option argument value if applicable
-         if((i + 1 < argc) && _getOptionType(argv[i + 1]) == -1)
-         {
-            opt["value"] = argv[++i];
-         }
       }
       // single short option
       else if(type == 1)
@@ -151,6 +145,16 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
             DynamicObject& opt = opts->append();
             opt["consumed"] = false;
             opt["short"] = tmp.c_str();
+         }
+      }
+
+      if(type > 0)
+      {
+         // store option argument value if applicable
+         if((i + 1 < argc) && _getOptionType(argv[i + 1]) == -1)
+         {
+            DynamicObject opt = opts.last();
+            opt["value"] = argv[++i];
          }
       }
    }
@@ -229,19 +233,17 @@ static DynamicObject* _findPath(
          }
          if(target != NULL && (segmentdone || !st.hasNextToken()))
          {
-            if(!createPaths)
+            // if not creating paths and path segment doesn't exist, error
+            if(!createPaths && !(*target)->hasMember(segment.c_str()))
             {
-               if(!(*target)->hasMember(segment.c_str()))
-               {
-                  ExceptionRef e = new Exception(
-                     "DynamicObject path not found.",
-                     CMDLINE_ERROR);
-                  e->getDetails()["path"] = path;
-                  Exception::set(e);
-                  target = NULL;
-               }
+               ExceptionRef e = new Exception(
+                  "DynamicObject path not found.",
+                  CMDLINE_ERROR);
+               e->getDetails()["path"] = path;
+               Exception::set(e);
+               target = NULL;
             }
-            if(target != NULL)
+            else
             {
                target = &(*target)[segment.c_str()];
                segment.clear();

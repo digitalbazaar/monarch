@@ -131,7 +131,8 @@ Config App::getConfig()
 }
 
 Config App::makeConfig(
-   ConfigManager::ConfigId id, ConfigManager::ConfigId groupId)
+   ConfigManager::ConfigId id, ConfigManager::ConfigId groupId,
+   ConfigManager::ConfigId parentId)
 {
    Config rval;
    rval[ConfigManager::VERSION] = MO_DEFAULT_CONFIG_VERSION;
@@ -146,6 +147,14 @@ Config App::makeConfig(
       {
          rval[ConfigManager::PARENT] = raw[ConfigManager::PARENT];
       }
+      else if(parentId != NULL)
+      {
+         rval[ConfigManager::PARENT] = parentId;
+      }
+   }
+   else if(parentId != NULL)
+   {
+      rval[ConfigManager::PARENT] = parentId;
    }
    if(id != NULL)
    {
@@ -526,6 +535,7 @@ bool App::run()
          waitEvents = plugin->getWaitEvents();
          rval = _validateWaitEvents(waitEvents);
 
+         // FIXME: need to get command line config instead of main?
          // print help if requested
          quit = rval && _printHelp(this, cfg);
       }

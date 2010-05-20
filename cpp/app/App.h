@@ -174,16 +174,19 @@ public:
 
    /**
     * Makes a builtin config by setting its ID, group, parent, and version. It
-    * must be added to the ConfigManager once it has been filled out.
+    * must be added to the ConfigManager once it has been filled out. If no
+    * parent ID is specified, it will be taken from the group or set to none.
     *
     * @param id the ID for the config.
-    * @param group the group for the config.
+    * @param group the group ID for the config.
+    * @param parent the parent ID for the config (NULL to detect or for none).
     *
     * @return the config.
     */
    virtual monarch::config::Config makeConfig(
       monarch::config::ConfigManager::ConfigId id,
-      monarch::config::ConfigManager::ConfigId groupId);
+      monarch::config::ConfigManager::ConfigId groupId,
+      monarch::config::ConfigManager::ConfigId parentId = NULL);
 
    /**
     * Gets the meta configuration object.

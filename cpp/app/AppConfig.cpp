@@ -153,19 +153,26 @@ static bool _initGeneralConfig(App* app)
    // create configuration tree structure
    rval =
       cm->addConfig(app->makeConfig(
-         MONARCH_APP ".root.empty", "root")) &&
+         MONARCH_APP ".root.empty", "root",
+         NULL)) &&
       cm->addConfig(app->makeConfig(
-         MONARCH_APP ".boot.empty", "boot")) &&
+         MONARCH_APP ".boot.empty", "boot",
+         "root")) &&
       cm->addConfig(app->makeConfig(
-         MONARCH_APP ".beforeDefaults.empty", "before defaults")) &&
+         MONARCH_APP ".beforeDefaults.empty", "before defaults",
+         "boot")) &&
       cm->addConfig(app->makeConfig(
-         MONARCH_APP ".defaults.empty", "defaults")) &&
+         MONARCH_APP ".defaults.empty", "defaults",
+         "before defaults")) &&
       cm->addConfig(app->makeConfig(
-         MONARCH_APP ".afterDefaults.empty", "after defaults")) &&
+         MONARCH_APP ".afterDefaults.empty", "after defaults",
+         "defaults")) &&
       cm->addConfig(app->makeConfig(
-         MONARCH_APP ".commandLine.empty", "command line")) &&
+         MONARCH_APP ".commandLine.empty", "command line",
+         "after defaults")) &&
       cm->addConfig(app->makeConfig(
-         MONARCH_APP ".main.empty", "main"));
+         MONARCH_APP ".main.empty", "main",
+         "command line"));
    if(rval)
    {
       Config cfg = app->makeConfig(MONARCH_APP ".defaults", "defaults");
@@ -182,8 +189,8 @@ static bool _initGeneralConfig(App* app)
       {
          Config cfg = app->makeConfig(MONARCH_APP_CL, "command line");
          app->getMetaConfig()["options"][MONARCH_APP_CL] = cfg;
-         Config& cm = cfg[ConfigManager::MERGE];
-         cm[MONARCH_APP]->setType(Map);
+         Config& cm = cfg[ConfigManager::MERGE][MONARCH_APP];
+         cm->setType(Map);
       }
    }
 
@@ -211,10 +218,10 @@ static bool _initConfigConfig(App* app)
    {
       Config cfg = app->makeConfig(MONARCH_CONFIG_CL, "command line");
       app->getMetaConfig()["options"][MONARCH_CONFIG_CL] = cfg;
-      Config& ca = cfg[ConfigManager::APPEND];
-      Config& cm = cfg[ConfigManager::MERGE];
-      ca[MONARCH_CONFIG]["config"]["configs"]->setType(Array);
-      cm[MONARCH_CONFIG]->setType(Map);
+      Config& ca = cfg[ConfigManager::APPEND][MONARCH_CONFIG];
+      Config& cm = cfg[ConfigManager::MERGE][MONARCH_CONFIG];
+      ca["config"]["configs"]->setType(Array);
+      cm->setType(Map);
    }
 
    return rval;
@@ -246,8 +253,8 @@ static bool _initLoggingConfig(App* app)
    {
       Config cfg = app->makeConfig(MONARCH_LOGGING_CL, "command line");
       app->getMetaConfig()["options"][MONARCH_LOGGING_CL] = cfg;
-      Config& cm = cfg[ConfigManager::MERGE];
-      cm[MONARCH_LOGGING]->setType(Map);
+      Config& cm = cfg[ConfigManager::MERGE][MONARCH_LOGGING];
+      cm->setType(Map);
    }
 
    return rval;
@@ -280,10 +287,10 @@ static bool _initKernelConfig(App* app)
    {
       Config cfg = app->makeConfig(MONARCH_KERNEL_CL, "command line");
       app->getMetaConfig()["options"][MONARCH_KERNEL_CL] = cfg;
-      Config& ca = cfg[ConfigManager::APPEND];
-      Config& cm = cfg[ConfigManager::MERGE];
-      ca[MONARCH_KERNEL]["kernel"]["modulePath"]->setType(Array);
-      cm[MONARCH_KERNEL]->setType(Map);
+      Config& ca = cfg[ConfigManager::APPEND][MONARCH_KERNEL];
+      Config& cm = cfg[ConfigManager::MERGE][MONARCH_KERNEL];
+      ca["kernel"]["modulePath"]->setType(Array);
+      cm->setType(Map);
    }
 
    return rval;
@@ -334,13 +341,6 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
 {
    DynamicObject spec;
    spec["help"] =
-"Help options:\n"
-"  -h, --help          Prints information on how to use the application.\n"
-"\n"
-"General options:\n"
-"  -V, --version       Prints the software version.\n"
-"      --              Treat all remaining options as application arguments.\n"
-"\n"
 "Config options:\n"
 "  -c, --config FILE   Load a configuration file or directory of files. May\n"
 "                      be specified multiple times.\n"
@@ -685,152 +685,149 @@ static bool _delayed(Config& cfg)
 
 bool AppConfig::configureLogging(App* app)
 {
+   // get logging config
    Config cfg = app->getConfig()[MONARCH_LOGGING];
+/*
+   // NOTE: might need to get parent config in non-bootstrap mode to ensure
+   // consistent config for the setup below.  non-bootstrap configs could
+   // overwrite these options and cause havoc.
 
-   // FIXME: do it
-   /*
-      // get logging config
-      Config cfg = getApp()->getConfig()[PLUGIN_NAME];
-      // NOTE: might need to get parent config in non-bootstrap mode to ensure
-      // consistent config for the setup below.  non-bootstrap configs could
-      // overwrite these options and cause havoc.
+   FileLogger* fileLogger = NULL;
+   bool bootstrap = getApp()->getMode() == App::BOOTSTRAP;
+   bool delayed = _delayed(cfg);
+   bool enabled = cfg["enabled"]->getBoolean();
+   bool stdoutlog = !delayed && _loggingToStdOut(cfg);
 
-      FileLogger* fileLogger = NULL;
-      bool bootstrap = getApp()->getMode() == App::BOOTSTRAP;
-      bool delayed = _delayed(cfg);
-      bool enabled = cfg["enabled"]->getBoolean();
-      bool stdoutlog = !delayed && _loggingToStdOut(cfg);
-
-      // setup logger when enabled and in bootstrap mode
-      if(rval && enabled && bootstrap)
+   // setup logger when enabled and in bootstrap mode
+   if(rval && enabled && bootstrap)
+   {
+      if(stdoutlog)
       {
-         if(stdoutlog)
+         OutputStream* logStream = new FileOutputStream(
+            FileOutputStream::StdOut);
+         mLogger = new OutputStreamLogger(logStream, true);
+      }
+      else
+      {
+         fileLogger = new FileLogger();
+         if(delayed)
          {
-            OutputStream* logStream = new FileOutputStream(
-               FileOutputStream::StdOut);
-            mLogger = new OutputStreamLogger(logStream, true);
+            // set arbitrary 32k log size in delayed mode
+            // can add cmd line option to set this if needed
+            // FIXME: would be better if this were dynamic with a max to avoid
+            // FIXME: over or under allocation.
+            rval = fileLogger->setInMemoryLog(32*1024);
+         }
+         if(rval)
+         {
+            mLogger = fileLogger;
          }
          else
          {
-            fileLogger = new FileLogger();
-            if(delayed)
-            {
-               // set arbitrary 32k log size in delayed mode
-               // can add cmd line option to set this if needed
-               // FIXME: would be better if this were dynamic with a max to avoid
-               // FIXME: over or under allocation.
-               rval = fileLogger->setInMemoryLog(32*1024);
-            }
+            delete fileLogger;
+            fileLogger = NULL;
+         }
+      }
+
+      if(rval)
+      {
+         // FIXME: add cfg option to pick categories to log
+         //Logger::addLogger(&mLogger, BM_..._CAT);
+         // FIXME: add cfg options for logging options
+         //logger.setDateFormat("%H:%M:%S");
+         //logger.setFlags(Logger::LogThread);
+         Logger::Level logLevel;
+         const char* levelStr = cfg["level"]->getString();
+         bool found = Logger::stringToLevel(levelStr, logLevel);
+         if(found)
+         {
+            mLogger->setLevel((Logger::Level)logLevel);
+         }
+         else
+         {
+            ExceptionRef e = new Exception(
+               "Invalid monarch.logging.level.", "monarch.app.ConfigError");
+            e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
+            Exception::set(e);
+            rval = false;
+         }
+         if(cfg["color"]->getBoolean())
+         {
+            mLogger->setFlags(Logger::LogColor);
+         }
+         if(cfg["location"]->getBoolean())
+         {
+            mLogger->setFlags(Logger::LogLocation);
+         }
+      }
+   }
+
+   // setup new logging file if and when needed
+   if(rval && enabled &&
+      ((bootstrap && !delayed && !stdoutlog) || (!bootstrap && delayed)))
+   {
+      const char* logFile = cfg["log"]->getString();
+      string expandedLogFile;
+      // attempt to expand "~", else just use plain value
+      if(!File::isPathAbsolute(logFile))
+      {
+         rval = File::expandUser(logFile, expandedLogFile);
+      }
+      else
+      {
+         expandedLogFile.assign(logFile);
+      }
+
+      if(rval)
+      {
+         File f(expandedLogFile.c_str());
+         // if delayed, get the real file logger
+         // otherwise we're in bootstrap mode and it's already set
+         if(delayed)
+         {
+            fileLogger =
+               getApp()->getParentApp()->getLoggingBuiltin()->getFileLogger();
+         }
+
+         // sanity check in case fileLogger not set yet
+         if(fileLogger)
+         {
+            bool append = cfg["append"]->getBoolean();
+            rval = fileLogger->setFile(f, append);
             if(rval)
             {
-               mLogger = fileLogger;
-            }
-            else
-            {
-               delete fileLogger;
-               fileLogger = NULL;
-            }
-         }
-
-         if(rval)
-         {
-            // FIXME: add cfg option to pick categories to log
-            //Logger::addLogger(&mLogger, BM_..._CAT);
-            // FIXME: add cfg options for logging options
-            //logger.setDateFormat("%H:%M:%S");
-            //logger.setFlags(Logger::LogThread);
-            Logger::Level logLevel;
-            const char* levelStr = cfg["level"]->getString();
-            bool found = Logger::stringToLevel(levelStr, logLevel);
-            if(found)
-            {
-               mLogger->setLevel((Logger::Level)logLevel);
-            }
-            else
-            {
-               ExceptionRef e = new Exception(
-                  "Invalid monarch.logging.level.", "monarch.app.ConfigError");
-               e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
-               Exception::set(e);
-               rval = false;
-            }
-            if(cfg["color"]->getBoolean())
-            {
-               mLogger->setFlags(Logger::LogColor);
-            }
-            if(cfg["location"]->getBoolean())
-            {
-               mLogger->setFlags(Logger::LogLocation);
-            }
-         }
-      }
-
-      // setup new logging file if and when needed
-      if(rval && enabled &&
-         ((bootstrap && !delayed && !stdoutlog) || (!bootstrap && delayed)))
-      {
-         const char* logFile = cfg["log"]->getString();
-         string expandedLogFile;
-         // attempt to expand "~", else just use plain value
-         if(!File::isPathAbsolute(logFile))
-         {
-            rval = File::expandUser(logFile, expandedLogFile);
-         }
-         else
-         {
-            expandedLogFile.assign(logFile);
-         }
-
-         if(rval)
-         {
-            File f(expandedLogFile.c_str());
-            // if delayed, get the real file logger
-            // otherwise we're in bootstrap mode and it's already set
-            if(delayed)
-            {
-               fileLogger =
-                  getApp()->getParentApp()->getLoggingBuiltin()->getFileLogger();
-            }
-
-            // sanity check in case fileLogger not set yet
-            if(fileLogger)
-            {
-               bool append = cfg["append"]->getBoolean();
-               rval = fileLogger->setFile(f, append);
-               if(rval)
+               if(cfg["gzip"]->getBoolean())
                {
-                  if(cfg["gzip"]->getBoolean())
-                  {
-                     fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
-                  }
-                  fileLogger->setRotationFileSize(
-                     cfg["rotationFileSize"]->getUInt64());
-                  fileLogger->setMaxRotatedFiles(
-                     cfg["maxRotatedFiles"]->getUInt32());
+                  fileLogger->setFlags(FileLogger::GzipCompressRotatedLogs);
                }
+               fileLogger->setRotationFileSize(
+                  cfg["rotationFileSize"]->getUInt64());
+               fileLogger->setMaxRotatedFiles(
+                  cfg["maxRotatedFiles"]->getUInt32());
             }
          }
       }
+   }
 
-      // add logger after setup complete when in bootstrap mode
-      if(rval && enabled)
+   // add logger after setup complete when in bootstrap mode
+   if(rval && enabled)
+   {
+      if(bootstrap)
       {
-         if(bootstrap)
-         {
-            Logger::addLogger(mLogger);
+         Logger::addLogger(mLogger);
 
-            // NOTE: Logging is now initialized. Use standard logging system after
-            // NOTE: this point.
-            MO_CAT_DEBUG(MO_LOGGING_CAT, "%s initialized.",
-               delayed ? " Delayed logging" : "Logging");
-         }
-         else if(delayed)
-         {
-            // logging now fully setup
-            MO_CAT_DEBUG(MO_LOGGING_CAT, "Logging fully initialized.");
-         }
-      }*/
-
+         // NOTE: Logging is now initialized. Use standard logging system after
+         // NOTE: this point.
+         MO_CAT_DEBUG(MO_LOGGING_CAT, "%s initialized.",
+            delayed ? " Delayed logging" : "Logging");
+      }
+      else if(delayed)
+      {
+         // logging now fully setup
+         MO_CAT_DEBUG(MO_LOGGING_CAT, "Logging fully initialized.");
+      }
+   }
+*/
    return true;
 }
 
