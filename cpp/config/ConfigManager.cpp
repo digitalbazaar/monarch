@@ -86,6 +86,18 @@ void ConfigManager::clear()
    }
 }
 
+static void _configChanged(
+   ConfigManager* cm, ConfigChangeListener* listener, DynamicObject& changedIds)
+{
+   // notify listener of all related configuration changes
+   DynamicObjectIterator i = changedIds.getIterator();
+   while(i->hasNext())
+   {
+      Config& d = i->next();
+      listener->configChanged(cm, i->getName(), d);
+   }
+}
+
 bool ConfigManager::addConfig(Config config, bool include, const char* dir)
 {
    bool rval;
@@ -103,20 +115,9 @@ bool ConfigManager::addConfig(Config config, bool include, const char* dir)
          // notify listener of configuration addition
          listener->configAdded(this, config[ID]->getString());
 
-         // FIXME: why aren't we locking while producing merged diffs?
-         // if a config is removed (like a user config is removed in bitmunk)
-         // we could end up with config corruption or a segfault, right?
-
-         // produce merged diffs
+         // produce merged diffs, notify listener
          produceMergedDiffs(changedIds);
-
-         // notify listener of all related configuration changes
-         DynamicObjectIterator i = changedIds.getIterator();
-         while(i->hasNext())
-         {
-            Config& d = i->next();
-            listener->configChanged(this, i->getName(), d);
-         }
+         _configChanged(this, listener, changedIds);
       }
    }
 
@@ -389,16 +390,9 @@ bool ConfigManager::removeConfig(ConfigId id)
          // notify listener of configuration removal
          listener->configRemoved(this, id);
 
-         // produce merged diffs for each changed ID
+         // produce merged diffs, notify listener
          produceMergedDiffs(changedIds);
-
-         // notify listener of all related configuration changes
-         DynamicObjectIterator i = changedIds.getIterator();
-         while(i->hasNext())
-         {
-            Config& d = i->next();
-            listener->configChanged(this, i->getName(), d);
-         }
+         _configChanged(this, listener, changedIds);
       }
    }
 
@@ -476,15 +470,9 @@ bool ConfigManager::setConfig(Config config)
       ConfigChangeListener* listener = getConfigChangeListener();
       if(listener != NULL)
       {
-         // produce merged diffs for each changed ID
+         // produce merged diffs, notify listener
          produceMergedDiffs(changedIds);
-
-         DynamicObjectIterator i = changedIds.getIterator();
-         while(i->hasNext())
-         {
-            Config& d = i->next();
-            listener->configChanged(this, i->getName(), d);
-         }
+         _configChanged(this, listener, changedIds);
       }
    }
 
@@ -536,6 +524,110 @@ Config ConfigManager::getConfig(ConfigId id, bool raw, bool cache)
 bool ConfigManager::hasConfig(ConfigId id)
 {
    return mConfigs->hasMember(id);
+}
+
+bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
+{
+   bool rval = false;
+
+   // store all changed IDs
+   DynamicObject changedIds;
+   changedIds->setType(Map);
+
+   // lock to modify internal storage
+   mLock.lockExclusive();
+   {
+      // ensure the ID exists
+      if(!mConfigs->hasMember(id))
+      {
+         ExceptionRef e = new Exception(
+            "Could not set config parent ID. Invalid config ID.",
+            CONFIG_EXCEPTION ".InvalidId");
+         e->getDetails()["id"] = id;
+         e->getDetails()["parentId"] = parentId;
+         Exception::set(e);
+      }
+      // ensure the parent exists
+      else if(parentId != NULL && !mConfigs->hasMember(parentId))
+      {
+         ExceptionRef e = new Exception(
+            "Could not set config parent ID. Parent ID is invalid.",
+            CONFIG_EXCEPTION ".InvalidParent");
+         e->getDetails()["id"] = id;
+         e->getDetails()["parentId"] = parentId;
+         Exception::set(e);
+      }
+      else
+      {
+         // get the IDs of configs that must change
+         DynamicObject ids;
+         ids->setType(Array);
+
+         // if config is a member of a group, must change the whole group
+         if(mConfigs[id]->hasMember(GROUP))
+         {
+            id = mConfigs[id][GROUP]->getString();
+         }
+
+         // if config is a group then add group ID and all members to ID list
+         if(mConfigs[id]->hasMember("members"))
+         {
+            // change all members and group itself
+            ids = mConfigs[id]["members"].clone();
+            ids->append() = id;
+         }
+         else
+         {
+            // just change the single config
+            ids->append() = id;
+         }
+
+         // iterate over IDs changing parents
+         DynamicObjectIterator i = ids.getIterator();
+         while(rval && i->hasNext())
+         {
+            DynamicObject& next = i->next();
+            id = next->getString();
+
+            // only include merged config for changed ID if it has been
+            // generated before (indicating that someone could be watching
+            // for changes)
+            if(mConfigs[id]->hasMember("merged"))
+            {
+               changedIds[id] = getMergedConfig(id, false);
+            }
+            if(parentId == NULL)
+            {
+               // erase parent
+               mConfigs[id]["raw"]->removeMember(PARENT);
+            }
+            else
+            {
+               // change parent
+               mConfigs[id]["raw"][PARENT] = parentId;
+            }
+         }
+
+         // do update
+         update(id, &changedIds);
+         rval = true;
+      }
+   }
+   mLock.unlockExclusive();
+
+   if(rval)
+   {
+      // notify listener of all configuration changes
+      ConfigChangeListener* listener = getConfigChangeListener();
+      if(listener != NULL)
+      {
+         // produce merged diffs, notify listener
+         produceMergedDiffs(changedIds);
+         _configChanged(this, listener, changedIds);
+      }
+   }
+
+   return rval;
 }
 
 DynamicObject ConfigManager::getIdsInGroup(ConfigId groupId)
@@ -1290,25 +1382,30 @@ bool ConfigManager::checkConflicts(
 
 void ConfigManager::produceMergedDiffs(DynamicObject& changedIds)
 {
-   DynamicObject tmp = changedIds;
-   changedIds = DynamicObject();
-   changedIds->setType(Map);
-   DynamicObjectIterator i = tmp.getIterator();
-   while(i->hasNext())
+   // lock while producing merged diffs
+   mLock.lockExclusive();
    {
-      Config& oldMerged = i->next();
-      ConfigManager::ConfigId nextId = i->getName();
-      if(mConfigs->hasMember(nextId))
+      DynamicObject tmp = changedIds;
+      changedIds = DynamicObject();
+      changedIds->setType(Map);
+      DynamicObjectIterator i = tmp.getIterator();
+      while(i->hasNext())
       {
-         // diff new merged config with the old one we saved a copy of
-         Config d;
-         Config newMerged = getMergedConfig(nextId, true);
-         if(diff(d, oldMerged, newMerged))
+         Config& oldMerged = i->next();
+         ConfigManager::ConfigId nextId = i->getName();
+         if(mConfigs->hasMember(nextId))
          {
-            changedIds[nextId] = d;
+            // diff new merged config with the old one we saved a copy of
+            Config d;
+            Config newMerged = getMergedConfig(nextId, true);
+            if(diff(d, oldMerged, newMerged))
+            {
+               changedIds[nextId] = d;
+            }
          }
       }
    }
+   mLock.unlockExclusive();
 }
 
 /**

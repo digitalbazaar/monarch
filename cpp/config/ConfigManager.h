@@ -342,6 +342,17 @@ public:
    virtual bool hasConfig(ConfigId id);
 
    /**
+    * Sets the parent of a config. If the config is a member of a group,
+    * then all configs in the group and the group's parent will also be
+    * changed. If the config is a group, then it's parent and all member
+    * parents will be changed.
+    *
+    * @param id the ID of the config to set the parent for.
+    * @param parentId the ID of the new parent config, NULL to unset parent.
+    */
+   virtual bool setParent(ConfigId id, ConfigId parentId);
+
+   /**
     * Gets the ConfigIds in a group.
     *
     * @param id the Config's ID.
