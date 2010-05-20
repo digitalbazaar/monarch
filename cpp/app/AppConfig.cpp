@@ -246,6 +246,7 @@ static bool _initLoggingConfig(App* app)
    c["enabled"] = true;
    c["level"] = "warning";
    c["log"] = "-";
+   c["useHome"] = false;
    c["append"] = true;
    c["rotationFileSize"] = (uint64_t)2000000;
    c["maxRotatedFiles"] = (uint32_t)10;
@@ -433,6 +434,7 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
 "                      i[nfo], d[ebug], debug-data, debug-detail, m[ax].\n"
 "                      (default: \"warning\")\n"
 "      --log LOG       Set log file. Use \"-\" for stdout. (default: \"-\")\n"
+"      --log-to-home   Write the log file to the application's home directory (default: false).\n"
 "      --log-overwrite Overwrite log file instead of appending. (default: false)\n"
 "      --log-rotation-size SIZE\n"
 "                      Log size that triggers rotation in bytes. 0 to disable.\n"
@@ -468,6 +470,11 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
    opt["arg"]["root"] = om;
    opt["arg"]["path"] = "log";
    opt["argError"] = "No log file specified.";
+
+   opt = spec["options"]->append();
+   opt["long"] = "--log-to-home";
+   opt["setTrue"]["root"] = om;
+   opt["setTrue"]["path"] = "useHome";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-overwrite";
@@ -688,16 +695,35 @@ bool AppConfig::configureLogging(App* app)
       }
       else
       {
-         // get log file, attempt to expand "~", else just use plain value
+         // get log file
          const char* logFile = cfg["log"]->getString();
+
+         // attempt to expand "~"
          string expandedLogFile;
-         if(!File::isPathAbsolute(logFile))
+         if(logFile[0] == '~')
          {
             rval = File::expandUser(logFile, expandedLogFile);
          }
          else
          {
-            expandedLogFile.assign(logFile);
+            // prepend home if specified
+            if(cfg["useHome"]->getBoolean())
+            {
+               expandedLogFile = File::join(
+                  app->getConfig()[MONARCH_APP]["home"]->getString(),
+                  logFile);
+            }
+            else
+            {
+               expandedLogFile.assign(logFile);
+            }
+
+            // do expansion if necessary
+            if(!File::isPathAbsolute(expandedLogFile.c_str()))
+            {
+               rval = File::expandUser(
+                  expandedLogFile.c_str(), expandedLogFile);
+            }
          }
 
          if(rval)
