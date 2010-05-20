@@ -173,8 +173,6 @@ int App::start(int argc, const char* argv[])
 {
    bool success = true;
 
-   printf("RUNNING START\n");
-
    // set the default program name
    if(argc != 0)
    {
@@ -194,12 +192,6 @@ int App::start(int argc, const char* argv[])
       DynamicObject meta = getMetaConfig();
       DynamicObject& options = meta["commandLine"];
       success = cmdp.parse(argc, argv, options);
-
-      printf("PARSE COMMAND LINE SUCCESS: %d\n%s\n",
-         success, JsonWriter::writeToString(options).c_str());
-
-      // FIXME: change ConfigManager to allow non-existent parents, and if
-      // necessary, to set parents on configs (if that isn't already possible?)
 
       // create the kernel
       mKernel = new MicroKernel();

@@ -47,7 +47,7 @@ bool AppPlugin::initConfigs(Config& defaults)
 DynamicObject AppPlugin::getCommandLineSpec(Config& cfg)
 {
    DynamicObject spec;
-   spec->setType(Map);
+   spec["options"]->setType(Array);
    return spec;
 }
 
