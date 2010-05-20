@@ -36,7 +36,6 @@ namespace v = monarch::validation;
 #define MONARCH_CONFIG    "monarch.app.Config"
 #define MONARCH_KERNEL    "monarch.app.Kernel"
 #define PLUGIN            "monarch.app.AppPlugin"
-#define PLUGIN_CL         "monarch.app.AppPlugin.commandLine"
 
 #define SHUTDOWN_EVENT_TYPE   "monarch.kernel.Kernel.shutdown"
 #define RESTART_EVENT_TYPE    "monarch.kernel.Kernel.restart"
@@ -388,7 +387,7 @@ static AppPlugin* _loadPlugin(App* app, MicroKernelModule** module)
 
    // get plugin path
    MicroKernel* k = app->getKernel();
-   Config cfg = app->getConfig()[MONARCH_APP];
+   Config cfg = app->getConfig()[MONARCH_KERNEL];
    if(cfg["plugin"]->length() == 0)
    {
       // create dummy plugin
@@ -588,10 +587,9 @@ bool App::configurePlugin(AppPlugin* plugin)
    // create defaults config for plugin
    Config defaults = makeConfig(PLUGIN ".defaults", "defaults");
 
-   // create command line config for plugin
-   Config cfg = makeConfig(PLUGIN_CL, "command line");
+   // get command line config for plugin
    DynamicObject meta = getMetaConfig();
-   meta["pluginOptions"] = cfg;
+   Config cfg = meta["pluginOptions"];
 
    // 1. Initialize plugin.
    // 2. Initialize configs.

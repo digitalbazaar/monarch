@@ -193,7 +193,7 @@ static void runModestTest(TestRunner& tr)
    op5->waitFor();
    opLogout->waitFor();
 
-   printf("Operations complete.\n");
+   //printf("Operations complete.\n");
 
    k.getEngine()->stop();
 

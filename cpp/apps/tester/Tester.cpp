@@ -40,6 +40,7 @@ bool Tester::initConfigs(Config& defaults)
    c["continueAfterException"] = false;
    c["tests"]->setType(Map);
    c["modules"]->setType(Map);
+   getApp()->getConfigManager()->addConfig(defaults);
    return true;
 }
 
@@ -60,7 +61,8 @@ DynamicObject Tester::getCommandLineSpec(Config& cfg)
 "                         3: Test names and PASS/WARNING/FAIL status.\n"
 "                         4: Same as 3, plus test time.\n"
 "                      All levels have exit status of 0 on success.\n"
-"  -c                  Continue after failure. (default: true).\n"
+"  --continue-after-exception\n"
+"                      Continue after failure. (default: false).\n"
 "  -t, --test TEST     Add TEST to list of enabled tests. (default: unit).\n"
 "      --test-module MODULE\n"
 "                      Add MODULE to list of enabled test modules.\n"
@@ -76,7 +78,7 @@ DynamicObject Tester::getCommandLineSpec(Config& cfg)
    opt["arg"]["path"] = "level";
 
    opt = spec["options"]->append();
-   opt["short"] = "-c";
+   opt["long"] = "--continue-after-exception";
    opt["setTrue"]["root"] = c;
    opt["setTrue"]["path"] = "continueAfterException";
 

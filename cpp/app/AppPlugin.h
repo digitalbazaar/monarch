@@ -69,7 +69,8 @@ public:
 
    /**
     * Called to create and initialize configs. Typically default config values
-    * are added to the given defaults config. However, other configs can be
+    * are added to the given defaults config and then the defaults config is
+    * added to the App's ConfigManager. However, other configs can be
     * initialized and added to the ConfigManager if desired. A specific config
     * is used for command line options and should be initialized in the
     * getCommandLineSpec() call.
@@ -165,17 +166,26 @@ public:
     * Append arg or args to an Array DynamicObject:
     * "append": target
     *
+    * Append config files as includes to the command line config so they will
+    * load when it does:
+    * "include": "config": target command line config
+    *
     * Set a named config value. Reads its argument as a key=value pair. The
     * key will be read as a path. The "set" target is used to find the final
     * target via the path. Then this target is assigned the next argument via
     * the above "arg" process.
     * "set": target
     *
-    * The default implementation will parse the following parameters:
+    * The base App will already parse the following parameters:
     * -h, --help: print out default help and delegates help
     * -V --version: print out app name and version if present
     * -v, --verbose: set verbose mode for use by apps
     * --log-level: parse and set a log level variable
+    *
+    * Once an option has been consumed it will be marked as such. However a
+    * plugin may specify in an option spec that it wants to reexamine the
+    * option by setting the "ignoreConsumed" flag to false.
+    * "ignoreConsumed": boolean
     *
     * @param cfg the command line config to initialize and use in the spec.
     *

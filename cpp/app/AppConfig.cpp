@@ -22,6 +22,7 @@ using namespace monarch::rt;
 #define MONARCH_CONFIG_CL    MONARCH_CONFIG ".commandLine"
 #define MONARCH_LOGGING_CL   MONARCH_LOGGING ".commandLine"
 #define MONARCH_KERNEL_CL    MONARCH_KERNEL ".commandLine"
+#define PLUGIN_CL            "monarch.app.AppPlugin.commandLine"
 #define CMDLINE_ERROR        "monarch.app.CommandLineError"
 #define CONFIG_ERROR         "monarch.app.ConfigError"
 
@@ -180,7 +181,7 @@ static bool _initGeneralConfig(App* app)
       Config cfg = app->makeConfig(MONARCH_APP ".defaults", "defaults");
       Config& c = cfg[ConfigManager::MERGE][MONARCH_APP];
 
-      // determines whether or not help/version should be printed
+      // general application options
       c["printHelp"] = false;
       c["printVersion"] = false;
       c["debug"] = false;
@@ -207,9 +208,7 @@ static bool _initConfigConfig(App* app)
    Config cfg = app->makeConfig(MONARCH_CONFIG ".defaults", "defaults");
    Config& c = cfg[ConfigManager::MERGE][MONARCH_CONFIG];
 
-   // configs is an array of files or dirs to load
-   // other configs should append to this array
-   c["configs"]->setType(Array);
+   // config options
    c["dump"] = false;
    c["dumpAll"] = false;
    c["dumpMeta"] = false;
@@ -220,10 +219,15 @@ static bool _initConfigConfig(App* app)
    {
       Config cfg = app->makeConfig(MONARCH_CONFIG_CL, "command line");
       app->getMetaConfig()["options"][MONARCH_CONFIG_CL] = cfg;
-      Config& ca = cfg[ConfigManager::APPEND][MONARCH_CONFIG];
       Config& cm = cfg[ConfigManager::MERGE][MONARCH_CONFIG];
-      ca["config"]["configs"]->setType(Array);
       cm->setType(Map);
+   }
+
+   // create command line config for plugin
+   {
+      Config cfg = app->makeConfig(PLUGIN_CL, "command line");
+      DynamicObject meta = app->getMetaConfig();
+      meta["pluginOptions"] = cfg;
    }
 
    return rval;
@@ -247,7 +251,6 @@ static bool _initLoggingConfig(App* app)
    c["gzip"] = true;
    c["location"] = false;
    c["color"] = false;
-   c["delayOpen"] = false;
    rval = cm->addConfig(cfg);
 
    // command line options
@@ -271,17 +274,14 @@ static bool _initKernelConfig(App* app)
    Config& c = cfg[ConfigManager::MERGE][MONARCH_KERNEL];
 
    // kernel settings
+   // path to app plugin
+   c["plugin"] = "";
    // modulePath is an array of module paths
    c["modulePath"]->setType(Array);
    c["env"] = true;
    c["printModuleVersions"] = false;
    c["maxThreadCount"] = (uint32_t)100;
    c["maxConnectionCount"] = (uint32_t)100;
-   // waitEvents is a map of arrays of event ids. The map keys should be
-   // unique such as plugin ids. The kernel will wait for all these events
-   // to occur before exiting. (Some special kernel events also can cause
-   // a quicker exit.)
-   c["waitEvents"]->setType(Map);
    rval = cm->addConfig(cfg);
 
    // command line options
@@ -291,7 +291,7 @@ static bool _initKernelConfig(App* app)
       app->getMetaConfig()["options"][MONARCH_KERNEL_CL] = cfg;
       Config& ca = cfg[ConfigManager::APPEND][MONARCH_KERNEL];
       Config& cm = cfg[ConfigManager::MERGE][MONARCH_KERNEL];
-      ca["kernel"]["modulePath"]->setType(Array);
+      ca["modulePath"]->setType(Array);
       cm->setType(Map);
    }
 
@@ -300,7 +300,6 @@ static bool _initKernelConfig(App* app)
 
 static bool _initConfigs(App* app)
 {
-   // FIXME: update ConfigManager to allow non-existent parents, etc.
    return (
       _initGeneralConfig(app) &&
       _initConfigConfig(app) &&
@@ -310,6 +309,7 @@ static bool _initConfigs(App* app)
 
 static DynamicObject _getGeneralCmdLineSpec(App* app)
 {
+   // FIXME: build auto-formatting into command line spec
    DynamicObject spec;
    spec["help"] =
 "Help options:\n"
@@ -364,7 +364,6 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
 
    DynamicObject opt;
    Config options = app->getMetaConfig()["options"][MONARCH_CONFIG_CL];
-   Config& oa = options[ConfigManager::APPEND][MONARCH_CONFIG];
    Config& om = options[ConfigManager::MERGE][MONARCH_CONFIG];
 
    opt = spec["options"]->append();
@@ -379,15 +378,18 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "printVersion";
 
-   // FIXME: add option to add config includes to an unloaded command line
-   // config (["include"]["config"] = the unloaded config to update)
-   // FIXME: need to add an option to load AppPlugin configs that won't be
-   // loaded until after the AppPlugin loads
    opt = spec["options"]->append();
    opt["short"] = "-c";
    opt["long"] = "--config";
-   opt["append"] = oa["configs"];
+   opt["include"]["config"] =
+      app->getMetaConfig()["options"][MONARCH_CONFIG_CL];
    opt["argError"] = "No config file specified.";
+
+   opt = spec["options"]->append();
+   opt["long"] = "--plugin-config";
+   opt["include"]["config"] =
+      app->getMetaConfig()["pluginOptions"];
+   opt["argError"] = "No plugin config file specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--option";
@@ -438,7 +440,7 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
 "                      increasing level of detail): n[one], e[rror], w[arning],\n"
 "                      i[nfo], d[ebug], debug-data, debug-detail, m[ax].\n"
 "                      (default: \"warning\")\n"
-"      --log LOG       Set log file.  Use \"-\" for stdout. (default: \"-\")\n"
+"      --log LOG       Set log file. Use \"-\" for stdout. (default: \"-\")\n"
 "      --log-overwrite Overwrite log file instead of appending. (default: false)\n"
 "      --log-rotation-size SIZE\n"
 "                      Log size that triggers rotation in bytes. 0 to disable.\n"
@@ -452,11 +454,6 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
 "      --log-no-color  Log without ANSI color codes. (default: false)\n"
 "      --log-location  Log source code locations.\n"
 "                      (compile time option, default: false)\n"
-"      --log-delay-open\n"
-"                      Delay opening of the --log file until after configs are\n"
-"                      loaded. Log messages will be queued. Can be used if the\n"
-"                      log filename requires custom config variables.\n"
-"                      (default: no delay)\n"
 "\n";
 
    DynamicObject opt;
@@ -522,11 +519,6 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
    opt["setFalse"]["root"] = om;
    opt["setFalse"]["path"] = "color";
 
-   opt = spec["options"]->append();
-   opt["long"] = "--log-delay-open";
-   opt["setTrue"]["root"] = om;
-   opt["setTrue"]["path"] = "delayOpen";
-
    return spec;
 }
 
@@ -535,6 +527,7 @@ static DynamicObject _getKernelCmdLineSpec(App* app)
    DynamicObject spec;
    spec["help"] =
 "Module options:\n"
+"  -p, --plugin FILE   The filename for a module containing an AppPlugin.\n"
 "  -m, --module-path PATH\n"
 "                      A colon separated list of modules or directories where\n"
 "                      modules are stored. May be specified multiple times.\n"
@@ -549,6 +542,13 @@ static DynamicObject _getKernelCmdLineSpec(App* app)
    Config options = app->getMetaConfig()["options"][MONARCH_KERNEL_CL];
    Config& oa = options[ConfigManager::APPEND][MONARCH_KERNEL];
    Config& om = options[ConfigManager::MERGE][MONARCH_KERNEL];
+
+   opt = spec["options"]->append();
+   opt["short"] = "-p";
+   opt["long"] = "--plugin";
+   opt["arg"]["root"] = om;
+   opt["arg"]["path"] = "plugin";
+   opt["argError"] = "No plugin module filename specified.";
 
    opt = spec["options"]->append();
    opt["short"] = "-m";
@@ -614,8 +614,8 @@ bool AppConfig::loadCommandLineConfigs(App* app, bool plugin)
 
    // FIXME: add configs from command line as includes
    // FIXME: add option to command line spec for unloaded config?
-   // FIXME: add option for plugin configs (delayed
-   // loading until app plugin is ready)
+   // FIXME: add option for plugin configs (delayed loading until app plugin
+   // is ready)
    /*
       DynamicObjectIterator i =
          cfg[ConfigManager::APPEND][PLUGIN_NAME]["configs"].getIterator();

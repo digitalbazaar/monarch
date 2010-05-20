@@ -4,8 +4,8 @@
    "_group_": "main",
    "_append_": {
       "monarch.app.Kernel": {
+         "plugin": "@MONARCH_DIR@/dist/modules/apps/@LIB_PREFIX@motester.@DYNAMIC_LIB_EXT@",
          "modulePath": [
-            "@MONARCH_DIR@/dist/modules/apps/@LIB_PREFIX@motester.@DYNAMIC_LIB_EXT@",
             "@MONARCH_DIR@/dist/modules/tests"
          ]
       }

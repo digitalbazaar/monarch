@@ -422,6 +422,7 @@ static bool _processOption(
       (optSpec->hasMember("set") ||
        optSpec->hasMember("arg") ||
        optSpec->hasMember("append") ||
+       optSpec->hasMember("include") ||
        optSpec->hasMember("keyword")))
    {
       ExceptionRef e;
@@ -537,8 +538,27 @@ static bool _processOption(
    // handle setting include value
    else if(optSpec->hasMember("include"))
    {
-      // FIXME: implement me (check for "config"), use value as path,
-      // see AppConfig for other things to add
+      if(!optSpec["include"]->hasMember("config"))
+      {
+         ExceptionRef e = new Exception(
+            "Invalid command line spec. The option does not specify a "
+            "command line config to append config includes to.",
+            CMDLINE_ERROR);
+         e->getDetails()["option"] = opt;
+         e->getDetails()["spec"] = optSpec;
+         Exception::set(e);
+         rval = false;
+      }
+      else
+      {
+         // append include to config
+         Config inc;
+         inc["path"] = opt["value"].clone();
+         inc["load"] = true;
+         inc["optional"] = false;
+         inc["includeSubdirectories"] = true;
+         optSpec["include"]["config"][ConfigManager::INCLUDE]->append(inc);
+      }
    }
    // handle setting a value
    else if(optSpec->hasMember("arg") || optSpec->hasMember("set"))
@@ -659,12 +679,19 @@ bool CmdLineParser::processSpec(
       while(rval && oi->hasNext())
       {
          DynamicObject& opt = oi->next();
-         if((opt->hasMember("short") && optSpec->hasMember("short") &&
-            opt["short"] == optSpec["short"]) ||
-            (opt->hasMember("long") && optSpec->hasMember("long") &&
-            opt["long"] == optSpec["long"]))
+
+         // don't bother with consumed options unless spec says so
+         if(!opt["consumed"]->getBoolean() ||
+            (optSpec->hasMember("ignoreConsumed") &&
+             !optSpec["ignoreConsumed"]->getBoolean()))
          {
-            rval = _processOption(app, optSpec, opt);
+            if((opt->hasMember("short") && optSpec->hasMember("short") &&
+               opt["short"] == optSpec["short"]) ||
+               (opt->hasMember("long") && optSpec->hasMember("long") &&
+               opt["long"] == optSpec["long"]))
+            {
+               rval = _processOption(app, optSpec, opt);
+            }
          }
       }
    }
