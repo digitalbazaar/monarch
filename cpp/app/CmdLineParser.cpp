@@ -461,7 +461,7 @@ static bool _processOption(
    else if(optSpec->hasMember("setTrue") || optSpec->hasMember("setFalse"))
    {
       DynamicObject value;
-      value = (optSpec->hasMember("setTrue"));
+      value = optSpec->hasMember("setTrue");
       DynamicObject& spec = value->getBoolean() ?
          optSpec["setTrue"] : optSpec["setFalse"];
       if(spec->getType() == Array)
@@ -563,13 +563,17 @@ static bool _processOption(
    // handle setting a value
    else if(optSpec->hasMember("arg") || optSpec->hasMember("set"))
    {
-      // a config or root object must be specified
-      const char* key = optSpec->hasMember("arg") ? "arg" : "set";
-      if(!optSpec[key]->hasMember("config") && !optSpec[key]->hasMember("root"))
+      // a config or root object must be specified (although "set" could
+      // also have "keyword" set to true)
+      bool isArg = optSpec->hasMember("arg");
+      const char* key = isArg ? "arg" : "set";
+      if((!optSpec[key]->hasMember("config") &&
+          !optSpec[key]->hasMember("root")) &&
+          (!isArg && !optSpec["set"]->hasMember("keyword")))
       {
          ExceptionRef e = new Exception(
             "Invalid command line spec. The option does not specify a "
-            "configuration or root object to set.",
+            "configuration, root object, or keyword to set.",
             CMDLINE_ERROR);
          e->getDetails()["option"] = opt;
          e->getDetails()["spec"] = optSpec;
@@ -603,7 +607,7 @@ static bool _processOption(
             else
             {
                // update path and set value
-               opt["set"]["path"] = string(arg, eq - arg).c_str();
+               optSpec["set"]["path"] = string(arg, eq - arg).c_str();
                value = DynamicObject();
                value = string(eq + 1).c_str();
             }
@@ -628,8 +632,14 @@ static bool _processOption(
                rval = jr.read(&is) && jr.finish();
             }
 
+            // set keyword (interpret path as keyword)
+            if(rval && !isArg && optSpec["set"]->hasMember("keyword"))
+            {
+               app->getConfigManager()->setKeyword(
+                  optSpec["set"]["path"]->getString(), value->getString());
+            }
             // do type conversion
-            if(rval)
+            else if(rval)
             {
                // default value type to string
                DynamicObject vt;

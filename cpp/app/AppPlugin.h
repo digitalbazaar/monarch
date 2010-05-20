@@ -173,8 +173,15 @@ public:
     * Set a named config value. Reads its argument as a key=value pair. The
     * key will be read as a path. The "set" target is used to find the final
     * target via the path. Then this target is assigned the next argument via
-    * the above "arg" process.
-    * "set": target
+    * the above "arg" process. Alternatively the target could be a keyword,
+    * in which case the key will be set as the keyword and the value as the
+    * value of the keyword.
+    * "set": "root"/"config": target
+    * "set": "keyword": true
+    *
+    * A keyword can also be set by specifying the name of the keyword. The
+    * option value will be set as the value of the keyword.
+    * "keyword": MY_KEY_WORD
     *
     * The base App will already parse the following parameters:
     * -h, --help: print out default help and delegates help

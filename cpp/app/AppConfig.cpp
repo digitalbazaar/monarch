@@ -182,9 +182,9 @@ static bool _initGeneralConfig(App* app)
       Config& c = cfg[ConfigManager::MERGE][MONARCH_APP];
 
       // general application options
+      c["home"] = "~";
       c["printHelp"] = false;
       c["printVersion"] = false;
-      c["debug"] = false;
       rval = cm->addConfig(cfg);
 
       // command line options
@@ -209,6 +209,7 @@ static bool _initConfigConfig(App* app)
    Config& c = cfg[ConfigManager::MERGE][MONARCH_CONFIG];
 
    // config options
+   c["debug"] = false;
    c["dump"] = false;
    c["dumpAll"] = false;
    c["dumpMeta"] = false;
@@ -316,6 +317,7 @@ static DynamicObject _getGeneralCmdLineSpec(App* app)
 "  -h, --help          Prints information on how to use the application.\n"
 "\n"
 "General options:\n"
+"      --home          Sets the home directory for the application\n"
 "  -V, --version       Prints the software version.\n"
 "      --              Treat all remaining options as application arguments.\n"
 "\n";
@@ -329,6 +331,11 @@ static DynamicObject _getGeneralCmdLineSpec(App* app)
    opt["long"] = "--help";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "printHelp";
+
+   opt = spec["options"]->append();
+   opt["long"] = "--home";
+   opt["arg"]["root"] = om;
+   opt["arg"]["path"] = "home";
 
    opt = spec["options"]->append();
    opt["short"] = "-V";
@@ -346,9 +353,9 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
 "Config options:\n"
 "  -c, --config FILE   Load a configuration file or directory of files. May\n"
 "                      be specified multiple times.\n"
-"      --option NAME VALUE\n"
+"      --option NAME=VALUE\n"
 "                      Set dotted config path NAME to the string VALUE.\n"
-"      --json-option NAME JSONVALUE\n"
+"      --json-option NAME=JSONVALUE\n"
 "                      Set dotted config path NAME to the decoded JSONVALUE.\n"
 "      --config-debug  Debug the configuration loading process to stdout.\n"
 "      --config-dump   Dump main configuration to stdout.\n"
@@ -356,27 +363,14 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
 "                      Dump the raw configuration storage to stdout.\n"
 "      --config-dump-meta\n"
 "                      Dump the raw meta configuration storage to stdout.\n"
-"  -r, --resource-path PATH\n"
-"                      The directory where application resource files were\n"
-"                      installed.\n"
+"      --config-keyword KEYWORD=VALUE\n"
+"                      Sets the value of a configuration keyword.\n"
 "                      Available in paths and configs as {RESOURCE_PATH}.\n"
 "\n";
 
    DynamicObject opt;
    Config options = app->getMetaConfig()["options"][MONARCH_CONFIG_CL];
    Config& om = options[ConfigManager::MERGE][MONARCH_CONFIG];
-
-   opt = spec["options"]->append();
-   opt["short"] = "-h";
-   opt["long"] = "--help";
-   opt["setTrue"]["root"] = om;
-   opt["setTrue"]["path"] = "printHelp";
-
-   opt = spec["options"]->append();
-   opt["short"] = "-V";
-   opt["long"] = "--version";
-   opt["setTrue"]["root"] = om;
-   opt["setTrue"]["path"] = "printVersion";
 
    opt = spec["options"]->append();
    opt["short"] = "-c";
@@ -387,17 +381,16 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
 
    opt = spec["options"]->append();
    opt["long"] = "--plugin-config";
-   opt["include"]["config"] =
-      app->getMetaConfig()["pluginOptions"];
+   opt["include"]["config"] = app->getMetaConfig()["pluginOptions"];
    opt["argError"] = "No plugin config file specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--option";
-   opt["set"]["root"] = om;
+   opt["set"]["root"] = options[ConfigManager::MERGE];
 
    opt = spec["options"]->append();
    opt["long"] = "--json-option";
-   opt["set"]["root"] = om;
+   opt["set"]["root"] = options[ConfigManager::MERGE];
    opt["isJsonValue"] = true;
 
    opt = spec["options"]->append();
@@ -421,10 +414,9 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
    opt["setTrue"]["path"] = "dumpMeta";
 
    opt = spec["options"]->append();
-   opt["short"] = "-r";
-   opt["long"] = "--resource-path";
-   opt["keyword"] = "RESOURCE_PATH";
-   opt["argError"] = "No resource path specified.";
+   opt["long"] = "--config-keyword";
+   opt["set"]["keyword"] = true;
+   opt["argError"] = "No keyword value specified.";
 
    return spec;
 }
@@ -592,18 +584,44 @@ bool AppConfig::loadCommandLineConfigs(App* app, bool plugin)
 {
    bool rval = true;
 
+   // get meta config
+   DynamicObject meta = app->getMetaConfig();
+
+   bool debug = false;
+   string levelStr;
+   if(plugin)
+   {
+      // configs loaded, read from main config
+      Config cfg = app->getConfig();
+      debug = cfg[MONARCH_CONFIG]["debug"]->getBoolean();
+      levelStr = cfg[MONARCH_LOGGING]["level"]->getString();
+   }
+   else
+   {
+      // configs not yet loaded, read from meta config
+      DynamicObject& options = meta["options"];
+      Config cfg = options[MONARCH_CONFIG_CL][ConfigManager::MERGE];
+      if(cfg[MONARCH_CONFIG]->hasMember("debug"))
+      {
+         debug = cfg[MONARCH_CONFIG]["debug"]->getBoolean();
+      }
+      cfg = options[MONARCH_LOGGING_CL][ConfigManager::MERGE];
+      if(cfg[MONARCH_LOGGING]->hasMember("level"))
+      {
+         levelStr = cfg[MONARCH_LOGGING]->getString();
+      }
+   }
+
    // if debug mode is on, add debug logger
    Logger* debugLogger = NULL;
-   Config cfg = app->getConfig();
-   if(cfg[MONARCH_APP]["debug"]->getBoolean())
+   if(debug)
    {
       OutputStream* os = new FileOutputStream(FileOutputStream::StdOut);
       debugLogger = new OutputStreamLogger(os, true);
 
       // default to warnings, can use command line option to be more verbose
       Logger::Level logLevel;
-      const char* levelStr = cfg[MONARCH_LOGGING]["level"]->getString();
-      bool found = Logger::stringToLevel(levelStr, logLevel);
+      bool found = Logger::stringToLevel(levelStr.c_str(), logLevel);
       if(!found || logLevel < Logger::Warning)
       {
          logLevel = Logger::Warning;
@@ -612,36 +630,17 @@ bool AppConfig::loadCommandLineConfigs(App* app, bool plugin)
       Logger::addLogger(debugLogger);
    }
 
-   // FIXME: add configs from command line as includes
-   // FIXME: add option to command line spec for unloaded config?
-   // FIXME: add option for plugin configs (delayed loading until app plugin
-   // is ready)
-   /*
-      DynamicObjectIterator i =
-         cfg[ConfigManager::APPEND][PLUGIN_NAME]["configs"].getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& next = i->next();
-         Config& inc = cfg[ConfigManager::INCLUDE]->append();
-         inc["path"] = next->getString();
-         inc["load"] = true;
-         inc["optional"] = false;
-         inc["includeSubdirectories"] = true;
-      }
-   */
-
-   ConfigManager* cm = app->getConfigManager();
-
    // add the command line config for the plugin
+   ConfigManager* cm = app->getConfigManager();
    if(plugin)
    {
-      Config cfg = app->getMetaConfig()["pluginOptions"];
+      Config cfg = meta["pluginOptions"];
       rval = cm->addConfig(cfg);
    }
    // add the builtin command line configs
    else
    {
-      ConfigIterator i = app->getMetaConfig()["options"].getIterator();
+      ConfigIterator i = meta["options"].getIterator();
       while(rval && i->hasNext())
       {
          Config& next = i->next();
