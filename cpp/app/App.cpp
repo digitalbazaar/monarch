@@ -292,8 +292,6 @@ int App::main(int argc, const char* argv[])
    int rval = EXIT_FAILURE;
    bool success;
 
-   printf("RUNNING MAIN\n");
-
    // seed random
    Random::seed();
 
