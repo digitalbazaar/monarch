@@ -318,10 +318,10 @@ public:
     * enforced only by policy and any modification to the config may have
     * undefined side effects.
     *
-    * Config groups can be retrieved via their group ID, however, they
-    * do not have any associated raw configuration, only a merged config
-    * can be retrieved. Requests for the raw config with a group ID will
-    * return a NULL config.
+    * Config groups can be retrieved via their group ID, however, if a "raw"
+    * config is retrieved for a group it should not be used to set the
+    * config. Instead the "raw" configs of the individual members of the group
+    * should be used to make config changes.
     *
     * @param id the Config's ID.
     * @param raw true to get the raw config, false to get the config as merged

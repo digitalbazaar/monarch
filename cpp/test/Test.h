@@ -105,7 +105,7 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
       { \
          monarch::rt::ExceptionRef e = \
             new monarch::rt::Exception( \
-               "Test expected an Exception but there wasn't one!"); \
+               "Test expected an Exception but there wasn't one."); \
          monarch::test::dumpException(e); \
          assert(monarch::rt::Exception::isSet()); \
       } \

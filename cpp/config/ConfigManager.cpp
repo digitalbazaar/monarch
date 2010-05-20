@@ -518,24 +518,6 @@ Config ConfigManager::getConfig(ConfigId id, bool raw, bool cache)
       rval = raw ?
          mConfigs[id]["raw"].clone() :
          getMergedConfig(id, cache).clone();
-
-      // FIXME: remove this limitation and make a note in header that a "raw"
-      // group config is auto-generated so it shouldn't be used to set a group
-
-      // implicit config groups do not have any raw configs, so do not
-      // return any here
-      if(raw && rval->hasMember(GROUP) &&
-         strcmp(id, rval[GROUP]->getString()) == 0)
-      {
-         ExceptionRef e = new Exception(
-            "Invalid request for a raw config with a group ID. There is no "
-            "raw config for a group.",
-            CONFIG_EXCEPTION ".InvalidId");
-         e->getDetails()["id"] = id;
-         Exception::set(e);
-         rval.setNull();
-      }
-
       mLock.unlockShared();
    }
    else
@@ -1389,8 +1371,8 @@ bool ConfigManager::recursiveAddConfig(
 
    if(rval)
    {
-      // read lock to check version & parent
-      mLock.lockShared();
+      // lock to check version & parent
+      mLock.lockExclusive();
       {
          // if config has version, check it is supported
          if(config->hasMember(VERSION))
@@ -1427,17 +1409,30 @@ bool ConfigManager::recursiveAddConfig(
             ConfigId parent = config[PARENT]->getString();
             if(!mConfigs->hasMember(parent))
             {
-               ExceptionRef e = new Exception(
-                  "Invalid parent configuration file ID.",
-                  CONFIG_EXCEPTION ".InvalidParent");
-               e->getDetails()["configId"] = id;
-               e->getDetails()["parentId"] = parent;
-               Exception::set(e);
-               rval = false;
+               // FIXME: Allow configs to be added with invalid parents when in
+               // non-strict mode. They will be silently created as blank
+               // configs?
+               if(true)//mStrict)
+               {
+                  ExceptionRef e = new Exception(
+                     "Invalid parent configuration file ID.",
+                     CONFIG_EXCEPTION ".InvalidParent");
+                  e->getDetails()["configId"] = id;
+                  e->getDetails()["parentId"] = parent;
+                  Exception::set(e);
+                  rval = false;
+               }
+               else
+               {
+                  // FIXME: need a flag to prevent conflicts since a parent
+                  // hasn't actually been added yet
+                  // create empty parent
+                  //mConfigs[parent][ID] = parent;
+               }
             }
          }
       }
-      mLock.unlockShared();
+      mLock.unlockExclusive();
    }
 
    // handle global keyword replacement
