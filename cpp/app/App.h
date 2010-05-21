@@ -29,6 +29,16 @@ protected:
     */
    AppRunner* mAppRunner;
 
+   /**
+    * Name of the App.
+    */
+   char* mName;
+
+   /**
+    * Version of the App.
+    */
+   char* mVersion;
+
 public:
    /**
     * Creates a App instance.
@@ -53,6 +63,34 @@ public:
     * @return the owner AppRunner.
     */
    virtual AppRunner* getAppRunner();
+
+   /**
+    * Sets the application name.
+    *
+    * @param name the name.
+    */
+   virtual void setName(const char* name);
+
+   /**
+    * Gets the application name.
+    *
+    * @return the name.
+    */
+   virtual const char* getName();
+
+   /**
+    * Sets the version.
+    *
+    * @param name the version.
+    */
+   virtual void setVersion(const char* version);
+
+   /**
+    * Gets the version.
+    *
+    * @return the version.
+    */
+   virtual const char* getVersion();
 
    /**
     * Gets this App's main config.

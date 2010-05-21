@@ -37,16 +37,6 @@ protected:
    char* mProgramName;
 
    /**
-    * Name of the App.
-    */
-   char* mName;
-
-   /**
-    * Version of the App.
-    */
-   char* mVersion;
-
-   /**
     * Exit status to use for all tests.
     */
    int mExitStatus;
@@ -108,34 +98,6 @@ public:
     * @return the program name.
     */
    virtual const char* getProgramName();
-
-   /**
-    * Sets the application name.
-    *
-    * @param name the name.
-    */
-   virtual void setName(const char* name);
-
-   /**
-    * Gets the application name.
-    *
-    * @return the name.
-    */
-   virtual const char* getName();
-
-   /**
-    * Sets the version.
-    *
-    * @param name the version.
-    */
-   virtual void setVersion(const char* version);
-
-   /**
-    * Gets the version.
-    *
-    * @return the version.
-    */
-   virtual const char* getVersion();
 
    /**
     * Sets the application exit status.

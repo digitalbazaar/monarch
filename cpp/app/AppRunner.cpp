@@ -42,22 +42,17 @@ namespace v = monarch::validation;
 
 AppRunner::AppRunner() :
    mProgramName(NULL),
-   mName(NULL),
-   mVersion(NULL),
    mExitStatus(0),
    mKernel(NULL),
    mState(Stopped)
 {
    setExitStatus(0);
    setProgramName("(unknown)");
-   setName("(unknown)");
 }
 
 AppRunner::~AppRunner()
 {
    setProgramName(NULL);
-   setName(NULL);
-   setVersion(NULL);
 }
 
 void AppRunner::setProgramName(const char* name)
@@ -72,34 +67,6 @@ void AppRunner::setProgramName(const char* name)
 const char* AppRunner::getProgramName()
 {
    return mProgramName;
-}
-
-void AppRunner::setName(const char* name)
-{
-   if(mName != NULL)
-   {
-      free(mName);
-   }
-   mName = (name != NULL) ? strdup(name) : NULL;
-}
-
-const char* AppRunner::getName()
-{
-   return mName;
-}
-
-void AppRunner::setVersion(const char* version)
-{
-   if(mVersion != NULL)
-   {
-      free(mVersion);
-   }
-   mVersion = version ? strdup(version) : NULL;
-}
-
-const char* AppRunner::getVersion()
-{
-   return mVersion;
 }
 
 void AppRunner::setExitStatus(int exitStatus)
@@ -456,11 +423,12 @@ static bool _validateWaitEvents(DynamicObject& waitEvents)
  * Prints help and version if specified in the given config.
  *
  * @param ar the AppRunner.
+ * @param app the App.
  * @param cfg the main app config.
  *
  * @return true if the help was printed and the app should quit, false if not.
  */
-static bool _printHelp(AppRunner* ar, Config& cfg)
+static bool _printHelp(AppRunner* ar, App* app, Config& cfg)
 {
    bool quit = false;
 
@@ -482,10 +450,9 @@ static bool _printHelp(AppRunner* ar, Config& cfg)
    // print version if requested
    if(cfg[MONARCH_CORE]["printVersion"]->getBoolean())
    {
-      // TODO: allow other version info (modules, etc) via delegate?
-      const char* version = ar->getVersion();
+      const char* version = app->getVersion();
       printf("%s%s%s\n",
-         ar->getName(),
+         app->getName(),
          (version != NULL) ? " v" : "",
          (version != NULL) ? version : "");
       quit = true;
@@ -520,7 +487,7 @@ bool AppRunner::run()
          rval = _validateWaitEvents(waitEvents);
 
          // print help if requested
-         quit = rval && _printHelp(this, cfg);
+         quit = rval && _printHelp(this, app, cfg);
       }
    }
 

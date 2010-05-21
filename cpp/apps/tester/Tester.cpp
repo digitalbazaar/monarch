@@ -25,6 +25,8 @@ using namespace monarch::test;
 
 Tester::Tester()
 {
+   setName(APP_NAME);
+   setVersion("1.0");
 }
 
 Tester::~Tester()

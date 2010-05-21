@@ -12,13 +12,18 @@ using namespace monarch::kernel;
 using namespace monarch::rt;
 
 App::App() :
-   mAppRunner(NULL)
+   mAppRunner(NULL),
+   mName(NULL),
+   mVersion(NULL)
 {
+   setName("(unknown)");
 }
 
 App::~App()
 {
    mAppRunner = NULL;
+   setName(NULL);
+   setVersion(NULL);
 }
 
 void App::setAppRunner(AppRunner* ar)
@@ -29,6 +34,34 @@ void App::setAppRunner(AppRunner* ar)
 AppRunner* App::getAppRunner()
 {
    return mAppRunner;
+}
+
+void App::setName(const char* name)
+{
+   if(mName != NULL)
+   {
+      free(mName);
+   }
+   mName = (name != NULL) ? strdup(name) : NULL;
+}
+
+const char* App::getName()
+{
+   return mName;
+}
+
+void App::setVersion(const char* version)
+{
+   if(mVersion != NULL)
+   {
+      free(mVersion);
+   }
+   mVersion = version ? strdup(version) : NULL;
+}
+
+const char* App::getVersion()
+{
+   return mVersion;
 }
 
 Config App::getConfig()
