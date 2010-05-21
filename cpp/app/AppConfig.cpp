@@ -358,8 +358,13 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
    DynamicObject spec;
    spec["help"] =
 "Config options:\n"
-"  -c, --config FILE   Load a configuration file or directory of files. May\n"
-"                      be specified multiple times.\n"
+"      --config FILE   Load a configuration file or directory of files that\n"
+"                      will be loaded immediately on startup. May be\n"
+"                      specified multiple times.\n"
+"      --config-include FILE\n"
+"                      Load a configuration file or directory of files that\n"
+"                      will be included after the App loads. May be specified\n"
+"                      multiple times.\n"
 "      --option NAME=VALUE\n"
 "                      Set dotted config path NAME to the string VALUE.\n"
 "      --json-option NAME=JSONVALUE\n"
@@ -372,7 +377,6 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
 "                      Dump the raw meta configuration storage to stdout.\n"
 "      --config-keyword KEYWORD=VALUE\n"
 "                      Sets the value of a configuration keyword.\n"
-"                      Available in paths and configs as {RESOURCE_PATH}.\n"
 "\n";
 
    DynamicObject opt;
@@ -380,14 +384,13 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
    Config& om = options[ConfigManager::MERGE][MONARCH_CONFIG];
 
    opt = spec["options"]->append();
-   opt["short"] = "-c";
    opt["long"] = "--config";
    opt["include"]["config"] =
       app->getMetaConfig()["options"][MONARCH_CONFIG_CL];
    opt["argError"] = "No config file specified.";
 
    opt = spec["options"]->append();
-   opt["long"] = "--plugin-config";
+   opt["long"] = "--config-include";
    opt["include"]["config"] = app->getMetaConfig()["pluginOptions"];
    opt["argError"] = "No plugin config file specified.";
 

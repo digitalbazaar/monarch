@@ -101,7 +101,7 @@ if [ ${found} -eq 0 ]; then
    for dir in ${APP_PATH}; do
       cfg="${dir}/${CMD}.config"
       if [ -e ${cfg} ]; then
-         CMD_ARGS="${CMD_ARGS} -c ${cfg}"
+         CMD_ARGS="${CMD_ARGS} --config ${cfg}"
          found=1
       fi
    done
@@ -111,7 +111,7 @@ if [ ${found} -eq 0 ]; then
    if [ -e "${CMD}" ]; then
       case "${CMD}" in
          *.config)
-            CMD_ARGS="${CMD_ARGS} -c ${CMD}"
+            CMD_ARGS="${CMD_ARGS} --config ${CMD}"
             found=1 ;;
       esac
    fi
