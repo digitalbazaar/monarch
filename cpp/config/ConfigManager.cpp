@@ -557,6 +557,15 @@ bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
          e->getDetails()["parentId"] = parentId;
          Exception::set(e);
       }
+      // don't do any work if the parent is the same as the old one
+      else if(
+         (parentId == NULL && !mConfigs[id]["raw"]->hasMember(PARENT)) ||
+         (parentId != NULL &&
+          mConfigs[id]["raw"]->hasMember(PARENT) &&
+          strcmp(mConfigs[id]["raw"][PARENT]->getString(), parentId) == 0))
+      {
+         rval = true;
+      }
       else
       {
          // get the IDs of configs that must change
@@ -582,9 +591,16 @@ bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
             ids->append() = id;
          }
 
+         // get the old parent ID
+         ConfigId opId = NULL;
+         if(mConfigs[id]["raw"]->hasMember(PARENT))
+         {
+            opId = mConfigs[id]["raw"][PARENT]->getString();
+         }
+
          // iterate over IDs changing parents
          DynamicObjectIterator i = ids.getIterator();
-         while(rval && i->hasNext())
+         while(i->hasNext())
          {
             DynamicObject& next = i->next();
             id = next->getString();
@@ -605,6 +621,22 @@ bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
             {
                // change parent
                mConfigs[id]["raw"][PARENT] = parentId;
+               mConfigs[parentId]["children"]->append() = id;
+            }
+
+            if(opId != NULL)
+            {
+               // remove child from old parent
+               DynamicObjectIterator ci =
+                  mConfigs[opId]["children"].getIterator();
+               while(ci->hasNext())
+               {
+                  DynamicObject& child = ci->next();
+                  if(strcmp(child->getString(), id) == 0)
+                  {
+                     ci->remove();
+                  }
+               }
             }
          }
 

@@ -36,6 +36,7 @@ namespace v = monarch::validation;
 #define MONARCH_CONFIG    "monarch.app.Config"
 #define MONARCH_KERNEL    "monarch.app.Kernel"
 #define MONARCH_APP       "monarch.app.App"
+#define MONARCH_APP_CL    "monarch.app.App.commandLine"
 
 #define SHUTDOWN_EVENT_TYPE   "monarch.kernel.Kernel.shutdown"
 #define RESTART_EVENT_TYPE    "monarch.kernel.Kernel.restart"
@@ -548,10 +549,6 @@ bool AppRunner::configureApp(App* app)
    // create defaults config for app
    Config defaults = makeConfig(MONARCH_APP ".defaults", "defaults");
 
-   // get command line config for app
-   DynamicObject meta = getMetaConfig();
-   Config cfg = meta["appOptions"];
-
    // 1. Initialize app.
    // 2. Initialize configs.
    // 3. Process command line options.
@@ -562,14 +559,22 @@ bool AppRunner::configureApp(App* app)
       app->initConfigs(defaults);
    if(rval)
    {
+      // create command line config for the app
+      Config cfg = makeConfig(MONARCH_APP_CL, "command line");
+      DynamicObject meta = getMetaConfig();
+      meta["appOptions"] = cfg;
+
+      // get app command line spec
       AppConfig ac;
       CmdLineParser cmdp;
-      DynamicObject options = meta["commandLine"];
+      DynamicObject options = meta["commandLine"]["options"];
       DynamicObject spec = app->getCommandLineSpec(cfg);
       getMetaConfig()["specs"]->append(spec);
+
+      // process spec, load configs
       rval =
-         cmdp.processSpec(this, spec, options["options"]) &&
-         cmdp.checkUnknownOptions(options["options"]) &&
+         cmdp.processSpec(this, spec, options) &&
+         cmdp.checkUnknownOptions(options) &&
          app->willLoadConfigs() &&
          ac.loadCommandLineConfigs(this, true) &&
          app->didLoadConfigs();

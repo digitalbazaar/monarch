@@ -22,7 +22,6 @@ using namespace monarch::rt;
 #define MONARCH_CONFIG_CL    MONARCH_CONFIG ".commandLine"
 #define MONARCH_LOGGING_CL   MONARCH_LOGGING ".commandLine"
 #define MONARCH_KERNEL_CL    MONARCH_KERNEL ".commandLine"
-#define MONARCH_APP_CL       "monarch.app.App.commandLine"
 #define CMDLINE_ERROR        "monarch.app.CommandLineError"
 #define CONFIG_ERROR         "monarch.app.ConfigError"
 
@@ -119,13 +118,6 @@ static bool _initConfigConfig(AppRunner* ar)
       Config& ca = cfg[ConfigManager::APPEND][MONARCH_CONFIG];
       cm->setType(Map);
       ca["appConfigs"]->setType(Array);
-   }
-
-   // create command line config for the app
-   {
-      Config cfg = ar->makeConfig(MONARCH_APP_CL, "command line");
-      DynamicObject meta = ar->getMetaConfig();
-      meta["appOptions"] = cfg;
    }
 
    return rval;
