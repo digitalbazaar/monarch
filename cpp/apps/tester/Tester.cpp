@@ -3,7 +3,7 @@
  */
 #include "monarch/apps/tester/Tester.h"
 
-#include "monarch/app/AppPluginFactory.h"
+#include "monarch/app/AppFactory.h"
 #include "monarch/kernel/MicroKernel.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/test/Test.h"
@@ -21,8 +21,7 @@ using namespace monarch::modest;
 using namespace monarch::rt;
 using namespace monarch::test;
 
-#define PLUGIN_NAME "monarch.apps.tester.Tester"
-#define PLUGIN_CL_CFG_ID PLUGIN_NAME ".commandLine"
+#define APP_NAME "monarch.apps.tester.Tester"
 
 Tester::Tester()
 {
@@ -35,18 +34,18 @@ Tester::~Tester()
 bool Tester::initConfigs(Config& defaults)
 {
    // defaults
-   Config& c = defaults[ConfigManager::MERGE][PLUGIN_NAME];
+   Config& c = defaults[ConfigManager::MERGE][APP_NAME];
    c["level"] = TestRunner::Names;
    c["continueAfterException"] = false;
    c["tests"]->setType(Map);
    c["modules"]->setType(Map);
-   return getApp()->getConfigManager()->addConfig(defaults);
+   return getConfigManager()->addConfig(defaults);
 }
 
 DynamicObject Tester::getCommandLineSpec(Config& cfg)
 {
    // initialize config
-   Config& c = cfg[ConfigManager::MERGE][PLUGIN_NAME];
+   Config& c = cfg[ConfigManager::MERGE][APP_NAME];
    c["tests"]->setType(Array);
    c["modules"]->setType(Array);
 
@@ -99,7 +98,7 @@ bool Tester::run()
 {
    bool rval = true;
 
-   Config cfg = getApp()->getConfig()[PLUGIN_NAME];
+   Config cfg = getConfig()[APP_NAME];
    bool cont = cfg["continueAfterException"]->getBoolean();
    uint32_t cfgLevel = cfg["level"]->getUInt32();
    TestRunner::OutputLevel level;
@@ -113,7 +112,7 @@ bool Tester::run()
       default: level = TestRunner::Times; break;
    }
 
-   TestRunner tr(getApp(), cont, level);
+   TestRunner tr(this, cont, level);
 
    tr.group(NULL);
 
@@ -156,7 +155,7 @@ bool Tester::run()
 
    // load all monarch.test.TestModules and run them
    {
-      MicroKernel* k = getApp()->getKernel();
+      MicroKernel* k = getKernel();
       MicroKernel::ModuleApiList tests;
       k->getModuleApisByType("monarch.test.TestModule", tests);
       for(MicroKernel::ModuleApiList::iterator i = tests.begin();
@@ -185,18 +184,16 @@ bool Tester::run()
    return rval;
 }
 
-class TesterFactory :
-   public AppPluginFactory
+class TesterFactory : public AppFactory
 {
 public:
-   TesterFactory() :
-      AppPluginFactory(PLUGIN_NAME, "1.0")
+   TesterFactory() : AppFactory(APP_NAME, "1.0")
    {
    }
 
    virtual ~TesterFactory() {}
 
-   virtual AppPlugin* createAppPlugin()
+   virtual App* createApp()
    {
       return new Tester();
    }

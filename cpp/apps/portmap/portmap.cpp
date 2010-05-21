@@ -1,8 +1,7 @@
 /*
  * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
-#include "monarch/app/App.h"
-#include "monarch/app/AppPluginFactory.h"
+#include "monarch/app/AppFactory.h"
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/upnp/ControlPoint.h"
 #include "monarch/upnp/DeviceDiscoverer.h"
@@ -24,7 +23,7 @@ using namespace monarch::upnp;
 #define CMD_ADD     3
 #define CMD_REMOVE  4
 
-#define PLUGIN_NAME "monarch.apps.portmap.PortMap"
+#define APP_NAME "monarch.apps.portmap.PortMap"
 
 namespace monarch
 {
@@ -33,7 +32,7 @@ namespace apps
 namespace portmap
 {
 
-class PortMapApp : public AppPlugin
+class PortMapApp : public App
 {
 protected:
    /**
@@ -461,18 +460,16 @@ public:
    };
 };
 
-class PortMapAppFactory :
-   public AppPluginFactory
+class PortMapAppFactory : public AppFactory
 {
 public:
-   PortMapAppFactory() :
-      AppPluginFactory(PLUGIN_NAME, "1.0")
+   PortMapAppFactory() : AppFactory(APP_NAME, "1.0")
    {
    }
 
    virtual ~PortMapAppFactory() {}
 
-   virtual AppPlugin* createAppPlugin()
+   virtual App* createApp()
    {
       return new PortMapApp();
    }

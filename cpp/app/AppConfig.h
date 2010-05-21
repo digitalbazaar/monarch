@@ -12,10 +12,10 @@ namespace app
 {
 
 // forward declaration
-class App;
+class AppRunner;
 
 /**
- * An AppConfig is used to configure an App.
+ * An AppConfig is used to configure an AppRunner and the App it runs.
  *
  * @author Dave Longley
  */
@@ -40,40 +40,41 @@ public:
    virtual ~AppConfig();
 
    /**
-    * Initializes the App configuration system. This will set up the
-    * configuration tree, default configs, and command line specifications
-    * for the App.
+    * Initializes the App configuration system. This will set up the core
+    * configuration tree, default configs, and command line specifications.
     *
-    * @param app the App to initialize the configs for.
-    *
-    * @return true if successful, false on failure with exception set.
-    */
-   virtual bool initialize(App* app);
-
-   /**
-    * Loads the command line configurations for the given App. This should
-    * be called after parsing and processing the command line options.
-    *
-    * @param app the App to load the command line configs for.
-    * @param plugin true to load plugin configs, false to load main configs.
+    * @param ar the AppRunner to initialize the configs for.
     *
     * @return true if successful, false on failure with exception set.
     */
-   virtual bool loadCommandLineConfigs(App* app, bool plugin);
+   virtual bool initialize(AppRunner* ar);
 
    /**
-    * Configures logging for an App.
+    * Loads the command line configurations for the given AppRunner. This
+    * should be called after parsing and processing the command line options.
     *
-    * @param app the App.
+    * @param ar the AppRunner to load the command line configs for.
+    * @param app true to load app configs, false to load main configs.
     *
     * @return true if successful, false on failure with exception set.
     */
-   virtual bool configureLogging(App* app);
+   virtual bool loadCommandLineConfigs(AppRunner* ar, bool appConfigs);
 
    /**
-    * Cleans up logging for an App.
+    * Configures logging for an AppRunner.
+    *
+    * @param ar the AppRunner to configure logging for.
+    *
+    * @return true if successful, false on failure with exception set.
     */
-   virtual void cleanupLogging(App* app);
+   virtual bool configureLogging(AppRunner* ar);
+
+   /**
+    * Cleans up logging for an AppRunner.
+    *
+    * @param ar the AppRunner to cleanup logging from.
+    */
+   virtual void cleanupLogging(AppRunner* ar);
 };
 
 } // end namespace app

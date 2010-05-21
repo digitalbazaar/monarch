@@ -4,7 +4,7 @@
 #ifndef monarch_apps_tester_Tester_h
 #define monarch_apps_tester_Tester_h
 
-#include "monarch/app/AppPlugin.h"
+#include "monarch/app/App.h"
 #include "monarch/test/TestRunner.h"
 
 namespace monarch
@@ -15,7 +15,7 @@ namespace tester
 {
 
 /**
- * AppPlugin which runs tests in modules of type "monarch.test.TestModule".
+ * An App which runs tests in modules of type "monarch.test.TestModule".
  * Test modules MUST implement the monarch::test::Testable interface.
  *
  * To use this class to perform testing, implement and load a module that
@@ -30,9 +30,10 @@ namespace tester
  * specify the particular modules and named tests to run. Modules should use
  * the TestRunner API to check if they should run certain tests.
  *
- * Author: David I. Lehn <dlehn@digitalbazaar.com>
+ * @author David I. Lehn <dlehn@digitalbazaar.com>
+ * @author Dave Longley
  */
-class Tester : public monarch::app::AppPlugin
+class Tester : public monarch::app::App
 {
 public:
    /**

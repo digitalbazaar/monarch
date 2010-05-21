@@ -3,7 +3,7 @@
  */
 #include "monarch/app/AppConfig.h"
 
-#include "monarch/app/App.h"
+#include "monarch/app/AppRunner.h"
 #include "monarch/io/FileOutputStream.h"
 #include "monarch/logging/FileLogger.h"
 
@@ -14,15 +14,15 @@ using namespace monarch::io;
 using namespace monarch::logging;
 using namespace monarch::rt;
 
-#define MONARCH_APP          "monarch.app.App"
+#define MONARCH_CORE         "monarch.app.Core"
 #define MONARCH_CONFIG       "monarch.app.Config"
 #define MONARCH_LOGGING      "monarch.app.Logging"
 #define MONARCH_KERNEL       "monarch.app.Kernel"
-#define MONARCH_APP_CL       MONARCH_APP ".commandLine"
+#define MONARCH_CORE_CL      MONARCH_CORE ".commandLine"
 #define MONARCH_CONFIG_CL    MONARCH_CONFIG ".commandLine"
 #define MONARCH_LOGGING_CL   MONARCH_LOGGING ".commandLine"
 #define MONARCH_KERNEL_CL    MONARCH_KERNEL ".commandLine"
-#define PLUGIN_CL            "monarch.app.AppPlugin.commandLine"
+#define MONARCH_APP_CL       "monarch.app.App.commandLine"
 #define CMDLINE_ERROR        "monarch.app.CommandLineError"
 #define CONFIG_ERROR         "monarch.app.ConfigError"
 
@@ -103,11 +103,11 @@ static bool _orderIds(
  */
 // FIXME: probably deprecated
 /*
-static bool _loadMetaConfigs(App* app)
+static bool _loadMetaConfigs(AppRunner* ar)
 {
    bool rval = true;
 
-   Config meta = app->getMetaConfig();
+   Config meta = ar->getMetaConfig();
 
    // ids to load in order
    DynamicObject ids;
@@ -138,7 +138,7 @@ static bool _loadMetaConfigs(App* app)
       while(rval && i->hasNext())
       {
          DynamicObject& configId = i->next();
-         rval = app->getConfigManager()->addConfig(
+         rval = ar->getConfigManager()->addConfig(
             meta["configs"][configId->getString()]);
       }
    }
@@ -147,39 +147,39 @@ static bool _loadMetaConfigs(App* app)
 }
 */
 
-static bool _initGeneralConfig(App* app)
+static bool _initGeneralConfig(AppRunner* ar)
 {
    bool rval = true;
 
-   ConfigManager* cm = app->getConfigManager();
+   ConfigManager* cm = ar->getConfigManager();
 
    // create configuration tree structure
    rval =
-      cm->addConfig(app->makeConfig(
-         MONARCH_APP ".root.empty", "root",
+      cm->addConfig(ar->makeConfig(
+         MONARCH_CORE ".root.empty", "root",
          NULL)) &&
-      cm->addConfig(app->makeConfig(
-         MONARCH_APP ".boot.empty", "boot",
+      cm->addConfig(ar->makeConfig(
+         MONARCH_CORE ".boot.empty", "boot",
          "root")) &&
-      cm->addConfig(app->makeConfig(
-         MONARCH_APP ".beforeDefaults.empty", "before defaults",
+      cm->addConfig(ar->makeConfig(
+         MONARCH_CORE ".beforeDefaults.empty", "before defaults",
          "boot")) &&
-      cm->addConfig(app->makeConfig(
-         MONARCH_APP ".defaults.empty", "defaults",
+      cm->addConfig(ar->makeConfig(
+         MONARCH_CORE ".defaults.empty", "defaults",
          "before defaults")) &&
-      cm->addConfig(app->makeConfig(
-         MONARCH_APP ".afterDefaults.empty", "after defaults",
+      cm->addConfig(ar->makeConfig(
+         MONARCH_CORE ".afterDefaults.empty", "after defaults",
          "defaults")) &&
-      cm->addConfig(app->makeConfig(
-         MONARCH_APP ".commandLine.empty", "command line",
+      cm->addConfig(ar->makeConfig(
+         MONARCH_CORE ".commandLine.empty", "command line",
          "after defaults")) &&
-      cm->addConfig(app->makeConfig(
-         MONARCH_APP ".main.empty", "main",
+      cm->addConfig(ar->makeConfig(
+         MONARCH_CORE ".main.empty", "main",
          "command line"));
    if(rval)
    {
-      Config cfg = app->makeConfig(MONARCH_APP ".defaults", "defaults");
-      Config& c = cfg[ConfigManager::MERGE][MONARCH_APP];
+      Config cfg = ar->makeConfig(MONARCH_CORE ".defaults", "defaults");
+      Config& c = cfg[ConfigManager::MERGE][MONARCH_CORE];
 
       // general application options
       // use home environment var if available
@@ -196,9 +196,9 @@ static bool _initGeneralConfig(App* app)
       // command line options
       if(rval)
       {
-         Config cfg = app->makeConfig(MONARCH_APP_CL, "command line");
-         app->getMetaConfig()["options"][MONARCH_APP_CL] = cfg;
-         Config& cm = cfg[ConfigManager::MERGE][MONARCH_APP];
+         Config cfg = ar->makeConfig(MONARCH_CORE_CL, "command line");
+         ar->getMetaConfig()["options"][MONARCH_CORE_CL] = cfg;
+         Config& cm = cfg[ConfigManager::MERGE][MONARCH_CORE];
          cm->setType(Map);
       }
    }
@@ -206,12 +206,12 @@ static bool _initGeneralConfig(App* app)
    return rval;
 }
 
-static bool _initConfigConfig(App* app)
+static bool _initConfigConfig(AppRunner* ar)
 {
    bool rval = true;
 
-   ConfigManager* cm = app->getConfigManager();
-   Config cfg = app->makeConfig(MONARCH_CONFIG ".defaults", "defaults");
+   ConfigManager* cm = ar->getConfigManager();
+   Config cfg = ar->makeConfig(MONARCH_CONFIG ".defaults", "defaults");
    Config& c = cfg[ConfigManager::MERGE][MONARCH_CONFIG];
 
    // config options
@@ -224,28 +224,30 @@ static bool _initConfigConfig(App* app)
    // command line options
    if(rval)
    {
-      Config cfg = app->makeConfig(MONARCH_CONFIG_CL, "command line");
-      app->getMetaConfig()["options"][MONARCH_CONFIG_CL] = cfg;
+      Config cfg = ar->makeConfig(MONARCH_CONFIG_CL, "command line");
+      ar->getMetaConfig()["options"][MONARCH_CONFIG_CL] = cfg;
       Config& cm = cfg[ConfigManager::MERGE][MONARCH_CONFIG];
+      Config& ca = cfg[ConfigManager::APPEND][MONARCH_CONFIG];
       cm->setType(Map);
+      ca["appConfigs"]->setType(Array);
    }
 
-   // create command line config for plugin
+   // create command line config for the app
    {
-      Config cfg = app->makeConfig(PLUGIN_CL, "command line");
-      DynamicObject meta = app->getMetaConfig();
-      meta["pluginOptions"] = cfg;
+      Config cfg = ar->makeConfig(MONARCH_APP_CL, "command line");
+      DynamicObject meta = ar->getMetaConfig();
+      meta["appOptions"] = cfg;
    }
 
    return rval;
 }
 
-static bool _initLoggingConfig(App* app)
+static bool _initLoggingConfig(AppRunner* ar)
 {
    bool rval = true;
 
-   ConfigManager* cm = app->getConfigManager();
-   Config cfg = app->makeConfig(MONARCH_LOGGING ".defaults", "defaults");
+   ConfigManager* cm = ar->getConfigManager();
+   Config cfg = ar->makeConfig(MONARCH_LOGGING ".defaults", "defaults");
    Config& c = cfg[ConfigManager::MERGE][MONARCH_LOGGING];
 
    // logging settings
@@ -264,8 +266,8 @@ static bool _initLoggingConfig(App* app)
    // command line options
    if(rval)
    {
-      Config cfg = app->makeConfig(MONARCH_LOGGING_CL, "command line");
-      app->getMetaConfig()["options"][MONARCH_LOGGING_CL] = cfg;
+      Config cfg = ar->makeConfig(MONARCH_LOGGING_CL, "command line");
+      ar->getMetaConfig()["options"][MONARCH_LOGGING_CL] = cfg;
       Config& cm = cfg[ConfigManager::MERGE][MONARCH_LOGGING];
       cm->setType(Map);
    }
@@ -273,17 +275,17 @@ static bool _initLoggingConfig(App* app)
    return rval;
 }
 
-static bool _initKernelConfig(App* app)
+static bool _initKernelConfig(AppRunner* ar)
 {
    bool rval = true;
 
-   ConfigManager* cm = app->getConfigManager();
-   Config cfg = app->makeConfig(MONARCH_KERNEL ".defaults", "defaults");
+   ConfigManager* cm = ar->getConfigManager();
+   Config cfg = ar->makeConfig(MONARCH_KERNEL ".defaults", "defaults");
    Config& c = cfg[ConfigManager::MERGE][MONARCH_KERNEL];
 
    // kernel settings
-   // path to app plugin
-   c["plugin"] = "";
+   // path to app
+   c["appPath"] = "";
    // modulePath is an array of module paths
    c["modulePath"]->setType(Array);
    c["env"] = true;
@@ -295,8 +297,8 @@ static bool _initKernelConfig(App* app)
    // command line options
    if(rval)
    {
-      Config cfg = app->makeConfig(MONARCH_KERNEL_CL, "command line");
-      app->getMetaConfig()["options"][MONARCH_KERNEL_CL] = cfg;
+      Config cfg = ar->makeConfig(MONARCH_KERNEL_CL, "command line");
+      ar->getMetaConfig()["options"][MONARCH_KERNEL_CL] = cfg;
       Config& ca = cfg[ConfigManager::APPEND][MONARCH_KERNEL];
       Config& cm = cfg[ConfigManager::MERGE][MONARCH_KERNEL];
       ca["modulePath"]->setType(Array);
@@ -306,16 +308,16 @@ static bool _initKernelConfig(App* app)
    return rval;
 }
 
-static bool _initConfigs(App* app)
+static bool _initConfigs(AppRunner* ar)
 {
    return (
-      _initGeneralConfig(app) &&
-      _initConfigConfig(app) &&
-      _initLoggingConfig(app) &&
-      _initKernelConfig(app));
+      _initGeneralConfig(ar) &&
+      _initConfigConfig(ar) &&
+      _initLoggingConfig(ar) &&
+      _initKernelConfig(ar));
 }
 
-static DynamicObject _getGeneralCmdLineSpec(App* app)
+static DynamicObject _getGeneralCmdLineSpec(AppRunner* ar)
 {
    // FIXME: build auto-formatting into command line spec
    DynamicObject spec;
@@ -330,8 +332,8 @@ static DynamicObject _getGeneralCmdLineSpec(App* app)
 "\n";
 
    DynamicObject opt;
-   Config options = app->getMetaConfig()["options"][MONARCH_APP_CL];
-   Config& om = options[ConfigManager::MERGE][MONARCH_APP];
+   Config options = ar->getMetaConfig()["options"][MONARCH_CORE_CL];
+   Config& om = options[ConfigManager::MERGE][MONARCH_CORE];
 
    opt = spec["options"]->append();
    opt["short"] = "-h";
@@ -353,7 +355,7 @@ static DynamicObject _getGeneralCmdLineSpec(App* app)
    return spec;
 }
 
-static DynamicObject _getConfigCmdLineSpec(App* app)
+static DynamicObject _getConfigCmdLineSpec(AppRunner* ar)
 {
    DynamicObject spec;
    spec["help"] =
@@ -380,28 +382,31 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
 "\n";
 
    DynamicObject opt;
-   Config options = app->getMetaConfig()["options"][MONARCH_CONFIG_CL];
+   Config options = ar->getMetaConfig()["options"][MONARCH_CONFIG_CL];
    Config& om = options[ConfigManager::MERGE][MONARCH_CONFIG];
+   Config& oa = options[ConfigManager::APPEND][MONARCH_CONFIG];
 
    opt = spec["options"]->append();
    opt["long"] = "--config";
    opt["include"]["config"] =
-      app->getMetaConfig()["options"][MONARCH_CONFIG_CL];
+      ar->getMetaConfig()["options"][MONARCH_CONFIG_CL];
    opt["argError"] = "No config file specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--config-include";
-   opt["include"]["config"] = app->getMetaConfig()["pluginOptions"];
-   opt["argError"] = "No plugin config file specified.";
+   opt["append"] = oa["appConfigs"];
+   opt["argError"] = "No app config file specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--option";
    opt["set"]["root"] = options[ConfigManager::MERGE];
+   opt["argError"] = "No config key=value specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--json-option";
    opt["set"]["root"] = options[ConfigManager::MERGE];
    opt["isJsonValue"] = true;
+   opt["argError"] = "No config key=json specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--config-debug";
@@ -431,7 +436,7 @@ static DynamicObject _getConfigCmdLineSpec(App* app)
    return spec;
 }
 
-static DynamicObject _getLoggingCmdLineSpec(App* app)
+static DynamicObject _getLoggingCmdLineSpec(AppRunner* ar)
 {
    DynamicObject spec;
    spec["help"] =
@@ -460,7 +465,7 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
 "\n";
 
    DynamicObject opt;
-   Config options = app->getMetaConfig()["options"][MONARCH_LOGGING_CL];
+   Config options = ar->getMetaConfig()["options"][MONARCH_LOGGING_CL];
    Config& om = options[ConfigManager::MERGE][MONARCH_LOGGING];
 
    opt = spec["options"]->append();
@@ -531,12 +536,13 @@ static DynamicObject _getLoggingCmdLineSpec(App* app)
    return spec;
 }
 
-static DynamicObject _getKernelCmdLineSpec(App* app)
+static DynamicObject _getKernelCmdLineSpec(AppRunner* ar)
 {
    DynamicObject spec;
    spec["help"] =
 "Module options:\n"
-"  -p, --plugin FILE   The filename for a module containing an AppPlugin.\n"
+"  -a, --app FILE   The filename for a module containing an AppFactory that\n"
+"                   can create the custom App.\n"
 "  -m, --module-path PATH\n"
 "                      A colon separated list of modules or directories where\n"
 "                      modules are stored. May be specified multiple times.\n"
@@ -548,16 +554,16 @@ static DynamicObject _getKernelCmdLineSpec(App* app)
 "\n";
 
    DynamicObject opt;
-   Config options = app->getMetaConfig()["options"][MONARCH_KERNEL_CL];
+   Config options = ar->getMetaConfig()["options"][MONARCH_KERNEL_CL];
    Config& oa = options[ConfigManager::APPEND][MONARCH_KERNEL];
    Config& om = options[ConfigManager::MERGE][MONARCH_KERNEL];
 
    opt = spec["options"]->append();
-   opt["short"] = "-p";
-   opt["long"] = "--plugin";
+   opt["short"] = "-a";
+   opt["long"] = "--app";
    opt["arg"]["root"] = om;
-   opt["arg"]["path"] = "plugin";
-   opt["argError"] = "No plugin module filename specified.";
+   opt["arg"]["path"] = "appPath";
+   opt["argError"] = "No AppFactory module filename specified.";
 
    opt = spec["options"]->append();
    opt["short"] = "-m";
@@ -578,38 +584,38 @@ static DynamicObject _getKernelCmdLineSpec(App* app)
    return spec;
 }
 
-static void _getCommandLineSpecs(App* app)
+static void _getCommandLineSpecs(AppRunner* ar)
 {
-   DynamicObject meta = app->getMetaConfig();
-   meta["specs"]->append() = _getGeneralCmdLineSpec(app);
-   meta["specs"]->append() = _getConfigCmdLineSpec(app);
-   meta["specs"]->append() = _getLoggingCmdLineSpec(app);
-   meta["specs"]->append() = _getKernelCmdLineSpec(app);
+   DynamicObject meta = ar->getMetaConfig();
+   meta["specs"]->append() = _getGeneralCmdLineSpec(ar);
+   meta["specs"]->append() = _getConfigCmdLineSpec(ar);
+   meta["specs"]->append() = _getLoggingCmdLineSpec(ar);
+   meta["specs"]->append() = _getKernelCmdLineSpec(ar);
 }
 
-bool AppConfig::initialize(App* app)
+bool AppConfig::initialize(AppRunner* ar)
 {
-   bool rval = _initConfigs(app);
+   bool rval = _initConfigs(ar);
    if(rval)
    {
-      _getCommandLineSpecs(app);
+      _getCommandLineSpecs(ar);
    }
    return rval;
 }
 
-bool AppConfig::loadCommandLineConfigs(App* app, bool plugin)
+bool AppConfig::loadCommandLineConfigs(AppRunner* ar, bool appConfigs)
 {
    bool rval = true;
 
    // get meta config
-   DynamicObject meta = app->getMetaConfig();
+   DynamicObject meta = ar->getMetaConfig();
 
    bool debug = false;
    string levelStr;
-   if(plugin)
+   if(appConfigs)
    {
       // configs loaded, read from main config
-      Config cfg = app->getConfig();
+      Config cfg = ar->getConfig();
       debug = cfg[MONARCH_CONFIG]["debug"]->getBoolean();
       levelStr = cfg[MONARCH_LOGGING]["level"]->getString();
    }
@@ -647,12 +653,24 @@ bool AppConfig::loadCommandLineConfigs(App* app, bool plugin)
       Logger::addLogger(debugLogger);
    }
 
-   // add the command line config for the plugin
-   ConfigManager* cm = app->getConfigManager();
-   if(plugin)
+   // add the command line config for the app
+   ConfigManager* cm = ar->getConfigManager();
+   if(appConfigs)
    {
-      Config cfg = meta["pluginOptions"];
-      rval = cm->addConfig(cfg);
+      DynamicObject& options = meta["appOptions"];
+
+      // add app configs as includes
+      Config cfg = ar->getConfig()[MONARCH_CONFIG]["appConfigs"];
+      ConfigIterator ci = cfg.getIterator();
+      while(ci->hasNext())
+      {
+         Config& inc = options[ConfigManager::INCLUDE]->append();
+         inc["path"] = ci->next();
+         inc["load"] = true;
+         inc["optional"] = false;
+         inc["includeSubdirectories"] = true;
+      }
+      rval = cm->addConfig(options);
    }
    // add the builtin command line configs
    else
@@ -689,12 +707,12 @@ static bool _loggingToStdOut(Config& cfg)
       strcmp(cfg["logHome"]->getString(), "-") == 0;
 }
 
-bool AppConfig::configureLogging(App* app)
+bool AppConfig::configureLogging(AppRunner* ar)
 {
    bool rval = true;
 
    // setup logger if logging is enabled
-   Config cfg = app->getConfig()[MONARCH_LOGGING];
+   Config cfg = ar->getConfig()[MONARCH_LOGGING];
    if(cfg["enabled"]->getBoolean())
    {
       // determine if logging to file or stdout
@@ -714,7 +732,7 @@ bool AppConfig::configureLogging(App* app)
          {
             // prepend home dir
             logFile = File::join(
-               app->getConfig()[MONARCH_APP]["home"]->getString(),
+               ar->getConfig()[MONARCH_CORE]["home"]->getString(),
                cfg["logHome"]->getString());
          }
          else
@@ -801,7 +819,7 @@ bool AppConfig::configureLogging(App* app)
    return rval;
 }
 
-void AppConfig::cleanupLogging(App* app)
+void AppConfig::cleanupLogging(AppRunner* ar)
 {
    if(mLogger != NULL)
    {

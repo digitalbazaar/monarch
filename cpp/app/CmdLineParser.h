@@ -12,10 +12,10 @@ namespace app
 {
 
 // forward declarations
-class App;
+class AppRunner;
 
 /**
- * A CmdLineParser is used to parse command line options and process App
+ * A CmdLineParser is used to parse command line options and process AppRunner
  * command line specifications.
  *
  * @author Dave Longley
@@ -59,20 +59,20 @@ public:
       int argc, const char* argv[], monarch::rt::DynamicObject& options);
 
    /**
-    * Processes a command line spec for an App. The command line options passed
-    * to the application will be checked against the spec, setting the
+    * Processes a command line spec for an AppRunner. The command line options
+    * passed to the application will be checked against the spec, setting the
     * appropriate values or erroring out if an option is invalid.
     *
     * Once a command line option has been used, it will be marked as "consumed".
     * A command line spec can specify whether or not to use an reuse option
     * that has already been consumed.
     *
-    * @param app the App to process the options for.
+    * @param ar the AppRunner to process the options for.
     * @param options the command line options.
     * @param spec the command line spec to process.
     */
    virtual bool processSpec(
-      App* app,
+      AppRunner* app,
       monarch::rt::DynamicObject& spec, monarch::rt::DynamicObject& options);
 
    /**

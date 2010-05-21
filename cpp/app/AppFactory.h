@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef monarch_app_AppPluginFactory_h
-#define monarch_app_AppPluginFactory_h
+#ifndef monarch_app_AppFactory_h
+#define monarch_app_AppFactory_h
 
-#include "monarch/app/AppPlugin.h"
+#include "monarch/app/App.h"
 #include "monarch/kernel/MicroKernelModule.h"
 #include "monarch/modest/Module.h"
 
@@ -14,22 +14,22 @@ namespace app
 {
 
 /**
- * AppPluginFactories are used by the KernelPlugin to create AppPlugins. The
- * kernel will look for all modules of type "monarch.app.AppPluginFactory" and
- * use their createAppPlugin() call to create an AppPlugin to add to the App.
+ * An AppFactory is used by the AppRunner's Kernel to create an App. The
+ * kernel will look a module of type "monarch.app.AppFactory" and use its
+ * createApp() call to create an App to run in the AppRunner.
  *
- * This class provides a base plugin that can be used for subclasses.
+ * This class provides a base module that can be used for subclasses.
  *
  * @author David I. Lehn
+ * @author Dave Longley
  */
-
-class AppPluginFactory :
+class AppFactory :
    public monarch::kernel::MicroKernelModule,
    public monarch::kernel::MicroKernelModuleApi
 {
 protected:
    /**
-    * Info for this plugin.
+    * Info for this module.
     */
    monarch::rt::DynamicObject mInfo;
 
@@ -40,17 +40,17 @@ protected:
 
 public:
    /**
-    * Create an AppPluginFactory instance.
+    * Create an AppFactory instance.
     *
     * @param name the name for this MicroKernelModule.
     * @param version the version for this MicroKernelModule (major.minor).
     */
-   AppPluginFactory(const char* name, const char* version);
+   AppFactory(const char* name, const char* version);
 
    /**
-    * Deconstruct this AppPluginFactory instance.
+    * Deconstruct this AppFactory instance.
     */
-   virtual ~AppPluginFactory();
+   virtual ~AppFactory();
 
    /**
     * Add a dependency.
@@ -94,24 +94,24 @@ public:
       monarch::kernel::MicroKernel* k);
 
    /**
-    * Creates an AppPlugin object.
+    * Creates an App object.
     *
-    * @return the created AppPlugin object or NULL if an exception occurred.
+    * @return the created App object or NULL if an exception occurred.
     */
-   virtual AppPlugin* createAppPlugin() = 0;
+   virtual App* createApp() = 0;
 
    /**
-    * Destroys an AppPlugin object.
+    * Destroys an App object.
     *
-    * @param plugin the AppPlugin to destroy.
+    * @param app the App to destroy.
     */
-   virtual void destroyAppPlugin(AppPlugin* plugin);
+   virtual void destroyApp(App* app);
 };
 
 /**
- * Free an AppPlugin factory. Common case that just deletes the module.
+ * Free an AppFactory. Common case that just deletes the module.
  */
-void freeAppPluginFactory(monarch::modest::Module* m);
+void freeAppFactory(monarch::modest::Module* m);
 
 } // end namespace app
 } // end namespace monarch

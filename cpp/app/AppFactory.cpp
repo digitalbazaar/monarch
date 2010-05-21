@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
-#include "monarch/app/AppPluginFactory.h"
+#include "monarch/app/AppFactory.h"
 
 using namespace std;
 using namespace monarch::app;
@@ -10,21 +10,21 @@ using namespace monarch::kernel;
 using namespace monarch::modest;
 using namespace monarch::rt;
 
-AppPluginFactory::AppPluginFactory(const char* name, const char* version) :
+AppFactory::AppFactory(const char* name, const char* version) :
    MicroKernelModule(name, version),
    mMicroKernel(NULL)
 {
    mInfo["name"] = name;
    mInfo["version"] = version;
-   mInfo["type"] = "monarch.app.AppPluginFactory";
+   mInfo["type"] = "monarch.app.AppFactory";
    mInfo["dependencies"]->setType(Array);
 }
 
-AppPluginFactory::~AppPluginFactory()
+AppFactory::~AppFactory()
 {
 }
 
-void AppPluginFactory::addDependency(const char* name, const char* version)
+void AppFactory::addDependency(const char* name, const char* version)
 {
    DynamicObject dep;
    dep["name"] = name;
@@ -32,32 +32,32 @@ void AppPluginFactory::addDependency(const char* name, const char* version)
    mInfo["dependencies"]->append(dep);
 }
 
-DynamicObject AppPluginFactory::getDependencyInfo()
+DynamicObject AppFactory::getDependencyInfo()
 {
    return mInfo;
 }
 
-bool AppPluginFactory::initialize(MicroKernel* k)
+bool AppFactory::initialize(MicroKernel* k)
 {
    mMicroKernel = k;
    return true;
 }
 
-void AppPluginFactory::cleanup(MicroKernel* k)
+void AppFactory::cleanup(MicroKernel* k)
 {
 }
 
-MicroKernelModuleApi* AppPluginFactory::getApi(MicroKernel* k)
+MicroKernelModuleApi* AppFactory::getApi(MicroKernel* k)
 {
    return this;
 }
 
-void AppPluginFactory::destroyAppPlugin(AppPlugin* plugin)
+void AppFactory::destroyApp(App* app)
 {
-   delete plugin;
+   delete app;
 }
 
-void monarch::app::freeAppPluginFactory(Module* m)
+void monarch::app::freeAppFactory(Module* m)
 {
    delete m;
 }

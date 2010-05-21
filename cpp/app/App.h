@@ -1,92 +1,37 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef monarch_app_App_H
-#define monarch_app_App_H
+#ifndef monarch_app_App_h
+#define monarch_app_App_h
 
 #include "monarch/kernel/MicroKernel.h"
-#include "monarch/app/AppPlugin.h"
 
 namespace monarch
 {
 namespace app
 {
 
+// forward declaration
+class AppRunner;
+
 /**
- * An App is a top-level class for applications.
+ * An App is a custom application loaded and run by an AppRunner. It provides
+ * command line options, configuration settings, and custom behavior.
  *
- * This class provides basic app functionality: ie: parameter parsing, logging,
- * configuration and a MicroKernel. Specific application functionality is
- * provided by a custom-written AppPlugin. Normal use of this class is to have
- * the program main(...) call App::main(...).
- *
- * An AppPlugin is created by an AppPluginFactory which is a specific type of
- * MicroKernelModule. Additional modules may be loaded after the AppPlugin is
- * loaded using command line options or programmatically from other loaded
- * modules.
- *
- * @author David I. Lehn
  * @author Dave Longley
+ * @author David I. Lehn
  */
 class App
 {
 protected:
    /**
-    * Program name for this App. Taken from the command line args.
+    * The AppRunner owner of this App.
     */
-   char* mProgramName;
-
-   /**
-    * Name of this App.
-    */
-   char* mName;
-
-   /**
-    * Version of this App.
-    */
-   char* mVersion;
-
-   /**
-    * Exit status to use for all tests.
-    */
-   int mExitStatus;
-
-   /**
-    * The meta config for this App. Contains unloaded config file paths and
-    * command line option configs.
-    */
-   monarch::rt::DynamicObject mMetaConfig;
-
-   /**
-    * The MicroKernel for this App.
-    */
-   monarch::kernel::MicroKernel* mKernel;
-
-   /**
-    * The app state types.
-    */
-   enum State
-   {
-      // App is stopped.
-      Stopped,
-      // In the process of starting the app.
-      Starting,
-      // App has been started and is running.
-      Running,
-      // In the process of restarting the app.
-      Restarting,
-      // In the process of stopping the app.
-      Stopping
-   };
-
-   /**
-    * The current app state.
-    */
-   State mState;
+   AppRunner* mAppRunner;
 
 public:
    /**
-    * Creates an App instance.
+    * Creates a App instance.
     */
    App();
 
@@ -96,184 +41,224 @@ public:
    virtual ~App();
 
    /**
-    * Sets the program name.
+    * Sets the owner AppRunner.
     *
-    * @param name the program name.
+    * @param ar the AppRunner.
     */
-   virtual void setProgramName(const char* name);
+   virtual void setAppRunner(AppRunner* ar);
 
    /**
-    * Gets the program name.
+    * Gets the owner AppRunner.
     *
-    * @return the program name.
+    * @return the owner AppRunner.
     */
-   virtual const char* getProgramName();
+   virtual AppRunner* getAppRunner();
 
    /**
-    * Sets the application name.
+    * Gets this App's main config.
     *
-    * @param name the name.
-    */
-   virtual void setName(const char* name);
-
-   /**
-    * Gets the application name.
-    *
-    * @return the name.
-    */
-   virtual const char* getName();
-
-   /**
-    * Sets the version.
-    *
-    * @param name the version.
-    */
-   virtual void setVersion(const char* version);
-
-   /**
-    * Gets the version.
-    *
-    * @return the version.
-    */
-   virtual const char* getVersion();
-
-   /**
-    * Sets the application exit status.
-    *
-    * @param status the application exit status.
-    */
-   virtual void setExitStatus(int exitStatus);
-
-   /**
-    * Gets the application exit status.
-    *
-    * @return the application exit status.
-    */
-   virtual int getExitStatus();
-
-   /**
-    * Gets this app's MicroKernel.
-    *
-    * @return the MicroKernel for this app.
-    */
-   virtual monarch::kernel::MicroKernel* getKernel();
-
-   /**
-    * Gets this app's ConfigManager.
-    *
-    * @return the ConfigManager for this app.
-    */
-   virtual monarch::config::ConfigManager* getConfigManager();
-
-   /**
-    * Convenience for getConfigManager()->getConfig(getMainConfigGroup()).
-    *
-    * @return the main config for this app.
+    * @return this App's main config.
     */
    virtual monarch::config::Config getConfig();
 
    /**
-    * Makes a builtin config by setting its ID, group, parent, and version. It
-    * must be added to the ConfigManager once it has been filled out. If no
-    * parent ID is specified, it will be taken from the group or set to none.
+    * Gets this App's ConfigManager.
     *
-    * @param id the ID for the config.
-    * @param group the group ID for the config.
-    * @param parent the parent ID for the config (NULL to detect or for none).
-    *
-    * @return the config.
+    * @return this App's ConfigManager.
     */
-   virtual monarch::config::Config makeConfig(
-      monarch::config::ConfigManager::ConfigId id,
-      monarch::config::ConfigManager::ConfigId groupId,
-      monarch::config::ConfigManager::ConfigId parentId = NULL);
+   virtual monarch::config::ConfigManager* getConfigManager();
 
    /**
-    * Gets the meta configuration object.
+    * Gets this App's MicroKernel.
     *
-    * This mutable object is used for command line options and to store config
-    * file paths for loading. The format and default object is as follows:
+    * @return this App's MicroKernel.
+    */
+   virtual monarch::kernel::MicroKernel* getKernel();
+
+   /**
+    * Performs custom initialization.
     *
-    * {
-    *    # the parsed command line
-    *    "commandLine": [
-    *       "options": [
-    *          "consumed": <true/false>,
-    *          "short"/"long": <option>,
-    *          "value": <value>
-    *       ],
-    *       "extra": [
-    *          <arg>,
-    *          ...
-    *       ]
-    *    ],
-    *    # array of command line option specs
-    *    # see AppPlugin::getCommandLineSpecs()
-    *    "specs": [
-    *       <spec>,
-    *       ...
-    *    ],
-    *    # builtin command line option configs indexed by id
-    *    "options": {
-    *       "<id>": <config>,
-    *       ...,
-    *    }
-    *    # plugin command line option configs
-    *    "pluginOptions": <config>
+    * @return true if successful, false with exception set on failure.
+    */
+   virtual bool initialize();
+
+   /**
+    * Performs custom clean up.
+    */
+   virtual void cleanup();
+
+   /**
+    * Called to create and initialize configs. Typically default config values
+    * are added to the given defaults config and then the defaults config is
+    * added to the App's ConfigManager. However, other configs can be
+    * initialized and added to the ConfigManager if desired. A specific config
+    * is used for command line options and should be initialized in the
+    * getCommandLineSpec() call.
+    *
+    * @param defaults the defaults config to initialize.
+    *
+    * @return true on success, false with exception set on failure.
+    */
+   virtual bool initConfigs(monarch::config::Config& defaults);
+
+   /**
+    * Initializes the command line configuration for this plugin and gets the
+    * related command line specification. The spec is in the following format:
+    *
+    * Spec = {
+    *    "options" = [ OptionSpec[, ...] ],
+    *    "help" = "Help string for options.",
+    *    ...
     * }
     *
-    * @return the meta config.
+    * "help" should be in a format such as:
+    * "[Name] options:\n"
+    * "  -x, --set-x         Simple option.\n"
+    * "      --set-y         Simple option, only long version.\n"
+    * "  -f, --file FILE     Option with parameter.\n"
+    * "  -l, --long-option OPT\n"
+    * "                      Longer option. (default: \"default\")\n"
+    * "  -L, --long-help     Option that has a long option help string which\n"
+    * "                      needs to wrap to the next line after 80 chars.\n"
+    *
+    * An optional key is "args" which should be a DynamicObject array which
+    * will be filled with remaining args when a non-option is found.
+    *
+    * OptionSpec = {
+    *    "short": "-o",
+    *    "long": "--long-option",
+    *    ...
+    * }
+    *
+    * Action keys which consume arguments cannot appear in parallel. Actions
+    * which do not, such as setTrue/setFalse/inc/dec, can appear in parallel.
+    *
+    * Options that specify a "target" specify target options that can be one
+    * of the following formats:
+    * Specify a target DynamicObject directly:
+    * ...["arg"]["target"] = <dyno>
+    * A relative path from a root DynamicObject:
+    * ...["arg"]["root"] = <dyno>
+    * ...["arg"]["path"] = <string path>
+    * A relative path in a named raw config. Will be set after changing.
+    * ...["arg"]["config"] = <raw config name>
+    * ...["arg"]["path"] = <string path>
+    *
+    * Paths are split on '.'. If a segment matches r"[^\]*\$" it is joined
+    * with the next segment. Ie, if last char is a '\' but the last two chars
+    * are not "\\" then a join occurs but last '\' is dropped.
+    *
+    * For example, following paths are applied to a target:
+    * "" => target[""]
+    * "a.b.c" => target["a"]["b"]["c"]
+    * "a\.b.c" => target["a.b"]["c"]
+    * "a\\.b.c" => target["a\"]["b"]["c"]
+    * "a\\b.c" => target["a\\b"]["c"]
+    *
+    * If "isJsonValue" exists and is true then the value argument will be
+    * decoded as a JSON value. It can be any text that could appear as a JSON
+    * value. (In other words, it does not have JSON top-level {} or []
+    * requirement).
+    *
+    * The type of the new value will be either the type of a special "type"
+    * object, the type of an existing object, or will default to a string.
+    * ...["arg"]["type"] = <dyno>: will use type of dyno
+    * ...["arg"]["target"] = <dyno>: will use type of dyno
+    * otherwise: string
+    *
+    * If option found then set DynamicObject as appropriate:
+    * "setTrue": target | [ target[, ...] ]
+    * "setFalse": target | [ target[, ...] ]
+    *
+    * If option found then increment or decrement DynamicObject value by 1:
+    * "inc": target | [ target[, ...] ]
+    * "dec": target | [ target[, ...] ]
+    * Note: This will read/write to a specific DynamicObject. Interaction with
+    *       a multi-level ConfigManager setup may not be straightforward.
+    *
+    * Read next argument or arguments, convert to the DynamicObject type, and
+    * store them. On error use argError message. The command line must have
+    * enough arguments to satisfy the args array length.
+    * "arg": DynamicObject
+    * "args": [ target[, ...] ]
+    * "argError": string
+    *
+    * Append arg or args to an Array DynamicObject:
+    * "append": target
+    *
+    * Append config files as includes to the command line config so they will
+    * load when it does.
+    * "include": "config": target command line config
+    * "include": "params": optional include params like "load", "optional"
+    *
+    * Set a named config value. Reads its argument as a key=value pair. The
+    * key will be read as a path. The "set" target is used to find the final
+    * target via the path. Then this target is assigned the next argument via
+    * the above "arg" process. Alternatively the target could be a keyword,
+    * in which case the key will be set as the keyword and the value as the
+    * value of the keyword.
+    * "set": "root"/"config": target
+    * "set": "keyword": true
+    *
+    * A keyword can also be set by specifying the name of the keyword. The
+    * option value will be set as the value of the keyword.
+    * "keyword": MY_KEY_WORD
+    *
+    * The base App will already parse the following parameters:
+    * -h, --help: print out default help and delegates help
+    * -V --version: print out app name and version if present
+    * -v, --verbose: set verbose mode for use by apps
+    * --log-level: parse and set a log level variable
+    *
+    * Once an option has been consumed it will be marked as such. However a
+    * plugin may specify in an option spec that it wants to reexamine the
+    * option by setting the "ignoreConsumed" flag to false.
+    * "ignoreConsumed": boolean
+    *
+    * @param cfg the command line config to initialize and use in the spec.
+    *
+    * @return the command line specification for this App.
     */
-   virtual monarch::config::Config getMetaConfig();
+   virtual monarch::rt::DynamicObject getCommandLineSpec(
+      monarch::config::Config& cfg);
 
    /**
-    * Runs the App. If specified in the configuration, an AppPlugin will be
-    * run that customizes the behavior of the application.
+    * Called before an App loads any of its unloaded config files. Subclasses
+    * may use this hook to do preparation before configs are loaded.
     *
-    * @param argc number of command line arguments.
-    * @param argv command line arguments.
-    *
-    * @return exit status. 0 for success.
+    * @return true on success, false on failure with exception set.
     */
-   virtual int start(int argc, const char* argv[]);
+   virtual bool willLoadConfigs();
 
    /**
-    * Called from ::main() to run a top-level App.
+    * Called after an App loads config files. Subclasses can use this hook to
+    * load other configs or do other processing.
     *
-    * @param argc number of command line arguments.
-    * @param argv command line arguments.
-    *
-    * @return exit status. 0 for success.
+    * @return true on success, false on failure with exception set.
     */
-   static int main(int argc, const char* argv[]);
+   virtual bool didLoadConfigs();
 
-protected:
+   /**
+    * Gets the wait events for this plugin. These events will be waited for
+    * by a parent App's kernel before it stops.
+    *
+    * The return value from plugins should be an array of objects of the form:
+    * {
+    *    "id": "{waiterId(string)}",
+    *    "type": "{waitEventType(string)}",
+    * }
+    * This function should return an empty array if there are no wait events.
+    *
+    * @return the plugin wait events.
+    */
+   virtual monarch::rt::DynamicObject getWaitEvents();
+
    /**
     * Runs this App.
     *
-    * @return true on success, false on failure with exception set.
+    * @return true on success, false with exception set on failure.
     */
    virtual bool run();
-
-   /**
-    * Configures the AppPlugin.
-    *
-    * @param plugin the AppPlugin to configure.
-    *
-    * @return true on success, false on failure with exception set.
-    */
-   virtual bool configurePlugin(AppPlugin* plugin);
-
-   /**
-    * Runs the AppPlugin.
-    *
-    * @param plugin the AppPlugin to run.
-    * @param waitEvents the events to wait for while the plugin runs.
-    *
-    * @return true on success, false on failure with exception set.
-    */
-   virtual bool runPlugin(
-      AppPlugin* plugin, monarch::rt::DynamicObject& waitEvents);
 };
 
 } // end namespace app

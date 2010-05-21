@@ -3,7 +3,7 @@
  */
 #include "monarch/app/CmdLineParser.h"
 
-#include "monarch/app/App.h"
+#include "monarch/app/AppRunner.h"
 #include "monarch/data/json/JsonReader.h"
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/util/StringTokenizer.h"
@@ -283,10 +283,18 @@ static bool _setTargetAtPath(
    return rval;
 }
 
-// get read-only object
-// use main config rather than optionally specified one
+/**
+ * Gets the target for the given spec.
+ *
+ * @param ar the AppRunner.
+ * @param spec the option spec.
+ * @param out to be set to the target.
+ * @param setExceptions true to set exceptions if not found, false not to.
+ *
+ * @return true if found, false if not.
+ */
 static bool _getTarget(
-   App* app, DynamicObject& spec, DynamicObject& out,
+   AppRunner* ar, DynamicObject& spec, DynamicObject& out,
    bool setExceptions = false)
 {
    bool rval = true;
@@ -319,7 +327,7 @@ static bool _getTarget(
    else if(spec->hasMember("config") && spec->hasMember("path"))
    {
       const char* path = spec["path"]->getString();
-      Config config = app->getConfig();
+      Config config = ar->getConfig();
       DynamicObject* obj = _findPath(config, path, false);
       if(obj != NULL)
       {
@@ -358,13 +366,13 @@ static bool _getTarget(
  * Sets a target object based on the given command line spec and the given
  * value.
  *
- * @param app the App.
+ * @param ar the AppRunner.
  * @param spec the command line spec option.
  * @param value the value to set the target to.
  *
  * @return true if the target was set, false if not.
  */
-static bool _setTarget(App* app, DynamicObject& spec, DynamicObject& value)
+static bool _setTarget(AppRunner* ar, DynamicObject& spec, DynamicObject& value)
 {
    bool rval;
 
@@ -383,11 +391,11 @@ static bool _setTarget(App* app, DynamicObject& spec, DynamicObject& value)
    {
       const char* path = spec["path"]->getString();
       const char* configName = spec["config"]->getString();
-      Config rawConfig = app->getConfigManager()->getConfig(configName, true);
+      Config rawConfig = ar->getConfigManager()->getConfig(configName, true);
       rval = _setTargetAtPath(rawConfig[ConfigManager::MERGE], path, value);
       if(rval)
       {
-         rval = app->getConfigManager()->setConfig(rawConfig);
+         rval = ar->getConfigManager()->setConfig(rawConfig);
       }
    }
    else
@@ -406,14 +414,14 @@ static bool _setTarget(App* app, DynamicObject& spec, DynamicObject& value)
 /**
  * Processes a command line option using the given option spec.
  *
- * @param app the App.
+ * @param ar the AppRunner.
  * @param optSpec the spec for the command line option.
  * @param opt the command line option to process.
  *
  * @return true if successful, false if an exception occurred.
  */
 static bool _processOption(
-   App* app, DynamicObject& optSpec, DynamicObject& opt)
+   AppRunner* ar, DynamicObject& optSpec, DynamicObject& opt)
 {
    bool rval = true;
 
@@ -472,12 +480,12 @@ static bool _processOption(
             while(rval && i->hasNext())
             {
                DynamicObject& next = i->next();
-               rval = _setTarget(app, next, value);
+               rval = _setTarget(ar, next, value);
             }
          }
          else
          {
-            rval = _setTarget(app, spec, value);
+            rval = _setTarget(ar, spec, value);
          }
       }
       // increase or decrease target
@@ -486,8 +494,7 @@ static bool _processOption(
          bool inc = optSpec->hasMember("inc");
          int diff = inc ? 1 : -1;
          DynamicObject original;
-         rval = _getTarget(app, inc ?
-            optSpec["inc"] : optSpec["dec"], original);
+         rval = _getTarget(ar, inc ? optSpec["inc"] : optSpec["dec"], original);
          if(rval)
          {
             DynamicObject value(NULL);
@@ -522,7 +529,7 @@ static bool _processOption(
             if(rval)
             {
                rval = _setTarget(
-                  app, inc ? optSpec["inc"] : optSpec["dec"], value);
+                  ar, inc ? optSpec["inc"] : optSpec["dec"], value);
             }
          }
       }
@@ -535,7 +542,7 @@ static bool _processOption(
       // handle setting a keyword
       if(optSpec->hasMember("keyword"))
       {
-         app->getConfigManager()->setKeyword(
+         ar->getConfigManager()->setKeyword(
             optSpec["keyword"]->getString(), opt["value"]->getString());
       }
       // handle setting a value
@@ -613,7 +620,7 @@ static bool _processOption(
                // set keyword (interpret path as keyword)
                if(rval && !isArg && optSpec["set"]->hasMember("keyword"))
                {
-                  app->getConfigManager()->setKeyword(
+                  ar->getConfigManager()->setKeyword(
                      optSpec["set"]["path"]->getString(), value->getString());
                }
                // do type conversion
@@ -631,12 +638,12 @@ static bool _processOption(
                   // no type in spec so preserve old type
                   else
                   {
-                     _getTarget(app, optSpec[key], vt, false);
+                     _getTarget(ar, optSpec[key], vt, false);
                   }
 
                   // set type and target
                   value->setType(vt->getType());
-                  rval = _setTarget(app, optSpec[key], value);
+                  rval = _setTarget(ar, optSpec[key], value);
                }
             }
          }
@@ -688,7 +695,7 @@ static bool _processOption(
 }
 
 bool CmdLineParser::processSpec(
-   App* app, DynamicObject& spec, DynamicObject& options)
+   AppRunner* ar, DynamicObject& spec, DynamicObject& options)
 {
    bool rval = true;
 
@@ -714,7 +721,7 @@ bool CmdLineParser::processSpec(
                (opt->hasMember("long") && optSpec->hasMember("long") &&
                opt["long"] == optSpec["long"]))
             {
-               rval = _processOption(app, optSpec, opt);
+               rval = _processOption(ar, optSpec, opt);
             }
          }
       }

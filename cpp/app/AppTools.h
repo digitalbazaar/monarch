@@ -13,9 +13,9 @@ namespace app
 {
 
 /**
- * The AppTools class provides static helper methods for an App. For example,
- * methods to initialize OS-specific network functionality, print exceptions,
- * etc.
+ * The AppTools class provides static helper methods for an AppRunner. For
+ * example, methods to initialize OS-specific network functionality, print
+ * exceptions, etc.
  *
  * @author Dave Longley
  */
