@@ -541,8 +541,8 @@ static DynamicObject _getKernelCmdLineSpec(AppRunner* ar)
    DynamicObject spec;
    spec["help"] =
 "Module options:\n"
-"  -a, --app FILE   The filename for a module containing an AppFactory that\n"
-"                   can create the custom App.\n"
+"  -a, --app FILE      The filename for a module containing an AppFactory\n"
+"                      that can create the custom App.\n"
 "  -m, --module-path PATH\n"
 "                      A colon separated list of modules or directories where\n"
 "                      modules are stored. May be specified multiple times.\n"
