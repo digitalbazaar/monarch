@@ -40,16 +40,15 @@ bool Tester::initConfigs(Config& defaults)
    c["continueAfterException"] = false;
    c["tests"]->setType(Map);
    c["modules"]->setType(Map);
-   getApp()->getConfigManager()->addConfig(defaults);
-   return true;
+   return getApp()->getConfigManager()->addConfig(defaults);
 }
 
 DynamicObject Tester::getCommandLineSpec(Config& cfg)
 {
    // initialize config
    Config& c = cfg[ConfigManager::MERGE][PLUGIN_NAME];
-   c["tests"][PLUGIN_CL_CFG_ID]->setType(Array);
-   c["modules"][PLUGIN_CL_CFG_ID]->setType(Array);
+   c["tests"]->setType(Array);
+   c["modules"]->setType(Array);
 
    DynamicObject spec;
    spec["help"] =
@@ -85,12 +84,12 @@ DynamicObject Tester::getCommandLineSpec(Config& cfg)
    opt = spec["options"]->append();
    opt["short"] = "-t";
    opt["long"] = "--test";
-   opt["append"] = c["tests"][PLUGIN_CL_CFG_ID];
+   opt["append"] = c["tests"];
    opt["argError"] = "No type specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--test-module";
-   opt["append"] = c["modules"][PLUGIN_CL_CFG_ID];
+   opt["append"] = c["modules"];
    opt["argError"] = "No module specified.";
 
    return spec;
@@ -128,14 +127,10 @@ bool Tester::run()
       DynamicObjectIterator i = cfg["tests"].getIterator();
       while(i->hasNext())
       {
-         DynamicObjectIterator ii = i->next().getIterator();
-         while(ii->hasNext())
-         {
-            const char* name = ii->next()->getString();
-            tr.enableTest(name);
-            usingCustomTests = true;
-            hasDefaultTest |= (strcmp(name, TestRunner::DEFAULT) == 0);
-         }
+         const char* name = i->next()->getString();
+         tr.enableTest(name);
+         usingCustomTests = true;
+         hasDefaultTest |= (strcmp(name, TestRunner::DEFAULT) == 0);
       }
    }
 
@@ -149,11 +144,7 @@ bool Tester::run()
       DynamicObjectIterator i = cfg["modules"].getIterator();
       while(i->hasNext())
       {
-         DynamicObjectIterator ii = i->next().getIterator();
-         while(ii->hasNext())
-         {
-            customModules[ii->next()->getString()] = true;
-         }
+         customModules[i->next()->getString()] = true;
       }
    }
 

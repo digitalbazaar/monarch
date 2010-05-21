@@ -14,6 +14,9 @@ namespace app
 // forward declaration
 class App;
 
+// FIXME: rename App to AppRunner
+// FIXME: rename AppPlugin to App
+
 /**
  * An AppPlugin provides the custom behavior for an App. It allows an App to
  * be extended with new command line options, configuration settings, and

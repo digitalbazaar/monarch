@@ -457,208 +457,212 @@ static bool _processOption(
       Exception::set(e);
       rval = false;
    }
-   // set target to true or false
-   else if(optSpec->hasMember("setTrue") || optSpec->hasMember("setFalse"))
+   else
    {
-      DynamicObject value;
-      value = optSpec->hasMember("setTrue");
-      DynamicObject& spec = value->getBoolean() ?
-         optSpec["setTrue"] : optSpec["setFalse"];
-      if(spec->getType() == Array)
+      // set target to true or false
+      if(optSpec->hasMember("setTrue") || optSpec->hasMember("setFalse"))
       {
-         DynamicObjectIterator i = spec.getIterator();
-         while(rval && i->hasNext())
+         DynamicObject value;
+         value = optSpec->hasMember("setTrue");
+         DynamicObject& spec = value->getBoolean() ?
+            optSpec["setTrue"] : optSpec["setFalse"];
+         if(spec->getType() == Array)
          {
-            DynamicObject& next = i->next();
-            rval = _setTarget(app, next, value);
-         }
-      }
-      else
-      {
-         rval = _setTarget(app, spec, value);
-      }
-   }
-   // increase or decrease target
-   else if(optSpec->hasMember("inc") || optSpec->hasMember("dec"))
-   {
-      bool inc = optSpec->hasMember("inc");
-      int diff = inc ? 1 : -1;
-      DynamicObject original;
-      rval = _getTarget(app, inc ? optSpec["inc"] : optSpec["dec"], original);
-      if(rval)
-      {
-         DynamicObject value(NULL);
-         switch(original->getType())
-         {
-            // TODO: deal with overflow?
-            case Int32:
-               value = original->getInt32() + diff;
-               break;
-            case UInt32:
-               value = original->getUInt32() + diff;
-               break;
-            case Int64:
-               value = original->getInt64() + diff;
-               break;
-            case UInt64:
-               value = original->getUInt64() + diff;
-               break;
-            case Double:
-               value = original->getDouble() + diff;
-               break;
-            default:
-               ExceptionRef e = new Exception(
-                  "Invalid command line spec. "
-                  "The option cannot be changed because it is not a number.",
-                  CMDLINE_ERROR);
-               e->getDetails()["option"] = opt;
-               e->getDetails()["spec"] = optSpec;
-               Exception::set(e);
-               rval = false;
-         }
-         if(rval)
-         {
-            rval = _setTarget(
-               app, inc ? optSpec["inc"] : optSpec["dec"], value);
-         }
-      }
-   }
-   // append argument to an array
-   else if(optSpec->hasMember("append"))
-   {
-      // append string to "append" target
-      optSpec["append"]->append() = opt["value"].clone();
-   }
-   // handle setting a keyword
-   else if(optSpec->hasMember("keyword"))
-   {
-      app->getConfigManager()->setKeyword(
-         optSpec["keyword"]->getString(), opt["value"]->getString());
-   }
-   // handle setting include value
-   else if(optSpec->hasMember("include"))
-   {
-      if(!optSpec["include"]->hasMember("config"))
-      {
-         ExceptionRef e = new Exception(
-            "Invalid command line spec. The option does not specify a "
-            "command line config to append config includes to.",
-            CMDLINE_ERROR);
-         e->getDetails()["option"] = opt;
-         e->getDetails()["spec"] = optSpec;
-         Exception::set(e);
-         rval = false;
-      }
-      else
-      {
-         // append include to config
-         Config inc;
-         inc["path"] = opt["value"].clone();
-         inc["load"] = true;
-         inc["optional"] = false;
-         inc["includeSubdirectories"] = true;
-         optSpec["include"]["config"][ConfigManager::INCLUDE]->append(inc);
-      }
-   }
-   // handle setting a value
-   else if(optSpec->hasMember("arg") || optSpec->hasMember("set"))
-   {
-      // a config or root object must be specified (although "set" could
-      // also have "keyword" set to true)
-      bool isArg = optSpec->hasMember("arg");
-      const char* key = isArg ? "arg" : "set";
-      if((!optSpec[key]->hasMember("config") &&
-          !optSpec[key]->hasMember("root")) &&
-          (!isArg && !optSpec["set"]->hasMember("keyword")))
-      {
-         ExceptionRef e = new Exception(
-            "Invalid command line spec. The option does not specify a "
-            "configuration, root object, or keyword to set.",
-            CMDLINE_ERROR);
-         e->getDetails()["option"] = opt;
-         e->getDetails()["spec"] = optSpec;
-         Exception::set(e);
-         rval = false;
-      }
-      else
-      {
-         // to be set to the value from the command line
-         DynamicObject value(NULL);
-
-         // "set" takes a path and value from the command line
-         if(optSpec->hasMember("set"))
-         {
-            // Note: No special escaping support for having an '=' in a value
-
-            // parse out the path and value
-            const char* arg = opt["value"]->getString();
-            const char* eq = strchr(arg, '=');
-            if(eq == NULL)
+            DynamicObjectIterator i = spec.getIterator();
+            while(rval && i->hasNext())
             {
-               ExceptionRef e = new Exception(
-                  "Invalid 'set' command line option, no "
-                  "<path>=<value> specified.",
-                  CMDLINE_ERROR);
-               e->getDetails()["option"] = opt;
-               e->getDetails()["spec"] = optSpec;
-               Exception::set(e);
-               rval = false;
-            }
-            else
-            {
-               // update path and set value
-               optSpec["set"]["path"] = string(arg, eq - arg).c_str();
-               value = DynamicObject();
-               value = string(eq + 1).c_str();
+               DynamicObject& next = i->next();
+               rval = _setTarget(app, next, value);
             }
          }
-         // "arg" takes just the value from the command line
          else
          {
-            value = opt["value"].clone();
+            rval = _setTarget(app, spec, value);
          }
-
+      }
+      // increase or decrease target
+      if(optSpec->hasMember("inc") || optSpec->hasMember("dec"))
+      {
+         bool inc = optSpec->hasMember("inc");
+         int diff = inc ? 1 : -1;
+         DynamicObject original;
+         rval = _getTarget(app, inc ?
+            optSpec["inc"] : optSpec["dec"], original);
          if(rval)
          {
-            // do json conversion if requested
-            if(optSpec->hasMember("isJsonValue") &&
-               optSpec["isJsonValue"]->getBoolean())
+            DynamicObject value(NULL);
+            switch(original->getType())
             {
-               // JSON value conversion, use non-strict reader
-               JsonReader jr(false);
-               string tmp = value->getString();
-               ByteArrayInputStream is(tmp.c_str(), tmp.length());
-               jr.start(value);
-               rval = jr.read(&is) && jr.finish();
+               // TODO: deal with overflow?
+               case Int32:
+                  value = original->getInt32() + diff;
+                  break;
+               case UInt32:
+                  value = original->getUInt32() + diff;
+                  break;
+               case Int64:
+                  value = original->getInt64() + diff;
+                  break;
+               case UInt64:
+                  value = original->getUInt64() + diff;
+                  break;
+               case Double:
+                  value = original->getDouble() + diff;
+                  break;
+               default:
+                  ExceptionRef e = new Exception(
+                     "Invalid command line spec. "
+                     "The option cannot be changed because it is not a number.",
+                     CMDLINE_ERROR);
+                  e->getDetails()["option"] = opt;
+                  e->getDetails()["spec"] = optSpec;
+                  Exception::set(e);
+                  rval = false;
             }
-
-            // set keyword (interpret path as keyword)
-            if(rval && !isArg && optSpec["set"]->hasMember("keyword"))
+            if(rval)
             {
-               app->getConfigManager()->setKeyword(
-                  optSpec["set"]["path"]->getString(), value->getString());
+               rval = _setTarget(
+                  app, inc ? optSpec["inc"] : optSpec["dec"], value);
             }
-            // do type conversion
-            else if(rval)
-            {
-               // default value type to string
-               DynamicObject vt;
-               vt->setType(String);
+         }
+      }
+      // append argument to an array
+      if(optSpec->hasMember("append"))
+      {
+         // append string to "append" target
+         optSpec["append"]->append() = opt["value"].clone();
+      }
+      // handle setting a keyword
+      if(optSpec->hasMember("keyword"))
+      {
+         app->getConfigManager()->setKeyword(
+            optSpec["keyword"]->getString(), opt["value"]->getString());
+      }
+      // handle setting include value
+      if(optSpec->hasMember("include"))
+      {
+         if(!optSpec["include"]->hasMember("config"))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid command line spec. The option does not specify a "
+               "command line config to append config includes to.",
+               CMDLINE_ERROR);
+            e->getDetails()["option"] = opt;
+            e->getDetails()["spec"] = optSpec;
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            // append include to config
+            Config inc;
+            inc["path"] = opt["value"].clone();
+            inc["load"] = true;
+            inc["optional"] = false;
+            inc["includeSubdirectories"] = true;
+            optSpec["include"]["config"][ConfigManager::INCLUDE]->append(inc);
+         }
+      }
+      // handle setting a value
+      if(optSpec->hasMember("arg") || optSpec->hasMember("set"))
+      {
+         // a config or root object must be specified (although "set" could
+         // also have "keyword" set to true)
+         bool isArg = optSpec->hasMember("arg");
+         const char* key = isArg ? "arg" : "set";
+         if((!optSpec[key]->hasMember("config") &&
+             !optSpec[key]->hasMember("root")) &&
+             (!isArg && !optSpec["set"]->hasMember("keyword")))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid command line spec. The option does not specify a "
+               "configuration, root object, or keyword to set.",
+               CMDLINE_ERROR);
+            e->getDetails()["option"] = opt;
+            e->getDetails()["spec"] = optSpec;
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            // to be set to the value from the command line
+            DynamicObject value(NULL);
 
-               // try to get get type from spec
-               if(optSpec->hasMember("type"))
+            // "set" takes a path and value from the command line
+            if(optSpec->hasMember("set"))
+            {
+               // Note: No special escaping support for having an '=' in a value
+
+               // parse out the path and value
+               const char* arg = opt["value"]->getString();
+               const char* eq = strchr(arg, '=');
+               if(eq == NULL)
                {
-                  vt = optSpec[key];
+                  ExceptionRef e = new Exception(
+                     "Invalid 'set' command line option, no "
+                     "<path>=<value> specified.",
+                     CMDLINE_ERROR);
+                  e->getDetails()["option"] = opt;
+                  e->getDetails()["spec"] = optSpec;
+                  Exception::set(e);
+                  rval = false;
                }
-               // no type in spec so preserve old type
                else
                {
-                  _getTarget(app, optSpec[key], vt, false);
+                  // update path and set value
+                  optSpec["set"]["path"] = string(arg, eq - arg).c_str();
+                  value = DynamicObject();
+                  value = string(eq + 1).c_str();
+               }
+            }
+            // "arg" takes just the value from the command line
+            else
+            {
+               value = opt["value"].clone();
+            }
+
+            if(rval)
+            {
+               // do json conversion if requested
+               if(optSpec->hasMember("isJsonValue") &&
+                  optSpec["isJsonValue"]->getBoolean())
+               {
+                  // JSON value conversion, use non-strict reader
+                  JsonReader jr(false);
+                  string tmp = value->getString();
+                  ByteArrayInputStream is(tmp.c_str(), tmp.length());
+                  jr.start(value);
+                  rval = jr.read(&is) && jr.finish();
                }
 
-               // set type and target
-               value->setType(vt->getType());
-               rval = _setTarget(app, optSpec[key], value);
+               // set keyword (interpret path as keyword)
+               if(rval && !isArg && optSpec["set"]->hasMember("keyword"))
+               {
+                  app->getConfigManager()->setKeyword(
+                     optSpec["set"]["path"]->getString(), value->getString());
+               }
+               // do type conversion
+               else if(rval)
+               {
+                  // default value type to string
+                  DynamicObject vt;
+                  vt->setType(String);
+
+                  // try to get get type from spec
+                  if(optSpec->hasMember("type"))
+                  {
+                     vt = optSpec[key];
+                  }
+                  // no type in spec so preserve old type
+                  else
+                  {
+                     _getTarget(app, optSpec[key], vt, false);
+                  }
+
+                  // set type and target
+                  value->setType(vt->getType());
+                  rval = _setTarget(app, optSpec[key], value);
+               }
             }
          }
       }

@@ -182,7 +182,13 @@ static bool _initGeneralConfig(App* app)
       Config& c = cfg[ConfigManager::MERGE][MONARCH_APP];
 
       // general application options
-      c["home"] = "~";
+      // use home environment var if available
+      const char* home = getenv("MONARCH_APP_HOME");
+      if(home == NULL)
+      {
+         home = "~";
+      }
+      c["home"] = home;
       c["printHelp"] = false;
       c["printVersion"] = false;
       rval = cm->addConfig(cfg);
