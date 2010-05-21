@@ -39,7 +39,7 @@ def runTest(test, binary = False):
               env = testEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
       else:
           sp = subprocess.Popen([ \
-              '@MONARCH_DIR@/dist/bin/monarch', '-c', '@MONARCH_DIR@/configs/apps/test.config', '--test-module', test,],
+              '@MONARCH_DIR@/dist/bin/monarch', '--config', '@MONARCH_DIR@/configs/apps/test.config', '--test-module', test,],
               env = testEnv, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
       
       # Read the subprocess results
