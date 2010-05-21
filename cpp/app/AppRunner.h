@@ -173,9 +173,9 @@ public:
    virtual monarch::config::Config getConfig();
 
    /**
-    * Makes a builtin config by setting its ID, group, parent, and version. It
-    * must be added to the ConfigManager once it has been filled out. If no
-    * parent ID is specified, it will be taken from the group or set to none.
+    * Makes a config by setting its ID, group, parent, and version. It must
+    * be added to the ConfigManager once it has been filled out. If no parent
+    * ID is specified, it will be taken from the group or set to none.
     *
     * @param id the ID for the config.
     * @param group the group ID for the config.

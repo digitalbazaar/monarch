@@ -46,6 +46,19 @@ MicroKernel* App::getKernel()
    return mAppRunner->getKernel();
 }
 
+Config App::makeConfig(
+   ConfigManager::ConfigId id,
+   ConfigManager::ConfigId groupId,
+   ConfigManager::ConfigId parentId)
+{
+   return mAppRunner->makeConfig(id, groupId, parentId);
+}
+
+Config App::getMetaConfig()
+{
+   return mAppRunner->getMetaConfig();
+}
+
 bool App::initialize()
 {
    return true;

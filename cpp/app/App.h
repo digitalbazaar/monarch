@@ -76,6 +76,29 @@ public:
    virtual monarch::kernel::MicroKernel* getKernel();
 
    /**
+    * Makes a config by setting its ID, group, parent, and version. It must
+    * be added to the ConfigManager once it has been filled out. If no parent
+    * ID is specified, it will be taken from the group or set to none.
+    *
+    * @param id the ID for the config.
+    * @param group the group ID for the config.
+    * @param parent the parent ID for the config (NULL to detect or for none).
+    *
+    * @return the config.
+    */
+   virtual monarch::config::Config makeConfig(
+      monarch::config::ConfigManager::ConfigId id,
+      monarch::config::ConfigManager::ConfigId groupId,
+      monarch::config::ConfigManager::ConfigId parentId = NULL);
+
+   /**
+    * Gets the owner AppRunner's meta config.
+    *
+    * @return the owner AppRunner's meta config.
+    */
+   virtual monarch::config::Config getMetaConfig();
+
+   /**
     * Performs custom initialization.
     *
     * @return true if successful, false with exception set on failure.
