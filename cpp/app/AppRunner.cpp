@@ -141,17 +141,16 @@ Config AppRunner::makeConfig(
       rval[ConfigManager::GROUP] = groupId;
 
       // look up group parent
-      Config raw = getConfigManager()->getConfig(groupId, true);
-      if(!raw.isNull() && raw->hasMember(ConfigManager::PARENT))
+      if(getConfigManager()->hasConfig(groupId))
       {
-         rval[ConfigManager::PARENT] = raw[ConfigManager::PARENT];
-      }
-      else if(parentId != NULL)
-      {
-         rval[ConfigManager::PARENT] = parentId;
+         Config raw = getConfigManager()->getConfig(groupId, true);
+         if(raw->hasMember(ConfigManager::PARENT))
+         {
+            rval[ConfigManager::PARENT] = raw[ConfigManager::PARENT];
+         }
       }
    }
-   else if(parentId != NULL)
+   if(parentId != NULL && !rval->hasMember(ConfigManager::PARENT))
    {
       rval[ConfigManager::PARENT] = parentId;
    }
