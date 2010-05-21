@@ -94,6 +94,14 @@ void AppTools::printException(ExceptionRef& e)
    fos.close();
 }
 
+void AppTools::printException(ExceptionRef& e, string& str)
+{
+   ByteBuffer buf(512);
+   ByteArrayOutputStream baos(&buf, true);
+   printException(e, &baos);
+   str.append(buf.bytes(), buf.length());
+}
+
 void AppTools::printException(ExceptionRef& e, OutputStream* os)
 {
    _printException(e, os, 0);

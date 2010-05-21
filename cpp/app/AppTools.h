@@ -7,6 +7,8 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/io/OutputStream.h"
 
+#include <string>
+
 namespace monarch
 {
 namespace app
@@ -44,6 +46,15 @@ public:
     * @param e the exception to print.
     */
    static void printException(monarch::rt::ExceptionRef& e);
+
+   /**
+    * Pretty prints an exception to a given string.
+    *
+    * @param e the exception to print.
+    * @param str the string.
+    */
+   static void printException(
+      monarch::rt::ExceptionRef& e, std::string& str);
 
    /**
     * Pretty prints an exception to a given output stream.
