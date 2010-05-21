@@ -538,31 +538,6 @@ static bool _processOption(
          app->getConfigManager()->setKeyword(
             optSpec["keyword"]->getString(), opt["value"]->getString());
       }
-      // handle setting include value
-      if(optSpec->hasMember("include"))
-      {
-         if(!optSpec["include"]->hasMember("config"))
-         {
-            ExceptionRef e = new Exception(
-               "Invalid command line spec. The option does not specify a "
-               "command line config to append config includes to.",
-               CMDLINE_ERROR);
-            e->getDetails()["option"] = opt;
-            e->getDetails()["spec"] = optSpec;
-            Exception::set(e);
-            rval = false;
-         }
-         else
-         {
-            // append include to config
-            Config inc;
-            inc["path"] = opt["value"].clone();
-            inc["load"] = true;
-            inc["optional"] = false;
-            inc["includeSubdirectories"] = true;
-            optSpec["include"]["config"][ConfigManager::INCLUDE]->append(inc);
-         }
-      }
       // handle setting a value
       if(optSpec->hasMember("arg") || optSpec->hasMember("set"))
       {
@@ -664,6 +639,41 @@ static bool _processOption(
                   rval = _setTarget(app, optSpec[key], value);
                }
             }
+         }
+      }
+      // handle setting include value
+      if(optSpec->hasMember("include"))
+      {
+         if(!optSpec["include"]->hasMember("config"))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid command line spec. The option does not specify a "
+               "command line config to append config includes to.",
+               CMDLINE_ERROR);
+            e->getDetails()["option"] = opt;
+            e->getDetails()["spec"] = optSpec;
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            // include config
+            Config inc(NULL);
+            if(optSpec["include"]->hasMember("params"))
+            {
+               // use include params from spec
+               inc = optSpec["include"]["params"].clone();
+            }
+            else
+            {
+               // create default include params
+               inc = Config();
+               inc["load"] = true;
+               inc["optional"] = false;
+               inc["includeSubdirectories"] = true;
+            }
+            inc["path"] = opt["value"].clone();
+            optSpec["include"]["config"][ConfigManager::INCLUDE]->append(inc);
          }
       }
    }

@@ -170,8 +170,9 @@ public:
     * "append": target
     *
     * Append config files as includes to the command line config so they will
-    * load when it does:
+    * load when it does.
     * "include": "config": target command line config
+    * "include": "params": optional include params like "load", "optional"
     *
     * Set a named config value. Reads its argument as a key=value pair. The
     * key will be read as a path. The "set" target is used to find the final
