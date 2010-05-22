@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
-#include "monarch/data/json/JsonWriter.h"
 #include "monarch/logging/Logger.h"
+
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/util/AnsiEscapeCodes.h"
 #include "monarch/util/Date.h"
 #include "monarch/util/UniqueList.h"
 #include "monarch/rt/Thread.h"
 
-#include <sstream>
 #include <cstdlib>
 #include <cstdio>
 
@@ -20,10 +20,12 @@ using namespace monarch::logging;
 using namespace monarch::rt;
 
 // DO NOT INITIALIZE THIS VARIABLE! Logger::sLoggers is not not initialized on
-// purpose due to compiler initialization code issues.
+// purpose due to compiler initialization code issues. It can be initialized
+// twice if the logger library is opened twice.
 Logger::LoggerMap* Logger::sLoggers;
 
 Logger::Logger() :
+   mName(NULL),
    mDateFormat(NULL),
    mFlags(0)
 {
@@ -34,181 +36,25 @@ Logger::Logger() :
 
 Logger::~Logger()
 {
+   setName(NULL);
    if(mDateFormat != NULL)
    {
       free(mDateFormat);
    }
 }
 
-void Logger::initialize()
+void Logger::setName(const char* name)
 {
-   // Create the global map of loggers
-   sLoggers = new LoggerMap();
-}
-
-void Logger::cleanup()
-{
-   delete sLoggers;
-   sLoggers = NULL;
-}
-
-/**
- * Map to convert log-level option names to Logger::Level types
- */
-struct logLevelMap {
-   const char* key;
-   Logger::Level level;
-};
-static const struct logLevelMap logLevelsMap[] = {
-   {"n", Logger::None},
-   {"none", Logger::None},
-   {"e", Logger::Error},
-   {"error", Logger::Error},
-   {"w", Logger::Warning},
-   {"warning", Logger::Warning},
-   {"i", Logger::Info},
-   {"info", Logger::Info},
-   {"d", Logger::Debug},
-   {"debug", Logger::Debug},
-   {"debug-data", Logger::DebugData},
-   {"debug-detail", Logger::DebugDetail},
-   {"m", Logger::Max},
-   {"max", Logger::Max},
-   {NULL, Logger::None}
-};
-
-bool Logger::stringToLevel(const char* slevel, Level& level)
-{
-   bool found = false;
-   for(int mapi = 0;
-      slevel != NULL&& !found && logLevelsMap[mapi].key != NULL;
-      mapi++)
+   if(mName != NULL)
    {
-      if(strcasecmp(slevel, logLevelsMap[mapi].key) == 0)
-      {
-         level = logLevelsMap[mapi].level;
-         found = true;
-      }
+      free(mName);
    }
-
-   return found;
+   mName = (name == NULL) ? NULL : strdup(name);
 }
 
-const char* Logger::levelToString(Level level, bool color)
+const char* Logger::getName()
 {
-   const char* rval;
-
-   switch(level)
-   {
-      case None:
-         rval = "NONE";
-         break;
-      case Error:
-         rval = color
-            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
-              MO_ANSI_BG_RED MO_ANSI_SEP
-              MO_ANSI_FG_WHITE MO_ANSI_SGR
-              "ERROR" MO_ANSI_OFF
-            : "ERROR";
-         break;
-      case Warning:
-         rval = color
-            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
-              MO_ANSI_BG_HI_YELLOW MO_ANSI_SEP
-              MO_ANSI_FG_BLACK MO_ANSI_SGR
-              "WARNING" MO_ANSI_OFF
-            : "WARNING";
-         break;
-      case Info:
-         rval = color
-            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
-              MO_ANSI_BG_HI_BLUE MO_ANSI_SEP
-              MO_ANSI_FG_WHITE MO_ANSI_SGR
-              "INFO" MO_ANSI_OFF
-            : "INFO";
-         break;
-      case Debug:
-         rval = color
-            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
-              MO_ANSI_BG_BLACK MO_ANSI_SEP
-              MO_ANSI_FG_HI_WHITE MO_ANSI_SGR
-              "DEBUG" MO_ANSI_OFF
-            : "DEBUG";
-         break;
-      case DebugData:
-         rval = "DEBUG-DATA";
-         break;
-      case DebugDetail:
-         rval = "DEBUG-DETAIL";
-         break;
-      case Max:
-         rval = "MAX";
-         break;
-      default:
-         rval = NULL;
-   }
-
-   return rval;
-}
-
-void Logger::addLogger(Logger* logger, Category* category)
-{
-   if(sLoggers != NULL)
-   {
-      sLoggers->insert(pair<Category*, Logger*>(category, logger));
-   }
-}
-
-void Logger::removeLogger(Logger* logger, Category* category)
-{
-   if(sLoggers != NULL)
-   {
-      // FIXME: We need to iterate through, we can't do a find()
-      LoggerMap::iterator i = sLoggers->find(category);
-      if(i != sLoggers->end())
-      {
-         LoggerMap::iterator end = sLoggers->upper_bound(category);
-         for(; i != end; i++)
-         {
-            if(logger == i->second)
-            {
-               sLoggers->erase(i);
-               break;
-            }
-         }
-      }
-   }
-}
-
-void Logger::clearLoggers()
-{
-   if(sLoggers != NULL)
-   {
-      sLoggers->clear();
-   }
-}
-
-void Logger::flushLoggers()
-{
-   if(sLoggers != NULL)
-   {
-      // create a unique list of loggers to flush
-      UniqueList<Logger*> loggers;
-
-      // iterate over all loggers adding them to a unique list
-      for(LoggerMap::iterator i = sLoggers->begin(); i != sLoggers->end(); i++)
-      {
-         loggers.add(i->second);
-      }
-
-      // flush unique loggers
-      IteratorRef<Logger*> itr = loggers.getIterator();
-      while(itr->hasNext())
-      {
-         Logger* logger = itr->next();
-         logger->flush();
-      }
-   }
+   return mName;
 }
 
 void Logger::setLevel(Level level)
@@ -291,9 +137,14 @@ Logger::LoggerFlags Logger::getFlags()
 }
 
 /**
- * Adapted from glibc sprintf docs.
+ * Convert a varargs list into a string. Adapted from glibc sprintf docs.
+ *
+ * @param format the printf style format for a string.
+ * @param varargs the variable args for the format string.
+ *
+ * @return the formatted string on success, NULL on error. Caller must free.
  */
-char* Logger::vMakeMessage(const char *format, va_list varargs)
+char* _vMakeMessage(const char *format, va_list varargs)
 {
    /* Guess we need no more than 128 bytes. */
    int n, size = 128;
@@ -438,7 +289,7 @@ bool Logger::vLog(
          logText.push_back(' ');
       }
 
-      char* message = vMakeMessage(format, varargs);
+      char* message = _vMakeMessage(format, varargs);
       if(message)
       {
          logText.append(message);
@@ -479,6 +330,203 @@ bool Logger::log(
 void Logger::flush()
 {
    // nothing to do in default implementation
+}
+
+void Logger::initialize()
+{
+   // Create the global map of loggers
+   sLoggers = new LoggerMap();
+}
+
+void Logger::cleanup()
+{
+   delete sLoggers;
+   sLoggers = NULL;
+}
+
+void Logger::addLogger(Logger* logger, Category* category)
+{
+   if(sLoggers != NULL)
+   {
+      sLoggers->insert(pair<Category*, Logger*>(category, logger));
+   }
+}
+
+void Logger::removeLogger(Logger* logger, Category* category)
+{
+   if(sLoggers != NULL)
+   {
+      // FIXME: We need to iterate through, we can't do a find()
+      LoggerMap::iterator i = sLoggers->find(category);
+      if(i != sLoggers->end())
+      {
+         LoggerMap::iterator end = sLoggers->upper_bound(category);
+         for(; i != end; i++)
+         {
+            if(logger == i->second)
+            {
+               sLoggers->erase(i);
+               break;
+            }
+         }
+      }
+   }
+}
+
+void Logger::removeLoggerByName(
+   const char* loggerName, Category* category)
+{
+   if(sLoggers != NULL)
+   {
+      // FIXME: We need to iterate through, we can't do a find()
+      LoggerMap::iterator i = sLoggers->find(category);
+      if(i != sLoggers->end())
+      {
+         LoggerMap::iterator end = sLoggers->upper_bound(category);
+         for(; i != end; i++)
+         {
+            Logger* logger = i->second;
+            if((loggerName == NULL && logger->getName() == NULL) ||
+               (loggerName != NULL && logger->getName() != NULL &&
+                strcmp(loggerName, logger->getName()) == 0))
+            {
+               sLoggers->erase(i);
+               break;
+            }
+         }
+      }
+   }
+}
+
+void Logger::clearLoggers()
+{
+   if(sLoggers != NULL)
+   {
+      sLoggers->clear();
+   }
+}
+
+void Logger::flushLoggers()
+{
+   if(sLoggers != NULL)
+   {
+      // create a unique list of loggers to flush
+      UniqueList<Logger*> loggers;
+
+      // iterate over all loggers adding them to a unique list
+      for(LoggerMap::iterator i = sLoggers->begin(); i != sLoggers->end(); i++)
+      {
+         loggers.add(i->second);
+      }
+
+      // flush unique loggers
+      IteratorRef<Logger*> itr = loggers.getIterator();
+      while(itr->hasNext())
+      {
+         Logger* logger = itr->next();
+         logger->flush();
+      }
+   }
+}
+
+/**
+ * Map to convert log-level option names to Logger::Level types
+ */
+struct logLevelMap
+{
+   const char* key;
+   Logger::Level level;
+};
+static const struct logLevelMap logLevelsMap[] = {
+   {"n", Logger::None},
+   {"none", Logger::None},
+   {"e", Logger::Error},
+   {"error", Logger::Error},
+   {"w", Logger::Warning},
+   {"warning", Logger::Warning},
+   {"i", Logger::Info},
+   {"info", Logger::Info},
+   {"d", Logger::Debug},
+   {"debug", Logger::Debug},
+   {"debug-data", Logger::DebugData},
+   {"debug-detail", Logger::DebugDetail},
+   {"m", Logger::Max},
+   {"max", Logger::Max},
+   {NULL, Logger::None}
+};
+
+bool Logger::stringToLevel(const char* slevel, Level& level)
+{
+   bool found = false;
+   for(int mapi = 0;
+      slevel != NULL&& !found && logLevelsMap[mapi].key != NULL;
+      mapi++)
+   {
+      if(strcasecmp(slevel, logLevelsMap[mapi].key) == 0)
+      {
+         level = logLevelsMap[mapi].level;
+         found = true;
+      }
+   }
+
+   return found;
+}
+
+const char* Logger::levelToString(Level level, bool color)
+{
+   const char* rval;
+
+   switch(level)
+   {
+      case None:
+         rval = "NONE";
+         break;
+      case Error:
+         rval = color
+            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
+              MO_ANSI_BG_RED MO_ANSI_SEP
+              MO_ANSI_FG_WHITE MO_ANSI_SGR
+              "ERROR" MO_ANSI_OFF
+            : "ERROR";
+         break;
+      case Warning:
+         rval = color
+            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
+              MO_ANSI_BG_HI_YELLOW MO_ANSI_SEP
+              MO_ANSI_FG_BLACK MO_ANSI_SGR
+              "WARNING" MO_ANSI_OFF
+            : "WARNING";
+         break;
+      case Info:
+         rval = color
+            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
+              MO_ANSI_BG_HI_BLUE MO_ANSI_SEP
+              MO_ANSI_FG_WHITE MO_ANSI_SGR
+              "INFO" MO_ANSI_OFF
+            : "INFO";
+         break;
+      case Debug:
+         rval = color
+            ? MO_ANSI_CSI MO_ANSI_BOLD MO_ANSI_SEP
+              MO_ANSI_BG_BLACK MO_ANSI_SEP
+              MO_ANSI_FG_HI_WHITE MO_ANSI_SGR
+              "DEBUG" MO_ANSI_OFF
+            : "DEBUG";
+         break;
+      case DebugData:
+         rval = "DEBUG-DATA";
+         break;
+      case DebugDetail:
+         rval = "DEBUG-DETAIL";
+         break;
+      case Max:
+         rval = "MAX";
+         break;
+      default:
+         rval = NULL;
+   }
+
+   return rval;
 }
 
 void Logger::vLogToLoggers(

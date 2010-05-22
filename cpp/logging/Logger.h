@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_logging_Logger_H
 #define monarch_logging_Logger_H
@@ -147,6 +147,11 @@ public:
 
 protected:
    /**
+    * A name for this logger.
+    */
+   char* mName;
+
+   /**
     * The current level setting.
     */
    Level mLevel;
@@ -176,16 +181,6 @@ protected:
     */
    static LoggerMap* sLoggers;
 
-   /**
-    * Convert a varargs list into a string.  Adapted from glibc sprintf docs.
-    *
-    * @param format printf style format for a string
-    * @param varargs va_list of arguments for the format string.
-    *
-    * @returns NULL on error or string. Caller must free memory;
-    */
-   static char* vMakeMessage(const char *format, va_list varargs);
-
 public:
    /**
     * Creates a new logger with Max level and LogDefaultFlags flags.
@@ -198,38 +193,18 @@ public:
    virtual ~Logger();
 
    /**
-    * Initializes the logger framework. This static method MUST be called
-    * during application start-up before any threads are active in order to
-    * use the logging framework.
+    * Sets the name for this logger.
+    *
+    * @param name the name to set, NULL to clear the name.
     */
-   static void initialize();
+   virtual void setName(const char* name);
 
    /**
-    * Frees all memory used by the logger framework. This static method MUST
-    * be called during application tear-down, after all threads have been
-    * terminated.
+    * Gets the name for this logger.
+    *
+    * @return the name for this logger, can be NULL.
     */
-   static void cleanup();
-
-   /**
-    * Case insensitive conversion from string to Level.
-    *
-    * @param slevel the string to convert.
-    * @param level the level.
-    *
-    * @return true if found and level will be set, false if not found.
-    */
-   static bool stringToLevel(const char *slevel, Level& level);
-
-   /**
-    * Conversion from Level to string
-    *
-    * @param type the Level to convert.
-    * @param color true to use ANSI colors, false for normal text.
-    *
-    * @return the string or NULL.
-    */
-   static const char* levelToString(Level level, bool color = false);
+   virtual const char* getName();
 
    /**
     * Sets the level for this logger.
@@ -292,7 +267,7 @@ public:
    virtual LoggerFlags getFlags();
 
    /**
-    * Log a message.  The implementation of this method should lock the logger,
+    * Log a message. The implementation of this method should lock the logger,
     * check the the log level, create a formatted message, and call the simple
     * log(message) method as needed to perform message output.
     *
@@ -306,7 +281,7 @@ public:
     *
     * @return true if the text was written, false if not.
     */
-   bool vLog(
+   virtual bool vLog(
       monarch::logging::Category* cat,
       Level level,
       const char* location,
@@ -316,7 +291,7 @@ public:
       va_list varargs);
 
    /**
-    * Log a message.  The implementation of this method should lock the logger,
+    * Log a message. The implementation of this method should lock the logger,
     * check the the log level, create a formatted message, and call the simple
     * log(message) method as needed to perform message output.
     *
@@ -330,7 +305,7 @@ public:
     *
     * @return true if the text was written, false if not.
     */
-   bool log(
+   virtual bool log(
       monarch::logging::Category* cat,
       Level level,
       const char* location,
@@ -355,6 +330,92 @@ public:
     * Explicitly flush any output that hasn't been flushed yet.
     */
    virtual void flush();
+
+   /**
+    * Initializes the logger framework. This static method MUST be called
+    * during application start-up before any threads are active in order to
+    * use the logging framework.
+    */
+   static void initialize();
+
+   /**
+    * Frees all memory used by the logger framework. This static method MUST
+    * be called during application tear-down, after all threads have been
+    * terminated.
+    */
+   static void cleanup();
+
+   /**
+    * Add a logger for a category. Any number of loggers can be added for a
+    * single category.
+    *
+    * @param logger the logger to register
+    * @param category the category to use. Defaults to the default category.
+    */
+   static void addLogger(
+      Logger* logger,
+      monarch::logging::Category* category = MO_ALL_CAT);
+
+   /**
+    * Remove a logger for a category. This will remove the first match if
+    * duplicates are found.
+    *
+    * @param logger the logger to register
+    * @param category the category to use. Defaults to a generic category.
+    */
+   static void removeLogger(
+      Logger* logger,
+      monarch::logging::Category* category = MO_ALL_CAT);
+
+   /**
+    * Remove a logger for a category by its name. This will remove the first
+    * match if duplicates are found.
+    *
+    * @param loggerName the name of the logger to remove.
+    * @param category the category to use. Defaults to a generic category.
+    *
+    * @return the removed logger.
+    */
+   static void removeLoggerByName(
+      const char* loggerName,
+      monarch::logging::Category* category = MO_ALL_CAT);
+
+   /**
+    * Clear all loggers.
+    */
+   static void clearLoggers();
+
+   /**
+    * Flushes all loggers.
+    */
+   static void flushLoggers();
+
+   /**
+    * Gets the loggers.
+    *
+    * @return the loggers
+    */
+   //getLoggers(...)
+
+   /**
+    * Case insensitive conversion from string to Level.
+    *
+    * @param slevel the string to convert.
+    * @param level the level.
+    *
+    * @return true if found and level will be set, false if not found.
+    */
+   static bool stringToLevel(const char *slevel, Level& level);
+
+   /**
+    * Conversion from Level to string
+    *
+    * @param type the Level to convert.
+    * @param color true to use ANSI colors, false for normal text.
+    *
+    * @return the string or NULL.
+    */
+   static const char* levelToString(Level level, bool color = false);
 
    /**
     * Log a message to all loggers registered for a category.
@@ -449,43 +510,6 @@ public:
       __attribute__ ((format (printf, 6, 7)))
 #endif
          ;
-
-   /**
-    * Add a logger for a category.  Any number of loggers can be added for a
-    * single category.
-    *
-    * @param logger the logger to register
-    * @param category the category to use.  Defaults to the default category.
-    */
-   static void addLogger(Logger* logger,
-      monarch::logging::Category* category = MO_ALL_CAT);
-
-   /**
-    * Remove a logger for a category.  This will remove the first match if
-    * duplicates are found.
-    *
-    * @param logger the logger to register
-    * @param category the category to use.  Defaults to a generic category.
-    */
-   static void removeLogger(Logger* logger,
-      monarch::logging::Category* category = MO_ALL_CAT);
-
-   /**
-    * Clear all loggers.
-    */
-   static void clearLoggers();
-
-   /**
-    * Flushes all loggers.
-    */
-   static void flushLoggers();
-
-   /**
-    * Gets the loggers.
-    *
-    * @return the loggers
-    */
-   //getLoggers(...)
 };
 
 } // end namespace logging
