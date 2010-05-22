@@ -5,7 +5,6 @@
 #define monarch_http_HttpRequestModifier_H
 
 #include "monarch/http/HttpRequest.h"
-#include "monarch/http/HttpResponse.h"
 
 namespace monarch
 {

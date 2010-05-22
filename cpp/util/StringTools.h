@@ -37,7 +37,7 @@ public:
     * @return a reference to the trimmed string.
     */
    static std::string& trim(
-      std::string& str, const std::string& trimChars = " ");
+      std::string& str, const char* trimChars = " ");
 
    /**
     * Replaces the first instance in "str" starting at "pos" of "find" with
@@ -51,7 +51,7 @@ public:
     * @return a reference to "str".
     */
    static std::string& replace(
-      std::string& str, const std::string& find, const std::string& replace,
+      std::string& str, const char* find, const char* replace,
       std::string::size_type pos = 0);
 
    /**
@@ -64,7 +64,7 @@ public:
     * @return a reference to "str".
     */
    static std::string& replaceAll(
-      std::string& str, const std::string& find, const std::string& replace);
+      std::string& str, const char* find, const char* replace);
 
    /**
     * Replaces all instances in "str" that match "regex" with "replace".
@@ -77,8 +77,8 @@ public:
     * @return a reference to "str".
     */
    static std::string& regexReplaceAll(
-      std::string& str, const std::string& regex,
-      const std::string& replace, bool matchCase = true);
+      std::string& str, const char* regex,
+      const char* replace, bool matchCase = true);
 
    /**
     * Creates an std::string from a printf format.

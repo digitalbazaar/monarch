@@ -32,6 +32,8 @@ bool Pattern::match(const char* str, int offset, int& start, int& end)
 
    // create match struct
    regmatch_t match[1];
+   match[0].rm_so = 0;
+   match[0].rm_eo = 0;
 
    // if offset is not 0, then not at beginning of the line
    int flags = (offset == 0) ? 0 : REG_NOTBOL;
@@ -44,6 +46,13 @@ bool Pattern::match(const char* str, int offset, int& start, int& end)
       // set start and end offsets
       start = match[0].rm_so + offset;
       end = match[0].rm_eo + offset;
+
+      // empty string can be returned when submatches is off
+      // so match to the end of the string
+      if(start == end && offset == 0)
+      {
+         end = strlen(str);
+      }
    }
 
    return rval;

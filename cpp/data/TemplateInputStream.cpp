@@ -1910,8 +1910,8 @@ static bool _pipe_replace(
    DynamicObject& var, string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
-   string find = params[0]->getString();
-   string replace = params[1]->getString();
+   const char* find = params[0]->getString();
+   const char* replace = params[1]->getString();
    StringTools::replaceAll(value, find, replace);
    return rval;
 }
@@ -1920,8 +1920,8 @@ static bool _pipe_regex(
    DynamicObject& var, string& value, DynamicObject& params, void* userData)
 {
    bool rval = true;
-   string find = params[0]->getString();
-   string replace = params[1]->getString();
+   const char* find = params[0]->getString();
+   const char* replace = params[1]->getString();
    StringTools::regexReplaceAll(value, find, replace);
    return rval;
 }

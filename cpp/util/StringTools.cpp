@@ -18,7 +18,7 @@ using namespace monarch::rt;
 using namespace monarch::util;
 using namespace monarch::util::regex;
 
-string& StringTools::trim(string& str, const string& trimChars)
+string& StringTools::trim(string& str, const char* trimChars)
 {
    // erase front trim characters
    str.erase(0, str.find_first_not_of(trimChars));
@@ -35,45 +35,46 @@ string& StringTools::trim(string& str, const string& trimChars)
 }
 
 string& StringTools::replace(
-   string& str, const string& find, const string& replace,
+   string& str, const char* find, const char* replace,
    string::size_type pos)
 {
    string::size_type found = str.find(find, pos);
    if(found != string::npos)
    {
-      str.replace(found, find.length(), replace);
+      str.replace(found, strlen(find), replace);
    }
-
    return str;
 }
 
 string& StringTools::replaceAll(
-   string& str, const string& find, const string& replace)
+   string& str, const char* find, const char* replace)
 {
+   int findLen = strlen(find);
+   int replaceLen = strlen(replace);
    string::size_type found = str.find(find);
    while(found != string::npos)
    {
-      str.replace(found, find.length(), replace);
-      found = str.find(find, found + replace.length());
+      str.replace(found, findLen, replace);
+      found = str.find(find, found + replaceLen);
    }
-
    return str;
 }
 
 string& StringTools::regexReplaceAll(
-   string& str, const string& regex, const string& replace, bool matchCase)
+   string& str, const char* regex, const char* replace, bool matchCase)
 {
    // compile regex pattern
-   PatternRef p = Pattern::compile(regex.c_str(), matchCase, true);
+   PatternRef p = Pattern::compile(regex, matchCase, true);
    if(!p.isNull())
    {
       // replace all matches
       int start, end;
       int index = 0;
+      int len = strlen(replace);
       while(p->match(str.c_str(), index, start, end))
       {
          str.replace(start, end - start, replace);
-         index = start + replace.length();
+         index = start + len;
       }
    }
 
