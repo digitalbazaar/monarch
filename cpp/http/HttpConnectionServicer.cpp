@@ -22,7 +22,8 @@ using namespace monarch::util;
 using namespace monarch::util::regex;
 
 HttpConnectionServicer::HttpConnectionServicer(const char* serverName) :
-   mServerName(strdup(serverName))
+   mServerName(strdup(serverName)),
+   mRequestModifier(NULL)
 {
 }
 
@@ -38,6 +39,16 @@ HttpConnectionServicer::~HttpConnectionServicer()
       free(sd->domain);
       delete sd;
    }
+}
+
+void HttpConnectionServicer::setRequestModifier(HttpRequestModifier* hrm)
+{
+   mRequestModifier = hrm;
+}
+
+HttpRequestModifier* HttpConnectionServicer::getRequestModifier()
+{
+   return mRequestModifier;
 }
 
 void HttpConnectionServicer::serviceConnection(Connection* c)
@@ -68,6 +79,12 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       // receive request header
       if((noerror = request->receiveHeader()))
       {
+         // do request modification
+         if(mRequestModifier != NULL)
+         {
+            mRequestModifier->modifyRequest(request);
+         }
+
          // check http version
          bool version10 = (strcmp(reqHeader->getVersion(), "HTTP/1.0") == 0);
          bool version11 = (strcmp(reqHeader->getVersion(), "HTTP/1.1") == 0);

@@ -7,6 +7,7 @@
 #include "monarch/rt/SharedLock.h"
 #include "monarch/net/ConnectionServicer.h"
 #include "monarch/http/HttpConnection.h"
+#include "monarch/http/HttpRequestModifier.h"
 #include "monarch/http/HttpRequestServicer.h"
 #include "monarch/util/StringTools.h"
 #include "monarch/util/regex/Pattern.h"
@@ -41,6 +42,11 @@ protected:
     * The default server name for this servicer.
     */
    char* mServerName;
+
+   /**
+    * Used to modify http requests, ie: rewrite paths, etc.
+    */
+   HttpRequestModifier* mRequestModifier;
 
    /**
     * A map of path to HttpRequestServicer.
@@ -96,6 +102,25 @@ public:
     * Destructs this HttpConnectionServicer.
     */
    virtual ~HttpConnectionServicer();
+
+   /**
+    * Sets the request modifier for this connection servicer. Should be set
+    * before adding any request servicers.
+    *
+    * The given request modifier will be passed incoming HttpRequests after
+    * their headers have been read. Changes can be made to the request header
+    * such as rewriting the incoming path.
+    *
+    * @param hrm the HttpRequestModifier to use, NULL for none.
+    */
+   virtual void setRequestModifier(HttpRequestModifier* hrm);
+
+   /**
+    * Gets the request modifier for this connection servicer.
+    *
+    * @return the HttpRequestModifier, NULL for none.
+    */
+   virtual HttpRequestModifier* getRequestModifier();
 
    /**
     * Services the passed Connection. This method should end by closing the
