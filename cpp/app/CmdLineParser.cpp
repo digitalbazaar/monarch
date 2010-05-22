@@ -124,7 +124,23 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
       {
          DynamicObject& opt = opts->append();
          opt["consumed"] = false;
-         opt["long"] = option;
+
+         // option might be using equals
+         // Note: No special escaping support for having an '=' in a value
+
+         // parse out the keyword and value
+         const char* eq = strchr(option, '=');
+         if(eq == NULL)
+         {
+            // no equals
+            opt["long"] = option;
+         }
+         else
+         {
+            // keyword before equals, value after
+            opt["long"] = string(option, eq - option).c_str();
+            opt["value"] = string(eq + 1).c_str();
+         }
       }
       // single short option
       else if(type == 1)
@@ -150,11 +166,15 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
 
       if(type > 0)
       {
-         // store option argument value if applicable
-         if((i + 1 < argc) && _getOptionType(argv[i + 1]) == -1)
+         DynamicObject opt = opts.last();
+         if(!opt->hasMember("value"))
          {
-            DynamicObject opt = opts.last();
-            opt["value"] = argv[++i];
+            // store option argument value if applicable
+            if((i + 1 < argc) && _getOptionType(argv[i + 1]) == -1)
+            {
+               DynamicObject opt = opts.last();
+               opt["value"] = argv[++i];
+            }
          }
       }
    }
