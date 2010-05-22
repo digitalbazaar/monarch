@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/regex/Pattern.h"
 
@@ -46,13 +46,6 @@ bool Pattern::match(const char* str, int offset, int& start, int& end)
       // set start and end offsets
       start = match[0].rm_so + offset;
       end = match[0].rm_eo + offset;
-
-      // empty string can be returned when submatches is off
-      // so match to the end of the string
-      if(start == end && offset == 0)
-      {
-         end = strlen(str);
-      }
    }
 
    return rval;
@@ -62,6 +55,43 @@ bool Pattern::match(const char* str)
 {
    // execute regex
    return (regexec(&mStorage, str, 0, NULL, 0) == 0);
+}
+
+bool Pattern::getSubMatches(const char* str, DynamicObject& matches, int n)
+{
+   bool rval = false;
+
+   // setup matches, get at least 1 (first match is the whole expression, other
+   // subsequent indexes are used for subexpressions)
+   matches->setType(Array);
+   matches->clear();
+
+   // use all submatches
+   // make room for full match
+   n = (n < 0) ? getStorage().re_nsub + 1: n + 1;
+
+   // create match struct
+   regmatch_t* m = (regmatch_t*)calloc(n, sizeof(regmatch_t));
+
+   // execute regex
+   if(regexec(&getStorage(), str, n, m, 0) == 0)
+   {
+      rval = true;
+
+      // store all subexpression matches (including overall match)
+      int start, end;
+      for(int i = 0; i < n && m[i].rm_so != -1; i++)
+      {
+         // get start and end offsets
+         start = m[i].rm_so;
+         end = m[i].rm_eo;
+         matches->append() = string(str + start, end - start).c_str();
+      }
+   }
+
+   free(m);
+
+   return rval;
 }
 
 PatternRef Pattern::compile(const char* regex, bool matchCase, bool subMatches)

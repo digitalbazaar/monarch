@@ -67,15 +67,107 @@ string& StringTools::regexReplaceAll(
    PatternRef p = Pattern::compile(regex, matchCase, true);
    if(!p.isNull())
    {
-      // replace all matches
-      int start, end;
-      int index = 0;
-      int len = strlen(replace);
-      while(p->match(str.c_str(), index, start, end))
+      regexReplaceAll(str, p, replace);
+   }
+   return str;
+}
+
+string& StringTools::regexReplaceAll(
+   string& str, PatternRef& p, const char* replace)
+{
+   // replace all matches
+   int start, end;
+   int index = 0;
+   int len = strlen(replace);
+   while(p->match(str.c_str(), index, start, end))
+   {
+      str.replace(start, end - start, replace);
+      index = start + len;
+   }
+   return str;
+}
+
+std::string& StringTools::regexRewrite(
+   std::string& str, const char* regex, const char* replace, bool matchCase)
+{
+   // compile regex pattern
+   PatternRef p = Pattern::compile(regex, matchCase, true);
+   if(!p.isNull())
+   {
+      regexRewrite(str, p, replace);
+   }
+   return str;
+}
+
+std::string& StringTools::regexRewrite(
+   std::string& str, PatternRef& p, const char* replace)
+{
+   // get sub matches
+   DynamicObject subs;
+   if(p->getSubMatches(str.c_str(), subs))
+   {
+      // do formatted replacement
+      str.erase();
+      const char* ptr = replace;
+      const char* v;
+      do
       {
-         str.replace(start, end - start, replace);
-         index = start + len;
+         v = strpbrk(ptr, "$\\");
+         if(v == NULL)
+         {
+            // append remainder
+            str.append(ptr);
+         }
+         else if(*v == '\\')
+         {
+            // add everything up to this point
+            str.append(ptr, v - ptr);
+
+            v++;
+            switch(*v)
+            {
+               case '$':
+               case '\\':
+                  // add escaped '$' or '\'
+                  str.push_back(*v);
+                  break;
+               case 'b':
+                  str.push_back('\b');
+                  break;
+               case 'n':
+                  str.push_back('\n');
+                  break;
+               case 't':
+                  str.push_back('\t');
+                  break;
+               case 'r':
+                  str.push_back('\r');
+                  break;
+               default:
+                  // unknown escape sequence, just add it normally
+                  str.push_back('\\');
+                  str.push_back(*v);
+                  break;
+            }
+            v++;
+         }
+         else
+         {
+            // add everything up to this point
+            str.append(ptr, v - ptr);
+
+            // check for a number
+            char* end;
+            int idx = strtol(++v, &end, 10);
+            if(idx < subs->length())
+            {
+               str.append(subs[idx]->getString());
+            }
+            v = end;
+         }
+         ptr = v;
       }
+      while(ptr != NULL);
    }
 
    return str;

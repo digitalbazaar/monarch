@@ -283,10 +283,11 @@ static void runRegexTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("sub-match");
+   tr.test("sub-match string");
    {
       string submatches = "Look for green globs of green matter in green goo.";
       PatternRef p = Pattern::compile("green", true, true);
+      assertNoException();
 
       int start, end;
       int index = 0;
@@ -310,6 +311,40 @@ static void runRegexTest(TestRunner& tr)
       index = end;
 
       assert(!p->match(submatches.c_str(), index, start, end));
+   }
+   tr.passIfNoException();
+
+   tr.test("subexpression matches");
+   {
+      PatternRef p = Pattern::compile("^foo(.*)bar(.*)foo(.*)bar$", true, true);
+      assertNoException();
+
+      DynamicObject matches;
+      assert(p->getSubMatches("fooABCbarDEFfooGHIbar", matches));
+      //dumpDynamicObject(matches);
+
+      DynamicObject expect;
+      expect[0] = "fooABCbarDEFfooGHIbar";
+      expect[1] = "ABC";
+      expect[2] = "DEF";
+      expect[3] = "GHI";
+
+      assert(expect == matches);
+   }
+   tr.passIfNoException();
+
+   tr.test("url rewrite");
+   {
+      PatternRef p = Pattern::compile("^/~([^/]+)/?(.*)$", true, true);
+      assert(!p.isNull());
+
+      DynamicObject matches;
+      assert(p->getSubMatches("/~foo", matches));
+
+      string output = StringTools::format("/u/%s/%s",
+         matches[1]->getString(), matches[2]->getString());
+      string expect = "/u/foo/";
+      assertStrCmp(expect.c_str(), output.c_str());
    }
    tr.passIfNoException();
 
@@ -502,6 +537,16 @@ static void runStringToolsTest(TestRunner& tr)
          str = StringTools::join(dyno, ".");
          assertStrCmp(str.c_str(), "a.b.c");
       }
+   }
+   tr.passIfNoException();
+
+   tr.test("regex rewrite");
+   {
+      const char* regex = "foo(.*)bar";
+      string input = "fooABCbar";
+      StringTools::regexRewrite(input, regex, "moo$1bar\\$\\\\");
+      const char* expect = "mooABCbar$\\";
+      assertStrCmp(expect, input.c_str());
    }
    tr.passIfNoException();
 

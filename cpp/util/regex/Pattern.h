@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_regex_Pattern_H
 #define monarch_util_regex_Pattern_H
 
 #include <regex.h>
-#include "monarch/rt/Collectable.h"
+#include "monarch/rt/DynamicObject.h"
 
 namespace monarch
 {
@@ -47,7 +47,8 @@ public:
 
    /**
     * Matches this pattern against the passed string at the given offset and
-    * sets the offsets for the next match, if one can be found.
+    * sets the offsets for the next match, if one can be found. The pattern
+    * must have been compiled with submatch support enabled.
     *
     * @param str the string to match this pattern against.
     * @param offset the offset in the string to start matching at.
@@ -66,6 +67,27 @@ public:
     * @return true if the passed string matches the regex, false if not.
     */
    virtual bool match(const char* str);
+
+   /**
+    * Matches this pattern against the given string and returns the portions
+    * of the string that matched subexpressions in the pattern. The pattern
+    * must have been compiled with submatch support enabled.
+    *
+    * If the given number of subexpressions is higher than the number in this
+    * pattern then fewer than 'n' results will be in the array. To access
+    * the full match use matches[0]. To access any submatch, use the index
+    * of the submatch starting at 1. Thus, to get the first submatch, use
+    * matches[1].
+    *
+    * @param str the string to match this pattern against.
+    * @param matches the array to store the string matches in, with the first
+    *           always containing the full match.
+    * @param n the number of subexpressions to get strings for, -1 for all.
+    *
+    * @return true if the passed string matches the regex, false if not.
+    */
+   virtual bool getSubMatches(
+      const char* str, monarch::rt::DynamicObject& matches, int n = -1);
 
    /**
     * Compiles a regular expression into a Pattern.

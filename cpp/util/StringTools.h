@@ -5,6 +5,7 @@
 #define monarch_util_StringTools_H
 
 #include "monarch/rt/DynamicObject.h"
+#include "monarch/util/regex/Pattern.h"
 #include <cstring>
 #include <string>
 
@@ -79,6 +80,52 @@ public:
    static std::string& regexReplaceAll(
       std::string& str, const char* regex,
       const char* replace, bool matchCase = true);
+
+   /**
+    * Replaces all instances in "str" that match "regex" with "replace".
+    *
+    * @param str the string to operate on.
+    * @param p the regular expression to match.
+    * @param replace the string to replace "find" with.
+    *
+    * @return a reference to "str".
+    */
+   static std::string& regexReplaceAll(
+      std::string& str, monarch::util::regex::PatternRef& p,
+      const char* replace);
+
+   /**
+    * Rewrites "str", if it matches "regex", using the given format. The format
+    * may contain subexpression match placeholders. For instance, a regex of
+    * "foo(.*)bar" has 1 subexpression and a replacement format may be
+    * "moo$1car". This will transform the string "fooABCbar" into "mooABCcar".
+    *
+    * @param str the string to operate on.
+    * @param regex the regular expression to match.
+    * @param format the formatted replacement string to use.
+    * @param matchCase true to match case, false for case-insensitive.
+    *
+    * @return a reference to "str".
+    */
+   static std::string& regexRewrite(
+      std::string& str, const char* regex,
+      const char* replace, bool matchCase = true);
+
+   /**
+    * Rewrites "str", if it matches "regex", using the given format. The format
+    * may contain subexpression match placeholders. For instance, a regex of
+    * "foo(.*)bar" has 1 subexpression and a replacement format may be
+    * "moo$1car". This will transform the string "fooABCbar" into "mooABCcar".
+    *
+    * @param str the string to operate on.
+    * @param p the regular expression to match.
+    * @param format the formatted replacement string to use.
+    *
+    * @return a reference to "str".
+    */
+   static std::string& regexRewrite(
+      std::string& str, monarch::util::regex::PatternRef& p,
+      const char* replace);
 
    /**
     * Creates an std::string from a printf format.
