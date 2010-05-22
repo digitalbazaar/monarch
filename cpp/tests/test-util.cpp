@@ -17,7 +17,7 @@
 #include "monarch/util/StringTools.h"
 #include "monarch/util/StringTokenizer.h"
 #include "monarch/util/UniqueList.h"
-#include "monarch/util/regex/Pattern.h"
+#include "monarch/util/Pattern.h"
 
 #include <cstdlib>
 #include <cstdio>
@@ -26,7 +26,6 @@ using namespace std;
 using namespace monarch::test;
 using namespace monarch::rt;
 using namespace monarch::util;
-using namespace monarch::util::regex;
 
 namespace mo_test_util
 {

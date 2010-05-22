@@ -13,7 +13,7 @@
 #include "monarch/rt/RunnableDelegate.h"
 #include "monarch/rt/System.h"
 #include "monarch/util/Math.h"
-#include "monarch/util/regex/Pattern.h"
+#include "monarch/util/Pattern.h"
 
 #include <vector>
 #include <algorithm>
@@ -24,7 +24,6 @@ using namespace monarch::logging;
 using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
-using namespace monarch::util::regex;
 
 #define DEFAULT_MAX_ROTATED_FILES 5
 //#define FILE_LOGGER_DEBUG

@@ -2,11 +2,9 @@
 
 LIBRARIES = moutil
 moutil_HEADERS = \
-	$(wildcard *.h) \
-	$(wildcard regex/*.h)
+	$(wildcard *.h)
 moutil_SOURCES = \
-	$(wildcard *.cpp) \
-	$(wildcard regex/*.cpp)
+	$(wildcard *.cpp)
 
 DYNAMIC_LINK_LIBRARIES = mort
 

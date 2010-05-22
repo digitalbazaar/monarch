@@ -5,7 +5,7 @@
 #define monarch_util_StringTools_H
 
 #include "monarch/rt/DynamicObject.h"
-#include "monarch/util/regex/Pattern.h"
+#include "monarch/util/Pattern.h"
 #include <cstring>
 #include <string>
 
@@ -91,8 +91,7 @@ public:
     * @return a reference to "str".
     */
    static std::string& regexReplaceAll(
-      std::string& str, monarch::util::regex::PatternRef& p,
-      const char* replace);
+      std::string& str, PatternRef& p, const char* replace);
 
    /**
     * Rewrites "str", if it matches "regex", using the given format. The format
@@ -104,12 +103,13 @@ public:
     * @param regex the regular expression to match.
     * @param format the formatted replacement string to use.
     * @param matchCase true to match case, false for case-insensitive.
+    * @param matched set to true if the string matched, false if not.
     *
     * @return a reference to "str".
     */
    static std::string& regexRewrite(
       std::string& str, const char* regex,
-      const char* replace, bool matchCase = true);
+      const char* replace, bool matchCase = true, bool* matched = NULL);
 
    /**
     * Rewrites "str", if it matches "regex", using the given format. The format
@@ -120,12 +120,13 @@ public:
     * @param str the string to operate on.
     * @param p the regular expression to match.
     * @param format the formatted replacement string to use.
+    * @param matched set to true if the string matched, false if not.
     *
     * @return a reference to "str".
     */
    static std::string& regexRewrite(
-      std::string& str, monarch::util::regex::PatternRef& p,
-      const char* replace);
+      std::string& str, PatternRef& p, const char* replace,
+      bool* matched = NULL);
 
    /**
     * Creates an std::string from a printf format.

@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef monarch_util_regex_Pattern_H
-#define monarch_util_regex_Pattern_H
+#ifndef monarch_util_Pattern_H
+#define monarch_util_Pattern_H
 
 #include <regex.h>
 #include "monarch/rt/DynamicObject.h"
@@ -10,8 +10,6 @@
 namespace monarch
 {
 namespace util
-{
-namespace regex
 {
 
 /**
@@ -117,7 +115,6 @@ public:
 // typedef for a reference counted Pattern class
 typedef monarch::rt::Collectable<Pattern> PatternRef;
 
-} // end namespace regex
 } // end namespace util
 } // end namespace monarch
 #endif

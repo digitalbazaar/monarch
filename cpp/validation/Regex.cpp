@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
-#include "monarch/util/regex/Pattern.h"
 #include "monarch/validation/Regex.h"
+
+#include "monarch/util/Pattern.h"
 #include "monarch/validation/Type.h"
 
 #include <cstdlib>
 
 using namespace monarch::rt;
-using namespace monarch::util::regex;
+using namespace monarch::util;
 using namespace monarch::validation;
 
 Regex::Regex(const char* regex, const char* errorMessage) :

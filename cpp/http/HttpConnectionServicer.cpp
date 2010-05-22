@@ -19,7 +19,6 @@ using namespace monarch::logging;
 using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
-using namespace monarch::util::regex;
 
 HttpConnectionServicer::HttpConnectionServicer(const char* serverName) :
    mServerName(strdup(serverName)),

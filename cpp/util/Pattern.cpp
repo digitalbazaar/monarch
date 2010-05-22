@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
-#include "monarch/util/regex/Pattern.h"
+#include "monarch/util/Pattern.h"
 
 #include <string>
 
@@ -9,7 +9,7 @@
 
 using namespace std;
 using namespace monarch::rt;
-using namespace monarch::util::regex;
+using namespace monarch::util;
 
 Pattern::Pattern()
 {

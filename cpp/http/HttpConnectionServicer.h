@@ -10,7 +10,6 @@
 #include "monarch/http/HttpRequestModifier.h"
 #include "monarch/http/HttpRequestServicer.h"
 #include "monarch/util/StringTools.h"
-#include "monarch/util/regex/Pattern.h"
 
 #include <map>
 #include <vector>
@@ -64,7 +63,7 @@ protected:
    struct ServiceDomain
    {
       char* domain;
-      monarch::util::regex::PatternRef regex;
+      monarch::util::PatternRef regex;
       ServicerMap nonSecureMap;
       ServicerMap secureMap;
    };

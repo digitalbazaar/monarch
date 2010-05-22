@@ -5,7 +5,6 @@
 
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/util/StringTokenizer.h"
-#include "monarch/util/regex/Pattern.h"
 
 #include <cstring>
 #include <cstdarg>
@@ -16,7 +15,6 @@
 using namespace std;
 using namespace monarch::rt;
 using namespace monarch::util;
-using namespace monarch::util::regex;
 
 string& StringTools::trim(string& str, const char* trimChars)
 {
@@ -88,24 +86,31 @@ string& StringTools::regexReplaceAll(
 }
 
 std::string& StringTools::regexRewrite(
-   std::string& str, const char* regex, const char* replace, bool matchCase)
+   std::string& str, const char* regex,
+   const char* replace, bool matchCase,
+   bool* matched)
 {
    // compile regex pattern
    PatternRef p = Pattern::compile(regex, matchCase, true);
    if(!p.isNull())
    {
-      regexRewrite(str, p, replace);
+      regexRewrite(str, p, replace, matched);
    }
    return str;
 }
 
 std::string& StringTools::regexRewrite(
-   std::string& str, PatternRef& p, const char* replace)
+   std::string& str, PatternRef& p, const char* replace, bool* matched)
 {
    // get sub matches
    DynamicObject subs;
    if(p->getSubMatches(str.c_str(), subs))
    {
+      if(matched != NULL)
+      {
+         *matched = true;
+      }
+
       // do formatted replacement
       str.erase();
       const char* ptr = replace;
@@ -168,6 +173,10 @@ std::string& StringTools::regexRewrite(
          ptr = v;
       }
       while(ptr != NULL);
+   }
+   else if(matched != NULL)
+   {
+      *matched = false;
    }
 
    return str;
