@@ -48,16 +48,17 @@ static void runLoggingTest(TestRunner& tr)
    OStreamOutputStream stdoutOS(&cout);
 
    // Create the default logger
-   OutputStreamLogger defaultLogger(&stdoutOS);
+   LoggerRef defaultLogger = new OutputStreamLogger(&stdoutOS);
 
    // add a default logger for all categories
-   Logger::addLogger(&defaultLogger);
+   Logger::addLogger(defaultLogger);
 
    // create file logger
    File file(TMPDIR "/test-logging.log");
-   FileLogger flog(&file);
+   FileLogger* flog = new FileLogger();
+   assert(flog->initialize(&file));
    // log default category to the file
-   Logger::addLogger(&flog);
+   Logger::addLogger(flog);
 
    // basic tests of levels
    MO_ERROR("[error message]");
@@ -73,10 +74,10 @@ static void runLoggingTest(TestRunner& tr)
 
    // create 2-stage file logger, first in-memory, then file
    File file2(TMPDIR "/test-logging2.log");
-   FileLogger flog2;
-   assert(flog2.setInMemoryLog(16384));
+   FileLogger* flog2 = new FileLogger();
+   assert(flog2->setInMemoryLog(16384));
    // log default category to the file
-   Logger::addLogger(&flog2);
+   Logger::addLogger(flog2);
 
    // basic tests of levels
    MO_ERROR("[error message]");
@@ -85,7 +86,7 @@ static void runLoggingTest(TestRunner& tr)
    MO_DEBUG("[debug message]");
 
    // now set log file, dumping in-memory to file
-   flog2.setFile(file2);
+   flog2->setFile(file2);
 
    tr.passIfNoException();
 
@@ -94,11 +95,12 @@ static void runLoggingTest(TestRunner& tr)
    tr.test("TEST_CAT");
 
    // Create a test Logger and category
-   OutputStreamLogger testLogger(&stdoutOS);
+   OutputStreamLogger* testLogger = new OutputStreamLogger(&stdoutOS);
+   LoggerRef logger = testLogger;
    Category TEST_CAT("MO_TEST", "Monarch Test Suite", NULL);
 
    // add logger for specific category
-   Logger::addLogger(&testLogger, &TEST_CAT);
+   Logger::addLogger(logger, &TEST_CAT);
 
    // category test
    MO_CAT_ERROR(&TEST_CAT, "[(TEST_CAT,MO_ALL_CAT) error message]");
@@ -107,7 +109,7 @@ static void runLoggingTest(TestRunner& tr)
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "[(TEST,ALL) error w/ object]");
 
    // check for cat logger removal
-   Logger::removeLogger(&testLogger, &TEST_CAT);
+   Logger::removeLogger(logger, &TEST_CAT);
    MO_CAT_ERROR(&TEST_CAT, "[(!TEST,ALL) error message]");
 
    tr.passIfNoException();
@@ -125,41 +127,41 @@ static void runLoggingTest(TestRunner& tr)
 
    tr.test("flags");
 
-   Logger::LoggerFlags old = defaultLogger.getFlags();
+   Logger::LoggerFlags old = defaultLogger->getFlags();
 
-   defaultLogger.setAllFlags(0);
+   defaultLogger->setAllFlags(0);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "none");
 
-   defaultLogger.setAllFlags(Logger::LogDefaultFlags);
+   defaultLogger->setAllFlags(Logger::LogDefaultFlags);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "default");
 
-   defaultLogger.setAllFlags(Logger::LogVerboseFlags);
+   defaultLogger->setAllFlags(Logger::LogVerboseFlags);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "verbose");
 
-   defaultLogger.setAllFlags(Logger::LogDate);
+   defaultLogger->setAllFlags(Logger::LogDate);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Date");
 
-   defaultLogger.setAllFlags(Logger::LogThread);
+   defaultLogger->setAllFlags(Logger::LogThread);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Thread");
 
-   defaultLogger.setAllFlags(Logger::LogObject);
+   defaultLogger->setAllFlags(Logger::LogObject);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Object");
 
-   defaultLogger.setAllFlags(Logger::LogLevel);
+   defaultLogger->setAllFlags(Logger::LogLevel);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Level");
 
-   defaultLogger.setAllFlags(Logger::LogCategory);
+   defaultLogger->setAllFlags(Logger::LogCategory);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Category");
 
-   defaultLogger.setAllFlags(Logger::LogLocation);
+   defaultLogger->setAllFlags(Logger::LogLocation);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "Location");
 
-   defaultLogger.setAllFlags(Logger::LogDate | Logger::LogThread |
+   defaultLogger->setAllFlags(Logger::LogDate | Logger::LogThread |
       Logger::LogObject | Logger::LogLevel |
       Logger::LogCategory | Logger::LogLocation);
    MO_CAT_OBJECT_ERROR(&TEST_CAT, &obj, "all");
 
-   defaultLogger.setAllFlags(old);
+   defaultLogger->setAllFlags(old);
 
    tr.passIfNoException();
 
@@ -178,11 +180,11 @@ static void runLoggingTest(TestRunner& tr)
    tr.test("double log");
 
    // re-add default logger
-   Logger::addLogger(&defaultLogger);
+   Logger::addLogger(defaultLogger);
    // check if message is logged twice
    MO_DEBUG("double test");
    // remove it
-   Logger::removeLogger(&defaultLogger);
+   Logger::removeLogger(defaultLogger);
 
    tr.passIfNoException();
 
@@ -216,12 +218,12 @@ static void runLoggingTest(TestRunner& tr)
    OStreamOutputStream sos(&oss);
 
    // add logging for all log messages
-   OutputStreamLogger sLogger(&sos);
+   LoggerRef sLogger = new OutputStreamLogger(&sos);
 
    // add default logger
-   Logger::addLogger(&sLogger);
+   Logger::addLogger(sLogger);
 
-   // clear ot
+   // clear all loggers
    Logger::clearLoggers();
 
    // Try to output
@@ -256,22 +258,24 @@ static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
    fn.append(fnr);
    // create file logger
    File file(fn.c_str());
-   FileLogger flog(&file);
-   flog.setMaxRotatedFiles(maxFiles);
-   flog.setRotationFileSize(maxSize);
+   FileLogger* flog = new FileLogger();
+   assert(flog->initialize(&file));
+   flog->setMaxRotatedFiles(maxFiles);
+   flog->setRotationFileSize(maxSize);
    if(compress)
    {
-      flog.setFlags(FileLogger::GzipCompressRotatedLogs);
+      flog->setFlags(FileLogger::GzipCompressRotatedLogs);
    }
    // log default category to the file
-   Logger::addLogger(&flog);
+   LoggerRef logger = flog;
+   Logger::addLogger(logger);
 
    for(int i = 0; i < 500; i++)
    {
       MO_DEBUG("[%05d] 01234567890123456789012345678901234567890123456789", i);
    }
 
-   Logger::removeLogger(&flog);
+   Logger::removeLogger(logger);
 }
 
 static void runLogRotationTest(TestRunner& tr)
@@ -355,30 +359,30 @@ static void runColorLoggingTest(TestRunner& tr)
    OStreamOutputStream stdoutOS(&cout);
 
    // Create the default logger
-   OutputStreamLogger logger(&stdoutOS);
+   LoggerRef logger = new OutputStreamLogger(&stdoutOS);
    // Set color mode
-   logger.setFlags(Logger::LogColor);
+   logger->setFlags(Logger::LogColor);
 
    // clear previous loggers
    Logger::clearLoggers();
    // add a logger for all categories
-   Logger::addLogger(&logger);
+   Logger::addLogger(logger);
 
    tr.test("no color");
    {
-      logger.clearFlags(Logger::LogColor);
+      logger->clearFlags(Logger::LogColor);
       runColorLoggingTestAll(tr);
    }
    tr.passIfNoException();
 
    tr.test("color");
    {
-      logger.setFlags(Logger::LogColor);
+      logger->setFlags(Logger::LogColor);
       runColorLoggingTestAll(tr);
    }
    tr.passIfNoException();
 
-   Logger::removeLogger(&logger);
+   Logger::removeLogger(logger);
 
    tr.ungroup();
 }

@@ -4,8 +4,6 @@
 #ifndef monarch_app_AppConfig_H
 #define monarch_app_AppConfig_H
 
-#include "monarch/logging/Logging.h"
-
 namespace monarch
 {
 namespace app
@@ -21,13 +19,6 @@ class AppRunner;
  */
 class AppConfig
 {
-protected:
-   /**
-    * Main App logger.
-    * FIXME: This is only here until we add reference counting to logging.
-    */
-   monarch::logging::Logger* mLogger;
-
 public:
    /**
     * Creates an AppConfig instance.

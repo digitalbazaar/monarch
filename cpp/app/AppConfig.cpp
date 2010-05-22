@@ -6,6 +6,7 @@
 #include "monarch/app/AppRunner.h"
 #include "monarch/io/FileOutputStream.h"
 #include "monarch/logging/FileLogger.h"
+#include "monarch/logging/Logging.h"
 
 using namespace std;
 using namespace monarch::app;
@@ -25,9 +26,10 @@ using namespace monarch::rt;
 #define CMDLINE_ERROR        "monarch.app.CommandLineError"
 #define CONFIG_ERROR         "monarch.app.ConfigError"
 
-AppConfig::AppConfig() :
-   // FIXME: remove this once ref-counting is implemented in logging
-   mLogger(NULL)
+#define LOGGER_NAME          "monarch.app.Logger"
+#define DEBUG_LOGGER_NAME    "monarch.app.DebugLogger"
+
+AppConfig::AppConfig()
 {
 }
 
@@ -517,11 +519,12 @@ bool AppConfig::loadCommandLineConfigs(AppRunner* ar, bool appConfigs)
    }
 
    // if debug mode is on, add debug logger
-   Logger* debugLogger = NULL;
+   LoggerRef debugLogger(NULL);
    if(debug)
    {
       OutputStream* os = new FileOutputStream(FileOutputStream::StdOut);
       debugLogger = new OutputStreamLogger(os, true);
+      debugLogger->setName(DEBUG_LOGGER_NAME);
 
       // default to warnings, can use command line option to be more verbose
       Logger::Level logLevel;
@@ -564,11 +567,10 @@ bool AppConfig::loadCommandLineConfigs(AppRunner* ar, bool appConfigs)
       }
    }
 
-   // clean up debug logger
-   if(debugLogger != NULL)
+   // remove debug logger
+   if(!debugLogger.isNull())
    {
       Logger::removeLogger(debugLogger);
-      delete debugLogger;
    }
 
    return rval;
@@ -597,18 +599,19 @@ bool AppConfig::configureLogging(AppRunner* ar)
    if(cfg["enabled"]->getBoolean())
    {
       // determine if logging to file or stdout
-      FileLogger* fileLogger = NULL;
+      LoggerRef logger(NULL);
       bool stdoutlog = _loggingToStdOut(cfg);
       if(stdoutlog)
       {
          OutputStream* os = new FileOutputStream(FileOutputStream::StdOut);
-         mLogger = new OutputStreamLogger(os, true);
+         logger = new OutputStreamLogger(os, true);
+         logger->setName(LOGGER_NAME);
       }
       else
       {
          // determine if writing to app home dir or not
          string logFile;
-         bool logHome = (cfg["logHome"]->length() > 0);
+         bool logHome = (strcmp(cfg["logHome"]->getString(), "-") != 0);
          if(logHome)
          {
             // prepend home dir
@@ -633,15 +636,11 @@ bool AppConfig::configureLogging(AppRunner* ar)
             // create file logger and set file
             File file(logFile.c_str());
             bool append = cfg["append"]->getBoolean();
-            mLogger = fileLogger = new FileLogger();
-            rval = fileLogger->setFile(file, append);
-            if(!rval)
-            {
-               // setting file failed, clean up logger
-               delete mLogger;
-               mLogger = NULL;
-            }
-            else
+            FileLogger* fileLogger = new FileLogger();
+            logger = fileLogger;
+            logger->setName(LOGGER_NAME);
+            rval = fileLogger->initialize(&file, append);
+            if(rval)
             {
                // handle log rotation
                if(cfg["gzip"]->getBoolean())
@@ -666,7 +665,7 @@ bool AppConfig::configureLogging(AppRunner* ar)
          const char* levelStr = cfg["level"]->getString();
          if(Logger::stringToLevel(levelStr, logLevel))
          {
-            mLogger->setLevel(logLevel);
+            logger->setLevel(logLevel);
          }
          else
          {
@@ -679,11 +678,11 @@ bool AppConfig::configureLogging(AppRunner* ar)
          }
          if(cfg["color"]->getBoolean())
          {
-            mLogger->setFlags(Logger::LogColor);
+            logger->setFlags(Logger::LogColor);
          }
          if(cfg["location"]->getBoolean())
          {
-            mLogger->setFlags(Logger::LogLocation);
+            logger->setFlags(Logger::LogLocation);
          }
       }
 
@@ -691,8 +690,8 @@ bool AppConfig::configureLogging(AppRunner* ar)
       if(rval)
       {
          // FIXME: add cfg option to pick categories to log
-         //Logger::addLogger(&mLogger, BM_..._CAT);
-         Logger::addLogger(mLogger);
+         //Logger::addLogger(logger, BM_..._CAT);
+         Logger::addLogger(logger);
          MO_CAT_DEBUG(MO_LOGGING_CAT, "Logging initialized.");
       }
    }
@@ -702,10 +701,5 @@ bool AppConfig::configureLogging(AppRunner* ar)
 
 void AppConfig::cleanupLogging(AppRunner* ar)
 {
-   if(mLogger != NULL)
-   {
-      Logger::removeLogger(mLogger);
-      delete mLogger;
-      mLogger = NULL;
-   }
+   Logger::removeLoggerByName(LOGGER_NAME);
 }

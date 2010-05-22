@@ -15,9 +15,9 @@ namespace logging
 {
 
 /**
- * A logger that outputs to a file.  After a log message is written to the log
+ * A logger that outputs to a file. After a log message is written to the log
  * it will be rotated if the total size exceeds the value set with
- * setRotationFileSize().  Rotation is done by closing the current file, moving
+ * setRotationFileSize(). Rotation is done by closing the current file, moving
  * it to the name plus a timestamp, and optionally compressing it with gzip.
  *
  * @author Dave Longley
@@ -59,8 +59,8 @@ protected:
 
    /**
     * The maximum number of rotated files. This is the maximum number of
-    * files, excluding the main log file, that will be kept.  Older files will
-    * be removed.  Age is determined by using the rotation timestamp and
+    * files, excluding the main log file, that will be kept. Older files will
+    * be removed. Age is determined by using the rotation timestamp and
     * optional sequence id.
     */
    unsigned int mMaxRotatedFiles;
@@ -71,7 +71,7 @@ protected:
    monarch::rt::ExclusiveLock mLock;
 
    /**
-    * Rotate the log file.  The current file is renamed to include a timestamp
+    * Rotate the log file. The current file is renamed to include a timestamp
     * extension and optionally compressed.
     *
     * Assuming lock is held.
@@ -98,17 +98,26 @@ protected:
 
 public:
    /**
-    * Creates a new logger with specified log file.
-    *
-    * @param file the File for the logger.
+    * Creates a new logger.
     */
-   FileLogger(monarch::io::File* file = NULL);
+   FileLogger();
 
    /**
     * Overloaded to ensure that the stream gets closed when garbage
     * collected.
     */
    virtual ~FileLogger();
+
+   /**
+    * Initializes this FileLogger.
+    *
+    * @param file the file to log to, NULL to not set a file yet.
+    * @param append specifies whether or not to append to an existing
+    *           file or to overwrite.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   virtual bool initialize(monarch::io::File* file = NULL, bool append = false);
 
    /**
     * Enables temporary in-memory logging up to a certain size, in bytes. Any
@@ -135,7 +144,7 @@ public:
     *
     * @param file the file to use for logging.
     * @param append specifies whether or not to append to an existing
-    *             file or to overwrite.
+    *           file or to overwrite.
     *
     * @return true if succesful, false and exception set if not.
     */
@@ -159,7 +168,7 @@ public:
    virtual uint64_t getRotationFileSize();
 
    /**
-    * Sets the maximum number of rotated log files.  0 allows an unlimited
+    * Sets the maximum number of rotated log files. 0 allows an unlimited
     * number of rotated files. 1 and greater limit the number of rotated files.
     *
     * @param maxRotatedFiles the number of rotated log files.
@@ -191,7 +200,7 @@ public:
    virtual void gzipCompress(void* info);
 
    /**
-    * Gets the file for this logger.  Note that the file may be changed when
+    * Gets the file for this logger. Note that the file may be changed when
     * file rotation occurs.
     *
     * @return the file for this logger.

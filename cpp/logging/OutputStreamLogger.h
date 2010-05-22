@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_logging_OutputStreamLogger_H
 #define monarch_logging_OutputStreamLogger_H
@@ -75,7 +75,8 @@ public:
     * @param cleanup if the logger handles cleanup of this stream.
     * @param closeCurrent if the logger should close current stream.
     */
-   virtual void setOutputStream(monarch::io::OutputStream* os, bool cleanup = false,
+   virtual void setOutputStream(
+      monarch::io::OutputStream* os, bool cleanup = false,
       bool closeCurrent = true);
 
    /**

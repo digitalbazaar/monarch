@@ -11,6 +11,7 @@
 #include "monarch/io/MutatorInputStream.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/rt/RunnableDelegate.h"
+#include "monarch/rt/System.h"
 #include "monarch/util/Math.h"
 #include "monarch/util/regex/Pattern.h"
 
@@ -26,10 +27,9 @@ using namespace monarch::util;
 using namespace monarch::util::regex;
 
 #define DEFAULT_MAX_ROTATED_FILES 5
-#define DEFAULT_COMPRESSION_THREAD_POOL_SIZE 2
 //#define FILE_LOGGER_DEBUG
 
-FileLogger::FileLogger(File* file) :
+FileLogger::FileLogger() :
    OutputStreamLogger(),
    mFile((FileImpl*)NULL),
    mInMemoryLog(0),
@@ -38,34 +38,42 @@ FileLogger::FileLogger(File* file) :
    mMaxRotatedFiles(DEFAULT_MAX_ROTATED_FILES),
    mSeqNum(0)
 {
-   if(file != NULL)
-   {
-      bool set = setFile(*file, false);
-      // FIXME: what to do on exception?
-      if(!set)
-      {
-         Exception::clear();
-      }
-   }
-   mCompressionJobDispatcher.getThreadPool()->
-      setPoolSize(DEFAULT_COMPRESSION_THREAD_POOL_SIZE);
-   mCompressionJobDispatcher.startDispatching();
+   mCompressionJobDispatcher.getThreadPool()->setPoolSize(
+      System::getCpuCoreCount());
 }
 
 FileLogger::~FileLogger()
 {
-   // wait for all queued and running compression jobs to finish
-   mCompressionWaitLock.lock();
+   if(mCompressionJobDispatcher.isDispatching())
    {
-      while(mCompressionJobDispatcher.getTotalJobCount() > 0)
+      // wait for all queued and running compression jobs to finish
+      mCompressionWaitLock.lock();
       {
-         mCompressionWaitLock.wait();
+         while(mCompressionJobDispatcher.getTotalJobCount() > 0)
+         {
+            mCompressionWaitLock.wait();
+         }
       }
+      mCompressionWaitLock.unlock();
+      mCompressionJobDispatcher.stopDispatching();
    }
-   mCompressionWaitLock.unlock();
-
-   mCompressionJobDispatcher.stopDispatching();
    close();
+}
+
+bool FileLogger::initialize(File* file, bool append)
+{
+   bool rval = true;
+
+   if(file != NULL)
+   {
+      rval = setFile(*file, append);
+   }
+   if(rval)
+   {
+      mCompressionJobDispatcher.startDispatching();
+   }
+
+   return rval;
 }
 
 void FileLogger::close()

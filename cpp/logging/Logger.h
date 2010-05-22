@@ -11,6 +11,7 @@
 #include <string>
 
 #include "monarch/rt/SharedLock.h"
+#include "monarch/rt/Collectable.h"
 #include "monarch/logging/Category.h"
 
 namespace monarch
@@ -174,7 +175,8 @@ protected:
    /**
     * A multimap of log categories to many loggers.
     */
-   typedef std::multimap<Category*, Logger*> LoggerMap;
+   typedef std::multimap<Category*, monarch::rt::Collectable<Logger> >
+      LoggerMap;
 
    /**
     * Map from categories to loggers.
@@ -353,7 +355,7 @@ public:
     * @param category the category to use. Defaults to the default category.
     */
    static void addLogger(
-      Logger* logger,
+      monarch::rt::Collectable<Logger> logger,
       monarch::logging::Category* category = MO_ALL_CAT);
 
    /**
@@ -364,7 +366,7 @@ public:
     * @param category the category to use. Defaults to a generic category.
     */
    static void removeLogger(
-      Logger* logger,
+      monarch::rt::Collectable<Logger>& logger,
       monarch::logging::Category* category = MO_ALL_CAT);
 
    /**
@@ -376,7 +378,7 @@ public:
     *
     * @return the removed logger.
     */
-   static void removeLoggerByName(
+   static monarch::rt::Collectable<Logger> removeLoggerByName(
       const char* loggerName,
       monarch::logging::Category* category = MO_ALL_CAT);
 
@@ -511,6 +513,9 @@ public:
 #endif
          ;
 };
+
+// type definition for a reference counted Logger
+typedef monarch::rt::Collectable<Logger> LoggerRef;
 
 } // end namespace logging
 } // end namespace monarch

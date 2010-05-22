@@ -344,15 +344,15 @@ void Logger::cleanup()
    sLoggers = NULL;
 }
 
-void Logger::addLogger(Logger* logger, Category* category)
+void Logger::addLogger(LoggerRef logger, Category* category)
 {
    if(sLoggers != NULL)
    {
-      sLoggers->insert(pair<Category*, Logger*>(category, logger));
+      sLoggers->insert(pair<Category*, LoggerRef>(category, logger));
    }
 }
 
-void Logger::removeLogger(Logger* logger, Category* category)
+void Logger::removeLogger(LoggerRef& logger, Category* category)
 {
    if(sLoggers != NULL)
    {
@@ -373,9 +373,11 @@ void Logger::removeLogger(Logger* logger, Category* category)
    }
 }
 
-void Logger::removeLoggerByName(
+LoggerRef Logger::removeLoggerByName(
    const char* loggerName, Category* category)
 {
+   LoggerRef rval(NULL);
+
    if(sLoggers != NULL)
    {
       // FIXME: We need to iterate through, we can't do a find()
@@ -385,17 +387,20 @@ void Logger::removeLoggerByName(
          LoggerMap::iterator end = sLoggers->upper_bound(category);
          for(; i != end; i++)
          {
-            Logger* logger = i->second;
+            LoggerRef& logger = i->second;
             if((loggerName == NULL && logger->getName() == NULL) ||
                (loggerName != NULL && logger->getName() != NULL &&
                 strcmp(loggerName, logger->getName()) == 0))
             {
+               rval = logger;
                sLoggers->erase(i);
                break;
             }
          }
       }
    }
+
+   return rval;
 }
 
 void Logger::clearLoggers()
@@ -411,7 +416,7 @@ void Logger::flushLoggers()
    if(sLoggers != NULL)
    {
       // create a unique list of loggers to flush
-      UniqueList<Logger*> loggers;
+      UniqueList<LoggerRef> loggers;
 
       // iterate over all loggers adding them to a unique list
       for(LoggerMap::iterator i = sLoggers->begin(); i != sLoggers->end(); i++)
@@ -420,10 +425,10 @@ void Logger::flushLoggers()
       }
 
       // flush unique loggers
-      IteratorRef<Logger*> itr = loggers.getIterator();
+      IteratorRef<LoggerRef> itr = loggers.getIterator();
       while(itr->hasNext())
       {
-         Logger* logger = itr->next();
+         LoggerRef& logger = itr->next();
          logger->flush();
       }
    }
@@ -550,7 +555,7 @@ void Logger::vLogToLoggers(
          for(; i != end; i++)
          {
             // Log the message
-            Logger* logger = i->second;
+            LoggerRef& logger = i->second;
             logger->vLog(
                messageCat, level, location, object, flags, format, varargs);
          }
