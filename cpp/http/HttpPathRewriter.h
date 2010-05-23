@@ -72,6 +72,11 @@ public:
    virtual bool addRule(const char* regex, const char* format);
 
    /**
+    * Clears all rewrite rules.
+    */
+   virtual void clearRules();
+
+   /**
     * Modifies the passed HttpRequest. The header for the request has already
     * been received, but the body has not.
     *

@@ -17,6 +17,7 @@ HttpPathRewriter::HttpPathRewriter() :
 
 HttpPathRewriter::~HttpPathRewriter()
 {
+   HttpPathRewriter::clearRules();
 }
 
 void HttpPathRewriter::setApplyAllRules(bool on)
@@ -50,6 +51,11 @@ bool HttpPathRewriter::addRule(const char* regex, const char* format)
    }
 
    return rval;
+}
+
+void HttpPathRewriter::clearRules()
+{
+   mRules.clear();
 }
 
 void HttpPathRewriter::modifyRequest(HttpRequest* request)
