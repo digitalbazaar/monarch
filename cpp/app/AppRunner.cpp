@@ -315,12 +315,16 @@ static App* _loadApp(AppRunner* ar, MicroKernelModule** module)
    Config cfg = ar->getConfig()[MONARCH_KERNEL];
    if(cfg["appPath"]->length() == 0)
    {
+      MO_CAT_INFO(MO_APP_CAT, "No App specified. Loading empty App.");
+
       // create dummy app
       app = new App();
       *module = NULL;
    }
    else
    {
+      MO_CAT_INFO(MO_APP_CAT, "Preparing to load App...");
+
       // load app
       *module = k->loadMicroKernelModule(cfg["appPath"]->getString());
       if(*module != NULL)
@@ -355,6 +359,7 @@ static App* _loadApp(AppRunner* ar, MicroKernelModule** module)
       const ModuleId& id = (*module)->getId();
       MO_CAT_INFO(MO_APP_CAT,
          "Loaded AppFactory: \"%s\" version: \"%s\".", id.name, id.version);
+      MO_CAT_INFO(MO_APP_CAT, "Loaded App.");
    }
 
    return app;
@@ -546,6 +551,8 @@ bool AppRunner::run()
 
 bool AppRunner::configureApp(App* app)
 {
+   MO_CAT_INFO(MO_APP_CAT, "Configuring App...");
+
    // create defaults config for app
    Config defaults = makeConfig(MONARCH_APP ".defaults", "defaults");
 
@@ -578,6 +585,11 @@ bool AppRunner::configureApp(App* app)
          app->willLoadConfigs() &&
          ac.loadCommandLineConfigs(this, true) &&
          app->didLoadConfigs();
+   }
+
+   if(rval)
+   {
+      MO_CAT_INFO(MO_APP_CAT, "App configured.");
    }
 
    return rval;
