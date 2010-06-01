@@ -27,13 +27,16 @@ namespace app
  *
  * The order of operations for an AppRunner are as follows:
  *
- * 1. Parse AppRunner command line options.
- * 2. Load 'immediate' configs specified on the command line via --config.
- * 3. Initialize logging, create loggers as specified in configs.
- * 4. Load App as specified by --app.
- * 5. Parse App command line options.
- * 6. Load 'app' configs specified on the command line via --app-config.
- * 7. Run the App.
+ * 1. Parse command line options.
+ * 2. Setup AppRunner config defaults.
+ * 3. Process AppRunner command line options.
+ * 4. Load 'immediate' configs specified on the command line via --config.
+ * 5. Initialize logging, create loggers as specified in configs.
+ * 6. Load the App module as specified by --app.
+ * 7. Setup the App config defaults.
+ * 8. Process the App command line options.
+ * 9. Load 'app' configs specified on the command line via --app-config.
+ * 10. Run the App.
  *
  * @author David I. Lehn
  * @author Dave Longley
