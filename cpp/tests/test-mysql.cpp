@@ -672,16 +672,18 @@ static void runMySqlStatementBuilderTest(TestRunner& tr)
    tr.group("MySql StatementBuilder");
 
    /* ObjRelMap: {} of
-   *    "objectType": object-type
-   *    "members": {} of
-   *       "member-name": {} of
-   *          "objectType": "_col" OR "_fkey" or object-type
-   *          "table": if _col or _fkey, then database table name
-   *          "column": if _col or _fkey, then database column name
-   *          "memberType": if _col or _fkey the expected member type
-   *          FIXME: stuff for _fkey mappings
-   *          FIXME: stuff for transformations
-   */
+    *    "objectType": object-type
+    *    "members": {} of
+    *       "member-name": {} of
+    *          "group": "columns" or "fkeys" (the group the mapping is for)
+    *          "table": database table name
+    *          "column": database column name
+    *          "memberType": object member type
+    *          "columnType": database column type
+    *          "ftable": if group="fkeys", foreign key database table
+    *          "fkey": if group="fkeys", foreign key database key column
+    *          "fcolumn": if group="fkeys", foreign key database value column
+    */
 
    // create mysql connection pools
    ConnectionPoolRef readPool = new MySqlConnectionPool(
@@ -704,9 +706,12 @@ static void runMySqlStatementBuilderTest(TestRunner& tr)
       ObjRelMap orMap;
       orMap["objectType"] = "Test";
 
+      // define the object's members
+      DynamicObject& members = orMap["members"];
+
       // id column
       {
-         DynamicObject& entry = orMap["members"]["id"];
+         DynamicObject& entry = members["id"];
          entry["group"] = "columns";
          entry["table"] = TABLE_TEST;
          entry["column"] = "id";
@@ -716,7 +721,7 @@ static void runMySqlStatementBuilderTest(TestRunner& tr)
 
       // t column
       {
-         DynamicObject& entry = orMap["members"]["description"];
+         DynamicObject& entry = members["description"];
          entry["group"] = "columns";
          entry["table"] = TABLE_TEST;
          entry["column"] = "t";
@@ -726,7 +731,7 @@ static void runMySqlStatementBuilderTest(TestRunner& tr)
 
       // i column
       {
-         DynamicObject& entry = orMap["members"]["number"];
+         DynamicObject& entry = members["number"];
          entry["group"] = "columns";
          entry["table"] = TABLE_TEST;
          entry["column"] = "i";

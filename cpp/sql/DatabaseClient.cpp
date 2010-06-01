@@ -234,7 +234,7 @@ ObjRelMap DatabaseClient::getObjRelMap(const char* objType)
       ExceptionRef e = new Exception(
          "No object-relational mapping defined for the given object type.",
          DBC_EXCEPTION ".InvalidObjectType");
-      e->getDetails()["objType"] = objType;
+      e->getDetails()["objectType"] = objType;
       Exception::set(e);
    }
    else

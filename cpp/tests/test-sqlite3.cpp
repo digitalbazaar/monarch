@@ -1493,6 +1493,20 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
 {
    tr.group("Sqlite3 StatementBuilder");
 
+   /* ObjRelMap: {} of
+    *    "objectType": object-type
+    *    "members": {} of
+    *       "member-name": {} of
+    *          "group": "columns" or "fkeys" (the group the mapping is for)
+    *          "table": database table name
+    *          "column": database column name
+    *          "memberType": object member type
+    *          "columnType": database column type
+    *          "ftable": if group="fkeys", foreign key database table
+    *          "fkey": if group="fkeys", foreign key database key column
+    *          "fcolumn": if group="fkeys", foreign key database value column
+    */
+
    // create sqlite3 connection pool
    Sqlite3ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:", 1);
    ConnectionPoolRef pool(cp);
