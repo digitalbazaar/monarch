@@ -4,6 +4,7 @@
 #ifndef monarch_data_TemplateInputStream_H
 #define monarch_data_TemplateInputStream_H
 
+#include "monarch/data/TemplateCache.h"
 #include "monarch/io/ByteBuffer.h"
 #include "monarch/io/File.h"
 #include "monarch/io/FilterInputStream.h"
@@ -289,6 +290,11 @@ protected:
     */
    bool mStripStartingEol;
 
+   /**
+    * A TemplateCache to use.
+    */
+   TemplateCache* mTemplateCache;
+
 public:
    /**
     * Creates a new TemplateInputStream that reads a template from the
@@ -362,6 +368,13 @@ public:
     * @param on true to strip a starting EOL from a literal, false not to.
     */
    virtual void setStripStartingEol(bool on);
+
+   /**
+    * Sets the template cache to use.
+    *
+    * @param cache the template cache to use, NULL for none.
+    */
+   virtual void setCache(TemplateCache* cache);
 
    /**
     * Reads some bytes from the stream. This method will block until at least
