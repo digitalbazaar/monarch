@@ -5,7 +5,6 @@
 AC_PREREQ([2.60])
 AC_INIT([monarch],[3.2.3],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
-PKG_PROG_PKG_CONFIG
 
 # Versioning
 MONARCH_VERSION_MAJOR=3
@@ -61,6 +60,9 @@ AC_ARG_ENABLE([macos],
    ], [BUILD_FOR_MACOS=no])  dnl Default value
 
 echo -e "\n--------- Configuring Monarch Build Environment -----------"
+
+# Setup for pkg-config
+PKG_PROG_PKG_CONFIG
 
 # Check the system type
 AC_CANONICAL_BUILD()
