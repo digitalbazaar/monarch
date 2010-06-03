@@ -71,7 +71,8 @@ TemplateInputStream::TemplateInputStream(
    mVars(vars),
    mStrict(strict),
    mIncludeDir((FileImpl*)NULL),
-   mStripStartingEol(false)
+   mStripStartingEol(false),
+   mTemplateCache(NULL)
 {
    resetState();
    mVars->setType(Map);
@@ -88,7 +89,8 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
    mParsed(BUFFER_SIZE),
    mStrict(false),
    mIncludeDir((FileImpl*)NULL),
-   mStripStartingEol(false)
+   mStripStartingEol(false),
+   mTemplateCache(NULL)
 {
    resetState();
    mVars->setType(Map);
@@ -121,6 +123,11 @@ void TemplateInputStream::setIncludeDirectory(const char* dir)
 void TemplateInputStream::setStripStartingEol(bool on)
 {
    mStripStartingEol = on;
+}
+
+void TemplateInputStream::setCache(TemplateCache* cache)
+{
+   mTemplateCache = cache;
 }
 
 int TemplateInputStream::read(char* b, int length)
@@ -2345,37 +2352,67 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             }
 
             // fill parsed buffer with include data
-            File file(path.c_str());
-            FileInputStream* fis = new FileInputStream(file);
-            TemplateInputStream* tis = new TemplateInputStream(
-               mVars, mStrict, fis, true,
-               mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
-            tis->mLocalVars = mLocalVars;
-            tis->setStripStartingEol(mStripStartingEol);
-
-            // write to parse buffer, keep track of old length
-            int len = mParsed.length();
-            mParsed.allocateSpace(file->getLength() & MAX_BUFFER, true);
-            int num;
-            do
+            InputStream* is = NULL;
+            off_t length = 0;
+            if(mTemplateCache != NULL)
             {
-               num = mParsed.fill(tis);
-               if(num != 0 && mParsed.isFull())
+               is = mTemplateCache->createStream(path.c_str(), &length);
+               rval = (is != NULL);
+            }
+            else
+            {
+               File file(path.c_str());
+               length = file->getLength();
+               is = new FileInputStream(file);
+            }
+
+            if(rval)
+            {
+               TemplateInputStream* tis = new TemplateInputStream(
+                  mVars, mStrict, is, true,
+                  mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
+               tis->mLocalVars = mLocalVars;
+               tis->setStripStartingEol(mStripStartingEol);
+               tis->setCache(mTemplateCache);
+
+               // write to parse buffer, keep track of old length
+               int len = mParsed.length();
+               mParsed.allocateSpace(length & MAX_BUFFER, true);
+               int num;
+               do
                {
-                  // grow parsed buffer
-                  mParsed.resize(mParsed.capacity() * 2);
+                  num = mParsed.fill(tis);
+                  if(num != 0 && mParsed.isFull())
+                  {
+                     // grow parsed buffer
+                     mParsed.resize(mParsed.capacity() * 2);
+                  }
+               }
+               while(num > 0);
+               tis->close();
+               delete tis;
+               rval = (num != -1);
+               if(rval && params->hasMember("as"))
+               {
+                  // copy data into a variable
+                  int size = mParsed.length() - len;
+                  string value;
+                  value.append(mParsed.end() - size, size);
+                  mParsed.trim(size);
+
+                  // set local variable
+                  DynamicObject rhs;
+                  rhs = value.c_str();
+                  findLocalVariable(params["as"], &rhs, false);
                }
             }
-            while(num > 0);
-            tis->close();
-            delete tis;
-            rval = (num != -1);
+
             if(!rval)
             {
                ExceptionRef e = new Exception(
                   "An exception occurred in an included file.",
                   EXCEPTION_TIS ".IncludeException");
-               e->getDetails()["filename"] = file->getAbsolutePath();
+               e->getDetails()["filename"] = path.c_str();
 
                // remove vars from included file, they are the same and there
                // is no need to include them twice (they will be included here
@@ -2384,19 +2421,6 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                cause->getDetails()->removeMember("vars");
                cause->getDetails()->removeMember("localVars");
                Exception::push(e);
-            }
-            else if(params->hasMember("as"))
-            {
-               // copy data into a variable
-               int size = mParsed.length() - len;
-               string value;
-               value.append(mParsed.end() - size, size);
-               mParsed.trim(size);
-
-               // set local variable
-               DynamicObject rhs;
-               rhs = value.c_str();
-               findLocalVariable(params["as"], &rhs, false);
             }
          }
          break;
