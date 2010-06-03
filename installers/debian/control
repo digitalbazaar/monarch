@@ -3,12 +3,12 @@ Section: libs
 Priority: optional
 Maintainer: Digital Bazaar, Inc. <support@digitalbazaar.com>
 Homepage: http://digitalbazaar.com/
-Build-Depends: debhelper (>= 6.0.0), autotools-dev
+Build-Depends: debhelper (>= 6.0.0), autotools-dev, pkg-config, libsqlite3-dev (>= 3.6.17), libmysqlclient-dev, libssl-dev, libexpat-dev
 Standards-Version: 3.8.0
 
 Package: monarch3
 Architecture: any
-Depends: ${shlibs:Depends}, libssl0.9.8 (>= 0.9.8g), libexpat1 (>= 1.95.8), libsqlite3-0 (>= 3.5.9)
+Depends: ${shlibs:Depends}, libssl0.9.8 (>= 0.9.8g), libexpat1 (>= 1.95.8), libsqlite3-0 (>= 3.6.17)
 Description: Modular Networking Architecture (Monarch) Libraries
  The Monarch libraries support a variety of features required by
  modular, highly-scalable networking applications. These libraries provide 

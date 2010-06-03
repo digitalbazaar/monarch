@@ -8,10 +8,11 @@
 .cproject
 .settings
 TAGS
-build
-dist
+aclocal.m4
 autom4te.cache
+build
 config.log
 config.status
 configure
+dist
 @CONFIGURE_GENERATED_FILES@

@@ -5,6 +5,7 @@
 AC_PREREQ([2.60])
 AC_INIT([monarch],[3.2.3],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
+PKG_PROG_PKG_CONFIG
 
 # Versioning
 MONARCH_VERSION_MAJOR=3
@@ -131,17 +132,32 @@ AC_SUBST(BUILD_SPHINX)
 
 # FIXME: Perform compilation environment tests 
 #AC_CHECK_HEADERS(iostream)
-#AC_CHECK_HEADERS(openssl/opensslv) 
-#AC_CHECK_HEADERS(expat)
-#AC_CHECK_HEADERS(sqlite3)
-#AC_CHECK_HEADERS(mysql/mysql)
 
-# FIXME: Make sure the proper libraries exist
-#AC_CHECK_LIB(pthread, main, [], AC_MSG_ERROR(could not find pthread library))
-#AC_CHECK_LIB(crypto, main, [], AC_MSG_ERROR(could not find crypto library))
-#AC_CHECK_LIB(ssl, main, [], AC_MSG_ERROR(could not find ssl library))
-#AC_CHECK_LIB(expat, main, [], AC_MSG_ERROR(could not find expat library))
-#AC_CHECK_LIB(sqlite3, main, [], AC_MSG_ERROR(could not find sqlite3 library))
+# Make sure the proper libraries exist
+
+## Check for pkg-config enabled libs
+
+PKG_CHECK_MODULES([LIBCRYPTO], [libcrypto])
+PKG_CHECK_MODULES([LIBSSL], [libssl])
+PKG_CHECK_MODULES([SQLITE3], [sqlite3 >= 3.6.17])
+# FIXME: pkg-config sets _LIBS/_CFLAGS that could be used in Makefiles
+
+## Check for pthread support
+
+AC_CHECK_LIB([pthread], [pthread_create], [])
+
+## Check for expat support
+
+AC_CHECK_LIB([expat], XML_ParserCreate,
+   [AC_CHECK_HEADERS(expat.h, have_expat=true, have_expat=false)],
+   have_expat=false)
+
+if ! $have_expat; then
+   AC_MSG_ERROR([You need the eXpat xml parser]
+      [http://expat.sourceforge.net/])
+fi
+
+## Control and check mysql support
 
 # allow explicit disable of MySQL support
 AC_ARG_ENABLE([mysql],
@@ -163,9 +179,15 @@ AC_SUBST(BUILD_MYSQL)
 # if MySQL support enabled, check for the lib
 if test "x$BUILD_MYSQL" = "xyes"; then
    AC_CHECK_LIB(mysqlclient, mysql_real_connect,
-     [:],
-     [AC_MSG_ERROR(mysqlclient library not found)]
-   )
+     [have_mysql=true], [have_mysql=false])
+   if ! $have_mysql; then
+      AC_MSG_ERROR(mysqlclient library not found)
+   fi
+
+   AC_CHECK_HEADER(mysql/mysql.h, [have_mysql=true], [have_mysql=false])
+   if ! $have_mysql; then
+      AC_MSG_ERROR(mysql/mysql.h header not found)
+   fi
 fi
 
 dnl ----------------- disable test building and running -----------------
