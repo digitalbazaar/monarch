@@ -1,11 +1,10 @@
 /*
  * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/test/Test.h"
 
-// FIXME: replace iostream with cstdlib and printfs
-#include <iostream>
-#include <sstream>
 #include <cstdio>
 
 #include "monarch/data/json/JsonWriter.h"
@@ -47,7 +46,7 @@ void monarch::test::dumpDynamicObjectText_(
 {
    for(int i = 0; i < indent; i++)
    {
-      cout << ' ';
+      printf(" ");
    }
 
    if(doi == NULL)
@@ -58,36 +57,29 @@ void monarch::test::dumpDynamicObjectText_(
    switch(dyno->getType())
    {
       case String:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getString();
-         cout << endl;
+         printf("Name=%s,Value=%s\n", doi->getName(), dyno->getString());
          break;
       case Boolean:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getBoolean();
-         cout << endl;
+         printf("Name=%s,Value=%d\n", doi->getName(), dyno->getBoolean());
          break;
       case Int32:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getInt32();
-         cout << endl;
+         printf("Name=%s,Value=%" PRIi32 "\n", doi->getName(), dyno->getInt32());
          break;
       case UInt32:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getUInt32();
-         cout << endl;
+         printf("Name=%s,Value=%" PRIu32 "\n", doi->getName(), dyno->getUInt32());
          break;
       case Int64:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getInt64();
-         cout << endl;
+         printf("Name=%s,Value=%" PRIi64 "\n", doi->getName(), dyno->getInt64());
          break;
       case UInt64:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getUInt64();
-         cout << endl;
+         printf("Name=%s,Value=%" PRIu64 "\n", doi->getName(), dyno->getUInt64());
          break;
       case Double:
-         cout << "Name=" << doi->getName() << ",Value=" << dyno->getDouble();
-         cout << endl;
+         printf("Name=%s,Value=%g\n", doi->getName(), dyno->getDouble());
          break;
       case Map:
       case Array:
-         cout << "Name=" << doi->getName() << endl;
+         printf("Name=%s\n", doi->getName());
          DynamicObjectIterator i = dyno.getIterator();
          while(i->hasNext())
          {
