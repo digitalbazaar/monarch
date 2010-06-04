@@ -523,6 +523,91 @@ static void runHttpServerTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+class PongHttpRequestServicer : public HttpRequestServicer
+{
+public:
+   const char* content;
+
+   PongHttpRequestServicer(const char* path) : HttpRequestServicer(path)
+   {
+      content = "Pong!";
+   }
+
+   virtual ~PongHttpRequestServicer()
+   {
+   }
+
+   virtual void serviceRequest(
+      HttpRequest* request, HttpResponse* response)
+   {
+      // send 200 OK
+      ByteArrayInputStream bais(content, 5);
+      response->getHeader()->setStatus(200, "OK");
+      response->getHeader()->setField("Content-Length", 5);
+      response->getHeader()->setField("Content-Type", "text/plain");
+      response->sendHeader() && response->sendBody(&bais, NULL);
+   }
+};
+
+static void runHttpPongTest(TestRunner& tr)
+{
+   tr.test("Http Pong");
+
+   // create kernel
+   Kernel k;
+
+   // set thread stack size in engine (128k)
+   k.getEngine()->getThreadPool()->setThreadStackSize(131072);
+
+   // optional for testing --
+   // limit threads to 2: one for accepting, 1 for handling
+   //k.getEngine()->getThreadPool()->setPoolSize(2);
+   k.getEngine()->getThreadPool()->setPoolSize(10);
+
+   // start engine
+   k.getEngine()->start();
+
+   // create server
+   Server server;
+   InternetAddress address("0.0.0.0", 19100);
+
+   // create SSL/generic http connection servicer
+   HttpConnectionServicer hcs;
+//   SslContext context;
+//   SslSocketDataPresenter presenter1(&context);
+//   NullSocketDataPresenter presenter2;
+//   SocketDataPresenterList list(false);
+//   list.add(&presenter1);
+//   list.add(&presenter2);
+   server.addConnectionService(&address, &hcs);//, &list);
+
+   // create test http request servicer
+   PongHttpRequestServicer pong("/");
+   hcs.addRequestServicer(&pong, false);
+
+   if(server.start(&k))
+   {
+      printf("\nServer started on %s, CTRL+C to quit\n",
+         address.toString(false).c_str());
+   }
+   else if(Exception::get() != NULL)
+   {
+      printf("\nServer start failed with errors=%s\n",
+         Exception::get()->getMessage());
+   }
+
+   // wait indefinitely
+   Thread::sleep(0);
+
+   server.stop();
+   printf("Server stopped.\n");
+
+   // stop kernel engine
+   k.getEngine()->stop();
+
+   tr.passIfNoException();
+}
+
 static void runHttpClientGetTest(TestRunner& tr)
 {
    tr.test("Http Client GET");
@@ -781,6 +866,10 @@ static bool run(TestRunner& tr)
    if(tr.isTestEnabled("http-server"))
    {
       runHttpServerTest(tr);
+   }
+   if(tr.isTestEnabled("http-pong"))
+   {
+      runHttpPongTest(tr);
    }
    if(tr.isTestEnabled("http-client-get"))
    {
