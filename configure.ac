@@ -115,6 +115,9 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
    DYNAMIC_LIB_EXT=dylib
    STATIC_LIB_EXT=a
    EXECUTABLE_EXT=
+   if test -d /sw/include;
+      INCLUDES="$INCLUDES -I/sw/include"
+   fi
 fi
 
 AC_ARG_ENABLE([sphinx],
