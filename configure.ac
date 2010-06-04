@@ -115,7 +115,7 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
    DYNAMIC_LIB_EXT=dylib
    STATIC_LIB_EXT=a
    EXECUTABLE_EXT=
-   if test -d /sw/include;
+   if test -d /sw/include; then
       INCLUDES="$INCLUDES -I/sw/include"
    fi
 fi
