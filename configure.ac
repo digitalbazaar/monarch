@@ -106,6 +106,7 @@ fi
 
 # Conditional setup for MacOS build
 if test "$BUILD_FOR_MACOS" = "yes" ; then
+   AC_PROG_CC(gcc-4 gcc)
    AC_PROG_CXX(g++-4 g++)
    AC_CHECK_PROG(AR, ar, ar, not found)
    AC_CHECK_PROG(AS, as, as, not found)
@@ -116,7 +117,7 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
    STATIC_LIB_EXT=a
    EXECUTABLE_EXT=
    if test -d /sw/include; then
-      INCLUDES="$INCLUDES -I/sw/include"
+      CPPFLAGS="$CPPFLAGS -I/sw/include"
    fi
 fi
 
@@ -156,9 +157,13 @@ if test "$BUILD_FOR_WINDOWS" = "no" ; then
    
    ## Check for expat support
    
+# FIXME: header check not working on MacOS
+#   AC_CHECK_LIB([expat], XML_ParserCreate,
+#      [AC_CHECK_HEADERS([expat.h], [have_expat=true], [have_expat=false])],
+#      [have_expat=false])
    AC_CHECK_LIB([expat], XML_ParserCreate,
-      [AC_CHECK_HEADERS(expat.h, have_expat=true, have_expat=false)],
-      have_expat=false)
+      [have_expat=true],
+      [have_expat=false])
    
    if ! $have_expat; then
       AC_MSG_ERROR([You need the eXpat xml parser]
