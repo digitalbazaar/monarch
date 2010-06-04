@@ -74,6 +74,7 @@ AC_CHECK_PROGS(PYTHON, python2.5 python2.4, not found)
 
 # Conditional setup for Linux build
 if test "$BUILD_FOR_LINUX" = "yes" ; then
+   AC_PROG_CC()
    AC_PROG_CXX()
    AC_CHECK_PROG(AR, ar, ar, not found)
    AC_CHECK_PROG(AS, as, as, not found)
