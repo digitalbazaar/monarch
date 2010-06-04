@@ -136,27 +136,32 @@ AC_SUBST(BUILD_SPHINX)
 #AC_CHECK_HEADERS(iostream)
 
 # Make sure the proper libraries exist
+# Windows has special bundled support
 
-## Check for pkg-config enabled libs
+if test "$BUILD_FOR_WINDOWS" = "no" ; then
 
-PKG_CHECK_MODULES([LIBCRYPTO], [libcrypto])
-PKG_CHECK_MODULES([LIBSSL], [libssl])
-PKG_CHECK_MODULES([SQLITE3], [sqlite3 >= 3.6.17])
-# FIXME: pkg-config sets _LIBS/_CFLAGS that could be used in Makefiles
+   ## Check for pkg-config enabled libs
 
-## Check for pthread support
+   PKG_CHECK_MODULES([CRYPTO], [libcrypto])
+   PKG_CHECK_MODULES([SSL], [libssl])
+   PKG_CHECK_MODULES([SQLITE3], [sqlite3 >= 3.6.17])
+   # FIXME: pkg-config sets _LIBS/_CFLAGS that could be used in Makefiles
 
-AC_CHECK_LIB([pthread], [pthread_create], [])
+   ## Check for pthread support
+   
+   AC_CHECK_LIB([pthread], [pthread_create], [])
+   
+   ## Check for expat support
+   
+   AC_CHECK_LIB([expat], XML_ParserCreate,
+      [AC_CHECK_HEADERS(expat.h, have_expat=true, have_expat=false)],
+      have_expat=false)
+   
+   if ! $have_expat; then
+      AC_MSG_ERROR([You need the eXpat xml parser]
+         [http://expat.sourceforge.net/])
+   fi
 
-## Check for expat support
-
-AC_CHECK_LIB([expat], XML_ParserCreate,
-   [AC_CHECK_HEADERS(expat.h, have_expat=true, have_expat=false)],
-   have_expat=false)
-
-if ! $have_expat; then
-   AC_MSG_ERROR([You need the eXpat xml parser]
-      [http://expat.sourceforge.net/])
 fi
 
 ## Control and check mysql support
