@@ -326,7 +326,7 @@ static bool _getTarget(
    else if(spec->hasMember("root") && spec->hasMember("path"))
    {
       const char* path = spec["path"]->getString();
-      DynamicObject* obj = _findPath(spec["root"], path);
+      DynamicObject* obj = _findPath(spec["root"], path, false);
       if(obj != NULL)
       {
          out = *obj;
@@ -626,8 +626,10 @@ static bool _processOption(
             if(rval)
             {
                // do json conversion if requested
-               if(optSpec->hasMember("isJsonValue") &&
-                  optSpec["isJsonValue"]->getBoolean())
+               bool isJson =
+                  optSpec->hasMember("isJsonValue") &&
+                  optSpec["isJsonValue"]->getBoolean();
+               if(isJson)
                {
                   // JSON value conversion, use non-strict reader
                   JsonReader jr(false);
@@ -646,17 +648,17 @@ static bool _processOption(
                // do type conversion
                else if(rval)
                {
-                  // default value type to string
+                  // default value type to whatever was parsed
                   DynamicObject vt;
-                  vt->setType(String);
+                  vt->setType(value->getType());
 
-                  // try to get get type from spec
+                  // try to get type from spec
                   if(optSpec->hasMember("type"))
                   {
                      vt = optSpec[key];
                   }
-                  // no type in spec so preserve old type
-                  else
+                  // no type in spec so, if not json, preserve old type, if any
+                  else if(!isJson)
                   {
                      _getTarget(ar, optSpec[key], vt, false);
                   }
