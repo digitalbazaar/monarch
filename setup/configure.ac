@@ -5,6 +5,7 @@
 AC_PREREQ([2.60])
 AC_INIT([monarch],[3.2.3],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
+AC_CONFIG_MACRO_DIR(setup)
 
 # Versioning
 MONARCH_VERSION_MAJOR=3
