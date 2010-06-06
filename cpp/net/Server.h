@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_Server_H
 #define monarch_net_Server_H
@@ -8,8 +8,10 @@
 #include "monarch/modest/OperationList.h"
 #include "monarch/net/InternetAddress.h"
 #include "monarch/net/PortService.h"
+#include "monarch/net/ConnectionService.h"
 #include "monarch/net/ConnectionServicer.h"
 #include "monarch/net/SocketDataPresenter.h"
+#include "monarch/net/DatagramService.h"
 #include "monarch/net/DatagramServicer.h"
 
 #include <list>
@@ -98,9 +100,11 @@ public:
    virtual ~Server();
 
    /**
-    * Adds a ConnectionServicer to this server or replaces an existing one. If
-    * the server is running the service will be started. The added service will
-    * be assigned an ID which can be used to remove the service if desired.
+    * Adds a ConnectionService to this server or replaces an existing one. The
+    * ConnectionService will be automatically deleted once it is removed from
+    * the server. If the server is running the service will be started. The
+    * added service will be assigned an ID which can be used to remove the
+    * service if desired.
     *
     * @param a the address to listen on.
     * @param s the ConnectionServicer to service Connections with.
@@ -117,9 +121,11 @@ public:
       const char* name = "unnamed");
 
    /**
-    * Adds a DatagramService to this server or replaces an existing one. If
-    * the server is running the service will be started. The added service will
-    * be assigned an ID which can be used to remove the service if desired.
+    * Adds a DatagramService to this server or replaces an existing one. The
+    * DatagramService will be automatically deleted once it is removed from
+    * the server. If the server is running the service will be started. The
+    * added service will be assigned an ID which can be used to remove the
+    * service if desired.
     *
     * @param a the address to bind to.
     * @param s the DatagramServicer to service Datagrams with.
@@ -134,6 +140,17 @@ public:
       InternetAddress* a, DatagramServicer* s, const char* name = "unnamed");
 
    /**
+    * Adds a new PortService. If the server is running, the new service is
+    * started. The PortService's memory must be managed externally.
+    *
+    * @param ps the new PortService to add.
+    *
+    * @return the ServiceId for the PortService if it was added/started, 0
+    *         if it was not added/failed to start and should be deleted.
+    */
+   virtual ServiceId addPortService(PortService* ps);
+
+   /**
     * Removes a ConnectionService or DatagramService by its assigned ID. If
     * the service is running, it will be stopped before it is removed.
     *
@@ -142,6 +159,39 @@ public:
     * @return true if a service was actually removed, false if not.
     */
    virtual bool removePortService(ServiceId id);
+
+   /**
+    * Gets the PortService associated with the given ServiceId or NULL if none
+    * exists.
+    *
+    * @param id the ServiceId associated with the PortService.
+    *
+    * @return the PortService associated with the given ServiceId or NULL if
+    *         none exists.
+    */
+   virtual PortService* getPortService(ServiceId id);
+
+   /**
+    * Gets the PortService associated with the given ServiceId or NULL if none
+    * exists.
+    *
+    * @param id the ServiceId associated with the PortService.
+    *
+    * @return the PortService associated with the given ServiceId or NULL if
+    *         none exists.
+    */
+   virtual ConnectionService* getConnectionService(ServiceId id);
+
+   /**
+    * Gets the PortService associated with the given ServiceId or NULL if none
+    * exists.
+    *
+    * @param id the ServiceId associated with the PortService.
+    *
+    * @return the PortService associated with the given ServiceId or NULL if
+    *         none exists.
+    */
+   virtual DatagramService* getDatagramService(ServiceId id);
 
    /**
     * Starts this server if it isn't already running. If any service fails to
@@ -195,29 +245,6 @@ public:
     * @return the current number of connections to this server.
     */
    virtual int32_t getConnectionCount();
-
-protected:
-   /**
-    * Gets the PortService associated with the given ServiceId or NULL if none
-    * exists.
-    *
-    * @param id the ServiceId associated with the PortService.
-    *
-    * @return the PortService associated with the given ServiceId or NULL if
-    *         none exists.
-    */
-   virtual PortService* getPortService(ServiceId id);
-
-   /**
-    * Adds a new PortService. If the server is running, the new service is
-    * started.
-    *
-    * @param ps the new PortService to add.
-    *
-    * @return the ServiceId for the PortService if it was added/started, 0
-    *         if it was not added/failed to start and should be deleted.
-    */
-   virtual ServiceId addPortService(PortService* ps);
 };
 
 } // end namespace net

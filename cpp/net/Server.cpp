@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/Server.h"
 
@@ -81,6 +81,45 @@ Server::ServiceId Server::addDatagramService(
    return rval;
 }
 
+Server::ServiceId Server::addPortService(PortService* ps)
+{
+   ServiceId rval = sInvalidServiceId;
+
+   mLock.lock();
+   {
+      bool added;
+      if(isRunning())
+      {
+         // start service if server is running
+         added = ps->start();
+      }
+      else
+      {
+         // no need to start service
+         added = true;
+      }
+
+      if(added)
+      {
+         // get available ServiceId
+         rval = mServiceIdFreeList.front();
+         mServiceIdFreeList.pop_front();
+
+         // add new id if list is empty
+         if(mServiceIdFreeList.empty())
+         {
+            mServiceIdFreeList.push_back(rval + 1);
+         }
+
+         // set new port service
+         mPortServices.insert(make_pair(rval, ps));
+      }
+   }
+   mLock.unlock();
+
+   return rval;
+}
+
 bool Server::removePortService(ServiceId id)
 {
    bool rval = false;
@@ -113,6 +152,33 @@ bool Server::removePortService(ServiceId id)
    mLock.unlock();
 
    return rval;
+}
+
+PortService* Server::getPortService(ServiceId id)
+{
+   PortService* rval = NULL;
+
+   mLock.lock();
+   {
+      PortServiceMap::iterator i = mPortServices.find(id);
+      if(i != mPortServices.end())
+      {
+         rval = i->second;
+      }
+   }
+   mLock.unlock();
+
+   return rval;
+}
+
+ConnectionService* Server::getConnectionService(ServiceId id)
+{
+   return dynamic_cast<ConnectionService*>(getPortService(id));
+}
+
+DatagramService* Server::getDatagramService(ServiceId id)
+{
+   return dynamic_cast<DatagramService*>(getPortService(id));
 }
 
 bool Server::start(OperationRunner* opRunner)
@@ -214,52 +280,4 @@ inline int32_t Server::getMaxConnectionCount()
 inline int32_t Server::getConnectionCount()
 {
    return mCurrentConnections;
-}
-
-PortService* Server::getPortService(ServiceId id)
-{
-   PortService* rval = NULL;
-
-   PortServiceMap::iterator i = mPortServices.find(id);
-   if(i != mPortServices.end())
-   {
-      rval = i->second;
-   }
-
-   return rval;
-}
-
-Server::ServiceId Server::addPortService(PortService* ps)
-{
-   ServiceId rval = sInvalidServiceId;
-
-   bool added;
-   if(isRunning())
-   {
-      // start service if server is running
-      added = ps->start();
-   }
-   else
-   {
-      // no need to start service
-      added = true;
-   }
-
-   if(added)
-   {
-      // get available ServiceId
-      rval = mServiceIdFreeList.front();
-      mServiceIdFreeList.pop_front();
-
-      // add new id if list is empty
-      if(mServiceIdFreeList.empty())
-      {
-         mServiceIdFreeList.push_back(rval + 1);
-      }
-
-      // set new port service
-      mPortServices.insert(make_pair(rval, ps));
-   }
-
-   return rval;
 }
