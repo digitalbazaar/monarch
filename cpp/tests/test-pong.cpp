@@ -273,8 +273,6 @@ public:
       response->getHeader()->setField("Content-Length", 0);
       response->getHeader()->setField("Connection", "close");
       response->sendHeader();
-      ByteArrayInputStream bais("", 0);
-      response->sendBody(&bais, NULL);
       mPingPong->quit();
    }
 };
