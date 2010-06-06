@@ -66,6 +66,8 @@ namespace mo_test_pong
  * pong.time=<int32>: milliseconds to run the test
  * pong.threadStackSize=<int32>: set stack size
  * pong.threads=<int32>: set number of threads
+ * pong.maxConnections=<int32>: set max number of connections
+ * pong.backlog=<int32>: set connection backlog queue size
  *
  * Endpoints:
  * /: return "Pong!"
@@ -303,8 +305,7 @@ static void runPingTest(TestRunner& tr)
 
    // create server
    Server server;
-   // FIXME: add config option for connections
-   server.setMaxConnectionCount(10000);
+   server.setMaxConnectionCount(cfg["maxConnections"]->getInt32());
    InternetAddress address("0.0.0.0", cfg["port"]->getUInt32());
 
    // create SSL/generic http connection servicer
@@ -316,9 +317,10 @@ static void runPingTest(TestRunner& tr)
 //   list.add(&presenter1);
 //   list.add(&presenter2);
    //server.addConnectionService(&address, &hcs);//, &list);
-   // FIXME: add config options for connections, backlog
-   // max connections = 10000, backlog = 10000
-   server.addConnectionService(&address, &hcs, NULL, "pong", 10000, 10000);
+   server.addConnectionService(
+      &address, &hcs, NULL, "pong",
+      cfg["maxConnections"]->getInt32(),
+      cfg["backlog"]->getInt32());
 
    // create test http request servicer
    PingHttpRequestServicer ping(&pingPong, "/");

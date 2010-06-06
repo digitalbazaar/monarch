@@ -19,7 +19,9 @@
          "ssl": false,
          "time": 0,
          "threadStackSize": 131072,
-         "threads": 10
+         "threads": 10,
+         "maxConnections": 10000,
+         "backlog": 2500
       }
    }
 }
