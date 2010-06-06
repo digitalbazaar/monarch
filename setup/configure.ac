@@ -320,6 +320,7 @@ AC_CONFIG_FILES([
    setup/Makefile.base
    setup/docs.doxygen
    configs/apps/test.config
+   configs/apps/pong.config
    cpp/3rdparty/Makefile
    cpp/app/Makefile
    cpp/apps/monarch/Makefile
