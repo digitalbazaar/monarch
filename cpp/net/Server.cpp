@@ -3,9 +3,6 @@
  */
 #include "monarch/net/Server.h"
 
-#include "monarch/net/ConnectionService.h"
-#include "monarch/net/DatagramService.h"
-
 #include <algorithm>
 
 using namespace std;
