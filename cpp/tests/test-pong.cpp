@@ -129,7 +129,7 @@ public:
       uint64_t s = Atomic::incrementAndFetch(&mServiced);
       if(mNum != 0 && s >= mNum)
       {
-	 quit();
+         quit();
       }
    }
 
@@ -182,7 +182,7 @@ public:
    virtual void serviceRequest(
       HttpRequest* request, HttpResponse* response)
    {
-      int len = strlen(mContent);
+      int len = 5;
       // send 200 OK
       response->getHeader()->setStatus(200, "OK");
       if(mChunked)
