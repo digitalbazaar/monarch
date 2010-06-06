@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -24,52 +24,20 @@ ConnectionService::ConnectionService(
    ConnectionServicer* servicer,
    SocketDataPresenter* presenter,
    const char* name) :
-   PortService(server, address, name)
+   PortService(server, address, name),
+   mServicer(servicer),
+   mDataPresenter(presenter),
+   mSocket(NULL),
+   mMaxConnections(100),
+   mCurrentConnections(0),
+   mBacklog(100)
 {
-   mServicer = servicer;
-   mDataPresenter = presenter;
-   mSocket = NULL;
-
-   mMaxConnections = 100;
-   mCurrentConnections = 0;
 }
 
 ConnectionService::~ConnectionService()
 {
    // ensure service is stopped
    ConnectionService::stop();
-}
-
-Operation ConnectionService::initialize()
-{
-   Operation rval(NULL);
-
-   // no connections yet
-   mCurrentConnections = 0;
-
-   // create tcp socket
-   mSocket = new TcpSocket();
-
-   // bind socket to the address and start listening
-   if(mSocket->bind(getAddress()) && mSocket->listen())
-   {
-      // create Operation for running service
-      rval = *this;
-      rval->setUserData(&mSocket);
-      rval->addGuard(this);
-   }
-
-   return rval;
-}
-
-void ConnectionService::cleanup()
-{
-   if(mSocket != NULL)
-   {
-      // clean up socket
-      delete mSocket;
-      mSocket = NULL;
-   }
 }
 
 bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
@@ -244,4 +212,46 @@ inline int32_t ConnectionService::getMaxConnectionCount()
 inline int32_t ConnectionService::getConnectionCount()
 {
    return mCurrentConnections;
+}
+
+void ConnectionService::setBacklog(int backlog)
+{
+   mBacklog = backlog;
+}
+
+int ConnectionService::getBacklog()
+{
+   return mBacklog;
+}
+
+Operation ConnectionService::initialize()
+{
+   Operation rval(NULL);
+
+   // no connections yet
+   mCurrentConnections = 0;
+
+   // create tcp socket
+   mSocket = new TcpSocket();
+
+   // bind socket to the address and start listening
+   if(mSocket->bind(getAddress()) && mSocket->listen(getBacklog()))
+   {
+      // create Operation for running service
+      rval = *this;
+      rval->setUserData(&mSocket);
+      rval->addGuard(this);
+   }
+
+   return rval;
+}
+
+void ConnectionService::cleanup()
+{
+   if(mSocket != NULL)
+   {
+      // clean up socket
+      delete mSocket;
+      mSocket = NULL;
+   }
 }

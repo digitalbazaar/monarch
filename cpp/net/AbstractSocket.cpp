@@ -114,8 +114,7 @@ bool AbstractSocket::select(bool read, int64_t timeout)
    Exception* e = NULL;
 
    // wait for readability/writability
-   int error = SocketTools::select(
-      read, (unsigned int)mFileDescriptor, timeout);
+   int error = SocketTools::select(read, mFileDescriptor, timeout);
    if(error < 0)
    {
       if(errno == EINTR)
@@ -293,7 +292,7 @@ bool AbstractSocket::bind(SocketAddress* address)
    return mBound;
 }
 
-bool AbstractSocket::listen(unsigned int backlog)
+bool AbstractSocket::listen(int backlog)
 {
    if(!isBound())
    {
@@ -329,7 +328,7 @@ bool AbstractSocket::listen(unsigned int backlog)
    return mListening;
 }
 
-Socket* AbstractSocket::accept(unsigned int timeout)
+Socket* AbstractSocket::accept(int timeout)
 {
    Socket* rval = NULL;
 
@@ -394,7 +393,7 @@ Socket* AbstractSocket::accept(unsigned int timeout)
    return rval;
 }
 
-bool AbstractSocket::connect(SocketAddress* address, unsigned int timeout)
+bool AbstractSocket::connect(SocketAddress* address, int timeout)
 {
    // acquire file descriptor
    if(acquireFileDescriptor(address->getCommunicationDomain()))
@@ -785,7 +784,7 @@ inline uint32_t AbstractSocket::getReceiveTimeout()
    return mReceiveTimeout;
 }
 
-inline unsigned int AbstractSocket::getBacklog()
+inline int AbstractSocket::getBacklog()
 {
    return mBacklog;
 }

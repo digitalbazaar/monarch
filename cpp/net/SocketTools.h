@@ -49,7 +49,7 @@ public:
     *         it timed out, -1 if an error occurred and errno is set
     *         appropriately.
     */
-   static int select(bool read, unsigned int fd, int64_t timeout);
+   static int select(bool read, int fd, int64_t timeout);
 
    /**
     * Causes the current thread to wait until one or more of the given

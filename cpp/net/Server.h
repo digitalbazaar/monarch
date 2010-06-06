@@ -110,6 +110,8 @@ public:
     * @param s the ConnectionServicer to service Connections with.
     * @param p the SocketDataPresenter to use to present data to the servicer.
     * @param name a name for the connection service.
+    * @param maxConnections the maximum number of current connections.
+    * @param backlog the number of connections to backlog.
     *
     * @return the ServiceId for the new service if the service was added, 0
     *         if the service could not be added -- if the server is running
@@ -118,7 +120,8 @@ public:
     */
    virtual ServiceId addConnectionService(
       InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p = NULL,
-      const char* name = "unnamed");
+      const char* name = "unnamed",
+      int maxConnections = 100, int backlog = 100);
 
    /**
     * Adds a DatagramService to this server or replaces an existing one. The
@@ -137,7 +140,8 @@ public:
     *         the server is not running, the service will be added.
     */
    virtual ServiceId addDatagramService(
-      InternetAddress* a, DatagramServicer* s, const char* name = "unnamed");
+      InternetAddress* a, DatagramServicer* s,
+      const char* name = "unnamed");
 
    /**
     * Adds a new PortService. If the server is running, the new service is

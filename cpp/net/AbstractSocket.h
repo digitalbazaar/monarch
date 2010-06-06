@@ -73,7 +73,7 @@ protected:
    /**
     * The number of Socket connections to keep backlogged while listening.
     */
-   unsigned int mBacklog;
+   int mBacklog;
 
    /**
     * True if sends do not block, false if not.
@@ -182,7 +182,7 @@ protected:
     *
     * @return the allocated connected Socket.
     */
-   virtual Socket* createConnectedSocket(unsigned int fd) = 0;
+   virtual Socket* createConnectedSocket(int fd) = 0;
 
 public:
    /**
@@ -211,7 +211,7 @@ public:
     *
     * @return true if listening, false if an exception occurred.
     */
-   virtual bool listen(unsigned int backlog = 50);
+   virtual bool listen(int backlog = 50);
 
    /**
     * Accepts a connection to this Socket. This method will block until a
@@ -225,7 +225,7 @@ public:
     * @return an allocated Socket to use to communicate with the connected
     *         socket or NULL if an error occurs.
     */
-   virtual Socket* accept(unsigned int timeout);
+   virtual Socket* accept(int timeout);
 
    /**
     * Connects this Socket to the given address.
@@ -235,7 +235,7 @@ public:
     *
     * @return true if no exception occurred, false if an exception occurred.
     */
-   virtual bool connect(SocketAddress* address, unsigned int timeout = 30);
+   virtual bool connect(SocketAddress* address, int timeout = 30);
 
    /**
     * Writes raw data to this Socket. This method will block until all of
@@ -368,7 +368,7 @@ public:
     * @return the number of Socket connections that can be kept backlogged
     *         while listening.
     */
-   virtual unsigned int getBacklog();
+   virtual int getBacklog();
 
    /**
     * Gets the file descriptor for this Socket.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SocketWrapper.h"
 
@@ -41,17 +41,17 @@ inline bool SocketWrapper::bind(SocketAddress* address)
    return getSocket()->bind(address);
 }
 
-inline bool SocketWrapper::listen(unsigned int backlog)
+inline bool SocketWrapper::listen(int backlog)
 {
    return getSocket()->listen(backlog);
 }
 
-inline Socket* SocketWrapper::accept(unsigned int timeout)
+inline Socket* SocketWrapper::accept(int timeout)
 {
    return getSocket()->accept(timeout);
 }
 
-inline bool SocketWrapper::connect(SocketAddress* address, unsigned int timeout)
+inline bool SocketWrapper::connect(SocketAddress* address, int timeout)
 {
    return getSocket()->connect(address, timeout);
 }
@@ -126,7 +126,7 @@ inline uint32_t SocketWrapper::getReceiveTimeout()
    return getSocket()->getReceiveTimeout();
 }
 
-inline unsigned int SocketWrapper::getBacklog()
+inline int SocketWrapper::getBacklog()
 {
    return getSocket()->getBacklog();
 }

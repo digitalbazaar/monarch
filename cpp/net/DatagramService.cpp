@@ -23,6 +23,15 @@ DatagramService::~DatagramService()
    DatagramService::stop();
 }
 
+void DatagramService::run()
+{
+   // service datagrams
+   mServicer->serviceDatagrams(mSocket, mOperation);
+
+   // close socket
+   mSocket->close();
+}
+
 Operation DatagramService::initialize()
 {
    Operation rval(NULL);
@@ -48,13 +57,4 @@ void DatagramService::cleanup()
       delete mSocket;
       mSocket = NULL;
    }
-}
-
-void DatagramService::run()
-{
-   // service datagrams
-   mServicer->serviceDatagrams(mSocket, mOperation);
-
-   // close socket
-   mSocket->close();
 }

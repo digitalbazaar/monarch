@@ -37,7 +37,7 @@ Server::~Server()
 
 Server::ServiceId Server::addConnectionService(
    InternetAddress* a, ConnectionServicer* s, SocketDataPresenter* p,
-   const char* name)
+   const char* name, int maxConnections, int backlog)
 {
    ServiceId rval = sInvalidServiceId;
 
@@ -45,6 +45,8 @@ Server::ServiceId Server::addConnectionService(
    {
       // add ConnectionService
       ConnectionService* cs = new ConnectionService(this, a, s, p, name);
+      cs->setMaxConnectionCount(maxConnections);
+      cs->setBacklog(backlog);
       rval = addPortService(cs);
       if(rval == sInvalidServiceId)
       {

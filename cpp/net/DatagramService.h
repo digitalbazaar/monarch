@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_DatagramService_H
 #define monarch_net_DatagramService_H
@@ -30,24 +30,6 @@ protected:
     */
    DatagramSocket* mSocket;
 
-   /**
-    * Initializes this service and creates the Operation for running it,
-    * typically through the Server's OperationRunner. If the service could
-    * not be initialized, an exception should be set on the current thread
-    * indicating the reason why the service could not be initialized.
-    *
-    * @return the Operation for running this service, or NULL if the
-    *         service could not be initialized.
-    */
-   virtual monarch::modest::Operation initialize();
-
-   /**
-    * Called to clean up resources for this service that were created or
-    * obtained via a call to initialize(). If there are no resources to
-    * clean up, then this method should have no effect.
-    */
-   virtual void cleanup();
-
 public:
    /**
     * Creates a new DatagramService that uses the passed address for
@@ -73,6 +55,25 @@ public:
     * Runs this DatagramService.
     */
    virtual void run();
+
+protected:
+   /**
+    * Initializes this service and creates the Operation for running it,
+    * typically through the Server's OperationRunner. If the service could
+    * not be initialized, an exception should be set on the current thread
+    * indicating the reason why the service could not be initialized.
+    *
+    * @return the Operation for running this service, or NULL if the
+    *         service could not be initialized.
+    */
+   virtual monarch::modest::Operation initialize();
+
+   /**
+    * Called to clean up resources for this service that were created or
+    * obtained via a call to initialize(). If there are no resources to
+    * clean up, then this method should have no effect.
+    */
+   virtual void cleanup();
 };
 
 } // end namespace net

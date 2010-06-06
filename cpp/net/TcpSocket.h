@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_TcpSocket_H
 #define monarch_net_TcpSocket_H
@@ -18,6 +18,17 @@ namespace net
  */
 class TcpSocket : public AbstractSocket
 {
+public:
+   /**
+    * Creates a new TcpSocket.
+    */
+   TcpSocket();
+
+   /**
+    * Destructs this TcpSocket.
+    */
+   virtual ~TcpSocket();
+
 protected:
    /**
     * Acquiring a file descriptor for this Socket. This method must be called
@@ -41,18 +52,7 @@ protected:
     *
     * @return the allocated Socket.
     */
-   virtual Socket* createConnectedSocket(unsigned int fd);
-
-public:
-   /**
-    * Creates a new TcpSocket.
-    */
-   TcpSocket();
-
-   /**
-    * Destructs this TcpSocket.
-    */
-   virtual ~TcpSocket();
+   virtual Socket* createConnectedSocket(int fd);
 };
 
 } // end namespace net

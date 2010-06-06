@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/TcpSocket.h"
 
@@ -45,7 +45,7 @@ bool TcpSocket::acquireFileDescriptor(SocketAddress::CommunicationDomain domain)
    return rval;
 }
 
-Socket* TcpSocket::createConnectedSocket(unsigned int fd)
+Socket* TcpSocket::createConnectedSocket(int fd)
 {
    // create a new TcpSocket
    TcpSocket* socket = new TcpSocket();

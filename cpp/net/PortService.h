@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_PortService_H
 #define monarch_net_PortService_H
@@ -43,24 +43,6 @@ protected:
     * The Operation used to run this service.
     */
    monarch::modest::Operation mOperation;
-
-   /**
-    * Initializes this service and creates the Operation for running it,
-    * typically through the Server's OperationRunner. If the service could
-    * not be initialized, an exception should be set on the current thread
-    * indicating the reason why the service could not be initialized.
-    *
-    * @return the Operation for running this service, or NULL if the
-    *         service could not be initialized.
-    */
-   virtual monarch::modest::Operation initialize() = 0;
-
-   /**
-    * Called to clean up resources for this service that were created or
-    * obtained via a call to initialize(). If there are no resources to
-    * clean up, then this method should have no effect.
-    */
-   virtual void cleanup() = 0;
 
 public:
    /**
@@ -108,6 +90,25 @@ public:
     * @return the address for this PortService.
     */
    virtual InternetAddress* getAddress();
+
+protected:
+   /**
+    * Initializes this service and creates the Operation for running it,
+    * typically through the Server's OperationRunner. If the service could
+    * not be initialized, an exception should be set on the current thread
+    * indicating the reason why the service could not be initialized.
+    *
+    * @return the Operation for running this service, or NULL if the
+    *         service could not be initialized.
+    */
+   virtual monarch::modest::Operation initialize() = 0;
+
+   /**
+    * Called to clean up resources for this service that were created or
+    * obtained via a call to initialize(). If there are no resources to
+    * clean up, then this method should have no effect.
+    */
+   virtual void cleanup() = 0;
 };
 
 } // end namespace net

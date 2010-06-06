@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_UdpSocket_H
 #define monarch_net_UdpSocket_H
@@ -18,31 +18,6 @@ namespace net
  */
 class UdpSocket : public AbstractSocket
 {
-protected:
-   /**
-    * Acquiring a file descriptor for this Socket. This method must be called
-    * before trying to use this Socket.
-    *
-    * This method is called automatically by the default implementation.
-    *
-    * @param domain the communication domain for this Socket (i.e. IPv4, IPv6).
-    *
-    * @return true if the file descriptor could be acquired, false if
-    *         an exception occurred.
-    */
-   virtual bool acquireFileDescriptor(
-      SocketAddress::CommunicationDomain domain);
-
-   /**
-    * Creates a new Socket with the given file descriptor that points to
-    * the socket for an accepted connection.
-    *
-    * @param fd the file descriptor for the socket.
-    *
-    * @return the allocated Socket.
-    */
-   virtual Socket* createConnectedSocket(unsigned int fd);
-
 public:
    /**
     * Creates a new UdpSocket.
@@ -132,6 +107,31 @@ public:
     * @return true if broadcasting was set, false if an exception occurred.
     */
    virtual bool setBroadcastEnabled(bool enable);
+
+protected:
+   /**
+    * Acquiring a file descriptor for this Socket. This method must be called
+    * before trying to use this Socket.
+    *
+    * This method is called automatically by the default implementation.
+    *
+    * @param domain the communication domain for this Socket (i.e. IPv4, IPv6).
+    *
+    * @return true if the file descriptor could be acquired, false if
+    *         an exception occurred.
+    */
+   virtual bool acquireFileDescriptor(
+      SocketAddress::CommunicationDomain domain);
+
+   /**
+    * Creates a new Socket with the given file descriptor that points to
+    * the socket for an accepted connection.
+    *
+    * @param fd the file descriptor for the socket.
+    *
+    * @return the allocated Socket.
+    */
+   virtual Socket* createConnectedSocket(int fd);
 };
 
 } // end namespace net

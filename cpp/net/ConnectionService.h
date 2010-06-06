@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_ConnectionService_H
 #define monarch_net_ConnectionService_H
@@ -61,27 +61,14 @@ protected:
    int32_t mCurrentConnections;
 
    /**
+    * The number of connections to backlog.
+    */
+   int mBacklog;
+
+   /**
     * A list of Operations running ConnectionServicers.
     */
    monarch::modest::OperationList mRunningServicers;
-
-   /**
-    * Initializes this service and creates the Operation for running it,
-    * typically through the Server's OperationRunner. If the service could
-    * not be initialized, an exception should be set on the current thread
-    * indicating the reason why the service could not be initialized.
-    *
-    * @return the Operation for running this service, or NULL if the
-    *         service could not be initialized.
-    */
-   virtual monarch::modest::Operation initialize();
-
-   /**
-    * Called to clean up resources for this service that were created or
-    * obtained via a call to initialize(). If there are no resources to
-    * clean up, then this method should have no effect.
-    */
-   virtual void cleanup();
 
 public:
    /**
@@ -218,6 +205,40 @@ public:
     * @return the current number of connections being serviced.
     */
    virtual int32_t getConnectionCount();
+
+   /**
+    * Sets the number of connections to backlog. Must be set before starting
+    * the PortService.
+    *
+    * @param backlog the number of connections to backlog.
+    */
+   virtual void setBacklog(int backlog);
+
+   /**
+    * Gets the number of connections to backlog.
+    *
+    * @return the number of connections to backlog.
+    */
+   virtual int getBacklog();
+
+protected:
+   /**
+    * Initializes this service and creates the Operation for running it,
+    * typically through the Server's OperationRunner. If the service could
+    * not be initialized, an exception should be set on the current thread
+    * indicating the reason why the service could not be initialized.
+    *
+    * @return the Operation for running this service, or NULL if the
+    *         service could not be initialized.
+    */
+   virtual monarch::modest::Operation initialize();
+
+   /**
+    * Called to clean up resources for this service that were created or
+    * obtained via a call to initialize(). If there are no resources to
+    * clean up, then this method should have no effect.
+    */
+   virtual void cleanup();
 };
 
 } // end namespace net

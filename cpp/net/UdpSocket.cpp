@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/UdpSocket.h"
 
@@ -21,45 +21,6 @@ UdpSocket::UdpSocket()
 
 UdpSocket::~UdpSocket()
 {
-}
-
-bool UdpSocket::acquireFileDescriptor(SocketAddress::CommunicationDomain domain)
-{
-   bool rval = true;
-
-   if(mFileDescriptor == -1)
-   {
-      // use PF_INET = "protocol family internet" (which just so happens to
-      // have the same value as AF_INET but that's only because different
-      // protocols were never used with the same address family
-      if(domain == SocketAddress::IPv6)
-      {
-         // use IPv6
-         rval = create(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-      }
-      else
-      {
-         // default to IPv4
-         rval = create(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-      }
-   }
-
-   return rval;
-}
-
-Socket* UdpSocket::createConnectedSocket(unsigned int fd)
-{
-   // create a new UdpSocket
-   UdpSocket* socket = new UdpSocket();
-   socket->mFileDescriptor = fd;
-   socket->mBound = true;
-   socket->mConnected = true;
-
-   // initialize input and output
-   socket->initializeInput();
-   socket->initializeOutput();
-
-   return socket;
 }
 
 bool UdpSocket::joinGroup(SocketAddress* group, SocketAddress* localAddress)
@@ -298,4 +259,43 @@ bool UdpSocket::setBroadcastEnabled(bool enable)
    }
 
    return error == 0;
+}
+
+bool UdpSocket::acquireFileDescriptor(SocketAddress::CommunicationDomain domain)
+{
+   bool rval = true;
+
+   if(mFileDescriptor == -1)
+   {
+      // use PF_INET = "protocol family internet" (which just so happens to
+      // have the same value as AF_INET but that's only because different
+      // protocols were never used with the same address family
+      if(domain == SocketAddress::IPv6)
+      {
+         // use IPv6
+         rval = create(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+      }
+      else
+      {
+         // default to IPv4
+         rval = create(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+      }
+   }
+
+   return rval;
+}
+
+Socket* UdpSocket::createConnectedSocket(int fd)
+{
+   // create a new UdpSocket
+   UdpSocket* socket = new UdpSocket();
+   socket->mFileDescriptor = fd;
+   socket->mBound = true;
+   socket->mConnected = true;
+
+   // initialize input and output
+   socket->initializeInput();
+   socket->initializeOutput();
+
+   return socket;
 }
