@@ -62,6 +62,7 @@ TEST_MODS = \
 	test-modest \
 	test-modexp \
 	test-net \
+	test-pong \
 	test-rt \
 	$(SPHINX_EXECUTABLES) \
 	test-sqlite3 \

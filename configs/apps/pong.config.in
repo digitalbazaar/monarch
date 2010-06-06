@@ -1,0 +1,25 @@
+{
+   "_id_": "monarch.apps.test.pong",
+   "_version_": "Monarch Config 3.0",
+   "_group_": "after defaults",
+   "_append_": {
+      "monarch.app.Kernel": {
+         "appPath": "@MONARCH_DIR@/dist/modules/apps/@LIB_PREFIX@motester.@DYNAMIC_LIB_EXT@",
+         "modulePath": [
+            "@MONARCH_DIR@/dist/modules/tests/@LIB_PREFIX@motest-pong.@DYNAMIC_LIB_EXT@"
+         ]
+      }
+   },
+   "_merge_": {
+      "pong": {
+         "chunked": false,
+         "dynoStats": false,
+         "num": 0,
+         "port": 19500,
+         "ssl": false,
+         "time": 0,
+         "threadStackSize": 131072,
+         "threads": 10
+      }
+   }
+}
