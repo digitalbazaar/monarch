@@ -36,13 +36,12 @@ Getting Started
 
 To compile and run on Linux:
 
-./autogen.sh
-./configure
+./build-setup
 make
 
 To compile and run on Intel Mac OS X:
 
-./autogen.sh
+./build-setup -s
 ./configure --enable-macos
 make
 
@@ -50,7 +49,7 @@ To compile for Windows XP, Vista, 7:
 * You must have the mingw32 compiler toolchain - the easiest way to get
 this working is to use Linux and cross-compile for Windows.
 
-./autogen.sh
+./build-setup -s
 ./configure --enable-windows
 make
 
@@ -58,7 +57,6 @@ make
 To test the various subsystems in Linux and Mac OS X:
 
 make test
-
 
 System Details
 --------------
