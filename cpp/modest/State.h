@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_modest_State_H
 #define monarch_modest_State_H
 
 #include "monarch/modest/ImmutableState.h"
-#include "monarch/rt/ExclusiveLock.h"
 
 #include <map>
 #include <cstring>
@@ -21,7 +20,7 @@ namespace modest
  *
  * @author Dave Longley
  */
-class State : public virtual monarch::rt::ExclusiveLock, public ImmutableState
+class State : public ImmutableState
 {
 protected:
    /**

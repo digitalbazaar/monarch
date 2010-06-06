@@ -56,67 +56,61 @@ void OperationDispatcher::dispatchJobs()
       {
          impl = static_cast<OperationImpl*>(*i);
 
-         // lock engine state
-         state->lock();
+         // check the Operation's guard restrictions
+         guardCheck = 0;
+         if(impl->getGuard() != NULL)
          {
-            // check the Operation's guard restrictions
-            guardCheck = 0;
-            if(impl->getGuard() != NULL)
+            Operation& op = mOpMap[impl];
+            if(!impl->getGuard()->canExecuteOperation(state, op))
             {
-               Operation& op = mOpMap[impl];
-               if(!impl->getGuard()->canExecuteOperation(state, op))
+               if(!impl->isInterrupted() &&
+                  !impl->getGuard()->mustCancelOperation(state, op))
                {
-                  if(!impl->isInterrupted() &&
-                     !impl->getGuard()->mustCancelOperation(state, op))
-                  {
-                     // operation can wait
-                     guardCheck = 1;
-                  }
-                  else
-                  {
-                     // operation must be canceled
-                     guardCheck = 2;
-                  }
+                  // operation can wait
+                  guardCheck = 1;
+               }
+               else
+               {
+                  // operation must be canceled
+                  guardCheck = 2;
                }
             }
-
-            switch(guardCheck)
-            {
-               case 0:
-                  // Operation is executable, enable dispatching and unqueue
-                  mDispatch = true;
-                  i = mJobQueue.erase(i);
-
-                  // do pre-execution state mutation
-                  if(impl->getStateMutator() != NULL)
-                  {
-                     impl->getStateMutator()->mutatePreExecutionState(
-                        state, mOpMap[impl]);
-                  }
-
-                  // try to run the operation
-                  if(getThreadPool()->tryRunJob(*impl))
-                  {
-                     // Operation executed, no need to run it outside of loop
-                     impl = NULL;
-                  }
-                  break;
-               case 1:
-                  // move to next Operation
-                  impl = NULL;
-                  i++;
-                  break;
-               case 2:
-                  // Operation is canceled, stop, unmap and unqueue
-                  impl->stop();
-                  mOpMap.erase(impl);
-                  i = mJobQueue.erase(i);
-                  impl = NULL;
-                  break;
-            }
          }
-         // unlock engine state
-         state->unlock();
+
+         switch(guardCheck)
+         {
+            case 0:
+               // Operation is executable, enable dispatching and unqueue
+               mDispatch = true;
+               i = mJobQueue.erase(i);
+
+               // do pre-execution state mutation
+               if(impl->getStateMutator() != NULL)
+               {
+                  impl->getStateMutator()->mutatePreExecutionState(
+                     state, mOpMap[impl]);
+               }
+
+               // try to run the operation
+               if(getThreadPool()->tryRunJob(*impl))
+               {
+                  // Operation executed, no need to run it outside of loop
+                  impl = NULL;
+               }
+               break;
+            case 1:
+               // move to next Operation
+               impl = NULL;
+               i++;
+               break;
+            case 2:
+               // Operation is canceled, stop, unmap and unqueue
+               impl->stop();
+               mOpMap.erase(impl);
+               i = mJobQueue.erase(i);
+               impl = NULL;
+               break;
+         }
       }
    }
    unlock();
@@ -188,11 +182,7 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
       if(op->getStateMutator() != NULL)
       {
          State* state = static_cast<State*>(mEngine->getState());
-         state->lock();
-         {
-            op->getStateMutator()->mutatePostExecutionState(state, op);
-         }
-         state->unlock();
+         op->getStateMutator()->mutatePostExecutionState(state, op);
       }
 
       // stop operation, resume dispatching
@@ -218,11 +208,13 @@ Operation OperationDispatcher::getCurrentOperation()
    OperationImpl* impl = static_cast<OperationImpl*>(thread->getUserData());
    if(impl != NULL)
    {
+      lock();
       OperationMap::iterator i = mOpMap.find(impl);
       if(i != mOpMap.end())
       {
          rval = i->second;
       }
+      unlock();
    }
 
    return rval;
