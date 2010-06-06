@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_JobDispatcher_H
 #define monarch_rt_JobDispatcher_H
@@ -19,7 +19,7 @@ namespace rt
  *
  * @author Dave Longley
  */
-class JobDispatcher : public virtual ExclusiveLock, public Runnable
+class JobDispatcher : public Runnable
 {
 protected:
    /**
@@ -52,29 +52,9 @@ protected:
    Thread* mDispatcherThread;
 
    /**
-    * The wait lock for this dispatcher.
+    * The lock for this dispatcher.
     */
-   ExclusiveLock mWaitLock;
-
-   /**
-    * Wakes up this dispatcher if it has gone to sleep waiting for
-    * jobs to become dispatchable.
-    */
-   virtual void wakeup();
-
-   /**
-    * Returns true if this dispatcher has a job it can dispatch.
-    *
-    * @return true if this dispatcher has a job it can dispatch.
-    */
-   virtual bool canDispatch();
-
-   /**
-    * Gets the dispatcher thread.
-    *
-    * @return the dispatcher thread.
-    */
-   virtual Thread* getDispatcherThread();
+   ExclusiveLock mLock;
 
 public:
    /**
@@ -194,6 +174,20 @@ public:
     *         plus the Runnable jobs that are already running.
     */
    virtual unsigned int getTotalJobCount();
+
+protected:
+   /**
+    * Wakes up this dispatcher if it has gone to sleep waiting for
+    * jobs to become dispatchable.
+    */
+   virtual void wakeup();
+
+   /**
+    * Returns true if this dispatcher has a job it can dispatch.
+    *
+    * @return true if this dispatcher has a job it can dispatch.
+    */
+   virtual bool canDispatch();
 };
 
 } // end namespace rt

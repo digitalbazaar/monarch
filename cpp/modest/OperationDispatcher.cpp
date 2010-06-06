@@ -11,11 +11,10 @@ using namespace monarch::rt;
 
 OperationDispatcher::OperationDispatcher(Engine* e) :
    ThreadPool(100),
-   JobDispatcher(this, false)
+   JobDispatcher(this, false),
+   mEngine(e),
+   mDispatch(false)
 {
-   mEngine = e;
-   mDispatch = false;
-
    // set thread expire time to 2 minutes (120000 milliseconds) by default
    getThreadPool()->setThreadExpireTime(120000);
 }
@@ -44,7 +43,7 @@ void OperationDispatcher::dispatchJobs()
    // get engine state
    State* state = static_cast<State*>(mEngine->getState());
 
-   lock();
+   mLock.lock();
    {
       // turn off dispatching until an Operation executes or is canceled
       mDispatch = false;
@@ -113,7 +112,7 @@ void OperationDispatcher::dispatchJobs()
          }
       }
    }
-   unlock();
+   mLock.unlock();
 
    if(impl != NULL)
    {
@@ -124,7 +123,7 @@ void OperationDispatcher::dispatchJobs()
 
 void OperationDispatcher::queueOperation(Operation& op)
 {
-   lock();
+   mLock.lock();
    {
       // ensure to enable dispatching, then add operation to queue and map
       mDispatch = true;
@@ -134,12 +133,12 @@ void OperationDispatcher::queueOperation(Operation& op)
       // wake up dispatcher inside lock to ensure dispatch flag doesn't change
       wakeup();
    }
-   unlock();
+   mLock.unlock();
 }
 
 void OperationDispatcher::clearQueuedOperations()
 {
-   lock();
+   mLock.lock();
    {
       // remove all job queue entries from the map
       for(list<Runnable*>::iterator i = mJobQueue.begin();
@@ -148,26 +147,24 @@ void OperationDispatcher::clearQueuedOperations()
          mOpMap.erase(static_cast<OperationImpl*>(*i));
       }
 
-      // clear queue
+      // clear queue, wake up
       mJobQueue.clear();
+      wakeup();
    }
-   unlock();
-
-   // wake up dispatcher, don't care if dispatch flag changes
-   wakeup();
+   mLock.unlock();
 }
 
 void OperationDispatcher::terminateRunningOperations()
 {
    JobDispatcher::terminateAllRunningJobs();
 
-   // wake up dispatcher, don't care if dispatch flag changes
+   // wake up dispatcher, don't care if dispatch flag changes no need to lock
    wakeup();
 }
 
 void OperationDispatcher::jobCompleted(PooledThread* t)
 {
-   lock();
+   mLock.lock();
    {
       // Note: this method is executed by a PooledThread, external to an
       // Operation, so that the Operation can be safely garbage-collected
@@ -193,7 +190,7 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
       // remove operation reference from map
       mOpMap.erase(i);
    }
-   unlock();
+   mLock.unlock();
 
    // call parent method to release thread back into pool
    ThreadPool::jobCompleted(t);
@@ -208,13 +205,13 @@ Operation OperationDispatcher::getCurrentOperation()
    OperationImpl* impl = static_cast<OperationImpl*>(thread->getUserData());
    if(impl != NULL)
    {
-      lock();
+      mLock.lock();
       OperationMap::iterator i = mOpMap.find(impl);
       if(i != mOpMap.end())
       {
          rval = i->second;
       }
-      unlock();
+      mLock.unlock();
    }
 
    return rval;

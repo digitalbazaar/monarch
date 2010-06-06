@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/JobDispatcher.h"
 
@@ -47,14 +47,10 @@ JobDispatcher::~JobDispatcher()
    }
 }
 
-void JobDispatcher::wakeup()
+inline void JobDispatcher::wakeup()
 {
-   mWaitLock.lock();
-   {
-      // wake up dispatcher
-      mWaitLock.notifyAll();
-   }
-   mWaitLock.unlock();
+   // wake up dispatcher
+   mLock.notifyAll();
 }
 
 inline bool JobDispatcher::canDispatch()
@@ -62,54 +58,39 @@ inline bool JobDispatcher::canDispatch()
    return !mJobQueue.empty();
 }
 
-inline Thread* JobDispatcher::getDispatcherThread()
-{
-   return mDispatcherThread;
-}
-
 void JobDispatcher::queueJob(Runnable& job)
 {
-   lock();
+   mLock.lock();
    {
-      // add the job to the queue
+      // add the job to the queue and wakeup
       mJobQueue.push_back(&job);
+      wakeup();
    }
-   unlock();
-
-   // wake up dispatcher
-   wakeup();
+   mLock.unlock();
 }
 
 void JobDispatcher::queueJob(RunnableRef& job)
 {
-   lock();
+   mLock.lock();
    {
-      // add the job to the queue
+      // add the job to the queue and reference map, wakeup
       mJobQueue.push_back(&(*job));
-
-      // add job to the reference map
       mJobReferenceMap.insert(make_pair(&(*job), job));
+      wakeup();
    }
-   unlock();
-
-   // wake up dispatcher
-   wakeup();
+   mLock.unlock();
 }
 
 void JobDispatcher::dequeueJob(Runnable& job)
 {
-   lock();
+   mLock.lock();
    {
-      // remove the job from the queue
+      // remove the job from the queue, reference map, wakeup
       mJobQueue.remove(&job);
-
-      // remove job from the reference map
       mJobReferenceMap.erase(&job);
+      wakeup();
    }
-   unlock();
-
-   // wake up dispatcher
-   wakeup();
+   mLock.unlock();
 }
 
 inline void JobDispatcher::dequeueJob(RunnableRef& job)
@@ -119,7 +100,7 @@ inline void JobDispatcher::dequeueJob(RunnableRef& job)
 
 void JobDispatcher::dispatchJobs()
 {
-   lock();
+   mLock.lock();
    {
       // try to run all jobs in the queue
       bool run = true;
@@ -152,20 +133,19 @@ void JobDispatcher::dispatchJobs()
          }
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 bool JobDispatcher::isQueued(Runnable& job)
 {
    bool rval = false;
 
-   lock();
+   mLock.lock();
    {
-      RunnableList::iterator i =
-         find(mJobQueue.begin(), mJobQueue.end(), &job);
+      RunnableList::iterator i = find(mJobQueue.begin(), mJobQueue.end(), &job);
       rval = (i != mJobQueue.end());
    }
-   unlock();
+   mLock.unlock();
 
    return rval;
 }
@@ -177,7 +157,7 @@ inline bool JobDispatcher::isQueued(RunnableRef& job)
 
 void JobDispatcher::startDispatching()
 {
-   lock();
+   mLock.lock();
    {
       if(!isDispatching())
       {
@@ -188,24 +168,24 @@ void JobDispatcher::startDispatching()
          mDispatcherThread->start(131072);
       }
    }
-   unlock();
+   mLock.unlock();
 }
 
 void JobDispatcher::stopDispatching()
 {
    Thread* t = NULL;
 
-   lock();
+   mLock.lock();
    {
       if(isDispatching())
       {
          // interrupt dispatcher thread
-         t = getDispatcherThread();
+         t = mDispatcherThread;
          t->interrupt();
          mDispatcherThread = NULL;
       }
    }
-   unlock();
+   mLock.unlock();
 
    if(t != NULL)
    {
@@ -226,14 +206,12 @@ void JobDispatcher::run()
       }
       else
       {
-         mWaitLock.lock();
+         mLock.lock();
+         if(!canDispatch())
          {
-            if(!canDispatch())
-            {
-               mWaitLock.wait();
-            }
+            mLock.wait();
          }
-         mWaitLock.unlock();
+         mLock.unlock();
       }
    }
 }
@@ -242,27 +220,25 @@ bool JobDispatcher::isDispatching()
 {
    bool rval = false;
 
-   lock();
+   mLock.lock();
    {
-      rval = (getDispatcherThread() != NULL);
+      rval = (mDispatcherThread != NULL);
    }
-   unlock();
+   mLock.unlock();
 
    return rval;
 }
 
 void JobDispatcher::clearQueuedJobs()
 {
-   lock();
+   mLock.lock();
    {
-      // clear queue and map
+      // clear queue and map, wakeup
       mJobQueue.clear();
       mJobReferenceMap.clear();
+      wakeup();
    }
-   unlock();
-
-   // wake up dispatcher
-   wakeup();
+   mLock.unlock();
 }
 
 inline void JobDispatcher::interruptAllRunningJobs()
@@ -289,11 +265,11 @@ unsigned int JobDispatcher::getTotalJobCount()
 {
    unsigned int rval = 0;
 
-   lock();
+   mLock.lock();
    {
       rval = getQueuedJobCount() + getThreadPool()->getRunningThreadCount();
    }
-   unlock();
+   mLock.unlock();
 
    return rval;
 }

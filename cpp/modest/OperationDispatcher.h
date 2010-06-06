@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_modest_OperationDispatcher_H
 #define monarch_modest_OperationDispatcher_H
@@ -17,6 +17,10 @@ namespace modest
  * An OperationDispatcher is used to dispatch Operations for execution. Before
  * any Operation can be dispatched for execution, the associated Engine's
  * State must be checked against the Operation's guard for compatibility.
+ *
+ * OperationDispatcher extends ThreadPool to ensure that the engine state
+ * is mutated properly after jobs complete and before threads are returned
+ * to the pool.
  *
  * @author Dave Longley
  */
