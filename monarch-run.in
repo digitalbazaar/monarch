@@ -26,7 +26,7 @@ if [ "x${APP_PATH}" = x ]; then
    APP_PATH="@MONARCH_DIR@/configs/apps"
 fi
 if [ "x${VALGRIND_SUPP}" = x ]; then
-   VALGRIND_SUPP="@MONARCH_DIR@/monarch.supp"
+   VALGRIND_SUPP="@MONARCH_DIR@/setup/monarch.supp"
 fi
 
 help() {
