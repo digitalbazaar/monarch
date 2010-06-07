@@ -137,12 +137,6 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                // service request
                hrs->serviceRequest(request, response);
 
-               // if servicer closed connection, turn off keep-alive
-               if(c->isClosed())
-               {
-                  keepAlive = false;
-               }
-
                // turn off keep-alive if response has close connection field
                if(keepAlive)
                {
@@ -151,6 +145,12 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                   {
                      keepAlive = false;
                   }
+               }
+
+               // if servicer closed connection, turn off keep-alive
+               if(keepAlive && c->isClosed())
+               {
+                  keepAlive = false;
                }
             }
             else

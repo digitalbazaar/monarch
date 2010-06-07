@@ -649,15 +649,21 @@ bool AbstractSocket::isConnected()
       getsockopt(
          mFileDescriptor, SOL_SOCKET, SO_ERROR,
          (char*)&lastError, &lastErrorLength);
-      if(lastError == EPIPE)
+      if(lastError != 0 && lastError != EINPROGRESS && lastError != EINTR)
       {
-         // connection severed
-         errno = lastError;
+         if(lastError == EBADF)
+         {
+            // error with file descriptor, clear it
+            mFileDescriptor = -1;
+         }
+
+         // error on connection, consider pipe broken
+         errno = EPIPE;
          close();
       }
       else
       {
-         // check to see if the connection has been shutdown, by seeing
+         // check to see if the connection has been shutdown by seeing
          // if recv() will return 0 (do a peek so as not to disturb data)
          char buf;
          int flags = MSG_PEEK;
@@ -671,13 +677,16 @@ bool AbstractSocket::isConnected()
             errno = EPIPE;
             close();
          }
-         else if(ret == -1)
+         // check for error other than no data (EAGAIN) or in progress
+         else if(ret == -1 && errno != EAGAIN && errno != EINPROGRESS)
          {
-            // error on connection, consider it broken
             if(errno == EBADF)
             {
+               // error with file descriptor, clear it
                mFileDescriptor = -1;
             }
+
+            // error on connection, consider it broken
             errno = EPIPE;
             close();
          }
@@ -730,7 +739,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
 {
    bool rval = false;
 
-   if(!isConnected())
+   if(mConnected)
    {
       ExceptionRef e = new Exception(
          "Cannot get local address for an unconnected socket.",
@@ -748,6 +757,12 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
          mFileDescriptor, (sockaddr*)&addr, &size);
       if(error < 0)
       {
+         // invalidate file descriptor if bad
+         if(errno == EBADF)
+         {
+            mFileDescriptor = -1;
+            close();
+         }
          ExceptionRef e = new Exception(
             "Could not get socket remote address.",
             SOCKET_EXCEPTION_TYPE);
