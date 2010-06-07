@@ -150,6 +150,13 @@ bool AbstractSocket::select(bool read, int64_t timeout)
                "Could not write to socket.", SOCKET_EXCEPTION_TYPE);
             e->getDetails()["error"] = strerror(errno);
          }
+
+         // clear file descriptor and close if its bad
+         if(errno == EBADF)
+         {
+            mFileDescriptor = -1;
+            close();
+         }
       }
    }
    else if(error == 0)
@@ -602,24 +609,24 @@ int AbstractSocket::receive(char* b, int length)
 
 void AbstractSocket::close()
 {
+   // shutdown input and output
+   shutdownInput();
+   shutdownOutput();
+
    if(mFileDescriptor != -1)
    {
-      // shutdown input and output
-      shutdownInput();
-      shutdownOutput();
-
       // shutdown and close the socket
       SOCKET_MACRO_shutdown(mFileDescriptor, SHUT_RDWR);
       SOCKET_MACRO_close(mFileDescriptor);
 
       // file descriptor is invalid again
       mFileDescriptor = -1;
-
-      // not bound, listening, or connected
-      mBound = false;
-      mListening = false;
-      mConnected = false;
    }
+
+   // not bound, listening, or connected
+   mBound = false;
+   mListening = false;
+   mConnected = false;
 }
 
 inline bool AbstractSocket::isBound()
@@ -661,6 +668,16 @@ bool AbstractSocket::isConnected()
          if(ret == 0)
          {
             // connection severed
+            errno = EPIPE;
+            close();
+         }
+         else if(ret == -1)
+         {
+            // error on connection, consider it broken
+            if(errno == EBADF)
+            {
+               mFileDescriptor = -1;
+            }
             errno = EPIPE;
             close();
          }

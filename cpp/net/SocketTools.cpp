@@ -17,7 +17,7 @@ using namespace monarch::rt;
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX 255
 #endif
-#include <cstdio>
+
 int SocketTools::select(bool read, int fd, int64_t timeout)
 {
    int rval = 0;
@@ -159,20 +159,25 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
       }
    }
 
-   if(t->isInterrupted())
+   if(rval > 0)
    {
-      rval = -1;
-      errno = EINTR;
+      if(t->isInterrupted())
+      {
+         rval = -1;
+         errno = EINTR;
 
-      // set interrupted exception
-      ExceptionRef e = t->createInterruptedException();
-      Exception::set(e);
-   }
-   else if(rval > 0 && FD_ISSET(fd, &exfds) != 0)
-   {
-      // an exception occurred with the file descriptor
-      rval = -1;
-      errno = EBADF;
+         // set interrupted exception
+         ExceptionRef e = t->createInterruptedException();
+         Exception::set(e);
+      }
+      else if(FD_ISSET(fd, &exfds) != 0)
+      {
+         // exception occurred with file descriptor, consider pipe broken,
+         // cannot mark it as a bad file descriptor here or else it won't
+         // be closed
+         rval = -1;
+         errno = EPIPE;
+      }
    }
 
    return rval;
