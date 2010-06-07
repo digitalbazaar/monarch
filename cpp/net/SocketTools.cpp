@@ -17,7 +17,7 @@ using namespace monarch::rt;
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX 255
 #endif
-
+#include <cstdio>
 int SocketTools::select(bool read, int fd, int64_t timeout)
 {
    int rval = 0;
@@ -119,7 +119,7 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
 
       // select() implementation may alter sets or timeout, so reset them
       // if calling select() again (not interrupted and timeout >= 0)
-      if(rval == 0 && timeout >= 0)
+      if(rval == 0)
       {
          // clear sets and re-add file descriptor
          FD_ZERO(&rfds);
@@ -131,7 +131,14 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
 
          // reset timeout
          to.tv_sec = 0;
-         to.tv_usec = intck * INT64_C(1000);
+         if(timeout < 0)
+         {
+            to.tv_usec = 0;
+         }
+         else
+         {
+            to.tv_usec = intck * INT64_C(1000);
+         }
       }
 
       if(timeout != 0)
