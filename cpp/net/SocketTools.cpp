@@ -74,13 +74,13 @@ int SocketTools::poll(bool read, int fd, int64_t timeout)
             errno = EPIPE;
          }
          // file descriptor not open
-         else if(fds.events & POLLNVAL)
+         else if(fds.revents & POLLNVAL)
          {
             rval = -1;
             errno = EBADF;
          }
          // error
-         else if(fds.events & POLLERR)
+         else if(fds.revents & POLLERR)
          {
             // some kind of IO error
             rval = -1;
