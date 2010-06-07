@@ -739,7 +739,7 @@ bool AbstractSocket::getRemoteAddress(SocketAddress* address)
 {
    bool rval = false;
 
-   if(mConnected)
+   if(!mConnected)
    {
       ExceptionRef e = new Exception(
          "Cannot get local address for an unconnected socket.",
