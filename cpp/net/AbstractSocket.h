@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_AbstractSocket_H
 #define monarch_net_AbstractSocket_H
@@ -92,7 +92,7 @@ protected:
     * @param domain the communication domain (i.e. PF_INET or PF_INET6).
     * @param type the type of Socket to create (i.e. SOCK_STREAM or SOCK_DGRAM).
     * @param protocol the protocol for the Socket
-    *                 (i.e. IPPROTO_TCP or IPPROTO_UDP).
+    *           (i.e. IPPROTO_TCP or IPPROTO_UDP).
     *
     * @return true if the socket could be created, false if an exception
     *         occurred.
@@ -104,13 +104,13 @@ protected:
     * written to, a timeout, or until a connection closes.
     *
     * @param read true to block until data can be received, false to block
-    *             until data can be sent.
+    *           until data can be sent.
     * @param timeout the timeout to use in milliseconds (0 for no timeout
-    *                and -1 for immediate timeout).
+    *           and -1 for immediate timeout).
     *
     * @return false if an exception occurred, true if not.
     */
-   virtual bool select(bool read, int64_t timeout);
+   virtual bool waitUntilReady(bool read, int64_t timeout);
 
    /**
     * Acquiring a file descriptor for this Socket. This method must be called
