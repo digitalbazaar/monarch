@@ -33,9 +33,6 @@ int SocketTools::poll(bool read, int fd, int64_t timeout)
    fds.fd = fd;
    fds.events = read ? POLLIN : POLLOUT;
 
-   // "n" parameter is the highest numbered descriptor plus 1
-   int n = fd + 1;
-
    // set 20 millisecond interrupt check timeout (currently necessary to
    // enable thread interruptions)
    int intck = INT32_C(20);
@@ -61,8 +58,8 @@ int SocketTools::poll(bool read, int fd, int64_t timeout)
    Thread* t = Thread::currentThread();
    while(remaining > 0 && rval == 0 && !t->isInterrupted())
    {
-      // wait for file descriptors to be updated
-      rval = ::poll(&fds, n, to);
+      // wait for file descriptor to be updated
+      rval = ::poll(&fds, 1, to);
 
       // check for error events
       if(rval > 0)
