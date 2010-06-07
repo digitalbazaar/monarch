@@ -562,37 +562,37 @@ int AbstractSocket::receive(char* b, int length)
       rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, flags);
       if(rval < 0)
       {
-         // see if no data is available (EGAIN)
-         if(errno == EAGAIN)
+         // see if error is other than no data is available (EAGAIN)
+         if(errno != EAGAIN)
          {
-            if(isReceiveNonBlocking())
-            {
-               // using asynchronous IO
-               ExceptionRef e = new Exception(
-                  "Socket would block during receive.",
-                  SOCKET_EXCEPTION_TYPE ".WouldBlock");
-               e->getDetails()["wouldBlock"] = true;
-               Exception::set(e);
-            }
-            else
-            {
-               // wait for data to become available
-               if(select(true, getReceiveTimeout()))
-               {
-                  // receive data (should not block)
-                  rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, 0);
-               }
-            }
-         }
-
-         // check for error again
-         if(rval < 0 && errno != EAGAIN)
-         {
-            // socket error
             ExceptionRef e = new Exception(
                "Could not read from socket.", SOCKET_EXCEPTION_TYPE);
             e->getDetails()["error"] = strerror(errno);
             Exception::set(e);
+         }
+         // FIXME: this will probably work differently in the future
+         // non-blocking socket, set exception
+         else if(isReceiveNonBlocking())
+         {
+            // using asynchronous IO
+            ExceptionRef e = new Exception(
+               "Socket would block during receive.",
+               SOCKET_EXCEPTION_TYPE ".WouldBlock");
+            e->getDetails()["wouldBlock"] = true;
+            Exception::set(e);
+         }
+         // wait for data to become available
+         else if(select(true, getReceiveTimeout()))
+         {
+            // receive data (should not block)
+            rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, 0);
+            if(rval < 0)
+            {
+               ExceptionRef e = new Exception(
+                  "Could not read from socket.", SOCKET_EXCEPTION_TYPE);
+               e->getDetails()["error"] = strerror(errno);
+               Exception::set(e);
+            }
          }
       }
    }
