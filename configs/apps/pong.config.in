@@ -8,9 +8,17 @@
          "modulePath": [
             "@MONARCH_DIR@/dist/modules/tests/@LIB_PREFIX@motest-pong.@DYNAMIC_LIB_EXT@"
          ]
+      },
+      "monarch.apps.tester.Tester": {
+         "tests": [
+            "pong"
+         ]
       }
    },
    "_merge_": {
+      "monarch.apps.tester.Tester": {
+         "level": 0
+      },
       "pong": {
          "chunked": false,
          "dynoStats": false,

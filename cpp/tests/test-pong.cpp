@@ -9,6 +9,7 @@
 #include "monarch/io/FileInputStream.h"
 #include "monarch/io/FileOutputStream.h"
 #include "monarch/io/FileList.h"
+#include "monarch/io/InputStream.h"
 #include "monarch/logging/Logging.h"
 #include "monarch/modest/Kernel.h"
 #include "monarch/net/TcpSocket.h"
@@ -24,6 +25,7 @@
 #include "monarch/net/NullSocketDataPresenter.h"
 #include "monarch/net/SslSocketDataPresenter.h"
 #include "monarch/net/SocketDataPresenterList.h"
+#include "monarch/net/Url.h"
 #include "monarch/rt/Atomic.h"
 #include "monarch/rt/ExclusiveLock.h"
 #include "monarch/rt/System.h"
@@ -53,25 +55,27 @@ namespace mo_test_pong
  * 
  * Invoke with the following:
  *
- *   ./monarch-run pong -t pong
+ *   ./monarch-run pong
  *
  * See configs/apps/pong.config.in for option defaults. Use standard monarch
  * "--json-option key=value" option to adjust options.
  *
- * pong.chunked=<bool>: use chunked encoding
- * pong.dynoStats=<bool>: return DynamicObject stats with regular stats
- * pong.num=<int32>: number of connections to service
- * pong.port=<int32>: port to serve on
- * pong.ssl=<bool>: use SSL
- * pong.time=<int32>: milliseconds to run the test
- * pong.threadStackSize=<int32>: set stack size
- * pong.threads=<int32>: set number of threads
- * pong.maxConnections=<int32>: set max number of connections
- * pong.backlog=<int32>: set connection backlog queue size
+ *    pong.chunked=<bool>: use chunked encoding
+ *    pong.dynoStats=<bool>: return DynamicObject stats with regular stats
+ *    pong.num=<int32>: number of connections to service
+ *    pong.port=<int32>: port to serve on
+ *    pong.ssl=<bool>: use SSL
+ *    pong.time=<int32>: milliseconds to run the test
+ *    pong.threadStackSize=<int32>: set stack size
+ *    pong.threads=<int32>: set number of threads
+ *    pong.maxConnections=<int32>: set max number of connections
+ *    pong.backlog=<int32>: set connection backlog queue size
  *
  * Endpoints:
- * /: return "Pong!"
- * /stats: return JSON object with various
+ *    /: return "204 No Content"
+ *    /pong: return "Pong!"
+ *    /data[/size]: return a specified number of bytes of content. default=0.
+ *    /stats: return JSON object with various
  *
  */
 
@@ -161,7 +165,34 @@ public:
    }
 };
 
-class PingHttpRequestServicer : public HttpRequestServicer
+class NoContentServicer : public HttpRequestServicer
+{
+protected:
+   PingPong* mPingPong;
+
+public:
+   NoContentServicer(PingPong* pingPong, const char* path) :
+      HttpRequestServicer(path),
+      mPingPong(pingPong)
+   {
+   }
+
+   virtual ~NoContentServicer()
+   {
+   }
+
+   virtual void serviceRequest(
+      HttpRequest* request, HttpResponse* response)
+   {
+      response->getHeader()->setStatus(204, "No Content");
+      response->getHeader()->setField("Content-Length", 0);
+      response->getHeader()->setField("Connection", "close");
+      response->sendHeader();
+      mPingPong->service();
+   }
+};
+
+class PingServicer : public HttpRequestServicer
 {
 protected:
    PingPong* mPingPong;
@@ -169,22 +200,23 @@ protected:
    bool mChunked;
 
 public:
-   PingHttpRequestServicer(PingPong* pingPong, const char* path) :
+   PingServicer(PingPong* pingPong, const char* path) :
       HttpRequestServicer(path),
       mPingPong(pingPong)
    {
-      mContent = "Pong!";
       mChunked = pingPong->getConfig()["chunked"]->getBoolean();
    }
 
-   virtual ~PingHttpRequestServicer()
+   virtual ~PingServicer()
    {
    }
 
    virtual void serviceRequest(
       HttpRequest* request, HttpResponse* response)
    {
+      const char* str = "Pong!";
       int len = 5;
+
       // send 200 OK
       response->getHeader()->setStatus(200, "OK");
       if(mChunked)
@@ -198,25 +230,109 @@ public:
       response->getHeader()->setField("Content-Type", "text/plain");
       response->getHeader()->setField("Connection", "close");
       response->sendHeader();
-      ByteArrayInputStream bais(mContent, len);
+      ByteArrayInputStream bais(str, len);
       response->sendBody(&bais, NULL);
       mPingPong->service();
    }
 };
 
-class StatsHttpRequestServicer : public HttpRequestServicer
+class ConstByteInputStream : public InputStream
+{
+protected:
+   int mLength;
+   char mData[4096];
+
+public:
+   ConstByteInputStream(char b, int length) :
+      mLength(length)
+   {
+      memset(mData, b, min(mLength, 4096));
+   }
+
+   int read(char* b, int length)
+   {
+      // max is 4k or remaining, let higher levels loop
+      int max = min(mLength, 4096);
+      // return max or length
+      int rval = min(max, length);
+      // reduce remaining
+      mLength -= rval;
+      memcpy(b, mData, rval);
+      return rval;
+   }
+};
+
+class DataServicer : public HttpRequestServicer
+{
+protected:
+   PingPong* mPingPong;
+   string mPath;
+   bool mChunked;
+
+public:
+   DataServicer(PingPong* pingPong, const char* path) :
+      HttpRequestServicer(path),
+      mPingPong(pingPong),
+      mPath(path)
+   {
+      mChunked = pingPong->getConfig()["chunked"]->getBoolean();
+      if(mPath.length() > 0 && mPath[mPath.length()] != '/')
+      {
+         mPath.push_back('/');
+      }
+   }
+
+   virtual ~DataServicer()
+   {
+   }
+
+   virtual void serviceRequest(
+      HttpRequest* request, HttpResponse* response)
+   {
+      // get length param from value after root path, else 0
+      const char* path = request->getHeader()->getPath();
+      Url url(path);
+      DynamicObject tokens;
+      url.getTokenizedPath(tokens, mPath.c_str());
+      int len = 0;
+      if(tokens->length() > 0)
+      {
+         len = tokens[0]->getInt32();
+      }
+
+      // send 200 OK
+      response->getHeader()->setStatus(200, "OK");
+      if(mChunked)
+      {
+         response->getHeader()->setField("Transfer-Encoding", "chunked");
+      }
+      else
+      {
+         response->getHeader()->setField("Content-Length", len);
+      }
+      response->getHeader()->setField("Content-Type", "text/plain");
+      response->getHeader()->setField("Connection", "close");
+      response->sendHeader();
+      // send const bytes of a specified length
+      ConstByteInputStream cbis('.', len);
+      response->sendBody(&cbis, NULL);
+      mPingPong->service();
+   }
+};
+
+class StatsServicer : public HttpRequestServicer
 {
 protected:
    PingPong* mPingPong;
 
 public:
-   StatsHttpRequestServicer(PingPong* pingPong, const char* path) :
+   StatsServicer(PingPong* pingPong, const char* path) :
       HttpRequestServicer(path),
       mPingPong(pingPong)
    {
    }
 
-   virtual ~StatsHttpRequestServicer()
+   virtual ~StatsServicer()
    {
    }
 
@@ -252,19 +368,19 @@ public:
    }
 };
 
-class QuitHttpRequestServicer : public HttpRequestServicer
+class QuitServicer : public HttpRequestServicer
 {
 protected:
    PingPong* mPingPong;
 
 public:
-   QuitHttpRequestServicer(PingPong* pingPong, const char* path) :
+   QuitServicer(PingPong* pingPong, const char* path) :
       HttpRequestServicer(path),
       mPingPong(pingPong)
    {
    }
 
-   virtual ~QuitHttpRequestServicer()
+   virtual ~QuitServicer()
    {
    }
 
@@ -323,13 +439,19 @@ static void runPingTest(TestRunner& tr)
       cfg["backlog"]->getInt32());
 
    // create test http request servicer
-   PingHttpRequestServicer ping(&pingPong, "/");
+   NoContentServicer noContentSrv(&pingPong, "/");
+   hcs.addRequestServicer(&noContentSrv, false);
+
+   PingServicer ping(&pingPong, "/pong");
    hcs.addRequestServicer(&ping, false);
 
-   StatsHttpRequestServicer stats(&pingPong, "/stats");
+   DataServicer data(&pingPong, "/data");
+   hcs.addRequestServicer(&data, false);
+
+   StatsServicer stats(&pingPong, "/stats");
    hcs.addRequestServicer(&stats, false);
 
-   QuitHttpRequestServicer quit(&pingPong, "/quit");
+   QuitServicer quit(&pingPong, "/quit");
    hcs.addRequestServicer(&quit, false);
 
    if(server.start(&k))
