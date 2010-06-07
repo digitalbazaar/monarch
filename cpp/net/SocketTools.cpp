@@ -44,7 +44,11 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
    FD_SET(fd, &exfds);
 
    // "n" parameter is the highest numbered descriptor plus 1
+#ifdef WIN32
+   unsigned int n = fd + 1;
+#else
    int n = fd + 1;
+#endif
 
    // set 20 millisecond interrupt check timeout (necessary because
    // windows lacks SIGNAL support to do interruptions properly)
@@ -54,16 +58,15 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
    int64_t remaining = (timeout <= 0) ? intck : timeout;
 
    struct timeval to;
+   to.tv_sec = 0;
    if(timeout < 0)
    {
       // create instant timeout (polling)
-      to.tv_sec = 0;
       to.tv_usec = 0;
    }
    else
    {
       // create intck millisecond timeout (1 millisecond is 1000 microseconds)
-      to.tv_sec = 0;
       to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
    }
 
@@ -110,11 +113,6 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
                // connection not closed, but write timed out/was not detected
                // (bytes are readable but we weren't looking for that)
                rval = 0;
-            }
-            else
-            {
-               // error while receiving
-               rval = -1;
             }
          }
       }
