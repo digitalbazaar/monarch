@@ -48,6 +48,8 @@ void OperationDispatcher::dispatchJobs()
       // turn off dispatching until an Operation executes
       mDispatch = false;
 
+      // FIXME: ease lock contention when queuing vs. dispatching jobs
+
       // execute all Operations that can be executed
       int guardCheck;
       for(list<Runnable*>::iterator i = mJobQueue.begin();
