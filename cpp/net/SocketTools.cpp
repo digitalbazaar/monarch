@@ -82,27 +82,35 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
          // Note: We must test to see if the pipe is broken by
          // testing for readability -- as it will occur if the
          // connection closes due to TCP sending an RST to the
-         // socket which causes recv() to return 0
+         // socket ... and this will cause recv() to return 0
          rval = ::select(n, &rfds, &wfds, &exfds, &to);
          if(rval > 0 && !FD_ISSET(fd, &wfds) && FD_ISSET(fd, &rfds))
          {
-            // check to see if the connection has been shutdown, by seeing
-            // if recv() will return 0 (do a peek so as not to disturb data)
+            // readability flag switched, check to see if the connection has
+            // been shutdown, by seeing if recv() will return 0 (do a peek so
+            // as not to disturb real data)
             char buf;
             int flags = MSG_PEEK;
 #ifdef MSG_DONTWAIT
             flags |= MSG_DONTWAIT;
 #endif
-            if(SOCKET_MACRO_recv(fd, &buf, 1, flags) <= 0)
+            rval = SOCKET_MACRO_recv(fd, &buf, 1, flags);
+            if(rval == 0)
             {
-               // connection closed, or error
+               // connection closed
                rval = -1;
-               errno = EBADF;
+               errno = EPIPE;
+            }
+            else if(rval > 0)
+            {
+               // connection not closed, but write timed out/was not detected
+               // (bytes are readable but we weren't looking for that)
+               rval = 0;
             }
             else
             {
-               // connection not closed, but write timed out/not detected
-               rval = 0;
+               // error while receiving
+               rval = -1;
             }
          }
       }
