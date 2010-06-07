@@ -388,7 +388,7 @@ Socket* AbstractSocket::accept(int timeout)
 
          // shutdown and close the socket
          int ret = SOCKET_MACRO_shutdown(fd, SHUT_RDWR);
-         if(ret != -1 || errno != EBADF)
+         if(ret == 0 || errno != EBADF)
          {
             SOCKET_MACRO_close(fd);
          }
@@ -639,7 +639,7 @@ void AbstractSocket::close()
    {
       // shutdown and close the socket
       int ret = SOCKET_MACRO_shutdown(mFileDescriptor, SHUT_RDWR);
-      if(ret != -1 || errno != EBADF)
+      if(ret == 0 || errno != EBADF)
       {
          SOCKET_MACRO_close(mFileDescriptor);
       }
