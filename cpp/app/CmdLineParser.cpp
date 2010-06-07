@@ -198,11 +198,13 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
  * @param root the root object to look in.
  * @param path the path to the object.
  * @param createPaths true to create the paths if they don't exist.
+ * @param setExceptions true to set exceptions if not found, false not to.
  *
  * @return a pointer to the found object.
  */
 static DynamicObject* _findPath(
-   DynamicObject& root, const char* path, bool createPaths = true)
+   DynamicObject& root, const char* path,
+   bool createPaths = true, bool setExceptions = true)
 {
    // start target at given root dyno
    DynamicObject* target = &root;
@@ -256,11 +258,14 @@ static DynamicObject* _findPath(
             // if not creating paths and path segment doesn't exist, error
             if(!createPaths && !(*target)->hasMember(segment.c_str()))
             {
-               ExceptionRef e = new Exception(
-                  "DynamicObject path not found.",
-                  CMDLINE_ERROR);
-               e->getDetails()["path"] = path;
-               Exception::set(e);
+               if(setExceptions)
+               {
+                  ExceptionRef e = new Exception(
+                     "DynamicObject path not found.",
+                     CMDLINE_ERROR);
+                  e->getDetails()["path"] = path;
+                  Exception::set(e);
+               }
                target = NULL;
             }
             else
@@ -326,7 +331,7 @@ static bool _getTarget(
    else if(spec->hasMember("root") && spec->hasMember("path"))
    {
       const char* path = spec["path"]->getString();
-      DynamicObject* obj = _findPath(spec["root"], path, false);
+      DynamicObject* obj = _findPath(spec["root"], path, false, setExceptions);
       if(obj != NULL)
       {
          out = *obj;
@@ -348,7 +353,7 @@ static bool _getTarget(
    {
       const char* path = spec["path"]->getString();
       Config config = ar->getConfig();
-      DynamicObject* obj = _findPath(config, path, false);
+      DynamicObject* obj = _findPath(config, path, false, setExceptions);
       if(obj != NULL)
       {
          out = *obj;
