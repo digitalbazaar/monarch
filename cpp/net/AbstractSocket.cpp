@@ -84,6 +84,12 @@ bool AbstractSocket::create(int domain, int type, int protocol)
 #endif
       if(error < 0)
       {
+         // invalidate bad file descriptor
+         if(errno == EBADF)
+         {
+            mFileDescriptor = -1;
+         }
+
          // close socket
          close();
 
@@ -616,8 +622,11 @@ void AbstractSocket::close()
    if(mFileDescriptor != -1)
    {
       // shutdown and close the socket
-      SOCKET_MACRO_shutdown(mFileDescriptor, SHUT_RDWR);
-      SOCKET_MACRO_close(mFileDescriptor);
+      int ret = SOCKET_MACRO_shutdown(mFileDescriptor, SHUT_RDWR);
+      if(ret != -1 || errno != EBADF)
+      {
+         SOCKET_MACRO_close(mFileDescriptor);
+      }
 
       // file descriptor is invalid again
       mFileDescriptor = -1;
