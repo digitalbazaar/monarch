@@ -98,6 +98,11 @@ protected:
    bool mDoneOnException;
 
    /**
+    * List tests mode. Report all tests as disabled and print their name.
+    */
+   bool mListTests;
+
+   /**
     * Stack of current tests.
     */
    std::vector<std::string> mTestPath;
@@ -145,6 +150,13 @@ public:
     * @return the output level.
     */
    virtual OutputLevel getOutputLevel();
+
+   /**
+    * Set the list tests mode.
+    *
+    * @param listTests true to only list tests, false to run tests.
+    */
+   virtual void setListTests(bool listTests);
 
    /**
     * Set the enabled status of a test.

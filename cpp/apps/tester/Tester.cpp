@@ -39,6 +39,7 @@ bool Tester::initConfigs(Config& defaults)
    Config& c = defaults[ConfigManager::MERGE][APP_NAME];
    c["level"] = TestRunner::Names;
    c["continueAfterException"] = false;
+   c["listTests"] = false;
    c["tests"]->setType(Map);
    c["modules"]->setType(Map);
    return getConfigManager()->addConfig(defaults);
@@ -61,8 +62,9 @@ DynamicObject Tester::getCommandLineSpec(Config& cfg)
 "                         3: Test names and PASS/WARNING/FAIL status.\n"
 "                         4: Same as 3, plus test time.\n"
 "                      All levels have exit status of 0 on success.\n"
-"  --continue-after-exception\n"
+"      --continue-after-exception\n"
 "                      Continue after failure. (default: false).\n"
+"      --list-tests    List all named tests.\n"
 "  -t, --test TEST     Add TEST to list of enabled tests. (default: unit).\n"
 "      --test-module MODULE\n"
 "                      Add MODULE to list of enabled test modules.\n"
@@ -81,6 +83,11 @@ DynamicObject Tester::getCommandLineSpec(Config& cfg)
    opt["long"] = "--continue-after-exception";
    opt["setTrue"]["root"] = c;
    opt["setTrue"]["path"] = "continueAfterException";
+
+   opt = spec["options"]->append();
+   opt["long"] = "--list-tests";
+   opt["setTrue"]["root"] = c;
+   opt["setTrue"]["path"] = "listTests";
 
    opt = spec["options"]->append();
    opt["short"] = "-t";
@@ -115,6 +122,7 @@ bool Tester::run()
    }
 
    TestRunner tr(this, cont, level);
+   tr.setListTests(cfg["listTests"]->getBoolean());
 
    tr.group(NULL);
 

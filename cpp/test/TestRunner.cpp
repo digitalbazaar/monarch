@@ -23,7 +23,8 @@ TestRunner::TestRunner(
    mFailed(0),
    mWarnings(0),
    mOutputLevel(outputLevel),
-   mDoneOnException(doneOnException)
+   mDoneOnException(doneOnException),
+   mListTests(false)
 {
    enableTest(DEFAULT);
 }
@@ -57,6 +58,11 @@ TestRunner::OutputLevel TestRunner::getOutputLevel()
    return mOutputLevel;
 }
 
+void TestRunner::setListTests(bool listTests)
+{
+   mListTests = listTests;
+}
+
 void TestRunner::enableTest(std::string test, bool enabled)
 {
    mTests[test] = enabled;
@@ -64,8 +70,20 @@ void TestRunner::enableTest(std::string test, bool enabled)
 
 bool TestRunner::isTestEnabled(std::string test)
 {
-   std::map<string, bool>::iterator i = mTests.find(test);
-   return (i != mTests.end()) ? i->second : false;
+   bool rval = false;
+
+   if(mListTests)
+   {
+      printf("%s %s\n", getTestName().c_str(), test.c_str());
+      rval = false;
+   }
+   else
+   {
+      std::map<string, bool>::iterator i = mTests.find(test);
+      rval = (i != mTests.end()) ? i->second : false;
+   }
+
+   return rval;
 }
 
 bool TestRunner::isDefaultEnabled()
