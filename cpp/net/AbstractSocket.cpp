@@ -377,6 +377,22 @@ Socket* AbstractSocket::accept(int timeout)
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
       }
+      else if(fd > FD_SETSIZE)
+      {
+         // FIXME: currently limited by select() by FD_SETSIZE, any file
+         // descriptors larger than FD_SETSIZE are closed immediately
+         ExceptionRef e = new Exception(
+            "Could not accept connection. Too many file descriptors in use.",
+            SOCKET_EXCEPTION_TYPE);
+         Exception::set(e);
+
+         // shutdown and close the socket
+         int ret = SOCKET_MACRO_shutdown(fd, SHUT_RDWR);
+         if(ret != -1 || errno != EBADF)
+         {
+            SOCKET_MACRO_close(fd);
+         }
+      }
       else if(fd != 0)
       {
          bool success = true;
