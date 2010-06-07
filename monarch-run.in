@@ -157,6 +157,7 @@ case "${MODE}" in
          --show-reachable=yes \
          --tool=memcheck \
          --leak-check=full \
+         --track-origins=yes \
          ${MODE_OPTIONS} \
          ${MONARCH} ${CMD_ARGS} "$@"
       ;;
