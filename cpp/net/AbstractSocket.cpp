@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -115,7 +115,7 @@ bool AbstractSocket::create(int domain, int type, int protocol)
    return rval;
 }
 
-bool AbstractSocket::select(bool read, int64_t timeout)
+bool AbstractSocket::waitUntilReady(bool read, int64_t timeout)
 {
    Exception* e = NULL;
 
@@ -363,7 +363,7 @@ Socket* AbstractSocket::accept(int timeout)
          {
             // reset fd to zero (no error), wait for a connection
             fd = 0;
-            if(select(true, timeout * INT64_C(1000)))
+            if(waitUntilReady(true, timeout * INT64_C(1000)))
             {
                fd = SOCKET_MACRO_accept(mFileDescriptor, NULL, NULL);
             }
@@ -377,10 +377,11 @@ Socket* AbstractSocket::accept(int timeout)
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
       }
+//#ifdef WIN32
+      // FIXME: currently limited by select() by FD_SETSIZE, any file
+      // descriptors larger than FD_SETSIZE are closed immediately
       else if(fd > FD_SETSIZE)
       {
-         // FIXME: currently limited by select() by FD_SETSIZE, any file
-         // descriptors larger than FD_SETSIZE are closed immediately
          ExceptionRef e = new Exception(
             "Could not accept connection. Too many file descriptors in use.",
             SOCKET_EXCEPTION_TYPE);
@@ -393,6 +394,7 @@ Socket* AbstractSocket::accept(int timeout)
             SOCKET_MACRO_close(fd);
          }
       }
+//#endif
       else if(fd != 0)
       {
          bool success = true;
@@ -448,7 +450,7 @@ bool AbstractSocket::connect(SocketAddress* address, int timeout)
             // no error
             case EAGAIN:
                // wait until the connection can be written to
-               if(select(false, timeout * INT64_C(1000)))
+               if(waitUntilReady(false, timeout * INT64_C(1000)))
                {
                   // now connected and bound
                   mBound = true;
@@ -545,7 +547,7 @@ bool AbstractSocket::send(const char* b, int length)
                else
                {
                   // wait for socket to become writable
-                  rval = select(false, getSendTimeout());
+                  rval = waitUntilReady(false, getSendTimeout());
                }
             }
             else
@@ -611,7 +613,7 @@ int AbstractSocket::receive(char* b, int length)
             Exception::set(e);
          }
          // wait for data to become available
-         else if(select(true, getReceiveTimeout()))
+         else if(waitUntilReady(true, getReceiveTimeout()))
          {
             // receive data (should not block)
             rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, 0);

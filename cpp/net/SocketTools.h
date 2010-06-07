@@ -49,6 +49,30 @@ public:
     *         it timed out, -1 if an error occurred and errno is set
     *         appropriately.
     */
+   static int poll(bool read, int fd, int64_t timeout);
+
+   /**
+    * Causes the current thread to wait until the given file descriptor becomes
+    * ready for some kind of IO operation or until the given timeout is
+    * reached. This method allows this thread to be interrupted during the
+    * select().
+    *
+    * Note: errno can be set as such:
+    *
+    * EBADF  An invalid file descriptor was in the set (i.e. already closed).
+    * EINTR  A signal was caught.
+    * EINVAL nfds is negative or the value in the timeout is invalid.
+    * ENOMEM unable to allocate memory.
+    *
+    * @param read true if the IO operation to wait for is a read operation,
+    *             false if it is a write operation.
+    * @param fd the file descriptor to monitor.
+    * @param timeout the timeout to use (0 for indefinite wait, -1 for polling).
+    *
+    * @return >= 1 if the file descriptor was updated, 0 if it was not and
+    *         it timed out, -1 if an error occurred and errno is set
+    *         appropriately.
+    */
 #ifdef WIN32
    static int select(bool read, unsigned int fd, int64_t timeout);
 #else

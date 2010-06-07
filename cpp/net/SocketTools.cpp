@@ -10,6 +10,9 @@
 #include "monarch/rt/System.h"
 
 #include <limits.h>
+#ifndef WIN32
+#include <poll.h>
+#endif
 
 using namespace monarch::net;
 using namespace monarch::rt;
@@ -17,6 +20,106 @@ using namespace monarch::rt;
 #ifndef HOST_NAME_MAX
 #define HOST_NAME_MAX 255
 #endif
+
+int SocketTools::poll(bool read, int fd, int64_t timeout)
+{
+#ifdef WIN32
+   return select(read, fd, timeout);
+#else
+   int rval = 0;
+
+   // create poll set
+   struct pollfd fds;
+   fds.fd = fd;
+   fds.events = read ? POLLIN : POLLOUT;
+
+   // "n" parameter is the highest numbered descriptor plus 1
+   int n = fd + 1;
+
+   // set 20 millisecond interrupt check timeout (currently necessary to
+   // enable thread interruptions)
+   int intck = INT32_C(20);
+
+   // keep selecting (polling) until timeout is reached
+   int64_t remaining = (timeout <= 0) ? intck : timeout;
+
+   int to;
+   if(timeout < 0)
+   {
+      // create instant timeout (polling)
+      to = 0;
+   }
+   else
+   {
+      // create intck millisecond timeout
+      to = (remaining < intck ? (int)remaining : intck);
+   }
+
+   uint64_t start = System::getCurrentMilliseconds();
+   uint64_t end;
+
+   Thread* t = Thread::currentThread();
+   while(remaining > 0 && rval == 0 && !t->isInterrupted())
+   {
+      // wait for file descriptors to be updated
+      rval = ::poll(&fds, n, to);
+
+      // check for error events
+      if(rval > 0)
+      {
+         // remote side hung up
+         if(fds.revents & POLLHUP)
+         {
+            rval = -1;
+            errno = EPIPE;
+         }
+         // file descriptor not open
+         else if(fds.events & POLLNVAL)
+         {
+            rval = -1;
+            errno = EBADF;
+         }
+         // error
+         else if(fds.events & POLLERR)
+         {
+            // some kind of IO error
+            rval = -1;
+            errno = EIO;
+         }
+      }
+      else if(rval == -1 && errno == EINTR)
+      {
+         // no error, syscall interrupted
+         rval = 0;
+      }
+
+      // decrement timeout
+      if(rval == 0 && timeout != 0)
+      {
+         // decrement remaining time
+         end = System::getCurrentMilliseconds();
+         remaining -= (end - start);
+         start = end;
+         to = (remaining < intck ? (int)remaining : intck);
+      }
+   }
+
+   if(rval > 0)
+   {
+      if(t->isInterrupted())
+      {
+         rval = -1;
+         errno = EINTR;
+
+         // set interrupted exception
+         ExceptionRef e = t->createInterruptedException();
+         Exception::set(e);
+      }
+   }
+
+   return rval;
+#endif
+}
 
 #ifdef WIN32
 int SocketTools::select(bool read, unsigned int fd, int64_t timeout)

@@ -149,7 +149,7 @@ bool UdpSocket::sendDatagram(const char* b, int length, SocketAddress* address)
       // the socket send buffer was full, it will block until it has enough
       // room to send)
       // wait for socket to become writable
-      if((rval = select(false, getSendTimeout())))
+      if((rval = waitUntilReady(false, getSendTimeout())))
       {
          int ret = SOCKET_MACRO_sendto(
             mFileDescriptor, b, length, 0, (sockaddr*)&addr, size);
@@ -177,7 +177,7 @@ int UdpSocket::receiveDatagram(char* b, int length, SocketAddress* address)
          "Cannot read from unbound socket.", SOCKET_EXCEPTION_TYPE);
       Exception::set(e);
    }
-   else if(select(true, getReceiveTimeout()))
+   else if(waitUntilReady(true, getReceiveTimeout()))
    {
       // get address structure
       socklen_t size = 130;
