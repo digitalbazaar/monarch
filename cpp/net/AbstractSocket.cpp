@@ -120,7 +120,7 @@ bool AbstractSocket::waitUntilReady(bool read, int64_t timeout)
    Exception* e = NULL;
 
    // wait for readability/writability
-   int error = SocketTools::select(read, mFileDescriptor, timeout);
+   int error = SocketTools::poll(read, mFileDescriptor, timeout);
    if(error < 0)
    {
       if(errno == EINTR)
@@ -377,7 +377,7 @@ Socket* AbstractSocket::accept(int timeout)
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
       }
-//#ifdef WIN32
+#ifdef WIN32
       // FIXME: currently limited by select() by FD_SETSIZE, any file
       // descriptors larger than FD_SETSIZE are closed immediately
       else if(fd > FD_SETSIZE)
@@ -394,7 +394,7 @@ Socket* AbstractSocket::accept(int timeout)
             SOCKET_MACRO_close(fd);
          }
       }
-//#endif
+#endif
       else if(fd != 0)
       {
          bool success = true;
