@@ -45,7 +45,7 @@ void OperationDispatcher::dispatchJobs()
 
    mLock.lock();
    {
-      // turn off dispatching until an Operation executes or is canceled
+      // turn off dispatching until an Operation executes
       mDispatch = false;
 
       // execute all Operations that can be executed
