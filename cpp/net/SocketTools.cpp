@@ -18,7 +18,11 @@ using namespace monarch::rt;
 #define HOST_NAME_MAX 255
 #endif
 
+#ifdef WIN32
+int SocketTools::select(bool read, unsigned int fd, int64_t timeout)
+#else
 int SocketTools::select(bool read, int fd, int64_t timeout)
+#endif
 {
    int rval = 0;
 
