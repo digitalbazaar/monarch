@@ -8,6 +8,7 @@
 #include "monarch/net/WindowsSupport.h"
 #include "monarch/net/SocketTools.h"
 #include "monarch/io/PeekInputStream.h"
+#include "monarch/logging/Logging.h"
 #include "monarch/net/SocketInputStream.h"
 #include "monarch/net/SocketOutputStream.h"
 #include "monarch/rt/Thread.h"
@@ -382,6 +383,11 @@ Socket* AbstractSocket::accept(int timeout)
       // descriptors larger than FD_SETSIZE are closed immediately
       else if(fd > FD_SETSIZE)
       {
+         // emit warning
+         MO_CAT_WARNING(MO_NET_CAT,
+            "Could not accept connection. Too many file descriptors in use. "
+            "%d > FD_SETSIZE (=%d)", fd, FD_SETSIZE);
+
          ExceptionRef e = new Exception(
             "Could not accept connection. Too many file descriptors in use.",
             SOCKET_EXCEPTION_TYPE);
