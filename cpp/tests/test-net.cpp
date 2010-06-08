@@ -121,60 +121,79 @@ static void runAddressResolveTest(TestRunner& tr)
 
 static void runSocketTest(TestRunner& tr)
 {
-   tr.test("Socket");
+   tr.group("Socket");
 
    Exception::clear();
 
+   tr.test("create address");
    // create address
    //InternetAddress address("127.0.0.1", 80);
    InternetAddress address("www.google.com", 80);
 
    // ensure host was known
-   assertNoException();
+   tr.passIfNoException();
 
+   tr.test("get address");
    address.getAddress();
    assertNoException();
    //printf("Connecting to: %s\n", address.getAddress());
+   tr.passIfNoException();
 
    // create tcp socket
    TcpSocket socket;
 
-   // connect
-   socket.connect(&address);
-   assertNoException();
+   tr.test("connect");
+   {
+      // connect
+      socket.connect(&address);
+   }
+   tr.passIfNoException();
 
-   char request[] =
-      "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-   socket.send(request, sizeof(request));
-   assertNoException();
+   tr.test("request");
+   {
+      char request[] =
+         "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+      socket.send(request, sizeof(request));
+      assertNoException();
+   }
+   tr.passIfNoException();
 
-   // set receive timeout (10 seconds = 10000 milliseconds)
-   socket.setReceiveTimeout(10000);
-   assertNoException();
+   tr.test("setReceiveTimeout");
+   {
+      // set receive timeout (10 seconds = 10000 milliseconds)
+      socket.setReceiveTimeout(10000);
+   }
+   tr.passIfNoException();
 
    char response[2048];
    int numBytes = 0;
    string str;
 
    //printf("\nDOING A PEEK!\n");
-
    string peek;
-   numBytes = socket.getInputStream()->peek(response, 2048);
-   if(numBytes > 0)
+   tr.test("peek");
    {
-      //printf("Peeked %d bytes\n", numBytes);
-      peek.append(response, numBytes);
-      //printf("Peek bytes=%s\n", peek.c_str());
+      numBytes = socket.getInputStream()->peek(response, 2048);
+      if(numBytes > 0)
+      {
+         //printf("Peeked %d bytes\n", numBytes);
+         peek.append(response, numBytes);
+         //printf("Peek bytes=%s\n", peek.c_str());
+      }
    }
-   assertNoException();
+   tr.passIfNoException();
 
    //printf("\nDOING ACTUAL READ NOW!\n");
    int peekBytes = numBytes;
-   while((numBytes = socket.getInputStream()->read(response, 2048)) > 0)
+   tr.test("read");
    {
-      //printf("numBytes received: %d\n", numBytes);
-      str.append(response, numBytes);
+      while((numBytes = socket.getInputStream()->read(response, 2048)) > 0)
+      {
+         //printf("numBytes received: %d\n", numBytes);
+         str.append(response, numBytes);
+      }
    }
+   tr.passIfNoException();
 
    // confirm peek bytes check out
    assert(strncmp(peek.c_str(), str.c_str(), peekBytes) == 0);
@@ -190,10 +209,14 @@ static void runSocketTest(TestRunner& tr)
 
    //printf("Response:\n%s\n", str.c_str());
 
-   // close
-   socket.close();
-
+   tr.test("close");
+   {
+      // close
+      socket.close();
+   }
    tr.passIfNoException();
+
+   tr.ungroup();
 }
 
 static void runSslSocketTest(TestRunner& tr)
