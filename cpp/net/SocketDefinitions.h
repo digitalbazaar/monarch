@@ -9,10 +9,12 @@
 #define SSL_EXCEPTION_TYPE            "monarch.net.SSL"
 
 #ifdef WIN32
-// set FD_SETSIZE high
-#ifndef FD_SETSIZE
-#define FD_SETSIZE 4096
-#endif
+// Note: FD_SETSIZE on windows simply refers to the number of concurrent
+// sockets that can be watched using a single select() call, not the maximum
+// file descriptor (it doesn't use a bit field, it uses an array of sockets)
+//#ifndef FD_SETSIZE
+//#define FD_SETSIZE 256
+//#endif
 // windows socket library
 #include <winsock2.h>
 #include <ws2tcpip.h>
