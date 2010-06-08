@@ -62,7 +62,7 @@ int SocketTools::poll(bool read, int fd, int64_t timeout)
       rval = ::poll(&fds, 1, to);
 
       // if no data in or out, check for error events
-      if(rval > 0 && !(fds.revents & POLLIN) && !(fds.revents & POLLOUT))
+      if(rval > 0 && !(fds.revents & fds.events))
       {
          // remote side hung up
          if(fds.revents & POLLHUP)
