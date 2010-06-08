@@ -23,7 +23,7 @@ using namespace monarch::rt;
 
 int SocketTools::poll(bool read, int fd, int64_t timeout)
 {
-#if defined(WIN32) || defined(MACOS)
+#if defined(WIN32)
    return select(read, fd, timeout);
 #else
    int rval = 0;

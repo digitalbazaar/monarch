@@ -378,7 +378,9 @@ Socket* AbstractSocket::accept(int timeout)
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
       }
-#if defined(MACOS)
+      // Note: no implementation currently has this select limitation, so it
+      // is disabled
+#if 0//defined(MACOS)
       // FIXME: currently limited by select() by FD_SETSIZE, any file
       // descriptors larger than FD_SETSIZE are closed immediately
       else if(fd > FD_SETSIZE)
