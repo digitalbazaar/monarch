@@ -23,7 +23,7 @@ using namespace monarch::rt;
 
 int SocketTools::poll(bool read, int fd, int64_t timeout)
 {
-#ifdef WIN32
+#if defined(WIN32) || defined(MACOS)
    return select(read, fd, timeout);
 #else
    int rval = 0;
@@ -67,6 +67,7 @@ int SocketTools::poll(bool read, int fd, int64_t timeout)
          // remote side hung up
          if(fds.revents & POLLHUP)
          {
+            printf("HANGUP\n");
             rval = -1;
             errno = EPIPE;
          }
@@ -191,28 +192,30 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
          // connection closes due to TCP sending an RST to the
          // socket ... and this will cause recv() to return 0
          rval = ::select(n, &rfds, &wfds, &exfds, &to);
-         if(rval > 0 && !FD_ISSET(fd, &wfds) && FD_ISSET(fd, &rfds))
+         if(rval > 0)
          {
-            // readability flag switched, check to see if the connection has
-            // been shutdown, by seeing if recv() will return 0 (do a peek so
-            // as not to disturb real data)
-            char buf;
-            int flags = MSG_PEEK;
+            if(FD_ISSET(fd, &rfds))
+            {
+               // readability flag switched, check to see if the connection has
+               // been shutdown, by seeing if recv() will return 0 (do a peek
+               // so as not to disturb real data)
+               char buf;
+               int flags = MSG_PEEK;
 #ifdef MSG_DONTWAIT
-            flags |= MSG_DONTWAIT;
+               flags |= MSG_DONTWAIT;
 #endif
-            rval = SOCKET_MACRO_recv(fd, &buf, 1, flags);
-            if(rval == 0)
-            {
-               // connection closed
-               rval = -1;
-               errno = EPIPE;
+               rval = SOCKET_MACRO_recv(fd, &buf, 1, flags);
+               if(rval == 0)
+               {
+                  // connection closed
+                  rval = -1;
+                  errno = EPIPE;
+               }
             }
-            else if(rval > 0)
+            if(rval > 0)
             {
-               // connection not closed, but write timed out/was not detected
-               // (bytes are readable but we weren't looking for that)
-               rval = 0;
+               // connection not closed, see if write was detected
+               rval = FD_ISSET(fd, &wfds) ? 1 : 0;
             }
          }
       }
