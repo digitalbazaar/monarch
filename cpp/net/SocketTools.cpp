@@ -67,7 +67,6 @@ int SocketTools::poll(bool read, int fd, int64_t timeout)
          // remote side hung up
          if(fds.revents & POLLHUP)
          {
-            printf("HANGUP\n");
             rval = -1;
             errno = EPIPE;
          }
