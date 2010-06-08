@@ -37,7 +37,8 @@ int SocketTools::poll(bool read, int fd, int64_t timeout)
    // enable thread interruptions)
    int intck = INT32_C(20);
 
-   // keep selecting (polling) until timeout is reached
+   // keep selecting (polling) until timeout is reached, if timeout is
+   // indefinite (0), then set remaining to intck and never decrement it
    int64_t remaining = (timeout <= 0) ? intck : timeout;
 
    int to;
@@ -91,13 +92,26 @@ int SocketTools::poll(bool read, int fd, int64_t timeout)
       }
 
       // decrement timeout
-      if(rval == 0 && timeout != 0)
+      if(rval == 0)
       {
-         // decrement remaining time
-         end = System::getCurrentMilliseconds();
-         remaining -= (end - start);
-         start = end;
-         to = (remaining < intck ? (int)remaining : intck);
+         if(timeout < 0)
+         {
+            // instant polling, no time remaining
+            remaining = 0;
+         }
+         else if(timeout == 0)
+         {
+            // indefinite timeout, do not decrement remaining
+            to = intck;
+         }
+         else
+         {
+            // decrement remaining time
+            end = System::getCurrentMilliseconds();
+            remaining -= (end - start);
+            start = end;
+            to = (remaining < intck ? (int)remaining : intck);
+         }
       }
    }
 
@@ -246,8 +260,8 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
          to.tv_sec = 0;
          if(timeout < 0)
          {
-            // instant polling
-            to.tv_usec = 0;
+            // instant polling, no time remaining
+            remaining = 0;
          }
          else if(timeout == 0)
          {
@@ -432,8 +446,8 @@ int SocketTools::select(
          to.tv_sec = 0;
          if(timeout < 0)
          {
-            // instant polling
-            to.tv_usec = 0;
+            // instant polling, no time remaining
+            remaining = 0;
          }
          else if(timeout == 0)
          {
