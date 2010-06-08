@@ -61,8 +61,8 @@ int SocketTools::poll(bool read, int fd, int64_t timeout)
       // wait for file descriptor to be updated
       rval = ::poll(&fds, 1, to);
 
-      // check for error events
-      if(rval > 0)
+      // if no data in or out, check for error events
+      if(rval > 0 && !(fds.revents & POLLIN) && !(fds.revents & POLLOUT))
       {
          // remote side hung up
          if(fds.revents & POLLHUP)
