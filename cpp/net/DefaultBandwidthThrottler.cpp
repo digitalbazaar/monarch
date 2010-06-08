@@ -36,22 +36,29 @@ bool DefaultBandwidthThrottler::requestBytes(int count, int& permitted)
    {
       mLock.lock();
       {
-         // limit the bandwidth
+         // limit the bandwidth, rate limit may change while limiting
          rval = limitBandwidth();
+         if(getRateLimit() > 0)
+         {
+            // get the available bytes
+            int available = (mAvailableBytes >= (uint64_t)INT32_MAX) ?
+               INT32_MAX : (int)mAvailableBytes;
+            permitted = (available > count ? count : available);
 
-         // get the available bytes
-         int available = (mAvailableBytes >= (uint64_t)INT32_MAX) ?
-            INT32_MAX : (int)mAvailableBytes;
-         permitted = (available > count ? count : available);
+            // increment the bytes granted
+            mBytesGranted += permitted;
 
-         // increment the bytes granted
-         mBytesGranted += permitted;
+            // subtract the number of permitted bytes from the available bytes
+            mAvailableBytes -= permitted;
 
-         // subtract the number of permitted bytes from the available bytes
-         mAvailableBytes -= permitted;
-
-         // update last request time
-         mLastRequestTime = System::getCurrentMilliseconds();
+            // update last request time
+            mLastRequestTime = System::getCurrentMilliseconds();
+         }
+         else
+         {
+            // no rate limit, return the count
+            permitted = count;
+         }
       }
       mLock.unlock();
    }
@@ -213,9 +220,11 @@ bool DefaultBandwidthThrottler::limitBandwidth()
       // wait for an available byte
       avt = getAvailableByteTime();
       mLock.wait(avt);
-
-      // update the number of available bytes
-      updateAvailableBytes();
+      if(mRateLimit > 0)
+      {
+         // update the number of available bytes
+         updateAvailableBytes();
+      }
    }
 
    // thread finished waiting
