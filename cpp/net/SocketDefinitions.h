@@ -9,27 +9,29 @@
 #define SSL_EXCEPTION_TYPE            "monarch.net.SSL"
 
 #ifdef WIN32
-   // set FD_SETSIZE high
+// set FD_SETSIZE high
+#ifndef FD_SETSIZE
 #define FD_SETSIZE 4096
-   // windows socket library
-   #include <winsock2.h>
-   #include <ws2tcpip.h>
+#endif
+// windows socket library
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #else
-   // data types
-   #include <sys/types.h>
-   // linux socket library
-   #include <sys/socket.h>
-   // closes file descriptors with close()
-   #include <unistd.h>
-   // includes gethostbyname() method
-   #include <netdb.h>
-   // includes sockaddr_in structure for internet addresses and
-   // methods for converting numbers to network byte order (big-endian)
-   #include <netinet/in.h>
-   // include inet_pton() and inet_ntop()
-   #include <arpa/inet.h>
-   // include fcntl
-   #include <sys/fcntl.h>
+// data types
+#include <sys/types.h>
+// linux socket library
+#include <sys/socket.h>
+// closes file descriptors with close()
+#include <unistd.h>
+// includes gethostbyname() method
+#include <netdb.h>
+// includes sockaddr_in structure for internet addresses and
+// methods for converting numbers to network byte order (big-endian)
+#include <netinet/in.h>
+// include inet_pton() and inet_ntop()
+#include <arpa/inet.h>
+// include fcntl
+#include <sys/fcntl.h>
 #endif
 
 // for errors

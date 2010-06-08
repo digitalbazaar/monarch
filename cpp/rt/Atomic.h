@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_Atomic_H
 #define monarch_rt_Atomic_H
@@ -8,6 +8,10 @@
 #include <inttypes.h>
 
 #ifdef WIN32
+// set FD_SETSIZE high
+#ifndef FD_SETSIZE
+#define FD_SETSIZE 4096
+#endif
 #include <windows.h>
 // FIXME: get the CPU address size and use it instead of assuming 32
 #define ALIGN_BYTES 4
