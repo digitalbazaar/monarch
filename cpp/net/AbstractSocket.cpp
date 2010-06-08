@@ -377,7 +377,7 @@ Socket* AbstractSocket::accept(int timeout)
          e->getDetails()["error"] = strerror(errno);
          Exception::set(e);
       }
-#ifdef WIN32
+#if defined(WIN32) || defined(MACOS)
       // FIXME: currently limited by select() by FD_SETSIZE, any file
       // descriptors larger than FD_SETSIZE are closed immediately
       else if(fd > FD_SETSIZE)

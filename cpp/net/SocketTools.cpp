@@ -154,7 +154,8 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
    // windows lacks SIGNAL support to do interruptions properly)
    int64_t intck = INT64_C(20);
 
-   // keep selecting (polling) until timeout is reached
+   // keep selecting (polling) until timeout is reached, if timeout is
+   // indefinite (0), then set remaining to intck and never decrement it
    int64_t remaining = (timeout <= 0) ? intck : timeout;
 
    struct timeval to;
@@ -230,7 +231,7 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
       }
 
       // select() implementation may alter sets or timeout, so reset them
-      // if calling select() again (not interrupted and timeout >= 0)
+      // if calling select() again
       if(rval == 0)
       {
          // clear sets and re-add file descriptor
@@ -245,21 +246,23 @@ int SocketTools::select(bool read, int fd, int64_t timeout)
          to.tv_sec = 0;
          if(timeout < 0)
          {
+            // instant polling
             to.tv_usec = 0;
+         }
+         else if(timeout == 0)
+         {
+            // indefinite, do not decrement remaining
+            to.tv_usec = intck * INT64_C(1000);
          }
          else
          {
-            to.tv_usec = intck * INT64_C(1000);
+            // decrement remaining time
+            end = System::getCurrentMilliseconds();
+            remaining -= (end - start);
+            start = end;
+            to.tv_usec =
+               (remaining < intck ? remaining : intck) * INT64_C(1000);
          }
-      }
-
-      if(timeout != 0)
-      {
-         // decrement remaining time
-         end = System::getCurrentMilliseconds();
-         remaining -= (end - start);
-         start = end;
-         to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
       }
    }
 
@@ -369,20 +372,20 @@ int SocketTools::select(
    // windows lacks SIGNAL support to do interruptions properly)
    int64_t intck = INT64_C(20);
 
-   // keep selecting (polling) until timeout is reached
+   // keep selecting (polling) until timeout is reached, if timeout is
+   // indefinite (0), then set remaining to intck and never decrement it
    int64_t remaining = (timeout <= 0) ? intck : timeout;
 
    struct timeval to;
+   to.tv_sec = 0;
    if(timeout < 0)
    {
       // create instant timeout (polling)
-      to.tv_sec = 0;
       to.tv_usec = 0;
    }
    else
    {
       // create 20 millisecond timeout (1 millisecond is 1000 microseconds)
-      to.tv_sec = 0;
       to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
    }
 
@@ -406,8 +409,8 @@ int SocketTools::select(
       }
 
       // select() implementation may alter sets or timeout, so reset them
-      // if calling select() again (not interrupted and timeout >= 0)
-      if(rval == 0 && timeout >= 0)
+      // if calling select() again
+      if(rval == 0)
       {
          // reset file descriptor sets
          if(readfds != NULL)
@@ -427,16 +430,25 @@ int SocketTools::select(
 
          // reset timeout
          to.tv_sec = 0;
-         to.tv_usec = intck * INT64_C(1000);
-      }
-
-      if(timeout != 0)
-      {
-         // decrement remaining time
-         end = System::getCurrentMilliseconds();
-         remaining -= (end - start);
-         start = end;
-         to.tv_usec = (remaining < intck ? remaining : intck) * INT64_C(1000);
+         if(timeout < 0)
+         {
+            // instant polling
+            to.tv_usec = 0;
+         }
+         else if(timeout == 0)
+         {
+            // indefinite, do not decrement remaining
+            to.tv_usec = intck * INT64_C(1000);
+         }
+         else
+         {
+            // decrement remaining time
+            end = System::getCurrentMilliseconds();
+            remaining -= (end - start);
+            start = end;
+            to.tv_usec =
+               (remaining < intck ? remaining : intck) * INT64_C(1000);
+         }
       }
    }
 
