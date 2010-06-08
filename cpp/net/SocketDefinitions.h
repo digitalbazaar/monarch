@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_SocketDefinitions_H
 #define monarch_net_SocketDefinitions_H
@@ -9,6 +9,8 @@
 #define SSL_EXCEPTION_TYPE            "monarch.net.SSL"
 
 #ifdef WIN32
+   // set FD_SETSIZE high
+#define FD_SETSIZE 4096
    // windows socket library
    #include <winsock2.h>
    #include <ws2tcpip.h>
