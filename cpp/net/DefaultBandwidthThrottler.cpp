@@ -71,6 +71,9 @@ void DefaultBandwidthThrottler::addAvailableBytes(int bytes)
       // not all bytes were read/written/used, replace bytes for next call
       mBytesGranted -= bytes;
       mAvailableBytes += bytes;
+
+      // notify any waiters
+      mLock.notifyAll();
    }
    mLock.unlock();
 }
@@ -109,6 +112,9 @@ void DefaultBandwidthThrottler::setRateLimit(int rateLimit)
          // update the available byte time
          updateAvailableByteTime();
       }
+
+      // notify any waiters
+      mLock.notifyAll();
    }
    mLock.unlock();
 }
@@ -164,11 +170,11 @@ inline void DefaultBandwidthThrottler::updateAvailableByteTime()
 {
    // the amount of time until a byte is available is 1000 milliseconds
    // divided by the rate in bytes/second, with a minimum of 1 millisecond
-   mAvailableByteTime = (uint64_t)roundl(1000. / getRateLimit());
+   mAvailableByteTime = (uint32_t)round(1000. / getRateLimit());
    mAvailableByteTime = (1 > mAvailableByteTime) ? 1 : mAvailableByteTime;
 }
 
-inline uint64_t DefaultBandwidthThrottler::getAvailableByteTime()
+inline uint32_t DefaultBandwidthThrottler::getAvailableByteTime()
 {
    return mAvailableByteTime;
 }
@@ -200,15 +206,13 @@ bool DefaultBandwidthThrottler::limitBandwidth()
    // thread will wait for available bytes now
    mWaiters++;
 
-   // while there aren't any available bytes, sleep for the available byte time
-   while(rval && mAvailableBytes == 0)
+   // while there aren't any available bytes, wait for the available byte time
+   uint32_t avt;
+   while(rval && mRateLimit > 0 && mAvailableBytes == 0)
    {
-      uint64_t avt = getAvailableByteTime();
-
-      // unlock to sleep
-      mLock.unlock();
-      rval = Thread::sleep(avt);
-      mLock.lock();
+      // wait for an available byte
+      avt = getAvailableByteTime();
+      mLock.wait(avt);
 
       // update the number of available bytes
       updateAvailableBytes();

@@ -45,7 +45,7 @@ protected:
     * is available. This number is never more than 1000 and never less
     * than 1.
     */
-   uint64_t mAvailableByteTime;
+   uint32_t mAvailableByteTime;
 
    /**
     * The number of available bytes.
@@ -153,7 +153,7 @@ protected:
     * @return the amount of time (in milliseconds) that must pass before
     *         a byte is available.
     */
-   virtual uint64_t getAvailableByteTime();
+   virtual uint32_t getAvailableByteTime();
 
    /**
     * Updates the number of bytes that are currently available.
