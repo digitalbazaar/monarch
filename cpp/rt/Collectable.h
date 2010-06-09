@@ -71,10 +71,10 @@ protected:
       volatile aligned_int32_t count;
 
       /**
-       * Greater than 1 if ownership over the HeapObject's memory has been
+       * True if ownership over the HeapObject's memory has been
        * relinquished and, therefore, it should not be deleted.
        */
-      volatile int8_t relinquished;
+      volatile bool relinquished;
    };
 
    /**
@@ -204,7 +204,7 @@ Collectable<HeapObject>::Collectable(HeapObject* ptr)
       mReference = new Reference;
       mReference->ptr = ptr;
       mReference->count = 1;
-      mReference->relinquished = 0;
+      mReference->relinquished = false;
    }
 }
 
@@ -289,8 +289,8 @@ HeapObject* Collectable<HeapObject>::relinquish()
    volatile Reference* ref = mReference;
    if(ref != NULL)
    {
-      // do atomic increment and fetch
-      Atomic::incrementAndFetch(&ref->relinquished);
+      // set relinquished flag
+      ref->relinquished = true;
       rval = ref->ptr;
    }
 
@@ -320,7 +320,7 @@ void Collectable<HeapObject>::release(volatile Reference* ref)
       {
          // this Collectable is responsible for deleting the HeapObject if
          // it was the last one and memory ownership was not relinquished
-         if(ref->relinquished == 0)
+         if(!ref->relinquished)
          {
             delete ref->ptr;
          }
