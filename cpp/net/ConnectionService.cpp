@@ -30,7 +30,8 @@ ConnectionService::ConnectionService(
    mSocket(NULL),
    mMaxConnections(100),
    mCurrentConnections(0),
-   mBacklog(100)
+   mBacklog(100),
+   mShouldPrune(false)
 {
 }
 
@@ -110,8 +111,12 @@ void ConnectionService::run()
    Socket* s;
    while(!mOperation->isInterrupted())
    {
-      // prune running servicers
-      mRunningServicers.prune();
+      if(mShouldPrune)
+      {
+         // prune running servicers
+         mShouldPrune = false;
+         mRunningServicers.prune();
+      }
 
       // wait for 5 seconds for a connection
       if((s = mSocket->accept(5)) != NULL)
@@ -197,6 +202,9 @@ void ConnectionService::serviceConnection(void* s)
       socket->close();
       delete socket;
    }
+
+   // ops should be pruned
+   mShouldPrune = true;
 }
 
 inline void ConnectionService::setMaxConnectionCount(int32_t count)

@@ -70,6 +70,11 @@ protected:
     */
    monarch::modest::OperationList mRunningServicers;
 
+   /**
+    * Sets whether or not operation pruning should occur.
+    */
+   volatile bool mShouldPrune;
+
 public:
    /**
     * Creates a new ConnectionService for a Server.
