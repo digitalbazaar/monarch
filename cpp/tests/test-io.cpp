@@ -188,6 +188,72 @@ static void runStringCompareTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+static void runMemcpyTest(TestRunner& tr)
+{
+   tr.test("memcpy timing");
+
+   // Try to time custom vs standard memcpy.
+
+   // NOTE:
+   // This test is likely very sensitive to optimizations, particular platforms
+   // memcpy implementations, test ordering, cache issues, and so on.
+
+   char* src[1024];
+   char* dst[1024];
+   int lens[] =
+      {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,20,30,40,50,100,200,500,1000,0};
+   int loops = 10000000;
+
+   // loop over lengths to check
+   for(int n = 0; lens[n] != 0; ++n)
+   {
+      // test custom memcpy
+      uint64_t cust_start;
+      uint64_t cust_end;
+      {
+         cust_start = System::getCurrentMilliseconds();
+         for(int i = 0; i < loops; ++i)
+         {
+            if(n < 10)
+            {
+               // optimized over memcpy()
+               for(int mci = 0; mci < n; ++mci)
+               {
+                  dst[mci] = src[mci];
+               }
+            }
+            else
+            {
+               memcpy(dst, src, n);
+            }
+         }
+         cust_end = System::getCurrentMilliseconds();
+      }
+
+      // test memcpy
+      uint64_t std_start;
+      uint64_t std_end;
+      {
+         std_start = System::getCurrentMilliseconds();
+         for(int i = 0; i < loops; ++i)
+         {
+            memcpy(dst, src, n);
+         }
+         std_end = System::getCurrentMilliseconds();
+      }
+
+      uint64_t cust_dt = (cust_end - cust_start);
+      uint64_t std_dt = (std_end - std_start);
+      int64_t diff = cust_dt - std_dt;
+      printf("n:%d, custom:%" PRIu64 " ms,"
+         " std:%" PRIu64 " ms,"
+         " diff:%" PRIi64 " ms\n",
+         lens[n], cust_dt, std_dt, diff);
+   }
+
+   tr.passIfNoException();
+}
+
 static void runByteBufferTest(TestRunner& tr)
 {
    tr.test("ByteBuffer");
@@ -1204,6 +1270,10 @@ static bool run(TestRunner& tr)
       runStringEqualityTest(tr);
       runStringAppendCharTest(tr);
       runStringCompareTest(tr);
+   }
+   if(tr.isTestEnabled("memcpy-timing"))
+   {
+      runMemcpyTest(tr);
    }
    if(tr.isTestEnabled("io-monitor"))
    {
