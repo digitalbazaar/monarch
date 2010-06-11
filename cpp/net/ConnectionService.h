@@ -70,11 +70,6 @@ protected:
     */
    monarch::modest::OperationList mRunningServicers;
 
-   /**
-    * Sets whether or not operation pruning should occur.
-    */
-   volatile bool mShouldPrune;
-
 public:
    /**
     * Creates a new ConnectionService for a Server.
@@ -184,9 +179,9 @@ public:
    /**
     * Services a Connection and then closes it.
     *
-    * @param s the Socket to wrap in a Connection and service.
+    * @param op the Operation servicing the connection with socket as user data.
     */
-   virtual void serviceConnection(void* s);
+   virtual void serviceConnection(void* operation);
 
    /**
     * Sets the maximum number of concurrent connections this service should

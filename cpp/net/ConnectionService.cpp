@@ -30,9 +30,7 @@ ConnectionService::ConnectionService(
    mSocket(NULL),
    mMaxConnections(100),
    mCurrentConnections(0),
-   mBacklog(100),
-   mRunningServicers(false),
-   mShouldPrune(false)
+   mBacklog(100)
 {
 }
 
@@ -112,29 +110,23 @@ void ConnectionService::run()
    Socket* s;
    while(!mOperation->isInterrupted())
    {
-      if(mShouldPrune)
-      {
-         // prune running servicers
-         mShouldPrune = false;
-         mRunningServicers.prune();
-      }
-
       // wait for 5 seconds for a connection
       if((s = mSocket->accept(5)) != NULL)
       {
-         // create RunnableDelegate to service connection
-         // and run it as an Operation
+         // create RunnableDelegate to service connection and run it
+         // as an Operation
+         Operation* op = new Operation(NULL);
          RunnableRef r =
             new RunnableDelegate<ConnectionService>(
-               this, &ConnectionService::serviceConnection, s);
-         Operation op(r);
-         op->setUserData(s);
-         op->addGuard(this);
-         op->addStateMutator(this);
-         mRunningServicers.add(op);
+               this, &ConnectionService::serviceConnection, op);
+         *op = Operation(r);
+         (*op)->setUserData(s);
+         (*op)->addGuard(this);
+         (*op)->addStateMutator(this);
+         mRunningServicers.add(*op);
 
          // run operation
-         mServer->getOperationRunner()->runOperation(op);
+         mServer->getOperationRunner()->runOperation(*op);
       }
    }
 
@@ -145,15 +137,17 @@ void ConnectionService::run()
    mRunningServicers.terminate();
 }
 
-void ConnectionService::serviceConnection(void* s)
+void ConnectionService::serviceConnection(void* operation)
 {
    // start connection service time
    Timer t;
    t.start();
 
+   Operation* op = static_cast<Operation*>(operation);
+
    // ensure the Socket can be wrapped with at least standard data presentation
    bool secure = false;
-   Socket* socket = static_cast<Socket*>(s);
+   Socket* socket = static_cast<Socket*>((*op)->getUserData());
    Socket* wrapper = socket;
    if(mDataPresenter != NULL)
    {
@@ -204,8 +198,9 @@ void ConnectionService::serviceConnection(void* s)
       delete socket;
    }
 
-   // ops should be pruned
-   mShouldPrune = true;
+   // remove op from running servicers and clean up
+   mRunningServicers.remove(*op);
+   delete op;
 }
 
 inline void ConnectionService::setMaxConnectionCount(int32_t count)
