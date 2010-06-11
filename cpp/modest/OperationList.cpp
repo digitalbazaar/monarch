@@ -10,7 +10,8 @@ using namespace std;
 using namespace monarch::modest;
 using namespace monarch::rt;
 
-OperationList::OperationList()
+OperationList::OperationList(bool locking) :
+   mLocking(locking)
 {
 }
 
@@ -23,120 +24,171 @@ Operation& OperationList::operator[](int index)
 {
    Operation* op = NULL;
 
-   mLock.lock();
+   if(mLocking)
    {
-      // assumes index is not invalid
-      list<Operation>::iterator i = mOperations.begin();
-      for(int count = 0; count < index; ++i, ++count);
-      op = &(*i);
+      mLock.lock();
    }
-   mLock.unlock();
+
+   // assumes index is not invalid
+   OpList::iterator i = mOperations.begin();
+   for(int count = 0; count < index; ++i, ++count);
+   op = &(*i);
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
 
    return *op;
 }
 
 void OperationList::add(Operation& op)
 {
-   mLock.lock();
+   if(mLocking)
    {
-      mOperations.push_back(op);
+      mLock.lock();
    }
-   mLock.unlock();
+
+   mOperations.push_back(op);
+   mOpIndex[&(*op)] = --mOperations.end();
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
 }
 
 void OperationList::remove(Operation& op)
 {
-   mLock.lock();
+   if(mLocking)
    {
-      list<Operation>::iterator i =
-         find(mOperations.begin(), mOperations.end(), op);
-      if(i != mOperations.end())
-      {
-         mOperations.erase(i);
-      }
+      mLock.lock();
    }
-   mLock.unlock();
+
+   OpIndex::iterator i = mOpIndex.find(&(*op));
+   if(i != mOpIndex.end())
+   {
+      // remove from list and index
+      mOperations.erase(i->second);
+      mOpIndex.erase(i);
+   }
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
 }
 
 void OperationList::queue(OperationRunner* opRunner)
 {
-   mLock.lock();
+   if(mLocking)
    {
-      for(list<Operation>::iterator i = mOperations.begin();
-          i != mOperations.end(); ++i)
-      {
-         opRunner->runOperation(*i);
-      }
+      mLock.lock();
    }
-   mLock.unlock();
+
+   OpList::iterator end = mOperations.end();
+   for(OpList::iterator i = mOperations.begin(); i != end; ++i)
+   {
+      opRunner->runOperation(*i);
+   }
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
 }
 
 void OperationList::interrupt()
 {
-   mLock.lock();
+   if(mLocking)
    {
-      for(list<Operation>::iterator i = mOperations.begin();
-          i != mOperations.end(); ++i)
-      {
-         (*i)->interrupt();
-      }
+      mLock.lock();
    }
-   mLock.unlock();
+
+   OpList::iterator end = mOperations.end();
+   for(OpList::iterator i = mOperations.begin(); i != end; ++i)
+   {
+      (*i)->interrupt();
+   }
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
 }
 
 bool OperationList::waitFor(bool interruptible)
 {
    bool rval = true;
 
-   mLock.lock();
+   if(mLocking)
    {
-      for(list<Operation>::iterator i = mOperations.begin();
-          i != mOperations.end(); ++i)
-      {
-         rval = (*i)->waitFor(interruptible);
+      mLock.lock();
+   }
 
-         // break out if interruptible and interrupted
-         if(interruptible && !rval)
-         {
-            break;
-         }
+   OpList::iterator end = mOperations.end();
+   for(OpList::iterator i = mOperations.begin(); i != end; ++i)
+   {
+      rval = (*i)->waitFor(interruptible);
+
+      // break out if interruptible and interrupted
+      if(interruptible && !rval)
+      {
+         break;
       }
    }
-   mLock.unlock();
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
 
    return rval;
 }
 
 void OperationList::prune()
 {
-   mLock.lock();
+   if(mLocking)
    {
-      for(list<Operation>::iterator i = mOperations.begin();
-          i != mOperations.end();)
+      mLock.lock();
+   }
+
+   OpList::iterator end = mOperations.end();
+   for(OpList::iterator i = mOperations.begin(); i != end;)
+   {
+      if((*i)->stopped())
       {
-         if((*i)->stopped())
-         {
-            // remove operation from list
-            i = mOperations.erase(i);
-         }
-         else
-         {
-            ++i;
-         }
+         // remove operation from index and list
+         mOpIndex.erase(&(*(*i)));
+         i = mOperations.erase(i);
+      }
+      else
+      {
+         ++i;
       }
    }
-   mLock.unlock();
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
 }
 
 void OperationList::terminate()
 {
-   mLock.lock();
+   if(mLocking)
    {
-      interrupt();
-      waitFor(false);
-      prune();
+      mLock.lock();
    }
-   mLock.unlock();
+
+   interrupt();
+   waitFor(false);
+   prune();
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
 }
 
 inline bool OperationList::isEmpty()
@@ -146,7 +198,18 @@ inline bool OperationList::isEmpty()
 
 inline void OperationList::clear()
 {
+   if(mLocking)
+   {
+      mLock.lock();
+   }
+
+   mOpIndex.clear();
    mOperations.clear();
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
 }
 
 inline int OperationList::length()

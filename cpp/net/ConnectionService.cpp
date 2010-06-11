@@ -31,6 +31,7 @@ ConnectionService::ConnectionService(
    mMaxConnections(100),
    mCurrentConnections(0),
    mBacklog(100),
+   mRunningServicers(false),
    mShouldPrune(false)
 {
 }

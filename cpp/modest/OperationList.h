@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_modest_OperationList_H
 #define monarch_modest_OperationList_H
@@ -8,6 +8,7 @@
 #include "monarch/rt/Iterator.h"
 
 #include <list>
+#include <map>
 
 namespace monarch
 {
@@ -28,18 +29,32 @@ protected:
    /**
     * The Operations in this list.
     */
-   std::list<Operation> mOperations;
+   typedef std::list<Operation> OpList;
+   OpList mOperations;
+
+   /**
+    * A mapping of OperationImpl* to list iterator for performance improvements.
+    */
+   typedef std::map<OperationImpl*, OpList::iterator> OpIndex;
+   OpIndex mOpIndex;
 
    /**
     * A lock for modifying the list.
     */
-  monarch::rt::ExclusiveLock mLock;
+   monarch::rt::ExclusiveLock mLock;
+
+  /**
+   * True if list is non-locking, false if not.
+   */
+   bool mLocking;
 
 public:
    /**
     * Creates a new OperationList.
+    *
+    * @param locking true if the list needs locking, false if not.
     */
-   OperationList();
+   OperationList(bool locking = true);
 
    /**
     * Destructs this OperationList. All Operations in this list will be
@@ -95,9 +110,8 @@ public:
     * state after all Operations have stopped).
     *
     * @param interruptible true if the current thread can be interrupted
-    *                      and return from this call, false if all the
-    *                      Operations must complete before this call will
-    *                      return.
+    *           and return from this call, false if all the Operations must
+    *           complete before this call will return.
     *
     * @return false if the current thread was interrupted while waiting (with
     *         an InterruptedException set), true if it was not interrupted.
