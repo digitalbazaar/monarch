@@ -445,7 +445,7 @@ static bool _getArrayDiff(
    int i;
 
    // check for differences and removals
-   for(i = 0; i < source->length(); i++)
+   for(i = 0; i < source->length(); ++i)
    {
       if(i >= target->length())
       {
@@ -482,7 +482,7 @@ static bool _getArrayDiff(
    }
 
    // check for additions
-   for(; i < target->length(); i++)
+   for(; i < target->length(); ++i)
    {
       // we are beyond source length so items were added
       // check if first
@@ -664,7 +664,7 @@ void DynamicObject::merge(DynamicObject& rhs, bool append)
             (*this)->setType(Array);
             DynamicObjectIterator i = rhs.getIterator();
             int offset = (append ? (*this)->length() : 0);
-            for(int ii = 0; i->hasNext(); ii++)
+            for(int ii = 0; i->hasNext(); ++ii)
             {
                (*this)[offset + ii].merge(i->next(), append);
             }

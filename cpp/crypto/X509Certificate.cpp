@@ -65,7 +65,7 @@ static void _getX509NameValues(X509_NAME* name, DynamicObject& output)
    unsigned char* value;
    X509_NAME_ENTRY* entry;
    int count = X509_NAME_entry_count(name);
-   for(int i = 0; i < count; i++)
+   for(int i = 0; i < count; ++i)
    {
       entry = X509_NAME_get_entry(name, i);
 
@@ -108,7 +108,7 @@ DynamicObject X509Certificate::getExtensions()
    rval->setType(Array);
 
    int count = X509_get_ext_count(mX509);
-   for(int i = 0; i < count; i++)
+   for(int i = 0; i < count; ++i)
    {
       // get extension and v3 extension method
       X509_EXTENSION* ext = X509_get_ext(mX509, i);

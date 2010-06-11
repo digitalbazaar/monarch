@@ -81,7 +81,7 @@ static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
    {
       monarch::sql::Statement* s;
       //uint64_t start = System::getCurrentMilliseconds();
-      for(int i = 0; i < 20; i++)
+      for(int i = 0; i < 20; ++i)
       {
          s = c->prepare("INSERT INTO " TABLE_TEST " (t, i) VALUES (?, ?)");
          assertNoException();
@@ -623,7 +623,7 @@ static void runMySqlConnectionPoolTest(TestRunner& tr)
    Thread* threads[testCount];
 
    // create threads, set pool for tests
-   for(int i = 0; i < testCount; i++)
+   for(int i = 0; i < testCount; ++i)
    {
       tests[i].pool = &cp;
       tests[i].tr = &tr;
@@ -633,7 +633,7 @@ static void runMySqlConnectionPoolTest(TestRunner& tr)
    uint64_t startTime = Timer::startTiming();
 
    // run connection threads
-   for(int i = 0; i < testCount; i++)
+   for(int i = 0; i < testCount; ++i)
    {
       while(!threads[i]->start(131072))
       {
@@ -642,7 +642,7 @@ static void runMySqlConnectionPoolTest(TestRunner& tr)
    }
 
    // join threads
-   for(int i = 0; i < testCount; i++)
+   for(int i = 0; i < testCount; ++i)
    {
       threads[i]->join();
    }
@@ -650,7 +650,7 @@ static void runMySqlConnectionPoolTest(TestRunner& tr)
    double seconds = Timer::getSeconds(startTime);
 
    // clean up threads
-   for(int i = 0; i < testCount; i++)
+   for(int i = 0; i < testCount; ++i)
    {
       delete threads[i];
    }

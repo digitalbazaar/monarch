@@ -40,7 +40,7 @@ public:
       //printf("Running test fiber '%d'\n", getId());
 
       int i = 0;
-      for(; i < count; i++)
+      for(; i < count; ++i)
       {
          //printf("Test fiber '%d' yielding...\n", getId());
          yield();
@@ -63,7 +63,7 @@ static void runFiberYieldTest(TestRunner& tr)
       FiberScheduler fs;
 
       // queue up some fibers prior to starting
-      for(int i = 0; i < 10; i++)
+      for(int i = 0; i < 10; ++i)
       {
          fs.addFiber(new TestFiber(10));
       }

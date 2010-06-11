@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/ValidatorList.h"
 
@@ -22,9 +22,7 @@ ValidatorList::ValidatorList(Validator* validator, ...)
 ValidatorList::~ValidatorList()
 {
    std::vector<Validator*>::iterator i;
-   for(i = mValidators.begin();
-      i != mValidators.end();
-      i++)
+   for(i = mValidators.begin(); i != mValidators.end(); ++i)
    {
       delete (*i);
    }

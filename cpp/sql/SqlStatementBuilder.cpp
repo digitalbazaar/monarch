@@ -129,7 +129,7 @@ bool SqlStatementBuilder::execute(Connection* c)
          DynamicObject& sql = statements["sql"];
          DynamicObject& params = statements["params"];
          int len = sql->length();
-         for(int i = 0; rval && i < len; i++)
+         for(int i = 0; rval && i < len; ++i)
          {
             // prepare the statement
             Statement* s = conn->prepare(sql[i]->getString());
@@ -172,7 +172,7 @@ bool SqlStatementBuilder::execute(Connection* c)
          mResults = DynamicObject();
 
          // execute all statements
-         for(int i = 0; rval && i < (int)mStatementCache.size(); i++)
+         for(int i = 0; rval && i < (int)mStatementCache.size(); ++i)
          {
             Statement* s = mStatementCache[i];
             rval = s->execute() && getResults(s, i, statements) && s->reset();

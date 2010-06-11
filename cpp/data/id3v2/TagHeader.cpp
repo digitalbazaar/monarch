@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/id3v2/TagHeader.h"
 
@@ -165,7 +165,7 @@ void TagHeader::convertIntToSynchsafeBytes(int integer, char* b)
 
    // we may want to ensure the int is 32-bit
    // only 28 significant bits in the integer
-   for(int i = 0; i < 4; i++)
+   for(int i = 0; i < 4; ++i)
    {
       ub[i] = ((integer >> (28 - ((i + 1) * 7))) & 0x7F);
    }
@@ -179,7 +179,7 @@ int TagHeader::convertSynchsafeBytesToInt(const char* b)
 
    // we may want to ensure the int is 32-bit
    // most significant byte first
-   for(int i = 0; i < 4; i++)
+   for(int i = 0; i < 4; ++i)
    {
       rval |= ((ub[i] & 0x7F) << ((3 - i) * 7));
    }

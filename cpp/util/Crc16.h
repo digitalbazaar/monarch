@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_Crc16_H
 #define monarch_util_Crc16_H
@@ -275,7 +275,7 @@ namespace util
  *       unsigned int value = b[offset] & 0xff;
  *
  *       // go through each bit
- *       for(int i = 0; i < 8; i++)
+ *       for(int i = 0; i < 8; ++i)
  *       {
  *          bool bit = ((value >> (7 - i)) & 0x01) != 0;
  *          update(bit);
@@ -335,7 +335,7 @@ namespace util
  *    mCrcValue ^= value << 8;
  *
  *    // go through each bit of the input byte
- *    for(int i = 0; i < 8; i++)
+ *    for(int i = 0; i < 8; ++i)
  *    {
  *       // shift out the first bit
  *       mCrcValue <<= 1;

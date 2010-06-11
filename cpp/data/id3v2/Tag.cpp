@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/id3v2/Tag.h"
 
@@ -14,7 +14,7 @@ Tag::~Tag()
 {
    // delete all frame headers
    for(FrameHeaderList::iterator i = mFrameHeaders.begin();
-       i != mFrameHeaders.end(); i++)
+       i != mFrameHeaders.end(); ++i)
    {
       delete *i;
    }
@@ -56,7 +56,7 @@ FrameHeader* Tag::getFrameHeader(const char* id)
 void Tag::getFrameHeaders(const char* id, FrameHeaderList& l)
 {
    for(FrameHeaderList::iterator i = mFrameHeaders.begin();
-       i != mFrameHeaders.end(); i++)
+       i != mFrameHeaders.end(); ++i)
    {
       if(strcmp((*i)->getId(), id) == 0)
       {

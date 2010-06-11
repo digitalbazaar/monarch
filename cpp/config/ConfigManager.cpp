@@ -243,7 +243,7 @@ bool ConfigManager::addConfigFile(
 
          // load each file in order
          for(vector<string>::iterator i = configFiles.begin();
-             rval && i != configFiles.end(); i++)
+             rval && i != configFiles.end(); ++i)
          {
             rval = addConfigFile(
                (*i).c_str(), processIncludes, file->getAbsolutePath(), false);
@@ -251,7 +251,7 @@ bool ConfigManager::addConfigFile(
 
          // load each dir in order
          for(vector<string>::iterator i = configDirs.begin();
-             rval && i != configDirs.end(); i++)
+             rval && i != configDirs.end(); ++i)
          {
             const char* dir = (*i).c_str();
             rval = addConfigFile(dir, processIncludes, dir, false);
@@ -885,7 +885,7 @@ void ConfigManager::merge(Config& target, Config& source, bool append)
             target->setType(Array);
             int ii = (append ? target->length() : 0);
             ConfigIterator i = source.getIterator();
-            for(; i->hasNext(); ii++)
+            for(; i->hasNext(); ++ii)
             {
                merge(target[ii], i->next(), append);
             }
@@ -1143,7 +1143,7 @@ bool ConfigManager::replaceKeywords(
       if(!full)
       {
          // only create state if needed
-         for(int i = 0; !doReplacement && keys[i] != NULL; i++)
+         for(int i = 0; !doReplacement && keys[i] != NULL; ++i)
          {
             doReplacement = config->hasMember(keys[i]);
          }
@@ -1164,7 +1164,7 @@ bool ConfigManager::replaceKeywords(
          else
          {
             // replace just certain keywords
-            for(int i = 0; rval && keys[i] != NULL; i++)
+            for(int i = 0; rval && keys[i] != NULL; ++i)
             {
                const char* key = keys[i];
                if(config->hasMember(key))
@@ -1333,7 +1333,7 @@ bool ConfigManager::diff(
                (*details)->setType(Array);
             }
             ConfigIterator i = config2.getIterator();
-            for(int ii = 0; i->hasNext(); ii++)
+            for(int ii = 0; i->hasNext(); ++ii)
             {
                DynamicObject next = i->next();
                Config d;

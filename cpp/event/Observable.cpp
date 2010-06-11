@@ -174,7 +174,7 @@ void Observable::unregisterObserver(Observer* observer, EventId id)
          else
          {
             for(vector<EventFilter>::iterator fi = removableFilters.begin();
-                fi != removableFilters.end(); fi++)
+                fi != removableFilters.end(); ++fi)
             {
                i->second.erase(*fi);
             }
@@ -197,7 +197,7 @@ void Observable::unregisterObserver(Observer* observer)
       // iterate over all filter maps, keep a list of event IDs to remove
       vector<EventId> removeIds;
       for(ObserverMap::iterator i = mObservers.begin();
-          i != mObservers.end(); i++)
+          i != mObservers.end(); ++i)
       {
          // remove observer
          vector<EventFilter> removableFilters;
@@ -213,7 +213,7 @@ void Observable::unregisterObserver(Observer* observer)
          else
          {
             for(vector<EventFilter>::iterator fi = removableFilters.begin();
-                fi != removableFilters.end(); fi++)
+                fi != removableFilters.end(); ++fi)
             {
                i->second.erase(*fi);
             }
@@ -222,7 +222,7 @@ void Observable::unregisterObserver(Observer* observer)
 
       // remove all appropriate filter map entries
       for(std::vector<EventId>::iterator ei = removeIds.begin();
-          ei != removeIds.end(); ei++)
+          ei != removeIds.end(); ++ei)
       {
          mObservers.erase(*ei);
       }
@@ -263,7 +263,7 @@ void Observable::removeTap(EventId id, EventId tap)
       if(i != mTaps.end())
       {
          EventIdMap::iterator end = mTaps.upper_bound(id);
-         for(; i != end; i++)
+         for(; i != end; ++i)
          {
             if(i->second == tap)
             {
@@ -389,7 +389,7 @@ void Observable::removeObserverFromFilterMap(
    vector<EventFilter>& removableFilters)
 {
    // remove the observer from every filter's list
-   for(FilterMap::iterator fi = fm.begin(); fi != fm.end(); fi++)
+   for(FilterMap::iterator fi = fm.begin(); fi != fm.end(); ++fi)
    {
       // erase all instances of the observer in this filter's list
       for(ObserverList::iterator li = fi->second.begin();
@@ -402,7 +402,7 @@ void Observable::removeObserverFromFilterMap(
          }
          else
          {
-            li++;
+            ++li;
          }
       }
 
@@ -422,7 +422,7 @@ void Observable::dispatchEvent(
    if(ti != mTaps.end())
    {
       EventIdMap::iterator end = mTaps.upper_bound(id);
-      for(; ti != end; ti++)
+      for(; ti != end; ++ti)
       {
          // dispatch event if the tap is the EventId itself
          if(ti->second == id)
@@ -435,7 +435,7 @@ void Observable::dispatchEvent(
 
                // go through each filter
                bool pass;
-               for(FilterMap::iterator fi = fm.begin(); fi != fm.end(); fi++)
+               for(FilterMap::iterator fi = fm.begin(); fi != fm.end(); ++fi)
                {
                   // check observer filter if appropriate
                   pass = true;
@@ -448,7 +448,7 @@ void Observable::dispatchEvent(
                   if(pass)
                   {
                      for(ObserverList::iterator li =
-                         fi->second.begin(); li != fi->second.end(); li++)
+                         fi->second.begin(); li != fi->second.end(); ++li)
                      {
                         // create and run event dispatcher for observer
                         // set operation user data to observer

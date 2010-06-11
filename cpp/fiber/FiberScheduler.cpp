@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/fiber/FiberScheduler.h"
 
@@ -27,7 +27,7 @@ FiberScheduler::~FiberScheduler()
    FiberScheduler::stop();
 
    // delete all fibers
-   for(FiberMap::iterator i = mFiberMap.begin(); i != mFiberMap.end(); i++)
+   for(FiberMap::iterator i = mFiberMap.begin(); i != mFiberMap.end(); ++i)
    {
       i->second->setState(Fiber::Dead);
       delete i->second;
@@ -38,7 +38,7 @@ FiberScheduler::~FiberScheduler()
 void FiberScheduler::start(OperationRunner* opRunner, int numOps)
 {
    // create "numOps" Operations
-   for(int i = 0; i < numOps; i++)
+   for(int i = 0; i < numOps; ++i)
    {
       // create Operation
       Operation op(*this);
@@ -56,7 +56,7 @@ inline void FiberScheduler::stop()
 
    // delete all thread contexts
    for(ContextList::iterator i = mContextList.begin();
-       i != mContextList.end(); i++)
+       i != mContextList.end(); ++i)
    {
       delete *i;
    }

@@ -125,7 +125,7 @@ SslSocket::~SslSocket()
 
    // free verify common names
    for(VerifyCommonNameList::iterator i = mVerifyCommonNames.begin();
-       i != mVerifyCommonNames.end(); i++)
+       i != mVerifyCommonNames.end(); ++i)
    {
       if(*i != NULL)
       {
@@ -178,7 +178,7 @@ bool SslSocket::verifyCommonName(const char* commonName)
    bool rval = false;
 
    for(VerifyCommonNameList::iterator i = mVerifyCommonNames.begin();
-       !rval && i != mVerifyCommonNames.end(); i++)
+       !rval && i != mVerifyCommonNames.end(); ++i)
    {
       if(strcmp(*i, commonName) == 0)
       {
@@ -192,7 +192,7 @@ bool SslSocket::verifyCommonName(const char* commonName)
    {
       std::string str;
       for(VerifyCommonNameList::iterator i = mVerifyCommonNames.begin();
-          i != mVerifyCommonNames.end(); i++)
+          i != mVerifyCommonNames.end(); ++i)
       {
          if(str.length() > 0)
          {

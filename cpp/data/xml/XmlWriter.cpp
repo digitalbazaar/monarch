@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/xml/XmlWriter.h"
 
@@ -29,7 +29,7 @@ string XmlWriter::encode(const char* data)
 {
    string rval;
 
-   for(int i = 0; data[i] != 0; i++)
+   for(int i = 0; data[i] != 0; ++i)
    {
       switch(data[i])
       {

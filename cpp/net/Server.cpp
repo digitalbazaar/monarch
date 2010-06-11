@@ -29,7 +29,7 @@ Server::~Server()
 
    // delete all port services
    for(PortServiceMap::iterator i = mPortServices.begin();
-       i != mPortServices.end(); i++)
+       i != mPortServices.end(); ++i)
    {
       delete i->second;
    }
@@ -197,7 +197,7 @@ bool Server::start(OperationRunner* opRunner)
 
          // start all port services, fail if any cannot start
          for(PortServiceMap::iterator i = mPortServices.begin();
-             rval && i != mPortServices.end(); i++)
+             rval && i != mPortServices.end(); ++i)
          {
             rval = i->second->start();
          }
@@ -233,14 +233,14 @@ void Server::stop()
       {
          // interrupt all port services
          for(PortServiceMap::iterator i = mPortServices.begin();
-             i != mPortServices.end(); i++)
+             i != mPortServices.end(); ++i)
          {
             i->second->interrupt();
          }
 
          // stop all port services
          for(PortServiceMap::iterator i = mPortServices.begin();
-             i != mPortServices.end(); i++)
+             i != mPortServices.end(); ++i)
          {
             i->second->stop();
          }

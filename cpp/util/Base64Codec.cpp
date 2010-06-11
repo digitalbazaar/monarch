@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/Base64Codec.h"
 
@@ -81,7 +81,7 @@ void Base64Codec::decodeGroup(
 {
    // get 6-bit integer values
    short index[4];
-   for(short i = 0; i < 4; i++)
+   for(short i = 0; i < 4; ++i)
    {
    	index[i] = charToShort(str[i]);
    }
@@ -135,7 +135,7 @@ string Base64Codec::encode(const char* data, unsigned int length)
       char group[4];
       unsigned int offset = 0;
       unsigned int lineLength = 0;
-      for(unsigned int i = 0; i < groups; i++, offset += 3)
+      for(unsigned int i = 0; i < groups; ++i, offset += 3)
       {
          // encode the group
          encodeGroup(data + offset, length - offset, group);
@@ -170,7 +170,7 @@ void Base64Codec::decode(const char* str, char** data, unsigned int& length)
    unsigned int oldLength = strlen(str);
    char temp[oldLength];
    unsigned int len = 0;
-   for(unsigned int i = 0; i < oldLength; i++)
+   for(unsigned int i = 0; i < oldLength; ++i)
    {
       if(str[i] != ' ' && str[i] != '\t' &&
          str[i] != '\r' && str[i] != '\n')
@@ -209,7 +209,7 @@ void Base64Codec::decode(const char* str, char** data, unsigned int& length)
          char bytes[3];
          unsigned int dataIndex = 0;
          unsigned int strIndex = 0;
-         for(unsigned int i = 0; i < groups; i++, strIndex += 4)
+         for(unsigned int i = 0; i < groups; ++i, strIndex += 4)
          {
             // copy the decoded bytes into the decoded buffer
             decodeGroup(temp + strIndex, bytes, len);

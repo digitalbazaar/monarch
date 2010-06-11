@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 
@@ -44,7 +44,7 @@ bool BandwidthThrottlerChain::requestBytes(int count, int& permitted)
       // to minimum permitted by a throttler in the chain
       int maxPermitted = -1;
       for(ThrottlerChain::iterator i = mChain.begin();
-          rval && i != mChain.end(); i++)
+          rval && i != mChain.end(); ++i)
       {
          rval = (*i)->requestBytes(count, permitted);
          if(rval && (maxPermitted == -1 || permitted < maxPermitted))
@@ -69,7 +69,7 @@ void BandwidthThrottlerChain::addAvailableBytes(int bytes)
    {
       // add bytes back to each throttler in the chain, starting in reverse
       for(ThrottlerChain::reverse_iterator i = mChain.rbegin();
-          i != mChain.rend(); i++)
+          i != mChain.rend(); ++i)
       {
          (*i)->addAvailableBytes(bytes);
       }

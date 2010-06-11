@@ -1092,7 +1092,7 @@ File File::createTempFile(const char* prefix, const char* dir)
       char num[22];
       string filename;
       uint64_t time;
-      for(int i = 0; i < TMP_MAX; i++)
+      for(int i = 0; i < TMP_MAX; ++i)
       {
          // try to get unique temporary path name
          time = System::getCurrentMilliseconds();

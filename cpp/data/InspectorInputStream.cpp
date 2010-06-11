@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/InspectorInputStream.h"
 
@@ -24,7 +24,7 @@ InspectorInputStream::~InspectorInputStream()
 {
    // clean up meta-data
    for(InspectorMap::iterator i = mInspectors.begin();
-       i != mInspectors.end(); i++)
+       i != mInspectors.end(); ++i)
    {
       // clean up name
       free((char*)i->first);
@@ -58,7 +58,7 @@ int InspectorInputStream::read(char* b, int length)
          // or not some inspectors still want to keep inspecting
          mFinished = true;
          for(InspectorMap::iterator i = mInspectors.begin();
-             i != mInspectors.end(); i++)
+             i != mInspectors.end(); ++i)
          {
             if(!i->second.inspector->isDataSatisfied() ||
                i->second.inspector->keepInspecting())
@@ -103,7 +103,7 @@ int InspectorInputStream::read(char* b, int length)
                   else
                   {
                      // data could not be inspected, more is required
-                     i++;
+                     ++i;
                   }
                }
                else
@@ -133,7 +133,7 @@ int InspectorInputStream::read(char* b, int length)
       // set the number of available bytes to the minimum inspected
       mAvailableBytes = mReadBuffer.length();
       for(InspectorMap::iterator i = mInspectors.begin();
-          i != mInspectors.end(); i++)
+          i != mInspectors.end(); ++i)
       {
          if(i->second.inspectedBytes > 0)
          {
@@ -153,7 +153,7 @@ int InspectorInputStream::read(char* b, int length)
          // update the number of inspected bytes in each inspector
          int count;
          for(InspectorMap::iterator i = mInspectors.begin();
-             i != mInspectors.end(); i++)
+             i != mInspectors.end(); ++i)
          {
             // (rval could be larger than inspected bytes if an inspector
             // could not inspect any of the bytes in the read buffer)
@@ -231,7 +231,7 @@ DataInspector* InspectorInputStream::getInspector(const char* name)
 void InspectorInputStream::getInspectors(list<DataInspector*>& inspectors)
 {
    for(InspectorMap::iterator i = mInspectors.begin();
-       i != mInspectors.end(); i++)
+       i != mInspectors.end(); ++i)
    {
       // add inspector to list
       inspectors.push_back(i->second.inspector);

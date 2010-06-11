@@ -283,7 +283,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
 
    // read fields
    uint32_t fieldCount = readUInt32(b, false);
-   for(uint32_t i = 0; i < fieldCount; i++)
+   for(uint32_t i = 0; i < fieldCount; ++i)
    {
       // read field name
       uint32_t length = readUInt32(b, true);
@@ -297,7 +297,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
 
    // read attributes
    uint32_t attrCount = readUInt32(b, false);
-   for(uint32_t i = 0; i < attrCount; i++)
+   for(uint32_t i = 0; i < attrCount; ++i)
    {
       // read attribute name
       uint32_t length = readUInt32(b, true);
@@ -319,7 +319,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
 
    // read matches (assume id64 is on)
    //char docIdStr[22];
-   for(uint32_t i = 0; i < matchCount; i++)
+   for(uint32_t i = 0; i < matchCount; ++i)
    {
       // read document ID and weight
       uint64_t docId = readUInt64(b, false);
@@ -395,7 +395,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
    // read words
    uint32_t words = readUInt32(b, false);
    sr["words"] = words;
-   for(uint32_t i = 0; i < words; i++)
+   for(uint32_t i = 0; i < words; ++i)
    {
       // read word
       uint32_t length = readUInt32(b, true);

@@ -272,7 +272,7 @@ void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
          setType(Map);
          clear();
          ObjectMap::iterator i = value.mMap->begin();
-         for(; i != value.mMap->end(); i++)
+         for(; i != value.mMap->end(); ++i)
          {
             // create new map entry
             STATS_COUNTS_INC(Key);
@@ -288,7 +288,7 @@ void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
          setType(Array);
          clear();
          ObjectArray::iterator i = value.mArray->begin();
-         for(; i != value.mArray->end(); i++)
+         for(; i != value.mArray->end(); ++i)
          {
             // create new array
             mArray->push_back(*i);
@@ -446,7 +446,7 @@ bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
                // compare map keys first, then map values if keys are equal
                ObjectMap::iterator li = mMap->begin();
                ObjectMap::iterator ri = rhs.mMap->begin();
-               for(; rval && li != mMap->end(); li++, ri++)
+               for(; rval && li != mMap->end(); ++li, ++ri)
                {
                   if(strcmp(li->first, ri->first) == 0)
                   {
@@ -549,7 +549,7 @@ bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
                rval = false;
                ObjectMap::iterator li = mMap->begin();
                ObjectMap::iterator ri = rhs.mMap->begin();
-               for(; !rval && li != mMap->end(); li++, ri++)
+               for(; !rval && li != mMap->end(); ++li, ++ri)
                {
                   int ret = strcmp(li->first, ri->first);
                   if(ret == 0)
@@ -1190,7 +1190,7 @@ void DynamicObjectImpl::reverse()
 void DynamicObjectImpl::freeMapKeys()
 {
    // clean up member names
-   for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); i++)
+   for(ObjectMap::iterator i = mMap->begin(); i != mMap->end(); ++i)
    {
       char* key = (char*)i->first;
       STATS_COUNTS_DEC(Key);
@@ -1371,7 +1371,7 @@ DynamicObject DynamicObjectImpl::getStats()
       d["keys"]->setType(Map);
       _StatsKeyMap::iterator i =
          _stats_key_counts.begin();
-      for(; i != _stats_key_counts.end(); i++)
+      for(; i != _stats_key_counts.end(); ++i)
       {
          // create new stat entry
          DynamicObject& s = d["keys"][i->first];

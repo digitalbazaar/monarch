@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/event/EventDaemon.h"
 
@@ -100,7 +100,7 @@ void EventDaemon::add(Event& e, uint32_t interval, int count, int refs)
          {
             // find the event
             for(EventList::iterator i = mEvents.begin();
-                !found && i != mEvents.end(); i++)
+                !found && i != mEvents.end(); ++i)
             {
                // check interval first, it is a faster comparison
                if(i->interval == interval && i->event == e)
@@ -165,14 +165,14 @@ void EventDaemon::remove(const char* type, int refs)
                else
                {
                   // increment iterator
-                  i++;
+                  ++i;
                }
             }
          }
          else
          {
             // increment iterator
-            i++;
+            ++i;
          }
       }
 
@@ -191,7 +191,7 @@ void EventDaemon::remove(Event& e, int refs)
       // find the event
       bool found = false;
       for(EventList::iterator i = mEvents.begin();
-          !found && i != mEvents.end() && refs >= 0; i++)
+          !found && i != mEvents.end() && refs >= 0; ++i)
       {
          if(i->event == e)
          {
@@ -231,7 +231,7 @@ void EventDaemon::remove(Event& e, uint32_t interval, int refs)
       // find the event
       bool found = false;
       for(EventList::iterator i = mEvents.begin();
-          !found && i != mEvents.end(); i++)
+          !found && i != mEvents.end(); ++i)
       {
          if(i->event == e && i->interval == interval)
          {
@@ -329,7 +329,7 @@ void EventDaemon::run()
                }
 
                // increment iterator
-               i++;
+               ++i;
             }
          }
 

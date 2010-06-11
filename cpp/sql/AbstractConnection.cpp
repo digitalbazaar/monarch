@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/AbstractConnection.h"
 
@@ -138,7 +138,7 @@ void AbstractConnection::cleanupPreparedStatements()
 {
    // clean up all prepared statements
    for(PreparedStmtMap::iterator i = mPreparedStmts.begin();
-       i != mPreparedStmts.end(); i++)
+       i != mPreparedStmts.end(); ++i)
    {
       delete i->second;
    }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/event/ObserverList.h"
 
@@ -29,7 +29,7 @@ void ObserverList::add(ObserverRef& observer)
 void ObserverList::unregisterFrom(Observable* observable)
 {
    for(std::list<Observer*>::iterator i = mObservers.begin();
-       i != mObservers.end(); i++)
+       i != mObservers.end(); ++i)
    {
       observable->unregisterObserver(*i);
    }
@@ -38,7 +38,7 @@ void ObserverList::unregisterFrom(Observable* observable)
 void ObserverList::unregisterFrom(Observable* observable, EventId id)
 {
    for(std::list<Observer*>::iterator i = mObservers.begin();
-       i != mObservers.end(); i++)
+       i != mObservers.end(); ++i)
    {
       observable->unregisterObserver(*i, id);
    }
@@ -47,7 +47,7 @@ void ObserverList::unregisterFrom(Observable* observable, EventId id)
 void ObserverList::unregisterFrom(EventController* ec)
 {
    for(std::list<Observer*>::iterator i = mObservers.begin();
-       i != mObservers.end(); i++)
+       i != mObservers.end(); ++i)
    {
       ec->unregisterObserver(*i);
    }
@@ -56,7 +56,7 @@ void ObserverList::unregisterFrom(EventController* ec)
 void ObserverList::unregisterFrom(EventController* ec, const char* type)
 {
    for(std::list<Observer*>::iterator i = mObservers.begin();
-       i != mObservers.end(); i++)
+       i != mObservers.end(); ++i)
    {
       ec->unregisterObserver(*i, type);
    }
@@ -66,7 +66,7 @@ void ObserverList::unregisterFrom(
    EventController* ec, DynamicObject& eventTypes)
 {
    for(std::list<Observer*>::iterator i = mObservers.begin();
-       i != mObservers.end(); i++)
+       i != mObservers.end(); ++i)
    {
       ec->unregisterObserver(*i, eventTypes);
    }

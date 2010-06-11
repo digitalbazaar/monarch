@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -82,7 +82,7 @@ uint64_t Zipper::getEstimatedArchiveSize()
    uint64_t rval = 0;
 
    for(EntryList::iterator i = mUnwrittenEntries.begin();
-       i != mUnwrittenEntries.end(); i++)
+       i != mUnwrittenEntries.end(); ++i)
    {
       ZipEntry& ze = *i;
 
@@ -257,7 +257,7 @@ bool Zipper::finish(OutputStream* os)
       // write out the file header for each entry
       uint32_t cdSize = 0;
       for(EntryList::iterator i = mWrittenEntries.begin();
-          rval && i != mWrittenEntries.end(); i++)
+          rval && i != mWrittenEntries.end(); ++i)
       {
          rval = writeFileHeader(*i, os);
          cdSize += (*i)->getFileHeaderSize();

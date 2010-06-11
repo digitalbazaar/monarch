@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/modest/OperationList.h"
 
@@ -27,7 +27,7 @@ Operation& OperationList::operator[](int index)
    {
       // assumes index is not invalid
       list<Operation>::iterator i = mOperations.begin();
-      for(int count = 0; count < index; i++, count++);
+      for(int count = 0; count < index; ++i, ++count);
       op = &(*i);
    }
    mLock.unlock();
@@ -63,7 +63,7 @@ void OperationList::queue(OperationRunner* opRunner)
    mLock.lock();
    {
       for(list<Operation>::iterator i = mOperations.begin();
-          i != mOperations.end(); i++)
+          i != mOperations.end(); ++i)
       {
          opRunner->runOperation(*i);
       }
@@ -76,7 +76,7 @@ void OperationList::interrupt()
    mLock.lock();
    {
       for(list<Operation>::iterator i = mOperations.begin();
-          i != mOperations.end(); i++)
+          i != mOperations.end(); ++i)
       {
          (*i)->interrupt();
       }
@@ -91,7 +91,7 @@ bool OperationList::waitFor(bool interruptible)
    mLock.lock();
    {
       for(list<Operation>::iterator i = mOperations.begin();
-          i != mOperations.end(); i++)
+          i != mOperations.end(); ++i)
       {
          rval = (*i)->waitFor(interruptible);
 
@@ -121,7 +121,7 @@ void OperationList::prune()
          }
          else
          {
-            i++;
+            ++i;
          }
       }
    }

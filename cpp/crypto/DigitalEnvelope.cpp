@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/DigitalEnvelope.h"
 
@@ -54,7 +54,7 @@ bool DigitalEnvelope::startSealing(
       EVP_PKEY* pKeys[keys];
       unsigned char* eKeys[keys];
       int eKeyLengths[keys];
-      for(int i = 0; i < keys; i++)
+      for(int i = 0; i < keys; ++i)
       {
          pKeys[i] = publicKeys[i]->getPKEY();
          eKeys[i] = (unsigned char*)malloc(publicKeys[i]->getOutputSize());
@@ -74,7 +74,7 @@ bool DigitalEnvelope::startSealing(
          rval = true;
 
          // set the encrypted symmetric key data
-         for(int i = 0; i < keys; i++)
+         for(int i = 0; i < keys; ++i)
          {
             // copy iv
             char* ivCopy = NULL;
@@ -100,7 +100,7 @@ bool DigitalEnvelope::startSealing(
       else
       {
          // delete all allocated key data
-         for(int i = 0; i < keys; i++)
+         for(int i = 0; i < keys; ++i)
          {
             free(eKeys[i]);
          }

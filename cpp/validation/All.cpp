@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/All.h"
 
@@ -44,7 +44,7 @@ bool All::isValid(
 
    // make sure all validators are tested, do not short-circuit
    std::vector<Validator*>::iterator i;
-   for(i = mValidators.begin(); i != mValidators.end(); i++)
+   for(i = mValidators.begin(); i != mValidators.end(); ++i)
    {
       if(!(*i)->isValid(obj, context))
       {

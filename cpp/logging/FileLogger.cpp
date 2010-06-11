@@ -358,7 +358,7 @@ bool FileLogger::rotate()
       {
          vector<string>::size_type last =
             oldFiles.size() - mMaxRotatedFiles;
-         for(vector<string>::size_type i = 0; i < last; i++)
+         for(vector<string>::size_type i = 0; i < last; ++i)
          {
             // FIXME: Handle deletion of files in the compression process.
             // Compression jobs may be in a queue to be processed or in process.

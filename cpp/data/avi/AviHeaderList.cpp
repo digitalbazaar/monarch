@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/avi/AviHeaderList.h"
 
@@ -34,7 +34,7 @@ bool AviHeaderList::writeTo(OutputStream& os)
 
    // write each stream header list
    for(StreamHeaderLists::iterator i = mStreamHeaderLists.begin();
-       i != mStreamHeaderLists.end() && rval; i++)
+       i != mStreamHeaderLists.end() && rval; ++i)
    {
       AviStreamHeaderList* hl = *i;
       rval = hl->writeTo(os);
@@ -131,7 +131,7 @@ std::vector<AviStreamHeaderList*>& AviHeaderList::getStreamHeaderLists()
 void AviHeaderList::freeStreamHeaderLists()
 {
    for(StreamHeaderLists::iterator i = mStreamHeaderLists.begin();
-       i != mStreamHeaderLists.end(); i++)
+       i != mStreamHeaderLists.end(); ++i)
    {
       delete *i;
    }

@@ -31,7 +31,7 @@ string Convert::bytesToHex(const char* bytes, unsigned int length)
    char hex[length * 2 + 1];
    char* ptr = hex;
    unsigned char* ubytes = (unsigned char*)bytes;
-   for(unsigned int i = 0; i < length; i++, ptr += 2)
+   for(unsigned int i = 0; i < length; ++i, ptr += 2)
    {
       // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
 
@@ -52,7 +52,7 @@ string Convert::bytesToUpperHex(const char* bytes, unsigned int length)
    char hex[length * 2 + 1];
    char* ptr = hex;
    unsigned char* ubytes = (unsigned char*)bytes;
-   for(unsigned int i = 0; i < length; i++, ptr += 2)
+   for(unsigned int i = 0; i < length; ++i, ptr += 2)
    {
       // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
 

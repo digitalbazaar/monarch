@@ -24,7 +24,7 @@ static void runModExpTest(TestRunner& tr)
 
    Timer timer;
    uint64_t totalTime = 0;
-   for(int i = 0; i < 100; i++)
+   for(int i = 0; i < 100; ++i)
    {
       // create 160-bit base
       BigInteger b = BigInteger::pseudoRandom(160, 0, false);

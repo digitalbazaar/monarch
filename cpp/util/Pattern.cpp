@@ -80,7 +80,7 @@ bool Pattern::getSubMatches(const char* str, DynamicObject& matches, int n)
 
       // store all subexpression matches (including overall match)
       int start, end;
-      for(int i = 0; i < n && m[i].rm_so != -1; i++)
+      for(int i = 0; i < n && m[i].rm_so != -1; ++i)
       {
          // get start and end offsets
          start = m[i].rm_so;

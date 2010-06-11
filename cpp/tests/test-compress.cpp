@@ -44,7 +44,7 @@ static void runDeflateTest(TestRunner& tr)
    {
       FileOutputStream fos(original);
       string content = "brump brump brump 1234 brump brumper";
-      for(int i = 0; i < 1000; i++)
+      for(int i = 0; i < 1000; ++i)
       {
          fos.write(content.c_str(), content.length());
       }
@@ -168,7 +168,7 @@ static void runGzipTest(TestRunner& tr)
    {
       FileOutputStream fos(original);
       string content = "brump brump brump 1234 brump brumper";
-      for(int i = 0; i < 1000; i++)
+      for(int i = 0; i < 1000; ++i)
       {
          fos.write(content.c_str(), content.length());
       }
@@ -333,7 +333,7 @@ static void runZipTest(TestRunner& tr)
       {
          FileOutputStream fos(a);
          string content = "brump brump brump 1234 brump brumper";
-         for(int i = 0; i < 500; i++)
+         for(int i = 0; i < 500; ++i)
          {
             fos.write(content.c_str(), content.length());
          }
@@ -343,7 +343,7 @@ static void runZipTest(TestRunner& tr)
       {
          FileOutputStream fos(b);
          string content = "brump brump brump 1234 brump brumper";
-         for(int i = 0; i < 1000; i++)
+         for(int i = 0; i < 1000; ++i)
          {
             fos.write(content.c_str(), content.length());
          }
@@ -353,7 +353,7 @@ static void runZipTest(TestRunner& tr)
       {
          FileOutputStream fos(c);
          string content = "brump brump brump 1234 brump brumper";
-         for(int i = 0; i < 1500; i++)
+         for(int i = 0; i < 1500; ++i)
          {
             fos.write(content.c_str(), content.length());
          }

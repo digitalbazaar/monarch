@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/id3v2/FrameHeader.h"
 
@@ -247,7 +247,7 @@ void FrameHeader::convertIntToBytes(int integer, char* b)
 
    // FIXME: remove method, use monarch::Data byte ordering macro
 
-   for(int i = 0; i < 4; i++)
+   for(int i = 0; i < 4; ++i)
    {
       ub[i] = ((integer >> ((3 - i) * 8)) & 0xFF);
    }
@@ -262,7 +262,7 @@ int FrameHeader::convertBytesToInt(const char* b)
    unsigned char* ub = (unsigned char*)b;
 
    // most significant byte first
-   for(int i = 0; i < 4; i++)
+   for(int i = 0; i < 4; ++i)
    {
       rval |= ((ub[i] & 0xFF) << ((3 - i) * 8));
    }

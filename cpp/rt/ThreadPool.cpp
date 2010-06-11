@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/ThreadPool.h"
 
@@ -109,7 +109,7 @@ void ThreadPool::cleanupExpiredThreads()
       mListLock.unlock();
 
       // join and cleanup threads
-      for(ThreadList::iterator i = cleanup.begin(); i != cleanup.end(); i++)
+      for(ThreadList::iterator i = cleanup.begin(); i != cleanup.end(); ++i)
       {
          (*i)->join();
          delete (*i);
@@ -285,7 +285,7 @@ void ThreadPool::interruptAllThreads()
    mListLock.lock();
    {
       // interrupt all threads
-      for(ThreadList::iterator i = mThreads.begin(); i != mThreads.end(); i++)
+      for(ThreadList::iterator i = mThreads.begin(); i != mThreads.end(); ++i)
       {
          (*i)->interrupt();
       }
@@ -368,7 +368,7 @@ void ThreadPool::setThreadExpireTime(uint32_t expireTime)
    mListLock.lock();
    {
       // update all existing threads
-      for(ThreadList::iterator i = mThreads.begin(); i != mThreads.end(); i++)
+      for(ThreadList::iterator i = mThreads.begin(); i != mThreads.end(); ++i)
       {
          (*i)->setExpireTime(expireTime);
       }

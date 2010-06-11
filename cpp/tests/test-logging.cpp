@@ -270,7 +270,7 @@ static void rotatetest(unsigned int maxFiles, off_t maxSize, bool compress)
    LoggerRef logger = flog;
    Logger::addLogger(logger);
 
-   for(int i = 0; i < 500; i++)
+   for(int i = 0; i < 500; ++i)
    {
       MO_DEBUG("[%05d] 01234567890123456789012345678901234567890123456789", i);
    }
@@ -435,7 +435,7 @@ static void runLevelTest(TestRunner& tr)
    tr.test("string2level");
    {
       Logger::Level level;
-      for(int i = 0; s2l[i].key != NULL; i++)
+      for(int i = 0; s2l[i].key != NULL; ++i)
       {
          assert(Logger::stringToLevel(s2l[i].key, level));
          assert(level == s2l[i].level);
@@ -448,7 +448,7 @@ static void runLevelTest(TestRunner& tr)
 
    tr.test("level2string");
    {
-      for(int i = 0; l2s[i].key != NULL; i++)
+      for(int i = 0; l2s[i].key != NULL; ++i)
       {
          assertStrCmp(Logger::levelToString(l2s[i].level), l2s[i].key);
       }

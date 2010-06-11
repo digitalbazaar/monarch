@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/ByteBuffer.h"
 
@@ -198,7 +198,7 @@ int ByteBuffer::put(const char* b, int length, bool resize)
    {
       // optimized over memcpy()
       unsigned char* ub = (unsigned char*)b;
-      for(int i = 0; i < length; i++)
+      for(int i = 0; i < length; ++i)
       {
          mOffset[mLength + i] = ub[i];
       }

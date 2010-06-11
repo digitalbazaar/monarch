@@ -32,7 +32,7 @@ HttpConnectionServicer::~HttpConnectionServicer()
 
    // free domains
    for(ServiceDomainList::iterator i = mDomains.begin();
-       i != mDomains.end(); i++)
+       i != mDomains.end(); ++i)
    {
       ServiceDomain* sd = *i;
       free(sd->domain);
@@ -395,7 +395,7 @@ bool HttpConnectionServicer::addRequestServicer(
          // try to find exact domain
          ServiceDomain* sd = NULL;
          for(ServiceDomainList::iterator i = mDomains.begin();
-             sd == NULL && i != mDomains.end(); i++)
+             sd == NULL && i != mDomains.end(); ++i)
          {
             if(strcmp((*i)->domain, domain) == 0)
             {
@@ -467,7 +467,7 @@ HttpRequestServicer* HttpConnectionServicer::removeRequestServicer(
    {
       // try to find exact domain
       for(ServiceDomainList::iterator i = mDomains.begin();
-          rval == NULL && i != mDomains.end(); i++)
+          rval == NULL && i != mDomains.end(); ++i)
       {
          ServiceDomain* sd = *i;
          if(strcmp(sd->domain, domain) == 0)
@@ -506,7 +506,7 @@ HttpRequestServicer* HttpConnectionServicer::getRequestServicer(
    {
       // try to find exact domain
       for(ServiceDomainList::iterator i = mDomains.begin();
-          rval == NULL && i != mDomains.end(); i++)
+          rval == NULL && i != mDomains.end(); ++i)
       {
          ServiceDomain* sd = *i;
          if(strcmp(sd->domain, domain) == 0)
@@ -557,7 +557,7 @@ HttpRequestServicer* HttpConnectionServicer::findRequestServicer(
    {
       // try to find regex-matching domain
       for(ServiceDomainList::iterator i = mDomains.begin();
-          rval == NULL && i != mDomains.end(); i++)
+          rval == NULL && i != mDomains.end(); ++i)
       {
          ServiceDomain* sd = *i;
          if(sd->regex->match(host.c_str()))

@@ -335,7 +335,7 @@ public:
       {
          mLock->lockExclusive();
          {
-            for(int i = 0; i < 1000; i++)
+            for(int i = 0; i < 1000; ++i)
             {
                *mTotal += mNumber;
             }
@@ -469,7 +469,7 @@ static void runSharedLockTest(TestRunner& tr)
    tr.test("simple read/write");
    {
       uint64_t start = System::getCurrentMilliseconds();
-      for(int i = 0; i < 200; i++)
+      for(int i = 0; i < 200; ++i)
       {
          SharedLock lock;
          int total = 0;
@@ -626,7 +626,7 @@ static void runInteractiveSharedLockTest(TestRunner& tr)
    {
       // this test checks to ensure that neither readers
       // nor writers starve each other out
-      for(int i = 0; i < 200; i++)
+      for(int i = 0; i < 200; ++i)
       {
          StarvationData sd;
          sd.signal = false;

@@ -27,7 +27,7 @@ TemplateCache::TemplateCache(int capacity) :
 TemplateCache::~TemplateCache()
 {
    // clean up cache
-   for(Cache::iterator i = mCache.begin(); i != mCache.end(); i++)
+   for(Cache::iterator i = mCache.begin(); i != mCache.end(); ++i)
    {
       // clean up filename
       free((char*)i->first);

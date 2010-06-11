@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SocketDataPresenterList.h"
 
@@ -17,7 +17,7 @@ SocketDataPresenterList::~SocketDataPresenterList()
    {
       // clean up data presenters
       for(vector<SocketDataPresenter*>::iterator i = mDataPresenters.begin();
-          i != mDataPresenters.end(); i++)
+          i != mDataPresenters.end(); ++i)
       {
          delete *i;
       }
@@ -42,7 +42,7 @@ Socket* SocketDataPresenterList::createPresentationWrapper(
    {
       // use data presenters to create a socket wrapper
       for(vector<SocketDataPresenter*>::iterator i = mDataPresenters.begin();
-          i != mDataPresenters.end() && rval == NULL; i++)
+          i != mDataPresenters.end() && rval == NULL; ++i)
       {
          rval = (*i)->createPresentationWrapper(s, secure);
       }

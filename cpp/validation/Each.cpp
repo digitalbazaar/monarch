@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Each.h"
 
@@ -32,7 +32,7 @@ bool Each::isArrayValid(
    while(doi->hasNext())
    {
       DynamicObject& member = doi->next();
-      i++;
+      ++i;
 
       // add [#] indexing to path even if at root
       char idx[23];

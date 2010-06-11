@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Any.h"
 
@@ -36,7 +36,7 @@ bool Any::isValid(
    DynamicObject errors;
    errors->setType(Array);
    for(std::vector<Validator*>::iterator i = mValidators.begin();
-       !rval && i != mValidators.end(); i++, index++)
+       !rval && i != mValidators.end(); ++i, ++index)
    {
       rval = (*i)->isValid(obj, context);
       if(!rval)

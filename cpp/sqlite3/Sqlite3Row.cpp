@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/sqlite3/Sqlite3Row.h"
 
@@ -164,7 +164,7 @@ int Sqlite3Row::getColumnIndex(const char* name)
       mColumnCount = sqlite3_column_count(getStatementHandle(mStatement));
    }
 
-   for(int i = 0; i < mColumnCount; i++)
+   for(int i = 0; i < mColumnCount; ++i)
    {
       if(strcmp(name, sqlite3_column_name(
          getStatementHandle(mStatement), i)) == 0)

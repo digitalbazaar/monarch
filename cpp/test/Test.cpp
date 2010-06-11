@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -44,7 +44,7 @@ bool monarch::test::dumpException()
 void monarch::test::dumpDynamicObjectText_(
    DynamicObject& dyno, DynamicObjectIterator doi, int indent)
 {
-   for(int i = 0; i < indent; i++)
+   for(int i = 0; i < indent; ++i)
    {
       printf(" ");
    }

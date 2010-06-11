@@ -96,7 +96,7 @@ bool ModuleLibrary::unloadModule(const ModuleId* id)
          // erase module from map and list
          mModules.erase(i);
          for(ModuleList::iterator li = mLoadOrder.begin();
-             li != mLoadOrder.end(); li++)
+             li != mLoadOrder.end(); ++li)
          {
             Module* m = *li;
             if(m->getId() == *id)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/ValidatorContext.h"
 
@@ -25,7 +25,7 @@ ValidatorContext::~ValidatorContext()
    if(mPath != NULL)
    {
       for(std::vector<char*>::iterator i = mPath->begin();
-          i != mPath->end(); i++)
+          i != mPath->end(); ++i)
       {
          free(*i);
       }
@@ -93,7 +93,7 @@ std::string ValidatorContext::getPath()
    {
       for(std::vector<char*>::iterator i = mPath->begin();
          i != mPath->end();
-         i++)
+         ++i)
       {
          rval.append(*i);
       }

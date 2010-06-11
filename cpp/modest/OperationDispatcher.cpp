@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/modest/OperationDispatcher.h"
 
@@ -102,7 +102,7 @@ void OperationDispatcher::dispatchJobs()
             case 1:
                // move to next Operation
                impl = NULL;
-               i++;
+               ++i;
                break;
             case 2:
                // Operation is canceled, stop, unmap and unqueue
@@ -144,7 +144,7 @@ void OperationDispatcher::clearQueuedOperations()
    {
       // remove all job queue entries from the map
       for(list<Runnable*>::iterator i = mJobQueue.begin();
-          i != mJobQueue.end(); i++)
+          i != mJobQueue.end(); ++i)
       {
          mOpMap.erase(static_cast<OperationImpl*>(*i));
       }

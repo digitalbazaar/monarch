@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_HashTable_H
 #define monarch_rt_HashTable_H
@@ -456,7 +456,7 @@ HashTable<_K, _V, _H, _E>::HashTable(const HashTable& copy) :
    EntryList* el = c.refNextEntryList(cPtr, NULL);
    while(el != NULL)
    {
-      for(int i = 0; i < el->capacity; i++)
+      for(int i = 0; i < el->capacity; ++i)
       {
          Entry* e = c.protectEntry(cPtr, el, i);
          if(e != NULL)
@@ -529,7 +529,7 @@ HashTable<_K, _V, _H, _E>& HashTable<_K, _V, _H, _E>::operator=(
    EntryList* el = r.refNextEntryList(rPtr, NULL);
    while(el != NULL)
    {
-      for(int i = 0; i < el->capacity; i++)
+      for(int i = 0; i < el->capacity; ++i)
       {
          Entry* e = r.protectEntry(rPtr, el, i);
          if(e != NULL)
@@ -656,7 +656,7 @@ void HashTable<_K, _V, _H, _E>::clear()
    EntryList* el = refNextEntryList(ptr, NULL);
    while(el != NULL)
    {
-      for(int i = 0; i < el->capacity; i++)
+      for(int i = 0; i < el->capacity; ++i)
       {
          // loop until a value is set to a tombstone or the entry is not found
          bool done = false;
@@ -753,7 +753,7 @@ template<typename _K, typename _V, typename _H, typename _E>
 void HashTable<_K, _V, _H, _E>::freeEntryList(EntryList* el)
 {
    // free all live entries
-   for(int i = 0; i < el->capacity; i++)
+   for(int i = 0; i < el->capacity; ++i)
    {
       Entry* e = el->entries[i];
       if(e != NULL)
@@ -1157,7 +1157,7 @@ bool HashTable<_K, _V, _H, _E>::put(
             {
                // keys did not match, so we found a collision, increase the
                // index by 1 and try again
-               i++;
+               ++i;
             }
          }
 
@@ -1237,7 +1237,7 @@ HashTable<_K, _V, _H, _E>::getEntry(HazardPtr* ptr, const _K& k)
       // check the entries for the given index, capped at maxIdx
       bool listDone = false;
       int maxIdx = el->capacity - 1;
-      for(int i = hash & maxIdx; !listDone && i < el->capacity; i++)
+      for(int i = hash & maxIdx; !listDone && i < el->capacity; ++i)
       {
          Entry* e = protectEntry(ptr, el, i);
          if(e == NULL)
@@ -1376,7 +1376,7 @@ void HashTable<_K, _V, _H, _E>::collectGarbage(HazardPtr* ptr)
                privateTail = head;
                head = head->garbageNext;
                privateTail->garbageNext = NULL;
-               i++;
+               ++i;
             }
 
             if(next->garbageNext == NULL)

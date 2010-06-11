@@ -186,7 +186,7 @@ bool AppTools::initializeOpenSSL()
       numLocks, sizeof(pthread_mutex_t));
 
    // initialize mutexes
-   for(int i = 0; i < numLocks; i++)
+   for(int i = 0; i < numLocks; ++i)
    {
       // initialize mutex
       pthread_mutex_init(&sOpenSSLMutexes[i], &mutexAttr);
@@ -214,7 +214,7 @@ void AppTools::cleanupOpenSSL()
    if(sOpenSSLMutexes != NULL)
    {
       int numLocks = CRYPTO_num_locks();
-      for(int i = 0; i < numLocks; i++)
+      for(int i = 0; i < numLocks; ++i)
       {
          // initialize mutex
          pthread_mutex_destroy(&sOpenSSLMutexes[i]);

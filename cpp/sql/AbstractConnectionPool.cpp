@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/AbstractConnectionPool.h"
 
@@ -117,7 +117,7 @@ void AbstractConnectionPool::closeExpiredConnections()
          // find the first expired connection, all that follow are expired
          bool found = false;
          list<PooledConnection*>::iterator i = mIdleConnections.begin();
-         for(; !found && i != mIdleConnections.end(); i++)
+         for(; !found && i != mIdleConnections.end(); ++i)
          {
             // check idle time to see if connection has expired
             found = ((*i)->getIdleTime() <=
@@ -154,7 +154,7 @@ void AbstractConnectionPool::closeAllConnections()
    {
       // remove all active connections
       for(list<PooledConnection*>::iterator i = mActiveConnections.begin();
-          i != mActiveConnections.end(); i++)
+          i != mActiveConnections.end(); ++i)
       {
          PooledConnection* connection = *i;
          connection->closeConnection();
@@ -163,7 +163,7 @@ void AbstractConnectionPool::closeAllConnections()
 
       // remove all idle connections
       for(list<PooledConnection*>::iterator i = mIdleConnections.begin();
-          i != mIdleConnections.end(); i++)
+          i != mIdleConnections.end(); ++i)
       {
          PooledConnection* connection = *i;
          connection->closeConnection();
@@ -237,7 +237,7 @@ unsigned int AbstractConnectionPool::getExpiredConnectionCount()
    {
       // check list for active connections
       for(list<PooledConnection*>::iterator i = mIdleConnections.begin();
-          i != mIdleConnections.end(); i++)
+          i != mIdleConnections.end(); ++i)
       {
          // get the connection
          PooledConnection* connection = *i;

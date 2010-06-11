@@ -40,7 +40,7 @@ string TestRunner::getTestName()
 
    for(i = mTestPath.begin();
        i != mTestPath.end();
-       i++)
+       ++i)
    {
       res += *i;
    }
@@ -115,8 +115,8 @@ bool TestRunner::stringToLevel(const char* slevel, OutputLevel& level)
 {
    bool found = false;
    for(int mapi = 0;
-      slevel != NULL&& !found && outputLevelsMap[mapi].key != NULL;
-      mapi++)
+       slevel != NULL&& !found && outputLevelsMap[mapi].key != NULL;
+       ++mapi)
    {
       if(strcasecmp(slevel, outputLevelsMap[mapi].key) == 0)
       {

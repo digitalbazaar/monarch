@@ -169,7 +169,7 @@ bool Url::setUrl(const string& url)
       else
       {
          for(string::iterator i = mScheme.begin();
-             rval && i != mScheme.end(); i++)
+             rval && i != mScheme.end(); ++i)
          {
             // non-start characters must be in [a-z0-9+.-]
             c = *i;
@@ -410,7 +410,7 @@ bool Url::getTokenizedPath(DynamicObject& result, const char* basePath)
          // split path up by forward slashes
          const char* tok;
          StringTokenizer st(start, '/');
-         for(int i = 0; st.hasNextToken(); i++)
+         for(int i = 0; st.hasNextToken(); ++i)
          {
             tok = st.nextToken();
 
@@ -614,7 +614,7 @@ string Url::encode(const char* str, unsigned int length)
    string rval;
 
    char c;
-   for(unsigned int i = 0; i < length; i++)
+   for(unsigned int i = 0; i < length; ++i)
    {
       c = str[i];
 
@@ -662,7 +662,7 @@ string Url::decode(const char* str, unsigned int length)
 
    char c;
    unsigned int cLength;
-   for(unsigned int i = 0; i < length; i++)
+   for(unsigned int i = 0; i < length; ++i)
    {
       c = str[i];
 

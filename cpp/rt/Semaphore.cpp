@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/Semaphore.h"
 
@@ -68,7 +68,7 @@ void Semaphore::notifyThreads(int count)
 {
    if(isFair())
    {
-      for(int i = 0; !mWaitList.empty() && i < count; i++)
+      for(int i = 0; !mWaitList.empty() && i < count; ++i)
       {
          // remove first thread
          Thread* thread = mWaitList.front();
@@ -84,8 +84,7 @@ void Semaphore::notifyThreads(int count)
       for(int n = 0; i != mWaitMap.end() && n < count; n++)
       {
          // store iterator and advance it
-         prev = i;
-         i++;
+         prev = i++;
 
          // remove thread
          mWaitList.remove(prev->first);

@@ -209,7 +209,7 @@ static void runPortMappingTest(TestRunner& tr)
       PortMapping pm;
       pm->setType(Map);
       printf("\nSTART PORT MAPPINGS:\n");
-      for(int i = 0; !pm.isNull(); i++)
+      for(int i = 0; !pm.isNull(); ++i)
       {
          pm->clear();
          if(cp.getPortMapping(pm, i, wipcs))
@@ -260,7 +260,7 @@ static void runPortMappingTest(TestRunner& tr)
       PortMapping pm;
       pm->setType(Map);
       printf("\nSTART PORT MAPPINGS:\n");
-      for(int i = 0; !pm.isNull(); i++)
+      for(int i = 0; !pm.isNull(); ++i)
       {
          pm->clear();
          if(cp.getPortMapping(pm, i, wipcs))

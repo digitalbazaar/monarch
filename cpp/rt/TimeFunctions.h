@@ -401,7 +401,7 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
                case 'A':
                   // week day (full), skip
                   parse = false;
-                  for(int i = 0; i < 12; i++)
+                  for(int i = 0; i < 12; ++i)
                   {
                      length = strlen(gDaysOfWeek[i]);
                      if(strncasecmp(gDaysOfWeek[i], s, length) == 0)
@@ -415,7 +415,7 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
                case 'a':
                   // week day (abbreviated), skip
                   parse = false;
-                  for(int i = 0; i < 12; i++)
+                  for(int i = 0; i < 12; ++i)
                   {
                      if(strncasecmp(gDaysOfWeek[i], s, 3) == 0)
                      {
@@ -428,7 +428,7 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
                case 'B':
                   // month in year (full)
                   parse = false;
-                  for(int i = 0; i < 12; i++)
+                  for(int i = 0; i < 12; ++i)
                   {
                      length = strlen(gMonths[i]);
                      if(strncasecmp(gMonths[i], s, length) == 0)
@@ -443,7 +443,7 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
                case 'b':
                case 'h':
                   // month in year (abbreviated to 3 letters)
-                  for(int i = 0; i < 12; i++)
+                  for(int i = 0; i < 12; ++i)
                   {
                      if(strncasecmp(gMonths[i], s, 3) == 0)
                      {

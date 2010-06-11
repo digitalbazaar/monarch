@@ -119,7 +119,7 @@ static void runJsonValidTest(TestRunner& tr)
    // FIXME add: unicode escapes, raw unicode
    tr.warning("Add JSON tests for: unicode escapes, raw unicode");
 
-   for(int i = 0; tests[i] != NULL; i++)
+   for(int i = 0; tests[i] != NULL; ++i)
    {
       char msg[50];
       snprintf(msg, 50, "Parse #%d", i);
@@ -184,7 +184,7 @@ static void runJsonInvalidTest(TestRunner& tr)
       NULL
    };
 
-   for(int i = 0; tests[i] != NULL; i++)
+   for(int i = 0; tests[i] != NULL; ++i)
    {
       char msg[50];
       snprintf(msg, 50, "Parse #%d", i);
@@ -245,7 +245,7 @@ static void runJsonDJDTest(TestRunner& tr)
       NULL
    };
 
-   for(int i = 0; dynos[i] != NULL; i++)
+   for(int i = 0; dynos[i] != NULL; ++i)
    {
       char msg[50];
       snprintf(msg, 50, "Verify #%d", i);
@@ -306,7 +306,7 @@ static void runJsonInvalidDJTest(TestRunner& tr)
       NULL
    };
 
-   for(int i = 0; dynos[i] != NULL; i++)
+   for(int i = 0; dynos[i] != NULL; ++i)
    {
       char msg[50];
       snprintf(msg, 50, "Verify #%d", i);
@@ -385,7 +385,7 @@ static void runJsonVerifyDJDTest(TestRunner& tr)
    DynamicObject td = makeJSONTests();
    int tdcount = td->length();
 
-   for(int i = 0; i < tdcount; i++)
+   for(int i = 0; i < tdcount; ++i)
    {
       char msg[50];
       snprintf(msg, 50, "Verify #%d", i);
@@ -469,7 +469,7 @@ static void runJsonValueVerifyJDTest(TestRunner& tr)
    DynamicObject td = makeJSONValueTests();
    int tdcount = td->length();
 
-   for(int i = 0; i < tdcount; i++)
+   for(int i = 0; i < tdcount; ++i)
    {
       char msg[50];
       snprintf(msg, 50, "Verify #%d", i);
@@ -2614,7 +2614,7 @@ static void runJsonReaderSpeedTest(TestRunner& tr)
 
       Timer t;
       t.start();
-      for(int i = 0; i < 10000; i++)
+      for(int i = 0; i < 10000; ++i)
       {
          DynamicObject out;
          JsonReader::readFromString(out, json.c_str(), json.length());

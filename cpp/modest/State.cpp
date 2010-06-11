@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/modest/State.h"
 
@@ -16,7 +16,7 @@ State::~State()
 {
    // delete all state variables
    for(map<const char*, Variable*, VarNameComparator>::iterator i =
-       mVarTable.begin(); i != mVarTable.end(); i++)
+       mVarTable.begin(); i != mVarTable.end(); ++i)
    {
       // free name
       free((char*)i->first);

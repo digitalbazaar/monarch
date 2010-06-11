@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/mysql/MySqlRow.h"
 
@@ -224,7 +224,7 @@ int64_t MySqlRow::getColumnIndex(const char* name)
    // use 64-bit signed int to cover all values + error (negative 1)
    int64_t rval = -1;
 
-   for(unsigned int i = 0; i < mFieldCount; i++)
+   for(unsigned int i = 0; i < mFieldCount; ++i)
    {
       if(strcmp(name, mFields[i].name) == 0)
       {

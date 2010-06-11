@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/mpeg/AudioSamplingRateTable.h"
 
@@ -34,7 +34,7 @@ AudioSamplingRateTable::AudioSamplingRateTable()
 AudioSamplingRateTable::~AudioSamplingRateTable()
 {
    // clean up keys in table
-   for(SamplingRateMap::iterator i = mMap.begin(); i != mMap.end(); i++)
+   for(SamplingRateMap::iterator i = mMap.begin(); i != mMap.end(); ++i)
    {
       free((char*)i->first);
    }

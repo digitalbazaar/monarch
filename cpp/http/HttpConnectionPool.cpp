@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/HttpConnectionPool.h"
 
@@ -17,7 +17,7 @@ HttpConnectionPool::HttpConnectionPool()
 
 HttpConnectionPool::~HttpConnectionPool()
 {
-   for(PoolMap::iterator i = mPools.begin(); i != mPools.end(); i++)
+   for(PoolMap::iterator i = mPools.begin(); i != mPools.end(); ++i)
    {
       // clean up url key
       free((char*)i->first);
@@ -25,7 +25,7 @@ HttpConnectionPool::~HttpConnectionPool()
       // close any open connections
       HttpConnectionList* pool = i->second;
       for(HttpConnectionList::iterator hi = pool->begin();
-          hi != pool->end(); hi++)
+          hi != pool->end(); ++hi)
       {
          if(!(*hi)->isClosed())
          {

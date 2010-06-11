@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/Crc16.h"
 
@@ -22,7 +22,7 @@ Crc16::~Crc16()
 bool Crc16::initializeTable(const unsigned int& key)
 {
    // create a table value for each possible byte value
-   for(unsigned int i = 0; i < 256; i++)
+   for(unsigned int i = 0; i < 256; ++i)
    {
       // start with a clean register, shift the byte value to the
       // top of the register
@@ -80,7 +80,7 @@ void Crc16::update(const unsigned char& b)
 void Crc16::update(const char* b, unsigned int length)
 {
    // go through every byte
-   for(unsigned int i = 0; i < length; i++)
+   for(unsigned int i = 0; i < length; ++i)
    {
       update(b[i]);
    }

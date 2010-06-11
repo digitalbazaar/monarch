@@ -169,7 +169,7 @@ bool Tester::run()
       MicroKernel::ModuleApiList tests;
       k->getModuleApisByType("monarch.test.TestModule", tests);
       for(MicroKernel::ModuleApiList::iterator i = tests.begin();
-         rval && i != tests.end(); i++)
+         rval && i != tests.end(); ++i)
       {
          Module* m = dynamic_cast<Module*>(*i);
          Testable* f = dynamic_cast<Testable*>(*i);

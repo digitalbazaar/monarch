@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/mpeg/AudioBitrateTable.h"
 
@@ -114,7 +114,7 @@ AudioBitrateTable::AudioBitrateTable()
 AudioBitrateTable::~AudioBitrateTable()
 {
    // clean up keys in table
-   for(BitrateMap::iterator i = mMap.begin(); i != mMap.end(); i++)
+   for(BitrateMap::iterator i = mMap.begin(); i != mMap.end(); ++i)
    {
       free((unsigned char*)i->first);
    }

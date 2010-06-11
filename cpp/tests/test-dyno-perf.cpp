@@ -26,7 +26,7 @@ static void runDynoIterTest1(
       uint64_t start_init = System::getCurrentMilliseconds();
       DynamicObject d1;
       d1->setType(Array);
-      for(int i = 0; i < dynos; i++)
+      for(int i = 0; i < dynos; ++i)
       {
          d1->append() = i;
          //d1[i] = i;
@@ -113,7 +113,7 @@ static bool run(TestRunner& tr)
       Config cfg = tr.getApp()->getConfig();
       // number of loops for each test
       int loops = cfg->hasMember("loops") ? cfg["loops"]->getInt32() : 1;
-      for(int i = 0; i < loops; i++)
+      for(int i = 0; i < loops; ++i)
       {
          runDynoIterTest(tr);
       }

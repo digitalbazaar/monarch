@@ -243,7 +243,7 @@ public:
       ControlPoint cp;
       PortMapping pm;
       pm->setType(Map);
-      for(int i = 0; !pm.isNull(); i++)
+      for(int i = 0; !pm.isNull(); ++i)
       {
          pm->clear();
          if(cp.getPortMapping(pm, i, wipcs))

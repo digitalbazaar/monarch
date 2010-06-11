@@ -46,7 +46,7 @@ static void runBase64Test(TestRunner& tr)
    assert(decoded != NULL);
 
    assert(length == 4);
-   for(unsigned int i = 0; i < length; i++)
+   for(unsigned int i = 0; i < length; ++i)
    {
       assert(decoded[i] == data[i + 1]);
    }
@@ -995,7 +995,7 @@ static void runRandomTest(TestRunner& tr)
    tr.test("Random");
    {
       Random::seed();
-      for(int i = 0; i < 10000; i++)
+      for(int i = 0; i < 10000; ++i)
       {
          printf("%" PRIu64 "\n", Random::next(1, 1000000000));
       }

@@ -366,7 +366,7 @@ bool MicroKernel::loadModules(FileList& paths)
 
    // iterate over list and initialize successfully loaded modules
    for(ModuleList::iterator i = uninitialized.begin();
-       rval && i != uninitialized.end(); i++)
+       rval && i != uninitialized.end(); ++i)
    {
       rval = initializeMicroKernelModule(*i);
    }
@@ -384,7 +384,7 @@ bool MicroKernel::loadModules(FileList& paths)
 
       // unload non-MicroKernelModules
       for(std::list<Module*>::iterator i = nonMkms.begin();
-          i != nonMkms.end(); i++)
+          i != nonMkms.end(); ++i)
       {
          Module* m = *i;
          MO_CAT_INFO(MO_KERNEL_CAT,
@@ -461,14 +461,14 @@ bool MicroKernel::unloadModule(const ModuleId* id)
          // start a list of modules that will not be unloaded (this includes
          // all modules before the target module and possibly some after)
          ModuleList keep;
-         for(ModuleList::iterator i = mModuleList.begin(); i != start; i++)
+         for(ModuleList::iterator i = mModuleList.begin(); i != start; ++i)
          {
             keep.push_back(*i);
          }
 
          // start collecting modules to unload and others to keep
          ModuleList unload;
-         for(ModuleList::iterator i = start; i != mModuleList.end(); i++)
+         for(ModuleList::iterator i = start; i != mModuleList.end(); ++i)
          {
             MicroKernelModule* curr = *i;
             if(curr == mkm)
@@ -526,7 +526,7 @@ MicroKernelModuleApi* MicroKernel::getModuleApiByType(const char* type)
 
    // look through dependency info for the type
    for(ModuleList::iterator i = mModuleList.begin();
-       i != mModuleList.end(); i++)
+       i != mModuleList.end(); ++i)
    {
       DynamicObject di = (*i)->getDependencyInfo();
       if(strcmp(di["type"]->getString(), type) == 0)
@@ -543,7 +543,7 @@ void MicroKernel::getModuleApisByType(
 {
    // look through dependency info for the type
    for(ModuleList::iterator i = mModuleList.begin();
-       i != mModuleList.end(); i++)
+       i != mModuleList.end(); ++i)
    {
       DynamicObject di = (*i)->getDependencyInfo();
       if(strcmp(di["type"]->getString(), type) == 0)
@@ -691,7 +691,7 @@ bool MicroKernel::checkDependencyInfo(
       {
          // check for a name that matches in dependencies
          for(ModuleList::iterator mi = dependencies.begin();
-             !rval && mi != dependencies.end(); mi++)
+             !rval && mi != dependencies.end(); ++mi)
          {
             DynamicObject di = (*mi)->getDependencyInfo();
             if(di["name"] == dep["name"])
@@ -713,7 +713,7 @@ bool MicroKernel::checkDependencyInfo(
       {
          // check for a type that matches in the dependencies list
          for(ModuleList::iterator mi = dependencies.begin();
-             !rval && mi != dependencies.end(); mi++)
+             !rval && mi != dependencies.end(); ++mi)
          {
             DynamicObject di = (*mi)->getDependencyInfo();
             if(di["type"] == dep["type"])
@@ -757,7 +757,7 @@ bool MicroKernel::checkDependencies(
                NULL)),
             NULL),
          NULL);
-   for(ModuleList::iterator i = pending.begin(); i != pending.end(); i++)
+   for(ModuleList::iterator i = pending.begin(); i != pending.end(); ++i)
    {
       DynamicObject depInfo = (*i)->getDependencyInfo();
       if(!v->isValid(depInfo))
@@ -820,7 +820,7 @@ bool MicroKernel::checkDependencies(
             else
             {
                // dependencies not yet met, so try next pending module
-               i++;
+               ++i;
             }
          }
       }
@@ -834,7 +834,7 @@ bool MicroKernel::checkDependencies(
             "monarch.kernel.MissingModuleDependencies");
 
          // list all dependency info for pending modules
-         for(ModuleList::iterator i = pending.begin(); i != pending.end(); i++)
+         for(ModuleList::iterator i = pending.begin(); i != pending.end(); ++i)
          {
             DynamicObject depInfo = (*i)->getDependencyInfo();
             e->getDetails()["failures"]->append(depInfo);

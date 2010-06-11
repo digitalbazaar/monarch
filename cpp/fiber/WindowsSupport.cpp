@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/fiber/WindowsSupport.h"
 
@@ -88,7 +88,7 @@ int makecontext(ucontext_t* ucp, void (*func)(), int argc, ...)
       // copy the arguments to the stack
       va_list ap;
       va_start(ap, argc);
-      for(int i = 0; i < argc; i++)
+      for(int i = 0; i < argc; ++i)
       {
          memcpy(sp, ap, argSize);
          ap += argSize;

@@ -1389,7 +1389,7 @@ public:
          "Content-Length: 0\r\n"
          "Connection: close\r\n"
          "\r\n";
-      for(int i = 0; i < connections; i++)
+      for(int i = 0; i < connections; ++i)
       {
          // create socket
          Socket* socket = new TcpSocket();

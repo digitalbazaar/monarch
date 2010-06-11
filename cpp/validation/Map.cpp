@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Map.h"
 
@@ -22,10 +22,7 @@ Map::Map(const char* key, ...)
 Map::~Map()
 {
    std::vector<std::pair<const char*,Validator*> >::iterator i;
-
-   for(i = mValidators.begin();
-      i != mValidators.end();
-      i++)
+   for(i = mValidators.begin(); i != mValidators.end(); ++i)
    {
       delete i->second;
    }
@@ -40,7 +37,7 @@ bool Map::isValid(
    if(!obj.isNull() && obj->getType() == monarch::rt::Map)
    {
       std::vector<std::pair<const char*,Validator*> >::iterator i;
-      for(i = mValidators.begin(); i != mValidators.end(); i++)
+      for(i = mValidators.begin(); i != mValidators.end(); ++i)
       {
          // only add a "." if this is not a root map
          if(context->getDepth() != 0)

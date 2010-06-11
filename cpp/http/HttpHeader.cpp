@@ -94,7 +94,7 @@ void HttpHeader::setField(const char* name, const string& value)
 
       // clean up old fields
       FieldMap::iterator end = mFields.upper_bound(storedName);
-      for(FieldMap::iterator i = start; i != end; i++)
+      for(FieldMap::iterator i = start; i != end; ++i)
       {
          mFieldsSize -= i->second.length();
       }
@@ -156,7 +156,7 @@ void HttpHeader::removeField(const char* name)
       // remove all field entries (may be more than one)
       int length = strlen(name);
       FieldMap::iterator end = mFields.upper_bound(name);
-      for(FieldMap::iterator i = start; i != end; i++)
+      for(FieldMap::iterator i = start; i != end; ++i)
       {
          mFieldsSize -= length;
          mFieldsSize -= i->second.length();
@@ -229,7 +229,7 @@ bool HttpHeader::getField(const char* name, string& value, int index)
    {
       // count to correct value
       FieldMap::iterator end = mFields.upper_bound(i->first);
-      for(int n = 0; i != end && n < index; n++, i++);
+      for(int n = 0; i != end && n < index; n++, ++i);
 
       if(i != end)
       {
@@ -342,7 +342,7 @@ string HttpHeader::toString()
 
    // append all fields
    int length;
-   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
+   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); ++i)
    {
       // get field name length
       length = strlen(i->first);
@@ -394,7 +394,7 @@ bool HttpHeader::write(OutputStream* os)
    }
 
    // write all fields
-   for(FieldMap::iterator i = mFields.begin(); rval && i != mFields.end(); i++)
+   for(FieldMap::iterator i = mFields.begin(); rval && i != mFields.end(); ++i)
    {
       // write name, delimiter, value, and CRLF
       rval =
@@ -459,7 +459,7 @@ void HttpHeader::writeTo(HttpHeader* header)
    header->setVersion(getVersion());
 
    // add all fields
-   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); i++)
+   for(FieldMap::iterator i = mFields.begin(); i != mFields.end(); ++i)
    {
       header->addField(i->first, i->second);
    }

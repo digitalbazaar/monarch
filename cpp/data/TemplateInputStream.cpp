@@ -587,7 +587,7 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
          case ParseCommand:
          {
             // count EOLs
-            for(int i = 0; i < len; i++)
+            for(int i = 0; i < len; ++i)
             {
                if(mTemplate.data()[i] == EOL)
                {
@@ -1840,7 +1840,7 @@ static bool _pipe_escape(
    if(params->length() == 0)
    {
       // default to xml escaping
-      for(string::size_type i = 0; i < value.length(); i++)
+      for(string::size_type i = 0; i < value.length(); ++i)
       {
          switch(value[i])
          {
@@ -2262,7 +2262,7 @@ bool TemplateInputStream::writeConstruct(Construct* c)
       {
          // iterate over children
          for(ConstructStack::iterator i = c->children.begin();
-             rval && i != c->children.end(); i++)
+             rval && i != c->children.end(); ++i)
          {
             rval = writeConstruct(*i);
          }
@@ -2429,7 +2429,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
       {
          // write literal child
          for(ConstructStack::iterator ci = c->children.begin();
-             rval && ci != c->children.end(); ci++)
+             rval && ci != c->children.end(); ++ci)
          {
             rval = writeConstruct(*ci);
          }
@@ -2488,7 +2488,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
 
                // iterate over children, producing output
                for(ConstructStack::iterator ci = c->children.begin();
-                   rval && ci != c->children.end(); ci++)
+                   rval && ci != c->children.end(); ++ci)
                {
                   // stop at 'eachelse' child
                   Construct* child = *ci;
@@ -2514,7 +2514,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             // write constructs after 'eachelse', if one is found
             bool elseFound = false;
             for(ConstructStack::iterator ci = c->children.begin();
-                rval && ci != c->children.end(); ci++)
+                rval && ci != c->children.end(); ++ci)
             {
                Construct* child = *ci;
                if(elseFound)
@@ -2595,7 +2595,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             {
                // iterate over children, producing output
                for(ConstructStack::iterator ci = c->children.begin();
-                   rval && ci != c->children.end(); ci++)
+                   rval && ci != c->children.end(); ++ci)
                {
                   // stop at 'loopelse' child
                   Construct* child = *ci;
@@ -2620,7 +2620,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                // write constructs after 'loopelse', if one is found
                bool elseFound = false;
                for(ConstructStack::iterator ci = c->children.begin();
-                   rval && ci != c->children.end(); ci++)
+                   rval && ci != c->children.end(); ++ci)
                {
                   Construct* child = *ci;
                   if(elseFound)
@@ -2661,7 +2661,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          // iterate over children, checking 'elseif' and 'else' conditionals,
          // and writing out children where the conditions are met
          for(ConstructStack::iterator ci = c->children.begin();
-             rval && ci != c->children.end(); ci++)
+             rval && ci != c->children.end(); ++ci)
          {
             // determine if the child is an 'elseif' or 'else' command
             Construct* child = *ci;
@@ -2820,7 +2820,7 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
    {
       // handle pipes
       for(ConstructStack::iterator i = c->children.begin();
-          rval && i != c->children.end(); i++)
+          rval && i != c->children.end(); ++i)
       {
          Pipe* p = static_cast<Pipe*>((*i)->data);
 
@@ -2990,7 +2990,7 @@ DynamicObject TemplateInputStream::findVariable(
       DynamicObject name = params["name"].first();
       const char* nm = name["key"]->getString();
       for(LoopStack::reverse_iterator ri = mLoops.rbegin();
-          ri != mLoops.rend(); ri++)
+          ri != mLoops.rend(); ++ri)
       {
          Loop* loop = *ri;
          if(loop->type == Loop::loop_each)
@@ -3505,7 +3505,7 @@ void TemplateInputStream::freeConstruct(Construct* c)
 
    // clean up children
    for(ConstructStack::iterator i = c->children.begin();
-       i != c->children.end(); i++)
+       i != c->children.end(); ++i)
    {
       freeConstruct(*i);
    }

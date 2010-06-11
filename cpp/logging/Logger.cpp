@@ -361,7 +361,7 @@ void Logger::removeLogger(LoggerRef& logger, Category* category)
       if(i != sLoggers->end())
       {
          LoggerMap::iterator end = sLoggers->upper_bound(category);
-         for(; i != end; i++)
+         for(; i != end; ++i)
          {
             if(logger == i->second)
             {
@@ -385,7 +385,7 @@ LoggerRef Logger::removeLoggerByName(
       if(i != sLoggers->end())
       {
          LoggerMap::iterator end = sLoggers->upper_bound(category);
-         for(; i != end; i++)
+         for(; i != end; ++i)
          {
             LoggerRef& logger = i->second;
             if((loggerName == NULL && logger->getName() == NULL) ||
@@ -419,7 +419,7 @@ void Logger::flushLoggers()
       UniqueList<LoggerRef> loggers;
 
       // iterate over all loggers adding them to a unique list
-      for(LoggerMap::iterator i = sLoggers->begin(); i != sLoggers->end(); i++)
+      for(LoggerMap::iterator i = sLoggers->begin(); i != sLoggers->end(); ++i)
       {
          loggers.add(i->second);
       }
@@ -464,8 +464,8 @@ bool Logger::stringToLevel(const char* slevel, Level& level)
 {
    bool found = false;
    for(int mapi = 0;
-      slevel != NULL&& !found && logLevelsMap[mapi].key != NULL;
-      mapi++)
+       slevel != NULL&& !found && logLevelsMap[mapi].key != NULL;
+       ++mapi)
    {
       if(strcasecmp(slevel, logLevelsMap[mapi].key) == 0)
       {
@@ -552,7 +552,7 @@ void Logger::vLogToLoggers(
       {
          // Find the last logger in this category
          LoggerMap::iterator end = sLoggers->upper_bound(registeredCat);
-         for(; i != end; i++)
+         for(; i != end; ++i)
          {
             // Log the message
             LoggerRef& logger = i->second;

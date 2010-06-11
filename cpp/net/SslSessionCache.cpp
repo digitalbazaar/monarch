@@ -14,7 +14,7 @@ SslSessionCache::SslSessionCache(unsigned int capacity)
 SslSessionCache::~SslSessionCache()
 {
    // clean up cache entries
-   for(SessionMap::iterator i = mSessions.begin(); i != mSessions.end(); i++)
+   for(SessionMap::iterator i = mSessions.begin(); i != mSessions.end(); ++i)
    {
       free((char*)i->first);
    }

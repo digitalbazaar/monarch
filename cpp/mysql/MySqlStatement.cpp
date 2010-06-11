@@ -38,7 +38,7 @@ MySqlStatement::~MySqlStatement()
    if(mParamBindings != NULL)
    {
       // ensure integer buffers and string lengths are cleaned up
-      for(unsigned int i = 0; i < mParamCount; i++)
+      for(unsigned int i = 0; i < mParamCount; ++i)
       {
          // clean up integer buffer
          switch(mParamBindings[i].buffer_type)
@@ -358,7 +358,7 @@ bool MySqlStatement::execute()
             mResultBindings = new MYSQL_BIND[mFieldCount];
             memset(mResultBindings, 0, sizeof(MYSQL_BIND) * mFieldCount);
 
-            for(unsigned int i = 0; i < mFieldCount; i++)
+            for(unsigned int i = 0; i < mFieldCount; ++i)
             {
                mResultBindings[i].length = &mResultBindings[i].buffer_length;
             }

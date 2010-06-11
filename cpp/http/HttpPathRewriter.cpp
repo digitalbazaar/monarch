@@ -66,7 +66,7 @@ void HttpPathRewriter::modifyRequest(HttpRequest* request)
       string path;
       bool matched = false;
       for(Rules::iterator i = mRules.begin();
-          !matched && i != mRules.end(); i++)
+          !matched && i != mRules.end(); ++i)
       {
          path = request->getHeader()->getPath();
          StringTools::regexRewrite(path, i->regex, i->format.c_str(), &matched);

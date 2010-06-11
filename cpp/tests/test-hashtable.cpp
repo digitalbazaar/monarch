@@ -313,7 +313,7 @@ public:
    virtual void mashMap()
    {
       // initialize
-      for(uint32_t i = 0; i < mSlots; i++)
+      for(uint32_t i = 0; i < mSlots; ++i)
       {
          if(mExclusiveLock) mExclusiveLock->lock();
          if(mSharedLock) mSharedLock->lockExclusive();
@@ -326,7 +326,7 @@ public:
       {
          {
             uint64_t start = Timer::startTiming();
-            for(uint32_t i = 0; i < mWrites; i++)
+            for(uint32_t i = 0; i < mWrites; ++i)
             {
                if(mExclusiveLock) mExclusiveLock->lock();
                if(mSharedLock) mSharedLock->lockExclusive();
@@ -339,7 +339,7 @@ public:
          {
             uint32_t v;
             uint64_t start = Timer::startTiming();
-            for(uint32_t i = 0; i < mReads; i++)
+            for(uint32_t i = 0; i < mReads; ++i)
             {
                if(mExclusiveLock) mExclusiveLock->lock();
                if(mSharedLock) mSharedLock->lockShared();
@@ -358,7 +358,7 @@ public:
       // normalize the timing of the conditional checking with the mashMap()
       // call.
       // initialize
-      for(uint32_t i = 0; i < mSlots; i++)
+      for(uint32_t i = 0; i < mSlots; ++i)
       {
          if(mExclusiveLock) mExclusiveLock->lock();
          if(mSharedLock) mSharedLock->lockExclusive();
@@ -367,11 +367,11 @@ public:
          if(mSharedLock) mSharedLock->unlockExclusive();
       }
       uint32_t slot = 0;
-      for(uint32_t loop = 0; loop < mLoops; loop++)
+      for(uint32_t loop = 0; loop < mLoops; ++loop)
       {
          {
             uint64_t start = Timer::startTiming();
-            for(uint32_t i = 0; i < mWrites; i++)
+            for(uint32_t i = 0; i < mWrites; ++i)
             {
                if(mExclusiveLock) mExclusiveLock->lock();
                if(mSharedLock) mSharedLock->lockExclusive();
@@ -384,7 +384,7 @@ public:
          {
             uint32_t v;
             uint64_t start = Timer::startTiming();
-            for(uint32_t i = 0; i < mReads; i++)
+            for(uint32_t i = 0; i < mReads; ++i)
             {
                if(mExclusiveLock) mExclusiveLock->lock();
                if(mSharedLock) mSharedLock->lockShared();
@@ -433,7 +433,7 @@ static void _hashMashStats(
    uint64_t totalOps = threads * threadOps;
    uint64_t writeOps = threads * loops * writes;
    uint64_t readOps = threads * loops * reads;
-   for(uint32_t i = 0; i < threads; i++)
+   for(uint32_t i = 0; i < threads; ++i)
    {
       totalTime += hm[i]->mTime;
       writeTime += hm[i]->mWriteTime;
@@ -497,23 +497,23 @@ static void runHashTableVsMapTest(
          map<int, uint32_t> m;
          Thread* t[threads];
          HashMashBase* mashers[threads];
-         for(uint32_t i = 0; i < threads; i++)
+         for(uint32_t i = 0; i < threads; ++i)
          {
             mashers[i] = new HashMash<int, uint32_t>(
                loops, slots, writes, reads, &m, NULL, NULL, NULL);
             t[i] = new Thread(mashers[i]);
          }
          uint64_t start = Timer::startTiming();
-         for(uint32_t i = 0; i < threads; i++)
+         for(uint32_t i = 0; i < threads; ++i)
          {
             t[i]->start();
          }
-         for(uint32_t i = 0; i < threads; i++)
+         for(uint32_t i = 0; i < threads; ++i)
          {
             t[i]->join();
          }
          uint64_t wallTime = Timer::getMilliseconds(start);
-         for(uint32_t i = 0; i < threads; i++)
+         for(uint32_t i = 0; i < threads; ++i)
          {
             delete mashers[i];
             delete t[i];
@@ -533,23 +533,23 @@ static void runHashTableVsMapTest(
       ExclusiveLock lock;
       Thread* t[threads];
       HashMashBase* mashers[threads];
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          mashers[i] = new HashMash<int, uint32_t>(
             loops, slots, writes, reads, &m, NULL, &lock, NULL);
          t[i] = new Thread(mashers[i]);
       }
       uint64_t start = Timer::startTiming();
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          t[i]->start();
       }
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          t[i]->join();
       }
       uint64_t wallTime = Timer::getMilliseconds(start);
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          delete mashers[i];
          delete t[i];
@@ -568,23 +568,23 @@ static void runHashTableVsMapTest(
       SharedLock lock;
       Thread* t[threads];
       HashMashBase* mashers[threads];
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          mashers[i] = new HashMash<int, uint32_t>(
             loops, slots, writes, reads, &m, NULL, NULL, &lock);
          t[i] = new Thread(mashers[i]);
       }
       uint64_t start = Timer::startTiming();
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          t[i]->start();
       }
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          t[i]->join();
       }
       uint64_t wallTime = Timer::getMilliseconds(start);
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          delete mashers[i];
          delete t[i];
@@ -602,23 +602,23 @@ static void runHashTableVsMapTest(
       HashTable<int, uint32_t, SuperFastHash> h(initialSize);
       Thread* t[threads];
       HashMashBase* mashers[threads];
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          mashers[i] = new HashMash<int, uint32_t>(
             loops, slots, writes, reads, NULL, &h, NULL, NULL);
          t[i] = new Thread(mashers[i]);
       }
       uint64_t start = Timer::startTiming();
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          t[i]->start();
       }
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          t[i]->join();
       }
       uint64_t wallTime = Timer::getMilliseconds(start);
-      for(uint32_t i = 0; i < threads; i++)
+      for(uint32_t i = 0; i < threads; ++i)
       {
          delete mashers[i];
          delete t[i];

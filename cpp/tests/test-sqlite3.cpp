@@ -1448,7 +1448,7 @@ static void runSqlite3ConnectionPoolTest(TestRunner& tr)
    Thread* threads[testCount];
 
    // create threads, set pool for tests
-   for(int i = 0; i < testCount; i++)
+   for(int i = 0; i < testCount; ++i)
    {
       tests[i].pool = &cp;
       tests[i].tr = &tr;
@@ -1458,7 +1458,7 @@ static void runSqlite3ConnectionPoolTest(TestRunner& tr)
    uint64_t startTime = Timer::startTiming();
 
    // run connection threads
-   for(int i = 0; i < testCount; i++)
+   for(int i = 0; i < testCount; ++i)
    {
       while(!threads[i]->start(131072))
       {
@@ -1467,7 +1467,7 @@ static void runSqlite3ConnectionPoolTest(TestRunner& tr)
    }
 
    // join threads
-   for(int i = 0; i < testCount; i++)
+   for(int i = 0; i < testCount; ++i)
    {
       threads[i]->join();
    }
@@ -1475,7 +1475,7 @@ static void runSqlite3ConnectionPoolTest(TestRunner& tr)
    double seconds = Timer::getSeconds(startTime);
 
    // clean up threads
-   for(int i = 0; i < testCount; i++)
+   for(int i = 0; i < testCount; ++i)
    {
       delete threads[i];
    }

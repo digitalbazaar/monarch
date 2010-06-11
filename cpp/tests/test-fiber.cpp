@@ -203,12 +203,12 @@ static void runFiberTest(TestRunner& tr)
       FiberScheduler fs;
 
       // queue up some fibers prior to starting
-      for(int i = 0; i < 1000; i++)
+      for(int i = 0; i < 1000; ++i)
       {
          fs.addFiber(new TestFiber(20));
       }
 
-      for(int i = 0; i < 400; i++)
+      for(int i = 0; i < 400; ++i)
       {
          fs.addFiber(new TestFiber(50));
       }
@@ -217,7 +217,7 @@ static void runFiberTest(TestRunner& tr)
       fs.start(&k, 4);
 
       // add more fibers
-      for(int i = 0; i < 20; i++)
+      for(int i = 0; i < 20; ++i)
       {
          fs.addFiber(new TestFiber(100));
       }
@@ -258,7 +258,7 @@ static void runFiberTest(TestRunner& tr)
       FiberMessageCenter fmc;
 
       FiberId id;
-      for(int i = 0; i < 50; i++)
+      for(int i = 0; i < 50; ++i)
       {
          MessagableFiber* fiber = new TestMessagableFiber(&fmc, 1000, 1000);
          id = fs.addFiber(fiber);
@@ -331,7 +331,7 @@ static void runFiberSpeedTest(TestRunner& tr)
 
       // queue up Operations
       OperationList opList;
-      for(int i = 0; i < 300; i++)
+      for(int i = 0; i < 300; ++i)
       {
          RunnableRef r = new SpeedTestRunnable(100);
          Operation op(r);
@@ -355,7 +355,7 @@ static void runFiberSpeedTest(TestRunner& tr)
       FiberScheduler fs;
 
       // queue up fibers
-      for(int i = 0; i < 300; i++)
+      for(int i = 0; i < 300; ++i)
       {
          fs.addFiber(new TestFiber(100));
       }
@@ -377,7 +377,7 @@ static void runFiberSpeedTest(TestRunner& tr)
       FiberScheduler fs;
 
       // queue up fibers
-      for(int i = 0; i < 10000; i++)
+      for(int i = 0; i < 10000; ++i)
       {
          fs.addFiber(new TestFiber(3));
       }
@@ -414,7 +414,7 @@ static void runFiberSpeedTest2(TestRunner& tr)
             FiberScheduler fs;
 
             // queue up fibers
-            for(int i = 0; i < fibers; i++)
+            for(int i = 0; i < fibers; ++i)
             {
                fs.addFiber(new TestFiber(iterations));
             }
@@ -495,7 +495,7 @@ static void runConcurrentSigningTest(TestRunner& tr)
 
       // queue up fibers
       int count = 10;
-      for(int i = 0; i < count; i++)
+      for(int i = 0; i < count; ++i)
       {
          fs.addFiber(new ConcurrentSigner(privateKey, publicKey));
       }
@@ -694,7 +694,7 @@ static void runJsonTest(
 
       start_init = Timer::startTiming();
       // queue up fibers
-      for(int i = 0; i < ops; i++)
+      for(int i = 0; i < ops; ++i)
       {
          fs.addFiber(new JsonRWFiber(s.c_str(), oploops));
       }
@@ -716,7 +716,7 @@ static void runJsonTest(
       // queue up Operations
       OperationList opList;
       start_init = Timer::startTiming();
-      for(int i = 0; i < ops; i++)
+      for(int i = 0; i < ops; ++i)
       {
          RunnableRef r = new JsonRWRunnable(s.c_str(), oploops);
          Operation op(r);
@@ -741,18 +741,18 @@ static void runJsonTest(
 
       // queue up Operations
       start_init = Timer::startTiming();
-      for(int i = 0; i < ops; i++)
+      for(int i = 0; i < ops; ++i)
       {
          r[i] = new JsonRWRunnable(s.c_str(), oploops);
          t[i] = new Thread(r[i]);
       }
 
       start_process = Timer::startTiming();
-      for(int i = 0; i < ops; i++)
+      for(int i = 0; i < ops; ++i)
       {
          t[i]->start();
       }
-      for(int i = 0; i < ops; i++)
+      for(int i = 0; i < ops; ++i)
       {
          t[i]->join();
       }
@@ -760,7 +760,7 @@ static void runJsonTest(
       proc_dt = Timer::getMilliseconds(start_process);
       init_dt = start_process - start_init;
 
-      for(int i = 0; i < ops; i++)
+      for(int i = 0; i < ops; ++i)
       {
          delete r[i];
          delete t[i];
@@ -872,7 +872,7 @@ static void fillTestArray(int* d, bool lin, int min, int max, int mag)
 {
    if(lin)
    {
-      for(int i = min; i <= max; i++)
+      for(int i = min; i <= max; ++i)
       {
          d[i - min] = i;
       }
@@ -891,7 +891,7 @@ static void fillTestArray(int* d, bool lin, int min, int max, int mag)
             if(val >= min && val <= max)
             {
                d[i] = val;
-               i++;
+               ++i;
             }
          }
          p = p * 10;
@@ -970,7 +970,7 @@ static int runFiberCompareTest(TestRunner& tr)
          // number of ops - (fibers, operations)
          int ops = cfg->hasMember("ops") ?
             cfg["ops"]->getInt32() : 1;
-         for(int i = 0; i < loops; i++)
+         for(int i = 0; i < loops; ++i)
          {
             runJsonTest(tr, mode, threads, ops, oploops, dyno, csv);
          }
@@ -1008,11 +1008,11 @@ static int runFiberCompareTest(TestRunner& tr)
          fillTestArray(od, olin, omin, omax, omag);
 
          // matrix of threads vs ops
-         for(int ti = 0; ti < tsize; ti++)
+         for(int ti = 0; ti < tsize; ++ti)
          {
-            for(int oi = 0; oi < osize; oi++)
+            for(int oi = 0; oi < osize; ++oi)
             {
-               for(int i = 0; i < loops; i++)
+               for(int i = 0; i < loops; ++i)
                {
                   //printf("test: t:%d o:%d\n", td[ti], od[oi]);
                   runJsonTest(tr, mode, td[ti], od[oi], oploops, dyno, csv);

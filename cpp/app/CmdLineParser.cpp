@@ -85,7 +85,7 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
    // the program name)
    bool end = false;
    int i = 1;
-   for(; rval && !end && i < argc; i++)
+   for(; rval && !end && i < argc; ++i)
    {
       const char* option = argv[i];
 
@@ -153,7 +153,7 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
       else
       {
          size_t arglen = strlen(option);
-         for(size_t shorti = 1; shorti < arglen; shorti++)
+         for(size_t shorti = 1; shorti < arglen; ++shorti)
          {
             string tmp;
             tmp.push_back('-');
@@ -182,7 +182,7 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
    // add remaining options to options["extra"]
    if(rval && end)
    {
-      for(; i < argc; i++)
+      for(; i < argc; ++i)
       {
          extra->append() = argv[i];
       }

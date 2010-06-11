@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Array.h"
 
@@ -24,10 +24,7 @@ Array::Array(int index, ...)
 Array::~Array()
 {
    std::vector<std::pair<int,Validator*> >::iterator i;
-
-   for(i = mValidators.begin();
-      i != mValidators.end();
-      i++)
+   for(i = mValidators.begin(); i != mValidators.end(); ++i)
    {
       delete i->second;
    }
@@ -42,7 +39,7 @@ bool Array::isValid(
    if(!obj.isNull() && obj->getType() == monarch::rt::Array)
    {
       std::vector<std::pair<int,Validator*> >::iterator i;
-      for(i = mValidators.begin(); i != mValidators.end(); i++)
+      for(i = mValidators.begin(); i != mValidators.end(); ++i)
       {
          if(obj->length() >= i->first)
          {

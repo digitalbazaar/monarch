@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/PathFormatter.h"
 
@@ -15,7 +15,7 @@ string& PathFormatter::formatFilename(string& str)
    // Go through the entire string and clean up any character that is not
    // a universally accepted filename character.
    string::iterator i;
-   for(i = str.begin(); i != str.end(); i++ )
+   for(i = str.begin(); i != str.end(); ++i)
    {
       char c = *i;
 

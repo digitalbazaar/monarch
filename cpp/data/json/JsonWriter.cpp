@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/json/JsonWriter.h"
 
@@ -74,7 +74,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
             encoded.reserve(length);
             encoded.push_back('"');
             char unicode[6];
-            for(size_t i = 0; i < length; i++)
+            for(size_t i = 0; i < length; ++i)
             {
                unsigned char c = temp[i];
                if((c >= 0x5d /* && c <= 0x10FFFF */) ||

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/CookieJar.h"
 
@@ -40,7 +40,7 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
       Date now;
       bool name;
       StringTokenizer pairs;
-      for(int i = 0; i < count; i++)
+      for(int i = 0; i < count; ++i)
       {
          name = true;
          header->getField(field, cookies, i);

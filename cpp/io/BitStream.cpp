@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/BitStream.h"
 
@@ -60,7 +60,7 @@ void BitStream::append(const unsigned char* b, int length)
    }
    else if(length == 1)
    {
-      for(int i = 0; i < 8; i++)
+      for(int i = 0; i < 8; ++i)
       {
          append((b[0] & (0x80 >> i)) != 0);
       }
@@ -74,7 +74,7 @@ void BitStream::append(const unsigned char* b, int length)
    else
    {
       // do unoptimized bit-appending
-      for(int i = 0; i < length; i++)
+      for(int i = 0; i < length; ++i)
       {
          append(b + i, 1);
       }
@@ -93,7 +93,7 @@ bool BitStream::appendFromString(const char* str, int length)
    }
 
    // append bits
-   for(int i = 0; rval && i < length; i++)
+   for(int i = 0; rval && i < length; ++i)
    {
       if(str[i] == '0')
       {
@@ -119,7 +119,7 @@ bool BitStream::appendFromString(const char* str, int length)
 std::string& BitStream::appendToString(std::string& str)
 {
    str.reserve(str.length() + length());
-   for(int i = 0; i < length(); i++)
+   for(int i = 0; i < length(); ++i)
    {
       str.push_back((*this)[i] ? '1' : '0');
    }
@@ -162,7 +162,7 @@ unsigned char BitStream::get(int bitOffset)
    }
    else
    {
-      for(int i = 0; i < 8 && (bitOffset + i) < length(); i++)
+      for(int i = 0; i < 8 && (bitOffset + i) < length(); ++i)
       {
          if((*this)[bitOffset + i])
          {
@@ -184,7 +184,7 @@ void BitStream::get(int bitOffset, unsigned char* b, int count)
    else
    {
       // do unoptimized OR'ing of bits
-      for(int i = 0; i < count && bitOffset < length(); i++)
+      for(int i = 0; i < count && bitOffset < length(); ++i)
       {
          b[i] = 0;
          for(int n = 0; n < 8 && bitOffset < length(); n++, bitOffset++)
@@ -248,7 +248,7 @@ std::string BitStream::toString(int offset, int length)
    std::string str;
    str.reserve(str.length() + length);
    int stop = offset + length;
-   for(int i = offset; i < stop; i++)
+   for(int i = offset; i < stop; ++i)
    {
       str.push_back((*this)[i] ? '1' : '0');
    }
