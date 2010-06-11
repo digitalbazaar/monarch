@@ -371,7 +371,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
                {
                   // multiple values to handle
                   attr["value"]->setType(Array);
-                  for(uint32_t x = 0; x < value; x++)
+                  for(uint32_t x = 0; x < value; ++x)
                   {
                      attr["value"]->append() = readUInt32(b, false);
                   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -130,7 +130,7 @@ int Header::convertFromBytes(char* b, int length)
             if((flags & GZIP_FNAME) == GZIP_FNAME)
             {
                // at least one byte for filename
-               headerSize++;
+               ++headerSize;
                mHasFilename = true;
 
                if(bb.length() >= 1)
@@ -159,7 +159,7 @@ int Header::convertFromBytes(char* b, int length)
             if((flags & GZIP_FCOMMENT) == GZIP_FCOMMENT)
             {
                // at least one byte for file comment
-               headerSize++;
+               ++headerSize;
                mHasFileComment = true;
 
                if(bb.length() >= 1)

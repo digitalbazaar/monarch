@@ -143,7 +143,7 @@ bool Url::setUrl(const string& url)
       }
       else
       {
-         index--;
+         --index;
       }
 
       // split string into the scheme and scheme-specific-part

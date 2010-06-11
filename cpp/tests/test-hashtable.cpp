@@ -49,10 +49,10 @@ struct JavaHashCodeAsHash
       // s[0]*31^(n-1) + s[1]*31^(n-2) + ... + s[n-1]
       int n = strlen(key) - 1;
       int hash = 0;
-      for(const char* ptr = key; ptr[0] != '\0'; ptr++)
+      for(const char* ptr = key; ptr[0] != '\0'; ++ptr)
       {
          hash += (int)ptr[0] * pow((double)31, n);
-         n--;
+         --n;
       }
       return hash;
    }
@@ -88,7 +88,7 @@ struct SuperFastHash
       len >>= 2;
 
       /* Main loop */
-      for(; len > 0; len--)
+      for(; len > 0; --len)
       {
          hash += get16bits(data);
          tmp = (get16bits(data + 2) << 11) ^ hash;
@@ -322,7 +322,7 @@ public:
          if(mSharedLock) mSharedLock->unlockExclusive();
       }
       uint32_t slot = 0;
-      for(uint32_t loop = 0; loop < mLoops; loop++)
+      for(uint32_t loop = 0; loop < mLoops; ++loop)
       {
          {
             uint64_t start = Timer::startTiming();

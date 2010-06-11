@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/upnp/DeviceDiscoverer.h"
 
@@ -304,7 +304,7 @@ int DeviceDiscoverer::discover(
                      JsonWriter::writeToString(device).c_str());
 
                   // another device found
-                  rval++;
+                  ++rval;
                   devices->append(device);
 
                   // update remaining time (must be within 32-bit integer range)

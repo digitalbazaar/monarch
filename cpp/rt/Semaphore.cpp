@@ -81,7 +81,7 @@ void Semaphore::notifyThreads(int count)
       // erase according to map entry
       WaitMap::iterator i = mWaitMap.begin();
       WaitMap::iterator prev;
-      for(int n = 0; i != mWaitMap.end() && n < count; n++)
+      for(int n = 0; i != mWaitMap.end() && n < count; ++n)
       {
          // store iterator and advance it
          prev = i++;

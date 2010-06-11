@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/Monitor.h"
 
@@ -55,13 +55,13 @@ void Monitor::enter()
    }
 
    // increment lock count
-   mLockCount++;
+   ++mLockCount;
 }
 
 void Monitor::exit()
 {
    // decrement lock count
-   mLockCount--;
+   --mLockCount;
 
    if(mLockCount == 0)
    {

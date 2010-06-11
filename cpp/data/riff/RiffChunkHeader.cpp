@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2005-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -81,7 +81,7 @@ uint32_t RiffChunkHeader::getPaddedSize()
 
    if(rval % 2 == 1)
    {
-      rval++;
+      ++rval;
    }
 
    return rval;

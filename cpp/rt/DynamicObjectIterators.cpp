@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/DynamicObjectIterators.h"
 
@@ -48,15 +48,15 @@ bool DynamicObjectIteratorArray::hasNext()
 DynamicObject& DynamicObjectIteratorArray::next()
 {
    DynamicObject& rval = *mArrayIterator;
-   mIndex++;
-   mArrayIterator++;
+   ++mIndex;
+   ++mArrayIterator;
    return rval;
 }
 
 void DynamicObjectIteratorArray::remove()
 {
    mArrayIterator = mArray->erase(--mArrayIterator);
-   mIndex--;
+   --mIndex;
 }
 
 /* Map */
@@ -81,9 +81,9 @@ bool DynamicObjectIteratorMap::hasNext()
 DynamicObject& DynamicObjectIteratorMap::next()
 {
    DynamicObject& rval = mMapIterator->second;
-   mIndex++;
+   ++mIndex;
    mName = mMapIterator->first;
-   mMapIterator++;
+   ++mMapIterator;
    return rval;
 }
 
@@ -91,9 +91,9 @@ void DynamicObjectIteratorMap::remove()
 {
    // copy iterator and reverse to previous position for deletion
    DynamicObjectImpl::ObjectMap::iterator last = mMapIterator;
-   last--;
+   --last;
    mObject->removeMember(last);
-   mIndex--;
+   --mIndex;
    mName = NULL;
 }
 

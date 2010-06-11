@@ -253,7 +253,7 @@ static bool _validateVariableKey(const char* text, bool period)
    bool rval = true;
 
    // can only contain these characters:
-   for(const char* ptr = text; *ptr != 0; ptr++)
+   for(const char* ptr = text; *ptr != 0; ++ptr)
    {
       char c = *ptr;
       if(!(c >= 'a' && c <= 'z') &&
@@ -591,12 +591,12 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
             {
                if(mTemplate.data()[i] == EOL)
                {
-                  mLine++;
+                  ++mLine;
                   mColumn = 1;
                }
                else
                {
-                  mColumn++;
+                  ++mColumn;
                }
             }
             break;
@@ -658,7 +658,7 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
 
                // skip starting construct char
                mTemplate.clear(1);
-               mColumn++;
+               ++mColumn;
             }
             break;
          }
@@ -759,7 +759,7 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
             if(ret != 0)
             {
                // finished, skip ending construct delimiter, parse it
-               len++;
+               ++len;
                rval = parseConstruct();
             }
             if(rval)
@@ -779,7 +779,7 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
             if(ret != 0)
             {
                // finished, skip ending construct/starting pipe/escape char
-               len++;
+               ++len;
                if(ret == END_CONSTRUCT_CHAR)
                {
                   // variable finished
@@ -798,7 +798,7 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
                   {
                      // add sequence, skip character
                      data->text.push_back(ch);
-                     len++;
+                     ++len;
                   }
                }
                else
@@ -841,7 +841,7 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
                if(ret == ESCAPE_CHAR)
                {
                   // skip escape
-                  len++;
+                  ++len;
 
                   // get escape sequence
                   char ch = _getEscapeSequence(*(mTemplate.data() + len));
@@ -854,7 +854,7 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
                   {
                      // add sequence, skip character
                      data->text.push_back(ch);
-                     len++;
+                     ++len;
                   }
                }
                else

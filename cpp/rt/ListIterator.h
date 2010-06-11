@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_ListIterator_H
 #define monarch_rt_ListIterator_H
@@ -80,7 +80,7 @@ template<class T>
 T& ListIterator<T>::next()
 {
    mCurrent = mNext;
-   mNext++;
+   ++mNext;
    return *mCurrent;
 }
 
@@ -94,7 +94,7 @@ template<class T>
 void ListIterator<T>::remove()
 {
    mNext = mCurrent = mList->erase(mCurrent);
-   mNext++;
+   ++mNext;
 }
 
 } // end namespace rt

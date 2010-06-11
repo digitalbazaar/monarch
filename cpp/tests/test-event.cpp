@@ -63,33 +63,33 @@ public:
 
    virtual void eventOccurred(Event& e)
    {
-      events++;
+      ++events;
    }
 
    virtual void handleEvent1(Event& e)
    {
-      event1++;
+      ++event1;
    }
 
    virtual void handleEvent2(Event& e)
    {
-      event2++;
+      ++event2;
    }
 
    virtual void handleEvent3(Event& e)
    {
-      event3++;
+      ++event3;
    }
 
    virtual void handleEvent4(Event& e)
    {
       if(e["id"]->getUInt64() == (3 + idOffset))
       {
-         event3++;
+         ++event3;
       }
       else if(e["id"]->getUInt64() == (4 + idOffset))
       {
-         event4++;
+         ++event4;
       }
    }
 };
@@ -552,7 +552,7 @@ static void runEventDaemonTest(TestRunner& tr)
 
       int count = 0;
       uint64_t startTime = Timer::startTiming();
-      for(; count < 100; count++)
+      for(; count < 100; ++count)
       {
          ew.waitForEvent();
          ew.popEvent();
@@ -590,7 +590,7 @@ static void runEventDaemonTest(TestRunner& tr)
 
       int count = 0;
       uint64_t startTime = Timer::startTiming();
-      for(; count < 150; count++)
+      for(; count < 150; ++count)
       {
          ew.waitForEvent();
          ew.popEvent();
@@ -653,7 +653,7 @@ static void runEventDaemonSharedEventTest(TestRunner& tr)
 
       int count = 0;
       uint64_t startTime = Timer::startTiming();
-      for(; count < 10; count++)
+      for(; count < 10; ++count)
       {
          ew1.waitForEvent();
          ew2.waitForEvent();
@@ -745,7 +745,7 @@ static void runInteractiveEventDaemonTest(TestRunner& tr)
 
       int count = 0;
       uint64_t startTime = Timer::startTiming();
-      for(; count < 10; count++)
+      for(; count < 10; ++count)
       {
          ew.waitForEvent();
          ew.popEvent();

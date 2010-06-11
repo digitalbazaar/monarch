@@ -227,14 +227,14 @@ inline static bool gStringToNumber(const char** s, int& num, int digits)
 
    int pow, digit;
    num = 0;
-   digits--;
-   for(; rval && digits >= 0; digits--)
+   --digits;
+   for(; rval && digits >= 0; --digits)
    {
       // ASCII 48-57 for 0-9
       if(**s > 47 && **s < 58)
       {
          digit = **s - '0';
-         for(pow = 0; pow < digits; pow++)
+         for(pow = 0; pow < digits; ++pow)
          {
             digit *= 10;
          }
@@ -297,7 +297,7 @@ inline static struct tm* gmtime_r(const time_t* timep, struct tm* result)
    result->tm_wday = (day + 4) % 7;
 
    int* year = &result->tm_year;
-   for(*year = 1970; ; (*year)++)
+   for(*year = 1970; ; ++(*year))
    {
       // check for leap year
       daysPerYear = gIsLeapYear(*year) ? 366 : 365;
@@ -315,18 +315,18 @@ inline static struct tm* gmtime_r(const time_t* timep, struct tm* result)
    }
 
    // set the day in the year (days do not begin on 0, so +1)
-   day++;
+   ++day;
    result->tm_yday = day;
 
    // remove extra day from leap years (31 days in Jan + 28 in February = 59)
    if(gIsLeapYear(1900 + *year) && day > 59)
    {
-      day--;
+      --day;
    }
 
    // determine the month
    int* month = &result->tm_mon;
-   for(*month = 11; day <= gDaysInPreviousMonth[*month]; (*month)--);
+   for(*month = 11; day <= gDaysInPreviousMonth[*month]; --(*month));
 
    // determine the day of the month
    result->tm_mday = day - gDaysInPreviousMonth[*month];
@@ -396,7 +396,7 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
             {
                case '%':
                   // escaped parenthesis, skip it
-                  s++;
+                  ++s;
                   break;
                case 'A':
                   // week day (full), skip
@@ -498,7 +498,7 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
                   old = s;
                   gStringToNumber(&s, tm->tm_mon, 2);
                   parse = (s != old);
-                  tm->tm_mon++;
+                  ++tm->tm_mon;
                case 'M':
                   // minute in hour
                   old = s;
@@ -508,7 +508,7 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
                case 'n':
                case 't':
                   // skip new line or tab character
-                  s++;
+                  ++s;
                   break;
                case 'P':
                   // AM/PM
@@ -537,27 +537,27 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
                   break;
                case 'U':
                   // 2 digit week of year starting on a Sunday, skip
-                  s++;
+                  ++s;
                   if(*s != 0)
                   {
-                     s++;
+                     ++s;
                   }
                   break;
                case 'u':
                   // day of week 1-7, skip
-                  s++;
+                  ++s;
                   break;
                case 'W':
                   // 2 digit week of year starting on a Monday, skip
-                  s++;
+                  ++s;
                   if(*s != 0)
                   {
-                     s++;
+                     ++s;
                   }
                   break;
                case 'w':
                   // day of week 0-6, skip
-                  s++;
+                  ++s;
                   break;
                case 'X':
                   // preferred date representation for locale without time
@@ -608,11 +608,11 @@ inline static char* strptime(const char* s, const char* format, struct tm* tm)
                   parse = false;
                   break;
             }
-            format++;
+            ++format;
             break;
          default:
             // non-format character
-            s++;
+            ++s;
             break;
       }
    }

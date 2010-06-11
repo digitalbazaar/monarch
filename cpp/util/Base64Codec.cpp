@@ -128,7 +128,7 @@ string Base64Codec::encode(const char* data, unsigned int length)
       // see if there is an incomplete group
       if(groups * 3 != length)
       {
-         groups++;
+         ++groups;
       }
 
       // encode all the groups

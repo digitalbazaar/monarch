@@ -269,7 +269,7 @@ namespace util
  * {
  *    // go through every byte
  *    unsigned int end = offset + length;
- *    for(; offset < end; offset++)
+ *    for(; offset < end; ++offset)
  *    {
  *       // get the next byte as an unsigned int
  *       unsigned int value = b[offset] & 0xff;

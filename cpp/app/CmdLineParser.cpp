@@ -52,8 +52,8 @@ static int _getOptionType(const char* option)
    // short option
    else if(strncmp(option, "-", 1) == 0)
    {
-      option++;
-      for(; *option != '\0'; option++)
+      ++option;
+      for(; *option != '\0'; ++option)
       {
          if(isalpha(*option))
          {
@@ -104,7 +104,7 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
          if(i == 1)
          {
             end = true;
-            i--;
+            --i;
          }
          // parse error
          else

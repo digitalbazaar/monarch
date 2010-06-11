@@ -46,7 +46,7 @@ void BitStream::append(bool bit)
 
    // OR appropriate byte in bit set
    mBitSet[mLength / 8] |= bit ? (0x80 >> (mLength % 8)) : 0;
-   mLength++;
+   ++mLength;
 }
 
 void BitStream::append(const unsigned char* b, int length)
@@ -187,7 +187,7 @@ void BitStream::get(int bitOffset, unsigned char* b, int count)
       for(int i = 0; i < count && bitOffset < length(); ++i)
       {
          b[i] = 0;
-         for(int n = 0; n < 8 && bitOffset < length(); n++, bitOffset++)
+         for(int n = 0; n < 8 && bitOffset < length(); ++n, ++bitOffset)
          {
             b[i] |= (*this)[bitOffset] ? (0x80 >> (n % 8)) : 0;
          }

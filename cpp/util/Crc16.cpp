@@ -29,7 +29,7 @@ bool Crc16::initializeTable(const unsigned int& key)
       unsigned int reg = i << 8;
 
       // go through each bit in the byte
-      for(unsigned int bit = 0; bit < 8; bit++)
+      for(unsigned int bit = 0; bit < 8; ++bit)
       {
          // shift the register to the left
          reg <<= 1;

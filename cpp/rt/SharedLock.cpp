@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/SharedLock.h"
 
@@ -104,7 +104,7 @@ void SharedLock::lockShared()
       }
 
       // shared lock acquired
-      mSharedCount++;
+      ++mSharedCount;
 
       // exit critical section
       pthread_mutex_unlock(&mMutex);
@@ -112,7 +112,7 @@ void SharedLock::lockShared()
    else
    {
       // this thread has the exclusive lock, so increase shared lock count
-      mSharedCount++;
+      ++mSharedCount;
    }
 }
 
@@ -122,7 +122,7 @@ void SharedLock::unlockShared()
    pthread_mutex_lock(&mMutex);
 
    // shared lock released
-   mSharedCount--;
+   --mSharedCount;
 
    if(mExclusiveCount == 0 && mSharedCount == 0)
    {
@@ -148,7 +148,7 @@ void SharedLock::lockExclusive()
       pthread_mutex_lock(&mMutex);
 
       // exclusive lock requested
-      mExclusiveRequests++;
+      ++mExclusiveRequests;
 
       // wait for exclusive and shared lock counts to hit 0
       while(mExclusiveCount > 0 || mSharedCount > 0)
@@ -157,8 +157,8 @@ void SharedLock::lockExclusive()
       }
 
       // exclusive lock acquired
-      mExclusiveCount++;
-      mExclusiveRequests--;
+      ++mExclusiveCount;
+      --mExclusiveRequests;
 
       // set thread that holds the exclusive lock
       mThreadId = self;
@@ -169,7 +169,7 @@ void SharedLock::lockExclusive()
    else
    {
       // this thread has the exclusive lock, so increase exclusive lock count
-      mExclusiveCount++;
+      ++mExclusiveCount;
    }
 }
 
@@ -179,7 +179,7 @@ void SharedLock::unlockExclusive()
    pthread_mutex_lock(&mMutex);
 
    // exclusive lock released
-   mExclusiveCount--;
+   --mExclusiveCount;
 
    if(mExclusiveCount == 0)
    {
@@ -226,7 +226,7 @@ void SharedLock::lockShared()
    else
    {
       // current thread has the exclusive lock, so bump up lock count
-      mLockCount++;
+      ++mLockCount;
    }
 }
 
@@ -261,13 +261,13 @@ void SharedLock::lockExclusive()
    }
 
    // increment lock count
-   mLockCount++;
+   ++mLockCount;
 }
 
 void SharedLock::unlockExclusive()
 {
    // decrement lock count
-   mLockCount--;
+   --mLockCount;
 
    if(mLockCount == 0)
    {

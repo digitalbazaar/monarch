@@ -163,7 +163,7 @@ bool SqlStatementBuilder::execute(Connection* c)
                         rval = s->setText(count, param->getString());
                         break;
                   }
-                  count++;
+                  ++count;
                }
             }
          }

@@ -128,7 +128,7 @@ std::string& StringTools::regexRewrite(
             // add everything up to this point
             str.append(ptr, v - ptr);
 
-            v++;
+            ++v;
             switch(*v)
             {
                case '$':
@@ -154,7 +154,7 @@ std::string& StringTools::regexRewrite(
                   str.push_back(*v);
                   break;
             }
-            v++;
+            ++v;
          }
          else
          {
@@ -206,7 +206,7 @@ static string vformat(const char* f, va_list ap)
    if(size > 0)
    {
       // include room for null-terminator
-      size++;
+      ++size;
       str = (char*)realloc(str, size);
       vsnprintf(str, size, f, ap);
    }
@@ -265,7 +265,7 @@ string StringTools::join(
       {
          i->next();
       }
-      n++;
+      ++n;
    }
 
    return rval;

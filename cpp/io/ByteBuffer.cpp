@@ -291,9 +291,9 @@ int ByteBuffer::getByte(unsigned char& b)
       b = mOffset[0];
 
       // move internal pointer
-      mOffset++;
-      mLength--;
-      rval++;
+      ++mOffset;
+      --mLength;
+      ++rval;
    }
 
    return rval;
@@ -421,8 +421,8 @@ int ByteBuffer::extend(int length)
 
 unsigned char ByteBuffer::next()
 {
-   mLength--;
-   mOffset++;
+   --mLength;
+   ++mOffset;
    return (mOffset - 1)[0];
 }
 

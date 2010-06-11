@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_io_FileFunctions_H
 #define monarch_io_FileFunctions_H
@@ -84,7 +84,7 @@ inline static ssize_t getdelim(
    while((c = fgetc(stream)) != EOF)
    {
       s.push_back(c);
-      rval++;
+      ++rval;
 
       if(c == delim)
       {

@@ -181,11 +181,11 @@ void HttpHeader::clearFields()
    {
       // save the name to be freed
       nameArray[next] = (char*)i->first;
-      next++;
+      ++next;
    }
 
    // free names
-   for(size_t n = 0; n < next; n++)
+   for(size_t n = 0; n < next; ++n)
    {
       free(nameArray[n]);
    }
@@ -295,8 +295,8 @@ bool HttpHeader::parse(const string& str)
                name[colon - start] = 0;
 
                // skip whitespace
-               colon++;
-               for(; *colon == ' ' && colon < cr; colon++);
+               ++colon;
+               for(; *colon == ' ' && colon < cr; ++colon);
 
                // get field value
                char value[cr - colon + 1];
@@ -478,14 +478,14 @@ void HttpHeader::biCapitalize(char* name)
    int length = 0;
    if(name != NULL && *name != '\0')
    {
-      length++;
+      ++length;
       char* ptr = name;
       // cap first
       if(*ptr >= 'a' && *ptr <= 'z')
       {
          *ptr -= 'a' - 'A';
       }
-      for(ptr++; *ptr != '\0'; ptr++, length++)
+      for(++ptr; *ptr != '\0'; ++ptr, ++length)
       {
          // cap after '-'
          if(*(ptr - 1) == '-')

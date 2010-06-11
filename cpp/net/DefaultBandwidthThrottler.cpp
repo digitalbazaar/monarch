@@ -211,7 +211,7 @@ bool DefaultBandwidthThrottler::limitBandwidth()
    updateAvailableBytes();
 
    // thread will wait for available bytes now
-   mWaiters++;
+   ++mWaiters;
 
    // while there aren't any available bytes, wait for the available byte time
    uint32_t avt;
@@ -228,7 +228,7 @@ bool DefaultBandwidthThrottler::limitBandwidth()
    }
 
    // thread finished waiting
-   mWaiters--;
+   --mWaiters;
 
    return rval;
 }

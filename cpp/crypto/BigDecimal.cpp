@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -401,7 +401,7 @@ BigDecimal BigDecimal::operator/(const BigDecimal& rhs)
          while((rval.mSignificand % ten).isZero())
          {
             rval.mSignificand /= ten;
-            rval.mExponent--;
+            --rval.mExponent;
          }
       }
    }

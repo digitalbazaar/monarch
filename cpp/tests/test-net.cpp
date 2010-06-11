@@ -1288,7 +1288,7 @@ public:
 
 //      printf("1: Finished servicing connection.\n");
 
-      serviced++;
+      ++serviced;
 //      printf("Connections serviced=%d\n", serviced);
    }
 };

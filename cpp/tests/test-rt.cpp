@@ -587,7 +587,7 @@ public:
             }
             else
             {
-               mStarvationData->count++;
+               ++mStarvationData->count;
             }
          }
          mStarvationData->lock.unlockExclusive();
@@ -604,7 +604,7 @@ public:
             }
             else
             {
-               mStarvationData->count++;
+               ++mStarvationData->count;
             }
          }
          mStarvationData->lock.unlockShared();
@@ -639,21 +639,21 @@ static void runInteractiveSharedLockTest(TestRunner& tr)
          Thread* threads[(num * 2)];
 
          // create readers
-         for(int n = 0; n < num; n++)
+         for(int n = 0; n < num; ++n)
          {
             RunnableRef r = new StarvationRunnable(&sd, false);
             threads[n] = new Thread(r);
          }
 
          // create writers
-         for(int n = 0; n < num; n++)
+         for(int n = 0; n < num; ++n)
          {
             RunnableRef r = new StarvationRunnable(&sd, true);
             threads[n + num] = new Thread(r);
          }
 
          // start threads
-         for(int n = 0; n < (num * 2); n++)
+         for(int n = 0; n < (num * 2); ++n)
          {
             threads[n]->start();
          }
@@ -665,7 +665,7 @@ static void runInteractiveSharedLockTest(TestRunner& tr)
          sd.protect.unlock();
 
          // join threads
-         for(int n = 0; n < (num * 2); n++)
+         for(int n = 0; n < (num * 2); ++n)
          {
             threads[n]->join();
             delete threads[n];
@@ -765,7 +765,7 @@ static void runDynamicObjectTest(TestRunner& tr)
          assertStrCmp(next->getString(), "pickles");
       }
 
-      count++;
+      ++count;
    }
 
    DynamicObject dyno6;
@@ -782,7 +782,7 @@ static void runDynamicObjectTest(TestRunner& tr)
       DynamicObject& next = i->next();
       assertStrCmp(i->getName(), "eggs");
       assertStrCmp(next->getString(), "bacon");
-      count++;
+      ++count;
    }
 
    assert(count == 1);
@@ -813,7 +813,7 @@ static void runDynamicObjectTest(TestRunner& tr)
       {
          DynamicObject& next = i->next();
          assert(next->getUInt32() == 123);
-         count++;
+         ++count;
       }
       assert(count == 1);
    }
@@ -828,7 +828,7 @@ static void runDynamicObjectTest(TestRunner& tr)
       {
          DynamicObject& next = i->next();
          assertStrCmp(next->getString(), "123");
-         count++;
+         ++count;
       }
       assert(count == 1);
    }
@@ -842,7 +842,7 @@ static void runDynamicObjectTest(TestRunner& tr)
       {
          DynamicObject& next = i->next();
          assertStrCmp(next->getString(), "");
-         count++;
+         ++count;
       }
       assert(count == 1);
    }
@@ -859,7 +859,7 @@ static void runDynamicObjectTest(TestRunner& tr)
          const char* name = i->getName();
          assertStrCmp(name, "a");
          assert(next.isNull());
-         count++;
+         ++count;
       }
       assert(count == 1);
    }
@@ -1155,7 +1155,7 @@ static void runDynoRemoveTest(TestRunner& tr)
             i->remove();
          }
 
-         count++;
+         ++count;
       }
 
       assertDynoCmp(d1, d2);
@@ -1202,7 +1202,7 @@ static void runDynoRemoveTest(TestRunner& tr)
             i->remove();
          }
 
-         count++;
+         ++count;
       }
 
       assertDynoCmp(d1, d2);
@@ -1229,7 +1229,7 @@ static void runDynoIndexTest(TestRunner& tr)
       {
          i->next();
          assert(count == i->getIndex());
-         count++;
+         ++count;
       }
    }
    tr.passIfNoException();
@@ -1247,7 +1247,7 @@ static void runDynoIndexTest(TestRunner& tr)
       while(i->hasNext())
       {
          DynamicObject& next = i->next();
-         count++;
+         ++count;
          assert(count == i->getIndex());
 
          if(!done && count == 1)
@@ -1255,7 +1255,7 @@ static void runDynoIndexTest(TestRunner& tr)
             uint32_t val = next->getUInt32();
             assert(val == 1);
             i->remove();
-            count--;
+            --count;
             assert(i->getIndex() == count);
             done = true;
          }
@@ -1276,7 +1276,7 @@ static void runDynoIndexTest(TestRunner& tr)
       {
          i->next();
          assert(count == i->getIndex());
-         count++;
+         ++count;
       }
    }
    tr.passIfNoException();
@@ -1293,7 +1293,7 @@ static void runDynoIndexTest(TestRunner& tr)
       while(i->hasNext())
       {
          DynamicObject& next = i->next();
-         count++;
+         ++count;
 
          if(count == 1)
          {
@@ -2156,13 +2156,13 @@ public:
 
    virtual void runFunction()
    {
-      counter++;
+      ++counter;
    };
 
    virtual void runParamFunction(void* param)
    {
       int* counter = (int*)param;
-      (*counter)++;
+      ++(*counter);
    };
 
    virtual void freeParamFunction(void* param)
@@ -2180,13 +2180,13 @@ public:
 static int gCounter;
 static void _runFunction()
 {
-   gCounter++;
+   ++gCounter;
 };
 
 static void _runParamFunction(void* param)
 {
    int* counter = (int*)param;
-   (*counter)++;
+   ++(*counter);
 };
 
 static void _freeParamFunction(void* param)

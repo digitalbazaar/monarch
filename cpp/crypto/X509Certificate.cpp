@@ -140,7 +140,7 @@ DynamicObject X509Certificate::getExtensions()
          DynamicObject values;
          values->setType(Array);
          STACK_OF(CONF_VALUE)* stack = method->i2v(method, asn1Stack, NULL);
-         for(int n = 0; n < sk_CONF_VALUE_num(stack); n++)
+         for(int n = 0; n < sk_CONF_VALUE_num(stack); ++n)
          {
             CONF_VALUE* nval = sk_CONF_VALUE_value(stack, n);
             DynamicObject d;

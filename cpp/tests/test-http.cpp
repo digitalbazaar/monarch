@@ -766,7 +766,7 @@ public:
          start = System::getCurrentMilliseconds();
       }
 
-      serviced++;
+      ++serviced;
       end = System::getCurrentMilliseconds();
    }
 };

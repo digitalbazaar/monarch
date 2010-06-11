@@ -742,7 +742,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
          {
             // since we're traversing the path backwards, skip the upcoming
             // previous directory because we found a ".."
-            skip++;
+            ++skip;
          }
          else if(strcmp(token, ".") != 0)
          {
@@ -754,7 +754,7 @@ bool File::normalizePath(const char* path, string& normalizedPath)
             else
             {
                // directory skipped
-               skip--;
+               --skip;
             }
          }
       }
@@ -1098,7 +1098,7 @@ File File::createTempFile(const char* prefix, const char* dir)
          time = System::getCurrentMilliseconds();
          snprintf(num, 22, "%" PRIu64, time % 1000);
          num[4] = 0;
-         for(int n = 0; num[n] != 0; n++)
+         for(int n = 0; num[n] != 0; ++n)
          {
             num[n] += ('A' - '0');
          }
@@ -1204,7 +1204,7 @@ void File::split(const char* path, string& dirname, string& basename)
       const char* pos = strrchr(path, NAME_SEPARATOR_CHAR);
       if(pos != NULL)
       {
-         pos++;
+         ++pos;
          dirname.assign(path, (pos - path));
          basename.assign(pos);
       }
@@ -1445,7 +1445,7 @@ FileList File::parsePath(const char* path)
       // determine if path-separator is escaped
       if(i > 0 && start[i - 1] == '\\' && (i == 1 || start[i - 2] != '\\'))
       {
-         end++;
+         ++end;
       }
       else
       {
@@ -1458,7 +1458,7 @@ FileList File::parsePath(const char* path)
          }
          if(*end != 0)
          {
-            end++;
+            ++end;
          }
          start = end;
       }

@@ -1124,7 +1124,7 @@ static void runBigDecimalTest(TestRunner& tr)
    /*
    BigDecimal bd;
 
-   for(int i = 7; i >= 0; i--)
+   for(int i = 7; i >= 0; --i)
    {
       bd = number3;
       bd.setPrecision(i, Up);
@@ -1132,7 +1132,7 @@ static void runBigDecimalTest(TestRunner& tr)
       printf("round %d places, up=%s\n", i, bd.toString(true).c_str());
    }
 
-   for(int i = 7; i >= 0; i--)
+   for(int i = 7; i >= 0; --i)
    {
       bd = number3;
       bd.setPrecision(i, HalfUp);
@@ -1140,7 +1140,7 @@ static void runBigDecimalTest(TestRunner& tr)
       printf("round %d places, half up=%s\n", i, bd.toString(true).c_str());
    }
 
-   for(int i = 7; i >= 0; i--)
+   for(int i = 7; i >= 0; --i)
    {
       bd = number3;
       bd.setPrecision(i, Down);

@@ -168,7 +168,7 @@ void TestRunner::ungroup()
 
 void TestRunner::test(const char* name)
 {
-   mTotal++;
+   ++mTotal;
    mTestPath.push_back(string(name));
    switch(mOutputLevel)
    {
@@ -185,7 +185,7 @@ void TestRunner::test(const char* name)
 
 void TestRunner::pass()
 {
-   mPassed++;
+   ++mPassed;
    switch(mOutputLevel)
    {
       case Progress:
@@ -245,7 +245,7 @@ void TestRunner::passIfException(bool dump)
 
 void TestRunner::fail(const char* reason)
 {
-   mFailed++;
+   ++mFailed;
    switch(mOutputLevel)
    {
       case Progress:
@@ -268,7 +268,7 @@ void TestRunner::fail(const char* reason)
 
 void TestRunner::warning(const char* reason)
 {
-   mWarnings++;
+   ++mWarnings;
    switch(mOutputLevel)
    {
       case Progress:

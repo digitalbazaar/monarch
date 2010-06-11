@@ -394,7 +394,7 @@ DynamicObject& DynamicObjectImpl::operator[](int index)
    if(index >= size)
    {
       int i = index - size + 1;
-      for(; i > 0; i--)
+      for(; i > 0; --i)
       {
          DynamicObject dyno;
          mArray->push_back(dyno);

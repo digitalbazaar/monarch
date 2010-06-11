@@ -323,11 +323,11 @@ static PatternRef _compileDomainRegex(const char* domain)
 static int _countWildcards(const char* domain)
 {
    int rval = 0;
-   for(; *domain != '\0'; domain++)
+   for(; *domain != '\0'; ++domain)
    {
       if(*domain == '*')
       {
-         rval++;
+         ++rval;
       }
    }
    return rval;

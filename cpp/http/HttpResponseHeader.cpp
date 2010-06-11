@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/HttpResponseHeader.h"
 
@@ -72,7 +72,7 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
          msgLength += (end - start);
       }
 
-      count++;
+      ++count;
 
       if(end != NULL)
       {

@@ -246,7 +246,7 @@ unsigned int AbstractConnectionPool::getExpiredConnectionCount()
          if(connection->getIdleTime() <=
             System::getCurrentMilliseconds() - mConnectionExpireTime)
          {
-            expiredConnections++;
+            ++expiredConnections;
          }
       }
    }

@@ -86,7 +86,7 @@ void ThreadPool::removeIdleThreads(unsigned int count)
 {
    // assume list lock is engaged
    for(ThreadList::iterator i = mIdleThreads.begin();
-       count > 0 && i != mIdleThreads.end(); count--)
+       count > 0 && i != mIdleThreads.end(); --count)
    {
       // interrupt and erase threads
       PooledThread* t = *i;

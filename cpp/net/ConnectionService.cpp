@@ -95,15 +95,15 @@ bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
 void ConnectionService::mutatePreExecutionState(State* s, Operation& op)
 {
    // increase current connections
-   mServer->mCurrentConnections++;
-   mCurrentConnections++;
+   ++mServer->mCurrentConnections;
+   ++mCurrentConnections;
 }
 
 void ConnectionService::mutatePostExecutionState(State* s, Operation& op)
 {
    // decrease current connections
-   mCurrentConnections--;
-   mServer->mCurrentConnections--;
+   --mCurrentConnections;
+   --mServer->mCurrentConnections;
 }
 
 void ConnectionService::run()

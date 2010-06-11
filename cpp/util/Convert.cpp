@@ -168,7 +168,7 @@ bool Convert::hexToInt(
    {
       // convert backwards and shift to proper position
       value = 0;
-      for(int i = hexLength - 1; rval && i >= 0; i--)
+      for(int i = hexLength - 1; rval && i >= 0; --i)
       {
          unsigned char temp;
          rval = nibbleToByte(hex[i], temp);
@@ -195,7 +195,7 @@ string Convert::intToHex(unsigned int n)
    string rval;
 
    char ch;
-   for(int i = 2 * sizeof(int) - 1; i >= 0; i--)
+   for(int i = 2 * sizeof(int) - 1; i >= 0; --i)
    {
       ch = HEX_CHARS[(n >> (i * 4)) & 0x0F];
       if(ch != '0' || rval.length() > 0)
@@ -218,7 +218,7 @@ string Convert::intToUpperHex(unsigned int n)
    string rval;
 
    char ch;
-   for(int i = 2 * sizeof(int) - 1; i >= 0; i--)
+   for(int i = 2 * sizeof(int) - 1; i >= 0; --i)
    {
       ch = UPPER_HEX_CHARS[(n >> (i * 4)) & 0x0F];
       if(ch != '0' || rval.length() > 0)

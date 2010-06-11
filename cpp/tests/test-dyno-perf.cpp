@@ -32,7 +32,7 @@ static void runDynoIterTest1(
          //d1[i] = i;
       }
       uint64_t start_iter = System::getCurrentMilliseconds();
-      for(int j = 0; j < iter; j++)
+      for(int j = 0; j < iter; ++j)
       {
          DynamicObjectIterator i = d1.getIterator();
          while(i->hasNext())

@@ -36,7 +36,7 @@ void HttpRequestServicer::normalizePath(const char* inPath, char* outPath)
 
    // copy strings, removing duplicate slashes before the query
    bool query = false;
-   for(int n = 1; inPath[n - 1] != 0; n++)
+   for(int n = 1; inPath[n - 1] != 0; ++n)
    {
       if(inPath[n - 1] == '?')
       {
@@ -59,7 +59,7 @@ void HttpRequestServicer::normalizePath(const char* inPath, char* outPath)
    if(slash > 0 && outPath[slash] == '/')
    {
       // shift left to remove slash
-      for(; outPath[slash] != 0; slash++)
+      for(; outPath[slash] != 0; ++slash)
       {
          outPath[slash] = outPath[slash + 1];
       }

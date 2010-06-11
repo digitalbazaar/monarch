@@ -16,7 +16,7 @@ AudioBitrateTable::AudioBitrateTable()
    AudioLayer layer3(AudioLayer::Layer3);
 
    // add bitrates for Version 1 Layer I
-   for(unsigned char index = 0x00; index < 0x0f; index++)
+   for(unsigned char index = 0x00; index < 0x0f; ++index)
    {
       addBitrate(index, mpeg1, layer1, index * 32);
    }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/compress/zip/ZipEntry.h"
 
@@ -61,7 +61,7 @@ void ZipEntryImpl::setFilename(const char* filename)
    // remove leading slash
    while(filename[0] != 0 && filename[0] == '/')
    {
-      filename++;
+      ++filename;
    }
 
    mFilename = strdup(filename);

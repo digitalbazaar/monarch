@@ -1179,7 +1179,7 @@ bool HashTable<_K, _V, _H, _E>::put(
          {
             // ensure capacity is always odd so that when we are reprobing
             // we won't strip odd indexes
-            capacity++;
+            ++capacity;
          }
          resize(ptr, el, capacity);
       }

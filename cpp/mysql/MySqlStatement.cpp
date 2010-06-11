@@ -136,7 +136,7 @@ bool MySqlStatement::setInt32(unsigned int param, int32_t value)
    if(rval)
    {
       // param is 1 higher than bind index
-      param--;
+      --param;
 
       if(!mExecuted)
       {
@@ -167,7 +167,7 @@ bool MySqlStatement::setUInt32(unsigned int param, uint32_t value)
    if(rval)
    {
       // param is 1 higher than bind index
-      param--;
+      --param;
 
       if(!mExecuted)
       {
@@ -197,7 +197,7 @@ bool MySqlStatement::setInt64(unsigned int param, int64_t value)
    if(rval)
    {
       // param is 1 higher than bind index
-      param--;
+      --param;
 
       if(!mExecuted)
       {
@@ -227,7 +227,7 @@ bool MySqlStatement::setUInt64(unsigned int param, uint64_t value)
    if(rval)
    {
       // param is 1 higher than bind index
-      param--;
+      --param;
 
       if(!mExecuted)
       {
@@ -257,7 +257,7 @@ bool MySqlStatement::setText(unsigned int param, const char* value)
    if(rval)
    {
       // param is 1 higher than bind index
-      param--;
+      --param;
       unsigned long len = strlen(value);
 
       if(!mExecuted)

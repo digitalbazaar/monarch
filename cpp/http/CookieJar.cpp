@@ -58,12 +58,12 @@ void CookieJar::readCookies(HttpHeader* header, CookieOrigin origin)
 
             // trim whitespace from name
             char* namePtr = (tmpName + nameLength);
-            for(; namePtr != tmpName && *namePtr == ' '; namePtr--)
+            for(; namePtr != tmpName && *namePtr == ' '; --namePtr)
             {
                *namePtr = 0;
             }
             for(namePtr = tmpName; *namePtr != 0 && *namePtr == ' ';
-                namePtr++);
+                ++namePtr);
 
             // get value part of token (ensure value length is at least 0 in
             // case bad parsing because of no equals sign after name)

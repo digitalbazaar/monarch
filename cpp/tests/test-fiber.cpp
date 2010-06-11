@@ -52,7 +52,7 @@ public:
 
    virtual void run()
    {
-      for(int i = start; i > 0; i--)
+      for(int i = start; i > 0; --i)
       {
 //         printf("TestFiber %i doing iteration %i on thread %p\n",
 //            getId(), i, Thread::currentThread());
@@ -112,13 +112,13 @@ public:
             msgs->pop_front();
 //            printf("Processing msg:\n%s\n",
 //               JsonWriter::writeToString(msg).c_str());
-            messages++;
+            ++messages;
             yield();
          }
 
          if(count > 0)
          {
-            count--;
+            --count;
             iterate();
             yield();
          }
@@ -265,7 +265,7 @@ static void runFiberTest(TestRunner& tr)
          fmc.registerFiber(fiber);
          DynamicObject msg;
          msg["helloId"] = i + 1;
-         for(int n = 0; n < 1000; n++)
+         for(int n = 0; n < 1000; ++n)
          {
             fmc.sendMessage(id, msg);
          }
@@ -835,14 +835,14 @@ static int calculateTestArraySize(bool lin, int min, int max, int mag)
       rval = 0;
       // loop over base 10 log vals from 1 to 10*tmag
       int p = 1;
-      for(int e = 0; e < mag; e++)
+      for(int e = 0; e < mag; ++e)
       {
-         for(int n = 0; n < 9; n++)
+         for(int n = 0; n < 9; ++n)
          {
             int val = (n + 1) * p;
             if(val >= min && val <= max)
             {
-               rval++;
+               ++rval;
             }
          }
          p = p * 10;
@@ -852,7 +852,7 @@ static int calculateTestArraySize(bool lin, int min, int max, int mag)
       int last = (int)pow((double)10, mag);
       if(last <= max)
       {
-         rval++;
+         ++rval;
       }
    }
    return rval;
@@ -883,9 +883,9 @@ static void fillTestArray(int* d, bool lin, int min, int max, int mag)
       int i = 0;
       // base 10 log vals from 1 to 10*tmag
       int p = 1;
-      for(int e = 0; e < mag; e++)
+      for(int e = 0; e < mag; ++e)
       {
-         for(int n = 0; n < 9; n++)
+         for(int n = 0; n < 9; ++n)
          {
             int val = (n + 1) * p;
             if(val >= min && val <= max)

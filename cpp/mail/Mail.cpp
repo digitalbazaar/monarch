@@ -64,7 +64,7 @@ bool Mail::setAddress(Address& a, const char* address)
       // check if this appears to have a "<...>" enclosed mailbox part
       if(*(mbend - 1) == '>')
       {
-         mbend--;
+         --mbend;
          // find starting '<'
          mbstart = strrchr(address, '<');
          // in corner case of missing start '<' just assume mailbox is
@@ -72,7 +72,7 @@ bool Mail::setAddress(Address& a, const char* address)
          if(mbstart != NULL)
          {
             // advance over '<'
-            mbstart++;
+            ++mbstart;
          }
       }
       mailbox.assign(mbstart, mbend - mbstart);
@@ -161,14 +161,14 @@ static void biCapitalize(char* name)
    int length = 0;
    if(name != NULL && *name != '\0')
    {
-      length++;
+      ++length;
       char* ptr = name;
       // cap first
       if(*ptr >= 'a' && *ptr <= 'z')
       {
          *ptr -= 'a' - 'A';
       }
-      for(ptr++; *ptr != '\0'; ptr++, length++)
+      for(++ptr; *ptr != '\0'; ++ptr, ++length)
       {
          // cap after '-'
          if(*(ptr - 1) == '-')

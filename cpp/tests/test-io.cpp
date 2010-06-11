@@ -1066,7 +1066,7 @@ static void runFileInputStreamTest(TestRunner& tr)
             default:
                assert(0);
          }
-         count++;
+         ++count;
       }
 
       fis.close();

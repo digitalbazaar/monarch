@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/StringTokenizer.h"
 
@@ -88,7 +88,7 @@ void StringTokenizer::tokenize(
       mFirstFreeToken->next = next;
 
       // update free token count
-      mFreeTokenCount++;
+      ++mFreeTokenCount;
    }
 
    if(mFirstToken != NULL)
@@ -111,7 +111,7 @@ void StringTokenizer::tokenize(
    while(start != NULL)
    {
       // increase token count
-      mTokenCount++;
+      ++mTokenCount;
 
       // acquire a StringToken
       if(mFirstFreeToken != NULL)
@@ -121,7 +121,7 @@ void StringTokenizer::tokenize(
          mFirstFreeToken = mFirstFreeToken->next;
          token->next = NULL;
          token->prev = NULL;
-         mFreeTokenCount--;
+         --mFreeTokenCount;
       }
       else
       {
@@ -229,7 +229,7 @@ const char* StringTokenizer::getToken(int i)
    {
       i = -i;
       token = mLastToken;
-      for(int n = 1; n < i && token != NULL; n++)
+      for(int n = 1; n < i && token != NULL; ++n)
       {
          token = token->prev;
       }
@@ -237,7 +237,7 @@ const char* StringTokenizer::getToken(int i)
    else
    {
       token = mFirstToken;
-      for(int n = 0; n < i && token != NULL; n++)
+      for(int n = 0; n < i && token != NULL; ++n)
       {
          token = token->next;
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/json/JsonReader.h"
 
@@ -145,7 +145,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
    // keep track of line count
    if(c == '\n')
    {
-      mLineNumber++;
+      ++mLineNumber;
    }
 
    JsonState next = sStateTable[mState][ic];
@@ -509,7 +509,7 @@ bool JsonReader::process(const char* buffer, int count, int& position)
 {
    bool rval = true;
 
-   for(position = 0; rval && position < count; position++)
+   for(position = 0; rval && position < count; ++position)
    {
       // FIXME: do proper unicode handling
       char c = buffer[position];
