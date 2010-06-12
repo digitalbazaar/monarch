@@ -43,7 +43,6 @@ void OperationImpl::run()
    {
       // operation started on the current thread
       mThread = Thread::currentThread();
-      mThread->setUserData(this);
       mStarted = true;
 
       // interrupt thread if appropriate
@@ -73,7 +72,6 @@ void OperationImpl::run()
       }
 
       // clear thread from Operation
-      mThread->setUserData(NULL);
       mThread = NULL;
    }
    mLock.unlock();

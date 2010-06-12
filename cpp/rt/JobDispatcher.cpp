@@ -9,27 +9,20 @@
 using namespace std;
 using namespace monarch::rt;
 
-JobDispatcher::JobDispatcher()
+JobDispatcher::JobDispatcher() :
+   mThreadPool(new ThreadPool(10)),
+   mCleanupThreadPool(true),
+   mDispatcherThread(NULL)
 {
-   // create the thread pool with 10 threads by default
-   mThreadPool = new ThreadPool(10);
-   mCleanupThreadPool = true;
-
-   // no dispatcher thread yet
-   mDispatcherThread = NULL;
-
    // set thread expire time to 2 minutes (120000 milliseconds) by default
-   getThreadPool()->setThreadExpireTime(120000);
+   mThreadPool->setThreadExpireTime(120000);
 }
 
-JobDispatcher::JobDispatcher(ThreadPool* pool, bool cleanupPool)
+JobDispatcher::JobDispatcher(ThreadPool* pool, bool cleanupPool) :
+   mThreadPool(pool),
+   mCleanupThreadPool(cleanupPool),
+   mDispatcherThread(NULL)
 {
-   // store the thread pool
-   mThreadPool = pool;
-   mCleanupThreadPool = cleanupPool;
-
-   // no dispatcher thread yet
-   mDispatcherThread = NULL;
 }
 
 JobDispatcher::~JobDispatcher()
@@ -63,7 +56,10 @@ void JobDispatcher::queueJob(Runnable& job)
    mLock.lock();
    {
       // add the job to the queue and wakeup
-      mJobQueue.push_back(&job);
+      Job j;
+      j.type = Job::TypeRunnable;
+      j.runnable = &job;
+      mJobQueue.push_back(j);
       wakeup();
    }
    mLock.unlock();
@@ -73,9 +69,11 @@ void JobDispatcher::queueJob(RunnableRef& job)
 {
    mLock.lock();
    {
-      // add the job to the queue and reference map, wakeup
-      mJobQueue.push_back(&(*job));
-      mJobReferenceMap.insert(make_pair(&(*job), job));
+      // add the job to the queue and wakeup
+      Job j;
+      j.type = Job::TypeRunnableRef;
+      j.runnableRef = new RunnableRef(job);
+      mJobQueue.push_back(j);
       wakeup();
    }
    mLock.unlock();
@@ -85,9 +83,26 @@ void JobDispatcher::dequeueJob(Runnable& job)
 {
    mLock.lock();
    {
-      // remove the job from the queue, reference map, wakeup
-      mJobQueue.remove(&job);
-      mJobReferenceMap.erase(&job);
+      // find and remove the job from the queue
+      bool found = false;
+      JobList::iterator end = mJobQueue.end();
+      for(JobList::iterator i = mJobQueue.begin(); !found && i != end; i++)
+      {
+         if(i->type == Job::TypeRunnable && i->runnable == &job)
+         {
+            // remove from queue
+            found = true;
+            mJobQueue.erase(i);
+         }
+         else if(i->type == Job::TypeRunnableRef &&
+            &(*(*i->runnableRef)) == &job)
+         {
+            // delete reference, remove from queue
+            found = true;
+            delete i->runnableRef;
+            mJobQueue.erase(i);
+         }
+      }
       wakeup();
    }
    mLock.unlock();
@@ -104,31 +119,26 @@ void JobDispatcher::dispatchJobs()
    {
       // try to run all jobs in the queue
       bool run = true;
-      for(RunnableList::iterator i = mJobQueue.begin();
-          run && i != mJobQueue.end();)
+      ThreadPool* tp = getThreadPool();
+      JobList::iterator end = mJobQueue.end();
+      for(JobList::iterator i = mJobQueue.begin(); run && i != end;)
       {
-         // use RunnableRef if one exists
-         ReferenceMap::iterator mi = mJobReferenceMap.find(*i);
-         if(mi != mJobReferenceMap.end())
+         if(i->type == Job::TypeRunnable &&
+            tp->tryRunJob(*i->runnable))
          {
-            if(getThreadPool()->tryRunJob(mi->second))
-            {
-               // remove entry from map and queue
-               mJobReferenceMap.erase(mi);
-               i = mJobQueue.erase(i);
-            }
-            else
-            {
-               run = false;
-            }
+            // remove from queue
+            mJobQueue.erase(i);
          }
-         else if(getThreadPool()->tryRunJob(*(*i)))
+         else if(i->type == Job::TypeRunnableRef &&
+                 tp->tryRunJob(*i->runnableRef))
          {
-            // remove entry from queue
-            i = mJobQueue.erase(i);
+            // delete reference, remove from queue
+            delete i->runnableRef;
+            mJobQueue.erase(i);
          }
          else
          {
+            // failed to run job
             run = false;
          }
       }
@@ -142,8 +152,17 @@ bool JobDispatcher::isQueued(Runnable& job)
 
    mLock.lock();
    {
-      RunnableList::iterator i = find(mJobQueue.begin(), mJobQueue.end(), &job);
-      rval = (i != mJobQueue.end());
+      // find the job in the queue
+      JobList::iterator end = mJobQueue.end();
+      for(JobList::iterator i = mJobQueue.begin(); !rval && i != end; i++)
+      {
+         if((i->type == Job::TypeRunnable && i->runnable == &job) ||
+            (i->type == Job::TypeRunnableRef &&
+               &(*(*i->runnableRef)) == &job))
+         {
+            rval = true;
+         }
+      }
    }
    mLock.unlock();
 
@@ -233,9 +252,18 @@ void JobDispatcher::clearQueuedJobs()
 {
    mLock.lock();
    {
-      // clear queue and map, wakeup
+      // clear queue
+      JobList::iterator end = mJobQueue.end();
+      for(JobList::iterator i = mJobQueue.begin(); i != end; i++)
+      {
+         if(i->type == Job::TypeRunnableRef)
+         {
+            delete i->runnableRef;
+         }
+      }
       mJobQueue.clear();
-      mJobReferenceMap.clear();
+
+      // wake up
       wakeup();
    }
    mLock.unlock();

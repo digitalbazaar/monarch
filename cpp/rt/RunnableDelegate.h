@@ -14,16 +14,16 @@ namespace rt
 /**
  * A RunnableDelegate is a Runnable that provides a means to map the generic
  * run() function to an object's member function. It also allows for a
- * single void* parameter to be passed to an object member's function if
- * so desired.
+ * single parameter to be passed to an object member's function if so desired.
  *
  * @author Dave Longley
  */
-template<typename RunnableType> class RunnableDelegate;
+template<typename RunnableType, typename ParamType = void*>
+   class RunnableDelegate;
 
 // special case for RunnableDelegate with no object must be done below
 // using the "void" for RunnableType and inline
-template<> class RunnableDelegate<void> : public Runnable
+template<> class RunnableDelegate<void, void*> : public Runnable
 {
    /**
     * Enum for types of runnable delegate.
@@ -216,7 +216,7 @@ public:
 };
 
 // every other case where RunnableType is not void and an object is used
-template<typename RunnableType>
+template<typename RunnableType, typename ParamType>
 class RunnableDelegate : public Runnable
 {
 protected:
@@ -238,12 +238,12 @@ protected:
    /**
     * Typedef for the run w/param function.
     */
-   typedef void (RunnableType::*RunWithParamFunction)(void*);
+   typedef void (RunnableType::*RunWithParamFunction)(ParamType);
 
    /**
     * Typedef for freeing the parameter.
     */
-   typedef void (RunnableType::*FreeParamFunction)(void*);
+   typedef void (RunnableType::*FreeParamFunction)(ParamType);
 
    /**
     * Typedef for the run w/dyno function.
@@ -269,13 +269,13 @@ protected:
    };
 
    /**
-    * Data for a void* run function.
+    * Data for a param run function.
     */
    struct ParamData
    {
       RunWithParamFunction runFunction;
       FreeParamFunction freeFunction;
-      void* param;
+      ParamType param;
    };
 
    /**
@@ -318,7 +318,7 @@ public:
     */
    RunnableDelegate(
       RunnableType* obj, RunWithParamFunction f,
-      void* param, FreeParamFunction fp = NULL);
+      ParamType param, FreeParamFunction fp = NULL);
 
    /**
     * Creates a new RunnableDelegate with the specified object,
@@ -346,7 +346,7 @@ public:
     *
     * @return this runnable's param.
     */
-   virtual void* getParam();
+   virtual ParamType getParam();
 
    /**
     * Gets this runnable's dynamic object.
@@ -356,8 +356,8 @@ public:
    virtual DynamicObject getDynamicObject();
 };
 
-template<typename RunnableType>
-RunnableDelegate<RunnableType>::RunnableDelegate(
+template<typename RunnableType, typename ParamType>
+RunnableDelegate<RunnableType, ParamType>::RunnableDelegate(
    RunnableType* obj, RunFunction f) :
    mType(NoParam),
    mObject(obj)
@@ -366,10 +366,10 @@ RunnableDelegate<RunnableType>::RunnableDelegate(
    mNoParamData->runFunction = f;
 }
 
-template<typename RunnableType>
-RunnableDelegate<RunnableType>::RunnableDelegate(
+template<typename RunnableType, typename ParamType>
+RunnableDelegate<RunnableType, ParamType>::RunnableDelegate(
    RunnableType* obj, RunWithParamFunction f,
-   void* param, FreeParamFunction fp) :
+   ParamType param, FreeParamFunction fp) :
    mType(Param),
    mObject(obj)
 {
@@ -379,8 +379,8 @@ RunnableDelegate<RunnableType>::RunnableDelegate(
    mParamData->param = param;
 }
 
-template<typename RunnableType>
-RunnableDelegate<RunnableType>::RunnableDelegate(
+template<typename RunnableType, typename ParamType>
+RunnableDelegate<RunnableType, ParamType>::RunnableDelegate(
    RunnableType* obj, RunWithDynoFunction f, DynamicObject& param) :
    mType(DynoParam),
    mObject(obj)
@@ -390,8 +390,8 @@ RunnableDelegate<RunnableType>::RunnableDelegate(
    mDynoData->param = new DynamicObject(param);
 }
 
-template<typename RunnableType>
-RunnableDelegate<RunnableType>::~RunnableDelegate()
+template<typename RunnableType, typename ParamType>
+RunnableDelegate<RunnableType, ParamType>::~RunnableDelegate()
 {
    switch(mType)
    {
@@ -412,8 +412,8 @@ RunnableDelegate<RunnableType>::~RunnableDelegate()
    }
 }
 
-template<typename RunnableType>
-void RunnableDelegate<RunnableType>::run()
+template<typename RunnableType, typename ParamType>
+void RunnableDelegate<RunnableType, ParamType>::run()
 {
    switch(mType)
    {
@@ -432,14 +432,14 @@ void RunnableDelegate<RunnableType>::run()
    }
 }
 
-template<typename RunnableType>
-void* RunnableDelegate<RunnableType>::getParam()
+template<typename RunnableType, typename ParamType>
+ParamType RunnableDelegate<RunnableType, ParamType>::getParam()
 {
    return mParamData->param;
 }
 
-template<typename RunnableType>
-DynamicObject RunnableDelegate<RunnableType>::getDynamicObject()
+template<typename RunnableType, typename ParamType>
+DynamicObject RunnableDelegate<RunnableType, ParamType>::getDynamicObject()
 {
    DynamicObject rval(NULL);
    if(mDynoData->param != NULL)

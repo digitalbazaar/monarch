@@ -85,6 +85,8 @@ public:
 
    /**
     * Gets the Runnable job for this thread.
+    *
+    * @return the Runnable job for this thread.
     */
    virtual Runnable* getJob();
 

@@ -34,17 +34,27 @@ protected:
    bool mCleanupThreadPool;
 
    /**
-    * The internal queue that holds the Runnable jobs that are
-    * waiting to be dispatched.
+    * A job can be a Runnable or a RunnableRef.
     */
-   typedef std::list<Runnable*> RunnableList;
-   RunnableList mJobQueue;
+   struct Job
+   {
+      enum Type
+      {
+         TypeRunnable,
+         TypeRunnableRef
+      } type;
+      union
+      {
+         Runnable* runnable;
+         RunnableRef* runnableRef;
+      };
+   };
 
    /**
-    * A map of Runnables to RunnableRefs.
+    * The internal queue that holds the jobs that are waiting to be dispatched.
     */
-   typedef std::map<Runnable*, RunnableRef> ReferenceMap;
-   ReferenceMap mJobReferenceMap;
+   typedef std::list<Job> JobList;
+   JobList mJobQueue;
 
    /**
     * The thread used to dispatch the Runnable jobs.

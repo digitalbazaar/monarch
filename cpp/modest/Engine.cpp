@@ -3,17 +3,20 @@
  */
 #include "monarch/modest/Engine.h"
 
+#include "monarch/rt/RunnableDelegate.h"
+
 using namespace std;
 using namespace monarch::rt;
 using namespace monarch::modest;
 
+typedef RunnableDelegate<Engine, Operation*> Runner;
+
 Engine::Engine() :
-   ThreadPool(100),
-   JobDispatcher(this, false),
+   JobDispatcher(new ThreadPool(100), true),
    mDispatch(false)
 {
    // set thread expire time to 2 minutes (120000 milliseconds) by default
-   setThreadExpireTime(120000);
+   mThreadPool->setThreadExpireTime(120000);
 }
 
 Engine::~Engine()
@@ -26,6 +29,7 @@ void Engine::start()
 {
    mStartLock.lock();
    {
+      mDispatch = true;
       startDispatching();
    }
    mStartLock.unlock();
@@ -49,35 +53,21 @@ void Engine::stop()
 
 void Engine::queue(Operation& op)
 {
+   // create runnable
+   RunnableRef r = new Runner(this, &Engine::runOperation, new Operation(op));
+
    mLock.lock();
    {
-      // ensure to enable dispatching, then add operation to queue and map
+      // enable dispatching and queue runnable
       mDispatch = true;
-      mJobQueue.push_back(&(*op));
-      mOpMap.insert(make_pair(&(*op), op));
-
-      // wake up dispatcher inside lock to ensure dispatch flag doesn't change
-      wakeup();
+      queueJob(r);
    }
    mLock.unlock();
 }
 
 void Engine::clearQueuedOperations()
 {
-   mLock.lock();
-   {
-      // remove all job queue entries from the map
-      for(list<Runnable*>::iterator i = mJobQueue.begin();
-          i != mJobQueue.end(); ++i)
-      {
-         mOpMap.erase(static_cast<OperationImpl*>(*i));
-      }
-
-      // clear queue, wake up
-      mJobQueue.clear();
-      wakeup();
-   }
-   mLock.unlock();
+   clearQueuedJobs();
 }
 
 void Engine::terminateRunningOperations()
@@ -88,58 +78,16 @@ void Engine::terminateRunningOperations()
    wakeup();
 }
 
-void Engine::jobCompleted(PooledThread* t)
-{
-   // Note: this method is executed by a PooledThread, external to an
-   // Operation, so that the Operation can be safely garbage-collected
-   // here if the map happens to hold the last reference to it
-
-   // get operation reference
-   mLock.lock();
-   OperationImpl* impl = static_cast<OperationImpl*>(t->getJob());
-   OperationMap::iterator i = mOpMap.find(impl);
-   Operation& op = i->second;
-   mLock.unlock();
-
-   // do post-execution state mutation
-   StateMutator* sm = op->getStateMutator();
-   if(sm != NULL)
-   {
-      mStateLock.lock();
-      sm->mutatePostExecutionState(op);
-      mStateLock.unlock();
-   }
-
-   // stop operation
-   op->stop();
-
-   // remove operation reference from map, resume dispatching
-   mLock.lock();
-   mOpMap.erase(i);
-   mDispatch = true;
-   wakeup();
-   mLock.unlock();
-
-   // call parent method to release thread back into pool
-   ThreadPool::jobCompleted(t);
-}
-
 Operation Engine::getCurrentOperation()
 {
    Operation rval(NULL);
 
-   // get the current thread's OperationImpl
+   // get the current thread's operation reference
    Thread* thread = Thread::currentThread();
-   OperationImpl* impl = static_cast<OperationImpl*>(thread->getUserData());
-   if(impl != NULL)
+   Operation* op = static_cast<Operation*>(thread->getUserData());
+   if(op != NULL)
    {
-      mLock.lock();
-      OperationMap::iterator i = mOpMap.find(impl);
-      if(i != mOpMap.end())
-      {
-         rval = i->second;
-      }
-      mLock.unlock();
+      rval = *op;
    }
 
    return rval;
@@ -147,7 +95,7 @@ Operation Engine::getCurrentOperation()
 
 inline ThreadPool* Engine::getThreadPool()
 {
-   return this;
+   return mThreadPool;
 }
 
 unsigned int Engine::getQueuedOperationCount()
@@ -167,76 +115,144 @@ bool Engine::canDispatch()
 
 void Engine::dispatchJobs()
 {
-   OperationImpl* impl = NULL;
+   // turn off dispatching (if an operation starts or completes it will be
+   // turned back on)
+   mDispatch = false;
 
-   mLock.lock();
+   // keep track of whether or not dispatch loop should break:
+   // 1. There are no more queued jobs.
+   // 2. If an operation would block due to lack of idle threads.
+   // 3. The queue has been cycled.
+   bool breakLoop = false;
+   Operation* first = NULL;
+   JobList::iterator i;
+
+   do
    {
-      // turn off dispatching (will be turned back on when operations execute
-      // or complete)
-      mDispatch = false;
+      // lock while trying to dispatch the next operation
+      mLock.lock();
 
-      // FIXME: ease lock contention when queuing vs. dispatching jobs
-
-      // execute all Operations that can be executed
-      Operation* op;
-      StateMutator* sm;
-      OperationGuard* og;
-      list<Runnable*>::iterator end = mJobQueue.end();
-      for(list<Runnable*>::iterator i = mJobQueue.begin();
-          impl == NULL && i != end;)
+      // Note: Here we can't just iterate through the job queue because
+      // we unlock to allow more jobs to queue and for the job queue to be
+      // cleared if requested. Since the queue could be cleared, we can't
+      // rely on iterators to stay valid.
+      breakLoop = mJobQueue.empty();
+      if(!breakLoop)
       {
-         impl = static_cast<OperationImpl*>(*i);
-
-         // get guard and mutator
-         og = impl->getGuard();
-         sm = impl->getStateMutator();
-
-         // get reference to operation if op has a guard or mutator
-         op = (og != NULL || sm != NULL) ? &mOpMap[impl] : NULL;
-
-         // lock state while guards/mutators are used
-         mStateLock.lock();
-
-         // check the operation's guard restrictions
-         if(og == NULL || og->canExecuteOperation(*op))
+         // get next job and operation
+         JobDispatcher::Job job = mJobQueue.front();
+         Runner* runner = static_cast<Runner*>(&(*(*job.runnableRef)));
+         Operation* op = runner->getParam();
+         if(first == op)
          {
-            // operation can execute, unqueue, advance iterator, dispatch on
-            i = mJobQueue.erase(i);
-
-            // do pre-execution state mutation
-            if(sm != NULL)
-            {
-               sm->mutatePreExecutionState(*op);
-            }
-
-            // try to run the operation without blocking
-            if(tryRunJob(*impl))
-            {
-               // operation executed, turn on dispatching
-               mDispatch = true;
-               impl = NULL;
-            }
+            // queue cycle detected
+            breakLoop = true;
          }
-         // operation can wait
-         else if(!impl->isInterrupted() && !og->mustCancelOperation(*op))
-         {
-            // move to next op in the queue
-            impl = NULL;
-            ++i;
-         }
-         // operation must be canceled
          else
          {
-            // stop, unmap, and unqueue op
-            impl->stop();
-            mOpMap.erase(impl);
-            i = mJobQueue.erase(i);
-            impl = NULL;
-         }
+            // pop job
+            mJobQueue.pop_front();
 
-         // release state lock
-         mStateLock.unlock();
+            // get operation guard
+            OperationGuard* og = (*op)->getGuard();
+
+            // lock state while guards/mutators are used, operation will unlock
+            // state if it can be started
+            mStateLock.lock();
+
+            // check the operation's guard restrictions
+            bool opStarted = false;
+            if(og == NULL || og->canExecuteOperation(*op))
+            {
+               // try to run the operation without blocking
+               if(getThreadPool()->tryRunJob(*job.runnableRef))
+               {
+                  // operation executed, turn on dispatching because running
+                  // an op could change the state and allow other ops that
+                  // were previously unable to run to run
+                  delete job.runnableRef;
+                  mDispatch = true;
+                  opStarted = true;
+               }
+               else
+               {
+                  // operation would block, set flag to break out of loop
+                  // and requeue job
+                  breakLoop = true;
+                  mJobQueue.push_back(job);
+               }
+            }
+            // operation can wait
+            else if(!(*op)->isInterrupted() && !og->mustCancelOperation(*op))
+            {
+               // requeue job, mark as first in cycle if not yet set
+               mJobQueue.push_back(job);
+               if(first == NULL)
+               {
+                  first = op;
+               }
+            }
+            // operation must be canceled
+            else
+            {
+               // stop operation, do not requeue it
+               (*op)->stop();
+               delete job.runnableRef;
+            }
+
+            if(!opStarted)
+            {
+               // op didn't start, release state lock
+               mStateLock.unlock();
+            }
+         }
       }
+
+      // dispatch job complete
+      mLock.unlock();
    }
+   while(!breakLoop);
+}
+
+void Engine::runOperation(Operation* op)
+{
+   // do pre-execution state mutation
+   StateMutator* sm = (*op)->getStateMutator();
+   if(sm != NULL)
+   {
+      sm->mutatePreExecutionState(*op);
+   }
+
+   // unlock state
+   mStateLock.unlock();
+
+   // set thread user data to allow operation lookup by thread
+   Thread* thread = Thread::currentThread();
+   thread->setUserData(op);
+
+   // run operation
+   (*op)->run();
+
+   // do post-execution state mutation
+   if(sm != NULL)
+   {
+      mStateLock.lock();
+      sm->mutatePostExecutionState(*op);
+      mStateLock.unlock();
+   }
+
+   // stop operation
+   (*op)->stop();
+
+   // clear thread user data
+   thread->setUserData(NULL);
+
+   // clean up operation
+   delete op;
+
+   // resume dispatching
+   mLock.lock();
+   mDispatch = true;
+   wakeup();
    mLock.unlock();
 }

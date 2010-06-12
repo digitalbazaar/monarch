@@ -56,13 +56,15 @@ public:
       if(!rval)
       {
 #ifdef DEBUG_ON
-         printf("Operation must wait or cancel.\n");
+         printf("%s operation must wait or cancel.\n",
+            mLogout ? "Logout" : "Non-logout");
 #endif
       }
       else
       {
 #ifdef DEBUG_ON
-         printf("Operation can run.\n");
+         printf("%s operation can run.\n",
+            mLogout ? "Logout" : "Non-Logout");
 #endif
       }
       return rval;
@@ -71,19 +73,25 @@ public:
    virtual bool mustCancelOperation(Operation& op)
    {
       TestState* state = static_cast<TestState*>(op->getUserData());
-      if(state->loggedOut)
+      if(!mLogout && (state->loggingOut || state->loggedOut))
       {
 #ifdef DEBUG_ON
-         printf("Operation must cancel, user logged out.\n");
+         printf("%s operation MUST cancel, user logging/logged out.\n",
+            mLogout ? "Logout" : "Non-logout");
+#endif
+      }
+      else if(mLogout)
+      {
+#ifdef DEBUG_ON
+         printf("Logout operation must wait for other operations to finish.\n");
 #endif
       }
       else
       {
-#ifdef DEBUG_ON
-         printf("Operation can wait, user is not logged out yet.\n");
-#endif
+         printf("Non-logout operation can wait, user is not logging/logged "
+            "out yet.\n");
       }
-      return state->loggedOut;
+      return !mLogout && (state->loggingOut || state->loggedOut);
    }
 
    virtual void mutatePreExecutionState(Operation& op)

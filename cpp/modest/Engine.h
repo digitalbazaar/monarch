@@ -30,23 +30,11 @@ namespace modest
  * any Operation can be dispatched for execution, any associated state
  * must be checked against the Operation's guard for compatibility.
  *
- * Engine extends ThreadPool to ensure that any state is mutated properly
- * after jobs complete and before threads are returned to the pool. It
- * overrides the jobCompleted() call to accomplish this.
- *
  * @author Dave Longley
  */
-class Engine :
-protected monarch::rt::ThreadPool,
-protected monarch::rt::JobDispatcher
+class Engine : protected monarch::rt::JobDispatcher
 {
 protected:
-   /**
-    * A map of OperationImpl's to Operation references.
-    */
-   typedef std::map<OperationImpl*, Operation> OperationMap;
-   OperationMap mOpMap;
-
    /**
     * The set to true when a dispatch should occur. This is true to begin with
     * and is set to true when a new operation is queued or executed, or when
@@ -122,13 +110,6 @@ public:
    virtual void terminateRunningOperations();
 
    /**
-    * Called by a thread when it completes its job.
-    *
-    * @param t the thread that completed its job.
-    */
-   virtual void jobCompleted(monarch::rt::PooledThread* t);
-
-   /**
     * Gets the current thread's Operation. This method assumes that you
     * know that the current thread has an Operation. Do not call it if
     * you aren't certain of this, it may result in memory corruption.
@@ -173,6 +154,13 @@ protected:
     * Dispatches the Operations that can be dispatched.
     */
    virtual void dispatchJobs();
+
+   /**
+    * Runs an operation.
+    *
+    * @param op the operation to run.
+    */
+   virtual void runOperation(Operation* op);
 };
 
 } // end namespace modest
