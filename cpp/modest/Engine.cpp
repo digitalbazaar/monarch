@@ -169,78 +169,64 @@ void Engine::dispatchJobs()
 
    mLock.lock();
    {
-      // turn off dispatching until an Operation executes
+      // turn off dispatching (will be turned back on when state is modified
+      // or an operation starts/completes)
       mDispatch = false;
 
       // FIXME: ease lock contention when queuing vs. dispatching jobs
 
       // execute all Operations that can be executed
-      int guardCheck;
+      Operation* op;
+      StateMutator* sm;
+      OperationGuard* og;
+      list<Runnable*>::iterator end = mJobQueue.end();
       for(list<Runnable*>::iterator i = mJobQueue.begin();
-          impl == NULL && i != mJobQueue.end();)
+          impl == NULL && i != end;)
       {
          impl = static_cast<OperationImpl*>(*i);
 
-         // check the Operation's guard restrictions
-         guardCheck = 0;
-         if(impl->getGuard() != NULL)
+         // get guard and mutator
+         og = impl->getGuard();
+         sm = impl->getStateMutator();
+
+         // get reference to operation if op has a guard or mutator
+         op = (og != NULL || sm != NULL) ? &mOpMap[impl] : NULL;
+
+         // check the operation's guard restrictions
+         if(og == NULL || og->canExecuteOperation(*op))
          {
-            Operation& op = mOpMap[impl];
-            if(!impl->getGuard()->canExecuteOperation(op))
+            // operation can execute, unqueue, advance iterator, dispatch on
+            i = mJobQueue.erase(i);
+            mDispatch = true;
+
+            // do pre-execution state mutation
+            if(sm != NULL)
             {
-               if(!impl->isInterrupted() &&
-                  !impl->getGuard()->mustCancelOperation(op))
-               {
-                  // operation can wait
-                  guardCheck = 1;
-               }
-               else
-               {
-                  // operation must be canceled
-                  guardCheck = 2;
-               }
+               sm->mutatePreExecutionState(*op);
+            }
+
+            // try to run the operation without blocking
+            if(tryRunJob(*impl))
+            {
+               // operation executed, no need to run it outside of loop
+               impl = NULL;
             }
          }
-
-         switch(guardCheck)
+         // operation can wait
+         else if(!impl->isInterrupted() && !og->mustCancelOperation(*op))
          {
-            case 0:
-            {
-               // Operation is executable, enable dispatching and unqueue
-               mDispatch = true;
-               i = mJobQueue.erase(i);
-
-               // do pre-execution state mutation
-               StateMutator* sm = impl->getStateMutator();
-               if(sm != NULL)
-               {
-                  sm->mutatePreExecutionState(mOpMap[impl]);
-               }
-
-               // try to run the operation
-               if(tryRunJob(*impl))
-               {
-                  // Operation executed, no need to run it outside of loop
-                  impl = NULL;
-               }
-               break;
-            }
-            case 1:
-            {
-               // move to next Operation
-               impl = NULL;
-               ++i;
-               break;
-            }
-            case 2:
-            {
-               // Operation is canceled, stop, unmap and unqueue
-               impl->stop();
-               mOpMap.erase(impl);
-               i = mJobQueue.erase(i);
-               impl = NULL;
-               break;
-            }
+            // move to next op in the queue
+            impl = NULL;
+            ++i;
+         }
+         // operation must be canceled
+         else
+         {
+            // stop, unmap, and unqueue op
+            impl->stop();
+            mOpMap.erase(impl);
+            i = mJobQueue.erase(i);
+            impl = NULL;
          }
       }
    }

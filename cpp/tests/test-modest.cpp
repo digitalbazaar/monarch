@@ -12,9 +12,12 @@ using namespace monarch::test;
 using namespace monarch::modest;
 using namespace monarch::rt;
 
+#define DEBUG_ON   0
+
 namespace mo_test_modest
 {
 
+// state used by the engine
 struct TestState
 {
    int ops;
@@ -32,11 +35,15 @@ public:
       rval = !state->loggingOut && (state->ops < 3);
       if(!rval)
       {
-         //printf("Operation must wait or cancel.\n");
+#ifdef DEBUG_ON
+         printf("Operation must wait or cancel.\n");
+#endif
       }
       else
       {
-         //printf("Operation can run.\n");
+#ifdef DEBUG_ON
+         printf("Operation can run.\n");
+#endif
       }
       return rval;
    }
@@ -46,11 +53,15 @@ public:
       TestState* state = static_cast<TestState*>(op->getUserData());
       if(state->loggedOut)
       {
-         //printf("Operation must cancel, user logged out.\n");
+#ifdef DEBUG_ON
+         printf("Operation must cancel, user logged out.\n");
+#endif
       }
       else
       {
-         //printf("Operation can wait, user is not logged out yet.\n");
+#ifdef DEBUG_ON
+         printf("Operation can wait, user is not logged out yet.\n");
+#endif
       }
       return state->loggedOut;
    }
@@ -73,7 +84,9 @@ public:
       if(mLogout)
       {
          state->loggingOut = true;
-         //printf("Logging out...\n");
+#ifdef DEBUG_ON
+         printf("Logging out...\n");
+#endif
       }
    }
 
@@ -84,7 +97,9 @@ public:
       if(mLogout)
       {
          state->loggedOut = true;
-         //printf("Logged out.\n");
+#ifdef DEBUG_ON
+         printf("Logged out.\n");
+#endif
       }
    }
 };
@@ -105,11 +120,15 @@ public:
 
    virtual void run()
    {
-      //printf("Operation running: %s\n", mName.c_str());
+#ifdef DEBUG_ON
+      printf("Operation running: %s\n", mName.c_str());
+#endif
       mLock.lock();
       mLock.wait(mTime);
       mLock.unlock();
-      //printf("Operation finished: %s\n", mName.c_str());
+#ifdef DEBUG_ON
+      printf("Operation finished: %s\n", mName.c_str());
+#endif
    }
 };
 
@@ -185,7 +204,9 @@ static void runModestTest(TestRunner& tr)
    op5->waitFor();
    opLogout->waitFor();
 
-   //printf("Operations complete.\n");
+#ifdef DEBUG_ON
+   printf("Operations complete.\n");
+#endif
 
    k.getEngine()->stop();
 
