@@ -11,7 +11,6 @@
 #include "monarch/io/File.h"
 #include "monarch/io/FileList.h"
 #include "monarch/logging/Logging.h"
-#include "monarch/modest/OperationDispatcher.h"
 #include "monarch/rt/System.h"
 #include "monarch/util/StringTokenizer.h"
 #include "monarch/validation/Validation.h"
@@ -502,7 +501,7 @@ bool MicroKernel::unloadModule(const ModuleId* id)
 
 Operation MicroKernel::currentOperation()
 {
-   return getEngine()->getOperationDispatcher()->getCurrentOperation();
+   return getEngine()->getCurrentOperation();
 }
 
 MicroKernelModuleApi* MicroKernel::getModuleApi(const char* name)

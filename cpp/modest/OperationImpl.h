@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_modest_OperationImpl_H
 #define monarch_modest_OperationImpl_H
@@ -90,10 +90,10 @@ protected:
    void* mUserData;
 
    /**
-    * OperationDispatcher is a friend to allow it run this Operation and
-    * mark it as canceled if necessary.
+    * Engine is a friend to allow it run this Operation and mark it as
+    * canceled if necessary.
     */
-   friend class OperationDispatcher;
+   friend class Engine;
 
    /**
     * Stops this Operation.

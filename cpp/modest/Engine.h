@@ -5,15 +5,13 @@
 #define monarch_modest_Engine_H
 
 #include "monarch/modest/Operation.h"
+#include "monarch/rt/JobDispatcher.h"
 #include "monarch/rt/ThreadPool.h"
 
 namespace monarch
 {
 namespace modest
 {
-
-// forward declare OperationDispatcher
-class OperationDispatcher;
 
 /**
  * A Modest Engine (MODular Extensible State Engine) is a lightweight
@@ -28,20 +26,38 @@ class OperationDispatcher;
  * can concurrently run multiple Operations that must by synchronized with
  * one another in some fashion.
  *
+ * Operations may be queued with the Engine to be dispatched. Before
+ * any Operation can be dispatched for execution, any associated state
+ * must be checked against the Operation's guard for compatibility.
+ *
+ * Engine extends ThreadPool to ensure that any state is mutated properly
+ * after jobs complete and before threads are returned to the pool. It
+ * overrides the jobCompleted() call to accomplish this.
+ *
  * @author Dave Longley
  */
-class Engine
+class Engine :
+protected monarch::rt::ThreadPool,
+protected monarch::rt::JobDispatcher
 {
 protected:
    /**
-    * The OperationDispatcher for dispatching Operations.
+    * A map of OperationImpl's to Operation references.
     */
-   OperationDispatcher* mOpDispatcher;
+   typedef std::map<OperationImpl*, Operation> OperationMap;
+   OperationMap mOpMap;
 
    /**
-    * A lock for starting/stopping this Engine.
+    * The set to true when a dispatch should occur. This is true to begin with
+    * and is set to true when a new operation is queued or executed, or when
+    * one expires.
     */
-   monarch::rt::ExclusiveLock mLock;
+   bool mDispatch;
+
+   /**
+    * A lock for starting/stopping the engine.
+    */
+   monarch::rt::ExclusiveLock mStartLock;
 
 public:
    /**
@@ -53,6 +69,17 @@ public:
     * Destructs this Engine.
     */
    virtual ~Engine();
+
+   /**
+    * Starts this Engine. This will begin executing queued Operations.
+    */
+   virtual void start();
+
+   /**
+    * Stops this Engine. This will stop executing queued Operations, clear
+    * the queue, and terminate all currently running Operations.
+    */
+   virtual void stop();
 
    /**
     * Queues the passed Operation for execution. The Operation may fail to
@@ -68,15 +95,43 @@ public:
    virtual void queue(Operation& op);
 
    /**
-    * Starts this Engine. This will begin executing queued Operations.
+    * Starts dispatching Operations.
     */
-   virtual void start();
+   using JobDispatcher::startDispatching;
 
    /**
-    * Stops this Engine. This will stop executing queued Operations and
-    * interrupt all currently running Operations.
+    * Stops dispatching Operations. This does not terminate the Operations
+    * that are already running.
     */
-   virtual void stop();
+   using JobDispatcher::stopDispatching;
+
+   /**
+    * Clears all queued Operations.
+    */
+   virtual void clearQueuedOperations();
+
+   /**
+    * Interrupts and joins all running Operations. Queued Operations are not
+    * affected.
+    */
+   virtual void terminateRunningOperations();
+
+   /**
+    * Called by a thread when it completes its job.
+    *
+    * @param t the thread that completed its job.
+    */
+   virtual void jobCompleted(monarch::rt::PooledThread* t);
+
+   /**
+    * Gets the current thread's Operation. This method assumes that you
+    * know that the current thread has an Operation. Do not call it if
+    * you aren't certain of this, it may result in memory corruption.
+    *
+    * @return the current thread's Operation, NULL if the Operation is not
+    *         registered with this dispatcher.
+    */
+   virtual Operation getCurrentOperation();
 
    /**
     * Gets this Engine's ThreadPool.
@@ -86,11 +141,33 @@ public:
    virtual monarch::rt::ThreadPool* getThreadPool();
 
    /**
-    * Gets this Engine's OperationDispatcher.
+    * Gets the number of Operations that are in the queue to be executed.
     *
-    * @return this Engine's OperationDispatcher.
+    * @return the number of Operations that are queued to be executed.
     */
-   virtual OperationDispatcher* getOperationDispatcher();
+   virtual unsigned int getQueuedOperationCount();
+
+   /**
+    * Gets the number of Operations that are in the queue and that are
+    * running.
+    *
+    * @return the number of Operations that are queued to be executed
+    *         plus the Operations that are already running.
+    */
+   virtual unsigned int getTotalOperationCount();
+
+protected:
+   /**
+    * Returns true if this dispatcher has a job it can dispatch.
+    *
+    * @return true if this dispatcher has a job it can dispatch.
+    */
+   virtual bool canDispatch();
+
+   /**
+    * Dispatches the Operations that can be dispatched.
+    */
+   virtual void dispatchJobs();
 };
 
 } // end namespace modest

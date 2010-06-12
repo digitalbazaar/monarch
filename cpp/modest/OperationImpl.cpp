@@ -3,7 +3,7 @@
  */
 #include "monarch/modest/OperationImpl.h"
 
-#include "monarch/modest/OperationDispatcher.h"
+#include "monarch/modest/Engine.h"
 
 using namespace monarch::modest;
 using namespace monarch::rt;
