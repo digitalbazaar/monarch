@@ -59,6 +59,11 @@ protected:
     */
    monarch::rt::ExclusiveLock mStartLock;
 
+   /**
+    * A lock for manipulating state.
+    */
+   monarch::rt::ExclusiveLock mStateLock;
+
 public:
    /**
     * Creates a new Engine.

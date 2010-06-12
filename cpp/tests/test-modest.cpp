@@ -25,14 +25,34 @@ struct TestState
    bool loggedOut;
 };
 
-class TestGuard : public OperationGuard
+class TestGuardAndMutator : public StateMutator, public OperationGuard
 {
+protected:
+   bool mLogout;
 public:
+   TestGuardAndMutator(bool logout) :
+      mLogout(logout)
+   {
+   }
+
    virtual bool canExecuteOperation(Operation& op)
    {
       bool rval = false;
       TestState* state = static_cast<TestState*>(op->getUserData());
-      rval = !state->loggingOut && (state->ops < 3);
+
+      // can execute a logout process and no other processes are running
+      if(mLogout)
+      {
+         // notify state that logout is imminent
+         state->loggingOut = true;
+         rval = (state->ops == 0);
+      }
+      // can execute non-logout if not logging out and ops < 3
+      else
+      {
+         rval = !state->loggingOut && (state->ops < 3);
+      }
+
       if(!rval)
       {
 #ifdef DEBUG_ON
@@ -64,17 +84,6 @@ public:
 #endif
       }
       return state->loggedOut;
-   }
-};
-
-class TestStateMutator : public StateMutator
-{
-protected:
-   bool mLogout;
-public:
-   TestStateMutator(bool logout) :
-      mLogout(logout)
-   {
    }
 
    virtual void mutatePreExecutionState(Operation& op)
@@ -150,16 +159,15 @@ static void runModestTest(TestRunner& tr)
    RunOp r5("Number 5", 500);
    RunOp rLogout("Logout", 250);
 
-   TestStateMutator m(false);
-   TestStateMutator mLogout(true);
-   TestGuard g;
+   TestGuardAndMutator nonLogout(false);
+   TestGuardAndMutator logout(true);
 
    Operation op1(r1);
    Operation op2(r2);
    Operation op3(r3);
    Operation op4(r4);
-   Operation op5(r5);
    Operation opLogout(rLogout);
+   Operation op5(r5);
 
    op1->setUserData(&state);
    op2->setUserData(&state);
@@ -170,25 +178,25 @@ static void runModestTest(TestRunner& tr)
 
    // the same guard is only added multiple times to
    // test guard chaining
-   op1->addGuard(&g);
-   op1->addGuard(&g);
-   op1->addGuard(&g);
-   op1->addGuard(&g);
-   op2->addGuard(&g);
-   op2->addGuard(&g);
-   op2->addGuard(&g);
-   op3->addGuard(&g);
-   op4->addGuard(&g);
-   op5->addGuard(&g);
-   op5->addGuard(&g);
-   opLogout->addGuard(&g);
+   op1->addGuard(&nonLogout);
+   op1->addGuard(&nonLogout);
+   op1->addGuard(&nonLogout);
+   op1->addGuard(&nonLogout);
+   op2->addGuard(&nonLogout);
+   op2->addGuard(&nonLogout);
+   op2->addGuard(&nonLogout);
+   op3->addGuard(&nonLogout);
+   op4->addGuard(&nonLogout);
+   op5->addGuard(&nonLogout);
+   op5->addGuard(&nonLogout);
+   opLogout->addGuard(&logout);
 
-   op1->addStateMutator(&m);
-   op2->addStateMutator(&m);
-   op3->addStateMutator(&m);
-   op4->addStateMutator(&m);
-   op5->addStateMutator(&m);
-   opLogout->addStateMutator(&mLogout);
+   op1->addStateMutator(&nonLogout);
+   op2->addStateMutator(&nonLogout);
+   op3->addStateMutator(&nonLogout);
+   op4->addStateMutator(&nonLogout);
+   op5->addStateMutator(&nonLogout);
+   opLogout->addStateMutator(&logout);
 
    k.getEngine()->queue(op1);
    k.getEngine()->queue(op2);

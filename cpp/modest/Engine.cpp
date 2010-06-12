@@ -90,32 +90,34 @@ void Engine::terminateRunningOperations()
 
 void Engine::jobCompleted(PooledThread* t)
 {
+   // Note: this method is executed by a PooledThread, external to an
+   // Operation, so that the Operation can be safely garbage-collected
+   // here if the map happens to hold the last reference to it
+
+   // get operation reference
    mLock.lock();
+   OperationImpl* impl = static_cast<OperationImpl*>(t->getJob());
+   OperationMap::iterator i = mOpMap.find(impl);
+   Operation& op = i->second;
+   mLock.unlock();
+
+   // do post-execution state mutation
+   StateMutator* sm = op->getStateMutator();
+   if(sm != NULL)
    {
-      // Note: this method is executed by a PooledThread, external to an
-      // Operation, so that the Operation can be safely garbage-collected
-      // here if the map happens to hold the last reference to it
-
-      // get operation reference
-      OperationImpl* impl = static_cast<OperationImpl*>(t->getJob());
-      OperationMap::iterator i = mOpMap.find(impl);
-      Operation& op = i->second;
-
-      // do post-execution state mutation
-      StateMutator* sm = op->getStateMutator();
-      if(sm != NULL)
-      {
-         sm->mutatePostExecutionState(op);
-      }
-
-      // stop operation, resume dispatching
-      op->stop();
-      mDispatch = true;
-      wakeup();
-
-      // remove operation reference from map
-      mOpMap.erase(i);
+      mStateLock.lock();
+      sm->mutatePostExecutionState(op);
+      mStateLock.unlock();
    }
+
+   // stop operation
+   op->stop();
+
+   // remove operation reference from map, resume dispatching
+   mLock.lock();
+   mOpMap.erase(i);
+   mDispatch = true;
+   wakeup();
    mLock.unlock();
 
    // call parent method to release thread back into pool
@@ -169,8 +171,8 @@ void Engine::dispatchJobs()
 
    mLock.lock();
    {
-      // turn off dispatching (will be turned back on when state is modified
-      // or an operation starts/completes)
+      // turn off dispatching (will be turned back on when operations execute
+      // or complete)
       mDispatch = false;
 
       // FIXME: ease lock contention when queuing vs. dispatching jobs
@@ -192,12 +194,14 @@ void Engine::dispatchJobs()
          // get reference to operation if op has a guard or mutator
          op = (og != NULL || sm != NULL) ? &mOpMap[impl] : NULL;
 
+         // lock state while guards/mutators are used
+         mStateLock.lock();
+
          // check the operation's guard restrictions
          if(og == NULL || og->canExecuteOperation(*op))
          {
             // operation can execute, unqueue, advance iterator, dispatch on
             i = mJobQueue.erase(i);
-            mDispatch = true;
 
             // do pre-execution state mutation
             if(sm != NULL)
@@ -208,7 +212,8 @@ void Engine::dispatchJobs()
             // try to run the operation without blocking
             if(tryRunJob(*impl))
             {
-               // operation executed, no need to run it outside of loop
+               // operation executed, turn on dispatching
+               mDispatch = true;
                impl = NULL;
             }
          }
@@ -228,13 +233,10 @@ void Engine::dispatchJobs()
             i = mJobQueue.erase(i);
             impl = NULL;
          }
+
+         // release state lock
+         mStateLock.unlock();
       }
    }
    mLock.unlock();
-
-   if(impl != NULL)
-   {
-      // execute Operation, allow thread blocking
-      runJob(*impl);
-   }
 }
