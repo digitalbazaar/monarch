@@ -54,7 +54,8 @@ void Engine::stop()
 void Engine::queue(Operation& op)
 {
    // create runnable
-   RunnableRef r = new Runner(this, &Engine::runOperation, new Operation(op));
+   RunnableRef r = new Runner(
+      this, &Engine::runOperation, new Operation(op), &Engine::freeOperation);
 
    mLock.lock();
    {
@@ -247,12 +248,14 @@ void Engine::runOperation(Operation* op)
    // clear thread user data
    thread->setUserData(NULL);
 
-   // clean up operation
-   delete op;
-
    // resume dispatching
    mLock.lock();
    mDispatch = true;
    wakeup();
    mLock.unlock();
+}
+
+void Engine::freeOperation(Operation* op)
+{
+   delete op;
 }

@@ -161,6 +161,13 @@ protected:
     * @param op the operation to run.
     */
    virtual void runOperation(Operation* op);
+
+   /**
+    * Frees an operation.
+    *
+    * @param op the operation to free.
+    */
+   virtual void freeOperation(Operation* op);
 };
 
 } // end namespace modest
