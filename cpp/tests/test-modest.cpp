@@ -15,20 +15,21 @@ using namespace monarch::rt;
 namespace mo_test_modest
 {
 
+struct TestState
+{
+   int ops;
+   bool loggingOut;
+   bool loggedOut;
+};
+
 class TestGuard : public OperationGuard
 {
 public:
-   virtual bool canExecuteOperation(ImmutableState* s, Operation& op)
+   virtual bool canExecuteOperation(Operation& op)
    {
       bool rval = false;
-
-      int ops = 0;
-      s->getInteger("number.of.ops", ops);
-
-      bool loggingOut = false;
-      s->getBoolean("logging.out", loggingOut);
-
-      rval = !loggingOut && ops < 3;
+      TestState* state = static_cast<TestState*>(op->getUserData());
+      rval = !state->loggingOut && (state->ops < 3);
       if(!rval)
       {
          //printf("Operation must wait or cancel.\n");
@@ -37,16 +38,13 @@ public:
       {
          //printf("Operation can run.\n");
       }
-
       return rval;
    }
 
-   virtual bool mustCancelOperation(ImmutableState* s, Operation& op)
+   virtual bool mustCancelOperation(Operation& op)
    {
-      bool loggedOut = false;
-      s->getBoolean("logged.out", loggedOut);
-
-      if(loggedOut)
+      TestState* state = static_cast<TestState*>(op->getUserData());
+      if(state->loggedOut)
       {
          //printf("Operation must cancel, user logged out.\n");
       }
@@ -54,8 +52,7 @@ public:
       {
          //printf("Operation can wait, user is not logged out yet.\n");
       }
-
-      return loggedOut;
+      return state->loggedOut;
    }
 };
 
@@ -64,68 +61,55 @@ class TestStateMutator : public StateMutator
 protected:
    bool mLogout;
 public:
-   TestStateMutator(bool logout)
+   TestStateMutator(bool logout) :
+      mLogout(logout)
    {
-      mLogout = logout;
    }
 
-   virtual void mutatePreExecutionState(State* s, Operation& op)
+   virtual void mutatePreExecutionState(Operation& op)
    {
-      int ops = 0;
-      s->getInteger("number.of.ops", ops);
-      s->setInteger("number.of.ops", ++ops);
-
+      TestState* state = static_cast<TestState*>(op->getUserData());
+      ++state->ops;
       if(mLogout)
       {
-         s->setBoolean("logging.out", true);
+         state->loggingOut = true;
          //printf("Logging out...\n");
       }
    }
 
-   virtual void mutatePostExecutionState(State* s, Operation& op)
+   virtual void mutatePostExecutionState(Operation& op)
    {
-      int ops = 0;
-      s->getInteger("number.of.ops", ops);
-      s->setInteger("number.of.ops", --ops);
-
+      TestState* state = static_cast<TestState*>(op->getUserData());
+      --state->ops;
       if(mLogout)
       {
-         s->setBoolean("logged.out", true);
+         state->loggedOut = true;
          //printf("Logged out.\n");
       }
    }
 };
 
-class RunOp : public virtual ExclusiveLock, public Runnable
+class RunOp : public Runnable
 {
 protected:
    string mName;
-   unsigned long mTime;
+   uint64_t mTime;
+   ExclusiveLock mLock;
 
 public:
-   RunOp(string name, unsigned long time)
+   RunOp(string name, unsigned long time) :
+      mName(name),
+      mTime(time)
    {
-      mName = name;
-      mTime = time;
    }
 
    virtual void run()
    {
       //printf("Operation running: %s\n", mName.c_str());
-
-      lock();
-      {
-         wait(mTime);
-      }
-      unlock();
-
+      mLock.lock();
+      mLock.wait(mTime);
+      mLock.unlock();
       //printf("Operation finished: %s\n", mName.c_str());
-   }
-
-   virtual string& toString(string& str)
-   {
-      str = mName;
-      return mName;
    }
 };
 
@@ -136,6 +120,7 @@ static void runModestTest(TestRunner& tr)
    Exception::clear();
 
    Kernel k;
+   TestState state = {0, false, false};
 
    k.getEngine()->start();
 
@@ -156,6 +141,13 @@ static void runModestTest(TestRunner& tr)
    Operation op4(r4);
    Operation op5(r5);
    Operation opLogout(rLogout);
+
+   op1->setUserData(&state);
+   op2->setUserData(&state);
+   op3->setUserData(&state);
+   op4->setUserData(&state);
+   op5->setUserData(&state);
+   opLogout->setUserData(&state);
 
    // the same guard is only added multiple times to
    // test guard chaining

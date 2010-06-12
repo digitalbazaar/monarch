@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/modest/Engine.h"
 
@@ -10,7 +10,6 @@ using namespace monarch::modest;
 
 Engine::Engine()
 {
-   mState = new State();
    mOpDispatcher = new OperationDispatcher(this);
 }
 
@@ -23,7 +22,6 @@ Engine::~Engine()
    mOpDispatcher->clearQueuedOperations();
 
    delete mOpDispatcher;
-   delete mState;
 }
 
 void Engine::queue(Operation& op)
@@ -49,11 +47,6 @@ void Engine::stop()
       mOpDispatcher->terminateRunningOperations();
    }
    mLock.unlock();
-}
-
-inline ImmutableState* Engine::getState()
-{
-   return static_cast<ImmutableState*>(mState);
 }
 
 inline ThreadPool* Engine::getThreadPool()

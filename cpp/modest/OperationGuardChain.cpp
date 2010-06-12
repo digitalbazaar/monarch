@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/modest/OperationGuardChain.h"
 
@@ -8,50 +8,51 @@
 using namespace monarch::modest;
 
 OperationGuardChain::OperationGuardChain(
-   OperationGuard* g1, OperationGuard* g2)
+   OperationGuard* g1, OperationGuard* g2) :
+   mGuard1(g1),
+   mGuard2(g2)
 {
-   mGuard1 = g1;
-   mGuard2 = g2;
 }
 
 OperationGuardChain::OperationGuardChain(
    OperationGuardRef& g1, OperationGuard* g2) :
-   mGuardReference1(g1)
+   mGuard1(&(*g1)),
+   mGuardReference1(g1),
+   mGuard2(g2)
 {
-   mGuard1 = &(*g1);
-   mGuard2 = g2;
 }
 
 OperationGuardChain::OperationGuardChain(
    OperationGuard* g1, OperationGuardRef& g2) :
+   mGuard1(g1),
+   mGuard2(&(*g2)),
    mGuardReference2(g2)
 {
-   mGuard1 = g1;
-   mGuard2 = &(*g2);
 }
 
 OperationGuardChain::OperationGuardChain(
    OperationGuardRef& g1, OperationGuardRef& g2) :
-   mGuardReference1(g1), mGuardReference2(g2)
+   mGuard1(&(*g1)),
+   mGuardReference1(g1),
+   mGuard2(&(*g2)),
+   mGuardReference2(g2)
 {
-   mGuard1 = &(*g1);
-   mGuard2 = &(*g2);
 }
 
 OperationGuardChain::~OperationGuardChain()
 {
 }
 
-bool OperationGuardChain::canExecuteOperation(ImmutableState* s, Operation &op)
+bool OperationGuardChain::canExecuteOperation(Operation &op)
 {
    return
-      mGuard1->canExecuteOperation(s, op) &&
-      (mGuard2 == NULL || mGuard2->canExecuteOperation(s, op));
+      mGuard1->canExecuteOperation(op) &&
+      (mGuard2 == NULL || mGuard2->canExecuteOperation(op));
 }
 
-bool OperationGuardChain::mustCancelOperation(ImmutableState* s, Operation &op)
+bool OperationGuardChain::mustCancelOperation(Operation &op)
 {
    return
-      mGuard1->mustCancelOperation(s, op) ||
-      (mGuard2 != NULL && mGuard2->canExecuteOperation(s, op));
+      mGuard1->mustCancelOperation(op) ||
+      (mGuard2 != NULL && mGuard2->canExecuteOperation(op));
 }

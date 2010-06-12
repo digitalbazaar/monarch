@@ -40,9 +40,6 @@ void OperationDispatcher::dispatchJobs()
 {
    OperationImpl* impl = NULL;
 
-   // get engine state
-   State* state = static_cast<State*>(mEngine->getState());
-
    mLock.lock();
    {
       // turn off dispatching until an Operation executes
@@ -62,10 +59,10 @@ void OperationDispatcher::dispatchJobs()
          if(impl->getGuard() != NULL)
          {
             Operation& op = mOpMap[impl];
-            if(!impl->getGuard()->canExecuteOperation(state, op))
+            if(!impl->getGuard()->canExecuteOperation(op))
             {
                if(!impl->isInterrupted() &&
-                  !impl->getGuard()->mustCancelOperation(state, op))
+                  !impl->getGuard()->mustCancelOperation(op))
                {
                   // operation can wait
                   guardCheck = 1;
@@ -81,15 +78,16 @@ void OperationDispatcher::dispatchJobs()
          switch(guardCheck)
          {
             case 0:
+            {
                // Operation is executable, enable dispatching and unqueue
                mDispatch = true;
                i = mJobQueue.erase(i);
 
                // do pre-execution state mutation
-               if(impl->getStateMutator() != NULL)
+               StateMutator* sm = impl->getStateMutator();
+               if(sm != NULL)
                {
-                  impl->getStateMutator()->mutatePreExecutionState(
-                     state, mOpMap[impl]);
+                  sm->mutatePreExecutionState(mOpMap[impl]);
                }
 
                // try to run the operation
@@ -99,18 +97,23 @@ void OperationDispatcher::dispatchJobs()
                   impl = NULL;
                }
                break;
+            }
             case 1:
+            {
                // move to next Operation
                impl = NULL;
                ++i;
                break;
+            }
             case 2:
+            {
                // Operation is canceled, stop, unmap and unqueue
                impl->stop();
                mOpMap.erase(impl);
                i = mJobQueue.erase(i);
                impl = NULL;
                break;
+            }
          }
       }
    }
@@ -178,10 +181,10 @@ void OperationDispatcher::jobCompleted(PooledThread* t)
       Operation& op = i->second;
 
       // do post-execution state mutation
-      if(op->getStateMutator() != NULL)
+      StateMutator* sm = op->getStateMutator();
+      if(sm != NULL)
       {
-         State* state = static_cast<State*>(mEngine->getState());
-         op->getStateMutator()->mutatePostExecutionState(state, op);
+         sm->mutatePostExecutionState(op);
       }
 
       // stop operation, resume dispatching

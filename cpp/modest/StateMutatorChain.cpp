@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/modest/StateMutatorChain.h"
 
@@ -40,20 +40,20 @@ StateMutatorChain::~StateMutatorChain()
 {
 }
 
-void StateMutatorChain::mutatePreExecutionState(State* s, Operation& op)
+void StateMutatorChain::mutatePreExecutionState(Operation& op)
 {
-   mMutator1->mutatePreExecutionState(s, op);
+   mMutator1->mutatePreExecutionState(op);
    if(mMutator2 != NULL)
    {
-      mMutator2->mutatePreExecutionState(s, op);
+      mMutator2->mutatePreExecutionState(op);
    }
 }
 
-void StateMutatorChain::mutatePostExecutionState(State* s, Operation& op)
+void StateMutatorChain::mutatePostExecutionState(Operation& op)
 {
-   mMutator1->mutatePostExecutionState(s, op);
+   mMutator1->mutatePostExecutionState(op);
    if(mMutator2 != NULL)
    {
-      mMutator2->mutatePostExecutionState(s, op);
+      mMutator2->mutatePostExecutionState(op);
    }
 }

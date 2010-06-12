@@ -97,9 +97,9 @@ public:
     * this Operation to execute after it has been queued, or that require
     * it to wait or be canceled.
     *
-    * It returns true if the passed State meets the conditions of this guard
+    * It returns true if the current state meets the conditions of this guard
     * such that an Operation that requires this guard could be executed
-    * immediately by an Engine with the given State.
+    * immediately by an Engine.
     *
     * This method will be called before an Operation is executed. It should
     * only return true if the Operation can execute immediately. If the
@@ -108,22 +108,20 @@ public:
     * be executed immediately, if it returns false, then this guard's
     * "mustCancelOperation()" method will be called.
     *
-    * @param s the ImmutableState to inspect.
     * @param op the Operation this guard is for.
     *
-    * @return true if an Engine with the given State could immediately execute
+    * @return true if the state indicates an Engine could immediately execute
     *         an Operation with this guard, false if it should wait and be
     *         checked for possible cancelation.
     */
-   virtual bool canExecuteOperation(
-      monarch::modest::ImmutableState* s, monarch::modest::Operation& op);
+   virtual bool canExecuteOperation(monarch::modest::Operation& op);
 
    /**
     * This method allows for custom conditions to be checked that require
     * this Operation to be canceled after it has been queued for execution,
     * but before it is executed.
     *
-    * It returns true if the passed State cannot meet the conditions of this
+    * It returns true if the current state cannot meet the conditions of this
     * guard such that an Operation that requires this guard must be immediately
     * canceled.
     *
@@ -140,36 +138,30 @@ public:
     * executing, regardless of the Operation's custom cancel implementation,
     * use Operation.interrupt().
     *
-    * @param s the ImmutableState to inspect.
     * @param op the Operation this guard is for.
     *
-    * @return true if an Engine with the given State must cancel an Operation
+    * @return true if the state indicates an Engine must cancel an Operation
     *         with this guard before it executes, false if not.
     */
-   virtual bool mustCancelOperation(
-      monarch::modest::ImmutableState* s, monarch::modest::Operation& op);
+   virtual bool mustCancelOperation(monarch::modest::Operation& op);
 
    /**
-    * Alters the passed State directly before an Operation executes.
+    * Alters the current state directly before an Operation executes.
     *
-    * @param s the State to alter.
     * @param op the Operation to be executed.
     */
-   virtual void mutatePreExecutionState(
-      monarch::modest::State* s, monarch::modest::Operation& op);
+   virtual void mutatePreExecutionState(monarch::modest::Operation& op);
 
    /**
-    * Alters the passed State directly after an Operation finishes or
+    * Alters the current state directly after an Operation finishes or
     * was canceled.
     *
     * The passed Operation may be checked to see if it finished or was
     * canceled, etc.
     *
-    * @param s the State to alter.
     * @param op the Operation that finished or was canceled.
     */
-   virtual void mutatePostExecutionState(
-      monarch::modest::State* s, monarch::modest::Operation& op);
+   virtual void mutatePostExecutionState(monarch::modest::Operation& op);
 
    /**
     * Runs this ConnectionService.

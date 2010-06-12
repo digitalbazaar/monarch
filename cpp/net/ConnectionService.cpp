@@ -40,7 +40,7 @@ ConnectionService::~ConnectionService()
    ConnectionService::stop();
 }
 
-bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
+bool ConnectionService::canExecuteOperation(Operation& op)
 {
    bool rval = false;
 
@@ -65,7 +65,7 @@ bool ConnectionService::canExecuteOperation(ImmutableState* s, Operation& op)
    return rval;
 }
 
-bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
+bool ConnectionService::mustCancelOperation(Operation& op)
 {
    bool rval = false;
 
@@ -91,14 +91,14 @@ bool ConnectionService::mustCancelOperation(ImmutableState* s, Operation& op)
    return rval;
 }
 
-void ConnectionService::mutatePreExecutionState(State* s, Operation& op)
+void ConnectionService::mutatePreExecutionState(Operation& op)
 {
    // increase current connections
    ++mServer->mCurrentConnections;
    ++mCurrentConnections;
 }
 
-void ConnectionService::mutatePostExecutionState(State* s, Operation& op)
+void ConnectionService::mutatePostExecutionState(Operation& op)
 {
    // decrease current connections
    --mCurrentConnections;

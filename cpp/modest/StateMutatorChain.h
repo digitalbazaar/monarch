@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_modest_StateMutatorChain_H
 #define monarch_modest_StateMutatorChain_H
@@ -50,24 +50,22 @@ public:
    virtual ~StateMutatorChain();
 
    /**
-    * Alters the passed State directly before an Operation executes.
+    * Alters the current state directly before an Operation executes.
     *
-    * @param s the State to alter.
     * @param op the Operation to be executed.
     */
-   virtual void mutatePreExecutionState(State* s, Operation& op);
+   virtual void mutatePreExecutionState(Operation& op);
 
    /**
-    * Alters the passed State directly after an Operation finishes or
+    * Alters the current state directly after an Operation finishes or
     * was canceled.
     *
     * The passed Operation may be checked to see if it finished or was
     * canceled, etc.
     *
-    * @param s the State to alter.
     * @param op the Operation that finished or was canceled.
     */
-   virtual void mutatePostExecutionState(State* s, Operation& op);
+   virtual void mutatePostExecutionState(Operation& op);
 };
 
 } // end namespace modest

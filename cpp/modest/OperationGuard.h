@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_modest_OperationGuard_H
 #define monarch_modest_OperationGuard_H
 
 #include "monarch/rt/Collectable.h"
-#include "monarch/modest/ImmutableState.h"
 
 namespace monarch
 {
@@ -16,8 +15,11 @@ namespace modest
 class Operation;
 
 /**
- * An OperationGuard defines a set of conditions that a State must meet
- * in order for its Engine to be able to execute an Operation.
+ * An OperationGuard defines a set of conditions that the current state must
+ * meet in order for an Engine to be able to execute an Operation.
+ *
+ * The state to inspect should be accessible by the class that implements this
+ * interface or made accessible via the user data attribute of the Operation.
  *
  * @author Dave Longley
  */
@@ -39,9 +41,9 @@ public:
     * this Operation to execute after it has been queued, or that require
     * it to wait or be canceled.
     *
-    * It returns true if the passed State meets the conditions of this guard
+    * It returns true if the current state meets the conditions of this guard
     * such that an Operation that requires this guard could be executed
-    * immediately by an Engine with the given State.
+    * immediately by an Engine.
     *
     * This method will be called before an Operation is executed. It should
     * only return true if the Operation can execute immediately. If the
@@ -50,21 +52,20 @@ public:
     * be executed immediately, if it returns false, then this guard's
     * "mustCancelOperation()" method will be called.
     *
-    * @param s the ImmutableState to inspect.
     * @param op the Operation this guard is for.
     *
-    * @return true if an Engine with the given State could immediately execute
+    * @return true if the state indicates an Engine could immediately execute
     *         an Operation with this guard, false if it should wait and be
     *         checked for possible cancelation.
     */
-   virtual bool canExecuteOperation(ImmutableState* s, Operation& op) = 0;
+   virtual bool canExecuteOperation(Operation& op) = 0;
 
    /**
     * This method allows for custom conditions to be checked that require
     * this Operation to be canceled after it has been queued for execution,
     * but before it is executed.
     *
-    * It returns true if the passed State cannot meet the conditions of this
+    * It returns true if the current state cannot meet the conditions of this
     * guard such that an Operation that requires this guard must be immediately
     * canceled.
     *
@@ -81,13 +82,12 @@ public:
     * executing, regardless of the Operation's custom cancel implementation,
     * use Operation.interrupt().
     *
-    * @param s the ImmutableState to inspect.
     * @param op the Operation this guard is for.
     *
-    * @return true if an Engine with the given State must cancel an Operation
+    * @return true if the state indicates an Engine must cancel an Operation
     *         with this guard before it executes, false if not.
     */
-   virtual bool mustCancelOperation(ImmutableState* s, Operation &op) = 0;
+   virtual bool mustCancelOperation(Operation &op) = 0;
 };
 
 // define a reference counted OperationGuard type

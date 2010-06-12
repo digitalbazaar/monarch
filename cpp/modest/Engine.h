@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_modest_Engine_H
 #define monarch_modest_Engine_H
 
-#include "monarch/modest/State.h"
 #include "monarch/modest/Operation.h"
 #include "monarch/rt/ThreadPool.h"
 
@@ -18,12 +17,9 @@ class OperationDispatcher;
 
 /**
  * A Modest Engine (MODular Extensible State Engine) is a lightweight
- * processing engine that keeps track of state information and can be
- * extended by Modules that make use of existing functionality and
- * provide new functionality.
- *
- * The Modest Engine executes Operations to change its current State.
- * Operations may be executed concurrently.
+ * processing engine that modifies state by using Operations. Multiple
+ * Operations may be executed concurrently. An Engine can be shared amongst
+ * multiple Modules that each provide unique functionality.
  *
  * The Modest Engine is intended to be "modest" in its complexity and
  * code base, but powerful in its extensibility. The core engine provides
@@ -37,11 +33,6 @@ class OperationDispatcher;
 class Engine
 {
 protected:
-   /**
-    * The State of this Engine.
-    */
-   State* mState;
-
    /**
     * The OperationDispatcher for dispatching Operations.
     */
@@ -65,7 +56,7 @@ public:
 
    /**
     * Queues the passed Operation for execution. The Operation may fail to
-    * execute if this Engine's State is not compatible with the Operation's
+    * execute if the current state is not compatible with the Operation's
     * guard. The Operation may also be placed in a wait queue to be checked
     * later for execution.
     *
@@ -86,13 +77,6 @@ public:
     * interrupt all currently running Operations.
     */
    virtual void stop();
-
-   /**
-    * Gets State of this Engine in an immutable form.
-    *
-    * @return the State of this Engine in an immutable form.
-    */
-   virtual ImmutableState* getState();
 
    /**
     * Gets this Engine's ThreadPool.
