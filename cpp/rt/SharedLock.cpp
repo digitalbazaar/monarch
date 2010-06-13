@@ -36,7 +36,7 @@ using namespace monarch::rt;
 #if defined(WIN32) || defined(MACOS)
 // windows & macos:
 SharedLock::SharedLock() :
-   mThreadId(Thread::getInvalidThreadId()),
+   mThreadId(Thread::sInvalidThreadId),
    mSharedCount(0),
    mExclusiveCount(0),
    mExclusiveRequests(0)
@@ -184,7 +184,7 @@ void SharedLock::unlockExclusive()
    if(mExclusiveCount == 0)
    {
       // thread no longer holds exclusive lock
-      mThreadId = Thread::getInvalidThreadId();
+      mThreadId = Thread::sInvalidThreadId;
 
       // notify threads waiting on shared locks first since
       // an exclusive lock was just released
@@ -204,7 +204,7 @@ SharedLock::SharedLock()
    pthread_rwlock_init(&mLock, NULL);
 
    // no locks yet
-   mThreadId = Thread::getInvalidThreadId();
+   mThreadId = Thread::sInvalidThreadId;
    mLockCount = 0;
 }
 
@@ -272,7 +272,7 @@ void SharedLock::unlockExclusive()
    if(mLockCount == 0)
    {
       // thread no longer holds exclusive lock
-      mThreadId = Thread::getInvalidThreadId();
+      mThreadId = Thread::sInvalidThreadId;
 
       // release exclusive lock
       pthread_rwlock_unlock(&mLock);

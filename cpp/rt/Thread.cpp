@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/Thread.h"
 
@@ -17,6 +17,9 @@ pthread_once_t Thread::sThreadsInit = PTHREAD_ONCE_INIT;
 // create thread specific data keys
 pthread_key_t Thread::sCurrentThreadKey;
 pthread_key_t Thread::sExceptionKey;
+
+// create invalid thread ID
+pthread_t Thread::sInvalidThreadId;
 
 Thread::Thread(Runnable* runnable, const char* name, bool persistent) :
    mPersistent(persistent),
@@ -553,38 +556,10 @@ void Thread::clearException()
    }
 }
 
-pthread_t Thread::getInvalidThreadId()
-{
-   pthread_t rval;
-
-#ifdef WIN32
-   /**
-    * Windows pthreads use ptw32_handle_t for pthread_t which is:
-    *
-    * ptw32_handle_t
-    * {
-    *    void* p;        // pointer to thread object
-    *    unsigned int x; // some extra information about reuse, etc.
-    * };
-    *
-    * A value of 0 for p is considered invalid.
-    */
-   rval.p = 0;
-   rval.x = 0;
-#else
-   /**
-    * Other builds just use a number for pthread_t. 0 is considered invalid.
-    */
-   rval = 0;
-#endif
-
-   return rval;
-}
-
 bool Thread::isThreadIdValid(pthread_t id)
 {
    // pthread_equal() returns non-zero when the IDs *are* equal, 0 otherwise.
-   return (pthread_equal(id, getInvalidThreadId()) == 0);
+   return (pthread_equal(id, sInvalidThreadId) == 0);
 }
 
 // Note: disabled due to a lack of support in windows
@@ -644,6 +619,28 @@ void Thread::initializeThreads()
    // create the thread specific data keys
    pthread_key_create(&sCurrentThreadKey, &cleanupCurrentThreadKeyValue);
    pthread_key_create(&sExceptionKey, &cleanupExceptionKeyValue);
+
+   // set invalid thread ID
+#ifdef WIN32
+   /**
+    * Windows pthreads use ptw32_handle_t for pthread_t which is:
+    *
+    * ptw32_handle_t
+    * {
+    *    void* p;        // pointer to thread object
+    *    unsigned int x; // some extra information about reuse, etc.
+    * };
+    *
+    * A value of 0 for p is considered invalid.
+    */
+   sInvalidThreadId.p = 0;
+   sInvalidThreadId.x = 0;
+#else
+   /**
+    * Other builds just use a number for pthread_t. 0 is considered invalid.
+    */
+   sInvalidThreadId = 0;
+#endif
 
    // Note: disabled due to a lack of support in windows
    // install signal handler

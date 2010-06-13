@@ -27,7 +27,7 @@ Monitor::Monitor()
    pthread_mutexattr_destroy(&mutexAttr);
 
    // no thread in monitor, no locks yet
-   mThreadId = Thread::getInvalidThreadId();
+   mThreadId = Thread::sInvalidThreadId;
    mLockCount = 0;
 }
 
@@ -66,7 +66,7 @@ void Monitor::exit()
    if(mLockCount == 0)
    {
       // no longer a thread in this monitor
-      mThreadId = Thread::getInvalidThreadId();
+      mThreadId = Thread::sInvalidThreadId;
 
       // unlock this monitor's mutex
       pthread_mutex_unlock(&mMutex);
@@ -80,7 +80,7 @@ void Monitor::wait(uint32_t timeout)
    uint32_t lockCount = mLockCount;
 
    // reset thread and lock count
-   mThreadId = Thread::getInvalidThreadId();
+   mThreadId = Thread::sInvalidThreadId;
    mLockCount = 0;
 
    if(timeout == 0)

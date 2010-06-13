@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_Thread_H
 #define monarch_rt_Thread_H
@@ -28,6 +28,12 @@ namespace rt
  */
 class Thread : public virtual ExclusiveLock, protected Runnable
 {
+public:
+   /**
+    * The invalid thread ID.
+    */
+   static pthread_t sInvalidThreadId;
+
 protected:
    /**
     * The ID of the POSIX thread wrapped by this class.
@@ -334,13 +340,6 @@ public:
     * its count).
     */
    static void clearException();
-
-   /**
-    * Gets the invalid thread ID.
-    *
-    * @return the invalid thread ID.
-    */
-   static pthread_t getInvalidThreadId();
 
    /**
     * Returns true if the passed thread ID is valid, false if not.
