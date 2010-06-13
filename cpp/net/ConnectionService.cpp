@@ -117,7 +117,7 @@ void ConnectionService::run()
          // as an Operation
          Operation* op = new Operation(NULL);
          RunnableRef r =
-            new RunnableDelegate<ConnectionService>(
+            new RunnableDelegate<ConnectionService, Operation*>(
                this, &ConnectionService::serviceConnection, op);
          *op = Operation(r);
          (*op)->setUserData(s);
@@ -137,13 +137,11 @@ void ConnectionService::run()
    mRunningServicers.terminate();
 }
 
-void ConnectionService::serviceConnection(void* operation)
+void ConnectionService::serviceConnection(Operation* op)
 {
    // start connection service time
    Timer t;
    t.start();
-
-   Operation* op = static_cast<Operation*>(operation);
 
    // ensure the Socket can be wrapped with at least standard data presentation
    bool secure = false;

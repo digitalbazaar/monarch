@@ -289,8 +289,16 @@ inline int ConnectionInputStream::peek(char* b, int length, bool block)
    // see if more data needs to be read
    if(block && length > mPeekBuffer.length())
    {
-      // allocate enough space in the peek buffer
-      mPeekBuffer.allocateSpace(length, true);
+      // initial alloc
+      if(mPeekBuffer.length() == 0)
+      {
+         mPeekBuffer.allocateSpace(MAX_READ_SIZE + 1, true);
+      }
+      else
+      {
+         // allocate enough space in the peek buffer
+         mPeekBuffer.allocateSpace(length, true);
+      }
 
       // read into the peek buffer from this stream
       mPeeking = true;

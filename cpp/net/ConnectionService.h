@@ -173,7 +173,7 @@ public:
     *
     * @param op the Operation servicing the connection with socket as user data.
     */
-   virtual void serviceConnection(void* operation);
+   virtual void serviceConnection(monarch::modest::Operation* op);
 
    /**
     * Sets the maximum number of concurrent connections this service should
