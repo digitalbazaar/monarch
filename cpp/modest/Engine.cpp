@@ -131,6 +131,15 @@ void Engine::dispatchJobs()
 
    do
    {
+      // acquire state access permit, to be released by an operation unless
+      // one cannot be started
+      bool opStarted = false;
+      if(!mStateSemaphore.acquire())
+      {
+         // dispatch thread interrupted, break out
+         break;
+      }
+
       // lock while trying to dispatch the next operation
       mLock.lock();
 
@@ -148,13 +157,6 @@ void Engine::dispatchJobs()
          if(first == op)
          {
             // queue cycle detected
-            breakLoop = true;
-         }
-         // acquire state access permit, will be released by operation if
-         // it executes, otherwise released below... if acquire fails, then
-         // dispatch thread was interrupted so break out
-         else if(!mStateSemaphore.acquire())
-         {
             breakLoop = true;
          }
          else
@@ -204,17 +206,17 @@ void Engine::dispatchJobs()
                (*op)->stop();
                delete job.runnableRef;
             }
-
-            if(!opStarted)
-            {
-               // op didn't start, release state access permit
-               mStateSemaphore.release();
-            }
          }
       }
 
       // dispatch job complete
       mLock.unlock();
+
+      if(!opStarted)
+      {
+         // op didn't start, release state access permit
+         mStateSemaphore.release();
+      }
    }
    while(!breakLoop);
 }
