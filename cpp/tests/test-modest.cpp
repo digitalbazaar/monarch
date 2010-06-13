@@ -12,7 +12,7 @@ using namespace monarch::test;
 using namespace monarch::modest;
 using namespace monarch::rt;
 
-#define DEBUG_ON   0
+//#define DEBUG_ON   1
 
 namespace mo_test_modest
 {
