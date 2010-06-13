@@ -76,7 +76,8 @@ namespace mo_test_pong
  *    /pong: return "Pong!"
  *    /data[/size]: return a specified number of bytes of content. default=0.
  *    /stats: return JSON object with various
- *
+ *    /reset: reset the server stats
+ *    /quit: quit the server
  */
 
 // stats and control
@@ -87,25 +88,26 @@ private:
    uint64_t mLast;
    uint64_t mServiced;
    uint64_t mNum;
+   uint64_t mContentBytes;
    ExclusiveLock mLock;
    Config mConfig;
 
 public:
    PingPong(Config cfg) :
-      mStart(0),
-      mLast(0),
-      mServiced(0),
       mConfig(cfg)
    {
-      mNum = cfg["num"]->getUInt64();
+      mNum = mConfig["num"]->getUInt64();
+      reset();
    }
 
    virtual ~PingPong() {}
 
-   virtual void start()
+   virtual void reset()
    {
       mStart = System::getCurrentMilliseconds();
       mLast = mStart;
+      mServiced = 0;
+      mContentBytes = 0;
    }
 
    virtual void quit()
@@ -123,11 +125,18 @@ public:
       return mLock;
    }
 
-   virtual void service()
+   virtual void service(uint64_t bytes = 0)
    {
       // set last serviced time for effective ping service time
       // avoids counting time between ping and stats calls
       mLast = System::getCurrentMilliseconds();
+
+      if(bytes > 0)
+      {
+         //Atomic::addAndFetch(&mContentBytes, bytes);
+         //__sync_add_and_fetch(&mContentBytes, bytes);
+         mContentBytes += bytes;
+      }
 
       // This is a bit sloppy and may do the lock notify multiple times and
       // increase mServiced more than mNum.  Assumption is that this doesn't
@@ -148,6 +157,7 @@ public:
 
       DynamicObject stats;
       stats["serviced"] = mServiced;
+      stats["contentBytes"] = mContentBytes;
       stats["num"] = mNum;
       stats["elapsed ms"] = tms;
       stats["req/s"] = rate;
@@ -232,7 +242,7 @@ public:
       response->sendHeader();
       ByteArrayInputStream bais(str, len);
       response->sendBody(&bais, NULL);
-      mPingPong->service();
+      mPingPong->service(len);
    }
 };
 
@@ -240,24 +250,51 @@ class ConstByteInputStream : public InputStream
 {
 protected:
    int mLength;
-   char mData[4096];
+   const char* mBuffer;
+   int mBufsize;
+   char* mLocalBuffer;
+   bool mFreeBuffer;
 
 public:
-   ConstByteInputStream(char b, int length) :
-      mLength(length)
+   /**
+    * Create new input stream.
+    *
+    * @param length length of stream
+    * @param buf data buffer to use or NULL to create one
+    * @param bufsize size of buf
+    * @param b char to fill buf with if buf is NULL
+    */
+   ConstByteInputStream(
+      int length, const char* buf = NULL, int bufsize = 0, char b = '.') :
+      mLength(length),
+      mBuffer(buf),
+      mBufsize((bufsize == 0) ? 4096 : bufsize),
+      mFreeBuffer((buf == NULL) ? true : false)
    {
-      memset(mData, b, min(mLength, 4096));
+      if(mBuffer == NULL)
+      {
+         mBuffer = mLocalBuffer = (char*)malloc(mBufsize);
+         memset(mLocalBuffer, b, min(mLength, 4096));
+      }
    }
 
-   int read(char* b, int length)
+   virtual ~ConstByteInputStream()
+   {
+      if(mFreeBuffer)
+      {
+         free(mLocalBuffer);
+      }
+   }
+
+   virtual int read(char* b, int length)
    {
       // max is 4k or remaining, let higher levels loop
-      int max = min(mLength, 4096);
+      int max = min(mLength, mBufsize);
       // return max or length
       int rval = min(max, length);
       // reduce remaining
       mLength -= rval;
-      memcpy(b, mData, rval);
+      memcpy(b, mBuffer, rval);
       return rval;
    }
 };
@@ -267,13 +304,19 @@ class DataServicer : public HttpRequestServicer
 protected:
    PingPong* mPingPong;
    string mPath;
+   const char* mBuffer;
+   int mBufsize;
    bool mChunked;
 
 public:
-   DataServicer(PingPong* pingPong, const char* path) :
+   DataServicer(
+      PingPong* pingPong, const char* path,
+      const char* buffer = NULL, int bufsize = 0) :
       HttpRequestServicer(path),
       mPingPong(pingPong),
-      mPath(path)
+      mPath(path),
+      mBuffer(buffer),
+      mBufsize(bufsize)
    {
       mChunked = pingPong->getConfig()["chunked"]->getBoolean();
       if(mPath.length() > 0 && mPath[mPath.length()] != '/')
@@ -314,9 +357,9 @@ public:
       response->getHeader()->setField("Connection", "close");
       response->sendHeader();
       // send const bytes of a specified length
-      ConstByteInputStream cbis('.', len);
+      ConstByteInputStream cbis(len, mBuffer, mBufsize);
       response->sendBody(&cbis, NULL);
-      mPingPong->service();
+      mPingPong->service(len);
    }
 };
 
@@ -365,6 +408,33 @@ public:
       response->sendHeader();
       ByteArrayInputStream bais(statsstr.c_str(), len);
       response->sendBody(&bais, NULL);
+   }
+};
+
+class ResetServicer : public HttpRequestServicer
+{
+protected:
+   PingPong* mPingPong;
+
+public:
+   ResetServicer(PingPong* pingPong, const char* path) :
+      HttpRequestServicer(path),
+      mPingPong(pingPong)
+   {
+   }
+
+   virtual ~ResetServicer()
+   {
+   }
+
+   virtual void serviceRequest(
+      HttpRequest* request, HttpResponse* response)
+   {
+      mPingPong->reset();
+      response->getHeader()->setStatus(204, "No Content");
+      response->getHeader()->setField("Content-Length", 0);
+      response->getHeader()->setField("Connection", "close");
+      response->sendHeader();
    }
 };
 
@@ -445,11 +515,17 @@ static void runPingTest(TestRunner& tr)
    PingServicer ping(&pingPong, "/pong");
    hcs.addRequestServicer(&ping, false);
 
-   DataServicer data(&pingPong, "/data");
+   const int bufsize = 4096;
+   char buf[bufsize];
+   memset(buf, '.', bufsize);
+   DataServicer data(&pingPong, "/data", buf, bufsize);
    hcs.addRequestServicer(&data, false);
 
    StatsServicer stats(&pingPong, "/stats");
    hcs.addRequestServicer(&stats, false);
+
+   ResetServicer reset(&pingPong, "/reset");
+   hcs.addRequestServicer(&reset, false);
 
    QuitServicer quit(&pingPong, "/quit");
    hcs.addRequestServicer(&quit, false);
@@ -473,7 +549,7 @@ static void runPingTest(TestRunner& tr)
    }
 
    // start timing
-   pingPong.start();
+   pingPong.reset();
 
    // either serve for limited time, or wait for lock
    uint32_t time = cfg["time"]->getUInt32();
