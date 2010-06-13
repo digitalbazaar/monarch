@@ -99,8 +99,8 @@ public:
    virtual void interrupt();
 
    /**
-    * Waits for every single Operation in this list to stop. Each Operation
-    * will be marked as finished or canceled.
+    * Waits for every single Operation currently in this list to stop. Each
+    * Operation will be marked as finished or canceled.
     *
     * This method is interruptible by default, meaning the method can return
     * before all Operations are stopped if the current thread is interrupted.

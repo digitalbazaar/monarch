@@ -126,8 +126,17 @@ bool OperationList::waitFor(bool interruptible)
       mLock.lock();
    }
 
-   OpList::iterator end = mOperations.end();
-   for(OpList::iterator i = mOperations.begin(); i != end; ++i)
+   // copy operations to wait for
+   OpList opList = mOperations;
+
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
+
+   // wait for operations
+   OpList::iterator end = opList.end();
+   for(OpList::iterator i = opList.begin(); i != end; ++i)
    {
       rval = (*i)->waitFor(interruptible);
 
@@ -136,11 +145,6 @@ bool OperationList::waitFor(bool interruptible)
       {
          break;
       }
-   }
-
-   if(mLocking)
-   {
-      mLock.unlock();
    }
 
    return rval;
@@ -182,7 +186,16 @@ void OperationList::terminate()
    }
 
    interrupt();
+   // unlock while waiting
+   if(mLocking)
+   {
+      mLock.unlock();
+   }
    waitFor(false);
+   if(mLocking)
+   {
+      mLock.lock();
+   }
    prune();
 
    if(mLocking)

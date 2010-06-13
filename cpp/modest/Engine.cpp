@@ -150,6 +150,13 @@ void Engine::dispatchJobs()
             // queue cycle detected
             breakLoop = true;
          }
+         // acquire state access permit, will be released by operation if
+         // it executes, otherwise released below... if acquire fails, then
+         // dispatch thread was interrupted so break out
+         else if(!mStateSemaphore.acquire())
+         {
+            breakLoop = true;
+         }
          else
          {
             // pop job
@@ -157,10 +164,6 @@ void Engine::dispatchJobs()
 
             // get operation guard
             OperationGuard* og = (*op)->getGuard();
-
-            // acquire state access permit, will be released by operation if
-            // it executes, otherwise released below
-            mStateSemaphore.acquire();
 
             // check the operation's guard restrictions
             bool opStarted = false;
@@ -238,7 +241,19 @@ void Engine::runOperation(Operation* op)
    // do post-execution state mutation
    if(sm != NULL)
    {
-      mStateSemaphore.acquire();
+      // ensure state is mutated, but save interrupted state
+      bool interrupted;
+      while(!mStateSemaphore.acquire())
+      {
+         // save interrupted, but clear thread interruption flag
+         interrupted = true;
+         thread->interrupted(true);
+      }
+      // set interrupted flag
+      if(interrupted)
+      {
+         thread->interrupt();
+      }
       sm->mutatePostExecutionState(*op);
       mStateSemaphore.release();
    }
