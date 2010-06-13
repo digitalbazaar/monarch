@@ -237,24 +237,28 @@ bool ThreadPool::tryRunJob(RunnableRef& job)
    return rval;
 }
 
-void ThreadPool::runJob(Runnable& job)
+bool ThreadPool::runJob(Runnable& job)
 {
    // acquire a thread permit
-   if(mThreadSemaphore.acquire())
+   bool rval = mThreadSemaphore.acquire();
+   if(rval)
    {
       // run the job on an idle thread
       runJobOnIdleThread(job, true);
    }
+   return rval;
 }
 
-void ThreadPool::runJob(RunnableRef& job)
+bool ThreadPool::runJob(RunnableRef& job)
 {
    // acquire a thread permit
-   if(mThreadSemaphore.acquire())
+   bool rval = mThreadSemaphore.acquire();
+   if(rval)
    {
       // run the job on an idle thread
       runJobOnIdleThread(job, true);
    }
+   return rval;
 }
 
 void ThreadPool::jobCompleted(PooledThread* t)

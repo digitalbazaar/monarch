@@ -141,7 +141,8 @@ void JobDispatcher::dispatchJobs()
       bool run = true;
       ThreadPool* tp = getThreadPool();
       JobList::iterator end = mJobQueue.end();
-      for(JobList::iterator i = mJobQueue.begin(); run && i != end;)
+      for(JobList::iterator i = mJobQueue.begin();
+          !mDispatcherThread->isInterrupted() && run && i != end;)
       {
          // remove from queue, job is deleted
          if(i->deleted)

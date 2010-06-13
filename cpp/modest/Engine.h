@@ -48,9 +48,9 @@ protected:
    monarch::rt::ExclusiveLock mStartLock;
 
    /**
-    * A semaphore for accessing state.
+    * A lock for accessing state.
     */
-   monarch::rt::Semaphore mStateSemaphore;
+   monarch::rt::ExclusiveLock mStateLock;
 
 public:
    /**

@@ -13,8 +13,7 @@ typedef RunnableDelegate<Engine, Operation*> Runner;
 
 Engine::Engine() :
    JobDispatcher(new ThreadPool(100), true),
-   mDispatch(false),
-   mStateSemaphore(1, true)
+   mDispatch(false)
 {
    // set thread expire time to 2 minutes (120000 milliseconds) by default
    mThreadPool->setThreadExpireTime(120000);
@@ -132,66 +131,70 @@ void Engine::dispatchJobs()
    JobList::iterator i = mJobQueue.begin();
    JobList::iterator end = mJobQueue.end();
    mLock.unlock();
-   for(; !breakLoop && i != end;)
+   for(; !mDispatcherThread->isInterrupted() && !breakLoop && i != end;)
    {
       // get next job
       JobDispatcher::Job& job = *i;
       if(i->deleted)
       {
          // job is marked for deletion, remove from queue
+         mLock.lock();
          if(job.type == Job::TypeRunnableRef)
          {
             delete job.runnableRef;
          }
-         mLock.lock();
          i = mJobQueue.erase(i);
          mLock.unlock();
       }
       else
       {
-         // acquire state access permit, to be released by an operation unless
-         // one cannot be started
-         bool opStarted = false;
-         if(!mStateSemaphore.acquire())
-         {
-            // dispatch thread interrupted, break out
-            break;
-         }
+         // lock state to check guard/run pre-execution mutation
+         mStateLock.lock();
 
-         // get operation and guard
+         // get operation, guard, and mutator
          Runner* runner = static_cast<Runner*>(&(*(*job.runnableRef)));
          Operation* op = runner->getParam();
          OperationGuard* og = (*op)->getGuard();
+         StateMutator* sm = (*op)->getStateMutator();
 
          // check the operation's guard restrictions
          if(og == NULL || og->canExecuteOperation(*op))
          {
-            // try to run the operation without blocking
-            if(getThreadPool()->tryRunJob(*job.runnableRef))
+            // do pre-execution state mutation, release state lock
+            if(sm != NULL)
             {
-               // operation executed
-               delete job.runnableRef;
-               opStarted = true;
+               sm->mutatePreExecutionState(*op);
+            }
+            mStateLock.unlock();
 
-               // remove job from queue, turn on dispatching because running
-               // an op could change the state and allow other ops that were
-               // previously unable to run to run
-               mLock.lock();
-               i = mJobQueue.erase(i);
-               --mQueuedJobs;
-               mDispatch = true;
-               mLock.unlock();
-            }
-            else
+            // run the operation, do not allow interruptions, but remember
+            // them if they occur
+            bool interrupted = false;
+            while(!getThreadPool()->runJob(*job.runnableRef))
             {
-               // operation would block, set flag to break out of loop
-               breakLoop = true;
+               interrupted = true;
+               Thread::interrupted(true);
             }
+            if(interrupted)
+            {
+               mDispatcherThread->interrupt();
+            }
+
+            // remove job from queue, turn on dispatching because running
+            // an op could change the state and allow other ops that were
+            // previously unable to run to run
+            mLock.lock();
+            delete job.runnableRef;
+            i = mJobQueue.erase(i);
+            --mQueuedJobs;
+            mDispatch = true;
+            mLock.unlock();
          }
          // operation can wait
          else if(!(*op)->isInterrupted() && !og->mustCancelOperation(*op))
          {
-            // move to next job
+            // unlock state, move to next job
+            mStateLock.unlock();
             mLock.lock();
             ++i;
             mLock.unlock();
@@ -199,20 +202,15 @@ void Engine::dispatchJobs()
          // operation must be canceled
          else
          {
-            // stop operation
+            // unlock state, stop operation
+            mStateLock.unlock();
             (*op)->stop();
-            delete job.runnableRef;
 
             // remove from queue
             mLock.lock();
+            delete job.runnableRef;
             i = mJobQueue.erase(i);
             mLock.unlock();
-         }
-
-         if(!opStarted)
-         {
-            // op didn't start, release state access permit
-            mStateSemaphore.release();
          }
       }
    }
@@ -220,16 +218,6 @@ void Engine::dispatchJobs()
 
 void Engine::runOperation(Operation* op)
 {
-   // do pre-execution state mutation
-   StateMutator* sm = (*op)->getStateMutator();
-   if(sm != NULL)
-   {
-      sm->mutatePreExecutionState(*op);
-   }
-
-   // release state access permit
-   mStateSemaphore.release();
-
    // set thread user data to allow operation lookup by thread
    Thread* thread = Thread::currentThread();
    thread->setUserData(op);
@@ -238,23 +226,12 @@ void Engine::runOperation(Operation* op)
    (*op)->run();
 
    // do post-execution state mutation
+   StateMutator* sm = (*op)->getStateMutator();
    if(sm != NULL)
    {
-      // ensure state is mutated, but save interrupted state
-      bool interrupted;
-      while(!mStateSemaphore.acquire())
-      {
-         // save interrupted, but clear thread interruption flag
-         interrupted = true;
-         thread->interrupted(true);
-      }
-      // set interrupted flag
-      if(interrupted)
-      {
-         thread->interrupt();
-      }
+      mStateLock.lock();
       sm->mutatePostExecutionState(*op);
-      mStateSemaphore.release();
+      mStateLock.unlock();
    }
 
    // stop operation

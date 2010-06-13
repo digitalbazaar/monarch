@@ -138,9 +138,12 @@ public:
     * the current thread is interrupted.
     *
     * @param job the Runnable job to run.
+    *
+    * @return true if the job could run, false if not because the thread was
+    *         interrupted.
     */
-   virtual void runJob(Runnable& job);
-   virtual void runJob(RunnableRef& job);
+   virtual bool runJob(Runnable& job);
+   virtual bool runJob(RunnableRef& job);
 
    /**
     * Called by a thread when it completes its job.
