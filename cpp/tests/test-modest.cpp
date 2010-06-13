@@ -89,8 +89,10 @@ public:
       }
       else
       {
+#ifdef DEBUG_ON
          printf("Non-logout operation can wait, user is not logging/logged "
             "out yet.\n");
+#endif
       }
       return !mLogout && (state->loggingOut || state->loggedOut);
    }

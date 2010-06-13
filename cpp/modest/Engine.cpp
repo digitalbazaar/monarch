@@ -127,11 +127,12 @@ void Engine::dispatchJobs()
    // iterate over the queued jobs, jobs may be added (to the end of the
    // queue) while iterating, but not removed so there is no danger of
    // iterator invalidation, synchronously get first job
+   Thread* thread = Thread::currentThread();
    mLock.lock();
    JobList::iterator i = mJobQueue.begin();
    JobList::iterator end = mJobQueue.end();
    mLock.unlock();
-   for(; !mDispatcherThread->isInterrupted() && !breakLoop && i != end;)
+   for(; !thread->isInterrupted() && !breakLoop && i != end;)
    {
       // get next job
       JobDispatcher::Job& job = *i;
@@ -177,7 +178,7 @@ void Engine::dispatchJobs()
             }
             if(interrupted)
             {
-               mDispatcherThread->interrupt();
+               thread->interrupt();
             }
 
             // remove job from queue, turn on dispatching because running
