@@ -112,13 +112,13 @@ void JobDispatcher::dequeueJob(Runnable& job)
             &(*(*i->runnableRef)) == &job)
          {
             found = true;
-            delete i->runnableRef;
             i->deleted = true;
             --mQueuedJobs;
 
             if(dispatchOff)
             {
                // remove from queue
+               delete i->runnableRef;
                mJobQueue.erase(i);
             }
          }
@@ -146,6 +146,10 @@ void JobDispatcher::dispatchJobs()
          // remove from queue, job is deleted
          if(i->deleted)
          {
+            if(i->type == Job::TypeRunnableRef)
+            {
+               delete i->runnableRef;
+            }
             i = mJobQueue.erase(i);
          }
          // try to run job
@@ -287,14 +291,15 @@ void JobDispatcher::clearQueuedJobs()
       JobList::iterator end = mJobQueue.end();
       for(JobList::iterator i = mJobQueue.begin(); i != end;)
       {
-         if(i->type == Job::TypeRunnableRef)
-         {
-            delete i->runnableRef;
-         }
+         i->deleted = true;
          --mQueuedJobs;
 
          if(dispatchOff)
          {
+            if(i->type == Job::TypeRunnableRef)
+            {
+               delete i->runnableRef;
+            }
             i = mJobQueue.erase(i);
          }
          else

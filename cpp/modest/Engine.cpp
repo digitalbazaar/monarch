@@ -134,27 +134,30 @@ void Engine::dispatchJobs()
    mLock.unlock();
    for(; !breakLoop && i != end;)
    {
-      // acquire state access permit, to be released by an operation unless
-      // one cannot be started
-      bool opStarted = false;
-      if(!mStateSemaphore.acquire())
-      {
-         // dispatch thread interrupted, break out
-         break;
-      }
-
-      // lock while checking deleted flag on job, updating queue, etc.
-      mLock.lock();
-
       // get next job
       JobDispatcher::Job& job = *i;
       if(i->deleted)
       {
          // job is marked for deletion, remove from queue
+         if(job.type == Job::TypeRunnableRef)
+         {
+            delete job.runnableRef;
+         }
+         mLock.lock();
          i = mJobQueue.erase(i);
+         mLock.unlock();
       }
       else
       {
+         // acquire state access permit, to be released by an operation unless
+         // one cannot be started
+         bool opStarted = false;
+         if(!mStateSemaphore.acquire())
+         {
+            // dispatch thread interrupted, break out
+            break;
+         }
+
          // get operation and guard
          Runner* runner = static_cast<Runner*>(&(*(*job.runnableRef)));
          Operation* op = runner->getParam();
@@ -166,14 +169,18 @@ void Engine::dispatchJobs()
             // try to run the operation without blocking
             if(getThreadPool()->tryRunJob(*job.runnableRef))
             {
-               // operation executed, remove job from queue, turn on
-               // dispatching because running an op could change the state
-               // and allow other ops that were previously unable to run
+               // operation executed
                delete job.runnableRef;
+               opStarted = true;
+
+               // remove job from queue, turn on dispatching because running
+               // an op could change the state and allow other ops that were
+               // previously unable to run to run
+               mLock.lock();
                i = mJobQueue.erase(i);
                --mQueuedJobs;
                mDispatch = true;
-               opStarted = true;
+               mLock.unlock();
             }
             else
             {
@@ -185,25 +192,28 @@ void Engine::dispatchJobs()
          else if(!(*op)->isInterrupted() && !og->mustCancelOperation(*op))
          {
             // move to next job
+            mLock.lock();
             ++i;
+            mLock.unlock();
          }
          // operation must be canceled
          else
          {
-            // stop operation, remove from queue
+            // stop operation
             (*op)->stop();
             delete job.runnableRef;
+
+            // remove from queue
+            mLock.lock();
             i = mJobQueue.erase(i);
+            mLock.unlock();
          }
-      }
 
-      // dispatch job complete
-      mLock.unlock();
-
-      if(!opStarted)
-      {
-         // op didn't start, release state access permit
-         mStateSemaphore.release();
+         if(!opStarted)
+         {
+            // op didn't start, release state access permit
+            mStateSemaphore.release();
+         }
       }
    }
 }
