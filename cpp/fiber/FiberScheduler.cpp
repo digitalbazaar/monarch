@@ -393,8 +393,9 @@ Fiber* FiberScheduler::nextFiber()
 
    // cycle through fibers not more than once
    FiberId cycleEnd = 0;
+   FiberQueue::iterator end = mFiberQueue.end();
    for(FiberQueue::iterator i = mFiberQueue.begin();
-       rval == NULL && i != mFiberQueue.end() && (*i)->getId() != cycleEnd;)
+       rval == NULL && i != end && (*i)->getId() != cycleEnd;)
    {
       // pop fiber off queue
       Fiber* fiber = *i;
