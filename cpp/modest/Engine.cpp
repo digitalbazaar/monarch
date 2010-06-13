@@ -168,7 +168,6 @@ void Engine::dispatchJobs()
             OperationGuard* og = (*op)->getGuard();
 
             // check the operation's guard restrictions
-            bool opStarted = false;
             if(og == NULL || og->canExecuteOperation(*op))
             {
                // try to run the operation without blocking
