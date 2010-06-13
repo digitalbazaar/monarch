@@ -67,6 +67,7 @@ public:
             mLogout ? "Logout" : "Non-Logout");
 #endif
       }
+
       return rval;
    }
 
@@ -100,7 +101,6 @@ public:
       ++state->ops;
       if(mLogout)
       {
-         state->loggingOut = true;
 #ifdef DEBUG_ON
          printf("Logging out...\n");
 #endif
@@ -156,7 +156,10 @@ static void runModestTest(TestRunner& tr)
    Exception::clear();
 
    Kernel k;
-   TestState state = {0, false, false};
+   TestState state;
+   state.ops = 0;
+   state.loggingOut = false;
+   state.loggedOut = false;
 
    k.getEngine()->start();
 

@@ -13,7 +13,8 @@ typedef RunnableDelegate<Engine, Operation*> Runner;
 
 Engine::Engine() :
    JobDispatcher(new ThreadPool(100), true),
-   mDispatch(false)
+   mDispatch(false),
+   mStateSemaphore(1, true)
 {
    // set thread expire time to 2 minutes (120000 milliseconds) by default
    mThreadPool->setThreadExpireTime(120000);
@@ -157,9 +158,9 @@ void Engine::dispatchJobs()
             // get operation guard
             OperationGuard* og = (*op)->getGuard();
 
-            // lock state while guards/mutators are used, operation will unlock
-            // state if it can be started
-            mStateLock.lock();
+            // acquire state access permit, will be released by operation if
+            // it executes, otherwise released below
+            mStateSemaphore.acquire();
 
             // check the operation's guard restrictions
             bool opStarted = false;
@@ -203,8 +204,8 @@ void Engine::dispatchJobs()
 
             if(!opStarted)
             {
-               // op didn't start, release state lock
-               mStateLock.unlock();
+               // op didn't start, release state access permit
+               mStateSemaphore.release();
             }
          }
       }
@@ -224,8 +225,8 @@ void Engine::runOperation(Operation* op)
       sm->mutatePreExecutionState(*op);
    }
 
-   // unlock state
-   mStateLock.unlock();
+   // release state access permit
+   mStateSemaphore.release();
 
    // set thread user data to allow operation lookup by thread
    Thread* thread = Thread::currentThread();
@@ -237,9 +238,9 @@ void Engine::runOperation(Operation* op)
    // do post-execution state mutation
    if(sm != NULL)
    {
-      mStateLock.lock();
+      mStateSemaphore.acquire();
       sm->mutatePostExecutionState(*op);
-      mStateLock.unlock();
+      mStateSemaphore.release();
    }
 
    // stop operation
