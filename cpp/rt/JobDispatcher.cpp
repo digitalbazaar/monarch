@@ -127,14 +127,14 @@ void JobDispatcher::dispatchJobs()
             tp->tryRunJob(*i->runnable))
          {
             // remove from queue
-            mJobQueue.erase(i);
+            i = mJobQueue.erase(i);
          }
          else if(i->type == Job::TypeRunnableRef &&
                  tp->tryRunJob(*i->runnableRef))
          {
             // delete reference, remove from queue
             delete i->runnableRef;
-            mJobQueue.erase(i);
+            i = mJobQueue.erase(i);
          }
          else
          {
