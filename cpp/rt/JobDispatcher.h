@@ -48,6 +48,7 @@ protected:
          Runnable* runnable;
          RunnableRef* runnableRef;
       };
+      bool deleted;
    };
 
    /**
@@ -55,6 +56,13 @@ protected:
     */
    typedef std::list<Job> JobList;
    JobList mJobQueue;
+
+   /**
+    * Keeps track of the number of queued jobs. This must be done independently
+    * of the size property on the job queue because some jobs are marked as
+    * deleted in the queue and are not considered queued.
+    */
+   unsigned int mQueuedJobs;
 
    /**
     * The thread used to dispatch the Runnable jobs.

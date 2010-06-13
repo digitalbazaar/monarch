@@ -12,6 +12,7 @@ using namespace monarch::rt;
 JobDispatcher::JobDispatcher() :
    mThreadPool(new ThreadPool(10)),
    mCleanupThreadPool(true),
+   mQueuedJobs(0),
    mDispatcherThread(NULL)
 {
    // set thread expire time to 2 minutes (120000 milliseconds) by default
@@ -21,6 +22,7 @@ JobDispatcher::JobDispatcher() :
 JobDispatcher::JobDispatcher(ThreadPool* pool, bool cleanupPool) :
    mThreadPool(pool),
    mCleanupThreadPool(cleanupPool),
+   mQueuedJobs(0),
    mDispatcherThread(NULL)
 {
 }
@@ -59,7 +61,9 @@ void JobDispatcher::queueJob(Runnable& job)
       Job j;
       j.type = Job::TypeRunnable;
       j.runnable = &job;
+      j.deleted = false;
       mJobQueue.push_back(j);
+      ++mQueuedJobs;
       wakeup();
    }
    mLock.unlock();
@@ -73,7 +77,9 @@ void JobDispatcher::queueJob(RunnableRef& job)
       Job j;
       j.type = Job::TypeRunnableRef;
       j.runnableRef = new RunnableRef(job);
+      j.deleted = false;
       mJobQueue.push_back(j);
+      ++mQueuedJobs;
       wakeup();
    }
    mLock.unlock();
@@ -83,24 +89,38 @@ void JobDispatcher::dequeueJob(Runnable& job)
 {
    mLock.lock();
    {
-      // find and remove the job from the queue
+      // find and mark the job to be removed from the queue, the actual
+      // removal happens on the dispatch thread unless not dispatching
+      bool dispatchOff = !isDispatching();
       bool found = false;
       JobList::iterator end = mJobQueue.end();
       for(JobList::iterator i = mJobQueue.begin(); !found && i != end; i++)
       {
          if(i->type == Job::TypeRunnable && i->runnable == &job)
          {
-            // remove from queue
             found = true;
-            mJobQueue.erase(i);
+            i->deleted = true;
+            --mQueuedJobs;
+
+            if(dispatchOff)
+            {
+               // remove from queue
+               mJobQueue.erase(i);
+            }
          }
          else if(i->type == Job::TypeRunnableRef &&
             &(*(*i->runnableRef)) == &job)
          {
-            // delete reference, remove from queue
             found = true;
             delete i->runnableRef;
-            mJobQueue.erase(i);
+            i->deleted = true;
+            --mQueuedJobs;
+
+            if(dispatchOff)
+            {
+               // remove from queue
+               mJobQueue.erase(i);
+            }
          }
       }
       wakeup();
@@ -123,18 +143,27 @@ void JobDispatcher::dispatchJobs()
       JobList::iterator end = mJobQueue.end();
       for(JobList::iterator i = mJobQueue.begin(); run && i != end;)
       {
-         if(i->type == Job::TypeRunnable &&
+         // remove from queue, job is deleted
+         if(i->deleted)
+         {
+            i = mJobQueue.erase(i);
+         }
+         // try to run job
+         else if(i->type == Job::TypeRunnable &&
             tp->tryRunJob(*i->runnable))
          {
             // remove from queue
             i = mJobQueue.erase(i);
+            --mQueuedJobs;
          }
+         // try to run job
          else if(i->type == Job::TypeRunnableRef &&
                  tp->tryRunJob(*i->runnableRef))
          {
             // delete reference, remove from queue
             delete i->runnableRef;
             i = mJobQueue.erase(i);
+            --mQueuedJobs;
          }
          else
          {
@@ -152,7 +181,7 @@ bool JobDispatcher::isQueued(Runnable& job)
 
    mLock.lock();
    {
-      // find the job in the queue
+      // find the job in the queue, return true if it isn't marked as deleted
       JobList::iterator end = mJobQueue.end();
       for(JobList::iterator i = mJobQueue.begin(); !rval && i != end; i++)
       {
@@ -160,7 +189,7 @@ bool JobDispatcher::isQueued(Runnable& job)
             (i->type == Job::TypeRunnableRef &&
                &(*(*i->runnableRef)) == &job))
          {
-            rval = true;
+            rval = !i->deleted;
          }
       }
    }
@@ -252,16 +281,27 @@ void JobDispatcher::clearQueuedJobs()
 {
    mLock.lock();
    {
-      // clear queue
+      // mark all jobs as deleted, only remove from queue if dispatch is off,
+      // otherwise let the dispatch queue handle removal
+      bool dispatchOff = !isDispatching();
       JobList::iterator end = mJobQueue.end();
-      for(JobList::iterator i = mJobQueue.begin(); i != end; i++)
+      for(JobList::iterator i = mJobQueue.begin(); i != end;)
       {
          if(i->type == Job::TypeRunnableRef)
          {
             delete i->runnableRef;
          }
+         --mQueuedJobs;
+
+         if(dispatchOff)
+         {
+            i = mJobQueue.erase(i);
+         }
+         else
+         {
+            i++;
+         }
       }
-      mJobQueue.clear();
 
       // wake up
       wakeup();
@@ -286,7 +326,7 @@ inline ThreadPool* JobDispatcher::getThreadPool()
 
 inline unsigned int JobDispatcher::getQueuedJobCount()
 {
-   return mJobQueue.size();
+   return mQueuedJobs;
 }
 
 unsigned int JobDispatcher::getTotalJobCount()
@@ -295,7 +335,7 @@ unsigned int JobDispatcher::getTotalJobCount()
 
    mLock.lock();
    {
-      rval = getQueuedJobCount() + getThreadPool()->getRunningThreadCount();
+      rval = mQueuedJobs + getThreadPool()->getRunningThreadCount();
    }
    mLock.unlock();
 

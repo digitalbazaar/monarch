@@ -121,15 +121,18 @@ void Engine::dispatchJobs()
    // turned back on)
    mDispatch = false;
 
-   // keep track of whether or not dispatch loop should break:
-   // 1. There are no more queued jobs.
-   // 2. If an operation would block due to lack of idle threads.
-   // 3. The queue has been cycled.
+   // keep track of whether or not dispatch loop should break because an
+   // operation would block due to lack of idle threads
    bool breakLoop = false;
-   Operation* first = NULL;
-   JobList::iterator i;
 
-   do
+   // iterate over the queued jobs, jobs may be added (to the end of the
+   // queue) while iterating, but not removed so there is no danger of
+   // iterator invalidation, synchronously get first job
+   mLock.lock();
+   JobList::iterator i = mJobQueue.begin();
+   JobList::iterator end = mJobQueue.end();
+   mLock.unlock();
+   for(; !breakLoop && i != end;)
    {
       // acquire state access permit, to be released by an operation unless
       // one cannot be started
@@ -140,71 +143,57 @@ void Engine::dispatchJobs()
          break;
       }
 
-      // lock while trying to dispatch the next operation
+      // lock while checking deleted flag on job, updating queue, etc.
       mLock.lock();
 
-      // Note: Here we can't just iterate through the job queue because
-      // we unlock to allow more jobs to queue and for the job queue to be
-      // cleared if requested. Since the queue could be cleared, we can't
-      // rely on iterators to stay valid.
-      breakLoop = mJobQueue.empty();
-      if(!breakLoop)
+      // get next job
+      JobDispatcher::Job& job = *i;
+      if(i->deleted)
       {
-         // get next job and operation
-         JobDispatcher::Job job = mJobQueue.front();
+         // job is marked for deletion, remove from queue
+         i = mJobQueue.erase(i);
+      }
+      else
+      {
+         // get operation and guard
          Runner* runner = static_cast<Runner*>(&(*(*job.runnableRef)));
          Operation* op = runner->getParam();
-         if(first == op)
-         {
-            // queue cycle detected
-            breakLoop = true;
-         }
-         else
-         {
-            // pop job
-            mJobQueue.pop_front();
+         OperationGuard* og = (*op)->getGuard();
 
-            // get operation guard
-            OperationGuard* og = (*op)->getGuard();
-
-            // check the operation's guard restrictions
-            if(og == NULL || og->canExecuteOperation(*op))
+         // check the operation's guard restrictions
+         if(og == NULL || og->canExecuteOperation(*op))
+         {
+            // try to run the operation without blocking
+            if(getThreadPool()->tryRunJob(*job.runnableRef))
             {
-               // try to run the operation without blocking
-               if(getThreadPool()->tryRunJob(*job.runnableRef))
-               {
-                  // operation executed, turn on dispatching because running
-                  // an op could change the state and allow other ops that
-                  // were previously unable to run to run
-                  delete job.runnableRef;
-                  mDispatch = true;
-                  opStarted = true;
-               }
-               else
-               {
-                  // operation would block, set flag to break out of loop
-                  // and requeue job
-                  breakLoop = true;
-                  mJobQueue.push_back(job);
-               }
+               // operation executed, remove job from queue, turn on
+               // dispatching because running an op could change the state
+               // and allow other ops that were previously unable to run
+               delete job.runnableRef;
+               i = mJobQueue.erase(i);
+               --mQueuedJobs;
+               mDispatch = true;
+               opStarted = true;
             }
-            // operation can wait
-            else if(!(*op)->isInterrupted() && !og->mustCancelOperation(*op))
-            {
-               // requeue job, mark as first in cycle if not yet set
-               mJobQueue.push_back(job);
-               if(first == NULL)
-               {
-                  first = op;
-               }
-            }
-            // operation must be canceled
             else
             {
-               // stop operation, do not requeue it
-               (*op)->stop();
-               delete job.runnableRef;
+               // operation would block, set flag to break out of loop
+               breakLoop = true;
             }
+         }
+         // operation can wait
+         else if(!(*op)->isInterrupted() && !og->mustCancelOperation(*op))
+         {
+            // move to next job
+            ++i;
+         }
+         // operation must be canceled
+         else
+         {
+            // stop operation, remove from queue
+            (*op)->stop();
+            delete job.runnableRef;
+            i = mJobQueue.erase(i);
          }
       }
 
@@ -217,7 +206,6 @@ void Engine::dispatchJobs()
          mStateSemaphore.release();
       }
    }
-   while(!breakLoop);
 }
 
 void Engine::runOperation(Operation* op)
