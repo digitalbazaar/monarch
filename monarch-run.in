@@ -39,9 +39,10 @@ help() {
     echo "   $0 gdb COMMAND [ARGUMENTS]"
     echo "   $0 gdb [OPTIONS] --cmd COMMAND [ARGUMENTS]"
     echo
-    echo "Valgrind mode:"
+    echo "Valgrind modes:"
     echo "   $0 valgrind COMMAND [ARGUMENTS]"
     echo "   $0 valgrind [OPTIONS] --cmd COMMAND [ARGUMENTS]"
+    echo "   $0 callgrind COMMAND [ARGUMENTS]"
     echo
     echo "The COMMAND to run is searched in following order:"
     echo "   \"monarch\": The plain monarch application."
@@ -57,7 +58,7 @@ help() {
 # Check for special modes and set command
 if [ $# -ge 1 ]; then
    case "$1" in
-      gdb|valgrind)
+      gdb|valgrind|callgrind)
          MODE=$1
          shift
          # if "-" options are present, read until "--cmd"
@@ -158,6 +159,13 @@ case "${MODE}" in
          --tool=memcheck \
          --leak-check=full \
          --track-origins=yes \
+         ${MODE_OPTIONS} \
+         ${MONARCH} ${CMD_ARGS} "$@"
+      ;;
+   callgrind)
+      valgrind \
+         --suppressions=${VALGRIND_SUPP} \
+         --tool=callgrind \
          ${MODE_OPTIONS} \
          ${MONARCH} ${CMD_ARGS} "$@"
       ;;
