@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_crypto_MessageDigest_H
 #define monarch_crypto_MessageDigest_H
@@ -35,9 +35,19 @@ protected:
 
 public:
    /**
-    * Creates a new MessageDigest that uses the passed hash algorithm. An
-    * UnsupportedAlgorithm exception may be set if the given algorithm
-    * is not supported.
+    * Creates a new MessageDigest.
+    */
+   MessageDigest();
+
+   /**
+    * Destructs this MessageDigest.
+    */
+   virtual ~MessageDigest();
+
+   /**
+    * Starts a new message digest that uses the passed hash algorithm. An
+    * UnsupportedAlgorithm exception may be set if the given algorithm is not
+    * supported.
     *
     * By default, a call to getDigest() or getValue() will finalize the
     * digest and subsequent calls will be considered invalid. This behavior
@@ -48,14 +58,11 @@ public:
     *
     * @param algorithm the hash algorithm to use.
     * @param persistent true if calls to getDigest() or getValue() should not
-    *                   finalize the digest, false if they should.
+    *           finalize the digest, false if they should.
+    *
+    * @return true on success, false on failure with exception set.
     */
-   MessageDigest(const char* algorithm, bool persistent = false);
-
-   /**
-    * Destructs this MessageDigest.
-    */
-   virtual ~MessageDigest();
+   virtual bool start(const char* algorithm, bool persistent = false);
 
    /**
     * Resets this HashAlgorithm so it can be used again with new input.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_crypto_CryptoHashAlgorithm_H
 #define monarch_crypto_CryptoHashAlgorithm_H
@@ -33,13 +33,6 @@ protected:
     */
    const EVP_MD* mHashFunction;
 
-   /**
-    * Gets the hash function for this algorithm.
-    *
-    * @return the hash function to use.
-    */
-   virtual const EVP_MD* getHashFunction() = 0;
-
 public:
    /**
     * Creates a new CryptoHashAlgorithm.
@@ -50,6 +43,14 @@ public:
     * Destructs this CryptoHashAlgorithm.
     */
    virtual ~CryptoHashAlgorithm();
+
+protected:
+   /**
+    * Gets the hash function for this algorithm.
+    *
+    * @return the hash function to use.
+    */
+   virtual const EVP_MD* getHashFunction() = 0;
 };
 
 } // end namespace crypto

@@ -94,8 +94,10 @@ static void runDeflateTest(TestRunner& tr)
       fis.close();
       fos.close();
 
-      MessageDigest md1("SHA1");
-      MessageDigest md2("SHA1");
+      MessageDigest md1;
+      md1.start("SHA1");
+      MessageDigest md2;
+      md2.start("SHA1");
       assert(md1.digestFile(original));
       assert(md2.digestFile(inflated));
       assert(md1.getDigest() == md2.getDigest());
@@ -144,8 +146,10 @@ static void runDeflateTest(TestRunner& tr)
       fis.close();
       mos.close();
 
-      MessageDigest md1("SHA1");
-      MessageDigest md2("SHA1");
+      MessageDigest md1;
+      md1.start("SHA1");
+      MessageDigest md2;
+      md2.start("SHA1");
       assert(md1.digestFile(original));
       assert(md2.digestFile(inflated));
       assert(md1.getDigest() == md2.getDigest());
@@ -218,8 +222,10 @@ static void runGzipTest(TestRunner& tr)
       fis.close();
       fos.close();
 
-      MessageDigest md1("SHA1");
-      MessageDigest md2("SHA1");
+      MessageDigest md1;
+      md1.start("SHA1");
+      MessageDigest md2;
+      md2.start("SHA1");
       assert(md1.digestFile(original));
       assert(md2.digestFile(decompressed));
       assert(md1.getDigest() == md2.getDigest());
@@ -268,8 +274,10 @@ static void runGzipTest(TestRunner& tr)
       fis.close();
       mos.close();
 
-      MessageDigest md1("SHA1");
-      MessageDigest md2("SHA1");
+      MessageDigest md1;
+      md1.start("SHA1");
+      MessageDigest md2;
+      md2.start("SHA1");
       assert(md1.digestFile(original));
       assert(md2.digestFile(decompressed));
       assert(md1.getDigest() == md2.getDigest());

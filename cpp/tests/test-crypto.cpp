@@ -44,7 +44,8 @@ static void runMessageDigestTest(TestRunner& tr)
 
    tr.test("non-persistent");
    {
-      MessageDigest testMd5("MD5", false);
+      MessageDigest testMd5;
+      assert(testMd5.start("MD5", false));
       testMd5.update("THIS ");
       testMd5.update("IS A");
       testMd5.update(" MESSAGE");
@@ -52,7 +53,8 @@ static void runMessageDigestTest(TestRunner& tr)
 
       assert(digestMd5 == correctMd5);
 
-      MessageDigest testSha1("SHA1", false);
+      MessageDigest testSha1;
+      assert(testSha1.start("SHA1", false));
       testSha1.update("THIS IS A MESSAGE");
       string digestSha1 = testSha1.getDigest();
 
@@ -63,7 +65,8 @@ static void runMessageDigestTest(TestRunner& tr)
    tr.test("persistent");
    {
       string digestMd5;
-      MessageDigest testMd5("MD5", true);
+      MessageDigest testMd5;
+      assert(testMd5.start("MD5", true));
       testMd5.update("THIS ");
       digestMd5 = testMd5.getDigest();
       testMd5.update("IS A");
@@ -74,7 +77,8 @@ static void runMessageDigestTest(TestRunner& tr)
 
       assert(digestMd5 == correctMd5);
 
-      MessageDigest testSha1("SHA1", true);
+      MessageDigest testSha1;
+      assert(testSha1.start("SHA1", true));
       testSha1.update("THIS IS A MESSAGE");
       string digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
@@ -97,7 +101,8 @@ static void runMessageDigestTest(TestRunner& tr)
    tr.test("file test");
    {
       File file = File::createTempFile("test");
-      MessageDigest md("SHA1");
+      MessageDigest md;
+      md.start("SHA1");
       if(md.digestFile(file))
       {
          string sha1 = md.getDigest();

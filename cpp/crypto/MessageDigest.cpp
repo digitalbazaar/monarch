@@ -16,17 +16,29 @@ using namespace monarch::io;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-MessageDigest::MessageDigest(const char* algorithm, bool persistent)
+MessageDigest::MessageDigest() :
+   mAlgorithm(NULL),
+   mPersistent(false)
 {
+}
+
+MessageDigest::~MessageDigest()
+{
+}
+
+bool MessageDigest::start(const char* algorithm, bool persistent)
+{
+   bool rval = true;
+
    mPersistent = persistent;
 
-   if(strcmp(algorithm, "SHA1") == 0)
+   if(strcasecmp(algorithm, "SHA1") == 0)
    {
-      mAlgorithm = algorithm;
+      mAlgorithm = "SHA1";
    }
-   else if(strcmp(algorithm, "MD5") == 0)
+   else if(strcasecmp(algorithm, "MD5") == 0)
    {
-      mAlgorithm = algorithm;
+      mAlgorithm = "MD5";
    }
    else
    {
@@ -35,18 +47,21 @@ MessageDigest::MessageDigest(const char* algorithm, bool persistent)
          "Unsupported hash algorithm.", "monarch.crypto.UnsupportedAlgorithm");
       e->getDetails()["algorithm"] = algorithm;
       Exception::set(e);
+      rval = false;
    }
-}
 
-MessageDigest::~MessageDigest()
-{
+   if(rval)
+   {
+      // get the hash function for the algorithm, do reset
+      mHashFunction = getHashFunction();
+      reset();
+   }
+
+   return rval;
 }
 
 void MessageDigest::reset()
 {
-   // get the hash function for this algorithm
-   mHashFunction = getHashFunction();
-
    // initialize the message digest context (NULL uses the default engine)
    EVP_DigestInit_ex(&mMessageDigestContext, mHashFunction, NULL);
 }
@@ -58,24 +73,12 @@ void MessageDigest::update(const char* str)
 
 void MessageDigest::update(const char* b, unsigned int length)
 {
-   // if the hash function hasn't been set, then call reset to set it
-   if(mHashFunction == NULL)
-   {
-      reset();
-   }
-
    // update message digest context
    EVP_DigestUpdate(&mMessageDigestContext, b, length);
 }
 
 void MessageDigest::getValue(char* b, unsigned int& length)
 {
-   // if the hash function hasn't been set, then call reset to set it
-   if(mHashFunction == NULL)
-   {
-      reset();
-   }
-
    if(mPersistent)
    {
       // get the final value from a copy so the context can continue to be used
@@ -94,12 +97,6 @@ void MessageDigest::getValue(char* b, unsigned int& length)
 
 unsigned int MessageDigest::getValueLength()
 {
-   // if the hash function hasn't been set, then call reset to set it
-   if(mHashFunction == NULL)
-   {
-      reset();
-   }
-
    return EVP_MD_size(mHashFunction);
 }
 
