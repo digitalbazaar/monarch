@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/SymmetricKey.h"
 
@@ -8,21 +8,15 @@
 
 using namespace monarch::crypto;
 
-SymmetricKey::SymmetricKey(const char* algorithm)
+SymmetricKey::SymmetricKey(const char* algorithm) :
+   mData(NULL),
+   mDataLength(0),
+   mIv(NULL),
+   mIvLength(0),
+   mAlgorithm(NULL),
+   mEncrypted(false)
 {
-   // no key data yet
-   mData = NULL;
-   mDataLength = 0;
-
-   // no IV yet
-   mIv = NULL;
-   mIvLength = 0;
-
-   // set algorithm
-   mAlgorithm = strdup(algorithm);
-
-   // default to unencrypted
-   mEncrypted = false;
+   setAlgorithm(algorithm);
 }
 
 SymmetricKey::~SymmetricKey()
@@ -30,7 +24,10 @@ SymmetricKey::~SymmetricKey()
    // clean up
    freeData();
    freeIv();
-   free(mAlgorithm);
+   if(mAlgorithm != NULL)
+   {
+      free(mAlgorithm);
+   }
 }
 
 void SymmetricKey::freeData()
@@ -139,13 +136,16 @@ unsigned int SymmetricKey::ivLength()
 
 void SymmetricKey::setAlgorithm(const char* algorithm)
 {
-   free(mAlgorithm);
-   mAlgorithm = strdup(algorithm);
+   if(mAlgorithm != NULL)
+   {
+      free(mAlgorithm);
+   }
+   mAlgorithm = (algorithm == NULL) ? NULL : strdup(algorithm);
 }
 
 const char* SymmetricKey::getAlgorithm()
 {
-   return mAlgorithm;
+   return (mAlgorithm == NULL) ? "" : mAlgorithm;
 }
 
 bool SymmetricKey::isEncrypted()

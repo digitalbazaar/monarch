@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_crypto_SymmetricKey_H
 #define monarch_crypto_SymmetricKey_H
@@ -17,6 +17,11 @@ namespace crypto
  * encryption and decryption. This key is shared between the sender and
  * receiver of a confidential message.
  *
+ * For convenience, an IV associated with a particular encrypted message
+ * that this key is used with may be stored along with the key. Also, the
+ * key data itself may also be encrypted with another key and it may be
+ * flagged as such.
+ *
  * @author Dave Longley
  */
 class SymmetricKey
@@ -33,7 +38,8 @@ protected:
    unsigned int mDataLength;
 
    /**
-    * The Initialization Vector (IV) for this key, if any.
+    * The Initialization Vector (IV) associated with the use of this key,
+    * if any.
     */
    char* mIv;
 
@@ -68,7 +74,7 @@ public:
     *
     * @param algorithm the algorithm to use.
     */
-   SymmetricKey(const char* algorithm = "");
+   SymmetricKey(const char* algorithm = NULL);
 
    /**
     * Destructs this SymmetricKey.
@@ -90,7 +96,7 @@ public:
     */
    virtual void assignData(
       char* data, unsigned int length,
-      char* iv, unsigned int ivLength, bool encrypted);
+      char* iv = NULL, unsigned int ivLength = 0, bool encrypted = false);
 
    /**
     * Sets the data and IV for this key. This method will copy the passed
@@ -106,7 +112,8 @@ public:
     */
    virtual void setData(
       const char* data, unsigned int length,
-      const char* iv, unsigned int ivLength, bool encrypted);
+      const char* iv = NULL, unsigned int ivLength = 0,
+      bool encrypted = false);
 
    /**
     * Gets the data and data length for this key. This method will provide
