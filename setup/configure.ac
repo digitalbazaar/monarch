@@ -37,12 +37,18 @@ AC_LANG(C++)
 AC_PROG_INSTALL()
 AC_CHECK_PROGS(PYTHON, python2.5 python2.4, not found)
 
+# Setup where to check for tools.
+# Can override these prog lists with env vars.
+# Done like this since the macro expansion of AC_PROG_CC/CXX will cause only
+# the first visible macro to function properly. Inside of platform
+# conditionals the other macros will produce incorrect results.
+
 # Conditional setup for Linux build
 if test "$BUILD_FOR_LINUX" = "yes" ; then
-   AC_PROG_CC()
-   AC_PROG_CXX()
-   AC_CHECK_PROG(AR, ar, ar, not found)
-   AC_CHECK_PROG(AS, as, as, not found)
+   CHECK_PROGS_CC="$CC gcc cc"
+   CHECK_PROGS_CXX="$GCC g++ c++"
+   CHECK_PROGS_AR="$AR ar"
+   CHECK_PROGS_AS="$AS as"
    PLATFORM=linux
    LIB_PREFIX=lib
    DYNAMIC_LIB_EXT=so
@@ -52,16 +58,11 @@ fi
 
 # Conditional setup for Windows build
 if test "$BUILD_FOR_WINDOWS" = "yes" ; then
-   AC_CHECK_PROG(CXX, i586-mingw32msvc-g++,
-                 i586-mingw32msvc-g++, not found)
-   AC_CHECK_PROG(AR, i586-mingw32msvc-ar,
-                 i586-mingw32msvc-ar, not found)
-   AC_CHECK_PROG(AS, i586-mingw32msvc-as,
-                 i586-mingw32msvc-as, not found)
-   # If the mingw32 compiler wasn't found, use the system default
-   if test "$CXX" = "not found" ; then
-      AC_PROG_CXX()
-   fi
+   # Check for mingw32 tools then system defaults
+   CHECK_PROGS_CC="$CC i586-mingw32msvc-gcc gcc cc"
+   CHECK_PROGS_CXX="$CXX i586-mingw32msvc-g++ g++ c++"
+   CHECK_PROGS_AR="$AR i586-mingw32msvc-ar ar"
+   CHECK_PROGS_AS="$AS i586-mingw32msvc-as as"
    LDFLAGS="$LDFLAGS -Wl,--enable-auto-import"
    PLATFORM=windows
    LIB_PREFIX=
@@ -72,10 +73,10 @@ fi
 
 # Conditional setup for MacOS build
 if test "$BUILD_FOR_MACOS" = "yes" ; then
-   AC_PROG_CC(gcc-4 gcc)
-   AC_PROG_CXX(g++-4 g++)
-   AC_CHECK_PROG(AR, ar, ar, not found)
-   AC_CHECK_PROG(AS, as, as, not found)
+   CHECK_PROGS_CC="$CC gcc-4 gcc"
+   CHECK_PROGS_CXX="$CXX g++-4 g++"
+   CHECK_PROGS_AR="$AR ar"
+   CHECK_PROGS_AS="$AS as"
    LDFLAGS="$LDFLAGS -L/sw/lib"
    PLATFORM=macos
    LIB_PREFIX=lib
@@ -85,6 +86,29 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
    if test -d /sw/include; then
       CPPFLAGS="$CPPFLAGS -I/sw/include"
    fi
+fi
+
+# Check for tools
+# Doing manual check for CC/CXX so as not to pass an empty list of tools to
+# check to AC_PROG_CC/CXX.  Still want to call them to do other setup
+# checks.
+AC_CHECK_PROGS(CC, [$CHECK_PROGS_CC])
+AC_PROG_CC
+if test "x$CC" = "x"; then
+   AC_MSG_ERROR([C compiler not found])
+fi
+AC_CHECK_PROGS(CXX, [$CHECK_PROGS_CXX])
+AC_PROG_CXX
+if test "x$CXX" = "x"; then
+   AC_MSG_ERROR([C++ compiler not found])
+fi
+AC_CHECK_PROGS(AR, [$CHECK_PROGS_AR])
+if test "x$AR" = "x"; then
+   AC_MSG_ERROR([Archiver not found])
+fi
+AC_CHECK_PROGS(AS, [$CHECK_PROGS_AS])
+if test "x$AS" = "x"; then
+   AC_MSG_ERROR([Assembler not found])
 fi
 
 # Common build options
