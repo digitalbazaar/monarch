@@ -15,4 +15,5 @@ config.log
 config.status
 configure
 dist
+setup/config.h.in
 @CONFIGURE_GENERATED_FILES@

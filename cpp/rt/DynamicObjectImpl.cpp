@@ -4,6 +4,10 @@
 #define __STDC_LIMIT_MACROS
 #define __STDC_FORMAT_MACROS
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "monarch/rt/DynamicObjectImpl.h"
 
 #include "monarch/rt/DynamicObject.h"

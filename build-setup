@@ -24,12 +24,14 @@ MAYBE_AC_DIRS="
    /opt/local/share/aclocal
    /sw/share/aclocal
    "
-ACDIRS=
+ACDIRS="-I m4"
 for dir in $MAYBE_AC_DIRS; do
    if test -d $dir; then
       ACDIRS="$ACDIRS -I $dir"
    fi
 done
+
+autoheader setup/configure.ac
 
 # Run aclocal on the set of local ac scripts
 cd setup

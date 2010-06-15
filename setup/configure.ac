@@ -6,6 +6,7 @@ AC_PREREQ([2.60])
 AC_INIT([monarch],[3.2.3],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
 AC_CONFIG_MACRO_DIR(setup)
+AC_CONFIG_HEADERS([setup/config.h])
 
 # Versioning
 MONARCH_VERSION_MAJOR=3
@@ -20,47 +21,13 @@ FULL_VERSION=${PACKAGE_VERSION}-${DATE_YMD}
 # Setup standard build environment variables
 MONARCH_DIR=`pwd`
 
-# Check for particular build options
-AC_ARG_ENABLE([linux],
-   AS_HELP_STRING([--enable-linux], [compile for linux [[yes]]]),
-   [
-      case "${enableval}" in
-         yes) BUILD_FOR_LINUX=yes 
-              BUILD_FOR_WINDOWS=no
-              BUILD_FOR_MACOS=no
-              ;;
-         no) BUILD_FOR_LINUX=no ;;
-         *) AC_MSG_ERROR(bad value ${enableval} for --enable-linux) ;;
-      esac
-   ], [BUILD_FOR_LINUX=yes])  dnl Default value
-
-AC_ARG_ENABLE([windows],
-   AS_HELP_STRING([--enable-windows], [compile for windows [[no]]]),
-   [
-      case "${enableval}" in
-         yes) BUILD_FOR_WINDOWS=yes 
-              BUILD_FOR_LINUX=no
-              BUILD_FOR_MACOS=no
-              ;;
-         no) BUILD_FOR_WINDOWS=no ;;
-         *) AC_MSG_ERROR(bad value ${enableval} for --enable-windows) ;;
-      esac
-   ], [BUILD_FOR_WINDOWS=no])  dnl Default value
-
-AC_ARG_ENABLE([macos],
-   AS_HELP_STRING([--enable-macos], [compile for MacOS [[no]]]),
-   [
-      case "${enableval}" in
-         yes) BUILD_FOR_MACOS=yes 
-              BUILD_FOR_LINUX=no
-              BUILD_FOR_WINDOWS=no
-              ;;
-         no) BUILD_FOR_MACOS=no ;;
-         *) AC_MSG_ERROR(bad value ${enableval} for --enable-macos) ;;
-      esac
-   ], [BUILD_FOR_MACOS=no])  dnl Default value
-
 echo -e "\n--------- Configuring Monarch Build Environment -----------"
+
+MO_ARG_PLATFORM
+MO_ARG_DEBUG
+MO_ARG_LOG_LINE_NUMBERS
+MO_ARG_OPT
+MO_ARG_TESTS
 
 # Setup for pkg-config
 PKG_PROG_PKG_CONFIG
@@ -69,7 +36,7 @@ PKG_PROG_PKG_CONFIG
 AC_CANONICAL_BUILD()
 
 # Checking for standard build tools
-#AC_LANG(C++)
+AC_LANG(C++)
 AC_PROG_INSTALL()
 AC_CHECK_PROGS(PYTHON, python2.5 python2.4, not found)
 
@@ -123,23 +90,12 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
    fi
 fi
 
-AC_ARG_ENABLE([sphinx],
-   AS_HELP_STRING([--disable-sphinx], [disable sphinx search [[no]]]),
-   [
-      case "${enableval}" in
-         yes) BUILD_SPHINX=yes ;;
-         no) BUILD_SPHINX=no ;;
-         *) AC_MSG_ERROR(bad value ${enableval} for --enable-sphinx) ;;
-      esac
-   ], [BUILD_SPHINX=yes])  dnl Default value
-# Disable sphinx support in Windows
-if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
-   BUILD_SPHINX=no
-fi
-AC_SUBST(BUILD_SPHINX)
+dnl ----------------- standard checks -----------------
 
-# FIXME: Perform compilation environment tests 
-#AC_CHECK_HEADERS(iostream)
+# compilation environment tests 
+AC_CHECK_HEADERS([iostream])
+
+dnl ----------------- common libraries -----------------
 
 # Make sure the proper libraries exist
 # Windows has special bundled support
@@ -171,14 +127,30 @@ if test "$BUILD_FOR_WINDOWS" = "no" ; then
       AC_MSG_ERROR([You need the eXpat xml parser]
          [http://expat.sourceforge.net/])
    fi
-
 fi
 
-## Control and check mysql support
+dnl ----------------- Sphinx Search -----------------
+
+AC_ARG_ENABLE([sphinx],
+   AS_HELP_STRING([--disable-sphinx], [disable sphinx search [no]]),
+   [
+      case "${enableval}" in
+         yes) BUILD_SPHINX=yes ;;
+         no) BUILD_SPHINX=no ;;
+         *) AC_MSG_ERROR(bad value ${enableval} for --enable-sphinx) ;;
+      esac
+   ], [BUILD_SPHINX=yes])  dnl Default value
+# Disable sphinx support in Windows
+if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
+   BUILD_SPHINX=no
+fi
+AC_SUBST(BUILD_SPHINX)
+
+dnl ----------------- MySQL -----------------
 
 # allow explicit disable of MySQL support
 AC_ARG_ENABLE([mysql],
-   AS_HELP_STRING([--disable-mysql], [disable MySQL [[no]]]),
+   AS_HELP_STRING([--disable-mysql], [disable MySQL [no]]),
    [
       case "${enableval}" in
          yes) BUILD_MYSQL=yes ;;
@@ -207,64 +179,19 @@ if test "x$BUILD_MYSQL" = "xyes"; then
    fi
 fi
 
-dnl ----------------- disable test building and running -----------------
-
-AC_ARG_ENABLE([tests],
-   AC_HELP_STRING([--disable-tests], [disable building test apps [[no]]]),
-   [
-   case "${enableval}" in
-      yes) BUILD_TESTS=yes; BUILD_TESTS_SET=yes ;;
-      no)  BUILD_TESTS=no ;;
-      *)   AC_MSG_ERROR(bad value ${enableval} for --disable-tests) ;;
-   esac
-   ],
-   [BUILD_TESTS=yes]) dnl Default value
-# Disable test building Windows
-if test "x$BUILD_FOR_WINDOWS" = "xyes" -a "x$BUILD_TESTS_SET" != "xyes"; then
-   BUILD_TESTS=no
-fi
-AC_SUBST(BUILD_TESTS)
-
-dnl ----------------- disable log line numbers -----------------
-
-AC_ARG_ENABLE([log-line-numbers],
-   AC_HELP_STRING(
-      [--disable-log-line-numbers],
-      [disable log line numbers [[no]]]),
-   [
-   case "${enableval}" in
-      yes) MO_DISABLE_LOG_LINE_NUMBERS=no ;;
-      no)  MO_DISABLE_LOG_LINE_NUMBERS=yes ;;
-      *)   AC_MSG_ERROR(bad value ${enableval} for --enable-log-line-numbers) ;;
-   esac
-   ],
-   [MO_DISABLE_LOG_LINE_NUMBERS=no]) dnl Default value
-if test "x$MO_DISABLE_LOG_LINE_NUMBERS" = xyes; then
-   AC_DEFINE(MO_DISABLE_LOG_LINE_NUMBERS, 1,
-      [Enable log line numbers.])
-fi
-
-dnl ----------------- optimization -----------------
-
-dnl option to override default c++ optimization (often -g -O2)
-AC_ARG_WITH(opt-flags,
-  AC_HELP_STRING([--with-opt-flags=FLAGS],
-    [use FLAGS for optimization (-O -fno-exceptions)]),
-  [MO_CXX_OPT_FLAGS="${withval}"],
-  [MO_CXX_OPT_FLAGS="-O -fno-exceptions"]) dnl Default value
-
-AC_MSG_NOTICE(Using optimization flags: "$MO_CXX_OPT_FLAGS")
-
 dnl ----------------- DynamicObject statistics -----------------
 
 dnl low level DynamicObject statistics
 
 AC_ARG_ENABLE([dyno-counts],
    AS_HELP_STRING([--enable-dyno-counts],
-      [enable DynamicObject type counts [[no]]]),
+      [enable DynamicObject type counts [no]]),
    [
       case "${enableval}" in
-         yes) MO_DYNO_COUNTS="-DMO_DYNO_COUNTS" ;;
+         yes) AC_DEFINE([MO_DYNO_COUNTS], [1],
+	    ["Record internal DynamicObject statistics"])
+	    MO_DYNO_STATS_MSG="$MO_DYNO_STATS_MSG counts"
+	    ;;
          no) ;;
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-dyno-counts) ;;
       esac
@@ -272,21 +199,17 @@ AC_ARG_ENABLE([dyno-counts],
 
 AC_ARG_ENABLE([dyno-key-counts],
    AS_HELP_STRING([--enable-dyno-key-counts],
-      [enable DynamicObject Map key counts [[no]]]),
+      [enable DynamicObject Map key counts [no]]),
    [
       case "${enableval}" in
-         yes) MO_DYNO_KEY_COUNTS="-DMO_DYNO_KEY_COUNTS" ;;
+         yes) AC_DEFINE([MO_DYNO_KEY_COUNTS], [1],
+	    ["Record internal DynamicObject Map key statistics"])
+	    MO_DYNO_STATS_MSG="$MO_DYNO_STATS_MSG key-counts"
+	    ;;
          no) ;;
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-dyno-key-counts) ;;
       esac
    ], [])  dnl Default value
-
-MO_DEBUG_FLAGS="$MO_DYNO_COUNTS $MO_DYNO_KEY_COUNTS"
-AC_MSG_NOTICE(Using debug flags: "$MO_DEBUG_FLAGS")
-
-dnl ----------------- flags -----------------
-
-CXXFLAGS="$CXXFLAGS $MO_CXX_OPT_FLAGS $MO_DEBUG_FLAGS"
 
 dnl ----------------- substitutions -----------------
 
@@ -391,7 +314,8 @@ echo "C++ archiver      : $AR"
 echo "Assembler         : $AS"
 
 echo "Optimization Flags: $MO_CXX_OPT_FLAGS"
-echo "Debug Flags       : $MO_DEBUG_FLAGS"
+echo "Debug Flags       : $MO_CXX_DEBUG_FLAGS"
+echo "Dyno Stats        : $MO_DYNO_STATS_MSG"
 
 if test "x$BUILD_MYSQL" = "xyes"; then
    echo "MySQL             : enabled"

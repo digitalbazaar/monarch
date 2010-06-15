@@ -16,6 +16,8 @@ MONARCH = $(realpath @MONARCH_DIR@)
 TOP_SRC_DIR = $(MONARCH)
 TOP_BUILD_DIR = $(MONARCH)
 
+# config.h generated in setup:
+INCLUDES += -I$(TOP_BUILD_DIR)/setup
 INCLUDES += -I$(TOP_BUILD_DIR)/dist/include 
 
 CWD = $(shell pwd)
