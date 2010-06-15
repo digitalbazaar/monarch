@@ -23,11 +23,8 @@ MONARCH_DIR=`pwd`
 
 echo -e "\n--------- Configuring Monarch Build Environment -----------"
 
+# Setup platform first
 MO_ARG_PLATFORM
-MO_ARG_DEBUG
-MO_ARG_LOG_LINE_NUMBERS
-MO_ARG_OPT
-MO_ARG_TESTS
 
 # Setup for pkg-config
 PKG_PROG_PKG_CONFIG
@@ -89,6 +86,12 @@ if test "$BUILD_FOR_MACOS" = "yes" ; then
       CPPFLAGS="$CPPFLAGS -I/sw/include"
    fi
 fi
+
+# Common build options
+MO_ARG_DEBUG
+MO_ARG_LOG_LINE_NUMBERS
+MO_ARG_OPT
+MO_ARG_TESTS
 
 dnl ----------------- standard checks -----------------
 
