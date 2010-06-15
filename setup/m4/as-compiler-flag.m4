@@ -42,7 +42,7 @@ AC_DEFUN([AS_CXX_COMPILER_FLAG],
   AC_MSG_CHECKING([to see if C++ compiler understands $1])
 
   save_CXXFLAGS="$CXXFLAGS"
-  CXXFLAGS="$CPPFLAGS $1"
+  CXXFLAGS="$CXXFLAGS $1"
 
   AC_LANG_PUSH(C++)
 
