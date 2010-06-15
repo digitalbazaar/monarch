@@ -173,19 +173,24 @@ static bool findAvailablePath(
 /**
  * Simple private holder for gzip compression RunnableDelegate info.
  */
-class GzipCompressInfo
+struct GzipCompressInfo
 {
-public:
    string sourceFileName;
    string targetFileName;
-   GzipCompressInfo() {}
-   virtual ~GzipCompressInfo() {}
 };
 
+/**
+ * Gzip compress a file.
+ *
+ * Intended to be used by a rotate() via a RunnableDelegate and be
+ * re-entrant.
+ *
+ * @param info private compression info.
+ */
 void FileLogger::gzipCompress(void* info)
 {
    bool rval;
-   GzipCompressInfo* cInfo = (GzipCompressInfo*)info;
+   GzipCompressInfo* cInfo = static_cast<GzipCompressInfo*>(info);
    Gzipper gzipper;
    rval = gzipper.startCompressing();
 
@@ -230,8 +235,6 @@ void FileLogger::gzipCompress(void* info)
 #endif
    }
 
-   delete cInfo;
-
    // notification for threads that wait for compression to complete
    mCompressionWaitLock.lock();
    {
@@ -240,6 +243,16 @@ void FileLogger::gzipCompress(void* info)
    mCompressionWaitLock.unlock();
 
    // failures and exceptions ignored
+}
+
+/**
+ * Delete a GzipCompressInfo instance.
+ *
+ * @param p pointer to instance to delete.
+ */
+void FileLogger::deleteGzipCompressInfo(void* p)
+{
+   delete static_cast<GzipCompressInfo*>(p);
 }
 
 bool FileLogger::rotate()
@@ -291,7 +304,8 @@ bool FileLogger::rotate()
       {
          // send a compression job to the pool
          RunnableRef compressor = new RunnableDelegate<FileLogger>(
-            this, &FileLogger::gzipCompress, info);
+            this, &FileLogger::gzipCompress, info,
+            &FileLogger::deleteGzipCompressInfo);
          mCompressionJobDispatcher.queueJob(compressor);
       }
       else

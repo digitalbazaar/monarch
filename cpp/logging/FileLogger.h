@@ -195,9 +195,18 @@ public:
     * Intended to be used by a rotate() via a RunnableDelegate and be
     * re-entrant.
     *
-    * @return info private compression info.
+    * @param info private compression info.
     */
    virtual void gzipCompress(void* info);
+
+   /**
+    * Delete private gzipCompress(void*) info.
+    *
+    * Intended to be used by a rotate() via a RunnableDelegate.
+    *
+    * @param info private compression info.
+    */
+   virtual void deleteGzipCompressInfo(void* info);
 
    /**
     * Gets the file for this logger. Note that the file may be changed when
