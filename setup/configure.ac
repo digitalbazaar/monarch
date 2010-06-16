@@ -23,103 +23,34 @@ MONARCH_DIR=`pwd`
 
 echo -e "\n--------- Configuring Monarch Build Environment -----------"
 
+MO_MSG_CONFIG_BEGIN([General])
+MO_MSG_CONFIG_OPTION([System], [$PACKAGE_NAME $FULL_VERSION])
+MO_MSG_CONFIG_END
+
 # Setup platform first
-MO_ARG_PLATFORM
+MO_PLATFORM
 
 # Setup for pkg-config
 PKG_PROG_PKG_CONFIG
-
-# Check the system type
-AC_CANONICAL_BUILD()
 
 # Checking for standard build tools
 AC_LANG(C++)
 AC_PROG_INSTALL()
 AC_CHECK_PROGS(PYTHON, python2.5 python2.4, not found)
 
-# Setup where to check for tools.
-# Can override these prog lists with env vars.
-# Done like this since the macro expansion of AC_PROG_CC/CXX will cause only
-# the first visible macro to function properly. Inside of platform
-# conditionals the other macros will produce incorrect results.
-
-# Conditional setup for Linux build
-if test "$BUILD_FOR_LINUX" = "yes" ; then
-   CHECK_PROGS_CC="$CC gcc cc"
-   CHECK_PROGS_CXX="$GCC g++ c++"
-   CHECK_PROGS_AR="$AR ar"
-   CHECK_PROGS_AS="$AS as"
-   PLATFORM=linux
-   LIB_PREFIX=lib
-   DYNAMIC_LIB_EXT=so
-   STATIC_LIB_EXT=a
-   EXECUTABLE_EXT=
-fi
-
-# Conditional setup for Windows build
-if test "$BUILD_FOR_WINDOWS" = "yes" ; then
-   # Check for mingw32 tools then system defaults
-   CHECK_PROGS_CC="$CC i586-mingw32msvc-gcc gcc cc"
-   CHECK_PROGS_CXX="$CXX i586-mingw32msvc-g++ g++ c++"
-   CHECK_PROGS_AR="$AR i586-mingw32msvc-ar ar"
-   CHECK_PROGS_AS="$AS i586-mingw32msvc-as as"
-   LDFLAGS="$LDFLAGS -Wl,--enable-auto-import"
-   PLATFORM=windows
-   LIB_PREFIX=
-   DYNAMIC_LIB_EXT=dll
-   STATIC_LIB_EXT=a
-   EXECUTABLE_EXT=.exe
-fi
-
-# Conditional setup for MacOS build
-if test "$BUILD_FOR_MACOS" = "yes" ; then
-   CHECK_PROGS_CC="$CC gcc-4 gcc"
-   CHECK_PROGS_CXX="$CXX g++-4 g++"
-   CHECK_PROGS_AR="$AR ar"
-   CHECK_PROGS_AS="$AS as"
-   LDFLAGS="$LDFLAGS -L/sw/lib"
-   PLATFORM=macos
-   LIB_PREFIX=lib
-   DYNAMIC_LIB_EXT=dylib
-   STATIC_LIB_EXT=a
-   EXECUTABLE_EXT=
-   if test -d /sw/include; then
-      CPPFLAGS="$CPPFLAGS -I/sw/include"
-   fi
-fi
-
-# Check for tools
-# Doing manual check for CC/CXX so as not to pass an empty list of tools to
-# check to AC_PROG_CC/CXX.  Still want to call them to do other setup
-# checks.
-AC_CHECK_PROGS(CC, [$CHECK_PROGS_CC])
-AC_PROG_CC
-if test "x$CC" = "x"; then
-   AC_MSG_ERROR([C compiler not found])
-fi
-AC_CHECK_PROGS(CXX, [$CHECK_PROGS_CXX])
-AC_PROG_CXX
-if test "x$CXX" = "x"; then
-   AC_MSG_ERROR([C++ compiler not found])
-fi
-AC_CHECK_PROGS(AR, [$CHECK_PROGS_AR])
-if test "x$AR" = "x"; then
-   AC_MSG_ERROR([Archiver not found])
-fi
-AC_CHECK_PROGS(AS, [$CHECK_PROGS_AS])
-if test "x$AS" = "x"; then
-   AC_MSG_ERROR([Assembler not found])
-fi
-
 # Common build options
+MO_COMPILER
+
+MO_MSG_CONFIG_BEGIN([General Options])
 MO_ARG_DEBUG
-MO_ARG_LOG_LINE_NUMBERS
 MO_ARG_OPT
+MO_ARG_LOG_LINE_NUMBERS
 MO_ARG_TESTS
+MO_MSG_CONFIG_END
 
 dnl ----------------- standard checks -----------------
 
-# compilation environment tests 
+# header checks
 AC_CHECK_HEADERS([iostream])
 
 dnl ----------------- common libraries -----------------
@@ -128,7 +59,6 @@ dnl ----------------- common libraries -----------------
 # Windows has special bundled support
 
 if test "$BUILD_FOR_WINDOWS" = "no" ; then
-
    ## Check for pkg-config enabled libs
 
    PKG_CHECK_MODULES([CRYPTO], [libcrypto])
@@ -217,7 +147,7 @@ AC_ARG_ENABLE([dyno-counts],
       case "${enableval}" in
          yes) AC_DEFINE([MO_DYNO_COUNTS], [1],
 	    ["Record internal DynamicObject statistics"])
-	    MO_DYNO_STATS_MSG="$MO_DYNO_STATS_MSG counts"
+	    MO_DYNO_STATS_MSG="counts $MO_DYNO_STATS_MSG"
 	    ;;
          no) ;;
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-dyno-counts) ;;
@@ -231,7 +161,7 @@ AC_ARG_ENABLE([dyno-key-counts],
       case "${enableval}" in
          yes) AC_DEFINE([MO_DYNO_KEY_COUNTS], [1],
 	    ["Record internal DynamicObject Map key statistics"])
-	    MO_DYNO_STATS_MSG="$MO_DYNO_STATS_MSG key-counts"
+	    MO_DYNO_STATS_MSG="key-counts $MO_DYNO_STATS_MSG"
 	    ;;
          no) ;;
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-dyno-key-counts) ;;
@@ -241,7 +171,6 @@ AC_ARG_ENABLE([dyno-key-counts],
 dnl ----------------- substitutions -----------------
 
 # Make all the proper substitutions
-AC_SUBST(PLATFORM)
 AC_SUBST(MONARCH_DIR)
 
 AC_SUBST(MONARCH_VERSION_MAJOR)
@@ -250,16 +179,6 @@ AC_SUBST(MONARCH_VERSION_MICRO)
 AC_SUBST(DATE_RFC_2822)
 AC_SUBST(FULL_DOTTED_VERSION)
 AC_SUBST(FULL_VERSION)
-
-AC_SUBST(BUILD_FOR_LINUX)
-AC_SUBST(BUILD_FOR_WINDOWS)
-AC_SUBST(BUILD_FOR_MACOS)
-
-# Platform variables
-AC_SUBST(LIB_PREFIX)
-AC_SUBST(DYNAMIC_LIB_EXT)
-AC_SUBST(STATIC_LIB_EXT)
-AC_SUBST(EXECUTABLE_EXT)
 
 AC_SUBST(PYTHON)
 
@@ -315,55 +234,20 @@ AC_SUBST(CONFIGURE_GENERATED_FILES)
 
 AC_OUTPUT
 
-# Dump the build configuration
-echo -e "\n--------- Monarch Build Environment -----------"
-echo "System            : $PACKAGE_NAME $FULL_VERSION"
-echo "Build system      : $build_cpu-$build_vendor-$build_os"
-echo "Build platform    : $PLATFORM"
+# Setup extra build configuration
 
-if test "x$BUILD_FOR_LINUX" = "xyes"; then
-   echo "Linux             : enabled"
-else
-   echo "Linux             : disabled (use --enable-linux to enable)"
-fi
-if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
-   echo "Win32             : enabled"
-else
-   echo "Win32             : disabled (use --enable-windows to enable)"
-fi
-if test "x$BUILD_FOR_MACOS" = "xyes"; then
-   echo "MacOS             : enabled"
-else
-   echo "MacOS             : disabled (use --enable-macos to enable)"
-fi
-echo "C++ compiler      : $CXX"
-echo "C++ archiver      : $AR"
-echo "Assembler         : $AS"
+MO_MSG_CONFIG_BEGIN([Monarch Options])
+MO_MSG_CONFIG_OPTION([Dyno Stats], [$MO_DYNO_STATS_MSG])
+MO_MSG_CONFIG_END
 
-echo "Optimization Flags: $MO_CXX_OPT_FLAGS"
-echo "Debug Flags       : $MO_CXX_DEBUG_FLAGS"
-echo "Dyno Stats        : $MO_DYNO_STATS_MSG"
+MO_MSG_CONFIG_BEGIN([Features])
+MO_MSG_CONFIG_OPTION_IF([MySQL],
+   [test "x$BUILD_MYSQL" = xyes],
+   [enabled], [disabled (use --enable-mysql to enable)])
+MO_MSG_CONFIG_OPTION_IF([Sphinx],
+   [test "x$BUILD_SPHINX" = xyes],
+   [enabled], [disabled (use --enable-sphinx to enable)])
+MO_MSG_CONFIG_END
 
-if test "x$BUILD_MYSQL" = "xyes"; then
-   echo "MySQL             : enabled"
-else
-   echo "MySQL             : disabled"
-fi
-
-if test "x$BUILD_SPHINX" = "xyes"; then
-   echo "Sphinx            : enabled"
-else
-   echo "Sphinx            : disabled"
-fi
-
-if test "x$BUILD_TESTS" = "xyes"; then
-   echo "Tests             : enabled"
-else
-   echo "Tests             : disabled (use --enable-tests to enable)"
-fi
-
-if test "x$MO_DISABLE_LOG_LINE_NUMBERS" = "xyes"; then
-   echo "Log line numbers  : disabled (use --enable-log-line-numbers to enable)"
-else
-   echo "Log line numbers  : enabled"
-fi
+# Output build configuration
+MO_MSG_CONFIG_OUTPUT([Monarch Build Configuration])
