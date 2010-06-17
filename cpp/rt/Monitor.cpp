@@ -58,6 +58,37 @@ void Monitor::enter()
    ++mLockCount;
 }
 
+bool Monitor::tryEnter()
+{
+   bool rval = true;
+
+   // see if this thread isn't already in this monitor
+   pthread_t self = pthread_self();
+   int rc = pthread_equal(mThreadId, self);
+   if(rc == 0)
+   {
+      // try to lock this monitor's mutex
+      if(pthread_mutex_trylock(&mMutex) == 0)
+      {
+         // lock acquired, set thread that is in this monitor
+         mThreadId = self;
+      }
+      else
+      {
+         // lock not acquired
+         rval = false;
+      }
+   }
+
+   if(rval)
+   {
+      // increment lock count
+      ++mLockCount;
+   }
+
+   return rval;
+}
+
 void Monitor::exit()
 {
    // decrement lock count

@@ -332,6 +332,25 @@ static void runRegexTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("split");
+   {
+      PatternRef p = Pattern::compile("(\\w+)=\"([^\"]+)\"", true, true);
+      assertNoException();
+
+      DynamicObject matches;
+      assert(p->split("foo1=\"bar1\", foo2=\"bar2\"", matches));
+      //dumpDynamicObject(matches);
+
+      DynamicObject expect;
+      expect[0] = "foo1";
+      expect[1] = "bar1";
+      expect[2] = "foo2";
+      expect[3] = "bar2";
+
+      assert(expect == matches);
+   }
+   tr.passIfNoException();
+
    tr.test("url rewrite");
    {
       PatternRef p = Pattern::compile("^/~([^/]+)/?(.*)$", true, true);
@@ -1030,6 +1049,7 @@ static bool run(TestRunner& tr)
    {
       runRateAveragerTest(tr);
    }
+
    return true;
 }
 
