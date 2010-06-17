@@ -318,7 +318,7 @@ public:
 
    virtual void run()
    {
-      // already locked in test
+      // already locked in test so should fail
       assert(!mLock->tryLock());
 
       // set condition
@@ -326,7 +326,18 @@ public:
 
       // now lock
       mLock->lock();
+
+      // update condition in test so it will wait for thread to join
       *mCondition = false;
+
+      // grabbing lock again should work
+      assert(mLock->tryLock());
+
+      // release lock
+      mLock->unlock();
+
+      // grabbing lock again should work
+      assert(mLock->tryLock());
       mLock->unlock();
    }
 };
