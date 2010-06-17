@@ -71,21 +71,54 @@ public:
     * of the string that matched subexpressions in the pattern. The pattern
     * must have been compiled with submatch support enabled.
     *
-    * If the given number of subexpressions is higher than the number in this
-    * pattern then fewer than 'n' results will be in the array. To access
-    * the full match use matches[0]. To access any submatch, use the index
-    * of the submatch starting at 1. Thus, to get the first submatch, use
-    * matches[1].
+    * If the given number of subexpressions to retrieve is higher than the
+    * number in this pattern then fewer than 'n' results will be in the array.
+    *
+    * If the given number of subexpressions to retrieve is lower than the
+    * number in the pattern, only that given number will be returned per
+    * use of the pattern.
+    *
+    * A pattern that does not start with "^" and end with "$" may be
+    * consecutively repeated multiple times to the given string.
+    *
+    * The full match for each repeat of the pattern can be returned as the
+    * first submatch for each repeat. For instance, a pattern that matches
+    * "f(.{1})o" in the string "faofbo" will result in an array:
+    * ["fao","a","fbo","b"]. If full matches are turned off, then the array
+    * will contain: ["a","b"].
+    *
+    * The number of times the pattern is repeated can be limited using the
+    * 'repeats' parameter, where a value of 0 or less indicates no limit.
     *
     * @param str the string to match this pattern against.
-    * @param matches the array to store the string matches in, with the first
-    *           always containing the full match.
-    * @param n the number of subexpressions to get strings for, -1 for all.
+    * @param matches the array to store the matches in.
+    * @param n the number of subexpressions to get matches for, -1 for all.
+    * @param includeFull true to include full matches for each repeat of the
+    *           pattern, false not to.
+    * @param repeats the number of times to repeat the pattern, 0 for no limit.
     *
     * @return true if the passed string matches the regex, false if not.
     */
    virtual bool getSubMatches(
-      const char* str, monarch::rt::DynamicObject& matches, int n = -1);
+      const char* str, monarch::rt::DynamicObject& matches,
+      int n = -1, bool includeFullMatches = true, int repeats = 0);
+
+   /**
+    * An alias for getSubMatches() that will split the given string into the
+    * groups specified by the regex. All subexpressions will be used and no
+    * full matches will be included.
+    *
+    * @param str the string to match this pattern against.
+    * @param matches the array to store the string matches in, with the first
+    *           always containing the full match.
+    * @param limit limits the number of times to repeat the regex on the given
+    *           string (different from the number of matches to return), 0
+    *           indicates no limit.
+    *
+    * @return true if the passed string matches the regex, false if not.
+    */
+   virtual bool split(
+      const char* str, monarch::rt::DynamicObject& matches, int limit = 0);
 
    /**
     * Compiles a regular expression into a Pattern.

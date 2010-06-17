@@ -39,7 +39,7 @@ bool Pattern::match(const char* str, int offset, int& start, int& end)
    int flags = (offset == 0) ? 0 : REG_NOTBOL;
 
    // execute regex
-   if(regexec(&getStorage(), str + offset, 1, match, flags) == 0)
+   if(regexec(&mStorage, str + offset, 1, match, flags) == 0)
    {
       rval = true;
 
@@ -57,7 +57,9 @@ bool Pattern::match(const char* str)
    return (regexec(&mStorage, str, 0, NULL, 0) == 0);
 }
 
-bool Pattern::getSubMatches(const char* str, DynamicObject& matches, int n)
+bool Pattern::getSubMatches(
+   const char* str, DynamicObject& matches, int n,
+   bool includeFullMatches, int repeats)
 {
    bool rval = false;
 
@@ -66,32 +68,79 @@ bool Pattern::getSubMatches(const char* str, DynamicObject& matches, int n)
    matches->setType(Array);
    matches->clear();
 
-   // use all submatches
-   // make room for full match
-   n = (n < 0) ? getStorage().re_nsub + 1: n + 1;
+   // use all submatches if n < 0, otherwise use specified amount
+   // add 1 for full submatch (always present even if we don't include it in
+   // the output)
+   n = (n <= 0 || mStorage.re_nsub < (unsigned int)n) ?
+      mStorage.re_nsub + 1 : n + 1;
 
    // create match struct
    regmatch_t* m = (regmatch_t*)calloc(n, sizeof(regmatch_t));
 
-   // execute regex
-   if(regexec(&getStorage(), str, n, m, 0) == 0)
+   // keep executing regex on string until it doesn't match
+   int count = 0;
+   while((repeats <= 0 || count < repeats) &&
+         regexec(&mStorage, str, n, m, 0) == 0)
    {
       rval = true;
 
-      // store all subexpression matches (including overall match)
+      // store all subexpression matches (including full match if appropriate)
+      int i = (includeFullMatches ? 0 : 1);
       int start, end;
-      for(int i = 0; i < n && m[i].rm_so != -1; ++i)
+      for(; i < n && m[i].rm_so != -1; ++i)
       {
          // get start and end offsets
          start = m[i].rm_so;
          end = m[i].rm_eo;
          matches->append() = string(str + start, end - start).c_str();
       }
+
+      /* Note: Advancing the string pointer forward (to repeat the pattern) is
+       a little bit wonky because you don't know how many characters in the
+       string were non-matching characters. This means they might be examined
+       again when the user may have been expecting them to have been skipped
+       over instead. This is a limitation of the regex api used here -- this
+       information is not available to advance the string in a (perhaps) more
+       expected fashion.
+
+       For instance, matching "([^,]*)" (looking for things that aren't commas
+       in a list of commas) against "ABC,DEF" results in ["ABC","","DEF",""].
+       This is because after the first match ("ABC") the string will point at
+       the "," following "ABC" instead of at "DEF". The regex api doesn't
+       provide the information necessary to advance the string pointer past
+       the comma. Hopefully a regex won't be used for an operation such as
+       this anyway, but there might be more appropriate uses that produce
+       unexpected results.
+      */
+
+      // move string pointer past full match to repeat pattern
+      if(m[0].rm_eo != 0)
+      {
+         str += m[0].rm_eo;
+         ++count;
+      }
+      else if(str[0] != '\0')
+      {
+         // skip current character since match was empty and string isn't
+         ++str;
+         ++count;
+      }
+      else
+      {
+         // full match is empty and so is string, break out
+         break;
+      }
    }
 
    free(m);
 
    return rval;
+}
+
+inline bool Pattern::split(
+   const char* str, monarch::rt::DynamicObject& matches, int limit)
+{
+   return getSubMatches(str, matches, -1, false, limit);
 }
 
 PatternRef Pattern::compile(const char* regex, bool matchCase, bool subMatches)
