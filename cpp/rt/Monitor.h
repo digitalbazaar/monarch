@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_Monitor_H
 #define monarch_rt_Monitor_H
@@ -72,6 +72,17 @@ public:
     * lock, if the current thread has not already acquired it.
     */
    void enter();
+
+   /**
+    * Tries to causes the current thread to enter this Monitor, thereby
+    * prohibiting other threads from entering. This method will try to acquire
+    * a mutual exclusion lock, if the current thread has not already acquired
+    * it. If the lock can't be acquired because another thread has it already,
+    * then this method will return false. Otherwise it will return true.
+    *
+    * @return true if this Monitor was entered, false if not.
+    */
+   bool tryEnter();
 
    /**
     * Causes the current thread to exit this Monitor, thereby allowing other

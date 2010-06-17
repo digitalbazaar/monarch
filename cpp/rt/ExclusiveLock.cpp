@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/ExclusiveLock.h"
 
@@ -19,6 +19,11 @@ ExclusiveLock::~ExclusiveLock()
 inline void ExclusiveLock::lock()
 {
    mMonitor.enter();
+}
+
+inline bool ExclusiveLock::tryLock()
+{
+   return mMonitor.tryEnter();
 }
 
 inline void ExclusiveLock::unlock()

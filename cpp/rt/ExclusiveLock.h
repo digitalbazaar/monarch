@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_ExclusiveLock_H
 #define monarch_rt_ExclusiveLock_H
@@ -45,6 +45,16 @@ public:
     * until the lock can be acquired.
     */
    virtual void lock();
+
+   /**
+    * Tries to lock this ExclusiveLock for the current thread without blocking
+    * if the lock is already engaged by another thread.
+    *
+    * @return true if the lock was acquired (or was already held by this
+    *         thread), false if the lock was held by another thread and could
+    *         not be acquired.
+    */
+   virtual bool tryLock();
 
    /**
     * Unlocks this ExclusiveLock.
