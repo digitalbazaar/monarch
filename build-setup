@@ -31,14 +31,14 @@ for dir in $MAYBE_AC_DIRS; do
    fi
 done
 
-autoheader setup/configure.ac
-
 # Run aclocal on the set of local ac scripts
 cd setup
 aclocal $ACDIRS
 # Generate the configure script
 autoconf && mv configure ..
 cd ..
+
+autoheader -I setup setup/configure.ac
 
 # Run the configure script if "-s" isn't a command line option
 if [ $SKIP_CONFIGURE -eq 0 ]; then

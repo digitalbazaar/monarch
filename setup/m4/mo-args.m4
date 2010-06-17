@@ -1,61 +1,41 @@
-dnl Common Monarch configure-time options
+dnl Monarch misc options
+dnl Copyright 2010 Digital Bazaar, Inc.
 
-dnl MO_ARG_PLATFORM
 dnl MO_ARG_DEBUG
 dnl MO_ARG_LOG_LINE_NUMBERS
 dnl MO_ARG_OPT
 dnl MO_ARG_TESTS
 
-dnl ----------------- choose target platform -----------------
-
-AC_DEFUN([MO_ARG_PLATFORM],
-[
-   dnl platform choice
-   AC_ARG_ENABLE([linux],
-      AS_HELP_STRING([--enable-linux], [compile for linux [yes]]),
-      [
-         case "${enableval}" in
-            yes) BUILD_FOR_LINUX=yes 
-                 BUILD_FOR_MACOS=no
-                 BUILD_FOR_WINDOWS=no
-                 ;;
-            no) BUILD_FOR_LINUX=no ;;
-            *) AC_MSG_ERROR(bad value ${enableval} for --enable-linux) ;;
-         esac
-      ], [BUILD_FOR_LINUX=yes]) dnl Default value
-
-   AC_ARG_ENABLE([windows],
-      AS_HELP_STRING([--enable-windows], [compile for windows [no]]),
-      [
-         case "${enableval}" in
-            yes) BUILD_FOR_LINUX=no
-                 BUILD_FOR_MACOS=no
-                 BUILD_FOR_WINDOWS=yes 
-                 ;;
-            no) BUILD_FOR_WINDOWS=no ;;
-            *) AC_MSG_ERROR(bad value ${enableval} for --enable-windows) ;;
-         esac
-      ], [BUILD_FOR_WINDOWS=no]) dnl Default value
-
-   AC_ARG_ENABLE([macos],
-      AS_HELP_STRING([--enable-macos], [compile for MacOS [no]]),
-      [
-         case "${enableval}" in
-            yes) BUILD_FOR_LINUX=no
-                 BUILD_FOR_MACOS=yes 
-                 BUILD_FOR_WINDOWS=no
-                 ;;
-            no) BUILD_FOR_MACOS=no ;;
-            *) AC_MSG_ERROR(bad value ${enableval} for --enable-macos) ;;
-         esac
-      ], [BUILD_FOR_MACOS=no]) dnl Default value
-])
-
 dnl ----------------- control debugging  -----------------
 
 AC_DEFUN([MO_ARG_DEBUG],
 [
+   dnl compile with -Werror
+   AC_ARG_ENABLE([werror],
+      AC_HELP_STRING(
+         [--enable-werror],
+         [compile with -Werror [no]]),
+      [
+      case "${enableval}" in
+         yes) _MO_CXX_DEBUG_FLAGS="-Werror" ;;
+         no)  ;;
+         *)   AC_MSG_ERROR(bad value ${enableval} for --enable-werror) ;;
+      esac
+      ],
+      []) dnl Default value
+
+   dnl combine flags
+   MO_CXX_DEBUG_FLAGS="$_MO_CXX_DEBUG_FLAGS $MO_CXX_DEBUG_FLAGS"
+
+   dnl check flags
+   AS_CXX_COMPILER_FLAG([$MO_CXX_DEBUG_FLAGS], [flags_ok=yes], [flags_ok=no])
+
+   if test "x$flags_ok" != xyes; then
+      AC_MSG_ERROR(Invalid debug flags: "$MO_CXX_DEBUG_FLAGS")
+   fi
+
    CXXFLAGS="$CXXFLAGS $MO_CXX_DEBUG_FLAGS"
+   MO_MSG_CONFIG_OPTION([Debug], [$MO_CXX_DEBUG_FLAGS])
 ])
 
 dnl ----------------- disable log line numbers -----------------
@@ -75,9 +55,13 @@ AC_DEFUN([MO_ARG_LOG_LINE_NUMBERS],
       ],
       [MO_DISABLE_LOG_LINE_NUMBERS=no]) dnl Default value
    if test "x$MO_DISABLE_LOG_LINE_NUMBERS" = xyes; then
-      AC_DEFINE(MO_DISABLE_LOG_LINE_NUMBERS, 1,
+      AC_DEFINE([MO_DISABLE_LOG_LINE_NUMBERS], [1],
          [Enable log line numbers.])
    fi
+
+   MO_MSG_CONFIG_OPTION_IF([Log line numbers],
+      [test "x$MO_DISABLE_LOG_LINE_NUMBERS" = xno],
+      [enabled], [disabled (use --enable-log-line-numbers to enable)])
 ])
 
 dnl ----------------- control optimizations -----------------
@@ -119,7 +103,7 @@ AC_DEFUN([MO_ARG_OPT],
       []) dnl Default value
 
    dnl combine flags
-   MO_CXX_OPT_FLAGS="$_MO_OPT_LEVEL_FLAGS $_MO_OPT_EXTRA_FLAGS"
+   MO_CXX_OPT_FLAGS="$_MO_OPT_LEVEL_FLAGS $_MO_OPT_EXTRA_FLAGS $MO_CXX_OPT_FLAGS"
 
    dnl option to fully specify optimization flags
    AC_ARG_WITH(opt-flags,
@@ -136,6 +120,7 @@ AC_DEFUN([MO_ARG_OPT],
    fi
 
    CXXFLAGS="$CXXFLAGS $MO_CXX_OPT_FLAGS"
+   MO_MSG_CONFIG_OPTION([Optimization], [$MO_CXX_OPT_FLAGS])
 ])
 
 dnl ----------------- disable test building and running -----------------
@@ -158,4 +143,8 @@ AC_DEFUN([MO_ARG_TESTS],
       BUILD_TESTS=no
    fi
    AC_SUBST(BUILD_TESTS)
+
+   MO_MSG_CONFIG_OPTION_IF([Tests],
+      [test "x$BUILD_TESTS" = xyes],
+      [enabled], [disabled (use --enable-tests to enable)])
 ])

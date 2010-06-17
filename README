@@ -34,29 +34,35 @@ the OpenSSL Toolkit (http://www.openssl.org/).
 Getting Started
 ---------------
 
-To compile and run on Linux:
+To compile and run on Linux, Intel Mac OS X, or other similar *NIX systems:
 
-./build-setup
-make
-
-To compile and run on Intel Mac OS X:
-
-./build-setup -s
-./configure --enable-macos
-make
+   $ ./build-setup
+   $ make
 
 To compile for Windows XP, Vista, 7:
 * You must have the mingw32 compiler toolchain - the easiest way to get
-this working is to use Linux and cross-compile for Windows.
+this working is to use Linux and cross-compile for Windows:
 
-./build-setup -s
-./configure --enable-windows
-make
+  $ ./build-setup -s
+  $ ./configure --host=windows
+  $ make
 
+To run configure with custom build options:
+
+   $ ./build-setup -s
+   $ ./configure --help
+   $ ./configure [options...]
+   $ make
+
+To specify a custom build target, use the --host option. Monarch has custom
+build target aliases "linux", "macos", and "windows". Any other standard
+configure host alias is also acceptable. See autoconf documentation for host
+alias help. Note that non-MacOS and Windows targets will currently build as if
+in Linux mode.
 
 To test the various subsystems in Linux and Mac OS X:
 
-make test
+   $ make test
 
 System Details
 --------------
