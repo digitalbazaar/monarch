@@ -257,6 +257,31 @@ DynamicObject DynamicObject::last() const
    return rval;
 }
 
+void DynamicObject::sort(DynamicObject::CompareLessDyno func)
+{
+   if((*this)->getType() == Array)
+   {
+      if(func == NULL)
+      {
+         // use default operator<()
+         std::sort((*this)->mArray->begin(), (*this)->mArray->end());
+      }
+      else
+      {
+         // use function
+         std::sort((*this)->mArray->begin(), (*this)->mArray->end(), func);
+      }
+   }
+}
+
+void DynamicObject::sort(std::less<DynamicObject>& obj)
+{
+   if((*this)->getType() == Array)
+   {
+      std::sort((*this)->mArray->begin(), (*this)->mArray->end(), obj);
+   }
+}
+
 DynamicObject DynamicObject::clone()
 {
    DynamicObject rval;

@@ -8,6 +8,7 @@
 #include "monarch/rt/DynamicObjectImpl.h"
 
 #include <inttypes.h>
+#include <algorithm>
 
 namespace monarch
 {
@@ -27,6 +28,10 @@ class DynamicObjectIterator;
 class DynamicObject : public Collectable<DynamicObjectImpl>
 {
 public:
+   /**
+    * Comparison function for sort.
+    */
+   typedef bool (*CompareLessDyno)(DynamicObject, DynamicObject);
 
    /**
     * DynamicObject differencing flags.
@@ -308,6 +313,16 @@ public:
     * @return a DynamicObject.
     */
    virtual DynamicObject last() const;
+
+   /**
+    * Sorts this DynamicObject if it is an array.
+    *
+    * @param less a function or an object with a function that compares two
+    *           DynamicObjects and returns true if the first is less than
+    *           the second, false otherwise.
+    */
+   virtual void sort(DynamicObject::CompareLessDyno func = NULL);
+   virtual void sort(std::less<DynamicObject>& obj);
 
    /**
     * Clones this DynamicObject and returns it.

@@ -96,6 +96,7 @@ protected:
    /**
     * Allow access to iterators.
     */
+   friend class DynamicObject;
    friend class DynamicObjectIteratorArray;
    friend class DynamicObjectIteratorMap;
 

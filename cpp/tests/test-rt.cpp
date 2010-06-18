@@ -2018,6 +2018,159 @@ static void runDynoReverseTest(TestRunner& tr)
    tr.ungroup();
 }
 
+static bool customSortTuples(DynamicObject a, DynamicObject b)
+{
+   return a[0] < b[0];
+}
+
+struct StructCustomSortTuples : std::less<DynamicObject>
+{
+   bool operator()(DynamicObject a, DynamicObject b)
+   {
+      return a[0] < b[0];
+   }
+};
+
+class ClassCustomSortTuples : public std::less<DynamicObject>
+{
+public:
+   virtual bool operator()(DynamicObject a, DynamicObject b)
+   {
+      return a[0] < b[0];
+   }
+};
+
+static void runDynoSortTest(TestRunner& tr)
+{
+   tr.group("DynamicObject sort");
+
+   tr.test("default strings");
+   {
+      DynamicObject d;
+      d[0] = "b";
+      d[1] = "c";
+      d[2] = "a";
+      d[3] = "d";
+      d.sort();
+
+      DynamicObject expect;
+      expect[0] = "a";
+      expect[1] = "b";
+      expect[2] = "c";
+      expect[3] = "d";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("default integers");
+   {
+      DynamicObject d;
+      d[0] = 2;
+      d[1] = 3;
+      d[2] = 1;
+      d[3] = 4;
+      d.sort();
+
+      DynamicObject expect;
+      expect[0] = 1;
+      expect[1] = 2;
+      expect[2] = 3;
+      expect[3] = 4;
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("sort with function");
+   {
+      DynamicObject d;
+
+      DynamicObject t1;
+      t1[0] = "b";
+      t1[1] = "foo1";
+      d[0] = t1;
+
+      DynamicObject t2;
+      t2[0] = "c";
+      t2[1] = "foo2";
+      d[1] = t2;
+
+      DynamicObject t3;
+      t3[0] = "a";
+      t3[1] = "foo3";
+      d[2] = t3;
+
+      d.sort(&customSortTuples);
+
+      DynamicObject expect;
+      expect[0] = t3;
+      expect[1] = t1;
+      expect[2] = t2;
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("sort with object (struct)");
+   {
+      DynamicObject d;
+
+      DynamicObject t1;
+      t1[0] = "b";
+      t1[1] = "foo1";
+      d[0] = t1;
+
+      DynamicObject t2;
+      t2[0] = "c";
+      t2[1] = "foo2";
+      d[1] = t2;
+
+      DynamicObject t3;
+      t3[0] = "a";
+      t3[1] = "foo3";
+      d[2] = t3;
+
+      StructCustomSortTuples compare;
+      d.sort(compare);
+
+      DynamicObject expect;
+      expect[0] = t3;
+      expect[1] = t1;
+      expect[2] = t2;
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("sort with object (class)");
+   {
+      DynamicObject d;
+
+      DynamicObject t1;
+      t1[0] = "b";
+      t1[1] = "foo1";
+      d[0] = t1;
+
+      DynamicObject t2;
+      t2[0] = "c";
+      t2[1] = "foo2";
+      d[1] = t2;
+
+      DynamicObject t3;
+      t3[0] = "a";
+      t3[1] = "foo3";
+      d[2] = t3;
+
+      ClassCustomSortTuples compare;
+      d.sort(compare);
+
+      DynamicObject expect;
+      expect[0] = t3;
+      expect[1] = t1;
+      expect[2] = t2;
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 static void runDynoStatsTest(TestRunner& tr)
 {
    tr.group("DynamicObject stats");
@@ -2320,6 +2473,7 @@ static bool run(TestRunner& tr)
       runDynoDiffTest(tr);
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
+      runDynoSortTest(tr);
       runDynoStatsTest(tr);
       runRunnableDelegateTest(tr);
    }
