@@ -307,6 +307,71 @@ static void runJobDispatcherTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+class ExclusiveLockRunnable : public Runnable
+{
+public:
+   ExclusiveLock* mLock;
+   volatile bool* mCondition;
+   ExclusiveLockRunnable(ExclusiveLock* lock, volatile bool* condition) :
+      mLock(lock), mCondition(condition) {}
+   virtual ~ExclusiveLockRunnable() {}
+
+   virtual void run()
+   {
+      // already locked in test so should fail
+      assert(!mLock->tryLock());
+
+      // set condition
+      *mCondition = true;
+
+      // now lock
+      mLock->lock();
+
+      // update condition in test so it will wait for thread to join
+      *mCondition = false;
+
+      // grabbing lock again should work
+      assert(mLock->tryLock());
+
+      // release lock
+      mLock->unlock();
+
+      // grabbing lock again should work
+      assert(mLock->tryLock());
+      mLock->unlock();
+   }
+};
+
+static void runExclusiveLockTest(TestRunner& tr)
+{
+   tr.group("ExclusiveLock");
+
+   tr.test("try lock");
+   {
+      ExclusiveLock lock;
+      volatile bool condition = false;
+
+      ExclusiveLockRunnable r1(&lock, &condition);
+      Thread t1(&r1);
+
+      // grap lock
+      lock.lock();
+
+      // start thread, spin until it sets condition
+      t1.start();
+      while(!condition);
+      lock.unlock();
+
+      // join thread
+      t1.join();
+
+      assert(!condition);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 class SharedLockRunnable : public Runnable
 {
 public:
@@ -2460,6 +2525,7 @@ static bool run(TestRunner& tr)
       runThreadTest(tr);
       runThreadPoolTest(tr);
       runJobDispatcherTest(tr);
+      runExclusiveLockTest(tr);
       runSharedLockTest(tr);
       runCollectableTest(tr);
       runDynamicObjectTest(tr);

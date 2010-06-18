@@ -36,12 +36,13 @@ PKG_PROG_PKG_CONFIG
 # Checking for standard build tools
 AC_LANG(C++)
 AC_PROG_INSTALL()
-AC_CHECK_PROGS(PYTHON, python2.5 python2.4, not found)
+AS_PATH_PYTHON([2.4])
 
 # Common build options
 MO_COMPILER
 
 MO_MSG_CONFIG_BEGIN([General Options])
+MO_MSG_CONFIG_OPTION([Python], [$PYTHON (version $PYTHON_VERSION)])
 MO_ARG_DEBUG
 MO_ARG_OPT
 MO_ARG_LOG_LINE_NUMBERS

@@ -47,8 +47,8 @@ public:
    virtual void lock();
 
    /**
-    * Tries to lock this ExclusiveLock for the current thread without blocking
-    * if the lock is already engaged by another thread.
+    * Tries to lock this ExclusiveLock for the current thread without
+    * blocking.
     *
     * @return true if the lock was acquired (or was already held by this
     *         thread), false if the lock was held by another thread and could
