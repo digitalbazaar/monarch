@@ -72,12 +72,12 @@ bool MySqlConnection::connect(Url* url)
          // create exception, close connection
          ExceptionRef e = createException();
          Exception::set(e);
-         MySqlConnection::close();
          MO_CAT_ERROR(MO_SQL_CAT,
             "Could not connect to database host '%s:%d': %s",
             url->getHost().c_str(), url->getPort(),
             monarch::data::json::JsonWriter::writeToString(
                Exception::convertToDynamicObject(e)).c_str());
+         MySqlConnection::close();
       }
       else
       {
