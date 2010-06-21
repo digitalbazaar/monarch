@@ -3,6 +3,8 @@
  */
 #include "monarch/sql/mysql/MySqlConnection.h"
 
+#include "monarch/data/json/JsonWriter.h"
+#include "monarch/logging/Logging.h"
 #include "monarch/sql/mysql/MySqlStatement.h"
 
 #include <mysql/errmsg.h>
@@ -71,6 +73,11 @@ bool MySqlConnection::connect(Url* url)
          ExceptionRef e = createException();
          Exception::set(e);
          MySqlConnection::close();
+         MO_CAT_DEBUG(MO_SQL_CAT,
+            "Could not connect to database host '%s:%d': %s",
+            url->getHost().c_str(), url->getPort(),
+            monarch::data::json::JsonWriter::writeToString(
+               Exception::convertToDynamicObject(e)).c_str());
       }
       else
       {
