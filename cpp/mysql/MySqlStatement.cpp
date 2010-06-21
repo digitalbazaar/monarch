@@ -100,7 +100,7 @@ bool MySqlStatement::initialize(MySqlConnection* c)
    if(mHandle == NULL)
    {
       // connection exception
-      ExceptionRef e = MySqlException::create(c);
+      ExceptionRef e = c->createException();
       Exception::set(e);
       rval = false;
    }
@@ -110,7 +110,7 @@ bool MySqlStatement::initialize(MySqlConnection* c)
       if(mysql_stmt_prepare(mHandle, mSql, strlen(mSql)) != 0)
       {
          // statement exception
-         ExceptionRef e = MySqlException::create(this);
+         ExceptionRef e = createException();
          Exception::set(e);
          rval = false;
       }
@@ -333,13 +333,13 @@ bool MySqlStatement::execute()
    if(mysql_stmt_bind_param(mHandle, mParamBindings) != 0)
    {
       // statement exception
-      ExceptionRef e = MySqlException::create(this);
+      ExceptionRef e = createException();
       Exception::set(e);
    }
    else if(mysql_stmt_execute(mHandle) != 0)
    {
       // statement exception
-      ExceptionRef e = MySqlException::create(this);
+      ExceptionRef e = createException();
       Exception::set(e);
    }
    else
@@ -372,7 +372,7 @@ bool MySqlStatement::execute()
             if(mysql_stmt_bind_result(mHandle, mResultBindings) != 0)
             {
                // statement exception
-               ExceptionRef e = MySqlException::create(this);
+               ExceptionRef e = createException();
                Exception::set(e);
                rval = false;
                delete [] mResultBindings;
@@ -389,7 +389,7 @@ bool MySqlStatement::execute()
          if(mysql_stmt_store_result(mHandle) != 0)
          {
             // statement exception
-            ExceptionRef e = MySqlException::create(this);
+            ExceptionRef e = createException();
             Exception::set(e);
             rval = false;
          }
@@ -416,7 +416,7 @@ Row* MySqlStatement::fetch()
       if(rc == 1)
       {
          // exception occurred
-         ExceptionRef e = MySqlException::create(this);
+         ExceptionRef e = createException();
          Exception::set(e);
       }
       else if(rc != MYSQL_NO_DATA)
@@ -454,6 +454,16 @@ bool MySqlStatement::getRowsChanged(uint64_t& rows)
 uint64_t MySqlStatement::getLastInsertRowId()
 {
    return mysql_stmt_insert_id(mHandle);
+}
+
+Exception* MySqlStatement::createException()
+{
+   Exception* e = new Exception(
+      mysql_stmt_error(mHandle),
+      "monarch.sql.mysql.MySql",
+      mysql_stmt_errno(mHandle));
+   e->getDetails()["sqlState"] = mysql_stmt_sqlstate(mHandle);
+   return e;
 }
 
 bool MySqlStatement::checkParamCount(unsigned int param)

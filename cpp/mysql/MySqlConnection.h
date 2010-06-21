@@ -7,7 +7,6 @@
 #include <mysql/mysql.h>
 
 #include "monarch/sql/AbstractConnection.h"
-#include "monarch/sql/mysql/MySqlException.h"
 
 namespace monarch
 {
@@ -113,6 +112,13 @@ public:
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool query(const char* sql);
+
+   /**
+    * Creates a new Exception using the last error set on this connection.
+    *
+    * @return the created Exception.
+    */
+   virtual monarch::rt::Exception* createException();
 
 protected:
    /**

@@ -7,7 +7,6 @@
 #include <sqlite3.h>
 
 #include "monarch/sql/AbstractConnection.h"
-#include "monarch/sql/sqlite3/Sqlite3Exception.h"
 
 namespace monarch
 {
@@ -75,6 +74,13 @@ public:
     * @return true if this connection is connected, false if not.
     */
    virtual bool isConnected();
+
+   /**
+    * Creates a new Exception using the last error set on this connection.
+    *
+    * @return the created Exception.
+    */
+   virtual monarch::rt::Exception* createException();
 
 protected:
    /**

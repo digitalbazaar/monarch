@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/sqlite3/Sqlite3Statement.h"
 
@@ -55,7 +55,7 @@ bool Sqlite3Statement::initialize(Sqlite3Connection* c)
    if(mState != SQLITE_OK)
    {
       // exception
-      ExceptionRef e = Sqlite3Exception::create(c);
+      ExceptionRef e = c->createException();
       e->getDetails()["sql"] = mSql;
       Exception::set(e);
       rval = false;
@@ -72,7 +72,7 @@ bool Sqlite3Statement::setInt32(unsigned int param, int32_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = Sqlite3Exception::create(mConnection);
+      ExceptionRef e = mConnection->createException();
       Exception::set(e);
       rval = false;
    }
@@ -88,7 +88,7 @@ bool Sqlite3Statement::setUInt32(unsigned int param, uint32_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = Sqlite3Exception::create(mConnection);
+      ExceptionRef e = mConnection->createException();
       Exception::set(e);
       rval = false;
    }
@@ -104,7 +104,7 @@ bool Sqlite3Statement::setInt64(unsigned int param, int64_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = Sqlite3Exception::create(mConnection);
+      ExceptionRef e = mConnection->createException();
       Exception::set(e);
       rval = false;
    }
@@ -120,7 +120,7 @@ bool Sqlite3Statement::setUInt64(unsigned int param, uint64_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = Sqlite3Exception::create(mConnection);
+      ExceptionRef e = mConnection->createException();
       Exception::set(e);
       rval = false;
    }
@@ -137,7 +137,7 @@ bool Sqlite3Statement::setText(unsigned int param, const char* value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = Sqlite3Exception::create(mConnection);
+      ExceptionRef e = mConnection->createException();
       Exception::set(e);
       rval = false;
    }
@@ -235,7 +235,7 @@ bool Sqlite3Statement::execute()
                // matter whether we use sqlite API v1 or v2, we still need
                // this here to get specific error message
                mState = sqlite3_reset(mHandle);
-               ExceptionRef e = Sqlite3Exception::create(mConnection);
+               ExceptionRef e = mConnection->createException();
                Exception::set(e);
                rval = false;
                reset();
@@ -258,7 +258,7 @@ bool Sqlite3Statement::execute()
       default:
       {
          // driver error
-         ExceptionRef e = Sqlite3Exception::create(mConnection);
+         ExceptionRef e = mConnection->createException();
          Exception::set(e);
          rval = false;
          break;
@@ -289,7 +289,7 @@ Row* Sqlite3Statement::fetch()
          default:
          {
             // error stepping statement
-            ExceptionRef e = Sqlite3Exception::create(mConnection);
+            ExceptionRef e = mConnection->createException();
             Exception::set(e);
             reset();
             break;
@@ -321,7 +321,7 @@ bool Sqlite3Statement::reset()
    if(mState != SQLITE_OK)
    {
       // driver error
-      ExceptionRef e = Sqlite3Exception::create(mConnection);
+      ExceptionRef e = mConnection->createException();
       Exception::set(e);
       rval = false;
    }

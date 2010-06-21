@@ -13,11 +13,12 @@ using namespace monarch::rt;
 using namespace monarch::sql;
 using namespace monarch::sql::mysql;
 
-MySqlRow::MySqlRow(MySqlStatement* s) : Row(s)
+MySqlRow::MySqlRow(MySqlStatement* s) :
+   Row(s),
+   mFields(NULL),
+   mFieldCount(0),
+   mBindings(NULL)
 {
-   mFields = NULL;
-   mFieldCount = 0;
-   mBindings = NULL;
 }
 
 MySqlRow::~MySqlRow()

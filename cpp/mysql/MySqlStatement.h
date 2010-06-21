@@ -249,6 +249,13 @@ public:
     */
    virtual uint64_t getLastInsertRowId();
 
+   /**
+    * Creates a new Exception using the last error set on this statement.
+    *
+    * @return the created Exception.
+    */
+   virtual monarch::rt::Exception* createException();
+
 protected:
    /**
     * Checks this statement's parameter count, setting an Exception if the

@@ -68,7 +68,7 @@ bool MySqlConnection::connect(Url* url)
          url->getPort(), NULL, clientFlag) == NULL)
       {
          // create exception, close connection
-         ExceptionRef e = MySqlException::create(this);
+         ExceptionRef e = createException();
          Exception::set(e);
          MySqlConnection::close();
       }
@@ -100,7 +100,7 @@ bool MySqlConnection::begin()
    if(!(rval = (mysql_query(mHandle, "START TRANSACTION") == 0)))
    {
       ExceptionRef e = new Exception("Could not begin transaction.");
-      ExceptionRef cause = MySqlException::create(this);
+      ExceptionRef cause = createException();
       e->setCause(cause);
       Exception::set(e);
    }
@@ -115,7 +115,7 @@ bool MySqlConnection::commit()
    if(!(rval = (mysql_query(mHandle, "COMMIT") == 0)))
    {
       ExceptionRef e = new Exception("Could not commit transaction.");
-      ExceptionRef cause = MySqlException::create(this);
+      ExceptionRef cause = createException();
       e->setCause(cause);
       Exception::set(e);
    }
@@ -130,7 +130,7 @@ bool MySqlConnection::rollback()
    if(!(rval = (mysql_query(mHandle, "ROLLBACK") == 0)))
    {
       ExceptionRef e = new Exception("Could not rollback transaction.");
-      ExceptionRef cause = MySqlException::create(this);
+      ExceptionRef cause = createException();
       e->setCause(cause);
       Exception::set(e);
    }
@@ -164,12 +164,22 @@ bool MySqlConnection::query(const char* sql)
    if(!(rval = (mysql_query(mHandle, sql) == 0)))
    {
       ExceptionRef e = new Exception("Could not execute query.");
-      ExceptionRef cause = MySqlException::create(this);
+      ExceptionRef cause = createException();
       e->setCause(cause);
       Exception::set(e);
    }
 
    return rval;
+}
+
+Exception* MySqlConnection::createException()
+{
+   Exception* e = new Exception(
+      mysql_error(mHandle),
+      "monarch.sql.mysql.MySql",
+      mysql_errno(mHandle));
+   e->getDetails()["sqlState"] = mysql_sqlstate(mHandle);
+   return e;
 }
 
 Statement* MySqlConnection::createStatement(const char* sql)

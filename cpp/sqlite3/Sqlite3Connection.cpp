@@ -81,7 +81,7 @@ bool Sqlite3Connection::connect(Url* url)
          if(ec != SQLITE_OK)
          {
             // create exception, close connection
-            ExceptionRef e = Sqlite3Exception::create(this);
+            ExceptionRef e = createException();
             e->getDetails()["url"] = url->toString().c_str();
             e->getDetails()["db"] = db.c_str();
             Exception::set(e);
@@ -113,6 +113,14 @@ void Sqlite3Connection::close()
 inline bool Sqlite3Connection::isConnected()
 {
    return mHandle != NULL;
+}
+
+Exception* Sqlite3Connection::createException()
+{
+   return new Exception(
+      sqlite3_errmsg(mHandle),
+      "monarch.sql.sqlite3.Sqlite3",
+      sqlite3_errcode(mHandle));
 }
 
 Statement* Sqlite3Connection::createStatement(const char* sql)
