@@ -55,7 +55,7 @@ bool Sqlite3Statement::initialize(Sqlite3Connection* c)
    if(mState != SQLITE_OK)
    {
       // exception
-      ExceptionRef e = new Sqlite3Exception(c);
+      ExceptionRef e = Sqlite3Exception::create(c);
       e->getDetails()["sql"] = mSql;
       Exception::set(e);
       rval = false;
@@ -72,7 +72,7 @@ bool Sqlite3Statement::setInt32(unsigned int param, int32_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(mConnection);
+      ExceptionRef e = Sqlite3Exception::create(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -88,7 +88,7 @@ bool Sqlite3Statement::setUInt32(unsigned int param, uint32_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(mConnection);
+      ExceptionRef e = Sqlite3Exception::create(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -104,7 +104,7 @@ bool Sqlite3Statement::setInt64(unsigned int param, int64_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(mConnection);
+      ExceptionRef e = Sqlite3Exception::create(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -120,7 +120,7 @@ bool Sqlite3Statement::setUInt64(unsigned int param, uint64_t value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(mConnection);
+      ExceptionRef e = Sqlite3Exception::create(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -137,7 +137,7 @@ bool Sqlite3Statement::setText(unsigned int param, const char* value)
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
-      ExceptionRef e = new Sqlite3Exception(mConnection);
+      ExceptionRef e = Sqlite3Exception::create(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -235,7 +235,7 @@ bool Sqlite3Statement::execute()
                // matter whether we use sqlite API v1 or v2, we still need
                // this here to get specific error message
                mState = sqlite3_reset(mHandle);
-               ExceptionRef e = new Sqlite3Exception(mConnection);
+               ExceptionRef e = Sqlite3Exception::create(mConnection);
                Exception::set(e);
                rval = false;
                reset();
@@ -258,7 +258,7 @@ bool Sqlite3Statement::execute()
       default:
       {
          // driver error
-         ExceptionRef e = new Sqlite3Exception(mConnection);
+         ExceptionRef e = Sqlite3Exception::create(mConnection);
          Exception::set(e);
          rval = false;
          break;
@@ -289,7 +289,7 @@ Row* Sqlite3Statement::fetch()
          default:
          {
             // error stepping statement
-            ExceptionRef e = new Sqlite3Exception(mConnection);
+            ExceptionRef e = Sqlite3Exception::create(mConnection);
             Exception::set(e);
             reset();
             break;
@@ -321,7 +321,7 @@ bool Sqlite3Statement::reset()
    if(mState != SQLITE_OK)
    {
       // driver error
-      ExceptionRef e = new Sqlite3Exception(mConnection);
+      ExceptionRef e = Sqlite3Exception::create(mConnection);
       Exception::set(e);
       rval = false;
    }
@@ -347,7 +347,9 @@ int Sqlite3Statement::getParameterIndex(const char* name)
    if(index == 0)
    {
       // exception, no parameter with given name found (index=0 is invalid)
-      ExceptionRef e = new SqlException("Invalid parameter name.");
+      ExceptionRef e = new Exception(
+         "Invalid parameter name.",
+         "monarch.sql.sqlite3.Sqlite3");
       e->getDetails()["name"] = name;
       Exception::set(e);
    }

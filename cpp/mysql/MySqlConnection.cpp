@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/mysql/MySqlConnection.h"
 
@@ -68,7 +68,7 @@ bool MySqlConnection::connect(Url* url)
          url->getPort(), NULL, clientFlag) == NULL)
       {
          // create exception, close connection
-         ExceptionRef e = new MySqlException(this);
+         ExceptionRef e = MySqlException::create(this);
          Exception::set(e);
          MySqlConnection::close();
       }
@@ -100,7 +100,7 @@ bool MySqlConnection::begin()
    if(!(rval = (mysql_query(mHandle, "START TRANSACTION") == 0)))
    {
       ExceptionRef e = new Exception("Could not begin transaction.");
-      ExceptionRef cause = new MySqlException(this);
+      ExceptionRef cause = MySqlException::create(this);
       e->setCause(cause);
       Exception::set(e);
    }
@@ -115,7 +115,7 @@ bool MySqlConnection::commit()
    if(!(rval = (mysql_query(mHandle, "COMMIT") == 0)))
    {
       ExceptionRef e = new Exception("Could not commit transaction.");
-      ExceptionRef cause = new MySqlException(this);
+      ExceptionRef cause = MySqlException::create(this);
       e->setCause(cause);
       Exception::set(e);
    }
@@ -130,7 +130,7 @@ bool MySqlConnection::rollback()
    if(!(rval = (mysql_query(mHandle, "ROLLBACK") == 0)))
    {
       ExceptionRef e = new Exception("Could not rollback transaction.");
-      ExceptionRef cause = new MySqlException(this);
+      ExceptionRef cause = MySqlException::create(this);
       e->setCause(cause);
       Exception::set(e);
    }
@@ -164,7 +164,7 @@ bool MySqlConnection::query(const char* sql)
    if(!(rval = (mysql_query(mHandle, sql) == 0)))
    {
       ExceptionRef e = new Exception("Could not execute query.");
-      ExceptionRef cause = new MySqlException(this);
+      ExceptionRef cause = MySqlException::create(this);
       e->setCause(cause);
       Exception::set(e);
    }

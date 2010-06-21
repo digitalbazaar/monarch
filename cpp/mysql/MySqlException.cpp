@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/mysql/MySqlException.h"
 
@@ -8,24 +8,33 @@
 
 #include <mysql/mysql.h>
 
-using namespace monarch::sql;
+using namespace monarch::rt;
 using namespace monarch::sql::mysql;
 
-MySqlException::MySqlException(MySqlConnection* c) :
-   SqlException("", "monarch.sql.mysql.MySql")
+MySqlException::MySqlException()
 {
-   setCode(mysql_errno(c->getHandle()));
-   setMessage(mysql_error(c->getHandle()));
-   setSqlState(mysql_sqlstate(c->getHandle()));
-}
-
-MySqlException::MySqlException(MySqlStatement* s)
-{
-   setCode(mysql_stmt_errno(s->getHandle()));
-   setMessage(mysql_stmt_error(s->getHandle()));
-   setSqlState(mysql_stmt_sqlstate(s->getHandle()));
 }
 
 MySqlException::~MySqlException()
 {
+}
+
+Exception* MySqlException::create(MySqlConnection* c)
+{
+   Exception* e = new Exception(
+      mysql_error(c->getHandle()),
+      "monarch.sql.mysql.MySql",
+      mysql_errno(c->getHandle()));
+   e->getDetails()["sqlState"] = mysql_sqlstate(c->getHandle());
+   return e;
+}
+
+Exception* MySqlException::create(MySqlStatement* s)
+{
+   Exception* e = new Exception(
+      mysql_stmt_error(s->getHandle()),
+      "monarch.sql.mysql.MySql",
+      mysql_stmt_errno(s->getHandle()));
+   e->getDetails()["sqlState"] = mysql_stmt_sqlstate(s->getHandle());
+   return e;
 }

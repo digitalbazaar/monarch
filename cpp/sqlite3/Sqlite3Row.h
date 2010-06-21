@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_sqlite3_Sqlite3Row_h
 #define monarch_sql_sqlite3_Sqlite3Row_h
@@ -52,7 +52,7 @@ public:
     * @param column the column's index.
     * @param type the type ID for the column.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getType(unsigned int column, int& type);
 
@@ -62,7 +62,7 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getInt32(unsigned int column, int32_t& i);
 
@@ -72,7 +72,7 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getUInt32(unsigned int column, uint32_t& i);
 
@@ -82,7 +82,7 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getInt64(unsigned int column, int64_t& i);
 
@@ -92,7 +92,7 @@ public:
     * @param column the column's index.
     * @param i the integer to store the integer in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getUInt64(unsigned int column, uint64_t& i);
 
@@ -102,7 +102,7 @@ public:
     * @param column the column's index.
     * @param str the string to store the text in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getText(unsigned int column, std::string& str);
 
@@ -112,7 +112,7 @@ public:
     * @param column the column's name.
     * @param type the type ID for the column.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getType(const char* column, int& type);
 
@@ -122,7 +122,7 @@ public:
     * @param column the column's name.
     * @param i the integer to store the integer in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getInt32(const char* column, int32_t& i);
 
@@ -132,7 +132,7 @@ public:
     * @param column the column's name.
     * @param i the integer to store the integer in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getUInt32(const char* column, uint32_t& i);
 
@@ -142,7 +142,7 @@ public:
     * @param column the column's name.
     * @param i the integer to store the integer in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getInt64(const char* column, int64_t& i);
 
@@ -152,7 +152,7 @@ public:
     * @param column the column's name.
     * @param i the integer to store the integer in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getUInt64(const char* column, uint64_t& i);
 
@@ -162,7 +162,7 @@ public:
     * @param column the column's name.
     * @param str the string to store the text in.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getText(const char* column, std::string& str);
 

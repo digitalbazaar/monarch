@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_sqlite3_Statement_H
 #define monarch_sql_sqlite3_Statement_H
@@ -90,7 +90,7 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setInt32(unsigned int param, int32_t value);
 
@@ -100,7 +100,7 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setUInt32(unsigned int param, uint32_t value);
 
@@ -110,7 +110,7 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setInt64(unsigned int param, int64_t value);
 
@@ -120,7 +120,7 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setUInt64(unsigned int param, uint64_t value);
 
@@ -130,7 +130,7 @@ public:
     * @param param the parameter number (1 being the first param).
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setText(unsigned int param, const char* value);
 
@@ -140,7 +140,7 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setInt32(const char* name, int32_t value);
 
@@ -151,7 +151,7 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setUInt32(const char* name, uint32_t value);
 
@@ -161,7 +161,7 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setInt64(const char* name, int64_t value);
 
@@ -172,7 +172,7 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setUInt64(const char* name, uint64_t value);
 
@@ -182,14 +182,14 @@ public:
     * @param name the parameter name.
     * @param value parameter value.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setText(const char* name, const char* value);
 
    /**
     * Executes this Statement.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool execute();
 
@@ -214,7 +214,7 @@ public:
     *
     * @param rows to store the number of rows modified by this Statement.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool getRowsChanged(uint64_t& rows);
 
@@ -232,7 +232,7 @@ protected:
     *
     * @param name the name to get the parameter index for.
     *
-    * @return the index >= 1 or 0 if an SqlException occurred.
+    * @return the index >= 1 or 0 if an Exception occurred.
     */
    virtual int getParameterIndex(const char* name);
 };

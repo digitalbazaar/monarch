@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_database_PooledConnection_H
 #define monarch_database_PooledConnection_H
 
 #include "monarch/sql/Connection.h"
-#include "monarch/sql/SqlException.h"
 
 namespace monarch
 {
@@ -83,7 +82,7 @@ public:
     * @param url the url for the database to connect to, including driver
     *            specific parameters.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool connect(const char* url);
 
@@ -93,7 +92,7 @@ public:
     * @param url the url for the database to connect to, including driver
     *            specific parameters.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool connect(monarch::net::Url* url);
 
@@ -123,21 +122,21 @@ public:
    /**
     * Begins a new transaction.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool begin();
 
    /**
     * Commits the current transaction.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool commit();
 
    /**
     * Rolls back the current transaction.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool rollback();
 

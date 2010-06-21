@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_mysql_MySqlConnection_H
 #define monarch_sql_mysql_MySqlConnection_H
@@ -57,7 +57,7 @@ public:
     * @param url MySql parameters in URL form:
     *            "mysql://user:password@host:port/databasename"
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool connect(monarch::net::Url* url);
    using monarch::sql::AbstractConnection::connect;
@@ -70,21 +70,21 @@ public:
    /**
     * Begins a new transaction.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool begin();
 
    /**
     * Commits the current transaction.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool commit();
 
    /**
     * Rolls back the current transaction.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool rollback();
 
@@ -100,7 +100,7 @@ public:
     *
     * @param cset the character set to use for this connection.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool setCharacterSet(const char* cset);
 
@@ -110,7 +110,7 @@ public:
     *
     * @param sql the sql query to execute.
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool query(const char* sql);
 

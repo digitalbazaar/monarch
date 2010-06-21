@@ -43,10 +43,10 @@ bool MySqlRow::getType(unsigned int column, int& type)
 
    if(column >= mFieldCount)
    {
-      char temp[100];
-      snprintf(temp, 100,
-         "Could not get column type, invalid column index!,index=%i", column);
-      ExceptionRef e = new SqlException(temp);
+      ExceptionRef e = new Exception(
+         "Could not get column type. Invalid column index.",
+         "monarch.sql.mysql.MySql");
+      e->getDetails()["column"] = column;
       Exception::set(e);
    }
    else
@@ -236,8 +236,9 @@ int64_t MySqlRow::getColumnIndex(const char* name)
    if(rval == -1)
    {
       // set exception
-      ExceptionRef e = new SqlException(
-         "Could not get column value. Invalid column name.");
+      ExceptionRef e = new Exception(
+         "Could not get column value. Invalid column name.",
+         "monarch.sql.mysql.MySql");
       e->getDetails()["name"] = name;
       Exception::set(e);
    }

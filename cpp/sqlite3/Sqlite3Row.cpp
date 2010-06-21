@@ -177,8 +177,9 @@ int Sqlite3Row::getColumnIndex(const char* name)
    if(rval == -1)
    {
       // set exception
-      ExceptionRef e = new SqlException(
-         "Could not get column value. Invalid column name.");
+      ExceptionRef e = new Exception(
+         "Could not get column value. Invalid column name.",
+         "monarch.sql.sqlite3.Sqlite3");
       e->getDetails()["name"] = name;
       Exception::set(e);
    }

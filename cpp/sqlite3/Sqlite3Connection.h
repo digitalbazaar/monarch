@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_sqlite3_Sqlite3Connection_H
 #define monarch_sql_sqlite3_Sqlite3Connection_H
@@ -59,7 +59,7 @@ public:
     *        A SQLite3 database called example.db OR
     *        "sqlite::memory:" for an in-memory temporary database
     *
-    * @return true if successful, false if an SqlException occurred.
+    * @return true if successful, false if an Exception occurred.
     */
    virtual bool connect(monarch::net::Url* url);
    using monarch::sql::AbstractConnection::connect;

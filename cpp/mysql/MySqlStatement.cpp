@@ -100,7 +100,7 @@ bool MySqlStatement::initialize(MySqlConnection* c)
    if(mHandle == NULL)
    {
       // connection exception
-      ExceptionRef e = new MySqlException(c);
+      ExceptionRef e = MySqlException::create(c);
       Exception::set(e);
       rval = false;
    }
@@ -110,7 +110,7 @@ bool MySqlStatement::initialize(MySqlConnection* c)
       if(mysql_stmt_prepare(mHandle, mSql, strlen(mSql)) != 0)
       {
          // statement exception
-         ExceptionRef e = new MySqlException(this);
+         ExceptionRef e = MySqlException::create(this);
          Exception::set(e);
          rval = false;
       }
@@ -282,40 +282,45 @@ bool MySqlStatement::setText(unsigned int param, const char* value)
 
 bool MySqlStatement::setInt32(const char* name, int32_t value)
 {
-   ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented.");
+   ExceptionRef e = new Exception(
+      "MySql named parameter support not implemented.",
+      "monarch.sql.mysql.MySql");
    Exception::set(e);
    return false;
 }
 
 bool MySqlStatement::setUInt32(const char* name, uint32_t value)
 {
-   ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented.");
+   ExceptionRef e = new Exception(
+      "MySql named parameter support not implemented.",
+      "monarch.sql.mysql.MySql");
    Exception::set(e);
    return false;
 }
 
 bool MySqlStatement::setInt64(const char* name, int64_t value)
 {
-   ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented.");
+   ExceptionRef e = new Exception(
+      "MySql named parameter support not implemented.",
+      "monarch.sql.mysql.MySql");
    Exception::set(e);
    return false;
 }
 
 bool MySqlStatement::setUInt64(const char* name, uint64_t value)
 {
-   ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented.");
+   ExceptionRef e = new Exception(
+      "MySql named parameter support not implemented.",
+      "monarch.sql.mysql.MySql");
    Exception::set(e);
    return false;
 }
 
 bool MySqlStatement::setText(const char* name, const char* value)
 {
-   ExceptionRef e =
-     new SqlException("MySql named parameter support not implemented.");
+   ExceptionRef e = new Exception(
+      "MySql named parameter support not implemented.",
+      "monarch.sql.mysql.MySql");
    Exception::set(e);
    return false;
 }
@@ -328,13 +333,13 @@ bool MySqlStatement::execute()
    if(mysql_stmt_bind_param(mHandle, mParamBindings) != 0)
    {
       // statement exception
-      ExceptionRef e = new MySqlException(this);
+      ExceptionRef e = MySqlException::create(this);
       Exception::set(e);
    }
    else if(mysql_stmt_execute(mHandle) != 0)
    {
       // statement exception
-      ExceptionRef e = new MySqlException(this);
+      ExceptionRef e = MySqlException::create(this);
       Exception::set(e);
    }
    else
@@ -367,7 +372,7 @@ bool MySqlStatement::execute()
             if(mysql_stmt_bind_result(mHandle, mResultBindings) != 0)
             {
                // statement exception
-               ExceptionRef e = new MySqlException(this);
+               ExceptionRef e = MySqlException::create(this);
                Exception::set(e);
                rval = false;
                delete [] mResultBindings;
@@ -384,7 +389,7 @@ bool MySqlStatement::execute()
          if(mysql_stmt_store_result(mHandle) != 0)
          {
             // statement exception
-            ExceptionRef e = new MySqlException(this);
+            ExceptionRef e = MySqlException::create(this);
             Exception::set(e);
             rval = false;
          }
@@ -411,7 +416,7 @@ Row* MySqlStatement::fetch()
       if(rc == 1)
       {
          // exception occurred
-         ExceptionRef e = new MySqlException(this);
+         ExceptionRef e = MySqlException::create(this);
          Exception::set(e);
       }
       else if(rc != MYSQL_NO_DATA)
@@ -458,8 +463,9 @@ bool MySqlStatement::checkParamCount(unsigned int param)
    if(param > mParamCount)
    {
       // exception, no parameter with given index
-      ExceptionRef e = new SqlException(
-         "Invalid statement parameter index.");
+      ExceptionRef e = new Exception(
+         "Invalid statement parameter index.",
+         "monarch.sql.mysql.MySql");
       e->getDetails()["index"] = param;
       Exception::set(e);
       rval = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/sqlite3/Sqlite3Connection.h"
 
@@ -81,7 +81,7 @@ bool Sqlite3Connection::connect(Url* url)
          if(ec != SQLITE_OK)
          {
             // create exception, close connection
-            ExceptionRef e = new Sqlite3Exception(this);
+            ExceptionRef e = Sqlite3Exception::create(this);
             e->getDetails()["url"] = url->toString().c_str();
             e->getDetails()["db"] = db.c_str();
             Exception::set(e);
