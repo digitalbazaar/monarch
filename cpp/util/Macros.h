@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_Macros_H
 #define monarch_util_Macros_H
@@ -31,5 +31,13 @@
  * String representing the current code location.
  */
 #define MO_STRLOC __FILE__ ":" MO_STRINGIFY(__LINE__)
+
+/**
+ * Static assertion.
+ */
+#define MO_STATIC_ASSERT(expr, msg) \
+   do { \
+      enum { assert_static__ = 1/(expr) }; \
+   } while (0)
 
 #endif
