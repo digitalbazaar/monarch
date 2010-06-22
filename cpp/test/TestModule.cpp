@@ -19,8 +19,6 @@ TestModule::TestModule(const char* name, const char* version) :
    mInfo["version"] = version;
    mInfo["type"] = "monarch.test.TestModule";
    mInfo["dependencies"]->setType(Array);
-   // assume general use case is to always want the tester loaded
-   addDependency("monarch.apps.tester.Tester", "1.0");
 }
 
 TestModule::~TestModule()
