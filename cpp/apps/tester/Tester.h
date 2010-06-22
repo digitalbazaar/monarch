@@ -58,7 +58,7 @@ public:
       monarch::config::Config& cfg);
 
    /**
-    * Runs all tests and sets exit status.
+    * Runs all tests or those specified via command line options.
     *
     * @return true on success, false and exception set on failure.
     */
