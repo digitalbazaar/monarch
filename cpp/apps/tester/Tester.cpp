@@ -40,8 +40,8 @@ bool Tester::initConfigs(Config& defaults)
    c["level"] = TestRunner::Names;
    c["continueAfterException"] = false;
    c["listTests"] = false;
-   c["tests"]->setType(Map);
-   c["modules"]->setType(Map);
+   c["tests"]->setType(Array);
+   c["modules"]->setType(Array);
    return getConfigManager()->addConfig(defaults);
 }
 
