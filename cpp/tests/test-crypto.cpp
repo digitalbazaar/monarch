@@ -51,14 +51,14 @@ static void runMessageDigestTest(TestRunner& tr)
       testMd5.update(" MESSAGE");
       string digestMd5 = testMd5.getDigest();
 
-      assert(digestMd5 == correctMd5);
+      assertStrCmp(digestMd5.c_str(), correctMd5.c_str());
 
       MessageDigest testSha1;
       assert(testSha1.start("SHA1", false));
       testSha1.update("THIS IS A MESSAGE");
       string digestSha1 = testSha1.getDigest();
 
-      assert(digestSha1 == correctSha1);
+      assertStrCmp(digestSha1.c_str(), correctSha1.c_str());
    }
    tr.passIfNoException();
 
@@ -75,7 +75,7 @@ static void runMessageDigestTest(TestRunner& tr)
       digestMd5 = testMd5.getDigest();
       digestMd5 = testMd5.getDigest();
 
-      assert(digestMd5 == correctMd5);
+      assertStrCmp(digestMd5.c_str(), correctMd5.c_str());
 
       MessageDigest testSha1;
       assert(testSha1.start("SHA1", true));
@@ -83,7 +83,7 @@ static void runMessageDigestTest(TestRunner& tr)
       string digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
 
-      assert(digestSha1 == correctSha1);
+      assertStrCmp(digestSha1.c_str(), correctSha1.c_str());
 
       testSha1.reset();
       testSha1.update("THIS IS ");
@@ -92,7 +92,7 @@ static void runMessageDigestTest(TestRunner& tr)
       digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
 
-      assert(digestSha1 == correctSha1);
+      assertStrCmp(digestSha1.c_str(), correctSha1.c_str());
    }
    tr.passIfNoException();
 
