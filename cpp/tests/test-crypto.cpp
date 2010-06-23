@@ -42,8 +42,8 @@ static void runMessageDigestTest(TestRunner& tr)
    tr.group("MessageDigest");
 
    // correct values
-   string correctMd5 = "78eebfd9d42958e3f31244f116ab7bbe";
-   string correctSha1 = "5f24f4d6499fd2d44df6c6e94be8b14a796c071d";
+   const char* correctMd5 = "78eebfd9d42958e3f31244f116ab7bbe";
+   const char* correctSha1 = "5f24f4d6499fd2d44df6c6e94be8b14a796c071d";
 
    tr.test("non-persistent");
    {
@@ -54,14 +54,14 @@ static void runMessageDigestTest(TestRunner& tr)
       testMd5.update(" MESSAGE");
       string digestMd5 = testMd5.getDigest();
 
-      assertStrCmp(digestMd5.c_str(), correctMd5.c_str());
+      assertStrCmp(correctMd5, digestMd5.c_str());
 
       MessageDigest testSha1;
       assert(testSha1.start("SHA1", false));
       testSha1.update("THIS IS A MESSAGE");
       string digestSha1 = testSha1.getDigest();
 
-      assertStrCmp(digestSha1.c_str(), correctSha1.c_str());
+      assertStrCmp(correctSha1, digestSha1.c_str());
    }
    tr.passIfNoException();
 
@@ -78,7 +78,7 @@ static void runMessageDigestTest(TestRunner& tr)
       digestMd5 = testMd5.getDigest();
       digestMd5 = testMd5.getDigest();
 
-      assertStrCmp(digestMd5.c_str(), correctMd5.c_str());
+      assertStrCmp(correctMd5, digestMd5.c_str());
 
       MessageDigest testSha1;
       assert(testSha1.start("SHA1", true));
@@ -86,7 +86,7 @@ static void runMessageDigestTest(TestRunner& tr)
       string digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
 
-      assertStrCmp(digestSha1.c_str(), correctSha1.c_str());
+      assertStrCmp(correctSha1, digestSha1.c_str());
 
       testSha1.reset();
       testSha1.update("THIS IS ");
@@ -95,7 +95,7 @@ static void runMessageDigestTest(TestRunner& tr)
       digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
 
-      assertStrCmp(digestSha1.c_str(), correctSha1.c_str());
+      assertStrCmp(correctSha1, digestSha1.c_str());
    }
    tr.passIfNoException();
 
@@ -121,12 +121,10 @@ static void runHashMacTest(TestRunner& tr)
 {
    tr.group("HashMac");
 
-   // correct values
-   string correctMd5 = "9294727a3638bb1c13f48ef8158bfc9d";
-   string correctSha1 = "b617318655057264e28bc0b6fb378c8ef146be00";
-
    tr.test("md5 with 16-byte key");
    {
+      const char* expect = "9294727a3638bb1c13f48ef8158bfc9d";
+
       SymmetricKeyRef key = new SymmetricKey();
       key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
 
@@ -134,12 +132,68 @@ static void runHashMacTest(TestRunner& tr)
       assert(hmac.start("MD5", key));
       hmac.update("Hi There");
       string digest = hmac.getMac();
-      assertStrCmp(digest.c_str(), correctMd5.c_str());
+      assertStrCmp(expect, digest.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("md5 with short key");
+   {
+      const char* expect = "750c783e6ab0b503eaa86e310a5db738";
+
+      SymmetricKeyRef key = new SymmetricKey();
+      key->setData("Jefe", 4);
+
+      HashMac hmac;
+      assert(hmac.start("MD5", key));
+      hmac.update("what do ya want for nothing?");
+      string digest = hmac.getMac();
+      assertStrCmp(expect, digest.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("md5 with 80-byte key");
+   {
+      const char* expect = "6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd";
+
+      SymmetricKeyRef key = new SymmetricKey();
+      key->setHexData(
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
+      HashMac hmac;
+      assert(hmac.start("MD5", key));
+      hmac.update("Test Using Larger Than Block-Size Key - Hash Key First");
+      string digest = hmac.getMac();
+      assertStrCmp(expect, digest.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("md5 restart test");
+   {
+      const char* expect = "9294727a3638bb1c13f48ef8158bfc9d";
+
+      SymmetricKeyRef key = new SymmetricKey();
+      key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
+
+      HashMac hmac;
+      assert(hmac.start("MD5", key));
+      hmac.update("Hi There");
+      string digest = hmac.getMac();
+      assertStrCmp(expect, digest.c_str());
+
+      assert(hmac.start("MD5", key));
+      hmac.update("Hi There");
+      digest = hmac.getMac();
+      assertStrCmp(expect, digest.c_str());
    }
    tr.passIfNoException();
 
    tr.test("sha-1 with 20-byte key");
    {
+      const char* expect = "b617318655057264e28bc0b6fb378c8ef146be00";
+
       SymmetricKeyRef key = new SymmetricKey();
       key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
 
@@ -147,7 +201,61 @@ static void runHashMacTest(TestRunner& tr)
       assert(hmac.start("SHA1", key));
       hmac.update("Hi There");
       string digest = hmac.getMac();
-      assertStrCmp(digest.c_str(), correctSha1.c_str());
+      assertStrCmp(expect, digest.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("sha-1 with short key");
+   {
+      const char* expect = "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79";
+
+      SymmetricKeyRef key = new SymmetricKey();
+      key->setData("Jefe", 4);
+
+      HashMac hmac;
+      assert(hmac.start("SHA1", key));
+      hmac.update("what do ya want for nothing?");
+      string digest = hmac.getMac();
+      assertStrCmp(expect, digest.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("sha-1 with 80-byte key");
+   {
+      const char* expect = "aa4ae5e15272d00e95705637ce8a3b55ed402112";
+
+      SymmetricKeyRef key = new SymmetricKey();
+      key->setHexData(
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
+      HashMac hmac;
+      assert(hmac.start("SHA1", key));
+      hmac.update("Test Using Larger Than Block-Size Key - Hash Key First");
+      string digest = hmac.getMac();
+      assertStrCmp(expect, digest.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("sha-1 restart test");
+   {
+      const char* expect = "b617318655057264e28bc0b6fb378c8ef146be00";
+
+      SymmetricKeyRef key = new SymmetricKey();
+      key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
+
+      HashMac hmac;
+      assert(hmac.start("SHA1", key));
+      hmac.update("Hi There");
+      string digest = hmac.getMac();
+      assertStrCmp(expect, digest.c_str());
+
+      assert(hmac.start("SHA1", key));
+      hmac.update("Hi There");
+      digest = hmac.getMac();
+      assertStrCmp(expect, digest.c_str());
    }
    tr.passIfNoException();
 
