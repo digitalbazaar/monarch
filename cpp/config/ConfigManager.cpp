@@ -55,6 +55,7 @@ ConfigManager::ConfigManager() :
 
 ConfigManager::~ConfigManager()
 {
+   mStates.clear();
 }
 
 DynamicObject ConfigManager::getDebugInfo()
@@ -1780,6 +1781,48 @@ bool ConfigManager::recursiveAddConfig(
       }
       mLock.unlockExclusive();
    }
+
+   return rval;
+}
+
+void ConfigManager::saveState()
+{
+   mLock.lockExclusive();
+   {
+      DynamicObject state;
+      state["versions"] = mVersions.clone();
+      state["keywords"] = mKeywordMap.clone();
+      state["configs"] = mConfigs.clone();
+      mStates.push_back(state);
+   }
+   mLock.unlockExclusive();
+}
+
+bool ConfigManager::restoreState()
+{
+   bool rval = true;
+
+   mLock.lockExclusive();
+   {
+      if(mStates.size() == 0)
+      {
+         ExceptionRef e = new Exception(
+            "Could not restore ConfigManager state. No previously saved state "
+            "found.",
+            CONFIG_EXCEPTION ".SavedStateNotFound");
+         Exception::set(e);
+         rval = false;
+      }
+      else
+      {
+         DynamicObject state = mStates.back();
+         mStates.pop_back();
+         mVersions = state["versions"];
+         mKeywordMap = state["keywords"];
+         mConfigs = state["configs"];
+      }
+   }
+   mLock.unlockExclusive();
 
    return rval;
 }

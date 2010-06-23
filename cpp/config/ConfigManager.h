@@ -8,6 +8,8 @@
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/rt/SharedLock.h"
 
+#include <vector>
+
 namespace monarch
 {
 namespace config
@@ -223,6 +225,12 @@ protected:
     */
    ConfigChangeListener* mConfigChangeListener;
 
+   /**
+    * Used to save and restore config state.
+    */
+   typedef std::vector<monarch::rt::DynamicObject> StateStack;
+   StateStack mStates;
+
 public:
    /**
     * Creates a new ConfigManager.
@@ -415,6 +423,23 @@ public:
     * @return the configuration change listener for this config manager.
     */
    ConfigChangeListener* getConfigChangeListener();
+
+   /**
+    * Saves the current configuration state so it can be restored later. Useful
+    * for running tests in a previously configured environment.
+    *
+    * Note: The ConfigChangeListener will not be saved or affected.
+    */
+   virtual void saveState();
+
+   /**
+    * Restores the last saved configuration state.
+    *
+    * Note: The ConfigChangeListener will not be saved, affected, or notified.
+    *
+    * @return true if successful, false if an exception occurred.
+    */
+   virtual bool restoreState();
 
 protected:
    /**
