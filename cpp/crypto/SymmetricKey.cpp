@@ -3,10 +3,13 @@
  */
 #include "monarch/crypto/SymmetricKey.h"
 
+#include "monarch/util/Convert.h"
+
 #include <cstdlib>
 #include <cstring>
 
 using namespace monarch::crypto;
+using namespace monarch::util;
 
 SymmetricKey::SymmetricKey(const char* algorithm) :
    mData(NULL),
@@ -102,6 +105,26 @@ void SymmetricKey::setData(
 
    // set encrypted flag
    mEncrypted = encrypted;
+}
+
+bool SymmetricKey::setHexData(const char* hex, int length)
+{
+   bool rval = true;
+
+   if(length == -1)
+   {
+      length = strlen(hex);
+   }
+
+   char b[length / 2 + 1];
+   unsigned int len;
+   rval = Convert::hexToBytes(hex, length, b, len);
+   if(rval)
+   {
+      setData(b, len);
+   }
+
+   return rval;
 }
 
 void SymmetricKey::getData(

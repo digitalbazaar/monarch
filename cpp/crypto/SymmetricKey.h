@@ -116,6 +116,18 @@ public:
       bool encrypted = false);
 
    /**
+    * Sets the data for this key using the given hex string.
+    *
+    * The data will be freed when this key is destructed.
+    *
+    * @param hex the hex string for the key.
+    * @param length the length of the hex string, -1 if hex is NULL-terminated.
+    *
+    * @return true if the hex was parsed correctly, false on error.
+    */
+   virtual bool setHexData(const char* hex, int length = -1);
+
+   /**
     * Gets the data and data length for this key. This method will provide
     * direct access to the data for this key.
     *

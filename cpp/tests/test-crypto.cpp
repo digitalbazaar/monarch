@@ -15,13 +15,16 @@
 #include "monarch/crypto/DigitalSignatureInputStream.h"
 #include "monarch/crypto/DigitalSignatureOutputStream.h"
 #include "monarch/crypto/DefaultBlockCipher.h"
+#include "monarch/crypto/HashMac.h"
 #include "monarch/crypto/MessageDigest.h"
+#include "monarch/crypto/SymmetricKey.h"
 #include "monarch/io/File.h"
 #include "monarch/io/FileInputStream.h"
 #include "monarch/io/FileOutputStream.h"
 #include "monarch/io/FileList.h"
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/io/OStreamOutputStream.h"
+#include "monarch/util/Convert.h"
 #include "monarch/util/Date.h"
 
 using namespace std;
@@ -114,6 +117,42 @@ static void runMessageDigestTest(TestRunner& tr)
    tr.ungroup();
 }
 
+static void runHashMacTest(TestRunner& tr)
+{
+   tr.group("HashMac");
+
+   // correct values
+   string correctMd5 = "9294727a3638bb1c13f48ef8158bfc9d";
+   string correctSha1 = "b617318655057264e28bc0b6fb378c8ef146be00";
+
+   tr.test("md5 with 16-byte key");
+   {
+      SymmetricKeyRef key = new SymmetricKey();
+      key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
+
+      HashMac hmac;
+      assert(hmac.start("MD5", key));
+      hmac.update("Hi There");
+      string digest = hmac.getMac();
+      assertStrCmp(digest.c_str(), correctMd5.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("sha-1 with 20-byte key");
+   {
+      SymmetricKeyRef key = new SymmetricKey();
+      key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
+
+      HashMac hmac;
+      assert(hmac.start("SHA1", key));
+      hmac.update("Hi There");
+      string digest = hmac.getMac();
+      assertStrCmp(digest.c_str(), correctSha1.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
 
 static void runCipherTest(TestRunner& tr, const char* algorithm)
 {
@@ -1323,6 +1362,7 @@ static bool run(TestRunner& tr)
    if(tr.isDefaultEnabled())
    {
       runMessageDigestTest(tr);
+      runHashMacTest(tr);
       runCipherTest(tr, "AES256");
       runAsymmetricKeyLoadingTest(tr);
       runDsaAsymmetricKeyCreationTest(tr);
