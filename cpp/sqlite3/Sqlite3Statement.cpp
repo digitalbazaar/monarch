@@ -223,7 +223,7 @@ bool Sqlite3Statement::execute()
          {
             case SQLITE_DONE:
                // reset to finalize statement
-               mState = sqlite3_reset(mHandle);
+               rval = reset();
                break;
             case SQLITE_ROW:
                // got back a row
