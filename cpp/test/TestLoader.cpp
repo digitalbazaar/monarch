@@ -161,6 +161,7 @@ bool TestLoader::run(App* app)
 
    // load all monarch.test.TestModules and run them
    {
+      ConfigManager* cm = app->getConfigManager();
       MicroKernel* k = app->getKernel();
       MicroKernel::ModuleApiList tests;
       k->getModuleApisByType("monarch.test.TestModule", tests);
@@ -175,9 +176,11 @@ bool TestLoader::run(App* app)
             (customModules->hasMember(name) &&
             customModules[name]->getBoolean()))
          {
+            cm->saveState();
             tr.group(name);
             rval = f->run(tr);
             tr.ungroup();
+            cm->restoreState();
          }
       }
    }
