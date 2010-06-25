@@ -268,9 +268,6 @@ public:
     * are no arguments at all.
     * "extra": target or root+path
     *
-    * If "extra" and "argError" is set, then there must be at least 1 extra
-    * option.
-    *
     * The base App will already parse the following parameters:
     * -h, --help: print out default help and delegates help
     * -V --version: print out app name and version if present

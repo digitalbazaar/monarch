@@ -756,36 +756,11 @@ bool CmdLineParser::processSpec(
             }
          }
       }
-      // check "extra" spec validity
-      else if(!optSpec->hasMember("target") &&
-         (!optSpec->hasMember("root") || !optSpec->hasMember("path")))
-      {
-         ExceptionRef e = new Exception(
-            "Invalid command line spec. "
-            "An option spec that uses 'extra' must specify a target or root "
-            "and path.",
-            CMDLINE_ERROR);
-         e->getDetails()["spec"] = optSpec;
-         Exception::set(e);
-         rval = false;
-      }
-      // "extra" spec checks out, assign extra options
+      // assign extra options
       else
       {
-         // extra options required but not found
-         if(options["extra"]->length() == 0 && optSpec->hasMember("argError"))
-         {
-            ExceptionRef e = new Exception(
-               optSpec["argError"]->getString(),
-               CMDLINE_ERROR);
-            Exception::set(e);
-            rval = false;
-         }
          // set target
-         else
-         {
-            rval = _setTarget(ar, spec, options["extra"]);
-         }
+         rval = _setTarget(ar, optSpec["extra"], options["extra"]);
       }
    }
 
