@@ -68,7 +68,7 @@ public:
     * that has already been consumed.
     *
     * @param ar the AppRunner to process the options for.
-    * @param options the command line options.
+    * @param options the command line options (map with 'options' and 'extra').
     * @param spec the command line spec to process.
     */
    virtual bool processSpec(

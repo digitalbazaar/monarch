@@ -175,7 +175,7 @@ int AppRunner::start(int argc, const char* argv[])
       DynamicObjectIterator si = meta["specs"].getIterator();
       while(success && si->hasNext())
       {
-         success = cmdp.processSpec(this, si->next(), options["options"]);
+         success = cmdp.processSpec(this, si->next(), options);
       }
 
       // load config files, setup logging
@@ -574,14 +574,14 @@ bool AppRunner::configureApp(App* app)
       // get app command line spec
       AppConfig ac;
       CmdLineParser cmdp;
-      DynamicObject options = meta["commandLine"]["options"];
+      DynamicObject options = meta["commandLine"];
       DynamicObject spec = app->getCommandLineSpec(cfg);
       getMetaConfig()["specs"]->append(spec);
 
       // process spec, load configs
       rval =
          cmdp.processSpec(this, spec, options) &&
-         cmdp.checkUnknownOptions(options) &&
+         cmdp.checkUnknownOptions(options["options"]) &&
          app->willLoadConfigs() &&
          ac.loadCommandLineConfigs(this, true) &&
          app->didLoadConfigs();

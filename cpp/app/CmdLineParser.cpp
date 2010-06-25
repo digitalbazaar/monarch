@@ -732,25 +732,35 @@ bool CmdLineParser::processSpec(
    {
       DynamicObject& optSpec = si->next();
 
-      // iterate over parsed command line options
-      DynamicObjectIterator oi = options.getIterator();
-      while(rval && oi->hasNext())
+      // use options
+      if(!optSpec->hasMember("extra"))
       {
-         DynamicObject& opt = oi->next();
-
-         // don't bother with consumed options unless spec says so
-         if(!opt["consumed"]->getBoolean() ||
-            (optSpec->hasMember("ignoreConsumed") &&
-             !optSpec["ignoreConsumed"]->getBoolean()))
+         // iterate over parsed command line options
+         DynamicObjectIterator oi = options["options"].getIterator();
+         while(rval && oi->hasNext())
          {
-            if((opt->hasMember("short") && optSpec->hasMember("short") &&
-               opt["short"] == optSpec["short"]) ||
-               (opt->hasMember("long") && optSpec->hasMember("long") &&
-               opt["long"] == optSpec["long"]))
+            DynamicObject& opt = oi->next();
+
+            // don't bother with consumed options unless spec says so
+            if(!opt["consumed"]->getBoolean() ||
+               (optSpec->hasMember("ignoreConsumed") &&
+                !optSpec["ignoreConsumed"]->getBoolean()))
             {
-               rval = _processOption(ar, optSpec, opt);
+               if((opt->hasMember("short") && optSpec->hasMember("short") &&
+                  opt["short"] == optSpec["short"]) ||
+                  (opt->hasMember("long") && optSpec->hasMember("long") &&
+                  opt["long"] == optSpec["long"]))
+               {
+                  rval = _processOption(ar, optSpec, opt);
+               }
             }
          }
+      }
+      // assign extra options
+      else
+      {
+         // set target
+         rval = _setTarget(ar, optSpec["extra"], options["extra"]);
       }
    }
 
