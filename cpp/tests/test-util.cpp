@@ -328,13 +328,49 @@ static void runRegexTest(TestRunner& tr)
       expect[2] = "DEF";
       expect[3] = "GHI";
 
-      assert(expect == matches);
+      assertDynoCmp(expect, matches);
    }
    tr.passIfNoException();
 
-   tr.test("split");
+   tr.test("split (simple)");
    {
-      PatternRef p = Pattern::compile("(\\w+)=\"([^\"]+)\"", true, true);
+      PatternRef p = Pattern::compile("([^ ]+)", true, true);
+      assertNoException();
+
+      DynamicObject matches;
+      assert(p->split("foo1 foo2", matches));
+      //dumpDynamicObject(matches);
+
+      DynamicObject expect;
+      expect[0] = "foo1";
+      expect[1] = "foo2";
+
+      assertDynoCmp(expect, matches);
+   }
+   tr.passIfNoException();
+
+   tr.test("split (key=value)");
+   {
+      PatternRef p = Pattern::compile("([[:alnum:]_]+)=([[:alnum:]_]+)", true, true);
+      assertNoException();
+
+      DynamicObject matches;
+      assert(p->split("foo1=bar1, foo2=bar2", matches));
+      //dumpDynamicObject(matches);
+
+      DynamicObject expect;
+      expect[0] = "foo1";
+      expect[1] = "bar1";
+      expect[2] = "foo2";
+      expect[3] = "bar2";
+
+      assertDynoCmp(expect, matches);
+   }
+   tr.passIfNoException();
+
+   tr.test("split (key=\"value\")");
+   {
+      PatternRef p = Pattern::compile("([[:alnum:]_]+)=\"([^\"]+)\"", true, true);
       assertNoException();
 
       DynamicObject matches;
@@ -347,7 +383,7 @@ static void runRegexTest(TestRunner& tr)
       expect[2] = "foo2";
       expect[3] = "bar2";
 
-      assert(expect == matches);
+      assertDynoCmp(expect, matches);
    }
    tr.passIfNoException();
 
