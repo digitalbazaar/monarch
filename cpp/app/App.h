@@ -237,11 +237,10 @@ public:
     * Note: This will read/write to a specific DynamicObject. Interaction with
     *       a multi-level ConfigManager setup may not be straightforward.
     *
-    * Read next argument or arguments, convert to the DynamicObject type, and
-    * store them. On error use argError message. The command line must have
-    * enough arguments to satisfy the args array length.
+    * Read next argument, convert to the DynamicObject type, and store it. On
+    * error use argError message. The command line must have an argument to
+    * satisfy the spec.
     * "arg": DynamicObject
-    * "args": [ target[, ...] ]
     * "argError": string
     *
     * Append arg or args to an Array DynamicObject:
@@ -264,6 +263,13 @@ public:
     * A keyword can also be set by specifying the name of the keyword. The
     * option value will be set as the value of the keyword.
     * "keyword": MY_KEY_WORD
+    *
+    * Store extra options for the application (following --) or, if there
+    * are no arguments at all.
+    * "extra": target or root+path
+    *
+    * If "extra" and "argError" is set, then there must be at least 1 extra
+    * option.
     *
     * The base App will already parse the following parameters:
     * -h, --help: print out default help and delegates help

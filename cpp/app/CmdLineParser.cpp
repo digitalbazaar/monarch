@@ -732,24 +732,59 @@ bool CmdLineParser::processSpec(
    {
       DynamicObject& optSpec = si->next();
 
-      // iterate over parsed command line options
-      DynamicObjectIterator oi = options.getIterator();
-      while(rval && oi->hasNext())
+      // use options
+      if(!optSpec->hasMember("extra"))
       {
-         DynamicObject& opt = oi->next();
-
-         // don't bother with consumed options unless spec says so
-         if(!opt["consumed"]->getBoolean() ||
-            (optSpec->hasMember("ignoreConsumed") &&
-             !optSpec["ignoreConsumed"]->getBoolean()))
+         // iterate over parsed command line options
+         DynamicObjectIterator oi = options["options"].getIterator();
+         while(rval && oi->hasNext())
          {
-            if((opt->hasMember("short") && optSpec->hasMember("short") &&
-               opt["short"] == optSpec["short"]) ||
-               (opt->hasMember("long") && optSpec->hasMember("long") &&
-               opt["long"] == optSpec["long"]))
+            DynamicObject& opt = oi->next();
+
+            // don't bother with consumed options unless spec says so
+            if(!opt["consumed"]->getBoolean() ||
+               (optSpec->hasMember("ignoreConsumed") &&
+                !optSpec["ignoreConsumed"]->getBoolean()))
             {
-               rval = _processOption(ar, optSpec, opt);
+               if((opt->hasMember("short") && optSpec->hasMember("short") &&
+                  opt["short"] == optSpec["short"]) ||
+                  (opt->hasMember("long") && optSpec->hasMember("long") &&
+                  opt["long"] == optSpec["long"]))
+               {
+                  rval = _processOption(ar, optSpec, opt);
+               }
             }
+         }
+      }
+      // check "extra" spec validity
+      else if(!optSpec->hasMember("target") &&
+         (!optSpec->hasMember("root") || !optSpec->hasMember("path")))
+      {
+         ExceptionRef e = new Exception(
+            "Invalid command line spec. "
+            "An option spec that uses 'extra' must specify a target or root "
+            "and path.",
+            CMDLINE_ERROR);
+         e->getDetails()["spec"] = optSpec;
+         Exception::set(e);
+         rval = false;
+      }
+      // "extra" spec checks out, assign extra options
+      else
+      {
+         // extra options required but not found
+         if(options["extra"]->length() == 0 && optSpec->hasMember("argError"))
+         {
+            ExceptionRef e = new Exception(
+               optSpec["argError"]->getString(),
+               CMDLINE_ERROR);
+            Exception::set(e);
+            rval = false;
+         }
+         // set target
+         else
+         {
+            rval = _setTarget(ar, spec, options["extra"]);
          }
       }
    }
