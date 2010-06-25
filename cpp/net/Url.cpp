@@ -774,57 +774,48 @@ bool Url::formDecode(DynamicObject& form, const char* str, bool asArrays)
 
       // split on equals
       eq = strchr(tok, '=');
-      if(eq != NULL)
+      size_t namelen = (eq != NULL) ? (eq - tok) : strlen(tok);
+      if(namelen > 0)
       {
-         size_t namelen = eq - tok;
+         // valid var found
+         rval = true;
 
-         if(namelen > 0)
+         // get and url-decode name and value
+         string keyStr = decode(tok, namelen);
+         const char* key = keyStr.c_str();
+         DynamicObject value;
+         if(eq != NULL)
          {
-            // valid var found
-            rval = true;
-
-            // get variable name and set value
-            char name[namelen];
-            memcpy(name, tok, namelen);
-
-            // url-decode name and value
-            string key = decode(name, namelen);
-            DynamicObject value;
             value = decode(eq + 1, strlen(eq + 1)).c_str();
-            // add value for key or add value to key array
-            if(asArrays)
-            {
-               form[key.c_str()]->setType(Array);
-               form[key.c_str()]->append(value);
-            }
-            else
-            {
-               form[key.c_str()] = value;
-            }
          }
-      }
-      else
-      {
-         size_t namelen = strlen(tok);
 
-         // ignore empty names
-         if(namelen > 0)
+         // always add value to an array
+         if(asArrays)
          {
-            // valid var found
-            rval = true;
+            form[key]->append(value);
+         }
+         else
+         {
+            // check if form already has key
+            bool exists = form->hasMember(key);
+            DynamicObject& v = form[key];
 
-            // url-decode name and value
-            string key = decode(tok, namelen).c_str();
-            DynamicObject value;
-            value = "";
-            if(asArrays)
+            // add value to an array if there are duplicates
+            if(exists)
             {
-               form[key.c_str()]->setType(Array);
-               form[key.c_str()]->append(value);
+               // convert existing value to an array
+               if(v->getType() != Array)
+               {
+                  DynamicObject tmp;
+                  tmp = v->getString();
+                  v->append(tmp);
+               }
+               v->append(value);
             }
+            // set value to string
             else
             {
-               form[key.c_str()] = value;
+               v = value;
             }
          }
       }

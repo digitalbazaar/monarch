@@ -786,10 +786,23 @@ const char* DynamicObjectImpl::getString() const
          rval = "";
       }
    }
-   else if(mType == Map || mType == Array)
+   else if(mType == Map)
    {
       // return blank string
       rval = "";
+   }
+   else if(mType == Array)
+   {
+      // return blank string
+      if(mArray->size() == 0)
+      {
+         rval = "";
+      }
+      // return first element of array as a string
+      else
+      {
+         rval = (*mArray)[0]->getString();
+      }
    }
    else
    {

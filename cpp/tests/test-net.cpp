@@ -1050,6 +1050,9 @@ static void runUrlTest(TestRunner& tr)
       DynamicObject vars;
       assert(url.getQueryVariables(vars));
       assert(vars->getType() == Map);
+      DynamicObject expect;
+      expect["foo"] = "bar";
+      assertDynoCmp(expect, vars);
    }
 
    {
@@ -1086,13 +1089,14 @@ static void runUrlTest(TestRunner& tr)
    }
 
    {
-      // check using last value for key
+      // check using both values for key
       Url url("http://bitmunk.com/path?a=1&a=2");
 
       DynamicObject vars;
       assert(url.getQueryVariables(vars));
       DynamicObject expect;
-      expect["a"] = "2";
+      expect["a"][0] = "1";
+      expect["a"][1] = "2";
       assertDynoCmp(vars, expect);
    }
 
