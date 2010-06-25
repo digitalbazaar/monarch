@@ -1262,6 +1262,160 @@ static void runDomReaderCrashTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+static void assertSameExceptions(ExceptionRef& e0, ExceptionRef& e1)
+{
+   // assert both are NULL or not NULL
+   assert((e0.isNull() && e1.isNull()) ||
+          (!e0.isNull() && !e1.isNull()));
+
+   // check contents if both not NULL
+   if(!e0.isNull() && !e1.isNull())
+   {
+      // compare basic elements
+      assertStrCmp(e0->getMessage(), e1->getMessage());
+      assertStrCmp(e0->getType(), e1->getType());
+      assert(e0->getCode() == e1->getCode());
+
+      // recursively check cause chain
+      // FIXME enable cause checking
+      assertSameExceptions(e0->getCause(), e1->getCause());
+   }
+}
+
+static void runExceptionTest_XML_1(ExceptionRef& e)
+{
+   // write out exception
+   DynamicObject dyno = Exception::convertToDynamicObject(e);
+   ByteBuffer buffer(1024);
+   ByteArrayOutputStream baos(&buffer, true);
+   XmlWriter writer;
+   writer.setIndentation(0, 1);
+   DynamicObjectInputStream dois(dyno, &writer, false);
+
+   char b[1024];
+   int numBytes;
+   while((numBytes = dois.read(b, 1024)) > 0)
+   {
+      baos.write(b, numBytes);
+      assertNoException();
+   }
+   assertNoException();
+
+   string xml1(buffer.bytes(), buffer.length());
+   //printf("xml1=\n%s\n", xml1.c_str());
+
+   // read exception back in
+   DynamicObject dyno2;
+   XmlReader reader;
+   DynamicObjectOutputStream doos(dyno2, &reader, false);
+   doos.write(xml1.c_str(), xml1.length());
+   assertNoException();
+   ExceptionRef e2 = Exception::convertToException(dyno2);
+
+   // write exception back out
+   DynamicObject dyno3 = Exception::convertToDynamicObject(e2);
+   DynamicObjectInputStream dois2(dyno3, &writer, false);
+   buffer.clear();
+   ByteArrayOutputStream baos2(&buffer, true);
+
+   char b2[1024];
+   int numBytes2;
+   while((numBytes2 = dois2.read(b2, 1024)) > 0)
+   {
+      baos2.write(b2, numBytes2);
+      assertNoException();
+   }
+   assertNoException();
+
+   string xml2(buffer.bytes(), buffer.length());
+   //printf("xml2=\n%s\n", xml2.c_str());
+
+   assertStrCmp(xml1.c_str(), xml2.c_str());
+   assertSameExceptions(e, e2);
+}
+
+static void runExceptionTest_JSON_1(ExceptionRef& e)
+{
+   // write out exception
+   DynamicObject dyno = Exception::convertToDynamicObject(e);
+   ByteBuffer buffer(1024);
+   ByteArrayOutputStream baos(&buffer, true);
+   JsonWriter writer;
+   writer.setIndentation(0, 1);
+   DynamicObjectInputStream dois(dyno, &writer, false);
+
+   char b[1024];
+   int numBytes;
+   while((numBytes = dois.read(b, 1024)) > 0)
+   {
+      baos.write(b, numBytes);
+      assertNoException();
+   }
+   assertNoException();
+
+   string json1(buffer.bytes(), buffer.length());
+   //printf("json1=\n%s\n", json1.c_str());
+
+   // read exception back in
+   DynamicObject dyno2;
+   JsonReader reader;
+   DynamicObjectOutputStream doos(dyno2, &reader, false);
+   doos.write(json1.c_str(), json1.length());
+   assertNoException();
+   ExceptionRef e2 = Exception::convertToException(dyno2);
+
+   // write exception back out
+   DynamicObject dyno3 = Exception::convertToDynamicObject(e2);
+   DynamicObjectInputStream dois2(dyno3, &writer, false);
+   buffer.clear();
+   ByteArrayOutputStream baos2(&buffer, true);
+
+   char b2[1024];
+   int numBytes2;
+   while((numBytes2 = dois2.read(b2, 1024)) > 0)
+   {
+      baos2.write(b2, numBytes2);
+      assertNoException();
+   }
+   assertNoException();
+
+   string json2(buffer.bytes(), buffer.length());
+   //printf("json2=\n%s\n", json1.c_str());
+
+   assertStrCmp(json1.c_str(), json2.c_str());
+   assertSameExceptions(e, e2);
+}
+
+static void runExceptionTypeTest(TestRunner& tr,
+   const char* type, void (*runTestFunc)(ExceptionRef&))
+{
+   tr.group(type);
+
+   tr.test("simple serialize/deserialize");
+   ExceptionRef e = new Exception("e name", "e type", 0);
+   runTestFunc(e);
+   tr.pass();
+
+   tr.test("simple serialize/deserialize w/ a cause");
+   ExceptionRef e2 = new Exception("e2 name", "e2 type", 0);
+   ExceptionRef e0 = new Exception("e0 name", "e0 type", 0);
+   e2->setCause(e0);
+   runTestFunc(e2);
+   tr.pass();
+
+   tr.ungroup();
+}
+
+static void runExceptionSerializationTest(TestRunner& tr)
+{
+   tr.group("exception serialization");
+
+   runExceptionTypeTest(tr, "XML", &runExceptionTest_XML_1);
+   runExceptionTypeTest(tr, "JSON", &runExceptionTest_JSON_1);
+
+   tr.ungroup();
+}
+
 static void runSwapTest(TestRunner& tr)
 {
    tr.group("byte order swapping");
@@ -1357,7 +1511,6 @@ static void runFourccTest(TestRunner& tr)
 
    tr.ungroup();
 }
-
 
 static void runRiffTest(TestRunner& tr)
 {
@@ -2646,6 +2799,8 @@ static bool run(TestRunner& tr)
       runDomReaderCrashTest(tr);
       runDomReadWriteNamespaceTest(tr);
       runDomWriteNamespaceTest(tr);
+
+      runExceptionSerializationTest(tr);
 
       runSwapTest(tr);
 
