@@ -351,7 +351,8 @@ static void runRegexTest(TestRunner& tr)
 
    tr.test("split (key=value)");
    {
-      PatternRef p = Pattern::compile("([[:alnum:]_]+)=([[:alnum:]_]+)", true, true);
+      PatternRef p =
+         Pattern::compile("([[:alnum:]_]+)=([[:alnum:]_]+)", true, true);
       assertNoException();
 
       DynamicObject matches;
@@ -370,7 +371,8 @@ static void runRegexTest(TestRunner& tr)
 
    tr.test("split (key=\"value\")");
    {
-      PatternRef p = Pattern::compile("([[:alnum:]_]+)=\"([^\"]+)\"", true, true);
+      PatternRef p =
+         Pattern::compile("([[:alnum:]_]+)=\"([^\"]+)\"", true, true);
       assertNoException();
 
       DynamicObject matches;
