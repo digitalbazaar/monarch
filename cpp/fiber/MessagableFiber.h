@@ -6,6 +6,7 @@
 
 #include "monarch/fiber/Fiber.h"
 #include "monarch/rt/DynamicObject.h"
+#include "monarch/rt/ExclusiveLock.h"
 
 #include <list>
 

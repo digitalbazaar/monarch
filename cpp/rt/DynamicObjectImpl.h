@@ -4,8 +4,6 @@
 #ifndef monarch_rt_DynamicObjectImpl_H
 #define monarch_rt_DynamicObjectImpl_H
 
-#include "monarch/rt/ExclusiveLock.h"
-
 #include <map>
 #include <vector>
 #include <cstring>
