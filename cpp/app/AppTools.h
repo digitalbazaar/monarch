@@ -7,6 +7,7 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/io/OutputStream.h"
 
+#include <pthread.h>
 #include <string>
 
 namespace monarch
