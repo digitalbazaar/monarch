@@ -116,16 +116,20 @@ public:
       bool encrypted = false);
 
    /**
-    * Sets the data for this key using the given hex string.
+    * Sets the data and IV for this key using the given hex string.
     *
-    * The data will be freed when this key is destructed.
+    * The data and IV will be freed when this key is destructed.
     *
-    * @param hex the hex string for the key.
-    * @param length the length of the hex string, -1 if hex is NULL-terminated.
+    * @param keyHex the hex string for the key.
+    * @param ivHex the hex string for the IV, NULL for none.
+    * @param keyLength the length of the hex string, -1 if NULL-terminated.
+    * @param ivLength the length of the IV data, -1 if NULL-terminated.
     *
     * @return true if the hex was parsed correctly, false on error.
     */
-   virtual bool setHexData(const char* hex, int length = -1);
+   virtual bool setHexData(
+      const char* keyHex, const char* ivHex = NULL,
+      int keyLength = -1, int ivLength = -1);
 
    /**
     * Gets the data and data length for this key. This method will provide

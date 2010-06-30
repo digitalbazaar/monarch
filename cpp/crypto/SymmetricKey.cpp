@@ -107,21 +107,40 @@ void SymmetricKey::setData(
    mEncrypted = encrypted;
 }
 
-bool SymmetricKey::setHexData(const char* hex, int length)
+bool SymmetricKey::setHexData(
+   const char* keyHex, const char* ivHex, int keyLength, int ivLength)
 {
    bool rval = true;
 
-   if(length == -1)
+   if(keyLength == -1)
    {
-      length = strlen(hex);
+      keyLength = strlen(keyHex);
    }
 
-   char b[length / 2 + 1];
-   unsigned int len;
-   rval = Convert::hexToBytes(hex, length, b, len);
+   char keyBytes[keyLength / 2 + 1];
+   unsigned int keyLen;
+   rval = Convert::hexToBytes(keyHex, keyLength, keyBytes, keyLen);
    if(rval)
    {
-      setData(b, len);
+      if(ivHex == NULL)
+      {
+         setData(keyBytes, keyLen);
+      }
+      else
+      {
+         if(ivLength == -1)
+         {
+            ivLength = strlen(ivHex);
+         }
+
+         char ivBytes[ivLength / 2 + 1];
+         unsigned int ivLen;
+         rval = Convert::hexToBytes(ivHex, ivLength, ivBytes, ivLen);
+         if(rval)
+         {
+            setData(keyBytes, keyLen, ivBytes, ivLen);
+         }
+      }
    }
 
    return rval;
