@@ -830,6 +830,67 @@ static void testFailures()
    }
 }
 
+static void testRemove()
+{
+   // Test case for REMOVE
+
+   // init configs
+   Config c1;
+   c1[ConfigManager::ID] = "test1";
+   c1[ConfigManager::MERGE]["a"] = "a";
+   c1[ConfigManager::MERGE]["b"] = "b";
+
+   Config c2;
+   c2[ConfigManager::ID] = "test2";
+   c2[ConfigManager::PARENT] = "test1";
+   c2[ConfigManager::REMOVE]["b"] = "";
+
+   Config c3;
+   c3[ConfigManager::ID] = "test3";
+   c3[ConfigManager::PARENT] = "test1";
+   c3[ConfigManager::REMOVE]["b"].setNull();
+
+   dumpDynamicObject(c1);
+   dumpDynamicObject(c2);
+   dumpDynamicObject(c3);
+
+   // test removal with string value
+   {
+      ConfigManager cm;
+      Config expected;
+
+      expected["a"] = "a";
+      expected["b"] = "b";
+
+      assertNoException(cm.addConfig(c1));
+      assertNamedDynoCmp("result", cm.getConfig("test1"), "expected", expected);
+
+      expected->clear();
+      expected["a"] = "a";
+
+      assertNoException(cm.addConfig(c2));
+      assertNamedDynoCmp("result", cm.getConfig("test2"), "expected", expected);
+   }
+
+   // test removal with null
+   {
+      ConfigManager cm;
+      Config expected;
+
+      expected["a"] = "a";
+      expected["b"] = "b";
+
+      assertNoException(cm.addConfig(c1));
+      assertNamedDynoCmp("result", cm.getConfig("test1"), "expected", expected);
+
+      expected->clear();
+      expected["a"] = "a";
+
+      assertNoException(cm.addConfig(c3));
+      assertNamedDynoCmp("result", cm.getConfig("test3"), "expected", expected);
+   }
+}
+
 int main()
 {
    printf("Testing ConfigManager...\n\n");
@@ -837,6 +898,7 @@ int main()
    testConfigs();
    testConfigFiles();
    testFailures();
+   testRemove();
 
    printf("\nALL TESTS PASS.\n");
    printf("Done. Total:1 Passed:1 Failed:0 Warnings:0 Unknown:0.\n");

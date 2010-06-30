@@ -917,7 +917,8 @@ static void _removeLeafNodes(Config& target, Config& remove)
          // FIXME: need a method to remove a single element from an array
          // also -- this currently will not be able to differentiate
          // between removing "index" X and removing value "Y" from an array
-         if(next->getType() == Map || next->getType() == Array)
+         if(!next.isNull() &&
+            (next->getType() == Map || next->getType() == Array))
          {
             // empty map/array leaf node to be removed
             if(next->length() == 0)
