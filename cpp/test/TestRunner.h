@@ -152,6 +152,16 @@ public:
    virtual OutputLevel getOutputLevel();
 
    /**
+    * Get the verbosity level.
+    *   0 = None.
+    *   1 = More.
+    *   2 = Even More.
+    *
+    * @return the verbosity level.
+    */
+   virtual int getVerbosityLevel();
+
+   /**
     * Set the list tests mode.
     *
     * @param listTests true to only list tests, false to run tests.

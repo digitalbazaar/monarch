@@ -10,6 +10,7 @@
 #include <cstdio>
 
 using namespace std;
+using namespace monarch::config;
 using namespace monarch::rt;
 using namespace monarch::test;
 
@@ -56,6 +57,19 @@ monarch::app::App* TestRunner::getApp()
 TestRunner::OutputLevel TestRunner::getOutputLevel()
 {
    return mOutputLevel;
+}
+
+int TestRunner::getVerbosityLevel()
+{
+   ConfigManager* cm = getApp()->getConfigManager();
+   Config cfg = cm->getConfig("main");
+   int rval = 0;
+   if(cfg->hasMember("monarch.app.Core") &&
+      cfg["monarch.app.Core"]->hasMember("verbosity"))
+   {
+      rval = cfg["monarch.app.Core"]["verbosity"]->getInt32();
+   }
+   return rval;
 }
 
 void TestRunner::setListTests(bool listTests)

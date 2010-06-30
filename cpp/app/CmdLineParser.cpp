@@ -658,9 +658,9 @@ static bool _processOption(
                   vt->setType(value->getType());
 
                   // try to get type from spec
-                  if(optSpec->hasMember("type"))
+                  if(optSpec[key]->hasMember("type"))
                   {
-                     vt = optSpec[key];
+                     vt = optSpec[key]["type"];
                   }
                   // no type in spec so, if not json, preserve old type, if any
                   else if(!isJson)
