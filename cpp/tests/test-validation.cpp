@@ -37,7 +37,7 @@ static void runValidatorTest(TestRunner& tr)
       DynamicObject d;
       v::NotValid nv;
       assert(!nv.isValid(d));
-      assertException();
+      assertExceptionSet();
       if(_dump) dumpException();
       assertStrCmp(
          Exception::get()->getType(), "monarch.validation.ValidationError");

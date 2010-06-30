@@ -643,7 +643,7 @@ static void runHttpClientGetTest(TestRunner& tr)
 
                printf("HTTP trailers=\n%s\n", trailer.toString().c_str());
             }
-            assertNoException();
+            assertNoExceptionSet();
          }
       }
       else
@@ -699,7 +699,7 @@ static void runHttpClientPostTest(TestRunner& tr)
 
                printf("HTTP trailers=\n%s\n", trailer.toString().c_str());
             }
-            assertNoException();
+            assertNoExceptionSet();
          }
       }
       else

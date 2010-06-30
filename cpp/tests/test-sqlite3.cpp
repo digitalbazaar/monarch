@@ -39,9 +39,9 @@ static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    {
       monarch::sql::Statement* s = c->prepare(
          "DROP TABLE IF EXISTS " TABLE_TEST_1);
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -50,7 +50,7 @@ static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 #if 0
    if(tr != NULL)
@@ -60,9 +60,9 @@ static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    {
       monarch::sql::Statement* s = c->prepare(
          "DROP TABLE IF EXISTS " TABLE_TEST_2);
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -71,7 +71,7 @@ static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 #endif
    if(tr != NULL)
@@ -81,9 +81,9 @@ static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    {
       monarch::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST_1 " (t TEXT, i INT)");
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -92,7 +92,7 @@ static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 #if 0
    if(tr != NULL)
@@ -102,9 +102,9 @@ static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    {
       monarch::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST_2 " (t TEXT, i INT)");
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -113,7 +113,7 @@ static void createSqlite3Table(TestRunner* tr, monarch::sql::Connection* c)
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 #endif
 }
@@ -128,9 +128,9 @@ static void executeSqlite3Statements(
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES ('test!', 1234)");
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -139,7 +139,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 
    if(tr != NULL)
@@ -149,9 +149,9 @@ static void executeSqlite3Statements(
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES ('!tset', 4321)");
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -160,7 +160,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 
    if(tr != NULL)
@@ -170,11 +170,11 @@ static void executeSqlite3Statements(
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES (?, ?)");
-      assertNoException();
+      assertNoExceptionSet();
       s->setText(1, "boundpositional");
       s->setInt32(2, 2222);
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -183,7 +183,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 
    if(tr != NULL)
@@ -193,11 +193,11 @@ static void executeSqlite3Statements(
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES (:first, :second)");
-      assertNoException();
+      assertNoExceptionSet();
       s->setText(":first", "boundnamed");
       s->setInt32(":second", 2223);
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -206,7 +206,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 
    if(tr != NULL)
@@ -215,9 +215,9 @@ static void executeSqlite3Statements(
    }
    {
       monarch::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST_1);
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
 
       Row* row;
@@ -226,9 +226,9 @@ static void executeSqlite3Statements(
       while((row = s->fetch()) != NULL)
       {
          row->getText("t", t);
-         assertNoException();
+         assertNoExceptionSet();
          row->getInt32("i", i);
-         assertNoException();
+         assertNoExceptionSet();
 
          if(strcmp(t.c_str(), "test!") == 0)
          {
@@ -259,7 +259,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 #if 0
    if(tr != NULL)
@@ -269,9 +269,9 @@ static void executeSqlite3Statements(
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST_2 " (t, i) VALUES ('test!', 1234)");
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -280,7 +280,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 
    if(tr != NULL)
@@ -290,9 +290,9 @@ static void executeSqlite3Statements(
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST_2 " (t, i) VALUES ('!tset', 4321)");
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -301,7 +301,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 
    if(tr != NULL)
@@ -311,11 +311,11 @@ static void executeSqlite3Statements(
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST_2 " (t, i) VALUES (?, ?)");
-      assertNoException();
+      assertNoExceptionSet();
       s->setText(1, "boundpositional");
       s->setInt32(2, 2222);
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -324,7 +324,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 
    if(tr != NULL)
@@ -334,11 +334,11 @@ static void executeSqlite3Statements(
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST_2 " (t, i) VALUES (:first, :second)");
-      assertNoException();
+      assertNoExceptionSet();
       s->setText(":first", "boundnamed");
       s->setInt32(":second", 2223);
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    if(tr != NULL)
@@ -347,7 +347,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 
    if(tr != NULL)
@@ -356,9 +356,9 @@ static void executeSqlite3Statements(
    }
    {
       monarch::sql::Statement* s = c->prepare("SELECT * FROM " TABLE_TEST_2);
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
 
       Row* row;
@@ -367,9 +367,9 @@ static void executeSqlite3Statements(
       while((row = s->fetch()) != NULL)
       {
          row->getText("t", t);
-         assertNoException();
+         assertNoExceptionSet();
          row->getInt32("i", i);
-         assertNoException();
+         assertNoExceptionSet();
 
          if(strcmp(t.c_str(), "test!") == 0)
          {
@@ -400,7 +400,7 @@ static void executeSqlite3Statements(
    }
    else
    {
-      assertNoException();
+      assertNoExceptionSet();
    }
 #endif
 }
@@ -412,7 +412,7 @@ static void runSqlite3ConnectionTest(TestRunner& tr)
    Sqlite3Connection c;
    c.connect("sqlite3::memory:");
    c.close();
-   assertNoException();
+   assertNoExceptionSet();
 
    tr.pass();
 }
@@ -432,7 +432,7 @@ static void runSqlite3PrepareManyTest(TestRunner& tr)
          c.cleanupPreparedStatements();
       }
       c.close();
-      assertNoException();
+      assertNoExceptionSet();
    }
    tr.pass();
 }
@@ -477,9 +477,9 @@ static void runSqlite3TableTest(TestRunner& tr)
    {
       monarch::sql::Statement* s = c.prepare(
          "DROP TABLE IF EXISTS " TABLE_TEST_1);
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    tr.passIfNoException();
@@ -489,9 +489,9 @@ static void runSqlite3TableTest(TestRunner& tr)
    {
       monarch::sql::Statement* s = c.prepare(
          "CREATE TABLE " TABLE_TEST_1 " (t TEXT, i INT)");
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    tr.passIfNoException();
@@ -501,9 +501,9 @@ static void runSqlite3TableTest(TestRunner& tr)
    {
       monarch::sql::Statement* s = c.prepare(
          "DROP TABLE " TABLE_TEST_1);
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
    }
    tr.passIfNoException();
@@ -538,9 +538,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("create test table");
       {
          monarch::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -554,9 +554,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("rename");
       {
          monarch::sql::Statement* s = c.prepare("ALTER TABLE t1 RENAME TO t1_old");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -564,9 +564,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("create new table");
       {
          monarch::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -575,9 +575,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       {
          monarch::sql::Statement* s =
             c.prepare("INSERT INTO t1 SELECT * FROM t1_old");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -585,9 +585,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("drop old table");
       {
          monarch::sql::Statement* s = c.prepare("DROP TABLE t1_old");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -627,9 +627,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("create test table");
       {
          monarch::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -644,9 +644,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       {
          monarch::sql::Statement* s =
             c.prepare("CREATE TEMPORARY TABLE t1_new (t TEXT, i INT)");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -655,9 +655,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       {
          monarch::sql::Statement* s =
             c.prepare("INSERT INTO t1_new SELECT * FROM t1");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -665,9 +665,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("drop old table");
       {
          monarch::sql::Statement* s = c.prepare("DROP TABLE t1");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -676,9 +676,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       {
          monarch::sql::Statement* s =
             c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -687,9 +687,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       {
          monarch::sql::Statement* s =
             c.prepare("INSERT INTO t1 SELECT * FROM t1_new");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -697,9 +697,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("drop temp table");
       {
          monarch::sql::Statement* s = c.prepare("DROP TABLE t1_new");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -738,9 +738,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("create test table");
       {
          monarch::sql::Statement* s = c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -755,9 +755,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       {
          monarch::sql::Statement* s =
             c.prepare("CREATE TEMPORARY TABLE t1_old AS SELECT * FROM t1");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -765,9 +765,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("drop old table");
       {
          monarch::sql::Statement* s = c.prepare("DROP TABLE t1");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -776,9 +776,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       {
          monarch::sql::Statement* s =
             c.prepare("CREATE TABLE t1 (t TEXT, i INT)");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -787,9 +787,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       {
          monarch::sql::Statement* s =
             c.prepare("INSERT INTO t1 SELECT * FROM t1_old");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -797,9 +797,9 @@ static void runSqlite3TableMigrationTest(TestRunner& tr)
       tr.test("drop temp table");
       {
          monarch::sql::Statement* s = c.prepare("DROP TABLE t1_old");
-         assertNoException();
+         assertNoExceptionSet();
          int success = s->execute();
-         assertNoException();
+         assertNoExceptionSet();
          assert(success);
       }
       tr.passIfNoException();
@@ -871,7 +871,7 @@ static void runSqlite3ReuseTest(TestRunner& tr)
 
    // create sqlite3 connection pool
    Sqlite3ConnectionPool cp("sqlite3::memory:", 1);
-   assertNoException();
+   assertNoExceptionSet();
 
    tr.test("create table");
    {
@@ -880,9 +880,9 @@ static void runSqlite3ReuseTest(TestRunner& tr)
       assert(c != NULL);
       monarch::sql::Statement* s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST_1 " (t TEXT, i INT)");
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
       c->close();
    }
@@ -895,9 +895,9 @@ static void runSqlite3ReuseTest(TestRunner& tr)
       assert(c != NULL);
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES ('test!', 1234)");
-      assertNoException();
+      assertNoExceptionSet();
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
       c->close();
    }
@@ -910,10 +910,10 @@ static void runSqlite3ReuseTest(TestRunner& tr)
       assert(c != NULL);
       monarch::sql::Statement* s = c->prepare(
          "SELECT * FROM " TABLE_TEST_1 " WHERE i=:i LIMIT 1");
-      assertNoException();
+      assertNoExceptionSet();
       s->setInt32(":i", 1234);
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
 
       Row* row = s->fetch();
@@ -922,9 +922,9 @@ static void runSqlite3ReuseTest(TestRunner& tr)
       int i;
 
       row->getText("t", t);
-      assertNoException();
+      assertNoExceptionSet();
       row->getInt32("i", i);
-      assertNoException();
+      assertNoExceptionSet();
 
       assertStrCmp(t.c_str(), "test!");
       assert(i == 1234);
@@ -940,10 +940,10 @@ static void runSqlite3ReuseTest(TestRunner& tr)
       assert(c != NULL);
       monarch::sql::Statement* s = c->prepare(
          "SELECT * FROM " TABLE_TEST_1 " WHERE i=:i LIMIT 1");
-      assertNoException();
+      assertNoExceptionSet();
       s->setInt32(":i", 1234);
       int success = s->execute();
-      assertNoException();
+      assertNoExceptionSet();
       assert(success);
 
       Row* row = s->fetch();
@@ -952,9 +952,9 @@ static void runSqlite3ReuseTest(TestRunner& tr)
       int i;
 
       row->getText("t", t);
-      assertNoException();
+      assertNoExceptionSet();
       row->getInt32("i", i);
-      assertNoException();
+      assertNoExceptionSet();
 
       assertStrCmp(t.c_str(), "test!");
       assert(i == 1234);
@@ -973,7 +973,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
    // create sqlite3 connection pool
    Sqlite3ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:", 1);
    ConnectionPoolRef pool(cp);
-   assertNoException();
+   assertNoExceptionSet();
 
    // create database client
    DatabaseClientRef dbc = new Sqlite3DatabaseClient();
@@ -1025,7 +1025,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooInt32"] = 3;
       SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
 
       DynamicObject expect;
@@ -1052,7 +1052,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooInt32"] = 3;
       SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
 
       DynamicObject expect;
@@ -1077,7 +1077,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       where["fooId"] = 1;
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST_1, &where);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["fooId"] = 1;
@@ -1103,7 +1103,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       members["fooString"];
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST_1, &where, &members);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["fooString"] = "foobar";
@@ -1124,7 +1124,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       where["fooInt32"] = 3;
       SqlExecutableRef se = dbc->select(TABLE_TEST_1, &where, NULL, 5);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect->setType(Array);
@@ -1179,7 +1179,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       where["fooString"] = "bar";
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST_1, &where);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["fooId"] = 2;
@@ -1203,7 +1203,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       where["fooString"] = "bar";
       SqlExecutableRef se = dbc->select(TABLE_TEST_1, &where);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect[0]["fooId"] = 2;
@@ -1228,7 +1228,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       where["fooString"]->append() = "foobar";
       SqlExecutableRef se = dbc->select(TABLE_TEST_1, &where);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect->setType(Array);
@@ -1267,7 +1267,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
    {
       SqlExecutableRef se = dbc->select(TABLE_TEST_1);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect[0]["fooId"] = 2;
@@ -1295,7 +1295,7 @@ static void runSqlite3RollbackTest(TestRunner& tr)
    // create sqlite3 connection pool
    Sqlite3ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:", 1);
    ConnectionPoolRef pool(cp);
-   assertNoException();
+   assertNoExceptionSet();
 
    // create database client
    DatabaseClientRef dbc = new Sqlite3DatabaseClient();
@@ -1349,7 +1349,7 @@ static void runSqlite3RollbackTest(TestRunner& tr)
       row["fooInt32"] = 3;
       SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se, c);
-      assertNoException();
+      assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
 
       DynamicObject expect;
@@ -1376,7 +1376,7 @@ static void runSqlite3RollbackTest(TestRunner& tr)
       row["fooInt32"] = 3;
       SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se, c);
-      assertNoException();
+      assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
 
       DynamicObject expect;
@@ -1435,7 +1435,7 @@ static void runSqlite3ConnectionPoolTest(TestRunner& tr)
 
    // create sqlite3 connection pool
    Sqlite3ConnectionPool cp("sqlite3:///tmp/sqlite3cptest.db", 1);
-   assertNoException();
+   assertNoExceptionSet();
 
    // create table
    monarch::sql::Connection* c = cp.getConnection();
@@ -1510,7 +1510,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
    // create sqlite3 connection pool
    Sqlite3ConnectionPool* cp = new Sqlite3ConnectionPool("sqlite3::memory:", 1);
    ConnectionPoolRef pool(cp);
-   assertNoException();
+   assertNoExceptionSet();
 
    // create database client
    DatabaseClientRef dbc = new Sqlite3DatabaseClient();
@@ -1518,7 +1518,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
    dbc->setReadConnectionPool(pool);
    dbc->setWriteConnectionPool(pool);
    dbc->initialize();
-   assertNoException();
+   assertNoExceptionSet();
 
    // define Test object type
    tr.test("set Test OR map");
@@ -1607,28 +1607,28 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
          "type BIGINT UNSIGNED, lowertext TEXT)");
       assert(s != NULL);
       s->execute();
-      assertNoException();
+      assertNoExceptionSet();
 
       s = c->prepare(
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST_2
          " (type_id INTEGER UNSIGNED PRIMARY KEY, type_value TEXT)");
       assert(s != NULL);
       s->execute();
-      assertNoException();
+      assertNoExceptionSet();
 
       s = c->prepare(
          "INSERT INTO " TABLE_TEST_2 " (type_id,type_value) "
          "VALUES (1,'type1')");
       assert(s != NULL);
       s->execute();
-      assertNoException();
+      assertNoExceptionSet();
 
       s = c->prepare(
          "INSERT INTO " TABLE_TEST_2 " (type_id,type_value) "
          "VALUES (2,'type2')");
       assert(s != NULL);
       s->execute();
-      assertNoException();
+      assertNoExceptionSet();
    }
    tr.passIfNoException();
 
@@ -1642,7 +1642,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->add("Test", testObj)->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["ids"]["id"] = "1";
@@ -1658,7 +1658,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
    {
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->get("Test")->limit(1)->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject result;
       result["id"] = "1";
@@ -1685,7 +1685,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->update("Test", testObj)->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["changed"] = (uint64_t)1;
@@ -1700,7 +1700,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
    {
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->get("Test")->limit(1)->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject result;
       result["id"] = "1";
@@ -1728,7 +1728,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->update("Test", testObj)->where("Test", where)->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["changed"] = (uint64_t)1;
@@ -1743,7 +1743,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
    {
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->get("Test")->limit(1)->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject result;
       result["id"] = "1";
@@ -1773,7 +1773,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->update("Test", testObj)->where("Test", where, ">")->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["changed"] = (uint64_t)0;
@@ -1788,7 +1788,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
    {
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->get("Test")->limit(1)->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject result;
       result["id"] = "1";
@@ -1815,7 +1815,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->update("Test", update, "+=")->where("Test", where, ">=")->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["changed"] = (uint64_t)1;
@@ -1830,7 +1830,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
    {
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->get("Test")->limit(1)->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject result;
       result["id"] = "1";
@@ -1860,7 +1860,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->get("Test", &testObj)->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject result;
       result["id"] = "1";
@@ -1880,7 +1880,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->get("Test")->where("Test", testObj, "=")->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject result;
       result["id"] = "1";
@@ -1904,7 +1904,7 @@ static void runSqlite3StatementBuilderTest(TestRunner& tr)
 
       StatementBuilderRef sb = dbc->createStatementBuilder();
       sb->get("Test")->where("Test", testObj, "=")->execute(c);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject result;
       result["id"] = "1";

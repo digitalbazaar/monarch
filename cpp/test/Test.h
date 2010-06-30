@@ -7,6 +7,7 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
+#include "monarch/util/Macros.h"
 #include <string>
 #include <cassert>
 
@@ -84,23 +85,34 @@ bool dynamicObjectToString(
 bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
 
 /**
- * Check and dump exception condition.
+ * Check if exception set. If set, dump exception and fail via assert().
  */
-#define assertNoException() \
-   do { \
+#define assertNoExceptionSet() \
+   MO_STMT_START { \
       if(monarch::rt::Exception::isSet()) \
       { \
          monarch::rt::ExceptionRef e = monarch::rt::Exception::get(); \
          monarch::test::dumpException(e); \
          assert(!monarch::rt::Exception::isSet()); \
       } \
-   } while(0)
+   } MO_STMT_END
 
 /**
- * Check exception is set.
+ * Check if expression is true and if it set any exceptions. If exception set,
+ * dump exception and fail via assert. If expression false, fail via assert.
  */
-#define assertException() \
-   do { \
+#define assertNoException(expr) \
+   MO_STMT_START { \
+      bool success = (expr); \
+      assertNoExceptionSet(); \
+      assert(success); \
+   } MO_STMT_END
+
+/**
+ * Check if exception set. If not set, fail via assert.
+ */
+#define assertExceptionSet() \
+   MO_STMT_START { \
       if(!monarch::rt::Exception::isSet()) \
       { \
          monarch::rt::ExceptionRef e = \
@@ -109,13 +121,24 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
          monarch::test::dumpException(e); \
          assert(monarch::rt::Exception::isSet()); \
       } \
-   } while(0)
+   } MO_STMT_END
+
+/**
+ * Check if expression is false and if it set any exceptions. If exception not
+ * set, fail via assert. If expression true, fail via assert.
+ */
+#define assertException(expr) \
+   MO_STMT_START { \
+      bool success = (expr); \
+      assertExceptionSet(); \
+      assert(!success); \
+   } MO_STMT_END
 
 /**
  * Assert strings are equal.
  */
 #define assertStrCmp(a, b) \
-   do { \
+   MO_STMT_START { \
       std::string _a = a; \
       std::string _b = b; \
       if(strcmp(_a.c_str(), _b.c_str()) != 0) \
@@ -124,7 +147,7 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
             _a.c_str(), _b.c_str()); \
          assert(std::strcmp(_a.c_str(), _b.c_str()) == 0); \
       } \
-   } while(0)
+   } MO_STMT_END
 
 /**
  * Assert named DynamicObjects are equal.
@@ -135,7 +158,7 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
  * @param dyno2 second DynamicObject
  */
 #define assertNamedDynoCmp(name1, dyno1, name2, dyno2) \
-   do { \
+   MO_STMT_START { \
       if(!(dyno1 == dyno2)) \
       { \
          printf("\n%s:\n", name1); \
@@ -151,7 +174,7 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
             diff, false, false); \
          assert(dyno1 == dyno2); \
       } \
-   } while(0)
+   } MO_STMT_END
 
 /**
  * Assert DynamicObjects are equal.

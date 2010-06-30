@@ -35,7 +35,7 @@ static void _writeConfig(Config& config, const char* path)
    writer.setCompact(false);
    writer.write(config, &fos);
    fos.close();
-   assertNoException();
+   assertNoExceptionSet();
 }
 
 static void _readConfig(Config& config, const char* path)
@@ -46,7 +46,7 @@ static void _readConfig(Config& config, const char* path)
    reader.start(config);
    reader.read(&fis) && reader.finish();
    fis.close();
-   assertNoException();
+   assertNoExceptionSet();
 }
 
 static void _testConfigs(
@@ -63,7 +63,7 @@ static void _testConfigs(
       printf("Testing system raw config... ");
 
       Config raw = cm.getConfig("system", true);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(raw, system);
 
       printf("PASS.\n");
@@ -87,7 +87,7 @@ static void _testConfigs(
       expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("system", false);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(merged, expect);
 
       printf("PASS.\n");
@@ -98,10 +98,10 @@ static void _testConfigs(
       printf("Testing engine raw config... ");
 
       Config raw = cm.getConfig("engine", true);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(raw, engine);
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -125,10 +125,10 @@ static void _testConfigs(
       expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("engine", false);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(merged, expect);
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -137,10 +137,10 @@ static void _testConfigs(
       printf("Testing ui raw config... ");
 
       Config raw = cm.getConfig("ui", true);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(raw, ui);
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -164,7 +164,7 @@ static void _testConfigs(
       expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("ui", false);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(merged, expect);
 
       printf("PASS.\n");
@@ -176,7 +176,7 @@ static void _testConfigs(
 
       // invalid to request a raw groupid so check for that condition
       Config raw = cm.getConfig("app", true);
-      assertNoException();
+      assertNoExceptionSet();
       assert(!raw.isNull());
       Exception::clear();
 
@@ -205,7 +205,7 @@ static void _testConfigs(
       expect["vegetables"]["pepper"]->append() = "yellow";
 
       Config merged = cm.getConfig("app", false);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(merged, expect);
 
       printf("PASS.\n");
@@ -216,10 +216,10 @@ static void _testConfigs(
       printf("Testing user1 raw config... ");
 
       Config raw = cm.getConfig("user1", true);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(raw, user1);
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -242,7 +242,7 @@ static void _testConfigs(
       expect["vegetables"]["carrot"] = "orange";
 
       Config merged = cm.getConfig("user1", false);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(merged, expect);
 
       printf("PASS.\n");
@@ -253,10 +253,10 @@ static void _testConfigs(
       printf("Testing user2 raw config... ");
 
       Config raw = cm.getConfig("user2", true);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(raw, user2);
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -285,7 +285,7 @@ static void _testConfigs(
       expect["bacon"]["raw"] = "pink";
 
       Config merged = cm.getConfig("user2", false);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(merged, expect);
 
       printf("PASS.\n");
@@ -296,10 +296,10 @@ static void _testConfigs(
       printf("Testing child2 raw config... ");
 
       Config raw = cm.getConfig("child2", true);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(raw, child2);
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -326,7 +326,7 @@ static void _testConfigs(
       expect["shoes"] = "black";
 
       Config merged = cm.getConfig("child2", false);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(merged, expect);
 
       printf("PASS.\n");
@@ -339,17 +339,17 @@ static void _testConfigs(
       Config raw = cm.getConfig("user2", true);
       raw[ConfigManager::MERGE]["added"] = true;
       cm.setConfig(raw);
-      assertNoException();
+      assertNoExceptionSet();
 
       printf("PASS\n");
 
       printf("Testing user2 raw config after setting value... ");
 
       Config raw2 = cm.getConfig("user2", true);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(raw2, raw);
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -379,7 +379,7 @@ static void _testConfigs(
       expect["added"] = true;
 
       Config merged = cm.getConfig("user2", false);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(merged, expect);
 
       printf("PASS.\n");
@@ -409,7 +409,7 @@ static void _testConfigs(
       expect["added"] = true;
 
       Config merged = cm.getConfig("child2", false);
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(merged, expect);
 
       printf("PASS.\n");
@@ -430,7 +430,7 @@ static void _testConfigs(
 
       assert(cm.addConfig(system));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -440,7 +440,7 @@ static void _testConfigs(
 
       assert(cm.addConfig(engine));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -450,7 +450,7 @@ static void _testConfigs(
 
       assert(cm.addConfig(ui));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -460,7 +460,7 @@ static void _testConfigs(
 
       assert(cm.addConfig(user1));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -470,7 +470,7 @@ static void _testConfigs(
 
       assert(cm.addConfig(user2));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -480,7 +480,7 @@ static void _testConfigs(
 
       assert(cm.addConfig(child2));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -517,7 +517,7 @@ static void _testConfigFiles(
 
       assert(cm.addConfigFile(systemPath));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -527,7 +527,7 @@ static void _testConfigFiles(
 
       assert(cm.addConfigFile(enginePath));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -537,7 +537,7 @@ static void _testConfigFiles(
 
       assert(cm.addConfigFile(uiPath));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -547,7 +547,7 @@ static void _testConfigFiles(
 
       assert(cm.addConfigFile(user1Path));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -557,7 +557,7 @@ static void _testConfigFiles(
 
       assert(cm.addConfigFile(user2Path));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -567,7 +567,7 @@ static void _testConfigFiles(
 
       assert(cm.addConfigFile(child2Path));
 
-      assertNoException();
+      assertNoExceptionSet();
       printf("PASS.\n");
    }
 
@@ -763,31 +763,31 @@ static void testFailures()
    ConfigManager cm;
 
    assert(cm.addConfig(system));
-   assertNoException();
+   assertNoExceptionSet();
    assert(cm.addConfig(engine));
-   assertNoException();
+   assertNoExceptionSet();
    assert(!cm.addConfig(ui));
-   assertException();
+   assertExceptionSet();
    Exception::clear();
 
    // remove conflict
    ui[ConfigManager::MERGE]["fruits"]->removeMember("banana");
    assert(cm.addConfig(ui));
-   assertNoException();
+   assertNoExceptionSet();
    assert(cm.addConfig(user1));
-   assertNoException();
+   assertNoExceptionSet();
    assert(cm.addConfig(user2));
-   assertNoException();
+   assertNoExceptionSet();
    assert(cm.addConfig(child2));
 
    // try to get bogus config ID
    {
       Config bogus(NULL);
       bogus = cm.getConfig("bogus", true);
-      assertException();
+      assertExceptionSet();
       Exception::clear();
       bogus = cm.getConfig("bogus", false);
-      assertException();
+      assertExceptionSet();
       Exception::clear();
    }
 
@@ -798,7 +798,7 @@ static void testFailures()
       config[ConfigManager::PARENT] = "bogus";
       config[ConfigManager::MERGE]["test"] = "data";
       assert(!cm.addConfig(config));
-      assertException();
+      assertExceptionSet();
       Exception::clear();
    }
 
@@ -807,7 +807,7 @@ static void testFailures()
       Config _user1 = cm.getConfig("user1", false);
       _user1[ConfigManager::MERGE]["modify"] = true;
       cm.setConfig(_user1);
-      assertException();
+      assertExceptionSet();
       Exception::clear();
    }
 
@@ -816,7 +816,7 @@ static void testFailures()
       Config _user1 = cm.getConfig("user1", true);
       _user1[ConfigManager::GROUP] = "app";
       cm.setConfig(_user1);
-      assertException();
+      assertExceptionSet();
       Exception::clear();
    }
 
@@ -825,7 +825,7 @@ static void testFailures()
       Config _user1 = cm.getConfig("user1", true);
       _user1[ConfigManager::PARENT] = "system";
       cm.setConfig(_user1);
-      assertException();
+      assertExceptionSet();
       Exception::clear();
    }
 }

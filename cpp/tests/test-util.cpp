@@ -187,13 +187,13 @@ static void runConvertTest(TestRunner& tr)
       // bad hex
       hex = "x";
       assert(!Convert::hexToInt(hex.c_str(), hex.length(), ui));
-      assertException();
+      assertExceptionSet();
       Exception::clear();
 
       // too big
       hex = "876543210";
       assert(!Convert::hexToInt(hex.c_str(), hex.length(), ui));
-      assertException();
+      assertExceptionSet();
       Exception::clear();
    }
 
@@ -286,7 +286,7 @@ static void runRegexTest(TestRunner& tr)
    {
       string submatches = "Look for green globs of green matter in green goo.";
       PatternRef p = Pattern::compile("green", true, true);
-      assertNoException();
+      assertNoExceptionSet();
 
       int start, end;
       int index = 0;
@@ -316,7 +316,7 @@ static void runRegexTest(TestRunner& tr)
    tr.test("subexpression matches");
    {
       PatternRef p = Pattern::compile("^foo(.*)bar(.*)foo(.*)bar$", true, true);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject matches;
       assert(p->getSubMatches("fooABCbarDEFfooGHIbar", matches));
@@ -335,7 +335,7 @@ static void runRegexTest(TestRunner& tr)
    tr.test("split (simple)");
    {
       PatternRef p = Pattern::compile("([^ ]+)", true, true);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject matches;
       assert(p->split("foo1 foo2", matches));
@@ -353,7 +353,7 @@ static void runRegexTest(TestRunner& tr)
    {
       PatternRef p =
          Pattern::compile("([[:alnum:]_]+)=([[:alnum:]_]+)", true, true);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject matches;
       assert(p->split("foo1=bar1, foo2=bar2", matches));
@@ -373,7 +373,7 @@ static void runRegexTest(TestRunner& tr)
    {
       PatternRef p =
          Pattern::compile("([[:alnum:]_]+)=\"([^\"]+)\"", true, true);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject matches;
       assert(p->split("foo1=\"bar1\", foo2=\"bar2\"", matches));
@@ -625,17 +625,17 @@ static void runDateTest(TestRunner& tr)
       d.format(str, "%a, %d %b %Y %H:%M:%S", &gmt);
       //d.format(str, "%a, %d %b %Y %H:%M:%S", &local);
       //printf("Current Date: %s\n", str.c_str());
-      assertNoException();
+      assertNoExceptionSet();
 
       // parse date
       Date d2;
       d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
       //d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &local);
-      assertNoException();
+      assertNoExceptionSet();
       string str2;
       d2.format(str2, "%a, %d %b %Y %H:%M:%S", &gmt);
       //d2.format(str2, "%a, %d %b %Y %H:%M:%S", &local);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Parsed Date 1: %s\n", str2.c_str());
 
@@ -644,11 +644,11 @@ static void runDateTest(TestRunner& tr)
       Date d3;
       str = "Thu, 02 Aug 2007 10:30:00";
       d3.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
-      assertNoException();
+      assertNoExceptionSet();
       string str3;
       //d3.format(str3, "%a, %d %b %Y %H:%M:%S", &gmt);
       d3.format(str3, "%a, %d %b %Y %H:%M:%S", &local);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Parsed Date 2: %s\n", str3.c_str());
    }
@@ -659,7 +659,7 @@ static void runDateTest(TestRunner& tr)
       Date d;
       string str;
       d.parse("Thu, 02 Aug 2007 10:30:00", "%a, %d %b %Y %H:%M:%S", &gmt);
-      assertNoException();
+      assertNoExceptionSet();
 
       string utc = d.getUtcDateTime();
       assertStrCmp(utc.c_str(), "2007-08-02 10:30:00");

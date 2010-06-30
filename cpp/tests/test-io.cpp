@@ -573,16 +573,16 @@ static void runFileTest(TestRunner& tr)
    {
       bool renamed;
       renamed = tmpFileA->rename(tmpFileC);
-      assertNoException();
+      assertNoExceptionSet();
       assert(renamed);
 
       bool exists;
       exists = tmpFileA->exists();
-      assertNoException();
+      assertNoExceptionSet();
       assert(!exists);
 
       exists = tmpFileC->exists();
-      assertNoException();
+      assertNoExceptionSet();
       assert(exists);
    }
    tr.passIfNoException();
@@ -610,7 +610,7 @@ static void runFileTest(TestRunner& tr)
       {
          string path;
          assert(!File::expandUser("~/", path));
-         assertException();
+         assertExceptionSet();
          Exception::clear();
       }
 #endif
@@ -711,14 +711,14 @@ static void runFileTest(TestRunner& tr)
       {
          string path;
          assert(!File::expandUser("~user/foo.txt", path));
-         assertException();
+         assertExceptionSet();
          Exception::clear();
       }
 
       {
          string path;
          assert(!File::expandUser("~user/foo.txt", path));
-         assertException();
+         assertExceptionSet();
          Exception::clear();
       }
 
@@ -1032,7 +1032,7 @@ static void runFileTest(TestRunner& tr)
       file->remove();
       assert(file->createUnique());
       file->setRemoveOnCleanup(true);
-      assertNoException();
+      assertNoExceptionSet();
       file->createUnique();
    }
    tr.passIfException();

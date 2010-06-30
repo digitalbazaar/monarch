@@ -484,7 +484,7 @@ static void runConcurrentSigningTest(TestRunner& tr)
    PublicKeyRef publicKey;
    AsymmetricKeyFactory afk;
    afk.createKeyPair("RSA", privateKey, publicKey);
-   assertNoException();
+   assertNoExceptionSet();
 
    tr.test("10 fibers");
    {
@@ -571,14 +571,14 @@ static void jsonReadWrite(const char* s, size_t slen)
    JsonReader jr;
    DynamicObject d;
    JsonReader::readFromString(d, s, slen);
-   assertNoException();
+   assertNoExceptionSet();
 
    // encode dyno -> json
    NullOutputStream os;
    JsonWriter jw;
    jw.setCompact(true);
    jw.write(d, &os);
-   assertNoException();
+   assertNoExceptionSet();
 }
 
 /**

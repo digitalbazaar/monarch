@@ -185,7 +185,7 @@ bool TestLoader::run(App* app)
       }
    }
 
-   assertNoException();
+   assertNoExceptionSet();
 
    tr.ungroup();
    tr.done();

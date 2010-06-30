@@ -52,40 +52,40 @@ static void runAddressResolveTest(TestRunner& tr)
 
    ip4.setHost("www.bitmunk.com");
    ip4.getAddress();
-   assertNoException();
+   assertNoExceptionSet();
    //printf("www.bitmunk.com = %s\n", ip4.getAddress());
 
    ip4.setHost("www.google.com");
    ip4.getAddress();
-   assertNoException();
+   assertNoExceptionSet();
    //printf("www.google.com = %s\n", ip4.getAddress());
 
    ip4.setHost("www.yahoo.com");
    ip4.getAddress();
-   assertNoException();
+   assertNoExceptionSet();
    //printf("www.yahoo.com = %s\n", ip4.getAddress());
 
    ip4.setHost("www.microsoft.com");
    ip4.getAddress();
-   assertNoException();
+   assertNoExceptionSet();
    //printf("www.microsoft.com = %s\n\n" << ip4.getAddress());
 
    ip4.setAddress("192.168.0.1");
    ip4.getAddress();
    ip4.getHost();
-   assertNoException();
+   assertNoExceptionSet();
    //printf("%s = %s\n", ip4.getAddress(), ip4.getHost());
 
    ip4.setAddress("192.168.0.8");
    ip4.getAddress();
    ip4.getHost();
-   assertNoException();
+   assertNoExceptionSet();
    //printf("%s = %s\n", ip4.getAddress(), ip4.getHost());
 
    ip4.setAddress("216.239.51.99");
    ip4.getAddress();
    ip4.getHost();
-   assertNoException();
+   assertNoExceptionSet();
    //printf("%s = %s\n", ip4.getAddress(), ip4.getHost());
 
    string strAddress = ip4.toString();
@@ -135,7 +135,7 @@ static void runSocketTest(TestRunner& tr)
 
    tr.test("get address");
    address.getAddress();
-   assertNoException();
+   assertNoExceptionSet();
    //printf("Connecting to: %s\n", address.getAddress());
    tr.passIfNoException();
 
@@ -154,7 +154,7 @@ static void runSocketTest(TestRunner& tr)
       char request[] =
          "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
       socket.send(request, sizeof(request));
-      assertNoException();
+      assertNoExceptionSet();
    }
    tr.passIfNoException();
 
@@ -542,7 +542,7 @@ static void runUdpClientServerTest(TestRunner& tr)
 
       // bind with server
       server.bind(sa);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Server bound at host: %s\n", sa->getHost());
       //printf("Server bound at address: %s\n", sa->getAddress());
@@ -550,7 +550,7 @@ static void runUdpClientServerTest(TestRunner& tr)
 
       // bind with client
       client.bind(ca);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Client bound at host: %s\n", ca->getHost());
       //printf("Client bound at address: %s\n", ca->getAddress());
@@ -559,7 +559,7 @@ static void runUdpClientServerTest(TestRunner& tr)
       // send some data with client
       string clientData = "Hello there, Server.";
       client.sendDatagram(clientData.c_str(), clientData.length(), sa);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Client sent: %s\n", clientData.c_str());
 
@@ -567,7 +567,7 @@ static void runUdpClientServerTest(TestRunner& tr)
       char read[2048];
       int numBytes = server.receiveDatagram(read, clientData.length(), ca);
       string serverReceived(read, numBytes);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Server received: %s\n", serverReceived.c_str());
       //printf("Data from: %s:%i\n", ca->getAddress(), ca->getPort());
@@ -576,7 +576,7 @@ static void runUdpClientServerTest(TestRunner& tr)
       // send some data with server
       string serverData = "G'day, Client.";
       server.sendDatagram(serverData.c_str(), serverData.length(), ca);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Server sent: %s\n", serverData.c_str());
 
@@ -622,7 +622,7 @@ static void runDatagramTest(TestRunner& tr)
 
       // bind with server
       server.bind(&(*sa));
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Server bound at host: %s\n", sa->getHost());
       //printf("Server bound at address: %s\n", sa->getAddress());
@@ -630,7 +630,7 @@ static void runDatagramTest(TestRunner& tr)
 
       // bind with client
       client.bind(&(*ca));
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Client bound at host: %s\n", ca->getHost());
       //printf("Client bound at address: %s\n", ca->getAddress());
@@ -642,7 +642,7 @@ static void runDatagramTest(TestRunner& tr)
 
       // send the datagram with the client
       client.send(d1);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Client sent: %s\n", d1->getString().c_str());
 
@@ -654,7 +654,7 @@ static void runDatagramTest(TestRunner& tr)
 
       // receive a datagram
       server.receive(d2);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Server received: %s\n", d2->getString().c_str());
       //printf("Data from: %s:%i\n",
@@ -667,7 +667,7 @@ static void runDatagramTest(TestRunner& tr)
       d2->assignString("G'day, Client.");
       d2->setAddress(ca);
       server.send(d2);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Server sent: %s\n", d2->getString().c_str());
 
@@ -675,7 +675,7 @@ static void runDatagramTest(TestRunner& tr)
       ia = new InternetAddress();
       DatagramRef d3 = new Datagram(ia, d2->getString().length());
       client.receive(d3);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Client received: %s\n", d3->getString().c_str());
       //printf("Data from: %s:%i\n",
@@ -719,7 +719,7 @@ static void runDatagramTest(TestRunner& tr)
 
       // bind with server
       server.bind(&(*sa));
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Server bound at host: %s\n", sa->getHost());
       //printf("Server bound at address: %s\n", sa->getAddress());
@@ -727,11 +727,11 @@ static void runDatagramTest(TestRunner& tr)
 
       // joing group with server
       server.joinGroup(&(*groupAddress), &(*sa));
-      assertNoException();
+      assertNoExceptionSet();
 
       // bind with client
       client.bind(&(*ca));
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Client bound at host: %s\n", ca->getHost());
       //printf("Client bound at address: %s\n", ca->getAddress());
@@ -743,7 +743,7 @@ static void runDatagramTest(TestRunner& tr)
 
       // send the datagram to the group with the client
       client.send(d1);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Client sent: %s\n", d1->getString().c_str());
 
@@ -755,7 +755,7 @@ static void runDatagramTest(TestRunner& tr)
 
       // receive a datagram
       server.receive(d2);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Server received: %s\n", d2->getString().c_str());
       //printf("Data from: %s:%i\n",
@@ -768,7 +768,7 @@ static void runDatagramTest(TestRunner& tr)
       d2->assignString("G'day, Client.");
       d2->setAddress(ca);
       server.send(d2);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Server sent: %s\n", d2->getString().c_str());
 
@@ -776,7 +776,7 @@ static void runDatagramTest(TestRunner& tr)
       ia = new InternetAddress();
       DatagramRef d3 = new Datagram(ia, d2->getString().length());
       client.receive(d3);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("Client received: %s\n", d3->getString().c_str());
       //printf("Data from: %s:%i\n",
@@ -1334,7 +1334,7 @@ static void runServerDynamicServiceTest(TestRunner& tr)
       assert(id1 != 0);
 
       server.start(&k);
-      assertNoException();
+      assertNoExceptionSet();
 
       // create generic service
       TestConnectionServicer2 tcs2;
@@ -1380,7 +1380,7 @@ public:
       SslContext context("TLS", true);
       //File certFile("/we/need/to/add/this/here.ca");
       //context.setVerifyCAs(&certFile, NULL);
-      assertNoException();
+      assertNoExceptionSet();
 
       // for storing SSL session
       SslSession session;
@@ -1593,7 +1593,7 @@ static void runServerDatagramTest(TestRunner& tr)
    InternetAddressRef ca = new InternetAddress("localhost", 0);
    DatagramSocket client;
    client.bind(&(*ca));
-   assertNoException();
+   assertNoExceptionSet();
 
    // create a datagram
    DatagramRef d = new Datagram(sa);
@@ -1601,7 +1601,7 @@ static void runServerDatagramTest(TestRunner& tr)
 
    // send the datagram with the client
    client.send(d);
-   assertNoException();
+   assertNoExceptionSet();
 
    // wait
    Thread::sleep(10000);

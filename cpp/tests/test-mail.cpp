@@ -309,7 +309,7 @@ static void _runMailboxTest(
    // parse mail
    monarch::mail::Mail mail;
    success = parser.parse(&mail, vars, false, &bais);
-   assertNoException();
+   assertNoExceptionSet();
    assert(success);
 
    monarch::mail::AddressList expect;
@@ -403,27 +403,27 @@ static void mailSpoolTest(TestRunner& tr)
    spoolUrl.append(file->getAbsolutePath());
    StringTools::replaceAll(spoolUrl, "\\", "/");
    spool.initialize(spoolUrl.c_str());
-   assertNoException();
+   assertNoExceptionSet();
 
    DynamicObject reason;
    reason = "could not send";
 
    // spool mail
    spool.spool(&mail, &reason);
-   assertNoException();
+   assertNoExceptionSet();
 
    // spool mail
    spool.spool(&mail, &reason);
-   assertNoException();
+   assertNoExceptionSet();
 
    // spool mail
    spool.spool(&mail, &reason);
-   assertNoException();
+   assertNoExceptionSet();
 
    // get mail
    monarch::mail::Mail m2;
    spool.getFirst(&m2);
-   assertNoException();
+   assertNoExceptionSet();
 
    // assert templates are equal
    string tpl2 = m2.toTemplate();
@@ -432,12 +432,12 @@ static void mailSpoolTest(TestRunner& tr)
    // unwind
    spool.unwind();
    spool.unwind();
-   assertNoException();
+   assertNoExceptionSet();
 
    // get mail
    monarch::mail::Mail m3;
    spool.getFirst(&m3);
-   assertNoException();
+   assertNoExceptionSet();
 
    // assert templates are equal
    string tpl3 = m3.toTemplate();
@@ -448,7 +448,7 @@ static void mailSpoolTest(TestRunner& tr)
 
    // get first mail (should exception, spool is empty)
    spool.getFirst(&m3);
-   assertException();
+   assertExceptionSet();
    Exception::clear();
 
    tr.passIfNoException();
@@ -490,17 +490,17 @@ static void runFailedMailSendTest(TestRunner& tr)
          DynamicObject reason = Exception::getAsDynamicObject();
          Exception::clear();
          spool.spool(&mail, &reason);
-         assertNoException();
+         assertNoExceptionSet();
 
          // now send the mail properly
          monarch::mail::Mail mail2;
          spool.getFirst(&mail2);
-         assertNoException();
+         assertNoExceptionSet();
          spool.unwind();
-         assertNoException();
+         assertNoExceptionSet();
          url.setUrl(VALID_SMTP_SERVER);
          c.sendMail(&url, &mail2);
-         assertNoException();
+         assertNoExceptionSet();
       }
    }
 

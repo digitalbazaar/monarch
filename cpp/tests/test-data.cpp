@@ -130,11 +130,11 @@ static void runJsonValidTest(TestRunner& tr)
       //printf("%s\n", s);
       ByteArrayInputStream is(s, strlen(s));
       jr.start(d);
-      assertNoException();
+      assertNoExceptionSet();
       jr.read(&is);
-      assertNoException();
+      assertNoExceptionSet();
       jr.finish();
-      assertNoException();
+      assertNoExceptionSet();
       //printf("%s\n", s);
       //dumpDynamicObject(d);
 
@@ -195,10 +195,10 @@ static void runJsonInvalidTest(TestRunner& tr)
       //printf("%s\n", s);
       ByteArrayInputStream is(s, strlen(s));
       jr.start(d);
-      assertNoException();
+      assertNoExceptionSet();
       jr.read(&is);
       jr.finish();
-      assertException();
+      assertExceptionSet();
       Exception::clear();
       //jw.write(d, &os);
       //printf("\n");
@@ -259,9 +259,9 @@ static void runJsonDJDTest(TestRunner& tr)
       jw.setCompact(true);
       //jw.write(dyno1, &os);
       jw.write(d, &bbos);
-      assertNoException();
+      assertNoExceptionSet();
       b.clear();
-      assertNoException();
+      assertNoExceptionSet();
 
       jw.setCompact(false);
       jw.setIndentation(0, 3);
@@ -270,13 +270,13 @@ static void runJsonDJDTest(TestRunner& tr)
       ByteArrayInputStream is(b.data(), b.length());
       DynamicObject dr;
       jr.start(dr);
-      assertNoException();
+      assertNoExceptionSet();
       jr.read(&is);
-      assertNoException();
+      assertNoExceptionSet();
       jr.finish();
-      assertNoException();
+      assertNoExceptionSet();
       //jw.write(dr, &os);
-      assertNoException();
+      assertNoExceptionSet();
       b.clear();
 
       tr.passIfNoException();
@@ -320,10 +320,10 @@ static void runJsonInvalidDJTest(TestRunner& tr)
       jw.setCompact(true);
       //jw.write(dyno1, &os);
       jw.write(d, &bbos);
-      assertException();
+      assertExceptionSet();
       Exception::clear();
       b.clear();
-      assertNoException();
+      assertNoExceptionSet();
 
       tr.passIfNoException();
    }
@@ -399,9 +399,9 @@ static void runJsonVerifyDJDTest(TestRunner& tr)
 
       jw.setCompact(true);
       //jw.write(d, &os);
-      assertNoException();
+      assertNoExceptionSet();
       jw.write(d, &bbos);
-      assertNoException();
+      assertNoExceptionSet();
 
       // Verify written string
       assert(strlen(s) == (unsigned int)b.length());
@@ -410,13 +410,13 @@ static void runJsonVerifyDJDTest(TestRunner& tr)
       ByteArrayInputStream is(b.data(), b.length());
       DynamicObject dr;
       jr.start(dr);
-      assertNoException();
+      assertNoExceptionSet();
       jr.read(&is);
-      assertNoException();
+      assertNoExceptionSet();
       jr.finish();
-      assertNoException();
+      assertNoExceptionSet();
       //jw.write(dr, &os);
-      assertNoException();
+      assertNoExceptionSet();
       b.clear();
 
       assertDynoCmp(d, dr);
@@ -481,13 +481,13 @@ static void runJsonValueVerifyJDTest(TestRunner& tr)
       ByteArrayInputStream is(s, strlen(s));
       DynamicObject dr;
       jr.start(dr);
-      assertNoException();
+      assertNoExceptionSet();
       jr.read(&is);
-      assertNoException();
+      assertNoExceptionSet();
       jr.finish();
-      assertNoException();
+      assertNoExceptionSet();
       //jw.write(dr, &os);
-      assertNoException();
+      assertNoExceptionSet();
 
       assertDynoCmp(d, dr);
 
@@ -604,7 +604,7 @@ static void runXmlReaderTest(TestRunner& tr)
       reader.read(&bais);
       reader.finish();
 
-      assertException();
+      assertExceptionSet();
       //printf("\n%s\n", Exception::getLast()->getMessage());
       Exception::clear();
    }
@@ -1206,7 +1206,7 @@ static void runDomWriteNamespaceTest(TestRunner& tr)
       ByteBuffer bb(1024);
       ByteArrayOutputStream baos(&bb, true);
       writer.write(root, &baos);
-      assertNoException();
+      assertNoExceptionSet();
       envelope.append(bb.data(), bb.length());
 
       const char* expect =
@@ -1253,9 +1253,9 @@ static void runDomReaderCrashTest(TestRunner& tr)
       Element root;
       reader.start(root);
       reader.read(&bais);
-      assertNoException();
+      assertNoExceptionSet();
       reader.finish();
-      assertNoException();
+      assertNoExceptionSet();
 
       //dumpDynamicObject(root);
    }
@@ -1297,9 +1297,9 @@ static void runExceptionTest_XML_1(ExceptionRef& e)
    while((numBytes = dois.read(b, 1024)) > 0)
    {
       baos.write(b, numBytes);
-      assertNoException();
+      assertNoExceptionSet();
    }
-   assertNoException();
+   assertNoExceptionSet();
 
    string xml1(buffer.bytes(), buffer.length());
    //printf("xml1=\n%s\n", xml1.c_str());
@@ -1309,7 +1309,7 @@ static void runExceptionTest_XML_1(ExceptionRef& e)
    XmlReader reader;
    DynamicObjectOutputStream doos(dyno2, &reader, false);
    doos.write(xml1.c_str(), xml1.length());
-   assertNoException();
+   assertNoExceptionSet();
    ExceptionRef e2 = Exception::convertToException(dyno2);
 
    // write exception back out
@@ -1323,9 +1323,9 @@ static void runExceptionTest_XML_1(ExceptionRef& e)
    while((numBytes2 = dois2.read(b2, 1024)) > 0)
    {
       baos2.write(b2, numBytes2);
-      assertNoException();
+      assertNoExceptionSet();
    }
-   assertNoException();
+   assertNoExceptionSet();
 
    string xml2(buffer.bytes(), buffer.length());
    //printf("xml2=\n%s\n", xml2.c_str());
@@ -1349,9 +1349,9 @@ static void runExceptionTest_JSON_1(ExceptionRef& e)
    while((numBytes = dois.read(b, 1024)) > 0)
    {
       baos.write(b, numBytes);
-      assertNoException();
+      assertNoExceptionSet();
    }
-   assertNoException();
+   assertNoExceptionSet();
 
    string json1(buffer.bytes(), buffer.length());
    //printf("json1=\n%s\n", json1.c_str());
@@ -1361,7 +1361,7 @@ static void runExceptionTest_JSON_1(ExceptionRef& e)
    JsonReader reader;
    DynamicObjectOutputStream doos(dyno2, &reader, false);
    doos.write(json1.c_str(), json1.length());
-   assertNoException();
+   assertNoExceptionSet();
    ExceptionRef e2 = Exception::convertToException(dyno2);
 
    // write exception back out
@@ -1375,9 +1375,9 @@ static void runExceptionTest_JSON_1(ExceptionRef& e)
    while((numBytes2 = dois2.read(b2, 1024)) > 0)
    {
       baos2.write(b2, numBytes2);
-      assertNoException();
+      assertNoExceptionSet();
    }
-   assertNoException();
+   assertNoExceptionSet();
 
    string json2(buffer.bytes(), buffer.length());
    //printf("json2=\n%s\n", json1.c_str());
@@ -1625,7 +1625,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Subject: This is an autogenerated unit test email\r\n"
@@ -1669,7 +1669,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "The path is C:\\Dox!";
@@ -1699,7 +1699,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "The path is C:\\Dox!";
@@ -1843,7 +1843,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "The number five: 5\n"
@@ -1882,7 +1882,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Item count: 3\n"
@@ -1928,7 +1928,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Item count: 0\n"
@@ -1991,7 +1991,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Items:\n"
@@ -2028,7 +2028,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Item count: 3\n"
@@ -2074,7 +2074,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Item count: 0\n"
@@ -2137,7 +2137,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Items:\n"
@@ -2162,7 +2162,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
          "{:end}";
       fos.write(include, strlen(include));
       fos.close();
-      assertNoException();
+      assertNoExceptionSet();
 
       // create template
       const char* tpl =
@@ -2187,7 +2187,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Items:\n"
@@ -2219,7 +2219,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
             "{:end}";
          fos.write(include, strlen(include));
          fos.close();
-         assertNoException();
+         assertNoExceptionSet();
       }
 
       // write out template 2
@@ -2234,7 +2234,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
             "{:include file='%s'}", path);
          fos.write(tpl, strlen(tpl));
          fos.close();
-         assertNoException();
+         assertNoExceptionSet();
       }
 
       // create template
@@ -2259,7 +2259,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Double include:\n"
@@ -2289,7 +2289,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
          "{:end}";
       fos.write(include, strlen(include));
       fos.close();
-      assertNoException();
+      assertNoExceptionSet();
 
       // create template
       const char* tpl =
@@ -2315,7 +2315,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Items:\n"
@@ -2365,7 +2365,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "The item is 'item1'\n"
@@ -2414,7 +2414,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "The first item is 'item1'\n"
@@ -2467,7 +2467,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "Item count: 3\n"
@@ -2558,7 +2558,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "bar was 12\n"
@@ -2601,7 +2601,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expectVars;
       expectVars["localVars"]["foo"] = "A";
@@ -2646,7 +2646,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       ByteBuffer output(2048);
       ByteArrayOutputStream baos(&output, true);
       tis.parse(&baos);
-      assertNoException();
+      assertNoExceptionSet();
 
       const char* expect =
          "2010-01-01\n"

@@ -62,7 +62,7 @@ static void runConfigManagerTest(TestRunner& tr)
       cfg[ConfigManager::ID] = "config";
       cfg[ConfigManager::MERGE]["a"] = 0;
       assert(cm.addConfig(cfg));
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(cm.getConfig("config"), expect);
    }
    tr.passIfNoException();
@@ -129,11 +129,11 @@ static void runConfigManagerTest(TestRunner& tr)
       c[ConfigManager::ID] = "config";
       c[ConfigManager::MERGE]["c"] = 2;
       assert(cm.addConfig(a));
-      assertNoException();
+      assertNoExceptionSet();
       assert(cm.addConfig(b));
-      assertNoException();
+      assertNoExceptionSet();
       assert(cm.addConfig(c));
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(cm.getConfig("config"), expect);
    }
    tr.passIfNoException();
@@ -142,7 +142,7 @@ static void runConfigManagerTest(TestRunner& tr)
    {
       ConfigManager cm;
       assert(!cm.removeConfig("error"));
-      assertException();
+      assertExceptionSet();
       Exception::clear();
    }
    tr.passIfNoException();
@@ -167,11 +167,11 @@ static void runConfigManagerTest(TestRunner& tr)
       c[ConfigManager::GROUP] = "group";
       c[ConfigManager::MERGE]["c"] = 2;
       assert(cm.addConfig(a));
-      assertNoException();
+      assertNoExceptionSet();
       assert(cm.addConfig(b));
-      assertNoException();
+      assertNoExceptionSet();
       assert(cm.addConfig(c));
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(cm.getConfig("group"), expect);
       DynamicObject expect2;
       expect2["a"] = 0;
@@ -188,13 +188,13 @@ static void runConfigManagerTest(TestRunner& tr)
       a[ConfigManager::ID] = "config a";
       a[ConfigManager::MERGE] = 1;
       assert(cm.addConfig(a));
-      assertNoException();
+      assertNoExceptionSet();
       Config b;
       b[ConfigManager::ID] = "config b";
       b[ConfigManager::PARENT] = "config a";
       b[ConfigManager::MERGE] = ConfigManager::DEFAULT_VALUE;
       assert(cm.addConfig(b));
-      assertNoException();
+      assertNoExceptionSet();
       DynamicObject expect;
       expect = 1;
       assertDynoCmp(cm.getConfig("config b"), expect);
@@ -212,7 +212,7 @@ static void runConfigManagerTest(TestRunner& tr)
       a[2]["0"] = 120;
       a[2]["1"] = 121;
       assert(cm.addConfig(cfga));
-      assertNoException();
+      assertNoExceptionSet();
       Config cfgb;
       cfgb[ConfigManager::ID] = "config b";
       cfgb[ConfigManager::PARENT] = "config a";
@@ -222,7 +222,7 @@ static void runConfigManagerTest(TestRunner& tr)
       b[2]["0"] = ConfigManager::DEFAULT_VALUE;
       b[2]["1"] = 221;
       assert(cm.addConfig(cfgb));
-      assertNoException();
+      assertNoExceptionSet();
       DynamicObject expect;
       expect[0] = 10;
       expect[1] = 21;
@@ -249,7 +249,7 @@ static void runConfigManagerTest(TestRunner& tr)
       cm.setKeyword("RESOURCE_DIR", "/the/real/dir");
       //cm.setKeyword("DB", "Digital Bazaar, Inc.");
       assert(cm.addConfig(a));
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(cm.getConfig("config"), expect);
    }
    tr.passIfNoException();
@@ -288,7 +288,7 @@ static void runConfigManagerTest(TestRunner& tr)
       ConfigManager cm;
       assert(cm.addConfigFile(configFile->getAbsolutePath(),
          true, absoluteDir.c_str(), true, false));
-      assertNoException();
+      assertNoExceptionSet();
       assertDynoCmp(cm.getConfig("config"), expect);
    }
    tr.passIfNoException();
@@ -306,7 +306,7 @@ static void runConfigManagerTest(TestRunner& tr)
       nodec["node"]["modulePath"]->append() = "/usr/lib/bitmunk/modules";
       nodec["node"]["userModulePath"] = "~/.bitmunk/modules";
       assert(cm.addConfig(nodec));
-      assertNoException();
+      assertNoExceptionSet();
 
       // user
       // loaded defaults
@@ -314,7 +314,7 @@ static void runConfigManagerTest(TestRunner& tr)
       userc["node"]["port"] = 19100;
       userc["node"]["comment"] = "My precious...";
       assert(cm.addConfig(userc, ConfigManager::Custom));
-      assertNoException();
+      assertNoExceptionSet();
 
       // user makes changes during runtime
       DynamicObject c = cm.getConfig();
@@ -346,23 +346,23 @@ static void runConfigManagerTest(TestRunner& tr)
       Config c;
       c[ConfigManager::ID] = "config";
       assert(cm.addConfig(c));
-      assertNoException();
+      assertNoExceptionSet();
 
       // config has no version - no check done - pass
       cm.addVersion("1");
       assert(cm.addConfig(c));
-      assertNoException();
+      assertNoExceptionSet();
 
       // config has known version - pass
       c[ConfigManager::VERSION] = "1";
       assert(cm.addConfig(c));
-      assertNoException();
+      assertNoExceptionSet();
       assert(cm.removeConfig("config"));
 
       // config has unknown version - fail
       c[ConfigManager::VERSION] = "2";
       assert(!cm.addConfig(c));
-      assertException();
+      assertExceptionSet();
       Exception::clear();
    }
    tr.passIfNoException();
@@ -375,7 +375,7 @@ static void runConfigManagerTest(TestRunner& tr)
       a[ConfigManager::MERGE][0]->setType(Array);
       a[ConfigManager::MERGE][1]->setType(Map);
       assert(cm.addConfig(a));
-      assertNoException();
+      assertNoExceptionSet();
       DynamicObject expect;
       expect[0]->setType(Array);
       expect[1]->setType(Map);
@@ -400,12 +400,12 @@ static void runConfigManagerTest(TestRunner& tr)
       c[ConfigManager::ID] = "c0";
       c[ConfigManager::GROUP] = "c";
       assert(cm.addConfig(c));
-      assertNoException();
+      assertNoExceptionSet();
 
       c[ConfigManager::ID] = "c1";
       c[ConfigManager::GROUP] = "c";
       assert(cm.addConfig(c));
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect->setType(Array);
@@ -419,15 +419,12 @@ static void runConfigManagerTest(TestRunner& tr)
    {
       ConfigManager cm;
       DynamicObject c;
-      bool success;
 
       c[ConfigManager::ID] = "c";
       c[ConfigManager::MERGE]["test"] = "{A}";
       DynamicObject vars;
       vars["A"] = "a";
-      success = ConfigManager::replaceKeywords(c, vars);
-      assertNoException();
-      assert(success);
+      assertNoException(ConfigManager::replaceKeywords(c, vars));
 
       DynamicObject expect;
       expect[ConfigManager::ID] = "c";
@@ -440,15 +437,12 @@ static void runConfigManagerTest(TestRunner& tr)
    {
       ConfigManager cm;
       DynamicObject c;
-      bool success;
 
       c[ConfigManager::ID] = "c";
       c[ConfigManager::MERGE]["test"] = "{UNKNOWN}";
       DynamicObject vars;
       vars["A"] = "a";
-      success = ConfigManager::replaceKeywords(c, vars);
-      assertException();
-      assert(!success);
+      assertException(ConfigManager::replaceKeywords(c, vars));
    }
    tr.passIfException();
 

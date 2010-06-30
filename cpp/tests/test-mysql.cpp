@@ -38,7 +38,7 @@ static void createMySqlTable(TestRunner& tr, monarch::sql::Connection* c)
    {
       monarch::sql::Statement* s = c->prepare(
          "DROP TABLE IF EXISTS " TABLE_TEST);
-      assertNoException();
+      assertNoExceptionSet();
       s->execute();
    }
    tr.passIfNoException();
@@ -49,7 +49,7 @@ static void createMySqlTable(TestRunner& tr, monarch::sql::Connection* c)
          "CREATE TABLE IF NOT EXISTS " TABLE_TEST
          " (id BIGINT AUTO_INCREMENT, t TEXT, i BIGINT, "
          "PRIMARY KEY (id))");
-      assertNoException();
+      assertNoExceptionSet();
       s->execute();
    }
    tr.passIfNoException();
@@ -61,7 +61,7 @@ static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('test!', 1234)");
-      assertNoException();
+      assertNoExceptionSet();
       s->execute();
       assert(s->getLastInsertRowId() > 0);
    }
@@ -71,7 +71,7 @@ static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
    {
       monarch::sql::Statement* s = c->prepare(
          "INSERT INTO " TABLE_TEST " (t, i) VALUES ('!tset', 4321)");
-      assertNoException();
+      assertNoExceptionSet();
       s->execute();
       assert(s->getLastInsertRowId() > 0);
    }
@@ -84,12 +84,12 @@ static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
       for(int i = 0; i < 20; ++i)
       {
          s = c->prepare("INSERT INTO " TABLE_TEST " (t, i) VALUES (?, ?)");
-         assertNoException();
+         assertNoExceptionSet();
          s->setText(1, "boundpositional");
          s->setInt32(2, 2220 + i);
          s->execute();
          assert(s->getLastInsertRowId() > 0);
-         assertNoException();
+         assertNoExceptionSet();
       }
       //uint64_t end = System::getCurrentMilliseconds();
       //printf("TIME=%" PRIu64 " ms\n", (end - start));
@@ -99,9 +99,9 @@ static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
    tr.test("select test");
    {
       monarch::sql::Statement* s = c->prepare("SELECT t, i FROM " TABLE_TEST);
-      assertNoException();
+      assertNoExceptionSet();
       s->execute();
-      assertNoException();
+      assertNoExceptionSet();
 
       // fetch rows
       Row* row;
@@ -110,9 +110,9 @@ static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
       while((row = s->fetch()) != NULL)
       {
          row->getText("t", t);
-         assertNoException();
+         assertNoExceptionSet();
          row->getInt32("i", i);
-         assertNoException();
+         assertNoExceptionSet();
 
          if(strcmp(t.c_str(), "test!") == 0)
          {
@@ -138,9 +138,9 @@ static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
    tr.test("select command ordering test");
    {
       monarch::sql::Statement* s = c->prepare("SELECT t, i FROM " TABLE_TEST);
-      assertNoException();
+      assertNoExceptionSet();
       s->execute();
-      assertNoException();
+      assertNoExceptionSet();
 
       // fetch rows
       Row* row;
@@ -149,9 +149,9 @@ static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
       while((row = s->fetch()) != NULL)
       {
          row->getText("t", t);
-         assertNoException();
+         assertNoExceptionSet();
          row->getInt32("i", i);
-         assertNoException();
+         assertNoExceptionSet();
 
          if(strcmp(t.c_str(), "test!") == 0)
          {
@@ -183,7 +183,7 @@ static void runMySqlConnectionTest(TestRunner& tr)
    c.connect("mysql://" MYSQL_READ_USER ":" MYSQL_PASSWORD "@"
       MYSQL_HOST "/test");
    c.close();
-   assertNoException();
+   assertNoExceptionSet();
 
    // clean up mysql
    mysql_library_end();
@@ -200,7 +200,7 @@ static void runMySqlStatementTest(TestRunner& tr)
 
    MySqlConnection c;
    c.connect("mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST);
-   assertNoException();
+   assertNoExceptionSet();
 
    // create table
    createMySqlTable(tr, &c);
@@ -229,7 +229,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       "mysql://" MYSQL_READ_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 1);
    ConnectionPoolRef writePool = new MySqlConnectionPool(
       "mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 1);
-   assertNoException();
+   assertNoExceptionSet();
 
    // create database client
    DatabaseClientRef dbc = new MySqlDatabaseClient();
@@ -288,7 +288,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       row["fooInt32"] = 3;
       SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
 
       DynamicObject expect;
@@ -315,7 +315,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       row["fooInt32"] = 3;
       SqlExecutableRef se = dbc->insert(TABLE_TEST, row);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
 
       DynamicObject expect;
@@ -340,7 +340,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       where["fooId"] = 1;
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["fooId"] = 1;
@@ -366,7 +366,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       members["fooString"];
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where, &members);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["fooString"] = "foobar";
@@ -389,7 +389,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       assert(!se.isNull());
       se->returnRowsFound = true;
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
       assert(se->rowsFound == 2);
 
       DynamicObject expect;
@@ -445,7 +445,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       where["fooString"] = "bar";
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["fooId"] = 2;
@@ -469,7 +469,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       where["fooString"] = "bar";
       SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect[0]["fooId"] = 2;
@@ -494,7 +494,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       where["fooString"]->append() = "foobar";
       SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect->setType(Array);
@@ -536,7 +536,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       where["fooString"] = "duplicate key update";
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect["fooId"] = 1;
@@ -568,7 +568,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
    {
       SqlExecutableRef se = dbc->select(TABLE_TEST);
       dbc->execute(se);
-      assertNoException();
+      assertNoExceptionSet();
 
       DynamicObject expect;
       expect[0]["fooId"] = 2;
@@ -610,7 +610,7 @@ static void runMySqlConnectionPoolTest(TestRunner& tr)
    // create mysql connection pool
    MySqlConnectionPool cp(
       "mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 100);
-   assertNoException();
+   assertNoExceptionSet();
 
    // create table
    monarch::sql::Connection* c = cp.getConnection();
@@ -690,7 +690,7 @@ static void runMySqlStatementBuilderTest(TestRunner& tr)
       "mysql://" MYSQL_READ_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 1);
    ConnectionPoolRef writePool = new MySqlConnectionPool(
       "mysql://" MYSQL_WRITE_USER ":" MYSQL_PASSWORD "@" MYSQL_HOST, 1);
-   assertNoException();
+   assertNoExceptionSet();
 
    // create database client
    DatabaseClientRef dbc = new MySqlDatabaseClient();
@@ -698,7 +698,7 @@ static void runMySqlStatementBuilderTest(TestRunner& tr)
    dbc->setReadConnectionPool(readPool);
    dbc->setWriteConnectionPool(writePool);
    dbc->initialize();
-   assertNoException();
+   assertNoExceptionSet();
 
    // define an object type
    tr.test("set OR map");

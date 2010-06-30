@@ -56,7 +56,7 @@ static void runDeflateTest(TestRunner& tr)
    {
       Deflater def;
       def.startDeflating(-1, true);
-      assertNoException();
+      assertNoExceptionSet();
 
       FileInputStream fis(original);
       FileOutputStream fos(deflated);
@@ -78,7 +78,7 @@ static void runDeflateTest(TestRunner& tr)
    {
       Deflater def;
       def.startInflating(true);
-      assertNoException();
+      assertNoExceptionSet();
 
       FileInputStream fis(deflated);
       FileOutputStream fos(inflated);
@@ -108,7 +108,7 @@ static void runDeflateTest(TestRunner& tr)
    {
       Deflater def;
       def.startDeflating(-1, true);
-      assertNoException();
+      assertNoExceptionSet();
 
       FileInputStream fis(original);
       FileOutputStream fos(deflated);
@@ -130,7 +130,7 @@ static void runDeflateTest(TestRunner& tr)
    {
       Deflater def;
       def.startInflating(true);
-      assertNoException();
+      assertNoExceptionSet();
 
       FileInputStream fis(deflated);
       FileOutputStream fos(inflated);
@@ -184,7 +184,7 @@ static void runGzipTest(TestRunner& tr)
    {
       Gzipper gzipper;
       gzipper.startCompressing();
-      assertNoException();
+      assertNoExceptionSet();
 
       FileInputStream fis(original);
       FileOutputStream fos(compressed);
@@ -206,7 +206,7 @@ static void runGzipTest(TestRunner& tr)
    {
       Gzipper gzipper;
       gzipper.startDecompressing();
-      assertNoException();
+      assertNoExceptionSet();
 
       FileInputStream fis(compressed);
       FileOutputStream fos(decompressed);
@@ -236,7 +236,7 @@ static void runGzipTest(TestRunner& tr)
    {
       Gzipper gzipper;
       gzipper.startCompressing();
-      assertNoException();
+      assertNoExceptionSet();
 
       FileInputStream fis(original);
       FileOutputStream fos(compressed);
@@ -258,7 +258,7 @@ static void runGzipTest(TestRunner& tr)
    {
       Gzipper gzipper;
       gzipper.startDecompressing();
-      assertNoException();
+      assertNoExceptionSet();
 
       FileInputStream fis(compressed);
       FileOutputStream fos(decompressed);
@@ -307,7 +307,7 @@ static void runGzipTest(TestRunner& tr)
 
          // start compression
          gzipper.startCompressing();
-         assertNoException();
+         assertNoExceptionSet();
 
          // do compression
          MutatorOutputStream mos(&fos, false, &gzipper, false);
@@ -426,13 +426,13 @@ static void runZipTest(TestRunner& tr)
             {
                success = zipper.write(b, numBytes, &fos);
             }
-            assertNoException();
+            assertNoExceptionSet();
 
             // close input stream
             fis.close();
          }
       }
-      assertNoException();
+      assertNoExceptionSet();
 
       // finish zip archive, close output stream
       zipper.finish(&fos);

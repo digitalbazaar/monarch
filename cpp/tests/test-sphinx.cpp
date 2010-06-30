@@ -47,7 +47,7 @@ static void runSphinxClientTest(TestRunner &tr)
       cmd["groupSort"] = "@group desc";
 
       client.execute(url, cmd, response);
-      assertNoException();
+      assertNoExceptionSet();
 
       //printf("\nResponse:\n");
       //dumpDynamicObject(response);

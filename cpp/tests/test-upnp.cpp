@@ -67,7 +67,7 @@ static void runSoapEnvelopeTest(TestRunner& tr)
       SoapEnvelope env;
       SoapResult result;
       env.parse(&bais, result);
-      assertNoException();
+      assertNoExceptionSet();
 
       // result is not a fault
       assert(!result["fault"]->getBoolean());
@@ -104,7 +104,7 @@ static void runSoapEnvelopeTest(TestRunner& tr)
       SoapEnvelope env;
       SoapResult result;
       env.parse(&bais, result);
-      assertNoException();
+      assertNoExceptionSet();
 
       // result is a fault
       assert(result["fault"]->getBoolean());
@@ -159,7 +159,7 @@ static void runPortMappingTest(TestRunner& tr)
    {
       ControlPoint cp;
       cp.getDeviceDescription(igd);
-      assertNoException();
+      assertNoExceptionSet();
    }
    tr.passIfNoException();
 
@@ -175,7 +175,7 @@ static void runPortMappingTest(TestRunner& tr)
    {
       ControlPoint cp;
       cp.getServiceDescription(wipcs);
-      assertNoException();
+      assertNoExceptionSet();
    }
    tr.passIfNoException();
 

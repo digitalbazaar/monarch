@@ -281,7 +281,7 @@ static void runCipherTest(TestRunner& tr, const char* algorithm)
       // generate a new key and start encryption
       SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
-      assertNoException();
+      assertNoExceptionSet();
 
       // update encryption
       char output[2048];
@@ -335,7 +335,7 @@ static void runCipherTest(TestRunner& tr, const char* algorithm)
       // generate a new key and start encryption
       SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
-      assertNoException();
+      assertNoExceptionSet();
 
       // update and finish encryption
       ByteBuffer output;
@@ -372,7 +372,7 @@ static void runCipherTest(TestRunner& tr, const char* algorithm)
       // generate a new key and start encryption
       SymmetricKey key;
       cipher.startEncrypting(algorithm, &key);
-      assertNoException();
+      assertNoExceptionSet();
 
       // create encrypted data buffer
       ByteBuffer encrypted(200);
@@ -386,7 +386,7 @@ static void runCipherTest(TestRunner& tr, const char* algorithm)
          encrypted.put(b, numBytes, true);
       }
       encryptStream.close();
-      assertNoException();
+      assertNoExceptionSet();
 
       // start decrypting
       cipher.startDecrypting(&key);
@@ -402,7 +402,7 @@ static void runCipherTest(TestRunner& tr, const char* algorithm)
          decrypted.put(b, numBytes, true);
       }
       decryptStream.close();
-      assertNoException();
+      assertNoExceptionSet();
 
       // assert data is the same
       string result(decrypted.data(), decrypted.length());
@@ -717,7 +717,7 @@ static void runEnvelopeTest(TestRunner& tr)
    SymmetricKey secretKey;
    DigitalEnvelope outEnv;
    outEnv.startSealing("AES256", publicKey, &secretKey);
-   assertNoException();
+   assertNoExceptionSet();
 
    // update the envelope
    char output[2048];
@@ -735,7 +735,7 @@ static void runEnvelopeTest(TestRunner& tr)
    // create an incoming envelope
    DigitalEnvelope inEnv;
    inEnv.startOpening(privateKey, &secretKey);
-   assertNoException();
+   assertNoExceptionSet();
 
    // update the envelope
    char input[2048];
@@ -775,7 +775,7 @@ static void runX509CertificateCreationTest(TestRunner& tr, bool print)
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
    factory.createKeyPair("RSA", privateKey, publicKey);
-   assertNoException();
+   assertNoExceptionSet();
 
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
@@ -825,7 +825,7 @@ static void runX509CertificateCreationTest(TestRunner& tr, bool print)
    cert = factory.createCertificate(
       version, privateKey, publicKey,
       subject, subject, &yesterday, &tomorrow, serial, &extensions, NULL);
-   assertNoException();
+   assertNoExceptionSet();
    assert(!cert.isNull());
 
    // write out the public key in the certificate
@@ -859,7 +859,7 @@ static void runX509CertificateCreationTest(TestRunner& tr, bool print)
    // read in certificate
    X509CertificateRef loadedCert = factory.loadCertificateFromPem(
       outCertPem.c_str(), outCertPem.length());
-   assertNoException();
+   assertNoExceptionSet();
 
    // output certificate again for comparison
    string outCertPem2 = factory.writeCertificateToPem(loadedCert);
