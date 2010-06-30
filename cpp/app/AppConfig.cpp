@@ -81,6 +81,7 @@ static bool _initGeneralConfig(AppRunner* ar)
       c["home"] = home;
       c["printHelp"] = false;
       c["printVersion"] = false;
+      c["verbosity"] = (uint32_t)1;
       rval = cm->addConfig(cfg);
 
       // command line options
@@ -211,6 +212,11 @@ static DynamicObject _getGeneralCmdLineSpec(AppRunner* ar)
 "General options:\n"
 "      --home          Sets the home directory for the application\n"
 "  -V, --version       Prints the software version.\n"
+"  -v, --verbosity LEVEL\n"
+"                      Verbose output level. (default: 1)\n"
+"                         0: Less output.\n"
+"                         1: Normal output.\n"
+"                         2: More output.\n"
 "      --              Treat all remaining options as application arguments.\n"
 "\n";
 
@@ -234,6 +240,14 @@ static DynamicObject _getGeneralCmdLineSpec(AppRunner* ar)
    opt["long"] = "--version";
    opt["setTrue"]["root"] = om;
    opt["setTrue"]["path"] = "printVersion";
+
+   opt = spec["options"]->append();
+   opt["short"] = "-v";
+   opt["long"] = "--verbosity";
+   opt["arg"]["root"] = om;
+   opt["arg"]["path"] = "verbosity";
+   opt["arg"]["type"] = (uint32_t)0;
+   opt["argError"] = "No verbosity level specified.";
 
    return spec;
 }
@@ -383,12 +397,14 @@ static DynamicObject _getLoggingCmdLineSpec(AppRunner* ar)
    opt["long"] = "--log-rotation-size";
    opt["arg"]["root"] = om;
    opt["arg"]["path"] = "rotationFileSize";
+   opt["arg"]["type"] = (uint64_t)0;
    opt["argError"] = "No rotation size specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--log-max-rotated";
    opt["arg"]["root"] = om;
    opt["arg"]["path"] = "maxRotatedFiles";
+   opt["arg"]["type"] = (uint32_t)0;
    opt["argError"] = "Max rotated files not specified.";
 
    opt = spec["options"]->append();
