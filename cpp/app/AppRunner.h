@@ -6,6 +6,7 @@
 
 #include "monarch/kernel/MicroKernel.h"
 #include "monarch/app/App.h"
+#include "monarch/util/Timer.h"
 
 namespace monarch
 {
@@ -86,6 +87,11 @@ protected:
     * The current AppRunner state.
     */
    State mState;
+
+   /**
+    * A timer for keeping track of start up time.
+    */
+   monarch::util::Timer mTimer;
 
 public:
    /**
@@ -200,6 +206,16 @@ public:
     * @return the meta config.
     */
    virtual monarch::config::Config getMetaConfig();
+
+   /**
+    * Gets the main timer. Useful for determining/displaying start up times.
+    *
+    * The timer will be reset when the AppRunner starts up, but an App may
+    * decide to change the start time to some other time.
+    *
+    * @return the main timer.
+    */
+   virtual monarch::util::Timer* getTimer();
 
    /**
     * Starts this AppRunner. If specified in the configuration, an App will be

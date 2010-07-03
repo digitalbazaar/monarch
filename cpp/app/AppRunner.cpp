@@ -135,6 +135,11 @@ Config AppRunner::getMetaConfig()
    return mMetaConfig;
 }
 
+Timer* AppRunner::getTimer()
+{
+   return &mTimer;
+}
+
 int AppRunner::start(int argc, const char* argv[])
 {
    bool success = true;
@@ -148,6 +153,9 @@ int AppRunner::start(int argc, const char* argv[])
    mState = Starting;
    while(mState == Starting || mState == Restarting)
    {
+      // get start time
+      mTimer.start();
+
       // clear meta config
       mMetaConfig->clear();
       mMetaConfig["specs"]->setType(Array);

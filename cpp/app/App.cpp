@@ -1,9 +1,12 @@
 /*
  * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #include "monarch/app/App.h"
 
 #include "monarch/app/AppRunner.h"
+#include "monarch/logging/Logging.h"
 
 using namespace std;
 using namespace monarch::app;
@@ -132,5 +135,7 @@ DynamicObject App::getWaitEvents()
 
 bool App::run()
 {
+   MO_CAT_INFO(MO_APP_CAT, "Started in %" PRIu64 " ms",
+      getAppRunner()->getTimer()->getElapsedMilliseconds());
    return true;
 }
