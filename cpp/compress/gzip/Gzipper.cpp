@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/compress/gzip/Gzipper.h"
 
@@ -170,9 +170,8 @@ int Gzipper::process(ByteBuffer* dst, bool resize)
          // update crc
          if(mDeflating)
          {
-            // do calculation on incoming data
-            inLength = inLength - mZipStream.avail_in;
-            if(inLength > 0)
+            // do calculation on the amount of data consumed
+            if(inLength > mZipStream.avail_in)
             {
                mCrc32 = crc32(mCrc32, in, inLength - mZipStream.avail_in);
             }
