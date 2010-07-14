@@ -30,6 +30,7 @@ if [ "x${VALGRIND_SUPP}" = x ]; then
 fi
 
 help() {
+    AVAILABLE_COMMANDS=`for dir in ${APP_PATH}; do (cd $dir && ls -1 *config); done | sed -e 's/.config$//g' | sort`
     echo "Usage: $0 [MODE [[OPTIONS] --cmd]] COMMAND [ARGUMENTS]"
     echo
     echo "Normal mode:"
@@ -53,6 +54,11 @@ help() {
     echo "Special COMMANDS:"
     echo "   [help|--help|-h|-?]: This help message."
     echo "   [list|-l]: List known config file commands."
+    echo
+    echo "Available COMMANDs:"
+    for cmd in $AVAILABLE_COMMANDS; do
+        echo "   $cmd"
+    done   
 }
 
 # Check for special modes and set command
