@@ -62,6 +62,7 @@ SslContext::SslContext(const char* protocol, bool client) :
    // be found in the cache and re-used
    SSL_CTX_set_session_cache_mode(mContext, SSL_SESS_CACHE_SERVER);
 
+   // FIXME: this should be done with a per server/per app ID
    // set SSL session context ID
    const char* id = "MOSSLCTXID";
    SSL_CTX_set_session_id_context(
