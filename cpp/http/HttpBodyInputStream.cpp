@@ -57,8 +57,17 @@ FilterInputStream(connection->getInputStream(), false)
       }
       else if(!mContentLengthKnown)
       {
-         // assume no content if content-length header is missing
-         mContentLengthKnown = true;
+         // if there is a content-type header, then content length is not
+         // known, go until connection closes
+         if(header->hasField("Content-Type"))
+         {
+            mContentLengthKnown = false;
+         }
+         // assume no content if no content-length or content-type header
+         else
+         {
+            mContentLengthKnown = true;
+         }
       }
    }
 }
