@@ -3,7 +3,7 @@
 # Author: Manu Sporny
 
 AC_PREREQ([2.60])
-AC_INIT([monarch],[3.2.4],[support@digitalbazaar.com])
+AC_INIT([monarch],[3.2.5],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
 AC_CONFIG_MACRO_DIR(setup)
 AC_CONFIG_HEADERS([setup/config.h])
