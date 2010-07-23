@@ -448,9 +448,14 @@ bool HttpHeader::getDate(Date& date)
 
 bool HttpHeader::hasContent()
 {
-   int64_t length = 0;
-   getField("Content-Length", length);
-   return (length != 0 || hasField("Transfer-Encoding"));
+   bool rval = hasField("Content-Type");
+   if(!rval)
+   {
+      int64_t length = 0;
+      getField("Content-Length", length);
+      rval = (length != 0 || hasField("Transfer-Encoding"));
+   }
+   return rval;
 }
 
 void HttpHeader::writeTo(HttpHeader* header)
