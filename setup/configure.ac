@@ -3,7 +3,7 @@
 # Author: Manu Sporny
 
 AC_PREREQ([2.60])
-AC_INIT([monarch],[3.2.5],[support@digitalbazaar.com])
+AC_INIT([monarch],[3.2.6],[support@digitalbazaar.com])
 AC_CONFIG_AUX_DIR(setup)
 AC_CONFIG_MACRO_DIR(setup)
 AC_CONFIG_HEADERS([setup/config.h])
@@ -11,7 +11,7 @@ AC_CONFIG_HEADERS([setup/config.h])
 # Versioning
 MONARCH_VERSION_MAJOR=3
 MONARCH_VERSION_MINOR=2
-MONARCH_VERSION_MICRO=4
+MONARCH_VERSION_MICRO=6
 # Note: 'date -R' not portable to MacOS
 DATE_RFC_2822=`date +"%a, %d %b %Y %H:%M:%S %z"`
 DATE_YMD=`date +%Y%m%d`
