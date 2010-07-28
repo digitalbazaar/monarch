@@ -10,7 +10,7 @@ dnl Use detected platform and autotools macros to detect compiler tools.
 dnl Use standard env vars to override.  See configure --help.
 dnl
 dnl The following are set with AC_SUBST:
-dnl    CC, CXX, AR, AS, STRIP
+dnl    CC, CXX, AR, AS, STRIP, STRIP_FLAGS
 dnl    LIB_PREFIX
 dnl    DYNAMIC_LIB_EXT
 dnl    STATIC_LIB_EXT
@@ -101,6 +101,7 @@ AC_DEFUN([MO_COMPILER],
          LIB_PREFIX=lib
          DYNAMIC_LIB_EXT=so
          STATIC_LIB_EXT=a
+         STRIP_FLAGS="--strip-debug"
       ],
       [macos], [
          LDFLAGS="$LDFLAGS -L/sw/lib"
@@ -110,23 +111,28 @@ AC_DEFUN([MO_COMPILER],
          if test -d /sw/include; then
             CPPFLAGS="$CPPFLAGS -I/sw/include"
          fi
+         STRIP_FLAGS="-S"
       ],
       [windows], [
          LDFLAGS="$LDFLAGS -Wl,--enable-auto-import"
          LIB_PREFIX=
          DYNAMIC_LIB_EXT=dll
          STATIC_LIB_EXT=a
+         STRIP_FLAGS="--strip-debug"
       ])
    dnl Executable and object extension as determined by AC_PROG_CC/CXX.
    EXECUTABLE_EXT=$EXEEXT
    OBJECT_EXT=$OBJEXT
 
    dnl Setup substitutions
+   dnl Prefixes and extentions
    AC_SUBST(LIB_PREFIX)
    AC_SUBST(DYNAMIC_LIB_EXT)
    AC_SUBST(STATIC_LIB_EXT)
    AC_SUBST(EXECUTABLE_EXT)
    AC_SUBST(OBJECT_EXT)
+   dnl Library symbol stripping variables
+   AC_SUBST(STRIP_FLAGS)
 
    MO_MSG_CONFIG_END
 ])
