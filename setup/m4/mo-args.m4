@@ -138,10 +138,14 @@ AC_DEFUN([MO_ARG_TESTS],
             *)   AC_MSG_ERROR(bad value ${enableval} for --disable-tests) ;;
          esac
       ],
-      [BUILD_TESTS=yes]) dnl Default value
-   # Disable test building Windows
+      [:]) dnl Default value
+   dnl Disable test building in Windows if not set
    if test "x$BUILD_FOR_WINDOWS" = "xyes" -a "x$BUILD_TESTS_SET" != "xyes"; then
       BUILD_TESTS=no
+   fi
+   dnl Default value if not set
+   if test "x$BUILD_TESTS" = "x"; then
+      BUILD_TESTS=yes
    fi
    AC_SUBST(BUILD_TESTS)
 
