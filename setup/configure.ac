@@ -221,6 +221,7 @@ AC_CONFIG_FILES([
    cpp/upnp/Makefile
    cpp/util/Makefile
    cpp/validation/Makefile
+   cpp/ws/Makefile
 ])
 
 # Generate scripts and configuration files for release

@@ -28,6 +28,7 @@ SUBDIRS := \
 	cpp/mail \
 	cpp/mysql \
 	cpp/upnp \
+	cpp/ws \
 	cpp/kernel \
 	cpp/app \
 	cpp/test \
@@ -54,6 +55,7 @@ INSTALL_LIBRARIES := \
 	dist/lib/libmomysql.so \
 	dist/lib/libmoupnp.so \
 	dist/lib/libmoutil.so \
+	dist/lib/libmows.so \
 	dist/lib/libmosphinx.so \
 	dist/lib/libmovalidation.so
 
