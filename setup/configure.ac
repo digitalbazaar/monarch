@@ -49,6 +49,7 @@ MO_ARG_DEBUG
 MO_ARG_OPT
 MO_ARG_LOG_LINE_NUMBERS
 MO_ARG_TESTS
+MO_ARG_DOCS
 MO_MSG_CONFIG_END
 
 dnl ----------------- standard checks -----------------
