@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/logging/LoggingCategories.h"
 
@@ -25,6 +25,7 @@ Category* MO_SPHINX_CAT;
 Category* MO_SQL_CAT;
 Category* MO_UPNP_CAT;
 Category* MO_UTIL_CAT;
+Category* MO_WS_CAT;
 
 void LoggingCategories::initialize()
 {
@@ -100,6 +101,10 @@ void LoggingCategories::initialize()
       "MO_UTIL",
       "Monarch Utilities",
       NULL);
+   MO_WS_CAT = new Category(
+      "MO_WS",
+      "Monarch Web Services",
+      NULL);
 }
 
 void LoggingCategories::cleanup()
@@ -157,4 +162,7 @@ void LoggingCategories::cleanup()
 
    delete MO_UTIL_CAT;
    MO_UTIL_CAT = NULL;
+
+   delete MO_WS_CAT;
+   MO_WS_CAT = NULL;
 }
