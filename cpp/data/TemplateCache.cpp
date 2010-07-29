@@ -1,6 +1,10 @@
 /*
  * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
 

@@ -1,6 +1,10 @@
 /*
  * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/io/File.h"
@@ -414,7 +418,7 @@ const char* FileImpl::getExtension()
    return mExtension;
 }
 
-off_t FileImpl::getLength()
+int64_t FileImpl::getLength()
 {
    struct stat s;
    int rc = _xPlatformStat(mAbsolutePath, &s);
@@ -428,7 +432,7 @@ off_t FileImpl::getLength()
       Exception::set(e);
    }
 
-   return s.st_size;
+   return (int64_t)s.st_size;
 }
 
 FileImpl::Type FileImpl::getType(bool follow)

@@ -1,6 +1,10 @@
 /*
  * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "monarch/data/TemplateInputStream.h"
 
 #include "monarch/data/DynamicObjectInputStream.h"
