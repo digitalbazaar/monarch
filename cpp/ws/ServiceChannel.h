@@ -4,7 +4,7 @@
 #ifndef monarch_ws_ServiceChannel_H
 #define monarch_ws_ServiceChannel_H
 
-#include "monarch/ws/Channel.h"
+#include "monarch/ws/Message.h"
 
 namespace monarch
 {
@@ -12,10 +12,14 @@ namespace ws
 {
 
 /**
- * A ServiceChannel is the Channel used by a WebService to communicate with
- * a client. It contains a Channel for receiving data from the client,
+ * A ServiceChannel is the channel used by a WebService to communicate with
+ * a client. It contains a Message for receiving data from the client,
  * positioned after having read the client's request but before reading an
- * optional entity body, and a Channel for sending data to the client.
+ * optional entity body, and a Message for sending data to the client.
+ *
+ * The Message objects are provided as a convenience interface for
+ * communication. Direct access to the HttpRequest, HttpResponse, and
+ * underlying HttpConnection objects is available if needed.
  *
  * @author Dave Longley
  */
@@ -34,14 +38,14 @@ protected:
    char* mBasePath;
 
    /**
-    * The "in" Channel from the client to the service.
+    * The "in" Message from the client to the service.
     */
-   Channel mInput;
+   Message mInput;
 
    /**
-    * The "out" Channel from the service to the client.
+    * The "out" Message from the service to the client.
     */
-   Channel mOutput;
+   Message mOutput;
 
    /**
     * The HttpRequest used to receive from the client.
@@ -214,22 +218,23 @@ public:
       monarch::rt::DynamicObject& vars, bool asArrays = false);
 
    /**
-    * Gets the "in" Channel. This is the Channel that receives from the client.
+    * Gets the "in" Message. This is the Message that is received from the
+    * client.
     *
     * Useful for customized input.
     *
-    * @return the "in" Channel.
+    * @return the "in" Message.
     */
-   virtual Channel* getInput();
+   virtual Message* getInput();
 
    /**
-    * Gets the "out" Channel. This is the Channel that sends to the client.
+    * Gets the "out" Message. This is the Message that is sent to the client.
     *
     * Useful for customized output.
     *
-    * @return the "out" Channel.
+    * @return the "out" Message.
     */
-   virtual Channel* getOutput();
+   virtual Message* getOutput();
 
    /**
     * Sets the HttpRequest to use to receive content from the client.

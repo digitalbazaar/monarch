@@ -3,7 +3,7 @@
  */
 #define __STDC_FORMAT_MACROS
 
-#include "monarch/ws/Channel.h"
+#include "monarch/ws/Message.h"
 
 #include "monarch/data/DynamicObjectInputStream.h"
 #include "monarch/data/DynamicObjectOutputStream.h"
@@ -37,7 +37,7 @@ using namespace monarch::ws;
 #define CONTENT_TYPE_XML    "text/xml"
 #define CONTENT_TYPE_FORM   "application/x-www-form-urlencoded"
 
-Channel::Channel() :
+Message::Message() :
    mContentSource(NULL),
    mContentSink(NULL),
    mCloseSink(false),
@@ -47,11 +47,11 @@ Channel::Channel() :
 {
 }
 
-Channel::~Channel()
+Message::~Message()
 {
 }
 
-void Channel::setupRequestHeader(Url* url, HttpRequestHeader* header)
+void Message::initializeRequestHeader(Url* url, HttpRequestHeader* header)
 {
    // set basic request header
    header->setPath(url->getPathAndQuery().c_str());
@@ -73,9 +73,8 @@ void Channel::setupRequestHeader(Url* url, HttpRequestHeader* header)
    }
 }
 
-bool Channel::sendHeader(
-   HttpConnection* hc, HttpHeader* header,
-   OutputStreamRef& os, HttpTrailerRef& trailer)
+bool Message::sendHeader(
+   HttpConnection* hc, HttpHeader* header, OutputStreamRef& os)
 {
    bool rval;
 
@@ -89,21 +88,14 @@ bool Channel::sendHeader(
    {
       // print out header
       MO_CAT_DEBUG(MO_WS_CAT,
-         "Channel sent header to %s:%i:\n%s",
+         "Message sent header to %s:%i:\n%s",
          hc->getRemoteAddress()->getAddress(),
          hc->getRemoteAddress()->getPort(),
          header->toString().c_str());
 
-      // set trailer, get body output stream
-      if(trailer.isNull())
-      {
-         mTrailer = trailer = new HttpTrailer();
-      }
-      else
-      {
-         mTrailer = trailer;
-      }
-      OutputStream* out = hc->getBodyOutputStream(header, &(*mTrailer));
+      // get body output stream
+      HttpTrailer* trailer = mTrailer.isNull() ? NULL : &(*mTrailer);
+      OutputStream* out = hc->getBodyOutputStream(header, trailer);
 
       // if doing chunked encoding, automatically deflate/gzip if specified
       if(strstr(header->getFieldValue(
@@ -136,64 +128,89 @@ bool Channel::sendHeader(
    return rval;
 }
 
-bool Channel::send(Url* url, HttpRequest* request)
+bool Message::sendRequestHeader(HttpRequest* request, OutputStreamRef& os)
 {
-   bool rval;
-
-   HttpConnection* hc = request->getConnection();
-   HttpRequestHeader* header = request->getHeader();
-
-   // update request header
-   setupRequestHeader(url, header);
-
-   if(!mDynamicObject.isNull())
-   {
-      rval = sendHeaderAndObject(hc, header, mDynamicObject);
-   }
-   else
-   {
-      rval = sendHeaderAndStream(hc, header, mContentSource);
-   }
-
-   return rval;
+   return sendHeader(request->getConnection(), request->getHeader(), os);
 }
 
-bool Channel::send(HttpResponse* response)
+bool Message::sendResponseHeader(HttpResponse* response, OutputStreamRef& os)
 {
-   bool rval;
+   return sendHeader(response->getConnection(), response->getHeader(), os);
+}
 
+bool Message::send(HttpConnection* hc, HttpHeader* header)
+{
+   return mDynamicObject.isNull() ?
+      sendHeaderAndStream(hc, header, mContentSource) :
+      sendHeaderAndObject(hc, header, mDynamicObject);
+}
+
+bool Message::sendRequest(HttpRequest* request)
+{
+   return send(request->getConnection(), request->getHeader());
+}
+
+bool Message::sendResponse(HttpResponse* response)
+{
+   return send(response->getConnection(), response->getHeader());
+}
+
+bool Message::receiveContent(HttpRequest* request)
+{
+   return receiveContent(request->getConnection(), request->getHeader());
+}
+
+bool Message::receiveContent(HttpResponse* response)
+{
+   bool rval = true;
+
+   // check status code for error
    HttpConnection* hc = response->getConnection();
-   HttpHeader* header = response->getHeader();
-   if(!mDynamicObject.isNull())
+   HttpResponseHeader* header = response->getHeader();
+   if(header->getStatusCode() >= 400)
    {
-      rval = sendHeaderAndObject(hc, header, mDynamicObject);
+      // receive content as a DynamicObject (to be converted to an exception)
+      if(mDynamicObject.isNull())
+      {
+         mDynamicObject = DynamicObject();
+      }
+      else
+      {
+         mDynamicObject->clear();
+      }
+
+      rval = receiveContentObject(hc, header, mDynamicObject);
+      if(rval)
+      {
+         // create Exception from DynamicObject, return false
+         ExceptionRef e = Exception::convertToException(mDynamicObject);
+         Exception::set(e);
+         rval = false;
+      }
    }
    else
    {
-      rval = sendHeaderAndStream(hc, header, mContentSource);
+      rval = receiveContent(hc, header);
    }
 
    return rval;
 }
 
-bool Channel::receiveContent(HttpRequest* request)
+bool Message::receiveContent(HttpConnection* hc, HttpHeader* header)
 {
    bool rval = true;
 
    // check to see if there is content to receive
-   if(request->getHeader()->hasContent())
+   if(header->hasContent())
    {
       if(!mDynamicObject.isNull())
       {
-         rval = receiveContentObject(
-            request->getConnection(), request->getHeader(), mDynamicObject);
+         rval = receiveContentObject(hc, header, mDynamicObject);
       }
       else if(mContentSink != NULL)
       {
-         rval = receiveContentStream(
-            request->getConnection(), request->getHeader(), mContentSink);
-
-         // close content sink as appropriate
+         // receive and close content sink as appropriate
+         rval = receiveContentStream(hc, header, mContentSink);
          if(mCloseSink && mContentSink != NULL)
          {
             mContentSink->close();
@@ -204,75 +221,32 @@ bool Channel::receiveContent(HttpRequest* request)
    return rval;
 }
 
-bool Channel::receiveContent(HttpResponse* response)
+void Message::getContentInputStream(
+   HttpConnection* hc, HttpHeader* header, InputStreamRef& is)
 {
-   bool rval = true;
+   // get body input stream
+   HttpTrailer* trailer = mTrailer.isNull() ? NULL : &(*mTrailer);
+   InputStream* in = hc->getBodyInputStream(header, trailer);
 
-   // check to see if there is content to receive
-   if(response->getHeader()->hasContent())
+   // automatically handle inflating if necessary
+   string contentEncoding;
+   if(header->getField("Content-Encoding", contentEncoding))
    {
-      // check status code for other than success
-      if(response->getHeader()->getStatusCode() >= 400)
+      if(strstr(contentEncoding.c_str(), "deflate") != NULL ||
+         strstr(contentEncoding.c_str(), "gzip") != NULL)
       {
-         // receive content as a DynamicObject
-         // (which will be translated to a exception)
-         if(mDynamicObject.isNull())
-         {
-            // create new object
-            mDynamicObject = DynamicObject();
-         }
-         else
-         {
-            // clear old object
-            mDynamicObject->clear();
-         }
-
-         rval = receiveContentObject(
-            response->getConnection(), response->getHeader(), mDynamicObject);
-         if(rval)
-         {
-            // create Exception from DynamicObject, return false
-            ExceptionRef e = Exception::convertToException(mDynamicObject);
-            Exception::set(e);
-            rval = false;
-         }
-      }
-      else if(!mDynamicObject.isNull())
-      {
-         rval = receiveContentObject(
-            response->getConnection(), response->getHeader(), mDynamicObject);
-      }
-      else if(getContentSink() != NULL)
-      {
-         rval = receiveContentStream(
-            response->getConnection(), response->getHeader(), mContentSink);
-
-         // close content sink as appropriate
-         if(mCloseSink && mContentSink != NULL)
-         {
-            mContentSink->close();
-         }
+         // create deflater to inflate content (works for zlib OR gzip)
+         Deflater* def = new Deflater();
+         def->startInflating(false);
+         in = new MutatorInputStream(in, true, def, true);
       }
    }
 
-   return rval;
+   // return reference to input stream
+   is = in;
 }
 
-void Channel::getContentReceiveStream(
-   HttpRequest* request, InputStreamRef& is, HttpTrailerRef& trailer)
-{
-   getContentReceiveStream(
-      request->getConnection(), request->getHeader(), is, trailer);
-}
-
-void Channel::getContentReceiveStream(
-   HttpResponse* response, InputStreamRef& is, HttpTrailerRef& trailer)
-{
-   getContentReceiveStream(
-      response->getConnection(), response->getHeader(), is, trailer);
-}
-
-DynamicObject& Channel::getCustomHeaders()
+DynamicObject& Message::getCustomHeaders()
 {
    if(mCustomHeaders.isNull())
    {
@@ -283,47 +257,52 @@ DynamicObject& Channel::getCustomHeaders()
    return mCustomHeaders;
 }
 
-void Channel::setContentSource(InputStream* is)
+void Message::setContentSource(InputStream* is)
 {
    mContentSource = is;
    mDynamicObject.setNull();
 }
 
-InputStream* Channel::getContentSource()
+InputStream* Message::getContentSource()
 {
    return mContentSource;
 }
 
-void Channel::setContentSink(OutputStream* os, bool close)
+void Message::setContentSink(OutputStream* os, bool close)
 {
    mContentSink = os;
    mCloseSink = close;
    mDynamicObject.setNull();
 }
 
-OutputStream* Channel::getContentSink()
+OutputStream* Message::getContentSink()
 {
    return mContentSink;
 }
 
-void Channel::setDynamicObject(DynamicObject& dyno)
+void Message::setDynamicObject(DynamicObject& dyno)
 {
    mDynamicObject = dyno;
    mContentSource = NULL;
    mContentSink = NULL;
 }
 
-DynamicObject& Channel::getDynamicObject()
+DynamicObject& Message::getDynamicObject()
 {
    return mDynamicObject;
 }
 
-HttpTrailerRef& Channel::getTrailer()
+void Message::setTrailer(HttpTrailerRef& trailer)
+{
+   mTrailer = trailer;
+}
+
+HttpTrailerRef& Message::getTrailer()
 {
    return mTrailer;
 }
 
-bool Channel::validateContentType(HttpHeader* header, ContentType& type)
+bool Message::validateContentType(HttpHeader* header, ContentType& type)
 {
    bool rval = true;
 
@@ -351,7 +330,7 @@ bool Channel::validateContentType(HttpHeader* header, ContentType& type)
    {
       // unsupported content-type
       ExceptionRef e = new Exception(
-         "Unsupported Content-Type for Channel using DynamicObject.",
+         "Unsupported Content-Type for Message using DynamicObject.",
          "monarch.ws.InvalidContentType");
       e->getDetails()["contentType"] = contentType.c_str();
       Exception::set(e);
@@ -361,7 +340,7 @@ bool Channel::validateContentType(HttpHeader* header, ContentType& type)
    return rval;
 }
 
-void Channel::addCustomHeaders(HttpHeader* header)
+void Message::addCustomHeaders(HttpHeader* header)
 {
    // add any custom headers
    if(!mCustomHeaders.isNull() && mCustomHeaders->getType() == Map)
@@ -436,7 +415,7 @@ void Channel::addCustomHeaders(HttpHeader* header)
    }
 }
 
-bool Channel::sendHeaderAndStream(
+bool Message::sendHeaderAndStream(
    HttpConnection* hc, HttpHeader* header, InputStream* is)
 {
    bool rval;
@@ -449,7 +428,7 @@ bool Channel::sendHeaderAndStream(
    {
       // print out header
       MO_CAT_DEBUG(MO_WS_CAT,
-         "Channel sent header to %s:%i:\n%s",
+         "Message sent header to %s:%i:\n%s",
          hc->getRemoteAddress()->getAddress(),
          hc->getRemoteAddress()->getPort(),
          header->toString().c_str());
@@ -495,7 +474,7 @@ bool Channel::sendHeaderAndStream(
          {
             // log send time
             MO_CAT_DEBUG(MO_WS_CAT,
-               "Channel sent stream content, %" PRIu64 " bytes "
+               "Message sent stream content, %" PRIu64 " bytes "
                "in %" PRIu64 " ms.",
                hc->getContentBytesWritten(),
                timer.getElapsedMilliseconds());
@@ -504,7 +483,7 @@ bool Channel::sendHeaderAndStream(
             {
                // print out trailer
                MO_CAT_DEBUG(MO_WS_CAT,
-                  "Channel sent trailer to %s:%i:\n%s",
+                  "Message sent trailer to %s:%i:\n%s",
                   hc->getRemoteAddress()->getAddress(),
                   hc->getRemoteAddress()->getPort(),
                   trailer->toString().c_str());
@@ -516,7 +495,7 @@ bool Channel::sendHeaderAndStream(
    return rval;
 }
 
-bool Channel::sendHeaderAndObject(
+bool Message::sendHeaderAndObject(
    HttpConnection* hc, HttpHeader* header, DynamicObject& dyno)
 {
    bool rval;
@@ -528,7 +507,7 @@ bool Channel::sendHeaderAndObject(
    {
       // send header
       OutputStreamRef os;
-      rval = sendHeader(hc, header, os, mTrailer);
+      rval = sendHeader(hc, header, os);
       if(rval && !os.isNull())
       {
          Timer timer;
@@ -544,7 +523,7 @@ bool Channel::sendHeaderAndObject(
             {
                // log send time
                MO_CAT_DEBUG(MO_WS_CAT,
-                  "Channel sent object content to %s:%i, "
+                  "Message sent object content to %s:%i, "
                   "%" PRIu64 " bytes in %" PRIu64 " ms.",
                   hc->getRemoteAddress()->getAddress(),
                   hc->getRemoteAddress()->getPort(),
@@ -574,7 +553,7 @@ bool Channel::sendHeaderAndObject(
             {
                // log send time
                MO_CAT_DEBUG(MO_WS_CAT,
-                  "Channel sent object content to %s:%i, "
+                  "Message sent object content to %s:%i, "
                   "%" PRIu64 " bytes in %" PRIu64 " ms.",
                   hc->getRemoteAddress()->getAddress(),
                   hc->getRemoteAddress()->getPort(),
@@ -592,7 +571,7 @@ bool Channel::sendHeaderAndObject(
    return rval;
 }
 
-bool Channel::receiveContentStream(
+bool Message::receiveContentStream(
    HttpConnection* hc, HttpHeader* header, OutputStream* os)
 {
    bool rval;
@@ -626,7 +605,7 @@ bool Channel::receiveContentStream(
    if(mTrailer->getContentLength() > 0)
    {
       MO_CAT_DEBUG(MO_WS_CAT,
-         "Channel received content from %s:%i, %" PRIu64 " bytes "
+         "Message received content from %s:%i, %" PRIu64 " bytes "
          "in %" PRIu64 " ms.",
          hc->getRemoteAddress()->getAddress(),
          hc->getRemoteAddress()->getPort(),
@@ -637,7 +616,7 @@ bool Channel::receiveContentStream(
       if(mTrailer->getFieldCount() > 0)
       {
          MO_CAT_DEBUG(MO_WS_CAT,
-            "Channel received trailer from %s:%i:\n%s",
+            "Message received trailer from %s:%i:\n%s",
             hc->getRemoteAddress()->getAddress(),
             hc->getRemoteAddress()->getPort(),
             mTrailer->toString().c_str());
@@ -645,7 +624,7 @@ bool Channel::receiveContentStream(
       else
       {
          MO_CAT_DEBUG(MO_WS_CAT,
-            "Channel received no trailer from %s:%i.",
+            "Message received no trailer from %s:%i.",
             hc->getRemoteAddress()->getAddress(),
             hc->getRemoteAddress()->getPort());
       }
@@ -653,7 +632,7 @@ bool Channel::receiveContentStream(
    else
    {
       MO_CAT_DEBUG(MO_WS_CAT,
-         "Channel received no content from %s:%i.",
+         "Message received no content from %s:%i.",
          hc->getRemoteAddress()->getAddress(),
          hc->getRemoteAddress()->getPort());
    }
@@ -661,7 +640,7 @@ bool Channel::receiveContentStream(
    return rval;
 }
 
-bool Channel::receiveContentObject(
+bool Message::receiveContentObject(
    HttpConnection* hc, HttpHeader* header, DynamicObject& dyno)
 {
    bool rval;
@@ -707,39 +686,4 @@ bool Channel::receiveContentObject(
    }
 
    return rval;
-}
-
-void Channel::getContentReceiveStream(
-   HttpConnection* hc, HttpHeader* header,
-   InputStreamRef& is, HttpTrailerRef& trailer)
-{
-   // create trailer if not provided
-   if(trailer.isNull())
-   {
-      mTrailer = trailer = new HttpTrailer();
-   }
-   else
-   {
-      mTrailer = trailer;
-   }
-
-   // get body input stream
-   InputStream* in = hc->getBodyInputStream(header, &(*mTrailer));
-
-   // automatically handle inflating if necessary
-   string contentEncoding;
-   if(header->getField("Content-Encoding", contentEncoding))
-   {
-      if(strstr(contentEncoding.c_str(), "deflate") != NULL ||
-         strstr(contentEncoding.c_str(), "gzip") != NULL)
-      {
-         // create deflater to inflate content (works for zlib OR gzip)
-         Deflater* def = new Deflater();
-         def->startInflating(false);
-         in = new MutatorInputStream(in, true, def, true);
-      }
-   }
-
-   // return reference to input stream
-   is = in;
 }

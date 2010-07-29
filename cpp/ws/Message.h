@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef monarch_ws_Channel_H
-#define monarch_ws_Channel_H
+#ifndef monarch_ws_Message_H
+#define monarch_ws_Message_H
 
 #include "monarch/io/InputStream.h"
 #include "monarch/io/OutputStream.h"
@@ -18,21 +18,21 @@ namespace ws
 {
 
 /**
- * A Channel is a helper class that is used on top of an HttpConnection to
- * transmit or receive messages over HTTP. It can automatically convert HTTP
- * entity bodies to or from monarch DynamicObjects for the following MIME
- * Content-Types:
+ * A Message is a helper class for passing messages over HTTP. It is a
+ * container for an object or stream that is to be transmitted or received. It
+ * can automatically convert HTTP entity bodies to or from DynamicObjects
+ * for the following MIME Content-Types:
  *
  * application/json
  * text/xml
  * application/x-www-form-urlencoded
  *
- * If the associated message is not an object, the channel can also be used
- * to transmit or receive streams of data over HTTP.
+ * If the message is not serializable to a DynamicObject then an appropriate
+ * custom stream can be used to transmit or receive the message.
  *
  * @author Dave Longley
  */
-class Channel
+class Message
 {
 public:
    /**
@@ -45,12 +45,12 @@ public:
 
 protected:
    /**
-    * An input stream to read content will be sent.
+    * An input stream to read content that will be sent.
     */
    monarch::io::InputStream* mContentSource;
 
    /**
-    * An output stream to write receive content to.
+    * An output stream to write received content to.
     */
    monarch::io::OutputStream* mContentSink;
 
@@ -77,65 +77,103 @@ protected:
 
 public:
    /**
-    * Creates a new Channel.
+    * Creates a new Message.
     */
-   Channel();
+   Message();
 
    /**
-    * Destructs this Channel.
+    * Destructs this Message.
     */
-   virtual ~Channel();
+   virtual ~Message();
 
    /**
     * A helper function that automatically sets the path, version, user-agent,
-    * and host for an http request.
+    * and host for an http request. This method is not called automatically
+    * and should be called, if desired, before sending a message using an
+    * HttpRequest.
     *
     * @param url the Url the request will be made to.
     * @param header the HttpRequestHeader to update.
     */
-   virtual void setupRequestHeader(
+   virtual void initializeRequestHeader(
       monarch::net::Url* url, monarch::http::HttpRequestHeader* header);
 
    /**
     * Adds any previously set custom headers and default transfer-encoding
-    * based on the presence of content to be sent.
+    * based on the presence of content to be sent. Extending classes may
+    * override this method to add their own headers.
+    *
+    * This method is called before a message header is sent.
     *
     * @param header the header to update.
     */
    virtual void addCustomHeaders(monarch::http::HttpHeader* header);
 
    /**
-    * Sends the header for a message over the passed connection. This method
-    * can be used to manually send an http header which is to be followed
-    * by a manually sent content-body.
+    * Sends only the header for a message over the passed connection. This
+    * method can be used to manually send an http header which is to be
+    * followed by a manually sent content-body.
     *
     * The output stream for writing the body will be set to the passed
     * OutputStreamRef parameter and it must be closed once the body has been
     * written to it.
     *
-    * Any http trailer that will be sent when the stream is closed will be
-    * set to the passed HttpTrailerRef parameter. Additional fields can be set
-    * on the trailer to be sent after the body output stream is closed.
+    * If an HTTP trailer is set on the message then it will be sent when the
+    * returned output stream is finished or closed. By default, no HTTP trailer
+    * is set. The HTTP trailer must be set before sending the header, however,
+    * additional fields can be set on the trailer before the output stream
+    * is closed.
     *
     * @param hc the connection to send the message over.
     * @param header the header to use with the message.
     * @param os the body OutputStreamRef to be set.
-    * @param trailer the HttpTrailerRef to be set or used.
     *
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool sendHeader(
-      monarch::http::HttpConnection* hc, monarch::http::HttpHeader* header,
-      monarch::io::OutputStreamRef& os,
-      monarch::http::HttpTrailerRef& trailer);
+      monarch::http::HttpConnection* hc,
+      monarch::http::HttpHeader* header,
+      monarch::io::OutputStreamRef& os);
 
    /**
-    * Sends a message in its entirety (header and content) to the passed
-    * url using the passed HttpRequest and pre-set content source input stream
-    * or DynamicObject.
+    * Convenience method for sending an HttpRequest header.
     *
-    * The request header's method, host, accept, and other basic fields
-    * will be automatically set.
+    * See sendHeader().
+    *
+    * @param request the HttpRequest.
+    * @param os the body OutputStreamRef to be set.
+    *
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool sendRequestHeader(
+      monarch::http::HttpRequest* request,
+      monarch::io::OutputStreamRef& os);
+
+   /**
+    * Convenience method for sending an HttpResponse header.
+    *
+    * See sendHeader().
+    *
+    * @param response the HttpResponse.
+    * @param os the body OutputStreamRef to be set.
+    *
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool sendResponseHeader(
+      monarch::http::HttpResponse* response,
+      monarch::io::OutputStreamRef& os);
+
+   /**
+    * Sends a message in its entirety (header and content) over the given
+    * HttpConnection using the given header. A content source input stream or
+    * a DynamicObject must be set in order for content to be transmitted after
+    * the header of the message. Otherwise, no content will be sent.
+    *
+    * Any custom headers will be added to the passed header and if content is
+    * to be transmitted and "chunked" transfer-encoding can be used then any
+    * supported compression methods (ie: deflate, gzip) will be performed
+    * automatically. If "chunked" transfer-encoding is not available, then
+    * compression must be performed manually.
     *
     * @param url the url to send the message to.
     * @param request the request to send the message with.
@@ -143,19 +181,26 @@ public:
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool send(
-      monarch::net::Url* url,
-      monarch::http::HttpRequest* request);
+      monarch::http::HttpConnection* hc,
+      monarch::http::HttpHeader* header);
 
    /**
-    * Sends a message in its entirety (header and content) using
-    * the passed HttpResponse and pre-set content source input stream or
-    * DynamicObject.
+    * A convenience method for sending a request message in its entirety.
     *
-    * @param response the response to send the message with.
+    * See send().
     *
-    * @return true if successful, false if an Exception occurred.
+    * @param request the HttpRequest.
     */
-   virtual bool send(monarch::http::HttpResponse* response);
+   virtual bool sendRequest(monarch::http::HttpRequest* request);
+
+   /**
+    * A convenience method for sending a response message in its entirety.
+    *
+    * See send().
+    *
+    * @param responsethe HttpResponse.
+    */
+   virtual bool sendResponse(monarch::http::HttpResponse* response);
 
    /**
     * Receives the content of a message using the passed request and writes
@@ -171,7 +216,13 @@ public:
    /**
     * Receives the content of a message using the passed response and writes
     * it to the pre-set content sink output stream or DynamicObject. It is
-    * assumed that the header for the passed response has already been received.
+    * assumed that the header for the passed response has already been
+    * received. If the status code for the response indicates that there was
+    * an error, then an attempt will be made to receive the content as a
+    * DynamicObject (regardless of the content sink setting) and convert it
+    * to an Exception. If an Exception can be read from the message, it will
+    * be set on the current thread and the return value of this method will be
+    * set to false.
     *
     * @param response the response to receive the message content with.
     *
@@ -180,20 +231,19 @@ public:
    virtual bool receiveContent(monarch::http::HttpResponse* response);
 
    /**
-    * Gets a stream to manually receive the content of a message after the
-    * header has already been received.
+    * Receives the content of a message using the passed connection and
+    * header and writes it to the pre-set content sink output stream or
+    * DynamicObject. If the header is an HttpResponseHeader with an error
+    * status code, no automatic conversion of a DynamicObject to an Exception
+    * will be performed.
     *
-    * It is safe to close the returned input stream (this will not shutdown
-    * the underlying connection input) or to leave it open.
+    * @param hc the connection to receive the message over.
+    * @param header the header for the message.
     *
-    * @param request the http request.
-    * @param is the InputStream to be set to the content stream to read.
-    * @param trailer the HttpTrailer to be set to the trailers following
-    *           the body.
+    * @return true if successful, false if an Exception occurred.
     */
-   virtual void getContentReceiveStream(
-      monarch::http::HttpRequest* request,
-      monarch::io::InputStreamRef& is, monarch::http::HttpTrailerRef& trailer);
+   virtual bool receiveContent(
+      monarch::http::HttpConnection* hc, monarch::http::HttpHeader* header);
 
    /**
     * Gets a stream to manually receive the content of a message after the
@@ -202,14 +252,21 @@ public:
     * It is safe to close the returned input stream (this will not shutdown
     * the underlying connection input) or to leave it open.
     *
-    * @param response the http response.
+    * If a trailer is set on this message then it will be populated with any
+    * trailers received after the input stream is read.
+    *
+    * If a supported content-encoding is set (ie: deflate, gzip) then
+    * content-decoding will be performed automatically as the data is read
+    * from the input stream.
+    *
+    * @param hc the http connection.
+    * @param header the header for the message.
     * @param is the InputStream to be set to the content stream to read.
-    * @param trailer the HttpTrailer to be set to the trailers following
-    *           the body.
     */
-   virtual void getContentReceiveStream(
-      monarch::http::HttpResponse* response,
-      monarch::io::InputStreamRef& is, monarch::http::HttpTrailerRef& trailer);
+   virtual void getContentInputStream(
+      monarch::http::HttpConnection* hc,
+      monarch::http::HttpHeader* header,
+      monarch::io::InputStreamRef& is);
 
    /**
     * Gets the custom headers object. Any headers in this object will be added
@@ -221,7 +278,8 @@ public:
    virtual monarch::rt::DynamicObject& getCustomHeaders();
 
    /**
-    * Sets the content source to use with a message.
+    * Sets the content source to use with a message. This will also set
+    * the DynamicObject to null indicating the message is not a DynamicObject.
     *
     * @param is the InputStream with the content to send with a message.
     */
@@ -235,7 +293,8 @@ public:
    virtual monarch::io::InputStream* getContentSource();
 
    /**
-    * Sets the content sink to use with a message.
+    * Sets the content sink to use with a message. This will also set
+    * the DynamicObject to null indicating the message is not a DynamicObject.
     *
     * @param os the OutputStream to write the received message content to.
     * @param close close the OutputStream when done.
@@ -250,23 +309,30 @@ public:
    virtual monarch::io::OutputStream* getContentSink();
 
    /**
-    * Sets the DynamicObject to use when sending or receiving over this
-    * Channel.
+    * Sets the DynamicObject to use when sending or receiving. This will also
+    * set the ContentSource and ContentSink to null indicating the message
+    * will not be sent or received using custom streams.
     *
     * @param dyno the DynamicObject to use.
     */
    virtual void setDynamicObject(monarch::rt::DynamicObject& dyno);
 
    /**
-    * Gets the DynamicObject sent or received over this Channel.
+    * Gets the DynamicObject sent or received.
     *
-    * @return the DynamicObject associated with this Channel.
+    * @return the DynamicObject associated with this Message.
     */
    virtual monarch::rt::DynamicObject& getDynamicObject();
 
    /**
-    * Gets the HttpTrailer sent/received during communication. The returned
-    * trailer can also be set to a class instance that extends HttpTrailer.
+    * Sets the HttpTrailer sent/received during communication.
+    *
+    * @param trailer the HttpTrailer used in communication.
+    */
+   virtual void setTrailer(monarch::http::HttpTrailerRef& trailer);
+
+   /**
+    * Gets the HttpTrailer sent/received during communication.
     *
     * @return the HttpTrailer used in communication.
     */
@@ -345,23 +411,6 @@ protected:
    virtual bool receiveContentObject(
       monarch::http::HttpConnection* hc, monarch::http::HttpHeader* header,
       monarch::rt::DynamicObject& dyno);
-
-   /**
-    * Gets a stream to manually receive the content of a message after the
-    * header has already been received.
-    *
-    * Closing the returned input stream will not shut down the connection's
-    * input.
-    *
-    * @param hc the connection overwhich to receive the content.
-    * @param header the previously received header.
-    * @param is the InputStream to be set to the content stream to read.
-    * @param trailer the HttpTrailer to be set or populated with the trailers
-    *           following the body.
-    */
-   virtual void getContentReceiveStream(
-      monarch::http::HttpConnection* hc, monarch::http::HttpHeader* header,
-      monarch::io::InputStreamRef& is, monarch::http::HttpTrailerRef& trailer);
 };
 
 } // end namespace ws

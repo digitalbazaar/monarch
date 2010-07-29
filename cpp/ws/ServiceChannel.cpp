@@ -147,7 +147,7 @@ bool ServiceChannel::sendNoContent()
 
       // send
       mOutput.setContentSource(NULL);
-      rval = mOutput.send(mResponse);
+      rval = mOutput.sendResponse(mResponse);
       if(rval)
       {
          setSent();
@@ -181,7 +181,7 @@ bool ServiceChannel::sendContent(InputStream* is)
       }
 
       // send
-      rval = mOutput.send(mResponse);
+      rval = mOutput.sendResponse(mResponse);
       if(rval)
       {
          setSent();
@@ -250,7 +250,7 @@ bool ServiceChannel::sendContent(DynamicObject& dyno)
       }
 
       // send
-      rval = mOutput.send(mResponse);
+      rval = mOutput.sendResponse(mResponse);
       if(rval)
       {
          setSent();
@@ -301,7 +301,7 @@ bool ServiceChannel::sendException(ExceptionRef& e, bool client)
          getPath(), JsonWriter::writeToString(dyno).c_str());
 
       // send
-      if((rval = mOutput.send(mResponse)))
+      if((rval = mOutput.sendResponse(mResponse)))
       {
          setSent();
       }
@@ -364,12 +364,12 @@ bool ServiceChannel::getQuery(DynamicObject& vars, bool asArrays)
    return rval;
 }
 
-Channel* ServiceChannel::getInput()
+Message* ServiceChannel::getInput()
 {
    return &mInput;
 }
 
-Channel* ServiceChannel::getOutput()
+Message* ServiceChannel::getOutput()
 {
    return &mOutput;
 }
