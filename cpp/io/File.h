@@ -197,7 +197,7 @@ public:
     *
     * @return the length of this File.
     */
-   virtual off_t getLength();
+   virtual int64_t getLength();
 
    /**
     * Gets the Type of File.

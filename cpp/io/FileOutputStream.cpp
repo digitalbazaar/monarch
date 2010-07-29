@@ -1,6 +1,10 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "monarch/io/FileOutputStream.h"
 
 #include "monarch/rt/DynamicObject.h"

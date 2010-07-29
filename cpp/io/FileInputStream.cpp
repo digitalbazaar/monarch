@@ -1,6 +1,10 @@
 /*
  * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "monarch/io/FileInputStream.h"
 
 #include "monarch/io/FileFunctions.h"
@@ -12,6 +16,19 @@
 using namespace std;
 using namespace monarch::io;
 using namespace monarch::rt;
+
+// setup some aliases depending on fseeko/ftello support
+
+#ifdef HAVE_FSEEKO
+#define mo_fseek fseeko
+#define mo_ftell ftello
+#define mo_fseek_off_t off_t
+#else
+#define mo_fseek fseek
+#define mo_ftell ftell
+#define mo_fseek_off_t long
+#endif
+
 
 FileInputStream::FileInputStream(File& file) :
    mFile(file),
@@ -113,10 +130,10 @@ int64_t FileInputStream::skip(int64_t count)
       bool success;
 
       // store current position and the end position
-      size_t curr = ftell(mHandle);
-      success = (fseek(mHandle, 0, SEEK_END) == 0);
-      size_t end = ftell(mHandle);
-      success = success && (fseek(mHandle, curr, SEEK_SET) == 0);
+      mo_fseek_off_t curr = mo_ftell(mHandle);
+      success = (mo_fseek(mHandle, 0, SEEK_END) == 0);
+      mo_fseek_off_t end = mo_ftell(mHandle);
+      success = success && (mo_fseek(mHandle, curr, SEEK_SET) == 0);
 
       rval = count;
       if(rval > 0 && curr < end)
@@ -128,7 +145,7 @@ int64_t FileInputStream::skip(int64_t count)
          }
 
          // skip from current offset
-         success = success && (fseek(mHandle, rval, SEEK_CUR) == 0);
+         success = success && (mo_fseek(mHandle, rval, SEEK_CUR) == 0);
       }
 
       if(!success)

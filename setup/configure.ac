@@ -57,6 +57,11 @@ dnl ----------------- standard checks -----------------
 # header checks
 AC_CHECK_HEADERS([iostream])
 
+dnl large file support
+dnl include config.h where needed
+AC_FUNC_FSEEKO
+AC_SYS_LARGEFILE
+
 dnl ----------------- common libraries -----------------
 
 # Make sure the proper libraries exist
