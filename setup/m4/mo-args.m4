@@ -5,6 +5,7 @@ dnl MO_ARG_DEBUG
 dnl MO_ARG_LOG_LINE_NUMBERS
 dnl MO_ARG_OPT
 dnl MO_ARG_TESTS
+dnl MO_ARG_DOCS
 
 dnl ----------------- control debugging  -----------------
 
@@ -38,7 +39,7 @@ AC_DEFUN([MO_ARG_DEBUG],
    MO_MSG_CONFIG_OPTION([Debug], [$MO_CXX_DEBUG_FLAGS])
 ])
 
-dnl ----------------- disable log line numbers -----------------
+dnl ----------------- control log line numbers -----------------
 
 AC_DEFUN([MO_ARG_LOG_LINE_NUMBERS],
 [
@@ -123,7 +124,7 @@ AC_DEFUN([MO_ARG_OPT],
    MO_MSG_CONFIG_OPTION([Optimization], [$MO_CXX_OPT_FLAGS])
 ])
 
-dnl ----------------- disable test building and running -----------------
+dnl ----------------- control building and running tests -----------------
 
 AC_DEFUN([MO_ARG_TESTS],
 [
@@ -137,14 +138,39 @@ AC_DEFUN([MO_ARG_TESTS],
             *)   AC_MSG_ERROR(bad value ${enableval} for --disable-tests) ;;
          esac
       ],
-      [BUILD_TESTS=yes]) dnl Default value
-   # Disable test building Windows
+      [:]) dnl Default value
+   dnl Disable test building in Windows if not set
    if test "x$BUILD_FOR_WINDOWS" = "xyes" -a "x$BUILD_TESTS_SET" != "xyes"; then
       BUILD_TESTS=no
+   fi
+   dnl Default value if not set
+   if test "x$BUILD_TESTS" = "x"; then
+      BUILD_TESTS=yes
    fi
    AC_SUBST(BUILD_TESTS)
 
    MO_MSG_CONFIG_OPTION_IF([Tests],
       [test "x$BUILD_TESTS" = xyes],
       [enabled], [disabled (use --enable-tests to enable)])
+])
+
+dnl ----------------- control building docs -----------------
+
+AC_DEFUN([MO_ARG_DOCS],
+[
+   AC_ARG_ENABLE([docs],
+      AC_HELP_STRING([--enable-docs], [enable building docs [no]]),
+      [
+         case "${enableval}" in
+            yes) BUILD_DOCS=yes ;;
+            no)  BUILD_DOCS=no ;;
+            *)   AC_MSG_ERROR(bad value ${enableval} for --enable-docs) ;;
+         esac
+      ],
+      [BUILD_DOCS=no]) dnl Default value
+   AC_SUBST(BUILD_DOCS)
+
+   MO_MSG_CONFIG_OPTION_IF([Docs],
+      [test "x$BUILD_DOCS" = xyes],
+      [enabled], [disabled (use --enable-docs to enable)])
 ])
