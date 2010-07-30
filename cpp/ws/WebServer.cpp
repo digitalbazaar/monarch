@@ -202,8 +202,8 @@ bool WebServer::enable(Server* server, const char* name)
    else
    {
       mServer = server;
-      MO_CAT_INFO(MO_WS_CAT, "WebServer serving on %s",
-         mHostAddress->toString(false).c_str());
+      MO_CAT_INFO(MO_WS_CAT, "WebServer %s serving on %s",
+         name, mHostAddress->toString(false).c_str());
    }
 
    return rval;
