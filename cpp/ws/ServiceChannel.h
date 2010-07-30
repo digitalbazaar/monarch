@@ -251,7 +251,7 @@ public:
    /**
     * Sets the HttpRequest to use to receive content from the client.
     *
-    * @param request the HttpRequest to create the action from.
+    * @param request the HttpRequest to use.
     */
    virtual void setRequest(monarch::http::HttpRequest* request);
 

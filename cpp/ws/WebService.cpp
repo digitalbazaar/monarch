@@ -130,7 +130,7 @@ void WebService::findHandler(char* path, PathHandlerRef& h)
       mHandlerLock.lockShared();
    }
 
-   // try to find action handler for resource
+   // try to find handler for path
    HandlerMap::iterator i;
    while(h.isNull() && path != NULL)
    {

@@ -16,7 +16,7 @@ namespace ws
  * A ProxyPathHandler redirects HTTP traffic to another URL. This may be
  * done through HTTP redirects or through proxying.
  *
- * An HTTP request (BTP action) is processed by this handler as follows:
+ * An HTTP request is processed by this handler as follows:
  *
  * 1. Do proxy or redirection rules.
  * 2. Do local path handling.
@@ -210,14 +210,14 @@ protected:
       bool rewriteHost, bool permanent);
 
    /**
-    * Gets the Rule for the given action.
+    * Gets the Rule for the given channel.
     *
-    * @param action the action to get the Rule for.
+    * @param ch the channel to get the Rule for.
     * @param host the request host.
     *
     * @return the Rule or NULL if none was found.
     */
-   virtual Rule* findRule(ServiceChannel* ws, std::string& host);
+   virtual Rule* findRule(ServiceChannel* ch, std::string& host);
 
    /**
     * Gets the string representation for the given rule type.

@@ -46,7 +46,7 @@ public:
     *
     * @param ch the communication channel with the client.
     *
-    * @return true if this action can be performed.
+    * @return true if the request can be handled.
     */
    virtual bool canHandleRequest(ServiceChannel* ch);
 
