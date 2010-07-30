@@ -69,8 +69,8 @@ protected:
 
 public:
    /**
-    * Creates a new PathHandlerDelegate with the specified handler object,
-    * function, and optional PathHandler guard.
+    * Creates a new PathHandlerDelegate with the specified handler object and
+    * function.
     *
     * @param h the handler object.
     * @param f the handler's function for handling a request.
@@ -78,8 +78,8 @@ public:
    PathHandlerDelegate(Handler* h, SimpleFunction f);
 
    /**
-    * Creates a new PathHandlerDelegate with the specified handler object,
-    * function, and optional PathHandler guard.
+    * Creates a new PathHandlerDelegate with the specified handler object and
+    * function.
     *
     * @param h the handler object.
     * @param f the handler's function for handling a request.
