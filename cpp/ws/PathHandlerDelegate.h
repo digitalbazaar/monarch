@@ -156,7 +156,7 @@ void PathHandlerDelegate<Handler, Channel>::handleRequest(ServiceChannel* ch)
    if(mType == FunctionSimple)
    {
       // handle simple request
-      (mHandler->*mSimpleFunction)(ch);
+      (mHandler->*mSimpleFunction)(static_cast<Channel*>(ch));
    }
    else if(mType == FunctionDyno)
    {
@@ -168,7 +168,8 @@ void PathHandlerDelegate<Handler, Channel>::handleRequest(ServiceChannel* ch)
       success = ch->receiveContent(in);
       if(success)
       {
-         success = (mHandler->*mDynoFunction)(ch, in, out);
+         success = (mHandler->*mDynoFunction)(
+            static_cast<Channel*>(ch), in, out);
          if(success)
          {
             if(out.isNull())
