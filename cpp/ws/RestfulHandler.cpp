@@ -34,7 +34,7 @@ void RestfulHandler::operator()(ServiceChannel* ch)
 
 void RestfulHandler::addHandler(
    PathHandlerRef& handler,
-   MethodType mt,
+   Message::MethodType mt,
    int paramCount,
    monarch::validation::ValidatorRef* queryValidator,
    monarch::validation::ValidatorRef* contentValidator,
@@ -55,7 +55,7 @@ void RestfulHandler::addHandler(
 
 void RestfulHandler::addHandler(
    PathHandlerRef& handler,
-   MethodType mt,
+   Message::MethodType mt,
    monarch::validation::ValidatorRef* resourceValidator,
    monarch::validation::ValidatorRef* queryValidator,
    monarch::validation::ValidatorRef* contentValidator,
@@ -79,88 +79,6 @@ void RestfulHandler::addHandler(
    }
    info.handler = handler;
    info.flags = flags;
-}
-
-RestfulHandler::MethodType RestfulHandler::stringToMethod(const char* str)
-{
-   MethodType rval;
-
-   if(strcmp(str, "GET") == 0)
-   {
-      rval = Get;
-   }
-   else if(strcmp(str, "PUT") == 0)
-   {
-      rval = Put;
-   }
-   else if(strcmp(str, "POST") == 0)
-   {
-      rval = Post;
-   }
-   else if(strcmp(str, "DELETE") == 0)
-   {
-      rval = Delete;
-   }
-   else if(strcmp(str, "HEAD") == 0)
-   {
-      rval = Head;
-   }
-   else if(strcmp(str, "OPTIONS") == 0)
-   {
-      rval = Options;
-   }
-   else if(strcmp(str, "TRACE") == 0)
-   {
-      rval = Trace;
-   }
-   else if(strcmp(str, "CONNECT") == 0)
-   {
-      rval = Connect;
-   }
-   else
-   {
-      rval = Undefined;
-   }
-
-   return rval;
-}
-
-const char* RestfulHandler::methodToString(RestfulHandler::MethodType type)
-{
-   const char* rval = NULL;
-
-   switch(type)
-   {
-      case RestfulHandler::Get:
-         rval = "GET";
-         break;
-      case RestfulHandler::Put:
-         rval = "PUT";
-         break;
-      case RestfulHandler::Post:
-         rval = "POST";
-         break;
-      case RestfulHandler::Delete:
-         rval = "DELETE";
-         break;
-      case RestfulHandler::Head:
-         rval = "HEAD";
-         break;
-      case RestfulHandler::Options:
-         rval = "OPTIONS";
-         break;
-      case RestfulHandler::Trace:
-         rval = "TRACE";
-         break;
-      case RestfulHandler::Connect:
-         rval = "CONNECT";
-         break;
-      case RestfulHandler::Undefined:
-         rval = NULL;
-         break;
-   }
-
-   return rval;
 }
 
 RestfulHandler::HandlerMap::iterator RestfulHandler::findHandler(
@@ -201,16 +119,16 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerMap::iterator hmi)
       // allow X-Method-Override on request
       HttpRequestHeader* header = ch->getRequest()->getHeader();
       string method;
-      MethodType mt = RestfulHandler::Undefined;
+      Message::MethodType mt = Message::Undefined;
       if(header->hasField("X-Method-Override"))
       {
          method = header->getFieldValue("X-Method-Override");
-         mt = stringToMethod(method.c_str());
+         mt = Message::stringToMethod(method.c_str());
       }
-      if(mt == RestfulHandler::Undefined)
+      if(mt == Message::Undefined)
       {
          method = header->getMethod();
-         mt = stringToMethod(method.c_str());
+         mt = Message::stringToMethod(method.c_str());
       }
 
       // find the map of valid methods for the given handler
@@ -278,7 +196,7 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerMap::iterator hmi)
          for(mmi = mm->begin(); mmi != mm->end(); ++mmi)
          {
             e->getDetails()["validMethods"]->append() =
-               methodToString(mmi->first);
+               Message::methodToString(mmi->first);
          }
 
          // set allow header

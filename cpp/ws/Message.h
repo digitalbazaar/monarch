@@ -36,6 +36,14 @@ class Message
 {
 public:
    /**
+    * HTTP methods.
+    */
+   enum MethodType
+   {
+      Undefined, Get, Put, Post, Delete, Head, Options, Trace, Connect
+   };
+
+   /**
     * The different acceptable content-types for DynamicObjects.
     */
    enum ContentType
@@ -338,6 +346,24 @@ public:
     * @return the HttpTrailer used in communication.
     */
    virtual monarch::http::HttpTrailerRef& getTrailer();
+
+   /**
+    * Conversion from string to MethodType.
+    *
+    * @param str the string to convert.
+    *
+    * @return the Type or Undefined.
+    */
+   static MethodType stringToMethod(const char* str);
+
+   /**
+    * Conversion from MethodType to string.
+    *
+    * @param method the MethodType to convert.
+    *
+    * @return the string or NULL.
+    */
+   static const char* methodToString(MethodType method);
 
 protected:
    /**

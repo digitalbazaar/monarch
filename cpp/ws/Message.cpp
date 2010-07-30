@@ -302,6 +302,88 @@ HttpTrailerRef& Message::getTrailer()
    return mTrailer;
 }
 
+Message::MethodType Message::stringToMethod(const char* str)
+{
+   MethodType rval;
+
+   if(strcmp(str, "GET") == 0)
+   {
+      rval = Get;
+   }
+   else if(strcmp(str, "PUT") == 0)
+   {
+      rval = Put;
+   }
+   else if(strcmp(str, "POST") == 0)
+   {
+      rval = Post;
+   }
+   else if(strcmp(str, "DELETE") == 0)
+   {
+      rval = Delete;
+   }
+   else if(strcmp(str, "HEAD") == 0)
+   {
+      rval = Head;
+   }
+   else if(strcmp(str, "OPTIONS") == 0)
+   {
+      rval = Options;
+   }
+   else if(strcmp(str, "TRACE") == 0)
+   {
+      rval = Trace;
+   }
+   else if(strcmp(str, "CONNECT") == 0)
+   {
+      rval = Connect;
+   }
+   else
+   {
+      rval = Undefined;
+   }
+
+   return rval;
+}
+
+const char* Message::methodToString(Message::MethodType type)
+{
+   const char* rval = NULL;
+
+   switch(type)
+   {
+      case Message::Get:
+         rval = "GET";
+         break;
+      case Message::Put:
+         rval = "PUT";
+         break;
+      case Message::Post:
+         rval = "POST";
+         break;
+      case Message::Delete:
+         rval = "DELETE";
+         break;
+      case Message::Head:
+         rval = "HEAD";
+         break;
+      case Message::Options:
+         rval = "OPTIONS";
+         break;
+      case Message::Trace:
+         rval = "TRACE";
+         break;
+      case Message::Connect:
+         rval = "CONNECT";
+         break;
+      case Message::Undefined:
+         rval = NULL;
+         break;
+   }
+
+   return rval;
+}
+
 bool Message::validateContentType(HttpHeader* header, ContentType& type)
 {
    bool rval = true;

@@ -47,14 +47,6 @@ class RestfulHandler : public monarch::ws::PathHandler
 {
 public:
    /**
-    * HTTP methods.
-    */
-   enum MethodType
-   {
-      Undefined, Get, Put, Post, Delete, Head, Options, Trace, Connect
-   };
-
-   /**
     * Per-handler flags.
     */
    enum
@@ -79,7 +71,7 @@ protected:
    /**
     * Map of method type to handler info.
     */
-   typedef std::map<MethodType, HandlerInfo> MethodMap;
+   typedef std::map<Message::MethodType, HandlerInfo> MethodMap;
 
    /**
     * Map of handler parameter count to method map, where a parameter count
@@ -130,7 +122,7 @@ public:
     */
    virtual void addHandler(
       monarch::ws::PathHandlerRef& handler,
-      MethodType mt,
+      Message::MethodType mt,
       int paramCount = 0,
       monarch::validation::ValidatorRef* queryValidator = NULL,
       monarch::validation::ValidatorRef* contentValidator = NULL,
@@ -150,29 +142,11 @@ public:
     */
    virtual void addHandler(
       monarch::ws::PathHandlerRef& handler,
-      MethodType mt,
+      Message::MethodType mt,
       monarch::validation::ValidatorRef* resourceValidator,
       monarch::validation::ValidatorRef* queryValidator = NULL,
       monarch::validation::ValidatorRef* contentValidator = NULL,
       uint32_t flags = 0);
-
-   /**
-    * Conversion from string to MethodType.
-    *
-    * @param str the string to convert.
-    *
-    * @return the Type or Undefined.
-    */
-   static MethodType stringToMethod(const char* str);
-
-   /**
-    * Conversion from MethodType to string.
-    *
-    * @param method the MethodType to convert.
-    *
-    * @return the string or NULL.
-    */
-   static const char* methodToString(MethodType method);
 
 protected:
    /**
