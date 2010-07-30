@@ -48,12 +48,12 @@ bool WebServer::initialize(Config& cfg)
    bool secure;
    bool nonSecure;
    const char* security = cfg["security"]->getString();
-   if(strcasecmp(security, "on"))
+   if(strcasecmp(security, "on") == 0)
    {
       secure = true;
       nonSecure = false;
    }
-   else if(strcasecmp(security, "off"))
+   else if(strcasecmp(security, "off") == 0)
    {
       secure = false;
       nonSecure = true;
