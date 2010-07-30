@@ -169,7 +169,7 @@ static void runWebServerTest(TestRunner& tr)
    WebServer ws;
    Config cfg;
    cfg["host"] = "localhost";
-   cfg["port"] = 19100;
+   cfg["port"] = 0;
    cfg["security"] = "off";
    WebServiceContainerRef wsc = new WebServiceContainer();
    ws.setContainer(wsc);
@@ -181,11 +181,13 @@ static void runWebServerTest(TestRunner& tr)
    // start server
    assertNoException(server.start(&k));
 
+   // get server port
+   int port = ws.getHostAddress()->getPort();
+
    // get data
    {
       Url url;
-      url.format("http://%s:%d%s",
-         cfg["host"]->getString(), cfg["port"]->getUInt32(), path);
+      url.format("http://%s:%d%s", cfg["host"]->getString(), port, path);
       _checkUrlText(tr, &url, 200, content, strlen(content));
    }
 
