@@ -84,6 +84,65 @@ public:
    }
 };
 
+/**
+ * Check a GET to a url returns a certain code and data.
+ */
+static void _checkUrlText(
+   TestRunner& tr, Url* url, int code, const char* expected, int length)
+{
+   // create client
+   HttpClient client;
+
+   // connect
+   assertNoException(client.connect(url));
+
+   if(tr.getVerbosityLevel() > 1)
+   {
+      printf("Connected to: %s\n", url->toString().c_str());
+      InternetAddress address(url->getHost().c_str(), url->getPort());
+      printf("%s\n", address.toString().c_str());
+   }
+
+   // do get
+   HttpResponse* response = client.get(url);
+   assert(response != NULL);
+
+   if(tr.getVerbosityLevel() > 1)
+   {
+      printf("Response header:\n%s\n",
+         response->getHeader()->toString().c_str());
+   }
+
+   assert(response->getHeader()->getStatusCode() == 200);
+
+   // receive content
+   HttpTrailer trailer;
+   ByteBuffer b;
+   ByteArrayOutputStream baos(&b);
+   assertNoException(client.receiveContent(&baos, &trailer));
+
+   // put data in strings for strcmp since it may not be NULL terminated
+   string strexpected;
+   strexpected.assign(expected, length);
+
+   string strdata;
+   strdata.assign(b.data(), b.length());
+
+   if(tr.getVerbosityLevel() > 1)
+   {
+      printf("Response content (%d bytes):\n%s\n", b.length(), strdata.c_str());
+      printf("Response trailers:\n%s\n", trailer.toString().c_str());
+   }
+
+   // check content
+   assert(b.length() == length);
+   assertStrCmp(strdata.c_str(), strexpected.c_str());
+
+   client.disconnect();
+
+   assertNoExceptionSet();
+}
+
 static void runWebServerTest(TestRunner& tr)
 {
    tr.test("WebServer");
@@ -124,59 +183,10 @@ static void runWebServerTest(TestRunner& tr)
 
    // get data
    {
-      // create client
-      HttpClient client;
-
-      // connect
       Url url;
       url.format("http://%s:%d%s",
          cfg["host"]->getString(), cfg["port"]->getUInt32(), path);
-      assertNoException(client.connect(&url));
-
-      if(tr.getVerbosityLevel() > 1)
-      {
-         printf("Connected to: %s\n", url.toString().c_str());
-         InternetAddress address(url.getHost().c_str(), url.getPort());
-         printf("%s\n", address.toString().c_str());
-      }
-
-      // do get
-      DynamicObject headers;
-      headers["Test-Header"] = "bacon";
-
-      HttpResponse* response = client.get(&url, &headers);
-      assert(response != NULL);
-
-      if(tr.getVerbosityLevel() > 1)
-      {
-         printf("Response header:\n%s\n",
-            response->getHeader()->toString().c_str());
-      }
-
-      assert(response->getHeader()->getStatusCode() == 200);
-
-      // receive content
-      HttpTrailer trailer;
-      ByteBuffer b;
-      ByteArrayOutputStream baos(&b);
-      assertNoException(client.receiveContent(&baos, &trailer));
-
-      // put data in string for strcmp since it may not be NULL terminated
-      string data;
-      data.assign(b.data(), b.length());
-
-      if(tr.getVerbosityLevel() > 1)
-      {
-         printf("Response content (%d bytes)\n%s\n", b.length(), data.c_str());
-         printf("Response trailers:\n%s\n", trailer.toString().c_str());
-      }
-
-      // check content
-      assertStrCmp(data.c_str(), content);
-
-      client.disconnect();
-
-      assertNoExceptionSet();
+      _checkUrlText(tr, &url, 200, content, strlen(content));
    }
 
    server.stop();
