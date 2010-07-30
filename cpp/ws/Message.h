@@ -386,7 +386,7 @@ protected:
     * has already been received, and writes it to the passed OutputStream
     * content sink. The sink will not be closed by this method.
     *
-    * @param hc the connection overwhich to receive the content.
+    * @param hc the connection over which to receive the content.
     * @param header the previously received header.
     * @param os the output stream to write the received content to.
     *
@@ -401,7 +401,7 @@ protected:
     * Receives the content of a message, after the header has already been
     * received, and writes it to the passed DynamicObject.
     *
-    * @param hc the connection overwhich to receive the content.
+    * @param hc the connection over which to receive the content.
     * @param header the previously received header.
     * @param dyno the DynamicObject to write the received content to.
     *
