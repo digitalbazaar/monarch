@@ -75,10 +75,10 @@ public:
     * begins with a forward slash and does not end with one.
     *
     * @param path the path this servicer handles requests for.
-    * @param dynamicResources true to allow dynamic adding/removing of
-    *           resources, false not to.
+    * @param dynamicHandlers true to allow dynamic adding/removing of
+    *           handlers, false not to.
     */
-   WebService(const char* path, bool dynamicResources = false);
+   WebService(const char* path, bool dynamicHandlers = false);
 
    /**
     * Destructs this WebService.

@@ -28,20 +28,20 @@ typedef monarch::ws::PathHandlerRef ResourceHandler;
  *
  * @author Dave Longley
  */
-template<typename Handler>
+template<typename Handler, typename Channel = ServiceChannel>
 class PathHandlerDelegate : public monarch::ws::PathHandler
 {
 protected:
    /**
     * Typedef for simple handler function.
     */
-   typedef void (Handler::*SimpleFunction)(ServiceChannel* ch);
+   typedef void (Handler::*SimpleFunction)(Channel* ch);
 
    /**
     * Typedef for DynamicObject handler function.
     */
    typedef bool (Handler::*DynoFunction)(
-      ServiceChannel*,
+      Channel*,
       monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
 
    /**
@@ -110,8 +110,8 @@ public:
    virtual void handleRequest(ServiceChannel* ch);
 };
 
-template<typename Handler>
-PathHandlerDelegate<Handler>::PathHandlerDelegate(
+template<typename Handler, typename Channel>
+PathHandlerDelegate<Handler, Channel>::PathHandlerDelegate(
    Handler* h, SimpleFunction f) :
    mHandler(h),
    mType(FunctionSimple),
@@ -119,8 +119,8 @@ PathHandlerDelegate<Handler>::PathHandlerDelegate(
 {
 }
 
-template<typename Handler>
-PathHandlerDelegate<Handler>::PathHandlerDelegate(
+template<typename Handler, typename Channel>
+PathHandlerDelegate<Handler, Channel>::PathHandlerDelegate(
    Handler* h, DynoFunction f) :
    mHandler(h),
    mType(FunctionDyno),
@@ -128,13 +128,13 @@ PathHandlerDelegate<Handler>::PathHandlerDelegate(
 {
 }
 
-template<typename Handler>
-PathHandlerDelegate<Handler>::~PathHandlerDelegate()
+template<typename Handler, typename Channel>
+PathHandlerDelegate<Handler, Channel>::~PathHandlerDelegate()
 {
 }
 
-template<typename Handler>
-bool PathHandlerDelegate<Handler>::canHandleRequest(ServiceChannel* ch)
+template<typename Handler, typename Channel>
+bool PathHandlerDelegate<Handler, Channel>::canHandleRequest(ServiceChannel* ch)
 {
    bool rval = true;
 
@@ -151,8 +151,8 @@ bool PathHandlerDelegate<Handler>::canHandleRequest(ServiceChannel* ch)
    return rval;
 }
 
-template<typename Handler>
-void PathHandlerDelegate<Handler>::handleRequest(ServiceChannel* ch)
+template<typename Handler, typename Channel>
+void PathHandlerDelegate<Handler, Channel>::handleRequest(ServiceChannel* ch)
 {
    bool success = true;
 
