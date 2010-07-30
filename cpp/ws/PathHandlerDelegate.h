@@ -11,9 +11,6 @@ namespace monarch
 namespace ws
 {
 
-// type definition for a resource handler
-typedef monarch::ws::PathHandlerRef ResourceHandler;
-
 /**
  * A PathHandlerDelegate is a PathHandler that provides a means to map a
  * function to handle a client's request to an object's member function.
