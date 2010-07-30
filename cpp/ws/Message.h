@@ -122,7 +122,7 @@ public:
     * returned output stream is finished or closed. By default, no HTTP trailer
     * is set. The HTTP trailer must be set before sending the header, however,
     * additional fields can be set on the trailer before the output stream
-    * is closed.
+    * is closed. Extending classes may set their own custom trailer.
     *
     * @param hc the connection to send the message over.
     * @param header the header to use with the message.
@@ -253,7 +253,8 @@ public:
     * the underlying connection input) or to leave it open.
     *
     * If a trailer is set on this message then it will be populated with any
-    * trailers received after the input stream is read.
+    * trailers received after the input stream is read. Extending classes may
+    * set their own custom trailer.
     *
     * If a supported content-encoding is set (ie: deflate, gzip) then
     * content-decoding will be performed automatically as the data is read
