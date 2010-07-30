@@ -19,7 +19,17 @@ RestfulHandler::~RestfulHandler()
 
 void RestfulHandler::operator()(ServiceChannel* ch)
 {
-   handleChannel(ch, findHandler(ch));
+   // enforce secure connection if appropriate
+   if(mSecureOnly && !ch->getRequest()->getConnection()->isSecure())
+   {
+      // send 404
+      ch->getResponse()->getHeader()->setStatus(404, "Not Found");
+      ch->sendNoContent();
+   }
+   else
+   {
+      handleChannel(ch, findHandler(ch));
+   }
 }
 
 void RestfulHandler::addHandler(
