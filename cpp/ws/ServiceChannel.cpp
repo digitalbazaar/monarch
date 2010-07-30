@@ -25,6 +25,8 @@ using namespace monarch::ws;
 ServiceChannel::ServiceChannel(const char* path) :
    mPath(strdup(path)),
    mBasePath(NULL),
+   mInput(NULL),
+   mOutput(NULL),
    mRequest(NULL),
    mResponse(NULL),
    mPathParams(NULL),
@@ -44,6 +46,18 @@ ServiceChannel::~ServiceChannel()
    {
       free(mBasePath);
    }
+}
+
+void ServiceChannel::initialize()
+{
+   mInput = new Message();
+   mOutput = new Message();
+}
+
+void ServiceChannel::cleanup()
+{
+   delete mInput;
+   delete mOutput;
 }
 
 void ServiceChannel::selectContentEncoding()
@@ -91,8 +105,8 @@ void ServiceChannel::setAutoContentEncode(bool on)
 bool ServiceChannel::receiveContent(OutputStream* os, bool close)
 {
    // set content sink, receive content
-   mInput.setContentSink(os, close);
-   return mInput.receiveContent(mRequest);
+   mInput->setContentSink(os, close);
+   return mInput->receiveContent(mRequest);
 }
 
 bool ServiceChannel::receiveContent(DynamicObject& dyno)
@@ -110,8 +124,8 @@ bool ServiceChannel::receiveContent(DynamicObject& dyno)
       if(mRequest->getHeader()->hasContent())
       {
          // set content object, receive content
-         mInput.setDynamicObject(dyno);
-         rval = mInput.receiveContent(mRequest);
+         mInput->setDynamicObject(dyno);
+         rval = mInput->receiveContent(mRequest);
       }
       else
       {
@@ -146,8 +160,8 @@ bool ServiceChannel::sendNoContent()
       }
 
       // send
-      mOutput.setContentSource(NULL);
-      rval = mOutput.sendResponse(mResponse);
+      mOutput->setContentSource(NULL);
+      rval = mOutput->sendResponse(mResponse);
       if(rval)
       {
          setSent();
@@ -171,7 +185,7 @@ bool ServiceChannel::sendContent(InputStream* is)
       }
 
       // set content source
-      mOutput.setContentSource(is);
+      mOutput->setContentSource(is);
 
       // select content encoding if auto-mode and not set
       if(mAutoContentEncode &&
@@ -181,7 +195,7 @@ bool ServiceChannel::sendContent(InputStream* is)
       }
 
       // send
-      rval = mOutput.sendResponse(mResponse);
+      rval = mOutput->sendResponse(mResponse);
       if(rval)
       {
          setSent();
@@ -240,7 +254,7 @@ bool ServiceChannel::sendContent(DynamicObject& dyno)
       _setDynoContentType(mRequest, mResponse);
 
       // set content object
-      mOutput.setDynamicObject(dyno);
+      mOutput->setDynamicObject(dyno);
 
       // auto-select content-encoding if specified and not set
       if(mAutoContentEncode &&
@@ -250,7 +264,7 @@ bool ServiceChannel::sendContent(DynamicObject& dyno)
       }
 
       // send
-      rval = mOutput.sendResponse(mResponse);
+      rval = mOutput->sendResponse(mResponse);
       if(rval)
       {
          setSent();
@@ -286,7 +300,7 @@ bool ServiceChannel::sendException(ExceptionRef& e, bool client)
 
       // convert exception to dyno
       DynamicObject dyno = Exception::convertToDynamicObject(e);
-      mOutput.setDynamicObject(dyno);
+      mOutput->setDynamicObject(dyno);
 
       // auto-select content-encoding if specified and not set
       if(mAutoContentEncode &&
@@ -301,7 +315,7 @@ bool ServiceChannel::sendException(ExceptionRef& e, bool client)
          getPath(), JsonWriter::writeToString(dyno).c_str());
 
       // send
-      if((rval = mOutput.sendResponse(mResponse)))
+      if((rval = mOutput->sendResponse(mResponse)))
       {
          setSent();
       }
@@ -366,12 +380,12 @@ bool ServiceChannel::getQuery(DynamicObject& vars, bool asArrays)
 
 Message* ServiceChannel::getInput()
 {
-   return &mInput;
+   return mInput;
 }
 
 Message* ServiceChannel::getOutput()
 {
-   return &mOutput;
+   return mOutput;
 }
 
 void ServiceChannel::setRequest(HttpRequest* request)

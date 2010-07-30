@@ -40,12 +40,12 @@ protected:
    /**
     * The "in" Message from the client to the service.
     */
-   Message mInput;
+   Message* mInput;
 
    /**
     * The "out" Message from the service to the client.
     */
-   Message mOutput;
+   Message* mOutput;
 
    /**
     * The HttpRequest used to receive from the client.
@@ -105,6 +105,18 @@ public:
     * Destructs this ServiceChannel.
     */
    virtual ~ServiceChannel();
+
+   /**
+    * Initializes this ServiceChannel, creating its input and output Messages
+    * and performing any other custom initialization necessary.
+    */
+   virtual void initialize();
+
+   /**
+    * Cleans up this ServiceChannel. By default the input and output Messages
+    * are deleted.
+    */
+   virtual void cleanup();
 
    /**
     * Adds a Content-Encoding header if Accept-Encoding includes a supported

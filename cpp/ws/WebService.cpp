@@ -203,6 +203,7 @@ void WebService::serviceRequest(HttpRequest* request, HttpResponse* response)
       // create channel
       PathHandlerRef handler;
       ServiceChannel* channel = createChannel(request, handler);
+      channel->initialize();
       channel->setResponse(response);
 
       // before handler hook
@@ -233,6 +234,7 @@ void WebService::serviceRequest(HttpRequest* request, HttpResponse* response)
          timer.getElapsedMilliseconds());
 
       // clean up channel
+      channel->cleanup();
       delete channel;
    }
    else
