@@ -21,17 +21,6 @@ namespace ws
  */
 class WebServiceContainer
 {
-public:
-   /**
-    * Security types for web services.
-    */
-   enum SecurityType
-   {
-      Secure,
-      NonSecure,
-      Both
-   };
-
 protected:
    /**
     * A map of path to WebService.
@@ -91,9 +80,9 @@ public:
     *
     * SecurityType option details:
     *
-    * WebServiceContainer::Secure: service accessible with secure connection.
-    * WebServiceContainer::NonSecure: service accessible with non-secure.
-    * WebServiceContainer::Both: service accessible with either.
+    * WebService::Secure: service accessible with secure connection.
+    * WebService::NonSecure: service accessible with non-secure.
+    * WebService::Both: service accessible with either.
     *
     * @param service the WebService to add.
     * @param st the security type (ie: SSL) to use with the service.
@@ -105,7 +94,7 @@ public:
     */
    virtual bool addService(
       WebServiceRef& service,
-      WebServiceContainer::SecurityType st,
+      WebService::SecurityType st,
       bool initialize = true,
       const char* domain = NULL);
 
@@ -114,9 +103,9 @@ public:
     *
     * SecurityType option details:
     *
-    * WebServiceContainer::Secure: remove secure access to the service.
-    * WebServiceContainer::NonSecure: remove non-secure access to the service.
-    * WebServiceContainer::Both: moreve secure and non-secure access.
+    * WebService::Secure: remove secure access to the service.
+    * WebService::NonSecure: remove non-secure access to the service.
+    * WebService::Both: moreve secure and non-secure access.
     *
     * @param path the path for the WebService to remove.
     * @param st the security type to remove the service from.
@@ -126,7 +115,7 @@ public:
     */
    virtual void removeService(
       const char* path,
-      WebServiceContainer::SecurityType st,
+      WebService::SecurityType st,
       bool cleanup = true,
       const char* domain = NULL);
 
@@ -135,9 +124,9 @@ public:
     *
     * SecurityType option details:
     *
-    * WebServiceContainer::Secure: get secure service.
-    * WebServiceContainer::NonSecure: get non-secure service.
-    * WebServiceContainer::Both: get either, non-secure first, then secure.
+    * WebService::Secure: get secure service.
+    * WebService::NonSecure: get non-secure service.
+    * WebService::Both: get either, non-secure first, then secure.
     *
     * @param path the path for the WebService to get.
     * @param st the security type to get the service from.
@@ -148,7 +137,7 @@ public:
     */
    virtual WebServiceRef getService(
       const char* path,
-      WebServiceContainer::SecurityType st,
+      WebService::SecurityType st,
       const char* domain = NULL);
 
    /**
@@ -191,7 +180,7 @@ protected:
     */
    virtual bool internalAddService(
       WebServiceRef& service,
-      WebServiceContainer::SecurityType st,
+      WebService::SecurityType st,
       const char* domain);
 
    /**
@@ -205,7 +194,7 @@ protected:
     */
    virtual void internalRemoveService(
       const char* path,
-      WebServiceContainer::SecurityType st,
+      WebService::SecurityType st,
       const char* domain,
       monarch::util::UniqueList<WebServiceRef>* cleanupList);
 };

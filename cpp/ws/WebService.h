@@ -28,6 +28,17 @@ namespace ws
  */
 class WebService : public monarch::http::HttpRequestServicer
 {
+public:
+   /**
+    * Security types for web services.
+    */
+   enum SecurityType
+   {
+      Secure,
+      NonSecure,
+      Both
+   };
+
 protected:
    /**
     * A request modifier to use.

@@ -103,7 +103,7 @@ public:
     * based on the presence of content to be sent. Extending classes may
     * override this method to add their own headers.
     *
-    * This method is called before a message header is sent.
+    * This method is automatically called before a message header is sent.
     *
     * @param header the header to update.
     */

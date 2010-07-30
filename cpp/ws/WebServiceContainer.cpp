@@ -29,7 +29,7 @@ WebServiceContainer::~WebServiceContainer()
 
 bool WebServiceContainer::addService(
    WebServiceRef& service,
-   WebServiceContainer::SecurityType st,
+   WebService::SecurityType st,
    bool initialize,
    const char* domain)
 {
@@ -81,14 +81,13 @@ bool WebServiceContainer::addService(
          // success, add domain to http servicer
          if(rval)
          {
-            if(st == WebServiceContainer::Secure ||
-               st == WebServiceContainer::Both)
+            if(st == WebService::Secure || st == WebService::Both)
             {
                mHttpConnectionServicer.addRequestServicer(hrs, true, dom);
                MO_CAT_DEBUG(MO_WS_CAT,
                   "Added secure web service: %s%s", dom, path);
             }
-            if(st != WebServiceContainer::Secure)
+            if(st != WebService::Secure)
             {
                mHttpConnectionServicer.addRequestServicer(hrs, false, dom);
                MO_CAT_DEBUG(MO_WS_CAT,
@@ -127,7 +126,7 @@ bool WebServiceContainer::addService(
 
 void WebServiceContainer::removeService(
    const char* path,
-   WebServiceContainer::SecurityType st,
+   WebService::SecurityType st,
    bool cleanup,
    const char* domain)
 {
@@ -153,14 +152,13 @@ void WebServiceContainer::removeService(
    while(di->hasNext())
    {
       const char* dom = di->next()->getString();
-      if(st == WebServiceContainer::Both ||
-         st == WebServiceContainer::Secure)
+      if(st == WebService::Both || st == WebService::Secure)
       {
          mHttpConnectionServicer.removeRequestServicer(path, true, dom);
          MO_CAT_DEBUG(MO_WS_CAT,
             "Removed secure web service: %s%s", dom, path);
       }
-      if(st != WebServiceContainer::Secure)
+      if(st != WebService::Secure)
       {
          mHttpConnectionServicer.removeRequestServicer(path, false, dom);
          MO_CAT_DEBUG(MO_WS_CAT,
@@ -186,7 +184,7 @@ void WebServiceContainer::removeService(
 
 WebServiceRef WebServiceContainer::getService(
    const char* path,
-   WebServiceContainer::SecurityType st,
+   WebService::SecurityType st,
    const char* domain)
 {
    WebServiceRef rval(NULL);
@@ -198,8 +196,7 @@ WebServiceRef WebServiceContainer::getService(
       {
          WebServiceMaps* wsm = di->second;
          WebServiceMap::iterator i;
-         if(st == WebServiceContainer::NonSecure ||
-            st == WebServiceContainer::Both)
+         if(st == WebService::NonSecure || st == WebService::Both)
          {
             i = wsm->nonSecure.find(path);
             if(i != wsm->nonSecure.end())
@@ -207,7 +204,7 @@ WebServiceRef WebServiceContainer::getService(
                rval = i->second;
             }
          }
-         if(rval.isNull() && st != WebServiceContainer::NonSecure)
+         if(rval.isNull() && st != WebService::NonSecure)
          {
             i = wsm->secure.find(path);
             if(i != wsm->secure.end())
@@ -249,7 +246,7 @@ DynamicObject& WebServiceContainer::getDefaultDomains()
 
 bool WebServiceContainer::internalAddService(
    WebServiceRef& service,
-   WebServiceContainer::SecurityType st,
+   WebService::SecurityType st,
    const char* domain)
 {
    bool rval = true;
@@ -267,12 +264,11 @@ bool WebServiceContainer::internalAddService(
       mServices[strdup(domain)] = wsm;
 
       // add service, no other checks necessary
-      if(st == WebServiceContainer::Secure ||
-         st == WebServiceContainer::Both)
+      if(st == WebService::Secure || st == WebService::Both)
       {
          wsm->secure[path] = service;
       }
-      if(st != WebServiceContainer::Secure)
+      if(st != WebService::Secure)
       {
          wsm->nonSecure[path] = service;
       }
@@ -283,7 +279,7 @@ bool WebServiceContainer::internalAddService(
       wsm = di->second;
 
       // ensure the service can be added
-      if(st == WebServiceContainer::Both &&
+      if(st == WebService::Both &&
          wsm->secure.find(path) == wsm->secure.end() &&
          wsm->nonSecure.find(path) == wsm->nonSecure.end())
       {
@@ -291,13 +287,13 @@ bool WebServiceContainer::internalAddService(
          wsm->nonSecure[path] = service;
       }
       else if(
-         st == WebServiceContainer::Secure &&
+         st == WebService::Secure &&
          wsm->secure.find(path) == wsm->secure.end())
       {
          wsm->secure[path] = service;
       }
       else if(
-         st == WebServiceContainer::NonSecure &&
+         st == WebService::NonSecure &&
          wsm->nonSecure.find(path) == wsm->nonSecure.end())
       {
          wsm->nonSecure[path] = service;
@@ -319,7 +315,7 @@ bool WebServiceContainer::internalAddService(
 
 void WebServiceContainer::internalRemoveService(
    const char* path,
-   WebServiceContainer::SecurityType st,
+   WebService::SecurityType st,
    const char* domain,
    UniqueList<WebServiceRef>* cleanupList)
 {
@@ -330,8 +326,7 @@ void WebServiceContainer::internalRemoveService(
       // find the path
       WebServiceMaps* wsm = di->second;
       WebServiceMap::iterator i;
-      if(st == WebServiceContainer::Both ||
-         st == WebServiceContainer::Secure)
+      if(st == WebService::Both || st == WebService::Secure)
       {
          i = wsm->secure.find(path);
          if(i != wsm->secure.end())
@@ -340,7 +335,7 @@ void WebServiceContainer::internalRemoveService(
             wsm->secure.erase(i);
          }
       }
-      if(st != WebServiceContainer::Secure)
+      if(st != WebService::Secure)
       {
          i = wsm->nonSecure.find(path);
          if(i != wsm->nonSecure.end())
