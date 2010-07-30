@@ -66,7 +66,7 @@ bool WebServiceContainer::addService(
       while(rval && di->hasNext())
       {
          const char* dom = di->next()->getString();
-         rval = internalAddService(service, st, domain);
+         rval = internalAddService(service, st, dom);
          if(rval)
          {
             added->append() = dom;

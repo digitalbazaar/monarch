@@ -43,6 +43,12 @@ bool WebServer::initialize(Config& cfg)
 
    MO_CAT_DEBUG(MO_WS_CAT, "WebServer initializing...");
 
+   // create default container if one is not set
+   if(mContainer.isNull())
+   {
+      mContainer = new WebServiceContainer();
+   }
+
    // get basic config
    // security: on/off/both
    bool secure;
