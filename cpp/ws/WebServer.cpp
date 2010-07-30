@@ -180,7 +180,7 @@ void WebServer::cleanup()
    mSocketDataPresenterList.setNull();
 }
 
-bool WebServer::start(Server* server, const char* name)
+bool WebServer::enable(Server* server, const char* name)
 {
    bool rval = true;
 
@@ -203,7 +203,7 @@ bool WebServer::start(Server* server, const char* name)
    return rval;
 }
 
-void WebServer::stop()
+void WebServer::disable()
 {
    // remove http connection service
    if(mServiceId != Server::sInvalidServiceId)

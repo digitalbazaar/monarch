@@ -66,7 +66,7 @@ public:
    virtual ~WebServer();
 
    /**
-    * Initializes this WebServer. Must be called before start() at least once.
+    * Initializes this WebServer. Must be called before enable() at least once.
     * To reconfigure the WebServer after it has stopped, call cleanup() then
     * initialize() with the new configuration.
     *
@@ -82,20 +82,21 @@ public:
    virtual void cleanup();
 
    /**
-    * Starts this WebServer.
+    * Enables this WebServer on the given Server. When that Server is running,
+    * the WebServer's services will be available.
     *
-    * @param server the Server to add this WebServer to.
+    * @param server the Server to enable this WebServer on.
     * @param name a unique identifier for this WebServer on the given Server.
     *
     * @return true if successful, false if not.
     */
-   virtual bool start(
+   virtual bool enable(
       monarch::net::Server* server, const char* name = "WebServer");
 
    /**
-    * Stops this WebServer.
+    * Disables this WebServer. Its services will no longer be available.
     */
-   virtual void stop();
+   virtual void disable();
 
    /**
     * Sets this WebServer's container.
