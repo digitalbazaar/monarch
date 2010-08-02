@@ -189,27 +189,44 @@ WebServiceRef WebServiceContainer::getService(
 {
    WebServiceRef rval(NULL);
 
+   // build list of domains to get service from
+   DynamicObject domains(NULL);
+   if(domain != NULL)
+   {
+      domains = DynamicObject();
+      domains->append() = domain;
+   }
+   else
+   {
+      domains = mDefaultDomains;
+   }
+
    mContainerLock.lockShared();
    {
-      DomainMap::iterator di = mServices.find(domain);
-      if(di != mServices.end())
+      DynamicObjectIterator i = domains.getIterator();
+      while(rval.isNull() && i->hasNext())
       {
-         WebServiceMaps* wsm = di->second;
-         WebServiceMap::iterator i;
-         if(st == WebService::NonSecure || st == WebService::Both)
+         const char* dom = i->next()->getString();
+         DomainMap::iterator di = mServices.find(dom);
+         if(di != mServices.end())
          {
-            i = wsm->nonSecure.find(path);
-            if(i != wsm->nonSecure.end())
+            WebServiceMaps* wsm = di->second;
+            WebServiceMap::iterator i;
+            if(st == WebService::NonSecure || st == WebService::Both)
             {
-               rval = i->second;
+               i = wsm->nonSecure.find(path);
+               if(i != wsm->nonSecure.end())
+               {
+                  rval = i->second;
+               }
             }
-         }
-         if(rval.isNull() && st != WebService::NonSecure)
-         {
-            i = wsm->secure.find(path);
-            if(i != wsm->secure.end())
+            if(rval.isNull() && st != WebService::NonSecure)
             {
-               rval = i->second;
+               i = wsm->secure.find(path);
+               if(i != wsm->secure.end())
+               {
+                  rval = i->second;
+               }
             }
          }
       }
@@ -236,7 +253,9 @@ HttpConnectionServicer* WebServiceContainer::getServicer()
 
 void WebServiceContainer::setDefaultDomains(DynamicObject& domains)
 {
+   mContainerLock.lockExclusive();
    mDefaultDomains = domains;
+   mContainerLock.unlockExclusive();
 }
 
 DynamicObject& WebServiceContainer::getDefaultDomains()
