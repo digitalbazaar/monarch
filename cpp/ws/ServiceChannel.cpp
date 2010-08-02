@@ -450,3 +450,8 @@ bool ServiceChannel::getClientAddress(InternetAddress* address)
 {
    return getConnection()->writeRemoteAddress(address);
 }
+
+Message::MethodType ServiceChannel::getRequestMethod()
+{
+   return Message::stringToMethod(getRequest()->getHeader()->getMethod());
+}

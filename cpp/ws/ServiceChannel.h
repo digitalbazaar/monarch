@@ -315,6 +315,13 @@ public:
     * @return true if successful, false if an error occurred.
     */
    virtual bool getClientAddress(monarch::net::InternetAddress* address);
+
+   /**
+    * A helper method for getting the request method.
+    *
+    * @return the request method.
+    */
+   virtual Message::MethodType getRequestMethod();
 };
 
 } // end namespace ws
