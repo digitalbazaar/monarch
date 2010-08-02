@@ -301,12 +301,12 @@ ServiceChannel* WebService::createChannel(
    const char* path = request->getHeader()->getPath();
    char normalized[strlen(path) + 2];
    HttpRequestServicer::normalizePath(path, normalized);
-   char p[strlen(normalized) + 1];
-   strcpy(p, normalized);
-   findHandler(p, handler);
+   char copy[strlen(normalized) + 1];
+   strcpy(copy, normalized);
+   findHandler(normalized, handler);
 
    // create channel
-   rval = new ServiceChannel(p);
+   rval = new ServiceChannel(copy);
 
    // set base path
    if(!handler.isNull())

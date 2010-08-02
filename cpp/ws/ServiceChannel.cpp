@@ -315,7 +315,8 @@ bool ServiceChannel::sendException(ExceptionRef& e, bool client)
          getPath(), JsonWriter::writeToString(dyno).c_str());
 
       // send
-      if((rval = mOutput->sendResponse(mResponse)))
+      rval = mOutput->sendResponse(mResponse);
+      if(rval)
       {
          setSent();
       }
