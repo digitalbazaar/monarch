@@ -83,7 +83,8 @@ bool WebServer::initialize(Config& cfg)
       File pkeyFile(cfg["privateKey"]->getString());
 
       MO_CAT_DEBUG(MO_WS_CAT,
-         "WebServer setting SSL certificate and private key...");
+         "WebServer SSL configuration:\nCertificate: %s\nPrivate key: %s",
+         certFile->getAbsolutePath(), pkeyFile->getAbsolutePath());
 
       // set certificate and private key for SSL context
       rval =
@@ -117,7 +118,10 @@ bool WebServer::initialize(Config& cfg)
          }
       }
 
-      MO_CAT_DEBUG(MO_WS_CAT, "WebServer SSL setup complete.");
+      if(rval)
+      {
+         MO_CAT_DEBUG(MO_WS_CAT, "WebServer SSL setup complete.");
+      }
    }
 
    if(rval)
@@ -202,7 +206,7 @@ bool WebServer::enable(Server* server, const char* name)
    else
    {
       mServer = server;
-      MO_CAT_INFO(MO_WS_CAT, "WebServer %s serving on %s",
+      MO_CAT_INFO(MO_WS_CAT, "WebServer '%s' serving on %s",
          name, mHostAddress->toString(false).c_str());
    }
 
