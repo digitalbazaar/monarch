@@ -519,11 +519,12 @@ bool Message::sendHeaderAndStream(
       if(is != NULL)
       {
          // if doing chunked encoding, automatically deflate/gzip if specified
+         MutatorInputStream* mis = NULL;
          if(strstr(header->getFieldValue(
             "Transfer-Encoding").c_str(), "chunked") != NULL)
          {
             // use deflating/gzip if available
-            MutatorInputStream mis(is, false, NULL, false);
+            mis = new MutatorInputStream(is, false, NULL, false);
             string contentEncoding;
             if(header->getField("Content-Encoding", contentEncoding))
             {
@@ -532,16 +533,16 @@ bool Message::sendHeaderAndStream(
                   // create deflater to deflate content
                   Deflater* def = new Deflater();
                   def->startDeflating(-1, false);
-                  mis.setAlgorithm(def, true);
-                  is = &mis;
+                  mis->setAlgorithm(def, true);
+                  is = mis;
                }
                else if(strstr(contentEncoding.c_str(), "gzip") != NULL)
                {
                   // create gzipper to deflate content
                   Gzipper* gzipper = new Gzipper();
                   gzipper->startCompressing();
-                  mis.setAlgorithm(gzipper, true);
-                  is = &mis;
+                  mis->setAlgorithm(gzipper, true);
+                  is = mis;
                }
             }
          }
@@ -570,6 +571,12 @@ bool Message::sendHeaderAndStream(
                   hc->getRemoteAddress()->getPort(),
                   trailer->toString().c_str());
             }
+         }
+
+         // clean up mutator input stream if necessary
+         if(mis != NULL)
+         {
+            delete mis;
          }
       }
    }
