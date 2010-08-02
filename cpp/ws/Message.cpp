@@ -88,7 +88,7 @@ bool Message::sendHeader(
    {
       // print out header
       MO_CAT_DEBUG(MO_WS_CAT,
-         "Message sent header to %s:%i:\n%s",
+         "Sent header to %s:%i:\n%s",
          hc->getRemoteAddress()->getAddress(),
          hc->getRemoteAddress()->getPort(),
          header->toString().c_str());
@@ -510,7 +510,7 @@ bool Message::sendHeaderAndStream(
    {
       // print out header
       MO_CAT_DEBUG(MO_WS_CAT,
-         "Message sent header to %s:%i:\n%s",
+         "Sent header to %s:%i:\n%s",
          hc->getRemoteAddress()->getAddress(),
          hc->getRemoteAddress()->getPort(),
          header->toString().c_str());
@@ -557,7 +557,7 @@ bool Message::sendHeaderAndStream(
          {
             // log send time
             MO_CAT_DEBUG(MO_WS_CAT,
-               "Message sent stream content, %" PRIu64 " bytes "
+               "Sent stream content, %" PRIu64 " bytes "
                "in %" PRIu64 " ms.",
                hc->getContentBytesWritten(),
                timer.getElapsedMilliseconds());
@@ -566,7 +566,7 @@ bool Message::sendHeaderAndStream(
             {
                // print out trailer
                MO_CAT_DEBUG(MO_WS_CAT,
-                  "Message sent trailer to %s:%i:\n%s",
+                  "Sent trailer to %s:%i:\n%s",
                   hc->getRemoteAddress()->getAddress(),
                   hc->getRemoteAddress()->getPort(),
                   trailer->toString().c_str());
@@ -612,7 +612,7 @@ bool Message::sendHeaderAndObject(
             {
                // log send time
                MO_CAT_DEBUG(MO_WS_CAT,
-                  "Message sent object content to %s:%i, "
+                  "Sent object content to %s:%i, "
                   "%" PRIu64 " bytes in %" PRIu64 " ms.",
                   hc->getRemoteAddress()->getAddress(),
                   hc->getRemoteAddress()->getPort(),
@@ -642,7 +642,7 @@ bool Message::sendHeaderAndObject(
             {
                // log send time
                MO_CAT_DEBUG(MO_WS_CAT,
-                  "Message sent object content to %s:%i, "
+                  "Sent object content to %s:%i, "
                   "%" PRIu64 " bytes in %" PRIu64 " ms.",
                   hc->getRemoteAddress()->getAddress(),
                   hc->getRemoteAddress()->getPort(),
@@ -694,7 +694,7 @@ bool Message::receiveContentStream(
    if(mTrailer->getContentLength() > 0)
    {
       MO_CAT_DEBUG(MO_WS_CAT,
-         "Message received content from %s:%i, %" PRIu64 " bytes "
+         "Received content from %s:%i, %" PRIu64 " bytes "
          "in %" PRIu64 " ms.",
          hc->getRemoteAddress()->getAddress(),
          hc->getRemoteAddress()->getPort(),
@@ -705,7 +705,7 @@ bool Message::receiveContentStream(
       if(mTrailer->getFieldCount() > 0)
       {
          MO_CAT_DEBUG(MO_WS_CAT,
-            "Message received trailer from %s:%i:\n%s",
+            "Received trailer from %s:%i:\n%s",
             hc->getRemoteAddress()->getAddress(),
             hc->getRemoteAddress()->getPort(),
             mTrailer->toString().c_str());
@@ -713,7 +713,7 @@ bool Message::receiveContentStream(
       else
       {
          MO_CAT_DEBUG(MO_WS_CAT,
-            "Message received no trailer from %s:%i.",
+            "Received no trailer from %s:%i.",
             hc->getRemoteAddress()->getAddress(),
             hc->getRemoteAddress()->getPort());
       }
@@ -721,7 +721,7 @@ bool Message::receiveContentStream(
    else
    {
       MO_CAT_DEBUG(MO_WS_CAT,
-         "Message received no content from %s:%i.",
+         "Received no content from %s:%i.",
          hc->getRemoteAddress()->getAddress(),
          hc->getRemoteAddress()->getPort());
    }
