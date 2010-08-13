@@ -2666,6 +2666,48 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (missing map)");
+   {
+      // create template
+      const char* tpl = "{one.two}";
+
+      // create variables
+      DynamicObject vars;
+      vars["one"]->setType(Map);
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertExceptionSet();
+   }
+   tr.passIfException();
+
+   tr.test("parse (null map)");
+   {
+      // create template
+      const char* tpl = "{one.two}";
+
+      // create variables
+      DynamicObject vars;
+      vars["one"].setNull();
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertExceptionSet();
+   }
+   tr.passIfException();
+
    tr.ungroup();
 }
 
