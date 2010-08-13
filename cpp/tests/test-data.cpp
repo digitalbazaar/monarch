@@ -2708,6 +2708,27 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfException();
 
+   tr.test("parse (null array)");
+   {
+      // create template
+      const char* tpl = "{one[0]}";
+
+      // create variables
+      DynamicObject vars;
+      vars["one"].setNull();
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertExceptionSet();
+   }
+   tr.passIfException();
+
    tr.ungroup();
 }
 
