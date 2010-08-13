@@ -3071,7 +3071,7 @@ DynamicObject TemplateInputStream::findVariable(
          {
             // check for key in vars
             const char* key = next["key"]->getString();
-            if(vars->hasMember(key))
+            if(!vars.isNull() && vars->hasMember(key))
             {
                if(i->hasNext())
                {
@@ -3089,7 +3089,7 @@ DynamicObject TemplateInputStream::findVariable(
             {
                // create a variable to store the length
                lhs = DynamicObject();
-               lhs = vars->length();
+               lhs = vars.isNull() ? 0 : vars->length();
             }
             else
             {
@@ -3098,7 +3098,7 @@ DynamicObject TemplateInputStream::findVariable(
             }
          }
          // component is an index (name[index])
-         else if(vars->getType() == Array)
+         else if(!vars.isNull() && vars->getType() == Array)
          {
             // get the index value
             int index = 0;
