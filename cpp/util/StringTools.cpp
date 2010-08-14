@@ -4,8 +4,10 @@
 #include "monarch/util/StringTools.h"
 
 #include "monarch/rt/DynamicObjectIterator.h"
+#include "monarch/rt/Exception.h"
 #include "monarch/util/StringTokenizer.h"
 
+#include <cerrno>
 #include <cstring>
 #include <cstdarg>
 #include <cstdlib>
@@ -182,46 +184,164 @@ std::string& StringTools::regexRewrite(
    return str;
 }
 
-/**
- * A helper function for StringTools::format().
- *
- * @param f the format.
- * @param ap the variable args list.
- */
-static string vformat(const char* f, va_list ap)
+bool StringTools::vsnformat(
+   string& str, size_t size, const char *format, va_list varargs)
 {
-   // estimate size for string
-   int size = 256;
-   char* str = (char*)malloc(size);
+   // Adapted from glibc sprintf docs.
 
-   // copy va_list in case we must realloc
-   va_list clone;
-   va_copy(clone, ap);
+   bool rval;
 
-   // try to get formatted string
-   size = vsnprintf(str, size, f, ap);
+   int n;
+   size_t psize;
+   char *p;
+   char *np;
 
-   // if size > 0, then string was truncated and size contains
-   // full size of formatted string (not including null-terminator)
-   if(size > 0)
+   // Guess we need no more than 128 bytes to start.
+   psize = 25;
+   // limit size if needed
+   if(size != 0)
    {
-      // include room for null-terminator
-      ++size;
-      str = (char*)realloc(str, size);
-      vsnprintf(str, size, f, ap);
+      psize = min(psize, size);
    }
 
-   string rval = str;
-   free(str);
+   // allocate initial buffer
+   p = (char*)malloc(psize);
+   rval = (p != NULL);
+
+   bool done = false;
+   while(rval && !done)
+   {
+      // Try to print in the allocated space.
+      n = vsnprintf(p, psize, format, varargs);
+
+      // If that worked, return the string.
+      if(n > -1 && (size_t)n < psize)
+      {
+         str.assign(p);
+         free(p);
+         done = true;
+      }
+      else
+      {
+         // make sure size isn't at the limit
+         // this will enable an attempt with at least 1 more byte
+         if(size != 0)
+         {
+            rval = (size > psize);
+         }
+
+         if(rval)
+         {
+            // Else try again with more space.
+            if(n > -1)
+            {
+               // glibc 2.1
+               // n is precisely what is needed
+               psize = n + 1;
+            }
+            else
+            {
+               // glibc 2.0
+               // guess new size, but limit increase in size for huge strings
+               // FIXME: check psize < (max size_t / 2) to avoid overflow
+               psize = min(psize * 2, psize + 16777216 /* 16MiB */);
+               // limit size if needed
+               if(size != 0)
+               {
+                  psize = min(psize, size);
+               }
+            }
+
+            // try to realloc the buffer
+            np = (char*)realloc(p, psize);
+            rval = (np != NULL);
+            if(rval)
+            {
+               p = np;
+            }
+         }
+      }
+   }
+
+   if(!rval)
+   {
+      if(size == psize)
+      {
+         // failure due to limited size request
+         ExceptionRef e = new Exception(
+            "String formatting size overflow error.",
+            "monarch.util.StringUtils.SizeOverflowError");
+         e->getDetails()["format"] = format;
+         e->getDetails()["maxSize"] = size;
+         e->getDetails()["attemptedSize"] = psize;
+         Exception::push(e);
+      }
+      else
+      {
+         // failure due to allocation error
+         ExceptionRef e = new Exception(
+            "String formating memory allocation error.",
+            "monarch.util.StringUtils.MemoryAllocationError");
+         e->getDetails()["format"] = format;
+         e->getDetails()["errno"] = errno;
+         e->getDetails()["maxSize"] = size;
+         e->getDetails()["attemptedSize"] = psize;
+         Exception::push(e);
+      }
+   }
+
+   return rval;
+}
+
+bool StringTools::vsformat(string& str, const char *format, va_list varargs)
+{
+   return vsnformat(str, 0, format, varargs);
+}
+
+string StringTools::vformat(const char* format, va_list varargs)
+{
+   string rval;
+   if(!vsformat(rval, format, varargs))
+   {
+      // no real error handling, just clear string
+      rval.clear();
+   }
+   return rval;
+}
+
+bool StringTools::snformat(string& str, size_t size, const char *format, ...)
+{
+   bool rval;
+
+   va_list ap;
+   va_start(ap, format);
+   rval = vsnformat(str, size, format, ap);
+   va_end(ap);
+
+   return rval;
+}
+
+bool StringTools::sformat(string& str, const char *format, ...)
+{
+   bool rval;
+
+   va_list ap;
+   va_start(ap, format);
+   rval = vsformat(str, format, ap);
+   va_end(ap);
+
    return rval;
 }
 
 string StringTools::format(const char* format, ...)
 {
+   string rval;
+
    va_list ap;
    va_start(ap, format);
-   string rval = vformat(format, ap);
+   rval = vformat(format, ap);
    va_end(ap);
+
    return rval;
 }
 

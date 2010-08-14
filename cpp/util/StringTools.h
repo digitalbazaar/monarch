@@ -129,11 +129,74 @@ public:
       bool* matched = NULL);
 
    /**
-    * Creates an std::string from a printf format.
+    * Creates a std::string from a printf format string and arguments list.
     *
-    * @param f the format.
+    * @param str the string to populate.
+    * @param size the maximum size string to create or 0 for no limit.
+    * @param format the format.
+    * @param varargs the variable args list.
     *
     * @return the std::string.
+    */
+   static bool vsnformat(
+      std::string& str, size_t size, const char* format, va_list varargs);
+
+   /**
+    * Creates a std::string from a printf format string and arguments list.
+    *
+    * @param str the string to populate.
+    * @param format the format.
+    * @param varargs the variable args list.
+    *
+    * @return the std::string.
+    */
+   static bool vsformat(std::string& str, const char* format, va_list varargs);
+
+   /**
+    * Creates a std::string from a printf format string and arguments list.
+    *
+    * @param format the format.
+    * @param varargs the variable args list.
+    *
+    * @return the std::string.
+    */
+   static std::string vformat(const char* format, va_list varargs);
+
+   /**
+    * Populates a std::string from a printf format string and arguments.
+    *
+    * @param str the string to populate.
+    * @param size the maximum size string to create or 0 for no limit.
+    * @param format the format.
+    *
+    * @return true on success, false and exception set on error.
+    */
+   static bool snformat(std::string& str, size_t size, const char* format, ...)
+#ifdef __GNUC__
+      __attribute__ ((format (printf, 3, 4)))
+#endif
+         ;
+
+   /**
+    * Creates a std::string from a printf format string and arguments.
+    *
+    * @param str the string to populate.
+    * @param format the format.
+    *
+    * @return true on success, false and exception set on error.
+    */
+   static bool sformat(std::string& str, const char* format, ...)
+#ifdef __GNUC__
+      __attribute__ ((format (printf, 2, 3)))
+#endif
+         ;
+
+   /**
+    * Creates a std::string from a printf format string and arguments.
+    *
+    * @param format the format.
+    *
+    * @return the std::string. An exception will be set on error.
     */
    static std::string format(const char* format, ...)
 #ifdef __GNUC__

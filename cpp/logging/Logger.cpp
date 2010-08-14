@@ -6,6 +6,7 @@
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/util/AnsiEscapeCodes.h"
 #include "monarch/util/Date.h"
+#include "monarch/util/StringTools.h"
 #include "monarch/util/UniqueList.h"
 #include "monarch/rt/Thread.h"
 
@@ -136,48 +137,6 @@ Logger::LoggerFlags Logger::getFlags()
    return mFlags;
 }
 
-/**
- * Convert a varargs list into a string. Adapted from glibc sprintf docs.
- *
- * @param format the printf style format for a string.
- * @param varargs the variable args for the format string.
- *
- * @return the formatted string on success, NULL on error. Caller must free.
- */
-char* _vMakeMessage(const char *format, va_list varargs)
-{
-   /* Guess we need no more than 128 bytes. */
-   int n, size = 128;
-   char *p, *np;
-
-   if ((p = (char*)malloc(size)) == NULL)
-   {
-      return NULL;
-   }
-
-   while (1)
-   {
-      /* Try to print in the allocated space. */
-      n = vsnprintf(p, size, format, varargs);
-      /* If that worked, return the string. */
-      if (n > -1 && n < size)
-      {
-         return p;
-      }
-      /* Else try again with more space. */
-      if (n > -1)    /* glibc 2.1 */
-         size = n+1; /* precisely what is needed */
-      else           /* glibc 2.0 */
-         size *= 2;  /* twice the old size */
-      if ((np = (char*)realloc (p, size)) == NULL) {
-         free(p);
-         return NULL;
-      } else {
-         p = np;
-      }
-   }
-}
-
 bool Logger::vLog(
    Category* cat,
    Level level,
@@ -289,12 +248,8 @@ bool Logger::vLog(
          logText.push_back(' ');
       }
 
-      char* message = _vMakeMessage(format, varargs);
-      if(message)
-      {
-         logText.append(message);
-         free(message);
-      }
+      string message = StringTools::vformat(format, varargs);
+      logText.append(message.c_str());
       logText.push_back('\n');
 
       log(logText.c_str(), logText.length());

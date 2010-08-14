@@ -7,6 +7,7 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/util/Convert.h"
 #include "monarch/util/StringTokenizer.h"
+#include "monarch/util/StringTools.h"
 
 #include <cstdlib>
 #include <cctype>
@@ -48,65 +49,18 @@ bool Url::setUrl(const char* format, va_list varargs)
 {
    bool rval;
 
-   // Note: this code is adapted from the glibc sprintf documentation
+   string url;
+   rval =
+      StringTools::vsformat(url, format, varargs) &&
+      setUrl(url);
 
-   // estimate 256 bytes to start with
-   int n, size = 256;
-   char *p;
-   char *np;
-
-   bool mallocFailed = ((p = (char*)malloc(size)) == NULL);
-   bool success = false;
-   while(!success && !mallocFailed)
-   {
-      // try to print in the allocated space
-      n = vsnprintf(p, size, format, varargs);
-
-      // if that worked, return the string
-      if(n > -1 && n < size)
-      {
-         success = true;
-      }
-      else
-      {
-         // try again with more space
-         if(n > -1)
-         {
-            // glibc 2.1 says (n + 1) is exactly what is needed
-            size = n + 1;
-         }
-         else
-         {
-            // glibc 2.0 doesn't know the exact size, so guess
-            size *= 2;
-         }
-
-         if((np = (char*)realloc(p, size)) == NULL)
-         {
-            // bad malloc
-            free(p);
-            mallocFailed = true;
-         }
-         else
-         {
-            p = np;
-         }
-      }
-   }
-
-   if(success)
-   {
-      rval = setUrl(p);
-      free(p);
-   }
-   else
+   if(!rval)
    {
       ExceptionRef e = new Exception(
-         "Could not set url. Formatted string could not be malloc'd.",
-         "monarch.net.Url.BadMalloc");
+         "Could not set URL.",
+         "monarch.net.Url.FormatError");
       e->getDetails()["format"] = format;
-      Exception::set(e);
-      rval = false;
+      Exception::push(e);
    }
 
    return rval;
