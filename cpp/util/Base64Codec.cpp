@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <cctype>
 
 using namespace std;
 using namespace monarch::util;
@@ -83,7 +84,7 @@ void Base64Codec::decodeGroup(
    short index[4];
    for(short i = 0; i < 4; ++i)
    {
-   	index[i] = charToShort(str[i]);
+      index[i] = charToShort(str[i]);
    }
 
    // this byte will definitely be used, padding or not
@@ -93,20 +94,20 @@ void Base64Codec::decodeGroup(
    // -2 maps is the padding character '='
    if(index[2] == -2)
    {
-   	// 1 decoded byte
-   	length = 1;
+      // 1 decoded byte
+      length = 1;
       bytes[0] = b0;
    }
    else if(index[3] == -2)
    {
-   	// 2 decoded bytes
+      // 2 decoded bytes
       length = 2;
       bytes[0] = b0;
       bytes[1] = (char)(index[1] << 4 | index[2] >> 2);
    }
    else
    {
-   	// 3 decoded bytes
+      // 3 decoded bytes
       length = 3;
       bytes[0] = b0;
       bytes[1] = (char)(index[1] << 4 | index[2] >> 2);
@@ -172,8 +173,7 @@ void Base64Codec::decode(const char* str, char** data, unsigned int& length)
    unsigned int len = 0;
    for(unsigned int i = 0; i < oldLength; ++i)
    {
-      if(str[i] != ' ' && str[i] != '\t' &&
-         str[i] != '\r' && str[i] != '\n')
+      if(!isspace(str[i]))
       {
          temp[len++] = str[i];
       }
