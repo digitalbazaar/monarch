@@ -3,19 +3,17 @@
  */
 #include "monarch/logging/Logger.h"
 
-#include "monarch/data/json/JsonWriter.h"
 #include "monarch/util/AnsiEscapeCodes.h"
 #include "monarch/util/Date.h"
 #include "monarch/util/StringTools.h"
 #include "monarch/util/UniqueList.h"
 #include "monarch/rt/Thread.h"
+#include "monarch/rt/DynamicObjectIterator.h"
 
 #include <cstdlib>
 #include <cstdio>
 
 using namespace std;
-using namespace monarch::data::json;
-using namespace monarch::io;
 using namespace monarch::util;
 using namespace monarch::logging;
 using namespace monarch::rt;
@@ -60,12 +58,87 @@ const char* Logger::getName()
 
 void Logger::setLevel(Level level)
 {
-   mLevel = level;
+   mLevels["*"] = (uint32_t)level;
+}
+
+bool Logger::updateLevels(const char* levels)
+{
+   bool rval = true;
+
+   if(levels != NULL)
+   {
+      DynamicObject allOptions = StringTools::split(levels, ",");
+      DynamicObjectIterator ai = allOptions.getIterator();
+      while(rval && ai->hasNext())
+      {
+         DynamicObject& catOptionStr = ai->next();
+         DynamicObject catOption =
+            StringTools::split(catOptionStr->getString(), ":");
+         switch(catOption->length())
+         {
+            // single string used to set default level
+            case 1:
+            {
+               Level level;
+               rval = Logger::stringToLevel(catOption[0]->getString(), level);
+               if(rval)
+               {
+                  setLevel(level);
+               }
+               break;
+            }
+            // cat:level pair
+            case 2:
+            {
+               Level level;
+               const char* cat = catOption[0]->getString();
+               rval = Logger::stringToLevel(catOption[1]->getString(), level);
+               if(rval)
+               {
+                  mLevels[cat] = (uint32_t)level;
+               }
+               break;
+            }
+            // invalid option
+            default:
+            {
+               ExceptionRef e = new Exception(
+                  "Invalid logging level option.",
+                  "monarch.logging.Logger.InvalidLevelOption");
+               e->getDetails()["level"] = catOptionStr->getString();
+               Exception::set(e);
+               rval = false;
+            }
+         }
+      }
+      if(!rval)
+      {
+         ExceptionRef e = new Exception(
+            "Invalid logging level options.",
+            "monarch.logging.Logger.InvalidLevels");
+         e->getDetails()["levels"] = levels;
+         Exception::push(e);
+      }
+   }
+
+   return rval;
+}
+
+bool Logger::setLevels(const char* levels)
+{
+   mLevels->clear();
+   setLevel(Max);
+   return updateLevels(levels);
 }
 
 Logger::Level Logger::getLevel()
 {
-   return mLevel;
+   return (Level)mLevels["*"]->getUInt32();
+}
+
+DynamicObject Logger::getLevels()
+{
+   return mLevels;
 }
 
 void Logger::getDate(string& date)
@@ -148,7 +221,16 @@ bool Logger::vLog(
 {
    bool rval = false;
 
-   if(mLevel >= level)
+   Level catLevel;
+   const char* catId = cat->getId();
+   // use default category if no id is set
+   catId = (catId != NULL) ? catId : "*";
+   // use default level if no level set for this category
+   catId = mLevels->hasMember(catId) ? catId : "*";
+   // get level for this category
+   catLevel = (Level)mLevels[catId]->getUInt32();
+
+   if(catLevel >= level)
    {
       // save flags to avoid async flag changes while in this function
       LoggerFlags loggerFlags = mFlags;
@@ -417,19 +499,28 @@ static const struct logLevelMap logLevelsMap[] = {
 
 bool Logger::stringToLevel(const char* slevel, Level& level)
 {
-   bool found = false;
+   bool rval = false;
    for(int mapi = 0;
-       slevel != NULL&& !found && logLevelsMap[mapi].key != NULL;
+       slevel != NULL && !rval && logLevelsMap[mapi].key != NULL;
        ++mapi)
    {
       if(strcasecmp(slevel, logLevelsMap[mapi].key) == 0)
       {
          level = logLevelsMap[mapi].level;
-         found = true;
+         rval = true;
       }
    }
 
-   return found;
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Invalid logging level.",
+         "monarch.logging.Logger.InvalidLevel");
+      e->getDetails()["level"] = slevel;
+      Exception::set(e);
+   }
+
+   return rval;
 }
 
 const char* Logger::levelToString(Level level, bool color)

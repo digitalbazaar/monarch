@@ -153,9 +153,9 @@ protected:
    char* mName;
 
    /**
-    * The current level setting.
+    * Map of categories to logging levels.
     */
-   Level mLevel;
+   monarch::rt::DynamicObject mLevels;
 
    /**
     * The date format.
@@ -209,18 +209,59 @@ public:
    virtual const char* getName();
 
    /**
-    * Sets the level for this logger.
+    * Sets the default level for this logger.
+    *
+    * Equivalent to setLevels("level") or setLevels("*:level").
     *
     * @param level the level to set.
     */
    virtual void setLevel(Level level);
 
    /**
-    * Gets the level set for this logger.
+    * Updates the levels for this logger.
     *
-    * @return the level set for this logger.
+    * The level string is a comma separated list of "category:level" strings.
+    * To set the default level, omit the "category:" part and just specify a
+    * level or use the special "*" category name.
+    *
+    * For example:
+    *
+    * "maximum,BM_NET:none" will log at the maximum level for all but the
+    * BM_NET category which will not be logged at all.
+    *
+    * "none,BM_NET:m,BM_KERNEL:m" will stop all logging except BM_NET and
+    * BM_KERNEL which will be at the maximum logging leve.
+    *
+    * @param levels the levels to update.
+    *
+    * @return true if successful, false and exception set on error.
+    */
+   virtual bool updateLevels(const char* levels);
+
+   /**
+    * Clear and set levels for this logger. The default level will always
+    * be initialized to "max". See updateLevels() for the levels string
+    * format.
+    *
+    * @param levels the levels to set.
+    *
+    * @return true if successful, false and exception set on error.
+    */
+   virtual bool setLevels(const char* levels);
+
+   /**
+    * Gets the default level for this logger.
+    *
+    * @return the default level for this logger.
     */
    virtual Level getLevel();
+
+   /**
+    * Gets the current map of categories to logging levels for this logger.
+    *
+    * @return the map of levels for this logger.
+    */
+   virtual monarch::rt::DynamicObject getLevels();
 
    /**
     * Gets the current date in the appropriate format.
@@ -405,7 +446,8 @@ public:
     * @param slevel the string to convert.
     * @param level the level.
     *
-    * @return true if found and level will be set, false if not found.
+    * @return true if found and level will be set, false and exception set if
+    *         not found.
     */
    static bool stringToLevel(const char *slevel, Level& level);
 

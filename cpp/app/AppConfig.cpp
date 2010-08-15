@@ -340,9 +340,12 @@ static DynamicObject _getLoggingCmdLineSpec(AppRunner* ar)
 "Logging options:\n"
 "      --no-log        Disable default logging. (default: enabled)\n"
 "      --log-level LEVEL\n"
-"                      Set log level to one of the following (listed in\n"
-"                      increasing level of detail): n[one], e[rror], w[arning],\n"
-"                      i[nfo], d[ebug], debug-data, debug-detail, m[ax].\n"
+"                      Set log levels to comma separated list of category:level\n"
+"                      pairs. Category can be omitted or set to \"*\" to set the\n"
+"                      default level. Set log level to one of the following\n"
+"                      (listed in increasing level of detail): n[one], e[rror],\n"
+"                      w[arning], i[nfo], d[ebug], debug-data, debug-detail,\n"
+"                      m[ax].\n"
 "                      (default: \"warning\")\n"
 "      --log LOG       Set log file. Use \"-\" for stdout. (default: \"-\")\n"
 "      --log-home LOG  Write log file to the application's home directory.\n"
@@ -677,21 +680,6 @@ bool AppConfig::configureLogging(AppRunner* ar)
          // FIXME: add cfg options for logging options
          //logger.setDateFormat("%H:%M:%S");
          //logger.setFlags(Logger::LogThread);
-         Logger::Level logLevel;
-         const char* levelStr = cfg["level"]->getString();
-         if(Logger::stringToLevel(levelStr, logLevel))
-         {
-            logger->setLevel(logLevel);
-         }
-         else
-         {
-            ExceptionRef e = new Exception(
-               "Invalid monarch.logging.level.",
-               CONFIG_ERROR);
-            e->getDetails()["level"] = (levelStr ? levelStr : "\"\"");
-            Exception::set(e);
-            rval = false;
-         }
          if(cfg["color"]->getBoolean())
          {
             logger->setFlags(Logger::LogColor);
@@ -700,6 +688,7 @@ bool AppConfig::configureLogging(AppRunner* ar)
          {
             logger->setFlags(Logger::LogLocation);
          }
+         rval = logger->setLevels(cfg["level"]->getString());
       }
 
       // add logger after setup complete
