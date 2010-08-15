@@ -272,8 +272,8 @@ bool StringTools::vsnformat(
             "String formatting size overflow error.",
             "monarch.util.StringUtils.SizeOverflowError");
          e->getDetails()["format"] = format;
-         e->getDetails()["maxSize"] = size;
-         e->getDetails()["attemptedSize"] = psize;
+         e->getDetails()["maxSize"] = (int64_t)size;
+         e->getDetails()["attemptedSize"] = (int64_t)psize;
          Exception::push(e);
       }
       else
@@ -284,8 +284,8 @@ bool StringTools::vsnformat(
             "monarch.util.StringUtils.MemoryAllocationError");
          e->getDetails()["format"] = format;
          e->getDetails()["errno"] = errno;
-         e->getDetails()["maxSize"] = size;
-         e->getDetails()["attemptedSize"] = psize;
+         e->getDetails()["maxSize"] = (int64_t)size;
+         e->getDetails()["attemptedSize"] = (int64_t)psize;
          Exception::push(e);
       }
    }
