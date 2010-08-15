@@ -516,7 +516,7 @@ bool Logger::stringToLevel(const char* slevel, Level& level)
       ExceptionRef e = new Exception(
          "Invalid logging level.",
          "monarch.logging.Logger.InvalidLevel");
-      e->getDetails()["level"] = slevel;
+      e->getDetails()["level"] = (slevel != NULL) ? slevel : "";
       Exception::set(e);
    }
 

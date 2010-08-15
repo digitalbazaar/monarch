@@ -440,9 +440,12 @@ static void runLevelTest(TestRunner& tr)
          assert(Logger::stringToLevel(s2l[i].key, level));
          assert(level == s2l[i].level);
       }
-      assert(!Logger::stringToLevel(NULL, level));
-      assert(!Logger::stringToLevel("", level));
-      assert(!Logger::stringToLevel("*bogus*", level));
+      assertException(Logger::stringToLevel(NULL, level));
+      Exception::clear();
+      assertException(Logger::stringToLevel("", level));
+      Exception::clear();
+      assertException(Logger::stringToLevel("*bogus*", level));
+      Exception::clear();
    }
    tr.passIfNoException();
 
