@@ -992,8 +992,9 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       SchemaObject schema;
       schema["table"] = TABLE_TEST_1;
 
+      // stored in object as string, in database as uint64
       DatabaseClient::addSchemaColumn(schema,
-         "foo_id", "INTEGER PRIMARY KEY", "fooId", UInt64);
+         "foo_id", "INTEGER PRIMARY KEY", "fooId", String, UInt64);
       DatabaseClient::addSchemaColumn(schema,
          "foo_string", "TEXT", "fooString", String);
       DatabaseClient::addSchemaColumn(schema,
@@ -1027,9 +1028,10 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       dbc->execute(se);
       assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
+      row["fooId"]->setType(String);
 
       DynamicObject expect;
-      expect["fooId"] = 1;
+      expect["fooId"] = "1";
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
@@ -1054,9 +1056,10 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       dbc->execute(se);
       assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
+      row["fooId"]->setType(String);
 
       DynamicObject expect;
-      expect["fooId"] = 2;
+      expect["fooId"] = "2";
       expect["fooString"] = "foobar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
@@ -1074,13 +1077,13 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
    tr.test("select one");
    {
       DynamicObject where;
-      where["fooId"] = 1;
+      where["fooId"] = "1";
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST_1, &where);
       dbc->execute(se);
       assertNoExceptionSet();
 
       DynamicObject expect;
-      expect["fooId"] = 1;
+      expect["fooId"] = "1";
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
@@ -1098,7 +1101,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
    tr.test("select one specific member");
    {
       DynamicObject where;
-      where["fooId"] = 1;
+      where["fooId"] = "1";
       DynamicObject members;
       members["fooString"];
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST_1, &where, &members);
@@ -1129,12 +1132,12 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject expect;
       expect->setType(Array);
       DynamicObject& first = expect->append();
-      first["fooId"] = 1;
+      first["fooId"] = "1";
       first["fooString"] = "foobar";
       first["fooFlag"] = true;
       first["fooInt32"] = 3;
       DynamicObject& second = expect->append();
-      second["fooId"] = 2;
+      second["fooId"] = "2";
       second["fooString"] = "foobar";
       second["fooFlag"] = false;
       second["fooInt32"] = 3;
@@ -1154,7 +1157,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject row;
       row["fooString"] = "foobar2";
       DynamicObject where;
-      where["fooId"] = 2;
+      where["fooId"] = "2";
       SqlExecutableRef se = dbc->update(TABLE_TEST_1, row, &where);
       dbc->execute(se);
       assert(se->rowsAffected = 1);
@@ -1166,7 +1169,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject row;
       row["fooString"] = "bar";
       DynamicObject where;
-      where["fooId"] = 2;
+      where["fooId"] = "2";
       SqlExecutableRef se = dbc->update(TABLE_TEST_1, row, &where, 1);
       dbc->execute(se);
       assert(se->rowsAffected = 1);
@@ -1182,7 +1185,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       assertNoExceptionSet();
 
       DynamicObject expect;
-      expect["fooId"] = 2;
+      expect["fooId"] = "2";
       expect["fooString"] = "bar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
@@ -1206,7 +1209,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       assertNoExceptionSet();
 
       DynamicObject expect;
-      expect[0]["fooId"] = 2;
+      expect[0]["fooId"] = "2";
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
@@ -1233,12 +1236,12 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       DynamicObject expect;
       expect->setType(Array);
       DynamicObject& first = expect->append();
-      first["fooId"] = 1;
+      first["fooId"] = "1";
       first["fooString"] = "foobar";
       first["fooFlag"] = true;
       first["fooInt32"] = 3;
       DynamicObject& second = expect->append();
-      second["fooId"] = 2;
+      second["fooId"] = "2";
       second["fooString"] = "bar";
       second["fooFlag"] = false;
       second["fooInt32"] = 3;
@@ -1256,7 +1259,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
    tr.test("remove");
    {
       DynamicObject where;
-      where["fooId"] = 1;
+      where["fooId"] = "1";
       SqlExecutableRef se = dbc->remove(TABLE_TEST_1, &where);
       dbc->execute(se);
       assert(se->rowsAffected == 1);
@@ -1270,7 +1273,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       assertNoExceptionSet();
 
       DynamicObject expect;
-      expect[0]["fooId"] = 2;
+      expect[0]["fooId"] = "2";
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
