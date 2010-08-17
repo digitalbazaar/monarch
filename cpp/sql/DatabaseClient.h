@@ -31,6 +31,7 @@ class Row;
  *       "type": "DATABASE COLUMN TYPE" (same as used in CREATE TABLE SQL)
  *       "memberName": "columnName" (member name as used in an object)
  *       "memberType": the expected member type
+ *       "columnType": the data type for the column
  */
 typedef monarch::rt::DynamicObject SchemaObject;
 
@@ -670,6 +671,24 @@ public:
       SchemaObject& schema,
       const char* name, const char* type,
       const char* memberName, monarch::rt::DynamicObjectType memberType);
+
+   /**
+    * Appends a column to the given table schema.
+    *
+    * @param schema the schema to append to.
+    * @param name the name of the column.
+    * @param type the database type of the column.
+    * @param memberName the associated object member name.
+    * @param memberType the associated object member type.
+    * @param columnType the object type for the column, if different from
+    *           memberType.
+    */
+   static void addSchemaColumn(
+      SchemaObject& schema,
+      const char* name, const char* type,
+      const char* memberName,
+      monarch::rt::DynamicObjectType memberType,
+      monarch::rt::DynamicObjectType columnType);
 
 protected:
    /**

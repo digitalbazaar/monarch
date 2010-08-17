@@ -71,6 +71,12 @@ bool DatabaseClient::initialize()
                new v::Type(String),
                new v::Type(Double),
                NULL),
+            "columnType", new v::Any(
+               new v::Int(),
+               new v::Type(Boolean),
+               new v::Type(String),
+               new v::Type(Double),
+               NULL),
             NULL)),
          NULL),
       "indices", new v::Optional(new v::All(
@@ -841,7 +847,7 @@ void DatabaseClient::buildParams(
          DynamicObject& param = params->append();
          param["name"] = column["name"];
          param["value"] = members[memberName];
-         DynamicObjectType type = column["memberType"]->getType();
+         DynamicObjectType type = column["columnType"]->getType();
          if(param["value"]->getType() == Array)
          {
             // coerce each item type
@@ -1181,7 +1187,8 @@ bool DatabaseClient::getRowData(
       const char* columnName = next["name"]->getString();
       const char* memberName = next["memberName"]->getString();
 
-      switch(next["memberType"]->getType())
+      // get data based on column type
+      switch(next["columnType"]->getType())
       {
          case Int32:
             rval = r->getInt32(columnName, tmpInt.int32);
@@ -1212,6 +1219,9 @@ bool DatabaseClient::getRowData(
             // other types not supported
             break;
       }
+
+      // coerce to member type
+      row[memberName]->setType(next["memberType"]->getType());
    }
 
    return rval;
@@ -1258,13 +1268,31 @@ string DatabaseClient::createSelectSql(
 void DatabaseClient::addSchemaColumn(
    SchemaObject& schema,
    const char* name, const char* type,
-   const char* memberName, DynamicObjectType memberType)
+   const char* memberName,
+   DynamicObjectType memberType)
 {
    DynamicObject column = schema["columns"]->append();
    column["name"] = name;
    column["type"] = type;
    column["memberName"] = memberName;
    column["memberType"]->setType(memberType);
+   // assume same as memberType
+   column["columnType"]->setType(memberType);
+}
+
+void DatabaseClient::addSchemaColumn(
+   SchemaObject& schema,
+   const char* name, const char* type,
+   const char* memberName,
+   DynamicObjectType memberType,
+   DynamicObjectType columnType)
+{
+   DynamicObject column = schema["columns"]->append();
+   column["name"] = name;
+   column["type"] = type;
+   column["memberName"] = memberName;
+   column["memberType"]->setType(memberType);
+   column["columnType"]->setType(columnType);
 }
 
 SqlExecutableRef DatabaseClient::insertOrReplace(
