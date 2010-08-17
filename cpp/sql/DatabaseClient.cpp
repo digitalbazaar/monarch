@@ -846,7 +846,7 @@ void DatabaseClient::buildParams(
          // add param
          DynamicObject& param = params->append();
          param["name"] = column["name"];
-         param["value"] = members[memberName];
+         param["value"] = members[memberName].clone();
          DynamicObjectType type = column["columnType"]->getType();
          if(param["value"]->getType() == Array)
          {
