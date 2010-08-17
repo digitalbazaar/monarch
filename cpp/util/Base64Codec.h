@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_Base64Codec_H
 #define monarch_util_Base64Codec_H
@@ -81,6 +81,9 @@ namespace util
  *
  * 000000|001000|=|=
  *
+ * TODO: Generalize the API so that different maps of characters could be
+ * passed in to do different encodings.
+ *
  * @author Dave Longley
  */
 class Base64Codec
@@ -98,19 +101,19 @@ public:
 
    /**
     * Standard symbol characters '+' and '/' to use for Base64 encoding of
-    * 6-bit (62-63) values. 
+    * 6-bit (62-63) values.
     */
    static const char sStandardSymChars[];
 
    /**
     * URL safe symbol characters '-' and '_' to use for Base64 encoding of
-    * 6-bit (62-63) values. 
+    * 6-bit (62-63) values.
     */
    static const char sUrlSymChars[];
 
    /**
     * Base64 encodes data. The passed array of bytes is transformed into a
-    * base64-encoded string. if maxline is greater than 0, lines will be split
+    * base64-encoded string. If maxline is greater than 0, lines will be split
     * with a "\r\n".
     *
     * @param data the byte array to encode.

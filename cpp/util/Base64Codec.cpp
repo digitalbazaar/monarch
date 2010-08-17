@@ -249,6 +249,9 @@ string Base64Codec::urlSafeEncode(const char* data, unsigned int length)
 void Base64Codec::decode(
    const char* str, char** data, unsigned int& length, const char symChars[])
 {
+   // FIXME: this code was directly ported from an old Java implementation
+   // and contains some malloc inefficiencies, etc. that should be corrected
+
    // point data at NULL and set length to 0
    *data = NULL;
    length = 0;
