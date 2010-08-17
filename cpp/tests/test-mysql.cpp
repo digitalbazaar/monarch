@@ -249,8 +249,10 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       schema["table"] = TABLE_TEST;
       schema["indices"]->append() = "PRIMARY KEY(foo_id)";
 
+      // stored in object as string, in database as uint64
       DatabaseClient::addSchemaColumn(schema,
-         "foo_id", "BIGINT(20) UNSIGNED AUTO_INCREMENT", "fooId", UInt64);
+         "foo_id", "BIGINT(20) UNSIGNED AUTO_INCREMENT",
+         "fooId", String, UInt64);
       DatabaseClient::addSchemaColumn(schema,
          "foo_string", "TEXT", "fooString", String);
       DatabaseClient::addSchemaColumn(schema,
@@ -290,9 +292,10 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       dbc->execute(se);
       assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
+      row["fooId"]->setType(String);
 
       DynamicObject expect;
-      expect["fooId"] = 1;
+      expect["fooId"] = "1";
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
@@ -317,9 +320,10 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       dbc->execute(se);
       assertNoExceptionSet();
       row["fooId"] = se->lastInsertRowId;
+      row["fooId"]->setType(String);
 
       DynamicObject expect;
-      expect["fooId"] = 2;
+      expect["fooId"] = "2";
       expect["fooString"] = "foobar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
@@ -337,13 +341,13 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
    tr.test("select one");
    {
       DynamicObject where;
-      where["fooId"] = 1;
+      where["fooId"] = "1";
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoExceptionSet();
 
       DynamicObject expect;
-      expect["fooId"] = 1;
+      expect["fooId"] = "1";
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
@@ -361,7 +365,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
    tr.test("select one specific member");
    {
       DynamicObject where;
-      where["fooId"] = 1;
+      where["fooId"] = "1";
       DynamicObject members;
       members["fooString"];
       SqlExecutableRef se = dbc->selectOne(TABLE_TEST, &where, &members);
@@ -395,12 +399,12 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       DynamicObject expect;
       expect->setType(Array);
       DynamicObject& first = expect->append();
-      first["fooId"] = 1;
+      first["fooId"] = "1";
       first["fooString"] = "foobar";
       first["fooFlag"] = true;
       first["fooInt32"] = 3;
       DynamicObject& second = expect->append();
-      second["fooId"] = 2;
+      second["fooId"] = "2";
       second["fooString"] = "foobar";
       second["fooFlag"] = false;
       second["fooInt32"] = 3;
@@ -420,7 +424,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       DynamicObject row;
       row["fooString"] = "foobar2";
       DynamicObject where;
-      where["fooId"] = 2;
+      where["fooId"] = "2";
       SqlExecutableRef se = dbc->update(TABLE_TEST, row, &where);
       dbc->execute(se);
       assert(se->rowsAffected = 1);
@@ -432,7 +436,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       DynamicObject row;
       row["fooString"] = "bar";
       DynamicObject where;
-      where["fooId"] = 2;
+      where["fooId"] = "2";
       SqlExecutableRef se = dbc->update(TABLE_TEST, row, &where, 1);
       dbc->execute(se);
       assert(se->rowsAffected = 1);
@@ -448,7 +452,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       assertNoExceptionSet();
 
       DynamicObject expect;
-      expect["fooId"] = 2;
+      expect["fooId"] = "2";
       expect["fooString"] = "bar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
@@ -472,7 +476,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       assertNoExceptionSet();
 
       DynamicObject expect;
-      expect[0]["fooId"] = 2;
+      expect[0]["fooId"] = "2";
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
@@ -499,12 +503,12 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       DynamicObject expect;
       expect->setType(Array);
       DynamicObject& first = expect->append();
-      first["fooId"] = 1;
+      first["fooId"] = "1";
       first["fooString"] = "foobar";
       first["fooFlag"] = true;
       first["fooInt32"] = 3;
       DynamicObject& second = expect->append();
-      second["fooId"] = 2;
+      second["fooId"] = "2";
       second["fooString"] = "bar";
       second["fooFlag"] = false;
       second["fooInt32"] = 3;
@@ -522,7 +526,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
    tr.test("insert on duplicate key update");
    {
       DynamicObject row;
-      row["fooId"] = 1;
+      row["fooId"] = "1";
       row["fooString"] = "duplicate key update";
       SqlExecutableRef se = dbc->insertOnDuplicateKeyUpdate(TABLE_TEST, row);
       dbc->execute(se);
@@ -539,7 +543,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       assertNoExceptionSet();
 
       DynamicObject expect;
-      expect["fooId"] = 1;
+      expect["fooId"] = "1";
       expect["fooString"] = "duplicate key update";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
@@ -557,7 +561,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
    tr.test("remove w/limit");
    {
       DynamicObject where;
-      where["fooId"] = 1;
+      where["fooId"] = "1";
       SqlExecutableRef se = dbc->remove(TABLE_TEST, &where, 1);
       dbc->execute(se);
       assert(se->rowsAffected == 1);
@@ -571,7 +575,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
       assertNoExceptionSet();
 
       DynamicObject expect;
-      expect[0]["fooId"] = 2;
+      expect[0]["fooId"] = "2";
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
