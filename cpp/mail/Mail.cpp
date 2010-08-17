@@ -277,7 +277,8 @@ string Mail::getTransferEncodedBody()
       if(strcasecmp(encoding, "base64") == 0)
       {
          // base64 encode message
-         rval = Base64Codec::encode(rval.c_str(), rval.length());
+         rval = Base64Codec::encode(
+            rval.c_str(), rval.length(), Base64Codec::sMaxMimeLength);
          encoded = true;
       }
    }

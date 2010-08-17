@@ -85,65 +85,58 @@ namespace util
  */
 class Base64Codec
 {
-protected:
-   /**
-    * Base64 encoding maps 6-bit (0-63) indices to alphanumeric characters.
-    * This is the Base64 map.
-    */
-   static const char sIndexToBase64[];
-
-   /**
-    * This is the reverse map that maps alphanumeric characters to
-    * 6-bit (0-63) indices.
-    *
-    * The character '+' has the lowest integer value of all of the
-    * Base64 characters. Its value is 43, so we subtract 43 from
-    * all of the character int values to get the appropriate index.
-    *
-    * -1 is an invalid entry, -2 is the padding entry for '='.
-    */
-   static const short sBase64ToIndex[];
-
 public:
    /**
-    * Converts a character into a 16-bit integer (according to the
-    * decoder map).
-    *
-    * @param c the character to convert.
-    *
-    * @return the 16-bit integer.
+    * Maximum line length specified for PEM messages (RFC 1421).
     */
-   static short charToShort(char c);
+   static const size_t sMaxPemLength = 64;
 
    /**
-    * Encodes 3 bytes into 4 characters.
-    *
-    * @param data the byte array with the 3 bytes.
-    * @param length the length of the byte array.
-    * @param group the group to populate with 4 characters.
+    * Maximum line length specified for MIME messages (RFC 2045).
     */
-   static void encodeGroup(
-      const char* data, unsigned int length, char* group);
+   static const size_t sMaxMimeLength = 76;
 
    /**
-    * Decodes ONE group of Base64 characters into bytes.
-    *
-    * @param str the characters to decode into bytes.
-    * @param bytes the decoded byte array to populate (of size 3).
-    * @param length to store the number of decoded bytes (1 to 3).
+    * Standard symbol characters '+' and '/' to use for Base64 encoding of
+    * 6-bit (62-63) values. 
     */
-   static void decodeGroup(const char* str, char* bytes, unsigned int& length);
+   static const char sStandardSymChars[];
+
+   /**
+    * URL safe symbol characters '-' and '_' to use for Base64 encoding of
+    * 6-bit (62-63) values. 
+    */
+   static const char sUrlSymChars[];
 
    /**
     * Base64 encodes data. The passed array of bytes is transformed into a
-    * base64-encoded string.
+    * base64-encoded string. if maxline is greater than 0, lines will be split
+    * with a "\r\n".
+    *
+    * @param data the byte array to encode.
+    * @param length the number of bytes in the data to encode.
+    * @param maxLineLength the maximum number of encoded bytes per line to use,
+    *        defaults to no maximum. A common value is 76.
+    * @param symChars array of length two specifying the alphabet for the
+    *        standard "+/" encoding. Can be used to substitute URL and filename
+    *        safe encodings such as "-_".
+    *
+    * @return the base64-encoded string.
+    */
+   static std::string encode(
+      const char* data, unsigned int length, size_t maxLineLength = 0,
+      const char symChars[] = sStandardSymChars);
+
+   /**
+    * Base64 encodes data using a URL and filename safe alphabet. Equivalent to
+    * calling: encode(data, length, 0, sUrlSymChars).
     *
     * @param data the byte array to encode.
     * @param length the number of bytes in the data to encode.
     *
     * @return the base64-encoded string.
     */
-   static std::string encode(const char* data, unsigned int length);
+   static std::string urlSafeEncode(const char* data, unsigned int length);
 
    /**
     * Base64 decodes data. The passed base64-encoded string is transformed
@@ -154,8 +147,24 @@ public:
     * @param str the Base64-encoded string.
     * @param data a pointer to a byte array that will be set by this method.
     * @param length to store the number of decoded bytes.
+    * @param symChars array of length two specifying the alphabet for the
+    *        standard "+/" encoding. Can be used to substitute URL and filename
+    *        safe encodings such as "-_".
     */
-   static void decode(const char* str, char** data, unsigned int& length);
+   static void decode(
+      const char* str, char** data, unsigned int& length,
+      const char symChars[] = sStandardSymChars);
+
+   /**
+    * Base64 decodes data using a URL and filename safe alphabet. Equivalent to
+    * calling: decode(str, data, length, sUrlSymChars).
+    *
+    * @param str the Base64-encoded string.
+    * @param data a pointer to a byte array that will be set by this method.
+    * @param length to store the number of decoded bytes.
+    */
+   static void urlSafeDecode(
+      const char* str, char** data, unsigned int& length);
 };
 
 } // end namespace util

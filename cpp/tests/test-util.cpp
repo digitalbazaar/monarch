@@ -12,12 +12,13 @@
 #include "monarch/util/Crc16.h"
 #include "monarch/util/Date.h"
 #include "monarch/util/PathFormatter.h"
+#include "monarch/util/Pattern.h"
 #include "monarch/util/Random.h"
 #include "monarch/util/RateAverager.h"
 #include "monarch/util/StringTools.h"
 #include "monarch/util/StringTokenizer.h"
+#include "monarch/util/Timer.h"
 #include "monarch/util/UniqueList.h"
-#include "monarch/util/Pattern.h"
 
 #include <cstdlib>
 #include <cstdio>
@@ -32,48 +33,218 @@ namespace mo_test_util
 
 static void runBase64Test(TestRunner& tr)
 {
-   const char* expected = "YmNkZQ==";
+   tr.group("Base64");
 
-   tr.test("Base64");
-
-   char data[] = {'a', 'b', 'c', 'd', 'e'};
-   string encoded = Base64Codec::encode(data + 1, 4);
-   assert(encoded == expected);
-
-   char* decoded;
-   unsigned int length;
-   Base64Codec::decode(encoded.c_str(), &decoded, length);
-   assert(decoded != NULL);
-
-   assert(length == 4);
-   for(unsigned int i = 0; i < length; ++i)
+   tr.test("basic");
    {
-      assert(decoded[i] == data[i + 1]);
+      const char* expected = "YmNkZQ==";
+
+      char data[] = {'a', 'b', 'c', 'd', 'e'};
+      string encoded = Base64Codec::encode(data + 1, 4);
+      assert(encoded == expected);
+
+      char* decoded;
+      unsigned int length;
+      Base64Codec::decode(encoded.c_str(), &decoded, length);
+      assert(decoded != NULL);
+
+      assert(length == 4);
+      for(unsigned int i = 0; i < length; ++i)
+      {
+         assert(decoded[i] == data[i + 1]);
+      }
+
+      string encoded2 = Base64Codec::encode(decoded, 4);
+      assertStrCmp(encoded2.c_str(), expected);
+      free(decoded);
+
+      unsigned int size = 144;
+      string large;
+      large.append(size, 0x01);
+      encoded = Base64Codec::encode(large.c_str(), size);
+      Base64Codec::decode(encoded.c_str(), &decoded, length);
+      assert(memcmp(decoded, large.c_str(), size) == 0);
+      assert(length == size);
+      free(decoded);
+
+      size = 145;
+      large.erase();
+      large.append(size, 0x01);
+      encoded = Base64Codec::encode(large.c_str(), size);
+      Base64Codec::decode(encoded.c_str(), &decoded, length);
+      assert(memcmp(decoded, large.c_str(), size) == 0);
+      assert(length == size);
+      free(decoded);
+   }
+   tr.pass();
+
+   tr.test("basic2");
+   {
+      const char* data = "abcdefghijklmnopqrstuvwxyz";
+      string enc = Base64Codec::encode(data, strlen(data));
+      char* dec;
+      unsigned int len;
+      Base64Codec::decode(enc.c_str(), &dec, len);
+      assert(strlen(data) == len);
+      assert(strncmp(data, dec, strlen(data)) == 0);
+      free(dec);
+   }
+   tr.pass();
+
+   tr.test("decall");
+   {
+      const char* data =
+         "abcdefghijklmnopqrstuvwxyz"
+         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+         "0123456789+/";
+      char* dec;
+      unsigned int len;
+      Base64Codec::decode(data, &dec, len);
+      string enc = Base64Codec::encode(dec, len);
+      assert(enc.length() == strlen(data));
+      if(strncmp(data, enc.c_str(), strlen(data)) != 0)
+      {
+         printf("\ndata[%d]\n", strlen(data));
+         for(size_t i = 0; i < strlen(data); ++i)
+         {
+            printf("%c", (unsigned char)data[i]);
+         }
+         printf("\n");
+         for(size_t i = 0; i < strlen(data); ++i)
+         {
+            printf("%x  ", (unsigned char)data[i]);
+         }
+
+         printf("\ndec[%d]\n", len);
+         for(size_t i = 0; i < len; ++i)
+         {
+            printf("%x  ", (unsigned char)dec[i]);
+         }
+
+         printf("\nenc[%d]\n", enc.length());
+         for(size_t i = 0; i < enc.length(); ++i)
+         {
+            printf("%c", (unsigned char)enc[i]);
+         }
+         printf("\n");
+         for(size_t i = 0; i < enc.length(); ++i)
+         {
+            printf("%x  ", (unsigned char)enc[i]);
+         }
+      }
+      assert(strncmp(data, enc.c_str(), strlen(data)) == 0);
+      free(dec);
+   }
+   tr.pass();
+
+   tr.test("symbols");
+   {
+      const char* data = "/+/+";
+      const char* ex = "\xff\xef\xfe";
+      char* dec;
+      unsigned int len;
+      Base64Codec::decode(data, &dec, len);
+      assert(len == 3);
+      assert(strncmp(dec, ex, strlen(ex)) == 0);
+      string enc = Base64Codec::encode(dec, len);
+      assert(enc.length() == strlen(data));
+      assert(strncmp(data, enc.c_str(), strlen(data)) == 0);
+      free(dec);
+   }
+   tr.pass();
+
+   tr.test("custom symbols");
+   {
+      const char* data = "$@$@";
+      const char* ex = "\xfb\xff\xbf";
+      const char* sym = "$@";
+      char* dec;
+      unsigned int len;
+      Base64Codec::decode(data, &dec, len, sym);
+      assert(len == 3);
+      assert(strncmp(dec, ex, strlen(ex)) == 0);
+      string enc = Base64Codec::encode(dec, len, 0, sym);
+      assert(enc.length() == strlen(data));
+      assert(strncmp(data, enc.c_str(), strlen(data)) == 0);
+      free(dec);
+   }
+   tr.pass();
+
+   tr.test("url safe");
+   {
+      const char* data = "\xfb\xff\xbf";
+      const char* ex = "-_-_";
+      string enc = Base64Codec::urlSafeEncode(data, strlen(data));
+      assert(strncmp(enc.c_str(), ex, strlen(ex)) == 0);
+      char* dec;
+      unsigned int len;
+      Base64Codec::urlSafeDecode(enc.c_str(), &dec, len);
+      assert(len == 3);
+      assert(strncmp(dec, data, strlen(data)) == 0);
+      free(dec);
+   }
+   tr.pass();
+
+   tr.ungroup();
+}
+
+static void runBase64SpeedTest(TestRunner& tr)
+{
+   tr.group("Base64Speed");
+
+   printf("Base64 Speed Test\n");
+
+   // setup source
+   size_t slen = 1024*1024;
+   char src[slen];
+   for(size_t i = 0; i < slen; ++i)
+   {
+      src[i] = random() & 0xff;
    }
 
-   string encoded2 = Base64Codec::encode(decoded, 4);
-   assertStrCmp(encoded2.c_str(), expected);
-   free(decoded);
-
-   unsigned int size = 144;
-   string large;
-   large.append(size, 0x01);
-   encoded = Base64Codec::encode(large.c_str(), size);
-   Base64Codec::decode(encoded.c_str(), &decoded, length);
-   assert(memcmp(decoded, large.c_str(), size) == 0);
-   assert(length == size);
-   free(decoded);
-
-   size = 145;
-   large.erase();
-   large.append(size, 0x01);
-   encoded = Base64Codec::encode(large.c_str(), size);
-   Base64Codec::decode(encoded.c_str(), &decoded, length);
-   assert(memcmp(decoded, large.c_str(), size) == 0);
-   assert(length == size);
-   free(decoded);
-
+   tr.test("random data enc (~3s)");
+   {
+      uint64_t total_t = 0;
+      uint64_t loops = 0;
+      printf("Random data encoding (~3s): ");
+      fflush(stdout);
+      uint64_t start_t = Timer::startTiming();
+      while(total_t < 3000)
+      {
+         string enc = Base64Codec::encode(src, slen);
+         total_t = Timer::getMilliseconds(start_t);
+         ++loops;
+      }
+      printf("%9.3f KB/s\n", (slen * loops) / (double)total_t);
+      fflush(stdout);
+   }
    tr.pass();
+
+   tr.test("random data dec (~3s)");
+   {
+      // make encoded data
+      string enc = Base64Codec::encode(src, slen);
+      size_t elen = enc.length();
+      uint64_t total_t = 0;
+      uint64_t loops = 0;
+      printf("Random data decoding (~3s): ");
+      fflush(stdout);
+      uint64_t start_t = Timer::startTiming();
+      while(total_t < 3000)
+      {
+         char* dec;
+         unsigned int dlen;
+         Base64Codec::decode(enc.c_str(), &dec, dlen);
+         free(dec);
+         total_t = Timer::getMilliseconds(start_t);
+         ++loops;
+      }
+      printf("%9.3f KB/s\n", (elen * loops) / (double)total_t);
+      fflush(stdout);
+   }
+   tr.pass();
+
+   tr.ungroup();
 }
 
 static void runCrcTest(TestRunner& tr)
@@ -1086,6 +1257,10 @@ static bool run(TestRunner& tr)
    if(tr.isTestEnabled("rate-averager"))
    {
       runRateAveragerTest(tr);
+   }
+   if(tr.isTestEnabled("base64-speed"))
+   {
+      runBase64SpeedTest(tr);
    }
 
    return true;
