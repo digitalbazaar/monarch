@@ -206,7 +206,7 @@ bool SslSocket::verifyCommonName(const char* commonName)
       // log error
       MO_CAT_DEBUG(MO_NET_CAT,
          "X.509 certificate verification failure, "
-         "no match found for common name '%s', permitted common names: %s",
+         "no match found for common name '%s', acceptable common names: %s",
          commonName, str.c_str());
    }
 
