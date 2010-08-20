@@ -24,8 +24,6 @@ using namespace monarch::util;
 #define TABLE_TEST_1 "test_1"
 #define TABLE_TEST_2 "test_2"
 #define TABLE_TEST_3 "test_3"
-#define TABLE_TEST_4 "test_4"
-#define TABLE_TEST_5 "test_5"
 
 namespace mo_test_sqlite3
 {
@@ -1035,14 +1033,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
-      if(expect != row)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(row);
-      }
-      assert(expect == row);
+      assertNamedDynoCmp("expected", expect, "got", row);
    }
    tr.passIfNoException();
 
@@ -1063,14 +1054,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect["fooString"] = "foobar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
-      if(expect != row)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(row);
-      }
-      assert(expect == row);
+      assertNamedDynoCmp("expected", expect, "got", row);
    }
    tr.passIfNoException();
 
@@ -1087,14 +1071,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
-      if(expect != se->result)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(se->result);
-      }
-      assert(expect == se->result);
+      assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
 
@@ -1110,14 +1087,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
 
       DynamicObject expect;
       expect["fooString"] = "foobar";
-      if(expect != se->result)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(se->result);
-      }
-      assert(expect == se->result);
+      assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
 
@@ -1141,14 +1111,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       second["fooString"] = "foobar";
       second["fooFlag"] = false;
       second["fooInt32"] = 3;
-      if(expect != se->result)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(se->result);
-      }
-      assert(expect == se->result);
+      assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
 
@@ -1189,14 +1152,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect["fooString"] = "bar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
-      if(expect != se->result)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(se->result);
-      }
-      assert(expect == se->result);
+      assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
 
@@ -1213,14 +1169,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
-      if(expect != se->result)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(se->result);
-      }
-      assert(expect == se->result);
+      assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
 
@@ -1245,14 +1194,74 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       second["fooString"] = "bar";
       second["fooFlag"] = false;
       second["fooInt32"] = 3;
-      if(expect != se->result)
+      assertNamedDynoCmp("expected", expect, "got", se->result);
+   }
+   tr.passIfNoException();
+
+   tr.test("define seq table");
+   {
+      SchemaObject schema;
+      schema["table"] = TABLE_TEST_3;
+
+      // stored in object as string, in database as uint64
+      DatabaseClient::addSchemaColumn(schema,
+         "val", "INTEGER", "val", Int32);
+
+      dbc->define(schema);
+   }
+   tr.passIfNoException();
+
+   tr.test("create seq table");
+   {
+      dbc->create(TABLE_TEST_3, false);
+   }
+   tr.passIfNoException();
+
+   tr.test("fill seq table");
+   {
+      for(int i = 0; i < 3; ++i)
       {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(se->result);
+         DynamicObject row;
+         row["val"] = i;
+         SqlExecutableRef se = dbc->insert(TABLE_TEST_3, row);
+         dbc->execute(se);
+         assertNoExceptionSet();
       }
-      assert(expect == se->result);
+   }
+   tr.passIfNoException();
+
+   tr.test("select WHERE op");
+   {
+      {
+         DynamicObject where;
+         where["val"]["op"] = ">=";
+         where["val"]["value"] = 1;
+         SqlExecutableRef se = dbc->select(TABLE_TEST_3, &where);
+         dbc->execute(se);
+         assertNoExceptionSet();
+         DynamicObject expect;
+         for(int i = 1; i < 3; ++i)
+         {
+            DynamicObject& val = expect->append();
+            val["val"] = i;
+         }
+         expect->setType(Array);
+         assertNamedDynoCmp("expected", expect, "got", se->result);
+      }
+
+      {
+         DynamicObject where;
+         where["val"]["op"] = "<";
+         where["val"]["value"] = 1;
+         SqlExecutableRef se = dbc->select(TABLE_TEST_3, &where);
+         dbc->execute(se);
+         assertNoExceptionSet();
+         DynamicObject expect;
+         DynamicObject& val = expect->append();
+         val["val"] = 0;
+         expect->setType(Array);
+         assertNamedDynoCmp("expected", expect, "got", se->result);
+      }
    }
    tr.passIfNoException();
 
@@ -1277,14 +1286,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
-      if(expect != se->result)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(se->result);
-      }
-      assert(expect == se->result);
+      assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
 
@@ -1360,14 +1362,7 @@ static void runSqlite3RollbackTest(TestRunner& tr)
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
-      if(expect != row)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(row);
-      }
-      assert(expect == row);
+      assertNamedDynoCmp("expected", expect, "got", row);
    }
    tr.passIfNoException();
 
@@ -1387,14 +1382,7 @@ static void runSqlite3RollbackTest(TestRunner& tr)
       expect["fooString"] = "foobar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
-      if(expect != row)
-      {
-         printf("expected:\n");
-         dumpDynamicObject(expect);
-         printf("got:\n");
-         dumpDynamicObject(row);
-      }
-      assert(expect == row);
+      assertNamedDynoCmp("expected", expect, "got", row);
    }
    tr.passIfNoException();
 

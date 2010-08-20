@@ -858,6 +858,11 @@ void DatabaseClient::buildParams(
                item->setType(type);
             }
          }
+         else if(param["value"]->getType() == Map)
+         {
+            // coerce value type
+            param["value"]["value"]->setType(type);
+         }
          else
          {
             // coerce type
@@ -1002,7 +1007,7 @@ void DatabaseClient::appendWhereSql(
       }
       sql.append(param["name"]->getString());
 
-      /// use IN clause
+      // use IN clause
       if(param["value"]->getType() == Array)
       {
          sql.append(" IN (");
@@ -1024,6 +1029,12 @@ void DatabaseClient::appendWhereSql(
          }
 
          sql.append(")");
+      }
+      // use operator expr Map
+      else if(param["value"]->getType() == Map)
+      {
+         sql.append(param["value"]["op"]->getString());
+         sql.append("?");
       }
       // use single equals
       else
@@ -1145,6 +1156,44 @@ bool DatabaseClient::setParams(Statement* s, DynamicObject& params)
                      Exception::set(e);
                      break;
                   }
+               }
+            }
+            break;
+         }
+         case Map:
+         {
+            // handle map value
+            DynamicObject& mv = value["value"];
+            switch(mv->getType())
+            {
+               case Int32:
+                  rval &= s->setInt32(param++, mv->getInt32());
+                  break;
+               case UInt32:
+               case Boolean:
+                  rval &= s->setUInt32(param++, mv->getUInt32());
+                  break;
+               case Int64:
+                  rval &= s->setInt64(param++, mv->getInt64());
+                  break;
+               case UInt64:
+                  rval &= s->setUInt64(param++, mv->getUInt64());
+                  break;
+               case String:
+               case Double:
+                  // doubles are treated as strings
+                  rval &= s->setText(param++, mv->getString());
+                  break;
+                  break;
+               default:
+               {
+                  ExceptionRef e = new Exception(
+                     "Invalid parameter type.",
+                     DBC_EXCEPTION ".InvalidParameterType");
+                  e->getDetails()["invalidType"] =
+                     DynamicObject::descriptionForType(mv->getType());
+                  Exception::set(e);
+                  break;
                }
             }
             break;
