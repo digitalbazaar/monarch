@@ -4,6 +4,7 @@
 #include "monarch/sql/AbstractConnection.h"
 
 #include "monarch/sql/Statement.h"
+#include "monarch/util/StringTools.h"
 
 #include <cstring>
 
@@ -11,6 +12,7 @@ using namespace std;
 using namespace monarch::net;
 using namespace monarch::sql;
 using namespace monarch::rt;
+using namespace monarch::util;
 
 AbstractConnection::AbstractConnection() :
    mUrl(NULL)
@@ -63,6 +65,23 @@ Statement* AbstractConnection::prepare(const char* sql)
    }
 
    return rval;
+}
+
+Statement* AbstractConnection::preparef(const char* format, ...)
+{
+   Statement* rval = NULL;
+
+   va_list ap;
+   va_start(ap, format);
+   rval = vpreparef(format, ap);
+   va_end(ap);
+
+   return rval;
+}
+
+Statement* AbstractConnection::vpreparef(const char* format, va_list varargs)
+{
+   return prepare(StringTools::vformat(format, varargs).c_str());
 }
 
 void AbstractConnection::close()

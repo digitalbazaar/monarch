@@ -55,6 +55,23 @@ inline Statement* PooledConnection::prepare(const char* sql)
    return mConnection->prepare(sql);
 }
 
+Statement* PooledConnection::preparef(const char* format, ...)
+{
+   Statement* rval = NULL;
+
+   va_list ap;
+   va_start(ap, format);
+   rval = vpreparef(format, ap);
+   va_end(ap);
+
+   return rval;
+}
+
+Statement* PooledConnection::vpreparef(const char* format, va_list varargs)
+{
+   return mConnection->vpreparef(format, varargs);
+}
+
 inline void PooledConnection::close()
 {
    // don't close the connection, instead notify the pool that this

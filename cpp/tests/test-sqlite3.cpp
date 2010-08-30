@@ -124,8 +124,10 @@ static void executeSqlite3Statements(
       tr->test("insert test 1");
    }
    {
-      monarch::sql::Statement* s = c->prepare(
-         "INSERT INTO " TABLE_TEST_1 " (t, i) VALUES ('test!', 1234)");
+      // Note: test preparef
+      monarch::sql::Statement* s = c->preparef(
+         "INSERT INTO %s (t, i) VALUES ('test!', 1234)",
+         TABLE_TEST_1);
       assertNoExceptionSet();
       int success = s->execute();
       assertNoExceptionSet();

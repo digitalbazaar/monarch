@@ -79,6 +79,33 @@ public:
    virtual Statement* prepare(const char* sql);
 
    /**
+    * Prepares a printf formatted Statement for execution. The Statement, if
+    * valid, is stored along with the Connection according to its sql. It's
+    * memory is handled internally.
+    *
+    * @param format the printf-formatted string.
+    *
+    * @return the new stored Statement, NULL if an exception occurred.
+    */
+   virtual Statement* preparef(const char* format, ...)
+#ifdef __GNUC__
+      __attribute__ ((format (printf, 2, 3)))
+#endif
+         ;
+
+   /**
+    * Prepares a printf formatted Statement for execution. The Statement, if
+    * valid, is stored along with the Connection according to its sql. It's
+    * memory is handled internally.
+    *
+    * @param format the printf-formatted string.
+    * @param varargs the variable length arguments.
+    *
+    * @return the new stored Statement, NULL if an exception occurred.
+    */
+   virtual Statement* vpreparef(const char* format, va_list varargs);
+
+   /**
     * Closes this connection.
     */
    virtual void close();
