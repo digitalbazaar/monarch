@@ -252,13 +252,18 @@ bool MySqlStatement::setUInt64(unsigned int param, uint64_t value)
 
 bool MySqlStatement::setText(unsigned int param, const char* value)
 {
+   return setBlob(param, value, strlen(value));
+}
+
+bool MySqlStatement::setBlob(unsigned int param, const char* value, int length)
+{
    bool rval = checkParamCount(param);
 
    if(rval)
    {
       // param is 1 higher than bind index
       --param;
-      unsigned long len = strlen(value);
+      unsigned long len = length;
 
       if(!mExecuted)
       {
@@ -317,6 +322,15 @@ bool MySqlStatement::setUInt64(const char* name, uint64_t value)
 }
 
 bool MySqlStatement::setText(const char* name, const char* value)
+{
+   ExceptionRef e = new Exception(
+      "MySql named parameter support not implemented.",
+      "monarch.sql.mysql.MySql");
+   Exception::set(e);
+   return false;
+}
+
+bool MySqlStatement::setBlob(const char* name, const char* value, int length)
 {
    ExceptionRef e = new Exception(
       "MySql named parameter support not implemented.",

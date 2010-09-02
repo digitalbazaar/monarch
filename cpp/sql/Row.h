@@ -104,6 +104,19 @@ public:
    virtual bool getText(unsigned int column, std::string& str) = 0;
 
    /**
+    * Gets a blob from a column. If the given byte array is not large enough,
+    * the length will still be set but the byte array will not be filled.
+    *
+    * @param column the column's index.
+    * @param buffer the byte array to store the blob in.
+    * @param length the length of the byte array, to be set to the length of
+    *           the blob.
+    *
+    * @return true if successful, false if an SqlException occurred.
+    */
+   virtual bool getBlob(unsigned int column, char* buffer, int* length) = 0;
+
+   /**
     * Gets a column's data type.
     *
     * @param column the column's name.
@@ -162,6 +175,19 @@ public:
     * @return true if successful, false if an SqlException occurred.
     */
    virtual bool getText(const char* column, std::string& str) = 0;
+
+   /**
+    * Gets a blob from a column. If the given byte array is not large enough,
+    * the length will still be set but the byte array will not be filled.
+    *
+    * @param column the column's name.
+    * @param buffer the byte array to store the blob in.
+    * @param length the length of the byte array, to be set to the length of
+    *           the blob.
+    *
+    * @return true if successful, false if an SqlException occurred.
+    */
+   virtual bool getBlob(const char* column, char* buffer, int* length) = 0;
 };
 
 } // end namespace sql

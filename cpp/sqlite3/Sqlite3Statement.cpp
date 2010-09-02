@@ -145,6 +145,24 @@ bool Sqlite3Statement::setText(unsigned int param, const char* value)
    return rval;
 }
 
+bool Sqlite3Statement::setBlob(
+   unsigned int param, const char* value, int length)
+{
+   bool rval = true;
+
+   // use SQLITE_STATIC to ensure the memory is not cleaned up by sqlite
+   mState = sqlite3_bind_blob(mHandle, param, value, length, SQLITE_STATIC);
+   if(mState != SQLITE_OK)
+   {
+      // exception, could not bind parameter
+      ExceptionRef e = mConnection->createException();
+      Exception::set(e);
+      rval = false;
+   }
+
+   return rval;
+}
+
 bool Sqlite3Statement::setInt32(const char* name, int32_t value)
 {
    bool rval = false;
@@ -205,6 +223,19 @@ bool Sqlite3Statement::setText(const char* name, const char* value)
    if(index > 0)
    {
       rval = setText(index, value);
+   }
+
+   return rval;
+}
+
+bool Sqlite3Statement::setBlob(const char* name, const char* value, int length)
+{
+   bool rval = false;
+
+   int index = getParameterIndex(name);
+   if(index > 0)
+   {
+      rval = setBlob(index, value, length);
    }
 
    return rval;

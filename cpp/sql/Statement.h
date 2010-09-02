@@ -106,6 +106,17 @@ public:
    virtual bool setText(unsigned int param, const char* value) = 0;
 
    /**
+    * Sets the value of a binary blob for a positional parameter.
+    *
+    * @param param the parameter number (1 being the first param).
+    * @param value the parameter value.
+    * @param length the length of the value.
+    *
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool setBlob(unsigned int param, const char* value, int length) = 0;
+
+   /**
     * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
     *
     * @param name the parameter name.
@@ -156,6 +167,17 @@ public:
     * @return true if successful, false if an Exception occurred.
     */
    virtual bool setText(const char* name, const char* value) = 0;
+
+   /**
+    * Sets the value of a binary blob for a named parameter (:mynamehere).
+    *
+    * @param name the parameter name.
+    * @param value the parameter value.
+    * @param length the length of the value.
+    *
+    * @return true if successful, false if an Exception occurred.
+    */
+   virtual bool setBlob(const char* name, const char* value, int length) = 0;
 
    /**
     * Executes this Statement.

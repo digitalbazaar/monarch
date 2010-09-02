@@ -113,27 +113,48 @@ bool MySqlRow::getUInt64(unsigned int column, uint64_t& i)
 
 bool MySqlRow::getText(unsigned int column, string& str)
 {
-   my_bool isNull;
-   mBindings[column].buffer_type = MYSQL_TYPE_BLOB;
-   char temp[mBindings[column].buffer_length + 1];
-   mBindings[column].buffer = temp;
-   mBindings[column].length = &mBindings[column].buffer_length;
-   mBindings[column].is_null = &isNull;
-   mysql_stmt_fetch_column(
-      getStatementHandle(mStatement), &mBindings[column], column, 0);
-
-   if(isNull)
+   int length = mBindings[column].buffer_length;
+   char tmp[length];
+   bool rval = getBlob(column, tmp, &length);
+   if(rval)
    {
-      str.erase();
+      str.assign(tmp, length);
+   }
+   return rval;
+}
+
+bool MySqlRow::getBlob(unsigned int column, char* buffer, int* length)
+{
+   bool rval = false;
+
+   // always update length, but only return blob if it is large enough to
+   // hold all of the data
+   int max = *length;
+   *length = mBindings[column].buffer_length;
+   if(*length > max)
+   {
+      ExceptionRef e = new Exception(
+         "Blob too large to fit into buffer.",
+         "monarch.sql.mysql.BufferOverflow");
+      Exception::set(e);
    }
    else
    {
-      temp[mBindings[column].buffer_length] = 0;
-      str.assign(temp);
+      // FIXME: this code (particularly setting the binding column length
+      // appears questionable
+      my_bool isNull;
+      mBindings[column].buffer_type = MYSQL_TYPE_BLOB;
+      mBindings[column].buffer = buffer;
+      mBindings[column].length = &mBindings[column].buffer_length;
+      mBindings[column].is_null = &isNull;
+      mysql_stmt_fetch_column(
+         getStatementHandle(mStatement), &mBindings[column], column, 0);
+      *length = isNull ? 0 : mBindings[column].buffer_length;
+      // FIXME: check exceptions, etc
+      rval = true;
    }
 
-   // FIXME: check exceptions, etc
-   return true;
+   return rval;
 }
 
 bool MySqlRow::getType(const char* column, int& type)
@@ -215,6 +236,20 @@ bool MySqlRow::getText(const char* column, std::string& str)
    if(index != -1)
    {
       rval = getText(index, str);
+   }
+
+   return rval;
+}
+
+bool MySqlRow::getBlob(const char* column, char* buffer, int* length)
+{
+   bool rval = false;
+
+   // get column index for name
+   int64_t index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getBlob(index, buffer, length);
    }
 
    return rval;

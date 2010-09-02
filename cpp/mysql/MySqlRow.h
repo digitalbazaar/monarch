@@ -66,124 +66,74 @@ public:
       MYSQL_FIELD* fields, unsigned int count, MYSQL_BIND* bindings);
 
    /**
-    * Gets a column's data type.
-    *
-    * @param column the column's index.
-    * @param type the type ID for the column.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getType(unsigned int column, int& type);
 
    /**
-    * Gets a 32-bit integer from a column.
-    *
-    * @param column the column's index.
-    * @param i the integer to store the integer in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getInt32(unsigned int column, int32_t& i);
 
    /**
-    * Gets a 32-bit unsigned integer from a column.
-    *
-    * @param column the column's index.
-    * @param i the integer to store the integer in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getUInt32(unsigned int column, uint32_t& i);
 
    /**
-    * Gets a 64-bit integer from a column.
-    *
-    * @param column the column's index.
-    * @param i the integer to store the integer in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getInt64(unsigned int column, int64_t& i);
 
    /**
-    * Gets a 64-bit unsigned integer from a column.
-    *
-    * @param column the column's index.
-    * @param i the integer to store the integer in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getUInt64(unsigned int column, uint64_t& i);
 
    /**
-    * Gets a text string from a column.
-    *
-    * @param column the column's index.
-    * @param str the string to store the text in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getText(unsigned int column, std::string& str);
 
    /**
-    * Gets a column's data type.
-    *
-    * @param column the column's name.
-    * @param type the type ID for the column.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
+    */
+   virtual bool getBlob(unsigned int column, char* buffer, int* length);
+
+   /**
+    * {@inheritDoc}
     */
    virtual bool getType(const char* column, int& type);
 
    /**
-    * Gets a 32-bit integer from a column.
-    *
-    * @param column the column's name.
-    * @param i the integer to store the integer in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getInt32(const char* column, int32_t& i);
 
    /**
-    * Gets a 32-bit unsigned integer from a column.
-    *
-    * @param column the column's name.
-    * @param i the integer to store the integer in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getUInt32(const char* column, uint32_t& i);
 
    /**
-    * Gets a 64-bit integer from a column.
-    *
-    * @param column the column's name.
-    * @param i the integer to store the integer in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getInt64(const char* column, int64_t& i);
 
    /**
-    * Gets a 64-bit unsigned integer from a column.
-    *
-    * @param column the column's name.
-    * @param i the integer to store the integer in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getUInt64(const char* column, uint64_t& i);
 
    /**
-    * Gets a text string from a column.
-    *
-    * @param column the column's name.
-    * @param str the string to store the text in.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getText(const char* column, std::string& str);
+
+   /**
+    * {@inheritDoc}
+    */
+   virtual bool getBlob(const char* column, char* buffer, int* length);
 
 protected:
    /**

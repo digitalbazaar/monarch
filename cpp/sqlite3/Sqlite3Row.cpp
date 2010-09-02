@@ -70,6 +70,32 @@ bool Sqlite3Row::getText(unsigned int column, string& str)
    return true;
 }
 
+bool Sqlite3Row::getBlob(unsigned int column, char* buffer, int* length)
+{
+   bool rval = false;
+
+   // FIXME: check exceptions, etc
+   int max = *length;
+   int size = sqlite3_column_bytes(getStatementHandle(mStatement), column);
+   *length = size;
+   if(size > max)
+   {
+      ExceptionRef e = new Exception(
+         "Blob too large to fit into buffer.",
+         "monarch.sql.sqlite3.BufferOverflow");
+      Exception::set(e);
+   }
+   else
+   {
+      const void* blob = sqlite3_column_blob(
+         getStatementHandle(mStatement), column);
+      memcpy(buffer, blob, size);
+      rval = true;
+   }
+
+   return rval;
+}
+
 bool Sqlite3Row::getType(const char* column, int& type)
 {
    bool rval = false;
@@ -149,6 +175,20 @@ bool Sqlite3Row::getText(const char* column, std::string& str)
    if(index != -1)
    {
       rval = getText(index, str);
+   }
+
+   return rval;
+}
+
+bool Sqlite3Row::getBlob(const char* column, char* buffer, int* length)
+{
+   bool rval = false;
+
+   // get column index for name
+   int index = getColumnIndex(column);
+   if(index != -1)
+   {
+      rval = getBlob(index, buffer, length);
    }
 
    return rval;

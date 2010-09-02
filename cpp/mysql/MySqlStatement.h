@@ -108,144 +108,87 @@ public:
    virtual bool initialize(MySqlConnection* c);
 
    /**
-    * Sets the value of a 32-bit integer for a positional parameter.
-    *
-    * @param param the parameter number (1 being the first param).
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool setInt32(unsigned int param, int32_t value);
 
    /**
-    * Sets the value of a 32-bit unsigned integer for a positional parameter.
-    *
-    * @param param the parameter number (1 being the first param).
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool setUInt32(unsigned int param, uint32_t value);
 
    /**
-    * Sets the value of a 64-bit integer for a positional parameter.
-    *
-    * @param param the parameter number (1 being the first param).
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool setInt64(unsigned int param, int64_t value);
 
    /**
-    * Sets the value of a 64-bit unsigned integer for a positional parameter.
-    *
-    * @param param the parameter number (1 being the first param).
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool setUInt64(unsigned int param, uint64_t value);
 
    /**
-    * Sets the value of a text string for a positional parameter.
-    *
-    * @param param the parameter number (1 being the first param).
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool setText(unsigned int param, const char* value);
 
    /**
-    * Sets the value of a 32-bit integer for a named parameter (:mynamehere).
-    *
-    * @param name the parameter name.
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
+    */
+   virtual bool setBlob(unsigned int param, const char* value, int length);
+
+   /**
+    * {@inheritDoc}
     */
    virtual bool setInt32(const char* name, int32_t value);
 
    /**
-    * Sets the value of a 32-bit unsigned integer for a named parameter
-    * (:mynamehere).
-    *
-    * @param name the parameter name.
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool setUInt32(const char* name, uint32_t value);
 
    /**
-    * Sets the value of a 64-bit integer for a named parameter (:mynamehere).
-    *
-    * @param name the parameter name.
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool setInt64(const char* name, int64_t value);
 
    /**
-    * Sets the value of a 64-bit unsigned integer for a named parameter
-    * (:mynamehere).
-    *
-    * @param name the parameter name.
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool setUInt64(const char* name, uint64_t value);
 
    /**
-    * Sets the value of a text string for a named parameter (:mynamehere).
-    *
-    * @param name the parameter name.
-    * @param value parameter value.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool setText(const char* name, const char* value);
 
    /**
-    * Executes this Statement.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
+    */
+   virtual bool setBlob(const char* name, const char* value, int length);
+
+   /**
+    * {@inheritDoc}
     */
    virtual bool execute();
 
    /**
-    * Fetches the next result Row once this Statement has been executed. The
-    * Row is managed by the Statement and must not be freed by the caller.
-    *
-    * @return the next result Row once this Statement has been executed,
-    *         NULL if there is no next Row.
+    * {@inheritDoc}
     */
    virtual Row* fetch();
 
    /**
-    * Resets this statement for reuse.
-    *
-    * @return true if successful, false if an exception occurred.
+    * {@inheritDoc}
     */
    virtual bool reset();
 
    /**
-    * Gets the number of rows modified by this Statement.
-    *
-    * @param rows to store the number of rows modified by this Statement.
-    *
-    * @return true if successful, false if an Exception occurred.
+    * {@inheritDoc}
     */
    virtual bool getRowsChanged(uint64_t& rows);
 
    /**
-    * Gets the ID of the last row that was inserted. This is done per
-    * connection and is useful for auto-incrementing rows.
-    *
-    * @return the ID of the last row that was inserted.
+    * {@inheritDoc}
     */
    virtual uint64_t getLastInsertRowId();
 
