@@ -1001,6 +1001,9 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
          "foo_flag", "INTEGER", "fooFlag", Boolean);
       DatabaseClient::addSchemaColumn(schema,
          "foo_int32", "INTEGER", "fooInt32", Int32);
+      DatabaseClient::addSchemaColumn(schema,
+         "foo_blob", "BLOB", "fooHex", String);
+      schema["columns"].last()["encode"]->append() = "unhex";
 
       dbc->define(schema);
    }
@@ -1024,6 +1027,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = true;
       row["fooInt32"] = 3;
+      row["fooHex"] = "4a";
       SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se);
       assertNoExceptionSet();
@@ -1035,6 +1039,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
+      expect["fooHex"] = "4a";
       assertNamedDynoCmp("expected", expect, "got", row);
    }
    tr.passIfNoException();
@@ -1045,6 +1050,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       row["fooString"] = "foobar";
       row["fooFlag"] = false;
       row["fooInt32"] = 3;
+      row["fooHex"] = "4a";
       SqlExecutableRef se = dbc->insert(TABLE_TEST_1, row);
       dbc->execute(se);
       assertNoExceptionSet();
@@ -1056,6 +1062,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect["fooString"] = "foobar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
+      expect["fooHex"] = "4a";
       assertNamedDynoCmp("expected", expect, "got", row);
    }
    tr.passIfNoException();
@@ -1073,6 +1080,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect["fooString"] = "foobar";
       expect["fooFlag"] = true;
       expect["fooInt32"] = 3;
+      expect["fooHex"] = "4a";
       assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
@@ -1108,11 +1116,13 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       first["fooString"] = "foobar";
       first["fooFlag"] = true;
       first["fooInt32"] = 3;
+      first["fooHex"] = "4a";
       DynamicObject& second = expect->append();
       second["fooId"] = "2";
       second["fooString"] = "foobar";
       second["fooFlag"] = false;
       second["fooInt32"] = 3;
+      second["fooHex"] = "4a";
       assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
@@ -1154,6 +1164,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect["fooString"] = "bar";
       expect["fooFlag"] = false;
       expect["fooInt32"] = 3;
+      expect["fooHex"] = "4a";
       assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
@@ -1171,6 +1182,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
+      expect[0]["fooHex"] = "4a";
       assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
@@ -1191,11 +1203,13 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       first["fooString"] = "foobar";
       first["fooFlag"] = true;
       first["fooInt32"] = 3;
+      first["fooHex"] = "4a";
       DynamicObject& second = expect->append();
       second["fooId"] = "2";
       second["fooString"] = "bar";
       second["fooFlag"] = false;
       second["fooInt32"] = 3;
+      second["fooHex"] = "4a";
       assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
@@ -1288,6 +1302,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
       expect[0]["fooString"] = "bar";
       expect[0]["fooFlag"] = false;
       expect[0]["fooInt32"] = 3;
+      expect[0]["fooHex"] = "4a";
       assertNamedDynoCmp("expected", expect, "got", se->result);
    }
    tr.passIfNoException();
