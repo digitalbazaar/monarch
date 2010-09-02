@@ -258,8 +258,17 @@ public:
    virtual const std::string& getQuery();
 
    /**
+    * Adds a variable to this url. The key and value will be URL-encoded.
+    *
+    * @param key the key of the variable.
+    * @param value the value of the variable.
+    */
+   virtual void addQueryVariable(const char* key, const char* value);
+
+   /**
     * Adds variables to this url. The variables in the passed map will be
-    * url-encoded.
+    * URL-encoded. Map members which are arrays will result in multiple query
+    * key-value pairs for the same key.
     *
     * @param vars the DynamicObject Map with key-value pairs to add to the
     *             query.
@@ -322,6 +331,13 @@ public:
     * @return the default port for the scheme (protocol) of this url.
     */
    virtual int getDefaultPort();
+
+   /**
+    * Normalize this URL according to RFC 3986.
+    *
+    * http://tools.ietf.org/html/rfc3986
+    */
+   virtual void normalize();
 
    /**
     * Writes this url to a string.

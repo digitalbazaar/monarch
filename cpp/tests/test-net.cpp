@@ -1156,6 +1156,19 @@ static void runUrlTest(TestRunner& tr)
    }
 
    {
+      // multi-value query variables
+      Url url("http://bitmunk.com");
+      DynamicObject vars;
+      vars["a"] = "A";
+      vars["b"][0] = "B0";
+      vars["b"][1] = "B1";
+      url.addQueryVariables(vars);
+      assertStrCmp(
+         url.toString().c_str(),
+         "http://bitmunk.com?a=A&b=B0&b=B1");
+   }
+
+   {
       string path = "/p0/p1/p2/p3/p4";
       path = Url::getParentPath(path.c_str());
       assertStrCmp(path.c_str(), "/p0/p1/p2/p3");
@@ -1186,6 +1199,45 @@ static void runUrlTest(TestRunner& tr)
       path = Url::getParentPath(path.c_str());
       assertStrCmp(path.c_str(), "/");
    }
+
+   tr.pass();
+}
+
+static void _normalizedUrlCmp(const char* expect, const char* ustr)
+{
+   Url e(expect);
+   Url u(ustr);
+
+   u.normalize();
+   assertStrCmp(e.toString().c_str(), u.toString().c_str());
+}
+
+static void runUrlNormalizationTest(TestRunner& tr)
+{
+   tr.test("Url Normalization");
+
+   // empty
+   _normalizedUrlCmp("", "");
+
+   // HTTP case
+   const char* e0 = "http://www.example.com/";
+   _normalizedUrlCmp(e0, "http://www.example.com/");
+   _normalizedUrlCmp(e0, "HTTP://WWW.EXAMPLE.COM/");
+   _normalizedUrlCmp(e0, "HTTP://WWW.EXAMPLE.COM");
+
+   // HTTP path case constant
+   const char* e1 = "http://www.example.com/Foo/Bar";
+   _normalizedUrlCmp(e1, "http://www.Example.com/Foo/Bar");
+
+   // HTTP ports
+   _normalizedUrlCmp("http://www.a.com/", "http://www.a.com:80/");
+   _normalizedUrlCmp("https://www.a.com/", "https://www.a.com:443/");
+   _normalizedUrlCmp("http://www.a.com:81/", "http://www.a.com:81/");
+
+   // NOTE: query var normalization is outside of the scope of generic URL
+   // normalization.  ie, sorted keys and so on will not be done by Url class.
+
+   // FIMXE: add tests for other schemes
 
    tr.pass();
 }
@@ -1626,6 +1678,7 @@ static bool run(TestRunner& tr)
       runDatagramTest(tr);
       runUrlEncodeTest(tr);
       runUrlTest(tr);
+      runUrlNormalizationTest(tr);
    }
    if(tr.isTestEnabled("local-hostname"))
    {

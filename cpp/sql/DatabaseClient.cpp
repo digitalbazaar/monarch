@@ -442,6 +442,7 @@ bool DatabaseClient::create(
       ExceptionRef e = new Exception(
          "Could not create table.",
          DBC_EXCEPTION ".CreateTableFailed");
+      e->getDetails()["table"] = table;
       Exception::push(e);
    }
 

@@ -382,32 +382,52 @@ const string& Url::getQuery()
    return mQuery;
 }
 
+void Url::addQueryVariable(const char* key, const char* value)
+{
+   string kv;
+   kv.append(encode(key));
+   kv.push_back('=');
+   kv.append(encode(value));
+
+   // update scheme specific part and query
+   if(mQuery.length() == 0)
+   {
+      mSchemeSpecificPart.push_back('?');
+   }
+   else
+   {
+      mSchemeSpecificPart.push_back('&');
+      mQuery.push_back('&');
+   }
+   mSchemeSpecificPart.append(kv);
+   mQuery.append(kv);
+}
+
 void Url::addQueryVariables(DynamicObject& vars)
 {
    if(vars->getType() == Map && vars->length() > 0)
    {
-      string query;
       DynamicObjectIterator i = vars.getIterator();
       while(i->hasNext())
       {
          DynamicObject& next = i->next();
 
-         if(query.length() > 0 || mQuery.length() > 0)
+         if(next->getType() == Array)
          {
-            query.push_back('&');
+            // multiple values
+            DynamicObjectIterator ni = next.getIterator();
+            while(ni->hasNext())
+            {
+               DynamicObject& value = ni->next();
+               addQueryVariable(i->getName(), value->getString());
+            }
          }
-         query.append(encode(i->getName()));
-         query.push_back('=');
-         query.append(encode(next->getString()));
+         else
+         {
+            // single value
+            addQueryVariable(i->getName(), next->getString());
+         }
       }
-
-      // update scheme specific part and query
-      if(mQuery.length() == 0)
-      {
-         mSchemeSpecificPart.push_back('?');
-      }
-      mSchemeSpecificPart.append(query);
-      mQuery.append(query);
    }
 }
 
@@ -496,6 +516,53 @@ int Url::getDefaultPort()
    }
 
    return rval;
+}
+
+void Url::normalize()
+{
+   // FIXME generalize and handle other schemes
+   if(strcmp(getScheme().c_str(), "http") == 0 ||
+      strcmp(getScheme().c_str(), "https") == 0)
+   {
+      bool success = true;
+
+      // save old url to restore on error
+      string oldUrl = toString();
+
+      // lowercase host, scheme is already lowercased
+      string nHost = mHost;
+      transform(nHost.begin(), nHost.end(), nHost.begin(), ::tolower);
+
+      // setup port if not the default port
+      string port;
+      if(getPort() != getDefaultPort())
+      {
+         success = StringTools::sformat(port, ":%d", getPort());
+      }
+
+      // FIXME:
+      // uppercase % encoded entities (ie %3a => %3A)
+      // normalize path segments "." and ".."
+      // normalize special chars "/", "+", etc to % encoded
+
+      if(success)
+      {
+         // reformat with normalized data
+         success = format("%s://%s%s%s%s",
+            getScheme().c_str(),
+            nHost.c_str(),
+            port.c_str(),
+            getPath().c_str(),
+            getQuery().c_str());
+      }
+
+      if(!success)
+      {
+         // clear and restore
+         Exception::clear();
+         setUrl(oldUrl);
+      }
+   }
 }
 
 string Url::toString() const
