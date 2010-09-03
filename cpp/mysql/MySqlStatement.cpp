@@ -37,10 +37,10 @@ MySqlStatement::~MySqlStatement()
    // clean up param bindings
    if(mParamBindings != NULL)
    {
-      // ensure integer buffers and string lengths are cleaned up
+      // ensure heap data is cleaned up
       for(unsigned int i = 0; i < mParamCount; ++i)
       {
-         // clean up integer buffer
+         // clean up malloc'd data
          switch(mParamBindings[i].buffer_type)
          {
             case MYSQL_TYPE_LONG:
@@ -48,6 +48,7 @@ MySqlStatement::~MySqlStatement()
                free(mParamBindings[i].buffer);
                break;
             case MYSQL_TYPE_BLOB:
+               free(mParamBindings[i].buffer);
                free(mParamBindings[i].length);
                break;
             default:
@@ -267,8 +268,15 @@ bool MySqlStatement::setBlob(unsigned int param, const char* value, int length)
 
       if(!mExecuted)
       {
-         // we haven't executed before, so allocate space for the length
+         // we haven't executed before, allocate space for the length
+         mParamBindings[param].buffer = malloc(length);
          mParamBindings[param].length = (unsigned long*)malloc(sizeof(len));
+      }
+      else
+      {
+         // re-allocate space for the data
+         mParamBindings[param].buffer =
+            realloc(mParamBindings[param].buffer, length);
       }
 
       // FIXME: ensure length is in the correct byte order
@@ -277,7 +285,7 @@ bool MySqlStatement::setBlob(unsigned int param, const char* value, int length)
       // MYSQL_TYPE_BLOB should be a BLOB or TEXT field
       // length is heap-allocated and cleaned up later
       mParamBindings[param].buffer_type = MYSQL_TYPE_BLOB;
-      mParamBindings[param].buffer = (char*)value;
+      memcpy(mParamBindings[param].buffer, value, length);
       mParamBindings[param].is_null = 0;
       memcpy(mParamBindings[param].length, &len, sizeof(len));
    }

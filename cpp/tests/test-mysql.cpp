@@ -129,6 +129,7 @@ static void executeMySqlStatements(TestRunner& tr, monarch::sql::Connection* c)
          else
          {
             // bad row data
+            printf("BAD ROW DATA: %s\n", t.c_str());
             assert(false);
          }
       }
