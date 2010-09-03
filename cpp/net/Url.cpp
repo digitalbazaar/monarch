@@ -89,17 +89,6 @@ bool Url::setUrl(const string& url)
    // handle scheme for absolute urls only
    if(!mRelative)
    {
-      // find double slashes
-      index = url.find("//", index);
-      if(index == string::npos)
-      {
-         index = url.rfind(':');
-      }
-      else
-      {
-         --index;
-      }
-
       // split string into the scheme and scheme-specific-part
       mScheme = url.substr(0, index);
 
@@ -128,7 +117,7 @@ bool Url::setUrl(const string& url)
             // non-start characters must be in [a-z0-9+.-]
             c = *i;
             if(!((c > 'a' && c < 'z') || (c > '0' && c < '9') ||
-               c == '+' || c == '.' || c != '-'))
+               c == '+' || c == '.' || c == '-'))
             {
                ExceptionRef e = new Exception(
                   "Url scheme contains invalid characters.",

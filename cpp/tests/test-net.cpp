@@ -1200,6 +1200,31 @@ static void runUrlTest(TestRunner& tr)
       assertStrCmp(path.c_str(), "/");
    }
 
+   {
+      Url url("urn:x-foo:bar");
+      assertNoExceptionSet();
+
+      //dumpUrl(url);
+      assertStrCmp(url.getScheme().c_str(), "urn");
+      assertStrCmp(url.getSchemeSpecificPart().c_str(), "x-foo:bar");
+   }
+
+   {
+      Url url("x-scheme:bar");
+      assertNoExceptionSet();
+
+      //dumpUrl(url);
+      assertStrCmp(url.getScheme().c_str(), "x-scheme");
+      assertStrCmp(url.getSchemeSpecificPart().c_str(), "bar");
+   }
+
+   {
+      Url url("-x-scheme:bar");
+
+      assertExceptionSet();
+      Exception::clear();
+   }
+
    tr.pass();
 }
 
