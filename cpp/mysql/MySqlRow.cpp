@@ -135,7 +135,7 @@ bool MySqlRow::getBlob(unsigned int column, char* buffer, int* length)
    {
       ExceptionRef e = new Exception(
          "Blob too large to fit into buffer.",
-         "monarch.sql.mysql.BufferOverflow");
+         "monarch.sql.BufferOverflow");
       Exception::set(e);
    }
    else

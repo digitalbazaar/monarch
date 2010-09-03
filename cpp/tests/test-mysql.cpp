@@ -261,7 +261,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
          "foo_int32", "TINYINT(1) UNSIGNED", "fooInt32", Int32);
       DatabaseClient::addSchemaColumn(schema,
          "foo_blob", "BLOB", "fooHex", String);
-      schema["columns"].last()["encode"]->append() = "unhex";
+      schema["columns"].last()["encode"]->append() = "hex";
 
       dbc->define(schema);
    }

@@ -1,24 +1,30 @@
 /*
  * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_CONSTANT_MACROS
 #define __STDC_FORMAT_MACROS
 
 #include "monarch/sql/DatabaseClient.h"
 
 #include "monarch/data/json/JsonWriter.h"
+#include "monarch/io/ByteBuffer.h"
 #include "monarch/logging/Logging.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/sql/Row.h"
 #include "monarch/sql/Statement.h"
 #include "monarch/sql/SqlStatementBuilder.h"
+#include "monarch/util/Convert.h"
+#include "monarch/util/Data.h"
 
 #include <cstdio>
 
 using namespace std;
 using namespace monarch::data::json;
+using namespace monarch::io;
 using namespace monarch::logging;
 using namespace monarch::rt;
 using namespace monarch::sql;
+using namespace monarch::util;
 namespace v = monarch::validation;
 
 #define DBC_EXCEPTION "monarch.sql.DatabaseClient"
@@ -848,26 +854,10 @@ void DatabaseClient::buildParams(
          DynamicObject& param = params->append();
          param["name"] = column["name"];
          param["value"] = members[memberName].clone();
-         DynamicObjectType type = column["columnType"]->getType();
-         if(param["value"]->getType() == Array)
+         param["type"] = column["columnType"];
+         if(column->hasMember("encode"))
          {
-            // coerce each item type
-            DynamicObjectIterator ai = param["value"].getIterator();
-            while(ai->hasNext())
-            {
-               DynamicObject& item = ai->next();
-               item->setType(type);
-            }
-         }
-         else if(param["value"]->getType() == Map)
-         {
-            // coerce value type
-            param["value"]["value"]->setType(type);
-         }
-         else
-         {
-            // coerce type
-            param["value"]->setType(type);
+            param["encode"] = column["encode"];
          }
          if(tableAlias != NULL)
          {
@@ -1088,129 +1078,200 @@ void DatabaseClient::appendSetSql(string& sql, DynamicObject& params)
    }
 }
 
-bool DatabaseClient::setParams(Statement* s, DynamicObject& params)
+static bool _setDecodedParam(
+   Statement* s, unsigned int index,
+   DynamicObject& param, DynamicObject& value)
 {
    bool rval = true;
 
-   // append parameters
-   unsigned int param = 1;
-   DynamicObjectIterator i = params.getIterator();
-   while(rval && i->hasNext())
+   if(param->hasMember("encode"))
    {
-      DynamicObject& value = i->next()["value"];
-      switch(value->getType())
+      // FIXME: could use streams here and handle types other than string,
+      // but the DatabaseClient API might be abandoned before this actually
+      // ever really gets used to that extent
+
+      // fill byte buffer with initial data
+      ByteBuffer b;
+      b.put(value->getString(), value->length(), true);
+
+      // apply each decoding
+      // FIXME: optimize this by doing it once and storing it when
+      // defining the schema
+      DynamicObject decode = param["encode"].clone();
+      decode->reverse();
+      DynamicObjectIterator i = decode.getIterator();
+      while(rval && i->hasNext())
+      {
+         const char* type = i->next()->getString();
+
+         // convert hex to binary
+         if(strcmp(type, "hex") == 0)
+         {
+            const char* hex = b.bytes();
+            unsigned int len = b.length();
+            unsigned int binLen = (len >> 1) + 1;
+            char bin[binLen];
+            rval = Convert::hexToBytes(hex, len, bin, binLen);
+            if(rval)
+            {
+               b.clear();
+               b.put(bin, binLen, true);
+            }
+         }
+      }
+
+      // only blobs are supported at the moment
+      rval = rval && s->setBlob(index, b.bytes(), b.length());
+   }
+
+   return rval;
+}
+
+static bool _setParam(
+   Statement* s, unsigned int index,
+   DynamicObject& param, DynamicObject& value)
+{
+   bool rval = false;
+
+   // handle encoding
+   if(param->hasMember("encode"))
+   {
+      rval = _setDecodedParam(s, index, param, value);
+   }
+   else
+   {
+      // no encoding, use param type
+      switch(param["type"]->getType())
       {
          case Int32:
-            rval &= s->setInt32(param++, value->getInt32());
+            rval = s->setInt32(index, value->getInt32());
             break;
          case UInt32:
          case Boolean:
-            rval &= s->setUInt32(param++, value->getUInt32());
+            rval = s->setUInt32(index, value->getUInt32());
             break;
          case Int64:
-            rval &= s->setInt64(param++, value->getInt64());
+            rval = s->setInt64(index, value->getInt64());
             break;
          case UInt64:
-            rval &= s->setUInt64(param++, value->getUInt64());
+            rval = s->setUInt64(index, value->getUInt64());
             break;
          case String:
          case Double:
             // doubles are treated as strings
-            rval &= s->setText(param++, value->getString());
+            rval = s->setText(index, value->getString());
             break;
-            break;
-         case Array:
-         {
-            // iterate over array
-            DynamicObjectIterator ai = value.getIterator();
-            while(ai->hasNext())
-            {
-               DynamicObject& av = ai->next();
-               switch(av->getType())
-               {
-                  case Int32:
-                     rval &= s->setInt32(param++, av->getInt32());
-                     break;
-                  case UInt32:
-                  case Boolean:
-                     rval &= s->setUInt32(param++, av->getUInt32());
-                     break;
-                  case Int64:
-                     rval &= s->setInt64(param++, av->getInt64());
-                     break;
-                  case UInt64:
-                     rval &= s->setUInt64(param++, av->getUInt64());
-                     break;
-                  case String:
-                  case Double:
-                     // doubles are treated as strings
-                     rval &= s->setText(param++, av->getString());
-                     break;
-                     break;
-                  default:
-                  {
-                     ExceptionRef e = new Exception(
-                        "Invalid parameter type.",
-                        DBC_EXCEPTION ".InvalidParameterType");
-                     e->getDetails()["invalidType"] =
-                        DynamicObject::descriptionForType(av->getType());
-                     Exception::set(e);
-                     break;
-                  }
-               }
-            }
-            break;
-         }
-         case Map:
-         {
-            // handle map value
-            DynamicObject& mv = value["value"];
-            switch(mv->getType())
-            {
-               case Int32:
-                  rval &= s->setInt32(param++, mv->getInt32());
-                  break;
-               case UInt32:
-               case Boolean:
-                  rval &= s->setUInt32(param++, mv->getUInt32());
-                  break;
-               case Int64:
-                  rval &= s->setInt64(param++, mv->getInt64());
-                  break;
-               case UInt64:
-                  rval &= s->setUInt64(param++, mv->getUInt64());
-                  break;
-               case String:
-               case Double:
-                  // doubles are treated as strings
-                  rval &= s->setText(param++, mv->getString());
-                  break;
-                  break;
-               default:
-               {
-                  ExceptionRef e = new Exception(
-                     "Invalid parameter type.",
-                     DBC_EXCEPTION ".InvalidParameterType");
-                  e->getDetails()["invalidType"] =
-                     DynamicObject::descriptionForType(mv->getType());
-                  Exception::set(e);
-                  break;
-               }
-            }
-            break;
-         }
          default:
          {
             ExceptionRef e = new Exception(
                "Invalid parameter type.",
                DBC_EXCEPTION ".InvalidParameterType");
             e->getDetails()["invalidType"] =
-               DynamicObject::descriptionForType(value->getType());
+               DynamicObject::descriptionForType(param["type"]->getType());
             Exception::set(e);
             break;
          }
       }
    }
+
+   return rval;
+}
+
+bool DatabaseClient::setParams(Statement* s, DynamicObject& params)
+{
+   bool rval = true;
+
+   // append parameters
+   unsigned int index = 1;
+   DynamicObjectIterator i = params.getIterator();
+   while(rval && i->hasNext())
+   {
+      DynamicObject& param = i->next();
+
+      // map stores the actual value of the param in "value"
+      DynamicObjectType type = param["value"]->getType();
+      DynamicObject value = (type == Map) ?
+         param["value"]["value"] : param["value"];
+
+      // handle both an array of values or an individual value
+      DynamicObjectIterator vi = value.getIterator();
+      for(; rval && vi->hasNext(); index++)
+      {
+         DynamicObject& next = vi->next();
+         rval = _setParam(s, index, param, next);
+      }
+   }
+
+   return rval;
+}
+
+static bool _getEncodedMember(
+   Row* r, DynamicObject& column, DynamicObject& member)
+{
+   bool rval = true;
+
+   // get database data (assume type is a blob since its encoded)
+   const char* columnName = column["name"]->getString();
+   int length = 0;
+   ByteBuffer b;
+   rval = r->getBlob(columnName, NULL, &length);
+   if(!rval)
+   {
+      ExceptionRef e = Exception::get();
+      if(strcmp(e->getType(), "monarch.sql.BufferOverflow") == 0)
+      {
+         Exception::clear();
+         b.allocateSpace(length, true);
+         rval = r->getBlob(columnName, b.end(), &length);
+         if(rval)
+         {
+            b.extend(length);
+         }
+      }
+   }
+
+   if(rval)
+   {
+      // apply each encoding
+      DynamicObjectIterator i = column["encode"].getIterator();
+      while(rval && i->hasNext())
+      {
+         const char* type = i->next()->getString();
+
+         // convert binary to hex
+         if(strcasecmp(type, "hex") == 0)
+         {
+            bool upper = (strcmp(type, "HEX") == 0);
+            string hex = upper ?
+               Convert::bytesToUpperHex(b.bytes(), b.length()) :
+               Convert::bytesToHex(b.bytes(), b.length());
+            b.clear();
+            b.put(hex.c_str(), hex.length(), true);
+         }
+      }
+
+      if(rval)
+      {
+         // FIXME: only string type is supported at the moment
+         if(column["memberType"]->getType() != String)
+         {
+            ExceptionRef e = new Exception(
+               "Non-string type encodings not supported.",
+               "monarch.sql.NotImplemented");
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            // null-terminate string
+            b.putByte(0x00, 1, true);
+            member = b.bytes();
+         }
+      }
+   }
+
+   // clear buffer
+   b.clear();
 
    return rval;
 }
@@ -1234,44 +1295,52 @@ bool DatabaseClient::getRowData(
    while(rval && i->hasNext())
    {
       DynamicObject& next = i->next()["column"];
-      const char* columnName = next["name"]->getString();
       const char* memberName = next["memberName"]->getString();
 
-      // get data based on column type
-      switch(next["columnType"]->getType())
+      // handle encoding
+      if(next->hasMember("encode"))
       {
-         case Int32:
-            rval = r->getInt32(columnName, tmpInt.int32);
-            row[memberName] = tmpInt.int32;
-            break;
-         case UInt32:
-            rval = r->getUInt32(columnName, tmpInt.uint32);
-            row[memberName] = tmpInt.uint32;
-            break;
-         case Int64:
-            rval = r->getInt64(columnName, tmpInt.int64);
-            row[memberName] = tmpInt.int64;
-            break;
-         case UInt64:
-            rval = r->getUInt64(columnName, tmpInt.uint64);
-            row[memberName] = tmpInt.uint64;
-            break;
-         case Boolean:
-            rval = r->getUInt32(columnName, tmpInt.uint32);
-            row[memberName] = (tmpInt.uint32 == 0) ? false : true;
-            break;
-         case String:
-         case Double:
-            rval = r->getText(columnName, tmpStr);
-            row[memberName] = tmpStr.c_str();
-            break;
-         default:
-            // other types not supported
-            break;
+         rval = _getEncodedMember(r, next, row[memberName]);
       }
+      else
+      {
+         // get data based on column type
+         const char* columnName = next["name"]->getString();
+         switch(next["columnType"]->getType())
+         {
+            case Int32:
+               rval = r->getInt32(columnName, tmpInt.int32);
+               row[memberName] = tmpInt.int32;
+               break;
+            case UInt32:
+               rval = r->getUInt32(columnName, tmpInt.uint32);
+               row[memberName] = tmpInt.uint32;
+               break;
+            case Int64:
+               rval = r->getInt64(columnName, tmpInt.int64);
+               row[memberName] = tmpInt.int64;
+               break;
+            case UInt64:
+               rval = r->getUInt64(columnName, tmpInt.uint64);
+               row[memberName] = tmpInt.uint64;
+               break;
+            case Boolean:
+               rval = r->getUInt32(columnName, tmpInt.uint32);
+               row[memberName] = (tmpInt.uint32 == 0) ? false : true;
+               break;
+            case String:
+            case Double:
+               rval = r->getText(columnName, tmpStr);
+               row[memberName] = tmpStr.c_str();
+               break;
+            default:
+               // other types not supported
+               break;
+         }
 
-      // coerce to member type
-      row[memberName]->setType(next["memberType"]->getType());
+         // coerce to member type
+         row[memberName]->setType(next["memberType"]->getType());
+      }
    }
 
    return rval;

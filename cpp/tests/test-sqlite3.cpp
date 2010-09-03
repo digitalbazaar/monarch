@@ -1003,7 +1003,7 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
          "foo_int32", "INTEGER", "fooInt32", Int32);
       DatabaseClient::addSchemaColumn(schema,
          "foo_blob", "BLOB", "fooHex", String);
-      schema["columns"].last()["encode"]->append() = "unhex";
+      schema["columns"].last()["encode"]->append() = "hex";
 
       dbc->define(schema);
    }

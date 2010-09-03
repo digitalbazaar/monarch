@@ -82,7 +82,7 @@ bool Sqlite3Row::getBlob(unsigned int column, char* buffer, int* length)
    {
       ExceptionRef e = new Exception(
          "Blob too large to fit into buffer.",
-         "monarch.sql.sqlite3.BufferOverflow");
+         "monarch.sql.BufferOverflow");
       Exception::set(e);
    }
    else

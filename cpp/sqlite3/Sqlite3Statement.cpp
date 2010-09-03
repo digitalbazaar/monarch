@@ -151,7 +151,7 @@ bool Sqlite3Statement::setBlob(
    bool rval = true;
 
    // use SQLITE_STATIC to ensure the memory is not cleaned up by sqlite
-   mState = sqlite3_bind_blob(mHandle, param, value, length, SQLITE_STATIC);
+   mState = sqlite3_bind_blob(mHandle, param, value, length, SQLITE_TRANSIENT);
    if(mState != SQLITE_OK)
    {
       // exception, could not bind parameter
