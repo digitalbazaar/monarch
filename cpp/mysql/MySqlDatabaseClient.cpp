@@ -31,7 +31,7 @@ SqlExecutableRef MySqlDatabaseClient::insertOnDuplicateKeyUpdate(
       rval->write = true;
 
       // build parameters
-      buildParams(schema, row, rval->params);
+      buildParams(schema, row, rval->params, table);
 
       // create starting clause
       rval->sql = "INSERT INTO ";

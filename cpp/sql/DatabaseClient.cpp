@@ -530,7 +530,7 @@ SqlExecutableRef DatabaseClient::update(
       rval->sql.append(schema["table"]->getString());
 
       // build SET parameters
-      buildParams(schema, row, rval->params);
+      buildParams(schema, row, rval->params, table);
 
       // build WHERE parameters
       DynamicObject whereParams;
@@ -538,7 +538,7 @@ SqlExecutableRef DatabaseClient::update(
       if(where != NULL)
       {
          rval->whereFilter = *where;
-         buildParams(schema, *where, whereParams);
+         buildParams(schema, *where, whereParams, table);
       }
 
       // append SET clause
@@ -546,7 +546,7 @@ SqlExecutableRef DatabaseClient::update(
       appendSetSql(rval->sql, rval->params);
 
       // append where clause
-      appendWhereSql(rval->sql, whereParams, false);
+      appendWhereSql(rval->sql, whereParams, true);
 
       // append LIMIT clause
       appendLimitSql(rval->sql, limit, start);
@@ -632,8 +632,8 @@ SqlExecutableRef DatabaseClient::remove(
       if(where != NULL)
       {
          rval->whereFilter = *where;
-         buildParams(schema, rval->whereFilter, rval->params);
-         appendWhereSql(rval->sql, rval->params, false);
+         buildParams(schema, rval->whereFilter, rval->params, table);
+         appendWhereSql(rval->sql, rval->params, true);
       }
 
       // append LIMIT clause
@@ -931,7 +931,9 @@ void DatabaseClient::appendValuesSql(string& sql, DynamicObject& params)
       }
 
       // append unaliased name
+      sql.push_back('`');
       sql.append(name->getString());
+      sql.push_back('`');
    }
 
    if(!first)
@@ -1073,7 +1075,12 @@ void DatabaseClient::appendSetSql(string& sql, DynamicObject& params)
          sql.append(",");
       }
 
-      // append unaliased name
+      // append name
+      if(param->hasMember("tableAlias"))
+      {
+         sql.append(param["tableAlias"]->getString());
+         sql.push_back('.');
+      }
       sql.append(param["name"]->getString());
       sql.append("=?");
    }
@@ -1431,7 +1438,7 @@ SqlExecutableRef DatabaseClient::insertOrReplace(
       rval->write = true;
 
       // build parameters
-      buildParams(schema, row, rval->params);
+      buildParams(schema, row, rval->params, table);
 
       // create starting clause
       rval->sql = cmd;
