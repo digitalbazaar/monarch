@@ -418,8 +418,9 @@ bool DatabaseClient::create(
             {
                se->sql.append(",");
             }
+            se->sql.append("`");
             se->sql.append(next["name"]->getString());
-            se->sql.append(" ");
+            se->sql.append("` ");
             se->sql.append(next["type"]->getString());
          }
       }
