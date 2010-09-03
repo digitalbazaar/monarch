@@ -6,6 +6,7 @@ mosql_SOURCES = $(wildcard *.cpp)
 
 DYNAMIC_LINK_LIBRARIES = mort moutil monet mologging modata movalidation
 
+DYNAMIC_WINDOWS_LINK_LIBRARIES = moio momodest mocrypto mocompress
 DYNAMIC_MACOS_LINK_LIBRARIES = moio momodest mocrypto mocompress
 
 # ----------- Standard Makefile
