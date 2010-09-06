@@ -28,6 +28,12 @@ SPHINX_SOURCES = test-sphinx.cpp
 SPHINX_TEST_MOD = test-sphinx
 endif
 
+ifeq (@BUILD_V8@,yes)
+V8_LIBS = mov8
+V8_SOURCES = test-v8.cpp
+V8_TEST_MOD = test-v8
+endif
+
 HEADERS = $(MYSQL_HEADERS)
 
 EXECUTABLES = \
@@ -68,6 +74,7 @@ TEST_MODS = \
 	$(MYSQL_TEST_MOD) \
 	test-upnp \
 	test-util \
+	$(V8_TEST_MOD) \
 	test-validation \
 	test-ws
 

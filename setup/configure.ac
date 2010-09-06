@@ -145,6 +145,25 @@ if test "x$BUILD_MYSQL" = "xyes"; then
    fi
 fi
 
+dnl ----------------- V8 -----------------
+
+AC_ARG_ENABLE([v8],
+   AS_HELP_STRING([--enable-v8], [enable v8 [no]]),
+   [
+      case "${enableval}" in
+         yes) BUILD_V8=yes ;;
+         no) BUILD_V8=no ;;
+         *) AC_MSG_ERROR(bad value ${enableval} for --enable-v8) ;;
+      esac
+   ], [BUILD_V8=no])  dnl Default value
+# Check for v8 support
+if test "x$BUILD_V8" = "xyes"; then
+   AC_CHECK_HEADERS([v8.h],
+      [],
+      [AC_MSG_ERROR([v8 support requested but v8.h not found])])
+fi
+AC_SUBST(BUILD_V8)
+
 dnl ----------------- DynamicObject statistics -----------------
 
 dnl low level DynamicObject statistics
@@ -226,6 +245,7 @@ AC_CONFIG_FILES([
    cpp/tests/Makefile
    cpp/upnp/Makefile
    cpp/util/Makefile
+   cpp/v8/Makefile
    cpp/validation/Makefile
    cpp/ws/Makefile
 ])
@@ -257,6 +277,9 @@ MO_MSG_CONFIG_OPTION_IF([MySQL],
 MO_MSG_CONFIG_OPTION_IF([Sphinx],
    [test "x$BUILD_SPHINX" = xyes],
    [enabled], [disabled (use --enable-sphinx to enable)])
+MO_MSG_CONFIG_OPTION_IF([V8],
+   [test "x$BUILD_V8" = xyes],
+   [enabled], [disabled (use --enable-v8 to enable)])
 MO_MSG_CONFIG_END
 
 # Output build configuration

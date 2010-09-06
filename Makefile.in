@@ -6,6 +6,11 @@ EXECUTABLE_SUBDIRS := \
 	cpp/apps/tester \
 	cpp/tests
 
+ifeq (@BUILD_V8@,yes)
+V8_SUBDIRS = cpp/v8
+V8_INSTALL_LIBRARIES = dist/lib/libmov8.so
+endif
+
 SUBDIRS := \
 	cpp/3rdparty \
 	cpp/rt \
@@ -32,6 +37,7 @@ SUBDIRS := \
 	cpp/kernel \
 	cpp/app \
 	cpp/test \
+	$(V8_SUBDIRS) \
 	$(EXECUTABLE_SUBDIRS)
 
 INSTALL_LIBRARIES := \
@@ -57,6 +63,7 @@ INSTALL_LIBRARIES := \
 	dist/lib/libmoutil.so \
 	dist/lib/libmows.so \
 	dist/lib/libmosphinx.so \
+	$(V8_INSTALL_LIBRARIES) \
 	dist/lib/libmovalidation.so
 
 ifndef PRINT_DIRECTORIES

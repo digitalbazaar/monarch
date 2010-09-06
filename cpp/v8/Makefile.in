@@ -1,0 +1,17 @@
+# Makefile to compile the module in this directory
+
+# conditional build of v8 support
+ifeq (@BUILD_V8@,yes)
+
+MODULES = mov8
+mov8_HEADERS = $(wildcard *.h)
+mov8_SOURCES = $(wildcard *.cpp)
+mov8_MOD_DIR = ext
+
+DYNAMIC_LINK_LIBRARIES = mort moutil v8
+
+# conditional build of v8 support
+endif
+
+# ----------- Standard Makefile
+include @MONARCH_DIR@/setup/Makefile.base

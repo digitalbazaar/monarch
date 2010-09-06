@@ -6,6 +6,7 @@
       "monarch.app.Kernel": {
          "appPath": "@MONARCH_DIR@/dist/modules/apps/@LIB_PREFIX@motester.@DYNAMIC_LIB_EXT@",
          "modulePath": [
+            "@MONARCH_DIR@/dist/modules/ext",
             "@MONARCH_DIR@/dist/modules/tests"
          ]
       }
