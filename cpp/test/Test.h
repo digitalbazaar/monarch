@@ -103,9 +103,9 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
  */
 #define assertNoException(expr) \
    MO_STMT_START { \
-      bool success = (expr); \
+      bool _success = (expr); \
       assertNoExceptionSet(); \
-      assert(success); \
+      assert(_success); \
    } MO_STMT_END
 
 /**
@@ -129,9 +129,9 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
  */
 #define assertException(expr) \
    MO_STMT_START { \
-      bool success = (expr); \
+      bool _success = (expr); \
       assertExceptionSet(); \
-      assert(!success); \
+      assert(!_success); \
    } MO_STMT_END
 
 /**
