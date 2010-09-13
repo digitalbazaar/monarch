@@ -23,89 +23,6 @@ using namespace monarch::v8;
 namespace mo_test_v8
 {
 
-static Handle<Value> LogCallback(const Arguments& args)
-{
-   if (args.Length() != 0)
-   {
-      HandleScope scope;
-      Handle<Value> arg = args[0];
-      String::Utf8Value value(arg);
-      //HttpRequestProcessor::Log(*value);
-      printf("LOG: %s\n", *value);
-   }
-   return v8::Undefined();
-}
-
-static string runLogScript(const char *scriptstr)
-{
-   // Create a stack-allocated handle scope.
-   HandleScope handle_scope;
-
-   // Create a template for the global object where we set the
-   // built-in global functions.
-   Handle<ObjectTemplate> global = ObjectTemplate::New();
-   global->Set(String::New("log"), FunctionTemplate::New(LogCallback));
-
-   // Create a new context.
-   Persistent<Context> context = Context::New(NULL, global);
-
-   // Enter the created context for compiling and
-   // running the hello world script.
-   Context::Scope context_scope(context);
-
-   // Create a string containing the JavaScript source code.
-   Handle<v8::String> source = v8::String::New(scriptstr);
-
-   // Compile the source code.
-   Handle<Script> script = Script::Compile(source);
-
-   // Run the script to get the result.
-   Handle<Value> result = script->Run();
-
-   // Dispose the persistent context.
-   context.Dispose();
-
-   v8::String::AsciiValue ascii(result);
-   string resultstr = *ascii;
-
-   return resultstr;
-}
-
-static string runFuncScript(const char *scriptstr)
-{
-   // Create a stack-allocated handle scope.
-   HandleScope handle_scope;
-
-   // Create a template for the global object where we set the
-   // built-in global functions.
-   Handle<ObjectTemplate> global = ObjectTemplate::New();
-   global->Set(String::New("log"), FunctionTemplate::New(LogCallback));
-
-   // Create a new context.
-   Persistent<Context> context = Context::New(NULL, global);
-
-   // Enter the created context for compiling and
-   // running the hello world script.
-   Context::Scope context_scope(context);
-
-   // Create a string containing the JavaScript source code.
-   Handle<v8::String> source = v8::String::New(scriptstr);
-
-   // Compile the source code.
-   Handle<Script> script = Script::Compile(source);
-
-   // Run the script to get the result.
-   Handle<Value> result = script->Run();
-
-   // Dispose the persistent context.
-   context.Dispose();
-
-   v8::String::AsciiValue ascii(result);
-   string resultstr = *ascii;
-
-   return resultstr;
-}
-
 static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
 {
    tr.group("V8");
@@ -114,6 +31,8 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
    V8EngineRef v8;
    assertNoException(
       v8mod->createEngine(v8));
+   assertNoException(
+      v8->initialize());
 
    tr.test("basic");
    {
@@ -129,20 +48,148 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
    }
    tr.passIfNoException();
 
+   // test state is preserved between calls to the same engine
+   tr.test("state");
+   {
+      string result;
+
+      assertNoException(
+         v8->runScript("var x = 10; x", result));
+      assertStrCmp(result.c_str(), "10");
+
+      assertNoException(
+         v8->runScript("x", result));
+      assertStrCmp(result.c_str(), "10");
+   }
+   tr.passIfNoException();
+
    tr.test("log");
    {
-      runLogScript("log('Hello, World!')");
+      string result;
+
+      assertNoException(
+         v8->runScript("log('Hello, World!')", result));
    }
    tr.passIfNoException();
 
    tr.test("f");
    {
-      runFuncScript("var f = function() { log('Hello, World!'); }");
+      string result;
+
+      assertNoException(
+         v8->runScript("var f = function() { log('Hello, World!'); }", result));
    }
    tr.passIfNoException();
 
-   tr.test("dyno");
+   tr.test("monarch obj");
    {
+      string result;
+
+      assertNoException(
+         v8->runScript("monarch.test", result));
+      assertStrCmp(result.c_str(), "MO!");
+   }
+   tr.passIfNoException();
+
+   tr.test("d2j");
+   {
+      string result;
+
+      DynamicObject d;
+      d["foo"] = "bar";
+
+      assertNoException(
+         v8->setDynamicObject("d", d));
+
+      assertNoException(
+         v8->runScript("d2j(d.foo)", result));
+      assertStrCmp(result.c_str(), "bar");
+   }
+   tr.passIfNoException();
+
+   tr.test("j2d");
+   {
+      string result;
+      DynamicObject d;
+      DynamicObject expect;
+
+      // null
+      {
+         assertNoException(
+            v8->runScript("d = null", result));
+         assertNoException(
+            v8->getDynamicObject("d", d));
+
+         DynamicObject nullExpect(NULL);
+
+         assertNamedDynoCmp("expect", nullExpect, "d", d);
+      }
+
+      // boolean
+      {
+         assertNoException(
+            v8->runScript("d = true", result));
+         assertNoException(
+            v8->getDynamicObject("d", d));
+
+         expect->clear();
+         expect = true;
+
+         assertNamedDynoCmp("expect", expect, "d", d);
+      }
+
+      // int
+      {
+         assertNoException(
+            v8->runScript("d = 123", result));
+         assertNoException(
+            v8->getDynamicObject("d", d));
+
+         expect->clear();
+         expect = 123;
+
+         assertNamedDynoCmp("expect", expect, "d", d);
+      }
+
+      // double
+      {
+         assertNoException(
+            v8->runScript("d = 12.3", result));
+         assertNoException(
+            v8->getDynamicObject("d", d));
+
+         expect->clear();
+         expect = 12.3;
+
+         assertNamedDynoCmp("expect", expect, "d", d);
+      }
+
+      // array
+      // map
+      // func
+      // ext
+      // date
+
+      /*
+      // complex json
+      {
+         assertNoException(
+            v8->runScript("d = {a:[1,2,'abc'],b:true,c:null,d:{}}", result));
+
+         assertNoException(
+            v8->getDynamicObject("d", d));
+
+         expect->clear();
+         expect["a"][0] = 1;
+         expect["a"][1] = 2;
+         expect["a"][2] = "abc";
+         expect["b"] = true;
+         expect["c"].setNull();
+         expect["d"]->setType(Map);
+
+         assertNamedDynoCmp("expect", expect, "d", d);
+      }
+      */
    }
    tr.passIfNoException();
 

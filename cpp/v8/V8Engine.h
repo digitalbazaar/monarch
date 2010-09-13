@@ -6,6 +6,8 @@
 
 #include "monarch/v8/V8EngineApi.h"
 
+#include <v8.h>
+
 namespace monarch
 {
 namespace v8
@@ -18,6 +20,12 @@ namespace v8
  */
 class V8Engine : public V8EngineApi
 {
+protected:
+   /**
+    * Persistent context for this engine.
+    */
+   ::v8::Persistent< ::v8::Context> mContext;
+
 public:
    /**
     * Creates a new V8Engine.
@@ -28,6 +36,23 @@ public:
     * Destructs this V8Engine.
     */
    virtual ~V8Engine();
+
+   /**
+    * {@inheritDoc}
+    */
+   virtual bool initialize();
+
+   /**
+    * {@inheritDoc}
+    */
+   virtual bool setDynamicObject(
+      const char* name, monarch::rt::DynamicObject& dyno);
+
+   /**
+    * {@inheritDoc}
+    */
+   virtual bool getDynamicObject(
+      const char* name, monarch::rt::DynamicObject& dyno);
 
    /**
     * {@inheritDoc}

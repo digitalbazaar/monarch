@@ -34,6 +34,35 @@ public:
    virtual ~V8EngineApi() {};
 
    /**
+    * Initialize this engine.
+    *
+    * @return true on success, false with exception set on failure.
+    */
+   virtual bool initialize() = 0;
+
+   /**
+    * Set a named DynamicObject in the engine context.
+    *
+    * @param name JavaScript name of the DynamicObject.
+    * @param dyno DynamicObject to set.
+    *
+    * @return true on success, false with exception set on failure.
+    */
+   virtual bool setDynamicObject(
+      const char* name, monarch::rt::DynamicObject& dyno) = 0;
+
+   /**
+    * Get a named DynamicObject from the engine context.
+    *
+    * @param name JavaScript name of the DynamicObject.
+    * @param dyno DynamicObject to set.
+    *
+    * @return true on success, false with exception set on failure.
+    */
+   virtual bool getDynamicObject(
+      const char* name, monarch::rt::DynamicObject& dyno) = 0;
+
+   /**
     * Run JavaScript.
     *
     * @param js the JavaScript code.
