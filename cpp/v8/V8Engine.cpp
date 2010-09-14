@@ -232,15 +232,30 @@ static DynamicObject __j2d(Handle<Value> value)
    {
       rval = value->NumberValue();
    }
-   else if(value->IsObject())
-   {
-      // FIXME: recursive loop
-      rval = "[object]";
-   }
    else if(value->IsArray())
    {
-      // FIXME: recursive loop
-      rval = "[array]";
+      rval->setType(monarch::rt::Array);
+      Handle< ::v8::Array> elms = value.As< ::v8::Array>();
+      for(uint32_t i = 0; i < elms->Length(); ++i)
+      {
+         rval[i] = __j2d(elms->Get(i));
+      }
+   }
+   // object case must be last so subclasses are handled first
+   else if(value->IsObject())
+   {
+      rval->setType(Map);
+      Handle< ::v8::Object> obj = value.As< ::v8::Object>();
+      Handle< ::v8::Array> props = obj->GetPropertyNames();
+      for(uint32_t i = 0; i < props->Length(); ++i)
+      {
+         Handle<Value> name(props->Get(i));
+         if(obj->HasRealNamedProperty(name->ToString()))
+         {
+            ::v8::String::Utf8Value key(name);;
+            rval[*key] = __j2d(obj->Get(name));
+         }
+      }
    }
    else if(value->IsFunction())
    {

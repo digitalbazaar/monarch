@@ -165,12 +165,44 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
       }
 
       // array
-      // map
-      // func
-      // ext
-      // date
+      {
+         assertNoException(
+            v8->runScript("d = [true, 'abc', 123]", result));
+         assertNoException(
+            v8->getDynamicObject("d", d));
 
-      /*
+         expect->clear();
+         expect[0] = true;
+         expect[1] = "abc";
+         expect[2] = 123;
+
+         assertNamedDynoCmp("expect", expect, "d", d);
+      }
+
+      // map
+      {
+         assertNoException(
+            v8->runScript("d = {a:true, b:'abc', c:123}", result));
+         assertNoException(
+            v8->getDynamicObject("d", d));
+
+         expect->clear();
+         expect["a"] = true;
+         expect["b"] = "abc";
+         expect["c"] = 123;
+
+         assertNamedDynoCmp("expect", expect, "d", d);
+      }
+
+      // func
+      // ...
+
+      // ext
+      // ...
+
+      // date
+      // ...
+
       // complex json
       {
          assertNoException(
@@ -189,7 +221,6 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
 
          assertNamedDynoCmp("expect", expect, "d", d);
       }
-      */
    }
    tr.passIfNoException();
 
