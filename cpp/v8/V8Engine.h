@@ -5,6 +5,7 @@
 #define monarch_v8_V8Engine_h
 
 #include "monarch/v8/V8EngineApi.h"
+#include "monarch/v8/V8Controller.h"
 
 #include <v8.h>
 
@@ -22,6 +23,11 @@ class V8Engine : public V8EngineApi
 {
 protected:
    /**
+    * Controller for this engine.
+    */
+   V8Controller* mController;
+
+   /**
     * Persistent context for this engine.
     */
    ::v8::Persistent< ::v8::Context> mContext;
@@ -38,9 +44,13 @@ public:
    virtual ~V8Engine();
 
    /**
-    * {@inheritDoc}
+    * Initialize this engine.
+    *
+    * @param c the V8Controller for this engine.
+    *
+    * @return true on success, false with exception set on failure.
     */
-   virtual bool initialize();
+   virtual bool initialize(V8Controller* c);
 
    /**
     * {@inheritDoc}

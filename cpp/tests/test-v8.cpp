@@ -31,8 +31,6 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
    V8EngineRef v8;
    assertNoException(
       v8mod->createEngine(v8));
-   assertNoException(
-      v8->initialize());
 
    tr.test("basic");
    {
@@ -81,13 +79,13 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
    }
    tr.passIfNoException();
 
-   tr.test("monarch obj");
+   tr.test("monarch test string");
    {
       string result;
 
       assertNoException(
-         v8->runScript("monarch.test", result));
-      assertStrCmp(result.c_str(), "MO!");
+         v8->runScript("monarch.test.mo", result));
+      assertStrCmp(result.c_str(), "Monarch!");
    }
    tr.passIfNoException();
 

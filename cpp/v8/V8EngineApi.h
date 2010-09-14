@@ -34,13 +34,6 @@ public:
    virtual ~V8EngineApi() {};
 
    /**
-    * Initialize this engine.
-    *
-    * @return true on success, false with exception set on failure.
-    */
-   virtual bool initialize() = 0;
-
-   /**
     * Set a named DynamicObject in the engine context.
     *
     * @param name JavaScript name of the DynamicObject.
