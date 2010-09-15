@@ -377,6 +377,12 @@ static bool run(TestRunner& tr)
 
       runV8Test(tr, v8mod);
    }
+
+   if(tr.isTestEnabled("v8-ws"))
+   {
+      runV8ScriptTest(tr, "test-v8-ws.js");
+   }
+
    return true;
 }
 
