@@ -7,6 +7,7 @@
 #include "monarch/v8/V8Controller.h"
 #include "monarch/v8/V8Engine.h"
 #include "monarch/v8/V8Module.h"
+#include "monarch/v8/V8Wrapper.h"
 #include "monarch/ws/PathHandlerDelegate.h"
 #include "monarch/ws/WebServer.h"
 
@@ -686,67 +687,35 @@ static Handle<Value> _dynoArraySet(
    return value_obj;
 }
 
-static Handle<ObjectTemplate> _makeDynoTemplate()
+class V8DynoWrapper : public V8Wrapper<DynamicObject>
 {
-   HandleScope handle_scope;
+public:
+   V8DynoWrapper() {}
+   virtual ~V8DynoWrapper() {}
+protected:
+   virtual void initTemplate(Handle<ObjectTemplate> templ)
+   {
+      // Map interface
+      templ->SetNamedPropertyHandler(_dynoMapGet, _dynoMapSet);
+      // Array interface
+      templ->SetIndexedPropertyHandler(_dynoArrayGet, _dynoArraySet);
+   }
+};
 
-   Handle<ObjectTemplate> result = ObjectTemplate::New();
-   result->SetInternalFieldCount(1);
-
-   // Map interface
-   result->SetNamedPropertyHandler(_dynoMapGet, _dynoMapSet);
-   // Array interface
-   result->SetIndexedPropertyHandler(_dynoArrayGet, _dynoArraySet);
-
-   // Again, return the result through the current handle scope.
-   return handle_scope.Close(result);
-}
-
-// static template singleton
-static Persistent<ObjectTemplate> _dyno_template;
+// static wrappers
+static V8DynoWrapper _dynoWrapper;
 
 // Utility function that wraps a C++ DynamicObject in a JavaScript object.
 Handle<Object> V8Controller::wrapDynamicObject(DynamicObject* obj)
 {
-   // Handle scope for temporary handles.
-   HandleScope handle_scope;
-
-   // Fetch the template for creating JavaScript dyno wrappers.
-   // It only has to be created once, which we do on demand.
-   if(_dyno_template.IsEmpty())
-   {
-      Handle<ObjectTemplate> raw_template = _makeDynoTemplate();
-      _dyno_template = Persistent<ObjectTemplate>::New(raw_template);
-   }
-   Handle<ObjectTemplate> templ = _dyno_template;
-
-   // Create an empty map wrapper.
-   Local<Object> result = templ->NewInstance();
-
-   // Wrap the raw C++ pointer in an External so it can be referenced
-   // from within JavaScript.
-   Local<External> dyno_ptr = External::New(obj);
-
-   // Store the pointer in the JavaScript wrapper.
-   result->SetInternalField(0, dyno_ptr);
-
-   // Return the result through the current handle scope.  Since each
-   // of these handles will go away when the handle scope is deleted
-   // we need to call Close to let one, the result, escape into the
-   // outer handle scope.
-   return handle_scope.Close(result);
+   return _dynoWrapper.wrap(obj);
 }
 
 // Utility function that extracts the C++ DynamicObject pointer from a wrapper
 // object.
 DynamicObject* V8Controller::unwrapDynamicObject(Handle<Object> obj)
 {
-   // Handle scope for temporary handles.
-   HandleScope handle_scope;
-
-   Local<External> field = Local<External>::Cast(obj->GetInternalField(0));
-   void* ptr = field->Value();
-   return static_cast<DynamicObject*>(ptr);
+   return _dynoWrapper.unwrap(obj);
 }
 
 Handle<Value> V8Controller::d2j(DynamicObject& d)
