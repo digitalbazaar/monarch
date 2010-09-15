@@ -6,6 +6,7 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/test/Test.h"
 #include "monarch/test/TestModule.h"
+#include "monarch/util/StringTools.h"
 #include "monarch/v8/V8ModuleApi.h"
 
 // FIXME
@@ -13,11 +14,13 @@
 using namespace v8;
 
 using namespace std;
+using namespace monarch::config;
 using namespace monarch::data::json;
 using namespace monarch::io;
 using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::test;
+using namespace monarch::util;
 using namespace monarch::v8;
 
 namespace mo_test_v8
@@ -302,6 +305,61 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
 
          assertNamedDynoCmp("expect", expect, "d", d);
       }
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
+static void runV8ScriptTest(TestRunner &tr, const char* filename)
+{
+   string tname = StringTools::format("V8 Script %s", filename);
+   V8ModuleApi* v8mod = NULL;
+   V8EngineRef v8;
+   ByteBuffer script;
+
+   tr.group(tname.c_str());
+
+   tr.test("module");
+   {
+      v8mod = dynamic_cast<V8ModuleApi*>(
+         tr.getApp()->getKernel()->getModuleApi("monarch.v8.V8"));
+      assertNoExceptionSet();
+      assert(v8mod != NULL);
+   }
+   tr.passIfNoException();
+
+   // create an engine
+   tr.test("engine");
+   {
+      assertNoException(
+         v8mod->createEngine(v8));
+   }
+   tr.passIfNoException();
+
+   tr.test("read");
+   {
+      // create full path name
+      Config cfg = tr.getApp()->getConfig()["monarch.tests.v8"];
+      string full = File::join(cfg["scriptPath"]->getString(), filename);
+
+      // read whole file
+      File f(full.c_str());
+      assert(f->exists());
+      script.resize(f->getLength() + 1);
+      assertNoException(
+         f.readBytes(&script));
+      // ensure null terminated
+      assert(script.putByte('\0', 1, true) ==  1);
+   }
+   tr.passIfNoException();
+
+   tr.test("run");
+   {
+      string result;
+
+      assertNoException(
+         v8->runScript(script.data(), result));
    }
    tr.passIfNoException();
 

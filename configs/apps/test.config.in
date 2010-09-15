@@ -10,5 +10,10 @@
             "@MONARCH_DIR@/dist/modules/tests"
          ]
       }
+   },
+   "_merge_": {
+      "monarch.tests.v8": {
+         "scriptPath": "@MONARCH_DIR@/cpp/tests"
+      }
    }
 }
