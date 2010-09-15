@@ -8,7 +8,7 @@ mov8_HEADERS = $(wildcard *.h)
 mov8_SOURCES = $(wildcard *.cpp)
 mov8_MOD_DIR = ext
 
-DYNAMIC_LINK_LIBRARIES = mort moutil v8
+DYNAMIC_LINK_LIBRARIES = mort moutil mows v8
 
 # conditional build of v8 support
 endif
