@@ -333,26 +333,35 @@ bool MicroKernel::loadModules(FileList& paths)
    while(rval && pi->hasNext())
    {
       File& file = pi->next();
-      if(!file->isDirectory())
+      if(file->exists())
       {
-         // load from the file or symbolic link
-         rval = (_loadModuleFromFile(file, lib, pending, nonMkms) != NULL);
+         if(!file->isDirectory())
+         {
+            // load from the file or symbolic link
+            rval = (_loadModuleFromFile(file, lib, pending, nonMkms) != NULL);
+         }
+         else
+         {
+            // list all files in the directory
+            // Note: this code intentionally does not recurse directories
+            FileList files;
+            file->listFiles(files);
+            IteratorRef<File> fi = files->getIterator();
+            while(rval && fi->hasNext())
+            {
+               File& f = fi->next();
+               if(!f->isDirectory())
+               {
+                  rval = (_loadModuleFromFile(f, lib, pending, nonMkms) != NULL);
+               }
+            }
+         }
       }
       else
       {
-         // list all files in the directory
-         // Note: this code intentionally does not recurse directories
-         FileList files;
-         file->listFiles(files);
-         IteratorRef<File> fi = files->getIterator();
-         while(rval && fi->hasNext())
-         {
-            File& f = fi->next();
-            if(!f->isDirectory())
-            {
-               rval = (_loadModuleFromFile(f, lib, pending, nonMkms) != NULL);
-            }
-         }
+         // log a warning and continue
+         MO_CAT_WARNING(MO_KERNEL_CAT,
+            "Module path not found: \"%s\"", file->getPath());
       }
    }
 
