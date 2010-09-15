@@ -9,6 +9,8 @@ using namespace v8;
 using namespace monarch::rt;
 using namespace monarch::v8;
 
+#define EXCEPTION_PREFIX "monarch.v8"
+
 V8Engine::V8Engine()
 {
 }
@@ -84,17 +86,59 @@ bool V8Engine::runScript(const char* js, std::string& result)
    // Enter the engine context for compiling and running the script.
    Context::Scope context_scope(mContext);
 
+   // We're just about to compile the script; set up an error handler to
+   // catch any exceptions the script might throw.
+   TryCatch tryCatch;
+
    // Create a string containing the JavaScript source code.
-   Handle< ::v8::String> source = ::v8::String::New(js);
+   Local< ::v8::String> source = ::v8::String::New(js);
 
-   // Compile the source code.
-   Handle< ::v8::Script> script = ::v8::Script::Compile(source);
+   // Script containing the compiled source.
+   Local< ::v8::Script> script;
 
-   // Run the script to get the result.
-   Handle<Value> resultval = script->Run();
+   // Result of the script after it has been run.
+   Local<Value> resultval;
 
-   ::v8::String::AsciiValue ascii(resultval);
-   result = *ascii;
+   if(rval)
+   {
+      // Compile the source code.
+      script = ::v8::Script::Compile(source);
+      if(script.IsEmpty())
+      {
+        String::Utf8Value error(tryCatch.Exception());
+        // The script failed to compile
+        ExceptionRef e = new rt::Exception(
+           "Script failed to compile.",
+           EXCEPTION_PREFIX ".CompileError");
+        e->getDetails()["error"] = *error;
+        rt::Exception::set(e);
+        rval = false;
+      }
+   }
+
+
+   if(rval)
+   {
+      // Run the script to get the result.
+      resultval = script->Run();
+      if(resultval.IsEmpty())
+      {
+        String::Utf8Value error(tryCatch.Exception());
+        // The script failed to run
+        ExceptionRef e = new rt::Exception(
+           "Script failed to run.",
+           EXCEPTION_PREFIX ".RunError");
+        e->getDetails()["error"] = *error;
+        rt::Exception::set(e);
+        rval = false;
+      }
+   }
+
+   if(rval)
+   {
+      ::v8::String::AsciiValue ascii(resultval);
+      result = *ascii;
+   }
 
    return rval;
 }

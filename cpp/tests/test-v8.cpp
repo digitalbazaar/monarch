@@ -32,6 +32,24 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
    assertNoException(
       v8mod->createEngine(v8));
 
+   tr.test("compile error");
+   {
+      string result;
+
+      assertException(
+         v8->runScript("if for", result));
+   }
+   tr.passIfException();
+
+   tr.test("runtime error");
+   {
+      string result;
+
+      assertException(
+         v8->runScript("anUnknownVar", result));
+   }
+   tr.passIfException();
+
    tr.test("basic");
    {
       string result;
