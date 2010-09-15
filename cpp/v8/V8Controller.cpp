@@ -43,7 +43,7 @@ static Handle<Value> _monarch_log(const Arguments& args)
 {
    if (args.Length() != 0)
    {
-      HandleScope scope;
+      HandleScope handle_scope;
       Handle<Value> arg = args[0];
       String::Utf8Value value(arg);
       MO_CAT_INFO(MO_V8_CAT, "LOG: %s\n", *value);
@@ -53,7 +53,7 @@ static Handle<Value> _monarch_log(const Arguments& args)
 
 static Handle<Value> _d2j(const Arguments& args)
 {
-   HandleScope scope;
+   HandleScope handle_scope;
    Handle<Value> rval = v8::Undefined();
 
    if (args.Length() == 1)
@@ -67,12 +67,13 @@ static Handle<Value> _d2j(const Arguments& args)
       }
    }
 
-   return rval;
+   // return the result through the current handle scope.
+   return handle_scope.Close(rval);
 }
 
 static Handle<Value> _j2d(const Arguments& args)
 {
-   HandleScope scope;
+   HandleScope handle_scope;
    Handle<Value> rval = v8::Undefined();
 
    if (args.Length() == 1)
@@ -81,16 +82,37 @@ static Handle<Value> _j2d(const Arguments& args)
       // FIXME
    }
 
-   return rval;
+   // return the result through the current handle scope.
+   return handle_scope.Close(rval);
+}
+
+static Handle<Value> _sleep(const Arguments& args)
+{
+   HandleScope handle_scope;
+   Handle<Value> rval = v8::Undefined();
+
+   if (args.Length() == 1)
+   {
+      Handle<Value> arg = args[0];
+      uint32_t t = arg->Uint32Value();
+      {
+         Unlocker unlocker;
+         Thread::sleep(t);
+      }
+   }
+
+   // return the result through the current handle scope.
+   return handle_scope.Close(rval);
 }
 
 static bool _init_globals(Handle<ObjectTemplate> globals)
 {
    bool rval = true;
 
-   globals->Set(String::New("log"), FunctionTemplate::New(_monarch_log));
-   globals->Set(String::New("d2j"), FunctionTemplate::New(_d2j));
-   globals->Set(String::New("j2d"), FunctionTemplate::New(_j2d));
+   globals->Set("log", FunctionTemplate::New(_monarch_log));
+   globals->Set("d2j", FunctionTemplate::New(_d2j));
+   globals->Set("j2d", FunctionTemplate::New(_j2d));
+   globals->Set("sleep", FunctionTemplate::New(_sleep));
 
    return rval;
 }
@@ -295,11 +317,11 @@ Handle<Object> V8Controller::wrapDynamicObject(DynamicObject* obj)
    Handle<ObjectTemplate> templ = _dyno_template;
 
    // Create an empty map wrapper.
-   Handle<Object> result = templ->NewInstance();
+   Local<Object> result = templ->NewInstance();
 
    // Wrap the raw C++ pointer in an External so it can be referenced
    // from within JavaScript.
-   Handle<External> dyno_ptr = External::New(obj);
+   Local<External> dyno_ptr = External::New(obj);
 
    // Store the pointer in the JavaScript wrapper.
    result->SetInternalField(0, dyno_ptr);
@@ -318,7 +340,7 @@ DynamicObject* V8Controller::unwrapDynamicObject(Handle<Object> obj)
    // Handle scope for temporary handles.
    HandleScope handle_scope;
 
-   Handle<External> field = Handle<External>::Cast(obj->GetInternalField(0));
+   Local<External> field = Local<External>::Cast(obj->GetInternalField(0));
    void* ptr = field->Value();
    return static_cast<DynamicObject*>(ptr);
 }
@@ -358,12 +380,12 @@ Handle<Value> V8Controller::d2j(DynamicObject& d)
             break;
          case monarch::rt::Map:
          {
-            Handle<Object> obj = Object::New();
+            Local<Object> obj = Object::New();
             DynamicObjectIterator i = d.getIterator();
             while(i->hasNext())
             {
                DynamicObject& next = i->next();
-               Handle< ::v8::String> name = String::New(i->getName());
+               Local< ::v8::String> name = String::New(i->getName());
                if(obj->HasRealNamedProperty(name))
                {
                   obj->Set(name, V8Controller::d2j(next));
@@ -373,7 +395,7 @@ Handle<Value> V8Controller::d2j(DynamicObject& d)
             break;
          }
          case monarch::rt::Array:
-            Handle< ::v8::Array> obj = Array::New(d->length());
+            Local< ::v8::Array> obj = Array::New(d->length());
             DynamicObjectIterator i = d.getIterator();
             while(i->hasNext())
             {
@@ -435,7 +457,7 @@ DynamicObject V8Controller::j2d(Handle<Value> value)
    {
       rval->setType(Map);
       Handle< ::v8::Object> obj = value.As< ::v8::Object>();
-      Handle< ::v8::Array> props = obj->GetPropertyNames();
+      Local< ::v8::Array> props = obj->GetPropertyNames();
       for(uint32_t i = 0; i < props->Length(); ++i)
       {
          Handle<Value> name(props->Get(i));

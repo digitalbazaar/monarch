@@ -97,6 +97,55 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
    }
    tr.passIfNoException();
 
+
+   tr.test("call f");
+   {
+      const char* js = "var f = function() { return 'Monarch!'; }";
+      const char* res = "Monarch!";
+
+      // lock V8 while script is running
+      Locker locker;
+
+      // Create a stack-allocated handle scope.
+      HandleScope handle_scope;
+
+      // Create a new context.
+      Persistent<Context> context = Context::New();
+
+      // Enter the created context for compiling and
+      // running the hello world script.
+      Context::Scope context_scope(context);
+
+      // Create a string containing the JavaScript source code.
+      Handle< ::v8::String> source = String::New(js);
+
+      // Compile the source code.
+      Handle<Script> script = Script::Compile(source);
+
+      // Run the script to get the result.
+      Handle<Value> result = script->Run();
+
+      // Get the defined function.
+      Handle<Value> f = context->Global()->Get(String::New("f"));
+
+      assert(!f.IsEmpty());
+      assert(f->IsFunction());
+
+      // Get the defined function.
+      Handle<Value> fresult =
+         f.As<Function>()->Call(context->Global(), 0, NULL);;
+
+      // Dispose the persistent context.
+      context.Dispose();
+
+      // Convert the result to an ASCII string and print it.
+      String::AsciiValue ascii(fresult);
+
+      assertStrCmp(*ascii, res);
+   }
+   tr.passIfNoException();
+
+
    tr.test("monarch test string");
    {
       string result;
@@ -107,7 +156,23 @@ static void runV8Test(TestRunner &tr, V8ModuleApi* v8mod)
    }
    tr.passIfNoException();
 
-   tr.test("d2j");
+   tr.test("d2j str");
+   {
+      string result;
+
+      DynamicObject d;
+      d = "bar";
+
+      assertNoException(
+         v8->setDynamicObject("d", d));
+
+      assertNoException(
+         v8->runScript("d2j(d)", result));
+      assertStrCmp(result.c_str(), "bar");
+   }
+   tr.passIfNoException();
+
+   tr.test("d2j map");
    {
       string result;
 

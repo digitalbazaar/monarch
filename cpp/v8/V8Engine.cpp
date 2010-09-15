@@ -29,8 +29,9 @@ bool V8Engine::initialize(V8Controller* c)
    // Handle scope for temporary handles.
    HandleScope handle_scope;
 
-   // Create a new context.
-   mContext = Context::New(NULL, c->getGlobals());
+   // Create a new context and store persistent reference
+   Handle<Context> context = Context::New(NULL, c->getGlobals());
+   mContext = Persistent<Context>::New(context);
 
    return true;
 }
@@ -67,7 +68,7 @@ bool V8Engine::getDynamicObject(const char* name, DynamicObject& dyno)
    // Enter context.
    Context::Scope contextScope(mContext);
 
-   Handle<Value> jsDyno = mContext->Global()->Get(String::New(name));
+   Local<Value> jsDyno = mContext->Global()->Get(String::New(name));
    dyno = V8Controller::j2d(jsDyno);
 
    return rval;
