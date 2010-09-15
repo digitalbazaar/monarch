@@ -9,12 +9,47 @@
  * @author David I. Lehn <dlehn@digitalbazaar.com>
  */
 
+var Stats = function() {};
+
+Stats.prototype.reset = function()
+{
+   this.start = +new Date();
+   this.last = this.start;
+   this.serviced = 0;
+   this.contentBytes = 0;
+};
+
+Stats.prototype.service = function(bytes)
+{
+   if(typeof bytes === 'undefined')
+   {
+      bytes = 0;
+   }
+   this.last = +new Date();
+   this.serviced++;
+   this.contentBytes += bytes;
+};
+
+Stats.prototype.stats = function()
+{
+   var tms = this.last - this.start;
+   var rate = (tms === 0) ?
+      0.0 :
+      this.serviced * 1000.0 / tms;
+
+   return {
+      serviced: this.serviced,
+      contentBytes: this.contentBytes,
+      "elapsed ms": tms,
+      "req/s": rate 
+   };
+}
+
 function main()
 {
-   // basic stats
-   var stats = {
-      // FIXME
-   };
+   // create and reset stats
+   var stats = new Stats();
+   stats.reset();
    
    // web server configuration
    var cfg = {
@@ -33,26 +68,31 @@ function main()
    // add handlers
    
    // return no content
-   ws.addHandler('/', function(ch) {});
+   ws.addHandler('/', function(ch) {
+      stats.service();
+   });
    
    // return a string
    ws.addHandler('/pong', function(ch) {
+      stats.service(5);
       return "Pong!";
    });
    
    // return an amount of data
    ws.addHandler('/data', function(ch) {
-      return (new Array(128 + 1)).join('.');
+      var data = (new Array(128 + 1)).join('.'); 
+      stats.service(data.length);
+      return data;
    });
    
    // return the stats
    ws.addHandler('/stats', function(ch) {
-      return stats;
+      return stats.stats();
    });
    
    // reset the stats
    ws.addHandler('/reset', function(ch) {
-      // FIXME
+      stats.reset();
    });
    
    // quit the server
