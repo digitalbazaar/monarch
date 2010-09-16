@@ -89,7 +89,7 @@ DynamicObject TestLoader::getCommandLineSpec(Config& cfg)
    opt["short"] = "-t";
    opt["long"] = "--test";
    opt["append"] = c["tests"];
-   opt["argError"] = "No type specified.";
+   opt["argError"] = "No test specified.";
 
    opt = spec["options"]->append();
    opt["long"] = "--test-module";
