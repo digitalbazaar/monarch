@@ -1,5 +1,6 @@
 # Makefile to compile the module in this directory
 
+ifeq (@BUILD_V8@,yes)
 MODULES = mojs
 mojs_HEADERS = $(wildcard *.h)
 mojs_SOURCES = $(wildcard *.cpp)
@@ -11,6 +12,8 @@ DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig
 
 DYNAMIC_MACOS_LINK_LIBRARIES = mofiber moio moutil mologging monet mocompress momodest moevent mocrypto movalidation mokernel moapp
 DYNAMIC_WINDOWS_LINK_LIBRARIES = mofiber moio moutil mologging monet mocompress momodest moevent mocrypto movalidation mokernel moapp
+
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base
