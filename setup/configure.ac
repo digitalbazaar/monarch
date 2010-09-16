@@ -216,10 +216,12 @@ AC_CONFIG_FILES([
    Makefile
    setup/Makefile.base
    setup/docs.doxygen
-   configs/apps/test.config
+   configs/apps/js.config
    configs/apps/pong.config
+   configs/apps/test.config
    cpp/3rdparty/Makefile
    cpp/app/Makefile
+   cpp/apps/js/Makefile
    cpp/apps/monarch/Makefile
    cpp/apps/portmap/Makefile
    cpp/apps/tester/Makefile

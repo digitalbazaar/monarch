@@ -1,8 +1,9 @@
 # The top-level Makefile that is used to build 
 
 EXECUTABLE_SUBDIRS := \
-	cpp/apps/portmap \
+	cpp/apps/js \
 	cpp/apps/monarch \
+	cpp/apps/portmap \
 	cpp/apps/tester \
 	cpp/tests
 

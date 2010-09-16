@@ -1,0 +1,18 @@
+{
+   "_id_": "monarch.apps.js",
+   "_version_": "Monarch Config 3.0",
+   "_group_": "main",
+   "_append_": {
+      "monarch.app.Kernel": {
+         "appPath": "@MONARCH_DIR@/dist/modules/apps/@LIB_PREFIX@mojs.@DYNAMIC_LIB_EXT@",
+         "modulePath": [
+            "@MONARCH_DIR@/dist/modules/ext"
+         ]
+      }
+   },
+   "_merge_": {
+      "monarch.tests.v8": {
+         "scriptPath": "@MONARCH_DIR@/js"
+      }
+   }
+}

@@ -1,0 +1,16 @@
+# Makefile to compile the module in this directory
+
+MODULES = mojs
+mojs_HEADERS = $(wildcard *.h)
+mojs_SOURCES = $(wildcard *.cpp)
+mojs_MOD_DIR = apps
+
+HEADER_DIST_DIR = dist/include/monarch/apps/js
+
+DYNAMIC_LINK_LIBRARIES = mort modata moapp moconfig
+
+DYNAMIC_MACOS_LINK_LIBRARIES = mofiber moio moutil mologging monet mocompress momodest moevent mocrypto movalidation mokernel moapp
+DYNAMIC_WINDOWS_LINK_LIBRARIES = mofiber moio moutil mologging monet mocompress momodest moevent mocrypto movalidation mokernel moapp
+
+# ----------- Standard Makefile
+include @MONARCH_DIR@/setup/Makefile.base

@@ -124,6 +124,29 @@ if [ ${found} -eq 0 ]; then
    fi
 fi
 if [ ${found} -eq 0 ]; then
+   # js script path
+   if [ -e "${CMD}" ]; then
+      case "${CMD}" in
+         *.js)
+            # find js app config
+            js_found=0
+            for dir in ${APP_PATH}; do
+               cfg="${dir}/js.config"
+               if [ -e ${cfg} ]; then
+                  CMD_ARGS="${CMD_ARGS} --config ${cfg}"
+                  js_found=1
+               fi
+            done
+            if [ ${js_found} -eq 0 ]; then
+               echo "ERROR: Monarch \"js\" app not found"
+               exit 1
+            fi
+            CMD_ARGS="${CMD_ARGS} --js ${CMD}"
+            found=1 ;;
+      esac
+   fi
+fi
+if [ ${found} -eq 0 ]; then
    # binary or script path
    if [ -x ${CMD} ]; then
       # replace monarch command
