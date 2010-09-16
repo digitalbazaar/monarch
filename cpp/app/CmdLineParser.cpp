@@ -480,7 +480,8 @@ static bool _processOption(
       (optSpec->hasMember("inc") ||
        optSpec->hasMember("dec") ||
        optSpec->hasMember("setTrue") ||
-       optSpec->hasMember("setFalse")))
+       optSpec->hasMember("setFalse") ||
+       optSpec->hasMember("setValue")))
    {
       ExceptionRef e = new Exception(
          "Invalid command line option. Too many arguments for option.",
@@ -511,6 +512,24 @@ static bool _processOption(
          else
          {
             rval = _setTarget(ar, spec, value);
+         }
+      }
+      // set target to value
+      if(optSpec->hasMember("setValue"))
+      {
+         DynamicObject& spec = optSpec["setValue"];
+         if(spec->getType() == Array)
+         {
+            DynamicObjectIterator i = spec.getIterator();
+            while(rval && i->hasNext())
+            {
+               DynamicObject& next = i->next();
+               rval = _setTarget(ar, next["target"], next["value"]);
+            }
+         }
+         else
+         {
+            rval = _setTarget(ar, spec["target"], spec["value"]);
          }
       }
       // increase or decrease target

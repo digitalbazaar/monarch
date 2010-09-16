@@ -230,6 +230,7 @@ public:
     * If option found then set DynamicObject as appropriate:
     * "setTrue": target | [ target[, ...] ]
     * "setFalse": target | [ target[, ...] ]
+    * "setValue": {target:t, value:v} | [ {target:t, value:v}[, ...] ]
     *
     * If option found then increment or decrement DynamicObject value by 1:
     * "inc": target | [ target[, ...] ]
