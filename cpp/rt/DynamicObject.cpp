@@ -130,6 +130,51 @@ void DynamicObject::operator=(double value)
    *mReference->ptr = value;
 }
 
+DynamicObject::operator const char*() const
+{
+   return (*this)->getString();
+}
+
+DynamicObject::operator bool() const
+{
+   return (*this)->getBoolean();
+}
+
+DynamicObject::operator int32_t() const
+{
+   return (*this)->getInt32();
+}
+
+DynamicObject::operator uint32_t() const
+{
+   return (*this)->getUInt32();
+}
+
+DynamicObject::operator int64_t() const
+{
+   return (*this)->getInt64();
+}
+
+DynamicObject::operator uint64_t() const
+{
+   return (*this)->getUInt64();
+}
+
+DynamicObject::operator double() const
+{
+   return (*this)->getDouble();
+}
+
+DynamicObject& DynamicObject::operator[](char* name)
+{
+   return (*mReference->ptr)[name];
+}
+
+DynamicObject& DynamicObject::operator[](char* name) const
+{
+   return (*mReference->ptr)[name];
+}
+
 DynamicObject& DynamicObject::operator[](const char* name)
 {
    return (*mReference->ptr)[name];
@@ -138,6 +183,16 @@ DynamicObject& DynamicObject::operator[](const char* name)
 DynamicObject& DynamicObject::operator[](const char* name) const
 {
    return (*mReference->ptr)[name];
+}
+
+DynamicObject& DynamicObject::operator[](unsigned char* name)
+{
+   return operator[]((const char*)name);
+}
+
+DynamicObject& DynamicObject::operator[](unsigned char* name) const
+{
+   return operator[]((const char*)name);
 }
 
 DynamicObject& DynamicObject::operator[](const unsigned char* name)

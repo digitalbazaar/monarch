@@ -1176,6 +1176,81 @@ static void runDynoConversionTest(TestRunner& tr)
    tr.pass();
 }
 
+static void runDynoCastTest(TestRunner& tr)
+{
+   tr.test("DynamicObject casting");
+
+   {
+      DynamicObject d;
+      bool v;
+
+      d = true;
+      v = d;
+      assert(v == d->getBoolean());
+
+      d = false;
+      v = d;
+      assert(v == d->getBoolean());
+   }
+
+   {
+      DynamicObject d;
+      const char* t = "test";
+      const char* v;
+
+      d = t;
+      v = d;
+      // check pointers are different
+      assert(v != t);
+      assertStrCmp(v, d->getString());
+      assertStrCmp(v, t);
+   }
+
+   {
+      DynamicObject d;
+      char* t = (char*)malloc(10);
+      strcpy(t, "value");
+
+      d["x"] = t;
+      assertStrCmp(d["x"]->getString(), t);
+      free(t);
+   }
+
+   {
+      DynamicObject d;
+      // const vals
+      const char* cn = "cn";
+      const char* cv = "cv";
+      // array vals
+      char an[10];
+      strcpy(an, "an");
+      char av[10];
+      strcpy(av, "av");
+
+      d[cn] = cv;
+      assertStrCmp(d[cn]->getString(), cv);
+      d[cn] = av;
+      assertStrCmp(d[cn]->getString(), av);
+      d[an] = cv;
+      assertStrCmp(d[an]->getString(), cv);
+      d[an] = av;
+      assertStrCmp(d[an]->getString(), av);
+   }
+
+   {
+      DynamicObject d;
+      uint32_t t = 123;
+      uint32_t v;
+
+      d = t;
+      v = d;
+      assert(d->getUInt32() == t);
+      assert(v == t);
+   }
+
+   tr.pass();
+}
+
 static void runDynoRemoveTest(TestRunner& tr)
 {
    tr.group("DynamicObject remove");
@@ -2531,6 +2606,7 @@ static bool run(TestRunner& tr)
       runDynamicObjectTest(tr);
       runDynoClearTest(tr);
       runDynoConversionTest(tr);
+      runDynoCastTest(tr);
       runDynoRemoveTest(tr);
       runDynoIndexTest(tr);
       runDynoTypeTest(tr);

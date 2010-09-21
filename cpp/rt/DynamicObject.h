@@ -231,6 +231,75 @@ public:
    virtual void operator=(double value);
 
    /**
+    * Gets this object's value as a string. If the type of this object
+    * is not a string, then the returned pointer may be invalidated by
+    * the next call to getString().
+    *
+    * @return the value of this object.
+    */
+   virtual operator const char*() const;
+
+   /**
+    * Gets this object's value as a boolean.
+    *
+    * @return the value of this object.
+    */
+   virtual operator bool() const;
+
+   /**
+    * Gets this object's value as a 32-bit integer.
+    *
+    * @return the value of this object.
+    */
+   virtual operator int32_t() const;
+
+   /**
+    * Gets this object's value as a 32-bit unsigned integer.
+    *
+    * @return the value of this object.
+    */
+   virtual operator uint32_t() const;
+
+   /**
+    * Gets this object's value as a 64-bit integer.
+    *
+    * @return the value of this object.
+    */
+   virtual operator int64_t() const;
+
+   /**
+    * Gets this object's value as a 64-bit unsigned integer.
+    *
+    * @return the value of this object.
+    */
+   virtual operator uint64_t() const;
+
+   /**
+    * Gets this object's value as a double.
+    *
+    * @return the value of this object.
+    */
+   virtual operator double() const;
+
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
+    *
+    * @param name the name of the member.
+    *
+    * @return the DynamicObject.
+    */
+   virtual DynamicObject& operator[](char* name);
+
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
+    *
+    * @param name the name of the member.
+    *
+    * @return the DynamicObject.
+    */
+   virtual DynamicObject& operator[](char* name) const;
+
+   /**
     * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
     *
     * @param name the name of the member.
@@ -247,6 +316,24 @@ public:
     * @return the DynamicObject.
     */
    virtual DynamicObject& operator[](const char* name) const;
+
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
+    *
+    * @param name the name of the member.
+    *
+    * @return the DynamicObject.
+    */
+   virtual DynamicObject& operator[](unsigned char* name);
+
+   /**
+    * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
+    *
+    * @param name the name of the member.
+    *
+    * @return the DynamicObject.
+    */
+   virtual DynamicObject& operator[](unsigned char* name) const;
 
    /**
     * Gets a DynamicObject from a DynamicObjectImpl based on its member name.
