@@ -1248,6 +1248,20 @@ static void runDynoCastTest(TestRunner& tr)
       assert(v == t);
    }
 
+   {
+      // lval and rval
+
+      DynamicObject d;
+      uint32_t t = 123;
+
+      d = t;
+      assert(d->getUInt32() == t);
+      assert(t == d->getUInt32());
+      // do need to cast here to avoid ambiguous comparison errors
+      assert((uint32_t)d == t);
+      assert(t == (uint32_t)d);
+   }
+
    tr.pass();
 }
 
