@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc.  All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_json_JsonReader_H
 #define monarch_data_json_JsonReader_H
@@ -258,8 +258,10 @@ public:
     * will overwrite the map).
     *
     * @param dyno the DynamicObject for the object to deserialize.
+    *
+    * @return true on success, false on failure.
     */
-   virtual void start(monarch::rt::DynamicObject& dyno);
+   virtual bool start(monarch::rt::DynamicObject& dyno);
 
    /**
     * This method reads JSON from the passed InputStream until the end of

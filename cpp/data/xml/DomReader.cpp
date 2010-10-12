@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/xml/DomReader.h"
 
@@ -21,7 +21,7 @@ DomReader::~DomReader()
 {
 }
 
-void DomReader::start(Element& root)
+bool DomReader::start(Element& root)
 {
    // create namespace prefix map
    mNamespacePrefixMap = DynamicObject();
@@ -29,6 +29,7 @@ void DomReader::start(Element& root)
 
    // start
    XmlReader::start(root);
+   return true;
 }
 
 bool DomReader::finish()

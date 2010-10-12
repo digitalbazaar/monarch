@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/xml/XmlReader.h"
 
@@ -33,7 +33,7 @@ XmlReader::~XmlReader()
    }
 }
 
-void XmlReader::start(DynamicObject& dyno)
+bool XmlReader::start(DynamicObject& dyno)
 {
    // clear stacks and push root object
    mDynoStack.clear();
@@ -61,6 +61,7 @@ void XmlReader::start(DynamicObject& dyno)
 
    // read started
    mStarted = true;
+   return true;
 }
 
 bool XmlReader::read(InputStream* is)

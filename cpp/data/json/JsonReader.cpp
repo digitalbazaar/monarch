@@ -107,7 +107,7 @@ JsonReader::~JsonReader()
    free(mBuffer);
 }
 
-void JsonReader::start(DynamicObject& dyno)
+bool JsonReader::start(DynamicObject& dyno)
 {
    // clear stacks
    mDynoStack.clear();
@@ -134,8 +134,8 @@ void JsonReader::start(DynamicObject& dyno)
 
    // read started
    mStarted = true;
-
    mValid = false;
+   return true;
 }
 
 bool JsonReader::processNext(JsonInputClass ic, char c)

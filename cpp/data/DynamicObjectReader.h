@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_DynamicObjectReader_H
 #define monarch_data_DynamicObjectReader_H
@@ -40,8 +40,10 @@ public:
     * a map will overwrite the map).
     *
     * @param dyno the DynamicObject for the object to deserialize.
+    *
+    * @return true on success, false on failure.
     */
-   virtual void start(monarch::rt::DynamicObject& dyno) = 0;
+   virtual bool start(monarch::rt::DynamicObject& dyno) = 0;
 
    /**
     * This method reads from the passed InputStream until the end of the

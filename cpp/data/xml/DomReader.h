@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_xml_DomReader_H
 #define monarch_data_xml_DomReader_H
@@ -55,8 +55,10 @@ public:
     * a map will overwrite the map).
     *
     * @param root the DynamicObject to use as the root element for the Document.
+    *
+    * @return true on success, false on failure.
     */
-   virtual void start(Element& root);
+   virtual bool start(Element& root);
 
    /**
     * Finishes deserializing a document from xml. This method must be called
