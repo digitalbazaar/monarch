@@ -6,8 +6,8 @@
 
 #include "monarch/data/DynamicObjectReader.h"
 
+#include <rdfa.h>
 #include <vector>
-#include <string>
 
 namespace monarch
 {
@@ -140,33 +140,12 @@ protected:
    virtual void processTriple(rdftriple* triple);
 
    /**
-    * Fills the rdfa parser's input buffer with more input data.
-    *
-    * @param buffer the buffer to fill.
-    * @param length the length of the buffer.
-    *
-    * @return the number of bytes written to the input buffer.
-    */
-   virtual size_t fillBuffer(char* buffer, size_t length);
-
-   /**
     * Called by the rdfa parser when a triple is encountered.
     *
     * @param triple the triple to handle.
     * @param reader the RdfaReader instance.
     */
    static void callbackProcessTriple(rdftriple* triple, void* reader);
-
-   /**
-    * Called by the rdfa parser to fill the parser's input buffer.
-    *
-    * @param buffer the buffer to fill.
-    * @param length the length of the buffer.
-    * @param reader the RdfaReader instance.
-    *
-    * @return the number of bytes written to the input buffer.
-    */
-   static size_t callbackFillBuffer(char* buffer, size_t length, void* reader);
 };
 
 } // end namespace rdfa

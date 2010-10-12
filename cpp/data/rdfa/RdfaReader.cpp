@@ -9,6 +9,7 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <rdfa_utils.h>
 
 using namespace std;
 using namespace monarch::data;
@@ -48,14 +49,14 @@ void RdfaReader::setBaseUri(const char* uri)
    mBaseUri = strdup(uri);
 }
 
-bool RdfaReader::setContext(DynamicObject& context)
+/*bool RdfaReader::setContext(DynamicObject& context)
 {
    bool rval = false;
 
    // FIXME: validate context, etc.
 
    return rval;
-}
+}*/
 
 bool RdfaReader::start(DynamicObject& dyno)
 {
@@ -90,7 +91,6 @@ bool RdfaReader::start(DynamicObject& dyno)
       mRdfaCtx->callback_data = this;
 
       // set handlers
-      rdfa_buffer_filler(mRdfaCtx, &RdfaReader::callbackFillBuffer);
       rdfa_set_triple_handler(mRdfaCtx, &RdfaReader::callbackProcessTriple);
 
       // try to start parser
