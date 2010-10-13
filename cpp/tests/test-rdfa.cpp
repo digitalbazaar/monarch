@@ -199,7 +199,7 @@ static void runRdfaReaderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("double embed, 3-subgraphs");
+   tr.test("double-referenced embed, 3-subgraphs");
    {
       string rdfa =
          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -219,7 +219,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "<span about=\"#chapter\" property=\"dc:description\">Fun</span>\n"
          "<span about=\"#john\" property=\"foaf:name\">John</span>\n"
          "<span about=\"#jane\" property=\"foaf:name\">Jane</span>\n"
-         "<span about=\"#jane\" rel=\"dc:contributor\" resource=\"#chapter\" />\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
          "</p></body>\n"
          "</html>";
 
@@ -238,21 +238,20 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
       expect["#"]["ex"] = "http://example.org/vocab#";
       expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
-      expect["@"][0]["@"] = "http://example.org/test#jane";
-      expect["@"][0]["dc:contributor"]["@"] = "http://example.org/test#chapter";
-      expect["@"][0]["dc:contributor"]["dc:description"] = "Fun";
-      expect["@"][0]["dc:contributor"]["dc:title"] = "Chapter One";
-      expect["@"][0]["foaf:name"] = "Jane";
-      expect["@"][1]["@"] = "http://example.org/test#john";
-      expect["@"][1]["foaf:name"] = "John";
-      expect["@"][2]["@"] = "http://example.org/test#library";
-      expect["@"][2]["ex:contains"]["@"] = "http://example.org/test#book";
-      expect["@"][2]["ex:contains"]["dc:contributor"] = "Writer";
-      expect["@"][2]["ex:contains"]["dc:title"] = "My Book";
-      expect["@"][2]["ex:contains"]["ex:contains"]["@"] =
+      expect["@"][0]["@"] = "http://example.org/test#chapter";
+      expect["@"][0]["dc:description"] = "Fun";
+      expect["@"][0]["dc:title"] = "Chapter One";
+      expect["@"][1]["@"] = "http://example.org/test#jane";
+      expect["@"][1]["ex:authored"] = "http://example.org/test#chapter";
+      expect["@"][1]["foaf:name"] = "Jane";
+      expect["@"][2]["@"] = "http://example.org/test#john";
+      expect["@"][2]["foaf:name"] = "John";
+      expect["@"][3]["@"] = "http://example.org/test#library";
+      expect["@"][3]["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["@"][3]["ex:contains"]["dc:contributor"] = "Writer";
+      expect["@"][3]["ex:contains"]["dc:title"] = "My Book";
+      expect["@"][3]["ex:contains"]["ex:contains"] =
          "http://example.org/test#chapter";
-      expect["@"][2]["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
-      expect["@"][2]["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
       assertDynoCmp(expect, dyno);
    }
    tr.passIfNoException();

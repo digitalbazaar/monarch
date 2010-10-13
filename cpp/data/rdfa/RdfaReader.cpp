@@ -303,13 +303,16 @@ bool RdfaReader::finish()
          const char* predicate = oi->getName();
          if(strcmp(predicate, "@") != 0)
          {
-            // if the object is a subject in the graph, embed it
+            // if the object is a subject in the graph that is referenced
+            // exactly once then embed it
             // (clone it to prevent circular references)
-            if(subjects->hasMember(object))
+            SubjectCountMap::iterator ci = mSubjectCounts.find(object);
+            if(ci != mSubjectCounts.end() && ci->second == 1 &&
+               subjects->hasMember(object))
             {
                subject[predicate] = subjects[object].clone();
             }
-            // object is not a subject in the graph, just abbreviate its name
+            // object cannot/should not be embedded, just abbreviate its name
             else
             {
                object = _applyContext(mContext, object);
@@ -319,9 +322,10 @@ bool RdfaReader::finish()
          }
       }
 
-      // if a subject is NOT referenced, it will not have been embedded
-      // anywhere ... add it as an independent top-level subgraph
-      if(mSubjectCounts.find(si->getName()) == mSubjectCounts.end())
+      // if a subject is NOT referenced or it is referenced more than once,
+      // then it will not have been embedded anywhere ... add at the top-level
+      SubjectCountMap::iterator ci = mSubjectCounts.find(si->getName());
+      if(ci == mSubjectCounts.end() || ci->second != 1)
       {
          // first subgraph to add, so just merge into target
          if(!mTarget->hasMember("@"))
