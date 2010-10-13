@@ -3,11 +3,14 @@
  */
 #define __STDC_CONSTANT_MACROS
 
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/data/rdfa/RdfaReader.h"
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/test/Test.h"
 #include "monarch/test/TestModule.h"
+
+#include <cstdio>
 
 using namespace std;
 using namespace monarch::data::rdfa;
@@ -69,8 +72,11 @@ static void runRdfaReaderTest(TestRunner& tr)
       assertNoException(
          reader.finish());
 
-      // FIXME: assert dyno
-      dumpDynamicObject(dyno);
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@"] = "http://example.org/test#foo";
+      expect["dc:title"] = "http://example.org/test#you";
+      assertDynoCmp(expect, dyno);
    }
    tr.passIfNoException();
 
@@ -101,8 +107,13 @@ static void runRdfaReaderTest(TestRunner& tr)
       assertNoException(
          reader.finish());
 
-      // FIXME: assert dyno
-      dumpDynamicObject(dyno);
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["@"] = "http://example.org/test#library";
+      expect["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["ex:contains"]["dc:title"] = "My Book";
+      assertDynoCmp(expect, dyno);
    }
    tr.passIfNoException();
 
@@ -137,8 +148,18 @@ static void runRdfaReaderTest(TestRunner& tr)
       assertNoException(
          reader.finish());
 
-      // FIXME: assert dyno
-      dumpDynamicObject(dyno);
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["@"] = "http://example.org/test#library";
+      expect["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["ex:contains"]["dc:contributor"] = "Writer";
+      expect["ex:contains"]["dc:title"] = "My Book";
+      expect["ex:contains"]["ex:contains"]["@"] =
+         "http://example.org/test#chapter";
+      expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
+      expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+      assertDynoCmp(expect, dyno);
    }
    tr.passIfNoException();
 
@@ -168,8 +189,13 @@ static void runRdfaReaderTest(TestRunner& tr)
       assertNoException(
          reader.finish());
 
-      // FIXME: assert dyno
-      dumpDynamicObject(dyno);
+      DynamicObject expect;
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"][0]["@"] = "http://example.org/test#jane";
+      expect["@"][0]["foaf:name"] = "Jane";
+      expect["@"][1]["@"] = "http://example.org/test#john";
+      expect["@"][1]["foaf:name"] = "John";
+      assertDynoCmp(expect, dyno);
    }
    tr.passIfNoException();
 
@@ -208,12 +234,28 @@ static void runRdfaReaderTest(TestRunner& tr)
       assertNoException(
          reader.finish());
 
-      // FIXME: assert dyno
-      dumpDynamicObject(dyno);
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"][0]["@"] = "http://example.org/test#jane";
+      expect["@"][0]["dc:contributor"]["@"] = "http://example.org/test#chapter";
+      expect["@"][0]["dc:contributor"]["dc:description"] = "Fun";
+      expect["@"][0]["dc:contributor"]["dc:title"] = "Chapter One";
+      expect["@"][0]["foaf:name"] = "Jane";
+      expect["@"][1]["@"] = "http://example.org/test#john";
+      expect["@"][1]["foaf:name"] = "John";
+      expect["@"][2]["@"] = "http://example.org/test#library";
+      expect["@"][2]["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["@"][2]["ex:contains"]["dc:contributor"] = "Writer";
+      expect["@"][2]["ex:contains"]["dc:title"] = "My Book";
+      expect["@"][2]["ex:contains"]["ex:contains"]["@"] =
+         "http://example.org/test#chapter";
+      expect["@"][2]["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
+      expect["@"][2]["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+      assertDynoCmp(expect, dyno);
    }
    tr.passIfNoException();
-
-   // FIXME: complex case
 
    tr.ungroup();
 }
