@@ -31,7 +31,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
          "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
          "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n"
-         "<head><title>Speed Test</title></head>\n"
+         "<head><title>Test</title></head>\n"
          "<body><p>\n"
          "<span about=\"#foo\" rel=\"dc:title\" resource=\"#you\" />\n"
          "</p></body>\n"
@@ -52,7 +52,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
          "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
          "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n"
-         "<head><title>Speed Test</title></head>\n"
+         "<head><title>Test</title></head>\n"
          "<body><p>\n"
          "<span about=\"#foo\" rel=\"dc:title\" resource=\"#you\" />\n"
          "</p></body>\n"
@@ -70,8 +70,150 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       // FIXME: assert dyno
+      dumpDynamicObject(dyno);
    }
    tr.passIfNoException();
+
+   tr.test("single embed");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#library\" rel=\"ex:contains\" resource=\"#book\" />\n"
+         "<span about=\"#book\" property=\"dc:title\">My Book</span>\n"
+         "</p></body>\n"
+         "</html>";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      // FIXME: assert dyno
+      dumpDynamicObject(dyno);
+   }
+   tr.passIfNoException();
+
+   tr.test("double embed");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#library\" rel=\"ex:contains\" resource=\"#book\" />\n"
+         "<span about=\"#book\" property=\"dc:title\">My Book</span>\n"
+         "<span about=\"#book\" property=\"dc:contributor\">Writer</span>\n"
+         "<span about=\"#book\" rel=\"ex:contains\" resource=\"#chapter\" />\n"
+         "<span about=\"#chapter\" property=\"dc:title\">Chapter One</span>\n"
+         "<span about=\"#chapter\" property=\"dc:description\">Fun</span>\n"
+         "</p></body>\n"
+         "</html>";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      // FIXME: assert dyno
+      dumpDynamicObject(dyno);
+   }
+   tr.passIfNoException();
+
+   tr.test("2-subgraphs");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#john\" property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" property=\"foaf:name\">Jane</span>\n"
+         "</p></body>\n"
+         "</html>";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      // FIXME: assert dyno
+      dumpDynamicObject(dyno);
+   }
+   tr.passIfNoException();
+
+   tr.test("double embed, 3-subgraphs");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#library\" rel=\"ex:contains\" resource=\"#book\" />\n"
+         "<span about=\"#book\" property=\"dc:title\">My Book</span>\n"
+         "<span about=\"#book\" property=\"dc:contributor\">Writer</span>\n"
+         "<span about=\"#book\" rel=\"ex:contains\" resource=\"#chapter\" />\n"
+         "<span about=\"#chapter\" property=\"dc:title\">Chapter One</span>\n"
+         "<span about=\"#chapter\" property=\"dc:description\">Fun</span>\n"
+         "<span about=\"#john\" property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"dc:contributor\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      // FIXME: assert dyno
+      dumpDynamicObject(dyno);
+   }
+   tr.passIfNoException();
+
+   // FIXME: complex case
 
    tr.ungroup();
 }

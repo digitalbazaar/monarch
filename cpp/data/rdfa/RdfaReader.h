@@ -5,8 +5,10 @@
 #define monarch_data_rdfa_RdfaReader_H
 
 #include "monarch/data/DynamicObjectReader.h"
+#include "monarch/util/StringTools.h"
 
 #include <rdfa.h>
+#include <map>
 #include <vector>
 
 namespace monarch
@@ -41,19 +43,32 @@ protected:
    rdfacontext* mRdfaCtx;
 
    /**
-    * The JSON-LD context.
+    * The user-set JSON-LD graph context.
     */
    monarch::rt::DynamicObject mContext;
 
    /**
-    * A stack of DynamicObjects.
+    * The auto-generated (from parsed rdfa) JSON-LD graph context.
     */
-   std::vector<monarch::rt::DynamicObject> mDynoStack;
+   monarch::rt::DynamicObject mAutoContext;
+
+   /**
+    * A list of parsed triples.
+    */
+   typedef std::vector<rdftriple*> TripleList;
+   TripleList mTriples;
+
+   /**
+    * A map of subject name to graph-reference count.
+    */
+   typedef std::map<const char*, int, monarch::util::StringComparator>
+      SubjectCountMap;
+   SubjectCountMap mSubjectCounts;
 
    /**
     * The final target DynamicObject set from start().
     */
-   monarch::rt::DynamicObject* mTarget;
+   monarch::rt::DynamicObject mTarget;
 
 public:
    /**
@@ -73,6 +88,15 @@ public:
     * @param uri the baseUri to use.
     */
    virtual void setBaseUri(const char* uri);
+
+   /**
+    * Sets the context to use in the JSON-LD object output.
+    *
+    * @param context the context to use.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   virtual bool setContext(monarch::rt::DynamicObject& context);
 
    /**
     * Starts deserializing an object from RDFa. This RdfaReader can be re-used
