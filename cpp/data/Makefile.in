@@ -1,6 +1,12 @@
 # Makefile to compile the module in this directory
 
 LIBRARIES = modata
+
+ifeq (@HAVE_LIBRDFA@,yes)
+rdfa_HEADERS = $(wildcard rdfa/*.h)
+rdfa_SOURCES = $(wildcard rdfa/*.cpp)
+endif
+
 modata_HEADERS = \
 	$(wildcard *.h) \
 	$(wildcard avi/*.h) \
@@ -8,6 +14,7 @@ modata_HEADERS = \
 	$(wildcard json/*.h) \
 	$(wildcard mpeg/*.h) \
 	$(wildcard pdf/*.h) \
+	$(rdfa_HEADERS) \
 	$(wildcard riff/*.h) \
 	$(wildcard xml/*.h)
 modata_SOURCES = \
@@ -17,6 +24,7 @@ modata_SOURCES = \
 	$(wildcard json/*.cpp) \
 	$(wildcard mpeg/*.cpp) \
 	$(wildcard pdf/*.cpp) \
+	$(rdfa_SOURCES) \
 	$(wildcard riff/*.cpp) \
 	$(wildcard xml/*.cpp)
 
@@ -24,6 +32,9 @@ DYNAMIC_LINK_LIBRARIES = moio moutil mort mologging monet
 
 DYNAMIC_MACOS_LINK_LIBRARIES = iconv charset expat mocompress momodest mocrypto
 DYNAMIC_WINDOWS_LINK_LIBRARIES = libexpat iconv2 charset1
+
+CXX_FLAGS += @LIBRDFA_CFLAGS@
+LD_FLAGS += @LIBRDFA_LIBS@
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base

@@ -21,6 +21,13 @@ MYSQL_EXECUTABLE_LIBRARIES = mysql
 endif
 endif
 
+ifeq (@HAVE_LIBRDFA@,yes)
+CXX_FLAGS += @LIBRDFA_CFLAGS@
+LD_FLAGS += @LIBRDFA_LIBS@
+RDFA_SOURCES = test-rdfa.cpp
+RDFA_TEST_MOD = test-rdfa
+endif
+
 ifeq (@BUILD_SPHINX@,yes)
 MODULE_CXX_FLAGS += -DHAVE_SPHINX
 SPHINX_LIBS = mosphinx
@@ -68,6 +75,7 @@ TEST_MODS = \
 	test-modexp \
 	test-net \
 	test-pong \
+	$(RDFA_TEST_MOD) \
 	test-rt \
 	$(SPHINX_TEST_MOD) \
 	test-sqlite3 \

@@ -3,17 +3,18 @@
  */
 #define __STDC_CONSTANT_MACROS
 
+#include "monarch/data/rdfa/RdfaReader.h"
+#include "monarch/io/ByteArrayInputStream.h"
+#include "monarch/rt/DynamicObject.h"
 #include "monarch/test/Test.h"
 #include "monarch/test/TestModule.h"
-#include "monarch/rt/DynamicObject.h"
-#include "monarch/io/ByteArrayInputStream.h"
 
 using namespace std;
-using namespace monarch::test;
 using namespace monarch::data::rdfa;
 using namespace monarch::io;
 using namespace monarch::modest;
 using namespace monarch::rt;
+using namespace monarch::test;
 
 namespace mo_test_data_rdfa
 {

@@ -95,22 +95,15 @@ if test "$BUILD_FOR_WINDOWS" = "no" ; then
    fi
 fi
 
-dnl ----------------- Sphinx Search -----------------
+dnl ----------------- librdfa -----------------
 
-AC_ARG_ENABLE([sphinx],
-   AS_HELP_STRING([--disable-sphinx], [disable sphinx search [no]]),
-   [
-      case "${enableval}" in
-         yes) BUILD_SPHINX=yes ;;
-         no) BUILD_SPHINX=no ;;
-         *) AC_MSG_ERROR(bad value ${enableval} for --enable-sphinx) ;;
-      esac
-   ], [BUILD_SPHINX=yes])  dnl Default value
-# Disable sphinx support in Windows
-if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
-   BUILD_SPHINX=no
+# check for librdfa and headers
+PKG_CHECK_MODULES([LIBRDFA], [librdfa], HAVE_LIBRDFA=yes, HAVE_LIBRDFA=no)
+
+AC_SUBST(HAVE_LIBRDFA)
+if test "x$HAVE_LIBRDFA" = "xyes"; then
+   AC_DEFINE([HAVE_LIBRDFA], [1], ["librdfa support enabled"])
 fi
-AC_SUBST(BUILD_SPHINX)
 
 dnl ----------------- MySQL -----------------
 
@@ -144,6 +137,23 @@ if test "x$BUILD_MYSQL" = "xyes"; then
       AC_MSG_ERROR(mysql/mysql.h header not found)
    fi
 fi
+
+dnl ----------------- Sphinx Search -----------------
+
+AC_ARG_ENABLE([sphinx],
+   AS_HELP_STRING([--disable-sphinx], [disable sphinx search [no]]),
+   [
+      case "${enableval}" in
+         yes) BUILD_SPHINX=yes ;;
+         no) BUILD_SPHINX=no ;;
+         *) AC_MSG_ERROR(bad value ${enableval} for --enable-sphinx) ;;
+      esac
+   ], [BUILD_SPHINX=yes])  dnl Default value
+# Disable sphinx support in Windows
+if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
+   BUILD_SPHINX=no
+fi
+AC_SUBST(BUILD_SPHINX)
 
 dnl ----------------- V8 -----------------
 
@@ -273,6 +283,9 @@ MO_MSG_CONFIG_OPTION([Dyno Stats], [$MO_DYNO_STATS_MSG])
 MO_MSG_CONFIG_END
 
 MO_MSG_CONFIG_BEGIN([Features])
+MO_MSG_CONFIG_OPTION_IF([librdfa],
+   [test "x$HAVE_LIBRDFA" = xyes],
+   [enabled], [disabled])
 MO_MSG_CONFIG_OPTION_IF([MySQL],
    [test "x$BUILD_MYSQL" = xyes],
    [enabled], [disabled (use --enable-mysql to enable)])
