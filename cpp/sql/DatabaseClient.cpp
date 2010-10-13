@@ -440,6 +440,13 @@ bool DatabaseClient::create(
       // close table definition
       se->sql.append(")");
 
+      // add extra options
+      if(schema->hasMember("options"))
+      {
+         se->sql.append(" ");
+         se->sql.append(schema["options"]->getString());
+      }
+
       // execute SQL
       rval = execute(se, c);
    }
