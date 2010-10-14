@@ -64,6 +64,20 @@ To test the various subsystems in Linux and Mac OS X:
 
    $ make test
 
+To run the ping/pong test:
+
+   $ ./monarch-run pong -t pong --log-level=d
+
+In a separate console, try the following:
+
+   $ curl http://localhost:19500/pong
+
+You should see the following text in the response from the server:
+
+   Pong!
+
+If you see the text above, your Monarch server is operating correctly.
+
 System Details
 --------------
 
