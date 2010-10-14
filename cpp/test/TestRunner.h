@@ -210,7 +210,7 @@ public:
 
    /**
     * Start a test group.  Pushes name on a stack and can be called recursively.
-    * Must be paried with ungroup().
+    * Must be paired with ungroup().
     *
     * @param name simple description of this test
     */
@@ -222,7 +222,7 @@ public:
    virtual void ungroup();
 
    /**
-    * Start a test. Must be paried with pass() or fail().
+    * Start a test. Must be paired with pass() or fail().
     *
     * @param name simple description of this test
     */
