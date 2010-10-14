@@ -222,7 +222,7 @@ public:
    virtual void ungroup();
 
    /**
-    * Start a test. Must be paried with pass() or fail().
+    * Start a test. Must be paired with pass() or fail().
     *
     * @param name simple description of this test
     */
