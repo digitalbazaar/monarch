@@ -210,7 +210,7 @@ public:
 
    /**
     * Start a test group.  Pushes name on a stack and can be called recursively.
-    * Must be paried with ungroup().
+    * Must be paired with ungroup().
     *
     * @param name simple description of this test
     */
