@@ -579,6 +579,110 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("denormalize");
+   {
+      DynamicObject in;
+      in["@"][0]["@"] = "http://example.org/test#chapter";
+      in["@"][0]["http://purl.org/dc/elements/1.1/description"] = "Fun";
+      in["@"][0]["http://purl.org/dc/elements/1.1/title"] = "Chapter One";
+      in["@"][1]["@"] = "http://example.org/test#jane";
+      in["@"][1]["http://example.org/vocab#authored"] =
+         "http://example.org/test#chapter";
+      in["@"][1]["http://xmlns.org/foaf/0.1/name"] = "Jane";
+      in["@"][2]["@"] = "http://example.org/test#john";
+      in["@"][2]["http://xmlns.org/foaf/0.1/name"] = "John";
+      in["@"][3]["@"] = "http://example.org/test#library";
+      in["@"][3]["http://example.org/vocab#contains"]["@"] =
+         "http://example.org/test#book";
+      in["@"][3]["http://example.org/vocab#contains"]
+         ["http://purl.org/dc/elements/1.1/contributor"] = "Writer";
+      in["@"][3]["http://example.org/vocab#contains"]
+         ["http://purl.org/dc/elements/1.1/title"] = "My Book";
+      in["@"][3]["http://example.org/vocab#contains"]
+         ["http://example.org/vocab#contains"] =
+            "http://example.org/test#chapter";
+
+      DynamicObject ctx;
+      ctx["dc"] = "http://purl.org/dc/elements/1.1/";
+      ctx["ex"] = "http://example.org/vocab#";
+      ctx["foaf"] = "http://xmlns.org/foaf/0.1/";
+      DynamicObject out;
+      assertNoException(
+         JsonLd::denormalize(ctx, in, out));
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"][0]["@"] = "http://example.org/test#chapter";
+      expect["@"][0]["dc:description"] = "Fun";
+      expect["@"][0]["dc:title"] = "Chapter One";
+      expect["@"][1]["@"] = "http://example.org/test#jane";
+      expect["@"][1]["ex:authored"] = "http://example.org/test#chapter";
+      expect["@"][1]["foaf:name"] = "Jane";
+      expect["@"][2]["@"] = "http://example.org/test#john";
+      expect["@"][2]["foaf:name"] = "John";
+      expect["@"][3]["@"] = "http://example.org/test#library";
+      expect["@"][3]["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["@"][3]["ex:contains"]["dc:contributor"] = "Writer";
+      expect["@"][3]["ex:contains"]["dc:title"] = "My Book";
+      expect["@"][3]["ex:contains"]["ex:contains"] =
+         "http://example.org/test#chapter";
+      assertDynoCmp(expect, out);
+   }
+   tr.passIfNoException();
+
+   tr.test("change context");
+   {
+      DynamicObject in;
+      in["#"]["d"] = "http://purl.org/dc/elements/1.1/";
+      in["#"]["e"] = "http://example.org/vocab#";
+      in["#"]["f"] = "http://xmlns.org/foaf/0.1/";
+      in["@"][0]["@"] = "http://example.org/test#chapter";
+      in["@"][0]["d:description"] = "Fun";
+      in["@"][0]["d:title"] = "Chapter One";
+      in["@"][1]["@"] = "http://example.org/test#jane";
+      in["@"][1]["e:authored"] = "http://example.org/test#chapter";
+      in["@"][1]["f:name"] = "Jane";
+      in["@"][2]["@"] = "http://example.org/test#john";
+      in["@"][2]["f:name"] = "John";
+      in["@"][3]["@"] = "http://example.org/test#library";
+      in["@"][3]["e:contains"]["@"] = "http://example.org/test#book";
+      in["@"][3]["e:contains"]["d:contributor"] = "Writer";
+      in["@"][3]["e:contains"]["d:title"] = "My Book";
+      in["@"][3]["e:contains"]["e:contains"] =
+         "http://example.org/test#chapter";
+
+      DynamicObject ctx;
+      ctx["dc"] = "http://purl.org/dc/elements/1.1/";
+      ctx["ex"] = "http://example.org/vocab#";
+      ctx["foaf"] = "http://xmlns.org/foaf/0.1/";
+      DynamicObject out;
+      assertNoException(
+         JsonLd::changeContext(ctx, in, out));
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"][0]["@"] = "http://example.org/test#chapter";
+      expect["@"][0]["dc:description"] = "Fun";
+      expect["@"][0]["dc:title"] = "Chapter One";
+      expect["@"][1]["@"] = "http://example.org/test#jane";
+      expect["@"][1]["ex:authored"] = "http://example.org/test#chapter";
+      expect["@"][1]["foaf:name"] = "Jane";
+      expect["@"][2]["@"] = "http://example.org/test#john";
+      expect["@"][2]["foaf:name"] = "John";
+      expect["@"][3]["@"] = "http://example.org/test#library";
+      expect["@"][3]["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["@"][3]["ex:contains"]["dc:contributor"] = "Writer";
+      expect["@"][3]["ex:contains"]["dc:title"] = "My Book";
+      expect["@"][3]["ex:contains"]["ex:contains"] =
+         "http://example.org/test#chapter";
+      assertDynoCmp(expect, out);
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
