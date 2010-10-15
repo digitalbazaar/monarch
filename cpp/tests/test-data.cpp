@@ -28,6 +28,7 @@
 #include "monarch/data/DynamicObjectOutputStream.h"
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/data/json/JsonReader.h"
+#include "monarch/data/json/JsonLd.h"
 #include "monarch/data/riff/RiffChunkHeader.h"
 #include "monarch/data/riff/RiffListHeader.h"
 #include "monarch/data/riff/RiffFormHeader.h"
@@ -521,6 +522,62 @@ static void runJsonIOStreamTest(TestRunner& tr)
    tr.passIfNoException();
 
    tr.warning("Fix JSON IO Stream test");
+
+   tr.ungroup();
+}
+
+static void runJsonLdTest(TestRunner& tr)
+{
+   tr.group("JSON-LD");
+
+   tr.test("normalize");
+   {
+      DynamicObject in;
+      in["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      in["@"][0]["@"] = "http://example.org/test#chapter";
+      in["@"][0]["dc:description"] = "Fun";
+      in["@"][0]["dc:title"] = "Chapter One";
+      in["@"][1]["@"] = "http://example.org/test#jane";
+      in["@"][1]["ex:authored"] = "http://example.org/test#chapter";
+      in["@"][1]["foaf:name"] = "Jane";
+      in["@"][2]["@"] = "http://example.org/test#john";
+      in["@"][2]["foaf:name"] = "John";
+      in["@"][3]["@"] = "http://example.org/test#library";
+      in["@"][3]["ex:contains"]["@"] = "http://example.org/test#book";
+      in["@"][3]["ex:contains"]["dc:contributor"] = "Writer";
+      in["@"][3]["ex:contains"]["dc:title"] = "My Book";
+      in["@"][3]["ex:contains"]["ex:contains"] =
+         "http://example.org/test#chapter";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"][0]["@"] = "http://example.org/test#chapter";
+      expect["@"][0]["http://purl.org/dc/elements/1.1/description"] = "Fun";
+      expect["@"][0]["http://purl.org/dc/elements/1.1/title"] = "Chapter One";
+      expect["@"][1]["@"] = "http://example.org/test#jane";
+      expect["@"][1]["http://example.org/vocab#authored"] =
+         "http://example.org/test#chapter";
+      expect["@"][1]["http://xmlns.org/foaf/0.1/name"] = "Jane";
+      expect["@"][2]["@"] = "http://example.org/test#john";
+      expect["@"][2]["http://xmlns.org/foaf/0.1/name"] = "John";
+      expect["@"][3]["@"] = "http://example.org/test#library";
+      expect["@"][3]["http://example.org/vocab#contains"]["@"] =
+         "http://example.org/test#book";
+      expect["@"][3]["http://example.org/vocab#contains"]
+         ["http://purl.org/dc/elements/1.1/contributor"] = "Writer";
+      expect["@"][3]["http://example.org/vocab#contains"]
+         ["http://purl.org/dc/elements/1.1/title"] = "My Book";
+      expect["@"][3]["http://example.org/vocab#contains"]
+         ["http://example.org/vocab#contains"] =
+            "http://example.org/test#chapter";
+      assertDynoCmp(expect, out);
+   }
+   tr.passIfNoException();
 
    tr.ungroup();
 }
@@ -2853,6 +2910,7 @@ static bool run(TestRunner& tr)
       runJsonVerifyDJDTest(tr);
       runJsonValueVerifyJDTest(tr);
       runJsonIOStreamTest(tr);
+      runJsonLdTest(tr);
 
       runXmlReaderTest(tr);
       runXmlWriterTest(tr);
