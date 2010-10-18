@@ -149,11 +149,13 @@ public:
     * @param dyno the DynamicObject to fill.
     * @param s the string to read from.
     * @param slen the length of s.
+    * @param uri the baseUri to use.
     *
     * @return true on success, false and exception set on failure.
     */
    static bool readFromString(
-      monarch::rt::DynamicObject& dyno, const char* s, size_t slen);
+      monarch::rt::DynamicObject& dyno, const char* s, size_t slen,
+      const char* baseUri);
 
 protected:
    /**

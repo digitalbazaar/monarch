@@ -109,24 +109,37 @@ bool RdfaReader::start(DynamicObject& dyno)
 
       // create and setup rdfa context
       mRdfaCtx = rdfa_create_context(mBaseUri);
-      mRdfaCtx->callback_data = this;
-      rdfa_set_triple_handler(mRdfaCtx, &RdfaReader::callbackProcessTriple);
-
-      // try to start parser
-      int rc = rdfa_parse_start(mRdfaCtx);
-      if(rc != RDFA_PARSE_SUCCESS)
+      if(mRdfaCtx == NULL)
       {
          // reader not started
          ExceptionRef e = new Exception(
-            "Could not start rdfa parser.",
-            RDFA_READER ".ParseError");
-         // TODO: get some error message from the parser
+            "Failed to create RDFa context.",
+            RDFA_READER ".ContextCreationFailure");
+         e->getDetails()["baseUri"] = mBaseUri;
          Exception::set(e);
          rval = false;
       }
+      else
+      {
+         mRdfaCtx->callback_data = this;
+         rdfa_set_triple_handler(mRdfaCtx, &RdfaReader::callbackProcessTriple);
 
-      // read started
-      mStarted = true;
+         // try to start parser
+         int rc = rdfa_parse_start(mRdfaCtx);
+         if(rc != RDFA_PARSE_SUCCESS)
+         {
+            // reader not started
+            ExceptionRef e = new Exception(
+               "Could not start RDFa parser.",
+               RDFA_READER ".ParseError");
+            // TODO: get some error message from the parser
+            Exception::set(e);
+            rval = false;
+         }
+
+         // read started
+         mStarted = true;
+      }
    }
 
    return rval;
@@ -360,10 +373,12 @@ bool RdfaReader::finish()
 }
 
 bool RdfaReader::readFromString(
-   monarch::rt::DynamicObject& dyno, const char* s, size_t slen)
+   monarch::rt::DynamicObject& dyno, const char* s, size_t slen,
+   const char* baseUri)
 {
    ByteArrayInputStream is(s, slen);
    RdfaReader rr;
+   rr.setBaseUri(baseUri);
    return rr.start(dyno) && rr.read(&is) && rr.finish();
 }
 

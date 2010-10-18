@@ -43,7 +43,20 @@ static void runRdfaReaderTest(TestRunner& tr)
       ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
       RdfaReader reader;
       DynamicObject dyno;
-      reader.start(dyno);
+      assertException(
+         reader.start(dyno));
+   }
+   tr.passIfException();
+
+   tr.test("no base URI (readFromString)");
+   {
+      string rdfa = "...";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      DynamicObject dyno;
+      assertException(
+         RdfaReader::readFromString(dyno, "", 0, ""));
    }
    tr.passIfException();
 
@@ -61,6 +74,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</p></body>\n"
          "</html>";
 
+      // Check with low level API
       ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
       RdfaReader reader;
       reader.setBaseUri("http://example.org/test");
@@ -72,11 +86,18 @@ static void runRdfaReaderTest(TestRunner& tr)
       assertNoException(
          reader.finish());
 
+      // Check with readFromString
+      DynamicObject dyno2;
+      assertNoException(
+         RdfaReader::readFromString(
+            dyno2, rdfa.c_str(), rdfa.length(), "http://example.org/test"));
+
       DynamicObject expect;
       expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
       expect["@"] = "http://example.org/test#foo";
       expect["dc:title"] = "http://example.org/test#you";
       assertDynoCmp(expect, dyno);
+      assertDynoCmp(expect, dyno2);
    }
    tr.passIfNoException();
 
