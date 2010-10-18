@@ -102,7 +102,7 @@ bool Url::setUrl(const string& url)
       if(c < 'a' || c > 'z')
       {
          ExceptionRef e = new Exception(
-            "Url scheme contains invalid start character.",
+            "URL scheme contains invalid start character.",
             "monarch.net.MalformedUrl");
          e->getDetails()["url"] = url.c_str();
          e->getDetails()["relative"] = mRelative;
@@ -116,12 +116,13 @@ bool Url::setUrl(const string& url)
          {
             // non-start characters must be in [a-z0-9+.-]
             c = *i;
-            if(!((c > 'a' && c < 'z') || (c > '0' && c < '9') ||
+            if(!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
                c == '+' || c == '.' || c == '-'))
             {
                ExceptionRef e = new Exception(
-                  "Url scheme contains invalid characters.",
+                  "URL scheme contains invalid characters.",
                   "monarch.net.MalformedUrl");
+               e->getDetails()["scheme"] = mScheme.c_str();
                e->getDetails()["url"] = url.c_str();
                e->getDetails()["relative"] = mRelative;
                Exception::set(e);

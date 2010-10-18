@@ -1225,6 +1225,16 @@ static void runUrlTest(TestRunner& tr)
       Exception::clear();
    }
 
+   {
+      // check edge conditions
+      Url url("az09:foo");
+      assertNoExceptionSet();
+
+      //dumpUrl(url);
+      assertStrCmp(url.getScheme().c_str(), "az09");
+      assertStrCmp(url.getSchemeSpecificPart().c_str(), "foo");
+   }
+
    tr.pass();
 }
 
