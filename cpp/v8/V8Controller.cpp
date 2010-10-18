@@ -207,20 +207,24 @@ public:
          // exception occurred, return server error
          String::Utf8Value error(tryCatch.Exception());
 
-         // send 500 ISE
-         h->setStatus(500, "Internal Server Error");
-         h->setField("Content-Length", 0);
-         h->setField("Connection", "close");
-         ch->getResponse()->sendHeader();
+         {
+            Unlocker unlocker;
+            // send 500 ISE
+            h->setStatus(500, "Internal Server Error");
+            h->setField("Content-Length", 0);
+            h->setField("Connection", "close");
+            ch->getResponse()->sendHeader();
 
-         // Log error
-         MO_CAT_DEBUG(MO_V8_CAT, "SWS handler error:\n %s", *error);
-         // FIXME: add option to enable server errors
-         //ByteArrayInputStream bais(*error, error.length());
-         //ch->getResponse()->sendBody(&bais);
+            // Log error
+            MO_CAT_DEBUG(MO_V8_CAT, "SWS handler error:\n %s", *error);
+            // FIXME: add option to enable server errors
+            //ByteArrayInputStream bais(*error, error.length());
+            //ch->getResponse()->sendBody(&bais);
+         }
       }
       else if(result->IsUndefined())
       {
+         Unlocker unlocker;
          // nothing to return, send 204 No Content
          h->setStatus(204, "No Content");
          h->setField("Content-Length", 0);
@@ -232,34 +236,41 @@ public:
          // assume plain string
          ::v8::String::Utf8Value data(result);
 
-         // send 200 OK
-         h->setStatus(200, "OK");
-         h->setField("Content-Length", data.length());
-         h->setField("Content-Type", "text/plain");
-         h->setField("Connection", "close");
-         ch->getResponse()->sendHeader();
+         {
+            Unlocker unlocker;
+            // send 200 OK
+            h->setStatus(200, "OK");
+            h->setField("Content-Length", data.length());
+            h->setField("Content-Type", "text/plain");
+            h->setField("Connection", "close");
+            ch->getResponse()->sendHeader();
 
-         ByteArrayInputStream bais(*data, data.length());
-         ch->getResponse()->sendBody(&bais);
+            ByteArrayInputStream bais(*data, data.length());
+            ch->getResponse()->sendBody(&bais);
+         }
       }
       else if(result->IsObject())
       {
          // assume JSON
          DynamicObject obj = V8Controller::j2d(result);
-         string data = JsonWriter::writeToString(obj);
+         {
+            Unlocker unlocker;
+            string data = JsonWriter::writeToString(obj);
 
-         // send 200 OK
-         h->setStatus(200, "OK");
-         h->setField("Content-Length", data.length());
-         h->setField("Content-Type", "application/json");
-         h->setField("Connection", "close");
-         ch->getResponse()->sendHeader();
+            // send 200 OK
+            h->setStatus(200, "OK");
+            h->setField("Content-Length", data.length());
+            h->setField("Content-Type", "application/json");
+            h->setField("Connection", "close");
+            ch->getResponse()->sendHeader();
 
-         ByteArrayInputStream bais(data.c_str(), data.length());
-         ch->getResponse()->sendBody(&bais);
+            ByteArrayInputStream bais(data.c_str(), data.length());
+            ch->getResponse()->sendBody(&bais);
+         }
       }
       else
       {
+         Unlocker unlocker;
          // convert to string and return as raw text
          MO_CAT_WARNING(MO_V8_CAT, "SWS handler unhandled data");
          // send 500 ISE

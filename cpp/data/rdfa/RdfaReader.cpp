@@ -364,8 +364,7 @@ bool RdfaReader::readFromString(
 {
    ByteArrayInputStream is(s, slen);
    RdfaReader rr;
-   rr.start(dyno);
-   return rr.read(&is) && rr.finish();
+   return rr.start(dyno) && rr.read(&is) && rr.finish();
 }
 
 void RdfaReader::processTriple(rdftriple* triple)
