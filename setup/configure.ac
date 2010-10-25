@@ -116,27 +116,32 @@ AC_ARG_ENABLE([mysql],
          no) BUILD_MYSQL=no ;;
          *) AC_MSG_ERROR(bad value ${enableval} for --enable-mysql) ;;
       esac
-   ], [BUILD_MYSQL=yes])  dnl Default pre lib detection value
+   ], [BUILD_MYSQL=check])  dnl default
 
-# Disable mysql support in Windows
-if test "x$BUILD_FOR_WINDOWS" = "xyes"; then
-   BUILD_MYSQL=no
+# if MySQL support requestd, check for support
+if test "x$BUILD_MYSQL" = "xyes" -o "x$BUILD_MYSQL" = "xcheck"; then
+   AC_PATH_PROGS([MYSQL_CONFIG], [mysql_config mysql_config5])
+   if test "x$MYSQL_CONFIG" != "x"; then
+      MYSQL_CFLAGS=`$MYSQL_CONFIG --cflags`
+      MYSQL_LDFLAGS=`$MYSQL_CONFIG --libs`
+      AC_SUBST(MYSQL_CFLAGS)
+      AC_SUBST(MYSQL_LDFLAGS)
+      BUILD_MYSQL=yes
+   else
+      if test "x$BUILD_MYSQL" = "xyes"; then
+         dnl fail since mysql support was specifically enabled
+         AC_MSG_ERROR(mysql_config not found in PATH)
+      else
+         dnl just warn and disable building
+         AC_MSG_WARN(mysql_config not found in PATH)
+         BUILD_MYSQL=no
+      fi
+   fi
+fi
+if test "x$BUILD_MYSQL" = "xyes"; then
+   AC_DEFINE([HAVE_MYSQL], [1], ["mysqlclient support enabled"])
 fi
 AC_SUBST(BUILD_MYSQL)
-
-# if MySQL support enabled, check for the lib
-if test "x$BUILD_MYSQL" = "xyes"; then
-   AC_CHECK_LIB(mysqlclient, mysql_real_connect,
-     [have_mysql=true], [have_mysql=false])
-   if ! $have_mysql; then
-      AC_MSG_ERROR(mysqlclient library not found)
-   fi
-
-   AC_CHECK_HEADER(mysql/mysql.h, [have_mysql=true], [have_mysql=false])
-   if ! $have_mysql; then
-      AC_MSG_ERROR(mysql/mysql.h header not found)
-   fi
-fi
 
 dnl ----------------- Sphinx Search -----------------
 
