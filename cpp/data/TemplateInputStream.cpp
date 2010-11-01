@@ -9,6 +9,7 @@
 
 #include "monarch/data/DynamicObjectInputStream.h"
 #include "monarch/data/json/JsonWriter.h"
+#include "monarch/io/ByteArrayOutputStream.h"
 #include "monarch/io/FileInputStream.h"
 #include "monarch/net/Url.h"
 #include "monarch/rt/Exception.h"
@@ -2780,8 +2781,8 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             // dump variable (non-strict json)
             JsonWriter writer(false);
             writer.setCompact(false);
-            DynamicObjectInputStream dois(var, &writer, false);
-            mParsed.put(&dois);
+            ByteArrayOutputStream baos(&mParsed, true);
+            rval = writer.write(var, &baos);
          }
          break;
       }
