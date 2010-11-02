@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_crypto_DigitalSignature_H
 #define monarch_crypto_DigitalSignature_H
@@ -76,8 +76,10 @@ public:
     *
     * @param b a buffer with data to hash.
     * @param length the length of the data.
+    *
+    * @return true on success, false on failure with exception set.
     */
-   virtual void update(const char* b, unsigned int length);
+   virtual bool update(const char* b, unsigned int length);
 
    /**
     * Puts the signature into an array of bytes. The length of the signature

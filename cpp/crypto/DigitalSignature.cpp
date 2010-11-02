@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/DigitalSignature.h"
 
@@ -73,7 +73,7 @@ void DigitalSignature::reset()
    }
 }
 
-void DigitalSignature::update(const char* b, unsigned int length)
+bool DigitalSignature::update(const char* b, unsigned int length)
 {
    // if the hash function hasn't been set, then call reset to set it
    if(mHashFunction == NULL)
@@ -90,6 +90,8 @@ void DigitalSignature::update(const char* b, unsigned int length)
    {
       EVP_VerifyUpdate(&mMessageDigestContext, b, length);
    }
+
+   return true;
 }
 
 void DigitalSignature::getValue(char* b, unsigned int& length)

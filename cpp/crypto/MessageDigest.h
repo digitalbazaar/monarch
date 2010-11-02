@@ -75,8 +75,10 @@ public:
     * digested.
     *
     * @param str the string to digest.
+    *
+    * @return true on success, false on failure with exception set.
     */
-   virtual void update(const char* str);
+   virtual bool update(const char* str);
 
    /**
     * Updates the data to hash. This method can be called repeatedly with
@@ -84,8 +86,10 @@ public:
     *
     * @param b a buffer with data to hash.
     * @param length the length of the data.
+    *
+    * @return true on success, false on failure with exception set.
     */
-   virtual void update(const char* b, unsigned int length);
+   virtual bool update(const char* b, unsigned int length);
 
    /**
     * Puts the hash value into an array of bytes. The length of the hash value

@@ -433,8 +433,10 @@ public:
     * Updates the current CRC value with the given byte.
     *
     * @param b the byte to update the CRC value with.
+    *
+    * @return true on success, false on failure with exception set.
     */
-   void update(const unsigned char& b);
+   virtual bool update(const unsigned char& b);
 
    /**
     * Updates the data to hash. This method can be called repeatedly with
@@ -442,8 +444,10 @@ public:
     *
     * @param b a buffer with data to hash.
     * @param length the length of the data.
+    *
+    * @return true on success, false on failure with exception set.
     */
-   virtual void update(const char* b, unsigned int length);
+   virtual bool update(const char* b, unsigned int length);
 
    /**
     * Puts the hash value into an array of bytes. The length of the hash value
@@ -466,7 +470,7 @@ public:
     *
     * @return the checksum for this CRC.
     */
-   unsigned int getChecksum();
+   virtual unsigned int getChecksum();
 };
 
 } // end namespace util

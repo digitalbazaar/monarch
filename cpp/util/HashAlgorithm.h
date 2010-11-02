@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_HashAlgorithm_H
 #define monarch_util_HashAlgorithm_H
@@ -53,8 +53,10 @@ public:
     *
     * @param b a buffer with data to hash.
     * @param length the length of the data.
+    *
+    * @return true on success, false on failure with exception set.
     */
-   virtual void update(const char* b, unsigned int length) = 0;
+   virtual bool update(const char* b, unsigned int length) = 0;
 
    /**
     * Puts the hash value into an array of bytes. The length of the hash value

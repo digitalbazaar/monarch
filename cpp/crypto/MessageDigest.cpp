@@ -66,15 +66,17 @@ void MessageDigest::reset()
    EVP_DigestInit_ex(&mMessageDigestContext, mHashFunction, NULL);
 }
 
-void MessageDigest::update(const char* str)
+bool MessageDigest::update(const char* str)
 {
    update(str, strlen(str));
+   return true;
 }
 
-void MessageDigest::update(const char* b, unsigned int length)
+bool MessageDigest::update(const char* b, unsigned int length)
 {
    // update message digest context
    EVP_DigestUpdate(&mMessageDigestContext, b, length);
+   return true;
 }
 
 void MessageDigest::getValue(char* b, unsigned int& length)

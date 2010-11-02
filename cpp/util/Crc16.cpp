@@ -58,7 +58,7 @@ inline void Crc16::reset()
    mCrcValue = 0;
 }
 
-void Crc16::update(const unsigned char& b)
+bool Crc16::update(const unsigned char& b)
 {
    // get the byte as an unsigned int
    unsigned int value = b & 0xff;
@@ -75,15 +75,18 @@ void Crc16::update(const unsigned char& b)
 
    // cut crc to 16-bits (2 bytes)
    mCrcValue &= 0xffff;
+
+   return true;
 }
 
-void Crc16::update(const char* b, unsigned int length)
+bool Crc16::update(const char* b, unsigned int length)
 {
    // go through every byte
    for(unsigned int i = 0; i < length; ++i)
    {
       update(b[i]);
    }
+   return true;
 }
 
 void Crc16::getValue(char* b, unsigned int& length)
