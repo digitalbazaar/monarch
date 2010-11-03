@@ -3530,6 +3530,7 @@ void TemplateInputStream::resetState(bool createRoot)
    mEndOfStream = false;
    mLoops.clear();
    mLocalVars = DynamicObject();
+   mLocalVars->setType(Map);
 
    // free constructs
    while(!mConstructs.empty())
