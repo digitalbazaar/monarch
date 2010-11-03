@@ -3529,7 +3529,7 @@ void TemplateInputStream::resetState(bool createRoot)
    mBlocked = true;
    mEndOfStream = false;
    mLoops.clear();
-   mLocalVars->clear();
+   mLocalVars = DynamicObject();
 
    // free constructs
    while(!mConstructs.empty())
