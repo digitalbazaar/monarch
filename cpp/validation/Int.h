@@ -99,7 +99,7 @@ public:
    /**
     * Creates a new validator with min/max ranges for the specifed integer type.
     *
-    * @param type type of integer (UInt32, Int32, UInt64, In64)
+    * @param type type of integer (UInt32, Int32, UInt64, Int64)
     * @param errorMessage custom error message
     */
    Int(monarch::rt::DynamicObjectType type, const char* errorMessage = NULL);
