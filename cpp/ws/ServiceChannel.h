@@ -308,6 +308,14 @@ public:
    virtual void setSent(bool sent = true);
 
    /**
+    * Overrides the content object with the given one. If receiveContent() is
+    * called, this object will be written to and returned.
+    *
+    * @param content the content object to use.
+    */
+   virtual void setContentObject(monarch::rt::DynamicObject& content);
+
+   /**
     * Gets the client's internet address.
     *
     * @param address the client's internet address to populate.

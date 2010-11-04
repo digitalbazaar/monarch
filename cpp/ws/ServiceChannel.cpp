@@ -120,6 +120,12 @@ bool ServiceChannel::receiveContent(DynamicObject& dyno)
    }
    else
    {
+      // use previously set content object if available
+      if(!mContent.isNull())
+      {
+         dyno = mContent;
+      }
+
       // check to see if there is content to receive
       if(mRequest->getHeader()->hasContent())
       {
@@ -444,6 +450,11 @@ bool ServiceChannel::hasSent()
 void ServiceChannel::setSent(bool sent)
 {
    mHasSent = sent;
+}
+
+void ServiceChannel::setContentObject(DynamicObject& content)
+{
+   mContent = content;
 }
 
 bool ServiceChannel::getClientAddress(InternetAddress* address)
