@@ -151,27 +151,28 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerMap::iterator hmi)
          {
             pass = true;
 
-            // clear last exception, then do validation
+            // clear last exception
             Exception::clear();
 
-            if(!info.resourceValidator.isNull())
+            // always receive content
+            DynamicObject content;
+            pass = ch->receiveContent(content);
+
+            // do validation
+            if(pass && !info.resourceValidator.isNull())
             {
                DynamicObject params;
                ch->getPathParams(params);
                pass = info.resourceValidator->isValid(params);
             }
-
             if(pass && !info.queryValidator.isNull())
             {
                DynamicObject query;
                ch->getQuery(query, info.flags & ArrayQuery);
                pass = info.queryValidator->isValid(query);
             }
-
             if(pass && !info.contentValidator.isNull())
             {
-               DynamicObject content;
-               ch->receiveContent(content);
                pass = info.contentValidator->isValid(content);
             }
 
