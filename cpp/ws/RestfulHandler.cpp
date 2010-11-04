@@ -149,8 +149,6 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerMap::iterator hmi)
          HandlerInfo& info = (*mmi).second;
          if(info.handler->canHandleRequest(ch))
          {
-            pass = true;
-
             // clear last exception
             Exception::clear();
 
