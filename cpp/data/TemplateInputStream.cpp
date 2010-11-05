@@ -257,14 +257,33 @@ static bool _validateVariableKey(const char* text, bool period)
 {
    bool rval = true;
 
-   // can only contain these characters:
-   for(const char* ptr = text; *ptr != 0; ++ptr)
+   // must start with alphanumeric or underscore
+   char c;
+   const char* ptr = text;
+   if(*ptr != 0)
    {
-      char c = *ptr;
+      c = *ptr;
       if(!(c >= 'a' && c <= 'z') &&
          !(c >= 'A' && c <= 'Z') &&
          !(c >= '0' && c <= '9') &&
-         c != '_' && (!period || c != '.'))
+         c != '_')
+      {
+         rval = false;
+      }
+      else
+      {
+         ++ptr;
+      }
+   }
+
+   // can only contain these characters
+   for(; rval && *ptr != 0; ++ptr)
+   {
+      c = *ptr;
+      if(!(c >= 'a' && c <= 'z') &&
+         !(c >= 'A' && c <= 'Z') &&
+         !(c >= '0' && c <= '9') &&
+         c != '_' && c != ':' && (!period || c != '.'))
       {
          rval = false;
       }
@@ -1764,10 +1783,11 @@ bool TemplateInputStream::parseVariableText(
    if(!rval)
    {
       ExceptionRef e = new Exception(
-         "Variable name must contain only alphanumeric characters, "
-         "underscores, the '.' object accessor, or the '[]' array accessor. "
-         "If it has an operator, then it must fall between two variables "
-         "or before a constant.",
+         "Variable name must start with only alphanumeric characters or an "
+         "underscore and contain only alphanumeric characters, underscores, "
+         "colons, the '.' object accessor, or the '[]' array accessor. "
+         "If it has an operator, then it must fall between two variables or "
+         "before a constant.",
          EXCEPTION_SYNTAX);
       e->getDetails()["variable"] = text;
       Exception::set(e);
