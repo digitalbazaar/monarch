@@ -9,6 +9,7 @@
 
 using namespace std;
 using namespace monarch::crypto;
+using namespace monarch::rt;
 
 BigDecimal::BigDecimal(double value)
 {
@@ -72,6 +73,12 @@ BigDecimal::BigDecimal(const string& value)
    *this = value;
 }
 
+BigDecimal::BigDecimal(DynamicObject& value)
+{
+   initialize();
+   *this = value;
+}
+
 BigDecimal::BigDecimal(const BigDecimal& copy)
 {
    mSignificand = copy.mSignificand;
@@ -82,58 +89,6 @@ BigDecimal::BigDecimal(const BigDecimal& copy)
 
 BigDecimal::~BigDecimal()
 {
-}
-
-void BigDecimal::initialize()
-{
-   mExponent = 0;
-   mPrecision = 10;
-   mRoundingMode = HalfUp;
-}
-
-void BigDecimal::setExponent(int exponent)
-{
-   if(exponent != mExponent)
-   {
-      // If mSignificand is zero can skip the adjustment but need to change the
-      // exponent so syncronizeExponents() has the correct behavior.
-      if(!mSignificand.isZero())
-      {
-         BigInteger ten(10);
-         BigInteger pow = ten.pow(exponent - mExponent);
-         if(exponent > mExponent)
-         {
-            // multiply significand by power difference
-            // no loss of accuracy
-            mSignificand *= pow;
-         }
-         else
-         {
-            // divide significand by power difference
-            // may result in loss of accuracy
-            mSignificand /= pow;
-         }
-      }
-
-      mExponent = exponent;
-   }
-}
-
-void BigDecimal::synchronizeExponents(BigDecimal& bd1, BigDecimal& bd2)
-{
-   // only do work if exponents are different
-   if(bd1.mExponent != bd2.mExponent)
-   {
-      // use the larger exponent to retain precision
-      if(bd1.mExponent > bd2.mExponent)
-      {
-         bd2.setExponent(bd1.mExponent);
-      }
-      else
-      {
-         bd1.setExponent(bd2.mExponent);
-      }
-   }
 }
 
 BigDecimal& BigDecimal::operator=(const BigDecimal& rhs)
@@ -247,6 +202,11 @@ BigDecimal& BigDecimal::operator=(const string& rhs)
    return *this;
 }
 
+BigDecimal& BigDecimal::operator=(DynamicObject& rhs)
+{
+   return operator=(rhs->getString());
+}
+
 bool BigDecimal::operator==(const BigDecimal& rhs)
 {
    BigDecimal temp = rhs;
@@ -259,12 +219,22 @@ bool BigDecimal::operator==(double rhs)
    return getDouble() == rhs;
 }
 
+bool BigDecimal::operator==(DynamicObject& rhs)
+{
+   return operator==(rhs->getString());
+}
+
 bool BigDecimal::operator!=(const BigDecimal& rhs)
 {
    return !(*this == rhs);
 }
 
 bool BigDecimal::operator!=(double rhs)
+{
+   return !(*this == rhs);
+}
+
+bool BigDecimal::operator!=(DynamicObject& rhs)
 {
    return !(*this == rhs);
 }
@@ -642,8 +612,68 @@ string BigDecimal::toString(bool zeroFill, bool truncate) const
    return str;
 }
 
+DynamicObject BigDecimal::toDynamicObject(bool zeroFill, bool truncate) const
+{
+   // zero-fill string and truncate
+   DynamicObject d;
+   d = toString(true, false).c_str();
+   return d;
+}
+
 void BigDecimal::_setValue(BigInteger& significand, int exponent)
 {
    mSignificand = significand;
    mExponent = exponent;
+}
+
+void BigDecimal::initialize()
+{
+   mExponent = 0;
+   mPrecision = 10;
+   mRoundingMode = HalfUp;
+}
+
+void BigDecimal::setExponent(int exponent)
+{
+   if(exponent != mExponent)
+   {
+      // If mSignificand is zero can skip the adjustment but need to change the
+      // exponent so syncronizeExponents() has the correct behavior.
+      if(!mSignificand.isZero())
+      {
+         BigInteger ten(10);
+         BigInteger pow = ten.pow(exponent - mExponent);
+         if(exponent > mExponent)
+         {
+            // multiply significand by power difference
+            // no loss of accuracy
+            mSignificand *= pow;
+         }
+         else
+         {
+            // divide significand by power difference
+            // may result in loss of accuracy
+            mSignificand /= pow;
+         }
+      }
+
+      mExponent = exponent;
+   }
+}
+
+void BigDecimal::synchronizeExponents(BigDecimal& bd1, BigDecimal& bd2)
+{
+   // only do work if exponents are different
+   if(bd1.mExponent != bd2.mExponent)
+   {
+      // use the larger exponent to retain precision
+      if(bd1.mExponent > bd2.mExponent)
+      {
+         bd2.setExponent(bd1.mExponent);
+      }
+      else
+      {
+         bd1.setExponent(bd2.mExponent);
+      }
+   }
 }

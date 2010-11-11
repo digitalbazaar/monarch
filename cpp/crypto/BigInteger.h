@@ -112,7 +112,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(const BigInteger& rhs);
+   virtual BigInteger& operator=(const BigInteger& rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -121,7 +121,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(uint64_t rhs);
+   virtual BigInteger& operator=(uint64_t rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -130,7 +130,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(int64_t rhs);
+   virtual BigInteger& operator=(int64_t rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -139,7 +139,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(uint32_t rhs);
+   virtual BigInteger& operator=(uint32_t rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -148,7 +148,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(int32_t rhs);
+   virtual BigInteger& operator=(int32_t rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -157,7 +157,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(const char* rhs);
+   virtual BigInteger& operator=(const char* rhs);
 
    /**
     * Sets this BigInteger's value to the passed value.
@@ -166,7 +166,7 @@ public:
     *
     * @return this BigInteger.
     */
-   BigInteger& operator=(const std::string& rhs);
+   virtual BigInteger& operator=(const std::string& rhs);
 
    /**
     * Returns true if this BigInteger is equal to the passed one.
@@ -175,7 +175,7 @@ public:
     *
     * @return true if this BigInteger is equal to the passed one, false if not.
     */
-   bool operator==(const BigInteger& rhs);
+   virtual bool operator==(const BigInteger& rhs);
 
    /**
     * Returns true if this BigInteger is equal to the passed 64-bit integer.
@@ -185,7 +185,7 @@ public:
     * @return true if this BigInteger is equal to the passed 64-bit integer,
     *         false if not.
     */
-   bool operator==(int64_t rhs);
+   virtual bool operator==(int64_t rhs);
 
    /**
     * Returns true if this BigInteger is not equal to the passed one.
@@ -195,7 +195,7 @@ public:
     * @return true if this BigInteger is not equal to the passed one, false if
     *         not.
     */
-   bool operator!=(const BigInteger& rhs);
+   virtual bool operator!=(const BigInteger& rhs);
 
    /**
     * Returns true if this BigInteger is not equal to the passed 64-bit integer.
@@ -205,7 +205,7 @@ public:
     * @return true if this BigInteger is not equal to the passed 64-bit integer,
     *         false if not.
     */
-   bool operator!=(int64_t rhs);
+   virtual bool operator!=(int64_t rhs);
 
    /**
     * Returns true if this BigInteger is less than the passed one.
@@ -214,7 +214,7 @@ public:
     *
     * @return true if this BigInteger is less than the passed one, false if not.
     */
-   bool operator<(const BigInteger& rhs);
+   virtual bool operator<(const BigInteger& rhs);
 
    /**
     * Returns true if this BigInteger is greater than the passed one.
@@ -224,7 +224,7 @@ public:
     * @return true if this BigInteger is greater than the passed one, false
     *         if not.
     */
-   bool operator>(const BigInteger& rhs);
+   virtual bool operator>(const BigInteger& rhs);
 
    /**
     * Returns true if this BigInteger is less than or equal to the passed one.
@@ -234,7 +234,7 @@ public:
     * @return true if this BigInteger is less than or equal to the passed one,
     *         false if not.
     */
-   bool operator<=(const BigInteger& rhs);
+   virtual bool operator<=(const BigInteger& rhs);
 
    /**
     * Returns true if this BigInteger is greater than or equal to the passed one.
@@ -244,7 +244,7 @@ public:
     * @return true if this BigInteger is greater than or equal to the passed one,
     *         false if not.
     */
-   bool operator>=(const BigInteger& rhs);
+   virtual bool operator>=(const BigInteger& rhs);
 
    /**
     * Returns the result of the passed BigInteger shifted to the left n bits.
@@ -253,7 +253,7 @@ public:
     *
     * @return the result of shifting this BigInteger to the left n bits.
     */
-   BigInteger operator<<(int n);
+   virtual BigInteger operator<<(int n);
 
    /**
     * Returns the result of the passed BigInteger shifted to the right n bits.
@@ -262,7 +262,7 @@ public:
     *
     * @return the result of shifting this BigInteger to the right n bits.
     */
-   BigInteger operator>>(int n);
+   virtual BigInteger operator>>(int n);
 
    /**
     * Returns the result of the passed BigInteger added to this one.
@@ -271,7 +271,7 @@ public:
     *
     * @return the sum of this BigInteger and the passed one.
     */
-   BigInteger operator+(const BigInteger& rhs);
+   virtual BigInteger operator+(const BigInteger& rhs);
 
    /**
     * Returns the result of the passed BigInteger subtracted from this one.
@@ -280,7 +280,7 @@ public:
     *
     * @return the difference between this BigInteger and the passed one.
     */
-   BigInteger operator-(const BigInteger& rhs);
+   virtual BigInteger operator-(const BigInteger& rhs);
 
    /**
     * Returns the result of the passed BigInteger multiplied by this one.
@@ -289,7 +289,7 @@ public:
     *
     * @return the product of this BigInteger and the passed one.
     */
-   BigInteger operator*(const BigInteger& rhs);
+   virtual BigInteger operator*(const BigInteger& rhs);
 
    /**
     * Returns the result of dividing this BigInteger by the passed one.
@@ -298,7 +298,7 @@ public:
     *
     * @return the quotient of this BigInteger and the passed one.
     */
-   BigInteger operator/(const BigInteger& rhs);
+   virtual BigInteger operator/(const BigInteger& rhs);
 
    /**
     * Returns the result of this BigInteger raised to the power of the passed
@@ -308,7 +308,7 @@ public:
     *
     * @return the result of this BigInteger raised by the passed one.
     */
-   BigInteger pow(const BigInteger& rhs);
+   virtual BigInteger pow(const BigInteger& rhs);
 
    /**
     * Returns this BigInteger modulo the passed one.
@@ -317,7 +317,7 @@ public:
     *
     * @return the modulus of the passed BigInteger respective to this one.
     */
-   BigInteger operator%(const BigInteger& rhs);
+   virtual BigInteger operator%(const BigInteger& rhs);
 
    /**
     * Adds the passed BigInteger to this one and returns the result.
@@ -326,7 +326,7 @@ public:
     *
     * @return the new value of this BigInteger.
     */
-   BigInteger& operator+=(const BigInteger& rhs);
+   virtual BigInteger& operator+=(const BigInteger& rhs);
 
    /**
     * Subtracts the passed BigInteger from this one and returns the result.
@@ -335,7 +335,7 @@ public:
     *
     * @return the new value of this BigInteger.
     */
-   BigInteger& operator-=(const BigInteger& rhs);
+   virtual BigInteger& operator-=(const BigInteger& rhs);
 
    /**
     * Multiplies the passed BigInteger by this one and returns the result.
@@ -344,7 +344,7 @@ public:
     *
     * @return the new value of this BigInteger.
     */
-   BigInteger& operator*=(const BigInteger& rhs);
+   virtual BigInteger& operator*=(const BigInteger& rhs);
 
    /**
     * Divides the passed BigInteger into this one and returns the result.
@@ -353,7 +353,7 @@ public:
     *
     * @return the new value of this BigInteger.
     */
-   BigInteger& operator/=(const BigInteger& rhs);
+   virtual BigInteger& operator/=(const BigInteger& rhs);
 
    /**
     * Raises this BigInteger to the power of the passed one and returns the
@@ -363,7 +363,7 @@ public:
     *
     * @return the new value of this BigInteger.
     */
-   BigInteger& powEquals(const BigInteger& rhs);
+   virtual BigInteger& powEquals(const BigInteger& rhs);
 
    /**
     * Sets this BigInteger to the modulus of the passed one.
@@ -372,7 +372,7 @@ public:
     *
     * @return the new value of this BigInteger.
     */
-   BigInteger& operator%=(const BigInteger& rhs);
+   virtual BigInteger& operator%=(const BigInteger& rhs);
 
    /**
     * Performs a modular exponentiation and returns the remainder of the
@@ -383,7 +383,7 @@ public:
     *
     * @return the result of the modular exponentiation.
     */
-   BigInteger modexp(const BigInteger& e, const BigInteger& m);
+   virtual BigInteger modexp(const BigInteger& e, const BigInteger& m);
 
    /**
     * Performs a modular exponentiation and sets this BigInteger to the
@@ -395,7 +395,7 @@ public:
     *
     * @return the new value of this BigInteger.
     */
-   BigInteger& modexpEquals(const BigInteger& e, const BigInteger& m);
+   virtual BigInteger& modexpEquals(const BigInteger& e, const BigInteger& m);
 
    /**
     * Compares the absolute value of this BigInteger to the absolute value
@@ -407,7 +407,7 @@ public:
     *         BigInteger's absolute value, 0 if they are the same, and 1 if
     *         this BigInteger's absolute value is greater.
     */
-   int absCompare(const BigInteger& rhs);
+   virtual int absCompare(const BigInteger& rhs);
 
    /**
     * Divides this BigInteger by another and returns the whole number
@@ -417,7 +417,7 @@ public:
     * @param quotient the BigInteger to store the result of the division in.
     * @param remainder the BigInteger to store the remainder in.
     */
-   void divide(
+   virtual void divide(
       const BigInteger& divisor, BigInteger& quotient, BigInteger& remainder);
 
    /**
@@ -425,21 +425,21 @@ public:
     *
     * @return true if this BigInteger is zero, false if not.
     */
-   bool isZero() const;
+   virtual bool isZero() const;
 
    /**
     * Sets whether or not this BigInteger is negative.
     *
     * @param negative true if this BigInteger should be negative, false if not.
     */
-   void setNegative(bool negative);
+   virtual void setNegative(bool negative);
 
    /**
     * Returns true if this BigInteger is negative, false if not.
     *
     * @return true if this BigInteger is negative, false if not.
     */
-   bool isNegative() const;
+   virtual bool isNegative() const;
 
    /**
     * Returns true if this BigInteger can be stored in a 64-bit integer, false
@@ -448,28 +448,28 @@ public:
     * @return true if this BigInteger can be stored in a 64-bit integer, false
     *         if not.
     */
-   bool isCompact() const;
+   virtual bool isCompact() const;
 
    /**
     * Gets the value of this BigInteger as a 32-bit unsigned integer.
     *
     * @return the value of this BigInteger as a 32-bit unsigned integer.
     */
-   uint32_t getUInt32() const;
+   virtual uint32_t getUInt32() const;
 
    /**
     * Gets the value of this BigInteger as a 64-bit integer.
     *
     * @return the value of this BigInteger as a 64-bit integer.
     */
-   int64_t getInt64() const;
+   virtual int64_t getInt64() const;
 
    /**
     * Gets the number of bytes required to store this BigInteger.
     *
     * @return the number of bytes required to store this BigInteger.
     */
-   int getNumBytes() const;
+   virtual int getNumBytes() const;
 
    /**
     * Converts an array of bytes into a BigInteger.
@@ -477,14 +477,14 @@ public:
     * @param data the binary data.
     * @param length the number of bytes.
     */
-   void fromBytes(const char* data, int length);
+   virtual void fromBytes(const char* data, int length);
 
    /**
     * Writes this BigInteger to a ByteBuffer, resizing it if necessary.
     *
     * @param b the ByteBuffer to write to.
     */
-   void toBytes(monarch::io::ByteBuffer* b);
+   virtual void toBytes(monarch::io::ByteBuffer* b);
 
    /**
     * Writes this BigInteger to a raw byte buffer. Use getNumBytes() to
@@ -492,14 +492,14 @@ public:
     *
     * @param b the raw byte buffer to write to.
     */
-   void toBytes(char* b);
+   virtual void toBytes(char* b);
 
    /**
     * Gets the value of this BigInteger as a decimal string.
     *
     * @return the string.
     */
-   std::string toString() const;
+   virtual std::string toString() const;
 
    /**
     * Converts a hexadecimal string into a BigInteger.
@@ -508,14 +508,14 @@ public:
     *
     * @return the BigInteger.
     */
-   void fromHex(const char* hex);
+   virtual void fromHex(const char* hex);
 
    /**
     * Gets the value of this BigInteger as a hexadecimal string.
     *
     * @return the hexadecimal string.
     */
-   std::string toHex();
+   virtual std::string toHex();
 
    /**
     * Gets the underlying BIGNUM* structure.
@@ -524,7 +524,7 @@ public:
     *
     * @return the underlying BIGNUM* structure.
     */
-   BIGNUM* getBIGNUM();
+   virtual BIGNUM* getBIGNUM();
 
    /**
     * Generates a cryptographically strong random number with the given

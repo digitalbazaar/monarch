@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_crypto_BigDecimal_H
 #define monarch_crypto_BigDecimal_H
@@ -7,6 +7,7 @@
 #include <openssl/bn.h>
 
 #include "monarch/crypto/BigInteger.h"
+#include "monarch/rt/DynamicObject.h"
 
 namespace monarch
 {
@@ -85,31 +86,6 @@ protected:
     */
    RoundingMode mRoundingMode;
 
-   /**
-    * Initializes this BigDecimal.
-    */
-   void initialize();
-
-   /**
-    * Sets the exponent for this BigDecimal.  If the new exponent is larger
-    * than the current exponent, the significand will be increased and the
-    * final value will remain the same.  If the new exponent is smaller than
-    * the current exponent, the significand will be decreased and the value
-    * may become less accurate.
-    *
-    * @param exponent the new exponent to use.
-    */
-   void setExponent(int exponent);
-
-   /**
-    * Makes the exponents equal for the passed two BigDecimals. The larger
-    * exponent will be chosen so as to retain precision.
-    *
-    * @param bd1 the first BigDecimal.
-    * @param bd2 the second BigDecimal.
-    */
-   static void synchronizeExponents(BigDecimal& bd1, BigDecimal& bd2);
-
 public:
    /**
     * Creates a new BigDecimal with the specified value.
@@ -161,6 +137,13 @@ public:
    BigDecimal(const std::string& value);
 
    /**
+    * Creates a new BigDecimal with the specified value.
+    *
+    * @param value the value for this BigDecimal.
+    */
+   BigDecimal(monarch::rt::DynamicObject& value);
+
+   /**
     * Creates a new BigDecimal by copying another one.
     *
     * @param copy the BigDecimal to copy.
@@ -179,7 +162,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(const BigDecimal& rhs);
+   virtual BigDecimal& operator=(const BigDecimal& rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -188,7 +171,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(double rhs);
+   virtual BigDecimal& operator=(double rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -197,7 +180,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(int64_t rhs);
+   virtual BigDecimal& operator=(int64_t rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -206,7 +189,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(uint64_t rhs);
+   virtual BigDecimal& operator=(uint64_t rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -215,7 +198,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(int32_t rhs);
+   virtual BigDecimal& operator=(int32_t rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -224,7 +207,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(uint32_t rhs);
+   virtual BigDecimal& operator=(uint32_t rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -233,7 +216,7 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(const char* rhs);
+   virtual BigDecimal& operator=(const char* rhs);
 
    /**
     * Sets this BigDecimal's value to the passed value.
@@ -242,7 +225,16 @@ public:
     *
     * @return this BigDecimal.
     */
-   BigDecimal& operator=(const std::string& rhs);
+   virtual BigDecimal& operator=(const std::string& rhs);
+
+   /**
+    * Sets this BigDecimal's value to the passed value.
+    *
+    * @param value the new value for this BigDecimal.
+    *
+    * @return this BigDecimal.
+    */
+   virtual BigDecimal& operator=(monarch::rt::DynamicObject& rhs);
 
    /**
     * Returns true if this BigDecimal is equal to the passed one.
@@ -251,7 +243,7 @@ public:
     *
     * @return true if this BigDecimal is equal to the passed one, false if not.
     */
-   bool operator==(const BigDecimal& rhs);
+   virtual bool operator==(const BigDecimal& rhs);
 
    /**
     * Returns true if this BigDecimal is equal to the passed double.
@@ -261,7 +253,17 @@ public:
     * @return true if this BigDecimal is equal to the passed double,
     *         false if not.
     */
-   bool operator==(double rhs);
+   virtual bool operator==(double rhs);
+
+   /**
+    * Returns true if this BigDecimal is equal to the passed DynamicObject.
+    *
+    * @param rhs the DynamicObject to compare to this BigDecimal.
+    *
+    * @return true if this BigDecimal is equal to the passed DynamicObject,
+    *         false if not.
+    */
+   virtual bool operator==(monarch::rt::DynamicObject& rhs);
 
    /**
     * Returns true if this BigDecimal is not equal to the passed one.
@@ -271,7 +273,7 @@ public:
     * @return true if this BigDecimal is not equal to the passed one, false if
     *         not.
     */
-   bool operator!=(const BigDecimal& rhs);
+   virtual bool operator!=(const BigDecimal& rhs);
 
    /**
     * Returns true if this BigDecimal is not equal to the passed double.
@@ -281,7 +283,17 @@ public:
     * @return true if this BigDecimal is not equal to the passed double,
     *         false if not.
     */
-   bool operator!=(double rhs);
+   virtual bool operator!=(double rhs);
+
+   /**
+    * Returns true if this BigDecimal is not equal to the passed DynamicObject.
+    *
+    * @param rhs the DynamicObject to compare to this BigDecimal.
+    *
+    * @return true if this BigDecimal is not equal to the passed DynamicObject,
+    *         false if not.
+    */
+   virtual bool operator!=(monarch::rt::DynamicObject& rhs);
 
    /**
     * Returns true if this BigDecimal is less than the passed one.
@@ -290,7 +302,7 @@ public:
     *
     * @return true if this BigDecimal is less than the passed one, false if not.
     */
-   bool operator<(const BigDecimal& rhs);
+   virtual bool operator<(const BigDecimal& rhs);
 
    /**
     * Returns true if this BigDecimal is greater than the passed one.
@@ -300,7 +312,7 @@ public:
     * @return true if this BigDecimal is greater than the passed one, false
     *         if not.
     */
-   bool operator>(const BigDecimal& rhs);
+   virtual bool operator>(const BigDecimal& rhs);
 
    /**
     * Returns true if this BigDecimal is less than or equal to the passed one.
@@ -310,7 +322,7 @@ public:
     * @return true if this BigDecimal is less than or equal to the passed one,
     *         false if not.
     */
-   bool operator<=(const BigDecimal& rhs);
+   virtual bool operator<=(const BigDecimal& rhs);
 
    /**
     * Returns true if this BigDecimal is greater than or equal to the passed one.
@@ -320,7 +332,7 @@ public:
     * @return true if this BigDecimal is greater than or equal to the passed one,
     *         false if not.
     */
-   bool operator>=(const BigDecimal& rhs);
+   virtual bool operator>=(const BigDecimal& rhs);
 
    /**
     * Returns the result of the passed BigDecimal added to this one.
@@ -329,7 +341,7 @@ public:
     *
     * @return the sum of this BigDecimal and the passed one.
     */
-   BigDecimal operator+(const BigDecimal& rhs);
+   virtual BigDecimal operator+(const BigDecimal& rhs);
 
    /**
     * Returns the result of the passed BigDecimal subtracted from this one.
@@ -338,7 +350,7 @@ public:
     *
     * @return the difference between this BigDecimal and the passed one.
     */
-   BigDecimal operator-(const BigDecimal& rhs);
+   virtual BigDecimal operator-(const BigDecimal& rhs);
 
    /**
     * Returns the result of the passed BigDecimal multiplied by this one.
@@ -347,7 +359,7 @@ public:
     *
     * @return the product of this BigDecimal and the passed one.
     */
-   BigDecimal operator*(const BigDecimal& rhs);
+   virtual BigDecimal operator*(const BigDecimal& rhs);
 
    /**
     * Returns the result of dividing this BigDecimal by the passed one.
@@ -356,7 +368,7 @@ public:
     *
     * @return the quotient of this BigDecimal and the passed one.
     */
-   BigDecimal operator/(const BigDecimal& rhs);
+   virtual BigDecimal operator/(const BigDecimal& rhs);
 
    /**
     * Returns this BigDecimal modulo the passed one.
@@ -365,7 +377,7 @@ public:
     *
     * @return the modulus of the passed BigDecimal respective to this one.
     */
-   BigDecimal operator%(const BigDecimal& rhs);
+   virtual BigDecimal operator%(const BigDecimal& rhs);
 
    /**
     * Adds the passed BigDecimal to this one and returns the result.
@@ -374,7 +386,7 @@ public:
     *
     * @return the new value of this BigDecimal.
     */
-   BigDecimal& operator+=(const BigDecimal& rhs);
+   virtual BigDecimal& operator+=(const BigDecimal& rhs);
 
    /**
     * Subtracts the passed BigDecimal from this one and returns the result.
@@ -383,7 +395,7 @@ public:
     *
     * @return the new value of this BigDecimal.
     */
-   BigDecimal& operator-=(const BigDecimal& rhs);
+   virtual BigDecimal& operator-=(const BigDecimal& rhs);
 
    /**
     * Multiplies the passed BigDecimal by this one and returns the result.
@@ -392,7 +404,7 @@ public:
     *
     * @return the new value of this BigDecimal.
     */
-   BigDecimal& operator*=(const BigDecimal& rhs);
+   virtual BigDecimal& operator*=(const BigDecimal& rhs);
 
    /**
     * Divides the passed BigDecimal into this one and returns the result.
@@ -401,7 +413,7 @@ public:
     *
     * @return the new value of this BigDecimal.
     */
-   BigDecimal& operator/=(const BigDecimal& rhs);
+   virtual BigDecimal& operator/=(const BigDecimal& rhs);
 
    /**
     * Sets this BigDecimal to the modulus of the passed one.
@@ -410,35 +422,35 @@ public:
     *
     * @return the new value of this BigDecimal.
     */
-   BigDecimal& operator%=(const BigDecimal& rhs);
+   virtual BigDecimal& operator%=(const BigDecimal& rhs);
 
    /**
     * Returns true if this BigDecimal is zero, false if not.
     *
     * @return true if this BigDecimal is zero, false if not.
     */
-   bool isZero() const;
+   virtual bool isZero() const;
 
    /**
     * Sets whether or not this BigDecimal is negative.
     *
     * @param negative true if this BigDecimal should be negative, false if not.
     */
-   void setNegative(bool negative);
+   virtual void setNegative(bool negative);
 
    /**
     * Returns true if this BigDecimal is negative, false if not.
     *
     * @return true if this BigDecimal is negative, false if not.
     */
-   bool isNegative() const;
+   virtual bool isNegative() const;
 
    /**
     * Gets the value of this BigDecimal as a double.
     *
     * @return the value of this BigDecimal as a double.
     */
-   double getDouble() const;
+   virtual double getDouble() const;
 
    /**
     * Sets the number of digits of precision for this BigDecimal for
@@ -447,7 +459,7 @@ public:
     * @param precision the number of digits of precision to use.
     * @param roundingMode the RoundingMode to use.
     */
-   void setPrecision(unsigned int precision, RoundingMode roundingMode);
+   virtual void setPrecision(unsigned int precision, RoundingMode roundingMode);
 
    /**
     * Gets the number of digits of precision for this BigDecimal for
@@ -455,12 +467,12 @@ public:
     *
     * @return the number of digits of precision to use.
     */
-   unsigned int getPrecision();
+   virtual unsigned int getPrecision();
 
    /**
     * Rounds this BigDecimal according to its set precision.
     */
-   void round();
+   virtual void round();
 
    /**
     * Gets the value of this BigDecimal as a string. By default the string will
@@ -471,13 +483,27 @@ public:
     * returned.
     *
     * @param zeroFill true to zero-fill after the decimal point to the set
-    *                 precision, false to only use significant digits.
+    *           precision, false to only use significant digits.
     * @param truncate true to truncate result at current precision, false to
-    *                 return all current significant digits.
+    *           return all current significant digits.
     *
     * @return the string.
     */
-   std::string toString(bool zeroFill = false, bool truncate = true) const;
+   virtual std::string toString(
+      bool zeroFill = false, bool truncate = true) const;
+
+   /**
+    * Gets the value of this BigDecimal as a DynamicObject.
+    *
+    * @param zeroFill true to zero-fill after the decimal point to the set
+    *           precision, false to only use significant digits.
+    * @param truncate true to truncate result at current precision, false to
+    *           return all current significant digits.
+    *
+    * @return the DynamicObject.
+    */
+   virtual monarch::rt::DynamicObject toDynamicObject(
+      bool zeroFill = true, bool truncate = true) const;
 
    /**
     * Sets the components of the internal representation for this BigDecimal.
@@ -487,7 +513,33 @@ public:
     * @param significand the significand.
     * @param exponent the exponent.
     */
-   void _setValue(BigInteger& significand, int exponent);
+   virtual void _setValue(BigInteger& significand, int exponent);
+
+protected:
+   /**
+    * Initializes this BigDecimal.
+    */
+   virtual void initialize();
+
+   /**
+    * Sets the exponent for this BigDecimal.  If the new exponent is larger
+    * than the current exponent, the significand will be increased and the
+    * final value will remain the same.  If the new exponent is smaller than
+    * the current exponent, the significand will be decreased and the value
+    * may become less accurate.
+    *
+    * @param exponent the new exponent to use.
+    */
+   virtual void setExponent(int exponent);
+
+   /**
+    * Makes the exponents equal for the passed two BigDecimals. The larger
+    * exponent will be chosen so as to retain precision.
+    *
+    * @param bd1 the first BigDecimal.
+    * @param bd2 the second BigDecimal.
+    */
+   static void synchronizeExponents(BigDecimal& bd1, BigDecimal& bd2);
 };
 
 } // end namespace crypto
