@@ -150,11 +150,11 @@ BigDecimal& BigDecimal::operator=(const string& rhs)
    string temp;
 
    // find decimal point
-   unsigned int dot = rhs.rfind('.');
+   string::size_type dot = rhs.rfind('.');
    if(dot != string::npos)
    {
       // check for scientific notation
-      unsigned int e = rhs.rfind('e');
+      string::size_type e = rhs.rfind('e');
       if(e != string::npos && e != rhs.length() - 2)
       {
          // parse exponent
@@ -457,7 +457,7 @@ void BigDecimal::round()
    string str = toString(false, false);
 
    // find exponent
-   unsigned int dot = str.rfind('.');
+   string::size_type dot = str.rfind('.');
    if(dot != string::npos)
    {
       // determine if there are more digits than the precision allows
