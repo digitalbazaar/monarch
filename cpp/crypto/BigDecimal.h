@@ -477,8 +477,8 @@ public:
    /**
     * Gets the value of this BigDecimal as a string. By default the string will
     * include the significant digits up to a maximum precision as set by
-    * setPrecision().  If zeroFill is true, zeros will be filled in up to the
-    * set precision.  If truncate is "false" and the internal representation
+    * setPrecision(). If zeroFill is true, zeros will be filled in up to the
+    * set precision. If truncate is "false" and the internal representation
     * has more significant digits that the current precision, they will all be
     * returned.
     *
@@ -504,6 +504,20 @@ public:
     */
    virtual monarch::rt::DynamicObject toDynamicObject(
       bool zeroFill = true, bool truncate = true) const;
+
+   /**
+    * Gets this object's value as a string.
+    *
+    * @return the value of this object.
+    */
+   virtual operator std::string() const;
+
+   /**
+    * Gets this object's value as a DynamicObject.
+    *
+    * @return the value of this object.
+    */
+   virtual operator monarch::rt::DynamicObject() const;
 
    /**
     * Sets the components of the internal representation for this BigDecimal.

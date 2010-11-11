@@ -620,6 +620,16 @@ DynamicObject BigDecimal::toDynamicObject(bool zeroFill, bool truncate) const
    return d;
 }
 
+BigDecimal::operator string() const
+{
+   return toString();
+}
+
+BigDecimal::operator DynamicObject() const
+{
+   return toDynamicObject();
+}
+
 void BigDecimal::_setValue(BigInteger& significand, int exponent)
 {
    mSignificand = significand;
