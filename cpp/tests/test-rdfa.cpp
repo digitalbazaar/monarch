@@ -277,6 +277,41 @@ static void runRdfaReaderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("HTML5+RDFa");
+   {
+      string rdfa =
+         "<!DOCTYPE html>\n"
+         "<html xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#foo\" rel=\"dc:title\" resource=\"#you\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      // Check with low level API
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      DynamicObject dyno;
+      assertNoException(reader.start(dyno));
+      assertNoException(reader.read(&bais));
+      assertNoException(reader.finish());
+
+      // Check with readFromString
+      DynamicObject dyno2;
+      assertNoException(
+         RdfaReader::readFromString(
+            dyno2, rdfa.c_str(), rdfa.length(), "http://example.org/test"));
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@"] = "http://example.org/test#foo";
+      expect["dc:title"] = "http://example.org/test#you";
+      assertDynoCmp(expect, dyno);
+      assertDynoCmp(expect, dyno2);
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 

@@ -122,7 +122,10 @@ bool RdfaReader::start(DynamicObject& dyno)
       else
       {
          mRdfaCtx->callback_data = this;
-         rdfa_set_triple_handler(mRdfaCtx, &RdfaReader::callbackProcessTriple);
+         rdfa_set_default_graph_triple_handler(
+            mRdfaCtx, &RdfaReader::callbackProcessDefaultTriple);
+         rdfa_set_processor_graph_triple_handler(
+            mRdfaCtx, &RdfaReader::callbackProcessProcessorTriple);
 
          // try to start parser
          int rc = rdfa_parse_start(mRdfaCtx);
@@ -382,7 +385,25 @@ bool RdfaReader::readFromString(
    return rr.start(dyno) && rr.read(&is) && rr.finish();
 }
 
-void RdfaReader::processTriple(rdftriple* triple)
+void RdfaReader::processDefaultTriple(rdftriple* triple)
+{
+   // update map with the number of references to a particular subject
+   // using the object of this triple
+   SubjectCountMap::iterator i = mSubjectCounts.find(triple->object);
+   if(i == mSubjectCounts.end())
+   {
+      mSubjectCounts[triple->object] = 1;
+   }
+   else
+   {
+      ++mSubjectCounts[triple->object];
+   }
+
+   // store triple
+   mTriples.push_back(triple);
+}
+
+void RdfaReader::processProcessorTriple(rdftriple* triple)
 {
    /* If subject is "@prefix" then add it to the existing graph context if
       it won't overwrite anything, (one might expect the predicate to be
@@ -395,28 +416,21 @@ void RdfaReader::processTriple(rdftriple* triple)
       {
          mAutoContext[triple->predicate] = triple->object;
       }
-      rdfa_free_triple(triple);
    }
    else
    {
-      // update map with the number of references to a particular subject
-      // using the object of this triple
-      SubjectCountMap::iterator i = mSubjectCounts.find(triple->object);
-      if(i == mSubjectCounts.end())
-      {
-         mSubjectCounts[triple->object] = 1;
-      }
-      else
-      {
-         ++mSubjectCounts[triple->object];
-      }
-
-      // store triple
-      mTriples.push_back(triple);
+      // FIXME: Implement processor graph storage
    }
+
+   rdfa_free_triple(triple);
 }
 
-void RdfaReader::callbackProcessTriple(rdftriple* triple, void* reader)
+void RdfaReader::callbackProcessDefaultTriple(rdftriple* triple, void* reader)
 {
-   return static_cast<RdfaReader*>(reader)->processTriple(triple);
+   return static_cast<RdfaReader*>(reader)->processDefaultTriple(triple);
+}
+
+void RdfaReader::callbackProcessProcessorTriple(rdftriple* triple, void* reader)
+{
+   return static_cast<RdfaReader*>(reader)->processProcessorTriple(triple);
 }

@@ -23,6 +23,7 @@ namespace rdfa
  * RDFa and into a JSON-LD-formatted DynamicObject.
  *
  * @author Dave Longley
+ * @author Manu Sporny
  */
 class RdfaReader : public DynamicObjectReader
 {
@@ -159,19 +160,34 @@ public:
 
 protected:
    /**
-    * Processes a triple found by the rdfa parser.
+    * Processes a triple generated in the default graph by the RDFa processor.
     *
     * @param triple the triple to handle.
     */
-   virtual void processTriple(rdftriple* triple);
+   virtual void processDefaultTriple(rdftriple* triple);
 
    /**
-    * Called by the rdfa parser when a triple is encountered.
+    * Processes a triple generated in the processor graph by the RDFa processor.
+    *
+    * @param triple the triple to handle.
+    */
+   virtual void processProcessorTriple(rdftriple* triple);
+
+   /**
+    * Called by the RDFa processor when a default graph triple is generated.
     *
     * @param triple the triple to handle.
     * @param reader the RdfaReader instance.
     */
-   static void callbackProcessTriple(rdftriple* triple, void* reader);
+   static void callbackProcessDefaultTriple(rdftriple* triple, void* reader);
+
+   /**
+    * Called by the RDFa processor when a processor graph triple is encountered.
+    *
+    * @param triple the triple to handle.
+    * @param reader the RdfaReader instance.
+    */
+   static void callbackProcessProcessorTriple(rdftriple* triple, void* reader);
 };
 
 } // end namespace rdfa
