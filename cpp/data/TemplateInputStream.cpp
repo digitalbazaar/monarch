@@ -1,12 +1,15 @@
 /*
  * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_FORMAT_MACROS
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 #include "monarch/data/TemplateInputStream.h"
 
+#include "monarch/crypto/BigDecimal.h"
 #include "monarch/data/DynamicObjectInputStream.h"
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/ByteArrayOutputStream.h"
@@ -16,6 +19,7 @@
 #include "monarch/util/StringTools.h"
 
 using namespace std;
+using namespace monarch::crypto;
 using namespace monarch::data;
 using namespace monarch::data::json;
 using namespace monarch::io;
@@ -2074,6 +2078,100 @@ static bool _pipe_date(
    return rval;
 }
 
+static bool _pipe_format(
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
+{
+   bool rval = true;
+
+   // get variable
+   DynamicObject tmp(NULL);
+   if(var.isNull())
+   {
+      tmp = DynamicObject();
+      tmp = 0;
+   }
+   else
+   {
+      tmp = var;
+   }
+
+   // determine parameter type from format
+   PatternRef p = Pattern::compile("^%[0-9\\.]*([ifxX])$");
+   DynamicObject matches;
+   rval = !p.isNull() && p->getSubMatches(params[0], matches);
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "The format must start with '%' and end with 'i', 'f', 'x', or 'X'.",
+         EXCEPTION_SYNTAX);
+      Exception::set(e);
+   }
+   else
+   {
+      string format = params[0]->getString();
+      if(strcmp(matches[1], "i") == 0)
+      {
+         format.erase(format.length() - 1);
+         format.append(PRIi64);
+         value = StringTools::format(format.c_str(), tmp->getInt64());
+      }
+      else if(strcmp(matches[1], "f") == 0)
+      {
+         value = StringTools::format(format.c_str(), tmp->getDouble());
+      }
+      else if(strcmp(matches[1], "x") == 0)
+      {
+         format.erase(format.length() - 1);
+         format.append(PRIx64);
+         value = StringTools::format(format.c_str(), tmp->getUInt64());
+      }
+      else if(strcmp(matches[1], "X") == 0)
+      {
+         format.erase(format.length() - 1);
+         format.append(PRIX64);
+         value = StringTools::format(format.c_str(), tmp->getUInt64());
+      }
+   }
+
+   return rval;
+}
+
+static bool _pipe_decimal(
+   DynamicObject& var, string& value, DynamicObject& params, void* userData)
+{
+   bool rval = true;
+
+   // get variable
+   string tmp;
+   if(var.isNull())
+   {
+      tmp = "0";
+   }
+   else
+   {
+      tmp = var->getString();
+   }
+
+   // determine rounding up or down
+   const char* round = (params->length() > 1) ?
+      params[1]->getString() : "up";
+   RoundingMode mode = Up;
+   if(strcmp(round, "down") == 0)
+   {
+      mode = Down;
+   }
+
+   // determine number of decimal places
+   int places = params[0];
+   BigDecimal bd;
+   bd.setPrecision(places, mode);
+   bd = tmp.c_str();
+   bd.round();
+   value = bd.toString(true, true);
+
+   return rval;
+}
+
 bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
 {
    bool rval = true;
@@ -2242,6 +2340,37 @@ bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
             e->getDetails()["syntax"] =
                "<var>|date('<out format>', "
                "['<in format>', ['<out timezone>', ['<in timezone>']]])";
+            Exception::set(e);
+            rval = false;
+         }
+      }
+      else if(strcmp(name.c_str(), "format") == 0)
+      {
+         p->type = Pipe::pipe_format;
+         p->func = &_pipe_format;
+         if(p->params == NULL || (*p->params)->length() < 1)
+         {
+            ExceptionRef e = new Exception(
+               "The format must be given as a parameter to the 'format' pipe.",
+               EXCEPTION_SYNTAX);
+            e->getDetails()["syntax"] =
+               "<var>|format('<format>')";
+            Exception::set(e);
+            rval = false;
+         }
+      }
+      else if(strcmp(name.c_str(), "decimal") == 0)
+      {
+         p->type = Pipe::pipe_decimal;
+         p->func = &_pipe_decimal;
+         if(p->params == NULL || (*p->params)->length() < 1)
+         {
+            ExceptionRef e = new Exception(
+               "The number of decimal places must be given as a parameter "
+               "to the 'decimal' pipe.",
+               EXCEPTION_SYNTAX);
+            e->getDetails()["syntax"] =
+               "<var>|decimal('<places>', ['<rounding mode>'])";
             Exception::set(e);
             rval = false;
          }

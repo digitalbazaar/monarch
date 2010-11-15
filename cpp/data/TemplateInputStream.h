@@ -142,7 +142,9 @@ protected:
          pipe_default,
          pipe_truncate,
          pipe_json,
-         pipe_date
+         pipe_date,
+         pipe_format,
+         pipe_decimal
       };
       Type type;
       std::string text;

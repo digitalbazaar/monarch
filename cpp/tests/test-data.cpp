@@ -2827,6 +2827,93 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (format pipe)");
+   {
+      // create template
+      const char* tpl =
+         "{amount1|format('%1.2f')}\n"
+         "{amount2|format('%i')}\n"
+         "{amount2|format('%x')}\n"
+         "{amount2|format('%X')}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["amount1"] = "8234.125";
+      vars["amount2"] = "255";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+
+      const char* expect =
+         "8234.12\n"
+         "255\n"
+         "ff\n"
+         "FF\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (decimal pipe)");
+   {
+      // create template
+      const char* tpl =
+         "${money1|decimal('2')}\n"
+         "${money1|decimal('2','up')}\n"
+         "${money1|decimal('2','down')}\n"
+         "${money2|decimal('2')}\n"
+         "${money2|decimal('2','up')}\n"
+         "${money2|decimal('2','down')}\n"
+         "${cents|decimal('2')}\n"
+         "${cents|decimal('2','up')}\n"
+         "${cents|decimal('2','down')}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["money1"] = "8234.12";
+      vars["money2"] = "8234.125";
+      vars["cents"] = ".125";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+
+      const char* expect =
+         "$8234.12\n"
+         "$8234.12\n"
+         "$8234.12\n"
+         "$8234.13\n"
+         "$8234.13\n"
+         "$8234.12\n"
+         "$0.13\n"
+         "$0.13\n"
+         "$0.12\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
    tr.test("parse (missing map)");
    {
       // create template
