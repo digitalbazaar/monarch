@@ -41,7 +41,8 @@ static void _freeTriples(vector<rdftriple*>& triples)
 
 RdfaReader::~RdfaReader()
 {
-   _freeTriples(mTriples);
+   _freeTriples(mDefaultGraph.triples);
+   _freeTriples(mProcessorGraph.triples);
    if(mRdfaCtx != NULL)
    {
       rdfa_parse_end(mRdfaCtx);
@@ -91,7 +92,8 @@ bool RdfaReader::start(DynamicObject& dyno)
       if(mStarted)
       {
          // free rdfa triples and context
-         _freeTriples(mTriples);
+         _freeTriples(mDefaultGraph.triples);
+         _freeTriples(mProcessorGraph.triples);
          if(mRdfaCtx != NULL)
          {
             rdfa_parse_end(mRdfaCtx);
@@ -99,10 +101,15 @@ bool RdfaReader::start(DynamicObject& dyno)
          }
       }
 
-      // clear auto-context, set target to output dyno
-      mSubjectCounts.clear();
+      // reset auto context
       mAutoContext->clear();
-      mTarget = dyno;
+
+      // reset default graph, set target to output dyno
+      mDefaultGraph.subjectCounts.clear();
+      mDefaultGraph.target = dyno;
+
+      // reset processor graph
+      mProcessorGraph.subjectCounts.clear();
 
       // "a" is automatically shorthand for rdf type
       mAutoContext["a"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -245,50 +252,29 @@ static char* _applyContext(DynamicObject& ctx, const char* name)
    return rval;
 }
 
-bool RdfaReader::finish()
+static bool _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
 {
    bool rval = true;
 
-   // finish parsing
-   rdfa_parse_end(mRdfaCtx);
-
-   // no longer started
-   mStarted = false;
-
-   // merge user-set context over auto-context
-   if(!mContext.isNull())
-   {
-      mAutoContext.merge(mContext, false);
-   }
-
-   // rebuild context as a map of entries with the length of each uri stored
-   // so it doesn't need to be remeasured for each possible triple match, also
-   // output the JSON-LD context at the same time
-   mContext = DynamicObject();
-   mContext->setType(Map);
-   DynamicObjectIterator i = mAutoContext.getIterator();
+   // write context as JSON-LD context in target
+   DynamicObjectIterator i = context.getIterator();
    while(i->hasNext())
    {
-      DynamicObject entry;
-      const char* uri = i->next()->getString();
-      entry["uri"] = uri;
-      entry["len"] = strlen(uri);
-      mContext[i->getName()] = entry;
-
-      // update JSON-LD context
-      mTarget["#"][i->getName()] = uri;
+      DynamicObject& entry = i->next();
+      g->target["#"][i->getName()] = entry["uri"].clone();
    }
 
    // create a mapping of subject to JSON-LD DynamicObject
    DynamicObject subjects;
    subjects->setType(Map);
-   for(TripleList::iterator ti = mTriples.begin(); ti != mTriples.end(); ++ti)
+   for(RdfaReader::TripleList::iterator ti = g->triples.begin();
+       ti != g->triples.end(); ++ti)
    {
       rdftriple* t = *ti;
 
       // get the abbreviated subject and predicate
-      char* subject = _applyContext(mContext, t->subject);
-      char* predicate = _applyContext(mContext, t->predicate);
+      char* subject = _applyContext(context, t->subject);
+      char* predicate = _applyContext(context, t->predicate);
 
       // add the property to the subject object
       DynamicObject& s = subjects[t->subject];
@@ -303,7 +289,7 @@ bool RdfaReader::finish()
 
    // remove "a" from context, only used during processing, its a builtin
    // token replacement for rdf type
-   mTarget["#"]->removeMember("a");
+   g->target["#"]->removeMember("a");
 
    // build final JSON-LD object, perform nesting and shorten object names
    DynamicObjectIterator si = subjects.getIterator();
@@ -322,8 +308,9 @@ bool RdfaReader::finish()
             // if the object is a subject in the graph that is referenced
             // exactly once then embed it
             // (clone it to prevent circular references)
-            SubjectCountMap::iterator ci = mSubjectCounts.find(object);
-            if(ci != mSubjectCounts.end() && ci->second == 1 &&
+            RdfaReader::SubjectCountMap::iterator ci =
+               g->subjectCounts.find(object);
+            if(ci != g->subjectCounts.end() && ci->second == 1 &&
                subjects->hasMember(object))
             {
                subject[predicate] = subjects[object].clone();
@@ -331,7 +318,7 @@ bool RdfaReader::finish()
             // object cannot/should not be embedded, just abbreviate its name
             else
             {
-               object = _applyContext(mContext, object);
+               object = _applyContext(context, object);
                subject[predicate] = object;
                free((char*)object);
             }
@@ -340,35 +327,76 @@ bool RdfaReader::finish()
 
       // if a subject is NOT referenced or it is referenced more than once,
       // then it will not have been embedded anywhere ... add at the top-level
-      SubjectCountMap::iterator ci = mSubjectCounts.find(si->getName());
-      if(ci == mSubjectCounts.end() || ci->second != 1)
+      RdfaReader::SubjectCountMap::iterator ci =
+         g->subjectCounts.find(si->getName());
+      if(ci == g->subjectCounts.end() || ci->second != 1)
       {
          // first subgraph to add, so just merge into target
-         if(!mTarget->hasMember("@"))
+         if(!g->target->hasMember("@"))
          {
-            mTarget.merge(subject, false);
+            g->target.merge(subject, false);
          }
          // not the first subgraph...
          else
          {
             // change top-level subject into an array
-            if(mTarget["@"]->getType() != Array)
+            if(g->target["@"]->getType() != Array)
             {
-               DynamicObject tmp = mTarget.clone();
-               mTarget->clear();
-               mTarget["#"] = tmp["#"];
+               DynamicObject tmp = g->target.clone();
+               g->target->clear();
+               g->target["#"] = tmp["#"];
                tmp->removeMember("#");
-               mTarget["@"]->append(tmp);
+               g->target["@"]->append(tmp);
             }
             // add next top-level subgraph
-            mTarget["@"]->append(subject);
+            g->target["@"]->append(subject);
          }
       }
    }
 
-   // clear user-set context, triples, parser
+   // clear triples
+   _freeTriples(g->triples);
+
+   return rval;
+}
+
+bool RdfaReader::finish()
+{
+   bool rval = true;
+
+   // finish parsing
+   rdfa_parse_end(mRdfaCtx);
+
+   // no longer started
+   mStarted = false;
+
+   // merge user-set context over auto-context
+   if(!mContext.isNull())
+   {
+      mAutoContext.merge(mContext, false);
+   }
+
+   // rebuild context as a map of entries with the length of each uri stored
+   // so it doesn't need to be remeasured for each possible triple match
+   mContext = DynamicObject();
+   mContext->setType(Map);
+   DynamicObjectIterator i = mAutoContext.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject entry;
+      const char* uri = i->next()->getString();
+      entry["uri"] = uri;
+      entry["len"] = strlen(uri);
+      mContext[i->getName()] = entry;
+   }
+
+   // finish graphs
+   rval =
+      _finishGraph(mContext, &mDefaultGraph) &&
+      _finishGraph(mContext, &mProcessorGraph);
+
+   // clear user-set context and parser
    mContext.setNull();
-   _freeTriples(mTriples);
    rdfa_free_context(mRdfaCtx);
    mRdfaCtx = NULL;
 
@@ -385,29 +413,35 @@ bool RdfaReader::readFromString(
    return rr.start(dyno) && rr.read(&is) && rr.finish();
 }
 
-void RdfaReader::processDefaultTriple(rdftriple* triple)
+static void _processTriple(RdfaReader::Graph* g, rdftriple* triple)
 {
    // update map with the number of references to a particular subject
    // using the object of this triple
-   SubjectCountMap::iterator i = mSubjectCounts.find(triple->object);
-   if(i == mSubjectCounts.end())
+   RdfaReader::SubjectCountMap::iterator i =
+      g->subjectCounts.find(triple->object);
+   if(i == g->subjectCounts.end())
    {
-      mSubjectCounts[triple->object] = 1;
+      g->subjectCounts[triple->object] = 1;
    }
    else
    {
-      ++mSubjectCounts[triple->object];
+      ++g->subjectCounts[triple->object];
    }
 
    // store triple
-   mTriples.push_back(triple);
+   g->triples.push_back(triple);
+}
+
+void RdfaReader::processDefaultTriple(rdftriple* triple)
+{
+   _processTriple(&mDefaultGraph, triple);
 }
 
 void RdfaReader::processProcessorTriple(rdftriple* triple)
 {
    /* If subject is "@prefix" then add it to the existing graph context if
       it won't overwrite anything, (one might expect the predicate to be
-      "@prefix" but its the subject ... this isn't a real triple from the
+      "@prefix" but its the subject) this isn't a real triple from the
       default graph, its a meta triple that follows the same serialization
       format turtle. It's a bit hackish. */
    if(strcmp(triple->subject, "@prefix") == 0)
@@ -416,13 +450,12 @@ void RdfaReader::processProcessorTriple(rdftriple* triple)
       {
          mAutoContext[triple->predicate] = triple->object;
       }
+      rdfa_free_triple(triple);
    }
    else
    {
-      // FIXME: Implement processor graph storage
+      _processTriple(&mProcessorGraph, triple);
    }
-
-   rdfa_free_triple(triple);
 }
 
 void RdfaReader::callbackProcessDefaultTriple(rdftriple* triple, void* reader)

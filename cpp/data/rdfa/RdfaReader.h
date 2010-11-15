@@ -27,6 +27,31 @@ namespace rdfa
  */
 class RdfaReader : public DynamicObjectReader
 {
+public:
+   /**
+    * Graph storage and processing information.
+    */
+   typedef std::vector<rdftriple*> TripleList;
+   typedef std::map<const char*, int, monarch::util::StringComparator>
+      SubjectCountMap;
+   struct Graph
+   {
+      /**
+       * A list of parsed triples.
+       */
+      TripleList triples;
+
+      /**
+       * A map of subject name to graph-reference count.
+       */
+      SubjectCountMap subjectCounts;
+
+      /**
+       * The target DynamicObject for storing the graph in JSON-LD.
+       */
+      monarch::rt::DynamicObject target;
+   };
+
 protected:
    /**
     * True if this parser has started, false if not.
@@ -54,22 +79,14 @@ protected:
    monarch::rt::DynamicObject mAutoContext;
 
    /**
-    * A list of parsed triples.
+    * The default graph.
     */
-   typedef std::vector<rdftriple*> TripleList;
-   TripleList mTriples;
+   Graph mDefaultGraph;
 
    /**
-    * A map of subject name to graph-reference count.
+    * The processor graph.
     */
-   typedef std::map<const char*, int, monarch::util::StringComparator>
-      SubjectCountMap;
-   SubjectCountMap mSubjectCounts;
-
-   /**
-    * The final target DynamicObject set from start().
-    */
-   monarch::rt::DynamicObject mTarget;
+   Graph mProcessorGraph;
 
 public:
    /**
@@ -182,7 +199,7 @@ protected:
    static void callbackProcessDefaultTriple(rdftriple* triple, void* reader);
 
    /**
-    * Called by the RDFa processor when a processor graph triple is encountered.
+    * Called by the RDFa processor when a processor graph triple is generated.
     *
     * @param triple the triple to handle.
     * @param reader the RdfaReader instance.
