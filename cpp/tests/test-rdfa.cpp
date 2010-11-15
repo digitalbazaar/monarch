@@ -60,6 +60,64 @@ static void runRdfaReaderTest(TestRunner& tr)
    }
    tr.passIfException();
 
+   tr.test("error");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#foo\" rel=\"dc:title\" resource=\"#you\" />\n"
+         "<p>\n"
+         "</p></body>\n"
+         "</html>";
+
+      // custom context
+      DynamicObject ctx;
+      ctx["w3"] = "http://www.w3.org/2009/pointers#";
+
+      // Check with low level API
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setContext(ctx);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertException(
+         reader.read(&bais));
+
+      // check exception
+      DynamicObject ex = Exception::getAsDynamicObject();
+
+      DynamicObject expect;
+      expect["code"] = 0;
+      expect["message"] = "RDFa parse error.";
+      expect["type"] = "monarch.data.rdfa.RdfaReader.ParseError";
+      DynamicObject& graph = expect["details"]["graph"];
+      graph["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      graph["#"]["w3"] = "http://www.w3.org/2009/pointers#";
+      graph["@"] = "_:bnode0";
+      graph["http://purl.org/dc/terms/description"] =
+         "XML parsing error: mismatched tag at line 9, column 6.";
+      graph["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"] =
+         "http://www.w3.org/ns/rdfa_processing_graph#Error";
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
+         ["@"] = "_:bnode1";
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
+         ["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"] =
+            "http://www.w3.org/2009/pointers#LineCharPointer";
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
+         ["w3:charNumber"] = "6";
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
+         ["w3:lineNumber"] = "9";
+      assertDynoCmp(expect, ex);
+   }
+   tr.passIfException();
+
    tr.test("simple");
    {
       string rdfa =

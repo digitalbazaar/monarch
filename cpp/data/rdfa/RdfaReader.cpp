@@ -74,150 +74,6 @@ bool RdfaReader::setContext(DynamicObject& context)
    return rval;
 }
 
-bool RdfaReader::start(DynamicObject& dyno)
-{
-   bool rval = true;
-
-   if(mBaseUri == NULL)
-   {
-      // reader not started
-      ExceptionRef e = new Exception(
-         "Cannot start reader, no base URI set yet.",
-         RDFA_READER ".InvalidBaseUri");
-      Exception::set(e);
-      rval = false;
-   }
-   else
-   {
-      if(mStarted)
-      {
-         // free rdfa triples and context
-         _freeTriples(mDefaultGraph.triples);
-         _freeTriples(mProcessorGraph.triples);
-         if(mRdfaCtx != NULL)
-         {
-            rdfa_parse_end(mRdfaCtx);
-            rdfa_free_context(mRdfaCtx);
-         }
-      }
-
-      // reset auto context
-      mAutoContext->clear();
-
-      // reset default graph, set target to output dyno
-      mDefaultGraph.subjectCounts.clear();
-      mDefaultGraph.target = dyno;
-
-      // reset processor graph
-      mProcessorGraph.subjectCounts.clear();
-
-      // "a" is automatically shorthand for rdf type
-      mAutoContext["a"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
-      // create and setup rdfa context
-      mRdfaCtx = rdfa_create_context(mBaseUri);
-      if(mRdfaCtx == NULL)
-      {
-         // reader not started
-         ExceptionRef e = new Exception(
-            "Failed to create RDFa context.",
-            RDFA_READER ".ContextCreationFailure");
-         e->getDetails()["baseUri"] = mBaseUri;
-         Exception::set(e);
-         rval = false;
-      }
-      else
-      {
-         mRdfaCtx->callback_data = this;
-         rdfa_set_default_graph_triple_handler(
-            mRdfaCtx, &RdfaReader::callbackProcessDefaultTriple);
-         rdfa_set_processor_graph_triple_handler(
-            mRdfaCtx, &RdfaReader::callbackProcessProcessorTriple);
-
-         // try to start parser
-         int rc = rdfa_parse_start(mRdfaCtx);
-         if(rc != RDFA_PARSE_SUCCESS)
-         {
-            // reader not started
-            ExceptionRef e = new Exception(
-               "Could not start RDFa parser.",
-               RDFA_READER ".ParseError");
-            // TODO: get some error message from the parser
-            Exception::set(e);
-            rval = false;
-         }
-
-         // read started
-         mStarted = true;
-      }
-   }
-
-   return rval;
-}
-
-bool RdfaReader::read(InputStream* is)
-{
-   bool rval = true;
-
-   if(!mStarted)
-   {
-      // reader not started
-      ExceptionRef e = new Exception(
-         "Cannot read yet, RdfaReader not started.",
-         RDFA_READER ".NotStarted");
-      Exception::set(e);
-      rval = false;
-   }
-   else
-   {
-      char* buf;
-      size_t blen;
-      int bytes = 0;
-      do
-      {
-         // get rdfa parser buffer
-         buf = rdfa_get_buffer(mRdfaCtx, &blen);
-         if(buf == NULL)
-         {
-            // set memory exception
-            ExceptionRef e = new Exception(
-               "Insufficient memory to parse RDFa.",
-               RDFA_READER ".InsufficientMemory");
-            Exception::set(e);
-            rval = false;
-         }
-         else
-         {
-            // read data into buffer
-            bytes = is->read(buf, blen);
-            if(bytes > 0)
-            {
-               // parse data
-               rval = rdfa_parse_buffer(mRdfaCtx, bytes) == RDFA_PARSE_SUCCESS;
-               if(!rval)
-               {
-                  ExceptionRef e = new Exception(
-                     "RDFa parse error.",
-                     RDFA_READER ".ParseError");
-                  // TODO: add details from error triples generated in librdfa
-                  // parser (once that feature is implemented in librdfa)
-                  //e->getDetails()["foo"] = "bar";
-                  Exception::set(e);
-               }
-            }
-            else if(bytes == -1)
-            {
-               // input stream read error
-               rval = false;
-            }
-         }
-      }
-      while(rval && bytes > 0);
-   }
-
-   return rval;
-}
-
 static char* _applyContext(DynamicObject& ctx, const char* name)
 {
    char* rval = NULL;
@@ -252,10 +108,8 @@ static char* _applyContext(DynamicObject& ctx, const char* name)
    return rval;
 }
 
-static bool _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
+static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
 {
-   bool rval = true;
-
    // write context as JSON-LD context in target
    DynamicObjectIterator i = context.getIterator();
    while(i->hasNext())
@@ -356,6 +210,193 @@ static bool _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
 
    // clear triples
    _freeTriples(g->triples);
+}
+
+static DynamicObject _getExceptionGraph(
+   DynamicObject& context, DynamicObject& autoContext, RdfaReader::Graph* g)
+{
+   DynamicObject rval(NULL);
+
+   // clone contexts
+   DynamicObject ctx = context.clone();
+   DynamicObject ac = autoContext.clone();
+
+   // merge user-set context over auto-context
+   if(!ctx.isNull())
+   {
+      ac.merge(ctx, false);
+   }
+
+   // rebuild context as a map of entries with the length of each uri stored
+   // so it doesn't need to be remeasured for each possible triple match
+   ctx = DynamicObject();
+   ctx->setType(Map);
+   DynamicObjectIterator i = ac.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject entry;
+      const char* uri = i->next()->getString();
+      entry["uri"] = uri;
+      entry["len"] = strlen(uri);
+      ctx[i->getName()] = entry;
+   }
+
+   // save the old processor target
+   DynamicObject target = g->target;
+
+   // finish processor graph
+   g->target = DynamicObject();
+   g->target->setType(Map);
+   _finishGraph(ctx, g);
+   rval = g->target;
+
+   // reset old target
+   g->target = target;
+
+   return rval;
+}
+
+bool RdfaReader::start(DynamicObject& dyno)
+{
+   bool rval = true;
+
+   if(mBaseUri == NULL)
+   {
+      // reader not started
+      ExceptionRef e = new Exception(
+         "Cannot start reader, no base URI set yet.",
+         RDFA_READER ".InvalidBaseUri");
+      Exception::set(e);
+      rval = false;
+   }
+   else
+   {
+      if(mStarted)
+      {
+         // free rdfa triples and context
+         _freeTriples(mDefaultGraph.triples);
+         _freeTriples(mProcessorGraph.triples);
+         if(mRdfaCtx != NULL)
+         {
+            rdfa_parse_end(mRdfaCtx);
+            rdfa_free_context(mRdfaCtx);
+         }
+      }
+
+      // reset auto context
+      mAutoContext->clear();
+
+      // reset default graph, set target to output dyno
+      mDefaultGraph.subjectCounts.clear();
+      mDefaultGraph.target = dyno;
+
+      // reset processor graph
+      mProcessorGraph.subjectCounts.clear();
+      mProcessorGraph.target = DynamicObject();
+      mProcessorGraph.target->setType(Map);
+
+      // "a" is automatically shorthand for rdf type
+      mAutoContext["a"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+      // create and setup rdfa context
+      mRdfaCtx = rdfa_create_context(mBaseUri);
+      if(mRdfaCtx == NULL)
+      {
+         // reader not started
+         ExceptionRef e = new Exception(
+            "Failed to create RDFa context.",
+            RDFA_READER ".ContextCreationFailure");
+         e->getDetails()["baseUri"] = mBaseUri;
+         Exception::set(e);
+         rval = false;
+      }
+      else
+      {
+         mRdfaCtx->callback_data = this;
+         rdfa_set_default_graph_triple_handler(
+            mRdfaCtx, &RdfaReader::callbackProcessDefaultTriple);
+         rdfa_set_processor_graph_triple_handler(
+            mRdfaCtx, &RdfaReader::callbackProcessProcessorTriple);
+
+         // try to start parser
+         int rc = rdfa_parse_start(mRdfaCtx);
+         if(rc != RDFA_PARSE_SUCCESS)
+         {
+            // reader not started
+            ExceptionRef e = new Exception(
+               "Could not start RDFa parser.",
+               RDFA_READER ".ParseError");
+            // TODO: get some error message from the parser
+            Exception::set(e);
+            rval = false;
+         }
+
+         // read started
+         mStarted = true;
+      }
+   }
+
+   return rval;
+}
+
+bool RdfaReader::read(InputStream* is)
+{
+   bool rval = true;
+
+   if(!mStarted)
+   {
+      // reader not started
+      ExceptionRef e = new Exception(
+         "Cannot read yet, RdfaReader not started.",
+         RDFA_READER ".NotStarted");
+      Exception::set(e);
+      rval = false;
+   }
+   else
+   {
+      char* buf;
+      size_t blen;
+      int bytes = 0;
+      do
+      {
+         // get rdfa parser buffer
+         buf = rdfa_get_buffer(mRdfaCtx, &blen);
+         if(buf == NULL)
+         {
+            // set memory exception
+            ExceptionRef e = new Exception(
+               "Insufficient memory to parse RDFa.",
+               RDFA_READER ".InsufficientMemory");
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            // read data into buffer
+            bytes = is->read(buf, blen);
+            if(bytes > 0)
+            {
+               // parse data
+               rval = rdfa_parse_buffer(mRdfaCtx, bytes) == RDFA_PARSE_SUCCESS;
+               if(!rval)
+               {
+                  ExceptionRef e = new Exception(
+                     "RDFa parse error.",
+                     RDFA_READER ".ParseError");
+                  e->getDetails()["graph"] = _getExceptionGraph(
+                     mContext, mAutoContext, &mProcessorGraph);
+                  Exception::set(e);
+               }
+            }
+            else if(bytes == -1)
+            {
+               // input stream read error
+               rval = false;
+            }
+         }
+      }
+      while(rval && bytes > 0);
+   }
 
    return rval;
 }
@@ -391,9 +432,8 @@ bool RdfaReader::finish()
    }
 
    // finish graphs
-   rval =
-      _finishGraph(mContext, &mDefaultGraph) &&
-      _finishGraph(mContext, &mProcessorGraph);
+   _finishGraph(mContext, &mDefaultGraph);
+   _finishGraph(mContext, &mProcessorGraph);
 
    // clear user-set context and parser
    mContext.setNull();
