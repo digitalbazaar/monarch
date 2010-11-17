@@ -353,7 +353,7 @@ DynamicObject StringTools::split(const char* str, const char* delimiter)
    StringTokenizer st(str, delimiter, true);
    while(st.hasNextToken())
    {
-      rval->append() = st.nextToken();
+      rval->append(st.nextToken());
    }
 
    return rval;

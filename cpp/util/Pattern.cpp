@@ -92,7 +92,7 @@ bool Pattern::getSubMatches(
          // get start and end offsets
          start = m[i].rm_so;
          end = m[i].rm_eo;
-         matches->append() = string(str + start, end - start).c_str();
+         matches->append(string(str + start, end - start).c_str());
       }
 
       /* Note: Advancing the string pointer forward (to repeat the pattern) is

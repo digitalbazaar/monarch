@@ -248,7 +248,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
    {
       SchemaObject schema;
       schema["table"] = TABLE_TEST;
-      schema["indices"]->append() = "PRIMARY KEY(foo_id)";
+      schema["indices"]->append("PRIMARY KEY(foo_id)");
 
       // stored in object as string, in database as uint64
       DatabaseClient::addSchemaColumn(schema,
@@ -262,7 +262,7 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
          "foo_int32", "TINYINT(1) UNSIGNED", "fooInt32", Int32);
       DatabaseClient::addSchemaColumn(schema,
          "foo_blob", "BLOB", "fooHex", String);
-      schema["columns"].last()["encode"]->append() = "hex";
+      schema["columns"].last()["encode"]->append("hex");
 
       dbc->define(schema);
    }
@@ -507,8 +507,8 @@ static void runMySqlDatabaseClientTest(TestRunner& tr)
    tr.test("select IN()");
    {
       DynamicObject where;
-      where["fooString"]->append() = "bar";
-      where["fooString"]->append() = "foobar";
+      where["fooString"]->append("bar");
+      where["fooString"]->append("foobar");
       SqlExecutableRef se = dbc->select(TABLE_TEST, &where);
       dbc->execute(se);
       assertNoExceptionSet();

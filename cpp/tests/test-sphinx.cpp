@@ -38,8 +38,8 @@ static void runSphinxClientTest(TestRunner &tr)
       cmd["matchMode"] = SPHINX_MATCH_ALL;
       cmd["rankMode"] = SPHINX_RANK_PROXIMITY_BM25;
       cmd["sortMode"] = SPHINX_SORT_RELEVANCE;
-      cmd["weights"]->append() = 100;
-      cmd["weights"]->append() = 1;
+      cmd["weights"]->append(100);
+      cmd["weights"]->append(1);
       cmd["indexes"] = "*";
       cmd["minId"] = 0;
       cmd["maxId"] = 0;

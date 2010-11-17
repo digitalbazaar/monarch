@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  *
  * This test file is used to test the Monarch ConfigManager without the need
  * for it to use the Monarch App Tester framework -- which itself depends on
@@ -83,8 +83,8 @@ static void _testConfigs(
       expect["vegetables"]["eggplant"] = "purple";
       DynamicObject two;
       two["one"] = "green";
-      expect["vegetables"]["pepper"]->append() = two;
-      expect["vegetables"]["pepper"]->append() = "yellow";
+      expect["vegetables"]["pepper"]->append(two);
+      expect["vegetables"]["pepper"]->append("yellow");
 
       Config merged = cm.getConfig("system", false);
       assertNoExceptionSet();
@@ -112,7 +112,7 @@ static void _testConfigs(
       // create expect config
       Config expect;
       expect["path"]->setType(Array);
-      expect["path"]->append() = "/usr/bin";
+      expect["path"]->append("/usr/bin");
       expect["cowSays"] = "moo";
       expect["dogSays"] = "woof";
       expect["fruits"]["apple"] = "red";
@@ -121,8 +121,8 @@ static void _testConfigs(
       DynamicObject two;
       two["one"] = "green";
       two["two"] = "red";
-      expect["vegetables"]["pepper"]->append() = two;
-      expect["vegetables"]["pepper"]->append() = "yellow";
+      expect["vegetables"]["pepper"]->append(two);
+      expect["vegetables"]["pepper"]->append("yellow");
 
       Config merged = cm.getConfig("engine", false);
       assertNoExceptionSet();
@@ -151,7 +151,7 @@ static void _testConfigs(
       // create expect config
       Config expect;
       expect["path"]->setType(Array);
-      expect["path"]->append() = "/tmp/ui-tool";
+      expect["path"]->append("/tmp/ui-tool");
       expect["cowSays"] = "moo";
       expect["dogSays"] = "bowwow";
       expect["fruits"]["apple"] = "red";
@@ -160,8 +160,8 @@ static void _testConfigs(
       DynamicObject two;
       two["one"] = "green";
       two["two"] = "red";
-      expect["vegetables"]["pepper"]->append() = two;
-      expect["vegetables"]["pepper"]->append() = "yellow";
+      expect["vegetables"]["pepper"]->append(two);
+      expect["vegetables"]["pepper"]->append("yellow");
 
       Config merged = cm.getConfig("ui", false);
       assertNoExceptionSet();
@@ -190,8 +190,8 @@ static void _testConfigs(
       // create expect config
       Config expect;
       expect["path"]->setType(Array);
-      expect["path"]->append() = "/usr/bin";
-      expect["path"]->append() = "/tmp/ui-tool";
+      expect["path"]->append("/usr/bin");
+      expect["path"]->append("/tmp/ui-tool");
       expect["cowSays"] = "moo";
       expect["dogSays"] = "woof";
       expect["fruits"]["apple"] = "red";
@@ -201,8 +201,8 @@ static void _testConfigs(
       DynamicObject two;
       two["one"] = "green";
       two["two"] = "red";
-      expect["vegetables"]["pepper"]->append() = two;
-      expect["vegetables"]["pepper"]->append() = "yellow";
+      expect["vegetables"]["pepper"]->append(two);
+      expect["vegetables"]["pepper"]->append("yellow");
 
       Config merged = cm.getConfig("app", false);
       assertNoExceptionSet();
@@ -230,9 +230,9 @@ static void _testConfigs(
       // create expect config
       Config expect;
       expect["path"]->setType(Array);
-      expect["path"]->append() = "/usr/bin";
-      expect["path"]->append() = "/tmp/ui-tool";
-      expect["path"]->append() = "/home/user1";
+      expect["path"]->append("/usr/bin");
+      expect["path"]->append("/tmp/ui-tool");
+      expect["path"]->append("/home/user1");
       expect["cowSays"] = "moo";
       expect["dogSays"] = "woof";
       expect["fruits"]["apple"] = "red";
@@ -267,9 +267,9 @@ static void _testConfigs(
       // create expect config
       Config expect;
       expect["path"]->setType(Array);
-      expect["path"]->append() = "/usr/bin";
-      expect["path"]->append() = "/tmp/ui-tool";
-      expect["path"]->append() = "/home/user2";
+      expect["path"]->append("/usr/bin");
+      expect["path"]->append("/tmp/ui-tool");
+      expect["path"]->append("/home/user2");
       expect["cowSays"] = "moo";
       expect["dogSays"] = "woof";
       expect["fruits"]["apple"] = "red";
@@ -279,8 +279,8 @@ static void _testConfigs(
       DynamicObject two;
       two["one"] = "green";
       two["two"] = "red";
-      expect["vegetables"]["pepper"]->append() = two;
-      expect["vegetables"]["pepper"]->append() = "yellow";
+      expect["vegetables"]["pepper"]->append(two);
+      expect["vegetables"]["pepper"]->append("yellow");
       expect["bacon"]["cooked"] = "red";
       expect["bacon"]["raw"] = "pink";
 
@@ -310,7 +310,7 @@ static void _testConfigs(
       // create expect config
       Config expect;
       expect["path"]->setType(Array);
-      expect["path"]->append() = "/home/child2";
+      expect["path"]->append("/home/child2");
       expect["cowSays"] = "moo";
       expect["dogSays"] = "woof";
       expect["fruits"]["apple"] = "red";
@@ -320,8 +320,8 @@ static void _testConfigs(
       DynamicObject two;
       two["one"] = "green";
       two["two"] = "red";
-      expect["vegetables"]["pepper"]->append() = two;
-      expect["vegetables"]["pepper"]->append() = "yellow";
+      expect["vegetables"]["pepper"]->append(two);
+      expect["vegetables"]["pepper"]->append("yellow");
       expect["bacon"]["cooked"] = "red";
       expect["shoes"] = "black";
 
@@ -360,9 +360,9 @@ static void _testConfigs(
       // create expect config
       Config expect;
       expect["path"]->setType(Array);
-      expect["path"]->append() = "/usr/bin";
-      expect["path"]->append() = "/tmp/ui-tool";
-      expect["path"]->append() = "/home/user2";
+      expect["path"]->append("/usr/bin");
+      expect["path"]->append("/tmp/ui-tool");
+      expect["path"]->append("/home/user2");
       expect["cowSays"] = "moo";
       expect["dogSays"] = "woof";
       expect["fruits"]["apple"] = "red";
@@ -372,8 +372,8 @@ static void _testConfigs(
       DynamicObject two;
       two["one"] = "green";
       two["two"] = "red";
-      expect["vegetables"]["pepper"]->append() = two;
-      expect["vegetables"]["pepper"]->append() = "yellow";
+      expect["vegetables"]["pepper"]->append(two);
+      expect["vegetables"]["pepper"]->append("yellow");
       expect["bacon"]["cooked"] = "red";
       expect["bacon"]["raw"] = "pink";
       expect["added"] = true;
@@ -392,7 +392,7 @@ static void _testConfigs(
       // create expect config
       Config expect;
       expect["path"]->setType(Array);
-      expect["path"]->append() = "/home/child2";
+      expect["path"]->append("/home/child2");
       expect["cowSays"] = "moo";
       expect["dogSays"] = "woof";
       expect["fruits"]["apple"] = "red";
@@ -402,8 +402,8 @@ static void _testConfigs(
       DynamicObject two;
       two["one"] = "green";
       two["two"] = "red";
-      expect["vegetables"]["pepper"]->append() = two;
-      expect["vegetables"]["pepper"]->append() = "yellow";
+      expect["vegetables"]["pepper"]->append(two);
+      expect["vegetables"]["pepper"]->append("yellow");
       expect["bacon"]["cooked"] = "red";
       expect["shoes"] = "black";
       expect["added"] = true;
@@ -595,8 +595,8 @@ static void _initConfigs(
       merge["vegetables"]["eggplant"] = "purple";
       DynamicObject two;
       two["one"] = "green";
-      merge["vegetables"]["pepper"]->append() = two;
-      merge["vegetables"]["pepper"]->append() = "yellow";
+      merge["vegetables"]["pepper"]->append(two);
+      merge["vegetables"]["pepper"]->append("yellow");
    }
 
    // build engine config
@@ -612,11 +612,11 @@ static void _initConfigs(
       merge["fruits"]["banana"] = "yellow";
       DynamicObject two;
       two["two"] = "red";
-      merge["vegetables"]["pepper"]->append() = two;
+      merge["vegetables"]["pepper"]->append(two);
 
       // set append info
       Config& append = engine[ConfigManager::APPEND];
-      append["path"]->append() = "/usr/bin";
+      append["path"]->append("/usr/bin");
 
       // set remove info
       Config& remove= engine[ConfigManager::REMOVE];
@@ -635,11 +635,11 @@ static void _initConfigs(
       merge["fruits"]["pear"] = "green";
       DynamicObject two;
       two["two"] = "red";
-      merge["vegetables"]["pepper"]->append() = two;
+      merge["vegetables"]["pepper"]->append(two);
 
       // set append info
       Config& append = ui[ConfigManager::APPEND];
-      append["path"]->append() = "/tmp/ui-tool";
+      append["path"]->append("/tmp/ui-tool");
 
       // set remove info
       Config& remove= ui[ConfigManager::REMOVE];
@@ -658,7 +658,7 @@ static void _initConfigs(
 
       // set append info
       Config& append = user1[ConfigManager::APPEND];
-      append["path"]->append() = "/home/user1";
+      append["path"]->append("/home/user1");
 
       // set remove info
       Config& remove= user1[ConfigManager::REMOVE];
@@ -678,7 +678,7 @@ static void _initConfigs(
 
       // set append info
       Config& append = user2[ConfigManager::APPEND];
-      append["path"]->append() = "/home/user2";
+      append["path"]->append("/home/user2");
    }
 
    // build child2 config
@@ -694,7 +694,7 @@ static void _initConfigs(
 
       // set append info
       Config& append = child2[ConfigManager::APPEND];
-      append["path"]->append() = "/home/child2";
+      append["path"]->append("/home/child2");
 
       // set remove info
       Config& remove= child2[ConfigManager::REMOVE];

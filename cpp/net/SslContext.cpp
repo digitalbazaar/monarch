@@ -402,7 +402,7 @@ DynamicObject SslContext::getSslErrorStrings()
    long err;
    while((err = ERR_get_error()) != 0)
    {
-      rval->append() = ERR_error_string(err, NULL);
+      rval->append(ERR_error_string(err, NULL));
    }
 
    return rval;

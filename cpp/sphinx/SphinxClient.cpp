@@ -292,7 +292,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
       name[length] = 0;
 
       // store field
-      sr["fields"]->append() = name;
+      sr["fields"]->append(name);
    }
 
    // read attributes
@@ -373,7 +373,7 @@ bool SphinxClient::parseQueryResponse(ByteBuffer* b, SphinxResponse& sr)
                   attr["value"]->setType(Array);
                   for(uint32_t x = 0; x < value; ++x)
                   {
-                     attr["value"]->append() = readUInt32(b, false);
+                     attr["value"]->append(readUInt32(b, false));
                   }
                }
                else

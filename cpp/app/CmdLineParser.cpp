@@ -184,7 +184,7 @@ bool CmdLineParser::parse(int argc, const char* argv[], DynamicObject& options)
    {
       for(; i < argc; ++i)
       {
-         extra->append() = argv[i];
+         extra->append(argv[i]);
       }
    }
 

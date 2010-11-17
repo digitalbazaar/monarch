@@ -19,7 +19,7 @@ using namespace monarch::ws;
 WebServiceContainer::WebServiceContainer()
 {
    // set default domains to "*"
-   mDefaultDomains->append() = "*";
+   mDefaultDomains->append("*");
 }
 
 WebServiceContainer::~WebServiceContainer()
@@ -49,7 +49,7 @@ bool WebServiceContainer::addService(
       if(domain != NULL)
       {
          domains = DynamicObject();
-         domains->append() = domain;
+         domains->append(domain);
       }
       else
       {
@@ -69,7 +69,7 @@ bool WebServiceContainer::addService(
          rval = internalAddService(service, st, dom);
          if(rval)
          {
-            added->append() = dom;
+            added->append(dom);
          }
       }
 
@@ -135,7 +135,7 @@ void WebServiceContainer::removeService(
    if(domain != NULL)
    {
       domains = DynamicObject();
-      domains->append() = domain;
+      domains->append(domain);
    }
    else
    {
@@ -194,7 +194,7 @@ WebServiceRef WebServiceContainer::getService(
    if(domain != NULL)
    {
       domains = DynamicObject();
-      domains->append() = domain;
+      domains->append(domain);
    }
    else
    {

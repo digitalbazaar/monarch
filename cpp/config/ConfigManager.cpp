@@ -584,12 +584,12 @@ bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
          {
             // change all members and group itself
             ids = mConfigs[id]["members"].clone();
-            ids->append() = id;
+            ids->append(id);
          }
          else
          {
             // just change the single config
-            ids->append() = id;
+            ids->append(id);
          }
 
          // get the old parent ID
@@ -622,7 +622,7 @@ bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
             {
                // change parent
                mConfigs[id]["raw"][PARENT] = parentId;
-               mConfigs[parentId]["children"]->append() = id;
+               mConfigs[parentId]["children"]->append(id);
             }
 
             if(opId != NULL)
@@ -1463,7 +1463,7 @@ static void _insertConfig(
    {
       // update parent's children
       ConfigManager::ConfigId parent = raw[ConfigManager::PARENT]->getString();
-      storage[parent]["children"]->append() = id;
+      storage[parent]["children"]->append(id);
    }
 }
 
@@ -1750,7 +1750,7 @@ bool ConfigManager::recursiveAddConfig(
                   {
                      groupConfig["raw"][PARENT] = config[PARENT]->getString();
                   }
-                  groupConfig["members"]->append() = id;
+                  groupConfig["members"]->append(id);
                }
                // add member to group if not already in group
                else
@@ -1768,7 +1768,7 @@ bool ConfigManager::recursiveAddConfig(
                   }
                   if(add)
                   {
-                     groupConfig["members"]->append() = id;
+                     groupConfig["members"]->append(id);
                   }
                }
             }

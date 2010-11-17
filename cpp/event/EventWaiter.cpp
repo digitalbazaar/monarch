@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/event/EventWaiter.h"
 
@@ -31,7 +31,7 @@ void EventWaiter::reset()
 
 void EventWaiter::start(const char* event, DynamicObject* condition)
 {
-   mEventTypes->append() = event;
+   mEventTypes->append(event);
    mEventController->registerObserver(this, event, condition);
 }
 

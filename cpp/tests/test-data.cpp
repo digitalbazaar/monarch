@@ -1990,11 +1990,11 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       // create variables
       DynamicObject vars;
-      vars["foo"]["items"]->append() = "item1";
-      vars["foo"]["items"]->append() = "item2";
-      vars["foo"]["items"]->append() = "item3";
-      vars["foo"]["five"]->append() = 4;
-      vars["foo"]["five"]->append() = 5;
+      vars["foo"]["items"]->append("item1");
+      vars["foo"]["items"]->append("item2");
+      vars["foo"]["items"]->append("item3");
+      vars["foo"]["five"]->append(4);
+      vars["foo"]["five"]->append(5);
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -2114,9 +2114,9 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       // create variables
       DynamicObject vars;
-      vars["items"]->append() = "item1";
-      vars["items"]->append() = "item2";
-      vars["items"]->append() = "item3";
+      vars["items"]->append("item1");
+      vars["items"]->append("item2");
+      vars["items"]->append("item3");
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -2177,9 +2177,9 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       // create variables
       DynamicObject vars;
-      vars["items"]->append() = "item1";
-      vars["items"]->append() = "item2";
-      vars["items"]->append() = "item3";
+      vars["items"]->append("item1");
+      vars["items"]->append("item2");
+      vars["items"]->append("item3");
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -2260,9 +2260,9 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       // create variables
       DynamicObject vars;
-      vars["items"]->append() = "item1";
-      vars["items"]->append() = "item2";
-      vars["items"]->append() = "item3";
+      vars["items"]->append("item1");
+      vars["items"]->append("item2");
+      vars["items"]->append("item3");
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -2335,9 +2335,9 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       // create variables
       DynamicObject vars;
-      vars["items"]->append() = "item1";
-      vars["items"]->append() = "item2";
-      vars["items"]->append() = "item3";
+      vars["items"]->append("item1");
+      vars["items"]->append("item2");
+      vars["items"]->append("item3");
       vars["myfile"] = file->getAbsolutePath();
 
       // create template input stream
@@ -2408,9 +2408,9 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       // create variables
       DynamicObject vars;
-      vars["items"]->append() = "item1";
-      vars["items"]->append() = "item2";
-      vars["items"]->append() = "item3";
+      vars["items"]->append("item1");
+      vars["items"]->append("item2");
+      vars["items"]->append("item3");
 
       // create template input stream
       ByteArrayInputStream bais(tpl, strlen(tpl));
@@ -2462,9 +2462,9 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       // create variables
       DynamicObject vars;
-      vars["items"]->append() = "item1";
-      vars["items"]->append() = "item2";
-      vars["items"]->append() = "item3";
+      vars["items"]->append("item1");
+      vars["items"]->append("item2");
+      vars["items"]->append("item3");
       vars["myfile"] = file->getAbsolutePath();
 
       // create template input stream
@@ -2513,9 +2513,9 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       // create variables
       DynamicObject vars;
-      vars["foo"]["items"]->append() = "item1";
-      vars["foo"]["items"]->append() = "item2";
-      vars["foo"]["items"]->append() = "item3";
+      vars["foo"]["items"]->append("item1");
+      vars["foo"]["items"]->append("item2");
+      vars["foo"]["items"]->append("item3");
       vars["foo"]["special"] = 1;
 
       // create template input stream
@@ -2560,11 +2560,11 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       // create variables
       DynamicObject vars;
-      vars["foo"]["items"]->append() = "item1";
-      vars["foo"]["items"]->append() = 2;
-      vars["foo"]["items"]->append() = "secret";
-      vars["foo"]["items"]->append() = 4;
-      vars["foo"]["items"]->append() = "item5";
+      vars["foo"]["items"]->append("item1");
+      vars["foo"]["items"]->append(2);
+      vars["foo"]["items"]->append("secret");
+      vars["foo"]["items"]->append(4);
+      vars["foo"]["items"]->append("item5");
       vars["foo"]["third"] = "secret";
 
       // create template input stream

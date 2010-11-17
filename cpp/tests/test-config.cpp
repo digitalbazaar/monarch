@@ -303,7 +303,7 @@ static void runConfigManagerTest(TestRunner& tr)
       DynamicObject nodec;
       nodec["node"]["host"] = "localhost";
       nodec["node"]["port"] = 19100;
-      nodec["node"]["modulePath"]->append() = "/usr/lib/bitmunk/modules";
+      nodec["node"]["modulePath"]->append("/usr/lib/bitmunk/modules");
       nodec["node"]["userModulePath"] = "~/.bitmunk/modules";
       assert(cm.addConfig(nodec));
       assertNoExceptionSet();

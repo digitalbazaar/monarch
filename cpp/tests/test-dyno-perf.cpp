@@ -28,7 +28,7 @@ static void runDynoIterTest1(
       d1->setType(Array);
       for(int i = 0; i < dynos; ++i)
       {
-         d1->append() = i;
+         d1->append(i);
          //d1[i] = i;
       }
       uint64_t start_iter = System::getCurrentMilliseconds();

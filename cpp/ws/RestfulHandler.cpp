@@ -194,8 +194,8 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerMap::iterator hmi)
          e->getDetails()["validMethods"]->setType(Array);
          for(mmi = mm->begin(); mmi != mm->end(); ++mmi)
          {
-            e->getDetails()["validMethods"]->append() =
-               Message::methodToString(mmi->first);
+            e->getDetails()["validMethods"]->append(
+               Message::methodToString(mmi->first));
          }
 
          // set allow header

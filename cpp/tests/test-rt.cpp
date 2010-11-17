@@ -979,9 +979,9 @@ static void runDynamicObjectTest(TestRunner& tr)
          DynamicObject d;
          d->setType(Array);
          assert(d->length() == 0);
-         d->append() = 1;
-         d->append() = 2;
-         d->append() = 3;
+         d->append(1);
+         d->append(2);
+         d->append(3);
          assert(d->length() == 3);
       }
       {
@@ -1512,8 +1512,7 @@ static void runDynoAppendTest(TestRunner& tr)
    {
       DynamicObject d;
 
-      DynamicObject next;
-      next = d->append();
+      DynamicObject& next = d->append();
       next = "test";
 
       assert(d->length() == 1);
@@ -1537,7 +1536,7 @@ static void runDynoAppendTest(TestRunner& tr)
    {
       DynamicObject d;
 
-      d->append() = "test";
+      d->append("test");
 
       assert(d->length() == 1);
       assertStrCmp(d[0]->getString(), "test");

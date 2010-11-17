@@ -153,14 +153,14 @@ bool WebServer::initialize(Config& cfg)
          if(domains->length() == 0)
          {
             // add wildcard if no domains specified
-            domains->append() = "*";
+            domains->append("*");
          }
       }
       else
       {
          // no specified default domains, so use "*"
          domains = DynamicObject();
-         domains->append() = "*";
+         domains->append("*");
       }
       mContainer->setDefaultDomains(domains);
 
@@ -181,7 +181,7 @@ void WebServer::cleanup()
    // reset container
    mContainer->clear();
    DynamicObject domains;
-   domains->append() = "*";
+   domains->append("*");
    mContainer->setDefaultDomains(domains);
 
    // clean up

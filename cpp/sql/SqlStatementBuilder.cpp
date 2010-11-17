@@ -392,15 +392,15 @@ bool SqlStatementBuilder::createAddSql(
             params->append(fkey["value"]);
          }
 
-         statements["sql"]->append() = StringTools::format(
+         statements["sql"]->append(StringTools::format(
             "INSERT INTO %s (%s) SELECT %s",
-            table, columns.c_str(), values.c_str()).c_str();
+            table, columns.c_str(), values.c_str()).c_str());
       }
       else
       {
-         statements["sql"]->append() = StringTools::format(
+         statements["sql"]->append(StringTools::format(
             "INSERT INTO %s (%s) VALUES (%s)",
-            table, columns.c_str(), values.c_str()).c_str();
+            table, columns.c_str(), values.c_str()).c_str());
       }
 
       // add auto-increment field, if any
@@ -572,18 +572,18 @@ bool SqlStatementBuilder::createUpdateSql(
       string lock;
 
       /*
-      statements["sql"]->append() = StringTools::format(
+      statements["sql"]->append(StringTools::format(
          "UPDATE %s AS %s SET %s%s%s%s%s",
          table, alias, set.c_str(),
          (where.length() == 0) ? "" : " WHERE ", where.c_str(),
-         limit.c_str(), lock.c_str()).c_str();
+         limit.c_str(), lock.c_str()).c_str());
       */
 
-      statements["sql"]->append() = StringTools::format(
+      statements["sql"]->append(StringTools::format(
          "UPDATE %s SET %s%s%s%s%s",
          table, set.c_str(),
          (where.length() == 0) ? "" : " WHERE ", where.c_str(),
-         limit.c_str(), lock.c_str()).c_str();
+         limit.c_str(), lock.c_str()).c_str());
 
       // add table information
       DynamicObject& t = statements["tables"]->append();
@@ -743,11 +743,11 @@ bool SqlStatementBuilder::createGetSql(
       // FIXME: handle row-level locking
       string lock;
 
-      statements["sql"]->append() = StringTools::format(
+      statements["sql"]->append(StringTools::format(
          "SELECT %s FROM %s AS %s%s%s%s%s%s",
          columns.c_str(), table, alias, joins.c_str(),
          (where.length() == 0) ? "" : " WHERE ", where.c_str(),
-         limit.c_str(), lock.c_str()).c_str();
+         limit.c_str(), lock.c_str()).c_str());
 
       // add table information
       DynamicObject& t = statements["tables"]->append();

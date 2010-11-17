@@ -108,7 +108,7 @@ bool Mail::addRecipient(const char* header, const char* address)
       if(header != NULL)
       {
          mMessage["headers"][header]->setType(Array);
-         mMessage["headers"][header]->append() = address;
+         mMessage["headers"][header]->append(address);
       }
    }
 
