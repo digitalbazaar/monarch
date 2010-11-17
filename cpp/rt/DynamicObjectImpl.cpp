@@ -690,23 +690,78 @@ bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
 
 DynamicObject& DynamicObjectImpl::append()
 {
-   if(mType != Array)
-   {
-      setType(Array);
-   }
-
+   setType(Array);
    DynamicObject d;
    mArray->push_back(d);
    return mArray->back();
 }
 
-DynamicObject& DynamicObjectImpl::append(DynamicObject& dyno)
+DynamicObject& DynamicObjectImpl::append(DynamicObject& value)
 {
-   if(mType != Array)
-   {
-      setType(Array);
-   }
+   setType(Array);
+   mArray->push_back(value);
+   return mArray->back();
+}
 
+DynamicObject& DynamicObjectImpl::append(const char* value)
+{
+   DynamicObject dyno;
+   dyno = value;
+   setType(Array);
+   mArray->push_back(dyno);
+   return mArray->back();
+}
+
+DynamicObject& DynamicObjectImpl::append(bool value)
+{
+   DynamicObject dyno;
+   dyno = value;
+   setType(Array);
+   mArray->push_back(dyno);
+   return mArray->back();
+}
+
+DynamicObject& DynamicObjectImpl::append(int32_t value)
+{
+   DynamicObject dyno;
+   dyno = value;
+   setType(Array);
+   mArray->push_back(dyno);
+   return mArray->back();
+}
+
+DynamicObject& DynamicObjectImpl::append(uint32_t value)
+{
+   DynamicObject dyno;
+   dyno = value;
+   setType(Array);
+   mArray->push_back(dyno);
+   return mArray->back();
+}
+
+DynamicObject& DynamicObjectImpl::append(int64_t value)
+{
+   DynamicObject dyno;
+   dyno = value;
+   setType(Array);
+   mArray->push_back(dyno);
+   return mArray->back();
+}
+
+DynamicObject& DynamicObjectImpl::append(uint64_t value)
+{
+   DynamicObject dyno;
+   dyno = value;
+   setType(Array);
+   mArray->push_back(dyno);
+   return mArray->back();
+}
+
+DynamicObject& DynamicObjectImpl::append(double value)
+{
+   DynamicObject dyno;
+   dyno = value;
+   setType(Array);
    mArray->push_back(dyno);
    return mArray->back();
 }

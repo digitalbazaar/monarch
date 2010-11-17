@@ -234,11 +234,81 @@ public:
     * Appends the passed DynamicObject to this one and returns a reference to
     * it.
     *
-    * @param dyno the DynamicObject to append.
+    * @param value the DynamicObject to append.
     *
     * @return the DynamicObject that was appended.
     */
-   virtual DynamicObject& append(DynamicObject& append);
+   virtual DynamicObject& append(DynamicObject& value);
+
+   /**
+    * Creates a DynamicObject, appends it to this one, and returns a reference
+    * to it.
+    *
+    * @param value the value to append.
+    *
+    * @return the DynamicObject that was appended.
+    */
+   virtual DynamicObject& append(const char* value);
+
+   /**
+    * Creates a DynamicObject, appends it to this one, and returns a reference
+    * to it.
+    *
+    * @param value the value to append.
+    *
+    * @return the DynamicObject that was appended.
+    */
+   virtual DynamicObject& append(bool value);
+
+   /**
+    * Creates a DynamicObject, appends it to this one, and returns a reference
+    * to it.
+    *
+    * @param value the value to append.
+    *
+    * @return the DynamicObject that was appended.
+    */
+   virtual DynamicObject& append(int32_t value);
+
+   /**
+    * Creates a DynamicObject, appends it to this one, and returns a reference
+    * to it.
+    *
+    * @param value the value to append.
+    *
+    * @return the DynamicObject that was appended.
+    */
+   virtual DynamicObject& append(uint32_t value);
+
+   /**
+    * Creates a DynamicObject, appends it to this one, and returns a reference
+    * to it.
+    *
+    * @param value the value to append.
+    *
+    * @return the DynamicObject that was appended.
+    */
+   virtual DynamicObject& append(int64_t value);
+
+   /**
+    * Creates a DynamicObject, appends it to this one, and returns a reference
+    * to it.
+    *
+    * @param value the value to append.
+    *
+    * @return the DynamicObject that was appended.
+    */
+   virtual DynamicObject& append(uint64_t value);
+
+   /**
+    * Creates a DynamicObject, appends it to this one, and returns a reference
+    * to it.
+    *
+    * @param value the value to append.
+    *
+    * @return the DynamicObject that was appended.
+    */
+   virtual DynamicObject& append(double value);
 
    /**
     * Sets this object's type. Its existing value will be converted if
