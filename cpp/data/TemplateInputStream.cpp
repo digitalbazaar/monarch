@@ -270,7 +270,7 @@ static bool _validateVariableKey(const char* text, bool period)
       if(!(c >= 'a' && c <= 'z') &&
          !(c >= 'A' && c <= 'Z') &&
          !(c >= '0' && c <= '9') &&
-         c != '_')
+         c != '_' && c != '@')
       {
          rval = false;
       }
@@ -287,7 +287,7 @@ static bool _validateVariableKey(const char* text, bool period)
       if(!(c >= 'a' && c <= 'z') &&
          !(c >= 'A' && c <= 'Z') &&
          !(c >= '0' && c <= '9') &&
-         c != '_' && c != ':' && (!period || c != '.'))
+         c != '_' && c != '@' && c != ':' && (!period || c != '.'))
       {
          rval = false;
       }
@@ -1787,9 +1787,10 @@ bool TemplateInputStream::parseVariableText(
    if(!rval)
    {
       ExceptionRef e = new Exception(
-         "Variable name must start with only alphanumeric characters or an "
-         "underscore and contain only alphanumeric characters, underscores, "
-         "colons, the '.' object accessor, or the '[]' array accessor. "
+         "Variable name must start with only alphanumeric characters, an "
+         "underscore, or a '@' and contain only alphanumeric characters, "
+         "underscores, colons, the '.' object accessor, or the '[]' array "
+         "accessor. "
          "If it has an operator, then it must fall between two variables or "
          "before a constant.",
          EXCEPTION_SYNTAX);
