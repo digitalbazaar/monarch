@@ -1170,6 +1170,55 @@ int DynamicObjectImpl::indexOf(DynamicObject& obj) const
    return rval;
 }
 
+int DynamicObjectImpl::indexOf(const char* value) const
+{
+   DynamicObject d;
+   d = value;
+   return indexOf(d);
+}
+
+int DynamicObjectImpl::indexOf(bool value) const
+{
+   DynamicObject d;
+   d = value;
+   return indexOf(d);
+}
+
+int DynamicObjectImpl::indexOf(int32_t value) const
+{
+   DynamicObject d;
+   d = value;
+   return indexOf(d);
+}
+
+int DynamicObjectImpl::indexOf(uint32_t value) const
+{
+   DynamicObject d;
+   d = value;
+   return indexOf(d);
+}
+
+int DynamicObjectImpl::indexOf(int64_t value) const
+{
+   DynamicObject d;
+   d = value;
+   return indexOf(d);
+}
+
+int DynamicObjectImpl::indexOf(uint64_t value) const
+{
+   DynamicObject d;
+   d = value;
+   return indexOf(d);
+}
+
+int DynamicObjectImpl::indexOf(double value) const
+{
+   DynamicObject d;
+   d = value;
+   return indexOf(d);
+}
+
 void DynamicObjectImpl::clear()
 {
    switch(mType)

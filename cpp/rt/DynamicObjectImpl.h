@@ -418,6 +418,90 @@ public:
    virtual int indexOf(DynamicObject& obj) const;
 
    /**
+    * If this object is an Array and at least one of its indexes has an
+    * object that is equal to the passed object, this method returns the
+    * index of that object. Otherwise, it returns -1.
+    *
+    * @param obj the object to look for.
+    *
+    * @return if this object is an Array and contains the passed object,
+    *         the index of that object, otherwise -1.
+    */
+   virtual int indexOf(const char* value) const;
+
+   /**
+    * If this object is an Array and at least one of its indexes has an
+    * object that is equal to the passed object, this method returns the
+    * index of that object. Otherwise, it returns -1.
+    *
+    * @param obj the object to look for.
+    *
+    * @return if this object is an Array and contains the passed object,
+    *         the index of that object, otherwise -1.
+    */
+   virtual int indexOf(bool value) const;
+
+   /**
+    * If this object is an Array and at least one of its indexes has an
+    * object that is equal to the passed object, this method returns the
+    * index of that object. Otherwise, it returns -1.
+    *
+    * @param obj the object to look for.
+    *
+    * @return if this object is an Array and contains the passed object,
+    *         the index of that object, otherwise -1.
+    */
+   virtual int indexOf(int32_t value) const;
+
+   /**
+    * If this object is an Array and at least one of its indexes has an
+    * object that is equal to the passed object, this method returns the
+    * index of that object. Otherwise, it returns -1.
+    *
+    * @param obj the object to look for.
+    *
+    * @return if this object is an Array and contains the passed object,
+    *         the index of that object, otherwise -1.
+    */
+   virtual int indexOf(uint32_t value) const;
+
+   /**
+    * If this object is an Array and at least one of its indexes has an
+    * object that is equal to the passed object, this method returns the
+    * index of that object. Otherwise, it returns -1.
+    *
+    * @param obj the object to look for.
+    *
+    * @return if this object is an Array and contains the passed object,
+    *         the index of that object, otherwise -1.
+    */
+   virtual int indexOf(int64_t value) const;
+
+   /**
+    * If this object is an Array and at least one of its indexes has an
+    * object that is equal to the passed object, this method returns the
+    * index of that object. Otherwise, it returns -1.
+    *
+    * @param obj the object to look for.
+    *
+    * @return if this object is an Array and contains the passed object,
+    *         the index of that object, otherwise -1.
+    */
+   virtual int indexOf(uint64_t value) const;
+
+   /**
+    * If this object is an Array and at least one of its indexes has an
+    * object that is equal to the passed object, this method returns the
+    * index of that object. Otherwise, it returns -1.
+    *
+    * @param obj the object to look for.
+    *
+    * @return if this object is an Array and contains the passed object,
+    *         the index of that object, otherwise -1.
+    */
+   virtual int indexOf(double value) const;
+
+   /**
     * Clears associated data.
     * Maps and Arrays: removes all items.
     * Strings: set to "".

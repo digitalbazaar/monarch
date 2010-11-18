@@ -1050,6 +1050,28 @@ static void runDynamicObjectTest(TestRunner& tr)
    }
 
    {
+      DynamicObject d;
+      d->append("bar");
+      d->append("baz");
+      d->append(1);
+      d->append(true);
+
+      int i;
+      i = d->indexOf("bar");
+      assert(i == 0);
+      i = d->indexOf("baz");
+      assert(i == 1);
+      i = d->indexOf(1);
+      assert(i == 2);
+      i = d->indexOf(true);
+      assert(i == 3);
+      i = d->indexOf(false);
+      assert(i == -1);
+      i = d->indexOf("bank");
+      assert(i == -1);
+   }
+
+   {
       // test compare cloned object
       DynamicObject d1;
       d1["map"]["key"] = "value";
