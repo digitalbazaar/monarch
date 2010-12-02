@@ -201,6 +201,16 @@ public:
    virtual std::string toString(
       const char* format = "%a, %d %b %Y %H:%M:%S",
       TimeZone* tz = NULL);
+
+   /**
+    * Gets the current date as a standard datetime, namely, as a string in the
+    * format:
+    *
+    * YYYY-MM-DD HH:MM:SS
+    *
+    * @return the datetime string using the UTC time zone.
+    */
+   static std::string utcDateTime();
 };
 
 } // end namespace util

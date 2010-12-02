@@ -221,3 +221,9 @@ string Date::toString(const char* format, TimeZone* tz)
    string rval;
    return this->format(rval, format, tz);
 }
+
+std::string Date::utcDateTime()
+{
+   Date d;
+   return d.getUtcDateTime();
+}
