@@ -196,6 +196,15 @@ public:
    virtual bool operator==(const DynamicObjectImpl& rhs) const;
 
    /**
+    * Compares this object to a string for equality.
+    *
+    * @param rhs the string to compare to this one.
+    *
+    * @return true if the passed string is equal to this one, false if not.
+    */
+   virtual bool operator==(const char* rhs) const;
+
+   /**
     * Compares this object's value to another object's value to see if this
     * one is less.
     *

@@ -50,6 +50,29 @@ bool DynamicObject::operator!=(const DynamicObject& rhs) const
    return !(*this == rhs);
 }
 
+bool DynamicObject::operator==(const char* rhs) const
+{
+   bool rval = false;
+
+   const DynamicObject& lhs = *this;
+   if(lhs.isNull() && rhs == NULL)
+   {
+      rval = true;
+   }
+   else if(!lhs.isNull() && rhs != NULL)
+   {
+      // compare heap object to string
+      rval = (*lhs == rhs);
+   }
+
+   return rval;
+}
+
+bool DynamicObject::operator!=(const char* rhs) const
+{
+   return !(*this == rhs);
+}
+
 bool DynamicObject::operator<(const DynamicObject& rhs) const
 {
    bool rval;

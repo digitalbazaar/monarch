@@ -1112,6 +1112,19 @@ static void runDynamicObjectTest(TestRunner& tr)
       assert(d1 < d2);
    }
 
+   {
+      // test for string equality
+      DynamicObject d1;
+      d1 = "foo";
+      assert(d1 == "foo");
+      assert(d1 != "bar");
+
+      DynamicObject d2;
+      d2 = 1;
+      assert(!(d1 == "1"));
+      assert(d1 != "1");
+   }
+
    tr.pass();
 }
 

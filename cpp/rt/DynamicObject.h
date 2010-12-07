@@ -114,6 +114,26 @@ public:
    virtual bool operator!=(const DynamicObject& rhs) const;
 
    /**
+    * Compares this DynamicObject to a string for equality. If the
+    * DynamicObject is not a string then the comparison will return false.
+    *
+    * @param rhs the string to compare to this one.
+    *
+    * @return true if the passed string is equal to this one, false if not.
+    */
+   virtual bool operator==(const char* rhs) const;
+
+   /**
+    * Compares this DynamicObject to a string for non-equality. If the
+    * DynamicObject is not a string then the comparison will return true.
+    *
+    * @param rhs the string to compare to this one.
+    *
+    * @return true if the passed string is not equal to this one, false if not.
+    */
+   virtual bool operator!=(const char* rhs) const;
+
+   /**
     * Compares this DynamicObject to another one to see if it is less than it.
     *
     * If one DynamicObject is NULL, it is less.
