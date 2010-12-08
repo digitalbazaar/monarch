@@ -239,30 +239,13 @@ static bool _isLiteral(DynamicObject& exp)
    return exp["lhs"]["literal"]->getBoolean();
 }
 
-static bool _isInteger(DynamicObject& exp)
+static bool _isInteger(DynamicObject& value)
 {
-   bool rval = false;
-
-   // works for expressions or values
-   if(exp->getType() == Map)
-   {
-      DynamicObject& lhs = exp["lhs"];
-      rval = !exp->hasMember("op") && lhs["literal"]->getBoolean() &&
-         (lhs["value"]->getType() == Int64 ||
-          lhs["value"]->getType() == UInt64 ||
-          lhs["value"]->getType() == Int32 ||
-          lhs["value"]->getType() == UInt32);
-   }
-   else if(
-      exp->getType() == Int64 ||
-      exp->getType() == UInt64 ||
-      exp->getType() == Int32 ||
-      exp->getType() == UInt32)
-   {
-      rval = true;
-   }
-
-   return rval;
+   return (
+      value->getType() == Int64 ||
+      value->getType() == UInt64 ||
+      value->getType() == Int32 ||
+      value->getType() == UInt32);
 }
 
 static bool _isAccessor(DynamicObject& exp)
@@ -2047,6 +2030,22 @@ bool TemplateInputStream::parseExpression(
                Exception::set(e);
                rval = false;
             }
+            else if(ci != comps.end() && ci->length() != 0)
+            {
+               ExceptionRef e = new Exception(
+                  "No operator found after ending ']'.",
+                  EXCEPTION_SYNTAX);
+               Exception::set(e);
+               rval = false;
+            }
+         }
+         else if(ci == comps.end())
+         {
+            ExceptionRef e = new Exception(
+               "No variable found after operator.",
+               EXCEPTION_SYNTAX);
+            Exception::set(e);
+            rval = false;
          }
          else
          {
@@ -2115,8 +2114,12 @@ bool TemplateInputStream::parseExpression(
                   exp["rhs"]["lhs"] = params;
                   exp = exp["rhs"];
                }
-               ++ci;
             }
+         }
+         // advance component iterator
+         if(ci != comps.end())
+         {
+            ++ci;
          }
       }
 
@@ -3496,7 +3499,6 @@ DynamicObject TemplateInputStream::findVariable(
 
    // set var
    exp["var"] = rval;
-
    if(!rval.isNull())
    {
       // update parent
@@ -3713,6 +3715,30 @@ bool TemplateInputStream::evalExpression(
             {
                exp["var"]->setType(Array);
             }
+
+            // if rhs is a literal and an accessor, get its "var" early
+            if(_isLiteral(exp["rhs"]) && _isAccessor(exp["rhs"]))
+            {
+               // rhs *must* be a number
+               int index = exp["rhs"]["lhs"]["value"];
+               if(!_isInteger(exp["rhs"]["lhs"]["value"]))
+               {
+                  ExceptionRef e = new Exception(
+                     "Invalid array accessor. Indexes must be integers.",
+                     EXCEPTION_SYNTAX);
+                  Exception::set(e);
+                  rval = false;
+               }
+               // get var if found or set is on
+               else if(
+                  exp["set"]->getBoolean() ||
+                  (exp["var"]->getType() == Array &&
+                   index < exp["var"]->length()))
+               {
+                  exp["rhs"]["var"] = exp["var"][index];
+               }
+            }
+
             // only set rhs parent if rhs is NOT a variable
             if(!_isVariable(exp["rhs"]))
             {
@@ -3722,7 +3748,7 @@ bool TemplateInputStream::evalExpression(
                exp["fullname"]->getString(),
                exp["rhs"]["lhs"]["value"]->getString());
          }
-         rval = evalExpression(exp["rhs"], strict, false);
+         rval = rval && evalExpression(exp["rhs"], strict, false);
 
          // handle operator
          rval = rval && _handleOperator(exp, strict);

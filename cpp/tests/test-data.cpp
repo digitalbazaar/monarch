@@ -3017,6 +3017,37 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (array access on variable with colon)");
+   {
+      // create template
+      const char* tpl =
+         "US ${deposit.ps:payee[0].amount}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["deposit"]["ps:payee"][0]["amount"] = "1.00";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+
+      const char* expect =
+         "US $1.00\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
