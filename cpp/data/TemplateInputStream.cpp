@@ -3466,12 +3466,12 @@ DynamicObject TemplateInputStream::findVariable(
    else
    {
       // first look for the variable in a loop
+      parent = mLocalVars;
       rval = findLoopVariable(name);
 
       // if the variable was not found in a loop, check the local vars
       if(rval.isNull())
       {
-         parent = mLocalVars;
          // set variable if specified
          if(exp["set"]->getBoolean())
          {
