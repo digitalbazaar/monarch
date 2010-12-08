@@ -477,26 +477,15 @@ protected:
    virtual bool parseVariable(Construct* c, Variable* v);
 
    /**
-    * Parses the given variable text.
+    * Parses an expression.
     *
-    * @param text the variable text to parse.
-    * @param params set to the parsed output.
-    *
-    * @return true if successful, false if an exception occurred.
-    */
-   virtual bool parseVariableText(
-      const char* text, monarch::rt::DynamicObject& params);
-
-   /**
-    * Parses an expression. An expression may contain variables or constants.
-    *
-    * @param exp the expression to parse.
-    * @param params set to the parsed output.
+    * @param input the input text to parse containing an expression.
+    * @param expression the expression object to populate.
     *
     * @return true if successful, false if an exception occurred.
     */
    virtual bool parseExpression(
-      const char* exp, monarch::rt::DynamicObject& params);
+      const char* input, monarch::rt::DynamicObject& expression);
 
    /**
     * Called from within parseConstruct() to parses the current pipe,
@@ -550,28 +539,37 @@ protected:
    virtual int compare(monarch::rt::DynamicObject& params);
 
    /**
-    * Attempts to finds a variable.
+    * Attempts to find a variable in a loop.
     *
-    * @param params the parameters that identity the variable.
-    * @param strict use strict mode.
+    * @param name the name of the variable.
+    *
+    * @return the variable or NULL if not found.
+    */
+   virtual monarch::rt::DynamicObject findLoopVariable(const char* name);
+
+   /**
+    * Attempts to find a variable.
+    *
+    * @param name the name of the variable.
+    * @param ctx the current expression context.
+    * @param strict true to use strict mode.
     *
     * @return the variable or NULL if not found (exception set in Strict mode).
     */
    virtual monarch::rt::DynamicObject findVariable(
-      monarch::rt::DynamicObject& params, bool strict);
+      const char* name, monarch::rt::DynamicObject& ctx, bool strict);
 
    /**
-    * Finds the local variable with the given varname.
+    * Evaluates the given expression.
     *
-    * @param params the parameters that identity the variable.
-    * @param set non-NULL to set the variable.
-    * @param unset true to unset the variable.
+    * @param exp the expression to evaluate.
+    * @param strict true to use strict mode.
+    * @param set true to enable setting of undefined variables.
     *
-    * @return the local variable or NULL if not found.
+    * @return true on success, false if on failure with exception set.
     */
-   virtual monarch::rt::DynamicObject findLocalVariable(
-      monarch::rt::DynamicObject& params,
-      monarch::rt::DynamicObject* set, bool unset);
+   virtual bool evalExpression(
+      monarch::rt::DynamicObject& exp, bool strict, bool set = false);
 
    /**
     * Sets a parse exception with the given line and column numbers and

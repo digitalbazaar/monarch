@@ -2694,8 +2694,8 @@ static void runTemplateInputStreamTest(TestRunner& tr)
             "{:if bar == true}"
                "{:set mymap.foo=bar}"
                "mymap.foo is now {mymap.foo}\n"
-               "{:set mymap.foo.0='in an array'}"
-               "mymap.foo.0 is '{mymap.foo.0}'\n"
+               "{:set mymap.foo[0]='in an array'}"
+               "mymap.foo[0] is '{mymap.foo[0]}'\n"
                "{:unset mymap}"
                "{:set mynumber=17}"
                "mynumber is {mynumber}\n"
@@ -2728,7 +2728,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
          "bar is back to 12\n"
          "mymap.foo is still 'some text'\n"
          "mymap.foo is now true\n"
-         "mymap.foo.0 is 'in an array'\n"
+         "mymap.foo[0] is 'in an array'\n"
          "mynumber is 17\n"
          "mynumber incremented to 18\n"
          "mynumber decremented to 16\n";
@@ -2976,6 +2976,46 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       assertExceptionSet();
    }
    tr.passIfException();
+
+   tr.test("parse (escaped operators)");
+   {
+      // create template
+      const char* tpl =
+         "{var\\-1}\n"
+         "{var\\+2}\n"
+         "{var\\*3}\n"
+         "{var\\/4}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["var-1"] = "value1";
+      vars["var+2"] = "value2";
+      vars["var*3"] = "value3";
+      vars["var/4"] = "value4";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+
+      const char* expect =
+         "value1\n"
+         "value2\n"
+         "value3\n"
+         "value4\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
 
    tr.ungroup();
 }
