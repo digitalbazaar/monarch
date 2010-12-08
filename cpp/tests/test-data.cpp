@@ -2741,6 +2741,32 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (each, set local)");
+   {
+      // create template
+      const char* tpl =
+         "{:each from=objs as=obj}"
+         "   {:set obj=obj}"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+      vars["objs"][0] = "0";
+      vars["objs"][1] = "1";
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+      // just checking for no exceptions, no interesting output.
+   }
+   tr.passIfNoException();
+
    tr.test("parse (dump)");
    {
       // create template
