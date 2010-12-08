@@ -278,7 +278,8 @@ static bool _hasMutator(DynamicObject& exp)
    return rval;
 }
 
-static void _set(DynamicObject& lhs, DynamicObject& rhs)
+static void _set(
+   DynamicObject& localVars, DynamicObject& lhs, DynamicObject& rhs)
 {
    // get the right-most "lhs" accessor
    DynamicObject tmp = lhs;
@@ -301,7 +302,16 @@ static void _set(DynamicObject& lhs, DynamicObject& rhs)
    else
    {
       const char* name = tmp["name"];
-      tmp["parent"][name] = rhs["value"];
+      if(tmp["parent"].isNull())
+      {
+         // declaring a local variable using a loop variable's name
+         localVars[name] = rhs["value"];
+      }
+      else
+      {
+         // updating a local variable
+         tmp["parent"][name] = rhs["value"];
+      }
    }
 }
 
@@ -3154,7 +3164,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
          if(rval)
          {
             // set lhs to rhs
-            _set(params["lhs"], params["rhs"]);
+            _set(mLocalVars, params["lhs"], params["rhs"]);
          }
          break;
       }
@@ -3466,12 +3476,12 @@ DynamicObject TemplateInputStream::findVariable(
    else
    {
       // first look for the variable in a loop
-      parent = mLocalVars;
       rval = findLoopVariable(name);
 
       // if the variable was not found in a loop, check the local vars
       if(rval.isNull())
       {
+         parent = mLocalVars;
          // set variable if specified
          if(exp["set"]->getBoolean())
          {
