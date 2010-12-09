@@ -103,13 +103,11 @@ static void runRdfaReaderTest(TestRunner& tr)
       graph["@"] = "_:bnode0";
       graph["http://purl.org/dc/terms/description"] =
          "XML parsing error: mismatched tag at line 9, column 6.";
-      graph["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"] =
-         "http://www.w3.org/ns/rdfa_processing_graph#Error";
+      graph["a"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["@"] = "_:bnode1";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
-         ["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"] =
-            "http://www.w3.org/2009/pointers#LineCharPointer";
+         ["a"] = "http://www.w3.org/2009/pointers#LineCharPointer";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["w3:charNumber"] = "6";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]

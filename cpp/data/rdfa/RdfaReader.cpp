@@ -96,6 +96,11 @@ static char* _applyContext(DynamicObject& ctx, const char* name)
             rval = (char*)malloc(total);
             snprintf(rval, total, "%s:%s", i->getName(), ptr + len);
          }
+         // do full replacement for rdf-type
+         else if(namelen == len && strcmp(i->getName(), "a") == 0)
+         {
+            rval = strdup("a");
+         }
       }
    }
 
@@ -136,7 +141,19 @@ static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
       {
          s["@"] = subject;
       }
-      s[predicate] = t->object;
+      if(s->hasMember(predicate))
+      {
+         if(s[predicate]->getType() != Array)
+         {
+            DynamicObject tmp = s[predicate].clone();
+            s[predicate]->append(tmp);
+         }
+         s[predicate]->append(t->object);
+      }
+      else
+      {
+         s[predicate] = t->object;
+      }
       free(subject);
       free(predicate);
    }
@@ -152,29 +169,51 @@ static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
       DynamicObject& subject = si->next();
 
       // iterate over properties (predicate=object)
-      DynamicObjectIterator oi = subject.getIterator();
-      while(oi->hasNext())
+      DynamicObjectIterator pi = subject.getIterator();
+      while(pi->hasNext())
       {
-         const char* object = oi->next()->getString();
-         const char* predicate = oi->getName();
+         DynamicObject next = pi->next();
+         const char* predicate = pi->getName();
          if(strcmp(predicate, "@") != 0)
          {
-            // if the object is a subject in the graph that is referenced
-            // exactly once then embed it
-            // (clone it to prevent circular references)
-            RdfaReader::SubjectCountMap::iterator ci =
-               g->subjectCounts.find(object);
-            if(ci != g->subjectCounts.end() && ci->second == 1 &&
-               subjects->hasMember(object))
+            // next is either an object or an array of objects (predicates
+            // can point at N objects), so iterate, which will work either way
+            DynamicObjectIterator oi = next.getIterator();
+            for(int idx = 0; oi->hasNext(); ++idx)
             {
-               subject[predicate] = subjects[object].clone();
-            }
-            // object cannot/should not be embedded, just abbreviate its name
-            else
-            {
-               object = _applyContext(context, object);
-               subject[predicate] = object;
-               free((char*)object);
+               DynamicObject& object = oi->next();
+               // if the object is a subject in the graph that is referenced
+               // exactly once then embed it
+               // (clone it to prevent circular references)
+               RdfaReader::SubjectCountMap::iterator ci =
+                  g->subjectCounts.find(object);
+               if(ci != g->subjectCounts.end() && ci->second == 1 &&
+                  subjects->hasMember(object))
+               {
+                  DynamicObject obj = subjects[object->getString()].clone();
+                  if(subject[predicate]->getType() == Array)
+                  {
+                     subject[predicate][idx] = obj;
+                  }
+                  else
+                  {
+                     subject[predicate] = obj;
+                  }
+               }
+               // object cannot/should not be embedded, just abbreviate its name
+               else
+               {
+                  const char* abbr = _applyContext(context, object);
+                  if(subject[predicate]->getType() == Array)
+                  {
+                     subject[predicate][idx] = abbr;
+                  }
+                  else
+                  {
+                     subject[predicate] = abbr;
+                  }
+                  free((char*)abbr);
+               }
             }
          }
       }
