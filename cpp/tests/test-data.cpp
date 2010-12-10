@@ -3080,9 +3080,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       const char* tpl =
          "{:each from=groups as=group index=gnum}"
             "{:each from=group.mo:data as=data index=dnum}"
-               // disabling the single if statement below allows the
-               // template to parse correctly
-               //"{:if compare.mo:group}"
+               "{:if compare.mo:group}"
                   "{:each from=compare.mo:group as=cGroup}"
                      "{:if cGroup.mo:name == group.mo:name}"
                         "{:if cGroup.mo:data}"
@@ -3094,7 +3092,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
                         "{:end}"
                      "{:end}"
                   "{:end}"
-               //"{:end}"
+               "{:end}"
             "{:end}"
          "{:end}";
 

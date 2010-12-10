@@ -3326,7 +3326,6 @@ int TemplateInputStream::compare(DynamicObject& params)
    {
       // do comparison
       DynamicObject& lhs = params["lhs"]["value"];
-      DynamicObject& rhs = params["rhs"]["value"];
       switch(op)
       {
          case op_single:
@@ -3354,22 +3353,22 @@ int TemplateInputStream::compare(DynamicObject& params)
             break;
          }
          case op_eq:
-            rval = (lhs == rhs) ? 1 : 0;
+            rval = (lhs == params["rhs"]["value"]) ? 1 : 0;
             break;
          case op_neq:
-            rval = (lhs != rhs) ? 1 : 0;
+            rval = (lhs != params["rhs"]["value"]) ? 1 : 0;
             break;
          case op_gt:
-            rval = (lhs > rhs) ? 1 : 0;
+            rval = (lhs > params["rhs"]["value"]) ? 1 : 0;
             break;
          case op_gteq:
-            rval = (lhs >= rhs) ? 1 : 0;
+            rval = (lhs >= params["rhs"]["value"]) ? 1 : 0;
             break;
          case op_lt:
-            rval = (lhs < rhs) ? 1 : 0;
+            rval = (lhs < params["rhs"]["value"]) ? 1 : 0;
             break;
          case op_lteq:
-            rval = (lhs <= rhs) ? 1 : 0;
+            rval = (lhs <= params["rhs"]["value"]) ? 1 : 0;
             break;
       }
    }
