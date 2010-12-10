@@ -3074,6 +3074,79 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (multi-level variable compare)");
+   {
+      // create template
+      const char* tpl =
+         "{:each from=groups as=group index=gnum}"
+            "{:each from=group.mo:data as=data index=dnum}"
+               // disabling the single if statement below allows the
+               // template to parse correctly
+               //"{:if compare.mo:group}"
+                  "{:each from=compare.mo:group as=cGroup}"
+                     "{:if cGroup.mo:name == group.mo:name}"
+                        "{:if cGroup.mo:data}"
+                           "{:each from=cGroup.mo:data as=cData}"
+                              "{:if data == cData}"
+                                 "{data} == {cData}\n"
+                              "{:end}"
+                           "{:end}"
+                        "{:end}"
+                     "{:end}"
+                  "{:end}"
+               //"{:end}"
+            "{:end}"
+         "{:end}";
+
+      // create variables
+      DynamicObject vars;
+
+      DynamicObject& groups = vars["groups"];
+      groups->setType(Array);
+      DynamicObject group1;
+      group1["mo:name"] = "Group 1";
+      group1["mo:data"]->setType(Array);
+      group1["mo:data"]->append("group_1_data_1");
+      groups->append(group1);
+
+      DynamicObject group2;
+      group2["mo:name"] = "Group 2";
+      group2["mo:data"]->setType(Array);
+      group2["mo:data"]->append("group_2_data_1");
+      group2["mo:data"]->append("group_2_data_2");
+      group2["mo:data"]->append("group_2_data_3");
+      groups->append(group2);
+
+      DynamicObject& compare = vars["compare"];
+      DynamicObject& cgroups = compare["mo:group"];
+      cgroups->setType(Array);
+      DynamicObject cgroup1;
+      cgroup1["mo:name"] = "Group 1";
+      cgroup1["mo:data"]->setType(Array);
+      cgroup1["mo:data"]->append("group_1_data_1");
+      cgroups->append(cgroup1);
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+
+      const char* expect =
+         "group_1_data_1 == group_1_data_1\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
