@@ -233,12 +233,14 @@ AC_CONFIG_FILES([
    setup/docs.doxygen
    configs/apps/js.config
    configs/apps/pong.config
+   configs/apps/rdfa2jsonld.config
    configs/apps/test.config
    cpp/3rdparty/Makefile
    cpp/app/Makefile
    cpp/apps/js/Makefile
    cpp/apps/monarch/Makefile
    cpp/apps/portmap/Makefile
+   cpp/apps/rdfa2jsonld/Makefile
    cpp/apps/tester/Makefile
    cpp/compress/Makefile
    cpp/config/Makefile

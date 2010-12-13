@@ -4,6 +4,7 @@ EXECUTABLE_SUBDIRS := \
 	cpp/apps/js \
 	cpp/apps/monarch \
 	cpp/apps/portmap \
+   cpp/apps/rdfa2jsonld \
 	cpp/apps/tester \
 	cpp/tests
 

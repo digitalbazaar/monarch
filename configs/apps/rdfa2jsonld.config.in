@@ -1,0 +1,12 @@
+{
+   "_id_": "monarch.apps.test",
+   "_version_": "Monarch Config 3.0",
+   "_group_": "main",
+   "_append_": {
+      "monarch.app.Kernel": {
+         "appPath": "@MONARCH_DIR@/dist/modules/apps/@LIB_PREFIX@mordfa2jsonld.@DYNAMIC_LIB_EXT@"
+      }
+   },
+   "_merge_": {
+   }
+}
