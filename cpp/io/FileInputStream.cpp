@@ -36,6 +36,12 @@ FileInputStream::FileInputStream(File& file) :
 {
 }
 
+FileInputStream::FileInputStream(StdInput in) :
+   mFile((FileImpl*)NULL),
+   mHandle(stdin)
+{
+}
+
 FileInputStream::~FileInputStream()
 {
    // close the handle if it is open
@@ -46,8 +52,8 @@ bool FileInputStream::ensureOpen()
 {
    bool rval = true;
 
-   // try to open the file
-   if(mHandle == NULL)
+   // try to open the file (mFile is null when using stdin)
+   if(mHandle == NULL && !mFile.isNull())
    {
       if(!mFile->exists())
       {
@@ -211,7 +217,8 @@ int FileInputStream::readLine(string& line, char delimiter)
 
 void FileInputStream::close()
 {
-   if(mHandle != NULL)
+   // (mFile is null when using stdin)
+   if(mHandle != NULL && !mFile.isNull())
    {
       // close the stream
       fclose(mHandle);

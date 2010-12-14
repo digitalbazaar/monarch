@@ -2,7 +2,9 @@
  * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/app/AppFactory.h"
+#include "monarch/crypto/MessageDigest.h"
 #include "monarch/data/json/JsonWriter.h"
+#include "monarch/data/json/JsonLd.h"
 #include "monarch/data/rdfa/RdfaReader.h"
 #include "monarch/io/FileInputStream.h"
 
@@ -11,6 +13,7 @@
 using namespace std;
 using namespace monarch::app;
 using namespace monarch::config;
+using namespace monarch::crypto;
 using namespace monarch::data::json;
 using namespace monarch::data::rdfa;
 using namespace monarch::io;
@@ -30,18 +33,51 @@ static bool _processFile(const char* inFile, const char* baseUri)
 {
    bool rval;
 
-   File file(inFile);
-   FileInputStream fis(file);
+   // prepare input stream
+   File file((FileImpl*)NULL);
+   FileInputStream* fis;
+   if(inFile == NULL)
+   {
+      fis = new FileInputStream(FileInputStream::StdIn);
+   }
+   else
+   {
+      file = inFile;
+      fis = new FileInputStream(file);
+   }
+
+   // read in rdfa
    RdfaReader reader;
    reader.setBaseUri(baseUri);
    DynamicObject dyno;
-   rval = reader.start(dyno) && reader.read(&fis) && reader.finish();
-   fis.close();
+   rval = reader.start(dyno) && reader.read(fis) && reader.finish();
+
+   // close input stream
+   fis->close();
+   delete fis;
 
    if(rval)
    {
-      printf("RDFa to JSON-LD: '%s'\n", file->getAbsolutePath());
-      JsonWriter::writeToStdOut(dyno, false, false);
+      // normalize and hash output
+      DynamicObject normalized;
+      JsonLd::normalize(dyno, normalized);
+      MessageDigest md;
+      string json = JsonWriter::writeToString(dyno, true, false);
+      rval = md.start("SHA1") && md.update(json.c_str(), json.length());
+      if(rval)
+      {
+         // print output
+         if(inFile != NULL)
+         {
+            printf("RDFa to JSON-LD: '%s'\n", file->getAbsolutePath());
+         }
+         else
+         {
+            printf("RDFa to JSON-LD:\n");
+         }
+         printf("Normalized SHA-1 hash: %s\n", md.getDigest().c_str());
+         JsonWriter::writeToStdOut(dyno, false, false);
+      }
    }
 
    return rval;
@@ -89,19 +125,21 @@ public:
    virtual bool run()
    {
       Config cfg = getConfig()[APP_NAME];
+      const char* baseUri = cfg["baseUri"];
 
       // process files
       DynamicObject& files = cfg["files"];
       if(files->length() == 0)
       {
-         ExceptionRef e = new Exception(
-            "No files specified.",
-            APP_NAME ".NoFiles");
-         Exception::set(e);
+         printf("Reading RDFa from standard input...\n");
+
+         // create file from std input
+         _processFile(NULL, baseUri);
       }
       else
       {
-         const char* baseUri = cfg["baseUri"];
+         printf("Reading RDFa from files...\n");
+
          DynamicObjectIterator i = files.getIterator();
          bool success = true;
          while(success && i->hasNext())

@@ -21,6 +21,15 @@ namespace io
  */
 class FileInputStream : public InputStream
 {
+public:
+   /**
+    * An enum for using stdin.
+    */
+   enum StdInput
+   {
+      StdIn
+   };
+
 protected:
    /**
     * The File to read from.
@@ -47,6 +56,13 @@ public:
     * @param file the File to read from.
     */
    FileInputStream(File& file);
+
+   /**
+    * Creates a new FileInputStream that uses stdin for reading.
+    *
+    * @param in FileInputStream::StdIn.
+    */
+   FileInputStream(StdInput in);
 
    /**
     * Destructs this FileInputStream.
