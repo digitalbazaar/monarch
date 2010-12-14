@@ -135,15 +135,14 @@ public:
       {
          printf("Reading RDFa from standard input...\n");
 
-         string _baseUri = baseUri;
-         if(_baseUri.length() == 0)
+         if(strlen(baseUri) == 0)
          {
             // set a fake stdin base URI
-            _baseUri = "stdin";
+            baseUri = "stdin";
          }
 
          // create file from std input
-         _processFile(NULL, _baseUri.c_str());
+         _processFile(NULL, baseUri);
       }
       else
       {
