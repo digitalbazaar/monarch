@@ -1,5 +1,6 @@
 # Makefile to compile the module in this directory
 
+ifeq (@HAVE_LIBRDFA@,yes)
 MODULES = mordfa2jsonld
 mordfa2jsonld_HEADERS = $(wildcard *.h)
 mordfa2jsonld_SOURCES = $(wildcard *.cpp)
@@ -9,6 +10,7 @@ DYNAMIC_LINK_LIBRARIES = mort moutil modata mocrypto
 
 DYNAMIC_MACOS_LINK_LIBRARIES = momodest mofiber moio moconfig mologging mokernel moapp
 DYNAMIC_WINDOWS_LINK_LIBRARIES = momodest mofiber moio moconfig mologging mokernel moapp
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base
