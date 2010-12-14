@@ -7,6 +7,7 @@
 #include "monarch/data/json/JsonLd.h"
 #include "monarch/data/rdfa/RdfaReader.h"
 #include "monarch/io/FileInputStream.h"
+#include "monarch/util/StringTools.h"
 
 #include <cstdio>
 
@@ -19,6 +20,7 @@ using namespace monarch::data::rdfa;
 using namespace monarch::io;
 using namespace monarch::modest;
 using namespace monarch::rt;
+using namespace monarch::util;
 
 #define APP_NAME "monarch.apps.rdfa2jsonld.Rdfa2JsonLd"
 
@@ -92,11 +94,11 @@ public:
    {
       // initialize config
       Config& c = cfg[ConfigManager::MERGE][APP_NAME];
-      c["baseUri"] = "http://example.org";
+      c["baseUri"] = "";
 
       DynamicObject spec;
       spec["help"] =
-"PortMap Options\n"
+"Rdfa2JsonLd Options\n"
 "      --base-uri      The base URI to use.\n"
 "\n";
 
@@ -133,8 +135,15 @@ public:
       {
          printf("Reading RDFa from standard input...\n");
 
+         string _baseUri = baseUri;
+         if(_baseUri.length() == 0)
+         {
+            // set a fake stdin base URI
+            _baseUri = "stdin";
+         }
+
          // create file from std input
-         _processFile(NULL, baseUri);
+         _processFile(NULL, _baseUri.c_str());
       }
       else
       {
@@ -144,7 +153,18 @@ public:
          bool success = true;
          while(success && i->hasNext())
          {
-            success = _processFile(i->next()->getString(), baseUri);
+            const char* next = i->next()->getString();
+
+            string _baseUri = baseUri;
+            if(_baseUri.length() == 0)
+            {
+               // set base URI based on file name
+               string np;
+               File::normalizePath(next, np);
+               _baseUri = StringTools::format("file://%s", np.c_str());
+            }
+
+            success = _processFile(next, _baseUri.c_str());
          }
       }
 
