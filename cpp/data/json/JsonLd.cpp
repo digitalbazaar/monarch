@@ -31,7 +31,7 @@ JsonLd::~JsonLd()
  * @return a pointer to the normalized string.
  */
 static const char* _normalizeString(
-   DynamicObject& context, const char* str, char* tmp)
+   DynamicObject& context, const char* str, char** tmp)
 {
    const char* rval = str;
 
@@ -48,12 +48,12 @@ static const char* _normalizeString(
          {
             // prefix found, normalize string
             size_t len = strlen(uri->getString()) + strlen(ptr + 1) + 1;
-            if(tmp == NULL || sizeof(tmp) < len)
+            if(*tmp == NULL || sizeof(*tmp) < len)
             {
-               tmp = (char*)realloc(tmp, len);
+               *tmp = (char*)realloc(*tmp, len);
             }
-            snprintf(tmp, len, "%s%s", uri->getString(), ptr + 1);
-            rval = tmp;
+            snprintf(*tmp, len, "%s%s", uri->getString(), ptr + 1);
+            rval = *tmp;
          }
       }
    }
@@ -100,7 +100,7 @@ static void _normalize(
                // normalize key, normalize object
                _normalize(
                   context,
-                  next, out[_normalizeString(context, i->getName(), tmp)]);
+                  next, out[_normalizeString(context, i->getName(), &tmp)]);
             }
          }
          if(tmp != NULL)
@@ -123,7 +123,7 @@ static void _normalize(
       {
          // normalize string
          char* tmp = NULL;
-         out = _normalizeString(context, in->getString(), tmp);
+         out = _normalizeString(context, in->getString(), &tmp);
          if(tmp != NULL)
          {
             free(tmp);
