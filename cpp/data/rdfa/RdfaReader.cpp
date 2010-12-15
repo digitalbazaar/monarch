@@ -121,7 +121,9 @@ static void _setPredicate(
    {
       if(s[predicate]->getType() != Array)
       {
-         s[predicate]->append(s[predicate]);
+         DynamicObject tmp = s[predicate];
+         s[predicate] = DynamicObject();
+         s[predicate]->append(tmp);
       }
       s[predicate]->append(object);
    }
