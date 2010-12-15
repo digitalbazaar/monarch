@@ -161,7 +161,7 @@ public:
                string path;
                if(!File::getAbsolutePath(next, path))
                {
-                  printf("Error getting absolute path for \"%s\"\n", next);
+                  printf("Error getting absolute path for '%s'\n", next);
                }
                _baseUri = StringTools::format("file://%s", path.c_str());
             }
