@@ -1506,7 +1506,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
          }
          else if(rval)
          {
-            // FIXME: hackish, can't just parse the expression using
+            // FIXME: hackish, can't just parse the whole expression using
             // parseExpression()...
             CompareOp op = op_single;
             rval = parseExpression(tokens[1]->getString(), params["lhs"]);
@@ -3307,13 +3307,8 @@ int TemplateInputStream::compare(DynamicObject& params)
       // error case, variable must exist
       else
       {
-         ExceptionRef e = new Exception(
-            "The substitution variable is not defined. "
-            "Variable substitution cannot occur with an "
-            "undefined variable.",
-            EXCEPTION_UNDEFINED);
-         e->getDetails()["name"] = params["lhs"]["fullname"];
-         Exception::set(e);
+         // re-eval to set appropriate exception
+         evalExpression(params["lhs"], true);
          rval = -1;
       }
    }
