@@ -107,7 +107,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["@"] = "_:bnode1";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
-         ["a"] = "http://www.w3.org/2009/pointers#LineCharPointer";
+         ["a"] = "w3:LineCharPointer";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["w3:charNumber"] = "6";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]

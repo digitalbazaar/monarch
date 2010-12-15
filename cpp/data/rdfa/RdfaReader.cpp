@@ -113,6 +113,92 @@ static char* _applyContext(DynamicObject& ctx, const char* name)
    return rval;
 }
 
+static void _setPredicate(
+   DynamicObject& s, const char* predicate, DynamicObject& object)
+{
+   // set the subject's predicate to the embedded object
+   if(s->hasMember(predicate))
+   {
+      if(s[predicate]->getType() != Array)
+      {
+         s[predicate]->append(s[predicate]);
+      }
+      s[predicate]->append(object);
+   }
+   else
+   {
+      s[predicate] = object;
+   }
+}
+
+static void _setPredicate(
+   DynamicObject& s, const char* predicate, const char* object)
+{
+   DynamicObject obj;
+   obj = object;
+   _setPredicate(s, predicate, obj);
+}
+
+static bool _isCycle(
+   DynamicObject& embeds, const char* subject, const char* object)
+{
+   bool rval = false;
+
+   /* Here we are checking to see if the given subject and object reference
+      each other cyclically. How to detect a cycle:
+
+      In order for a subject to be in a cycle, it must be possible to walk
+      the embeds map, following references, and find the subject.
+    */
+   const char* tmp = subject;
+   while(!rval && embeds->hasMember(tmp))
+   {
+      DynamicObject& embed = embeds[tmp];
+      tmp = embed["s"]["@"];
+      if(tmp == subject)
+      {
+         // cycle found
+         rval = true;
+      }
+   }
+
+   return rval;
+}
+
+static void _pruneCycles(DynamicObject& subjects, DynamicObject& embeds)
+{
+   DynamicObject tmp;
+   tmp->setType(Map);
+   DynamicObjectIterator i = embeds.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& embed = i->next();
+      const char* subject = embed["s"]["@"];
+      const char* object = i->getName();
+
+      // only handle embed if not broken
+      if(!embed["broken"]->getBoolean())
+      {
+         // see if object cyclically references subject
+         if(_isCycle(embeds, subject, object))
+         {
+            // cycle found, keep current embed, but break cycle at other embed
+            tmp[object] = embed;
+            DynamicObject& cycle = embeds[subject];
+            _setPredicate(cycle["s"], cycle["p"], object);
+            cycle["broken"] = true;
+         }
+         // no cycle, add as valid embed
+         else
+         {
+            tmp[object] = embed;
+         }
+      }
+   }
+
+   embeds = tmp;
+}
+
 static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
 {
    // write context as JSON-LD context in target
@@ -123,132 +209,114 @@ static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
       g->target["#"][i->getName()] = entry["uri"].clone();
    }
 
-   // create a mapping of subject to JSON-LD DynamicObject
+   // create a mapping of subject to JSON-LD DynamicObject and a
+   // mapping of object to info for where to embed the object
    DynamicObject subjects;
    subjects->setType(Map);
+   DynamicObject embeds;
+   embeds->setType(Map);
    for(RdfaReader::TripleList::iterator ti = g->triples.begin();
        ti != g->triples.end(); ++ti)
    {
       rdftriple* t = *ti;
 
-      // get the abbreviated subject and predicate
+      // get the abbreviated subject, predicate, and object
       char* subject = _applyContext(context, t->subject);
       char* predicate = _applyContext(context, t->predicate);
+      char* object = _applyContext(context, t->object);
 
-      // add the property to the subject object
-      DynamicObject& s = subjects[t->subject];
+      // create/get the subject dyno
+      DynamicObject& s = subjects[subject];
       if(!s->hasMember("@"))
       {
          s["@"] = subject;
       }
-      if(s->hasMember(predicate))
+
+      // if the object is referenced exactly once and it does not appear
+      // in a cyclical reference, then it can be embedded , then it can be
+      // embedded under the predicate, so keep track of that
+      if(g->subjectCounts.find(t->object)->second == 1)
       {
-         if(s[predicate]->getType() != Array)
-         {
-            DynamicObject tmp = s[predicate].clone();
-            s[predicate]->append(tmp);
-         }
-         s[predicate]->append(t->object);
+         DynamicObject& embed = embeds[object];
+         embed["s"] = s;
+         embed["p"] = predicate;
       }
+      // add the predicate and object to the subject dyno
       else
       {
-         s[predicate] = t->object;
+         _setPredicate(s, predicate, object);
       }
       free(subject);
       free(predicate);
+      free(object);
+   }
+
+   // clear triples
+   _freeTriples(g->triples);
+
+   /* Now that all possible embeds have been marked, we can prune cycles. */
+   _pruneCycles(subjects, embeds);
+
+   // handle all embeds
+   i = embeds.getIterator();
+   while(i->hasNext())
+   {
+      // get the subject dyno that will hold the embedded object
+      DynamicObject& embed = i->next();
+      const char* object = i->getName();
+      const char* predicate = embed["p"]->getString();
+      DynamicObject& s = embed["s"];
+
+      // get the referenced object
+      DynamicObject obj(NULL);
+      if(subjects->hasMember(object))
+      {
+         // get embedded object and remove it from list of top-level subjects
+         obj = subjects[object];
+         subjects->removeMember(object);
+      }
+      else
+      {
+         // referenced object is just a string
+         obj = DynamicObject();
+         obj = object;
+      }
+
+      // set the subject's predicate to the embedded object
+      _setPredicate(s, predicate, obj);
    }
 
    // remove "a" from context, only used during processing, its a builtin
    // token replacement for rdf type
    g->target["#"]->removeMember("a");
 
-   // build final JSON-LD object, perform nesting and shorten object names
-   DynamicObjectIterator si = subjects.getIterator();
-   while(si->hasNext())
+   // build final JSON-LD object by adding all top-level subject dynos
+   i = subjects.getIterator();
+   while(i->hasNext())
    {
-      DynamicObject& subject = si->next();
+      DynamicObject& subject = i->next();
 
-      // iterate over properties (predicate=object)
-      DynamicObjectIterator pi = subject.getIterator();
-      while(pi->hasNext())
+      // first subgraph to add, so just merge into target
+      if(!g->target->hasMember("@"))
       {
-         DynamicObject next = pi->next();
-         const char* predicate = pi->getName();
-         if(strcmp(predicate, "@") != 0)
-         {
-            // next is either an object or an array of objects (predicates
-            // can point at N objects), so iterate, which will work either way
-            DynamicObjectIterator oi = next.getIterator();
-            for(int idx = 0; oi->hasNext(); ++idx)
-            {
-               DynamicObject& object = oi->next();
-               // if the object is a subject in the graph that is referenced
-               // exactly once then embed it
-               // (clone it to prevent circular references)
-               RdfaReader::SubjectCountMap::iterator ci =
-                  g->subjectCounts.find(object);
-               if(ci != g->subjectCounts.end() && ci->second == 1 &&
-                  subjects->hasMember(object))
-               {
-                  DynamicObject obj = subjects[object->getString()].clone();
-                  if(subject[predicate]->getType() == Array)
-                  {
-                     subject[predicate][idx] = obj;
-                  }
-                  else
-                  {
-                     subject[predicate] = obj;
-                  }
-               }
-               // object cannot/should not be embedded, just abbreviate its name
-               else
-               {
-                  const char* abbr = _applyContext(context, object);
-                  if(subject[predicate]->getType() == Array)
-                  {
-                     subject[predicate][idx] = abbr;
-                  }
-                  else
-                  {
-                     subject[predicate] = abbr;
-                  }
-                  free((char*)abbr);
-               }
-            }
-         }
+         g->target.merge(subject, false);
       }
-
-      // if a subject is NOT referenced or it is referenced more than once,
-      // then it will not have been embedded anywhere ... add at the top-level
-      RdfaReader::SubjectCountMap::iterator ci =
-         g->subjectCounts.find(si->getName());
-      if(ci == g->subjectCounts.end() || ci->second != 1)
+      // not the first subgraph...
+      else
       {
-         // first subgraph to add, so just merge into target
-         if(!g->target->hasMember("@"))
+         // change top-level subject into an array
+         if(g->target["@"]->getType() != Array)
          {
-            g->target.merge(subject, false);
+            DynamicObject tmp = g->target.clone();
+            g->target->clear();
+            g->target["#"] = tmp["#"];
+            tmp->removeMember("#");
+            g->target["@"]->append(tmp);
          }
-         // not the first subgraph...
-         else
-         {
-            // change top-level subject into an array
-            if(g->target["@"]->getType() != Array)
-            {
-               DynamicObject tmp = g->target.clone();
-               g->target->clear();
-               g->target["#"] = tmp["#"];
-               tmp->removeMember("#");
-               g->target["@"]->append(tmp);
-            }
-            // add next top-level subgraph
-            g->target["@"]->append(subject);
-         }
+         // add next top-level subgraph
+         g->target["@"]->append(subject);
       }
    }
-
-   // clear triples
-   _freeTriples(g->triples);
 }
 
 static DynamicObject _getExceptionGraph(
@@ -496,9 +564,7 @@ static void _processTriple(RdfaReader::Graph* g, rdftriple* triple)
 {
    // update map with the number of references to a particular subject
    // using the object of this triple
-   RdfaReader::SubjectCountMap::iterator i =
-      g->subjectCounts.find(triple->object);
-   if(i == g->subjectCounts.end())
+   if(g->subjectCounts.find(triple->object) == g->subjectCounts.end())
    {
       g->subjectCounts[triple->object] = 1;
    }
