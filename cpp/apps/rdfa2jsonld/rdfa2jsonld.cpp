@@ -158,9 +158,12 @@ public:
             if(_baseUri.length() == 0)
             {
                // set base URI based on file name
-               string np;
-               File::normalizePath(next, np);
-               _baseUri = StringTools::format("file://%s", np.c_str());
+               string path;
+               if(!File::getAbsolutePath(next, path))
+               {
+                  printf("Error getting absolute path for \"%s\"\n", next);
+               }
+               _baseUri = StringTools::format("file://%s", path.c_str());
             }
 
             success = _processFile(next, _baseUri.c_str());
