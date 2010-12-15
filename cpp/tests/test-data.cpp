@@ -3074,6 +3074,69 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (subtraction w/undefined unstrict lhs)");
+   {
+      // create template
+      const char* tpl =
+         "{foo-bar}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["bar"] = 1;
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, false, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+
+      const char* expect =
+         "-1\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (divide by 0)");
+   {
+      // create template
+      const char* tpl =
+         "{foo-bar}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["foo"] = 1;
+      vars["bar"] = 0;
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+
+      const char* expect =
+         "1\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+
    tr.test("parse (multi-level variable compare)");
    {
       // create template

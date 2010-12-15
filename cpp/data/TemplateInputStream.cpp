@@ -3571,95 +3571,103 @@ static bool _handleOperator(DynamicObject& exp, bool strict)
          }
       }
    }
-   else if(exp["op"] == "+")
+   // if rhs is null then strict must be false or the code would never
+   // hit this path
+   else if(exp["rhs"]["value"].isNull())
    {
-      // add lhs to rhs
-      DynamicObject lhs = exp["value"];
-      DynamicObject& rhs = exp["rhs"]["value"];
-      exp["value"] = DynamicObject();
-      if(lhs->getType() == Double || rhs->getType() == Double)
-      {
-         exp["value"] = lhs->getDouble() + rhs->getDouble();
-      }
-      else
-      {
-         exp["value"] = lhs->getUInt64() + rhs->getUInt64();
-      }
+      // keep expression equal to its current value, since rhs is not defined
    }
-   else if(exp["op"] == "-")
+   // handle math ops
+   else
    {
-      // subtract rhs from lhs
+      // get lhs and rhs
       DynamicObject lhs = exp["value"];
+      // make undefined lhs == 0
+      if(lhs.isNull())
+      {
+         lhs = DynamicObject();
+         lhs = 0;
+      }
       DynamicObject& rhs = exp["rhs"]["value"];
       exp["value"] = DynamicObject();
-      if(lhs->getType() == Double || rhs->getType() == Double)
+
+      // handle specific op
+      if(exp["op"] == "+")
       {
-         exp["value"] = lhs->getDouble() - rhs->getDouble();
+         // add lhs to rhs
+         if(lhs->getType() == Double || rhs->getType() == Double)
+         {
+            exp["value"] = lhs->getDouble() + rhs->getDouble();
+         }
+         else
+         {
+            exp["value"] = lhs->getUInt64() + rhs->getUInt64();
+         }
       }
-      else if(lhs->getType() == Int32 || rhs->getType() == Int64 || rhs > lhs)
+      else if(exp["op"] == "-")
       {
-         exp["value"] = lhs->getInt64() - rhs->getInt64();
+         // subtract rhs from lhs
+         if(lhs->getType() == Double || rhs->getType() == Double)
+         {
+            exp["value"] = lhs->getDouble() - rhs->getDouble();
+         }
+         else if(
+            lhs->getType() == Int32 || rhs->getType() == Int64 || rhs > lhs)
+         {
+            exp["value"] = lhs->getInt64() - rhs->getInt64();
+         }
+         else
+         {
+            exp["value"] = lhs->getUInt64() - rhs->getUInt64();
+         }
       }
-      else
+      else if(exp["op"] == "*")
       {
-         exp["value"] = lhs->getUInt64() - rhs->getUInt64();
+         // multiply lhs by rhs
+         if(lhs->getType() == Double || rhs->getType() == Double)
+         {
+            exp["value"] = lhs->getDouble() * rhs->getDouble();
+         }
+         else if(lhs->getType() == Int32 || rhs->getType() == Int64)
+         {
+            exp["value"] = lhs->getInt64() * rhs->getInt64();
+         }
+         else
+         {
+            exp["value"] = lhs->getUInt64() * rhs->getUInt64();
+         }
       }
-   }
-   else if(exp["op"] == "*")
-   {
-      // multiply lhs by rhs
-      DynamicObject lhs = exp["value"];
-      DynamicObject& rhs = exp["rhs"]["value"];
-      exp["value"] = DynamicObject();
-      if(lhs->getType() == Double || rhs->getType() == Double)
+      else if(exp["op"] == "/")
       {
-         exp["value"] = lhs->getDouble() * rhs->getDouble();
+         // divide lhs by rhs
+         if(lhs->getType() == Double || rhs->getType() == Double)
+         {
+            exp["value"] = lhs->getDouble() / rhs->getDouble();
+         }
+         else if(rhs->getType() == Int32 || rhs->getType() == Int64)
+         {
+            exp["value"] = lhs->getInt64() / rhs->getInt64();
+         }
+         else
+         {
+            exp["value"] = lhs->getUInt64() / rhs->getUInt64();
+         }
       }
-      else if(lhs->getType() == Int32 || rhs->getType() == Int64)
+      else if(exp["op"] == "%")
       {
-         exp["value"] = lhs->getInt64() * rhs->getInt64();
-      }
-      else
-      {
-         exp["value"] = lhs->getUInt64() * rhs->getUInt64();
-      }
-   }
-   else if(exp["op"] == "/")
-   {
-      // divide lhs by rhs
-      DynamicObject lhs = exp["value"];
-      DynamicObject& rhs = exp["rhs"]["value"];
-      exp["value"] = DynamicObject();
-      if(lhs->getType() == Double || rhs->getType() == Double)
-      {
-         exp["value"] = lhs->getDouble() / rhs->getDouble();
-      }
-      else if(rhs->getType() == Int32 || rhs->getType() == Int64)
-      {
-         exp["value"] = lhs->getInt64() / rhs->getInt64();
-      }
-      else
-      {
-         exp["value"] = lhs->getUInt64() / rhs->getUInt64();
-      }
-   }
-   else if(exp["op"] == "%")
-   {
-      // do lhs % rhs
-      DynamicObject lhs = exp["value"];
-      DynamicObject& rhs = exp["rhs"]["value"];
-      exp["value"] = DynamicObject();
-      if(rhs->getType() == Int32 || rhs->getType() == Int64)
-      {
-         exp["value"] = lhs->getInt64() % rhs->getInt64();
-      }
-      else
-      {
-         exp["value"] = lhs->getUInt64() % rhs->getUInt64();
+         // do lhs % rhs
+         if(rhs->getType() == Int32 || rhs->getType() == Int64)
+         {
+            exp["value"] = lhs->getInt64() % rhs->getInt64();
+         }
+         else
+         {
+            exp["value"] = lhs->getUInt64() % rhs->getUInt64();
+         }
       }
    }
 
-   // handle not found and strict
+   // handle value not found and strict
    if(rval && strict && _isAccessor(exp) && exp["value"].isNull())
    {
       ExceptionRef e = new Exception(
