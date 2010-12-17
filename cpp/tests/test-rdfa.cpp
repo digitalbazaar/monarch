@@ -333,6 +333,45 @@ static void runRdfaReaderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("multiple values");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/terms/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head></head>\n"
+         "<body><p>\n"
+         "<span about=\"#book\" property=\"ex:prop\">Prop 1</span>\n"
+         "<span about=\"#book\" property=\"ex:prop\">Prop 2</span>\n"
+         "</p></body>\n"
+         "</html>";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/terms/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"] = "http://example.org/test#book";
+      expect["ex:prop"][0] = "Prop 1";
+      expect["ex:prop"][1] = "Prop 2";
+      assertDynoCmp(expect, dyno);
+   }
+   tr.passIfNoException();
+
    tr.test("HTML5+RDFa");
    {
       string rdfa =
