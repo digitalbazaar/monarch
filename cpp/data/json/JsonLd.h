@@ -68,6 +68,26 @@ public:
    static bool changeContext(
       monarch::rt::DynamicObject& context,
       monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+
+   /**
+    * Filter the JSON-LD formatted "in" to the JSON-LD formatted "out" by
+    * filtering all results for those subjects that match properties in
+    * "filter". The result is denormalized using the given "context".
+    *
+    * Currently only uses the first level of properties in the filter.  The
+    * properties can have multiple values but deeper checking is not performed.
+    *
+    * @param context the new context to use.
+    * @param filter the filter to use.
+    * @param in the input JSON-LD object.
+    * @param out the output JSON-LD object.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   static bool filter(
+      monarch::rt::DynamicObject& context,
+      monarch::rt::DynamicObject& filter,
+      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
 };
 
 } // end namespace json

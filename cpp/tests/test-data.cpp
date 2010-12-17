@@ -683,6 +683,100 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("filter");
+   {
+      DynamicObject ctx;
+      ctx["dc"] = "http://purl.org/dc/term/";
+      ctx["ex"] = "http://example.org/vocab#";
+
+      DynamicObject in;
+      in["#"] = ctx;
+      in["@"][0]["@"] = "ex:test-1";
+      in["@"][0]["a"] = "ex:MyType";
+      in["@"][0]["dc:title"] = "Test 1";
+      in["@"][1]["@"] = "ex:test-2";
+      in["@"][1]["a"] = "ex:MyType";
+      in["@"][1]["dc:title"] = "Test 2";
+      DynamicObject in2;
+      in2["ex:p-1"]["@"] = "ex:test-2-1";
+      in2["ex:p-1"]["a"] = "ex:MyType2";
+      in2["ex:p-1"]["dc:title"] = "Test 2-1";
+      in2["ex:p-2"]["@"] = "ex:test-2-2";
+      in2["ex:p-2"]["a"] = "ex:MyType2";
+      in2["ex:p-2"]["dc:title"] = "Test 2-2";
+      in["@"][2] = in2;
+
+      // test id filter
+      {
+         DynamicObject filter;
+         filter["#"] = ctx;
+         filter["@"] = "ex:test-1";
+
+         DynamicObject out;
+         assertNoException(
+            JsonLd::filter(ctx, filter, in, out));
+
+         DynamicObject expect;
+         expect["#"] = ctx;
+         expect["@"][0]["@"] = "ex:test-1";
+         expect["@"][0]["a"] = "ex:MyType";
+         expect["@"][0]["dc:title"] = "Test 1";
+
+         assertNamedDynoCmp("expect", expect, "result", out);
+      }
+
+      // test type filter
+      {
+         DynamicObject filter;
+         filter["#"] = ctx;
+         filter["a"] = "ex:MyType";
+
+         DynamicObject out;
+         assertNoException(
+            JsonLd::filter(ctx, filter, in, out));
+
+         DynamicObject expect;
+         expect["#"] = ctx;
+         expect["@"][0]["@"] = "ex:test-1";
+         expect["@"][0]["a"] = "ex:MyType";
+         expect["@"][0]["dc:title"] = "Test 1";
+         expect["@"][1]["@"] = "ex:test-2";
+         expect["@"][1]["a"] = "ex:MyType";
+         expect["@"][1]["dc:title"] = "Test 2";
+
+         assertNamedDynoCmp("expect", expect, "result", out);
+      }
+
+      // test deep filter
+      {
+         DynamicObject filter;
+         filter["#"] = ctx;
+         filter["a"] = "ex:MyType2";
+
+         DynamicObject out;
+         assertNoException(
+            JsonLd::filter(ctx, filter, in, out));
+
+         DynamicObject expect;
+         expect["#"] = ctx;
+         expect["@"][0]["@"] = "ex:test-2-1";
+         expect["@"][0]["a"] = "ex:MyType2";
+         expect["@"][0]["dc:title"] = "Test 2-1";
+         expect["@"][1]["@"] = "ex:test-2-2";
+         expect["@"][1]["a"] = "ex:MyType2";
+         expect["@"][1]["dc:title"] = "Test 2-2";
+
+         assertNamedDynoCmp("expect", expect, "result", out);
+      }
+
+      // test graph completeness
+      {
+         // FIXME: make a graph with internal references such that a simple
+         // search will result in an incomplete output graph.
+      }
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 

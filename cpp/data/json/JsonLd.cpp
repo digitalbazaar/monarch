@@ -266,3 +266,102 @@ bool JsonLd::changeContext(
    DynamicObject tmp;
    return normalize(in, tmp) && denormalize(context, tmp, out);
 }
+
+static bool _filterOne(DynamicObject& filter, DynamicObject& object)
+{
+   bool rval = true;
+
+   // loop over all filter properties
+   DynamicObjectIterator i;
+   i = filter.getIterator();
+   while(rval && i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      const char* name = i->getName();
+      // check if object has property
+      rval = object->hasMember(name);
+      if(rval)
+      {
+         // loop over all filter values
+         DynamicObjectIterator fpi;
+         fpi = next.getIterator();
+         while(rval && fpi->hasNext())
+         {
+            DynamicObject& fpnext = fpi->next();
+            // make sure value appears in object property
+            DynamicObjectIterator opi;
+            opi = object[name].getIterator();
+            rval = false;
+            while(!rval && opi->hasNext())
+            {
+               DynamicObject& opnext = opi->next();
+               rval = (fpnext == opnext);
+            }
+         }
+      }
+   }
+
+   return rval;
+}
+
+/**
+ * Recursively filter input to output.
+ *
+ * @param filter the fitler to use.
+ * @param in the input object.
+ * @param out the filtered output object.
+ */
+static void _filter(
+   DynamicObject& filter, DynamicObject& in, DynamicObject& out)
+{
+   if(!in.isNull())
+   {
+      DynamicObjectType inType = in->getType();
+
+      if(inType == Map)
+      {
+         // check if this object matches filter
+         if(_filterOne(filter, in))
+         {
+            out["@"]->append(in);
+         }
+      }
+      if(inType == Map || inType == Array)
+      {
+         // filter each object
+         DynamicObjectIterator i = in.getIterator();
+         while(i->hasNext())
+         {
+            _filter(filter, i->next(), out);
+         }
+      }
+   }
+}
+
+bool JsonLd::filter(
+   DynamicObject& context, DynamicObject& filter,
+   DynamicObject& in, DynamicObject& out)
+{
+   bool rval;
+   DynamicObject normFilter;
+   DynamicObject normIn;
+   DynamicObject normOut;
+   normOut->setType(Map);
+   // normalize objects
+   rval =
+      normalize(filter, normFilter) &&
+      normalize(in, normIn);
+   // filter to the output
+   if(rval)
+   {
+      _filter(normFilter, normIn, normOut);
+      // FIXME fixup graph
+      // Search normOut for unknown references that are in normIn and add them.
+      // Futher optimize by checking reference count and embedding data as
+      // needed. This will result in a graph that is as complete as the input
+      // with regard to references.
+   }
+   // denormalize output
+   rval = rval && denormalize(context, normOut, out);
+   return rval;
+}
