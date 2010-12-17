@@ -108,7 +108,7 @@ int makecontext(ucontext_t* ucp, void (*func)(), int argc, ...)
 void* mmap(
    void* start, size_t length, int prot, int flags, int fd, off_t offset)
 {
-   void* rval;
+   void* rval = NULL;
 
    // clear errno
    errno = 0;

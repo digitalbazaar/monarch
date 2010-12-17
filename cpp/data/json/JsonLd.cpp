@@ -152,7 +152,7 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
  * @return a pointer to the denormalized string.
  */
 static const char* _denormalizeString(
-   DynamicObject& context, const char* str, char* tmp)
+   DynamicObject& context, const char* str, char** tmp)
 {
    const char* rval = str;
 
@@ -170,12 +170,12 @@ static const char* _denormalizeString(
          {
             // add 2 to make room for null-terminator and colon
             size_t total = strlen(i->getName()) + (slen - ulen) + 2;
-            if(tmp == NULL || total > sizeof(tmp))
+            if(*tmp == NULL || total > sizeof(*tmp))
             {
-               tmp = (char*)realloc(tmp, total);
+               *tmp = (char*)realloc(*tmp, total);
             }
-            snprintf(tmp, total, "%s:%s", i->getName(), ptr + ulen);
-            rval = tmp;
+            snprintf(*tmp, total, "%s:%s", i->getName(), ptr + ulen);
+            rval = *tmp;
          }
       }
    }
@@ -216,7 +216,7 @@ static void _denormalize(
                // denormalize key, denormalize object
                _denormalize(
                   context,
-                  next, out[_denormalizeString(context, i->getName(), tmp)]);
+                  next, out[_denormalizeString(context, i->getName(), &tmp)]);
             }
          }
          if(tmp != NULL)
@@ -239,7 +239,7 @@ static void _denormalize(
       {
          // denormalize string
          char* tmp = NULL;
-         out = _denormalizeString(context, in->getString(), tmp);
+         out = _denormalizeString(context, in->getString(), &tmp);
          if(tmp != NULL)
          {
             free(tmp);
