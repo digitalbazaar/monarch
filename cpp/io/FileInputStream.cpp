@@ -186,13 +186,20 @@ int FileInputStream::readLine(string& line, char delimiter)
          ssize_t length = getdelim(&data, &size, delimiter, mHandle);
          if(length == -1)
          {
-            ExceptionRef e = new Exception(
-               "Could not read file.",
-               "monarch.io.File.ReadError");
-            e->getDetails()["path"] = mFile->getAbsolutePath();
-            e->getDetails()["error"] = strerror(errno);
-            Exception::set(e);
-            rval = -1;
+            if(feof(mHandle) != 0)
+            {
+               // end of file
+            }
+            else
+            {
+               ExceptionRef e = new Exception(
+                  "Could not read file.",
+                  "monarch.io.File.ReadError");
+               e->getDetails()["path"] = mFile->getAbsolutePath();
+               e->getDetails()["error"] = strerror(errno);
+               Exception::set(e);
+               rval = -1;
+            }
          }
          else
          {
