@@ -5,6 +5,7 @@
 
 #include "monarch/net/TcpSocket.h"
 #include "monarch/net/SslSocket.h"
+#include "monarch/io/ByteArrayOutputStream.h"
 #include "monarch/io/InputStream.h"
 #include "monarch/io/OutputStream.h"
 #include "monarch/rt/DynamicObjectIterator.h"
@@ -207,6 +208,44 @@ bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
    {
       // receive body
       rval = mResponse->receiveBody(os, trailer);
+   }
+
+   return rval;
+}
+
+bool HttpClient::receiveContent(std::string& str, HttpTrailer* trailer)
+{
+   bool rval = true;
+
+   int64_t length;
+   int size = 2048;
+   if(mResponse != NULL &&
+      mResponse->getHeader()->getField("Content-Length", length))
+   {
+      if(length > 0x7FFFFFFF)
+      {
+         ExceptionRef e = new Exception(
+            "Could not receive HTTP content, content too large.",
+            "monarch.net.http.NotConnected");
+         e->getDetails()["Content-Length"] = length;
+         Exception::set(e);
+         rval = false;
+      }
+      else
+      {
+         size = (int)length;
+      }
+   }
+
+   if(rval)
+   {
+      ByteBuffer buf(size);
+      ByteArrayOutputStream baos(&buf, true);
+      rval = mResponse->receiveBody(&baos, trailer);
+      if(rval)
+      {
+         str.assign(buf.data(), buf.length());
+      }
    }
 
    return rval;

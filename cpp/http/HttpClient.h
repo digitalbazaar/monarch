@@ -155,6 +155,17 @@ public:
       monarch::io::OutputStream* os, HttpTrailer* trailer = NULL);
 
    /**
+    * Receives the content previously requested by get() or post() and
+    * writes it to the passed string.
+    *
+    * @param str the string to write the content to.
+    * @param trailer used to store any trailer headers.
+    *
+    * @return false if an IO exception occurred, true if not.
+    */
+   virtual bool receiveContent(std::string& str, HttpTrailer* trailer = NULL);
+
+   /**
     * Disconnects this client, if it is connected.
     */
    virtual void disconnect();
