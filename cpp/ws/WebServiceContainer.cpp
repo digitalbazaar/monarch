@@ -244,6 +244,7 @@ void WebServiceContainer::clear()
       free((char*)i->first);
       delete i->second;
    }
+   mServices.clear();
 }
 
 HttpConnectionServicer* WebServiceContainer::getServicer()
