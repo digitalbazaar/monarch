@@ -6,7 +6,11 @@
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/data/json/JsonLd.h"
 #include "monarch/data/rdfa/RdfaReader.h"
+#include "monarch/http/HttpClient.h"
+#include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/io/FileInputStream.h"
+#include "monarch/logging/Logging.h"
+#include "monarch/net/Url.h"
 #include "monarch/util/StringTools.h"
 
 #include <cstdio>
@@ -17,8 +21,11 @@ using namespace monarch::config;
 using namespace monarch::crypto;
 using namespace monarch::data::json;
 using namespace monarch::data::rdfa;
+using namespace monarch::http;
 using namespace monarch::io;
+using namespace monarch::logging;
 using namespace monarch::modest;
+using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 
@@ -31,9 +38,60 @@ namespace apps
 namespace rdfa2jsonld
 {
 
+static bool _processStream(
+   InputStream* is, const char* srcName, const char* baseUri)
+{
+   bool rval;
+
+   // read in rdfa
+   RdfaReader reader;
+   reader.setBaseUri(baseUri);
+   DynamicObject dyno;
+   rval = reader.start(dyno) && reader.read(is) && reader.finish();
+
+   if(rval)
+   {
+      // normalize and hash output
+      DynamicObject normalized;
+      JsonLd::normalize(dyno, normalized);
+      MessageDigest md;
+      string json = JsonWriter::writeToString(dyno, true, false);
+      rval = md.start("SHA1") && md.update(json.c_str(), json.length());
+      if(rval)
+      {
+         // print output
+         if(srcName != NULL)
+         {
+            printf("RDFa to JSON-LD: '%s'\n", srcName);
+         }
+         else
+         {
+            printf("RDFa to JSON-LD:\n");
+         }
+         printf("Normalized SHA-1 hash: %s\n", md.getDigest().c_str());
+         JsonWriter::writeToStdOut(dyno, false, false);
+      }
+   }
+
+   return rval;
+}
+
 static bool _processFile(const char* inFile, const char* baseUri)
 {
    bool rval;
+
+   string _baseUri = baseUri;
+   if(_baseUri.length() == 0)
+   {
+      // set base URI based on file name
+      string path;
+      if(!File::getAbsolutePath(inFile, path))
+      {
+         MO_CAT_ERROR(MO_APP_CAT,
+            "Error getting absolute path for '%s'.", inFile);
+      }
+      _baseUri = StringTools::format("file://%s", path.c_str());
+   }
 
    // prepare input stream
    File file((FileImpl*)NULL);
@@ -48,39 +106,54 @@ static bool _processFile(const char* inFile, const char* baseUri)
       fis = new FileInputStream(file);
    }
 
-   // read in rdfa
-   RdfaReader reader;
-   reader.setBaseUri(baseUri);
-   DynamicObject dyno;
-   rval = reader.start(dyno) && reader.read(fis) && reader.finish();
+   rval = _processStream(fis, file->getAbsolutePath(), _baseUri.c_str());
 
    // close input stream
    fis->close();
    delete fis;
 
+   return rval;
+}
+
+static bool _processHttp(Url& url, const char* baseUri)
+{
+   bool rval;
+
+   string _baseUri = baseUri;
+   if(_baseUri.length() == 0)
+   {
+      // default to URL
+      _baseUri = url.toString();
+   }
+
+   HttpClient client;
+
+   rval = client.connect(&url);
    if(rval)
    {
-      // normalize and hash output
-      DynamicObject normalized;
-      JsonLd::normalize(dyno, normalized);
-      MessageDigest md;
-      string json = JsonWriter::writeToString(dyno, true, false);
-      rval = md.start("SHA1") && md.update(json.c_str(), json.length());
-      if(rval)
+      string content;
+      HttpResponse* response = client.get(&url);
+      if(response != NULL)
       {
-         // print output
-         if(inFile != NULL)
+         if(client.receiveContent(content))
          {
-            printf("RDFa to JSON-LD: '%s'\n", file->getAbsolutePath());
+            ByteArrayInputStream is(content.c_str(), content.length());
+            rval = _processStream(&is, _baseUri.c_str(), _baseUri.c_str());
          }
          else
          {
-            printf("RDFa to JSON-LD:\n");
+            MO_CAT_ERROR(MO_APP_CAT,
+               "IO Exception for URL '%s'.", url.toString().c_str());
          }
-         printf("Normalized SHA-1 hash: %s\n", md.getDigest().c_str());
-         JsonWriter::writeToStdOut(dyno, false, false);
       }
    }
+   else
+   {
+      MO_CAT_ERROR(MO_APP_CAT,
+         "Connection problem for URL '%s'.", url.toString().c_str());
+   }
+
+   client.disconnect();
 
    return rval;
 }
@@ -114,7 +187,7 @@ public:
       // use extra options as files to process
       opt = spec["options"]->append();
       opt["extra"]["root"] = c;
-      opt["extra"]["path"] = "files";
+      opt["extra"]["path"] = "urls";
 
       return spec;
    };
@@ -130,8 +203,8 @@ public:
       const char* baseUri = cfg["baseUri"];
 
       // process files
-      DynamicObject& files = cfg["files"];
-      if(files->length() == 0)
+      DynamicObject& urls = cfg["urls"];
+      if(urls->length() == 0)
       {
          printf("Reading RDFa from standard input...\n");
 
@@ -146,27 +219,44 @@ public:
       }
       else
       {
-         printf("Reading RDFa from files...\n");
+         printf("Reading RDFa from URLs or files...\n");
 
-         DynamicObjectIterator i = files.getIterator();
+         DynamicObjectIterator i = urls.getIterator();
          bool success = true;
          while(success && i->hasNext())
          {
             const char* next = i->next()->getString();
 
-            string _baseUri = baseUri;
-            if(_baseUri.length() == 0)
+            Url url;
+            if(url.setUrl(next))
             {
-               // set base URI based on file name
-               string path;
-               if(!File::getAbsolutePath(next, path))
+               string scheme = url.getScheme();
+               if(scheme == "")
                {
-                  printf("Error getting absolute path for '%s'\n", next);
+                  // assume a regular file
+                  success = _processFile(next, baseUri);
                }
-               _baseUri = StringTools::format("file://%s", path.c_str());
+               else if(scheme == "file")
+               {
+                  success = _processFile(url.getPath().c_str(), baseUri);
+               }
+               else if(scheme == "http" || scheme == "https")
+               {
+                  success = _processHttp(url, baseUri);
+               }
+               else
+               {
+                  MO_CAT_ERROR(MO_APP_CAT,
+                     "Unknown URL scheme for '%s'.", next);
+                  success = false;
+               }
             }
-
-            success = _processFile(next, _baseUri.c_str());
+            else
+            {
+               // failed to set as URL, assume a simple file string
+               Exception::clear();
+               success = _processFile(next, baseUri);
+            }
          }
       }
 

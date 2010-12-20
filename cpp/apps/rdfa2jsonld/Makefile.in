@@ -6,10 +6,10 @@ mordfa2jsonld_HEADERS = $(wildcard *.h)
 mordfa2jsonld_SOURCES = $(wildcard *.cpp)
 mordfa2jsonld_MOD_DIR = apps
 
-DYNAMIC_LINK_LIBRARIES = mort moutil modata mocrypto
+DYNAMIC_LINK_LIBRARIES = mort moutil modata mocrypto mologging
 
-DYNAMIC_MACOS_LINK_LIBRARIES = momodest mofiber moio moconfig mologging mokernel moapp
-DYNAMIC_WINDOWS_LINK_LIBRARIES = momodest mofiber moio moconfig mologging mokernel moapp
+DYNAMIC_MACOS_LINK_LIBRARIES = momodest mofiber moio moconfig mokernel moapp
+DYNAMIC_WINDOWS_LINK_LIBRARIES = momodest mofiber moio moconfig mokernel moapp
 endif
 
 # ----------- Standard Makefile
