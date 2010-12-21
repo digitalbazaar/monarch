@@ -92,6 +92,11 @@ static bool _processFile(const char* inFile, const char* baseUri)
       }
       _baseUri = StringTools::format("file://%s", path.c_str());
    }
+   string _srcName = ((inFile != NULL) ? inFile : "");
+   if(_srcName.length() == 0)
+   {
+      _srcName = "stdin";
+   }
 
    // prepare input stream
    File file((FileImpl*)NULL);
@@ -106,7 +111,7 @@ static bool _processFile(const char* inFile, const char* baseUri)
       fis = new FileInputStream(file);
    }
 
-   rval = _processStream(fis, file->getAbsolutePath(), _baseUri.c_str());
+   rval = _processStream(fis, _srcName.c_str(), _baseUri.c_str());
 
    // close input stream
    fis->close();
