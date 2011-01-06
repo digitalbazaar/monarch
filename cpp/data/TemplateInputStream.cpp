@@ -264,6 +264,11 @@ static bool _isArrayAccessor(DynamicObject& exp)
    return exp->hasMember("op") && exp["op"] == "[";
 }
 
+static bool _isArrayEnd(DynamicObject& exp, int arrayId)
+{
+   return exp["arrayEnd"]->getInt32() == arrayId;
+}
+
 static bool _hasMutator(DynamicObject& exp)
 {
    bool rval = false;
@@ -273,6 +278,25 @@ static bool _hasMutator(DynamicObject& exp)
    if(!rval && exp->hasMember("rhs"))
    {
       rval = _hasMutator(exp["rhs"]);
+   }
+
+   return rval;
+}
+
+static DynamicObject _getArrayEnd(DynamicObject& exp)
+{
+   DynamicObject rval(NULL);
+
+   DynamicObject rhs = exp;
+   int arrayId = exp["arrayStart"];
+   while(rval.isNull() && rhs->hasMember("rhs"))
+   {
+      // count
+      rhs = rhs["rhs"];
+      if(_isArrayEnd(rhs, arrayId))
+      {
+         rval = rhs;
+      }
    }
 
    return rval;
@@ -2009,6 +2033,11 @@ bool TemplateInputStream::parseExpression(
    expression->clear();
    expression["local"] = false;
    expression["parent"].setNull();
+   expression["arrayEnd"] = 0;
+
+   // array ID stack
+   int arrayId = 0;
+   vector<int> arrayIds;
 
    // parse input into components and delimiters
    vector<string> comps;
@@ -2022,7 +2051,6 @@ bool TemplateInputStream::parseExpression(
 
       // walk delimiters
       char del;
-      int arrayAccessors = 0;
       vector<string>::iterator ci = comps.begin();
       vector<char>::iterator di = dels.begin();
       for(; rval && di != dels.end(); ++di)
@@ -2031,8 +2059,7 @@ bool TemplateInputStream::parseExpression(
          if(del == ']')
          {
             // sanity check '[' matches
-            --arrayAccessors;
-            if(arrayAccessors < 0)
+            if(arrayIds.size() == 0)
             {
                ExceptionRef e = new Exception(
                   "Mismatched '['",
@@ -2048,6 +2075,12 @@ bool TemplateInputStream::parseExpression(
                Exception::set(e);
                rval = false;
             }
+            else
+            {
+               // mark end of array
+               exp["arrayEnd"] = arrayIds.back();
+               arrayIds.pop_back();
+            }
          }
          else if(ci == comps.end())
          {
@@ -2062,7 +2095,8 @@ bool TemplateInputStream::parseExpression(
             // keep track of starting array access
             if(del == '[')
             {
-               ++arrayAccessors;
+               arrayIds.push_back(++arrayId);
+               exp["arrayStart"] = arrayId;
             }
 
             // parse variable into parameters
@@ -2122,6 +2156,7 @@ bool TemplateInputStream::parseExpression(
                   exp["rhs"]["local"] = false;
                   exp["rhs"]["parent"].setNull();
                   exp["rhs"]["lhs"] = params;
+                  exp["rhs"]["arrayEnd"] = 0;
                   exp = exp["rhs"];
                }
             }
@@ -2134,7 +2169,7 @@ bool TemplateInputStream::parseExpression(
       }
 
       // sanity check '[' matches
-      if(rval && arrayAccessors != 0)
+      if(rval && arrayIds.size() != 0)
       {
          ExceptionRef e = new Exception(
             "Mismatched '['",
@@ -3522,7 +3557,8 @@ DynamicObject TemplateInputStream::findVariable(
    return rval;
 }
 
-static bool _handleOperator(DynamicObject& exp, bool strict)
+bool TemplateInputStream::handleOperator(
+   DynamicObject& exp, bool strict, bool set)
 {
    bool rval = true;
 
@@ -3533,36 +3569,43 @@ static bool _handleOperator(DynamicObject& exp, bool strict)
    }
    else if(_isArrayAccessor(exp))
    {
-      // if rhs is itself an accessor, just use its value
-      if(_isAccessor(exp["rhs"]))
+      // look in rhs value as index in lhs
+      int index = exp["rhs"]["value"];
+
+      // rhs *must* be a number
+      if(!_isInteger(exp["rhs"]["value"]))
       {
-         exp["value"] = exp["rhs"]["value"];
+         ExceptionRef e = new Exception(
+            "Invalid array accessor. Indexes must be integers.",
+            EXCEPTION_SYNTAX);
+         Exception::set(e);
+         rval = false;
+      }
+      else if(
+         exp["value"]->getType() == Array &&
+         index < exp["value"]->length())
+      {
+         // found
+         exp["value"] = exp["value"][index];
       }
       else
       {
-         // look in rhs value as index in lhs
-         int index = exp["rhs"]["value"];
+         // not found
+         exp["value"].setNull();
+      }
 
-         // rhs *must* be a number
-         if(!_isInteger(exp["rhs"]["value"]))
+      // if the end of the array is an accessor then "value" isn't
+      // correct yet and we need to eval the rhs accessor after
+      // setting its parent
+      DynamicObject rhs = _getArrayEnd(exp);
+      if(!exp["value"].isNull() && _isAccessor(rhs))
+      {
+         // set parent of rhs to value, eval rhs, use rhs value
+         rhs["rhs"]["parent"] = exp["value"];
+         rval = evalExpression(rhs["rhs"], strict, set);
+         if(rval)
          {
-            ExceptionRef e = new Exception(
-               "Invalid array accessor. Indexes must be integers.",
-               EXCEPTION_SYNTAX);
-            Exception::set(e);
-            rval = false;
-         }
-         else if(
-            exp["value"]->getType() == Array &&
-            index < exp["value"]->length())
-         {
-            // found
-            exp["value"] = exp["value"][index];
-         }
-         else
-         {
-            // not found
-            exp["value"].setNull();
+            exp["value"] = rhs["rhs"]["value"];
          }
       }
    }
@@ -3715,7 +3758,14 @@ bool TemplateInputStream::evalExpression(
             {
                exp["var"]->setType(Map);
             }
-            exp["rhs"]["parent"] = exp["var"];
+
+            // only set the rhs parent if this is not the end of an array,
+            // if it is, then the parent will be set after the array has been
+            // traversed below via handleOperator()
+            if(exp["arrayEnd"]->getInt32() == 0)
+            {
+               exp["rhs"]["parent"] = exp["var"];
+            }
             exp["rhs"]["fullname"]->format("%s.%s",
                exp["fullname"]->getString(),
                exp["rhs"]["lhs"]["value"]->getString());
@@ -3751,8 +3801,8 @@ bool TemplateInputStream::evalExpression(
                }
             }
 
-            // only set rhs parent if rhs is NOT a variable
-            if(!_isVariable(exp["rhs"]))
+            // if the rhs is a literal, set its parent
+            if(_isLiteral(exp["rhs"]))
             {
                exp["rhs"]["parent"] = exp["var"];
             }
@@ -3760,10 +3810,19 @@ bool TemplateInputStream::evalExpression(
                exp["fullname"]->getString(),
                exp["rhs"]["lhs"]["value"]->getString());
          }
-         rval = rval && evalExpression(exp["rhs"], strict, false);
 
-         // handle operator
-         rval = rval && _handleOperator(exp, strict);
+         // eval rhs expression if not at the end of an array, otherwise it
+         // will be eval'd later via handleOperator()
+         if(exp["arrayEnd"]->getInt32() == 0)
+         {
+            rval = rval && evalExpression(exp["rhs"], strict, false);
+         }
+
+         // handle operator if not at the end of an array
+         if(exp["arrayEnd"]->getInt32() == 0)
+         {
+            rval = rval && handleOperator(exp, strict, set);
+         }
       }
    }
 
