@@ -560,18 +560,6 @@ protected:
       const char* name, monarch::rt::DynamicObject& ctx, bool strict);
 
    /**
-    * Handles an operator during expression evaluation.
-    *
-    * @param exp the expression.
-    * @param strict true to use strict mode.
-    * @param set true to enable setting of undefined variables.
-    *
-    * @return true on success, false if on failure with exception set.
-    */
-   virtual bool handleOperator(
-      monarch::rt::DynamicObject& exp, bool strict, bool set);
-
-   /**
     * Evaluates the given expression.
     *
     * @param exp the expression to evaluate.
@@ -582,6 +570,21 @@ protected:
     */
    virtual bool evalExpression(
       monarch::rt::DynamicObject& exp, bool strict, bool set = false);
+
+   /**
+    * Recursively evaluates the given expression using the given stack of
+    * parent expressions.
+    *
+    * @param exp the expression to evaluate.
+    * @param strict true to use strict mode.
+    * @param set true to enable setting of undefined variables.
+    * @param stack the stack of parent expressions.
+    *
+    * @return true on success, false if on failure with exception set.
+    */
+   virtual bool evalExpression(
+      monarch::rt::DynamicObject& exp, bool strict, bool set,
+      std::vector<monarch::rt::DynamicObject>& stack);
 
    /**
     * Sets a parse exception with the given line and column numbers and

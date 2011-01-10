@@ -264,9 +264,12 @@ static bool _isArrayAccessor(DynamicObject& exp)
    return exp->hasMember("op") && exp["op"] == "[";
 }
 
-static bool _isArrayEnd(DynamicObject& exp, int arrayId)
+static bool _isArrayEnd(DynamicObject& exp, int arrayId = -1)
 {
-   return exp["arrayEnd"]->getInt32() == arrayId;
+   // arrayId of -1 means "any array end"
+   return arrayId == -1 ?
+      exp["arrayEnd"]->getInt32() != 0 :
+      exp["arrayEnd"]->getInt32() == arrayId;
 }
 
 static bool _hasMutator(DynamicObject& exp)
@@ -278,25 +281,6 @@ static bool _hasMutator(DynamicObject& exp)
    if(!rval && exp->hasMember("rhs"))
    {
       rval = _hasMutator(exp["rhs"]);
-   }
-
-   return rval;
-}
-
-static DynamicObject _getArrayEnd(DynamicObject& exp)
-{
-   DynamicObject rval(NULL);
-
-   DynamicObject rhs = exp;
-   int arrayId = exp["arrayStart"];
-   while(rval.isNull() && rhs->hasMember("rhs"))
-   {
-      // count
-      rhs = rhs["rhs"];
-      if(_isArrayEnd(rhs, arrayId))
-      {
-         rval = rhs;
-      }
    }
 
    return rval;
@@ -316,12 +300,12 @@ static void _set(
    if(_isObjectAccessor(tmp))
    {
       const char* name = tmp["rhs"]["name"];
-      tmp["rhs"]["parent"][name] = rhs["value"];
+      tmp["var"][name] = rhs["value"];
    }
    else if(_isArrayAccessor(tmp))
    {
       int index = tmp["rhs"]["name"];
-      tmp["rhs"]["parent"][index] = rhs["value"];
+      tmp["var"][index] = rhs["value"];
    }
    else
    {
@@ -3557,172 +3541,134 @@ DynamicObject TemplateInputStream::findVariable(
    return rval;
 }
 
-bool TemplateInputStream::handleOperator(
-   DynamicObject& exp, bool strict, bool set)
+static bool _setValueToArrayElement(
+   DynamicObject& exp, DynamicObject& array, DynamicObject& index)
 {
    bool rval = true;
 
-   if(_isObjectAccessor(exp))
+   // rhs *must* be a number
+   if(!_isInteger(exp["rhs"]["value"]))
    {
-      // value for object accessors are auto-resolved by now
-      exp["value"] = exp["rhs"]["value"];
+      ExceptionRef e = new Exception(
+         "Invalid array accessor. Indexes must be integers.",
+         EXCEPTION_SYNTAX);
+      Exception::set(e);
+      rval = false;
    }
-   else if(_isArrayAccessor(exp))
+   else
    {
-      // look in rhs value as index in lhs
-      int index = exp["rhs"]["value"];
-
-      // rhs *must* be a number
-      if(!_isInteger(exp["rhs"]["value"]))
-      {
-         ExceptionRef e = new Exception(
-            "Invalid array accessor. Indexes must be integers.",
-            EXCEPTION_SYNTAX);
-         Exception::set(e);
-         rval = false;
-      }
-      else if(
-         exp["value"]->getType() == Array &&
-         index < exp["value"]->length())
+      int i = index;
+      if(exp["set"]->getBoolean() ||
+         (array->getType() == Array && i < array->length()))
       {
          // found
-         exp["value"] = exp["value"][index];
+         exp["value"] = array[i];
       }
       else
       {
          // not found
          exp["value"].setNull();
       }
-
-      // if the end of the array is an accessor then "value" isn't
-      // correct yet and we need to eval the rhs accessor after
-      // setting its parent
-      DynamicObject rhs = _getArrayEnd(exp);
-      if(!exp["value"].isNull() && _isAccessor(rhs))
-      {
-         // set parent of rhs to value, eval rhs, use rhs value
-         rhs["rhs"]["parent"] = exp["value"];
-         rval = evalExpression(rhs["rhs"], strict, set);
-         if(rval)
-         {
-            exp["value"] = rhs["rhs"]["value"];
-         }
-      }
-   }
-   // if rhs is null then strict must be false or the code would never
-   // hit this path
-   else if(exp["rhs"]["value"].isNull())
-   {
-      // keep expression equal to its current value, since rhs is not defined
-   }
-   // handle math ops
-   else
-   {
-      // get lhs and rhs
-      DynamicObject lhs = exp["value"];
-      // make undefined lhs == 0
-      if(lhs.isNull())
-      {
-         lhs = DynamicObject();
-         lhs = 0;
-      }
-      DynamicObject& rhs = exp["rhs"]["value"];
-      exp["value"] = DynamicObject();
-
-      // handle specific op
-      if(exp["op"] == "+")
-      {
-         // add lhs to rhs
-         if(lhs->getType() == Double || rhs->getType() == Double)
-         {
-            exp["value"] = lhs->getDouble() + rhs->getDouble();
-         }
-         else
-         {
-            exp["value"] = lhs->getUInt64() + rhs->getUInt64();
-         }
-      }
-      else if(exp["op"] == "-")
-      {
-         // subtract rhs from lhs
-         if(lhs->getType() == Double || rhs->getType() == Double)
-         {
-            exp["value"] = lhs->getDouble() - rhs->getDouble();
-         }
-         else if(
-            lhs->getType() == Int32 || rhs->getType() == Int64 || rhs > lhs)
-         {
-            exp["value"] = lhs->getInt64() - rhs->getInt64();
-         }
-         else
-         {
-            exp["value"] = lhs->getUInt64() - rhs->getUInt64();
-         }
-      }
-      else if(exp["op"] == "*")
-      {
-         // multiply lhs by rhs
-         if(lhs->getType() == Double || rhs->getType() == Double)
-         {
-            exp["value"] = lhs->getDouble() * rhs->getDouble();
-         }
-         else if(lhs->getType() == Int32 || rhs->getType() == Int64)
-         {
-            exp["value"] = lhs->getInt64() * rhs->getInt64();
-         }
-         else
-         {
-            exp["value"] = lhs->getUInt64() * rhs->getUInt64();
-         }
-      }
-      else if(exp["op"] == "/")
-      {
-         // divide lhs by rhs
-         if(lhs->getType() == Double || rhs->getType() == Double)
-         {
-            exp["value"] = lhs->getDouble() / rhs->getDouble();
-         }
-         else if(rhs->getType() == Int32 || rhs->getType() == Int64)
-         {
-            exp["value"] = lhs->getInt64() / rhs->getInt64();
-         }
-         else
-         {
-            exp["value"] = lhs->getUInt64() / rhs->getUInt64();
-         }
-      }
-      else if(exp["op"] == "%")
-      {
-         // do lhs % rhs
-         if(rhs->getType() == Int32 || rhs->getType() == Int64)
-         {
-            exp["value"] = lhs->getInt64() % rhs->getInt64();
-         }
-         else
-         {
-            exp["value"] = lhs->getUInt64() % rhs->getUInt64();
-         }
-      }
    }
 
-   // handle value not found and strict
-   if(rval && strict && _isAccessor(exp) && exp["value"].isNull())
+   return rval;
+}
+
+static bool _handleMathOp(DynamicObject& exp, bool strict, bool set)
+{
+   bool rval = true;
+
+   // get lhs and rhs
+   DynamicObject lhs = exp["value"];
+   // make undefined lhs == 0
+   if(lhs.isNull())
    {
-      ExceptionRef e = new Exception(
-         "The substitution variable is not defined. "
-         "Variable substitution cannot occur with an "
-         "undefined variable.",
-         EXCEPTION_UNDEFINED);
-      e->getDetails()["name"] = exp["fullname"];
-      Exception::set(e);
-      rval = false;
+      lhs = DynamicObject();
+      lhs = 0;
+   }
+   DynamicObject& rhs = exp["rhs"]["value"];
+   exp["value"] = DynamicObject();
+
+   // handle specific op
+   if(exp["op"] == "+")
+   {
+      // add lhs to rhs
+      if(lhs->getType() == Double || rhs->getType() == Double)
+      {
+         exp["value"] = lhs->getDouble() + rhs->getDouble();
+      }
+      else
+      {
+         exp["value"] = lhs->getUInt64() + rhs->getUInt64();
+      }
+   }
+   else if(exp["op"] == "-")
+   {
+      // subtract rhs from lhs
+      if(lhs->getType() == Double || rhs->getType() == Double)
+      {
+         exp["value"] = lhs->getDouble() - rhs->getDouble();
+      }
+      else if(
+         lhs->getType() == Int32 || rhs->getType() == Int64 || rhs > lhs)
+      {
+         exp["value"] = lhs->getInt64() - rhs->getInt64();
+      }
+      else
+      {
+         exp["value"] = lhs->getUInt64() - rhs->getUInt64();
+      }
+   }
+   else if(exp["op"] == "*")
+   {
+      // multiply lhs by rhs
+      if(lhs->getType() == Double || rhs->getType() == Double)
+      {
+         exp["value"] = lhs->getDouble() * rhs->getDouble();
+      }
+      else if(lhs->getType() == Int32 || rhs->getType() == Int64)
+      {
+         exp["value"] = lhs->getInt64() * rhs->getInt64();
+      }
+      else
+      {
+         exp["value"] = lhs->getUInt64() * rhs->getUInt64();
+      }
+   }
+   else if(exp["op"] == "/")
+   {
+      // divide lhs by rhs
+      if(lhs->getType() == Double || rhs->getType() == Double)
+      {
+         exp["value"] = lhs->getDouble() / rhs->getDouble();
+      }
+      else if(rhs->getType() == Int32 || rhs->getType() == Int64)
+      {
+         exp["value"] = lhs->getInt64() / rhs->getInt64();
+      }
+      else
+      {
+         exp["value"] = lhs->getUInt64() / rhs->getUInt64();
+      }
+   }
+   else if(exp["op"] == "%")
+   {
+      // do lhs % rhs
+      if(rhs->getType() == Int32 || rhs->getType() == Int64)
+      {
+         exp["value"] = lhs->getInt64() % rhs->getInt64();
+      }
+      else
+      {
+         exp["value"] = lhs->getUInt64() % rhs->getUInt64();
+      }
    }
 
    return rval;
 }
 
 bool TemplateInputStream::evalExpression(
-   DynamicObject& exp, bool strict, bool set)
+   DynamicObject& exp, bool strict, bool set, vector<DynamicObject>& stack)
 {
    bool rval = true;
 
@@ -3742,89 +3688,111 @@ bool TemplateInputStream::evalExpression(
       rval = !(findVariable(name, exp, strict).isNull() && strict);
    }
 
-   if(rval)
+   // set expression value
+   exp["value"] = _isLiteral(exp) ? exp["lhs"]["value"] : exp["var"];
+
+   // if expression ends an array, pop the stack and use the value as an index
+   // into the parent from the stack
+   DynamicObject parent(NULL);
+   bool arrayEnd = _isArrayEnd(exp);
+   if(arrayEnd)
    {
-      // get temporary value
-      exp["value"] = _isLiteral(exp) ? exp["lhs"]["value"] : exp["var"];
+      parent = stack.back();
+      stack.pop_back();
+      rval = _setValueToArrayElement(parent, parent["value"], exp["value"]);
+   }
 
-      // eval rhs and handle operator
-      if(exp->hasMember("rhs"))
+   // determine if expression is an accessor
+   bool objectAccessor = _isObjectAccessor(exp);
+   bool arrayAccessor = _isArrayAccessor(exp);
+   bool accessor = objectAccessor || arrayAccessor;
+
+   // handle rhs
+   if(rval && exp->hasMember("rhs"))
+   {
+      DynamicObject& rhs = exp["rhs"];
+
+      // update rhs fullname
+      if(!rhs->hasMember("fullname") && accessor)
       {
-         // update rhs parent, fullname and evaluate
-         if(_isObjectAccessor(exp))
-         {
-            // force appropriate type if setting
-            if(exp["set"]->getBoolean())
-            {
-               exp["var"]->setType(Map);
-            }
+         rhs["fullname"]->format("%s%s%s%s",
+            exp["fullname"]->getString(),
+            arrayAccessor ? "[" : ".",
+            rhs["lhs"]["value"]->getString(),
+            arrayAccessor ? "]" : "");
+      }
 
-            // only set the rhs parent if this is not the end of an array,
-            // if it is, then the parent will be set after the array has been
-            // traversed below via handleOperator()
-            if(exp["arrayEnd"]->getInt32() == 0)
+      // push array expression onto stack
+      if(arrayAccessor)
+      {
+         // if an array is ending and starting at the same time then this
+         // is a 2D (or N-D) array, so push the parent onto the stack,
+         // otherwise push the current expression
+         stack.push_back(arrayEnd ? parent : exp);
+      }
+      // set parent if object accessor
+      else if(objectAccessor)
+      {
+         // if an array is ending, use the parent expression's value, otherwise
+         // use the current expression
+         rhs["parent"] = arrayEnd ? parent["value"] : exp["value"];
+      }
+
+      // eval rhs
+      rval = evalExpression(rhs, strict, set, stack);
+      if(rval)
+      {
+         // propagate property value for object accessors
+         if(objectAccessor)
+         {
+            if(arrayEnd)
             {
-               exp["rhs"]["parent"] = exp["var"];
+               parent["value"] = rhs["value"];
             }
-            exp["rhs"]["fullname"]->format("%s.%s",
-               exp["fullname"]->getString(),
-               exp["rhs"]["lhs"]["value"]->getString());
+            else
+            {
+               exp["value"] = rhs["value"];
+            }
          }
-         else if(_isArrayAccessor(exp))
+         // handle math operator
+         else if(!arrayAccessor)
          {
-            // force appropriate type if setting
-            if(exp["set"]->getBoolean())
+            if(rhs["value"].isNull())
             {
-               exp["var"]->setType(Array);
+               exp["value"].setNull();
             }
-
-            // if rhs is a literal and an accessor, get its "var" early
-            if(_isLiteral(exp["rhs"]) && _isAccessor(exp["rhs"]))
+            else
             {
-               // rhs *must* be a number
-               int index = exp["rhs"]["lhs"]["value"];
-               if(!_isInteger(exp["rhs"]["lhs"]["value"]))
-               {
-                  ExceptionRef e = new Exception(
-                     "Invalid array accessor. Indexes must be integers.",
-                     EXCEPTION_SYNTAX);
-                  Exception::set(e);
-                  rval = false;
-               }
-               // get var if found or set is on
-               else if(
-                  exp["set"]->getBoolean() ||
-                  (exp["var"]->getType() == Array &&
-                   index < exp["var"]->length()))
-               {
-                  exp["rhs"]["var"] = exp["var"][index];
-               }
+               rval = _handleMathOp(exp, strict, set);
             }
-
-            // if the rhs is a literal, set its parent
-            if(_isLiteral(exp["rhs"]))
-            {
-               exp["rhs"]["parent"] = exp["var"];
-            }
-            exp["rhs"]["fullname"]->format("%s[%s]",
-               exp["fullname"]->getString(),
-               exp["rhs"]["lhs"]["value"]->getString());
          }
 
-         // eval rhs expression if not at the end of an array, otherwise it
-         // will be eval'd later via handleOperator()
-         if(exp["arrayEnd"]->getInt32() == 0)
+         // handle value not found and strict
+         if(rval && strict && _isAccessor(exp) && exp["value"].isNull())
          {
-            rval = rval && evalExpression(exp["rhs"], strict, false);
-         }
-
-         // handle operator if not at the end of an array
-         if(exp["arrayEnd"]->getInt32() == 0)
-         {
-            rval = rval && handleOperator(exp, strict, set);
+            ExceptionRef e = new Exception(
+               "The substitution variable is not defined. "
+               "Variable substitution cannot occur with an "
+               "undefined variable.",
+               EXCEPTION_UNDEFINED);
+            e->getDetails()["name"] = exp["fullname"];
+            Exception::set(e);
+            rval = false;
          }
       }
    }
+
+   return rval;
+}
+
+bool TemplateInputStream::evalExpression(
+   DynamicObject& exp, bool strict, bool set)
+{
+   bool rval = true;
+
+   // create parent expression stack and reduce expression
+   vector<DynamicObject> stack;
+   rval = evalExpression(exp, strict, set, stack);
 
    return rval;
 }
