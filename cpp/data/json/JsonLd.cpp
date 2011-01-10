@@ -35,25 +35,28 @@ static const char* _normalizeString(
 {
    const char* rval = str;
 
-   // try to find a colon
-   const char* ptr = strstr(str, ":");
-   if(ptr != NULL)
+   if(!context.isNull())
    {
-      // try to find prefix in string
-      DynamicObjectIterator i = context.getIterator();
-      while(rval == str && i->hasNext())
+      // try to find a colon
+      const char* ptr = strstr(str, ":");
+      if(ptr != NULL)
       {
-         DynamicObject& uri = i->next();
-         if(strncmp(str, i->getName(), ptr - str) == 0)
+         // try to find prefix in string
+         DynamicObjectIterator i = context.getIterator();
+         while(rval == str && i->hasNext())
          {
-            // prefix found, normalize string
-            size_t len = strlen(uri->getString()) + strlen(ptr + 1) + 1;
-            if(*tmp == NULL || sizeof(*tmp) < len)
+            DynamicObject& uri = i->next();
+            if(strncmp(str, i->getName(), ptr - str) == 0)
             {
-               *tmp = (char*)realloc(*tmp, len);
+               // prefix found, normalize string
+               size_t len = strlen(uri->getString()) + strlen(ptr + 1) + 1;
+               if(*tmp == NULL || sizeof(*tmp) < len)
+               {
+                  *tmp = (char*)realloc(*tmp, len);
+               }
+               snprintf(*tmp, len, "%s%s", uri->getString(), ptr + 1);
+               rval = *tmp;
             }
-            snprintf(*tmp, len, "%s%s", uri->getString(), ptr + 1);
-            rval = *tmp;
          }
       }
    }
