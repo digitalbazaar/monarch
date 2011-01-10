@@ -530,7 +530,22 @@ static void runJsonLdTest(TestRunner& tr)
 {
    tr.group("JSON-LD");
 
-   tr.test("normalize");
+   tr.test("normalize (id)");
+   {
+      DynamicObject in;
+      in["@"] = "http://example.org/test#example";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "http://example.org/test#example";
+      assertNamedDynoCmp("expect", expect, "out", out);
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (complex)");
    {
       DynamicObject in;
       in["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
