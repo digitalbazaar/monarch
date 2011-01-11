@@ -6,6 +6,7 @@
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/data/rdfa/RdfaReader.h"
 #include "monarch/io/ByteArrayInputStream.h"
+#include "monarch/logging/Logging.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/test/Test.h"
 #include "monarch/test/TestModule.h"
@@ -13,6 +14,7 @@
 #include <cstdio>
 
 using namespace std;
+using namespace monarch::data::json;
 using namespace monarch::data::rdfa;
 using namespace monarch::io;
 using namespace monarch::modest;
@@ -45,6 +47,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       DynamicObject dyno;
       assertException(
          reader.start(dyno));
+
+      MO_DEBUG("%s", JsonWriter::writeToString(dyno).c_str());
    }
    tr.passIfException();
 
@@ -57,6 +61,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       DynamicObject dyno;
       assertException(
          RdfaReader::readFromString(dyno, "", 0, ""));
+
+      MO_DEBUG("%s", JsonWriter::writeToString(dyno).c_str());
    }
    tr.passIfException();
 
@@ -113,6 +119,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["w3:lineNumber"] = "9";
       assertDynoCmp(expect, ex);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
    tr.passIfException();
 
@@ -154,6 +162,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["dc:title"] = "http://example.org/test#you";
       assertDynoCmp(expect, dyno);
       assertDynoCmp(expect, dyno2);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
    tr.passIfNoException();
 
@@ -191,6 +201,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:contains"]["@"] = "http://example.org/test#book";
       expect["ex:contains"]["dc:title"] = "My Book";
       assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
    tr.passIfNoException();
 
@@ -237,6 +249,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
       assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
    tr.passIfNoException();
 
@@ -273,6 +287,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["@"][1]["@"] = "http://example.org/test#john";
       expect["@"][1]["foaf:name"] = "John";
       assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
    tr.passIfNoException();
 
@@ -330,6 +346,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["@"][3]["ex:contains"]["ex:contains"] =
          "http://example.org/test#chapter";
       assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
    tr.passIfNoException();
 
@@ -369,6 +387,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:prop"][0] = "Prop 1";
       expect["ex:prop"][1] = "Prop 2";
       assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
    tr.passIfNoException();
 
@@ -404,6 +424,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["dc:title"] = "http://example.org/test#you";
       assertDynoCmp(expect, dyno);
       assertDynoCmp(expect, dyno2);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
    tr.passIfNoException();
 
