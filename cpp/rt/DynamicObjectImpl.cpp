@@ -509,12 +509,7 @@ bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
 
 bool DynamicObjectImpl::operator==(const char* rhs) const
 {
-   bool rval = false;
-   if(mType == String)
-   {
-      rval = (strcmp(getString(), rhs) == 0);
-   }
-   return rval;
+   return (mType == String) && (strcmp(getString(), rhs) == 0);
 }
 
 bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
