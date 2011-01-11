@@ -753,6 +753,26 @@ static void runJsonLdTest(TestRunner& tr)
       }
       tr.passIfNoException();
 
+      tr.test("simplified id");
+      {
+         DynamicObject filter;
+         filter["#"] = ctx;
+         filter["@"] = "ex:test-1";
+
+         DynamicObject out;
+         assertNoException(
+            JsonLd::filter(ctx, filter, in, out, true));
+
+         DynamicObject expect;
+         expect["#"] = ctx;
+         expect["@"] = "ex:test-1";
+         expect["a"] = "ex:MyType";
+         expect["dc:title"] = "Test 1";
+
+         assertNamedDynoCmp("expect", expect, "result", out);
+      }
+      tr.passIfNoException();
+
       tr.test("type");
       {
          DynamicObject filter;

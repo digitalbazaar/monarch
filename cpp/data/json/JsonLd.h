@@ -77,17 +77,23 @@ public:
     * Currently only uses the first level of properties in the filter.  The
     * properties can have multiple values but deeper checking is not performed.
     *
+    * If the simplify flag is true, filter() will attempt to flatten the result
+    * to one top level object if only one result was found. If false it will
+    * always leave the results in an array similar to {"@":[R0,R1,...]}.
+    *
     * @param context the new context to use.
     * @param filter the filter to use.
     * @param in the input JSON-LD object.
     * @param out the output JSON-LD object.
+    * @param simplify simplify the result object if possible.
     *
     * @return true on success, false on failure with exception set.
     */
    static bool filter(
       monarch::rt::DynamicObject& context,
       monarch::rt::DynamicObject& filter,
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out,
+      bool simplify = false);
 };
 
 } // end namespace json

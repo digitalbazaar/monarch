@@ -343,7 +343,7 @@ static void _filter(
 
 bool JsonLd::filter(
    DynamicObject& context, DynamicObject& filter,
-   DynamicObject& in, DynamicObject& out)
+   DynamicObject& in, DynamicObject& out, bool simplify)
 {
    bool rval;
    DynamicObject normFilter;
@@ -358,11 +358,17 @@ bool JsonLd::filter(
    if(rval)
    {
       _filter(normFilter, normIn, normOut);
-      // FIXME fixup graph
+      // FIXME: fixup graph
       // Search normOut for unknown references that are in normIn and add them.
       // Futher optimize by checking reference count and embedding data as
       // needed. This will result in a graph that is as complete as the input
       // with regard to references.
+
+      // flatten in the case of one result
+      if(simplify && normOut->hasMember("@") && normOut["@"]->length() == 1)
+      {
+         normOut = normOut["@"][0];
+      }
    }
    // denormalize output
    rval = rval && denormalize(context, normOut, out);
