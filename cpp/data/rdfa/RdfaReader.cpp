@@ -201,6 +201,46 @@ static void _pruneCycles(DynamicObject& subjects, DynamicObject& embeds)
    embeds = tmp;
 }
 
+/**
+ * Returns true if the first triple is less than the second. This function is
+ * used to sort triples alphabetically, first by subject, then predicate,
+ * then object.
+ *
+ * @param t1 the first triple.
+ * @param t2 the second triple.
+ *
+ * @return true if t1 < t2.
+ */
+static bool _sortTriples(rdftriple* t1, rdftriple* t2)
+{
+   bool rval = false;
+
+   // compare subjects
+   int c = strcmp(t1->subject, t2->subject);
+   if(c < 0)
+   {
+      // t1 subject < t2 subject
+      rval = true;
+   }
+   else if(c == 0)
+   {
+      // subjects equal, compare predicates
+      c = strcmp(t1->predicate, t2->predicate);
+      if(c < 0)
+      {
+         // t1 predicate < t2 predicate
+         rval = true;
+      }
+      // predicates equal, compare objects
+      else if(c == 0)
+      {
+         rval = (strcmp(t1->object, t2->object) < 0);
+      }
+   }
+
+   return rval;
+}
+
 static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
 {
    // write context as JSON-LD context in target
@@ -210,6 +250,9 @@ static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
       DynamicObject& entry = i->next();
       g->target["#"][i->getName()] = entry["uri"].clone();
    }
+
+   // sort triples
+   std::sort(g->triples.begin(), g->triples.end(), &_sortTriples);
 
    // create a mapping of subject to JSON-LD DynamicObject and a
    // mapping of object to info for where to embed the object
