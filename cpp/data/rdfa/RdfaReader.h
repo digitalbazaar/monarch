@@ -88,6 +88,21 @@ protected:
     */
    Graph mProcessorGraph;
 
+   /**
+    * The default graph frame.
+    */
+   monarch::rt::DynamicObject mDefaultGraphFrame;
+
+   /**
+    * The processor graph frame.
+    */
+   monarch::rt::DynamicObject mProcessorGraphFrame;
+
+   /**
+    * The exception graph frame.
+    */
+   monarch::rt::DynamicObject mExceptionGraphFrame;
+
 public:
    /**
     * Creates a new RdfaReader.

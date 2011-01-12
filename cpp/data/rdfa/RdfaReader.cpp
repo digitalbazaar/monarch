@@ -24,7 +24,10 @@ RdfaReader::RdfaReader() :
    mStarted(false),
    mBaseUri(NULL),
    mRdfaCtx(NULL),
-   mContext(NULL)
+   mContext(NULL),
+   mDefaultGraphFrame(NULL),
+   mProcessorGraphFrame(NULL),
+   mExceptionGraphFrame(NULL)
 {
    mAutoContext->setType(Map);
 }
@@ -239,10 +242,6 @@ static bool _isCycle(
 
 static void _pruneCycles(DynamicObject& subjects, DynamicObject& embeds)
 {
-   // FIXME: when breaking cycles use object template (if available) to
-   // make choices, otherwise just use order of embeds (which will be
-   // according to triple sort order)
-
    DynamicObject tmp;
    tmp->setType(Map);
    DynamicObjectIterator i = embeds.getIterator();
@@ -261,7 +260,6 @@ static void _pruneCycles(DynamicObject& subjects, DynamicObject& embeds)
             // cycle found, keep current embed, but break cycle at other embed
             tmp[object] = embed;
             DynamicObject& cycle = embeds[subject];
-            _setPredicate(cycle["s"], cycle["p"], object);
             cycle["broken"] = true;
          }
          // no cycle, add as valid embed
@@ -315,80 +313,27 @@ static bool _sortTriples(rdftriple* t1, rdftriple* t2)
    return rval;
 }
 
-static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
+static void _frameTarget(
+   DynamicObject& context, RdfaReader::Graph* g, DynamicObject& frame,
+   DynamicObject& subjects, DynamicObject& embeds)
 {
-   // write context as JSON-LD context in target
-   DynamicObjectIterator i = context.getIterator();
-   while(i->hasNext())
+   // handle frame if one was provided
+   if(frame.isNull())
    {
-      DynamicObject& entry = i->next();
-      g->target["#"][i->getName()] = entry["uri"].clone();
+      // FIXME: find the top-level subject(s) in the object template by
+      // looking for subjects with the given types
+
+      // FIXME: create embeds from object template, add those to the beginning
+      // of the auto-embeds array... remove any that already exist in the
+      // auto-embeds array to avoid duplication or will that be automatically
+      // handled by the algorithm?
    }
-
-   // sort triples
-   std::sort(g->triples.begin(), g->triples.end(), &_sortTriples);
-
-   // create a mapping of subject to JSON-LD DynamicObject and a
-   // mapping of object to info for where to embed the object
-   DynamicObject subjects;
-   subjects->setType(Map);
-   DynamicObject embeds;
-   embeds->setType(Map);
-   for(RdfaReader::TripleList::iterator ti = g->triples.begin();
-       ti != g->triples.end(); ++ti)
-   {
-      rdftriple* t = *ti;
-
-      // get the abbreviated subject, predicate, and object
-      char* subject = _applyContext(context, t->subject);
-      char* predicate = _applyContext(context, t->predicate);
-      char* object = _applyContext(context, t->object);
-
-      // create/get the subject dyno
-      DynamicObject& s = subjects[subject];
-      if(!s->hasMember("@"))
-      {
-         s["@"] = subject;
-      }
-
-      // FIXME: might still want to embed in a specific place if
-      // object template indicates that we should (even if subject count
-      // is not exactly 1)
-
-      // FIXME: can't just skip the auto-embed step here if using an
-      // object template, since the triples will be cleaned up...
-      // instead, the auto-embeds can be merged in when using an object
-      // template... as a step before pruning cycles.
-
-      // if the object is referenced exactly once and it does not appear
-      // in a cyclical reference, then it can be embedded , then it can be
-      // embedded under the predicate, so keep track of that
-      if(g->subjectCounts.find(t->object)->second == 1)
-      {
-         DynamicObject& embed = embeds[object];
-         embed["s"] = s;
-         embed["p"] = predicate;
-      }
-      // add the predicate and object to the subject dyno
-      else
-      {
-         _setPredicate(s, predicate, object);
-      }
-      free(subject);
-      free(predicate);
-      free(object);
-   }
-
-   // clear triples
-   _freeTriples(g->triples);
-
-   // FIXME: find the top-level subject in the object template
 
    /* Now that all possible embeds have been marked, we can prune cycles. */
    _pruneCycles(subjects, embeds);
 
    // handle all embeds
-   i = embeds.getIterator();
+   DynamicObjectIterator i = embeds.getIterator();
    while(i->hasNext())
    {
       // get the subject dyno that will hold the embedded object
@@ -449,8 +394,75 @@ static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
    }
 }
 
+static void _finishGraph(
+   DynamicObject& context, RdfaReader::Graph* g, DynamicObject& frame)
+{
+   // write context as JSON-LD context in target
+   DynamicObjectIterator i = context.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& entry = i->next();
+      g->target["#"][i->getName()] = entry["uri"].clone();
+   }
+
+   // sort triples
+   std::sort(g->triples.begin(), g->triples.end(), &_sortTriples);
+
+   // create a mapping of subject to JSON-LD DynamicObject and a
+   // mapping of object to info for where to embed the object
+   DynamicObject subjects;
+   subjects->setType(Map);
+   DynamicObject embeds;
+   embeds->setType(Map);
+   for(RdfaReader::TripleList::iterator ti = g->triples.begin();
+       ti != g->triples.end(); ++ti)
+   {
+      rdftriple* t = *ti;
+
+      // get the abbreviated subject, predicate, and object
+      char* subject = _applyContext(context, t->subject);
+      char* predicate = _applyContext(context, t->predicate);
+      char* object = _applyContext(context, t->object);
+
+      // create/get the subject dyno
+      DynamicObject& s = subjects[subject];
+      if(!s->hasMember("@"))
+      {
+         s["@"] = subject;
+      }
+
+      // if the object is referenced exactly once and it does not appear
+      // in a cyclical reference, then it can be embedded , then it can be
+      // embedded under the predicate, so keep track of that
+      if(g->subjectCounts.find(t->object)->second == 1)
+      {
+         DynamicObject& embed = embeds[object];
+         embed["s"] = s;
+         embed["p"] = predicate;
+      }
+
+      // add the predicate and object to the subject dyno
+      _setPredicate(s, predicate, object);
+
+      free(subject);
+      free(predicate);
+      free(object);
+   }
+
+   // clear triples
+   _freeTriples(g->triples);
+
+   /* Note: At this point "subjects" holds a reference to every subject in
+      the graph and each of those subjects has all of its predicates. There
+      are no embedded objects, but "embeds" contains a list of potential
+      objects to embed. Embedding specific objects in the target according to
+      a frame is next. */
+   _frameTarget(context, g, frame, subjects, embeds);
+}
+
 static DynamicObject _getExceptionGraph(
-   DynamicObject& context, DynamicObject& autoContext, RdfaReader::Graph* g)
+   DynamicObject& context, DynamicObject& autoContext, RdfaReader::Graph* g,
+   DynamicObject& frame)
 {
    DynamicObject rval(NULL);
 
@@ -484,7 +496,7 @@ static DynamicObject _getExceptionGraph(
    // finish processor graph
    g->target = DynamicObject();
    g->target->setType(Map);
-   _finishGraph(ctx, g);
+   _finishGraph(ctx, g, frame);
    rval = g->target;
 
    // reset old target
@@ -621,7 +633,8 @@ bool RdfaReader::read(InputStream* is)
                      "RDFa parse error.",
                      RDFA_READER ".ParseError");
                   e->getDetails()["graph"] = _getExceptionGraph(
-                     mContext, mAutoContext, &mProcessorGraph);
+                     mContext, mAutoContext, &mProcessorGraph,
+                     mExceptionGraphFrame);
                   Exception::set(e);
                }
             }
@@ -669,8 +682,8 @@ bool RdfaReader::finish()
    }
 
    // finish graphs
-   _finishGraph(mContext, &mDefaultGraph);
-   _finishGraph(mContext, &mProcessorGraph);
+   _finishGraph(mContext, &mDefaultGraph, mDefaultGraphFrame);
+   _finishGraph(mContext, &mProcessorGraph, mProcessorGraphFrame);
 
    // clear user-set context and parser
    mContext.setNull();
