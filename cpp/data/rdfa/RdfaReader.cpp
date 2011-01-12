@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/rdfa/RdfaReader.h"
 
@@ -113,19 +113,89 @@ static char* _applyContext(DynamicObject& ctx, const char* name)
    return rval;
 }
 
+static bool _hasSubject(DynamicObject& object, const char* subject)
+{
+   return object->hasMember("@") && strcmp(object["@"], subject) == 0;
+}
+
+static void _addUniqueObject(
+   DynamicObject& s, const char* predicate, DynamicObject& object)
+{
+   DynamicObject& p = s[predicate];
+   DynamicObjectType type = p->getType();
+   if(type != Array)
+   {
+      // set predicate to object if it references the same one by subject
+      if(p == object ||
+         (type == String && _hasSubject(object, p)) ||
+         (type == Map && _hasSubject(p, object)))
+      {
+         p = object;
+      }
+      // convert predicate to array and append object
+      else
+      {
+         DynamicObject tmp = p;
+         p = DynamicObject();
+         p->append(tmp);
+         p->append(object);
+      }
+   }
+   else
+   {
+      int index = p->indexOf(object);
+      if(index != -1)
+      {
+         // object exists, replace it
+         p[index] = object;
+      }
+      // the object might still exist as a subject within an embed
+      else if(object->getType() == String)
+      {
+         // look for an existing object with the object as a subject
+         bool found = false;
+         DynamicObjectIterator i = p.getIterator();
+         while(!found && i->hasNext())
+         {
+            if(_hasSubject(i->next(), object))
+            {
+               // replace object
+               p[i->getIndex()] = object;
+               found = true;
+            }
+         }
+
+         // object not found, append it
+         if(!found)
+         {
+            p->append(object);
+         }
+      }
+      // ensure object's subject doesn't exist as a string in the array
+      else
+      {
+         int index = p->indexOf(object["@"]);
+         if(index != -1)
+         {
+            // replace string with object
+            p[index] = object;
+         }
+         else
+         {
+            p->append(object);
+         }
+      }
+   }
+}
+
 static void _setPredicate(
    DynamicObject& s, const char* predicate, DynamicObject& object)
 {
    // set the subject's predicate to the embedded object
    if(s->hasMember(predicate))
    {
-      if(s[predicate]->getType() != Array)
-      {
-         DynamicObject tmp = s[predicate];
-         s[predicate] = DynamicObject();
-         s[predicate]->append(tmp);
-      }
-      s[predicate]->append(object);
+      // ensure object is only added uniquely
+      _addUniqueObject(s, predicate, object);
    }
    else
    {
@@ -169,6 +239,10 @@ static bool _isCycle(
 
 static void _pruneCycles(DynamicObject& subjects, DynamicObject& embeds)
 {
+   // FIXME: when breaking cycles use object template (if available) to
+   // make choices, otherwise just use order of embeds (which will be
+   // according to triple sort order)
+
    DynamicObject tmp;
    tmp->setType(Map);
    DynamicObjectIterator i = embeds.getIterator();
@@ -277,6 +351,15 @@ static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
          s["@"] = subject;
       }
 
+      // FIXME: might still want to embed in a specific place if
+      // object template indicates that we should (even if subject count
+      // is not exactly 1)
+
+      // FIXME: can't just skip the auto-embed step here if using an
+      // object template, since the triples will be cleaned up...
+      // instead, the auto-embeds can be merged in when using an object
+      // template... as a step before pruning cycles.
+
       // if the object is referenced exactly once and it does not appear
       // in a cyclical reference, then it can be embedded , then it can be
       // embedded under the predicate, so keep track of that
@@ -298,6 +381,8 @@ static void _finishGraph(DynamicObject& context, RdfaReader::Graph* g)
 
    // clear triples
    _freeTriples(g->triples);
+
+   // FIXME: find the top-level subject in the object template
 
    /* Now that all possible embeds have been marked, we can prune cycles. */
    _pruneCycles(subjects, embeds);
