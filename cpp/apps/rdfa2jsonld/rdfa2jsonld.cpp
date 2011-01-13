@@ -55,7 +55,7 @@ static bool _processStream(
       DynamicObject normalized;
       JsonLd::normalize(dyno, normalized);
       MessageDigest md;
-      string json = JsonWriter::writeToString(dyno, true, false);
+      string json = JsonWriter::writeToString(normalized, true, false);
       rval = md.start("SHA1") && md.update(json.c_str(), json.length());
       if(rval)
       {
