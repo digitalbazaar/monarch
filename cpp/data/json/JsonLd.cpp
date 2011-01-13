@@ -149,13 +149,15 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
  * Denormalizes a string using the given context.
  *
  * @param context the context.
+ * @param usedContext the used context values.
  * @param str the string to denormalize.
  * @param tmp to store the denormalized string, may be realloc'd.
  *
  * @return a pointer to the denormalized string.
  */
 static const char* _denormalizeString(
-   DynamicObject& context, const char* str, char** tmp)
+   DynamicObject& context, DynamicObject& usedContext,
+   const char* str, char** tmp)
 {
    const char* rval = str;
 
@@ -164,6 +166,7 @@ static const char* _denormalizeString(
    while(rval == str && i->hasNext())
    {
       const char* uri = i->next()->getString();
+      const char* name = i->getName();
       const char* ptr = strstr(str, uri);
       if(ptr != NULL && ptr == str)
       {
@@ -172,13 +175,14 @@ static const char* _denormalizeString(
          if(slen > ulen)
          {
             // add 2 to make room for null-terminator and colon
-            size_t total = strlen(i->getName()) + (slen - ulen) + 2;
+            size_t total = strlen(name) + (slen - ulen) + 2;
             if(*tmp == NULL || total > sizeof(*tmp))
             {
                *tmp = (char*)realloc(*tmp, total);
             }
-            snprintf(*tmp, total, "%s:%s", i->getName(), ptr + ulen);
+            snprintf(*tmp, total, "%s:%s", name, ptr + ulen);
             rval = *tmp;
+            usedContext[name] = uri;
          }
       }
    }
@@ -190,11 +194,13 @@ static const char* _denormalizeString(
  * Recursively denormalizes the given input object.
  *
  * @param context the context to use.
+ * @param usedContext the used context values.
  * @param in the input object.
  * @param out the denormalized output object.
  */
 static void _denormalize(
-   DynamicObject& context, DynamicObject& in, DynamicObject& out)
+   DynamicObject& context, DynamicObject& usedContext,
+   DynamicObject& in, DynamicObject& out)
 {
    if(in.isNull())
    {
@@ -218,8 +224,9 @@ static void _denormalize(
             {
                // denormalize key, denormalize object
                _denormalize(
-                  context,
-                  next, out[_denormalizeString(context, i->getName(), &tmp)]);
+                  context, usedContext,
+                  next, out[_denormalizeString(
+                     context, usedContext, i->getName(), &tmp)]);
             }
          }
          if(tmp != NULL)
@@ -234,7 +241,7 @@ static void _denormalize(
          while(i->hasNext())
          {
             DynamicObject& next = i->next();
-            _denormalize(context, next, out->append());
+            _denormalize(context, usedContext, next, out->append());
          }
       }
       // only strings need denormalization, numbers & booleans don't
@@ -242,7 +249,7 @@ static void _denormalize(
       {
          // denormalize string
          char* tmp = NULL;
-         out = _denormalizeString(context, in->getString(), &tmp);
+         out = _denormalizeString(context, usedContext, in->getString(), &tmp);
          if(tmp != NULL)
          {
             free(tmp);
@@ -256,8 +263,17 @@ bool JsonLd::denormalize(
 {
    bool rval = true;
 
-   out["#"] = context.clone();
-   _denormalize(context, in, out);
+   // TODO: should context simplification be an option?
+   // setup output context
+   DynamicObject& contextOut = out["#"];
+   contextOut->setType(Map);
+   // denormalize
+   _denormalize(context, contextOut, in, out);
+   // clean up
+   if(contextOut->length() == 0)
+   {
+      out->removeMember("#");
+   }
 
    return rval;
 }
