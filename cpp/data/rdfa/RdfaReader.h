@@ -103,6 +103,12 @@ protected:
     */
    monarch::rt::DynamicObject mExceptionGraphFrame;
 
+   /**
+    * Set to true if only those predicates explicitly mentioned in the
+    * frame for the default graph should be included in the result.
+    */
+   bool mExplicit;
+
 public:
    /**
     * Creates a new RdfaReader.

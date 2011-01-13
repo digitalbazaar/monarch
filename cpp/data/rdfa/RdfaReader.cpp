@@ -27,7 +27,8 @@ RdfaReader::RdfaReader() :
    mContext(NULL),
    mDefaultGraphFrame(NULL),
    mProcessorGraphFrame(NULL),
-   mExceptionGraphFrame(NULL)
+   mExceptionGraphFrame(NULL),
+   mExplicit(false)
 {
    mAutoContext->setType(Map);
 }
@@ -215,9 +216,13 @@ static void _setPredicate(
 }
 
 static bool _isCycle(
-   DynamicObject& embeds, const char* subject, const char* object)
+   DynamicObject& embeds, const char* subject, const char* object,
+   bool* manual)
 {
    bool rval = false;
+
+   // no manual embed found yet
+   *manual = false;
 
    /* Here we are checking to see if the given subject and object reference
       each other cyclically. How to detect a cycle:
@@ -235,12 +240,18 @@ static bool _isCycle(
          // cycle found
          rval = true;
       }
+      else if(embed["manual"]->getBoolean())
+      {
+         // manual embed found in cycle
+         *manual = true;
+      }
    }
 
    return rval;
 }
 
-static void _pruneCycles(DynamicObject& subjects, DynamicObject& embeds)
+static void _pruneCycles(
+   DynamicObject& subjects, DynamicObject& embeds, bool explicitOnly)
 {
    DynamicObject tmp;
    tmp->setType(Map);
@@ -251,16 +262,28 @@ static void _pruneCycles(DynamicObject& subjects, DynamicObject& embeds)
       const char* subject = embed["s"]["@"];
       const char* object = i->getName();
 
-      // only handle embed if not broken
-      if(!embed["broken"]->getBoolean())
+      // only handle embed if not broken and not (explicit and not manual)
+      if(!embed["broken"]->getBoolean() &&
+         !(explicitOnly && !embed["manual"]->getBoolean()))
       {
          // see if object cyclically references subject
-         if(_isCycle(embeds, subject, object))
+         bool manual;
+         if(_isCycle(embeds, subject, object, &manual))
          {
-            // cycle found, keep current embed, but break cycle at other embed
-            tmp[object] = embed;
+            // cycle found
             DynamicObject& cycle = embeds[subject];
-            cycle["broken"] = true;
+
+            // keep current embed if it is manual or the cycle is automated
+            if(embed["manual"]->getBoolean() || !manual)
+            {
+               cycle["broken"] = true;
+               tmp[object] = embed;
+            }
+            // keep cycle embed
+            else
+            {
+               embed["broken"] = true;
+            }
          }
          // no cycle, add as valid embed
          else
@@ -313,24 +336,148 @@ static bool _sortTriples(rdftriple* t1, rdftriple* t2)
    return rval;
 }
 
-static void _frameTarget(
-   DynamicObject& context, RdfaReader::Graph* g, DynamicObject& frame,
-   DynamicObject& subjects, DynamicObject& embeds)
+static void _findTypes(
+   DynamicObject& subjects, const char* type,
+   DynamicObject& results, int limit = -1)
 {
-   // handle frame if one was provided
-   if(frame.isNull())
+   DynamicObjectIterator i = subjects.getIterator();
+   while((limit == -1 || results->length() < limit) && i->hasNext())
    {
-      // FIXME: find the top-level subject(s) in the object template by
-      // looking for subjects with the given types
+      DynamicObject& next = i->next();
+      if(next->hasMember("a"))
+      {
+         if((next->getType() == String && strcmp(next["a"], type) == 0) ||
+            (next->getType() == Array && next["a"]->indexOf(type) != -1))
+         {
+            results->append(next);
+         }
+      }
+   }
+}
 
-      // FIXME: create embeds from object template, add those to the beginning
-      // of the auto-embeds array... remove any that already exist in the
-      // auto-embeds array to avoid duplication or will that be automatically
-      // handled by the algorithm?
+static void _findTargetObjects(
+   DynamicObject& parent, DynamicObject& frame,
+   DynamicObject& subjects, DynamicObject& objects)
+{
+   // find the specified objects from the frame that will be in the target
+   // use "@" first, if not present use "a"
+   if(frame->hasMember("@"))
+   {
+      const char* s = frame["@"];
+      if(subjects->hasMember(s))
+      {
+         objects->append(subjects[s]);
+      }
+   }
+   else if(frame->hasMember("a"))
+   {
+      // find all types (limit to the first found if parent is a map)
+      const char* type = frame["a"];
+      _findTypes(
+         subjects, type, objects, (parent->getType() == Map) ? 1 : -1);
+   }
+}
+
+static void _processFrameObject(
+   DynamicObject& parent, DynamicObject& frame,
+   DynamicObject& subjects, DynamicObject& embeds,
+   bool explicitOnly)
+{
+   // find target objects that match the frame requirements
+   DynamicObject objects;
+   objects->setType(Array);
+   _findTargetObjects(parent, frame, subjects, objects);
+
+   // iterate over objects to place in the target
+   DynamicObjectIterator i = objects.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& subject = i->next();
+
+      // if this is the first call (parent == frame), remove subject from
+      // embeds map
+      if(parent == frame)
+      {
+         embeds->removeMember(subject["@"]);
+      }
+
+      // iterate over predicates and objects in subject
+      DynamicObjectIterator oi = subject.getIterator();
+      while(oi->hasNext())
+      {
+         DynamicObject& object = oi->next();
+         const char* predicate = i->getName();
+
+         // skip "@" and "a" predicates
+         if(strcmp(predicate, "@") != 0 && strcmp(predicate, "a") != 0)
+         {
+            // frame mentions predicate
+            if(frame->hasMember(predicate))
+            {
+               DynamicObject& fobject = frame[predicate];
+
+               // if frame wants a single value, pick the first one
+               if(object->getType() == Array && fobject->getType() != Array)
+               {
+                  object = object[0];
+               }
+               // recursion required
+               else if(fobject->getType() == Map || fobject->getType() == Array)
+               {
+                  // recurse into frame object
+                  if(fobject->getType() == Map)
+                  {
+                     _processFrameObject(
+                        frame, fobject, subjects, embeds, explicitOnly);
+                  }
+                  // recurse into array if it has an object
+                  else if(fobject->length() > 0)
+                  {
+                     DynamicObject nextFrame = fobject.first();
+                     _processFrameObject(
+                        fobject, nextFrame, subjects, embeds, explicitOnly);
+                  }
+
+                  // add embed
+                  const char* s = object["@"];
+                  DynamicObject& embed = embeds[s];
+                  embed["s"] = subject;
+                  embed["p"] = predicate;
+                  embed["manual"] = true;
+               }
+            }
+            // frame does not mention predicate, if in explicit mode, remove it
+            else if(explicitOnly)
+            {
+               i->remove();
+            }
+         }
+      }
+   }
+}
+
+static void _frameTarget(
+   RdfaReader::Graph* g, DynamicObject& frame,
+   DynamicObject& subjects, DynamicObject& embeds,
+   bool explicitOnly)
+{
+   // default to subjects map for top-level objects
+   DynamicObject topLevel = subjects;
+
+   // handle frame if one was provided
+   if(!frame.isNull())
+   {
+      // find top-level target objects
+      topLevel = DynamicObject();
+      topLevel->setType(Array);
+      _findTargetObjects(frame, frame, subjects, topLevel);
+
+      // process frame
+      _processFrameObject(frame, frame, subjects, embeds, explicitOnly);
    }
 
    /* Now that all possible embeds have been marked, we can prune cycles. */
-   _pruneCycles(subjects, embeds);
+   _pruneCycles(subjects, embeds, explicitOnly);
 
    // handle all embeds
    DynamicObjectIterator i = embeds.getIterator();
@@ -365,8 +512,8 @@ static void _frameTarget(
    // token replacement for rdf type
    g->target["#"]->removeMember("a");
 
-   // build final JSON-LD object by adding all top-level subject dynos
-   i = subjects.getIterator();
+   // build final JSON-LD object by adding all top-level objects
+   i = topLevel.getIterator();
    while(i->hasNext())
    {
       DynamicObject& subject = i->next();
@@ -395,7 +542,8 @@ static void _frameTarget(
 }
 
 static void _finishGraph(
-   DynamicObject& context, RdfaReader::Graph* g, DynamicObject& frame)
+   DynamicObject& context, RdfaReader::Graph* g, DynamicObject& frame,
+   bool explicitOnly)
 {
    // write context as JSON-LD context in target
    DynamicObjectIterator i = context.getIterator();
@@ -432,13 +580,14 @@ static void _finishGraph(
       }
 
       // if the object is referenced exactly once and it does not appear
-      // in a cyclical reference, then it can be embedded , then it can be
+      // in a cyclical reference, then it can be embedded, then it can be
       // embedded under the predicate, so keep track of that
       if(g->subjectCounts.find(t->object)->second == 1)
       {
          DynamicObject& embed = embeds[object];
          embed["s"] = s;
          embed["p"] = predicate;
+         embed["manual"] = false;
       }
 
       // add the predicate and object to the subject dyno
@@ -457,7 +606,7 @@ static void _finishGraph(
       are no embedded objects, but "embeds" contains a list of potential
       objects to embed. Embedding specific objects in the target according to
       a frame is next. */
-   _frameTarget(context, g, frame, subjects, embeds);
+   _frameTarget(g, frame, subjects, embeds, explicitOnly);
 }
 
 static DynamicObject _getExceptionGraph(
@@ -496,7 +645,7 @@ static DynamicObject _getExceptionGraph(
    // finish processor graph
    g->target = DynamicObject();
    g->target->setType(Map);
-   _finishGraph(ctx, g, frame);
+   _finishGraph(ctx, g, frame, false);
    rval = g->target;
 
    // reset old target
@@ -682,8 +831,8 @@ bool RdfaReader::finish()
    }
 
    // finish graphs
-   _finishGraph(mContext, &mDefaultGraph, mDefaultGraphFrame);
-   _finishGraph(mContext, &mProcessorGraph, mProcessorGraphFrame);
+   _finishGraph(mContext, &mDefaultGraph, mDefaultGraphFrame, mExplicit);
+   _finishGraph(mContext, &mProcessorGraph, mProcessorGraphFrame, false);
 
    // clear user-set context and parser
    mContext.setNull();
