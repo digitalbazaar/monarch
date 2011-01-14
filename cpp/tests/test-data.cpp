@@ -647,6 +647,30 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("denormalize (reduced context)");
+   {
+      DynamicObject in;
+      in["@"] = "http://example.org/test#thing";
+      in["http://purl.org/dc/terms/title"] = "Title";
+
+      DynamicObject ctx;
+      ctx["dc"] = "http://purl.org/dc/terms/";
+      ctx["ex"] = "http://example.org/test#";
+      ctx["foaf"] = "http://xmlns.org/foaf/0.1/";
+      DynamicObject out;
+      assertNoException(
+         JsonLd::denormalize(ctx, in, out));
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/terms/";
+      expect["#"]["ex"] = "http://example.org/test#";
+      expect["@"] = "ex:thing";
+      expect["dc:title"] = "Title";
+
+      assertDynoCmp(expect, out);
+   }
+   tr.passIfNoException();
+
    tr.test("change context");
    {
       DynamicObject in;
