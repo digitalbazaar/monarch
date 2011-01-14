@@ -78,6 +78,18 @@ bool RdfaReader::setContext(DynamicObject& context)
    return rval;
 }
 
+bool RdfaReader::setFrame(DynamicObject& frame, bool explicitOnly)
+{
+   bool rval = false;
+
+   // FIXME: validate frame, etc.
+
+   mDefaultGraphFrame = frame;
+   mExplicit = explicitOnly;
+
+   return rval;
+}
+
 static char* _applyContext(DynamicObject& ctx, const char* name)
 {
    char* rval = NULL;
@@ -249,7 +261,9 @@ static bool _isCycle(
 
    return rval;
 }
-
+// FIXME: remove me
+#include "monarch/data/json/JsonWriter.h"
+using namespace monarch::data::json;
 static void _pruneCycles(
    DynamicObject& subjects, DynamicObject& embeds, bool explicitOnly)
 {
@@ -259,6 +273,8 @@ static void _pruneCycles(
    while(i->hasNext())
    {
       DynamicObject& embed = i->next();
+      printf("EXAMINING EMBED\n");
+      JsonWriter::writeToStdOut(embed);
       const char* subject = embed["s"]["@"];
       const char* object = i->getName();
 
@@ -266,12 +282,17 @@ static void _pruneCycles(
       if(!embed["broken"]->getBoolean() &&
          !(explicitOnly && !embed["manual"]->getBoolean()))
       {
+         printf("TRYING TO HANDLE EMBED\n");
+
          // see if object cyclically references subject
          bool manual;
          if(_isCycle(embeds, subject, object, &manual))
          {
             // cycle found
             DynamicObject& cycle = embeds[subject];
+
+            printf("CYCLE FOUND\n");
+            JsonWriter::writeToStdOut(cycle);
 
             // keep current embed if it is manual or the cycle is automated
             if(embed["manual"]->getBoolean() || !manual)
@@ -288,6 +309,7 @@ static void _pruneCycles(
          // no cycle, add as valid embed
          else
          {
+            printf("NO CYCLE, EMBED VALID\n");
             tmp[object] = embed;
          }
       }
@@ -338,148 +360,343 @@ static bool _sortTriples(rdftriple* t1, rdftriple* t2)
 
 static void _findTypes(
    DynamicObject& subjects, const char* type,
-   DynamicObject& results, int limit = -1)
+   DynamicObject& targets, int limit = -1)
 {
    DynamicObjectIterator i = subjects.getIterator();
-   while((limit == -1 || results->length() < limit) && i->hasNext())
+   while((limit == -1 || targets->length() < limit) && i->hasNext())
    {
       DynamicObject& next = i->next();
       if(next->hasMember("a"))
       {
-         if((next->getType() == String && strcmp(next["a"], type) == 0) ||
-            (next->getType() == Array && next["a"]->indexOf(type) != -1))
+         // "a" is either an array of strings or a string
+         DynamicObjectIterator ti = next["a"].getIterator();
+         while(ti->hasNext())
          {
-            results->append(next);
+            DynamicObject& t = ti->next();
+            if((t->getType() == String && strcmp(t, type) == 0) ||
+               (t->getType() == Array && t->indexOf(type) != -1))
+            {
+               // add target, remove from subject set
+               targets->append(next);
+               i->remove();
+               break;
+            }
          }
       }
    }
 }
 
 static void _findTargetObjects(
-   DynamicObject& parent, DynamicObject& frame,
-   DynamicObject& subjects, DynamicObject& objects)
+   DynamicObject& frameParent, DynamicObject& frame,
+   DynamicObject& subjects, const char* subject, const char* predicate,
+   DynamicObject& targets, bool explicitOnly, DynamicObject& removals)
 {
-   // find the specified objects from the frame that will be in the target
+   // build a list of subjects to look for the target objects in based
+   // on subject->predicate (if subject is NULL, use all subjects)
+   DynamicObject subjectSet;
+   subjectSet->setType(Map);
+   DynamicObjectIterator i =
+      (subject == NULL) ? subjects.getIterator() :
+      subjects[subject][predicate].getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      const char* s = (subject == NULL) ? i->getName() : next->getString();
+      // FIXME: going to need to check datatype here
+      // to ensure we aren't creating a relationship using
+      // a string that isn't a URL
+      if(subjects->hasMember(s))
+      {
+         subjectSet[s] = subjects[s];
+      }
+   }
+   printf("LOOKING IN SUBJECT SET FOR TARGET OBJECTS: subject=%s\n", subject);
+   JsonWriter::writeToStdOut(subjectSet);
+
+   // look for the target objects in the subjectSet using the frame
    // use "@" first, if not present use "a"
    if(frame->hasMember("@"))
    {
       const char* s = frame["@"];
-      if(subjects->hasMember(s))
+      if(subjectSet->hasMember(s))
       {
-         objects->append(subjects[s]);
+         targets->append(subjects[s]);
+         subjectSet->removeMember(s);
       }
    }
    else if(frame->hasMember("a"))
    {
-      // find all types (limit to the first found if parent is a map)
+      // find all types (limit to the first found if frame parent is a map)
       const char* type = frame["a"];
+      printf("LOOKING FOR TYPE: %s\n", type);
       _findTypes(
-         subjects, type, objects, (parent->getType() == Map) ? 1 : -1);
+         subjectSet, type, targets, (frameParent->getType() == Map) ? 1 : -1);
+   }
+
+   printf("FOUND TARGET OBJECTS:\n");
+   JsonWriter::writeToStdOut(targets);
+
+   // if top-level subject or explicit only is on, remove any subjects not
+   // marked as targets (targets are removed from the subjectSet)
+   if(subject == NULL || explicitOnly)
+   {
+      printf("TOP-LEVEL OR EXPLICIT ON, ADDING REMOVALS\n");
+      JsonWriter::writeToStdOut(subjectSet);
+
+      DynamicObjectIterator si = subjectSet.getIterator();
+      while(si->hasNext())
+      {
+         DynamicObject& next = si->next();
+         DynamicObject& remove = removals->append();
+         if(subject == NULL)
+         {
+            // remove top-level subject
+            remove["s"] = si->getName();
+         }
+         else
+         {
+            // remove subject->predicate link
+            remove["s"] = subject;
+            remove["p"] = predicate;
+            remove["o"] = next["@"];
+         }
+      }
    }
 }
 
 static void _processFrameObject(
-   DynamicObject& parent, DynamicObject& frame,
-   DynamicObject& subjects, DynamicObject& embeds,
-   bool explicitOnly)
+   DynamicObject& frameParent, DynamicObject& frame,
+   DynamicObject& subjects, const char* subject, const char* predicate,
+   DynamicObject& embeds, bool explicitOnly, DynamicObject& removals)
 {
+   printf("PROCESSING FRAME:\n");
+   JsonWriter::writeToStdOut(frame);
+
    // find target objects that match the frame requirements
-   DynamicObject objects;
-   objects->setType(Array);
-   _findTargetObjects(parent, frame, subjects, objects);
+   DynamicObject targets;
+   targets->setType(Array);
+   _findTargetObjects(
+      frameParent, frame, subjects,
+      subject, predicate, targets, explicitOnly, removals);
 
    // iterate over objects to place in the target
-   DynamicObjectIterator i = objects.getIterator();
+   DynamicObjectIterator i = targets.getIterator();
    while(i->hasNext())
    {
-      DynamicObject& subject = i->next();
+      DynamicObject& target = i->next();
 
-      // if this is the first call (parent == frame), remove subject from
-      // embeds map
-      if(parent == frame)
+      // if this is the first call (subject == NULL), remove target from embeds
+      if(subject == NULL)
       {
-         embeds->removeMember(subject["@"]);
+         printf("REMOVING EMBED: %s\n", target["@"]->getString());
+         embeds->removeMember(target["@"]);
+      }
+      // add manual embed
+      else
+      {
+         DynamicObject embed;
+         embed["s"] = subjects[subject];
+         embed["p"] = predicate;
+         embed["manual"] = true;
+         embeds[target["@"]->getString()] = embed;
+
+         printf("ADDED EMBED: %s\n", target["@"]->getString());
+         JsonWriter::writeToStdOut(embed);
       }
 
+      printf("ITERATING OVER TARGET SUBJECT\n");
+      JsonWriter::writeToStdOut(target);
+
       // iterate over predicates and objects in subject
-      DynamicObjectIterator oi = subject.getIterator();
+      DynamicObjectIterator oi = target.getIterator();
       while(oi->hasNext())
       {
          DynamicObject& object = oi->next();
-         const char* predicate = i->getName();
+         const char* p = oi->getName();
 
          // skip "@" and "a" predicates
-         if(strcmp(predicate, "@") != 0 && strcmp(predicate, "a") != 0)
+         if(strcmp(p, "@") != 0 && strcmp(p, "a") != 0)
          {
+            printf("NEXT PREDICATE: %s\n", p);
+
             // frame mentions predicate
-            if(frame->hasMember(predicate))
+            if(frame->hasMember(p))
             {
-               DynamicObject& fobject = frame[predicate];
+               printf("FRAME MENTIONS PREDICATE: %s\n", p);
+
+               DynamicObject& fobject = frame[p];
 
                // if frame wants a single value, pick the first one
                if(object->getType() == Array && fobject->getType() != Array)
                {
+                  printf("LIMITING TO ONE OBJECT: %s\n", p);
                   object = object[0];
                }
                // recursion required
                else if(fobject->getType() == Map || fobject->getType() == Array)
                {
+                  printf("RECURSING AT PREDICATE: %s\n", p);
+
                   // recurse into frame object
                   if(fobject->getType() == Map)
                   {
                      _processFrameObject(
-                        frame, fobject, subjects, embeds, explicitOnly);
+                        frame, fobject, subjects,
+                        target["@"], p, embeds, explicitOnly, removals);
                   }
-                  // recurse into array if it has an object
-                  else if(fobject->length() > 0)
+                  else
                   {
-                     DynamicObject nextFrame = fobject.first();
-                     _processFrameObject(
-                        fobject, nextFrame, subjects, embeds, explicitOnly);
-                  }
+                     // convert object to an array if necessary
+                     if(object->getType() != Array)
+                     {
+                        DynamicObject tmp = object.clone();
+                        object->setType(Array);
+                        object->append(tmp);
 
-                  // add embed
-                  const char* s = object["@"];
-                  DynamicObject& embed = embeds[s];
-                  embed["s"] = subject;
-                  embed["p"] = predicate;
-                  embed["manual"] = true;
+                        printf("CONVERTED TO ARRAY\n");
+                        JsonWriter::writeToStdOut(object);
+                     }
+
+                     // recurse into frame array
+                     DynamicObjectIterator foi = fobject.getIterator();
+                     while(foi->hasNext())
+                     {
+                        DynamicObject nextFrame = foi->next();
+                        _processFrameObject(
+                           fobject, nextFrame, subjects,
+                           target["@"], p, embeds, explicitOnly, removals);
+                     }
+
+                     /*
+                     // add embed for every object if in non-explicit mode
+                     if(fobject->length() == 0 && !explicitOnly)
+                     {
+                        DynamicObjectIterator ii = object.getIterator();
+                        while(ii->hasNext())
+                        {
+                           const char* oSubject = ii->next();
+                           if(!embeds->hasMember(oSubject) ||
+                              !embeds[oSubject]["manual"]->getBoolean())
+                           {
+                              DynamicObject embed;
+                              embed["s"] = target;
+                              embed["p"] = p;
+                              embed["manual"] = true;
+                              embeds[oSubject] = embed;
+
+                              printf("ADDED EMBED: %s\n", oSubject);
+                              JsonWriter::writeToStdOut(embed);
+                           }
+                        }
+                     }*/
+                  }
                }
             }
             // frame does not mention predicate, if in explicit mode, remove it
             else if(explicitOnly)
             {
-               i->remove();
+               printf("EXPLICIT, REMOVED: %s\n", p);
+               DynamicObject& remove = removals->append();
+               remove["s"] = target["@"];
+               remove["p"] = p;
             }
          }
       }
    }
 }
 
-static void _frameTarget(
-   RdfaReader::Graph* g, DynamicObject& frame,
-   DynamicObject& subjects, DynamicObject& embeds,
-   bool explicitOnly)
+static void _processRemovals(
+   DynamicObject& subjects, DynamicObject& embeds, DynamicObject& removals)
 {
-   // default to subjects map for top-level objects
-   DynamicObject topLevel = subjects;
+   printf("PROCESSING REMOVALS\n");
+   JsonWriter::writeToStdOut(removals);
 
-   // handle frame if one was provided
-   if(!frame.isNull())
+   DynamicObjectIterator i = removals.getIterator();
+   while(i->hasNext())
    {
-      // find top-level target objects
-      topLevel = DynamicObject();
-      topLevel->setType(Array);
-      _findTargetObjects(frame, frame, subjects, topLevel);
+      DynamicObject& remove = i->next();
+      const char* s = remove["s"]->getString();
 
-      // process frame
-      _processFrameObject(frame, frame, subjects, embeds, explicitOnly);
+      // if no predicate, remove subject entirely
+      if(!remove->hasMember("p"))
+      {
+         // only remove subject if it isn't mentioned by a manual embed
+         if(!embeds->hasMember(s) || !embeds[s]["manual"]->getBoolean())
+         {
+            subjects->removeMember(s);
+         }
+      }
+      else if(subjects->hasMember(s))
+      {
+         DynamicObject& subject = subjects[s];
+         const char* p = remove["p"];
+
+         // remove associated embeds
+         DynamicObjectIterator ii = subject[p].getIterator();
+         while(ii->hasNext())
+         {
+            DynamicObject& next = ii->next();
+
+            // remove embed if its name matches the only listed in remove
+            // or if none is listed (which means remove all objects under
+            // the current predicate)
+            if(embeds->hasMember(next) &&
+               (!remove->hasMember("o") || strcmp(remove["o"], next) == 0))
+            {
+               DynamicObject& embed = embeds[next->getString()];
+               if(strcmp(embed["s"], s) == 0 && strcmp(embed["p"], p) == 0)
+               {
+                  embeds->removeMember(next);
+               }
+            }
+         }
+
+         // if no object was specified, remove the entire predicate
+         if(!remove->hasMember("o"))
+         {
+            subject->removeMember(p);
+         }
+         // remove the object from subject->predicate
+         else
+         {
+            DynamicObject& object = subject[p];
+            if(object->getType() == Array)
+            {
+               // remove object from array
+               DynamicObjectIterator ri = object.getIterator();
+               while(ri->hasNext())
+               {
+                  if(strcmp(ri->next(), remove["o"]) == 0)
+                  {
+                     ri->remove();
+                     break;
+                  }
+               }
+               // if array is empty, remove predicate
+               if(object->length() == 0)
+               {
+                  subject->removeMember(p);
+               }
+            }
+            // object is a string
+            else if(strcmp(object, remove["o"]) == 0)
+            {
+               subject->removeMember(p);
+            }
+         }
+      }
    }
 
-   /* Now that all possible embeds have been marked, we can prune cycles. */
-   _pruneCycles(subjects, embeds, explicitOnly);
+   printf("REMOVALS DONE, RESULTING SUBJECTS\n");
+   JsonWriter::writeToStdOut(subjects);
+}
 
-   // handle all embeds
+static void _processEmbeds(
+   DynamicObject& subjects, DynamicObject& embeds)
+{
+   printf("FINAL EMBEDS:\n");
+   JsonWriter::writeToStdOut(embeds);
+
    DynamicObjectIterator i = embeds.getIterator();
    while(i->hasNext())
    {
@@ -507,13 +724,61 @@ static void _frameTarget(
       // set the subject's predicate to the embedded object
       _setPredicate(s, predicate, obj);
    }
+}
+
+static void _frameTarget(
+   RdfaReader::Graph* g, DynamicObject& frame,
+   DynamicObject& subjects, DynamicObject& embeds,
+   bool explicitOnly)
+{
+   // handle frame if one was provided
+   if(!frame.isNull())
+   {
+      // process frame, store removals (removals are stored to avoid removing
+      // graph nodes during recursion)
+      DynamicObject removals;
+      removals->setType(Array);
+
+      // frame is a map
+      if(frame->getType() == Map)
+      {
+         _processFrameObject(
+            frame, frame, subjects, NULL, NULL, embeds, explicitOnly, removals);
+      }
+      // frame is an array
+      else
+      {
+         // FIXME: problem ... going to remove all subjects that aren't
+         // in the frame here..., need to handle frame arrays recursively
+         DynamicObjectIterator i = frame.getIterator();
+         while(i->hasNext())
+         {
+            DynamicObject& nextFrame = i->next();
+            _processFrameObject(
+               frame, nextFrame, subjects, NULL, NULL, embeds,
+               explicitOnly, removals);
+         }
+      }
+
+      // clean up removals
+      _processRemovals(subjects, embeds, removals);
+   }
+
+   /* Now that all possible embeds have been marked, we can prune cycles. */
+   _pruneCycles(subjects, embeds, explicitOnly);
+
+   // handle all embeds
+   _processEmbeds(subjects, embeds);
+
+   printf("FINISHED TOP-LEVEL SUBJECTS\n");
+   JsonWriter::writeToStdOut(subjects);
 
    // remove "a" from context, only used during processing, its a builtin
    // token replacement for rdf type
    g->target["#"]->removeMember("a");
 
-   // build final JSON-LD object by adding all top-level objects
-   i = topLevel.getIterator();
+   // build final JSON-LD object by adding all remaining top-level objects
+   DynamicObjectIterator i = subjects.getIterator();
    while(i->hasNext())
    {
       DynamicObject& subject = i->next();
@@ -579,10 +844,13 @@ static void _finishGraph(
          s["@"] = subject;
       }
 
+      // FIXME: don't count subjects that aren't urls
+
       // if the object is referenced exactly once and it does not appear
       // in a cyclical reference, then it can be embedded, then it can be
       // embedded under the predicate, so keep track of that
-      if(g->subjectCounts.find(t->object)->second == 1)
+      if(strcmp(predicate, "a") != 0 &&
+         g->subjectCounts.find(t->object)->second == 1)
       {
          DynamicObject& embed = embeds[object];
          embed["s"] = s;
@@ -854,15 +1122,19 @@ bool RdfaReader::readFromString(
 
 static void _processTriple(RdfaReader::Graph* g, rdftriple* triple)
 {
-   // update map with the number of references to a particular subject
-   // using the object of this triple
-   if(g->subjectCounts.find(triple->object) == g->subjectCounts.end())
+   // update subject count if object is an IRI
+   if(triple->object_type == RDF_TYPE_IRI)
    {
-      g->subjectCounts[triple->object] = 1;
-   }
-   else
-   {
-      ++g->subjectCounts[triple->object];
+      // update map with the number of references to a particular subject
+      // using the object of this triple
+      if(g->subjectCounts.find(triple->object) == g->subjectCounts.end())
+      {
+         g->subjectCounts[triple->object] = 1;
+      }
+      else
+      {
+         ++g->subjectCounts[triple->object];
+      }
    }
 
    // store triple

@@ -138,6 +138,18 @@ public:
    virtual bool setContext(monarch::rt::DynamicObject& context);
 
    /**
+    * Sets the frame to use to build default graph's JSON-LD object output.
+    *
+    * @param frame the frame to use.
+    * @param explicitOnly true to only include predicates specified in the
+    *           frame in the output.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   virtual bool setFrame(
+      monarch::rt::DynamicObject& frame, bool explicitOnly = false);
+
+   /**
     * Starts deserializing an object from RDFa. This RdfaReader can be re-used
     * by calling start() with the same or a new object. Calling start() before
     * a previous deserialization has finished will abort the previous state.
