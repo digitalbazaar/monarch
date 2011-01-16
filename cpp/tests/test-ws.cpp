@@ -68,7 +68,7 @@ public:
 
       PathHandlerRef handler2 = new Handler(
          this, &TestWebService::handleRegexRequest);
-      addHandler("/(.*)/regextest", handler2, true);
+      addHandler("/(.*)/regextest/(.*)", handler2, true);
 
       return true;
    }
@@ -101,7 +101,7 @@ public:
       h->setField("Connection", "close");
       ch->getResponse()->sendHeader();
 
-      ByteArrayInputStream bais(mContent, strlen(mRegexContent));
+      ByteArrayInputStream bais(mRegexContent, strlen(mRegexContent));
       ch->getResponse()->sendBody(&bais);
    }
 };
@@ -167,11 +167,9 @@ static void _checkUrlText(
 
 static void runWebServerTest(TestRunner& tr)
 {
-   tr.test("WebServer");
-
    const char* path = "/test";
    const char* content = "web server test";
-   const char* regexPath = "/test/foo/regextest";
+   const char* regexPath = "/test/dumplings/regextest/turkey";
    const char* regexContent = "web server test (regex)";
 
    // create kernel
@@ -209,25 +207,27 @@ static void runWebServerTest(TestRunner& tr)
    int port = ws.getHostAddress()->getPort();
 
    // check the regular path and data
+   tr.test("WebServer - regular path handler");
    {
       Url url;
       url.format("http://%s:%d%s", cfg["host"]->getString(), port, path);
       _checkUrlText(tr, &url, 200, content, strlen(content));
    }
+   tr.passIfNoException();
 
    // check the regex path and data
+   tr.test("WebServer - regex path handler");
    {
       Url url;
       url.format("http://%s:%d%s", cfg["host"]->getString(), port, regexPath);
-      _checkUrlText(tr, &url, 200, content, strlen(regexContent));
+      _checkUrlText(tr, &url, 200, regexContent, strlen(regexContent));
    }
+   tr.passIfNoException();
 
    server.stop();
 
    // stop kernel engine
    k.getEngine()->stop();
-
-   tr.passIfNoException();
 }
 
 static bool run(TestRunner& tr)

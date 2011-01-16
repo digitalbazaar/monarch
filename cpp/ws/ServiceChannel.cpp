@@ -336,6 +336,11 @@ inline const char* ServiceChannel::getPath()
    return mPath;
 }
 
+void ServiceChannel::setPathParams(DynamicObject& params)
+{
+   mPathParams = params.clone();
+}
+
 bool ServiceChannel::getPathParams(DynamicObject& params)
 {
    bool rval;

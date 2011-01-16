@@ -292,6 +292,17 @@ public:
    virtual void setBasePath(const char* res);
 
    /**
+    * Sets the path parameters. If the path handler for the service channel
+    * is a regular expression, the path parameters include all of the matches
+    * in the path. If the path handler for the service channel is not a 
+    * regular expression, the path parameters include all path components
+    * after the matched path.
+    *
+    * @param params the DynamicObject Array containing the path parameters.
+    */
+   virtual void setPathParams(monarch::rt::DynamicObject& params);
+
+   /**
     * Checks to see if a header or content has been sent to the client yet. If
     * something has already been sent to the client then further send() calls
     * will do nothing and succeed.
