@@ -17,8 +17,9 @@ using namespace monarch::rt;
 using namespace monarch::util;
 using namespace monarch::ws;
 
-WebService::WebService(const char* path, bool dynamicHandlers) :
-   HttpRequestServicer(path),
+WebService::WebService(
+   const char* path, bool dynamicHandlers, bool pathIsRegex) :
+   HttpRequestServicer(path, pathIsRegex),
    mRequestModifier(NULL),
    mDynamicHandlers(dynamicHandlers),
    mAllowHttp1(false)
@@ -44,7 +45,8 @@ HttpRequestModifier* WebService::getRequestModifier()
    return mRequestModifier;
 }
 
-void WebService::addHandler(const char* path, PathHandlerRef& handler)
+void WebService::addHandler(
+   const char* path, PathHandlerRef& handler, bool pathIsRegex)
 {
    // append path to web service path
    const char* basePath = getPath();

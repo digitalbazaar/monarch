@@ -25,6 +25,7 @@ namespace ws
  * the incoming request.
  *
  * @author Dave Longley
+ * @author Manu Sporny
  */
 class WebService : public monarch::http::HttpRequestServicer
 {
@@ -77,8 +78,11 @@ public:
     * @param path the path this servicer handles requests for.
     * @param dynamicHandlers true to allow dynamic adding/removing of
     *           handlers, false not to.
+    * @param pathIsRegex true if the path is a regular expression, false
+    *                    otherwise.
     */
-   WebService(const char* path, bool dynamicHandlers = false);
+   WebService(const char* path, bool dynamicHandlers = false, 
+      bool pathIsRegex = false);
 
    /**
     * Destructs this WebService.
@@ -126,8 +130,11 @@ public:
     *
     * @param path the path to handle.
     * @param handler the path handler.
+    * @param pathIsRegex true if the handler path is a regular expression,
+    *                    false otherwise.
     */
-   virtual void addHandler(const char* path, PathHandlerRef& handler);
+   virtual void addHandler(
+      const char* path, PathHandlerRef& handler, bool pathIsRegex = false);
 
    /**
     * Removes a handler from this service. The path will be normalized such
