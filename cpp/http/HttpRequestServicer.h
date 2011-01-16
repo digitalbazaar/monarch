@@ -19,6 +19,7 @@ namespace http
  * passed objects to communicate.
  *
  * @author Dave Longley
+ * @author Manu Sporny
  */
 class HttpRequestServicer
 {
@@ -27,6 +28,12 @@ protected:
     * The path for this servicer.
     */
    char* mPath;
+   
+   /**
+    * The path for this servicer is a regular expression and should be
+    * treated as such.
+    */
+   bool mPathIsRegex;
 
 public:
    /**
@@ -37,9 +44,16 @@ public:
     * normalized to a single slash. A path "servicer//path/" will
     * be transformed into: "/servicer/path".
     *
+    * If the path is a regular expression, the normalization algorithm
+    * prepends and appends a slash if not specified and removes duplicate
+    * slashes. This applies to escaped slashes as well, so the path
+    * "servicer\/\/path" will be transformed into "/servicer\/path".
+    *
     * @param path the path this servicer handles requests for.
+    * @param isRegex if true, the path is a regular expression, otherwise the
+    *                path is a standard string.
     */
-   HttpRequestServicer(const char* path);
+   HttpRequestServicer(const char* path, bool isRegex = false);
 
    /**
     * Destructs this HttpRequestServicer.
@@ -66,14 +80,24 @@ public:
    virtual const char* getPath();
 
    /**
+    * Retrieves whether or not the path for the request servicer is a 
+    * regular expression.
+    *
+    * @return true if the service path is a regular expression, false otherwise.
+    */
+   virtual bool isPathRegex();
+
+   /**
     * Normalizes "inPath" to "outPath" by prepending a forward slash if
     * necessary and by ensuring the path does not end in a forward slash.
     *
     * @param inPath the path to normalize.
     * @param outPath the string to store the normalized path in, which must
     *                be at least [strlen(inPath) + 2] in size.
+    * @param pathIsRegex if true, the inPath is a regular expression.
     */
-   static void normalizePath(const char* inPath, char* outPath);
+   static void normalizePath(
+      const char* inPath, char* outPath, bool pathIsRegex = false);
 };
 
 } // end namespace http
