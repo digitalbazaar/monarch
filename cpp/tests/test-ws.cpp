@@ -47,7 +47,7 @@ class TestWebService : public WebService
 public:
    char* mContent;
    char* mRegexContent;
-   TestWebService(const char* path, const char* content, 
+   TestWebService(const char* path, const char* content,
       const char* regexContent) : WebService(path)
    {
       mContent = strdup(content);
@@ -66,9 +66,10 @@ public:
          this, &TestWebService::handleRequest);
       addHandler("/", handler1);
 
+      /*
       PathHandlerRef handler2 = new Handler(
          this, &TestWebService::handleRegexRequest);
-      addHandler("/(.*)/regextest/(.*)", handler2, true);
+      addHandler("/(.*)/regextest/(.*)", handler2, true);*/
 
       return true;
    }
@@ -91,6 +92,7 @@ public:
       ch->getResponse()->sendBody(&bais);
    }
 
+   /*
    virtual void handleRegexRequest(ServiceChannel* ch)
    {
       // send 200 OK
@@ -103,7 +105,7 @@ public:
 
       ByteArrayInputStream bais(mRegexContent, strlen(mRegexContent));
       ch->getResponse()->sendBody(&bais);
-   }
+   }*/
 };
 
 /**

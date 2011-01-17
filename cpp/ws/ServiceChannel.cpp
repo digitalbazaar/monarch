@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/ws/ServiceChannel.h"
 
@@ -334,11 +334,6 @@ bool ServiceChannel::sendException(ExceptionRef& e, bool client)
 inline const char* ServiceChannel::getPath()
 {
    return mPath;
-}
-
-void ServiceChannel::setPathParams(DynamicObject& params)
-{
-   mPathParams = params.clone();
 }
 
 bool ServiceChannel::getPathParams(DynamicObject& params)

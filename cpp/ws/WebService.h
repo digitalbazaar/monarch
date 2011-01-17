@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_ws_WebService_H
 #define monarch_ws_WebService_H
@@ -7,7 +7,6 @@
 #include "monarch/http/HttpRequestModifier.h"
 #include "monarch/http/HttpRequestServicer.h"
 #include "monarch/rt/SharedLock.h"
-#include "monarch/util/Pattern.h"
 #include "monarch/util/StringTools.h"
 #include "monarch/ws/PathHandler.h"
 
@@ -25,8 +24,32 @@ namespace ws
  * for a PathHandler for the path in the HTTP request and uses it to handle
  * the incoming request.
  *
+ * The process of handling a request:
+ *
+ * HttpRequest => WebService => PathHandler
+ *
+ * The WebService design is two-tiered: first a very fast map-lookup filter
+ * on paths and then whatever kind of customized filtering is necessary. More
+ * specifically:
+ *
+ * HTTP requests are handled by normalizing their path and looking for an
+ * installed PathHandler. The process of looking for a PathHandler involves
+ * moving backwards through the path components in the request looking in a
+ * path map until a match is found (or none is found and a 404 is returned).
+ *
+ * If a PathHandler is found, then that handler is given the request. The
+ * PathHandler can have a customized implementation. There are some basic
+ * built-in sub-classes for PathHandlers, however, that allow the code that
+ * handles a request to be better organized. This includes further breaking a
+ * request up by subpaths using a similar process (a map with paths) or by
+ * using regexes to find the specific function to call to handle the request.
+ *
+ * If a special kind of path handling or filter is required, then the
+ * PathHandler class should be extended.
+ *
+ * @see RestfulHandler, RegexHandler
+ *
  * @author Dave Longley
- * @author Manu Sporny
  */
 class WebService : public monarch::http::HttpRequestServicer
 {
@@ -48,19 +71,12 @@ protected:
    monarch::http::HttpRequestModifier* mRequestModifier;
 
    /**
-    * A map of non-regex paths to PathHandlerRefs.
+    * A map of paths to PathHandlerRefs.
     */
    typedef std::map<
       const char*, PathHandlerRef, monarch::util::StringComparator>
       HandlerMap;
    HandlerMap mHandlers;
-
-   /**
-    * A list of regex paths to PathHandlerRefs pairings.
-    */
-   typedef std::vector< std::pair<monarch::util::PatternRef, PathHandlerRef> > 
-      RegexHandlerList;
-   RegexHandlerList mRegexHandlers;
 
    /**
     * A flag to allow dynamic adding/removing of handlers.
@@ -86,11 +102,8 @@ public:
     * @param path the path this servicer handles requests for.
     * @param dynamicHandlers true to allow dynamic adding/removing of
     *           handlers, false not to.
-    * @param pathIsRegex true if the path is a regular expression, false
-    *                    otherwise.
     */
-   WebService(const char* path, bool dynamicHandlers = false, 
-      bool pathIsRegex = false);
+   WebService(const char* path, bool dynamicHandlers = false);
 
    /**
     * Destructs this WebService.
@@ -138,11 +151,8 @@ public:
     *
     * @param path the path to handle.
     * @param handler the path handler.
-    * @param pathIsRegex true if the handler path is a regular expression,
-    *                    false otherwise.
     */
-   virtual void addHandler(
-      const char* path, PathHandlerRef& handler, bool pathIsRegex = false);
+   virtual void addHandler(const char* path, PathHandlerRef& handler);
 
    /**
     * Removes a handler from this service. The path will be normalized such
@@ -161,11 +171,8 @@ public:
     *
     * @param path the path to get the handler for.
     * @param h the handler reference to update, set to NULL if none exists.
-    * @param matches the list of regular expression matches if there were
-    *                any in the given path.
     */
-   virtual void findHandler(
-      char* path, PathHandlerRef& h, monarch::rt::DynamicObject& matches);
+   virtual void findHandler(char* path, PathHandlerRef& h);
 
    /**
     * Services the passed HttpRequest. The header for the request has already

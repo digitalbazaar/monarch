@@ -211,60 +211,6 @@ static void runHttpNormalizePath(TestRunner& tr)
       assertStrCmp(temp, "/a/b/c");
    }
 
-   // regex, no starting slash
-   {
-      HttpRequestServicer::normalizePath("a/b/c", temp, true);
-      assertStrCmp(temp, "/a/b/c");
-   }
-
-   // regex, no starting slash, escaped forward slashes
-   {
-      HttpRequestServicer::normalizePath("a\\/b\\/c", temp, true);
-      assertStrCmp(temp, "/a\\/b\\/c");
-   }
-
-   // regex, extra ending slash
-   {
-      HttpRequestServicer::normalizePath("/a/b/c/", temp, true);
-      assertStrCmp(temp, "/a/b/c");
-   }
-
-   // regex, extra ending slash, escaped forward slashes
-   {
-      HttpRequestServicer::normalizePath("/a\\/b\\/c\\/", temp, true);
-      assertStrCmp(temp, "/a\\/b\\/c");
-   }
-
-   // regex, no starting slash, extra ending slash
-   {
-      HttpRequestServicer::normalizePath("a/b/c/", temp, true);
-      assertStrCmp(temp, "/a/b/c");
-   }
-
-   // regex, no starting slash, extra ending slash, escaped forward slashes
-   {
-      HttpRequestServicer::normalizePath("a\\/b\\/c\\/", temp, true);
-      assertStrCmp(temp, "/a\\/b\\/c");
-   }
-
-   // regex, extra middle slashes
-   {
-      HttpRequestServicer::normalizePath("/a//b//c/", temp, true);
-      assertStrCmp(temp, "/a/b/c");
-   }
-
-   // regex, extra middle slashes, escaped forward slashes
-   {
-      HttpRequestServicer::normalizePath("\\/a\\/\\/b\\/\\/c\\/", temp, true);
-      assertStrCmp(temp, "\\/a\\/b\\/c");
-   }
-
-   // regex, extra middle slashes, mixed escaped forward slashes
-   {
-      HttpRequestServicer::normalizePath("\\/a\\/\\/b/\\/c\\/", temp, true);
-      assertStrCmp(temp, "\\/a\\/b/c");
-   }
-
    // crazy
    {
       HttpRequestServicer::normalizePath("a///b///////c////", temp);
@@ -287,6 +233,30 @@ static void runHttpNormalizePath(TestRunner& tr)
    {
       HttpRequestServicer::normalizePath("woof///moo///////meow////", temp);
       assertStrCmp(temp, "/woof/moo/meow");
+   }
+
+   // query
+   {
+      HttpRequestServicer::normalizePath("/a//b//c?foo=bar", temp);
+      assertStrCmp(temp, "/a/b/c?foo=bar");
+   }
+
+   // query
+   {
+      HttpRequestServicer::normalizePath("/a//b//c/?foo=bar", temp);
+      assertStrCmp(temp, "/a/b/c?foo=bar");
+   }
+
+   // query
+   {
+      HttpRequestServicer::normalizePath("/a//b//c/?foo=bar&bar2=foo2", temp);
+      assertStrCmp(temp, "/a/b/c?foo=bar&bar2=foo2");
+   }
+
+   // crazy query
+   {
+      HttpRequestServicer::normalizePath("woof///moo///////meow////?foo", temp);
+      assertStrCmp(temp, "/woof/moo/meow?foo");
    }
 
    tr.pass();
