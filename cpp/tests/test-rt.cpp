@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -1362,6 +1362,27 @@ static void runDynoRemoveTest(TestRunner& tr)
       DynamicObjectIterator i = d1.getIterator();
       assert(i->hasNext());
       i->next();
+      i->remove();
+      assert(!i->hasNext());
+      assertDynoCmp(d1, d2);
+   }
+   tr.passIfNoException();
+
+   tr.test("map of 2");
+   {
+      DynamicObject d1;
+      d1["0"] = 0;
+      d1["1"] = 0;
+
+      DynamicObject d2;
+      d2["0"] = 0;
+
+      DynamicObjectIterator i = d1.getIterator();
+      assert(i->hasNext());
+      i->next();
+      assert(i->hasNext());
+      i->next();
+      assert(!i->hasNext());
       i->remove();
       assert(!i->hasNext());
       assertDynoCmp(d1, d2);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -424,6 +424,582 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["dc:title"] = "http://example.org/test#you";
       assertDynoCmp(expect, dyno);
       assertDynoCmp(expect, dyno2);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("frame w/subjects");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#library\" typeof=\"ex:Library\" "
+            "rel=\"ex:contains\" resource=\"#book\" />\n"
+         "<span about=\"#book\" typeof=\"ex:Book\" "
+            "property=\"dc:title\">My Book</span>\n"
+         "<span about=\"#book\" property=\"dc:contributor\">Writer</span>\n"
+         "<span about=\"#book\" rel=\"ex:contains\" resource=\"#chapter\" />\n"
+         "<span about=\"#chapter\" typeof=\"ex:Chapter\" "
+            "property=\"dc:title\">Chapter One</span>\n"
+         "<span about=\"#chapter\" property=\"dc:description\">Fun</span>\n"
+         "<span about=\"#john\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      DynamicObject frame;
+      frame["@"] = "http://example.org/test#library";
+      frame["ex:contains"]["@"] = "http://example.org/test#book";
+      frame["ex:contains"]["ex:contains"]["@"] =
+         "http://example.org/test#chapter";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setFrame(frame);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"] = "http://example.org/test#library";
+      expect["a"] = "ex:Library";
+      expect["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["ex:contains"]["a"] = "ex:Book";
+      expect["ex:contains"]["dc:contributor"] = "Writer";
+      expect["ex:contains"]["dc:title"] = "My Book";
+      expect["ex:contains"]["ex:contains"]["@"] =
+         "http://example.org/test#chapter";
+      expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+      expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
+      expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+      assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("frame w/types");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#library\" typeof=\"ex:Library\" "
+            "rel=\"ex:contains\" resource=\"#book\" />\n"
+         "<span about=\"#book\" typeof=\"ex:Book\" "
+            "property=\"dc:title\">My Book</span>\n"
+         "<span about=\"#book\" property=\"dc:contributor\">Writer</span>\n"
+         "<span about=\"#book\" rel=\"ex:contains\" resource=\"#chapter\" />\n"
+         "<span about=\"#chapter\" typeof=\"ex:Chapter\" "
+            "property=\"dc:title\">Chapter One</span>\n"
+         "<span about=\"#chapter\" property=\"dc:description\">Fun</span>\n"
+         "<span about=\"#john\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      DynamicObject frame;
+      frame["a"] = "ex:Library";
+      frame["ex:contains"]["a"] = "ex:Book";
+      frame["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setFrame(frame);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"] = "http://example.org/test#library";
+      expect["a"] = "ex:Library";
+      expect["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["ex:contains"]["a"] = "ex:Book";
+      expect["ex:contains"]["dc:contributor"] = "Writer";
+      expect["ex:contains"]["dc:title"] = "My Book";
+      expect["ex:contains"]["ex:contains"]["@"] =
+         "http://example.org/test#chapter";
+      expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+      expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
+      expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+      assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("frame w/types +explicit");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#library\" typeof=\"ex:Library\" "
+            "rel=\"ex:contains\" resource=\"#book\" />\n"
+         "<span about=\"#book\" typeof=\"ex:Book\" "
+            "property=\"dc:title\">My Book</span>\n"
+         "<span about=\"#book\" property=\"dc:contributor\">Writer</span>\n"
+         "<span about=\"#book\" rel=\"ex:contains\" resource=\"#chapter\" />\n"
+         "<span about=\"#chapter\" typeof=\"ex:Chapter\" "
+            "property=\"dc:title\">Chapter One</span>\n"
+         "<span about=\"#chapter\" property=\"dc:description\">Fun</span>\n"
+         "<span about=\"#john\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      DynamicObject frame;
+      frame["a"] = "ex:Library";
+      frame["ex:contains"]["a"] = "ex:Book";
+      frame["ex:contains"]["dc:contributor"];
+      frame["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+      frame["ex:contains"]["ex:contains"]["dc:title"];
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setFrame(frame, true);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"] = "http://example.org/test#library";
+      expect["a"] = "ex:Library";
+      expect["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["ex:contains"]["a"] = "ex:Book";
+      expect["ex:contains"]["dc:contributor"] = "Writer";
+      expect["ex:contains"]["ex:contains"]["@"] =
+         "http://example.org/test#chapter";
+      expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+      expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+      assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("frame w/types +explicit +useArrays");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#library\" typeof=\"ex:Library\" "
+            "rel=\"ex:contains\" resource=\"#book\" />\n"
+         "<span about=\"#book\" typeof=\"ex:Book\" "
+            "property=\"dc:title\">My Book</span>\n"
+         "<span about=\"#book\" property=\"dc:contributor\">Writer</span>\n"
+         "<span about=\"#book\" rel=\"ex:contains\" resource=\"#chapter\" />\n"
+         "<span about=\"#chapter\" typeof=\"ex:Chapter\" "
+            "property=\"dc:title\">Chapter One</span>\n"
+         "<span about=\"#chapter\" property=\"dc:description\">Fun</span>\n"
+         "<span about=\"#john\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      DynamicObject frame;
+      frame["a"] = "ex:Library";
+      frame["ex:contains"]["a"] = "ex:Book";
+      frame["ex:contains"]["dc:contributor"]->setType(Array);
+      frame["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+      frame["ex:contains"]["ex:contains"]["dc:title"];
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setFrame(frame, true);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"] = "http://example.org/test#library";
+      expect["a"] = "ex:Library";
+      expect["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["ex:contains"]["a"] = "ex:Book";
+      expect["ex:contains"]["dc:contributor"][0] = "Writer";
+      expect["ex:contains"]["ex:contains"]["@"] =
+         "http://example.org/test#chapter";
+      expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+      expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+      assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("frame w/types same as triple order");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#a\" typeof=\"ex:A\" "
+            "rel=\"ex:knows\" resource=\"#b\" />\n"
+         "<span about=\"#a\" rel=\"ex:knows\" resource=\"#aa\" />\n"
+         "<span about=\"#b\" typeof=\"ex:B\" "
+            "rel=\"ex:contains\" resource=\"#a\" />\n"
+         "<span about=\"#b\" rel=\"ex:contains\" resource=\"#aa\" />\n"
+         "<span about=\"#aa\" typeof=\"ex:A\" "
+            "property=\"dc:title\">Embedded</span>\n"
+         "<span about=\"#john\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      DynamicObject frame;
+      frame["a"] = "ex:A";
+      frame["ex:knows"]->setType(Array);
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setFrame(frame);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"] = "http://example.org/test#a";
+      expect["a"] = "ex:A";
+      expect["ex:knows"][0]["@"] = "http://example.org/test#aa";
+      expect["ex:knows"][0]["a"] = "ex:A";
+      expect["ex:knows"][0]["dc:title"] = "Embedded";
+      expect["ex:knows"][1]["@"] = "http://example.org/test#b";
+      expect["ex:knows"][1]["a"] = "ex:B";
+      expect["ex:knows"][1]["ex:contains"][0] = "http://example.org/test#a";
+      expect["ex:knows"][1]["ex:contains"][1] = "http://example.org/test#aa";
+      assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("frame w/types same as triple order +1 type");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#a\" typeof=\"ex:A\" "
+            "rel=\"ex:knows\" resource=\"#b\" />\n"
+         "<span about=\"#a\" rel=\"ex:knows\" resource=\"#aa\" />\n"
+         "<span about=\"#b\" typeof=\"ex:B\" "
+            "rel=\"ex:contains\" resource=\"#a\" />\n"
+         "<span about=\"#b\" rel=\"ex:contains\" resource=\"#aa\" />\n"
+         "<span about=\"#aa\" typeof=\"ex:A\" "
+            "property=\"dc:title\">Embedded</span>\n"
+         "<span about=\"#john\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      DynamicObject frame;
+      frame["a"] = "ex:A";
+      frame["ex:knows"][0]["a"] = "ex:A";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setFrame(frame, true);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"] = "http://example.org/test#a";
+      expect["a"] = "ex:A";
+      expect["ex:knows"][0]["@"] = "http://example.org/test#aa";
+      expect["ex:knows"][0]["a"] = "ex:A";
+      assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("array frame w/types same as triple order +1 type");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#a\" typeof=\"ex:A\" "
+            "rel=\"ex:knows\" resource=\"#b\" />\n"
+         "<span about=\"#a\" rel=\"ex:knows\" resource=\"#aa\" />\n"
+         "<span about=\"#b\" typeof=\"ex:B\" "
+            "rel=\"ex:contains\" resource=\"#a\" />\n"
+         "<span about=\"#b\" rel=\"ex:contains\" resource=\"#aa\" />\n"
+         "<span about=\"#aa\" typeof=\"ex:A\" "
+            "property=\"dc:title\">Embedded</span>\n"
+         "<span about=\"#john\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      DynamicObject frame;
+      frame[0]["a"] = "ex:A";
+      frame[0]["ex:knows"][0]["a"] = "ex:A";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setFrame(frame, true);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"][0]["@"] = "http://example.org/test#a";
+      expect["@"][0]["a"] = "ex:A";
+      expect["@"][0]["ex:knows"][0] = "http://example.org/test#aa";
+      expect["@"][1]["@"] = "http://example.org/test#aa";
+      expect["@"][1]["a"] = "ex:A";
+      assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("frame w/types same as triple order +2 types");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#a\" typeof=\"ex:A\" "
+            "rel=\"ex:knows\" resource=\"#b\" />\n"
+         "<span about=\"#a\" rel=\"ex:knows\" resource=\"#aa\" />\n"
+         "<span about=\"#b\" typeof=\"ex:B\" "
+            "rel=\"ex:contains\" resource=\"#a\" />\n"
+         "<span about=\"#b\" rel=\"ex:contains\" resource=\"#aa\" />\n"
+         "<span about=\"#aa\" typeof=\"ex:A\" "
+            "property=\"dc:title\">Embedded</span>\n"
+         "<span about=\"#john\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      DynamicObject frame;
+      frame["a"] = "ex:A";
+      frame["ex:knows"][0]["a"][0] = "ex:A";
+      frame["ex:knows"][0]["a"][1] = "ex:B";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setFrame(frame);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"] = "http://example.org/test#a";
+      expect["a"] = "ex:A";
+      expect["ex:knows"][0]["@"] = "http://example.org/test#aa";
+      expect["ex:knows"][0]["a"] = "ex:A";
+      expect["ex:knows"][0]["dc:title"] = "Embedded";
+      expect["ex:knows"][1]["@"] = "http://example.org/test#b";
+      expect["ex:knows"][1]["a"] = "ex:B";
+      expect["ex:knows"][1]["ex:contains"][0] = "http://example.org/test#a";
+      expect["ex:knows"][1]["ex:contains"][1] = "http://example.org/test#aa";
+      assertDynoCmp(expect, dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("frame w/types reversed from triple order");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\"\n"
+         "      xmlns:foaf=\"http://xmlns.org/foaf/0.1/\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#a\" typeof=\"ex:A\" "
+            "rel=\"ex:knows\" resource=\"#b\" />\n"
+         "<span about=\"#a\" rel=\"ex:knows\" resource=\"#aa\" />\n"
+         "<span about=\"#b\" typeof=\"ex:B\" "
+            "rel=\"ex:contains\" resource=\"#a\" />\n"
+         "<span about=\"#b\" rel=\"ex:contains\" resource=\"#aa\" />\n"
+         "<span about=\"#aa\" typeof=\"ex:A\" "
+            "property=\"dc:title\">Embedded</span>\n"
+         "<span about=\"#john\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">John</span>\n"
+         "<span about=\"#jane\" typeof=\"ex:Person\" "
+            "property=\"foaf:name\">Jane</span>\n"
+         "<span about=\"#jane\" rel=\"ex:authored\" resource=\"#chapter\" />\n"
+         "</p></body>\n"
+         "</html>";
+
+      DynamicObject frame;
+      frame["a"] = "ex:B";
+      frame["ex:contains"][0]["a"] = "ex:A";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      reader.setFrame(frame);
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@"] = "http://example.org/test#b";
+      expect["a"] = "ex:B";
+      expect["ex:contains"][0]["@"] = "http://example.org/test#a";
+      expect["ex:contains"][0]["a"] = "ex:A";
+      expect["ex:contains"][0]["ex:knows"][0] = "http://example.org/test#aa";
+      expect["ex:contains"][0]["ex:knows"][1] = "http://example.org/test#b";
+      expect["ex:contains"][1]["@"] = "http://example.org/test#aa";
+      expect["ex:contains"][1]["a"] = "ex:A";
+      expect["ex:contains"][1]["dc:title"] = "Embedded";
+      assertDynoCmp(expect, dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
