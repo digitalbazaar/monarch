@@ -291,6 +291,7 @@ static void _pruneCycles(
                cycle["broken"] = true;
                tmp[object] = embed;
             }
+            // FIXME: if both are manual, clone one to handle the cycle?
             // keep cycle embed
             else
             {
@@ -451,6 +452,37 @@ static void _findTargetObjects(
    }
 }
 
+/**
+ * Process frame is a recursive function that traverses the frame tree. As
+ * it traverses, it finds "target objects" in the graph to embed according
+ * to the structure specified by the frame. This method will not actually
+ * build the final JSON-LD object, but rather it will make suggestions about
+ * what to embed and what to remove from the graph. The final object will
+ * be built using a map of subjects keeps track of every subject mentioned in
+ * the graph. This map will be later modified using the embeds and removals
+ * added by this function.
+ *
+ * If an object is to be embedded, it is marked as such -- but the actual
+ * embedding will occur later, after all suggested embeds have been added,
+ * in order to resolve cycles, etc.
+ *
+ * If the "explicitOnly" flag is set, then any objects in the graph that are
+ * not mentioned by the frame are marked to be later removed. Objects might
+ * also be marked for removal that are not actually removed -- this is because
+ * they might not be mentioned explicitly in one part of the frame but will
+ * be mentioned in another.
+ *
+ * The actual removal process happens after the entire traversal completes
+ * to ensure iterators remain valid during recursion.
+ *
+ * @param frame the frame node (first call starts at the top of the frame tree).
+ * @param subjects a map of all subjects in the graph.
+ * @param subject the current parent subject in the traversal, NULL to start.
+ * @param predicate the current parent predicate in the traversal.
+ * @param embeds a map of suggested objects to embed (according to the frame).
+ * @param explicitOnly true to only include subjects mentioned in the frame.
+ * @param removals a list of subjects to potentially remove.
+ */
 static void _processFrame(
    DynamicObject& frame,
    DynamicObject& subjects, const char* subject, const char* predicate,
@@ -557,7 +589,8 @@ static void _processFrame(
                         explicitOnly, removals);
                   }
                }
-               // frame does not mention predicate, if in explicit mode, remove it
+               // frame does not mention predicate, if in explicit mode,
+               // mark it for potential removal
                else if(explicitOnly)
                {
                   DynamicObject& remove = removals->append();
