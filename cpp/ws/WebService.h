@@ -4,10 +4,11 @@
 #ifndef monarch_ws_WebService_H
 #define monarch_ws_WebService_H
 
-#include "monarch/rt/SharedLock.h"
-#include "monarch/util/StringTools.h"
 #include "monarch/http/HttpRequestModifier.h"
 #include "monarch/http/HttpRequestServicer.h"
+#include "monarch/rt/SharedLock.h"
+#include "monarch/util/Pattern.h"
+#include "monarch/util/StringTools.h"
 #include "monarch/ws/PathHandler.h"
 
 namespace monarch
@@ -25,6 +26,7 @@ namespace ws
  * the incoming request.
  *
  * @author Dave Longley
+ * @author Manu Sporny
  */
 class WebService : public monarch::http::HttpRequestServicer
 {
@@ -46,12 +48,19 @@ protected:
    monarch::http::HttpRequestModifier* mRequestModifier;
 
    /**
-    * A map of paths to PathHandlerRefs.
+    * A map of non-regex paths to PathHandlerRefs.
     */
    typedef std::map<
       const char*, PathHandlerRef, monarch::util::StringComparator>
       HandlerMap;
    HandlerMap mHandlers;
+
+   /**
+    * A list of regex paths to PathHandlerRefs pairings.
+    */
+   typedef std::vector< std::pair<monarch::util::PatternRef, PathHandlerRef> > 
+      RegexHandlerList;
+   RegexHandlerList mRegexHandlers;
 
    /**
     * A flag to allow dynamic adding/removing of handlers.
@@ -77,8 +86,11 @@ public:
     * @param path the path this servicer handles requests for.
     * @param dynamicHandlers true to allow dynamic adding/removing of
     *           handlers, false not to.
+    * @param pathIsRegex true if the path is a regular expression, false
+    *                    otherwise.
     */
-   WebService(const char* path, bool dynamicHandlers = false);
+   WebService(const char* path, bool dynamicHandlers = false, 
+      bool pathIsRegex = false);
 
    /**
     * Destructs this WebService.
@@ -126,8 +138,11 @@ public:
     *
     * @param path the path to handle.
     * @param handler the path handler.
+    * @param pathIsRegex true if the handler path is a regular expression,
+    *                    false otherwise.
     */
-   virtual void addHandler(const char* path, PathHandlerRef& handler);
+   virtual void addHandler(
+      const char* path, PathHandlerRef& handler, bool pathIsRegex = false);
 
    /**
     * Removes a handler from this service. The path will be normalized such
@@ -146,8 +161,11 @@ public:
     *
     * @param path the path to get the handler for.
     * @param h the handler reference to update, set to NULL if none exists.
+    * @param matches the list of regular expression matches if there were
+    *                any in the given path.
     */
-   virtual void findHandler(char* path, PathHandlerRef& h);
+   virtual void findHandler(
+      char* path, PathHandlerRef& h, monarch::rt::DynamicObject& matches);
 
    /**
     * Services the passed HttpRequest. The header for the request has already

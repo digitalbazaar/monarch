@@ -17,8 +17,11 @@ using namespace monarch::rt;
 using namespace monarch::util;
 using namespace monarch::ws;
 
-WebService::WebService(const char* path, bool dynamicHandlers) :
-   HttpRequestServicer(path),
+#define WEBSERVICE_EXCEPTION "monarch.ws.WebService"
+
+WebService::WebService(
+   const char* path, bool dynamicHandlers, bool pathIsRegex) :
+   HttpRequestServicer(path, pathIsRegex),
    mRequestModifier(NULL),
    mDynamicHandlers(dynamicHandlers),
    mAllowHttp1(false)
@@ -27,7 +30,7 @@ WebService::WebService(const char* path, bool dynamicHandlers) :
 
 WebService::~WebService()
 {
-   // clean up all paths
+   // clean up all regular paths
    for(HandlerMap::iterator i = mHandlers.begin(); i != mHandlers.end(); ++i)
    {
       free((char*)i->first);
@@ -44,7 +47,8 @@ HttpRequestModifier* WebService::getRequestModifier()
    return mRequestModifier;
 }
 
-void WebService::addHandler(const char* path, PathHandlerRef& handler)
+void WebService::addHandler(
+   const char* path, PathHandlerRef& handler, bool pathIsRegex)
 {
    // append path to web service path
    const char* basePath = getPath();
@@ -61,7 +65,31 @@ void WebService::addHandler(const char* path, PathHandlerRef& handler)
    {
       mHandlerLock.lockExclusive();
    }
-   mHandlers.insert(make_pair(normalized, handler));
+   
+   if(!pathIsRegex)
+   {
+      mHandlers.insert(make_pair(normalized, handler));
+   }
+   else
+   {
+      PatternRef p = Pattern::compile(normalized);
+      
+      if(p != NULL)
+      {
+         mRegexHandlers.push_back(make_pair(p, handler));
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Failed to compile regular expression while adding WebService "
+            "handler. Please check to make sure that your regular expression "
+            "is valid.",
+            WEBSERVICE_EXCEPTION ".InvalidRegularExpression");
+         e->getDetails()["pattern"] = normalized;
+         Exception::set(e);
+      }
+   }
+   
    if(mDynamicHandlers)
    {
       mHandlerLock.unlockExclusive();
@@ -111,8 +139,13 @@ PathHandlerRef WebService::removeHandler(const char* path)
    return rval;
 }
 
-void WebService::findHandler(char* path, PathHandlerRef& h)
+#include <monarch/data/json/JsonWriter.h>
+using namespace monarch::data::json;
+
+void WebService::findHandler(
+   char* path, PathHandlerRef& h, DynamicObject& matches)
 {
+   bool processRegexes = true;
    h.setNull();
 
    // strip any query
@@ -138,10 +171,34 @@ void WebService::findHandler(char* path, PathHandlerRef& h)
       if(i != mHandlers.end())
       {
          h = i->second;
+         matches.setNull();
+      }
+      else if(processRegexes && mRegexHandlers.size() > 0)
+      {
+         // check each regex path handler in the list if there isn't an exact
+         // path match
+         for(RegexHandlerList::iterator j = mRegexHandlers.begin(); 
+            j < mRegexHandlers.end(); j++)
+         {
+            pair<PatternRef, PathHandlerRef> handlerPair;
+            handlerPair = *j;
+            PatternRef p = handlerPair.first;
+            
+            // if there is a regex match, use the path handler associated with
+            // the match and save the path matches as well
+            if(p->getSubMatches(path, matches, -1, false, 1))
+            {
+               h = handlerPair.second;
+            }
+         }
+         
+         // ensure that regex processing only runs once
+         processRegexes = false;
       }
       else if(strlen(path) > 1)
       {
-         // try to find handler for parent path
+         // try to find handler for parent path if there wasn't an exact
+         // path match and there were no regex path matches
          char* end = strrchr(path, '/');
          if(end != NULL)
          {
@@ -297,13 +354,16 @@ ServiceChannel* WebService::createChannel(
 {
    ServiceChannel* rval = NULL;
 
-   // normalize request path and find handler
+   // normalize request path and find handler and regex matches if there are
+   // any
+   DynamicObject regexMatches;
+   regexMatches->setType(Array);
    const char* path = request->getHeader()->getPath();
    char normalized[strlen(path) + 2];
    HttpRequestServicer::normalizePath(path, normalized);
    char copy[strlen(normalized) + 1];
    strcpy(copy, normalized);
-   findHandler(normalized, handler);
+   findHandler(normalized, handler, regexMatches);
 
    // create channel
    rval = new ServiceChannel(copy);
@@ -312,6 +372,12 @@ ServiceChannel* WebService::createChannel(
    if(!handler.isNull())
    {
       rval->setBasePath(normalized);
+   }
+
+   // set the regular expression matches if there were any
+   if(!regexMatches.isNull())
+   {
+      rval->setPathParams(regexMatches);
    }
 
    // set channel request

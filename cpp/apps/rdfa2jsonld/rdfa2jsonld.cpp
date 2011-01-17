@@ -54,8 +54,9 @@ static bool _processStream(
       // normalize and hash output
       DynamicObject normalized;
       JsonLd::normalize(dyno, normalized);
+      // digest normalized data
       MessageDigest md;
-      string json = JsonWriter::writeToString(dyno, true, false);
+      string json = JsonWriter::writeToString(normalized, true, false);
       rval = md.start("SHA1") && md.update(json.c_str(), json.length());
       if(rval)
       {
@@ -69,7 +70,21 @@ static bool _processStream(
             printf("RDFa to JSON-LD:\n");
          }
          printf("Normalized SHA-1 hash: %s\n", md.getDigest().c_str());
-         JsonWriter::writeToStdOut(dyno, false, false);
+         // setup context, default to input context
+         DynamicObject context;
+         if(dyno->hasMember("#"))
+         {
+            context = dyno["#"];
+         }
+         else
+         {
+            context->setType(Map);
+         }
+         // denormalize to simplify context
+         DynamicObject simplified;
+         JsonLd::denormalize(context, normalized, simplified);
+         // output
+         rval = JsonWriter::writeToStdOut(simplified, false, false);
       }
    }
 

@@ -46,21 +46,29 @@ class TestWebService : public WebService
 {
 public:
    char* mContent;
-   TestWebService(const char* path, const char* content) : WebService(path)
+   char* mRegexContent;
+   TestWebService(const char* path, const char* content, 
+      const char* regexContent) : WebService(path)
    {
       mContent = strdup(content);
+      mRegexContent = strdup(regexContent);
    }
 
    virtual ~TestWebService()
    {
       free(mContent);
+      free(mRegexContent);
    }
 
    virtual bool initialize()
    {
-      PathHandlerRef handler = new Handler(
+      PathHandlerRef handler1 = new Handler(
          this, &TestWebService::handleRequest);
-      addHandler("/", handler);
+      addHandler("/", handler1);
+
+      PathHandlerRef handler2 = new Handler(
+         this, &TestWebService::handleRegexRequest);
+      addHandler("/(.*)/regextest/(.*)", handler2, true);
 
       return true;
    }
@@ -80,6 +88,20 @@ public:
       ch->getResponse()->sendHeader();
 
       ByteArrayInputStream bais(mContent, strlen(mContent));
+      ch->getResponse()->sendBody(&bais);
+   }
+
+   virtual void handleRegexRequest(ServiceChannel* ch)
+   {
+      // send 200 OK
+      HttpResponseHeader* h = ch->getResponse()->getHeader();
+      h->setStatus(200, "OK");
+      //h->setField("Content-Length", 0);
+      h->setField("Transfer-Encoding", "chunked");
+      h->setField("Connection", "close");
+      ch->getResponse()->sendHeader();
+
+      ByteArrayInputStream bais(mRegexContent, strlen(mRegexContent));
       ch->getResponse()->sendBody(&bais);
    }
 };
@@ -145,10 +167,10 @@ static void _checkUrlText(
 
 static void runWebServerTest(TestRunner& tr)
 {
-   tr.test("WebServer");
-
-   const char* path = "/path";
+   const char* path = "/test";
    const char* content = "web server test";
+   const char* regexPath = "/test/dumplings/regextest/turkey";
+   const char* regexContent = "web server test (regex)";
 
    // create kernel
    Kernel k;
@@ -174,7 +196,7 @@ static void runWebServerTest(TestRunner& tr)
    WebServiceContainerRef wsc = new WebServiceContainer();
    ws.setContainer(wsc);
    ws.initialize(cfg);
-   WebServiceRef tws = new TestWebService(path, content);
+   WebServiceRef tws = new TestWebService(path, content, regexContent);
    wsc->addService(tws, WebService::Both);
    ws.enable(&server);
 
@@ -184,19 +206,28 @@ static void runWebServerTest(TestRunner& tr)
    // get server port
    int port = ws.getHostAddress()->getPort();
 
-   // get data
+   // check the regular path and data
+   tr.test("WebServer - regular path handler");
    {
       Url url;
       url.format("http://%s:%d%s", cfg["host"]->getString(), port, path);
       _checkUrlText(tr, &url, 200, content, strlen(content));
    }
+   tr.passIfNoException();
+
+   // check the regex path and data
+   tr.test("WebServer - regex path handler");
+   {
+      Url url;
+      url.format("http://%s:%d%s", cfg["host"]->getString(), port, regexPath);
+      _checkUrlText(tr, &url, 200, regexContent, strlen(regexContent));
+   }
+   tr.passIfNoException();
 
    server.stop();
 
    // stop kernel engine
    k.getEngine()->stop();
-
-   tr.passIfNoException();
 }
 
 static bool run(TestRunner& tr)
