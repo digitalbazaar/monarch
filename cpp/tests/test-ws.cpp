@@ -1,8 +1,9 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/io/ByteArrayOutputStream.h"
 #include "monarch/modest/Kernel.h"
@@ -27,6 +28,7 @@
 
 using namespace std;
 using namespace monarch::config;
+using namespace monarch::data::json;
 using namespace monarch::http;
 using namespace monarch::io;
 using namespace monarch::modest;
@@ -62,14 +64,30 @@ public:
 
    virtual bool initialize()
    {
-      PathHandlerRef handler1 = new Handler(
-         this, &TestWebService::handleRequest);
-      addHandler("/", handler1);
+      // root handler
+      RestfulHandlerRef root = new RestfulHandler();
+      addHandler("/", root);
 
-      /*
-      PathHandlerRef handler2 = new Handler(
-         this, &TestWebService::handleRegexRequest);
-      addHandler("/(.*)/regextest/(.*)", handler2, true);*/
+      // GET /
+      {
+         PathHandlerRef h = new Handler(
+            this, &TestWebService::handleRequest);
+         root->addHandler(h, Message::Get, 0);
+      }
+
+      // GET /(.*)/regextest/(.*)
+      {
+         PathHandlerRef h = new Handler(
+            this, &TestWebService::handleRegexRequest);
+         root->addRegexHandler("/(.*)/regextest/(.*)", h, Message::Get);
+      }
+
+      // GET /(.*)/regextest2/(.*)
+      {
+         PathHandlerRef h = new Handler(
+            this, &TestWebService::handleRegexRequest2);
+         root->addRegexHandler("/(.*)/regextest2/(.*)", h, Message::Get);
+      }
 
       return true;
    }
@@ -92,7 +110,6 @@ public:
       ch->getResponse()->sendBody(&bais);
    }
 
-   /*
    virtual void handleRegexRequest(ServiceChannel* ch)
    {
       // send 200 OK
@@ -105,7 +122,22 @@ public:
 
       ByteArrayInputStream bais(mRegexContent, strlen(mRegexContent));
       ch->getResponse()->sendBody(&bais);
-   }*/
+   }
+
+   virtual void handleRegexRequest2(ServiceChannel* ch)
+   {
+      // send 200 OK
+      HttpResponseHeader* h = ch->getResponse()->getHeader();
+      h->setStatus(200, "OK");
+      //h->setField("Content-Length", 0);
+      h->setField("Transfer-Encoding", "chunked");
+      h->setField("Connection", "close");
+      ch->getResponse()->sendHeader();
+
+      string out = JsonWriter::writeToString(ch->getHandlerInfo());
+      ByteArrayInputStream bais(out.c_str(), out.length());
+      ch->getResponse()->sendBody(&bais);
+   }
 };
 
 /**
@@ -159,8 +191,8 @@ static void _checkUrlText(
    }
 
    // check content
-   assert(b.length() == length);
    assertStrCmp(strdata.c_str(), strexpected.c_str());
+   assert(b.length() == length);
 
    client.disconnect();
 
@@ -172,6 +204,7 @@ static void runWebServerTest(TestRunner& tr)
    const char* path = "/test";
    const char* content = "web server test";
    const char* regexPath = "/test/dumplings/regextest/turkey";
+   const char* regexPath2 = "/test/dumplings/regextest2/turkey";
    const char* regexContent = "web server test (regex)";
 
    // create kernel
@@ -223,6 +256,20 @@ static void runWebServerTest(TestRunner& tr)
       Url url;
       url.format("http://%s:%d%s", cfg["host"]->getString(), port, regexPath);
       _checkUrlText(tr, &url, 200, regexContent, strlen(regexContent));
+   }
+   tr.passIfNoException();
+
+   // check the regex path and data
+   tr.test("WebServer - regex path handler matches");
+   {
+      DynamicObject matches;
+      matches[0] = "dumplings";
+      matches[1] = "turkey";
+      string expect = JsonWriter::writeToString(matches, false, false);
+
+      Url url;
+      url.format("http://%s:%d%s", cfg["host"]->getString(), port, regexPath2);
+      _checkUrlText(tr, &url, 200, expect.c_str(), expect.length());
    }
    tr.passIfNoException();
 

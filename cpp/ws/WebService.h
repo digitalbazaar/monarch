@@ -41,13 +41,13 @@ namespace ws
  * PathHandler can have a customized implementation. There are some basic
  * built-in sub-classes for PathHandlers, however, that allow the code that
  * handles a request to be better organized. This includes further breaking a
- * request up by subpaths using a similar process (a map with paths) or by
+ * request up by sub-paths using a similar process (a map with paths) or by
  * using regexes to find the specific function to call to handle the request.
  *
  * If a special kind of path handling or filter is required, then the
  * PathHandler class should be extended.
  *
- * @see RestfulHandler, RegexHandler
+ * @see RestfulHandler
  *
  * @author Dave Longley
  */

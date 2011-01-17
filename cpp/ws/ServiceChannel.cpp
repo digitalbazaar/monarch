@@ -33,6 +33,8 @@ ServiceChannel::ServiceChannel(const char* path) :
    mQueryVars(NULL),
    mArrayQueryVars(NULL),
    mContent(NULL),
+   mHandlerInfo(NULL),
+   mHandlerData(NULL),
    mContentReceived(false),
    mHasSent(NULL),
    mAutoContentEncode(true)
@@ -58,6 +60,19 @@ void ServiceChannel::cleanup()
 {
    delete mInput;
    delete mOutput;
+
+   // TODO: once void* handler data is implemented, call function to free
+   // it here or will the handler take care of that?
+}
+
+void ServiceChannel::setHandlerInfo(DynamicObject& info)
+{
+   mHandlerInfo = info;
+}
+
+DynamicObject& ServiceChannel::getHandlerInfo()
+{
+   return mHandlerInfo;
 }
 
 void ServiceChannel::selectContentEncoding()
@@ -440,6 +455,11 @@ void ServiceChannel::setBasePath(const char* path)
    {
       mBasePath = strdup(path);
    }
+}
+
+const char* ServiceChannel::getBasePath()
+{
+   return mBasePath;
 }
 
 bool ServiceChannel::hasSent()

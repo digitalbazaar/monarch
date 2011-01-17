@@ -79,6 +79,17 @@ protected:
    monarch::rt::DynamicObject mContent;
 
    /**
+    * Stores any handler-specific information.
+    */
+   monarch::rt::DynamicObject mHandlerInfo;
+
+   /**
+    * Stores any handler-specific data.
+    */
+   // TODO: here for future implementation of opaque user-data for handlers
+   void* mHandlerData;
+
+   /**
     * Flag if content has already been received.
     */
    bool mContentReceived;
@@ -97,7 +108,7 @@ public:
    /**
     * Creates a new ServiceChannel for the passed path.
     *
-    * @param path the path from the client.
+    * @param path the full path from the client.
     */
    ServiceChannel(const char* path);
 
@@ -117,6 +128,25 @@ public:
     * are deleted.
     */
    virtual void cleanup();
+
+   /**
+    * Sets handler-specific information. A handler should know the context
+    * underwhich it was added such that it knows how to interpret the object
+    * that is set by this call. This object is typically used by extended
+    * PathHandlers to store state to pass onto sub-handlers via customized
+    * filters.
+    *
+    * @param info the handler info to set.
+    */
+   virtual void setHandlerInfo(monarch::rt::DynamicObject& info);
+
+   /**
+    * Gets handler-specific information. A PathHandler should know how to
+    * interpret this data based on how it was attached to a WebService.
+    *
+    * @return the handler info.
+    */
+   virtual monarch::rt::DynamicObject& getHandlerInfo();
 
    /**
     * Adds a Content-Encoding header if Accept-Encoding includes a supported
@@ -201,9 +231,9 @@ public:
    virtual bool sendException(monarch::rt::ExceptionRef& e, bool client);
 
    /**
-    * Gets the normalized path.
+    * Gets the full normalized path.
     *
-    * @return the normalized path.
+    * @return the full normalized path.
     */
    virtual const char* getPath();
 
@@ -290,6 +320,13 @@ public:
     * @param path the base path (excluding parameters).
     */
    virtual void setBasePath(const char* res);
+
+   /**
+    * Gets the base path as set by the PathHandler.
+    *
+    * @return the base path as set by the PathHandler.
+    */
+   virtual const char* getBasePath();
 
    /**
     * Checks to see if a header or content has been sent to the client yet. If

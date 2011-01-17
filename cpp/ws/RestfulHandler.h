@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_ws_RestfulHandler_H
 #define monarch_ws_RestfulHandler_H
 
 #include "monarch/validation/Validation.h"
+#include "monarch/util/Pattern.h"
+#include "monarch/util/StringTools.h"
 #include "monarch/ws/PathHandler.h"
 
 #include <map>
@@ -19,7 +21,10 @@ namespace ws
  * count and request method type. It attempts to simplify setting up a
  * RESTful or quasi-RESTful web service interface. A different PathHandler
  * may be specified for each individual "resource" (a subpath) and request
- * method defined by the interface.
+ * method defined by the interface. Additionally, regex handlers may be
+ * specified that will look for patterns that match the resource (and query).
+ * Any regex handler will only be checked after no regular path handler is
+ * found.
  *
  * Handlers can also have Validators for both the query parameters and for the
  * input content.
@@ -28,8 +33,8 @@ namespace ws
  * it may be more appropriate to do more direct handling of requests. This
  * class is intended to simplify a more general case.
  *
- * 1. The parameter count is checked. If no match is found then a HTTP 404
- *    type exception is raised.
+ * 1. The parameter count is checked. If no match is found then a regex match
+ *    is checked. If no match is found then a HTTP 404 type exception is raised.
  * 2. The request method type is checked. If no match is found then a
  *    HTTP 405 type exception is raised.
  * 3. The PathHandler's canHandleRequest() method is checked. This can be used
@@ -42,6 +47,7 @@ namespace ws
  * checking permissions.
  *
  * @author David I. Lehn
+ * @author Dave Longley
  */
 class RestfulHandler : public monarch::ws::PathHandler
 {
@@ -74,15 +80,45 @@ protected:
    typedef std::map<Message::MethodType, HandlerInfo> MethodMap;
 
    /**
+    * Info for regex handlers.
+    */
+   struct RegexInfo
+   {
+      monarch::util::PatternRef pattern;
+      MethodMap methods;
+   };
+
+   /**
     * Map of handler parameter count to method map, where a parameter count
     * of -1 is for arbitrary parameter counts.
     */
    typedef std::map<int, MethodMap> HandlerMap;
 
    /**
-    * Handler info map.
+    * A list of regexes in the order they were added.
     */
-   HandlerMap mHandlers;
+   typedef std::vector<char*> RegexList;
+
+   /**
+    * A map of regexes to RegexInfos.
+    */
+   typedef std::map<const char*, RegexInfo, monarch::util::StringComparator>
+      RegexMap;
+
+   /**
+    * Path HandlerInfo map.
+    */
+   HandlerMap mPathHandlers;
+
+   /**
+    * Regex map.
+    */
+   RegexMap mRegexMap;
+
+   /**
+    * Regex HandlerInfo list.
+    */
+   RegexList mRegexList;
 
 public:
    /**
@@ -148,23 +184,44 @@ public:
       monarch::validation::ValidatorRef* contentValidator = NULL,
       uint32_t flags = 0);
 
+   /**
+    * Registers a regex PathHandler for a specific method type. Handlers can
+    * also have query and content validators. These are automatically checked
+    * if present.
+    *
+    * @param handler the handler to register.
+    * @param mt a method type to match against the request method type.
+    * @param queryValidator a Validator to check the input query (optional).
+    * @param contentValidator a Validator to check the input content (optional).
+    * @param flags flags for this handler.
+    *
+    * @return true if the regex compiles, false if not with Exception set.
+    */
+   virtual bool addRegexHandler(
+      const char* regex,
+      monarch::ws::PathHandlerRef& handler,
+      Message::MethodType mt,
+      monarch::validation::ValidatorRef* queryValidator = NULL,
+      monarch::validation::ValidatorRef* contentValidator = NULL,
+      uint32_t flags = 0);
+
 protected:
    /**
     * Finds the handler for the given ServiceChannel.
     *
     * @param ch the ServiceChannel to find the handler for.
     *
-    * @return the handler iterator, mHandlers.end() if none could be found.
+    * @return the HandlerInfo, NULL if none could be found.
     */
-   virtual HandlerMap::iterator findHandler(ServiceChannel* ch);
+   virtual HandlerInfo* findHandler(ServiceChannel* ch);
 
    /**
     * Handles the passed ServiceChannel using the already-found handler.
     *
     * @param ch the ServiceChannel.
-    * @param hmi the handler iterator to use.
+    * @param info the HandlerInfo to use.
     */
-   virtual void handleChannel(ServiceChannel* ch, HandlerMap::iterator hmi);
+   virtual void handleChannel(ServiceChannel* ch, HandlerInfo* info);
 };
 
 // define counted reference restful handler
