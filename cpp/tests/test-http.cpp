@@ -193,6 +193,12 @@ static void runHttpNormalizePath(TestRunner& tr)
       assertStrCmp(temp, "/");
    }
 
+   // preserve single slash
+   {
+      HttpRequestServicer::normalizePath("/?", temp);
+      assertStrCmp(temp, "/?");
+   }
+
    // no starting slash
    {
       HttpRequestServicer::normalizePath("a/b/c", temp);
