@@ -57,7 +57,7 @@ void HttpRequestServicer::normalizePath(const char* inPath, char* outPath)
    {
       end = i - 1;
    }
-   if(outPath[end] == '/')
+   if(end > 0 && outPath[end] == '/')
    {
       // shift left to remove slash
       for(; outPath[end] != 0; ++end)
