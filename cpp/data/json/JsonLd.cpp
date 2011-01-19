@@ -434,51 +434,7 @@ static const char* _expandCurie(
             snprintf(*tmp, len, "%s%s", uri->getString(), ptr + 1);
             rval = *tmp;
          }
-         /*
-
-         // try to find prefix in string
-         DynamicObjectIterator i = context.getIterator();
-         while(rval == curie && i->hasNext())
-         {
-            DynamicObject& uri = i->next();
-            if(strncmp(curie, i->getName(), ptr - curie) == 0)
-            {
-               // prefix found, normalize string
-               size_t len = strlen(uri->getString()) + strlen(ptr + 1) + 1;
-               if(*tmp == NULL || sizeof(*tmp) < len)
-               {
-                  *tmp = (char*)realloc(*tmp, len);
-               }
-               snprintf(*tmp, len, "%s%s", uri->getString(), ptr + 1);
-               rval = *tmp;
-            }
-         }*/
       }
-
-      // FIXME:
-      /*
-
-      // get the potential CURIE prefix
-      size_t prefixLen = ptr - str + 1;
-      char* prefix = (char*)malloc(prefixLen);
-      snprintf(prefix, prefixLen, "%s", str);
-
-      // see if the prefix is in the context
-      if(context->hasMember(prefix))
-      {
-         // prefix found, normalize string
-         DynamicObject& uri = context[prefix];
-         len = strlen(uri->getString()) + strlen(ptr + 1) + 3;
-         if(*tmp == NULL || sizeof(*tmp) < len)
-         {
-            *tmp = (char*)realloc(*tmp, len);
-         }
-         snprintf(*tmp, len, "<%s%s%s",
-            uri->getString(), ptr + 1, hasBrackets ? "" : ">");
-         rval = *tmp;
-      }
-*/
-
    }
 
    return rval;
