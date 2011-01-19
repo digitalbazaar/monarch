@@ -70,21 +70,8 @@ static bool _processStream(
             printf("RDFa to JSON-LD:\n");
          }
          printf("Normalized SHA-1 hash: %s\n", md.getDigest().c_str());
-         // setup context, default to input context
-         DynamicObject context;
-         if(dyno->hasMember("#"))
-         {
-            context = dyno["#"];
-         }
-         else
-         {
-            context->setType(Map);
-         }
-         // denormalize to simplify context
-         DynamicObject simplified;
-         JsonLd::denormalize(context, normalized, simplified);
          // output
-         rval = JsonWriter::writeToStdOut(simplified, false, false);
+         rval = JsonWriter::writeToStdOut(dyno, false, false);
       }
    }
 

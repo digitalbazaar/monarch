@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 #define __STDC_FORMAT_MACROS
@@ -590,7 +590,7 @@ bool DynamicObjectImpl::operator<(const DynamicObjectImpl& rhs) const
    }
    else
    {
-      // FIXME: make isNumber() and isNumeric() functions?
+      // FIXME: use isNumber() functions?
 
       // determine if lhs is a number and is negative
       bool lhsDouble = (mType == Double);
@@ -819,6 +819,28 @@ void DynamicObjectImpl::setType(DynamicObjectType type)
 DynamicObjectType DynamicObjectImpl::getType() const
 {
    return mType;
+}
+
+bool DynamicObjectImpl::isInteger() const
+{
+   return (
+      mType == Int32 || mType == UInt32 ||
+      mType == Int64 || mType == UInt64);
+}
+
+bool DynamicObjectImpl::isSignedInteger() const
+{
+   return (mType == Int32 || mType == Int64);
+}
+
+bool DynamicObjectImpl::isNumber() const
+{
+   return (isInteger() || mType == Double);
+}
+
+bool DynamicObjectImpl::isSignedNumber() const
+{
+   return (isSignedInteger() || mType == Double);
 }
 
 void DynamicObjectImpl::format(const char* format, ...)

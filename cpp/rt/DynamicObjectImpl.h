@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_DynamicObjectImpl_H
 #define monarch_rt_DynamicObjectImpl_H
@@ -333,6 +333,34 @@ public:
     * @return the type of this object.
     */
    virtual DynamicObjectType getType() const;
+
+   /**
+    * Gets whether or not this object is an integer (signed or unsigned).
+    *
+    * @return true if this object is an integer, false if not.
+    */
+   virtual bool isInteger() const;
+
+   /**
+    * Gets whether or not this object is a signed integer.
+    *
+    * @return true if this object is a signed integer, false if not.
+    */
+   virtual bool isSignedInteger() const;
+
+   /**
+    * Gets whether or not this object is a number (integer or decimal).
+    *
+    * @return true if this object is a number, false if not.
+    */
+   virtual bool isNumber() const;
+
+   /**
+    * Gets whether or not this object is a signed number (integer or decimal).
+    *
+    * @return true if this object is a signed number, false if not.
+    */
+   virtual bool isSignedNumber() const;
 
    /**
     * Sets this object to a printf-formatted string.

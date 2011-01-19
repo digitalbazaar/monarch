@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_json_JsonLd_H
 #define monarch_data_json_JsonLd_H
@@ -33,7 +33,7 @@ public:
    virtual ~JsonLd();
 
    /**
-    * Normalizes a JSON-LD object by removing its context.
+    * Normalizes a JSON-LD object.
     *
     * @param in the JSON-LD object to normalize.
     * @param out to be set to the normalized JSON-LD object.
@@ -44,14 +44,24 @@ public:
       monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
 
    /**
-    * Denormalizes the given normalized JSON-LD object according to the given
-    * context.
+    * Removes the context from a JSON-LD object.
+    *
+    * @param in the JSON-LD object to remove the context from.
+    * @param out to be set to the context-neutral JSON-LD object.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   static bool removeContext(
+      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+
+   /**
+    * Adds the given context to the given context-neutral JSON-LD object.
     *
     * @param context the new context to use.
-    * @param in the JSON-LD object to denormalize.
-    * @param out to be set to the denormalized JSON-LD object.
+    * @param in the context-neutral JSON-LD object to add the context to.
+    * @param out to be set to the JSON-LD object with the new context.
     */
-   static bool denormalize(
+   static bool addContext(
       monarch::rt::DynamicObject& context,
       monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
 

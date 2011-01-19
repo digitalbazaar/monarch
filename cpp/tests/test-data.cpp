@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -32,6 +32,7 @@
 #include "monarch/data/riff/RiffChunkHeader.h"
 #include "monarch/data/riff/RiffListHeader.h"
 #include "monarch/data/riff/RiffFormHeader.h"
+#include "monarch/logging/Logging.h"
 #include "monarch/modest/Kernel.h"
 #include "monarch/net/Url.h"
 #include "monarch/http/HttpClient.h"
@@ -530,7 +531,26 @@ static void runJsonLdTest(TestRunner& tr)
 {
    tr.group("JSON-LD");
 
-   tr.test("normalize (id)");
+   tr.test("normalize (id - reflective)");
+   {
+      DynamicObject in;
+      in["@"] = "<http://example.org/test#example>";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test#example>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (id - no <>)");
    {
       DynamicObject in;
       in["@"] = "http://example.org/test#example";
@@ -540,12 +560,127 @@ static void runJsonLdTest(TestRunner& tr)
          JsonLd::normalize(in, out));
 
       DynamicObject expect;
+      expect["@"] = "<http://example.org/test#example>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (single subject complex)");
+   {
+      DynamicObject in;
+      in["#"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      in["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      in["#"]["#types"]["ex:contains"] = "xsd:anyURI";
+      in["@"] = "http://example.org/test#library";
+      in["ex:contains"]["@"] = "http://example.org/test#book";
+      in["ex:contains"]["dc:contributor"] = "Writer";
+      in["ex:contains"]["dc:title"] = "My Book";
+      in["ex:contains"]["ex:contains"]["@"] = "http://example.org/test#chapter";
+      in["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
+      in["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"][0]["@"] = "<http://example.org/test#book>";
+      expect["@"][0]["<http://purl.org/dc/elements/1.1/contributor>"] =
+         "Writer";
+      expect["@"][0]["<http://purl.org/dc/elements/1.1/title>"] = "My Book";
+      expect["@"][0]["<http://example.org/vocab#contains>"] =
+         "<http://example.org/test#chapter>";
+      expect["@"][1]["@"] = "<http://example.org/test#chapter>";
+      expect["@"][1]["<http://purl.org/dc/elements/1.1/description>"] = "Fun";
+      expect["@"][1]["<http://purl.org/dc/elements/1.1/title>"] = "Chapter One";
+      expect["@"][2]["@"] = "<http://example.org/test#library>";
+      expect["@"][2]["<http://example.org/vocab#contains>"] =
+         "<http://example.org/test#book>";
+      assertDynoCmp(expect, out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (multiple subjects - complex)");
+   {
+      DynamicObject in;
+      in["#"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      in["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      in["#"]["#types"]["ex:authored"] = "xsd:anyURI";
+      in["#"]["#types"]["ex:contains"] = "xsd:anyURI";
+      in["@"][0]["@"] = "http://example.org/test#chapter";
+      in["@"][0]["dc:description"] = "Fun";
+      in["@"][0]["dc:title"] = "Chapter One";
+      in["@"][1]["@"] = "http://example.org/test#jane";
+      in["@"][1]["ex:authored"] = "http://example.org/test#chapter";
+      in["@"][1]["foaf:name"] = "Jane";
+      in["@"][2]["@"] = "http://example.org/test#john";
+      in["@"][2]["foaf:name"] = "John";
+      in["@"][3]["@"] = "http://example.org/test#library";
+      in["@"][3]["ex:contains"]["@"] = "http://example.org/test#book";
+      in["@"][3]["ex:contains"]["dc:contributor"] = "Writer";
+      in["@"][3]["ex:contains"]["dc:title"] = "My Book";
+      in["@"][3]["ex:contains"]["ex:contains"] =
+         "http://example.org/test#chapter";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"][0]["@"] = "<http://example.org/test#book>";
+      expect["@"][0]["<http://purl.org/dc/elements/1.1/contributor>"] =
+         "Writer";
+      expect["@"][0]["<http://purl.org/dc/elements/1.1/title>"] = "My Book";
+      expect["@"][0]["<http://example.org/vocab#contains>"] =
+         "<http://example.org/test#chapter>";
+      expect["@"][1]["@"] = "<http://example.org/test#chapter>";
+      expect["@"][1]["<http://purl.org/dc/elements/1.1/description>"] = "Fun";
+      expect["@"][1]["<http://purl.org/dc/elements/1.1/title>"] = "Chapter One";
+      expect["@"][2]["@"] = "<http://example.org/test#jane>";
+      expect["@"][2]["<http://example.org/vocab#authored>"] =
+         "<http://example.org/test#chapter>";
+      expect["@"][2]["<http://xmlns.org/foaf/0.1/name>"] = "Jane";
+      expect["@"][3]["@"] = "<http://example.org/test#john>";
+      expect["@"][3]["<http://xmlns.org/foaf/0.1/name>"] = "John";
+      expect["@"][4]["@"] = "<http://example.org/test#library>";
+      expect["@"][4]["<http://example.org/vocab#contains>"] =
+         "<http://example.org/test#book>";
+      assertDynoCmp(expect, out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("remove context (id)");
+   {
+      DynamicObject in;
+      in["@"] = "http://example.org/test#example";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::removeContext(in, out));
+
+      DynamicObject expect;
       expect["@"] = "http://example.org/test#example";
       assertNamedDynoCmp("expect", expect, "out", out);
    }
    tr.passIfNoException();
 
-   tr.test("normalize (complex)");
+   tr.test("remove context (complex)");
    {
       DynamicObject in;
       in["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
@@ -568,7 +703,7 @@ static void runJsonLdTest(TestRunner& tr)
 
       DynamicObject out;
       assertNoException(
-         JsonLd::normalize(in, out));
+         JsonLd::removeContext(in, out));
 
       DynamicObject expect;
       expect["@"][0]["@"] = "http://example.org/test#chapter";
@@ -594,7 +729,7 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("denormalize");
+   tr.test("add context");
    {
       DynamicObject in;
       in["@"][0]["@"] = "http://example.org/test#chapter";
@@ -623,7 +758,7 @@ static void runJsonLdTest(TestRunner& tr)
       ctx["foaf"] = "http://xmlns.org/foaf/0.1/";
       DynamicObject out;
       assertNoException(
-         JsonLd::denormalize(ctx, in, out));
+         JsonLd::addContext(ctx, in, out));
 
       DynamicObject expect;
       expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
@@ -647,7 +782,7 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("denormalize (reduced context)");
+   tr.test("add context (reduced context)");
    {
       DynamicObject in;
       in["@"] = "http://example.org/test#thing";
@@ -659,7 +794,7 @@ static void runJsonLdTest(TestRunner& tr)
       ctx["foaf"] = "http://xmlns.org/foaf/0.1/";
       DynamicObject out;
       assertNoException(
-         JsonLd::denormalize(ctx, in, out));
+         JsonLd::addContext(ctx, in, out));
 
       DynamicObject expect;
       expect["#"]["dc"] = "http://purl.org/dc/terms/";
@@ -3614,6 +3749,10 @@ static bool run(TestRunner& tr)
    if(tr.isTestEnabled("json-reader-speed"))
    {
       runJsonReaderSpeedTest(tr);
+   }
+   if(tr.isTestEnabled("json-ld"))
+   {
+      runJsonLdTest(tr);
    }
    return true;
 }
