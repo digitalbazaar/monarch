@@ -679,7 +679,7 @@ Server* MicroKernel::getServer()
 }
 
 bool MicroKernel::checkDependencyInfo(
-   ModuleList& dependencies, DynamicObject& di)
+   ModuleList& dependencies, DynamicObject& di, DynamicObject* unmet)
 {
    bool rval = true;
 
@@ -730,6 +730,11 @@ bool MicroKernel::checkDependencyInfo(
                rval = true;
             }
          }
+      }
+
+      if(unmet != NULL && !rval)
+      {
+         (*unmet)->append(dep);
       }
    }
 
@@ -845,7 +850,9 @@ bool MicroKernel::checkDependencies(
          for(ModuleList::iterator i = pending.begin(); i != pending.end(); ++i)
          {
             DynamicObject depInfo = (*i)->getDependencyInfo();
-            e->getDetails()["failures"]->append(depInfo);
+            DynamicObject& unmet = e->getDetails()["unmet"];
+            unmet->setType(Array);
+            checkDependencyInfo(dependencies, depInfo, &unmet);
          }
          Exception::set(e);
          rval = false;

@@ -387,11 +387,13 @@ protected:
     *
     * @param dependencies the list of modules that can be depended on.
     * @param di the dependency information for a module to be loaded.
+    * @param unmet an array to store unmet dependencies in.
     *
     * @return true if the dependency information has been met, false if not.
     */
    virtual bool checkDependencyInfo(
-      ModuleList& dependencies, monarch::rt::DynamicObject& di);
+      ModuleList& dependencies, monarch::rt::DynamicObject& di,
+      monarch::rt::DynamicObject* unmet = NULL);
 
    /**
     * Checks the dependencies for a list of pending MicroKernelModules.
