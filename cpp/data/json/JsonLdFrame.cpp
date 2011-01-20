@@ -744,6 +744,18 @@ static void _processEmbeds(
    }
 }
 
+bool JsonLdFrame::setFrame(DynamicObject& frame, bool explicitOnly)
+{
+   bool rval = true;
+
+   // FIXME: validation of frame?
+
+   mFrame = frame;
+   mExplicit = explicitOnly;
+
+   return rval;
+}
+
 bool JsonLdFrame::frameTriples(
    DynamicObject& triples, DynamicObject& out, bool sort)
 {

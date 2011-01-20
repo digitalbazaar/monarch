@@ -45,6 +45,18 @@ public:
    virtual ~JsonLdFrame();
 
    /**
+    * Sets the frame to use. If explicit mode is set, then only those
+    * predicates specified in the frame will appear in the result.
+    *
+    * @param frame the frame to use.
+    * @param explicitOnly true to use explicit mode, false not to.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   virtual bool setFrame(
+      monarch::rt::DynamicObject& frame, bool explicitOnly = false);
+
+   /**
     * Frames an array of triples. The triples will be automatically sorted
     * (alphabetically starting with subject, then predicate, then object)
     * unless sort is set to false.
