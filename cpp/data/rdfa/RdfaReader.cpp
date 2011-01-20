@@ -1166,6 +1166,22 @@ static void _processTriple(RdfaReader::Graph* g, rdftriple* triple)
       }
    }
 
+   // update predicate types
+   if(g->types->hasMember(triple->predicate))
+   {
+      if(g->types[triple->predicate]->getType() != Array)
+      {
+         DynamicObject tmp = g->types[triple->predicate];
+         g->types[triple->predicate] = DynamicObject();
+         g->types[triple->predicate]->append(tmp);
+      }
+      g->types[triple->predicate]->append(triple->object_type);
+   }
+   else
+   {
+      g->types[triple->predicate] = triple->object_type;
+   }
+
    // store triple
    g->triples.push_back(triple);
 }

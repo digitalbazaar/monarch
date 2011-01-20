@@ -47,6 +47,11 @@ public:
       SubjectCountMap subjectCounts;
 
       /**
+       * A map of predicate to type(s).
+       */
+      monarch::rt::DynamicObject types;
+
+      /**
        * The target DynamicObject for storing the graph in JSON-LD.
        */
       monarch::rt::DynamicObject target;
