@@ -1294,6 +1294,7 @@ bool ConfigManager::diff(
                                  "new config but doesn't in the existing "
                                  "config.";
                               (*details)["conflict"] = name;
+                              (*details)["existing"] = config1;
                            }
                         }
                      }
@@ -1710,19 +1711,19 @@ bool ConfigManager::recursiveAddConfig(
                Config& raw = mConfigs[id]["raw"];
 
                // merge the merge property (do not append)
-               if(raw->hasMember(MERGE) || config->hasMember(MERGE))
+               if(config->hasMember(MERGE))
                {
                   merge(raw[MERGE], config[MERGE], false);
                }
 
                // aggregate append properties
-               if(raw->hasMember(APPEND) || config->hasMember(APPEND))
+               if(config->hasMember(APPEND))
                {
                   merge(raw[APPEND], config[APPEND], true);
                }
 
                // aggregate remove properties
-               if(raw->hasMember(REMOVE) || config->hasMember(REMOVE))
+               if(config->hasMember(REMOVE))
                {
                   merge(raw[REMOVE], config[REMOVE], true);
                }
