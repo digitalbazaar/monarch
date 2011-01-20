@@ -853,6 +853,7 @@ bool MicroKernel::checkDependencies(
             DynamicObject& unmet = depInfo["unmet"];
             unmet->setType(Array);
             checkDependencyInfo(dependencies, depInfo, &unmet);
+            e->getDetails()["failures"]->append(depInfo);
          }
          Exception::set(e);
          rval = false;
