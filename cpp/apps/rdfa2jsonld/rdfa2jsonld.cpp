@@ -49,6 +49,7 @@ static bool _processStream(
    bool doNormalize = options["normalize"]->getBoolean();
    bool doHash = options["hash"]->getBoolean();
    bool doDump = options["dump"]->getBoolean();
+   bool doCompact = options["compact"]->getBoolean();
    bool verbose = true;
 
    // read in rdfa
@@ -139,12 +140,13 @@ static bool _processStream(
       if(verbose)
       {
          // output info
-         printf("* <source>|RDFa|JSON-LD|%s%s<stdout>:\n",
+         printf("* <source>|RDFa|JSON-LD|%s%s%s<stdout>:\n",
             doFilter ? "filter|" : "",
-            doNormalize ? "normalize|" : "");
+            doNormalize ? "normalize|" : "",
+            doCompact ? "compact|" : "");
       }
       // output JSON-LD
-      rval = JsonWriter::writeToStdOut(output, false, false);
+      rval = JsonWriter::writeToStdOut(output, doCompact, false);
    }
 
    return rval;
@@ -254,20 +256,19 @@ public:
       c["normalize"] = false;
       c["hash"] = true;
       c["dump"] = true;
+      c["compact"] = false;
       c["verbose"] = true;
 
       DynamicObject spec;
       spec["help"] =
 "Rdfa2JsonLd Options\n"
 "      --base-uri      The base URI to use.\n"
-"      --filter        Filter for source URI properties.\n"
-"      --no-filter     Do not filter on source URI. (default)\n"
-"      --normalize     Normalize JSON-LD.\n"
-"      --no-normalize  Do not normalize JSON-LD. (default)\n"
-"      --hash          Hash JSON-LD. (default).\n"
-"      --no-hash       Do not hash JSON-LD.\n"
-"      --dump          Dump JSON-LD. (default).\n"
-"      --no-dump       Do not dump JSON-LD.\n"
+"      --[no-]filter   Filter for source URI properties. (default: false)\n"
+"      --[no-]normalize"
+"                      Normalize JSON-LD. (default: false)\n"
+"      --[no-]hash     Hash JSON-LD. (default: true).\n"
+"      --[no-]dump     Dump JSON-LD. (default: true).\n"
+"      --[no-]compact  Dump in compact format. (default: false)\n"
 "      --verbose       Verbose output. (default).\n"
 "      --quiet         Quieter output.\n"
 "\n";
@@ -287,6 +288,7 @@ public:
       bools->append("normalize");
       bools->append("hash");
       bools->append("dump");
+      bools->append("compact");
 
       DynamicObjectIterator i = bools.getIterator();
       while(i->hasNext())
