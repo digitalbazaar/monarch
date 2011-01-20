@@ -849,8 +849,8 @@ bool MicroKernel::checkDependencies(
          // list all dependency info for pending modules
          for(ModuleList::iterator i = pending.begin(); i != pending.end(); ++i)
          {
-            DynamicObject depInfo = (*i)->getDependencyInfo();
-            DynamicObject& unmet = e->getDetails()["unmet"];
+            DynamicObject depInfo = (*i)->getDependencyInfo().clone();
+            DynamicObject& unmet = depInfo["unmet"];
             unmet->setType(Array);
             checkDependencyInfo(dependencies, depInfo, &unmet);
          }
