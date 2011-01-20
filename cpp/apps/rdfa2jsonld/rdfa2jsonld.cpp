@@ -39,9 +39,17 @@ namespace rdfa2jsonld
 {
 
 static bool _processStream(
-   InputStream* is, const char* srcName, const char* baseUri)
+   DynamicObject& options, InputStream* is, const char* srcName,
+   const char* baseUri)
 {
    bool rval;
+
+   // options
+   bool doFilter = options["filter"]->getBoolean();
+   bool doNormalize = options["normalize"]->getBoolean();
+   bool doHash = options["hash"]->getBoolean();
+   bool doDump = options["dump"]->getBoolean();
+   bool verbose = true;
 
    // read in rdfa
    RdfaReader reader;
@@ -49,36 +57,101 @@ static bool _processStream(
    DynamicObject dyno;
    rval = reader.start(dyno) && reader.read(is) && reader.finish();
 
-   if(rval)
+   // pipe data as requested
+   DynamicObject output = dyno;
+
+   if(rval && doFilter)
    {
-      // normalize and hash output
+      DynamicObject& input = output;
+      DynamicObject filtered;
+      DynamicObject context(NULL);
+      if(output->hasMember("#"))
+      {
+         // context from normalized data
+         context = output["#"];
+      }
+      else
+      {
+         // empty context
+         context = DynamicObject();
+         context->setType(Map);
+      }
+      DynamicObject filter;
+      filter["@"] = srcName;
+      rval = JsonLd::filter(context, filter, input, filtered);
+      if(rval)
+      {
+         output = filtered;
+      }
+   }
+
+   if(rval && doNormalize)
+   {
+      DynamicObject& input = output;
       DynamicObject normalized;
-      JsonLd::normalize(dyno, normalized);
+      rval = JsonLd::normalize(input, normalized);
+      if(rval)
+      {
+         output = normalized;
+      }
+   }
+
+   string hash;
+   if(rval && doHash)
+   {
       // digest normalized data
       MessageDigest md;
-      string json = JsonWriter::writeToString(normalized, true, false);
+      string json = JsonWriter::writeToString(output, true, false);
       rval = md.start("SHA1") && md.update(json.c_str(), json.length());
       if(rval)
       {
-         // print output
-         if(srcName != NULL)
-         {
-            printf("RDFa to JSON-LD: '%s'\n", srcName);
-         }
-         else
-         {
-            printf("RDFa to JSON-LD:\n");
-         }
-         printf("Normalized SHA-1 hash: %s\n", md.getDigest().c_str());
-         // output
-         rval = JsonWriter::writeToStdOut(dyno, false, false);
+         hash = md.getDigest().c_str();
       }
+   }
+
+   if(rval)
+   {
+      if(verbose)
+      {
+         // print output
+         printf("* RDFa to JSON-LD\n");
+         printf("* <source>:\n%s\n",
+            (srcName != NULL) ? srcName : "(unknown)");
+      }
+   }
+
+   if(rval && doHash)
+   {
+      if(verbose)
+      {
+         // output info
+         printf("* <source>|RDFa|JSON-LD|%s%s%s<stdout>:\n",
+            doFilter ? "filter|" : "",
+            doNormalize ? "normalize|" : "",
+            doHash ? "SHA-1|" : "");
+      }
+      // output hash
+      printf("%s\n", hash.c_str());
+   }
+
+   if(rval && doDump)
+   {
+      if(verbose)
+      {
+         // output info
+         printf("* <source>|RDFa|JSON-LD|%s%s<stdout>:\n",
+            doFilter ? "filter|" : "",
+            doNormalize ? "normalize|" : "");
+      }
+      // output JSON-LD
+      rval = JsonWriter::writeToStdOut(output, false, false);
    }
 
    return rval;
 }
 
-static bool _processFile(const char* inFile, const char* baseUri)
+static bool _processFile(
+   DynamicObject& options, const char* inFile, const char* baseUri)
 {
    bool rval;
 
@@ -113,7 +186,7 @@ static bool _processFile(const char* inFile, const char* baseUri)
       fis = new FileInputStream(file);
    }
 
-   rval = _processStream(fis, _srcName.c_str(), _baseUri.c_str());
+   rval = _processStream(options, fis, _srcName.c_str(), _baseUri.c_str());
 
    // close input stream
    fis->close();
@@ -122,7 +195,8 @@ static bool _processFile(const char* inFile, const char* baseUri)
    return rval;
 }
 
-static bool _processHttp(Url& url, const char* baseUri)
+static bool _processHttp(
+   DynamicObject& options, Url& url, const char* baseUri)
 {
    bool rval;
 
@@ -145,7 +219,8 @@ static bool _processHttp(Url& url, const char* baseUri)
          if(client.receiveContent(content))
          {
             ByteArrayInputStream is(content.c_str(), content.length());
-            rval = _processStream(&is, _baseUri.c_str(), _baseUri.c_str());
+            rval = _processStream(
+               options, &is, _baseUri.c_str(), _baseUri.c_str());
          }
          else
          {
@@ -175,11 +250,26 @@ public:
       // initialize config
       Config& c = cfg[ConfigManager::MERGE][APP_NAME];
       c["baseUri"] = "";
+      c["filter"] = false;
+      c["normalize"] = false;
+      c["hash"] = true;
+      c["dump"] = true;
+      c["verbose"] = true;
 
       DynamicObject spec;
       spec["help"] =
 "Rdfa2JsonLd Options\n"
 "      --base-uri      The base URI to use.\n"
+"      --filter        Filter for source URI properties.\n"
+"      --no-filter     Do not filter on source URI. (default)\n"
+"      --normalize     Normalize JSON-LD.\n"
+"      --no-normalize  Do not normalize JSON-LD. (default)\n"
+"      --hash          Hash JSON-LD. (default).\n"
+"      --no-hash       Do not hash JSON-LD.\n"
+"      --dump          Dump JSON-LD. (default).\n"
+"      --no-dump       Do not dump JSON-LD.\n"
+"      --verbose       Verbose output. (default).\n"
+"      --quiet         Quieter output.\n"
 "\n";
 
       DynamicObject opt(NULL);
@@ -190,6 +280,44 @@ public:
       opt["argError"] = "Base URI must be a string.";
       opt["arg"]["root"] = c;
       opt["arg"]["path"] = "baseUri";
+
+      // simple boolean options
+      DynamicObject bools;
+      bools->append("filter");
+      bools->append("normalize");
+      bools->append("hash");
+      bools->append("dump");
+
+      DynamicObjectIterator i = bools.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         const char* name = next->getString();
+
+         // do it
+         opt = spec["options"]->append();
+         opt["long"]->format("--%s", name);
+         opt["setTrue"]["root"] = c;
+         opt["setTrue"]["path"] = name;
+
+         // do not do it
+         opt = spec["options"]->append();
+         opt["long"]->format("--no-%s", name);
+         opt["setFalse"]["root"] = c;
+         opt["setFalse"]["path"] = name;
+      }
+
+      // verbose output
+      opt = spec["options"]->append();
+      opt["long"] = "--verbose";
+      opt["setTrue"]["root"] = c;
+      opt["setTrue"]["path"] = "verbose";
+
+      // quiet output
+      opt = spec["options"]->append();
+      opt["long"] = "--quiet";
+      opt["setFalse"]["root"] = c;
+      opt["setFalse"]["path"] = "verbose";
 
       // use extra options as files to process
       opt = spec["options"]->append();
@@ -222,7 +350,7 @@ public:
          }
 
          // create file from std input
-         _processFile(NULL, baseUri);
+         _processFile(cfg, NULL, baseUri);
       }
       else
       {
@@ -241,15 +369,15 @@ public:
                if(scheme == "")
                {
                   // assume a regular file
-                  success = _processFile(next, baseUri);
+                  success = _processFile(cfg, next, baseUri);
                }
                else if(scheme == "file")
                {
-                  success = _processFile(url.getPath().c_str(), baseUri);
+                  success = _processFile(cfg, url.getPath().c_str(), baseUri);
                }
                else if(scheme == "http" || scheme == "https")
                {
-                  success = _processHttp(url, baseUri);
+                  success = _processHttp(cfg, url, baseUri);
                }
                else
                {
@@ -262,7 +390,7 @@ public:
             {
                // failed to set as URL, assume a simple file string
                Exception::clear();
-               success = _processFile(next, baseUri);
+               success = _processFile(cfg, next, baseUri);
             }
          }
       }
