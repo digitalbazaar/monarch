@@ -30,17 +30,23 @@ bool MessageDigest::start(const char* algorithm, bool persistent)
 {
    bool rval = true;
 
+   static const char* algorithms[] = {"SHA1", "SHA256", "MD5", NULL};
+
    mPersistent = persistent;
 
-   if(strcasecmp(algorithm, "SHA1") == 0)
+   // check if algorithm is supported
+   mAlgorithm = NULL;
+   int i = 0;
+   while(mAlgorithm == NULL && algorithms[i] != NULL)
    {
-      mAlgorithm = "SHA1";
+      if(strcasecmp(algorithms[i], algorithm) == 0)
+      {
+         // normalize to static upper case string
+         mAlgorithm = algorithms[i];
+      }
+      ++i;
    }
-   else if(strcasecmp(algorithm, "MD5") == 0)
-   {
-      mAlgorithm = "MD5";
-   }
-   else
+   if(mAlgorithm == NULL)
    {
       // unsupported algorithm
       ExceptionRef e = new Exception(
@@ -135,6 +141,10 @@ const EVP_MD* MessageDigest::getHashFunction()
    if(strcmp(mAlgorithm, "SHA1") == 0)
    {
       rval = EVP_sha1();
+   }
+   else if(strcmp(mAlgorithm, "SHA256") == 0)
+   {
+      rval = EVP_sha256();
    }
    else if(strcmp(mAlgorithm, "MD5") == 0)
    {

@@ -44,11 +44,13 @@ static void runMessageDigestTest(TestRunner& tr)
    // correct values
    const char* correctMd5 = "78eebfd9d42958e3f31244f116ab7bbe";
    const char* correctSha1 = "5f24f4d6499fd2d44df6c6e94be8b14a796c071d";
+   const char* correctSha256 =
+      "b30b240903bd7a194ec18dd4704afc12f63ed10e5a3365dcf7a2c18403e5b7cc";
 
    tr.test("non-persistent");
    {
       MessageDigest testMd5;
-      assert(testMd5.start("MD5", false));
+      assertNoException(testMd5.start("MD5", false));
       testMd5.update("THIS ");
       testMd5.update("IS A");
       testMd5.update(" MESSAGE");
@@ -57,11 +59,18 @@ static void runMessageDigestTest(TestRunner& tr)
       assertStrCmp(correctMd5, digestMd5.c_str());
 
       MessageDigest testSha1;
-      assert(testSha1.start("SHA1", false));
+      assertNoException(testSha1.start("SHA1", false));
       testSha1.update("THIS IS A MESSAGE");
       string digestSha1 = testSha1.getDigest();
 
       assertStrCmp(correctSha1, digestSha1.c_str());
+
+      MessageDigest testSha256;
+      assertNoException(testSha256.start("SHA256", false));
+      testSha256.update("THIS IS A MESSAGE");
+      string digestSha256 = testSha256.getDigest();
+
+      assertStrCmp(correctSha256, digestSha256.c_str());
    }
    tr.passIfNoException();
 
@@ -69,7 +78,7 @@ static void runMessageDigestTest(TestRunner& tr)
    {
       string digestMd5;
       MessageDigest testMd5;
-      assert(testMd5.start("MD5", true));
+      assertNoException(testMd5.start("MD5", true));
       testMd5.update("THIS ");
       digestMd5 = testMd5.getDigest();
       testMd5.update("IS A");
@@ -81,7 +90,7 @@ static void runMessageDigestTest(TestRunner& tr)
       assertStrCmp(correctMd5, digestMd5.c_str());
 
       MessageDigest testSha1;
-      assert(testSha1.start("SHA1", true));
+      assertNoException(testSha1.start("SHA1", true));
       testSha1.update("THIS IS A MESSAGE");
       string digestSha1 = testSha1.getDigest();
       digestSha1 = testSha1.getDigest();
@@ -129,7 +138,7 @@ static void runHashMacTest(TestRunner& tr)
       key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
 
       HashMac hmac;
-      assert(hmac.start("MD5", key));
+      assertNoException(hmac.start("MD5", key));
       hmac.update("Hi There");
       string digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
@@ -144,7 +153,7 @@ static void runHashMacTest(TestRunner& tr)
       key->setData("Jefe", 4);
 
       HashMac hmac;
-      assert(hmac.start("MD5", key));
+      assertNoException(hmac.start("MD5", key));
       hmac.update("what do ya want for nothing?");
       string digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
@@ -163,7 +172,7 @@ static void runHashMacTest(TestRunner& tr)
          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
       HashMac hmac;
-      assert(hmac.start("MD5", key));
+      assertNoException(hmac.start("MD5", key));
       hmac.update("Test Using Larger Than Block-Size Key - Hash Key First");
       string digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
@@ -178,12 +187,12 @@ static void runHashMacTest(TestRunner& tr)
       key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
 
       HashMac hmac;
-      assert(hmac.start("MD5", key));
+      assertNoException(hmac.start("MD5", key));
       hmac.update("Hi There");
       string digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
 
-      assert(hmac.start("MD5", key));
+      assertNoException(hmac.start("MD5", key));
       hmac.update("Hi There");
       digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
@@ -198,7 +207,7 @@ static void runHashMacTest(TestRunner& tr)
       key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
 
       HashMac hmac;
-      assert(hmac.start("SHA1", key));
+      assertNoException(hmac.start("SHA1", key));
       hmac.update("Hi There");
       string digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
@@ -213,7 +222,7 @@ static void runHashMacTest(TestRunner& tr)
       key->setData("Jefe", 4);
 
       HashMac hmac;
-      assert(hmac.start("SHA1", key));
+      assertNoException(hmac.start("SHA1", key));
       hmac.update("what do ya want for nothing?");
       string digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
@@ -232,7 +241,7 @@ static void runHashMacTest(TestRunner& tr)
          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
       HashMac hmac;
-      assert(hmac.start("SHA1", key));
+      assertNoException(hmac.start("SHA1", key));
       hmac.update("Test Using Larger Than Block-Size Key - Hash Key First");
       string digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
@@ -247,12 +256,12 @@ static void runHashMacTest(TestRunner& tr)
       key->setHexData("0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b");
 
       HashMac hmac;
-      assert(hmac.start("SHA1", key));
+      assertNoException(hmac.start("SHA1", key));
       hmac.update("Hi There");
       string digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
 
-      assert(hmac.start("SHA1", key));
+      assertNoException(hmac.start("SHA1", key));
       hmac.update("Hi There");
       digest = hmac.getMac();
       assertStrCmp(expect, digest.c_str());
