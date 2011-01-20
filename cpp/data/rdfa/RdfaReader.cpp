@@ -69,7 +69,7 @@ void RdfaReader::setBaseUri(const char* uri)
 
 bool RdfaReader::setContext(DynamicObject& context)
 {
-   bool rval = false;
+   bool rval = true;
 
    // FIXME: validate context, etc.
 
@@ -80,7 +80,7 @@ bool RdfaReader::setContext(DynamicObject& context)
 
 bool RdfaReader::setFrame(DynamicObject& frame, bool explicitOnly)
 {
-   bool rval = false;
+   bool rval = true;
 
    // FIXME: validate frame, etc.
 

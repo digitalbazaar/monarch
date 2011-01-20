@@ -3,6 +3,7 @@
  */
 #include "monarch/app/AppFactory.h"
 #include "monarch/crypto/MessageDigest.h"
+#include "monarch/data/json/JsonReader.h"
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/data/json/JsonLd.h"
 #include "monarch/data/rdfa/RdfaReader.h"
@@ -42,9 +43,10 @@ static bool _processStream(
    DynamicObject& options, InputStream* is, const char* srcName,
    const char* baseUri)
 {
-   bool rval;
+   bool rval = true;
 
    // options
+   bool hasFrame = (options["framePath"]->length() > 0);
    bool doFilter = options["filter"]->getBoolean();
    bool doNormalize = options["normalize"]->getBoolean();
    bool doHash = options["hash"]->getBoolean();
@@ -55,11 +57,23 @@ static bool _processStream(
    // read in rdfa
    RdfaReader reader;
    reader.setBaseUri(baseUri);
-   DynamicObject dyno;
-   rval = reader.start(dyno) && reader.read(is) && reader.finish();
-
+   DynamicObject frame;
+   if(hasFrame)
+   {
+      // read frame from specified file
+      File file(options["framePath"]->getString());
+      FileInputStream fis(file);
+      JsonReader jr;
+      rval = rval &&
+         jr.start(frame) &&
+         jr.read(&fis) &&
+         jr.finish() &&
+         reader.setFrame(frame);
+      fis.close();
+   }
    // pipe data as requested
-   DynamicObject output = dyno;
+   DynamicObject output;
+   rval = rval && reader.start(output) && reader.read(is) && reader.finish();
 
    if(rval && doFilter)
    {
@@ -121,12 +135,23 @@ static bool _processStream(
       }
    }
 
+   if(rval && hasFrame)
+   {
+      if(verbose)
+      {
+         // print output
+         printf("* <frame>:\n%s\n", options["framePath"]->getString());
+         rval = JsonWriter::writeToStdOut(frame, false, false);
+      }
+   }
+
    if(rval && doHash)
    {
       if(verbose)
       {
          // output info
-         printf("* <source>|RDFa|JSON-LD|%s%s%s<stdout>:\n",
+         printf("* <source>|RDFa|%sJSON-LD|%s%s%s<stdout>:\n",
+            hasFrame ? "frame|" : "",
             doFilter ? "filter|" : "",
             doNormalize ? "normalize|" : "",
             doHash ? "SHA-1|" : "");
@@ -140,7 +165,8 @@ static bool _processStream(
       if(verbose)
       {
          // output info
-         printf("* <source>|RDFa|JSON-LD|%s%s%s<stdout>:\n",
+         printf("* <source>|RDFa|%sJSON-LD|%s%s%s<stdout>:\n",
+            hasFrame ? "frame|" : "",
             doFilter ? "filter|" : "",
             doNormalize ? "normalize|" : "",
             doCompact ? "compact|" : "");
@@ -252,6 +278,7 @@ public:
       // initialize config
       Config& c = cfg[ConfigManager::MERGE][APP_NAME];
       c["baseUri"] = "";
+      c["framePath"] = "";
       c["filter"] = false;
       c["normalize"] = false;
       c["hash"] = true;
@@ -262,7 +289,8 @@ public:
       DynamicObject spec;
       spec["help"] =
 "Rdfa2JsonLd Options\n"
-"      --base-uri      The base URI to use.\n"
+"      --base-uri URI  The base URI to use.\n"
+"      --frame FILE    Use FILE JSON contents as the RDFa frame.\n"
 "      --[no-]filter   Filter for source URI properties. (default: false)\n"
 "      --[no-]normalize"
 "                      Normalize JSON-LD. (default: false)\n"
@@ -275,12 +303,19 @@ public:
 
       DynamicObject opt(NULL);
 
-      // create option to set base URI
+      // base URI option
       opt = spec["options"]->append();
       opt["long"] = "--base-uri";
       opt["argError"] = "Base URI must be a string.";
       opt["arg"]["root"] = c;
       opt["arg"]["path"] = "baseUri";
+
+      // frame option
+      opt = spec["options"]->append();
+      opt["long"] = "--frame";
+      opt["argError"] = "Frame requires a filename.";
+      opt["arg"]["root"] = c;
+      opt["arg"]["path"] = "framePath";
 
       // simple boolean options
       DynamicObject bools;
