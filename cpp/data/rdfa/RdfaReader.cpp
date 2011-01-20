@@ -476,6 +476,7 @@ static void _findTargetObjects(
  * to ensure iterators remain valid during recursion.
  *
  * @param frame the frame node (first call starts at the top of the frame tree).
+ * @param targetMap a map to populate with the target subjects.
  * @param subjects a map of all subjects in the graph.
  * @param subject the current parent subject in the traversal, NULL to start.
  * @param predicate the current parent predicate in the traversal.
@@ -484,13 +485,12 @@ static void _findTargetObjects(
  * @param removals a list of subjects to potentially remove.
  */
 static void _processFrame(
-   DynamicObject& frame,
+   DynamicObject& frame, DynamicObject targetMap,
    DynamicObject& subjects, const char* subject, const char* predicate,
    DynamicObject& embeds, bool explicitOnly, DynamicObject& removals)
 {
    // create a map to keep track of subjects that are targets so we can
    // add removals for unused subjects
-   DynamicObject targetMap;
    targetMap->setType(Map);
 
    /* Note: The frame is either an array of maps or a map. It cannot be
@@ -540,6 +540,15 @@ static void _processFrame(
          {
             embeds->removeMember(target["@"]);
          }
+         // remove auto-embeds if type is empty string
+         else if(f->getType() == String && f->length() == 0)
+         {
+            const char* s = target["@"]->getString();
+            if(embeds->hasMember(s) && embeds[s]["s"] == subjects[subject])
+            {
+               embeds->removeMember(s);
+            }
+         }
          // add manual embed
          else
          {
@@ -567,6 +576,25 @@ static void _processFrame(
                   // get next frame
                   DynamicObject& nf = f[p];
 
+                  // if the frame wants a string, remove any related embeds
+                  if(f[p]->getType() == String)
+                  {
+                     // iterate over object subjects
+                     DynamicObjectIterator ooi = obj.getIterator();
+                     while(ooi->hasNext())
+                     {
+                        const char* os = ooi->next();
+                        if(embeds->hasMember(os))
+                        {
+                           if(embeds[os]["s"] ==
+                              subjects[target["@"]->getString()])
+                           {
+                              embeds->removeMember(os);
+                           }
+                        }
+                     }
+                  }
+
                   // if frame wants a single value, pick the first one
                   if(obj->getType() == Array && nf->getType() != Array)
                   {
@@ -585,7 +613,7 @@ static void _processFrame(
 
                      // recurse into next frame
                      _processFrame(
-                        nf, subjects, target["@"], p, embeds,
+                        nf, DynamicObject(), subjects, target["@"], p, embeds,
                         explicitOnly, removals);
                   }
                }
@@ -602,9 +630,9 @@ static void _processFrame(
       }
    }
 
-   // if top-level subject or explicit only is on, remove any subjects not
-   // marked as targets (targets are removed from the subjectSet)
-   if(subject == NULL || explicitOnly)
+   // if explicit only is on, remove any subjects not marked as targets
+   // (targets are removed from the subjectSet)
+   if(explicitOnly)
    {
       // build a clean subject set to compare against
       DynamicObject subjectSet;
@@ -752,15 +780,18 @@ static void _frameTarget(
    DynamicObject& subjects, DynamicObject& embeds,
    bool explicitOnly)
 {
+   DynamicObject topLevel = subjects;
+
    // handle frame if one was provided
    if(!frame.isNull())
    {
       // process frame, store removals (removals are stored to avoid removing
       // graph nodes during recursion)
+      topLevel = DynamicObject();
       DynamicObject removals;
       removals->setType(Array);
       _processFrame(
-         frame, subjects, NULL, NULL, embeds, explicitOnly, removals);
+         frame, topLevel, subjects, NULL, NULL, embeds, explicitOnly, removals);
 
       // clean up removals
       _processRemovals(subjects, embeds, removals);
@@ -777,7 +808,7 @@ static void _frameTarget(
    g->target["#"]->removeMember("a");
 
    // build final JSON-LD object by adding all remaining top-level objects
-   DynamicObjectIterator i = subjects.getIterator();
+   DynamicObjectIterator i = topLevel.getIterator();
    while(i->hasNext())
    {
       DynamicObject& subject = i->next();
