@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/MessageDigest.h"
 
@@ -36,15 +36,13 @@ bool MessageDigest::start(const char* algorithm, bool persistent)
 
    // check if algorithm is supported
    mAlgorithm = NULL;
-   int i = 0;
-   while(mAlgorithm == NULL && algorithms[i] != NULL)
+   for(int i = 0; mAlgorithm == NULL && algorithms[i] != NULL; ++i)
    {
       if(strcasecmp(algorithms[i], algorithm) == 0)
       {
          // normalize to static upper case string
          mAlgorithm = algorithms[i];
       }
-      ++i;
    }
    if(mAlgorithm == NULL)
    {

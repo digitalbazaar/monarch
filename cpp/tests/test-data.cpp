@@ -569,6 +569,32 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("normalize (multiple types)");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["@"] = "http://example.org/test#example";
+      in["a"][0] = "ex:Foo";
+      in["a"][1] = "ex:Bar";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test#example>";
+      expect["<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"][0] =
+         "<http://example.org/vocab#Foo>";
+      expect["<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"][1] =
+         "<http://example.org/vocab#Bar>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
    tr.test("normalize (single subject complex)");
    {
       DynamicObject in;

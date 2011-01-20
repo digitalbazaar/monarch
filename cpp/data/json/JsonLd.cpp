@@ -288,14 +288,15 @@ static bool _normalize(
                if(v->getType() == Map)
                {
                   // set predicate to normalized subject and recurse
-                  subject[nKey] = _normalizeString(
-                     nullCtx, true, v["@"], &tValue);
+                  _setPredicate(
+                     subject, nKey,
+                     _normalizeString(nullCtx, true, v["@"], &tValue));
                   rval = _normalize(ctx, v, subjects);
                }
                else
                {
                   _normalizeValue(
-                     key, nKey, &tValue, &tType, ctx, subject, value);
+                     key, nKey, &tValue, &tType, ctx, subject, v);
                }
             }
          }
