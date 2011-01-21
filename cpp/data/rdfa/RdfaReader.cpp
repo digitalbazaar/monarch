@@ -446,14 +446,25 @@ bool RdfaReader::finish()
    return rval;
 }
 
-bool RdfaReader::readFromString(
-   monarch::rt::DynamicObject& dyno, const char* s, size_t slen,
-   const char* baseUri)
+bool RdfaReader::readFromStream(
+   DynamicObject& dyno, InputStream& is,
+   const char* baseUri, DynamicObject* frame)
 {
-   ByteArrayInputStream is(s, slen);
    RdfaReader rr;
    rr.setBaseUri(baseUri);
-   return rr.start(dyno) && rr.read(&is) && rr.finish();
+   return
+      rr.start(dyno) &&
+      ((frame != NULL) ? rr.setFrame(*frame) : true) &&
+      rr.read(&is) &&
+      rr.finish();
+}
+
+bool RdfaReader::readFromString(
+   monarch::rt::DynamicObject& dyno, const char* s, size_t slen,
+   const char* baseUri, DynamicObject* frame)
+{
+   ByteArrayInputStream is(s, slen);
+   return readFromStream(dyno, is, baseUri, frame);
 }
 
 void RdfaReader::processDefaultTriple(rdftriple* triple)

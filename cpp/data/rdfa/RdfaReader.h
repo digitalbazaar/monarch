@@ -180,18 +180,34 @@ public:
    virtual bool finish();
 
    /**
+    * Reads a DynamicObject as RDFa from an InputStream.
+    *
+    * @param dyno the DynamicObject to fill.
+    * @param s the string to read from.
+    * @param slen the length of s.
+    * @param uri the baseUri to use.
+    * @param frame the fram to use or NULL for none.
+    *
+    * @return true on success, false and exception set on failure.
+    */
+   static bool readFromStream(
+      monarch::rt::DynamicObject& dyno, monarch::io::InputStream& is,
+      const char* baseUri, monarch::rt::DynamicObject* frame = NULL);
+
+   /**
     * Reads a DynamicObject as RDFa from a string.
     *
     * @param dyno the DynamicObject to fill.
     * @param s the string to read from.
     * @param slen the length of s.
     * @param uri the baseUri to use.
+    * @param frame the fram to use or NULL for none.
     *
     * @return true on success, false and exception set on failure.
     */
    static bool readFromString(
       monarch::rt::DynamicObject& dyno, const char* s, size_t slen,
-      const char* baseUri);
+      const char* baseUri, monarch::rt::DynamicObject* frame = NULL);
 
 protected:
    /**

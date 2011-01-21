@@ -1452,7 +1452,7 @@ static void runSqlite3ConnectionPoolTest(TestRunner& tr)
 
    // create connection test threads
    int testCount = 200;
-   Sqlite3ConnectionPoolTest tests[testCount];
+   Sqlite3ConnectionPoolTest* tests = new Sqlite3ConnectionPoolTest[testCount];
    Thread* threads[testCount];
 
    // create threads, set pool for tests
@@ -1487,6 +1487,8 @@ static void runSqlite3ConnectionPoolTest(TestRunner& tr)
    {
       delete threads[i];
    }
+
+   delete[] tests;
 
    // print report
    printf("\nNumber of independent connection uses: %d\n", testCount);

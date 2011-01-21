@@ -1,5 +1,7 @@
 # The top-level Makefile that is used to build 
 
+ALL_FILES := $(shell git ls-files)
+
 EXECUTABLE_SUBDIRS := \
 	cpp/apps/js \
 	cpp/apps/monarch \
@@ -83,10 +85,20 @@ MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 
 .PHONY: all verbose clean test internal-docs clean-docs
 
-all: 
+all: dist/build.stamp
+	@echo "monarch build complete."
+
+force-all:
+	@echo "Removing dist/build.stamp."
+	@rm dist/build.stamp
+	@$(MAKE_CMD)
+
+dist/build.stamp: $(ALL_FILES)
+	@mkdir -p dist
 	@$(foreach dir,$(SUBDIRS),IGNORE_DEPENDENCIES=true $(MAKE_DIR) build-headers &&) true
 	@$(foreach dir,$(SUBDIRS),$(MAKE_DIR) build-objects build-libraries &&) true
 	@$(foreach dir,$(EXECUTABLE_SUBDIRS),$(MAKE_DIR) build-executables &&) true
+	@touch dist/build.stamp
 
 clean:
 	@rm -rf build
@@ -134,3 +146,4 @@ install:
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_DOTTED_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).@MONARCH_VERSION_MAJOR@.@MONARCH_VERSION_MINOR@ &&) true
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_DOTTED_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)).@MONARCH_VERSION_MAJOR@ &&) true
 	@$(foreach lib,$(INSTALL_LIBRARIES),ln -s $(notdir $(lib)).@FULL_DOTTED_VERSION@ $(PREFIX)/usr/lib/$(notdir $(lib)) &&) true
+

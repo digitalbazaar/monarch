@@ -640,7 +640,7 @@ static void runMySqlConnectionPoolTest(TestRunner& tr)
 
    // create connection test threads
    int testCount = 300;
-   MySqlConnectionPoolTest tests[testCount];
+   MySqlConnectionPoolTest* tests = new MySqlConnectionPoolTest[testCount];
    Thread* threads[testCount];
 
    // create threads, set pool for tests
@@ -675,6 +675,8 @@ static void runMySqlConnectionPoolTest(TestRunner& tr)
    {
       delete threads[i];
    }
+
+   delete[] tests;
 
    // clean up mysql
    mysql_library_end();

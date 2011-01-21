@@ -1,7 +1,6 @@
 dnl Monarch compiler macros
 dnl Copyright 2010 Digital Bazaar, Inc.
 
-dnl MO_CHECK_TOOL
 dnl MO_COMPILER
 
 dnl ----------------- compiler detection -----------------
@@ -26,10 +25,23 @@ AC_DEFUN([MO_COMPILER],
    #
    # Can override these prog lists with env vars.
    #
-   # Using custom lists since Done like this since the macro expansion of AC_PROG_CC/CXX will
+   # Using custom lists since the macro expansion of AC_PROG_CC/CXX will
    # cause only the first visible macro to function properly. Inside of
    # platform conditionals the other macros will produce incorrect
    # results.
+
+   # Clang support
+   AC_ARG_ENABLE([clang],
+      AC_HELP_STRING([--enable-clang], [enable checking for clang [no]]),
+      [
+         case "${enableval}" in
+            yes) CHECK_PROGS_CC_CLANG="clang";
+                 CHECK_PROGS_CXX_CLANG="clang++" ;;
+            no)  ;;
+            *)   AC_MSG_ERROR(bad value ${enableval} for --enable-clang) ;;
+         esac
+      ],
+      [:]) dnl Default value
 
    # Setup platform specific special checks.
    AS_CASE([$PLATFORM],
@@ -53,11 +65,33 @@ AC_DEFUN([MO_COMPILER],
    ])
 
    # Setup standard order of compile checks. Start with env vars.
-   CHECK_PROGS_CC="$CC $CHECK_PROGS_CC_PLATFORM $CHECK_PROGS_CC_HOST gcc cc"
-   CHECK_PROGS_CXX="$CXX $CHECK_PROGS_CXX_PLATFORM $CHECK_PROGS_CXX_HOST g++ c++"
-   CHECK_PROGS_AR="$AR $CHECK_PROGS_AR_PLATFORM $CHECK_PROGS_AR_HOST ar"
-   CHECK_PROGS_AS="$AS $CHECK_PROGS_AS_PLATFORM $CHECK_PROGS_AS_HOST as"
-   CHECK_PROGS_STRIP="$STRIP $CHECK_PROGS_STRIP_PLATFORM $CHECK_PROGS_STRIP_HOST strip"
+   CHECK_PROGS_CC="\
+      $CC \
+      $CHECK_PROGS_CC_CLANG \
+      $CHECK_PROGS_CC_PLATFORM \
+      $CHECK_PROGS_CC_HOST \
+      gcc cc"
+   CHECK_PROGS_CXX="\
+      $CXX \
+      $CHECK_PROGS_CXX_CLANG \
+      $CHECK_PROGS_CXX_PLATFORM \
+      $CHECK_PROGS_CXX_HOST \
+      g++ c++"
+   CHECK_PROGS_AR="\
+      $AR \
+      $CHECK_PROGS_AR_PLATFORM \
+      $CHECK_PROGS_AR_HOST \
+      ar"
+   CHECK_PROGS_AS="\
+      $AS \
+      $CHECK_PROGS_AS_PLATFORM \
+      $CHECK_PROGS_AS_HOST \
+      as"
+   CHECK_PROGS_STRIP="\
+      $STRIP \
+      $CHECK_PROGS_STRIP_PLATFORM \
+      $CHECK_PROGS_STRIP_HOST \
+      strip"
 
    # Check for tools.
    # Doing a manual check for CC/CXX in order to do some custom compiler checks

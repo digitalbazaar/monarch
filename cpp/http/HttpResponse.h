@@ -74,7 +74,8 @@ public:
     *
     * @return true if the body was sent, false if an Exception occurred.
     */
-   virtual bool sendBody(monarch::io::InputStream* is, HttpTrailer* trailer = NULL);
+   virtual bool sendBody(
+      monarch::io::InputStream* is, HttpTrailer* trailer = NULL);
 
    /**
     * Gets a heap-allocated OutputStream for sending a message body. The
@@ -120,7 +121,8 @@ public:
     *
     * @return the heap-allocated InputStream for receiving a message body.
     */
-   virtual monarch::io::InputStream* getBodyInputStream(HttpTrailer* trailer = NULL);
+   virtual monarch::io::InputStream* getBodyInputStream(
+      HttpTrailer* trailer = NULL);
 
    /**
     * Gets the header for this response. This will not receive the header

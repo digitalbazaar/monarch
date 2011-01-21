@@ -25,7 +25,8 @@ const char Convert::UPPER_HEX_CHARS[16] =
    'A', 'B', 'C', 'D', 'E', 'F'
 };
 
-string Convert::bytesToHex(const char* bytes, unsigned int length)
+static string _bytesToHex(
+   const char* bytes, unsigned int length, const char* charset)
 {
    // convert bytes to unsigned char to ensure data integrity
    char hex[length * 2 + 1];
@@ -36,35 +37,24 @@ string Convert::bytesToHex(const char* bytes, unsigned int length)
       // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
 
       // convert the top 4 bits
-      ptr[0] = HEX_CHARS[(ubytes[i] >> 4)];
+      ptr[0] = charset[(ubytes[i] >> 4)];
 
       // convert the bottom 4 bits
-      ptr[1] = HEX_CHARS[(ubytes[i] & 0x0f)];
+      ptr[1] = charset[(ubytes[i] & 0x0f)];
    }
    ptr[0] = 0;
 
    return hex;
 }
 
+string Convert::bytesToHex(const char* bytes, unsigned int length)
+{
+   return _bytesToHex(bytes, length, HEX_CHARS);
+}
+
 string Convert::bytesToUpperHex(const char* bytes, unsigned int length)
 {
-   // convert bytes to unsigned char to ensure data integrity
-   char hex[length * 2 + 1];
-   char* ptr = hex;
-   unsigned char* ubytes = (unsigned char*)bytes;
-   for(unsigned int i = 0; i < length; ++i, ptr += 2)
-   {
-      // hexadecimal uses 2 digits, each with 16 values (or 4 bits):
-
-      // convert the top 4 bits
-      ptr[0] = UPPER_HEX_CHARS[(ubytes[i] >> 4)];
-
-      // convert the bottom 4 bits
-      ptr[1] = UPPER_HEX_CHARS[(ubytes[i] & 0x0f)];
-   }
-   ptr[0] = 0;
-
-   return hex;
+   return _bytesToHex(bytes, length, UPPER_HEX_CHARS);
 }
 
 static inline bool nibbleToByte(const char hex, unsigned char& value)
