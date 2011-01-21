@@ -859,3 +859,59 @@ bool JsonLdFrame::frameSubjects(DynamicObject subjects, DynamicObject& out)
 
    return rval;
 }
+
+bool JsonLdFrame::reframe(DynamicObject& jsonld, DynamicObject& out)
+{
+   bool rval = true;
+
+   // save context
+   DynamicObject ctx(NULL);
+   if(jsonld->hasMember("#"))
+   {
+      ctx = jsonld["#"];
+   }
+
+   // normalize jsonld
+   DynamicObject normalized;
+   rval = JsonLd::normalize(jsonld, normalized);
+   if(rval)
+   {
+      // create array of subjects to simplify code path
+      DynamicObject array;
+      array->setType(Array);
+      if(normalized["@"]->getType() == Array)
+      {
+         array.merge(normalized["@"], true);
+      }
+      else
+      {
+         array->append(normalized["@"]);
+      }
+
+      // build map of subjects from normalized input
+      DynamicObject subjects;
+      subjects->setType(Map);
+      DynamicObjectIterator i = array.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& subject = i->next();
+         subjects[subject["@"]->getString()] = subject;
+      }
+
+      if(ctx.isNull())
+      {
+         // frame subjects
+         rval = frameSubjects(subjects, out);
+      }
+      else
+      {
+         // frame subjects and re-add context
+         DynamicObject framed;
+         rval =
+            frameSubjects(subjects, framed) &&
+            JsonLd::addContext(ctx, framed, out);
+      }
+   }
+
+   return rval;
+}

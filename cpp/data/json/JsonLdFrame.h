@@ -92,6 +92,17 @@ public:
     */
    virtual bool frameSubjects(
       monarch::rt::DynamicObject subjects, monarch::rt::DynamicObject& out);
+
+   /**
+    * Reframes a JSON-LD object.
+    *
+    * @param subjects the map of subjects to frame.
+    * @param out the framed output object.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   virtual bool reframe(
+      monarch::rt::DynamicObject& jsonld, monarch::rt::DynamicObject& out);
 };
 
 } // end namespace json

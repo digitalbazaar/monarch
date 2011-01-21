@@ -29,6 +29,7 @@
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/data/json/JsonReader.h"
 #include "monarch/data/json/JsonLd.h"
+#include "monarch/data/json/JsonLdFrame.h"
 #include "monarch/data/riff/RiffChunkHeader.h"
 #include "monarch/data/riff/RiffListHeader.h"
 #include "monarch/data/riff/RiffFormHeader.h"
@@ -880,6 +881,64 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"][3]["ex:contains"]["ex:contains"] =
          "http://example.org/test#chapter";
       assertDynoCmp(expect, out);
+   }
+   tr.passIfNoException();
+
+   tr.test("reframe");
+   {
+      DynamicObject in;
+      in["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["@"][0]["@"] = "http://example.org/test#library";
+      in["@"][0]["a"] = "ex:Library";
+      in["@"][0]["ex:contains"] = "<http://example.org/test#book>";
+      in["@"][1]["@"] = "<http://example.org/test#book>";
+      in["@"][1]["a"] = "ex:Book";
+      in["@"][1]["dc:contributor"] = "Writer";
+      in["@"][1]["dc:title"] = "My Book";
+      in["@"][1]["ex:contains"] = "<http://example.org/test#chapter>";
+      in["@"][2]["@"] = "http://example.org/test#chapter";
+      in["@"][2]["a"] = "ex:Chapter";
+      in["@"][2]["dc:description"] = "Fun";
+      in["@"][2]["dc:title"] = "Chapter One";
+
+      DynamicObject frame;
+      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["a"] = "ex:Library";
+      frame["ex:contains"]["a"] = "ex:Book";
+      frame["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+      JsonLdFrame jlf;
+      jlf.setFrame(frame);
+
+      // reframe
+      DynamicObject framed;
+      assertNoException(
+         jlf.reframe(in, framed));
+
+      // re-add context
+      DynamicObject out;
+      assertNoException(
+         JsonLd::addContext(in["#"], framed, out));
+
+      DynamicObject expect;
+      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["@"] = "http://example.org/test#library";
+      expect["a"] = "ex:Library";
+      expect["ex:contains"]["@"] = "http://example.org/test#book";
+      expect["ex:contains"]["a"] = "ex:Book";
+      expect["ex:contains"]["dc:contributor"] = "Writer";
+      expect["ex:contains"]["dc:title"] = "My Book";
+      expect["ex:contains"]["ex:contains"]["@"] =
+         "http://example.org/test#chapter";
+      expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+      expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
+      expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+      assertDynoCmp(expect, out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
