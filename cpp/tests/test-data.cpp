@@ -910,15 +910,9 @@ static void runJsonLdTest(TestRunner& tr)
       JsonLdFrame jlf;
       jlf.setFrame(frame);
 
-      // reframe
-      DynamicObject framed;
-      assertNoException(
-         jlf.reframe(in, framed));
-
-      // re-add context
       DynamicObject out;
       assertNoException(
-         JsonLd::addContext(in["#"], framed, out));
+         jlf.reframe(in, out));
 
       DynamicObject expect;
       expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
