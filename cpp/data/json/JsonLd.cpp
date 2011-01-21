@@ -139,20 +139,17 @@ static const char* _normalizeString(
    {
       if(!ctx.isNull())
       {
-         // advance string past brackets
-         if(hasBrackets)
-         {
-            ++str;
-         }
+         // pass brackets if necessary
+         const char* s = hasBrackets ? str + 1 : str;
 
          // try to find a colon
-         const char* ptr = strchr(str, ':');
+         const char* ptr = strchr(s, ':');
          if(ptr != NULL)
          {
             // get the potential CURIE prefix
-            size_t prefixLen = ptr - str + 1;
+            size_t prefixLen = ptr - s + 1;
             char prefix[prefixLen];
-            snprintf(prefix, prefixLen, "%s", str);
+            snprintf(prefix, prefixLen, "%s", s);
 
             // see if the prefix is in the context
             if(ctx->hasMember(prefix))
