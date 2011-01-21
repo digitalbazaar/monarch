@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_rdfa_RdfaReader_H
 #define monarch_data_rdfa_RdfaReader_H
 
 #include "monarch/data/DynamicObjectReader.h"
-#include "monarch/util/StringTools.h"
+#include "monarch/data/json/JsonLdFrame.h"
 
 #include <rdfa.h>
 #include <map>
@@ -32,8 +32,6 @@ public:
     * Graph storage and processing information.
     */
    typedef std::vector<rdftriple*> TripleList;
-   typedef std::map<const char*, int, monarch::util::StringComparator>
-      SubjectCountMap;
    struct Graph
    {
       /**
@@ -42,14 +40,9 @@ public:
       TripleList triples;
 
       /**
-       * A map of subject name to graph-reference count.
+       * The frame to use.
        */
-      SubjectCountMap subjectCounts;
-
-      /**
-       * A map of predicate to type(s).
-       */
-      monarch::rt::DynamicObject types;
+      monarch::data::json::JsonLdFrame frame;
 
       /**
        * The target DynamicObject for storing the graph in JSON-LD.
@@ -84,6 +77,11 @@ protected:
    monarch::rt::DynamicObject mAutoContext;
 
    /**
+    * True to use the auto-context, false not to.
+    */
+   bool mUseAutoContext;
+
+   /**
     * The default graph.
     */
    Graph mDefaultGraph;
@@ -92,27 +90,6 @@ protected:
     * The processor graph.
     */
    Graph mProcessorGraph;
-
-   /**
-    * The default graph frame.
-    */
-   monarch::rt::DynamicObject mDefaultGraphFrame;
-
-   /**
-    * The processor graph frame.
-    */
-   monarch::rt::DynamicObject mProcessorGraphFrame;
-
-   /**
-    * The exception graph frame.
-    */
-   monarch::rt::DynamicObject mExceptionGraphFrame;
-
-   /**
-    * Set to true if only those predicates explicitly mentioned in the
-    * frame for the default graph should be included in the result.
-    */
-   bool mExplicit;
 
 public:
    /**
@@ -137,10 +114,13 @@ public:
     * Sets the context to use in the JSON-LD object output.
     *
     * @param context the context to use.
+    * @param useAutoContext true to also use contextual information from rdfa
+    *           input, false to ignore it and only use the given context.
     *
     * @return true on success, false on failure with exception set.
     */
-   virtual bool setContext(monarch::rt::DynamicObject& context);
+   virtual bool setContext(
+      monarch::rt::DynamicObject& context, bool useAutoContext = true);
 
    /**
     * Sets the frame to use to build default graph's JSON-LD object output.

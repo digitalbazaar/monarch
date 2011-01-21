@@ -48,6 +48,8 @@ public:
     * Sets the frame to use. If explicit mode is set, then only those
     * predicates specified in the frame will appear in the result.
     *
+    * All triple values must be JSON-LD encoded and context-neutral.
+    *
     * @param frame the frame to use.
     * @param explicitOnly true to use explicit mode, false not to.
     *
@@ -80,6 +82,8 @@ public:
     *
     * If there are multiple objects for a predicate, they are assumed to be
     * in sorted order.
+    *
+    * All triple values must be JSON-LD encoded and context-neutral.
     *
     * @param subjects the map of subjects to frame.
     * @param out the framed output object.

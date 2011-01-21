@@ -13,8 +13,16 @@ using namespace monarch::data;
 using namespace monarch::data::json;
 using namespace monarch::rt;
 
-#define RDF_TYPE   "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
-#define URI_TYPE   "<http://www.w3.org/2001/XMLSchema#anyURI>"
+#define RDF_TYPE         "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+#define RDF_TYPE_SHORT   "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+#define URI_TYPE         "<http://www.w3.org/2001/XMLSchema#anyURI>"
+
+enum RdfType
+{
+   RDF_TYPE_IRI,
+   RDF_TYPE_TYPED_LITERAL,
+   RDF_TYPE_PLAIN_LITERAL
+};
 
 JsonLd::JsonLd()
 {
@@ -24,10 +32,78 @@ JsonLd::~JsonLd()
 {
 }
 
+static char* _realloc(char** str, size_t len)
+{
+   if(*str == NULL || strlen(*str) < len)
+   {
+      *str = (char*)realloc(*str, len);
+   }
+   return *str;
+}
+
+/**
+ * Decodes a string into an rdf type and value. The only types that matter
+ * to JSON-LD are IRI and TYPED literals. The other types are all lumped
+ * together under PLAIN literal (even if they are XML literals, etc).
+ *
+ * @param str the input string.
+ * @param type the RDF type.
+ * @param value the value.
+ * @param datatype the datatype.
+ *
+ * @return the decoded value.
+ */
+static const char* _decodeString(
+   const char* str, RdfType& type, char** value, char** datatype)
+{
+   const char* rval = str;
+
+   // default to plain literal
+   type = RDF_TYPE_PLAIN_LITERAL;
+
+   // determine if the string has <> or ^^
+   size_t len = strlen(str);
+   bool hasBrackets = (len > 1 && str[0] == '<' && str[len - 1] == '>');
+   const char* typedLiteral = strstr(str, "^^");
+
+   // get <%s>
+   if(hasBrackets)
+   {
+      type = RDF_TYPE_IRI;
+
+      // strip brackets
+      len -= 2;
+      _realloc(value, len + 1);
+      strncpy(*value, str + 1, len);
+      (*value)[len] = 0;
+      rval = *value;
+   }
+   // get %s^^<%s>
+   else if(typedLiteral != NULL)
+   {
+      type = RDF_TYPE_TYPED_LITERAL;
+
+      // get value up to ^^
+      len = typedLiteral - str;
+      _realloc(value, len + 1);
+      strncpy(*value, str, len);
+      (*value)[len] = 0;
+      rval = *value;
+
+      // get datatype after ^^
+      len = strlen(typedLiteral + 2);
+      _realloc(datatype, len + 1);
+      strncpy(*datatype, typedLiteral + 2, len);
+      (*datatype)[len] = 0;
+   }
+
+   return rval;
+}
+
 /**
  * Normalizes a string using the given context.
  *
- * @param context the context.
+ * @param ctx the context.
  * @param iri true to look for an IRI or CURIE even without <>.
  * @param str the string to normalize.
  * @param tmp to store the normalized string, may be realloc'd.
@@ -35,7 +111,7 @@ JsonLd::~JsonLd()
  * @return a pointer to the normalized string.
  */
 static const char* _normalizeString(
-   DynamicObject& context, bool iri, const char* str, char** tmp)
+   DynamicObject& ctx, bool iri, const char* str, char** tmp)
 {
    const char* rval = NULL;
 
@@ -45,7 +121,7 @@ static const char* _normalizeString(
 
    // if string is not an IRI, then if there is no context or if it has no <>,
    // then it is already normalized
-   if(!iri && (context.isNull() || !hasBrackets))
+   if(!iri && (ctx.isNull() || !hasBrackets))
    {
       rval = str;
    }
@@ -61,7 +137,7 @@ static const char* _normalizeString(
    }
    else
    {
-      if(!context.isNull())
+      if(!ctx.isNull())
       {
          // advance string past brackets
          if(hasBrackets)
@@ -79,15 +155,12 @@ static const char* _normalizeString(
             snprintf(prefix, prefixLen, "%s", str);
 
             // see if the prefix is in the context
-            if(context->hasMember(prefix))
+            if(ctx->hasMember(prefix))
             {
                // prefix found, normalize string
-               DynamicObject& uri = context[prefix];
+               DynamicObject& uri = ctx[prefix];
                len = strlen(uri->getString()) + strlen(ptr + 1) + 3;
-               if(*tmp == NULL || sizeof(*tmp) < len)
-               {
-                  *tmp = (char*)realloc(*tmp, len);
-               }
+               _realloc(tmp, len);
                snprintf(*tmp, len, "<%s%s%s",
                   uri->getString(), ptr + 1, hasBrackets ? "" : ">");
                rval = *tmp;
@@ -106,7 +179,7 @@ static const char* _normalizeString(
          {
             // add brackets
             len += 3;
-            *tmp = (char*)realloc(*tmp, len);
+            _realloc(tmp, len);
             snprintf(*tmp, len, "<%s>", str);
             rval = *tmp;
          }
@@ -127,7 +200,14 @@ static void _setPredicate(
          s[predicate] = DynamicObject();
          s[predicate]->append(tmp);
       }
-      s[predicate]->append(object);
+      if(object != NULL)
+      {
+         s[predicate]->append(object);
+      }
+   }
+   else if(object == NULL)
+   {
+      s[predicate]->setType(Array);
    }
    else
    {
@@ -181,7 +261,7 @@ static void _normalizeValue(
          else
          {
             size_t len = strlen(value) + strlen(type) + 3;
-            *tValue = (char*)realloc(*tValue, len);
+            _realloc(tValue, len);
             snprintf(*tValue, len, "%s^^%s", value->getString(), type);
             _setPredicate(subject, nKey, *tValue);
          }
@@ -206,6 +286,7 @@ static void _normalizeValue(
  * Recursively normalizes the given input object.
  *
  * Input: A subject with predicates and possibly embedded other subjects.
+ * Output: Either a map of normalized subjects OR a tree of normalized subjects.
  *
  * Normalization Algorithm:
  *
@@ -229,11 +310,13 @@ static void _normalizeValue(
  * @param ctx the context to use (changes during recursion as necessary).
  * @param in the input object.
  * @param subjects a map of normalized subjects.
+ * @param out a tree normalized objects.
  *
  * @return true on success, false on failure with exception set.
  */
 static bool _normalize(
-   DynamicObject ctx, DynamicObject& in, DynamicObject& subjects)
+   DynamicObject ctx, DynamicObject& in,
+   DynamicObject* subjects, DynamicObject* out)
 {
    bool rval = true;
 
@@ -248,13 +331,16 @@ static bool _normalize(
       }
 
       // vars for normalization state
-      DynamicObject subject;
-      subject->setType(Map);
+      DynamicObject subject(NULL);
+      if(subjects != NULL)
+      {
+         subject = DynamicObject();
+         subject->setType(Map);
+      }
       char* tKey = NULL;
       char* tValue = NULL;
       char* tType = NULL;
       const char* nKey;
-      DynamicObject nullCtx(NULL);
 
       // iterate over key-values
       DynamicObjectIterator i = in.getIterator();
@@ -275,6 +361,12 @@ static bool _normalize(
             if(value->getType() == Array)
             {
                values.merge(value, true);
+
+               // preserve array structure when not using subjects map
+               if(out != NULL)
+               {
+                  (*out)[nKey]->setType(Array);
+               }
             }
             else
             {
@@ -287,43 +379,58 @@ static bool _normalize(
                DynamicObject& v = vi->next();
                if(v->getType() == Map)
                {
-                  // set predicate to normalized subject and recurse
-                  _setPredicate(
-                     subject, nKey,
-                     _normalizeString(nullCtx, true, v["@"], &tValue));
-                  rval = _normalize(ctx, v, subjects);
+                  if(subjects != NULL)
+                  {
+                     // set predicate to normalized subject and recurse
+                     _setPredicate(
+                        subject, nKey,
+                        _normalizeString(ctx, true, v["@"], &tValue));
+                     rval = _normalize(ctx, v, subjects, out);
+                  }
+                  else if(value->getType() == Array)
+                  {
+                     // append to out and recurse
+                     DynamicObject& next = (*out)[nKey]->append();
+                     rval = _normalize(ctx, v, subjects, &next);
+                  }
+                  else
+                  {
+                     // set out predicate and recurse
+                     DynamicObject& next = (*out)[nKey];
+                     next->setType(Map);
+                     rval = _normalize(ctx, v, subjects, &next);
+                  }
+               }
+               else if(subjects != NULL)
+               {
+                  _normalizeValue(
+                     key, nKey, &tValue, &tType, ctx, subject, v);
                }
                else
                {
                   _normalizeValue(
-                     key, nKey, &tValue, &tType, ctx, subject, v);
+                     key, nKey, &tValue, &tType, ctx, *out, v);
                }
             }
          }
       }
 
       // clean up
-      if(tKey != NULL)
-      {
-         free(tKey);
-      }
-      if(tValue != NULL)
-      {
-         free(tValue);
-      }
-      if(tType != NULL)
-      {
-         free(tType);
-      }
+      free(tKey);
+      free(tValue);
+      free(tType);
 
       // add subject to map
-      if(!subject->hasMember("@"))
+      if(subjects != NULL)
       {
-         subjects[""] = subject;
-      }
-      else
-      {
-         subjects[subject["@"]->getString()] = subject;
+         if(!subject->hasMember("@"))
+         {
+            (*subjects)[""] = subject;
+         }
+         else
+         {
+            (*subjects)[subject["@"]->getString()] = subject;
+         }
       }
    }
 
@@ -365,7 +472,7 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
    DynamicObjectIterator i = input.getIterator();
    while(rval && i->hasNext())
    {
-      rval = _normalize(ctx, i->next(), subjects);
+      rval = _normalize(ctx, i->next(), &subjects, NULL);
    }
 
    if(rval)
@@ -398,59 +505,19 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
 }
 
 /**
- * Expands a curie using the given context.
- *
- * @param context the context.
- * @param curie the curie to expand.
- * @param tmp to store the expanded curie (IRI), may be realloc'd.
- *
- * @return a pointer to the expanded curie (IRI).
- */
-static const char* _expandCurie(
-   DynamicObject& context, const char* curie, char** tmp)
-{
-   const char* rval = curie;
-
-   if(!context.isNull())
-   {
-      // try to find a colon
-      const char* ptr = strstr(curie, ":");
-      if(ptr != NULL)
-      {
-         // get the potential CURIE prefix
-         size_t prefixLen = ptr - curie + 1;
-         char prefix[prefixLen];
-         snprintf(prefix, prefixLen, "%s", curie);
-
-         // see if the prefix is in the context
-         if(context->hasMember(prefix))
-         {
-            // prefix found, expand string
-            DynamicObject& uri = context[prefix];
-            size_t len = strlen(uri->getString()) + strlen(ptr + 1) + 3;
-            if(*tmp == NULL || sizeof(*tmp) < len)
-            {
-               *tmp = (char*)realloc(*tmp, len);
-            }
-            snprintf(*tmp, len, "%s%s", uri->getString(), ptr + 1);
-            rval = *tmp;
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
  * Recursively removes context from the given input object.
  *
- * @param context the context to use (changes during recursion as necessary).
+ * @param ctx the context to use (changes during recursion as necessary).
  * @param in the input object.
  * @param out the normalized output object.
+ *
+ * @return true on success, false on failure with exception set.
  */
-static void _removeContext(
-   DynamicObject& context, DynamicObject& in, DynamicObject& out)
+static bool _removeContext(
+   DynamicObject& ctx, DynamicObject& in, DynamicObject& out)
 {
+   bool rval = true;
+
    if(in.isNull())
    {
       out.setNull();
@@ -464,29 +531,12 @@ static void _removeContext(
       // update context
       if(inType == Map && in->hasMember("#"))
       {
-         context = in["#"];
+         ctx = in["#"];
       }
 
       if(inType == Map)
       {
-         // normalize each non-context property in the map
-         char* tmp = NULL;
-         DynamicObjectIterator i = in.getIterator();
-         while(i->hasNext())
-         {
-            DynamicObject& next = i->next();
-            if(strcmp(i->getName(), "#") != 0)
-            {
-               // recurse
-               _removeContext(
-                  context,
-                  next, out[_expandCurie(context, i->getName(), &tmp)]);
-            }
-         }
-         if(tmp != NULL)
-         {
-            free(tmp);
-         }
+         rval = _normalize(ctx, in, NULL, &out);
       }
       else if(inType == Array)
       {
@@ -495,21 +545,12 @@ static void _removeContext(
          while(i->hasNext())
          {
             DynamicObject& next = i->next();
-            _removeContext(context, next, out->append());
-         }
-      }
-      // only strings need expanding, numbers & booleans don't
-      else if(inType == String)
-      {
-         // expand CURIE
-         char* tmp = NULL;
-         out = _expandCurie(context, in->getString(), &tmp);
-         if(tmp != NULL)
-         {
-            free(tmp);
+            rval = _removeContext(ctx, next, out->append());
          }
       }
    }
+
+   return rval;
 }
 
 bool JsonLd::removeContext(DynamicObject& in, DynamicObject& out)
@@ -517,52 +558,187 @@ bool JsonLd::removeContext(DynamicObject& in, DynamicObject& out)
    bool rval = true;
 
    DynamicObject context(NULL);
-   _removeContext(context, in, out);
+   rval = _removeContext(context, in, out);
+
+   return rval;
+}
+
+static DynamicObject _compactIri(
+   DynamicObject& ctx, DynamicObject& usedCtx,
+   const char* predicate, const char* encoded,
+   const char* value, char** curie)
+{
+   DynamicObject rval(NULL);
+
+   // check the context for a prefix that could shorten the IRI to a CURIE
+   DynamicObjectIterator i = ctx.getIterator();
+   while(rval.isNull() && i->hasNext())
+   {
+      DynamicObject& next = i->next();
+
+      // skip special context keys (start with '#')
+      const char* name = i->getName();
+      if(i->getName()[0] != '#')
+      {
+         const char* uri = next;
+         const char* ptr = strstr(value, uri);
+         if(ptr != NULL && ptr == value)
+         {
+            size_t ulen = strlen(uri);
+            size_t vlen = strlen(value);
+            if(vlen > ulen)
+            {
+               // add 2 to make room for null-terminator and colon
+               size_t total = strlen(name) + (vlen - ulen) + 2;
+               _realloc(curie, total);
+               snprintf(*curie, total, "%s:%s", name, ptr + ulen);
+               rval = DynamicObject();
+               rval = *curie;
+               usedCtx[name] = uri;
+            }
+            else if(vlen == ulen && strcmp(name, "a") == 0)
+            {
+               rval = DynamicObject();
+               rval = "a";
+            }
+         }
+      }
+   }
+
+   // no CURIE created, check type coercion for IRI
+   if(rval.isNull() && predicate != NULL &&
+      ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
+   {
+      DynamicObject& type = ctx["#types"][predicate];
+
+      // single type
+      if(type->getType() == String)
+      {
+         // FIXME: what to do if type doesn't match datatype?
+         char* expanded = NULL;
+         const char* t = _normalizeString(ctx, true, type, &expanded);
+         if(strcmp(t, URI_TYPE) == 0)
+         {
+            rval = DynamicObject();
+            rval = value;
+         }
+         free(expanded);
+      }
+      // type coercion info is an ordered list of possible types
+      else
+      {
+         // FIXME: need to check if datatype matches type coercion type?
+         // FIXME: determine whether to make int,bool,decimal,or IRI
+      }
+   }
+
+   // if predicate is "@" or "a" use decoded value
+   if(rval.isNull() && predicate != NULL &&
+      (strcmp(predicate, "@") == 0 || strcmp(predicate, "a") == 0))
+   {
+      rval = DynamicObject();
+      rval = value;
+   }
+   // use full encoded value, nothing in context to compact IRI
+   else if(rval.isNull())
+   {
+      rval = DynamicObject();
+      rval = encoded;
+   }
+
+   return rval;
+}
+
+static DynamicObject _compactTypedLiteral(
+   DynamicObject& ctx, DynamicObject& usedCtx,
+   const char* predicate, const char* encoded,
+   const char* value, const char* datatype, char** tmp)
+{
+   DynamicObject rval(NULL);
+
+   // check type coercion
+   if(rval == encoded && predicate != NULL &&
+      ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
+   {
+      DynamicObject& type = ctx["#types"][predicate];
+
+      // single type
+      if(type->getType() == String)
+      {
+         // FIXME: what to do if type doesn't match datatype?
+         char* expanded = NULL;
+         const char* t = _normalizeString(ctx, true, type, &expanded);
+         if(strcmp(t, datatype) == 0)
+         {
+            rval = DynamicObject();
+            rval = value;
+         }
+         free(expanded);
+      }
+      // type coercion info is an ordered list of possible types
+      else
+      {
+         // FIXME: need to check if datatype matches type coercion type?
+         // FIXME: determine whether to make int,bool,decimal,or IRI
+      }
+
+      if(!rval.isNull())
+      {
+         // FIXME: convert rval dyno type to datatype
+      }
+   }
+
+   // use full encoded value, nothing in context to compact IRI
+   if(rval.isNull())
+   {
+      rval = DynamicObject();
+      rval = encoded;
+   }
 
    return rval;
 }
 
 /**
- * Adds context to a string (compacts an IRI to a CURIE).
+ * Adds context to a string (compacts an IRI to a CURIE or an XSD type to
+ * an integer, etc).
  *
- * @param context the context.
- * @param usedContext the used context values.
+ * @param ctx the context.
+ * @param usedCtx the used context values.
+ * @param predicate the related predicate or NULL for none.
  * @param str the string (IRI) to compact.
  * @param tmp to store the compact string (CURIE), may be realloc'd.
  *
- * @return a pointer to the compact string.
+ * @return the DynamicObject with the compacted value.
  */
-static const char* _compactString(
-   DynamicObject& context, DynamicObject& usedContext,
-   const char* str, char** tmp)
+static DynamicObject _compactString(
+   DynamicObject& ctx, DynamicObject& usedCtx,
+   const char* predicate, const char* str, char** tmp)
 {
-   const char* rval = str;
+   DynamicObject rval(NULL);
 
-   // check the context for a prefix that could shorten the string
-   DynamicObjectIterator i = context.getIterator();
-   while(rval == str && i->hasNext())
+   // JSON-LD decode string
+   RdfType type;
+   char* value = NULL;
+   char* datatype = NULL;
+   const char* decoded = _decodeString(str, type, &value, &datatype);
+   switch(type)
    {
-      const char* uri = i->next()->getString();
-      const char* name = i->getName();
-      const char* ptr = strstr(str, uri);
-      if(ptr != NULL && ptr == str)
-      {
-         size_t ulen = strlen(uri);
-         size_t slen = strlen(str);
-         if(slen > ulen)
-         {
-            // add 2 to make room for null-terminator and colon
-            size_t total = strlen(name) + (slen - ulen) + 2;
-            if(*tmp == NULL || total > sizeof(*tmp))
-            {
-               *tmp = (char*)realloc(*tmp, total);
-            }
-            snprintf(*tmp, total, "%s:%s", name, ptr + ulen);
-            rval = *tmp;
-            usedContext[name] = uri;
-         }
-      }
+      case RDF_TYPE_IRI:
+         rval = _compactIri(ctx, usedCtx, predicate, str, decoded, tmp);
+         break;
+      case RDF_TYPE_TYPED_LITERAL:
+         rval = _compactTypedLiteral(
+            ctx, usedCtx, predicate, str, decoded, datatype, tmp);
+         break;
+      case RDF_TYPE_PLAIN_LITERAL:
+         rval = DynamicObject();
+         rval = str;
+         break;
    }
+
+   // clean up
+   free(value);
+   free(datatype);
 
    return rval;
 }
@@ -570,14 +746,15 @@ static const char* _compactString(
 /**
  * Recursively applies context to the given input object.
  *
- * @param context the context to use.
- * @param usedContext the used context values.
+ * @param ctx the context to use.
+ * @param usedCtx the used context values.
+ * @param predicate the related predicate or NULL if none.
  * @param in the input object.
  * @param out the contextualized output object.
  */
 static void _applyContext(
-   DynamicObject& context, DynamicObject& usedContext,
-   DynamicObject& in, DynamicObject& out)
+   DynamicObject& ctx, DynamicObject& usedCtx,
+   const char* predicate, DynamicObject& in, DynamicObject& out)
 {
    if(in.isNull())
    {
@@ -591,25 +768,28 @@ static void _applyContext(
 
       if(inType == Map)
       {
-         // add context to each non-context property in the map
+         // add context to each property in the map
          char* tmp = NULL;
          DynamicObjectIterator i = in.getIterator();
          while(i->hasNext())
          {
+            // compact predicate
             DynamicObject& next = i->next();
-            if(strcmp(i->getName(), "#") != 0)
+            DynamicObject cp(NULL);
+            const char* p;
+            if(strcmp(i->getName(), "@") == 0)
             {
-               // recurse
-               _applyContext(
-                  context, usedContext,
-                  next, out[_compactString(
-                     context, usedContext, i->getName(), &tmp)]);
+               p = "@";
             }
+            else
+            {
+               cp = _compactString(ctx, usedCtx, NULL, i->getName(), &tmp);
+               p = cp;
+            }
+            // recurse
+            _applyContext(ctx, usedCtx, p, next, out[p]);
          }
-         if(tmp != NULL)
-         {
-            free(tmp);
-         }
+         free(tmp);
       }
       else if(inType == Array)
       {
@@ -618,7 +798,7 @@ static void _applyContext(
          while(i->hasNext())
          {
             DynamicObject& next = i->next();
-            _applyContext(context, usedContext, next, out->append());
+            _applyContext(ctx, usedCtx, in, next, out->append());
          }
       }
       // only strings need context applied, numbers & booleans don't
@@ -626,11 +806,8 @@ static void _applyContext(
       {
          // compact string
          char* tmp = NULL;
-         out = _compactString(context, usedContext, in->getString(), &tmp);
-         if(tmp != NULL)
-         {
-            free(tmp);
-         }
+         out = _compactString(ctx, usedCtx, predicate, in->getString(), &tmp);
+         free(tmp);
       }
    }
 }
@@ -640,12 +817,20 @@ bool JsonLd::addContext(
 {
    bool rval = true;
 
-   // TODO: should context simplification be an option?
+   // "a" is automatically shorthand for rdf type
+   DynamicObject ctx = (context.isNull() ? DynamicObject() : context.clone());
+   ctx["a"] = RDF_TYPE_SHORT;
+
+   // TODO: should context simplification be an option? (ie: remove context
+   // entries that are not used in the output)
+
    // setup output context
    DynamicObject& contextOut = out["#"];
    contextOut->setType(Map);
+
    // apply context
-   _applyContext(context, contextOut, in, out);
+   _applyContext(ctx, contextOut, NULL, in, out);
+
    // clean up
    if(contextOut->length() == 0)
    {
@@ -733,8 +918,7 @@ static void _filter(
       }
    }
 }
-// FIXME: should this be using new normalize() function rather than
-// just adding/removing contexts?
+// FIXME: should this be using new JSON-LD frame stuff rather than this?
 bool JsonLd::filter(
    DynamicObject& context, DynamicObject& filter,
    DynamicObject& in, DynamicObject& out, bool simplify)

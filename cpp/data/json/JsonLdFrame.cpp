@@ -3,6 +3,7 @@
  */
 #include "monarch/data/json/JsonLdFrame.h"
 
+#include "monarch/data/json/JsonLd.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/util/StringTools.h"
 
@@ -228,14 +229,6 @@ static void _setPredicate(
    }
 }
 
-static void _setPredicate(
-   DynamicObject& s, const char* predicate, const char* object)
-{
-   DynamicObject obj;
-   obj = object;
-   _setPredicate(s, predicate, obj);
-}
-
 static bool _isCycle(
    DynamicObject& embeds, const char* subject, const char* object,
    bool* manual)
@@ -300,7 +293,6 @@ static void _pruneCycles(
                cycle["broken"] = true;
                tmp[object] = embed;
             }
-            // FIXME: if both are manual, clone one to handle the cycle?
             // keep cycle embed
             else
             {
@@ -326,10 +318,10 @@ static void _findTypes(
    while((limit == -1 || targets->length() < limit) && i->hasNext())
    {
       DynamicObject& next = i->next();
-      if(next->hasMember("a"))
+      if(next->hasMember(RDF_TYPE))
       {
-         // "a" is either an array of strings or a string
-         DynamicObjectIterator ti = next["a"].getIterator();
+         // RDF_TYPE is either an array of strings or a string
+         DynamicObjectIterator ti = next[RDF_TYPE].getIterator();
          while(ti->hasNext())
          {
             DynamicObject& t = ti->next();
@@ -391,7 +383,7 @@ static void _findTargetObjects(
       _buildSubjectSet(subjects, subject, predicate, subjectSet);
 
       // look for the target objects in the subjectSet using the frame
-      // use "@" first, if not present use "a"
+      // use "@" first, if not present use RDF_TYPE
       if(frame->hasMember("@"))
       {
          DynamicObjectIterator i = frame["@"].getIterator();
@@ -406,10 +398,10 @@ static void _findTargetObjects(
             }
          }
       }
-      else if(frame->hasMember("a"))
+      else if(frame->hasMember(RDF_TYPE))
       {
          // find all types (limit to the first found if frame parent is a map)
-         DynamicObjectIterator i = frame["a"].getIterator();
+         DynamicObjectIterator i = frame[RDF_TYPE].getIterator();
          while(i->hasNext())
          {
             const char* type = i->next();
@@ -536,8 +528,8 @@ static void _processFrame(
             DynamicObject& obj = oi->next();
             const char* p = oi->getName();
 
-            // skip "@" and "a" predicates
-            if(strcmp(p, "@") != 0 && strcmp(p, "a") != 0)
+            // skip "@" and RDF_TYPE predicates
+            if(strcmp(p, "@") != 0 && strcmp(p, RDF_TYPE) != 0)
             {
                // frame mentions predicate
                if(f->hasMember(p))
@@ -772,10 +764,12 @@ bool JsonLdFrame::frameTriples(
    while(i->hasNext())
    {
       DynamicObject& triple = i->next();
-      const char* s = triple[0];
-      const char* p = triple[1];
-      const char* o = triple[2];
-      _setPredicate(subjects[s], p, o);
+      DynamicObject& s = subjects[triple[0]->getString()];
+      if(!s->hasMember("@"))
+      {
+         s["@"] = triple[0]->getString();
+      }
+      _setPredicate(s, triple[1], triple[2]);
    }
 
    // frame subjects
@@ -809,16 +803,22 @@ bool JsonLdFrame::frameSubjects(DynamicObject subjects, DynamicObject& out)
       a frame is next. */
    if(!mFrame.isNull())
    {
-      // process frame, store removals (removals are stored to avoid removing
-      // graph nodes during recursion)
-      topLevel = DynamicObject();
-      DynamicObject removals;
-      removals->setType(Array);
-      _processFrame(
-         mFrame, topLevel, subjects, NULL, NULL, embeds, mExplicit, removals);
+      // remove context from frame
+      DynamicObject frame;
+      rval = JsonLd::removeContext(mFrame, frame);
+      if(rval)
+      {
+         // process frame, store removals (removals are stored to avoid
+         // removing graph nodes during recursion)
+         topLevel = DynamicObject();
+         DynamicObject removals;
+         removals->setType(Array);
+         _processFrame(
+            frame, topLevel, subjects, NULL, NULL, embeds, mExplicit, removals);
 
-      // clean up removals
-      _processRemovals(subjects, embeds, removals);
+         // clean up removals
+         _processRemovals(subjects, embeds, removals);
+      }
    }
 
    /* Now that all possible embeds have been marked, we can prune cycles. */
