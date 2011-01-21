@@ -69,7 +69,7 @@ bool JsonWriter::write(DynamicObject& dyno, OutputStream* os, int level)
             size_t length = strlen(temp);
 
             // Note: UTF-8 has a maximum of 6-bytes per character when
-            // encoded in json format ("/u1234")
+            // encoded in json format ("\u1234")
             string encoded;
             encoded.reserve(length);
             encoded.push_back('"');
