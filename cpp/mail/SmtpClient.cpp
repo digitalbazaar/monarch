@@ -227,7 +227,7 @@ bool SmtpClient::sendMail(Connection* c, Mail* mail)
    }
 
    // send data
-   if(rval && (rval = sendMessage(c, mail)));
+   rval = rval && sendMessage(c, mail);
 
    // end data
    if(rval && (rval = endData(c)))
