@@ -294,6 +294,19 @@ public:
    virtual bool finish();
 
    /**
+    * Reads a DynamicObject as JSON from an InputStream.
+    *
+    * @param dyno the DynamicObject to fill.
+    * @param is the InputStream to read from.
+    * @param strict the JSON stream must start with an object or array.
+    *
+    * @return true on success, false and exception set on failure.
+    */
+   static bool readFromStream(
+      monarch::rt::DynamicObject& dyno, monarch::io::InputStream& is,
+      bool strict = true);
+
+   /**
     * Reads a DynamicObject as JSON from a string.
     *
     * @param dyno the DynamicObject to fill.

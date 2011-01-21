@@ -608,10 +608,16 @@ bool JsonReader::finish()
    return rval;
 }
 
-bool JsonReader::readFromString(
-   monarch::rt::DynamicObject& dyno, const char* s, size_t slen, bool strict)
+bool JsonReader::readFromStream(
+   DynamicObject& dyno, InputStream& is, bool strict)
 {
-   ByteArrayInputStream is(s, slen);
    JsonReader jr(strict);
    return jr.start(dyno) && jr.read(&is) && jr.finish();
+}
+
+bool JsonReader::readFromString(
+   DynamicObject& dyno, const char* s, size_t slen, bool strict)
+{
+   ByteArrayInputStream is(s, slen);
+   return readFromStream(dyno, is, strict);
 }
