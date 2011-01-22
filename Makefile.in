@@ -88,6 +88,8 @@ MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 all: dist/build.stamp
 	@echo "monarch build complete."
 
+project: all
+
 dist/build.stamp: $(ALL_FILES)
 	@mkdir -p dist
 	@$(foreach dir,$(SUBDIRS),IGNORE_DEPENDENCIES=true $(MAKE_DIR) build-headers &&) true
