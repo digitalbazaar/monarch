@@ -211,6 +211,10 @@ AC_ARG_ENABLE([dyno-key-counts],
       esac
    ], [])  dnl Default value
 
+dnl ------- Generate the algorithm for finding all of the files --------
+MO_ALL_FILES_ALGORITHM($MONARCH_DIR,*.cpp,*.h)
+AC_SUBST(ALL_FILES_ALGORITHM)
+
 dnl ----------------- substitutions -----------------
 
 # Make all the proper substitutions

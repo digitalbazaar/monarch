@@ -1,6 +1,6 @@
 # The top-level Makefile that is used to build 
 
-ALL_FILES := $(shell git ls-files)
+ALL_FILES=@ALL_FILES_ALGORITHM@
 
 EXECUTABLE_SUBDIRS := \
 	cpp/apps/js \

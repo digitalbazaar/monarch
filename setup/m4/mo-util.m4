@@ -74,3 +74,9 @@ AC_DEFUN([MO_MSG_CONFIG_OUTPUT],
    AS_ECHO_N(["$MO_MSG_CONFIG_"])
 ])
 
+dnl ----------------- File list algorithm -----------------
+AC_DEFUN([MO_ALL_FILES_ALGORITHM],
+[
+ALL_FILES_ALGORITHM="\$(shell find $1 -type f -name \"config.status\" m4_foreach(rex,[m4_shift($@)], -o -name \"rex\" ))"
+])
+
