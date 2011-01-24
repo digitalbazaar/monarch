@@ -47,6 +47,8 @@ static bool _processStream(
 
    // options
    bool hasFrame = (options["framePath"]->length() > 0);
+   bool hasFrameId (options["frameId"]->length() > 0);
+   bool hasSourceFrameId  = options["sourceFrameId"]->getBoolean();
    bool doFilter = options["filter"]->getBoolean();
    bool doNormalize = options["normalize"]->getBoolean();
    bool doHash = options["hash"]->getBoolean();
@@ -67,8 +69,19 @@ static bool _processStream(
       rval = rval &&
          jr.start(frame) &&
          jr.read(&fis) &&
-         jr.finish() &&
-         reader.setFrame(frame);
+         jr.finish();
+      if(rval)
+      {
+         if(hasSourceFrameId)
+         {
+            frame["@"] = srcName;
+         }
+         else if(hasFrameId)
+         {
+            frame["@"] = options["frameId"]->getString();
+         }
+      }
+      rval = rval && reader.setFrame(frame);
       fis.close();
    }
    // pipe data as requested
@@ -279,6 +292,8 @@ public:
       Config& c = cfg[ConfigManager::MERGE][APP_NAME];
       c["baseUri"] = "";
       c["framePath"] = "";
+      c["frameId"] = "";
+      c["sourceFrameId"] = false;
       c["filter"] = false;
       c["normalize"] = false;
       c["hash"] = true;
@@ -291,6 +306,9 @@ public:
 "Rdfa2JsonLd Options\n"
 "      --base-uri URI  The base URI to use.\n"
 "      --frame FILE    Use FILE JSON contents as the RDFa frame.\n"
+"      --frame-id ID   Use ID as the frame id.\n"
+"      --frame-source-id\n"
+"                      Use the source URI as the frame id.\n"
 "      --[no-]filter   Filter for source URI properties. (default: false)\n"
 "      --[no-]normalize"
 "                      Normalize JSON-LD. (default: false)\n"
@@ -316,6 +334,19 @@ public:
       opt["argError"] = "Frame requires a filename.";
       opt["arg"]["root"] = c;
       opt["arg"]["path"] = "framePath";
+
+      // frame id option
+      opt = spec["options"]->append();
+      opt["long"] = "--frame-id";
+      opt["argError"] = "The frame-id option requires an id.";
+      opt["arg"]["root"] = c;
+      opt["arg"]["path"] = "frameId";
+
+      // frame id option
+      opt = spec["options"]->append();
+      opt["long"] = "--frame-source-id";
+      opt["arg"]["root"] = c;
+      opt["arg"]["setTrue"] = "sourceFrameId";
 
       // simple boolean options
       DynamicObject bools;
