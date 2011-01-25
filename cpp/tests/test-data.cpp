@@ -692,6 +692,32 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("normalize (datatype)");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["@"] = "http://example.org/test#example";
+      in["ex:validFrom"] =
+         "2011-01-25T00:00:00+0000^^"
+         "<http://www.w3.org/2001/XMLSchema#dateTime>";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test#example>";
+      expect["<http://example.org/vocab#validFrom>"] =
+         "2011-01-25T00:00:00+0000^^"
+         "<http://www.w3.org/2001/XMLSchema#dateTime>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
    tr.test("remove context (id)");
    {
       DynamicObject in;

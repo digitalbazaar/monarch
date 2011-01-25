@@ -54,6 +54,7 @@ static char* _realloc(char** str, size_t len)
  *
  * @return the encoded string.
  */
+// TODO: expose as utility function?
 static string _encode(
    RdfType type, const char* value, const char* datatype = NULL)
 {
@@ -98,6 +99,7 @@ static string _encode(
  *
  * @return the decoded value.
  */
+// TODO: expose as utility function?
 static const char* _decode(
    const char* str, RdfType& type, string& value, string& datatype)
 {
@@ -144,7 +146,7 @@ static const char* _decode(
       if(datatype.at(0) == '<' && datatype.at(end) == '>')
       {
          datatype.erase(end);
-         datatype.erase(0);
+         datatype.erase(0, 1);
       }
    }
    else
