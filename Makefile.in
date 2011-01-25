@@ -83,12 +83,15 @@ MAKE_JOB_OPTS ?= -j -l $(MAX_LOAD).0
 MAKE_CMD = $(PRINT_COMMANDS_OPTS) $(MAKE) $(MAKE_JOB_OPTS) $(PRINT_DIRECTORIES_OPTS)
 MAKE_DIR = $(PRINT_COMMANDS_OPTS) $(MAKE_CMD) -C $(dir)
 
-.PHONY: all project verbose clean test internal-docs clean-docs
+.PHONY: all project project-build-setup verbose clean test internal-docs clean-docs
 
 all: dist/build.stamp
 	@echo "monarch build complete."
 
 project: all
+
+project-build-setup: 
+	@git pull && ./build-setup
 
 dist/build.stamp: $(ALL_FILES)
 	@mkdir -p dist
