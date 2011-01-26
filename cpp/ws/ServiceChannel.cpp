@@ -117,6 +117,11 @@ const char* ServiceChannel::getAuthenticationMethod()
    return mAuthMethod;
 }
 
+bool ServiceChannel::isAuthenticated()
+{
+   return mAuthMethod != NULL;
+}
+
 DynamicObject ServiceChannel::getAuthenticationData(const char* method)
 {
    DynamicObject rval(NULL);

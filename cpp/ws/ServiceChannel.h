@@ -183,6 +183,14 @@ public:
    virtual const char* getAuthenticationMethod();
 
    /**
+    * Returns true if a non-anonymous authentication method passed.
+    *
+    * @return true if the request is authenticated and non-anonymous,
+    *         false if not.
+    */
+   virtual bool isAuthenticated();
+
+   /**
     * Gets the authentication data for the first non-anonymous authentication
     * method approved (or anonymous if nothing else was approved and it's in
     * the list, but anonymous has NULL data).
