@@ -107,7 +107,7 @@ public:
     * Adds a RequestAuthenticator to this handler. Authentication methods are
     * checked in the order that they are added.
     *
-    * @param method the RequestAuthenticator to add.
+    * @param method the RequestAuthenticator to add, NULL for anonymous.
     */
    virtual void addRequestAuthenticator(RequestAuthenticatorRef method);
 };
