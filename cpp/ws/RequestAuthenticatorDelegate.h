@@ -25,7 +25,13 @@ protected:
    /**
     * Typedef for authentication function.
     */
-   typedef void (Handler::*AuthFunction)(Channel* ch);
+   typedef bool (Handler::*SimpleFunction)(Channel* ch);
+
+   /**
+    * Typedef for authentication function w/user-data dyno.
+    */
+   typedef bool (Handler::*DynoFunction)(
+      Channel* ch, monarch::rt::DynamicObject&);
 
    /**
     * The handler object with the handler function as a member.
@@ -33,9 +39,27 @@ protected:
    Handler* mHandler;
 
    /**
+    * The type for the function.
+    */
+   enum Type
+   {
+      FunctionSimple,
+      FunctionDyno
+   } mType;
+
+   /**
     * The handler function.
     */
-   AuthFunction mAuthFunction;
+   union
+   {
+      SimpleFunction mSimpleFunction;
+      DynoFunction mDynoFunction;
+   };
+
+   /**
+    * User data to pass to a dyno function.
+    */
+   monarch::rt::DynamicObject mDyno;
 
 public:
    /**
@@ -45,7 +69,18 @@ public:
     * @param h the handler object.
     * @param f the handler's function for authenticating a request.
     */
-   RequestAuthenticatorDelegate(Handler* h, AuthFunction f);
+   RequestAuthenticatorDelegate(Handler* h, SimpleFunction f);
+
+   /**
+    * Creates a new RequestAuthenticatorDelegate with the specified handler
+    * object, function, and user-data to pass to the function.
+    *
+    * @param h the handler object.
+    * @param f the handler's function for authenticating a request.
+    * @param data the user-data to pass to the function.
+    */
+   RequestAuthenticatorDelegate(
+      Handler* h, DynoFunction f, monarch::rt::DynamicObject& data);
 
    /**
     * Destructs this RequestAuthenticatorDelegate.
@@ -60,9 +95,21 @@ public:
 
 template<typename Handler, typename Channel>
 RequestAuthenticatorDelegate<Handler, Channel>::RequestAuthenticatorDelegate(
-   Handler* h, AuthFunction f) :
+   Handler* h, SimpleFunction f) :
    mHandler(h),
-   mAuthFunction(f)
+   mType(FunctionSimple),
+   mSimpleFunction(f),
+   mDyno(NULL)
+{
+}
+
+template<typename Handler, typename Channel>
+RequestAuthenticatorDelegate<Handler, Channel>::RequestAuthenticatorDelegate(
+   Handler* h, DynoFunction f, monarch::rt::DynamicObject& data) :
+   mHandler(h),
+   mType(FunctionDyno),
+   mDynoFunction(f),
+   mDyno(data)
 {
 }
 
@@ -75,7 +122,18 @@ template<typename Handler, typename Channel>
 bool RequestAuthenticatorDelegate<Handler, Channel>::checkAuthentication(
    ServiceChannel* ch)
 {
-   return (mHandler->*mAuthFunction)(static_cast<Channel*>(ch));
+   bool rval;
+
+   if(mType == FunctionDyno)
+   {
+      rval = (mHandler->*mDynoFunction)(static_cast<Channel*>(ch), mDyno);
+   }
+   else
+   {
+      rval = (mHandler->*mSimpleFunction)(static_cast<Channel*>(ch));
+   }
+
+   return rval;
 }
 
 } // end namespace ws

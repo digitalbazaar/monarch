@@ -23,6 +23,7 @@
 #include "monarch/util/Date.h"
 #include "monarch/util/StringTools.h"
 #include "monarch/ws/PathHandlerDelegate.h"
+#include "monarch/ws/RequestAuthenticatorDelegate.h"
 #include "monarch/ws/RestfulHandler.h"
 #include "monarch/ws/WebServer.h"
 
@@ -43,6 +44,7 @@ namespace mo_test_ws
 
 class TestWebService;
 typedef PathHandlerDelegate<TestWebService> Handler;
+typedef RequestAuthenticatorDelegate<TestWebService> AuthHandler;
 
 class TestWebService : public WebService
 {
@@ -79,13 +81,19 @@ public:
       {
          PathHandlerRef h = new Handler(
             this, &TestWebService::handleRegexRequest);
+         h->addRequestAuthenticator(new AuthHandler(
+            this, &TestWebService::authenticate));
          root->addRegexHandler("/(.*)/regextest/(.*)", h, Message::Get);
       }
 
       // GET /(.*)/regextest2/(.*)
       {
+         DynamicObject userData;
+         userData["foo"] = "bar";
          PathHandlerRef h = new Handler(
             this, &TestWebService::handleRegexRequest2);
+         h->addRequestAuthenticator(new AuthHandler(
+            this, &TestWebService::authenticate2, userData));
          root->addRegexHandler("/(.*)/regextest2/(.*)", h, Message::Get);
       }
 
@@ -137,6 +145,21 @@ public:
       string out = JsonWriter::writeToString(ch->getHandlerInfo());
       ByteArrayInputStream bais(out.c_str(), out.length());
       ch->getResponse()->sendBody(&bais);
+   }
+
+   virtual bool authenticate(ServiceChannel* ch)
+   {
+      // anonymous authentication
+      ch->setAuthenticationMethod(NULL);
+      return true;
+   }
+
+   virtual bool authenticate2(ServiceChannel* ch, DynamicObject& data)
+   {
+      // anonymous authentication
+      ch->setAuthenticationMethod(NULL);
+      assertStrCmp(data["foo"]->getString(), "bar");
+      return true;
    }
 };
 

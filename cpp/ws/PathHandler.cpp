@@ -85,7 +85,7 @@ bool PathHandler::secureConnectionRequired()
    return mSecureOnly;
 }
 
-void PathHandler::addRequestAuthenticator(RequestAuthenticatorRef& method)
+void PathHandler::addRequestAuthenticator(RequestAuthenticatorRef method)
 {
    mAuthMethods.push_back(method);
 }

@@ -109,7 +109,7 @@ public:
     *
     * @param method the RequestAuthenticator to add.
     */
-   virtual void addRequestAuthenticator(RequestAuthenticatorRef& method);
+   virtual void addRequestAuthenticator(RequestAuthenticatorRef method);
 };
 
 // type definition for a reference counted PathHandler
