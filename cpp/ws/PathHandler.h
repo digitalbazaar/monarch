@@ -61,9 +61,10 @@ public:
 
    /**
     * Checks to see if the request sent over the given channel is authenticated
-    * according to one of the given authentication methods. Once a channel is
-    * authenticated by one of the methods, the authentication method and data
-    * will be set and this method will return.
+    * according to one of the given authentication methods. If the request is
+    * authenticated by one of the methods then the authentication method and
+    * data will be set. The first method of authentication that passed can
+    * be retrieved from the channel.
     *
     * If no authentication methods were specified, then this method will set
     * the authentication method to NULL and return true.

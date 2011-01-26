@@ -35,8 +35,7 @@ ServiceChannel::ServiceChannel(const char* path) :
    mContent(NULL),
    mHandlerInfo(NULL),
    mHandlerData(NULL),
-   mAuthenticationMethod(NULL),
-   mAuthenticationData(NULL),
+   mAuthMethod(NULL),
    mContentReceived(false),
    mHasSent(NULL),
    mAutoContentEncode(true)
@@ -47,7 +46,14 @@ ServiceChannel::~ServiceChannel()
 {
    free(mPath);
    free(mBasePath);
-   free(mAuthenticationMethod);
+   free(mAuthMethod);
+
+   // free method strings
+   for(AuthDataMap::iterator i = mAuthDataMap.begin();
+       i != mAuthDataMap.end(); ++i)
+   {
+      free((char*)i->first);
+   }
 }
 
 void ServiceChannel::initialize()
@@ -78,29 +84,59 @@ DynamicObject& ServiceChannel::getHandlerInfo()
 void ServiceChannel::setAuthenticationMethod(
    const char* method, DynamicObject* data)
 {
-   free(mAuthenticationMethod);
    if(method != NULL)
    {
-      mAuthenticationMethod = strdup(method);
-   }
-   if(data == NULL)
-   {
-      mAuthenticationData.setNull();
-   }
-   else
-   {
-      mAuthenticationData = *data;
+      // only set first auth method once
+      if(mAuthMethod == NULL)
+      {
+         mAuthMethod = strdup(method);
+      }
+
+      // create auth data entry
+      DynamicObject d(NULL);
+      if(data != NULL)
+      {
+         d = data;
+      }
+
+      // add/replace auth data entry in map
+      AuthDataMap::iterator i = mAuthDataMap.find(method);
+      if(i != mAuthDataMap.end())
+      {
+         mAuthDataMap[method] = d;
+      }
+      else
+      {
+         mAuthDataMap.insert(make_pair(strdup(method), d));
+      }
    }
 }
 
 const char* ServiceChannel::getAuthenticationMethod()
 {
-   return mAuthenticationMethod;
+   return mAuthMethod;
 }
 
-DynamicObject& ServiceChannel::getAuthenticationData()
+DynamicObject ServiceChannel::getAuthenticationData(const char* method)
 {
-   return mAuthenticationData;
+   DynamicObject rval(NULL);
+
+   // use first auth method set
+   if(method == NULL)
+   {
+      method = mAuthMethod;
+   }
+
+   if(method != NULL)
+   {
+      AuthDataMap::iterator i = mAuthDataMap.find(method);
+      if(i != mAuthDataMap.end())
+      {
+         rval = i->second;
+      }
+   }
+
+   return rval;
 }
 
 void ServiceChannel::selectContentEncoding()

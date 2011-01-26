@@ -32,12 +32,18 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
    }
    else
    {
-      // check until one method works
+      // check all authentication methods
       for(RequestAuthList::iterator i = mAuthMethods.begin();
-          !rval && i != mAuthMethods.end(); ++i)
+          i != mAuthMethods.end(); ++i)
       {
+         // clear exceptions from previous failures
          Exception::clear();
-         rval = (*i)->checkAuthentication(ch);
+
+         // check authentication, set rval to true if not yet set
+         if((*i)->checkAuthentication(ch) && !rval)
+         {
+            rval = true;
+         }
       }
    }
 

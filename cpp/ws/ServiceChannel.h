@@ -90,14 +90,18 @@ protected:
    void* mHandlerData;
 
    /**
-    * Stores the authentication method used. NULL for anonymous.
+    * Stores the first authentication method passed. NULL for anonymous.
     */
-   char* mAuthenticationMethod;
+   char* mAuthMethod;
 
    /**
     * Stores the authentication data.
     */
-   monarch::rt::DynamicObject mAuthenticationData;
+   typedef std::map<
+      const char*, monarch::rt::DynamicObject,
+      monarch::util::StringComparator>
+   AuthDataMap;
+   AuthDataMap mAuthDataMap;
 
    /**
     * Flag if content has already been received.
@@ -159,7 +163,10 @@ public:
    virtual monarch::rt::DynamicObject& getHandlerInfo();
 
    /**
-    * Sets the authentication method used and any associated data.
+    * Sets the authentication method used and any associated data. If more
+    * than one method is approved, the data will be still be stored and
+    * made accessible via the method, but getAuthenticationMethod() will
+    * only return the first approved method.
     *
     * @param method the method used.
     * @param data any associated data.
@@ -168,18 +175,27 @@ public:
       const char* method, monarch::rt::DynamicObject* data = NULL);
 
    /**
-    * Gets the authentication method, NULL indicates anonymous.
+    * Gets the first non-anonymous authentication method approved, NULL
+    * indicates anonymous.
     *
     * @return the authentication method.
     */
    virtual const char* getAuthenticationMethod();
 
    /**
-    * Gets the authentication data.
+    * Gets the authentication data for the first non-anonymous authentication
+    * method approved (or anonymous if nothing else was approved and it's in
+    * the list, but anonymous has NULL data).
+    *
+    * To retrieve another authentication method that was approved, but wasn't
+    * the first approved, provide the method.
+    *
+    * @param method the authentication method, NULL for the first one.
     *
     * @return the authentication data.
     */
-   virtual monarch::rt::DynamicObject& getAuthenticationData();
+   virtual monarch::rt::DynamicObject getAuthenticationData(
+      const char* method = NULL);
 
    /**
     * Adds a Content-Encoding header if Accept-Encoding includes a supported
