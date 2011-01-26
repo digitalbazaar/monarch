@@ -28,7 +28,6 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
    if(mAuthMethods.size() == 0)
    {
       rval = true;
-      ch->setAuthenticationMethod(NULL, NULL);
    }
    else
    {

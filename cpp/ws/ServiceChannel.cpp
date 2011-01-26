@@ -82,7 +82,7 @@ DynamicObject& ServiceChannel::getHandlerInfo()
 }
 
 void ServiceChannel::setAuthenticationMethod(
-   const char* method, DynamicObject* data)
+   const char* method, DynamicObject& data)
 {
    if(method != NULL)
    {
@@ -92,22 +92,15 @@ void ServiceChannel::setAuthenticationMethod(
          mAuthMethod = strdup(method);
       }
 
-      // create auth data entry
-      DynamicObject d(NULL);
-      if(data != NULL)
-      {
-         d = data;
-      }
-
       // add/replace auth data entry in map
       AuthDataMap::iterator i = mAuthDataMap.find(method);
       if(i != mAuthDataMap.end())
       {
-         mAuthDataMap[method] = d;
+         mAuthDataMap[method] = data;
       }
       else
       {
-         mAuthDataMap.insert(make_pair(strdup(method), d));
+         mAuthDataMap.insert(make_pair(strdup(method), data));
       }
    }
 }

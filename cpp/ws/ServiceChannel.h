@@ -172,7 +172,7 @@ public:
     * @param data any associated data.
     */
    virtual void setAuthenticationMethod(
-      const char* method, monarch::rt::DynamicObject* data = NULL);
+      const char* method, monarch::rt::DynamicObject& data);
 
    /**
     * Gets the first non-anonymous authentication method approved, NULL
@@ -200,7 +200,8 @@ public:
     *
     * @param method the authentication method, NULL for the first one.
     *
-    * @return the authentication data.
+    * @return the authentication data, NULL if authentication did not pass
+    *         for the given method or the method is invalid.
     */
    virtual monarch::rt::DynamicObject getAuthenticationData(
       const char* method = NULL);

@@ -66,8 +66,9 @@ public:
     * data will be set. The first method of authentication that passed can
     * be retrieved from the channel.
     *
-    * If no authentication methods were specified, then this method will set
-    * the authentication method to NULL and return true.
+    * If no authentication methods were specified, then the channel's
+    * authentication method will be set to NULL but this method will
+    * return true.
     *
     * If no authentication methods are matched, then this method will return
     * false with an exception set.

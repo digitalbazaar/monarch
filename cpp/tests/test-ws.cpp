@@ -149,15 +149,13 @@ public:
 
    virtual bool authenticate(ServiceChannel* ch)
    {
-      // anonymous authentication
-      ch->setAuthenticationMethod(NULL);
+      // anonymous authentication, nothing to set
       return true;
    }
 
    virtual bool authenticate2(ServiceChannel* ch, DynamicObject& data)
    {
-      // anonymous authentication
-      ch->setAuthenticationMethod(NULL);
+      // anonymous authentication, nothing to set
       assertStrCmp(data["foo"]->getString(), "bar");
       return true;
    }
