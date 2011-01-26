@@ -32,11 +32,10 @@ bool Any::isValid(
    // invalid result, store the context results if they match or
    // exceed the most number of successful validations
    uint32_t maxSuccesses = 0;
-   int index;
    DynamicObject errors;
    errors->setType(Array);
    for(std::vector<Validator*>::iterator i = mValidators.begin();
-       !rval && i != mValidators.end(); ++i, ++index)
+       !rval && i != mValidators.end(); ++i)
    {
       rval = (*i)->isValid(obj, context);
       if(!rval)
