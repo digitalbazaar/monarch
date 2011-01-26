@@ -89,20 +89,12 @@ public:
    virtual ~PathHandlerDelegate();
 
    /**
-    * Checks to see if the handler can handle the client's request. If not,
-    * an exception must be set that will be sent to the client.
-    *
-    * @param ch the communication channel with the client.
-    *
-    * @return true if the request can be handled.
+    * {@inheritDoc}
     */
    virtual bool canHandleRequest(ServiceChannel* ch);
 
    /**
-    * Handles the client's request. Does whatever is necessary to handle the
-    * client's request and sends a response.
-    *
-    * @param ch the communication channel with the client.
+    * {@inheritDoc}
     */
    virtual void handleRequest(ServiceChannel* ch);
 };
@@ -144,6 +136,8 @@ bool PathHandlerDelegate<Handler, Channel>::canHandleRequest(ServiceChannel* ch)
       monarch::rt::DynamicObject in;
       rval = ch->receiveContent(in);
    }
+
+   rval = rval && checkAuthentication(ch);
 
    return rval;
 }

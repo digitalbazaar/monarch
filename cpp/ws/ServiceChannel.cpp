@@ -35,6 +35,8 @@ ServiceChannel::ServiceChannel(const char* path) :
    mContent(NULL),
    mHandlerInfo(NULL),
    mHandlerData(NULL),
+   mAuthenticationMethod(NULL),
+   mAuthenticationData(NULL),
    mContentReceived(false),
    mHasSent(NULL),
    mAutoContentEncode(true)
@@ -44,10 +46,8 @@ ServiceChannel::ServiceChannel(const char* path) :
 ServiceChannel::~ServiceChannel()
 {
    free(mPath);
-   if(mBasePath != NULL)
-   {
-      free(mBasePath);
-   }
+   free(mBasePath);
+   free(mAuthenticationMethod);
 }
 
 void ServiceChannel::initialize()
@@ -73,6 +73,34 @@ void ServiceChannel::setHandlerInfo(DynamicObject& info)
 DynamicObject& ServiceChannel::getHandlerInfo()
 {
    return mHandlerInfo;
+}
+
+void ServiceChannel::setAuthenticationMethod(
+   const char* method, DynamicObject* data)
+{
+   free(mAuthenticationMethod);
+   if(method != NULL)
+   {
+      mAuthenticationMethod = strdup(method);
+   }
+   if(data == NULL)
+   {
+      mAuthenticationData.setNull();
+   }
+   else
+   {
+      mAuthenticationData = *data;
+   }
+}
+
+const char* ServiceChannel::getAuthenticationMethod()
+{
+   return mAuthenticationMethod;
+}
+
+DynamicObject& ServiceChannel::getAuthenticationData()
+{
+   return mAuthenticationData;
 }
 
 void ServiceChannel::selectContentEncoding()

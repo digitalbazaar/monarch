@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_ws_PathHandler_H
 #define monarch_ws_PathHandler_H
 
-#include "monarch/ws/ServiceChannel.h"
+#include "monarch/ws/RequestAuthenticator.h"
+
+#include <vector>
 
 namespace monarch
 {
@@ -26,6 +28,12 @@ protected:
     */
    bool mSecureOnly;
 
+   /**
+    * A list of request authenticators.
+    */
+   typedef std::vector<RequestAuthenticatorRef> RequestAuthList;
+   RequestAuthList mAuthMethods;
+
 public:
    /**
     * Creates a new PathHandler.
@@ -42,13 +50,30 @@ public:
 
    /**
     * Checks to see if the handler can handle the client's request. If not,
-    * an exception must be set that will be sent to the client.
+    * an exception must be set that will be sent to the client. The default
+    * implementation will call checkAuthentication().
     *
     * @param ch the communication channel with the client.
     *
     * @return true if the request can be handled.
     */
    virtual bool canHandleRequest(ServiceChannel* ch);
+
+   /**
+    * Checks to see if the request sent over the given channel is authenticated
+    * according to one of the given authentication methods. Once a channel is
+    * authenticated by one of the methods, the authentication method and data
+    * will be set and this method will return.
+    *
+    * If no authentication methods were specified, then this method will set
+    * the authentication method to NULL and return true.
+    *
+    * If no authentication methods are matched, then this method will return
+    * false with an exception set.
+    *
+    * @return true if authenticated, false if not with exception set.
+    */
+   virtual bool checkAuthentication(ServiceChannel* ch);
 
    /**
     * Handles the client's request. Does whatever is necessary to handle the
@@ -77,6 +102,14 @@ public:
     * @return true if this handler requires a secure connection, false if not.
     */
    virtual bool secureConnectionRequired();
+
+   /**
+    * Adds a RequestAuthenticator to this handler. Authentication methods are
+    * checked in the order that they are added.
+    *
+    * @param method the RequestAuthenticator to add.
+    */
+   virtual void addRequestAuthenticator(RequestAuthenticatorRef& method);
 };
 
 // type definition for a reference counted PathHandler

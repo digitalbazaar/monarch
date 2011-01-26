@@ -90,6 +90,16 @@ protected:
    void* mHandlerData;
 
    /**
+    * Stores the authentication method used. NULL for anonymous.
+    */
+   char* mAuthenticationMethod;
+
+   /**
+    * Stores the authentication data.
+    */
+   monarch::rt::DynamicObject mAuthenticationData;
+
+   /**
     * Flag if content has already been received.
     */
    bool mContentReceived;
@@ -147,6 +157,29 @@ public:
     * @return the handler info.
     */
    virtual monarch::rt::DynamicObject& getHandlerInfo();
+
+   /**
+    * Sets the authentication method used and any associated data.
+    *
+    * @param method the method used.
+    * @param data any associated data.
+    */
+   virtual void setAuthenticationMethod(
+      const char* method, monarch::rt::DynamicObject* data = NULL);
+
+   /**
+    * Gets the authentication method, NULL indicates anonymous.
+    *
+    * @return the authentication method.
+    */
+   virtual const char* getAuthenticationMethod();
+
+   /**
+    * Gets the authentication data.
+    *
+    * @return the authentication data.
+    */
+   virtual monarch::rt::DynamicObject& getAuthenticationData();
 
    /**
     * Adds a Content-Encoding header if Accept-Encoding includes a supported

@@ -262,10 +262,11 @@ static void runWebServerTest(TestRunner& tr)
    // check the regex path and data
    tr.test("WebServer - regex path handler matches");
    {
-      DynamicObject matches;
+      DynamicObject info;
+      DynamicObject& matches = info["monarch.ws.RestfulHandler"]["matches"];
       matches[0] = "dumplings";
       matches[1] = "turkey";
-      string expect = JsonWriter::writeToString(matches, false, false);
+      string expect = JsonWriter::writeToString(info);
 
       Url url;
       url.format("http://%s:%d%s", cfg["host"]->getString(), port, regexPath2);
