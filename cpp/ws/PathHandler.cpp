@@ -36,6 +36,7 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
       for(RequestAuthList::iterator i = mAuthMethods.begin();
           !rval && i != mAuthMethods.end(); ++i)
       {
+         Exception::clear();
          rval = (*i)->checkAuthentication(ch);
       }
    }
