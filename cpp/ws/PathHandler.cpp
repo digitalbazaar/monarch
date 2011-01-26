@@ -88,5 +88,12 @@ bool PathHandler::secureConnectionRequired()
 
 void PathHandler::addRequestAuthenticator(RequestAuthenticatorRef method)
 {
+   // handle anonymous
+   if(method.isNull())
+   {
+      method = new RequestAuthenticator();
+   }
+
+   // add method
    mAuthMethods.push_back(method);
 }
