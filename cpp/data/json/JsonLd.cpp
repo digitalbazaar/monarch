@@ -635,6 +635,14 @@ static DynamicObject _compactIri(
 {
    DynamicObject rval(NULL);
 
+   // determine if brackets should be added
+   bool addBrackets = false;
+   if(predicate != NULL &&
+      strcmp(predicate, "@") != 0 && strcmp(predicate, "a") != 0)
+   {
+      addBrackets = true;
+   }
+
    // check the context for a prefix that could shorten the IRI to a CURIE
    DynamicObjectIterator i = ctx.getIterator();
    while(rval.isNull() && i->hasNext())
@@ -655,8 +663,13 @@ static DynamicObject _compactIri(
             {
                // add 2 to make room for null-terminator and colon
                size_t total = strlen(name) + (vlen - ulen) + 2;
+               if(addBrackets)
+               {
+                  total += 2;
+               }
                _realloc(curie, total);
-               snprintf(*curie, total, "%s:%s", name, ptr + ulen);
+               const char* format = addBrackets ? "<%s:%s>" : "%s:%s";
+               snprintf(*curie, total, format, name, ptr + ulen);
                rval = DynamicObject();
                rval = *curie;
                usedCtx[name] = uri;
@@ -859,7 +872,7 @@ static void _applyContext(
          while(i->hasNext())
          {
             DynamicObject& next = i->next();
-            _applyContext(ctx, usedCtx, in, next, out->append());
+            _applyContext(ctx, usedCtx, predicate, next, out->append());
          }
       }
       // only strings need context applied, numbers & booleans don't
