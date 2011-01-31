@@ -850,9 +850,9 @@ static void testRemove()
    c3[ConfigManager::PARENT] = "test1";
    c3[ConfigManager::REMOVE]["b"].setNull();
 
-   dumpDynamicObject(c1);
-   dumpDynamicObject(c2);
-   dumpDynamicObject(c3);
+   //dumpDynamicObject(c1);
+   //dumpDynamicObject(c2);
+   //dumpDynamicObject(c3);
 
    // test removal with string value
    {
