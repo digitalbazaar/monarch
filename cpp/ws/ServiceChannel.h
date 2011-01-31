@@ -372,6 +372,13 @@ public:
    virtual monarch::http::HttpConnection* getConnection();
 
    /**
+    * Returns true if the underlying HttpConnection is secure, false if not.
+    *
+    * @return true if the underlying HttpConnection is secure, false if not.
+    */
+   virtual bool isSecure();
+
+   /**
     * Called by the PathHandler that created this channel to set the base
     * path (excluding parameters).
     *

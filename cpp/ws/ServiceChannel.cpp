@@ -497,6 +497,11 @@ monarch::http::HttpConnection* ServiceChannel::getConnection()
    return mRequest->getConnection();
 }
 
+bool ServiceChannel::isSecure()
+{
+   return getRequest()->getConnection()->isSecure();
+}
+
 void ServiceChannel::setBasePath(const char* path)
 {
    if(mBasePath != NULL)
