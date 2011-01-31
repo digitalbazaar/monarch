@@ -38,7 +38,7 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
          // clear exceptions from previous failures
          Exception::clear();
 
-         // check authentication, set rval to true if not yet set
+         // if authentication passed, set rval to true if not yet set
          if((*i)->checkAuthentication(ch) && !rval)
          {
             rval = true;

@@ -104,6 +104,16 @@ protected:
    AuthDataMap mAuthDataMap;
 
    /**
+    * Stores authentication exceptions for attempted but failed
+    * authentications.
+    */
+   typedef std::map<
+      const char*, monarch::rt::ExceptionRef,
+      monarch::util::StringComparator>
+   AuthErrorMap;
+   AuthErrorMap mAuthErrorMap;
+
+   /**
     * Flag if content has already been received.
     */
    bool mContentReceived;
@@ -205,6 +215,39 @@ public:
     */
    virtual monarch::rt::DynamicObject getAuthenticationData(
       const char* method = NULL);
+
+   /**
+    * Sets the authentication exception associated with the given method.
+    * Exceptions should only be set when checkAuthentication() returns -1,
+    * indicating that an authentication attempt was made but it failed. If
+    * checkAuthentication() returns 0, the exception should not be set because
+    * no attempt was made using the given authenticator.
+    *
+    * @param method the method used.
+    * @param e the exception.
+    */
+   virtual void setAuthenticationException(
+      const char* method, monarch::rt::ExceptionRef& e);
+
+   /**
+    * Gets the authentication exception for the given authentication method. If
+    * no exception is returned, it means one of two possibilities:
+    *
+    * 1. No attempt was made to authenticate using the given method; the
+    *    channel should be considered anonymous w/respect to the method.
+    * 2. A successful attempt was made to authenticate using the given method;
+    *    the channel should be considered authenticated.
+    *
+    * Note that the existence of an exception means that an authentication
+    * attempt was made that failed.
+    *
+    * @param method the authentication method.
+    *
+    * @return the authentication exception, NULL if there was no error
+    *         associated with the authentication method.
+    */
+   virtual monarch::rt::ExceptionRef getAuthenticationException(
+      const char* method);
 
    /**
     * Adds a Content-Encoding header if Accept-Encoding includes a supported

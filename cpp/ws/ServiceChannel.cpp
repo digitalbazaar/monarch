@@ -54,6 +54,13 @@ ServiceChannel::~ServiceChannel()
    {
       free((char*)i->first);
    }
+
+   // free method strings
+   for(AuthErrorMap::iterator i = mAuthErrorMap.begin();
+       i != mAuthErrorMap.end(); ++i)
+   {
+      free((char*)i->first);
+   }
 }
 
 void ServiceChannel::initialize()
@@ -129,6 +136,40 @@ DynamicObject ServiceChannel::getAuthenticationData(const char* method)
    {
       AuthDataMap::iterator i = mAuthDataMap.find(method);
       if(i != mAuthDataMap.end())
+      {
+         rval = i->second;
+      }
+   }
+
+   return rval;
+}
+
+void ServiceChannel::setAuthenticationException(
+   const char* method, ExceptionRef& e)
+{
+   if(method != NULL)
+   {
+      // add/replace auth exception entry in map
+      AuthErrorMap::iterator i = mAuthErrorMap.find(method);
+      if(i != mAuthErrorMap.end())
+      {
+         mAuthErrorMap[method] = e;
+      }
+      else
+      {
+         mAuthErrorMap.insert(make_pair(strdup(method), e));
+      }
+   }
+}
+
+ExceptionRef ServiceChannel::getAuthenticationException(const char* method)
+{
+   ExceptionRef rval(NULL);
+
+   if(method != NULL)
+   {
+      AuthErrorMap::iterator i = mAuthErrorMap.find(method);
+      if(i != mAuthErrorMap.end())
       {
          rval = i->second;
       }

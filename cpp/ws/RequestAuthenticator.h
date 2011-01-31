@@ -36,9 +36,21 @@ public:
    /**
     * Checks to see if a request made over the given channel is authenticated.
     *
+    * If an authentication attempt was made by the client and it was
+    * successful, then setAuthenticationMethod() must be called on the
+    * ServiceChannel.
+    *
+    * If an authentication attempt was made by the client and it was
+    * unsuccessful, then setAuthenticationException() must be called on
+    * the ServiceChannel.
+    *
+    * If no authentication attempt was made by the client, then this method
+    * must return false. No calls to the channel are required.
+    *
     * @param ch the communication channel with the client.
     *
-    * @return true if the request can be handled.
+    * @return true if the request is authenticated, false if not with
+    *         exception set.
     */
    virtual bool checkAuthentication(ServiceChannel* ch);
 };
