@@ -906,6 +906,8 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject expect;
       expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
       expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["#"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      expect["#"]["#types"]["ex:contains"] = "xsd:anyURI";
       expect["@"] = "http://example.org/test#book";
       expect["ex:contains"] = "http://example.org/test#chapter";
       expect["dc:title"] = "Title";

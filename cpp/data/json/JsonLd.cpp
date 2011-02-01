@@ -18,6 +18,9 @@ using namespace monarch::util;
 #define RDF_TYPE         "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
 #define RDF_TYPE_SHORT   "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 #define URI_TYPE         "<http://www.w3.org/2001/XMLSchema#anyURI>"
+#define BOOL_TYPE        "<http://www.w3.org/2001/XMLSchema#boolean>"
+#define INT_TYPE         "<http://www.w3.org/2001/XMLSchema#integer>"
+#define DECIMAL_TYPE     "<http://www.w3.org/2001/XMLSchema#decimal>"
 
 enum RdfType
 {
@@ -168,11 +171,13 @@ static const char* _decode(
  * @param ctx the context to use.
  * @param str the string to expand (no <>).
  * @param iri the string to store the IRI in.
+ * @param usedCtx a context to update if a value was used from "ctx".
  *
  * @return true if the string was expanded, false if not.
  */
 static bool _expandCurie(
-   DynamicObject& ctx, const char* str, string& iri)
+   DynamicObject& ctx, const char* str, string& iri,
+   DynamicObject* usedCtx = NULL)
 {
    bool rval = false;
 
@@ -194,6 +199,10 @@ static bool _expandCurie(
             DynamicObject& uri = ctx[prefix];
             len = strlen(uri->getString()) + strlen(ptr + 1) + 3;
             iri = StringTools::format("%s%s", uri->getString(), ptr + 1);
+            if(usedCtx != NULL)
+            {
+               (*usedCtx)[prefix] = uri;
+            }
             rval = true;
          }
       }
@@ -241,15 +250,16 @@ static void _setPredicate(DynamicObject& s, const char* p, const char* o)
  *
  * @param ctx the context.
  * @param value the value to normalize.
- * @param type the expected RDF type, defaults to RDF_TYPE_UNKNOWN.
+ * @param type the expected RDF type, use RDF_TYPE_UNKNOWN if not known.
  * @param predicate an optional predicate for the value (used to look up
  *           type coercion info).
+ * @param usedCtx a context to update if a value was used from "ctx".
  *
  * @return the normalized string.
  */
 static string _normalizeValue(
    DynamicObject& ctx, DynamicObject value,
-   RdfType type = RDF_TYPE_UNKNOWN, const char* predicate = NULL)
+   RdfType type, const char* predicate, DynamicObject* usedCtx)
 {
    string rval;
 
@@ -281,12 +291,16 @@ static string _normalizeValue(
          ctx["#types"]->hasMember(predicate))
       {
          DynamicObject& tci = ctx["#types"][predicate];
+         if(usedCtx != NULL)
+         {
+            (*usedCtx)["#types"][predicate] = tci;
+         }
 
          // handle specific type
          if(tci->getType() == String)
          {
             rval = value->getString();
-            datatype = _normalizeValue(ctx, tci, RDF_TYPE_IRI);
+            datatype = _normalizeValue(ctx, tci, RDF_TYPE_IRI, NULL, usedCtx);
             type = (strcmp(datatype.c_str(), URI_TYPE) == 0) ?
                RDF_TYPE_IRI : RDF_TYPE_TYPED_LITERAL;
          }
@@ -338,7 +352,7 @@ static string _normalizeValue(
       // expand CURIE
       if(type == RDF_TYPE_IRI)
       {
-         _expandCurie(ctx, rval.c_str(), rval);
+         _expandCurie(ctx, rval.c_str(), rval, usedCtx);
       }
 
       // JSON-LD encode
@@ -350,11 +364,11 @@ static string _normalizeValue(
 
 inline static string _normalizeValue(
    DynamicObject& ctx, const char* value,
-   RdfType type = RDF_TYPE_UNKNOWN, const char* predicate = NULL)
+   RdfType type, const char* predicate, DynamicObject* usedCtx)
 {
    DynamicObject v;
    v = value;
-   return _normalizeValue(ctx, v, type, predicate);
+   return _normalizeValue(ctx, v, type, predicate, usedCtx);
 }
 
 /**
@@ -428,7 +442,7 @@ static bool _normalize(
          }
 
          // get normalized key
-         nKey = _normalizeValue(ctx, key, RDF_TYPE_IRI);
+         nKey = _normalizeValue(ctx, key, RDF_TYPE_IRI, NULL, NULL);
 
          // put values in an array for single code path
          DynamicObject values;
@@ -460,7 +474,8 @@ static bool _normalize(
                   // update subject (use value's subject IRI) and recurse
                   _setPredicate(
                      subject, nKey.c_str(),
-                     _normalizeValue(ctx, v["@"], RDF_TYPE_IRI).c_str());
+                     _normalizeValue(
+                        ctx, v["@"], RDF_TYPE_IRI, NULL, NULL).c_str());
                   rval = _normalize(ctx, v, subjects, out);
                }
                else
@@ -482,7 +497,7 @@ static bool _normalize(
             {
                _setPredicate(
                   (subjects != NULL) ? subject : *out, nKey.c_str(),
-                  _normalizeValue(ctx, v, RDF_TYPE_UNKNOWN, key).c_str());
+                  _normalizeValue(ctx, v, RDF_TYPE_UNKNOWN, key, NULL).c_str());
             }
          }
       }
@@ -654,11 +669,12 @@ static DynamicObject _compactIri(
    else if(ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
    {
       DynamicObject& type = ctx["#types"][predicate];
+      usedCtx["#types"][predicate] = type;
 
       // single type
       if(type->getType() == String)
       {
-         string t = _normalizeValue(ctx, type, RDF_TYPE_IRI);
+         string t = _normalizeValue(ctx, type, RDF_TYPE_IRI, NULL, &usedCtx);
          if(strcmp(t.c_str(), URI_TYPE) == 0)
          {
             addBrackets = false;
@@ -672,7 +688,7 @@ static DynamicObject _compactIri(
          while(ti->hasNext())
          {
             DynamicObject& next = ti->next();
-            string t = _normalizeValue(ctx, next, RDF_TYPE_IRI);
+            string t = _normalizeValue(ctx, next, RDF_TYPE_IRI, NULL, &usedCtx);
             if(strcmp(t.c_str(), URI_TYPE) == 0)
             {
                addBrackets = false;
@@ -743,16 +759,36 @@ static DynamicObject _compactTypedLiteral(
       ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
    {
       DynamicObject& type = ctx["#types"][predicate];
+      usedCtx["#types"][predicate] = type;
 
       // single type
       if(type->getType() == String)
       {
-         // FIXME: what to do if type doesn't match datatype?
-         string t = _normalizeValue(ctx, type, RDF_TYPE_IRI);
+         rval = DynamicObject();
+         string t = _normalizeValue(ctx, type, RDF_TYPE_IRI, NULL, &usedCtx);
          if(strcmp(t.c_str(), URI_TYPE) == 0)
          {
-            rval = DynamicObject();
             rval = value;
+         }
+         else if(strcmp(t.c_str(), BOOL_TYPE) == 0)
+         {
+            rval = value;
+            rval->setType(Boolean);
+         }
+         else if(strcmp(t.c_str(), INT_TYPE) == 0)
+         {
+            rval = value;
+            rval->setType(Int64);
+         }
+         else if(strcmp(t.c_str(), DECIMAL_TYPE) == 0)
+         {
+            rval = value;
+            rval->setType(Double);
+         }
+         // unrecognized type
+         else
+         {
+            rval = encoded;
          }
       }
       // type coercion info is an ordered list of possible types
@@ -760,11 +796,6 @@ static DynamicObject _compactTypedLiteral(
       {
          // FIXME: need to check if datatype matches type coercion type
          // FIXME: determine whether to make int,bool,decimal,or IRI
-      }
-
-      if(!rval.isNull())
-      {
-         // FIXME: convert rval dyno type to datatype
       }
    }
 
@@ -808,7 +839,7 @@ static DynamicObject _compactString(
          break;
       case RDF_TYPE_TYPED_LITERAL:
          // expand datatype CURIE
-         _expandCurie(ctx, datatype.c_str(), datatype);
+         _expandCurie(ctx, datatype.c_str(), datatype, &usedCtx);
          rval = _compactTypedLiteral(
             ctx, usedCtx, predicate, str, decoded, datatype.c_str(), tmp);
          break;
