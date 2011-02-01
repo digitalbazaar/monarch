@@ -1946,7 +1946,6 @@ static void assertSameExceptions(ExceptionRef& e0, ExceptionRef& e1)
       // compare basic elements
       assertStrCmp(e0->getMessage(), e1->getMessage());
       assertStrCmp(e0->getType(), e1->getType());
-      assert(e0->getCode() == e1->getCode());
 
       // recursively check cause chain
       // FIXME enable cause checking
@@ -2064,13 +2063,13 @@ static void runExceptionTypeTest(TestRunner& tr,
    tr.group(type);
 
    tr.test("simple serialize/deserialize");
-   ExceptionRef e = new Exception("e name", "e type", 0);
+   ExceptionRef e = new Exception("e name", "e type");
    runTestFunc(e);
    tr.pass();
 
    tr.test("simple serialize/deserialize w/ a cause");
-   ExceptionRef e2 = new Exception("e2 name", "e2 type", 0);
-   ExceptionRef e0 = new Exception("e0 name", "e0 type", 0);
+   ExceptionRef e2 = new Exception("e2 name", "e2 type");
+   ExceptionRef e0 = new Exception("e0 name", "e0 type");
    e2->setCause(e0);
    runTestFunc(e2);
    tr.pass();

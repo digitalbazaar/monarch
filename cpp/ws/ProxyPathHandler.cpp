@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -351,7 +351,10 @@ void ProxyPathHandler::operator()(ServiceChannel* ch)
          {
             // send exception (client's fault if code < 500)
             ExceptionRef e = Exception::get();
-            ch->sendException(e, e->getCode() < 500);
+            bool clientsFault =
+               e->getDetails()->hasMember("code") &&
+               e->getDetails()["code"]->getInt32() < 500;
+            ch->sendException(e, clientsFault);
          }
       }
    }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_io_IOException_H
 #define monarch_io_IOException_H
@@ -26,11 +26,10 @@ public:
     *
     * @param message the message for this Exception.
     * @param type the type for this Exception.
-    * @param code the code for this Exception.
     */
    IOException(
       const char* message = "",
-      const char* type = "monarch.io.IO", int code = 0);
+      const char* type = "monarch.io.IO");
 
    /**
     * Destructs this IOException.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/mysql/MySqlStatement.h"
 
@@ -482,8 +482,8 @@ Exception* MySqlStatement::createException()
 {
    Exception* e = new Exception(
       mysql_stmt_error(mHandle),
-      "monarch.sql.mysql.MySql",
-      mysql_stmt_errno(mHandle));
+      "monarch.sql.mysql.MySql");
+   e->getDetails()["code"] = mysql_stmt_errno(mHandle);
    e->getDetails()["sqlState"] = mysql_stmt_sqlstate(mHandle);
    return e;
 }

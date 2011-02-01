@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/sqlite3/Sqlite3Connection.h"
 
@@ -117,10 +117,11 @@ inline bool Sqlite3Connection::isConnected()
 
 Exception* Sqlite3Connection::createException()
 {
-   return new Exception(
+   Exception* e = new Exception(
       sqlite3_errmsg(mHandle),
-      "monarch.sql.sqlite3.Sqlite3",
-      sqlite3_errcode(mHandle));
+      "monarch.sql.sqlite3.Sqlite3");
+   e->getDetails()["code"] = sqlite3_errcode(mHandle);
+   return e;
 }
 
 Statement* Sqlite3Connection::createStatement(const char* sql)

@@ -279,7 +279,9 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
          // no handler found, send 404
          ch->getResponse()->getHeader()->setStatus(404, "Not Found");
          ExceptionRef e = new Exception(
-            "Resource not found.", "monarch.ws.ResourceNotFound", 404);
+            "Resource not found.",
+            "monarch.ws.ResourceNotFound");
+         e->getDetails()["code"] = 404;
          e->getDetails()["resource"] = ch->getPath();
          Exception::set(e);
       }
@@ -290,7 +292,8 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
          ch->getResponse()->getHeader()->setStatus(405, "Method Not Allowed");
          ExceptionRef e = new Exception(
             "Method not allowed.",
-            "monarch.ws.MethodNotAllowed", 405);
+            "monarch.ws.MethodNotAllowed");
+         e->getDetails()["code"] = 405;
          e->getDetails()["invalidMethod"] = method.c_str();
          e->getDetails()["validMethods"] = validMethods;
 
@@ -354,12 +357,16 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
          e = new monarch::rt::Exception(
             "An unspecified error occurred. "
             "No exception was set detailing the error.",
-            "monarch.ws.WebServiceError", 500);
+            "monarch.ws.WebServiceError");
+         e->getDetails()["code"] = 500;
          e->getDetails()["path"] = ch->getPath();
          monarch::rt::Exception::set(e);
       }
 
       // send exception (client's fault if code < 500)
-      ch->sendException(e, e->getCode() < 500);
+      bool clientsFault =
+         e->getDetails()->hasMember("code") &&
+         e->getDetails()["code"]->getInt32() < 500;
+      ch->sendException(e, clientsFault);
    }
 }

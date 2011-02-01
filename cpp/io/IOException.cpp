@@ -1,14 +1,13 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/IOException.h"
 
 using namespace monarch::io;
 using namespace monarch::rt;
 
-IOException::IOException(
-   const char* message, const char* type, int code) :
-   Exception(message, type, code)
+IOException::IOException(const char* message, const char* type) :
+   Exception(message, type)
 {
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_ws_PathHandlerDelegate_H
 #define monarch_ws_PathHandlerDelegate_H
@@ -190,13 +190,17 @@ void PathHandlerDelegate<Handler, Channel>::handleRequest(ServiceChannel* ch)
          e = new monarch::rt::Exception(
             "An unspecified error occurred. "
             "No exception was set detailing the error.",
-            "monarch.ws.WebServiceError", 500);
+            "monarch.ws.WebServiceError");
+         e->getDetails()["code"] = 500;
          e->getDetails()["path"] = ch->getPath();
          monarch::rt::Exception::set(e);
       }
 
       // send exception (client's fault if code < 500)
-      ch->sendException(e, e->getCode() < 500);
+      bool clientsFault =
+         e->getDetails()->hasMember("code") &&
+         e->getDetails()["code"]->getInt32() < 500;
+      ch->sendException(e, clientsFault);
    }
 }
 

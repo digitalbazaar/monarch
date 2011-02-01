@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/ByteArrayInputStream.h"
@@ -29,6 +29,7 @@
 
 using namespace std;
 using namespace monarch::data;
+using namespace monarch::data::json;
 using namespace monarch::test;
 using namespace monarch::io;
 using namespace monarch::modest;
@@ -1296,11 +1297,7 @@ public:
 
       if(Exception::isSet())
       {
-         ExceptionRef e = Exception::get();
-         printf("Exception occurred!\n");
-         printf("message: %s\n", e->getMessage());
-         printf("type: %s\n", e->getType());
-         printf("code: %d\n", e->getCode());
+         JsonWriter::writeToStdOut(Exception::getAsDynamicObject());
       }
    }
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/app/AppTools.h"
 
@@ -75,12 +75,10 @@ static void _printException(ExceptionRef& e, OutputStream* os, int level)
 
    str.append(StringTools::format(
       "%stype:    %s\n"
-      "%scode:    %d\n"
       "%smessage: %s\n"
       "%sdetails: %s\n"
       "%scause:   %s\n",
       indent, e->getType(),
-      indent, e->getCode(),
       indent, e->getMessage(),
       indent, details.bytes(),
       indent, cause.bytes()));

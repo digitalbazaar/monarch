@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_Exception_H
 #define monarch_rt_Exception_H
@@ -37,11 +37,6 @@ protected:
    char* mType;
 
    /**
-    * A code associated with this Exception.
-    */
-   int mCode;
-
-   /**
     * A cause associated with this Exception.
     */
    Collectable<Exception>* mCause;
@@ -53,14 +48,13 @@ protected:
 
 public:
    /**
-    * Creates a new Exception. A message, type, and code may be optionally
+    * Creates a new Exception. A message and type may be optionally
     * specified.
     *
     * @param message the message for this Exception.
     * @param type the type for this Exception.
-    * @param code the code for this Exception.
     */
-   Exception(const char* message = "", const char* type = "", int code = 0);
+   Exception(const char* message = "", const char* type = "");
 
    /**
     * Destructs this Exception.
@@ -123,20 +117,6 @@ public:
     *         false if not.
     */
    virtual bool hasType(const char* type, bool startsWith = false);
-
-   /**
-    * Sets the code for this Exception.
-    *
-    * @param code the code for this Exception.
-    */
-   virtual void setCode(int code);
-
-   /**
-    * Gets the code for this Exception.
-    *
-    * @return the code for this Exception.
-    */
-   virtual int getCode();
 
    /**
     * Sets the cause for this Exception.

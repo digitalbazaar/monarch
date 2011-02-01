@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/Exception.h"
 
@@ -10,11 +10,10 @@
 
 using namespace monarch::rt;
 
-Exception::Exception(const char* message, const char* type, int code)
+Exception::Exception(const char* message, const char* type)
 {
    mMessage = strdup((message == NULL) ? "" : message);
    mType = strdup((type == NULL) ? "" : type);
-   mCode = code;
    mCause = new ExceptionRef(NULL);
    mDetails = new DynamicObject(NULL);
 }
@@ -68,15 +67,6 @@ bool Exception::isType(const char* type, bool startsWith)
 bool Exception::hasType(const char* type, bool startsWith)
 {
    return isType(type, startsWith) || hasCauseOfType(type, startsWith);
-}
-
-void Exception::setCode(int code)
-{
-   mCode = code;
-}
-int Exception::getCode()
-{
-   return mCode;
 }
 
 void Exception::setCause(ExceptionRef& cause)
@@ -212,7 +202,6 @@ DynamicObject Exception::convertToDynamicObject(ExceptionRef& e)
 
    dyno["message"] = e->getMessage();
    dyno["type"] = e->getType();
-   dyno["code"] = e->getCode();
 
    if(!e->getCause().isNull())
    {
@@ -231,8 +220,7 @@ ExceptionRef Exception::convertToException(DynamicObject& dyno)
 {
    ExceptionRef e = new Exception(
       dyno["message"]->getString(),
-      dyno["type"]->getString(),
-      dyno["code"]->getInt32());
+      dyno["type"]->getString());
 
    if(dyno->hasMember("cause"))
    {
