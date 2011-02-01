@@ -312,6 +312,7 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
 {
    bool pass = false;
 
+   bool validationError = false;
    if(info != NULL && info->handler->canHandleRequest(ch))
    {
       // clear last exception
@@ -320,6 +321,7 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
       // always receive content
       DynamicObject content;
       pass = ch->receiveContent(content);
+      bool received = pass;
 
       // do validation
       if(pass && !info->resourceValidator.isNull())
@@ -338,6 +340,9 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
       {
          pass = info->contentValidator->isValid(content);
       }
+
+      // validation error if content received but didn't pass validation
+      validationError = (received && !pass);
 
       if(pass)
       {
@@ -365,8 +370,9 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
 
       // send exception (client's fault if code < 500)
       bool clientsFault =
-         e->getDetails()->hasMember("code") &&
-         e->getDetails()["code"]->getInt32() < 500;
+         validationError ||
+         (e->getDetails()->hasMember("code") &&
+         e->getDetails()["code"]->getInt32() < 500);
       ch->sendException(e, clientsFault);
    }
 }
