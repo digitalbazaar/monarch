@@ -914,6 +914,31 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("remove context (input has no <> on ex:contains)");
+   {
+      DynamicObject in;
+      in["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["#"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      in["#"]["#types"]["ex:contains"] = "xsd:anyURI";
+      in["@"] = "http://example.org/test#book";
+      in["ex:contains"] = "http://example.org/test#chapter";
+      in["dc:title"] = "Title";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::removeContext(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test#book>";
+      expect["<http://example.org/vocab#contains>"] =
+         "<http://example.org/test#chapter>";
+      expect["<http://purl.org/dc/elements/1.1/title>"] = "Title";
+
+      assertDynoCmp(expect, out);
+   }
+   tr.passIfNoException();
+
    tr.test("change context");
    {
       DynamicObject in;
