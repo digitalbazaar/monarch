@@ -635,12 +635,48 @@ static DynamicObject _compactIri(
 {
    DynamicObject rval(NULL);
 
-   // determine if brackets should be added
-   bool addBrackets = false;
-   if(predicate != NULL &&
-      strcmp(predicate, "@") != 0 && strcmp(predicate, "a") != 0)
+   // used to store if brackets should be added
+   bool addBrackets = true;
+
+   // predicates themselves have no brackets
+   if(predicate == NULL)
    {
-      addBrackets = true;
+      addBrackets = false;
+   }
+   // no brackets for "@" or "a"
+   else if(strcmp(predicate, "@") == 0 || strcmp(predicate, "a") == 0)
+   {
+      addBrackets = false;
+   }
+   // check type coercion for IRI
+   else if(ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
+   {
+      DynamicObject& type = ctx["#types"][predicate];
+
+      // single type
+      if(type->getType() == String)
+      {
+         string t = _normalizeValue(ctx, type, RDF_TYPE_IRI);
+         if(strcmp(t.c_str(), URI_TYPE) == 0)
+         {
+            addBrackets = false;
+         }
+      }
+      // type coercion info is an ordered list of possible types
+      else
+      {
+         // do not add brackets if URI is a valid type
+         DynamicObjectIterator ti = type.getIterator();
+         while(ti->hasNext())
+         {
+            DynamicObject& next = ti->next();
+            string t = _normalizeValue(ctx, next, RDF_TYPE_IRI);
+            if(strcmp(t.c_str(), URI_TYPE) == 0)
+            {
+               addBrackets = false;
+            }
+         }
+      }
    }
 
    // check the context for a prefix that could shorten the IRI to a CURIE
@@ -683,43 +719,11 @@ static DynamicObject _compactIri(
       }
    }
 
-   // no CURIE created, check type coercion for IRI
-   if(rval.isNull() && predicate != NULL &&
-      ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
-   {
-      DynamicObject& type = ctx["#types"][predicate];
-
-      // single type
-      if(type->getType() == String)
-      {
-         // FIXME: what to do if type doesn't match datatype?
-         string t = _normalizeValue(ctx, type, RDF_TYPE_IRI);
-         if(strcmp(t.c_str(), URI_TYPE) == 0)
-         {
-            rval = DynamicObject();
-            rval = value;
-         }
-      }
-      // type coercion info is an ordered list of possible types
-      else
-      {
-         // FIXME: need to check if datatype matches type coercion type?
-         // FIXME: determine whether to make int,bool,decimal,or IRI
-      }
-   }
-
-   // if predicate is "@" or "a" use decoded value
-   if(rval.isNull() && predicate != NULL &&
-      (strcmp(predicate, "@") == 0 || strcmp(predicate, "a") == 0))
+   // if rval still not set, use encoded or value based on addBrackets
+   if(rval.isNull())
    {
       rval = DynamicObject();
-      rval = value;
-   }
-   // use full encoded value, nothing in context to compact IRI
-   else if(rval.isNull())
-   {
-      rval = DynamicObject();
-      rval = encoded;
+      rval = addBrackets ? encoded : value;
    }
 
    return rval;
@@ -752,7 +756,7 @@ static DynamicObject _compactTypedLiteral(
       // type coercion info is an ordered list of possible types
       else
       {
-         // FIXME: need to check if datatype matches type coercion type?
+         // FIXME: need to check if datatype matches type coercion type
          // FIXME: determine whether to make int,bool,decimal,or IRI
       }
 

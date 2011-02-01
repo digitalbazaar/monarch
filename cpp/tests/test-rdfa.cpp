@@ -100,7 +100,6 @@ static void runRdfaReaderTest(TestRunner& tr)
       DynamicObject ex = Exception::getAsDynamicObject();
 
       DynamicObject expect;
-      expect["code"] = 0;
       expect["message"] = "RDFa parse error.";
       expect["type"] = "monarch.data.rdfa.RdfaReader.ParseError";
       DynamicObject& graph = expect["details"]["graph"];
@@ -108,17 +107,17 @@ static void runRdfaReaderTest(TestRunner& tr)
       //graph["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
       graph["#"]["w3"] = "http://www.w3.org/2009/pointers#";
       graph["@"] = "_:bnode0";
-      graph["<http://purl.org/dc/terms/description>"] =
+      graph["http://purl.org/dc/terms/description"] =
          "XML parsing error: mismatched tag at line 9, column 6.";
       graph["a"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
-      graph["<http://www.w3.org/ns/rdfa_processing_graph#context>"]
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["@"] = "_:bnode1";
-      graph["<http://www.w3.org/ns/rdfa_processing_graph#context>"]
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["a"] = "w3:LineCharPointer";
-      graph["<http://www.w3.org/ns/rdfa_processing_graph#context>"]
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["w3:charNumber"] =
             "6^^<http://www.w3.org/2001/XMLSchema#positiveInteger>";
-      graph["<http://www.w3.org/ns/rdfa_processing_graph#context>"]
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["w3:lineNumber"] =
             "9^^<http://www.w3.org/2001/XMLSchema#positiveInteger>";
       assertDynoCmp(expect, ex);
