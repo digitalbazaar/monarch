@@ -15,12 +15,21 @@ using namespace monarch::data::json;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-#define RDF_TYPE         "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
-#define RDF_TYPE_SHORT   "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-#define URI_TYPE         "<http://www.w3.org/2001/XMLSchema#anyURI>"
-#define BOOL_TYPE        "<http://www.w3.org/2001/XMLSchema#boolean>"
-#define INT_TYPE         "<http://www.w3.org/2001/XMLSchema#integer>"
-#define DECIMAL_TYPE     "<http://www.w3.org/2001/XMLSchema#decimal>"
+#define RDF_NS            "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+#define XSD_NS            "http://www.w3.org/2001/XMLSchema#"
+
+#define RDF_TYPE          RDF_NS "type"
+#define RDF_TYPE_NORM     "<" RDF_TYPE ">"
+#define XSD_ANY_TYPE      XSD_NS "anyType"
+#define XSD_ANY_TYPE_NORM "<" XSD_ANY_TYPE ">"
+#define XSD_BOOLEAN       XSD_NS "boolean"
+#define XSD_BOOLEAN_NORM  "<" XSD_BOOLEAN ">"
+#define XSD_DOUBLE        XSD_NS "double"
+#define XSD_DOUBLE_NORM   "<" XSD_DOUBLE ">"
+#define XSD_INTEGER       XSD_NS "integer"
+#define XSD_INTEGER_NORM  "<" XSD_INTEGER ">"
+#define XSD_ANY_URI       XSD_NS "anyURI"
+#define XSD_ANY_URI_NORM  "<" XSD_ANY_URI ">"
 
 enum RdfType
 {
@@ -75,7 +84,17 @@ static string _encode(
    // value^^<datatype>
    else if(type == RDF_TYPE_TYPED_LITERAL)
    {
-      rval.assign(value);
+      // use canonical form for xsd:double
+      if(strcmp(datatype, XSD_DOUBLE_NORM) == 0)
+      {
+         DynamicObject d;
+         d = value;
+         rval = StringTools::format("%1.6e", d->getDouble());
+      }
+      else
+      {
+         rval.assign(value);
+      }
       rval.append("^^");
       rval.push_back('<');
       rval.append(datatype);
@@ -266,7 +285,7 @@ static string _normalizeValue(
    // "@" or "a"/RDF_TYPE predicates have values that are IRIs or CURIEs
    if(predicate != NULL &&
       (strcmp(predicate, "@") == 0 || strcmp(predicate, "a") == 0 ||
-       strcmp(predicate, RDF_TYPE) == 0))
+       strcmp(predicate, RDF_TYPE_NORM) == 0))
    {
       type = RDF_TYPE_IRI;
    }
@@ -279,7 +298,7 @@ static string _normalizeValue(
    // IRI "a" is special rdf type
    else if(type == RDF_TYPE_IRI && strcmp(value, "a") == 0)
    {
-      rval.assign(RDF_TYPE);
+      rval.assign(RDF_TYPE_NORM);
    }
    else
    {
@@ -301,7 +320,7 @@ static string _normalizeValue(
          {
             rval = value->getString();
             datatype = _normalizeValue(ctx, tci, RDF_TYPE_IRI, NULL, usedCtx);
-            type = (strcmp(datatype.c_str(), URI_TYPE) == 0) ?
+            type = (strcmp(datatype.c_str(), XSD_ANY_URI_NORM) == 0) ?
                RDF_TYPE_IRI : RDF_TYPE_TYPED_LITERAL;
          }
          // handle type preferences in order
@@ -325,17 +344,17 @@ static string _normalizeValue(
          if(value->isNumber())
          {
             datatype = value->isInteger() ?
-               "http://www.w3.org/2001/XMLSchema#integer" :
-               "http://www.w3.org/2001/XMLSchema#decimal";
+               XSD_INTEGER :
+               XSD_DOUBLE;
          }
          else if(value->getType() == Boolean)
          {
-            datatype = "http://www.w3.org/2001/XMLSchema#boolean";
+            datatype = XSD_BOOLEAN;
          }
          else
          {
             // FIXME: this should never happen?
-            datatype = "http://www.w3.org/2001/XMLSchema#anyType";
+            datatype = XSD_ANY_TYPE;
          }
       }
       else
@@ -389,7 +408,7 @@ inline static string _normalizeValue(
  *    subject's '@' IRI value and recurse into it. Else goto #3.
  * 3. Look up the key in the context to find type coercion info. If not found,
  *    goto #4, else goto #5.
- * 4. Check the value for an integer, decimal, or boolean. If matched, set
+ * 4. Check the value for an integer, double, or boolean. If matched, set
  *    type according to xsd types. If not matched, look for <>, if found,
  *    do CURIE vs. IRI check like #1 and create appropriate value.
  * 5. If type coercion entry is a string, encode the value using the specific
@@ -675,7 +694,7 @@ static DynamicObject _compactIri(
       if(type->getType() == String)
       {
          string t = _normalizeValue(ctx, type, RDF_TYPE_IRI, NULL, &usedCtx);
-         if(strcmp(t.c_str(), URI_TYPE) == 0)
+         if(strcmp(t.c_str(), XSD_ANY_URI_NORM) == 0)
          {
             addBrackets = false;
          }
@@ -689,7 +708,7 @@ static DynamicObject _compactIri(
          {
             DynamicObject& next = ti->next();
             string t = _normalizeValue(ctx, next, RDF_TYPE_IRI, NULL, &usedCtx);
-            if(strcmp(t.c_str(), URI_TYPE) == 0)
+            if(strcmp(t.c_str(), XSD_ANY_URI_NORM) == 0)
             {
                addBrackets = false;
             }
@@ -755,7 +774,7 @@ static DynamicObject _compactTypedLiteral(
    DynamicObject rval(NULL);
 
    // check type coercion
-   if(rval == encoded && predicate != NULL &&
+   if(predicate != NULL &&
       ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
    {
       DynamicObject& type = ctx["#types"][predicate];
@@ -766,21 +785,21 @@ static DynamicObject _compactTypedLiteral(
       {
          rval = DynamicObject();
          string t = _normalizeValue(ctx, type, RDF_TYPE_IRI, NULL, &usedCtx);
-         if(strcmp(t.c_str(), URI_TYPE) == 0)
+         if(strcmp(t.c_str(), XSD_ANY_URI_NORM) == 0)
          {
             rval = value;
          }
-         else if(strcmp(t.c_str(), BOOL_TYPE) == 0)
+         else if(strcmp(t.c_str(), XSD_BOOLEAN_NORM) == 0)
          {
             rval = value;
             rval->setType(Boolean);
          }
-         else if(strcmp(t.c_str(), INT_TYPE) == 0)
+         else if(strcmp(t.c_str(), XSD_INTEGER_NORM) == 0)
          {
             rval = value;
             rval->setType(Int64);
          }
-         else if(strcmp(t.c_str(), DECIMAL_TYPE) == 0)
+         else if(strcmp(t.c_str(), XSD_DOUBLE_NORM) == 0)
          {
             rval = value;
             rval->setType(Double);
@@ -795,7 +814,7 @@ static DynamicObject _compactTypedLiteral(
       else
       {
          // FIXME: need to check if datatype matches type coercion type
-         // FIXME: determine whether to make int,bool,decimal,or IRI
+         // FIXME: determine whether to make int,bool,double,or IRI
       }
    }
 
@@ -930,7 +949,7 @@ bool JsonLd::addContext(
 
    // "a" is automatically shorthand for rdf type
    DynamicObject ctx = (context.isNull() ? DynamicObject() : context.clone());
-   ctx["a"] = RDF_TYPE_SHORT;
+   ctx["a"] = RDF_TYPE;
 
    // TODO: should context simplification be an option? (ie: remove context
    // entries that are not used in the output)

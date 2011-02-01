@@ -655,7 +655,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"][2]["@"] = "<http://example.org/test#library>";
       expect["@"][2]["<http://example.org/vocab#contains>"] =
          "<http://example.org/test#book>";
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
 
       MO_DEBUG("INPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
@@ -710,7 +710,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"][4]["@"] = "<http://example.org/test#library>";
       expect["@"][4]["<http://example.org/vocab#contains>"] =
          "<http://example.org/test#book>";
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
 
       MO_DEBUG("INPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
@@ -804,7 +804,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"][3]["<http://example.org/vocab#contains>"]
          ["<http://example.org/vocab#contains>"] =
             "<http://example.org/test#chapter>";
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
    }
    tr.passIfNoException();
 
@@ -857,7 +857,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"][3]["ex:contains"]["dc:title"] = "My Book";
       expect["@"][3]["ex:contains"]["ex:contains"] =
          "<http://example.org/test#chapter>";
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
    }
    tr.passIfNoException();
 
@@ -881,7 +881,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"] = "ex:thing";
       expect["dc:title"] = "Title";
 
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
    }
    tr.passIfNoException();
 
@@ -912,7 +912,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["ex:contains"] = "http://example.org/test#chapter";
       expect["dc:title"] = "Title";
 
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
    }
    tr.passIfNoException();
 
@@ -937,7 +937,7 @@ static void runJsonLdTest(TestRunner& tr)
          "<http://example.org/test#chapter>";
       expect["<http://purl.org/dc/elements/1.1/title>"] = "Title";
 
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
    }
    tr.passIfNoException();
 
@@ -988,7 +988,69 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"][3]["ex:contains"]["dc:title"] = "My Book";
       expect["@"][3]["ex:contains"]["ex:contains"] =
          "http://example.org/test#chapter";
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
+   }
+   tr.passIfNoException();
+
+   tr.test("change context (native types)");
+   {
+      DynamicObject in;
+      in["#"]["d"] = "http://purl.org/dc/elements/1.1/";
+      in["#"]["e"] = "http://example.org/vocab#";
+      in["#"]["f"] = "http://xmlns.org/foaf/0.1/";
+      in["@"] = "http://example.org/test";
+      in["e:bool"] = true;
+      in["e:double"] = 1.23;
+      in["e:double-zero"] = 0.0;
+      in["e:int"] = 123;
+
+      DynamicObject ctx;
+      ctx["dc"] = "http://purl.org/dc/elements/1.1/";
+      ctx["ex"] = "http://example.org/vocab#";
+      ctx["foaf"] = "http://xmlns.org/foaf/0.1/";
+      DynamicObject out;
+      assertNoException(
+         JsonLd::changeContext(ctx, in, out));
+
+      DynamicObject expect;
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["@"] = "http://example.org/test";
+      expect["ex:bool"] = "true^^<http://www.w3.org/2001/XMLSchema#boolean>";
+      expect["ex:double"] =
+         "1.230000e+00^^<http://www.w3.org/2001/XMLSchema#double>";
+      expect["ex:double-zero"] =
+         "0.000000e+00^^<http://www.w3.org/2001/XMLSchema#double>";
+      expect["ex:int"] = "123^^<http://www.w3.org/2001/XMLSchema#integer>";
+      assertNamedDynoCmp("expect", expect, "result", out);
+   }
+   tr.passIfNoException();
+
+   tr.test("change context (native types w/ type map)");
+   {
+      DynamicObject in;
+      in["#"]["e"] = "http://example.org/vocab#";
+      in["@"] = "http://example.org/test";
+      in["e:bool"] = true;
+      in["e:double"] = 1.23;
+      in["e:int"] = 123;
+
+      DynamicObject ctx;
+      ctx["ex"] = "http://example.org/vocab#";
+      ctx["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      ctx["#types"]["ex:bool"] = "xsd:boolean";
+      ctx["#types"]["ex:double"] = "xsd:double";
+      ctx["#types"]["ex:int"] = "xsd:integer";
+      DynamicObject out;
+      assertNoException(
+         JsonLd::changeContext(ctx, in, out));
+
+      DynamicObject expect;
+      expect["#"] = ctx;
+      expect["@"] = "http://example.org/test";
+      expect["ex:bool"] = true;
+      expect["ex:double"] = 1.23;
+      expect["ex:int"] = 123;
+      assertNamedDynoCmp("expect", expect, "result", out);
    }
    tr.passIfNoException();
 
@@ -1036,7 +1098,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
 
       MO_DEBUG("INPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
@@ -1090,7 +1152,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
       expect["ex:contains"]["ex:contains"]["ex:act"] = "<ex:ActOne>";
-      assertDynoCmp(expect, out);
+      assertNamedDynoCmp("expect", expect, "result", out);
 
       MO_DEBUG("INPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
