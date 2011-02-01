@@ -73,6 +73,11 @@ public:
     * If no authentication methods are matched, then this method will return
     * false with an exception set.
     *
+    * If the NULL authentication method was specified (anonymous) as permitted,
+    * then this method will only return true if no other authentication method
+    * was attempted by the client. If any method was attempted and failed,
+    * this method will return false.
+    *
     * @return true if authenticated, false if not with exception set.
     */
    virtual bool checkAuthentication(ServiceChannel* ch);

@@ -109,7 +109,7 @@ inline bool HttpResponseHeader::hasStartLine()
    return true;
 }
 
-void HttpResponseHeader::setStatus(unsigned int code, const char* message)
+void HttpResponseHeader::setStatus(int code, const char* message)
 {
    mStatusCode = code;
 
@@ -130,7 +130,7 @@ void HttpResponseHeader::clearStatus()
    }
 }
 
-unsigned int HttpResponseHeader::getStatusCode()
+int HttpResponseHeader::getStatusCode()
 {
    return mStatusCode;
 }

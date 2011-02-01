@@ -31,18 +31,38 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
    }
    else
    {
-      // check all authentication methods
+      // check all authentication methods, save last exception for failed
+      // attempt
+      ExceptionRef e(NULL);
+      int rc;
       for(RequestAuthList::iterator i = mAuthMethods.begin();
           i != mAuthMethods.end(); ++i)
       {
          // clear exceptions from previous failures
          Exception::clear();
 
+         // check authentication method
+         rc = (*i)->checkAuthentication(ch);
+
          // if authentication passed, set rval to true if not yet set
-         if((*i)->checkAuthentication(ch) && !rval)
+         if(rc == 1 && !rval)
          {
             rval = true;
          }
+         // authentication was attempted by client but failed, save exception
+         else if(rc == -1)
+         {
+            e = Exception::get();
+         }
+      }
+
+      /* Special case: If an authentication method was attempted by a client
+         (vs. not attempted by the client) and it failed *and* the only method
+         that passed was NULL (anonymous), then fail. */
+      if(!e.isNull() && rval && ch->getAuthenticationMethod() == NULL)
+      {
+         Exception::set(e);
+         rval = false;
       }
    }
 

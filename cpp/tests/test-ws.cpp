@@ -97,6 +97,19 @@ public:
          root->addRegexHandler("/(.*)/regextest2/(.*)", h, Message::Get);
       }
 
+      // GET /(.*)/regextest3/(.*)
+      {
+         PathHandlerRef h = new Handler(
+            this, &TestWebService::handleRegexRequest2);
+         // test authenticator always failing due to failed attempts by
+         // client to authenticate ... even though anonymous is an accepted
+         // method
+         h->addRequestAuthenticator(new AuthHandler(
+            this, &TestWebService::authenticate3));
+         h->addRequestAuthenticator(NULL);
+         root->addRegexHandler("/(.*)/regextest3/(.*)", h, Message::Get);
+      }
+
       return true;
    }
 
@@ -147,17 +160,28 @@ public:
       ch->getResponse()->sendBody(&bais);
    }
 
-   virtual bool authenticate(ServiceChannel* ch)
+   virtual int authenticate(ServiceChannel* ch)
    {
       // anonymous authentication, nothing to set
-      return true;
+      return 1;
    }
 
-   virtual bool authenticate2(ServiceChannel* ch, DynamicObject& data)
+   virtual int authenticate2(ServiceChannel* ch, DynamicObject& data)
    {
       // anonymous authentication, nothing to set
       assertStrCmp(data["foo"]->getString(), "bar");
-      return true;
+      return 1;
+   }
+
+   virtual int authenticate3(ServiceChannel* ch)
+   {
+      // always consider authentication method tried but failed
+      ExceptionRef e = new Exception(
+         "Tried to authenticate but failed.",
+         "tests.ws.Exception");
+      Exception::set(e);
+      ch->setAuthenticationException("failMethod", e);
+      return -1;
    }
 };
 
@@ -190,7 +214,7 @@ static void _checkUrlText(
          response->getHeader()->toString().c_str());
    }
 
-   assert(response->getHeader()->getStatusCode() == 200);
+   assert(response->getHeader()->getStatusCode() == code);
 
    // receive content
    HttpTrailer trailer;
@@ -226,6 +250,7 @@ static void runWebServerTest(TestRunner& tr)
    const char* content = "web server test";
    const char* regexPath = "/test/dumplings/regextest/turkey";
    const char* regexPath2 = "/test/dumplings/regextest2/turkey";
+   const char* regexPath3 = "/test/dumplings/regextest3/turkey";
    const char* regexContent = "web server test (regex)";
 
    // create kernel
@@ -292,6 +317,25 @@ static void runWebServerTest(TestRunner& tr)
       Url url;
       url.format("http://%s:%d%s", cfg["host"]->getString(), port, regexPath2);
       _checkUrlText(tr, &url, 200, expect.c_str(), expect.length());
+   }
+   tr.passIfNoException();
+
+   // check the web service authentication exception
+   tr.test("WebServer - authentication exception");
+   {
+      DynamicObject ex;
+      ex["message"] = "WebService authentication failed. Access denied.";
+      ex["type"] = "monarch.ws.AccessDenied";
+      ex["code"] = 0;
+      DynamicObject& cause = ex["cause"];
+      cause["message"] = "Tried to authenticate but failed.";
+      cause["type"] = "tests.ws.Exception";
+      cause["code"] = 0;
+      string expect = JsonWriter::writeToString(ex, true);
+
+      Url url;
+      url.format("http://%s:%d%s", cfg["host"]->getString(), port, regexPath3);
+      _checkUrlText(tr, &url, 400, expect.c_str(), expect.length());
    }
    tr.passIfNoException();
 

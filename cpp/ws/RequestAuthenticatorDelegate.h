@@ -25,12 +25,12 @@ protected:
    /**
     * Typedef for authentication function.
     */
-   typedef bool (Handler::*SimpleFunction)(Channel* ch);
+   typedef int (Handler::*SimpleFunction)(Channel* ch);
 
    /**
     * Typedef for authentication function w/user-data dyno.
     */
-   typedef bool (Handler::*DynoFunction)(
+   typedef int (Handler::*DynoFunction)(
       Channel* ch, monarch::rt::DynamicObject&);
 
    /**
@@ -90,7 +90,7 @@ public:
    /**
     * {@inheritDoc}
     */
-   virtual bool checkAuthentication(ServiceChannel* ch);
+   virtual int checkAuthentication(ServiceChannel* ch);
 };
 
 template<typename Handler, typename Channel>
@@ -119,10 +119,10 @@ RequestAuthenticatorDelegate<Handler, Channel>::~RequestAuthenticatorDelegate()
 }
 
 template<typename Handler, typename Channel>
-bool RequestAuthenticatorDelegate<Handler, Channel>::checkAuthentication(
+int RequestAuthenticatorDelegate<Handler, Channel>::checkAuthentication(
    ServiceChannel* ch)
 {
-   bool rval;
+   int rval;
 
    if(mType == FunctionDyno)
    {

@@ -35,7 +35,7 @@ protected:
    /**
     * The status code (i.e. "200", "404") for the response.
     */
-   unsigned int mStatusCode;
+   int mStatusCode;
 
    /**
     * The status message (i.e. "OK", "Not Found") for the response.
@@ -83,7 +83,7 @@ public:
     * @param code the status code (i.e. "200", "404").
     * @param message the status message (i.e. "OK", "Not Found").
     */
-   virtual void setStatus(unsigned int code, const char* message);
+   virtual void setStatus(int code, const char* message);
 
    /**
     * Clears the HTTP status for the response.
@@ -95,7 +95,7 @@ public:
     *
     * @return the status code for the response (i.e. "200", "404").
     */
-   virtual unsigned int getStatusCode();
+   virtual int getStatusCode();
 
    /**
     * Gets the HTTP status message for the response.

@@ -38,21 +38,23 @@ public:
     *
     * If an authentication attempt was made by the client and it was
     * successful, then setAuthenticationMethod() must be called on the
-    * ServiceChannel.
+    * ServiceChannel. This method must return 1.
     *
     * If an authentication attempt was made by the client and it was
     * unsuccessful, then setAuthenticationException() must be called on
-    * the ServiceChannel.
+    * the ServiceChannel. This method must return -1.
     *
     * If no authentication attempt was made by the client, then this method
-    * must return false. No calls to the channel are required.
+    * must return 0. No calls to the channel are required.
     *
     * @param ch the communication channel with the client.
     *
-    * @return true if the request is authenticated, false if not with
-    *         exception set.
+    * @return 1 if the request is authenticated, -1 if the client attempted
+    *         to authorize the request but failed, and 0 if the client did
+    *         not attempt to authenticate the request (and, therefore, it
+    *         is not authenticated).
     */
-   virtual bool checkAuthentication(ServiceChannel* ch);
+   virtual int checkAuthentication(ServiceChannel* ch);
 };
 
 // type definition for a reference counted RequestAuthenticator
