@@ -305,6 +305,7 @@ static string _normalizeValue(
       else if(type == RDF_TYPE_UNKNOWN && value->getType() != String)
       {
          type = RDF_TYPE_TYPED_LITERAL;
+         rval = value->getString();
 
          // handle native xsd types
          if(value->isNumber())
@@ -346,6 +347,7 @@ static string _normalizeValue(
 
    return rval;
 }
+
 inline static string _normalizeValue(
    DynamicObject& ctx, const char* value,
    RdfType type = RDF_TYPE_UNKNOWN, const char* predicate = NULL)
