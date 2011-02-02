@@ -93,11 +93,9 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
          mNamespacePrefixMap->clear();
       }
 
-      if(ns != NULL)
-      {
-         // free namespace string
-         free(ns);
-      }
+      // free namespace string
+      free(ns);
+      ns = NULL;
 
       // parse element attributes
       for(int i = 0; attrs[i] != NULL; i += 2)
@@ -109,11 +107,9 @@ void DomReader::startElement(const XML_Char* name, const XML_Char** attrs)
          attr["namespace"] = (ns == NULL ? "" : ns);
          attr["value"] = attrs[i + 1];
 
-         if(ns != NULL)
-         {
-            // free namespace string
-            free(ns);
-         }
+         // free namespace string
+         free(ns);
+         ns = NULL;
       }
    }
 }

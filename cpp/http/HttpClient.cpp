@@ -29,7 +29,7 @@ HttpClient::~HttpClient()
    // ensure client is disconnected
    HttpClient::disconnect();
 
-   if(mCleanupSslContext && mSslContext != NULL)
+   if(mCleanupSslContext)
    {
       delete mSslContext;
    }
@@ -253,17 +253,11 @@ bool HttpClient::receiveContent(std::string& str, HttpTrailer* trailer)
 
 void HttpClient::disconnect()
 {
-   if(mRequest != NULL)
-   {
-      delete mRequest;
-      mRequest = NULL;
-   }
+   delete mRequest;
+   mRequest = NULL;
 
-   if(mResponse != NULL)
-   {
-      delete mResponse;
-      mResponse = NULL;
-   }
+   delete mResponse;
+   mResponse = NULL;
 
    if(mConnection != NULL)
    {

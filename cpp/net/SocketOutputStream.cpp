@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SocketOutputStream.h"
 
 using namespace monarch::io;
 using namespace monarch::net;
 
-SocketOutputStream::SocketOutputStream(Socket* s)
+SocketOutputStream::SocketOutputStream(Socket* s) :
+   mSocket(s)
 {
-   mSocket = s;
 }
 
 SocketOutputStream::~SocketOutputStream()

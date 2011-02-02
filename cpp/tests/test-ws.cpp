@@ -214,6 +214,11 @@ static void _checkUrlText(
          response->getHeader()->toString().c_str());
    }
 
+   if(response->getHeader()->getStatusCode() != code)
+   {
+      printf("Expecting response status code: %d, got %d\n",
+         response->getHeader()->getStatusCode(), code);
+   }
    assert(response->getHeader()->getStatusCode() == code);
 
    // receive content
@@ -326,11 +331,10 @@ static void runWebServerTest(TestRunner& tr)
       DynamicObject ex;
       ex["message"] = "WebService authentication failed. Access denied.";
       ex["type"] = "monarch.ws.AccessDenied";
-      ex["code"] = 0;
+      ex["details"]["path"] = "/test/dumplings/regextest3/turkey";
       DynamicObject& cause = ex["cause"];
       cause["message"] = "Tried to authenticate but failed.";
       cause["type"] = "tests.ws.Exception";
-      cause["code"] = 0;
       string expect = JsonWriter::writeToString(ex, true);
 
       Url url;

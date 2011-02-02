@@ -8,9 +8,9 @@ using namespace monarch::data::riff;
 using namespace monarch::io;
 
 RiffListHeader::RiffListHeader(fourcc_t id, uint32_t size) :
-   mChunkHeader(CHUNK_ID, size + 4)
+   mChunkHeader(CHUNK_ID, size + 4),
+   mId(id)
 {
-   mId = id;
 }
 
 RiffListHeader::~RiffListHeader()

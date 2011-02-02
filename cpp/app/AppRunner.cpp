@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/app/AppRunner.h"
 
@@ -58,10 +58,7 @@ AppRunner::~AppRunner()
 
 void AppRunner::setProgramName(const char* name)
 {
-   if(mProgramName != NULL)
-   {
-      free(mProgramName);
-   }
+   free(mProgramName);
    mProgramName = (name != NULL) ? strdup(name) : NULL;
 }
 

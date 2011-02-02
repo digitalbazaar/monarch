@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SocketWrapper.h"
 
@@ -14,7 +14,7 @@ SocketWrapper::SocketWrapper(Socket* socket, bool cleanup)
 SocketWrapper::~SocketWrapper()
 {
    // cleanup wrapped socket as appropriate
-   if(mCleanupSocket && mSocket != NULL)
+   if(mCleanupSocket)
    {
       delete mSocket;
    }

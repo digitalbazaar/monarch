@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/Connection.h"
 
@@ -50,7 +50,7 @@ Connection::~Connection()
    delete mRemoteAddress;
 
    // handle socket cleanup
-   if(mSocket != NULL && mCleanupSocket)
+   if(mCleanupSocket)
    {
       delete mSocket;
    }

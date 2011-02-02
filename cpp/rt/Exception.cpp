@@ -12,8 +12,8 @@ using namespace monarch::rt;
 
 Exception::Exception(const char* message, const char* type)
 {
-   mMessage = strdup((message == NULL) ? "" : message);
-   mType = strdup((type == NULL) ? "" : type);
+   mMessage = (message == NULL) ? NULL : strdup(message);
+   mType = (type == NULL) ? NULL : strdup(type);
    mCause = new ExceptionRef(NULL);
    mDetails = new DynamicObject(NULL);
 }
@@ -29,23 +29,23 @@ Exception::~Exception()
 void Exception::setMessage(const char* message)
 {
    free(mMessage);
-   mMessage = strdup((message == NULL) ? "" : message);
+   mMessage = (message == NULL) ? NULL : strdup(message);
 }
 
 const char* Exception::getMessage()
 {
-   return mMessage;
+   return (mMessage == NULL) ? "" : mMessage;
 }
 
 void Exception::setType(const char* type)
 {
    free(mType);
-   mType = strdup((type == NULL) ? "" : type);
+   mType = (type == NULL) ? NULL : strdup(type);
 }
 
 const char* Exception::getType()
 {
-   return mType;
+   return (mType == NULL) ? "" : mType;
 }
 
 bool Exception::isType(const char* type, bool startsWith)

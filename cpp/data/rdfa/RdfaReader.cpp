@@ -52,18 +52,12 @@ RdfaReader::~RdfaReader()
       rdfa_parse_end(mRdfaCtx);
       rdfa_free_context(mRdfaCtx);
    }
-   if(mBaseUri != NULL)
-   {
-      free(mBaseUri);
-   }
+   free(mBaseUri);
 }
 
 void RdfaReader::setBaseUri(const char* uri)
 {
-   if(mBaseUri != NULL)
-   {
-      free(mBaseUri);
-   }
+   free(mBaseUri);
    mBaseUri = strdup(uri);
 }
 

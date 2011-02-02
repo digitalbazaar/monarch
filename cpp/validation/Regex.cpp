@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Regex.h"
 
@@ -21,10 +21,7 @@ Regex::Regex(const char* regex, const char* errorMessage) :
 
 Regex::~Regex()
 {
-   if(mRegex)
-   {
-      free(mRegex);
-   }
+   free(mRegex);
    delete mStringValidator;
 }
 

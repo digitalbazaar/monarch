@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/mpeg/AudioFrameHeader.h"
 
@@ -16,17 +16,14 @@ using namespace monarch::data::mpeg;
 AudioBitrateTable AudioFrameHeader::sBitrateTable;
 AudioSamplingRateTable AudioFrameHeader::sSamplingRateTable;
 
-AudioFrameHeader::AudioFrameHeader()
+AudioFrameHeader::AudioFrameHeader() :
+   mData(NULL)
 {
-   mData = NULL;
 }
 
 AudioFrameHeader::~AudioFrameHeader()
 {
-   if(mData != NULL)
-   {
-      delete mData;
-   }
+   delete mData;
 }
 
 inline unsigned char* AudioFrameHeader::getDataBytes()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/ByteArrayInputStream.h"
 
@@ -7,25 +7,25 @@
 
 using namespace monarch::io;
 
-ByteArrayInputStream::ByteArrayInputStream(const char* b, int length)
+ByteArrayInputStream::ByteArrayInputStream(const char* b, int length) :
+   mBytes(b),
+   mLength(length),
+   mBuffer(NULL),
+   mCleanupBuffer(false)
 {
-   mBytes = b;
-   mLength = length;
-   mBuffer = NULL;
-   mCleanupBuffer = false;
 }
 
-ByteArrayInputStream::ByteArrayInputStream(ByteBuffer* b, bool cleanup)
+ByteArrayInputStream::ByteArrayInputStream(ByteBuffer* b, bool cleanup) :
+   mBytes(NULL),
+   mLength(0),
+   mBuffer(b),
+   mCleanupBuffer(cleanup)
 {
-   mBytes = NULL;
-   mLength = 0;
-   mBuffer = b;
-   mCleanupBuffer = cleanup;
 }
 
 ByteArrayInputStream::~ByteArrayInputStream()
 {
-   if(mCleanupBuffer && mBuffer != NULL)
+   if(mCleanupBuffer)
    {
       delete mBuffer;
    }
@@ -66,8 +66,7 @@ void ByteArrayInputStream::setByteArray(const char* b, int length)
 {
    mBytes = b;
    mLength = length;
-
-   if(mCleanupBuffer && mBuffer != NULL)
+   if(mCleanupBuffer)
    {
       delete mBuffer;
       mBuffer = NULL;
@@ -79,13 +78,10 @@ void ByteArrayInputStream::setByteBuffer(ByteBuffer* b, bool cleanup)
 {
    mBytes = NULL;
    mLength = 0;
-
-   if(mCleanupBuffer && mBuffer != NULL)
+   if(mCleanupBuffer)
    {
       delete mBuffer;
-      mCleanupBuffer = false;
    }
-
    mBuffer = b;
    mCleanupBuffer = cleanup;
 }

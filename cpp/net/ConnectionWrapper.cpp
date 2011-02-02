@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/ConnectionWrapper.h"
 
@@ -13,7 +13,7 @@ ConnectionWrapper::ConnectionWrapper(Connection* c, bool cleanup)
 ConnectionWrapper::~ConnectionWrapper()
 {
    // cleanup wrapped connection as appropriate
-   if(mConnection != NULL && mCleanupConnection)
+   if(mCleanupConnection)
    {
       delete mConnection;
    }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -250,10 +250,6 @@ Operation ConnectionService::initialize()
 
 void ConnectionService::cleanup()
 {
-   if(mSocket != NULL)
-   {
-      // clean up socket
-      delete mSocket;
-      mSocket = NULL;
-   }
+   delete mSocket;
+   mSocket = NULL;
 }

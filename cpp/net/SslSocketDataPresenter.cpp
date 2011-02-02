@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SslSocketDataPresenter.h"
 
@@ -9,9 +9,9 @@
 using namespace monarch::net;
 using namespace monarch::rt;
 
-SslSocketDataPresenter::SslSocketDataPresenter(SslContext* context)
+SslSocketDataPresenter::SslSocketDataPresenter(SslContext* context) :
+   mContext(context)
 {
-   mContext = context;
 }
 
 SslSocketDataPresenter::~SslSocketDataPresenter()

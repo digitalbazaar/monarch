@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/DynamicObjectInputStream.h"
 
@@ -11,17 +11,17 @@ using namespace monarch::rt;
 
 DynamicObjectInputStream::DynamicObjectInputStream(
    DynamicObject& dyno, DynamicObjectWriter* writer, bool cleanup) :
+   mHasData(false),
+   mDyno(dyno),
+   mWriter(writer),
+   mCleanupWriter(cleanup),
    mBufferInputStream(NULL, 0)
 {
-   mHasData = false;
-   mDyno = dyno;
-   mWriter = writer;
-   mCleanupWriter = cleanup;
 }
 
 DynamicObjectInputStream::~DynamicObjectInputStream()
 {
-   if(mCleanupWriter && mWriter != NULL)
+   if(mCleanupWriter)
    {
       delete mWriter;
    }

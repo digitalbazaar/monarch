@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/BlockCipherInputStream.h"
 
@@ -10,16 +10,16 @@ BlockCipherInputStream::BlockCipherInputStream(
    BlockCipher* cipher, bool cleanupCipher,
    InputStream* os, bool cleanupStream) :
    FilterInputStream(os, cleanupStream),
-   mReadBuffer(2048)
+   mCipher(cipher),
+   mCleanupCipher(cleanupCipher),
+   mReadBuffer(2048),
+   mCipherFinished(false)
 {
-   mCipher = cipher;
-   mCleanupCipher = cleanupCipher;
-   mCipherFinished = false;
 }
 
 BlockCipherInputStream::~BlockCipherInputStream()
 {
-   if(mCleanupCipher && mCipher != NULL)
+   if(mCleanupCipher)
    {
       delete mCipher;
    }
@@ -81,7 +81,7 @@ int BlockCipherInputStream::read(char* b, int length)
 
 void BlockCipherInputStream::setCipher(BlockCipher* cipher, bool cleanup)
 {
-   if(mCleanupCipher && mCipher != NULL)
+   if(mCleanupCipher)
    {
       delete mCipher;
    }

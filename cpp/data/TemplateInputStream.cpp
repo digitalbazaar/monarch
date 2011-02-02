@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -3813,19 +3813,13 @@ void TemplateInputStream::setParseException(
 
 void TemplateInputStream::freePipe(Pipe* p)
 {
-   if(p->params != NULL)
-   {
-      delete p->params;
-   }
+   delete p->params;
    delete p;
 }
 
 void TemplateInputStream::freeCommand(Command* c)
 {
-   if(c->params != NULL)
-   {
-      delete c->params;
-   }
+   delete c->params;
    delete c;
 }
 

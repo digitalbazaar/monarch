@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/logging/Logger.h"
 
@@ -36,18 +36,12 @@ Logger::Logger() :
 Logger::~Logger()
 {
    setName(NULL);
-   if(mDateFormat != NULL)
-   {
-      free(mDateFormat);
-   }
+   free(mDateFormat);
 }
 
 void Logger::setName(const char* name)
 {
-   if(mName != NULL)
-   {
-      free(mName);
-   }
+   free(mName);
    mName = (name == NULL) ? NULL : strdup(name);
 }
 
@@ -166,11 +160,7 @@ bool Logger::setDateFormat(const char* format)
    // lock so flags are not changed while in use in log()
    mLock.lockExclusive();
    {
-      if(mDateFormat != NULL)
-      {
-         free(mDateFormat);
-      }
-
+      free(mDateFormat);
       mDateFormat = strdup(format);
    }
    mLock.unlockExclusive();

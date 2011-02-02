@@ -100,10 +100,7 @@ SslContext::~SslContext()
    }
 
    // free virtual hostname
-   if(mVirtualHost != NULL)
-   {
-      free(mVirtualHost);
-   }
+   free(mVirtualHost);
 }
 
 SSL* SslContext::createSSL(TcpSocket* socket, bool client)
@@ -127,10 +124,7 @@ SSL* SslContext::createSSL(TcpSocket* socket, bool client)
 
 void SslContext::setVirtualHost(const char* vHost)
 {
-   if(mVirtualHost != NULL)
-   {
-      free(mVirtualHost);
-   }
+   free(mVirtualHost);
    mVirtualHost = strdup(vHost);
 }
 

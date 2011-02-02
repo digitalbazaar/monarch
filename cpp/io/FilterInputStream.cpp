@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/FilterInputStream.h"
 
@@ -19,8 +19,7 @@ FilterInputStream::~FilterInputStream()
 
 void FilterInputStream::setInputStream(InputStream* is, bool cleanup)
 {
-   // cleanup wrapped input stream as appropriate
-   if(mCleanupInputStream && mInputStream != NULL)
+   if(mCleanupInputStream)
    {
       delete mInputStream;
    }

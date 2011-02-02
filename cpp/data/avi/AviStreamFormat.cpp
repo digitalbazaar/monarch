@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -22,10 +22,7 @@ AviStreamFormat::AviStreamFormat() :
 
 AviStreamFormat::~AviStreamFormat()
 {
-   if(mData != NULL)
-   {
-      free(mData);
-   }
+   free(mData);
 }
 
 static uint16_t _readWord(char* data, int offset, int max)

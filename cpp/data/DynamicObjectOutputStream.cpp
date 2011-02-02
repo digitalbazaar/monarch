@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/DynamicObjectOutputStream.h"
 
@@ -9,18 +9,17 @@ using namespace monarch::rt;
 
 DynamicObjectOutputStream::DynamicObjectOutputStream(
    DynamicObject& dyno, DynamicObjectReader* reader, bool cleanup) :
+   mReader(reader),
+   mCleanupReader(cleanup),
    mInputStream(NULL, 0)
 {
-   mReader = reader;
-   mCleanupReader = cleanup;
-
    // start DynamicObjectReader
    mReader->start(dyno);
 }
 
 DynamicObjectOutputStream::~DynamicObjectOutputStream()
 {
-   if(mCleanupReader && mReader != NULL)
+   if(mCleanupReader)
    {
       delete mReader;
    }

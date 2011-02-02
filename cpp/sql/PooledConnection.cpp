@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/PooledConnection.h"
 
@@ -10,19 +10,16 @@ using namespace monarch::rt;
 using namespace monarch::sql;
 
 PooledConnection::PooledConnection(
-   AbstractConnectionPool* pool, Connection* connection)
+   AbstractConnectionPool* pool, Connection* connection):
+   mPool(pool),
+   mConnection(connection)
 {
-   mPool = pool;
-   mConnection = connection;
 }
 
 PooledConnection::~PooledConnection()
 {
    // clean up wrapped connection
-   if(mConnection != NULL)
-   {
-      delete mConnection;
-   }
+   delete mConnection;
 }
 
 inline Connection* PooledConnection::getConnection()

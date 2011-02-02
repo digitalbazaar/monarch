@@ -1,20 +1,19 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/FilterOutputStream.h"
 
 using namespace monarch::io;
 
-FilterOutputStream::FilterOutputStream(OutputStream* os, bool cleanup)
+FilterOutputStream::FilterOutputStream(OutputStream* os, bool cleanup) :
+   mOutputStream(os),
+   mCleanupOutputStream(cleanup)
 {
-   mOutputStream = os;
-   mCleanupOutputStream = cleanup;
 }
 
 FilterOutputStream::~FilterOutputStream()
 {
-   // cleanup wrapped output stream as appropriate
-   if(mCleanupOutputStream && mOutputStream != NULL)
+   if(mCleanupOutputStream)
    {
       delete mOutputStream;
    }

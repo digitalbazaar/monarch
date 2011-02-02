@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/mail/SmtpClient.h"
 
@@ -11,17 +11,14 @@ using namespace monarch::mail;
 using namespace monarch::net;
 using namespace monarch::rt;
 
-SmtpClient::SmtpClient()
+SmtpClient::SmtpClient() :
+   mSslContext(NULL)
 {
-   mSslContext = NULL;
 }
 
 SmtpClient::~SmtpClient()
 {
-   if(mSslContext != NULL)
-   {
-      delete mSslContext;
-   }
+   delete mSslContext;
 }
 
 void SmtpClient::activateSsl(Connection* c)

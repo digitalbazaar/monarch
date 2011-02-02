@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -41,10 +41,7 @@ AppRunner* App::getAppRunner()
 
 void App::setName(const char* name)
 {
-   if(mName != NULL)
-   {
-      free(mName);
-   }
+   free(mName);
    mName = (name != NULL) ? strdup(name) : NULL;
 }
 
@@ -55,10 +52,7 @@ const char* App::getName()
 
 void App::setVersion(const char* version)
 {
-   if(mVersion != NULL)
-   {
-      free(mVersion);
-   }
+   free(mVersion);
    mVersion = version ? strdup(version) : NULL;
 }
 

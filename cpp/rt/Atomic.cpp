@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/Atomic.h"
 
@@ -31,12 +31,9 @@ void* Atomic::mallocAligned(size_t size)
 
 void Atomic::freeAligned(void* ptr)
 {
-   if(ptr != NULL)
-   {
 #if 0//def WIN32
-      _aligned_free(ptr);
+   _aligned_free(ptr);
 #else
-      free(ptr);
+   free(ptr);
 #endif
-   }
 }

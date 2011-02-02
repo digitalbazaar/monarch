@@ -12,14 +12,12 @@ MutatorOutputStream::MutatorOutputStream(
    OutputStream* os, bool cleanupStream,
    MutationAlgorithm* algorithm, bool cleanupAlgorithm,
    ByteBuffer* src, ByteBuffer* dst) :
-   FilterOutputStream(os, cleanupStream)
+   FilterOutputStream(os, cleanupStream),
+   mAlgorithm(algorithm),
+   mCleanupAlgorithm(cleanupAlgorithm),
+   mResult(MutationAlgorithm::NeedsData),
+   mFinished(false)
 {
-   // store mutation algorithm
-   mAlgorithm = algorithm;
-   mCleanupAlgorithm = cleanupAlgorithm;
-   mResult = MutationAlgorithm::NeedsData;
-   mFinished = false;
-
    // set source buffer
    if(src == NULL)
    {
@@ -57,7 +55,7 @@ MutatorOutputStream::~MutatorOutputStream()
       delete mDestination;
    }
 
-   if(mCleanupAlgorithm && mAlgorithm != NULL)
+   if(mCleanupAlgorithm)
    {
       delete mAlgorithm;
    }
@@ -177,11 +175,10 @@ void MutatorOutputStream::close()
 
 void MutatorOutputStream::setAlgorithm(MutationAlgorithm* ma, bool cleanup)
 {
-   if(mCleanupAlgorithm && mAlgorithm != NULL)
+   if(mCleanupAlgorithm)
    {
       delete mAlgorithm;
    }
-
    mAlgorithm = ma;
    mCleanupAlgorithm = cleanup;
    mResult = MutationAlgorithm::NeedsData;

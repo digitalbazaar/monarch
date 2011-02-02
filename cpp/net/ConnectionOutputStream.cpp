@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 
@@ -13,11 +13,11 @@ using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-ConnectionOutputStream::ConnectionOutputStream(Connection* c)
+ConnectionOutputStream::ConnectionOutputStream(Connection* c) :
+   mConnection(c),
+   mBytesWritten(0),
+   mUseBuffer(false)
 {
-   mConnection = c;
-   mBytesWritten = 0;
-   mUseBuffer = false;
 }
 
 ConnectionOutputStream::~ConnectionOutputStream()

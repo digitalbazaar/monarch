@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -22,19 +22,15 @@ const char* HttpHeader::CRLF = "\r\n";
 // define date format
 const char* HttpHeader::sDateFormat = "%a, %d %b %Y %H:%M:%S GMT";
 
-HttpHeader::HttpHeader()
+HttpHeader::HttpHeader() :
+   mVersion(NULL),
+   mFieldsSize(0)
 {
-   mVersion = NULL;
-   mFieldsSize = 0;
 }
 
 HttpHeader::~HttpHeader()
 {
-   if(mVersion != NULL)
-   {
-      free(mVersion);
-   }
-
+   free(mVersion);
    HttpHeader::clearFields();
 }
 
@@ -58,10 +54,7 @@ bool HttpHeader::hasStartLine()
 
 void HttpHeader::setVersion(const char* version)
 {
-   if(mVersion != NULL)
-   {
-      free(mVersion);
-   }
+   free(mVersion);
    mVersion = strdup(version);
 }
 

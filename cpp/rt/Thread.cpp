@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/Thread.h"
 
@@ -79,11 +79,7 @@ Thread::Thread(RunnableRef& runnable, const char* name, bool persistent) :
 
 Thread::~Thread()
 {
-   if(mName != NULL)
-   {
-      // delete name
-      free(mName);
-   }
+   free(mName);
 }
 
 bool Thread::start(size_t stackSize)
@@ -605,12 +601,7 @@ void Thread::run()
 
 void Thread::assignName(const char* name)
 {
-   // delete old name
-   if(mName != NULL)
-   {
-      free(mName);
-   }
-
+   free(mName);
    mName = (name != NULL) ? strdup(name) : NULL;
 }
 

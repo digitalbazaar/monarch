@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/JobDispatcher.h"
 
@@ -29,14 +29,8 @@ JobDispatcher::JobDispatcher(ThreadPool* pool, bool cleanupPool) :
 
 JobDispatcher::~JobDispatcher()
 {
-   // clean up dispatcher thread as appropriate
-   if(mDispatcherThread != NULL)
-   {
-      delete mDispatcherThread;
-   }
-
-   // clean up thread pool as appropriate
-   if(mCleanupThreadPool && mThreadPool != NULL)
+   delete mDispatcherThread;
+   if(mCleanupThreadPool)
    {
       delete mThreadPool;
    }

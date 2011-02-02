@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/avi/AviStreamHeaderList.h"
 
@@ -101,10 +101,7 @@ int AviStreamHeaderList::getSize()
 
 void AviStreamHeaderList::setStreamHeader(AviStreamHeader* h)
 {
-   if(mStreamHeader != NULL)
-   {
-      delete mStreamHeader;
-   }
+   delete mStreamHeader;
    mStreamHeader = h;
 }
 
@@ -115,10 +112,7 @@ AviStreamHeader* AviStreamHeaderList::getStreamHeader()
 
 void AviStreamHeaderList::setStreamFormat(AviStreamFormat* f)
 {
-   if(mStreamFormat != NULL)
-   {
-      delete mStreamFormat;
-   }
+   delete mStreamFormat;
    mStreamFormat = f;
 }
 

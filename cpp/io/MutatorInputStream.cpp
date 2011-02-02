@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/MutatorInputStream.h"
 
@@ -12,14 +12,12 @@ MutatorInputStream::MutatorInputStream(
    InputStream* is, bool cleanupStream,
    MutationAlgorithm* algorithm, bool cleanupAlgorithm,
    ByteBuffer* src, ByteBuffer* dst) :
-   FilterInputStream(is, cleanupStream)
+   FilterInputStream(is, cleanupStream),
+   mAlgorithm(algorithm),
+   mCleanupAlgorithm(cleanupAlgorithm),
+   mResult(MutationAlgorithm::NeedsData),
+   mSourceEmpty(false)
 {
-   // store mutation algorithm
-   mAlgorithm = algorithm;
-   mCleanupAlgorithm = cleanupAlgorithm;
-   mResult = MutationAlgorithm::NeedsData;
-   mSourceEmpty = false;
-
    // set source buffer
    if(src == NULL)
    {
@@ -57,7 +55,7 @@ MutatorInputStream::~MutatorInputStream()
       delete mDestination;
    }
 
-   if(mCleanupAlgorithm && mAlgorithm != NULL)
+   if(mCleanupAlgorithm)
    {
       delete mAlgorithm;
    }
@@ -142,11 +140,10 @@ int MutatorInputStream::read(char* b, int length)
 
 void MutatorInputStream::setAlgorithm(MutationAlgorithm* ma, bool cleanup)
 {
-   if(mCleanupAlgorithm && mAlgorithm != NULL)
+   if(mCleanupAlgorithm)
    {
       delete mAlgorithm;
    }
-
    mAlgorithm = ma;
    mCleanupAlgorithm = cleanup;
    mResult = MutationAlgorithm::NeedsData;

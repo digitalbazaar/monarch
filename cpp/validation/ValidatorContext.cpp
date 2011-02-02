@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/ValidatorContext.h"
 
@@ -11,12 +11,12 @@ using namespace monarch::rt;
 using namespace monarch::validation;
 
 ValidatorContext::ValidatorContext(DynamicObject* state) :
+   mState(state),
+   mPath(NULL),
+   mSetExceptions(true),
+   mMaskType(ValidatorContext::MaskNone),
    mResults(NULL)
 {
-   mPath = NULL;
-   mState = state;
-   mSetExceptions = true;
-   mMaskType = ValidatorContext::MaskNone;
    clearResults();
 }
 

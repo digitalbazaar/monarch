@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SslSessionCache.h"
 
 using namespace std;
 using namespace monarch::net;
 
-SslSessionCache::SslSessionCache(unsigned int capacity)
+SslSessionCache::SslSessionCache(unsigned int capacity) :
+   mCapacity(capacity)
 {
-   mCapacity = capacity;
 }
 
 SslSessionCache::~SslSessionCache()

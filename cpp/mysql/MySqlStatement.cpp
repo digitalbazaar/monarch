@@ -34,7 +34,7 @@ MySqlStatement::~MySqlStatement()
       mysql_free_result(mResult);
    }
 
-   // clean up param bindings
+   // clean up bindings
    if(mParamBindings != NULL)
    {
       // ensure heap data is cleaned up
@@ -60,18 +60,8 @@ MySqlStatement::~MySqlStatement()
       // clean up all bindings
       delete [] mParamBindings;
    }
-
-   // clean up result bindings
-   if(mResultBindings != NULL)
-   {
-      delete [] mResultBindings;
-   }
-
-   // clean up row, if any
-   if(mRow != NULL)
-   {
-      delete mRow;
-   }
+   delete [] mResultBindings;
+   delete mRow;
 
    if(mHandle != NULL)
    {

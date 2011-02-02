@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/modest/OperationImpl.h"
 
@@ -8,29 +8,29 @@
 using namespace monarch::modest;
 using namespace monarch::rt;
 
-OperationImpl::OperationImpl(Runnable& r)
+OperationImpl::OperationImpl(Runnable& r) :
+   mRunnable(&r),
+   mThread(NULL),
+   mStarted(false),
+   mInterrupted(false),
+   mStopped(false),
+   mFinished(false),
+   mCanceled(false),
+   mUserData(NULL)
 {
-   mRunnable = &r;
-   mThread = NULL;
-   mStarted = false;
-   mInterrupted = false;
-   mStopped = false;
-   mFinished = false;
-   mCanceled = false;
-   mUserData = NULL;
 }
 
-OperationImpl::OperationImpl(RunnableRef& r)
+OperationImpl::OperationImpl(RunnableRef& r) :
+   mRunnable(r.isNull() ? NULL : &(*r)),
+   mRunnableReference(r),
+   mThread(NULL),
+   mStarted(false),
+   mInterrupted(false),
+   mStopped(false),
+   mFinished(false),
+   mCanceled(false),
+   mUserData(NULL)
 {
-   mRunnable = r.isNull() ? NULL : &(*r);
-   mRunnableReference = r;
-   mThread = NULL;
-   mStarted = false;
-   mInterrupted = false;
-   mStopped = false;
-   mFinished = false;
-   mCanceled = false;
-   mUserData = NULL;
 }
 
 OperationImpl::~OperationImpl()

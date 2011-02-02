@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -136,6 +136,9 @@ static int _xPlatformStat(const char* path, struct stat* st)
 }
 
 FileImpl::FileImpl() :
+   mBaseName(NULL),
+   mCanonicalPath(NULL),
+   mExtension(NULL),
    mRemoveOnCleanup(false)
 {
    mPath = strdup(".");
@@ -144,11 +147,12 @@ FileImpl::FileImpl() :
    string abs;
    File::getAbsolutePath(mPath, abs);
    mAbsolutePath = strdup(abs.c_str());
-
-   mBaseName = mCanonicalPath = mExtension = NULL;
 }
 
 FileImpl::FileImpl(const char* path) :
+   mBaseName(NULL),
+   mCanonicalPath(NULL),
+   mExtension(NULL),
    mRemoveOnCleanup(false)
 {
 #ifdef WIN32
@@ -162,8 +166,6 @@ FileImpl::FileImpl(const char* path) :
    string abs;
    File::getAbsolutePath(mPath, abs);
    mAbsolutePath = strdup(abs.c_str());
-
-   mBaseName = mCanonicalPath = mExtension = NULL;
 }
 
 FileImpl::~FileImpl()
@@ -176,21 +178,9 @@ FileImpl::~FileImpl()
 
    free(mPath);
    free(mAbsolutePath);
-
-   if(mBaseName != NULL)
-   {
-      free(mBaseName);
-   }
-
-   if(mCanonicalPath != NULL)
-   {
-      free(mCanonicalPath);
-   }
-
-   if(mExtension != NULL)
-   {
-      free(mExtension);
-   }
+   free(mBaseName);
+   free(mCanonicalPath);
+   free(mExtension);
 }
 
 bool FileImpl::create()

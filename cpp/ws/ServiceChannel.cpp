@@ -545,10 +545,7 @@ bool ServiceChannel::isSecure()
 
 void ServiceChannel::setBasePath(const char* path)
 {
-   if(mBasePath != NULL)
-   {
-      free(mBasePath);
-   }
+   free(mBasePath);
 
    // append slash to passed path as needed
    int length = strlen(path);

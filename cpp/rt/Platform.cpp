@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/Platform.h"
 
@@ -86,16 +86,10 @@ bool Platform::initialize()
 
 void Platform::cleanup()
 {
-   if(sCommonInfo != NULL)
-   {
-      delete sCommonInfo;
-      sCommonInfo = NULL;
-   }
-   if(sCurrentInfo != NULL)
-   {
-      delete sCurrentInfo;
-      sCurrentInfo = NULL;
-   }
+   delete sCommonInfo;
+   sCommonInfo = NULL;
+   delete sCurrentInfo;
+   sCurrentInfo = NULL;
 }
 
 const char* Platform::getDynamicLibraryPrefix(const char* os)

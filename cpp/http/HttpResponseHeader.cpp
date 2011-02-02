@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/HttpResponseHeader.h"
 
@@ -10,18 +10,15 @@
 using namespace std;
 using namespace monarch::http;
 
-HttpResponseHeader::HttpResponseHeader()
+HttpResponseHeader::HttpResponseHeader() :
+   mStatusCode(0),
+   mStatusMessage(NULL)
 {
-   mStatusCode = 0;
-   mStatusMessage = NULL;
 }
 
 HttpResponseHeader::~HttpResponseHeader()
 {
-   if(mStatusMessage != NULL)
-   {
-      free(mStatusMessage);
-   }
+   free(mStatusMessage);
 }
 
 bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
@@ -85,10 +82,7 @@ bool HttpResponseHeader::parseStartLine(const char* str, unsigned int length)
    }
 
    // set status message
-   if(mStatusMessage != NULL)
-   {
-      free(mStatusMessage);
-   }
+   free(mStatusMessage);
    mStatusMessage = strdup(msg);
 
    return rval;
@@ -112,22 +106,15 @@ inline bool HttpResponseHeader::hasStartLine()
 void HttpResponseHeader::setStatus(int code, const char* message)
 {
    mStatusCode = code;
-
-   if(mStatusMessage != NULL)
-   {
-      free(mStatusMessage);
-   }
+   free(mStatusMessage);
    mStatusMessage = strdup(message);
 }
 
 void HttpResponseHeader::clearStatus()
 {
    mStatusCode = 0;
-   if(mStatusMessage != NULL)
-   {
-      free(mStatusMessage);
-      mStatusMessage = NULL;
-   }
+   free(mStatusMessage);
+   mStatusMessage = NULL;
 }
 
 int HttpResponseHeader::getStatusCode()
@@ -137,11 +124,7 @@ int HttpResponseHeader::getStatusCode()
 
 const char* HttpResponseHeader::getStatusMessage()
 {
-   if(mStatusMessage == NULL)
-   {
-      mStatusMessage = strdup("");
-   }
-   return mStatusMessage;
+   return (mStatusMessage == NULL) ? "" : mStatusMessage;
 }
 
 void HttpResponseHeader::writeTo(HttpResponseHeader* header)

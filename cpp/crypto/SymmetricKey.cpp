@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/SymmetricKey.h"
 
@@ -27,10 +27,7 @@ SymmetricKey::~SymmetricKey()
    // clean up
    freeData();
    freeIv();
-   if(mAlgorithm != NULL)
-   {
-      free(mAlgorithm);
-   }
+   free(mAlgorithm);
 }
 
 void SymmetricKey::freeData()
@@ -178,10 +175,7 @@ unsigned int SymmetricKey::ivLength()
 
 void SymmetricKey::setAlgorithm(const char* algorithm)
 {
-   if(mAlgorithm != NULL)
-   {
-      free(mAlgorithm);
-   }
+   free(mAlgorithm);
    mAlgorithm = (algorithm == NULL) ? NULL : strdup(algorithm);
 }
 

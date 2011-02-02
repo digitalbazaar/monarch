@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/DigitalSignatureOutputStream.h"
 
@@ -9,15 +9,15 @@ using namespace monarch::io;
 DigitalSignatureOutputStream::DigitalSignatureOutputStream(
    DigitalSignature* ds, bool cleanupSignature,
    OutputStream* os, bool cleanupStream) :
-   FilterOutputStream(os, cleanupStream)
+   FilterOutputStream(os, cleanupStream),
+   mSignature(ds),
+   mCleanupSignature(cleanupSignature)
 {
-   mSignature = ds;
-   mCleanupSignature = cleanupSignature;
 }
 
 DigitalSignatureOutputStream::~DigitalSignatureOutputStream()
 {
-   if(mCleanupSignature && mSignature != NULL)
+   if(mCleanupSignature)
    {
       delete mSignature;
    }
@@ -38,7 +38,7 @@ bool DigitalSignatureOutputStream::write(const char* b, int length)
 void DigitalSignatureOutputStream::setSignature(
    DigitalSignature* ds, bool cleanup)
 {
-   if(mCleanupSignature && mSignature != NULL)
+   if(mCleanupSignature)
    {
       delete mSignature;
    }

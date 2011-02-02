@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/IgnoreOutputStream.h"
 
@@ -9,9 +9,9 @@ using namespace monarch::io;
 using namespace monarch::rt;
 
 IgnoreOutputStream::IgnoreOutputStream(OutputStream* os, bool cleanup) :
-   FilterOutputStream(os, cleanup)
+   FilterOutputStream(os, cleanup),
+   mIgnoreCount(0)
 {
-   mIgnoreCount = 0;
 }
 
 IgnoreOutputStream::~IgnoreOutputStream()

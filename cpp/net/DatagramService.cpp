@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/DatagramService.h"
 
@@ -51,10 +51,6 @@ Operation DatagramService::initialize()
 
 void DatagramService::cleanup()
 {
-   if(mSocket != NULL)
-   {
-      // clean up socket
-      delete mSocket;
-      mSocket = NULL;
-   }
+   delete mSocket;
+   mSocket = NULL;
 }

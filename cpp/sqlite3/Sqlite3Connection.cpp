@@ -13,10 +13,9 @@ using namespace monarch::sql::sqlite3;
 using namespace monarch::net;
 using namespace monarch::rt;
 
-Sqlite3Connection::Sqlite3Connection()
+Sqlite3Connection::Sqlite3Connection() :
+   mHandle(NULL)
 {
-   // initialize handle to NULL
-   mHandle = NULL;
 }
 
 Sqlite3Connection::~Sqlite3Connection()

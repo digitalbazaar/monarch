@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
@@ -590,7 +590,7 @@ void MicroKernel::setMaxServerConnections(uint32_t count)
 
 void MicroKernel::setConfigManager(ConfigManager* cm, bool cleanup)
 {
-   if(mCleanupConfigManager && mConfigManager != NULL)
+   if(mCleanupConfigManager)
    {
       delete mConfigManager;
    }
@@ -605,7 +605,7 @@ ConfigManager* MicroKernel::getConfigManager()
 
 void MicroKernel::setFiberScheduler(FiberScheduler* fs, bool cleanup)
 {
-   if(mCleanupFiberScheduler && mFiberScheduler != NULL)
+   if(mCleanupFiberScheduler)
    {
       delete mFiberScheduler;
    }
@@ -620,7 +620,7 @@ FiberScheduler* MicroKernel::getFiberScheduler()
 
 void MicroKernel::setFiberMessageCenter(FiberMessageCenter* fmc, bool cleanup)
 {
-   if(mCleanupFiberMessageCenter && mFiberMessageCenter != NULL)
+   if(mCleanupFiberMessageCenter)
    {
       delete mFiberMessageCenter;
    }
@@ -635,7 +635,7 @@ FiberMessageCenter* MicroKernel::getFiberMessageCenter()
 
 void MicroKernel::setEventController(EventController* ec, bool cleanup)
 {
-   if(mCleanupEventController && mEventController != NULL)
+   if(mCleanupEventController)
    {
       delete mEventController;
    }
@@ -650,7 +650,7 @@ EventController* MicroKernel::getEventController()
 
 void MicroKernel::setEventDaemon(EventDaemon* ed, bool cleanup)
 {
-   if(mCleanupEventDaemon && mEventDaemon != NULL)
+   if(mCleanupEventDaemon)
    {
       delete mEventDaemon;
    }
@@ -665,7 +665,7 @@ EventDaemon* MicroKernel::getEventDaemon()
 
 void MicroKernel::setServer(Server* s, bool cleanup)
 {
-   if(mCleanupServer && mServer != NULL)
+   if(mCleanupServer)
    {
       delete mServer;
    }

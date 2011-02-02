@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/ThreadPool.h"
 
@@ -7,13 +7,11 @@ using namespace std;
 using namespace monarch::rt;
 
 ThreadPool::ThreadPool(unsigned int poolSize, size_t stackSize) :
-   mThreadSemaphore(poolSize, true)
-{
-   // set stack size
-   mThreadStackSize = stackSize;
-
+   mThreadSemaphore(poolSize, true),
+   mThreadStackSize(stackSize),
    // default thread expire time to 0 (no expiration)
-   mThreadExpireTime = 0;
+   mThreadExpireTime(0)
+{
 }
 
 ThreadPool::~ThreadPool()

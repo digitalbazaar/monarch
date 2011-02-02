@@ -243,25 +243,15 @@ bool AbstractSocket::initializeOutput()
 
 bool AbstractSocket::shutdownInput()
 {
-   // delete input stream
-   if(mInputStream != NULL)
-   {
-      delete mInputStream;
-      mInputStream = NULL;
-   }
-
+   delete mInputStream;
+   mInputStream = NULL;
    return true;
 }
 
 bool AbstractSocket::shutdownOutput()
 {
-   // delete output stream
-   if(mOutputStream != NULL)
-   {
-      delete mOutputStream;
-      mOutputStream = NULL;
-   }
-
+   delete mOutputStream;
+   mOutputStream = NULL;
    return true;
 }
 

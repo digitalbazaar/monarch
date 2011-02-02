@@ -68,10 +68,20 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
 
    if(!rval)
    {
+      // set default HTTP response code if not yet set
+      if(ch->getResponse()->getHeader()->getStatusCode() == 0)
+      {
+         // FIXME: change to 401 Unauthorized? currently not used because
+         // spec seems to indicate that the client could send WWW-Authenticate
+         // which is not necessarily the method of authentication used
+         ch->getResponse()->getHeader()->setStatus(400, "Bad Request");
+      }
+
       // set top-level exception
       ExceptionRef e = new Exception(
          "WebService authentication failed. Access denied.",
          "monarch.ws.AccessDenied");
+      e->getDetails()["path"] = ch->getRequest()->getHeader()->getPath();
       Exception::push(e);
    }
 

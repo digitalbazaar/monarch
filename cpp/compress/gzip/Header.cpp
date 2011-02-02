@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -19,31 +19,22 @@ using namespace monarch::compress::gzip;
 using namespace monarch::io;
 using namespace monarch::rt;
 
-Header::Header()
-{
-   // initialize empty header
-   mHasFilename = false;
-   mFilename = NULL;
-   mHasFileComment = false;
-   mFileComment = NULL;
-   mHasCrc = false;
-   mCrc = 0;
-
+Header::Header() :
+   mHasFilename(false),
+   mFilename(NULL),
+   mHasFileComment(false),
+   mFileComment(NULL),
+   mHasCrc(false),
+   mCrc(0),
    // default to unknown file system
-   mFileSystemFlag = 0xff;
+   mFileSystemFlag(0xff)
+{
 }
 
 Header::~Header()
 {
-   if(mFilename != NULL)
-   {
-      free(mFilename);
-   }
-
-   if(mFileComment != NULL)
-   {
-      free(mFileComment);
-   }
+   free(mFilename);
+   free(mFileComment);
 }
 
 int Header::convertFromBytes(char* b, int length)
@@ -52,16 +43,10 @@ int Header::convertFromBytes(char* b, int length)
 
    // clear extra field, filename, and file comment
    mExtraField.clear();
-   if(mFilename != NULL)
-   {
-      free(mFilename);
-      mFilename = NULL;
-   }
-   if(mFileComment != NULL)
-   {
-      free(mFileComment);
-      mFileComment = NULL;
-   }
+   free(mFilename);
+   mFilename = NULL;
+   free(mFileComment);
+   mFileComment = NULL;
 
    // make sure there are at least 10 bytes available -- this is
    // the minimum header size

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SslSocket.h"
 
@@ -127,16 +127,10 @@ SslSocket::~SslSocket()
    for(VerifyCommonNameList::iterator i = mVerifyCommonNames.begin();
        i != mVerifyCommonNames.end(); ++i)
    {
-      if(*i != NULL)
-      {
-         free((char*)*i);
-      }
+      free((char*)*i);
    }
 
-   if(mVirtualHost != NULL)
-   {
-      free(mVirtualHost);
-   }
+   free(mVirtualHost);
 }
 
 void SslSocket::setSession(SslSession* session)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/HttpRequestHeader.h"
 
@@ -10,23 +10,16 @@ using namespace std;
 using namespace monarch::http;
 using namespace monarch::util;
 
-HttpRequestHeader::HttpRequestHeader()
+HttpRequestHeader::HttpRequestHeader() :
+   mMethod(NULL),
+   mPath(NULL)
 {
-   mMethod = NULL;
-   mPath = NULL;
 }
 
 HttpRequestHeader::~HttpRequestHeader()
 {
-   if(mMethod != NULL)
-   {
-      free(mMethod);
-   }
-
-   if(mPath != NULL)
-   {
-      free(mPath);
-   }
+   free(mMethod);
+   free(mPath);
 }
 
 bool HttpRequestHeader::parseStartLine(const char* str, unsigned int length)
@@ -87,38 +80,24 @@ inline bool HttpRequestHeader::hasStartLine()
 
 void HttpRequestHeader::setMethod(const char* method)
 {
-   if(mMethod != NULL)
-   {
-      free(mMethod);
-   }
+   free(mMethod);
    mMethod = strdup(method);
 }
 
 const char* HttpRequestHeader::getMethod()
 {
-   if(mMethod == NULL)
-   {
-      mMethod = strdup("");
-   }
-   return mMethod;
+   return (mMethod == NULL) ? "" : mMethod;
 }
 
 void HttpRequestHeader::setPath(const char* path)
 {
-   if(mPath != NULL)
-   {
-      free(mPath);
-   }
+   free(mPath);
    mPath = strdup(path);
 }
 
 const char* HttpRequestHeader::getPath()
 {
-   if(mPath == NULL)
-   {
-      mPath = strdup("");
-   }
-   return mPath;
+   return (mPath == NULL) ? "" : mPath;
 }
 
 void HttpRequestHeader::writeTo(HttpRequestHeader* header)

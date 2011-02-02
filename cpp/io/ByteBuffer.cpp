@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/ByteBuffer.h"
 
@@ -49,7 +49,7 @@ ByteBuffer::~ByteBuffer()
 
 void ByteBuffer::cleanupBytes()
 {
-   if(mCleanup && mBuffer != NULL)
+   if(mCleanup)
    {
       ::free(mBuffer);
       mBuffer = NULL;

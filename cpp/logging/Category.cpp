@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/logging/Category.h"
 
@@ -55,10 +55,7 @@ void Category::cleanup()
 
 void Category::setId(const char* id)
 {
-   if(mId != NULL)
-   {
-      free(mId);
-   }
+   free(mId);
    mId = (id != NULL ? strdup(id) : NULL);
 }
 
@@ -69,10 +66,7 @@ const char* Category::getId()
 
 void Category::setName(const char* name)
 {
-   if(mName != NULL)
-   {
-      free(mName);
-   }
+   free(mName);
    mName = (name != NULL ? strdup(name) : NULL);
 }
 
@@ -83,10 +77,7 @@ const char* Category::getName()
 
 void Category::setDescription(const char* description)
 {
-   if(mDescription != NULL)
-   {
-      free(mDescription);
-   }
+   free(mDescription);
    mDescription = (description != NULL ? strdup(description) : NULL);
 }
 
@@ -97,10 +88,7 @@ const char* Category::getDescription()
 
 void Category::setAnsiEscapeCodes(const char* ansi)
 {
-   if(mAnsiEscapeCodes != NULL)
-   {
-      free(mAnsiEscapeCodes);
-   }
+   free(mAnsiEscapeCodes);
    mAnsiEscapeCodes = (ansi != NULL ? strdup(ansi) : NULL);
 }
 

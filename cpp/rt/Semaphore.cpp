@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/Semaphore.h"
 
@@ -8,14 +8,11 @@
 using namespace std;
 using namespace monarch::rt;
 
-Semaphore::Semaphore(int permits, bool fair)
+Semaphore::Semaphore(int permits, bool fair) :
+   mPermits(permits),
+   mPermitsLeft(permits),
+   mFair(fair)
 {
-   // set permits
-   mPermits = permits;
-   mPermitsLeft = permits;
-
-   // set fair/not fair
-   mFair = fair;
 }
 
 Semaphore::~Semaphore()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Validator.h"
 
@@ -15,10 +15,7 @@ Validator::Validator(const char* errorMessage)
 
 Validator::~Validator()
 {
-   if(mErrorMessage)
-   {
-      free(mErrorMessage);
-   }
+   free(mErrorMessage);
 }
 
 bool Validator::isValid(

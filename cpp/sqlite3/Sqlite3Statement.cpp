@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/sqlite3/Sqlite3Statement.h"
 
@@ -21,11 +21,8 @@ Sqlite3Statement::Sqlite3Statement(const char* sql) :
 
 Sqlite3Statement::~Sqlite3Statement()
 {
-   // clean up row, if any
-   if(mRow != NULL)
-   {
-      delete mRow;
-   }
+   // clean up row
+   delete mRow;
 
    if(mHandle != NULL)
    {
@@ -341,11 +338,8 @@ bool Sqlite3Statement::reset()
    bool rval = true;
 
    // clean up existing row object
-   if(mRow != NULL)
-   {
-      delete mRow;
-      mRow = NULL;
-   }
+   delete mRow;
+   mRow = NULL;
 
    // reset statement
    mState = sqlite3_reset(mHandle);
