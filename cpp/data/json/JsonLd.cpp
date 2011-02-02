@@ -343,9 +343,7 @@ static string _normalizeValue(
          // handle native xsd types
          if(value->isNumber())
          {
-            datatype = value->isInteger() ?
-               XSD_INTEGER :
-               XSD_DOUBLE;
+            datatype = value->isInteger() ? XSD_INTEGER : XSD_DOUBLE;
          }
          else if(value->getType() == Boolean)
          {
