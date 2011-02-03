@@ -801,14 +801,29 @@ static void runDatagramTest(TestRunner& tr)
 static void runUrlEncodeTest(TestRunner& tr)
 {
    tr.test("Url Encode/Decode");
+   {
+      string str = "billy bob & \"jane\" +^%2{13.";
 
-   string str = "billy bob & \"jane\" +^%2{13.";
+      string encoded = Url::encode(str.c_str(), str.length());
+      assertStrCmp(
+         "billy+bob+%26+%22jane%22+%2B%5E%252%7B13.", encoded.c_str());
+      string decoded = Url::decode(encoded.c_str(), encoded.length());
 
-   string encoded = Url::encode(str.c_str(), str.length());
-   string decoded = Url::decode(encoded.c_str(), encoded.length());
+      assertStrCmp(decoded.c_str(), str.c_str());
+   }
+   tr.pass();
 
-   assertStrCmp(decoded.c_str(), str.c_str());
+   tr.test("Url Encode/Decode use %20 for spaces");
+   {
+      string str = "billy bob & \"jane\" +^%2{13.";
 
+      string encoded = Url::encode(str.c_str(), str.length(), false);
+      assertStrCmp(
+         "billy%20bob%20%26%20%22jane%22%20%2B%5E%252%7B13.", encoded.c_str());
+      string decoded = Url::decode(encoded.c_str(), encoded.length());
+
+      assertStrCmp(decoded.c_str(), str.c_str());
+   }
    tr.pass();
 }
 

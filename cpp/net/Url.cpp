@@ -620,7 +620,7 @@ void Url::parseHostAndPort(const char* input, string& host, string& port)
    }
 }
 
-string Url::encode(const char* str, unsigned int length)
+string Url::encode(const char* str, unsigned int length, bool spaceToPlus)
 {
    string rval;
 
@@ -646,7 +646,7 @@ string Url::encode(const char* str, unsigned int length)
       {
          rval.push_back(c);
       }
-      else if(c == ' ')
+      else if(c == ' ' && spaceToPlus)
       {
          // substitute pluses for spaces
          rval.push_back('+');
@@ -662,9 +662,9 @@ string Url::encode(const char* str, unsigned int length)
    return rval;
 }
 
-string Url::encode(const char* str)
+string Url::encode(const char* str, bool spaceToPlus)
 {
-   return Url::encode(str, strlen(str));
+   return Url::encode(str, strlen(str), spaceToPlus);
 }
 
 string Url::decode(const char* str, unsigned int length)

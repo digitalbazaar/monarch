@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_Url_H
 #define monarch_net_Url_H
@@ -370,19 +370,22 @@ public:
     *
     * @param str the string to URL-encode.
     * @param length the length of the string.
+    * @param spaceToPlus true to replace ' ' with '+', false to use '%20'.
     *
     * @return the URL-encoded string.
     */
-   static std::string encode(const char* str, unsigned int length);
+   static std::string encode(
+      const char* str, unsigned int length, bool spaceToPlus = true);
 
    /**
     * URL-encodes the passed string.
     *
     * @param str the string to URL-encode.
+    * @param spaceToPlus true to replace ' ' with '+', false to use '%20'.
     *
     * @return the URL-encoded string.
     */
-   static std::string encode(const char* str);
+   static std::string encode(const char* str, bool spaceToPlus = true);
 
    /**
     * URL-decodes the passed string.
