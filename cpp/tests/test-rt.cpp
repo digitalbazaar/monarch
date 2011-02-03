@@ -1125,6 +1125,40 @@ static void runDynamicObjectTest(TestRunner& tr)
       assert(d1 != "1");
    }
 
+   {
+      // test positive index array expansion
+      DynamicObject d;
+      d->setType(Array);
+      assert(d->length() == 0);
+      d[1] = 1;
+      assert(d->length() == 2);
+      d[1];
+      assert(d->length() == 2);
+   }
+
+   {
+      // test negative index array expansion
+      DynamicObject d;
+      d->setType(Array);
+      assert(d->length() == 0);
+      d[-1] = 1;
+      assert(d->length() == 1);
+   }
+
+   {
+      // test pop
+      DynamicObject d;
+      d->setType(Array);
+      assert(d->length() == 0);
+      d->append();
+      assert(d->length() == 1);
+      d->pop();
+      assert(d->length() == 0);
+      // pop on empty array a no-op
+      d->pop();
+      assert(d->length() == 0);
+   }
+
    tr.pass();
 }
 

@@ -175,8 +175,11 @@ public:
    virtual DynamicObject& operator[](const char* name);
 
    /**
-    * Gets a DynamicObject based on its index. A negative index will
-    * index in reverse, with -1 referring to the last element.
+    * Gets a DynamicObject based on its index. The object will be converted to
+    * an Array if needed. A negative index will index in reverse, with -1
+    * referring to the last element. The length of the array will be expanded
+    * such that the index is valid. Elements that don't exist will be filled
+    * with new DynamicObjects.
     *
     * @param index the index of the member.
     *
@@ -318,6 +321,11 @@ public:
     * @return the DynamicObject that was appended.
     */
    virtual DynamicObject& append(double value);
+
+   /**
+    * Removes the last element of a non-empty array.
+    */
+   virtual void pop();
 
    /**
     * Sets this object's type. Its existing value will be converted if

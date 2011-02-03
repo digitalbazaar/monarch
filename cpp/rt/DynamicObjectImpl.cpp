@@ -355,13 +355,10 @@ void DynamicObjectImpl::operator=(double value)
 
 DynamicObject& DynamicObjectImpl::operator[](const char* name)
 {
-   DynamicObject* rval = NULL;
+   DynamicObject* rval;
 
-   // change to map type if necessary
-   if(mType != Map)
-   {
-      setType(Map);
-   }
+   // ensure object is a Map
+   setType(Map);
 
    ObjectMap::iterator i = mMap->find(name);
    if(i == mMap->end())
@@ -386,31 +383,35 @@ DynamicObject& DynamicObjectImpl::operator[](const char* name)
 
 DynamicObject& DynamicObjectImpl::operator[](int index)
 {
-   // change to array type if necessary
-   if(mType != Array)
-   {
-      setType(Array);
-   }
+   // ensure object is an Array
+   setType(Array);
 
    int size = mArray->size();
+   int neededSize;
+   int arrayIndex;
+
+   // calculate
+   if(index >= 0)
+   {
+      neededSize = max(size, index + 1);
+      arrayIndex = index;
+   }
+   else
+   {
+      neededSize = max(size, -index);
+      arrayIndex = neededSize + index;
+   }
 
    // fill the object array as necessary
-   if(index >= size)
+   while(neededSize > size)
    {
-      int i = index - size + 1;
-      for(; i > 0; --i)
-      {
-         DynamicObject dyno;
-         mArray->push_back(dyno);
-      }
-   }
-   // assume abs(index) >= size
-   else if(index < 0)
-   {
-      index = size + index;
+      DynamicObject dyno;
+      mArray->push_back(dyno);
+      --neededSize;
    }
 
-   return (*mArray)[index];
+   // return the indexed object in the possibly expanded array
+   return (*mArray)[arrayIndex];
 }
 
 bool DynamicObjectImpl::operator==(const DynamicObjectImpl& rhs) const
@@ -769,6 +770,15 @@ DynamicObject& DynamicObjectImpl::append(double value)
    setType(Array);
    mArray->push_back(dyno);
    return mArray->back();
+}
+
+void DynamicObjectImpl::pop()
+{
+   setType(Array);
+   if(mArray->size() > 0)
+   {
+      mArray->pop_back();
+   }
 }
 
 void DynamicObjectImpl::setType(DynamicObjectType type)
