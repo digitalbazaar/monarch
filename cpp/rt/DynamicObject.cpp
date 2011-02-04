@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/rt/DynamicObject.h"
 
@@ -750,8 +750,18 @@ void DynamicObject::merge(DynamicObject& rhs, bool append)
          case Int64:
          case UInt64:
          case Double:
-            *this = rhs.clone();
+         {
+            // append if lhs is array (and append flag is true)
+            if(append && !this->isNull() && (*this)->getType() == Array)
+            {
+               (*this)->append() = rhs.clone();
+            }
+            else
+            {
+               *this = rhs.clone();
+            }
             break;
+         }
          case Map:
          {
             (*this)->setType(Map);
