@@ -3901,6 +3901,89 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   /*
+   tr.test("parse (array access)");
+   {
+      // create template
+      const char* tpl =
+         "Item count: {items.length}\n"
+         "{:set items[0]='item1'}"
+         "Item count: {items.length}\n"
+         "{:set items[1]='item2'}"
+         "Item count: {items.length}\n"
+         "|{:each from=items as=item}{item}|{:end}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->setType(Array);
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+
+      const char* expect =
+         "Item count: 0\n"
+         "Item count: 1\n"
+         "Item count: 2\n"
+         "|item1|item2|\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+   */
+
+   // FIXME: potential new template API
+   /*
+   tr.test("parse (array append)");
+   {
+      // create template
+      const char* tpl =
+         "Item count: {items.length}\n"
+         "{:set items[]='item1'}"
+         "Item count: {items.length}\n"
+         "{:set items[]='item2'}"
+         "Item count: {items.length}\n"
+         "|{:each from=items as=item}{item}|{:end}\n";
+
+      // create variables
+      DynamicObject vars;
+      vars["items"]->setType(Array);
+
+      // create template input stream
+      ByteArrayInputStream bais(tpl, strlen(tpl));
+      TemplateInputStream tis(vars, true, &bais, false);
+
+      // parse entire template
+      ByteBuffer output(2048);
+      ByteArrayOutputStream baos(&output, true);
+      tis.parse(&baos);
+      assertNoExceptionSet();
+
+      const char* expect =
+         "Item count: 0\n"
+         "Item count: 1\n"
+         "Item count: 2\n"
+         "|item1|item2|\n";
+
+      // null-terminate output
+      output.putByte(0, 1, true);
+
+      // assert expected value
+      assertStrCmp(expect, output.data());
+   }
+   tr.passIfNoException();
+   */
+
    tr.ungroup();
 }
 
