@@ -751,17 +751,17 @@ string Url::formEncode(DynamicObject& form)
          while(ai->hasNext())
          {
             DynamicObject& item = ai->next();
-            rval.append(encode(i->getName(), strlen(i->getName())));
+            rval.append(encode(i->getName(), false));
             rval.push_back('=');
-            rval.append(encode(item->getString(), strlen(item->getString())));
+            rval.append(encode(item->getString(), false));
          }
       }
       else
       {
          // handle single value
-         rval.append(encode(i->getName(), strlen(i->getName())));
+         rval.append(encode(i->getName(), false));
          rval.push_back('=');
-         rval.append(encode(next->getString(), strlen(next->getString())));
+         rval.append(encode(next->getString(), false));
       }
    }
 
