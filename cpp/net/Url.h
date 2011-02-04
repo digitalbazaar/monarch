@@ -375,7 +375,7 @@ public:
     * @return the URL-encoded string.
     */
    static std::string encode(
-      const char* str, unsigned int length, bool spaceToPlus = true);
+      const char* str, unsigned int length, bool spaceToPlus);
 
    /**
     * URL-encodes the passed string.
