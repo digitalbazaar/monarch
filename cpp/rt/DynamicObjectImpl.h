@@ -323,9 +323,22 @@ public:
    virtual DynamicObject& append(double value);
 
    /**
-    * Removes the last element of a non-empty array.
+    * Appends the passed DynamicObject to this one and returns a reference
+    * to it. An alias for append() but does not require the passed value to
+    * be by reference.
+    *
+    * @param value the DynamicObject to push.
+    *
+    * @return the DynamicObject that was pushed.
     */
-   virtual void pop();
+   virtual DynamicObject& push(DynamicObject value);
+
+   /**
+    * Removes the last element of a non-empty array.
+    *
+    * @return the last element or NULL.
+    */
+   virtual DynamicObject pop();
 
    /**
     * Sets this object's type. Its existing value will be converted if

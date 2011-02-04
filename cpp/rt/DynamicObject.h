@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_DynamicObject_H
 #define monarch_rt_DynamicObject_H
@@ -441,12 +441,24 @@ public:
    /**
     * Merges the passed DynamicObject into this one.
     *
-    * If the passed DynamicObject is something other than a map or an array,
-    * then this DynamicObject will simply be set to the clone of the passed
-    * DynamicObject. If the passed DynamicObject is a map, then all of its
-    * key-value pairs will be merged into this DynamicObject, overwriting
-    * any overlapping pairs. If it is an array, then its elements can either
-    * overwrite the elements in this DynamicObject or be appended to it.
+    * If "append" is false:
+    *
+    * If the passed DynamicObject is a map, then all of its key-value pairs
+    * will be deep-merged into this DynamicObject (converting it to a map if
+    * necessary), overwriting any overlapping pairs. If it is an array, then
+    * its elements will overwrite the elements in this DynamicObject object
+    * (converting it to an array if necessary). If it is not a map or an
+    * array, then this DynamicObject will be set to the clone of the passed
+    * DynamicObject.
+    *
+    * If "append" is true:
+    *
+    * The same as if "append" is false with the following changes: If the
+    * passed DynamicObject is an array, its elements will be appened to the
+    * end of this DynamicObject (after converting it to an array if necessary).
+    * If the passed DynamicObject is not an array or a map but this
+    * DynamicObject is an array, then the passed DynamicObject will be
+    * appended to this one.
     *
     * @param rhs the DynamicObject to merge into this one.
     * @param append true to append arrays, false to overwrite them.

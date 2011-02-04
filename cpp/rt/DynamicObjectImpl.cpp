@@ -772,13 +772,21 @@ DynamicObject& DynamicObjectImpl::append(double value)
    return mArray->back();
 }
 
-void DynamicObjectImpl::pop()
+DynamicObject& DynamicObjectImpl::push(DynamicObject value)
 {
+   return append(value);
+}
+
+DynamicObject DynamicObjectImpl::pop()
+{
+   DynamicObject rval(NULL);
    setType(Array);
    if(mArray->size() > 0)
    {
+      rval = mArray->back();
       mArray->pop_back();
    }
+   return rval;
 }
 
 void DynamicObjectImpl::setType(DynamicObjectType type)
