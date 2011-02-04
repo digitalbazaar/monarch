@@ -3901,7 +3901,6 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   /*
    tr.test("parse (array access)");
    {
       // create template
@@ -3940,10 +3939,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
-   */
 
-   // FIXME: potential new template API
-   /*
    tr.test("parse (array append)");
    {
       // create template
@@ -3982,7 +3978,6 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       assertStrCmp(expect, output.data());
    }
    tr.passIfNoException();
-   */
 
    tr.ungroup();
 }

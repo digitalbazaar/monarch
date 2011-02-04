@@ -304,7 +304,7 @@ static void _set(
    }
    else if(_isArrayAccessor(tmp))
    {
-      int index = tmp["rhs"]["name"];
+      int index = tmp["rhs"]["value"];
       tmp["var"][index] = rhs["value"];
    }
    else
@@ -2088,15 +2088,22 @@ bool TemplateInputStream::parseExpression(
             rval = _parseVariable(*ci, params);
             if(rval)
             {
+               // special-case for array [] append API
+               if(params.isNull() && del == '[')
+               {
+                  params = DynamicObject();
+                  params["literal"] = true;
+                  params["value"].setNull();
+               }
+
                // no variable found
                if(params.isNull())
                {
                   // error cases
-                  if(del == '.' || del == '[')
+                  if(del == '.')
                   {
                      ExceptionRef e = new Exception(
-                        "No variable name found before object or "
-                        "array accessor.",
+                        "No variable name found before object accessor.",
                         EXCEPTION_SYNTAX);
                      Exception::set(e);
                      rval = false;
@@ -3546,12 +3553,20 @@ static bool _setValueToArrayElement(
 {
    bool rval = true;
 
-   // rhs *must* be a number
-   if(!_isInteger(exp["rhs"]["value"]))
+   // handle [] array append API
+   if(index.isNull())
+   {
+      index = DynamicObject();
+      index = array->length();
+   }
+
+   // index *must* be an integer
+   if(!index->isInteger())
    {
       ExceptionRef e = new Exception(
          "Invalid array accessor. Indexes must be integers.",
          EXCEPTION_SYNTAX);
+      e->getDetails()["index"] = index.clone();
       Exception::set(e);
       rval = false;
    }
@@ -3718,7 +3733,9 @@ bool TemplateInputStream::evalExpression(
          rhs["fullname"]->format("%s%s%s%s",
             exp["fullname"]->getString(),
             arrayAccessor ? "[" : ".",
-            rhs["lhs"]["value"]->getString(),
+            // (handle [] array append API case ... uses null for value)
+            rhs["lhs"]["value"].isNull() ?
+               "" : rhs["lhs"]["value"]->getString(),
             arrayAccessor ? "]" : "");
       }
 
