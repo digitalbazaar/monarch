@@ -163,10 +163,40 @@ typedef monarch::rt::Collectable<SqlExecutable> SqlExecutableRef;
  * For instance, an object may have an attribute of "fooId" but the column
  * name in a related table may be "foo_id".
  *
+ * Methods that have a "where" paramter use one of the following formats:
+ * {
+ *    "{name1}": value1, (simple equality)
+ *    "{name2}": [value2a, value2b, ...], (multiple values for "IN" clause)
+ *    "{name3}": {
+ *       "op": operation, (">=", etc)
+ *       "value": value3
+ *    },
+ *    ...
+ * }
+ *
+ * Methods that have an "order" paramter use one of the following formats:
+ * [
+ *    {"{name2}": DatabaseClient.ASC},
+ *    {"{name3}": DatabaseClient.DESC},
+ *    ...
+ * ]
+ * Easily constructed with:
+ *    order->append()["name2"] = ORDER_ASC;
+ *    order->append()["name3"] = ORDER_DESC;
+ *
  * @author Dave Longley
  */
 class DatabaseClient
 {
+public:
+   /**
+    * ORDER direction
+    */
+   enum OrderDirection
+   {
+      ASC, DESC
+   };
+
 protected:
    /**
     * True to enable debug logging.
@@ -431,13 +461,16 @@ public:
     *           filter on, NULL to include no WHERE clause.
     * @param members a specific map of member names to include, NULL to
     *           include all members.
+    * @param order an array that specifies the order of results or NULL for
+    *           default ordering.
     *
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
    virtual SqlExecutableRef selectOne(
       const char* table,
       monarch::rt::DynamicObject* where = NULL,
-      monarch::rt::DynamicObject* members = NULL);
+      monarch::rt::DynamicObject* members = NULL,
+      monarch::rt::DynamicObject* order = NULL);
 
    /**
     * Creates an SqlExecutable that will select column values from the
@@ -452,6 +485,8 @@ public:
     *           include all members.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param start the starting row for the LIMIT, defaults to 0.
+    * @param order an array that specifies the order of results or NULL for
+    *           default ordering.
     *
     * @return the SqlExecutable if successful, NULL if an Exception occurred.
     */
@@ -459,7 +494,8 @@ public:
       const char* table,
       monarch::rt::DynamicObject* where = NULL,
       monarch::rt::DynamicObject* members = NULL,
-      uint64_t limit = 0, uint64_t start = 0);
+      uint64_t limit = 0, uint64_t start = 0,
+      monarch::rt::DynamicObject* order = NULL);
 
    /**
     * Creates an SqlExecutable that deletes from a table. If the given
@@ -592,6 +628,16 @@ public:
       std::string& sql, monarch::rt::DynamicObject& params, bool useTableAlias);
 
    /**
+    * Appends the SQL " ORDER BY col1 ASC|DESC, ..." to an SQL statement.
+    *
+    * @param sql the SQL string to append to.
+    * @param params the list of parameters to generate the SQL from.
+    * @param useTableAlias true to use a table alias, false not to.
+    */
+   virtual void appendOrderSql(
+      std::string& sql, monarch::rt::DynamicObject& params, bool useTableAlias);
+
+   /**
     * Appends the SQL " LIMIT <start>,<limit>" to an SQL statement.
     *
     * @param sql the SQL string to append to.
@@ -641,9 +687,11 @@ public:
     *
     * @param schema the table schema to use.
     * @param where the WHERE filter.
+    * @param order the ORDER specification.
     * @param members a specific map of member names to include, NULL to
     *                include all members not in the WHERE.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
+    * @param start the starting row for the LIMIT.
     * @param params the parameters to populate.
     * @param columnSchemas the column schemas to populate.
     * @param tableAlias a table alias to use.
@@ -652,8 +700,11 @@ public:
     */
    std::string createSelectSql(
       SchemaObject& schema,
-      monarch::rt::DynamicObject* where, monarch::rt::DynamicObject* members,
-      uint64_t limit, uint64_t start,
+      monarch::rt::DynamicObject* where,
+      monarch::rt::DynamicObject* members,
+      monarch::rt::DynamicObject* order,
+      uint64_t limit,
+      uint64_t start,
       monarch::rt::DynamicObject& params,
       monarch::rt::DynamicObject& columnSchemas,
       const char* tableAlias);

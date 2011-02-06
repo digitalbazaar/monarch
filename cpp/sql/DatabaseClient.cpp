@@ -566,9 +566,10 @@ SqlExecutableRef DatabaseClient::update(
 }
 
 SqlExecutableRef DatabaseClient::selectOne(
-   const char* table, DynamicObject* where, DynamicObject* members)
+   const char* table, DynamicObject* where, DynamicObject* members,
+   DynamicObject* order)
 {
-   SqlExecutableRef rval = select(table, where, members, 1, 0);
+   SqlExecutableRef rval = select(table, where, members, 1, 0, order);
    if(!rval.isNull())
    {
       // set result to a map
@@ -580,7 +581,7 @@ SqlExecutableRef DatabaseClient::selectOne(
 
 SqlExecutableRef DatabaseClient::select(
    const char* table, DynamicObject* where, DynamicObject* members,
-   uint64_t limit, uint64_t start)
+   uint64_t limit, uint64_t start, DynamicObject* order)
 {
    SqlExecutableRef rval(NULL);
 
@@ -604,7 +605,7 @@ SqlExecutableRef DatabaseClient::select(
 
       // create SELECT sql
       rval->sql = createSelectSql(
-         schema, where, members, limit, start,
+         schema, where, members, order, limit, start,
          rval->params, rval->columnSchemas, tableAlias);
       if(where != NULL)
       {
@@ -1045,6 +1046,129 @@ void DatabaseClient::appendWhereSql(
    }
 }
 
+/**
+ * Build a columnSchema Map out of an ORDER specification.
+ *
+ * Input:
+ * [
+ *    {
+ *       "name1": order,
+ *       ...
+ *    },
+ *    ...
+ * ]
+ *
+ * Output:
+ * {
+ *    "name1": {
+ *       "value
+ *    }
+ * }
+ */
+static void _buildOrderParams(
+   SchemaObject& schema,
+   DynamicObject& order,
+   DynamicObject& params,
+   const char* tableAlias)
+{
+   // create shared table alias object
+   DynamicObject taObj(NULL);
+   if(tableAlias != NULL)
+   {
+      taObj = DynamicObject();
+      taObj = tableAlias;
+   }
+
+   // build map of names
+   DynamicObject names;
+   names->setType(Array);
+   {
+      DynamicObjectIterator i = order.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObjectIterator ni = i->next().getIterator();
+         while(ni->hasNext())
+         {
+            DynamicObject& next = ni->next();
+            names[ni->getName()]["direction"] = next;
+         }
+      }
+   }
+
+   // get column details for each name
+   {
+      DynamicObjectIterator i = schema["columns"].getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         const char* memberName = next["memberName"]->getString();
+
+         // get details for column if needed
+         if(names->hasMember(memberName))
+         {
+            DynamicObject& nameInfo = names[memberName];
+            nameInfo["name"] = next["name"];
+            if(tableAlias != NULL)
+            {
+               nameInfo["tableAlias"] = taObj;
+            }
+         }
+      }
+   }
+
+   // setup params in proper order
+   {
+      DynamicObjectIterator i = order.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObjectIterator ni = i->next().getIterator();
+         while(ni->hasNext())
+         {
+            ni->next();
+            params->append(names[ni->getName()]);
+         }
+      }
+   }
+}
+
+void DatabaseClient::appendOrderSql(
+   string& sql, DynamicObject& params, bool useTableAlias)
+{
+   bool first = true;
+   DynamicObjectIterator i = params.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& param = i->next();
+      if(first)
+      {
+         first = false;
+         sql.append(" ORDER BY ");
+      }
+      else
+      {
+         sql.append(", ");
+      }
+
+      // append aliased name
+      if(useTableAlias)
+      {
+         sql.append(param["tableAlias"]->getString());
+         sql.append(".");
+      }
+      sql.append(param["name"]->getString());
+
+      // direction
+      if(param["direction"]->getInt32() == ASC)
+      {
+         sql.append(" ASC");
+      }
+      else
+      {
+         sql.append(" DESC");
+      }
+   }
+}
+
 void DatabaseClient::appendLimitSql(string& sql, uint64_t limit, uint64_t start)
 {
    // append LIMIT
@@ -1363,20 +1487,13 @@ bool DatabaseClient::getRowData(
 
 string DatabaseClient::createSelectSql(
    SchemaObject& schema,
-   DynamicObject* where, DynamicObject* members,
+   DynamicObject* where, DynamicObject* members, DynamicObject* order,
    uint64_t limit, uint64_t start,
    DynamicObject& params, DynamicObject& columnSchemas,
    const char* tableAlias)
 {
    // create starting clause
    string sql = "SELECT";
-
-   // build parameters
-   params->setType(Array);
-   if(where != NULL)
-   {
-      buildParams(schema, *where, params, tableAlias);
-   }
 
    // build column schemas for results, do not exclude any fields
    buildColumnSchemas(schema, NULL, members, columnSchemas, tableAlias);
@@ -1391,7 +1508,22 @@ string DatabaseClient::createSelectSql(
    sql.append(tableAlias);
 
    // append WHERE clause
-   appendWhereSql(sql, params, true);
+   params->setType(Array);
+   if(where != NULL)
+   {
+      // build parameters
+      buildParams(schema, *where, params, tableAlias);
+      appendWhereSql(sql, params, true);
+   }
+
+   // append ORDER clause
+   if(order != NULL)
+   {
+      DynamicObject orderParams;
+      // build column schemas for results, do not exclude any fields
+      _buildOrderParams(schema, *order, orderParams, tableAlias);
+      appendOrderSql(sql, orderParams, true);
+   }
 
    // append LIMIT clause
    appendLimitSql(sql, limit, start);

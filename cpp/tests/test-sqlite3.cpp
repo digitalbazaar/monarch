@@ -1281,6 +1281,51 @@ static void runSqlite3DatabaseClientTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("select ORDER");
+   {
+      {
+         // ASC
+         DynamicObject order;
+         order->append()["val"] = DatabaseClient::ASC;
+         SqlExecutableRef se = dbc->select(
+            TABLE_TEST_3, NULL, NULL, 0, 0, &order);
+         assertNoExceptionSet();
+         assert(!se.isNull());
+         assertNoException(
+            dbc->execute(se));
+
+         DynamicObject expect;
+         for(int i = 0; i < 3; ++i)
+         {
+            DynamicObject& val = expect->append();
+            val["val"] = i;
+         }
+         expect->setType(Array);
+         assertNamedDynoCmp("expected", expect, "got", se->result);
+      }
+      {
+         // DESC
+         DynamicObject order;
+         order->append()["val"] = DatabaseClient::DESC;
+         SqlExecutableRef se = dbc->select(
+            TABLE_TEST_3, NULL, NULL, 0, 0, &order);
+         assertNoExceptionSet();
+         assert(!se.isNull());
+         assertNoException(
+            dbc->execute(se));
+
+         DynamicObject expect;
+         for(int i = 2; i >= 0; --i)
+         {
+            DynamicObject& val = expect->append();
+            val["val"] = i;
+         }
+         expect->setType(Array);
+         assertNamedDynoCmp("expected", expect, "got", se->result);
+      }
+   }
+   tr.passIfNoException();
+
    tr.test("remove");
    {
       DynamicObject where;
