@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -8,6 +8,7 @@
 // FIXME: if asserts are not compiled in, and an error occurs, math will be off
 #include <cassert>
 #include <openssl/crypto.h>
+#include <openssl/rand.h>
 
 #include <cstring>
 
@@ -436,6 +437,12 @@ string BigInteger::toHex()
 BIGNUM* BigInteger::getBIGNUM()
 {
    return mBigNum;
+}
+
+void BigInteger::randomBytes(char* buffer, int num)
+{
+   int rc = RAND_bytes((unsigned char*)buffer, num);
+   assert(rc == 1);
 }
 
 BigInteger BigInteger::random(int bits, int top, bool bottom)

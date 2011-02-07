@@ -27,6 +27,7 @@ SUBDIRS := \
 	cpp/crypto \
 	cpp/event \
 	cpp/net \
+	cpp/oauth1 \
 	cpp/http \
 	cpp/data \
 	cpp/config \
@@ -58,6 +59,7 @@ INSTALL_LIBRARIES := \
 	dist/lib/libmomail.so \
 	dist/lib/libmomodest.so \
 	dist/lib/libmonet.so \
+	dist/lib/libmooauth1.so \
 	dist/lib/libmohttp.so \
 	dist/lib/libmort.so \
 	dist/lib/libmosql.so \

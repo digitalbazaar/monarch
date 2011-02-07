@@ -260,6 +260,7 @@ AC_CONFIG_FILES([
    cpp/modest/Makefile
    cpp/mysql/Makefile
    cpp/net/Makefile
+   cpp/oauth1/Makefile
    cpp/rt/Makefile
    cpp/sphinx/Makefile
    cpp/sql/Makefile

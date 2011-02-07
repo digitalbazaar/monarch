@@ -1,0 +1,13 @@
+# Makefile to compile the module in this directory
+
+LIBRARIES = mooauth1
+mooauth1_HEADERS = $(wildcard *.h)
+mooauth1_SOURCES = $(wildcard *.cpp)
+
+DYNAMIC_LINK_LIBRARIES = mort moutil momodest moio mocrypto mohttp mologging modata mows
+
+DYNAMIC_MACOS_LINK_LIBRARIES = crypto ssl mocompress
+DYNAMIC_WINDOWS_LINK_LIBRARIES = libeay32 ssleay32 ws2_32
+
+# ----------- Standard Makefile
+include @MONARCH_DIR@/setup/Makefile.base

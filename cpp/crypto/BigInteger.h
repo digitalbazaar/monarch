@@ -527,6 +527,14 @@ public:
    virtual BIGNUM* getBIGNUM();
 
    /**
+    * Generates a cryptographically strong random number of bytes.
+    *
+    * @param buffer the buffer to write the bytes to.
+    * @param bytes the number of bytes to generate.
+    */
+   static void randomBytes(char* buffer, int num);
+
+   /**
     * Generates a cryptographically strong random number with the given
     * number of bits.
     *

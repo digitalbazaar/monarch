@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_logging_LoggingCategories_H
 #define monarch_logging_LoggingCategories_H
@@ -22,6 +22,7 @@ extern monarch::logging::Category* MO_LOGGING_CAT;
 extern monarch::logging::Category* MO_MAIL_CAT;
 extern monarch::logging::Category* MO_MODEST_CAT;
 extern monarch::logging::Category* MO_NET_CAT;
+extern monarch::logging::Category* MO_OAUTH1_CAT;
 extern monarch::logging::Category* MO_RT_CAT;
 extern monarch::logging::Category* MO_SPHINX_CAT;
 extern monarch::logging::Category* MO_SQL_CAT;

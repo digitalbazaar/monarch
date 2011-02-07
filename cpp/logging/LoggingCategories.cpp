@@ -20,6 +20,7 @@ Category* MO_LOGGING_CAT;
 Category* MO_MAIL_CAT;
 Category* MO_MODEST_CAT;
 Category* MO_NET_CAT;
+Category* MO_OAUTH1_CAT;
 Category* MO_RT_CAT;
 Category* MO_SPHINX_CAT;
 Category* MO_SQL_CAT;
@@ -80,6 +81,10 @@ void LoggingCategories::initialize()
    MO_NET_CAT = new Category(
       "MO_NET",
       "Monarch Networking",
+      NULL);
+   MO_OAUTH1_CAT = new Category(
+      "MO_OAUTH1",
+      "Monarch OAuth v1",
       NULL);
    MO_RT_CAT = new Category(
       "MO_RT",
@@ -147,6 +152,9 @@ void LoggingCategories::cleanup()
 
    delete MO_NET_CAT;
    MO_NET_CAT = NULL;
+
+   delete MO_OAUTH1_CAT;
+   MO_OAUTH1_CAT = NULL;
 
    delete MO_RT_CAT;
    MO_RT_CAT = NULL;
