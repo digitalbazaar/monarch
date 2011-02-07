@@ -75,33 +75,6 @@ public:
    virtual bool getTokenSecret(
       OAuth1Params& params, OAuth1::TokenType tokenType,
       std::string& secret) = 0;
-
-
-
-
-   // FIXME:
-
-
-   /**
-    * {@inheritDoc}
-    */
-   virtual bool getRequestSecret(const char* id, std::string& secret);
-
-   /**
-    * {@inheritDoc}
-    */
-   virtual bool getRequestCallback(const char* id, std::string& callback);
-
-   /**
-    * {@inheritDoc}
-    */
-   virtual bool getRequestVerifier(const char* id, std::string& verifier);
-
-   /**
-    * {@inheritDoc}
-    */
-   virtual bool getTokenSecret(const char* id, std::string& secret);
-
 };
 
 } // end namespace oauth1
