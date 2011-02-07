@@ -50,7 +50,7 @@ public:
     *         with exception set.
     */
    virtual bool validateTimestampAndNonce(
-      OAuth1Params& params, bool update) = 0;
+      OAuth1Params& params, bool update = true) = 0;
 
    /**
     * Gets the client secret associated with the given OAuth1Params object.
