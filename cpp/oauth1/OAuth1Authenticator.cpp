@@ -12,12 +12,14 @@ using namespace monarch::ws;
 #define OAUTH1_METHOD   "oauth1"
 
 OAuth1Authenticator::OAuth1Authenticator(
+   OAuth1Provider* provider,
    OAuth1::TokenType tokenType,
    bool requireSecureConnection, bool allowPlainText):
    mTokenType(tokenType),
    mRequireSecureConnection(requireSecureConnection),
    mAllowPlainText(allowPlainText)
 {
+   mOAuth1.setProvider(provider);
 }
 
 OAuth1Authenticator::~OAuth1Authenticator()

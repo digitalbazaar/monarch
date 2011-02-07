@@ -5,7 +5,7 @@
 #define monarch_oauth1_OAuth1Authenticator_H
 
 #include "monarch/ws/RequestAuthenticator.h"
-#include "monarch/oauth1/OAuth1.h"
+#include "monarch/oauth1/OAuth1Provider.h"
 
 namespace monarch
 {
@@ -22,7 +22,7 @@ class OAuth1Authenticator : public monarch::ws::RequestAuthenticator
 {
 protected:
    /**
-    * The OAuth1 API.
+    * The OAuth1 implementation.
     */
    OAuth1 mOAuth1;
 
@@ -45,6 +45,7 @@ public:
    /**
     * Creates a new OAuth1Authenticator.
     *
+    * @param provider the OAuth1Provider to use.
     * @param tokenType the type of token to verify (NullToken for no token).
     * @param requireSecureConnection true to require a secure connection
     *           (eg: SSL), defaults to true.
@@ -52,7 +53,7 @@ public:
     *           defaults to false.
     */
    OAuth1Authenticator(
-      OAuth1::TokenType tokenType,
+      OAuth1Provider* provider, OAuth1::TokenType tokenType,
       bool requireSecureConnection = true, bool allowPlainText = false);
 
    /**
