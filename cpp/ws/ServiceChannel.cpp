@@ -112,6 +112,31 @@ void ServiceChannel::setAuthenticationMethod(
    }
 }
 
+void ServiceChannel::unsetAuthenticationMethod(const char* method)
+{
+   if(method != NULL)
+   {
+      // remove entry from map
+      mAuthDataMap.erase(method);
+
+      // set new "first" method, even if it wasn't technically "first", the
+      // simple "first" API is typically used to avoid having to type the
+      // authentication method for services that have only 1 method
+      if(strcmp(mAuthMethod, method) == 0)
+      {
+         free(mAuthMethod);
+         if(mAuthDataMap.size() == 0)
+         {
+            mAuthMethod = NULL;
+         }
+         else
+         {
+            mAuthMethod = strdup(mAuthDataMap.begin()->first);
+         }
+      }
+   }
+}
+
 const char* ServiceChannel::getAuthenticationMethod()
 {
    return mAuthMethod;

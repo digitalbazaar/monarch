@@ -185,6 +185,17 @@ public:
       const char* method, monarch::rt::DynamicObject& data);
 
    /**
+    * Unsets an authentication method used its associated data. This call
+    * is useful for classes that extend other authenticators and need to
+    * clear their data if additional security measures do not pass. If the
+    * method that is unset was the first method approved, then another method
+    * will be chosen as "the first" if available.
+    *
+    * @param method the method to unset.
+    */
+   virtual void unsetAuthenticationMethod(const char* method);
+
+   /**
     * Gets the first non-anonymous authentication method approved, NULL
     * indicates anonymous.
     *
