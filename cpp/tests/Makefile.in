@@ -64,6 +64,7 @@ TEST_MODS = \
 	test-modest \
 	test-modexp \
 	test-net \
+	test-oauth1 \
 	test-pong \
 	$(RDFA_TEST_MOD) \
 	test-rt \
@@ -79,7 +80,7 @@ TEST_MODS = \
 $(foreach mod,$(TEST_MODS),$(eval $(call setup_test_mod,$(mod))))
 
 
-DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_LIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_LIBS) moapp mokernel motest mows
+DYNAMIC_LINK_LIBRARIES = mort momodest moutil mofiber moio mologging mocrypto monet mohttp modata mosql mosqlite3 $(MYSQL_LIBS) moevent momail moconfig mocompress movalidation moupnp $(SPHINX_LIBS) moapp mokernel motest mows mooauth1
 DYNAMIC_EXECUTABLE_LIBRARIES = motest
 
 DYNAMIC_LINUX_LINK_LIBRARIES = pthread crypto ssl expat sqlite3

@@ -54,6 +54,8 @@ protected:
    /**
     * The OAuth1Provider to use.
     */
+   // FIXME: add client support, ability to set a client interface or
+   // consolidate common parts (getting secrets) into another interface
    OAuth1Provider* mProvider;
 
    /**

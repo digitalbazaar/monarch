@@ -154,7 +154,9 @@ static string _normalizeUri(HttpRequest* request)
    string rval;
 
    // use https for secure, http for non-secure
-   string uri = (request->getConnection()->isSecure()) ? "https://" : "http://";
+   string uri = (
+      request->getConnection() != NULL &&
+      request->getConnection()->isSecure()) ? "https://" : "http://";
 
    // get the host and path for the URL
    HttpRequestHeader* header = request->getHeader();
@@ -273,6 +275,7 @@ static string _generateSignatureBaseString(
    rval.append(StringTools::toUpper(header->getMethod()));
    rval.push_back('&');
    rval.append(_encode(_normalizeUri(request).c_str()));
+   rval.push_back('&');
    rval.append(_encode(_normalizeParams(params).c_str()));
    return rval;
 }
