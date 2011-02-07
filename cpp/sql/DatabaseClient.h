@@ -163,7 +163,8 @@ typedef monarch::rt::Collectable<SqlExecutable> SqlExecutableRef;
  * For instance, an object may have an attribute of "fooId" but the column
  * name in a related table may be "foo_id".
  *
- * Methods that have a "where" paramter use one of the following formats:
+ * Methods that have a "where" paramter use a Map with multiple entries using
+ * the following formats:
  * {
  *    "{name1}": value1, (simple equality)
  *    "{name2}": [value2a, value2b, ...], (multiple values for "IN" clause)
@@ -174,15 +175,16 @@ typedef monarch::rt::Collectable<SqlExecutable> SqlExecutableRef;
  *    ...
  * }
  *
- * Methods that have an "order" paramter use one of the following formats:
+ * Methods that have an "order" paramter use an Array with multiple entires
+ * using the following formats:
  * [
- *    {"{name2}": DatabaseClient.ASC},
- *    {"{name3}": DatabaseClient.DESC},
+ *    {"{name2}": DatabaseClient::ASC},
+ *    {"{name3}": DatabaseClient::DESC},
  *    ...
  * ]
- * Easily constructed with:
- *    order->append()["name2"] = ORDER_ASC;
- *    order->append()["name3"] = ORDER_DESC;
+ * This can be easily constructed with:
+ *    order->append()["name2"] = DatabaseClient::ASC;
+ *    order->append()["name3"] = DatabaseClient::DESC;
  *
  * @author Dave Longley
  */
