@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -45,6 +45,7 @@ Message::Message() :
    mCustomHeaders(NULL),
    mTrailer(NULL)
 {
+   mOptions->setType(Map);
 }
 
 Message::~Message()
@@ -302,6 +303,37 @@ HttpTrailerRef& Message::getTrailer()
    return mTrailer;
 }
 
+DynamicObject& Message::getOptions()
+{
+   return mOptions;
+}
+
+Message::ContentType Message::getContentType(HttpHeader* header)
+{
+   Message::ContentType rval = Unknown;
+
+   // get header content-type
+   string contentType;
+   if(header->getField("Content-Type", contentType))
+   {
+      // Check prefix, ignore options such as charset
+      if(strstr(contentType.c_str(), CONTENT_TYPE_JSON) != NULL)
+      {
+         rval = Json;
+      }
+      else if(strstr(contentType.c_str(), CONTENT_TYPE_XML) != NULL)
+      {
+         rval = Xml;
+      }
+      else if(strstr(contentType.c_str(), CONTENT_TYPE_FORM) != NULL)
+      {
+         rval = Form;
+      }
+   }
+
+   return rval;
+}
+
 Message::MethodType Message::stringToMethod(const char* str)
 {
    MethodType rval;
@@ -389,32 +421,15 @@ bool Message::validateContentType(HttpHeader* header, ContentType& type)
    bool rval = true;
 
    // get header content-type
-   type = Invalid;
-   string contentType;
-   if(header->getField("Content-Type", contentType))
+   type = getContentType(header);
+   if(type == Unknown)
    {
-      // Check prefix, ignore options such as charset
-      if(strstr(contentType.c_str(), CONTENT_TYPE_JSON) != NULL)
-      {
-         type = Json;
-      }
-      else if(strstr(contentType.c_str(), CONTENT_TYPE_XML) != NULL)
-      {
-         type = Xml;
-      }
-      else if(strstr(contentType.c_str(), CONTENT_TYPE_FORM) != NULL)
-      {
-         type = Form;
-      }
-   }
-
-   if(type == Invalid)
-   {
-      // unsupported content-type
+      // unknown content-type
       ExceptionRef e = new Exception(
-         "Unsupported Content-Type for Message using DynamicObject.",
-         "monarch.ws.InvalidContentType");
-      e->getDetails()["contentType"] = contentType.c_str();
+         "Unknown Content-Type for Message using DynamicObject.",
+         "monarch.ws.UnknownContentType");
+      e->getDetails()["contentType"] =
+         header->getFieldValue("Content-Type").c_str();
       Exception::set(e);
       rval = false;
    }
@@ -748,7 +763,11 @@ bool Message::receiveContentObject(
          if(rval)
          {
             b.putByte('\0', 1, true);
-            Url::formDecode(dyno, b.data());
+            bool asArrays =
+               mOptions->hasMember("form") &&
+               mOptions["form"]->hasMember("asArrays") &&
+               mOptions["form"]["asArrays"]->getBoolean();
+            Url::formDecode(dyno, b.data(), asArrays);
          }
       }
       else

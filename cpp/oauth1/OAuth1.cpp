@@ -108,8 +108,21 @@ OAuth1Params OAuth1::getParameters(ServiceChannel* ch)
             "POST body:\n%s",
             JsonWriter::writeToString(form).c_str());
 
-         // merge in form (append to arrays)
-         rval.merge(form, true);
+         // merge in form, ensure all values are arrays
+         DynamicObjectIterator i = form.getIterator();
+         while(i->hasNext())
+         {
+            DynamicObject& value = i->next();
+            const char* field = i->getName();
+            if(value->getType() == Array)
+            {
+               rval[field].merge(value, true);
+            }
+            else
+            {
+               rval[field]->append(value);
+            }
+         }
       }
    }
 

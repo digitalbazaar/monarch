@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_ws_Message_H
 #define monarch_ws_Message_H
@@ -48,7 +48,7 @@ public:
     */
    enum ContentType
    {
-      Invalid, Json, Xml, Form
+      Unknown, Json, Xml, Form
    };
 
 protected:
@@ -82,6 +82,11 @@ protected:
     * An HttpTrailer used in communication.
     */
    monarch::http::HttpTrailerRef mTrailer;
+
+   /**
+    * Options for receiving data.
+    */
+   monarch::rt::DynamicObject mOptions;
 
 public:
    /**
@@ -346,6 +351,23 @@ public:
     * @return the HttpTrailer used in communication.
     */
    virtual monarch::http::HttpTrailerRef& getTrailer();
+
+   /**
+    * Gets the options object. Allows special options to be set for
+    * receiving data, etc.
+    *
+    * @return the options object.
+    */
+   virtual monarch::rt::DynamicObject& getOptions();
+
+   /**
+    * Gets the Content-Type for the given header.
+    *
+    * @param header the HttpHeader to check.
+    *
+    * @return the detected Content-Type of the header.
+    */
+   static ContentType getContentType(monarch::http::HttpHeader* header);
 
    /**
     * Conversion from string to MethodType.
