@@ -375,7 +375,7 @@ bool OAuth1::sign(
             rval = false;
          }
 
-         MO_CAT_DEBUG(MO_OAUTH1_CAT,
+         MO_CAT_DEBUG_DATA(MO_OAUTH1_CAT,
             "Signature Base String:\n   %s", signatureBaseString.c_str());
       }
    }
