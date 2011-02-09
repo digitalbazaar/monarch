@@ -135,19 +135,33 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
    } MO_STMT_END
 
 /**
- * Assert strings are equal.
+ * Assert named strings are equal.
+ *
+ * @param name1 name of first string
+ * @param str1 first string
+ * @param name2 name of second string
+ * @param str2 second string
  */
-#define assertStrCmp(a, b) \
+#define assertNamedStrCmp(name1, str1, name2, str2) \
    MO_STMT_START { \
-      std::string _a = a; \
-      std::string _b = b; \
-      if(strcmp(_a.c_str(), _b.c_str()) != 0) \
+      std::string _str1 = str1; \
+      std::string _str2 = str2; \
+      if(strcmp(_str1.c_str(), _str2.c_str()) != 0) \
       { \
-         printf("\nstring a=\n'%s'\nstring b=\n'%s'\n", \
-            _a.c_str(), _b.c_str()); \
-         assert(std::strcmp(_a.c_str(), _b.c_str()) == 0); \
+         printf("\n%s:\n'%s'\n%s:\n'%s'\n", \
+            name1, _str1.c_str(), name2, _str2.c_str()); \
+         assert(std::strcmp(_str1.c_str(), _str2.c_str()) == 0); \
       } \
    } MO_STMT_END
+
+/**
+ * Assert strings are equal.
+ *
+ * @param str1 first string
+ * @param str2 second string
+ */
+#define assertStrCmp(str1, str2) \
+   assertNamedStrCmp("string a", str1, "string b", str2)
 
 /**
  * Assert named DynamicObjects are equal.
