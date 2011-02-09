@@ -789,6 +789,7 @@ static void runDynamicObjectTest(TestRunner& tr)
    assert(dyno1["id"]->getInt32() == 2);
    assertStrCmp(dyno1["username"]->getString(), "testuser1000");
    assert(dyno1["username"] == "testuser1000");
+   assert("testuser1000" == dyno1["username"]);
 
    assertStrCmp(dyno1["somearray"][0]->getString(), "item1");
    assertStrCmp(dyno1["somearray"][1]->getString(), "item2");
@@ -796,6 +797,9 @@ static void runDynamicObjectTest(TestRunner& tr)
    assert(dyno1["somearray"][0] == "item1");
    assert(dyno1["somearray"][1] == "item2");
    assert(dyno1["somearray"][2] == "item3");
+   assert("item1" == dyno1["somearray"][0]);
+   assert("item2" == dyno1["somearray"][1]);
+   assert("item3" == dyno1["somearray"][2]);
 
    DynamicObject dyno3 = dyno1["address"];
    assertStrCmp(dyno3["street"]->getString(), "1700 Kraft Dr.");
@@ -871,6 +875,29 @@ static void runDynamicObjectTest(TestRunner& tr)
    // test print out code
    //printf("\n");
    //dumpDynamicObject(dyno1);
+
+   {
+      DynamicObject d;
+      d = "abc";
+      assert(d == "abc");
+      assert(d != "abd");
+      assert(d != "aba");
+      assert(d < "abd");
+      assert(d <= "abc");
+      assert(d <= "abd");
+      assert(d > "aba");
+      assert(d >= "abc");
+      assert(d >= "aba");
+      assert("abc" == d);
+      assert("abd" != d);
+      assert("aba" != d);
+      assert("abd" > d);
+      assert("abc" >= d);
+      assert("abd" >= d);
+      assert("aba" < d);
+      assert("abc" <= d);
+      assert("aba" <= d);
+   }
 
    {
       // test int iterator

@@ -134,6 +134,54 @@ public:
    virtual bool operator!=(const char* rhs) const;
 
    /**
+    * Compares this DynamicObject to a string. If the DynamicObject is a string
+    * that is lexically less than the given string, then the method will
+    * return true, otherwise it will return false.
+    *
+    * @param rhs the string to compare to this one.
+    *
+    * @return true if this DynamicObject is a string and the passed string is
+    *         less than this DynamicObject, false otherwise.
+    */
+   virtual bool operator<(const char* rhs) const;
+
+   /**
+    * Compares this DynamicObject to a string. If the DynamicObject is a string
+    * that is lexically less than or equal to the given string, then the method
+    * will return true, otherwise it will return false.
+    *
+    * @param rhs the string to compare to this one.
+    *
+    * @return true if this DynamicObject is a string and the passed string is
+    *         less than or equal to this DynamicObject, false otherwise.
+    */
+   virtual bool operator<=(const char* rhs) const;
+
+   /**
+    * Compares this DynamicObject to a string. If the DynamicObject is a string
+    * that is lexically greater than the given string, then the method will
+    * return true, otherwise it will return false.
+    *
+    * @param rhs the string to compare to this one.
+    *
+    * @return true if this DynamicObject is a string and the passed string is
+    *         greater than this DynamicObject, false otherwise.
+    */
+   virtual bool operator>(const char* rhs) const;
+
+   /**
+    * Compares this DynamicObject to a string. If the DynamicObject is a string
+    * that is lexically greater than or equal to the given string, then the
+    * method will return true, otherwise it will return false.
+    *
+    * @param rhs the string to compare to this one.
+    *
+    * @return true if this DynamicObject is a string and the passed string is
+    *         greater than or equal to this DynamicObject, false otherwise.
+    */
+   virtual bool operator>=(const char* rhs) const;
+
+   /**
     * Compares this DynamicObject to another one to see if it is less than it.
     *
     * If one DynamicObject is NULL, it is less.
@@ -542,4 +590,79 @@ public:
 
 } // end namespace rt
 } // end namespace monarch
+
+/**
+ * Compares a DynamicObject to a string for equality. If the
+ * DynamicObject is not a string then the comparison will return false.
+ *
+ * @param lhs the string to compare to the DynamicObject.
+ * @param rhs the DynamicObject to compare to the string.
+ *
+ * @return true if the passed string is equal to this one, false if not.
+ */
+bool operator==(const char* lhs, const monarch::rt::DynamicObject& rhs);
+
+/**
+ * Compares a DynamicObject to a string for non-equality. If the
+ * DynamicObject is not a string then the comparison will return true.
+ *
+ * @param lhs the string to compare to the DynamicObject.
+ * @param rhs the DynamicObject to compare to the string.
+ *
+ * @return true if the passed string is not equal to this one, false if not.
+ */
+bool operator!=(const char* lhs, const monarch::rt::DynamicObject& rhs);
+
+/**
+ * Compares a DynamicObject to a string. If the DynamicObject is a string
+ * that is lexically less than the given string, then the method will
+ * return true, otherwise it will return false.
+ *
+ * @param lhs the string to compare.
+ * @param rhs the DynamicObject to compare.
+ *
+ * @return true if the DynamicObject is a string and the passed string is
+ *         less than the DynamicObject, false otherwise.
+ */
+bool operator<(const char* lhs, const monarch::rt::DynamicObject& rhs);
+
+/**
+ * Compares a DynamicObject to a string. If the DynamicObject is a string
+ * that is lexically less than or equal to the given string, then the method
+ * will return true, otherwise it will return false.
+ *
+ * @param lhs the string to compare.
+ * @param rhs the DynamicObject to compare.
+ *
+ * @return true if the DynamicObject is a string and the passed string is
+ *         less than or equal to the DynamicObject, false otherwise.
+ */
+bool operator<=(const char* lhs, const monarch::rt::DynamicObject& rhs);
+
+/**
+ * Compares a DynamicObject to a string. If the DynamicObject is a string
+ * that is lexically greater than the given string, then the method will
+ * return true, otherwise it will return false.
+ *
+ * @param lhs the string to compare.
+ * @param rhs the DynamicObject to compare.
+ *
+ * @return true if the DynamicObject is a string and the passed string is
+ *         greater than the DynamicObject, false otherwise.
+ */
+bool operator>(const char* lhs, const monarch::rt::DynamicObject& rhs);
+
+/**
+ * Compares a DynamicObject to a string. If the DynamicObject is a string
+ * that is lexically greater or equal to than the given string, then the
+ * method will return true, otherwise it will return false.
+ *
+ * @param lhs the string to compare.
+ * @param rhs the DynamicObject to compare.
+ *
+ * @return true if the DynamicObject is a string and the passed string is
+ *         greater than or equal to the DynamicObject, false otherwise.
+ */
+bool operator>=(const char* lhs, const monarch::rt::DynamicObject& rhs);
+
 #endif

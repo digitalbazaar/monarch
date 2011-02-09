@@ -73,6 +73,58 @@ bool DynamicObject::operator!=(const char* rhs) const
    return !(*this == rhs);
 }
 
+bool DynamicObject::operator<(const char* rhs) const
+{
+   bool rval = false;
+
+   const DynamicObject& lhs = *this;
+   if(!lhs.isNull() && rhs != NULL && lhs->getType() == String)
+   {
+      rval = strcmp(lhs->getString(), rhs) < 0;
+   }
+
+   return rval;
+}
+
+bool DynamicObject::operator<=(const char* rhs) const
+{
+   bool rval = false;
+
+   const DynamicObject& lhs = *this;
+   if(!lhs.isNull() && rhs != NULL && lhs->getType() == String)
+   {
+      rval = strcmp(lhs->getString(), rhs) <= 0;
+   }
+
+   return rval;
+}
+
+bool DynamicObject::operator>(const char* rhs) const
+{
+   bool rval = false;
+
+   const DynamicObject& lhs = *this;
+   if(!lhs.isNull() && rhs != NULL && lhs->getType() == String)
+   {
+      rval = strcmp(lhs->getString(), rhs) > 0;
+   }
+
+   return rval;
+}
+
+bool DynamicObject::operator>=(const char* rhs) const
+{
+   bool rval = false;
+
+   const DynamicObject& lhs = *this;
+   if(!lhs.isNull() && rhs != NULL && lhs->getType() == String)
+   {
+      rval = strcmp(lhs->getString(), rhs) >= 0;
+   }
+
+   return rval;
+}
+
 bool DynamicObject::operator<(const DynamicObject& rhs) const
 {
    bool rval;
@@ -906,4 +958,34 @@ DynamicObjectType DynamicObject::determineType(const char* str)
    }
 
    return rval;
+}
+
+bool operator==(const char* lhs, const DynamicObject& rhs)
+{
+   return rhs == lhs;
+}
+
+bool operator!=(const char* lhs, const DynamicObject& rhs)
+{
+   return rhs != lhs;
+}
+
+bool operator<(const char* lhs, const DynamicObject& rhs)
+{
+   return rhs > lhs;
+}
+
+bool operator<=(const char* lhs, const DynamicObject& rhs)
+{
+   return rhs >= lhs;
+}
+
+bool operator>(const char* lhs, const DynamicObject& rhs)
+{
+   return rhs < lhs;
+}
+
+bool operator>=(const char* lhs, const DynamicObject& rhs)
+{
+   return rhs <= lhs;
 }
