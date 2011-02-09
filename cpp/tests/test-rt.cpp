@@ -788,10 +788,14 @@ static void runDynamicObjectTest(TestRunner& tr)
 
    assert(dyno1["id"]->getInt32() == 2);
    assertStrCmp(dyno1["username"]->getString(), "testuser1000");
+   assert(dyno1["username"] == "testuser1000");
 
    assertStrCmp(dyno1["somearray"][0]->getString(), "item1");
    assertStrCmp(dyno1["somearray"][1]->getString(), "item2");
    assertStrCmp(dyno1["somearray"][2]->getString(), "item3");
+   assert(dyno1["somearray"][0] == "item1");
+   assert(dyno1["somearray"][1] == "item2");
+   assert(dyno1["somearray"][2] == "item3");
 
    DynamicObject dyno3 = dyno1["address"];
    assertStrCmp(dyno3["street"]->getString(), "1700 Kraft Dr.");
