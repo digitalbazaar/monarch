@@ -3263,6 +3263,24 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (escaped operators after array var)");
+   {
+      const char* tpl =
+         "{var:array[0].foo:bar\\-1}\n"
+         "{var:array[0].foo:bar\\-2}\n";
+
+      DynamicObject vars;
+      vars["var:array"][0]["foo:bar-1"] = "value1";
+      vars["var:array"][0]["foo:bar-2"] = "value2";
+
+      const char* expect =
+         "value1\n"
+         "value2\n";
+
+      assertTplCmp(tpl, vars, expect, true);
+   }
+   tr.passIfNoException();
+
    tr.test("parse (array access on variable with colon)");
    {
       const char* tpl =
@@ -3597,6 +3615,10 @@ static bool run(TestRunner& tr)
    if(tr.isTestEnabled("json-ld"))
    {
       runJsonLdTest(tr);
+   }
+   if(tr.isTestEnabled("template-input-stream"))
+   {
+      runTemplateInputStreamTest(tr);
    }
    return true;
 }
