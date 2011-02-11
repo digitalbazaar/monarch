@@ -570,6 +570,79 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("normalize (no subject identifier)");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["a"] = "ex:Foo";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"] =
+         "<http://example.org/vocab#Foo>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (no subject identifier plus embed w/subject)");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["a"] = "ex:Foo";
+      in["ex:embed"]["@"] = "http://example.org/test#example";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"][0]["<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"] =
+         "<http://example.org/vocab#Foo>";
+      expect["@"][0]["<http://example.org/vocab#embed>"] =
+         "<http://example.org/test#example>";
+      expect["@"][1]["@"] = "<http://example.org/test#example>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (bnode embed)");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["@"] = "http://example.org/test#example";
+      in["a"] = "ex:Foo";
+      in["ex:embed"]["a"] = "ex:Bar";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test#example>";
+      expect["<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"] =
+         "<http://example.org/vocab#Foo>";
+      expect["<http://example.org/vocab#embed>"]
+         ["<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"] =
+            "<http://example.org/vocab#Bar>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
    tr.test("normalize (multiple types)");
    {
       DynamicObject in;

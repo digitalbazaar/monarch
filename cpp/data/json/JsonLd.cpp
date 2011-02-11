@@ -241,6 +241,7 @@ static bool _expandCurie(
  */
 static void _setPredicate(DynamicObject& s, const char* p, const char* o)
 {
+   // FIXME: must sort objects or keep array order?
    if(s->hasMember(p))
    {
       if(s[p]->getType() != Array)
@@ -257,6 +258,25 @@ static void _setPredicate(DynamicObject& s, const char* p, const char* o)
    else if(o == NULL)
    {
       s[p]->setType(Array);
+   }
+   else
+   {
+      s[p] = o;
+   }
+}
+
+static void _setEmbed(DynamicObject& s, const char* p, DynamicObject& o)
+{
+   // FIXME: must sort objects or keep array order?
+   if(s->hasMember(p))
+   {
+      if(s[p]->getType() != Array)
+      {
+         DynamicObject tmp = s[p];
+         s[p] = DynamicObject();
+         s[p]->append(tmp);
+      }
+      s[p]->append(o);
    }
    else
    {
@@ -417,12 +437,13 @@ inline static string _normalizeValue(
  * @param in the input object.
  * @param subjects a map of normalized subjects.
  * @param out a tree normalized objects.
+ * @param bnodeId the last blank node ID used.
  *
  * @return true on success, false on failure with exception set.
  */
 static bool _normalize(
    DynamicObject ctx, DynamicObject& in,
-   DynamicObject* subjects, DynamicObject* out)
+   DynamicObject* subjects, DynamicObject* out, int& bnodeId)
 {
    bool rval = true;
 
@@ -442,6 +463,13 @@ static bool _normalize(
       {
          subject = DynamicObject();
          subject->setType(Map);
+
+         // assign blank node ID as needed
+         if(!in->hasMember("@"))
+         {
+            string bnodeKey = StringTools::format("<_bnode:%d>", ++bnodeId);
+            subject["@"] = bnodeKey.c_str();
+         }
       }
       string nKey;
 
@@ -483,17 +511,37 @@ static bool _normalize(
          DynamicObjectIterator vi = values.getIterator();
          while(rval && vi->hasNext())
          {
-            DynamicObject& v = vi->next();
+            DynamicObject v = vi->next();
             if(v->getType() == Map)
             {
                if(subjects != NULL)
                {
                   // update subject (use value's subject IRI) and recurse
-                  _setPredicate(
-                     subject, nKey.c_str(),
-                     _normalizeValue(
-                        ctx, v["@"], RDF_TYPE_IRI, NULL, NULL).c_str());
-                  rval = _normalize(ctx, v, subjects, out);
+                  if(v->hasMember("@"))
+                  {
+                     _setPredicate(
+                        subject, nKey.c_str(),
+                        _normalizeValue(
+                           ctx, v["@"], RDF_TYPE_IRI, NULL, NULL).c_str());
+                     rval = _normalize(ctx, v, subjects, out, bnodeId);
+                  }
+                  // assign blank node ID
+                  else
+                  {
+                     // generate the next blank node ID in order to preserve
+                     // the blank node embed -- then recurse
+                     string bnodeKey = StringTools::format(
+                        "<_bnode:%d>", bnodeId + 1);
+                     rval = _normalize(ctx, v, subjects, out, bnodeId);
+                     if(rval)
+                     {
+                        // preserve embed and remove from top-level subjects
+                        DynamicObject embed = (*subjects)[bnodeKey.c_str()];
+                        (*subjects)->removeMember(bnodeKey.c_str());
+                        embed->removeMember("@");
+                        _setEmbed(subject, nKey.c_str(), embed);
+                     }
+                  }
                }
                else
                {
@@ -507,7 +555,7 @@ static bool _normalize(
                   {
                      next->setType(Map);
                   }
-                  rval = _normalize(ctx, v, subjects, &next);
+                  rval = _normalize(ctx, v, subjects, &next, bnodeId);
                }
             }
             else
@@ -522,14 +570,7 @@ static bool _normalize(
       // add subject to map
       if(subjects != NULL)
       {
-         if(!subject->hasMember("@"))
-         {
-            (*subjects)[""] = subject;
-         }
-         else
-         {
-            (*subjects)[subject["@"]->getString()] = subject;
-         }
+         (*subjects)[subject["@"]->getString()] = subject;
       }
    }
 
@@ -558,7 +599,7 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
    // put all subjects in an array for single code path
    DynamicObject input;
    input->setType(Array);
-   if(in["@"]->getType() == Array)
+   if(in->hasMember("@") && in["@"]->getType() == Array)
    {
       input.merge(in["@"], true);
    }
@@ -568,24 +609,31 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
    }
 
    // do normalization
+   int bnodeId = 0;
    DynamicObjectIterator i = input.getIterator();
    while(rval && i->hasNext())
    {
-      rval = _normalize(ctx, i->next(), &subjects, NULL);
+      rval = _normalize(ctx, i->next(), &subjects, NULL, bnodeId);
    }
 
+   // build output
    if(rval)
    {
-      // build output
-      if(subjects->hasMember(""))
-      {
-         out.merge(subjects[""], false);
-      }
       // single subject
-      else if(subjects->length() == 1)
+      if(subjects->length() == 1)
       {
          DynamicObject subject = subjects.first();
          out.merge(subject, false);
+
+         // FIXME: will need to check predicates for blank nodes as well...
+         // and fail if they aren't embeds?
+
+         // strip blank node '@'
+         const char* s = out["@"];
+         if(strstr(s, "<_bnode:") == s)
+         {
+            out->removeMember("@");
+         }
       }
       // multiple subjects
       else
@@ -595,7 +643,19 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
          i = subjects.getIterator();
          while(i->hasNext())
          {
-            array->append(i->next());
+            DynamicObject& next = i->next();
+
+            // FIXME: will need to check predicates for blank nodes as well...
+            // and fail if they aren't embeds?
+
+            // strip blank node '@'
+            const char* s = next["@"];
+            if(strstr(s, "<_bnode:") == s)
+            {
+               next->removeMember("@");
+            }
+
+            array->append(next);
          }
       }
    }
@@ -609,11 +669,12 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
  * @param ctx the context to use (changes during recursion as necessary).
  * @param in the input object.
  * @param out the normalized output object.
+ * @param bnodeId the last blank node ID used.
  *
  * @return true on success, false on failure with exception set.
  */
 static bool _removeContext(
-   DynamicObject& ctx, DynamicObject& in, DynamicObject& out)
+   DynamicObject& ctx, DynamicObject& in, DynamicObject& out, int& bnodeId)
 {
    bool rval = true;
 
@@ -635,7 +696,7 @@ static bool _removeContext(
 
       if(inType == Map)
       {
-         rval = _normalize(ctx, in, NULL, &out);
+         rval = _normalize(ctx, in, NULL, &out, bnodeId);
       }
       else if(inType == Array)
       {
@@ -644,7 +705,7 @@ static bool _removeContext(
          while(i->hasNext())
          {
             DynamicObject& next = i->next();
-            rval = _removeContext(ctx, next, out->append());
+            rval = _removeContext(ctx, next, out->append(), bnodeId);
          }
       }
    }
@@ -657,7 +718,8 @@ bool JsonLd::removeContext(DynamicObject& in, DynamicObject& out)
    bool rval = true;
 
    DynamicObject context(NULL);
-   rval = _removeContext(context, in, out);
+   int bnodeId = 0;
+   rval = _removeContext(context, in, out, bnodeId);
 
    return rval;
 }
