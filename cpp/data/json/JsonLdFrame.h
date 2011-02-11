@@ -96,7 +96,7 @@ public:
    /**
     * Reframes a JSON-LD object.
     *
-    * @param subjects the map of subjects to frame.
+    * @param jsonld the input JSON-LD object.
     * @param out the framed output object.
     *
     * @return true on success, false on failure with exception set.
