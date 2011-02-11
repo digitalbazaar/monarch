@@ -82,7 +82,7 @@ int OAuth1Authenticator::checkAuthentication(ServiceChannel* ch)
    // associated with the OAuth token
    string client;
    OAuth1Params params = mOAuth1.getParameters(ch);
-   if(OAuth1::getParameter(params, "oauth_consumer_key", client, true))
+   if(params->hasMember("oauth_consumer_key"))
    {
       // client attempted oauth1, default to failed
       rval = -1;
