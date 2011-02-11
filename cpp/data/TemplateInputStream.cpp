@@ -742,7 +742,7 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
 
    // if ESCAPE is found but at the end of the template, block to get
    // escaped character
-   if(ret == ESCAPE_CHAR && ptr == (mTemplate.end() - 1))
+   if(ret == ESCAPE_CHAR && *(ptr + 1) == '\0')
    {
       mBlocked = true;
    }
