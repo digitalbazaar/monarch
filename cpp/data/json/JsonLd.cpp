@@ -408,6 +408,16 @@ inline static string _normalizeValue(
    return _normalizeValue(ctx, v, type, predicate, usedCtx);
 }
 
+inline static bool _isBlankNode(DynamicObject& v)
+{
+   return (!v->hasMember("@") || strstr(v["@"], "<_:") == v["@"]);
+}
+
+inline static string _createBlankNodeId(int bnodeId)
+{
+   return StringTools::format("<_:monarch.data.json.bnode%d>", bnodeId);
+}
+
 /**
  * Recursively normalizes the given input object.
  *
@@ -467,7 +477,7 @@ static bool _normalize(
          // assign blank node ID as needed
          if(!in->hasMember("@"))
          {
-            string bnodeKey = StringTools::format("<_bnode:%d>", ++bnodeId);
+            string bnodeKey = _createBlankNodeId(++bnodeId);
             subject["@"] = bnodeKey.c_str();
          }
       }
@@ -516,8 +526,9 @@ static bool _normalize(
             {
                if(subjects != NULL)
                {
-                  // update subject (use value's subject IRI) and recurse
-                  if(v->hasMember("@"))
+                  // update non-blank node subject (use value's subject IRI)
+                  // and recurse
+                  if(!_isBlankNode(v))
                   {
                      _setPredicate(
                         subject, nKey.c_str(),
@@ -530,8 +541,7 @@ static bool _normalize(
                   {
                      // generate the next blank node ID in order to preserve
                      // the blank node embed -- then recurse
-                     string bnodeKey = StringTools::format(
-                        "<_bnode:%d>", bnodeId + 1);
+                     string bnodeKey = _createBlankNodeId(bnodeId + 1);
                      rval = _normalize(ctx, v, subjects, out, bnodeId);
                      if(rval)
                      {
@@ -629,8 +639,7 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
          // and fail if they aren't embeds?
 
          // strip blank node '@'
-         const char* s = out["@"];
-         if(strstr(s, "<_bnode:") == s)
+         if(_isBlankNode(out))
          {
             out->removeMember("@");
          }
@@ -649,12 +658,10 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
             // and fail if they aren't embeds?
 
             // strip blank node '@'
-            const char* s = next["@"];
-            if(strstr(s, "<_bnode:") == s)
+            if(_isBlankNode(next))
             {
                next->removeMember("@");
             }
-
             array->append(next);
          }
       }
