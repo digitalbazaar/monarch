@@ -3608,7 +3608,7 @@ static bool _handleMathOp(DynamicObject& exp, bool strict, bool set)
    if(exp["op"] == "+")
    {
       // do string concatenation
-      if(lhs->getType() == String)
+      if(lhs->getType() == String || rhs->getType() == String)
       {
          string tmp = lhs->getString();
          tmp.append(rhs->getString());

@@ -3244,16 +3244,21 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       const char* tpl =
          "{var+1}\n"
          "{var+'foo'}\n"
-         "{var+foo}\n";
+         "{var+foo}\n"
+         "{var2+'foo'}\n"
+         "{var2+foo}\n";
 
       DynamicObject vars;
       vars["var"] = "start_";
+      vars["var2"] = 1;
       vars["foo"] = "bar";
 
       const char* expect =
          "start_1\n"
          "start_foo\n"
-         "start_bar\n";
+         "start_bar\n"
+         "1foo\n"
+         "1bar\n";
 
       assertTplCmp(tpl, vars, expect, true);
    }
