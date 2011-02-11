@@ -3239,6 +3239,26 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfException();
 
+   tr.test("parse (string concatenation)");
+   {
+      const char* tpl =
+         "{var+1}\n"
+         "{var+'foo'}\n"
+         "{var+foo}\n";
+
+      DynamicObject vars;
+      vars["var"] = "start_";
+      vars["foo"] = "bar";
+
+      const char* expect =
+         "start_1\n"
+         "start_foo\n"
+         "start_bar\n";
+
+      assertTplCmp(tpl, vars, expect, true);
+   }
+   tr.passIfNoException();
+
    tr.test("parse (escaped operators)");
    {
       const char* tpl =

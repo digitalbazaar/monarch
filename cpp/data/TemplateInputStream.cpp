@@ -3607,8 +3607,15 @@ static bool _handleMathOp(DynamicObject& exp, bool strict, bool set)
    // handle specific op
    if(exp["op"] == "+")
    {
+      // do string concatenation
+      if(lhs->getType() == String)
+      {
+         string tmp = lhs->getString();
+         tmp.append(rhs->getString());
+         exp["value"] = tmp.c_str();
+      }
       // add lhs to rhs
-      if(lhs->getType() == Double || rhs->getType() == Double)
+      else if(lhs->getType() == Double || rhs->getType() == Double)
       {
          exp["value"] = lhs->getDouble() + rhs->getDouble();
       }
