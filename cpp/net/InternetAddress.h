@@ -104,12 +104,13 @@ public:
     * Gets a string representation for this InternetAddress.
     *
     * @param simple true for simple representation that can be converted
-    *               back into a InternetAddress, false for complex
-    *               representation for display only.
+    *           back into a InternetAddress, false for complex
+    *           representation for display only.
+    * @param port true to include the port, false not to.
     *
     * @return a string representation for this InternetAddress.
     */
-   virtual std::string toString(bool simple = true);
+   virtual std::string toString(bool simple = true, bool port = true);
 };
 
 // typedef for reference counted InternetAddress

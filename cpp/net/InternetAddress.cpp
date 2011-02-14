@@ -193,15 +193,22 @@ bool InternetAddress::isMulticast()
    return rval;
 }
 
-string InternetAddress::toString(bool simple)
+string InternetAddress::toString(bool simple, bool port)
 {
    string rval;
 
    if(simple)
    {
-      char temp[6 + strlen(getAddress())];
-      sprintf(temp, "%s:%u", getAddress(), getPort());
-      rval = temp;
+      if(port)
+      {
+         char temp[6 + strlen(getAddress())];
+         sprintf(temp, "%s:%u", getAddress(), getPort());
+         rval = temp;
+      }
+      else
+      {
+         rval = getAddress();
+      }
    }
    else
    {
@@ -218,9 +225,18 @@ string InternetAddress::toString(bool simple)
 
       int length = 100 + host.length() + strlen(getAddress());
       char temp[length];
-      snprintf(temp, length, "InternetAddress [%s:%u,%s:%u]",
-         host.c_str(), getPort(), getAddress(), getPort());
-      rval = temp;
+      if(port)
+      {
+         snprintf(temp, length, "InternetAddress [%s:%u,%s:%u]",
+            host.c_str(), getPort(), getAddress(), getPort());
+         rval = temp;
+      }
+      else
+      {
+         snprintf(temp, length, "InternetAddress [%s,%s]",
+            host.c_str(), getAddress());
+         rval = temp;
+      }
    }
 
    return rval;
