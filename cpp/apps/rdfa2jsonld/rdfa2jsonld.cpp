@@ -248,8 +248,15 @@ static bool _processHttp(
       _baseUri = url.toString();
    }
 
-   HttpClient client;
+   SslContext* sslContext = NULL;
+   // FIXME: add option for peer authentication
+   //if(!options["authenticatePeers"]->getBoolean())
+   {
+      sslContext = new SslContext(NULL, true);
+      sslContext->setPeerAuthentication(false);
+   }
 
+   HttpClient client(sslContext);
    rval = client.connect(&url);
    if(rval)
    {
@@ -277,6 +284,8 @@ static bool _processHttp(
    }
 
    client.disconnect();
+
+   delete sslContext;
 
    return rval;
 }
