@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_Date_H
 #define monarch_util_Date_H
@@ -23,12 +23,12 @@ class Date
 {
 protected:
    /**
-    * The number of seconds past the epoch.
+    * The number of seconds past the epoch. Based on local time.
     */
    time_t mSecondsSinceEpoch;
 
    /**
-    * The broken down GMT data structure.
+    * The broken down time data structure. Based on local time.
     */
    struct tm mBrokenDownTime;
 
@@ -137,6 +137,13 @@ public:
    virtual time_t getSeconds();
 
    /**
+    * Gets the number of seconds since the Epoch in the UTC time zone.
+    *
+    * @return the number of seconds since the Epoch in the UTC time zone.
+    */
+   virtual time_t getUtcSeconds();
+
+   /**
     * Gets this date as a standard datetime, namely, as a string in the format:
     *
     * YYYY-MM-DD HH:MM:SS
@@ -203,6 +210,15 @@ public:
       TimeZone* tz = NULL);
 
    /**
+    * Parses this Date from a UTC date.
+    *
+    * @param str the string to convert the date from.
+    *
+    * @return true if the Date was successfully parsed, false if not.
+    */
+   virtual bool parseUtcDateTime(const char* str);
+
+   /**
     * Gets the current date as a standard datetime, namely, as a string in the
     * format:
     *
@@ -211,6 +227,15 @@ public:
     * @return the datetime string using the UTC time zone.
     */
    static std::string utcDateTime();
+
+   /**
+    * Gets the number of seconds since the Epoch given a UTC datetime.
+    *
+    * @param str the UTC datetime, NULL for now.
+    *
+    * @return the number of seconds since the Epoch.
+    */
+   static time_t utcSeconds(const char* str = NULL);
 };
 
 } // end namespace util

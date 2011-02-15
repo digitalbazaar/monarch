@@ -199,6 +199,23 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
 #define assertDynoCmp(dyno1, dyno2) \
    assertNamedDynoCmp("dyno a", dyno1, "dyno b", dyno2)
 
+/**
+ * Assert two integers are equal.
+ *
+ * @param int1 first int
+ * @param int2 second int
+ */
+#define assertIntCmp(int1, int2) \
+   MO_STMT_START { \
+      int _int1 = int1; \
+      int _int2 = int2; \
+      if(_int1 != _int2) \
+      { \
+         printf("\n%d != %d\n", _int1, _int2); \
+         assert(_int1 == _int2); \
+      } \
+   } MO_STMT_END
+
 } // end namespace test
 } // end namespace monarch
 

@@ -1,15 +1,23 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/Date.h"
 
+#include "monarch/rt/Exception.h"
 #include "monarch/rt/System.h"
 #include "monarch/util/StringTools.h"
 
 #include <cstring>
 
 using namespace std;
+using namespace monarch::rt;
 using namespace monarch::util;
+
+// %F = YYYY-MM-DD
+// %T = HH:MM:SS
+// Note: windows fails on %F and %T specifiers, so
+// we use the more compatible ones instead
+#define FORMAT_UTC_DATETIME   "%Y-%m-%d %H:%M:%S"
 
 Date::Date()
 {
@@ -87,13 +95,13 @@ unsigned int Date::dosTime(bool local)
 
    if(local)
    {
-      // get local time
-      localtime_r(&mSecondsSinceEpoch, &time);
+      // use broken down time
+      time = mBrokenDownTime;
    }
    else
    {
-      // use broken down time
-      time = mBrokenDownTime;
+      // get UTC time
+      gmtime_r(&mSecondsSinceEpoch, &time);
    }
 
    // MS-DOS date & time bit-breakdown (4-bytes total):
@@ -123,7 +131,7 @@ void Date::addSeconds(time_t seconds)
 void Date::setSeconds(time_t seconds)
 {
    mSecondsSinceEpoch = seconds;
-   gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
+   localtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
 }
 
 time_t Date::getSeconds()
@@ -131,14 +139,35 @@ time_t Date::getSeconds()
    return mSecondsSinceEpoch;
 }
 
+/**
+ * Converts a time from one timezone to another. This is accomplished by
+ * adding the minutes west from the first timezone to get to UTC, and then
+ * subtracting the minutes west from the second timezone.
+ *
+ * @param in the input time in seconds.
+ * @param inTz the input timezone.
+ * @param outTz the output timezone.
+ *
+ * @return the output time in seconds.
+ */
+inline static time_t changeTimeZone(time_t in, TimeZone* inTz, TimeZone* outTz)
+{
+   // add in timezone to get to UTC, then subtract out timezone
+   return in + (inTz->getMinutesWest() - outTz->getMinutesWest()) * 60;
+}
+
+time_t Date::getUtcSeconds()
+{
+   // convert local time to UTC
+   TimeZone local = TimeZone::getTimeZone();
+   TimeZone utc = TimeZone::getTimeZone("UTC");
+   return changeTimeZone(mSecondsSinceEpoch, &local, &utc);
+}
+
 string Date::getDateTime(TimeZone* tz)
 {
-   // %F = YYYY-MM-DD
-   // %T = HH:MM:SS
    string rval;
-   // Note: windows fails on %F and %T specifiers, so
-   // we use the more compatible ones instead
-   return format(rval, "%Y-%m-%d %H:%M:%S", tz);
+   return format(rval, FORMAT_UTC_DATETIME, tz);
 }
 
 string Date::getUtcDateTime()
@@ -151,22 +180,19 @@ string& Date::format(string& str, const char* format, TimeZone* tz)
 {
    struct tm time;
 
-   // apply time zone
+   // no timezone provided
    if(tz == NULL)
    {
-      // no time zone provided, use local time
-      localtime_r(&mSecondsSinceEpoch, &time);
+      // use stored local time
+      time = mBrokenDownTime;
    }
-   else if(tz->getMinutesWest() != 0)
-   {
-      // remove minutes west and get time
-      time_t seconds = mSecondsSinceEpoch - tz->getMinutesWest() * 60UL;
-      gmtime_r(&seconds, &time);
-   }
+   // apply timezone (internal time is local, must convert to given timezone)
    else
    {
-      // use stored time
-      time = mBrokenDownTime;
+      // adjust local time to new time
+      TimeZone local = TimeZone::getTimeZone();
+      time_t seconds = changeTimeZone(mSecondsSinceEpoch, &local, tz);
+      localtime_r(&seconds, &time);
    }
 
    // print the time to a string
@@ -180,37 +206,35 @@ string& Date::format(string& str, const char* format, TimeZone* tz)
 
 bool Date::parse(const char* str, const char* format, TimeZone* tz)
 {
-   bool rval = false;
+   bool rval = true;
 
-   if(strptime(str, format, &mBrokenDownTime) != NULL)
+   if(strptime(str, format, &mBrokenDownTime) == NULL)
    {
-      rval = true;
+      ExceptionRef e = new Exception(
+         "Could not parse date.",
+         "monarch.util.Date.ParseError");
+      e->getDetails()["date"] = str;
+      e->getDetails()["format"] = format;
+      Exception::set(e);
+      rval = false;
+   }
+   else
+   {
+      // make time (-1 = use C lib to determine daylight savings time)
+      mBrokenDownTime.tm_isdst = -1;
+      mSecondsSinceEpoch = mktime(&mBrokenDownTime);
 
-      // get UTC time in seconds since epoch
-      mSecondsSinceEpoch = timegm(&mBrokenDownTime);
-
-      time_t mw = 0;
-      if(tz == NULL)
+      // apply timezone (passed time is in given timezone, must convert to
+      // local time to store internally)
+      if(tz != NULL)
       {
-         // no timezone provided, default to local time
          TimeZone local = TimeZone::getTimeZone();
-         mw = local.getMinutesWest();
-      }
-      else
-      {
-         // use given timezone
-         mw = tz->getMinutesWest();
+         mSecondsSinceEpoch = changeTimeZone(mSecondsSinceEpoch, tz, &local);
       }
 
-      if(mw != 0)
-      {
-         // add minutes west and get time
-         mSecondsSinceEpoch += mw * 60;
-      }
-
-      // ensure broken down time is totally filled out
+      // ensure broken down time is totally filled out and reflects local time
       // (strptime may not populate all fields)
-      gmtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
+      localtime_r(&mSecondsSinceEpoch, &mBrokenDownTime);
    }
 
    return rval;
@@ -222,8 +246,24 @@ string Date::toString(const char* format, TimeZone* tz)
    return this->format(rval, format, tz);
 }
 
+bool Date::parseUtcDateTime(const char* str)
+{
+   TimeZone tz = TimeZone::getTimeZone("UTC");
+   return parse(str, FORMAT_UTC_DATETIME, &tz);
+}
+
 std::string Date::utcDateTime()
 {
    Date d;
    return d.getUtcDateTime();
+}
+
+time_t Date::utcSeconds(const char* str)
+{
+   Date d;
+   if(str != NULL)
+   {
+      d.parseUtcDateTime(str);
+   }
+   return d.getUtcSeconds();
 }

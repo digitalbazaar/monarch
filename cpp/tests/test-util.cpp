@@ -787,53 +787,118 @@ static void runDateTest(TestRunner& tr)
    TimeZone gmt = TimeZone::getTimeZone("GMT");
    TimeZone local = TimeZone::getTimeZone();
 
-   tr.test("format and parse");
+   tr.test("current local date");
    {
       Date d;
-      string str;
-      //d.format(str);
-      //d.format(str, "%a, %d %b %Y %H:%M:%S");
-      d.format(str, "%a, %d %b %Y %H:%M:%S", &gmt);
-      //d.format(str, "%a, %d %b %Y %H:%M:%S", &local);
-      //printf("Current Date: %s\n", str.c_str());
-      assertNoExceptionSet();
+      printf("local date: %s...", d.toString().c_str());
+   }
+   tr.passIfNoException();
 
-      // parse date
+   tr.test("format and parse");
+   {
+      // format now
+      Date d;
+      string str1;
+      d.format(str1, "%a, %d %b %Y %H:%M:%S", &gmt);
+
+      // parse and reformat now
       Date d2;
-      d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
-      //d2.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &local);
-      assertNoExceptionSet();
+      assertNoException(
+         d2.parse(str1.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt));
       string str2;
       d2.format(str2, "%a, %d %b %Y %H:%M:%S", &gmt);
-      //d2.format(str2, "%a, %d %b %Y %H:%M:%S", &local);
-      assertNoExceptionSet();
 
-      //printf("Parsed Date 1: %s\n", str2.c_str());
+      // compare
+      assertStrCmp(str1.c_str(), str2.c_str());
+   }
+   tr.passIfNoException();
 
-      // FIXME: parser may have a problem with AM/PM
-      // parse date again
-      Date d3;
-      str = "Thu, 02 Aug 2007 10:30:00";
-      d3.parse(str.c_str(), "%a, %d %b %Y %H:%M:%S", &gmt);
-      assertNoExceptionSet();
-      string str3;
-      //d3.format(str3, "%a, %d %b %Y %H:%M:%S", &gmt);
-      d3.format(str3, "%a, %d %b %Y %H:%M:%S", &local);
-      assertNoExceptionSet();
+   tr.test("broken-down time");
+   {
+      const char* testDate = "Thu, 02 Aug 2007 10:30:00";
 
-      //printf("Parsed Date 2: %s\n", str3.c_str());
+      // parse local date
+      Date d;
+      assertNoException(
+         d.parse(testDate, "%a, %d %b %Y %H:%M:%S"));
+
+      assertIntCmp(d.second(), 0);
+      assertIntCmp(d.minute(), 30);
+      assertIntCmp(d.hour(), 10);
+      assertIntCmp(d.day(), 2);
+      assertIntCmp(d.month(), 7);
+      assertIntCmp(d.year(), 2007);
+      assertIntCmp(d.yearSince1900(), 107);
+   }
+
+   tr.test("timezones");
+   {
+      const char* testDate = "Thu, 02 Aug 2007 10:30:00";
+
+      // compare 3 timezones
+      TimeZone est = TimeZone::getTimeZone("EST");
+      TimeZone pst = TimeZone::getTimeZone("PST");
+      Date estDate;
+      assertNoException(
+         estDate.parse(testDate, "%a, %d %b %Y %H:%M:%S", &est));
+      Date pstDate;
+      assertNoException(
+         pstDate.parse(testDate, "%a, %d %b %Y %H:%M:%S", &pst));
+      Date gmtDate;
+      assertNoException(
+         gmtDate.parse(testDate, "%a, %d %b %Y %H:%M:%S", &gmt));
+
+      // normalize all dates to GMT for comparison:
+
+      // difference of 5 hours between EST and GMT, so 10:30 EST would be
+      // 5 hours after than GMT 10:30, subtract to go back
+      estDate.addSeconds(-5 * 60 * 60);
+
+      // difference of 5 hours between EST and GMT, 8 between PST and GMT,
+      // so 10:30 PST would be 8 hours after than GMT 10:30, subtract to
+      // go back
+      pstDate.addSeconds(-8 * 60 * 60);
+
+      string est1 = estDate.toString("%a, %d %b %Y %H:%M:%S", &est);
+      string est2 = pstDate.toString("%a, %d %b %Y %H:%M:%S", &est);
+      string est3 = gmtDate.toString("%a, %d %b %Y %H:%M:%S", &est);
+      string pst1 = estDate.toString("%a, %d %b %Y %H:%M:%S", &pst);
+      string pst2 = pstDate.toString("%a, %d %b %Y %H:%M:%S", &pst);
+      string pst3 = gmtDate.toString("%a, %d %b %Y %H:%M:%S", &pst);
+      string gmt1 = gmtDate.toString("%a, %d %b %Y %H:%M:%S", &gmt);
+      string gmt2 = estDate.toString("%a, %d %b %Y %H:%M:%S", &gmt);
+      string gmt3 = pstDate.toString("%a, %d %b %Y %H:%M:%S", &gmt);
+
+      assertStrCmp(est1.c_str(), est2.c_str());
+      assertStrCmp(est2.c_str(), est3.c_str());
+      assertStrCmp(pst1.c_str(), pst2.c_str());
+      assertStrCmp(pst2.c_str(), pst3.c_str());
+      assertStrCmp(gmt1.c_str(), gmt2.c_str());
+      assertStrCmp(gmt2.c_str(), gmt3.c_str());
    }
    tr.passIfNoException();
 
    tr.test("utc datetime");
    {
-      Date d;
-      string str;
-      d.parse("Thu, 02 Aug 2007 10:30:00", "%a, %d %b %Y %H:%M:%S", &gmt);
-      assertNoExceptionSet();
+      // get utc date
+      {
+         Date d;
+         string str;
+         assertNoException(
+            d.parse(
+               "Thu, 02 Aug 2007 10:30:00", "%a, %d %b %Y %H:%M:%S", &gmt));
 
-      string utc = d.getUtcDateTime();
-      assertStrCmp(utc.c_str(), "2007-08-02 10:30:00");
+         string utc = d.getUtcDateTime();
+         assertStrCmp(utc.c_str(), "2007-08-02 10:30:00");
+      }
+
+      // compare utc seconds to local seconds + timezone change
+      {
+         Date d;
+         string utc = d.getUtcDateTime();
+         uint64_t secs = Date::utcSeconds(utc.c_str());
+         assert(secs == (d.getSeconds() + local.getMinutesWest() * 60UL));
+      }
    }
    tr.passIfNoException();
 
