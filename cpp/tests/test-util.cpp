@@ -787,10 +787,11 @@ static void runDateTest(TestRunner& tr)
    TimeZone gmt = TimeZone::getTimeZone("GMT");
    TimeZone local = TimeZone::getTimeZone();
 
-   tr.test("current local date");
+   tr.test("current local and utc date");
    {
       Date d;
-      printf("local date: %s...", d.toString().c_str());
+      printf("\nlocal date: %s", d.toString().c_str());
+      printf("\nUTC date: %s\n... ", d.getUtcDateTime().c_str());
    }
    tr.passIfNoException();
 
