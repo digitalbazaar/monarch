@@ -18,8 +18,8 @@
 // include types, time, and errno
 #include <sys/types.h>
 #include <sys/time.h>
+#include <time.h>
 #include <errno.h>
-#include <sys/timeb.h>
 #include <inttypes.h>
 
 //// prevent C++ name mangling
@@ -34,16 +34,12 @@
  */
 inline static int64_t gGetTimeZoneMinutesWest()
 {
-   struct timeb time;
-   ftime(&time);
-
-   // apply daylight savings time
-   if(time.dstflag != 0)
-   {
-      time.timezone -= 60;
-   }
-
-   return time.timezone;
+   // get local time, convert to GMT (UTC) and then subtract difference
+   time_t localTime = time(NULL);
+   struct tm brokenDown;
+   gmtime_r(&localTime, &brokenDown);
+   time_t utcTime = mktime(&brokenDown);
+   return (utcTime - localTime) / 60;
 }
 
 #ifdef WIN32
