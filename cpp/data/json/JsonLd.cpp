@@ -410,7 +410,11 @@ inline static string _normalizeValue(
 
 inline static bool _isBlankNode(DynamicObject& v)
 {
-   return (!v->hasMember("@") || strstr(v["@"], "<_:") == v["@"]);
+   // look for no subject or "<_:" or "_:" at the beginning of the subject
+   return (
+      !v->hasMember("@") ||
+      strstr(v["@"], "<_:") == v["@"]->getString() ||
+      strstr(v["@"], "_:") == v["@"]->getString());
 }
 
 inline static string _createBlankNodeId(int bnodeId)
@@ -526,31 +530,41 @@ static bool _normalize(
             {
                if(subjects != NULL)
                {
-                  // update non-blank node subject (use value's subject IRI)
-                  // and recurse
-                  if(!_isBlankNode(v))
+                  // get a normalized subject for the value
+                  string vSubject;
+                  if(v->hasMember("@"))
                   {
-                     _setPredicate(
-                        subject, nKey.c_str(),
-                        _normalizeValue(
-                           ctx, v["@"], RDF_TYPE_IRI, NULL, NULL).c_str());
-                     rval = _normalize(ctx, v, subjects, out, bnodeId);
+                     // normalize existing subject
+                     vSubject = _normalizeValue(
+                        ctx, v["@"], RDF_TYPE_IRI, NULL, NULL);
                   }
-                  // assign blank node ID
                   else
                   {
                      // generate the next blank node ID in order to preserve
-                     // the blank node embed -- then recurse
-                     string bnodeKey = _createBlankNodeId(bnodeId + 1);
-                     rval = _normalize(ctx, v, subjects, out, bnodeId);
-                     if(rval)
-                     {
-                        // preserve embed and remove from top-level subjects
-                        DynamicObject embed = (*subjects)[bnodeKey.c_str()];
-                        (*subjects)->removeMember(bnodeKey.c_str());
-                        embed->removeMember("@");
-                        _setEmbed(subject, nKey.c_str(), embed);
-                     }
+                     // the blank node embed in the code below
+                     vSubject = _createBlankNodeId(bnodeId + 1);
+                  }
+
+                  // determine if value is a blank node
+                  bool isBNode = _isBlankNode(v);
+
+                  // update non-blank node subject (use value's subject IRI)
+                  if(!isBNode)
+                  {
+                     _setPredicate(subject, nKey.c_str(), vSubject.c_str());
+                  }
+
+                  // recurse
+                  rval = _normalize(ctx, v, subjects, out, bnodeId);
+
+                  // preserve embedded blank node
+                  if(rval && isBNode)
+                  {
+                     // remove embed from top-level subjects
+                     DynamicObject embed = (*subjects)[vSubject.c_str()];
+                     (*subjects)->removeMember(vSubject.c_str());
+                     embed->removeMember("@");
+                     _setEmbed(subject, nKey.c_str(), embed);
                   }
                }
                else

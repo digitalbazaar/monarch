@@ -643,6 +643,58 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("normalize (bnode embed w/ existing subject)");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["@"] = "http://example.org/test#example";
+      in["ex:embed"]["@"] = "_:bnode1";
+      in["ex:embed"]["ex:foo"] = "bar";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test#example>";
+      expect["<http://example.org/vocab#embed>"]
+         ["<http://example.org/vocab#foo>"] =
+            "bar";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (bnode embed w/ existing subject (norm bnode))");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["@"] = "http://example.org/test#example";
+      in["ex:embed"]["@"] = "<_:bnode1>";
+      in["ex:embed"]["ex:foo"] = "bar";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test#example>";
+      expect["<http://example.org/vocab#embed>"]
+         ["<http://example.org/vocab#foo>"] =
+            "bar";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   // FIMXE: add test for bnode diamond structure fails
+
    tr.test("normalize (multiple types)");
    {
       DynamicObject in;
