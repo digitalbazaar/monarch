@@ -903,6 +903,26 @@ static void runDateTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse json-ld dates");
+   {
+      const char* testDate = "2007-08-02T10:30:00Z";
+
+      Date d;
+      assertNoException(
+         d.parseUtcDateTime(testDate, true));
+
+      string jsonld = d.getUtcDateTime(true);
+      jsonld.append("^^<xsd:dateTime>");
+
+      assertNoException(
+         d.parse(jsonld.c_str(), "%Y-%m-%dT%H:%M:%SZ", &gmt));
+      assertNoException(
+         d.parse(jsonld.c_str(), "%Y-%m-%dT%H:%M:%SZ^^<xsd:dateTime>", &gmt));
+
+      assertStrCmp(d.getUtcDateTime(true).c_str(), testDate);
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 

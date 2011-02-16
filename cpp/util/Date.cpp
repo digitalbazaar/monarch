@@ -17,7 +17,8 @@ using namespace monarch::util;
 // %T = HH:MM:SS
 // Note: windows fails on %F and %T specifiers, so
 // we use the more compatible ones instead
-#define FORMAT_UTC_DATETIME   "%Y-%m-%d %H:%M:%S"
+#define FORMAT_UTC_DATETIME      "%Y-%m-%d %H:%M:%S"
+#define FORMAT_UTC_DATETIME_TZ   "%Y-%m-%dT%H:%M:%SZ"
 
 Date::Date()
 {
@@ -170,10 +171,12 @@ string Date::getDateTime(TimeZone* tz)
    return format(rval, FORMAT_UTC_DATETIME, tz);
 }
 
-string Date::getUtcDateTime()
+string Date::getUtcDateTime(bool includeTandZ)
 {
    TimeZone tz = TimeZone::getTimeZone("UTC");
-   return getDateTime(&tz);
+   string rval;
+   return format(
+      rval, includeTandZ ? FORMAT_UTC_DATETIME_TZ : FORMAT_UTC_DATETIME, &tz);
 }
 
 string& Date::format(string& str, const char* format, TimeZone* tz)
@@ -246,24 +249,25 @@ string Date::toString(const char* format, TimeZone* tz)
    return this->format(rval, format, tz);
 }
 
-bool Date::parseUtcDateTime(const char* str)
+bool Date::parseUtcDateTime(const char* str, bool includeTandZ)
 {
    TimeZone tz = TimeZone::getTimeZone("UTC");
-   return parse(str, FORMAT_UTC_DATETIME, &tz);
+   return parse(
+      str, includeTandZ ? FORMAT_UTC_DATETIME_TZ : FORMAT_UTC_DATETIME, &tz);
 }
 
-std::string Date::utcDateTime()
+std::string Date::utcDateTime(bool includeTandZ)
 {
    Date d;
-   return d.getUtcDateTime();
+   return d.getUtcDateTime(includeTandZ);
 }
 
-time_t Date::utcSeconds(const char* str)
+time_t Date::utcSeconds(const char* str, bool includeTandZ)
 {
    Date d;
    if(str != NULL)
    {
-      d.parseUtcDateTime(str);
+      d.parseUtcDateTime(str, includeTandZ);
    }
    return d.getUtcSeconds();
 }

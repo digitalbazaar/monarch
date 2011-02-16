@@ -159,9 +159,12 @@ public:
     *
     * YYYY-MM-DD HH:MM:SS
     *
+    * @param includeTandZ true to include T and Z specifications:
+    *           YYYY-MM-DDTHH:MM:SSZ, false not to.
+    *
     * @return the datetime string using the UTC time zone.
     */
-   virtual std::string getUtcDateTime();
+   virtual std::string getUtcDateTime(bool includeTandZ = false);
 
    /**
     * Writes this Date to a string according to the passed format.
@@ -213,10 +216,12 @@ public:
     * Parses this Date from a UTC date.
     *
     * @param str the string to convert the date from.
+    * @param includeTandZ true to include T and Z specifications:
+    *           YYYY-MM-DDTHH:MM:SSZ, false not to.
     *
     * @return true if the Date was successfully parsed, false if not.
     */
-   virtual bool parseUtcDateTime(const char* str);
+   virtual bool parseUtcDateTime(const char* str, bool includeTandZ = false);
 
    /**
     * Gets the current date as a standard datetime, namely, as a string in the
@@ -224,18 +229,23 @@ public:
     *
     * YYYY-MM-DD HH:MM:SS
     *
+    * @param includeTandZ true to include T and Z specifications:
+    *           YYYY-MM-DDTHH:MM:SSZ, false not to.
+    *
     * @return the datetime string using the UTC time zone.
     */
-   static std::string utcDateTime();
+   static std::string utcDateTime(bool includeTandZ = false);
 
    /**
     * Gets the number of seconds since the Epoch given a UTC datetime.
     *
     * @param str the UTC datetime, NULL for now.
+    * @param includeTandZ true to include T and Z specifications:
+    *           YYYY-MM-DDTHH:MM:SSZ, false not to.
     *
     * @return the number of seconds since the Epoch.
     */
-   static time_t utcSeconds(const char* str = NULL);
+   static time_t utcSeconds(const char* str = NULL, bool includeTandZ = false);
 };
 
 } // end namespace util
