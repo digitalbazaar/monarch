@@ -27,7 +27,6 @@ SUBDIRS := \
 	cpp/crypto \
 	cpp/event \
 	cpp/net \
-	cpp/oauth1 \
 	cpp/http \
 	cpp/data \
 	cpp/config \
@@ -39,6 +38,7 @@ SUBDIRS := \
 	cpp/mysql \
 	cpp/upnp \
 	cpp/ws \
+	cpp/oauth1 \
 	cpp/kernel \
 	cpp/app \
 	cpp/test \
