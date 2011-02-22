@@ -2727,6 +2727,48 @@ static void runRunnableDelegateTest(TestRunner& tr)
    tr.ungroup();
 }
 
+static void runExceptionTest(TestRunner& tr)
+{
+   tr.group("Exceptions");
+
+   tr.test("getCauseOfType");
+   {
+      ExceptionRef current;
+
+      // setup root
+      Exception::clear();
+      ExceptionRef root = new Exception("root", "root-type");
+      Exception::push(root);
+
+      // check basic type
+      current = Exception::get();
+      assert(!current->hasType("bogus-type"));
+      assert(current->hasType("root-type"));
+
+      // add child
+      ExceptionRef child = new Exception("child", "child-type");
+      Exception::push(child);
+
+      // check children types
+      current = Exception::get();
+      assert(!current->hasType("bogus-type"));
+      assert(current->hasType("root-type"));
+      assert(current->hasType("child-type"));
+
+      // check starting part
+      assert(current->hasType("root", true));
+      assert(current->hasType("child", true));
+
+      // check starting n part
+      assert(current->hasType("chiX", true, 3));
+
+      Exception::clear();
+   }
+   tr.pass();
+
+   tr.ungroup();
+}
+
 static bool run(TestRunner& tr)
 {
    if(tr.isDefaultEnabled())
@@ -2752,6 +2794,7 @@ static bool run(TestRunner& tr)
       runDynoSortTest(tr);
       runDynoStatsTest(tr);
       runRunnableDelegateTest(tr);
+      runExceptionTest(tr);
    }
    if(tr.isTestEnabled("cpu-info"))
    {

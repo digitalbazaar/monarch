@@ -94,13 +94,14 @@ public:
     *
     * @param type the type to check.
     * @param startsWith false to only return true if the passed type string
-    *        matches the exact type of this exception (the default behavior),
-    *        true to return true if this exception's type starts with the
-    *        given type.
+    *           matches the exact type of this exception (the default behavior),
+    *           true to return true if this exception's type starts with the
+    *           given type.
+    * @param n if startsWith is true, length of type to check, or -1 for all.
     *
     * @return true if this Exception is of the passed type.
     */
-   virtual bool isType(const char* type, bool startsWith = false);
+   virtual bool isType(const char* type, bool startsWith = false, int n = -1);
 
    /**
     * Checks this Exception and its cause stack/chain for an Exception of
@@ -109,14 +110,15 @@ public:
     *
     * @param type the type to look for.
     * @param startsWith false to only return true if the passed type string
-    *        matches the exact type of the cause (the default behavior),
-    *        true to return true if the cause's type starts with the
-    *        given type.
+    *           matches the exact type of the cause (the default behavior),
+    *           true to return true if the cause's type starts with the
+    *           given type.
+    * @param n if startsWith is true, length of type to check, or -1 for all.
     *
     * @return true if an Exception with the given type in this Exception,
-    *         false if not.
+    *            false if not.
     */
-   virtual bool hasType(const char* type, bool startsWith = false);
+   virtual bool hasType(const char* type, bool startsWith = false, int n = -1);
 
    /**
     * Sets the cause for this Exception.
@@ -133,37 +135,21 @@ public:
    virtual Collectable<Exception>& getCause();
 
    /**
-    * Checks the cause stack/chain in this Exception for an Exception of
-    * the given type. If one is found, it is returned. Otherwise, NULL
-    * is returned.
+    * Checks the cause stack/chain for an Exception of the given type. If one
+    * is found, true is returned. Otherwise, false is returned.
     *
     * @param type the type to look for.
     * @param startsWith false to only return true if the passed type string
-    *        matches the exact type of the cause (the default behavior),
-    *        true to return true if the cause's type starts with the
-    *        given type.
+    *           matches the exact type of the cause (the default behavior),
+    *           true to return true if the cause's type starts with the
+    *           given type.
+    * @param n if startsWith is true, length of type to check, or -1 for all.
     *
-    * @return the Exception with the given type, if found in this Exception's
-    *         stack/chain of causes.
+    * @return true if an Exception with the given type in this Exception,
+    *            false if not.
     */
-   virtual Collectable<Exception> getCauseOfType(
-      const char* type, bool startsWith = false);
-
-   /**
-    * Checks the cause stack/chain in this Exception for an Exception of
-    * the given type. If one is found, true is returned. Otherwise, false
-    * is returned.
-    *
-    * @param type the type to look for.
-    * @param startsWith false to only return true if the passed type string
-    *        matches the exact type of the cause (the default behavior),
-    *        true to return true if the cause's type starts with the
-    *        given type.
-    *
-    * @return true if an Exception of the given type is found in this
-    *         Exception's stack/chain of causes, false if not.
-    */
-   virtual bool hasCauseOfType(const char* type, bool startsWith = false);
+   virtual bool hasCauseOfType(
+      const char* type, bool startsWith = false, int n = -1);
 
    /**
     * Gets the details for this Exception. If there were no details
@@ -206,7 +192,7 @@ public:
     * call set() instead of push().
     *
     * @param e the reference to the exception to push onto the current thread,
-    *          keeping any existing exception as the cause of "e".
+    *             keeping any existing exception as the cause of "e".
     *
     * @return the reference to the exception.
     */
@@ -222,7 +208,7 @@ public:
     * each layer stored as the "cause" of the exception above it.
     *
     * @return a reference to the last exception for the current thread, which
-    *         may reference NULL.
+    *            may reference NULL.
     */
    static Collectable<Exception> get();
 
@@ -240,24 +226,6 @@ public:
     * its count).
     */
    static void clear();
-
-   /**
-    * Checks the given Exception and its cause stack/chain for an Exception of
-    * the given type. If one is found, it is returned. Otherwise, NULL is
-    * returned.
-    *
-    * @param e the Exception to check.
-    * @param type the type to look for.
-    * @param startsWith false to only return true if the passed type string
-    *        matches the exact type of the cause (the default behavior),
-    *        true to return true if the cause's type starts with the
-    *        given type.
-    *
-    * @return the Exception with the given type, if found in the given
-    *         Exception.
-    */
-   static Collectable<Exception> getExceptionOfType(
-      Collectable<Exception>& e, const char* type, bool startsWith = false);
 
    /**
     * Gets the last exception as a DynamicObject.
