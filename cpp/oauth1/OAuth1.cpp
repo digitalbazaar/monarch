@@ -326,7 +326,7 @@ bool OAuth1::sign(
 
    // set method in parameters, remove and old signature
    params->removeMember("oauth_signature_method");
-   params["oauth_signature_method"] = method;
+   params["oauth_signature_method"]->append(method);
    params->removeMember("oauth_signature");
 
    // get the token secret from the provider, if applicable
