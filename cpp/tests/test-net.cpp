@@ -1293,6 +1293,31 @@ static void runUrlNormalizationTest(TestRunner& tr)
    tr.pass();
 }
 
+static void runUrlFormTest(TestRunner& tr)
+{
+   tr.group("Url Forms");
+
+   // FIXME: add formEncode and formDecode tests
+
+   tr.test("convert");
+   {
+      DynamicObject form;
+      form["a"] = "a";
+      form["b"][0] = "b";
+
+      assertNoException(Url::formConvertToArrays(form));
+
+      DynamicObject expect;
+      expect["a"][0] = "a";
+      expect["b"][0] = "b";
+
+      assertNamedDynoCmp("expect", expect, "result", form);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 class InterruptServerSocketTest : public Runnable
 {
 public:
@@ -1726,6 +1751,7 @@ static bool run(TestRunner& tr)
       runUrlEncodeTest(tr);
       runUrlTest(tr);
       runUrlNormalizationTest(tr);
+      runUrlFormTest(tr);
    }
    if(tr.isTestEnabled("local-hostname"))
    {

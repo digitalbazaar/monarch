@@ -834,3 +834,20 @@ bool Url::formDecode(DynamicObject& form, const char* str, bool asArrays)
 
    return rval;
 }
+
+bool Url::formConvertToArrays(DynamicObject& form)
+{
+   DynamicObjectIterator i = form.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      if(next->getType() != Array)
+      {
+         DynamicObject array;
+         array->append(next);
+         next = array;
+      }
+   }
+
+   return true;
+}

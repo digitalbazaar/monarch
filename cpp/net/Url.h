@@ -431,6 +431,17 @@ public:
     */
    static bool formDecode(
       monarch::rt::DynamicObject& form, const char* str, bool asArrays = false);
+
+   /**
+    * Convert a DynamicObject to the same structure used by formDecode with
+    * asArrays set to true. This will adjust all non-array members to be
+    * arrays in-place. Members that are already arrays are left as-is.
+    *
+    * @param form the DynamicObject map to convert.
+    *
+    * @return true if conversion was successful, false if not.
+    */
+   static bool formConvertToArrays(monarch::rt::DynamicObject& form);
 };
 
 // type definition for a reference collected Url
