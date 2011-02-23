@@ -535,6 +535,14 @@ public:
    static void randomBytes(char* buffer, int num);
 
    /**
+    * Generates a pseudo random number of bytes.
+    *
+    * @param buffer the buffer to write the bytes to.
+    * @param bytes the number of bytes to generate.
+    */
+   static void pseudoRandomBytes(char* buffer, int num);
+
+   /**
     * Generates a cryptographically strong random number with the given
     * number of bits.
     *

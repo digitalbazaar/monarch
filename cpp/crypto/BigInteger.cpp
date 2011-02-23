@@ -445,6 +445,12 @@ void BigInteger::randomBytes(char* buffer, int num)
    assert(rc == 1);
 }
 
+void BigInteger::pseudoRandomBytes(char* buffer, int num)
+{
+   int rc = RAND_pseudo_bytes((unsigned char*)buffer, num);
+   assert(rc == 1);
+}
+
 BigInteger BigInteger::random(int bits, int top, bool bottom)
 {
    BigInteger rval;
