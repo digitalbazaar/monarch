@@ -30,7 +30,8 @@ bool MessageDigest::start(const char* algorithm, bool persistent)
 {
    bool rval = true;
 
-   static const char* algorithms[] = {"SHA1", "SHA256", "MD5", NULL};
+   const char* algorithms[] =
+      {"SHA1", "SHA256", "SHA512", "MD5", NULL};
 
    mPersistent = persistent;
 
@@ -143,6 +144,10 @@ const EVP_MD* MessageDigest::getHashFunction()
    else if(strcmp(mAlgorithm, "SHA256") == 0)
    {
       rval = EVP_sha256();
+   }
+   else if(strcmp(mAlgorithm, "SHA512") == 0)
+   {
+      rval = EVP_sha512();
    }
    else if(strcmp(mAlgorithm, "MD5") == 0)
    {
