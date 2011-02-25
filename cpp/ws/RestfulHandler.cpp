@@ -235,13 +235,23 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
       // get relative local path (the part of the path after the base path)
       const char* path = ch->getPath() + (strlen(ch->getBasePath()) - 1);
 
+      // get path up to query (do not regex query-part)
+      int len = strlen(path);
+      char p[len + 1];
+      strcpy(p, path);
+      char* pos = strchr(p, '?');
+      if(pos != NULL)
+      {
+         *pos = 0;
+      }
+
       // check each regex
       DynamicObject matches;
       for(RegexList::iterator i = mRegexList.begin();
           rval == NULL && i != mRegexList.end(); ++i)
       {
          RegexMap::iterator rmi = mRegexMap.find(*i);
-         if(rmi->second.pattern->getSubMatches(path, matches, -1, false, 1))
+         if(rmi->second.pattern->getSubMatches(p, matches, -1, false, 1))
          {
             send404 = false;
 
