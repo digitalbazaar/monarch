@@ -321,10 +321,10 @@ public:
 "      --[no-]filter   Filter for source URI properties. (default: false)\n"
 "      --[no-]normalize"
 "                      Normalize JSON-LD. (default: false)\n"
-"      --[no-]hash     Hash JSON-LD. (default: true).\n"
-"      --[no-]dump     Dump JSON-LD. (default: true).\n"
+"      --[no-]hash     Hash JSON-LD. (default: true)\n"
+"      --[no-]dump     Dump JSON-LD. (default: true)\n"
 "      --[no-]compact  Dump in compact format. (default: false)\n"
-"      --verbose       Verbose output. (default).\n"
+"      --verbose       Verbose output. (default)\n"
 "      --quiet         Quieter output.\n"
 "\n";
 
