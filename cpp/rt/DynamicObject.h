@@ -502,7 +502,7 @@ public:
     * If "append" is true:
     *
     * The same as if "append" is false with the following changes: If the
-    * passed DynamicObject is an array, its elements will be appened to the
+    * passed DynamicObject is an array, its elements will be appended to the
     * end of this DynamicObject (after converting it to an array if necessary).
     * If the passed DynamicObject is not an array or a map but this
     * DynamicObject is an array, then the passed DynamicObject will be
