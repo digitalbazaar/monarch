@@ -1363,6 +1363,31 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("reframe (cleared output)");
+   {
+      DynamicObject in = reframeTestData0;
+
+      DynamicObject frame;
+      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["a"] = "ex:Library";
+      JsonLdFrame jlf;
+      jlf.setFrame(frame);
+
+      DynamicObject out;
+      // add some data to see if out is cleared properly
+      out["ex:bogus"] = "data";
+      assertNoException(
+         jlf.reframe(in, out));
+
+      DynamicObject expect = reframeFramedLibrary0;
+      assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
    tr.group("filter");
    {
       DynamicObject ctx;
