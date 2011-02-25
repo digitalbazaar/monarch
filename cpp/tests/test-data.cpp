@@ -1180,44 +1180,56 @@ static void runJsonLdTest(TestRunner& tr)
    tr.passIfNoException();
 
    // common reframe test data and expected results
-   DynamicObject reframeTestData0;
-   DynamicObject reframeFramedLibrary0;
+   DynamicObject reframeData;
+   DynamicObject reframeExpect;
    {
-      DynamicObject& d0 = reframeTestData0;
-      d0["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      d0["#"]["ex"] = "http://example.org/vocab#";
-      d0["@"][0]["@"] = "http://example.org/test#library";
-      d0["@"][0]["a"] = "ex:Library";
-      d0["@"][0]["ex:contains"] = "<http://example.org/test#book>";
-      d0["@"][1]["@"] = "<http://example.org/test#book>";
-      d0["@"][1]["a"] = "ex:Book";
-      d0["@"][1]["dc:contributor"] = "Writer";
-      d0["@"][1]["dc:title"] = "My Book";
-      d0["@"][1]["ex:contains"] = "<http://example.org/test#chapter>";
-      d0["@"][2]["@"] = "http://example.org/test#chapter";
-      d0["@"][2]["a"] = "ex:Chapter";
-      d0["@"][2]["dc:description"] = "Fun";
-      d0["@"][2]["dc:title"] = "Chapter One";
+      DynamicObject& d = reframeData["library"];
+      d["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      d["#"]["ex"] = "http://example.org/vocab#";
+      d["@"][0]["@"] = "http://example.org/test#library";
+      d["@"][0]["a"] = "ex:Library";
+      d["@"][0]["ex:contains"] = "<http://example.org/test#book>";
+      d["@"][1]["@"] = "<http://example.org/test#book>";
+      d["@"][1]["a"] = "ex:Book";
+      d["@"][1]["dc:contributor"] = "Writer";
+      d["@"][1]["dc:title"] = "My Book";
+      d["@"][1]["ex:contains"] = "<http://example.org/test#chapter>";
+      d["@"][2]["@"] = "http://example.org/test#chapter";
+      d["@"][2]["a"] = "ex:Chapter";
+      d["@"][2]["dc:description"] = "Fun";
+      d["@"][2]["dc:title"] = "Chapter One";
 
-      DynamicObject& e0 = reframeFramedLibrary0;
-      e0["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      e0["#"]["ex"] = "http://example.org/vocab#";
-      e0["@"] = "http://example.org/test#library";
-      e0["a"] = "ex:Library";
-      e0["ex:contains"]["@"] = "http://example.org/test#book";
-      e0["ex:contains"]["a"] = "ex:Book";
-      e0["ex:contains"]["dc:contributor"] = "Writer";
-      e0["ex:contains"]["dc:title"] = "My Book";
-      e0["ex:contains"]["ex:contains"]["@"] =
+      DynamicObject& e = reframeExpect["library"];
+      e["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      e["#"]["ex"] = "http://example.org/vocab#";
+      e["@"] = "http://example.org/test#library";
+      e["a"] = "ex:Library";
+      e["ex:contains"]["@"] = "http://example.org/test#book";
+      e["ex:contains"]["a"] = "ex:Book";
+      e["ex:contains"]["dc:contributor"] = "Writer";
+      e["ex:contains"]["dc:title"] = "My Book";
+      e["ex:contains"]["ex:contains"]["@"] =
          "http://example.org/test#chapter";
-      e0["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
-      e0["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
-      e0["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+      e["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
+      e["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
+      e["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
+   }
+   {
+      DynamicObject& d = reframeData["top"];
+      d["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      d["#"]["ex"] = "http://example.org/vocab#";
+      d["@"] = "http://example.org/test#library";
+      d["a"] = "ex:Library";
+      d["ex:contains"] = "<http://example.org/test#book>";
+
+      DynamicObject& e = reframeExpect["top"];
+      e = d.clone();
+      e["#"]->removeMember("dc");
    }
 
    tr.test("reframe");
    {
-      DynamicObject in = reframeTestData0;
+      DynamicObject in = reframeData["library"];
 
       DynamicObject frame;
       frame["#"]["ex"] = "http://example.org/vocab#";
@@ -1231,7 +1243,7 @@ static void runJsonLdTest(TestRunner& tr)
       assertNoException(
          jlf.reframe(in, out));
 
-      DynamicObject expect = reframeFramedLibrary0;
+      DynamicObject expect = reframeExpect["library"];
       assertNamedDynoCmp("expect", expect, "result", out);
 
       MO_DEBUG("INPUT: %s\nOUTPUT: %s",
@@ -1296,7 +1308,7 @@ static void runJsonLdTest(TestRunner& tr)
 
    tr.test("reframe (empty)");
    {
-      DynamicObject in = reframeTestData0;
+      DynamicObject in = reframeData["library"];
 
       DynamicObject frame;
       frame["#"]["ex"] = "http://example.org/vocab#";
@@ -1320,7 +1332,7 @@ static void runJsonLdTest(TestRunner& tr)
 
    tr.test("reframe (id)");
    {
-      DynamicObject in = reframeTestData0;
+      DynamicObject in = reframeData["library"];
 
       DynamicObject frame;
       frame["@"] = "http://example.org/test#library";
@@ -1331,7 +1343,7 @@ static void runJsonLdTest(TestRunner& tr)
       assertNoException(
          jlf.reframe(in, out));
 
-      DynamicObject expect = reframeFramedLibrary0;
+      DynamicObject expect = reframeExpect["library"];
       assertNamedDynoCmp("expect", expect, "result", out);
 
       MO_DEBUG("INPUT: %s\nOUTPUT: %s",
@@ -1342,7 +1354,7 @@ static void runJsonLdTest(TestRunner& tr)
 
    tr.test("reframe (type)");
    {
-      DynamicObject in = reframeTestData0;
+      DynamicObject in = reframeData["library"];
 
       DynamicObject frame;
       frame["#"]["ex"] = "http://example.org/vocab#";
@@ -1354,7 +1366,7 @@ static void runJsonLdTest(TestRunner& tr)
       assertNoException(
          jlf.reframe(in, out));
 
-      DynamicObject expect = reframeFramedLibrary0;
+      DynamicObject expect = reframeExpect["library"];
       assertNamedDynoCmp("expect", expect, "result", out);
 
       MO_DEBUG("INPUT: %s\nOUTPUT: %s",
@@ -1365,7 +1377,7 @@ static void runJsonLdTest(TestRunner& tr)
 
    tr.test("reframe (cleared output)");
    {
-      DynamicObject in = reframeTestData0;
+      DynamicObject in = reframeData["library"];
 
       DynamicObject frame;
       frame["#"]["ex"] = "http://example.org/vocab#";
@@ -1379,7 +1391,30 @@ static void runJsonLdTest(TestRunner& tr)
       assertNoException(
          jlf.reframe(in, out));
 
-      DynamicObject expect = reframeFramedLibrary0;
+      DynamicObject expect = reframeExpect["library"];
+      assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("reframe (top level)");
+   {
+      DynamicObject in = reframeData["top"];
+
+      DynamicObject frame;
+      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["a"] = "ex:Library";
+      JsonLdFrame jlf;
+      jlf.setFrame(frame);
+
+      DynamicObject out;
+      assertNoException(
+         jlf.reframe(in, out));
+
+      DynamicObject expect = reframeExpect["top"];
       assertNamedDynoCmp("expect", expect, "result", out);
 
       MO_DEBUG("INPUT: %s\nOUTPUT: %s",

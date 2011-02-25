@@ -888,7 +888,7 @@ bool JsonLdFrame::reframe(DynamicObject& jsonld, DynamicObject& out)
       }
       else
       {
-         array->append(normalized["@"]);
+         array->append(normalized);
       }
 
       // build map of subjects from normalized input
