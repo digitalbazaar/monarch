@@ -62,7 +62,6 @@ static char* _realloc(char** str, size_t len)
  * @param type the RDF type.
  * @param value the value (no <>).
  * @param datatype the datatype (no <>), NULL if not RDF_TYPE_TYPED_LITERAL.
- * @param encoded the encoded string.
  *
  * @return the encoded string.
  */
@@ -855,47 +854,62 @@ static DynamicObject _compactTypedLiteral(
    DynamicObject rval(NULL);
 
    // check type coercion
-   if(predicate != NULL &&
-      ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
+   if(predicate != NULL)
    {
-      DynamicObject& type = ctx["#types"][predicate];
-      usedCtx["#types"][predicate] = type;
-
-      // single type
-      if(type->getType() == String)
+      // prefer type coercion map first, then use default basic types
+      string t;
+      if(ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
       {
-         rval = DynamicObject();
-         string t = _normalizeValue(ctx, type, RDF_TYPE_IRI, NULL, &usedCtx);
-         if(strcmp(t.c_str(), XSD_ANY_URI_NORM) == 0)
+         DynamicObject& type = ctx["#types"][predicate];
+         usedCtx["#types"][predicate] = type;
+
+         // single type
+         if(type->getType() == String)
          {
-            rval = value;
+            // get fully-qualified datatype
+            t = _normalizeValue(ctx, type, RDF_TYPE_IRI, NULL, &usedCtx);
          }
-         else if(strcmp(t.c_str(), XSD_BOOLEAN_NORM) == 0)
-         {
-            rval = value;
-            rval->setType(Boolean);
-         }
-         else if(strcmp(t.c_str(), XSD_INTEGER_NORM) == 0)
-         {
-            rval = value;
-            rval->setType(Int64);
-         }
-         else if(strcmp(t.c_str(), XSD_DOUBLE_NORM) == 0)
-         {
-            rval = value;
-            rval->setType(Double);
-         }
-         // unrecognized type
+         // type coercion info is an ordered list of possible types
          else
          {
-            rval = encoded;
+            // FIXME: need to check if datatype matches type coercion type
+            // FIXME: determine whether to make int,bool,double,or IRI
          }
       }
-      // type coercion info is an ordered list of possible types
       else
       {
-         // FIXME: need to check if datatype matches type coercion type
-         // FIXME: determine whether to make int,bool,double,or IRI
+         // use given datatype (try to coerce basic built in types)
+         DynamicObject nullCtx(NULL);
+         DynamicObject type;
+         type = datatype;
+         t = _normalizeValue(nullCtx, type, RDF_TYPE_IRI, NULL, NULL);
+         //_encode(RDF_TYPE_IRI, datatype);
+      }
+
+      rval = DynamicObject();
+      if(strcmp(t.c_str(), XSD_ANY_URI_NORM) == 0)
+      {
+         rval = value;
+      }
+      else if(strcmp(t.c_str(), XSD_BOOLEAN_NORM) == 0)
+      {
+         rval = value;
+         rval->setType(Boolean);
+      }
+      else if(strcmp(t.c_str(), XSD_INTEGER_NORM) == 0)
+      {
+         rval = value;
+         rval->setType(Int64);
+      }
+      else if(strcmp(t.c_str(), XSD_DOUBLE_NORM) == 0)
+      {
+         rval = value;
+         rval->setType(Double);
+      }
+      // unrecognized type
+      else
+      {
+         rval = encoded;
       }
    }
 
@@ -1163,3 +1177,145 @@ bool JsonLd::filter(
    rval = rval && addContext(context, normOut, out);
    return rval;
 }
+
+#if 0
+/* Check if a JSON-LD object is a specific type. */
+static bool _isType(DynamicObject& in, const char* type)
+{
+   bool rval = false;
+
+   if(in->hasMember("a"))
+   {
+      DynamicObject& a = in["a"];
+      switch(a->getType())
+      {
+         case String:
+         {
+            rval = (a == type);
+            break;
+         }
+         case Array:
+         {
+            DynamicObjectIterator i = a.getIterator();
+            while(!rval && i->hasNext())
+            {
+               DynamicObject& next = i->next();
+               rval = (next == type);
+            }
+            break;
+         }
+         default:
+            break;
+      }
+   }
+
+   return rval;
+}
+
+/* Check if a JSON-LD object has an id. */
+static bool _hasId(DynamicObject& in)
+{
+   return in->hasMember("@");
+}
+
+/* Check if a JSON-LD object is a blank node. */
+// FIXME: this is dependent on RDFa library
+static bool _isBlankNode(DynamicObject& in)
+{
+   // check if no id or id starts with "_:"
+   bool rval = true;
+   if(_hasId(in))
+   {
+      DynamicObject& idd = in["@"];
+      const char* ids = idd->getString();
+      rval = idd->length() >= 2 && ids[0] == '_' && ids[1] == ':';
+   }
+   return rval;
+}
+
+/* Find JSON-LD objects of type and add references to output list. */
+// Currently just handles top level and @:[...] constructs.
+static bool _findType(DynamicObject& in, const char* type, DynamicObject& out)
+{
+   out->clear();
+
+   if(in->hasMember("@"))
+   {
+      DynamicObject& id = in["@"];
+      switch(id->getType())
+      {
+         // top level object
+         case String:
+         {
+            if(_isType(in, type))
+            {
+               out->append(in);
+            }
+            break;
+         }
+         // top level is blank node
+         case Array:
+         {
+            DynamicObjectIterator i = id.getIterator();
+            while(i->hasNext())
+            {
+               DynamicObject& next = i->next();
+               if(_isType(next, type))
+               {
+                  out->append(next);
+               }
+            }
+            break;
+         }
+         default:
+            break;
+      }
+   }
+
+   return true;
+}
+
+/* Find JSON-LD object with id and set out to it. */
+// Currently just handles top level and @:[...] constructs.
+static bool _findId(DynamicObject& in, const char* id, DynamicObject& out)
+{
+   out.setNull();
+
+   if(in->hasMember("@"))
+   {
+      DynamicObject& _id = in["@"];
+      switch(_id->getType())
+      {
+         // top level object
+         case String:
+         {
+            if(_id == id)
+            {
+               out = in;
+            }
+            break;
+         }
+         // top level is blank node
+         case Array:
+         {
+            bool found = false;
+            DynamicObjectIterator i = _id.getIterator();
+            while(!found && i->hasNext())
+            {
+               DynamicObject& next = i->next();
+               if(next["@"] == id)
+               {
+                  out = next;
+                  found = true;
+               }
+            }
+            break;
+         }
+         default:
+            break;
+      }
+   }
+
+   return true;
+}
+#endif
