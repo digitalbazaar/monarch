@@ -1140,12 +1140,44 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject expect;
       expect["#"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test";
-      expect["ex:bool"] = "true^^<http://www.w3.org/2001/XMLSchema#boolean>";
-      expect["ex:double"] =
+      expect["ex:bool"] = true;
+      expect["ex:double"] = 1.230000e+00;
+      expect["ex:double-zero"] = 0.000000e+00;
+      expect["ex:int"] = 123;
+      assertNamedDynoCmp("expect", expect, "result", out);
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (check types)");
+   {
+      DynamicObject in;
+      in["#"]["d"] = "http://purl.org/dc/elements/1.1/";
+      in["#"]["e"] = "http://example.org/vocab#";
+      in["#"]["f"] = "http://xmlns.org/foaf/0.1/";
+      in["@"] = "http://example.org/test";
+      in["e:bool"] = true;
+      in["e:double"] = 1.23;
+      in["e:double-zero"] = 0.0;
+      in["e:int"] = 123;
+
+      DynamicObject ctx;
+      ctx["dc"] = "http://purl.org/dc/elements/1.1/";
+      ctx["ex"] = "http://example.org/vocab#";
+      ctx["foaf"] = "http://xmlns.org/foaf/0.1/";
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test>";
+      expect["<http://example.org/vocab#bool>"] =
+         "true^^<http://www.w3.org/2001/XMLSchema#boolean>";
+      expect["<http://example.org/vocab#double>"] =
          "1.230000e+00^^<http://www.w3.org/2001/XMLSchema#double>";
-      expect["ex:double-zero"] =
+      expect["<http://example.org/vocab#double-zero>"] =
          "0.000000e+00^^<http://www.w3.org/2001/XMLSchema#double>";
-      expect["ex:int"] = "123^^<http://www.w3.org/2001/XMLSchema#integer>";
+      expect["<http://example.org/vocab#int>"] =
+         "123^^<http://www.w3.org/2001/XMLSchema#integer>";
       assertNamedDynoCmp("expect", expect, "result", out);
    }
    tr.passIfNoException();
