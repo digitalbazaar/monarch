@@ -8,6 +8,7 @@
 #include "monarch/sql/mysql/MySqlStatement.h"
 
 #include <mysql/errmsg.h>
+#include <cstdio>
 
 using namespace std;
 using namespace monarch::sql;
@@ -15,10 +16,9 @@ using namespace monarch::sql::mysql;
 using namespace monarch::net;
 using namespace monarch::rt;
 
-MySqlConnection::MySqlConnection()
+MySqlConnection::MySqlConnection() :
+   mHandle(NULL)
 {
-   // no handle yet
-   mHandle = NULL;
 }
 
 MySqlConnection::~MySqlConnection()
@@ -100,49 +100,44 @@ void MySqlConnection::close()
    }
 }
 
-bool MySqlConnection::begin()
+static Exception* _createException(::MYSQL* handle)
 {
-   bool rval;
+   Exception* e = new Exception(
+      mysql_error(handle),
+      "monarch.sql.mysql.MySql");
+   e->getDetails()["code"] = mysql_errno(handle);
+   e->getDetails()["sqlState"] = mysql_sqlstate(handle);
+   return e;
+}
 
-   if(!(rval = (mysql_query(mHandle, "START TRANSACTION") == 0)))
+static bool _query(::MYSQL* handle, const char* sql, const char* error)
+{
+   bool rval = (mysql_query(handle, sql) == 0);
+   if(!rval)
    {
-      ExceptionRef e = new Exception("Could not begin transaction.");
-      ExceptionRef cause = createException();
+      ExceptionRef e = new Exception(
+         error, "monarch.sql.mysql.MySql");
+      ExceptionRef cause = _createException(handle);
       e->setCause(cause);
       Exception::set(e);
    }
 
    return rval;
+}
+
+bool MySqlConnection::begin()
+{
+   return _query(mHandle, "START TRANSACTION", "Could not begin transaction.");
 }
 
 bool MySqlConnection::commit()
 {
-   bool rval;
-
-   if(!(rval = (mysql_query(mHandle, "COMMIT") == 0)))
-   {
-      ExceptionRef e = new Exception("Could not commit transaction.");
-      ExceptionRef cause = createException();
-      e->setCause(cause);
-      Exception::set(e);
-   }
-
-   return rval;
+   return _query(mHandle, "START TRANSACTION", "Could not commit transaction.");
 }
 
 bool MySqlConnection::rollback()
 {
-   bool rval;
-
-   if(!(rval = (mysql_query(mHandle, "ROLLBACK") == 0)))
-   {
-      ExceptionRef e = new Exception("Could not rollback transaction.");
-      ExceptionRef cause = createException();
-      e->setCause(cause);
-      Exception::set(e);
-   }
-
-   return rval;
+   return _query(mHandle, "ROLLBACK", "Could not rollback transaction.");
 }
 
 bool MySqlConnection::isConnected()
@@ -166,27 +161,20 @@ bool MySqlConnection::setCharacterSet(const char* cset)
 
 bool MySqlConnection::query(const char* sql)
 {
-   bool rval;
+   return _query(mHandle, sql, "Could not execute query.");
+}
 
-   if(!(rval = (mysql_query(mHandle, sql) == 0)))
-   {
-      ExceptionRef e = new Exception("Could not execute query.");
-      ExceptionRef cause = createException();
-      e->setCause(cause);
-      Exception::set(e);
-   }
-
-   return rval;
+bool MySqlConnection::setSqlMode(const char* mode)
+{
+   int len = strlen(mode) + 16;
+   char sql[len];
+   snprintf(sql, len, "SET sql_mode='%s'", mode);
+   return _query(mHandle, sql, "Could not set mode.");
 }
 
 Exception* MySqlConnection::createException()
 {
-   Exception* e = new Exception(
-      mysql_error(mHandle),
-      "monarch.sql.mysql.MySql");
-   e->getDetails()["code"] = mysql_errno(mHandle);
-   e->getDetails()["sqlState"] = mysql_sqlstate(mHandle);
-   return e;
+   return _createException(mHandle);
 }
 
 Statement* MySqlConnection::createStatement(const char* sql)

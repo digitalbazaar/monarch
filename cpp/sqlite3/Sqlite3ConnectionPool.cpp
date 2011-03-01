@@ -27,6 +27,10 @@ PooledConnection* Sqlite3ConnectionPool::createConnection()
       // wrap in a pooled connection
       rval = new PooledConnection(this, c);
    }
+   else
+   {
+      delete c;
+   }
 
    return rval;
 }

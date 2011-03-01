@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 #define __STDC_FORMAT_MACROS
@@ -486,7 +486,7 @@ bool DatabaseClient::drop(
    if(!rval)
    {
       ExceptionRef e = new Exception(
-         "Could not drop reate table.",
+         "Could not drop table.",
          DBC_EXCEPTION ".DropTableFailed");
       Exception::push(e);
    }

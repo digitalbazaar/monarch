@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_mysql_MySqlDatabaseClient_H
 #define monarch_sql_mysql_MySqlDatabaseClient_H

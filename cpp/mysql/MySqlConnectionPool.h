@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_mysql_MySqlConnectionPool_H
 #define monarch_sql_mysql_MySqlConnectionPool_H
@@ -24,6 +24,11 @@ class MySqlConnectionPool : public AbstractConnectionPool
 {
 protected:
    /**
+    * MySql NO_ENGINE_SUBSTITUTION flag.
+    */
+   bool mNoEngineSubstitution;
+
+   /**
     * Creates a new mysql database connection, connects it, and wraps it with a
     * PooledConnection.
     *
@@ -47,6 +52,17 @@ public:
     * Destructs this MySqlConnectionPool.
     */
    virtual ~MySqlConnectionPool();
+
+   /**
+    * Sets whether or not MYSQL ENGINE substitution is disabled on the
+    * connections created by this pool. It is disabled by default, which
+    * means that if an ENGINE is specifed in a CREATE or ALTER TABLE statement,
+    * and that ENGINE is not available, the statement will fail.
+    *
+    * @param on true to disallow ENGINE substitution when creating or altering
+    *           tables if the chosen ENGINE fails (default), false to allow it.
+    */
+   virtual void setNoEngineSubstitution(bool on);
 };
 
 } // end namespace mysql

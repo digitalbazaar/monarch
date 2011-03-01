@@ -114,6 +114,13 @@ public:
    virtual bool query(const char* sql);
 
    /**
+    * Sets the SQL mode on this connection.
+    *
+    * @param mode the mode to set.
+    */
+   virtual bool setSqlMode(const char* mode);
+
+   /**
     * Creates a new Exception using the last error set on this connection.
     *
     * @return the created Exception.
