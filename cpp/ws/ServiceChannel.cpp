@@ -486,9 +486,13 @@ bool ServiceChannel::getPathParams(DynamicObject& params)
    if(mPathParams.isNull())
    {
       // parse params
-      Url url(mPath);
-      mPathParams = DynamicObject();
-      rval = url.getTokenizedPath(mPathParams, mBasePath);
+      Url url;
+      rval = url.setRelativeUrl(mPath);
+      if(rval)
+      {
+         mPathParams = DynamicObject();
+         rval = url.getTokenizedPath(mPathParams, mBasePath);
+      }
    }
    else
    {
