@@ -83,8 +83,8 @@ bool Url::setUrl(const string& url)
    string::size_type index = 0;
    index = url.find(':');
 
-   // if no colon found, assume relative
-   mRelative = (index == string::npos);
+   // if no potential scheme found, assume relative
+   mRelative = (index == string::npos || index == 0);
 
    // handle scheme for absolute urls only
    if(!mRelative)
@@ -153,69 +153,10 @@ bool Url::setUrl(const string& url)
          mSchemeSpecificPart = url.substr(index + 1);
       }
 
-      // get authority, path, and query:
-
-      // authority is preceeded by double slash "//" (current index + 1) and
-      // is terminated by single slash "/", a question mark "?", or
-      // the end of the url
-      if(mSchemeSpecificPart.length() > 2)
-      {
-         string::size_type slash = mSchemeSpecificPart.find('/', 2);
-         string::size_type qMark = mSchemeSpecificPart.find('?', 2);
-
-         // see if a query exists
-         if(qMark != string::npos)
-         {
-            // a query exists
-
-            // get authority & path
-            if(slash != string::npos && slash < qMark)
-            {
-               mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
-               mPath = mSchemeSpecificPart.substr(slash, qMark - slash);
-            }
-            else
-            {
-               mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
-               mPath = '/';
-            }
-
-            // get query
-            if(qMark != mSchemeSpecificPart.length() - 1)
-            {
-               mQuery = mSchemeSpecificPart.substr(qMark + 1);
-            }
-         }
-         else if(slash != string::npos)
-         {
-            // no query -- just authority and path
-
-            // get authority
-            mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
-
-            // get path
-            mPath = mSchemeSpecificPart.substr(slash);
-         }
-         else
-         {
-            // no path or query, just authority
-            mPath = '/';
-
-            if(mSchemeSpecificPart[1] == '/')
-            {
-               // get authority after slash
-               mAuthority = mSchemeSpecificPart.substr(2);
-            }
-            else
-            {
-               // set authority equal to scheme specific part
-               mAuthority = mSchemeSpecificPart;
-            }
-         }
-      }
+      rval = parseSchemeSpecificPart();
    }
 
-   if(mAuthority.length() > 0)
+   if(rval && mAuthority.length() > 0)
    {
       string hostAndPort;
 
@@ -253,7 +194,7 @@ bool Url::setUrl(const string& url)
       }
    }
 
-   if(mUserInfo.length() > 0)
+   if(rval && mUserInfo.length() > 0)
    {
       const char* colon = strchr(mUserInfo.c_str(), ':');
       if(colon != NULL)
@@ -264,7 +205,7 @@ bool Url::setUrl(const string& url)
    }
 
    // if port not set, use default port
-   if(mPort == 0)
+   if(rval && mPort == 0)
    {
       mPort = getDefaultPort();
    }
@@ -275,6 +216,27 @@ bool Url::setUrl(const string& url)
 bool Url::setUrl(const char* url)
 {
    return setUrl(string(url));
+}
+
+bool Url::setRelativeUrl(const string& url)
+{
+   bool rval = true;
+
+   // initialize
+   mRelative = true;
+
+   // set scheme specific part
+   mSchemeSpecificPart = "//";
+   mSchemeSpecificPart.append(url);
+
+   rval = parseSchemeSpecificPart();
+
+   return rval;
+}
+
+bool Url::setRelativeUrl(const char* url)
+{
+   return setRelativeUrl(string(url));
 }
 
 bool Url::format(const char* format, ...)
@@ -850,4 +812,72 @@ bool Url::formConvertToArrays(DynamicObject& form)
    }
 
    return true;
+}
+
+bool Url::parseSchemeSpecificPart()
+{
+   bool rval = true;
+
+   // get authority, path, and query:
+
+   // authority is preceeded by double slash "//" (current index + 1) and
+   // is terminated by single slash "/", a question mark "?", or
+   // the end of the url
+   if(mSchemeSpecificPart.length() > 2)
+   {
+      string::size_type slash = mSchemeSpecificPart.find('/', 2);
+      string::size_type qMark = mSchemeSpecificPart.find('?', 2);
+
+      // see if a query exists
+      if(qMark != string::npos)
+      {
+         // a query exists
+
+         // get authority & path
+         if(slash != string::npos && slash < qMark)
+         {
+            mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
+            mPath = mSchemeSpecificPart.substr(slash, qMark - slash);
+         }
+         else
+         {
+            mAuthority = mSchemeSpecificPart.substr(2, qMark - 2);
+            mPath = '/';
+         }
+
+         // get query
+         if(qMark != mSchemeSpecificPart.length() - 1)
+         {
+            mQuery = mSchemeSpecificPart.substr(qMark + 1);
+         }
+      }
+      else if(slash != string::npos)
+      {
+         // no query -- just authority and path
+
+         // get authority
+         mAuthority = mSchemeSpecificPart.substr(2, slash - 2);
+
+         // get path
+         mPath = mSchemeSpecificPart.substr(slash);
+      }
+      else
+      {
+         // no path or query, just authority
+         mPath = '/';
+
+         if(mSchemeSpecificPart[1] == '/')
+         {
+            // get authority after slash
+            mAuthority = mSchemeSpecificPart.substr(2);
+         }
+         else
+         {
+            // set authority equal to scheme specific part
+            mAuthority = mSchemeSpecificPart;
+         }
+      }
+   }
+
+   return rval;
 }

@@ -155,7 +155,25 @@ public:
     *
     * @return false if the URL is malformed, true if not.
     */
-   virtual bool setUrl(const char* url);
+   virtual bool setUrl(const char* rurl);
+
+   /**
+    * Sets a relative reference Url. See (RFC 3986 sec 4.2).
+    *
+    * @param url the string to create this Url from.
+    *
+    * @return false if the URL is malformed, true if not.
+    */
+   virtual bool setRelativeUrl(const std::string& rurl);
+
+   /**
+    * Sets a relative reference Url. See (RFC 3986 sec 4.2).
+    *
+    * @param url the string to create this Url from.
+    *
+    * @return false if the URL is malformed, true if not.
+    */
+   virtual bool setRelativeUrl(const char* url);
 
    /**
     * Sets this Url to the passed formatted string.
@@ -442,6 +460,14 @@ public:
     * @return true if conversion was successful, false if not.
     */
    static bool formConvertToArrays(monarch::rt::DynamicObject& form);
+
+protected:
+   /**
+    * Parse scheme specific part.
+    *
+    * @return false if the URL is malformed, true if not.
+    */
+   virtual bool parseSchemeSpecificPart();
 };
 
 // type definition for a reference collected Url

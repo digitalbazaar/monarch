@@ -916,7 +916,7 @@ static void runUrlTest(TestRunner& tr)
       Url url("http://example.com:8080/path");
 
       //dumpUrl(url);
-      assert(!Exception::isSet());
+      assertNoExceptionSet();
       assert(url.getScheme() == "http");
       assert(url.getUserInfo() == "");
       assert(url.getUser() == "");
@@ -931,7 +931,7 @@ static void runUrlTest(TestRunner& tr)
       Url url("scheme:schemespecific");
 
       //dumpUrl(url);
-      assert(!Exception::isSet());
+      assertNoExceptionSet();
       assert(url.getScheme() == "scheme");
       assert(url.getSchemeSpecificPart() == "schemespecific");
    }
@@ -942,7 +942,7 @@ static void runUrlTest(TestRunner& tr)
          "&key3=two%20words%3D2");
 
       //dumpUrl(url);
-      assert(!Exception::isSet());
+      assertNoExceptionSet();
       assert(url.getScheme() == "scheme");
       assert(url.getUserInfo() == "user:password");
       assert(url.getUser() == "user");
@@ -963,7 +963,7 @@ static void runUrlTest(TestRunner& tr)
       Url url("/");
 
       //dumpUrl(url);
-      assert(!Exception::isSet());
+      assertNoExceptionSet();
       assertStrCmp(url.getPath().c_str(), "/");
       assertStrCmp(url.getQuery().c_str(), "");
 
@@ -980,7 +980,7 @@ static void runUrlTest(TestRunner& tr)
       Url url("/?key1=value1");
 
       //dumpUrl(url);
-      assert(!Exception::isSet());
+      assertNoExceptionSet();
       assertStrCmp(url.getPath().c_str(), "/");
       assertStrCmp(url.getQuery().c_str(), "key1=value1");
 
@@ -999,7 +999,7 @@ static void runUrlTest(TestRunner& tr)
          "/path/param1/10001?key1=value1&key2=value2&key3=two%20words%3D2");
 
       //dumpUrl(url);
-      assert(!Exception::isSet());
+      assertNoExceptionSet();
       assertStrCmp(url.getPath().c_str(), "/path/param1/10001");
       assertStrCmp(
          url.getQuery().c_str(),
@@ -1020,6 +1020,45 @@ static void runUrlTest(TestRunner& tr)
    }
 
    {
+      // test start with ':'
+      Url url(":test");
+      assertNoExceptionSet();
+      assertStrCmp(url.getAuthority().c_str(), ":test");
+      assertStrCmp(url.getPath().c_str(), "/");
+   }
+
+   {
+      Url url;
+      url.setRelativeUrl("/");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assertStrCmp(url.getPath().c_str(), "/");
+   }
+
+   {
+      // test relative with unescaped ':'
+      Url url;
+      url.setRelativeUrl("/path/param1/10001?key1=value:1");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assertStrCmp(url.getPath().c_str(), "/path/param1/10001");
+      assertStrCmp(url.getQuery().c_str(), "key1=value:1");
+
+      DynamicObject tokens;
+      assert(url.getTokenizedPath(tokens, "/path/"));
+      assert(tokens->length() == 2);
+      assertStrCmp(tokens[0]->getString(), "param1");
+      assert(tokens[1]->getInt32() == 10001);
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->length() == 1);
+      assertStrCmp(vars["key1"]->getString(), "value:1");
+   }
+
+   {
       Url url("http://example.com/path/"
          "?key1=100&start=2008-07-04+00%3a00%3a00&end=2008-07-04+23%3a59%3a59");
 
@@ -1035,7 +1074,7 @@ static void runUrlTest(TestRunner& tr)
       Url url("http://bitmunk.com/path?email=wa-hoo.test_user%40bitmunk.com");
 
       //dumpUrl(url);
-      assert(!Exception::isSet());
+      assertNoExceptionSet();
       assert(url.getPath() == "/path");
       assert(url.getQuery() == "email=wa-hoo.test_user%40bitmunk.com");
 
