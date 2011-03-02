@@ -83,8 +83,18 @@ static string _encode(
    // value^^<datatype>
    else if(type == RDF_TYPE_TYPED_LITERAL)
    {
+      // FIXME: this is called with <> wrapped datatypes, despite func docs.
+      // Adjust datatype to an unwrapped version if needed.
+      const char* dt = datatype;
+      size_t dtlen = strlen(dt);
+      if(dtlen > 1 && dt[0] == '<' && dt[dtlen - 1] == '>')
+      {
+         dt++;
+         dtlen -= 2;
+      }
+
       // use canonical form for xsd:double
-      if(strcmp(datatype, XSD_DOUBLE_NORM) == 0)
+      if(strncmp(datatype, XSD_DOUBLE, dtlen) == 0)
       {
          DynamicObject d;
          d = value;
@@ -96,7 +106,7 @@ static string _encode(
       }
       rval.append("^^");
       rval.push_back('<');
-      rval.append(datatype);
+      rval.append(dt, dtlen);
       rval.push_back('>');
    }
    // default
@@ -883,7 +893,6 @@ static DynamicObject _compactTypedLiteral(
          DynamicObject type;
          type = datatype;
          t = _normalizeValue(nullCtx, type, RDF_TYPE_IRI, NULL, NULL);
-         //_encode(RDF_TYPE_IRI, datatype);
       }
 
       rval = DynamicObject();

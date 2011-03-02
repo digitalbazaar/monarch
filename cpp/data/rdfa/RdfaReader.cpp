@@ -186,29 +186,26 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
 
       // JSON-LD encode object
       len = strlen(t->object) + 1;
-      switch(t->object_type)
+      if(t->object_type == RDF_TYPE_IRI ||
+         (t->object_type == RDF_TYPE_TYPED_LITERAL &&
+            strcmp(
+               t->datatype, "http://www.w3.org/2001/XMLSchema#anyURI") == 0))
       {
-         case RDF_TYPE_IRI:
-         {
-            len += 2;
-            _realloc(&object, len);
-            snprintf(object, len, "<%s>", t->object);
-            break;
-         }
-         case RDF_TYPE_TYPED_LITERAL:
-         {
-            len += 4 + strlen(t->datatype);
-            _realloc(&object, len);
-            snprintf(object, len, "%s^^<%s>", t->object, t->datatype);
-            break;
-         }
-         default:
-         {
-            _realloc(&object, len);
-            strncpy(object, t->object, len);
-            object[len - 1] = 0;
-            break;
-         }
+         len += 2;
+         _realloc(&object, len);
+         snprintf(object, len, "<%s>", t->object);
+      }
+      else if(t->object_type == RDF_TYPE_TYPED_LITERAL)
+      {
+         len += 4 + strlen(t->datatype);
+         _realloc(&object, len);
+         snprintf(object, len, "%s^^<%s>", t->object, t->datatype);
+      }
+      else
+      {
+         _realloc(&object, len);
+         strncpy(object, t->object, len);
+         object[len - 1] = 0;
       }
 
       // create/get the subject dyno
