@@ -386,9 +386,15 @@ static string _normalizeValue(
       }
       else
       {
-         // JSON-LD decode, preserve expected type
+         // JSON-LD decode
          RdfType t = type;
          _decode(value, type, rval, datatype);
+         if(type == RDF_TYPE_TYPED_LITERAL)
+         {
+            _expandCurie(ctx, datatype.c_str(), datatype, usedCtx);
+         }
+
+         // preserve expected type
          if(t != RDF_TYPE_UNKNOWN)
          {
             type = t;
