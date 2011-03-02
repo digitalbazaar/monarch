@@ -1160,10 +1160,6 @@ static void runJsonLdTest(TestRunner& tr)
       in["e:double-zero"] = 0.0;
       in["e:int"] = 123;
 
-      DynamicObject ctx;
-      ctx["dc"] = "http://purl.org/dc/elements/1.1/";
-      ctx["ex"] = "http://example.org/vocab#";
-      ctx["foaf"] = "http://xmlns.org/foaf/0.1/";
       DynamicObject out;
       assertNoException(
          JsonLd::normalize(in, out));
@@ -1176,6 +1172,27 @@ static void runJsonLdTest(TestRunner& tr)
          "1.230000e+00^^<http://www.w3.org/2001/XMLSchema#double>";
       expect["<http://example.org/vocab#double-zero>"] =
          "0.000000e+00^^<http://www.w3.org/2001/XMLSchema#double>";
+      expect["<http://example.org/vocab#int>"] =
+         "123^^<http://www.w3.org/2001/XMLSchema#integer>";
+      assertNamedDynoCmp("expect", expect, "result", out);
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (double <<*>> check)");
+   {
+      DynamicObject in;
+      in["#"]["#types"]["ex:int"] = "xsd:integer";
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["#"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      in["@"] = "http://example.org/test";
+      in["ex:int"] = 123;
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test>";
       expect["<http://example.org/vocab#int>"] =
          "123^^<http://www.w3.org/2001/XMLSchema#integer>";
       assertNamedDynoCmp("expect", expect, "result", out);
@@ -1207,6 +1224,33 @@ static void runJsonLdTest(TestRunner& tr)
       expect["ex:bool"] = true;
       expect["ex:double"] = 1.23;
       expect["ex:int"] = 123;
+      assertNamedDynoCmp("expect", expect, "result", out);
+   }
+   tr.passIfNoException();
+
+   tr.test("add context (with types)");
+   {
+      DynamicObject in;
+      in["@"] = "<http://example.org/test>";
+      in["<http://example.org/test#int>"] =
+         "123^^<http://www.w3.org/2001/XMLSchema#integer>";
+
+      DynamicObject ctx;
+      ctx["ex"] = "http://example.org/test#";
+      ctx["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      ctx["#types"]["ex:int"] = "xsd:integer";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::addContext(ctx, in, out));
+
+      DynamicObject expect;
+      expect["#"]["ex"] = "http://example.org/test#";
+      expect["#"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      expect["#"]["#types"]["ex:int"] = "xsd:integer";
+      expect["@"] = "http://example.org/test";
+      expect["ex:int"] = "123";
+
       assertNamedDynoCmp("expect", expect, "result", out);
    }
    tr.passIfNoException();
