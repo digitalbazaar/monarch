@@ -804,7 +804,7 @@ static DynamicObject _compactIri(
 
       // skip special context keys (start with '#')
       const char* name = i->getName();
-      if(i->getName()[0] != '#')
+      if(name[0] != '#')
       {
          const char* uri = next;
          const char* ptr = strstr(value, uri);

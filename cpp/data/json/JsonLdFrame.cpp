@@ -864,11 +864,28 @@ bool JsonLdFrame::reframe(DynamicObject& jsonld, DynamicObject& out)
 {
    bool rval = true;
 
-   // save context
+   /* Note: The context for the output will be any context from the input
+      merged with any context from the frame (where the frame has preference
+      over the input).
+    */
+
+   // clone any existing context from the input
    DynamicObject ctx(NULL);
    if(jsonld->hasMember("#"))
    {
-      ctx = jsonld["#"];
+      ctx = jsonld["#"].clone();
+   }
+   if(!mFrame.isNull() && mFrame->hasMember("#"))
+   {
+      DynamicObject frameCtx = mFrame["#"].clone();
+      if(ctx.isNull())
+      {
+         ctx = frameCtx;
+      }
+      else
+      {
+         ctx.merge(frameCtx, false);
+      }
    }
 
    // normalize jsonld
@@ -901,18 +918,20 @@ bool JsonLdFrame::reframe(DynamicObject& jsonld, DynamicObject& out)
          subjects[subject["@"]->getString()] = subject;
       }
 
-      if(ctx.isNull())
+      // frame subjects
+      DynamicObject framed;
+      rval = frameSubjects(subjects, framed);
+      if(rval)
       {
-         // frame subjects
-         rval = frameSubjects(subjects, out);
-      }
-      else
-      {
-         // frame subjects and re-add context
-         DynamicObject framed;
-         rval =
-            frameSubjects(subjects, framed) &&
-            JsonLd::addContext(ctx, framed, out);
+         // apply context to output
+         if(!ctx.isNull())
+         {
+            rval = JsonLd::addContext(ctx, framed, out);
+         }
+         else
+         {
+            out = framed;
+         }
       }
    }
 
