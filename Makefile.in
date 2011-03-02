@@ -94,6 +94,7 @@ build-all: all
 
 update-all: 
 	@git pull && ./build-setup && $(MAKE_CMD) dist/build.stamp
+	@echo "monarch build complete."
 
 dist/build.stamp: $(ALL_FILES)
 	@mkdir -p dist
