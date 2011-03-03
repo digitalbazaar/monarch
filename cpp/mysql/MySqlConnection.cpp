@@ -132,7 +132,7 @@ bool MySqlConnection::begin()
 
 bool MySqlConnection::commit()
 {
-   return _query(mHandle, "START TRANSACTION", "Could not commit transaction.");
+   return _query(mHandle, "COMMIT", "Could not commit transaction.");
 }
 
 bool MySqlConnection::rollback()
