@@ -831,6 +831,7 @@ static void runDateTest(TestRunner& tr)
       assertIntCmp(d.year(), 2007);
       assertIntCmp(d.yearSince1900(), 107);
    }
+   tr.passIfNoException();
 
    tr.test("timezones");
    {
