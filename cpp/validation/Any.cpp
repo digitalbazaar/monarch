@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Any.h"
+
+#include "monarch/rt/Exception.h"
 
 using namespace monarch::rt;
 using namespace monarch::validation;
@@ -70,6 +72,14 @@ bool Any::isValid(
          context->addError("monarch.validation.ValueError", &obj);
       detail["validator"] = "monarch.validator.Any";
       detail["possibleErrors"] = errors;
+
+      // add first set of specific errors to exception as most likely
+      // error case out of possible errors
+      if(setExceptions)
+      {
+         ExceptionRef e = Exception::get();
+         e->getDetails()["errors"].merge(errors[0], false);
+      }
    }
 
    return rval;

@@ -126,7 +126,8 @@ DynamicObject ValidatorContext::addError(
    }
 
    // add error detail to results errors
-   mResults["errors"]->append(errorDetail);
+   std::string fullpath = getPath();
+   mResults["errors"][fullpath.c_str()] = errorDetail;
 
    // Skip setting exceptions if requested. Return errorDetail regardless.
    if(mSetExceptions)
@@ -161,7 +162,6 @@ DynamicObject ValidatorContext::addError(
       }
 
       // add detail to "errors" section of exception details
-      std::string fullpath = getPath();
       e->getDetails()["errors"][fullpath.c_str()] = errorDetail;
    }
 
@@ -177,6 +177,6 @@ void ValidatorContext::clearResults()
 {
    mResults = DynamicObject();
    mResults["successes"] = 0;
-   mResults["errors"]->setType(Array);
+   mResults["errors"]->setType(Map);
    mResults["errors"]->clear();
 }
