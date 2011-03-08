@@ -358,7 +358,8 @@ static void runSslServerSocketTest(TestRunner& tr)
    tr.test("SSL Server Socket");
 
    // bind and listen
-   InternetAddress address("127.0.0.1", 1024);
+   int port = 1024;
+   InternetAddress address("127.0.0.1", port);
 
    // ensure host was known
    if(!Exception::isSet())
@@ -368,7 +369,7 @@ static void runSslServerSocketTest(TestRunner& tr)
 
       if(socket.bind(&address))
       {
-         printf("Server socket bound...\n");
+         printf("Server socket bound on port %d...\n", port);
       }
       else
       {

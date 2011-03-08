@@ -16,6 +16,11 @@ using namespace monarch::io;
 using namespace monarch::net;
 using namespace monarch::rt;
 
+#define TRANSPORT_BUFFER   1024
+
+// FIXME: SSL implementation needs to be abstracted away from SslSocket so
+// that it can be used by non-sockets and so the code is cleaner
+
 /**
  * Certificate verification callback. Called whenever a handshake is performed
  * to check the certificate's common name against the host or against a
@@ -89,6 +94,7 @@ static int _verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
 SslSocket::SslSocket(
    SslContext* context, TcpSocket* socket, bool client, bool cleanup) :
    SocketWrapper(socket, cleanup),
+   mSessionNegotiated(false),
    mVirtualHost(NULL)
 {
    // create ssl object
@@ -102,9 +108,6 @@ SslSocket::SslSocket(
 
    // assign SSL BIO to SSL
    SSL_set_bio(mSSL, mSSLBio, mSSLBio);
-
-   // no ssl session negotiated yet
-   mSessionNegotiated = false;
 
    // create input and output streams
    mInputStream = new PeekInputStream(new SocketInputStream(this), true);
@@ -212,6 +215,110 @@ bool SslSocket::setVirtualHost(const char* name)
    return SSL_set_tlsext_host_name(mSSL, name) == 1;
 }
 
+static inline int _min(int length, int size)
+{
+   return length > size ? size : length;
+}
+
+/**
+ * Reads some raw data from the underlying TCP socket and stores it in the
+ * SSL read BIO. This method will block until at least length bytes have been
+ * read or until the end of the stream is reached (the Socket has closed).
+ *
+ * @param b the transport buffer to read data into.
+ * @param is the input stream to read from.
+ * @param bio the SSL BIO to write to.
+ * @param length the number of bytes to read.
+ *
+ * @return the number of bytes read or 0 if the end of the stream has been
+ *         reached (the Socket has closed) or -1 if an exception occurred.
+ */
+inline static int _tcpRead(char* b, InputStream* is, BIO* bio, int length)
+{
+   int rval = 0;
+
+   // read from incoming TCP socket, write to SSL BIO
+   int numBytes = 0;
+   while(length > 0 && (numBytes = is->read(
+      b, _min(length, TRANSPORT_BUFFER))) > 0)
+   {
+      BIO_write(bio, b, numBytes);
+      length -= numBytes;
+      rval += numBytes;
+   }
+
+   // exception reading from input stream
+   if(numBytes < 0)
+   {
+      rval = -1;
+   }
+
+   return rval;
+}
+
+/**
+ * Flushes the data from the SSL write BIO to the underlying TCP Socket.
+ * This method will block until all of the data has been written.
+ *
+ * @param b the transport buffer to read data into.
+ * @param bio the SSL BIO to read from.
+ * @param os the output stream to write to.
+ * @param length the number of bytes to write.
+ *
+ * @return true if the write was successful, false if an exception occurred.
+ */
+inline static bool _tcpWrite(char* b, BIO* bio, OutputStream* os, int length)
+{
+   bool rval = true;
+
+   // read from SSL BIO, write out to TCP socket
+   int numBytes;
+   while(rval && length > 0 && (numBytes = BIO_read(
+      bio, b, _min(length, TRANSPORT_BUFFER))) > 0)
+   {
+      rval = os->write(b, numBytes);
+      length -= numBytes;
+   }
+
+   return rval;
+}
+
+/**
+ * Handles any SSL-layer communcation between endpoints by flushing any
+ * pending SSL data over the TCP connection and by receiving any pending
+ * SSL data.
+ *
+ * @param socket the TCP socket.
+ * @param bio the SSL bio.
+ *
+ * @return the number of bytes read or -1 if an exception occurred.
+ */
+static int _tcpTransport(Socket* socket, BIO* bio)
+{
+   int rval = 0;
+
+   // prepare transport vars
+   char b[TRANSPORT_BUFFER];
+   size_t length;
+   InputStream* is = socket->getInputStream();
+   OutputStream* os = socket->getOutputStream();
+
+   // flush pending outgoing bytes
+   length = BIO_ctrl_pending(bio);
+   if(!_tcpWrite(b, bio, os, length))
+   {
+      rval = -1;
+   }
+   else
+   {
+      // receive requested incoming bytes
+      length = BIO_ctrl_get_read_request(bio);
+      rval = _tcpRead(b, is, bio, length);
+   }
+
+   return rval;
+}
+
 bool SslSocket::performHandshake()
 {
    bool rval = true;
@@ -239,9 +346,10 @@ bool SslSocket::performHandshake()
             break;
          }
          case SSL_ERROR_WANT_READ:
+         case SSL_ERROR_WANT_WRITE:
          {
-            // more data is required from the socket
-            ret = tcpRead();
+            // transport data over underlying socket
+            ret = _tcpTransport(mSocket, mSocketBio);
             if(ret <= 0)
             {
                ExceptionRef e = new Exception(
@@ -252,10 +360,6 @@ bool SslSocket::performHandshake()
             }
             break;
          }
-         case SSL_ERROR_WANT_WRITE:
-            // data must be flushed to the socket
-            rval = tcpWrite();
-            break;
          default:
          {
             // an error occurred
@@ -331,8 +435,9 @@ bool SslSocket::send(const char* b, int length)
                break;
             }
             case SSL_ERROR_WANT_READ:
-               // more data is required from the socket
-               ret = tcpRead();
+            case SSL_ERROR_WANT_WRITE:
+               // transport data over underlying socket
+               ret = _tcpTransport(mSocket, mSocketBio);
                if(ret <= 0)
                {
                   // the connection was shutdown
@@ -343,10 +448,6 @@ bool SslSocket::send(const char* b, int length)
                   (ret < 0) ? Exception::push(e) : Exception::set(e);
                   rval = false;
                }
-               break;
-            case SSL_ERROR_WANT_WRITE:
-               // data must be flushed to the socket
-               rval = tcpWrite();
                break;
             default:
             {
@@ -363,7 +464,7 @@ bool SslSocket::send(const char* b, int length)
       }
 
       // flush all data to the socket
-      rval = rval && tcpWrite();
+      rval = rval && (_tcpTransport(mSocket, mSocketBio) != -1);
    }
 
    return rval;
@@ -384,12 +485,9 @@ int SslSocket::receive(char* b, int length)
    else
    {
       // perform a handshake as necessary
-      if(!mSessionNegotiated)
+      if(!mSessionNegotiated && !performHandshake())
       {
-         if(!performHandshake())
-         {
-            rval = -1;
-         }
+         rval = -1;
       }
 
       // do SSL_read() (implicit handshake performed as necessary)
@@ -406,8 +504,8 @@ int SslSocket::receive(char* b, int length)
                closed = true;
                break;
             case SSL_ERROR_WANT_READ:
-               // more data is required from the socket
-               ret = tcpRead();
+               // transport data over underlying socket
+               ret = _tcpTransport(mSocket, mSocketBio);
                if(ret == 0)
                {
                   // the connection was shutdown properly
@@ -424,11 +522,8 @@ int SslSocket::receive(char* b, int length)
                }
                break;
             case SSL_ERROR_WANT_WRITE:
-               // data must be flushed to the socket
-               if(!tcpWrite())
-               {
-                  rval = -1;
-               }
+               // transport data over underlying socket
+               rval = _tcpTransport(mSocket, mSocketBio);
                break;
             default:
             {
@@ -462,70 +557,4 @@ InputStream* SslSocket::getInputStream()
 OutputStream* SslSocket::getOutputStream()
 {
    return mOutputStream;
-}
-
-int SslSocket::tcpRead()
-{
-   int rval = 0;
-
-   // flush the Socket BIO
-   if(tcpWrite())
-   {
-      // determine how many bytes are required from the Socket BIO
-      size_t length = BIO_ctrl_get_read_request(mSocketBio);
-      if(length > 0)
-      {
-         // read from the underlying socket
-         InputStream* is = mSocket->getInputStream();
-         char b[length];
-         int numBytes = 0;
-         while(length > 0 && (numBytes = is->read(b, length)) > 0)
-         {
-            // write to Socket BIO
-            BIO_write(mSocketBio, b, numBytes);
-
-            // decrement remaining bytes to read
-            length -= numBytes;
-
-            // update bytes read
-            rval = (rval == -1) ? numBytes : rval + numBytes;
-         }
-
-         if(numBytes < 0)
-         {
-            // exception reading from input stream
-            rval = -1;
-         }
-      }
-   }
-   else
-   {
-      // exception during tcpWrite()
-      rval = -1;
-   }
-
-   return rval;
-}
-
-bool SslSocket::tcpWrite()
-{
-   bool rval = true;
-
-   // determine how many bytes can be read from the Socket BIO
-   size_t length = BIO_ctrl_pending(mSocketBio);
-   if(length > 0)
-   {
-      // read from the Socket BIO
-      char b[length];
-      int numBytes = 0;
-      while(rval && length > 0 &&
-            (numBytes = BIO_read(mSocketBio, b, length)) > 0)
-      {
-         // write to underlying socket, decrement length left to read
-         rval = mSocket->getOutputStream()->write(b, numBytes);
-         length -= numBytes;
-      }
-   }
-
-   return rval;
 }

@@ -218,25 +218,6 @@ public:
     * @return the OutputStream for writing to this Socket.
     */
    virtual monarch::io::OutputStream* getOutputStream();
-
-protected:
-   /**
-    * Reads some raw data from the underlying TCP socket and stores it in the
-    * SSL read BIO. This method will block until at least one byte can be
-    * read or until the end of the stream is reached (the Socket has closed).
-    *
-    * @return the number of bytes read or 0 if the end of the stream has been
-    *         reached (the Socket has closed) or -1 if an exception occurred.
-    */
-   virtual int tcpRead();
-
-   /**
-    * Flushes the data from the SSL write BIO to the underlying TCP Socket.
-    * This method will block until all of the data has been written.
-    *
-    * @return true if the write was successful, false if an exception occurred.
-    */
-   virtual bool tcpWrite();
 };
 
 } // end namespace net
