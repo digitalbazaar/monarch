@@ -10,8 +10,11 @@
 #include "monarch/net/SocketOutputStream.h"
 #include "monarch/rt/DynamicObject.h"
 
+#include <algorithm>
+
 #include <openssl/err.h>
 
+using namespace std;
 using namespace monarch::io;
 using namespace monarch::net;
 using namespace monarch::rt;
@@ -215,11 +218,6 @@ bool SslSocket::setVirtualHost(const char* name)
    return SSL_set_tlsext_host_name(mSSL, name) == 1;
 }
 
-static inline int _min(int length, int size)
-{
-   return length > size ? size : length;
-}
-
 /**
  * Reads some raw data from the underlying TCP socket and stores it in the
  * SSL read BIO. This method will block until at least length bytes have been
@@ -240,7 +238,7 @@ inline static int _tcpRead(char* b, InputStream* is, BIO* bio, int length)
    // read from incoming TCP socket, write to SSL BIO
    int numBytes = 0;
    while(length > 0 && (numBytes = is->read(
-      b, _min(length, TRANSPORT_BUFFER))) > 0)
+      b, min(length, TRANSPORT_BUFFER))) > 0)
    {
       BIO_write(bio, b, numBytes);
       length -= numBytes;
@@ -274,7 +272,7 @@ inline static bool _tcpWrite(char* b, BIO* bio, OutputStream* os, int length)
    // read from SSL BIO, write out to TCP socket
    int numBytes;
    while(rval && length > 0 && (numBytes = BIO_read(
-      bio, b, _min(length, TRANSPORT_BUFFER))) > 0)
+      bio, b, min(length, TRANSPORT_BUFFER))) > 0)
    {
       rval = os->write(b, numBytes);
       length -= numBytes;
