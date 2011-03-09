@@ -419,8 +419,8 @@ static void _findTargetObjects(
  * to the structure specified by the frame. This method will not actually
  * build the final JSON-LD object, but rather it will make suggestions about
  * what to embed and what to remove from the graph. The final object will
- * be built using a map of subjects keeps track of every subject mentioned in
- * the graph. This map will be later modified using the embeds and removals
+ * be built using a map of subjects that keeps track of every subject mentioned
+ * in the graph. This map will be later modified using the embeds and removals
  * added by this function.
  *
  * If an object is to be embedded, it is marked as such -- but the actual
