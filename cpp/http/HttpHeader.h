@@ -238,6 +238,17 @@ public:
    virtual bool hasField(const char* name);
 
    /**
+    * Returns true if this header has a "Content-Type" field with the passed
+    * type. This method should be used instead of a simple string comparison
+    * so that content type fields with parameters are properly handled.
+    *
+    * @param contentType the content type to check for.
+    *
+    * @return true if this header has the passed content type, false if not.
+    */
+   virtual bool hasContentType(const char* contentType);
+
+   /**
     * Parses this header from the passed string.
     *
     * @param str the string to parse from.

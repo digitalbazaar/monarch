@@ -178,6 +178,24 @@ static void runHttpHeaderTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("hasContentType");
+   {
+      HttpResponseHeader header;
+
+      header.clearFields();
+      header.setField("Content-Type", "text/html");
+      assert(header.hasContentType("text/html"));
+
+      header.clearFields();
+      header.setField("Content-Type", "text/html; params");
+      assert(header.hasContentType("text/html"));
+
+      header.clearFields();
+      header.setField("Content-Type", "text/html; params");
+      assert(!header.hasContentType("text/plain"));
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
