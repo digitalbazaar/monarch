@@ -378,11 +378,20 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
          monarch::rt::Exception::set(e);
       }
 
-      // send exception (client's fault if code < 500)
-      bool clientsFault =
-         validationError ||
-         (e->getDetails()->hasMember("code") &&
-         e->getDetails()["code"]->getInt32() < 500);
-      ch->sendException(e, clientsFault);
+      // use custom exception handler
+      if(mExceptionHandler != NULL)
+      {
+         mExceptionHandler->handleException(ch, e);
+      }
+      // default exception handler
+      else
+      {
+         // send exception (client's fault if code < 500)
+         bool clientsFault =
+            validationError ||
+            (e->getDetails()->hasMember("code") &&
+            e->getDetails()["code"]->getInt32() < 500);
+         ch->sendException(e, clientsFault);
+      }
    }
 }

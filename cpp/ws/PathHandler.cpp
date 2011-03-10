@@ -7,7 +7,9 @@ using namespace monarch::rt;
 using namespace monarch::ws;
 
 PathHandler::PathHandler(bool secureOnly) :
-   mSecureOnly(secureOnly)
+   mSecureOnly(secureOnly),
+   mExceptionHandler(NULL),
+   mExceptionHandlerRef(NULL)
 {
 }
 
@@ -110,12 +112,22 @@ void PathHandler::operator()(ServiceChannel* ch)
    }
    else
    {
-      // send exception (client's fault if code < 500)
       ExceptionRef e = Exception::get();
-      bool clientsFault =
-         e->getDetails()->hasMember("code") &&
-         e->getDetails()["code"]->getInt32() < 500;
-      ch->sendException(e, clientsFault);
+
+      // use custom exception handler
+      if(mExceptionHandler != NULL)
+      {
+         mExceptionHandler->handleException(ch, e);
+      }
+      // default exception handler
+      else
+      {
+         // send exception (client's fault if code < 500)
+         bool clientsFault =
+            e->getDetails()->hasMember("code") &&
+            e->getDetails()["code"]->getInt32() < 500;
+         ch->sendException(e, clientsFault);
+      }
    }
 }
 
@@ -134,4 +146,23 @@ void PathHandler::addRequestAuthenticator(RequestAuthenticatorRef method)
 
    // add method
    mAuthMethods.push_back(method);
+}
+
+void PathHandler::setExceptionHandler(ChannelExceptionHandler* h, bool cleanup)
+{
+   if(cleanup)
+   {
+      setExceptionHandlerRef(h);
+   }
+   else
+   {
+      mExceptionHandlerRef.setNull();
+      mExceptionHandler = h;
+   }
+}
+
+void PathHandler::setExceptionHandlerRef(ChannelExceptionHandlerRef h)
+{
+   mExceptionHandlerRef = h;
+   mExceptionHandler = &(*mExceptionHandlerRef);
 }

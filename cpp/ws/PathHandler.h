@@ -4,6 +4,7 @@
 #ifndef monarch_ws_PathHandler_H
 #define monarch_ws_PathHandler_H
 
+#include "monarch/ws/ChannelExceptionHandler.h"
 #include "monarch/ws/RequestAuthenticator.h"
 
 #include <vector>
@@ -33,6 +34,12 @@ protected:
     */
    typedef std::vector<RequestAuthenticatorRef> RequestAuthList;
    RequestAuthList mAuthMethods;
+
+   /**
+    * The exception handler to use.
+    */
+   ChannelExceptionHandler* mExceptionHandler;
+   ChannelExceptionHandlerRef mExceptionHandlerRef;
 
 public:
    /**
@@ -117,6 +124,26 @@ public:
     * @param method the RequestAuthenticator to add, NULL for anonymous.
     */
    virtual void addRequestAuthenticator(RequestAuthenticatorRef method);
+
+   /**
+    * Sets the ChannelExceptionHandler to call when an exception occurs. To
+    * cause this PathHandler to manage the memory for the handler set cleanup
+    * to true or call setExceptionHandlerRef() instead.
+    *
+    * @param h the ChannelExceptionHandler to use.
+    * @param cleanup true to handle cleanup for the handler, false not to.
+    */
+   virtual void setExceptionHandler(
+      ChannelExceptionHandler* h, bool cleanup = false);
+
+   /**
+    * Sets the ChannelExceptionHandler to call when an exception occurs. This
+    * PathHandler will manage the memory for the handler using reference
+    * counting.
+    *
+    * @param h the ChannelExceptionHandler to use.
+    */
+   virtual void setExceptionHandlerRef(ChannelExceptionHandlerRef h);
 };
 
 // type definition for a reference counted PathHandler
