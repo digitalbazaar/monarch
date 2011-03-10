@@ -509,8 +509,8 @@ static bool _normalize(
          DynamicObject& value = i->next();
          const char* key = i->getName();
 
-         // skip context key
-         if(strcmp(key, "#") == 0)
+         // skip context keys
+         if(key[0] == '#')
          {
             continue;
          }
@@ -873,11 +873,13 @@ static DynamicObject _compactTypedLiteral(
    if(predicate != NULL)
    {
       // prefer type coercion map first, then use default basic types
+      bool inTypesMap = false;
       string t;
       if(ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
       {
          DynamicObject& type = ctx["#types"][predicate];
          usedCtx["#types"][predicate] = type;
+         inTypesMap = true;
 
          // single type
          if(type->getType() == String)
@@ -924,7 +926,9 @@ static DynamicObject _compactTypedLiteral(
       // unrecognized type
       else
       {
-         rval = encoded;
+         // if the type was explicitly specified in the type coercion map,
+         // then use the decoded value, otherwise use the encoded one
+         rval = inTypesMap ? value : encoded;
       }
    }
 

@@ -869,6 +869,98 @@ static void runJsonLdTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("normalize (type-coerced datatype)");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["#"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      in["#"]["#types"]["ex:validFrom"] = "xsd:dateTime";
+      in["@"] = "http://example.org/test#example";
+      in["ex:validFrom"] = "2011-01-25T00:00:00Z";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test#example>";
+      expect["<http://example.org/vocab#validFrom>"] =
+         "2011-01-25T00:00:00Z^^"
+         "<http://www.w3.org/2001/XMLSchema#dateTime>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (type-coerced datatype, double reference)");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["#"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      in["#"]["#types"]["ex:date"] = "xsd:dateTime";
+      in["@"] = "http://example.org/test#example";
+      DynamicObject date;
+      date = "2011-01-25T00:00:00Z";
+      in["ex:date"][0] = date;
+      in["ex:date"][1] = date;
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"] = "<http://example.org/test#example>";
+      expect["<http://example.org/vocab#date>"][0] =
+         "2011-01-25T00:00:00Z^^"
+         "<http://www.w3.org/2001/XMLSchema#dateTime>";
+      expect["<http://example.org/vocab#date>"][1] =
+         "2011-01-25T00:00:00Z^^"
+         "<http://www.w3.org/2001/XMLSchema#dateTime>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("normalize (type-coerced datatype, cycle)");
+   {
+      DynamicObject in;
+      in["#"]["ex"] = "http://example.org/vocab#";
+      in["#"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      in["#"]["#types"]["ex:date"] = "xsd:dateTime";
+      in["#"]["#types"]["ex:parent"] = "xsd:anyURI";
+      in["@"] = "http://example.org/test#example1";
+      in["ex:date"] = "2011-01-25T00:00:00Z";
+      in["ex:embed"]["@"] = "http://example.org/test#example2";
+      in["ex:embed"]["ex:parent"] = "http://example.org/test#example1";
+
+      DynamicObject out;
+      assertNoException(
+         JsonLd::normalize(in, out));
+
+      DynamicObject expect;
+      expect["@"][0]["@"] = "<http://example.org/test#example1>";
+      expect["@"][0]["<http://example.org/vocab#date>"] =
+         "2011-01-25T00:00:00Z^^"
+         "<http://www.w3.org/2001/XMLSchema#dateTime>";
+      expect["@"][0]["<http://example.org/vocab#embed>"] =
+         "<http://example.org/test#example2>";
+      expect["@"][1]["@"] = "<http://example.org/test#example2>";
+      expect["@"][1]["<http://example.org/vocab#parent>"] =
+         "<http://example.org/test#example1>";
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
+   }
+   tr.passIfNoException();
+
    tr.test("remove context (id)");
    {
       DynamicObject in;
@@ -1063,6 +1155,42 @@ static void runJsonLdTest(TestRunner& tr)
       expect["<http://purl.org/dc/elements/1.1/title>"] = "Title";
 
       assertNamedDynoCmp("expect", expect, "result", out);
+   }
+   tr.passIfNoException();
+
+   tr.test("remove type-coercion context and re-add");
+   {
+      DynamicObject ctx;
+      ctx["ex"] = "http://example.org/vocab#";
+      ctx["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      ctx["#types"]["ex:date"] = "xsd:dateTime";
+      ctx["#types"]["ex:parent"] = "xsd:anyURI";
+
+      DynamicObject in;
+      in["#"] = ctx.clone();
+      in["@"] = "http://example.org/test#example1";
+      in["ex:date"] = "2011-01-25T00:00:00Z";
+      in["ex:embed"]["@"] = "http://example.org/test#example2";
+      in["ex:embed"]["ex:parent"] = "http://example.org/test#example1";
+
+      DynamicObject expect = in.clone();
+
+      // remove context
+      DynamicObject woCtx;
+      assertNoException(
+         JsonLd::removeContext(in, woCtx));
+      in = woCtx;
+
+      // re-add context
+      DynamicObject out;
+      assertNoException(
+         JsonLd::addContext(ctx, in, out));
+
+      assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
