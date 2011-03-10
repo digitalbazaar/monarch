@@ -45,17 +45,9 @@ void RestfulHandler::addHandler(
    monarch::validation::ValidatorRef* contentValidator,
    uint32_t flags)
 {
-   HandlerInfo& info = mPathHandlers[paramCount][mt];
-   if(queryValidator != NULL)
-   {
-      info.queryValidator = *queryValidator;
-   }
-   if(contentValidator != NULL)
-   {
-      info.contentValidator = *contentValidator;
-   }
-   info.handler = handler;
-   info.flags = flags;
+   initializeHandlerInfo(
+      mPathHandlers[paramCount][mt],
+      handler, NULL, queryValidator, contentValidator, flags);
 }
 
 void RestfulHandler::addHandler(
@@ -69,21 +61,9 @@ void RestfulHandler::addHandler(
    int paramCount = (resourceValidator != NULL)
       ? (*resourceValidator)->length()
       : 0;
-   HandlerInfo& info = mPathHandlers[paramCount][mt];
-   if(resourceValidator != NULL)
-   {
-      info.resourceValidator = *resourceValidator;
-   }
-   if(queryValidator != NULL)
-   {
-      info.queryValidator = *queryValidator;
-   }
-   if(contentValidator != NULL)
-   {
-      info.contentValidator = *contentValidator;
-   }
-   info.handler = handler;
-   info.flags = flags;
+   initializeHandlerInfo(
+      mPathHandlers[paramCount][mt],
+      handler, resourceValidator, queryValidator, contentValidator, flags);
 }
 
 bool RestfulHandler::addRegexHandler(
@@ -129,20 +109,46 @@ bool RestfulHandler::addRegexHandler(
    // add handler info
    if(rinfo != NULL)
    {
-      HandlerInfo& info = rinfo->methods[mt];
-      if(queryValidator != NULL)
-      {
-         info.queryValidator = *queryValidator;
-      }
-      if(contentValidator != NULL)
-      {
-         info.contentValidator = *contentValidator;
-      }
-      info.handler = handler;
-      info.flags = flags;
+      initializeHandlerInfo(
+         rinfo->methods[mt],
+         handler, NULL, queryValidator, contentValidator, flags);
    }
 
    return rval;
+}
+
+void RestfulHandler::initializeHandlerInfo(
+   HandlerInfo& info,
+   PathHandlerRef& handler,
+   monarch::validation::ValidatorRef* resourceValidator,
+   monarch::validation::ValidatorRef* queryValidator,
+   monarch::validation::ValidatorRef* contentValidator,
+   uint32_t flags)
+{
+   // inherit exception handler if available
+   if(!mExceptionHandlerRef.isNull())
+   {
+      handler->setExceptionHandlerRef(mExceptionHandlerRef);
+   }
+   else if(mExceptionHandler != NULL)
+   {
+      handler->setExceptionHandler(mExceptionHandler, false);
+   }
+
+   if(resourceValidator != NULL)
+   {
+      info.resourceValidator = *resourceValidator;
+   }
+   if(queryValidator != NULL)
+   {
+      info.queryValidator = *queryValidator;
+   }
+   if(contentValidator != NULL)
+   {
+      info.contentValidator = *contentValidator;
+   }
+   info.handler = handler;
+   info.flags = flags;
 }
 
 static Message::MethodType _getMethodType(ServiceChannel* ch, string& method)

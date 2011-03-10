@@ -146,6 +146,10 @@ public:
     * count. Handlers can also have query and content validators. These are
     * automatically checked if present.
     *
+    * The ChannelExceptionHandler for the given PathHandler will be overwritten
+    * if one has been set on the RestfulHandler. To set a custom one, set
+    * the exception handler after adding the PathHandler.
+    *
     * @param handler the handler to register.
     * @param mt a method type to match against the request method type.
     * @param paramCount the count to match with the path parameter count,
@@ -169,6 +173,10 @@ public:
     * have resource, query, and content validators. These are automatically
     * checked if present.
     *
+    * The ChannelExceptionHandler for the given PathHandler will be overwritten
+    * if one has been set on the RestfulHandler. To set a custom one, set
+    * the exception handler after adding the PathHandler.
+    *
     * @param handler the handler to register.
     * @param mt a method type to match against the request method type.
     * @param resourceValidator a Validator to check the input resource.
@@ -189,6 +197,10 @@ public:
     * also have query and content validators. These are automatically checked
     * if present.
     *
+    * The ChannelExceptionHandler for the given PathHandler will be overwritten
+    * if one has been set on the RestfulHandler. To set a custom one, set
+    * the exception handler after adding the PathHandler.
+    *
     * @param handler the handler to register.
     * @param mt a method type to match against the request method type.
     * @param queryValidator a Validator to check the input query (optional).
@@ -206,6 +218,24 @@ public:
       uint32_t flags = 0);
 
 protected:
+   /**
+    * Initializes the given handler info.
+    *
+    * @param info the handler info to initialize.
+    * @param handler the path handler to use.
+    * @param resourceValidator a resource validator.
+    * @param queryValidator a query validator.
+    * @param contentValidator a content validator.
+    * @param flags handler flags.
+    */
+   virtual void initializeHandlerInfo(
+      HandlerInfo& info,
+      monarch::ws::PathHandlerRef& handler,
+      monarch::validation::ValidatorRef* resourceValidator,
+      monarch::validation::ValidatorRef* queryValidator,
+      monarch::validation::ValidatorRef* contentValidator,
+      uint32_t flags);
+
    /**
     * Finds the handler for the given ServiceChannel.
     *
