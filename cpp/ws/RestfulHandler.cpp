@@ -361,37 +361,10 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
    }
 
    // if handling failed and nothing has been sent to the client yet, then
-   // send an exception
+   // handle the exception
    if(!pass && !ch->hasSent())
    {
-      // get last exception (create one if necessary -- but this will only
-      // happen if a developer has failed to set an exception in a service)
-      ExceptionRef e = monarch::rt::Exception::get();
-      if(e.isNull())
-      {
-         e = new monarch::rt::Exception(
-            "An unspecified error occurred. "
-            "No exception was set detailing the error.",
-            "monarch.ws.WebServiceError");
-         e->getDetails()["code"] = 500;
-         e->getDetails()["path"] = ch->getPath();
-         monarch::rt::Exception::set(e);
-      }
-
-      // use custom exception handler
-      if(mExceptionHandler != NULL)
-      {
-         mExceptionHandler->handleException(ch, e);
-      }
-      // default exception handler
-      else
-      {
-         // send exception (client's fault if code < 500)
-         bool clientsFault =
-            validationError ||
-            (e->getDetails()->hasMember("code") &&
-            e->getDetails()["code"]->getInt32() < 500);
-         ch->sendException(e, clientsFault);
-      }
+      ExceptionRef e = Exception::get();
+      handleChannelException(ch, e);
    }
 }

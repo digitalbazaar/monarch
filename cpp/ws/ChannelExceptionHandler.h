@@ -17,6 +17,10 @@ namespace ws
  * occurs on a ServiceChannel. When it gets called is determined by each
  * different kind of PathHandler, eg: RestfulHandler.
  *
+ * The base class has default exception handling code that sends an exception
+ * over the channel using the previously set content-type, if there is a known
+ * serialization for an exception with that content-type.
+ *
  * @author Dave Longley
  */
 class ChannelExceptionHandler
@@ -25,12 +29,12 @@ public:
    /**
     * Creates a new ChannelExceptionHandler.
     */
-   ChannelExceptionHandler() {};
+   ChannelExceptionHandler();
 
    /**
     * Destructs this ChannelExceptionHandler.
     */
-   virtual ~ChannelExceptionHandler() {};
+   virtual ~ChannelExceptionHandler();
 
    /**
     * Handle's the client's request by receiving its content, if any, and
@@ -41,8 +45,8 @@ public:
     * @param ch the communication channel with the client.
     * @param e the exception to handle.
     */
-   virtual void handleException(
-      ServiceChannel* ch, monarch::rt::ExceptionRef& e) = 0;
+   virtual void handleChannelException(
+      ServiceChannel* ch, monarch::rt::ExceptionRef& e);
 };
 
 // type definition for a reference counted ResourceValidator

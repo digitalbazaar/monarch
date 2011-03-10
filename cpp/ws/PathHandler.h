@@ -21,7 +21,7 @@ namespace ws
  *
  * @author Dave Longley
  */
-class PathHandler
+class PathHandler : ChannelExceptionHandler
 {
 protected:
    /**
@@ -144,6 +144,12 @@ public:
     * @param h the ChannelExceptionHandler to use.
     */
    virtual void setExceptionHandlerRef(ChannelExceptionHandlerRef h);
+
+   /**
+    * {@inheritDoc}
+    */
+   virtual void handleChannelException(
+      ServiceChannel* ch, monarch::rt::ExceptionRef& e);
 };
 
 // type definition for a reference counted PathHandler

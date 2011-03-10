@@ -8,7 +8,7 @@ using namespace monarch::ws;
 
 PathHandler::PathHandler(bool secureOnly) :
    mSecureOnly(secureOnly),
-   mExceptionHandler(NULL),
+   mExceptionHandler(this),
    mExceptionHandlerRef(NULL)
 {
 }
@@ -106,28 +106,16 @@ void PathHandler::operator()(ServiceChannel* ch)
       ch->getResponse()->getHeader()->setStatus(404, "Not Found");
       ch->sendNoContent();
    }
+   // try to handle request
    else if(canHandleRequest(ch))
    {
       handleRequest(ch);
    }
+   // exception, could not handle request
    else
    {
       ExceptionRef e = Exception::get();
-
-      // use custom exception handler
-      if(mExceptionHandler != NULL)
-      {
-         mExceptionHandler->handleException(ch, e);
-      }
-      // default exception handler
-      else
-      {
-         // send exception (client's fault if code < 500)
-         bool clientsFault =
-            e->getDetails()->hasMember("code") &&
-            e->getDetails()["code"]->getInt32() < 500;
-         ch->sendException(e, clientsFault);
-      }
+      handleChannelException(ch, e);
    }
 }
 
@@ -165,4 +153,32 @@ void PathHandler::setExceptionHandlerRef(ChannelExceptionHandlerRef h)
 {
    mExceptionHandlerRef = h;
    mExceptionHandler = &(*mExceptionHandlerRef);
+}
+
+void PathHandler::handleChannelException(
+   ServiceChannel* ch, ExceptionRef& e)
+{
+   // exception will only be null if a developer has failed to set one when
+   // an error condition occurred
+   if(e.isNull())
+   {
+      e = new monarch::rt::Exception(
+         "An unspecified error occurred. "
+         "No exception was set detailing the error.",
+         "monarch.ws.WebServiceError");
+      e->getDetails()["code"] = 500;
+      e->getDetails()["path"] = ch->getPath();
+      monarch::rt::Exception::set(e);
+   }
+
+   // use default handler
+   if(mExceptionHandler == this)
+   {
+      ChannelExceptionHandler::handleChannelException(ch, e);
+   }
+   // use custom handler
+   else
+   {
+      mExceptionHandler->handleChannelException(ch, e);
+   }
 }
