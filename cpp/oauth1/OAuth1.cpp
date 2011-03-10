@@ -408,7 +408,8 @@ bool OAuth1::verify(
       rval = (strcmp(givenSignature.c_str(), generatedSignature) == 0);
       if(!rval)
       {
-         // store old signature in params
+         // copy generated signature, restore old signature in params
+         string gs = generatedSignature;
          params["oauth_signature"][0] = givenSignature.c_str();
          ExceptionRef e = new Exception(
             "The OAuth signature is invalid.",
@@ -417,7 +418,7 @@ bool OAuth1::verify(
 
          MO_CAT_DEBUG_DATA(MO_OAUTH1_CAT,
             "Given Signature: %s\nGenerated Signature: %s",
-            givenSignature.c_str(), generatedSignature);
+            givenSignature.c_str(), gs.c_str());
       }
    }
 
