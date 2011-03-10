@@ -256,6 +256,32 @@ bool HttpHeader::hasField(const char* name)
    return rval;
 }
 
+
+bool HttpHeader::hasContentType(const char* contentType)
+{
+   bool rval = false;
+
+   /**
+    * Check if the content type field is equal to the passed content type or
+    * starts with the type and a semicolon.
+    */
+   string contentTypeField;
+   if(getField("Content-Type", contentTypeField))
+   {
+      size_t ctlen = strlen(contentType);
+      size_t ctflen = contentTypeField.length();
+      rval =
+         // prefix check
+         (contentTypeField.compare(0, ctlen, contentType) == 0) &&
+         // exact
+         ((ctlen == ctflen) ||
+            // str prefix match + ';'
+            (ctflen > ctlen && contentTypeField[ctlen] == ';'));
+   }
+
+   return rval;
+}
+
 bool HttpHeader::parse(const string& str)
 {
    bool rval = false;
