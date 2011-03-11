@@ -188,12 +188,11 @@ static string _normalizeUri(HttpRequest* request)
           All other non-default port numbers MUST be included.
    */
    Url url(uri);
-   const char* scheme = url.getScheme().c_str();
-   const char* hostPort = (url.getPort() != url.getDefaultPort()) ?
+   string hostPort = (url.getPort() != url.getDefaultPort()) ?
       url.getHostAndPort().c_str() : url.getHost().c_str();
    rval = StringTools::format("%s://%s%s",
-      StringTools::toLower(scheme).c_str(),
-      StringTools::toLower(hostPort).c_str(),
+      StringTools::toLower(url.getScheme().c_str()).c_str(),
+      StringTools::toLower(hostPort.c_str()).c_str(),
       url.getPath().c_str());
 
    MO_CAT_DEBUG_DATA(MO_OAUTH1_CAT, "OAuth URI: '%s'", rval.c_str());
