@@ -162,8 +162,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
       expect["@"] = "http://example.org/test#foo";
       expect["dc:title"] = "<http://example.org/test#you>";
-      assertDynoCmp(expect, dyno);
-      assertDynoCmp(expect, dyno2);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno2);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -202,7 +202,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["@"] = "http://example.org/test#library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
       expect["ex:contains"]["dc:title"] = "My Book";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -250,7 +250,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "http://example.org/test#chapter";
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -288,7 +288,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["@"][0]["foaf:name"] = "Jane";
       expect["@"][1]["@"] = "http://example.org/test#john";
       expect["@"][1]["foaf:name"] = "John";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -346,7 +346,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["@"][2]["ex:contains"]["dc:title"] = "My Book";
       expect["@"][2]["ex:contains"]["ex:contains"] =
          "<http://example.org/test#chapter>";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -388,7 +388,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["@"] = "http://example.org/test#book";
       expect["ex:prop"][0] = "Prop 1";
       expect["ex:prop"][1] = "Prop 2";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -424,8 +424,8 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
       expect["@"] = "http://example.org/test#foo";
       expect["dc:title"] = "<http://example.org/test#you>";
-      assertDynoCmp(expect, dyno);
-      assertDynoCmp(expect, dyno2);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno2);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -495,7 +495,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -564,7 +564,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -639,7 +639,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -715,7 +715,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -788,7 +788,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -861,7 +861,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       expect["ex:contains"]["ex:contains"]["dc:description"] = "Fun";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -931,7 +931,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "http://example.org/test#chapter";
       expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -1001,7 +1001,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "http://example.org/test#chapter";
       expect["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       expect["ex:contains"]["ex:contains"]["dc:title"] = "Chapter One";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -1066,7 +1066,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:knows"][1]["a"] = "ex:B";
       expect["ex:knows"][1]["ex:contains"][0] = "<http://example.org/test#a>";
       expect["ex:knows"][1]["ex:contains"][1] = "<http://example.org/test#aa>";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -1126,7 +1126,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["a"] = "ex:A";
       expect["ex:knows"][0]["@"] = "http://example.org/test#aa";
       expect["ex:knows"][0]["a"] = "ex:A";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -1187,7 +1187,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["@"][0]["ex:knows"][0] = "<http://example.org/test#aa>";
       expect["@"][1]["@"] = "http://example.org/test#aa";
       expect["@"][1]["a"] = "ex:A";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -1253,7 +1253,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:knows"][1]["a"] = "ex:B";
       expect["ex:knows"][1]["ex:contains"][0] = "<http://example.org/test#a>";
       expect["ex:knows"][1]["ex:contains"][1] = "<http://example.org/test#aa>";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
@@ -1318,7 +1318,44 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["ex:contains"][1]["@"] = "http://example.org/test#aa";
       expect["ex:contains"][1]["a"] = "ex:A";
       expect["ex:contains"][1]["dc:title"] = "Embedded";
-      assertDynoCmp(expect, dyno);
+      assertNamedDynoCmp("expect", expect, "result", dyno);
+
+      MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("datatypes");
+   {
+      string rdfa =
+         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+         "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML+RDFa 1.0//EN\" "
+         "\"http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd\">\n"
+         "<html xmlns=\"http://www.w3.org/1999/xhtml\"\n"
+         "      xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\"\n"
+         "      xmlns:ex=\"http://example.org/vocab#\">\n"
+         "<head><title>Test</title></head>\n"
+         "<body><p>\n"
+         "<span about=\"#a\""
+         "      property=\"ex:prop\" datatype=\"xsd:anyURI\">ex:link</span>\n"
+         "</p></body>\n"
+         "</html>";
+
+      ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
+      RdfaReader reader;
+      reader.setBaseUri("http://example.org/test");
+      DynamicObject dyno;
+      assertNoException(
+         reader.start(dyno));
+      assertNoException(
+         reader.read(&bais));
+      assertNoException(
+         reader.finish());
+
+      DynamicObject expect;
+      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["@"] = "http://example.org/test#a";
+      expect["ex:prop"] = "<ex:link>";
+      assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
    }
