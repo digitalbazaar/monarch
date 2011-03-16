@@ -15,8 +15,14 @@ MySqlDatabaseClient::~MySqlDatabaseClient()
 {
 }
 
+SqlExecutableRef MySqlDatabaseClient::insertOrIgnore(
+   const char* table, DynamicObject& row)
+{
+   return insertOrReplace("INSERT IGNORE", table, row);
+}
+
 SqlExecutableRef MySqlDatabaseClient::insertOnDuplicateKeyUpdate(
-   const char* table, monarch::rt::DynamicObject& row)
+   const char* table, DynamicObject& row)
 {
    SqlExecutableRef rval(NULL);
 
