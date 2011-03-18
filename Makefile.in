@@ -134,13 +134,13 @@ valgrind:
 packages:
 	@echo "Building Debian packages..."
 	@rm -f debian
-	@rm -f installers/packages/*
+	@rm -f dist/deb/*
 	@ln -s installers/debian debian
 	@dpkg-buildpackage -us -uc -rfakeroot -b 
-	@echo "Moving packages to installers/packages..."
+	@echo "Moving packages to dist/deb..."
 	@rm ../monarch3*changes
-	@mkdir -p installers/packages
-	@mv ../monarch3*deb installers/packages
+	@mkdir -p dist/deb
+	@mv ../monarch3*deb dist/deb
 
 install:
 	@mkdir -p $(PREFIX)/usr/lib
