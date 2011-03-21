@@ -157,6 +157,14 @@ inline static time_t changeTimeZone(time_t in, TimeZone* inTz, TimeZone* outTz)
    return in + (inTz->getMinutesWest() - outTz->getMinutesWest()) * 60;
 }
 
+void Date::setUtcSeconds(time_t seconds)
+{
+   // change UTC to local time
+   TimeZone local = TimeZone::getTimeZone();
+   TimeZone utc = TimeZone::getTimeZone("UTC");
+   setSeconds(changeTimeZone(seconds, &utc, &local));
+}
+
 time_t Date::getUtcSeconds()
 {
    // convert local time to UTC

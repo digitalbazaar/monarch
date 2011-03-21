@@ -137,6 +137,14 @@ public:
    virtual time_t getSeconds();
 
    /**
+    * Sets this date according to the passed number of seconds in the UTC
+    * time zone.
+    *
+    * @param seconds the number of seconds since the Epoch in the UTC time zone.
+    */
+   virtual void setUtcSeconds(time_t seconds);
+
+   /**
     * Gets the number of seconds since the Epoch in the UTC time zone.
     *
     * @return the number of seconds since the Epoch in the UTC time zone.
