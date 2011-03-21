@@ -592,11 +592,13 @@ bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
             ids->append(id);
          }
 
-         // get the old parent ID
+         // save the old parent ID
          ConfigId opId = NULL;
+         DynamicObject oldParent(NULL);
          if(mConfigs[id]["raw"]->hasMember(PARENT))
          {
-            opId = mConfigs[id]["raw"][PARENT]->getString();
+            oldParent = mConfigs[id]["raw"][PARENT].clone();
+            opId = oldParent;
          }
 
          // iterate over IDs changing parents
@@ -624,18 +626,23 @@ bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
                mConfigs[id]["raw"][PARENT] = parentId;
                mConfigs[parentId]["children"]->append(id);
             }
+         }
 
-            if(opId != NULL)
+         // remove children from old parent
+         if(opId != NULL)
+         {
+            DynamicObjectIterator ci = mConfigs[opId]["children"].getIterator();
+            while(ci->hasNext() && ids->length() > 0)
             {
-               // remove child from old parent
-               DynamicObjectIterator ci =
-                  mConfigs[opId]["children"].getIterator();
-               while(ci->hasNext())
+               const char* childId = ci->next();
+               i = ids.getIterator();
+               while(i->hasNext())
                {
-                  DynamicObject& child = ci->next();
-                  if(strcmp(child->getString(), id) == 0)
+                  if(strcmp(childId, i->next()) == 0)
                   {
+                     i->remove();
                      ci->remove();
+                     break;
                   }
                }
             }
