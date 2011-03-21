@@ -29,6 +29,11 @@ protected:
    bool mNoEngineSubstitution;
 
    /**
+    * MySql timezone setting.
+    */
+   char* mTimeZone;
+
+   /**
     * Creates a new mysql database connection, connects it, and wraps it with a
     * PooledConnection.
     *
@@ -63,6 +68,13 @@ public:
     *           tables if the chosen ENGINE fails (default), false to allow it.
     */
    virtual void setNoEngineSubstitution(bool on);
+
+   /**
+    * Sets the default timezone for connections.
+    *
+    * @param tz the default timezone for new connections.
+    */
+   virtual void setTimeZone(const char* tz);
 };
 
 } // end namespace mysql

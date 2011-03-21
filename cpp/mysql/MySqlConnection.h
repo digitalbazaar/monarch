@@ -121,6 +121,13 @@ public:
    virtual bool setSqlMode(const char* mode);
 
    /**
+    * Sets the timezone for this connection.
+    *
+    * @param tz the timezone to set.
+    */
+   virtual bool setTimeZone(const char* tz);
+
+   /**
     * Creates a new Exception using the last error set on this connection.
     *
     * @return the created Exception.

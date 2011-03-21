@@ -172,6 +172,16 @@ bool MySqlConnection::setSqlMode(const char* mode)
    return _query(mHandle, sql, "Could not set mode.");
 }
 
+bool MySqlConnection::setTimeZone(const char* tz)
+{
+   // default to UTC
+   const char* _tz = (tz == NULL) ? "+0:00" : tz;
+   int len = strlen(_tz) + 17;
+   char sql[len];
+   snprintf(sql, len, "SET time_zone='%s'", _tz);
+   return _query(mHandle, sql, "Could not set time zone.");
+}
+
 Exception* MySqlConnection::createException()
 {
    return _createException(mHandle);

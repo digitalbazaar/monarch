@@ -9,12 +9,14 @@ using namespace monarch::sql::mysql;
 MySqlConnectionPool::MySqlConnectionPool(
    const char* url, unsigned int poolSize) :
    AbstractConnectionPool(url, poolSize),
-   mNoEngineSubstitution(true)
+   mNoEngineSubstitution(true),
+   mTimeZone(NULL)
 {
 }
 
 MySqlConnectionPool::~MySqlConnectionPool()
 {
+   free(mTimeZone);
 }
 
 PooledConnection* MySqlConnectionPool::createConnection()
@@ -30,6 +32,13 @@ PooledConnection* MySqlConnectionPool::createConnection()
       if(mNoEngineSubstitution)
       {
          pass = c->setSqlMode("NO_ENGINE_SUBSTITUTION");
+      }
+
+      // handle timezone
+      if(pass)
+      {
+         // default to UTC
+         pass = c->setTimeZone(mTimeZone);
       }
 
       if(pass)
@@ -50,4 +59,10 @@ PooledConnection* MySqlConnectionPool::createConnection()
 void MySqlConnectionPool::setNoEngineSubstitution(bool on)
 {
    mNoEngineSubstitution = on;
+}
+
+void MySqlConnectionPool::setTimeZone(const char* tz)
+{
+   free(mTimeZone);
+   mTimeZone = (tz == NULL) ? NULL : strdup(tz);
 }
