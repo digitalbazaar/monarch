@@ -1318,7 +1318,6 @@ static void runRandomTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
-
 static bool run(TestRunner& tr)
 {
    if(tr.isDefaultEnabled())
@@ -1332,6 +1331,14 @@ static bool run(TestRunner& tr)
       runStringToolsTest(tr);
       runDateTest(tr);
       runPathFormatterTest(tr);
+   }
+   if(tr.isTestEnabled("date"))
+   {
+      Date now;
+      TimeZone local = TimeZone::getTimeZone();
+      printf("Current date: %s\n", now.toString().c_str());
+      printf("Current UTC date: %s\n", now.getUtcDateTime().c_str());
+      printf("Local time zone minutes west: %d\n", (int)local.getMinutesWest());
    }
    if(tr.isTestEnabled("ansi-escape-codes"))
    {

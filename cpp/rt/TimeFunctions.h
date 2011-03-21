@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_TimeFunctions_H
 #define monarch_rt_TimeFunctions_H
@@ -37,7 +37,12 @@ inline static int64_t gGetTimeZoneMinutesWest()
    // get local time, convert to GMT (UTC) and then subtract difference
    time_t localTime = time(NULL);
    struct tm brokenDown;
+   localtime_r(&localTime, &brokenDown);
+
+   // save daylights savings time setting and reapply to UTC
+   int dst = brokenDown.tm_isdst;
    gmtime_r(&localTime, &brokenDown);
+   brokenDown.tm_isdst = dst;
    time_t utcTime = mktime(&brokenDown);
    return (utcTime - localTime) / 60;
 }
