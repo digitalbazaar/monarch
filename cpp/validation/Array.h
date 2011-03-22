@@ -47,9 +47,10 @@ public:
     * Use this constructor if the order of the validators matters.
     *
     * @param index the index for the first validator to check.
-    * @param ... validator, followed by more index:validator pairs.
+    * @param validator the first validator to check.
+    * @param ... more index:validator pairs.
     */
-   Array(int index, ...);
+   Array(int index, Validator* validator, ...);
 
    /**
     * Creates a new validator with a NULL terminated validator list. Use
@@ -97,17 +98,19 @@ public:
     * Adds index:validator pairs.
     *
     * @param index an array index.
+    * @param validator the first validator to check.
     * @param ap a vararg list.
     */
-   virtual void addValidators(int index, va_list ap);
+   virtual void addValidators(int index, Validator* validator, va_list ap);
 
    /**
     * Adds a -1 terminated list of index:validator pairs.
     *
     * @param index an array index.
-    * @param ... more key:validator pairs.
+    * @param validator the first validator to check.
+    * @param ... more index:validator pairs.
     */
-   virtual void addValidators(int index, ...);
+   virtual void addValidators(int index, Validator* validator, ...);
 
    /**
     * Adds -1:validator pairs.

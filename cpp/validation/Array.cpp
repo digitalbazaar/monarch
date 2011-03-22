@@ -22,12 +22,12 @@ Array::Array(Validator* validator, ...)
    va_end(ap);
 }
 
-Array::Array(int index, ...)
+Array::Array(int index, Validator* validator, ...)
 {
    va_list ap;
 
-   va_start(ap, index);
-   addValidators(index, ap);
+   va_start(ap, validator);
+   addValidators(index, validator, ap);
    va_end(ap);
 }
 
@@ -152,22 +152,26 @@ void Array::addValidator(int index, Validator* validator)
    mValidators.push_back(std::make_pair(index, validator));
 }
 
-void Array::addValidators(int index, va_list ap)
+void Array::addValidators(int index, Validator* validator, va_list ap)
 {
    while(index != -1)
    {
-      Validator* v = va_arg(ap, Validator*);
-      addValidator(index, v);
+      if(validator == NULL)
+      {
+         validator = va_arg(ap, Validator*);
+      }
+      addValidator(index, validator);
       index = va_arg(ap, int);
+      validator = NULL;
    }
 }
 
-void Array::addValidators(int index, ...)
+void Array::addValidators(int index, Validator* validator, ...)
 {
    va_list ap;
 
-   va_start(ap, index);
-   addValidators(index, ap);
+   va_start(ap, validator);
+   addValidators(index, validator, ap);
    va_end(ap);
 }
 
