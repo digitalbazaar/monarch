@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_Array_H
 #define monarch_validation_Array_H
@@ -33,7 +33,8 @@ namespace validation
 class Array : public Validator
 {
 protected:
-   std::vector<std::pair<int,Validator*> > mValidators;
+   typedef std::vector<std::pair<int,Validator*> > ValidatorPairs;
+   ValidatorPairs mValidators;
 
 public:
    /**
@@ -43,8 +44,21 @@ public:
 
    /**
     * Creates a new validator with a -1 index terminated index:validator list.
+    * Use this constructor if the order of the validators matters.
+    *
+    * @param index the index for the first validator to check.
+    * @param ... validator, followed by more index:validator pairs.
     */
    Array(int index, ...);
+
+   /**
+    * Creates a new validator with a NULL terminated validator list. Use
+    * this constructor if order of the validators does not matter.
+    *
+    * @param validator the first validator to check.
+    * @param ... more validators.
+    */
+   Array(Validator* validator, ...);
 
    /**
     * Destructs this validator.
@@ -74,7 +88,7 @@ public:
    /**
     * Adds an index:validator pair.
     *
-    * @param index an array index.
+    * @param index an array index, -1 to check any index.
     * @param validator a Validator.
     */
    virtual void addValidator(int index, Validator* validator);
@@ -94,6 +108,22 @@ public:
     * @param ... more key:validator pairs.
     */
    virtual void addValidators(int index, ...);
+
+   /**
+    * Adds -1:validator pairs.
+    *
+    * @param validator the first validator.
+    * @param ap a vararg list.
+    */
+   virtual void addValidators(Validator* validator, va_list ap);
+
+   /**
+    * Adds a NULL terminated list of -1:validator pairs.
+    *
+    * @param validator the first validator.
+    * @param ... more -1:validator pairs.
+    */
+   virtual void addValidators(Validator* validator, ...);
 };
 
 } // end namespace validation

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 
 #include "monarch/test/Test.h"
@@ -183,6 +183,40 @@ static void runValidatorTest(TestRunner& tr)
       tr.passIfNoException();
 
       tr.test("invalid array (clist)");
+      assert(!v1.isValid(dnv));
+      tr.passIfException(_dump);
+   }
+
+   {
+      tr.test("array (unordered)");
+      DynamicObject dv;
+      dv[0] = 0;
+      dv[1] = true;
+      DynamicObject dnv;
+      dnv[0] = false;
+      dnv[1] = "false";
+
+      // create with addValidator
+      v::Array v0;
+      v0.addValidator(-1, new v::Type(Boolean));
+      v0.addValidator(-1, new v::Type(Int32));
+      assert(v0.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("invalid array (unordered)");
+      assert(!v0.isValid(dnv));
+      tr.passIfException(_dump);
+
+      tr.test("array (unordered clist)");
+      // create with constructor list
+      v::Array v1(
+         new v::Type(Boolean),
+         new v::Type(Int32),
+         NULL);
+      assert(v1.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("invalid array (unordered clist)");
       assert(!v1.isValid(dnv));
       tr.passIfException(_dump);
    }
