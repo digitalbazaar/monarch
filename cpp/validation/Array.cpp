@@ -179,8 +179,7 @@ void Array::addValidators(Validator* validator, va_list ap)
 {
    while(validator != NULL)
    {
-      Validator* v = va_arg(ap, Validator*);
-      addValidator(-1, v);
+      addValidator(-1, validator);
       validator = va_arg(ap, Validator*);
    }
 }
