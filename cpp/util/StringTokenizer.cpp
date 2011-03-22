@@ -16,7 +16,7 @@ StringTokenizer::StringTokenizer() :
    mPrevToken(NULL),
    mTokenCount(0),
    mFirstFreeToken(NULL),
-   mFreeTokenCount(NULL)
+   mFreeTokenCount(0)
 {
 }
 
@@ -28,7 +28,7 @@ StringTokenizer::StringTokenizer(
    mPrevToken(NULL),
    mTokenCount(0),
    mFirstFreeToken(NULL),
-   mFreeTokenCount(NULL)
+   mFreeTokenCount(0)
 {
    tokenize(str, delimiter, front);
 }
@@ -41,7 +41,7 @@ StringTokenizer::StringTokenizer(
    mPrevToken(NULL),
    mTokenCount(0),
    mFirstFreeToken(NULL),
-   mFreeTokenCount(NULL)
+   mFreeTokenCount(0)
 {
    tokenize(str, delimiter, front);
 }
