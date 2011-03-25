@@ -859,18 +859,85 @@ void DatabaseClient::buildParams(
       // for it and append it to the params array
       if(members->hasMember(memberName))
       {
-         // add param
-         DynamicObject& param = params->append();
-         param["name"] = column["name"];
-         param["value"] = members[memberName].clone();
-         param["type"] = column["columnType"];
-         if(column->hasMember("encode"))
+         /* Note: The member value is either a value, map, or an array. If it's
+          * an array, then each entry in the array is either a value or a map.
+          *
+          * Create a single parameter for all values. Create an individual
+          * parameter for every map entry. This algorithm will store all maps
+          * in "p" and all values in "values". Then "values" will be added to
+          * "p". Then a new parameter will be created for each entry in "p".
+          */
+         DynamicObject& mv = members[memberName];
+         DynamicObject p;
+         p->setType(Array);
+         DynamicObject values;
+         values->setType(Array);
+
+         // group maps and values
+         if(mv->getType() == Map)
          {
-            param["encode"] = column["encode"];
+            p->append(mv);
          }
-         if(tableAlias != NULL)
+         else if(mv->getType() == Array)
          {
-            param["tableAlias"] = taObj;
+            DynamicObjectIterator mvi = mv.getIterator();
+            while(mvi->hasNext())
+            {
+               DynamicObject& next = mvi->next();
+               if(next->getType() == Map)
+               {
+                  p->append(next);
+               }
+               else
+               {
+                  values->append(next);
+               }
+            }
+         }
+         else
+         {
+            values->append(mv);
+         }
+
+         // treat values as a single param
+         if(values->length() > 0)
+         {
+            p->append(values);
+         }
+
+         // create params
+         DynamicObjectIterator pi = p.getIterator();
+         while(pi->hasNext())
+         {
+            DynamicObject& next = pi->next();
+
+            // add param
+            DynamicObject& param = params->append();
+            param["name"] = column["name"];
+            param["type"] = column["columnType"];
+            param["op"] = "=";
+            if(column->hasMember("encode"))
+            {
+               param["encode"] = column["encode"];
+            }
+            if(tableAlias != NULL)
+            {
+               param["tableAlias"] = taObj;
+            }
+
+            // if next param is a map, get operator and value
+            if(next->getType() == Map)
+            {
+               if(next->hasMember("op"))
+               {
+                  param["op"] = next["op"].clone();
+               }
+               param["value"] = next["value"].clone();
+            }
+            else
+            {
+               param["value"] = next.clone();
+            }
          }
       }
    }
