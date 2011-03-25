@@ -1099,16 +1099,11 @@ void DatabaseClient::appendWhereSql(
 
          sql.append(")");
       }
-      // use operator expr Map
-      else if(param["value"]->getType() == Map)
-      {
-         sql.append(param["value"]["op"]->getString());
-         sql.append("?");
-      }
-      // use single equals
+      // use parameter operator
       else
       {
-         sql.append("=?");
+         sql.append(param["op"]->getString());
+         sql.append("?");
       }
    }
 }
@@ -1394,13 +1389,8 @@ bool DatabaseClient::setParams(Statement* s, DynamicObject& params)
    {
       DynamicObject& param = i->next();
 
-      // map stores the actual value of the param in "value"
-      DynamicObjectType type = param["value"]->getType();
-      DynamicObject value = (type == Map) ?
-         param["value"]["value"] : param["value"];
-
       // handle both an array of values or an individual value
-      DynamicObjectIterator vi = value.getIterator();
+      DynamicObjectIterator vi = param["value"].getIterator();
       for(; rval && vi->hasNext(); index++)
       {
          DynamicObject& next = vi->next();
