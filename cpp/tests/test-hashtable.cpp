@@ -36,9 +36,9 @@ struct KeyAsHash
 
 struct AddressAsHash
 {
-   int operator()(const char* key) const
+   long operator()(const char* key) const
    {
-      return (int)key;
+      return (long)key;
    }
 };
 

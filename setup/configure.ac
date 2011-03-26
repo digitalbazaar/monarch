@@ -40,7 +40,6 @@ AS_PATH_PYTHON([2.4])
 
 # Common build options
 MO_COMPILER
-
 MO_MSG_CONFIG_BEGIN([General Options])
 MO_MSG_CONFIG_OPTION_IF([Python],
    [test "x$PYTHON" != x],
