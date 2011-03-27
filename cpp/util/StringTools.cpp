@@ -211,8 +211,15 @@ bool StringTools::vsnformat(
    bool done = false;
    while(rval && !done)
    {
+      // need to copy args since they are re-used each loop
+      va_list varargs_copy;
+      va_copy(varargs_copy, varargs);
+
       // Try to print in the allocated space.
-      n = vsnprintf(p, psize, format, varargs);
+      n = vsnprintf(p, psize, format, varargs_copy);
+
+      // clean up the copy
+      va_end(varargs_copy);
 
       // If that worked, return the string.
       if(n > -1 && (size_t)n < psize)
