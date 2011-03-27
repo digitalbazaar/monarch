@@ -106,14 +106,14 @@ bool V8Engine::runScript(const char* js, std::string& result)
       script = ::v8::Script::Compile(source);
       if(script.IsEmpty())
       {
-        String::Utf8Value error(tryCatch.Exception());
-        // The script failed to compile
-        ExceptionRef e = new rt::Exception(
-           "Script failed to compile.",
-           EXCEPTION_PREFIX ".CompileError");
-        e->getDetails()["error"] = *error;
-        rt::Exception::set(e);
-        rval = false;
+         String::Utf8Value error(tryCatch.Exception());
+         // The script failed to compile
+         ExceptionRef e = new rt::Exception(
+            "Script failed to compile.",
+            EXCEPTION_PREFIX ".CompileError");
+         e->getDetails()["error"] = *error;
+         rt::Exception::set(e);
+         rval = false;
       }
    }
 
@@ -124,14 +124,14 @@ bool V8Engine::runScript(const char* js, std::string& result)
       resultval = script->Run();
       if(resultval.IsEmpty())
       {
-        String::Utf8Value error(tryCatch.Exception());
-        // The script failed to run
-        ExceptionRef e = new rt::Exception(
-           "Script failed to run.",
-           EXCEPTION_PREFIX ".RunError");
-        e->getDetails()["error"] = *error;
-        rt::Exception::set(e);
-        rval = false;
+         String::Utf8Value error(tryCatch.Exception());
+         // The script failed to run
+         ExceptionRef e = new rt::Exception(
+            "Script failed to run.",
+            EXCEPTION_PREFIX ".RunError");
+         e->getDetails()["error"] = *error;
+         rt::Exception::set(e);
+         rval = false;
       }
    }
 

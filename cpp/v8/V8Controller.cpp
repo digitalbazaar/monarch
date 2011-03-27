@@ -40,7 +40,7 @@ V8Controller::~V8Controller()
 // utils
 // =====
 
-// Convert a JavaScript string to a std::string.  To not bother too
+// Convert a JavaScript string to a std::string. Do not bother too
 // much with string encodings we just use ascii.
 static string ObjectToString(Local<Value> value) {
   String::Utf8Value utf8_value(value);
@@ -53,7 +53,7 @@ static string ObjectToString(Local<Value> value) {
 
 static Handle<Value> _monarch_log(const Arguments& args)
 {
-   if (args.Length() != 0)
+   if(args.Length() != 0)
    {
       HandleScope handle_scope;
       Handle<Value> arg = args[0];
@@ -68,7 +68,7 @@ static Handle<Value> _d2j(const Arguments& args)
    HandleScope handle_scope;
    Handle<Value> rval = v8::Undefined();
 
-   if (args.Length() == 1)
+   if(args.Length() == 1)
    {
       Handle<Value> arg = args[0];
       if(arg->IsObject())
@@ -88,7 +88,7 @@ static Handle<Value> _j2d(const Arguments& args)
    HandleScope handle_scope;
    Handle<Value> rval = v8::Undefined();
 
-   if (args.Length() == 1)
+   if(args.Length() == 1)
    {
       Handle<Value> arg = args[0];
       // FIXME
@@ -103,7 +103,7 @@ static Handle<Value> _sleep(const Arguments& args)
    HandleScope handle_scope;
    Handle<Value> rval = v8::Undefined();
 
-   if (args.Length() == 1)
+   if(args.Length() == 1)
    {
       Handle<Value> arg = args[0];
       uint32_t t = arg->Uint32Value();
@@ -113,7 +113,7 @@ static Handle<Value> _sleep(const Arguments& args)
       }
    }
 
-   // return the result through the current handle scope.
+   // return the result through the current handle scope
    return handle_scope.Close(rval);
 }
 
