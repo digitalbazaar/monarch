@@ -147,6 +147,7 @@ protected:
       volatile Type type;
 #endif
       _K k;
+      // TODO: make hash type customizable via template var
       int h;
       _V* v;
       EntryList* owner;
