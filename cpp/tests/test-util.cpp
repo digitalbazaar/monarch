@@ -104,7 +104,7 @@ static void runBase64Test(TestRunner& tr)
       assert(enc.length() == strlen(data));
       if(strncmp(data, enc.c_str(), strlen(data)) != 0)
       {
-         printf("\ndata[%d]\n", strlen(data));
+         printf("\ndata[%zd]\n", strlen(data));
          for(size_t i = 0; i < strlen(data); ++i)
          {
             printf("%c", (unsigned char)data[i]);
@@ -121,7 +121,7 @@ static void runBase64Test(TestRunner& tr)
             printf("%x  ", (unsigned char)dec[i]);
          }
 
-         printf("\nenc[%d]\n", enc.length());
+         printf("\nenc[%zd]\n", enc.length());
          for(size_t i = 0; i < enc.length(); ++i)
          {
             printf("%c", (unsigned char)enc[i]);
