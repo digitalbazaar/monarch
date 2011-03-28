@@ -115,6 +115,55 @@ bool Exception::hasCauseOfType(const char* type, bool startsWith, int n)
    return rval;
 }
 
+// method to optimize deep searches for exception type base names
+static ExceptionRef _getCauseOfType(ExceptionRef& e, const char* type, int n)
+{
+   ExceptionRef rval(NULL);
+
+   // check this exception's type
+   if(strncmp(e->getType(), type, n) == 0)
+   {
+      rval = e;
+   }
+   // check this exception's cause
+   else if(!e->getCause().isNull())
+   {
+      rval = _getCauseOfType(e->getCause(), type, n);
+   }
+
+   return rval;
+}
+
+ExceptionRef Exception::getCauseOfType(const char* type, bool startsWith)
+{
+   ExceptionRef rval(NULL);
+
+   ExceptionRef& cause = getCause();
+   if(!cause.isNull())
+   {
+      if(startsWith)
+      {
+         // use optimized recursive method that only counts "type" length once
+         rval = _getCauseOfType(*mCause, type, strlen(type));
+      }
+      else
+      {
+         // check this exception's cause
+         if(cause->isType(type, false))
+         {
+            rval = cause;
+         }
+         // check deeper in the stack/chain
+         else
+         {
+            rval = cause->getCauseOfType(type, false);
+         }
+      }
+   }
+
+   return rval;
+}
+
 DynamicObject& Exception::getDetails()
 {
    if(mDetails->isNull())
@@ -160,6 +209,23 @@ DynamicObject Exception::getAsDynamicObject()
 {
    ExceptionRef e = Exception::get();
    return Exception::convertToDynamicObject(e);
+}
+
+ExceptionRef Exception::getExceptionOfType(
+   ExceptionRef& e, const char* type, bool startsWith)
+{
+   ExceptionRef rval(NULL);
+
+   if(e->isType(type, startsWith))
+   {
+      rval = e;
+   }
+   else
+   {
+      rval = e->getCauseOfType(type, startsWith);
+   }
+
+   return rval;
 }
 
 DynamicObject Exception::convertToDynamicObject(ExceptionRef& e)
