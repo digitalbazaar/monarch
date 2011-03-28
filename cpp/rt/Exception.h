@@ -252,6 +252,22 @@ public:
    static DynamicObject getAsDynamicObject();
 
    /**
+    * Checks the cause stack/chain for an Exception of the given type. If one
+    * is found, it is returned. Otherwise, NULL is returned.
+    *
+    * @param type the type to look for.
+    * @param startsWith false to only return true if the passed type string
+    *           matches the exact type of the cause (the default behavior),
+    *           true to return true if the cause's type starts with the
+    *           given type.
+    *
+    * @return the Exception with the given type, if found in the given
+    *         Exception.
+    */
+   static Collectable<Exception> getExceptionOfType(
+      const char* type, bool startsWith = false);
+
+   /**
     * Checks the given Exception and its cause stack/chain for an Exception of
     * the given type. If one is found, it is returned. Otherwise, NULL is
     * returned.

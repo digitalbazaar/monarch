@@ -212,6 +212,13 @@ DynamicObject Exception::getAsDynamicObject()
 }
 
 ExceptionRef Exception::getExceptionOfType(
+   const char* type, bool startsWith)
+{
+   ExceptionRef e = Exception::get();
+   return getExceptionOfType(e, type, startsWith);
+}
+
+ExceptionRef Exception::getExceptionOfType(
    ExceptionRef& e, const char* type, bool startsWith)
 {
    ExceptionRef rval(NULL);
