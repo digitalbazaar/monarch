@@ -536,6 +536,9 @@ SqlExecutableRef DatabaseClient::update(
       rval->sql = "UPDATE ";
       rval->sql.append(schema["table"]->getString());
 
+      // save sql string index after table
+      rval->idxAfterTable = rval->sql.length();
+
       // build SET parameters
       buildParams(schema, row, rval->params, table);
 
@@ -606,7 +609,7 @@ SqlExecutableRef DatabaseClient::select(
       // create SELECT sql
       rval->sql = createSelectSql(
          schema, where, members, order, limit, start,
-         rval->params, rval->columnSchemas, tableAlias);
+         rval->params, rval->columnSchemas, tableAlias, &rval);
       if(where != NULL)
       {
          rval->whereFilter = *where;
@@ -635,6 +638,9 @@ SqlExecutableRef DatabaseClient::remove(
       // create starting clause
       rval->sql = "DELETE FROM ";
       rval->sql.append(schema["table"]->getString());
+
+      // save sql string index after table
+      rval->idxAfterTable = rval->sql.length();
 
       // build parameters
       if(where != NULL)
@@ -1547,7 +1553,8 @@ string DatabaseClient::createSelectSql(
    DynamicObject* where, DynamicObject* members, DynamicObject* order,
    uint64_t limit, uint64_t start,
    DynamicObject& params, DynamicObject& columnSchemas,
-   const char* tableAlias)
+   const char* tableAlias,
+   SqlExecutableRef* se)
 {
    // create starting clause
    string sql = "SELECT";
@@ -1563,6 +1570,12 @@ string DatabaseClient::createSelectSql(
    sql.append(schema["table"]->getString());
    sql.append(" ");
    sql.append(tableAlias);
+
+   if(se != NULL)
+   {
+      // save sql string index after table
+      (*se)->idxAfterTable = sql.length();
+   }
 
    // append WHERE clause
    params->setType(Array);
@@ -1640,6 +1653,9 @@ SqlExecutableRef DatabaseClient::insertOrReplace(
       rval->sql = cmd;
       rval->sql.append(" INTO ");
       rval->sql.append(schema["table"]->getString());
+
+      // save sql string index after table
+      rval->idxAfterTable = rval->sql.length();
 
       // append VALUES SQL
       appendValuesSql(rval->sql, rval->params);

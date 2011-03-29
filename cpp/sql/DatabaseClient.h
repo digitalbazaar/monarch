@@ -130,6 +130,12 @@ struct SqlExecutable
    bool returnRowsFound;
 
    /**
+    * The string position after the table. Useful for special inserting special
+    * SQL like USE|FORCE INDEX.
+    */
+   std::string::size_type idxAfterTable;
+
+   /**
     * Initializes an SqlExecutable.
     */
    SqlExecutable() :
@@ -141,7 +147,8 @@ struct SqlExecutable
       rowsRetrieved(0),
       rowsFound(0),
       lastInsertRowId(0),
-      returnRowsFound(false)
+      returnRowsFound(false),
+      idxAfterTable(0)
    {
       params->setType(monarch::rt::Array);
    };
@@ -691,12 +698,14 @@ public:
     * @param where the WHERE filter.
     * @param order the ORDER specification.
     * @param members a specific map of member names to include, NULL to
-    *                include all members not in the WHERE.
+    *           include all members not in the WHERE.
     * @param limit 0 for no LIMIT, something positive to specify a LIMIT.
     * @param start the starting row for the LIMIT.
     * @param params the parameters to populate.
     * @param columnSchemas the column schemas to populate.
     * @param tableAlias a table alias to use.
+    * @param se the SqlExecutableRef to update with SQL string indexes, NULL
+    *           for none.
     *
     * @return the SQL SELECT text.
     */
@@ -709,7 +718,8 @@ public:
       uint64_t start,
       monarch::rt::DynamicObject& params,
       monarch::rt::DynamicObject& columnSchemas,
-      const char* tableAlias);
+      const char* tableAlias,
+      SqlExecutableRef* se = NULL);
 
    /**
     * Appends a column to the given table schema.

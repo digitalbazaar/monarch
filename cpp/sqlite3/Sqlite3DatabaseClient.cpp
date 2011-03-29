@@ -35,6 +35,9 @@ SqlExecutableRef Sqlite3DatabaseClient::update(
       rval->sql = "UPDATE ";
       rval->sql.append(schema["table"]->getString());
 
+      // save sql string index after table
+      rval->idxAfterTable = rval->sql.length();
+
       // build SET parameters
       buildParams(schema, row, rval->params);
 

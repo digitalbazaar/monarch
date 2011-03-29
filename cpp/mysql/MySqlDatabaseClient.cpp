@@ -43,6 +43,9 @@ SqlExecutableRef MySqlDatabaseClient::insertOnDuplicateKeyUpdate(
       rval->sql = "INSERT INTO ";
       rval->sql.append(schema["table"]->getString());
 
+      // save sql string index after table
+      rval->idxAfterTable = rval->sql.length();
+
       // append VALUES SQL
       appendValuesSql(rval->sql, rval->params);
 
