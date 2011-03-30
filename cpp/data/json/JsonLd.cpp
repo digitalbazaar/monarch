@@ -229,7 +229,7 @@ static bool _expandCurie(
             iri = StringTools::format("%s%s", uri->getString(), ptr + 1);
             if(usedCtx != NULL)
             {
-               (*usedCtx)[prefix] = uri;
+               (*usedCtx)[prefix] = uri.clone();
             }
             rval = true;
          }
@@ -341,7 +341,7 @@ static string _normalizeValue(
          DynamicObject& tci = ctx["#types"][predicate];
          if(usedCtx != NULL)
          {
-            (*usedCtx)["#types"][predicate] = tci;
+            (*usedCtx)["#types"][predicate] = tci.clone();
          }
 
          // handle specific type
@@ -784,7 +784,7 @@ static DynamicObject _compactIri(
    else if(ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
    {
       DynamicObject& type = ctx["#types"][predicate];
-      usedCtx["#types"][predicate] = type;
+      usedCtx["#types"][predicate] = type.clone();
 
       // single type
       if(type->getType() == String)
@@ -878,7 +878,7 @@ static DynamicObject _compactTypedLiteral(
       if(ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
       {
          DynamicObject& type = ctx["#types"][predicate];
-         usedCtx["#types"][predicate] = type;
+         usedCtx["#types"][predicate] = type.clone();
          inTypesMap = true;
 
          // single type
