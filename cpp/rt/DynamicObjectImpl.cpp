@@ -1426,8 +1426,15 @@ void DynamicObjectImpl::setFormattedString(const char* format, va_list varargs)
    bool success = false;
    while(!success && !mallocFailed)
    {
+      // need to copy args since they are re-used each loop
+      va_list varargs_copy;
+      va_copy(varargs_copy, varargs);
+
       // try to print in the allocated space
-      n = vsnprintf(p, size, format, varargs);
+      n = vsnprintf(p, size, format, varargs_copy);
+
+      // clean up the copy
+      va_end(varargs_copy);
 
       // if that worked, return the string
       if(n > -1 && n < size)
