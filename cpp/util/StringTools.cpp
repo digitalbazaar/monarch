@@ -196,8 +196,8 @@ bool StringTools::vsnformat(
    char *p;
    char *np;
 
-   // Guess we need no more than 128 bytes to start.
-   psize = 25;
+   // Guess the initial size of the buffer.
+   psize = 256;
    // limit size if needed
    if(size != 0)
    {
