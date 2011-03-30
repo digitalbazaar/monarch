@@ -177,10 +177,14 @@ typedef monarch::rt::Collectable<SqlExecutable> SqlExecutableRef;
  *    "{name2}": [value2a, value2b, ...], (multiple values for "IN" clause)
  *    "{name3}": {
  *       "op": operation, (">=", etc)
- *       "value": value3
+ *       "value": value3,
+ *       "boolOp": boolean operation ("AND", "OR", etc.)
  *    },
  *    ...
  * }
+ *
+ * Take care when specifying a different boolean operation (eg: "OR") as there
+ * is currently no API for handling parentheticals.
  *
  * Methods that have an "order" paramter use an Array with multiple entires
  * using the following formats:

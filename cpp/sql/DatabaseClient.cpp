@@ -922,6 +922,7 @@ void DatabaseClient::buildParams(
             param["name"] = column["name"];
             param["type"] = column["columnType"];
             param["op"] = "=";
+            param["boolOp"] = "AND";
             if(column->hasMember("encode"))
             {
                param["encode"] = column["encode"];
@@ -937,6 +938,10 @@ void DatabaseClient::buildParams(
                if(next->hasMember("op"))
                {
                   param["op"] = next["op"].clone();
+               }
+               if(next->hasMember("boolOp"))
+               {
+                  param["boolOp"] = next["boolOp"].clone();
                }
                param["value"] = next["value"].clone();
             }
@@ -1071,7 +1076,9 @@ void DatabaseClient::appendWhereSql(
       }
       else
       {
-         sql.append(" AND ");
+         sql.push_back(' ');
+         sql.append(param["boolOp"]->getString());
+         sql.push_back(' ');
       }
 
       // append aliased name
