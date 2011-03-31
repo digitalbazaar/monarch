@@ -1410,7 +1410,8 @@ void DynamicObjectImpl::freeData()
    if(mStringValue != NULL)
    {
       STATS_COUNTS_DEC(StringValue);
-      STATS_COUNTS_BYTES_DEC(StringValue, strlen(mStringValue));
+      STATS_COUNTS_BYTES_DEC(
+         StringValue, strlen(const_cast<char*>(mStringValue)));
       char* str = const_cast<char*>(mStringValue);
       mStringValue = NULL;
       free(str);
