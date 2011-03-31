@@ -297,17 +297,17 @@ DynamicObjectIterator DynamicObject::getIterator() const
    switch((*this)->getType())
    {
       case Map:
-         i = new DynamicObjectIteratorMap((DynamicObject&)*this);
+         i = new DynamicObjectIteratorMap(const_cast<DynamicObject&>(*this));
          break;
       case Array:
-         i = new DynamicObjectIteratorArray((DynamicObject&)*this);
+         i = new DynamicObjectIteratorArray(const_cast<DynamicObject&>(*this));
          break;
       default:
-         i = new DynamicObjectIteratorSingle((DynamicObject&)*this);
+         i = new DynamicObjectIteratorSingle(const_cast<DynamicObject&>(*this));
          break;
    }
 
-   return DynamicObjectIterator(i);
+   return i;
 }
 
 DynamicObject DynamicObject::first() const
@@ -366,6 +366,7 @@ DynamicObject DynamicObject::last() const
       case Map:
       {
          // return last result of iterator
+         // FIXME: inefficient, need reverse iterators
          DynamicObjectIterator i = getIterator();
          while(i->hasNext())
          {
@@ -427,7 +428,7 @@ DynamicObject DynamicObject::clone()
       DynamicObjectIterator i = getIterator();
       while(i->hasNext())
       {
-         DynamicObject dyno = i->next();
+         DynamicObject& dyno = i->next();
          switch((*this)->getType())
          {
             case String:
