@@ -415,21 +415,19 @@ void DynamicObject::sort(std::less<DynamicObject>& obj)
 
 DynamicObject DynamicObject::clone()
 {
-   DynamicObject rval;
+   DynamicObject rval(NULL);
 
-   if(isNull())
+   if(!isNull())
    {
-      rval.setNull();
-   }
-   else
-   {
+      rval = DynamicObject();
+      DynamicObjectType type = (*this)->getType();
+      rval->setType(type);
       int index = 0;
-      rval->setType((*this)->getType());
       DynamicObjectIterator i = getIterator();
       while(i->hasNext())
       {
          DynamicObject& dyno = i->next();
-         switch((*this)->getType())
+         switch(type)
          {
             case String:
                rval = dyno->getString();
