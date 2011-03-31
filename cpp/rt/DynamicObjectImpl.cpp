@@ -220,28 +220,18 @@ static monarch::rt::ExclusiveLock _stats_key_counts_lock;
 
 #endif // MO_DYNO_KEY_COUNTS
 
-DynamicObjectImpl::DynamicObjectImpl()
+DynamicObjectImpl::DynamicObjectImpl() :
+   mType(String),
+   mString(NULL),
+   mStringValue(NULL)
 {
    STATS_COUNTS_INC(Object);
    STATS_COUNTS_INC(String);
-
-   mType = String;
-   mString = NULL;
-   mStringValue = NULL;
 }
 
 DynamicObjectImpl::~DynamicObjectImpl()
 {
    DynamicObjectImpl::freeData();
-
-   // free cached string value
-   if(mStringValue != NULL)
-   {
-      STATS_COUNTS_DEC(StringValue);
-      STATS_COUNTS_BYTES_DEC(StringValue, strlen(mStringValue));
-      free(mStringValue);
-   }
-
    STATS_COUNTS_DEC(mType);
    STATS_COUNTS_DEC(Object);
 }
@@ -304,9 +294,11 @@ void DynamicObjectImpl::operator=(const DynamicObjectImpl& value)
 
 void DynamicObjectImpl::operator=(const char* value)
 {
+   // clone string before freeing data in case value came from this object
+   char* str = strdup(value);
    freeData();
    _changeType(this, String);
-   mString = strdup(value);
+   mString = str;
    STATS_COUNTS_INC(String);
    STATS_COUNTS_BYTES_INC(String, strlen(value));
 }
@@ -906,56 +898,70 @@ const char* DynamicObjectImpl::getString() const
    }
    else
    {
-      char* str = (char*)(mStringValue);
+      /* Note: Here we atomically set a cached string value. Atomics are used
+       * here (and not elsewhere) because this function is a "read" function of
+       * the DynamicObject. Functions that write to the DynamicObject are not
+       * considered thread-safe, but read functions are. Since we need to
+       * return a heap-allocated string here, we return the cached one or we
+       * create a new one... and then try to atomically store it. If it is
+       * stored, we return our stored copy. If the storage fails, we assume
+       * another thread did the work for us and we return the cached copy
+       * instead and free the copy we made.
+       */
+      char* str = const_cast<char*>(mStringValue);
       if(str == NULL)
       {
-         STATS_COUNTS_INC(StringValue);
+         // convert type as appropriate
+         switch(mType)
+         {
+            case Boolean:
+               str = (char*)malloc(6);
+               snprintf(str, 6, "%s", (mBoolean ? "true" : "false"));
+               break;
+            case Int32:
+               str = (char*)malloc(12);
+               snprintf(str, 12, "%" PRIi32, mInt32);
+               break;
+            case UInt32:
+               str = (char*)malloc(11);
+               snprintf(str, 11, "%" PRIu32, mUInt32);
+               break;
+            case Int64:
+               str = (char*)malloc(22);
+               snprintf(str, 22, "%" PRIi64, mInt64);
+               break;
+            case UInt64:
+               str = (char*)malloc(21);
+               snprintf(str, 21, "%" PRIu64, mUInt64);
+               break;
+            case Double:
+               // use default precision of 6
+               // X.000000e+00 = 11 places to right of decimal
+               str = (char*)malloc(50);
+               snprintf(str, 50, "%e", mDouble);
+               break;
+            default: /* String, Map, Array, ... already handled */
+               break;
+         }
+
+         // atomically set mStringValue
+         if(Atomic::compareAndSwap(
+            const_cast<volatile char**>(&mStringValue),
+            (char*)NULL, (char*)str))
+         {
+            // increment string stats
+            STATS_COUNTS_INC(StringValue);
+            STATS_COUNTS_BYTES_INC(StringValue, strlen(str));
+         }
+         else
+         {
+            // another thread already cached the value, so free our copy
+            free(str);
+         }
       }
-      else
-      {
-         STATS_COUNTS_BYTES_DEC(StringValue, strlen(str));
-      }
 
-      // convert type as appropriate
-      switch(mType)
-      {
-         case Boolean:
-            str = (char*)realloc(str, 6);
-            snprintf(str, 6, "%s", (mBoolean ? "true" : "false"));
-            break;
-         case Int32:
-            str = (char*)realloc(str, 12);
-            snprintf(str, 12, "%" PRIi32, mInt32);
-            break;
-         case UInt32:
-            str = (char*)realloc(str, 11);
-            snprintf(str, 11, "%" PRIu32, mUInt32);
-            break;
-         case Int64:
-            str = (char*)realloc(str, 22);
-            snprintf(str, 22, "%" PRIi64, mInt64);
-            break;
-         case UInt64:
-            str = (char*)realloc(str, 21);
-            snprintf(str, 21, "%" PRIu64, mUInt64);
-            break;
-         case Double:
-            // use default precision of 6
-            // X.000000e+00 = 11 places to right of decimal
-            str = (char*)realloc(str, 50);
-            snprintf(str, 50, "%e", mDouble);
-            break;
-         default: /* String, Map, Array, ... already handled */
-            break;
-      }
-
-      STATS_COUNTS_BYTES_INC(StringValue, strlen(str));
-
-      // set generated value
-      ((DynamicObjectImpl*)this)->mStringValue = str;
-
-      // return generated value
-      rval = mStringValue;
+      // return cached value
+      rval = const_cast<char*>(mStringValue);
    }
 
    return rval;
@@ -1398,6 +1404,16 @@ void DynamicObjectImpl::freeData()
       default:
          // nothing to cleanup
          break;
+   }
+
+   // free cached string value
+   if(mStringValue != NULL)
+   {
+      STATS_COUNTS_DEC(StringValue);
+      STATS_COUNTS_BYTES_DEC(StringValue, strlen(mStringValue));
+      char* str = const_cast<char*>(mStringValue);
+      mStringValue = NULL;
+      free(str);
    }
 }
 

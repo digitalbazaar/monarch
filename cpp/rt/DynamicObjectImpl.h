@@ -89,7 +89,7 @@ protected:
     * The value for this object as a string. This is used when the string
     * version of this object is requested when its type is not a string.
     */
-   char* mStringValue;
+   volatile char* mStringValue;
 
    /**
     * Allow access to iterators.
