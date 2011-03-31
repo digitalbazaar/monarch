@@ -300,7 +300,7 @@ void DynamicObjectImpl::operator=(const char* value)
    _changeType(this, String);
    mString = str;
    STATS_COUNTS_INC(String);
-   STATS_COUNTS_BYTES_INC(String, strlen(value));
+   STATS_COUNTS_BYTES_INC(String, strlen(str));
 }
 
 void DynamicObjectImpl::operator=(bool value)
