@@ -23,12 +23,12 @@ class Date
 {
 protected:
    /**
-    * The number of seconds past the epoch. Based on local time.
+    * The number of seconds past the Epoch for this Date.
     */
    time_t mSecondsSinceEpoch;
 
    /**
-    * The broken down time data structure. Based on local time.
+    * The broken down time data structure. Based on the local time zone.
     */
    struct tm mBrokenDownTime;
 
@@ -123,7 +123,7 @@ public:
    virtual void addSeconds(time_t seconds);
 
    /**
-    * Sets this date according to the passed number of seconds.
+    * Sets this date according to the passed number of seconds since the Epoch.
     *
     * @param seconds the number of seconds since the Epoch.
     */
@@ -135,21 +135,6 @@ public:
     * @return the number of seconds since the Epoch.
     */
    virtual time_t getSeconds();
-
-   /**
-    * Sets this date according to the passed number of seconds in the UTC
-    * time zone.
-    *
-    * @param seconds the number of seconds since the Epoch in the UTC time zone.
-    */
-   virtual void setUtcSeconds(time_t seconds);
-
-   /**
-    * Gets the number of seconds since the Epoch in the UTC time zone.
-    *
-    * @return the number of seconds since the Epoch in the UTC time zone.
-    */
-   virtual time_t getUtcSeconds();
 
    /**
     * Gets this date as a standard datetime, namely, as a string in the format:
@@ -245,7 +230,9 @@ public:
    static std::string utcDateTime(bool includeTandZ = false);
 
    /**
-    * Gets the number of seconds since the Epoch given a UTC datetime.
+    * Gets the number of seconds since the Epoch given a UTC datetime. This
+    * is the equivalent of creating a Date object, parsing a UTC datetime,
+    * and calling getSeconds().
     *
     * @param str the UTC datetime, NULL for now.
     * @param includeTandZ true to include T and Z specifications:

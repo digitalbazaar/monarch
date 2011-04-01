@@ -22,7 +22,7 @@ using namespace monarch::util;
 
 Date::Date()
 {
-   // get the current time
+   // get the current time in seconds since the Epoch
    setSeconds(time(NULL));
 }
 
@@ -157,22 +157,6 @@ inline static time_t changeTimeZone(time_t in, TimeZone* inTz, TimeZone* outTz)
    return in + (inTz->getMinutesWest() - outTz->getMinutesWest()) * 60;
 }
 
-void Date::setUtcSeconds(time_t seconds)
-{
-   // change UTC to local time
-   TimeZone local = TimeZone::getTimeZone();
-   TimeZone utc = TimeZone::getTimeZone("UTC");
-   setSeconds(changeTimeZone(seconds, &utc, &local));
-}
-
-time_t Date::getUtcSeconds()
-{
-   // convert local time to UTC
-   TimeZone local = TimeZone::getTimeZone();
-   TimeZone utc = TimeZone::getTimeZone("UTC");
-   return changeTimeZone(mSecondsSinceEpoch, &local, &utc);
-}
-
 string Date::getDateTime(TimeZone* tz)
 {
    string rval;
@@ -197,7 +181,7 @@ string& Date::format(string& str, const char* format, TimeZone* tz)
       // use stored local time
       time = mBrokenDownTime;
    }
-   // apply timezone (internal time is local, must convert to given timezone)
+   // apply timezone (internal seconds are local, convert to given timezone)
    else
    {
       // adjust local time to new time
@@ -235,8 +219,16 @@ bool Date::parse(const char* str, const char* format, TimeZone* tz)
       mBrokenDownTime.tm_isdst = -1;
       mSecondsSinceEpoch = mktime(&mBrokenDownTime);
 
-      // apply timezone (passed time is in given timezone, must convert to
-      // local time to store internally)
+      /* Note: At this point, mSecondsSinceEpoch is set to the number of
+       * seconds since the Epoch for our local timezone because mktime()
+       * assumes an input from the local timezone. If the input was from
+       * another timezone, we need to apply that timezone difference in
+       * order to get the correct number of seconds since the Epoch. In
+       * other words, if our input was 5:00pm in PST, and we're in EST,
+       * (a difference of 3 hours), then mktime() will give us the number
+       * of seconds since the Epoch for 5:00pm EST. But our input, in EST,
+       * is actually 8:00pm.
+       */
       if(tz != NULL)
       {
          TimeZone local = TimeZone::getTimeZone();
@@ -277,5 +269,5 @@ time_t Date::utcSeconds(const char* str, bool includeTandZ)
    {
       d.parseUtcDateTime(str, includeTandZ);
    }
-   return d.getUtcSeconds();
+   return d.getSeconds();
 }

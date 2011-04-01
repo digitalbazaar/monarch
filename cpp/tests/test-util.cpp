@@ -893,14 +893,6 @@ static void runDateTest(TestRunner& tr)
          string utc = d.getUtcDateTime();
          assertStrCmp(utc.c_str(), "2007-08-02 10:30:00");
       }
-
-      // compare utc seconds to local seconds + timezone change
-      {
-         Date d;
-         string utc = d.getUtcDateTime();
-         uint64_t secs = Date::utcSeconds(utc.c_str());
-         assert(secs == (d.getSeconds() + local.getMinutesWest() * 60UL));
-      }
    }
    tr.passIfNoException();
 
