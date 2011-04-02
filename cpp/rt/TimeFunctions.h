@@ -53,7 +53,7 @@ inline static int64_t gGetTimeZoneMinutesWest(time_t* t)
    time_t localTime = (t != NULL) ? *t : time(NULL);
    struct tm brokenDown;
 #ifdef WIN32
-   brokenDown = *localtime(timep);
+   brokenDown = *localtime(&localTime);
 #else
    localtime_r(&localTime, &brokenDown);
 #endif
