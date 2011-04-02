@@ -27,26 +27,6 @@
 //extern "C" {
 //#endif
 
-/**
- * Gets the number of minutes west of GMT the current time zone is.
- *
- * @return the number of minutes west of GMT the current time zone is.
- */
-inline static int64_t gGetTimeZoneMinutesWest()
-{
-   // get local time, convert to GMT (UTC) and then subtract difference
-   time_t localTime = time(NULL);
-   struct tm brokenDown;
-   localtime_r(&localTime, &brokenDown);
-
-   // save daylights savings time setting and reapply to UTC
-   int dst = brokenDown.tm_isdst;
-   gmtime_r(&localTime, &brokenDown);
-   brokenDown.tm_isdst = dst;
-   time_t utcTime = mktime(&brokenDown);
-   return (utcTime - localTime) / 60;
-}
-
 #ifdef WIN32
 
 // define time between the epoch (01/01/1970) and UTC (01/01/1601)
@@ -57,13 +37,48 @@ inline static int64_t gGetTimeZoneMinutesWest()
 // include windows headers for obtaining time
 #include <windows.h>
 
+#endif
+
+/**
+ * Gets the number of minutes west of UTC the local time zone is.
+ *
+ * @param t the time to use to get the local time zone (time of the year
+ *           changes the time zone because of DST).
+ *
+ * @return the number of minutes west of UTC the local time zone is.
+ */
+inline static int64_t gGetTimeZoneMinutesWest(time_t* t)
+{
+   // get local time, convert to UTC and then subtract difference
+   time_t localTime = (t != NULL) ? *t : time(NULL);
+   struct tm brokenDown;
+#ifdef WIN32
+   brokenDown = *localtime(timep);
+#else
+   localtime_r(&localTime, &brokenDown);
+#endif
+
+   // save daylights savings time setting and reapply to UTC
+   int dst = brokenDown.tm_isdst;
+#ifdef WIN32
+   brokenDown = *gmtime(&localTime);
+#else
+   gmtime_r(&localTime, &brokenDown);
+#endif
+   brokenDown.tm_isdst = dst;
+   time_t utcTime = mktime(&brokenDown);
+   return (utcTime - localTime) / 60;
+}
+
+#ifdef WIN32
+
 #ifndef __MINGW32__
 
 // define timezone structure
 struct timezone
 {
    /**
-    * The number of minutes west of Greenwich, England.
+    * The number of minutes west of Greenwich, England (UTC).
     */
    int tz_minuteswest;
 
@@ -352,11 +367,9 @@ inline static struct tm* gmtime_r(const time_t* timep, struct tm* result)
  */
 inline static struct tm* localtime_r(const time_t* timep, struct tm* result)
 {
-   // remove the minutes west (as seconds) to the passed time
-   time_t local = *timep - (gGetTimeZoneMinutesWest() * 60);
-
-   // get the UTC time
-   return gmtime_r(&local, result);
+   struct* tm = localtime(timep);
+   *result = *tm;
+   return result;
 }
 
 /**
@@ -636,7 +649,7 @@ inline static time_t timegm(struct tm* tm)
    if(rval != -1)
    {
       // subtract seconds west to get to GMT time
-      rval -= gGetTimeZoneMinutesWest() * 60;
+      rval -= gGetTimeZoneMinutesWest(&rval) * 60;
    }
 
    return rval;

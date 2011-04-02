@@ -248,9 +248,9 @@ bool Date::parse(const char* str, const char* format, TimeZone* tz)
        * to generate the correct broken down time for this machine's local
        * time zone, we must convert from the given timezone to the local one.
        *
-       * To do this, we simply call changeTimeZone() with the input timezone
-       * as the given one and the output timezone as this machine's local
-       * timezone. The result is stored in mSecondsSinceEpoch.
+       * To do this, we call changeTimeZone() with the input timezone as the
+       * given one and the output timezone as this machine's local timezone.
+       * The result is stored in mSecondsSinceEpoch.
        *
        * For example, if the input was 5:00pm PST, and this machine's local
        * timezone is EST, then mktime() will return the number of seconds since
@@ -263,7 +263,7 @@ bool Date::parse(const char* str, const char* format, TimeZone* tz)
        */
       if(tz != NULL)
       {
-         TimeZone local = TimeZone::getTimeZone();
+         TimeZone local = TimeZone::getTimeZone(NULL, &mSecondsSinceEpoch);
          mSecondsSinceEpoch = changeTimeZone(mSecondsSinceEpoch, tz, &local);
       }
 

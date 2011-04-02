@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/TimeZone.h"
 
@@ -25,11 +25,15 @@ inline time_t TimeZone::getMinutesWest()
    return mMinutesWest;
 }
 
-TimeZone TimeZone::getTimeZone(const char* tz)
+TimeZone TimeZone::getTimeZone(const char* tz, time_t* t)
 {
    TimeZone rval;
 
-   if(strcasecmp(tz, "GMT") == 0 || strcasecmp(tz, "UTC") == 0)
+   if(tz == NULL)
+   {
+      rval.mMinutesWest = gGetTimeZoneMinutesWest(t);
+   }
+   else if(strcasecmp(tz, "GMT") == 0 || strcasecmp(tz, "UTC") == 0)
    {
       rval.mMinutesWest = 0;
    }
@@ -55,7 +59,7 @@ TimeZone TimeZone::getTimeZone(const char* tz)
    }
    else
    {
-      rval.mMinutesWest = gGetTimeZoneMinutesWest();
+      rval.mMinutesWest = gGetTimeZoneMinutesWest(t);
    }
 
    return rval;

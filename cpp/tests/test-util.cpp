@@ -893,6 +893,55 @@ static void runDateTest(TestRunner& tr)
          string utc = d.getUtcDateTime();
          assertStrCmp(utc.c_str(), "2007-08-02 10:30:00");
       }
+
+      {
+         time_t seconds = 1293840000UL;
+         const char* utcDatetime = "2011-01-01T00:00:00Z";
+         Date d1;
+         assert(d1.parseUtcDateTime(utcDatetime, true));
+         assertStrCmp(utcDatetime, d1.getUtcDateTime(true).c_str());
+         assert(d1.getSeconds() == seconds);
+      }
+
+      // hour before start of DST (EST => EDT), 2011
+      {
+         time_t seconds = 1299996000UL;
+         const char* utcDatetime = "2011-03-13T06:00:00Z";
+         Date d1;
+         assert(d1.parseUtcDateTime(utcDatetime, true));
+         assertStrCmp(utcDatetime, d1.getUtcDateTime(true).c_str());
+         assert(d1.getSeconds() == seconds);
+      }
+
+      // start of DST (EST => EDT), 2011
+      {
+         time_t seconds = 1299999600UL;
+         const char* utcDatetime = "2011-03-13T07:00:00Z";
+         Date d1;
+         assert(d1.parseUtcDateTime(utcDatetime, true));
+         assertStrCmp(utcDatetime, d1.getUtcDateTime(true).c_str());
+         assert(d1.getSeconds() == seconds);
+      }
+
+      // hour before end of DST (EDT => EST), 2011
+      {
+         time_t seconds = 1320555600UL;
+         const char* utcDatetime = "2011-11-06T05:00:00Z";
+         Date d1;
+         assert(d1.parseUtcDateTime(utcDatetime, true));
+         assertStrCmp(utcDatetime, d1.getUtcDateTime(true).c_str());
+         assert(d1.getSeconds() == seconds);
+      }
+
+      // end of DST (EST => EDT), 2011
+      {
+         time_t seconds = 1320559200UL;
+         const char* utcDatetime = "2011-11-06T06:00:00Z";
+         Date d1;
+         assert(d1.parseUtcDateTime(utcDatetime, true));
+         assertStrCmp(utcDatetime, d1.getUtcDateTime(true).c_str());
+         assert(d1.getSeconds() == seconds);
+      }
    }
    tr.passIfNoException();
 

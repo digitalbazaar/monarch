@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_util_TimeZone_H
 #define monarch_util_TimeZone_H
@@ -49,10 +49,11 @@ public:
     *
     * @param tz the abbreviation for the time zone to retrieve (blank for
     *           the local time zone).
+    * @param t the time to use to get the local time zone (NULL to use now).
     *
     * @return the TimeZone for the given abbreviation.
     */
-   static TimeZone getTimeZone(const char* tz = "");
+   static TimeZone getTimeZone(const char* tz = NULL, time_t* t = NULL);
 };
 
 } // end namespace util
