@@ -181,17 +181,40 @@ string& Date::format(string& str, const char* format, TimeZone* tz)
       // use stored local time
       time = mBrokenDownTime;
    }
-   // apply timezone (internal seconds are local, convert to given timezone)
+   // apply timezone
    else
    {
-      // adjust local time to new time
-      TimeZone local = TimeZone::getTimeZone();
-      time_t seconds = changeTimeZone(mSecondsSinceEpoch, &local, tz);
-      localtime_r(&seconds, &time);
+      /* Note: In this case the output timezone might be different from the
+       * local one. The stored broken down time represents the local timezone.
+       * This means we must generate a new broken down time to use for our
+       * formatted output.
+       *
+       * The API calls available to generate a broken down time are gmtime_r()
+       * or localtime_r(). So in order to produce a correct broken down
+       * time for a timezone that is different from the local one, we must
+       * change the stored time by the difference between the two timezones and
+       * then call the appropriate function. This means we can use either:
+       *
+       * 1. UTC and the target timezone and then call gmtime_r(), or
+       * 2. the local timezone and the target timezone and then call
+       *    localtime_r().
+       *
+       * We chose gmtime_r() because getting the UTC timezone is faster than
+       * getting the local one.
+       *
+       * To get the appropriate broken down time, first changeTimeZone() is
+       * called with UTC as the input timezone and the target timezone as the
+       * output timezone. We then reproduce the broken down time by calling
+       * gmtime_r(). The end result is what the broken down time would be
+       * for our original stored time if it were in the target timezone.
+       */
+      TimeZone utc = TimeZone::getTimeZone("UTC");
+      time_t seconds = changeTimeZone(mSecondsSinceEpoch, &utc, tz);
+      gmtime_r(&seconds, &time);
    }
 
    // print the time to a string
-   unsigned int size = strlen(format) + 100;
+   size_t size = strlen(format) + 100;
    char out[size];
    strftime(out, size, format, &time);
    str.assign(out);
@@ -219,15 +242,24 @@ bool Date::parse(const char* str, const char* format, TimeZone* tz)
       mBrokenDownTime.tm_isdst = -1;
       mSecondsSinceEpoch = mktime(&mBrokenDownTime);
 
-      /* Note: At this point, mSecondsSinceEpoch is set to the number of
-       * seconds since the Epoch for our local timezone because mktime()
-       * assumes an input from the local timezone. If the input was from
-       * another timezone, we need to apply that timezone difference in
-       * order to get the correct number of seconds since the Epoch. In
-       * other words, if our input was 5:00pm in PST, and we're in EST,
-       * (a difference of 3 hours), then mktime() will give us the number
-       * of seconds since the Epoch for 5:00pm EST. But our input, in EST,
-       * is actually 8:00pm.
+      /* Note: mktime() returns the number of seconds since the Epoch for the
+       * given broken down time assuming that it is in the local timezone. The
+       * input's timezone may not be in the local timezone, however. In order
+       * to generate the correct broken down time for this machine's local
+       * time zone, we must convert from the given timezone to the local one.
+       *
+       * To do this, we simply call changeTimeZone() with the input timezone
+       * as the given one and the output timezone as this machine's local
+       * timezone. The result is stored in mSecondsSinceEpoch.
+       *
+       * For example, if the input was 5:00pm PST, and this machine's local
+       * timezone is EST, then mktime() will return the number of seconds since
+       * the Epoch for 5:00pm EST. But the input, if it were in EST, would
+       * actually 8:00pm because of the three hour difference between PST and
+       * EST. To correct this discrepancy, we simply interpret the result from
+       * mktime() as if it were 5:00pm PST and convert it to EST. The end
+       * result is the number of seconds since the Epoch for 8:00pm EST, which
+       * is the correct value for the given input.
        */
       if(tz != NULL)
       {
