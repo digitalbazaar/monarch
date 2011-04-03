@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -12,6 +12,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <errno.h>
 
 using namespace std;
 using namespace monarch::io;

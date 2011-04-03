@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <errno.h>
 
 using namespace monarch::rt;
 
