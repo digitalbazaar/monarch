@@ -414,23 +414,29 @@ bool RdfaReader::finish()
    // no longer started
    mStarted = false;
 
+   // create context to finish graph
+   DynamicObject ctx(NULL);
+   if(!mContext.isNull())
+   {
+      ctx = mContext.clone();
+   }
+
    // merge in auto-context if requested
    if(mUseAutoContext)
    {
-      if(mContext.isNull())
+      if(ctx.isNull())
       {
-         mContext = DynamicObject();
-         mContext->setType(Map);
+         ctx = DynamicObject();
+         ctx->setType(Map);
       }
-      mContext.merge(mAutoContext, false);
+      ctx.merge(mAutoContext, false);
    }
 
    // finish graphs
-   _finishGraph(mContext, &mDefaultGraph);
-   _finishGraph(mContext, &mProcessorGraph);
+   _finishGraph(ctx, &mDefaultGraph);
+   _finishGraph(ctx, &mProcessorGraph);
 
-   // clear user-set context and parser
-   mContext.setNull();
+   // clear parser
    rdfa_free_context(mRdfaCtx);
    mRdfaCtx = NULL;
 
