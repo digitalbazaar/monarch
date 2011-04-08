@@ -112,7 +112,7 @@ DynamicObject X509Certificate::getExtensions()
    {
       // get extension and v3 extension method
       X509_EXTENSION* ext = X509_get_ext(mX509, i);
-      X509V3_EXT_METHOD* method = X509V3_EXT_get(ext);
+      const X509V3_EXT_METHOD* method = X509V3_EXT_get(ext);
       if(method != NULL)
       {
          // get extension name
@@ -161,7 +161,7 @@ DynamicObject X509Certificate::getExtensions()
          }
 
          // free configuration value stack
-         sk_free(stack);
+         sk_CONF_VALUE_free(stack);
 
          // call appropriate free function
          if(method->it)
