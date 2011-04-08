@@ -49,8 +49,14 @@ SslContext::SslContext(const char* protocol, bool client) :
    }
    else if(strcmp(protocol, "SSLv2") == 0)
    {
+#ifndef OPENSSL_NO_SSL2
       // use only SSLv2
       mContext = SSL_CTX_new(SSLv2_method());
+#else
+      // FIXME: need a new API to check for errors here
+      // SSLv2 not available, use v3
+      mContext = SSL_CTX_new(SSLv23_method());
+#endif
    }
 
    // turn on all options (this enables a bunch of bug fixes for various
