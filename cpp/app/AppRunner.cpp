@@ -484,7 +484,8 @@ bool AppRunner::run()
    // load app
    MicroKernelModule* module;
    App* app = _loadApp(this, &module);
-   if(app != NULL)
+   rval = (app != NULL);
+   if(rval)
    {
       // configure app
       rval = configureApp(app);
