@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/X509Certificate.h"
 
@@ -139,7 +139,8 @@ DynamicObject X509Certificate::getExtensions()
          // get extension value stack
          DynamicObject values;
          values->setType(Array);
-         STACK_OF(CONF_VALUE)* stack = method->i2v(method, asn1Stack, NULL);
+         STACK_OF(CONF_VALUE)* stack = method->i2v(
+            const_cast<X509V3_EXT_METHOD*>(method), asn1Stack, NULL);
          for(int n = 0; n < sk_CONF_VALUE_num(stack); ++n)
          {
             CONF_VALUE* nval = sk_CONF_VALUE_value(stack, n);
