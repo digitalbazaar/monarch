@@ -207,7 +207,7 @@ public:
     */
    enum OrderDirection
    {
-      ASC, DESC
+      ASC = 1, DESC
    };
 
 protected:
