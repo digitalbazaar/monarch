@@ -2740,15 +2740,14 @@ bool TemplateInputStream::writeConstruct(Construct* c)
          Literal* data = static_cast<Literal*>(c->data);
 
          // handle stripping a starting EOL
-         if(mStripStartingEol &&
-            data->text.length() > 0 && data->text[0] == EOL)
+         const char* str = data->text.c_str();
+         int len = data->text.length();
+         if(mStripStartingEol && str[0] == EOL)
          {
-            mParsed.put(data->text.c_str() + 1, data->text.length() - 1, true);
+            ++str;
+            --len;
          }
-         else
-         {
-            mParsed.put(data->text.c_str(), data->text.length(), true);
-         }
+         mParsed.put(str, len, true);
          break;
       }
       case Construct::Command:
