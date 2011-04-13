@@ -79,7 +79,6 @@ protected:
       int line;
       int column;
       Construct* parent;
-      int childIndex;
    };
 
    /**

@@ -821,8 +821,6 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
                   c->line = mLine;
                   c->column = mColumn;
                   c->parent = mConstructs.back();
-                  c->childIndex = max(
-                     0, (int)mConstructs.back()->children.size() - 1);
                   mConstructs.push_back(c);
                }
 
@@ -848,8 +846,6 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
                c->line = mLine;
                c->column = mColumn;
                c->parent = mConstructs.back();
-               c->childIndex = max(
-                  0, (int)mConstructs.back()->children.size() - 1);
                mConstructs.push_back(c);
                mStateStack.push_back(mState);
                mState = ParseConstructType;
@@ -1033,8 +1029,6 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
                   c->line = mLine;
                   c->column = mColumn;
                   c->parent = mConstructs.back();
-                  c->childIndex = max(
-                     0, (int)mConstructs.back()->children.size() - 1);
                   mConstructs.push_back(c);
                   mStateStack.push_back(mState);
                   mState = ParsePipe;
@@ -1175,8 +1169,6 @@ bool TemplateInputStream::parseConstruct()
                literal->line = mLine;
                literal->column = mColumn;
                literal->parent = mConstructs.back();
-               literal->childIndex = max(
-                  0, (int)mConstructs.back()->children.size() - 1);
                mConstructs.push_back(literal);
             }
             else if(cmd->type == Command::cmd_end)
@@ -3956,8 +3948,6 @@ void TemplateInputStream::resetState(bool createRoot)
       root->line = 0;
       root->column = 0;
       root->parent = NULL;
-      // FIXME: remove unnecessary child index
-      root->childIndex = 0;
       mConstructs.push_back(root);
    }
 }
