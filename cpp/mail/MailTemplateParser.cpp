@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/mail/MailTemplateParser.h"
 
@@ -108,7 +108,6 @@ bool MailTemplateParser::parse(
 
    // add template input stream to passed input stream
    TemplateInputStream tis(vars, strict, is, false);
-   tis.setStripStartingEol(true);
 
    // SMTP RFC requires lines be no longer than 998 bytes (+2 for CRLF = 1000)
    // so read in a maximum of 1000 bytes at a time

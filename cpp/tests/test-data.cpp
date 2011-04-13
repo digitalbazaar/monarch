@@ -3037,7 +3037,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    {
       const char* tpl =
          "The number five: {foo.five[1]}\n"
-         "{:each from=foo.items as=item key=key}"
+         "{:each from=foo.items as=item key=key}\n"
          "The item is '{item}', key is '{key}'\n"
          "{:end}";
 
@@ -3062,7 +3062,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    {
       const char* tpl =
          "Item count: {items.length}\n"
-         "{:each from=items as=item key=key}"
+         "{:each from=items as=item key=key}\n"
          "The item is '{item}', key is '{key}'\n"
          "{:end}";
 
@@ -3085,16 +3085,16 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    {
       const char* tpl =
          "Item count: {items.length}\n"
-         "{:each from=items as=item key=key}"
+         "{:each from=items as=item key=key}\n"
          "The item is '{item}', key is '{key}'\n"
-         "{:eachelse}"
+         "{:eachelse}\n"
          "There are no items.\n"
-         "{:end}"
-         "{:set items.a='item1'}"
+         "{:end}\n"
+         "{:set items.a='item1'}\n"
          "Item count: {items.length}\n"
-         "{:each from=items as=item key=key}"
+         "{:each from=items as=item key=key}\n"
          "The item is '{item}', key is '{key}'\n"
-         "{:eachelse}"
+         "{:eachelse}\n"
          "There are no items.\n"
          "{:end}";
 
@@ -3130,10 +3130,10 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    {
       const char* tpl =
          "Items:\n"
-         "{:each from=items as=item}"
+         "{:each from=items as=item}\n"
          "The item is '{item}'\n"
-         "{:end}"
-         "{:if end}end{:end}\n";
+         "{:end}\n"
+         "{:if end}\nend{:end}\n";
 
       DynamicObject vars;
       vars["items"]->setType(Array);
@@ -3141,7 +3141,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       const char* expect =
          "Items:\n"
-         "end\n";
+         "end";
 
       assertTplCmp(tpl, vars, expect, true);
    }
@@ -3151,7 +3151,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    {
       const char* tpl =
          "Item count: {items.length}\n"
-         "{:loop start=0 until=items.length index=current}"
+         "{:loop start=0 until=items.length index=current}\n"
          "The item is '{items[current]}', index is {current}\n"
          "{:end}";
 
@@ -3174,16 +3174,16 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    {
       const char* tpl =
          "Item count: {items.length}\n"
-         "{:loop start=0 until=items.length index=current}"
+         "{:loop start=0 until=items.length index=current}\n"
          "The item is '{items[current]}', index is {current}\n"
-         "{:loopelse}"
+         "{:loopelse}\n"
          "There are no items.\n"
-         "{:end}"
-         "{:set items[0]='item1'}"
+         "{:end}\n"
+         "{:set items[0]='item1'}\n"
          "Item count: {items.length}\n"
-         "{:loop start=0 until=items.length index=current}"
+         "{:loop start=0 until=items.length index=current}\n"
          "The item is '{items[current]}', index is {current}\n"
-         "{:loopelse}"
+         "{:loopelse}\n"
          "There are no items.\n"
          "{:end}";
 
@@ -3219,10 +3219,10 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    {
       const char* tpl =
          "Items:\n"
-         "{:loop start=0 until=items.length index=current}"
+         "{:loop start=0 until=items.length index=current}\n"
          "The item is '{items[current]}'\n"
-         "{:end}"
-         "{:if end}end{:end}\n";
+         "{:end}\n"
+         "{:if end}\nend{:end}\n";
 
       DynamicObject vars;
       vars["items"]->setType(Array);
@@ -3230,7 +3230,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       const char* expect =
          "Items:\n"
-         "end\n";
+         "end";
 
       assertTplCmp(tpl, vars, expect, true);
    }
@@ -3251,7 +3251,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
 
       const char* tpl =
          "Items:\n"
-         "{:include file=myfile}"
+         "{:include file=myfile}\n"
          "Again:\n"
          "{:include file=myfile as=foo}"
          "{foo}";
@@ -3565,6 +3565,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       const char* tpl =
          "{:set foo='A'}"
          "{:dump foo}\n"
+         "\n"
          "{foo|json}\n"
          "{:set bar='B'}"
          "{:dump}";
@@ -3798,7 +3799,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       vars["bar"][0] = "empty";
 
       const char* expect =
-         "1\n";
+         "1";
 
       assertTplCmp(tpl, vars, expect, true);
    }
@@ -3815,7 +3816,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       vars["bar"][0]["len"] = 0;
 
       const char* expect =
-         "1\n";
+         "1";
 
       assertTplCmp(tpl, vars, expect, true);
    }
@@ -3924,7 +3925,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
          "Item count: 0\n"
          "Item count: 1\n"
          "Item count: 2\n"
-         "|item1|item2|\n";
+         "|item1|item2|";
 
       assertTplCmp(tpl, vars, expect, true);
    }
@@ -3947,7 +3948,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
          "Item count: 0\n"
          "Item count: 1\n"
          "Item count: 2\n"
-         "|item1|item2|\n";
+         "|item1|item2|";
 
       assertTplCmp(tpl, vars, expect, true);
    }

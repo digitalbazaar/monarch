@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_TemplateInputStream_H
 #define monarch_data_TemplateInputStream_H
@@ -288,11 +288,6 @@ protected:
    monarch::io::File mIncludeDir;
 
    /**
-    * True to strip a starting EOL from a literal when outputting.
-    */
-   bool mStripStartingEol;
-
-   /**
     * A TemplateCache to use.
     */
    TemplateCache* mTemplateCache;
@@ -360,16 +355,6 @@ public:
     * @param dir an include directory for other templates.
     */
    virtual void setIncludeDirectory(const char* dir);
-
-   /**
-    * Sets whether or not a starting end-of-line character, if found at the
-    * beginning of a literal, should be stripped from the generated output.
-    *
-    * This if off by default.
-    *
-    * @param on true to strip a starting EOL from a literal, false not to.
-    */
-   virtual void setStripStartingEol(bool on);
 
    /**
     * Sets the template cache to use.

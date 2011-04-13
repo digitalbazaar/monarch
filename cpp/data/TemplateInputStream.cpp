@@ -84,7 +84,6 @@ TemplateInputStream::TemplateInputStream(
    mVars(vars),
    mStrict(strict),
    mIncludeDir((FileImpl*)NULL),
-   mStripStartingEol(false),
    mTemplateCache(NULL)
 {
    resetState();
@@ -102,7 +101,6 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
    mParsed(BUFFER_SIZE),
    mStrict(false),
    mIncludeDir((FileImpl*)NULL),
-   mStripStartingEol(false),
    mTemplateCache(NULL)
 {
    resetState();
@@ -131,11 +129,6 @@ void TemplateInputStream::setVariables(DynamicObject& vars, bool strict)
 void TemplateInputStream::setIncludeDirectory(const char* dir)
 {
    mIncludeDir = File(dir);
-}
-
-void TemplateInputStream::setStripStartingEol(bool on)
-{
-   mStripStartingEol = on;
 }
 
 void TemplateInputStream::setCache(TemplateCache* cache)
@@ -733,6 +726,29 @@ static const char* _handleEscapeSequence(char c, bool keep = true)
    return rval;
 }
 
+/**
+ * Returns the index into the given text of the last empty line in the given
+ * text, -1 if no empty line was found.
+ *
+ * @param text the text to check.
+ * @param length the length of the text.
+ *
+ * @return the index of the last empty line or -1 if none was found.
+ */
+static int _endsWithEmptyLine(const char* text, int length)
+{
+   int rval = -1;
+
+   int i = length - 1;
+   for(; i >= 0 && (text[i] == ' ' || text[i] == '\t'); --i);
+   if(i >= 0 && text[i] == EOL)
+   {
+      rval = i;
+   }
+
+   return rval;
+}
+
 bool TemplateInputStream::consumeTemplate(const char* ptr)
 {
    bool rval = true;
@@ -934,8 +950,27 @@ bool TemplateInputStream::consumeTemplate(const char* ptr)
          }
          case ParseCommand:
          {
-            // write text to command
             Construct* c = mConstructs.back();
+
+            // erase any whitespace before the command on the current line
+            Construct* parent = c->parent;
+            if(parent->children.size() > 0)
+            {
+               Construct* prev = parent->children.back();
+               if(prev->type == Construct::Literal)
+               {
+                  Literal* data = static_cast<Literal*>(prev->data);
+                  const char* text = data->text.c_str();
+                  int len = data->text.length();
+                  int i = _endsWithEmptyLine(text, len);
+                  if(i != -1)
+                  {
+                     data->text.erase(i + 1);
+                  }
+               }
+            }
+
+            // write text to command
             Command* data = static_cast<Command*>(c->data);
             data->text.append(mTemplate.data(), len);
             if(ret != 0)
@@ -1068,7 +1103,27 @@ void TemplateInputStream::attachConstruct()
 {
    Construct* child = mConstructs.back();
    mConstructs.pop_back();
-   Construct* parent = mConstructs.back();
+   Construct* parent = child->parent;
+
+   // if attaching a literal that follows a command, strip starting EOL
+   if(child->type == Construct::Literal)
+   {
+      // literal follows a command if it follows a parent command or a
+      // previous child command
+      int children = parent->children.size();
+      if((parent->type == Construct::Command && children == 0) ||
+         (children > 0 && parent->children.back()->type == Construct::Command))
+      {
+         Literal* data = static_cast<Literal*>(child->data);
+         const char* text = data->text.c_str();
+         if(text[0] == EOL)
+         {
+            data->text.erase(0, 1);
+         }
+      }
+   }
+
+   // append child to parent
    parent->children.push_back(child);
 }
 
@@ -1179,7 +1234,7 @@ bool TemplateInputStream::parseConstruct()
          rval = parsePipe(c, static_cast<Pipe*>(c->data));
          if(rval)
          {
-            //add pipe, return to previous state
+            // add pipe, return to previous state
             attachConstruct();
             prevState();
          }
@@ -2738,16 +2793,7 @@ bool TemplateInputStream::writeConstruct(Construct* c)
       {
          // write literal text out
          Literal* data = static_cast<Literal*>(c->data);
-
-         // handle stripping a starting EOL
-         const char* str = data->text.c_str();
-         int len = data->text.length();
-         if(mStripStartingEol && str[0] == EOL)
-         {
-            ++str;
-            --len;
-         }
-         mParsed.put(str, len, true);
+         mParsed.put(data->text.c_str(), data->text.length(), true);
          break;
       }
       case Construct::Command:
@@ -2827,7 +2873,6 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
                   mVars, mStrict, is, true,
                   mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
                tis->mLocalVars = mLocalVars;
-               tis->setStripStartingEol(mStripStartingEol);
                tis->setCache(mTemplateCache);
 
                // write to parse buffer, keep track of old length
@@ -3911,6 +3956,7 @@ void TemplateInputStream::resetState(bool createRoot)
       root->line = 0;
       root->column = 0;
       root->parent = NULL;
+      // FIXME: remove unnecessary child index
       root->childIndex = 0;
       mConstructs.push_back(root);
    }
