@@ -90,7 +90,12 @@ SocketAddress* HttpClient::getRemoteAddress()
 HttpResponse* HttpClient::get(
    Url* url, DynamicObject* headers, int maxRedirects)
 {
+   // initialize redirect list
    mRedirectList.clear();
+   if(maxRedirects > 0)
+   {
+      mRedirectList.push_back(url->toString());
+   }
    return getRecursive(url, headers, maxRedirects);
 }
 
@@ -420,7 +425,7 @@ HttpResponse* HttpClient::getRecursive(
                   // disconnect and then do get to redirect url
                   disconnect();
                   Url redirect = location.c_str();
-                  rval = get(&redirect, headers, --maxRedirects);
+                  rval = getRecursive(&redirect, headers, --maxRedirects);
                }
             }
          }

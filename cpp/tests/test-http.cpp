@@ -711,6 +711,88 @@ static void runHttpClientGetTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+class RedirectLoopHttpRequestServicer : public HttpRequestServicer
+{
+public:
+   RedirectLoopHttpRequestServicer(const char* path) : HttpRequestServicer(path)
+   {
+   }
+
+   virtual ~RedirectLoopHttpRequestServicer()
+   {
+   }
+
+   virtual void serviceRequest(
+      HttpRequest* request, HttpResponse* response)
+   {
+      // send 302 redirect to self
+      response->getHeader()->setStatus(302, "Found");
+      response->getHeader()->setField(
+         "Location", "http://localhost:19123/loop");
+      response->getHeader()->setField("Content-Length", 0);
+      response->getHeader()->setField("Connection", "close");
+      response->sendHeader();
+   }
+};
+
+static void runHttpClientRedirectLoopTest(TestRunner& tr)
+{
+   tr.test("Http Client Redirect Loop");
+
+   // start a kernel
+   Kernel k;
+   k.getEngine()->start();
+
+   // create server
+   Server server;
+   InternetAddress address("0.0.0.0", 19123);
+
+   // create SSL/generic http connection servicer
+   HttpConnectionServicer hcs;
+   server.addConnectionService(&address, &hcs);
+
+   // create redirect loop http request servicer
+   RedirectLoopHttpRequestServicer loop("/loop");
+   hcs.addRequestServicer(&loop, false);
+
+   if(server.start(&k))
+   {
+      printf("\nServer started on %s\n",
+         address.toString(false).c_str());
+
+      // create client
+      HttpClient client;
+
+      printf("Connecting and expecting a redirect loop...\n");
+
+      // do get
+      Url url("http://localhost:19123/loop");
+      HttpResponse* response = client.get(&url, NULL, 2);
+      if(response != NULL)
+      {
+         printf("Response=\n%s\n", response->getHeader()->toString().c_str());
+      }
+      else
+      {
+         printf("Correctly detected an exception:\n");
+         printf("'%s'\n", Exception::get()->getMessage());
+      }
+      client.disconnect();
+   }
+   else if(Exception::get() != NULL)
+   {
+      printf("\nServer start failed with errors=%s\n",
+         Exception::get()->getMessage());
+   }
+
+   tr.passIfException();
+
+   // stop server and kernel
+   server.stop();
+   k.getEngine()->stop();
+   Exception::clear();
+}
+
 static void runHttpClientPostTest(TestRunner& tr)
 {
    tr.test("Http Client POST");
@@ -928,6 +1010,10 @@ static bool run(TestRunner& tr)
    if(tr.isTestEnabled("http-client-get"))
    {
       runHttpClientGetTest(tr);
+   }
+   if(tr.isTestEnabled("http-client-redirect-loop"))
+   {
+      runHttpClientRedirectLoopTest(tr);
    }
    if(tr.isTestEnabled("http-client-post"))
    {
