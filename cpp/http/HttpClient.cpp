@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/HttpClient.h"
 
@@ -87,62 +87,11 @@ SocketAddress* HttpClient::getRemoteAddress()
    return (mConnection != NULL) ? mConnection->getRemoteAddress() : NULL;
 }
 
-HttpResponse* HttpClient::get(Url* url, DynamicObject* headers, bool follow)
+HttpResponse* HttpClient::get(
+   Url* url, DynamicObject* headers, int maxRedirects)
 {
-   HttpResponse* rval = NULL;
-
-   // ensure connected
-   if(connect(url))
-   {
-      // set request header
-      mRequest->getHeader()->setMethod("GET");
-      mRequest->getHeader()->setPath(url->getPathAndQuery().c_str());
-      mRequest->getHeader()->setVersion("HTTP/1.1");
-      mRequest->getHeader()->clearFields();
-      mRequest->getHeader()->setField("Host", url->getAuthority());
-      mRequest->getHeader()->setField("User-Agent", "Monarch Http Client/2.0");
-
-      if(headers != NULL)
-      {
-         // set custom headers
-         setCustomHeaders(mRequest->getHeader(), *headers);
-      }
-
-      // send request header and receive response header
-      if(mRequest->sendHeader() && mResponse->receiveHeader())
-      {
-         // handle http redirect
-         int code = mResponse->getHeader()->getStatusCode();
-         if(follow && (code == 301 || code == 302))
-         {
-            // get new location
-            std::string location;
-            if(!mResponse->getHeader()->getField("location", location))
-            {
-               ExceptionRef e = new Exception(
-                  "Got redirect response code, but could not redirect. "
-                  "No location field in header.",
-                  "monarch.net.http.InvalidRedirect");
-               e->getDetails()["statusCode"] = code;
-               Exception::set(e);
-            }
-            else
-            {
-               // disconnect and then do get to redirect url
-               disconnect();
-               Url redirect = location.c_str();
-               rval = get(&redirect, headers, follow);
-            }
-         }
-         else
-         {
-            // return response
-            rval = mResponse;
-         }
-      }
-   }
-
-   return rval;
+   mRedirectList.clear();
+   return getRecursive(url, headers, maxRedirects);
 }
 
 HttpResponse* HttpClient::post(
@@ -407,4 +356,81 @@ void HttpClient::setCustomHeaders(HttpHeader* h, DynamicObject& headers)
          }
       }
    }
+}
+
+HttpResponse* HttpClient::getRecursive(
+   Url* url, DynamicObject* headers, int maxRedirects)
+{
+   HttpResponse* rval = NULL;
+
+   // ensure connected
+   if(connect(url))
+   {
+      // set request header
+      mRequest->getHeader()->setMethod("GET");
+      mRequest->getHeader()->setPath(url->getPathAndQuery().c_str());
+      mRequest->getHeader()->setVersion("HTTP/1.1");
+      mRequest->getHeader()->clearFields();
+      mRequest->getHeader()->setField("Host", url->getAuthority());
+      mRequest->getHeader()->setField("User-Agent", "Monarch Http Client/2.0");
+
+      if(headers != NULL)
+      {
+         // set custom headers
+         setCustomHeaders(mRequest->getHeader(), *headers);
+      }
+
+      // send request header and receive response header
+      if(mRequest->sendHeader() && mResponse->receiveHeader())
+      {
+         // handle http redirect
+         int code = mResponse->getHeader()->getStatusCode();
+         if(maxRedirects > 0 && (code == 301 || code == 302))
+         {
+            // get new location
+            std::string location;
+            if(!mResponse->getHeader()->getField("location", location))
+            {
+               ExceptionRef e = new Exception(
+                  "Got redirect response code, but could not redirect. "
+                  "No location field in header.",
+                  "monarch.net.http.InvalidRedirect");
+               e->getDetails()["statusCode"] = code;
+               Exception::set(e);
+            }
+            else
+            {
+               // ensure location is not in the redirect list
+               RedirectList::iterator i = std::find(
+                  mRedirectList.begin(), mRedirectList.end(), location);
+               if(i != mRedirectList.end())
+               {
+                  ExceptionRef e = new Exception(
+                     "Got redirect response code, but could not redirect. "
+                     "Redirect loop detected.",
+                     "monarch.net.http.InvalidRedirect");
+                  e->getDetails()["statusCode"] = code;
+                  Exception::set(e);
+               }
+               else
+               {
+                  // add location to redirect list
+                  mRedirectList.push_back(location);
+
+                  // disconnect and then do get to redirect url
+                  disconnect();
+                  Url redirect = location.c_str();
+                  rval = get(&redirect, headers, --maxRedirects);
+               }
+            }
+         }
+         else
+         {
+            // return response
+            rval = mResponse;
+         }
+      }
+   }
+
+   return rval;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_http_HttpClient_H
 #define monarch_http_HttpClient_H
@@ -53,6 +53,13 @@ protected:
     * Store the previous SSL session.
     */
    monarch::net::SslSession mSslSession;
+
+   /**
+    * A list of locations that have been followed during a GET. Used to prevent
+    * redirect loops.
+    */
+   typedef std::vector<std::string> RedirectList;
+   RedirectList mRedirectList;
 
 public:
    /**
@@ -112,13 +119,13 @@ public:
     *
     * @param url the url of the content to request.
     * @param headers any special headers to include in the request.
-    * @param follow true to follow redirects (default), false not to.
+    * @param maxRedirects maximum number of redirects to allow (default: 1).
     *
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* get(
       monarch::net::Url* url, monarch::rt::DynamicObject* headers = NULL,
-      bool follow = true);
+      int maxRedirects = 1);
 
    /**
     * Sends an HTTP POST request and its content. The caller of this
@@ -280,6 +287,19 @@ protected:
     */
    virtual void setCustomHeaders(
       HttpHeader* h, monarch::rt::DynamicObject& headers);
+
+   /**
+    * Used internally to recursively follow to fulfill a GET request.
+    *
+    * @param url the url of the content to request.
+    * @param headers any special headers to include in the request.
+    * @param maxRedirects maximum number of redirects to allow.
+    *
+    * @return the HTTP response if one was received, NULL if not.
+    */
+   virtual HttpResponse* getRecursive(
+      monarch::net::Url* url, monarch::rt::DynamicObject* headers,
+      int maxRedirects);
 };
 
 } // end namespace http
