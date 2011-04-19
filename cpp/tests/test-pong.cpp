@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -13,7 +13,6 @@
 #include "monarch/logging/Logging.h"
 #include "monarch/modest/Kernel.h"
 #include "monarch/net/TcpSocket.h"
-#include "monarch/net/Url.h"
 #include "monarch/http/CookieJar.h"
 #include "monarch/http/HttpHeader.h"
 #include "monarch/http/HttpRequest.h"
@@ -25,7 +24,6 @@
 #include "monarch/net/NullSocketDataPresenter.h"
 #include "monarch/net/SslSocketDataPresenter.h"
 #include "monarch/net/SocketDataPresenterList.h"
-#include "monarch/net/Url.h"
 #include "monarch/rt/Atomic.h"
 #include "monarch/rt/ExclusiveLock.h"
 #include "monarch/rt/System.h"
@@ -35,6 +33,7 @@
 #include "monarch/test/TestModule.h"
 #include "monarch/util/Date.h"
 #include "monarch/util/StringTools.h"
+#include "monarch/util/Url.h"
 
 using namespace std;
 using namespace monarch::config;
@@ -52,7 +51,7 @@ namespace mo_test_pong
 
 /**
  * PingPong Test
- * 
+ *
  * Invoke with the following:
  *
  *   ./monarch-run pong

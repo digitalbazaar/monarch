@@ -28,10 +28,10 @@ modata_SOURCES = \
 	$(wildcard riff/*.cpp) \
 	$(wildcard xml/*.cpp)
 
-DYNAMIC_LINK_LIBRARIES = moio moutil mort mologging monet
+DYNAMIC_LINK_LIBRARIES = moio moutil mort mologging
 
-DYNAMIC_MACOS_LINK_LIBRARIES = iconv charset expat mocompress momodest mocrypto
-DYNAMIC_WINDOWS_LINK_LIBRARIES = libexpat iconv2 charset1 mocrypto
+DYNAMIC_MACOS_LINK_LIBRARIES = iconv charset expat mocompress
+DYNAMIC_WINDOWS_LINK_LIBRARIES = libexpat iconv2 charset1
 
 CXX_FLAGS += @LIBRDFA_CFLAGS@
 LD_FLAGS += @LIBRDFA_LIBS@

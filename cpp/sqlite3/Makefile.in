@@ -4,7 +4,7 @@ LIBRARIES = mosqlite3
 mosqlite3_HEADERS = $(wildcard *.h)
 mosqlite3_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mocrypto monet mosql
+DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mosql
 HEADER_DIST_DIR = dist/include/monarch/sql/sqlite3
 
 DYNAMIC_MACOS_LINK_LIBRARIES = sqlite3 mologging mocompress modata movalidation

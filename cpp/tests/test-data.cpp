@@ -34,14 +34,14 @@
 #include "monarch/data/riff/RiffListHeader.h"
 #include "monarch/data/riff/RiffFormHeader.h"
 #include "monarch/logging/Logging.h"
-#include "monarch/modest/Kernel.h"
-#include "monarch/net/Url.h"
 #include "monarch/http/HttpClient.h"
 #include "monarch/http/HttpConnectionServicer.h"
 #include "monarch/http/HttpRequestServicer.h"
+#include "monarch/modest/Kernel.h"
 #include "monarch/net/Server.h"
 #include "monarch/util/Data.h"
 #include "monarch/util/Timer.h"
+#include "monarch/util/Url.h"
 
 using namespace std;
 using namespace monarch::test;

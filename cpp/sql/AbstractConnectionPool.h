@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_AbstractConnectionPool_H
 #define monarch_sql_AbstractConnectionPool_H
 
-#include "monarch/net/Url.h"
 #include "monarch/rt/ExclusiveLock.h"
 #include "monarch/rt/Semaphore.h"
 #include "monarch/rt/System.h"
 #include "monarch/sql/ConnectionPool.h"
 #include "monarch/sql/PooledConnection.h"
+#include "monarch/util/Url.h"
 
 #include <list>
 
@@ -63,7 +63,7 @@ protected:
     * The database driver parameters in URL form for creating database
     * connections.
     */
-   monarch::net::Url mUrl;
+   monarch::util::Url mUrl;
 
    /**
     * The expire time for Connections (in milliseconds).

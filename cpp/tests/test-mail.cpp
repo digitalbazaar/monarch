@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/mail/SmtpClient.h"
 #include "monarch/mail/MailTemplateParser.h"
 #include "monarch/mail/MailSpool.h"
-#include "monarch/net/Url.h"
 #include "monarch/test/Test.h"
 #include "monarch/test/TestModule.h"
 #include "monarch/util/StringTools.h"
+#include "monarch/util/Url.h"
 
 using namespace std;
 using namespace monarch::io;

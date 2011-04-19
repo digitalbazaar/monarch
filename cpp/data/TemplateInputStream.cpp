@@ -14,16 +14,15 @@
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/io/ByteArrayOutputStream.h"
 #include "monarch/io/FileInputStream.h"
-#include "monarch/net/Url.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/util/StringTools.h"
+#include "monarch/util/Url.h"
 
 using namespace std;
 using namespace monarch::crypto;
 using namespace monarch::data;
 using namespace monarch::data::json;
 using namespace monarch::io;
-using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 

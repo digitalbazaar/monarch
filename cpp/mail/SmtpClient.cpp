@@ -10,6 +10,7 @@ using namespace monarch::io;
 using namespace monarch::mail;
 using namespace monarch::net;
 using namespace monarch::rt;
+using namespace monarch::util;
 
 SmtpClient::SmtpClient() :
    mSslContext(NULL)

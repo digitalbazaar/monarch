@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_Connection_H
 #define monarch_sql_Connection_H
 
-#include "monarch/net/Url.h"
 #include "monarch/rt/Exception.h"
+#include "monarch/util/Url.h"
 
 namespace monarch
 {
@@ -53,7 +53,7 @@ public:
     *
     * @return true if successful, false if an Exception occurred.
     */
-   virtual bool connect(monarch::net::Url* url) = 0;
+   virtual bool connect(monarch::util::Url* url) = 0;
 
    /**
     * Prepares a Statement for execution. The Statement, if valid, is stored

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 #define __STDC_FORMAT_MACROS
@@ -15,6 +15,7 @@ using namespace monarch::data;
 using namespace monarch::io;
 using namespace monarch::net;
 using namespace monarch::rt;
+using namespace monarch::util;
 
 SphinxClient::SphinxClient()
 {

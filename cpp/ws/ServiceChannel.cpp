@@ -15,6 +15,7 @@ using namespace monarch::http;
 using namespace monarch::io;
 using namespace monarch::net;
 using namespace monarch::rt;
+using namespace monarch::util;
 using namespace monarch::ws;
 
 #define CONTENT_TYPE_ANY    "*/*"

@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
-#include "monarch/net/Url.h"
+#include "monarch/util/Url.h"
 
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/rt/Exception.h"
@@ -16,7 +16,6 @@
 #include <algorithm>
 
 using namespace std;
-using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/app/AppFactory.h"
 #include "monarch/crypto/MessageDigest.h"
@@ -11,8 +11,8 @@
 #include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/io/FileInputStream.h"
 #include "monarch/logging/Logging.h"
-#include "monarch/net/Url.h"
 #include "monarch/util/StringTools.h"
+#include "monarch/util/Url.h"
 
 #include <cstdio>
 
@@ -26,8 +26,8 @@ using namespace monarch::http;
 using namespace monarch::io;
 using namespace monarch::logging;
 using namespace monarch::modest;
-using namespace monarch::net;
 using namespace monarch::rt;
+using namespace monarch::net;
 using namespace monarch::util;
 
 #define APP_NAME "monarch.apps.rdfa2jsonld.Rdfa2JsonLd"

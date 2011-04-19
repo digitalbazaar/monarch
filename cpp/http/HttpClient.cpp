@@ -14,6 +14,7 @@ using namespace monarch::io;
 using namespace monarch::http;
 using namespace monarch::net;
 using namespace monarch::rt;
+using namespace monarch::util;
 
 HttpClient::HttpClient(SslContext* sc) :
    mConnection(NULL),

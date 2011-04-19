@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sql/AbstractConnection.h"
 
@@ -9,7 +9,6 @@
 #include <cstring>
 
 using namespace std;
-using namespace monarch::net;
 using namespace monarch::sql;
 using namespace monarch::rt;
 using namespace monarch::util;

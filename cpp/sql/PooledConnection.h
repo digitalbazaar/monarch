@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_database_PooledConnection_H
 #define monarch_database_PooledConnection_H
@@ -94,7 +94,7 @@ public:
     *
     * @return true if successful, false if an Exception occurred.
     */
-   virtual bool connect(monarch::net::Url* url);
+   virtual bool connect(monarch::util::Url* url);
 
    /**
     * Prepares a Statement for execution. The Statement, if valid, is stored

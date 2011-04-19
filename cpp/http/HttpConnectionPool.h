@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_http_HttpConnectionPool_H
 #define monarch_http_HttpConnectionPool_H
 
 #include "monarch/http/HttpConnection.h"
-#include "monarch/net/Url.h"
 #include "monarch/util/StringTools.h"
+#include "monarch/util/Url.h"
 
 #include <map>
 #include <list>
@@ -65,7 +65,8 @@ public:
     *           a virtual host in some custom fashion.
     */
    virtual void addConnection(
-      monarch::net::Url* url, HttpConnectionRef conn, const char* vHost = NULL);
+      monarch::util::Url* url, HttpConnectionRef conn,
+      const char* vHost = NULL);
 
    /**
     * Gets an idle connection from this pool to a particular url. If no
@@ -78,7 +79,7 @@ public:
     * @return the available connection, NULL if none is available.
     */
    virtual HttpConnectionRef getConnection(
-      monarch::net::Url* url, const char* vHost = NULL);
+      monarch::util::Url* url, const char* vHost = NULL);
 };
 
 // typedef for a counted reference to an HttpConnectionPool

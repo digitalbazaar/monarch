@@ -13,8 +13,8 @@
 using namespace std;
 using namespace monarch::sql;
 using namespace monarch::sql::mysql;
-using namespace monarch::net;
 using namespace monarch::rt;
+using namespace monarch::util;
 
 MySqlConnection::MySqlConnection() :
    mHandle(NULL)

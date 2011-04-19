@@ -6,11 +6,11 @@
 
 #include "monarch/io/InputStream.h"
 #include "monarch/io/OutputStream.h"
-#include "monarch/net/Url.h"
 #include "monarch/http/HttpConnection.h"
 #include "monarch/http/HttpRequest.h"
 #include "monarch/http/HttpResponse.h"
 #include "monarch/rt/DynamicObject.h"
+#include "monarch/util/Url.h"
 
 namespace monarch
 {
@@ -109,7 +109,7 @@ public:
     * @param header the HttpRequestHeader to update.
     */
    virtual void initializeRequestHeader(
-      monarch::net::Url* url, monarch::http::HttpRequestHeader* header);
+      monarch::util::Url* url, monarch::http::HttpRequestHeader* header);
 
    /**
     * Adds any previously set custom headers and default transfer-encoding

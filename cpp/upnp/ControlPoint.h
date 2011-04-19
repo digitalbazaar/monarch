@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_upnp_ControlPoint_H
 #define monarch_upnp_ControlPoint_H
 
-#include "monarch/net/Url.h"
 #include "monarch/upnp/TypeDefinitions.h"
+#include "monarch/util/Url.h"
 
 #include <string>
 
@@ -42,7 +42,7 @@ public:
     * @return true if successful, false if not.
     */
    virtual bool getDescription(
-      monarch::net::Url* url, std::string& description);
+      monarch::util::Url* url, std::string& description);
 
    /**
     * Gets the description for a device.

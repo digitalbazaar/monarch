@@ -9,7 +9,7 @@
 #include "monarch/http/HttpResponse.h"
 #include "monarch/net/SslContext.h"
 #include "monarch/net/SslSessionCache.h"
-#include "monarch/net/Url.h"
+#include "monarch/util/Url.h"
 
 namespace monarch
 {
@@ -87,7 +87,7 @@ public:
     *
     * @return true if this client is connected, false if not.
     */
-   virtual bool connect(monarch::net::Url* url);
+   virtual bool connect(monarch::util::Url* url);
 
    /**
     * Gets the local address for this Connection. This address can be
@@ -124,7 +124,7 @@ public:
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* get(
-      monarch::net::Url* url, monarch::rt::DynamicObject* headers = NULL,
+      monarch::util::Url* url, monarch::rt::DynamicObject* headers = NULL,
       int maxRedirects = 1);
 
    /**
@@ -145,7 +145,7 @@ public:
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* post(
-      monarch::net::Url* url, monarch::rt::DynamicObject* headers,
+      monarch::util::Url* url, monarch::rt::DynamicObject* headers,
       monarch::io::InputStream* is,
       HttpTrailer* trailer = NULL, bool skipContinue = true);
 
@@ -202,7 +202,7 @@ public:
     *         occurred.
     */
    static HttpConnection* createConnection(
-      monarch::net::Url* url,
+      monarch::util::Url* url,
       monarch::net::SslContext* sslContext = NULL,
       monarch::net::SslSession* session = NULL,
       unsigned int timeout = 30,
@@ -238,7 +238,7 @@ public:
     *         occurred.
     */
    static HttpConnection* createSslConnection(
-      monarch::net::Url* url, monarch::net::SslContext& context,
+      monarch::util::Url* url, monarch::net::SslContext& context,
       monarch::net::SslSessionCache& cache,
       unsigned int timeout = 30,
       monarch::rt::DynamicObject* commonNames = NULL,
@@ -298,7 +298,7 @@ protected:
     * @return the HTTP response if one was received, NULL if not.
     */
    virtual HttpResponse* getRecursive(
-      monarch::net::Url* url, monarch::rt::DynamicObject* headers,
+      monarch::util::Url* url, monarch::rt::DynamicObject* headers,
       int maxRedirects);
 };
 

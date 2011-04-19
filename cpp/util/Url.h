@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
-#ifndef monarch_net_Url_H
-#define monarch_net_Url_H
+#ifndef monarch_util_Url_H
+#define monarch_util_Url_H
 
 #include "monarch/rt/DynamicObject.h"
 
@@ -10,7 +10,7 @@
 
 namespace monarch
 {
-namespace net
+namespace util
 {
 
 /**
@@ -87,16 +87,6 @@ protected:
     * The port for this url, if one exists.
     */
    int mPort;
-
-   /**
-    * Sets this Url to the passed formatted string.
-    *
-    * @param format the format for the url.
-    * @param varargs the format parameters.
-    *
-    * @return false if the URL is malformed, true if not.
-    */
-   virtual bool setUrl(const char* format, va_list varargs);
 
 public:
    /**
@@ -463,6 +453,16 @@ public:
 
 protected:
    /**
+    * Sets this Url to the passed formatted string.
+    *
+    * @param format the format for the url.
+    * @param varargs the format parameters.
+    *
+    * @return false if the URL is malformed, true if not.
+    */
+   virtual bool setUrl(const char* format, va_list varargs);
+
+   /**
     * Parse scheme specific part.
     *
     * @return false if the URL is malformed, true if not.
@@ -473,6 +473,6 @@ protected:
 // type definition for a reference collected Url
 typedef monarch::rt::Collectable<Url> UrlRef;
 
-} // end namespace net
+} // end namespace util
 } // end namespace monarch
 #endif

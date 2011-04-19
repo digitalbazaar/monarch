@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_mail_SmtpClient_H
 #define monarch_mail_SmtpClient_H
 
 #include "monarch/net/Connection.h"
 #include "monarch/net/SslSocket.h"
-#include "monarch/net/Url.h"
 #include "monarch/mail/Mail.h"
+#include "monarch/util/Url.h"
 
 namespace monarch
 {
@@ -150,7 +150,7 @@ public:
     * @return true if the mail was sent successfully, false if an exception
     *         occurred.
     */
-   virtual bool sendMail(monarch::net::Url* url, Mail* mail);
+   virtual bool sendMail(monarch::util::Url* url, Mail* mail);
 };
 
 } // end namespace mail

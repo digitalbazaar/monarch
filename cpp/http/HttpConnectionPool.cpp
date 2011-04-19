@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/HttpConnectionPool.h"
 

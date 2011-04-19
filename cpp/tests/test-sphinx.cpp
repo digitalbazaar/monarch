@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/sphinx/SphinxClient.h"
 #include "monarch/data/json/JsonWriter.h"
@@ -15,6 +15,7 @@ using namespace monarch::io;
 using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::test;
+using namespace monarch::util;
 
 namespace mo_test_sphinx
 {

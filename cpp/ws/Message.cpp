@@ -27,7 +27,6 @@ using namespace monarch::data::json;
 using namespace monarch::data::xml;
 using namespace monarch::http;
 using namespace monarch::io;
-using namespace monarch::net;
 using namespace monarch::rt;
 using namespace monarch::util;
 using namespace monarch::ws;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sql_mysql_MySqlConnection_H
 #define monarch_sql_mysql_MySqlConnection_H
@@ -58,7 +58,7 @@ public:
     *
     * @return true if successful, false if an Exception occurred.
     */
-   virtual bool connect(monarch::net::Url* url);
+   virtual bool connect(monarch::util::Url* url);
    using monarch::sql::AbstractConnection::connect;
 
    /**

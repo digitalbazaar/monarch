@@ -5,6 +5,7 @@
 
 using namespace std;
 using namespace monarch::net;
+using namespace monarch::util;
 
 SslSessionCache::SslSessionCache(unsigned int capacity) :
    mCapacity(capacity)

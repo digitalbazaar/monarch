@@ -10,8 +10,8 @@ using namespace std;
 using namespace monarch::io;
 using namespace monarch::sql;
 using namespace monarch::sql::sqlite3;
-using namespace monarch::net;
 using namespace monarch::rt;
+using namespace monarch::util;
 
 Sqlite3Connection::Sqlite3Connection() :
    mHandle(NULL)

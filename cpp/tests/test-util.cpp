@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -18,6 +18,7 @@
 #include "monarch/util/StringTools.h"
 #include "monarch/util/StringTokenizer.h"
 #include "monarch/util/Timer.h"
+#include "monarch/util/Url.h"
 #include "monarch/util/UniqueList.h"
 
 #include <cstdlib>
@@ -1216,6 +1217,565 @@ static void runPathFormatterTest(TestRunner& tr)
    tr.passIfNoException();
 }
 
+static void runUrlEncodeTest(TestRunner& tr)
+{
+   tr.test("Url Encode/Decode");
+   {
+      string str = "billy bob & \"jane\" +^%2{13.";
+
+      string encoded = Url::encode(str.c_str(), str.length());
+      assertStrCmp(
+         "billy+bob+%26+%22jane%22+%2B%5E%252%7B13.", encoded.c_str());
+      string decoded = Url::decode(encoded.c_str(), encoded.length());
+
+      assertStrCmp(decoded.c_str(), str.c_str());
+   }
+   tr.pass();
+
+   tr.test("Url Encode/Decode use %20 for spaces");
+   {
+      string str = "billy bob & \"jane\" +^%2{13.";
+
+      string encoded = Url::encode(str.c_str(), str.length(), false);
+      assertStrCmp(
+         "billy%20bob%20%26%20%22jane%22%20%2B%5E%252%7B13.", encoded.c_str());
+      string decoded = Url::decode(encoded.c_str(), encoded.length());
+
+      assertStrCmp(decoded.c_str(), str.c_str());
+   }
+   tr.pass();
+}
+
+static void dumpUrl(Url& url)
+#ifdef __GNUC__
+      __attribute__ ((unused))
+#endif
+      ;
+static void dumpUrl(Url& url)
+{
+   if(Exception::isSet())
+   {
+      printf("url=[exception]\n");
+   }
+   else
+   {
+      string str = url.toString();
+
+      printf("url=%s\n", str.c_str());
+      printf(" scheme=%s\n", url.getScheme().c_str());
+      printf(" scheme specific part=%s\n", url.getSchemeSpecificPart().c_str());
+      printf(" authority=%s\n", url.getAuthority().c_str());
+      printf(" userinfo=%s\n", url.getUserInfo().c_str());
+      printf(" user=%s\n", url.getUser().c_str());
+      printf(" password=%s\n", url.getPassword().c_str());
+      printf(" host=%s\n", url.getHost().c_str());
+      printf(" port=%d\n", url.getPort());
+      printf(" path=%s\n", url.getPath().c_str());
+      printf(" query=%s\n", url.getQuery().c_str());
+   }
+}
+
+static void runUrlTest(TestRunner& tr)
+{
+   tr.test("Url");
+
+   {
+      Url url("http:");
+
+      //dumpUrl(url);
+      assert(url.getScheme() == "http");
+      assert(url.getSchemeSpecificPart() == "");
+   }
+
+   {
+      Url url("http://");
+
+      //dumpUrl(url);
+      assert(url.getScheme() == "http");
+      assert(url.getSchemeSpecificPart() == "//");
+   }
+
+   {
+      Url url("http://www.bitmunk.com");
+
+      //dumpUrl(url);
+      assert(url.getScheme() == "http");
+      assert(url.getSchemeSpecificPart() == "//www.bitmunk.com");
+      assert(url.getHost() == "www.bitmunk.com");
+      assert(url.getPath() == "/");
+   }
+
+   {
+      Url url("http://www.bitmunk.com/mypath?variable1=test");
+
+      //dumpUrl(url);
+      assert(url.getScheme() == "http");
+      assert(url.getUserInfo() == "");
+      assert(url.getUser() == "");
+      assert(url.getPassword() == "");
+      assert(url.getHost() == "www.bitmunk.com");
+      assert(url.getPort() == 80);
+      assert(url.getPath() == "/mypath");
+      assert(url.getQuery() == "variable1=test");
+   }
+
+   {
+      Url url("mysql://username:password@host:3306/mydatabase");
+
+      //dumpUrl(url);
+      assert(url.getScheme() == "mysql");
+      assert(url.getUser() == "username");
+      assert(url.getPassword() == "password");
+      assert(url.getHost() == "host");
+      assert(url.getPort() == 3306);
+      assert(url.getPath() == "/mydatabase");
+   }
+
+   {
+      Url url("http://example.com:8080/path");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assert(url.getScheme() == "http");
+      assert(url.getUserInfo() == "");
+      assert(url.getUser() == "");
+      assert(url.getPassword() == "");
+      assert(url.getHost() == "example.com");
+      assert(url.getPort() == 8080);
+      assert(url.getPath() == "/path");
+      assert(url.getQuery() == "");
+   }
+
+   {
+      Url url("scheme:schemespecific");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assert(url.getScheme() == "scheme");
+      assert(url.getSchemeSpecificPart() == "schemespecific");
+   }
+
+   {
+      Url url(
+         "scheme://user:password@host:1234/path?key1=value1&key2=value2"
+         "&key3=two%20words%3D2");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assert(url.getScheme() == "scheme");
+      assert(url.getUserInfo() == "user:password");
+      assert(url.getUser() == "user");
+      assert(url.getPassword() == "password");
+      assert(url.getHost() == "host");
+      assert(url.getPort() == 1234);
+      assert(url.getPath() == "/path");
+      assert(url.getQuery() == "key1=value1&key2=value2&key3=two%20words%3D2");
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(strcmp(vars["key1"]->getString(), "value1") == 0);
+      assert(strcmp(vars["key2"]->getString(), "value2") == 0);
+      assert(strcmp(vars["key3"]->getString(), "two words=2") == 0);
+   }
+
+   {
+      Url url("/");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assertStrCmp(url.getPath().c_str(), "/");
+      assertStrCmp(url.getQuery().c_str(), "");
+
+      DynamicObject tokens;
+      assert(url.getTokenizedPath(tokens, "/"));
+      assert(tokens->length() == 0);
+
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->length() == 0);
+   }
+
+   {
+      Url url("/?key1=value1");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assertStrCmp(url.getPath().c_str(), "/");
+      assertStrCmp(url.getQuery().c_str(), "key1=value1");
+
+      DynamicObject tokens;
+      assert(url.getTokenizedPath(tokens, "/"));
+      assert(tokens->length() == 0);
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->length() == 1);
+      assertStrCmp(vars["key1"]->getString(), "value1");
+   }
+
+   {
+      Url url(
+         "/path/param1/10001?key1=value1&key2=value2&key3=two%20words%3D2");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assertStrCmp(url.getPath().c_str(), "/path/param1/10001");
+      assertStrCmp(
+         url.getQuery().c_str(),
+         "key1=value1&key2=value2&key3=two%20words%3D2");
+
+      DynamicObject tokens;
+      assert(url.getTokenizedPath(tokens, "/path/"));
+      assert(tokens->length() == 2);
+      assertStrCmp(tokens[0]->getString(), "param1");
+      assert(tokens[1]->getInt32() == 10001);
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->length() == 3);
+      assertStrCmp(vars["key1"]->getString(), "value1");
+      assertStrCmp(vars["key2"]->getString(), "value2");
+      assertStrCmp(vars["key3"]->getString(), "two words=2");
+   }
+
+   {
+      // test start with ':'
+      Url url(":test");
+      assertNoExceptionSet();
+      assertStrCmp(url.getAuthority().c_str(), ":test");
+      assertStrCmp(url.getPath().c_str(), "/");
+   }
+
+   {
+      Url url;
+      url.setRelativeUrl("/");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assertStrCmp(url.getPath().c_str(), "/");
+   }
+
+   {
+      // test relative with unescaped ':'
+      Url url;
+      url.setRelativeUrl("/path/param1/10001?key1=value:1");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assertStrCmp(url.getPath().c_str(), "/path/param1/10001");
+      assertStrCmp(url.getQuery().c_str(), "key1=value:1");
+
+      DynamicObject tokens;
+      assert(url.getTokenizedPath(tokens, "/path/"));
+      assert(tokens->length() == 2);
+      assertStrCmp(tokens[0]->getString(), "param1");
+      assert(tokens[1]->getInt32() == 10001);
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->length() == 1);
+      assertStrCmp(vars["key1"]->getString(), "value:1");
+   }
+
+   {
+      Url url("http://example.com/path/"
+         "?key1=100&start=2008-07-04+00%3a00%3a00&end=2008-07-04+23%3a59%3a59");
+
+      //dumpUrl(url);
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assertStrCmp(vars["key1"]->getString(), "100");
+      assertStrCmp(vars["start"]->getString(), "2008-07-04 00:00:00");
+      assertStrCmp(vars["end"]->getString(), "2008-07-04 23:59:59");
+   }
+
+   {
+      Url url("http://bitmunk.com/path?email=wa-hoo.test_user%40bitmunk.com");
+
+      //dumpUrl(url);
+      assertNoExceptionSet();
+      assert(url.getPath() == "/path");
+      assert(url.getQuery() == "email=wa-hoo.test_user%40bitmunk.com");
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assertStrCmp(vars["email"]->getString(), "wa-hoo.test_user@bitmunk.com");
+   }
+
+   {
+      Url url("http://bitmunk.com/path");
+
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+
+   {
+      Url url("http://bitmunk.com/path?");
+
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+
+   {
+      Url url("http://bitmunk.com/path?foo=bar");
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+      DynamicObject expect;
+      expect["foo"] = "bar";
+      assertDynoCmp(expect, vars);
+   }
+
+   {
+      Url url("http://bitmunk.com/path?foo");
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+      assertStrCmp(vars["foo"]->getString(), "");
+   }
+
+   {
+      Url url("http://bitmunk.com/path?&");
+
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+
+   {
+      Url url("http://bitmunk.com/path?=");
+
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+
+   {
+      Url url("http://bitmunk.com/path?=foo");
+
+      DynamicObject vars;
+      assert(!url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+   }
+
+   {
+      // check using both values for key
+      Url url("http://bitmunk.com/path?a=1&a=2");
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      DynamicObject expect;
+      expect["a"][0] = "1";
+      expect["a"][1] = "2";
+      assertDynoCmp(vars, expect);
+   }
+
+   {
+      // check key arrays
+      Url url("http://bitmunk.com/path?a=1&a=2&a=");
+
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars, true));
+      DynamicObject expect;
+      expect["a"][0] = "1";
+      expect["a"][1] = "2";
+      expect["a"][2] = "";
+      assertDynoCmp(vars, expect);
+   }
+
+   {
+      const char* allchars =
+         "0123456789"
+         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+         "abcdefghijklmnopqrstuvwxyz"
+         "-_.!~*'()";
+      Url url;
+      url.format("http://bitmunk.com/path?q=%s", allchars);
+      DynamicObject vars;
+      assert(url.getQueryVariables(vars));
+      assert(vars->getType() == Map);
+      assertStrCmp(vars["q"]->getString(), allchars);
+   }
+
+   {
+      Url url("http://bitmunk.com");
+      DynamicObject vars;
+      vars["q1"] = "one";
+      vars["q2"] = "two";
+      url.addQueryVariables(vars);
+      assertStrCmp(url.toString().c_str(), "http://bitmunk.com?q1=one&q2=two");
+   }
+
+   {
+      Url url("http://bitmunk.com?q1=1");
+      DynamicObject vars;
+      vars["q2"] = "2";
+      vars["q3"] = "3";
+      url.addQueryVariables(vars);
+      assertStrCmp(url.toString().c_str(), "http://bitmunk.com?q1=1&q2=2&q3=3");
+   }
+
+   {
+      Url url("http://bitmunk.com");
+      DynamicObject vars;
+      vars["date"] = "2008-01-01 00:00:01";
+      url.addQueryVariables(vars);
+      assertStrCmp(
+         url.toString().c_str(),
+         "http://bitmunk.com?date=2008-01-01+00%3A00%3A01");
+   }
+
+   {
+      // multi-value query variables
+      Url url("http://bitmunk.com");
+      DynamicObject vars;
+      vars["a"] = "A";
+      vars["b"][0] = "B0";
+      vars["b"][1] = "B1";
+      url.addQueryVariables(vars);
+      assertStrCmp(
+         url.toString().c_str(),
+         "http://bitmunk.com?a=A&b=B0&b=B1");
+   }
+
+   {
+      string path = "/p0/p1/p2/p3/p4";
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1/p2/p3");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1/p2");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/");
+   }
+
+   {
+      string path = "/p0/p1/p2/p3/p4/";
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1/p2/p3");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1/p2");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0/p1");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/p0");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/");
+      path = Url::getParentPath(path.c_str());
+      assertStrCmp(path.c_str(), "/");
+   }
+
+   {
+      Url url("urn:x-foo:bar");
+      assertNoExceptionSet();
+
+      //dumpUrl(url);
+      assertStrCmp(url.getScheme().c_str(), "urn");
+      assertStrCmp(url.getSchemeSpecificPart().c_str(), "x-foo:bar");
+   }
+
+   {
+      Url url("x-scheme:bar");
+      assertNoExceptionSet();
+
+      //dumpUrl(url);
+      assertStrCmp(url.getScheme().c_str(), "x-scheme");
+      assertStrCmp(url.getSchemeSpecificPart().c_str(), "bar");
+   }
+
+   {
+      Url url("-x-scheme:bar");
+
+      assertExceptionSet();
+      Exception::clear();
+   }
+
+   {
+      // check edge conditions
+      Url url("az09:foo");
+      assertNoExceptionSet();
+
+      //dumpUrl(url);
+      assertStrCmp(url.getScheme().c_str(), "az09");
+      assertStrCmp(url.getSchemeSpecificPart().c_str(), "foo");
+   }
+
+   tr.pass();
+}
+
+static void _normalizedUrlCmp(const char* expect, const char* ustr)
+{
+   Url e(expect);
+   Url u(ustr);
+
+   u.normalize();
+   assertStrCmp(e.toString().c_str(), u.toString().c_str());
+}
+
+static void runUrlNormalizationTest(TestRunner& tr)
+{
+   tr.test("Url Normalization");
+
+   // empty
+   _normalizedUrlCmp("", "");
+
+   // HTTP case
+   const char* e0 = "http://www.example.com/";
+   _normalizedUrlCmp(e0, "http://www.example.com/");
+   _normalizedUrlCmp(e0, "HTTP://WWW.EXAMPLE.COM/");
+   _normalizedUrlCmp(e0, "HTTP://WWW.EXAMPLE.COM");
+
+   // HTTP path case constant
+   const char* e1 = "http://www.example.com/Foo/Bar";
+   _normalizedUrlCmp(e1, "http://www.Example.com/Foo/Bar");
+
+   // HTTP ports
+   _normalizedUrlCmp("http://www.a.com/", "http://www.a.com:80/");
+   _normalizedUrlCmp("https://www.a.com/", "https://www.a.com:443/");
+   _normalizedUrlCmp("http://www.a.com:81/", "http://www.a.com:81/");
+
+   // NOTE: query var normalization is outside of the scope of generic URL
+   // normalization.  ie, sorted keys and so on will not be done by Url class.
+
+   // FIMXE: add tests for other schemes
+
+   tr.pass();
+}
+
+static void runUrlFormTest(TestRunner& tr)
+{
+   tr.group("Url Forms");
+
+   // FIXME: add formEncode and formDecode tests
+
+   tr.test("convert");
+   {
+      DynamicObject form;
+      form["a"] = "a";
+      form["b"][0] = "b";
+
+      assertNoException(Url::formConvertToArrays(form));
+
+      DynamicObject expect;
+      expect["a"][0] = "a";
+      expect["b"][0] = "b";
+
+      assertNamedDynoCmp("expect", expect, "result", form);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 static void runRateAveragerTest(TestRunner& tr)
 {
    tr.test("RateAverager 10 items/sec");
@@ -1372,6 +1932,10 @@ static bool run(TestRunner& tr)
       runStringToolsTest(tr);
       runDateTest(tr);
       runPathFormatterTest(tr);
+      runUrlEncodeTest(tr);
+      runUrlTest(tr);
+      runUrlNormalizationTest(tr);
+      runUrlFormTest(tr);
    }
    if(tr.isTestEnabled("date"))
    {

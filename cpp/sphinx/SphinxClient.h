@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_sphinx_SphinxClient_H
 #define monarch_sphinx_SphinxClient_H
@@ -7,9 +7,9 @@
 #include "monarch/data/Data.h"
 #include "monarch/io/ByteBuffer.h"
 #include "monarch/net/Connection.h"
-#include "monarch/net/Url.h"
 #include "monarch/rt/DynamicObject.h"
 #include "monarch/rt/DynamicObjectIterator.h"
+#include "monarch/util/Url.h"
 
 namespace monarch
 {
@@ -210,7 +210,7 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool execute(
-      monarch::net::Url& url, SphinxCommand& cmd, SphinxResponse& response);
+      monarch::util::Url& url, SphinxCommand& cmd, SphinxResponse& response);
 };
 
 } // end namespace sphinx

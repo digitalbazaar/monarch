@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_net_SslSessionCache_H
 #define monarch_net_SslSessionCache_H
 
 #include "monarch/net/SslSession.h"
-#include "monarch/net/Url.h"
 #include "monarch/rt/SharedLock.h"
 #include "monarch/util/StringTools.h"
+#include "monarch/util/Url.h"
 
 #include <map>
 
@@ -73,7 +73,7 @@ public:
     * @param vHost an associated virtual host, if applicable.
     */
    virtual void storeSession(
-      Url* url, SslSession& session, const char* vHost = NULL);
+      monarch::util::Url* url, SslSession& session, const char* vHost = NULL);
 
    /**
     * Gets a stored SSL session from the cache, if one exists.
@@ -93,7 +93,8 @@ public:
     *
     * @return the SslSession (set to NULL if none exists).
     */
-   virtual SslSession getSession(Url* url, const char* vHost = NULL);
+   virtual SslSession getSession(
+      monarch::util::Url* url, const char* vHost = NULL);
 };
 
 // type definition for a reference counted SslSessionCache

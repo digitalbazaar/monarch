@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_ws_ProxyPathHandler_H
 #define monarch_ws_ProxyPathHandler_H
@@ -51,7 +51,7 @@ protected:
          Proxy,
          Redirect
       } type;
-      monarch::net::UrlRef url;
+      monarch::util::UrlRef url;
       union
       {
          bool rewriteHost;
