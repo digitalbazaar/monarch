@@ -259,13 +259,13 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                   }
                }
                MO_CAT_ERROR(MO_HTTP_CAT,
-                  "Connection error: ['%s','%s','%s']\n",
+                  "Connection error: ['%s','%s','%s']",
                   e->getMessage(), e->getType(), error.c_str());
             }
             else
             {
                MO_CAT_ERROR(MO_HTTP_CAT,
-                  "Connection error: ['%s','%s']\n",
+                  "Connection error: ['%s','%s']",
                   e->getMessage(), e->getType());
             }
          }
