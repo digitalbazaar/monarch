@@ -36,7 +36,11 @@ Array::~Array()
    for(ValidatorPairs::iterator i = mValidators.begin();
        i != mValidators.end(); ++i)
    {
-      delete i->second;
+      // only clean up validator if it has no reference
+      if(i->second.reference.isNull())
+      {
+         delete i->second.validator;
+      }
    }
 }
 
@@ -84,14 +88,14 @@ bool Array::isValid(
                context->pushPath(idx);
 
                // short-circuit on pass
-               found = i->second->isValid(next, context);
+               found = i->second.validator->isValid(next, context);
 
                // only set exception if this is the last element
                if(!found && !ii->hasNext())
                {
                   rval = false;
                   context->setExceptions(setExceptions);
-                  i->second->isValid(next, context);
+                  i->second.validator->isValid(next, context);
                   context->setExceptions(false);
                }
                context->popPath();
@@ -109,7 +113,7 @@ bool Array::isValid(
             context->pushPath(idx);
 
             // do not short-circuit
-            if(!i->second->isValid(obj[i->first], context))
+            if(!i->second.validator->isValid(obj[i->first], context))
             {
                rval = false;
             }
@@ -149,7 +153,14 @@ size_t Array::length()
 
 void Array::addValidator(int index, Validator* validator)
 {
-   mValidators.push_back(std::make_pair(index, validator));
+   Entry e = {&(*validator), NULL};
+   mValidators.push_back(std::make_pair(index, e));
+}
+
+void Array::addValidatorRef(int index, ValidatorRef validator)
+{
+   Entry e = {&(*validator), validator};
+   mValidators.push_back(std::make_pair(index, e));
 }
 
 void Array::addValidators(int index, Validator* validator, va_list ap)

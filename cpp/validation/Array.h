@@ -33,7 +33,12 @@ namespace validation
 class Array : public Validator
 {
 protected:
-   typedef std::vector<std::pair<int,Validator*> > ValidatorPairs;
+   struct Entry
+   {
+      Validator* validator;
+      ValidatorRef reference;
+   };
+   typedef std::vector<std::pair<int,Entry> > ValidatorPairs;
    ValidatorPairs mValidators;
 
 public:
@@ -93,6 +98,14 @@ public:
     * @param validator a Validator.
     */
    virtual void addValidator(int index, Validator* validator);
+
+   /**
+    * Adds an index:validator pair.
+    *
+    * @param index an array index, -1 to check any index.
+    * @param validator a Validator.
+    */
+   virtual void addValidatorRef(int index, ValidatorRef validator);
 
    /**
     * Adds index:validator pairs.

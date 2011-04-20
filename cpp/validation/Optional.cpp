@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Optional.h"
 
@@ -7,13 +7,23 @@ using namespace monarch::rt;
 using namespace monarch::validation;
 
 Optional::Optional(Validator* validator) :
-   mValidator(validator)
+   mValidator(validator),
+   mValidatorRef(NULL)
+{
+}
+
+Optional::Optional(ValidatorRef& validator) :
+   mValidator(&(*validator)),
+   mValidatorRef(validator)
 {
 }
 
 Optional::~Optional()
 {
-   delete mValidator;
+   if(mValidatorRef.isNull())
+   {
+      delete mValidator;
+   }
 }
 
 bool Optional::isValid(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Map.h"
 
@@ -21,10 +21,17 @@ Map::Map(const char* key, ...)
 
 Map::~Map()
 {
-   std::vector<std::pair<const char*,Validator*> >::iterator i;
-   for(i = mValidators.begin(); i != mValidators.end(); ++i)
+   for(Validators::iterator i = mValidators.begin();
+       i != mValidators.end(); ++i)
    {
-      delete i->second;
+      // clean up key
+      free(const_cast<char*>(i->first));
+
+      // only clean up validator if it has no reference
+      if(i->second.reference.isNull())
+      {
+         delete i->second.validator;
+      }
    }
 }
 
@@ -36,7 +43,7 @@ bool Map::isValid(
 
    if(!obj.isNull() && obj->getType() == monarch::rt::Map)
    {
-      std::vector<std::pair<const char*,Validator*> >::iterator i;
+      Validators::iterator i;
       for(i = mValidators.begin(); i != mValidators.end(); ++i)
       {
          // only add a "." if this is not a root map
@@ -48,12 +55,12 @@ bool Map::isValid(
          if(obj->hasMember(i->first))
          {
             // do not short-circuit to ensure all keys tested
-            if(!i->second->isValid(obj[i->first], context))
+            if(!i->second.validator->isValid(obj[i->first], context))
             {
                rval = false;
             }
          }
-         else if(!i->second->isOptional(context))
+         else if(!i->second.validator->isOptional(context))
          {
             rval = false;
             DynamicObject detail =
@@ -88,7 +95,14 @@ size_t Map::length()
 
 void Map::addValidator(const char* key, Validator* validator)
 {
-   mValidators.push_back(std::make_pair(key, validator));
+   Entry e = {&(*validator), NULL};
+   mValidators.push_back(std::make_pair(strdup(key), e));
+}
+
+void Map::addValidatorRef(const char* key, ValidatorRef validator)
+{
+   Entry e = {&(*validator), validator};
+   mValidators.push_back(std::make_pair(strdup(key), e));
 }
 
 void Map::addValidators(const char* key, va_list ap)

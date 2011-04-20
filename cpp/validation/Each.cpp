@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Each.h"
 
@@ -11,13 +11,23 @@ using namespace monarch::rt;
 using namespace monarch::validation;
 
 Each::Each(Validator* validator) :
-   mValidator(validator)
+   mValidator(validator),
+   mValidatorRef(NULL)
+{
+}
+
+Each::Each(ValidatorRef& validator) :
+   mValidator(&(*validator)),
+   mValidatorRef(validator)
 {
 }
 
 Each::~Each()
 {
-   delete mValidator;
+   if(mValidatorRef.isNull())
+   {
+      delete mValidator;
+   }
 }
 
 bool Each::isArrayValid(

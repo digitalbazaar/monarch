@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_Optional_H
 #define monarch_validation_Optional_H
@@ -33,12 +33,18 @@ class Optional : public Validator
 {
 protected:
    Validator* mValidator;
+   ValidatorRef mValidatorRef;
 
 public:
    /**
     * Creates a new validator.
     */
    Optional(Validator* validator);
+
+   /**
+    * Creates a new validator.
+    */
+   Optional(ValidatorRef& validator);
 
    /**
     * Destructs this validator.

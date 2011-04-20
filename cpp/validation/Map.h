@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_Map_H
 #define monarch_validation_Map_H
@@ -35,7 +35,13 @@ namespace validation
 class Map : public Validator
 {
 protected:
-   std::vector<std::pair<const char*,Validator*> > mValidators;
+   struct Entry
+   {
+      Validator* validator;
+      ValidatorRef reference;
+   };
+   typedef std::vector<std::pair<const char*,Entry> > Validators;
+   Validators mValidators;
 
 public:
    /**
@@ -80,6 +86,14 @@ public:
     * @param validator a Validator.
     */
    virtual void addValidator(const char* key, Validator* validator);
+
+   /**
+    * Adds a key:validator pair.
+    *
+    * @param key a map key.
+    * @param validator a Validator.
+    */
+   virtual void addValidatorRef(const char* key, ValidatorRef validator);
 
    /**
     * Adds key:validator pairs.

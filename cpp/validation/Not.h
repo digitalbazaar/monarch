@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_Not_H
 #define monarch_validation_Not_H
@@ -22,12 +22,18 @@ class Not : public Validator
 protected:
    /* sub-validator to use  */
    Validator* mValidator;
+   ValidatorRef mValidatorRef;
 
 public:
    /**
     * Creates a new validator.
     */
    Not(Validator* validator, const char* errorMessage = NULL);
+
+   /**
+    * Creates a new validator.
+    */
+   Not(ValidatorRef& validator, const char* errorMessage = NULL);
 
    /**
     * Destructs this validator.

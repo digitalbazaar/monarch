@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/ValidatorList.h"
 
@@ -21,7 +21,21 @@ ValidatorList::ValidatorList(Validator* validator, ...)
 
 ValidatorList::~ValidatorList()
 {
+   // clear refs list
    std::vector<Validator*>::iterator i;
+   for(std::vector<ValidatorRef>::iterator refi = mValidatorRefs.begin();
+       refi != mValidatorRefs.end(); ++refi)
+   {
+      // remove validator from other list
+      i = std::find(mValidators.begin(), mValidators.end(), &(**refi));
+      if(i != mValidators.end())
+      {
+         mValidators.erase(i);
+      }
+   }
+   mValidatorRefs.clear();
+
+   // clear non-refs list
    for(i = mValidators.begin(); i != mValidators.end(); ++i)
    {
       delete (*i);
@@ -31,6 +45,12 @@ ValidatorList::~ValidatorList()
 void ValidatorList::addValidator(Validator* validator)
 {
    mValidators.push_back(validator);
+}
+
+void ValidatorList::addValidatorRef(ValidatorRef validator)
+{
+   mValidators.push_back(&(*validator));
+   mValidatorRefs.push_back(validator);
 }
 
 void ValidatorList::addValidators(Validator* validator, va_list ap)

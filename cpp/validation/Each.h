@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_Each_H
 #define monarch_validation_Each_H
@@ -23,6 +23,7 @@ class Each : public Validator
 protected:
    /* Validator to use on each member */
    Validator* mValidator;
+   ValidatorRef mValidatorRef;
 
    /**
     * Validates an array.
@@ -53,6 +54,11 @@ public:
     * Creates a new validator.
     */
    Each(Validator* validator);
+
+   /**
+    * Creates a new validator.
+    */
+   Each(ValidatorRef& validator);
 
    /**
     * Destructs this validator.

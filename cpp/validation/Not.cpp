@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Not.h"
 
@@ -8,13 +8,24 @@ using namespace monarch::validation;
 
 Not::Not(Validator* validator, const char* errorMessage) :
    Validator(errorMessage),
-   mValidator(validator)
+   mValidator(validator),
+   mValidatorRef(NULL)
+{
+}
+
+Not::Not(ValidatorRef& validator, const char* errorMessage) :
+   Validator(errorMessage),
+   mValidator(&(*validator)),
+   mValidatorRef(validator)
 {
 }
 
 Not::~Not()
 {
-   delete mValidator;
+   if(mValidatorRef.isNull())
+   {
+      delete mValidator;
+   }
 }
 
 bool Not::isValid(

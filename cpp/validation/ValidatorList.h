@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_ValidatorList_H
 #define monarch_validation_ValidatorList_H
@@ -25,6 +25,7 @@ class ValidatorList : public Validator
 protected:
    /* A list of validators */
    std::vector<Validator*> mValidators;
+   std::vector<ValidatorRef> mValidatorRefs;
 
 public:
    /**
@@ -51,6 +52,13 @@ public:
     * @param validator a Validator.
     */
    virtual void addValidator(Validator* validator);
+
+   /**
+    * Adds a validator to the list.
+    *
+    * @param validator a Validator.
+    */
+   virtual void addValidatorRef(ValidatorRef validator);
 
    /**
     * Adds validators to the list.
