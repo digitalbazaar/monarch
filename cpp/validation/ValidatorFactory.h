@@ -157,6 +157,9 @@ protected:
       monarch::rt::DynamicObject& def, monarch::rt::DynamicObject& deps);
 };
 
+// type definition for a reference counted ValidatorFactory
+typedef monarch::rt::Collectable<ValidatorFactory> ValidatorFactoryRef;
+
 } // end namespace validation
 } // end namespace monarch
 #endif
