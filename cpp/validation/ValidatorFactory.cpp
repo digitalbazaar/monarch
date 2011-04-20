@@ -911,8 +911,9 @@ bool v::ValidatorFactory::defineValidators(DynamicObject& defs)
       }
 
       // do recursive validation and gather dependencies
-      def["deps"]->setType(monarch::rt::Array);
-      rval = rval && recursiveValidate(def, def["deps"]);
+      def["depsUnmet"]->setType(monarch::rt::Array);
+      def["depsMet"]->setType(monarch::rt::Array);
+      rval = rval && recursiveValidate(def, def["depsUnmet"]);
    }
 
    // create a list of created validators to remove if there is a failure
@@ -933,11 +934,10 @@ bool v::ValidatorFactory::defineValidators(DynamicObject& defs)
       while(i->hasNext())
       {
          DynamicObject& def = i->next();
-         def["depsMet"]->setType(monarch::rt::Array);
 
          // check all custom dependencies
          bool met = true;
-         DynamicObjectIterator di = def["deps"].getIterator();
+         DynamicObjectIterator di = def["depsUnmet"].getIterator();
          while(di->hasNext())
          {
             const char* dep = di->next();
@@ -972,10 +972,22 @@ bool v::ValidatorFactory::defineValidators(DynamicObject& defs)
 
    if(rval && unmet)
    {
+      // build error output
+      DynamicObject details;
+      i = defs.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& def = i->next();
+         DynamicObject& d = details->append();
+         d["type"] = i->getName();
+         d["missing"] = def["depsUnmet"];
+         d["found"] = def["depsMet"];
+      }
+
       ExceptionRef e = new Exception(
-         "Could not define custom Validator(s). Dependencies were not met.",
-         VF_EXCEPTION ".DependencyNotMet");
-      e->getDetails()["notDefined"] = defs;
+         "Could not define custom Validator(s). Dependencies were missing.",
+         VF_EXCEPTION ".MissingDependency");
+      e->getDetails()["errors"] = details;
       Exception::set(e);
       rval = false;
    }
