@@ -623,31 +623,34 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
    while(rval && i->hasNext())
    {
       File& file = i->next();
-
-      // read definition from json
-      DynamicObject def;
-      FileInputStream fis(file);
-      rval =
-         reader.start(def) && reader.read(&fis) && reader.finish() &&
-         custom->isValid(def);
-      if(rval)
+      if(file->isFile())
       {
-         // ensure type is not a duplicate
-         const char* type = def["type"];
-         ValidatorMap::iterator vmi = mValidators.find(type);
-         if(vmi != mValidators.end() || defs->hasMember(type))
+         // read definition from json
+         DynamicObject def;
+         FileInputStream fis(file);
+         rval =
+            reader.start(def) && reader.read(&fis) && reader.finish() &&
+            custom->isValid(def);
+         if(rval)
          {
-            ExceptionRef e = new Exception(
-               "Could not define Validator. Duplicate Validator type detected.",
-               VF_EXCEPTION ".DuplicateType");
-            e->getDetails()["type"] = type;
-            Exception::set(e);
-            rval = false;
-         }
-         else
-         {
-            // add to definitions map
-            defs[type] = def;
+            // ensure type is not a duplicate
+            const char* type = def["type"];
+            ValidatorMap::iterator vmi = mValidators.find(type);
+            if(vmi != mValidators.end() || defs->hasMember(type))
+            {
+               ExceptionRef e = new Exception(
+                  "Could not define Validator. "
+                  "Duplicate Validator type detected.",
+                  VF_EXCEPTION ".DuplicateType");
+               e->getDetails()["type"] = type;
+               Exception::set(e);
+               rval = false;
+            }
+            else
+            {
+               // add to definitions map
+               defs[type] = def;
+            }
          }
       }
    }
@@ -1009,7 +1012,11 @@ bool v::ValidatorFactory::recursiveValidate(
       ValidatorDefMap::iterator i = mValidatorDefs.find(type);
       if(i == mValidatorDefs.end())
       {
-         deps->append(type);
+         // add uniquely
+         if(deps->indexOf(type) == -1)
+         {
+            deps->append(type);
+         }
       }
    }
 
