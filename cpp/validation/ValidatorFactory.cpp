@@ -826,6 +826,7 @@ v::ValidatorRef v::ValidatorFactory::createValidator(const char* type)
       ExceptionRef e = new Exception(
          "Could not create Validator. Validator type not found.",
          VF_EXCEPTION ".NotFound");
+      e->getDetails()["type"] = type;
       Exception::set(e);
    }
    else
