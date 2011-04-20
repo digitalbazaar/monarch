@@ -1061,27 +1061,669 @@ static void runValidatorFactoryTest(TestRunner& tr)
 {
    tr.group("ValidatorFactory");
 
-   tr.test("type");
+   tr.test("Type");
    {
+      v::ValidatorFactory vf;
+
+      // load definitions
+      DynamicObject types;
+      types->append("String");
+      types->append("UInt32");
+      types->append("Int32");
+      types->append("UInt64");
+      types->append("Int64");
+      types->append("Boolean");
+      types->append("Map");
+      types->append("Array");
+      DynamicObjectIterator i = types.getIterator();
+      while(i->hasNext())
+      {
+         const char* next = i->next();
+
+         DynamicObject def;
+         def["type"] = next;
+         def["extends"] = "Type";
+         def["def"] = next;
+
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+      }
+
+      // test string
+      {
+         DynamicObject value;
+         value = "a string";
+         v::ValidatorRef val = vf.createValidator("String");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      // test uint32
+      {
+         DynamicObject value;
+         value = (uint32_t)1;
+         v::ValidatorRef val = vf.createValidator("UInt32");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      // test int32
+      {
+         DynamicObject value;
+         value = (int32_t)1;
+         v::ValidatorRef val = vf.createValidator("Int32");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      // test uint64
+      {
+         DynamicObject value;
+         value = (uint64_t)1;
+         v::ValidatorRef val = vf.createValidator("UInt64");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      // test int64
+      {
+         DynamicObject value;
+         value = (int64_t)1;
+         v::ValidatorRef val = vf.createValidator("Int64");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      // test boolean
+      {
+         DynamicObject value;
+         value = true;
+         v::ValidatorRef val = vf.createValidator("Boolean");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      // test map
+      {
+         DynamicObject value;
+         value->setType(Map);
+         v::ValidatorRef val = vf.createValidator("Map");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      // test array
+      {
+         DynamicObject value;
+         value->setType(Array);
+         v::ValidatorRef val = vf.createValidator("Array");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+   }
+   tr.passIfNoException();
+
+   tr.test("Regex");
+   {
+      v::ValidatorFactory vf;
+
       DynamicObject def;
       def["type"] = "test";
-      def["extends"] = "Type";
-      def["def"] = "String";
+      def["extends"] = "Regex";
+      def["def"] = "^(true|false)$";
 
-      v::ValidatorFactory vf;
       assertNoException(
          vf.loadValidatorDefinition(def));
 
       DynamicObject value;
-      value = "a string";
-
+      value = "true";
       v::ValidatorRef val = vf.createValidator("test");
       assertNoExceptionSet();
-
-      assertNoException(
-         val->isValid(value));
+      assertNoException(val->isValid(value));
    }
    tr.passIfNoException();
+
+   tr.test("Null");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Null";
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value(NULL);
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("NotValid");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "NotValid";
+      def["error"] = "This won't pass no matter what.";
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertException(val->isValid(value));
+   }
+   tr.passIfException();
+
+   tr.test("NotCompare");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "NotCompare";
+      def["def"]["key1"] = "password";
+      def["def"]["key2"] = "passwordConfirm";
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value["password"] = "password";
+      value["passwordConfirm"] = "i messed up while typing";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Compare");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Compare";
+      def["def"]["key1"] = "password";
+      def["def"]["key2"] = "passwordConfirm";
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value["password"] = "password";
+      value["passwordConfirm"] = "password";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Not");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Not";
+      def["def"]["type"] = "NotValid";
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Min");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Min";
+      def["def"] = 1;
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value = "a";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Max");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Max";
+      def["def"] = 2;
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value = "a";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Member");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Member";
+      def["def"] = "foo";
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value["foo"] = "bar";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Int");
+   {
+      {
+         v::ValidatorFactory vf;
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "Int";
+         def["def"]["type"] = "Positive";
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+
+         DynamicObject value;
+         value = 1;
+         v::ValidatorRef val = vf.createValidator("test");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      {
+         v::ValidatorFactory vf;
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "Int";
+         def["def"]["type"] = "Negative";
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+
+         DynamicObject value;
+         value = "-1";
+         v::ValidatorRef val = vf.createValidator("test");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      {
+         v::ValidatorFactory vf;
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "Int";
+         def["def"]["type"] = "NonPositive";
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+
+         DynamicObject value;
+         value = -1;
+         v::ValidatorRef val = vf.createValidator("test");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      {
+         v::ValidatorFactory vf;
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "Int";
+         def["def"]["type"] = "NonNegative";
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+
+         DynamicObject value;
+         value = "0";
+         v::ValidatorRef val = vf.createValidator("test");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      {
+         v::ValidatorFactory vf;
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "Int";
+         def["def"]["type"] = "Zero";
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+
+         DynamicObject value;
+         value = 0;
+         v::ValidatorRef val = vf.createValidator("test");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      {
+         v::ValidatorFactory vf;
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "Int";
+         def["def"]["min"] = 0;
+         def["def"]["max"] = 10;
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+
+         DynamicObject value;
+         value = 5;
+         v::ValidatorRef val = vf.createValidator("test");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+   }
+   tr.passIfNoException();
+
+   tr.test("In");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "In";
+      def["def"]->append("foo");
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value = "foo";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Equals");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Equals";
+      def["def"] = "foo";
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value = "foo";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Each");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Each";
+      def["def"]["type"] = "Equals";
+      def["def"]["def"] = "foo";
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value->append("foo");
+      value->append("foo");
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Map");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Map";
+      def["def"]["foo"]["type"] = "Equals";
+      def["def"]["foo"]["def"] = "bar";
+      def["def"]["bar"]["type"] = "Equals";
+      def["def"]["bar"]["def"] = 10;
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value["foo"] = "bar";
+      value["bar"] = 10;
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Array");
+   {
+      {
+         v::ValidatorFactory vf;
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "Array";
+         {
+            DynamicObject& d = def["def"]->append();
+            d["index"] = 0;
+            d["type"] = "Equals";
+            d["def"] = "foo";
+         }
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+
+         DynamicObject value;
+         value->append("foo");
+         v::ValidatorRef val = vf.createValidator("test");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+      {
+         v::ValidatorFactory vf;
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "Array";
+         {
+            DynamicObject& d = def["def"]->append();
+            d["type"] = "Equals";
+            d["def"] = "bar";
+         }
+
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+
+         DynamicObject value;
+         value->append("bar");
+         value->append("foo");
+         v::ValidatorRef val = vf.createValidator("test");
+         assertNoExceptionSet();
+         assertNoException(val->isValid(value));
+      }
+   }
+   tr.passIfNoException();
+
+   tr.test("Any");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Any";
+      {
+         DynamicObject& d = def["def"]->append();
+         d["type"] = "Equals";
+         d["def"] = "bar";
+      }
+      {
+         DynamicObject& d = def["def"]->append();
+         d["type"] = "Equals";
+         d["def"] = "foo";
+      }
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value = "foo";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("All");
+   {
+      v::ValidatorFactory vf;
+
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "All";
+      {
+         DynamicObject& d = def["def"]->append();
+         d["type"] = "Map";
+         d["def"]["foo"]["type"] = "Equals";
+         d["def"]["foo"]["def"] = "bar";
+      }
+      {
+         DynamicObject& d = def["def"]->append();
+         d["type"] = "Map";
+         d["def"]["bar"]["type"] = "Equals";
+         d["def"]["bar"]["def"] = "foo";
+      }
+
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value["foo"] = "bar";
+      value["bar"] = "foo";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Custom");
+   {
+      v::ValidatorFactory vf;
+
+      {
+         DynamicObject def;
+         def["type"] = "custom";
+         def["extends"] = "All";
+         {
+            DynamicObject& d = def["def"]->append();
+            d["type"] = "Map";
+            d["def"]["foo"]["type"] = "Equals";
+            d["def"]["foo"]["def"] = "bar";
+         }
+         {
+            DynamicObject& d = def["def"]->append();
+            d["type"] = "Map";
+            d["def"]["bar"]["type"] = "Equals";
+            d["def"]["bar"]["def"] = "foo";
+         }
+
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+      }
+
+      {
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "All";
+         {
+            DynamicObject& d = def["def"]->append();
+            d["type"] = "custom";
+         }
+         {
+            DynamicObject& d = def["def"]->append();
+            d["type"] = "Map";
+            d["def"]["hello"]["type"] = "Equals";
+            d["def"]["hello"]["def"] = "world";
+         }
+
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+      }
+
+      DynamicObject value;
+      value["foo"] = "bar";
+      value["bar"] = "foo";
+      value["hello"] = "world";
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+      assertNoException(val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.test("Custom - dependency not met");
+   {
+      v::ValidatorFactory vf;
+
+      {
+         DynamicObject def;
+         def["type"] = "custom";
+         def["extends"] = "All";
+         {
+            DynamicObject& d = def["def"]->append();
+            d["type"] = "Map";
+            d["def"]["foo"]["type"] = "Equals";
+            d["def"]["foo"]["def"] = "bar";
+         }
+         {
+            DynamicObject& d = def["def"]->append();
+            d["type"] = "Map";
+            d["def"]["bar"]["type"] = "Equals";
+            d["def"]["bar"]["def"] = "foo";
+         }
+
+         assertNoException(
+            vf.loadValidatorDefinition(def));
+      }
+
+      {
+         DynamicObject def;
+         def["type"] = "test";
+         def["extends"] = "All";
+         {
+            DynamicObject& d = def["def"]->append();
+            d["type"] = "I DONT EXIST";
+         }
+         {
+            DynamicObject& d = def["def"]->append();
+            d["type"] = "Map";
+            d["def"]["hello"]["type"] = "Equals";
+            d["def"]["hello"]["def"] = "world";
+         }
+
+         assertException(
+            vf.loadValidatorDefinition(def));
+      }
+   }
+   tr.passIfException();
 
    tr.ungroup();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_NotCompare_H
 #define monarch_validation_NotCompare_H
@@ -27,10 +27,10 @@ class NotCompare : public Validator
 {
 protected:
    /* First key to use */
-   const char* mKey0;
+   char* mKey0;
 
    /* Second key to use */
-   const char* mKey1;
+   char* mKey1;
 
 public:
    /**

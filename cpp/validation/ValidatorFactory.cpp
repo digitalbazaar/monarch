@@ -52,7 +52,7 @@ static v::Validator* _baseValidator()
 static v::Validator* _customValidator(bool topLevel)
 {
    return topLevel ?
-      new v::Map(
+      static_cast<v::Validator*>(new v::Map(
          "type", new v::Type(String),
          "extends", new v::Any(
             new v::Equals(MO_VALIDATOR_ALL),
@@ -78,15 +78,22 @@ static v::Validator* _customValidator(bool topLevel)
          "def", new v::Optional(new v::Valid()),
          "optional", new v::Optional(new v::Type(Boolean)),
          "error", new v::Optional(new v::Type(String)),
-         NULL) :
+         NULL)) :
       // cannot define custom validators that aren't top-level
-      new v::Map(
-         "type", new v::Type(String),
-         "extends", new v::NotValid(),
-         "def", new v::NotValid(),
-         "optional", new v::Optional(new v::Type(Boolean)),
-         "error", new v::Optional(new v::Type(String)),
-         NULL);
+      static_cast<v::Validator*>(new v::All(
+         new v::Map(
+            "optional", new v::Optional(new v::Type(Boolean)),
+            NULL),
+         new v::Not(new v::Member(
+            "def",
+            "A custom Validator must be defined before it is nested.")),
+         new v::Not(new v::Member(
+            "extends",
+            "A custom Validator must be defined before it is nested.")),
+         new v::Not(new v::Member(
+            "error",
+            "A custom Validator must be defined before it is nested.")),
+         NULL));
 }
 
 static v::Validator* _allValidator()
@@ -114,9 +121,11 @@ static v::Validator* _arrayValidator()
    return new v::Map(
       "def", new v::Optional(new v::All(
          new v::Type(Array),
-         new v::Each(new v::Map(
-            "index", new v::Optional(new v::Int(v::Int::NonNegative)),
-            "def", _baseValidator(),
+         new v::Each(new v::All(
+            _baseValidator(),
+            new v::Map(
+               "index", new v::Optional(new v::Int(v::Int::NonNegative)),
+               NULL),
             NULL)),
          NULL)),
       NULL);
@@ -148,7 +157,7 @@ static v::Validator* _equalsValidator()
 static v::Validator* _inValidator()
 {
    return new v::Map(
-      "def", new v::All(
+      "def", new v::Any(
          new v::Type(Map),
          new v::Type(Array),
          NULL),
@@ -300,7 +309,7 @@ static v::ValidatorRef _createArray(
    {
       DynamicObject& next = i->next();
       int index = next->hasMember("index") ? next["index"]->getInt32() : -1;
-      rval->addValidatorRef(index, vf->createValidator(next["def"]));
+      rval->addValidatorRef(index, vf->createValidator(next));
    }
 
    return rval;
@@ -382,6 +391,9 @@ static v::ValidatorRef _createMap(
    v::ValidatorFactory* vf, DynamicObject& def)
 {
    v::Map* rval = new v::Map();
+
+   // FIXME: might be a nice feature to automatically create v::Equals
+   // validator if "next" is not a map, would shorten validator JSON
 
    DynamicObjectIterator i = def["def"].getIterator();
    while(i->hasNext())
@@ -467,7 +479,7 @@ static v::ValidatorRef _createType(
    }
    else if(strcmp(t, "Int64") == 0)
    {
-      type = monarch::rt::Int32;
+      type = monarch::rt::Int64;
    }
    else if(strcmp(t, "Boolean") == 0)
    {
@@ -627,6 +639,15 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
    // define validators from the definitions map
    rval = rval && defineValidators(defs);
 
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not load Validator definition(s).",
+         VF_EXCEPTION ".DefinitionError");
+      e->getDetails()["path"] = path;
+      Exception::push(e);
+   }
+
    return rval;
 }
 
@@ -668,6 +689,14 @@ bool v::ValidatorFactory::loadValidatorDefinition(InputStream* is)
       }
    }
 
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not load Validator definition.",
+         VF_EXCEPTION ".DefinitionError");
+      Exception::push(e);
+   }
+
    return rval;
 }
 
@@ -701,6 +730,14 @@ bool v::ValidatorFactory::loadValidatorDefinition(DynamicObject& def)
          // define validator
          rval = defineValidators(defs);
       }
+   }
+
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not load Validator definition.",
+         VF_EXCEPTION ".DefinitionError");
+      Exception::push(e);
    }
 
    return rval;
@@ -814,7 +851,7 @@ bool v::ValidatorFactory::defineValidators(DynamicObject& defs)
    {
       unmet = true;
       i = defs.getIterator();
-      while(rval && i->hasNext())
+      while(i->hasNext())
       {
          DynamicObject& def = i->next();
 
@@ -831,10 +868,10 @@ bool v::ValidatorFactory::defineValidators(DynamicObject& defs)
             }
          }
 
-         if(rval)
+         if(met)
          {
             // restore extends and type
-            def["extends"] = def["type"];
+            def["extends"] = def["type"].clone();
             def["type"] = i->getName();
 
             // create validator

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Compare.h"
 
@@ -8,13 +8,15 @@ using namespace monarch::validation;
 
 Compare::Compare(const char* key0, const char* key1, const char* errorMessage) :
    Validator(errorMessage),
-   mKey0(key0),
-   mKey1(key1)
+   mKey0(strdup(key0)),
+   mKey1(strdup(key1))
 {
 }
 
 Compare::~Compare()
 {
+   free(mKey0);
+   free(mKey1);
 }
 
 bool Compare::isValid(
