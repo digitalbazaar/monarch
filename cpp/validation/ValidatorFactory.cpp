@@ -99,6 +99,10 @@ static v::Validator* _customValidator(bool topLevel)
 static v::Validator* _allValidator()
 {
    return new v::Map(
+      "mask", new v::Optional(new v::Any(
+         new v::Equals("None"),
+         new v::Equals("InvalidValues"),
+         NULL)),
       "def", new v::All(
          new v::Type(Array),
          new v::Each(_baseValidator()),
@@ -274,7 +278,21 @@ static v::Validator* _nullValidator()
 static v::ValidatorRef _createAll(
    v::ValidatorFactory* vf, DynamicObject& def)
 {
-   v::All* rval = new v::All(NULL);
+   v::All* rval = NULL;
+
+   v::ValidatorContext::MaskType mt = v::ValidatorContext::MaskNone;
+   if(def->hasMember("mask"))
+   {
+      if(def["mask"] == "None")
+      {
+         mt = v::ValidatorContext::MaskNone;
+      }
+      else if(def["mask"] == "InvalidValues")
+      {
+         mt = v::ValidatorContext::MaskInvalidValues;
+      }
+   }
+   rval = new v::All(mt, NULL);
 
    DynamicObjectIterator i = def["def"].getIterator();
    while(i->hasNext())
