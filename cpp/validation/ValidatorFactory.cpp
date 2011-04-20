@@ -915,17 +915,24 @@ bool v::ValidatorFactory::defineValidators(DynamicObject& defs)
       while(i->hasNext())
       {
          DynamicObject& def = i->next();
+         def["depsMet"]->setType(monarch::rt::Array);
 
          // check all custom dependencies
          bool met = true;
          DynamicObjectIterator di = def["deps"].getIterator();
-         while(met && di->hasNext())
+         while(di->hasNext())
          {
             const char* dep = di->next();
             if(mValidators.find(dep) == mValidators.end())
             {
                // dependency not yet met
                met = false;
+            }
+            else
+            {
+               // dependency met
+               def["depsMet"]->append(dep);
+               di->remove();
             }
          }
 
