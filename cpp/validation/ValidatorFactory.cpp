@@ -521,8 +521,14 @@ static void _createValidatorDef(
    vdm[type] = def;
 }
 
-v::ValidatorFactory::ValidatorFactory()
+v::ValidatorFactory::ValidatorFactory(bool sync) :
+   mLoadLock(NULL)
 {
+   if(sync)
+   {
+      mLoadLock = new SharedLock();
+   }
+
    // create definition validators
    _createValidatorDef(
       mValidatorDefs, MO_VALIDATOR_ALL, _allValidator(), &_createAll);
@@ -574,6 +580,8 @@ v::ValidatorFactory::~ValidatorFactory()
    {
       free(const_cast<char*>(i->first));
    }
+
+   free(mLoadLock);
 }
 
 bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
@@ -600,6 +608,14 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
    // create a map to store validator definitions
    DynamicObject defs;
    defs->setType(monarch::rt::Map);
+
+   // FIXME: this could be reworked to read the JSON outside of the lock
+
+   // handle sync if necessary
+   if(mLoadLock != NULL)
+   {
+      mLoadLock->lockExclusive();
+   }
 
    // start loading definitions
    JsonReader reader;
@@ -639,6 +655,12 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
    // define validators from the definitions map
    rval = rval && defineValidators(defs);
 
+   // handle sync if necessary
+   if(mLoadLock != NULL)
+   {
+      mLoadLock->unlockExclusive();
+   }
+
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -666,6 +688,12 @@ bool v::ValidatorFactory::loadValidatorDefinition(InputStream* is)
       custom->isValid(def);
    if(rval)
    {
+      // handle sync if necessary
+      if(mLoadLock != NULL)
+      {
+         mLoadLock->lockExclusive();
+      }
+
       // ensure type is not a duplicate
       const char* type = def["type"];
       ValidatorMap::iterator vmi = mValidators.find(type);
@@ -686,6 +714,12 @@ bool v::ValidatorFactory::loadValidatorDefinition(InputStream* is)
 
          // define validator
          rval = defineValidators(defs);
+      }
+
+      // handle sync if necessary
+      if(mLoadLock != NULL)
+      {
+         mLoadLock->unlockExclusive();
       }
    }
 
@@ -709,6 +743,12 @@ bool v::ValidatorFactory::loadValidatorDefinition(DynamicObject& def)
    rval = custom->isValid(def);
    if(rval)
    {
+      // handle sync if necessary
+      if(mLoadLock != NULL)
+      {
+         mLoadLock->lockExclusive();
+      }
+
       // ensure type is not a duplicate
       const char* type = def["type"];
       ValidatorMap::iterator vmi = mValidators.find(type);
@@ -730,6 +770,12 @@ bool v::ValidatorFactory::loadValidatorDefinition(DynamicObject& def)
          // define validator
          rval = defineValidators(defs);
       }
+
+      // handle sync if necessary
+      if(mLoadLock != NULL)
+      {
+         mLoadLock->unlockExclusive();
+      }
    }
 
    if(!rval)
@@ -747,6 +793,12 @@ v::ValidatorRef v::ValidatorFactory::createValidator(const char* type)
 {
    ValidatorRef rval(NULL);
 
+   // handle sync if necessary
+   if(mLoadLock != NULL)
+   {
+      mLoadLock->unlockShared();
+   }
+
    ValidatorMap::iterator i = mValidators.find(type);
    if(i == mValidators.end())
    {
@@ -758,6 +810,12 @@ v::ValidatorRef v::ValidatorFactory::createValidator(const char* type)
    else
    {
       rval = i->second;
+   }
+
+   // handle sync if necessary
+   if(mLoadLock != NULL)
+   {
+      mLoadLock->unlockShared();
    }
 
    return rval;

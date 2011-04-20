@@ -7,6 +7,7 @@
 #include "monarch/validation/Validator.h"
 
 #include "monarch/io/InputStream.h"
+#include "monarch/rt/SharedLock.h"
 #include "monarch/util/StringTools.h"
 
 namespace monarch
@@ -52,6 +53,11 @@ public:
    typedef std::map<const char*, ValidatorRef, monarch::util::StringComparator>
       ValidatorMap;
 
+   /**
+    * A lock for sychronizing definition loading.
+    */
+   monarch::rt::SharedLock* mLoadLock;
+
 protected:
    /**
     * The Validator definition map.
@@ -66,8 +72,11 @@ protected:
 public:
    /**
     * Creates a new ValidatorFactory.
+    *
+    * @param sync true if this ValidatorFactory needs thread-synchronization
+    *           support, false if not.
     */
-   ValidatorFactory();
+   ValidatorFactory(bool sync = false);
 
    /**
     * Destructs this ValidatorFactory.
