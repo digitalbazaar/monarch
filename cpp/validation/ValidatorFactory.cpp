@@ -39,6 +39,10 @@ namespace v = monarch::validation;
 
 /* Define validators for validating definition files */
 
+// FIXME: consider requiring Validator classes to know about ValidatorFactory
+// and implement functions for handling definitions... although that might
+// cause inconsistencies to arise
+
 static v::Validator* _baseValidator()
 {
    return new v::Map(
