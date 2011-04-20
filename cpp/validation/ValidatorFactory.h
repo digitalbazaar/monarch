@@ -155,15 +155,6 @@ protected:
     */
    virtual bool recursiveValidate(
       monarch::rt::DynamicObject& def, monarch::rt::DynamicObject& deps);
-
-   /**
-    * Creates a custom validator.
-    *
-    * @param def the definition for the custom validator.
-    *
-    * @return the created custom validator.
-    */
-   virtual ValidatorRef createCustomValidator(monarch::rt::DynamicObject& def);
 };
 
 } // end namespace validation

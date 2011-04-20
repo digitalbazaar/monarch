@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_Validation_H
 #define monarch_validation_Validation_H
@@ -29,5 +29,6 @@
 #include "monarch/validation/Valid.h"
 #include "monarch/validation/ValidatorList.h"
 #include "monarch/validation/ValidatorContext.h"
+#include "monarch/validation/ValidatorFactory.h"
 
 #endif

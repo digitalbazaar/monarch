@@ -1057,6 +1057,35 @@ static void runValidatorTest(TestRunner& tr)
    tr.ungroup();
 }
 
+static void runValidatorFactoryTest(TestRunner& tr)
+{
+   tr.group("ValidatorFactory");
+
+   tr.test("type");
+   {
+      DynamicObject def;
+      def["type"] = "test";
+      def["extends"] = "Type";
+      def["def"] = "String";
+
+      v::ValidatorFactory vf;
+      assertNoException(
+         vf.loadValidatorDefinition(def));
+
+      DynamicObject value;
+      value = "a string";
+
+      v::ValidatorRef val = vf.createValidator("test");
+      assertNoExceptionSet();
+
+      assertNoException(
+         val->isValid(value));
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 static void runAnyExceptionsTest(TestRunner& tr)
 {
    tr.group("Any validator exceptions");
@@ -1147,10 +1176,15 @@ static bool run(TestRunner& tr)
    if(tr.isDefaultEnabled())
    {
       runValidatorTest(tr);
+      runValidatorFactoryTest(tr);
    }
    if(tr.isTestEnabled("any-exception"))
    {
       runAnyExceptionsTest(tr);
+   }
+   if(tr.isTestEnabled("validator-factory"))
+   {
+      runValidatorFactoryTest(tr);
    }
    return true;
 }

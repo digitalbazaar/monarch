@@ -33,6 +33,7 @@ namespace v = monarch::validation;
 #define MO_VALIDATOR_NOT_COMPARE "NotCompare"
 #define MO_VALIDATOR_NOT_VALID   "NotValid"
 #define MO_VALIDATOR_REGEX       "Regex"
+#define MO_VALIDATOR_TYPE        "Type"
 #define MO_VALIDATOR_VALID       "Valid"
 #define MO_VALIDATOR_NULL        "Null"
 
@@ -70,6 +71,7 @@ static v::Validator* _customValidator(bool topLevel)
             new v::Equals(MO_VALIDATOR_NOT_COMPARE),
             new v::Equals(MO_VALIDATOR_NOT_VALID),
             new v::Equals(MO_VALIDATOR_REGEX),
+            new v::Equals(MO_VALIDATOR_TYPE),
             new v::Equals(MO_VALIDATOR_VALID),
             new v::Equals(MO_VALIDATOR_NULL),
             NULL),
@@ -231,6 +233,22 @@ static v::Validator* _regexValidator()
 {
    return new v::Map(
       "def", new v::Type(String),
+      NULL);
+}
+
+static v::Validator* _typeValidator()
+{
+   return new v::Map(
+      "def", new v::Any(
+         new v::Equals("String"),
+         new v::Equals("UInt32"),
+         new v::Equals("Int32"),
+         new v::Equals("UInt64"),
+         new v::Equals("Int64"),
+         new v::Equals("Boolean"),
+         new v::Equals("Map"),
+         new v::Equals("Array"),
+         NULL),
       NULL);
 }
 
@@ -426,6 +444,48 @@ static v::ValidatorRef _createRegex(
       def["def"], def->hasMember("error") ? def["error"]->getString() : NULL);
 }
 
+static v::ValidatorRef _createType(
+   v::ValidatorFactory* vf, DynamicObject& def)
+{
+   DynamicObjectType type = monarch::rt::String;
+   const char* t = def["def"];
+   if(strcmp(t, "String") == 0)
+   {
+      type = monarch::rt::String;
+   }
+   else if(strcmp(t, "UInt32") == 0)
+   {
+      type = monarch::rt::UInt32;
+   }
+   else if(strcmp(t, "Int32") == 0)
+   {
+      type = monarch::rt::Int32;
+   }
+   else if(strcmp(t, "UInt64") == 0)
+   {
+      type = monarch::rt::UInt64;
+   }
+   else if(strcmp(t, "Int64") == 0)
+   {
+      type = monarch::rt::Int32;
+   }
+   else if(strcmp(t, "Boolean") == 0)
+   {
+      type = monarch::rt::Boolean;
+   }
+   else if(strcmp(t, "Map") == 0)
+   {
+      type = monarch::rt::Map;
+   }
+   else if(strcmp(t, "Array") == 0)
+   {
+      type = monarch::rt::Array;
+   }
+
+   return new v::Type(
+      type, def->hasMember("error") ? def["error"]->getString() : NULL);
+}
+
 static v::ValidatorRef _createValid(
    v::ValidatorFactory* vf, DynamicObject& def)
 {
@@ -486,6 +546,8 @@ v::ValidatorFactory::ValidatorFactory()
       _notValidValidator(), &_createNotValid);
    _createValidatorDef(
       mValidatorDefs, MO_VALIDATOR_REGEX, _regexValidator(), &_createRegex);
+   _createValidatorDef(
+      mValidatorDefs, MO_VALIDATOR_TYPE, _typeValidator(), &_createType);
    _createValidatorDef(
       mValidatorDefs, MO_VALIDATOR_VALID, _validValidator(), &_createValid);
    _createValidatorDef(
