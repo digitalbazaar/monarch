@@ -654,7 +654,15 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
          rval =
             reader.start(def) && reader.read(&fis) && reader.finish() &&
             custom->isValid(def);
-         if(rval)
+         if(!rval)
+         {
+            ExceptionRef e = new Exception(
+               "Could not parse Validator definition from file.",
+               VF_EXCEPTION ".ParseError");
+            e->getDetails()["filename"] = file->getAbsolutePath();
+            Exception::push(e);
+         }
+         else
          {
             // ensure type is not a duplicate
             const char* type = def["type"];
