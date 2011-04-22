@@ -772,6 +772,11 @@ bool v::ValidatorFactory::loadValidatorDefinition(DynamicObject& def)
 {
    bool rval = true;
 
+   // FIXME: accept an array with multiple validator definitions, combine
+   // other calls to do JSON reading outside of locks and build an array
+   // of definitions ... do duplicate check in common place that takes
+   // the array as an input
+
    // get custom top-level validator
    ValidatorRef custom = _customValidator(true);
    rval = custom->isValid(def);
