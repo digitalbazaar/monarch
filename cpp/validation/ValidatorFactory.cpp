@@ -152,7 +152,8 @@ static v::Validator* _compareValidator()
 static v::Validator* _eachValidator()
 {
    return new v::Map(
-      "def", _baseValidator());
+      "def", _baseValidator(),
+      NULL);
 }
 
 static v::Validator* _equalsValidator()
