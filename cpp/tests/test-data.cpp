@@ -3837,6 +3837,36 @@ static void runTemplateInputStreamTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("parse (subtraction w/undefined unstrict lhs object)");
+   {
+      const char* tpl =
+         "{foo.a-bar}\n";
+
+      DynamicObject vars;
+      vars["bar"] = 1;
+
+      const char* expect =
+         "-1\n";
+
+      assertTplCmp(tpl, vars, expect, false);
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (subtraction w/undefined unstrict lhs array)");
+   {
+      const char* tpl =
+         "{foo[0]-bar}\n";
+
+      DynamicObject vars;
+      vars["bar"] = 1;
+
+      const char* expect =
+         "-1\n";
+
+      assertTplCmp(tpl, vars, expect, false);
+   }
+   tr.passIfNoException();
+
    tr.test("parse (divide by 0)");
    {
       const char* tpl =
@@ -3949,6 +3979,50 @@ static void runTemplateInputStreamTest(TestRunner& tr)
          "Item count: 1\n"
          "Item count: 2\n"
          "|item1|item2|";
+
+      assertTplCmp(tpl, vars, expect, true);
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (undefined member var w/defined same-name global var)");
+   {
+      const char* tpl =
+         "{foo.a}";
+
+      DynamicObject vars;
+      vars["a"] = "bar";
+
+      assertTplCmp(tpl, vars, NULL, true);
+   }
+   tr.passIfException();
+
+   tr.test("parse (variable subtraction from object member)");
+   {
+      const char* tpl =
+         "{foo.a-bar}\n";
+
+      DynamicObject vars;
+      vars["foo"]["a"] = 3;
+      vars["bar"] = 1;
+
+      const char* expect =
+         "2\n";
+
+      assertTplCmp(tpl, vars, expect, true);
+   }
+   tr.passIfNoException();
+
+   tr.test("parse (variable subtraction from array element)");
+   {
+      const char* tpl =
+         "{foo[0]-bar}\n";
+
+      DynamicObject vars;
+      vars["foo"][0] = 3;
+      vars["bar"] = 1;
+
+      const char* expect =
+         "2\n";
 
       assertTplCmp(tpl, vars, expect, true);
    }

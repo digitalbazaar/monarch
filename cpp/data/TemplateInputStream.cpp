@@ -3583,6 +3583,16 @@ DynamicObject TemplateInputStream::findVariable(
    return rval;
 }
 
+/**
+ * Sets the value of the given expression to the array element at the
+ * given index in the given array.
+ *
+ * @param exp the expression to update.
+ * @param array the array.
+ * @param index the index into the array.
+ *
+ * @return true on success, false on failure with exception set.
+ */
 static bool _setValueToArrayElement(
    DynamicObject& exp, DynamicObject& array, DynamicObject& index)
 {
@@ -3745,98 +3755,144 @@ bool TemplateInputStream::evalExpression(
       rval = !(findVariable(name, exp, strict).isNull() && strict);
    }
 
-   // set expression value
-   exp["value"] = _isLiteral(exp) ? exp["lhs"]["value"] : exp["var"];
-
-   // if expression ends an array, pop the stack and use the value as an index
-   // into the parent from the stack
-   DynamicObject parent(NULL);
-   bool arrayEnd = _isArrayEnd(exp);
-   if(arrayEnd)
+   if(rval)
    {
-      parent = stack.back();
-      stack.pop_back();
-      rval = _setValueToArrayElement(parent, parent["value"], exp["value"]);
-   }
+      // set expression value
+      exp["value"] = _isLiteral(exp) ? exp["lhs"]["value"] : exp["var"];
 
-   // determine if expression is an accessor
-   bool objectAccessor = _isObjectAccessor(exp);
-   bool arrayAccessor = _isArrayAccessor(exp);
-   bool accessor = objectAccessor || arrayAccessor;
+      // FIXME: the recursion handling of parents, setting parent values,
+      // when arrays end, etc. could be simplified
 
-   // handle rhs
-   if(rval && exp->hasMember("rhs"))
-   {
-      DynamicObject& rhs = exp["rhs"];
-
-      // update rhs fullname
-      if(!rhs->hasMember("fullname") && accessor)
+      // if expression ends an array
+      DynamicObject parent(NULL);
+      bool arrayEnd = _isArrayEnd(exp);
+      if(arrayEnd)
       {
-         rhs["fullname"]->format("%s%s%s%s",
-            exp["fullname"]->getString(),
-            arrayAccessor ? "[" : ".",
-            // (handle [] array append API case ... uses null for value)
-            rhs["lhs"]["value"].isNull() ?
-               "" : rhs["lhs"]["value"]->getString(),
-            arrayAccessor ? "]" : "");
+         // pop the array parent stack, use the expression value as an index
+         // into the parent in order to set the next parent
+         parent = stack.back();
+         stack.pop_back();
+         rval = _setValueToArrayElement(parent, parent["value"], exp["value"]);
       }
 
-      // push array expression onto stack
-      if(arrayAccessor)
-      {
-         // if an array is ending and starting at the same time then this
-         // is a 2D (or N-D) array, so push the parent onto the stack,
-         // otherwise push the current expression
-         stack.push_back(arrayEnd ? parent : exp);
-      }
-      // set parent if object accessor
-      else if(objectAccessor)
-      {
-         // if an array is ending, use the parent expression's value, otherwise
-         // use the current expression
-         rhs["parent"] = arrayEnd ? parent["value"] : exp["value"];
-      }
+      // determine if expression is an accessor
+      bool objectAccessor = _isObjectAccessor(exp);
+      bool arrayAccessor = _isArrayAccessor(exp);
+      bool accessor = objectAccessor || arrayAccessor;
 
-      // eval rhs
-      rval = evalExpression(rhs, strict, set, stack);
-      if(rval)
+      // handle rhs
+      if(rval && exp->hasMember("rhs"))
       {
-         // propagate property value for object accessors
-         if(objectAccessor)
+         DynamicObject& rhs = exp["rhs"];
+
+         // update rhs fullname
+         if(!rhs->hasMember("fullname") && accessor)
          {
+            rhs["fullname"]->format("%s%s%s%s",
+               exp["fullname"]->getString(),
+               arrayAccessor ? "[" : ".",
+               // (handle [] array append API case ... uses null for value)
+               rhs["lhs"]["value"].isNull() ?
+                  "" : rhs["lhs"]["value"]->getString(),
+               arrayAccessor ? "]" : "");
+         }
+
+         // push array expression onto stack
+         if(arrayAccessor)
+         {
+            // if an array is ending and starting at the same time then this
+            // is a 2D (or N-D) array, so push the parent onto the stack
             if(arrayEnd)
             {
-               parent["value"] = rhs["value"];
+               stack.push_back(parent);
             }
+            // push the current expression
             else
             {
-               exp["value"] = rhs["value"];
+               // if expression value is null then a non-strict mode undefined
+               // array was found, so use an empty array as the parent
+               if(exp["value"].isNull())
+               {
+                  exp["value"] = DynamicObject();
+                  exp["value"]->setType(Array);
+                  exp["var"] = exp["value"];
+               }
+               stack.push_back(exp);
             }
          }
-         // handle math operator
-         else if(!arrayAccessor)
+         // set parent if object accessor
+         else if(objectAccessor)
          {
-            if(rhs["value"].isNull())
+            // if an array is ending, use the parent expression's value
+            if(arrayEnd)
             {
-               exp["value"].setNull();
+               rhs["parent"] = parent["value"];
             }
+            // if the current expression is NULL (non-strict mode), use an
+            // empty object
+            else if(exp["value"].isNull())
+            {
+               rhs["parent"] = DynamicObject();
+               rhs["parent"]->setType(Map);
+            }
+            // use the current expression
             else
             {
-               rval = _handleMathOp(exp, strict, set);
+               rhs["parent"] = exp["value"];
             }
          }
 
-         // handle value not found and strict
-         if(rval && strict && _isAccessor(exp) && exp["value"].isNull())
+         // eval rhs
+         rval = evalExpression(rhs, strict, set, stack);
+         if(rval)
          {
-            ExceptionRef e = new Exception(
-               "The substitution variable is not defined. "
-               "Variable substitution cannot occur with an "
-               "undefined variable.",
-               EXCEPTION_UNDEFINED);
-            e->getDetails()["name"] = exp["fullname"];
-            Exception::set(e);
-            rval = false;
+            // propagate value for object accessors
+            if(objectAccessor)
+            {
+               if(arrayEnd)
+               {
+                  parent["value"] = rhs["value"];
+               }
+               else
+               {
+                  exp["value"] = rhs["value"];
+               }
+            }
+            // handle math operator
+            else if(!arrayAccessor)
+            {
+               if(rhs["value"].isNull())
+               {
+                  exp["value"].setNull();
+               }
+               else
+               {
+                  // if this is the end of an array, use the parent's value for
+                  // the math operation
+                  if(arrayEnd)
+                  {
+                     exp["value"] = parent["value"];
+                  }
+                  rval = _handleMathOp(exp, strict, set);
+                  if(rval && arrayEnd)
+                  {
+                     parent["value"] = exp["value"];
+                  }
+               }
+            }
+
+            // handle value not found and strict
+            if(rval && strict && _isAccessor(exp) && exp["value"].isNull())
+            {
+               ExceptionRef e = new Exception(
+                  "The substitution variable is not defined. "
+                  "Variable substitution cannot occur with an "
+                  "undefined variable.",
+                  EXCEPTION_UNDEFINED);
+               e->getDetails()["name"] = exp["fullname"];
+               Exception::set(e);
+               rval = false;
+            }
          }
       }
    }
