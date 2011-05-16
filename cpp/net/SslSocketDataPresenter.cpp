@@ -118,7 +118,7 @@ bool SslSocketDataPresenter::detectSsl(Socket* s)
          }
 
          // ensure that we have a client hello
-         if(clientHello == 1)
+         if(clientHello == 1 && recordLength > 0)
          {
             // check for version 2 or 3
             if(version == 2 || version == 3)
