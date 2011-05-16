@@ -2,6 +2,7 @@
  * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/logging/LoggingCategories.h"
+#include <cstdlib>
 
 using namespace monarch::logging;
 
