@@ -161,7 +161,7 @@ bool ThreadPool::runJobOnIdleThread(RunnableRef& job, bool block)
 {
    bool tryAgain = true;
    PooledThread* t = NULL;
-   while(t == NULL)
+   while(t == NULL && tryAgain)
    {
       // wait for other jobs to be assigned/terminated
       mJobLock.lock();
