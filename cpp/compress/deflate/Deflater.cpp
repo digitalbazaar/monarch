@@ -312,5 +312,5 @@ bool Deflater::createException(int ret, ByteBuffer* dst)
       Exception::set(ref);
    }
 
-   return e;
+   return rval;
 }
