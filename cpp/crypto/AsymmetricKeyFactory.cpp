@@ -534,7 +534,7 @@ X509CertificateRef AsymmetricKeyFactory::createCertificate(
          pass = false;
       }
 
-      pass = pass && X509_sign(x509, privateKey->getPKEY(), EVP_sha1());
+      pass = pass && X509_sign(x509, privateKey->getPKEY(), hashAlgorithm);
    }
 
    if(pass)
