@@ -587,7 +587,8 @@ public:
    /**
     * If this object is an Array and the given index falls within its
     * bounds, the element at that index will be removed from the array
-    * and the array will be compacted.
+    * and the array will be compacted. If the index is negative, it will
+    * be removed from the end of the array (eg: removeIndex(-1) is like pop()).
     *
     * @param index the index to remove from the array.
     */
