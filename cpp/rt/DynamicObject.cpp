@@ -310,6 +310,73 @@ DynamicObjectIterator DynamicObject::getIterator() const
    return i;
 }
 
+DynamicObject& DynamicObject::push(DynamicObject value)
+{
+   // for non-arrays, preserve original value if set
+   if((*this)->getType() != Array && !(*this)->isUnset())
+   {
+      DynamicObject d;
+      d->append(*this);
+      operator=(d);
+   }
+   (*this)->append(value);
+   return *this;
+}
+
+DynamicObject& DynamicObject::push(const char* value)
+{
+   DynamicObject d;
+   d = value;
+   return push(d);
+}
+
+DynamicObject& DynamicObject::push(bool value)
+{
+   DynamicObject d;
+   d = value;
+   return push(d);
+}
+
+DynamicObject& DynamicObject::push(int32_t value)
+{
+   DynamicObject d;
+   d = value;
+   return push(d);
+}
+
+DynamicObject& DynamicObject::push(uint32_t value)
+{
+   DynamicObject d;
+   d = value;
+   return push(d);
+}
+
+DynamicObject& DynamicObject::push(int64_t value)
+{
+   DynamicObject d;
+   d = value;
+   return push(d);
+}
+
+DynamicObject& DynamicObject::push(uint64_t value)
+{
+   DynamicObject d;
+   d = value;
+   return push(d);
+}
+
+DynamicObject& DynamicObject::push(double value)
+{
+   DynamicObject d;
+   d = value;
+   return push(d);
+}
+
+DynamicObject DynamicObject::pop()
+{
+   return (*this)->pop();
+}
+
 DynamicObject DynamicObject::first() const
 {
    DynamicObject rval(NULL);

@@ -238,6 +238,10 @@ public:
     * Appends a DynamicObject to this one and returns a reference to it for
     * it to be set to a value.
     *
+    * If this DynamicObject was not an array, its contents will be erased and
+    * it will be converted to one. To preserve the contents and have them
+    * pushed onto the new array, use DynamicObject::push().
+    *
     * @return the DynamicObject to be set.
     */
    virtual DynamicObject& append();
@@ -245,6 +249,10 @@ public:
    /**
     * Appends the passed DynamicObject to this one and returns a reference to
     * it.
+    *
+    * If this DynamicObject was not an array, its contents will be erased and
+    * it will be converted to one. To preserve the contents and have them
+    * pushed onto the new array, use DynamicObject::push().
     *
     * @param value the DynamicObject to append.
     *
@@ -256,6 +264,10 @@ public:
     * Creates a DynamicObject, appends it to this one, and returns a reference
     * to it.
     *
+    * If this DynamicObject was not an array, its contents will be erased and
+    * it will be converted to one. To preserve the contents and have them
+    * pushed onto the new array, use DynamicObject::push().
+    *
     * @param value the value to append.
     *
     * @return the DynamicObject that was appended.
@@ -265,6 +277,10 @@ public:
    /**
     * Creates a DynamicObject, appends it to this one, and returns a reference
     * to it.
+    *
+    * If this DynamicObject was not an array, its contents will be erased and
+    * it will be converted to one. To preserve the contents and have them
+    * pushed onto the new array, use DynamicObject::push().
     *
     * @param value the value to append.
     *
@@ -276,6 +292,10 @@ public:
     * Creates a DynamicObject, appends it to this one, and returns a reference
     * to it.
     *
+    * If this DynamicObject was not an array, its contents will be erased and
+    * it will be converted to one. To preserve the contents and have them
+    * pushed onto the new array, use DynamicObject::push().
+    *
     * @param value the value to append.
     *
     * @return the DynamicObject that was appended.
@@ -285,6 +305,10 @@ public:
    /**
     * Creates a DynamicObject, appends it to this one, and returns a reference
     * to it.
+    *
+    * If this DynamicObject was not an array, its contents will be erased and
+    * it will be converted to one. To preserve the contents and have them
+    * pushed onto the new array, use DynamicObject::push().
     *
     * @param value the value to append.
     *
@@ -296,6 +320,10 @@ public:
     * Creates a DynamicObject, appends it to this one, and returns a reference
     * to it.
     *
+    * If this DynamicObject was not an array, its contents will be erased and
+    * it will be converted to one. To preserve the contents and have them
+    * pushed onto the new array, use DynamicObject::push().
+    *
     * @param value the value to append.
     *
     * @return the DynamicObject that was appended.
@@ -305,6 +333,10 @@ public:
    /**
     * Creates a DynamicObject, appends it to this one, and returns a reference
     * to it.
+    *
+    * If this DynamicObject was not an array, its contents will be erased and
+    * it will be converted to one. To preserve the contents and have them
+    * pushed onto the new array, use DynamicObject::push().
     *
     * @param value the value to append.
     *
@@ -316,22 +348,15 @@ public:
     * Creates a DynamicObject, appends it to this one, and returns a reference
     * to it.
     *
+    * If this DynamicObject was not an array, its contents will be erased and
+    * it will be converted to one. To preserve the contents and have them
+    * pushed onto the new array, use DynamicObject::push().
+    *
     * @param value the value to append.
     *
     * @return the DynamicObject that was appended.
     */
    virtual DynamicObject& append(double value);
-
-   /**
-    * Appends the passed DynamicObject to this one and returns a reference
-    * to it. An alias for append() but does not require the passed value to
-    * be by reference.
-    *
-    * @param value the DynamicObject to push.
-    *
-    * @return the DynamicObject that was pushed.
-    */
-   virtual DynamicObject& push(DynamicObject value);
 
    /**
     * Removes the last element of a non-empty array.
@@ -560,6 +585,15 @@ public:
    virtual int indexOf(double value) const;
 
    /**
+    * If this object is an Array and the given index falls within its
+    * bounds, the element at that index will be removed from the array
+    * and the array will be compacted.
+    *
+    * @param index the index to remove from the array.
+    */
+   virtual void removeIndex(int index);
+
+   /**
     * Clears associated data.
     * Maps and Arrays: removes all items.
     * Strings: set to "".
@@ -587,6 +621,13 @@ public:
     * Other: do nothing.
     */
    virtual void reverse();
+
+   /**
+    * Returns true if this object has not been set to any value yet.
+    *
+    * @return true if this object is uninitialized, false if not.
+    */
+   virtual bool isUnset();
 
    /**
     * Enable or disable debugging statistics.

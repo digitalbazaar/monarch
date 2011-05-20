@@ -452,6 +452,109 @@ public:
    virtual DynamicObjectIterator getIterator() const;
 
    /**
+    * Appends the passed DynamicObject to this one.
+    *
+    * If this object is not an array, it will be converted to one and its
+    * original value will be pushed onto the array before the given value.
+    *
+    * @param value the DynamicObject to push.
+    *
+    * @return this DynamicObject for chaining.
+    */
+   virtual DynamicObject& push(DynamicObject value);
+
+   /**
+    * Appends the passed value to this one.
+    *
+    * If this object is not an array, it will be converted to one and its
+    * original value will be pushed onto the array before the given value.
+    *
+    * @param value the value to push.
+    *
+    * @return this DynamicObject for chaining.
+    */
+   virtual DynamicObject& push(const char* value);
+
+   /**
+    * Appends the passed value to this one.
+    *
+    * If this object is not an array, it will be converted to one and its
+    * original value will be pushed onto the array before the given value.
+    *
+    * @param value the value to push.
+    *
+    * @return this DynamicObject for chaining.
+    */
+   virtual DynamicObject& push(bool value);
+
+   /**
+    * Appends the passed value to this one.
+    *
+    * If this object is not an array, it will be converted to one and its
+    * original value will be pushed onto the array before the given value.
+    *
+    * @param value the value to push.
+    *
+    * @return this DynamicObject for chaining.
+    */
+   virtual DynamicObject& push(int32_t value);
+
+   /**
+    * Appends the passed value to this one.
+    *
+    * If this object is not an array, it will be converted to one and its
+    * original value will be pushed onto the array before the given value.
+    *
+    * @param value the value to push.
+    *
+    * @return this DynamicObject for chaining.
+    */
+   virtual DynamicObject& push(uint32_t value);
+
+   /**
+    * Appends the passed value to this one.
+    *
+    * If this object is not an array, it will be converted to one and its
+    * original value will be pushed onto the array before the given value.
+    *
+    * @param value the value to push.
+    *
+    * @return this DynamicObject for chaining.
+    */
+   virtual DynamicObject& push(int64_t value);
+
+   /**
+    * Appends the passed value to this one.
+    *
+    * If this object is not an array, it will be converted to one and its
+    * original value will be pushed onto the array before the given value.
+    *
+    * @param value the value to push.
+    *
+    * @return this DynamicObject for chaining.
+    */
+   virtual DynamicObject& push(uint64_t value);
+
+   /**
+    * Appends the passed value to this one.
+    *
+    * If this object is not an array, it will be converted to one and its
+    * original value will be pushed onto the array before the given value.
+    *
+    * @param value the value to push.
+    *
+    * @return this DynamicObject for chaining.
+    */
+   virtual DynamicObject& push(double value);
+
+   /**
+    * Removes the last element of a non-empty array.
+    *
+    * @return the last element or NULL.
+    */
+   virtual DynamicObject pop();
+
+   /**
     * Gets a reference-counted DynamicObject for the first member or
     * array element in this object. If this DynamicObject is not a map
     * or array, then a reference to this object will be returned.

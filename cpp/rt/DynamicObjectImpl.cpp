@@ -764,11 +764,6 @@ DynamicObject& DynamicObjectImpl::append(double value)
    return mArray->back();
 }
 
-DynamicObject& DynamicObjectImpl::push(DynamicObject value)
-{
-   return append(value);
-}
-
 DynamicObject DynamicObjectImpl::pop()
 {
    DynamicObject rval(NULL);
@@ -1203,7 +1198,6 @@ void DynamicObjectImpl::removeMember(const char* name)
    }
 }
 
-
 int DynamicObjectImpl::indexOf(DynamicObject& obj) const
 {
    int rval = -1;
@@ -1268,6 +1262,31 @@ int DynamicObjectImpl::indexOf(double value) const
    DynamicObject d;
    d = value;
    return indexOf(d);
+}
+
+void DynamicObjectImpl::removeIndex(int index)
+{
+   // type must be array to erase at an index
+   if(mType == Array)
+   {
+      if(index >= 0)
+      {
+         ObjectArray::iterator i = mArray->begin() + index;
+         if(i != mArray->end())
+         {
+            mArray->erase(i);
+         }
+      }
+      else
+      {
+         index = -index - 1;
+         ObjectArray::reverse_iterator i = mArray->rbegin() + index;
+         if(i != mArray->rend())
+         {
+            mArray->erase((i + 1).base());
+         }
+      }
+   }
 }
 
 void DynamicObjectImpl::clear()
@@ -1357,6 +1376,13 @@ void DynamicObjectImpl::reverse()
       default:
          break;
    }
+}
+
+bool DynamicObjectImpl::isUnset()
+{
+   // if the type is String and the value is NULL, this DynamicObject has
+   // not been set to a value yet
+   return (mType == String && mString == NULL);
 }
 
 void DynamicObjectImpl::freeMapKeys()

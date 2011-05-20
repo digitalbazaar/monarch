@@ -1103,6 +1103,121 @@ static void runDynamicObjectTest(TestRunner& tr)
    }
 
    {
+      DynamicObject d;
+      d->append(1);
+      d->append(2);
+      d->append(3);
+      d->removeIndex(0);
+
+      DynamicObject expect;
+      expect->append(2);
+      expect->append(3);
+      assertDynoCmp(expect, d);
+   }
+
+   {
+      DynamicObject d;
+      d->append(1);
+      d->append(2);
+      d->append(3);
+      d->removeIndex(0);
+      d->removeIndex(1);
+
+      DynamicObject expect;
+      expect->append(2);
+      assertDynoCmp(expect, d);
+   }
+
+   {
+      DynamicObject d;
+      d->append(1);
+      d->append(2);
+      d->append(3);
+      d->removeIndex(-1);
+
+      DynamicObject expect;
+      expect->append(1);
+      expect->append(2);
+      assertDynoCmp(expect, d);
+   }
+
+   {
+      DynamicObject d;
+      d->append(1);
+      d->append(2);
+      d->append(3);
+      d->removeIndex(-2);
+
+      DynamicObject expect;
+      expect->append(1);
+      expect->append(3);
+      assertDynoCmp(expect, d);
+   }
+
+   {
+      DynamicObject d;
+      d->append(1);
+      d->append(2);
+      d->append(3);
+      d->removeIndex(-3);
+
+      DynamicObject expect;
+      expect->append(2);
+      expect->append(3);
+      assertDynoCmp(expect, d);
+   }
+
+   {
+      DynamicObject d;
+      d->append(1);
+      d->append(2);
+      d->append(3);
+      d->removeIndex(-4);
+
+      DynamicObject expect;
+      expect->append(1);
+      expect->append(2);
+      expect->append(3);
+      assertDynoCmp(expect, d);
+   }
+
+   {
+      DynamicObject d;
+      d->append(1);
+      d->append(2);
+      d->append(3);
+      d->removeIndex(3);
+
+      DynamicObject expect;
+      expect->append(1);
+      expect->append(2);
+      expect->append(3);
+      assertDynoCmp(expect, d);
+   }
+
+   {
+      DynamicObject d;
+      d = 1;
+      d.push(2);
+
+      DynamicObject expect;
+      expect->append(1);
+      expect->append(2);
+      assertDynoCmp(expect, d);
+   }
+
+   {
+      DynamicObject d;
+      d.push(1);
+      d.push(2);
+
+      DynamicObject expect;
+      expect->append(1);
+      expect->append(2);
+      assertDynoCmp(expect, d);
+   }
+
+   {
       // test compare cloned object
       DynamicObject d1;
       d1["map"]["key"] = "value";
@@ -2807,6 +2922,23 @@ static bool run(TestRunner& tr)
    if(tr.isTestEnabled("slow-shared-lock"))
    {
       runInteractiveSharedLockTest(tr);
+   }
+   if(tr.isTestEnabled("dyno"))
+   {
+      runDynamicObjectTest(tr);
+      runDynoClearTest(tr);
+      runDynoConversionTest(tr);
+      runDynoCastTest(tr);
+      runDynoRemoveTest(tr);
+      runDynoIndexTest(tr);
+      runDynoTypeTest(tr);
+      runDynoAppendTest(tr);
+      runDynoMergeTest(tr);
+      runDynoDiffTest(tr);
+      runDynoCopyTest(tr);
+      runDynoReverseTest(tr);
+      runDynoSortTest(tr);
+      runDynoStatsTest(tr);
    }
    return true;
 }
