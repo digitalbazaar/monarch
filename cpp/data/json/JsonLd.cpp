@@ -172,14 +172,14 @@ static DynamicObject _mergeContext(DynamicObject& ctx, DynamicObject& newCtx)
 }
 
 /**
- * Compacts an IRI into a term or CURIE. IRIs will not be compacted
+ * Compacts an IRI into a term or CURIE it can be. IRIs will not be compacted
  * to relative IRIs if they match the given context's default vocabulary.
  *
  * @param ctx the context to use.
  * @param iri the IRI to compact.
  * @param usedCtx a context to update if a value was used from "ctx".
  *
- * @return the compacted IRI as a term or CURIE.
+ * @return the compacted IRI as a term or CURIE or the original IRI.
  */
 static string _compactIri(
    DynamicObject& ctx, const char* iri, DynamicObject* usedCtx)
@@ -227,6 +227,12 @@ static string _compactIri(
       }
    }
 
+   // could not compact IRI
+   if(rval.empty())
+   {
+      rval = iri;
+   }
+
    return rval;
 }
 
@@ -237,10 +243,12 @@ static string _compactIri(
  *
  * @param ctx the context to use.
  * @param term the term to expand.
+ * @param usedCtx a context to update if a value was used from "ctx".
  *
  * @return the expanded term as an absolute IRI.
  */
-static string _expandTerm(DynamicObject& ctx, const char* term)
+static string _expandTerm(
+   DynamicObject& ctx, const char* term, DynamicObject* usedCtx)
 {
    string rval;
 
@@ -260,6 +268,10 @@ static string _expandTerm(DynamicObject& ctx, const char* term)
          DynamicObject& iri = ctx[prefix];
          len = strlen(iri->getString()) + strlen(ptr + 1) + 3;
          rval = StringTools::format("%s%s", iri->getString(), ptr + 1);
+         if(usedCtx != NULL)
+         {
+            (*usedCtx)[prefix] = iri->getString();
+         }
       }
       // 1.2. Prefix is not in context, property is already an absolute IRI:
       else
@@ -271,11 +283,19 @@ static string _expandTerm(DynamicObject& ctx, const char* term)
    else if(ctx->hasMember(term))
    {
       rval = ctx[term]->getString();
+      if(usedCtx != NULL)
+      {
+         (*usedCtx)[term] = rval.c_str();
+      }
    }
    // 3. The property is a relative IRI, prepend the default vocab.
    else
    {
       rval = StringTools::format("%s%s", ctx["@vocab"]->getString(), term);
+      if(usedCtx != NULL)
+      {
+         (*usedCtx)["@vocab"] = ctx["@vocab"]->getString();
+      }
    }
 
    printf("EXPANDED '%s' => '%s'\n", term, rval.c_str());
@@ -288,18 +308,21 @@ static string _expandTerm(DynamicObject& ctx, const char* term)
  *
  * @param ctx the context to use.
  * @param property the property to get the coerced type for.
+ * @param usedCtx a context to update if a value was used from "ctx".
  *
  * @return the coerce type, NULL for none.
  */
-static DynamicObject _getCoerceType(DynamicObject& ctx, const char* property)
+static DynamicObject _getCoerceType(
+   DynamicObject& ctx, const char* property, DynamicObject* usedCtx)
 {
    DynamicObject rval(NULL);
 
    // get expanded property
-   string p = _expandTerm(ctx, property);
+   string prop = _expandTerm(ctx, property, NULL);
+   const char* p = prop.c_str();
 
    // built-in type coercion JSON-LD-isms
-   if(strcmp(p.c_str(), "@") == 0 || strcmp(p.c_str(), RDF_TYPE) == 0)
+   if(strcmp(p, "@") == 0 || strcmp(p, RDF_TYPE) == 0)
    {
       rval = DynamicObject();
       rval = XSD_ANY_URI;
@@ -308,7 +331,8 @@ static DynamicObject _getCoerceType(DynamicObject& ctx, const char* property)
    else
    {
       // force compacted property
-      p = _compactIri(ctx, p.c_str(), NULL);
+      prop = _compactIri(ctx, p, NULL);
+      p = prop.c_str();
 
       DynamicObjectIterator i = ctx["@coerce"].getIterator();
       while(rval.isNull() && i->hasNext())
@@ -317,10 +341,26 @@ static DynamicObject _getCoerceType(DynamicObject& ctx, const char* property)
          DynamicObjectIterator pi = props.getIterator();
          while(rval.isNull() && pi->hasNext())
          {
-            if(pi->next() == p.c_str())
+            if(pi->next() == p)
             {
                rval = DynamicObject();
-               rval = _expandTerm(ctx, i->getName()).c_str();
+               rval = _expandTerm(ctx, i->getName(), usedCtx).c_str();
+               if(usedCtx != NULL)
+               {
+                  if(!(*usedCtx)["@coerce"]->hasMember(i->getName()))
+                  {
+                     (*usedCtx)["@coerce"][i->getName()] = p;
+                  }
+                  else
+                  {
+                     DynamicObject& c = (*usedCtx)["@coerce"][i->getName()];
+                     if((c->getType() == Array && c->indexOf(p) == -1) ||
+                        (c->getType() == String && c != p))
+                     {
+                        c.push(p);
+                     }
+                  }
+               }
             }
          }
       }
@@ -386,42 +426,42 @@ static DynamicObject _compact(
          }
       }
    }
+   // graph literal/disjoint graph
+   else if(
+      value->getType() == Map &&
+      value->hasMember("@") &&
+      value["@"]->getType() == Array)
+   {
+      rval = DynamicObject();
+      rval["@"] = _compact(ctx, property, value["@"], usedCtx);
+   }
    // value has sub-properties if it doesn't define a literal or IRI value
    else if(
       value->getType() == Map &&
       !value->hasMember("@literal") &&
       !value->hasMember("@iri"))
    {
-      // if value has a context, use it
-      if(value->hasMember("@context"))
+      // recursively handle sub-properties that aren't a sub-context
+      rval = DynamicObject();
+      rval->setType(Map);
+      DynamicObjectIterator i = value.getIterator();
+      while(!rval.isNull() && i->hasNext())
       {
-         ctx = _mergeContext(ctx, value["@context"]);
-      }
-
-      if(!ctx.isNull())
-      {
-         // recursively handle sub-properties that aren't a sub-context
-         rval = DynamicObject();
-         rval->setType(Map);
-         DynamicObjectIterator i = value.getIterator();
-         while(!rval.isNull() && i->hasNext())
+         DynamicObject next = i->next();
+         if(strcmp(i->getName(), "@context") != 0)
          {
-            DynamicObject next = i->next();
-            if(strcmp(i->getName(), "@context") != 0)
+            next = _compact(ctx, i->getName(), next, usedCtx);
+            if(next.isNull())
             {
-               next = _compact(ctx, i->getName(), next, usedCtx);
-               if(next.isNull())
-               {
-                  // error
-                  rval.setNull();
-               }
-               else
-               {
-                  // set object to compacted property
-                  _setPredicate(
-                     rval, _compactIri(ctx, i->getName(), usedCtx).c_str(),
-                     next);
-               }
+               // error
+               rval.setNull();
+            }
+            else
+            {
+               // set object to compacted property
+               _setPredicate(
+                  rval, _compactIri(ctx, i->getName(), usedCtx).c_str(),
+                  next);
             }
          }
       }
@@ -429,7 +469,7 @@ static DynamicObject _compact(
    else
    {
       // get coerce type
-      DynamicObject coerce = _getCoerceType(ctx, property);
+      DynamicObject coerce = _getCoerceType(ctx, property, usedCtx);
 
       // get type from value, to ensure coercion is valid
       DynamicObject type(NULL);
@@ -438,6 +478,8 @@ static DynamicObject _compact(
          // type coercion can only occur if language is not specified
          if(!value->hasMember("@language"))
          {
+            type = DynamicObject();
+
             // datatype must match coerce type if specified
             if(value->hasMember("@datatype"))
             {
@@ -585,7 +627,7 @@ static DynamicObject _expand(
    if(property == NULL && value->getType() == String)
    {
       rval = DynamicObject();
-      rval = _expandTerm(ctx, value).c_str();
+      rval = _expandTerm(ctx, value, NULL).c_str();
    }
    else if(value->getType() == Array)
    {
@@ -630,7 +672,7 @@ static DynamicObject _expand(
                if(strcmp(i->getName(), "@context") != 0)
                {
                   // expand property
-                  string p = _expandTerm(ctx, i->getName());
+                  string p = _expandTerm(ctx, i->getName(), NULL);
 
                   // expand object
                   obj = _expand(ctx, p.c_str(), obj);
@@ -659,13 +701,13 @@ static DynamicObject _expand(
       rval = DynamicObject();
 
       // do type coercion
-      DynamicObject coerce = _getCoerceType(ctx, property);
+      DynamicObject coerce = _getCoerceType(ctx, property, NULL);
       if(!coerce.isNull())
       {
          // expand IRI
          if(coerce == XSD_ANY_URI)
          {
-            rval["@iri"] = _expandTerm(ctx, value).c_str();
+            rval["@iri"] = _expandTerm(ctx, value, NULL).c_str();
          }
          // other datatype
          else

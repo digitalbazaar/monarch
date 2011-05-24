@@ -1049,7 +1049,7 @@ static void runJsonLdTest(TestRunner& tr)
    {
       DynamicObject in;
       in["@"] = "http://example.org/test#book";
-      in["http://example.org/vocab#contains"] =
+      in["http://example.org/vocab#contains"]["@iri"] =
          "http://example.org/test#chapter";
       in["http://purl.org/dc/elements/1.1/title"] = "Title";
 
@@ -1057,7 +1057,7 @@ static void runJsonLdTest(TestRunner& tr)
       ctx["dc"] = "http://purl.org/dc/elements/1.1/";
       ctx["ex"] = "http://example.org/vocab#";
       ctx["xsd"] = "http://www.w3.org/2001/XMLSchema#";
-      ctx["@coerce"]["ex:contains"] = "xsd:anyURI";
+      ctx["@coerce"]["xsd:anyURI"] = "ex:contains";
 
       DynamicObject out;
       assertNoException(
@@ -1067,7 +1067,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
       expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@context"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
-      expect["@context"]["@coerce"]["ex:contains"] = "xsd:anyURI";
+      expect["@context"]["@coerce"]["xsd:anyURI"] = "ex:contains";
       expect["@"] = "http://example.org/test#book";
       expect["ex:contains"] = "http://example.org/test#chapter";
       expect["dc:title"] = "Title";
