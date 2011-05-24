@@ -545,7 +545,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect[0]["@"]["@iri"] = "http://example.org/test#example";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -566,7 +566,7 @@ static void runJsonLdTest(TestRunner& tr)
          "http://example.org/vocab#Foo";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -591,7 +591,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect[1]["@"]["@iri"] = "http://example.org/test#example";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -618,7 +618,7 @@ static void runJsonLdTest(TestRunner& tr)
             "http://example.org/vocab#Bar";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -659,7 +659,7 @@ static void runJsonLdTest(TestRunner& tr)
          "http://example.org/vocab#Bar";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -686,7 +686,7 @@ static void runJsonLdTest(TestRunner& tr)
          "http://example.org/vocab#Bar";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -725,7 +725,7 @@ static void runJsonLdTest(TestRunner& tr)
          "http://example.org/test#book";
       assertNamedDynoCmp("expect", expect, "result", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -778,7 +778,7 @@ static void runJsonLdTest(TestRunner& tr)
          "http://example.org/test#book";
       assertNamedDynoCmp("expect", expect, "result", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -804,7 +804,7 @@ static void runJsonLdTest(TestRunner& tr)
          "http://www.w3.org/2001/XMLSchema#dateTime";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -830,7 +830,7 @@ static void runJsonLdTest(TestRunner& tr)
          "http://www.w3.org/2001/XMLSchema#dateTime";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -863,7 +863,7 @@ static void runJsonLdTest(TestRunner& tr)
          "http://www.w3.org/2001/XMLSchema#dateTime";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -897,7 +897,7 @@ static void runJsonLdTest(TestRunner& tr)
          "http://example.org/test#example1";
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -915,6 +915,10 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject expect;
       expect["@"]["@iri"] = "http://example.org/test#example";
       assertNamedDynoCmp("expect", expect, "out", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
@@ -965,6 +969,10 @@ static void runJsonLdTest(TestRunner& tr)
          ["http://example.org/vocab#contains"]["@iri"] =
             "http://example.org/test#chapter";
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
@@ -1018,6 +1026,10 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"][3]["ex:contains"]["ex:contains"] =
          "http://example.org/test#chapter";
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
@@ -1040,12 +1052,15 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@context"]["ex"] = "http://example.org/test#";
       expect["@"] = "ex:thing";
       expect["dc:title"] = "Title";
-
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
-   tr.test("add context (no <> on ex:contains)");
+   tr.test("add context (coerced ex:contains)");
    {
       DynamicObject in;
       in["@"] = "http://example.org/test#book";
@@ -1071,18 +1086,21 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"] = "http://example.org/test#book";
       expect["ex:contains"] = "http://example.org/test#chapter";
       expect["dc:title"] = "Title";
-
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
-   tr.test("remove context (input has no <> on ex:contains)");
+   tr.test("remove context (coerced ex:contains)");
    {
       DynamicObject in;
       in["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
       in["@context"]["ex"] = "http://example.org/vocab#";
       in["@context"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
-      in["@context"]["@coerce"]["ex:contains"] = "xsd:anyURI";
+      in["@context"]["@coerce"]["xsd:anyURI"] = "ex:contains";
       in["@"] = "http://example.org/test#book";
       in["ex:contains"] = "http://example.org/test#chapter";
       in["dc:title"] = "Title";
@@ -1131,7 +1149,7 @@ static void runJsonLdTest(TestRunner& tr)
 
       assertNamedDynoCmp("expect", expect, "out", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -1185,6 +1203,10 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@"][3]["ex:contains"]["ex:contains"] =
          "http://example.org/test#chapter";
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
@@ -1216,6 +1238,10 @@ static void runJsonLdTest(TestRunner& tr)
       expect["ex:double-zero"] = 0.000000e+00;
       expect["ex:int"] = 123;
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
@@ -1246,6 +1272,10 @@ static void runJsonLdTest(TestRunner& tr)
       expect["http://example.org/vocab#int"] =
          "123^^http://www.w3.org/2001/XMLSchema#integer";
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
@@ -1275,6 +1305,10 @@ static void runJsonLdTest(TestRunner& tr)
       expect["ex:double"] = 1.23;
       expect["ex:int"] = 123;
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
@@ -1300,8 +1334,11 @@ static void runJsonLdTest(TestRunner& tr)
       expect["@context"]["@coerce"]["ex:int"] = "xsd:integer";
       expect["@"] = "http://example.org/test";
       expect["ex:int"] = "123";
-
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
@@ -1372,7 +1409,7 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject expect = reframeExpect["library"];
       assertNamedDynoCmp("expect", expect, "result", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -1426,7 +1463,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect["ex:contains"]["ex:contains"]["ex:act"] = "ex:ActOne";
       assertNamedDynoCmp("expect", expect, "result", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -1450,7 +1487,7 @@ static void runJsonLdTest(TestRunner& tr)
       expect->setType(Map);
       assertNamedDynoCmp("expect", expect, "result", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -1472,7 +1509,7 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject expect = reframeExpect["library"];
       assertNamedDynoCmp("expect", expect, "result", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -1495,7 +1532,7 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject expect = reframeExpect["library"];
       assertNamedDynoCmp("expect", expect, "result", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -1520,7 +1557,7 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject expect = reframeExpect["library"];
       assertNamedDynoCmp("expect", expect, "result", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
@@ -1543,7 +1580,7 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject expect = reframeExpect["top"];
       assertNamedDynoCmp("expect", expect, "result", out);
 
-      MO_DEBUG("INPUT: %s\nOUTPUT: %s",
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
          JsonWriter::writeToString(in).c_str(),
          JsonWriter::writeToString(out).c_str());
    }
