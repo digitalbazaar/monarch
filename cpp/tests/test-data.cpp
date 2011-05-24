@@ -913,7 +913,7 @@ static void runJsonLdTest(TestRunner& tr)
          JsonLd::removeContext(in, out));
 
       DynamicObject expect;
-      expect["@"]["@iri"] = "http://example.org/test#example";
+      expect["@"] = "http://example.org/test#example";
       assertNamedDynoCmp("expect", expect, "out", out);
 
       MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
@@ -949,17 +949,17 @@ static void runJsonLdTest(TestRunner& tr)
          JsonLd::removeContext(in, out));
 
       DynamicObject expect;
-      expect["@"][0]["@"]["@iri"] = "http://example.org/test#chapter";
+      expect["@"][0]["@"] = "http://example.org/test#chapter";
       expect["@"][0]["http://purl.org/dc/elements/1.1/description"] = "Fun";
       expect["@"][0]["http://purl.org/dc/elements/1.1/title"] = "Chapter One";
-      expect["@"][1]["@"]["@iri"] = "http://example.org/test#jane";
+      expect["@"][1]["@"] = "http://example.org/test#jane";
       expect["@"][1]["http://example.org/vocab#authored"]["@iri"] =
          "http://example.org/test#chapter";
       expect["@"][1]["http://xmlns.com/foaf/0.1/name"] = "Jane";
-      expect["@"][2]["@"]["@iri"] = "http://example.org/test#john";
+      expect["@"][2]["@"] = "http://example.org/test#john";
       expect["@"][2]["http://xmlns.com/foaf/0.1/name"] = "John";
-      expect["@"][3]["@"]["@iri"] = "http://example.org/test#library";
-      expect["@"][3]["http://example.org/vocab#contains"]["@"]["@iri"] =
+      expect["@"][3]["@"] = "http://example.org/test#library";
+      expect["@"][3]["http://example.org/vocab#contains"]["@"] =
          "http://example.org/test#book";
       expect["@"][3]["http://example.org/vocab#contains"]
          ["http://purl.org/dc/elements/1.1/contributor"] = "Writer";
@@ -1111,7 +1111,7 @@ static void runJsonLdTest(TestRunner& tr)
 
       DynamicObject expect;
       expect["@"] = "http://example.org/test#book";
-      expect["http://example.org/vocab#contains"] =
+      expect["http://example.org/vocab#contains"]["@iri"] =
          "http://example.org/test#chapter";
       expect["http://purl.org/dc/elements/1.1/title"] = "Title";
 
@@ -1140,12 +1140,11 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject woCtx;
       assertNoException(
          JsonLd::removeContext(in, woCtx));
-      in = woCtx;
 
       // re-add context
       DynamicObject out;
       assertNoException(
-         JsonLd::addContext(ctx, in, out));
+         JsonLd::addContext(ctx, woCtx, out));
 
       assertNamedDynoCmp("expect", expect, "out", out);
 

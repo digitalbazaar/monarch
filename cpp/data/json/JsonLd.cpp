@@ -612,11 +612,13 @@ static DynamicObject _compact(
  * @param ctx the context.
  * @param property the property that points to the value, NULL for none.
  * @param value the value to expand.
+ * @param expandSubjects true to expand subjects (normalize), false not to.
  *
  * @return the expanded value, NULL on error.
  */
 static DynamicObject _expand(
-   DynamicObject ctx, const char* property, DynamicObject& value)
+   DynamicObject ctx, const char* property, DynamicObject& value,
+   bool expandSubjects)
 {
    DynamicObject rval(NULL);
 
@@ -637,7 +639,7 @@ static DynamicObject _expand(
       DynamicObjectIterator i = value.getIterator();
       while(!rval.isNull() && i->hasNext())
       {
-         DynamicObject next = _expand(ctx, property, i->next());
+         DynamicObject next = _expand(ctx, property, i->next(), expandSubjects);
          if(next.isNull())
          {
             // error
@@ -675,7 +677,7 @@ static DynamicObject _expand(
                   string p = _expandTerm(ctx, i->getName(), NULL);
 
                   // expand object
-                  obj = _expand(ctx, p.c_str(), obj);
+                  obj = _expand(ctx, p.c_str(), obj, expandSubjects);
                   if(obj.isNull())
                   {
                      // error
@@ -700,9 +702,9 @@ static DynamicObject _expand(
    {
       rval = DynamicObject();
 
-      // do type coercion
+      // do type coercion (only expand subjects if requested)
       DynamicObject coerce = _getCoerceType(ctx, property, NULL);
-      if(!coerce.isNull())
+      if(!coerce.isNull() && (strcmp(property, "@") != 0 || expandSubjects))
       {
          // expand IRI
          if(coerce == XSD_ANY_URI)
@@ -915,7 +917,7 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
       DynamicObject ctx = _createDefaultContext();
 
       // expand
-      DynamicObject expanded = _expand(ctx, NULL, in);
+      DynamicObject expanded = _expand(ctx, NULL, in, true);
       rval = !expanded.isNull();
       if(rval)
       {
@@ -952,7 +954,7 @@ bool JsonLd::removeContext(DynamicObject& in, DynamicObject& out)
    else
    {
       DynamicObject ctx = _createDefaultContext();
-      out = _expand(ctx, NULL, in);
+      out = _expand(ctx, NULL, in, false);
       rval = !out.isNull();
    }
 
