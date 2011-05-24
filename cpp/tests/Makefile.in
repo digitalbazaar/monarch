@@ -59,6 +59,7 @@ TEST_MODS = \
 	test-hashtable \
 	test-http \
 	test-io \
+	test-jsonld \
 	test-logging \
 	test-mail \
 	test-modest \
@@ -71,6 +72,7 @@ TEST_MODS = \
 	$(SPHINX_TEST_MOD) \
 	test-sqlite3 \
 	$(MYSQL_TEST_MOD) \
+	test-template \
 	test-upnp \
 	test-util \
 	$(V8_TEST_MOD) \
