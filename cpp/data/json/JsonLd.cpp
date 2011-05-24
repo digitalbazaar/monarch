@@ -7,6 +7,9 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/util/StringTools.h"
 
+// FIXME: remove me
+#include "monarch/data/json/JsonWriter.h"
+
 #include <cstdio>
 
 using namespace std;
@@ -19,25 +22,13 @@ using namespace monarch::util;
 #define XSD_NS            "http://www.w3.org/2001/XMLSchema#"
 
 #define RDF_TYPE          RDF_NS "type"
-#define RDF_TYPE_NORM     "<" RDF_TYPE ">"
 #define XSD_ANY_TYPE      XSD_NS "anyType"
-#define XSD_ANY_TYPE_NORM "<" XSD_ANY_TYPE ">"
 #define XSD_BOOLEAN       XSD_NS "boolean"
-#define XSD_BOOLEAN_NORM  "<" XSD_BOOLEAN ">"
 #define XSD_DOUBLE        XSD_NS "double"
-#define XSD_DOUBLE_NORM   "<" XSD_DOUBLE ">"
 #define XSD_INTEGER       XSD_NS "integer"
-#define XSD_INTEGER_NORM  "<" XSD_INTEGER ">"
 #define XSD_ANY_URI       XSD_NS "anyURI"
-#define XSD_ANY_URI_NORM  "<" XSD_ANY_URI ">"
 
-enum RdfType
-{
-   RDF_TYPE_IRI,
-   RDF_TYPE_TYPED_LITERAL,
-   RDF_TYPE_PLAIN_LITERAL,
-   RDF_TYPE_UNKNOWN
-};
+#define EXCEPTION_TYPE    "monarch.data.json.JsonLd"
 
 JsonLd::JsonLd()
 {
@@ -47,191 +38,290 @@ JsonLd::~JsonLd()
 {
 }
 
-static char* _realloc(char** str, size_t len)
+/**
+ * Creates the JSON-LD default context.
+ *
+ * @return the JSON-LD default context.
+ */
+static DynamicObject _createDefaultContext()
 {
-   if(*str == NULL || strlen(*str) < len)
-   {
-      *str = (char*)realloc(*str, len);
-   }
-   return *str;
+   DynamicObject ctx;
+   ctx["a"] = RDF_TYPE;
+   ctx["rdf"] = RDF_NS;
+   ctx["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
+   ctx["owl"] = "http://www.w3.org/2002/07/owl#";
+   ctx["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+   ctx["dcterms"] = "http://purl.org/dc/terms/";
+   ctx["foaf"] = "http://xmlns.com/foaf/0.1/";
+   ctx["cal"] = "http://www.w3.org/2002/12/cal/ical#";
+   ctx["vcard"] = "http://www.w3.org/2006/vcard/ns# ";
+   ctx["geo"] = "http://www.w3.org/2003/01/geo/wgs84_pos#";
+   ctx["cc"] = "http://creativecommons.org/ns#";
+   ctx["sioc"] = "http://rdfs.org/sioc/ns#";
+   ctx["doap"] = "http://usefulinc.com/ns/doap#";
+   ctx["com"] = "http://purl.org/commerce#";
+   ctx["ps"] = "http://purl.org/payswarm#";
+   ctx["gr"] = "http://purl.org/goodrelations/v1#";
+   ctx["sig"] = "http://purl.org/signature#";
+   ctx["ccard"] = "http://purl.org/commerce/creditcard#";
+
+   DynamicObject& coerce = ctx["@coerce"];
+   coerce["xsd:anyURI"]->append("foaf:homepage");
+   coerce["xsd:anyURI"]->append("foaf:member");
+   coerce["xsd:integer"] = "foaf:age";
+
+   return ctx;
 }
 
 /**
- * Encodes an rdf type, value, and datatype into a string.
+ * Merges a new context into an existing one and returns the merged context.
  *
- * @param type the RDF type.
- * @param value the value (no <>).
- * @param datatype the datatype (no <>), NULL if not RDF_TYPE_TYPED_LITERAL.
+ * @param ctx the existing context.
+ * @param newCtx the new context.
  *
- * @return the encoded string.
+ * @return the merged context, NULL on error.
  */
-// TODO: expose as utility function?
-static string _encode(
-   RdfType type, const char* value, const char* datatype = NULL)
+static DynamicObject _mergeContext(DynamicObject& ctx, DynamicObject& newCtx)
+{
+   // copy contexts
+   DynamicObject merged = ctx.clone();
+   DynamicObject copy = newCtx.clone();
+
+   // @coerce must be specially-merged, remove from context
+   DynamicObject c1 = merged["@coerce"];
+   DynamicObject c2 = copy["@coerce"];
+   c2->setType(Map);
+   merged->removeMember("@coerce");
+   copy->removeMember("@coerce");
+
+   // merge contexts (do not append)
+   merged.merge(copy, false);
+
+   // special-merge @coerce
+   DynamicObjectIterator i = c1.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& props = i->next();
+
+      // append existing-type properties that don't already exist
+      if(c2->hasMember(i->getName()))
+      {
+         DynamicObjectIterator pi = c2[i->getName()].getIterator();
+         while(pi->hasNext())
+         {
+            DynamicObject& p = pi->next();
+            if((props->getType() != Array && props != p) ||
+               (props->getType() == Array && props->indexOf(p) == -1))
+            {
+               props.push(p);
+            }
+         }
+      }
+   }
+
+   // add new types from new @coerce
+   i = c2.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& props = i->next();
+      if(!c1->hasMember(i->getName()))
+      {
+         c1[i->getName()] = props;
+      }
+   }
+
+   // ensure there are no property duplicates in @coerce
+   DynamicObject unique;
+   unique->setType(Map);
+   DynamicObject dups;
+   dups->setType(Array);
+   i = c1.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObjectIterator pi = i->next().getIterator();
+      while(pi->hasNext())
+      {
+         DynamicObject& p = pi->next();
+         if(!unique->hasMember(p))
+         {
+            unique[p->getString()] = true;
+         }
+         else if(dups->indexOf(p) == -1)
+         {
+            dups->append(p);
+         }
+      }
+   }
+
+   if(dups->length() > 0)
+   {
+      ExceptionRef e = new Exception(
+         "Invalid type coercion specification. More than one type "
+         "specified for at least one property.",
+         EXCEPTION_TYPE ".CoerceSpecError");
+      e->getDetails()["duplicates"] = dups;
+      Exception::set(e);
+      merged.setNull();
+   }
+   else
+   {
+      merged["@coerce"] = c1;
+   }
+
+   return merged;
+}
+
+/**
+ * Compacts an IRI into a term or CURIE. IRIs will not be compacted
+ * to relative IRIs if they match the given context's default vocabulary.
+ *
+ * @param ctx the context to use.
+ * @param iri the IRI to compact.
+ * @param usedCtx a context to update if a value was used from "ctx".
+ *
+ * @return the compacted IRI as a term or CURIE.
+ */
+static string _compactIri(
+   DynamicObject& ctx, const char* iri, DynamicObject* usedCtx)
 {
    string rval;
 
-   // FIXME: escape
+   // check the context for a term or prefix that could shorten the IRI
+   DynamicObjectIterator i = ctx.getIterator();
+   while(rval.empty() && i->hasNext())
+   {
+      // get next IRI from the context
+      const char* ctxIri = i->next();
 
-   // <value>
-   if(type == RDF_TYPE_IRI)
-   {
-      rval.push_back('<');
-      rval.append(value);
-      rval.push_back('>');
-   }
-   // value^^<datatype>
-   else if(type == RDF_TYPE_TYPED_LITERAL)
-   {
-      // FIXME: this is called with <> wrapped datatypes, despite func docs.
-      // Adjust datatype to an unwrapped version if needed.
-      const char* dt = datatype;
-      size_t dtlen = strlen(dt);
-      if(dtlen > 1 && dt[0] == '<' && dt[dtlen - 1] == '>')
+      // skip special context keys (start with '@')
+      const char* name = i->getName();
+      if(name[0] != '@')
       {
-         dt++;
-         dtlen -= 2;
+         // see if IRI begins with the next IRI from the context
+         const char* ptr = strstr(iri, ctxIri);
+         if(ptr != NULL && ptr == iri)
+         {
+            size_t len1 = strlen(iri);
+            size_t len2 = strlen(ctxIri);
+
+            // compact to a CURIE
+            if(len1 > len2)
+            {
+               // add 2 to make room for null-terminator and colon
+               rval = StringTools::format("%s:%s", name, ptr + len2);
+               if(usedCtx != NULL)
+               {
+                  (*usedCtx)[name] = ctxIri;
+               }
+            }
+            // compact to a term
+            else if(len1 == len2)
+            {
+               rval = name;
+               if(usedCtx != NULL)
+               {
+                  (*usedCtx)[name] = ctxIri;
+               }
+            }
+         }
       }
-
-      // use canonical form for xsd:double
-      if(strncmp(datatype, XSD_DOUBLE, dtlen) == 0)
-      {
-         DynamicObject d;
-         d = value;
-         rval = StringTools::format("%1.6e", d->getDouble());
-      }
-      else
-      {
-         rval.assign(value);
-      }
-      rval.append("^^");
-      rval.push_back('<');
-      rval.append(dt, dtlen);
-      rval.push_back('>');
-   }
-   // default
-   else
-   {
-      rval.assign(value);
-   }
-
-   return rval.c_str();
-}
-
-/**
- * Decodes a string into an rdf type and value. The only types that matter
- * to JSON-LD are IRI and TYPED literals. The other types are all lumped
- * together under PLAIN literal (even if they are XML literals, etc).
- *
- * @param str the input string.
- * @param type the RDF type.
- * @param value the string to store the value.
- * @param datatype the string to store the datatype (maybe a CURIE).
- *
- * @return the decoded value.
- */
-// TODO: expose as utility function?
-static const char* _decode(
-   const char* str, RdfType& type, string& value, string& datatype)
-{
-   const char* rval = NULL;
-
-   // default to plain literal
-   type = RDF_TYPE_PLAIN_LITERAL;
-
-   // determine if the string has <> or ^^
-   size_t len = strlen(str);
-   bool hasBrackets = (len > 1 && str[0] == '<' && str[len - 1] == '>');
-   const char* typedLiteral = strstr(str, "^^");
-
-   // get <%s>
-   if(hasBrackets)
-   {
-      type = RDF_TYPE_IRI;
-
-      // FIXME: unescape
-
-      // strip brackets
-      len -= 2;
-      value.assign(str + 1, len);
-      rval = value.c_str();
-   }
-   // get %s^^<%s>
-   else if(typedLiteral != NULL)
-   {
-      type = RDF_TYPE_TYPED_LITERAL;
-
-      // FIXME: unescape
-
-      // get value up to ^^
-      len = typedLiteral - str;
-      value.assign(str, len);
-      rval = value.c_str();
-
-      // get datatype after ^^
-      len = strlen(typedLiteral + 2);
-      datatype.assign(typedLiteral + 2, len);
-
-      // strip brackets
-      string::size_type end = datatype.length() - 1;
-      if(datatype.at(0) == '<' && datatype.at(end) == '>')
-      {
-         datatype.erase(end);
-         datatype.erase(0, 1);
-      }
-   }
-   else
-   {
-      // FIXME: unescape
-
-      value = str;
-      rval = value.c_str();
    }
 
    return rval;
 }
 
 /**
- * Expands a possible CURIE string into a full IRI. If the string is not
- * recognized as a CURIE that can be expanded into an IRI, then false is
- * returned.
+ * Expands a term into an absolute IRI. The term may be a regular term, a
+ * CURIE, a relative IRI, or an absolute IRI. In any case, the associated
+ * absolute IRI will be returned.
  *
  * @param ctx the context to use.
- * @param str the string to expand (no <>).
- * @param iri the string to store the IRI in.
- * @param usedCtx a context to update if a value was used from "ctx".
+ * @param term the term to expand.
  *
- * @return true if the string was expanded, false if not.
+ * @return the expanded term as an absolute IRI.
  */
-static bool _expandCurie(
-   DynamicObject& ctx, const char* str, string& iri,
-   DynamicObject* usedCtx = NULL)
+static string _expandTerm(DynamicObject& ctx, const char* term)
 {
-   bool rval = false;
+   string rval;
 
-   if(!ctx.isNull())
+   // 1. If the property has a colon, then it is a CURIE or an absolute IRI:
+   const char* ptr = strchr(term, ':');
+   if(ptr != NULL)
    {
-      // try to find a colon
-      const char* ptr = strchr(str, ':');
-      if(ptr != NULL)
-      {
-         // get the potential CURIE prefix
-         size_t len = ptr - str + 1;
-         char prefix[len];
-         snprintf(prefix, len, "%s", str);
+      // get the potential CURIE prefix
+      size_t len = ptr - term + 1;
+      char prefix[len];
+      snprintf(prefix, len, "%s", term);
 
-         // see if the prefix is in the context
-         if(ctx->hasMember(prefix))
+      // 1.1. See if the prefix is in the context:
+      if(ctx->hasMember(prefix))
+      {
+         // prefix found, expand property to absolute IRI
+         DynamicObject& iri = ctx[prefix];
+         len = strlen(iri->getString()) + strlen(ptr + 1) + 3;
+         rval = StringTools::format("%s%s", iri->getString(), ptr + 1);
+      }
+      // 1.2. Prefix is not in context, property is already an absolute IRI:
+      else
+      {
+         rval = term;
+      }
+   }
+   // 2. If the property is in the context, then it's a term.
+   else if(ctx->hasMember(term))
+   {
+      rval = ctx[term]->getString();
+   }
+   // 3. The property is a relative IRI, prepend the default vocab.
+   else
+   {
+      rval = StringTools::format("%s%s", ctx["@vocab"]->getString(), term);
+   }
+
+   printf("EXPANDED '%s' => '%s'\n", term, rval.c_str());
+
+   return rval;
+}
+
+/**
+ * Gets the coerce type for the given property.
+ *
+ * @param ctx the context to use.
+ * @param property the property to get the coerced type for.
+ *
+ * @return the coerce type, NULL for none.
+ */
+static DynamicObject _getCoerceType(DynamicObject& ctx, const char* property)
+{
+   DynamicObject rval(NULL);
+
+   // get expanded property
+   string p = _expandTerm(ctx, property);
+
+   // built-in type coercion JSON-LD-isms
+   if(strcmp(p.c_str(), "@") == 0 || strcmp(p.c_str(), RDF_TYPE) == 0)
+   {
+      rval = DynamicObject();
+      rval = XSD_ANY_URI;
+   }
+   // check type coercion for property
+   else
+   {
+      // force compacted property
+      p = _compactIri(ctx, p.c_str(), NULL);
+
+      DynamicObjectIterator i = ctx["@coerce"].getIterator();
+      while(rval.isNull() && i->hasNext())
+      {
+         DynamicObject& props = i->next();
+         DynamicObjectIterator pi = props.getIterator();
+         while(rval.isNull() && pi->hasNext())
          {
-            // prefix found, normalize string
-            DynamicObject& uri = ctx[prefix];
-            len = strlen(uri->getString()) + strlen(ptr + 1) + 3;
-            iri = StringTools::format("%s%s", uri->getString(), ptr + 1);
-            if(usedCtx != NULL)
+            if(pi->next() == p.c_str())
             {
-               (*usedCtx)[prefix] = uri.clone();
+               rval = DynamicObject();
+               rval = _expandTerm(ctx, i->getName()).c_str();
             }
-            rval = true;
          }
       }
    }
@@ -241,51 +331,17 @@ static bool _expandCurie(
 
 /**
  * Sets a subject's predicate to the given object value. If a value already
- * exists, it will be appended to an array. If the object value is NULL, then
- * the subject's predicate will be converted to an array.
+ * exists, it will be appended to an array.
  *
  * @param s the subject.
  * @param p the predicate.
- * @param o the object, NULL to only convert s[p] to an array.
+ * @param o the object.
  */
-static void _setPredicate(DynamicObject& s, const char* p, const char* o)
+static void _setPredicate(DynamicObject& s, const char* p, DynamicObject& o)
 {
-   // FIXME: must sort objects or keep array order?
    if(s->hasMember(p))
    {
-      if(s[p]->getType() != Array)
-      {
-         DynamicObject tmp = s[p];
-         s[p] = DynamicObject();
-         s[p]->append(tmp);
-      }
-      if(o != NULL)
-      {
-         s[p]->append(o);
-      }
-   }
-   else if(o == NULL)
-   {
-      s[p]->setType(Array);
-   }
-   else
-   {
-      s[p] = o;
-   }
-}
-
-static void _setEmbed(DynamicObject& s, const char* p, DynamicObject& o)
-{
-   // FIXME: must sort objects or keep array order?
-   if(s->hasMember(p))
-   {
-      if(s[p]->getType() != Array)
-      {
-         DynamicObject tmp = s[p];
-         s[p] = DynamicObject();
-         s[p]->append(tmp);
-      }
-      s[p]->append(o);
+      s[p].push(o);
    }
    else
    {
@@ -294,322 +350,507 @@ static void _setEmbed(DynamicObject& s, const char* p, DynamicObject& o)
 }
 
 /**
- * Normalizes a value using the given context.
+ * Recursively compacts a value. This method will compact IRIs to CURIEs or
+ * terms and do reverse type coercion to compact a value.
  *
- * @param ctx the context.
- * @param value the value to normalize.
- * @param type the expected RDF type, use RDF_TYPE_UNKNOWN if not known.
- * @param predicate an optional predicate for the value (used to look up
- *           type coercion info).
+ * @param ctx the context to use.
+ * @param property the property that points to the value, NULL for none.
+ * @param value the value to compact.
  * @param usedCtx a context to update if a value was used from "ctx".
  *
- * @return the normalized string.
+ * @return the compacted value, NULL on error.
  */
-static string _normalizeValue(
-   DynamicObject& ctx, DynamicObject value,
-   RdfType type, const char* predicate, DynamicObject* usedCtx)
+static DynamicObject _compact(
+   DynamicObject ctx, const char* property, DynamicObject& value,
+   DynamicObject* usedCtx)
 {
-   string rval;
+   DynamicObject rval(NULL);
 
-   // "@" or "a"/RDF_TYPE predicates have values that are IRIs or CURIEs
-   if(predicate != NULL &&
-      (strcmp(predicate, "@") == 0 || strcmp(predicate, "a") == 0 ||
-       strcmp(predicate, RDF_TYPE_NORM) == 0))
+   if(value->getType() == Array)
    {
-      type = RDF_TYPE_IRI;
-   }
-
-   // IRI "@" is already normalized
-   if(type == RDF_TYPE_IRI && strcmp(value, "@") == 0)
-   {
-      rval.assign(value);
-   }
-   // IRI "a" is special rdf type
-   else if(type == RDF_TYPE_IRI && strcmp(value, "a") == 0)
-   {
-      rval.assign(RDF_TYPE_NORM);
-   }
-   else
-   {
-      string datatype;
-
-      // look for type coercion info
-      if(type == RDF_TYPE_UNKNOWN && predicate != NULL &&
-         !ctx.isNull() && ctx->hasMember("#types") &&
-         ctx["#types"]->hasMember(predicate))
+      // recursively add compacted values to array
+      rval = DynamicObject();
+      rval->setType(Array);
+      DynamicObjectIterator i = value.getIterator();
+      while(!rval.isNull() && i->hasNext())
       {
-         DynamicObject& tci = ctx["#types"][predicate];
-         if(usedCtx != NULL)
+         DynamicObject next = _compact(ctx, property, i->next(), usedCtx);
+         if(next.isNull())
          {
-            (*usedCtx)["#types"][predicate] = tci.clone();
+            // error
+            rval.setNull();
          }
-
-         // handle specific type
-         if(tci->getType() == String)
-         {
-            rval = value->getString();
-            datatype = _normalizeValue(ctx, tci, RDF_TYPE_IRI, NULL, usedCtx);
-            type = (strcmp(datatype.c_str(), XSD_ANY_URI_NORM) == 0) ?
-               RDF_TYPE_IRI : RDF_TYPE_TYPED_LITERAL;
-         }
-         // handle type preferences in order
          else
          {
-            DynamicObjectIterator ti = tci.getIterator();
-            while(type == RDF_TYPE_UNKNOWN && ti->hasNext())
+            rval->append(next);
+         }
+      }
+   }
+   // value has sub-properties if it doesn't define a literal or IRI value
+   else if(
+      value->getType() == Map &&
+      !value->hasMember("@literal") &&
+      !value->hasMember("@iri"))
+   {
+      // if value has a context, use it
+      if(value->hasMember("@context"))
+      {
+         ctx = _mergeContext(ctx, value["@context"]);
+      }
+
+      if(!ctx.isNull())
+      {
+         // recursively handle sub-properties that aren't a sub-context
+         rval = DynamicObject();
+         rval->setType(Map);
+         DynamicObjectIterator i = value.getIterator();
+         while(!rval.isNull() && i->hasNext())
+         {
+            DynamicObject next = i->next();
+            if(strcmp(i->getName(), "@context") != 0)
             {
-               // FIXME: if value works w/type, set value, datatype, type
-               //type = RDF_TYPE_TYPED_LITERAL;
+               next = _compact(ctx, i->getName(), next, usedCtx);
+               if(next.isNull())
+               {
+                  // error
+                  rval.setNull();
+               }
+               else
+               {
+                  // set object to compacted property
+                  _setPredicate(
+                     rval, _compactIri(ctx, i->getName(), usedCtx).c_str(),
+                     next);
+               }
             }
          }
       }
-      // determine type from DynamicObjectType
-      else if(type == RDF_TYPE_UNKNOWN && value->getType() != String)
-      {
-         type = RDF_TYPE_TYPED_LITERAL;
-         rval = value->getString();
+   }
+   else
+   {
+      // get coerce type
+      DynamicObject coerce = _getCoerceType(ctx, property);
 
-         // handle native xsd types
-         if(value->isNumber())
+      // get type from value, to ensure coercion is valid
+      DynamicObject type(NULL);
+      if(value->getType() == Map)
+      {
+         // type coercion can only occur if language is not specified
+         if(!value->hasMember("@language"))
          {
-            datatype = value->isInteger() ? XSD_INTEGER : XSD_DOUBLE;
+            // datatype must match coerce type if specified
+            if(value->hasMember("@datatype"))
+            {
+               type = value["@datatype"];
+            }
+            // datatype is IRI
+            else if(value->hasMember("@iri"))
+            {
+               type = XSD_ANY_URI;
+            }
+            // can be coerced to any type
+            else
+            {
+               type = coerce;
+            }
+         }
+      }
+      // type can be coerced to anything
+      else if(value->getType() == String)
+      {
+         type = coerce;
+      }
+      // type can only be coerced to a JSON-builtin
+      else
+      {
+         type = DynamicObject();
+         if(value->isInteger())
+         {
+            type = XSD_INTEGER;
+         }
+         else if(value->isNumber())
+         {
+            type = XSD_DOUBLE;
          }
          else if(value->getType() == Boolean)
          {
-            datatype = XSD_BOOLEAN;
+            type = XSD_BOOLEAN;
+         }
+
+         // automatic coercion for basic JSON types
+         if(coerce.isNull())
+         {
+            coerce = type;
+         }
+      }
+
+      // do reverse type-coercion
+      if(!coerce.isNull())
+      {
+         // type is only null if a language was specified, which is an error
+         // if type coercion is specified
+         if(type.isNull())
+         {
+            ExceptionRef e = new Exception(
+               "Cannot coerce type when a language is specified. The language "
+               "information would be lost.",
+               EXCEPTION_TYPE ".CoerceLanguageError");
+            Exception::set(e);
+         }
+         // if the value type does not match the coerce type, it is an error
+         else if(type != coerce)
+         {
+            ExceptionRef e = new Exception(
+               "Cannot coerce type because the datatype does not match.",
+               EXCEPTION_TYPE ".InvalidCoerceType");
+            Exception::set(e);
+         }
+         // do reverse type-coercion
+         else
+         {
+            rval = DynamicObject();
+            if(value->getType() == Map)
+            {
+               if(value->hasMember("@iri"))
+               {
+                  rval = value["@iri"]->getString();
+               }
+               else if(value->hasMember("@literal"))
+               {
+                  rval = value["@literal"].clone();
+               }
+            }
+            else
+            {
+               rval = value.clone();
+            }
+
+            // do basic JSON types conversion
+            if(coerce == XSD_BOOLEAN)
+            {
+               rval->setType(Boolean);
+            }
+            else if(coerce == XSD_DOUBLE)
+            {
+               rval->setType(Double);
+            }
+            else if(coerce == XSD_INTEGER)
+            {
+               rval->setType(Int64);
+            }
+         }
+      }
+      // no type-coercion, just copy value
+      else
+      {
+         rval = value.clone();
+      }
+
+      // compact IRI
+      if(!rval.isNull() && type == XSD_ANY_URI)
+      {
+         if(rval->getType() == Map)
+         {
+            rval["@iri"] = _compactIri(ctx, rval["@iri"], usedCtx).c_str();
          }
          else
          {
-            // FIXME: this should never happen?
-            datatype = XSD_ANY_TYPE;
+            rval = _compactIri(ctx, rval, usedCtx).c_str();
          }
       }
-      else
-      {
-         // JSON-LD decode
-         RdfType t = type;
-         _decode(value, type, rval, datatype);
-         if(type == RDF_TYPE_TYPED_LITERAL)
-         {
-            _expandCurie(ctx, datatype.c_str(), datatype, usedCtx);
-         }
-
-         // preserve expected type
-         if(t != RDF_TYPE_UNKNOWN)
-         {
-            type = t;
-         }
-      }
-
-      // expand CURIE
-      if(type == RDF_TYPE_IRI)
-      {
-         _expandCurie(ctx, rval.c_str(), rval, usedCtx);
-      }
-
-      // JSON-LD encode
-      rval = _encode(type, rval.c_str(), datatype.c_str());
    }
 
    return rval;
 }
 
-inline static string _normalizeValue(
-   DynamicObject& ctx, const char* value,
-   RdfType type, const char* predicate, DynamicObject* usedCtx)
+/**
+ * Recursively expands a value using the given context. Any context in
+ * the value will be removed.
+ *
+ * @param ctx the context.
+ * @param property the property that points to the value, NULL for none.
+ * @param value the value to expand.
+ *
+ * @return the expanded value, NULL on error.
+ */
+static DynamicObject _expand(
+   DynamicObject ctx, const char* property, DynamicObject& value)
 {
-   DynamicObject v;
-   v = value;
-   return _normalizeValue(ctx, v, type, predicate, usedCtx);
+   DynamicObject rval(NULL);
+
+   // TODO: add data format error detection?
+
+   // if no property is specified and the value is a string (this means the
+   // value is a property itself), expand to an IRI
+   if(property == NULL && value->getType() == String)
+   {
+      rval = DynamicObject();
+      rval = _expandTerm(ctx, value).c_str();
+   }
+   else if(value->getType() == Array)
+   {
+      // recursively add expanded values to array
+      rval = DynamicObject();
+      rval->setType(Array);
+      DynamicObjectIterator i = value.getIterator();
+      while(!rval.isNull() && i->hasNext())
+      {
+         DynamicObject next = _expand(ctx, property, i->next());
+         if(next.isNull())
+         {
+            // error
+            rval.setNull();
+         }
+         else
+         {
+            rval->append(next);
+         }
+      }
+   }
+   else if(value->getType() == Map)
+   {
+      // value has sub-properties if it doesn't define a literal or IRI value
+      if(!value->hasMember("@literal") && !value->hasMember("@iri"))
+      {
+         // if value has a context, use it
+         if(value->hasMember("@context"))
+         {
+            ctx = _mergeContext(ctx, value["@context"]);
+         }
+
+         if(!ctx.isNull())
+         {
+            // recursively handle sub-properties that aren't a sub-context
+            rval = DynamicObject();
+            rval->setType(Map);
+            DynamicObjectIterator i = value.getIterator();
+            while(!rval.isNull() && i->hasNext())
+            {
+               DynamicObject obj = i->next();
+               if(strcmp(i->getName(), "@context") != 0)
+               {
+                  // expand property
+                  string p = _expandTerm(ctx, i->getName());
+
+                  // expand object
+                  obj = _expand(ctx, p.c_str(), obj);
+                  if(obj.isNull())
+                  {
+                     // error
+                     rval.setNull();
+                  }
+                  else
+                  {
+                     // set object to expanded property
+                     _setPredicate(rval, p.c_str(), obj);
+                  }
+               }
+            }
+         }
+      }
+      // value is already expanded
+      else
+      {
+         rval = value.clone();
+      }
+   }
+   else
+   {
+      rval = DynamicObject();
+
+      // do type coercion
+      DynamicObject coerce = _getCoerceType(ctx, property);
+      if(!coerce.isNull())
+      {
+         // expand IRI
+         if(coerce == XSD_ANY_URI)
+         {
+            rval["@iri"] = _expandTerm(ctx, value).c_str();
+         }
+         // other datatype
+         else
+         {
+            rval["@literal"] = value->getString();
+            rval["@datatype"] = coerce;
+         }
+      }
+      // nothing to coerce
+      else
+      {
+         rval = value->getString();
+      }
+   }
+
+   return rval;
+}
+
+inline static bool _isNamedBlankNode(DynamicObject& v)
+{
+   // look for "_:" at the beginning of the subject
+   return (
+      v->hasMember("@") &&
+      v["@"]->hasMember("@iri") &&
+      strstr(v["@"]["@iri"], "_:") == v["@"]["@iri"]->getString());
 }
 
 inline static bool _isBlankNode(DynamicObject& v)
 {
-   // look for no subject or "<_:" or "_:" at the beginning of the subject
-   return (
-      !v->hasMember("@") ||
-      strstr(v["@"], "<_:") == v["@"]->getString() ||
-      strstr(v["@"], "_:") == v["@"]->getString());
-}
-
-inline static string _createBlankNodeId(int bnodeId)
-{
-   return StringTools::format("<_:monarch.data.json.bnode%d>", bnodeId);
+   // look for no subject or named blank node
+   return !v->hasMember("@iri") && !v->hasMember("@literal") &&
+      (!v->hasMember("@") || _isNamedBlankNode(v));
 }
 
 /**
- * Recursively normalizes the given input object.
+ * Flattens the given value into a map of unique subjects, where
+ * the only embeds are unnamed blank nodes. If any named blank nodes are
+ * encountered, an exception will be raised.
  *
- * Input: A subject with predicates and possibly embedded other subjects.
- * Output: Either a map of normalized subjects OR a tree of normalized subjects.
- *
- * Normalization Algorithm:
- *
- * Replace the existing context if the input has '#'.
- *
- * For each key-value:
- * 1. Split the key on a colon and look for prefix in the context. If found,
- *    expand the key to an IRI, else it is already an IRI, add <>, save the
- *    new predicate to add to the output.
- * 2. If value is a Map, then it is a subject, set the predicate to the
- *    subject's '@' IRI value and recurse into it. Else goto #3.
- * 3. Look up the key in the context to find type coercion info. If not found,
- *    goto #4, else goto #5.
- * 4. Check the value for an integer, double, or boolean. If matched, set
- *    type according to xsd types. If not matched, look for <>, if found,
- *    do CURIE vs. IRI check like #1 and create appropriate value.
- * 5. If type coercion entry is a string, encode the value using the specific
- *    type. If it is an array, check the type in order of preference. If an
- *    unrecognized type (non-xsd, non-IRI) is provided, throw an exception.
- *
- * @param ctx the context to use (changes during recursion as necessary).
- * @param in the input object.
- * @param subjects a map of normalized subjects.
- * @param out a tree normalized objects.
- * @param bnodeId the last blank node ID used.
+ * @param parent the value's parent, NULL for none.
+ * @param value the value to flatten.
+ * @param subjects the map of subjects to write to.
+ * @param out the top-level array for flattened values.
  *
  * @return true on success, false on failure with exception set.
  */
-static bool _normalize(
-   DynamicObject ctx, DynamicObject& in,
-   DynamicObject* subjects, DynamicObject* out, int& bnodeId)
+static bool _flatten(
+   DynamicObject* parent, DynamicObject& value, DynamicObject& subjects,
+   DynamicObject& out)
 {
    bool rval = true;
 
-   // FIXME: validate context (check for non-xsd types in type coercion arrays)
+   printf("FLATTENING\n");
+   JsonWriter::writeToStdOut(value, false, false);
 
-   if(!in.isNull())
+   DynamicObject flattened(NULL);
+   if(value->getType() == Array)
    {
-      // update context
-      if(in->hasMember("#"))
-      {
-         ctx = in["#"];
-      }
-
-      // vars for normalization state
-      DynamicObject subject(NULL);
-      if(subjects != NULL)
-      {
-         subject = DynamicObject();
-         subject->setType(Map);
-
-         // assign blank node ID as needed
-         if(!in->hasMember("@"))
-         {
-            string bnodeKey = _createBlankNodeId(++bnodeId);
-            subject["@"] = bnodeKey.c_str();
-         }
-      }
-      string nKey;
-
-      // iterate over key-values
-      DynamicObjectIterator i = in.getIterator();
+      DynamicObjectIterator i = value.getIterator();
       while(rval && i->hasNext())
       {
-         DynamicObject& value = i->next();
-         const char* key = i->getName();
-
-         // skip context keys
-         if(key[0] == '#')
+         rval = _flatten(parent, i->next(), subjects, out);
+      }
+   }
+   else if(value->getType() == Map)
+   {
+      // graph literal/disjoint graph
+      if(value->hasMember("@") && value["@"]->getType() == Array)
+      {
+         // cannot flatten embedded graph literals
+         if(parent != NULL)
          {
-            continue;
+            ExceptionRef e = new Exception(
+               "Embedded graph literals cannot be flattened.",
+               EXCEPTION_TYPE ".GraphLiteralFlattenError");
+            Exception::set(e);
+            rval = false;
          }
-
-         // get normalized key
-         nKey = _normalizeValue(ctx, key, RDF_TYPE_IRI, NULL, NULL);
-
-         // put values in an array for single code path
-         DynamicObject values;
-         values->setType(Array);
-         if(value->getType() == Array)
+         // top-level graph literal
+         else
          {
-            values.merge(value, true);
-
-            // preserve array structure when not using subjects map
-            if(out != NULL)
+            DynamicObjectIterator i = value["@"].getIterator();
+            while(i->hasNext())
             {
-               (*out)[nKey.c_str()]->setType(Array);
+               rval = _flatten(parent, i->next(), subjects, out);
             }
+         }
+      }
+      // named blank node
+      else if(_isNamedBlankNode(value))
+      {
+         ExceptionRef e = new Exception(
+            "Could not flatten JSON-LD. It contains a named blank node.",
+            EXCEPTION_TYPE ".BlankNodeFlattenError");
+         Exception::set(e);
+         rval = false;
+      }
+      // already-expanded value
+      else if(value->hasMember("@literal") || value->hasMember("@iri"))
+      {
+         flattened = value.clone();
+      }
+      // subject
+      else
+      {
+         // create or fetch existing subject
+         DynamicObject subject(NULL);
+         if(value->hasMember("@") && subjects->hasMember(value["@"]))
+         {
+            // FIXME: "@" might be a graph literal (as {} or [])
+            subject = subjects[value["@"]["@iri"]->getString()];
          }
          else
          {
-            values->append(value);
+            subject = DynamicObject();
+            subject->setType(Map);
+            if(value->hasMember("@"))
+            {
+               // FIXME: "@" might be a graph literal (as {} or [])
+               subjects[value["@"]["@iri"]->getString()] = subject;
+            }
          }
+         flattened = subject;
 
-         // normalize all values
-         DynamicObjectIterator vi = values.getIterator();
-         while(rval && vi->hasNext())
+         // flatten embeds
+         DynamicObjectIterator i = value.getIterator();
+         while(rval && i->hasNext())
          {
-            DynamicObject v = vi->next();
-            if(v->getType() == Map)
+            DynamicObject& next = i->next();
+            if(next->getType() == Array)
             {
-               if(subjects != NULL)
-               {
-                  // get a normalized subject for the value
-                  string vSubject;
-                  if(v->hasMember("@"))
-                  {
-                     // normalize existing subject
-                     vSubject = _normalizeValue(
-                        ctx, v["@"], RDF_TYPE_IRI, NULL, NULL);
-                  }
-                  else
-                  {
-                     // generate the next blank node ID in order to preserve
-                     // the blank node embed in the code below
-                     vSubject = _createBlankNodeId(bnodeId + 1);
-                  }
-
-                  // determine if value is a blank node
-                  bool isBNode = _isBlankNode(v);
-
-                  // update non-blank node subject (use value's subject IRI)
-                  if(!isBNode)
-                  {
-                     _setPredicate(subject, nKey.c_str(), vSubject.c_str());
-                  }
-
-                  // recurse
-                  rval = _normalize(ctx, v, subjects, out, bnodeId);
-
-                  // preserve embedded blank node
-                  if(rval && isBNode)
-                  {
-                     // remove embed from top-level subjects
-                     DynamicObject embed = (*subjects)[vSubject.c_str()];
-                     (*subjects)->removeMember(vSubject.c_str());
-                     embed->removeMember("@");
-                     _setEmbed(subject, nKey.c_str(), embed);
-                  }
-               }
-               else
-               {
-                  // update out and recurse
-                  DynamicObject next = (*out)[nKey.c_str()];
-                  if(value->getType() == Array)
-                  {
-                     next = next->append();
-                  }
-                  else
-                  {
-                     next->setType(Map);
-                  }
-                  rval = _normalize(ctx, v, subjects, &next, bnodeId);
-               }
+               subject[i->getName()]->setType(Array);
             }
-            else
-            {
-               _setPredicate(
-                  (subjects != NULL) ? subject : *out, nKey.c_str(),
-                  _normalizeValue(ctx, v, RDF_TYPE_UNKNOWN, key, NULL).c_str());
-            }
+            rval = _flatten(&subject[i->getName()], next, subjects, out);
          }
+
+         printf("FLAT SUBJECT\n");
+         JsonWriter::writeToStdOut(flattened);
+      }
+   }
+   // string value
+   else
+   {
+      flattened = value.clone();
+      flattened->setType(String);
+   }
+
+   // add flattened value to parent
+   if(rval && !flattened.isNull())
+   {
+      // if the flattened value is an unnamed blank node, add it to the
+      // top-level output
+      if(parent == NULL && _isBlankNode(flattened))
+      {
+         printf("BLANK NODE FOUND\n");
+         parent = &out;
       }
 
-      // add subject to map
-      if(subjects != NULL)
+      if(parent != NULL)
       {
-         (*subjects)[subject["@"]->getString()] = subject;
+         // remove top-level "@" for subjects
+         if(flattened->hasMember("@"))
+         {
+            printf("FLAT BEFORE\n");
+            JsonWriter::writeToStdOut(flattened, false, false);
+            flattened = flattened["@"];
+            printf("FLAT AFTER\n");
+            JsonWriter::writeToStdOut(flattened, false, false);
+         }
+
+         printf("parent\n");
+         JsonWriter::writeToStdOut(*parent, false, false);
+
+         if((*parent)->getType() == Array)
+         {
+            printf("appending to parent\n");
+            JsonWriter::writeToStdOut(flattened, false, false);
+            (*parent)->append(flattened);
+         }
+         else
+         {
+            printf("setting parent\n");
+            JsonWriter::writeToStdOut(flattened, false, false);
+            *parent = flattened;
+         }
       }
    }
 
@@ -620,129 +861,38 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
 {
    bool rval = true;
 
-   // initialize output
-   out->setType(Map);
+   // TODO: validate context
+
+   // prepare output
+   out->setType(Array);
    out->clear();
 
-   // create map to store subjects
-   DynamicObject subjects;
-   subjects->setType(Map);
+   if(!in.isNull())
+   {
+      // get default context
+      DynamicObject ctx = _createDefaultContext();
 
-   // initialize context
-   DynamicObject ctx(NULL);
-   if(in->hasMember("#"))
-   {
-      ctx = in["#"];
-   }
-
-   // put all subjects in an array for single code path
-   DynamicObject input;
-   input->setType(Array);
-   if(in->hasMember("@") && in["@"]->getType() == Array)
-   {
-      input.merge(in["@"], true);
-   }
-   else
-   {
-      input->append(in);
-   }
-
-   // do normalization
-   int bnodeId = 0;
-   DynamicObjectIterator i = input.getIterator();
-   while(rval && i->hasNext())
-   {
-      rval = _normalize(ctx, i->next(), &subjects, NULL, bnodeId);
-   }
-
-   // build output
-   if(rval)
-   {
-      // single subject
-      if(subjects->length() == 1)
+      // expand
+      DynamicObject expanded = _expand(ctx, NULL, in);
+      rval = !expanded.isNull();
+      if(rval)
       {
-         DynamicObject subject = subjects.first();
-         out.merge(subject, false);
+         printf("EXPANDED\n");
+         JsonWriter::writeToStdOut(expanded);
 
-         // FIXME: will need to check predicates for blank nodes as well...
-         // and fail if they aren't embeds?
+         // flatten
+         DynamicObject subjects;
+         subjects->setType(Map);
+         rval = _flatten(NULL, expanded, subjects, out);
 
-         // strip blank node '@'
-         if(_isBlankNode(out))
+         // append unique subjects to array of sorted triples
+         DynamicObjectIterator i = subjects.getIterator();
+         while(rval && i->hasNext())
          {
-            out->removeMember("@");
+            out->append(i->next());
          }
-      }
-      // multiple subjects
-      else
-      {
-         DynamicObject& array = out["@"];
-         array->setType(Array);
-         i = subjects.getIterator();
-         while(i->hasNext())
-         {
-            DynamicObject& next = i->next();
 
-            // FIXME: will need to check predicates for blank nodes as well...
-            // and fail if they aren't embeds?
-
-            // strip blank node '@'
-            if(_isBlankNode(next))
-            {
-               next->removeMember("@");
-            }
-            array->append(next);
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Recursively removes context from the given input object.
- *
- * @param ctx the context to use (changes during recursion as necessary).
- * @param in the input object.
- * @param out the normalized output object.
- * @param bnodeId the last blank node ID used.
- *
- * @return true on success, false on failure with exception set.
- */
-static bool _removeContext(
-   DynamicObject& ctx, DynamicObject& in, DynamicObject& out, int& bnodeId)
-{
-   bool rval = true;
-
-   if(in.isNull())
-   {
-      out.setNull();
-   }
-   else
-   {
-      // initialize output
-      DynamicObjectType inType = in->getType();
-      out->setType(inType);
-
-      // update context
-      if(inType == Map && in->hasMember("#"))
-      {
-         ctx = in["#"];
-      }
-
-      if(inType == Map)
-      {
-         rval = _normalize(ctx, in, NULL, &out, bnodeId);
-      }
-      else if(inType == Array)
-      {
-         // strip context from each object in the array
-         DynamicObjectIterator i = in.getIterator();
-         while(i->hasNext())
-         {
-            DynamicObject& next = i->next();
-            rval = _removeContext(ctx, next, out->append(), bnodeId);
-         }
+         // FIXME: sort output
       }
    }
 
@@ -753,307 +903,18 @@ bool JsonLd::removeContext(DynamicObject& in, DynamicObject& out)
 {
    bool rval = true;
 
-   DynamicObject context(NULL);
-   int bnodeId = 0;
-   rval = _removeContext(context, in, out, bnodeId);
-
-   return rval;
-}
-
-static DynamicObject _compactIri(
-   DynamicObject& ctx, DynamicObject& usedCtx,
-   const char* predicate, const char* encoded,
-   const char* value, char** curie)
-{
-   DynamicObject rval(NULL);
-
-   // used to store if brackets should be added
-   bool addBrackets = true;
-
-   // predicates themselves have no brackets
-   if(predicate == NULL)
-   {
-      addBrackets = false;
-   }
-   // no brackets for "@" or "a"
-   else if(strcmp(predicate, "@") == 0 || strcmp(predicate, "a") == 0)
-   {
-      addBrackets = false;
-   }
-   // check type coercion for IRI
-   else if(ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
-   {
-      DynamicObject& type = ctx["#types"][predicate];
-      usedCtx["#types"][predicate] = type.clone();
-
-      // single type
-      if(type->getType() == String)
-      {
-         string t = _normalizeValue(ctx, type, RDF_TYPE_IRI, NULL, &usedCtx);
-         if(strcmp(t.c_str(), XSD_ANY_URI_NORM) == 0)
-         {
-            addBrackets = false;
-         }
-      }
-      // type coercion info is an ordered list of possible types
-      else
-      {
-         // do not add brackets if URI is a valid type
-         DynamicObjectIterator ti = type.getIterator();
-         while(ti->hasNext())
-         {
-            DynamicObject& next = ti->next();
-            string t = _normalizeValue(ctx, next, RDF_TYPE_IRI, NULL, &usedCtx);
-            if(strcmp(t.c_str(), XSD_ANY_URI_NORM) == 0)
-            {
-               addBrackets = false;
-            }
-         }
-      }
-   }
-
-   // check the context for a prefix that could shorten the IRI to a CURIE
-   DynamicObjectIterator i = ctx.getIterator();
-   while(rval.isNull() && i->hasNext())
-   {
-      DynamicObject& next = i->next();
-
-      // skip special context keys (start with '#')
-      const char* name = i->getName();
-      if(name[0] != '#')
-      {
-         const char* uri = next;
-         const char* ptr = strstr(value, uri);
-         if(ptr != NULL && ptr == value)
-         {
-            size_t ulen = strlen(uri);
-            size_t vlen = strlen(value);
-            if(vlen > ulen)
-            {
-               // add 2 to make room for null-terminator and colon
-               size_t total = strlen(name) + (vlen - ulen) + 2;
-               if(addBrackets)
-               {
-                  total += 2;
-               }
-               _realloc(curie, total);
-               const char* format = addBrackets ? "<%s:%s>" : "%s:%s";
-               snprintf(*curie, total, format, name, ptr + ulen);
-               rval = DynamicObject();
-               rval = *curie;
-               usedCtx[name] = uri;
-            }
-            else if(vlen == ulen && strcmp(name, "a") == 0)
-            {
-               rval = DynamicObject();
-               rval = "a";
-            }
-         }
-      }
-   }
-
-   // if rval still not set, use encoded or value based on addBrackets
-   if(rval.isNull())
-   {
-      rval = DynamicObject();
-      rval = addBrackets ? encoded : value;
-   }
-
-   return rval;
-}
-
-static DynamicObject _compactTypedLiteral(
-   DynamicObject& ctx, DynamicObject& usedCtx,
-   const char* predicate, const char* encoded,
-   const char* value, const char* datatype, char** tmp)
-{
-   DynamicObject rval(NULL);
-
-   // check type coercion
-   if(predicate != NULL)
-   {
-      // prefer type coercion map first, then use default basic types
-      bool inTypesMap = false;
-      string t;
-      if(ctx->hasMember("#types") && ctx["#types"]->hasMember(predicate))
-      {
-         DynamicObject& type = ctx["#types"][predicate];
-         usedCtx["#types"][predicate] = type.clone();
-         inTypesMap = true;
-
-         // single type
-         if(type->getType() == String)
-         {
-            // get fully-qualified datatype
-            t = _normalizeValue(ctx, type, RDF_TYPE_IRI, NULL, &usedCtx);
-         }
-         // type coercion info is an ordered list of possible types
-         else
-         {
-            // FIXME: need to check if datatype matches type coercion type
-            // FIXME: determine whether to make int,bool,double,or IRI
-         }
-      }
-      else
-      {
-         // use given datatype (try to coerce basic built in types)
-         DynamicObject nullCtx(NULL);
-         DynamicObject type;
-         type = datatype;
-         t = _normalizeValue(nullCtx, type, RDF_TYPE_IRI, NULL, NULL);
-      }
-
-      rval = DynamicObject();
-      if(strcmp(t.c_str(), XSD_ANY_URI_NORM) == 0)
-      {
-         rval = value;
-      }
-      else if(strcmp(t.c_str(), XSD_BOOLEAN_NORM) == 0)
-      {
-         rval = value;
-         rval->setType(Boolean);
-      }
-      else if(strcmp(t.c_str(), XSD_INTEGER_NORM) == 0)
-      {
-         rval = value;
-         rval->setType(Int64);
-      }
-      else if(strcmp(t.c_str(), XSD_DOUBLE_NORM) == 0)
-      {
-         rval = value;
-         rval->setType(Double);
-      }
-      // unrecognized type
-      else
-      {
-         // if the type was explicitly specified in the type coercion map,
-         // then use the decoded value, otherwise use the encoded one
-         rval = inTypesMap ? value : encoded;
-      }
-   }
-
-   // use full encoded value, nothing in context to compact IRI
-   if(rval.isNull())
-   {
-      rval = DynamicObject();
-      rval = encoded;
-   }
-
-   return rval;
-}
-
-/**
- * Adds context to a string (compacts an IRI to a CURIE or an XSD type to
- * an integer, etc).
- *
- * @param ctx the context.
- * @param usedCtx the used context values.
- * @param predicate the related predicate or NULL for none.
- * @param str the string (IRI) to compact.
- * @param tmp to store the compact string (CURIE), may be realloc'd.
- *
- * @return the DynamicObject with the compacted value.
- */
-static DynamicObject _compactString(
-   DynamicObject& ctx, DynamicObject& usedCtx,
-   const char* predicate, const char* str, char** tmp)
-{
-   DynamicObject rval(NULL);
-
-   // JSON-LD decode string
-   RdfType type;
-   string value;
-   string datatype;
-   const char* decoded = _decode(str, type, value, datatype);
-   switch(type)
-   {
-      case RDF_TYPE_IRI:
-         rval = _compactIri(ctx, usedCtx, predicate, str, decoded, tmp);
-         break;
-      case RDF_TYPE_TYPED_LITERAL:
-         // expand datatype CURIE
-         _expandCurie(ctx, datatype.c_str(), datatype, &usedCtx);
-         rval = _compactTypedLiteral(
-            ctx, usedCtx, predicate, str, decoded, datatype.c_str(), tmp);
-         break;
-      case RDF_TYPE_PLAIN_LITERAL:
-         rval = DynamicObject();
-         rval = str;
-         break;
-      default:
-         break;
-   }
-
-   return rval;
-}
-
-/**
- * Recursively applies context to the given input object.
- *
- * @param ctx the context to use.
- * @param usedCtx the used context values.
- * @param predicate the related predicate or NULL if none.
- * @param in the input object.
- * @param out the contextualized output object.
- */
-static void _applyContext(
-   DynamicObject& ctx, DynamicObject& usedCtx,
-   const char* predicate, DynamicObject& in, DynamicObject& out)
-{
    if(in.isNull())
    {
       out.setNull();
    }
    else
    {
-      // initialize output
-      DynamicObjectType inType = in->getType();
-      out->setType(inType);
-
-      if(inType == Map)
-      {
-         // add context to each property in the map
-         char* tmp = NULL;
-         DynamicObjectIterator i = in.getIterator();
-         while(i->hasNext())
-         {
-            // compact predicate
-            DynamicObject& next = i->next();
-            DynamicObject cp(NULL);
-            const char* p;
-            if(strcmp(i->getName(), "@") == 0)
-            {
-               p = "@";
-            }
-            else
-            {
-               cp = _compactString(ctx, usedCtx, NULL, i->getName(), &tmp);
-               p = cp;
-            }
-            // recurse
-            _applyContext(ctx, usedCtx, p, next, out[p]);
-         }
-         free(tmp);
-      }
-      else if(inType == Array)
-      {
-         // apply context to each object in the array
-         DynamicObjectIterator i = in.getIterator();
-         while(i->hasNext())
-         {
-            DynamicObject& next = i->next();
-            _applyContext(ctx, usedCtx, predicate, next, out->append());
-         }
-      }
-      // only strings need context applied, numbers & booleans don't
-      else if(inType == String)
-      {
-         // compact string
-         char* tmp = NULL;
-         out = _compactString(ctx, usedCtx, predicate, in->getString(), &tmp);
-         free(tmp);
-      }
+      DynamicObject ctx = _createDefaultContext();
+      out = _expand(ctx, NULL, in);
+      rval = !out.isNull();
    }
+
+   return rval;
 }
 
 bool JsonLd::addContext(
@@ -1061,24 +922,26 @@ bool JsonLd::addContext(
 {
    bool rval = true;
 
-   // "a" is automatically shorthand for rdf type
-   DynamicObject ctx = (context.isNull() ? DynamicObject() : context.clone());
-   ctx["a"] = RDF_TYPE;
-
    // TODO: should context simplification be an option? (ie: remove context
    // entries that are not used in the output)
 
+   DynamicObject ctx = context.clone();
+
    // setup output context
-   DynamicObject& contextOut = out["#"];
-   contextOut->setType(Map);
+   DynamicObject ctxOut;
+   ctxOut->setType(Map);
 
-   // apply context
-   _applyContext(ctx, contextOut, NULL, in, out);
+   // compact
+   out = _compact(context, NULL, in, &ctxOut);
+   rval = !out.isNull();
 
-   // clean up
-   if(contextOut->length() == 0)
+   // FIXME: what if "out" is an array? add context to each entry? can this
+   // even happen (is it valid)?
+
+   // add context if used
+   if(rval && ctxOut->length() > 0)
    {
-      out->removeMember("#");
+      out["@context"] = ctxOut;
    }
 
    return rval;
@@ -1091,250 +954,3 @@ bool JsonLd::changeContext(
    DynamicObject tmp;
    return removeContext(in, tmp) && addContext(context, tmp, out);
 }
-
-static bool _filterOne(DynamicObject& filter, DynamicObject& object)
-{
-   bool rval = true;
-
-   // loop over all filter properties
-   DynamicObjectIterator i;
-   i = filter.getIterator();
-   while(rval && i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* name = i->getName();
-      // check if object has property
-      rval = object->hasMember(name);
-      if(rval)
-      {
-         // loop over all filter values
-         DynamicObjectIterator fpi;
-         fpi = next.getIterator();
-         while(rval && fpi->hasNext())
-         {
-            DynamicObject& fpnext = fpi->next();
-            // make sure value appears in object property
-            DynamicObjectIterator opi;
-            opi = object[name].getIterator();
-            rval = false;
-            while(!rval && opi->hasNext())
-            {
-               DynamicObject& opnext = opi->next();
-               rval = (fpnext == opnext);
-            }
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Recursively filter input to output.
- *
- * @param filter the fitler to use.
- * @param in the input object.
- * @param out the filtered output object.
- */
-static void _filter(
-   DynamicObject& filter, DynamicObject& in, DynamicObject& out)
-{
-   if(!in.isNull())
-   {
-      DynamicObjectType inType = in->getType();
-
-      if(inType == Map)
-      {
-         // check if this object matches filter
-         if(_filterOne(filter, in))
-         {
-            out["@"]->append(in);
-         }
-      }
-      if(inType == Map || inType == Array)
-      {
-         // filter each object
-         DynamicObjectIterator i = in.getIterator();
-         while(i->hasNext())
-         {
-            _filter(filter, i->next(), out);
-         }
-      }
-   }
-}
-// FIXME: should this be using new JSON-LD frame stuff rather than this?
-bool JsonLd::filter(
-   DynamicObject& context, DynamicObject& filter,
-   DynamicObject& in, DynamicObject& out, bool simplify)
-{
-   bool rval;
-   DynamicObject normFilter;
-   DynamicObject normIn;
-   DynamicObject normOut;
-   normOut->setType(Map);
-   // remove contexts
-   rval =
-      removeContext(filter, normFilter) &&
-      removeContext(in, normIn);
-   // filter to the output
-   if(rval)
-   {
-      _filter(normFilter, normIn, normOut);
-      // FIXME: fixup graph
-      // Search normOut for unknown references that are in normIn and add them.
-      // Futher optimize by checking reference count and embedding data as
-      // needed. This will result in a graph that is as complete as the input
-      // with regard to references.
-
-      // flatten in the case of one result
-      if(simplify && normOut->hasMember("@") && normOut["@"]->length() == 1)
-      {
-         normOut = normOut["@"][0];
-      }
-   }
-   // add context to output
-   rval = rval && addContext(context, normOut, out);
-   return rval;
-}
-
-#if 0
-/* Check if a JSON-LD object is a specific type. */
-static bool _isType(DynamicObject& in, const char* type)
-{
-   bool rval = false;
-
-   if(in->hasMember("a"))
-   {
-      DynamicObject& a = in["a"];
-      switch(a->getType())
-      {
-         case String:
-         {
-            rval = (a == type);
-            break;
-         }
-         case Array:
-         {
-            DynamicObjectIterator i = a.getIterator();
-            while(!rval && i->hasNext())
-            {
-               DynamicObject& next = i->next();
-               rval = (next == type);
-            }
-            break;
-         }
-         default:
-            break;
-      }
-   }
-
-   return rval;
-}
-
-/* Check if a JSON-LD object has an id. */
-static bool _hasId(DynamicObject& in)
-{
-   return in->hasMember("@");
-}
-
-/* Check if a JSON-LD object is a blank node. */
-// FIXME: this is dependent on RDFa library
-static bool _isBlankNode(DynamicObject& in)
-{
-   // check if no id or id starts with "_:"
-   bool rval = true;
-   if(_hasId(in))
-   {
-      DynamicObject& idd = in["@"];
-      const char* ids = idd->getString();
-      rval = idd->length() >= 2 && ids[0] == '_' && ids[1] == ':';
-   }
-   return rval;
-}
-
-/* Find JSON-LD objects of type and add references to output list. */
-// Currently just handles top level and @:[...] constructs.
-static bool _findType(DynamicObject& in, const char* type, DynamicObject& out)
-{
-   out->clear();
-
-   if(in->hasMember("@"))
-   {
-      DynamicObject& id = in["@"];
-      switch(id->getType())
-      {
-         // top level object
-         case String:
-         {
-            if(_isType(in, type))
-            {
-               out->append(in);
-            }
-            break;
-         }
-         // top level is blank node
-         case Array:
-         {
-            DynamicObjectIterator i = id.getIterator();
-            while(i->hasNext())
-            {
-               DynamicObject& next = i->next();
-               if(_isType(next, type))
-               {
-                  out->append(next);
-               }
-            }
-            break;
-         }
-         default:
-            break;
-      }
-   }
-
-   return true;
-}
-
-/* Find JSON-LD object with id and set out to it. */
-// Currently just handles top level and @:[...] constructs.
-static bool _findId(DynamicObject& in, const char* id, DynamicObject& out)
-{
-   out.setNull();
-
-   if(in->hasMember("@"))
-   {
-      DynamicObject& _id = in["@"];
-      switch(_id->getType())
-      {
-         // top level object
-         case String:
-         {
-            if(_id == id)
-            {
-               out = in;
-            }
-            break;
-         }
-         // top level is blank node
-         case Array:
-         {
-            bool found = false;
-            DynamicObjectIterator i = _id.getIterator();
-            while(!found && i->hasNext())
-            {
-               DynamicObject& next = i->next();
-               if(next["@"] == id)
-               {
-                  out = next;
-                  found = true;
-               }
-            }
-            break;
-         }
-         default:
-            break;
-      }
-   }
-
-   return true;
-}
-#endif

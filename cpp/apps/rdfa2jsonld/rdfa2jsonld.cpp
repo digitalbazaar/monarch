@@ -49,7 +49,6 @@ static bool _processStream(
    bool hasFrame = (options["framePath"]->length() > 0);
    bool hasFrameId (options["frameId"]->length() > 0);
    bool hasSourceFrameId  = options["sourceFrameId"]->getBoolean();
-   bool doFilter = options["filter"]->getBoolean();
    bool doNormalize = options["normalize"]->getBoolean();
    bool doHash = options["hash"]->getBoolean();
    bool doDump = options["dump"]->getBoolean();
@@ -87,31 +86,6 @@ static bool _processStream(
    // pipe data as requested
    DynamicObject output;
    rval = rval && reader.start(output) && reader.read(is) && reader.finish();
-
-   if(rval && doFilter)
-   {
-      DynamicObject& input = output;
-      DynamicObject filtered;
-      DynamicObject context(NULL);
-      if(output->hasMember("#"))
-      {
-         // context from normalized data
-         context = output["#"];
-      }
-      else
-      {
-         // empty context
-         context = DynamicObject();
-         context->setType(Map);
-      }
-      DynamicObject filter;
-      filter["@"] = srcName;
-      rval = JsonLd::filter(context, filter, input, filtered);
-      if(rval)
-      {
-         output = filtered;
-      }
-   }
 
    if(rval && doNormalize)
    {
@@ -163,9 +137,8 @@ static bool _processStream(
       if(verbose)
       {
          // output info
-         printf("* <source>|RDFa|%sJSON-LD|%s%s%s<stdout>:\n",
+         printf("* <source>|RDFa|%sJSON-LD|%s%s<stdout>:\n",
             hasFrame ? "frame|" : "",
-            doFilter ? "filter|" : "",
             doNormalize ? "normalize|" : "",
             doHash ? "SHA-1|" : "");
       }
@@ -178,9 +151,8 @@ static bool _processStream(
       if(verbose)
       {
          // output info
-         printf("* <source>|RDFa|%sJSON-LD|%s%s%s<stdout>:\n",
+         printf("* <source>|RDFa|%sJSON-LD|%s%s<stdout>:\n",
             hasFrame ? "frame|" : "",
-            doFilter ? "filter|" : "",
             doNormalize ? "normalize|" : "",
             doCompact ? "compact|" : "");
       }
@@ -303,7 +275,6 @@ public:
       c["framePath"] = "";
       c["frameId"] = "";
       c["sourceFrameId"] = false;
-      c["filter"] = false;
       c["normalize"] = false;
       c["hash"] = true;
       c["dump"] = true;
@@ -318,7 +289,6 @@ public:
 "      --frame-id ID   Use ID as the frame id.\n"
 "      --frame-source-id\n"
 "                      Use the source URI as the frame id.\n"
-"      --[no-]filter   Filter for source URI properties. (default: false)\n"
 "      --[no-]normalize"
 "                      Normalize JSON-LD. (default: false)\n"
 "      --[no-]hash     Hash JSON-LD. (default: true)\n"
@@ -359,7 +329,6 @@ public:
 
       // simple boolean options
       DynamicObject bools;
-      bools->append("filter");
       bools->append("normalize");
       bools->append("hash");
       bools->append("dump");
