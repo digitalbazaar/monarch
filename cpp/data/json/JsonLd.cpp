@@ -7,9 +7,6 @@
 #include "monarch/rt/Exception.h"
 #include "monarch/util/StringTools.h"
 
-// FIXME: remove me
-#include "monarch/data/json/JsonWriter.h"
-
 #include <cstdio>
 
 using namespace std;
@@ -54,7 +51,7 @@ static DynamicObject _createDefaultContext()
    ctx["dcterms"] = "http://purl.org/dc/terms/";
    ctx["foaf"] = "http://xmlns.com/foaf/0.1/";
    ctx["cal"] = "http://www.w3.org/2002/12/cal/ical#";
-   ctx["vcard"] = "http://www.w3.org/2006/vcard/ns# ";
+   ctx["vcard"] = "http://www.w3.org/2006/vcard/ns#";
    ctx["geo"] = "http://www.w3.org/2003/01/geo/wgs84_pos#";
    ctx["cc"] = "http://creativecommons.org/ns#";
    ctx["sioc"] = "http://rdfs.org/sioc/ns#";
@@ -81,11 +78,33 @@ static DynamicObject _createDefaultContext()
  *
  * @return the merged context, NULL on error.
  */
-static DynamicObject _mergeContext(DynamicObject& ctx, DynamicObject& newCtx)
+static DynamicObject _mergeContext(DynamicObject ctx, DynamicObject newCtx)
 {
    // copy contexts
    DynamicObject merged = ctx.clone();
    DynamicObject copy = newCtx.clone();
+
+   // if the new context contains any IRIs that are in the merged context,
+   // remove them from the merged context, they will be overwritten
+   DynamicObjectIterator i = newCtx.getIterator();
+   while(i->hasNext())
+   {
+      // ignore special keys starting with '@'
+      DynamicObject& iri = i->next();
+      if(i->getName()[0] != '@')
+      {
+         DynamicObjectIterator mi = merged.getIterator();
+         while(mi->hasNext())
+         {
+            DynamicObject& miri = mi->next();
+            if(miri == iri)
+            {
+               mi->remove();
+               break;
+            }
+         }
+      }
+   }
 
    // @coerce must be specially-merged, remove from context
    DynamicObject c1 = merged["@coerce"];
@@ -98,7 +117,7 @@ static DynamicObject _mergeContext(DynamicObject& ctx, DynamicObject& newCtx)
    merged.merge(copy, false);
 
    // special-merge @coerce
-   DynamicObjectIterator i = c1.getIterator();
+   i = c1.getIterator();
    while(i->hasNext())
    {
       DynamicObject& props = i->next();
@@ -297,8 +316,6 @@ static string _expandTerm(
          (*usedCtx)["@vocab"] = ctx["@vocab"]->getString();
       }
    }
-
-   printf("EXPANDED '%s' => '%s'\n", term, rval.c_str());
 
    return rval;
 }
@@ -502,28 +519,12 @@ static DynamicObject _compact(
       {
          type = coerce;
       }
-      // type can only be coerced to a JSON-builtin
-      else
-      {
-         type = DynamicObject();
-         if(value->isInteger())
-         {
-            type = XSD_INTEGER;
-         }
-         else if(value->isNumber())
-         {
-            type = XSD_DOUBLE;
-         }
-         else if(value->getType() == Boolean)
-         {
-            type = XSD_BOOLEAN;
-         }
 
-         // automatic coercion for basic JSON types
-         if(coerce.isNull())
-         {
-            coerce = type;
-         }
+      // types that can be auto-coerced from a JSON-builtin
+      if(coerce.isNull() &&
+         (type == XSD_BOOLEAN || type == XSD_INTEGER || type == XSD_DOUBLE))
+      {
+         coerce = type;
       }
 
       // do reverse type-coercion
@@ -702,8 +703,28 @@ static DynamicObject _expand(
    {
       rval = DynamicObject();
 
-      // do type coercion (only expand subjects if requested)
+      // do type coercion
       DynamicObject coerce = _getCoerceType(ctx, property, NULL);
+
+      // automatic coercion for basic JSON types
+      if(coerce.isNull() && (value->isNumber() || value->getType() == Boolean))
+      {
+         coerce = DynamicObject();
+         if(value->getType() == Boolean)
+         {
+            coerce = XSD_BOOLEAN;
+         }
+         else if(value->isInteger())
+         {
+            coerce = XSD_INTEGER;
+         }
+         else
+         {
+            coerce = XSD_DOUBLE;
+         }
+      }
+
+      // only expand subjects if rquested
       if(!coerce.isNull() && (strcmp(property, "@") != 0 || expandSubjects))
       {
          // expand IRI
@@ -762,9 +783,6 @@ static bool _flatten(
 {
    bool rval = true;
 
-   printf("FLATTENING\n");
-   JsonWriter::writeToStdOut(value, false, false);
-
    DynamicObject flattened(NULL);
    if(value->getType() == Array)
    {
@@ -819,7 +837,7 @@ static bool _flatten(
          DynamicObject subject(NULL);
          if(value->hasMember("@") && subjects->hasMember(value["@"]))
          {
-            // FIXME: "@" might be a graph literal (as {} or [])
+            // FIXME: "@" might be a graph literal (as {})
             subject = subjects[value["@"]["@iri"]->getString()];
          }
          else
@@ -828,7 +846,7 @@ static bool _flatten(
             subject->setType(Map);
             if(value->hasMember("@"))
             {
-               // FIXME: "@" might be a graph literal (as {} or [])
+               // FIXME: "@" might be a graph literal (as {})
                subjects[value["@"]["@iri"]->getString()] = subject;
             }
          }
@@ -845,9 +863,6 @@ static bool _flatten(
             }
             rval = _flatten(&subject[i->getName()], next, subjects, out);
          }
-
-         printf("FLAT SUBJECT\n");
-         JsonWriter::writeToStdOut(flattened);
       }
    }
    // string value
@@ -864,7 +879,6 @@ static bool _flatten(
       // top-level output
       if(parent == NULL && _isBlankNode(flattened))
       {
-         printf("BLANK NODE FOUND\n");
          parent = &out;
       }
 
@@ -873,26 +887,15 @@ static bool _flatten(
          // remove top-level "@" for subjects
          if(flattened->hasMember("@"))
          {
-            printf("FLAT BEFORE\n");
-            JsonWriter::writeToStdOut(flattened, false, false);
             flattened = flattened["@"];
-            printf("FLAT AFTER\n");
-            JsonWriter::writeToStdOut(flattened, false, false);
          }
-
-         printf("parent\n");
-         JsonWriter::writeToStdOut(*parent, false, false);
 
          if((*parent)->getType() == Array)
          {
-            printf("appending to parent\n");
-            JsonWriter::writeToStdOut(flattened, false, false);
             (*parent)->append(flattened);
          }
          else
          {
-            printf("setting parent\n");
-            JsonWriter::writeToStdOut(flattened, false, false);
             *parent = flattened;
          }
       }
@@ -921,9 +924,6 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
       rval = !expanded.isNull();
       if(rval)
       {
-         printf("EXPANDED\n");
-         JsonWriter::writeToStdOut(expanded);
-
          // flatten
          DynamicObject subjects;
          subjects->setType(Map);
@@ -937,6 +937,7 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
          }
 
          // FIXME: sort output
+         //out.sort(sortFunc);
       }
    }
 
@@ -966,26 +967,38 @@ bool JsonLd::addContext(
 {
    bool rval = true;
 
-   // TODO: should context simplification be an option? (ie: remove context
+   // TODO: should context simplification be optional? (ie: remove context
    // entries that are not used in the output)
 
-   DynamicObject ctx = context.clone();
-
-   // setup output context
-   DynamicObject ctxOut;
-   ctxOut->setType(Map);
-
-   // compact
-   out = _compact(context, NULL, in, &ctxOut);
-   rval = !out.isNull();
-
-   // FIXME: what if "out" is an array? add context to each entry? can this
-   // even happen (is it valid)?
-
-   // add context if used
-   if(rval && ctxOut->length() > 0)
+   DynamicObject ctx = _mergeContext(_createDefaultContext(), context);
+   if(!ctx.isNull())
    {
-      out["@context"] = ctxOut;
+      // setup output context
+      DynamicObject ctxOut;
+      ctxOut->setType(Map);
+
+      // compact
+      out = _compact(ctx, NULL, in, &ctxOut);
+      rval = !out.isNull();
+
+      // add context if used
+      if(rval && ctxOut->length() > 0)
+      {
+         // add to every entry in array
+         if(out->getType() == Array)
+         {
+            DynamicObjectIterator i = out.getIterator();
+            while(i->hasNext())
+            {
+               DynamicObject& next = i->next();
+               next["@context"] = ctxOut.clone();
+            }
+         }
+         else
+         {
+            out["@context"] = ctxOut;
+         }
+      }
    }
 
    return rval;
