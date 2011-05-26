@@ -61,7 +61,9 @@ public:
    /**
     * Frames an array of triples. The triples will be automatically sorted
     * (alphabetically starting with subject, then predicate, then object)
-    * unless sort is set to false.
+    * unless sort is set to false. Objects must be maps that either set
+    * "@iri" to an absolute IRI, set "@literal" and "@datatype", or are
+    * strings.
     *
     * @param triples the array of triples, where each entry is an array of
     *           size 3 with subject, predicate, object, in that order.
@@ -77,13 +79,11 @@ public:
 
    /**
     * Frames a map of subjects. The map keys are subjects (IRIs), the map
-    * values are objects with "@" set to the subject and all other predicates
-    * set to strings (that may be IRIs). There are no deeply-embedded objects.
+    * values are JSON-LD-normalized objects. The only deep-embeds are unnamed
+    * blank nodes.
     *
-    * If there are multiple objects for a predicate, they are assumed to be
-    * in sorted order.
-    *
-    * All triple values must be JSON-LD encoded and context-neutral.
+    * If there are multiple objects for a predicate, their order will not be
+    * changed.
     *
     * @param subjects the map of subjects to frame.
     * @param out the framed output object.

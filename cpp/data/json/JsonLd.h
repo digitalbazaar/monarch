@@ -6,6 +6,8 @@
 
 #include "monarch/rt/DynamicObject.h"
 
+#include <string>
+
 namespace monarch
 {
 namespace data

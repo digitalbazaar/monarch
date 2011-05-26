@@ -15,12 +15,12 @@ using namespace monarch::data::json;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-#define RDF_TYPE   "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+#define RDF_TYPE   "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 
 struct SubjectRef
 {
    DynamicObject subject;
-   const char* predicate;
+   const char* property;
    int count;
 };
 typedef std::map<const char*, SubjectRef, StringComparator> SubjectRefMap;
@@ -37,7 +37,7 @@ JsonLdFrame::~JsonLdFrame()
 
 /**
  * Returns true if the first triple is less than the second. This function is
- * used to sort triples alphabetically, first by subject, then predicate,
+ * used to sort triples alphabetically, first by subject, then property,
  * then object.
  *
  * @param t1 the first triple.
@@ -58,17 +58,43 @@ static bool _sortTriples(DynamicObject t1, DynamicObject t2)
    }
    else if(c == 0)
    {
-      // subjects equal, compare predicates
+      // subjects equal, compare properties
       c = strcmp(t1[1], t2[1]);
       if(c < 0)
       {
-         // t1 predicate < t2 predicate
+         // t1 property < t2 property
          rval = true;
       }
-      // predicates equal, compare objects
+      // properties equal, compare objects
       else if(c == 0)
       {
-         rval = (strcmp(t1[2], t2[2]) < 0);
+         if(t1->getType() == String)
+         {
+            // consider String less than object, so t1 < t2
+            if(t2->getType() != String)
+            {
+               rval = true;
+            }
+            else
+            {
+               // compare string values
+               rval = t1[2] < t2[2];
+            }
+         }
+         else if(t2->getType() == String)
+         {
+            // consider String less than object, so t2 < t1
+            rval = false;
+         }
+         else
+         {
+            // compare IRI or literal
+            const char* v1 = t1[2]->hasMember("@iri") ?
+               t1[2]["@iri"]->getString() : t1[2]["@literal"]->getString();
+            const char* v2 = t2[2]->hasMember("@iri") ?
+               t2[2]["@iri"]->getString() : t2[2]["@literal"]->getString();
+            rval = (strcmp(v1, v2) < 0);
+         }
       }
    }
 
@@ -91,33 +117,36 @@ static void _addAutoEmbeds(DynamicObject& subjects, DynamicObject& embeds)
    {
       DynamicObject& subject = si->next();
 
-      // iterate over predicates, doing reverse lookups to find subjects
+      // iterate over properties, doing reverse lookups to find subjects
       DynamicObjectIterator pi = subject.getIterator();
       while(pi->hasNext())
       {
          DynamicObject& objects = pi->next();
-         const char* predicate = pi->getName();
+         const char* property = pi->getName();
 
          // skip self-subject identifier and type identifiers
-         if(strcmp(predicate, "@") != 0 && strcmp(predicate, RDF_TYPE) != 0)
+         if(strcmp(property, "@") != 0 && strcmp(property, RDF_TYPE) != 0)
          {
-            // iterate over objects (may be more than one value per predicate)
+            // iterate over objects (may be more than one value per property)
             DynamicObjectIterator oi = objects.getIterator();
             while(oi->hasNext())
             {
-               const char* object = oi->next();
-               if(subjects->hasMember(object))
+               DynamicObject& object = oi->next();
+               if(object->getType() == Map && object->hasMember("@iri") &&
+                  subjects->hasMember(object["@iri"]))
                {
+                  const char* iri = object["@iri"];
+
                   // subject reference found, update refs
                   if(refs.find(subject) == refs.end())
                   {
-                     refs[object].subject = subject;
-                     refs[object].predicate = predicate;
-                     refs[object].count = 1;
+                     refs[iri].subject = subject;
+                     refs[iri].property = property;
+                     refs[iri].count = 1;
                   }
                   else
                   {
-                     ++refs[object].count;
+                     ++refs[iri].count;
                   }
                }
             }
@@ -132,186 +161,188 @@ static void _addAutoEmbeds(DynamicObject& subjects, DynamicObject& embeds)
       {
          DynamicObject& embed = embeds[i->first];
          embed["s"] = i->second.subject;
-         embed["p"] = i->second.predicate;
+         embed["p"] = i->second.property;
          embed["manual"] = false;
          embed["broken"] = false;
       }
    }
 }
 
-static bool _hasSubject(DynamicObject& object, const char* subject)
+/**
+ * Returns true if the given object is a reference to the given subject. This
+ * means that o["@iri"] == s["@"]["@iri"].
+ *
+ * @param o the object.
+ * @param s the subject.
+ *
+ * @return true if the given object is a reference to the given subject.
+ */
+static bool _isReference(DynamicObject& o, DynamicObject& s)
 {
-   return object->hasMember("@") && strcmp(object["@"], subject) == 0;
+   return o->hasMember("@iri") && o["@iri"] == s["@"]["@iri"];
 }
 
-static void _addUniqueObject(
-   DynamicObject& s, const char* predicate, DynamicObject& object)
+/**
+ * Embeds an object (that is a subject) if it isn't already under the given
+ * property. If the property only references the object by IRI, the reference
+ * will be replaced with the embedded object.
+ *
+ * @param s the subject to update.
+ * @param p the property.
+ * @param o the object to embed.
+ */
+static void _embedObject(
+   DynamicObject& s, const char* p, DynamicObject& o)
 {
-   DynamicObject& p = s[predicate];
-   DynamicObjectType type = p->getType();
-   if(type != Array)
+   DynamicObject& existing = s[p];
+   if(existing->getType() != Array)
    {
-      // set predicate to object if it references the same one by subject
-      if(p == object ||
-         (type == String && _hasSubject(object, p)) ||
-         (type == Map && _hasSubject(p, object)))
+      // if the existing object is a reference to the embed, replace it
+      if(_isReference(existing, o))
       {
-         p = object;
-      }
-      // convert predicate to array and append object
-      else
-      {
-         DynamicObject tmp = p;
-         p = DynamicObject();
-         p->append(tmp);
-         p->append(object);
+         existing = o;
       }
    }
-   else
+   // if the existing object isn't already embedded
+   else if(existing->indexOf(o) == -1)
    {
-      int index = p->indexOf(object);
-      if(index != -1)
+      // find and replace the reference to the object
+      bool found = false;
+      DynamicObjectIterator i = existing.getIterator();
+      while(!found && i->hasNext())
       {
-         // object exists, replace it
-         p[index] = object;
-      }
-      // the object might still exist as a subject within an embed
-      else if(object->getType() == String)
-      {
-         // look for an existing object with the object as a subject
-         bool found = false;
-         DynamicObjectIterator i = p.getIterator();
-         while(!found && i->hasNext())
+         if(_isReference(i->next(), o))
          {
-            if(_hasSubject(i->next(), object))
-            {
-               // replace object
-               p[i->getIndex()] = object;
-               found = true;
-            }
-         }
-
-         // object not found, append it
-         if(!found)
-         {
-            p->append(object);
-         }
-      }
-      // ensure object's subject doesn't exist as a string in the array
-      else
-      {
-         int index = p->indexOf(object["@"]);
-         if(index != -1)
-         {
-            // replace string with object
-            p[index] = object;
-         }
-         else
-         {
-            p->append(object);
+            // replace reference
+            existing[i->getIndex()] = o;
+            found = true;
          }
       }
    }
 }
 
-static void _setPredicate(
-   DynamicObject& s, const char* predicate, DynamicObject& object)
-{
-   // set the subject's predicate to the embedded object
-   if(s->hasMember(predicate))
-   {
-      // ensure object is only added uniquely
-      _addUniqueObject(s, predicate, object);
-   }
-   else
-   {
-      s[predicate] = object;
-   }
-}
-
+/**
+ * Determines if the given subject and object reference each other cyclically.
+ *
+ * @param embeds the embeds map.
+ * @param subject the subject.
+ * @param object the object.
+ * @param manual set to whether or not a manual embed was found when looking
+ *           for a cycle.
+ *
+ * @return true if a subject-object cycle was found, false if not.
+ */
 static bool _isCycle(
    DynamicObject& embeds, const char* subject, const char* object,
    bool* manual)
 {
-   bool rval = false;
-
+   // FIXME: change all references of "manual" to "auto" or "frame", etc.
    // no manual embed found yet
    *manual = false;
 
    /* Here we are checking to see if the given subject and object reference
       each other cyclically. How to detect a cycle:
 
-      In order for a subject to be in a cycle, it must be possible to walk
-      the embeds map, following references, and find the subject.
-    */
+      In order for a subject to be in a cycle via the given object, it must be
+      possible to walk the embeds map, following references, and find the
+      object and then the subject. */
+   bool cycleFound = false;
+   bool objectFound = false;
    const char* tmp = subject;
-   while(!rval && embeds->hasMember(tmp))
+   while(!cycleFound && embeds->hasMember(tmp))
    {
       DynamicObject& embed = embeds[tmp];
-      tmp = embed["s"]["@"];
-      if(tmp == subject)
+      tmp = embed["s"]["@"]["@iri"];
+      if(embed["manual"]->getBoolean())
+      {
+         // manual embed found during walk (in possible cycle)
+         *manual = true;
+      }
+      if(tmp == object)
+      {
+         // object found
+         objectFound = true;
+      }
+      else if(tmp == subject)
       {
          // cycle found
-         rval = true;
-      }
-      else if(embed["manual"]->getBoolean())
-      {
-         // manual embed found in cycle
-         *manual = true;
+         cycleFound = true;
       }
    }
 
-   return rval;
+   return cycleFound && objectFound;
 }
 
+/**
+ * Removes any cycles detected in the embeds map.
+ *
+ * @param subjects the map of top-level subjects.
+ * @param embeds the map of embeds.
+ * @param explicitOnly
+ */
 static void _pruneCycles(
    DynamicObject& subjects, DynamicObject& embeds, bool explicitOnly)
 {
-   DynamicObject tmp;
-   tmp->setType(Map);
+   // iterate over embeds adding those that will be kept to "keep"
+   DynamicObject keep;
+   keep->setType(Map);
    DynamicObjectIterator i = embeds.getIterator();
    while(i->hasNext())
    {
-      DynamicObject& embed = i->next();
-      const char* subject = embed["s"]["@"];
-      const char* object = i->getName();
+      DynamicObject& objectEmbed = i->next();
 
-      // only handle embed if not broken and not (explicit and not manual)
-      if(!embed["broken"]->getBoolean() &&
-         !(explicitOnly && !embed["manual"]->getBoolean()))
+      // do not keep embeds that are already broken and if in explicitOnly
+      // mode, do not keep any automatic (non-manual) embeds
+      if(!objectEmbed["broken"]->getBoolean() &&
+         (!explicitOnly || objectEmbed["manual"]->getBoolean()))
       {
+         const char* subject = objectEmbed["s"]["@"]["@iri"];
+         const char* object = i->getName();
+
          // see if object cyclically references subject
-         bool manual;
-         if(_isCycle(embeds, subject, object, &manual))
+         bool cycleManual;
+         if(_isCycle(embeds, subject, object, &cycleManual))
          {
             // cycle found
-            DynamicObject& cycle = embeds[subject];
+            DynamicObject& subjectEmbed = embeds[subject];
 
-            // keep current embed if it is manual or the cycle is automated
-            if(embed["manual"]->getBoolean() || !manual)
+            // keep embed of "object" if it is manual or the cycle is automated
+            // and break embed of "subject"
+            if(objectEmbed["manual"]->getBoolean() || !cycleManual)
             {
-               cycle["broken"] = true;
-               tmp[object] = embed;
+               subjectEmbed["broken"] = true;
+               keep[object] = objectEmbed;
             }
-            // keep cycle embed
+            // keep embed of "subject", break embed of "object"
             else
             {
-               embed["broken"] = true;
+               objectEmbed["broken"] = true;
             }
          }
          // no cycle, add as valid embed
          else
          {
-            tmp[object] = embed;
+            keep[object] = objectEmbed;
          }
       }
    }
 
-   embeds = tmp;
+   embeds = keep;
 }
 
+/**
+ * Finds all of the subjects in the given subject map with the given type, adds
+ * them to the given targets array and target map, and removes them from the
+ * subject map.
+ *
+ * @param subjects the set of all of the subjects to search.
+ * @param type the type to look for.
+ * @param targets the array of targets to populate.
+ * @param targetMap the map of targets to populate.
+ * @param limit the maximum number of targets to find, -1 for no limit.
+ */
 static void _findTypes(
-   DynamicObject& subjects, const char* type,
+   DynamicObject& subjects, DynamicObject& type,
    DynamicObject& targets, DynamicObject& targetMap, int limit = -1)
 {
    DynamicObjectIterator i = subjects.getIterator();
@@ -320,15 +351,15 @@ static void _findTypes(
       DynamicObject& next = i->next();
       if(next->hasMember(RDF_TYPE))
       {
-         // RDF_TYPE is either an array of strings or a string
+         // RDF_TYPE is either an array of types or a single type
          DynamicObjectIterator ti = next[RDF_TYPE].getIterator();
          while(ti->hasNext())
          {
             DynamicObject& t = ti->next();
-            if((t->getType() == String && strcmp(t, type) == 0) ||
-               (t->getType() == Array && t->indexOf(type) != -1))
+            if((t->getType() == Array && t->indexOf(type) != -1) ||
+               (t->getType() != Array && t == type))
             {
-               // add target, remove from subject set
+               // add target, remove from subject map
                targets->append(next);
                targetMap[i->getName()] = next;
                i->remove();
@@ -339,37 +370,74 @@ static void _findTypes(
    }
 }
 
-static void _buildSubjectSet(
-   DynamicObject& subjects, const char* subject, const char* predicate,
-   DynamicObject& subjectSet)
+/**
+ * Builds a set of subjects to be searched.
+ *
+ * If the subject parameter is NULL, all subjects will be added to the set. If
+ * not, then all subjects under subject[property] will be added to the set.
+ *
+ * @param subjects all top-level subjects.
+ * @param subject the subject to add from, NULL to add all subjects.
+ * @param property the property on the subject.
+ * @param subjectMap the set to populate.
+ */
+static void _buildSubjectMap(
+   DynamicObject& subjects, const char* subject, const char* property,
+   DynamicObject& subjectMap)
 {
-   // build a list of subjects to look for the target objects in based
-   // on subject->predicate (if subject is NULL, use all subjects)
-   subjectSet->setType(Map);
+   // build a list of subjects to search that is based on subject[property]
+   // (if subject is NULL, use all subjects)
+   subjectMap->setType(Map);
    DynamicObjectIterator i =
       (subject == NULL) ? subjects.getIterator() :
-      subjects[subject][predicate].getIterator();
+      subjects[subject][property].getIterator();
    while(i->hasNext())
    {
       DynamicObject& next = i->next();
-      const char* s = (subject == NULL) ? i->getName() : next->getString();
-      if(subjects->hasMember(s))
+
+      if(next->getType() == Array)
       {
-         subjectSet[s] = subjects[s];
+         DynamicObjectIterator ii = next.getIterator();
+         while(ii->hasNext())
+         {
+            DynamicObject& n = ii->next();
+            if(n->hasMember("@") && subjects->hasMember(n["@"]["@iri"]))
+            {
+               const char* s = n["@"]["@iri"];
+               subjectMap[s] = n;
+            }
+         }
+      }
+      else if(next->hasMember("@") && subjects->hasMember(next["@"]["@iri"]))
+      {
+         const char* s = next["@"]["@iri"];
+         subjectMap[s] = next;
       }
    }
 }
 
+/**
+ * Finds all of the target objects that match the given frame.
+ *
+ * @param parent the parent frame.
+ * @param frame the frame to find matches for.
+ * @param subjects all of the top-level subjects.
+ * @param subject the subject to look in, NULL to look in all subjects.
+ * @param property the property of the subject to look in.
+ * @param targets the array to populate with targets that match.
+ * @param targetMap the map to populate with targets that match.
+ * @param explicitOnly true if only information specified in the frame should
+ *           be extracted from the graph, false if not.
+ */
 static void _findTargetObjects(
    DynamicObject& parent, DynamicObject& frame, DynamicObject& subjects,
-   const char* subject, const char* predicate,
-   DynamicObject& targets, DynamicObject& targetMap,
-   bool explicitOnly, DynamicObject& removals)
+   const char* subject, const char* property,
+   DynamicObject& targets, DynamicObject& targetMap, bool explicitOnly)
 {
-   // if the frame is empty and explicit is off, include all targets
-   if(!explicitOnly && frame->length() == 0)
+   // if the frame is empty and explicit is off, auto-match all subjects
+   if(frame->length() == 0 && !explicitOnly)
    {
-      _buildSubjectSet(subjects, subject, predicate, targetMap);
+      _buildSubjectMap(subjects, subject, property, targetMap);
       DynamicObjectIterator i = targetMap.getIterator();
       while(i->hasNext())
       {
@@ -378,23 +446,24 @@ static void _findTargetObjects(
    }
    else
    {
-      // build a subject set to look in
-      DynamicObject subjectSet;
-      _buildSubjectSet(subjects, subject, predicate, subjectSet);
+      // build a subject map to look in
+      DynamicObject subjectMap;
+      _buildSubjectMap(subjects, subject, property, subjectMap);
 
-      // look for the target objects in the subjectSet using the frame
+      // look for the target objects in the subjectMap using the frame
       // use "@" first, if not present use RDF_TYPE
       if(frame->hasMember("@"))
       {
+         // frame MUST use compact '@' form, not normalized @iri form for '@'
          DynamicObjectIterator i = frame["@"].getIterator();
          while(i->hasNext())
          {
             const char* s = i->next();
-            if(subjectSet->hasMember(s))
+            if(subjectMap->hasMember(s))
             {
                targets->append(subjects[s]);
-               targetMap[s] = subjectSet[s];
-               subjectSet->removeMember(s);
+               targetMap[s] = subjectMap[s];
+               subjectMap->removeMember(s);
             }
          }
       }
@@ -404,12 +473,55 @@ static void _findTargetObjects(
          DynamicObjectIterator i = frame[RDF_TYPE].getIterator();
          while(i->hasNext())
          {
-            const char* type = i->next();
             _findTypes(
-               subjectSet, type, targets, targetMap,
+               subjectMap, i->next(), targets, targetMap,
                (parent->getType() == Map) ? 1 : -1);
          }
       }
+   }
+}
+
+/**
+ * Handles embedding the given target or removing an embed for it if it
+ * should be at the top-level according to the given frame.
+ *
+ * @param subjects the subjects in the graph.
+ * @param parent the parent subject of the target.
+ * @param property the property of the parent that relates the target to it.
+ * @param embeds the embeds map.
+ * @param frame the frame.
+ * @param target the target.
+ */
+static void _embedTarget(
+   DynamicObject& subjects, const char* parent, const char* property,
+   DynamicObject& embeds, DynamicObject& frame, DynamicObject& target)
+{
+   // if first call (parent == NULL), remove target from embeds since
+   // it should be at the top-level
+   if(parent == NULL)
+   {
+      embeds->removeMember(target["@"]["@iri"]);
+   }
+   // remove auto-embed of the target in the parent subject if the
+   // frame type is empty string -- this indicates that a reference
+   // should be used, not an embed
+   else if(frame->getType() == String && frame->length() == 0)
+   {
+      const char* iri = target["@"]["@iri"];
+      if(embeds->hasMember(iri) && embeds[iri]["s"] == subjects[parent])
+      {
+         embeds->removeMember(iri);
+      }
+   }
+   // add a manual embed of the current target in the parent subject
+   else
+   {
+      DynamicObject embed;
+      embed["s"] = subjects[parent];
+      embed["p"] = property;
+      embed["manual"] = true;
+      embed["broken"] = false;
+      embeds[target["@"]["@iri"]->getString()] = embed;
    }
 }
 
@@ -440,31 +552,33 @@ static void _findTargetObjects(
  * @param targetMap a map to populate with the target subjects.
  * @param subjects a map of all subjects in the graph.
  * @param subject the current parent subject in the traversal, NULL to start.
- * @param predicate the current parent predicate in the traversal.
+ * @param property the current parent property in the traversal.
  * @param embeds a map of suggested objects to embed (according to the frame).
  * @param explicitOnly true to only include subjects mentioned in the frame.
  * @param removals a list of subjects to potentially remove.
  */
 static void _processFrame(
    DynamicObject& frame, DynamicObject targetMap,
-   DynamicObject& subjects, const char* subject, const char* predicate,
+   DynamicObject& subjects, const char* subject, const char* property,
    DynamicObject& embeds, bool explicitOnly, DynamicObject& removals)
 {
-   // create a map to keep track of subjects that are targets so we can
-   // add removals for unused subjects
+   // create a map to keep track of subjects that are targets to be extracted
+   // from the graph and put in the output so that we can add removals for
+   // unused subjects
    targetMap->setType(Map);
 
    /* Note: The frame is either an array of maps or a map. It cannot be
-      an array of arrays. Therefore, we build a frame container to iterate
-      over the frame in the same way regardless of its type. */
+      an array of arrays. To simplify the code path, we build a top-level
+      frame container that is an array that can be iterated over the same way
+      regardless of the input frame type. */
 
    // build frame container to iterate over
    DynamicObject top(NULL);
-   bool isArray = (frame->getType() == Array);
-   if(isArray)
+   if(frame->getType() == Array)
    {
       top = frame.clone();
       // if explicit off and array is empty, use an empty frame to include all
+      // subjects in the graph as targets
       if(frame->length() == 0 && !explicitOnly)
       {
          DynamicObject empty;
@@ -478,6 +592,8 @@ static void _processFrame(
       top->setType(Array);
       top->append(frame);
    }
+
+   // now iterate over common frame container
    DynamicObjectIterator fi = top.getIterator();
    while(fi->hasNext())
    {
@@ -487,51 +603,32 @@ static void _processFrame(
       DynamicObject targets;
       targets->setType(Array);
       _findTargetObjects(
-         frame, f, subjects, subject, predicate,
-         targets, targetMap, explicitOnly, removals);
+         frame, f, subjects, subject, property,
+         targets, targetMap, explicitOnly);
 
-      // iterate over objects to place in the target
+      // FIXME: change findTargetObjects to check frame[property] and do
+      // explicitOnly check there ... better recursion, less repeated code
+
+      // iterate over target objects, handling embeds and recursing
       DynamicObjectIterator i = targets.getIterator();
       while(i->hasNext())
       {
          DynamicObject& target = i->next();
 
-         // if first call (subject == NULL), remove target from embeds
-         if(subject == NULL)
-         {
-            embeds->removeMember(target["@"]);
-         }
-         // remove auto-embeds if type is empty string
-         else if(f->getType() == String && f->length() == 0)
-         {
-            const char* s = target["@"]->getString();
-            if(embeds->hasMember(s) && embeds[s]["s"] == subjects[subject])
-            {
-               embeds->removeMember(s);
-            }
-         }
-         // add manual embed
-         else
-         {
-            DynamicObject embed;
-            embed["s"] = subjects[subject];
-            embed["p"] = predicate;
-            embed["manual"] = true;
-            embed["broken"] = false;
-            embeds[target["@"]->getString()] = embed;
-         }
+         // embed target appropriately
+         _embedTarget(subjects, subject, property, embeds, f, target);
 
-         // iterate over predicates and objects in subject
+         // iterate over properties in target to recurse
          DynamicObjectIterator oi = target.getIterator();
          while(oi->hasNext())
          {
             DynamicObject& obj = oi->next();
             const char* p = oi->getName();
 
-            // skip "@" and RDF_TYPE predicates
+            // skip "@" and RDF_TYPE properties
             if(strcmp(p, "@") != 0 && strcmp(p, RDF_TYPE) != 0)
             {
-               // frame mentions predicate
+               // frame mentions property
                if(f->hasMember(p))
                {
                   // get next frame
@@ -540,17 +637,32 @@ static void _processFrame(
                   // if the frame wants a string, remove any related embeds
                   if(f[p]->getType() == String)
                   {
-                     // iterate over object subjects
-                     DynamicObjectIterator ooi = obj.getIterator();
-                     while(ooi->hasNext())
+                     // normalize property objects to array for single
+                     // code path
+                     DynamicObject tmpArray;
+                     tmpArray->setType(Array);
+                     if(obj->getType() != Array)
                      {
-                        const char* os = ooi->next();
-                        if(embeds->hasMember(os))
+                        tmpArray.push(obj);
+                     }
+                     else
+                     {
+                        tmpArray.merge(obj, true);
+                     }
+
+                     // iterate over object values
+                     DynamicObjectIterator vi = tmpArray.getIterator();
+                     while(vi->hasNext())
+                     {
+                        DynamicObject& ov = vi->next();
+                        if(ov->hasMember("@iri"))
                         {
-                           if(embeds[os]["s"] ==
-                              subjects[target["@"]->getString()])
+                           const char* iri = ov["@iri"];
+                           if(embeds->hasMember(iri) &&
+                              embeds[iri]["s"] ==
+                              subjects[target["@"]["@iri"]->getString()])
                            {
-                              embeds->removeMember(os);
+                              embeds->removeMember(iri);
                            }
                         }
                      }
@@ -574,16 +686,17 @@ static void _processFrame(
 
                      // recurse into next frame
                      _processFrame(
-                        nf, DynamicObject(), subjects, target["@"], p, embeds,
-                        explicitOnly, removals);
+                        nf, DynamicObject(), subjects, target["@"]["@iri"],
+                        p, embeds, explicitOnly, removals);
                   }
                }
-               // frame does not mention predicate, if in explicit mode,
-               // mark it for potential removal
+               // current frame does not mention property, so if in explicit
+               // mode, mark it for potential removal (if it is mentioned
+               // elsewhere, the removal will not apply)
                else if(explicitOnly)
                {
                   DynamicObject& remove = removals->append();
-                  remove["s"] = target["@"];
+                  remove["s"] = target["@"]["@iri"];
                   remove["p"] = p;
                }
             }
@@ -592,13 +705,13 @@ static void _processFrame(
    }
 
    // if explicit only is on, remove any subjects not marked as targets
-   // (targets are removed from the subjectSet)
+   // (targets are removed from the subjectMap)
    if(explicitOnly)
    {
-      // build a clean subject set to compare against
-      DynamicObject subjectSet;
-      _buildSubjectSet(subjects, subject, predicate, subjectSet);
-      DynamicObjectIterator si = subjectSet.getIterator();
+      // build a clean subject map to compare against
+      DynamicObject subjectMap;
+      _buildSubjectMap(subjects, subject, property, subjectMap);
+      DynamicObjectIterator si = subjectMap.getIterator();
       while(si->hasNext())
       {
          DynamicObject& next = si->next();
@@ -614,9 +727,9 @@ static void _processFrame(
             }
             else
             {
-               // remove subject->predicate link
+               // remove subject->property link
                remove["s"] = subject;
-               remove["p"] = predicate;
+               remove["p"] = property;
                remove["o"] = next["@"];
             }
          }
@@ -633,7 +746,7 @@ static void _processRemovals(
       DynamicObject& remove = i->next();
       const char* s = remove["s"]->getString();
 
-      // if no predicate, remove subject entirely
+      // if no property, remove subject entirely
       if(!remove->hasMember("p"))
       {
          // only remove subject if it isn't mentioned by a manual embed
@@ -655,7 +768,7 @@ static void _processRemovals(
 
             // remove embed if its name matches the only listed in remove
             // or if none is listed (which means remove all objects under
-            // the current predicate)
+            // the current property)
             if(embeds->hasMember(next) &&
                (!remove->hasMember("o") || strcmp(remove["o"], next) == 0))
             {
@@ -667,12 +780,12 @@ static void _processRemovals(
             }
          }
 
-         // if no object was specified, remove the entire predicate
+         // if no object was specified, remove the entire property
          if(!remove->hasMember("o"))
          {
             subject->removeMember(p);
          }
-         // remove the object from subject->predicate
+         // remove the object from subject->property
          else
          {
             DynamicObject& object = subject[p];
@@ -688,7 +801,7 @@ static void _processRemovals(
                      break;
                   }
                }
-               // if array is empty, remove predicate
+               // if array is empty, remove property
                if(object->length() == 0)
                {
                   subject->removeMember(p);
@@ -713,7 +826,7 @@ static void _processEmbeds(
       // get the subject dyno that will hold the embedded object
       DynamicObject& embed = i->next();
       const char* object = i->getName();
-      const char* predicate = embed["p"]->getString();
+      const char* property = embed["p"]->getString();
       DynamicObject& s = embed["s"];
 
       // get the referenced object
@@ -731,8 +844,8 @@ static void _processEmbeds(
          obj = object;
       }
 
-      // set the subject's predicate to the embedded object
-      _setPredicate(s, predicate, obj);
+      // set the subject's property to the embedded object
+      _embedObject(s, property, obj);
    }
 }
 
@@ -742,8 +855,10 @@ bool JsonLdFrame::setFrame(DynamicObject& frame, bool explicitOnly)
 
    // FIXME: validation of frame?
 
-   mFrame = frame;
+   mFrame = frame.clone();
    mExplicit = explicitOnly;
+
+   // FIXME: expand all predicates and types in the frame
 
    return rval;
 }
@@ -769,7 +884,22 @@ bool JsonLdFrame::frameTriples(
       {
          s["@"] = triple[0]->getString();
       }
-      _setPredicate(s, triple[1], triple[2]);
+      const char* p = triple[1];
+      DynamicObject& o = triple[2];
+      if(s->hasMember(p))
+      {
+         // add IRIs uniquely, always add non-IRIs
+         if(!o->hasMember("@iri") ||
+            (s[p]->getType() == Array && s[p]->indexOf(o) == -1) ||
+            (s[p]->getType() == Map && s[p] != o))
+         {
+            s[p].push(o);
+         }
+      }
+      else
+      {
+         s[p] = o;
+      }
    }
 
    // frame subjects
@@ -797,7 +927,7 @@ bool JsonLdFrame::frameSubjects(DynamicObject subjects, DynamicObject& out)
    }
 
    /* Note: At this point "subjects" holds a reference to every subject in
-      the graph and each of those subjects has all of its predicates. There
+      the graph and each of those subjects has all of its properties. There
       are no embedded objects, but "embeds" contains a list of potential
       objects to embed. Embedding specific objects in the target according to
       a frame is next. */
@@ -871,51 +1001,45 @@ bool JsonLdFrame::reframe(DynamicObject& jsonld, DynamicObject& out)
 
    // clone any existing context from the input
    DynamicObject ctx(NULL);
-   if(jsonld->hasMember("#"))
+   if(jsonld->hasMember("@context"))
    {
-      ctx = jsonld["#"].clone();
+      ctx = jsonld["@context"].clone();
    }
-   if(!mFrame.isNull() && mFrame->hasMember("#"))
+   if(!mFrame.isNull() && mFrame->hasMember("@context"))
    {
-      DynamicObject frameCtx = mFrame["#"].clone();
+      DynamicObject frameCtx = mFrame["@context"].clone();
       if(ctx.isNull())
       {
          ctx = frameCtx;
       }
       else
       {
-         ctx.merge(frameCtx, false);
+         ctx = JsonLd::mergeContexts(ctx, frameCtx);
+         rval = !ctx.isNull();
       }
    }
 
    // normalize jsonld
    DynamicObject normalized;
-   rval = JsonLd::normalize(jsonld, normalized);
+   rval = rval && JsonLd::normalize(jsonld, normalized);
    if(rval)
    {
       // prepare output
       out->clear();
 
-      // create array of subjects to simplify code path
-      DynamicObject array;
-      array->setType(Array);
-      if(normalized["@"]->getType() == Array)
-      {
-         array.merge(normalized["@"], true);
-      }
-      else
-      {
-         array->append(normalized);
-      }
-
       // build map of subjects from normalized input
       DynamicObject subjects;
       subjects->setType(Map);
-      DynamicObjectIterator i = array.getIterator();
+      DynamicObjectIterator i = normalized.getIterator();
       while(i->hasNext())
       {
+         // FIXME: this will skip top-level blank nodes, should they instead
+         // be given a temporary name that is later removed?
          DynamicObject& subject = i->next();
-         subjects[subject["@"]->getString()] = subject;
+         if(subject->hasMember("@"))
+         {
+            subjects[subject["@"]["@iri"]->getString()] = subject;
+         }
       }
 
       // frame subjects
