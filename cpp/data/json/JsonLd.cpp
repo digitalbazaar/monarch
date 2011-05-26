@@ -71,126 +71,6 @@ static DynamicObject _createDefaultContext()
 }
 
 /**
- * Merges a new context into an existing one and returns the merged context.
- *
- * @param ctx the existing context.
- * @param newCtx the new context.
- *
- * @return the merged context, NULL on error.
- */
-static DynamicObject _mergeContext(DynamicObject ctx, DynamicObject newCtx)
-{
-   // copy contexts
-   DynamicObject merged = ctx.clone();
-   DynamicObject copy = newCtx.clone();
-
-   // if the new context contains any IRIs that are in the merged context,
-   // remove them from the merged context, they will be overwritten
-   DynamicObjectIterator i = newCtx.getIterator();
-   while(i->hasNext())
-   {
-      // ignore special keys starting with '@'
-      DynamicObject& iri = i->next();
-      if(i->getName()[0] != '@')
-      {
-         DynamicObjectIterator mi = merged.getIterator();
-         while(mi->hasNext())
-         {
-            DynamicObject& miri = mi->next();
-            if(miri == iri)
-            {
-               mi->remove();
-               break;
-            }
-         }
-      }
-   }
-
-   // @coerce must be specially-merged, remove from context
-   DynamicObject c1 = merged["@coerce"];
-   DynamicObject c2 = copy["@coerce"];
-   c2->setType(Map);
-   merged->removeMember("@coerce");
-   copy->removeMember("@coerce");
-
-   // merge contexts (do not append)
-   merged.merge(copy, false);
-
-   // special-merge @coerce
-   i = c1.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& props = i->next();
-
-      // append existing-type properties that don't already exist
-      if(c2->hasMember(i->getName()))
-      {
-         DynamicObjectIterator pi = c2[i->getName()].getIterator();
-         while(pi->hasNext())
-         {
-            DynamicObject& p = pi->next();
-            if((props->getType() != Array && props != p) ||
-               (props->getType() == Array && props->indexOf(p) == -1))
-            {
-               props.push(p);
-            }
-         }
-      }
-   }
-
-   // add new types from new @coerce
-   i = c2.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& props = i->next();
-      if(!c1->hasMember(i->getName()))
-      {
-         c1[i->getName()] = props;
-      }
-   }
-
-   // ensure there are no property duplicates in @coerce
-   DynamicObject unique;
-   unique->setType(Map);
-   DynamicObject dups;
-   dups->setType(Array);
-   i = c1.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObjectIterator pi = i->next().getIterator();
-      while(pi->hasNext())
-      {
-         DynamicObject& p = pi->next();
-         if(!unique->hasMember(p))
-         {
-            unique[p->getString()] = true;
-         }
-         else if(dups->indexOf(p) == -1)
-         {
-            dups->append(p);
-         }
-      }
-   }
-
-   if(dups->length() > 0)
-   {
-      ExceptionRef e = new Exception(
-         "Invalid type coercion specification. More than one type "
-         "specified for at least one property.",
-         EXCEPTION_TYPE ".CoerceSpecError");
-      e->getDetails()["duplicates"] = dups;
-      Exception::set(e);
-      merged.setNull();
-   }
-   else
-   {
-      merged["@coerce"] = c1;
-   }
-
-   return merged;
-}
-
-/**
  * Compacts an IRI into a term or CURIE it can be. IRIs will not be compacted
  * to relative IRIs if they match the given context's default vocabulary.
  *
@@ -387,14 +267,14 @@ static DynamicObject _getCoerceType(
 }
 
 /**
- * Sets a subject's predicate to the given object value. If a value already
+ * Sets a subject's property to the given object value. If a value already
  * exists, it will be appended to an array.
  *
  * @param s the subject.
- * @param p the predicate.
+ * @param p the property.
  * @param o the object.
  */
-static void _setPredicate(DynamicObject& s, const char* p, DynamicObject& o)
+static void _setProperty(DynamicObject& s, const char* p, DynamicObject& o)
 {
    if(s->hasMember(p))
    {
@@ -476,7 +356,7 @@ static DynamicObject _compact(
             else
             {
                // set object to compacted property
-               _setPredicate(
+               _setProperty(
                   rval, _compactIri(ctx, i->getName(), usedCtx).c_str(),
                   next);
             }
@@ -660,7 +540,7 @@ static DynamicObject _expand(
          // if value has a context, use it
          if(value->hasMember("@context"))
          {
-            ctx = _mergeContext(ctx, value["@context"]);
+            ctx = JsonLd::mergeContexts(ctx, value["@context"]);
          }
 
          if(!ctx.isNull())
@@ -687,7 +567,7 @@ static DynamicObject _expand(
                   else
                   {
                      // set object to expanded property
-                     _setPredicate(rval, p.c_str(), obj);
+                     _setProperty(rval, p.c_str(), obj);
                   }
                }
             }
@@ -970,7 +850,7 @@ bool JsonLd::addContext(
    // TODO: should context simplification be optional? (ie: remove context
    // entries that are not used in the output)
 
-   DynamicObject ctx = _mergeContext(_createDefaultContext(), context);
+   DynamicObject ctx = JsonLd::mergeContexts(_createDefaultContext(), context);
    if(!ctx.isNull())
    {
       // setup output context
@@ -1010,4 +890,127 @@ bool JsonLd::changeContext(
    // remove context and then add new one
    DynamicObject tmp;
    return removeContext(in, tmp) && addContext(context, tmp, out);
+}
+
+DynamicObject JsonLd::mergeContexts(
+   DynamicObject ctx1, DynamicObject ctx2)
+{
+   // copy contexts
+   DynamicObject merged = ctx1.clone();
+   DynamicObject copy = ctx2.clone();
+
+   // if the new context contains any IRIs that are in the merged context,
+   // remove them from the merged context, they will be overwritten
+   DynamicObjectIterator i = ctx2.getIterator();
+   while(i->hasNext())
+   {
+      // ignore special keys starting with '@'
+      DynamicObject& iri = i->next();
+      if(i->getName()[0] != '@')
+      {
+         DynamicObjectIterator mi = merged.getIterator();
+         while(mi->hasNext())
+         {
+            DynamicObject& miri = mi->next();
+            if(miri == iri)
+            {
+               mi->remove();
+               break;
+            }
+         }
+      }
+   }
+
+   // @coerce must be specially-merged, remove from context
+   DynamicObject c1 = merged["@coerce"];
+   DynamicObject c2 = copy["@coerce"];
+   c2->setType(Map);
+   merged->removeMember("@coerce");
+   copy->removeMember("@coerce");
+
+   // merge contexts (do not append)
+   merged.merge(copy, false);
+
+   // special-merge @coerce
+   i = c1.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& props = i->next();
+
+      // append existing-type properties that don't already exist
+      if(c2->hasMember(i->getName()))
+      {
+         DynamicObjectIterator pi = c2[i->getName()].getIterator();
+         while(pi->hasNext())
+         {
+            DynamicObject& p = pi->next();
+            if((props->getType() != Array && props != p) ||
+               (props->getType() == Array && props->indexOf(p) == -1))
+            {
+               props.push(p);
+            }
+         }
+      }
+   }
+
+   // add new types from new @coerce
+   i = c2.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& props = i->next();
+      if(!c1->hasMember(i->getName()))
+      {
+         c1[i->getName()] = props;
+      }
+   }
+
+   // ensure there are no property duplicates in @coerce
+   DynamicObject unique;
+   unique->setType(Map);
+   DynamicObject dups;
+   dups->setType(Array);
+   i = c1.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObjectIterator pi = i->next().getIterator();
+      while(pi->hasNext())
+      {
+         DynamicObject& p = pi->next();
+         if(!unique->hasMember(p))
+         {
+            unique[p->getString()] = true;
+         }
+         else if(dups->indexOf(p) == -1)
+         {
+            dups->append(p);
+         }
+      }
+   }
+
+   if(dups->length() > 0)
+   {
+      ExceptionRef e = new Exception(
+         "Invalid type coercion specification. More than one type "
+         "specified for at least one property.",
+         EXCEPTION_TYPE ".CoerceSpecError");
+      e->getDetails()["duplicates"] = dups;
+      Exception::set(e);
+      merged.setNull();
+   }
+   else
+   {
+      merged["@coerce"] = c1;
+   }
+
+   return merged;
+}
+
+string JsonLd::expandTerm(DynamicObject ctx, const char* term)
+{
+   return _expandTerm(ctx, term, NULL);
+}
+
+string JsonLd::compactIri(DynamicObject ctx, const char* iri)
+{
+   return _compactIri(ctx, iri, NULL);
 }

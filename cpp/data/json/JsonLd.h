@@ -78,6 +78,44 @@ public:
    static bool changeContext(
       monarch::rt::DynamicObject& context,
       monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+
+   /**
+    * Merges one context with another.
+    *
+    * @param ctx1 the context to overwrite/append to.
+    * @param ctx2 the new context to merge onto ctx1.
+    *
+    * @return the merged context or NULL on failure with exception set.
+    */
+   static monarch::rt::DynamicObject mergeContexts(
+      monarch::rt::DynamicObject ctx1,
+      monarch::rt::DynamicObject ctx2);
+
+   /**
+    * Expands a term into an absolute IRI. The term may be a regular term, a
+    * CURIE, a relative IRI, or an absolute IRI. In any case, the associated
+    * absolute IRI will be returned.
+    *
+    * @param ctx the context to use.
+    * @param term the term to expand.
+    *
+    * @return the expanded term as an absolute IRI.
+    */
+   static std::string expandTerm(
+      monarch::rt::DynamicObject ctx, const char* term);
+
+   /**
+    * Compacts an IRI into a term or CURIE it can be. IRIs will not be
+    * compacted to relative IRIs if they match the given context's default
+    * vocabulary.
+    *
+    * @param ctx the context to use.
+    * @param iri the IRI to compact.
+    *
+    * @return the compacted IRI as a term or CURIE or the original IRI.
+    */
+   static std::string compactIri(
+      monarch::rt::DynamicObject ctx, const char* iri);
 };
 
 } // end namespace json
