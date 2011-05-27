@@ -314,11 +314,8 @@ HttpConnection* HttpClient::createConnection(
             }
          }
 
-         // start ssl session
-         if(ss->performHandshake())
-         {
-            rval = new HttpConnection(new Connection(s, true), true);
-         }
+         // create ssl connection
+         rval = new HttpConnection(new Connection(s, true), true);
       }
    }
 
