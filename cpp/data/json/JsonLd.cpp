@@ -188,7 +188,12 @@ static string _expandTerm(
          (*usedCtx)[term] = rval.c_str();
       }
    }
-   // 3. The property is a relative IRI, prepend the default vocab.
+   // 3. The property is the special-case '@'
+   else if(strcmp(term, "@") == 0)
+   {
+      rval = "@";
+   }
+   // 4. The property is a relative IRI, prepend the default vocab.
    else
    {
       rval = StringTools::format("%s%s", ctx["@vocab"]->getString(), term);
@@ -605,7 +610,7 @@ static DynamicObject _expand(
          }
       }
 
-      // only expand subjects if rquested
+      // only expand subjects if requested
       if(!coerce.isNull() && (strcmp(property, "@") != 0 || expandSubjects))
       {
          // expand IRI
