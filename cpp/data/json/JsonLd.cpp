@@ -90,13 +90,14 @@ static string _compactIri(
    while(rval.empty() && i->hasNext())
    {
       // get next IRI from the context
-      const char* ctxIri = i->next();
+      DynamicObject& next = i->next();
 
       // skip special context keys (start with '@')
       const char* name = i->getName();
       if(name[0] != '@')
       {
          // see if IRI begins with the next IRI from the context
+         const char* ctxIri = next;
          const char* ptr = strstr(iri, ctxIri);
          if(ptr != NULL && ptr == iri)
          {
