@@ -42,35 +42,65 @@ static void runMessageDigestTest(TestRunner& tr)
    tr.group("MessageDigest");
 
    // correct values
+   const char* thisIsAMessage = "THIS IS A MESSAGE";
    const char* correctMd5 = "78eebfd9d42958e3f31244f116ab7bbe";
    const char* correctSha1 = "5f24f4d6499fd2d44df6c6e94be8b14a796c071d";
    const char* correctSha256 =
       "b30b240903bd7a194ec18dd4704afc12f63ed10e5a3365dcf7a2c18403e5b7cc";
+   const char* correctSha384 =
+      "2b368351229aee65d56dab9f73c05e467d34b143a0690d95650e13eec381a6d1"
+      "71ccf21e344d11c6547b406b008adf38";
+   const char* correctSha512 =
+      "389ec91c44ce50a726b40cb4f9ac50716fe377bf1995a1bb24268700538e744c66bc99ee71233270abe95d3eed6ebceba7e506f7c914b46a183486969ad59646";
 
    tr.test("non-persistent");
    {
-      MessageDigest testMd5;
-      assertNoException(testMd5.start("MD5", false));
-      testMd5.update("THIS ");
-      testMd5.update("IS A");
-      testMd5.update(" MESSAGE");
-      string digestMd5 = testMd5.getDigest();
+      {
+         MessageDigest md;
+         assertNoException(md.start("MD5", false));
+         md.update("THIS ");
+         md.update("IS A");
+         md.update(" MESSAGE");
+         string digest = md.getDigest();
 
-      assertStrCmp(correctMd5, digestMd5.c_str());
+         assertStrCmp(correctMd5, digest.c_str());
+      }
 
-      MessageDigest testSha1;
-      assertNoException(testSha1.start("SHA1", false));
-      testSha1.update("THIS IS A MESSAGE");
-      string digestSha1 = testSha1.getDigest();
+      {
+         MessageDigest md;
+         assertNoException(md.start("SHA1", false));
+         md.update(thisIsAMessage);
+         string digest = md.getDigest();
 
-      assertStrCmp(correctSha1, digestSha1.c_str());
+         assertStrCmp(correctSha1, digest.c_str());
+      }
 
-      MessageDigest testSha256;
-      assertNoException(testSha256.start("SHA256", false));
-      testSha256.update("THIS IS A MESSAGE");
-      string digestSha256 = testSha256.getDigest();
+      {
+         MessageDigest md;
+         assertNoException(md.start("SHA256", false));
+         md.update(thisIsAMessage);
+         string digest = md.getDigest();
 
-      assertStrCmp(correctSha256, digestSha256.c_str());
+         assertStrCmp(correctSha256, digest.c_str());
+      }
+
+      {
+         MessageDigest md;
+         assertNoException(md.start("SHA384", false));
+         md.update(thisIsAMessage);
+         string digest = md.getDigest();
+
+         assertStrCmp(correctSha384, digest.c_str());
+      }
+
+      {
+         MessageDigest md;
+         assertNoException(md.start("SHA512", false));
+         md.update(thisIsAMessage);
+         string digest = md.getDigest();
+
+         assertStrCmp(correctSha512, digest.c_str());
+      }
    }
    tr.passIfNoException();
 
