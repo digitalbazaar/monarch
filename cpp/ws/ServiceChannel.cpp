@@ -433,7 +433,12 @@ bool ServiceChannel::sendException(ExceptionRef& e, bool client)
       // set status code if necessary
       if(mResponse->getHeader()->getStatusCode() == 0)
       {
-         if(client)
+         if(e->getDetails()->hasMember("httpStatusCode"))
+         {
+            mResponse->getHeader()->setStatus(
+               e->getDetails()["httpStatusCode"]);
+         }
+         else if(client)
          {
             // set 400 Bad Request
             mResponse->getHeader()->setStatus(400, "Bad Request");
