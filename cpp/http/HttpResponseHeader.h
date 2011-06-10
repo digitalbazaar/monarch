@@ -78,12 +78,14 @@ public:
    virtual bool hasStartLine();
 
    /**
-    * Sets the HTTP status for the response.
+    * Sets the HTTP status for the response. If message is NULL the code is
+    * used to look up a default message with getDefaultStatusMessage().
     *
     * @param code the status code (i.e. "200", "404").
-    * @param message the status message (i.e. "OK", "Not Found").
+    * @param message the status message (i.e. "OK", "Not Found") or NULL to
+    *        look up the default for the given code.
     */
-   virtual void setStatus(int code, const char* message);
+   virtual void setStatus(int code, const char* message = NULL);
 
    /**
     * Clears the HTTP status for the response.
@@ -117,6 +119,16 @@ public:
     * @return the type of header this is.
     */
    virtual Type getType();
+
+   /**
+    * Return the default HTTP status message for known codes or NULL if not
+    * known.
+    *
+    * @param code the HTTP status code.
+    *
+    * @return a status message or NULL.
+    */
+   static const char* getDefaultStatusMessage(int code);
 };
 
 } // end namespace http
