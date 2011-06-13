@@ -119,7 +119,7 @@ Exception* Sqlite3Connection::createException()
    Exception* e = new Exception(
       sqlite3_errmsg(mHandle),
       "monarch.sql.sqlite3.Sqlite3");
-   e->getDetails()["code"] = sqlite3_errcode(mHandle);
+   e->getDetails()["sqliteErrorCode"] = sqlite3_errcode(mHandle);
    return e;
 }
 

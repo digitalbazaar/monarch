@@ -105,8 +105,8 @@ static Exception* _createException(::MYSQL* handle)
    Exception* e = new Exception(
       mysql_error(handle),
       "monarch.sql.mysql.MySql");
-   e->getDetails()["code"] = mysql_errno(handle);
-   e->getDetails()["sqlState"] = mysql_sqlstate(handle);
+   e->getDetails()["mysqlErrorCode"] = mysql_errno(handle);
+   e->getDetails()["mysqlSqlState"] = mysql_sqlstate(handle);
    return e;
 }
 

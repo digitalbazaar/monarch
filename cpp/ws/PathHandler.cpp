@@ -166,7 +166,7 @@ void PathHandler::handleChannelException(
          "An unspecified error occurred. "
          "No exception was set detailing the error.",
          "monarch.ws.WebServiceError");
-      e->getDetails()["code"] = 500;
+      e->getDetails()["httpStatusCode"] = 500;
       e->getDetails()["path"] = ch->getPath();
       monarch::rt::Exception::set(e);
    }

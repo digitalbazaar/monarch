@@ -473,8 +473,8 @@ Exception* MySqlStatement::createException()
    Exception* e = new Exception(
       mysql_stmt_error(mHandle),
       "monarch.sql.mysql.MySql");
-   e->getDetails()["code"] = mysql_stmt_errno(mHandle);
-   e->getDetails()["sqlState"] = mysql_stmt_sqlstate(mHandle);
+   e->getDetails()["mysqlErrorCode"] = mysql_stmt_errno(mHandle);
+   e->getDetails()["mysqlSqlState"] = mysql_stmt_sqlstate(mHandle);
    return e;
 }
 
