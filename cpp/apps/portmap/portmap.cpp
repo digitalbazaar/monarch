@@ -241,8 +241,7 @@ public:
    virtual void listPortMappings(Service& wipcs)
    {
       ControlPoint cp;
-      PortMapping pm;
-      pm->setType(Map);
+      PortMapping pm(Map);
       for(int i = 0; !pm.isNull(); ++i)
       {
          pm->clear();

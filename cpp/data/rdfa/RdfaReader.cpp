@@ -28,9 +28,9 @@ RdfaReader::RdfaReader() :
    mBaseUri(NULL),
    mRdfaCtx(NULL),
    mContext(NULL),
+   mAutoContext(Map),
    mUseAutoContext(true)
 {
-   mAutoContext->setType(Map);
 }
 
 static void _freeTriples(vector<rdftriple*>& triples)
@@ -164,8 +164,7 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
    char* predicate = NULL;
    char* object = NULL;
    size_t len;
-   DynamicObject subjects;
-   subjects->setType(Map);
+   DynamicObject subjects(Map);
    for(RdfaReader::TripleList::iterator ti = g->triples.begin();
        ti != g->triples.end(); ++ti)
    {
@@ -426,8 +425,7 @@ bool RdfaReader::finish()
    {
       if(ctx.isNull())
       {
-         ctx = DynamicObject();
-         ctx->setType(Map);
+         ctx = DynamicObject(Map);
       }
       ctx.merge(mAutoContext, false);
    }

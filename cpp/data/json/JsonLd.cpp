@@ -331,8 +331,7 @@ static DynamicObject _compact(
    else if(value->getType() == Array)
    {
       // recursively add compacted values to array
-      rval = DynamicObject();
-      rval->setType(Array);
+      rval = DynamicObject(Array);
       DynamicObjectIterator i = value.getIterator();
       while(!rval.isNull() && i->hasNext())
       {
@@ -364,8 +363,7 @@ static DynamicObject _compact(
       !value->hasMember("@iri"))
    {
       // recursively handle sub-properties that aren't a sub-context
-      rval = DynamicObject();
-      rval->setType(Map);
+      rval = DynamicObject(Map);
       DynamicObjectIterator i = value.getIterator();
       while(!rval.isNull() && i->hasNext())
       {
@@ -540,8 +538,7 @@ static DynamicObject _expand(
    else if(value->getType() == Array)
    {
       // recursively add expanded values to array
-      rval = DynamicObject();
-      rval->setType(Array);
+      rval = DynamicObject(Array);
       DynamicObjectIterator i = value.getIterator();
       while(!rval.isNull() && i->hasNext())
       {
@@ -571,8 +568,7 @@ static DynamicObject _expand(
          if(!ctx.isNull())
          {
             // recursively handle sub-properties that aren't a sub-context
-            rval = DynamicObject();
-            rval->setType(Map);
+            rval = DynamicObject(Map);
             DynamicObjectIterator i = value.getIterator();
             while(!rval.isNull() && i->hasNext())
             {
@@ -997,8 +993,7 @@ static bool _flatten(
          }
          else
          {
-            subject = DynamicObject();
-            subject->setType(Map);
+            subject = DynamicObject(Map);
             if(value->hasMember("@"))
             {
                // FIXME: "@" might be a graph literal (as {})
@@ -1172,10 +1167,8 @@ static void _collectSubjects(
 static void _nameBlankNodes(C14NState& state, DynamicObject& input)
 {
    // collect subjects and unnamed bnodes
-   DynamicObject subjects;
-   subjects->setType(Map);
-   DynamicObject bnodes;
-   bnodes->setType(Array);
+   DynamicObject subjects(Map);
+   DynamicObject bnodes(Array);
    _collectSubjects(input, subjects, bnodes);
 
    // uniquely name all unnamed bnodes
@@ -1252,8 +1245,7 @@ static void _renameBlankNode(
             }
             else
             {
-               tmp = DynamicObject();
-               tmp->setType(Array);
+               tmp = DynamicObject(Array);
             }
             DynamicObjectIterator i3 = tmp.getIterator();
             while(i3->hasNext())
@@ -1819,8 +1811,7 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
    DynamicObject& memo = state.memo;
    DynamicObject& subjects = state.subjects;
    DynamicObject& edges = state.edges;
-   DynamicObject bnodes;
-   bnodes->setType(Array);
+   DynamicObject bnodes(Array);
    DynamicObjectIterator i = input.getIterator();
    while(i->hasNext())
    {
@@ -2104,10 +2095,8 @@ DynamicObject JsonLd::mergeContexts(
    }
 
    // ensure there are no property duplicates in @coerce
-   DynamicObject unique;
-   unique->setType(Map);
-   DynamicObject dups;
-   dups->setType(Array);
+   DynamicObject unique(Map);
+   DynamicObject dups(Array);
    i = c1.getIterator();
    while(i->hasNext())
    {
