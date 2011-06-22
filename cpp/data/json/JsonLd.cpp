@@ -122,6 +122,7 @@ static string _compactIri(
       if(key[0] != '@')
       {
          // see if IRI begins with the next IRI from the context
+         const char* ctxIri = next;
          const char* ptr = strstr(iri, ctxIri);
          if(ptr != NULL && ptr == iri)
          {
@@ -634,7 +635,7 @@ static DynamicObject _expand(
          }
       }
 
-      // only expand subjects if rquested
+      // only expand subjects if requested
       if(!coerce.isNull() && (strcmp(property, "@") != 0 || expandSubjects))
       {
          // expand IRI
