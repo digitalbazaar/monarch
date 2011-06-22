@@ -721,7 +721,7 @@ static int _compare(DynamicObject v1, DynamicObject v2)
    }
 
    return rval;
-};
+}
 
 /**
  * Compares two values.
@@ -767,7 +767,7 @@ static int _compareObjectKeys(
       rval = 1;
    }
    return rval;
-};
+}
 
 /**
  * Compares two object values.
@@ -818,7 +818,7 @@ static int _compareObjects(DynamicObject& o1, DynamicObject& o2)
    }
 
    return rval;
-};
+}
 
 /**
  * Sort function for comparing two objects.
@@ -904,7 +904,7 @@ static int _compareBlankNodeObjects(DynamicObject& a, DynamicObject& b)
    }
 
    return rval;
-};
+}
 
 /**
  * Filter for duplicate IRIs.
@@ -915,7 +915,7 @@ struct FilterDuplicateIris : public DynamicObject::FilterFunctor
    FilterDuplicateIris(const char* iri)
    {
       this->iri = iri;
-   };
+   }
    bool operator()(const DynamicObject& d) const
    {
       return (d->getType() == Map && d->hasMember("@iri") && d["@iri"] == iri);
@@ -1089,20 +1089,20 @@ struct NameGenerator
       count(-1)
    {
       this->base = StringTools::format("_:%s", prefix);
-   };
+   }
    const char* next()
    {
       name = StringTools::format("%s%d", base.c_str(), ++count);
       return current();
-   };
+   }
    const char* current()
    {
       return name.c_str();
-   };
+   }
    bool inNamespace(const char* iri)
    {
       return strstr(iri, base.c_str()) == iri;
-   };
+   }
 };
 
 /**
@@ -1122,7 +1122,7 @@ struct C14NState
    {
       this->edges["refs"]->setType(Map);
       this->edges["props"]->setType(Map);
-   };
+   }
 };
 
 /**
@@ -1171,7 +1171,7 @@ static void _collectSubjects(
          _collectSubjects(i->next(), subjects, bnodes);
       }
    }
-};
+}
 
 /**
  * Assigns unique names to blank nodes that are unnamed in the given input.
@@ -1199,7 +1199,7 @@ static void _nameBlankNodes(C14NState& state, DynamicObject& input)
          subjects[state.ng.current()] = bnode;
       }
    }
-};
+}
 
 /**
  * Renames a blank node, changing its references, etc. The method assumes
@@ -1296,7 +1296,7 @@ static void _renameBlankNode(
 
    // update bnode IRI
    b["@"]["@iri"] = id;
-};
+}
 
 /**
  * Compares two edges. Edges with an IRI (vs. a bnode ID) come first, then
@@ -1318,7 +1318,8 @@ static int _compareEdges(C14NState& state, DynamicObject& a, DynamicObject& b)
    bool bnodeB = _isBlankNodeIri(b["s"]);
    DynamicObject& memo = state.memo;
 
-   if((bnodeA ^ bnodeB) == 1)
+   // logical XOR
+   if((bnodeA || bnodeB) && !(bnodeA && bnodeB))
    {
       rval = bnodeA ? 1 : -1;
    }
@@ -1341,7 +1342,7 @@ static int _compareEdges(C14NState& state, DynamicObject& a, DynamicObject& b)
    }
 
    return rval;
-};
+}
 
 /**
  * Comparator for comparing edges during sorting.
@@ -1352,11 +1353,11 @@ struct CompareEdges : public std::less<DynamicObject>
    CompareEdges(C14NState* state)
    {
       this->state = state;
-   };
+   }
    bool operator()(DynamicObject& a, DynamicObject& b)
    {
       return _compareEdges(*state, a, b) == -1;
-   };
+   }
 };
 
 // prototypes for recursively used functions
@@ -1416,7 +1417,7 @@ static void _deepNameBlankNode(C14NState& state, DynamicObject& b)
          }
       }
    }
-};
+}
 
 /**
  * Performs a shallow sort comparison on the given bnodes.
@@ -1484,7 +1485,7 @@ static int _shallowCompareBlankNodes(
    }
 
    return rval;
-};
+}
 
 /**
  * Compares two blank nodes for equivalence.
@@ -1501,10 +1502,15 @@ static int _deepCompareBlankNodes(
 {
    int rval = 0;
 
-   // use memoized comparison if available
+   // compare IRIs
    const char* iriA = a["@"]["@iri"];
    const char* iriB = b["@"]["@iri"];
-   if(state.memo[iriA]->hasMember(iriB))
+   if(strcmp(iriA, iriB) == 0)
+   {
+      rval = 0;
+   }
+   // use memoized comparison if available
+   else if(state.memo[iriA]->hasMember(iriB))
    {
       rval = state.memo[iriA][iriB];
    }
@@ -1540,7 +1546,7 @@ static int _deepCompareBlankNodes(
    }
 
    return rval;
-};
+}
 
 /**
  * Comparator for deeply-sorting blank nodes.
@@ -1553,11 +1559,11 @@ struct DeepCompareBlankNodes : public std::less<DynamicObject>
    {
       this->state = state;
       this->iso = iso;
-   };
+   }
    bool operator()(DynamicObject& a, DynamicObject& b)
    {
       return _deepCompareBlankNodes(*state, a, b, iso) == -1;
-   };
+   }
 };
 
 /**
@@ -1649,7 +1655,7 @@ static void _collectEdges(C14NState& state)
          next["bnodes"] = next["all"].filter(_filterBlankNodeEdge);
       }
    }
-};
+}
 
 /**
  * Compares the edges between two nodes for equivalence.
@@ -1749,7 +1755,7 @@ static int _deepCompareEdges(
    }
 
    return rval;
-};
+}
 
 /**
  * Returns the bnode properties for a particular bnode in sorted order.
@@ -1783,7 +1789,7 @@ static DynamicObject _getSortedAdjacents(
    DeepCompareBlankNodes sorter(&state, iso);
    rval.sort(sorter);
    return rval;
-};
+}
 
 /**
  * Compares bnodes along the same edge type to determine which is less.
@@ -1812,7 +1818,7 @@ static int _compareEdgeType(
    }
 
    return rval;
-};
+}
 
 /**
  * Canonically names blank nodes in the given input.
@@ -1904,7 +1910,7 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
          }
       }
    }
-};
+}
 
 /**
  * Compares two blank node via their canonicalized IRIs.
@@ -1919,7 +1925,7 @@ static bool _compareBlankNodeIris(DynamicObject a, DynamicObject b)
    return _compare(a["@"]["@iri"], b["@"]["@iri"]) == -1;
 }
 
-bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
+bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
 {
    bool rval = true;
 
@@ -1969,7 +1975,7 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
    return rval;
 }
 
-bool JsonLd::removeContext(DynamicObject& in, DynamicObject& out)
+bool JsonLd::removeContext(DynamicObject in, DynamicObject& out)
 {
    bool rval = true;
 
@@ -1988,7 +1994,7 @@ bool JsonLd::removeContext(DynamicObject& in, DynamicObject& out)
 }
 
 bool JsonLd::addContext(
-   DynamicObject& context, DynamicObject& in, DynamicObject& out)
+   DynamicObject context, DynamicObject in, DynamicObject& out)
 {
    bool rval = true;
 
@@ -2029,7 +2035,7 @@ bool JsonLd::addContext(
 }
 
 bool JsonLd::changeContext(
-   DynamicObject& context, DynamicObject& in, DynamicObject& out)
+   DynamicObject context, DynamicObject in, DynamicObject& out)
 {
    // remove context and then add new one
    DynamicObject tmp;
@@ -2155,4 +2161,316 @@ string JsonLd::expandTerm(DynamicObject ctx, const char* term)
 string JsonLd::compactIri(DynamicObject ctx, const char* iri)
 {
    return _compactIri(ctx, iri, NULL);
+}
+
+/**
+ * Returns true if the given input is a subject and has one of the given types
+ * in the given frame.
+ *
+ * @param input the input.
+ * @param frame the frame with types to look for.
+ *
+ * @return true if the input has one of the given types.
+ */
+static bool _isType(DynamicObject& input, DynamicObject& frame)
+{
+   bool rval = false;
+
+   // check if type(s) are specified in frame and input
+   if(frame->hasMember(RDF_TYPE) &&
+      input->getType() == Map &&
+      input->hasMember("@") && input->hasMember(RDF_TYPE))
+   {
+      // find a type from the frame in the input
+      DynamicObjectIterator i = frame[RDF_TYPE].getIterator();
+      while(!rval && i->hasNext())
+      {
+         DynamicObject& type = i->next()["@iri"];
+         DynamicObjectIterator ii = input[RDF_TYPE].getIterator();
+         while(!rval && ii->hasNext())
+         {
+            rval = (ii->next()["@iri"] == type);
+         }
+      }
+   }
+
+   return rval;
+}
+
+/**
+ * Returns true if the given input matches the given frame via duck-typing.
+ *
+ * @param input the input.
+ * @param frame the frame to check against.
+ *
+ * @return true if the input matches the frame.
+ */
+static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
+{
+   bool rval = false;
+
+   // frame must not have a specific type
+   if(!frame->hasMember(RDF_TYPE))
+   {
+      // get frame properties that must exist on input
+      DynamicObject props = frame.keys();
+      if(props->length() == 0)
+      {
+         // input always matches if there are no properties
+         rval = true;
+      }
+      // input must be a subject with all the given properties
+      else if(input->getType() == Map && input->hasMember("@"))
+      {
+         rval = true;
+         DynamicObjectIterator i = props.getIterator();
+         while(rval && i->hasNext())
+         {
+            rval = input->hasMember(i->next());
+         }
+      }
+   }
+
+   return rval;
+}
+
+/**
+ * Recursively frames the given input according to the given frame.
+ *
+ * @param subjects a map of subjects in the graph.
+ * @param in the input to frame.
+ * @param frame the frame to use.
+ * @param embeds a map of previously embedded subjects, used to prevent cycles.
+ * @param options the framing options.
+ * @param out the output.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+static bool _frame(
+   DynamicObject& subjects, DynamicObject in,
+   DynamicObject& frame, DynamicObject embeds,
+   DynamicObject& options, DynamicObject& out)
+{
+   bool rval = true;
+
+   // clear output
+   out.setNull();
+
+   // prepare output, set limit, get array of frames
+   int limit = -1;
+   DynamicObject frames(NULL);
+   if(frame->getType() == Array)
+   {
+      out = DynamicObject(Array);
+      frames = frame;
+   }
+   else
+   {
+      frames = DynamicObject(Array);
+      frames.push(frame);
+      limit = 1;
+   }
+
+   // iterate over frames adding input matches to list
+   DynamicObject values(Array);
+   for(int i = 0; i < frames->length() && limit != 0; ++i)
+   {
+      // create array of values for each frame
+      frame = frames[i];
+      values[i]->setType(Array);
+      for(int n = 0; n < in->length() && limit != 0; ++n)
+      {
+         // add input to list if it matches frame specific type or duck-type
+         if(_isType(in[n], frame) || _isDuckType(in[n], frame))
+         {
+            values[i].push(in[n]);
+            --limit;
+         }
+      }
+   }
+
+   // for each matching value, add it to the output
+   DynamicObjectIterator i = values.getIterator();
+   while(rval && i->hasNext())
+   {
+      DynamicObjectIterator ii = i->next().getIterator();
+      while(rval && ii->hasNext())
+      {
+         DynamicObject value = ii->next();
+         frame = frames[i->getIndex()];
+
+         // determine if value should be embedded or referenced
+         bool embedOn = frame->hasMember("@embed") ?
+            frame["@embed"] : options["defaults"]["embedOn"];
+         if(!embedOn)
+         {
+            // if value is a subject, only use subject IRI as reference
+            if(value->getType() == Map && value->hasMember("@"))
+            {
+               value = value["@"];
+            }
+         }
+         else if(
+            value->getType() == Map &&
+            value->hasMember("@") && embeds->hasMember(value["@"]["@iri"]))
+         {
+            // TODO: possibly support multiple embeds in the future ... and
+            // instead only prevent cycles?
+            ExceptionRef e = new Exception(
+               "Multiple embeds of the same subject is not supported.",
+               EXCEPTION_TYPE ".TooManyEmbedsError");
+            e->getDetails()["subject"] = value["@"]["@iri"].clone();
+            Exception::set(e);
+            rval = false;
+         }
+         // if value is a subject, do embedding and subframing
+         else if(value->getType() == Map && value->hasMember("@"))
+         {
+            embeds[value["@"]["@iri"]->getString()] = true;
+
+            // if explicit is on, remove keys from value that aren't in frame
+            bool explicitOn = frame->hasMember("@explicit") ?
+               frame["@explicit"] : options["defaults"]["explicitOn"];
+            if(explicitOn)
+            {
+               DynamicObjectIterator vi = value.getIterator();
+               while(vi->hasNext())
+               {
+                  vi->next();
+                  const char* key = vi->getName();
+
+                  // always include subject
+                  if(strcmp(key, "@") != 0 && !frame->hasMember(key))
+                  {
+                     vi->remove();
+                  }
+               }
+            }
+
+            // iterate over frame keys to do subframing
+            DynamicObjectIterator fi = frame.getIterator();
+            while(rval && fi->hasNext())
+            {
+               DynamicObject& f = fi->next();
+               const char* key = fi->getName();
+
+               // skip keywords and type query
+               if(key[0] != '@' && strcmp(key, RDF_TYPE) != 0)
+               {
+                  if(value->hasMember(key))
+                  {
+                     // build input
+                     if(value[key]->getType() == Array)
+                     {
+                        in = value[key];
+                     }
+                     else
+                     {
+                        in = DynamicObject(Array);
+                        in.push(value[key]);
+                     }
+                     DynamicObjectIterator itr = in.getIterator();
+                     while(itr->hasNext())
+                     {
+                        // replace reference to subject w/subject
+                        DynamicObject& next = itr->next();
+                        if(next->getType() == Map &&
+                           next->hasMember("@iri") &&
+                           subjects->hasMember(next["@iri"]))
+                        {
+                           in[itr->getIndex()] =
+                              subjects[next["@iri"]->getString()];
+                        }
+                     }
+
+                     // recurse
+                     rval = _frame(
+                        subjects, in, f, embeds, options, value[key]);
+                  }
+                  else
+                  {
+                     // add null property to value
+                     value[key].setNull();
+                  }
+               }
+            }
+         }
+
+         if(rval)
+         {
+            // add value to output
+            if(out.isNull())
+            {
+               out = value;
+            }
+            else
+            {
+               out.push(value);
+            }
+         }
+      }
+   }
+
+   return rval;
+}
+
+bool JsonLd::frame(
+   DynamicObject in, DynamicObject frame, DynamicObject& out,
+   DynamicObject* options)
+{
+   bool rval = true;
+
+   // save frame context
+   DynamicObject ctx(NULL);
+   if(frame->hasMember("@context"))
+   {
+      ctx = JsonLd::mergeContexts(_createDefaultContext(), frame["@context"]);
+      rval = !ctx.isNull();
+   }
+
+   // remove context from frame and normalize input
+   DynamicObject _f;
+   DynamicObject _in;
+   rval = rval &&
+      JsonLd::removeContext(frame, _f) &&
+      JsonLd::normalize(in, _in);
+   if(rval)
+   {
+      // create framing options
+      DynamicObject opts(Map);
+      opts["defaults"]["embedOn"] = true;
+      opts["defaults"]["explicitOn"] = false;
+      if(options != NULL && (*options)->hasMember("defaults"))
+      {
+         DynamicObject& defaults = (*options)["defaults"];
+         if(defaults->hasMember("embedOn"))
+         {
+            opts["defaults"]["embedOn"] = defaults["embedOn"];
+         }
+         if(defaults->hasMember("explicitOn"))
+         {
+            opts["defaults"]["explicitOn"] = defaults["explicitOn"];
+         }
+      };
+
+      // build map of all subjects
+      DynamicObject subjects(Map);
+      DynamicObjectIterator i = _in.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         subjects[next["@"]["@iri"]->getString()] = next;
+      }
+
+      // frame input
+      rval = _frame(subjects, _in, _f, DynamicObject(Map), opts, out);
+
+      // apply context
+      if(rval && !ctx.isNull() && !out.isNull())
+      {
+         rval = JsonLd::addContext(ctx, out, out);
+      }
+   }
+
+   return rval;
 }

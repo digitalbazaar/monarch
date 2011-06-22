@@ -43,7 +43,7 @@ public:
     * @return true on success, false on failure with exception set.
     */
    static bool normalize(
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
 
    /**
     * Removes the context from a JSON-LD object.
@@ -54,7 +54,7 @@ public:
     * @return true on success, false on failure with exception set.
     */
    static bool removeContext(
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
 
    /**
     * Adds the given context to the given context-neutral JSON-LD object.
@@ -64,8 +64,8 @@ public:
     * @param out to be set to the JSON-LD object with the new context.
     */
    static bool addContext(
-      monarch::rt::DynamicObject& context,
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject context,
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
 
    /**
     * Changes the context of JSON-LD object "in" to "context", placing the
@@ -78,8 +78,8 @@ public:
     * @return true on success, false on failure with exception set.
     */
    static bool changeContext(
-      monarch::rt::DynamicObject& context,
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject context,
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
 
    /**
     * Merges one context with another.
@@ -118,6 +118,21 @@ public:
     */
    static std::string compactIri(
       monarch::rt::DynamicObject ctx, const char* iri);
+
+   /**
+    * Frames JSON-LD input.
+    *
+    * @param in the JSON-LD input.
+    * @param frame the frame to use.
+    * @param out the output framed JSON-LD object.
+    * @param options framing options to use, NULL for defaults.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   static bool frame(
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject frame,
+      monarch::rt::DynamicObject& out,
+      monarch::rt::DynamicObject* options = NULL);
 };
 
 } // end namespace json
