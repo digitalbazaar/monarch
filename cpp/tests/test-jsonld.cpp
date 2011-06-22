@@ -55,6 +55,7 @@ static void runJsonLdTest(TestRunner& tr)
          JsonLd::normalize(in, out));
 
       DynamicObject expect;
+      expect[0]["@"]["@iri"] = "_:c14n0";
       expect[0]["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"]["@iri"] =
          "http://example.org/vocab#Foo";
       assertNamedDynoCmp("expect", expect, "out", out);
@@ -77,6 +78,7 @@ static void runJsonLdTest(TestRunner& tr)
          JsonLd::normalize(in, out));
 
       DynamicObject expect;
+      expect[0]["@"]["@iri"] = "_:c14n0";
       expect[0]["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"]["@iri"] =
          "http://example.org/vocab#Foo";
       expect[0]["http://example.org/vocab#embed"]["@iri"] =
@@ -103,12 +105,13 @@ static void runJsonLdTest(TestRunner& tr)
          JsonLd::normalize(in, out));
 
       DynamicObject expect;
-      expect[0]["@"]["@iri"] = "http://example.org/test#example";
+      expect[0]["@"]["@iri"] = "_:c14n0";
       expect[0]["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"]["@iri"] =
-         "http://example.org/vocab#Foo";
-      expect[0]["http://example.org/vocab#embed"]
-         ["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"]["@iri"] =
             "http://example.org/vocab#Bar";
+      expect[1]["@"]["@iri"] = "http://example.org/test#example";
+      expect[1]["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"]["@iri"] =
+         "http://example.org/vocab#Foo";
+      expect[1]["http://example.org/vocab#embed"]["@iri"] = "_:c14n0";
       assertNamedDynoCmp("expect", expect, "out", out);
 
       MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
@@ -116,21 +119,6 @@ static void runJsonLdTest(TestRunner& tr)
          JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
-
-   tr.test("normalize (named bnode embed failure)");
-   {
-      DynamicObject in;
-      in["@context"]["ex"] = "http://example.org/vocab#";
-      in["@"] = "http://example.org/test#example";
-      in["ex:embed"]["@"] = "_:bnode1";
-      in["ex:embed"]["ex:foo"] = "bar";
-
-      DynamicObject out;
-      JsonLd::normalize(in, out);
-   }
-   tr.passIfException();
-
-   // FIMXE: add test for bnode diamond structure fails
 
    tr.test("normalize (multiple rdf types)");
    {

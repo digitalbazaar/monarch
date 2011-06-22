@@ -573,7 +573,7 @@ static DynamicObject _expand(
             while(!rval.isNull() && i->hasNext())
             {
                DynamicObject obj = i->next();
-               if(i->getName()[0] != '@')
+               if(i->getName()[0] != '@' || i->getName()[1] == 0)
                {
                   // expand property
                   string p = _expandTerm(ctx, i->getName(), NULL);
@@ -641,10 +641,17 @@ static DynamicObject _expand(
          // other datatype
          else
          {
-            // do special JSON-LD double format
-            rval["@literal"] = StringTools::format(
-               "%1.6e", value->getDouble()).c_str();
             rval["@datatype"] = coerce;
+            if(coerce == XSD_DOUBLE)
+            {
+               // do special JSON-LD double format
+               rval["@literal"] = StringTools::format(
+                  "%1.6e", value->getDouble()).c_str();
+            }
+            else
+            {
+               rval["@literal"] = value->getString();
+            }
          }
       }
       // nothing to coerce
@@ -1066,7 +1073,6 @@ static bool _flatten(
    return rval;
 }
 
-
 /**
  * A blank node name generator using the given prefix for the blank nodes.
  *
@@ -1079,7 +1085,8 @@ struct NameGenerator
    int count;
    string base;
    string name;
-   NameGenerator(const char* prefix)
+   NameGenerator(const char* prefix) :
+      count(-1)
    {
       this->base = StringTools::format("_:%s", prefix);
    };
@@ -1138,10 +1145,18 @@ static void _collectSubjects(
    }
    else if(input->getType() == Map)
    {
-      // named subject
       if(input->hasMember("@"))
       {
-         subjects[input["@"]["@iri"]->getString()] = input;
+         // graph literal
+         if(input["@"]->getType() == Array)
+         {
+            _collectSubjects(input["@"], subjects, bnodes);
+         }
+         // named subject
+         else
+         {
+            subjects[input["@"]["@iri"]->getString()] = input;
+         }
       }
       // unnamed blank node
       else if(_isBlankNode(input))
@@ -1629,7 +1644,7 @@ static void _collectEdges(C14NState& state)
       DynamicObjectIterator ii = i->next().getIterator();
       while(ii->hasNext())
       {
-         DynamicObject& next = i->next();
+         DynamicObject& next = ii->next();
          next["all"].sort(sorter);
          next["bnodes"] = next["all"].filter(_filterBlankNodeEdge);
       }
@@ -1933,7 +1948,6 @@ bool JsonLd::normalize(DynamicObject& in, DynamicObject& out)
          // flatten
          DynamicObject subjects(Map);
          rval = _flatten(NULL, NULL, expanded, subjects);
-
          if(rval)
          {
             // append unique subjects to array
