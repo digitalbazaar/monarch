@@ -34,6 +34,19 @@ public:
    typedef bool (*CompareLessDyno)(DynamicObject, DynamicObject);
 
    /**
+    * Function for filter.
+    */
+   typedef bool (*FilterDyno)(DynamicObject&);
+
+   /**
+    * Struct for filter.
+    */
+   struct FilterFunctor
+   {
+      virtual bool operator()(const DynamicObject& d) const = 0;
+   };
+
+   /**
     * DynamicObject differencing flags.
     */
    enum
@@ -65,6 +78,14 @@ public:
     * Creates a new DynamicObject with a new, empty DynamicObjectImpl.
     */
    DynamicObject();
+
+   /**
+    * Creates a new DynamicObject with a new, empty DynamicObjectImpl of a
+    * certain type.
+    *
+    * @param type the type to create.
+    */
+   DynamicObject(DynamicObjectType type);
 
    /**
     * Creates a DynamicObject that will reference count and then destroy
@@ -573,14 +594,41 @@ public:
    virtual DynamicObject last() const;
 
    /**
+    * Gets the keys of this DynamicObject, if it is a map, in an array.
+    *
+    * @retuen the keys of the DynamicObject in an array.
+    */
+   virtual DynamicObject keys();
+
+   /**
+    * Gets the values of this DynamicObject, if it is a map, in an array.
+    *
+    * @retuen the values of the DynamicObject in an array.
+    */
+   virtual DynamicObject values();
+
+   /**
     * Sorts this DynamicObject if it is an array.
     *
-    * @param less a function or an object with a function that compares two
+    * @param func a function or an object with a function that compares two
     *           DynamicObjects and returns true if the first is less than
     *           the second, false otherwise.
+    *
+    * @return the sorted array.
     */
-   virtual void sort(DynamicObject::CompareLessDyno func = NULL);
-   virtual void sort(std::less<DynamicObject>& obj);
+   virtual DynamicObject& sort(DynamicObject::CompareLessDyno func = NULL);
+   virtual DynamicObject& sort(std::less<DynamicObject>& func);
+
+   /**
+    * Filters elements from this DynamicObject, if it is an array, into
+    * another array.
+    *
+    * @param func a function or an object with a function that takes a
+    *           DynamicObject and returns true if the DynamicObject should
+    *           be included in the result.
+    */
+   virtual DynamicObject filter(DynamicObject::FilterDyno func);
+   virtual DynamicObject filter(DynamicObject::FilterFunctor& func);
 
    /**
     * Clones this DynamicObject and returns it.

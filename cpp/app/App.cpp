@@ -122,8 +122,7 @@ bool App::didLoadConfigs()
 
 DynamicObject App::getWaitEvents()
 {
-   DynamicObject rval;
-   rval->setType(Array);
+   DynamicObject rval(Array);
    return rval;
 }
 

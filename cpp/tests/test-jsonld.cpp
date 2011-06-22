@@ -609,6 +609,10 @@ static void runJsonLdTest(TestRunner& tr)
       expect["http://purl.org/dc/elements/1.1/title"] = "Title";
 
       assertNamedDynoCmp("expect", expect, "result", out);
+
+      MO_DEBUG("\nINPUT: %s\nOUTPUT: %s",
+         JsonWriter::writeToString(in).c_str(),
+         JsonWriter::writeToString(out).c_str());
    }
    tr.passIfNoException();
 
@@ -899,6 +903,7 @@ static void runJsonLdTest(TestRunner& tr)
       DynamicObject& d = reframeData["library"];
       d["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
       d["@context"]["ex"] = "http://example.org/vocab#";
+      d["@context"]["@coerce"]["xsd:anyURI"] = "ex:contains";
       d["@"][0]["@"] = "http://example.org/test#library";
       d["@"][0]["a"] = "ex:Library";
       d["@"][0]["ex:contains"] = "http://example.org/test#book";
@@ -913,8 +918,11 @@ static void runJsonLdTest(TestRunner& tr)
       d["@"][2]["dc:title"] = "Chapter One";
 
       DynamicObject& e = reframeExpect["library"];
+      e["@context"]["a"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
       e["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
       e["@context"]["ex"] = "http://example.org/vocab#";
+      e["@context"]["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+      e["@context"]["@coerce"]["xsd:anyURI"] = "ex:contains";
       e["@"] = "http://example.org/test#library";
       e["a"] = "ex:Library";
       e["ex:contains"]["@"] = "http://example.org/test#book";

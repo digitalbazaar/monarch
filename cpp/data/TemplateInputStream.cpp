@@ -3080,7 +3080,8 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             data->start = params["start"]["value"];
             data->until = params["until"]["value"];
             data->i = data->start;
-            data->step = params->hasMember("step") ? values["step"] : 1;
+            data->step = params->hasMember("step") ?
+               values["step"]->getInt32() : 1;
             if(params->hasMember("index"))
             {
                data->index = params["index"]->getString();

@@ -16,6 +16,12 @@ DynamicObject::DynamicObject() :
 {
 }
 
+DynamicObject::DynamicObject(DynamicObjectType type) :
+   Collectable<DynamicObjectImpl>(new DynamicObjectImpl())
+{
+   (*this)->setType(type);
+}
+
 DynamicObject::DynamicObject(DynamicObjectImpl* impl) :
    Collectable<DynamicObjectImpl>(impl)
 {
@@ -455,7 +461,36 @@ DynamicObject DynamicObject::last() const
    return rval;
 }
 
-void DynamicObject::sort(DynamicObject::CompareLessDyno func)
+DynamicObject DynamicObject::keys()
+{
+   DynamicObject rval(Array);
+   if((*this)->getType() == Map)
+   {
+      DynamicObjectIterator i = this->getIterator();
+      while(i->hasNext())
+      {
+         i->next();
+         rval->append(i->getName());
+      }
+   }
+   return rval;
+}
+
+DynamicObject DynamicObject::values()
+{
+   DynamicObject rval(Array);
+   if((*this)->getType() == Map)
+   {
+      DynamicObjectIterator i = this->getIterator();
+      while(i->hasNext())
+      {
+         rval->append(i->next());
+      }
+   }
+   return rval;
+}
+
+DynamicObject& DynamicObject::sort(DynamicObject::CompareLessDyno func)
 {
    if((*this)->getType() == Array)
    {
@@ -470,14 +505,52 @@ void DynamicObject::sort(DynamicObject::CompareLessDyno func)
          std::sort((*this)->mArray->begin(), (*this)->mArray->end(), func);
       }
    }
+   return *this;
 }
 
-void DynamicObject::sort(std::less<DynamicObject>& obj)
+DynamicObject& DynamicObject::sort(std::less<DynamicObject>& func)
 {
    if((*this)->getType() == Array)
    {
-      std::sort((*this)->mArray->begin(), (*this)->mArray->end(), obj);
+      std::sort((*this)->mArray->begin(), (*this)->mArray->end(), func);
    }
+   return *this;
+}
+
+DynamicObject DynamicObject::filter(DynamicObject::FilterDyno func)
+{
+   DynamicObject rval(Array);
+   if((*this)->getType() == Array)
+   {
+      DynamicObjectIterator i = this->getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         if(func(next))
+         {
+            rval->append(next);
+         }
+      }
+   }
+   return rval;
+}
+
+DynamicObject DynamicObject::filter(DynamicObject::FilterFunctor& func)
+{
+   DynamicObject rval(Array);
+   if((*this)->getType() == Array)
+   {
+      DynamicObjectIterator i = this->getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         if(func(next))
+         {
+            rval->append(next);
+         }
+      }
+   }
+   return rval;
 }
 
 DynamicObject DynamicObject::clone()
@@ -486,9 +559,8 @@ DynamicObject DynamicObject::clone()
 
    if(!isNull())
    {
-      rval = DynamicObject();
       DynamicObjectType type = (*this)->getType();
-      rval->setType(type);
+      rval = DynamicObject(type);
       int index = 0;
       DynamicObjectIterator i = getIterator();
       while(i->hasNext())
@@ -564,8 +636,7 @@ static bool _getMapDiff(
    bool rval = false;
 
    // keep track of keys we've checked
-   DynamicObject checked;
-   checked->setType(Map);
+   DynamicObject checked(Map);
 
    // Check all the source keys
    DynamicObjectIterator i = source.getIterator();
