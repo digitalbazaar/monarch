@@ -1210,41 +1210,41 @@ static void _nameBlankNodes(C14NState& state, DynamicObject& input)
  * @param id the new name to use.
  */
 static void _renameBlankNode(
-   C14NState& state, DynamicObject& b, const char* id)
+   C14NState& state, DynamicObject b, string id)
 {
    const char* old = b["@"]["@iri"];
 
    // update subjects map
    DynamicObject& subjects = state.subjects;
-   subjects[id] = subjects[old];
+   subjects[id.c_str()] = subjects[old];
    subjects->removeMember(old);
 
    // update reference and property lists
    DynamicObject& edges = state.edges;
-   edges["refs"][id] = edges["refs"][old];
-   edges["props"][id] = edges["props"][old];
+   edges["refs"][id.c_str()] = edges["refs"][old];
+   edges["props"][id.c_str()] = edges["props"][old];
    edges["refs"]->removeMember(old);
    edges["props"]->removeMember(old);
 
    // update references to this bnode
-   DynamicObject& refs = edges["refs"][id]["all"];
+   DynamicObject refs = edges["refs"][id.c_str()]["all"];
    DynamicObjectIterator i1 = refs.getIterator();
    while(i1->hasNext())
    {
       const char* iri = i1->next()["s"];
       if(strcmp(iri, old) == 0)
       {
-         iri = id;
+         iri = id.c_str();
       }
       DynamicObject& ref = subjects[iri];
-      DynamicObject& props = state.edges["props"][iri]["all"];
+      DynamicObject& props = edges["props"][iri]["all"];
       DynamicObjectIterator i2 = props.getIterator();
       while(i2->hasNext())
       {
          DynamicObject& prop = i2->next();
          if(prop["s"] == old)
          {
-            prop["s"] = id;
+            prop["s"] = id.c_str();
 
             // normalize property to array for single code-path
             const char* p = prop["p"];
@@ -1269,7 +1269,7 @@ static void _renameBlankNode(
                if(next->getType() == Map &&
                   next->hasMember("@iri") && next["@iri"] == old)
                {
-                  next["@iri"] = id;
+                  next["@iri"] = id.c_str();
                }
             }
          }
@@ -1277,25 +1277,25 @@ static void _renameBlankNode(
    }
 
    // update references from this bnode
-   DynamicObject& props = state.edges["props"][id]["all"];
+   DynamicObject props = edges["props"][id.c_str()]["all"];
    DynamicObjectIterator i = props.getIterator();
    while(i->hasNext())
    {
       DynamicObject& p = i->next();
       const char* iri = p["s"];
-      DynamicObjectIterator ri = state.edges["refs"][iri]["all"].getIterator();
+      DynamicObjectIterator ri = edges["refs"][iri]["all"].getIterator();
       while(ri->hasNext())
       {
          DynamicObject& ref = ri->next();
          if(ref["s"] == old)
          {
-            ref["s"] = id;
+            ref["s"] = id.c_str();
          }
       }
    }
 
    // update bnode IRI
-   b["@"]["@iri"] = id;
+   b["@"]["@iri"] = id.c_str();
 }
 
 /**
@@ -1376,11 +1376,11 @@ static int _deepCompareEdges(
  * @param state the canonicalization state.
  * @param b the bnode to name.
  */
-static void _deepNameBlankNode(C14NState& state, DynamicObject& b)
+static void _deepNameBlankNode(C14NState& state, DynamicObject b)
 {
    // rename bnode (if not already renamed)
-   const char* iri = b["@"]["@iri"];
-   if(!state.ng.inNamespace(iri))
+   string iri = b["@"]["@iri"]->getString();
+   if(!state.ng.inNamespace(iri.c_str()))
    {
       _renameBlankNode(state, b, state.ng.next());
       iri = state.ng.current();
@@ -1392,7 +1392,7 @@ static void _deepNameBlankNode(C14NState& state, DynamicObject& b)
       CompareEdges sorter(&state);
 
       // rename bnode properties
-      DynamicObject& props = state.edges["props"][iri]["bnodes"];
+      DynamicObject props = state.edges["props"][iri.c_str()]["bnodes"];
       props.sort(sorter);
       DynamicObjectIterator i = props.getIterator();
       while(i->hasNext())
@@ -1405,7 +1405,7 @@ static void _deepNameBlankNode(C14NState& state, DynamicObject& b)
       }
 
       // rename bnode references
-      DynamicObject& refs = state.edges["refs"][iri]["bnodes"];
+      DynamicObject refs = state.edges["refs"][iri.c_str()]["bnodes"];
       refs.sort(sorter);
       i = refs.getIterator();
       while(i->hasNext())
