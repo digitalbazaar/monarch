@@ -1100,7 +1100,7 @@ DynamicObjectType DynamicObject::determineType(const char* str)
          char* end;
          errno = 0;
          double d = strtod(str, &end);
-         if((d != HUGE_VAL && d != -HUGE_VAL) || errno == 0)
+         if(end[0] == 0 && ((d != HUGE_VAL && d != -HUGE_VAL) || errno == 0))
          {
             // end is NULL, so we've got a double,
             // else we've assume a String
