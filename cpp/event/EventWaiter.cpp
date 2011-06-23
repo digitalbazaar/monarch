@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/event/EventWaiter.h"
 
@@ -11,10 +11,10 @@ using namespace std;
 using namespace monarch::event;
 using namespace monarch::rt;
 
-EventWaiter::EventWaiter(EventController* ec)
+EventWaiter::EventWaiter(EventController* ec) :
+   mEventController(ec),
+   mEventTypes(Array)
 {
-   mEventController = ec;
-   mEventTypes->setType(Array);
    reset();
 }
 

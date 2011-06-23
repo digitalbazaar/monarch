@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SslContext.h"
 
@@ -396,9 +396,8 @@ bool SslContext::setVerifyCAs(File* caFile, File* caDir)
 
 DynamicObject SslContext::getSslErrorStrings()
 {
-   DynamicObject rval;
+   DynamicObject rval(Array);
 
-   rval->setType(Array);
    long err;
    while((err = ERR_get_error()) != 0)
    {

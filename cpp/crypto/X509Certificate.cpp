@@ -104,8 +104,7 @@ DynamicObject X509Certificate::getIssuer()
 
 DynamicObject X509Certificate::getExtensions()
 {
-   DynamicObject rval;
-   rval->setType(Array);
+   DynamicObject rval(Array);
 
    int count = X509_get_ext_count(mX509);
    for(int i = 0; i < count; ++i)
@@ -137,8 +136,7 @@ DynamicObject X509Certificate::getExtensions()
          }
 
          // get extension value stack
-         DynamicObject values;
-         values->setType(Array);
+         DynamicObject values(Array);
          STACK_OF(CONF_VALUE)* stack = method->i2v(
             const_cast<X509V3_EXT_METHOD*>(method), asn1Stack, NULL);
          for(int n = 0; n < sk_CONF_VALUE_num(stack); ++n)

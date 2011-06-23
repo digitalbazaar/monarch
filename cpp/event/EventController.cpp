@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/event/EventController.h"
 
@@ -11,14 +11,12 @@ using namespace monarch::rt;
 
 #define TOPLEVEL_ID 1
 
-EventController::EventController()
+EventController::EventController() :
+   mTypeMap(Map),
+   mNextEventId(TOPLEVEL_ID + 1)
 {
-   // ensure event type map's type is set
-   mTypeMap->setType(Map);
-
-   // assign ID for wildcard top-level event, set next event ID
+   // assign ID for wildcard top-level event
    mTypeMap["*"] = TOPLEVEL_ID;
-   mNextEventId = TOPLEVEL_ID + 1;
 }
 
 EventController::~EventController()

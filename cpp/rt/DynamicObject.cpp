@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/rt/DynamicObject.h"
 
 #include "monarch/rt/DynamicObjectIterator.h"
@@ -8,6 +10,9 @@
 
 #include <cstdlib>
 #include <cctype>
+#include <errno.h>
+#include <limits.h>
+#include <math.h>
 
 using namespace monarch::rt;
 
@@ -1061,35 +1066,45 @@ DynamicObjectType DynamicObject::determineType(const char* str)
    // if string starts with whitespace, forget about it
    if(!isspace(str[0]))
    {
-      // see if the number is an unsigned int
-      // then check signed int
-      // then check doubles
-      char* end;
-      strtoull(str, &end, 10);
-      if(end[0] == 0 && str[0] != '-')
+      // if the string has no decimal point, it might be an integer
+      if(strchr(str, '.') == NULL)
       {
-         // if end is NULL (and not negative) then the whole string was an int
-         rval = UInt64;
-      }
-      else
-      {
-         // the number may be a signed int
-         strtoll(str, &end, 10);
-         if(end[0] == 0)
+         // see if the number is an unsigned int
+         // then check signed int
+         char* end;
+         errno = 0;
+         uint64_t ui64 = strtoull(str, &end, 10);
+         if(end[0] == 0 && str[0] != '-' && (ui64 != ULLONG_MAX || errno == 0))
          {
-            // if end is NULL then the whole string was an int
-            rval = Int64;
+            // if end is NULL (and not negative) then the whole string was
+            // an int
+            rval = UInt64;
          }
          else
          {
-            // the number may be a double
-            strtod(str, &end);
-            if(end[0] == 0)
+            // the number may be a signed int
+            errno = 0;
+            int64_t i64 = strtoll(str, &end, 10);
+            if(end[0] == 0 &&
+               ((i64 != LLONG_MAX && i64 != LLONG_MIN) || errno == 0))
             {
-               // end is NULL, so we've got a double,
-               // else we've assume a String
-               rval = Double;
+               // if end is NULL then the whole string was an int
+               rval = Int64;
             }
+         }
+      }
+
+      // integer not detected, check double
+      if(rval == String)
+      {
+         char* end;
+         errno = 0;
+         double d = strtod(str, &end);
+         if((d != HUGE_VAL && d != -HUGE_VAL) || errno == 0)
+         {
+            // end is NULL, so we've got a double,
+            // else we've assume a String
+            rval = Double;
          }
       }
    }

@@ -44,10 +44,10 @@ namespace v = monarch::validation;
 DatabaseClient::DatabaseClient() :
    mDebugLogging(false),
    mReadPool(NULL),
-   mWritePool(NULL)
+   mWritePool(NULL),
+   mSchemas(Map),
+   mOrMaps(Map)
 {
-   mSchemas->setType(Map);
-   mOrMaps->setType(Map);
 }
 
 DatabaseClient::~DatabaseClient()
@@ -543,8 +543,7 @@ SqlExecutableRef DatabaseClient::update(
       buildParams(schema, row, rval->params, table);
 
       // build WHERE parameters
-      DynamicObject whereParams;
-      whereParams->setType(Array);
+      DynamicObject whereParams(Array);
       if(where != NULL)
       {
          rval->whereFilter = *where;
@@ -597,10 +596,8 @@ SqlExecutableRef DatabaseClient::select(
       // create sql executable
       rval = new SqlExecutable();
       rval->write = false;
-      rval->columnSchemas = DynamicObject();
-      rval->columnSchemas->setType(Array);
-      rval->result = DynamicObject();
-      rval->result->setType(Array);
+      rval->columnSchemas = DynamicObject(Array);
+      rval->result = DynamicObject(Array);
 
       // determine table alias (ensure it isn't the same as the table name)
       const char* tableAlias =
@@ -874,10 +871,8 @@ void DatabaseClient::buildParams(
           * "p". Then a new parameter will be created for each entry in "p".
           */
          DynamicObject& mv = members[memberName];
-         DynamicObject p;
-         p->setType(Array);
-         DynamicObject values;
-         values->setType(Array);
+         DynamicObject p(Array);
+         DynamicObject values(Array);
 
          // group maps and values
          if(mv->getType() == Map)
@@ -1155,8 +1150,7 @@ static void _buildOrderParams(
    }
 
    // build map of names
-   DynamicObject names;
-   names->setType(Array);
+   DynamicObject names(Array);
    {
       DynamicObjectIterator i = order.getIterator();
       while(i->hasNext())
