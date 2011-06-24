@@ -79,7 +79,14 @@ bool RdfaReader::setFrame(DynamicObject& frame, DynamicObject* options)
    // FIXME: validate frame, etc.
 
    mDefaultGraph.frame = frame;
-   mDefaultGraph.frameOptions = options;
+   if(options == NULL)
+   {
+      mDefaultGraph.frameOptions.setNull();
+   }
+   else
+   {
+      mDefaultGraph.frameOptions = *options;
+   }
 
    return rval;
 }
@@ -208,21 +215,36 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
       the graph and each of those subjects has all of its predicates. Embedding
       specific objects in the target according to a frame is next, followed
       by adding the specific context. */
-   DynamicObject out;
-   if(rval && !g->frame.isNull())
+   if(rval)
    {
-      // merge frame context over given context
-      if(g->frame->hasMember("@context"))
+      DynamicObject out;
+      if(!g->frame.isNull())
       {
-         ctx = JsonLd::mergeContexts(ctx, g->frame["@context"]);
+         // merge frame context over given context
+         if(g->frame->hasMember("@context"))
+         {
+            ctx = JsonLd::mergeContexts(ctx, g->frame["@context"]);
+            rval = !ctx.isNull();
+         }
+         rval = rval &&
+            JsonLd::frame(subjects.values(), g->frame, out, &g->frameOptions) &&
+            JsonLd::changeContext(ctx, out, out);
+         if(rval && out.isNull())
+         {
+            out = DynamicObject(g->frame->getType());
+         }
       }
-      rval = JsonLd::frame(subjects.values(), g->frame, out, &g->frameOptions);
+      else
+      {
+         rval = JsonLd::addContext(ctx, subjects.values(), out);
+      }
+
+      if(rval)
+      {
+         // set target to output, preserving original dyno reference
+         *(g->target) = *out;
+      }
    }
-   else
-   {
-      out = subjects.values();
-   }
-   rval = rval && JsonLd::changeContext(ctx, out, g->target);
 
    return rval;
 }

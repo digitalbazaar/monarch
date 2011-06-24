@@ -475,41 +475,42 @@ static bool _compact(
  * @param ctx the context.
  * @param property the property that points to the value, NULL for none.
  * @param value the value to expand.
+ * @param out the expanded value.
  * @param expandSubjects true to expand subjects (normalize), false not to.
  *
- * @return the expanded value, NULL on error.
+ * @return true on success, false on failure with exception set.
  */
-static DynamicObject _expand(
+static bool _expand(
    DynamicObject ctx, const char* property, DynamicObject& value,
-   bool expandSubjects)
+   DynamicObject& out, bool expandSubjects)
 {
-   DynamicObject rval(NULL);
+   bool rval = true;
 
    // TODO: add data format error detection?
 
+   if(value.isNull())
+   {
+      out.setNull();
+   }
    // if no property is specified and the value is a string (this means the
    // value is a property itself), expand to an IRI
-   if(property == NULL && value->getType() == String)
+   else if(property == NULL && value->getType() == String)
    {
-      rval = DynamicObject();
-      rval = _expandTerm(ctx, value, NULL).c_str();
+      out = DynamicObject();
+      out = _expandTerm(ctx, value, NULL).c_str();
    }
    else if(value->getType() == Array)
    {
       // recursively add expanded values to array
-      rval = DynamicObject(Array);
+      out = DynamicObject(Array);
       DynamicObjectIterator i = value.getIterator();
-      while(!rval.isNull() && i->hasNext())
+      while(rval && i->hasNext())
       {
-         DynamicObject next = _expand(ctx, property, i->next(), expandSubjects);
-         if(next.isNull())
+         DynamicObject nextOut;
+         rval = _expand(ctx, property, i->next(), nextOut, expandSubjects);
+         if(rval)
          {
-            // error
-            rval.setNull();
-         }
-         else
-         {
-            rval->append(next);
+            out->append(nextOut);
          }
       }
    }
@@ -527,9 +528,9 @@ static DynamicObject _expand(
          if(!ctx.isNull())
          {
             // recursively handle sub-properties that aren't a sub-context
-            rval = DynamicObject(Map);
+            out = DynamicObject(Map);
             DynamicObjectIterator i = value.getIterator();
-            while(!rval.isNull() && i->hasNext())
+            while(rval && i->hasNext())
             {
                DynamicObject obj = i->next();
                if(i->getName()[0] != '@' || i->getName()[1] == 0)
@@ -538,22 +539,18 @@ static DynamicObject _expand(
                   string p = _expandTerm(ctx, i->getName(), NULL);
 
                   // expand object
-                  obj = _expand(ctx, p.c_str(), obj, expandSubjects);
-                  if(obj.isNull())
-                  {
-                     // error
-                     rval.setNull();
-                  }
-                  else
+                  DynamicObject objOut;
+                  rval = _expand(ctx, p.c_str(), obj, objOut, expandSubjects);
+                  if(rval)
                   {
                      // set object to expanded property
-                     _setProperty(rval, p.c_str(), obj);
+                     _setProperty(out, p.c_str(), objOut);
                   }
                }
                else if(strcmp(i->getName(), "@context") != 0)
                {
                   // preserve non-context json-ld keywords
-                  _setProperty(rval, i->getName(), obj.clone());
+                  _setProperty(out, i->getName(), obj.clone());
                }
             }
          }
@@ -561,12 +558,12 @@ static DynamicObject _expand(
       // value is already expanded
       else
       {
-         rval = value.clone();
+         out = value.clone();
       }
    }
    else
    {
-      rval = DynamicObject();
+      out = DynamicObject();
 
       // do type coercion
       DynamicObject coerce = _getCoerceType(ctx, property, NULL);
@@ -595,28 +592,28 @@ static DynamicObject _expand(
          // expand IRI
          if(coerce == XSD_ANY_URI)
          {
-            rval["@iri"] = _expandTerm(ctx, value, NULL).c_str();
+            out["@iri"] = _expandTerm(ctx, value, NULL).c_str();
          }
          // other datatype
          else
          {
-            rval["@datatype"] = coerce;
+            out["@datatype"] = coerce;
             if(coerce == XSD_DOUBLE)
             {
                // do special JSON-LD double format
-               rval["@literal"] = StringTools::format(
+               out["@literal"] = StringTools::format(
                   "%1.6e", value->getDouble()).c_str();
             }
             else
             {
-               rval["@literal"] = value->getString();
+               out["@literal"] = value->getString();
             }
          }
       }
       // nothing to coerce
       else
       {
-         rval = value->getString();
+         out = value->getString();
       }
    }
 
@@ -1932,8 +1929,8 @@ bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
       DynamicObject ctx = JsonLd::createDefaultContext();
 
       // expand input
-      DynamicObject expanded = _expand(ctx, NULL, in, true);
-      rval = !expanded.isNull();
+      DynamicObject expanded;
+      rval = _expand(ctx, NULL, in, expanded, true);
       if(rval)
       {
          // create canonicalization state
@@ -1977,8 +1974,7 @@ bool JsonLd::removeContext(DynamicObject in, DynamicObject& out)
    else
    {
       DynamicObject ctx = JsonLd::createDefaultContext();
-      out = _expand(ctx, NULL, in, false);
-      rval = !out.isNull();
+      rval = _expand(ctx, NULL, in, out, false);
    }
 
    return rval;
@@ -2221,6 +2217,18 @@ static bool _isType(DynamicObject& input, DynamicObject& frame)
 }
 
 /**
+ * Filters non-keyword properties.
+ *
+ * @param e the current array element.
+ *
+ * @return true if the element is a non-keyword.
+ */
+static bool _filterNonKeywords(DynamicObject& e)
+{
+   return (e->getString()[0] != '@');
+}
+
+/**
  * Returns true if the given input matches the given frame via duck-typing.
  *
  * @param input the input.
@@ -2236,7 +2244,7 @@ static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
    if(!frame->hasMember(RDF_TYPE))
    {
       // get frame properties that must exist on input
-      DynamicObject props = frame.keys();
+      DynamicObject props = frame.keys().filter(&_filterNonKeywords);
       if(props->length() == 0)
       {
          // input always matches if there are no properties
@@ -2286,6 +2294,12 @@ static bool _frame(
    {
       out = DynamicObject(Array);
       frames = frame;
+
+      // an empty array means accept all
+      if(frames->length() == 0)
+      {
+         frames.push(DynamicObject(Map));
+      }
    }
    else
    {
@@ -2296,18 +2310,30 @@ static bool _frame(
 
    // iterate over frames adding input matches to list
    DynamicObject values(Array);
-   for(int i = 0; i < frames->length() && limit != 0; ++i)
+   for(int i = 0; rval && i < frames->length() && limit != 0; ++i)
    {
-      // create array of values for each frame
+      // get next frame
       frame = frames[i];
-      values[i]->setType(Array);
-      for(int n = 0; n < in->length() && limit != 0; ++n)
+      if(frame->getType() != Map)
       {
-         // add input to list if it matches frame specific type or duck-type
-         if(_isType(in[n], frame) || _isDuckType(in[n], frame))
+         ExceptionRef e = new Exception(
+            "Invalid JSON-LD frame. Frame type is not a map or array.",
+            EXCEPTION_TYPE ".InvalidFrameFormat");
+         Exception::set(e);
+         rval = false;
+      }
+      else
+      {
+         // create array of values for each frame
+         values[i]->setType(Array);
+         for(int n = 0; n < in->length() && limit != 0; ++n)
          {
-            values[i].push(in[n]);
-            --limit;
+            // add input to list if it matches frame specific type or duck-type
+            if(_isType(in[n], frame) || _isDuckType(in[n], frame))
+            {
+               values[i].push(in[n]);
+               --limit;
+            }
          }
       }
    }
