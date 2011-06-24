@@ -314,36 +314,33 @@ static DynamicObject _getCoerceType(
  * @param ctx the context to use.
  * @param property the property that points to the value, NULL for none.
  * @param value the value to compact.
+ * @param out to store the compacted output.
  * @param usedCtx a context to update if a value was used from "ctx".
  *
- * @return the compacted value, NULL on error.
+ * @return true on success, false on failure with exception set.
  */
-static DynamicObject _compact(
+static bool _compact(
    DynamicObject ctx, const char* property, DynamicObject& value,
-   DynamicObject* usedCtx)
+   DynamicObject& out, DynamicObject* usedCtx)
 {
-   DynamicObject rval(NULL);
+   bool rval = true;
 
    if(value.isNull())
    {
-      rval.setNull();
+      out.setNull();
    }
    else if(value->getType() == Array)
    {
       // recursively add compacted values to array
-      rval = DynamicObject(Array);
+      out = DynamicObject(Array);
       DynamicObjectIterator i = value.getIterator();
-      while(!rval.isNull() && i->hasNext())
+      while(rval && i->hasNext())
       {
-         DynamicObject next = _compact(ctx, property, i->next(), usedCtx);
-         if(next.isNull())
+         DynamicObject nextOut(NULL);
+         rval = _compact(ctx, property, i->next(), nextOut, usedCtx);
+         if(rval)
          {
-            // error
-            rval.setNull();
-         }
-         else
-         {
-            rval->append(next);
+            out->append(nextOut);
          }
       }
    }
@@ -353,8 +350,8 @@ static DynamicObject _compact(
       value->hasMember("@") &&
       value["@"]->getType() == Array)
    {
-      rval = DynamicObject();
-      rval["@"] = _compact(ctx, property, value["@"], usedCtx);
+      out = DynamicObject(Map);
+      rval = _compact(ctx, property, value["@"], out["@"], usedCtx);
    }
    // value has sub-properties if it doesn't define a literal or IRI value
    else if(
@@ -363,25 +360,21 @@ static DynamicObject _compact(
       !value->hasMember("@iri"))
    {
       // recursively handle sub-properties that aren't a sub-context
-      rval = DynamicObject(Map);
+      out = DynamicObject(Map);
       DynamicObjectIterator i = value.getIterator();
-      while(!rval.isNull() && i->hasNext())
+      while(rval && i->hasNext())
       {
-         DynamicObject next = i->next();
+         DynamicObject& next = i->next();
          if(strcmp(i->getName(), "@context") != 0)
          {
-            next = _compact(ctx, i->getName(), next, usedCtx);
-            if(next.isNull())
-            {
-               // error
-               rval.setNull();
-            }
-            else
+            DynamicObject nextOut(NULL);
+            rval = _compact(ctx, i->getName(), next, nextOut, usedCtx);
+            if(rval)
             {
                // set object to compacted property
                _setProperty(
-                  rval, _compactIri(ctx, i->getName(), usedCtx).c_str(),
-                  next);
+                  out, _compactIri(ctx, i->getName(), usedCtx).c_str(),
+                  nextOut);
             }
          }
       }
@@ -442,6 +435,7 @@ static DynamicObject _compact(
                "information would be lost.",
                EXCEPTION_TYPE ".CoerceLanguageError");
             Exception::set(e);
+            rval = false;
          }
          // if the value type does not match the coerce type, it is an error
          else if(type != coerce)
@@ -450,58 +444,59 @@ static DynamicObject _compact(
                "Cannot coerce type because the datatype does not match.",
                EXCEPTION_TYPE ".InvalidCoerceType");
             Exception::set(e);
+            rval = false;
          }
          // do reverse type-coercion
          else
          {
-            rval = DynamicObject();
             if(value->getType() == Map)
             {
                if(value->hasMember("@iri"))
                {
-                  rval = value["@iri"]->getString();
+                  out = DynamicObject(String);
+                  out = value["@iri"]->getString();
                }
                else if(value->hasMember("@literal"))
                {
-                  rval = value["@literal"].clone();
+                  out = value["@literal"].clone();
                }
             }
             else
             {
-               rval = value.clone();
+               out = value.clone();
             }
 
             // do basic JSON types conversion
             if(coerce == XSD_BOOLEAN)
             {
-               rval->setType(Boolean);
+               out->setType(Boolean);
             }
             else if(coerce == XSD_DOUBLE)
             {
-               rval->setType(Double);
+               out->setType(Double);
             }
             else if(coerce == XSD_INTEGER)
             {
-               rval->setType(Int64);
+               out->setType(Int64);
             }
          }
       }
       // no type-coercion, just copy value
       else
       {
-         rval = value.clone();
+         out = value.clone();
       }
 
       // compact IRI
-      if(!rval.isNull() && type == XSD_ANY_URI)
+      if(rval && type == XSD_ANY_URI)
       {
-         if(rval->getType() == Map)
+         if(out->getType() == Map)
          {
-            rval["@iri"] = _compactIri(ctx, rval["@iri"], usedCtx).c_str();
+            out["@iri"] = _compactIri(ctx, out["@iri"], usedCtx).c_str();
          }
          else
          {
-            rval = _compactIri(ctx, rval, usedCtx).c_str();
+            out = _compactIri(ctx, out, usedCtx).c_str();
          }
       }
    }
@@ -880,11 +875,11 @@ static int _compareBlankNodeObjects(DynamicObject& a, DynamicObject& b)
          if(objsA->getType() != Array)
          {
             DynamicObject tmp = objsA;
-            objsA = DynamicObject();
+            objsA = DynamicObject(Array);
             objsA.push(tmp);
 
             tmp = objsB;
-            objsB = DynamicObject();
+            objsB = DynamicObject(Array);
             objsB.push(tmp);
          }
 
@@ -2004,14 +1999,14 @@ bool JsonLd::addContext(
    // entries that are not used in the output)
 
    DynamicObject ctx = JsonLd::mergeContexts(_createDefaultContext(), context);
-   if(!ctx.isNull())
+   rval = !ctx.isNull();
+   if(rval)
    {
       // setup output context
       DynamicObject ctxOut(Map);
 
       // compact
-      out = _compact(ctx, NULL, in, &ctxOut);
-      rval = !out.isNull();
+      rval = _compact(ctx, NULL, in, out, &ctxOut);
 
       // add context if used
       if(rval && ctxOut->length() > 0)
@@ -2183,12 +2178,36 @@ static bool _isType(DynamicObject& input, DynamicObject& frame)
       input->getType() == Map &&
       input->hasMember("@") && input->hasMember(RDF_TYPE))
    {
+      // normalize frame types to array for single code path
+      DynamicObject fTypes(NULL);
+      if(frame[RDF_TYPE]->getType() == Array)
+      {
+         fTypes = frame[RDF_TYPE];
+      }
+      else
+      {
+         fTypes = DynamicObject(Array);
+         fTypes.push(frame[RDF_TYPE]);
+      }
+
+      // normalize input types to array for single code path
+      DynamicObject iTypes(NULL);
+      if(input[RDF_TYPE]->getType() == Array)
+      {
+         iTypes = frame[RDF_TYPE];
+      }
+      else
+      {
+         iTypes = DynamicObject(Array);
+         iTypes.push(input[RDF_TYPE]);
+      }
+
       // find a type from the frame in the input
-      DynamicObjectIterator i = frame[RDF_TYPE].getIterator();
+      DynamicObjectIterator i = fTypes.getIterator();
       while(!rval && i->hasNext())
       {
          DynamicObject& type = i->next()["@iri"];
-         DynamicObjectIterator ii = input[RDF_TYPE].getIterator();
+         DynamicObjectIterator ii = iTypes.getIterator();
          while(!rval && ii->hasNext())
          {
             rval = (ii->next()["@iri"] == type);

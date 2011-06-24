@@ -12,7 +12,6 @@
 #include "monarch/test/Test.h"
 #include "monarch/test/TestModule.h"
 #include "monarch/data/json/JsonLd.h"
-#include "monarch/data/json/JsonLdFrame.h"
 #include "monarch/data/json/JsonReader.h"
 #include "monarch/data/json/JsonWriter.h"
 #include "monarch/logging/Logging.h"
@@ -124,10 +123,8 @@ static void _runJsonLdTestSuiteTest(
       _readFile(root, test["frame"], frame);
 
       // reframe
-      JsonLdFrame jf;
-      jf.setFrame(frame);
       assertNoException(
-         jf.reframe(input, output));
+         JsonLd::frame(input, frame, output));
    }
 
    assertNamedDynoCmp("expect", expect, "output", output);
