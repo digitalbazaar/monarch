@@ -1208,19 +1208,21 @@ static void _nameBlankNodes(C14NState& state, DynamicObject& input)
 static void _renameBlankNode(
    C14NState& state, DynamicObject b, string id)
 {
-   const char* old = b["@"]["@iri"];
+   // update bnode IRI
+   string old = b["@"]["@iri"]->getString();
+   b["@"]["@iri"] = id.c_str();
 
    // update subjects map
    DynamicObject& subjects = state.subjects;
-   subjects[id.c_str()] = subjects[old];
-   subjects->removeMember(old);
+   subjects[id.c_str()] = subjects[old.c_str()];
+   subjects->removeMember(old.c_str());
 
    // update reference and property lists
    DynamicObject& edges = state.edges;
-   edges["refs"][id.c_str()] = edges["refs"][old];
-   edges["props"][id.c_str()] = edges["props"][old];
-   edges["refs"]->removeMember(old);
-   edges["props"]->removeMember(old);
+   edges["refs"][id.c_str()] = edges["refs"][old.c_str()];
+   edges["props"][id.c_str()] = edges["props"][old.c_str()];
+   edges["refs"]->removeMember(old.c_str());
+   edges["props"]->removeMember(old.c_str());
 
    // update references to this bnode
    DynamicObject refs = edges["refs"][id.c_str()]["all"];
@@ -1228,7 +1230,7 @@ static void _renameBlankNode(
    while(i1->hasNext())
    {
       const char* iri = i1->next()["s"];
-      if(strcmp(iri, old) == 0)
+      if(strcmp(iri, old.c_str()) == 0)
       {
          iri = id.c_str();
       }
@@ -1238,7 +1240,7 @@ static void _renameBlankNode(
       while(i2->hasNext())
       {
          DynamicObject& prop = i2->next();
-         if(prop["s"] == old)
+         if(prop["s"] == old.c_str())
          {
             prop["s"] = id.c_str();
 
@@ -1263,7 +1265,7 @@ static void _renameBlankNode(
             {
                DynamicObject& next = i3->next();
                if(next->getType() == Map &&
-                  next->hasMember("@iri") && next["@iri"] == old)
+                  next->hasMember("@iri") && next["@iri"] == old.c_str())
                {
                   next["@iri"] = id.c_str();
                }
@@ -1283,15 +1285,12 @@ static void _renameBlankNode(
       while(ri->hasNext())
       {
          DynamicObject& ref = ri->next();
-         if(ref["s"] == old)
+         if(ref["s"] == old.c_str())
          {
             ref["s"] = id.c_str();
          }
       }
    }
-
-   // update bnode IRI
-   b["@"]["@iri"] = id.c_str();
 }
 
 /**
