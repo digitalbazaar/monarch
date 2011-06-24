@@ -688,9 +688,9 @@ inline static bool _isBlankNode(DynamicObject& v)
       (!v->hasMember("@") || _isNamedBlankNode(v)));
 }
 
-static bool _isBlankNodeObject(DynamicObject& v)
+static bool _isNonBlankNodeObject(DynamicObject& v)
 {
-   return (
+   return !(
       v->getType() == Map &&
       v->hasMember("@iri") &&
       _isBlankNodeIri(v["@iri"]));
@@ -861,9 +861,10 @@ static int _compareBlankNodeObjects(DynamicObject& a, DynamicObject& b)
    */
 
    DynamicObjectIterator i = a.getIterator();
-   while(i->hasNext() && rval == 0)
+   while(rval == 0 && i->hasNext())
    {
-      const char* p = i->next();
+      i->next();
+      const char* p = i->getName();
 
       // step #3.1
       int lenA = (a[p]->getType() == Array) ? a[p]->length() : 1;
@@ -888,8 +889,8 @@ static int _compareBlankNodeObjects(DynamicObject& a, DynamicObject& b)
          }
 
          // filter non-bnodes (remove bnodes from comparison)
-         objsA = objsA.filter(&_isBlankNodeObject);
-         objsB = objsB.filter(&_isBlankNodeObject);
+         objsA = objsA.filter(&_isNonBlankNodeObject);
+         objsB = objsB.filter(&_isNonBlankNodeObject);
          rval = _compare(objsA->length(), objsB->length());
 
          // steps #3.2.2-3.2.9
@@ -1347,14 +1348,14 @@ static int _compareEdges(C14NState& state, DynamicObject& a, DynamicObject& b)
 /**
  * Comparator for comparing edges during sorting.
  */
-struct CompareEdges : public std::less<DynamicObject>
+struct CompareEdges : public DynamicObject::SortFunctor
 {
    C14NState* state;
-   CompareEdges(C14NState* state)
+   CompareEdges(C14NState* state) :
+      state(state)
    {
-      this->state = state;
    }
-   bool operator()(DynamicObject& a, DynamicObject& b)
+   virtual bool operator()(DynamicObject& a, DynamicObject& b)
    {
       return _compareEdges(*state, a, b) == -1;
    }
@@ -1455,7 +1456,8 @@ static int _shallowCompareBlankNodes(
    // step #2
    if(rval == 0)
    {
-      rval = _compare(pA.sort(), pB.sort());
+      // C++ implementation auto-sorts property names, so no extra sort here
+      rval = _compare(pA, pB);
    }
 
    // step #3
@@ -1551,16 +1553,16 @@ static int _deepCompareBlankNodes(
 /**
  * Comparator for deeply-sorting blank nodes.
  */
-struct DeepCompareBlankNodes : public std::less<DynamicObject>
+struct DeepCompareBlankNodes : public DynamicObject::SortFunctor
 {
    C14NState* state;
    DynamicObject iso;
-   DeepCompareBlankNodes(C14NState* state, DynamicObject iso)
+   DeepCompareBlankNodes(C14NState* state, DynamicObject iso) :
+      state(state),
+      iso(iso)
    {
-      this->state = state;
-      this->iso = iso;
    }
-   bool operator()(DynamicObject& a, DynamicObject& b)
+   virtual bool operator()(DynamicObject& a, DynamicObject& b)
    {
       return _deepCompareBlankNodes(*state, a, b, iso) == -1;
    }
