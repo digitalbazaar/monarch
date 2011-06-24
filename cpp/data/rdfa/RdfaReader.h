@@ -5,7 +5,6 @@
 #define monarch_data_rdfa_RdfaReader_H
 
 #include "monarch/data/DynamicObjectReader.h"
-#include "monarch/data/json/JsonLdFrame.h"
 
 #include <rdfa.h>
 #include <map>
