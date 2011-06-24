@@ -34,7 +34,15 @@ public:
    typedef bool (*CompareLessDyno)(DynamicObject, DynamicObject);
 
    /**
-    * Function for filter.
+    * Functor for sort to allow non-const sort functors.
+    */
+   struct SortFunctor
+   {
+      virtual bool operator()(DynamicObject& a, DynamicObject& b) = 0;
+   };
+
+   /**
+    * Functor for filter.
     */
    typedef bool (*FilterDyno)(DynamicObject&);
 
@@ -617,7 +625,7 @@ public:
     * @return the sorted array.
     */
    virtual DynamicObject& sort(DynamicObject::CompareLessDyno func = NULL);
-   virtual DynamicObject& sort(std::less<DynamicObject>& func);
+   virtual DynamicObject& sort(DynamicObject::SortFunctor& func);
 
    /**
     * Filters elements from this DynamicObject, if it is an array, into

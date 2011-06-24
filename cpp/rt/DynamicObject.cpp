@@ -513,11 +513,30 @@ DynamicObject& DynamicObject::sort(DynamicObject::CompareLessDyno func)
    return *this;
 }
 
-DynamicObject& DynamicObject::sort(std::less<DynamicObject>& func)
+/**
+ * A simple structure used to wrap a DynamicObject::SortFunctor because
+ * the stl sort function will copy the SortFunctor and this behavior might
+ * not have been coded for w/copy constructors, etc.
+ */
+struct _SortDyno
+{
+   DynamicObject::SortFunctor& functor;
+   _SortDyno(DynamicObject::SortFunctor& f) :
+      functor(f) {}
+   bool operator()(const DynamicObject& a, const DynamicObject& b) const
+   {
+      return functor(
+         const_cast<DynamicObject&>(a),
+         const_cast<DynamicObject&>(b));
+   }
+};
+
+DynamicObject& DynamicObject::sort(DynamicObject::SortFunctor& func)
 {
    if((*this)->getType() == Array)
    {
-      std::sort((*this)->mArray->begin(), (*this)->mArray->end(), func);
+      std::sort(
+         (*this)->mArray->begin(), (*this)->mArray->end(), _SortDyno(func));
    }
    return *this;
 }
