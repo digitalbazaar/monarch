@@ -21,7 +21,6 @@ using namespace monarch::rt;
 using namespace monarch::util;
 
 #define RDFA_READER      "monarch.data.rdfa.RdfaReader"
-#define RDF_TYPE_SHORT   "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 
 RdfaReader::RdfaReader() :
    mStarted(false),
@@ -73,29 +72,24 @@ bool RdfaReader::setContext(DynamicObject& context, bool useAutoContext)
    return rval;
 }
 
-bool RdfaReader::setFrame(DynamicObject& frame, bool explicitOnly)
+bool RdfaReader::setFrame(DynamicObject& frame, DynamicObject* options)
 {
    bool rval = true;
 
    // FIXME: validate frame, etc.
 
-   mDefaultGraph.frame.setFrame(frame, explicitOnly);
+   mDefaultGraph.frame = frame;
+   mDefaultGraph.frameOptions = options;
 
    return rval;
 }
 
 static void _setPredicate(
-   DynamicObject& s, const char* predicate, const char* object)
+   DynamicObject& s, const char* predicate, DynamicObject& object)
 {
    if(s->hasMember(predicate))
    {
-      if(s[predicate]->getType() != Array)
-      {
-         DynamicObject tmp = s[predicate];
-         s[predicate] = DynamicObject();
-         s[predicate]->append(tmp);
-      }
-      s[predicate]->append(object);
+      s[predicate].push(object);
    }
    else
    {
@@ -143,15 +137,6 @@ static bool _sortTriples(rdftriple* t1, rdftriple* t2)
    return rval;
 }
 
-static char* _realloc(char** str, size_t len)
-{
-   if(*str == NULL || strlen(*str) < len)
-   {
-      *str = (char*)realloc(*str, len);
-   }
-   return *str;
-}
-
 static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
 {
    bool rval = true;
@@ -160,66 +145,61 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
    std::sort(g->triples.begin(), g->triples.end(), &_sortTriples);
 
    // create a mapping of subject to JSON-LD DynamicObject
-   char* subject = NULL;
-   char* predicate = NULL;
-   char* object = NULL;
-   size_t len;
    DynamicObject subjects(Map);
    for(RdfaReader::TripleList::iterator ti = g->triples.begin();
        ti != g->triples.end(); ++ti)
    {
       rdftriple* t = *ti;
 
-      // FIXME: add escaping for <,>,^ ... and anything else
-      // FIXME: what about language in plain literals?
-
       // JSON-LD encode subject
-      len = strlen(t->subject) + 3;
-      _realloc(&subject, len);
-      snprintf(subject, len, "<%s>", t->subject);
-
-      // JSON-LD encode predicate
-      len = strlen(t->predicate) + 3;
-      _realloc(&predicate, len);
-      snprintf(predicate, len, "<%s>", t->predicate);
+      DynamicObject subject(Map);
+      subject["@iri"] = t->subject;
 
       // JSON-LD encode object
-      len = strlen(t->object) + 1;
+      DynamicObject object(NULL);
       if(t->object_type == RDF_TYPE_IRI ||
          (t->object_type == RDF_TYPE_TYPED_LITERAL &&
             strcmp(
                t->datatype, "http://www.w3.org/2001/XMLSchema#anyURI") == 0))
       {
-         len += 2;
-         _realloc(&object, len);
-         snprintf(object, len, "<%s>", t->object);
+         object = DynamicObject(Map);
+         object["@iri"] = t->object;
       }
       else if(t->object_type == RDF_TYPE_TYPED_LITERAL)
       {
-         len += 4 + strlen(t->datatype);
-         _realloc(&object, len);
-         snprintf(object, len, "%s^^<%s>", t->object, t->datatype);
+         object = DynamicObject(Map);
+         object["@literal"] = t->object;
+         object["@datatype"] = t->datatype;
+         if(t->language != NULL && strlen(t->language) > 0)
+         {
+            object["@language"] = t->language;
+         }
       }
       else
       {
-         _realloc(&object, len);
-         strncpy(object, t->object, len);
-         object[len - 1] = 0;
+         if(t->language != NULL && strlen(t->language) > 0)
+         {
+            object = DynamicObject(Map);
+            object["@literal"] = t->object;
+            object["@language"] = t->language;
+         }
+         else
+         {
+            object = DynamicObject(String);
+            object = t->object;
+         }
       }
 
       // create/get the subject dyno
-      DynamicObject& s = subjects[subject];
+      DynamicObject& s = subjects[t->subject];
       if(!s->hasMember("@"))
       {
          s["@"] = subject;
       }
 
       // add the predicate and object to the subject dyno
-      _setPredicate(s, predicate, object);
+      _setPredicate(s, t->predicate, object);
    }
-   free(subject);
-   free(predicate);
-   free(object);
 
    // clear triples
    _freeTriples(g->triples);
@@ -228,10 +208,21 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
       the graph and each of those subjects has all of its predicates. Embedding
       specific objects in the target according to a frame is next, followed
       by adding the specific context. */
-   DynamicObject vanilla;
-   rval =
-      g->frame.frameSubjects(subjects, vanilla) &&
-      JsonLd::addContext(ctx, vanilla, g->target);
+   DynamicObject out;
+   if(rval && !g->frame.isNull())
+   {
+      // merge frame context over given context
+      if(g->frame->hasMember("@context"))
+      {
+         ctx = JsonLd::mergeContexts(ctx, g->frame["@context"]);
+      }
+      rval = JsonLd::frame(subjects.values(), g->frame, out, &g->frameOptions);
+   }
+   else
+   {
+      out = subjects.values();
+   }
+   rval = rval && JsonLd::changeContext(ctx, out, g->target);
 
    return rval;
 }
@@ -241,26 +232,38 @@ static DynamicObject _getExceptionGraph(
 {
    DynamicObject rval(NULL);
 
-   // clone contexts
-   DynamicObject ctx = context.clone();
-   DynamicObject ac = autoContext.clone();
+   // clone auto context
+   DynamicObject ctx = autoContext.clone();
 
    // merge user-set context over auto-context
-   if(!ctx.isNull())
+   if(!context.isNull())
    {
-      ac.merge(ctx, false);
+      ctx = JsonLd::mergeContexts(ctx, context.clone());
+      if(ctx.isNull())
+      {
+         // error in context merge, revert to using auto context
+         ctx = autoContext.clone();
+      }
    }
 
-   // save the old processor target
+   // save the old processor target and frame
    DynamicObject target = g->target;
+   DynamicObject frame = g->frame;
+
+   // use frame to embed error context in exception
+   g->frame = DynamicObject();
+   g->frame["@context"] = JsonLd::createDefaultContext();
+   g->frame["a"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
+   g->frame["http://www.w3.org/ns/rdfa_processing_graph#context"]->setType(Map);
 
    // finish processor graph
    g->target = DynamicObject();
-   _finishGraph(ac, g);
+   _finishGraph(ctx, g);
    rval = g->target;
 
-   // reset old target
+   // reset old target and frame
    g->target = target;
+   g->frame = frame;
 
    return rval;
 }
@@ -296,9 +299,6 @@ bool RdfaReader::start(DynamicObject& dyno)
       mAutoContext->clear();
       mDefaultGraph.target = dyno;
       mProcessorGraph.target = DynamicObject();
-
-      // "a" is automatically shorthand for rdf type
-      mAutoContext["a"] = RDF_TYPE_SHORT;
 
       // create and setup rdfa context
       mRdfaCtx = rdfa_create_context(mBaseUri);
@@ -427,23 +427,28 @@ bool RdfaReader::finish()
       {
          ctx = DynamicObject(Map);
       }
-      ctx.merge(mAutoContext, false);
+      ctx = JsonLd::mergeContexts(ctx, mAutoContext);
+      rval = !ctx.isNull();
    }
 
-   // finish graphs
-   _finishGraph(ctx, &mDefaultGraph);
-   _finishGraph(ctx, &mProcessorGraph);
+   if(rval)
+   {
+      // finish graphs
+      _finishGraph(ctx, &mDefaultGraph);
+      _finishGraph(ctx, &mProcessorGraph);
 
-   // clear parser
-   rdfa_free_context(mRdfaCtx);
-   mRdfaCtx = NULL;
+      // clear parser
+      rdfa_free_context(mRdfaCtx);
+      mRdfaCtx = NULL;
+   }
 
    return rval;
 }
 
 bool RdfaReader::readFromStream(
    DynamicObject& dyno, InputStream& is,
-   const char* baseUri, DynamicObject* context, DynamicObject* frame)
+   const char* baseUri, DynamicObject* context,
+   DynamicObject* frame, DynamicObject* options)
 {
    RdfaReader rr;
    rr.setBaseUri(baseUri);
@@ -453,17 +458,18 @@ bool RdfaReader::readFromStream(
    }
    return
       rr.start(dyno) &&
-      ((frame != NULL) ? rr.setFrame(*frame) : true) &&
+      ((frame != NULL) ? rr.setFrame(*frame, options) : true) &&
       rr.read(&is) &&
       rr.finish();
 }
 
 bool RdfaReader::readFromString(
    monarch::rt::DynamicObject& dyno, const char* s, size_t slen,
-   const char* baseUri, DynamicObject* context, DynamicObject* frame)
+   const char* baseUri, DynamicObject* context,
+   DynamicObject* frame, DynamicObject* options)
 {
    ByteArrayInputStream is(s, slen);
-   return readFromStream(dyno, is, baseUri, context, frame);
+   return readFromStream(dyno, is, baseUri, context, frame, options);
 }
 
 void RdfaReader::processDefaultTriple(rdftriple* triple)

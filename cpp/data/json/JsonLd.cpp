@@ -36,42 +36,6 @@ JsonLd::~JsonLd()
 }
 
 /**
- * Creates the JSON-LD default context.
- *
- * @return the JSON-LD default context.
- */
-static DynamicObject _createDefaultContext()
-{
-   DynamicObject ctx;
-   ctx["a"] = RDF_TYPE;
-   ctx["rdf"] = RDF_NS;
-   ctx["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
-   ctx["owl"] = "http://www.w3.org/2002/07/owl#";
-   ctx["xsd"] = "http://www.w3.org/2001/XMLSchema#";
-   ctx["dcterms"] = "http://purl.org/dc/terms/";
-   ctx["foaf"] = "http://xmlns.com/foaf/0.1/";
-   ctx["cal"] = "http://www.w3.org/2002/12/cal/ical#";
-   ctx["vcard"] = "http://www.w3.org/2006/vcard/ns#";
-   ctx["geo"] = "http://www.w3.org/2003/01/geo/wgs84_pos#";
-   ctx["cc"] = "http://creativecommons.org/ns#";
-   ctx["sioc"] = "http://rdfs.org/sioc/ns#";
-   ctx["doap"] = "http://usefulinc.com/ns/doap#";
-   ctx["com"] = "http://purl.org/commerce#";
-   ctx["ps"] = "http://purl.org/payswarm#";
-   ctx["gr"] = "http://purl.org/goodrelations/v1#";
-   ctx["sig"] = "http://purl.org/signature#";
-   ctx["ccard"] = "http://purl.org/commerce/creditcard#";
-   ctx["@vocab"] = "";
-
-   DynamicObject& coerce = ctx["@coerce"];
-   coerce["xsd:anyURI"]->append("foaf:homepage");
-   coerce["xsd:anyURI"]->append("foaf:member");
-   coerce["xsd:integer"] = "foaf:age";
-
-   return ctx;
-}
-
-/**
  * Compacts an IRI into a term or CURIE it can be. IRIs will not be compacted
  * to relative IRIs if they match the given context's default vocabulary.
  *
@@ -1921,6 +1885,37 @@ static bool _compareBlankNodeIris(DynamicObject a, DynamicObject b)
    return _compare(a["@"]["@iri"], b["@"]["@iri"]) == -1;
 }
 
+DynamicObject JsonLd::createDefaultContext()
+{
+   DynamicObject ctx;
+   ctx["a"] = RDF_TYPE;
+   ctx["rdf"] = RDF_NS;
+   ctx["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
+   ctx["owl"] = "http://www.w3.org/2002/07/owl#";
+   ctx["xsd"] = "http://www.w3.org/2001/XMLSchema#";
+   ctx["dcterms"] = "http://purl.org/dc/terms/";
+   ctx["foaf"] = "http://xmlns.com/foaf/0.1/";
+   ctx["cal"] = "http://www.w3.org/2002/12/cal/ical#";
+   ctx["vcard"] = "http://www.w3.org/2006/vcard/ns#";
+   ctx["geo"] = "http://www.w3.org/2003/01/geo/wgs84_pos#";
+   ctx["cc"] = "http://creativecommons.org/ns#";
+   ctx["sioc"] = "http://rdfs.org/sioc/ns#";
+   ctx["doap"] = "http://usefulinc.com/ns/doap#";
+   ctx["com"] = "http://purl.org/commerce#";
+   ctx["ps"] = "http://purl.org/payswarm#";
+   ctx["gr"] = "http://purl.org/goodrelations/v1#";
+   ctx["sig"] = "http://purl.org/signature#";
+   ctx["ccard"] = "http://purl.org/commerce/creditcard#";
+   ctx["@vocab"] = "";
+
+   DynamicObject& coerce = ctx["@coerce"];
+   coerce["xsd:anyURI"]->append("foaf:homepage");
+   coerce["xsd:anyURI"]->append("foaf:member");
+   coerce["xsd:integer"] = "foaf:age";
+
+   return ctx;
+}
+
 bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
 {
    bool rval = true;
@@ -1934,7 +1929,7 @@ bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
    if(!in.isNull())
    {
       // get default context
-      DynamicObject ctx = _createDefaultContext();
+      DynamicObject ctx = JsonLd::createDefaultContext();
 
       // expand input
       DynamicObject expanded = _expand(ctx, NULL, in, true);
@@ -1981,7 +1976,7 @@ bool JsonLd::removeContext(DynamicObject in, DynamicObject& out)
    }
    else
    {
-      DynamicObject ctx = _createDefaultContext();
+      DynamicObject ctx = JsonLd::createDefaultContext();
       out = _expand(ctx, NULL, in, false);
       rval = !out.isNull();
    }
@@ -1997,7 +1992,8 @@ bool JsonLd::addContext(
    // TODO: should context simplification be optional? (ie: remove context
    // entries that are not used in the output)
 
-   DynamicObject ctx = JsonLd::mergeContexts(_createDefaultContext(), context);
+   DynamicObject ctx = JsonLd::mergeContexts(
+      JsonLd::createDefaultContext(), context);
    rval = !ctx.isNull();
    if(rval)
    {
@@ -2067,8 +2063,11 @@ DynamicObject JsonLd::mergeContexts(
       }
    }
 
-   // @coerce must be specially-merged, remove from context
+   // @coerce must be specially-merged, remove from contexts
+   bool coerceExists =
+      (merged->hasMember("@coerce") || copy->hasMember("@coerce"));
    DynamicObject c1 = merged["@coerce"];
+   c1->setType(Map);
    DynamicObject c2 = copy["@coerce"];
    c2->setType(Map);
    merged->removeMember("@coerce");
@@ -2077,73 +2076,77 @@ DynamicObject JsonLd::mergeContexts(
    // merge contexts (do not append)
    merged.merge(copy, false);
 
-   // special-merge @coerce
-   i = c1.getIterator();
-   while(i->hasNext())
+   // @coerce must be specially-merged
+   if(coerceExists)
    {
-      DynamicObject& props = i->next();
-
-      // append existing-type properties that don't already exist
-      if(c2->hasMember(i->getName()))
+      // special-merge @coerce
+      i = c1.getIterator();
+      while(i->hasNext())
       {
-         DynamicObjectIterator pi = c2[i->getName()].getIterator();
-         while(pi->hasNext())
+         DynamicObject& props = i->next();
+
+         // append existing-type properties that don't already exist
+         if(c2->hasMember(i->getName()))
          {
-            DynamicObject& p = pi->next();
-            if((props->getType() != Array && props != p) ||
-               (props->getType() == Array && props->indexOf(p) == -1))
+            DynamicObjectIterator pi = c2[i->getName()].getIterator();
+            while(pi->hasNext())
             {
-               props.push(p);
+               DynamicObject& p = pi->next();
+               if((props->getType() != Array && props != p) ||
+                  (props->getType() == Array && props->indexOf(p) == -1))
+               {
+                  props.push(p);
+               }
             }
          }
       }
-   }
 
-   // add new types from new @coerce
-   i = c2.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& props = i->next();
-      if(!c1->hasMember(i->getName()))
+      // add new types from new @coerce
+      i = c2.getIterator();
+      while(i->hasNext())
       {
-         c1[i->getName()] = props;
-      }
-   }
-
-   // ensure there are no property duplicates in @coerce
-   DynamicObject unique(Map);
-   DynamicObject dups(Array);
-   i = c1.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObjectIterator pi = i->next().getIterator();
-      while(pi->hasNext())
-      {
-         DynamicObject& p = pi->next();
-         if(!unique->hasMember(p))
+         DynamicObject& props = i->next();
+         if(!c1->hasMember(i->getName()))
          {
-            unique[p->getString()] = true;
-         }
-         else if(dups->indexOf(p) == -1)
-         {
-            dups->append(p);
+            c1[i->getName()] = props;
          }
       }
-   }
 
-   if(dups->length() > 0)
-   {
-      ExceptionRef e = new Exception(
-         "Invalid type coercion specification. More than one type "
-         "specified for at least one property.",
-         EXCEPTION_TYPE ".CoerceSpecError");
-      e->getDetails()["duplicates"] = dups;
-      Exception::set(e);
-      merged.setNull();
-   }
-   else
-   {
-      merged["@coerce"] = c1;
+      // ensure there are no property duplicates in @coerce
+      DynamicObject unique(Map);
+      DynamicObject dups(Array);
+      i = c1.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObjectIterator pi = i->next().getIterator();
+         while(pi->hasNext())
+         {
+            DynamicObject& p = pi->next();
+            if(!unique->hasMember(p))
+            {
+               unique[p->getString()] = true;
+            }
+            else if(dups->indexOf(p) == -1)
+            {
+               dups->append(p);
+            }
+         }
+      }
+
+      if(dups->length() > 0)
+      {
+         ExceptionRef e = new Exception(
+            "Invalid type coercion specification. More than one type "
+            "specified for at least one property.",
+            EXCEPTION_TYPE ".CoerceSpecError");
+         e->getDetails()["duplicates"] = dups;
+         Exception::set(e);
+         merged.setNull();
+      }
+      else
+      {
+         merged["@coerce"] = c1;
+      }
    }
 
    return merged;
@@ -2444,7 +2447,8 @@ bool JsonLd::frame(
    DynamicObject ctx(NULL);
    if(frame->hasMember("@context"))
    {
-      ctx = JsonLd::mergeContexts(_createDefaultContext(), frame["@context"]);
+      ctx = JsonLd::mergeContexts(
+         JsonLd::createDefaultContext(), frame["@context"]);
       rval = !ctx.isNull();
    }
 
@@ -2460,7 +2464,8 @@ bool JsonLd::frame(
       DynamicObject opts(Map);
       opts["defaults"]["embedOn"] = true;
       opts["defaults"]["explicitOn"] = false;
-      if(options != NULL && (*options)->hasMember("defaults"))
+      if(options != NULL && !(*options).isNull() &&
+         (*options)->hasMember("defaults"))
       {
          DynamicObject& defaults = (*options)["defaults"];
          if(defaults->hasMember("embedOn"))

@@ -25,7 +25,7 @@ class DynamicObjectIteratorImpl;
  */
 enum DynamicObjectType
 {
-   String = 0, Boolean, Int32, UInt32, Int64, UInt64, Double, Map, Array,
+   String = 1, Boolean, Int32, UInt32, Int64, UInt64, Double, Map, Array,
    LastDynamicObjectType = Array
 };
 

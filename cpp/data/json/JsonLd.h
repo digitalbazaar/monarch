@@ -35,6 +35,13 @@ public:
    virtual ~JsonLd();
 
    /**
+    * Creates the JSON-LD default context.
+    *
+    * @return the JSON-LD default context.
+    */
+   static monarch::rt::DynamicObject createDefaultContext();
+
+   /**
     * Normalizes a JSON-LD object.
     *
     * @param in the JSON-LD object to normalize.

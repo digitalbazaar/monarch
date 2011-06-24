@@ -103,23 +103,31 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["message"] = "RDFa parse error.";
       expect["type"] = "monarch.data.rdfa.RdfaReader.ParseError";
       DynamicObject& graph = expect["details"]["graph"];
-      // FIXME: "dc" not present with context simplification on
-      //graph["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      graph["#"]["w3"] = "http://www.w3.org/2009/pointers#";
-      graph["@"] = "_:bnode0";
-      graph["http://purl.org/dc/terms/description"] =
-         "XML parsing error: mismatched tag at line 9, column 6.";
+      graph["@context"]["a"] =
+         "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+      graph["@context"]["dcterms"] =
+         "http://purl.org/dc/terms/";
+      graph["@context"]["w3"] =
+         "http://www.w3.org/2009/pointers#";
+      graph["@"] = "_:c14n0";
       graph["a"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
+      graph["dcterms:description"]["@language"] = "en";
+      graph["dcterms:description"]["@literal"] =
+         "XML parsing error: mismatched tag at line 9, column 6.";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
-         ["@"] = "_:bnode1";
+         ["@"] = "_:c14n1";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["a"] = "w3:LineCharPointer";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
-         ["w3:charNumber"] =
-            "6^^<http://www.w3.org/2001/XMLSchema#positiveInteger>";
+         ["w3:charNumber"]["@datatype"] =
+            "http://www.w3.org/2001/XMLSchema#positiveInteger";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
-         ["w3:lineNumber"] =
-            "9^^<http://www.w3.org/2001/XMLSchema#positiveInteger>";
+         ["w3:charNumber"]["@literal"] = "6";
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
+         ["w3:lineNumber"]["@datatype"] =
+            "http://www.w3.org/2001/XMLSchema#positiveInteger";
+      graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
+         ["w3:lineNumber"]["@literal"] = "9";
       assertDynoCmp(expect, ex);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
@@ -159,7 +167,7 @@ static void runRdfaReaderTest(TestRunner& tr)
             dyno2, rdfa.c_str(), rdfa.length(), "http://example.org/test"));
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
       expect["@"] = "http://example.org/test#foo";
       expect["dc:title"] = "<http://example.org/test#you>";
       assertNamedDynoCmp("expect", expect, "result", dyno);
@@ -197,8 +205,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
       expect["ex:contains"]["dc:title"] = "My Book";
@@ -240,8 +248,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
       expect["ex:contains"]["dc:contributor"] = "Writer";
@@ -283,7 +291,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["foaf"] = "http://xmlns.org/foaf/0.1/";
       expect["@"][0]["@"] = "http://example.org/test#jane";
       expect["@"][0]["foaf:name"] = "Jane";
       expect["@"][1]["@"] = "http://example.org/test#john";
@@ -330,9 +338,9 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
+      expect["@context"]["foaf"] = "http://xmlns.org/foaf/0.1/";
       expect["@"][0]["@"] = "http://example.org/test#jane";
       expect["@"][0]["foaf:name"] = "Jane";
       expect["@"][0]["ex:authored"]["@"] = "http://example.org/test#chapter";
@@ -381,10 +389,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      // FIXME: auto simplification removes unused prefixes
-      //expect["#"]["dc"] = "http://purl.org/dc/terms/";
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#book";
       expect["ex:prop"][0] = "Prop 1";
       expect["ex:prop"][1] = "Prop 2";
@@ -421,7 +426,7 @@ static void runRdfaReaderTest(TestRunner& tr)
             dyno2, rdfa.c_str(), rdfa.length(), "http://example.org/test"));
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
       expect["@"] = "http://example.org/test#foo";
       expect["dc:title"] = "<http://example.org/test#you>";
       assertNamedDynoCmp("expect", expect, "result", dyno);
@@ -461,7 +466,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["@"] = "http://example.org/test#library";
       frame["ex:contains"]["@"] = "http://example.org/test#book";
       frame["ex:contains"]["ex:contains"]["@"] =
@@ -480,10 +485,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#library";
       expect["a"] = "ex:Library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
@@ -531,7 +534,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["a"] = "ex:Library";
       frame["ex:contains"]["a"] = "ex:Book";
       frame["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
@@ -549,10 +552,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#library";
       expect["a"] = "ex:Library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
@@ -601,7 +602,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["a"] = "ex:Library";
       frame["ex:contains"]["a"] = "ex:Book";
       frame["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
@@ -619,9 +620,9 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
+      expect["@context"]["foaf"] = "http://xmlns.org/foaf/0.1/";
       expect["@"] = "http://example.org/test#library";
       expect["a"] = "ex:Library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
@@ -676,7 +677,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["a"] = "ex:Library";
       frame["ex:contains"]["a"] = "ex:Book";
       frame["ex:contains"]["ex:authoredBy"]->setType(Map);
@@ -695,9 +696,9 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
+      expect["@context"]["foaf"] = "http://xmlns.org/foaf/0.1/";
       expect["@"] = "http://example.org/test#library";
       expect["a"] = "ex:Library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
@@ -752,7 +753,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["a"] = "ex:Library";
       frame["ex:contains"]["a"] = "ex:Book";
       frame["ex:contains"]["ex:authoredBy"] = "";
@@ -771,10 +772,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#library";
       expect["a"] = "ex:Library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
@@ -825,7 +824,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["a"] = "ex:Library";
       frame["ex:contains"]["a"] = "ex:Book";
       frame["ex:contains"]["ex:authoredBy"][0]->setType(String);
@@ -844,10 +843,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#library";
       expect["a"] = "ex:Library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
@@ -897,18 +894,21 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
-      frame["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      frame["@explicit"] = true;
       frame["a"] = "ex:Library";
+      frame["ex:contains"]["@explicit"] = true;
       frame["ex:contains"]["a"] = "ex:Book";
       frame["ex:contains"]["dc:contributor"];
+      frame["ex:contains"]["ex:contains"]["@explicit"] = true;
       frame["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       frame["ex:contains"]["ex:contains"]["dc:title"];
 
       ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
       RdfaReader reader;
       reader.setBaseUri("http://example.org/test");
-      reader.setFrame(frame, true);
+      reader.setFrame(frame);
       DynamicObject dyno;
       assertNoException(
          reader.start(dyno));
@@ -918,10 +918,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#library";
       expect["a"] = "ex:Library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
@@ -967,18 +965,23 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
-      frame["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      frame["@explicit"] = true;
       frame["a"] = "ex:Library";
+      frame["ex:contains"]["@explicit"] = true;
       frame["ex:contains"]["a"] = "ex:Book";
       frame["ex:contains"]["dc:contributor"]->setType(Array);
+      frame["ex:contains"]["ex:contains"]["@explicit"] = true;
       frame["ex:contains"]["ex:contains"]["a"] = "ex:Chapter";
       frame["ex:contains"]["ex:contains"]["dc:title"];
 
       ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
       RdfaReader reader;
       reader.setBaseUri("http://example.org/test");
-      reader.setFrame(frame, true);
+      DynamicObject options;
+      options["defaults"]["explicitOn"] = true;
+      reader.setFrame(frame, &options);
       DynamicObject dyno;
       assertNoException(
          reader.start(dyno));
@@ -988,10 +991,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#library";
       expect["a"] = "ex:Library";
       expect["ex:contains"]["@"] = "http://example.org/test#book";
@@ -1036,7 +1037,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["a"] = "ex:A";
       frame["ex:knows"]->setType(Array);
 
@@ -1053,10 +1054,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#a";
       expect["a"] = "ex:A";
       expect["ex:knows"][0]["@"] = "http://example.org/test#aa";
@@ -1101,14 +1100,16 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["a"] = "ex:A";
       frame["ex:knows"][0]["a"] = "ex:A";
 
       ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
       RdfaReader reader;
       reader.setBaseUri("http://example.org/test");
-      reader.setFrame(frame, true);
+      DynamicObject options;
+      options["defaults"]["explicitOn"] = true;
+      reader.setFrame(frame, &options);
       DynamicObject dyno;
       assertNoException(
          reader.start(dyno));
@@ -1118,10 +1119,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#a";
       expect["a"] = "ex:A";
       expect["ex:knows"][0]["@"] = "http://example.org/test#aa";
@@ -1161,14 +1159,16 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame[0]["#"]["ex"] = "http://example.org/vocab#";
+      frame[0]["@context"]["ex"] = "http://example.org/vocab#";
       frame[0]["a"] = "ex:A";
       frame[0]["ex:knows"][0]["a"] = "ex:A";
 
       ByteArrayInputStream bais(rdfa.c_str(), rdfa.length());
       RdfaReader reader;
       reader.setBaseUri("http://example.org/test");
-      reader.setFrame(frame, true);
+      DynamicObject options;
+      options["defaults"]["explicitOn"] = true;
+      reader.setFrame(frame, &options);
       DynamicObject dyno;
       assertNoException(
          reader.start(dyno));
@@ -1178,10 +1178,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"][0]["@"] = "http://example.org/test#a";
       expect["@"][0]["a"] = "ex:A";
       expect["@"][0]["ex:knows"][0] = "<http://example.org/test#aa>";
@@ -1222,7 +1219,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["a"] = "ex:A";
       frame["ex:knows"][0]["a"][0] = "ex:A";
       frame["ex:knows"][0]["a"][1] = "ex:B";
@@ -1240,10 +1237,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#a";
       expect["a"] = "ex:A";
       expect["ex:knows"][0]["@"] = "http://example.org/test#aa";
@@ -1288,7 +1283,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          "</html>";
 
       DynamicObject frame;
-      frame["#"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["ex"] = "http://example.org/vocab#";
       frame["a"] = "ex:B";
       frame["ex:contains"][0]["a"] = "ex:A";
 
@@ -1305,10 +1300,8 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect["#"]["ex"] = "http://example.org/vocab#";
-      // FIXME: context simplification removes unused entries
-      //expect["#"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#b";
       expect["a"] = "ex:B";
       expect["ex:contains"][0]["@"] = "http://example.org/test#a";
@@ -1352,7 +1345,7 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect["#"]["ex"] = "http://example.org/vocab#";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
       expect["@"] = "http://example.org/test#a";
       expect["ex:prop"] = "<ex:link>";
       assertNamedDynoCmp("expect", expect, "result", dyno);
@@ -1366,7 +1359,7 @@ static void runRdfaReaderTest(TestRunner& tr)
 
 static bool run(TestRunner& tr)
 {
-   if(tr.isDefaultEnabled())
+   if(tr.isDefaultEnabled() || tr.isTestEnabled("rdfa"))
    {
       runRdfaReaderTest(tr);
    }
