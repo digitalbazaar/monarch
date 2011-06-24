@@ -156,7 +156,7 @@ bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
    {
       ExceptionRef e = new Exception(
          "Could not receive HTTP content, not connected.",
-         "monarch.net.http.NotConnected");
+         "monarch.http.NotConnected");
       Exception::set(e);
    }
    else
@@ -181,7 +181,7 @@ bool HttpClient::receiveContent(std::string& str, HttpTrailer* trailer)
       {
          ExceptionRef e = new Exception(
             "Could not receive HTTP content, content too large.",
-            "monarch.net.http.NotConnected");
+            "monarch.http.NotConnected");
          e->getDetails()["Content-Length"] = length;
          Exception::set(e);
          rval = false;
@@ -397,7 +397,7 @@ HttpResponse* HttpClient::getRecursive(
                ExceptionRef e = new Exception(
                   "Got redirect response code, but could not redirect. "
                   "No location field in header.",
-                  "monarch.net.http.InvalidRedirect");
+                  "monarch.http.InvalidRedirect");
                e->getDetails()["statusCode"] = code;
                Exception::set(e);
             }
@@ -411,7 +411,7 @@ HttpResponse* HttpClient::getRecursive(
                   ExceptionRef e = new Exception(
                      "Got redirect response code, but could not redirect. "
                      "Redirect loop detected.",
-                     "monarch.net.http.InvalidRedirect");
+                     "monarch.http.InvalidRedirect");
                   e->getDetails()["statusCode"] = code;
                   Exception::set(e);
                }

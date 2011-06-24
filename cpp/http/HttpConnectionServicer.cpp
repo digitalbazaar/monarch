@@ -191,8 +191,8 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       {
          // exception occurred while receiving header
          ExceptionRef e = Exception::get();
-         if(e->isType("monarch.net.http.BadHeader") ||
-            e->isType("monarch.net.http.BadRequest"))
+         if(e->isType("monarch.http.BadHeader") ||
+            e->isType("monarch.http.BadRequest"))
          {
             // send 400 Bad Request
             const char* html =
@@ -311,7 +311,7 @@ static PatternRef _compileDomainRegex(const char* domain)
    {
       ExceptionRef e = new Exception(
          "Could not add http request servicer. Invalid domain format.",
-         "monarch.net.http.InvalidDomainFormat");
+         "monarch.http.InvalidDomainFormat");
       e->getDetails()["domain"] = domain;
       e->getDetails()["regex"] = regex.c_str();
       Exception::push(e);
@@ -438,7 +438,7 @@ bool HttpConnectionServicer::addRequestServicer(
                ExceptionRef e = new Exception(
                   "Could not add http request servicer. "
                   "Domain/path combination is already in use.",
-                  "monarch.net.http.DuplicateEntry");
+                  "monarch.http.DuplicateEntry");
                e->getDetails()["domain"] = domain;
                e->getDetails()["path"] = path;
                Exception::set(e);

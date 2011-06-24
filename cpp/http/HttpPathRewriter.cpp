@@ -35,7 +35,7 @@ bool HttpPathRewriter::addRule(const char* regex, const char* format)
    {
       ExceptionRef e = new Exception(
          "Could not add rewrite rule. Invalid regex.",
-         "monarch.net.http.InvalidRewriteRule");
+         "monarch.http.InvalidRewriteRule");
       e->getDetails()["regex"] = regex;
       e->getDetails()["format"] = format;
       Exception::push(e);

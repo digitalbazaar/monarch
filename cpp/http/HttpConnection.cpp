@@ -76,7 +76,7 @@ bool HttpConnection::receiveHeader(HttpHeader* header)
          ExceptionRef e = new Exception(
             "Could not receive HTTP header. "
             "Maybe SSL is used on one end and not the other?",
-            "monarch.net.http.BadHeader");
+            "monarch.http.BadHeader");
          Exception::set(e);
          rval = false;
       }
