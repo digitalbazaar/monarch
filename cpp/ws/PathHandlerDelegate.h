@@ -26,7 +26,7 @@ namespace ws
  * @author Dave Longley
  */
 template<typename Handler, typename Channel = ServiceChannel>
-class PathHandlerDelegate : public monarch::ws::PathHandler
+class PathHandlerDelegate : public PathHandler
 {
 protected:
    /**
@@ -137,7 +137,7 @@ bool PathHandlerDelegate<Handler, Channel>::canHandleRequest(ServiceChannel* ch)
       rval = ch->receiveContent(in);
    }
 
-   rval = rval && checkAuthentication(ch);
+   rval = rval && PathHandler::canHandleRequest(ch);
 
    return rval;
 }

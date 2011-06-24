@@ -247,9 +247,6 @@ static void runSslSocketTest(TestRunner& tr)
       // set receive timeout (10 seconds = 10000 milliseconds)
       sslSocket.setReceiveTimeout(10000);
 
-      // perform handshake (automatically happens, this call isn't necessary)
-      //sslSocket.performHandshake();
-
       char request[] =
          "GET / HTTP/1.0\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
       sslSocket.send(request, sizeof(request));

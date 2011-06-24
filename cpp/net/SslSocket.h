@@ -53,11 +53,6 @@ protected:
    BIO* mSocketBio;
 
    /**
-    * True if an SSL session has been negotiated via a handshake, false if not.
-    */
-   bool mSessionNegotiated;
-
-   /**
     * The stream for reading from the Socket.
     */
    monarch::io::InputStream* mInputStream;

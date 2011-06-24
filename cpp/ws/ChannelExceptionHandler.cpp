@@ -25,14 +25,14 @@ void ChannelExceptionHandler::handleChannelException(
          "An unspecified error occurred. "
          "No exception was set detailing the error.",
          "monarch.ws.WebServiceError");
-      e->getDetails()["code"] = 500;
+      e->getDetails()["httpStatusCode"] = 500;
       e->getDetails()["path"] = ch->getPath();
       monarch::rt::Exception::set(e);
    }
 
    // send exception (client's fault if code < 500)
    bool clientsFault =
-      e->getDetails()->hasMember("code") &&
-      e->getDetails()["code"]->getInt32() < 500;
+      e->getDetails()->hasMember("httpStatusCode") &&
+      e->getDetails()["httpStatusCode"]->getInt32() < 500;
    ch->sendException(e, clientsFault);
 }

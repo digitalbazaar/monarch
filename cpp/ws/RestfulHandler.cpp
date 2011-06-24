@@ -297,7 +297,7 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
          ExceptionRef e = new Exception(
             "Resource not found.",
             "monarch.ws.ResourceNotFound");
-         e->getDetails()["code"] = 404;
+         e->getDetails()["httpStatusCode"] = 404;
          e->getDetails()["resource"] = ch->getPath();
          Exception::set(e);
       }
@@ -309,7 +309,7 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
          ExceptionRef e = new Exception(
             "Method not allowed.",
             "monarch.ws.MethodNotAllowed");
-         e->getDetails()["code"] = 405;
+         e->getDetails()["httpStatusCode"] = 405;
          e->getDetails()["invalidMethod"] = method.c_str();
          e->getDetails()["validMethods"] = validMethods;
 

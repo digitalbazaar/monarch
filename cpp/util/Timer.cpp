@@ -17,9 +17,10 @@ Timer::~Timer()
 {
 }
 
-void Timer::start()
+uint64_t Timer::start()
 {
    mStartTime = System::getCurrentMilliseconds();
+   return mStartTime;
 }
 
 uint64_t Timer::getElapsedMilliseconds()

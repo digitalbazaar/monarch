@@ -352,8 +352,8 @@ void ProxyPathHandler::operator()(ServiceChannel* ch)
             // send exception (client's fault if code < 500)
             ExceptionRef e = Exception::get();
             bool clientsFault =
-               e->getDetails()->hasMember("code") &&
-               e->getDetails()["code"]->getInt32() < 500;
+               e->getDetails()->hasMember("httpStatusCode") &&
+               e->getDetails()["httpStatusCode"]->getInt32() < 500;
             ch->sendException(e, clientsFault);
          }
       }

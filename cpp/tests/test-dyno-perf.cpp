@@ -1,17 +1,24 @@
 /*
  * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
  */
+
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/test/Test.h"
 #include "monarch/test/TestModule.h"
 #include "monarch/rt/Runnable.h"
 #include "monarch/rt/System.h"
+#include "monarch/rt/RunnableDelegate.h"
+#include "monarch/rt/Thread.h"
+#include "monarch/util/StringTools.h"
 
 #include <cstdio>
 
 using namespace std;
 using namespace monarch::config;
+using namespace monarch::data::json;
 using namespace monarch::test;
 using namespace monarch::rt;
+using namespace monarch::util;
 
 namespace mo_test_dyno_perf
 {
@@ -106,9 +113,112 @@ static void runDynoIterTest(TestRunner& tr)
    tr.ungroup();
 }
 
+static void _createDeepObject(DynamicObject& obj, int depth, int width)
+{
+   if(depth == 0)
+   {
+      // leaf, fill with random #
+      obj = (uint32_t)random();
+   }
+   else
+   {
+      // make branches
+      for(int i = 0; i < width; i++)
+      {
+         string key = StringTools::format("%d-%d", depth, i);
+         DynamicObject& node = obj[key.c_str()];
+         _createDeepObject(node, depth - 1, width);
+      }
+   }
+}
+
+// pass in obj with 'clones' and 'object' to clone
+static void _runDynoCloneStressTest(DynamicObject& data)
+{
+   int id = data["id"]->getUInt32();
+   int clones = data["clones"]->getUInt32();
+   DynamicObject& object = data["object"];
+
+   printf("Thread %d starting. %d clones.\n", id, clones);
+   uint64_t start = System::getCurrentMilliseconds();
+   uint64_t stat_start = System::getCurrentMilliseconds();
+
+   for(int i = 0; i < clones; i++)
+   {
+      DynamicObject clone = object.clone();
+      // print stats every 30s or so
+      uint64_t now = System::getCurrentMilliseconds();
+      uint64_t stat_dt = now - stat_start;
+      if(stat_dt > 5000)
+      {
+         uint64_t dt = System::getCurrentMilliseconds() - start;
+         printf("Thread %d @ %.3f%%. c/s=%.3f\n",
+            id, ((float)i*100)/clones, (dt == 0) ? 0.0f : i/(dt/1000.0f));
+         stat_start = now;
+      }
+   }
+
+   uint64_t dt = System::getCurrentMilliseconds() - start;
+   printf("Thread %d done. %d clones. dt=%.3f c/s=%.3f\n",
+      id, clones, dt/1000.0f, (dt == 0) ? 0.0f : clones/(dt/1000.0f));
+};
+
+static void runDynoCloneStressTest(
+   TestRunner& tr)
+{
+   Config cfg = tr.getApp()->getConfig();
+   // thread count
+   int threads = cfg->hasMember("threads") ? cfg["threads"]->getInt32() : 1;
+   // clones to perform in each thread
+   int clones = cfg->hasMember("clones") ? cfg["clones"]->getInt32() : 1;
+   // depth of tree to clone
+   int depth = cfg->hasMember("depth") ? cfg["depth"]->getInt32() : 1;
+   // number of elements in each node of the tree
+   int width = cfg->hasMember("width") ? cfg["width"]->getInt32() : 1;
+   // print dyno stats
+   bool stats = cfg->hasMember("stats") ? cfg["stats"]->getBoolean() : false;
+
+   // create the config and object to clone
+   DynamicObject object;
+   _createDeepObject(object, depth, width);
+   //JsonWriter::writeToStdOut(obj);
+
+   Thread* threadgroup[threads];
+   DynamicObject data;
+
+   for(int ti = 0; ti < threads; ++ti)
+   {
+      DynamicObject d = data[ti];
+      d["id"] = ti;
+      d["clones"] = clones;
+      d["object"] = object;
+      RunnableRef r = new RunnableDelegate<void>(_runDynoCloneStressTest, d);
+      threadgroup[ti] = new Thread(r);
+   }
+   uint64_t start = System::getCurrentMilliseconds();
+   for(int ti = 0; ti < threads; ++ti)
+   {
+      threadgroup[ti]->start();
+   }
+   for(int ti = 0; ti < threads; ++ti)
+   {
+      threadgroup[ti]->join();
+      delete threadgroup[ti];
+   }
+   uint64_t dt = System::getCurrentMilliseconds() - start;
+   uint32_t totalclones = threads * clones;
+   printf("All done. %d clones. dt=%.3f c/s=%.3f\n",
+      totalclones, dt/1000.0f, (dt == 0) ? 0.0f : totalclones/(dt/1000.0f));
+
+   if(stats)
+   {
+      JsonWriter::writeToStdOut(DynamicObjectImpl::getStats(), false, true);
+   }
+}
+
 static bool run(TestRunner& tr)
 {
-   if(tr.isTestEnabled("dyno-perf"))
+   if(tr.isTestEnabled("dyno-iter-perf"))
    {
       Config cfg = tr.getApp()->getConfig();
       // number of loops for each test
@@ -118,6 +228,17 @@ static bool run(TestRunner& tr)
          runDynoIterTest(tr);
       }
    }
+
+   if(tr.isTestEnabled("dyno-clone-stress"))
+   {
+      runDynoCloneStressTest(tr);
+   }
+/*
+   if(tr.isTestEnabled("json-ld-context-stress"))
+   {
+      runJsonLdContextStressTest(tr);
+   }
+*/
    return true;
 }
 

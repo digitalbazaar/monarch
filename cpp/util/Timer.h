@@ -37,8 +37,10 @@ public:
 
    /**
     * Starts this Timer.
+    *
+    * @return the starting time in milliseconds since the epoch.
     */
-   virtual void start();
+   virtual uint64_t start();
 
    /**
     * Gets the time that has elapsed since the starting time.

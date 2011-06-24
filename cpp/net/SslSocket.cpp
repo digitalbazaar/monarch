@@ -97,7 +97,6 @@ static int _verifyCallback(int preverifyOk, X509_STORE_CTX *ctx)
 SslSocket::SslSocket(
    SslContext* context, TcpSocket* socket, bool client, bool cleanup) :
    SocketWrapper(socket, cleanup),
-   mSessionNegotiated(false),
    mVirtualHost(NULL)
 {
    // create ssl object
@@ -372,13 +371,7 @@ bool SslSocket::performHandshake()
       }
    }
 
-   if(rval)
-   {
-      // session negotiated
-      mSessionNegotiated = true;
-   }
-
-   return mSessionNegotiated;
+   return rval;
 }
 
 void SslSocket::close()
@@ -407,12 +400,6 @@ bool SslSocket::send(const char* b, int length)
    }
    else
    {
-      // perform a handshake as necessary
-      if(!mSessionNegotiated)
-      {
-         rval = performHandshake();
-      }
-
       // do SSL_write() (implicit handshake performed as necessary)
       int ret = 0;
       while(rval && (ret = SSL_write(mSSL, b, length)) <= 0)
@@ -482,12 +469,6 @@ int SslSocket::receive(char* b, int length)
    }
    else
    {
-      // perform a handshake as necessary
-      if(!mSessionNegotiated && !performHandshake())
-      {
-         rval = -1;
-      }
-
       // do SSL_read() (implicit handshake performed as necessary)
       int ret = 0;
       bool closed = false;
