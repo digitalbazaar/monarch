@@ -932,8 +932,15 @@ const char* DynamicObjectImpl::getString() const
             case Double:
                // use default precision of 6
                // X.000000e+00 = 11 places to right of decimal
-               str = (char*)malloc(50);
-               snprintf(str, 50, "%e", mDouble);
+               if(mDouble == 0)
+               {
+                  str = strdup("0");
+               }
+               else
+               {
+                  str = (char*)malloc(50);
+                  snprintf(str, 50, "%e", mDouble);
+               }
                break;
             default: /* String, Map, Array, ... already handled */
                break;
