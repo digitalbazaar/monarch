@@ -950,7 +950,7 @@ static bool _flatten(
       {
          // create or fetch existing subject
          DynamicObject subject(NULL);
-         if(value->hasMember("@") && subjects->hasMember(value["@"]))
+         if(value->hasMember("@") && subjects->hasMember(value["@"]["@iri"]))
          {
             // FIXME: "@" might be a graph literal (as {})
             subject = subjects[value["@"]["@iri"]->getString()];
@@ -1615,6 +1615,46 @@ static void _collectEdges(C14NState& state)
 }
 
 /**
+ * Checks to see if the given bnode IRIs are equivalent in the given
+ * isomorphism.
+ *
+ * @param iso the isomorphism to check.
+ * @param iriA the first bnode IRI.
+ * @param iriB the second bnode IRI.
+ * @param cycle a map to prevent cycles when checking.
+ *
+ * @return true if iriA and iriB are for equivalent bnodes per the isomorphism.
+ */
+static bool _isIsoMatch(
+   DynamicObject& iso, const char* iriA, const char* iriB, DynamicObject cycle)
+{
+   bool rval = false;
+
+   if(strcmp(iriA, iriB) == 0)
+   {
+      rval = true;
+   }
+   else if(iso->hasMember(iriA))
+   {
+      if(iso[iriA] == iriB)
+      {
+         rval = true;
+      }
+      else if(!cycle->hasMember(iriA))
+      {
+         cycle[iriA] = true;
+         rval = _isIsoMatch(iso, iso[iriA], iriB, cycle);
+      }
+   }
+   else if(iso->hasMember(iriB))
+   {
+      rval = _isIsoMatch(iso, iriB, iriA, cycle);
+   }
+
+   return rval;
+};
+
+/**
  * Compares the edges between two nodes for equivalence.
  *
  * @param state the canonicalization state.
@@ -1633,8 +1673,8 @@ static int _deepCompareEdges(
 
    /* Edge comparison algorithm:
       1. Compare adjacent bnode lists for matches.
-      1.1. If a bnode IRI is in the potential isomorphism, then its associated
-         bnode *must* be in the other bnode under the same edge.
+      1.1. If a bnode IRI is in the potential isomorphism, then the other bnode
+         under the same edge must be equivalent in that isomorphism.
       1.2. If a bnode IRI is not in the potential isomorphism yet, then the
          associated bnode *must* have a bnode with the same edge that isn't
          in the isomorphism yet to match up. Iterate over each bnode until an
@@ -1657,16 +1697,16 @@ static int _deepCompareEdges(
       // step #1.1
       if(iso->hasMember(edgeA["s"]))
       {
-         const char* match = iso[edgeA["s"]->getString()];
          DynamicObjectIterator bi = edgesB.getIterator();
          for(int bi = 0;
-             bi < edgesB->length() && edgesB[bi]["p"] <= edgeA["p"]; ++bi)
+            !found && bi < edgesB->length() &&
+            edgesB[bi]["p"] <= edgeA["p"]; ++bi)
          {
             DynamicObject& edgeB = edgesB[bi];
-            if(edgeB["p"] == edgeA["p"])
+            if(edgeB["p"] == edgeA["p"] &&
+               _isIsoMatch(iso, edgeA["s"], edgeB["s"], DynamicObject(Map)))
             {
-               found = (edgeB["s"] == match);
-               break;
+               found = true;
             }
          }
       }
@@ -1678,24 +1718,30 @@ static int _deepCompareEdges(
              ++bi)
          {
             DynamicObject& edgeB = edgesB[bi];
-            if(edgeB["p"] == edgeA["p"] && !iso->hasMember(edgeB["s"]))
+            if(edgeB["p"] == edgeA["p"])
             {
-               // add bnode pair temporarily to iso
-               iso[edgeA["s"]->getString()] = edgeB["s"];
-               iso[edgeB["s"]->getString()] = edgeA["s"];
-
-               // step #1.3
-               DynamicObject& sA = state.subjects[edgeA["s"]->getString()];
-               DynamicObject& sB = state.subjects[edgeB["s"]->getString()];
-               if(_deepCompareBlankNodes(state, sA, sB, iso) == 0)
+               // identical edge case
+               if(edgeA["s"] == edgeB["s"])
                {
                   found = true;
                }
-               else
+               else if(!iso->hasMember(edgeB["s"]))
                {
-                  // remove non-matching bnode pair from iso
-                  iso->removeMember(edgeA["s"]);
-                  iso->removeMember(edgeB["s"]);
+                  // add bnode pair temporarily to iso
+                  iso[edgeB["s"]->getString()] = edgeA["s"];
+
+                  // step #1.3
+                  DynamicObject& sA = state.subjects[edgeA["s"]->getString()];
+                  DynamicObject& sB = state.subjects[edgeB["s"]->getString()];
+                  if(_deepCompareBlankNodes(state, sA, sB, iso) == 0)
+                  {
+                     found = true;
+                  }
+                  else
+                  {
+                     // remove non-matching bnode pair from iso
+                     iso->removeMember(edgeB["s"]);
+                  }
                }
             }
          }
