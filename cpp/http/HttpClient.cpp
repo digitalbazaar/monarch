@@ -181,7 +181,7 @@ bool HttpClient::receiveContent(std::string& str, HttpTrailer* trailer)
       {
          ExceptionRef e = new Exception(
             "Could not receive HTTP content, content too large.",
-            "monarch.http.NotConnected");
+            "monarch.http.ContentTooLarge");
          e->getDetails()["Content-Length"] = length;
          Exception::set(e);
          rval = false;
