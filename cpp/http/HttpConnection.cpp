@@ -70,12 +70,20 @@ bool HttpConnection::receiveHeader(HttpHeader* header)
    }
    else
    {
-      // parse header
-      if(!header->parse(headerStr))
+      // check for empty header (due to end of stream)
+      if(headerStr.length() == 0)
       {
          ExceptionRef e = new Exception(
-            "Could not receive HTTP header. "
-            "Maybe SSL is used on one end and not the other?",
+            "No HTTP header found.",
+            "monarch.http.NoHeader");
+         Exception::set(e);
+         rval = false;
+      }
+      // parse header
+      else if(!header->parse(headerStr))
+      {
+         ExceptionRef e = new Exception(
+            "Could not receive HTTP header.",
             "monarch.http.BadHeader");
          Exception::set(e);
          rval = false;
