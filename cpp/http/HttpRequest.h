@@ -69,8 +69,8 @@ public:
 
    /**
     * Receives the header for this request. This method will block until the
-    * entire header has been received, the connection times out, or the thread
-    * is interrupted.
+    * entire header has been received, the connection times out, the
+    * connection is closed, or the thread is interrupted.
     *
     * @return true if the header was received, false if an Exception occurred.
     */
