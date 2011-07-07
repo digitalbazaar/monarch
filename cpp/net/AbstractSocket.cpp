@@ -126,37 +126,23 @@ bool AbstractSocket::waitUntilReady(bool read, int64_t timeout)
    {
       if(errno == EINTR)
       {
-         if(read)
-         {
-            // interrupted exception
-            e = new Exception(
-               "Socket read interrupted.", "monarch.io.InterruptedException");
-            e->getDetails()["error"] = strerror(errno);
-         }
-         else
-         {
-            // interrupted exception
-            e = new Exception(
-               "Socket write interrupted.", "monarch.io.InterruptedException");
-            e->getDetails()["error"] = strerror(errno);
-         }
+         const char* msg = read ?
+            "Socket read interrupted." :
+            "Socket write interrupted.";
+
+         // interrupted exception
+         e = new Exception(msg, "monarch.io.InterruptedException");
+         e->getDetails()["error"] = strerror(errno);
       }
       else
       {
-         if(read)
-         {
-            // error occurred, get string message
-            e = new Exception(
-               "Could not read from socket.", SOCKET_EXCEPTION_TYPE);
-            e->getDetails()["error"] = strerror(errno);
-         }
-         else
-         {
-            // error occurred, get string message
-            e = new Exception(
-               "Could not write to socket.", SOCKET_EXCEPTION_TYPE);
-            e->getDetails()["error"] = strerror(errno);
-         }
+         const char* msg = read ?
+            "Could not read from socket." :
+            "Could not write to socket.";
+
+         // error occurred, get string message
+         e = new Exception(msg, SOCKET_EXCEPTION_TYPE);
+         e->getDetails()["error"] = strerror(errno);
 
          // clear file descriptor and close if its bad
          if(errno == EBADF)
@@ -168,43 +154,45 @@ bool AbstractSocket::waitUntilReady(bool read, int64_t timeout)
    }
    else if(error == 0)
    {
-      if(read)
-      {
-         // read timeout occurred
-         e = new Exception(
-            "Socket read timed out.", SOCKET_TIMEOUT_EXCEPTION_TYPE);
-         e->getDetails()["error"] = strerror(errno);
-      }
-      else
-      {
-         // write timeout occurred
-         e = new Exception(
-            "Socket write timed out.", SOCKET_TIMEOUT_EXCEPTION_TYPE);
-         e->getDetails()["error"] = strerror(errno);
-      }
+      const char* msg = read ?
+         "Socket read timed out." :
+         "Socket write timed out.";
+
+      // timeout occurred, get string message
+      e = new Exception(msg, SOCKET_TIMEOUT_EXCEPTION_TYPE);
+      e->getDetails()["error"] = strerror(errno);
    }
    else
    {
-      // get the last error on the socket
-      int lastError;
-      socklen_t lastErrorLength = sizeof(lastError);
-      getsockopt(
-         mFileDescriptor, SOL_SOCKET, SO_ERROR,
-         (char*)&lastError, &lastErrorLength);
-      if(lastError != 0 && lastError != EINPROGRESS)
+      // error > 0
+      if(read)
       {
-         if(read)
+         // Check if still connected since poll() may have returned POLLIN
+         // instead of POLLHUP even though connection was closed.
+         if(!isConnected())
          {
             // error occurred, get string message
             e = new Exception(
                "Could not read from socket.", SOCKET_EXCEPTION_TYPE);
-            e->getDetails()["error"] = strerror(lastError);
+            // Note: errno may have been set in isConnected()
+            e->getDetails()["error"] = strerror(errno);
          }
-         else
+      }
+      else
+      {
+         // get the last error on the socket
+         // Ignore EINPROGRESS that may not have been cleared.
+         int lastError;
+         socklen_t lastErrorLength = sizeof(lastError);
+         getsockopt(
+            mFileDescriptor, SOL_SOCKET, SO_ERROR,
+            (char*)&lastError, &lastErrorLength);
+         if(lastError != 0 && lastError != EINPROGRESS)
          {
             // error occurred, get string message
             e = new Exception(
                "Could not write to socket.", SOCKET_EXCEPTION_TYPE);
+            // Note: using the SO_ERROR code vs errno
             e->getDetails()["error"] = strerror(lastError);
          }
       }
@@ -325,6 +313,7 @@ bool AbstractSocket::listen(int backlog)
          mListening = true;
 
          // set socket to non-blocking so accept() calls can be interrupted
+         // FIXME: handle return value
          SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
       }
    }
@@ -430,9 +419,11 @@ bool AbstractSocket::connect(SocketAddress* address, int timeout)
       // populate address structure
       unsigned int size = 130;
       char addr[size];
+      // FIXME: handle return value
       address->toSockAddr((sockaddr*)&addr, size);
 
       // make socket non-blocking, blocking is handled via select
+      // FIXME: handle return value
       SOCKET_MACRO_fcntl(mFileDescriptor, F_SETFL, O_NONBLOCK);
 
       // connect
@@ -666,6 +657,10 @@ inline bool AbstractSocket::isListening()
 
 bool AbstractSocket::isConnected()
 {
+   // FIXME: The peek recv check below assumes a readable socket.
+   // "isConnected" is a generic enough name that is should work for writable
+   // or newly connected sockets as well.
+
    if(mConnected)
    {
       // get the last error on the socket
