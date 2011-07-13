@@ -2382,7 +2382,7 @@ static bool _isType(DynamicObject& input, DynamicObject& frame)
       DynamicObject iTypes(NULL);
       if(input[RDF_TYPE]->getType() == Array)
       {
-         iTypes = frame[RDF_TYPE];
+         iTypes = input[RDF_TYPE];
       }
       else
       {
