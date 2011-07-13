@@ -2563,6 +2563,109 @@ static void runDynoSortTest(TestRunner& tr)
    tr.ungroup();
 }
 
+static void runDynoRotateTest(TestRunner& tr)
+{
+   tr.group("DynamicObject rotate");
+
+   tr.test("left 1");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate();
+
+      DynamicObject expect;
+      expect[0] = "b";
+      expect[1] = "c";
+      expect[2] = "a";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("right 1");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(1, false);
+
+      DynamicObject expect;
+      expect[0] = "c";
+      expect[1] = "a";
+      expect[2] = "b";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("left 2");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(2);
+
+      DynamicObject expect;
+      expect[0] = "c";
+      expect[1] = "a";
+      expect[2] = "b";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("right 2");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(2, false);
+
+      DynamicObject expect;
+      expect[0] = "b";
+      expect[1] = "c";
+      expect[2] = "a";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("left 7");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(7, true);
+
+      DynamicObject expect;
+      expect[0] = "b";
+      expect[1] = "c";
+      expect[2] = "a";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("right 7");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(7, false);
+
+      DynamicObject expect;
+      expect[0] = "c";
+      expect[1] = "a";
+      expect[2] = "b";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 static void runDynoStatsTest(TestRunner& tr)
 {
    tr.group("DynamicObject stats");
@@ -2910,6 +3013,7 @@ static bool run(TestRunner& tr)
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
       runDynoSortTest(tr);
+      runDynoRotateTest(tr);
       runDynoStatsTest(tr);
       runRunnableDelegateTest(tr);
       runExceptionTest(tr);
@@ -2941,6 +3045,7 @@ static bool run(TestRunner& tr)
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
       runDynoSortTest(tr);
+      runDynoRotateTest(tr);
       runDynoStatsTest(tr);
    }
    return true;

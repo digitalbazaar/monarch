@@ -388,6 +388,21 @@ DynamicObject DynamicObject::pop()
    return (*this)->pop();
 }
 
+DynamicObject DynamicObject::shift()
+{
+   DynamicObject rval(NULL);
+   if((*this)->getType() == Array)
+   {
+      DynamicObjectIterator i = getIterator();
+      if(i->hasNext())
+      {
+         rval = i->next();
+         i->remove();
+      }
+   }
+   return rval;
+}
+
 DynamicObject DynamicObject::first() const
 {
    DynamicObject rval(NULL);
@@ -574,6 +589,59 @@ DynamicObject DynamicObject::filter(DynamicObject::FilterFunctor& func)
          }
       }
    }
+   return rval;
+}
+
+DynamicObject& DynamicObject::rotate(int num, bool left)
+{
+   int length = (*this)->length();
+   if((*this)->getType() == Array && length > 1 && num > 0)
+   {
+      // make a shallow copy of the array
+      DynamicObject copy(Array);
+      copy.merge(*this, true);
+
+      // rotate the elements
+      num %= length;
+      if(!left)
+      {
+         num = -num;
+      }
+      for(int i = 0; i < length; ++i)
+      {
+         (*this)[i] = copy[(i + num + length) % length];
+      }
+   }
+   return *this;
+}
+
+DynamicObject DynamicObject::slice(int start, int end)
+{
+   DynamicObject rval(Array);
+
+   int length = (*this)->length();
+   if(end == -1)
+   {
+      end = length;
+   }
+   if((*this)->getType() == Array && length > 0 && start < end)
+   {
+      // force slice to be within bounds
+      if(start < 0)
+      {
+         start = 0;
+      }
+      if(end > length)
+      {
+         end = length;
+      }
+
+      for(int i = start; i < end; ++i)
+      {
+         rval->append((*this)[i]);
+      }
+   }
+
    return rval;
 }
 

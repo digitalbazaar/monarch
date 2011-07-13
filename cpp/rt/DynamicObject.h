@@ -584,6 +584,13 @@ public:
    virtual DynamicObject pop();
 
    /**
+    * Removes the first element of a non-empty array.
+    *
+    * @return the first element or NULL.
+    */
+   virtual DynamicObject shift();
+
+   /**
     * Gets a reference-counted DynamicObject for the first member or
     * array element in this object. If this DynamicObject is not a map
     * or array, then a reference to this object will be returned.
@@ -637,6 +644,32 @@ public:
     */
    virtual DynamicObject filter(DynamicObject::FilterDyno func);
    virtual DynamicObject filter(DynamicObject::FilterFunctor& func);
+
+   /**
+    * Rotates the elements in this DynamicObject, if it an array, in place.
+    *
+    * The default rotation direction is to the left. This means that a call
+    * to rotate(1) will move the first element in the array onto the end of
+    * the array in place.
+    *
+    * @param num the number of elements to rotate.
+    * @param left the direction to move the elements.
+    *
+    * @return a reference to the array.
+    */
+   virtual DynamicObject& rotate(int num = 1, bool left = true);
+
+   /**
+    * Returns a shallow copy that is a slice of this DynamicObject, if this
+    * DynamicObject is an array. An empty array will be returned if this
+    * object is not an array or there are no elements in the slice bounds.
+    *
+    * @param start the starting index for the slice.
+    * @param end the ending index for the slice -1 to go to the end.
+    *
+    * @return the array slice.
+    */
+   virtual DynamicObject slice(int start = 0, int end = -1);
 
    /**
     * Clones this DynamicObject and returns it.

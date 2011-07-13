@@ -25,6 +25,9 @@ using namespace monarch::util;
 #define XSD_INTEGER       XSD_NS "integer"
 #define XSD_ANY_URI       XSD_NS "anyURI"
 
+#define __S               "@subject"
+#define __T               "@type"
+
 #define EXCEPTION_TYPE    "monarch.data.json.JsonLd"
 
 JsonLd::JsonLd()
@@ -72,6 +75,12 @@ static string _compactIri(
             }
          }
       }
+   }
+
+   // term not found, if term is rdf type, use built-in keyword
+   if(rval.empty() && strcmp(iri, RDF_TYPE) == 0)
+   {
+      rval = __T;
    }
 
    // if term not found, check the context for a CURIE prefix
@@ -167,12 +176,17 @@ static string _expandTerm(
          (*usedCtx)[term] = rval.c_str();
       }
    }
-   // 3. The property is the special-case '@'.
-   else if(strcmp(term, "@") == 0)
+   // 3. The property is the special-case subject.
+   else if(strcmp(term, __S) == 0)
    {
-      rval = "@";
+      rval = __S;
    }
-   // 4. The property is a relative IRI, prepend the default vocab.
+   // 4. The property is the special-case rdf type.
+   else if(strcmp(term, __T) == 0)
+   {
+      rval = RDF_TYPE;
+   }
+   // 5. The property is a relative IRI, prepend the default vocab.
    else
    {
       rval = StringTools::format("%s%s", ctx["@vocab"]->getString(), term);
@@ -224,7 +238,7 @@ static DynamicObject _getCoerceType(
    const char* p = prop.c_str();
 
    // built-in type coercion JSON-LD-isms
-   if(strcmp(p, "@") == 0 || strcmp(p, RDF_TYPE) == 0)
+   if(strcmp(p, __S) == 0 || strcmp(p, RDF_TYPE) == 0)
    {
       rval = DynamicObject();
       rval = XSD_ANY_URI;
@@ -311,11 +325,11 @@ static bool _compact(
    // graph literal/disjoint graph
    else if(
       value->getType() == Map &&
-      value->hasMember("@") &&
-      value["@"]->getType() == Array)
+      value->hasMember(__S) &&
+      value[__S]->getType() == Array)
    {
       out = DynamicObject(Map);
-      rval = _compact(ctx, property, value["@"], out["@"], usedCtx);
+      rval = _compact(ctx, property, value[__S], out[__S], usedCtx);
    }
    // value has sub-properties if it doesn't define a literal or IRI value
    else if(
@@ -533,7 +547,14 @@ static bool _expand(
             while(rval && i->hasNext())
             {
                DynamicObject obj = i->next();
-               if(i->getName()[0] != '@' || i->getName()[1] == 0)
+
+               // preserve frame keywords
+               if(strcmp(i->getName(), "@embed") == 0 ||
+                  strcmp(i->getName(), "@explicit") == 0)
+               {
+                  _setProperty(out, i->getName(), obj.clone());
+               }
+               else if(strcmp(i->getName(), "@context") != 0)
                {
                   // expand property
                   string p = _expandTerm(ctx, i->getName(), NULL);
@@ -546,11 +567,6 @@ static bool _expand(
                      // set object to expanded property
                      _setProperty(out, p.c_str(), objOut);
                   }
-               }
-               else if(strcmp(i->getName(), "@context") != 0)
-               {
-                  // preserve non-context json-ld keywords
-                  _setProperty(out, i->getName(), obj.clone());
                }
             }
          }
@@ -587,7 +603,7 @@ static bool _expand(
       }
 
       // only expand subjects if requested
-      if(!coerce.isNull() && (strcmp(property, "@") != 0 || expandSubjects))
+      if(!coerce.isNull() && (strcmp(property, __S) != 0 || expandSubjects))
       {
          // expand IRI
          if(coerce == XSD_ANY_URI)
@@ -630,9 +646,9 @@ inline static bool _isNamedBlankNode(DynamicObject& v)
    // look for "_:" at the beginning of the subject
    return (
       v->getType() == Map &&
-      v->hasMember("@") &&
-      v["@"]->hasMember("@iri") &&
-      _isBlankNodeIri(v["@"]["@iri"]));
+      v->hasMember(__S) &&
+      v[__S]->hasMember("@iri") &&
+      _isBlankNodeIri(v[__S]["@iri"]));
 }
 
 inline static bool _isBlankNode(DynamicObject& v)
@@ -641,7 +657,7 @@ inline static bool _isBlankNode(DynamicObject& v)
    return (
       v->getType() == Map &&
       !(v->hasMember("@iri") || v->hasMember("@literal")) &&
-      (!v->hasMember("@") || _isNamedBlankNode(v)));
+      (!v->hasMember(__S) || _isNamedBlankNode(v)));
 }
 
 static bool _isNonBlankNodeObject(DynamicObject& v)
@@ -852,6 +868,8 @@ static int _compareBlankNodeObjects(DynamicObject& a, DynamicObject& b)
          // steps #3.2.2-3.2.9
          if(rval == 0)
          {
+            objsA.sort(&_sortObjects);
+            objsB.sort(&_sortObjects);
             for(int i = 0; i < objsA->length() && rval == 0; ++i)
             {
                rval = _compareObjects(objsA[i], objsB[i]);
@@ -919,7 +937,7 @@ static bool _flatten(
    else if(value->getType() == Map)
    {
       // graph literal/disjoint graph
-      if(value->hasMember("@") && value["@"]->getType() == Array)
+      if(value->hasMember(__S) && value[__S]->getType() == Array)
       {
          // cannot flatten embedded graph literals
          if(parent != NULL)
@@ -933,7 +951,7 @@ static bool _flatten(
          // top-level graph literal
          else
          {
-            DynamicObjectIterator i = value["@"].getIterator();
+            DynamicObjectIterator i = value[__S].getIterator();
             while(rval && i->hasNext())
             {
                rval = _flatten(parent, parentProperty, i->next(), subjects);
@@ -950,18 +968,18 @@ static bool _flatten(
       {
          // create or fetch existing subject
          DynamicObject subject(NULL);
-         if(value->hasMember("@") && subjects->hasMember(value["@"]["@iri"]))
+         if(value->hasMember(__S) && subjects->hasMember(value[__S]["@iri"]))
          {
-            // FIXME: "@" might be a graph literal (as {})
-            subject = subjects[value["@"]["@iri"]->getString()];
+            // FIXME: __S might be a graph literal (as {})
+            subject = subjects[value[__S]["@iri"]->getString()];
          }
          else
          {
             subject = DynamicObject(Map);
-            if(value->hasMember("@"))
+            if(value->hasMember(__S))
             {
-               // FIXME: "@" might be a graph literal (as {})
-               subjects[value["@"]["@iri"]->getString()] = subject;
+               // FIXME: __S might be a graph literal (as {})
+               subjects[value[__S]["@iri"]->getString()] = subject;
             }
          }
          flattened = subject;
@@ -1000,11 +1018,12 @@ static bool _flatten(
    if(rval && !flattened.isNull() && parent != NULL)
    {
       // remove top-level '@' for subjects
-      // 'http://mypredicate': {'@': {'@iri': 'http://mysubject'}} becomes
+      // 'http://mypredicate': {'@subject': {'@iri': 'http://mysubject'}}
+      // becomes
       // 'http://mypredicate': {'@iri': 'http://mysubject'}
-      if(flattened->getType() == Map && flattened->hasMember("@"))
+      if(flattened->getType() == Map && flattened->hasMember(__S))
       {
-         flattened = flattened["@"];
+         flattened = flattened[__S];
       }
 
       if((*parent)->getType() == Array)
@@ -1067,15 +1086,19 @@ struct NameGenerator
  */
 struct C14NState
 {
-   DynamicObject memo;
    DynamicObject edges;
    DynamicObject subjects;
-   NameGenerator ng;
+   DynamicObject serializations;
+   NameGenerator ngTmp;
+   NameGenerator ngC14N;
+   bool canonicalizing;
    C14NState() :
-      memo(Map),
       edges(Map),
       subjects(Map),
-      ng("tmp")
+      serializations(Map),
+      ngTmp("tmp"),
+      ngC14N("c14n"),
+      canonicalizing(false)
    {
       this->edges["refs"]->setType(Map);
       this->edges["props"]->setType(Map);
@@ -1102,17 +1125,17 @@ static void _collectSubjects(
    }
    else if(input->getType() == Map)
    {
-      if(input->hasMember("@"))
+      if(input->hasMember(__S))
       {
          // graph literal
-         if(input["@"]->getType() == Array)
+         if(input[__S]->getType() == Array)
          {
-            _collectSubjects(input["@"], subjects, bnodes);
+            _collectSubjects(input[__S], subjects, bnodes);
          }
          // named subject
          else
          {
-            subjects[input["@"]["@iri"]->getString()] = input;
+            subjects[input[__S]["@iri"]->getString()] = input;
          }
       }
       // unnamed blank node
@@ -1148,12 +1171,12 @@ static void _nameBlankNodes(C14NState& state, DynamicObject& input)
    while(i->hasNext())
    {
       DynamicObject& bnode = i->next();
-      if(!bnode->hasMember("@"))
+      if(!bnode->hasMember(__S))
       {
          // generate names until one is unique
-         while(subjects->hasMember(state.ng.next()));
-         bnode["@"]["@iri"] = state.ng.current();
-         subjects[state.ng.current()] = bnode;
+         while(subjects->hasMember(state.ngTmp.next()));
+         bnode[__S]["@iri"] = state.ngTmp.current();
+         subjects[state.ngTmp.current()] = bnode;
       }
    }
 }
@@ -1170,8 +1193,8 @@ static void _renameBlankNode(
    C14NState& state, DynamicObject b, string id)
 {
    // update bnode IRI
-   string old = b["@"]["@iri"]->getString();
-   b["@"]["@iri"] = id.c_str();
+   string old = b[__S]["@iri"]->getString();
+   b[__S]["@iri"] = id.c_str();
 
    // update subjects map
    DynamicObject& subjects = state.subjects;
@@ -1272,10 +1295,10 @@ static int _compareEdges(C14NState& state, DynamicObject& a, DynamicObject& b)
 
    bool bnodeA = _isBlankNodeIri(a["s"]);
    bool bnodeB = _isBlankNodeIri(b["s"]);
-   DynamicObject& memo = state.memo;
+   NameGenerator& c14n = state.ngC14N;
 
-   // logical XOR
-   if((bnodeA || bnodeB) && !(bnodeA && bnodeB))
+   // if not both bnodes, one that is a bnode is greater
+   if(bnodeA != bnodeB)
    {
       rval = bnodeA ? 1 : -1;
    }
@@ -1289,11 +1312,20 @@ static int _compareEdges(C14NState& state, DynamicObject& a, DynamicObject& b)
       {
          rval = _compare(a["p"], b["p"]);
       }
-      if(rval == 0 && bnodeA &&
-         memo->hasMember(a["s"]) &&
-         memo[a["s"]->getString()]->hasMember(b["s"]))
+
+      // do bnode IRI comparison if canonical naming has begun
+      if(rval == 0 && state.canonicalizing)
       {
-         rval = memo[a["s"]->getString()][b["s"]->getString()];
+         bool c14nA = c14n.inNamespace(a["s"]);
+         bool c14nB = c14n.inNamespace(b["s"]);
+         if(c14nA != c14nB)
+         {
+            rval = c14nA ? 1 : -1;
+         }
+         else if(c14nA)
+         {
+            rval = _compare(a["s"], b["s"]);
+         }
       }
    }
 
@@ -1307,219 +1339,10 @@ struct CompareEdges : public DynamicObject::SortFunctor
 {
    C14NState* state;
    CompareEdges(C14NState* state) :
-      state(state)
-   {
-   }
+      state(state) {}
    virtual bool operator()(DynamicObject& a, DynamicObject& b)
    {
       return _compareEdges(*state, a, b) == -1;
-   }
-};
-
-// prototypes for recursively used functions
-static int _compareEdgeType(
-   C14NState& state, DynamicObject& a, DynamicObject& b,
-   const char* p, const char* dir, DynamicObject& iso);
-static int _deepCompareEdges(
-   C14NState& state, DynamicObject& a, DynamicObject& b,
-   const char* dir, DynamicObject& iso);
-
-/**
- * Deeply names the given blank node by first naming it if it doesn't already
- * have an appropriate prefix, and then by naming its properties and then
- * references.
- *
- * @param state the canonicalization state.
- * @param b the bnode to name.
- */
-static void _deepNameBlankNode(C14NState& state, DynamicObject b)
-{
-   // rename bnode (if not already renamed)
-   string iri = b["@"]["@iri"]->getString();
-   if(!state.ng.inNamespace(iri.c_str()))
-   {
-      _renameBlankNode(state, b, state.ng.next());
-      iri = state.ng.current();
-
-      DynamicObject& subjects = state.subjects;
-
-      // FIXME: can bnode edge sorting be optimized out due to sorting them
-      // when they are unequal in other parts of this algorithm?
-      CompareEdges sorter(&state);
-
-      // rename bnode properties
-      DynamicObject props = state.edges["props"][iri.c_str()]["bnodes"];
-      props.sort(sorter);
-      DynamicObjectIterator i = props.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& next = i->next();
-         if(subjects->hasMember(next["s"]))
-         {
-            _deepNameBlankNode(state, subjects[next["s"]->getString()]);
-         }
-      }
-
-      // rename bnode references
-      DynamicObject refs = state.edges["refs"][iri.c_str()]["bnodes"];
-      refs.sort(sorter);
-      i = refs.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& next = i->next();
-         if(subjects->hasMember(next["s"]))
-         {
-            _deepNameBlankNode(state, subjects[next["s"]->getString()]);
-         }
-      }
-   }
-}
-
-/**
- * Performs a shallow sort comparison on the given bnodes.
- *
- * @param state the canonicalization state.
- * @param a the first bnode.
- * @param b the second bnode.
- *
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
- */
-static int _shallowCompareBlankNodes(
-   C14NState& state, DynamicObject& a, DynamicObject& b)
-{
-   int rval = 0;
-
-   /* ShallowSort Algorithm (when comparing two bnodes):
-      1. Compare the number of properties.
-      1.1. The bnode with fewer properties is first.
-      2. Compare alphabetically sorted-properties.
-      2.1. The bnode with the alphabetically-first property is first.
-      3. For each property, compare object values.
-      4. Compare the number of references.
-      4.1. The bnode with fewer references is first.
-      5. Compare sorted references.
-      5.1. The bnode with the reference iri (vs. bnode) is first.
-      5.2. The bnode with the alphabetically-first reference iri is first.
-      5.3. The bnode with the alphabetically-first reference property is first.
-    */
-   DynamicObject pA = a.keys();
-   DynamicObject pB = b.keys();
-
-   // step #1
-   rval = _compare(pA->length(), pB->length());
-
-   // step #2
-   if(rval == 0)
-   {
-      // C++ implementation auto-sorts property names, so no extra sort here
-      rval = _compare(pA, pB);
-   }
-
-   // step #3
-   if(rval == 0)
-   {
-      rval = _compareBlankNodeObjects(a, b);
-   }
-
-   if(rval == 0)
-   {
-      const char* iriA = a["@"]["@iri"];
-      const char* iriB = b["@"]["@iri"];
-      DynamicObject& edgesA = state.edges["refs"][iriA]["all"];
-      DynamicObject& edgesB = state.edges["refs"][iriB]["all"];
-
-      // step #4
-      rval = _compare(edgesA->length(), edgesB->length());
-
-      // step #5
-      if(rval == 0)
-      {
-         for(int i = 0; i < edgesA->length() && rval == 0; ++i)
-         {
-            rval = _compareEdges(state, edgesA[i], edgesB[i]);
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Compares two blank nodes for equivalence.
- *
- * @param state the canonicalization state.
- * @param a the first blank node.
- * @param b the second blank node.
- * @param iso the current subgraph isomorphism for connected bnodes.
- *
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
- */
-static int _deepCompareBlankNodes(
-   C14NState& state, DynamicObject& a, DynamicObject& b, DynamicObject& iso)
-{
-   int rval = 0;
-
-   // compare IRIs
-   const char* iriA = a["@"]["@iri"];
-   const char* iriB = b["@"]["@iri"];
-   if(strcmp(iriA, iriB) == 0)
-   {
-      rval = 0;
-   }
-   // use memoized comparison if available
-   else if(state.memo[iriA]->hasMember(iriB))
-   {
-      rval = state.memo[iriA][iriB];
-   }
-   else
-   {
-      // do shallow compare first
-      rval = _shallowCompareBlankNodes(state, a, b);
-      if(rval != 0)
-      {
-         // compare done
-         state.memo[iriA][iriB] = rval;
-         state.memo[iriB][iriA] = -rval;
-      }
-      // deep comparison is necessary
-      else
-      {
-         // compare properties
-         rval = _deepCompareEdges(state, a, b, "props", iso);
-
-         // compare references
-         if(rval == 0)
-         {
-            rval = _deepCompareEdges(state, a, b, "refs", iso);
-         }
-
-         // update memo
-         if(!state.memo[iriA]->hasMember(iriB))
-         {
-            state.memo[iriA][iriB] = rval;
-            state.memo[iriB][iriA] = -rval;
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Comparator for deeply-sorting blank nodes.
- */
-struct DeepCompareBlankNodes : public DynamicObject::SortFunctor
-{
-   C14NState* state;
-   DynamicObject iso;
-   DeepCompareBlankNodes(C14NState* state, DynamicObject iso) :
-      state(state),
-      iso(iso)
-   {
-   }
-   virtual bool operator()(DynamicObject& a, DynamicObject& b)
-   {
-      return _deepCompareBlankNodes(*state, a, b, iso) == -1;
    }
 };
 
@@ -1559,7 +1382,7 @@ static void _collectEdges(C14NState& state)
       {
          DynamicObject& object = oi->next();
          const char* key = oi->getName();
-         if(strcmp(key, "@") != 0)
+         if(strcmp(key, __S) != 0)
          {
             // normalize to array for single codepath
             DynamicObject tmp(NULL);
@@ -1615,212 +1438,478 @@ static void _collectEdges(C14NState& state)
 }
 
 /**
- * Checks to see if the given bnode IRIs are equivalent in the given
- * isomorphism.
+ * Performs a shallow sort comparison on the given bnodes.
  *
- * @param iso the isomorphism to check.
- * @param iriA the first bnode IRI.
- * @param iriB the second bnode IRI.
- * @param cycle a map to prevent cycles when checking.
+ * @param state the canonicalization state.
+ * @param a the first bnode.
+ * @param b the second bnode.
  *
- * @return true if iriA and iriB are for equivalent bnodes per the isomorphism.
+ * @return -1 if a < b, 0 if a == b, 1 if a > b.
  */
-static bool _isIsoMatch(
-   DynamicObject& iso, const char* iriA, const char* iriB, DynamicObject cycle)
+static int _shallowCompareBlankNodes(
+   C14NState& state, DynamicObject& a, DynamicObject& b)
 {
-   bool rval = false;
+   int rval = 0;
 
-   if(strcmp(iriA, iriB) == 0)
+   /* ShallowSort Algorithm (when comparing two bnodes):
+      1. Compare the number of properties.
+      1.1. The bnode with fewer properties is first.
+      2. Compare alphabetically sorted-properties.
+      2.1. The bnode with the alphabetically-first property is first.
+      3. For each property, compare object values.
+      4. Compare the number of references.
+      4.1. The bnode with fewer references is first.
+      5. Compare sorted references.
+      5.1. The bnode with the reference iri (vs. bnode) is first.
+      5.2. The bnode with the alphabetically-first reference iri is first.
+      5.3. The bnode with the alphabetically-first reference property is first.
+    */
+   DynamicObject pA = a.keys();
+   DynamicObject pB = b.keys();
+
+   // step #1
+   rval = _compare(pA->length(), pB->length());
+
+   // step #2
+   if(rval == 0)
    {
-      rval = true;
+      // C++ implementation auto-sorts property names, so no extra sort here
+      rval = _compare(pA, pB);
    }
-   else if(iso->hasMember(iriA))
+
+   // step #3
+   if(rval == 0)
    {
-      if(iso[iriA] == iriB)
-      {
-         rval = true;
-      }
-      else if(!cycle->hasMember(iriA))
-      {
-         cycle[iriA] = true;
-         rval = _isIsoMatch(iso, iso[iriA], iriB, cycle);
-      }
+      rval = _compareBlankNodeObjects(a, b);
    }
-   else if(iso->hasMember(iriB))
+
+   if(rval == 0)
    {
-      rval = _isIsoMatch(iso, iriB, iriA, cycle);
+      const char* iriA = a[__S]["@iri"];
+      const char* iriB = b[__S]["@iri"];
+      DynamicObject& edgesA = state.edges["refs"][iriA]["all"];
+      DynamicObject& edgesB = state.edges["refs"][iriB]["all"];
+
+      // step #4
+      rval = _compare(edgesA->length(), edgesB->length());
+
+      // step #5
+      if(rval == 0)
+      {
+         for(int i = 0; i < edgesA->length() && rval == 0; ++i)
+         {
+            rval = _compareEdges(state, edgesA[i], edgesB[i]);
+         }
+      }
    }
 
    return rval;
+}
+
+/**
+ * Typedef for a MappingBuilder.
+ */
+typedef DynamicObject MappingBuilder;
+
+/**
+ * Creates a new MappingBuilder.
+ *
+ * @return the new MappingBuilder.
+ */
+static MappingBuilder _createMappingBuilder()
+{
+   MappingBuilder mb(Map);
+   mb["count"] = 1;
+   mb["mapped"]->setType(Map);
+   mb["mapping"]->setType(Map);
+   mb["output"]->setType(Map);
+   return mb;
+}
+
+/**
+ * Maps the next name to the given bnode IRI if the bnode IRI isn't already in
+ * the mapping. If the given bnode IRI is canonical, then it will be given
+ * a shortened form of the same name.
+ *
+ * @param iri the blank node IRI to map the next name to.
+ * @param mb the mapping builder to use.
+ *
+ * @return the mapped name.
+ */
+static const char* _mapNode(MappingBuilder& mb, const char* iri)
+{
+   if(!mb["mapping"]->hasMember(iri))
+   {
+      if(strstr(iri, "_:c14n") == iri)
+      {
+         mb["mapping"][iri] = StringTools::format("c%s", iri + 6).c_str();
+      }
+      else
+      {
+         int count = mb["count"];
+         mb["mapping"][iri] = StringTools::format("s%d", count).c_str();
+         mb["count"] = count + 1;
+      }
+   }
+   return mb["mapping"][iri];
+}
+
+/**
+ * Marks a relation serialization as dirty if necessary.
+ *
+ * @param state the canonicalization state.
+ * @param iri the IRI of the bnode to check.
+ * @param changed the old IRI of the bnode that changed.
+ * @param dir the direction to check ('props' or 'refs').
+ */
+static void _markSerializationDirty(
+   C14NState& state, const char* iri, const char* changed, const char* dir)
+{
+   DynamicObject& s = state.serializations[iri];
+   if(!s[dir].isNull() && s[dir]["m"]->hasMember(changed))
+   {
+      s[dir].setNull();
+   }
+}
+
+/**
+ * Recursively creates a relation serialization (partial or full).
+ *
+ * @param keys the keys to serialize in the current output.
+ * @param output the current mapping builder output.
+ * @param done the already serialized keys.
+ *
+ * @return the relation serialization.
+ */
+static string _recursiveSerializeMapping(
+   DynamicObject& keys, DynamicObject& output, DynamicObject& done)
+{
+   string rval;
+   DynamicObjectIterator i = keys.getIterator();
+   while(i->hasNext())
+   {
+      const char* k = i->next();
+      if(!output->hasMember(k))
+      {
+         break;
+      }
+
+      if(done->hasMember(k))
+      {
+         // mark cycle
+         rval.push_back('_');
+         rval.append(k);
+      }
+      else
+      {
+         done[k] = true;
+         DynamicObject& tmp = output[k];
+         rval.append(k);
+         rval.append(StringTools::join(tmp, ""));
+         rval.append(_recursiveSerializeMapping(tmp, output, done));
+      }
+   }
+   return rval;
+}
+
+/**
+ * Creates a relation serialization (partial or full).
+ *
+ * @param output the current mapping builder output.
+ *
+ * @return the relation serialization.
+ */
+static string _serializeMapping(DynamicObject& output)
+{
+   DynamicObject keys(Array);
+   keys[0] = "s1";
+   DynamicObject done(Map);
+   return _recursiveSerializeMapping(keys, output, done);
+}
+
+/**
+ * Compares two serializations for the same blank node. If the two
+ * serializations aren't complete enough to determine if they are equal (or if
+ * they are actually equal), 0 is returned.
+ *
+ * @param s1 the first serialization.
+ * @param s2 the second serialization.
+ *
+ * @return -1 if s1 < s2, 0 if s1 == s2 (or indeterminate), 1 if s1 > v2.
+ */
+static int _compareSerializations(string& s1, const char* s2)
+{
+   int rval = 0;
+
+   string::size_type s2Len = strlen(s2);
+   if(s1.length() == s2Len)
+   {
+      rval = strcmp(s1.c_str(), s2);
+   }
+   else
+   {
+      rval = strncmp(
+         s1.c_str(), s2, (s1.length() > s2Len) ? s2Len : s1.length());
+   }
+
+   return rval;
+}
+
+// prototypes for recursive functions
+static void _serializeBlankNode(
+   C14NState& state,
+   DynamicObject& s, const char* iri, MappingBuilder mb, const char* dir);
+
+/**
+ * Recursively serializes adjacent bnode combinations.
+ *
+ * @param state the canonicalization state.
+ * @param s the serialization to update.
+ * @param top the top of the serialization.
+ * @param mb the MappingBuilder to use.
+ * @param dir the edge direction to use ('props' or 'refs').
+ * @param mapped all of the already-mapped adjacent bnodes.
+ * @param notMapped all of the not-yet mapped adjacent bnodes.
+ */
+static void _serializeCombos(
+   C14NState& state,
+   DynamicObject& s, const char* top, MappingBuilder mb,
+   const char* dir, DynamicObject mapped, DynamicObject notMapped)
+{
+   // copy mapped nodes
+   mapped = mapped.clone();
+
+   // handle recursion
+   if(notMapped->length() > 0)
+   {
+      // map first bnode in list
+      mapped[_mapNode(mb, notMapped[0]["s"])] = notMapped[0]["s"];
+
+      // recurse into remaining possible combinations
+      DynamicObject original = mb.clone();
+      notMapped = notMapped.slice(1);
+      int rotations = max(1, notMapped->length());
+      for(int r = 0; r < rotations; ++r)
+      {
+         MappingBuilder m = (r == 0) ? mb : original.clone();
+         _serializeCombos(state, s, top, m, dir, mapped, notMapped);
+
+         // rotate not-mapped for next combination
+         notMapped.rotate();
+      }
+   }
+   // handle final adjacent node in current combination
+   else
+   {
+      DynamicObject keys = mapped.keys().sort();
+      mb["output"][top] = keys;
+
+      // optimize away mappings that are already too large
+      string _s = _serializeMapping(mb["output"]);
+      if(s[dir].isNull() || _compareSerializations(_s, s[dir]["s"]) <= 0)
+      {
+         int oldCount = mb["count"];
+
+         // recurse into adjacent values
+         DynamicObjectIterator i = keys.getIterator();
+         while(i->hasNext())
+         {
+            const char* k = i->next();
+            _serializeBlankNode(state, s, mapped[k], mb, dir);
+         }
+
+         // reserialize if more nodes were mapped
+         if(mb["count"]->getInt32() > oldCount)
+         {
+            _s = _serializeMapping(mb["output"]);
+         }
+
+         // update least serialization if new one has been found
+         if(s[dir].isNull() ||
+            (_compareSerializations(_s, s[dir]["s"]) <= 0 &&
+            (int)_s.length() >= s[dir]["s"]->length()))
+         {
+            s[dir] = DynamicObject(Map);
+            s[dir]["s"] = _s.c_str();
+            s[dir]["m"] = mb["mapping"];
+         }
+      }
+   }
+}
+
+/**
+ * Computes the relation serialization for the given blank node IRI.
+ *
+ * @param state the canonicalization state.
+ * @param s the serialization to update.
+ * @param iri the current bnode IRI to be mapped.
+ * @param mb the MappingBuilder to use.
+ * @param dir the edge direction to use ('props' or 'refs').
+ */
+static void _serializeBlankNode(
+   C14NState& state,
+   DynamicObject& s, const char* iri, MappingBuilder mb, const char* dir)
+{
+   // only do mapping if iri not already mapped
+   if(!mb["mapped"]->hasMember(iri))
+   {
+      // iri now mapped
+      mb["mapped"][iri] = true;
+      const char* top = _mapNode(mb, iri);
+
+      // copy original mapping builder
+      MappingBuilder original = mb.clone();
+
+      // split adjacent bnodes on mapped and not-mapped
+      DynamicObject& adj = state.edges[dir][iri]["bnodes"];
+      DynamicObject mapped(Map);
+      DynamicObject notMapped(Array);
+      DynamicObjectIterator ai = adj.getIterator();
+      while(ai->hasNext())
+      {
+         DynamicObject& next = ai->next();
+         if(mb["mapping"]->hasMember(next["s"]))
+         {
+            const char* serialized = mb["mapping"][next["s"]->getString()];
+            mapped[serialized] = next["s"];
+         }
+         else
+         {
+            notMapped->append(next);
+         }
+      }
+
+      // TODO: ensure this optimization does not alter canonical order
+
+      // if the current bnode already has a serialization, reuse it
+      /*DynamicObject hint = state.serializations->hasMember(iri) ?
+         state.serializations[iri][dir] : DynamicObject(NULL);
+      if(!hint.isNull())
+      {
+         DynamicObject& hm = hint["m"];
+         notMapped.sort(function(a, b)
+         {
+            return _compare(hm[a.s], hm[b.s]);
+         });
+         DynamicObjectIterator i = notMapped.getIterator();
+         while(i->hasNext())
+         {
+            DynamicObject& next = i->next();
+            mapped[_mapNode(mb, next["s"])] = notMapped[i]["s"];
+         }
+         notMapped = DynamicObject(Array);
+      }*/
+
+      // loop over possible combinations
+      int combos = max(1, notMapped->length());
+      for(int i = 0; i < combos; ++i)
+      {
+         MappingBuilder m = (i == 0) ? mb : original.clone();
+         _serializeCombos(state, s, top, mb, dir, mapped, notMapped);
+      }
+   }
+}
+
+/**
+ * Compares two blank nodes for equivalence.
+ *
+ * @param state the canonicalization state.
+ * @param a the first blank node.
+ * @param b the second blank node.
+ *
+ * @return -1 if a < b, 0 if a == b, 1 if a > b.
+ */
+static int _deepCompareBlankNodes(
+   C14NState& state, DynamicObject& a, DynamicObject& b)
+{
+   int rval = 0;
+
+   // compare IRIs
+   const char* iriA = a[__S]["@iri"];
+   const char* iriB = b[__S]["@iri"];
+   if(strcmp(iriA, iriB) == 0)
+   {
+      rval = 0;
+   }
+   else
+   {
+      // do shallow compare first
+      rval = _shallowCompareBlankNodes(state, a, b);
+
+      // deep comparison is necessary
+      if(rval == 0)
+      {
+         // compare property edges and then reference edges
+         DynamicObject dirs(Array);
+         dirs.push("props");
+         dirs.push("refs");
+         DynamicObjectIterator i = dirs.getIterator();
+         while(i->hasNext())
+         {
+            const char* dir = i->next();
+
+            // recompute 'a' and 'b' serializations as necessary
+            DynamicObject& sA = state.serializations[iriA];
+            DynamicObject& sB = state.serializations[iriB];
+            if(sA[dir].isNull())
+            {
+               MappingBuilder mb = _createMappingBuilder();
+               if(strcmp(dir, "refs") == 0)
+               {
+                  // keep same mapping and count from 'props' serialization
+                  mb["mapping"] = sA["props"]["m"].clone();
+                  mb["count"] = mb["mapping"]->length() + 1;
+               }
+               _serializeBlankNode(state, sA, iriA, mb, dir);
+            }
+            if(sB[dir].isNull())
+            {
+               MappingBuilder mb = _createMappingBuilder();
+               if(strcmp(dir, "refs") == 0)
+               {
+                  // keep same mapping and count from 'props' serialization
+                  mb["mapping"] = sB["props"]["m"].clone();
+                  mb["count"] = mb["mapping"]->length() + 1;
+               }
+               _serializeBlankNode(state, sB, iriB, mb, dir);
+            }
+
+            // compare serializations
+            rval = _compare(sA[dir]["s"], sB[dir]["s"]);
+         }
+      }
+   }
+
+   return rval;
+}
+
+/**
+ * Comparator for deeply-sorting blank nodes.
+ */
+struct DeepCompareBlankNodes : public DynamicObject::SortFunctor
+{
+   C14NState* state;
+   DeepCompareBlankNodes(C14NState* state) :
+      state(state) {}
+   virtual bool operator()(DynamicObject& a, DynamicObject& b)
+   {
+      return _deepCompareBlankNodes(*state, a, b) == -1;
+   }
 };
 
 /**
- * Compares the edges between two nodes for equivalence.
- *
- * @param state the canonicalization state.
- * @param a the first bnode.
- * @param b the second bnode.
- * @param dir the edge direction ("props" or "refs").
- * @param iso the current subgraph isomorphism for connected bnodes.
- *
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
+ * Comparator for sorting mappings by value.
  */
-static int _deepCompareEdges(
-   C14NState& state, DynamicObject& a, DynamicObject& b,
-   const char* dir, DynamicObject& iso)
+struct CompareMappingValues : public DynamicObject::SortFunctor
 {
-   int rval = 0;
-
-   /* Edge comparison algorithm:
-      1. Compare adjacent bnode lists for matches.
-      1.1. If a bnode IRI is in the potential isomorphism, then the other bnode
-         under the same edge must be equivalent in that isomorphism.
-      1.2. If a bnode IRI is not in the potential isomorphism yet, then the
-         associated bnode *must* have a bnode with the same edge that isn't
-         in the isomorphism yet to match up. Iterate over each bnode until an
-         equivalent one is found.
-      1.3. Recurse to compare the chosen bnodes.
-      1.4. The least bnode is the one with the least bnode for the edge.
-    */
-
-   // for every bnode edge in A, make sure there's a match in B
-   const char* iriA = a["@"]["@iri"];
-   const char* iriB = b["@"]["@iri"];
-   DynamicObject& edgesA = state.edges[dir][iriA]["bnodes"];
-   DynamicObject& edgesB = state.edges[dir][iriB]["bnodes"];
-   DynamicObjectIterator ai = edgesA.getIterator();
-   while(ai->hasNext() && rval == 0)
+   DynamicObject mapping;
+   CompareMappingValues(DynamicObject& mapping) :
+      mapping(mapping) {}
+   virtual bool operator()(DynamicObject& a, DynamicObject& b)
    {
-      DynamicObject& edgeA = ai->next();
-      bool found = false;
-
-      // step #1.1
-      if(iso->hasMember(edgeA["s"]))
-      {
-         DynamicObjectIterator bi = edgesB.getIterator();
-         for(int bi = 0;
-            !found && bi < edgesB->length() &&
-            edgesB[bi]["p"] <= edgeA["p"]; ++bi)
-         {
-            DynamicObject& edgeB = edgesB[bi];
-            if(edgeB["p"] == edgeA["p"] &&
-               _isIsoMatch(iso, edgeA["s"], edgeB["s"], DynamicObject(Map)))
-            {
-               found = true;
-            }
-         }
-      }
-      // step #1.2
-      else
-      {
-         for(int bi = 0;
-             bi < edgesB->length() && edgesB[bi]["p"] <= edgeA["p"] && !found;
-             ++bi)
-         {
-            DynamicObject& edgeB = edgesB[bi];
-            if(edgeB["p"] == edgeA["p"])
-            {
-               // identical edge case
-               if(edgeA["s"] == edgeB["s"])
-               {
-                  found = true;
-               }
-               else if(!iso->hasMember(edgeB["s"]))
-               {
-                  // add bnode pair temporarily to iso
-                  iso[edgeB["s"]->getString()] = edgeA["s"];
-
-                  // step #1.3
-                  DynamicObject& sA = state.subjects[edgeA["s"]->getString()];
-                  DynamicObject& sB = state.subjects[edgeB["s"]->getString()];
-                  if(_deepCompareBlankNodes(state, sA, sB, iso) == 0)
-                  {
-                     found = true;
-                  }
-                  else
-                  {
-                     // remove non-matching bnode pair from iso
-                     iso->removeMember(edgeB["s"]);
-                  }
-               }
-            }
-         }
-      }
-
-      // step #1.4
-      if(!found)
-      {
-         // no matching bnode pair found, sort order is the bnode with the
-         // least bnode for edgeA's property
-         rval = _compareEdgeType(state, a, b, edgeA["p"], dir, iso);
-      }
+      return strcmp(mapping[a->getString()], mapping[b->getString()]) == -1;
    }
-
-   return rval;
-}
-
-/**
- * Returns the bnode properties for a particular bnode in sorted order.
- *
- * @param state the canonicalization state.
- * @param b the bnode.
- * @param p the property (edge type).
- * @param direction the direction of the edge ("props" or "refs").
- * @param iso the current subgraph isomorphism for connected bnodes.
- *
- * @return the sorted bnodes for the property.
- */
-static DynamicObject _getSortedAdjacents(
-   C14NState& state, DynamicObject& b,
-   const char* p, const char* dir, DynamicObject& iso)
-{
-   DynamicObject rval(Array);
-
-   // add all bnodes for the given property
-   const char* iri = b["@"]["@iri"];
-   DynamicObject& edges = state.edges[dir][iri]["bnodes"];
-   for(int i = 0; i < edges->length() && edges[i]["p"] <= p; ++i)
-   {
-      if(edges[i]["p"] == p)
-      {
-         rval.push(state.subjects[edges[i]["s"]->getString()]);
-      }
-   }
-
-   // return sorted bnodes
-   DeepCompareBlankNodes sorter(&state, iso);
-   rval.sort(sorter);
-   return rval;
-}
-
-/**
- * Compares bnodes along the same edge type to determine which is less.
- *
- * @param state the canonicalization state.
- * @param a the first bnode.
- * @param b the second bnode.
- * @param p the property.
- * @param dir the direction of the edge ("props" or "refs").
- * @param iso the current subgraph isomorphism for connected bnodes.
- *
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
- */
-static int _compareEdgeType(
-   C14NState& state, DynamicObject& a, DynamicObject& b,
-   const char* p, const char* dir, DynamicObject& iso)
-{
-   int rval = 0;
-
-   // compare adjacent bnodes for smallest
-   DynamicObject adjA = _getSortedAdjacents(state, a, p, dir, iso);
-   DynamicObject adjB = _getSortedAdjacents(state, a, p, dir, iso);
-   for(int i = 0; i < adjA->length() && rval == 0; ++i)
-   {
-      rval = _deepCompareBlankNodes(state, adjA[i], adjB[i], iso);
-   }
-
-   return rval;
-}
+};
 
 /**
  * Canonically names blank nodes in the given input.
@@ -1831,15 +1920,15 @@ static int _compareEdgeType(
 static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
 {
    // collect subjects and bnodes from flat input graph
-   DynamicObject& memo = state.memo;
    DynamicObject& subjects = state.subjects;
    DynamicObject& edges = state.edges;
+   DynamicObject& serializations = state.serializations;
    DynamicObject bnodes(Array);
    DynamicObjectIterator i = input.getIterator();
    while(i->hasNext())
    {
       DynamicObject& next = i->next();
-      const char* iri = next["@"]["@iri"];
+      const char* iri = next[__S]["@iri"];
       subjects[iri] = next;
       edges["refs"][iri]["all"]->setType(Array);
       edges["refs"][iri]["bnodes"]->setType(Array);
@@ -1851,45 +1940,102 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
       }
    }
 
-   // build map of memoized bnode comparisons
-   i = bnodes.getIterator();
-   while(i->hasNext())
-   {
-      const char* iri = i->next()["@"]["@iri"];
-      memo[iri]->setType(Map);
-   }
-
    // collect edges in the graph
    _collectEdges(state);
 
-   // sort blank nodes
-   DeepCompareBlankNodes sorter(&state, DynamicObject(Map));
-   bnodes.sort(sorter);
+   // get node name generators
+   NameGenerator& c14n = state.ngC14N;
+   NameGenerator& ngTmp = state.ngTmp;
 
-   // create canonical blank node name generator
-   NameGenerator c14n("c14n");
-
-   // rename all bnodes that have canonical names to temporary names
+   // rename all bnodes that happen to be in the c14n namespace
+   // and initialize serializations
    i = bnodes.getIterator();
    while(i->hasNext())
    {
       DynamicObject& bnode = i->next();
-      if(c14n.inNamespace(bnode["@"]["@iri"]))
+      const char* iri = bnode[__S]["@iri"];
+      if(c14n.inNamespace(iri))
       {
          // generate names until one is unique
-         while(subjects->hasMember(state.ng.next()));
-         _renameBlankNode(state, bnode, state.ng.current());
+         while(subjects->hasMember(ngTmp.next()));
+         _renameBlankNode(state, bnode, ngTmp.current());
+         iri = bnode[__S]["@iri"];
       }
+      serializations[iri]["props"].setNull();
+      serializations[iri]["refs"].setNull();
    }
 
-   // change internal name generator from tmp one to canonical one
-   state.ng = c14n;
+   // being canonicalizing blank node names
+   state.canonicalizing = true;
 
-   // deeply-iterate over bnodes canonically-naming them
-   i = bnodes.getIterator();
-   while(i->hasNext())
+   // keep sorting and naming blank nodes until they are all named
+   while(bnodes->length() > 0)
    {
-      _deepNameBlankNode(state, i->next());
+      // sort blank nodes
+      DeepCompareBlankNodes nodeSorter(&state);
+      bnodes.sort(nodeSorter);
+
+      // name all bnodes according to the first bnode's relation mappings
+      DynamicObject bnode = bnodes.shift();
+      string iriStr = bnode[__S]["@iri"]->getString();
+      const char* iri = iriStr.c_str();
+      DynamicObject dirs(Array);
+      dirs->append("props");
+      dirs->append("refs");
+      i = dirs.getIterator();
+      while(i->hasNext())
+      {
+         const char* dir = i->next();
+
+         // if no serialization has been computed, name only the first node
+         DynamicObject mapping(NULL);
+         if(serializations[iri][dir].isNull())
+         {
+            mapping = DynamicObject(Map);
+            mapping[iri] = "s1";
+         }
+         else
+         {
+            mapping = serializations[iri][dir]["m"];
+         }
+
+         // sort keys by value to name them in order
+         CompareMappingValues mappingSorter(mapping);
+         DynamicObject keys = mapping.keys().sort(mappingSorter);
+
+         // name bnodes in mapping
+         DynamicObject renamed(Array);
+         DynamicObjectIterator ki = keys.getIterator();
+         while(ki->hasNext())
+         {
+            const char* iriK = ki->next();
+            if(!c14n.inNamespace(iriK) && subjects->hasMember(iriK))
+            {
+               renamed->append(iriK);
+               _renameBlankNode(state, subjects[iriK], c14n.next());
+            }
+         }
+
+         // only keep non-canonically named bnodes
+         DynamicObject tmp = bnodes;
+         bnodes = DynamicObject(Array);
+         DynamicObjectIterator bi = tmp.getIterator();
+         while(bi->hasNext())
+         {
+            DynamicObject& b = bi->next();
+            const char* iriB = b[__S]["@iri"];
+            if(!c14n.inNamespace(iriB))
+            {
+               // mark serializations related to the named bnodes as dirty
+               DynamicObjectIterator ri = renamed.getIterator();
+               while(ri->hasNext())
+               {
+                  _markSerializationDirty(state, iriB, ri->next(), dir);
+               }
+               bnodes->append(b);
+            }
+         }
+      }
    }
 
    // sort property lists that now have canonically-named bnodes
@@ -1907,7 +2053,7 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
             const char* p = pi->getName();
             if(p[0] != '@' && prop->getType() == Array)
             {
-               prop.sort(_sortObjects);
+               prop.sort(&_sortObjects);
             }
          }
       }
@@ -1924,13 +2070,12 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
  */
 static bool _compareBlankNodeIris(DynamicObject a, DynamicObject b)
 {
-   return _compare(a["@"]["@iri"], b["@"]["@iri"]) == -1;
+   return _compare(a[__S]["@iri"], b[__S]["@iri"]) == -1;
 }
 
 DynamicObject JsonLd::createDefaultContext()
 {
    DynamicObject ctx;
-   ctx["a"] = RDF_TYPE;
    ctx["rdf"] = RDF_NS;
    ctx["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
    ctx["owl"] = "http://www.w3.org/2002/07/owl#";
@@ -2219,7 +2364,7 @@ static bool _isType(DynamicObject& input, DynamicObject& frame)
    // check if type(s) are specified in frame and input
    if(frame->hasMember(RDF_TYPE) &&
       input->getType() == Map &&
-      input->hasMember("@") && input->hasMember(RDF_TYPE))
+      input->hasMember(__S) && input->hasMember(RDF_TYPE))
    {
       // normalize frame types to array for single code path
       DynamicObject fTypes(NULL);
@@ -2296,7 +2441,7 @@ static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
          rval = true;
       }
       // input must be a subject with all the given properties
-      else if(input->getType() == Map && input->hasMember("@"))
+      else if(input->getType() == Map && input->hasMember(__S))
       {
          rval = true;
          DynamicObjectIterator i = props.getIterator();
@@ -2399,28 +2544,28 @@ static bool _frame(
          if(!embedOn)
          {
             // if value is a subject, only use subject IRI as reference
-            if(value->getType() == Map && value->hasMember("@"))
+            if(value->getType() == Map && value->hasMember(__S))
             {
-               value = value["@"];
+               value = value[__S];
             }
          }
          else if(
             value->getType() == Map &&
-            value->hasMember("@") && embeds->hasMember(value["@"]["@iri"]))
+            value->hasMember(__S) && embeds->hasMember(value[__S]["@iri"]))
          {
             // TODO: possibly support multiple embeds in the future ... and
             // instead only prevent cycles?
             ExceptionRef e = new Exception(
                "Multiple embeds of the same subject is not supported.",
                EXCEPTION_TYPE ".TooManyEmbedsError");
-            e->getDetails()["subject"] = value["@"]["@iri"].clone();
+            e->getDetails()["subject"] = value[__S]["@iri"].clone();
             Exception::set(e);
             rval = false;
          }
          // if value is a subject, do embedding and subframing
-         else if(value->getType() == Map && value->hasMember("@"))
+         else if(value->getType() == Map && value->hasMember(__S))
          {
-            embeds[value["@"]["@iri"]->getString()] = true;
+            embeds[value[__S]["@iri"]->getString()] = true;
 
             // if explicit is on, remove keys from value that aren't in frame
             bool explicitOn = frame->hasMember("@explicit") ?
@@ -2434,7 +2579,7 @@ static bool _frame(
                   const char* key = vi->getName();
 
                   // always include subject
-                  if(strcmp(key, "@") != 0 && !frame->hasMember(key))
+                  if(strcmp(key, __S) != 0 && !frame->hasMember(key))
                   {
                      vi->remove();
                   }
@@ -2547,7 +2692,7 @@ bool JsonLd::frame(
          {
             opts["defaults"]["explicitOn"] = defaults["explicitOn"];
          }
-      };
+      }
 
       // build map of all subjects
       DynamicObject subjects(Map);
@@ -2555,7 +2700,7 @@ bool JsonLd::frame(
       while(i->hasNext())
       {
          DynamicObject& next = i->next();
-         subjects[next["@"]["@iri"]->getString()] = next;
+         subjects[next[__S]["@iri"]->getString()] = next;
       }
 
       // frame input
