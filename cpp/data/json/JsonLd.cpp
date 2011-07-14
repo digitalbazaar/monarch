@@ -1617,7 +1617,7 @@ static string _serializeProperties(DynamicObject& b)
             if(next->getType() == Map &&
                next->hasMember("@iri") && _isBlankNodeIri(next["@iri"]))
             {
-               rval.append("{\"@iri\":\"\"}");
+               rval.push_back('_');
             }
             else
             {
