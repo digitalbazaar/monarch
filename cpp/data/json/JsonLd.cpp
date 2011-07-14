@@ -3,6 +3,7 @@
  */
 #include "monarch/data/json/JsonLd.h"
 
+#include "monarch/data/json/JsonWriter.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/util/StringTools.h"
@@ -1573,8 +1574,66 @@ static void _markSerializationDirty(
 }
 
 /**
+ * Serializes the properties of the given bnode for its relation serialization.
+ *
+ * @param b the blank node.
+ *
+ * @return the serialized properties.
+ */
+static string _serializeProperties(DynamicObject& b)
+{
+   string rval;
+
+   DynamicObjectIterator pi = b.getIterator();
+   while(pi->hasNext())
+   {
+      DynamicObject& p = pi->next();
+      if(strcmp(pi->getName(), "@subject") != 0)
+      {
+         bool first = true;
+         DynamicObject prop(NULL);
+         if(p->getType() == Array)
+         {
+            prop = p;
+         }
+         else
+         {
+            prop = DynamicObject(Array);
+            prop->append(p);
+         }
+
+         DynamicObjectIterator pi = prop.getIterator();
+         while(pi->hasNext())
+         {
+            DynamicObject& next = pi->next();
+            if(first)
+            {
+               first = false;
+            }
+            else
+            {
+               rval.push_back('|');
+            }
+            if(next->getType() == Map &&
+               next->hasMember("@iri") && _isBlankNodeIri(next["@iri"]))
+            {
+               rval.append("{\"@iri\":\"\"}");
+            }
+            else
+            {
+               rval.append(JsonWriter::writeToString(next, false, false));
+            }
+         }
+      }
+   }
+
+   return rval;
+}
+
+/**
  * Recursively creates a relation serialization (partial or full).
  *
+ * @param state the canonicalization state.
  * @param keys the keys to serialize in the current output.
  * @param output the current mapping builder output.
  * @param done the already serialized keys.
@@ -1582,6 +1641,7 @@ static void _markSerializationDirty(
  * @return the relation serialization.
  */
 static string _recursiveSerializeMapping(
+   C14NState& state,
    DynamicObject& keys, DynamicObject& output, DynamicObject& done)
 {
    string rval;
@@ -1604,9 +1664,43 @@ static string _recursiveSerializeMapping(
       {
          done[k] = true;
          DynamicObject& tmp = output[k];
-         rval.append(k);
-         rval.append(StringTools::join(tmp, ""));
-         rval.append(_recursiveSerializeMapping(tmp, output, done));
+         DynamicObjectIterator ki = tmp["k"].getIterator();
+         while(ki->hasNext())
+         {
+            const char* s = ki->next();
+            rval.append(s);
+            const char* iri = tmp["m"][s];
+            if(state.subjects->hasMember(iri))
+            {
+               DynamicObject& b = state.subjects[iri];
+
+               // serialize properties
+               rval.push_back('<');
+               rval += _serializeProperties(b);
+               rval.push_back('>');
+
+               // serialize references
+               rval.push_back('<');
+               bool first = true;
+               DynamicObject& refs = state.edges["refs"][iri]["all"];
+               DynamicObjectIterator ri = refs.getIterator();
+               while(ri->hasNext())
+               {
+                  DynamicObject& r = ri->next();
+                  if(first)
+                  {
+                     first = false;
+                  }
+                  else
+                  {
+                     rval.push_back('|');
+                  }
+                  rval.append(_isBlankNodeIri(r["s"]) ? "_:b" : r["s"]);
+               }
+               rval.push_back('>');
+            }
+         }
+         rval.append(_recursiveSerializeMapping(state, tmp["k"], output, done));
       }
    }
    return rval;
@@ -1615,16 +1709,17 @@ static string _recursiveSerializeMapping(
 /**
  * Creates a relation serialization (partial or full).
  *
+ * @param state the canonicalization state.
  * @param output the current mapping builder output.
  *
  * @return the relation serialization.
  */
-static string _serializeMapping(DynamicObject& output)
+static string _serializeMapping(C14NState& state, DynamicObject& output)
 {
    DynamicObject keys(Array);
    keys[0] = "s1";
    DynamicObject done(Map);
-   return _recursiveSerializeMapping(keys, output, done);
+   return _recursiveSerializeMapping(state, keys, output, done);
 }
 
 /**
@@ -1702,10 +1797,13 @@ static void _serializeCombos(
    else
    {
       DynamicObject keys = mapped.keys().sort();
-      mb["output"][top] = keys;
+      DynamicObject entry(Map);
+      entry["k"] = keys;
+      entry["m"] = mapped;
+      mb["output"][top] = entry;
 
       // optimize away mappings that are already too large
-      string _s = _serializeMapping(mb["output"]);
+      string _s = _serializeMapping(state, mb["output"]);
       if(s[dir].isNull() || _compareSerializations(_s, s[dir]["s"]) <= 0)
       {
          int oldCount = mb["count"];
@@ -1721,7 +1819,7 @@ static void _serializeCombos(
          // reserialize if more nodes were mapped
          if(mb["count"]->getInt32() > oldCount)
          {
-            _s = _serializeMapping(mb["output"]);
+            _s = _serializeMapping(state, mb["output"]);
          }
 
          // update least serialization if new one has been found
@@ -1844,7 +1942,7 @@ static int _deepCompareBlankNodes(
          dirs.push("props");
          dirs.push("refs");
          DynamicObjectIterator i = dirs.getIterator();
-         while(i->hasNext())
+         while(rval == 0 && i->hasNext())
          {
             const char* dir = i->next();
 
