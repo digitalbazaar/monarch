@@ -1587,25 +1587,25 @@ static string _serializeProperties(DynamicObject& b)
    DynamicObjectIterator pi = b.getIterator();
    while(pi->hasNext())
    {
-      DynamicObject& p = pi->next();
+      DynamicObject& o = pi->next();
       if(strcmp(pi->getName(), "@subject") != 0)
       {
          bool first = true;
-         DynamicObject prop(NULL);
-         if(p->getType() == Array)
+         DynamicObject objs(NULL);
+         if(o->getType() == Array)
          {
-            prop = p;
+            objs = o;
          }
          else
          {
-            prop = DynamicObject(Array);
-            prop->append(p);
+            objs = DynamicObject(Array);
+            objs->append(o);
          }
 
-         DynamicObjectIterator pi = prop.getIterator();
-         while(pi->hasNext())
+         DynamicObjectIterator oi = objs.getIterator();
+         while(oi->hasNext())
          {
-            DynamicObject& next = pi->next();
+            DynamicObject& obj = oi->next();
             if(first)
             {
                first = false;
@@ -1614,14 +1614,14 @@ static string _serializeProperties(DynamicObject& b)
             {
                rval.push_back('|');
             }
-            if(next->getType() == Map &&
-               next->hasMember("@iri") && _isBlankNodeIri(next["@iri"]))
+            if(obj->getType() == Map &&
+               obj->hasMember("@iri") && _isBlankNodeIri(obj["@iri"]))
             {
-               rval.push_back('_');
+               rval.append("_:");
             }
             else
             {
-               rval.append(JsonWriter::writeToString(next, false, false));
+               rval.append(JsonWriter::writeToString(obj, false, false));
             }
          }
       }
@@ -1695,7 +1695,7 @@ static string _recursiveSerializeMapping(
                   {
                      rval.push_back('|');
                   }
-                  rval.append(_isBlankNodeIri(r["s"]) ? "_:b" : r["s"]);
+                  rval.append(_isBlankNodeIri(r["s"]) ? "_:" : r["s"]);
                }
                rval.push_back('>');
             }
