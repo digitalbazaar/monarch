@@ -199,9 +199,9 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
 
       // create/get the subject dyno
       DynamicObject& s = subjects[t->subject];
-      if(!s->hasMember("@"))
+      if(!s->hasMember("@subject"))
       {
-         s["@"] = subject;
+         s["@subject"] = subject;
       }
 
       // add the predicate and object to the subject dyno
@@ -275,7 +275,7 @@ static DynamicObject _getExceptionGraph(
    // use frame to embed error context in exception
    g->frame = DynamicObject();
    g->frame["@context"] = JsonLd::createDefaultContext();
-   g->frame["a"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
+   g->frame["@type"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
    g->frame["http://www.w3.org/ns/rdfa_processing_graph#context"]->setType(Map);
 
    // finish processor graph
