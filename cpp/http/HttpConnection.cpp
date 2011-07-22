@@ -19,17 +19,18 @@ using namespace monarch::net;
 using namespace monarch::rt;
 
 HttpConnection::HttpConnection(Connection* c, bool cleanup) :
-   ConnectionWrapper(c, cleanup)
-{
+   ConnectionWrapper(c, cleanup),
    // no content bytes read yet
-   mContentBytesRead = 0;
-
+   mContentBytesRead(0),
    // no content bytes written yet
-   mContentBytesWritten = 0;
+   mContentBytesWritten(0),
+   mRequestState(NULL)
+{
 }
 
 HttpConnection::~HttpConnection()
 {
+   delete mRequestState;
 }
 
 HttpRequest* HttpConnection::createRequest()
@@ -242,4 +243,20 @@ inline void HttpConnection::setContentBytesWritten(uint64_t count)
 inline uint64_t HttpConnection::getContentBytesWritten()
 {
    return mContentBytesWritten;
+}
+
+void HttpConnection::setRequestState(HttpRequestState* state)
+{
+   delete mRequestState;
+   mRequestState = state;
+}
+
+HttpRequestState* HttpConnection::getRequestState()
+{
+   // create state if needed
+   if(mRequestState == NULL)
+   {
+      mRequestState = new HttpRequestState();
+   }
+   return mRequestState;
 }

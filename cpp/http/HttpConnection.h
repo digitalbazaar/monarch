@@ -6,6 +6,7 @@
 
 #include "monarch/net/ConnectionWrapper.h"
 #include "monarch/http/HttpRequest.h"
+#include "monarch/http/HttpRequestState.h"
 #include "monarch/http/HttpTrailer.h"
 
 namespace monarch
@@ -35,6 +36,11 @@ protected:
     * A buffer for reading/writing.
     */
    monarch::io::ByteBuffer mBuffer;
+
+   /**
+    * Container for request state.
+    */
+   HttpRequestState* mRequestState;
 
 public:
    /**
@@ -176,6 +182,21 @@ public:
     * @return the number of content bytes written so far.
     */
    virtual uint64_t getContentBytesWritten();
+
+   /**
+    * Sets the request state object. This object will be cleaned up.
+    *
+    * @param state a HttpRequestState object.
+    */
+   virtual void setRequestState(HttpRequestState* state);
+
+   /**
+    * Gets the request state object. If one has not been set a
+    * HttpRequestState will be created.
+    *
+    * @return the request state.
+    */
+   virtual HttpRequestState* getRequestState();
 };
 
 // typedef for a counted reference to an HttpConnection
