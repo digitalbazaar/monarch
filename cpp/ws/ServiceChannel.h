@@ -154,6 +154,15 @@ public:
    virtual void cleanup();
 
    /**
+    * Create a message. Used by initialize() to setup the input and output
+    * messages. Subclasses can override this method to return custom Message
+    * instances.
+    *
+    * @return a new Message.
+    */
+   virtual Message* createMessage();
+
+   /**
     * Sets handler-specific information. A handler should know the context
     * underwhich it was added such that it knows how to interpret the object
     * that is set by this call. This object is typically used by extended

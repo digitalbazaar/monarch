@@ -66,8 +66,8 @@ ServiceChannel::~ServiceChannel()
 
 void ServiceChannel::initialize()
 {
-   mInput = new Message();
-   mOutput = new Message();
+   mInput = createMessage();
+   mOutput = createMessage();
 }
 
 void ServiceChannel::cleanup()
@@ -77,6 +77,11 @@ void ServiceChannel::cleanup()
 
    // TODO: once void* handler data is implemented, call function to free
    // it here or will the handler take care of that?
+}
+
+Message* ServiceChannel::createMessage()
+{
+   return new Message();
 }
 
 void ServiceChannel::setHandlerInfo(DynamicObject& info)
