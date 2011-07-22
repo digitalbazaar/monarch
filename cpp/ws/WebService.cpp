@@ -6,7 +6,6 @@
 #include "monarch/ws/WebService.h"
 
 #include "monarch/logging/Logging.h"
-#include "monarch/util/Timer.h"
 
 #include <cstdio>
 
@@ -197,10 +196,6 @@ void WebService::serviceRequest(HttpRequest* request, HttpResponse* response)
       (http1Allowed() &&
        strcmp(request->getHeader()->getVersion(), "HTTP/1.0") == 0))
    {
-      // start timer
-      Timer timer;
-      timer.start();
-
       // set response version
       response->getHeader()->setVersion(request->getHeader()->getVersion());
 
@@ -235,7 +230,8 @@ void WebService::serviceRequest(HttpRequest* request, HttpResponse* response)
          channel->getPath(),
          request->getConnection()->getRemoteAddress()->getAddress(),
          request->getConnection()->getRemoteAddress()->getPort(),
-         timer.getElapsedMilliseconds());
+         request->getConnection()->getRequestState()->getTimer()->
+            getElapsedMilliseconds());
 
       // clean up channel
       channel->cleanup();

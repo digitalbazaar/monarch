@@ -78,6 +78,9 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       // receive request header
       if((noerror = request->receiveHeader()))
       {
+         // begin new request state
+         hc.getRequestState()->beginRequest();
+
          // do request modification
          if(mRequestModifier != NULL)
          {
@@ -189,6 +192,9 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       }
       else
       {
+         // begin new request state
+         hc.getRequestState()->beginRequest();
+
          // exception occurred while receiving header
          ExceptionRef e = Exception::get();
          // if no header then drop through and close connection
