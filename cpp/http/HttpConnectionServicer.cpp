@@ -22,6 +22,7 @@ using namespace monarch::util;
 
 HttpConnectionServicer::HttpConnectionServicer(const char* serverName) :
    mServerName(strdup(serverName)),
+   mConnectionMonitor(NULL),
    mRequestModifier(NULL)
 {
 }
@@ -38,6 +39,17 @@ HttpConnectionServicer::~HttpConnectionServicer()
       free(sd->domain);
       delete sd;
    }
+}
+
+void HttpConnectionServicer::setConnectionMonitor(
+   HttpConnectionMonitorRef& hcm)
+{
+   mConnectionMonitor = hcm;
+}
+
+HttpConnectionMonitorRef& HttpConnectionServicer::getConnectionMonitor()
+{
+   return mConnectionMonitor;
 }
 
 void HttpConnectionServicer::setRequestModifier(HttpRequestModifier* hrm)
@@ -57,6 +69,12 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    hc.setReadTimeout(30000);
    hc.setWriteTimeout(30000);
 
+   // monitor connection
+   if(!mConnectionMonitor.isNull())
+   {
+      mConnectionMonitor->beforeServicingConnection(&hc);
+   }
+
    // create request
    HttpRequest* request = hc.createRequest();
    HttpRequestHeader* reqHeader = request->getHeader();
@@ -75,11 +93,24 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       resHeader->setDate();
       resHeader->setField("Server", mServerName);
 
+      // monitor request waiting
+      if(!mConnectionMonitor.isNull())
+      {
+         mConnectionMonitor->beforeRequest(&hc);
+      }
+
       // receive request header
       if((noerror = request->receiveHeader()))
       {
          // begin new request state
          hc.getRequestState()->beginRequest();
+
+         // monitor received request
+         if(!mConnectionMonitor.isNull())
+         {
+            mConnectionMonitor->beforeServicingRequest(
+               &hc, request, response);
+         }
 
          // do request modification
          if(mRequestModifier != NULL)
@@ -189,11 +220,25 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                noerror = response->sendBody(&is);
             }
          }
+
+         // monitor serviced request
+         if(!mConnectionMonitor.isNull())
+         {
+            mConnectionMonitor->afterServicingRequest(
+               &hc, request, response);
+         }
       }
       else
       {
          // begin new request state
          hc.getRequestState()->beginRequest();
+
+         // monitor request error
+         if(!mConnectionMonitor.isNull())
+         {
+            mConnectionMonitor->beforeRequestError(
+               &hc, request, response);
+         }
 
          // exception occurred while receiving header
          ExceptionRef e = Exception::get();
@@ -281,6 +326,19 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
                   e->getMessage(), e->getType());
             }
          }
+
+         // monitor request error
+         if(!mConnectionMonitor.isNull())
+         {
+            mConnectionMonitor->afterRequestError(
+               &hc, request, response, e);
+         }
+      }
+
+      // monitor request
+      if(!mConnectionMonitor.isNull())
+      {
+         mConnectionMonitor->afterRequest(&hc);
       }
 
       if(keepAlive && noerror)
@@ -298,6 +356,12 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
    // clean up request and response
    delete request;
    delete response;
+
+   // monitor connection
+   if(!mConnectionMonitor.isNull())
+   {
+      mConnectionMonitor->afterServicingConnection(&hc);
+   }
 
    // close connection
    hc.close();

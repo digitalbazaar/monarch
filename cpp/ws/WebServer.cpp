@@ -9,6 +9,7 @@
 
 #include "monarch/crypto/AsymmetricKeyFactory.h"
 #include "monarch/data/json/JsonWriter.h"
+#include "monarch/http/HttpConnectionMonitor.h"
 #include "monarch/logging/Logging.h"
 #include "monarch/net/NullSocketDataPresenter.h"
 #include "monarch/net/SslSocketDataPresenter.h"
@@ -170,6 +171,13 @@ bool WebServer::initialize(Config& cfg)
 
    if(rval)
    {
+      // setup a default connection monitor
+      HttpConnectionMonitorRef cm = new HttpConnectionMonitor();
+      getContainer()->getServicer()->setConnectionMonitor(cm);
+   }
+
+   if(rval)
+   {
       MO_CAT_DEBUG(MO_WS_CAT, "WebServer initialized.");
    }
 
@@ -232,6 +240,16 @@ void WebServer::setContainer(WebServiceContainerRef& c)
 WebServiceContainerRef& WebServer::getContainer()
 {
    return mContainer;
+}
+
+HttpConnectionMonitorRef& WebServer::getConnectionMonitor()
+{
+   return getContainer()->getServicer()->getConnectionMonitor();
+}
+
+void WebServer::setConnectionMonitor(HttpConnectionMonitorRef& hcm)
+{
+   getContainer()->getServicer()->setConnectionMonitor(hcm);
 }
 
 InternetAddressRef WebServer::getHostAddress()

@@ -7,6 +7,7 @@
 #include "monarch/rt/SharedLock.h"
 #include "monarch/net/ConnectionServicer.h"
 #include "monarch/http/HttpConnection.h"
+#include "monarch/http/HttpConnectionMonitor.h"
 #include "monarch/http/HttpRequestModifier.h"
 #include "monarch/http/HttpRequestServicer.h"
 #include "monarch/util/StringTools.h"
@@ -41,6 +42,11 @@ protected:
     * The default server name for this servicer.
     */
    char* mServerName;
+
+   /**
+    * Used to monitor the status and results of a connection.
+    */
+   HttpConnectionMonitorRef mConnectionMonitor;
 
    /**
     * Used to modify http requests, ie: rewrite paths, etc.
@@ -101,6 +107,25 @@ public:
     * Destructs this HttpConnectionServicer.
     */
    virtual ~HttpConnectionServicer();
+
+   /**
+    * Sets the connection monitor for this connection servicer. Should be set
+    * before adding any request servicers.
+    *
+    * The given connection monitor will be called for various connection events
+    * and can be used for statistics, event notification, logging, or other
+    * purposes.
+    *
+    * @param hcm the HttpConnectionMonitorRef to use, NULL for none.
+    */
+   virtual void setConnectionMonitor(HttpConnectionMonitorRef& hcm);
+
+   /**
+    * Gets the connection monitor for this connection servicer.
+    *
+    * @return the HttpConnectionMonitorRef, NULL for none.
+    */
+   virtual HttpConnectionMonitorRef& getConnectionMonitor();
 
    /**
     * Sets the request modifier for this connection servicer. Should be set

@@ -5,6 +5,7 @@
 #define monarch_ws_WebServer_H
 
 #include "monarch/config/ConfigManager.h"
+#include "monarch/http/HttpConnectionMonitor.h"
 #include "monarch/net/Server.h"
 #include "monarch/net/SocketDataPresenterList.h"
 #include "monarch/net/SslContext.h"
@@ -104,6 +105,21 @@ public:
     * @param c the container to use.
     */
    virtual void setContainer(WebServiceContainerRef& c);
+
+   /**
+    * Gets this WebServer's HttpConnectionMonitor.
+    *
+    * @return the HttpConnectionMontior for this WebServer.
+    */
+   virtual monarch::http::HttpConnectionMonitorRef& getConnectionMonitor();
+
+   /**
+    * Sets this WebServer's HttpConnectionMonitor.
+    *
+    * @param cm the HttpConnectionMonitor to use.
+    */
+   virtual void setConnectionMonitor(
+      monarch::http::HttpConnectionMonitorRef& hcm);
 
    /**
     * Gets this WebServer's container. The container can be used to add or
