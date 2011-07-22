@@ -23,6 +23,11 @@ uint64_t Timer::start()
    return mStartTime;
 }
 
+uint64_t Timer::getStartTime()
+{
+   return mStartTime;
+}
+
 uint64_t Timer::getElapsedMilliseconds()
 {
    return System::getCurrentMilliseconds() - mStartTime;

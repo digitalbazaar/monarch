@@ -43,6 +43,13 @@ public:
    virtual uint64_t start();
 
    /**
+    * Gets the time that this timer was started.
+    *
+    * @return the starting time in milliseconds since the epoch.
+    */
+   virtual uint64_t getStartTime();
+
+   /**
     * Gets the time that has elapsed since the starting time.
     *
     * @return the time that elapsed in milliseconds.
