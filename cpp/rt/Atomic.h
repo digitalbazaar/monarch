@@ -1,19 +1,14 @@
 /*
- * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_rt_Atomic_H
 #define monarch_rt_Atomic_H
 
+#include "monarch/util/Macros.h"
 #include <cstdlib>
 #include <inttypes.h>
 
 #ifdef WIN32
-// Note: FD_SETSIZE on windows simply refers to the number of concurrent
-// sockets that can be watched using a single select() call, not the maximum
-// file descriptor (it doesn't use a bit field, it uses an array of sockets)
-//#ifndef FD_SETSIZE
-//#define FD_SETSIZE 256
-//#endif
 #include <windows.h>
 // FIXME: get the CPU address size and use it instead of assuming 32
 #define ALIGN_BYTES 4
@@ -67,6 +62,25 @@ public:
    static void freeAligned(void* ptr);
 
    /**
+    * Performs an atomic store into the given destination.
+    *
+    * @param dst the storage destination.
+    * @param value the value to store.
+    */
+   template<typename T>
+   static inline void store(volatile T* dst, T value);
+
+   /**
+    * Performs an atomic load from the given address.
+    *
+    * @param ptr the address with the value to load.
+    *
+    * @return the value.
+    */
+   template<typename T>
+   static inline T load(volatile T* ptr);
+
+   /**
     * Performs an atomic Increment-And-Fetch. Increments the value at
     * the given destination.
     *
@@ -89,6 +103,29 @@ public:
    static inline T decrementAndFetch(volatile T* dst);
 
    /**
+    * Performs an atomic Add-And-Fetch. Adds the value to to the destination.
+    *
+    * @param dst the destination of the addtion.
+    * @param value the value to add to the destination.
+    *
+    * @return the new value.
+    */
+   template<typename T>
+   static inline T addAndFetch(volatile T* dst, T value);
+
+   /**
+    * Performs an atomic Subtract-And-Fetch. Adds the value to to the
+    * destination.
+    *
+    * @param dst the destination of the subtraction.
+    * @param value the value to subtract from the destination.
+    *
+    * @return the new value.
+    */
+   template<typename T>
+   static inline T subtractAndFetch(volatile T* dst, T value);
+
+   /**
     * Performs an atomic Compare-And-Swap (CAS). The given new value will only
     * be written to the destination if it contains the given old value. If
     * the old value matches, the write will occur and the function returns
@@ -108,10 +145,47 @@ public:
 };
 
 template<typename T>
+void Atomic::store(volatile T* dst, T value)
+{
+   while(true)
+   {
+      T oldValue = *dst;
+      if(Atomic::compareAndSwap(dst, oldValue, value))
+      {
+         break;
+      }
+   }
+}
+
+template<typename T>
+T Atomic::load(volatile T* ptr)
+{
+   T rval;
+   while (true)
+   {
+      rval = *ptr;
+      if(Atomic::compareAndSwap(ptr, rval, rval))
+      {
+         break;
+      }
+   }
+   return rval;
+}
+
+template<typename T>
 T Atomic::incrementAndFetch(volatile T* dst)
 {
 #ifdef WIN32
-   return InterlockedIncrement((LONG*)dst);
+   // NOTE: newer API has 16 bit functions
+   MO_STATIC_ASSERT(sizeof(T) == 4 || sizeof(T) == 8);
+   if(sizeof(T) == 4)
+   {
+      return InterlockedIncrement((LONG*)&dst);
+   }
+   else if(sizeof(T) == 8)
+   {
+      return InterlockedIncrement64((LONGLONG*)&dst);
+   }
 #else
    return __sync_add_and_fetch(dst, 1);
 #endif
@@ -121,9 +195,54 @@ template<typename T>
 T Atomic::decrementAndFetch(volatile T* dst)
 {
 #ifdef WIN32
-   return InterlockedDecrement((LONG*)dst);
+   // NOTE: newer API has 16 bit functions
+   MO_STATIC_ASSERT(sizeof(T) == 4 || sizeof(T) == 8);
+   if(sizeof(T) == 4)
+   {
+      return InterlockedDecrement((LONG*)&dst);
+   }
+   else if(sizeof(T) == 8)
+   {
+      return InterlockedDecrement64((LONGLONG*)&dst);
+   }
 #else
    return __sync_sub_and_fetch(dst, 1);
+#endif
+}
+
+template<typename T>
+T Atomic::addAndFetch(volatile T* dst, T value)
+{
+#ifdef WIN32
+   MO_STATIC_ASSERT(sizeof(T) == 4 || sizeof(T) == 8);
+   if(sizeof(T) == 4)
+   {
+      return InterlockedAdd((LONG*)&dst, (LONG)value);
+   }
+   else if(sizeof(T) == 8)
+   {
+      return InterlockedAdd64((LONGLONG*)&dst, (LONG)value);
+   }
+#else
+   return __sync_add_and_fetch(dst, value);
+#endif
+}
+
+template<typename T>
+T Atomic::subtractAndFetch(volatile T* dst, T value)
+{
+#ifdef WIN32
+   MO_STATIC_ASSERT(sizeof(T) == 4 || sizeof(T) == 8);
+   if(sizeof(T) == 4)
+   {
+      return InterlockedAdd((LONG*)&dst, -(LONG)value);
+   }
+   else if(sizeof(T) == 8)
+   {
+      return InterlockedDecrement64((LONGLONG*)&dst, -(LONG)value);
+   }
+#else
+   return __sync_sub_and_fetch(dst, value);
 #endif
 }
 
@@ -131,6 +250,8 @@ template<typename T>
 bool Atomic::compareAndSwap(volatile T* dst, T oldVal, T newVal)
 {
 #ifdef WIN32
+   // NOTE: newer API has 16 and 64 bit functions
+   MO_STATIC_ASSERT(sizeof(T) == 4);
    return (InterlockedCompareExchange(
       (LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
 #else
@@ -142,8 +263,7 @@ template<typename T>
 bool Atomic::compareAndSwap(volatile T** dst, T* oldVal, T* newVal)
 {
 #ifdef WIN32
-   return (InterlockedCompareExchange(
-      (LONG*)dst, (LONG)newVal, (LONG)oldVal) == (LONG)oldVal);
+   return (InterlockedCompareExchangePointer(*dst, newVal, oldVal) == oldVal);
 #else
    return __sync_bool_compare_and_swap(dst, oldVal, newVal);
 #endif
