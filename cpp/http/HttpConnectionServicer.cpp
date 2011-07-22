@@ -191,7 +191,13 @@ void HttpConnectionServicer::serviceConnection(Connection* c)
       {
          // exception occurred while receiving header
          ExceptionRef e = Exception::get();
-         if(e->isType("monarch.http.BadHeader") ||
+         // if no header then drop through and close connection
+         if(e->isType("monarch.http.NoHeader"))
+         {
+            keepAlive = false;
+         }
+         // for bad header or request set 400
+         else if(e->isType("monarch.http.BadHeader") ||
             e->isType("monarch.http.BadRequest"))
          {
             // send 400 Bad Request
