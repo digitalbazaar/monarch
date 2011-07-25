@@ -2586,9 +2586,7 @@ static bool _frame(
       // an empty array means accept all
       if(frames->length() == 0)
       {
-         DynamicObject f = DynamicObject(Map);
-         f["@embed"] = false;
-         frames.push(f);
+         frames.push(DynamicObject(Map));
       }
    }
    else
