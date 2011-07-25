@@ -711,8 +711,8 @@ static int _compare(int v1, int v2)
 
 /**
  * Compares two keys in an object. If the key exists in one object
- * and not the other, that object is less. If the key exists in both objects,
- * then the one with the lesser value is less.
+ * and not the other, the object with the key is less. If the key exists in
+ * both objects, then the one with the lesser value is less.
  *
  * @param o1 the first object.
  * @param o2 the second object.
@@ -923,16 +923,6 @@ static bool _flatten(
       while(rval && i->hasNext())
       {
          rval = _flatten(parent, parentProperty, i->next(), subjects);
-      }
-
-      // if value is a list of objects, sort them
-      if(value->length() > 0 &&
-         (value[0]->getType() == String ||
-         (value[0]->getType() == Map &&
-         (value[0]->hasMember("@literal") || value[0]->hasMember("@iri")))))
-      {
-         // sort values
-         value.sort(_sortObjects);
       }
    }
    else if(value->getType() == Map)
