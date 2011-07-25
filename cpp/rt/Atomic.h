@@ -161,7 +161,7 @@ template<typename T>
 T Atomic::load(volatile T* ptr)
 {
    T rval;
-   while (true)
+   while(true)
    {
       rval = *ptr;
       if(Atomic::compareAndSwap(ptr, rval, rval))
