@@ -101,7 +101,7 @@ PKG_CHECK_MODULES([LIBRDFA], [librdfa], HAVE_LIBRDFA=yes, HAVE_LIBRDFA=no)
 
 AC_SUBST(HAVE_LIBRDFA)
 if test "x$HAVE_LIBRDFA" = "xyes"; then
-   AC_DEFINE([HAVE_LIBRDFA], [1], ["librdfa support enabled"])
+   AC_DEFINE([HAVE_LIBRDFA], [1], [librdfa support enabled])
 fi
 
 dnl ----------------- MySQL -----------------
@@ -138,7 +138,7 @@ if test "x$BUILD_MYSQL" = "xyes" -o "x$BUILD_MYSQL" = "xcheck"; then
    fi
 fi
 if test "x$BUILD_MYSQL" = "xyes"; then
-   AC_DEFINE([HAVE_MYSQL], [1], ["mysqlclient support enabled"])
+   AC_DEFINE([HAVE_MYSQL], [1], [mysqlclient support enabled])
 fi
 AC_SUBST(BUILD_MYSQL)
 
@@ -188,7 +188,7 @@ AC_ARG_ENABLE([dyno-counts],
    [
       case "${enableval}" in
          yes) AC_DEFINE([MO_DYNO_COUNTS], [1],
-	    ["Record internal DynamicObject statistics"])
+	    [Record internal DynamicObject statistics])
 	    MO_DYNO_STATS_MSG="counts $MO_DYNO_STATS_MSG"
 	    ;;
          no) ;;
@@ -202,7 +202,7 @@ AC_ARG_ENABLE([dyno-key-counts],
    [
       case "${enableval}" in
          yes) AC_DEFINE([MO_DYNO_KEY_COUNTS], [1],
-	    ["Record internal DynamicObject Map key statistics"])
+	    [Record internal DynamicObject Map key statistics])
 	    MO_DYNO_STATS_MSG="key-counts $MO_DYNO_STATS_MSG"
 	    ;;
          no) ;;
@@ -210,7 +210,40 @@ AC_ARG_ENABLE([dyno-key-counts],
       esac
    ], [])  dnl Default value
 
+dnl ----------------- testing setup -----------------
+
+AC_ARG_ENABLE([json-ld-test-suite],
+   AS_HELP_STRING([--disable-json-ld-test-suite],
+      [disable JSON-LD test suite [no]]),
+   [
+      case "${enableval}" in
+         yes) HAVE_JSON_LD_TEST_SUITE=yes ;;
+         no) HAVE_JSON_LD_TEST_SUITE=no ;;
+         *) AC_MSG_ERROR(bad value ${enableval} for --enable-json-ld-test-suite) ;;
+      esac
+   ], [HAVE_JSON_LD_TEST_SUITE=yes])  dnl Default value
+AC_SUBST(HAVE_JSON_LD_TEST_SUITE)
+
+if test "x$HAVE_JSON_LD_TEST_SUITE" = xyes; then
+   dnl option to specify JSON-LD test suite dir
+   AC_ARG_WITH([json-ld-test-suite-dir],
+      AC_HELP_STRING([--with-json-ld-test-suite-dir=DIR],
+         [use DIR for JSON-LD test suite dir]),
+      [JSON_LD_TEST_SUITE_DIR="${withval}"],
+      [JSON_LD_TEST_SUITE_DIR="../forge/tests/jsonld"]) dnl Default value
+
+   AC_MSG_CHECKING([JSON-LD test suite dir])
+   if test ! -d "$JSON_LD_TEST_SUITE_DIR"; then
+      AC_MSG_ERROR([JSON-LD test suite dir not found: $JSON_LD_TEST_SUITE_DIR (select using --with-json-ld-test-suite-dir)])
+   fi
+   AC_MSG_RESULT([$JSON_LD_TEST_SUITE_DIR])
+
+   AC_DEFINE([HAVE_JSON_LD_TEST_SUITE], [1], [JSON-LD test suite enabled])
+   AC_DEFINE_UNQUOTED([JSON_LD_TEST_SUITE_DIR], ["$JSON_LD_TEST_SUITE_DIR"], [JSON-LD test suite dir])
+fi
+
 dnl ------- Generate the algorithm for finding all of the files --------
+
 MO_ALL_FILES_ALGORITHM($MONARCH_DIR,*.cpp,*.h)
 AC_SUBST(ALL_FILES_ALGORITHM)
 
@@ -291,6 +324,15 @@ AC_OUTPUT
 
 MO_MSG_CONFIG_BEGIN([Monarch Options])
 MO_MSG_CONFIG_OPTION([Dyno Stats], [$MO_DYNO_STATS_MSG])
+MO_MSG_CONFIG_END
+
+MO_MSG_CONFIG_BEGIN([Testing Options])
+MO_MSG_CONFIG_OPTION_IF([JSON-LD suite],
+   [test "x$HAVE_JSON_LD_TEST_SUITE" = xyes],
+   [enabled], [disabled (use --enable-json-ld-test-suite to enable)])
+MO_MSG_CONFIG_OPTION_IF([JSON-LD suite dir],
+   [test "x$HAVE_JSON_LD_TEST_SUITE" = xyes],
+   [$JSON_LD_TEST_SUITE_DIR], [])
 MO_MSG_CONFIG_END
 
 MO_MSG_CONFIG_BEGIN([Features])

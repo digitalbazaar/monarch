@@ -5,7 +5,6 @@
 #define monarch_data_rdfa_RdfaReader_H
 
 #include "monarch/data/DynamicObjectReader.h"
-#include "monarch/data/json/JsonLdFrame.h"
 
 #include <rdfa.h>
 #include <map>
@@ -42,12 +41,25 @@ public:
       /**
        * The frame to use.
        */
-      monarch::data::json::JsonLdFrame frame;
+      monarch::rt::DynamicObject frame;
+
+      /**
+       * The frame options to use.
+       */
+      monarch::rt::DynamicObject frameOptions;
 
       /**
        * The target DynamicObject for storing the graph in JSON-LD.
        */
       monarch::rt::DynamicObject target;
+
+      /**
+       * Default constructor.
+       */
+      Graph() :
+         frame(NULL),
+         frameOptions(NULL),
+         target(NULL) {};
    };
 
 protected:
@@ -126,13 +138,13 @@ public:
     * Sets the frame to use to build default graph's JSON-LD object output.
     *
     * @param frame the frame to use.
-    * @param explicitOnly true to only include predicates specified in the
-    *           frame in the output.
+    * @param options the framing options to use.
     *
     * @return true on success, false on failure with exception set.
     */
    virtual bool setFrame(
-      monarch::rt::DynamicObject& frame, bool explicitOnly = false);
+      monarch::rt::DynamicObject& frame,
+      monarch::rt::DynamicObject* options = NULL);
 
    /**
     * Starts deserializing an object from RDFa. This RdfaReader can be re-used
@@ -188,13 +200,15 @@ public:
     * @param uri the baseUri to use.
     * @param context the context to use or NULL for none.
     * @param frame the frame to use or NULL for none.
+    * @param options the framing options to use.
     *
     * @return true on success, false and exception set on failure.
     */
    static bool readFromStream(
       monarch::rt::DynamicObject& dyno, monarch::io::InputStream& is,
       const char* baseUri, monarch::rt::DynamicObject* context = NULL,
-      monarch::rt::DynamicObject* frame = NULL);
+      monarch::rt::DynamicObject* frame = NULL,
+      monarch::rt::DynamicObject* options = NULL);
 
    /**
     * Reads a DynamicObject as RDFa from a string.
@@ -205,13 +219,15 @@ public:
     * @param uri the baseUri to use.
     * @param context the context to use or NULL for none.
     * @param frame the frame to use or NULL for none.
+    * @param options the framing options to use.
     *
     * @return true on success, false and exception set on failure.
     */
    static bool readFromString(
       monarch::rt::DynamicObject& dyno, const char* s, size_t slen,
       const char* baseUri, monarch::rt::DynamicObject* context = NULL,
-      monarch::rt::DynamicObject* frame = NULL);
+      monarch::rt::DynamicObject* frame = NULL,
+      monarch::rt::DynamicObject* options = NULL);
 
 protected:
    /**

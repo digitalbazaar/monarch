@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
+#define __STDC_LIMIT_MACROS
+
 #include "monarch/rt/DynamicObject.h"
 
 #include "monarch/rt/DynamicObjectIterator.h"
@@ -8,12 +10,21 @@
 
 #include <cstdlib>
 #include <cctype>
+#include <errno.h>
+#include <limits.h>
+#include <math.h>
 
 using namespace monarch::rt;
 
 DynamicObject::DynamicObject() :
    Collectable<DynamicObjectImpl>(new DynamicObjectImpl())
 {
+}
+
+DynamicObject::DynamicObject(DynamicObjectType type) :
+   Collectable<DynamicObjectImpl>(new DynamicObjectImpl())
+{
+   (*this)->setType(type);
 }
 
 DynamicObject::DynamicObject(DynamicObjectImpl* impl) :
@@ -377,6 +388,21 @@ DynamicObject DynamicObject::pop()
    return (*this)->pop();
 }
 
+DynamicObject DynamicObject::shift()
+{
+   DynamicObject rval(NULL);
+   if((*this)->getType() == Array)
+   {
+      DynamicObjectIterator i = getIterator();
+      if(i->hasNext())
+      {
+         rval = i->next();
+         i->remove();
+      }
+   }
+   return rval;
+}
+
 DynamicObject DynamicObject::first() const
 {
    DynamicObject rval(NULL);
@@ -455,7 +481,36 @@ DynamicObject DynamicObject::last() const
    return rval;
 }
 
-void DynamicObject::sort(DynamicObject::CompareLessDyno func)
+DynamicObject DynamicObject::keys()
+{
+   DynamicObject rval(Array);
+   if((*this)->getType() == Map)
+   {
+      DynamicObjectIterator i = this->getIterator();
+      while(i->hasNext())
+      {
+         i->next();
+         rval->append(i->getName());
+      }
+   }
+   return rval;
+}
+
+DynamicObject DynamicObject::values()
+{
+   DynamicObject rval(Array);
+   if((*this)->getType() == Map)
+   {
+      DynamicObjectIterator i = this->getIterator();
+      while(i->hasNext())
+      {
+         rval->append(i->next());
+      }
+   }
+   return rval;
+}
+
+DynamicObject& DynamicObject::sort(DynamicObject::CompareLessDyno func)
 {
    if((*this)->getType() == Array)
    {
@@ -470,14 +525,124 @@ void DynamicObject::sort(DynamicObject::CompareLessDyno func)
          std::sort((*this)->mArray->begin(), (*this)->mArray->end(), func);
       }
    }
+   return *this;
 }
 
-void DynamicObject::sort(std::less<DynamicObject>& obj)
+/**
+ * A simple structure used to wrap a DynamicObject::SortFunctor because
+ * the stl sort function will copy the SortFunctor and this behavior might
+ * not have been coded for w/copy constructors, etc.
+ */
+struct _SortDyno
+{
+   DynamicObject::SortFunctor& functor;
+   _SortDyno(DynamicObject::SortFunctor& f) :
+      functor(f) {}
+   bool operator()(const DynamicObject& a, const DynamicObject& b) const
+   {
+      return functor(
+         const_cast<DynamicObject&>(a),
+         const_cast<DynamicObject&>(b));
+   }
+};
+
+DynamicObject& DynamicObject::sort(DynamicObject::SortFunctor& func)
 {
    if((*this)->getType() == Array)
    {
-      std::sort((*this)->mArray->begin(), (*this)->mArray->end(), obj);
+      std::sort(
+         (*this)->mArray->begin(), (*this)->mArray->end(), _SortDyno(func));
    }
+   return *this;
+}
+
+DynamicObject DynamicObject::filter(DynamicObject::FilterDyno func)
+{
+   DynamicObject rval(Array);
+   if((*this)->getType() == Array)
+   {
+      DynamicObjectIterator i = this->getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         if(func(next))
+         {
+            rval->append(next);
+         }
+      }
+   }
+   return rval;
+}
+
+DynamicObject DynamicObject::filter(DynamicObject::FilterFunctor& func)
+{
+   DynamicObject rval(Array);
+   if((*this)->getType() == Array)
+   {
+      DynamicObjectIterator i = this->getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         if(func(next))
+         {
+            rval->append(next);
+         }
+      }
+   }
+   return rval;
+}
+
+DynamicObject& DynamicObject::rotate(int num, bool left)
+{
+   int length = (*this)->length();
+   if((*this)->getType() == Array && length > 1 && num > 0)
+   {
+      // make a shallow copy of the array
+      DynamicObject copy(Array);
+      copy.merge(*this, true);
+
+      // rotate the elements
+      num %= length;
+      if(!left)
+      {
+         num = -num;
+      }
+      for(int i = 0; i < length; ++i)
+      {
+         (*this)[i] = copy[(i + num + length) % length];
+      }
+   }
+   return *this;
+}
+
+DynamicObject DynamicObject::slice(int start, int end)
+{
+   DynamicObject rval(Array);
+
+   int length = (*this)->length();
+   if(end == -1)
+   {
+      end = length;
+   }
+   if((*this)->getType() == Array && length > 0 && start < end)
+   {
+      // force slice to be within bounds
+      if(start < 0)
+      {
+         start = 0;
+      }
+      if(end > length)
+      {
+         end = length;
+      }
+
+      for(int i = start; i < end; ++i)
+      {
+         rval->append((*this)[i]);
+      }
+   }
+
+   return rval;
 }
 
 DynamicObject DynamicObject::clone()
@@ -486,9 +651,8 @@ DynamicObject DynamicObject::clone()
 
    if(!isNull())
    {
-      rval = DynamicObject();
       DynamicObjectType type = (*this)->getType();
-      rval->setType(type);
+      rval = DynamicObject(type);
       int index = 0;
       DynamicObjectIterator i = getIterator();
       while(i->hasNext())
@@ -564,8 +728,7 @@ static bool _getMapDiff(
    bool rval = false;
 
    // keep track of keys we've checked
-   DynamicObject checked;
-   checked->setType(Map);
+   DynamicObject checked(Map);
 
    // Check all the source keys
    DynamicObjectIterator i = source.getIterator();
@@ -990,35 +1153,45 @@ DynamicObjectType DynamicObject::determineType(const char* str)
    // if string starts with whitespace, forget about it
    if(!isspace(str[0]))
    {
-      // see if the number is an unsigned int
-      // then check signed int
-      // then check doubles
-      char* end;
-      strtoull(str, &end, 10);
-      if(end[0] == 0 && str[0] != '-')
+      // if the string has no decimal point, it might be an integer
+      if(strchr(str, '.') == NULL)
       {
-         // if end is NULL (and not negative) then the whole string was an int
-         rval = UInt64;
-      }
-      else
-      {
-         // the number may be a signed int
-         strtoll(str, &end, 10);
-         if(end[0] == 0)
+         // see if the number is an unsigned int
+         // then check signed int
+         char* end;
+         errno = 0;
+         uint64_t ui64 = strtoull(str, &end, 10);
+         if(end[0] == 0 && str[0] != '-' && (ui64 != ULLONG_MAX || errno == 0))
          {
-            // if end is NULL then the whole string was an int
-            rval = Int64;
+            // if end is NULL (and not negative) then the whole string was
+            // an int
+            rval = UInt64;
          }
          else
          {
-            // the number may be a double
-            strtod(str, &end);
-            if(end[0] == 0)
+            // the number may be a signed int
+            errno = 0;
+            int64_t i64 = strtoll(str, &end, 10);
+            if(end[0] == 0 &&
+               ((i64 != LLONG_MAX && i64 != LLONG_MIN) || errno == 0))
             {
-               // end is NULL, so we've got a double,
-               // else we've assume a String
-               rval = Double;
+               // if end is NULL then the whole string was an int
+               rval = Int64;
             }
+         }
+      }
+
+      // integer not detected, check double
+      if(rval == String)
+      {
+         char* end;
+         errno = 0;
+         double d = strtod(str, &end);
+         if(end[0] == 0 && ((d != HUGE_VAL && d != -HUGE_VAL) || errno == 0))
+         {
+            // end is NULL, so we've got a double,
+            // else we've assume a String
+            rval = Double;
          }
       }
    }

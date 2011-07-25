@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/xml/DomWriter.h"
 
@@ -25,8 +25,7 @@ DomWriter::~DomWriter()
 
 bool DomWriter::write(Element& e, OutputStream* os, int level)
 {
-   DynamicObject nsPrefixMap;
-   nsPrefixMap->setType(Map);
+   DynamicObject nsPrefixMap(Map);
    return writeWithNamespaceSupport(e, os, level, nsPrefixMap);
 }
 

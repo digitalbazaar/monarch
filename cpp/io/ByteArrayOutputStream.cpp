@@ -1,21 +1,34 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/io/ByteArrayOutputStream.h"
 
 #include "monarch/io/IOException.h"
 
+using namespace std;
 using namespace monarch::io;
 using namespace monarch::rt;
 
-ByteArrayOutputStream::ByteArrayOutputStream(ByteBuffer* b, bool resize)
+ByteArrayOutputStream::ByteArrayOutputStream() :
+   mBuffer(new ByteBuffer()),
+   mResize(true),
+   mCleanup(true)
 {
-   mBuffer = b;
-   mResize = resize;
+}
+
+ByteArrayOutputStream::ByteArrayOutputStream(ByteBuffer* b, bool resize) :
+   mBuffer(b),
+   mResize(resize),
+   mCleanup(false)
+{
 }
 
 ByteArrayOutputStream::~ByteArrayOutputStream()
 {
+   if(mCleanup)
+   {
+      delete mBuffer;
+   }
 }
 
 bool ByteArrayOutputStream::write(const char* b, int length)
@@ -41,6 +54,11 @@ bool ByteArrayOutputStream::write(const char* b, int length)
 ByteBuffer* ByteArrayOutputStream::getByteArray()
 {
    return mBuffer;
+}
+
+string ByteArrayOutputStream::str()
+{
+   return string(mBuffer->data(), mBuffer->length());
 }
 
 void ByteArrayOutputStream::setResize(bool resize)

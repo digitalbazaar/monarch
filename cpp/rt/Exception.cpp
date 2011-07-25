@@ -168,8 +168,7 @@ DynamicObject& Exception::getDetails()
 {
    if(mDetails->isNull())
    {
-      DynamicObject details;
-      details->setType(Map);
+      DynamicObject details(Map);
       *mDetails = details;
    }
 

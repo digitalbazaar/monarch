@@ -625,8 +625,7 @@ bool AppRunner::runApp(App* app, DynamicObject& waitEvents)
    waiter.start(RESTART_EVENT_TYPE);
 
    // make a map of event types to waiting ids
-   DynamicObject eventMap;
-   eventMap->setType(Map);
+   DynamicObject eventMap(Map);
    {
       // array of events and counts
       DynamicObjectIterator i = waitEvents.getIterator();

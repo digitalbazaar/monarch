@@ -646,7 +646,7 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
    while(rval && i->hasNext())
    {
       File& file = i->next();
-      if(file->isFile())
+      if(file->isFile() && strcmp(file->getExtension(), ".json") == 0)
       {
          // read definition from json
          DynamicObject def;

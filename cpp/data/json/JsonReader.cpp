@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/json/JsonReader.h"
 
@@ -158,8 +158,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          if(mStateStack.size() != 1)
          {
             // not dyno from start()
-            DynamicObject obj;
-            obj->setType(Map);
+            DynamicObject obj(Map);
             mDynoStack.push_back(obj);
          }
          else
@@ -192,8 +191,7 @@ bool JsonReader::processNext(JsonInputClass ic, char c)
          if(mStateStack.size() != 1)
          {
             // not dyno from start()
-            DynamicObject obj;
-            obj->setType(Array);
+            DynamicObject obj(Array);
             mDynoStack.push_back(obj);
          }
          else

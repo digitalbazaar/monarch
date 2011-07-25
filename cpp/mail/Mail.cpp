@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/mail/Mail.h"
 
@@ -13,9 +13,9 @@ using namespace monarch::mail;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-Mail::Mail()
+Mail::Mail() :
+   mRecipients(Array)
 {
-   mRecipients->setType(Array);
    mMessage["headers"]["To"]->setType(Array);
    mMessage["headers"]["Subject"] = "";
    mMessage["body"]->setType(String);
@@ -99,10 +99,11 @@ bool Mail::addRecipient(const char* header, const char* address)
    bool rval = false;
 
    Address a;
-   if((rval = setAddress(a, address)))
+   rval = setAddress(a, address);
+   if(rval)
    {
       // add to list of recipients
-      mRecipients[mRecipients->length()] = a;
+      mRecipients->append(a);
 
       // add header if not NULL
       if(header != NULL)
@@ -119,7 +120,8 @@ bool Mail::setSender(const char* address)
 {
    bool rval = false;
 
-   if((rval = setAddress(mSender, address)))
+   rval = setAddress(mSender, address);
+   if(rval)
    {
       // set "From" header
       mMessage["headers"]["From"] = address;

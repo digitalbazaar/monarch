@@ -2409,23 +2409,26 @@ static void runDynoReverseTest(TestRunner& tr)
 
 static bool customSortTuples(DynamicObject a, DynamicObject b)
 {
-   return a[0] < b[0];
+   // reverse sort
+   return b[0] < a[0];
 }
 
-struct StructCustomSortTuples : std::less<DynamicObject>
+struct StructCustomSortTuples : public DynamicObject::SortFunctor
 {
-   bool operator()(DynamicObject a, DynamicObject b)
+   bool operator()(DynamicObject& a, DynamicObject& b)
    {
-      return a[0] < b[0];
+      // reverse sort
+      return b[0] < a[0];
    }
 };
 
-class ClassCustomSortTuples : public std::less<DynamicObject>
+class ClassCustomSortTuples : public DynamicObject::SortFunctor
 {
 public:
-   virtual bool operator()(DynamicObject a, DynamicObject b)
+   virtual bool operator()(DynamicObject& a, DynamicObject& b)
    {
-      return a[0] < b[0];
+      // reverse sort
+      return b[0] < a[0];
    }
 };
 
@@ -2469,7 +2472,7 @@ static void runDynoSortTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
-   tr.test("sort with function");
+   tr.test("reverse sort with function");
    {
       DynamicObject d;
 
@@ -2491,14 +2494,14 @@ static void runDynoSortTest(TestRunner& tr)
       d.sort(&customSortTuples);
 
       DynamicObject expect;
-      expect[0] = t3;
+      expect[0] = t2;
       expect[1] = t1;
-      expect[2] = t2;
+      expect[2] = t3;
       assertDynoCmp(expect, d);
    }
    tr.passIfNoException();
 
-   tr.test("sort with object (struct)");
+   tr.test("reverse sort with object (struct)");
    {
       DynamicObject d;
 
@@ -2521,14 +2524,14 @@ static void runDynoSortTest(TestRunner& tr)
       d.sort(compare);
 
       DynamicObject expect;
-      expect[0] = t3;
+      expect[0] = t2;
       expect[1] = t1;
-      expect[2] = t2;
+      expect[2] = t3;
       assertDynoCmp(expect, d);
    }
    tr.passIfNoException();
 
-   tr.test("sort with object (class)");
+   tr.test("reverse sort with object (class)");
    {
       DynamicObject d;
 
@@ -2551,9 +2554,112 @@ static void runDynoSortTest(TestRunner& tr)
       d.sort(compare);
 
       DynamicObject expect;
-      expect[0] = t3;
+      expect[0] = t2;
       expect[1] = t1;
-      expect[2] = t2;
+      expect[2] = t3;
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
+static void runDynoRotateTest(TestRunner& tr)
+{
+   tr.group("DynamicObject rotate");
+
+   tr.test("left 1");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate();
+
+      DynamicObject expect;
+      expect[0] = "b";
+      expect[1] = "c";
+      expect[2] = "a";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("right 1");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(1, false);
+
+      DynamicObject expect;
+      expect[0] = "c";
+      expect[1] = "a";
+      expect[2] = "b";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("left 2");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(2);
+
+      DynamicObject expect;
+      expect[0] = "c";
+      expect[1] = "a";
+      expect[2] = "b";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("right 2");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(2, false);
+
+      DynamicObject expect;
+      expect[0] = "b";
+      expect[1] = "c";
+      expect[2] = "a";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("left 7");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(7, true);
+
+      DynamicObject expect;
+      expect[0] = "b";
+      expect[1] = "c";
+      expect[2] = "a";
+      assertDynoCmp(expect, d);
+   }
+   tr.passIfNoException();
+
+   tr.test("right 7");
+   {
+      DynamicObject d;
+      d[0] = "a";
+      d[1] = "b";
+      d[2] = "c";
+      d.rotate(7, false);
+
+      DynamicObject expect;
+      expect[0] = "c";
+      expect[1] = "a";
+      expect[2] = "b";
+      assertDynoCmp(expect, d);
    }
    tr.passIfNoException();
 
@@ -2907,6 +3013,7 @@ static bool run(TestRunner& tr)
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
       runDynoSortTest(tr);
+      runDynoRotateTest(tr);
       runDynoStatsTest(tr);
       runRunnableDelegateTest(tr);
       runExceptionTest(tr);
@@ -2938,6 +3045,7 @@ static bool run(TestRunner& tr)
       runDynoCopyTest(tr);
       runDynoReverseTest(tr);
       runDynoSortTest(tr);
+      runDynoRotateTest(tr);
       runDynoStatsTest(tr);
    }
    return true;

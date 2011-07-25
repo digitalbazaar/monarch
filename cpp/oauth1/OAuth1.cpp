@@ -68,16 +68,14 @@ inline static string _decode(const char* data)
 
 OAuth1Params OAuth1::getParameters(ServiceChannel* ch)
 {
-   OAuth1Params rval;
-   rval->setType(Map);
+   OAuth1Params rval(Map);
 
    // get parameters from Authorization header
    HttpRequestHeader* header = ch->getRequest()->getHeader();
    if(header->hasField("Authorization"))
    {
       // use regex to parse header values
-      DynamicObject values;
-      values->setType(Array);
+      DynamicObject values(Array);
       mAuthRegex->split(header->getFieldValue("Authorization").c_str(), values);
 
       // log authorization info
@@ -206,8 +204,7 @@ static string _normalizeParams(OAuth1Params& params)
 
    // build a map of encoded keys to arrays of encoded values (it will be
    // automatically sorted on encoded keys)
-   DynamicObject encodedParams;
-   encodedParams->setType(Map);
+   DynamicObject encodedParams(Map);
 
    // 1. First, the name and value of each parameter are encoded (Section 3.6).
    DynamicObjectIterator pi = params.getIterator();
@@ -216,8 +213,7 @@ static string _normalizeParams(OAuth1Params& params)
       DynamicObject& values = pi->next();
 
       // used to sort encoded values
-      DynamicObject sorted;
-      sorted->setType(Array);
+      DynamicObject sorted(Array);
 
       // 2. The parameters are sorted by name, using ascending byte value
       //    ordering. If two or more parameters share the same name, they

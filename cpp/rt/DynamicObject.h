@@ -34,6 +34,27 @@ public:
    typedef bool (*CompareLessDyno)(DynamicObject, DynamicObject);
 
    /**
+    * Functor for sort to allow non-const sort functors.
+    */
+   struct SortFunctor
+   {
+      virtual bool operator()(DynamicObject& a, DynamicObject& b) = 0;
+   };
+
+   /**
+    * Functor for filter.
+    */
+   typedef bool (*FilterDyno)(DynamicObject&);
+
+   /**
+    * Struct for filter.
+    */
+   struct FilterFunctor
+   {
+      virtual bool operator()(const DynamicObject& d) const = 0;
+   };
+
+   /**
     * DynamicObject differencing flags.
     */
    enum
@@ -65,6 +86,14 @@ public:
     * Creates a new DynamicObject with a new, empty DynamicObjectImpl.
     */
    DynamicObject();
+
+   /**
+    * Creates a new DynamicObject with a new, empty DynamicObjectImpl of a
+    * certain type.
+    *
+    * @param type the type to create.
+    */
+   DynamicObject(DynamicObjectType type);
 
    /**
     * Creates a DynamicObject that will reference count and then destroy
@@ -555,6 +584,13 @@ public:
    virtual DynamicObject pop();
 
    /**
+    * Removes the first element of a non-empty array.
+    *
+    * @return the first element or NULL.
+    */
+   virtual DynamicObject shift();
+
+   /**
     * Gets a reference-counted DynamicObject for the first member or
     * array element in this object. If this DynamicObject is not a map
     * or array, then a reference to this object will be returned.
@@ -573,14 +609,67 @@ public:
    virtual DynamicObject last() const;
 
    /**
+    * Gets the keys of this DynamicObject, if it is a map, in an array.
+    *
+    * @retuen the keys of the DynamicObject in an array.
+    */
+   virtual DynamicObject keys();
+
+   /**
+    * Gets the values of this DynamicObject, if it is a map, in an array.
+    *
+    * @retuen the values of the DynamicObject in an array.
+    */
+   virtual DynamicObject values();
+
+   /**
     * Sorts this DynamicObject if it is an array.
     *
-    * @param less a function or an object with a function that compares two
+    * @param func a function or an object with a function that compares two
     *           DynamicObjects and returns true if the first is less than
     *           the second, false otherwise.
+    *
+    * @return the sorted array.
     */
-   virtual void sort(DynamicObject::CompareLessDyno func = NULL);
-   virtual void sort(std::less<DynamicObject>& obj);
+   virtual DynamicObject& sort(DynamicObject::CompareLessDyno func = NULL);
+   virtual DynamicObject& sort(DynamicObject::SortFunctor& func);
+
+   /**
+    * Filters elements from this DynamicObject, if it is an array, into
+    * another array.
+    *
+    * @param func a function or an object with a function that takes a
+    *           DynamicObject and returns true if the DynamicObject should
+    *           be included in the result.
+    */
+   virtual DynamicObject filter(DynamicObject::FilterDyno func);
+   virtual DynamicObject filter(DynamicObject::FilterFunctor& func);
+
+   /**
+    * Rotates the elements in this DynamicObject, if it an array, in place.
+    *
+    * The default rotation direction is to the left. This means that a call
+    * to rotate(1) will move the first element in the array onto the end of
+    * the array in place.
+    *
+    * @param num the number of elements to rotate.
+    * @param left the direction to move the elements.
+    *
+    * @return a reference to the array.
+    */
+   virtual DynamicObject& rotate(int num = 1, bool left = true);
+
+   /**
+    * Returns a shallow copy that is a slice of this DynamicObject, if this
+    * DynamicObject is an array. An empty array will be returned if this
+    * object is not an array or there are no elements in the slice bounds.
+    *
+    * @param start the starting index for the slice.
+    * @param end the ending index for the slice -1 to go to the end.
+    *
+    * @return the array slice.
+    */
+   virtual DynamicObject slice(int start = 0, int end = -1);
 
    /**
     * Clones this DynamicObject and returns it.

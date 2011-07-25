@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_json_JsonWriter_H
 #define monarch_data_json_JsonWriter_H
@@ -68,7 +68,8 @@ protected:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool write(
-      monarch::rt::DynamicObject& dyno, monarch::io::OutputStream* os, int level);
+      monarch::rt::DynamicObject& dyno,
+      monarch::io::OutputStream* os, int level);
 
 public:
    /**
@@ -124,8 +125,8 @@ public:
     * @return true on success, false with exception set on failure.
     */
    static bool writeToOStream(
-      monarch::rt::DynamicObject dyno, std::ostream& stream, bool compact = false,
-      bool strict = true);
+      monarch::rt::DynamicObject dyno, std::ostream& stream,
+      bool compact = false, bool strict = true);
 
    /**
     * Writes a DynamicObject as JSON to a string.
@@ -138,7 +139,8 @@ public:
     *         exception set on failure.
     */
    static std::string writeToString(
-      monarch::rt::DynamicObject dyno, bool compact = false, bool strict = true);
+      monarch::rt::DynamicObject dyno,
+      bool compact = false, bool strict = true);
 
    /**
     * Writes a DynamicObject as JSON to standard out.
@@ -150,7 +152,8 @@ public:
     * @return true on success, false with exception set on failure.
     */
    static bool writeToStdOut(
-      monarch::rt::DynamicObject dyno, bool compact = false, bool strict = true);
+      monarch::rt::DynamicObject dyno,
+      bool compact = false, bool strict = true);
 };
 
 } // end namespace json

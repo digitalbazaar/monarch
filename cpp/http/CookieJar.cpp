@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/http/CookieJar.h"
 
@@ -10,9 +10,9 @@ using namespace monarch::http;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-CookieJar::CookieJar()
+CookieJar::CookieJar() :
+   mCookies(Map)
 {
-   mCookies->setType(Map);
 }
 
 CookieJar::~CookieJar()

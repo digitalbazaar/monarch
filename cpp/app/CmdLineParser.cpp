@@ -673,8 +673,7 @@ static bool _processOption(
                else if(rval)
                {
                   // default value type to whatever was parsed
-                  DynamicObject vt;
-                  vt->setType(value->getType());
+                  DynamicObject vt(value->getType());
 
                   // try to get type from spec
                   if(optSpec[key]->hasMember("type"))

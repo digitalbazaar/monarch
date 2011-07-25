@@ -44,13 +44,13 @@ const char* ConfigManager::INCLUDE_EXT = ".config";
 const char* ConfigManager::TMP         = "_tmp_";
 
 ConfigManager::ConfigManager() :
+   mVersions(Map),
+   mKeywordMap(Map),
+   mConfigs(Map),
    mConfigChangeListener(NULL)
 {
    // initialize internal data structures
-   mVersions->setType(Map);
-   mKeywordMap->setType(Map);
    //addVersion(MO_DEFAULT_CONFIG_VERSION);
-   mConfigs->setType(Map);
 }
 
 ConfigManager::~ConfigManager()
@@ -104,8 +104,7 @@ bool ConfigManager::addConfig(Config config, bool include, const char* dir)
    bool rval;
 
    // keep track of changed IDs
-   DynamicObject changedIds;
-   changedIds->setType(Map);
+   DynamicObject changedIds(Map);
    rval = recursiveAddConfig(config, include, dir, &changedIds);
 
    if(rval)
@@ -292,8 +291,7 @@ bool ConfigManager::removeConfig(ConfigId id)
    bool rval = false;
 
    // keep track of changed IDs
-   DynamicObject changedIds;
-   changedIds->setType(Map);
+   DynamicObject changedIds(Map);
 
    // lock to modify internal storage
    mLock.lockExclusive();
@@ -327,8 +325,7 @@ bool ConfigManager::removeConfig(ConfigId id)
          }
 
          // build list of all related config IDs
-         DynamicObject configIds;
-         configIds->setType(Array);
+         DynamicObject configIds(Array);
 
          // add group if it has more members
          if(raw->hasMember(GROUP))
@@ -406,8 +403,7 @@ bool ConfigManager::setConfig(Config config)
 
    // get config ID, store all changed IDs
    ConfigId id = config[ID]->getString();
-   DynamicObject changedIds;
-   changedIds->setType(Map);
+   DynamicObject changedIds(Map);
 
    // lock to modify internal storage
    mLock.lockExclusive();
@@ -532,8 +528,7 @@ bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
    bool rval = false;
 
    // store all changed IDs
-   DynamicObject changedIds;
-   changedIds->setType(Map);
+   DynamicObject changedIds(Map);
 
    // lock to modify internal storage
    mLock.lockExclusive();
@@ -570,8 +565,7 @@ bool ConfigManager::setParent(ConfigId id, ConfigId parentId)
       else
       {
          // get the IDs of configs that must change
-         DynamicObject ids;
-         ids->setType(Array);
+         DynamicObject ids(Array);
 
          // if config is a member of a group, must change the whole group
          if(mConfigs[id]->hasMember(GROUP))
@@ -1021,8 +1015,7 @@ void ConfigManager::makeMergedConfig(ConfigId id, Config* out)
          else
          {
             // empty merged config
-            merged = Config();
-            merged->setType(Map);
+            merged = Config(Map);
          }
       }
 
@@ -1336,8 +1329,7 @@ bool ConfigManager::diff(
          {
             // compare config2 indexes since we are only concerned with
             // additions and updates, not removals
-            Config temp;
-            temp->setType(Array);
+            Config temp(Array);
             if(details != NULL)
             {
                (*details)->setType(Array);
@@ -1428,8 +1420,7 @@ void ConfigManager::produceMergedDiffs(DynamicObject& changedIds)
    mLock.lockExclusive();
    {
       DynamicObject tmp = changedIds;
-      changedIds = DynamicObject();
-      changedIds->setType(Map);
+      changedIds = DynamicObject(Map);
       DynamicObjectIterator i = tmp.getIterator();
       while(i->hasNext())
       {

@@ -6,6 +6,8 @@
 
 #include "monarch/rt/DynamicObject.h"
 
+#include <string>
+
 namespace monarch
 {
 namespace data
@@ -33,6 +35,13 @@ public:
    virtual ~JsonLd();
 
    /**
+    * Creates the JSON-LD default context.
+    *
+    * @return the JSON-LD default context.
+    */
+   static monarch::rt::DynamicObject createDefaultContext();
+
+   /**
     * Normalizes a JSON-LD object.
     *
     * @param in the JSON-LD object to normalize.
@@ -41,7 +50,7 @@ public:
     * @return true on success, false on failure with exception set.
     */
    static bool normalize(
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
 
    /**
     * Removes the context from a JSON-LD object.
@@ -52,7 +61,7 @@ public:
     * @return true on success, false on failure with exception set.
     */
    static bool removeContext(
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
 
    /**
     * Adds the given context to the given context-neutral JSON-LD object.
@@ -62,8 +71,8 @@ public:
     * @param out to be set to the JSON-LD object with the new context.
     */
    static bool addContext(
-      monarch::rt::DynamicObject& context,
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject context,
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
 
    /**
     * Changes the context of JSON-LD object "in" to "context", placing the
@@ -76,34 +85,61 @@ public:
     * @return true on success, false on failure with exception set.
     */
    static bool changeContext(
-      monarch::rt::DynamicObject& context,
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject context,
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
 
    /**
-    * Filter the JSON-LD formatted "in" to the JSON-LD formatted "out" by
-    * filtering all results for those subjects that match properties in
-    * "filter". The result is denormalized using the given "context".
+    * Merges one context with another.
     *
-    * Currently only uses the first level of properties in the filter.  The
-    * properties can have multiple values but deeper checking is not performed.
+    * @param ctx1 the context to overwrite/append to.
+    * @param ctx2 the new context to merge onto ctx1.
     *
-    * If the simplify flag is true, filter() will attempt to flatten the result
-    * to one top level object if only one result was found. If false it will
-    * always leave the results in an array similar to {"@":[R0,R1,...]}.
+    * @return the merged context or NULL on failure with exception set.
+    */
+   static monarch::rt::DynamicObject mergeContexts(
+      monarch::rt::DynamicObject ctx1,
+      monarch::rt::DynamicObject ctx2);
+
+   /**
+    * Expands a term into an absolute IRI. The term may be a regular term, a
+    * CURIE, a relative IRI, or an absolute IRI. In any case, the associated
+    * absolute IRI will be returned.
     *
-    * @param context the new context to use.
-    * @param filter the filter to use.
-    * @param in the input JSON-LD object.
-    * @param out the output JSON-LD object.
-    * @param simplify simplify the result object if possible.
+    * @param ctx the context to use.
+    * @param term the term to expand.
+    *
+    * @return the expanded term as an absolute IRI.
+    */
+   static std::string expandTerm(
+      monarch::rt::DynamicObject ctx, const char* term);
+
+   /**
+    * Compacts an IRI into a term or CURIE it can be. IRIs will not be
+    * compacted to relative IRIs if they match the given context's default
+    * vocabulary.
+    *
+    * @param ctx the context to use.
+    * @param iri the IRI to compact.
+    *
+    * @return the compacted IRI as a term or CURIE or the original IRI.
+    */
+   static std::string compactIri(
+      monarch::rt::DynamicObject ctx, const char* iri);
+
+   /**
+    * Frames JSON-LD input.
+    *
+    * @param in the JSON-LD input.
+    * @param frame the frame to use.
+    * @param out the output framed JSON-LD object.
+    * @param options framing options to use, NULL for defaults.
     *
     * @return true on success, false on failure with exception set.
     */
-   static bool filter(
-      monarch::rt::DynamicObject& context,
-      monarch::rt::DynamicObject& filter,
-      monarch::rt::DynamicObject& in, monarch::rt::DynamicObject& out,
-      bool simplify = false);
+   static bool frame(
+      monarch::rt::DynamicObject in, monarch::rt::DynamicObject frame,
+      monarch::rt::DynamicObject& out,
+      monarch::rt::DynamicObject* options = NULL);
 };
 
 } // end namespace json

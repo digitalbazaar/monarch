@@ -1322,16 +1322,14 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
    }
 
    // build params
-   DynamicObject params;
-   params->setType(Map);
+   DynamicObject params(Map);
 
    switch(cmd->type)
    {
       case Command::cmd_include:
       {
          // {:include file=<var>|'/path/to/file' [as=<name>]}
-         DynamicObject tmp;
-         tmp->setType(Map);
+         DynamicObject tmp(Map);
          DynamicObjectIterator i = tokens.getIterator();
          i->next();
          while(rval && i->hasNext())
@@ -1391,8 +1389,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       case Command::cmd_each:
       {
          // {:each from=<from> as=<item> [key=<key>] [index=<index>]}
-         DynamicObject tmp;
-         tmp->setType(Map);
+         DynamicObject tmp(Map);
          DynamicObjectIterator i = tokens.getIterator();
          i->next();
          while(rval && i->hasNext())
@@ -1465,8 +1462,7 @@ bool TemplateInputStream::parseCommand(Construct* c, Command *cmd)
       case Command::cmd_loop:
       {
          // {:loop start=<start> until=<until> [step=<step>] [index=<index>]}
-         DynamicObject tmp;
-         tmp->setType(Map);
+         DynamicObject tmp(Map);
          DynamicObjectIterator i = tokens.getIterator();
          i->next();
          while(rval && i->hasNext())
@@ -2558,8 +2554,7 @@ bool TemplateInputStream::parsePipe(Construct* c, Pipe* p)
          if(lp != rp)
          {
             // build params
-            DynamicObject params;
-            params->setType(Array);
+            DynamicObject params(Array);
 
             // split params on comma
             string token;
@@ -3080,7 +3075,8 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             data->start = params["start"]["value"];
             data->until = params["until"]["value"];
             data->i = data->start;
-            data->step = params->hasMember("step") ? values["step"] : 1;
+            data->step = params->hasMember("step") ?
+               values["step"]->getInt32() : 1;
             if(params->hasMember("index"))
             {
                data->index = params["index"]->getString();
@@ -3309,8 +3305,7 @@ bool TemplateInputStream::writeVariable(Construct* c, Variable* v)
       {
          Pipe* p = static_cast<Pipe*>((*i)->data);
 
-         DynamicObject params;
-         params->setType(Array);
+         DynamicObject params(Array);
          if(p->params != NULL)
          {
             // resolve variables in pipe parameters
@@ -3813,8 +3808,7 @@ bool TemplateInputStream::evalExpression(
                // array was found, so use an empty array as the parent
                if(exp["value"].isNull())
                {
-                  exp["value"] = DynamicObject();
-                  exp["value"]->setType(Array);
+                  exp["value"] = DynamicObject(Array);
                   exp["var"] = exp["value"];
                }
                stack.push_back(exp);
@@ -3832,8 +3826,7 @@ bool TemplateInputStream::evalExpression(
             // empty object
             else if(exp["value"].isNull())
             {
-               rhs["parent"] = DynamicObject();
-               rhs["parent"]->setType(Map);
+               rhs["parent"] = DynamicObject(Map);
             }
             // use the current expression
             else
@@ -3984,8 +3977,7 @@ void TemplateInputStream::resetState(bool createRoot)
    mBlocked = true;
    mEndOfStream = false;
    mLoops.clear();
-   mLocalVars = DynamicObject();
-   mLocalVars->setType(Map);
+   mLocalVars = DynamicObject(Map);
 
    // free constructs
    while(!mConstructs.empty())
