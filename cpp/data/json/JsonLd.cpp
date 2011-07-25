@@ -2586,7 +2586,9 @@ static bool _frame(
       // an empty array means accept all
       if(frames->length() == 0)
       {
-         frames.push(DynamicObject(Map));
+         DynamicObject f = DynamicObject(Map);
+         f["@embed"] = false;
+         frames.push(f);
       }
    }
    else
@@ -2616,10 +2618,18 @@ static bool _frame(
          values[i]->setType(Array);
          for(int n = 0; n < in->length() && limit != 0; ++n)
          {
-            // add input to list if it matches frame specific type or duck-type
-            if(_isType(in[n], frame) || _isDuckType(in[n], frame))
+            // dereference input if it refers to a subject
+            DynamicObject next = in[n];
+            if(next->getType() == Map && next->hasMember("@iri") &&
+               subjects->hasMember(next["@iri"]))
             {
-               values[i].push(in[n]);
+               next = subjects[next["@iri"]->getString()];
+            }
+
+            // add input to list if it matches frame specific type or duck-type
+            if(_isType(next, frame) || _isDuckType(next, frame))
+            {
+               values[i].push(next);
                --limit;
             }
          }
@@ -2654,7 +2664,7 @@ static bool _frame(
             // TODO: possibly support multiple embeds in the future ... and
             // instead only prevent cycles?
             ExceptionRef e = new Exception(
-               "Multiple embeds of the same subject is not supported.",
+               "More than one embed of the same subject is not supported.",
                EXCEPTION_TYPE ".TooManyEmbedsError");
             e->getDetails()["subject"] = value[__S]["@iri"].clone();
             Exception::set(e);
