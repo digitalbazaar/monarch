@@ -2168,7 +2168,7 @@ DynamicObject JsonLd::createDefaultContext()
    ctx["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
    ctx["owl"] = "http://www.w3.org/2002/07/owl#";
    ctx["xsd"] = "http://www.w3.org/2001/XMLSchema#";
-   ctx["dcterms"] = "http://purl.org/dc/terms/";
+   ctx["dc"] = "http://purl.org/dc/terms/";
    ctx["foaf"] = "http://xmlns.com/foaf/0.1/";
    ctx["cal"] = "http://www.w3.org/2002/12/cal/ical#";
    ctx["vcard"] = "http://www.w3.org/2006/vcard/ns#";

@@ -103,14 +103,14 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect["message"] = "RDFa parse error.";
       expect["type"] = "monarch.data.rdfa.RdfaReader.ParseError";
       DynamicObject& graph = expect["details"]["graph"];
-      graph["@context"]["dcterms"] =
+      graph["@context"]["dc"] =
          "http://purl.org/dc/terms/";
       graph["@context"]["w3"] =
          "http://www.w3.org/2009/pointers#";
       graph["@subject"] = "_:c14n0";
       graph["@type"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
-      graph["dcterms:description"]["@language"] = "en";
-      graph["dcterms:description"]["@literal"] =
+      graph["dc:description"]["@language"] = "en";
+      graph["dc:description"]["@literal"] =
          "XML parsing error: mismatched tag at line 9, column 6.";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["@subject"] = "_:c14n1";
