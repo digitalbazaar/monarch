@@ -306,7 +306,9 @@ static bool _compact(
 
    if(value.isNull())
    {
+      // return null, but check coerce type to add to usedCtx
       out.setNull();
+      _getCoerceType(ctx, property, usedCtx);
    }
    else if(value->getType() == Array)
    {
@@ -350,10 +352,14 @@ static bool _compact(
             rval = _compact(ctx, i->getName(), next, nextOut, usedCtx);
             if(rval)
             {
-               // set object to compacted property
-               _setProperty(
-                  out, _compactIri(ctx, i->getName(), usedCtx).c_str(),
-                  nextOut);
+               // set object to compacted property, only overwrite existing
+               // properties if the property actually compacted
+               string p = _compactIri(ctx, i->getName(), usedCtx);
+               if(strcmp(i->getName(), p.c_str()) != 0 ||
+                  !out->hasMember(p.c_str()))
+               {
+                  out[p.c_str()] = nextOut;
+               }
             }
          }
       }
