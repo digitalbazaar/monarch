@@ -2736,12 +2736,19 @@ static bool _frame(
                   }
                   else
                   {
-                     // add null property to value
-                     value[key].setNull();
+                     // add empty array/null property to value
+                     if(f->getType() == Array)
+                     {
+                        value[key] = DynamicObject(Array);
+                     }
+                     else
+                     {
+                        value[key].setNull();
+                     }
                   }
 
-                  // handle setting default value(s)
-                  if(value->hasMember(key))
+                  // handle setting default value
+                  if(value[key].isNull())
                   {
                      // use first subframe if frame is an array
                      if(f->getType() == Array)
@@ -2753,39 +2760,13 @@ static bool _frame(
                      bool omitOn = f->hasMember("@omitDefault") ?
                         f["@omitDefault"] :
                         options["defaults"]["omitDefaultOn"];
-
-                     if(value[key].isNull())
+                     if(omitOn)
                      {
-                        if(omitOn)
-                        {
-                           value->removeMember(key);
-                        }
-                        else if(f->hasMember("@default"))
-                        {
-                           value[key] = f["@default"].clone();
-                        }
+                        value->removeMember(key);
                      }
-                     else if(value[key]->getType() == Array)
+                     else if(f->hasMember("@default"))
                      {
-                        DynamicObject tmp(Array);
-                        DynamicObjectIterator vi = value[key].getIterator();
-                        while(vi->hasNext())
-                        {
-                           DynamicObject& v = vi->next();
-                           if(v.isNull())
-                           {
-                              // do not auto-include null in arrays
-                              if(!omitOn && f->hasMember("@default"))
-                              {
-                                 tmp.push(f["@default"].clone());
-                              }
-                           }
-                           else
-                           {
-                              tmp.push(v);
-                           }
-                        }
-                        value[key] = tmp;
+                        value[key] = f["@default"].clone();
                      }
                   }
                }
