@@ -552,7 +552,9 @@ static bool _expand(
 
                // preserve frame keywords
                if(strcmp(i->getName(), "@embed") == 0 ||
-                  strcmp(i->getName(), "@explicit") == 0)
+                  strcmp(i->getName(), "@explicit") == 0 ||
+                  strcmp(i->getName(), "@default") == 0 ||
+                  strcmp(i->getName(), "@omitDefault") == 0)
                {
                   _setProperty(out, i->getName(), obj.clone());
                }
@@ -2684,7 +2686,7 @@ static bool _frame(
                   vi->next();
                   const char* key = vi->getName();
 
-                  // always include subject
+                  // do not remove subject or any key in the frame
                   if(strcmp(key, __S) != 0 && !frame->hasMember(key))
                   {
                      vi->remove();
@@ -2696,7 +2698,7 @@ static bool _frame(
             DynamicObjectIterator fi = frame.getIterator();
             while(rval && fi->hasNext())
             {
-               DynamicObject& f = fi->next();
+               DynamicObject f = fi->next();
                const char* key = fi->getName();
 
                // skip keywords and type query
@@ -2736,6 +2738,55 @@ static bool _frame(
                   {
                      // add null property to value
                      value[key].setNull();
+                  }
+
+                  // handle setting default value(s)
+                  if(value->hasMember(key))
+                  {
+                     // use first subframe if frame is an array
+                     if(f->getType() == Array)
+                     {
+                        f = (f->length() > 0) ? f[0] : DynamicObject(Map);
+                     }
+
+                     // determine if omit default is on
+                     bool omitOn = f->hasMember("@omitDefault") ?
+                        f["@omitDefault"] :
+                        options["defaults"]["omitDefaultOn"];
+
+                     if(value[key].isNull())
+                     {
+                        if(omitOn)
+                        {
+                           value->removeMember(key);
+                        }
+                        else if(f->hasMember("@default"))
+                        {
+                           value[key] = f["@default"].clone();
+                        }
+                     }
+                     else if(value[key]->getType() == Array)
+                     {
+                        DynamicObject tmp(Array);
+                        DynamicObjectIterator vi = value[key].getIterator();
+                        while(vi->hasNext())
+                        {
+                           DynamicObject& v = vi->next();
+                           if(v.isNull())
+                           {
+                              if(!omitOn)
+                              {
+                                 tmp.push(f->hasMember("@default") ?
+                                    f["@default"].clone() : v);
+                              }
+                           }
+                           else
+                           {
+                              tmp.push(v);
+                           }
+                        }
+                        value[key] = tmp;
+                     }
                   }
                }
             }
@@ -2786,6 +2837,7 @@ bool JsonLd::frame(
       DynamicObject opts(Map);
       opts["defaults"]["embedOn"] = true;
       opts["defaults"]["explicitOn"] = false;
+      opts["defaults"]["omitDefaultOn"] = false;
       if(options != NULL && !(*options).isNull() &&
          (*options)->hasMember("defaults"))
       {
@@ -2797,6 +2849,10 @@ bool JsonLd::frame(
          if(defaults->hasMember("explicitOn"))
          {
             opts["defaults"]["explicitOn"] = defaults["explicitOn"];
+         }
+         if(defaults->hasMember("omitDefaultOn"))
+         {
+            opts["defaults"]["omitDefaultOn"] = defaults["omitDefaultOn"];
          }
       }
 
