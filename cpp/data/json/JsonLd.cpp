@@ -926,7 +926,12 @@ static bool _flatten(
    bool rval = true;
 
    DynamicObject flattened(NULL);
-   if(value->getType() == Array)
+
+   if(value.isNull())
+   {
+      // drop null values
+   }
+   else if(value->getType() == Array)
    {
       DynamicObjectIterator i = value.getIterator();
       while(rval && i->hasNext())
