@@ -2774,10 +2774,10 @@ static bool _frame(
                            DynamicObject& v = vi->next();
                            if(v.isNull())
                            {
-                              if(!omitOn)
+                              // do not auto-include null in arrays
+                              if(!omitOn && f->hasMember("@default"))
                               {
-                                 tmp.push(f->hasMember("@default") ?
-                                    f["@default"].clone() : v);
+                                 tmp.push(f["@default"].clone());
                               }
                            }
                            else
