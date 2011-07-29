@@ -503,6 +503,7 @@ static bool _expand(
 
    // TODO: add data format error detection?
 
+   // value is null, nothing to expand
    if(value.isNull())
    {
       out.setNull();
@@ -981,19 +982,24 @@ static bool _flatten(
          {
             DynamicObject& next = i->next();
             const char* key = i->getName();
-            if(next->getType() == Array)
+
+            // drop null values
+            if(!next.isNull())
             {
-               subject[key]->setType(Array);
-               rval = _flatten(&subject[key], NULL, next, subjects);
-               if(rval && subject[key]->length() == 1)
+               if(next->getType() == Array)
                {
-                  // convert subject[key] to object if only 1 value was added
-                  subject[key] = subject[key][0];
+                  subject[key]->setType(Array);
+                  rval = _flatten(&subject[key], NULL, next, subjects);
+                  if(rval && subject[key]->length() == 1)
+                  {
+                     // convert subject[key] to object if it has only 1
+                     subject[key] = subject[key][0];
+                  }
                }
-            }
-            else
-            {
-               rval = _flatten(&subject, key, next, subjects);
+               else
+               {
+                  rval = _flatten(&subject, key, next, subjects);
+               }
             }
          }
       }
@@ -1106,7 +1112,11 @@ struct C14NState
 static void _collectSubjects(
    DynamicObject& input, DynamicObject& subjects, DynamicObject& bnodes)
 {
-   if(input->getType() == Array)
+   if(input.isNull())
+   {
+      // nothing to collect
+   }
+   else if(input->getType() == Array)
    {
       DynamicObjectIterator i = input.getIterator();
       while(i->hasNext())
