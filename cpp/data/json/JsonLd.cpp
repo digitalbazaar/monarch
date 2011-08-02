@@ -1521,24 +1521,47 @@ static int _shallowCompareBlankNodes(
 }
 
 /**
- * Typedef for a MappingBuilder.
+ * A MappingBuilder is used to build a mapping of existing blank node names
+ * to a form for serialization. The serialization is used to compare blank
+ * nodes against one another to determine a sort order.
  */
-typedef DynamicObject MappingBuilder;
-
-/**
- * Creates a new MappingBuilder.
- *
- * @return the new MappingBuilder.
- */
-static MappingBuilder _createMappingBuilder()
+struct MappingBuilder
 {
-   MappingBuilder mb(Map);
-   mb["count"] = 1;
-   mb["mapped"]->setType(Map);
-   mb["mapping"]->setType(Map);
-   mb["output"]->setType(Map);
-   return mb;
-}
+   int count;
+   DynamicObject processed;
+   DynamicObject mapping;
+   DynamicObject adj;
+   DynamicObject keyStack;
+   DynamicObject done;
+   string s;
+
+   MappingBuilder() :
+      count(1),
+      processed(Map),
+      mapping(Map),
+      adj(Map),
+      keyStack(Array),
+      done(Map)
+   {
+      DynamicObject entry(Map);
+      entry["keys"]->append("s1");
+      entry["idx"] = 0;
+      this->keyStack.push(entry);
+   }
+
+   MappingBuilder clone()
+   {
+      MappingBuilder rval;
+      rval.count = this->count;
+      rval.processed = this->processed.clone();
+      rval.mapping = this->mapping.clone();
+      rval.adj = this->adj.clone();
+      rval.keyStack = this->keyStack.clone();
+      rval.done = this->done.clone();
+      rval.s = this->s;
+      return rval;
+   }
+};
 
 /**
  * Maps the next name to the given bnode IRI if the bnode IRI isn't already in
@@ -1552,20 +1575,18 @@ static MappingBuilder _createMappingBuilder()
  */
 static const char* _mapNode(MappingBuilder& mb, const char* iri)
 {
-   if(!mb["mapping"]->hasMember(iri))
+   if(!mb.mapping->hasMember(iri))
    {
       if(strstr(iri, "_:c14n") == iri)
       {
-         mb["mapping"][iri] = StringTools::format("c%s", iri + 6).c_str();
+         mb.mapping[iri] = StringTools::format("c%s", iri + 6).c_str();
       }
       else
       {
-         int count = mb["count"];
-         mb["mapping"][iri] = StringTools::format("s%d", count).c_str();
-         mb["count"] = count + 1;
+         mb.mapping[iri] = StringTools::format("s%d", mb.count++).c_str();
       }
    }
-   return mb["mapping"][iri];
+   return mb.mapping[iri];
 }
 
 /**
@@ -1644,56 +1665,53 @@ static string _serializeProperties(DynamicObject& b)
 }
 
 /**
- * Recursively creates a relation serialization (partial or full).
+ * Recursively increments the relation serialization for a mapping.
  *
  * @param state the canonicalization state.
- * @param keys the keys to serialize in the current output.
- * @param output the current mapping builder output.
- * @param done the already serialized keys.
- *
- * @return the relation serialization.
+ * @param mb the mapping builder to update.
  */
-static string _recursiveSerializeMapping(
-   C14NState& state,
-   DynamicObject& keys, DynamicObject& output, DynamicObject& done)
+static void _serializeMapping(C14NState& state, MappingBuilder& mb)
 {
-   string rval;
-   DynamicObjectIterator i = keys.getIterator();
-   while(i->hasNext())
+   if(mb.keyStack->length() > 0)
    {
-      const char* k = i->next();
-      if(!output->hasMember(k))
+      // continue from top of key stack
+      DynamicObject next = mb.keyStack.pop();
+      for(; next["idx"]->getInt32() < next["keys"]->length();
+         next["idx"] = next["idx"]->getInt32() + 1)
       {
-         break;
-      }
-
-      if(done->hasMember(k))
-      {
-         // mark cycle
-         rval.push_back('_');
-         rval.append(k);
-      }
-      else
-      {
-         done[k] = true;
-         DynamicObject& tmp = output[k];
-         DynamicObjectIterator ki = tmp["k"].getIterator();
-         while(ki->hasNext())
+         const char* k = next["keys"][next["idx"]->getInt32()];
+         if(!mb.adj->hasMember(k))
          {
-            const char* s = ki->next();
-            rval.append(s);
-            const char* iri = tmp["m"][s];
+            mb.keyStack.push(next);
+            break;
+         }
+
+         if(mb.done->hasMember(k))
+         {
+            // mark cycle
+            mb.s.push_back('_');
+            mb.s.append(k);
+         }
+         else
+         {
+            // mark key as serialized
+            mb.done[k] = true;
+
+            // serialize top-level key and its details
+            string s = k;
+            DynamicObject& adj = mb.adj[k];
+            const char* iri = adj["i"];
             if(state.subjects->hasMember(iri))
             {
                DynamicObject& b = state.subjects[iri];
 
                // serialize properties
-               rval.push_back('<');
-               rval += _serializeProperties(b);
-               rval.push_back('>');
+               s.push_back('<');
+               s.append(_serializeProperties(b));
+               s.push_back('>');
 
                // serialize references
-               rval.push_back('<');
+               s.push_back('<');
                bool first = true;
                DynamicObject& refs = state.edges["refs"][iri]["all"];
                DynamicObjectIterator ri = refs.getIterator();
@@ -1706,33 +1724,28 @@ static string _recursiveSerializeMapping(
                   }
                   else
                   {
-                     rval.push_back('|');
+                     s.push_back('|');
                   }
-                  rval.append(_isBlankNodeIri(r["s"]) ? "_:" : r["s"]);
+                  s.append(_isBlankNodeIri(r["s"]) ? "_:" : r["s"]);
                }
-               rval.push_back('>');
+               s.push_back('>');
             }
+
+            // serialize adjacent node keys
+            DynamicObjectIterator ki = adj["k"].getIterator();
+            while(ki->hasNext())
+            {
+               s.append(ki->next());
+            }
+            mb.s.append(s);
+            DynamicObject entry(Map);
+            entry["keys"] = adj["k"];
+            entry["idx"] = 0;
+            mb.keyStack.push(entry);
+            _serializeMapping(state, mb);
          }
-         rval.append(_recursiveSerializeMapping(state, tmp["k"], output, done));
       }
    }
-   return rval;
-}
-
-/**
- * Creates a relation serialization (partial or full).
- *
- * @param state the canonicalization state.
- * @param output the current mapping builder output.
- *
- * @return the relation serialization.
- */
-static string _serializeMapping(C14NState& state, DynamicObject& output)
-{
-   DynamicObject keys(Array);
-   keys[0] = "s1";
-   DynamicObject done(Map);
-   return _recursiveSerializeMapping(state, keys, output, done);
 }
 
 /**
@@ -1747,33 +1760,23 @@ static string _serializeMapping(C14NState& state, DynamicObject& output)
  */
 static int _compareSerializations(string& s1, const char* s2)
 {
-   int rval = 0;
-
    string::size_type s2Len = strlen(s2);
-   if(s1.length() == s2Len)
-   {
-      rval = strcmp(s1.c_str(), s2);
-   }
-   else
-   {
-      rval = strncmp(
-         s1.c_str(), s2, (s1.length() > s2Len) ? s2Len : s1.length());
-   }
-
-   return rval;
+   return strncmp(
+      s1.c_str(), s2, (s1.length() > s2Len) ? s2Len : s1.length());
 }
 
 // prototypes for recursive functions
 static void _serializeBlankNode(
    C14NState& state,
-   DynamicObject& s, const char* iri, MappingBuilder mb, const char* dir);
+   DynamicObject& s, const char* iri, MappingBuilder& mb, const char* dir);
 
 /**
  * Recursively serializes adjacent bnode combinations.
  *
  * @param state the canonicalization state.
  * @param s the serialization to update.
- * @param top the top of the serialization.
+ * @param iri the IRI of the bnode being serialized.
+ * @param siri the serialization name for the bnode IRI.
  * @param mb the MappingBuilder to use.
  * @param dir the edge direction to use ('props' or 'refs').
  * @param mapped all of the already-mapped adjacent bnodes.
@@ -1781,46 +1784,45 @@ static void _serializeBlankNode(
  */
 static void _serializeCombos(
    C14NState& state,
-   DynamicObject& s, const char* top, MappingBuilder mb,
+   DynamicObject& s, const char* iri, const char* siri, MappingBuilder& mb,
    const char* dir, DynamicObject mapped, DynamicObject notMapped)
 {
-   // copy mapped nodes
-   mapped = mapped.clone();
-
    // handle recursion
    if(notMapped->length() > 0)
    {
+      // copy mapped nodes
+      mapped = mapped.clone();
+
       // map first bnode in list
       mapped[_mapNode(mb, notMapped[0]["s"])] = notMapped[0]["s"];
 
       // recurse into remaining possible combinations
-      DynamicObject original = mb.clone();
+      MappingBuilder original = mb.clone();
       notMapped = notMapped.slice(1);
       int rotations = max(1, notMapped->length());
       for(int r = 0; r < rotations; ++r)
       {
          MappingBuilder m = (r == 0) ? mb : original.clone();
-         _serializeCombos(state, s, top, m, dir, mapped, notMapped);
+         _serializeCombos(state, s, iri, siri, m, dir, mapped, notMapped);
 
          // rotate not-mapped for next combination
          notMapped.rotate();
       }
    }
-   // handle final adjacent node in current combination
+   // no more adjacent bnodes to map, update serialization
    else
    {
       DynamicObject keys = mapped.keys().sort();
       DynamicObject entry(Map);
+      entry["i"] = iri;
       entry["k"] = keys;
       entry["m"] = mapped;
-      mb["output"][top] = entry;
+      mb.adj[siri] = entry;
+      _serializeMapping(state, mb);
 
       // optimize away mappings that are already too large
-      string _s = _serializeMapping(state, mb["output"]);
-      if(s[dir].isNull() || _compareSerializations(_s, s[dir]["s"]) <= 0)
+      if(s[dir].isNull() || _compareSerializations(mb.s, s[dir]["s"]) <= 0)
       {
-         int oldCount = mb["count"];
-
          // recurse into adjacent values
          DynamicObjectIterator i = keys.getIterator();
          while(i->hasNext())
@@ -1829,20 +1831,15 @@ static void _serializeCombos(
             _serializeBlankNode(state, s, mapped[k], mb, dir);
          }
 
-         // reserialize if more nodes were mapped
-         if(mb["count"]->getInt32() > oldCount)
-         {
-            _s = _serializeMapping(state, mb["output"]);
-         }
-
          // update least serialization if new one has been found
+         _serializeMapping(state, mb);
          if(s[dir].isNull() ||
-            (_compareSerializations(_s, s[dir]["s"]) <= 0 &&
-            (int)_s.length() >= s[dir]["s"]->length()))
+            (_compareSerializations(mb.s, s[dir]["s"]) <= 0 &&
+            (int)mb.s.length() >= s[dir]["s"]->length()))
          {
             s[dir] = DynamicObject(Map);
-            s[dir]["s"] = _s.c_str();
-            s[dir]["m"] = mb["mapping"];
+            s[dir]["s"] = mb.s.c_str();
+            s[dir]["m"] = mb.mapping;
          }
       }
    }
@@ -1859,14 +1856,14 @@ static void _serializeCombos(
  */
 static void _serializeBlankNode(
    C14NState& state,
-   DynamicObject& s, const char* iri, MappingBuilder mb, const char* dir)
+   DynamicObject& s, const char* iri, MappingBuilder& mb, const char* dir)
 {
-   // only do mapping if iri not already mapped
-   if(!mb["mapped"]->hasMember(iri))
+   // only do mapping if iri not already processed
+   if(!mb.processed->hasMember(iri))
    {
-      // iri now mapped
-      mb["mapped"][iri] = true;
-      const char* top = _mapNode(mb, iri);
+      // iri now processed
+      mb.processed[iri] = true;
+      const char* siri = _mapNode(mb, iri);
 
       // copy original mapping builder
       MappingBuilder original = mb.clone();
@@ -1879,9 +1876,9 @@ static void _serializeBlankNode(
       while(ai->hasNext())
       {
          DynamicObject& next = ai->next();
-         if(mb["mapping"]->hasMember(next["s"]))
+         if(mb.mapping->hasMember(next["s"]))
          {
-            const char* serialized = mb["mapping"][next["s"]->getString()];
+            const char* serialized = mb.mapping[next["s"]->getString()];
             mapped[serialized] = next["s"];
          }
          else
@@ -1916,7 +1913,7 @@ static void _serializeBlankNode(
       for(int i = 0; i < combos; ++i)
       {
          MappingBuilder m = (i == 0) ? mb : original.clone();
-         _serializeCombos(state, s, top, mb, dir, mapped, notMapped);
+         _serializeCombos(state, s, iri, siri, mb, dir, mapped, notMapped);
       }
    }
 }
@@ -1964,23 +1961,23 @@ static int _deepCompareBlankNodes(
             DynamicObject& sB = state.serializations[iriB];
             if(sA[dir].isNull())
             {
-               MappingBuilder mb = _createMappingBuilder();
+               MappingBuilder mb;
                if(strcmp(dir, "refs") == 0)
                {
                   // keep same mapping and count from 'props' serialization
-                  mb["mapping"] = sA["props"]["m"].clone();
-                  mb["count"] = mb["mapping"]->length() + 1;
+                  mb.mapping = sA["props"]["m"].clone();
+                  mb.count = mb.mapping->length() + 1;
                }
                _serializeBlankNode(state, sA, iriA, mb, dir);
             }
             if(sB[dir].isNull())
             {
-               MappingBuilder mb = _createMappingBuilder();
+               MappingBuilder mb;
                if(strcmp(dir, "refs") == 0)
                {
                   // keep same mapping and count from 'props' serialization
-                  mb["mapping"] = sB["props"]["m"].clone();
-                  mb["count"] = mb["mapping"]->length() + 1;
+                  mb.mapping = sB["props"]["m"].clone();
+                  mb.count = mb.mapping->length() + 1;
                }
                _serializeBlankNode(state, sB, iriB, mb, dir);
             }
