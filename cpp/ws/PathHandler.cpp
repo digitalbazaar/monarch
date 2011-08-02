@@ -84,6 +84,7 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
          "WebService authentication failed. Access denied.",
          "monarch.ws.AccessDenied");
       e->getDetails()["httpStatusCode"] = 403;
+      e->getDetails()["public"] = true;
       e->getDetails()["path"] = ch->getRequest()->getHeader()->getPath();
       Exception::push(e);
    }
