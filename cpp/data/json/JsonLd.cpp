@@ -3,7 +3,6 @@
  */
 #include "monarch/data/json/JsonLd.h"
 
-#include "monarch/data/json/JsonWriter.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/rt/Exception.h"
 #include "monarch/util/StringTools.h"
@@ -1618,13 +1617,28 @@ static string _serializeProperties(DynamicObject& b)
 {
    string rval;
 
+   bool first = true;
    DynamicObjectIterator pi = b.getIterator();
    while(pi->hasNext())
    {
       DynamicObject& o = pi->next();
       if(strcmp(pi->getName(), "@subject") != 0)
       {
-         bool first = true;
+         if(first)
+         {
+            first = false;
+         }
+         else
+         {
+            rval.push_back('|');
+         }
+
+         // property
+         rval.push_back('<');
+         rval.append(pi->getName());
+         rval.push_back('>');
+
+         // object(s)
          DynamicObject objs(NULL);
          if(o->getType() == Array)
          {
@@ -1635,27 +1649,54 @@ static string _serializeProperties(DynamicObject& b)
             objs = DynamicObject(Array);
             objs->append(o);
          }
-
          DynamicObjectIterator oi = objs.getIterator();
          while(oi->hasNext())
          {
             DynamicObject& obj = oi->next();
-            if(first)
+            if(obj->getType() == Map)
             {
-               first = false;
+               // iri
+               if(obj->hasMember("@iri"))
+               {
+                  if(_isBlankNodeIri(obj["@iri"]))
+                  {
+                     rval.append("_:");
+                  }
+                  else
+                  {
+                     rval.push_back('<');
+                     rval.append(obj["@iri"]);
+                     rval.push_back('>');
+                  }
+               }
+               // literal
+               else
+               {
+                  rval.push_back('"');
+                  rval.append(obj["@literal"]);
+                  rval.push_back('"');
+
+                  // datatype literal
+                  if(obj->hasMember("@datatype"))
+                  {
+                     rval.append("^^<");
+                     rval.append(obj["@datatype"]);
+                     rval.push_back('>');
+                  }
+                  // language literal
+                  else if(obj->hasMember("@language"))
+                  {
+                     rval.push_back('@');
+                     rval.append(obj["@language"]);
+                  }
+               }
             }
+            // plain literal
             else
             {
-               rval.push_back('|');
-            }
-            if(obj->getType() == Map &&
-               obj->hasMember("@iri") && _isBlankNodeIri(obj["@iri"]))
-            {
-               rval.append("_:");
-            }
-            else
-            {
-               rval.append(JsonWriter::writeToString(obj, false, false));
+               rval.push_back('"');
+               rval.append(obj);
+               rval.push_back('"');
             }
          }
       }
@@ -1706,13 +1747,13 @@ static void _serializeMapping(C14NState& state, MappingBuilder& mb)
                DynamicObject& b = state.subjects[iri];
 
                // serialize properties
-               s.push_back('<');
+               s.push_back('[');
                s.append(_serializeProperties(b));
-               s.push_back('>');
+               s.push_back(']');
 
                // serialize references
-               s.push_back('<');
                bool first = true;
+               s.push_back('[');
                DynamicObject& refs = state.edges["refs"][iri]["all"];
                DynamicObjectIterator ri = refs.getIterator();
                while(ri->hasNext())
@@ -1726,9 +1767,22 @@ static void _serializeMapping(C14NState& state, MappingBuilder& mb)
                   {
                      s.push_back('|');
                   }
-                  s.append(_isBlankNodeIri(r["s"]) ? "_:" : r["s"]);
+                  s.push_back('<');
+                  s.append(r["p"]);
+                  s.push_back('>');
+
+                  if(_isBlankNodeIri(r["s"]))
+                  {
+                     s.append("_:");
+                  }
+                  else
+                  {
+                     s.push_back('<');
+                     s.append(r["s"]);
+                     s.push_back('>');
+                  }
                }
-               s.push_back('>');
+               s.push_back(']');
             }
 
             // serialize adjacent node keys
