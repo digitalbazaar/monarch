@@ -83,6 +83,7 @@ static void runRdfaReaderTest(TestRunner& tr)
 
       // custom context
       DynamicObject ctx;
+      ctx["dc"] = "http://purl.org/dc/terms/";
       ctx["w3"] = "http://www.w3.org/2009/pointers#";
 
       // Check with low level API

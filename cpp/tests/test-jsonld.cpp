@@ -90,7 +90,7 @@ static void _runJsonLdTestSuiteTest(
    {
       // expand
       assertNoException(
-         JsonLd::removeContext(input, output));
+         JsonLd::expand(input, output));
    }
    else if(type == "compact")
    {
@@ -107,7 +107,7 @@ static void _runJsonLdTestSuiteTest(
 
       // compact
       assertNoException(
-         JsonLd::changeContext(context, input, output));
+         JsonLd::compact(context, input, output));
    }
    else if(type == "frame")
    {
@@ -187,10 +187,13 @@ static void runJsonLdTestSuite(TestRunner& tr)
                tr.group(tests["group"]);
 
                // process each test
+               int count = 0;
                DynamicObjectIterator i = tests["tests"].getIterator();
                while(i->hasNext())
                {
+                  tr.group(StringTools::format("%04d", ++count).c_str());
                   _runJsonLdTestSuiteTest(tr, dir->getPath(), i->next());
+                  tr.ungroup();
                }
 
                tr.ungroup();

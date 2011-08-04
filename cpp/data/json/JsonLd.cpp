@@ -189,10 +189,14 @@ static string _expandTerm(
    // 5. The property is a relative IRI, prepend the default vocab.
    else
    {
-      rval = StringTools::format("%s%s", ctx["@vocab"]->getString(), term);
-      if(usedCtx != NULL)
+      rval = term;
+      if(ctx->hasMember("@vocab"))
       {
-         (*usedCtx)["@vocab"] = ctx["@vocab"]->getString();
+         rval.insert(0, ctx["@vocab"]);
+         if(usedCtx != NULL)
+         {
+            (*usedCtx)["@vocab"] = ctx["@vocab"]->getString();
+         }
       }
    }
 
@@ -244,7 +248,7 @@ static DynamicObject _getCoerceType(
       rval = XSD_ANY_URI;
    }
    // check type coercion for property
-   else
+   else if(ctx->hasMember("@coerce"))
    {
       // force compacted property
       prop = _compactIri(ctx, p, NULL);
@@ -427,6 +431,8 @@ static bool _compact(
             ExceptionRef e = new Exception(
                "Cannot coerce type because the datatype does not match.",
                EXCEPTION_TYPE ".InvalidCoerceType");
+            e->getDetails()["type"] = type;
+            e->getDetails()["expected"] = coerce;
             Exception::set(e);
             rval = false;
          }
@@ -2200,36 +2206,6 @@ static bool _compareBlankNodeIris(DynamicObject a, DynamicObject b)
    return _compare(a[__S]["@iri"], b[__S]["@iri"]) == -1;
 }
 
-DynamicObject JsonLd::createDefaultContext()
-{
-   DynamicObject ctx;
-   ctx["rdf"] = RDF_NS;
-   ctx["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#";
-   ctx["owl"] = "http://www.w3.org/2002/07/owl#";
-   ctx["xsd"] = "http://www.w3.org/2001/XMLSchema#";
-   ctx["dc"] = "http://purl.org/dc/terms/";
-   ctx["foaf"] = "http://xmlns.com/foaf/0.1/";
-   ctx["cal"] = "http://www.w3.org/2002/12/cal/ical#";
-   ctx["vcard"] = "http://www.w3.org/2006/vcard/ns#";
-   ctx["geo"] = "http://www.w3.org/2003/01/geo/wgs84_pos#";
-   ctx["cc"] = "http://creativecommons.org/ns#";
-   ctx["sioc"] = "http://rdfs.org/sioc/ns#";
-   ctx["doap"] = "http://usefulinc.com/ns/doap#";
-   ctx["com"] = "http://purl.org/commerce#";
-   ctx["ps"] = "http://purl.org/payswarm#";
-   ctx["gr"] = "http://purl.org/goodrelations/v1#";
-   ctx["sig"] = "http://purl.org/signature#";
-   ctx["ccard"] = "http://purl.org/commerce/creditcard#";
-   ctx["@vocab"] = "";
-
-   DynamicObject& coerce = ctx["@coerce"];
-   coerce["xsd:anyURI"]->append("foaf:homepage");
-   coerce["xsd:anyURI"]->append("foaf:member");
-   coerce["xsd:integer"] = "foaf:age";
-
-   return ctx;
-}
-
 bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
 {
    bool rval = true;
@@ -2242,12 +2218,9 @@ bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
 
    if(!in.isNull())
    {
-      // get default context
-      DynamicObject ctx = JsonLd::createDefaultContext();
-
       // expand input
       DynamicObject expanded;
-      rval = _expand(ctx, NULL, in, expanded, true);
+      rval = _expand(DynamicObject(Map), NULL, in, expanded, true);
       if(rval)
       {
          // create canonicalization state
@@ -2280,7 +2253,7 @@ bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
    return rval;
 }
 
-bool JsonLd::removeContext(DynamicObject in, DynamicObject& out)
+bool JsonLd::expand(DynamicObject in, DynamicObject& out)
 {
    bool rval = true;
 
@@ -2290,14 +2263,13 @@ bool JsonLd::removeContext(DynamicObject in, DynamicObject& out)
    }
    else
    {
-      DynamicObject ctx = JsonLd::createDefaultContext();
-      rval = _expand(ctx, NULL, in, out, false);
+      rval = _expand(DynamicObject(Map), NULL, in, out, false);
    }
 
    return rval;
 }
 
-bool JsonLd::addContext(
+bool JsonLd::compact(
    DynamicObject context, DynamicObject in, DynamicObject& out)
 {
    bool rval = true;
@@ -2305,46 +2277,48 @@ bool JsonLd::addContext(
    // TODO: should context simplification be optional? (ie: remove context
    // entries that are not used in the output)
 
-   DynamicObject ctx = JsonLd::mergeContexts(
-      JsonLd::createDefaultContext(), context);
-   rval = !ctx.isNull();
-   if(rval)
+   out.setNull();
+   if(!in.isNull())
    {
-      // setup output context
-      DynamicObject ctxOut(Map);
-
-      // compact
-      rval = _compact(ctx, NULL, in, out, &ctxOut);
-
-      // add context if used
-      if(rval && ctxOut->length() > 0)
+      // fully expand input
+      DynamicObject tmp;
+      rval = expand(in, tmp);
+      if(rval)
       {
-         // add copy of context to every entry in output array
-         if(out->getType() == Array)
+         if(tmp->getType() == Array)
          {
-            DynamicObjectIterator i = out.getIterator();
-            while(i->hasNext())
-            {
-               DynamicObject& next = i->next();
-               next["@context"] = ctxOut.clone();
-            }
+            out = DynamicObject(Array);
          }
-         else
+
+         DynamicObjectIterator i = tmp.arrayify().getIterator();
+         while(rval && i->hasNext())
          {
-            out["@context"] = ctxOut;
+            // setup output context
+            DynamicObject ctxOut(Map);
+
+            // compact
+            DynamicObject result;
+            rval = _compact(context.clone(), NULL, i->next(), result, &ctxOut);
+
+            // add context if used
+            if(rval && ctxOut->length() > 0)
+            {
+               result["@context"] = ctxOut;
+            }
+
+            if(out.isNull())
+            {
+               out = result;
+            }
+            else
+            {
+               out->append(result);
+            }
          }
       }
    }
 
    return rval;
-}
-
-bool JsonLd::changeContext(
-   DynamicObject context, DynamicObject in, DynamicObject& out)
-{
-   // remove context and then add new one
-   DynamicObject tmp;
-   return removeContext(in, tmp) && addContext(context, tmp, out);
 }
 
 DynamicObject JsonLd::mergeContexts(
@@ -2790,22 +2764,20 @@ bool JsonLd::frame(
    DynamicObject in, DynamicObject frame, DynamicObject& out,
    DynamicObject* options)
 {
-   bool rval = true;
+   bool rval;
 
    // save frame context
    DynamicObject ctx(NULL);
    if(frame->hasMember("@context"))
    {
-      ctx = JsonLd::mergeContexts(
-         JsonLd::createDefaultContext(), frame["@context"]);
-      rval = !ctx.isNull();
+      ctx = frame["@context"].clone();
    }
 
    // remove context from frame and normalize input
    DynamicObject _f;
    DynamicObject _in;
-   rval = rval &&
-      JsonLd::removeContext(frame, _f) &&
+   rval =
+      JsonLd::expand(frame, _f) &&
       JsonLd::normalize(in, _in);
    if(rval)
    {
@@ -2847,7 +2819,7 @@ bool JsonLd::frame(
       // apply context
       if(rval && !ctx.isNull() && !out.isNull())
       {
-         rval = JsonLd::addContext(ctx, out, out);
+         rval = JsonLd::compact(ctx, out, out);
       }
    }
 

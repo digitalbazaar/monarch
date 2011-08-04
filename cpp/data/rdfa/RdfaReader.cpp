@@ -228,7 +228,7 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
          }
          rval = rval &&
             JsonLd::frame(subjects.values(), g->frame, out, &g->frameOptions) &&
-            JsonLd::changeContext(ctx, out, out);
+            JsonLd::compact(ctx, out, out);
          if(rval && out.isNull())
          {
             out = DynamicObject(g->frame->getType());
@@ -236,7 +236,7 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
       }
       else
       {
-         rval = JsonLd::addContext(ctx, subjects.values(), out);
+         rval = JsonLd::compact(ctx, subjects.values(), out);
       }
 
       if(rval)
@@ -274,7 +274,7 @@ static DynamicObject _getExceptionGraph(
 
    // use frame to embed error context in exception
    g->frame = DynamicObject();
-   g->frame["@context"] = JsonLd::createDefaultContext();
+   //g->frame["@context"] = JsonLd::createDefaultContext();
    g->frame["@type"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
    g->frame["http://www.w3.org/ns/rdfa_processing_graph#context"]->setType(Map);
 
