@@ -672,6 +672,14 @@ public:
    virtual DynamicObject slice(int start = 0, int end = -1);
 
    /**
+    * If this DynamicObject is an array, it is returned. If it is not an array,
+    * an array is created and this DynamicObject is appended to it.
+    *
+    * @return a DynamicObject array.
+    */
+   virtual DynamicObject arrayify();
+
+   /**
     * Clones this DynamicObject and returns it.
     *
     * @return a clone of this DynamicObject.

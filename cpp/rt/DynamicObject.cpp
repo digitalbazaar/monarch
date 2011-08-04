@@ -645,6 +645,23 @@ DynamicObject DynamicObject::slice(int start, int end)
    return rval;
 }
 
+DynamicObject DynamicObject::arrayify()
+{
+   DynamicObject rval(NULL);
+
+   if((*this)->getType() == Array)
+   {
+      rval = *this;
+   }
+   else
+   {
+      rval = DynamicObject(Array);
+      rval->append(*this);
+   }
+
+   return rval;
+}
+
 DynamicObject DynamicObject::clone()
 {
    DynamicObject rval(NULL);

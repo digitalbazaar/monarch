@@ -1241,23 +1241,9 @@ static void _renameBlankNode(
          {
             prop["s"] = id.c_str();
 
-            // normalize property to array for single code-path
+            // normalize property to array for single code path
             const char* p = prop["p"];
-            DynamicObject tmp(NULL);
-            if(ref[p]->getType() == Map)
-            {
-               tmp = DynamicObject();
-               tmp.push(ref[p]);
-            }
-            else if(ref[p]->getType() == Array)
-            {
-               tmp = ref[p];
-            }
-            else
-            {
-               tmp = DynamicObject(Array);
-            }
-            DynamicObjectIterator i3 = tmp.getIterator();
+            DynamicObjectIterator i3 = ref[p].arrayify().getIterator();
             while(i3->hasNext())
             {
                DynamicObject& next = i3->next();
@@ -1397,19 +1383,8 @@ static void _collectEdges(C14NState& state)
          const char* key = oi->getName();
          if(strcmp(key, __S) != 0)
          {
-            // normalize to array for single codepath
-            DynamicObject tmp(NULL);
-            if(object->getType() != Array)
-            {
-               tmp = DynamicObject(Array);
-               tmp.push(object);
-            }
-            else
-            {
-               tmp = object;
-            }
-
-            DynamicObjectIterator ti = tmp.getIterator();
+            // normalize to array for single code path
+            DynamicObjectIterator ti = object.arrayify().getIterator();
             while(ti->hasNext())
             {
                DynamicObject& o = ti->next();
@@ -1639,17 +1614,7 @@ static string _serializeProperties(DynamicObject& b)
          rval.push_back('>');
 
          // object(s)
-         DynamicObject objs(NULL);
-         if(o->getType() == Array)
-         {
-            objs = o;
-         }
-         else
-         {
-            objs = DynamicObject(Array);
-            objs->append(o);
-         }
-         DynamicObjectIterator oi = objs.getIterator();
+         DynamicObjectIterator oi = o.arrayify().getIterator();
          while(oi->hasNext())
          {
             DynamicObject& obj = oi->next();
@@ -2528,36 +2493,12 @@ static bool _isType(DynamicObject& input, DynamicObject& frame)
       input->getType() == Map &&
       input->hasMember(__S) && input->hasMember(RDF_TYPE))
    {
-      // normalize frame types to array for single code path
-      DynamicObject fTypes(NULL);
-      if(frame[RDF_TYPE]->getType() == Array)
-      {
-         fTypes = frame[RDF_TYPE];
-      }
-      else
-      {
-         fTypes = DynamicObject(Array);
-         fTypes.push(frame[RDF_TYPE]);
-      }
-
-      // normalize input types to array for single code path
-      DynamicObject iTypes(NULL);
-      if(input[RDF_TYPE]->getType() == Array)
-      {
-         iTypes = input[RDF_TYPE];
-      }
-      else
-      {
-         iTypes = DynamicObject(Array);
-         iTypes.push(input[RDF_TYPE]);
-      }
-
       // find a type from the frame in the input
-      DynamicObjectIterator i = fTypes.getIterator();
+      DynamicObjectIterator i = frame[RDF_TYPE].arrayify().getIterator();
       while(!rval && i->hasNext())
       {
          DynamicObject& type = i->next()["@iri"];
-         DynamicObjectIterator ii = iTypes.getIterator();
+         DynamicObjectIterator ii = input[RDF_TYPE].arrayify().getIterator();
          while(!rval && ii->hasNext())
          {
             rval = (ii->next()["@iri"] == type);
@@ -2769,15 +2710,7 @@ static bool _frame(
                   if(value->hasMember(key))
                   {
                      // build input
-                     if(value[key]->getType() == Array)
-                     {
-                        in = value[key];
-                     }
-                     else
-                     {
-                        in = DynamicObject(Array);
-                        in.push(value[key]);
-                     }
+                     in = value[key].arrayify();
                      DynamicObjectIterator itr = in.getIterator();
                      while(itr->hasNext())
                      {
