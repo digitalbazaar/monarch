@@ -850,6 +850,7 @@ static void runRdfaReaderTest(TestRunner& tr)
 
       DynamicObject frame;
       frame["@context"]["ex"] = "http://example.org/vocab#";
+      frame["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
       frame["@type"] = "ex:A";
       frame["ex:knows"]->setType(Array);
 
@@ -1000,7 +1001,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       expect[1]["@context"]["ex"] = "http://example.org/vocab#";
       expect[1]["@subject"] = "http://example.org/test#aa";
       expect[1]["@type"] = "ex:A";
-      expect[1]["ex:knows"].setNull();
+      expect[1]["ex:knows"]->setType(Array);
       assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
