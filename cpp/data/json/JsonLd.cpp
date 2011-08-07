@@ -1004,19 +1004,23 @@ static bool _flatten(
             // drop null values
             if(!next.isNull())
             {
-               if(next->getType() == Array)
+               if(subject->hasMember(key))
                {
-                  subject[key]->setType(Array);
-                  rval = _flatten(&subject[key], NULL, next, subjects);
-                  if(rval && subject[key]->length() == 1)
+                  if(subject[key]->getType() != Array)
                   {
-                     // convert subject[key] to object if it has only 1
-                     subject[key] = subject[key][0];
+                     subject[key] = subject[key].arrayify();
                   }
                }
                else
                {
-                  rval = _flatten(&subject, key, next, subjects);
+                  subject[key]->setType(Array);
+               }
+
+               rval = _flatten(&subject[key], NULL, next, subjects);
+               if(rval && subject[key]->length() == 1)
+               {
+                  // convert subject[key] to object if it has only 1
+                  subject[key] = subject[key][0];
                }
             }
          }
