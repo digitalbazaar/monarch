@@ -24,6 +24,29 @@ class RequestAuthenticator
 {
 public:
    /**
+    * Possible return codes for checkAuthentication
+    */
+   enum Result
+   {
+      /**
+       * The request is denied.
+       */
+      Deny = -2,
+      /*
+       * The request failed to be authenticated but others may be checked.
+       */
+      Failure = -1,
+      /**
+       * This request could not be checked by this authenticator.
+       */
+      NotChecked = 0,
+      /*
+       * The request was successfully authenticated.
+       */
+      Success = 1
+   };
+
+   /**
     * Creates a new RequestAuthenticator.
     */
    RequestAuthenticator();
@@ -38,23 +61,26 @@ public:
     *
     * If an authentication attempt was made by the client and it was
     * successful, then setAuthenticationMethod() must be called on the
-    * ServiceChannel. This method must return 1.
+    * ServiceChannel. This method must return Success.
     *
     * If an authentication attempt was made by the client and it was
     * unsuccessful, then setAuthenticationException() must be called on
-    * the ServiceChannel. This method must return -1.
+    * the ServiceChannel. If other authenticators should be checked then this
+    * method should return Failure. If other authenticators should not be
+    * checked then this method should return Deny.
     *
     * If no authentication attempt was made by the client, then this method
-    * must return 0. No calls to the channel are required.
+    * must return NotChecked. No calls to the channel are required.
     *
     * @param ch the communication channel with the client.
     *
-    * @return 1 if the request is authenticated, -1 if the client attempted
-    *         to authorize the request but failed, and 0 if the client did
-    *         not attempt to authenticate the request (and, therefore, it
-    *         is not authenticated).
+    * @return Success if the request is authenticated, Failure if the client
+    *         attempted to authorize the request but failed, NoCheck if the
+    *         client did not attempt to authenticate the request (and,
+    *         therefore, it is not authenticated), and Denied if a request
+    *         should be explicitly denied.
     */
-   virtual int checkAuthentication(ServiceChannel* ch);
+   virtual Result checkAuthentication(ServiceChannel* ch);
 };
 
 // type definition for a reference counted RequestAuthenticator

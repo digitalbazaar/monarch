@@ -160,20 +160,23 @@ public:
       ch->getResponse()->sendBody(&bais);
    }
 
-   virtual int authenticate(ServiceChannel* ch)
+   virtual RequestAuthenticator::Result
+       authenticate(ServiceChannel* ch)
    {
       // anonymous authentication, nothing to set
-      return 1;
+      return RequestAuthenticator::Success;
    }
 
-   virtual int authenticate2(ServiceChannel* ch, DynamicObject& data)
+   virtual RequestAuthenticator::Result
+      authenticate2(ServiceChannel* ch, DynamicObject& data)
    {
       // anonymous authentication, nothing to set
       assertStrCmp(data["foo"]->getString(), "bar");
-      return 1;
+      return RequestAuthenticator::Success;
    }
 
-   virtual int authenticate3(ServiceChannel* ch)
+   virtual RequestAuthenticator::Result
+      authenticate3(ServiceChannel* ch)
    {
       // always consider authentication method tried but failed
       ExceptionRef e = new Exception(
@@ -181,7 +184,7 @@ public:
          "tests.ws.Exception");
       Exception::set(e);
       ch->setAuthenticationException("failMethod", e);
-      return -1;
+      return RequestAuthenticator::Failure;
    }
 };
 

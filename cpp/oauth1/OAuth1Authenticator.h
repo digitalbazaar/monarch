@@ -13,7 +13,7 @@ namespace oauth1
 {
 
 /**
- * An Oauth1RequestAuthenticator determines if a request made to a WebService
+ * An Oauth1Authenticator determines if a request made to a WebService
  * is authenticated using OAuth1.
  *
  * @author Dave Longley
@@ -64,7 +64,8 @@ public:
    /**
     * {@inheritDoc}
     */
-   virtual int checkAuthentication(monarch::ws::ServiceChannel* ch);
+   virtual monarch::ws::RequestAuthenticator::Result
+      checkAuthentication(monarch::ws::ServiceChannel* ch);
 };
 
 } // end namespace oauth1

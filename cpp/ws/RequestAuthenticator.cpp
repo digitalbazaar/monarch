@@ -14,8 +14,9 @@ RequestAuthenticator::~RequestAuthenticator()
 {
 }
 
-int RequestAuthenticator::checkAuthentication(ServiceChannel* ch)
+RequestAuthenticator::Result
+   RequestAuthenticator::checkAuthentication(ServiceChannel* ch)
 {
    // anonymous authentication, nothing to set, always passes
-   return 1;
+   return Success;
 }

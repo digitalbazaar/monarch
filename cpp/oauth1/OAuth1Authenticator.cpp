@@ -72,10 +72,11 @@ static bool _checkSignatureSecurity(OAuth1Params& params, bool allow)
    return rval;
 }
 
-int OAuth1Authenticator::checkAuthentication(ServiceChannel* ch)
+RequestAuthenticator::Result
+   OAuth1Authenticator::checkAuthentication(ServiceChannel* ch)
 {
    // default to client did not attempt to use oauth1
-   int rval = 0;
+   RequestAuthenticator::Result rval = NotChecked;
 
    // check to see if the OAuth parameters were specified, if they were
    // check to see if they are valid and return more information that is
@@ -84,9 +85,6 @@ int OAuth1Authenticator::checkAuthentication(ServiceChannel* ch)
    OAuth1Params params = mOAuth1.getParameters(ch);
    if(params->hasMember("oauth_consumer_key"))
    {
-      // client attempted oauth1, default to failed
-      rval = -1;
-
       bool pass =
          _checkConnectionSecurity(ch, mRequireSecureConnection) &&
          _checkSignatureSecurity(params, mAllowPlainText) &&
@@ -97,7 +95,7 @@ int OAuth1Authenticator::checkAuthentication(ServiceChannel* ch)
          DynamicObject data;
          data["params"] = params;
          ch->setAuthenticationMethod(OAUTH1_METHOD, data);
-         rval = 1;
+         rval = Success;
       }
       else
       {
@@ -109,6 +107,9 @@ int OAuth1Authenticator::checkAuthentication(ServiceChannel* ch)
 
          // client attempted to authenticate, save exception w/channel
          ch->setAuthenticationException(OAUTH1_METHOD, e);
+
+         // client attempted oauth1, set to failed
+         rval = Failure;
       }
    }
 

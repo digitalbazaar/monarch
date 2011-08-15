@@ -25,13 +25,14 @@ protected:
    /**
     * Typedef for authentication function.
     */
-   typedef int (Handler::*SimpleFunction)(Channel* ch);
+   typedef RequestAuthenticator::Result
+      (Handler::*SimpleFunction)(Channel* ch);
 
    /**
     * Typedef for authentication function w/user-data dyno.
     */
-   typedef int (Handler::*DynoFunction)(
-      Channel* ch, monarch::rt::DynamicObject&);
+   typedef RequestAuthenticator::Result
+      (Handler::*DynoFunction)(Channel* ch, monarch::rt::DynamicObject&);
 
    /**
     * The handler object with the handler function as a member.
@@ -90,7 +91,8 @@ public:
    /**
     * {@inheritDoc}
     */
-   virtual int checkAuthentication(ServiceChannel* ch);
+   virtual RequestAuthenticator::Result
+      checkAuthentication(ServiceChannel* ch);
 };
 
 template<typename Handler, typename Channel>
@@ -119,10 +121,11 @@ RequestAuthenticatorDelegate<Handler, Channel>::~RequestAuthenticatorDelegate()
 }
 
 template<typename Handler, typename Channel>
-int RequestAuthenticatorDelegate<Handler, Channel>::checkAuthentication(
+RequestAuthenticator::Result
+   RequestAuthenticatorDelegate<Handler, Channel>::checkAuthentication(
    ServiceChannel* ch)
 {
-   int rval;
+   RequestAuthenticator::Result rval;
 
    if(mType == FunctionDyno)
    {

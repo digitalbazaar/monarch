@@ -36,9 +36,10 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
       // check all authentication methods, save last exception for failed
       // attempt
       ExceptionRef e(NULL);
-      int rc;
+      RequestAuthenticator::Result rc;
+      bool denied = false;
       for(RequestAuthList::iterator i = mAuthMethods.begin();
-          i != mAuthMethods.end(); ++i)
+          !denied && i != mAuthMethods.end(); ++i)
       {
          // clear exceptions from previous failures
          Exception::clear();
@@ -47,13 +48,19 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
          rc = (*i)->checkAuthentication(ch);
 
          // if authentication passed, set rval to true if not yet set
-         if(rc == 1 && !rval)
+         if(rc == RequestAuthenticator::Success && !rval)
          {
             rval = true;
          }
          // authentication was attempted by client but failed, save exception
-         else if(rc == -1)
+         else if(rc == RequestAuthenticator::Failure)
          {
+            e = Exception::get();
+         }
+         // request was denied, save exception
+         else if(rc == RequestAuthenticator::Deny)
+         {
+            rval = false;
             e = Exception::get();
          }
       }
