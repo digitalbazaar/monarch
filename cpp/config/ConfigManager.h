@@ -274,11 +274,13 @@ public:
     * @param include true to process include directives, false to ignore them.
     * @param dir the directory of this config used for processing relative
     *            includes or NULL.
+    * @param level level of config file recursion.
     *
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfig(
-      Config config, bool include = true, const char* dir = NULL);
+      Config config, bool include = true, const char* dir = NULL,
+      int level = 0);
 
    /**
     * Adds a configuration file or directory of files with addConfig().
@@ -291,12 +293,14 @@ public:
     * @param optional true to suppress failure if path is not found,
     *        false to require path to be present.
     * @param processSubdirectories true to process subdirs as dirs of configs.
+    * @param level level of config file recursion.
     *
     * @return true if successful, false if an exception occurred.
     */
    virtual bool addConfigFile(
       const char* path, bool processIncludes = true, const char* dir = NULL,
-      bool optional = false, bool processSubdirectories = false);
+      bool optional = false, bool processSubdirectories = false,
+      int level = 0);
 
    /**
     * Removes a configuration.
@@ -530,12 +534,13 @@ protected:
     * @param dir the directory of this config used for processing relative
     *            includes or NULL.
     * @param changedIds an optional map to populate with changed config IDs.
+    * @param level level of config file recursion.
     *
     * @return true if successful, false if an exception occurred.
     */
    virtual bool recursiveAddConfig(
       Config& config, bool include, const char* dir,
-      monarch::rt::DynamicObject* changedIds = NULL);
+      monarch::rt::DynamicObject* changedIds = NULL, int level = 0);
 };
 
 } // end namespace config
