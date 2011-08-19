@@ -232,18 +232,21 @@ bool ConfigManager::addConfigFile(
          {
             File& f = i->next();
             string name = f->getAbsolutePath();
+            // get basename on full path so "." and ".." are preset.
+            // getAbsolutePath has already normalized those paths.
+            string basename = File::basename(f->getPath());
             if(f->isFile())
             {
                if(name.rfind(INCLUDE_EXT) ==
                   (name.length() - strlen(INCLUDE_EXT)))
                {
-                  configFiles.push_back(File::basename(f->getAbsolutePath()));
+                  configFiles.push_back(basename);
                }
             }
             else if(
                processSubdirectories &&
-               strcmp(name.c_str(), ".") != 0 &&
-               strcmp(name.c_str(), "..") != 0 &&
+               strcmp(basename.c_str(), ".") != 0 &&
+               strcmp(basename.c_str(), "..") != 0 &&
                f->isDirectory())
             {
                configDirs.push_back(name);
