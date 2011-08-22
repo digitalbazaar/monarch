@@ -872,6 +872,14 @@ static void runFileTest(TestRunner& tr)
       {
          assertStrCmp(File::basename("/dir1/dir2/base").c_str(), "base");
       }
+
+      {
+         assertStrCmp(File::basename("/dir1/dir2/.").c_str(), ".");
+      }
+
+      {
+         assertStrCmp(File::basename("/dir1/dir2/..").c_str(), "..");
+      }
    }
    tr.passIfNoException();
 
