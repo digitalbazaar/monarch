@@ -25,9 +25,6 @@ using namespace monarch::util;
 #define XSD_INTEGER       XSD_NS "integer"
 #define XSD_ANY_URI       XSD_NS "anyURI"
 
-#define __S               "@subject"
-#define __T               "@type"
-
 #define EXCEPTION_TYPE    "monarch.data.json.JsonLd"
 
 JsonLd::JsonLd()
@@ -36,6 +33,72 @@ JsonLd::JsonLd()
 
 JsonLd::~JsonLd()
 {
+}
+
+/**
+ * Sets a subject's property to the given object value. If a value already
+ * exists, it will be appended to an array.
+ *
+ * @param s the subject.
+ * @param p the property.
+ * @param o the object.
+ */
+static void _setProperty(DynamicObject s, const char* p, DynamicObject o)
+{
+   if(s->hasMember(p))
+   {
+      s[p].push(o);
+   }
+   else
+   {
+      s[p] = o;
+   }
+}
+
+/**
+ * Gets the keywords from a context.
+ *
+ * @param ctx the context.
+ *
+ * @return the keywords.
+ */
+static DynamicObject _getKeywords(DynamicObject& ctx)
+{
+   // TODO: reduce calls to this function by caching keywords in processor
+   // state
+
+   DynamicObject rval(Map);
+   rval["@datatype"] = "@datatype";
+   rval["@iri"] = "@iri";
+   rval["@language"] = "@language";
+   rval["@literal"] = "@literal";
+   rval["@subject"] = "@subject";
+   rval["@type"] = "@type";
+
+   if(!ctx.isNull())
+   {
+      // gather keyword aliases from context
+      DynamicObject keywords(Map);
+      DynamicObjectIterator i = ctx.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& value = i->next();
+         if(value->getType() == String && rval->hasMember(value))
+         {
+            keywords[value->getString()] = i->getName();
+         }
+      }
+
+      // overwrite keywords
+      i = keywords.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& value = i->next();
+         rval[i->getName()] = value;
+      }
+   }
+
+   return rval;
 }
 
 /**
@@ -80,7 +143,7 @@ static string _compactIri(
    // term not found, if term is rdf type, use built-in keyword
    if(rval.empty() && strcmp(iri, RDF_TYPE) == 0)
    {
-      rval = __T;
+      rval = _getKeywords(ctx)["@type"]->getString();
    }
 
    // if term not found, check the context for a CURIE prefix
@@ -140,6 +203,9 @@ static string _expandTerm(
 {
    string rval;
 
+   // get JSON-LD keywords
+   DynamicObject keywords = _getKeywords(ctx);
+
    // 1. If the property has a colon, then it is a CURIE or an absolute IRI:
    const char* ptr = strchr(term, ':');
    if(ptr != NULL)
@@ -177,12 +243,12 @@ static string _expandTerm(
       }
    }
    // 3. The property is the special-case subject.
-   else if(strcmp(term, __S) == 0)
+   else if(strcmp(term, keywords["@subject"]) == 0)
    {
-      rval = __S;
+      rval = keywords["@subject"]->getString();
    }
    // 4. The property is the special-case rdf type.
-   else if(strcmp(term, __T) == 0)
+   else if(strcmp(term, keywords["@type"]) == 0)
    {
       rval = RDF_TYPE;
    }
@@ -204,26 +270,6 @@ static string _expandTerm(
 }
 
 /**
- * Sets a subject's property to the given object value. If a value already
- * exists, it will be appended to an array.
- *
- * @param s the subject.
- * @param p the property.
- * @param o the object.
- */
-static void _setProperty(DynamicObject s, const char* p, DynamicObject o)
-{
-   if(s->hasMember(p))
-   {
-      s[p].push(o);
-   }
-   else
-   {
-      s[p] = o;
-   }
-}
-
-/**
  * Gets the coerce type for the given property.
  *
  * @param ctx the context to use.
@@ -242,7 +288,7 @@ static DynamicObject _getCoerceType(
    const char* p = prop.c_str();
 
    // built-in type coercion JSON-LD-isms
-   if(strcmp(p, __S) == 0 || strcmp(p, RDF_TYPE) == 0)
+   if(strcmp(p, "@subject") == 0 || strcmp(p, RDF_TYPE) == 0)
    {
       rval = DynamicObject();
       rval = XSD_ANY_URI;
@@ -265,6 +311,13 @@ static DynamicObject _getCoerceType(
             {
                rval = DynamicObject();
                rval = _expandTerm(ctx, i->getName(), usedCtx).c_str();
+
+               // "@iri" is shortcut for XSD_ANY_URI
+               if(rval == "@iri")
+               {
+                  rval = XSD_ANY_URI;
+               }
+
                if(usedCtx != NULL)
                {
                   if(!(*usedCtx)["@coerce"]->hasMember(i->getName()))
@@ -307,6 +360,9 @@ static bool _compact(
 {
    bool rval = true;
 
+   // get JSON-LD keywords
+   DynamicObject keywords = _getKeywords(ctx);
+
    if(value.isNull())
    {
       // return null, but check coerce type to add to usedCtx
@@ -331,11 +387,13 @@ static bool _compact(
    // graph literal/disjoint graph
    else if(
       value->getType() == Map &&
-      value->hasMember(__S) &&
-      value[__S]->getType() == Array)
+      value->hasMember("@subject") &&
+      value["@subject"]->getType() == Array)
    {
       out = DynamicObject(Map);
-      rval = _compact(ctx, property, value[__S], out[__S], usedCtx);
+      rval = _compact(
+         ctx, property, value["@subject"],
+         out[keywords["@subject"]->getString()], usedCtx);
    }
    // value has sub-properties if it doesn't define a literal or IRI value
    else if(
@@ -471,7 +529,17 @@ static bool _compact(
             }
          }
       }
-      // no type-coercion, just copy value
+      // no type-coercion, just change keywords/copy value
+      else if(value->getType() == Map)
+      {
+         out = DynamicObject(Map);
+         DynamicObjectIterator i = value.getIterator();
+         while(i->hasNext())
+         {
+            DynamicObject& v = i->next();
+            out[keywords[i->getName()]->getString()] = v.clone();
+         }
+      }
       else
       {
          out = value.clone();
@@ -482,7 +550,8 @@ static bool _compact(
       {
          if(out->getType() == Map)
          {
-            out["@iri"] = _compactIri(ctx, out["@iri"], usedCtx).c_str();
+            out[keywords["@iri"]->getString()] = _compactIri(
+               ctx, out[keywords["@iri"]->getString()], usedCtx).c_str();
          }
          else
          {
@@ -543,16 +612,21 @@ static bool _expand(
    }
    else if(value->getType() == Map)
    {
-      // value has sub-properties if it doesn't define a literal or IRI value
-      if(!value->hasMember("@literal") && !value->hasMember("@iri"))
+      // if value has a context, use it
+      if(value->hasMember("@context"))
       {
-         // if value has a context, use it
-         if(value->hasMember("@context"))
-         {
-            ctx = JsonLd::mergeContexts(ctx, value["@context"]);
-         }
+         ctx = JsonLd::mergeContexts(ctx, value["@context"]);
+      }
 
-         if(!ctx.isNull())
+      if(!ctx.isNull())
+      {
+         // get JSON-LD keywords
+         DynamicObject keywords = _getKeywords(ctx);
+
+         // value has sub-properties if it doesn't define a literal or IRI
+         // value
+         if(!value->hasMember(keywords["@literal"]) &&
+            !value->hasMember(keywords["@iri"]))
          {
             // recursively handle sub-properties that aren't a sub-context
             out = DynamicObject(Map);
@@ -571,25 +645,44 @@ static bool _expand(
                }
                else if(strcmp(i->getName(), "@context") != 0)
                {
-                  // expand property
-                  string p = _expandTerm(ctx, i->getName(), NULL);
-
                   // expand object
                   DynamicObject objOut;
-                  rval = _expand(ctx, p.c_str(), obj, objOut, expandSubjects);
+                  rval = _expand(
+                     ctx, i->getName(), obj, objOut, expandSubjects);
                   if(rval)
                   {
                      // set object to expanded property
-                     _setProperty(out, p.c_str(), objOut);
+                     _setProperty(
+                        out, _expandTerm(ctx, i->getName(), NULL).c_str(),
+                        objOut);
                   }
                }
             }
          }
-      }
-      // value is already expanded
-      else
-      {
-         out = value.clone();
+         // only need to expand keywords
+         else
+         {
+            out = DynamicObject(Map);
+            if(value->hasMember(keywords["@iri"]))
+            {
+               out["@iri"] = value[keywords["@iri"]->getString()].clone();
+            }
+            else
+            {
+               out["@literal"] =
+                  value[keywords["@literal"]->getString()].clone();
+               if(value->hasMember(keywords["@language"]))
+               {
+                  out["@language"] =
+                     value[keywords["@language"]->getString()].clone();
+               }
+               if(value->hasMember(keywords["@datatype"]))
+               {
+                  out["@datatype"] =
+                     value[keywords["@datatype"]->getString()].clone();
+               }
+            }
+         }
       }
    }
    else
@@ -598,6 +691,9 @@ static bool _expand(
 
       // do type coercion
       DynamicObject coerce = _getCoerceType(ctx, property, NULL);
+
+      // get JSON-LD keywords
+      DynamicObject keywords = _getKeywords(ctx);
 
       // automatic coercion for basic JSON types
       if(coerce.isNull() && (value->isNumber() || value->getType() == Boolean))
@@ -618,7 +714,8 @@ static bool _expand(
       }
 
       // only expand subjects if requested
-      if(!coerce.isNull() && (strcmp(property, __S) != 0 || expandSubjects))
+      if(!coerce.isNull() && (
+         keywords["@subject"] != property || expandSubjects))
       {
          // expand IRI
          if(coerce == XSD_ANY_URI)
@@ -661,9 +758,9 @@ inline static bool _isNamedBlankNode(DynamicObject& v)
    // look for "_:" at the beginning of the subject
    return (
       v->getType() == Map &&
-      v->hasMember(__S) &&
-      v[__S]->hasMember("@iri") &&
-      _isBlankNodeIri(v[__S]["@iri"]));
+      v->hasMember("@subject") &&
+      v["@subject"]->hasMember("@iri") &&
+      _isBlankNodeIri(v["@subject"]["@iri"]));
 }
 
 inline static bool _isBlankNode(DynamicObject& v)
@@ -672,7 +769,7 @@ inline static bool _isBlankNode(DynamicObject& v)
    return (
       v->getType() == Map &&
       !(v->hasMember("@iri") || v->hasMember("@literal")) &&
-      (!v->hasMember(__S) || _isNamedBlankNode(v)));
+      (!v->hasMember("@subject") || _isNamedBlankNode(v)));
 }
 
 static bool _isNonBlankNodeObject(DynamicObject& v)
@@ -947,7 +1044,7 @@ static bool _flatten(
    else if(value->getType() == Map)
    {
       // graph literal/disjoint graph
-      if(value->hasMember(__S) && value[__S]->getType() == Array)
+      if(value->hasMember("@subject") && value["@subject"]->getType() == Array)
       {
          // cannot flatten embedded graph literals
          if(parent != NULL)
@@ -961,7 +1058,7 @@ static bool _flatten(
          // top-level graph literal
          else
          {
-            DynamicObjectIterator i = value[__S].getIterator();
+            DynamicObjectIterator i = value["@subject"].getIterator();
             while(rval && i->hasNext())
             {
                rval = _flatten(parent, parentProperty, i->next(), subjects);
@@ -978,18 +1075,19 @@ static bool _flatten(
       {
          // create or fetch existing subject
          DynamicObject subject(NULL);
-         if(value->hasMember(__S) && subjects->hasMember(value[__S]["@iri"]))
+         if(value->hasMember("@subject") &&
+            subjects->hasMember(value["@subject"]["@iri"]))
          {
-            // FIXME: __S might be a graph literal (as {})
-            subject = subjects[value[__S]["@iri"]->getString()];
+            // FIXME: "@subject" might be a graph literal (as {})
+            subject = subjects[value["@subject"]["@iri"]->getString()];
          }
          else
          {
             subject = DynamicObject(Map);
-            if(value->hasMember(__S))
+            if(value->hasMember("@subject"))
             {
-               // FIXME: __S might be a graph literal (as {})
-               subjects[value[__S]["@iri"]->getString()] = subject;
+               // FIXME: "@subject" might be a graph literal (as {})
+               subjects[value["@subject"]["@iri"]->getString()] = subject;
             }
          }
          flattened = subject;
@@ -1040,9 +1138,9 @@ static bool _flatten(
       // 'http://mypredicate': {'@subject': {'@iri': 'http://mysubject'}}
       // becomes
       // 'http://mypredicate': {'@iri': 'http://mysubject'}
-      if(flattened->getType() == Map && flattened->hasMember(__S))
+      if(flattened->getType() == Map && flattened->hasMember("@subject"))
       {
-         flattened = flattened[__S];
+         flattened = flattened["@subject"];
       }
 
       if((*parent)->getType() == Array)
@@ -1101,9 +1199,9 @@ struct NameGenerator
 };
 
 /**
- * Blank node canonicalization state.
+ * Normalization state.
  */
-struct C14NState
+struct N11NState
 {
    DynamicObject edges;
    DynamicObject subjects;
@@ -1111,7 +1209,7 @@ struct C14NState
    NameGenerator ngTmp;
    NameGenerator ngC14N;
    bool canonicalizing;
-   C14NState() :
+   N11NState() :
       edges(Map),
       subjects(Map),
       serializations(Map),
@@ -1148,17 +1246,17 @@ static void _collectSubjects(
    }
    else if(input->getType() == Map)
    {
-      if(input->hasMember(__S))
+      if(input->hasMember("@subject"))
       {
          // graph literal
-         if(input[__S]->getType() == Array)
+         if(input["@subject"]->getType() == Array)
          {
-            _collectSubjects(input[__S], subjects, bnodes);
+            _collectSubjects(input["@subject"], subjects, bnodes);
          }
          // named subject
          else
          {
-            subjects[input[__S]["@iri"]->getString()] = input;
+            subjects[input["@subject"]["@iri"]->getString()] = input;
          }
       }
       // unnamed blank node
@@ -1179,10 +1277,10 @@ static void _collectSubjects(
 /**
  * Assigns unique names to blank nodes that are unnamed in the given input.
  *
- * @param state canonicalization state.
+ * @param state normalization state.
  * @param input the input to assign names to.
  */
-static void _nameBlankNodes(C14NState& state, DynamicObject& input)
+static void _nameBlankNodes(N11NState& state, DynamicObject& input)
 {
    // collect subjects and unnamed bnodes
    DynamicObject subjects(Map);
@@ -1194,11 +1292,11 @@ static void _nameBlankNodes(C14NState& state, DynamicObject& input)
    while(i->hasNext())
    {
       DynamicObject& bnode = i->next();
-      if(!bnode->hasMember(__S))
+      if(!bnode->hasMember("@subject"))
       {
          // generate names until one is unique
          while(subjects->hasMember(state.ngTmp.next()));
-         bnode[__S]["@iri"] = state.ngTmp.current();
+         bnode["@subject"]["@iri"] = state.ngTmp.current();
          subjects[state.ngTmp.current()] = bnode;
       }
    }
@@ -1208,16 +1306,16 @@ static void _nameBlankNodes(C14NState& state, DynamicObject& input)
  * Renames a blank node, changing its references, etc. The method assumes
  * that the given name is unique.
  *
- * @param state canonicalization state.
+ * @param state normalization state.
  * @param b the blank node to rename.
  * @param id the new name to use.
  */
 static void _renameBlankNode(
-   C14NState& state, DynamicObject b, string id)
+   N11NState& state, DynamicObject b, string id)
 {
    // update bnode IRI
-   string old = b[__S]["@iri"]->getString();
-   b[__S]["@iri"] = id.c_str();
+   string old = b["@subject"]["@iri"]->getString();
+   b["@subject"]["@iri"] = id.c_str();
 
    // update subjects map
    DynamicObject& subjects = state.subjects;
@@ -1292,13 +1390,13 @@ static void _renameBlankNode(
  * node appears in the blank node equality memo then they will be compared
  * after properties, otherwise they won't be.
  *
- * @param state the canonicalization state.
+ * @param state the normalization state.
  * @param a the first edge.
  * @param b the second edge.
  *
  * @return -1 if a < b, 0 if a == b, 1 if a > b.
  */
-static int _compareEdges(C14NState& state, DynamicObject& a, DynamicObject& b)
+static int _compareEdges(N11NState& state, DynamicObject& a, DynamicObject& b)
 {
    int rval = 0;
 
@@ -1346,8 +1444,8 @@ static int _compareEdges(C14NState& state, DynamicObject& a, DynamicObject& b)
  */
 struct CompareEdges : public DynamicObject::SortFunctor
 {
-   C14NState* state;
-   CompareEdges(C14NState* state) :
+   N11NState* state;
+   CompareEdges(N11NState* state) :
       state(state) {}
    virtual bool operator()(DynamicObject& a, DynamicObject& b)
    {
@@ -1374,7 +1472,7 @@ static bool _filterBlankNodeEdge(DynamicObject& e)
  * an object. The edge direction categories for each IRI will be sorted into
  * groups 'all' and 'bnodes'.
  */
-static void _collectEdges(C14NState& state)
+static void _collectEdges(N11NState& state)
 {
    DynamicObject& refs = state.edges["refs"];
    DynamicObject& props = state.edges["props"];
@@ -1391,7 +1489,7 @@ static void _collectEdges(C14NState& state)
       {
          DynamicObject& object = oi->next();
          const char* key = oi->getName();
-         if(strcmp(key, __S) != 0)
+         if(strcmp(key, "@subject") != 0)
          {
             // normalize to array for single code path
             DynamicObjectIterator ti = object.arrayify().getIterator();
@@ -1438,14 +1536,14 @@ static void _collectEdges(C14NState& state)
 /**
  * Performs a shallow sort comparison on the given bnodes.
  *
- * @param state the canonicalization state.
+ * @param state the normalization state.
  * @param a the first bnode.
  * @param b the second bnode.
  *
  * @return -1 if a < b, 0 if a == b, 1 if a > b.
  */
 static int _shallowCompareBlankNodes(
-   C14NState& state, DynamicObject& a, DynamicObject& b)
+   N11NState& state, DynamicObject& a, DynamicObject& b)
 {
    int rval = 0;
 
@@ -1483,8 +1581,8 @@ static int _shallowCompareBlankNodes(
 
    if(rval == 0)
    {
-      const char* iriA = a[__S]["@iri"];
-      const char* iriB = b[__S]["@iri"];
+      const char* iriA = a["@subject"]["@iri"];
+      const char* iriB = b["@subject"]["@iri"];
       DynamicObject& edgesA = state.edges["refs"][iriA]["all"];
       DynamicObject& edgesB = state.edges["refs"][iriB]["all"];
 
@@ -1576,13 +1674,13 @@ static const char* _mapNode(MappingBuilder& mb, const char* iri)
 /**
  * Marks a relation serialization as dirty if necessary.
  *
- * @param state the canonicalization state.
+ * @param state the normalization state.
  * @param iri the IRI of the bnode to check.
  * @param changed the old IRI of the bnode that changed.
  * @param dir the direction to check ('props' or 'refs').
  */
 static void _markSerializationDirty(
-   C14NState& state, const char* iri, const char* changed, const char* dir)
+   N11NState& state, const char* iri, const char* changed, const char* dir)
 {
    DynamicObject& s = state.serializations[iri];
    if(!s[dir].isNull() && s[dir]["m"]->hasMember(changed))
@@ -1683,10 +1781,10 @@ static string _serializeProperties(DynamicObject& b)
 /**
  * Recursively increments the relation serialization for a mapping.
  *
- * @param state the canonicalization state.
+ * @param state the normalization state.
  * @param mb the mapping builder to update.
  */
-static void _serializeMapping(C14NState& state, MappingBuilder& mb)
+static void _serializeMapping(N11NState& state, MappingBuilder& mb)
 {
    if(mb.keyStack->length() > 0)
    {
@@ -1796,13 +1894,13 @@ static int _compareSerializations(string& s1, const char* s2)
 
 // prototypes for recursive functions
 static void _serializeBlankNode(
-   C14NState& state,
+   N11NState& state,
    DynamicObject& s, const char* iri, MappingBuilder& mb, const char* dir);
 
 /**
  * Recursively serializes adjacent bnode combinations.
  *
- * @param state the canonicalization state.
+ * @param state the normalization state.
  * @param s the serialization to update.
  * @param iri the IRI of the bnode being serialized.
  * @param siri the serialization name for the bnode IRI.
@@ -1812,7 +1910,7 @@ static void _serializeBlankNode(
  * @param notMapped all of the not-yet mapped adjacent bnodes.
  */
 static void _serializeCombos(
-   C14NState& state,
+   N11NState& state,
    DynamicObject& s, const char* iri, const char* siri, MappingBuilder& mb,
    const char* dir, DynamicObject mapped, DynamicObject notMapped)
 {
@@ -1877,14 +1975,14 @@ static void _serializeCombos(
 /**
  * Computes the relation serialization for the given blank node IRI.
  *
- * @param state the canonicalization state.
+ * @param state the normalization state.
  * @param s the serialization to update.
  * @param iri the current bnode IRI to be mapped.
  * @param mb the MappingBuilder to use.
  * @param dir the edge direction to use ('props' or 'refs').
  */
 static void _serializeBlankNode(
-   C14NState& state,
+   N11NState& state,
    DynamicObject& s, const char* iri, MappingBuilder& mb, const char* dir)
 {
    // only do mapping if iri not already processed
@@ -1950,20 +2048,20 @@ static void _serializeBlankNode(
 /**
  * Compares two blank nodes for equivalence.
  *
- * @param state the canonicalization state.
+ * @param state the normalization state.
  * @param a the first blank node.
  * @param b the second blank node.
  *
  * @return -1 if a < b, 0 if a == b, 1 if a > b.
  */
 static int _deepCompareBlankNodes(
-   C14NState& state, DynamicObject& a, DynamicObject& b)
+   N11NState& state, DynamicObject& a, DynamicObject& b)
 {
    int rval = 0;
 
    // compare IRIs
-   const char* iriA = a[__S]["@iri"];
-   const char* iriB = b[__S]["@iri"];
+   const char* iriA = a["@subject"]["@iri"];
+   const char* iriB = b["@subject"]["@iri"];
    if(strcmp(iriA, iriB) == 0)
    {
       rval = 0;
@@ -2025,8 +2123,8 @@ static int _deepCompareBlankNodes(
  */
 struct DeepCompareBlankNodes : public DynamicObject::SortFunctor
 {
-   C14NState* state;
-   DeepCompareBlankNodes(C14NState* state) :
+   N11NState* state;
+   DeepCompareBlankNodes(N11NState* state) :
       state(state) {}
    virtual bool operator()(DynamicObject& a, DynamicObject& b)
    {
@@ -2051,10 +2149,10 @@ struct CompareMappingValues : public DynamicObject::SortFunctor
 /**
  * Canonically names blank nodes in the given input.
  *
- * @param state the canonicalization state.
+ * @param state the normalization state.
  * @param input the flat input graph to assign names to.
  */
-static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
+static void _canonicalizeBlankNodes(N11NState& state, DynamicObject& input)
 {
    // collect subjects and bnodes from flat input graph
    DynamicObject& subjects = state.subjects;
@@ -2065,7 +2163,7 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
    while(i->hasNext())
    {
       DynamicObject& next = i->next();
-      const char* iri = next[__S]["@iri"];
+      const char* iri = next["@subject"]["@iri"];
       subjects[iri] = next;
       edges["refs"][iri]["all"]->setType(Array);
       edges["refs"][iri]["bnodes"]->setType(Array);
@@ -2090,13 +2188,13 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
    while(i->hasNext())
    {
       DynamicObject& bnode = i->next();
-      const char* iri = bnode[__S]["@iri"];
+      const char* iri = bnode["@subject"]["@iri"];
       if(c14n.inNamespace(iri))
       {
          // generate names until one is unique
          while(subjects->hasMember(ngTmp.next()));
          _renameBlankNode(state, bnode, ngTmp.current());
-         iri = bnode[__S]["@iri"];
+         iri = bnode["@subject"]["@iri"];
       }
       serializations[iri]["props"].setNull();
       serializations[iri]["refs"].setNull();
@@ -2114,7 +2212,7 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
 
       // name all bnodes according to the first bnode's relation mappings
       DynamicObject bnode = bnodes.shift();
-      string iriStr = bnode[__S]["@iri"]->getString();
+      string iriStr = bnode["@subject"]["@iri"]->getString();
       const char* iri = iriStr.c_str();
       DynamicObject dirs(Array);
       dirs->append("props");
@@ -2160,7 +2258,7 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
          while(bi->hasNext())
          {
             DynamicObject& b = bi->next();
-            const char* iriB = b[__S]["@iri"];
+            const char* iriB = b["@subject"]["@iri"];
             if(!c14n.inNamespace(iriB))
             {
                // mark serializations related to the named bnodes as dirty
@@ -2207,7 +2305,7 @@ static void _canonicalizeBlankNodes(C14NState& state, DynamicObject& input)
  */
 static bool _compareBlankNodeIris(DynamicObject a, DynamicObject b)
 {
-   return _compare(a[__S]["@iri"], b[__S]["@iri"]) == -1;
+   return _compare(a["@subject"]["@iri"], b["@subject"]["@iri"]) == -1;
 }
 
 bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
@@ -2227,8 +2325,8 @@ bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
       rval = _expand(DynamicObject(Map), NULL, in, expanded, true);
       if(rval)
       {
-         // create canonicalization state
-         C14NState state;
+         // create normalization state
+         N11NState state;
 
          // assign names to unnamed bnodes
          _nameBlankNodes(state, expanded);
@@ -2469,7 +2567,7 @@ static bool _isType(DynamicObject& input, DynamicObject& frame)
    // check if type(s) are specified in frame and input
    if(frame->hasMember(RDF_TYPE) &&
       input->getType() == Map &&
-      input->hasMember(__S) && input->hasMember(RDF_TYPE))
+      input->hasMember("@subject") && input->hasMember(RDF_TYPE))
    {
       // find a type from the frame in the input
       DynamicObjectIterator i = frame[RDF_TYPE].arrayify().getIterator();
@@ -2522,7 +2620,7 @@ static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
          rval = true;
       }
       // input must be a subject with all the given properties
-      else if(input->getType() == Map && input->hasMember(__S))
+      else if(input->getType() == Map && input->hasMember("@subject"))
       {
          rval = true;
          DynamicObjectIterator i = props.getIterator();
@@ -2633,28 +2731,29 @@ static bool _frame(
          if(!embedOn)
          {
             // if value is a subject, only use subject IRI as reference
-            if(value->getType() == Map && value->hasMember(__S))
+            if(value->getType() == Map && value->hasMember("@subject"))
             {
-               value = value[__S];
+               value = value["@subject"];
             }
          }
          else if(
             value->getType() == Map &&
-            value->hasMember(__S) && embeds->hasMember(value[__S]["@iri"]))
+            value->hasMember("@subject") &&
+            embeds->hasMember(value["@subject"]["@iri"]))
          {
             // TODO: possibly support multiple embeds in the future ... and
             // instead only prevent cycles?
             ExceptionRef e = new Exception(
                "More than one embed of the same subject is not supported.",
                EXCEPTION_TYPE ".TooManyEmbedsError");
-            e->getDetails()["subject"] = value[__S]["@iri"].clone();
+            e->getDetails()["subject"] = value["@subject"]["@iri"].clone();
             Exception::set(e);
             rval = false;
          }
          // if value is a subject, do embedding and subframing
-         else if(value->getType() == Map && value->hasMember(__S))
+         else if(value->getType() == Map && value->hasMember("@subject"))
          {
-            embeds[value[__S]["@iri"]->getString()] = true;
+            embeds[value["@subject"]["@iri"]->getString()] = true;
 
             // if explicit is on, remove keys from value that aren't in frame
             bool explicitOn = frame->hasMember("@explicit") ?
@@ -2668,7 +2767,7 @@ static bool _frame(
                   const char* key = vi->getName();
 
                   // do not remove subject or any key in the frame
-                  if(strcmp(key, __S) != 0 && !frame->hasMember(key))
+                  if(strcmp(key, "@subject") != 0 && !frame->hasMember(key))
                   {
                      vi->remove();
                   }
@@ -2814,7 +2913,7 @@ bool JsonLd::frame(
       while(i->hasNext())
       {
          DynamicObject& next = i->next();
-         subjects[next[__S]["@iri"]->getString()] = next;
+         subjects[next["@subject"]["@iri"]->getString()] = next;
       }
 
       // frame input
