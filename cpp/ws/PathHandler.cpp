@@ -33,8 +33,8 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
    }
    else
    {
-      // check all authentication methods, save last exception for failed
-      // attempt
+      // check all authentication methods unless denied
+      // save last exception for failed attempt
       ExceptionRef e(NULL);
       RequestAuthenticator::Result rc;
       bool denied = false;
@@ -60,8 +60,9 @@ bool PathHandler::checkAuthentication(ServiceChannel* ch)
          // request was denied, save exception
          else if(rc == RequestAuthenticator::Deny)
          {
-            rval = false;
+            denied = true;
             e = Exception::get();
+            rval = false;
          }
       }
 

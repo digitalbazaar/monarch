@@ -99,13 +99,14 @@ static void _configChanged(
    }
 }
 
-bool ConfigManager::addConfig(Config config, bool include, const char* dir)
+bool ConfigManager::addConfig(
+   Config config, bool include, const char* dir, int level)
 {
    bool rval;
 
    // keep track of changed IDs
    DynamicObject changedIds(Map);
-   rval = recursiveAddConfig(config, include, dir, &changedIds);
+   rval = recursiveAddConfig(config, include, dir, &changedIds, level);
 
    if(rval)
    {
@@ -126,7 +127,7 @@ bool ConfigManager::addConfig(Config config, bool include, const char* dir)
 
 bool ConfigManager::addConfigFile(
    const char* path, bool processIncludes, const char* dir,
-   bool optional, bool processSubdirectories)
+   bool optional, bool processSubdirectories, int level)
 {
    bool rval = true;
 
@@ -135,10 +136,17 @@ bool ConfigManager::addConfigFile(
    // empty paths will behave like current dir
    bool addPath = path != NULL && (strlen(path) != 0 || !optional);
 
+   string levelStr;
+   if(level > 0)
+   {
+      levelStr.assign(level, '*');
+      levelStr.push_back(' ');
+   }
+   
    MO_CAT_DEBUG(MO_CONFIG_CAT,
-      "Adding config file: \"%s\" from: \"%s\" "
+      "%sAdding config file: \"%s\" from: \"%s\" "
       "flags: %s,%s,%s",
-      path,
+      levelStr.c_str(), path,
       dir != NULL ? dir : "{CURRENT_DIR}",
       processIncludes ? "inc" : "no-inc",
       optional ? "opt" : "not-opt",
@@ -179,7 +187,8 @@ bool ConfigManager::addConfigFile(
       {
          // read in configuration
          MO_CAT_DEBUG(MO_CONFIG_CAT,
-            "Loading config file: \"%s\"", fullPath.c_str());
+            "%sLoading config file: \"%s\"",
+            levelStr.c_str(), fullPath.c_str());
          FileInputStream is(file);
          JsonReader r;
          Config cfg;
@@ -191,7 +200,7 @@ bool ConfigManager::addConfigFile(
          {
             // include path to config (necessary for CURRENT_DIR replacement)
             string dirname = File::dirname(fullPath.c_str());
-            rval = addConfig(cfg, processIncludes, dirname.c_str());
+            rval = addConfig(cfg, processIncludes, dirname.c_str(), level + 1);
          }
 
          if(!rval)
@@ -203,11 +212,15 @@ bool ConfigManager::addConfigFile(
             Exception::push(e);
             rval = false;
          }
+         MO_CAT_DEBUG(MO_CONFIG_CAT,
+            "%sDone loading config file: \"%s\"",
+            levelStr.c_str(), fullPath.c_str());
       }
       else if(file->isDirectory())
       {
          MO_CAT_DEBUG(MO_CONFIG_CAT,
-            "Loading config directory: \"%s\"", fullPath.c_str());
+            "%sLoading config directory: \"%s\"",
+            levelStr.c_str(), fullPath.c_str());
          FileList list;
          file->listFiles(list);
 
@@ -219,18 +232,21 @@ bool ConfigManager::addConfigFile(
          {
             File& f = i->next();
             string name = f->getAbsolutePath();
+            // get basename on full path so "." and ".." are preset.
+            // getAbsolutePath has already normalized those paths.
+            string basename = File::basename(f->getPath());
             if(f->isFile())
             {
                if(name.rfind(INCLUDE_EXT) ==
                   (name.length() - strlen(INCLUDE_EXT)))
                {
-                  configFiles.push_back(File::basename(f->getAbsolutePath()));
+                  configFiles.push_back(basename);
                }
             }
             else if(
                processSubdirectories &&
-               strcmp(name.c_str(), ".") != 0 &&
-               strcmp(name.c_str(), "..") != 0 &&
+               strcmp(basename.c_str(), ".") != 0 &&
+               strcmp(basename.c_str(), "..") != 0 &&
                f->isDirectory())
             {
                configDirs.push_back(name);
@@ -246,7 +262,8 @@ bool ConfigManager::addConfigFile(
              rval && i != configFiles.end(); ++i)
          {
             rval = addConfigFile(
-               (*i).c_str(), processIncludes, file->getAbsolutePath(), false);
+               (*i).c_str(), processIncludes, file->getAbsolutePath(), false,
+               false, level + 1);
          }
 
          // load each dir in order
@@ -254,8 +271,12 @@ bool ConfigManager::addConfigFile(
              rval && i != configDirs.end(); ++i)
          {
             const char* dir = (*i).c_str();
-            rval = addConfigFile(dir, processIncludes, dir, false);
+            rval = addConfigFile(dir, processIncludes, dir, false, false,
+               level + 1);
          }
+         MO_CAT_DEBUG(MO_CONFIG_CAT,
+            "%sDone loading config directory: \"%s\"",
+            levelStr.c_str(), fullPath.c_str());
       }
       else
       {
@@ -282,6 +303,10 @@ bool ConfigManager::addConfigFile(
       }
       Exception::push(e);
    }
+
+   MO_CAT_DEBUG(MO_CONFIG_CAT,
+      "%sDone adding config file: \"%s\"",
+      levelStr.c_str(), path);
 
    return rval;
 }
@@ -1467,7 +1492,8 @@ static void _insertConfig(
 }
 
 bool ConfigManager::recursiveAddConfig(
-   Config& config, bool include, const char* dir, DynamicObject* changedIds)
+   Config& config, bool include, const char* dir, DynamicObject* changedIds,
+   int level)
 {
    bool rval = true;
 
@@ -1666,7 +1692,7 @@ bool ConfigManager::recursiveAddConfig(
             if(rval && load)
             {
                rval = addConfigFile(
-                  path, true, dir, optional, includeSubdirectories);
+                  path, true, dir, optional, includeSubdirectories, level + 1);
             }
          }
       }
