@@ -1,12 +1,17 @@
 /*
  * Copyright (c) 2011 Digital Bazaar, Inc. All rights reserved.
  */
+#include "monarch/validation/Validation.h"
 #include "monarch/ws/IpAuthenticator.h"
 
 using namespace std;
+using namespace monarch::config;
 using namespace monarch::rt;
 using namespace monarch::util;
 using namespace monarch::ws;
+namespace v = monarch::validation;
+
+// FIXME: add CIDR support
 
 IpAuthenticator::IpAuthenticator()
 {
@@ -14,6 +19,61 @@ IpAuthenticator::IpAuthenticator()
 
 IpAuthenticator::~IpAuthenticator()
 {
+}
+
+bool IpAuthenticator::initializeFromConfig(
+   Config& config, Config* privateConfig)
+{
+   bool rval;
+
+   v::ValidatorRef v = new v::Map(
+      "public", new v::Optional(new v::Type(Boolean)),
+      "allow", new v::Optional(new v::Each(new v::Type(String))),
+      "deny", new v::Optional(new v::Each(new v::Type(String))),
+      NULL);
+
+   rval = v->isValid(config);
+
+   if(rval)
+   {
+      if(config->hasMember("public") && !config["public"]->getBoolean())
+      {
+         // fail if config is non-public but missing privateConfig
+         if(privateConfig == NULL)
+         {
+            ExceptionRef e = new Exception(
+               "Missing private IP config.",
+               "monarch.ws.InvalidConfig");
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            rval = initializeFromConfig(*privateConfig);
+         }
+      }
+      else
+      {
+         if(config->hasMember("allow"))
+         {
+            DynamicObjectIterator i = config["allow"].getIterator();
+            while(rval && i->hasNext())
+            {
+               rval = addAllowRegex(i->next()->getString());
+            }
+         }
+         if(config->hasMember("deny"))
+         {
+            DynamicObjectIterator i = config["deny"].getIterator();
+            while(rval && i->hasNext())
+            {
+               rval = addDenyRegex(i->next()->getString());
+            }
+         }
+      }
+   }
+
+   return rval;
 }
 
 RequestAuthenticator::Result
@@ -74,8 +134,6 @@ RequestAuthenticator::Result
 
    return rval;
 }
-
-// FIXME: add CIDR support
 
 static bool _addRegex(
    std::vector<monarch::util::PatternRef>& patterns, const char* regex)

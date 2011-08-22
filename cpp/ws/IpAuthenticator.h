@@ -4,6 +4,7 @@
 #ifndef monarch_ws_IpAuthenticator_h
 #define monarch_ws_IpAuthenticator_h
 
+#include "monarch/config/ConfigManager.h"
 #include "monarch/util/Pattern.h"
 #include "monarch/ws/RequestAuthenticator.h"
 
@@ -50,6 +51,28 @@ public:
     * Destructs this IpAuthenticator.
     */
    virtual ~IpAuthenticator();
+
+   /**
+    * Initialize this authenticator from a configuration.
+    *
+    * {
+    *    "public": true|false (optional, default: true),
+    *    "allow": list of IP regexes to pass to addAllowRegex() (optional),
+    *    "deny": list of IP regexes to pass to addDenyRegex() (optional),
+    * }
+    *
+    * If "public" is false then the allow and deny parameters of privateConfig
+    * are used for initialization.
+    *
+    * @param config config to use for this authenticator.
+    * @param privateIps config to use if primary config "public" value is set
+    *        to false.
+    *
+    * @return true if regex was added, false if an exception occurred.
+    */
+   virtual bool initializeFromConfig(
+      monarch::config::Config& config,
+      monarch::config::Config* privateConfig = NULL);
 
    /**
     * {@inheritDoc}
