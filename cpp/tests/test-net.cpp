@@ -539,16 +539,16 @@ static void runUdpClientServerTest(TestRunner& tr)
       client.setReceiveTimeout(2000);
 
       // bind with server
-      server.bind(sa);
-      assertNoExceptionSet();
+      assertNoException(
+         server.bind(sa));
 
       //printf("Server bound at host: %s\n", sa->getHost());
       //printf("Server bound at address: %s\n", sa->getAddress());
       //printf("Server bound on port: %i\n", sa->getPort());
 
       // bind with client
-      client.bind(ca);
-      assertNoExceptionSet();
+      assertNoException(
+         client.bind(ca));
 
       //printf("Client bound at host: %s\n", ca->getHost());
       //printf("Client bound at address: %s\n", ca->getAddress());
@@ -556,16 +556,16 @@ static void runUdpClientServerTest(TestRunner& tr)
 
       // send some data with client
       string clientData = "Hello there, Server.";
-      client.sendDatagram(clientData.c_str(), clientData.length(), sa);
-      assertNoExceptionSet();
+      assertNoException(
+         client.sendDatagram(clientData.c_str(), clientData.length(), sa));
 
       //printf("Client sent: %s\n", clientData.c_str());
 
       // receive the client data
       char read[2048];
       int numBytes = server.receiveDatagram(read, clientData.length(), ca);
-      string serverReceived(read, numBytes);
       assertNoExceptionSet();
+      string serverReceived(read, numBytes);
 
       //printf("Server received: %s\n", serverReceived.c_str());
       //printf("Data from: %s:%i\n", ca->getAddress(), ca->getPort());
@@ -573,13 +573,14 @@ static void runUdpClientServerTest(TestRunner& tr)
 
       // send some data with server
       string serverData = "G'day, Client.";
-      server.sendDatagram(serverData.c_str(), serverData.length(), ca);
-      assertNoExceptionSet();
+      assertNoException(
+         server.sendDatagram(serverData.c_str(), serverData.length(), ca));
 
       //printf("Server sent: %s\n", serverData.c_str());
 
       // receive the server data
       numBytes = client.receiveDatagram(read, serverData.length(), sa);
+      assertNoExceptionSet();
       string clientReceived(read, numBytes);
 
       //printf("Client received: %s\n", clientReceived.c_str());
