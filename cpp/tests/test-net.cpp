@@ -564,8 +564,8 @@ static void runUdpClientServerTest(TestRunner& tr)
       // receive the client data
       char read[2048];
       int numBytes = server.receiveDatagram(read, clientData.length(), ca);
-      string serverReceived(read, numBytes);
       assertNoExceptionSet();
+      string serverReceived(read, numBytes);
 
       //printf("Server received: %s\n", serverReceived.c_str());
       //printf("Data from: %s:%i\n", ca->getAddress(), ca->getPort());

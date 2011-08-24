@@ -162,41 +162,6 @@ bool AbstractSocket::waitUntilReady(bool read, int64_t timeout)
       e = new Exception(msg, SOCKET_TIMEOUT_EXCEPTION_TYPE);
       e->getDetails()["error"] = strerror(errno);
    }
-   else
-   {
-      // error > 0
-      if(read)
-      {
-         // Check if still connected since poll() may have returned POLLIN
-         // instead of POLLHUP even though connection was closed.
-         if(!isConnected())
-         {
-            // error occurred, get string message
-            e = new Exception(
-               "Could not read from socket.", SOCKET_EXCEPTION_TYPE);
-            // Note: errno may have been set in isConnected()
-            e->getDetails()["error"] = strerror(errno);
-         }
-      }
-      else
-      {
-         // get the last error on the socket
-         // Ignore EINPROGRESS that may not have been cleared.
-         int lastError;
-         socklen_t lastErrorLength = sizeof(lastError);
-         getsockopt(
-            mFileDescriptor, SOL_SOCKET, SO_ERROR,
-            (char*)&lastError, &lastErrorLength);
-         if(lastError != 0 && lastError != EINPROGRESS)
-         {
-            // error occurred, get string message
-            e = new Exception(
-               "Could not write to socket.", SOCKET_EXCEPTION_TYPE);
-            // Note: using the SO_ERROR code vs errno
-            e->getDetails()["error"] = strerror(lastError);
-         }
-      }
-   }
 
    if(e != NULL)
    {
@@ -604,8 +569,8 @@ int AbstractSocket::receive(char* b, int length)
          // wait for data to become available
          else if(waitUntilReady(true, getReceiveTimeout()))
          {
-            // receive data (should not block)
-            rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, 0);
+            // receive data
+            rval = SOCKET_MACRO_recv(mFileDescriptor, b, length, flags);
             if(rval < 0)
             {
                ExceptionRef e = new Exception(
