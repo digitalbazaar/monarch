@@ -150,6 +150,27 @@ public:
       HttpTrailer* trailer = NULL, bool skipContinue = true);
 
    /**
+    * Sends an HTTP POST request and its content. The caller of this
+    * method *MUST NOT* free the memory associated with the returned
+    * HttpResponse.
+    *
+    * If the passed headers variable is not NULL, then it should contain
+    * a map with keys that are field names and values that are either arrays
+    * or non-maps.
+    *
+    * @param url the url to post to.
+    * @param headers any special headers to include in the request.
+    * @param data the data to send.
+    * @param trailer used to store any trailer headers to send.
+    * @param skipContinue true to skip 100 continue response.
+    *
+    * @return the HTTP response if one was received, NULL if not.
+    */
+   virtual HttpResponse* post(
+      monarch::util::Url* url, monarch::rt::DynamicObject* headers,
+      const char* data, HttpTrailer* trailer = NULL, bool skipContinue = true);
+
+   /**
     * Receives the content previously requested by get() or post() and
     * writes it to the passed output stream.
     *

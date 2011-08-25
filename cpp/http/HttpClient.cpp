@@ -5,6 +5,7 @@
 
 #include "monarch/net/TcpSocket.h"
 #include "monarch/net/SslSocket.h"
+#include "monarch/io/ByteArrayInputStream.h"
 #include "monarch/io/ByteArrayOutputStream.h"
 #include "monarch/io/InputStream.h"
 #include "monarch/io/OutputStream.h"
@@ -146,6 +147,27 @@ HttpResponse* HttpClient::post(
    }
 
    return rval;
+}
+
+HttpResponse* HttpClient::post(
+   Url* url, DynamicObject* headers, const char* data, HttpTrailer* trailer,
+   bool skipContinue)
+{
+   int length = strlen(data);
+   ByteArrayInputStream bais(data, length);
+
+   // set default headers
+   DynamicObject _headers(NULL);
+   if(headers == NULL)
+   {
+      _headers = DynamicObject(Map);
+      _headers["Accept"] = "*/*";
+      _headers["Content-Type"] = "application/x-www-form-urlencoded";
+      _headers["Content-Length"] = length;
+      headers = &_headers;
+   }
+
+   return HttpClient::post(url, headers, &bais, trailer, skipContinue);
 }
 
 bool HttpClient::receiveContent(OutputStream* os, HttpTrailer* trailer)
