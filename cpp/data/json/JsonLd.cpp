@@ -19,11 +19,9 @@ using namespace monarch::util;
 #define XSD_NS            "http://www.w3.org/2001/XMLSchema#"
 
 #define RDF_TYPE          RDF_NS "type"
-#define XSD_ANY_TYPE      XSD_NS "anyType"
 #define XSD_BOOLEAN       XSD_NS "boolean"
 #define XSD_DOUBLE        XSD_NS "double"
 #define XSD_INTEGER       XSD_NS "integer"
-#define XSD_ANY_URI       XSD_NS "anyURI"
 
 #define EXCEPTION_TYPE    "monarch.data.json.JsonLd"
 
@@ -291,7 +289,7 @@ static DynamicObject _getCoerceType(
    if(strcmp(p, "@subject") == 0 || strcmp(p, RDF_TYPE) == 0)
    {
       rval = DynamicObject();
-      rval = XSD_ANY_URI;
+      rval = "@iri";
    }
    // check type coercion for property
    else if(ctx->hasMember("@coerce"))
@@ -311,13 +309,6 @@ static DynamicObject _getCoerceType(
             {
                rval = DynamicObject();
                rval = _expandTerm(ctx, i->getName(), usedCtx).c_str();
-
-               // "@iri" is shortcut for XSD_ANY_URI
-               if(rval == "@iri")
-               {
-                  rval = XSD_ANY_URI;
-               }
-
                if(usedCtx != NULL)
                {
                   if(!(*usedCtx)["@coerce"]->hasMember(i->getName()))
@@ -447,7 +438,7 @@ static bool _compact(
             // datatype is IRI
             else if(value->hasMember("@iri"))
             {
-               type = XSD_ANY_URI;
+               type = "@iri";
             }
             // can be coerced to any type
             else
@@ -546,7 +537,7 @@ static bool _compact(
       }
 
       // compact IRI
-      if(rval && type == XSD_ANY_URI)
+      if(rval && type == "@iri")
       {
          if(out->getType() == Map)
          {
@@ -718,7 +709,7 @@ static bool _expand(
          keywords["@subject"] != property || expandSubjects))
       {
          // expand IRI
-         if(coerce == XSD_ANY_URI)
+         if(coerce == "@iri")
          {
             out["@iri"] = _expandTerm(ctx, value, NULL).c_str();
          }
