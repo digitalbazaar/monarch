@@ -84,10 +84,11 @@ public:
     * urls.
     *
     * @param url the url to connect to.
+    * @param timeout the connection timeout in seconds, defaults to 30.
     *
     * @return true if this client is connected, false if not.
     */
-   virtual bool connect(monarch::util::Url* url);
+   virtual bool connect(monarch::util::Url* url, int timeout = 30);
 
    /**
     * Gets the local address for this Connection. This address can be

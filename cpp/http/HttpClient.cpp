@@ -37,7 +37,7 @@ HttpClient::~HttpClient()
    }
 }
 
-bool HttpClient::connect(Url* url)
+bool HttpClient::connect(Url* url, int timeout)
 {
    if(mConnection == NULL)
    {
@@ -57,7 +57,7 @@ bool HttpClient::connect(Url* url)
       }
 
       if((mConnection = createConnection(
-         &address, ssl, &mSslSession, 30)) != NULL)
+         &address, ssl, &mSslSession, timeout)) != NULL)
       {
          // store ssl session if appropriate
          if(ssl != NULL)
@@ -71,8 +71,8 @@ bool HttpClient::connect(Url* url)
          mResponse = mRequest->createResponse();
 
          // set default timeouts
-         mConnection->setReadTimeout(30000);
-         mConnection->setWriteTimeout(30000);
+         mConnection->setReadTimeout(timeout * 1000);
+         mConnection->setWriteTimeout(timeout * 1000);
       }
    }
 
