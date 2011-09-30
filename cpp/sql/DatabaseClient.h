@@ -170,7 +170,7 @@ typedef monarch::rt::Collectable<SqlExecutable> SqlExecutableRef;
  * For instance, an object may have an attribute of "fooId" but the column
  * name in a related table may be "foo_id".
  *
- * Methods that have a "where" paramter use a Map with multiple entries using
+ * Methods that have a "where" parameter use a Map with multiple entries using
  * the following formats:
  * {
  *    "{name1}": value1, (simple equality)
@@ -186,7 +186,7 @@ typedef monarch::rt::Collectable<SqlExecutable> SqlExecutableRef;
  * Take care when specifying a different boolean operation (eg: "OR") as there
  * is currently no API for handling parentheticals.
  *
- * Methods that have an "order" paramter use an Array with multiple entires
+ * Methods that have an "order" parameter use an Array with multiple entries
  * using the following formats:
  * [
  *    {"{name2}": DatabaseClient::ASC},
