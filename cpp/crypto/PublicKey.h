@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_crypto_PublicKey_H
 #define monarch_crypto_PublicKey_H
 
 #include "monarch/crypto/AsymmetricKey.h"
+#include "monarch/io/ByteBuffer.h"
 
 namespace monarch
 {
@@ -49,6 +50,31 @@ public:
     * Destructs this PublicKey.
     */
    virtual ~PublicKey();
+
+   /**
+    * Encrypts using this PublicKey (only applicable to RSA keys).
+    *
+    * @param data the data to encrypt.
+    * @param length the length of the data to encrypt.
+    * @param out the output buffer to write the encrypted data to, which must
+    *           be getOutputSize() in length.
+    *
+    * @return the number of encrypted bytes, -1 on failure.
+    */
+   virtual int encrypt(const char* data, int length, char* out);
+
+   /**
+    * Encrypts using this PublicKey (only applicable to RSA keys).
+    *
+    * @param data the data to encrypt.
+    * @param length the length of the data to encrypt.
+    * @param out the output buffer to write the encrypted data to.
+    * @param resize true to resize the output buffer if necessary.
+    *
+    * @return the number of encrypted bytes, -1 on failure.
+    */
+   virtual int encrypt(
+      const char* data, int length, monarch::io::ByteBuffer* out, bool resize);
 };
 
 class PublicKeyRef : public AsymmetricKeyRef

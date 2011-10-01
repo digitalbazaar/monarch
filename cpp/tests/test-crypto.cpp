@@ -601,9 +601,19 @@ static void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
    DigitalSignature ds2(publicKey);
    ds2.update(data, 8);
    bool verified = ds2.verify(sig, length);
-
    assert(verified);
 
+   // encrypt the data
+   ByteBuffer enc;
+   assertNoException(
+      publicKey->encrypt(data, 8, &enc, true) != -1);
+
+   // decrypt the data
+   ByteBuffer dec;
+   assertNoException(
+      privateKey->decrypt(enc.data(), enc.length(), &dec, true) != -1);
+
+   // write the keys to PEM
    string outPrivatePem =
       factory.writePrivateKeyToPem(privateKey, NULL);
    string outPublicPem =

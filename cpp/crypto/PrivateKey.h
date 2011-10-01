@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_crypto_PrivateKey_H
 #define monarch_crypto_PrivateKey_H
 
 #include "monarch/crypto/AsymmetricKey.h"
+#include "monarch/io/ByteBuffer.h"
 
 namespace monarch
 {
@@ -49,6 +50,31 @@ public:
     * Destructs this PrivateKey.
     */
    virtual ~PrivateKey();
+
+   /**
+    * Dencrypts using this PrivateKey (only applicable to RSA keys).
+    *
+    * @param data the data to decrypt.
+    * @param length the length of the data to decrypt.
+    * @param out the output buffer to write the decrypted data to, which must
+    *           be getOutputSize() in length.
+    *
+    * @return the number of decrypted bytes, -1 on failure.
+    */
+   virtual int decrypt(const char* data, int length, char* out);
+
+   /**
+    * Dencrypts using this PrivateKey (only applicable to RSA keys).
+    *
+    * @param data the data to decrypt.
+    * @param length the length of the data to decrypt.
+    * @param out the output buffer to write the decrypted data to.
+    * @param resize true to resize the output buffer if necessary.
+    *
+    * @return the number of decrypted bytes, -1 on failure.
+    */
+   virtual int decrypt(
+      const char* data, int length, monarch::io::ByteBuffer* out, bool resize);
 };
 
 // define reference counted PrivateKey
