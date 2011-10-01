@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_crypto_AsymmetricKeyFactory_H
 #define monarch_crypto_AsymmetricKeyFactory_H
@@ -23,23 +23,6 @@ namespace crypto
  */
 class AsymmetricKeyFactory
 {
-protected:
-   /**
-    * Creates a new DSA key pair.
-    *
-    * @param privateKey a pointer to point at the new PrivateKey.
-    * @param publicKey a pointer to point at the new PublicKey.
-    */
-   void createDsaKeyPair(PrivateKeyRef& privateKey, PublicKeyRef& publicKey);
-
-   /**
-    * Creates a new RSA key pair.
-    *
-    * @param privateKey a pointer to point at the new PrivateKey.
-    * @param publicKey a pointer to point at the new PublicKey.
-    */
-   void createRsaKeyPair(PrivateKeyRef& privateKey, PublicKeyRef& publicKey);
-
 public:
    /**
     * Creates a new AsymmetricKeyFactory.
@@ -60,12 +43,14 @@ public:
     * @param algorithm the algorithm to use.
     * @param privateKey a pointer to point at the new PrivateKey.
     * @param publicKey a pointer to point at the new PublicKey.
+    * @param size the key size, in bytes, to use.
     *
     * @return true if no exception occurred, false if not.
     */
    virtual bool createKeyPair(
       const char* algorithm,
-      PrivateKeyRef& privateKey, PublicKeyRef& publicKey);
+      PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
+      int size = 2048);
 
    /**
     * Loads a private key from a PEM formatted string. A PEM formatted

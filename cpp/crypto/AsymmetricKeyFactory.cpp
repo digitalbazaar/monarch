@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/AsymmetricKeyFactory.h"
 
@@ -69,12 +69,12 @@ static int passwordCallback(char* b, int length, int flag, void* userData)
    return length;
 }
 
-void AsymmetricKeyFactory::createDsaKeyPair(
-   PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
+static void _createDsaKeyPair(
+   PrivateKeyRef& privateKey, PublicKeyRef& publicKey, int size)
 {
    // generate DSA parameters
    DSA* dsa = DSA_generate_parameters(
-      2048, NULL, 0, NULL, NULL, NULL, NULL);
+      size, NULL, 0, NULL, NULL, NULL, NULL);
    if(dsa != NULL)
    {
       // generate DSA keys
@@ -121,11 +121,11 @@ void AsymmetricKeyFactory::createDsaKeyPair(
    }
 }
 
-void AsymmetricKeyFactory::createRsaKeyPair(
-   PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
+static void _createRsaKeyPair(
+   PrivateKeyRef& privateKey, PublicKeyRef& publicKey, int size)
 {
    // generate RSA keys
-   RSA* rsa = RSA_generate_key(2048, 65537, NULL, NULL);
+   RSA* rsa = RSA_generate_key(size, 65537, NULL, NULL);
    if(rsa != NULL)
    {
       // store private/public key parameters
@@ -175,7 +175,8 @@ void AsymmetricKeyFactory::createRsaKeyPair(
 }
 
 bool AsymmetricKeyFactory::createKeyPair(
-   const char* algorithm, PrivateKeyRef& privateKey, PublicKeyRef& publicKey)
+   const char* algorithm, PrivateKeyRef& privateKey, PublicKeyRef& publicKey,
+   int size)
 {
    bool rval = true;
 
@@ -191,12 +192,12 @@ bool AsymmetricKeyFactory::createKeyPair(
    if(strcmp(algorithm, "DSA") == 0)
    {
       // create DSA key pair
-      createDsaKeyPair(privateKey, publicKey);
+      _createDsaKeyPair(privateKey, publicKey, size);
    }
    else if(strcmp(algorithm, "RSA") == 0)
    {
       // create RSA key pair
-      createRsaKeyPair(privateKey, publicKey);
+      _createRsaKeyPair(privateKey, publicKey, size);
    }
    else
    {
@@ -310,14 +311,13 @@ PublicKeyRef AsymmetricKeyFactory::loadPublicKeyFromPem(
 
    // create a read-only memory bio
    BIO* bio = BIO_new_mem_buf((void*)pem, length);
-   BIO_set_close(bio, BIO_NOCLOSE);
 
    // try to load public key from bio
    EVP_PKEY* pkey = NULL;
    pkey = PEM_read_bio_PUBKEY(bio, &pkey, NULL, NULL);
 
    // free the bio
-   BIO_free(bio);
+   BIO_free_all(bio);
 
    if(pkey != NULL)
    {
@@ -355,7 +355,7 @@ string AsymmetricKeyFactory::writePublicKeyToPem(PublicKeyRef& key)
       rval.append(mem->data, mem->length);
 
       // free the bio
-      BIO_free(bio);
+      BIO_free_all(bio);
    }
    else
    {
@@ -573,7 +573,7 @@ X509CertificateRef AsymmetricKeyFactory::loadCertificateFromPem(
    x509 = PEM_read_bio_X509(bio, &x509, NULL, NULL);
 
    // free the bio
-   BIO_free(bio);
+   BIO_free_all(bio);
 
    if(x509 != NULL)
    {
@@ -611,7 +611,7 @@ string AsymmetricKeyFactory::writeCertificateToPem(X509CertificateRef& cert)
       rval.append(mem->data, mem->length);
 
       // free the bio
-      BIO_free(bio);
+      BIO_free_all(bio);
    }
    else
    {

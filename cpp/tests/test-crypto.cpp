@@ -465,7 +465,7 @@ static void runAsymmetricKeyLoadingTest(TestRunner& tr)
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
-   factory.createKeyPair("RSA", privateKey, publicKey);
+   factory.createKeyPair("RSA", privateKey, publicKey, 512);
 
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
@@ -579,7 +579,7 @@ static void runRsaAsymmetricKeyCreationTest(TestRunner& tr)
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
-   factory.createKeyPair("RSA", privateKey, publicKey);
+   factory.createKeyPair("RSA", privateKey, publicKey, 512);
 
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
@@ -638,7 +638,7 @@ static void runDigitalSignatureInputStreamTest(TestRunner& tr)
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
-   factory.createKeyPair("RSA", privateKey, publicKey);
+   factory.createKeyPair("RSA", privateKey, publicKey, 512);
 
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
@@ -693,7 +693,7 @@ static void runDigitalSignatureOutputStreamTest(TestRunner& tr)
    // create a new key pair
    PrivateKeyRef privateKey;
    PublicKeyRef publicKey;
-   factory.createKeyPair("RSA", privateKey, publicKey);
+   factory.createKeyPair("RSA", privateKey, publicKey, 512);
 
    assert(!privateKey.isNull());
    assert(!publicKey.isNull());
