@@ -20,6 +20,7 @@ using namespace monarch::ws;
 
 #define CONTENT_TYPE_ANY    "*/*"
 #define CONTENT_TYPE_JSON   "application/json"
+#define CONTENT_TYPE_JSONLD "application/ld+json"
 #define CONTENT_TYPE_XML    "text/xml"
 #define CONTENT_TYPE_FORM   "application/x-www-form-urlencoded"
 
@@ -374,6 +375,11 @@ static void _setDynoContentType(HttpRequest* request, HttpResponse* response)
          strstr(ct.c_str(), CONTENT_TYPE_JSON) != NULL)
       {
          ct = CONTENT_TYPE_JSON;
+      }
+      else if(strstr(ct.c_str(), CONTENT_TYPE_JSONLD) != NULL)
+      {
+         // FIXME: support form param
+         ct = CONTENT_TYPE_JSONLD;
       }
       else if(strstr(ct.c_str(), CONTENT_TYPE_XML) != NULL)
       {

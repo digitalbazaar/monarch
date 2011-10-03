@@ -48,7 +48,7 @@ public:
     */
    enum ContentType
    {
-      Unknown, Json, Xml, Form
+      Unknown, Json, JsonLd, Xml, Form
    };
 
 protected:

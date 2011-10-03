@@ -33,6 +33,7 @@ using namespace monarch::ws;
 
 #define CONTENT_TYPE_ANY    "*/*"
 #define CONTENT_TYPE_JSON   "application/json"
+#define CONTENT_TYPE_JSONLD "application/ld+json"
 #define CONTENT_TYPE_XML    "text/xml"
 #define CONTENT_TYPE_FORM   "application/x-www-form-urlencoded"
 
@@ -319,6 +320,10 @@ Message::ContentType Message::getContentType(HttpHeader* header)
       if(strstr(contentType.c_str(), CONTENT_TYPE_JSON) != NULL)
       {
          rval = Json;
+      }
+      else if(strstr(contentType.c_str(), CONTENT_TYPE_JSONLD) != NULL)
+      {
+         rval = JsonLd;
       }
       else if(strstr(contentType.c_str(), CONTENT_TYPE_XML) != NULL)
       {
@@ -638,7 +643,7 @@ bool Message::sendHeaderAndObject(
          else
          {
             DynamicObjectWriter* writer;
-            if(type == Json)
+            if(type == Json || type == JsonLd)
             {
                writer = new JsonWriter();
             }
@@ -773,7 +778,7 @@ bool Message::receiveContentObject(
       {
          // create dynamic object reader based on data format
          DynamicObjectReader* reader;
-         if(type == Json)
+         if(type == Json || type == JsonLd)
          {
             reader = new JsonReader();
          }
