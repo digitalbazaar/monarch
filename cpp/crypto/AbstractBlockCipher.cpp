@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/crypto/AbstractBlockCipher.h"
 
@@ -10,19 +10,14 @@
 using namespace monarch::crypto;
 using namespace monarch::rt;
 
-AbstractBlockCipher::AbstractBlockCipher(bool encrypt)
+AbstractBlockCipher::AbstractBlockCipher(bool encrypt) :
+   mEncryptMode(encrypt),
+   mInputBytes(0),
+   mOutputBytes(0),
+   mCipherFunction(NULL)
 {
-   // store encrypt mode
-   mEncryptMode = encrypt;
-
-   // initialize input/output bytes
-   mInputBytes = mOutputBytes = 0;
-
    // initialize the cipher context
    EVP_CIPHER_CTX_init(&mCipherContext);
-
-   // set the cipher function to null
-   mCipherFunction = NULL;
 }
 
 AbstractBlockCipher::~AbstractBlockCipher()

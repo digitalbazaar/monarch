@@ -71,7 +71,7 @@ bool SymmetricKeyFactory::createRandomKey(
       }
 
       // create symmetric key and assign key data/IV
-      key->setAlgorithm("AES256");
+      key->setAlgorithm(algorithm);
       key->assignData(data, keyLength, iv, ivLength, false);
    }
 
