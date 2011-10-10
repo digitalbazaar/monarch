@@ -79,7 +79,7 @@ bool IpAuthenticator::initializeFromConfig(
 RequestAuthenticator::Result
    IpAuthenticator::checkAuthentication(ServiceChannel* ch)
 {
-   // default to client did not attempt to use oauth1
+   // default to client did not attempt to use an authentication mechanism
    RequestAuthenticator::Result rval = Success;
 
    const char* remoteAddress =
