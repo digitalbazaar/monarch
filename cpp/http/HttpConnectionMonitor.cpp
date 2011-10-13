@@ -261,7 +261,7 @@ void HttpConnectionMonitor::afterRequestError(
 {
    MO_CAT_OBJECT_DEBUG_DETAIL(MO_HTTP_CAT, connection,
        "HttpConnection afterRequestError");
-   // FIXME
-   monarch::data::json::JsonWriter::writeToStdOut(
-      Exception::convertToDynamicObject(exception));
+   // debug
+   //monarch::data::json::JsonWriter::writeToStdOut(
+   //   Exception::convertToDynamicObject(exception));
 }
