@@ -67,69 +67,86 @@ static void _readFile(const char* root, const char* name, DynamicObject& data)
 static void _runJsonLdTestSuiteTest(
    TestRunner& tr, const char* root, DynamicObject& test)
 {
+   // flag to check if warning should be printed
+   bool skipped = false;
+
    tr.test(test["name"]);
 
    DynamicObject& type = test["type"];
 
-   // read input
-   DynamicObject input;
-   _readFile(root, test["input"], input);
-
-   // read expected output
-   DynamicObject expect;
-   _readFile(root, test["expect"], expect);
-
-   DynamicObject output;
-
-   if(type == "normalize")
+   // check for unsupported tests
+   if(type != "triples")
    {
-      assertNoException(
-         JsonLd::normalize(input, output));
+      // read input
+      DynamicObject input;
+      _readFile(root, test["input"], input);
+
+      // read expected output
+      DynamicObject expect;
+      _readFile(root, test["expect"], expect);
+
+      DynamicObject output;
+
+      if(type == "normalize")
+      {
+         assertNoException(
+            JsonLd::normalize(input, output));
+      }
+      else if(type == "expand")
+      {
+         // expand
+         assertNoException(
+            JsonLd::expand(input, output));
+      }
+      else if(type == "compact")
+      {
+         // sanity check
+         v::ValidatorRef tv = new v::Map(
+            "context", new v::Type(String),
+            NULL);
+         assertNoException(
+            tv->isValid(test));
+
+         // read context
+         DynamicObject context;
+         _readFile(root, test["context"], context);
+
+         // compact
+         assertNoException(
+            JsonLd::compact(context, input, output));
+      }
+      else if(type == "frame")
+      {
+         // sanity check
+         v::ValidatorRef tv = new v::Map(
+            "frame", new v::Type(String),
+            NULL);
+         assertNoException(
+            tv->isValid(test));
+
+         // read frame
+         DynamicObject frame;
+         _readFile(root, test["frame"], frame);
+
+         // reframe
+         assertNoException(
+            JsonLd::frame(input, frame, output));
+      }
+
+      assertNamedDynoCmp("expect", expect, "output", output);
    }
-   else if(type == "expand")
+   else
    {
-      // expand
-      assertNoException(
-         JsonLd::expand(input, output));
+      skipped = true;
    }
-   else if(type == "compact")
-   {
-      // sanity check
-      v::ValidatorRef tv = new v::Map(
-         "context", new v::Type(String),
-         NULL);
-      assertNoException(
-         tv->isValid(test));
-
-      // read context
-      DynamicObject context;
-      _readFile(root, test["context"], context);
-
-      // compact
-      assertNoException(
-         JsonLd::compact(context, input, output));
-   }
-   else if(type == "frame")
-   {
-      // sanity check
-      v::ValidatorRef tv = new v::Map(
-         "frame", new v::Type(String),
-         NULL);
-      assertNoException(
-         tv->isValid(test));
-
-      // read frame
-      DynamicObject frame;
-      _readFile(root, test["frame"], frame);
-
-      // reframe
-      assertNoException(
-         JsonLd::frame(input, frame, output));
-   }
-
-   assertNamedDynoCmp("expect", expect, "output", output);
 
    tr.pass();
+   if(skipped)
+   {
+      string warn = StringTools::format(
+         "Skipped tests of type \"%s\".", type->getString());
+      tr.warning(warn.c_str());
+   }
 }
 
 static void runJsonLdTestSuite(TestRunner& tr)
