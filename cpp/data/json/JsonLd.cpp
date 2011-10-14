@@ -2625,6 +2625,192 @@ static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
    return rval;
 }
 
+// prototype for recursive framing function
+static bool _frame(
+   DynamicObject& subjects, DynamicObject in,
+   DynamicObject frame, DynamicObject embeds,
+   bool autoembed, DynamicObject parent, const char* parentKey,
+   DynamicObject& options, DynamicObject& out);
+
+/**
+ * Subframes a value.
+ *
+ * @param subjects a map of subjects in the graph.
+ * @param value the value to subframe.
+ * @param frame the frame to use.
+ * @param embeds a map of previously embedded subjects, used to prevent cycles.
+ * @param autoembed true if auto-embed is on, false if not.
+ * @param parent the parent object.
+ * @param parentKey the parent key.
+ * @param options the framing options.
+ * @param out the output.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+static bool _subframe(
+   DynamicObject& subjects, DynamicObject value,
+   DynamicObject& frame, DynamicObject embeds,
+   bool autoembed, DynamicObject parent, const char* parentKey,
+   DynamicObject& options, DynamicObject& out)
+{
+   bool rval = true;
+
+   // get existing embed entry
+   const char* iri = value["@subject"]["@iri"];
+   DynamicObject embed = embeds->hasMember(iri) ?
+      embeds[iri] : DynamicObject(NULL);
+
+   // determine if value should be embedded or referenced,
+   // embed is ON if:
+   // 1. The frame OR default option specifies @embed as ON, AND
+   // 2. There is no existing embed OR it is an autoembed, AND
+   //    autoembed mode is off.
+   bool embedOn =
+      ((frame->hasMember("@embed") && frame["@embed"]) ||
+         options["defaults"]["embedOn"]) &&
+      (embed.isNull() || (embed["autoembed"] && !autoembed));
+
+   if(!embedOn)
+   {
+      // not embedding, so only use subject IRI as reference
+      out = value["@subject"];
+   }
+   else
+   {
+      // output value
+      out = value;
+
+      // create new embed entry
+      if(embed.isNull())
+      {
+         embed = DynamicObject(Map);
+         embeds[iri] = embed;
+      }
+      // replace the existing embed with a reference
+      else if(!embed["parent"].isNull())
+      {
+         embed["parent"][embed["key"]->getString()] = value["@subject"];
+      }
+
+      // update embed entry
+      embed["autoembed"] = autoembed;
+      embed["parent"] = parent;
+      embed["key"] = parentKey;
+
+      // check explicit flag
+      bool explicitOn = frame->hasMember("@explicit") ?
+         frame["@explicit"] : options["defaults"]["explicitOn"];
+      if(explicitOn)
+      {
+         // remove keys from the value that aren't in the frame
+         DynamicObjectIterator vi = value.getIterator();
+         while(vi->hasNext())
+         {
+            // do not remove @subject or any frame key
+            vi->next();
+            const char* key = vi->getName();
+            if(strcmp(key, "@subject") != 0 && !frame->hasMember(key))
+            {
+               vi->remove();
+            }
+         }
+      }
+
+      // iterate over keys in value
+      DynamicObjectIterator vi = value.getIterator();
+      while(vi->hasNext())
+      {
+         // skip keywords and type
+         DynamicObject& v = vi->next();
+         const char* key = vi->getName();
+         if(key[0] != '@' && strcmp(key, RDF_TYPE) != 0)
+         {
+            // get the subframe if available
+            DynamicObject f(NULL);
+            bool _autoembed = false;
+            if(frame->hasMember(key))
+            {
+               f = frame[key];
+            }
+            // use a catch-all subframe to preserve data from graph
+            else
+            {
+               f = (value[key]->getType() == Array) ?
+                  DynamicObject(Array) : DynamicObject(Map);
+               _autoembed = true;
+            }
+
+            // build input and do recursion
+            DynamicObject in = v.arrayify();
+            DynamicObjectIterator itr = in.getIterator();
+            while(itr->hasNext())
+            {
+               // replace reference to subject w/subject
+               DynamicObject& next = itr->next();
+               if(next->getType() == Map &&
+                  next->hasMember("@iri") &&
+                  subjects->hasMember(next["@iri"]))
+               {
+                  in[itr->getIndex()] =
+                     subjects[next["@iri"]->getString()];
+               }
+            }
+            rval = _frame(
+               subjects, in, f, embeds, _autoembed, value, key,
+               options, value[key]);
+         }
+      }
+
+      // iterate over frame keys to add any missing values
+      DynamicObjectIterator fi = frame.getIterator();
+      while(rval && fi->hasNext())
+      {
+         DynamicObject f = fi->next();
+         const char* key = fi->getName();
+
+         // skip keywords, type query, and keys in value
+         if(key[0] != '@' && strcmp(key, RDF_TYPE) != 0 &&
+            !value->hasMember(key))
+         {
+            // add empty array to value
+            if(f->getType() == Array)
+            {
+               value[key] = DynamicObject(Array);
+            }
+            // add default value to value
+            else
+            {
+               // use first subframe if frame is an array
+               if(f->getType() == Array)
+               {
+                  f = (f->length() > 0) ? f[0] : DynamicObject(Map);
+               }
+
+               // determine if omit default is on
+               bool omitOn = f->hasMember("@omitDefault") ?
+                  f["@omitDefault"] :
+                  options["defaults"]["omitDefaultOn"];
+               if(!omitOn)
+               {
+                  if(f->hasMember("@default"))
+                  {
+                     // use specified default value
+                     value[key] = f["@default"].clone();
+                  }
+                  else
+                  {
+                     // use built-in default value is: null
+                     value[key].setNull();
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   return rval;
+}
+
 /**
  * Recursively frames the given input according to the given frame.
  *
@@ -2632,6 +2818,9 @@ static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
  * @param in the input to frame.
  * @param frame the frame to use.
  * @param embeds a map of previously embedded subjects, used to prevent cycles.
+ * @param autoembed true if auto-embed is on, false if not.
+ * @param parent the parent object (for subframing), null for none.
+ * @param parentKey the parent key (for subframing), null for none.
  * @param options the framing options.
  * @param out the output.
  *
@@ -2639,7 +2828,8 @@ static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
  */
 static bool _frame(
    DynamicObject& subjects, DynamicObject in,
-   DynamicObject& frame, DynamicObject embeds,
+   DynamicObject frame, DynamicObject embeds,
+   bool autoembed, DynamicObject parent, const char* parentKey,
    DynamicObject& options, DynamicObject& out)
 {
    bool rval = true;
@@ -2716,124 +2906,12 @@ static bool _frame(
          DynamicObject value = ii->next();
          frame = frames[i->getIndex()];
 
-         // determine if value should be embedded or referenced
-         bool embedOn = frame->hasMember("@embed") ?
-            frame["@embed"] : options["defaults"]["embedOn"];
-         if(!embedOn)
+         // if value is a subject, do subframing
+         if(value->getType() == Map && value->hasMember("@subject"))
          {
-            // if value is a subject, only use subject IRI as reference
-            if(value->getType() == Map && value->hasMember("@subject"))
-            {
-               value = value["@subject"];
-            }
-         }
-         else if(
-            value->getType() == Map &&
-            value->hasMember("@subject") &&
-            embeds->hasMember(value["@subject"]["@iri"]))
-         {
-            // TODO: possibly support multiple embeds in the future ... and
-            // instead only prevent cycles?
-            ExceptionRef e = new Exception(
-               "More than one embed of the same subject is not supported.",
-               EXCEPTION_TYPE ".TooManyEmbedsError");
-            e->getDetails()["subject"] = value["@subject"]["@iri"].clone();
-            Exception::set(e);
-            rval = false;
-         }
-         // if value is a subject, do embedding and subframing
-         else if(value->getType() == Map && value->hasMember("@subject"))
-         {
-            embeds[value["@subject"]["@iri"]->getString()] = true;
-
-            // if explicit is on, remove keys from value that aren't in frame
-            bool explicitOn = frame->hasMember("@explicit") ?
-               frame["@explicit"] : options["defaults"]["explicitOn"];
-            if(explicitOn)
-            {
-               DynamicObjectIterator vi = value.getIterator();
-               while(vi->hasNext())
-               {
-                  vi->next();
-                  const char* key = vi->getName();
-
-                  // do not remove subject or any key in the frame
-                  if(strcmp(key, "@subject") != 0 && !frame->hasMember(key))
-                  {
-                     vi->remove();
-                  }
-               }
-            }
-
-            // iterate over frame keys to do subframing
-            DynamicObjectIterator fi = frame.getIterator();
-            while(rval && fi->hasNext())
-            {
-               DynamicObject f = fi->next();
-               const char* key = fi->getName();
-
-               // skip keywords and type query
-               if(key[0] != '@' && strcmp(key, RDF_TYPE) != 0)
-               {
-                  if(value->hasMember(key))
-                  {
-                     // build input
-                     in = value[key].arrayify();
-                     DynamicObjectIterator itr = in.getIterator();
-                     while(itr->hasNext())
-                     {
-                        // replace reference to subject w/subject
-                        DynamicObject& next = itr->next();
-                        if(next->getType() == Map &&
-                           next->hasMember("@iri") &&
-                           subjects->hasMember(next["@iri"]))
-                        {
-                           in[itr->getIndex()] =
-                              subjects[next["@iri"]->getString()];
-                        }
-                     }
-
-                     // recurse
-                     rval = _frame(
-                        subjects, in, f, embeds, options, value[key]);
-                  }
-                  else
-                  {
-                     // add empty array/null property to value
-                     if(f->getType() == Array)
-                     {
-                        value[key] = DynamicObject(Array);
-                     }
-                     else
-                     {
-                        value[key].setNull();
-                     }
-                  }
-
-                  // handle setting default value
-                  if(value[key].isNull())
-                  {
-                     // use first subframe if frame is an array
-                     if(f->getType() == Array)
-                     {
-                        f = (f->length() > 0) ? f[0] : DynamicObject(Map);
-                     }
-
-                     // determine if omit default is on
-                     bool omitOn = f->hasMember("@omitDefault") ?
-                        f["@omitDefault"] :
-                        options["defaults"]["omitDefaultOn"];
-                     if(omitOn)
-                     {
-                        value->removeMember(key);
-                     }
-                     else if(f->hasMember("@default"))
-                     {
-                        value[key] = f["@default"].clone();
-                     }
-                  }
-               }
-            }
+            rval = _subframe(
+               subjects, value, frame, embeds, autoembed,
+               parent, parentKey, options, value);
          }
 
          if(rval)
@@ -2908,7 +2986,9 @@ bool JsonLd::frame(
       }
 
       // frame input
-      rval = _frame(subjects, _in, _f, DynamicObject(Map), opts, out);
+      rval = _frame(
+         subjects, _in, _f, DynamicObject(Map), false,
+         DynamicObject(NULL), NULL, opts, out);
 
       // apply context
       if(rval && !ctx.isNull() && !out.isNull())
