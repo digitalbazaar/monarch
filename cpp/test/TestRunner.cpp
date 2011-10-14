@@ -291,7 +291,8 @@ void TestRunner::warning(const char* reason)
          break;
       case Names:
       case Times:
-         printf("WARNING: %s", (reason != NULL) ? reason : "(no reason given)");
+         printf("WARNING: %s\n",
+            (reason != NULL) ? reason : "(no reason given)");
          fflush(stdout);
          break;
       default:
