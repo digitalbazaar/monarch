@@ -2629,7 +2629,7 @@ static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
 static bool _frame(
    DynamicObject& subjects, DynamicObject in,
    DynamicObject frame, DynamicObject embeds,
-   bool autoembed, DynamicObject parent, const char* parentKey,
+   bool autoembed, DynamicObject parent, DynamicObject parentKey,
    DynamicObject& options, DynamicObject& out);
 
 /**
@@ -2650,7 +2650,7 @@ static bool _frame(
 static bool _subframe(
    DynamicObject& subjects, DynamicObject value,
    DynamicObject& frame, DynamicObject embeds,
-   bool autoembed, DynamicObject parent, const char* parentKey,
+   bool autoembed, DynamicObject parent, DynamicObject parentKey,
    DynamicObject& options, DynamicObject& out)
 {
    bool rval = true;
@@ -2755,8 +2755,10 @@ static bool _subframe(
                      subjects[next["@iri"]->getString()];
                }
             }
+            DynamicObject dynokey;
+            dynokey = key;
             rval = _frame(
-               subjects, in, f, embeds, _autoembed, value, key,
+               subjects, in, f, embeds, _autoembed, value, dynokey,
                options, value[key]);
          }
       }
@@ -2768,9 +2770,9 @@ static bool _subframe(
          DynamicObject f = fi->next();
          const char* key = fi->getName();
 
-         // skip keywords, type query, and keys in value
+         // skip keywords, type query, and non-null keys in value
          if(key[0] != '@' && strcmp(key, RDF_TYPE) != 0 &&
-            !value->hasMember(key))
+            (!value->hasMember(key) || value[key].isNull()))
          {
             // add empty array to value
             if(f->getType() == Array)
@@ -2829,7 +2831,7 @@ static bool _subframe(
 static bool _frame(
    DynamicObject& subjects, DynamicObject in,
    DynamicObject frame, DynamicObject embeds,
-   bool autoembed, DynamicObject parent, const char* parentKey,
+   bool autoembed, DynamicObject parent, DynamicObject parentKey,
    DynamicObject& options, DynamicObject& out)
 {
    bool rval = true;
@@ -2988,7 +2990,7 @@ bool JsonLd::frame(
       // frame input
       rval = _frame(
          subjects, _in, _f, DynamicObject(Map), false,
-         DynamicObject(NULL), NULL, opts, out);
+         DynamicObject(NULL), DynamicObject(NULL), opts, out);
 
       // apply context
       if(rval && !ctx.isNull() && !out.isNull())
