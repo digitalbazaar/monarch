@@ -79,7 +79,7 @@ bool Each::isMapValid(
       // seperate var to avoid short circuit and ensure all keys tested
       rval = rval && objValid;
       context->popPath();
-      if(context->getDepth() == 1)
+      if(context->getDepth() > 1)
       {
          context->popPath();
       }

@@ -59,7 +59,7 @@ bool Compare::isValid(
          detail["expectedValue"] = obj[mKey0];
          context->popPath();
 
-         if(context->getDepth() == 1)
+         if(context->getDepth() > 1)
          {
             context->popPath();
          }
