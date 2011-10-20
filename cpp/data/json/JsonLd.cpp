@@ -294,38 +294,18 @@ static DynamicObject _getCoerceType(
    // check type coercion for property
    else if(ctx->hasMember("@coerce"))
    {
-      // force compacted property
+      // look up compacted property in coercion map
       prop = _compactIri(ctx, p, NULL);
       p = prop.c_str();
-
-      DynamicObjectIterator i = ctx["@coerce"].getIterator();
-      while(rval.isNull() && i->hasNext())
+      if(ctx["@coerce"]->hasMember(p))
       {
-         DynamicObject& props = i->next();
-         DynamicObjectIterator pi = props.getIterator();
-         while(rval.isNull() && pi->hasNext())
+         // property found, return expanded type
+         const char* type = ctx["@coerce"][p];
+         rval = DynamicObject();
+         rval = _expandTerm(ctx, type, usedCtx).c_str();
+         if(usedCtx != NULL)
          {
-            if(pi->next() == p)
-            {
-               rval = DynamicObject();
-               rval = _expandTerm(ctx, i->getName(), usedCtx).c_str();
-               if(usedCtx != NULL)
-               {
-                  if(!(*usedCtx)["@coerce"]->hasMember(i->getName()))
-                  {
-                     (*usedCtx)["@coerce"][i->getName()] = p;
-                  }
-                  else
-                  {
-                     DynamicObject& c = (*usedCtx)["@coerce"][i->getName()];
-                     if((c->getType() == Array && c->indexOf(p) == -1) ||
-                        (c->getType() == String && c != p))
-                     {
-                        c.push(p);
-                     }
-                  }
-               }
-            }
+            (*usedCtx)["@coerce"][p] = type;
          }
       }
    }
@@ -2436,6 +2416,7 @@ DynamicObject JsonLd::mergeContexts(
             DynamicObject& miri = mi->next();
             if(miri == iri)
             {
+               // FIXME: update related @coerce rules
                mi->remove();
                break;
             }
@@ -2443,91 +2424,8 @@ DynamicObject JsonLd::mergeContexts(
       }
    }
 
-   // @coerce must be specially-merged, remove from contexts
-   bool coerceExists =
-      (merged->hasMember("@coerce") || copy->hasMember("@coerce"));
-   DynamicObject c1 = merged["@coerce"];
-   c1->setType(Map);
-   DynamicObject c2 = copy["@coerce"];
-   c2->setType(Map);
-   merged->removeMember("@coerce");
-   copy->removeMember("@coerce");
-
    // merge contexts (do not append)
    merged.merge(copy, false);
-
-   // @coerce must be specially-merged
-   if(coerceExists)
-   {
-      // special-merge @coerce
-      i = c1.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& props = i->next();
-
-         // append existing-type properties that don't already exist
-         if(c2->hasMember(i->getName()))
-         {
-            DynamicObjectIterator pi = c2[i->getName()].getIterator();
-            while(pi->hasNext())
-            {
-               DynamicObject& p = pi->next();
-               if((props->getType() != Array && props != p) ||
-                  (props->getType() == Array && props->indexOf(p) == -1))
-               {
-                  props.push(p);
-               }
-            }
-         }
-      }
-
-      // add new types from new @coerce
-      i = c2.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& props = i->next();
-         if(!c1->hasMember(i->getName()))
-         {
-            c1[i->getName()] = props;
-         }
-      }
-
-      // ensure there are no property duplicates in @coerce
-      DynamicObject unique(Map);
-      DynamicObject dups(Array);
-      i = c1.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObjectIterator pi = i->next().getIterator();
-         while(pi->hasNext())
-         {
-            DynamicObject& p = pi->next();
-            if(!unique->hasMember(p))
-            {
-               unique[p->getString()] = true;
-            }
-            else if(dups->indexOf(p) == -1)
-            {
-               dups->append(p);
-            }
-         }
-      }
-
-      if(dups->length() > 0)
-      {
-         ExceptionRef e = new Exception(
-            "Invalid type coercion specification. More than one type "
-            "specified for at least one property.",
-            EXCEPTION_TYPE ".CoerceSpecError");
-         e->getDetails()["duplicates"] = dups;
-         Exception::set(e);
-         merged.setNull();
-      }
-      else
-      {
-         merged["@coerce"] = c1;
-      }
-   }
 
    return merged;
 }
