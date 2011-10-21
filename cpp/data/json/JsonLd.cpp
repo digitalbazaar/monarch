@@ -2565,7 +2565,7 @@ static bool _subframe(
    //    autoembed mode is off.
    bool embedOn =
       ((frame->hasMember("@embed") && frame["@embed"]) ||
-         options["defaults"]["embedOn"]) &&
+      (!frame->hasMember("@embed") && options["defaults"]["embedOn"])) &&
       (embed.isNull() || (embed["autoembed"] && !autoembed));
 
    if(!embedOn)
