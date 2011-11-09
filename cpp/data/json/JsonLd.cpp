@@ -2836,21 +2836,48 @@ bool JsonLd::frame(
    DynamicObject in, DynamicObject frame, DynamicObject& out,
    DynamicObject* options)
 {
-   bool rval;
+   bool rval = true;
 
    // save frame context
+   DynamicObject _f;
    DynamicObject ctx(NULL);
    if(frame->hasMember("@context"))
    {
       ctx = frame["@context"].clone();
+
+      // remove context from frame
+      rval = JsonLd::expand(frame, _f);
+   }
+   else if(frame->getType() == Array)
+   {
+      // save first context in the array
+      if(frame->length() > 0 && frame[0]->hasMember("@context"))
+      {
+         ctx = frame[0]["@context"].clone();
+      }
+
+      // expand all elements in the array
+      _f->setType(Array);
+      DynamicObjectIterator i = frame.getIterator();
+      while(rval && i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         DynamicObject f;
+         rval = JsonLd::expand(next, f);
+         if(rval)
+         {
+            _f->append(f);
+         }
+      }
+   }
+   else
+   {
+      _f = frame;
    }
 
-   // remove context from frame and normalize input
-   DynamicObject _f;
+   // normalize input
    DynamicObject _in;
-   rval =
-      JsonLd::expand(frame, _f) &&
-      JsonLd::normalize(in, _in);
+   rval = rval && JsonLd::normalize(in, _in);
    if(rval)
    {
       // create framing options
