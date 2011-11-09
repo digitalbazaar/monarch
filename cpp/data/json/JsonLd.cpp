@@ -1649,15 +1649,20 @@ static const char* _mapNode(MappingBuilder& mb, const char* iri)
  * @param iri the IRI of the bnode to check.
  * @param changed the old IRI of the bnode that changed.
  * @param dir the direction to check ('props' or 'refs').
+ *
+ * @return true if the serialization was marked dirty, false if not.
  */
-static void _markSerializationDirty(
+static bool _markSerializationDirty(
    N11NState& state, const char* iri, const char* changed, const char* dir)
 {
+   bool rval = false;
    DynamicObject& s = state.serializations[iri];
    if(!s[dir].isNull() && s[dir]["m"]->hasMember(changed))
    {
       s[dir].setNull();
+      rval = true;
    }
+   return rval;
 }
 
 /**
@@ -2181,6 +2186,7 @@ static void _canonicalizeBlankNodes(N11NState& state, DynamicObject& input)
       // sort blank nodes
       if(resort)
       {
+         resort = false;
          DeepCompareBlankNodes nodeSorter(&state);
          bnodes.sort(nodeSorter);
       }
@@ -2228,27 +2234,27 @@ static void _canonicalizeBlankNodes(N11NState& state, DynamicObject& input)
             }
          }
 
-         // only clear serializations if resorting is necessary
-         if(resort)
+         // only keep non-canonically named bnodes
+         DynamicObject tmp = bnodes;
+         bnodes = DynamicObject(Array);
+         DynamicObjectIterator bi = tmp.getIterator();
+         while(bi->hasNext())
          {
-            // only keep non-canonically named bnodes
-            DynamicObject tmp = bnodes;
-            bnodes = DynamicObject(Array);
-            DynamicObjectIterator bi = tmp.getIterator();
-            while(bi->hasNext())
+            DynamicObject& b = bi->next();
+            const char* iriB = b["@subject"]["@iri"];
+            if(!c14n.inNamespace(iriB))
             {
-               DynamicObject& b = bi->next();
-               const char* iriB = b["@subject"]["@iri"];
-               if(!c14n.inNamespace(iriB))
+               // mark serializations related to the named bnodes as dirty
+               DynamicObjectIterator ri = renamed.getIterator();
+               while(ri->hasNext())
                {
-                  // mark serializations related to the named bnodes as dirty
-                  DynamicObjectIterator ri = renamed.getIterator();
-                  while(ri->hasNext())
+                  if(_markSerializationDirty(state, iriB, ri->next(), dir))
                   {
-                     _markSerializationDirty(state, iriB, ri->next(), dir);
+                     // resort if a serialization was marked dirty
+                     resort = true;
                   }
-                  bnodes->append(b);
                }
+               bnodes->append(b);
             }
          }
       }
