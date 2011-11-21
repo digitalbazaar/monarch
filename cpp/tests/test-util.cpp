@@ -446,6 +446,25 @@ static void runRegexTest(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("compiled match (simple)");
+   {
+      {
+         PatternRef pat = Pattern::compile("moo");
+         assert(pat->match("moo"));
+      }
+
+      {
+         PatternRef pat = Pattern::compile("127\\.0\\.0\\.1");
+         assert(pat->match("127.0.0.1"));
+      }
+
+      {
+         PatternRef pat = Pattern::compile("192\\.168\\.[[:digit:]]+\\.[[:digit:]]+");
+         assert(pat->match("192.168.0.17"));
+      }
+   }
+   tr.passIfNoException();
+
    tr.test("no match");
    {
       assert(!Pattern::match("^[a-z]{3}$", "abcd"));
