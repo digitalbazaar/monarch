@@ -2603,7 +2603,24 @@ static bool _subframe(
       // replace the existing embed with a reference
       else if(!embed["parent"].isNull())
       {
-         embed["parent"][embed["key"]->getString()] = value["@subject"];
+         DynamicObject& objs = embed["parent"][embed["key"]->getString()];
+         if(objs->getType() == Array)
+         {
+            for(int i = 0; i < objs->length(); i++)
+            {
+               if(objs[i]->getType() == Map &&
+                  objs[i]->hasMember("@subject") &&
+                  objs[i]["@subject"]["@iri"] == iri)
+               {
+                  objs[i] = value["@subject"];
+                  break;
+               }
+            }
+         }
+         else
+         {
+            objs = value["@subject"];
+         }
       }
 
       // update embed entry
@@ -2839,7 +2856,15 @@ static bool _frame(
             }
             else
             {
-               out.push(value);
+               // determine if value is a reference
+               bool isRef = (!value.isNull() && value->getType() == Map &&
+                  value->hasMember("@iri") && embeds->hasMember(value["@iri"]));
+
+               // push any value that isn't a parentless reference
+               if(!(parent.isNull() && isRef))
+               {
+                  out.push(value);
+               }
             }
          }
       }
