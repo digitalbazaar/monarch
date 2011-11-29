@@ -2547,6 +2547,50 @@ static bool _frame(
    DynamicObject& options, DynamicObject& out);
 
 /**
+ * Recursively removes dependent dangling embeds.
+ *
+ * @param iri the iri of the parent to remove embeds for.
+ * @param embeds the embeds map.
+ * @param mark true to only mark the embeds, false to remove them.
+ */
+static void _removeDependentEmbeds(
+   const char* iri, DynamicObject& embeds, bool mark = false)
+{
+   // mark embeds for removal
+   if(mark)
+   {
+      DynamicObjectIterator i = embeds.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& embed = i->next();
+         if(!embed["parent"].isNull() &&
+            embed["parent"]["@subject"]["@iri"] == iri)
+         {
+            embed["remove"] = true;
+            _removeDependentEmbeds(i->getName(), embeds, true);
+         }
+      }
+   }
+   // remove embeds
+   else
+   {
+      // first mark embeds
+      _removeDependentEmbeds(iri, embeds, true);
+
+      // now remove embeds
+      DynamicObjectIterator i = embeds.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& embed = i->next();
+         if(embed->hasMember("remove"))
+         {
+            i->remove();
+         }
+      }
+   }
+}
+
+/**
  * Subframes a value.
  *
  * @param subjects a map of subjects in the graph.
@@ -2606,6 +2650,7 @@ static bool _subframe(
          DynamicObject& objs = embed["parent"][embed["key"]->getString()];
          if(objs->getType() == Array)
          {
+            // find and replace embed in array
             for(int i = 0; i < objs->length(); i++)
             {
                if(objs[i]->getType() == Map &&
@@ -2621,6 +2666,9 @@ static bool _subframe(
          {
             objs = value["@subject"];
          }
+
+         // recursively remove any dependent dangling embeds
+         _removeDependentEmbeds(iri, embeds);
       }
 
       // update embed entry
