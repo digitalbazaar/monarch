@@ -15,10 +15,8 @@ using namespace monarch::data::json;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-#define RDF_NS            "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 #define XSD_NS            "http://www.w3.org/2001/XMLSchema#"
 
-#define RDF_TYPE          RDF_NS "type"
 #define XSD_BOOLEAN       XSD_NS "boolean"
 #define XSD_DOUBLE        XSD_NS "double"
 #define XSD_INTEGER       XSD_NS "integer"
@@ -138,8 +136,8 @@ static string _compactIri(
       }
    }
 
-   // term not found, if term is rdf type, use built-in keyword
-   if(rval.empty() && strcmp(iri, RDF_TYPE) == 0)
+   // term not found, if term is @type, use keyword
+   if(rval.empty() && strcmp(iri, "@type") == 0)
    {
       rval = _getKeywords(ctx)["@type"]->getString();
    }
@@ -240,15 +238,15 @@ static string _expandTerm(
          (*usedCtx)[term] = rval.c_str();
       }
    }
-   // 3. The property is the special-case subject.
+   // 3. The property is the special-case @subject.
    else if(strcmp(term, keywords["@subject"]) == 0)
    {
-      rval = keywords["@subject"]->getString();
+      rval = "@subject";
    }
-   // 4. The property is the special-case rdf type.
+   // 4. The property is the special-case @type.
    else if(strcmp(term, keywords["@type"]) == 0)
    {
-      rval = RDF_TYPE;
+      rval = "@type";
    }
    // 5. The property is a relative IRI, prepend the default vocab.
    else
@@ -286,7 +284,7 @@ static DynamicObject _getCoerceType(
    const char* p = prop.c_str();
 
    // built-in type coercion JSON-LD-isms
-   if(strcmp(p, "@subject") == 0 || strcmp(p, RDF_TYPE) == 0)
+   if(strcmp(p, "@subject") == 0 || strcmp(p, "@type") == 0)
    {
       rval = DynamicObject();
       rval = "@iri";
@@ -2470,16 +2468,16 @@ static bool _isType(DynamicObject& input, DynamicObject& frame)
    bool rval = false;
 
    // check if type(s) are specified in frame and input
-   if(frame->hasMember(RDF_TYPE) &&
+   if(frame->hasMember("@type") &&
       input->getType() == Map &&
-      input->hasMember("@subject") && input->hasMember(RDF_TYPE))
+      input->hasMember("@subject") && input->hasMember("@type"))
    {
       // find a type from the frame in the input
-      DynamicObjectIterator i = frame[RDF_TYPE].arrayify().getIterator();
+      DynamicObjectIterator i = frame["@type"].arrayify().getIterator();
       while(!rval && i->hasNext())
       {
          DynamicObject& type = i->next()["@iri"];
-         DynamicObjectIterator ii = input[RDF_TYPE].arrayify().getIterator();
+         DynamicObjectIterator ii = input["@type"].arrayify().getIterator();
          while(!rval && ii->hasNext())
          {
             rval = (ii->next()["@iri"] == type);
@@ -2515,7 +2513,7 @@ static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
    bool rval = false;
 
    // frame must not have a specific type
-   if(!frame->hasMember(RDF_TYPE))
+   if(!frame->hasMember("@type"))
    {
       // get frame properties that must exist on input
       DynamicObject props = frame.keys().filter(&_filterNonKeywords);
@@ -2702,7 +2700,7 @@ static bool _subframe(
          // skip keywords and type
          DynamicObject& v = vi->next();
          const char* key = vi->getName();
-         if(key[0] != '@' && strcmp(key, RDF_TYPE) != 0)
+         if(key[0] != '@' && strcmp(key, "@type") != 0)
          {
             // get the subframe if available
             DynamicObject f(NULL);
@@ -2750,7 +2748,7 @@ static bool _subframe(
          const char* key = fi->getName();
 
          // skip keywords, type query, and non-null keys in value
-         if(key[0] != '@' && strcmp(key, RDF_TYPE) != 0 &&
+         if(key[0] != '@' && strcmp(key, "@type") != 0 &&
             (!value->hasMember(key) || value[key].isNull()))
          {
             // add empty array to value
