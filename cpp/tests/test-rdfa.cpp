@@ -1169,7 +1169,9 @@ static void runRdfaReaderTest(TestRunner& tr)
       DynamicObject expect;
       expect[0]["@context"]["ex"] = "http://example.org/vocab#";
       expect[0]["@subject"] = "http://example.org/test#a";
-      expect[0]["ex:prop"]["@iri"] = "ex:link";
+      expect[0]["ex:prop"]["@literal"] = "ex:link";
+      expect[0]["ex:prop"]["@datatype"] =
+         "http://www.w3.org/2001/XMLSchema#anyURI";
       assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());

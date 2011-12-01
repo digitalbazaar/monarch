@@ -21,6 +21,7 @@ using namespace monarch::rt;
 using namespace monarch::util;
 
 #define RDFA_READER      "monarch.data.rdfa.RdfaReader"
+#define RDF_TYPE         "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 
 RdfaReader::RdfaReader() :
    mStarted(false),
@@ -164,10 +165,7 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
 
       // JSON-LD encode object
       DynamicObject object(NULL);
-      if(t->object_type == RDF_TYPE_IRI ||
-         (t->object_type == RDF_TYPE_TYPED_LITERAL &&
-            strcmp(
-               t->datatype, "http://www.w3.org/2001/XMLSchema#anyURI") == 0))
+      if(t->object_type == RDF_TYPE_IRI)
       {
          object = DynamicObject(Map);
          object["@iri"] = t->object;
@@ -205,7 +203,9 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
       }
 
       // add the predicate and object to the subject dyno
-      _setPredicate(s, t->predicate, object);
+      const char* predicate = (strcmp(t->predicate, RDF_TYPE) == 0) ?
+         "@type" : t->predicate;
+      _setPredicate(s, predicate, object);
    }
 
    // clear triples
@@ -275,7 +275,8 @@ static DynamicObject _getExceptionGraph(
    // use frame to embed error context in exception
    g->frame = DynamicObject();
    //g->frame["@context"] = JsonLd::createDefaultContext();
-   g->frame["@type"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
+   g->frame["@type"]["@iri"] =
+      "http://www.w3.org/ns/rdfa_processing_graph#Error";
    g->frame["http://www.w3.org/ns/rdfa_processing_graph#context"]->setType(Map);
 
    // finish processor graph
