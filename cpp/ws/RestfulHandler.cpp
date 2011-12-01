@@ -38,7 +38,7 @@ void RestfulHandler::operator()(ServiceChannel* ch)
 }
 
 void RestfulHandler::addHandler(
-   PathHandlerRef& handler,
+   PathHandlerRef handler,
    Message::MethodType mt,
    int paramCount,
    monarch::validation::ValidatorRef* queryValidator,
@@ -51,7 +51,7 @@ void RestfulHandler::addHandler(
 }
 
 void RestfulHandler::addHandler(
-   PathHandlerRef& handler,
+   PathHandlerRef handler,
    Message::MethodType mt,
    monarch::validation::ValidatorRef* resourceValidator,
    monarch::validation::ValidatorRef* queryValidator,
@@ -68,7 +68,7 @@ void RestfulHandler::addHandler(
 
 bool RestfulHandler::addRegexHandler(
    const char* regex,
-   PathHandlerRef& handler,
+   PathHandlerRef handler,
    Message::MethodType mt,
    monarch::validation::ValidatorRef* queryValidator,
    monarch::validation::ValidatorRef* contentValidator,

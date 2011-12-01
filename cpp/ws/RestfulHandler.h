@@ -161,7 +161,7 @@ public:
     * @param flags flags for this handler.
     */
    virtual void addHandler(
-      monarch::ws::PathHandlerRef& handler,
+      monarch::ws::PathHandlerRef handler,
       Message::MethodType mt,
       int paramCount = 0,
       monarch::validation::ValidatorRef* queryValidator = NULL,
@@ -185,7 +185,7 @@ public:
     * @param flags flags for this handler.
     */
    virtual void addHandler(
-      monarch::ws::PathHandlerRef& handler,
+      monarch::ws::PathHandlerRef handler,
       Message::MethodType mt,
       monarch::validation::ValidatorRef* resourceValidator,
       monarch::validation::ValidatorRef* queryValidator = NULL,
@@ -211,7 +211,7 @@ public:
     */
    virtual bool addRegexHandler(
       const char* regex,
-      monarch::ws::PathHandlerRef& handler,
+      monarch::ws::PathHandlerRef handler,
       Message::MethodType mt,
       monarch::validation::ValidatorRef* queryValidator = NULL,
       monarch::validation::ValidatorRef* contentValidator = NULL,
