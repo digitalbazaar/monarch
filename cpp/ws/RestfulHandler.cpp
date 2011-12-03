@@ -356,7 +356,7 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
 
    return rval;
 }
-#include <cstdio>
+
 RestfulHandler::HandlerInfo* RestfulHandler::findHandler(
    HandlerInfoMap& him, DynamicObject& queryVars)
 {
@@ -396,7 +396,7 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(
                while(vi->hasNext())
                {
                   DynamicObject& value = vi->next();
-                  if(!qVarVals.isNull() && qVarVals->indexOf(value) != -1)
+                  if(qVarVals.isNull() || qVarVals->indexOf(value) != -1)
                   {
                      ++valMatches;
                   }
