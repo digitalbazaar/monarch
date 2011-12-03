@@ -382,10 +382,10 @@ void Url::addQueryVariables(DynamicObject& vars)
    }
 }
 
-bool Url::getQueryVariables(DynamicObject& vars, bool asArrays)
+bool Url::getQueryVariables(DynamicObject& vars, bool asArrays, bool sorted)
 {
    // url-form decode query
-   return formDecode(vars, mQuery.c_str(), asArrays);
+   return formDecode(vars, mQuery.c_str(), asArrays, sorted);
 }
 
 string Url::getPathAndQuery()
@@ -729,7 +729,8 @@ string Url::formEncode(DynamicObject& form)
    return rval;
 }
 
-bool Url::formDecode(DynamicObject& form, const char* str, bool asArrays)
+bool Url::formDecode(
+   DynamicObject& form, const char* str, bool asArrays, bool sorted)
 {
    bool rval = false;
 
@@ -790,6 +791,16 @@ bool Url::formDecode(DynamicObject& form, const char* str, bool asArrays)
                v = value;
             }
          }
+      }
+   }
+
+   // sort if specified
+   if(asArrays && sorted)
+   {
+      DynamicObjectIterator i = form.getIterator();
+      while(i->hasNext())
+      {
+         i->next().sort();
       }
    }
 

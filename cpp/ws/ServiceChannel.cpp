@@ -523,7 +523,7 @@ bool ServiceChannel::getPathParams(DynamicObject& params)
    return rval;
 }
 
-bool ServiceChannel::getQuery(DynamicObject& vars, bool asArrays)
+bool ServiceChannel::getQuery(DynamicObject& vars, bool asArrays, bool sorted)
 {
    bool rval;
 
@@ -535,7 +535,7 @@ bool ServiceChannel::getQuery(DynamicObject& vars, bool asArrays)
       // parse query
       Url url(mPath);
       qvars = DynamicObject();
-      rval = url.getQueryVariables(qvars, asArrays);
+      rval = url.getQueryVariables(qvars, asArrays, sorted);
    }
    else
    {

@@ -291,11 +291,13 @@ public:
     *             other type.
     * @param asArrays true to create an array to hold all values for each key,
     *           false to use only the last value for each key.
+    * @param sorted true to sort the values if asArrays is true.
     *
     * @return true if variables were present, false if not.
     */
    virtual bool getQueryVariables(
-      monarch::rt::DynamicObject& vars, bool asArrays = false);
+      monarch::rt::DynamicObject& vars,
+      bool asArrays = false, bool sorted = false);
 
    /**
     * Combines the path and query of this url, if one exists.
@@ -434,11 +436,13 @@ public:
     * @param str the NULL terminated string to URL-form-decode.
     * @param asArrays true to create an array to hold all values for each key,
     *           false to use only the last value for each key.
+    * @param sorted true to sort the values if asArrays is true.
     *
     * @return true if form data was found, false if not.
     */
    static bool formDecode(
-      monarch::rt::DynamicObject& form, const char* str, bool asArrays = false);
+      monarch::rt::DynamicObject& form, const char* str,
+      bool asArrays = false, bool sorted = false);
 
    /**
     * Convert a DynamicObject to the same structure used by formDecode with

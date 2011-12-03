@@ -374,11 +374,13 @@ public:
     * @param vars the DynamicObject to store the variables in.
     * @param asArrays true to create an array to hold all values for each key,
     *           false to use only the last value for each key.
+    * @param sorted true to sort the values if asArrays is true.
     *
     * @return true if there are variables, false if there aren't any.
     */
    virtual bool getQuery(
-      monarch::rt::DynamicObject& vars, bool asArrays = false);
+      monarch::rt::DynamicObject& vars,
+      bool asArrays = false, bool sorted = false);
 
    /**
     * Gets the "in" Message. This is the Message that is received from the
