@@ -1086,7 +1086,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          def["def"] = next;
 
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
       }
 
       // test string
@@ -1166,7 +1166,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"] = "^(true|false)$";
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value = "true";
@@ -1185,7 +1185,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["extends"] = "Null";
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value(NULL);
       v::ValidatorRef val = vf.createValidator("test");
@@ -1204,7 +1204,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["error"] = "This won't pass no matter what.";
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       v::ValidatorRef val = vf.createValidator("test");
@@ -1224,7 +1224,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"]["key2"] = "passwordConfirm";
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value["password"] = "password";
@@ -1246,7 +1246,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"]["key2"] = "passwordConfirm";
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value["password"] = "password";
@@ -1267,7 +1267,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"]["type"] = "NotValid";
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       v::ValidatorRef val = vf.createValidator("test");
@@ -1286,7 +1286,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"] = 1;
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value = "a";
@@ -1306,7 +1306,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"] = 2;
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value = "a";
@@ -1326,7 +1326,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"] = "foo";
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value["foo"] = "bar";
@@ -1345,7 +1345,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          def["extends"] = "Int";
          def["def"]["type"] = "Positive";
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
 
          DynamicObject value;
          value = 1;
@@ -1360,7 +1360,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          def["extends"] = "Int";
          def["def"]["type"] = "Negative";
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
 
          DynamicObject value;
          value = "-1";
@@ -1375,7 +1375,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          def["extends"] = "Int";
          def["def"]["type"] = "NonPositive";
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
 
          DynamicObject value;
          value = -1;
@@ -1390,7 +1390,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          def["extends"] = "Int";
          def["def"]["type"] = "NonNegative";
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
 
          DynamicObject value;
          value = "0";
@@ -1405,7 +1405,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          def["extends"] = "Int";
          def["def"]["type"] = "Zero";
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
 
          DynamicObject value;
          value = 0;
@@ -1421,7 +1421,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          def["def"]["min"] = 0;
          def["def"]["max"] = 10;
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
 
          DynamicObject value;
          value = 5;
@@ -1442,7 +1442,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"]->append("foo");
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value = "foo";
@@ -1462,7 +1462,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"] = "foo";
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value = "foo";
@@ -1483,7 +1483,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"]["def"] = "foo";
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value->append("foo");
@@ -1507,7 +1507,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       def["def"]["bar"]["def"] = 10;
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value["foo"] = "bar";
@@ -1532,7 +1532,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
             d["def"] = "foo";
          }
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
 
          DynamicObject value;
          value->append("foo");
@@ -1552,7 +1552,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          }
 
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
 
          DynamicObject value;
          value->append("bar");
@@ -1583,7 +1583,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       }
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value = "foo";
@@ -1614,7 +1614,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
       }
 
       assertNoException(
-         vf.loadValidatorDefinition(def));
+         vf.loadValidatorDefinitions(def));
 
       DynamicObject value;
       value["foo"] = "bar";
@@ -1647,7 +1647,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          }
 
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
       }
 
       {
@@ -1666,7 +1666,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          }
 
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
       }
 
       DynamicObject value;
@@ -1701,7 +1701,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          }
 
          assertNoException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
       }
 
       {
@@ -1720,7 +1720,7 @@ static void runValidatorFactoryTest(TestRunner& tr)
          }
 
          assertException(
-            vf.loadValidatorDefinition(def));
+            vf.loadValidatorDefinitions(def));
       }
    }
    tr.passIfException();

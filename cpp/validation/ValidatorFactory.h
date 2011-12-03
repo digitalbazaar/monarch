@@ -93,25 +93,26 @@ public:
     *
     * @return true on success, false on failure with exception set.
     */
-   virtual bool loadValidatorDefinitions(const char* path);
+   virtual bool loadValidatorDefinitionsInPath(const char* path);
 
    /**
-    * Loads JSON-formatted Validator definition from an input stream.
+    * Loads JSON-formatted Validator definition(s) from an input stream.
     *
-    * @param is the input stream to read the definition from.
+    * @param is the input stream to read the definition(s) from.
     *
     * @return true on success, false on failure with exception set.
     */
-   virtual bool loadValidatorDefinition(monarch::io::InputStream* is);
+   virtual bool loadValidatorDefinitions(monarch::io::InputStream* is);
 
    /**
-    * Loads JSON-formatted Validator definition from a DynamicObject.
+    * Loads JSON-formatted Validator definition(s) from a DynamicObject.
     *
-    * @param def the DynamicObject with the definition.
+    * @param def the DynamicObject with the definition (or array of
+    *           definitions).
     *
     * @return true on success, false on failure with exception set.
     */
-   virtual bool loadValidatorDefinition(monarch::rt::DynamicObject& def);
+   virtual bool loadValidatorDefinitions(monarch::rt::DynamicObject& def);
 
    /**
     * Creates a new Validator of the given type. The type must be a previously

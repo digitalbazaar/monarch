@@ -607,7 +607,7 @@ v::ValidatorFactory::~ValidatorFactory()
    free(mLoadLock);
 }
 
-bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
+bool v::ValidatorFactory::loadValidatorDefinitionsInPath(const char* path)
 {
    bool rval = true;
 
@@ -625,22 +625,8 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
       }
    }
 
-   // get custom top-level validator
-   ValidatorRef custom = _customValidator(true);
-
-   // create a map to store validator definitions
-   DynamicObject defs;
-   defs->setType(monarch::rt::Map);
-
-   // FIXME: this could be reworked to read the JSON outside of the lock
-
-   // handle sync if necessary
-   if(mLoadLock != NULL)
-   {
-      mLoadLock->lockExclusive();
-   }
-
-   // start loading definitions
+   // read in and parse all definitions to be loaded
+   DynamicObject defs(monarch::rt::Array);
    JsonReader reader;
    IteratorRef<File> i = fileList->getIterator();
    while(rval && i->hasNext())
@@ -651,9 +637,7 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
          // read definition from json
          DynamicObject def;
          FileInputStream fis(file);
-         rval =
-            reader.start(def) && reader.read(&fis) && reader.finish() &&
-            custom->isValid(def);
+         rval = reader.start(def) && reader.read(&fis) && reader.finish();
          if(!rval)
          {
             ExceptionRef e = new Exception(
@@ -662,39 +646,21 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
             e->getDetails()["filename"] = file->getAbsolutePath();
             Exception::push(e);
          }
+         else if(def->getType() == monarch::rt::Array)
+         {
+            // append definition array
+            defs.merge(def, true);
+         }
          else
          {
-            // ensure type is not a duplicate
-            const char* type = def["type"];
-            ValidatorMap::iterator vmi = mValidators.find(type);
-            if(vmi != mValidators.end() || defs->hasMember(type))
-            {
-               ExceptionRef e = new Exception(
-                  "Could not define Validator. "
-                  "Duplicate Validator type detected.",
-                  VF_EXCEPTION ".DuplicateType");
-               e->getDetails()["type"] = type;
-               Exception::set(e);
-               rval = false;
-            }
-            else
-            {
-               // add to definitions map
-               defs[type] = def;
-            }
+            // append definition
+            defs->append(def);
          }
       }
    }
 
-   // define validators from the definitions map
-   rval = rval && defineValidators(defs);
-
-   // handle sync if necessary
-   if(mLoadLock != NULL)
-   {
-      mLoadLock->unlockExclusive();
-   }
-
+   // load definitions
+   rval = rval && loadValidatorDefinitions(defs);
    if(!rval)
    {
       ExceptionRef e = new Exception(
@@ -707,114 +673,73 @@ bool v::ValidatorFactory::loadValidatorDefinitions(const char* path)
    return rval;
 }
 
-bool v::ValidatorFactory::loadValidatorDefinition(InputStream* is)
+bool v::ValidatorFactory::loadValidatorDefinitions(InputStream* is)
 {
    bool rval = true;
 
-   // get custom top-level validator
-   ValidatorRef custom = _customValidator(true);
-
-   // read definition from json
+   // read definition from json and try to load it
    DynamicObject def;
    JsonReader reader;
    rval =
       reader.start(def) && reader.read(is) && reader.finish() &&
-      custom->isValid(def);
-   if(rval)
-   {
-      // handle sync if necessary
-      if(mLoadLock != NULL)
-      {
-         mLoadLock->lockExclusive();
-      }
-
-      // ensure type is not a duplicate
-      const char* type = def["type"];
-      ValidatorMap::iterator vmi = mValidators.find(type);
-      if(vmi != mValidators.end())
-      {
-         ExceptionRef e = new Exception(
-            "Could not define Validator. Duplicate Validator type detected.",
-            VF_EXCEPTION ".DuplicateType");
-         e->getDetails()["type"] = type;
-         Exception::set(e);
-         rval = false;
-      }
-      else
-      {
-         // add to definitions map
-         DynamicObject defs;
-         defs[type] = def;
-
-         // define validator
-         rval = defineValidators(defs);
-      }
-
-      // handle sync if necessary
-      if(mLoadLock != NULL)
-      {
-         mLoadLock->unlockExclusive();
-      }
-   }
-
-   if(!rval)
-   {
-      ExceptionRef e = new Exception(
-         "Could not load Validator definition.",
-         VF_EXCEPTION ".DefinitionError");
-      Exception::push(e);
-   }
+      loadValidatorDefinitions(def);
 
    return rval;
 }
 
-bool v::ValidatorFactory::loadValidatorDefinition(DynamicObject& def)
+bool v::ValidatorFactory::loadValidatorDefinitions(DynamicObject& def)
 {
    bool rval = true;
 
-   // FIXME: accept an array with multiple validator definitions, combine
-   // other calls to do JSON reading outside of locks and build an array
-   // of definitions ... do duplicate check in common place that takes
-   // the array as an input
+   // create map for all definitions to be added, this allows them to be
+   // added atomically as a single unit by checking this map for duplicates
+   DynamicObject defsMap(monarch::rt::Map);
 
-   // get custom top-level validator
+   // get custom top-level validator for validating each definition
    ValidatorRef custom = _customValidator(true);
-   rval = custom->isValid(def);
-   if(rval)
+
+   // handle sync if necessary
+   if(mLoadLock != NULL)
    {
-      // handle sync if necessary
-      if(mLoadLock != NULL)
-      {
-         mLoadLock->lockExclusive();
-      }
+      mLoadLock->lockExclusive();
+   }
 
-      // ensure type is not a duplicate
-      const char* type = def["type"];
-      ValidatorMap::iterator vmi = mValidators.find(type);
-      if(vmi != mValidators.end())
+   // iterate over array of validator definitions
+   DynamicObjectIterator i = def.arrayify().getIterator();
+   while(rval && i->hasNext())
+   {
+      // validate each definition
+      DynamicObject& d = i->next();
+      rval = custom->isValid(d);
+      if(rval)
       {
-         ExceptionRef e = new Exception(
-            "Could not define Validator. Duplicate Validator type detected.",
-            VF_EXCEPTION ".DuplicateType");
-         e->getDetails()["type"] = type;
-         Exception::set(e);
-         rval = false;
+         // ensure custom validator type is not a duplicate
+         const char* type = d["type"];
+         ValidatorMap::iterator vmi = mValidators.find(type);
+         if(vmi != mValidators.end() || defsMap->hasMember(type))
+         {
+            ExceptionRef e = new Exception(
+               "Could not define Validator. Duplicate Validator type detected.",
+               VF_EXCEPTION ".DuplicateType");
+            e->getDetails()["type"] = type;
+            Exception::set(e);
+            rval = false;
+         }
+         else
+         {
+            // add to definitions map, clone it to prevent changes
+            defsMap[type] = d.clone();
+         }
       }
-      else
-      {
-         // add to definitions map, clone it to prevent changes
-         DynamicObject defs;
-         defs[type] = def.clone();
+   }
 
-         // define validator
-         rval = defineValidators(defs);
-      }
+   // define validators
+   rval = rval && defineValidators(defsMap);
 
-      // handle sync if necessary
-      if(mLoadLock != NULL)
-      {
-         mLoadLock->unlockExclusive();
-      }
+   // handle sync if necessary
+   if(mLoadLock != NULL)
+   {
+      mLoadLock->unlockExclusive();
    }
 
    if(!rval)
@@ -835,7 +760,7 @@ v::ValidatorRef v::ValidatorFactory::createValidator(const char* type)
    // handle sync if necessary
    if(mLoadLock != NULL)
    {
-      mLoadLock->unlockShared();
+      mLoadLock->lockShared();
    }
 
    ValidatorMap::iterator i = mValidators.find(type);
