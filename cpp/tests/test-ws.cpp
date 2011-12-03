@@ -317,6 +317,7 @@ static void runWebServerTest(TestRunner& tr)
    tr.test("WebServer - regex path handler matches");
    {
       DynamicObject info;
+      info["type"] = "monarch.ws.RestfulHandler";
       DynamicObject& matches = info["matches"];
       matches[0] = "dumplings";
       matches[1] = "turkey";

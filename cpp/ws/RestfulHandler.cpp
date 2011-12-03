@@ -302,6 +302,7 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
                // handler found, set channel handler info
                rval = findHandler(mmi->second, queryVars);
                DynamicObject info(Map);
+               info["type"] = "monarch.ws.RestfulHandler";
                info["matches"] = matches;
                ch->setHandlerInfo(info);
             }
