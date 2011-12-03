@@ -396,7 +396,7 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(
                while(vi->hasNext())
                {
                   DynamicObject& value = vi->next();
-                  if(qVarVals.isNull() || qVarVals->indexOf(value) != -1)
+                  if(!qVarVals.isNull() && qVarVals->indexOf(value) != -1)
                   {
                      ++valMatches;
                   }
