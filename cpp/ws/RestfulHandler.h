@@ -75,9 +75,14 @@ protected:
    };
 
    /**
+    * Map of DynamicObject query vars to a HandlerInfo.
+    */
+   typedef std::map<monarch::rt::DynamicObject, HandlerInfo> HandlerInfoMap;
+
+   /**
     * Map of method type to handler info.
     */
-   typedef std::map<Message::MethodType, HandlerInfo> MethodMap;
+   typedef std::map<Message::MethodType, HandlerInfoMap> MethodMap;
 
    /**
     * Info for regex handlers.
@@ -154,6 +159,7 @@ public:
     * @param mt a method type to match against the request method type.
     * @param paramCount the count to match with the path parameter count,
     *           -1 for an arbitrary number if parameters.
+    * @param queryVars the query variables to match against, NULL for any.
     * @param queryValidator a Validator to check the input message query
     *           (optional).
     * @param contentValidator a Validator to check the input message content
@@ -164,6 +170,7 @@ public:
       monarch::ws::PathHandlerRef handler,
       Message::MethodType mt,
       int paramCount = 0,
+      monarch::rt::DynamicObject* queryVars = NULL,
       monarch::validation::ValidatorRef* queryValidator = NULL,
       monarch::validation::ValidatorRef* contentValidator = NULL,
       uint32_t flags = 0);
@@ -179,6 +186,7 @@ public:
     *
     * @param handler the handler to register.
     * @param mt a method type to match against the request method type.
+    * @param queryVars the query variables to match against, NULL for any.
     * @param resourceValidator a Validator to check the input resource.
     * @param queryValidator a Validator to check the input query (optional).
     * @param contentValidator a Validator to check the input content (optional).
@@ -187,6 +195,7 @@ public:
    virtual void addHandler(
       monarch::ws::PathHandlerRef handler,
       Message::MethodType mt,
+      monarch::rt::DynamicObject* queryVars,
       monarch::validation::ValidatorRef* resourceValidator,
       monarch::validation::ValidatorRef* queryValidator = NULL,
       monarch::validation::ValidatorRef* contentValidator = NULL,
@@ -203,6 +212,7 @@ public:
     *
     * @param handler the handler to register.
     * @param mt a method type to match against the request method type.
+    * @param queryVars the query variables to match against, NULL for any.
     * @param queryValidator a Validator to check the input query (optional).
     * @param contentValidator a Validator to check the input content (optional).
     * @param flags flags for this handler.
@@ -213,6 +223,7 @@ public:
       const char* regex,
       monarch::ws::PathHandlerRef handler,
       Message::MethodType mt,
+      monarch::rt::DynamicObject* queryVars = NULL,
       monarch::validation::ValidatorRef* queryValidator = NULL,
       monarch::validation::ValidatorRef* contentValidator = NULL,
       uint32_t flags = 0);
@@ -244,6 +255,18 @@ protected:
     * @return the HandlerInfo, NULL if none could be found.
     */
    virtual HandlerInfo* findHandler(ServiceChannel* ch);
+
+   /**
+    * Finds the handler for the given query parameters in the given
+    * HandlerInfoMap.
+    *
+    * @param him the HandlerInfoMap to look in.
+    * @param queryVars the query variables to match against.
+    *
+    * @return the HandlerInfo, NULL if none could be found.
+    */
+   virtual HandlerInfo* findHandler(
+      HandlerInfoMap& him, monarch::rt::DynamicObject& queryVars);
 
    /**
     * Handles the passed ServiceChannel using the already-found handler.

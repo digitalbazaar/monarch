@@ -3,6 +3,8 @@
  */
 #include "monarch/ws/RestfulHandler.h"
 
+#include "monarch/rt/DynamicObjectIterator.h"
+
 using namespace std;
 using namespace monarch::http;
 using namespace monarch::rt;
@@ -37,22 +39,50 @@ void RestfulHandler::operator()(ServiceChannel* ch)
    }
 }
 
+/**
+ * Creates a query-variable key for the HandlerInfoMap.
+ *
+ * @param queryVars the query vars to base the key on.
+ *
+ * @return the query-variable key.
+ */
+static DynamicObject _createQueryVarKey(DynamicObject* queryVars)
+{
+   DynamicObject rval(NULL);
+
+   if(queryVars != NULL && !(*queryVars).isNull())
+   {
+      // arrayify and sort all values
+      rval = DynamicObject(Map);
+      DynamicObjectIterator i = queryVars->getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         rval[i->getName()] = next.arrayify().sort();
+      }
+   }
+
+   return rval;
+}
+
 void RestfulHandler::addHandler(
    PathHandlerRef handler,
    Message::MethodType mt,
    int paramCount,
+   DynamicObject* queryVars,
    monarch::validation::ValidatorRef* queryValidator,
    monarch::validation::ValidatorRef* contentValidator,
    uint32_t flags)
 {
    initializeHandlerInfo(
-      mPathHandlers[paramCount][mt],
+      mPathHandlers[paramCount][mt][_createQueryVarKey(queryVars)],
       handler, NULL, queryValidator, contentValidator, flags);
 }
 
 void RestfulHandler::addHandler(
    PathHandlerRef handler,
    Message::MethodType mt,
+   DynamicObject* queryVars,
    monarch::validation::ValidatorRef* resourceValidator,
    monarch::validation::ValidatorRef* queryValidator,
    monarch::validation::ValidatorRef* contentValidator,
@@ -62,7 +92,7 @@ void RestfulHandler::addHandler(
       ? (*resourceValidator)->length()
       : 0;
    initializeHandlerInfo(
-      mPathHandlers[paramCount][mt],
+      mPathHandlers[paramCount][mt][_createQueryVarKey(queryVars)],
       handler, resourceValidator, queryValidator, contentValidator, flags);
 }
 
@@ -70,6 +100,7 @@ bool RestfulHandler::addRegexHandler(
    const char* regex,
    PathHandlerRef handler,
    Message::MethodType mt,
+   DynamicObject* queryVars,
    monarch::validation::ValidatorRef* queryValidator,
    monarch::validation::ValidatorRef* contentValidator,
    uint32_t flags)
@@ -110,7 +141,7 @@ bool RestfulHandler::addRegexHandler(
    if(rinfo != NULL)
    {
       initializeHandlerInfo(
-         rinfo->methods[mt],
+         rinfo->methods[mt][_createQueryVarKey(queryVars)],
          handler, NULL, queryValidator, contentValidator, flags);
    }
 
@@ -179,10 +210,12 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
    // all, but if one is found, but there is no method for it, send a 405
    bool send404 = true;
 
-   // get path params and method type from channel
+   // get path params, query vars, and method type from channel
    DynamicObject paramDyno;
    ch->getPathParams(paramDyno);
    int paramCount = paramDyno->length();
+   DynamicObject queryVars;
+   ch->getQuery(queryVars, true);
    string method;
    Message::MethodType mt = _getMethodType(ch, method);
    DynamicObject validMethods(NULL);
@@ -203,32 +236,32 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
       send404 = false;
 
       // find the map of valid methods for the given handler
-      MethodMap* mm = &(*hmi).second;
-      mmi = mm->find(mt);
+      MethodMap& mm = hmi->second;
+      mmi = mm.find(mt);
 
       // if there's no match for a valid method using the given param count,
       // try looking for one using the arbitrary param count
-      if(mmi == mm->end() && (*hmi).first != -1)
+      if(mmi == mm.end() && hmi->first != -1)
       {
          hmi = mPathHandlers.find(-1);
          if(hmi != mPathHandlers.end())
          {
-            mm = &(*hmi).second;
-            mmi = mm->find(mt);
+            mm = hmi->second;
+            mmi = mm.find(mt);
          }
       }
 
       // see if there is a match for the given request method
-      if(mmi != mm->end())
+      if(mmi != mm.end())
       {
-         rval = &((*mmi).second);
+         rval = findHandler(mmi->second, queryVars);
       }
       else
       {
          // add valid method types
          validMethods = DynamicObject();
          validMethods->setType(Array);
-         for(mmi = mm->begin(); mmi != mm->end(); ++mmi)
+         for(mmi = mm.begin(); mmi != mm.end(); ++mmi)
          {
             validMethods->append(Message::methodToString(mmi->first));
          }
@@ -262,12 +295,12 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
             send404 = false;
 
             // look for a handler with a matching method
-            MethodMap* mm = &(rmi->second.methods);
-            mmi = mm->find(mt);
-            if(mmi != mm->end())
+            MethodMap& mm = rmi->second.methods;
+            mmi = mm.find(mt);
+            if(mmi != mm.end())
             {
                // handler found, set channel handler info
-               rval = &((*mmi).second);
+               rval = findHandler(mmi->second, queryVars);
                DynamicObject info;
                info["monarch.ws.RestfulHandler"]["matches"] = matches;
                ch->setHandlerInfo(info);
@@ -277,7 +310,7 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
                // add valid method types
                validMethods = DynamicObject();
                validMethods->setType(Array);
-               for(mmi = mm->begin(); mmi != mm->end(); ++mmi)
+               for(mmi = mm.begin(); mmi != mm.end(); ++mmi)
                {
                   validMethods->append(Message::methodToString(mmi->first));
                }
@@ -318,6 +351,79 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
             e->getDetails()["validMethods"], ", ");
          ch->getResponse()->getHeader()->setField("Allow", allow.c_str());
          Exception::set(e);
+      }
+   }
+
+   return rval;
+}
+#include <cstdio>
+RestfulHandler::HandlerInfo* RestfulHandler::findHandler(
+   HandlerInfoMap& him, DynamicObject& queryVars)
+{
+   HandlerInfo* rval = NULL;
+
+   // find the queryVar with the most specific matches
+   int maxKeyMatches = 0;
+   int maxValMatches = 0;
+   bool allKeysMatch = false;
+   for(HandlerInfoMap::iterator himi = him.begin(); himi != him.end(); ++himi)
+   {
+      DynamicObject& qVar = const_cast<DynamicObject&>(himi->first);
+
+      // catch-all queryVar
+      if(qVar.isNull())
+      {
+         if(rval == NULL)
+         {
+            rval = &himi->second;
+         }
+      }
+      // more specific queryVar
+      else
+      {
+         // count matches
+         int keyMatches = 0;
+         int valMatches = 0;
+         DynamicObjectIterator ki = queryVars.getIterator();
+         while(ki->hasNext())
+         {
+            DynamicObject& values = ki->next();
+            if(qVar->hasMember(ki->getName()))
+            {
+               ++keyMatches;
+               DynamicObject& qVarVals = qVar[ki->getName()];
+               DynamicObjectIterator vi = values.getIterator();
+               while(vi->hasNext())
+               {
+                  DynamicObject& value = vi->next();
+                  if(!qVarVals.isNull() && qVarVals->indexOf(value) != -1)
+                  {
+                     ++valMatches;
+                  }
+               }
+            }
+         }
+
+         // determine if all the keys match exactly
+         bool hasSameKeys = (keyMatches == queryVars->length() &&
+            keyMatches == qVar->length());
+
+         // pick current handler if:
+         // 1. no handler picked yet, OR
+         // 2. # of key matches is greater than previous pick or # of key
+         //    matches are equal and either:
+         // 1. previous pick's keys do not all match but current's do, OR
+         // 2. key matches are the same, but current has more value matches
+         if(rval == NULL || keyMatches > maxKeyMatches ||
+            (keyMatches == maxKeyMatches && (
+               (!allKeysMatch && hasSameKeys) ||
+               (allKeysMatch == hasSameKeys && valMatches > maxValMatches))))
+         {
+            maxKeyMatches = keyMatches;
+            maxValMatches = valMatches;
+            allKeysMatch = hasSameKeys;
+            rval = &himi->second;
+         }
       }
    }
 
