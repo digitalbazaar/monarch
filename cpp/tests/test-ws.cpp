@@ -317,7 +317,7 @@ static void runWebServerTest(TestRunner& tr)
    tr.test("WebServer - regex path handler matches");
    {
       DynamicObject info;
-      DynamicObject& matches = info["monarch.ws.RestfulHandler"]["matches"];
+      DynamicObject& matches = info["matches"];
       matches[0] = "dumplings";
       matches[1] = "turkey";
       string expect = JsonWriter::writeToString(info);
@@ -334,7 +334,9 @@ static void runWebServerTest(TestRunner& tr)
       DynamicObject ex;
       ex["message"] = "WebService authentication failed. Access denied.";
       ex["type"] = "monarch.ws.AccessDenied";
+      ex["details"]["httpStatusCode"] = 403;
       ex["details"]["path"] = "/test/dumplings/regextest3/turkey";
+      ex["details"]["public"] = true;
       DynamicObject& cause = ex["cause"];
       cause["message"] = "Tried to authenticate but failed.";
       cause["type"] = "tests.ws.Exception";
