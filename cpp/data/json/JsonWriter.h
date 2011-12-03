@@ -126,7 +126,7 @@ public:
     */
    static bool writeToOStream(
       monarch::rt::DynamicObject dyno, std::ostream& stream,
-      bool compact = false, bool strict = true);
+      bool compact = false, bool strict = false);
 
    /**
     * Writes a DynamicObject as JSON to a string.
@@ -140,7 +140,7 @@ public:
     */
    static std::string writeToString(
       monarch::rt::DynamicObject dyno,
-      bool compact = false, bool strict = true);
+      bool compact = false, bool strict = false);
 
    /**
     * Writes a DynamicObject as JSON to standard out.
@@ -153,7 +153,7 @@ public:
     */
    static bool writeToStdOut(
       monarch::rt::DynamicObject dyno,
-      bool compact = false, bool strict = true);
+      bool compact = false, bool strict = false);
 };
 
 } // end namespace json
