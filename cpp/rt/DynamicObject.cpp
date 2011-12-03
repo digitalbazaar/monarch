@@ -649,7 +649,12 @@ DynamicObject DynamicObject::arrayify()
 {
    DynamicObject rval(NULL);
 
-   if((*this)->getType() == Array)
+   if(isNull())
+   {
+      rval = DynamicObject(Array);
+      rval.push(DynamicObject(NULL));
+   }
+   else if((*this)->getType() == Array)
    {
       rval = *this;
    }
