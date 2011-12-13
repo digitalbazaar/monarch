@@ -112,7 +112,7 @@ bool MySqlStatement::initialize(MySqlConnection* c)
          if(mParamCount > 0)
          {
             mParamBindings = new MYSQL_BIND[mParamCount];
-            memset(mParamBindings, 0, sizeof(mParamBindings));
+            memset(mParamBindings, 0, sizeof(MYSQL_BIND) * mParamCount);
          }
       }
    }
