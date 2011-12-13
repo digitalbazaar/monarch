@@ -53,7 +53,7 @@ static void runStringEqualityTest(TestRunner& tr)
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; ++i)
    {
-      if(str == "");
+      if(str == "") {};
    }
    end = System::getCurrentMilliseconds();
    printf("String == \"\" time: %" PRIu64 " ms\n", (end - start));
@@ -61,7 +61,7 @@ static void runStringEqualityTest(TestRunner& tr)
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; ++i)
    {
-      if(str.length() == 0);
+      if(str.length() == 0) {};
    }
    end = System::getCurrentMilliseconds();
    printf("String.length() == 0 time: %" PRIu64 " ms\n", (end - start));
@@ -82,7 +82,7 @@ static void runStringAppendCharTest(TestRunner& tr)
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; ++i)
    {
-      if(str.length() == 1 && str[0] == '/');
+      if(str.length() == 1 && str[0] == '/') {};
    }
    end = System::getCurrentMilliseconds();
    printf("String.length() == 1 && str[0] == '/' time: %" PRIu64 " ms\n",
@@ -91,7 +91,7 @@ static void runStringAppendCharTest(TestRunner& tr)
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; ++i)
    {
-      if(str == "/");
+      if(str == "/") {};
    }
    end = System::getCurrentMilliseconds();
    printf("String == \"/\" time: %" PRIu64 " ms\n", (end - start));
@@ -99,7 +99,7 @@ static void runStringAppendCharTest(TestRunner& tr)
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; ++i)
    {
-      if(strcmp(str.c_str(), "/") == 0);
+      if(strcmp(str.c_str(), "/") == 0) {};
    }
    end = System::getCurrentMilliseconds();
    printf("strcmp(String.c_str(), \"/\") == 0 time: %" PRIu64 " ms\n",
@@ -109,7 +109,7 @@ static void runStringAppendCharTest(TestRunner& tr)
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; ++i)
    {
-      if(version == "HTTP/1.0");
+      if(version == "HTTP/1.0") {};
    }
    end = System::getCurrentMilliseconds();
    printf("String == \"HTTP/1.0\" time: %" PRIu64 " ms\n", (end - start));
@@ -117,7 +117,7 @@ static void runStringAppendCharTest(TestRunner& tr)
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; ++i)
    {
-      if(strcmp(version.c_str(), "HTTP/1.0") == 0);
+      if(strcmp(version.c_str(), "HTTP/1.0") == 0) {};
    }
    end = System::getCurrentMilliseconds();
    printf("strcmp(String.c_str(), \"HTTP/1.0\") == 0 time: %" PRIu64 " ms\n",
@@ -172,7 +172,7 @@ static void runStringCompareTest(TestRunner& tr)
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; ++i)
    {
-      if(str1 == "blah");
+      if(str1 == "blah") {};
    }
    end = System::getCurrentMilliseconds();
    printf("std::string compare time: %" PRIu64 " ms\n", (end - start));
@@ -180,7 +180,7 @@ static void runStringCompareTest(TestRunner& tr)
    start = System::getCurrentMilliseconds();
    for(int i = 0; i < 1000000; ++i)
    {
-      if(strcmp(str2, "blah") == 0);
+      if(strcmp(str2, "blah") == 0) {};
    }
    end = System::getCurrentMilliseconds();
    printf("char* compare time: %" PRIu64 " ms\n", (end - start));
