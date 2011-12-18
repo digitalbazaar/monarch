@@ -2697,10 +2697,10 @@ static bool _subframe(
       DynamicObjectIterator vi = value.getIterator();
       while(vi->hasNext())
       {
-         // skip keywords and type
+         // skip keywords
          DynamicObject& v = vi->next();
          const char* key = vi->getName();
-         if(key[0] != '@' && strcmp(key, "@type") != 0)
+         if(key[0] != '@')
          {
             // get the subframe if available
             DynamicObject f(NULL);
@@ -2747,9 +2747,8 @@ static bool _subframe(
          DynamicObject f = fi->next();
          const char* key = fi->getName();
 
-         // skip keywords, type query, and non-null keys in value
-         if(key[0] != '@' && strcmp(key, "@type") != 0 &&
-            (!value->hasMember(key) || value[key].isNull()))
+         // skip keywords and non-null keys in value
+         if(key[0] != '@' && (!value->hasMember(key) || value[key].isNull()))
          {
             // add empty array to value
             if(f->getType() == Array)
