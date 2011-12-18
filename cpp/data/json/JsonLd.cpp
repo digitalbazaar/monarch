@@ -97,14 +97,35 @@ static DynamicObject _getKeywords(DynamicObject& ctx)
 }
 
 /**
- * Compacts an IRI into a term or CURIE it can be. IRIs will not be compacted
+ * Gets the iri associated with a term.
+ *
+ * @param entry the context entry for the term.
+ *
+ * @return the iri or NULL.
+ */
+static const char* _getTermIri(DynamicObject& entry)
+{
+   const char* rval = NULL;
+   if(entry->getType() == String)
+   {
+      rval = entry;
+   }
+   else if(entry->getType() == Map && entry->hasMember("@iri"))
+   {
+      rval = entry["@iri"];
+   }
+   return rval;
+};
+
+/**
+ * Compacts an IRI into a term or prefix it can be. IRIs will not be compacted
  * to relative IRIs if they match the given context's default vocabulary.
  *
  * @param ctx the context to use.
  * @param iri the IRI to compact.
  * @param usedCtx a context to update if a value was used from "ctx".
  *
- * @return the compacted IRI as a term or CURIE or the original IRI.
+ * @return the compacted IRI as a term or prefix or the original IRI.
  */
 static string _compactIri(
    DynamicObject& ctx, const char* iri, DynamicObject* usedCtx)
@@ -112,24 +133,25 @@ static string _compactIri(
    string rval;
 
    // check the context for a term that could shorten the IRI
-   // (give preference to terms over CURIEs)
+   // (give preference to terms over prefixes)
    DynamicObjectIterator i = ctx.getIterator();
    while(rval.empty() && i->hasNext())
    {
-      // get next IRI and key from the context
-      const char* ctxIri = i->next();
+      // get next entry and key from the context
+      DynamicObject& entry = i->next();
       const char* key = i->getName();
 
       // skip special context keys (start with '@')
       if(key[0] != '@')
       {
          // compact to a term
-         if(strcmp(iri, ctxIri) == 0)
+         const char* ctxIri = _getTermIri(entry);
+         if(ctxIri != NULL && strcmp(iri, ctxIri) == 0)
          {
             rval = key;
             if(usedCtx != NULL)
             {
-               (*usedCtx)[key] = ctxIri;
+               (*usedCtx)[key] = entry.clone();
             }
          }
       }
@@ -141,32 +163,36 @@ static string _compactIri(
       rval = _getKeywords(ctx)["@type"]->getString();
    }
 
-   // if term not found, check the context for a CURIE prefix
+   // if term not found, check the context for a prefix
    i = ctx.getIterator();
    while(rval.empty() && i->hasNext())
    {
-      // get next IRI and key from the context
-      const char* ctxIri = i->next();
+      // get next entry and key from the context
+      DynamicObject& entry = i->next();
       const char* key = i->getName();
 
       // skip special context keys (start with '@')
       if(key[0] != '@')
       {
          // see if IRI begins with the next IRI from the context
-         const char* ptr = strstr(iri, ctxIri);
-         if(ptr != NULL && ptr == iri)
+         const char* ctxIri = _getTermIri(entry);
+         if(ctxIri != NULL)
          {
-            size_t len1 = strlen(iri);
-            size_t len2 = strlen(ctxIri);
-
-            // compact to a CURIE
-            if(len1 > len2)
+            const char* ptr = strstr(iri, ctxIri);
+            if(ptr != NULL && ptr == iri)
             {
-               // add 2 to make room for null-terminator and colon
-               rval = StringTools::format("%s:%s", key, ptr + len2);
-               if(usedCtx != NULL)
+               size_t len1 = strlen(iri);
+               size_t len2 = strlen(ctxIri);
+
+               // compact to a prefix
+               if(len1 > len2)
                {
-                  (*usedCtx)[key] = ctxIri;
+                  // add 2 to make room for null-terminator and colon
+                  rval = StringTools::format("%s:%s", key, ptr + len2);
+                  if(usedCtx != NULL)
+                  {
+                     (*usedCtx)[key] = entry.clone();
+                  }
                }
             }
          }
@@ -184,7 +210,7 @@ static string _compactIri(
 
 /**
  * Expands a term into an absolute IRI. The term may be a regular term, a
- * CURIE, a relative IRI, or an absolute IRI. In any case, the associated
+ * prefix, a relative IRI, or an absolute IRI. In any case, the associated
  * absolute IRI will be returned.
  *
  * @param ctx the context to use.
@@ -201,11 +227,11 @@ static string _expandTerm(
    // get JSON-LD keywords
    DynamicObject keywords = _getKeywords(ctx);
 
-   // 1. If the property has a colon, then it is a CURIE or an absolute IRI:
+   // 1. If the property has a colon, it is a prefix or an absolute IRI:
    const char* ptr = strchr(term, ':');
    if(ptr != NULL)
    {
-      // get the potential CURIE prefix
+      // get the potential prefix
       size_t len = ptr - term + 1;
       char prefix[len];
       snprintf(prefix, len, "%s", term);
@@ -214,12 +240,12 @@ static string _expandTerm(
       if(ctx->hasMember(prefix))
       {
          // prefix found, expand property to absolute IRI
-         DynamicObject& iri = ctx[prefix];
-         len = strlen(iri->getString()) + strlen(ptr + 1) + 3;
-         rval = StringTools::format("%s%s", iri->getString(), ptr + 1);
+         const char* iri = _getTermIri(ctx[prefix]);
+         len = strlen(iri) + strlen(ptr + 1) + 3;
+         rval = StringTools::format("%s%s", iri, ptr + 1);
          if(usedCtx != NULL)
          {
-            (*usedCtx)[prefix] = iri->getString();
+            (*usedCtx)[prefix] = ctx[prefix].clone();
          }
       }
       // 1.2. Prefix is not in context, property is already an absolute IRI:
@@ -231,7 +257,7 @@ static string _expandTerm(
    // 2. If the property is in the context, then it's a term.
    else if(ctx->hasMember(term))
    {
-      rval = ctx[term]->getString();
+      rval = _getTermIri(ctx[term]);
       if(usedCtx != NULL)
       {
          (*usedCtx)[term] = rval.c_str();
@@ -288,21 +314,21 @@ static DynamicObject _getCoerceType(
       rval = DynamicObject();
       rval = "@iri";
    }
-   // check type coercion for property
-   else if(ctx->hasMember("@coerce"))
+   else
    {
-      // look up compacted property in coercion map
+      // look up compacted property for a coercion type
       prop = _compactIri(ctx, p, NULL);
       p = prop.c_str();
-      if(ctx["@coerce"]->hasMember(p))
+      if(ctx->hasMember(p) && ctx[p]->getType() == Map &&
+         ctx[p]->hasMember("@type"))
       {
          // property found, return expanded type
-         const char* type = ctx["@coerce"][p];
+         const char* type = ctx[p]["@type"];
          rval = DynamicObject();
          rval = _expandTerm(ctx, type, usedCtx).c_str();
          if(usedCtx != NULL)
          {
-            (*usedCtx)["@coerce"][p] = type;
+            (*usedCtx)[p] = ctx[p].clone();
          }
       }
    }
@@ -311,7 +337,7 @@ static DynamicObject _getCoerceType(
 }
 
 /**
- * Recursively compacts a value. This method will compact IRIs to CURIEs or
+ * Recursively compacts a value. This method will compact IRIs to prefixes or
  * terms and do reverse type coercion to compact a value.
  *
  * @param ctx the context to use.
@@ -2429,7 +2455,7 @@ DynamicObject JsonLd::mergeContexts(
             DynamicObject& miri = mi->next();
             if(miri == iri)
             {
-               // FIXME: update related @coerce rules
+               // FIXME: update related coerce rules
                mi->remove();
                break;
             }
