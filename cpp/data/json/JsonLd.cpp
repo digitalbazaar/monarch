@@ -64,7 +64,6 @@ static DynamicObject _getKeywords(DynamicObject& ctx)
    // state
 
    DynamicObject rval(Map);
-   rval["@datatype"] = "@datatype";
    rval["@iri"] = "@iri";
    rval["@language"] = "@language";
    rval["@literal"] = "@literal";
@@ -408,12 +407,12 @@ static bool _compact(
          {
             type = DynamicObject();
 
-            // datatype must match coerce type if specified
-            if(value->hasMember("@datatype"))
+            // type must match coerce type if specified
+            if(value->hasMember("@type"))
             {
-               type = value["@datatype"];
+               type = value["@type"];
             }
-            // datatype is IRI
+            // type is IRI
             else if(value->hasMember("@iri"))
             {
                type = "@iri";
@@ -456,7 +455,7 @@ static bool _compact(
          else if(type != coerce)
          {
             ExceptionRef e = new Exception(
-               "Cannot coerce type because the datatype does not match.",
+               "Cannot coerce type because the type does not match.",
                EXCEPTION_TYPE ".InvalidCoerceType");
             e->getDetails()["type"] = type;
             e->getDetails()["expected"] = coerce;
@@ -645,10 +644,10 @@ static bool _expand(
                   out["@language"] =
                      value[keywords["@language"]->getString()].clone();
                }
-               if(value->hasMember(keywords["@datatype"]))
+               if(value->hasMember(keywords["@type"]))
                {
-                  out["@datatype"] =
-                     value[keywords["@datatype"]->getString()].clone();
+                  out["@type"] =
+                     value[keywords["@type"]->getString()].clone();
                }
             }
          }
@@ -691,10 +690,10 @@ static bool _expand(
          {
             out["@iri"] = _expandTerm(ctx, value, NULL).c_str();
          }
-         // other datatype
+         // other type
          else
          {
-            out["@datatype"] = coerce;
+            out["@type"] = coerce;
             if(coerce == XSD_DOUBLE)
             {
                // do special JSON-LD double format
@@ -856,7 +855,7 @@ static int _compareObjects(DynamicObject& o1, DynamicObject& o2)
       {
          if(o1->hasMember("@literal"))
          {
-            rval = _compareObjectKeys(o1, o2, "@datatype");
+            rval = _compareObjectKeys(o1, o2, "@type");
             if(rval == 0)
             {
                rval = _compareObjectKeys(o1, o2, "@language");
@@ -907,7 +906,7 @@ static int _compareBlankNodeObjects(DynamicObject& a, DynamicObject& b)
    3.2.3. The bnode with the alphabetically-first string is first.
    3.2.4. The bnode with a @literal is first.
    3.2.5. The bnode with the alphabetically-first @literal is first.
-   3.2.6. The bnode with the alphabetically-first @datatype is first.
+   3.2.6. The bnode with the alphabetically-first @type is first.
    3.2.7. The bnode with a @language is first.
    3.2.8. The bnode with the alphabetically-first @language is first.
    3.2.9. The bnode with the alphabetically-first @iri is first.
@@ -1723,11 +1722,11 @@ static string _serializeProperties(DynamicObject& b)
                   rval.append(obj["@literal"]);
                   rval.push_back('"');
 
-                  // datatype literal
-                  if(obj->hasMember("@datatype"))
+                  // type literal
+                  if(obj->hasMember("@type"))
                   {
                      rval.append("^^<");
-                     rval.append(obj["@datatype"]);
+                     rval.append(obj["@type"]);
                      rval.push_back('>');
                   }
                   // language literal
