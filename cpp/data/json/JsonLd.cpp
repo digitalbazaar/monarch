@@ -565,13 +565,12 @@ static bool _compact(
  * @param property the property that points to the value, NULL for none.
  * @param value the value to expand.
  * @param out the expanded value.
- * @param expandSubjects true to expand subjects (normalize), false not to.
  *
  * @return true on success, false on failure with exception set.
  */
 static bool _expand(
    DynamicObject ctx, const char* property, DynamicObject& value,
-   DynamicObject& out, bool expandSubjects)
+   DynamicObject& out)
 {
    bool rval = true;
 
@@ -597,7 +596,7 @@ static bool _expand(
       while(rval && i->hasNext())
       {
          DynamicObject nextOut;
-         rval = _expand(ctx, property, i->next(), nextOut, expandSubjects);
+         rval = _expand(ctx, property, i->next(), nextOut);
          if(rval)
          {
             out->append(nextOut);
@@ -641,8 +640,7 @@ static bool _expand(
                {
                   // expand object
                   DynamicObject objOut;
-                  rval = _expand(
-                     ctx, i->getName(), obj, objOut, expandSubjects);
+                  rval = _expand(ctx, i->getName(), obj, objOut);
                   if(rval)
                   {
                      // set object to expanded property
@@ -707,9 +705,8 @@ static bool _expand(
          }
       }
 
-      // only expand subjects if requested
-      if(!coerce.isNull() && (
-         keywords["@subject"] != property || expandSubjects))
+      // coerce to appropriate type (do not expand subjects)
+      if(!coerce.isNull() && keywords["@subject"] != property)
       {
          // expand IRI
          if(coerce == "@iri")
