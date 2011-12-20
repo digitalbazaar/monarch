@@ -159,22 +159,31 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
    {
       rdftriple* t = *ti;
 
-      // JSON-LD encode subject
-      DynamicObject subject(Map);
-      subject["@iri"] = t->subject;
+      // get predicate
+      const char* predicate = t->predicate;
 
       // JSON-LD encode object
       DynamicObject object(NULL);
       if(t->object_type == RDF_TYPE_IRI)
       {
-         object = DynamicObject(Map);
-         object["@iri"] = t->object;
+         object = DynamicObject();
+
+         // JSON-LD encode type
+         if(strcmp(t->predicate, RDF_TYPE) == 0)
+         {
+            object = t->object;
+            predicate = "@type";
+         }
+         else
+         {
+            object["@id"] = t->object;
+         }
       }
       else if(t->object_type == RDF_TYPE_TYPED_LITERAL)
       {
          object = DynamicObject(Map);
          object["@literal"] = t->object;
-         object["@datatype"] = t->datatype;
+         object["@type"] = t->datatype;
          if(t->language != NULL && strlen(t->language) > 0)
          {
             object["@language"] = t->language;
@@ -197,14 +206,13 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
 
       // create/get the subject dyno
       DynamicObject& s = subjects[t->subject];
-      if(!s->hasMember("@subject"))
+      if(!s->hasMember("@id"))
       {
-         s["@subject"] = subject;
+         // JSON-LD encode subject
+         s["@id"] = t->subject;
       }
 
       // add the predicate and object to the subject dyno
-      const char* predicate = (strcmp(t->predicate, RDF_TYPE) == 0) ?
-         "@type" : t->predicate;
       _setPredicate(s, predicate, object);
    }
 
@@ -275,7 +283,7 @@ static DynamicObject _getExceptionGraph(
    // use frame to embed error context in exception
    g->frame = DynamicObject();
    //g->frame["@context"] = JsonLd::createDefaultContext();
-   g->frame["@type"]["@iri"] =
+   g->frame["@type"] =
       "http://www.w3.org/ns/rdfa_processing_graph#Error";
    g->frame["http://www.w3.org/ns/rdfa_processing_graph#context"]->setType(Map);
 
