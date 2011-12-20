@@ -1223,7 +1223,7 @@ static void _collectSubjects(
    }
    else if(input->getType() == Map)
    {
-      if(_isSubject(input) && input->hasMember("@id"))
+      if(input->hasMember("@id"))
       {
          // graph literal
          if(input["@id"]->getType() == Array)
@@ -1231,7 +1231,7 @@ static void _collectSubjects(
             _collectSubjects(input["@id"], subjects, bnodes);
          }
          // named subject
-         else
+         else if(_isSubject(input))
          {
             subjects[input["@id"]->getString()] = input;
          }
