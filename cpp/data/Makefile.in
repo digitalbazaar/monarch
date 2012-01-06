@@ -39,9 +39,5 @@ ifeq (@HAVE_LIBRDFA@,yes)
 DYNAMIC_LINK_LIBRARIES += rdfa
 endif
 
-ifeq (@HAVE_LIBEXPAT@,yes)
-DYNAMIC_LINK_LIBRARIES += rdfa
-endif
-
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base
