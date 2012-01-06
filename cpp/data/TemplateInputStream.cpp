@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_FORMAT_MACROS
 
@@ -2361,7 +2361,19 @@ static bool _pipe_truncate(
 static bool _pipe_json(
    DynamicObject& var, string& value, DynamicObject& params, void* userData)
 {
-   value = JsonWriter::writeToString(var, false, false);
+   if(params->length() == 0)
+   {
+      value = JsonWriter::writeToString(var, true, false);
+   }
+   else if(params->length() == 1)
+   {
+      value = JsonWriter::writeToString(var, params[0]->getBoolean(), false);
+   }
+   else if(params->length() == 2)
+   {
+      value = JsonWriter::writeToString(
+         var, params[0]->getBoolean(), params[1]->getBoolean());
+   }
    return true;
 }
 

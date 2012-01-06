@@ -435,7 +435,6 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
 {
    bool pass = false;
 
-   bool validationError = false;
    if(info != NULL && info->handler->canHandleRequest(ch))
    {
       // clear last exception
@@ -463,9 +462,6 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
       {
          pass = info->contentValidator->isValid(content);
       }
-
-      // validation error if content received but didn't pass validation
-      validationError = (received && !pass);
 
       if(pass)
       {

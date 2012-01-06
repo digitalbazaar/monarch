@@ -545,16 +545,16 @@ static void runFileTest(TestRunner& tr)
          switch(file->getType())
          {
             case FileImpl::RegularFile:
-               type = "Regular File";
+               //type = "Regular File";
                break;
             case FileImpl::Directory:
-               type = "Directory";
+               //type = "Directory";
                break;
             case FileImpl::SymbolicLink:
-               type = "Symbolic Link";
+               //type = "Symbolic Link";
                break;
             default:
-               type = "Unknown";
+               //type = "Unknown";
                break;
          }
          //printf("Name: '%s', Type: '%s'\n", file->getAbsolutePath(), type);

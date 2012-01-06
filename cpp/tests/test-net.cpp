@@ -324,9 +324,7 @@ static void runServerSocketTest(TestRunner& tr, bool passIfException = false)
          if(worker != NULL)
          {
             char request[100];
-            int numBytes = 0;
-
-            numBytes = worker->getInputStream()->peek(request, 100);
+            worker->getInputStream()->peek(request, 100);
             worker->getOutputStream()->write(str.c_str(), str.length());
 
             // close worker socket
