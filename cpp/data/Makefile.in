@@ -28,13 +28,20 @@ modata_SOURCES = \
 	$(wildcard riff/*.cpp) \
 	$(wildcard xml/*.cpp)
 
-DYNAMIC_LINK_LIBRARIES = moio moutil mort mologging
+DYNAMIC_LINK_LIBRARIES = moio moutil mort mologging expat
 
 DYNAMIC_MACOS_LINK_LIBRARIES = iconv charset expat mocompress
 DYNAMIC_WINDOWS_LINK_LIBRARIES = libexpat iconv2 charset1
 
 CXX_FLAGS += @LIBRDFA_CFLAGS@
-LD_FLAGS += @LIBRDFA_LIBS@
+
+ifeq (@HAVE_LIBRDFA@,yes)
+DYNAMIC_LINK_LIBRARIES += rdfa
+endif
+
+ifeq (@HAVE_LIBEXPAT@,yes)
+DYNAMIC_LINK_LIBRARIES += rdfa
+endif
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base
