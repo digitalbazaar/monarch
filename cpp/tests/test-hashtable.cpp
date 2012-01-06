@@ -337,13 +337,12 @@ public:
             mWriteTime += Timer::getMilliseconds(start);
          }
          {
-            uint32_t v;
             uint64_t start = Timer::startTiming();
             for(uint32_t i = 0; i < mReads; ++i)
             {
                if(mExclusiveLock) mExclusiveLock->lock();
                if(mSharedLock) mSharedLock->lockShared();
-               v = (*mMap)[slot++ % mSlots];
+               (*mMap)[slot++ % mSlots];
                if(mExclusiveLock) mExclusiveLock->unlock();
                if(mSharedLock) mSharedLock->unlockShared();
             }
