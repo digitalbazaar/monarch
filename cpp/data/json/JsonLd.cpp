@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/json/JsonLd.h"
 
@@ -698,7 +698,8 @@ static bool _expand(
       }
 
       // special-case expand @id and @type (skips '@id' expansion)
-      if(property == keywords["@id"] || property == keywords["@type"])
+      if(strcmp(property, "@id") == 0 || property == keywords["@id"] ||
+         strcmp(property, "@type") == 0 || property == keywords["@type"])
       {
          out = _expandTerm(ctx, value, NULL).c_str();
       }
