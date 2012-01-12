@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_CONSTANT_MACROS
 
@@ -111,7 +111,7 @@ static void runRdfaReaderTest(TestRunner& tr)
       graph["@id"] = "_:c14n0";
       graph["@type"] = "http://www.w3.org/ns/rdfa_processing_graph#Error";
       graph["dc:description"]["@language"] = "en";
-      graph["dc:description"]["@literal"] =
+      graph["dc:description"]["@value"] =
          "XML parsing error: mismatched tag at line 9, column 6.";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["@id"] = "_:c14n1";
@@ -121,12 +121,12 @@ static void runRdfaReaderTest(TestRunner& tr)
          ["w3:charNumber"]["@type"] =
             "http://www.w3.org/2001/XMLSchema#positiveInteger";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
-         ["w3:charNumber"]["@literal"] = "6";
+         ["w3:charNumber"]["@value"] = "6";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
          ["w3:lineNumber"]["@type"] =
             "http://www.w3.org/2001/XMLSchema#positiveInteger";
       graph["http://www.w3.org/ns/rdfa_processing_graph#context"]
-         ["w3:lineNumber"]["@literal"] = "9";
+         ["w3:lineNumber"]["@value"] = "9";
       assertDynoCmp(expect, ex);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
@@ -166,9 +166,9 @@ static void runRdfaReaderTest(TestRunner& tr)
             dyno2, rdfa.c_str(), rdfa.length(), "http://example.org/test"));
 
       DynamicObject expect;
-      expect[0]["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect[0]["@id"] = "http://example.org/test#foo";
-      expect[0]["dc:title"]["@id"] = "http://example.org/test#you";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@id"][0]["@id"] = "http://example.org/test#foo";
+      expect["@id"][0]["dc:title"]["@id"] = "http://example.org/test#you";
       assertNamedDynoCmp("expect", expect, "result", dyno);
       assertNamedDynoCmp("expect", expect, "result", dyno2);
 
@@ -303,12 +303,11 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect[0]["@context"]["foaf"] = "http://xmlns.org/foaf/0.1/";
-      expect[0]["@id"] = "http://example.org/test#jane";
-      expect[0]["foaf:name"] = "Jane";
-      expect[1]["@context"]["foaf"] = "http://xmlns.org/foaf/0.1/";
-      expect[1]["@id"] = "http://example.org/test#john";
-      expect[1]["foaf:name"] = "John";
+      expect["@context"]["foaf"] = "http://xmlns.org/foaf/0.1/";
+      expect["@id"][0]["@id"] = "http://example.org/test#jane";
+      expect["@id"][0]["foaf:name"] = "Jane";
+      expect["@id"][1]["@id"] = "http://example.org/test#john";
+      expect["@id"][1]["foaf:name"] = "John";
       assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
@@ -344,10 +343,10 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect[0]["@context"]["ex"] = "http://example.org/vocab#";
-      expect[0]["@id"] = "http://example.org/test#book";
-      expect[0]["ex:prop"][0] = "Prop 1";
-      expect[0]["ex:prop"][1] = "Prop 2";
+      expect["@context"]["ex"] = "http://example.org/vocab#";
+      expect["@id"][0]["@id"] = "http://example.org/test#book";
+      expect["@id"][0]["ex:prop"][0] = "Prop 1";
+      expect["@id"][0]["ex:prop"][1] = "Prop 2";
       assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
@@ -381,9 +380,9 @@ static void runRdfaReaderTest(TestRunner& tr)
             dyno2, rdfa.c_str(), rdfa.length(), "http://example.org/test"));
 
       DynamicObject expect;
-      expect[0]["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
-      expect[0]["@id"] = "http://example.org/test#foo";
-      expect[0]["dc:title"]["@id"] = "http://example.org/test#you";
+      expect["@context"]["dc"] = "http://purl.org/dc/elements/1.1/";
+      expect["@id"][0]["@id"] = "http://example.org/test#foo";
+      expect["@id"][0]["dc:title"]["@id"] = "http://example.org/test#you";
       assertNamedDynoCmp("expect", expect, "result", dyno);
       assertNamedDynoCmp("expect", expect, "result", dyno2);
 
@@ -994,14 +993,13 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect[0]["@context"]["ex"] = "http://example.org/vocab#";
-      expect[0]["@id"] = "http://example.org/test#a";
-      expect[0]["@type"] = "ex:A";
-      expect[0]["ex:knows"][0]["@id"] = "http://example.org/test#aa";
-      expect[1]["@context"]["ex"] = "http://example.org/vocab#";
-      expect[1]["@id"] = "http://example.org/test#aa";
-      expect[1]["@type"] = "ex:A";
-      expect[1]["ex:knows"]->setType(Array);
+      expect["@context"]["ex"] = "http://example.org/vocab#";
+      expect["@id"][0]["@id"] = "http://example.org/test#a";
+      expect["@id"][0]["@type"] = "ex:A";
+      expect["@id"][0]["ex:knows"][0]["@id"] = "http://example.org/test#aa";
+      expect["@id"][1]["@id"] = "http://example.org/test#aa";
+      expect["@id"][1]["@type"] = "ex:A";
+      expect["@id"][1]["ex:knows"]->setType(Array);
       assertNamedDynoCmp("expect", expect, "result", dyno);
 
       MO_DEBUG("%s", JsonWriter::writeToString(expect).c_str());
@@ -1167,10 +1165,10 @@ static void runRdfaReaderTest(TestRunner& tr)
          reader.finish());
 
       DynamicObject expect;
-      expect[0]["@context"]["ex"] = "http://example.org/vocab#";
-      expect[0]["@id"] = "http://example.org/test#a";
-      expect[0]["ex:prop"]["@literal"] = "ex:link";
-      expect[0]["ex:prop"]["@type"] =
+      expect["@context"]["ex"] = "http://example.org/vocab#";
+      expect["@id"][0]["@id"] = "http://example.org/test#a";
+      expect["@id"][0]["ex:prop"]["@value"] = "ex:link";
+      expect["@id"][0]["ex:prop"]["@type"] =
          "http://www.w3.org/2001/XMLSchema#anyURI";
       assertNamedDynoCmp("expect", expect, "result", dyno);
 

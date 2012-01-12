@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/data/rdfa/RdfaReader.h"
 
@@ -182,7 +182,7 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
       else if(t->object_type == RDF_TYPE_TYPED_LITERAL)
       {
          object = DynamicObject(Map);
-         object["@literal"] = t->object;
+         object["@value"] = t->object;
          object["@type"] = t->datatype;
          if(t->language != NULL && strlen(t->language) > 0)
          {
@@ -194,7 +194,7 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
          if(t->language != NULL && strlen(t->language) > 0)
          {
             object = DynamicObject(Map);
-            object["@literal"] = t->object;
+            object["@value"] = t->object;
             object["@language"] = t->language;
          }
          else
