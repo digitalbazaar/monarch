@@ -156,10 +156,18 @@ static string _compactIri(
       }
    }
 
-   // term not found, if term is @type, use keyword
-   if(rval.empty() && strcmp(iri, "@type") == 0)
+   // term not found, if term is keyword, use alias
+   if(rval.empty())
    {
-      rval = _getKeywords(ctx)["@type"]->getString();
+      DynamicObject keywords = _getKeywords(ctx);
+      if(keywords->hasMember(iri))
+      {
+         rval = keywords[iri]->getString();
+         if(usedCtx != NULL && strcmp(rval.c_str(), iri) != 0)
+         {
+            (*usedCtx)[rval.c_str()] = iri;
+         }
+      }
    }
 
    // if term not found, check the context for a prefix
