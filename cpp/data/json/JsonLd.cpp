@@ -66,7 +66,7 @@ static DynamicObject _getKeywords(DynamicObject& ctx)
    DynamicObject rval(Map);
    rval["@id"] = "@id";
    rval["@language"] = "@language";
-   rval["@literal"] = "@literal";
+   rval["@value"] = "@value";
    rval["@type"] = "@type";
 
    if(!ctx.isNull())
@@ -307,10 +307,10 @@ static bool _isSubject(DynamicObject& value)
 
    // Note: A value is a subject if all of these hold true:
    // 1. It is an Object (Map).
-   // 2. It is not a literal.
+   // 2. It is not a literal (@value).
    // 3. It has more than 1 key OR any existing key is not '@id'.
    if(!value.isNull() && value->getType() == Map &&
-      !(value->hasMember("@literal")))
+      !(value->hasMember("@value")))
    {
       rval = (value->length() > 1 || !(value->hasMember("@id")));
    }
@@ -523,9 +523,9 @@ static bool _compact(
                   out = DynamicObject(String);
                   out = value["@id"]->getString();
                }
-               else if(value->hasMember("@literal"))
+               else if(value->hasMember("@value"))
                {
-                  out = value["@literal"].clone();
+                  out = value["@value"].clone();
                }
             }
             else
@@ -718,12 +718,12 @@ static bool _expand(
             if(coerce == XSD_DOUBLE)
             {
                // do special JSON-LD double format
-               out["@literal"] = StringTools::format(
+               out["@value"] = StringTools::format(
                   "%1.6e", value->getDouble()).c_str();
             }
             else
             {
-               out["@literal"] = value->getString();
+               out["@value"] = value->getString();
             }
          }
       }
@@ -866,10 +866,10 @@ static int _compareObjects(DynamicObject& o1, DynamicObject& o2)
    }
    else
    {
-      rval = _compareObjectKeys(o1, o2, "@literal");
+      rval = _compareObjectKeys(o1, o2, "@value");
       if(rval == 0)
       {
-         if(o1->hasMember("@literal"))
+         if(o1->hasMember("@value"))
          {
             rval = _compareObjectKeys(o1, o2, "@type");
             if(rval == 0)
@@ -916,12 +916,12 @@ static int _compareBlankNodeObjects(DynamicObject& a, DynamicObject& b)
    /*
    3. For each property, compare sorted object values.
    3.1. The bnode with fewer objects is first.
-   3.2. For each object value, compare only literals and non-bnodes.
+   3.2. For each object value, compare only literals (@values) and non-bnodes.
    3.2.1.  The bnode with fewer non-bnodes is first.
    3.2.2. The bnode with a string object is first.
    3.2.3. The bnode with the alphabetically-first string is first.
-   3.2.4. The bnode with a @literal is first.
-   3.2.5. The bnode with the alphabetically-first @literal is first.
+   3.2.4. The bnode with a @value is first.
+   3.2.5. The bnode with the alphabetically-first @value is first.
    3.2.6. The bnode with the alphabetically-first @type is first.
    3.2.7. The bnode with a @language is first.
    3.2.8. The bnode with the alphabetically-first @language is first.
@@ -1032,7 +1032,7 @@ static bool _flatten(
    else if(value->getType() == Map)
    {
       // already-expanded value or special-case reference-only @type
-      if(value->hasMember("@literal") ||
+      if(value->hasMember("@value") ||
          (parentProperty != NULL && strcmp(parentProperty, "@type") == 0))
       {
          flattened = value.clone();
@@ -1729,7 +1729,7 @@ static string _serializeProperties(DynamicObject& b)
                else
                {
                   rval.push_back('"');
-                  rval.append(obj["@literal"]);
+                  rval.append(obj["@value"]);
                   rval.push_back('"');
 
                   // type literal
@@ -2381,34 +2381,31 @@ bool JsonLd::compact(
       rval = expand(in, tmp);
       if(rval)
       {
-         if(tmp->getType() == Array)
+         // setup output context
+         DynamicObject ctxOut(Map);
+
+         // compact
+         DynamicObject result;
+         rval = _compact(context.clone(), NULL, tmp, result, &ctxOut);
+         if(rval)
          {
-            out = DynamicObject(Array);
-         }
-
-         DynamicObjectIterator i = tmp.arrayify().getIterator();
-         while(rval && i->hasNext())
-         {
-            // setup output context
-            DynamicObject ctxOut(Map);
-
-            // compact
-            DynamicObject result;
-            rval = _compact(context.clone(), NULL, i->next(), result, &ctxOut);
-
             // add context if used
-            if(rval && ctxOut->length() > 0)
+            if(ctxOut->length() > 0)
             {
-               result["@context"] = ctxOut;
-            }
-
-            if(out.isNull())
-            {
-               out = result;
+               out = DynamicObject(Map);
+               out["@context"] = ctxOut;
+               if(result->getType() == Array)
+               {
+                  out[_getKeywords(ctxOut)["@id"]->getString()] = result;
+               }
+               else
+               {
+                  out.merge(result, false);
+               }
             }
             else
             {
-               out->append(result);
+               out = result;
             }
          }
       }
@@ -3018,7 +3015,26 @@ bool JsonLd::frame(
       // apply context
       if(rval && !ctx.isNull() && !out.isNull())
       {
-         rval = JsonLd::compact(ctx, out, out);
+         // preserve top-level array by compacting individual entries
+         if(out->getType() == Array)
+         {
+            DynamicObject tmp = out;
+            out = DynamicObject(Array);
+            DynamicObjectIterator i = tmp.getIterator();
+            while(rval && i->hasNext())
+            {
+               DynamicObject nextOut;
+               rval = JsonLd::compact(ctx, i->next(), nextOut);
+               if(rval)
+               {
+                  out.push(nextOut);
+               }
+            }
+         }
+         else
+         {
+            rval = JsonLd::compact(ctx, out, out);
+         }
       }
    }
 

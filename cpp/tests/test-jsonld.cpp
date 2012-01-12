@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -72,79 +72,77 @@ static void _runJsonLdTestSuiteTest(
 
    tr.test(test["name"]);
 
-   DynamicObject& type = test["type"];
+   // read input
+   DynamicObject input;
+   _readFile(root, test["input"], input);
+   // read expected output
+   DynamicObject expect;
+   _readFile(root, test["expect"], expect);
 
-   // check for unsupported tests
-   if(type != "triples")
+   DynamicObject output;
+   DynamicObject& type = test["@type"];
+   if(type->indexOf("jld:NormalizeTest") != -1)
    {
-      // read input
-      DynamicObject input;
-      _readFile(root, test["input"], input);
+      // normalize
+      assertNoException(
+         JsonLd::normalize(input, output));
+   }
+   else if(type->indexOf("jld:ExpandTest") != -1)
+   {
+      // expand
+      assertNoException(
+         JsonLd::expand(input, output));
+   }
+   else if(type->indexOf("jld:CompactTest") != -1)
+   {
+      // sanity check
+      v::ValidatorRef tv = new v::Map(
+         "context", new v::Type(String),
+         NULL);
+      assertNoException(
+         tv->isValid(test));
 
-      // read expected output
-      DynamicObject expect;
-      _readFile(root, test["expect"], expect);
+      // read context
+      DynamicObject context;
+      _readFile(root, test["context"], context);
 
-      DynamicObject output;
+      // compact
+      assertNoException(
+         JsonLd::compact(context["@context"], input, output));
+   }
+   else if(type->indexOf("jld:FrameTest") != -1)
+   {
+      // sanity check
+      v::ValidatorRef tv = new v::Map(
+         "frame", new v::Type(String),
+         NULL);
+      assertNoException(
+         tv->isValid(test));
 
-      if(type == "normalize")
-      {
-         assertNoException(
-            JsonLd::normalize(input, output));
-      }
-      else if(type == "expand")
-      {
-         // expand
-         assertNoException(
-            JsonLd::expand(input, output));
-      }
-      else if(type == "compact")
-      {
-         // sanity check
-         v::ValidatorRef tv = new v::Map(
-            "context", new v::Type(String),
-            NULL);
-         assertNoException(
-            tv->isValid(test));
+      // read frame
+      DynamicObject frame;
+      _readFile(root, test["frame"], frame);
 
-         // read context
-         DynamicObject context;
-         _readFile(root, test["context"], context);
-
-         // compact
-         assertNoException(
-            JsonLd::compact(context, input, output));
-      }
-      else if(type == "frame")
-      {
-         // sanity check
-         v::ValidatorRef tv = new v::Map(
-            "frame", new v::Type(String),
-            NULL);
-         assertNoException(
-            tv->isValid(test));
-
-         // read frame
-         DynamicObject frame;
-         _readFile(root, test["frame"], frame);
-
-         // reframe
-         assertNoException(
-            JsonLd::frame(input, frame, output));
-      }
-
-      assertNamedDynoCmp("expect", expect, "output", output);
+      // reframe
+      assertNoException(
+         JsonLd::frame(input, frame, output));
    }
    else
    {
       skipped = true;
    }
 
+   if(!skipped)
+   {
+      assertNamedDynoCmp("expect", expect, "output", output);
+   }
+
    tr.pass();
    if(skipped)
    {
       string warn = StringTools::format(
-         "Skipped tests of type \"%s\".", type->getString());
+         "Skipped tests of type \"%s\".",
+         JsonWriter::writeToString(type, true, false).c_str());
       tr.warning(warn.c_str());
    }
 }
@@ -175,45 +173,54 @@ static void runJsonLdTestSuite(TestRunner& tr)
          if(f->isFile())
          {
             const char* ext = f->getExtension();
-            if(strcmp(ext, ".test") == 0)
+            // FIXME: hack, manifests are now JSON-LD files
+            if(strstr(f->getBaseName(), "manifest") != NULL &&
+               strcmp(ext, ".jsonld") == 0)
             {
                //string grp = StringTools::format("%s", f->getBaseName());
                //tr.group(grp.c_str());
 
-               // read test file
-               DynamicObject tests;
+               // read manifest file
+               DynamicObject manifest;
                FileInputStream is(f);
                JsonReader r;
-               r.start(tests);
+               r.start(manifest);
                assertNoException(
                   r.read(&is) && r.finish());
                is.close();
 
                // sanity check
                v::ValidatorRef tv = new v::Map(
-                  "group", new v::Type(String),
-                  "tests", new v::Each(new v::Map(
+                  "name", new v::Type(String),
+                  "sequence", new v::Each(new v::Map(
                      "name", new v::Type(String),
                      "input", new v::Type(String),
                      "expect", new v::Type(String),
                      NULL)),
                   NULL);
-               assertNoException(
-                  tv->isValid(tests));
-
-               tr.group(tests["group"]);
-
-               // process each test
-               int count = 0;
-               DynamicObjectIterator i = tests["tests"].getIterator();
-               while(i->hasNext())
+               if(!tv->isValid(manifest))
                {
-                  tr.group(StringTools::format("%04d", ++count).c_str());
-                  _runJsonLdTestSuiteTest(tr, dir->getPath(), i->next());
+                  string warn = StringTools::format(
+                     "Skipped manifest \"%s\".", f->getBaseName());
+                  tr.warning(warn.c_str());
+                  Exception::clear();
+               }
+               else
+               {
+                  tr.group(manifest["name"]);
+
+                  // process each test
+                  int count = 0;
+                  DynamicObjectIterator i = manifest["sequence"].getIterator();
+                  while(i->hasNext())
+                  {
+                     tr.group(StringTools::format("%04d", ++count).c_str());
+                     _runJsonLdTestSuiteTest(tr, dir->getPath(), i->next());
+                     tr.ungroup();
+                  }
+
                   tr.ungroup();
                }
-
-               tr.ungroup();
             }
          }
       }

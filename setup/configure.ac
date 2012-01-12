@@ -230,7 +230,7 @@ if test "x$HAVE_JSON_LD_TEST_SUITE" = xyes; then
       AC_HELP_STRING([--with-json-ld-test-suite-dir=DIR],
          [use DIR for JSON-LD test suite dir]),
       [JSON_LD_TEST_SUITE_DIR="${withval}"],
-      [JSON_LD_TEST_SUITE_DIR="../jsonld.js/tests/jsonld"]) dnl Default value
+      [JSON_LD_TEST_SUITE_DIR="../json-ld.org/test-suite/tests"]) dnl Default value
 
    AC_MSG_CHECKING([JSON-LD test suite dir])
    if test ! -d "$JSON_LD_TEST_SUITE_DIR"; then

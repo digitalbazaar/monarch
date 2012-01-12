@@ -1042,7 +1042,11 @@ bool DynamicObject::diff(
 
 void DynamicObject::merge(DynamicObject& rhs, bool append)
 {
-   if(!rhs.isNull())
+   if(rhs.isNull())
+   {
+      setNull();
+   }
+   else
    {
       switch(rhs->getType())
       {
