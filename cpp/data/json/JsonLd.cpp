@@ -990,18 +990,18 @@ static int _compareBlankNodeObjects(DynamicObject& a, DynamicObject& b)
 }
 
 /**
- * Filter for duplicate IRIs.
+ * Filter for duplicate objects.
  */
-struct FilterDuplicateIris : public DynamicObject::FilterFunctor
+struct FilterDuplicates : public DynamicObject::FilterFunctor
 {
-   const char* iri;
-   FilterDuplicateIris(const char* iri)
+   DynamicObject obj;
+   FilterDuplicates(DynamicObject obj)
    {
-      this->iri = iri;
+      this->obj = obj;
    }
-   bool operator()(const DynamicObject& d) const
+   bool operator()(DynamicObject& d) const
    {
-      return (d->getType() == Map && d->hasMember("@id") && d["@id"] == iri);
+      return (_compareObjects(d, const_cast<DynamicObject&>(this->obj)) == 0);
    }
 };
 
@@ -1131,13 +1131,9 @@ static bool _flatten(
    {
       if((*parent)->getType() == Array)
       {
-         // do not add duplicate IRIs for the same property
-         bool duplicate = false;
-         if(flattened->getType() == Map && flattened->hasMember("@id"))
-         {
-            FilterDuplicateIris filter(flattened["@id"]);
-            duplicate = parent->filter(filter)->length() > 0;
-         }
+         // do not add duplicates for the same property
+         FilterDuplicates filter(flattened);
+         bool duplicate = parent->filter(filter)->length() > 0;
          if(!duplicate)
          {
             (*parent).push(flattened);

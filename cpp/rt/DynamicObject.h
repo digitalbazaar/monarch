@@ -51,7 +51,7 @@ public:
     */
    struct FilterFunctor
    {
-      virtual bool operator()(const DynamicObject& d) const = 0;
+      virtual bool operator()(DynamicObject& d) const = 0;
    };
 
    /**
