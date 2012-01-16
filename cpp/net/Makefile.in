@@ -6,6 +6,7 @@ monet_SOURCES = $(wildcard *.cpp)
 
 DYNAMIC_LINK_LIBRARIES = mort moutil momodest moio mocrypto mologging
 
+DYNAMIC_LINUX_LINK_LIBRARIES = ssl
 DYNAMIC_MACOS_LINK_LIBRARIES = crypto ssl mocompress
 DYNAMIC_WINDOWS_LINK_LIBRARIES = libeay32 ssleay32 ws2_32
 

@@ -4,6 +4,7 @@ LIBRARIES = mort
 mort_HEADERS = $(wildcard *.h)
 mort_SOURCES = $(wildcard *.cpp)
 
+DYNAMIC_LINUX_LINK_LIBRARIES = pthread
 DYNAMIC_WINDOWS_LINK_LIBRARIES = pthreadGCE2
 
 # ----------- Standard Makefile

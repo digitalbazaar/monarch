@@ -6,6 +6,7 @@ mocrypto_SOURCES = $(wildcard *.cpp)
 
 DYNAMIC_LINK_LIBRARIES = mort moutil moio 
 
+DYNAMIC_LINUX_LINK_LIBRARIES = crypto
 DYNAMIC_MACOS_LINK_LIBRARIES = crypto ssl
 DYNAMIC_WINDOWS_LINK_LIBRARIES = libeay32
 
