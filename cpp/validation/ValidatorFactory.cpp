@@ -21,6 +21,7 @@ namespace v = monarch::validation;
 #define MO_VALIDATOR_ANY         "Any"
 #define MO_VALIDATOR_ARRAY       "Array"
 #define MO_VALIDATOR_COMPARE     "Compare"
+#define MO_VALIDATOR_CONTAINS    "Contains"
 #define MO_VALIDATOR_EACH        "Each"
 #define MO_VALIDATOR_EQUALS      "Equals"
 #define MO_VALIDATOR_IN          "In"
@@ -63,6 +64,7 @@ static v::Validator* _customValidator(bool topLevel)
             new v::Equals(MO_VALIDATOR_ANY),
             new v::Equals(MO_VALIDATOR_ARRAY),
             new v::Equals(MO_VALIDATOR_COMPARE),
+            new v::Equals(MO_VALIDATOR_CONTAINS),
             new v::Equals(MO_VALIDATOR_EACH),
             new v::Equals(MO_VALIDATOR_EQUALS),
             new v::Equals(MO_VALIDATOR_IN),
@@ -146,6 +148,13 @@ static v::Validator* _compareValidator()
          "key1", new v::Type(String),
          "key2", new v::Type(String),
          NULL),
+      NULL);
+}
+
+static v::Validator* _containsValidator()
+{
+   return new v::Map(
+      "def", new v::Valid(),
       NULL);
 }
 
@@ -344,6 +353,13 @@ static v::ValidatorRef _createCompare(
    return new v::Compare(
       def["def"]["key1"], def["def"]["key2"],
       def->hasMember("error") ? def["error"]->getString() : NULL);
+}
+
+static v::ValidatorRef _createContains(
+   v::ValidatorFactory* vf, DynamicObject& def)
+{
+   return new v::Contains(
+      def["def"], def->hasMember("error") ? def["error"]->getString() : NULL);
 }
 
 static v::ValidatorRef _createEach(
@@ -560,7 +576,11 @@ v::ValidatorFactory::ValidatorFactory(bool sync) :
    _createValidatorDef(
       mValidatorDefs, MO_VALIDATOR_ARRAY, _arrayValidator(), &_createArray);
    _createValidatorDef(
-      mValidatorDefs, MO_VALIDATOR_COMPARE, _compareValidator(), &_createCompare);
+      mValidatorDefs, MO_VALIDATOR_COMPARE, _compareValidator(),
+      &_createCompare);
+   _createValidatorDef(
+      mValidatorDefs, MO_VALIDATOR_CONTAINS, _containsValidator(),
+      &_createContains);
    _createValidatorDef(
       mValidatorDefs, MO_VALIDATOR_EACH, _eachValidator(), &_createEach);
    _createValidatorDef(

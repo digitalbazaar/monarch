@@ -516,6 +516,80 @@ static void runValidatorTest(TestRunner& tr)
    }
 
    {
+      tr.test("contains(null)");
+      DynamicObject val(NULL);
+      DynamicObject dv(NULL);
+      DynamicObject dnv;
+      dnv = "a";
+
+      v::Contains v(val);
+      assert(v.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("invalid contains(null)");
+      assert(!v.isValid(dnv));
+      tr.passIfException(_dump);
+   }
+
+   {
+      tr.test("contains(simple)");
+      DynamicObject val;
+      val = "a";
+      DynamicObject dv;
+      dv = "a";
+      DynamicObject dnv;
+      dnv = "b";
+
+      v::Contains v(val);
+      assert(v.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("invalid contains(simple)");
+      assert(!v.isValid(dnv));
+      tr.passIfException(_dump);
+   }
+
+   {
+      tr.test("contains(map)");
+      DynamicObject val;
+      val = "b";
+      DynamicObject dv;
+      dv["a"] = "a";
+      dv["b"] = "b";
+      DynamicObject dnv;
+      dnv["c"] = "c";
+      dnv["d"] = "d";
+
+      v::Contains v(val);
+      assert(v.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("invalid contains(map)");
+      assert(!v.isValid(dnv));
+      tr.passIfException(_dump);
+   }
+
+   {
+      tr.test("contains(array)");
+      DynamicObject val;
+      val = "b";
+      DynamicObject dv;
+      dv[0] = "a";
+      dv[1] = "b";
+      DynamicObject dnv;
+      dnv[0] = "c";
+      dnv[1] = "d";
+
+      v::Contains v(val);
+      assert(v.isValid(dv));
+      tr.passIfNoException();
+
+      tr.test("invalid contains(array)");
+      assert(!v.isValid(dnv));
+      tr.passIfException(_dump);
+   }
+
+   {
       DynamicObject dv0;
       dv0 = 0;
       DynamicObject dv0s;

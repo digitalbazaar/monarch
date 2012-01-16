@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_Validation_H
 #define monarch_validation_Validation_H
@@ -11,6 +11,7 @@
 #include "monarch/validation/Array.h"
 #include "monarch/validation/Compare.h"
 #include "monarch/validation/CompareText.h"
+#include "monarch/validation/Contains.h"
 #include "monarch/validation/Each.h"
 #include "monarch/validation/Equals.h"
 #include "monarch/validation/In.h"
