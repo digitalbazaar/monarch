@@ -100,11 +100,9 @@ bool Each::isValid(
       DynamicObject detail =
          context->addError("monarch.validation.TypeError", &obj);
       detail["validator"] = "monarch.validator.Each";
-      char exp[100];
-      snprintf(exp, 100, "%s | %s",
+      detail["expectedType"]->format("%s | %s",
          DynamicObject::descriptionForType(Map),
          DynamicObject::descriptionForType(Array));
-      detail["expectedType"] = exp;
    }
    else
    {
