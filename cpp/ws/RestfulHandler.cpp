@@ -443,7 +443,6 @@ void RestfulHandler::handleChannel(ServiceChannel* ch, HandlerInfo* info)
       // always receive content
       DynamicObject content;
       pass = ch->receiveContent(content);
-      bool received = pass;
 
       // do validation
       if(pass && !info->resourceValidator.isNull())
