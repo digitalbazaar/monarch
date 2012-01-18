@@ -10,8 +10,7 @@
 using namespace monarch::rt;
 using namespace monarch::validation;
 
-ValidatorContext::ValidatorContext(DynamicObject* state) :
-   mState(state),
+ValidatorContext::ValidatorContext() :
    mPath(NULL),
    mSetExceptions(true),
    mMaskType(ValidatorContext::MaskNone),
@@ -32,11 +31,6 @@ ValidatorContext::~ValidatorContext()
 
       delete mPath;
    }
-}
-
-monarch::rt::DynamicObject& ValidatorContext::getState()
-{
-   return *mState;
 }
 
 void ValidatorContext::setMaskType(MaskType mt)

@@ -33,11 +33,6 @@ public:
 
 protected:
    /**
-    * Arbitrary user state. Lazily created as needed.
-    */
-   monarch::rt::DynamicObject* mState;
-
-   /**
     * Path used during object traversal.
     */
    std::vector<char*>* mPath;
@@ -66,21 +61,12 @@ public:
    /**
     * Creates a new ValidatorContext.
     */
-   ValidatorContext(monarch::rt::DynamicObject* state = NULL);
+   ValidatorContext();
 
    /**
     * Destructs this ValidatorContext.
     */
    virtual ~ValidatorContext();
-
-   /**
-    * Get arbitrary user state for this context.  If the context was not
-    * initialized with state then a new state object is created and freed upon
-    * context termination.
-    *
-    * @return state object for this context.
-    */
-   virtual monarch::rt::DynamicObject& getState();
 
    /**
     * Sets the mask type for error data. This will control what data will
