@@ -147,6 +147,16 @@ public:
       const char* type, monarch::rt::DynamicObject* object = NULL);
 
    /**
+    * Push a new validation results state to this context.
+    */
+   virtual void pushResults();
+
+   /**
+    * Pop the current validation results from this context.
+    */
+   virtual void popResults();
+
+   /**
     * Gets the current validation results.
     */
    virtual monarch::rt::DynamicObject getResults();

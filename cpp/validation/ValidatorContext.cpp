@@ -14,9 +14,10 @@ ValidatorContext::ValidatorContext() :
    mPath(NULL),
    mSetExceptions(true),
    mMaskType(ValidatorContext::MaskNone),
-   mResults(NULL)
+   mResults(Array)
 {
-   clearResults();
+   // create initial results
+   pushResults();
 }
 
 ValidatorContext::~ValidatorContext()
@@ -98,7 +99,8 @@ std::string ValidatorContext::getPath()
 
 void ValidatorContext::addSuccess()
 {
-   mResults["successes"] = mResults["successes"]->getUInt32() + 1;
+   DynamicObject results = getResults();
+   results["successes"] = results["successes"]->getUInt32() + 1;
 }
 
 DynamicObject ValidatorContext::addError(
@@ -121,7 +123,7 @@ DynamicObject ValidatorContext::addError(
 
    // add error detail to results errors
    std::string fullpath = getPath();
-   mResults["errors"][fullpath.c_str()] = errorDetail;
+   getResults()["errors"][fullpath.c_str()] = errorDetail;
 
    // Skip setting exceptions if requested. Return errorDetail regardless.
    if(mSetExceptions)
@@ -162,15 +164,26 @@ DynamicObject ValidatorContext::addError(
    return errorDetail;
 }
 
+void ValidatorContext::pushResults()
+{
+   mResults->append();
+   clearResults();
+}
+
+void ValidatorContext::popResults()
+{
+   mResults->pop();
+}
+
 DynamicObject ValidatorContext::getResults()
 {
-   return mResults;
+   return mResults.last();
 }
 
 void ValidatorContext::clearResults()
 {
-   mResults = DynamicObject();
-   mResults["successes"] = 0;
-   mResults["errors"]->setType(Map);
-   mResults["errors"]->clear();
+   DynamicObject results = getResults();
+   results->clear();
+   results["successes"] = 0;
+   results["errors"]->setType(Map);
 }

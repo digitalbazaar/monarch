@@ -32,12 +32,14 @@ bool Not::isValid(
    monarch::rt::DynamicObject& obj,
    ValidatorContext* context)
 {
-   // save value
+   // save state, ignore sub-validator results
    bool setExceptions = context->setExceptions(false);
+   context->pushResults();
    // check sub-validator
    bool rval = !mValidator->isValid(obj, context);
-   // restore
+   // restore state and results
    context->setExceptions(setExceptions);
+   context->popResults();
 
    if(!rval)
    {
