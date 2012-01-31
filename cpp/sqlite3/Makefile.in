@@ -4,11 +4,11 @@ LIBRARIES = mosqlite3
 mosqlite3_HEADERS = $(wildcard *.h)
 mosqlite3_SOURCES = $(wildcard *.cpp)
 
-DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mosql
+DYNAMIC_LINK_LIBRARIES = mort momodest moutil moio mosql sqlite3
 HEADER_DIST_DIR = dist/include/monarch/sql/sqlite3
 
-DYNAMIC_MACOS_LINK_LIBRARIES = sqlite3 mologging mocompress modata movalidation
-DYNAMIC_WINDOWS_LINK_LIBRARIES = sqlite3
+DYNAMIC_MACOS_LINK_LIBRARIES = mologging mocompress modata movalidation
+#DYNAMIC_WINDOWS_LINK_LIBRARIES = 
 
 # ----------- Standard Makefile
 include @MONARCH_DIR@/setup/Makefile.base
