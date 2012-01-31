@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_kernel_MicroKernel_H
 #define monarch_kernel_MicroKernel_H
@@ -38,6 +38,7 @@ class MicroKernel : public monarch::modest::Kernel
 {
 public:
    typedef std::list<MicroKernelModuleApi*> ModuleApiList;
+   typedef std::list<MicroKernelModule*> ModuleList;
 
 protected:
    /**
@@ -103,7 +104,6 @@ protected:
    /**
     * A list of all the loaded MicroKernelModules.
     */
-   typedef std::list<MicroKernelModule*> ModuleList;
    ModuleList mModuleList;
 
    /**
@@ -185,10 +185,11 @@ public:
     * Loads all MicroKernelModules in the current path.
     *
     * @param path the path to use to load the modules.
+    * @param modules an optional list to populate with the loaded modules.
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool loadModules(const char* path);
+   virtual bool loadModules(const char* path, ModuleList* modules = NULL);
 
    /**
     * Loads all MicroKernelModules in the given list of paths, where each
@@ -198,7 +199,8 @@ public:
     *
     * @return true if successful, false if an exception occurred.
     */
-   virtual bool loadModules(monarch::io::FileList& paths);
+   virtual bool loadModules(
+      monarch::io::FileList& paths, ModuleList* modules = NULL);
 
    /**
     * Loads a MicroKernelModule from a modest Module, checking its dependencies,
@@ -232,6 +234,19 @@ public:
     * @return true if the module unloaded, false if not.
     */
    virtual bool unloadModule(const monarch::modest::ModuleId* id);
+
+   /**
+    * Unloads all MicroKernelModules in the given list.
+    *
+    * @param modules the list of modules to unload.
+    */
+   virtual void unloadModules(ModuleList& modules);
+
+   /**
+    * Unloads all modules that have been loaded, including
+    * non-MicroKernelModules.
+    */
+   virtual void unloadAllModules();
 
    /**
     * Gets the current thread's Operation. *DO NOT* call this if you
@@ -415,19 +430,6 @@ protected:
     * @return true if successful, false if not.
     */
    virtual bool initializeMicroKernelModule(MicroKernelModule* m);
-
-   /**
-    * Unloads all MicroKernelModules in the given list.
-    *
-    * @param modules the list of modules to unload.
-    */
-   virtual void unloadModules(ModuleList& modules);
-
-   /**
-    * Unloads all modules that have been loaded, including
-    * non-MicroKernelModules.
-    */
-   virtual void unloadAllModules();
 };
 
 } // end namespace kernel

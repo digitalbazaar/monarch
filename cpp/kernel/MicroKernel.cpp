@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2009-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
@@ -275,13 +275,13 @@ MicroKernelModule* MicroKernel::loadMicroKernelModule(const char* filename)
    return rval;
 }
 
-bool MicroKernel::loadModules(const char* path)
+bool MicroKernel::loadModules(const char* path, ModuleList* modules)
 {
    MO_CAT_INFO(MO_KERNEL_CAT, "Loading modules from \"%s\"", path);
 
    // split the modules path into individual paths of files/directories
    FileList paths = File::parsePath(path);
-   return loadModules(paths);
+   return loadModules(paths, modules);
 }
 
 /**
@@ -318,7 +318,7 @@ static Module* _loadModuleFromFile(
    return rval;
 }
 
-bool MicroKernel::loadModules(FileList& paths)
+bool MicroKernel::loadModules(FileList& paths, ModuleList* modules)
 {
    bool rval = true;
 
@@ -352,7 +352,8 @@ bool MicroKernel::loadModules(FileList& paths)
                File& f = fi->next();
                if(!f->isDirectory())
                {
-                  rval = (_loadModuleFromFile(f, lib, pending, nonMkms) != NULL);
+                  rval = (_loadModuleFromFile(
+                     f, lib, pending, nonMkms) != NULL);
                }
             }
          }
@@ -381,6 +382,12 @@ bool MicroKernel::loadModules(FileList& paths)
 
    if(rval)
    {
+      // return modules if requested
+      if(modules != NULL)
+      {
+         *modules = uninitialized;
+      }
+
       MO_CAT_INFO(MO_KERNEL_CAT, "Modules loaded.");
    }
    else
@@ -506,6 +513,47 @@ bool MicroKernel::unloadModule(const ModuleId* id)
    }
 
    return rval;
+}
+
+void MicroKernel::unloadModules(ModuleList& modules)
+{
+   // unload modules in reverse order from the list
+   ModuleLibrary* lib = getModuleLibrary();
+   while(!modules.empty())
+   {
+      MicroKernelModule* m = modules.back();
+
+      // if module is in mModuleList then it has been initialized with this
+      // MicroKernel and needs corresponding clean up, otherwise it only needs
+      // to be unloaded
+      ModuleList::iterator i = find(mModuleList.begin(), mModuleList.end(), m);
+      if(i != mModuleList.end())
+      {
+         MO_CAT_INFO(MO_KERNEL_CAT,
+            "Cleaning up MicroKernel module: \"%s\" version: \"%s\"",
+            m->getId().name, m->getId().version);
+         m->cleanup(this);
+         mModuleList.erase(i);
+      }
+
+      // unload the module
+      lib->unloadModule(&m->getId());
+
+      // if this list isn't mModuleList, then remove the unloaded module
+      if(&modules != &mModuleList)
+      {
+         modules.pop_back();
+      }
+   }
+}
+
+void MicroKernel::unloadAllModules()
+{
+   unloadModules(mModuleList);
+
+   // unload all non-MicroKernelModules
+   ModuleLibrary* lib = getModuleLibrary();
+   lib->unloadAllModules();
 }
 
 Operation MicroKernel::currentOperation()
@@ -904,45 +952,4 @@ bool MicroKernel::initializeMicroKernelModule(MicroKernelModule* m)
    }
 
    return rval;
-}
-
-void MicroKernel::unloadModules(ModuleList& modules)
-{
-   // unload modules in reverse order from the list
-   ModuleLibrary* lib = getModuleLibrary();
-   while(!modules.empty())
-   {
-      MicroKernelModule* m = modules.back();
-
-      // if module is in mModuleList then it has been initialized with this
-      // MicroKernel and needs corresponding clean up, otherwise it only needs
-      // to be unloaded
-      ModuleList::iterator i = find(mModuleList.begin(), mModuleList.end(), m);
-      if(i != mModuleList.end())
-      {
-         MO_CAT_INFO(MO_KERNEL_CAT,
-            "Cleaning up MicroKernel module: \"%s\" version: \"%s\"",
-            m->getId().name, m->getId().version);
-         m->cleanup(this);
-         mModuleList.erase(i);
-      }
-
-      // unload the module
-      lib->unloadModule(&m->getId());
-
-      // if this list isn't mModuleList, then remove the unloaded module
-      if(&modules != &mModuleList)
-      {
-         modules.pop_back();
-      }
-   }
-}
-
-void MicroKernel::unloadAllModules()
-{
-   unloadModules(mModuleList);
-
-   // unload all non-MicroKernelModules
-   ModuleLibrary* lib = getModuleLibrary();
-   lib->unloadAllModules();
 }
