@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		--disable-log-line-numbers \
+		--disable-tests
+
+# FIXME: re-enable dh_strip when dbg package is generated
+override_dh_strip:
