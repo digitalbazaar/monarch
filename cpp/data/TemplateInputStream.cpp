@@ -3226,10 +3226,10 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
       {
          DynamicObject& params = *cmd->params;
 
-         // eval lhs and rhs
+         // eval rhs and then lhs
          rval =
-            evalExpression(params["lhs"], false, true) &&
-            evalExpression(params["rhs"], true);
+            evalExpression(params["rhs"], true) &&
+            evalExpression(params["lhs"], false, true);
          if(rval)
          {
             // set lhs to rhs
