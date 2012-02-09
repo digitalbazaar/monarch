@@ -639,7 +639,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
          "Default (undefined): {undefined|default('N/A')}\n"
          "Default (empty string): {empty|default('N/A')}\n"
          "<html><body>{eol|replace('\n','</br>')}</body></html>\n"
-         "{escaped_quotes|replace('\'','\\\'')}\n"
+         "{escapeQuotes|replace('\\'','\\\\\\'')}\n"
          "Truncated 'foobar' to '{foobar|truncate(3)}'\n"
          "Truncated 'foobar' to '{foobar|truncate(3,'')}'\n";
 
@@ -651,7 +651,7 @@ static void runTemplateInputStreamTest(TestRunner& tr)
       vars["foobar"] = "foobar";
       vars["empty"] = "";
       vars["eol"] = "none\n";
-      vars["escape_quotes"] = "Jimmy's Chicken Shack";
+      vars["escapeQuotes"] = "Jimmy's Chicken Shack";
 
       const char* expect =
          "Item count: 3\n"

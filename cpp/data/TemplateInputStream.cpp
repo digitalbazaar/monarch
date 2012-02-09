@@ -346,7 +346,7 @@ static int _trimQuotes(string& value)
    {
       if(value.at(value.length() - 1) == '\'')
       {
-         StringTools::trim(value, "'");
+         StringTools::trim(value, "'", 1, 1);
          rval = 1;
       }
       else
@@ -359,7 +359,7 @@ static int _trimQuotes(string& value)
    {
       if(value.at(value.length() - 1) == '"')
       {
-         StringTools::trim(value, "\"");
+         StringTools::trim(value, "\"", 1, 1);
          rval = 1;
       }
       else
@@ -666,7 +666,7 @@ static const char* _handleEscapeSequence(char c, bool keep = true)
          rval = "}";
          break;
       case '\'':
-         rval = "\'";
+         rval = "'";
          break;
       case '"':
          rval = "\"";
@@ -708,6 +708,9 @@ static const char* _handleEscapeSequence(char c, bool keep = true)
          break;
       case ',':
          rval = keep ? "\\," : ",";
+         break;
+      case '\\':
+         rval = keep ? "\\\\" : "\\";
          break;
       default:
       {

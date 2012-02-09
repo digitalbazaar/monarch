@@ -32,13 +32,20 @@ public:
     * Trims characters from the front and back of the passed string. Any
     * character in the second parameter will be trimmed.
     *
+    * The number of characters trimmed from the front and/or back can
+    * be limited. A limit of std::npos indicates no limit.
+    *
     * @param str the string to trim the characters from.
     * @param trimChars the trim characters (defaults to a single space).
+    * @param frontLimit the maximum number of characters to trim in the front.
+    * @param backLimit the maximum number of characters to trim in the back.
     *
     * @return a reference to the trimmed string.
     */
    static std::string& trim(
-      std::string& str, const char* trimChars = " ");
+      std::string& str, const char* trimChars = " ",
+      std::string::size_type frontLimit = std::string::npos,
+      std::string::size_type backLimit = std::string::npos);
 
    /**
     * Replaces the first instance in "str" starting at "pos" of "find" with

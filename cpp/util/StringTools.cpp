@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2010 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/util/StringTools.h"
 
@@ -18,17 +18,54 @@ using namespace std;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-string& StringTools::trim(string& str, const char* trimChars)
+string& StringTools::trim(
+   string& str, const char* trimChars,
+   string::size_type frontLimit,
+   string::size_type backLimit)
 {
-   // erase front trim characters
-   str.erase(0, str.find_first_not_of(trimChars));
-
-   // find back trim characters
-   string::size_type last = str.find_last_not_of(trimChars);
-   if(last != string::npos)
+   if(frontLimit != 0)
    {
+     // erase front trim characters
+     string::size_type first = str.find_first_not_of(trimChars);
+     if(frontLimit == string::npos)
+     {
+       str.erase(0, first);
+     }
+     else if(first == string::npos)
+     {
+        str.erase(0, min(str.length(), frontLimit));
+     }
+     else
+     {
+        str.erase(0, min(frontLimit, first));
+     }
+   }
+
+   if(backLimit != 0)
+   {
+      // find back trim characters
+      string::size_type last = str.find_last_not_of(trimChars);
+
       // erase back trim characters
-      str.erase(last + 1);
+      if(backLimit == string::npos)
+      {
+         if(last == string::npos)
+         {
+            str.erase();
+         }
+         else
+         {
+            str.erase(last + 1);
+         }
+      }
+      else if(last == string::npos)
+      {
+         str.erase(str.length() - min(backLimit, str.length()));
+      }
+      else
+      {
+         str.erase(str.length() - min(backLimit, str.length() - last));
+      }
    }
 
    return str;
@@ -50,12 +87,19 @@ string& StringTools::replaceAll(
    string& str, const char* find, const char* replace)
 {
    int findLen = strlen(find);
-   int replaceLen = strlen(replace);
-   string::size_type found = str.find(find);
-   while(found != string::npos)
+   if(findLen == 0)
    {
-      str.replace(found, findLen, replace);
-      found = str.find(find, found + replaceLen);
+      StringTools::replace(str, find, replace);
+   }
+   else
+   {
+      int replaceLen = strlen(replace);
+      string::size_type found = str.find(find);
+      while(found != string::npos)
+      {
+         str.replace(found, findLen, replace);
+         found = str.find(find, found + replaceLen);
+      }
    }
    return str;
 }
@@ -63,11 +107,18 @@ string& StringTools::replaceAll(
 string& StringTools::regexReplaceAll(
    string& str, const char* regex, const char* replace, bool matchCase)
 {
-   // compile regex pattern
-   PatternRef p = Pattern::compile(regex, matchCase, true);
-   if(!p.isNull())
+   if(strlen(regex) == 0)
    {
-      regexReplaceAll(str, p, replace);
+      StringTools::replace(str, regex, replace);
+   }
+   else
+   {
+      // compile regex pattern
+      PatternRef p = Pattern::compile(regex, matchCase, true);
+      if(!p.isNull())
+      {
+         regexReplaceAll(str, p, replace);
+      }
    }
    return str;
 }

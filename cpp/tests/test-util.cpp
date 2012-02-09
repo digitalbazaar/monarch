@@ -638,6 +638,14 @@ static void runStringToolsTest(TestRunner& tr)
       str = " a b ";
       trimmed = StringTools::trim(str, " ab");
       assertStrCmp(trimmed.c_str(), "");
+
+      str = "  a b  ";
+      trimmed = StringTools::trim(str, " ", 1, 1);
+      assertStrCmp(trimmed.c_str(), " a b ");
+
+      str = "'''";
+      trimmed = StringTools::trim(str, "'", 1, 1);
+      assertStrCmp(trimmed.c_str(), "'");
    }
    tr.passIfNoException();
 
@@ -649,10 +657,45 @@ static void runStringToolsTest(TestRunner& tr)
 
    tr.test("replace all");
    {
-
       string str = "Look for green globs of green matter in green goo.";
       string exp = "Look for blue globs of blue matter in blue goo.";
       StringTools::regexReplaceAll(str, "green", "blue");
+      assertStrCmp(str.c_str(), exp.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("replace all");
+   {
+      string str = "Replace \"quoted things\" with escaped quotes.";
+      string exp = "Replace \\\"quoted things\\\" with escaped quotes.";
+      StringTools::replaceAll(str, "\"", "\\\"");
+      assertStrCmp(str.c_str(), exp.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("replace all empty string");
+   {
+      string str = "Replace the empty string.";
+      string exp = "onceReplace the empty string.";
+      StringTools::replaceAll(str, "", "once");
+      assertStrCmp(str.c_str(), exp.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("regex replace all");
+   {
+      string str = "Replace \"quoted things\" with escaped quotes.";
+      string exp = "Replace \\\"quoted things\\\" with escaped quotes.";
+      StringTools::regexReplaceAll(str, "\\\"", "\\\"");
+      assertStrCmp(str.c_str(), exp.c_str());
+   }
+   tr.passIfNoException();
+
+   tr.test("regex replace all");
+   {
+      string str = "Replace the empty string.";
+      string exp = "onceReplace the empty string.";
+      StringTools::regexReplaceAll(str, "", "once");
       assertStrCmp(str.c_str(), exp.c_str());
    }
    tr.passIfNoException();
