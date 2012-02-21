@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/net/SslContext.h"
 
@@ -144,8 +144,8 @@ bool SslContext::setCertificate(File& certFile)
    bool rval = true;
 
    // set certificate file
-   if(SSL_CTX_use_certificate_file(
-      mContext, certFile->getAbsolutePath(), SSL_FILETYPE_PEM) != 1)
+   if(SSL_CTX_use_certificate_chain_file(
+      mContext, certFile->getAbsolutePath()) != 1)
    {
       // an error occurred
       ExceptionRef e = new Exception(
