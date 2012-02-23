@@ -236,23 +236,23 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
       send404 = false;
 
       // find the map of valid methods for the given handler
-      MethodMap& mm = hmi->second;
-      mmi = mm.find(mt);
+      MethodMap* mm = &(hmi->second);
+      mmi = mm->find(mt);
 
       // if there's no match for a valid method using the given param count,
       // try looking for one using the arbitrary param count
-      if(mmi == mm.end() && hmi->first != -1)
+      if(mmi == mm->end() && hmi->first != -1)
       {
          hmi = mPathHandlers.find(-1);
          if(hmi != mPathHandlers.end())
          {
-            mm = hmi->second;
-            mmi = mm.find(mt);
+            mm = &(hmi->second);
+            mmi = mm->find(mt);
          }
       }
 
       // see if there is a match for the given request method
-      if(mmi != mm.end())
+      if(mmi != mm->end())
       {
          rval = findHandler(mmi->second, queryVars);
       }
@@ -261,7 +261,7 @@ RestfulHandler::HandlerInfo* RestfulHandler::findHandler(ServiceChannel* ch)
          // add valid method types
          validMethods = DynamicObject();
          validMethods->setType(Array);
-         for(mmi = mm.begin(); mmi != mm.end(); ++mmi)
+         for(mmi = mm->begin(); mmi != mm->end(); ++mmi)
          {
             validMethods->append(Message::methodToString(mmi->first));
          }
