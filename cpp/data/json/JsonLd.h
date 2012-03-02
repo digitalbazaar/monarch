@@ -119,6 +119,78 @@ public:
       monarch::rt::DynamicObject in, monarch::rt::DynamicObject frame,
       monarch::rt::DynamicObject& out,
       monarch::rt::DynamicObject* options = NULL);
+
+   /**
+    * Check if a JSON-LD object has any values for a property. This method will
+    * handle existance of the property as well as properties with single
+    * values, an array of values, or an empty array with no values.
+    *
+    * @param jsonld the JSON-LD.
+    * @param property the property to check.
+    *
+    * @return true if property exists and has values, false if not.
+    */
+   static bool hasProperty(
+      monarch::rt::DynamicObject& jsonld,
+      const char* property);
+
+   /**
+    * Check if a JSON-LD property has a value. This method will handle
+    * existance of the property as well as properties with single or an array
+    * of values.
+    *
+    * @param jsonld the JSON-LD.
+    * @param property the property to check.
+    * @param value the value to check for.
+    *
+    * @return true if value exists, false if not.
+    */
+   static bool hasValue(
+      monarch::rt::DynamicObject& jsonld,
+      const char* property,
+      monarch::rt::DynamicObject& value);
+
+   /**
+    * Check if a JSON-LD property has a value. This method will handle
+    * existance of the property as well as properties with single or an array
+    * of values.
+    *
+    * @param jsonld the JSON-LD.
+    * @param property the property to check.
+    * @param value the value to check for.
+    *
+    * @return true if value exists, false if not.
+    */
+   static bool hasValue(
+      monarch::rt::DynamicObject& jsonld,
+      const char* property,
+      const char* value);
+
+   /**
+    * Add a value to a property in JSON-LD. This method will handle existance
+    * of the property as well as properties with single or an array of values.
+    *
+    * @param jsonld the JSON-LD.
+    * @param property the property to add to.
+    * @param value the value to add.
+    */
+   static void addValue(
+      monarch::rt::DynamicObject& jsonld,
+      const char* property,
+      monarch::rt::DynamicObject& value);
+
+   /**
+    * Add a value to a property in JSON-LD. This method will handle existance
+    * of the property as well as properties with single or an array of values.
+    *
+    * @param jsonld the JSON-LD.
+    * @param property the property to add to.
+    * @param value the value to add.
+    */
+   static void addValue(
+      monarch::rt::DynamicObject& jsonld,
+      const char* property,
+      const char* value);
 };
 
 } // end namespace json

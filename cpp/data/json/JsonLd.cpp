@@ -3044,3 +3044,78 @@ bool JsonLd::frame(
 
    return rval;
 }
+
+bool JsonLd::hasProperty(DynamicObject& jsonld, const char* property)
+{
+   bool rval = false;
+
+   if(jsonld->hasMember(property))
+   {
+      DynamicObject& val = jsonld[property];
+      if(!val.isNull())
+      {
+         if(val->getType() == Array)
+         {
+            rval = (val->length() != 0);
+         }
+         else
+         {
+            rval = true;
+         }
+      }
+   }
+
+   return rval;
+}
+
+bool JsonLd::hasValue(
+   DynamicObject& jsonld, const char* property, DynamicObject& value)
+{
+   bool rval = false;
+
+   if(JsonLd::hasProperty(jsonld, property))
+   {
+      DynamicObject& val = jsonld[property];
+      if(val->getType() == Array)
+      {
+         rval = (val->indexOf(value) != -1);
+      }
+      // avoid matching the set of values with an array value parameter
+      else if(value->getType() != Array)
+      {
+         rval = (val == value);
+      }
+   }
+
+   return rval;
+}
+
+bool JsonLd::hasValue(
+   DynamicObject& jsonld, const char* property, const char* value)
+{
+   DynamicObject d(String);
+   d = value;
+   return hasValue(jsonld, property, d);
+}
+
+void JsonLd::addValue(
+   DynamicObject& jsonld, const char* property, DynamicObject& value)
+{
+   DynamicObject d(Array);
+   if(jsonld->hasMember(property))
+   {
+      // get existing property and ensure it is an array
+      d = jsonld[property].arrayify();
+   }
+   // add new value and set in jsonld object
+   d->append(value);
+   jsonld[property] = d;
+}
+
+void JsonLd::addValue(
+   DynamicObject& jsonld, const char* property, const char* value)
+{
+   DynamicObject d(String);
+   d = value;
+   return addValue(jsonld, property, d);
+}

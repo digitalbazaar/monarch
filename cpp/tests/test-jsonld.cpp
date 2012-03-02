@@ -309,6 +309,119 @@ static void runJsonLdTestSuite(TestRunner& tr)
    _runJsonLdTestSuiteFromPath(tr, JSON_LD_TEST_SUITE_DIR);
 }
 
+static void runJsonLdTests(TestRunner& tr)
+{
+   tr.group("JSON-LD");
+
+   tr.test("hasProperty (no prop)");
+   {
+      DynamicObject d;
+      d["p"] = true;
+      assert(!JsonLd::hasProperty(d, "!p"));
+   }
+   tr.passIfNoException();
+
+   tr.test("hasProperty (array no prop)");
+   {
+      DynamicObject d;
+      d["p"]->setType(Array);
+      assert(!JsonLd::hasProperty(d, "p"));
+   }
+   tr.passIfNoException();
+
+   tr.test("hasProperty (has prop)");
+   {
+      DynamicObject d;
+      d["p"] = "v";
+      assert(JsonLd::hasProperty(d, "p"));
+   }
+   tr.passIfNoException();
+
+   tr.test("hasProperty (has prop and sub-prop)");
+   {
+      DynamicObject d;
+      d["p"]["p2"] = "v2";
+      assert(JsonLd::hasProperty(d, "p"));
+   }
+   tr.passIfNoException();
+
+   tr.test("hasProperty (has prop in array)");
+   {
+      DynamicObject d;
+      d["p"]->append("v");
+      assert(JsonLd::hasProperty(d, "p"));
+   }
+   tr.passIfNoException();
+
+   // FIXME: add explict dyno api tests
+   // assuming string api is testing dyno one
+
+   tr.test("hasValue (simple)");
+   {
+      DynamicObject d;
+      d["p"]->append("v");
+      assert(JsonLd::hasValue(d, "p", "v"));
+      assert(!JsonLd::hasValue(d, "p", "v0"));
+      assert(!JsonLd::hasValue(d, "p0", "v"));
+   }
+   tr.passIfNoException();
+
+   tr.test("hasValue (in array)");
+   {
+      DynamicObject d;
+      d["p"]->append("v0");
+      d["p"]->append("v1");
+      d["p"]->append("v2");
+      assert(JsonLd::hasValue(d, "p", "v0"));
+      assert(JsonLd::hasValue(d, "p", "v1"));
+      assert(JsonLd::hasValue(d, "p", "v2"));
+      assert(!JsonLd::hasValue(d, "p", "v3"));
+      assert(!JsonLd::hasValue(d, "p0", "v0"));
+   }
+   tr.passIfNoException();
+
+   tr.test("addValue (new)");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p", "v");
+
+      assert(JsonLd::hasProperty(d, "p"));
+      assert(JsonLd::hasValue(d, "p", "v"));
+   }
+   tr.passIfNoException();
+
+   tr.test("addValue (add)");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p", "v0");
+      JsonLd::addValue(d, "p", "v1");
+
+      assert(JsonLd::hasProperty(d, "p"));
+      assert(JsonLd::hasValue(d, "p", "v0"));
+      assert(JsonLd::hasValue(d, "p", "v1"));
+   }
+   tr.passIfNoException();
+
+   tr.test("addValue (add 2)");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p0", "v0");
+      JsonLd::addValue(d, "p0", "v1");
+      JsonLd::addValue(d, "p1", "v2");
+      JsonLd::addValue(d, "p1", "v3");
+
+      assert(JsonLd::hasProperty(d, "p0"));
+      assert(JsonLd::hasProperty(d, "p1"));
+      assert(JsonLd::hasValue(d, "p0", "v0"));
+      assert(JsonLd::hasValue(d, "p0", "v1"));
+      assert(JsonLd::hasValue(d, "p1", "v2"));
+      assert(JsonLd::hasValue(d, "p1", "v3"));
+   }
+   tr.passIfNoException();
+
+   tr.ungroup();
+}
+
 static bool run(TestRunner& tr)
 {
    if(tr.isDefaultEnabled() || tr.isTestEnabled("json-ld"))
@@ -316,6 +429,7 @@ static bool run(TestRunner& tr)
 #ifdef HAVE_JSON_LD_TEST_SUITE
       runJsonLdTestSuite(tr);
 #endif
+      runJsonLdTests(tr);
    }
    return true;
 }
