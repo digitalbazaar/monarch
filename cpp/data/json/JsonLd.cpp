@@ -2275,19 +2275,16 @@ static void _canonicalizeBlankNodes(N11NState& state, DynamicObject& input)
    i = edges["props"].getIterator();
    while(i->hasNext())
    {
-      DynamicObject& next = i->next();
-      if(next["bnodes"]->length() > 0)
+      i->next();
+      DynamicObject& subject = subjects[i->getName()];
+      DynamicObjectIterator pi = subject.getIterator();
+      while(pi->hasNext())
       {
-         DynamicObject& bnode = subjects[i->getName()];
-         DynamicObjectIterator pi = bnode.getIterator();
-         while(pi->hasNext())
+         DynamicObject& prop = pi->next();
+         const char* p = pi->getName();
+         if(strcmp(p, "@id") != 0 && prop->getType() == Array)
          {
-            DynamicObject& prop = pi->next();
-            const char* p = pi->getName();
-            if(p[0] != '@' && prop->getType() == Array)
-            {
-               prop.sort(&_sortObjects);
-            }
+            prop.sort(&_sortObjects);
          }
       }
    }
