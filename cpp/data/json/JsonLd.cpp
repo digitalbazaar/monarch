@@ -3127,3 +3127,58 @@ void JsonLd::addValue(
    d = value;
    return addValue(jsonld, property, d, propertyIsList);
 }
+
+DynamicObject JsonLd::getValues(DynamicObject& jsonld, const char* property)
+{
+   DynamicObject rval(Array);
+
+   if(jsonld->hasMember(property))
+   {
+      rval = jsonld[property].arrayify();
+   }
+
+   return rval;
+}
+
+void JsonLd::removeProperty(DynamicObject& jsonld, const char* property)
+{
+   jsonld->removeMember(property);
+}
+
+void JsonLd::removeValue(
+   DynamicObject& jsonld, const char* property, DynamicObject& value)
+{
+   DynamicObject values = getValues(jsonld, property);
+   DynamicObject filtered(Array);
+
+   DynamicObjectIterator i = values.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      if(next != value)
+      {
+         filtered->append(next);
+      }
+   }
+
+   if(filtered->length() == 0)
+   {
+      removeProperty(jsonld, property);
+   }
+   else if(filtered->length() == 1)
+   {
+      jsonld[property] = filtered[0];
+   }
+   else
+   {
+      jsonld[property] = filtered;
+   }
+}
+
+void JsonLd::removeValue(
+   DynamicObject& jsonld, const char* property, const char* value)
+{
+   DynamicObject d(String);
+   d = value;
+   return removeValue(jsonld, property, d);
+}

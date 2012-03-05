@@ -197,6 +197,53 @@ public:
       const char* property,
       const char* value,
       bool propertyIsList = false);
+
+   /**
+    * Return all values for a property as an Array or an empty Array if no
+    * values exist.
+    *
+    * @param jsonld the JSON-LD.
+    * @param property the property to add to.
+    */
+   static monarch::rt::DynamicObject getValues(
+      monarch::rt::DynamicObject& jsonld, const char* property);
+
+   /**
+    * Remove all values for a given property.
+    *
+    * @param jsonld the JSON-LD.
+    * @param property the property to add to.
+    */
+   static void removeProperty(
+      monarch::rt::DynamicObject& jsonld, const char* property);
+
+   /**
+    * Removea all values equal to a given value for a JSON-LD property. If no
+    * values for the property remain, the property will be removed.
+    *
+    * @param jsonld the JSON-LD.
+    * @param property the property to add to.
+    * @param value the value to add.
+    * @param propertyIsList true if property is a list, false if not.
+    */
+   static void removeValue(
+      monarch::rt::DynamicObject& jsonld,
+      const char* property,
+      monarch::rt::DynamicObject& value);
+
+   /**
+    * Remove all values equal to a given value for a JSON-LD property by
+    * calling removeValue().
+    *
+    * @param jsonld the JSON-LD.
+    * @param property the property to add to.
+    * @param value the value to add.
+    * @param propertyIsList true if property is a list, false if not.
+    */
+   static void removeValue(
+      monarch::rt::DynamicObject& jsonld,
+      const char* property,
+      const char* value);
 };
 
 } // end namespace json

@@ -448,6 +448,107 @@ static void runJsonLdTests(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("getValues (empty)");
+   {
+      DynamicObject d;
+
+      DynamicObject values;
+      values = JsonLd::getValues(d, "p");
+
+      DynamicObject expect(Array);
+      assertNamedDynoCmp("expect", expect, "dyno", values);
+   }
+   tr.passIfNoException();
+
+   tr.test("getValues (one)");
+   {
+      DynamicObject d;
+
+      JsonLd::addValue(d, "p", "v");
+
+      DynamicObject values;
+      values = JsonLd::getValues(d, "p");
+
+      DynamicObject expect;
+      expect[0] = "v";
+      assertNamedDynoCmp("expect", expect, "dyno", values);
+   }
+   tr.passIfNoException();
+
+   tr.test("getValues (many)");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p", "v0", true);
+      JsonLd::addValue(d, "p", "v1", true);
+
+      DynamicObject values;
+      values = JsonLd::getValues(d, "p");
+
+      DynamicObject expect;
+      expect[0] = "v0";
+      expect[1] = "v1";
+      assertNamedDynoCmp("expect", expect, "dyno", values);
+   }
+   tr.passIfNoException();
+
+   tr.test("removeProperty");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p", "v");
+
+      assert(JsonLd::hasProperty(d, "p"));
+      JsonLd::removeProperty(d, "p");
+      assert(!JsonLd::hasProperty(d, "p"));
+   }
+   tr.passIfNoException();
+
+   tr.test("removeValue (none)");
+   {
+      DynamicObject d;
+
+      assert(!JsonLd::hasValue(d, "p", "v"));
+      JsonLd::removeValue(d, "p", "v");
+      assert(!JsonLd::hasValue(d, "p", "v"));
+   }
+   tr.passIfNoException();
+
+   tr.test("removeValue (one)");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p", "v");
+
+      assert(JsonLd::hasValue(d, "p", "v"));
+      JsonLd::removeValue(d, "p", "v");
+      assert(!JsonLd::hasValue(d, "p", "v"));
+   }
+   tr.passIfNoException();
+
+   tr.test("removeValue (many)");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p", "v", true);
+      JsonLd::addValue(d, "p", "v", true);
+
+      assert(JsonLd::hasValue(d, "p", "v"));
+      JsonLd::removeValue(d, "p", "v");
+      assert(!JsonLd::hasValue(d, "p", "v"));
+   }
+   tr.passIfNoException();
+
+   tr.test("removeValue (many2)");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p", "v", true);
+      JsonLd::addValue(d, "p", "v", true);
+
+      assert(JsonLd::hasValue(d, "p", "v"));
+      JsonLd::removeValue(d, "p", "v");
+      assert(!JsonLd::hasValue(d, "p", "v"));
+      // also check if property is gone
+      assert(!JsonLd::hasProperty(d, "p"));
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
