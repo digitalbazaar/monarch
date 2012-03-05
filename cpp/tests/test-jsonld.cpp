@@ -419,6 +419,35 @@ static void runJsonLdTests(TestRunner& tr)
    }
    tr.passIfNoException();
 
+   tr.test("addValue (not list)");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p", "v");
+      JsonLd::addValue(d, "p", "v");
+
+      assert(JsonLd::hasValue(d, "p", "v"));
+      // addValue implementation might use single value or array with a
+      // single value
+      DynamicObject p = d["p"];
+      assert(
+         (p->getType() == String) ||
+         (p->getType() == Array && p->length() == 1));
+   }
+   tr.passIfNoException();
+
+   tr.test("addValue (is list)");
+   {
+      DynamicObject d;
+      JsonLd::addValue(d, "p", "v", true);
+      JsonLd::addValue(d, "p", "v", true);
+
+      DynamicObject expect;
+      expect["p"][0] = "v";
+      expect["p"][1] = "v";
+      assertNamedDynoCmp("expect", expect, "dyno", d);
+   }
+   tr.passIfNoException();
+
    tr.ungroup();
 }
 
