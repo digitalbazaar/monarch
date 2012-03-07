@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/In.h"
 
@@ -33,36 +33,37 @@ bool In::isValid(
          while(!rval && doi->hasNext())
          {
             DynamicObject& member = doi->next();
-            rval = obj == member;
+            rval = (obj == member);
          }
          break;
       }
       case Map:
+      {
          rval =
             !obj.isNull() &&
             obj->getType() == String &&
             mContents->hasMember(obj->getString());
          break;
+      }
       default:
          rval = false;
          valid = false;
-         DynamicObject detail =
-            context->addError("monarch.validation.InternalError");
+         DynamicObject detail = context->addError(
+            "monarch.validation.InternalError");
          detail["validator"] = "monarch.validator.In";
-         detail["message"] = "There was an error when determining the type for "
-            "the input object to the validator. The input object type is "
-            "unknown.";
+         detail["message"] = "The content object is not a container so it "
+            "cannot possibly hold any given object.";
          break;
    }
 
    if(!rval && valid)
    {
-      DynamicObject detail = context->addError("monarch.validation.NotFound", &obj);
+      DynamicObject detail = context->addError(
+         "monarch.validation.NotFound", &obj);
       detail["validator"] = "monarch.validator.In";
       detail["expectedValues"] = mContents;
       detail["message"] = mErrorMessage ? mErrorMessage :
-         "There was an error in the validator when retrieving a value "
-         "for the input object.";
+         "The input object was not found in the content object.";
    }
 
    if(rval)
