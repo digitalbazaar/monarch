@@ -3103,13 +3103,8 @@ void JsonLd::addValue(
    {
       if(jsonld->hasMember(property))
       {
-         // add to current value
-         DynamicObject d;
-         // get existing property and ensure it is an array
-         d = jsonld[property].arrayify();
-         // add new value and set in jsonld object
-         d->append(value);
-         jsonld[property] = d;
+         // arrayify and append new value using push
+         jsonld[property].push(value);
       }
       else
       {
