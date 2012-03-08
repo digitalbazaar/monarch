@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/ValidatorContext.h"
 
@@ -18,6 +18,19 @@ ValidatorContext::ValidatorContext() :
 {
    // create initial results
    pushResults();
+}
+
+ValidatorContext::ValidatorContext(ValidatorContext* ctx) :
+   mPath(NULL),
+   mSetExceptions(ctx->mSetExceptions),
+   mMaskType(ctx->mMaskType),
+   mResults(NULL)
+{
+   if(ctx->mPath != NULL)
+   {
+      mPath = new std::vector<char*>(*(ctx->mPath));
+   }
+   mResults = ctx->mResults.clone();
 }
 
 ValidatorContext::~ValidatorContext()
@@ -49,6 +62,11 @@ bool ValidatorContext::setExceptions(bool set)
    bool rval = mSetExceptions;
    mSetExceptions = set;
    return rval;
+}
+
+bool ValidatorContext::getSetExceptions()
+{
+   return mSetExceptions;
 }
 
 void ValidatorContext::pushPath(const char* path)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/validation/Any.h"
 
@@ -27,24 +27,30 @@ bool Any::isValid(
 {
    bool rval = false;
 
-   // store previous set exceptions value
-   bool setExceptions = context->setExceptions(false);
+   // create local context copy, turn off exceptions, and clear results
+   ValidatorContext* ctx = new ValidatorContext();
+   ctx->setExceptions(false);
+   ctx->clearResults();
 
    // validate each "any" validator until one is valid, for each
    // invalid result, store the context results if they match or
    // exceed the most number of successful validations
    uint32_t maxSuccesses = 0;
-   DynamicObject errors;
-   errors->setType(Array);
+   DynamicObject errors(Array);
    for(std::vector<Validator*>::iterator i = mValidators.begin();
        !rval && i != mValidators.end(); ++i)
    {
-      rval = (*i)->isValid(obj, context);
+      rval = (*i)->isValid(obj, ctx);
       if(!rval)
       {
          // get validation results
-         DynamicObject r = context->getResults();
+         DynamicObject r = ctx->getResults();
          uint32_t successes = r["successes"]->getUInt32();
+         if(r["errors"]->length() == 0)
+         {
+            rval = (*i)->isValid(obj, ctx);
+         }
+
          if(successes > maxSuccesses)
          {
             // new max successes
@@ -58,24 +64,24 @@ bool Any::isValid(
          }
 
          // clear validation results
-         context->clearResults();
+         ctx->clearResults();
       }
    }
 
-   // restore set exceptions value
-   context->setExceptions(setExceptions);
+   // delete local context
+   delete ctx;
 
    // set exception for Any, return array of errors
    if(!rval)
    {
-      DynamicObject detail =
-         context->addError("monarch.validation.ValueError", &obj);
+      DynamicObject detail = context->addError(
+         "monarch.validation.ValueError", &obj);
       detail["validator"] = "monarch.validator.Any";
       detail["possibleErrors"] = errors;
 
       // add first set of specific errors to exception as most likely
       // error case out of possible errors
-      if(setExceptions)
+      if(context->getSetExceptions())
       {
          ExceptionRef e = Exception::get();
          e->getDetails()["errors"].merge(errors[0], false);

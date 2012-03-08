@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2008-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_validation_ValidatorContext_H
 #define monarch_validation_ValidatorContext_H
@@ -64,6 +64,13 @@ public:
    ValidatorContext();
 
    /**
+    * Creates a new ValidatorContext by copying an existing one.
+    *
+    * @param copy the ValidatorContext to copy.
+    */
+   ValidatorContext(ValidatorContext* ctx);
+
+   /**
     * Destructs this ValidatorContext.
     */
    virtual ~ValidatorContext();
@@ -95,6 +102,13 @@ public:
     * @return previous exception setting value.
     */
    virtual bool setExceptions(bool set);
+
+   /**
+    * Gets whether exceptions are set with addError().
+    *
+    * @return true if exceptions are set with addError(), false if not.
+    */
+   virtual bool getSetExceptions();
 
    /**
     * Push a new element onto the current path.
