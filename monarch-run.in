@@ -36,7 +36,7 @@ help() {
     echo "Normal mode:"
     echo "   $0 COMMAND [ARGUMENTS]"
     echo
-    echo "GDB mode:"
+    echo "Debugging mode:"
     echo "   $0 gdb COMMAND [ARGUMENTS]"
     echo "   $0 gdb [OPTIONS] --cmd COMMAND [ARGUMENTS]"
     echo
@@ -53,7 +53,7 @@ help() {
     echo
     echo "Special COMMANDS:"
     echo "   [help|--help|-h|-?]: This help message."
-    echo "   [list|-l]: List known config file commands."
+    echo "   [list|--list|-l]: List known config file commands."
     echo
     echo "Available COMMANDs:"
     for cmd in $AVAILABLE_COMMANDS; do
@@ -77,7 +77,7 @@ if [ $# -ge 1 ]; then
          CMD=$1
          shift
          ;;
-      --list|-l)
+      list|--list|-l)
          MODE=list
          shift
          ;;
