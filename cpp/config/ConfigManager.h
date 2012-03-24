@@ -97,9 +97,14 @@ class ConfigChangeListener;
  * The setKeyword() method can be used for custom keywords. There is a slight
  * performance penalty for using this option due to config tree walking and
  * string comparisons. The following are special reserved keywords that are
- * also available.
+ * also available:
  *
  * "{CURRENT_DIR}": The directory of this config file.
+ *
+ * Keywords may also be set in the config file using the special
+ * ::KEYWORDS ("_keywords"_) map. It is a simple key/value association.
+ * Keywords in this map will be applied to the current config and any included
+ * configs.
  *
  * @author David I. Lehn
  * @author Dave Longley
@@ -138,6 +143,12 @@ public:
     * Keyword in a config object to specify its parent's ID.
     */
    static const char* PARENT;
+
+   /**
+    * Keyword in a config object to specify a map of keywords that apply to
+    * this config and included configs.
+    */
+   static const char* KEYWORDS;
 
    /**
     * Keyword in a config object to specify the values for config, which
@@ -187,7 +198,8 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    static bool replaceKeywords(
-      Config& config, monarch::rt::DynamicObject& keywordMap, bool full = false);
+      Config& config, monarch::rt::DynamicObject& keywordMap,
+      bool full = false);
 
 protected:
    /**
@@ -197,10 +209,10 @@ protected:
    monarch::rt::DynamicObject mVersions;
 
    /**
-    * A map of replacement keywords that can be used on strings contained in
-    * configuration files.
+    * The stack of maps of replacement keywords that can be used on strings
+    * ontained in configuration files.
     */
-   monarch::rt::DynamicObject mKeywordMap;
+   monarch::rt::DynamicObject mKeywordStack;
 
    /**
     * The stored configurations. This object has the following format:

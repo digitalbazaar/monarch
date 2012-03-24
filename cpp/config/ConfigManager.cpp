@@ -36,6 +36,7 @@ const char* ConfigManager::ID            = "_id_";
 // too much
 const char* ConfigManager::GROUP       = "_group_";
 const char* ConfigManager::PARENT      = "_parent_";
+const char* ConfigManager::KEYWORDS    = "_keywords_";
 const char* ConfigManager::MERGE       = "_merge_";
 const char* ConfigManager::APPEND      = "_append_";
 const char* ConfigManager::REMOVE      = "_remove_";
@@ -45,12 +46,14 @@ const char* ConfigManager::TMP         = "_tmp_";
 
 ConfigManager::ConfigManager() :
    mVersions(Map),
-   mKeywordMap(Map),
+   mKeywordStack(Array),
    mConfigs(Map),
    mConfigChangeListener(NULL)
 {
    // initialize internal data structures
    //addVersion(MO_DEFAULT_CONFIG_VERSION);
+   // set top of stack to an empty keyword map
+   mKeywordStack[0]->setType(Map);
 }
 
 ConfigManager::~ConfigManager()
@@ -832,7 +835,7 @@ void ConfigManager::setKeyword(const char* keyword, const char* value)
    // lock to modify internal storage
    mLock.lockExclusive();
    {
-      mKeywordMap[keyword] = value;
+      mKeywordStack.last()[keyword] = value;
    }
    mLock.unlockExclusive();
 }
@@ -1591,6 +1594,19 @@ bool ConfigManager::recursiveAddConfig(
       mLock.unlockExclusive();
    }
 
+   // push a new keyword state onto the stack and merge current keywords
+   if(rval)
+   {
+      mLock.lockExclusive();
+      DynamicObject state = mKeywordStack.last().clone();
+      if(config->hasMember(KEYWORDS))
+      {
+         state.merge(config[KEYWORDS], false);
+      }
+      mKeywordStack.push(state);
+      mLock.unlockExclusive();
+   }
+
    // handle global keyword replacement
    if(rval)
    {
@@ -1598,20 +1614,21 @@ bool ConfigManager::recursiveAddConfig(
       if(dir != NULL)
       {
          mLock.lockExclusive();
-         mKeywordMap["CURRENT_DIR"] = dir;
+         mKeywordStack.last()["CURRENT_DIR"] = dir;
          mLock.unlockExclusive();
       }
 
       // do keyword replacement (custom and special)
       mLock.lockShared();
-      rval = replaceKeywords(config, mKeywordMap);
+      DynamicObject kw = mKeywordStack.last();
+      rval = replaceKeywords(config, kw);
       mLock.unlockShared();
 
       // remove special keywords
       if(dir != NULL)
       {
          mLock.lockExclusive();
-         mKeywordMap->removeMember("CURRENT_DIR");
+         mKeywordStack.last()->removeMember("CURRENT_DIR");
          mLock.unlockExclusive();
       }
    }
@@ -1808,6 +1825,14 @@ bool ConfigManager::recursiveAddConfig(
       mLock.unlockExclusive();
    }
 
+   // pop keyword state from the stack
+   if(rval)
+   {
+      mLock.lockExclusive();
+      mKeywordStack.pop();
+      mLock.unlockExclusive();
+   }
+
    return rval;
 }
 
@@ -1817,7 +1842,7 @@ void ConfigManager::saveState()
    {
       DynamicObject state;
       state["versions"] = mVersions.clone();
-      state["keywords"] = mKeywordMap.clone();
+      state["keywords"] = mKeywordStack.clone();
       state["configs"] = mConfigs.clone();
       mStates.push_back(state);
    }
@@ -1844,7 +1869,7 @@ bool ConfigManager::restoreState()
          DynamicObject state = mStates.back();
          mStates.pop_back();
          mVersions = state["versions"];
-         mKeywordMap = state["keywords"];
+         mKeywordStack = state["keywords"];
          mConfigs = state["configs"];
       }
    }
