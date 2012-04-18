@@ -89,19 +89,23 @@ static void _runJsonLdTestSuiteTest(
 
    DynamicObject output;
    DynamicObject& type = test["@type"];
+   DynamicObject options;
+   options["base"]->format("%s%s",
+      "http://json-ld.org/test-suite/tests/",
+      test["input"]->getString());
    if(type->indexOf("jld:NormalizeTest") != -1)
    {
       // read expected output
       _readFile(root, test["expect"], expect);
       // normalize
-      JsonLd::normalize(input, DynamicObject(Map), output);
+      JsonLd::normalize(input, options, output);
    }
    else if(type->indexOf("jld:ExpandTest") != -1)
    {
       // read expected output
       _readFile(root, test["expect"], expect);
       // expand
-      JsonLd::expand(input, DynamicObject(Map), output);
+      JsonLd::expand(input, options, output);
    }
    else if(type->indexOf("jld:CompactTest") != -1)
    {
@@ -120,7 +124,7 @@ static void _runJsonLdTestSuiteTest(
       _readFile(root, test["context"], context);
 
       // compact
-      JsonLd::compact(input, context["@context"], DynamicObject(Map), output);
+      JsonLd::compact(input, context["@context"], options, output);
    }
    else if(type->indexOf("jld:FrameTest") != -1)
    {
@@ -139,7 +143,7 @@ static void _runJsonLdTestSuiteTest(
       _readFile(root, test["frame"], frame);
 
       // reframe
-      JsonLd::frame(input, frame, DynamicObject(Map), output);
+      JsonLd::frame(input, frame, options, output);
    }
    else
    {

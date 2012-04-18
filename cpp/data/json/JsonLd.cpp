@@ -6,11 +6,7 @@
 #include "monarch/crypto/MessageDigest.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/rt/Exception.h"
-#include "monarch/util/Pattern.h"
 #include "monarch/util/StringTools.h"
-
-// FIXME: remove me
-#include "monarch/data/json/JsonWriter.h"
 
 #include <cstdio>
 
@@ -78,6 +74,7 @@ public:
     * @param ctx the context to use.
     * @param property the property for the value, NULL for none.
     * @param element the element to expand.
+    * @param options the expansion options.
     * @param propertyIsList true if the property is a list, false if not.
     * @param output the expanded value.
     *
@@ -85,7 +82,7 @@ public:
     */
    bool expand(
       DynamicObject ctx, const char* property, DynamicObject element,
-      bool propertyIsList, DynamicObject& output);
+      DynamicObject options, bool propertyIsList, DynamicObject& output);
 
    /**
     * Performs JSON-LD framing.
@@ -190,7 +187,7 @@ public:
 typedef DynamicObject UniqueNamer;
 bool _expandValue(
    DynamicObject ctx, const char* property, DynamicObject value,
-   DynamicObject& output);
+   const char* base, DynamicObject& output);
 DynamicObject _createStatement(
    const char* s, const char* p, DynamicObject& o);
 void _getStatements(
@@ -224,7 +221,8 @@ void _removeDependentEmbeds(DynamicObject state, const char* id);
 void _addFrameOutput(
    DynamicObject state, DynamicObject parent,
    const char* property, DynamicObject output);
-DynamicObject _removePreserve(DynamicObject input);
+bool _removePreserve(
+   DynamicObject& ctx, DynamicObject input, DynamicObject& output);
 int _isBestMatch(
    DynamicObject ctx, const char* key,
    DynamicObject* value, const char* container,
@@ -233,7 +231,8 @@ bool _compactIri(
    DynamicObject ctx, const char* iri, string& output,
    DynamicObject* value = NULL, const char* container = NULL);
 bool _expandTerm(
-   DynamicObject ctx, const char* term, string& output, bool deep = false);
+   DynamicObject ctx, const char* term, string& output,
+   const char* base = NULL, bool deep = false);
 DynamicObject _getKeywords(DynamicObject ctx);
 bool _isKeyword(const char* value, DynamicObject* keywords = NULL);
 bool _isObject(DynamicObject input);
@@ -276,6 +275,10 @@ bool JsonLd::compact(
    else
    {
       // set default options
+      if(!options->hasMember("base"))
+      {
+         options["base"] = "";
+      }
       if(!options->hasMember("strict"))
       {
          options["strict"] = true;
@@ -410,6 +413,12 @@ bool JsonLd::expand(
 {
    bool rval = true;
 
+   // set default options
+   if(!options->hasMember("base"))
+   {
+      options["base"] = "";
+   }
+
    // resolve all @context URLs in the input
    input = input.clone();
    // FIXME: implement
@@ -419,7 +428,8 @@ bool JsonLd::expand(
       // do expansion
       DynamicObject expanded;
       Processor p;
-      rval = p.expand(DynamicObject(Map), NULL, input, false, expanded);
+      rval = p.expand(
+         DynamicObject(Map), NULL, input, options, false, expanded);
       if(rval)
       {
          // optimize away @graph with no other properties
@@ -441,6 +451,10 @@ bool JsonLd::frame(
    DynamicObject options, DynamicObject& output)
 {
    // set default options
+   if(!options->hasMember("base"))
+   {
+      options["base"] = "";
+   }
    if(!options->hasMember("embed"))
    {
       options["embed"] = true;
@@ -503,21 +517,30 @@ bool JsonLd::frame(
       return false;
    }
 
-   // get graph alias
-   string graph = "@graph";
-   DynamicObjectIterator i = output.getIterator();
-   while(i->hasNext())
+   // merge and resolve contexts
+   DynamicObject merged;
+   if(!JsonLd::mergeContexts(DynamicObject(Map), ctx, options, merged))
    {
-      i->next();
-      if(strcmp(i->getName(), "@context") != 0)
-      {
-         graph = i->getName();
-         break;
-      }
+      ExceptionRef e = new Exception(
+         "Could not merge context before framing clean up.",
+         EXCEPTION_TYPE ".FrameError");
+      Exception::push(e);
+      return false;
    }
 
+   // get graph alias
+   string graph;
+   if(!_compactIri(merged, "@graph", graph))
+   {
+      return false;
+   }
    // remove @preserve from results
-   output[graph.c_str()] = _removePreserve(output[graph.c_str()]);
+   DynamicObject result;
+   if(!_removePreserve(merged, output[graph.c_str()], result))
+   {
+      return false;
+   }
+   output[graph.c_str()] = result;
    return true;
 }
 
@@ -525,6 +548,12 @@ bool JsonLd::normalize(
    DynamicObject input, DynamicObject options, DynamicObject& output)
 {
    bool rval = true;
+
+   // set default options
+   if(!options->hasMember("base"))
+   {
+      options["base"] = "";
+   }
 
    // expand input then do normalization
    DynamicObject expanded;
@@ -548,6 +577,12 @@ bool JsonLd::toRdf(
    DynamicObject input, DynamicObject options, DynamicObject& output)
 {
    bool rval = true;
+
+   // set default options
+   if(!options->hasMember("base"))
+   {
+      options["base"] = "";
+   }
 
    // resolve all @context URLs in the input
    input = input.clone();
@@ -1287,7 +1322,7 @@ bool Processor::compact(
 
 bool Processor::expand(
    DynamicObject ctx, const char* property, DynamicObject element,
-   bool propertyIsList, DynamicObject& output)
+   DynamicObject options, bool propertyIsList, DynamicObject& output)
 {
    // recursively expand array
    if(_isArray(element))
@@ -1298,7 +1333,7 @@ bool Processor::expand(
       {
          // expand element
          DynamicObject e;
-         if(!expand(ctx, property, i->next(), propertyIsList, e))
+         if(!expand(ctx, property, i->next(), options, propertyIsList, e))
          {
             return false;
          }
@@ -1429,7 +1464,7 @@ bool Processor::expand(
          if(isList || prop == "@set" || prop == "@graph")
          {
             DynamicObject e;
-            if(!expand(ctx, property, value, isList, e))
+            if(!expand(ctx, property, value, options, isList, e))
             {
                return false;
             }
@@ -1448,7 +1483,7 @@ bool Processor::expand(
             // update active property and recursively expand value
             DynamicObject e;
             property = key;
-            if(!expand(ctx, property, value, false, e))
+            if(!expand(ctx, property, value, options, false, e))
             {
                return false;
             }
@@ -1557,7 +1592,7 @@ bool Processor::expand(
    }
 
    // expand element according to value expansion rules
-   return _expandValue(ctx, property, element, output);
+   return _expandValue(ctx, property, element, options["base"], output);
 }
 
 bool Processor::frame(
@@ -1986,13 +2021,14 @@ bool Processor::mergeContexts(
  * @param ctx the context to use.
  * @param property the expanded property the value is associated with.
  * @param value the value to expand.
+ * @param base the base IRI to use.
  * @param output the expanded value.
  *
  * @return true on success, false on failure with exception set.
  */
 bool _expandValue(
    DynamicObject ctx, const char* property, DynamicObject value,
-   DynamicObject& output)
+   const char* base, DynamicObject& output)
 {
    // default to simple string return value
    output = value.clone();
@@ -2006,7 +2042,7 @@ bool _expandValue(
    if(prop == "@id" || prop == "@type")
    {
       string id;
-      if(!_expandTerm(ctx, value, id))
+      if(!_expandTerm(ctx, value, id, (prop == "@id") ? base : NULL))
       {
          return false;
       }
@@ -2025,7 +2061,7 @@ bool _expandValue(
    if(type == "@id")
    {
       string id;
-      if(!_expandTerm(ctx, value, id))
+      if(!_expandTerm(ctx, value, id, base))
       {
          return false;
       }
@@ -3233,25 +3269,32 @@ void _addFrameOutput(
 /**
  * Removes the @preserve keywords as the last step of the framing algorithm.
  *
+ * @param ctx the context used to compact the input.
  * @param input the framed, compacted output.
+ * @param output the resulting output.
  *
- * @return the resulting output.
+ * @return true on success, false on failure with exception set.
  */
-DynamicObject _removePreserve(DynamicObject input)
+bool _removePreserve(
+   DynamicObject& ctx, DynamicObject input, DynamicObject& output)
 {
    // recurse through arrays
    if(_isArray(input))
    {
+      output = DynamicObject(Array);
       DynamicObjectIterator i = input.getIterator();
       while(i->hasNext())
       {
-         DynamicObject next = i->next();
-         input[i->getIndex()] = _removePreserve(next);
-      }
-      // drop null-only arrays
-      if(input->length() == 1 && input[0].isNull())
-      {
-         input->clear();
+         DynamicObject result;
+         if(!_removePreserve(ctx, i->next(), result))
+         {
+            return false;
+         }
+         // drop null values
+         if(!result.isNull())
+         {
+            output.push(result);
+         }
       }
    }
    else if(_isObject(input))
@@ -3261,33 +3304,54 @@ DynamicObject _removePreserve(DynamicObject input)
       {
          if(input["@preserve"] == "@null")
          {
-            return DynamicObject(NULL);
+            output.setNull();
+            return true;
          }
-         return input["@preserve"];
+         output = input["@preserve"];
+         return true;
       }
 
       // skip @values
       if(_isValue(input))
       {
-         return input;
+         output = input;
+         return true;
       }
 
       // recurse through @lists
       if(_isListValue(input))
       {
-         input["@list"] = _removePreserve(input["@list"]);
-         return input;
+         output = DynamicObject(Map);
+         return _removePreserve(ctx, input["@list"], output["@list"]);
       }
 
       // recurse through properties
+      output = DynamicObject(Map);
       DynamicObjectIterator i = input.getIterator();
       while(i->hasNext())
       {
          DynamicObject next = i->next();
-         input[i->getName()] = _removePreserve(next);
+         DynamicObject result;
+         DynamicObject container;
+         if(!(_removePreserve(ctx, next, result) &&
+            JsonLd::getContextValue(
+               ctx, i->getName(), "@container", container)))
+         {
+            return false;
+         }
+         if(_isArray(result) && result->length() == 1 &&
+            container != "@set" && container != "@list")
+         {
+            result = result[0];
+         }
+         output[i->getName()] = result;
       }
    }
-   return input;
+   else
+   {
+      output = input;
+   }
+   return true;
 }
 
 /**
@@ -3552,13 +3616,15 @@ bool _compactIri(
  *
  * @param ctx the context to use.
  * @param term the term to expand.
- * @param deep (used internally to recursively expand).
  * @param output the expanded term as an absolute IRI.
+ * @param base the base IRI to use if a relative IRI is detected.
+ * @param deep (used internally to recursively expand).
  *
  * @return true on success, false on failure with exception set.
  */
 bool _expandTerm(
-   DynamicObject ctx, const char* term, string& output, bool deep)
+   DynamicObject ctx, const char* term, string& output,
+   const char* base, bool deep)
 {
    // nothing to expand
    if(term == NULL)
@@ -3640,13 +3706,20 @@ bool _expandTerm(
         else
         {
            cycles[output.c_str()] = true;
-           rval = _expandTerm(ctx, output.c_str(), recurse, true);
+           rval = _expandTerm(ctx, output.c_str(), recurse, base, true);
         }
      }
      while(rval && recurse != output);
      if(rval)
      {
         output = recurse;
+     }
+
+     // apply base IRI to relative IRIs if provided
+     if(!_isAbsoluteIri(output.c_str()) &&
+        !_isKeyword(output.c_str()) && base != NULL)
+     {
+        output = StringTools::format("%s%s", base, output.c_str());
      }
   }
 
@@ -3989,7 +4062,7 @@ bool _isBlankNode(DynamicObject value)
  */
 bool _isAbsoluteIri(const char* value)
 {
-   return Pattern::match("^[[:alnum:]]+:\\/\\/.+$", value);
+   return strchr(value, ':') != NULL;
 }
 
 /**

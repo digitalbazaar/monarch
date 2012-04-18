@@ -40,6 +40,7 @@ public:
     * @param input the JSON-LD object to compact.
     * @param ctx the context to compact with.
     * @param options compaction options:
+    *          base: the base IRI to use.
     *          optimize: true to turn on optimization (default: false).
     * @param output to be set to the JSON-LD compacted output.
     *
@@ -56,6 +57,7 @@ public:
     *
     * @param input the JSON-LD object to expand.
     * @param options expansion options.
+    *          base: the base IRI to use.
     * @param output to be set to the JSON-LD expanded output.
     */
    static bool expand(
@@ -69,6 +71,7 @@ public:
     * @param input the JSON-LD object to frame.
     * @param frame the JSON-LD frame to use.
     * @param options the framing options.
+    *          base: the base IRI to use.
     * @param output to be set to the JSON-LD framed output.
     */
    static bool frame(
@@ -82,6 +85,7 @@ public:
     *
     * @param input the JSON-LD object to normalize.
     * @param options normalization options.
+    *          base: the base IRI to use.
     * @param output to be set to the JSON-LD normalized output.
     */
    static bool normalize(
@@ -94,6 +98,7 @@ public:
     *
     * @param input the JSON-LD object.
     * @param options toRdf options.
+    *          base: the base IRI to use.
     * @param output to be set to the RDF statement output.
     */
    static bool toRdf(
