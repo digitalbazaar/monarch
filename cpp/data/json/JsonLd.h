@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_data_json_JsonLd_H
 #define monarch_data_json_JsonLd_H
@@ -35,214 +35,239 @@ public:
    virtual ~JsonLd();
 
    /**
-    * Normalizes a JSON-LD object.
+    * Performs JSON-LD compaction.
     *
-    * @param in the JSON-LD object to normalize.
-    * @param out to be set to the normalized JSON-LD object.
-    *
-    * @return true on success, false on failure with exception set.
-    */
-   static bool normalize(
-      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
-
-   /**
-    * Removes the context from a JSON-LD object, expanding it to full-form.
-    *
-    * @param in the JSON-LD object to remove the context from.
-    * @param out to be set to the context-neutral JSON-LD object.
+    * @param input the JSON-LD object to compact.
+    * @param ctx the context to compact with.
+    * @param options compaction options:
+    *          optimize: true to turn on optimization (default: false).
+    * @param output to be set to the JSON-LD compacted output.
     *
     * @return true on success, false on failure with exception set.
-    */
-   static bool expand(
-      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
-
-   /**
-    * Expands the given input and then adds the given context to compact it.
-    *
-    * @param context the new context to use.
-    * @param in the JSON-LD object to add the context to.
-    * @param out to be set to the JSON-LD object with the new context.
     */
    static bool compact(
-      monarch::rt::DynamicObject context,
-      monarch::rt::DynamicObject in, monarch::rt::DynamicObject& out);
+      monarch::rt::DynamicObject input,
+      monarch::rt::DynamicObject ctx,
+      monarch::rt::DynamicObject options,
+      monarch::rt::DynamicObject& output);
 
    /**
-    * Merges one context with another.
+    * Performs JSON-LD expansion.
+    *
+    * @param input the JSON-LD object to expand.
+    * @param options expansion options.
+    * @param output to be set to the JSON-LD expanded output.
+    */
+   static bool expand(
+      monarch::rt::DynamicObject input,
+      monarch::rt::DynamicObject options,
+      monarch::rt::DynamicObject& output);
+
+   /**
+    * Performs JSON-LD framing.
+    *
+    * @param input the JSON-LD object to frame.
+    * @param frame the JSON-LD frame to use.
+    * @param options the framing options.
+    * @param output to be set to the JSON-LD framed output.
+    */
+   static bool frame(
+      monarch::rt::DynamicObject input,
+      monarch::rt::DynamicObject frame,
+      monarch::rt::DynamicObject options,
+      monarch::rt::DynamicObject& output);
+
+   /**
+    * Performs JSON-LD normalization.
+    *
+    * @param input the JSON-LD object to normalize.
+    * @param options normalization options.
+    * @param output to be set to the JSON-LD normalized output.
+    */
+   static bool normalize(
+      monarch::rt::DynamicObject input,
+      monarch::rt::DynamicObject options,
+      monarch::rt::DynamicObject& output);
+
+   /**
+    * Outputs the RDF statements found in the given JSON-LD object.
+    *
+    * @param input the JSON-LD object.
+    * @param options toRdf options.
+    * @param output to be set to the RDF statement output.
+    */
+   static bool toRdf(
+      monarch::rt::DynamicObject input,
+      monarch::rt::DynamicObject options,
+      monarch::rt::DynamicObject& output);
+
+   /**
+    * Merges one context with another, resolving any URLs as necessary.
     *
     * @param ctx1 the context to overwrite/append to.
     * @param ctx2 the new context to merge onto ctx1.
-    *
-    * @return the merged context or NULL on failure with exception set.
+    * @param options merge options.
+    * @param output to be set to the merged context.
     */
-   static monarch::rt::DynamicObject mergeContexts(
+   static bool mergeContexts(
       monarch::rt::DynamicObject ctx1,
-      monarch::rt::DynamicObject ctx2);
+      monarch::rt::DynamicObject ctx2,
+      monarch::rt::DynamicObject options,
+      monarch::rt::DynamicObject& output);
 
    /**
-    * Expands a term into an absolute IRI. The term may be a regular term, a
-    * CURIE, a relative IRI, or an absolute IRI. In any case, the associated
-    * absolute IRI will be returned.
+    * Returns true if the given subject has the given property.
     *
-    * @param ctx the context to use.
-    * @param term the term to expand.
+    * @param subject the subject to check.
+    * @param property the property to look for.
     *
-    * @return the expanded term as an absolute IRI.
-    */
-   static std::string expandTerm(
-      monarch::rt::DynamicObject ctx, const char* term);
-
-   /**
-    * Compacts an IRI into a term or CURIE it can be. IRIs will not be
-    * compacted to relative IRIs if they match the given context's default
-    * vocabulary.
-    *
-    * @param ctx the context to use.
-    * @param iri the IRI to compact.
-    *
-    * @return the compacted IRI as a term or CURIE or the original IRI.
-    */
-   static std::string compactIri(
-      monarch::rt::DynamicObject ctx, const char* iri);
-
-   /**
-    * Frames JSON-LD input.
-    *
-    * @param in the JSON-LD input.
-    * @param frame the frame to use.
-    * @param out the output framed JSON-LD object.
-    * @param options framing options to use, NULL for defaults.
-    *
-    * @return true on success, false on failure with exception set.
-    */
-   static bool frame(
-      monarch::rt::DynamicObject in, monarch::rt::DynamicObject frame,
-      monarch::rt::DynamicObject& out,
-      monarch::rt::DynamicObject* options = NULL);
-
-   /**
-    * Check if a JSON-LD object has any values for a property. This method will
-    * handle existance of the property as well as properties with single
-    * values, an array of values, or an empty array with no values.
-    *
-    * @param jsonld the JSON-LD.
-    * @param property the property to check.
-    *
-    * @return true if property exists and has values, false if not.
+    * @return true if the subject has the given property, false if not.
     */
    static bool hasProperty(
-      monarch::rt::DynamicObject& jsonld,
-      const char* property);
+      monarch::rt::DynamicObject& subject, const char* property);
 
    /**
-    * Check if a JSON-LD property has a value. This method will handle
-    * existance of the property as well as properties with single or an array
-    * of values.
+    * Determines if the given value is a property of the given subject.
     *
-    * @param jsonld the JSON-LD.
+    * @param subject the subject to check.
     * @param property the property to check.
-    * @param value the value to check for.
+    * @param value the value to check.
     *
-    * @return true if value exists, false if not.
+    * @return true if the value exists, false if not.
     */
    static bool hasValue(
-      monarch::rt::DynamicObject& jsonld,
+      monarch::rt::DynamicObject& subject,
       const char* property,
-      monarch::rt::DynamicObject& value);
-
-   /**
-    * Check if a JSON-LD property has a value by converting value to an object
-    * and calling hasValue().
-    *
-    * @param jsonld the JSON-LD.
-    * @param property the property to check.
-    * @param value the value to check for.
-    *
-    * @return true if value exists, false if not.
-    */
+      monarch::rt::DynamicObject value);
    static bool hasValue(
-      monarch::rt::DynamicObject& jsonld,
+      monarch::rt::DynamicObject& subject,
       const char* property,
       const char* value);
 
    /**
-    * Add a value to a property in JSON-LD. This method will handle existance
-    * of the property as well as properties with single or an array of values.
-    * If propertyIsList is false, the value will be added to the property only
-    * if hasValue() is false. If propertyIsList is true, the value will always
-    * be added.
+    * Adds a value to a subject. If the subject already has the value, it will
+    * not be added. If the value is an array, all values in the array will be
+    * added.
     *
-    * @param jsonld the JSON-LD.
-    * @param property the property to add to.
+    * Note: If the value is a subject that already exists as a property of the
+    * given subject, this method makes no attempt to deeply merge properties.
+    * Instead, the value will not be added.
+    *
+    * @param subject the subject to add the value to.
+    * @param property the property that relates the value to the subject.
     * @param value the value to add.
-    * @param propertyIsList true if property is a list, false if not.
+    * @param [propertyIsArray] true if the property is always an array, false
+    *          if not (default: false).
     */
    static void addValue(
-      monarch::rt::DynamicObject& jsonld,
+      monarch::rt::DynamicObject& subject,
       const char* property,
-      monarch::rt::DynamicObject& value,
-      bool propertyIsList = false);
-
-   /**
-    * Add a value to a property in JSON-LD by converting value to an object and
-    * calling addValue().
-    *
-    * @param jsonld the JSON-LD.
-    * @param property the property to add to.
-    * @param value the value to add.
-    * @param propertyIsList true if property is a list, false if not.
-    */
+      monarch::rt::DynamicObject value,
+      bool propertyIsArray = false);
    static void addValue(
-      monarch::rt::DynamicObject& jsonld,
+      monarch::rt::DynamicObject& subject,
       const char* property,
       const char* value,
-      bool propertyIsList = false);
+      bool propertyIsArray = false);
 
    /**
-    * Return all values for a property as an Array or an empty Array if no
-    * values exist.
+    * Gets all of the values for a subject's property as an array.
     *
-    * @param jsonld the JSON-LD.
-    * @param property the property to add to.
+    * @param subject the subject.
+    * @param property the property.
+    *
+    * @return all of the values for a subject's property as an array.
     */
    static monarch::rt::DynamicObject getValues(
-      monarch::rt::DynamicObject& jsonld, const char* property);
+      monarch::rt::DynamicObject& subject, const char* property);
 
    /**
-    * Remove all values for a given property.
+    * Removes a property from a subject.
     *
-    * @param jsonld the JSON-LD.
-    * @param property the property to add to.
+    * @param subject the subject.
+    * @param property the property.
     */
    static void removeProperty(
-      monarch::rt::DynamicObject& jsonld, const char* property);
+      monarch::rt::DynamicObject& subject, const char* property);
 
    /**
-    * Removea all values equal to a given value for a JSON-LD property. If no
-    * values for the property remain, the property will be removed.
+    * Removes a value from a subject.
     *
-    * @param jsonld the JSON-LD.
-    * @param property the property to add to.
-    * @param value the value to add.
-    * @param propertyIsList true if property is a list, false if not.
+    * @param subject the subject.
+    * @param property the property that relates the value to the subject.
+    * @param value the value to remove.
+    * @param [propertyIsArray] true if the property is always an array, false
+    *          if not (default: false).
     */
    static void removeValue(
-      monarch::rt::DynamicObject& jsonld,
+      monarch::rt::DynamicObject& subject,
       const char* property,
-      monarch::rt::DynamicObject& value);
+      monarch::rt::DynamicObject value,
+      bool propertyIsArray = false);
+   static void removeValue(
+      monarch::rt::DynamicObject& subject,
+      const char* property,
+      const char* value,
+      bool propertyIsArray = false);
 
    /**
-    * Remove all values equal to a given value for a JSON-LD property by
-    * calling removeValue().
+    * Compares two JSON-LD values for equality. Two JSON-LD values will be
+    * considered equal if:
     *
-    * @param jsonld the JSON-LD.
-    * @param property the property to add to.
-    * @param value the value to add.
-    * @param propertyIsList true if property is a list, false if not.
+    * 1. They are both primitives of the same type and value.
+    * 2. They are both @values with the same @value, @type, and @language, OR
+    * 3. They both have @ids they are the same.
+    *
+    * @param v1 the first value.
+    * @param v2 the second value.
+    *
+    * @return true if v1 and v2 are considered equal, false if not.
     */
-   static void removeValue(
-      monarch::rt::DynamicObject& jsonld,
-      const char* property,
+   static bool compareValues(
+      monarch::rt::DynamicObject& v1, monarch::rt::DynamicObject& v2);
+
+   /**
+    * Compares two JSON-LD normalized inputs for equality.
+    *
+    * @param n1 the first normalized input.
+    * @param n2 the second normalized input.
+    *
+    * @return true if the inputs are equivalent, false if not.
+    */
+   static bool compareNormalized(
+      monarch::rt::DynamicObject& n1, monarch::rt::DynamicObject& n2);
+
+   /**
+    * Gets the value for the given @context key and type, null if none is set.
+    *
+    * @param ctx the context.
+    * @param key the context key.
+    * @param [type] the type of value to get (eg: '@id', '@type'), if not
+    *          specified gets the entire entry for a key, null if not found.
+    * @param [expand] true to expand the key, false not to (default: true).
+    *
+    * @return the value.
+    */
+   static bool getContextValue(
+      monarch::rt::DynamicObject ctx,
+      const char* key, const char* type,
+      monarch::rt::DynamicObject& output, bool expand = true);
+
+   /**
+    * Sets a value for the given @context key and type.
+    *
+    * @param ctx the context.
+    * @param key the context key.
+    * @param type the type of value to set (eg: '@id', '@type').
+    * @param value the value to use.
+    */
+   static bool setContextValue(
+      monarch::rt::DynamicObject ctx,
+      const char* key, const char* type,
+      monarch::rt::DynamicObject value);
+   static bool setContextValue(
+      monarch::rt::DynamicObject ctx,
+      const char* key, const char* type,
       const char* value);
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2007-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #ifndef monarch_test_Test_H
 #define monarch_test_Test_H
@@ -162,6 +162,36 @@ bool dumpDynamicObject(monarch::rt::DynamicObject& dyno, bool compact = false);
  */
 #define assertStrCmp(str1, str2) \
    assertNamedStrCmp("string a", str1, "string b", str2)
+
+/**
+ * Compares two DynamicObjects and sets an exception and prints out the
+ * results if they are not equal.
+ *
+ * @param name1 name of first DynamicObject
+ * @param dyno1 first DynamicObject
+ * @param name2 name of second DynamicObject
+ * @param dyno2 second DynamicObject
+ */
+#define namedDynoCmp(name1, dyno1, name2, dyno2) \
+   MO_STMT_START { \
+      if(!(dyno1 == dyno2)) \
+      { \
+         printf("\n%s:\n", name1); \
+         monarch::data::json::JsonWriter::writeToStdOut( \
+            dyno1, false, false); \
+         printf("%s:\n", name2); \
+         monarch::data::json::JsonWriter::writeToStdOut( \
+            dyno2, false, false); \
+         printf("Difference:\n"); \
+         monarch::rt::DynamicObject diff; \
+         dyno1.diff(dyno2, diff); \
+         monarch::data::json::JsonWriter::writeToStdOut( \
+            diff, false, false); \
+         monarch::rt::ExceptionRef e = new monarch::rt::Exception( \
+            "Objects are not the same."); \
+         monarch::rt::Exception::set(e); \
+      } \
+   } MO_STMT_END
 
 /**
  * Assert named DynamicObjects are equal.

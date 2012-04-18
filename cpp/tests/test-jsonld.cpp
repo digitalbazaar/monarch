@@ -67,6 +67,12 @@ static void _readFile(const char* root, const char* name, DynamicObject& data)
    is.close();
 }
 
+// compares two @ids
+static bool _compareIds(DynamicObject a, DynamicObject b)
+{
+   return a["@id"] < b["@id"];
+}
+
 static void _runJsonLdTestSuiteTest(
    TestRunner& tr, const char* root, DynamicObject& test)
 {
@@ -88,16 +94,14 @@ static void _runJsonLdTestSuiteTest(
       // read expected output
       _readFile(root, test["expect"], expect);
       // normalize
-      assertNoException(
-         JsonLd::normalize(input, output));
+      JsonLd::normalize(input, DynamicObject(Map), output);
    }
    else if(type->indexOf("jld:ExpandTest") != -1)
    {
       // read expected output
       _readFile(root, test["expect"], expect);
       // expand
-      assertNoException(
-         JsonLd::expand(input, output));
+      JsonLd::expand(input, DynamicObject(Map), output);
    }
    else if(type->indexOf("jld:CompactTest") != -1)
    {
@@ -116,8 +120,7 @@ static void _runJsonLdTestSuiteTest(
       _readFile(root, test["context"], context);
 
       // compact
-      assertNoException(
-         JsonLd::compact(context["@context"], input, output));
+      JsonLd::compact(input, context["@context"], DynamicObject(Map), output);
    }
    else if(type->indexOf("jld:FrameTest") != -1)
    {
@@ -136,20 +139,35 @@ static void _runJsonLdTestSuiteTest(
       _readFile(root, test["frame"], frame);
 
       // reframe
-      assertNoException(
-         JsonLd::frame(input, frame, output));
+      JsonLd::frame(input, frame, DynamicObject(Map), output);
    }
    else
    {
       skipped = true;
    }
 
-   if(!skipped && !expect.isNull())
+   if(!skipped && !expect.isNull() && !Exception::isSet())
    {
-      assertNamedDynoCmp("expect", expect, "output", output);
+      if(type->indexOf("jld:NormalizeTest") != -1)
+      {
+         if(!JsonLd::compareNormalized(expect, output))
+         {
+            namedDynoCmp("expect", expect, "output", output);
+         }
+      }
+      else
+      {
+         if(type->indexOf("jld:FrameTest") != -1)
+         {
+            // sort @graph arrays by @id
+            expect["@graph"].sort(&_compareIds);
+            output["@graph"].sort(&_compareIds);
+         }
+         namedDynoCmp("expect", expect, "output", output);
+      }
    }
 
-   tr.pass();
+   tr.passIfNoException();
    if(skipped)
    {
       string warn = StringTools::format(
@@ -180,8 +198,6 @@ static void _runJsonLdTestSuiteManifest(TestRunner& tr, const char* path)
    frameType = "jld:FrameTest";
    DynamicObject normalizeType;
    normalizeType = "jld:NormalizeTest";
-   DynamicObject rdfType;
-   rdfType = "jld:RDFTest";
 
    // sanity check
    v::ValidatorRef tv = new v::Map(
@@ -213,20 +229,16 @@ static void _runJsonLdTestSuiteManifest(TestRunner& tr, const char* path)
                   "@type", new v::Contains(normalizeType),
                   "expect", new v::Type(String),
                   NULL),
-               new v::Map(
-                  "@type", new v::Contains(rdfType),
-                  "purpose", new v::Type(String),
-                  "sparql", new v::Type(String),
-                  NULL),
                NULL),
             NULL),
          NULL)),
       NULL);
    if(!tv->isValid(manifest))
    {
-      string warn = StringTools::format("Invalid manifest \"%s\".", path);
+      string warn = StringTools::format(
+         "Unsupported or invalid manifest \"%s\".", path);
       tr.warning(warn.c_str());
-      dumpException();
+      //dumpException();
       Exception::clear();
    }
    else
@@ -426,12 +438,10 @@ static void runJsonLdTests(TestRunner& tr)
       JsonLd::addValue(d, "p", "v");
 
       assert(JsonLd::hasValue(d, "p", "v"));
-      // addValue implementation might use single value or array with a
-      // single value
-      DynamicObject p = d["p"];
-      assert(
-         (p->getType() == String) ||
-         (p->getType() == Array && p->length() == 1));
+
+      DynamicObject expect;
+      expect["p"] = "v";
+      assertNamedDynoCmp("expect", expect, "dyno", d);
    }
    tr.passIfNoException();
 
@@ -443,7 +453,6 @@ static void runJsonLdTests(TestRunner& tr)
 
       DynamicObject expect;
       expect["p"][0] = "v";
-      expect["p"][1] = "v";
       assertNamedDynoCmp("expect", expect, "dyno", d);
    }
    tr.passIfNoException();

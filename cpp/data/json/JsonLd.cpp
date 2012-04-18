@@ -3,25 +3,258 @@
  */
 #include "monarch/data/json/JsonLd.h"
 
+#include "monarch/crypto/MessageDigest.h"
 #include "monarch/rt/DynamicObjectIterator.h"
 #include "monarch/rt/Exception.h"
+#include "monarch/util/Pattern.h"
 #include "monarch/util/StringTools.h"
+
+// FIXME: remove me
+#include "monarch/data/json/JsonWriter.h"
 
 #include <cstdio>
 
 using namespace std;
+using namespace monarch::crypto;
 using namespace monarch::data;
 using namespace monarch::data::json;
 using namespace monarch::rt;
 using namespace monarch::util;
 
-#define XSD_NS            "http://www.w3.org/2001/XMLSchema#"
+#define XSD_NS        "http://www.w3.org/2001/XMLSchema#"
+#define XSD_BOOLEAN   XSD_NS "boolean"
+#define XSD_DOUBLE    XSD_NS "double"
+#define XSD_INTEGER   XSD_NS "integer"
 
-#define XSD_BOOLEAN       XSD_NS "boolean"
-#define XSD_DOUBLE        XSD_NS "double"
-#define XSD_INTEGER       XSD_NS "integer"
+#define RDF_NS      "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+#define RDF_FIRST   RDF_NS "first"
+#define RDF_REST    RDF_NS "rest"
+#define RDF_NIL     RDF_NS "nil"
+#define RDF_TYPE    RDF_NS "type"
 
 #define EXCEPTION_TYPE    "monarch.data.json.JsonLd"
+
+// local helpers
+namespace {
+
+/**
+ * A JSON-LD Processor.
+ */
+class Processor
+{
+public:
+   /**
+    * Creates a new Processor.
+    */
+   Processor() {};
+
+   /**
+    * Destructs this Processor.
+    */
+   virtual ~Processor() {};
+
+   /**
+    * Recursively compacts an element using the given context. All context URLs
+    * must have been resolved before calling this method and all values must
+    * be in expanded form.
+    *
+    * @param ctx the context to use.
+    * @param property the property that points to the element, NULL for none.
+    * @param element the element to compact.
+    * @param options the compaction options.
+    * @param output the compacted value.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   bool compact(
+      DynamicObject ctx, const char* property, DynamicObject element,
+      DynamicObject options, DynamicObject& output);
+
+   /**
+    * Recursively expands an element using the given context. Any context in
+    * the element will be removed. All context URLs must have been resolved
+    * before calling this method.
+    *
+    * @param ctx the context to use.
+    * @param property the property for the value, NULL for none.
+    * @param element the element to expand.
+    * @param propertyIsList true if the property is a list, false if not.
+    * @param output the expanded value.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   bool expand(
+      DynamicObject ctx, const char* property, DynamicObject element,
+      bool propertyIsList, DynamicObject& output);
+
+   /**
+    * Performs JSON-LD framing.
+    *
+    * @param input the expanded JSON-LD object to frame.
+    * @param frame the expanded JSON-LD frame to use.
+    * @param options the framing options.
+    * @param output the framed output.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   bool frame(
+      DynamicObject input, DynamicObject frame,
+      DynamicObject options, DynamicObject& output);
+
+   /**
+    * Performs JSON-LD normalization.
+    *
+    * @param input the expanded JSON-LD object to normalize.
+    * @param output the normalized output.
+    *
+    * @return the normalized output.
+    */
+   bool normalize(DynamicObject input, DynamicObject& output);
+
+   /**
+    * Outputs the RDF statements found in the given JSON-LD object.
+    *
+    * @param input the JSON-LD object.
+    * @param output the statement output.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   bool toRdf(DynamicObject input, DynamicObject& output);
+
+   /**
+    * Merges a context onto another.
+    *
+    * @param ctx1 the original context.
+    * @param ctx2 the new context to merge in.
+    * @param output resulting merged context.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   bool mergeContexts(
+      DynamicObject ctx1, DynamicObject ctx2, DynamicObject& output);
+};
+
+/**
+ * A Permutator iterates over all possible permutations of the given array
+ * of elements.
+ *
+ * @param list the array of elements to iterate over.
+ */
+class Permutator
+{
+protected:
+   /**
+    * The list/next permutation.
+    */
+   DynamicObject mList;
+
+   /**
+    * Whether or not the permutations are complete.
+    */
+   bool mDone;
+
+   /**
+    * A directional map.
+    */
+   DynamicObject mLeft;
+
+public:
+   /**
+    * Creates a Permutator that iterates over the given list.
+    *
+    * @param list the array of elements to iterate over.
+    */
+   Permutator(DynamicObject list);
+
+   /**
+    * Destructs this Permutator.
+    */
+   virtual ~Permutator() {};
+
+   /**
+    * Returns true if there is another permutation.
+    *
+    * @return true if there is another permutation, false if not.
+    */
+   bool hasNext();
+
+   /**
+    * Gets the next permutation. Call hasNext() to ensure there is another one
+    * first.
+    *
+    * @return the next permutation.
+    */
+   DynamicObject next();
+};
+
+typedef DynamicObject UniqueNamer;
+bool _expandValue(
+   DynamicObject ctx, const char* property, DynamicObject value,
+   DynamicObject& output);
+DynamicObject _createStatement(
+   const char* s, const char* p, DynamicObject& o);
+void _getStatements(
+   DynamicObject& input, UniqueNamer& namer,
+   DynamicObject& bnodes, DynamicObject& subjects, const char* name = NULL);
+DynamicObject _makeLinkedList(DynamicObject value);
+void _addStatement(DynamicObject statements, DynamicObject statement);
+bool _hashStatements(
+   DynamicObject& statements, UniqueNamer& namer, string& hash);
+bool _hashPaths(
+   DynamicObject& bnodes, DynamicObject& statements,
+   UniqueNamer& namer, UniqueNamer pathNamer, DynamicObject& result);
+const char* _getBlankNodeName(DynamicObject value);
+void _flatten(
+   DynamicObject subjects, DynamicObject input, UniqueNamer namer,
+   const char* name, DynamicObject* list);
+bool _frame(
+   DynamicObject& state, DynamicObject subjects,
+   DynamicObject frame, DynamicObject parent, const char* property);
+bool _getFrameFlag(
+   DynamicObject frame, DynamicObject options, const char* name);
+bool _validateFrame(DynamicObject state, DynamicObject frame);
+DynamicObject _filterSubjects(
+   DynamicObject state, DynamicObject subjects, DynamicObject frame);
+bool _filterSubject(DynamicObject subject, DynamicObject frame);
+void _embedValues(
+   DynamicObject state, DynamicObject subject, const char* property,
+   DynamicObject& output);
+void _removeEmbed(DynamicObject state, const char* id);
+void _removeDependentEmbeds(DynamicObject state, const char* id);
+void _addFrameOutput(
+   DynamicObject state, DynamicObject parent,
+   const char* property, DynamicObject output);
+DynamicObject _removePreserve(DynamicObject input);
+int _isBestMatch(
+   DynamicObject ctx, const char* key,
+   DynamicObject* value, const char* container,
+   const char* result, DynamicObject results, int rank);
+bool _compactIri(
+   DynamicObject ctx, const char* iri, string& output,
+   DynamicObject* value = NULL, const char* container = NULL);
+bool _expandTerm(
+   DynamicObject ctx, const char* term, string& output, bool deep = false);
+DynamicObject _getKeywords(DynamicObject ctx);
+bool _isKeyword(const char* value, DynamicObject* keywords = NULL);
+bool _isObject(DynamicObject input);
+bool _isEmptyObject(DynamicObject input);
+bool _isArray(DynamicObject input);
+bool _isArrayOfStrings(DynamicObject input);
+bool _isString(DynamicObject input);
+bool _isInteger(DynamicObject input);
+bool _isDouble(DynamicObject input);
+bool _isBoolean(DynamicObject input);
+bool _isSubject(DynamicObject value);
+bool _isSubjectReference(DynamicObject value);
+bool _isValue(DynamicObject value);
+bool _isSetValue(DynamicObject value);
+bool _isListValue(DynamicObject value);
+bool _isBlankNode(DynamicObject value);
+bool _isAbsoluteIri(const char* value);
+UniqueNamer _createUniqueNamer(const char* prefix);
+const char* _getName(UniqueNamer& namer, const char* oldName = NULL);
+bool _isNamed(UniqueNamer& namer, const char* oldName);
+}
 
 JsonLd::JsonLd()
 {
@@ -31,188 +264,3285 @@ JsonLd::~JsonLd()
 {
 }
 
-/**
- * Sets a subject's property to the given object value. If a value already
- * exists, it will be appended to an array.
- *
- * @param s the subject.
- * @param p the property.
- * @param o the object.
- */
-static void _setProperty(DynamicObject s, const char* p, DynamicObject o)
+bool JsonLd::compact(
+   DynamicObject input, DynamicObject ctx, DynamicObject options,
+   DynamicObject& output)
 {
-   if(s->hasMember(p))
+   // nothing to compact with NULL
+   if(input.isNull())
    {
-      s[p].push(o);
+      output.setNull();
    }
    else
    {
-      s[p] = o;
-   }
-}
+      // set default options
+      if(!options->hasMember("strict"))
+      {
+         options["strict"] = true;
+      }
+      if(!options->hasMember("optimize"))
+      {
+         options["optimize"] = false;
+      }
+      if(!options->hasMember("graph"))
+      {
+         options["graph"] = false;
+      }
 
-/**
- * Gets the keywords from a context.
- *
- * @param ctx the context.
- *
- * @return the keywords.
- */
-static DynamicObject _getKeywords(DynamicObject& ctx)
-{
-   // TODO: reduce calls to this function by caching keywords in processor
-   // state
+      // default to empty context
+      if(ctx.isNull())
+      {
+         ctx = DynamicObject(Map);
+      }
+      if(ctx->hasMember("@context"))
+      {
+         ctx = ctx["@context"];
+      }
 
-   DynamicObject rval(Map);
-   rval["@id"] = "@id";
-   rval["@language"] = "@language";
-   rval["@value"] = "@value";
-   rval["@type"] = "@type";
+      DynamicObject expanded;
+      DynamicObject merged;
 
-   if(!ctx.isNull())
-   {
-      // gather keyword aliases from context
-      DynamicObject keywords(Map);
-      DynamicObjectIterator i = ctx.getIterator();
+      // expand input
+      if(!JsonLd::expand(input, options, expanded))
+      {
+         ExceptionRef e = new Exception(
+            "Could not expand input before compaction.",
+            EXCEPTION_TYPE ".CompactError");
+         Exception::push(e);
+         return false;
+      }
+
+      // merge and resolve contexts
+      if(!JsonLd::mergeContexts(DynamicObject(Map), ctx, options, merged))
+      {
+         ExceptionRef e = new Exception(
+            "Could not merge context before compaction.",
+            EXCEPTION_TYPE ".CompactError");
+         Exception::push(e);
+         return false;
+      }
+
+      // create optimize context
+      if(options["optimize"]->getBoolean())
+      {
+         options["optimizeCtx"] = DynamicObject(Map);
+      }
+
+      // do compaction
+      Processor p;
+      if(!p.compact(merged, NULL, expanded, options, output))
+      {
+         return false;
+      }
+
+      // always use an array if graph options is on
+      if(options["graph"])
+      {
+         output = output.arrayify();
+      }
+      // else if compacted is an array with 1 entry, remove array
+      else if(_isArray(output) && output->length() == 1)
+      {
+         output = output[0];
+      }
+
+      // build output context
+      ctx = ctx.clone();
+      ctx = ctx.arrayify();
+
+      // add optimize context
+      if(options["optimize"])
+      {
+         ctx.push(options["optimizeCtx"]);
+      }
+
+      // remove empty contexts
+      DynamicObject tmp = ctx;
+      ctx = DynamicObject(Array);
+      DynamicObjectIterator i = tmp.getIterator();
       while(i->hasNext())
       {
-         DynamicObject& value = i->next();
-         if(value->getType() == String && rval->hasMember(value))
+         DynamicObject& next = i->next();
+         if(!_isObject(next) || next->length() > 0)
          {
-            keywords[value->getString()] = i->getName();
+            ctx.push(next);
          }
       }
 
-      // overwrite keywords
-      i = keywords.getIterator();
-      while(i->hasNext())
+      // remove array if only one context
+      bool hasContext = (ctx->length() > 0);
+      if(ctx->length() == 1)
       {
-         DynamicObject& value = i->next();
-         rval[i->getName()] = value;
+         ctx = ctx[0];
       }
-   }
 
-   return rval;
-}
-
-/**
- * Gets the iri associated with a term.
- *
- * @param entry the context entry for the term.
- *
- * @return the iri or NULL.
- */
-static const char* _getTermIri(DynamicObject& entry)
-{
-   const char* rval = NULL;
-   if(entry->getType() == String)
-   {
-      rval = entry;
-   }
-   else if(entry->getType() == Map && entry->hasMember("@id"))
-   {
-      rval = entry["@id"];
-   }
-   return rval;
-};
-
-/**
- * Compacts an IRI into a term or prefix it can be. IRIs will not be compacted
- * to relative IRIs if they match the given context's default vocabulary.
- *
- * @param ctx the context to use.
- * @param iri the IRI to compact.
- * @param usedCtx a context to update if a value was used from "ctx".
- *
- * @return the compacted IRI as a term or prefix or the original IRI.
- */
-static string _compactIri(
-   DynamicObject& ctx, const char* iri, DynamicObject* usedCtx)
-{
-   string rval;
-
-   // check the context for a term that could shorten the IRI
-   // (give preference to terms over prefixes)
-   DynamicObjectIterator i = ctx.getIterator();
-   while(rval.empty() && i->hasNext())
-   {
-      // get next entry and key from the context
-      DynamicObject& entry = i->next();
-      const char* key = i->getName();
-
-      // skip special context keys (start with '@')
-      if(key[0] != '@')
+      // add context
+      if(hasContext || options["graph"])
       {
-         // compact to a term
-         const char* ctxIri = _getTermIri(entry);
-         if(ctxIri != NULL && strcmp(iri, ctxIri) == 0)
+         if(_isArray(output))
          {
-            rval = key;
-            if(usedCtx != NULL)
+            // use '@graph' keyword
+            string kwgraph;
+            if(!_compactIri(ctx, "@graph", kwgraph))
             {
-               (*usedCtx)[key] = entry.clone();
+               return false;
             }
-         }
-      }
-   }
-
-   // term not found, if term is keyword, use alias
-   if(rval.empty())
-   {
-      DynamicObject keywords = _getKeywords(ctx);
-      if(keywords->hasMember(iri))
-      {
-         rval = keywords[iri]->getString();
-         if(usedCtx != NULL && strcmp(rval.c_str(), iri) != 0)
-         {
-            (*usedCtx)[rval.c_str()] = iri;
-         }
-      }
-   }
-
-   // if term not found, check the context for a prefix
-   i = ctx.getIterator();
-   while(rval.empty() && i->hasNext())
-   {
-      // get next entry and key from the context
-      DynamicObject& entry = i->next();
-      const char* key = i->getName();
-
-      // skip special context keys (start with '@')
-      if(key[0] != '@')
-      {
-         // see if IRI begins with the next IRI from the context
-         const char* ctxIri = _getTermIri(entry);
-         if(ctxIri != NULL)
-         {
-            const char* ptr = strstr(iri, ctxIri);
-            if(ptr != NULL && ptr == iri)
+            DynamicObject graph = output;
+            output = DynamicObject(Map);
+            if(hasContext)
             {
-               size_t len1 = strlen(iri);
-               size_t len2 = strlen(ctxIri);
+               output["@context"] = ctx;
+            }
+            output[kwgraph.c_str()] = graph;
+         }
+         else if(_isObject(output))
+         {
+            output["@context"] = ctx;
+         }
+      }
+   }
 
-               // compact to a prefix
-               if(len1 > len2)
+   return true;
+}
+
+bool JsonLd::expand(
+   DynamicObject input, DynamicObject options, DynamicObject& output)
+{
+   bool rval = true;
+
+   // resolve all @context URLs in the input
+   input = input.clone();
+   // FIXME: implement
+   //rval = _resolveUrls(input, resolver);
+   if(rval)
+   {
+      // do expansion
+      DynamicObject expanded;
+      Processor p;
+      rval = p.expand(DynamicObject(Map), NULL, input, false, expanded);
+      if(rval)
+      {
+         // optimize away @graph with no other properties
+         if(_isObject(expanded) && expanded->hasMember("@graph") &&
+            expanded->length() == 1)
+         {
+            expanded = expanded["@graph"];
+         }
+         // normalize to an array
+         output = expanded.arrayify();
+      }
+   }
+
+   return rval;
+}
+
+bool JsonLd::frame(
+   DynamicObject input, DynamicObject frame,
+   DynamicObject options, DynamicObject& output)
+{
+   // set default options
+   if(!options->hasMember("embed"))
+   {
+      options["embed"] = true;
+   }
+   if(!options->hasMember("explicit"))
+   {
+      options["explicit"] = false;
+   }
+   if(!options->hasMember("omitDefault"))
+   {
+      options["omitDefault"] = false;
+   }
+   if(!options->hasMember("optimize"))
+   {
+      options["optimize"] = false;
+   }
+
+   // preserve frame context
+   DynamicObject ctx = frame->hasMember("@context") ?
+      frame["@context"] : DynamicObject(Map);
+
+   // expand input
+   DynamicObject _input;
+   if(!JsonLd::expand(input, options, _input))
+   {
+      ExceptionRef e = new Exception(
+         "Could not expand input before framing.",
+         EXCEPTION_TYPE ".FrameError");
+      Exception::push(e);
+      return false;
+   }
+
+   // expand frame
+   DynamicObject _frame;
+   if(!JsonLd::expand(frame, options, _frame))
+   {
+      ExceptionRef e = new Exception(
+         "Could not expand frame before framing.",
+         EXCEPTION_TYPE ".FrameError");
+      Exception::push(e);
+      return false;
+   }
+
+   // do framing
+   DynamicObject framed;
+   Processor p;
+   if(!p.frame(_input, _frame, options, framed))
+   {
+      return false;
+   }
+
+   // compact result (force @graph option to true)
+   options["graph"] = true;
+   if(!JsonLd::compact(framed, ctx, options, output))
+   {
+      ExceptionRef e = new Exception(
+         "Could not compact framed output.",
+         EXCEPTION_TYPE ".FrameError");
+      Exception::push(e);
+      return false;
+   }
+
+   // get graph alias
+   string graph = "@graph";
+   DynamicObjectIterator i = output.getIterator();
+   while(i->hasNext())
+   {
+      i->next();
+      if(strcmp(i->getName(), "@context") != 0)
+      {
+         graph = i->getName();
+         break;
+      }
+   }
+
+   // remove @preserve from results
+   output[graph.c_str()] = _removePreserve(output[graph.c_str()]);
+   return true;
+}
+
+bool JsonLd::normalize(
+   DynamicObject input, DynamicObject options, DynamicObject& output)
+{
+   bool rval = true;
+
+   // expand input then do normalization
+   DynamicObject expanded;
+   rval = JsonLd::expand(input, options, expanded);
+   if(!rval)
+   {
+      ExceptionRef e = new Exception(
+         "Could not expand input before normalization.",
+         EXCEPTION_TYPE ".NormalizeError");
+      Exception::push(e);
+   }
+
+   // do normalization
+   Processor p;
+   rval = p.normalize(expanded, output);
+
+   return rval;
+}
+
+bool JsonLd::toRdf(
+   DynamicObject input, DynamicObject options, DynamicObject& output)
+{
+   bool rval = true;
+
+   // resolve all @context URLs in the input
+   input = input.clone();
+   // FIXME: implement
+   //rval = _resolveUrls(input, resolver);
+   if(rval)
+   {
+      // output statements
+      Processor p;
+      rval = p.toRdf(input, output);
+   }
+
+   return rval;
+}
+
+bool JsonLd::mergeContexts(
+   DynamicObject ctx1, DynamicObject ctx2, DynamicObject options,
+   DynamicObject& output)
+{
+   bool rval = true;
+
+   // return empty context early for null context
+   if(ctx2.isNull())
+   {
+      output = DynamicObject(Map);
+   }
+   else
+   {
+      // copy contexts
+      ctx1 = ctx1.clone();
+      ctx2 = ctx2.clone();
+
+      // resolve URLs in ctx1 and 2
+      DynamicObject _ctx1(Map);
+      DynamicObject _ctx2(Map);
+      _ctx1["@context"] = ctx1;
+      _ctx2["@context"] = ctx2;
+      // FIXME: implement
+      /*
+      rval =
+         _resolveUrls(_ctx1, resolver) &&
+         _resolveUrls(_ctx2, resolver); */
+      if(rval)
+      {
+         // do merge
+         Processor p;
+         rval = p.mergeContexts(ctx1, ctx2, output);
+      }
+   }
+
+   return rval;
+}
+
+bool JsonLd::hasProperty(DynamicObject& subject, const char* property)
+{
+   bool rval = false;
+
+   if(subject->hasMember(property))
+   {
+      DynamicObject& val = subject[property];
+      if(!val.isNull())
+      {
+         rval = _isArray(val) ? (val->length() != 0) : true;
+      }
+   }
+
+   return rval;
+}
+
+bool JsonLd::hasValue(
+   DynamicObject& subject, const char* property, DynamicObject value)
+{
+   bool rval = false;
+
+   if(JsonLd::hasProperty(subject, property))
+   {
+      DynamicObject val = subject[property];
+      bool isList = _isListValue(val);
+      if(_isArray(val) || isList)
+      {
+         if(isList)
+         {
+            val = val["@list"];
+         }
+         DynamicObjectIterator i = val.getIterator();
+         while(!rval && i->hasNext())
+         {
+            rval = JsonLd::compareValues(value, i->next());
+         }
+      }
+      // avoid matching the set of values with an array value parameter
+      else if(value->getType() != Array)
+      {
+         rval = JsonLd::compareValues(value, val);
+      }
+   }
+
+   return rval;
+}
+bool JsonLd::hasValue(
+   DynamicObject& subject, const char* property, const char* value)
+{
+   DynamicObject v;
+   v = value;
+   return hasValue(subject, property, v);
+}
+
+void JsonLd::addValue(
+   DynamicObject& subject, const char* property, DynamicObject value,
+   bool propertyIsArray)
+{
+   if(_isArray(value))
+   {
+      if(value->length() == 0 && propertyIsArray &&
+         !subject->hasMember(property))
+      {
+         subject[property]->setType(Array);
+      }
+      DynamicObjectIterator i = value.getIterator();
+      while(i->hasNext())
+      {
+         JsonLd::addValue(subject, property, i->next(), propertyIsArray);
+      }
+   }
+   else if(subject->hasMember(property))
+   {
+      bool hasValue = JsonLd::hasValue(subject, property, value);
+
+      // make property an array if value not present or always an array
+      if(!_isArray(subject[property]) && (!hasValue || propertyIsArray))
+      {
+         subject[property] = subject[property].arrayify();
+      }
+
+      // add new value
+      if(!hasValue)
+      {
+         subject[property].push(value);
+      }
+   }
+   // add new value as set
+   else if(propertyIsArray)
+   {
+      subject[property].push(value);
+   }
+   // add as single value
+   else
+   {
+      subject[property] = value;
+   }
+}
+void JsonLd::addValue(
+   DynamicObject& subject, const char* property, const char* value,
+   bool propertyIsArray)
+{
+   DynamicObject v;
+   v = value;
+   addValue(subject, property, v, propertyIsArray);
+}
+
+DynamicObject JsonLd::getValues(DynamicObject& subject, const char* property)
+{
+   DynamicObject rval(Array);
+
+   if(subject->hasMember(property))
+   {
+      rval = subject[property].arrayify();
+   }
+
+   return rval;
+}
+
+void JsonLd::removeProperty(DynamicObject& subject, const char* property)
+{
+   subject->removeMember(property);
+}
+
+void JsonLd::removeValue(
+   DynamicObject& subject, const char* property, DynamicObject value,
+   bool propertyIsArray)
+{
+   // filter out value
+   DynamicObject values = getValues(subject, property);
+   DynamicObject filtered(Array);
+   DynamicObjectIterator i = values.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& next = i->next();
+      if(!JsonLd::compareValues(next, value))
+      {
+         filtered->append(next);
+      }
+   }
+
+   if(filtered->length() == 0)
+   {
+      JsonLd::removeProperty(subject, property);
+   }
+   else if(filtered->length() == 1 && !propertyIsArray)
+   {
+      subject[property] = filtered[0];
+   }
+   else
+   {
+      subject[property] = filtered;
+   }
+}
+
+void JsonLd::removeValue(
+   DynamicObject& subject, const char* property, const char* value,
+   bool propertyIsArray)
+{
+   DynamicObject v;
+   v = value;
+   removeValue(subject, property, v, propertyIsArray);
+}
+
+bool JsonLd::compareValues(DynamicObject& v1, DynamicObject& v2)
+{
+   bool rval = false;
+
+   // 1. equal primitives
+   if(v1 == v2)
+   {
+     rval = true;
+   }
+   // 2. equal @values
+   else if(_isValue(v1) && _isValue(v2) &&
+      v1["@value"] == v2["@value"] &&
+      v1->hasMember("@type") == v2->hasMember("@type") &&
+      (!v1->hasMember("@type") || v1["@type"] == v2["@type"]) &&
+      v1->hasMember("@language") == v2->hasMember("@language") &&
+      (!v1->hasMember("@language") || v1["@language"] == v2["@language"]))
+   {
+      rval = true;
+   }
+   // 3. equal @ids
+   else if(_isObject(v1) && v1->hasMember("@id") &&
+      _isObject(v2) && v2->hasMember("@id"))
+   {
+      rval = (v1["@id"] == v2["@id"]);
+   }
+
+   return rval;
+}
+
+bool JsonLd::compareNormalized(DynamicObject& n1, DynamicObject& n2)
+{
+   bool rval = true;
+
+   // normalized JSON-LD must be an array, always return false if not
+   if(!_isArray(n1) || !_isArray(n2))
+   {
+      rval = false;
+   }
+   // different # of subjects
+   else if(n1->length() != n2->length())
+   {
+      rval = false;
+   }
+   else
+   {
+      // assume subjects are in the same order because of normalization
+      int length = n1->length();
+      for(int i = 0; rval && i < length; ++i)
+      {
+         DynamicObject s1 = n1[i];
+         DynamicObject s2 = n2[i];
+
+         // different @ids
+         if(s1["@id"] != s2["@id"])
+         {
+            rval = false;
+            break;
+         }
+
+         // subjects have different properties
+         if(s1->length() != s2->length())
+         {
+            rval = false;
+            break;
+         }
+
+         DynamicObjectIterator pi = s1.getIterator();
+         while(pi->hasNext())
+         {
+            pi->next();
+            const char* p = pi->getName();
+
+            // skip @id property
+            if(strcmp(p, "@id") == 0)
+            {
+              continue;
+            }
+
+            // s2 is missing s1 property
+            if(!JsonLd::hasProperty(s2, p))
+            {
+               rval = false;
+               break;
+            }
+
+            // subjects have different objects for the property
+            if(s1[p]->length() != s2[p]->length())
+            {
+               rval = false;
+               break;
+            }
+
+            DynamicObjectIterator oi = s1[p].getIterator();
+            while(oi->hasNext())
+            {
+               // s2 is missing s1 object
+               if(!JsonLd::hasValue(s2, p, oi->next()))
                {
-                  // add 2 to make room for null-terminator and colon
-                  rval = StringTools::format("%s:%s", key, ptr + len2);
-                  if(usedCtx != NULL)
-                  {
-                     (*usedCtx)[key] = entry.clone();
-                  }
+                  rval = false;
+                  break;
                }
             }
          }
       }
    }
 
-   // could not compact IRI
-   if(rval.empty())
+   return rval;
+}
+
+bool JsonLd::getContextValue(
+   DynamicObject ctx, const char* key, const char* type,
+   DynamicObject& output, bool expand)
+{
+   // get default language
+   if(type != NULL && strcmp(type, "@language") == 0 && ctx->hasMember(type))
    {
-      rval = iri;
+      output = ctx[type]->getString();
+   }
+   else
+   {
+      output.setNull();
+   }
+
+   // return NULL for invalid key
+   if(key == NULL)
+   {
+      output.setNull();
+   }
+   // return entire context entry if type is unspecified
+   else if(type == NULL)
+   {
+      if(ctx->hasMember(key))
+      {
+         output = ctx[key];
+      }
+      else
+      {
+         output.setNull();
+      }
+   }
+   else if(ctx->hasMember(key))
+   {
+      DynamicObject& entry = ctx[key];
+      if(_isObject(entry))
+      {
+         if(entry->hasMember(type))
+         {
+            output = entry[type];
+         }
+      }
+      else if(_isString(entry))
+      {
+         if(strcmp(type, "@id") == 0)
+         {
+            output = entry;
+         }
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Invalid @context value for key.",
+            EXCEPTION_TYPE ".InvalidContext");
+         e->getDetails()["context"] = ctx;
+         e->getDetails()["key"] = key;
+         Exception::set(e);
+         return false;
+      }
+
+      // expand term
+      if(!output.isNull() && strcmp(type, "@language") != 0)
+      {
+         string term;
+         if(!_expandTerm(ctx, output, term))
+         {
+            return false;
+         }
+         output = term.c_str();
+      }
+   }
+   // expand key if requested
+   else if(expand)
+   {
+      string keyStr;
+      if(!_expandTerm(ctx, key, keyStr))
+      {
+         return false;
+      }
+      return JsonLd::getContextValue(ctx, keyStr.c_str(), type, output, false);
+   }
+
+   return true;
+}
+
+bool JsonLd::setContextValue(
+   DynamicObject ctx, const char* key, const char* type, DynamicObject value)
+{
+   bool rval = true;
+
+   // compact key
+   string k;
+   rval = _compactIri(ctx, key, k);
+   if(rval)
+   {
+      // get keyword for type
+      DynamicObject keywords = _getKeywords(ctx);
+      const char* kwtype = keywords[type];
+
+      // add new key to @context or update existing key w/string value
+      if(!ctx->hasMember(key) || _isString(ctx[key]))
+      {
+         if(strcmp(type, "@id") == 0)
+         {
+            ctx[key] = value;
+         }
+         else
+         {
+            ctx[key][kwtype] = value;
+         }
+      }
+      // update existing key w/object value
+      else if(_isObject(ctx[key]))
+      {
+         ctx[key][kwtype] = value;
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Invalid @context value for key.",
+            EXCEPTION_TYPE ".InvalidContext");
+         e->getDetails()["context"] = ctx;
+         e->getDetails()["key"] = key;
+         Exception::set(e);
+         rval = false;
+      }
    }
 
    return rval;
+}
+bool JsonLd::setContextValue(
+   DynamicObject ctx, const char* key, const char* type, const char* value)
+{
+   DynamicObject v;
+   v = value;
+   return setContextValue(ctx, key, type, v);
+}
+
+// local namespace
+namespace {
+
+bool Processor::compact(
+   DynamicObject ctx, const char* property, DynamicObject element,
+   DynamicObject options, DynamicObject& output)
+{
+   // recursively compact array
+   if(_isArray(element))
+   {
+      output = DynamicObject(Array);
+      DynamicObjectIterator i = element.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject e;
+         if(!compact(ctx, property, i->next(), options, e))
+         {
+            return false;
+         }
+         // drop null values
+         if(!e.isNull())
+         {
+           output.push(e);
+         }
+      }
+      if(output->length() == 1)
+      {
+         // use single element if no container is specified
+         DynamicObject container;
+         if(!JsonLd::getContextValue(ctx, property, "@container", container))
+         {
+            return false;
+         }
+         if(container != "@list" && container != "@set")
+         {
+            output = output[0];
+         }
+      }
+      return true;
+   }
+
+   // recursively compact object
+   if(_isObject(element))
+   {
+      // element is a @value
+      if(_isValue(element))
+      {
+         DynamicObject type;
+         DynamicObject language;
+         if(!(JsonLd::getContextValue(ctx, property, "@type", type) &&
+            JsonLd::getContextValue(ctx, property, "@language", language)))
+         {
+            return false;
+         }
+
+         // matching @type specified in context, compact element
+         if(!type.isNull() && element->hasMember("@type") &&
+            element["@type"] == type)
+         {
+            element = element["@value"];
+
+            // use native datatypes for certain xsd types
+            if(type == XSD_BOOLEAN)
+            {
+               element = !(element == "false" || element == "0");
+            }
+            else if(type == XSD_INTEGER)
+            {
+               element = element->getInt64();
+            }
+            else if(type == XSD_DOUBLE)
+            {
+               element = element->getDouble();
+            }
+         }
+         // matching @language specified in context, compact element
+         else if(!language.isNull() &&
+            element->hasMember("@language") &&
+            element["@language"] == language)
+         {
+            element = element["@value"];
+         }
+         // compact @type IRI
+         else if(element->hasMember("@type"))
+         {
+            string id;
+            if(!_compactIri(ctx, element["@type"], id))
+            {
+               return false;
+            }
+            element["@type"] = id.c_str();
+         }
+         output = element;
+         return true;
+      }
+
+      // compact subject references
+      if(_isSubjectReference(element))
+      {
+         DynamicObject type;
+         if(!JsonLd::getContextValue(ctx, property, "@type", type))
+         {
+            return false;
+         }
+         if(type == "@id")
+         {
+            string id;
+            if(!_compactIri(ctx, element["@id"], id))
+            {
+               return false;
+            }
+            output = id.c_str();
+            return true;
+         }
+      }
+
+      // recursively process element keys
+      output = DynamicObject(Map);
+      DynamicObjectIterator i = element.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject value = i->next();
+         const char* key = i->getName();
+
+         // compact @id and @type(s)
+         if(strcmp(key, "@id") == 0 || strcmp(key, "@type") == 0)
+         {
+            // compact single @id
+            if(_isString(value))
+            {
+               string id;
+               if(!_compactIri(ctx, value, id))
+               {
+                  return false;
+               }
+               value = id.c_str();
+            }
+            // value must be a @type array
+            else
+            {
+               DynamicObject types(Array);
+               DynamicObjectIterator vi = value.getIterator();
+               while(vi->hasNext())
+               {
+                  string id;
+                  if(!_compactIri(ctx, vi->next(), id))
+                  {
+                     return false;
+                  }
+                  types.push(id.c_str());
+               }
+               value = types;
+            }
+
+            // compact property and add value
+            string prop;
+            if(!_compactIri(ctx, key, prop))
+            {
+               return false;
+            }
+            bool isArray = (_isArray(value) && value->length() == 0);
+            JsonLd::addValue(output, prop.c_str(), value, isArray);
+            continue;
+         }
+
+         // Note: value must be an array due to expansion algorithm.
+
+         // preserve empty arrays
+         if(value->length() == 0)
+         {
+            string prop;
+            if(!_compactIri(ctx, key, prop))
+            {
+               return false;
+            }
+            JsonLd::addValue(output, prop.c_str(), DynamicObject(Array), true);
+         }
+
+         // recusively process array values
+         DynamicObjectIterator vi = value.getIterator();
+         while(vi->hasNext())
+         {
+            DynamicObject v = vi->next();
+            bool isList = _isListValue(v);
+
+            // compact property
+            string prop;
+            if(_isValue(v))
+            {
+               if(!_compactIri(ctx, key, prop, &v))
+               {
+                  return false;
+               }
+            }
+            else if(isList)
+            {
+               if(!_compactIri(ctx, key, prop, &v, "@list"))
+               {
+                  return false;
+               }
+               v = v["@list"];
+            }
+            else if(_isString(v))
+            {
+               // pass expanded form of plain literal to handle null language
+               DynamicObject tmp(Map);
+               tmp["@value"] = v;
+               if(!_compactIri(ctx, key, prop, &tmp))
+               {
+                  return false;
+               }
+            }
+            else if(!_compactIri(ctx, key, prop))
+            {
+               return false;
+            }
+
+            // recursively compact value
+            if(!compact(ctx, prop.c_str(), v, options, v))
+            {
+               return false;
+            }
+
+            // get container type for property
+            DynamicObject container;
+            if(!JsonLd::getContextValue(
+               ctx, prop.c_str(), "@container", container))
+            {
+               return false;
+            }
+
+            // handle @list
+            if(isList && container != "@list")
+            {
+               // handle messy @list compaction
+               if(output->hasMember(prop.c_str()) && options["strict"])
+               {
+                  ExceptionRef e = new Exception(
+                     "JSON-LD compact error; property has a \"@list\" "
+                     "@container rule but there is more than a single @list "
+                     "that matches the compacted term in the document. "
+                     "Compaction might mix unwanted items into the list.",
+                     EXCEPTION_TYPE ".SyntaxError");
+                  Exception::set(e);
+                  return false;
+               }
+               // reintroduce @list keyword
+               string kwlist;
+               if(!_compactIri(ctx, "@list", kwlist))
+               {
+                  return false;
+               }
+               DynamicObject val(Map);
+               val[kwlist.c_str()] = v;
+               v = val;
+            }
+
+            // if @container is @set or @list or value is an empty array, use
+            // an array when adding value
+            bool isArray = (container == "@set" || container == "@list" ||
+               (_isArray(v) && v->length() == 0));
+
+            // add compact value
+            JsonLd::addValue(output, prop.c_str(), v, isArray);
+         }
+      }
+      return true;
+   }
+
+   // only primitives remain which are already compact
+   output = element;
+   return true;
+}
+
+bool Processor::expand(
+   DynamicObject ctx, const char* property, DynamicObject element,
+   bool propertyIsList, DynamicObject& output)
+{
+   // recursively expand array
+   if(_isArray(element))
+   {
+      output = DynamicObject(Array);
+      DynamicObjectIterator i = element.getIterator();
+      while(i->hasNext())
+      {
+         // expand element
+         DynamicObject e;
+         if(!expand(ctx, property, i->next(), propertyIsList, e))
+         {
+            return false;
+         }
+         if(_isArray(e) && propertyIsList)
+         {
+            // lists of lists are illegal
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; lists of lists are not permitted.",
+               EXCEPTION_TYPE ".SyntaxError");
+            Exception::set(e);
+            return false;
+         }
+         // drop null values
+         else if(!e.isNull())
+         {
+            output.push(e);
+         }
+      }
+      return true;
+   }
+
+   // recursively expand object
+   if(_isObject(element))
+   {
+      // if element has a context, merge it in
+      if(element->hasMember("@context"))
+      {
+         if(!mergeContexts(ctx, element["@context"], ctx))
+         {
+            return false;
+         }
+         element->removeMember("@context");
+      }
+
+      // get keyword aliases
+      DynamicObject keywords = _getKeywords(ctx);
+
+      output = DynamicObject(Map);
+      DynamicObjectIterator i = element.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject value = i->next();
+         const char* key = i->getName();
+
+         // expand property
+         string prop;
+         if(!_expandTerm(ctx, key, prop))
+         {
+            return false;
+         }
+
+         // drop non-absolute IRI keys that aren't keywords
+         if(!_isAbsoluteIri(prop.c_str()) &&
+            !_isKeyword(prop.c_str(), &keywords))
+         {
+            continue;
+         }
+
+         // if value is null and property is not @value, continue
+         if(value.isNull() && prop != "@value")
+         {
+            continue;
+         }
+
+         // syntax error if @id is not a string
+         if(prop == "@id" && !_isString(value))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; \"@id\" value must a string.",
+               EXCEPTION_TYPE ".SyntaxError");
+            e->getDetails()["value"] = value;
+            Exception::set(e);
+            return false;
+         }
+
+         // @type must be a string, array of strings, or an empty JSON object
+         if(prop == "@type" &&
+            !(_isString(value) || _isArrayOfStrings(value) ||
+            _isEmptyObject(value)))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; \"@type\" value must a string, an "
+               "array of strings, or an empty object.",
+               EXCEPTION_TYPE ".SyntaxError");
+            e->getDetails()["value"] = value;
+            Exception::set(e);
+            return false;
+         }
+
+         // @graph must be an array or an object
+         if(prop == "@graph" && !(_isObject(value) || _isArray(value)))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; \"@value\" value must not be an "
+               "object or an array.",
+               EXCEPTION_TYPE ".SyntaxError");
+            e->getDetails()["value"] = value;
+            Exception::set(e);
+            return false;
+         }
+
+         // @value must not be an object or an array
+         if(prop == "@value" && (_isObject(value) || _isArray(value)))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; \"@value\" value must not be an "
+               "object or an array.",
+               EXCEPTION_TYPE ".SyntaxError");
+            e->getDetails()["value"] = value;
+            Exception::set(e);
+            return false;
+         }
+
+         // @language must be a string
+         if(prop == "@language" && !_isString(value))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; \"@language\" value must not be "
+               "a string.",
+               EXCEPTION_TYPE ".SyntaxError");
+            e->getDetails()["value"] = value;
+            Exception::set(e);
+            return false;
+         }
+
+         // recurse into @list, @set, or @graph, keeping the active property
+         bool isList = (prop == "@list");
+         if(isList || prop == "@set" || prop == "@graph")
+         {
+            DynamicObject e;
+            if(!expand(ctx, property, value, isList, e))
+            {
+               return false;
+            }
+            value = e;
+            if(isList && _isListValue(value))
+            {
+               ExceptionRef e = new Exception(
+                  "Invalid JSON-LD syntax; lists of lists are not permitted.",
+                  EXCEPTION_TYPE ".SyntaxError");
+               Exception::set(e);
+               return false;
+            }
+         }
+         else
+         {
+            // update active property and recursively expand value
+            DynamicObject e;
+            property = key;
+            if(!expand(ctx, property, value, false, e))
+            {
+               return false;
+            }
+            value = e;
+         }
+
+         // drop null values if property is not @value (dropped below)
+         if(!value.isNull() || prop == "@value")
+         {
+            // convert value to @list if container specifies it
+            if(prop != "@list" && !_isListValue(value))
+            {
+               DynamicObject container;
+               if(!JsonLd::getContextValue(
+                  ctx, property, "@container", container))
+               {
+                  return false;
+               }
+               if(container == "@list")
+               {
+                  // ensure value is an array
+                  DynamicObject val(Map);
+                  val["@list"] = value.arrayify();
+                  value = val;
+               }
+            }
+
+            // add value, use an array if not @id, @type, @value, or @language
+            bool useArray = !(prop == "@id" || prop == "@type" ||
+               prop == "@value" || prop == "@language");
+            JsonLd::addValue(output, prop.c_str(), value, useArray);
+         }
+      }
+
+      // get property count on expanded output
+      int count = output->length();
+
+      // @value must only have @language or @type
+      if(output->hasMember("@value"))
+      {
+         if((count == 2 && !output->hasMember("@type") &&
+            !output->hasMember("@language")) || count > 2)
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; an element containing \"@value\" "
+               "must have at most one other property which can be "
+               "\"@type\" or \"@language\".",
+               EXCEPTION_TYPE ".SyntaxError");
+            e->getDetails()["element"] = output;
+            Exception::set(e);
+            return false;
+         }
+         // value @type must be a string
+         if(output->hasMember("@type") && !_isString(output["@type"]))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; the \"@type\" value of an element "
+               "containing \"@value\" must be a string.",
+               EXCEPTION_TYPE ".SyntaxError");
+            e->getDetails()["element"] = output;
+            Exception::set(e);
+            return false;
+         }
+         // return only the value of @value if there is no @type or @language
+         else if(count == 1)
+         {
+            output = output["@value"];
+         }
+         // drop null @values
+         else if(output["@value"].isNull())
+         {
+            output.setNull();
+         }
+      }
+      // convert @type to an array
+      else if(output->hasMember("@type") && !_isArray(output["@type"]))
+      {
+         output["@type"] = output["@type"].arrayify();
+      }
+      // handle @set and @list
+      else if(output->hasMember("@set") || output->hasMember("@list"))
+      {
+         if(count != 1)
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; if an element has the property "
+               "\"@set\" or \"@list\", then it must be its only property.",
+               EXCEPTION_TYPE ".SyntaxError");
+            e->getDetails()["element"] = output;
+            Exception::set(e);
+            return false;
+         }
+         // optimize away @set
+         if(output->hasMember("@set"))
+         {
+            output = output["@set"];
+         }
+      }
+      // drop objects with only @language
+      else if(output->hasMember("@language") && count == 1)
+      {
+         output.setNull();
+      }
+
+      return true;
+   }
+
+   // expand element according to value expansion rules
+   return _expandValue(ctx, property, element, output);
+}
+
+bool Processor::frame(
+   DynamicObject input, DynamicObject frame,
+   DynamicObject options, DynamicObject& output)
+{
+   // create framing state
+   DynamicObject state;
+   state["options"] = options;
+   state["subjects"]->setType(Map);
+
+   // produce a map of all subjects and name each bnode
+   UniqueNamer namer = _createUniqueNamer("_:t");
+   _flatten(state["subjects"], input, namer, NULL, NULL);
+
+   // frame the subjects
+   output = DynamicObject(Array);
+   return _frame(state, state["subjects"], frame, output, NULL);
+}
+
+Permutator::Permutator(DynamicObject list) :
+   mList(list.sort()),
+   mDone(false),
+   mLeft(Map)
+{
+   // initialize directional info for permutation algorithm
+   DynamicObjectIterator i = mList.getIterator();
+   while(i->hasNext())
+   {
+      mLeft[i->next()->getString()] = true;
+   }
+}
+
+bool Permutator::hasNext()
+{
+   return !mDone;
+}
+
+DynamicObject Permutator::next()
+{
+   // copy current permutation
+   DynamicObject rval = mList.clone();
+
+   /* Calculate the next permutation using the Steinhaus-Johnson-Trotter
+    permutation algorithm. */
+
+   // get largest mobile element k
+   // (mobile: element is greater than the one it is looking at)
+   DynamicObject k(NULL);
+   int pos = 0;
+   int length = mList->length();
+   for(int i = 0; i < length; ++i)
+   {
+      DynamicObject& element = mList[i];
+      bool left = mLeft[element->getString()];
+      if((k.isNull() || element > k) &&
+         ((left && i > 0 && element > mList[i - 1]) ||
+            (!left && i < (length - 1) && element > mList[i + 1])))
+      {
+         k = element;
+         pos = i;
+      }
+   }
+
+   // no more permutations
+   if(k.isNull())
+   {
+      mDone = true;
+   }
+   else
+   {
+      // swap k and the element it is looking at
+      int swap = mLeft[k->getString()] ? pos - 1 : pos + 1;
+      mList[pos] = mList[swap];
+      mList[swap] = k;
+
+      // reverse the direction of all elements larger than k
+      for(int i = 0; i < length; ++i)
+      {
+         if(mList[i] > k)
+         {
+            mLeft[mList[i]->getString()] = !mLeft[mList[i]->getString()];
+         }
+      }
+   }
+
+   return rval;
+}
+
+/**
+ * Compares two subjects by their @ids.
+ *
+ * @param a the first subject.
+ * @param b the second subject.
+ *
+ * @return true if the first subjects's @id is less than the second's.
+ */
+bool _compareIds(DynamicObject a, DynamicObject b)
+{
+   return a["@id"] < b["@id"];
+}
+
+/**
+ * Compares two hash paths results by hash.
+ *
+ * @param a the first result.
+ * @param b the second result.
+ *
+ * @return true if the first result's hash is less than the second's.
+ */
+bool _compareResults(DynamicObject a, DynamicObject b)
+{
+   return a["hash"] < b["hash"];
+}
+
+/**
+ * Compares two bnodes by their assigned names.
+ */
+struct NameComparator : public DynamicObject::SortFunctor
+{
+   DynamicObject namer;
+   virtual bool operator()(DynamicObject& a, DynamicObject& b)
+   {
+      return (namer["existing"][a->getString()] <
+         namer["existing"][b->getString()]);
+   }
+};
+
+bool Processor::normalize(DynamicObject input, DynamicObject& output)
+{
+   bool rval = true;
+
+   // get statements
+   UniqueNamer namer = _createUniqueNamer("_:t");
+   DynamicObject bnodes(Map);
+   DynamicObject subjects(Map);
+   _getStatements(input, namer, bnodes, subjects);
+
+   // create canonical namer
+   namer = _createUniqueNamer("_:c14n");
+
+   // continue to hash bnode statements while bnodes are assigned names
+   DynamicObject unnamed(NULL);
+   DynamicObject nextUnnamed = bnodes.keys();
+   DynamicObject duplicates(NULL);
+   do
+   {
+      unnamed = nextUnnamed;
+      nextUnnamed = DynamicObject(Array);
+      duplicates = DynamicObject(Map);
+      DynamicObject unique(Map);
+      DynamicObjectIterator i = unnamed.getIterator();
+      while(rval && i->hasNext())
+      {
+         // hash statements for each unnamed bnode
+         const char* bnode = i->next();
+         DynamicObject& statements = bnodes[bnode];
+         string hashStr;
+         rval = _hashStatements(statements, namer, hashStr);
+         if(rval)
+         {
+            // store hash as unique or a duplicate
+            const char* hash = hashStr.c_str();
+            if(duplicates->hasMember(hash))
+            {
+               duplicates[hash].push(bnode);
+               nextUnnamed.push(bnode);
+            }
+            else if(unique->hasMember(hash))
+            {
+               duplicates[hash].push(unique[hash]);
+               duplicates[hash].push(bnode);
+               nextUnnamed.push(unique[hash]);
+               nextUnnamed.push(bnode);
+               unique->removeMember(hash);
+            }
+            else
+            {
+               unique[hash] = bnode;
+            }
+         }
+      }
+
+      // name unique bnodes in sorted hash order
+      i = unique.keys().sort().getIterator();
+      while(rval && i->hasNext())
+      {
+         const char* bnode = unique[i->next()->getString()];
+         _getName(namer, bnode);
+      }
+   }
+   while(unnamed->length() > nextUnnamed->length());
+
+   // enumerate duplicate hash groups in sorted order
+   DynamicObjectIterator i = duplicates.keys().sort().getIterator();
+   while(rval && i->hasNext())
+   {
+      // process group
+      const char* hash = i->next()->getString();
+      DynamicObject& group = duplicates[hash];
+      DynamicObject results(Array);
+      DynamicObjectIterator gi = group.getIterator();
+      while(rval && gi->hasNext())
+      {
+         // skip already-named bnodes
+         const char* bnode = gi->next();
+         if(_isNamed(namer, bnode))
+         {
+           continue;
+         }
+
+         // hash bnode paths
+         UniqueNamer pathNamer = _createUniqueNamer("_:t");
+         _getName(pathNamer, bnode);
+         DynamicObject result;
+         rval = _hashPaths(bnodes, bnodes[bnode], namer, pathNamer, result);
+         if(rval)
+         {
+            results.push(result);
+         }
+      }
+
+      // name bnodes in hash order
+      results.sort(&_compareResults);
+      DynamicObjectIterator ri = results.getIterator();
+      while(rval && ri->hasNext())
+      {
+         // name all bnodes in path namer in key-entry order
+         DynamicObject& result = ri->next();
+         NameComparator nc;
+         nc.namer = result["pathNamer"];
+         DynamicObjectIterator ni =
+            nc.namer["existing"].keys().sort(nc).getIterator();
+         while(ni->hasNext())
+         {
+            _getName(namer, ni->next());
+         }
+      }
+   }
+
+   // create JSON-LD array
+   output = DynamicObject(Array);
+
+   // add all bnodes
+   i = bnodes.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& statements = i->next();
+      const char* id = i->getName();
+      DynamicObject bnode(Map);
+      bnode["@id"] = _getName(namer, id);
+
+      // add all property statements to bnode
+      DynamicObjectIterator si = statements.getIterator();
+      while(si->hasNext())
+      {
+         DynamicObject& statement = si->next();
+         if(statement["s"] == "_:a")
+         {
+            const char* z = _getBlankNodeName(statement["o"]);
+            DynamicObject o = statement["o"];
+            if(z != NULL)
+            {
+               o = DynamicObject(Map);
+               o["@id"] = _getName(namer, z);
+            }
+            JsonLd::addValue(bnode, statement["p"], o, true);
+         }
+      }
+
+      output.push(bnode);
+   }
+
+   // add all non-bnodes
+   DynamicObjectIterator si = subjects.getIterator();
+   while(si->hasNext())
+   {
+      DynamicObject& statements = si->next();
+      DynamicObject subject(Map);
+      subject["@id"] = si->getName();
+
+      // add all statements to subject
+      DynamicObjectIterator ssi = statements.getIterator();
+      while(ssi->hasNext())
+      {
+         DynamicObject statement = ssi->next();
+         const char* z = _getBlankNodeName(statement["o"]);
+         DynamicObject o = statement["o"];
+         if(z != NULL)
+         {
+            o = DynamicObject(Map);
+            o["@id"] = _getName(namer, z);
+         }
+         JsonLd::addValue(subject, statement["p"], o, true);
+      }
+
+      output.push(subject);
+   }
+
+   // sort normalized output by @id
+   output.sort(&_compareIds);
+
+   return true;
+}
+
+bool Processor::toRdf(DynamicObject input, DynamicObject& output)
+{
+   ExceptionRef e = new Exception(
+      "Not implemented",
+      EXCEPTION_TYPE ".NotImplemented");
+   Exception::set(e);
+   return false;
+}
+
+bool Processor::mergeContexts(
+   DynamicObject ctx1, DynamicObject ctx2, DynamicObject& output)
+{
+   // flatten array context
+   if(_isArray(ctx1))
+   {
+      if(!mergeContexts(DynamicObject(Map), ctx1, ctx1))
+      {
+         return false;
+      }
+   }
+
+   // init return value as copy of first context
+   output = ctx1.clone();
+
+   if(ctx2.isNull())
+   {
+      // reset to blank context
+      output = DynamicObject(Map);
+   }
+   else if(_isArray(ctx2))
+   {
+      // flatten array context in order
+      DynamicObjectIterator i = ctx2.getIterator();
+      while(i->hasNext())
+      {
+         if(!mergeContexts(output, i->next(), output))
+         {
+            return false;
+         }
+      }
+   }
+   else if(_isObject(ctx2))
+   {
+      // iterate over new keys
+      DynamicObjectIterator i = ctx2.getIterator();
+      while(i->hasNext())
+      {
+         i->next();
+         const char* key = i->getName();
+
+         // ensure @language is a string
+         if(strcmp(key, "@language") == 0 && !_isString(ctx2[key]))
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; \"@language\" must be a string.",
+               EXCEPTION_TYPE ".SyntaxError");
+            Exception::set(e);
+            return false;
+         }
+
+         DynamicObject newIri;
+         if(!JsonLd::getContextValue(ctx2, key, "@id", newIri, false))
+         {
+            return false;
+         }
+         // no IRI defined, skip
+         if(newIri.isNull())
+         {
+            continue;
+         }
+
+         // if the ctx2 has a new definition for an IRI (possibly using a new
+         // key), then the old definition must be removed
+         DynamicObjectIterator oi = output.getIterator();
+         while(oi->hasNext())
+         {
+            oi->next();
+            const char* okey = oi->getName();
+
+            // matching IRI, remove old entry
+            DynamicObject match;
+            if(!JsonLd::getContextValue(
+               output, okey, "@id", match, false))
+            {
+               return false;
+            }
+            if(newIri == match)
+            {
+               oi->remove();
+               break;
+            }
+         }
+      }
+
+      // merge contexts
+      i = ctx2.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         const char* key = i->getName();
+         output[key] = next;
+      }
+   }
+   else
+   {
+      ExceptionRef e = new Exception(
+         "Invalid JSON-LD syntax; @context must be an array, object or "
+         "absolute IRI string.",
+         EXCEPTION_TYPE ".SyntaxError");
+      Exception::set(e);
+      return false;
+   }
+
+   return true;
+}
+
+/**
+ * Expands the given value by using the coercion and keyword rules in the
+ * given context.
+ *
+ * @param ctx the context to use.
+ * @param property the expanded property the value is associated with.
+ * @param value the value to expand.
+ * @param output the expanded value.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+bool _expandValue(
+   DynamicObject ctx, const char* property, DynamicObject value,
+   DynamicObject& output)
+{
+   // default to simple string return value
+   output = value.clone();
+
+   // special-case expand @id and @type (skips '@id' expansion)
+   string prop;
+   if(!_expandTerm(ctx, property, prop))
+   {
+      return false;
+   }
+   if(prop == "@id" || prop == "@type")
+   {
+      string id;
+      if(!_expandTerm(ctx, value, id))
+      {
+         return false;
+      }
+      output = id.c_str();
+      return true;
+   }
+
+   // get type definition from context
+   DynamicObject type;
+   if(!JsonLd::getContextValue(ctx, property, "@type", type))
+   {
+      return false;
+   }
+
+   // do @id expansion
+   if(type == "@id")
+   {
+      string id;
+      if(!_expandTerm(ctx, value, id))
+      {
+         return false;
+      }
+      output = DynamicObject(Map);
+      output["@id"] = id.c_str();
+   }
+   // other type
+   else if(!type.isNull())
+   {
+      output = DynamicObject(Map);
+      output["@value"] = value->getString();
+      output["@type"] = type->getString();
+   }
+   // check for language @tagging
+   else
+   {
+      DynamicObject language;
+      if(!JsonLd::getContextValue(ctx, property, "@language", language))
+      {
+         return false;
+      }
+      if(!language.isNull())
+      {
+         output = DynamicObject(Map);
+         output["@value"] = value->getString();
+         output["@language"] = language->getString();
+      }
+   }
+
+   return true;
+}
+
+/**
+ * Creates a statement from a subject, property, and object.
+ *
+ * @param s the subject.
+ * @param p the property.
+ * @param o the object.
+ *
+ * @return the statement.
+ */
+DynamicObject _createStatement(
+   const char* s, const char* p, DynamicObject& o)
+{
+   DynamicObject statement(Map);
+   statement["s"] = s;
+   statement["p"] = p;
+   statement["o"] = o;
+   return statement;
+}
+
+/**
+ * Recursively gets all statements from the given expanded JSON-LD input.
+ *
+ * @param input the valid expanded JSON-LD input.
+ * @param namer the UniqueNamer to use when encountering blank nodes.
+ * @param bnodes the blank node statements map to populate.
+ * @param subjects the subject statements map to populate.
+ * @param [name] the name (@id) assigned to the current input.
+ */
+void _getStatements(
+   DynamicObject& input, UniqueNamer& namer,
+   DynamicObject& bnodes, DynamicObject& subjects, const char* name)
+{
+   // recurse into arrays
+   if(_isArray(input))
+   {
+      DynamicObjectIterator i = input.getIterator();
+      while(i->hasNext())
+      {
+         _getStatements(i->next(), namer, bnodes, subjects);
+      }
+   }
+   // safe to assume input is a subject/blank node
+   else
+   {
+      bool isBnode = _isBlankNode(input);
+
+      // name blank node if appropriate, use passed name if given
+      if(name == NULL)
+      {
+         if(isBnode)
+         {
+            const char* id = input->hasMember("@id") ?
+               input["@id"]->getString() : NULL;
+            name = _getName(namer, id);
+         }
+         else
+         {
+            name = input["@id"];
+         }
+      }
+
+      // use a subject of '_:a' for blank node statements
+      const char* s = isBnode ? "_:a" : name;
+
+      // get statements for the blank node
+      DynamicObject entries(NULL);
+      if(isBnode)
+      {
+         entries = bnodes[name];
+         entries->setType(Array);
+      }
+      else
+      {
+         entries = subjects[name];
+         entries->setType(Array);
+      }
+
+      // add all statements in input
+      DynamicObjectIterator i = input.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject objects = i->next();
+         const char* p = i->getName();
+
+         // skip @id
+         if(strcmp(p, "@id") == 0)
+         {
+            continue;
+         }
+
+         // convert @lists into embedded blank node linked lists
+         DynamicObjectIterator oi = objects.getIterator();
+         while(oi->hasNext())
+         {
+            DynamicObject o = oi->next();
+            if(_isListValue(o))
+            {
+               objects[oi->getIndex()] = _makeLinkedList(o);
+            }
+         }
+
+         oi = objects.getIterator();
+         while(oi->hasNext())
+         {
+            DynamicObject o = oi->next();
+
+            // convert boolean to @value
+            if(_isBoolean(o))
+            {
+               DynamicObject tmp = o;
+               o = DynamicObject(Map);
+               o["@value"] = tmp->getString();
+               o["@type"] = XSD_BOOLEAN;
+            }
+            // convert double to @value
+            else if(_isDouble(o))
+            {
+               // do special JSON-LD double format, printf('%1.16e')
+               DynamicObject tmp = o;
+               o = DynamicObject(Map);
+               o["@value"]->format("%1.16e", tmp->getDouble());
+               o["@type"] = XSD_DOUBLE;
+            }
+            // convert integer to @value
+            else if(_isInteger(o))
+            {
+               DynamicObject tmp = o;
+               o = DynamicObject(Map);
+               o["@value"] = tmp->getString();
+               o["@type"] = XSD_INTEGER;
+            }
+
+            // object is a blank node
+            if(_isBlankNode(o))
+            {
+               // name object position blank node
+               const char* id = o->hasMember("@id") ?
+                  o["@id"]->getString() : NULL;
+               const char* oName = _getName(namer, id);
+
+               // add property statement
+               DynamicObject obj(Map);
+               obj["@id"] = oName;
+               _addStatement(entries, _createStatement(s, p, obj));
+
+               // add reference statement
+               DynamicObject oEntries = bnodes[oName];
+               oEntries->setType(Array);
+               obj = DynamicObject(Map);
+               obj["@id"] = "_:a";
+               _addStatement(oEntries, _createStatement(name, p, obj));
+
+               // recurse into blank node
+               _getStatements(o, namer, bnodes, subjects, oName);
+            }
+            // object is a string, @value, subject reference
+            else if(_isString(o) || _isValue(o) || _isSubjectReference(o))
+            {
+               // add property statement
+               _addStatement(entries, _createStatement(s, p, o));
+
+               // ensure a subject entry exists for subject reference
+               if(_isSubjectReference(o))
+               {
+                  const char* id = o["@id"];
+                  subjects[id]->setType(Array);
+               }
+            }
+            // object must be an embedded subject
+            else
+            {
+               // add property statement
+               DynamicObject obj = DynamicObject(Map);
+               obj["@id"] = o["@id"]->getString();
+               _addStatement(entries, _createStatement(s, p, obj));
+
+               // recurse into subject
+               _getStatements(o, namer, bnodes, subjects);
+            }
+         }
+      }
+   }
+};
+
+/**
+ * Converts a @list value into an embedded linked list of blank nodes in
+ * expanded form. The resulting array can be used as an RDF-replacement for
+ * a property that used a @list.
+ *
+ * @param value the @list value.
+ *
+ * @return the linked list of blank nodes.
+ */
+DynamicObject _makeLinkedList(DynamicObject value)
+{
+   // convert @list array into embedded blank node linked list
+   DynamicObject list = value["@list"];
+
+   // build linked list in reverse
+   int len = list->length();
+   DynamicObject tail(Map);
+   tail["@id"] = RDF_NIL;
+   for(int i = len - 1; i >= 0; --i)
+   {
+      DynamicObject e(Map);
+      e[RDF_FIRST].push(list[i].clone());
+      e[RDF_REST].push(tail);
+      tail = e;
+   }
+
+   return tail;
+}
+
+/**
+ * Adds a statement to an array of statements. If the statement already exists
+ * in the array, it will not be added.
+ *
+ * @param statements the statements array.
+ * @param statement the statement to add.
+ */
+void _addStatement(DynamicObject statements, DynamicObject statement)
+{
+   DynamicObjectIterator i = statements.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& s = i->next();
+      if(s["s"] == statement["p"] && s["p"] == statement["p"] &&
+        JsonLd::compareValues(s["o"], statement["o"]))
+      {
+         // duplicate, do not add statement
+         return;
+      }
+   }
+   statements.push(statement);
+}
+
+/**
+ * Hashes all of the statements about the given blank node, generating a
+ * new hash for it.
+ *
+ * @param statements the statements about the bnode.
+ * @param namer the canonical bnode namer.
+ * @param hash the resulting hash.
+ *
+ * @return true on success, false on failure.
+ */
+bool _hashStatements(
+   DynamicObject& statements, UniqueNamer& namer, string& hash)
+{
+   // serialize all statements
+   DynamicObject triples(Array);
+   DynamicObjectIterator i = statements.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& statement = i->next();
+
+      // serialize triple
+      string triple;
+
+      // serialize subject
+      if(statement["s"] == "_:a")
+      {
+         triple.append("_:a");
+      }
+      else if(strncmp(statement["s"], "_:", 2) == 0)
+      {
+         const char* id = statement["s"];
+         id = _isNamed(namer, id) ? _getName(namer, id) : "_:z";
+         triple.append(id);
+      }
+      else
+      {
+         triple.push_back('<');
+         triple.append(statement["s"]);
+         triple.push_back('>');
+      }
+
+      // serialize property
+      const char* p = (statement["p"] == "@type") ?
+         RDF_TYPE : statement["p"]->getString();
+      triple.append(" <");
+      triple.append(p);
+      triple.append("> ");
+
+      // serialize object
+      if(_isBlankNode(statement["o"]))
+      {
+         if(statement["o"]["@id"] == "_:a")
+         {
+            triple.append("_:a");
+         }
+         else
+         {
+            const char* id = statement["o"]["@id"];
+            id = _isNamed(namer, id) ? _getName(namer, id) : "_:z";
+            triple.append(id);
+         }
+      }
+      else if(_isString(statement["o"]))
+      {
+         triple.push_back('"');
+         triple.append(statement["o"]);
+         triple.push_back('"');
+      }
+      else if(_isSubjectReference(statement["o"]))
+      {
+         triple.push_back('<');
+         triple.append(statement["o"]["@id"]);
+         triple.push_back('>');
+      }
+      // must be a value
+      else
+      {
+         triple.push_back('"');
+         triple.append(statement["o"]["@value"]);
+         triple.push_back('"');
+
+         if(statement["o"]->hasMember("@type"))
+         {
+            triple.append("^^<");
+            triple.append(statement["o"]["@type"]);
+            triple.push_back('>');
+         }
+         else if(statement["o"]->hasMember("@language"))
+         {
+            triple.push_back('@');
+            triple.append(statement["o"]["@language"]);
+         }
+      }
+
+      // add triple
+      triples.push(triple.c_str());
+   }
+
+   // sort serialized triples
+   triples.sort();
+
+   // digest triples
+   MessageDigest md;
+   bool rval = md.start("SHA1");
+   i = triples.getIterator();
+   while(rval && i->hasNext())
+   {
+      md.update(i->next());
+   }
+   if(rval)
+   {
+      hash = md.getDigest();
+      rval = (hash.length() > 0);
+   }
+
+   return rval;
+}
+
+/**
+ * Produces a hash for the paths of adjacent bnodes for a bnode,
+ * incorporating all information about its subgraph of bnodes. This
+ * method will recursively pick adjacent bnode permutations that produce the
+ * lexicographically-least 'path' serializations.
+ *
+ * @param bnodes the map of bnode statements.
+ * @param statements the statements for the bnode to produce the hash for.
+ * @param namer the canonical bnode namer.
+ * @param pathNamer the namer used to assign names to adjacent bnodes.
+ * @param result the hash and pathNamer used.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+bool _hashPaths(
+   DynamicObject& bnodes, DynamicObject& statements,
+   UniqueNamer& namer, UniqueNamer pathNamer, DynamicObject& result)
+{
+   bool rval = true;
+
+   // create SHA-1 digest
+   MessageDigest md;
+   rval = md.start("SHA1");
+
+   // group adjacent bnodes by hash, keep properties and references separate
+   DynamicObject groups(Map);
+   DynamicObjectIterator i = statements.getIterator();
+   while(rval && i->hasNext())
+   {
+      DynamicObject& statement = i->next();
+      const char* bnode = NULL;
+      const char* direction = NULL;
+      if(statement["s"] != "_:a" && strncmp(statement["s"], "_:", 2) == 0)
+      {
+         bnode = statement["s"];
+         direction = "p";
+      }
+      else
+      {
+         bnode = _getBlankNodeName(statement["o"]);
+         direction = "r";
+      }
+
+      if(bnode != NULL)
+      {
+         // get bnode name (try canonical, path, then hash)
+         string name;
+         if(_isNamed(namer, bnode))
+         {
+            name = _getName(namer, bnode);
+         }
+         else if(_isNamed(pathNamer, bnode))
+         {
+            name = _getName(pathNamer, bnode);
+         }
+         else
+         {
+            rval = _hashStatements(bnodes[bnode], namer, name);
+         }
+
+         if(rval)
+         {
+            // hash direction, property, and bnode name/hash
+            MessageDigest md;
+            rval =
+               md.start("SHA1") &&
+               md.update(direction) &&
+               md.update((statement["p"] == "@type") ?
+                  RDF_TYPE : statement["p"]->getString()) &&
+               md.update(name.c_str());
+            string groupHash = md.getDigest();
+            rval = rval && (groupHash.length() > 0);
+            if(rval)
+            {
+               // add bnode to hash group
+               groups[groupHash.c_str()].push(bnode);
+            }
+         }
+      }
+   }
+
+   // iterate over groups in sorted hash order
+   DynamicObject groupHashes = groups.keys().sort();
+   i = groupHashes.getIterator();
+   while(rval && i->hasNext())
+   {
+      // digest group hash
+      const char* groupHash = i->next();
+      rval = md.update(groupHash);
+
+      string chosenPath;
+      UniqueNamer chosenNamer;
+      Permutator permutator(groups[groupHash]);
+      while(rval && permutator.hasNext())
+      {
+         DynamicObject permutation = permutator.next();
+         UniqueNamer pathNamerCopy = pathNamer.clone();
+
+         // build adjacent path
+         string path;
+         bool skipped = false;
+         DynamicObject recurse(Array);
+         DynamicObjectIterator pi = permutation.getIterator();
+         while(rval && pi->hasNext())
+         {
+            const char* bnode = pi->next();
+            recurse->clear();
+
+            // use canonical name if available
+            if(_isNamed(namer, bnode))
+            {
+               path.append(_getName(namer, bnode));
+            }
+            else
+            {
+               // recurse if bnode isn't named in the path yet
+               if(!_isNamed(pathNamerCopy, bnode))
+               {
+                  recurse.push(bnode);
+               }
+               path.append(_getName(pathNamerCopy, bnode));
+            }
+
+            // skip permutation if path is already >= chosen path
+            if(!chosenPath.empty() && path.length() >= chosenPath.length() &&
+               path > chosenPath)
+            {
+               skipped = true;
+               break;
+            }
+         }
+
+         // recurse
+         if(!skipped)
+         {
+            DynamicObjectIterator ri = recurse.getIterator();
+            while(rval && ri->hasNext())
+            {
+               const char* bnode = ri->next();
+               DynamicObject res;
+               rval = _hashPaths(
+                  bnodes, bnodes[bnode], namer, pathNamerCopy, res);
+               if(rval)
+               {
+                  path.append(_getName(pathNamerCopy, bnode));
+                  path.push_back('<');
+                  path.append(res["hash"]);
+                  path.push_back('>');
+                  pathNamerCopy = res["pathNamer"];
+
+                  // skip permutation if path is already >= chosen path
+                  if(!chosenPath.empty() &&
+                     path.length() >= chosenPath.length() && path > chosenPath)
+                  {
+                     skipped = true;
+                     break;
+                  }
+               }
+            }
+         }
+
+         if(!skipped && (chosenPath.empty() || path < chosenPath))
+         {
+            chosenPath = path;
+            chosenNamer = pathNamerCopy;
+         }
+      }
+
+      // digest chosen path
+      rval = md.update(chosenPath.c_str());
+      if(rval)
+      {
+         // update namer
+         pathNamer = chosenNamer;
+      }
+   }
+
+   if(rval)
+   {
+      // return SHA-1 digest and path namer
+      result = DynamicObject(Map);
+      result["hash"] = md.getDigest().c_str();
+      result["pathNamer"] = pathNamer;
+   }
+   return rval;
+}
+
+/**
+ * A helper function that gets the blank node name from a statement value
+ * (a subject or object). If the statement value is not a blank node or it
+ * has an @id of '_:a', then NULL will be returned.
+ *
+ * @param value the statement value.
+ *
+ * @return the blank node name or null if none was found.
+ */
+const char* _getBlankNodeName(DynamicObject value)
+{
+   return (_isBlankNode(value) && value["@id"] != "_:a") ?
+      value["@id"]->getString() : NULL;
+}
+
+/**
+ * Recursively flattens the subjects in the given JSON-LD expanded input.
+ *
+ * @param subjects a map of subject ID to subject.
+ * @param input the JSON-LD compact input.
+ * @param namer the blank node namer.
+ * @param name the name assigned to the current input if it is a bnode.
+ * @param list the list to append to, null for none.
+ */
+void _flatten(
+   DynamicObject subjects, DynamicObject input, UniqueNamer namer,
+   const char* name, DynamicObject* list)
+{
+   // recurse through array
+   if(_isArray(input))
+   {
+      DynamicObjectIterator i = input.getIterator();
+      while(i->hasNext())
+      {
+         _flatten(subjects, i->next(), namer, NULL, list);
+      }
+   }
+   // handle subject
+   else if(_isObject(input))
+   {
+      // add value to list
+      if(_isValue(input) && list != NULL)
+      {
+         (*list).push(input);
+         return;
+      }
+
+      // get name for subject
+      if(name == NULL)
+      {
+         name = _isBlankNode(input) ?
+            _getName(namer, input["@id"]) : input["@id"];
+      }
+
+      // add subject reference to list
+      if(list != NULL)
+      {
+         DynamicObject ref(Map);
+         ref["@id"] = name;
+         (*list).push(ref);
+      }
+
+      // create new subject or merge into existing one
+      if(!subjects->hasMember(name))
+      {
+         subjects[name]->setType(Map);
+      }
+      DynamicObject& subject = subjects[name];
+      subject["@id"] = name;
+      DynamicObjectIterator i = input.getIterator();
+      while(i->hasNext())
+      {
+         i->next();
+         const char* prop = i->getName();
+
+         // skip @id
+         if(strcmp(prop, "@id") == 0)
+         {
+            continue;
+         }
+
+         // copy keywords
+         if(_isKeyword(prop))
+         {
+            subject[prop] = input[prop];
+            continue;
+         }
+
+         // iterate over objects
+         DynamicObjectIterator oi = input[prop].getIterator();
+         while(oi->hasNext())
+         {
+            DynamicObject o = oi->next();
+
+            // handle embedded subject or subject reference
+            if(_isSubject(o) || _isSubjectReference(o))
+            {
+               const char* id = o->hasMember("@id") ? o["@id"] : "_:";
+               if(strncmp(id, "_:", 2) == 0)
+               {
+                  id = _getName(namer, id);
+               }
+
+               // add reference and recurse
+               DynamicObject ref(Map);
+               ref["@id"] = id;
+               JsonLd::addValue(subject, prop, ref, true);
+               _flatten(subjects, o, namer, id, NULL);
+            }
+            else
+            {
+               // recurse into list
+               if(_isListValue(o))
+               {
+                  DynamicObject l(Array);
+                  _flatten(subjects, o["@list"], namer, name, &l);
+                  o = DynamicObject(Map);
+                  o["@list"] = l;
+               }
+
+               // add non-subject
+               JsonLd::addValue(subject, prop, o, true);
+            }
+         }
+      }
+   }
+   // add non-object to list
+   else if(list != NULL)
+   {
+      (*list).push(input);
+   }
+}
+
+/**
+ * Frames subjects according to the given frame.
+ *
+ * @param state the current framing state.
+ * @param subjects the subjects to filter.
+ * @param frame the frame.
+ * @param parent the parent subject or top-level array.
+ * @param property the parent property, NULL for an array parent.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+bool _frame(
+   DynamicObject& state, DynamicObject subjects, DynamicObject frame,
+   DynamicObject parent, const char* property)
+{
+   // validate the frame
+   if(!_validateFrame(state, frame))
+   {
+      return false;
+   }
+   frame = frame[0];
+
+   // filter out subjects that match the frame
+   DynamicObject matches = _filterSubjects(state, subjects, frame);
+
+   // get flags for current frame
+   DynamicObject options = state["options"];
+   bool embedOn = _getFrameFlag(frame, options, "embed");
+   bool explicitOn = _getFrameFlag(frame, options, "explicit");
+
+   // add matches to output
+   DynamicObjectIterator i = matches.getIterator();
+   while(i->hasNext())
+   {
+      /* Note: In order to treat each top-level match as a compartmentalized
+      result, create an independent copy of the embedded subjects map when the
+      property is null, which only occurs at the top-level. */
+      if(property == NULL)
+      {
+         state["embeds"] = DynamicObject(Map);
+      }
+
+      DynamicObject& subject = i->next();
+      const char* id = i->getName();
+
+      // start output
+      DynamicObject output(Map);
+      output["@id"] = id;
+
+      // prepare embed meta info
+      DynamicObject embed(Map);
+      embed["parent"] = parent;
+      if(property != NULL)
+      {
+         embed["property"] = property;
+      }
+
+      // if embed is on and there is an existing embed
+      if(embedOn && state["embeds"]->hasMember(id))
+      {
+         // only overwrite an existing embed if it has already been added to its
+         // parent -- otherwise its parent is somewhere up the tree from this
+         // embed and the embed would occur twice once the tree is added
+         embedOn = false;
+
+         // existing embed's parent is an array
+         DynamicObject& existing = state["embeds"][id];
+         if(_isArray(existing["parent"]))
+         {
+            DynamicObjectIterator pi = existing["parent"].getIterator();
+            while(pi->hasNext())
+            {
+               if(JsonLd::compareValues(output, pi->next()))
+               {
+                  embedOn = true;
+                  break;
+               }
+            }
+         }
+         // existing embed's parent is an object
+         else if(JsonLd::hasValue(
+            existing["parent"], existing["property"], output))
+         {
+            embedOn = true;
+         }
+
+         // existing embed has already been added, so allow an overwrite
+         if(embedOn)
+         {
+            _removeEmbed(state, id);
+         }
+      }
+
+      // not embedding, add output without any other properties
+      if(!embedOn)
+      {
+         _addFrameOutput(state, parent, property, output);
+      }
+      else
+      {
+         // add embed meta info
+         state["embeds"][id] = embed;
+
+         // iterate over subject properties
+         DynamicObjectIterator si = subject.getIterator();
+         while(si->hasNext())
+         {
+            si->next();
+            const char* prop = si->getName();
+
+            // copy keywords to output
+            if(_isKeyword(prop))
+            {
+               output[prop] = subject[prop].clone();
+               continue;
+            }
+
+            // if property isn't in the frame
+            if(!frame->hasMember(prop))
+            {
+               // if explicit is off, embed values
+               if(!explicitOn)
+               {
+                  _embedValues(state, subject, prop, output);
+               }
+               continue;
+            }
+
+            // add objects
+            DynamicObjectIterator oi = subject[prop].getIterator();
+            while(oi->hasNext())
+            {
+               DynamicObject o = oi->next();
+
+               // recurse into list
+               if(_isListValue(o))
+               {
+                  // add empty list
+                  DynamicObject list(Map);
+                  list["@list"]->setType(Array);
+                  _addFrameOutput(state, output, prop, list);
+
+                  // add list objects
+                  DynamicObjectIterator li = o["@list"].getIterator();
+                  while(li->hasNext())
+                  {
+                     o = li->next();
+                     // recurse into subject reference
+                     if(_isSubjectReference(o))
+                     {
+                        DynamicObject _subjects(Map);
+                        _subjects[o["@id"]->getString()] = o;
+                        if(!_frame(
+                           state, _subjects, frame[prop], list, "@list"))
+                        {
+                           return false;
+                        }
+                     }
+                     // include other values automatically
+                     else
+                     {
+                        _addFrameOutput(state, list, "@list", o.clone());
+                     }
+                  }
+                  continue;
+               }
+
+               // recurse into subject reference
+               if(_isSubjectReference(o))
+               {
+                  DynamicObject _subjects(Map);
+                  _subjects[o["@id"]->getString()] = o;
+                  if(!_frame(state, _subjects, frame[prop], output, prop))
+                  {
+                     return false;
+                  }
+               }
+               // include other values automatically
+               else
+               {
+                  _addFrameOutput(state, output, prop, o.clone());
+               }
+            }
+         }
+
+         // handle defaults
+         DynamicObjectIterator fi = frame.getIterator();
+         while(fi->hasNext())
+         {
+            DynamicObject next = fi->next()[0];
+            const char* prop = fi->getName();
+
+            // skip keywords
+            if(_isKeyword(prop))
+            {
+               continue;
+            }
+
+            // if omit default is off, then include default values for
+            // properties that appear in the next frame but are not in the
+            // matching subject
+            bool omitDefaultOn = _getFrameFlag(next, options, "omitDefault");
+            if(!omitDefaultOn && !output->hasMember(prop))
+            {
+               DynamicObject preserve;
+               if(next->hasMember("@default"))
+               {
+                  preserve = next["@default"].clone();
+               }
+               else
+               {
+                  preserve = "@null";
+               }
+               output[prop]["@preserve"] = preserve;
+            }
+         }
+
+         // add output to parent
+         _addFrameOutput(state, parent, property, output);
+      }
+   }
+
+   return true;
+}
+
+/**
+ * Gets the frame flag value for the given flag name.
+ *
+ * @param frame the frame.
+ * @param options the framing options.
+ * @param name the flag name.
+ *
+ * @return the flag value.
+ */
+bool _getFrameFlag(
+   DynamicObject frame, DynamicObject options, const char* name)
+{
+   string key = "@";
+   key.append(name);
+   const char* flag = key.c_str();
+   return frame->hasMember(flag) ? frame[flag][0] : options[name];
+};
+
+/**
+ * Validates a JSON-LD frame, throwing an exception if the frame is invalid.
+ *
+ * @param state the current frame state.
+ * @param frame the frame to validate.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+bool _validateFrame(DynamicObject state, DynamicObject frame)
+{
+   if(!_isArray(frame) || frame->length() != 1 || !_isObject(frame[0]))
+   {
+      ExceptionRef e = new Exception(
+         "Invalid JSON-LD syntax; a JSON-LD frame must be a single object.",
+         EXCEPTION_TYPE ".SyntaxError");
+      e->getDetails()["frame"] = frame;
+      Exception::set(e);
+      return false;
+   }
+   return true;
+}
+
+/**
+ * Returns a map of all of the subjects that match a parsed frame.
+ *
+ * @param state the current framing state.
+ * @param subjects the set of subjects to filter.
+ * @param frame the parsed frame.
+ *
+ * @return all of the matched subjects.
+ */
+DynamicObject _filterSubjects(
+   DynamicObject state, DynamicObject subjects, DynamicObject frame)
+{
+   DynamicObject rval(Map);
+   DynamicObjectIterator i = subjects.getIterator();
+   while(i->hasNext())
+   {
+      i->next();
+      const char* id = i->getName();
+      DynamicObject& subject = state["subjects"][id];
+      if(_filterSubject(subject, frame))
+      {
+         rval[id] = subject;
+      }
+   }
+   return rval;
+}
+
+/**
+ * Returns true if the given subject matches the given frame.
+ *
+ * @param subject the subject to check.
+ * @param frame the frame to check.
+ *
+ * @return true if the subject matches, false if not.
+ */
+bool _filterSubject(DynamicObject subject, DynamicObject frame)
+{
+   // check @type (object value means 'any' type, fall through to ducktyping)
+   if(frame->hasMember("@type") &&
+      !(frame["@type"]->length() == 1 && _isObject(frame["@type"][0])))
+   {
+      DynamicObjectIterator i = frame["@type"].getIterator();
+      while(i->hasNext())
+      {
+         // any matching @type is a match
+         if(JsonLd::hasValue(subject, "@type", i->next()))
+         {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   // check ducktype
+   DynamicObjectIterator i = frame.getIterator();
+   while(i->hasNext())
+   {
+      i->next();
+      const char* key = i->getName();
+
+      // only not a duck if @id or non-keyword isn't in subject
+      if((strcmp(key, "@id") == 0 || !_isKeyword(key)) &&
+         !subject->hasMember(key))
+      {
+         return false;
+      }
+   }
+   return true;
+}
+
+/**
+ * Embeds values for the given subject and property into the given output
+ * during the framing algorithm.
+ *
+ * @param state the current framing state.
+ * @param subject the subject.
+ * @param property the property.
+ * @param output the output.
+ */
+void _embedValues(
+   DynamicObject state, DynamicObject subject,
+   const char* property, DynamicObject& output)
+{
+   // embed subject properties in output
+   DynamicObjectIterator i = subject[property].getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject o = i->next();
+
+      // recurse into @list
+      if(_isListValue(o))
+      {
+         DynamicObject list(Map);
+         list["@list"]->setType(Array);
+         _addFrameOutput(state, output, property, list);
+         _embedValues(state, o, "@list", list["@list"]);
+      }
+
+      // handle subject reference
+      if(_isSubjectReference(o))
+      {
+         const char* id = o["@id"];
+
+         // embed full subject if isn't already embedded
+         if(!state["embeds"]->hasMember(id))
+         {
+            // add embed
+            DynamicObject embed(Map);
+            embed["parent"] = output;
+            embed["property"] = property;
+            state["embeds"][id] = embed;
+
+            // recurse into subject
+            DynamicObject& s = state["subjects"][id];
+            o = DynamicObject(Map);
+            DynamicObjectIterator si = s.getIterator();
+            while(si->hasNext())
+            {
+               DynamicObject& next = si->next();
+               const char* prop = si->getName();
+
+               // copy keywords
+               if(_isKeyword(prop))
+               {
+                  o[prop] = next.clone();
+                  continue;
+               }
+               _embedValues(state, s, prop, o);
+            }
+         }
+         _addFrameOutput(state, output, property, o);
+      }
+      // copy non-subject value
+      else
+      {
+         _addFrameOutput(state, output, property, o.clone());
+      }
+   }
+}
+
+/**
+ * Removes an existing embed.
+ *
+ * @param state the current framing state.
+ * @param id the @id of the embed to remove.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+void _removeEmbed(DynamicObject state, const char* id)
+{
+   // get existing embed
+   DynamicObject& embeds = state["embeds"];
+   DynamicObject& embed = embeds[id];
+   DynamicObject& parent = embed["parent"];
+   const char* property = embed->hasMember("property") ?
+      embed["property"]->getString() : NULL;
+
+   // create reference to replace embed
+   DynamicObject subject(Map);
+   subject["@id"] = id;
+
+   // remove existing embed
+   if(_isArray(parent))
+   {
+      // replace subject with reference
+      DynamicObjectIterator i = parent.getIterator();
+      while(i->hasNext())
+      {
+         if(JsonLd::compareValues(i->next(), subject))
+         {
+            parent[i->getIndex()] = subject;
+            break;
+         }
+      }
+   }
+   else
+   {
+      // replace subject with reference
+      bool useArray = _isArray(parent[property]);
+      JsonLd::removeValue(parent, property, subject, useArray);
+      JsonLd::addValue(parent, property, subject, useArray);
+   }
+
+   // remove dependent dangling embeds
+   _removeDependentEmbeds(state, id);
+}
+
+/**
+ * Recursively removes dangling embeds.
+ *
+ * @param state the current framing state.
+ * @param id the ID of the removed embed.
+ */
+void _removeDependentEmbeds(DynamicObject state, const char* id)
+{
+   // get embed keys as a separate array to enable deleting keys in map
+   DynamicObject& embeds = state["embeds"];
+   DynamicObject ids = embeds.keys();
+   DynamicObjectIterator i = ids.getIterator();
+   while(i->hasNext())
+   {
+      const char* next = i->next();
+      if(embeds->hasMember(next) && _isObject(embeds[next]["parent"]) &&
+         embeds[next]["parent"]["@id"] == id)
+      {
+         embeds->removeMember(next);
+         _removeDependentEmbeds(state, next);
+      }
+   }
+}
+
+/**
+ * Adds framing output to the given parent.
+ *
+ * @param state the current framing state.
+ * @param parent the parent to add to.
+ * @param property the parent property, NULL for an array parent.
+ * @param output the output to add.
+ */
+void _addFrameOutput(
+   DynamicObject state, DynamicObject parent, const char* property,
+   DynamicObject output)
+{
+   if(_isObject(parent))
+   {
+      JsonLd::addValue(parent, property, output, true);
+   }
+   else
+   {
+      parent.push(output);
+   }
+}
+
+/**
+ * Removes the @preserve keywords as the last step of the framing algorithm.
+ *
+ * @param input the framed, compacted output.
+ *
+ * @return the resulting output.
+ */
+DynamicObject _removePreserve(DynamicObject input)
+{
+   // recurse through arrays
+   if(_isArray(input))
+   {
+      DynamicObjectIterator i = input.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject next = i->next();
+         input[i->getIndex()] = _removePreserve(next);
+      }
+      // drop null-only arrays
+      if(input->length() == 1 && input[0].isNull())
+      {
+         input->clear();
+      }
+   }
+   else if(_isObject(input))
+   {
+      // remove @preserve
+      if(input->hasMember("@preserve"))
+      {
+         if(input["@preserve"] == "@null")
+         {
+            return DynamicObject(NULL);
+         }
+         return input["@preserve"];
+      }
+
+      // skip @values
+      if(_isValue(input))
+      {
+         return input;
+      }
+
+      // recurse through @lists
+      if(_isListValue(input))
+      {
+         input["@list"] = _removePreserve(input["@list"]);
+         return input;
+      }
+
+      // recurse through properties
+      DynamicObjectIterator i = input.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject next = i->next();
+         input[i->getName()] = _removePreserve(next);
+      }
+   }
+   return input;
+}
+
+/**
+ * Checks to see if a context key's type definition best matches the
+ * given value and @container.
+ *
+ * @param ctx the context.
+ * @param key the context key to check.
+ * @param value the value to check.
+ * @param container the specific @container to match or null.
+ * @param result the resulting term or CURIE.
+ * @param results the results array.
+ * @param rank the current rank value.
+ *
+ * @return the new rank value.
+ */
+int _isBestMatch(
+   DynamicObject ctx, const char* key,
+   DynamicObject* value, const char* container,
+   const char* result, DynamicObject results, int rank)
+{
+   // value is null, match any key
+   if(value == NULL)
+   {
+      results.push(result);
+      return rank;
+   }
+
+   DynamicObject v = *value;
+   bool valueIsList = _isListValue(v);
+   bool valueHasType = v->hasMember("@type");
+   const char* language = v->hasMember("@language") ?
+      v["@language"]->getString() : NULL;
+   DynamicObject entry;
+   if(!JsonLd::getContextValue(ctx, key, NULL, entry))
+   {
+      return -1;
+   }
+   if(_isString(entry))
+   {
+      DynamicObject tmp(Map);
+      tmp["@id"] = entry;
+      entry = tmp;
+   }
+   bool entryHasContainer = entry->hasMember("@container");
+   bool entryHasLanguage = entry->hasMember("@language");
+   DynamicObject entryType;
+   if(!JsonLd::getContextValue(ctx, key, "@type", entryType))
+   {
+      return -1;
+   }
+
+   // container with type or language
+   if(!valueIsList && entryHasContainer &&
+      (entry["@container"] == container ||
+         (entry["@container"] == "@set" && container == NULL)) &&
+      ((valueHasType && entryType == v["@type"]) ||
+      (!valueHasType && entryHasLanguage && entry["@language"] == language)))
+   {
+      if(rank < 3)
+      {
+         rank = 3;
+         results->clear();
+      }
+      results.push(result);
+   }
+   // no container with type or language
+   else if(rank < 3 &&
+      !entryHasContainer && !valueIsList &&
+      ((valueHasType && entryType == v["@type"]) ||
+         (!valueHasType && entryHasLanguage && entry["@language"] == language)))
+   {
+      if(rank < 2)
+      {
+         rank = 2;
+         results->clear();
+      }
+      results.push(result);
+   }
+   // container with no type or language
+   else if(rank < 2 &&
+      entryHasContainer &&
+      (entry["@container"] == container ||
+         (entry["@container"] == "@set" && container == NULL)) &&
+      !entry->hasMember("@type") && !entryHasLanguage)
+   {
+      if(rank < 1)
+      {
+         rank = 1;
+         results->clear();
+      }
+      results.push(result);
+
+   }
+   // no container, no type, no language
+   else if(rank < 1 &&
+      !entryHasContainer && !entry->hasMember("@type") &&
+      !entryHasLanguage)
+   {
+      results.push(result);
+   }
+
+   return rank;
+}
+
+/**
+ * Compares two strings first based on length and then lexicographically.
+ *
+ * @param a the first string.
+ * @param b the second string.
+ *
+ * @return true if a < b, false if not.
+ */
+bool _compareShortestLeast(DynamicObject a, DynamicObject b)
+{
+   return (a->length() < b->length() ||
+      (a->length() == b->length() && a < b));
+}
+
+/**
+ * Compacts an IRI or keyword into a term or prefix if it can be. If the
+ * IRI has an associated value, its @type, @language, and/or @container may
+ * be passed.
+ *
+ * @param ctx the context to use.
+ * @param iri the IRI to compact.
+ * @param output the compacted IRI as a term or prefix or the original IRI.
+ * @param value the value to check or null.
+ * @param container the specific @container to match or null.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+bool _compactIri(
+   DynamicObject ctx, const char* iri, string& output,
+   DynamicObject* value, const char* container)
+{
+   // can't compact null
+   if(iri == NULL)
+   {
+      output.clear();
+      return true;
+   }
+
+   // if term is keyword, use alias
+   if(_isKeyword(iri))
+   {
+      // pick shortest, least alias
+      DynamicObject aliases = _getKeywords(ctx)[iri];
+      if(aliases->length() > 0)
+      {
+         aliases.sort(&_compareShortestLeast);
+         output = aliases[0]->getString();
+      }
+      else
+      {
+         // no alias, keep original keyword
+         output = iri;
+      }
+      return true;
+   }
+
+   // check the context for terms that could shorten the IRI
+   // (give preference to terms over prefixes)
+   DynamicObject terms(Array);
+   int rank = 0;
+   DynamicObjectIterator i = ctx.getIterator();
+   while(i->hasNext())
+   {
+      i->next();
+      const char* key = i->getName();
+
+      // skip special context keys (start with '@')
+      if(key[0] == '@')
+      {
+         continue;
+      }
+
+      // compact to a term
+      DynamicObject id;
+      if(!JsonLd::getContextValue(ctx, key, "@id", id))
+      {
+         return false;
+      }
+      if(id == iri)
+      {
+         rank = _isBestMatch(ctx, key, value, container, key, terms, rank);
+         if(rank == -1)
+         {
+            return false;
+         }
+      }
+   }
+
+   if(terms->length() > 0)
+   {
+      // pick shortest, least term
+      terms.sort(&_compareShortestLeast);
+      output = terms[0]->getString();
+      return true;
+   }
+
+   // term not found, check the context for a prefix
+   DynamicObject curies(Array);
+   rank = 0;
+   i = ctx.getIterator();
+   while(i->hasNext())
+   {
+      i->next();
+      const char* key = i->getName();
+
+      // skip special context keys (start with '@')
+      if(key[0] == '@')
+      {
+         continue;
+      }
+
+      // see if IRI begins with the next IRI from the context
+      DynamicObject ctxIri;
+      if(!JsonLd::getContextValue(ctx, key, "@id", ctxIri))
+      {
+         return false;
+      }
+      if(!ctxIri.isNull())
+      {
+         // compact to a prefix
+         const char* ptr = strstr(iri, ctxIri);
+         if(ptr != NULL && ptr == iri)
+         {
+            size_t len1 = strlen(iri);
+            size_t len2 = strlen(ctxIri);
+            if(len1 > len2)
+            {
+               string curie = StringTools::format("%s:%s", key, ptr + len2);
+               rank = _isBestMatch(
+                  ctx, key, value, container, curie.c_str(), curies, rank);
+               if(rank == -1)
+               {
+                  return false;
+               }
+            }
+         }
+      }
+   }
+
+   if(curies->length() > 0)
+   {
+      // pick shortest, least curie
+      curies.sort(&_compareShortestLeast);
+      output = curies[0]->getString();
+      return true;
+   }
+
+   // could not compact IRI, return it as is
+   output = iri;
+   return true;
 }
 
 /**
@@ -222,17 +3552,25 @@ static string _compactIri(
  *
  * @param ctx the context to use.
  * @param term the term to expand.
- * @param usedCtx a context to update if a value was used from "ctx".
+ * @param deep (used internally to recursively expand).
+ * @param output the expanded term as an absolute IRI.
  *
- * @return the expanded term as an absolute IRI.
+ * @return true on success, false on failure with exception set.
  */
-static string _expandTerm(
-   DynamicObject& ctx, const char* term, DynamicObject* usedCtx)
+bool _expandTerm(
+   DynamicObject ctx, const char* term, string& output, bool deep)
 {
-   string rval = term;
+   // nothing to expand
+   if(term == NULL)
+   {
+      output.clear();
+      return true;
+   }
 
-   // get JSON-LD keywords
-   DynamicObject keywords = _getKeywords(ctx);
+   bool rval = true;
+
+   // default to the term being fully-expanded or not in the context
+   output = term;
 
    // 1. If the property has a colon, it is a prefix or an absolute IRI:
    const char* ptr = strchr(term, ':');
@@ -247,35 +3585,120 @@ static string _expandTerm(
       if(ctx->hasMember(prefix))
       {
          // prefix found, expand property to absolute IRI
-         const char* iri = _getTermIri(ctx[prefix]);
-         len = strlen(iri) + strlen(ptr + 1) + 3;
-         rval = StringTools::format("%s%s", iri, ptr + 1);
-         if(usedCtx != NULL)
+         DynamicObject iriValue;
+         rval = JsonLd::getContextValue(ctx, prefix, "@id", iriValue);
+         if(rval)
          {
-            (*usedCtx)[prefix] = ctx[prefix].clone();
+            const char* iri = iriValue.isNull() ? "" : iriValue->getString();
+            len = strlen(iri) + strlen(ptr + 1) + 3;
+            output = StringTools::format("%s%s", iri, ptr + 1);
          }
       }
    }
    // 2. If the property is in the context, then it's a term.
    else if(ctx->hasMember(term))
    {
-      rval = _getTermIri(ctx[term]);
-      if(usedCtx != NULL)
+      DynamicObject value;
+      rval = JsonLd::getContextValue(ctx, term, "@id", value, false);
+      if(rval)
       {
-         (*usedCtx)[term] = rval.c_str();
+         output = value->getString();
       }
    }
-   // 3. The property is a keyword.
+   // 3. The property is a keyword or not in the context.
    else
    {
+      DynamicObject keywords = _getKeywords(ctx);
       DynamicObjectIterator i = keywords.getIterator();
       while(i->hasNext())
       {
-         DynamicObject& next = i->next();
-         if(next == term)
+         if(i->next() == term)
          {
-            rval = i->getName();
+            output = i->getName();
+            break;
          }
+      }
+   }
+
+  // recursively expand the term
+  if(!deep)
+  {
+     DynamicObject cycles(Map);
+     string recurse;
+     do
+     {
+        if(cycles->hasMember(output.c_str()))
+        {
+           ExceptionRef e = new Exception(
+              "Cyclical term definition detected in context.",
+              EXCEPTION_TYPE ".CyclicalContext");
+           e->getDetails()["context"] = ctx;
+           e->getDetails()["term"] = output.c_str();
+           Exception::set(e);
+           rval = false;
+        }
+        else
+        {
+           cycles[output.c_str()] = true;
+           rval = _expandTerm(ctx, output.c_str(), recurse, true);
+        }
+     }
+     while(rval && recurse != output);
+     if(rval)
+     {
+        output = recurse;
+     }
+  }
+
+  return rval;
+}
+
+/**
+ * Gets the keywords from a context.
+ *
+ * @param ctx the context.
+ *
+ * @return the keywords.
+ */
+DynamicObject _getKeywords(DynamicObject ctx)
+{
+   DynamicObject rval(Map);
+   rval["@context"]->setType(Array);
+   rval["@container"]->setType(Array);
+   rval["@default"]->setType(Array);
+   rval["@embed"]->setType(Array);
+   rval["@explicit"]->setType(Array);
+   rval["@graph"]->setType(Array);
+   rval["@id"]->setType(Array);
+   rval["@language"]->setType(Array);
+   rval["@list"]->setType(Array);
+   rval["@omitDefault"]->setType(Array);
+   rval["@preserve"]->setType(Array);
+   rval["@set"]->setType(Array);
+   rval["@type"]->setType(Array);
+   rval["@value"]->setType(Array);
+
+   if(!ctx.isNull())
+   {
+      // gather keyword aliases from context
+      DynamicObjectIterator i = ctx.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& kw = i->next();
+         const char* key = i->getName();
+         if(_isString(kw) && rval->hasMember(kw))
+         {
+            if(kw == "@context" || kw == "@preserve")
+            {
+               ExceptionRef e = new Exception(
+                  "Invalid JSON-LD syntax; @context and @preserve "
+                  "cannot be aliased.",
+                  EXCEPTION_TYPE ".SyntaxError");
+               Exception::set(e);
+               rval = false;
+            }
+         }
+         rval[kw->getString()].push(key);
       }
    }
 
@@ -283,2897 +3706,349 @@ static string _expandTerm(
 }
 
 /**
- * Gets whether or not a value is a reference to a subject (or a subject with
- * no properties).
+ * Returns whether or not the given value is a keyword (or a keyword alias).
  *
+ * @param keywords the map of keyword aliases to check against, NULL for
+ *          default.
  * @param value the value to check.
  *
- * @return true if the value is a reference to a subject, false if not.
+ * @return true if the value is a keyword, false if not.
  */
-static bool _isReference(DynamicObject& value)
+bool _isKeyword(const char* value, DynamicObject* keywords)
 {
-   // Note: A value is a reference to a subject if all of these hold true:
-   // 1. It is an Object (Map).
-   // 2. It is has an @id key.
-   // 3. It has only 1 key.
-   return (!value.isNull() &&
-      value->getType() == Map &&
-      value->hasMember("@id") &&
-      value->length() == 1);
+   if(keywords != NULL)
+   {
+      if((*keywords)->hasMember(value))
+      {
+         return true;
+      }
+      else
+      {
+         DynamicObjectIterator i = keywords->getIterator();
+         while(i->hasNext())
+         {
+            DynamicObject& aliases = i->next();
+            if(aliases->indexOf(value) != -1)
+            {
+               return true;
+            }
+         }
+      }
+   }
+   else if(
+      strcmp(value, "@context") == 0 ||
+      strcmp(value, "@container") == 0 ||
+      strcmp(value, "@default") == 0 ||
+      strcmp(value, "@embed") == 0 ||
+      strcmp(value, "@explicit") == 0 ||
+      strcmp(value, "@graph") == 0 ||
+      strcmp(value, "@id") == 0 ||
+      strcmp(value, "@language") == 0 ||
+      strcmp(value, "@list") == 0 ||
+      strcmp(value, "@omitDefault") == 0 ||
+      strcmp(value, "@preserve") == 0 ||
+      strcmp(value, "@set") == 0 ||
+      strcmp(value, "@type") == 0 ||
+      strcmp(value, "@value") == 0)
+   {
+      return true;
+   }
+   return false;
 }
 
 /**
- * Gets whether or not a value is a subject with properties.
+ * Returns true if the given input is an Object.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an Object, false if not.
+ */
+bool _isObject(DynamicObject input)
+{
+   return (!input.isNull() && input->getType() == Map);
+}
+
+/**
+ * Returns true if the given input is an empty Object.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an empty Object, false if not.
+ */
+bool _isEmptyObject(DynamicObject input)
+{
+   return _isObject(input) && input->length() == 0;
+}
+
+/**
+ * Returns true if the given input is an Array.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an Array, false if not.
+ */
+bool _isArray(DynamicObject input)
+{
+   return (!input.isNull() && input->getType() == Array);
+}
+
+/**
+ * Returns true if the given input is an Array of Strings.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an Array of Strings, false if not.
+ */
+bool _isArrayOfStrings(DynamicObject input)
+{
+   if(!_isArray(input))
+   {
+      return false;
+   }
+   DynamicObjectIterator i = input.getIterator();
+   while(i->hasNext())
+   {
+      if(!_isString(i->next()))
+      {
+         return false;
+      }
+   }
+   return true;
+}
+
+/**
+ * Returns true if the given input is a String.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is a String, false if not.
+ */
+bool _isString(DynamicObject input)
+{
+   return (!input.isNull() && input->getType() == String);
+}
+
+/**
+ * Returns true if the given input is an integer..
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is an integer, false if not.
+ */
+bool _isInteger(DynamicObject input)
+{
+   return (!input.isNull() && input->isInteger());
+}
+
+/**
+ * Returns true if the given input is a double.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is a double, false if not.
+ */
+bool _isDouble(DynamicObject input)
+{
+   return (!input.isNull() && input->getType() == Double);
+}
+
+/**
+ * Returns true if the given input is a Boolean.
+ *
+ * @param input the input to check.
+ *
+ * @return true if the input is a Boolean, false if not.
+ */
+bool _isBoolean(DynamicObject input)
+{
+   return (!input.isNull() && input->getType() == Boolean);
+}
+
+/**
+ * Returns true if the given value is a subject with properties.
  *
  * @param value the value to check.
  *
  * @return true if the value is a subject with properties, false if not.
  */
-static bool _isSubject(DynamicObject& value)
+bool _isSubject(DynamicObject value)
 {
    bool rval = false;
 
    // Note: A value is a subject if all of these hold true:
-   // 1. It is an Object (Map).
-   // 2. It is not a literal (@value).
-   // 3. It has more than 1 key OR any existing key is not '@id'.
-   if(!value.isNull() && value->getType() == Map &&
-      !(value->hasMember("@value")))
+   // 1. It is an Object.
+   // 2. It is not a @value, @set, or @list.
+   // 3. It has more than 1 key OR any existing key is not @id.
+   if(_isObject(value) &&
+     !(value->hasMember("@value") || value->hasMember("@set") ||
+        value->hasMember("@list")))
    {
-      rval = (value->length() > 1 || !(value->hasMember("@id")));
+      int keyCount = value->length();
+      rval = (keyCount > 1 || !value->hasMember("@id"));
    }
 
    return rval;
 }
 
 /**
- * Gets the coerce type for the given property.
+ * Returns true if the given value is a subject reference.
  *
- * @param ctx the context to use.
- * @param property the property to get the coerced type for.
- * @param usedCtx a context to update if a value was used from "ctx".
+ * @param value the value to check.
  *
- * @return the coerce type, NULL for none.
+ * @return true if the value is a subject reference, false if not.
  */
-static DynamicObject _getCoerceType(
-   DynamicObject& ctx, const char* property, DynamicObject* usedCtx)
+bool _isSubjectReference(DynamicObject value)
 {
-   DynamicObject rval(NULL);
-
-   // get expanded property
-   string prop = _expandTerm(ctx, property, NULL);
-   const char* p = prop.c_str();
-
-   // built-in type coercion JSON-LD-isms
-   if(strcmp(p, "@id") == 0 || strcmp(p, "@type") == 0)
-   {
-      rval = DynamicObject();
-      rval = "@id";
-   }
-   else
-   {
-      // look up compacted property for a coercion type
-      prop = _compactIri(ctx, p, NULL);
-      p = prop.c_str();
-      if(ctx->hasMember(p) && ctx[p]->getType() == Map &&
-         ctx[p]->hasMember("@type"))
-      {
-         // property found, return expanded type
-         const char* type = ctx[p]["@type"];
-         rval = DynamicObject();
-         rval = _expandTerm(ctx, type, usedCtx).c_str();
-         if(usedCtx != NULL)
-         {
-            (*usedCtx)[p] = ctx[p].clone();
-         }
-      }
-   }
-
-   return rval;
+   // Note: A value is a subject reference if all of these hold true:
+   // 1. It is an Object.
+   // 2. It has a single key: @id.
+   return _isObject(value) && value->length() == 1 && value->hasMember("@id");
 }
 
 /**
- * Recursively compacts a value. This method will compact IRIs to prefixes or
- * terms and do reverse type coercion to compact a value.
+ * Returns true if the given value is a @value.
  *
- * @param ctx the context to use.
- * @param property the property that points to the value, NULL for none.
- * @param value the value to compact.
- * @param out to store the compacted output.
- * @param usedCtx a context to update if a value was used from "ctx".
+ * @param value the value to check.
  *
- * @return true on success, false on failure with exception set.
+ * @return true if the value is a @value, false if not.
  */
-static bool _compact(
-   DynamicObject ctx, const char* property, DynamicObject& value,
-   DynamicObject& out, DynamicObject* usedCtx)
+bool _isValue(DynamicObject value)
 {
-   bool rval = true;
-
-   // get JSON-LD keywords
-   DynamicObject keywords = _getKeywords(ctx);
-
-   if(value.isNull())
-   {
-      // return null, but check coerce type to add to usedCtx
-      out.setNull();
-      _getCoerceType(ctx, property, usedCtx);
-   }
-   else if(value->getType() == Array)
-   {
-      // recursively add compacted values to array
-      out = DynamicObject(Array);
-      DynamicObjectIterator i = value.getIterator();
-      while(rval && i->hasNext())
-      {
-         DynamicObject nextOut(NULL);
-         rval = _compact(ctx, property, i->next(), nextOut, usedCtx);
-         if(rval)
-         {
-            out->append(nextOut);
-         }
-      }
-   }
-   // graph literal/disjoint graph
-   else if(
-      value->getType() == Map &&
-      value->hasMember("@id") &&
-      value["@id"]->getType() == Array)
-   {
-      out = DynamicObject(Map);
-      rval = _compact(
-         ctx, property, value["@id"],
-         out[keywords["@id"]->getString()], usedCtx);
-   }
-   // recurse if value is a subject
-   else if(_isSubject(value))
-   {
-      // recursively handle sub-properties that aren't a sub-context
-      out = DynamicObject(Map);
-      DynamicObjectIterator i = value.getIterator();
-      while(rval && i->hasNext())
-      {
-         DynamicObject& next = i->next();
-         if(strcmp(i->getName(), "@context") != 0)
-         {
-            DynamicObject nextOut(NULL);
-            rval = _compact(ctx, i->getName(), next, nextOut, usedCtx);
-            if(rval)
-            {
-               // set object to compacted property, only overwrite existing
-               // properties if the property actually compacted
-               string p = _compactIri(ctx, i->getName(), usedCtx);
-               if(strcmp(i->getName(), p.c_str()) != 0 ||
-                  !out->hasMember(p.c_str()))
-               {
-                  out[p.c_str()] = nextOut;
-               }
-            }
-         }
-      }
-   }
-   else
-   {
-      // get coerce type
-      DynamicObject coerce = _getCoerceType(ctx, property, usedCtx);
-
-      // get type from value, to ensure coercion is valid
-      DynamicObject type(NULL);
-      if(value->getType() == Map)
-      {
-         // type coercion can only occur if language is not specified
-         if(!value->hasMember("@language"))
-         {
-            type = DynamicObject();
-
-            // type must match coerce type if specified
-            if(value->hasMember("@type"))
-            {
-               type = value["@type"];
-            }
-            // type is ID (IRI)
-            else if(value->hasMember("@id"))
-            {
-               type = "@id";
-            }
-            // can be coerced to any type
-            else
-            {
-               type = coerce;
-            }
-         }
-      }
-      // type can be coerced to anything
-      else if(value->getType() == String)
-      {
-         type = coerce;
-      }
-
-      // types that can be auto-coerced from a JSON-builtin
-      if(coerce.isNull() &&
-         (type == XSD_BOOLEAN || type == XSD_INTEGER || type == XSD_DOUBLE))
-      {
-         coerce = type;
-      }
-
-      // do reverse type-coercion
-      if(!coerce.isNull())
-      {
-         // type is only null if a language was specified, which is an error
-         // if type coercion is specified
-         if(type.isNull())
-         {
-            ExceptionRef e = new Exception(
-               "Cannot coerce type when a language is specified. The language "
-               "information would be lost.",
-               EXCEPTION_TYPE ".CoerceLanguageError");
-            Exception::set(e);
-            rval = false;
-         }
-         // if the value type does not match the coerce type, it is an error
-         else if(type != coerce)
-         {
-            ExceptionRef e = new Exception(
-               "Cannot coerce type because the type does not match.",
-               EXCEPTION_TYPE ".InvalidCoerceType");
-            e->getDetails()["type"] = type;
-            e->getDetails()["expected"] = coerce;
-            Exception::set(e);
-            rval = false;
-         }
-         // do reverse type-coercion
-         else
-         {
-            if(value->getType() == Map)
-            {
-               if(value->hasMember("@id"))
-               {
-                  out = DynamicObject(String);
-                  out = value["@id"]->getString();
-               }
-               else if(value->hasMember("@value"))
-               {
-                  out = value["@value"].clone();
-               }
-            }
-            else
-            {
-               out = value.clone();
-            }
-
-            // do basic JSON types conversion
-            if(coerce == XSD_BOOLEAN)
-            {
-               out->setType(Boolean);
-            }
-            else if(coerce == XSD_DOUBLE)
-            {
-               out->setType(Double);
-            }
-            else if(coerce == XSD_INTEGER)
-            {
-               out->setType(Int64);
-            }
-         }
-      }
-      // no type-coercion, just change keywords/copy value
-      else if(value->getType() == Map)
-      {
-         out = DynamicObject(Map);
-         DynamicObjectIterator i = value.getIterator();
-         while(i->hasNext())
-         {
-            DynamicObject& v = i->next();
-            out[keywords[i->getName()]->getString()] = v.clone();
-         }
-      }
-      else
-      {
-         out = value.clone();
-      }
-
-      // compact IRI
-      if(rval && type == "@id")
-      {
-         if(out->getType() == Map)
-         {
-            out[keywords["@id"]->getString()] = _compactIri(
-               ctx, out[keywords["@id"]->getString()], usedCtx).c_str();
-         }
-         else
-         {
-            out = _compactIri(ctx, out, usedCtx).c_str();
-         }
-      }
-   }
-
-   return rval;
+   // Note: A value is a @value if all of these hold true:
+   // 1. It is an Object.
+   // 2. It has the @value property.
+   return _isObject(value) && value->hasMember("@value");
 }
 
 /**
- * Recursively expands a value using the given context. Any context in
- * the value will be removed.
+ * Returns true if the given value is a @set.
  *
- * @param ctx the context.
- * @param property the property that points to the value, NULL for none.
- * @param value the value to expand.
- * @param out the expanded value.
+ * @param value the value to check.
  *
- * @return true on success, false on failure with exception set.
+ * @return true if the value is a @set, false if not.
  */
-static bool _expand(
-   DynamicObject ctx, const char* property, DynamicObject& value,
-   DynamicObject& out)
+bool _isSetValue(DynamicObject value)
 {
-   bool rval = true;
-
-   // TODO: add data format error detection?
-
-   // value is null, nothing to expand
-   if(value.isNull())
-   {
-      out.setNull();
-   }
-   // if no property is specified and the value is a string (this means the
-   // value is a property itself), expand to an IRI
-   else if(property == NULL && value->getType() == String)
-   {
-      out = DynamicObject();
-      out = _expandTerm(ctx, value, NULL).c_str();
-   }
-   else if(value->getType() == Array)
-   {
-      // recursively add expanded values to array
-      out = DynamicObject(Array);
-      DynamicObjectIterator i = value.getIterator();
-      while(rval && i->hasNext())
-      {
-         DynamicObject nextOut;
-         rval = _expand(ctx, property, i->next(), nextOut);
-         if(rval)
-         {
-            out->append(nextOut);
-         }
-      }
-   }
-   else if(value->getType() == Map)
-   {
-      // if value has a context, use it
-      if(value->hasMember("@context"))
-      {
-         ctx = JsonLd::mergeContexts(ctx, value["@context"]);
-      }
-
-      if(!ctx.isNull())
-      {
-         // recursively handle sub-properties that aren't a sub-context
-         out = DynamicObject(Map);
-         DynamicObjectIterator i = value.getIterator();
-         while(rval && i->hasNext())
-         {
-            DynamicObject obj = i->next();
-
-            // preserve frame keywords
-            if(strcmp(i->getName(), "@embed") == 0 ||
-               strcmp(i->getName(), "@explicit") == 0 ||
-               strcmp(i->getName(), "@default") == 0 ||
-               strcmp(i->getName(), "@omitDefault") == 0)
-            {
-               _setProperty(out, i->getName(), obj.clone());
-            }
-            else if(strcmp(i->getName(), "@context") != 0)
-            {
-               // expand object
-               DynamicObject objOut;
-               rval = _expand(ctx, i->getName(), obj, objOut);
-               if(rval)
-               {
-                  // set object to expanded property
-                  _setProperty(
-                     out, _expandTerm(ctx, i->getName(), NULL).c_str(),
-                     objOut);
-               }
-            }
-         }
-      }
-   }
-   else
-   {
-      out = DynamicObject();
-
-      // do type coercion
-      DynamicObject coerce = _getCoerceType(ctx, property, NULL);
-
-      // get JSON-LD keywords
-      DynamicObject keywords = _getKeywords(ctx);
-
-      // automatic coercion for basic JSON types
-      if(coerce.isNull() && (value->isNumber() || value->getType() == Boolean))
-      {
-         coerce = DynamicObject();
-         if(value->getType() == Boolean)
-         {
-            coerce = XSD_BOOLEAN;
-         }
-         else if(value->isInteger())
-         {
-            coerce = XSD_INTEGER;
-         }
-         else
-         {
-            coerce = XSD_DOUBLE;
-         }
-      }
-
-      // special-case expand @id and @type (skips '@id' expansion)
-      if(strcmp(property, "@id") == 0 || property == keywords["@id"] ||
-         strcmp(property, "@type") == 0 || property == keywords["@type"])
-      {
-         out = _expandTerm(ctx, value, NULL).c_str();
-      }
-      // coerce to appropriate type
-      else if(!coerce.isNull())
-      {
-         // expand ID (IRI)
-         if(coerce == "@id")
-         {
-            out["@id"] = _expandTerm(ctx, value, NULL).c_str();
-         }
-         // other type
-         else
-         {
-            out["@type"] = coerce;
-            if(coerce == XSD_DOUBLE)
-            {
-               // do special JSON-LD double format
-               out["@value"] = StringTools::format(
-                  "%1.6e", value->getDouble()).c_str();
-            }
-            else
-            {
-               out["@value"] = value->getString();
-            }
-         }
-      }
-      // nothing to coerce
-      else
-      {
-         out = value->getString();
-      }
-   }
-
-   return rval;
-}
-
-inline static bool _isBlankNodeIri(const char* v)
-{
-   return strstr(v, "_:") == v;
-}
-
-inline static bool _isNamedBlankNode(DynamicObject& v)
-{
-   // look for "_:" at the beginning of the subject
-   return (
-      v->getType() == Map &&
-      v->hasMember("@id") &&
-      _isBlankNodeIri(v["@id"]));
-}
-
-inline static bool _isBlankNode(DynamicObject& v)
-{
-   // look for a subject with no ID or a blank node ID
-   return (
-      _isSubject(v) &&
-      (!v->hasMember("@id") || _isNamedBlankNode(v)));
-}
-
-static bool _isNotNamedBlankNode(DynamicObject& v)
-{
-   return !_isNamedBlankNode(v);
+   // Note: A value is a @set if all of these hold true:
+   // 1. It is an Object.
+   // 2. It has the @set property.
+   return _isObject(value) && value->hasMember("@set");
 }
 
 /**
- * Compares two values.
+ * Returns true if the given value is a @list.
  *
- * @param v1 the first value.
- * @param v2 the second value.
+ * @param value the value to check.
  *
- * @return -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2.
+ * @return true if the value is a @list, false if not.
  */
-static int _compare(DynamicObject v1, DynamicObject v2)
+bool _isListValue(DynamicObject value)
 {
-   int rval = 0;
-
-   if(v1->getType() == Array && v2->getType() == Array)
-   {
-      for(int i = 0; i < v1->length() && rval == 0; ++i)
-      {
-         rval = _compare(v1[i], v2[i]);
-      }
-   }
-   else
-   {
-      rval = (v1 < v2 ? -1 : (v1 > v2 ? 1 : 0));
-   }
-
-   return rval;
+   // Note: A value is a @list if all of these hold true:
+   // 1. It is an Object.
+   // 2. It has the @list property.
+   return _isObject(value) && value->hasMember("@list");
 }
 
 /**
- * Compares two values.
+ * Returns true if the given value is a blank node.
  *
- * @param v1 the first value.
- * @param v2 the second value.
+ * @param value the value to check.
  *
- * @return -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2.
+ * @return true if the value is a blank node, false if not.
  */
-static int _compare(int v1, int v2)
-{
-   return (v1 < v2 ? -1 : (v1 > v2 ? 1 : 0));
-}
-
-/**
- * Compares two keys in an object. If the key exists in one object
- * and not the other, the object with the key is less. If the key exists in
- * both objects, then the one with the lesser value is less.
- *
- * @param o1 the first object.
- * @param o2 the second object.
- * @param key the key.
- *
- * @return -1 if o1 < o2, 0 if o1 == o2, 1 if o1 > o2.
- */
-static int _compareObjectKeys(
-   DynamicObject& o1, DynamicObject& o2, const char* key)
-{
-   int rval = 0;
-   if(o1->hasMember(key))
-   {
-      if(o2->hasMember(key))
-      {
-         rval = _compare(o1[key], o2[key]);
-      }
-      else
-      {
-         rval = -1;
-      }
-   }
-   else if(o2->hasMember(key))
-   {
-      rval = 1;
-   }
-   return rval;
-}
-
-/**
- * Compares two object values.
- *
- * @param o1 the first object.
- * @param o2 the second object.
- *
- * @return -1 if o1 < o2, 0 if o1 == o2, 1 if o1 > o2.
- */
-static int _compareObjects(DynamicObject& o1, DynamicObject& o2)
-{
-   int rval = 0;
-
-   if(o1->getType() == String)
-   {
-      if(o2->getType() != String)
-      {
-         rval = -1;
-      }
-      else
-      {
-         rval = _compare(o1, o2);
-      }
-   }
-   else if(o2->getType() == String)
-   {
-      rval = 1;
-   }
-   else
-   {
-      rval = _compareObjectKeys(o1, o2, "@value");
-      if(rval == 0)
-      {
-         if(o1->hasMember("@value"))
-         {
-            rval = _compareObjectKeys(o1, o2, "@type");
-            if(rval == 0)
-            {
-               rval = _compareObjectKeys(o1, o2, "@language");
-            }
-         }
-         // both are "@id" objects
-         else
-         {
-            rval = _compare(o1["@id"], o2["@id"]);
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Sort function for comparing two objects.
- *
- * @param o1 the first object.
- * @param o2 the second object.
- *
- * @return true if o1 < o2, false if not.
- */
-static bool _sortObjects(DynamicObject o1, DynamicObject o2)
-{
-   return _compareObjects(o1, o2) == -1;
-}
-
-/**
- * Compares the object values between two bnodes.
- *
- * @param a the first bnode.
- * @param b the second bnode.
- *
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
- */
-static int _compareBlankNodeObjects(DynamicObject& a, DynamicObject& b)
-{
-   int rval = 0;
-
-   /*
-   3. For each property, compare sorted object values.
-   3.1. The bnode with fewer objects is first.
-   3.2. For each object value, compare only literals (@values) and non-bnodes.
-   3.2.1.  The bnode with fewer non-bnodes is first.
-   3.2.2. The bnode with a string object is first.
-   3.2.3. The bnode with the alphabetically-first string is first.
-   3.2.4. The bnode with a @value is first.
-   3.2.5. The bnode with the alphabetically-first @value is first.
-   3.2.6. The bnode with the alphabetically-first @type is first.
-   3.2.7. The bnode with a @language is first.
-   3.2.8. The bnode with the alphabetically-first @language is first.
-   3.2.9. The bnode with the alphabetically-first @id is first.
-   */
-
-   DynamicObjectIterator i = a.getIterator();
-   while(rval == 0 && i->hasNext())
-   {
-      i->next();
-      const char* p = i->getName();
-
-      // skip IDs (IRIs)
-      if(strcmp(p, "@id") != 0)
-      {
-         // step #3.1
-         int lenA = (a[p]->getType() == Array) ? a[p]->length() : 1;
-         int lenB = (b[p]->getType() == Array) ? b[p]->length() : 1;
-         rval = _compare(lenA, lenB);
-
-         // step #3.2.1
-         if(rval == 0)
-         {
-            // normalize objects to an array
-            DynamicObject objsA = a[p];
-            DynamicObject objsB = b[p];
-            if(objsA->getType() != Array)
-            {
-               DynamicObject tmp = objsA;
-               objsA = DynamicObject(Array);
-               objsA.push(tmp);
-
-               tmp = objsB;
-               objsB = DynamicObject(Array);
-               objsB.push(tmp);
-            }
-
-            // compare non-bnodes (remove bnodes from comparison)
-            objsA = objsA.filter(&_isNotNamedBlankNode);
-            objsB = objsB.filter(&_isNotNamedBlankNode);
-            rval = _compare(objsA->length(), objsB->length());
-
-            // steps #3.2.2-3.2.9
-            if(rval == 0)
-            {
-               objsA.sort(&_sortObjects);
-               objsB.sort(&_sortObjects);
-               for(int i = 0; i < objsA->length() && rval == 0; ++i)
-               {
-                  rval = _compareObjects(objsA[i], objsB[i]);
-               }
-            }
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Filter for duplicate objects.
- */
-struct FilterDuplicates : public DynamicObject::FilterFunctor
-{
-   DynamicObject obj;
-   FilterDuplicates(DynamicObject obj)
-   {
-      this->obj = obj;
-   }
-   bool operator()(DynamicObject& d) const
-   {
-      return (_compareObjects(d, const_cast<DynamicObject&>(this->obj)) == 0);
-   }
-};
-
-/**
- * Flattens the given value into a map of unique subjects. It is assumed that
- * all blank nodes have been uniquely named before this call. Array values for
- * properties will be sorted.
- *
- * @param parent the value's parent, NULL for none.
- * @param parentProperty the property relating the value to the parent.
- * @param value the value to flatten.
- * @param subjects the map of subjects to write to.
- *
- * @return true on success, false on failure with exception set.
- */
-static bool _flatten(
-   DynamicObject* parent, const char* parentProperty,
-   DynamicObject& value, DynamicObject& subjects)
-{
-   bool rval = true;
-
-   DynamicObject flattened(NULL);
-
-   if(value.isNull())
-   {
-      // drop null values
-   }
-   else if(value->getType() == Array)
-   {
-      DynamicObjectIterator i = value.getIterator();
-      while(rval && i->hasNext())
-      {
-         rval = _flatten(parent, parentProperty, i->next(), subjects);
-      }
-   }
-   else if(value->getType() == Map)
-   {
-      // already-expanded value or special-case reference-only @type
-      if(value->hasMember("@value") ||
-         (parentProperty != NULL && strcmp(parentProperty, "@type") == 0))
-      {
-         flattened = value.clone();
-      }
-      // graph literal/disjoint graph
-      else if(value["@id"]->getType() == Array)
-      {
-         // cannot flatten embedded graph literals
-         if(parent != NULL)
-         {
-            ExceptionRef e = new Exception(
-               "Embedded graph literals cannot be flattened.",
-               EXCEPTION_TYPE ".GraphLiteralFlattenError");
-            Exception::set(e);
-            rval = false;
-         }
-         // top-level graph literal
-         else
-         {
-            DynamicObjectIterator i = value["@id"].getIterator();
-            while(rval && i->hasNext())
-            {
-               rval = _flatten(parent, parentProperty, i->next(), subjects);
-            }
-         }
-      }
-      // regular subject
-      else
-      {
-         // create or fetch existing subject
-         DynamicObject subject(NULL);
-         if(subjects->hasMember(value["@id"]))
-         {
-            // FIXME: "@id" might be a graph literal (as {})
-            subject = subjects[value["@id"]->getString()];
-         }
-         else
-         {
-            // FIXME: "@id" might be a graph literal (as {})
-            subject = DynamicObject(Map);
-            subject["@id"] = value["@id"].clone();
-            subjects[value["@id"]->getString()] = subject;
-         }
-         flattened = DynamicObject(Map);
-         flattened["@id"] = subject["@id"].clone();
-
-         // flatten embeds
-         DynamicObjectIterator i = value.getIterator();
-         while(rval && i->hasNext())
-         {
-            DynamicObject& next = i->next();
-            const char* key = i->getName();
-
-            // drop null values, skip @id (it is already set above)
-            if(!next.isNull() && strcmp(key, "@id") != 0)
-            {
-               if(subject->hasMember(key))
-               {
-                  if(subject[key]->getType() != Array)
-                  {
-                     subject[key] = subject[key].arrayify();
-                  }
-               }
-               else
-               {
-                  subject[key]->setType(Array);
-               }
-
-               rval = _flatten(&subject[key], key, next, subjects);
-               if(rval && subject[key]->length() == 1)
-               {
-                  // convert subject[key] to object if it has only 1
-                  subject[key] = subject[key][0];
-               }
-            }
-         }
-      }
-   }
-   // string value
-   else
-   {
-      flattened = value.clone();
-      flattened->setType(String);
-   }
-
-   // add flattened value to parent
-   if(rval && !flattened.isNull() && parent != NULL)
-   {
-      if((*parent)->getType() == Array)
-      {
-         // do not add duplicates for the same property
-         FilterDuplicates filter(flattened);
-         bool duplicate = parent->filter(filter)->length() > 0;
-         if(!duplicate)
-         {
-            (*parent).push(flattened);
-         }
-      }
-      else
-      {
-         (*parent)[parentProperty] = flattened;
-      }
-   }
-
-   return rval;
-}
-
-/**
- * A blank node name generator using the given prefix for the blank nodes.
- *
- * @param prefix the prefix to use.
- *
- * @return the blank node name generator.
- */
-struct NameGenerator
-{
-   int count;
-   string base;
-   string name;
-   NameGenerator(const char* prefix) :
-      count(-1)
-   {
-      this->base = StringTools::format("_:%s", prefix);
-   }
-   const char* next()
-   {
-      name = StringTools::format("%s%d", base.c_str(), ++count);
-      return current();
-   }
-   const char* current()
-   {
-      return name.c_str();
-   }
-   bool inNamespace(const char* iri)
-   {
-      return strstr(iri, base.c_str()) == iri;
-   }
-};
-
-/**
- * Normalization state.
- */
-struct N11NState
-{
-   DynamicObject edges;
-   DynamicObject subjects;
-   DynamicObject serializations;
-   NameGenerator ngTmp;
-   NameGenerator ngC14N;
-   bool canonicalizing;
-   N11NState() :
-      edges(Map),
-      subjects(Map),
-      serializations(Map),
-      ngTmp("tmp"),
-      ngC14N("c14n"),
-      canonicalizing(false)
-   {
-      this->edges["refs"]->setType(Map);
-      this->edges["props"]->setType(Map);
-   }
-};
-
-/**
- * Populates a map of all named subjects from the given input and an array
- * of all unnamed bnodes (includes embedded ones).
- *
- * @param input the input (must be expanded, no context).
- * @param subjects the subjects map to populate.
- */
-static void _collectSubjects(
-   DynamicObject& input, DynamicObject& subjects, DynamicObject& bnodes)
-{
-   if(input.isNull())
-   {
-      // nothing to collect
-   }
-   else if(input->getType() == Array)
-   {
-      DynamicObjectIterator i = input.getIterator();
-      while(i->hasNext())
-      {
-         _collectSubjects(i->next(), subjects, bnodes);
-      }
-   }
-   else if(input->getType() == Map)
-   {
-      if(input->hasMember("@id"))
-      {
-         // graph literal
-         if(input["@id"]->getType() == Array)
-         {
-            _collectSubjects(input["@id"], subjects, bnodes);
-         }
-         // named subject
-         else if(_isSubject(input))
-         {
-            subjects[input["@id"]->getString()] = input;
-         }
-      }
-      // unnamed blank node
-      else if(_isBlankNode(input))
-      {
-         bnodes.push(input);
-      }
-
-      // recurse through subject properties
-      DynamicObjectIterator i = input.getIterator();
-      while(i->hasNext())
-      {
-         _collectSubjects(i->next(), subjects, bnodes);
-      }
-   }
-}
-
-/**
- * Assigns unique names to blank nodes that are unnamed in the given input.
- *
- * @param state normalization state.
- * @param input the input to assign names to.
- */
-static void _nameBlankNodes(N11NState& state, DynamicObject& input)
-{
-   // collect subjects and unnamed bnodes
-   DynamicObject subjects(Map);
-   DynamicObject bnodes(Array);
-   _collectSubjects(input, subjects, bnodes);
-
-   // uniquely name all unnamed bnodes
-   DynamicObjectIterator i = bnodes.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& bnode = i->next();
-      if(!bnode->hasMember("@id"))
-      {
-         // generate names until one is unique
-         while(subjects->hasMember(state.ngTmp.next()));
-         bnode["@id"] = state.ngTmp.current();
-         subjects[state.ngTmp.current()] = bnode;
-      }
-   }
-}
-
-/**
- * Renames a blank node, changing its references, etc. The method assumes
- * that the given name is unique.
- *
- * @param state normalization state.
- * @param b the blank node to rename.
- * @param id the new name to use.
- */
-static void _renameBlankNode(
-   N11NState& state, DynamicObject b, string id)
-{
-   // update bnode IRI
-   string old = b["@id"]->getString();
-   b["@id"] = id.c_str();
-
-   // update subjects map
-   DynamicObject& subjects = state.subjects;
-   subjects[id.c_str()] = subjects[old.c_str()];
-   subjects->removeMember(old.c_str());
-
-   // update reference and property lists
-   DynamicObject& edges = state.edges;
-   edges["refs"][id.c_str()] = edges["refs"][old.c_str()];
-   edges["props"][id.c_str()] = edges["props"][old.c_str()];
-   edges["refs"]->removeMember(old.c_str());
-   edges["props"]->removeMember(old.c_str());
-
-   // update references to this bnode
-   DynamicObject refs = edges["refs"][id.c_str()]["all"];
-   DynamicObjectIterator i1 = refs.getIterator();
-   while(i1->hasNext())
-   {
-      const char* iri = i1->next()["s"];
-      if(strcmp(iri, old.c_str()) == 0)
-      {
-         iri = id.c_str();
-      }
-      DynamicObject& ref = subjects[iri];
-      DynamicObject& props = edges["props"][iri]["all"];
-      DynamicObjectIterator i2 = props.getIterator();
-      while(i2->hasNext())
-      {
-         DynamicObject& prop = i2->next();
-         if(prop["s"] == old.c_str())
-         {
-            prop["s"] = id.c_str();
-
-            // normalize property to array for single code path
-            const char* p = prop["p"];
-            DynamicObjectIterator i3 = ref[p].arrayify().getIterator();
-            while(i3->hasNext())
-            {
-               DynamicObject& next = i3->next();
-               if(next->getType() == Map &&
-                  next->hasMember("@id") && next["@id"] == old.c_str())
-               {
-                  next["@id"] = id.c_str();
-               }
-            }
-         }
-      }
-   }
-
-   // update references from this bnode
-   DynamicObject props = edges["props"][id.c_str()]["all"];
-   DynamicObjectIterator i = props.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& p = i->next();
-      const char* iri = p["s"];
-      DynamicObjectIterator ri = edges["refs"][iri]["all"].getIterator();
-      while(ri->hasNext())
-      {
-         DynamicObject& ref = ri->next();
-         if(ref["s"] == old.c_str())
-         {
-            ref["s"] = id.c_str();
-         }
-      }
-   }
-}
-
-/**
- * Compares two edges. Edges with an IRI (vs. a bnode ID) come first, then
- * alphabetically-first IRIs, then alphabetically-first properties. If a blank
- * node appears in the blank node equality memo then they will be compared
- * after properties, otherwise they won't be.
- *
- * @param state the normalization state.
- * @param a the first edge.
- * @param b the second edge.
- *
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
- */
-static int _compareEdges(N11NState& state, DynamicObject& a, DynamicObject& b)
-{
-   int rval = 0;
-
-   bool bnodeA = _isBlankNodeIri(a["s"]);
-   bool bnodeB = _isBlankNodeIri(b["s"]);
-   NameGenerator& c14n = state.ngC14N;
-
-   // if not both bnodes, one that is a bnode is greater
-   if(bnodeA != bnodeB)
-   {
-      rval = bnodeA ? 1 : -1;
-   }
-   else
-   {
-      if(!bnodeA)
-      {
-         rval = _compare(a["s"], b["s"]);
-      }
-      if(rval == 0)
-      {
-         rval = _compare(a["p"], b["p"]);
-      }
-
-      // do bnode IRI comparison if canonical naming has begun
-      if(rval == 0 && state.canonicalizing)
-      {
-         bool c14nA = c14n.inNamespace(a["s"]);
-         bool c14nB = c14n.inNamespace(b["s"]);
-         if(c14nA != c14nB)
-         {
-            rval = c14nA ? 1 : -1;
-         }
-         else if(c14nA)
-         {
-            rval = _compare(a["s"], b["s"]);
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Comparator for comparing edges during sorting.
- */
-struct CompareEdges : public DynamicObject::SortFunctor
-{
-   N11NState* state;
-   CompareEdges(N11NState* state) :
-      state(state) {}
-   virtual bool operator()(DynamicObject& a, DynamicObject& b)
-   {
-      return _compareEdges(*state, a, b) == -1;
-   }
-};
-
-/**
- * A filter for blank node edges.
- *
- * @param e the edge to filter on.
- *
- * @return true if the edge is a blank node IRI.
- */
-static bool _filterBlankNodeEdge(DynamicObject& e)
-{
-   return _isBlankNodeIri(e["s"]);
-}
-
-/**
- * Populates the given reference map with all of the subject edges in the
- * graph. The references will be categorized by the direction of the edges,
- * where 'props' is for properties and 'refs' is for references to a subject as
- * an object. The edge direction categories for each IRI will be sorted into
- * groups 'all' and 'bnodes'.
- */
-static void _collectEdges(N11NState& state)
-{
-   DynamicObject& refs = state.edges["refs"];
-   DynamicObject& props = state.edges["props"];
-
-   // collect all references and properties
-   DynamicObjectIterator i = state.subjects.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& subject = i->next();
-      const char* iri = i->getName();
-
-      DynamicObjectIterator oi = subject.getIterator();
-      while(oi->hasNext())
-      {
-         DynamicObject& object = oi->next();
-         const char* key = oi->getName();
-         if(strcmp(key, "@id") != 0)
-         {
-            // normalize to array for single code path
-            DynamicObjectIterator ti = object.arrayify().getIterator();
-            while(ti->hasNext())
-            {
-               DynamicObject& o = ti->next();
-               if(o->getType() == Map && o->hasMember("@id") &&
-                  state.subjects->hasMember(o["@id"]->getString()))
-               {
-                  const char* objIri = o["@id"];
-
-                  // map object to this subject
-                  DynamicObject e1;
-                  e1["s"] = iri;
-                  e1["p"] = key;
-                  refs[objIri]["all"].push(e1);
-
-                  // map this subject to object
-                  DynamicObject e2;
-                  e2["s"] = objIri;
-                  e2["p"] = key;
-                  props[iri]["all"].push(e2);
-               }
-            }
-         }
-      }
-   }
-
-   // create sorted categories
-   CompareEdges sorter(&state);
-   i = state.edges.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObjectIterator ii = i->next().getIterator();
-      while(ii->hasNext())
-      {
-         DynamicObject& next = ii->next();
-         next["all"].sort(sorter);
-         next["bnodes"] = next["all"].filter(_filterBlankNodeEdge);
-      }
-   }
-}
-
-/**
- * Performs a shallow sort comparison on the given bnodes.
- *
- * @param state the normalization state.
- * @param a the first bnode.
- * @param b the second bnode.
- *
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
- */
-static int _shallowCompareBlankNodes(
-   N11NState& state, DynamicObject& a, DynamicObject& b)
-{
-   int rval = 0;
-
-   /* ShallowSort Algorithm (when comparing two bnodes):
-      1. Compare the number of properties.
-      1.1. The bnode with fewer properties is first.
-      2. Compare alphabetically sorted-properties.
-      2.1. The bnode with the alphabetically-first property is first.
-      3. For each property, compare object values.
-      4. Compare the number of references.
-      4.1. The bnode with fewer references is first.
-      5. Compare sorted references.
-      5.1. The bnode with the reference iri (vs. bnode) is first.
-      5.2. The bnode with the alphabetically-first reference iri is first.
-      5.3. The bnode with the alphabetically-first reference property is first.
-    */
-   DynamicObject pA = a.keys();
-   DynamicObject pB = b.keys();
-
-   // step #1
-   rval = _compare(pA->length(), pB->length());
-
-   // step #2
-   if(rval == 0)
-   {
-      // C++ implementation auto-sorts property names, so no extra sort here
-      rval = _compare(pA, pB);
-   }
-
-   // step #3
-   if(rval == 0)
-   {
-      rval = _compareBlankNodeObjects(a, b);
-   }
-
-   if(rval == 0)
-   {
-      const char* iriA = a["@id"];
-      const char* iriB = b["@id"];
-      DynamicObject& edgesA = state.edges["refs"][iriA]["all"];
-      DynamicObject& edgesB = state.edges["refs"][iriB]["all"];
-
-      // step #4
-      rval = _compare(edgesA->length(), edgesB->length());
-
-      // step #5
-      if(rval == 0)
-      {
-         for(int i = 0; i < edgesA->length() && rval == 0; ++i)
-         {
-            rval = _compareEdges(state, edgesA[i], edgesB[i]);
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * A MappingBuilder is used to build a mapping of existing blank node names
- * to a form for serialization. The serialization is used to compare blank
- * nodes against one another to determine a sort order.
- */
-struct MappingBuilder
-{
-   int count;
-   DynamicObject processed;
-   DynamicObject mapping;
-   DynamicObject adj;
-   DynamicObject keyStack;
-   DynamicObject done;
-   string s;
-
-   MappingBuilder() :
-      count(1),
-      processed(Map),
-      mapping(Map),
-      adj(Map),
-      keyStack(Array),
-      done(Map)
-   {
-      DynamicObject entry(Map);
-      entry["keys"]->append("s1");
-      entry["idx"] = 0;
-      this->keyStack.push(entry);
-   }
-
-   MappingBuilder clone()
-   {
-      MappingBuilder rval;
-      rval.count = this->count;
-      rval.processed = this->processed.clone();
-      rval.mapping = this->mapping.clone();
-      rval.adj = this->adj.clone();
-      rval.keyStack = this->keyStack.clone();
-      rval.done = this->done.clone();
-      rval.s = this->s;
-      return rval;
-   }
-};
-
-/**
- * Maps the next name to the given bnode IRI if the bnode IRI isn't already in
- * the mapping. If the given bnode IRI is canonical, then it will be given
- * a shortened form of the same name.
- *
- * @param iri the blank node IRI to map the next name to.
- * @param mb the mapping builder to use.
- *
- * @return the mapped name.
- */
-static const char* _mapNode(MappingBuilder& mb, const char* iri)
-{
-   if(!mb.mapping->hasMember(iri))
-   {
-      if(strstr(iri, "_:c14n") == iri)
-      {
-         mb.mapping[iri] = StringTools::format("c%s", iri + 6).c_str();
-      }
-      else
-      {
-         mb.mapping[iri] = StringTools::format("s%d", mb.count++).c_str();
-      }
-   }
-   return mb.mapping[iri];
-}
-
-/**
- * Marks a relation serialization as dirty if necessary.
- *
- * @param state the normalization state.
- * @param iri the IRI of the bnode to check.
- * @param changed the old IRI of the bnode that changed.
- * @param dir the direction to check ('props' or 'refs').
- *
- * @return true if the serialization was marked dirty, false if not.
- */
-static bool _markSerializationDirty(
-   N11NState& state, const char* iri, const char* changed, const char* dir)
+bool _isBlankNode(DynamicObject value)
 {
    bool rval = false;
-   DynamicObject& s = state.serializations[iri];
-   if(!s[dir].isNull() && s[dir]["m"]->hasMember(changed))
+   // Note: A value is a blank node if all of these hold true:
+   // 1. It is an Object.
+   // 2. If it has an @id key its value begins with '_:'.
+   // 3. It has no keys OR is not a @value, @set, or @list.
+   if(_isObject(value))
    {
-      s[dir].setNull();
-      rval = true;
-   }
-   return rval;
-}
-
-/**
- * Serializes the properties of the given bnode for its relation serialization.
- *
- * @param b the blank node.
- *
- * @return the serialized properties.
- */
-static string _serializeProperties(DynamicObject& b)
-{
-   string rval;
-
-   bool first = true;
-   DynamicObjectIterator pi = b.getIterator();
-   while(pi->hasNext())
-   {
-      DynamicObject& o = pi->next();
-      if(strcmp(pi->getName(), "@id") != 0)
+      if(value->hasMember("@id"))
       {
-         if(first)
-         {
-            first = false;
-         }
-         else
-         {
-            rval.push_back('|');
-         }
-
-         // property
-         rval.push_back('<');
-         rval.append(pi->getName());
-         rval.push_back('>');
-
-         // object(s)
-         DynamicObjectIterator oi = o.arrayify().getIterator();
-         while(oi->hasNext())
-         {
-            DynamicObject& obj = oi->next();
-            if(obj->getType() == Map)
-            {
-               // ID (IRI)
-               if(obj->hasMember("@id"))
-               {
-                  if(_isBlankNodeIri(obj["@id"]))
-                  {
-                     rval.append("_:");
-                  }
-                  else
-                  {
-                     rval.push_back('<');
-                     rval.append(obj["@id"]);
-                     rval.push_back('>');
-                  }
-               }
-               // literal
-               else
-               {
-                  rval.push_back('"');
-                  rval.append(obj["@value"]);
-                  rval.push_back('"');
-
-                  // type literal
-                  if(obj->hasMember("@type"))
-                  {
-                     rval.append("^^<");
-                     rval.append(obj["@type"]);
-                     rval.push_back('>');
-                  }
-                  // language literal
-                  else if(obj->hasMember("@language"))
-                  {
-                     rval.push_back('@');
-                     rval.append(obj["@language"]);
-                  }
-               }
-            }
-            // plain literal
-            else
-            {
-               rval.push_back('"');
-               rval.append(obj);
-               rval.push_back('"');
-            }
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Recursively increments the relation serialization for a mapping.
- *
- * @param state the normalization state.
- * @param mb the mapping builder to update.
- */
-static void _serializeMapping(N11NState& state, MappingBuilder& mb)
-{
-   if(mb.keyStack->length() > 0)
-   {
-      // continue from top of key stack
-      DynamicObject next = mb.keyStack.pop();
-      for(; next["idx"]->getInt32() < next["keys"]->length();
-         next["idx"] = next["idx"]->getInt32() + 1)
-      {
-         const char* k = next["keys"][next["idx"]->getInt32()];
-         if(!mb.adj->hasMember(k))
-         {
-            mb.keyStack.push(next);
-            break;
-         }
-
-         if(mb.done->hasMember(k))
-         {
-            // mark cycle
-            mb.s.push_back('_');
-            mb.s.append(k);
-         }
-         else
-         {
-            // mark key as serialized
-            mb.done[k] = true;
-
-            // serialize top-level key and its details
-            string s = k;
-            DynamicObject& adj = mb.adj[k];
-            const char* iri = adj["i"];
-            if(state.subjects->hasMember(iri))
-            {
-               DynamicObject& b = state.subjects[iri];
-
-               // serialize properties
-               s.push_back('[');
-               s.append(_serializeProperties(b));
-               s.push_back(']');
-
-               // serialize references
-               bool first = true;
-               s.push_back('[');
-               DynamicObject& refs = state.edges["refs"][iri]["all"];
-               DynamicObjectIterator ri = refs.getIterator();
-               while(ri->hasNext())
-               {
-                  DynamicObject& r = ri->next();
-                  if(first)
-                  {
-                     first = false;
-                  }
-                  else
-                  {
-                     s.push_back('|');
-                  }
-                  s.push_back('<');
-                  s.append(r["p"]);
-                  s.push_back('>');
-
-                  if(_isBlankNodeIri(r["s"]))
-                  {
-                     s.append("_:");
-                  }
-                  else
-                  {
-                     s.push_back('<');
-                     s.append(r["s"]);
-                     s.push_back('>');
-                  }
-               }
-               s.push_back(']');
-            }
-
-            // serialize adjacent node keys
-            DynamicObjectIterator ki = adj["k"].getIterator();
-            while(ki->hasNext())
-            {
-               s.append(ki->next());
-            }
-            mb.s.append(s);
-            DynamicObject entry(Map);
-            entry["keys"] = adj["k"];
-            entry["idx"] = 0;
-            mb.keyStack.push(entry);
-            _serializeMapping(state, mb);
-         }
-      }
-   }
-}
-
-/**
- * Compares two serializations for the same blank node. If the two
- * serializations aren't complete enough to determine if they are equal (or if
- * they are actually equal), 0 is returned.
- *
- * @param s1 the first serialization.
- * @param s2 the second serialization.
- *
- * @return -1 if s1 < s2, 0 if s1 == s2 (or indeterminate), 1 if s1 > v2.
- */
-static int _compareSerializations(string& s1, const char* s2)
-{
-   string::size_type s2Len = strlen(s2);
-   return strncmp(
-      s1.c_str(), s2, (s1.length() > s2Len) ? s2Len : s1.length());
-}
-
-// prototypes for recursive functions
-static void _serializeBlankNode(
-   N11NState& state,
-   DynamicObject& s, const char* iri, MappingBuilder& mb, const char* dir);
-
-/**
- * Recursively serializes adjacent bnode combinations.
- *
- * @param state the normalization state.
- * @param s the serialization to update.
- * @param iri the IRI of the bnode being serialized.
- * @param siri the serialization name for the bnode IRI.
- * @param mb the MappingBuilder to use.
- * @param dir the edge direction to use ('props' or 'refs').
- * @param mapped all of the already-mapped adjacent bnodes.
- * @param notMapped all of the not-yet mapped adjacent bnodes.
- */
-static void _serializeCombos(
-   N11NState& state,
-   DynamicObject& s, const char* iri, const char* siri, MappingBuilder& mb,
-   const char* dir, DynamicObject mapped, DynamicObject notMapped)
-{
-   // handle recursion
-   if(notMapped->length() > 0)
-   {
-      // copy mapped nodes
-      mapped = mapped.clone();
-
-      // map first bnode in list
-      mapped[_mapNode(mb, notMapped[0]["s"])] = notMapped[0]["s"];
-
-      // recurse into remaining possible combinations
-      MappingBuilder original = mb.clone();
-      notMapped = notMapped.slice(1);
-      int rotations = max(1, notMapped->length());
-      for(int r = 0; r < rotations; ++r)
-      {
-         MappingBuilder m = (r == 0) ? mb : original.clone();
-         _serializeCombos(state, s, iri, siri, m, dir, mapped, notMapped);
-
-         // rotate not-mapped for next combination
-         notMapped.rotate();
-      }
-   }
-   // no more adjacent bnodes to map, update serialization
-   else
-   {
-      DynamicObject keys = mapped.keys().sort();
-      DynamicObject entry(Map);
-      entry["i"] = iri;
-      entry["k"] = keys;
-      entry["m"] = mapped;
-      mb.adj[siri] = entry;
-      _serializeMapping(state, mb);
-
-      // optimize away mappings that are already too large
-      if(s[dir].isNull() || _compareSerializations(mb.s, s[dir]["s"]) <= 0)
-      {
-         // recurse into adjacent values
-         DynamicObjectIterator i = keys.getIterator();
-         while(i->hasNext())
-         {
-            const char* k = i->next();
-            _serializeBlankNode(state, s, mapped[k], mb, dir);
-         }
-
-         // update least serialization if new one has been found
-         _serializeMapping(state, mb);
-         if(s[dir].isNull() ||
-            (_compareSerializations(mb.s, s[dir]["s"]) <= 0 &&
-            (int)mb.s.length() >= s[dir]["s"]->length()))
-         {
-            s[dir] = DynamicObject(Map);
-            s[dir]["s"] = mb.s.c_str();
-            s[dir]["m"] = mb.mapping;
-         }
-      }
-   }
-}
-
-/**
- * Computes the relation serialization for the given blank node IRI.
- *
- * @param state the normalization state.
- * @param s the serialization to update.
- * @param iri the current bnode IRI to be mapped.
- * @param mb the MappingBuilder to use.
- * @param dir the edge direction to use ('props' or 'refs').
- */
-static void _serializeBlankNode(
-   N11NState& state,
-   DynamicObject& s, const char* iri, MappingBuilder& mb, const char* dir)
-{
-   // only do mapping if iri not already processed
-   if(!mb.processed->hasMember(iri))
-   {
-      // iri now processed
-      mb.processed[iri] = true;
-      const char* siri = _mapNode(mb, iri);
-
-      // copy original mapping builder
-      MappingBuilder original = mb.clone();
-
-      // split adjacent bnodes on mapped and not-mapped
-      DynamicObject& adj = state.edges[dir][iri]["bnodes"];
-      DynamicObject mapped(Map);
-      DynamicObject notMapped(Array);
-      DynamicObjectIterator ai = adj.getIterator();
-      while(ai->hasNext())
-      {
-         DynamicObject& next = ai->next();
-         if(mb.mapping->hasMember(next["s"]))
-         {
-            const char* serialized = mb.mapping[next["s"]->getString()];
-            mapped[serialized] = next["s"];
-         }
-         else
-         {
-            notMapped->append(next);
-         }
-      }
-
-      // TODO: ensure this optimization does not alter canonical order
-
-      // if the current bnode already has a serialization, reuse it
-      /*DynamicObject hint = state.serializations->hasMember(iri) ?
-         state.serializations[iri][dir] : DynamicObject(NULL);
-      if(!hint.isNull())
-      {
-         DynamicObject& hm = hint["m"];
-         notMapped.sort(function(a, b)
-         {
-            return _compare(hm[a.s], hm[b.s]);
-         });
-         DynamicObjectIterator i = notMapped.getIterator();
-         while(i->hasNext())
-         {
-            DynamicObject& next = i->next();
-            mapped[_mapNode(mb, next["s"])] = notMapped[i]["s"];
-         }
-         notMapped = DynamicObject(Array);
-      }*/
-
-      // loop over possible combinations
-      int combos = max(1, notMapped->length());
-      for(int i = 0; i < combos; ++i)
-      {
-         MappingBuilder m = (i == 0) ? mb : original.clone();
-         _serializeCombos(state, s, iri, siri, mb, dir, mapped, notMapped);
-      }
-   }
-}
-
-/**
- * Compares two blank nodes for equivalence.
- *
- * @param state the normalization state.
- * @param a the first blank node.
- * @param b the second blank node.
- *
- * @return -1 if a < b, 0 if a == b, 1 if a > b.
- */
-static int _deepCompareBlankNodes(
-   N11NState& state, DynamicObject& a, DynamicObject& b)
-{
-   int rval = 0;
-
-   // compare IRIs
-   const char* iriA = a["@id"];
-   const char* iriB = b["@id"];
-   if(strcmp(iriA, iriB) == 0)
-   {
-      rval = 0;
-   }
-   else
-   {
-      // do shallow compare first
-      rval = _shallowCompareBlankNodes(state, a, b);
-
-      // deep comparison is necessary
-      if(rval == 0)
-      {
-         // compare property edges and then reference edges
-         DynamicObject dirs(Array);
-         dirs.push("props");
-         dirs.push("refs");
-         DynamicObjectIterator i = dirs.getIterator();
-         while(rval == 0 && i->hasNext())
-         {
-            const char* dir = i->next();
-
-            // recompute 'a' and 'b' serializations as necessary
-            DynamicObject& sA = state.serializations[iriA];
-            DynamicObject& sB = state.serializations[iriB];
-            if(sA[dir].isNull())
-            {
-               MappingBuilder mb;
-               if(strcmp(dir, "refs") == 0)
-               {
-                  // keep same mapping and count from 'props' serialization
-                  mb.mapping = sA["props"]["m"].clone();
-                  mb.count = mb.mapping->length() + 1;
-               }
-               _serializeBlankNode(state, sA, iriA, mb, dir);
-            }
-            if(sB[dir].isNull())
-            {
-               MappingBuilder mb;
-               if(strcmp(dir, "refs") == 0)
-               {
-                  // keep same mapping and count from 'props' serialization
-                  mb.mapping = sB["props"]["m"].clone();
-                  mb.count = mb.mapping->length() + 1;
-               }
-               _serializeBlankNode(state, sB, iriB, mb, dir);
-            }
-
-            // compare serializations
-            rval = _compare(sA[dir]["s"], sB[dir]["s"]);
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Comparator for deeply-sorting blank nodes.
- */
-struct DeepCompareBlankNodes : public DynamicObject::SortFunctor
-{
-   N11NState* state;
-   DeepCompareBlankNodes(N11NState* state) :
-      state(state) {}
-   virtual bool operator()(DynamicObject& a, DynamicObject& b)
-   {
-      return _deepCompareBlankNodes(*state, a, b) == -1;
-   }
-};
-
-/**
- * Comparator for sorting mappings by value.
- */
-struct CompareMappingValues : public DynamicObject::SortFunctor
-{
-   DynamicObject mapping;
-   CompareMappingValues(DynamicObject& mapping) :
-      mapping(mapping) {}
-   virtual bool operator()(DynamicObject& a, DynamicObject& b)
-   {
-      return strcmp(mapping[a->getString()], mapping[b->getString()]) == -1;
-   }
-};
-
-/**
- * Canonically names blank nodes in the given input.
- *
- * @param state the normalization state.
- * @param input the flat input graph to assign names to.
- */
-static void _canonicalizeBlankNodes(N11NState& state, DynamicObject& input)
-{
-   // collect subjects and bnodes from flat input graph
-   DynamicObject& subjects = state.subjects;
-   DynamicObject& edges = state.edges;
-   DynamicObject& serializations = state.serializations;
-   DynamicObject bnodes(Array);
-   DynamicObjectIterator i = input.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      const char* iri = next["@id"];
-      subjects[iri] = next;
-      edges["refs"][iri]["all"]->setType(Array);
-      edges["refs"][iri]["bnodes"]->setType(Array);
-      edges["props"][iri]["all"]->setType(Array);
-      edges["props"][iri]["bnodes"]->setType(Array);
-      if(_isBlankNodeIri(iri))
-      {
-         bnodes.push(next);
-      }
-   }
-
-   // collect edges in the graph
-   _collectEdges(state);
-
-   // get node name generators
-   NameGenerator& c14n = state.ngC14N;
-   NameGenerator& ngTmp = state.ngTmp;
-
-   // rename all bnodes that happen to be in the c14n namespace
-   // and initialize serializations
-   i = bnodes.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& bnode = i->next();
-      const char* iri = bnode["@id"];
-      if(c14n.inNamespace(iri))
-      {
-         // generate names until one is unique
-         while(subjects->hasMember(ngTmp.next()));
-         _renameBlankNode(state, bnode, ngTmp.current());
-         iri = bnode["@id"];
-      }
-      serializations[iri]["props"].setNull();
-      serializations[iri]["refs"].setNull();
-   }
-
-   // being canonicalizing blank node names
-   state.canonicalizing = true;
-
-   // keep sorting and naming blank nodes until they are all named
-   bool resort = true;
-   while(bnodes->length() > 0)
-   {
-      // sort blank nodes
-      if(resort)
-      {
-         resort = false;
-         DeepCompareBlankNodes nodeSorter(&state);
-         bnodes.sort(nodeSorter);
-      }
-
-      // name all bnodes according to the first bnode's relation mappings
-      // (if it has mappings then a resort will be necessary)
-      DynamicObject bnode = bnodes.shift();
-      string iriStr = bnode["@id"]->getString();
-      const char* iri = iriStr.c_str();
-      resort = !serializations[iri]["props"].isNull();
-      DynamicObject dirs(Array);
-      dirs->append("props");
-      dirs->append("refs");
-      i = dirs.getIterator();
-      while(i->hasNext())
-      {
-         const char* dir = i->next();
-
-         // if no serialization has been computed, name only the first node
-         DynamicObject mapping(NULL);
-         if(serializations[iri][dir].isNull())
-         {
-            mapping = DynamicObject(Map);
-            mapping[iri] = "s1";
-         }
-         else
-         {
-            mapping = serializations[iri][dir]["m"];
-         }
-
-         // sort keys by value to name them in order
-         CompareMappingValues mappingSorter(mapping);
-         DynamicObject keys = mapping.keys().sort(mappingSorter);
-
-         // name bnodes in mapping
-         DynamicObject renamed(Array);
-         DynamicObjectIterator ki = keys.getIterator();
-         while(ki->hasNext())
-         {
-            const char* iriK = ki->next();
-            if(!c14n.inNamespace(iriK) && subjects->hasMember(iriK))
-            {
-               renamed->append(iriK);
-               _renameBlankNode(state, subjects[iriK], c14n.next());
-            }
-         }
-
-         // only keep non-canonically named bnodes
-         DynamicObject tmp = bnodes;
-         bnodes = DynamicObject(Array);
-         DynamicObjectIterator bi = tmp.getIterator();
-         while(bi->hasNext())
-         {
-            DynamicObject& b = bi->next();
-            const char* iriB = b["@id"];
-            if(!c14n.inNamespace(iriB))
-            {
-               // mark serializations related to the named bnodes as dirty
-               DynamicObjectIterator ri = renamed.getIterator();
-               while(ri->hasNext())
-               {
-                  if(_markSerializationDirty(state, iriB, ri->next(), dir))
-                  {
-                     // resort if a serialization was marked dirty
-                     resort = true;
-                  }
-               }
-               bnodes->append(b);
-            }
-         }
-      }
-   }
-
-   // sort property lists that now have canonically-named bnodes
-   i = edges["props"].getIterator();
-   while(i->hasNext())
-   {
-      i->next();
-      DynamicObject& subject = subjects[i->getName()];
-      DynamicObjectIterator pi = subject.getIterator();
-      while(pi->hasNext())
-      {
-         DynamicObject& prop = pi->next();
-         const char* p = pi->getName();
-         if(strcmp(p, "@id") != 0 && prop->getType() == Array)
-         {
-            prop.sort(&_sortObjects);
-         }
-      }
-   }
-}
-
-/**
- * Compares two blank node via their canonicalized IRIs.
- *
- * @param a the first blank node.
- * @param b the second blank node.
- *
- * @return true if the first blank node's IRI is less than the second's.
- */
-static bool _compareBlankNodeIris(DynamicObject a, DynamicObject b)
-{
-   return _compare(a["@id"], b["@id"]) == -1;
-}
-
-bool JsonLd::normalize(DynamicObject in, DynamicObject& out)
-{
-   bool rval = true;
-
-   // TODO: validate context
-
-   // prepare output
-   out->setType(Array);
-   out->clear();
-
-   if(!in.isNull())
-   {
-      // expand input
-      DynamicObject expanded;
-      rval = _expand(DynamicObject(Map), NULL, in, expanded);
-      if(rval)
-      {
-         // create normalization state
-         N11NState state;
-
-         // assign names to unnamed bnodes
-         _nameBlankNodes(state, expanded);
-
-         // flatten
-         DynamicObject subjects(Map);
-         rval = _flatten(NULL, NULL, expanded, subjects);
-         if(rval)
-         {
-            // append unique subjects to array
-            DynamicObjectIterator i = subjects.getIterator();
-            while(i->hasNext())
-            {
-               out->append(i->next());
-            }
-
-            // canonicalize blank nodes
-            _canonicalizeBlankNodes(state, out);
-
-            // sort output
-            out.sort(&_compareBlankNodeIris);
-         }
-      }
-   }
-
-   return rval;
-}
-
-bool JsonLd::expand(DynamicObject in, DynamicObject& out)
-{
-   bool rval = true;
-
-   if(in.isNull())
-   {
-      out.setNull();
-   }
-   else
-   {
-      rval = _expand(DynamicObject(Map), NULL, in, out);
-   }
-
-   return rval;
-}
-
-bool JsonLd::compact(
-   DynamicObject context, DynamicObject in, DynamicObject& out)
-{
-   bool rval = true;
-
-   // TODO: should context simplification be optional? (ie: remove context
-   // entries that are not used in the output)
-
-   out.setNull();
-   if(!in.isNull())
-   {
-      // fully expand input
-      DynamicObject tmp;
-      rval = expand(in, tmp);
-      if(rval)
-      {
-         // setup output context
-         DynamicObject ctxOut(Map);
-
-         // compact
-         DynamicObject result;
-         rval = _compact(context.clone(), NULL, tmp, result, &ctxOut);
-         if(rval)
-         {
-            // add context if used
-            if(ctxOut->length() > 0)
-            {
-               out = DynamicObject(Map);
-               out["@context"] = ctxOut;
-               if(result->getType() == Array)
-               {
-                  out[_getKeywords(ctxOut)["@id"]->getString()] = result;
-               }
-               else
-               {
-                  out.merge(result, false);
-               }
-            }
-            else
-            {
-               out = result;
-            }
-         }
-      }
-   }
-
-   return rval;
-}
-
-DynamicObject JsonLd::mergeContexts(
-   DynamicObject ctx1, DynamicObject ctx2)
-{
-   // copy contexts
-   DynamicObject merged = ctx1.clone();
-   DynamicObject copy = ctx2.clone();
-
-   // if the new context contains any IRIs that are in the merged context,
-   // remove them from the merged context, they will be overwritten
-   DynamicObjectIterator i = ctx2.getIterator();
-   while(i->hasNext())
-   {
-      // ignore special keys starting with '@'
-      DynamicObject& iri = i->next();
-      if(i->getName()[0] != '@')
-      {
-         DynamicObjectIterator mi = merged.getIterator();
-         while(mi->hasNext())
-         {
-            DynamicObject& miri = mi->next();
-            if(miri == iri)
-            {
-               // FIXME: update related coerce rules
-               mi->remove();
-               break;
-            }
-         }
-      }
-   }
-
-   // merge contexts (do not append)
-   merged.merge(copy, false);
-
-   return merged;
-}
-
-string JsonLd::expandTerm(DynamicObject ctx, const char* term)
-{
-   return _expandTerm(ctx, term, NULL);
-}
-
-string JsonLd::compactIri(DynamicObject ctx, const char* iri)
-{
-   return _compactIri(ctx, iri, NULL);
-}
-
-/**
- * Returns true if the given input is a subject and has one of the given types
- * in the given frame.
- *
- * @param input the input.
- * @param frame the frame with types to look for.
- *
- * @return true if the input has one of the given types.
- */
-static bool _isType(DynamicObject& input, DynamicObject& frame)
-{
-   bool rval = false;
-
-   // check if type(s) are specified in frame and input
-   if(frame->hasMember("@type") &&
-      input->getType() == Map &&
-      input->hasMember("@type"))
-   {
-      // find a type from the frame in the input
-      DynamicObjectIterator i = frame["@type"].arrayify().getIterator();
-      while(!rval && i->hasNext())
-      {
-         DynamicObject& type = i->next();
-         DynamicObjectIterator ii = input["@type"].arrayify().getIterator();
-         while(!rval && ii->hasNext())
-         {
-            rval = (ii->next() == type);
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Filters non-keyword properties.
- *
- * @param e the current array element.
- *
- * @return true if the element is a non-keyword.
- */
-static bool _filterNonKeywords(DynamicObject& e)
-{
-   return (e->getString()[0] != '@');
-}
-
-/**
- * Returns true if the given input matches the given frame via duck-typing.
- *
- * @param input the input.
- * @param frame the frame to check against.
- *
- * @return true if the input matches the frame.
- */
-static bool _isDuckType(DynamicObject& input, DynamicObject&frame)
-{
-   bool rval = false;
-
-   // frame must not have a specific type
-   if(!frame->hasMember("@type"))
-   {
-      // get frame properties that must exist on input
-      DynamicObject props = frame.keys().filter(&_filterNonKeywords);
-      if(props->length() == 0)
-      {
-         // input always matches if there are no properties
-         rval = true;
-      }
-      // input must be a subject with all the given properties
-      else if(input->getType() == Map && input->hasMember("@id"))
-      {
-         rval = true;
-         DynamicObjectIterator i = props.getIterator();
-         while(rval && i->hasNext())
-         {
-            rval = input->hasMember(i->next());
-         }
-      }
-   }
-
-   return rval;
-}
-
-// prototype for recursive framing function
-static bool _frame(
-   DynamicObject& subjects, DynamicObject in,
-   DynamicObject frame, DynamicObject embeds,
-   bool autoembed, DynamicObject parent, DynamicObject parentKey,
-   DynamicObject& options, DynamicObject& out);
-
-/**
- * Recursively removes dependent dangling embeds.
- *
- * @param iri the iri of the parent to remove embeds for.
- * @param embeds the embeds map.
- * @param mark true to only mark the embeds, false to remove them.
- */
-static void _removeDependentEmbeds(
-   const char* iri, DynamicObject& embeds, bool mark = false)
-{
-   // mark embeds for removal
-   if(mark)
-   {
-      DynamicObjectIterator i = embeds.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& embed = i->next();
-         if(!embed["parent"].isNull() &&
-            embed["parent"]["@id"] == iri)
-         {
-            embed["remove"] = true;
-            _removeDependentEmbeds(i->getName(), embeds, true);
-         }
-      }
-   }
-   // remove embeds
-   else
-   {
-      // first mark embeds
-      _removeDependentEmbeds(iri, embeds, true);
-
-      // now remove embeds
-      DynamicObjectIterator i = embeds.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& embed = i->next();
-         if(embed->hasMember("remove"))
-         {
-            i->remove();
-         }
-      }
-   }
-}
-
-/**
- * Subframes a value.
- *
- * @param subjects a map of subjects in the graph.
- * @param value the value to subframe.
- * @param frame the frame to use.
- * @param embeds a map of previously embedded subjects, used to prevent cycles.
- * @param autoembed true if auto-embed is on, false if not.
- * @param parent the parent object.
- * @param parentKey the parent key.
- * @param options the framing options.
- * @param out the output.
- *
- * @return true on success, false on failure with exception set.
- */
-static bool _subframe(
-   DynamicObject& subjects, DynamicObject value,
-   DynamicObject& frame, DynamicObject embeds,
-   bool autoembed, DynamicObject parent, DynamicObject parentKey,
-   DynamicObject& options, DynamicObject& out)
-{
-   bool rval = true;
-
-   // get existing embed entry
-   const char* iri = value["@id"];
-   DynamicObject embed = embeds->hasMember(iri) ?
-      embeds[iri] : DynamicObject(NULL);
-
-   // determine if value should be embedded or referenced,
-   // embed is ON if:
-   // 1. The frame OR default option specifies @embed as ON, AND
-   // 2. There is no existing embed OR it is an autoembed, AND
-   //    autoembed mode is off.
-   bool embedOn =
-      ((frame->hasMember("@embed") && frame["@embed"]) ||
-      (!frame->hasMember("@embed") && options["defaults"]["embedOn"])) &&
-      (embed.isNull() || (embed["autoembed"] && !autoembed));
-
-   if(!embedOn)
-   {
-      // not embedding, so only use subject IRI as reference
-      out = DynamicObject(Map);
-      out["@id"] = value["@id"].clone();
-   }
-   else
-   {
-      // output value
-      out = value;
-
-      // create new embed entry
-      if(embed.isNull())
-      {
-         embed = DynamicObject(Map);
-         embeds[iri] = embed;
-      }
-      // replace the existing embed with a reference
-      else if(!embed["parent"].isNull())
-      {
-         DynamicObject& objs = embed["parent"][embed["key"]->getString()];
-         if(objs->getType() == Array)
-         {
-            // find and replace embed in array
-            for(int i = 0; i < objs->length(); i++)
-            {
-               if(objs[i]->getType() == Map &&
-                  objs[i]->hasMember("@id") &&
-                  objs[i]["@id"] == iri)
-               {
-                  objs[i] = DynamicObject(Map);
-                  objs[i]["@id"] = value["@id"].clone();
-                  break;
-               }
-            }
-         }
-         else
-         {
-            objs = DynamicObject(Map);
-            objs["@id"] = value["@id"].clone();
-         }
-
-         // recursively remove any dependent dangling embeds
-         _removeDependentEmbeds(iri, embeds);
-      }
-
-      // update embed entry
-      embed["autoembed"] = autoembed;
-      embed["parent"] = parent;
-      embed["key"] = parentKey;
-
-      // check explicit flag
-      bool explicitOn = frame->hasMember("@explicit") ?
-         frame["@explicit"] : options["defaults"]["explicitOn"];
-      if(explicitOn)
-      {
-         // remove keys from the value that aren't in the frame
-         DynamicObjectIterator vi = value.getIterator();
-         while(vi->hasNext())
-         {
-            // do not remove @id or any frame key
-            vi->next();
-            const char* key = vi->getName();
-            if(strcmp(key, "@id") != 0 && !frame->hasMember(key))
-            {
-               vi->remove();
-            }
-         }
-      }
-
-      // iterate over keys in value
-      DynamicObjectIterator vi = value.getIterator();
-      while(vi->hasNext())
-      {
-         // skip keywords
-         DynamicObject& v = vi->next();
-         const char* key = vi->getName();
-         if(key[0] != '@')
-         {
-            // get the subframe if available
-            DynamicObject f(NULL);
-            bool _autoembed = false;
-            if(frame->hasMember(key))
-            {
-               f = frame[key];
-            }
-            // use a catch-all subframe to preserve data from graph
-            else
-            {
-               f = (value[key]->getType() == Array) ?
-                  DynamicObject(Array) : DynamicObject(Map);
-               _autoembed = true;
-            }
-
-            // build input and do recursion
-            DynamicObject in = v.arrayify();
-            DynamicObjectIterator itr = in.getIterator();
-            while(itr->hasNext())
-            {
-               // replace reference to subject w/embedded subject
-               DynamicObject& next = itr->next();
-               if(next->getType() == Map &&
-                  next->hasMember("@id") &&
-                  subjects->hasMember(next["@id"]))
-               {
-                  in[itr->getIndex()] =
-                     subjects[next["@id"]->getString()];
-               }
-            }
-            DynamicObject dynokey;
-            dynokey = key;
-            rval = _frame(
-               subjects, in, f, embeds, _autoembed, value, dynokey,
-               options, value[key]);
-         }
-      }
-
-      // iterate over frame keys to add any missing values
-      DynamicObjectIterator fi = frame.getIterator();
-      while(rval && fi->hasNext())
-      {
-         DynamicObject f = fi->next();
-         const char* key = fi->getName();
-
-         // skip keywords and non-null keys in value
-         if(key[0] != '@' && (!value->hasMember(key) || value[key].isNull()))
-         {
-            // add empty array to value
-            if(f->getType() == Array)
-            {
-               value[key] = DynamicObject(Array);
-            }
-            // add default value to value
-            else
-            {
-               // use first subframe if frame is an array
-               if(f->getType() == Array)
-               {
-                  f = (f->length() > 0) ? f[0] : DynamicObject(Map);
-               }
-
-               // determine if omit default is on
-               bool omitOn = f->hasMember("@omitDefault") ?
-                  f["@omitDefault"] :
-                  options["defaults"]["omitDefaultOn"];
-               if(!omitOn)
-               {
-                  if(f->hasMember("@default"))
-                  {
-                     // use specified default value
-                     value[key] = f["@default"].clone();
-                  }
-                  else
-                  {
-                     // use built-in default value is: null
-                     value[key].setNull();
-                  }
-               }
-            }
-         }
-      }
-   }
-
-   return rval;
-}
-
-/**
- * Recursively frames the given input according to the given frame.
- *
- * @param subjects a map of subjects in the graph.
- * @param in the input to frame.
- * @param frame the frame to use.
- * @param embeds a map of previously embedded subjects, used to prevent cycles.
- * @param autoembed true if auto-embed is on, false if not.
- * @param parent the parent object (for subframing), null for none.
- * @param parentKey the parent key (for subframing), null for none.
- * @param options the framing options.
- * @param out the output.
- *
- * @return true on success, false on failure with exception set.
- */
-static bool _frame(
-   DynamicObject& subjects, DynamicObject in,
-   DynamicObject frame, DynamicObject embeds,
-   bool autoembed, DynamicObject parent, DynamicObject parentKey,
-   DynamicObject& options, DynamicObject& out)
-{
-   bool rval = true;
-
-   // clear output
-   out.setNull();
-
-   // prepare output, set limit, get array of frames
-   int limit = -1;
-   DynamicObject frames(NULL);
-   if(frame->getType() == Array)
-   {
-      out = DynamicObject(Array);
-      frames = frame;
-
-      // an empty array means accept all
-      if(frames->length() == 0)
-      {
-         frames.push(DynamicObject(Map));
-      }
-   }
-   else
-   {
-      frames = DynamicObject(Array);
-      frames.push(frame);
-      limit = 1;
-   }
-
-   // iterate over frames adding input matches to list
-   DynamicObject values(Array);
-   for(int i = 0; rval && i < frames->length() && limit != 0; ++i)
-   {
-      // get next frame
-      frame = frames[i];
-      if(frame->getType() != Map)
-      {
-         ExceptionRef e = new Exception(
-            "Invalid JSON-LD frame. Frame type is not a map or array.",
-            EXCEPTION_TYPE ".InvalidFrameFormat");
-         Exception::set(e);
-         rval = false;
+         rval = (strncmp(value["@id"], "_:", 2) == 0);
       }
       else
       {
-         // create array of values for each frame
-         values[i]->setType(Array);
-         for(int n = 0; n < in->length() && limit != 0; ++n)
-         {
-            // dereference input if it refers to a subject
-            DynamicObject next = in[n];
-            if(next->getType() == Map && next->hasMember("@id") &&
-               subjects->hasMember(next["@id"]))
-            {
-               next = subjects[next["@id"]->getString()];
-            }
-
-            // add input to list if it matches frame specific type or duck-type
-            if(_isType(next, frame) || _isDuckType(next, frame))
-            {
-               values[i].push(next);
-               --limit;
-            }
-         }
+         rval = (value->length() == 0 ||
+           !(value->hasMember("@value") ||
+              value->hasMember("@set") || value->hasMember("@list")));
       }
    }
-
-   // for each matching value, add it to the output
-   DynamicObjectIterator i = values.getIterator();
-   while(rval && i->hasNext())
-   {
-      DynamicObjectIterator ii = i->next().getIterator();
-      while(rval && ii->hasNext())
-      {
-         DynamicObject value = ii->next();
-         frame = frames[i->getIndex()];
-
-         // if value is a subject, do subframing
-         if(_isSubject(value))
-         {
-            rval = _subframe(
-               subjects, value, frame, embeds, autoembed,
-               parent, parentKey, options, value);
-         }
-
-         if(rval)
-         {
-            // add value to output
-            if(out.isNull())
-            {
-               out = value;
-            }
-            else
-            {
-               // determine if value is a reference to an embed
-               bool isRef = (_isReference(value) &&
-                  embeds->hasMember(value["@id"]));
-
-               // push any value that isn't a parentless reference
-               if(!(parent.isNull() && isRef))
-               {
-                  out.push(value);
-               }
-            }
-         }
-      }
-   }
-
    return rval;
 }
 
-bool JsonLd::frame(
-   DynamicObject in, DynamicObject frame, DynamicObject& out,
-   DynamicObject* options)
+/**
+ * Returns true if the given value is an absolute IRI, false if not.
+ *
+ * @param value the value to check.
+ *
+ * @return true if the value is an absolute IRI, false if not.
+ */
+bool _isAbsoluteIri(const char* value)
 {
-   bool rval = true;
+   return Pattern::match("^[[:alnum:]]+:\\/\\/.+$", value);
+}
 
-   // save frame context
-   DynamicObject _f;
-   DynamicObject ctx(NULL);
-   if(frame->hasMember("@context"))
-   {
-      ctx = frame["@context"].clone();
-
-      // remove context from frame
-      rval = JsonLd::expand(frame, _f);
-   }
-   else if(frame->getType() == Array)
-   {
-      // save first context in the array
-      if(frame->length() > 0 && frame[0]->hasMember("@context"))
-      {
-         ctx = frame[0]["@context"].clone();
-      }
-
-      // expand all elements in the array
-      _f->setType(Array);
-      DynamicObjectIterator i = frame.getIterator();
-      while(rval && i->hasNext())
-      {
-         DynamicObject& next = i->next();
-         DynamicObject f;
-         rval = JsonLd::expand(next, f);
-         if(rval)
-         {
-            _f->append(f);
-         }
-      }
-   }
-   else
-   {
-      _f = frame;
-   }
-
-   // normalize input
-   DynamicObject _in;
-   rval = rval && JsonLd::normalize(in, _in);
-   if(rval)
-   {
-      // create framing options
-      DynamicObject opts(Map);
-      opts["defaults"]["embedOn"] = true;
-      opts["defaults"]["explicitOn"] = false;
-      opts["defaults"]["omitDefaultOn"] = false;
-      if(options != NULL && !(*options).isNull() &&
-         (*options)->hasMember("defaults"))
-      {
-         DynamicObject& defaults = (*options)["defaults"];
-         if(defaults->hasMember("embedOn"))
-         {
-            opts["defaults"]["embedOn"] = defaults["embedOn"];
-         }
-         if(defaults->hasMember("explicitOn"))
-         {
-            opts["defaults"]["explicitOn"] = defaults["explicitOn"];
-         }
-         if(defaults->hasMember("omitDefaultOn"))
-         {
-            opts["defaults"]["omitDefaultOn"] = defaults["omitDefaultOn"];
-         }
-      }
-
-      // build map of all subjects
-      DynamicObject subjects(Map);
-      DynamicObjectIterator i = _in.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& next = i->next();
-         subjects[next["@id"]->getString()] = next;
-      }
-
-      // frame input
-      rval = _frame(
-         subjects, _in, _f, DynamicObject(Map), false,
-         DynamicObject(NULL), DynamicObject(NULL), opts, out);
-
-      // apply context
-      if(rval && !ctx.isNull() && !out.isNull())
-      {
-         // preserve top-level array by compacting individual entries
-         if(out->getType() == Array)
-         {
-            DynamicObject tmp = out;
-            out = DynamicObject(Array);
-            DynamicObjectIterator i = tmp.getIterator();
-            while(rval && i->hasNext())
-            {
-               DynamicObject nextOut;
-               rval = JsonLd::compact(ctx, i->next(), nextOut);
-               if(rval)
-               {
-                  out.push(nextOut);
-               }
-            }
-         }
-         else
-         {
-            rval = JsonLd::compact(ctx, out, out);
-         }
-      }
-   }
-
+/**
+ * Creates a new UniqueNamer. A UniqueNamer issues unique names, keeping
+ * track of any previously issued names.
+ *
+ * @param prefix the prefix to use ('<prefix><counter>').
+ */
+UniqueNamer _createUniqueNamer(const char* prefix)
+{
+   UniqueNamer rval(Map);
+   rval["prefix"] = prefix;
+   rval["counter"] = (uint64_t)0;
+   rval["existing"]->setType(Map);
    return rval;
 }
 
-bool JsonLd::hasProperty(DynamicObject& jsonld, const char* property)
+/**
+ * Gets the new blank node name for the given old name, where if no old name
+ * is given a new name will be generated.
+ *
+ * @param namer the UniqueNamer to use.
+ * @param [oldName] the old name to get the new name for.
+ *
+ * @return the new name.
+ */
+const char* _getName(UniqueNamer& namer, const char* oldName)
 {
-   bool rval = false;
-
-   if(jsonld->hasMember(property))
+   // return existing old name
+   if(oldName != NULL && namer["existing"]->hasMember(oldName))
    {
-      DynamicObject& val = jsonld[property];
-      if(!val.isNull())
-      {
-         if(val->getType() == Array)
-         {
-            rval = (val->length() != 0);
-         }
-         else
-         {
-            rval = true;
-         }
-      }
+      return namer["existing"][oldName];
    }
 
-   return rval;
-}
+   // get next name
+   string name = namer["prefix"]->getString();
+   name.append(namer["counter"]);
+   namer["counter"] = namer["counter"]->getUInt64() + 1;
 
-bool JsonLd::hasValue(
-   DynamicObject& jsonld, const char* property, DynamicObject& value)
-{
-   bool rval = false;
-
-   if(JsonLd::hasProperty(jsonld, property))
+   // save mapping
+   if(oldName == NULL)
    {
-      DynamicObject& val = jsonld[property];
-      if(val->getType() == Array)
-      {
-         rval = (val->indexOf(value) != -1);
-      }
-      // avoid matching the set of values with an array value parameter
-      else if(value->getType() != Array)
-      {
-         rval = (val == value);
-      }
+      oldName = name.c_str();
    }
-
-   return rval;
+   namer["existing"][oldName] = name.c_str();
+   return namer["existing"][oldName];
 }
 
-bool JsonLd::hasValue(
-   DynamicObject& jsonld, const char* property, const char* value)
+/**
+ * Returns true if the given oldName has already been assigned a new name.
+ *
+ * @param namer the UniqueNamer to use.
+ * @param oldName the oldName to check.
+ *
+ * @return true if the oldName has been assigned a new name, false if not.
+ */
+bool _isNamed(UniqueNamer& namer, const char* oldName)
 {
-   DynamicObject d(String);
-   d = value;
-   return hasValue(jsonld, property, d);
+   return namer["existing"]->hasMember(oldName);
 }
 
-void JsonLd::addValue(
-   DynamicObject& jsonld, const char* property, DynamicObject& value,
-   bool propertyIsList)
-{
-   if(propertyIsList || !hasValue(jsonld, property, value))
-   {
-      if(jsonld->hasMember(property))
-      {
-         // arrayify and append new value using push
-         jsonld[property].push(value);
-      }
-      else
-      {
-         // add new value
-         jsonld[property] = value;
-      }
-   }
-}
-
-void JsonLd::addValue(
-   DynamicObject& jsonld, const char* property, const char* value,
-   bool propertyIsList)
-{
-   DynamicObject d(String);
-   d = value;
-   return addValue(jsonld, property, d, propertyIsList);
-}
-
-DynamicObject JsonLd::getValues(DynamicObject& jsonld, const char* property)
-{
-   DynamicObject rval(Array);
-
-   if(jsonld->hasMember(property))
-   {
-      rval = jsonld[property].arrayify();
-   }
-
-   return rval;
-}
-
-void JsonLd::removeProperty(DynamicObject& jsonld, const char* property)
-{
-   jsonld->removeMember(property);
-}
-
-void JsonLd::removeValue(
-   DynamicObject& jsonld, const char* property, DynamicObject& value)
-{
-   DynamicObject values = getValues(jsonld, property);
-   DynamicObject filtered(Array);
-
-   DynamicObjectIterator i = values.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& next = i->next();
-      if(next != value)
-      {
-         filtered->append(next);
-      }
-   }
-
-   if(filtered->length() == 0)
-   {
-      removeProperty(jsonld, property);
-   }
-   else if(filtered->length() == 1)
-   {
-      jsonld[property] = filtered[0];
-   }
-   else
-   {
-      jsonld[property] = filtered;
-   }
-}
-
-void JsonLd::removeValue(
-   DynamicObject& jsonld, const char* property, const char* value)
-{
-   DynamicObject d(String);
-   d = value;
-   return removeValue(jsonld, property, d);
-}
+} // end local namespace

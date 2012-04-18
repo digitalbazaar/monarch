@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011 Digital Bazaar, Inc. All rights reserved.
+ * Copyright (c) 2010-2012 Digital Bazaar, Inc. All rights reserved.
  */
 #include "monarch/app/AppFactory.h"
 #include "monarch/crypto/MessageDigest.h"
@@ -91,7 +91,7 @@ static bool _processStream(
    {
       DynamicObject& input = output;
       DynamicObject normalized;
-      rval = JsonLd::normalize(input, normalized);
+      rval = JsonLd::normalize(input, DynamicObject(Map), normalized);
       if(rval)
       {
          output = normalized;
