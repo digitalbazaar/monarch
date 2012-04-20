@@ -36,7 +36,8 @@ const char* ConfigManager::ID            = "_id_";
 // too much
 const char* ConfigManager::GROUP       = "_group_";
 const char* ConfigManager::PARENT      = "_parent_";
-const char* ConfigManager::KEYWORDS    = "_keywords_";
+const char* ConfigManager::GLOBALS     = "_globals_";
+const char* ConfigManager::LOCALS      = "_locals_";
 const char* ConfigManager::MERGE       = "_merge_";
 const char* ConfigManager::APPEND      = "_append_";
 const char* ConfigManager::REMOVE      = "_remove_";
@@ -1594,14 +1595,30 @@ bool ConfigManager::recursiveAddConfig(
       mLock.unlockExclusive();
    }
 
+   // add global keywords to entire keyword stack
+   if(rval)
+   {
+      if(config->hasMember(GLOBALS))
+      {
+         mLock.lockExclusive();
+         DynamicObjectIterator i = mKeywordStack.getIterator();
+         while(i->hasNext())
+         {
+            DynamicObject& state = i->next();
+            state.merge(config[GLOBALS], false);
+         }
+         mLock.unlockExclusive();
+      }
+   }
+
    // push a new keyword state onto the stack and merge current keywords
    if(rval)
    {
       mLock.lockExclusive();
       DynamicObject state = mKeywordStack.last().clone();
-      if(config->hasMember(KEYWORDS))
+      if(config->hasMember(LOCALS))
       {
-         state.merge(config[KEYWORDS], false);
+         state.merge(config[LOCALS], false);
       }
       mKeywordStack.push(state);
       mLock.unlockExclusive();

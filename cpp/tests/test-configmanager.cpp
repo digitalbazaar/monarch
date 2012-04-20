@@ -779,6 +779,7 @@ static void _checkKeywordConfigs(
 
       // create expect config (raw w/ keyword replacement)
       Config child1kw = child1.clone();
+      child1kw[ConfigManager::MERGE]["child1 global key1"] = "global value1";
       child1kw[ConfigManager::MERGE]["child1 parent key1"] = "parent value1";
       child1kw[ConfigManager::MERGE]["child1 key1"] = "child1 value1";
 
@@ -796,6 +797,7 @@ static void _checkKeywordConfigs(
 
       // create expect config (raw w/ keyword replacement)
       Config child2kw = child2.clone();
+      child2kw[ConfigManager::MERGE]["child2 global key1"] = "global value1";
       child2kw[ConfigManager::MERGE]["child2 key1"] = "child2 parent value1";
 
       Config raw = cm.getConfig("child2", true);
@@ -826,8 +828,10 @@ static void _checkKeywordConfigs(
       // create expect config
       Config expect;
       expect["parent key1"] = "parent value1";
+      expect["child1 global key1"] = "global value1";
       expect["child1 key1"] = "child1 value1";
       expect["child1 parent key1"] = "parent value1";
+      expect["child2 global key1"] = "global value1";
       expect["child2 key1"] = "child2 parent value1";
 
       Config merged = cm.getConfig("group", false);
@@ -857,6 +861,7 @@ static void _testKeywordConfigs(
 }
 
 static void _testKeywordConfigFiles(
+   const char* globalsPath,
    const char* parentPath,
    const char* child1Path,
    const char* child2Path)
@@ -864,14 +869,26 @@ static void _testKeywordConfigFiles(
    ConfigManager cm;
 
    // read configs from disk
+   Config globals;
    Config parent;
    Config child1;
    Config child2;
+   _readConfig(globals, globalsPath);
    _readConfig(parent, parentPath);
    _readConfig(child1, child1Path);
    _readConfig(child2, child2Path);
 
-   // add system config
+   // add globals config
+   {
+      printf("Testing kw adding globals config file... ");
+
+      assertNoException(
+         cm.addConfigFile(globalsPath));
+
+      printf("PASS.\n");
+   }
+
+   // add parent config
    {
       printf("Testing kw adding parent config file... ");
 
@@ -905,17 +922,31 @@ static void _testKeywordConfigFiles(
 }
 
 static void _initKeywordConfigs(
-   Config& parent, Config& child1, Config& child2)
+   Config& globals, Config& parent, Config& child1, Config& child2)
 {
+   // build globals config
+   {
+      DynamicObject& obj = globals;
+      // set properties
+      obj[ConfigManager::ID] = "globals";
+      obj[ConfigManager::GROUP] = "group";
+      Config& kw = obj[ConfigManager::GLOBALS];
+      kw["global key1"] = "global value1";
+   }
+
    // build parent config
+   // NOTE: The parent includes the globals, but keyword replacement is done
+   // before including configs.  So the keywords in the globals config are
+   // only available to the other children.
    {
       DynamicObject& obj = parent;
       // set properties
       obj[ConfigManager::ID] = "parent";
       obj[ConfigManager::GROUP] = "group";
-      Config& kw = obj[ConfigManager::KEYWORDS];
+      Config& kw = obj[ConfigManager::LOCALS];
       kw["parent key1"] = "parent value1";
       Config& inc = obj[ConfigManager::INCLUDE];
+      inc->append(TMPDIR "/test-kw-globals.config");
       inc->append(TMPDIR "/test-kw-child1.config");
       inc->append(TMPDIR "/test-kw-child2.config");
 
@@ -930,13 +961,14 @@ static void _initKeywordConfigs(
       // set properties
       obj[ConfigManager::ID] = "child1";
       obj[ConfigManager::GROUP] = "group";
-      Config& kw = obj[ConfigManager::KEYWORDS];
+      Config& kw = obj[ConfigManager::LOCALS];
       kw["child1 key1"] = "child1 value1";
 
       // set merge info
       Config& merge = obj[ConfigManager::MERGE];
       merge["child1 parent key1"] = "{parent key1}";
       merge["child1 key1"] = "{child1 key1}";
+      merge["child1 global key1"] = "{global key1}";
    }
 
    // build child 2 config
@@ -945,30 +977,34 @@ static void _initKeywordConfigs(
       // set properties
       obj[ConfigManager::ID] = "child2";
       obj[ConfigManager::GROUP] = "group";
-      Config& kw = obj[ConfigManager::KEYWORDS];
+      Config& kw = obj[ConfigManager::LOCALS];
       // override parent key
       kw["parent key1"] = "child2 parent value1";
 
       // set merge info
       Config& merge = obj[ConfigManager::MERGE];
       merge["child2 key1"] = "{parent key1}";
+      merge["child2 global key1"] = "{global key1}";
    }
 }
 
 static void testKeywordConfigFiles()
 {
    // create configs
+   Config globals;
    Config parent;
    Config child1;
    Config child2;
-   _initKeywordConfigs(parent, child1, child2);
+   _initKeywordConfigs(globals, parent, child1, child2);
 
    // write configs to disk
+   _writeConfig(globals, TMPDIR "/test-kw-globals.config");
    _writeConfig(parent, TMPDIR "/test-kw-parent.config");
    _writeConfig(child1, TMPDIR "/test-kw-child1.config");
    _writeConfig(child2, TMPDIR "/test-kw-child2.config");
 
    _testKeywordConfigFiles(
+      TMPDIR "/test-kw-globals.config",
       TMPDIR "/test-kw-parent.config",
       TMPDIR "/test-kw-child1.config",
       TMPDIR "/test-kw-child2.config");

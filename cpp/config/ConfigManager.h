@@ -146,9 +146,15 @@ public:
 
    /**
     * Keyword in a config object to specify a map of keywords that apply to
-    * this config and included configs.
+    * this config and any configs included by the ConfigManager.
     */
-   static const char* KEYWORDS;
+   static const char* GLOBALS;
+
+   /**
+    * Keyword in a config object to specify a map of keywords that apply to
+    * this config and any configs recusively included by this config.
+    */
+   static const char* LOCALS;
 
    /**
     * Keyword in a config object to specify the values for config, which
