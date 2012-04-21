@@ -54,7 +54,7 @@ public:
     * must have been resolved before calling this method and all values must
     * be in expanded form.
     *
-    * @param ctx the context to use.
+    * @param ctx the active context to use.
     * @param property the property that points to the element, NULL for none.
     * @param element the element to compact.
     * @param options the compaction options.
@@ -71,7 +71,7 @@ public:
     * the element will be removed. All context URLs must have been resolved
     * before calling this method.
     *
-    * @param ctx the context to use.
+    * @param ctx the active context to use.
     * @param property the property for the value, NULL for none.
     * @param element the element to expand.
     * @param options the expansion options.
@@ -119,16 +119,18 @@ public:
    bool toRdf(DynamicObject input, DynamicObject& output);
 
    /**
-    * Merges a context onto another.
+    * Processes a local context and returns a new active context.
     *
-    * @param ctx1 the original context.
-    * @param ctx2 the new context to merge in.
-    * @param output resulting merged context.
+    * @param activeCtx the current active context.
+    * @param localCtx the local context to process.
+    * @param options the context processing options.
+    * @param output the new active context.
     *
     * @return true on success, false on failure with exception set.
     */
-   bool mergeContexts(
-      DynamicObject ctx1, DynamicObject ctx2, DynamicObject& output);
+   bool processContext(
+      DynamicObject activeCtx, DynamicObject localCtx,
+      DynamicObject options, DynamicObject& output);
 };
 
 /**
@@ -185,9 +187,9 @@ public:
 };
 
 typedef DynamicObject UniqueNamer;
-bool _expandValue(
+DynamicObject _expandValue(
    DynamicObject ctx, const char* property, DynamicObject value,
-   const char* base, DynamicObject& output);
+   const char* base);
 DynamicObject _createStatement(
    const char* s, const char* p, DynamicObject& o);
 void _getStatements(
@@ -221,19 +223,21 @@ void _removeDependentEmbeds(DynamicObject state, const char* id);
 void _addFrameOutput(
    DynamicObject state, DynamicObject parent,
    const char* property, DynamicObject output);
-bool _removePreserve(
-   DynamicObject& ctx, DynamicObject input, DynamicObject& output);
-int _isBestMatch(
-   DynamicObject ctx, const char* key,
-   DynamicObject* value, const char* container,
-   const char* result, DynamicObject results, int rank);
-bool _compactIri(
-   DynamicObject ctx, const char* iri, string& output,
-   DynamicObject* value = NULL, const char* container = NULL);
-bool _expandTerm(
-   DynamicObject ctx, const char* term, string& output,
-   const char* base = NULL, bool deep = false);
-DynamicObject _getKeywords(DynamicObject ctx);
+DynamicObject _removePreserve(DynamicObject& ctx, DynamicObject input);
+int _rankTerm(DynamicObject& ctx, const char* term, DynamicObject* value);
+string _compactIri(
+   DynamicObject& ctx, const char* iri, DynamicObject* value = NULL);
+bool _defineContextMapping(
+   DynamicObject& activeCtx,
+   DynamicObject& ctx, const char* key, const char* base,
+   DynamicObject& defined);
+bool _expandContextIri(
+   DynamicObject& activeCtx,
+   DynamicObject& ctx, const char* value, const char* base,
+   DynamicObject& defined, string& expanded);
+string _expandTerm(
+   DynamicObject& ctx, const char* term, const char* base = "");
+DynamicObject _getInitialContext();
 bool _isKeyword(const char* value, DynamicObject* keywords = NULL);
 bool _isObject(DynamicObject input);
 bool _isEmptyObject(DynamicObject input);
@@ -292,20 +296,8 @@ bool JsonLd::compact(
          options["graph"] = false;
       }
 
-      // default to empty context
-      if(ctx.isNull())
-      {
-         ctx = DynamicObject(Map);
-      }
-      if(ctx->hasMember("@context"))
-      {
-         ctx = ctx["@context"];
-      }
-
-      DynamicObject expanded;
-      DynamicObject merged;
-
       // expand input
+      DynamicObject expanded;
       if(!JsonLd::expand(input, options, expanded))
       {
          ExceptionRef e = new Exception(
@@ -315,11 +307,12 @@ bool JsonLd::compact(
          return false;
       }
 
-      // merge and resolve contexts
-      if(!JsonLd::mergeContexts(DynamicObject(Map), ctx, options, merged))
+      // process context
+      DynamicObject activeCtx = _getInitialContext();
+      if(!JsonLd::processContext(activeCtx, ctx, options, activeCtx))
       {
          ExceptionRef e = new Exception(
-            "Could not merge context before compaction.",
+            "Could not process context before compaction.",
             EXCEPTION_TYPE ".CompactError");
          Exception::push(e);
          return false;
@@ -333,7 +326,7 @@ bool JsonLd::compact(
 
       // do compaction
       Processor p;
-      if(!p.compact(merged, NULL, expanded, options, output))
+      if(!p.compact(activeCtx, NULL, expanded, options, output))
       {
          return false;
       }
@@ -385,11 +378,7 @@ bool JsonLd::compact(
          if(_isArray(output))
          {
             // use '@graph' keyword
-            string kwgraph;
-            if(!_compactIri(ctx, "@graph", kwgraph))
-            {
-               return false;
-            }
+            string kwgraph = _compactIri(activeCtx, "@graph");
             DynamicObject graph = output;
             output = DynamicObject(Map);
             if(hasContext)
@@ -426,10 +415,10 @@ bool JsonLd::expand(
    if(rval)
    {
       // do expansion
+      DynamicObject ctx = _getInitialContext();
       DynamicObject expanded;
       Processor p;
-      rval = p.expand(
-         DynamicObject(Map), NULL, input, options, false, expanded);
+      rval = p.expand(ctx, NULL, input, options, false, expanded);
       if(rval)
       {
          // optimize away @graph with no other properties
@@ -517,30 +506,21 @@ bool JsonLd::frame(
       return false;
    }
 
-   // merge and resolve contexts
-   DynamicObject merged;
-   if(!JsonLd::mergeContexts(DynamicObject(Map), ctx, options, merged))
+   // reprocess context
+   DynamicObject activeCtx = _getInitialContext();
+   if(!JsonLd::processContext(activeCtx, ctx, options, activeCtx))
    {
       ExceptionRef e = new Exception(
-         "Could not merge context before framing clean up.",
+         "Could not process context before framing clean up.",
          EXCEPTION_TYPE ".FrameError");
       Exception::push(e);
       return false;
    }
 
    // get graph alias
-   string graph;
-   if(!_compactIri(merged, "@graph", graph))
-   {
-      return false;
-   }
+   string graph = _compactIri(activeCtx, "@graph");
    // remove @preserve from results
-   DynamicObject result;
-   if(!_removePreserve(merged, output[graph.c_str()], result))
-   {
-      return false;
-   }
-   output[graph.c_str()] = result;
+   output[graph.c_str()] = _removePreserve(activeCtx, output[graph.c_str()]);
    return true;
 }
 
@@ -568,9 +548,7 @@ bool JsonLd::normalize(
 
    // do normalization
    Processor p;
-   rval = p.normalize(expanded, output);
-
-   return rval;
+   return p.normalize(expanded, output);
 }
 
 bool JsonLd::toRdf(
@@ -598,39 +576,41 @@ bool JsonLd::toRdf(
    return rval;
 }
 
-bool JsonLd::mergeContexts(
-   DynamicObject ctx1, DynamicObject ctx2, DynamicObject options,
-   DynamicObject& output)
+bool JsonLd::processContext(
+   DynamicObject activeCtx, DynamicObject localCtx,
+   DynamicObject options, DynamicObject& output)
 {
    bool rval = true;
 
-   // return empty context early for null context
-   if(ctx2.isNull())
+   // return initial context early for null context
+   if(localCtx.isNull())
    {
-      output = DynamicObject(Map);
+      output = _getInitialContext();
+      return true;
    }
-   else
-   {
-      // copy contexts
-      ctx1 = ctx1.clone();
-      ctx2 = ctx2.clone();
 
-      // resolve URLs in ctx1 and 2
-      DynamicObject _ctx1(Map);
-      DynamicObject _ctx2(Map);
-      _ctx1["@context"] = ctx1;
-      _ctx2["@context"] = ctx2;
-      // FIXME: implement
-      /*
-      rval =
-         _resolveUrls(_ctx1, resolver) &&
-         _resolveUrls(_ctx2, resolver); */
-      if(rval)
-      {
-         // do merge
-         Processor p;
-         rval = p.mergeContexts(ctx1, ctx2, output);
-      }
+   // set default options
+   if(!options->hasMember("base"))
+   {
+      options["base"] = "";
+   }
+
+   // resolve URLs in localCtx
+   localCtx = localCtx.clone();
+   if(_isObject(localCtx) && !localCtx->hasMember("@context"))
+   {
+      DynamicObject tmp = localCtx;
+      localCtx = DynamicObject(Map);
+      localCtx["@context"] = tmp;
+   }
+   // FIXME: implement
+   /*
+   rval = _resolveUrls(localCtx, resolver); */
+   if(rval)
+   {
+      // process context
+      Processor p;
+      rval = p.processContext(activeCtx, localCtx, options, output);
    }
 
    return rval;
@@ -909,141 +889,41 @@ bool JsonLd::compareNormalized(DynamicObject& n1, DynamicObject& n2)
    return rval;
 }
 
-bool JsonLd::getContextValue(
-   DynamicObject ctx, const char* key, const char* type,
-   DynamicObject& output, bool expand)
+DynamicObject JsonLd::getContextValue(
+   DynamicObject ctx, const char* key, const char* type)
 {
-   // get default language
-   if(type != NULL && strcmp(type, "@language") == 0 && ctx->hasMember(type))
-   {
-      output = ctx[type]->getString();
-   }
-   else
-   {
-      output.setNull();
-   }
+   DynamicObject rval(NULL);
 
    // return NULL for invalid key
    if(key == NULL)
    {
-      output.setNull();
-   }
-   // return entire context entry if type is unspecified
-   else if(type == NULL)
-   {
-      if(ctx->hasMember(key))
-      {
-         output = ctx[key];
-      }
-      else
-      {
-         output.setNull();
-      }
-   }
-   else if(ctx->hasMember(key))
-   {
-      DynamicObject& entry = ctx[key];
-      if(_isObject(entry))
-      {
-         if(entry->hasMember(type))
-         {
-            output = entry[type];
-         }
-      }
-      else if(_isString(entry))
-      {
-         if(strcmp(type, "@id") == 0)
-         {
-            output = entry;
-         }
-      }
-      else
-      {
-         ExceptionRef e = new Exception(
-            "Invalid @context value for key.",
-            EXCEPTION_TYPE ".InvalidContext");
-         e->getDetails()["context"] = ctx;
-         e->getDetails()["key"] = key;
-         Exception::set(e);
-         return false;
-      }
-
-      // expand term
-      if(!output.isNull() && strcmp(type, "@language") != 0)
-      {
-         string term;
-         if(!_expandTerm(ctx, output, term))
-         {
-            return false;
-         }
-         output = term.c_str();
-      }
-   }
-   // expand key if requested
-   else if(expand)
-   {
-      string keyStr;
-      if(!_expandTerm(ctx, key, keyStr))
-      {
-         return false;
-      }
-      return JsonLd::getContextValue(ctx, keyStr.c_str(), type, output, false);
+      return rval;
    }
 
-   return true;
-}
-
-bool JsonLd::setContextValue(
-   DynamicObject ctx, const char* key, const char* type, DynamicObject value)
-{
-   bool rval = true;
-
-   // compact key
-   string k;
-   rval = _compactIri(ctx, key, k);
-   if(rval)
+   // get default language
+   if(type != NULL && strcmp(type, "@language") == 0 && ctx->hasMember(type))
    {
-      // get keyword for type
-      DynamicObject keywords = _getKeywords(ctx);
-      const char* kwtype = keywords[type];
+      rval = ctx[type];
+   }
 
-      // add new key to @context or update existing key w/string value
-      if(!ctx->hasMember(key) || _isString(ctx[key]))
+   // get specific entry information
+   if(ctx["mappings"]->hasMember(key))
+   {
+      DynamicObject& entry = ctx["mappings"][key];
+
+      // return whole entry
+      if(type == NULL)
       {
-         if(strcmp(type, "@id") == 0)
-         {
-            ctx[key] = value;
-         }
-         else
-         {
-            ctx[key][kwtype] = value;
-         }
+         rval = entry;
       }
-      // update existing key w/object value
-      else if(_isObject(ctx[key]))
+      // return entry value for type
+      else if(entry->hasMember(type))
       {
-         ctx[key][kwtype] = value;
-      }
-      else
-      {
-         ExceptionRef e = new Exception(
-            "Invalid @context value for key.",
-            EXCEPTION_TYPE ".InvalidContext");
-         e->getDetails()["context"] = ctx;
-         e->getDetails()["key"] = key;
-         Exception::set(e);
-         rval = false;
+         rval = entry[type];
       }
    }
 
    return rval;
-}
-bool JsonLd::setContextValue(
-   DynamicObject ctx, const char* key, const char* type, const char* value)
-{
-   DynamicObject v;
-   v = value;
-   return setContextValue(ctx, key, type, v);
 }
 
 // local namespace
@@ -1074,11 +954,8 @@ bool Processor::compact(
       if(output->length() == 1)
       {
          // use single element if no container is specified
-         DynamicObject container;
-         if(!JsonLd::getContextValue(ctx, property, "@container", container))
-         {
-            return false;
-         }
+         DynamicObject container = JsonLd::getContextValue(
+            ctx, property, "@container");
          if(container != "@list" && container != "@set")
          {
             output = output[0];
@@ -1093,13 +970,9 @@ bool Processor::compact(
       // element is a @value
       if(_isValue(element))
       {
-         DynamicObject type;
-         DynamicObject language;
-         if(!(JsonLd::getContextValue(ctx, property, "@type", type) &&
-            JsonLd::getContextValue(ctx, property, "@language", language)))
-         {
-            return false;
-         }
+         DynamicObject type = JsonLd::getContextValue(ctx, property, "@type");
+         DynamicObject language = JsonLd::getContextValue(
+            ctx, property, "@language");
 
          // matching @type specified in context, compact element
          if(!type.isNull() && element->hasMember("@type") &&
@@ -1131,12 +1004,7 @@ bool Processor::compact(
          // compact @type IRI
          else if(element->hasMember("@type"))
          {
-            string id;
-            if(!_compactIri(ctx, element["@type"], id))
-            {
-               return false;
-            }
-            element["@type"] = id.c_str();
+            element["@type"] = _compactIri(ctx, element["@type"]).c_str();
          }
          output = element;
          return true;
@@ -1145,19 +1013,10 @@ bool Processor::compact(
       // compact subject references
       if(_isSubjectReference(element))
       {
-         DynamicObject type;
-         if(!JsonLd::getContextValue(ctx, property, "@type", type))
-         {
-            return false;
-         }
+         DynamicObject type = JsonLd::getContextValue(ctx, property, "@type");
          if(type == "@id")
          {
-            string id;
-            if(!_compactIri(ctx, element["@id"], id))
-            {
-               return false;
-            }
-            output = id.c_str();
+            output = _compactIri(ctx, element["@id"]).c_str();
             return true;
          }
       }
@@ -1176,12 +1035,7 @@ bool Processor::compact(
             // compact single @id
             if(_isString(value))
             {
-               string id;
-               if(!_compactIri(ctx, value, id))
-               {
-                  return false;
-               }
-               value = id.c_str();
+               value = _compactIri(ctx, value).c_str();
             }
             // value must be a @type array
             else
@@ -1190,22 +1044,13 @@ bool Processor::compact(
                DynamicObjectIterator vi = value.getIterator();
                while(vi->hasNext())
                {
-                  string id;
-                  if(!_compactIri(ctx, vi->next(), id))
-                  {
-                     return false;
-                  }
-                  types.push(id.c_str());
+                  types.push(_compactIri(ctx, vi->next()).c_str());
                }
                value = types;
             }
 
             // compact property and add value
-            string prop;
-            if(!_compactIri(ctx, key, prop))
-            {
-               return false;
-            }
+            string prop = _compactIri(ctx, key);
             bool isArray = (_isArray(value) && value->length() == 0);
             JsonLd::addValue(output, prop.c_str(), value, isArray);
             continue;
@@ -1216,11 +1061,7 @@ bool Processor::compact(
          // preserve empty arrays
          if(value->length() == 0)
          {
-            string prop;
-            if(!_compactIri(ctx, key, prop))
-            {
-               return false;
-            }
+            string prop = _compactIri(ctx, key);
             JsonLd::addValue(output, prop.c_str(), DynamicObject(Array), true);
          }
 
@@ -1232,35 +1073,12 @@ bool Processor::compact(
             bool isList = _isListValue(v);
 
             // compact property
-            string prop;
-            if(_isValue(v))
+            string prop = _compactIri(ctx, key, &v);
+
+            // remove @list for recursion (will be re-added if necessary)
+            if(isList)
             {
-               if(!_compactIri(ctx, key, prop, &v))
-               {
-                  return false;
-               }
-            }
-            else if(isList)
-            {
-               if(!_compactIri(ctx, key, prop, &v, "@list"))
-               {
-                  return false;
-               }
                v = v["@list"];
-            }
-            else if(_isString(v))
-            {
-               // pass expanded form of plain literal to handle null language
-               DynamicObject tmp(Map);
-               tmp["@value"] = v;
-               if(!_compactIri(ctx, key, prop, &tmp))
-               {
-                  return false;
-               }
-            }
-            else if(!_compactIri(ctx, key, prop))
-            {
-               return false;
             }
 
             // recursively compact value
@@ -1270,12 +1088,8 @@ bool Processor::compact(
             }
 
             // get container type for property
-            DynamicObject container;
-            if(!JsonLd::getContextValue(
-               ctx, prop.c_str(), "@container", container))
-            {
-               return false;
-            }
+            DynamicObject container = JsonLd::getContextValue(
+               ctx, prop.c_str(), "@container");
 
             // handle @list
             if(isList && container != "@list")
@@ -1293,11 +1107,7 @@ bool Processor::compact(
                   return false;
                }
                // reintroduce @list keyword
-               string kwlist;
-               if(!_compactIri(ctx, "@list", kwlist))
-               {
-                  return false;
-               }
+               string kwlist = _compactIri(ctx, "@list");
                DynamicObject val(Map);
                val[kwlist.c_str()] = v;
                v = val;
@@ -1358,18 +1168,15 @@ bool Processor::expand(
    // recursively expand object
    if(_isObject(element))
    {
-      // if element has a context, merge it in
+      // if element has a context, process it
       if(element->hasMember("@context"))
       {
-         if(!mergeContexts(ctx, element["@context"], ctx))
+         if(!processContext(ctx, element["@context"], options, ctx))
          {
             return false;
          }
          element->removeMember("@context");
       }
-
-      // get keyword aliases
-      DynamicObject keywords = _getKeywords(ctx);
 
       output = DynamicObject(Map);
       DynamicObjectIterator i = element.getIterator();
@@ -1379,15 +1186,11 @@ bool Processor::expand(
          const char* key = i->getName();
 
          // expand property
-         string prop;
-         if(!_expandTerm(ctx, key, prop))
-         {
-            return false;
-         }
+         string prop = _expandTerm(ctx, key);
 
          // drop non-absolute IRI keys that aren't keywords
          if(!_isAbsoluteIri(prop.c_str()) &&
-            !_isKeyword(prop.c_str(), &keywords))
+            !_isKeyword(prop.c_str(), &ctx))
          {
             continue;
          }
@@ -1496,12 +1299,8 @@ bool Processor::expand(
             // convert value to @list if container specifies it
             if(prop != "@list" && !_isListValue(value))
             {
-               DynamicObject container;
-               if(!JsonLd::getContextValue(
-                  ctx, property, "@container", container))
-               {
-                  return false;
-               }
+               DynamicObject container = JsonLd::getContextValue(
+                  ctx, property, "@container");
                if(container == "@list")
                {
                   // ensure value is an array
@@ -1592,7 +1391,8 @@ bool Processor::expand(
    }
 
    // expand element according to value expansion rules
-   return _expandValue(ctx, property, element, options["base"], output);
+   output = _expandValue(ctx, property, element, options["base"]);
+   return true;
 }
 
 bool Processor::frame(
@@ -1907,108 +1707,58 @@ bool Processor::toRdf(DynamicObject input, DynamicObject& output)
    return false;
 }
 
-bool Processor::mergeContexts(
-   DynamicObject ctx1, DynamicObject ctx2, DynamicObject& output)
+bool Processor::processContext(
+   DynamicObject activeCtx, DynamicObject localCtx,
+   DynamicObject options, DynamicObject& output)
 {
-   // flatten array context
-   if(_isArray(ctx1))
+   // initialize the resulting context
+   output = activeCtx.clone();
+
+   // normalize local context to an array
+   DynamicObject ctxs = localCtx.arrayify();
+
+   // process each context in order
+   DynamicObjectIterator i = ctxs.getIterator();
+   while(i->hasNext())
    {
-      if(!mergeContexts(DynamicObject(Map), ctx1, ctx1))
+      DynamicObject ctx = i->next();
+
+      // reset to initial context
+      if(ctx.isNull())
       {
+         output = _getInitialContext();
+         continue;
+      }
+
+      // dereference @context key if present
+      if(_isObject(ctx) && ctx->hasMember("@context"))
+      {
+         ctx = ctx["@context"];
+      }
+
+      // context must be an object by now, all URLs resolved before this call
+      if(!_isObject(ctx))
+      {
+         ExceptionRef e = new Exception(
+            "Invalid JSON-LD syntax; @context must be an object.",
+            EXCEPTION_TYPE ".SyntaxError");
+         e->getDetails()["context"] = ctx;
+         Exception::set(e);
          return false;
       }
-   }
 
-   // init return value as copy of first context
-   output = ctx1.clone();
-
-   if(ctx2.isNull())
-   {
-      // reset to blank context
-      output = DynamicObject(Map);
-   }
-   else if(_isArray(ctx2))
-   {
-      // flatten array context in order
-      DynamicObjectIterator i = ctx2.getIterator();
-      while(i->hasNext())
+      // define context mappings for keys in local context
+      DynamicObject defined(Map);
+      DynamicObjectIterator ci = ctx.getIterator();
+      while(ci->hasNext())
       {
-         if(!mergeContexts(output, i->next(), output))
+         ci->next();
+         const char* key = ci->getName();
+         if(!_defineContextMapping(output, ctx, key, options["base"], defined))
          {
             return false;
          }
       }
-   }
-   else if(_isObject(ctx2))
-   {
-      // iterate over new keys
-      DynamicObjectIterator i = ctx2.getIterator();
-      while(i->hasNext())
-      {
-         i->next();
-         const char* key = i->getName();
-
-         // ensure @language is a string
-         if(strcmp(key, "@language") == 0 && !_isString(ctx2[key]))
-         {
-            ExceptionRef e = new Exception(
-               "Invalid JSON-LD syntax; \"@language\" must be a string.",
-               EXCEPTION_TYPE ".SyntaxError");
-            Exception::set(e);
-            return false;
-         }
-
-         DynamicObject newIri;
-         if(!JsonLd::getContextValue(ctx2, key, "@id", newIri, false))
-         {
-            return false;
-         }
-         // no IRI defined, skip
-         if(newIri.isNull())
-         {
-            continue;
-         }
-
-         // if the ctx2 has a new definition for an IRI (possibly using a new
-         // key), then the old definition must be removed
-         DynamicObjectIterator oi = output.getIterator();
-         while(oi->hasNext())
-         {
-            oi->next();
-            const char* okey = oi->getName();
-
-            // matching IRI, remove old entry
-            DynamicObject match;
-            if(!JsonLd::getContextValue(
-               output, okey, "@id", match, false))
-            {
-               return false;
-            }
-            if(newIri == match)
-            {
-               oi->remove();
-               break;
-            }
-         }
-      }
-
-      // merge contexts
-      i = ctx2.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& next = i->next();
-         const char* key = i->getName();
-         output[key] = next;
-      }
-   }
-   else
-   {
-      ExceptionRef e = new Exception(
-         "Invalid JSON-LD syntax; @context must be an array, object or "
-         "absolute IRI string.",
-         EXCEPTION_TYPE ".SyntaxError");
-      Exception::set(e);
-      return false;
    }
 
    return true;
@@ -2018,80 +1768,62 @@ bool Processor::mergeContexts(
  * Expands the given value by using the coercion and keyword rules in the
  * given context.
  *
- * @param ctx the context to use.
+ * @param ctx the active context to use.
  * @param property the expanded property the value is associated with.
  * @param value the value to expand.
  * @param base the base IRI to use.
- * @param output the expanded value.
  *
- * @return true on success, false on failure with exception set.
+ * @return the expanded value.
  */
-bool _expandValue(
+DynamicObject _expandValue(
    DynamicObject ctx, const char* property, DynamicObject value,
-   const char* base, DynamicObject& output)
+   const char* base)
 {
-   // default to simple string return value
-   output = value.clone();
-
    // special-case expand @id and @type (skips '@id' expansion)
-   string prop;
-   if(!_expandTerm(ctx, property, prop))
-   {
-      return false;
-   }
+   string prop = _expandTerm(ctx, property);
    if(prop == "@id" || prop == "@type")
    {
-      string id;
-      if(!_expandTerm(ctx, value, id, (prop == "@id") ? base : NULL))
-      {
-         return false;
-      }
-      output = id.c_str();
-      return true;
+      DynamicObject rval;
+      rval = _expandTerm(ctx, value, (prop == "@id") ? base : "").c_str();
+      return rval;
    }
 
    // get type definition from context
-   DynamicObject type;
-   if(!JsonLd::getContextValue(ctx, property, "@type", type))
-   {
-      return false;
-   }
+   DynamicObject type = JsonLd::getContextValue(ctx, property, "@type");
 
    // do @id expansion
    if(type == "@id")
    {
-      string id;
-      if(!_expandTerm(ctx, value, id, base))
-      {
-         return false;
-      }
-      output = DynamicObject(Map);
-      output["@id"] = id.c_str();
-   }
-   // other type
-   else if(!type.isNull())
-   {
-      output = DynamicObject(Map);
-      output["@value"] = value->getString();
-      output["@type"] = type->getString();
-   }
-   // check for language @tagging
-   else
-   {
-      DynamicObject language;
-      if(!JsonLd::getContextValue(ctx, property, "@language", language))
-      {
-         return false;
-      }
-      if(!language.isNull())
-      {
-         output = DynamicObject(Map);
-         output["@value"] = value->getString();
-         output["@language"] = language->getString();
-      }
+      DynamicObject rval(Map);
+      rval["@id"] = _expandTerm(ctx, value, base).c_str();
+      return rval;
    }
 
-   return true;
+   // other type
+   if(!type.isNull())
+   {
+      DynamicObject rval(Map);
+      rval["@value"] = value->getString();
+      rval["@type"] = type->getString();
+      return rval;
+   }
+
+   // check for language @tagging
+   DynamicObject rval(NULL);
+   DynamicObject language = JsonLd::getContextValue(
+      ctx, property, "@language");
+   if(!language.isNull())
+   {
+      rval = DynamicObject(Map);
+      rval["@value"] = value->getString();
+      rval["@language"] = language->getString();
+   }
+   else
+   {
+      // return simple string
+      rval = value.clone();
+   }
+   return rval;
 }
 
 /**
@@ -3271,31 +3003,26 @@ void _addFrameOutput(
  *
  * @param ctx the context used to compact the input.
  * @param input the framed, compacted output.
- * @param output the resulting output.
  *
- * @return true on success, false on failure with exception set.
+ * @return the resulting output.
  */
-bool _removePreserve(
-   DynamicObject& ctx, DynamicObject input, DynamicObject& output)
+DynamicObject _removePreserve(DynamicObject& ctx, DynamicObject input)
 {
    // recurse through arrays
    if(_isArray(input))
    {
-      output = DynamicObject(Array);
+      DynamicObject output(Array);
       DynamicObjectIterator i = input.getIterator();
       while(i->hasNext())
       {
-         DynamicObject result;
-         if(!_removePreserve(ctx, i->next(), result))
-         {
-            return false;
-         }
+         DynamicObject result = _removePreserve(ctx, i->next());
          // drop null values
          if(!result.isNull())
          {
             output.push(result);
          }
       }
+      input = output;
    }
    else if(_isObject(input))
    {
@@ -3304,157 +3031,41 @@ bool _removePreserve(
       {
          if(input["@preserve"] == "@null")
          {
-            output.setNull();
-            return true;
+            return DynamicObject(NULL);
          }
-         output = input["@preserve"];
-         return true;
+         return input["@preserve"];
       }
 
       // skip @values
       if(_isValue(input))
       {
-         output = input;
-         return true;
+         return input;
       }
 
       // recurse through @lists
       if(_isListValue(input))
       {
-         output = DynamicObject(Map);
-         return _removePreserve(ctx, input["@list"], output["@list"]);
+         input["@list"] = _removePreserve(ctx, input["@list"]);
+         return input;
       }
 
       // recurse through properties
-      output = DynamicObject(Map);
       DynamicObjectIterator i = input.getIterator();
       while(i->hasNext())
       {
          DynamicObject next = i->next();
-         DynamicObject result;
-         DynamicObject container;
-         if(!(_removePreserve(ctx, next, result) &&
-            JsonLd::getContextValue(
-               ctx, i->getName(), "@container", container)))
-         {
-            return false;
-         }
+         DynamicObject result = _removePreserve(ctx, next);
+         DynamicObject container = JsonLd::getContextValue(
+            ctx, i->getName(), "@container");
          if(_isArray(result) && result->length() == 1 &&
             container != "@set" && container != "@list")
          {
             result = result[0];
          }
-         output[i->getName()] = result;
+         input[i->getName()] = result;
       }
    }
-   else
-   {
-      output = input;
-   }
-   return true;
-}
-
-/**
- * Checks to see if a context key's type definition best matches the
- * given value and @container.
- *
- * @param ctx the context.
- * @param key the context key to check.
- * @param value the value to check.
- * @param container the specific @container to match or null.
- * @param result the resulting term or CURIE.
- * @param results the results array.
- * @param rank the current rank value.
- *
- * @return the new rank value.
- */
-int _isBestMatch(
-   DynamicObject ctx, const char* key,
-   DynamicObject* value, const char* container,
-   const char* result, DynamicObject results, int rank)
-{
-   // value is null, match any key
-   if(value == NULL)
-   {
-      results.push(result);
-      return rank;
-   }
-
-   DynamicObject v = *value;
-   bool valueIsList = _isListValue(v);
-   bool valueHasType = v->hasMember("@type");
-   const char* language = v->hasMember("@language") ?
-      v["@language"]->getString() : NULL;
-   DynamicObject entry;
-   if(!JsonLd::getContextValue(ctx, key, NULL, entry))
-   {
-      return -1;
-   }
-   if(_isString(entry))
-   {
-      DynamicObject tmp(Map);
-      tmp["@id"] = entry;
-      entry = tmp;
-   }
-   bool entryHasContainer = entry->hasMember("@container");
-   bool entryHasLanguage = entry->hasMember("@language");
-   DynamicObject entryType;
-   if(!JsonLd::getContextValue(ctx, key, "@type", entryType))
-   {
-      return -1;
-   }
-
-   // container with type or language
-   if(!valueIsList && entryHasContainer &&
-      (entry["@container"] == container ||
-         (entry["@container"] == "@set" && container == NULL)) &&
-      ((valueHasType && entryType == v["@type"]) ||
-      (!valueHasType && entryHasLanguage && entry["@language"] == language)))
-   {
-      if(rank < 3)
-      {
-         rank = 3;
-         results->clear();
-      }
-      results.push(result);
-   }
-   // no container with type or language
-   else if(rank < 3 &&
-      !entryHasContainer && !valueIsList &&
-      ((valueHasType && entryType == v["@type"]) ||
-         (!valueHasType && entryHasLanguage && entry["@language"] == language)))
-   {
-      if(rank < 2)
-      {
-         rank = 2;
-         results->clear();
-      }
-      results.push(result);
-   }
-   // container with no type or language
-   else if(rank < 2 &&
-      entryHasContainer &&
-      (entry["@container"] == container ||
-         (entry["@container"] == "@set" && container == NULL)) &&
-      !entry->hasMember("@type") && !entryHasLanguage)
-   {
-      if(rank < 1)
-      {
-         rank = 1;
-         results->clear();
-      }
-      results.push(result);
-
-   }
-   // no container, no type, no language
-   else if(rank < 1 &&
-      !entryHasContainer && !entry->hasMember("@type") &&
-      !entryHasLanguage)
-   {
-      results.push(result);
-   }
-
-   return rank;
+   return input;
 }
 
 /**
@@ -3472,140 +3083,674 @@ bool _compareShortestLeast(DynamicObject a, DynamicObject b)
 }
 
 /**
+ * Ranks a term that is possible choice for compacting an IRI associated with
+ * the given value.
+ *
+ * @param ctx the active context.
+ * @param term the term to rank.
+ * @param value the associated value.
+ *
+ * @return the term rank.
+ */
+int _rankTerm(DynamicObject& ctx, const char* term, DynamicObject* value)
+{
+   // no term restrictions for a null value
+   if(value == NULL)
+   {
+      return 3;
+   }
+
+   DynamicObject& v = *value;
+
+   // get context entry for term
+   DynamicObject& entry = ctx["mappings"][term];
+   bool hasType = entry->hasMember("@type");
+   bool hasLanguage = entry->hasMember("@language");
+   bool hasContainer = entry->hasMember("@container");
+   bool hasDefaultLanguage = ctx->hasMember("@language");
+
+   // @list rank is the sum of its values' ranks
+   if(_isListValue(v))
+   {
+      DynamicObject& list = v["@list"];
+      if(list->length() == 0)
+      {
+        return (hasContainer && entry["@container"] == "@list") ? 1 : 0;
+      }
+      // sum term ranks for each list value
+      int sum = 0;
+      DynamicObjectIterator i = list.getIterator();
+      while(i->hasNext())
+      {
+        sum += _rankTerm(ctx, term, &i->next());
+      }
+      return sum;
+   }
+
+   // rank boolean or number
+   if(_isBoolean(v) || _isDouble(v) || _isInteger(v))
+   {
+      const char* type;
+      if(_isBoolean(v))
+      {
+         type = XSD_BOOLEAN;
+      }
+      else if(_isDouble(v))
+      {
+         type = XSD_DOUBLE;
+      }
+      else
+      {
+         type = XSD_INTEGER;
+      }
+      if(hasType && entry["@type"] == type)
+      {
+         return 3;
+      }
+      return (!hasType && !hasLanguage) ? 2 : 1;
+   }
+
+   // rank string (this means the value has no @language)
+   if(_isString(v))
+   {
+      // entry @language is specifically null or no @type, @language, or default
+      if((hasLanguage && entry["@language"].isNull()) ||
+         (!hasType && !hasLanguage && !hasDefaultLanguage))
+      {
+         return 3;
+      }
+      return 0;
+   }
+
+   // Note: Value must be an object that is a @value or subject/reference.
+
+   // @value must have either @type or @language
+   if(_isValue(v))
+   {
+      if(v->hasMember("@type"))
+      {
+         // @types match
+         if(hasType && v["@type"] == entry["@type"])
+         {
+            return 3;
+         }
+         return (!hasType && !hasLanguage) ? 1 : 0;
+      }
+
+      // @languages match or entry has no @type or @language but default
+      // @language matches
+      if((hasLanguage && v["@language"] == entry["@language"]) ||
+         (!hasType && !hasLanguage && v["@language"] == ctx["@language"]))
+      {
+         return 3;
+      }
+      return (!hasType && !hasLanguage) ? 1 : 0;
+   }
+
+   // value must be a subject/reference
+   if(hasType && entry["@type"] == "@id")
+   {
+      return 3;
+   }
+   return (!hasType && !hasLanguage) ? 1 : 0;
+}
+
+/**
  * Compacts an IRI or keyword into a term or prefix if it can be. If the
  * IRI has an associated value, its @type, @language, and/or @container may
  * be passed.
  *
- * @param ctx the context to use.
+ * @param ctx the active context to use.
  * @param iri the IRI to compact.
- * @param output the compacted IRI as a term or prefix or the original IRI.
- * @param value the value to check or null.
- * @param container the specific @container to match or null.
+ * @param value the value to check or NULL.
  *
- * @return true on success, false on failure with exception set.
+ * @return the compacted term, prefix, keyword alias, or the original IRI.
  */
-bool _compactIri(
-   DynamicObject ctx, const char* iri, string& output,
-   DynamicObject* value, const char* container)
+string _compactIri(
+   DynamicObject& ctx, const char* iri, DynamicObject* value)
 {
    // can't compact null
    if(iri == NULL)
    {
-      output.clear();
-      return true;
+      return iri;
    }
 
-   // if term is keyword, use alias
+   // compact rdf:type
+   if(strcmp(iri, RDF_TYPE) == 0)
+   {
+      return "@type";
+   }
+
+   // term is a keyword
    if(_isKeyword(iri))
    {
-      // pick shortest, least alias
-      DynamicObject aliases = _getKeywords(ctx)[iri];
+      // return alias if available
+      DynamicObject& aliases = ctx["keywords"][iri];
       if(aliases->length() > 0)
       {
-         aliases.sort(&_compareShortestLeast);
-         output = aliases[0]->getString();
+         return aliases[0]->getString();
       }
       else
       {
          // no alias, keep original keyword
-         output = iri;
+         return iri;
       }
-      return true;
    }
 
-   // check the context for terms that could shorten the IRI
-   // (give preference to terms over prefixes)
+   // find all possible term matches
    DynamicObject terms(Array);
-   int rank = 0;
-   DynamicObjectIterator i = ctx.getIterator();
+   int highest = 0;
+   bool listContainer = false;
+   bool isList = (value != NULL && _isListValue(*value));
+   DynamicObjectIterator i = ctx["mappings"].getIterator();
    while(i->hasNext())
    {
-      i->next();
-      const char* key = i->getName();
+      DynamicObject& entry = i->next();
+      const char* term = i->getName();
 
-      // skip special context keys (start with '@')
-      if(key[0] == '@')
+      // skip terms with non-matching iris
+      if(entry["@id"] != iri)
+      {
+         continue;
+      }
+      // skip @set containers for @lists
+      if(isList && entry["@container"] == "@set")
+      {
+         continue;
+      }
+      // skip @list containers for non-@lists
+      if(!isList && entry["@container"] == "@list")
+      {
+         continue;
+      }
+      // for @lists, if listContainer is set, skip non-list containers
+      if(isList && listContainer && entry["@container"] != "@list")
       {
          continue;
       }
 
-      // compact to a term
-      DynamicObject id;
-      if(!JsonLd::getContextValue(ctx, key, "@id", id))
+      // rank term
+      int rank = _rankTerm(ctx, term, value);
+      if(rank > 0)
+      {
+         // add 1 to rank if container is a @set
+         if(entry["@container"] == "@set")
+         {
+            rank += 1;
+         }
+
+         // for @lists, give preference to @list containers
+         if(isList && !listContainer && entry["@container"] == "@list")
+         {
+            listContainer = true;
+            terms->clear();
+            highest = rank;
+            terms.push(term);
+         }
+         // only push match if rank meets current threshold
+         else if(rank >= highest)
+         {
+            if(rank > highest)
+            {
+               terms->clear();
+               highest = rank;
+            }
+            terms.push(term);
+         }
+      }
+   }
+
+   // no term matches, add possible CURIEs
+   if(terms->length() == 0)
+   {
+      i = ctx["mappings"].getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& entry = i->next();
+         const char* term = i->getName();
+
+         // skip terms with colons, they can't be prefixes
+         if(strchr(term, ':') != NULL)
+         {
+            continue;
+         }
+         // skip entries with @ids that are not partial matches
+         if(entry["@id"] == iri || strstr(iri, entry["@id"]) != iri)
+         {
+            continue;
+         }
+
+         // add CURIE as term if it has no mapping
+         DynamicObject curie;
+         curie->format("%s:%s", term, iri + entry["@id"]->length());
+         if(!ctx["mappings"]->hasMember(curie))
+         {
+            terms.push(curie);
+         }
+      }
+   }
+
+   // no matching terms, use IRI
+   if(terms->length() == 0)
+   {
+      return iri;
+   }
+
+   // return shortest and lexicographically-least term
+   terms.sort(&_compareShortestLeast);
+   return terms[0]->getString();
+}
+
+/**
+ * Defines a context mapping during context processing.
+ *
+ * @param activeCtx the current active context.
+ * @param ctx the local context being processed.
+ * @param key the key in the local context to define the mapping for.
+ * @param base the base IRI.
+ * @param defined a map of defining/defined keys to detect cycles and prevent
+ *          double definitions.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+bool _defineContextMapping(
+   DynamicObject& activeCtx,
+   DynamicObject& ctx, const char* key, const char* base,
+   DynamicObject& defined)
+{
+   if(defined->hasMember(key))
+   {
+      // key already defined
+      if(defined[key])
+      {
+         return true;
+      }
+
+      // cycle detected
+      ExceptionRef e = new Exception(
+         "Cyclical context definition detected.",
+         EXCEPTION_TYPE ".CyclicalContext");
+      e->getDetails()["context"] = ctx;
+      e->getDetails()["key"] = key;
+      Exception::set(e);
+      return false;
+   }
+
+   // now defining key
+   defined[key] = false;
+
+   // if key has a prefix, define it first
+   const char* colon = strchr(key, ':');
+   const char* prefix = NULL;
+   string prefixStr;
+   if(colon != NULL)
+   {
+      // get the potential prefix
+      prefixStr.append(key, colon - key);
+      prefix = prefixStr.c_str();
+      if(ctx->hasMember(prefix))
+      {
+         // define parent prefix
+         if(!_defineContextMapping(activeCtx, ctx, prefix, base, defined))
+         {
+            return false;
+         }
+     }
+   }
+
+   // get context key value
+   DynamicObject value = ctx[key];
+
+   if(_isKeyword(key))
+   {
+      // only @language is permitted
+      if(strcmp(key, "@language") != 0)
+      {
+         ExceptionRef e = new Exception(
+           "Invalid JSON-LD syntax; keywords cannot be overridden.",
+           EXCEPTION_TYPE ".SyntaxError");
+         e->getDetails()["context"] = ctx;
+         Exception::set(e);
+         return false;
+      }
+
+      if(!value.isNull() && !_isString(value))
+      {
+         ExceptionRef e = new Exception(
+            "Invalid JSON-LD syntax; the value of \"@language\" in a "
+            "@context must be a string or null.",
+            EXCEPTION_TYPE ".SyntaxError");
+         e->getDetails()["context"] = ctx;
+         Exception::set(e);
+         return false;
+      }
+
+      if(value.isNull())
+      {
+         activeCtx->removeMember("@language");
+      }
+      else
+      {
+         activeCtx["@language"] = value;
+      }
+      defined[key] = true;
+      return true;
+   }
+
+   // clear context entry
+   if(value.isNull())
+   {
+      if(activeCtx["mappings"]->hasMember(key))
+      {
+         // if key is a keyword alias, remove it
+         const char* kw = activeCtx["mappings"][key]["@id"];
+         if(_isKeyword(kw))
+         {
+            DynamicObject& aliases = activeCtx["keywords"][kw];
+            aliases->removeIndex(aliases->indexOf(key));
+         }
+         activeCtx["mappings"]->removeMember(key);
+      }
+      defined[key] = true;
+      return true;
+   }
+
+   if(_isString(value))
+   {
+      if(_isKeyword(value))
+      {
+         // disallow aliasing @context and @preserve
+         if(value == "@context" || value == "@preserve")
+         {
+            ExceptionRef e = new Exception(
+               "Invalid JSON-LD syntax; @context and @preserve cannot "
+               "be aliased.",
+               EXCEPTION_TYPE ".SyntaxError");
+            Exception::set(e);
+            return false;
+         }
+
+         // uniquely add key as a keyword alias and resort
+         DynamicObject& aliases = activeCtx["keywords"][value->getString()];
+         if(aliases->indexOf(key) == -1)
+         {
+            aliases.push(key);
+            aliases.sort(&_compareShortestLeast);
+         }
+      }
+      else
+      {
+         // expand value to a full IRI
+         string expanded;
+         if(!_expandContextIri(activeCtx, ctx, value, base, defined, expanded))
+         {
+            return false;
+         }
+         value = expanded.c_str();
+      }
+
+      // define/redefine key to expanded IRI/keyword
+      activeCtx["mappings"][key] = DynamicObject(Map);
+      activeCtx["mappings"][key]["@id"] = value;
+      defined[key] = true;
+      return true;
+   }
+
+   if(!_isObject(value))
+   {
+      ExceptionRef e = new Exception(
+         "Invalid JSON-LD syntax; @context property values must be "
+         "strings or objects.",
+         EXCEPTION_TYPE ".SyntaxError");
+      e->getDetails()["context"] = ctx;
+      Exception::set(e);
+      return false;
+   }
+
+   // create new mapping
+   DynamicObject mapping(Map);
+
+   if(value->hasMember("@id"))
+   {
+      DynamicObject id = value["@id"];
+      if(!_isString(id))
+      {
+         ExceptionRef e = new Exception(
+            "Invalid JSON-LD syntax; @context @id values must be strings.",
+            EXCEPTION_TYPE ".SyntaxError");
+         e->getDetails()["context"] = ctx;
+         Exception::set(e);
+         return false;
+      }
+
+      // expand @id to full IRI
+      string expanded;
+      if(!_expandContextIri(activeCtx, ctx, id, base, defined, expanded))
       {
          return false;
       }
-      if(id == iri)
+
+      // add @id to mapping
+      mapping["@id"] = expanded.c_str();
+   }
+   else
+   {
+      // non-IRIs *must* define @ids
+      if(prefix == NULL)
       {
-         rank = _isBestMatch(ctx, key, value, container, key, terms, rank);
-         if(rank == -1)
+         ExceptionRef e = new Exception(
+            "Invalid JSON-LD syntax; @context terms must define an @id.",
+            EXCEPTION_TYPE ".SyntaxError");
+         e->getDetails()["context"] = ctx;
+         e->getDetails()["key"] = key;
+         Exception::set(e);
+         return false;
+      }
+
+      // set @id based on prefix parent
+      if(activeCtx["mappings"]->hasMember(prefix))
+      {
+         mapping["@id"]->format("%s%s",
+            activeCtx["mappings"][prefix]["@id"]->getString(),
+            colon + 1);
+      }
+      // key is an absolute IRI
+      else
+      {
+         mapping["@id"] = key;
+      }
+   }
+
+   if(value->hasMember("@type"))
+   {
+     DynamicObject type = value["@type"];
+     if(!_isString(type))
+     {
+        ExceptionRef e = new Exception(
+           "Invalid JSON-LD syntax; @context @type values must be strings.",
+           EXCEPTION_TYPE ".SyntaxError");
+        e->getDetails()["context"] = ctx;
+        Exception::set(e);
+        return false;
+     }
+
+     if(type != "@id")
+     {
+        // expand @type to full IRI
+        string expanded;
+        if(!_expandContextIri(activeCtx, ctx, type, "", defined, expanded))
+        {
+           return false;
+        }
+        type = expanded.c_str();
+     }
+
+     // add @type to mapping
+     mapping["@type"] = type;
+   }
+
+   if(value->hasMember("@container"))
+   {
+      DynamicObject container = value["@container"];
+      if(container != "@list" && container != "@set")
+      {
+         ExceptionRef e = new Exception(
+            "Invalid JSON-LD syntax; @context @container value must be "
+            "\"@list\" or \"@set\".",
+            EXCEPTION_TYPE ".SyntaxError");
+        e->getDetails()["context"] = ctx;
+        Exception::set(e);
+        return false;
+      }
+
+      // add @container to mapping
+      mapping["@container"] = container;
+   }
+
+   if(value->hasMember("@language") && !value->hasMember("@type"))
+   {
+      DynamicObject language = value["@language"];
+      if(!language.isNull() && !_isString(language))
+      {
+         ExceptionRef e = new Exception(
+            "Invalid JSON-LD syntax; @context @language value must be "
+            "a string or null.",
+            EXCEPTION_TYPE ".SyntaxError");
+         e->getDetails()["context"] = ctx;
+         Exception::set(e);
+         return false;
+      }
+
+      // add @language to mapping
+      mapping["@language"] = language;
+   }
+
+   // merge onto parent mapping if one exists for a prefix
+   if(prefix != NULL && activeCtx["mappings"]->hasMember(prefix))
+   {
+      DynamicObject child = mapping;
+      mapping = activeCtx["mappings"][prefix].clone();
+      DynamicObjectIterator i = child.getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject& next = i->next();
+         mapping[i->getName()] = next;
+      }
+   }
+
+   // define key mapping
+   activeCtx["mappings"][key] = mapping;
+   defined[key] = true;
+   return true;
+}
+
+/**
+ * Expands a string value to a full IRI during context processing. It can
+ * be assumed that the value is not a keyword.
+ *
+ * @param activeCtx the current active context.
+ * @param ctx the local context being processed.
+ * @param value the string value to expand.
+ * @param base the base IRI.
+ * @param defined a map for tracking cycles in context definitions.
+ * @param expanded the expanded value.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+bool _expandContextIri(
+   DynamicObject& activeCtx,
+   DynamicObject& ctx, const char* value, const char* base,
+   DynamicObject& defined, string& expanded)
+{
+   // dependency not defined, define it
+   if(ctx->hasMember(value) &&
+      (!defined->hasMember(value) || !defined[value]))
+   {
+      if(!_defineContextMapping(activeCtx, ctx, value, base, defined))
+      {
+         return false;
+      }
+   }
+
+   // recurse if value is a term
+   if(activeCtx["mappings"]->hasMember(value))
+   {
+      const char* id = activeCtx["mappings"][value]["@id"];
+      // value is already an absolute IRI
+      if(strcmp(value, id) == 0)
+      {
+         expanded = value;
+         return true;
+      }
+      return _expandContextIri(activeCtx, ctx, id, base, defined, expanded);
+   }
+
+   // split value into prefix:suffix
+   const char* colon = strchr(value, ':');
+   if(colon != NULL)
+   {
+      string prefixStr(value, colon - value);
+      const char* prefix = prefixStr.c_str();
+      const char* suffix = colon + 1;
+
+      // a prefix of '_' indicates a blank node
+      if(strcmp(prefix, "_") == 0)
+      {
+         expanded = value;
+         return true;
+      }
+
+      // a suffix of '//' indicates value is an absolute IRI
+      if(strstr(suffix, "//") == suffix)
+      {
+         expanded = value;
+         return true;
+      }
+
+      // dependency not defined, define it
+      if(ctx->hasMember(prefix) &&
+         (!defined->hasMember(value) || !defined[value]))
+      {
+         if(!_defineContextMapping(activeCtx, ctx, prefix, base, defined))
          {
             return false;
          }
       }
-   }
 
-   if(terms->length() > 0)
-   {
-      // pick shortest, least term
-      terms.sort(&_compareShortestLeast);
-      output = terms[0]->getString();
-      return true;
-   }
-
-   // term not found, check the context for a prefix
-   DynamicObject curies(Array);
-   rank = 0;
-   i = ctx.getIterator();
-   while(i->hasNext())
-   {
-      i->next();
-      const char* key = i->getName();
-
-      // skip special context keys (start with '@')
-      if(key[0] == '@')
+      // recurse if prefix is defined
+      if(activeCtx["mappings"]->hasMember(prefix))
       {
-         continue;
-      }
-
-      // see if IRI begins with the next IRI from the context
-      DynamicObject ctxIri;
-      if(!JsonLd::getContextValue(ctx, key, "@id", ctxIri))
-      {
-         return false;
-      }
-      if(!ctxIri.isNull())
-      {
-         // compact to a prefix
-         const char* ptr = strstr(iri, ctxIri);
-         if(ptr != NULL && ptr == iri)
+         const char* id = activeCtx["mappings"][prefix]["@id"];
+         if(!_expandContextIri(activeCtx, ctx, id, base, defined, expanded))
          {
-            size_t len1 = strlen(iri);
-            size_t len2 = strlen(ctxIri);
-            if(len1 > len2)
-            {
-               string curie = StringTools::format("%s:%s", key, ptr + len2);
-               rank = _isBestMatch(
-                  ctx, key, value, container, curie.c_str(), curies, rank);
-               if(rank == -1)
-               {
-                  return false;
-               }
-            }
+            return false;
          }
+         expanded.append(suffix);
+         return true;
       }
-   }
 
-   if(curies->length() > 0)
-   {
-      // pick shortest, least curie
-      curies.sort(&_compareShortestLeast);
-      output = curies[0]->getString();
+      // consider value an absolute IRI
+      expanded = value;
       return true;
    }
 
-   // could not compact IRI, return it as is
-   output = iri;
+   // prepend base
+   expanded = base;
+   expanded.append(value);
+
+   // value must now be an absolute IRI
+   if(!_isAbsoluteIri(expanded.c_str()))
+   {
+      ExceptionRef e = new Exception(
+       "Invalid JSON-LD syntax; a @context value does not expand to "
+       "an absolute IRI.",
+       EXCEPTION_TYPE ".SyntaxError");
+      e->getDetails()["context"] = ctx;
+      e->getDetails()["value"] = value;
+      Exception::set(e);
+      return false;
+   }
+
    return true;
 }
 
@@ -3614,190 +3759,117 @@ bool _compactIri(
  * prefix, a relative IRI, or an absolute IRI. In any case, the associated
  * absolute IRI will be returned.
  *
- * @param ctx the context to use.
+ * @param ctx the active context to use.
  * @param term the term to expand.
- * @param output the expanded term as an absolute IRI.
  * @param base the base IRI to use if a relative IRI is detected.
- * @param deep (used internally to recursively expand).
  *
- * @return true on success, false on failure with exception set.
+ * @return the expanded term as an absolute IRI.
  */
-bool _expandTerm(
-   DynamicObject ctx, const char* term, string& output,
-   const char* base, bool deep)
+string _expandTerm(DynamicObject& ctx, const char* term, const char* base)
 {
    // nothing to expand
    if(term == NULL)
    {
-      output.clear();
-      return true;
+      return "";
    }
 
-   bool rval = true;
-
-   // default to the term being fully-expanded or not in the context
-   output = term;
-
-   // 1. If the property has a colon, it is a prefix or an absolute IRI:
-   const char* ptr = strchr(term, ':');
-   if(ptr != NULL)
+   // the term has a mapping, so it is a plain term
+   if(ctx["mappings"]->hasMember(term))
    {
-      // get the potential prefix
-      size_t len = ptr - term + 1;
-      char prefix[len];
-      snprintf(prefix, len, "%s", term);
-
-      // expand term if prefix is in context, otherwise leave it be
-      if(ctx->hasMember(prefix))
+      const char* id = ctx["mappings"][term]["@id"];
+      // term is already an absolute IRI
+      if(strcmp(term, id) == 0)
       {
-         // prefix found, expand property to absolute IRI
-         DynamicObject iriValue;
-         rval = JsonLd::getContextValue(ctx, prefix, "@id", iriValue);
-         if(rval)
-         {
-            const char* iri = iriValue.isNull() ? "" : iriValue->getString();
-            len = strlen(iri) + strlen(ptr + 1) + 3;
-            output = StringTools::format("%s%s", iri, ptr + 1);
-         }
+         return term;
       }
+      return _expandTerm(ctx, id, base);
    }
-   // 2. If the property is in the context, then it's a term.
-   else if(ctx->hasMember(term))
+
+   // split term into prefix:suffix
+   const char* colon = strchr(term, ':');
+   if(colon != NULL)
    {
-      DynamicObject value;
-      rval = JsonLd::getContextValue(ctx, term, "@id", value, false);
-      if(rval)
+      string prefixStr(term, colon - term);
+      const char* prefix = prefixStr.c_str();
+      const char* suffix = colon + 1;
+
+      // a prefix of '_' indicates a blank node
+      if(strcmp(prefix, "_") == 0)
       {
-         output = value->getString();
+         return term;
       }
-   }
-   // 3. The property is a keyword or not in the context.
-   else
-   {
-      DynamicObject keywords = _getKeywords(ctx);
-      DynamicObjectIterator i = keywords.getIterator();
-      while(i->hasNext())
+
+      // a suffix of '//' indicates value is an absolute IRI
+      if(strstr(suffix, "//") == suffix)
       {
-         if(i->next() == term)
-         {
-            output = i->getName();
-            break;
-         }
+         return term;
       }
+
+      // the term's prefix has a mapping, so it is a CURIE
+      if(ctx["mappings"]->hasMember(prefix))
+      {
+         const char* id = ctx["mappings"][prefix]["@id"];
+         string expanded = _expandTerm(ctx, id, base);
+         expanded.append(suffix);
+         return expanded;
+      }
+
+      // consider term an absolute IRI
+      return term;
    }
 
-  // recursively expand the term
-  if(!deep)
-  {
-     DynamicObject cycles(Map);
-     string recurse;
-     do
-     {
-        if(cycles->hasMember(output.c_str()))
-        {
-           ExceptionRef e = new Exception(
-              "Cyclical term definition detected in context.",
-              EXCEPTION_TYPE ".CyclicalContext");
-           e->getDetails()["context"] = ctx;
-           e->getDetails()["term"] = output.c_str();
-           Exception::set(e);
-           rval = false;
-        }
-        else
-        {
-           cycles[output.c_str()] = true;
-           rval = _expandTerm(ctx, output.c_str(), recurse, base, true);
-        }
-     }
-     while(rval && recurse != output);
-     if(rval)
-     {
-        output = recurse;
-     }
-
-     // apply base IRI to relative IRIs if provided
-     if(!_isAbsoluteIri(output.c_str()) &&
-        !_isKeyword(output.c_str()) && base != NULL)
-     {
-        output = StringTools::format("%s%s", base, output.c_str());
-     }
-  }
-
-  return rval;
+   // prepend base to term
+   string expanded = base;
+   expanded.append(term);
+   return expanded;
 }
 
 /**
- * Gets the keywords from a context.
+ * Gets the initial context.
  *
- * @param ctx the context.
- *
- * @return the keywords.
+ * @return the initial context.
  */
-DynamicObject _getKeywords(DynamicObject ctx)
+DynamicObject _getInitialContext()
 {
-   DynamicObject rval(Map);
-   rval["@context"]->setType(Array);
-   rval["@container"]->setType(Array);
-   rval["@default"]->setType(Array);
-   rval["@embed"]->setType(Array);
-   rval["@explicit"]->setType(Array);
-   rval["@graph"]->setType(Array);
-   rval["@id"]->setType(Array);
-   rval["@language"]->setType(Array);
-   rval["@list"]->setType(Array);
-   rval["@omitDefault"]->setType(Array);
-   rval["@preserve"]->setType(Array);
-   rval["@set"]->setType(Array);
-   rval["@type"]->setType(Array);
-   rval["@value"]->setType(Array);
-
-   if(!ctx.isNull())
-   {
-      // gather keyword aliases from context
-      DynamicObjectIterator i = ctx.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject& kw = i->next();
-         const char* key = i->getName();
-         if(_isString(kw) && rval->hasMember(kw))
-         {
-            if(kw == "@context" || kw == "@preserve")
-            {
-               ExceptionRef e = new Exception(
-                  "Invalid JSON-LD syntax; @context and @preserve "
-                  "cannot be aliased.",
-                  EXCEPTION_TYPE ".SyntaxError");
-               Exception::set(e);
-               rval = false;
-            }
-         }
-         rval[kw->getString()].push(key);
-      }
-   }
-
-   return rval;
+   DynamicObject ctx(Map);
+   ctx["mappings"]->setType(Map);
+   DynamicObject& keywords = ctx["keywords"];
+   keywords["@context"]->setType(Array);
+   keywords["@container"]->setType(Array);
+   keywords["@default"]->setType(Array);
+   keywords["@embed"]->setType(Array);
+   keywords["@explicit"]->setType(Array);
+   keywords["@graph"]->setType(Array);
+   keywords["@id"]->setType(Array);
+   keywords["@language"]->setType(Array);
+   keywords["@list"]->setType(Array);
+   keywords["@omitDefault"]->setType(Array);
+   keywords["@preserve"]->setType(Array);
+   keywords["@set"]->setType(Array);
+   keywords["@type"]->setType(Array);
+   keywords["@value"]->setType(Array);
+   return ctx;
 }
 
 /**
  * Returns whether or not the given value is a keyword (or a keyword alias).
  *
- * @param keywords the map of keyword aliases to check against, NULL for
- *          default.
  * @param value the value to check.
+ * @param [ctx] the active context to check against.
  *
  * @return true if the value is a keyword, false if not.
  */
-bool _isKeyword(const char* value, DynamicObject* keywords)
+bool _isKeyword(const char* value, DynamicObject* ctx)
 {
-   if(keywords != NULL)
+   if(ctx != NULL)
    {
-      if((*keywords)->hasMember(value))
+      if((*ctx)["keywords"]->hasMember(value))
       {
          return true;
       }
       else
       {
-         DynamicObjectIterator i = keywords->getIterator();
+         DynamicObjectIterator i = (*ctx)["keywords"].getIterator();
          while(i->hasNext())
          {
             DynamicObject& aliases = i->next();

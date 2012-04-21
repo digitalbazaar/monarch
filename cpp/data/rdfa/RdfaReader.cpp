@@ -228,15 +228,8 @@ static bool _finishGraph(DynamicObject& ctx, RdfaReader::Graph* g)
       DynamicObject out;
       if(!g->frame.isNull())
       {
-         // merge frame context over given context
-         if(g->frame->hasMember("@context"))
-         {
-            rval = JsonLd::mergeContexts(
-               ctx, g->frame["@context"], DynamicObject(Map), ctx);
-         }
-         rval = rval &&
-            JsonLd::frame(subjects.values(), g->frame, g->frameOptions, out) &&
-            JsonLd::compact(out, ctx, DynamicObject(Map), out);
+         rval = JsonLd::frame(
+            subjects.values(), g->frame, g->frameOptions, out);
          if(rval && out.isNull())
          {
             out = DynamicObject(g->frame->getType());
@@ -266,15 +259,10 @@ static DynamicObject _getExceptionGraph(
    // clone auto context
    DynamicObject ctx = autoContext.clone();
 
-   // merge user-set context over auto-context
+   // use user-set context
    if(!context.isNull())
    {
-      if(!JsonLd::mergeContexts(ctx, context.clone(), DynamicObject(Map), ctx))
-      {
-         // error in context merge, revert to using auto context
-         Exception::clear();
-         ctx = autoContext.clone();
-      }
+      ctx = context.clone();
    }
 
    // save the old processor target and frame
@@ -446,20 +434,15 @@ bool RdfaReader::finish()
    mStarted = false;
 
    // create context to finish graph
+   // use auto-context if requested
    DynamicObject ctx(NULL);
-   if(!mContext.isNull())
-   {
-      ctx = mContext.clone();
-   }
-
-   // merge in auto-context if requested
    if(mUseAutoContext)
    {
-      if(ctx.isNull())
-      {
-         ctx = DynamicObject(Map);
-      }
-      rval = JsonLd::mergeContexts(ctx, mAutoContext, DynamicObject(Map), ctx);
+      ctx = mAutoContext.clone();
+   }
+   else if(!mContext.isNull())
+   {
+      ctx = mContext.clone();
    }
 
    if(rval)

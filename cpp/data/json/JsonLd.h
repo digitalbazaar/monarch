@@ -107,16 +107,17 @@ public:
       monarch::rt::DynamicObject& output);
 
    /**
-    * Merges one context with another, resolving any URLs as necessary.
+    * Processes a local context, resolving any URLs as necessary, and returns a
+    * new active context.
     *
-    * @param ctx1 the context to overwrite/append to.
-    * @param ctx2 the new context to merge onto ctx1.
-    * @param options merge options.
+    * @param activeCtx the current active context.
+    * @param localCtx the local context to process.
+    * @param options processing options.
     * @param output to be set to the merged context.
     */
-   static bool mergeContexts(
-      monarch::rt::DynamicObject ctx1,
-      monarch::rt::DynamicObject ctx2,
+   static bool processContext(
+      monarch::rt::DynamicObject activeCtx,
+      monarch::rt::DynamicObject localCtx,
       monarch::rt::DynamicObject options,
       monarch::rt::DynamicObject& output);
 
@@ -245,35 +246,16 @@ public:
    /**
     * Gets the value for the given @context key and type, null if none is set.
     *
-    * @param ctx the context.
+    * @param ctx the active context.
     * @param key the context key.
-    * @param [type] the type of value to get (eg: '@id', '@type'), if not
-    *          specified gets the entire entry for a key, null if not found.
-    * @param [expand] true to expand the key, false not to (default: true).
+    * @param type the type of value to get (eg: '@id', '@type'), if NULL
+    *          gets the entire entry for a key, NULL if not found.
     *
     * @return the value.
     */
-   static bool getContextValue(
+   static monarch::rt::DynamicObject getContextValue(
       monarch::rt::DynamicObject ctx,
-      const char* key, const char* type,
-      monarch::rt::DynamicObject& output, bool expand = true);
-
-   /**
-    * Sets a value for the given @context key and type.
-    *
-    * @param ctx the context.
-    * @param key the context key.
-    * @param type the type of value to set (eg: '@id', '@type').
-    * @param value the value to use.
-    */
-   static bool setContextValue(
-      monarch::rt::DynamicObject ctx,
-      const char* key, const char* type,
-      monarch::rt::DynamicObject value);
-   static bool setContextValue(
-      monarch::rt::DynamicObject ctx,
-      const char* key, const char* type,
-      const char* value);
+      const char* key, const char* type);
 };
 
 } // end namespace json
