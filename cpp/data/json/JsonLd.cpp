@@ -1410,7 +1410,7 @@ bool Processor::frame(
 
    // frame the subjects
    output = DynamicObject(Array);
-   return _frame(state, state["subjects"], frame, output, NULL);
+   return _frame(state, state["subjects"].keys(), frame, output, NULL);
 }
 
 Permutator::Permutator(DynamicObject list) :
@@ -2634,8 +2634,8 @@ bool _frame(
                      // recurse into subject reference
                      if(_isSubjectReference(o))
                      {
-                        DynamicObject _subjects(Map);
-                        _subjects[o["@id"]->getString()] = o;
+                        DynamicObject _subjects(Array);
+                        _subjects.push(o["@id"]);
                         if(!_frame(
                            state, _subjects, frame[prop], list, "@list"))
                         {
@@ -2654,8 +2654,8 @@ bool _frame(
                // recurse into subject reference
                if(_isSubjectReference(o))
                {
-                  DynamicObject _subjects(Map);
-                  _subjects[o["@id"]->getString()] = o;
+                  DynamicObject _subjects(Array);
+                  _subjects.push(o["@id"]);
                   if(!_frame(state, _subjects, frame[prop], output, prop))
                   {
                      return false;
@@ -2762,11 +2762,10 @@ DynamicObject _filterSubjects(
    DynamicObject state, DynamicObject subjects, DynamicObject frame)
 {
    DynamicObject rval(Map);
-   DynamicObjectIterator i = subjects.getIterator();
+   DynamicObjectIterator i = subjects.sort().getIterator();
    while(i->hasNext())
    {
-      i->next();
-      const char* id = i->getName();
+      const char* id = i->next();
       DynamicObject& subject = state["subjects"][id];
       if(_filterSubject(subject, frame))
       {
