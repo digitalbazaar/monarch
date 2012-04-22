@@ -161,12 +161,6 @@ static void _runJsonLdTestSuiteTest(
       }
       else
       {
-         if(type->indexOf("jld:FrameTest") != -1)
-         {
-            // sort @graph arrays by @id
-            expect["@graph"].sort(&_compareIds);
-            output["@graph"].sort(&_compareIds);
-         }
          namedDynoCmp("expect", expect, "output", output);
       }
    }

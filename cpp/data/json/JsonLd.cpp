@@ -1508,19 +1508,6 @@ bool _compareResults(DynamicObject a, DynamicObject b)
    return a["hash"] < b["hash"];
 }
 
-/**
- * Compares two bnodes by their assigned names.
- */
-struct NameComparator : public DynamicObject::SortFunctor
-{
-   DynamicObject namer;
-   virtual bool operator()(DynamicObject& a, DynamicObject& b)
-   {
-      return (namer["existing"][a->getString()] <
-         namer["existing"][b->getString()]);
-   }
-};
-
 bool Processor::normalize(DynamicObject input, DynamicObject& output)
 {
    bool rval = true;
@@ -1622,10 +1609,7 @@ bool Processor::normalize(DynamicObject input, DynamicObject& output)
       {
          // name all bnodes in path namer in key-entry order
          DynamicObject& result = ri->next();
-         NameComparator nc;
-         nc.namer = result["pathNamer"];
-         DynamicObjectIterator ni =
-            nc.namer["existing"].keys().sort(nc).getIterator();
+         DynamicObjectIterator ni = result["pathNamer"]["order"].getIterator();
          while(ni->hasNext())
          {
             _getName(namer, ni->next());
@@ -4149,6 +4133,8 @@ UniqueNamer _createUniqueNamer(const char* prefix)
    rval["prefix"] = prefix;
    rval["counter"] = (uint64_t)0;
    rval["existing"]->setType(Map);
+   rval["order"]->setType(Array);
+   rval["names"]->setType(Array);
    return rval;
 }
 
@@ -4175,12 +4161,17 @@ const char* _getName(UniqueNamer& namer, const char* oldName)
    namer["counter"] = namer["counter"]->getUInt64() + 1;
 
    // save mapping
-   if(oldName == NULL)
+   if(oldName != NULL)
+   {
+      namer["existing"][oldName] = name.c_str();
+   }
+   else
    {
       oldName = name.c_str();
    }
-   namer["existing"][oldName] = name.c_str();
-   return namer["existing"][oldName];
+   namer["order"].push(oldName);
+   namer["names"].push(name.c_str());
+   return namer["names"].last();
 }
 
 /**
