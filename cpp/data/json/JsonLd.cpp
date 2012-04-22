@@ -1859,15 +1859,13 @@ void _getStatements(
       // name blank node if appropriate, use passed name if given
       if(name == NULL)
       {
-         if(isBnode)
-         {
-            const char* id = input->hasMember("@id") ?
-               input["@id"]->getString() : NULL;
-            name = _getName(namer, id);
-         }
-         else
+         if(input->hasMember("@id"))
          {
             name = input["@id"];
+         }
+         if(isBnode)
+         {
+            name = _getName(namer, name);
          }
       }
 
