@@ -2225,14 +2225,14 @@ bool _hashPaths(
          if(rval)
          {
             // hash direction, property, and bnode name/hash
-            MessageDigest md;
+            MessageDigest groupMd;
             rval =
-               md.start("SHA1") &&
-               md.update(direction) &&
-               md.update((statement["p"] == "@type") ?
+               groupMd.start("SHA1") &&
+               groupMd.update(direction) &&
+               groupMd.update((statement["p"] == "@type") ?
                   RDF_TYPE : statement["p"]->getString()) &&
-               md.update(name.c_str());
-            string groupHash = md.getDigest();
+               groupMd.update(name.c_str());
+            string groupHash = groupMd.getDigest();
             rval = rval && (groupHash.length() > 0);
             if(rval)
             {
