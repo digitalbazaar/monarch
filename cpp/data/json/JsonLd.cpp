@@ -3227,6 +3227,7 @@ string _compactIri(
    {
       DynamicObject& entry = i->next();
       const char* term = i->getName();
+      bool hasContainer = entry->hasMember("@container");
 
       // skip terms with non-matching iris
       if(entry["@id"] != iri)
@@ -3234,17 +3235,18 @@ string _compactIri(
          continue;
       }
       // skip @set containers for @lists
-      if(isList && entry["@container"] == "@set")
+      if(isList && hasContainer && entry["@container"] == "@set")
       {
          continue;
       }
       // skip @list containers for non-@lists
-      if(!isList && entry["@container"] == "@list")
+      if(!isList && hasContainer && entry["@container"] == "@list")
       {
          continue;
       }
       // for @lists, if listContainer is set, skip non-list containers
-      if(isList && listContainer && entry["@container"] != "@list")
+      if(isList && listContainer && (!hasContainer ||
+         entry["@container"] != "@list"))
       {
          continue;
       }
@@ -3254,13 +3256,14 @@ string _compactIri(
       if(rank > 0)
       {
          // add 1 to rank if container is a @set
-         if(entry["@container"] == "@set")
+         if(hasContainer && entry["@container"] == "@set")
          {
             rank += 1;
          }
 
          // for @lists, give preference to @list containers
-         if(isList && !listContainer && entry["@container"] == "@list")
+         if(isList && !listContainer && (hasContainer &&
+            entry["@container"] == "@list"))
          {
             listContainer = true;
             terms->clear();
