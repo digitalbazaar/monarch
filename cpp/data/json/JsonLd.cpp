@@ -3262,8 +3262,8 @@ string _compactIri(
          }
 
          // for @lists, give preference to @list containers
-         if(isList && !listContainer && (hasContainer &&
-            entry["@container"] == "@list"))
+         if(isList && !listContainer && hasContainer &&
+            entry["@container"] == "@list")
          {
             listContainer = true;
             terms->clear();
