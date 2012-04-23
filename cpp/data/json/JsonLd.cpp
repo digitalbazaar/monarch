@@ -3166,7 +3166,8 @@ int _rankTerm(DynamicObject& ctx, const char* term, DynamicObject* value)
       // @languages match or entry has no @type or @language but default
       // @language matches
       if((hasLanguage && v["@language"] == entry["@language"]) ||
-         (!hasType && !hasLanguage && v["@language"] == ctx["@language"]))
+         (!hasType && !hasLanguage && hasDefaultLanguage &&
+            v["@language"] == ctx["@language"]))
       {
          return 3;
       }
