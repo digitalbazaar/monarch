@@ -67,12 +67,6 @@ static void _readFile(const char* root, const char* name, DynamicObject& data)
    is.close();
 }
 
-// compares two @ids
-static bool _compareIds(DynamicObject a, DynamicObject b)
-{
-   return a["@id"] < b["@id"];
-}
-
 static void _runJsonLdTestSuiteTest(
    TestRunner& tr, const char* root, DynamicObject& test)
 {
@@ -124,7 +118,7 @@ static void _runJsonLdTestSuiteTest(
       _readFile(root, test["context"], context);
 
       // compact
-      JsonLd::compact(input, context["@context"], options, output);
+      JsonLd::compact(input, context, options, output);
    }
    else if(type->indexOf("jld:FrameTest") != -1)
    {

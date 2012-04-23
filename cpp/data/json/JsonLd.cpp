@@ -342,6 +342,12 @@ bool JsonLd::compact(
          output = output[0];
       }
 
+      // follow @context key
+      if(_isObject(ctx) && ctx->hasMember("@context"))
+      {
+         ctx = ctx["@context"];
+      }
+
       // build output context
       ctx = ctx.clone();
       ctx = ctx.arrayify();
