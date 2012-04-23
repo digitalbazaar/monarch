@@ -2268,7 +2268,6 @@ bool _hashPaths(
          while(rval && pi->hasNext())
          {
             const char* bnode = pi->next();
-            recurse->clear();
 
             // use canonical name if available
             if(_isNamed(namer, bnode))
