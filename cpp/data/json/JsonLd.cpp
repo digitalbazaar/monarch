@@ -250,8 +250,7 @@ bool _isBoolean(DynamicObject input);
 bool _isSubject(DynamicObject value);
 bool _isSubjectReference(DynamicObject value);
 bool _isValue(DynamicObject value);
-bool _isSetValue(DynamicObject value);
-bool _isListValue(DynamicObject value);
+bool _isList(DynamicObject value);
 bool _isBlankNode(DynamicObject value);
 bool _isAbsoluteIri(const char* value);
 UniqueNamer _createUniqueNamer(const char* prefix);
@@ -646,7 +645,7 @@ bool JsonLd::hasValue(
    if(JsonLd::hasProperty(subject, property))
    {
       DynamicObject val = subject[property];
-      bool isList = _isListValue(val);
+      bool isList = _isList(val);
       if(_isArray(val) || isList)
       {
          if(isList)
@@ -1076,7 +1075,7 @@ bool Processor::compact(
          while(vi->hasNext())
          {
             DynamicObject v = vi->next();
-            bool isList = _isListValue(v);
+            bool isList = _isList(v);
 
             // compact property
             string prop = _compactIri(ctx, key, &v);
@@ -1278,7 +1277,7 @@ bool Processor::expand(
                return false;
             }
             value = e;
-            if(isList && _isListValue(value))
+            if(isList && _isList(value))
             {
                ExceptionRef e = new Exception(
                   "Invalid JSON-LD syntax; lists of lists are not permitted.",
@@ -1303,7 +1302,7 @@ bool Processor::expand(
          if(!value.isNull() || prop == "@value")
          {
             // convert value to @list if container specifies it
-            if(prop != "@list" && !_isListValue(value))
+            if(prop != "@list" && !_isList(value))
             {
                DynamicObject container = JsonLd::getContextValue(
                   ctx, property, "@container");
@@ -1909,7 +1908,7 @@ void _getStatements(
          while(oi->hasNext())
          {
             DynamicObject o = oi->next();
-            if(_isListValue(o))
+            if(_isList(o))
             {
                objects[oi->getIndex()] = _makeLinkedList(o);
             }
@@ -2466,7 +2465,7 @@ void _flatten(
             else
             {
                // recurse into list
-               if(_isListValue(o))
+               if(_isList(o))
                {
                   DynamicObject l(Array);
                   _flatten(subjects, o["@list"], namer, name, &l);
@@ -2622,7 +2621,7 @@ bool _frame(
                DynamicObject o = oi->next();
 
                // recurse into list
-               if(_isListValue(o))
+               if(_isList(o))
                {
                   // add empty list
                   DynamicObject list(Map);
@@ -2841,7 +2840,7 @@ void _embedValues(
       DynamicObject o = i->next();
 
       // recurse into @list
-      if(_isListValue(o))
+      if(_isList(o))
       {
          DynamicObject list(Map);
          list["@list"]->setType(Array);
@@ -3029,7 +3028,7 @@ DynamicObject _removePreserve(DynamicObject& ctx, DynamicObject input)
       }
 
       // recurse through @lists
-      if(_isListValue(input))
+      if(_isList(input))
       {
          input["@list"] = _removePreserve(ctx, input["@list"]);
          return input;
@@ -3096,7 +3095,7 @@ int _rankTerm(DynamicObject& ctx, const char* term, DynamicObject* value)
    bool hasDefaultLanguage = ctx->hasMember("@language");
 
    // @list rank is the sum of its values' ranks
-   if(_isListValue(v))
+   if(_isList(v))
    {
       DynamicObject& list = v["@list"];
       if(list->length() == 0)
@@ -3228,7 +3227,7 @@ string _compactIri(
    DynamicObject terms(Array);
    int highest = 0;
    bool listContainer = false;
-   bool isList = (value != NULL && _isListValue(*value));
+   bool isList = (value != NULL && _isList(*value));
    DynamicObjectIterator i = ctx["mappings"].getIterator();
    while(i->hasNext())
    {
@@ -4056,28 +4055,13 @@ bool _isValue(DynamicObject value)
 }
 
 /**
- * Returns true if the given value is a @set.
- *
- * @param value the value to check.
- *
- * @return true if the value is a @set, false if not.
- */
-bool _isSetValue(DynamicObject value)
-{
-   // Note: A value is a @set if all of these hold true:
-   // 1. It is an Object.
-   // 2. It has the @set property.
-   return _isObject(value) && value->hasMember("@set");
-}
-
-/**
  * Returns true if the given value is a @list.
  *
  * @param value the value to check.
  *
  * @return true if the value is a @list, false if not.
  */
-bool _isListValue(DynamicObject value)
+bool _isList(DynamicObject value)
 {
    // Note: A value is a @list if all of these hold true:
    // 1. It is an Object.
