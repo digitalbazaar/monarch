@@ -225,7 +225,7 @@ void _addFrameOutput(
    const char* property, DynamicObject output);
 DynamicObject _removePreserve(DynamicObject& ctx, DynamicObject input);
 int _rankTerm(DynamicObject& ctx, const char* term, DynamicObject* value);
-string _compactIri(
+DynamicObject _compactIri(
    DynamicObject& ctx, const char* iri, DynamicObject* value = NULL);
 bool _defineContextMapping(
    DynamicObject& activeCtx,
@@ -383,14 +383,14 @@ bool JsonLd::compact(
          if(_isArray(output))
          {
             // use '@graph' keyword
-            string kwgraph = _compactIri(activeCtx, "@graph");
+            DynamicObject kwgraph = _compactIri(activeCtx, "@graph");
             DynamicObject graph = output;
             output = DynamicObject(Map);
             if(hasContext)
             {
                output["@context"] = ctx;
             }
-            output[kwgraph.c_str()] = graph;
+            output[kwgraph->getString()] = graph;
          }
          else if(_isObject(output))
          {
@@ -523,9 +523,10 @@ bool JsonLd::frame(
    }
 
    // get graph alias
-   string graph = _compactIri(activeCtx, "@graph");
+   DynamicObject graph = _compactIri(activeCtx, "@graph");
    // remove @preserve from results
-   output[graph.c_str()] = _removePreserve(activeCtx, output[graph.c_str()]);
+   output[graph->getString()] = _removePreserve(
+      activeCtx, output[graph->getString()]);
    return true;
 }
 
@@ -1009,7 +1010,7 @@ bool Processor::compact(
          // compact @type IRI
          else if(element->hasMember("@type"))
          {
-            element["@type"] = _compactIri(ctx, element["@type"]).c_str();
+            element["@type"] = _compactIri(ctx, element["@type"]);
          }
          output = element;
          return true;
@@ -1021,7 +1022,7 @@ bool Processor::compact(
          DynamicObject type = JsonLd::getContextValue(ctx, property, "@type");
          if(type == "@id" || strcmp(property, "@graph") == 0)
          {
-            output = _compactIri(ctx, element["@id"]).c_str();
+            output = _compactIri(ctx, element["@id"]);
             return true;
          }
       }
@@ -1040,7 +1041,7 @@ bool Processor::compact(
             // compact single @id
             if(_isString(value))
             {
-               value = _compactIri(ctx, value).c_str();
+               value = _compactIri(ctx, value);
             }
             // value must be a @type array
             else
@@ -1049,15 +1050,15 @@ bool Processor::compact(
                DynamicObjectIterator vi = value.getIterator();
                while(vi->hasNext())
                {
-                  types.push(_compactIri(ctx, vi->next()).c_str());
+                  types.push(_compactIri(ctx, vi->next()));
                }
                value = types;
             }
 
             // compact property and add value
-            string prop = _compactIri(ctx, key);
+            DynamicObject prop = _compactIri(ctx, key);
             bool isArray = (_isArray(value) && value->length() == 0);
-            JsonLd::addValue(output, prop.c_str(), value, isArray);
+            JsonLd::addValue(output, prop, value, isArray);
             continue;
          }
 
@@ -1066,8 +1067,8 @@ bool Processor::compact(
          // preserve empty arrays
          if(value->length() == 0)
          {
-            string prop = _compactIri(ctx, key);
-            JsonLd::addValue(output, prop.c_str(), DynamicObject(Array), true);
+            DynamicObject prop = _compactIri(ctx, key);
+            JsonLd::addValue(output, prop, DynamicObject(Array), true);
          }
 
          // recusively process array values
@@ -1078,7 +1079,13 @@ bool Processor::compact(
             bool isList = _isList(v);
 
             // compact property
-            string prop = _compactIri(ctx, key, &v);
+            DynamicObject prop = _compactIri(ctx, key, &v);
+
+            // skip null properties
+            if(prop.isNull())
+            {
+               continue;
+            }
 
             // remove @list for recursion (will be re-added if necessary)
             if(isList)
@@ -1087,20 +1094,20 @@ bool Processor::compact(
             }
 
             // recursively compact value
-            if(!compact(ctx, prop.c_str(), v, options, v))
+            if(!compact(ctx, prop, v, options, v))
             {
                return false;
             }
 
             // get container type for property
             DynamicObject container = JsonLd::getContextValue(
-               ctx, prop.c_str(), "@container");
+               ctx, prop, "@container");
 
             // handle @list
             if(isList && container != "@list")
             {
                // handle messy @list compaction
-               if(output->hasMember(prop.c_str()) && options["strict"])
+               if(output->hasMember(prop) && options["strict"])
                {
                   ExceptionRef e = new Exception(
                      "JSON-LD compact error; property has a \"@list\" "
@@ -1112,9 +1119,9 @@ bool Processor::compact(
                   return false;
                }
                // reintroduce @list keyword
-               string kwlist = _compactIri(ctx, "@list");
+               DynamicObject kwlist = _compactIri(ctx, "@list");
                DynamicObject val(Map);
-               val[kwlist.c_str()] = v;
+               val[kwlist->getString()] = v;
                v = val;
             }
 
@@ -1124,7 +1131,7 @@ bool Processor::compact(
                (_isArray(v) && v->length() == 0));
 
             // add compact value
-            JsonLd::addValue(output, prop.c_str(), v, isArray);
+            JsonLd::addValue(output, prop, v, isArray);
          }
       }
       return true;
@@ -3211,13 +3218,13 @@ int _rankTerm(DynamicObject& ctx, const char* term, DynamicObject* value)
  *
  * @return the compacted term, prefix, keyword alias, or the original IRI.
  */
-string _compactIri(
+DynamicObject _compactIri(
    DynamicObject& ctx, const char* iri, DynamicObject* value)
 {
    // can't compact null
    if(iri == NULL)
    {
-      return iri;
+      return DynamicObject(NULL);
    }
 
    // term is a keyword
@@ -3227,12 +3234,14 @@ string _compactIri(
       DynamicObject& aliases = ctx["keywords"][iri];
       if(aliases->length() > 0)
       {
-         return aliases[0]->getString();
+         return aliases[0].clone();
       }
       else
       {
          // no alias, keep original keyword
-         return iri;
+         DynamicObject rval(String);
+         rval = iri;
+         return rval;
       }
    }
 
@@ -3332,15 +3341,24 @@ string _compactIri(
       }
    }
 
-   // no matching terms, use IRI
+   // no matching terms
    if(terms->length() == 0)
    {
-      return iri;
+      // return null if a null mapping exists
+      if(ctx["mappings"]->hasMember(iri) &&
+         ctx["mappings"][iri]["@id"].isNull())
+      {
+         return DynamicObject(NULL);
+      }
+      // use iri
+      DynamicObject rval(String);
+      rval = iri;
+      return rval;
    }
 
    // return shortest and lexicographically-least term
    terms.sort(&_compareShortestLeast);
-   return terms[0]->getString();
+   return terms[0].clone();
 }
 
 /**
@@ -3445,21 +3463,22 @@ bool _defineContextMapping(
       if(activeCtx["mappings"]->hasMember(key))
       {
          // if key is a keyword alias, remove it
-         const char* kw = activeCtx["mappings"][key]["@id"];
-         if(_isKeyword(kw))
+         DynamicObject kw = activeCtx["mappings"][key]["@id"];
+         if(!kw.isNull() && _isKeyword(kw))
          {
-            DynamicObject& aliases = activeCtx["keywords"][kw];
+            DynamicObject& aliases = activeCtx["keywords"][kw->getString()];
             aliases->removeIndex(aliases->indexOf(key));
          }
-         activeCtx["mappings"]->removeMember(key);
       }
+      activeCtx["mappings"][key] = DynamicObject(Map);
+      activeCtx["mappings"][key]["@id"].setNull();
       defined[key] = true;
       return true;
    }
 
    if(_isString(value))
    {
-      if(_isKeyword(value))
+      if(!value.isNull() && _isKeyword(value))
       {
          // disallow aliasing @context and @preserve
          if(value == "@context" || value == "@preserve")
@@ -3480,7 +3499,7 @@ bool _defineContextMapping(
             aliases.sort(&_compareShortestLeast);
          }
       }
-      else
+      else if(!value.isNull())
       {
          // expand value to a full IRI
          string expanded;
@@ -3631,8 +3650,10 @@ bool _defineContextMapping(
       mapping["@language"] = language;
    }
 
-   // merge onto parent mapping if one exists for a prefix
-   if(prefix != NULL && activeCtx["mappings"]->hasMember(prefix))
+   // if not a null mapping, merge onto parent mapping if one exists for
+   // a prefix
+   if(!mapping["@id"].isNull() && prefix != NULL &&
+      activeCtx["mappings"]->hasMember(prefix))
    {
       DynamicObject child = mapping;
       mapping = activeCtx["mappings"][prefix].clone();
@@ -3681,9 +3702,9 @@ bool _expandContextIri(
    // recurse if value is a term
    if(activeCtx["mappings"]->hasMember(value))
    {
-      const char* id = activeCtx["mappings"][value]["@id"];
-      // value is already an absolute IRI
-      if(strcmp(value, id) == 0)
+      DynamicObject id = activeCtx["mappings"][value]["@id"];
+      // value is already an absolute IRI or id is a null mapping
+      if(id.isNull() || id == value)
       {
          expanded = value;
          return true;
@@ -3726,13 +3747,16 @@ bool _expandContextIri(
       // recurse if prefix is defined
       if(activeCtx["mappings"]->hasMember(prefix))
       {
-         const char* id = activeCtx["mappings"][prefix]["@id"];
-         if(!_expandContextIri(activeCtx, ctx, id, base, defined, expanded))
+         DynamicObject id = activeCtx["mappings"][prefix]["@id"];
+         if(!id.isNull())
          {
-            return false;
+            if(!_expandContextIri(activeCtx, ctx, id, base, defined, expanded))
+            {
+               return false;
+            }
+            expanded.append(suffix);
+            return true;
          }
-         expanded.append(suffix);
-         return true;
       }
 
       // consider value an absolute IRI
