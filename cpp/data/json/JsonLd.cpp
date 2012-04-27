@@ -238,21 +238,21 @@ bool _expandContextIri(
 string _expandTerm(
    DynamicObject& ctx, const char* term, const char* base = "");
 DynamicObject _getInitialContext();
-bool _isKeyword(const char* value, DynamicObject* keywords = NULL);
-bool _isObject(DynamicObject input);
-bool _isEmptyObject(DynamicObject input);
-bool _isArray(DynamicObject input);
-bool _isArrayOfStrings(DynamicObject input);
-bool _isString(DynamicObject input);
-bool _isInteger(DynamicObject input);
-bool _isDouble(DynamicObject input);
-bool _isBoolean(DynamicObject input);
-bool _isSubject(DynamicObject value);
-bool _isSubjectReference(DynamicObject value);
-bool _isValue(DynamicObject value);
-bool _isList(DynamicObject value);
-bool _isBlankNode(DynamicObject value);
-bool _isAbsoluteIri(const char* value);
+bool _isKeyword(const char* v, DynamicObject* keywords = NULL);
+bool _isObject(DynamicObject v);
+bool _isEmptyObject(DynamicObject v);
+bool _isArray(DynamicObject v);
+bool _validateTypeValue(DynamicObject v);
+bool _isString(DynamicObject v);
+bool _isInteger(DynamicObject v);
+bool _isDouble(DynamicObject v);
+bool _isBoolean(DynamicObject v);
+bool _isSubject(DynamicObject v);
+bool _isSubjectReference(DynamicObject v);
+bool _isValue(DynamicObject v);
+bool _isList(DynamicObject v);
+bool _isBlankNode(DynamicObject v);
+bool _isAbsoluteIri(const char* v);
 UniqueNamer _createUniqueNamer(const char* prefix);
 const char* _getName(UniqueNamer& namer, const char* oldName = NULL);
 bool _isNamed(UniqueNamer& namer, const char* oldName);
@@ -1016,10 +1016,10 @@ bool Processor::compact(
       }
 
       // compact subject references
-      if(_isSubjectReference(element))
+      if(_isSubjectReference(element) && property != NULL)
       {
          DynamicObject type = JsonLd::getContextValue(ctx, property, "@type");
-         if(type == "@id")
+         if(type == "@id" || strcmp(property, "@graph") == 0)
          {
             output = _compactIri(ctx, element["@id"]).c_str();
             return true;
@@ -1217,17 +1217,9 @@ bool Processor::expand(
             return false;
          }
 
-         // @type must be a string, array of strings, or an empty JSON object
-         if(prop == "@type" &&
-            !(_isString(value) || _isArrayOfStrings(value) ||
-            _isEmptyObject(value)))
+         // validate @type value
+         if(prop == "@type" && !_validateTypeValue(value))
          {
-            ExceptionRef e = new Exception(
-               "Invalid JSON-LD syntax; \"@type\" value must a string, an "
-               "array of strings, or an empty object.",
-               EXCEPTION_TYPE ".SyntaxError");
-            e->getDetails()["value"] = value;
-            Exception::set(e);
             return false;
          }
 
@@ -1311,6 +1303,33 @@ bool Processor::expand(
                   // ensure value is an array
                   DynamicObject val(Map);
                   val["@list"] = value.arrayify();
+                  value = val;
+               }
+            }
+
+            // optimize away @id for @type
+            if(prop == "@type")
+            {
+               if(_isSubjectReference(value))
+               {
+                  value = value["@id"];
+               }
+               else if(_isArray(value))
+               {
+                  DynamicObject val(Array);
+                  DynamicObjectIterator vi = value.getIterator();
+                  while(vi->hasNext())
+                  {
+                     DynamicObject& v = vi->next();
+                     if(_isSubjectReference(v))
+                     {
+                        val.push(v["@id"]);
+                     }
+                     else
+                     {
+                        val.push(v);
+                     }
+                  }
                   value = val;
                }
             }
@@ -1780,8 +1799,8 @@ DynamicObject _expandValue(
    // get type definition from context
    DynamicObject type = JsonLd::getContextValue(ctx, property, "@type");
 
-   // do @id expansion
-   if(type == "@id")
+   // do @id expansion (automatic for @graph)
+   if(type == "@id" || prop == "@graph")
    {
       DynamicObject rval(Map);
       rval["@id"] = _expandTerm(ctx, value, base).c_str();
@@ -3201,12 +3220,6 @@ string _compactIri(
       return iri;
    }
 
-   // compact rdf:type
-   if(strcmp(iri, RDF_TYPE) == 0)
-   {
-      return "@type";
-   }
-
    // term is a keyword
    if(_isKeyword(iri))
    {
@@ -3512,9 +3525,13 @@ bool _defineContextMapping(
          return false;
       }
 
-      // expand @id to full IRI
+      // expand @id to full IRI if it isn't @type
       string expanded;
-      if(!_expandContextIri(activeCtx, ctx, id, base, defined, expanded))
+      if(id == "@type")
+      {
+         expanded = id->getString();
+      }
+      else if(!_expandContextIri(activeCtx, ctx, id, base, defined, expanded))
       {
          return false;
       }
@@ -3843,16 +3860,16 @@ DynamicObject _getInitialContext()
 /**
  * Returns whether or not the given value is a keyword (or a keyword alias).
  *
- * @param value the value to check.
+ * @param v the value to check.
  * @param [ctx] the active context to check against.
  *
  * @return true if the value is a keyword, false if not.
  */
-bool _isKeyword(const char* value, DynamicObject* ctx)
+bool _isKeyword(const char* v, DynamicObject* ctx)
 {
    if(ctx != NULL)
    {
-      if((*ctx)["keywords"]->hasMember(value))
+      if((*ctx)["keywords"]->hasMember(v))
       {
          return true;
       }
@@ -3862,7 +3879,7 @@ bool _isKeyword(const char* value, DynamicObject* ctx)
          while(i->hasNext())
          {
             DynamicObject& aliases = i->next();
-            if(aliases->indexOf(value) != -1)
+            if(aliases->indexOf(v) != -1)
             {
                return true;
             }
@@ -3870,20 +3887,20 @@ bool _isKeyword(const char* value, DynamicObject* ctx)
       }
    }
    else if(
-      strcmp(value, "@context") == 0 ||
-      strcmp(value, "@container") == 0 ||
-      strcmp(value, "@default") == 0 ||
-      strcmp(value, "@embed") == 0 ||
-      strcmp(value, "@explicit") == 0 ||
-      strcmp(value, "@graph") == 0 ||
-      strcmp(value, "@id") == 0 ||
-      strcmp(value, "@language") == 0 ||
-      strcmp(value, "@list") == 0 ||
-      strcmp(value, "@omitDefault") == 0 ||
-      strcmp(value, "@preserve") == 0 ||
-      strcmp(value, "@set") == 0 ||
-      strcmp(value, "@type") == 0 ||
-      strcmp(value, "@value") == 0)
+      strcmp(v, "@context") == 0 ||
+      strcmp(v, "@container") == 0 ||
+      strcmp(v, "@default") == 0 ||
+      strcmp(v, "@embed") == 0 ||
+      strcmp(v, "@explicit") == 0 ||
+      strcmp(v, "@graph") == 0 ||
+      strcmp(v, "@id") == 0 ||
+      strcmp(v, "@language") == 0 ||
+      strcmp(v, "@list") == 0 ||
+      strcmp(v, "@omitDefault") == 0 ||
+      strcmp(v, "@preserve") == 0 ||
+      strcmp(v, "@set") == 0 ||
+      strcmp(v, "@type") == 0 ||
+      strcmp(v, "@value") == 0)
    {
       return true;
    }
@@ -3891,209 +3908,227 @@ bool _isKeyword(const char* value, DynamicObject* ctx)
 }
 
 /**
- * Returns true if the given input is an Object.
+ * Returns true if the given value is an Object.
  *
- * @param input the input to check.
+ * @param v the value to check.
  *
- * @return true if the input is an Object, false if not.
+ * @return true if the value is an Object, false if not.
  */
-bool _isObject(DynamicObject input)
+bool _isObject(DynamicObject v)
 {
-   return (!input.isNull() && input->getType() == Map);
+   return (!v.isNull() && v->getType() == Map);
 }
 
 /**
- * Returns true if the given input is an empty Object.
+ * Returns true if the given value is an empty Object.
  *
- * @param input the input to check.
+ * @param v the value to check.
  *
- * @return true if the input is an empty Object, false if not.
+ * @return true if the value is an empty Object, false if not.
  */
-bool _isEmptyObject(DynamicObject input)
+bool _isEmptyObject(DynamicObject v)
 {
-   return _isObject(input) && input->length() == 0;
+   return _isObject(v) && v->length() == 0;
 }
 
 /**
- * Returns true if the given input is an Array.
+ * Returns true if the given value is an Array.
  *
- * @param input the input to check.
+ * @param v the value to check.
  *
- * @return true if the input is an Array, false if not.
+ * @return true if the value is an Array, false if not.
  */
-bool _isArray(DynamicObject input)
+bool _isArray(DynamicObject v)
 {
-   return (!input.isNull() && input->getType() == Array);
+   return (!v.isNull() && v->getType() == Array);
 }
 
 /**
- * Returns true if the given input is an Array of Strings.
+ * Returns true if the given value is a valid @type value, false if not.
  *
- * @param input the input to check.
+ * @param v the value to check.
  *
- * @return true if the input is an Array of Strings, false if not.
+ * @return true if the value is a valid @type value, false if not.
  */
-bool _isArrayOfStrings(DynamicObject input)
+bool _validateTypeValue(DynamicObject v)
 {
-   if(!_isArray(input))
+   // must be a string, subject reference, or empty object
+   if(_isString(v) || _isSubjectReference(v) || _isEmptyObject(v))
    {
-      return false;
+      return true;
    }
-   DynamicObjectIterator i = input.getIterator();
-   while(i->hasNext())
+
+   // must be an array
+   bool isValid = false;
+   if(_isArray(v))
    {
-      if(!_isString(i->next()))
+      isValid = true;
+      DynamicObjectIterator i = v.getIterator();
+      while(isValid && i->hasNext())
       {
-         return false;
+         DynamicObject& next = i->next();
+         if(!(_isString(next) || _isSubjectReference(next)))
+         {
+            isValid = false;
+         }
       }
    }
-   return true;
+
+   if(!isValid)
+   {
+      ExceptionRef e = new Exception(
+         "Invalid JSON-LD syntax; \"@type\" value must a string, a "
+         "subject reference, an array of strings or subject "
+         "references, or an empty object.",
+         EXCEPTION_TYPE ".SyntaxError");
+      e->getDetails()["value"] = v;
+      Exception::set(e);
+   }
+
+   return isValid;
 }
 
 /**
- * Returns true if the given input is a String.
+ * Returns true if the given value is a String.
  *
- * @param input the input to check.
+ * @param v the value to check.
  *
- * @return true if the input is a String, false if not.
+ * @return true if the value is a String, false if not.
  */
-bool _isString(DynamicObject input)
+bool _isString(DynamicObject v)
 {
-   return (!input.isNull() && input->getType() == String);
+   return (!v.isNull() && v->getType() == String);
 }
 
 /**
- * Returns true if the given input is an integer..
+ * Returns true if the given value is an integer..
  *
- * @param input the input to check.
+ * @param v the value to check.
  *
- * @return true if the input is an integer, false if not.
+ * @return true if the value is an integer, false if not.
  */
-bool _isInteger(DynamicObject input)
+bool _isInteger(DynamicObject v)
 {
-   return (!input.isNull() && input->isInteger());
+   return (!v.isNull() && v->isInteger());
 }
 
 /**
- * Returns true if the given input is a double.
+ * Returns true if the given value is a double.
  *
- * @param input the input to check.
+ * @param v the value to check.
  *
- * @return true if the input is a double, false if not.
+ * @return true if the value is a double, false if not.
  */
-bool _isDouble(DynamicObject input)
+bool _isDouble(DynamicObject v)
 {
-   return (!input.isNull() && input->getType() == Double);
+   return (!v.isNull() && v->getType() == Double);
 }
 
 /**
- * Returns true if the given input is a Boolean.
+ * Returns true if the given value is a Boolean.
  *
- * @param input the input to check.
+ * @param v the value to check.
  *
- * @return true if the input is a Boolean, false if not.
+ * @return true if the value is a Boolean, false if not.
  */
-bool _isBoolean(DynamicObject input)
+bool _isBoolean(DynamicObject v)
 {
-   return (!input.isNull() && input->getType() == Boolean);
+   return (!v.isNull() && v->getType() == Boolean);
 }
 
 /**
  * Returns true if the given value is a subject with properties.
  *
- * @param value the value to check.
+ * @param v the value to check.
  *
  * @return true if the value is a subject with properties, false if not.
  */
-bool _isSubject(DynamicObject value)
+bool _isSubject(DynamicObject v)
 {
-   bool rval = false;
-
    // Note: A value is a subject if all of these hold true:
    // 1. It is an Object.
    // 2. It is not a @value, @set, or @list.
    // 3. It has more than 1 key OR any existing key is not @id.
-   if(_isObject(value) &&
-     !(value->hasMember("@value") || value->hasMember("@set") ||
-        value->hasMember("@list")))
+   bool rval = false;
+   if(_isObject(v) &&
+     !(v->hasMember("@value") || v->hasMember("@set") || v->hasMember("@list")))
    {
-      int keyCount = value->length();
-      rval = (keyCount > 1 || !value->hasMember("@id"));
+      int keyCount = v->length();
+      rval = (keyCount > 1 || !v->hasMember("@id"));
    }
-
    return rval;
 }
 
 /**
  * Returns true if the given value is a subject reference.
  *
- * @param value the value to check.
+ * @param v the value to check.
  *
  * @return true if the value is a subject reference, false if not.
  */
-bool _isSubjectReference(DynamicObject value)
+bool _isSubjectReference(DynamicObject v)
 {
    // Note: A value is a subject reference if all of these hold true:
    // 1. It is an Object.
    // 2. It has a single key: @id.
-   return _isObject(value) && value->length() == 1 && value->hasMember("@id");
+   return _isObject(v) && v->length() == 1 && v->hasMember("@id");
 }
 
 /**
  * Returns true if the given value is a @value.
  *
- * @param value the value to check.
+ * @param v the value to check.
  *
  * @return true if the value is a @value, false if not.
  */
-bool _isValue(DynamicObject value)
+bool _isValue(DynamicObject v)
 {
    // Note: A value is a @value if all of these hold true:
    // 1. It is an Object.
    // 2. It has the @value property.
-   return _isObject(value) && value->hasMember("@value");
+   return _isObject(v) && v->hasMember("@value");
 }
 
 /**
  * Returns true if the given value is a @list.
  *
- * @param value the value to check.
+ * @param v the value to check.
  *
  * @return true if the value is a @list, false if not.
  */
-bool _isList(DynamicObject value)
+bool _isList(DynamicObject v)
 {
    // Note: A value is a @list if all of these hold true:
    // 1. It is an Object.
    // 2. It has the @list property.
-   return _isObject(value) && value->hasMember("@list");
+   return _isObject(v) && v->hasMember("@list");
 }
 
 /**
  * Returns true if the given value is a blank node.
  *
- * @param value the value to check.
+ * @param v the value to check.
  *
  * @return true if the value is a blank node, false if not.
  */
-bool _isBlankNode(DynamicObject value)
+bool _isBlankNode(DynamicObject v)
 {
-   bool rval = false;
    // Note: A value is a blank node if all of these hold true:
    // 1. It is an Object.
    // 2. If it has an @id key its value begins with '_:'.
    // 3. It has no keys OR is not a @value, @set, or @list.
-   if(_isObject(value))
+   bool rval = false;
+   if(_isObject(v))
    {
-      if(value->hasMember("@id"))
+      if(v->hasMember("@id"))
       {
-         rval = (strncmp(value["@id"], "_:", 2) == 0);
+         rval = (strncmp(v["@id"], "_:", 2) == 0);
       }
       else
       {
-         rval = (value->length() == 0 ||
-           !(value->hasMember("@value") ||
-              value->hasMember("@set") || value->hasMember("@list")));
+         rval = (v->length() == 0 ||
+           !(v->hasMember("@value") ||
+              v->hasMember("@set") || v->hasMember("@list")));
       }
    }
    return rval;
@@ -4102,13 +4137,13 @@ bool _isBlankNode(DynamicObject value)
 /**
  * Returns true if the given value is an absolute IRI, false if not.
  *
- * @param value the value to check.
+ * @param v the value to check.
  *
  * @return true if the value is an absolute IRI, false if not.
  */
-bool _isAbsoluteIri(const char* value)
+bool _isAbsoluteIri(const char* v)
 {
-   return strchr(value, ':') != NULL;
+   return strchr(v, ':') != NULL;
 }
 
 /**
