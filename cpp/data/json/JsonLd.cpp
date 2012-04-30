@@ -237,6 +237,7 @@ bool _expandContextIri(
    DynamicObject& defined, string& expanded);
 string _expandTerm(
    DynamicObject& ctx, const char* term, const char* base = "");
+string _prependBase(const char* base, const char* iri);
 DynamicObject _getInitialContext();
 bool _isKeyword(const char* v, DynamicObject* keywords = NULL);
 bool _isObject(DynamicObject v);
@@ -1956,10 +1957,10 @@ void _getStatements(
             // convert double to @value
             else if(_isDouble(o))
             {
-               // do special JSON-LD double format, printf('%1.16e')
+               // do special JSON-LD double format, printf('%1.15e')
                DynamicObject tmp = o;
                o = DynamicObject(Map);
-               o["@value"]->format("%1.16e", tmp->getDouble());
+               o["@value"]->format("%1.15e", tmp->getDouble());
                o["@type"] = XSD_DOUBLE;
             }
             // convert integer to @value
@@ -3765,8 +3766,7 @@ bool _expandContextIri(
    }
 
    // prepend base
-   expanded = base;
-   expanded.append(value);
+   expanded = _prependBase(base, value);
 
    // value must now be an absolute IRI
    if(!_isAbsoluteIri(expanded.c_str()))
@@ -3849,9 +3849,38 @@ string _expandTerm(DynamicObject& ctx, const char* term, const char* base)
    }
 
    // prepend base to term
-   string expanded = base;
-   expanded.append(term);
-   return expanded;
+   return _prependBase(base, term);
+}
+
+/**
+ * Prepends a base IRI to the given relative IRI.
+ *
+ * @param string base the base IRI.
+ * @param string iri the relative IRI.
+ *
+ * @return string the absolute IRI.
+ */
+string _prependBase(const char* base, const char* iri)
+{
+   if(strcmp(iri, "") == 0 || strchr(iri, '#') == iri)
+   {
+      string rval(base);
+      rval.append(iri);
+      return rval;
+   }
+   else
+   {
+      // prepend last directory for base
+      const char* slash = strrchr(base, '/');
+      if(slash == NULL) {
+        return iri;
+      }
+      else {
+        string rval(base, 0, slash - base + 1);
+        rval.append(iri);
+        return rval;
+      }
+   }
 }
 
 /**
