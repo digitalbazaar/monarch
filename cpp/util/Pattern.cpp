@@ -87,12 +87,20 @@ bool Pattern::getSubMatches(
       // store all subexpression matches (including full match if appropriate)
       int i = (includeFullMatches ? 0 : 1);
       int start, end;
-      for(; i < n && m[i].rm_so != -1; ++i)
+      for(; i < n; ++i)
       {
-         // get start and end offsets
-         start = m[i].rm_so;
-         end = m[i].rm_eo;
-         matches->append(string(str + start, end - start).c_str());
+         if(m[i].rm_so == -1)
+         {
+            // non-match for this group
+            matches.push(DynamicObject(NULL));
+         }
+         else
+         {
+            // get start and end offsets
+            start = m[i].rm_so;
+            end = m[i].rm_eo;
+            matches.push(string(str + start, end - start).c_str());
+         }
       }
 
       /* Note: Advancing the string pointer forward (to repeat the pattern) is

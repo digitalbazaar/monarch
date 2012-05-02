@@ -224,6 +224,32 @@ public:
       const char* str, const char* delimiter);
 
    /**
+    * Splits a string into a DynamicObject array using the given regex
+    * delimiter to split on.
+    *
+    * @param str the string to split.
+    * @param regex the regex to split on.
+    * @param matchCase true to match case, false for case-insensitive.
+    *
+    * @return the DynamicObject array, NULL on bad regex.
+    */
+   static monarch::rt::DynamicObject regexSplit(
+      const char* str, const char* regex,
+      bool matchCase = true);
+
+   /**
+    * Splits a string into a DynamicObject array using the given regex
+    * delimiter to split on.
+    *
+    * @param str the string to split.
+    * @param regex the regex to split on.
+    *
+    * @return the DynamicObject array.
+    */
+   static monarch::rt::DynamicObject regexSplit(
+      const char* str, PatternRef& regex);
+
+   /**
     * Joins a DynamicObject array or map values using the given string as
     * the glue between elements.
     *

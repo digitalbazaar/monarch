@@ -417,6 +417,38 @@ DynamicObject StringTools::split(const char* str, const char* delimiter)
    return rval;
 }
 
+DynamicObject StringTools::regexSplit(
+   const char* str, const char* regex, bool matchCase)
+{
+   // compile regex pattern
+   PatternRef p = Pattern::compile(regex, matchCase, true);
+   if(p.isNull())
+   {
+      return DynamicObject(NULL);
+   }
+   return regexSplit(str, p);
+}
+
+DynamicObject StringTools::regexSplit(const char* str, PatternRef& p)
+{
+   DynamicObject rval(Array);
+
+   // split on all matches
+   int start, end;
+   int index = 0;
+   while(p->match(str, index, start, end))
+   {
+      rval->append(string(str, start).c_str());
+      if(end == 0)
+      {
+         break;
+      }
+      str += end;
+   }
+
+   return rval;
+}
+
 string StringTools::join(
    DynamicObject dyno, const char* glue, int start, int end)
 {

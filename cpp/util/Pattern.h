@@ -4,7 +4,7 @@
 #ifndef monarch_util_Pattern_H
 #define monarch_util_Pattern_H
 
-#include <regex.h>
+#include <pcreposix.h>
 #include "monarch/rt/DynamicObject.h"
 
 namespace monarch

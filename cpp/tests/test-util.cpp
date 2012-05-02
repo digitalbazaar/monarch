@@ -400,20 +400,27 @@ static void runRegexTest(TestRunner& tr)
 
    tr.test("match");
    {
-      assert(Pattern::match("^[a-z]{3}$", "abc"));
-      assert(Pattern::match("^[a-zA-Z0-9_]+$", "username"));
-      assert(Pattern::match("^.*$", ".123-a0"));
-      assert(Pattern::match("^[0-9]{3}$", "123"));
-      assert(Pattern::match("^[[:digit:]]{3}$", "123"));
-      assert(Pattern::match("^\\.[0-9]{3}$", ".123"));
-      assert(Pattern::match("^\\.[0-9]{3}-[a-z]{1}$", ".123-a"));
-      assert(Pattern::match("^\\.[0-9]{3}-[a-z]{1}[0-9]+$", ".123-a0"));
+      assertNoException(Pattern::match("^[a-z]{3}$", "abc"));
+      assertNoException(Pattern::match("^[a-zA-Z0-9_]+$", "username"));
+      assertNoException(Pattern::match("^.*$", ".123-a0"));
+      assertNoException(Pattern::match("^[0-9]{3}$", "123"));
+      assertNoException(Pattern::match("^[[:digit:]]{3}$", "123"));
+      assertNoException(Pattern::match("^\\.[0-9]{3}$", ".123"));
+      assertNoException(Pattern::match("^\\.[0-9]{3}-[a-z]{1}$", ".123-a"));
+      assertNoException(Pattern::match("^\\.[0-9]{3}-[a-z]{1}[0-9]+$", ".123-a0"));
       const char* pat = "^\\.[0-9]{3}(-[a-z]{1}[0-9]+)?(\\.gz)?$";
-      assert(Pattern::match(pat, ".123"));
-      assert(Pattern::match(pat, ".123.gz"));
-      assert(Pattern::match(pat, ".123-a5"));
-      assert(Pattern::match(pat, ".123-b50"));
-      assert(Pattern::match(pat, ".123-b50.gz"));
+      assertNoException(Pattern::match(pat, ".123"));
+      assertNoException(Pattern::match(pat, ".123.gz"));
+      assertNoException(Pattern::match(pat, ".123-a5"));
+      assertNoException(Pattern::match(pat, ".123-b50"));
+      assertNoException(Pattern::match(pat, ".123-b50.gz"));
+   }
+   tr.passIfNoException();
+
+   tr.test("match eol");
+   {
+      const char* pat = "(?:\\r\\n)|(\\n)|(\\r)";
+      assertNoException(Pattern::match(pat, "\n"));
    }
    tr.passIfNoException();
 
