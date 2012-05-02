@@ -40,8 +40,8 @@ public:
     * @param input the JSON-LD object to compact.
     * @param ctx the context to compact with.
     * @param options compaction options:
-    *          base: the base IRI to use.
-    *          optimize: true to turn on optimization (default: false).
+    *           base: the base IRI to use.
+    *           optimize: true to turn on optimization (default: false).
     * @param output to be set to the JSON-LD compacted output.
     *
     * @return true on success, false on failure with exception set.
@@ -57,8 +57,10 @@ public:
     *
     * @param input the JSON-LD object to expand.
     * @param options expansion options.
-    *          base: the base IRI to use.
+    *           base: the base IRI to use.
     * @param output to be set to the JSON-LD expanded output.
+    *
+    * @return true on success, false on failure with exception set.
     */
    static bool expand(
       monarch::rt::DynamicObject input,
@@ -71,8 +73,10 @@ public:
     * @param input the JSON-LD object to frame.
     * @param frame the JSON-LD frame to use.
     * @param options the framing options.
-    *          base: the base IRI to use.
+    *           base: the base IRI to use.
     * @param output to be set to the JSON-LD framed output.
+    *
+    * @return true on success, false on failure with exception set.
     */
    static bool frame(
       monarch::rt::DynamicObject input,
@@ -85,8 +89,10 @@ public:
     *
     * @param input the JSON-LD object to normalize.
     * @param options normalization options.
-    *          base: the base IRI to use.
+    *           base: the base IRI to use.
     * @param output to be set to the JSON-LD normalized output.
+    *
+    * @return true on success, false on failure with exception set.
     */
    static bool normalize(
       monarch::rt::DynamicObject input,
@@ -94,12 +100,35 @@ public:
       monarch::rt::DynamicObject& output);
 
    /**
+    * Converts RDF statements into JSON-LD.
+    *
+    * @param statements a serialized string of RDF statements in a format
+    *           specified by the format option or an array of the RDF
+    *           statements to convert.
+    * @param options the options to use:
+    *           format: the format if input is a string:
+    *              "application/nquads" for N-Quads (default).
+    *           notType: true to use rdf:type, false to use @type (default).
+    * @param the JSON-LD output.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   static bool fromRdf(
+      monarch::rt::DynamicObject statements,
+      monarch::rt::DynamicObject options,
+      monarch::rt::DynamicObject& output);
+
+   /**
     * Outputs the RDF statements found in the given JSON-LD object.
     *
-    * @param input the JSON-LD object.
+    * @param input the JSON-LD input.
     * @param options toRdf options.
-    *          base: the base IRI to use.
+    *           base: the base IRI to use.
+    *           format: the format to use to output a string:
+    *              "applications/nquads" for N-Quads (default).
     * @param output to be set to the RDF statement output.
+    *
+    * @return true on success, false on failure with exception set.
     */
    static bool toRdf(
       monarch::rt::DynamicObject input,
@@ -114,6 +143,8 @@ public:
     * @param localCtx the local context to process.
     * @param options processing options.
     * @param output to be set to the merged context.
+    *
+    * @return true on success, false on failure with exception set.
     */
    static bool processContext(
       monarch::rt::DynamicObject activeCtx,
@@ -163,7 +194,7 @@ public:
     * @param property the property that relates the value to the subject.
     * @param value the value to add.
     * @param [propertyIsArray] true if the property is always an array, false
-    *          if not (default: false).
+    *           if not (default: false).
     */
    static void addValue(
       monarch::rt::DynamicObject& subject,
@@ -203,7 +234,7 @@ public:
     * @param property the property that relates the value to the subject.
     * @param value the value to remove.
     * @param [propertyIsArray] true if the property is always an array, false
-    *          if not (default: false).
+    *           if not (default: false).
     */
    static void removeValue(
       monarch::rt::DynamicObject& subject,
@@ -249,7 +280,7 @@ public:
     * @param ctx the active context.
     * @param key the context key.
     * @param type the type of value to get (eg: '@id', '@type'), if NULL
-    *          gets the entire entry for a key, NULL if not found.
+    *           gets the entire entry for a key, NULL if not found.
     *
     * @return the value.
     */

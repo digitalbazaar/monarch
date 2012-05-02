@@ -104,19 +104,38 @@ public:
     * @param input the expanded JSON-LD object to normalize.
     * @param output the normalized output.
     *
-    * @return the normalized output.
+    * @return true on success, false on failure with exception set.
     */
    bool normalize(DynamicObject input, DynamicObject& output);
 
    /**
-    * Outputs the RDF statements found in the given JSON-LD object.
+    * Converts RDF statements into JSON-LD.
     *
-    * @param input the JSON-LD object.
-    * @param output the statement output.
+    * @param statements the RDF statements.
+    * @param options the RDF conversion options.
+    * @param the JSON-LD output.
     *
     * @return true on success, false on failure with exception set.
     */
-   bool toRdf(DynamicObject input, DynamicObject& output);
+   bool fromRdf(
+      DynamicObject statements, DynamicObject options, DynamicObject& output);
+
+   /**
+    * Outputs the RDF statements found in the given JSON-LD element.
+    *
+    * @param element the JSON-LD element.
+    * @param namer the UniqueNamer for assigning bnode names.
+    * @param subject the active subject.
+    * @param property the active property.
+    * @param graph the graph name.
+    * @param statements an array to be populated with RDF statements.
+    *
+    * @return true on success, false on failure with exception set.
+    */
+   bool toRdf(
+      DynamicObject element, DynamicObject& namer,
+      DynamicObject subject, DynamicObject property,
+      const char* graph, DynamicObject& statements);
 
    /**
     * Processes a local context and returns a new active context.
@@ -190,6 +209,7 @@ typedef DynamicObject UniqueNamer;
 DynamicObject _expandValue(
    DynamicObject ctx, const char* property, DynamicObject value,
    const char* base);
+DynamicObject _rdfToObject(DynamicObject& o);
 DynamicObject _createStatement(
    const char* s, const char* p, DynamicObject& o);
 void _getStatements(
@@ -254,6 +274,8 @@ bool _isValue(DynamicObject v);
 bool _isList(DynamicObject v);
 bool _isBlankNode(DynamicObject v);
 bool _isAbsoluteIri(const char* v);
+bool _parseNQuads(const char* input, DynamicObject& statements);
+string _toNQuad(DynamicObject& statement);
 UniqueNamer _createUniqueNamer(const char* prefix);
 const char* _getName(UniqueNamer& namer, const char* oldName = NULL);
 bool _isNamed(UniqueNamer& namer, const char* oldName);
@@ -534,8 +556,6 @@ bool JsonLd::frame(
 bool JsonLd::normalize(
    DynamicObject input, DynamicObject options, DynamicObject& output)
 {
-   bool rval = true;
-
    // set default options
    if(!options->hasMember("base"))
    {
@@ -544,13 +564,13 @@ bool JsonLd::normalize(
 
    // expand input then do normalization
    DynamicObject expanded;
-   rval = JsonLd::expand(input, options, expanded);
-   if(!rval)
+   if(!JsonLd::expand(input, options, expanded))
    {
       ExceptionRef e = new Exception(
          "Could not expand input before normalization.",
          EXCEPTION_TYPE ".NormalizeError");
       Exception::push(e);
+      return false;
    }
 
    // do normalization
@@ -558,29 +578,109 @@ bool JsonLd::normalize(
    return p.normalize(expanded, output);
 }
 
+bool JsonLd::fromRdf(
+   DynamicObject statements, DynamicObject options, DynamicObject& output)
+{
+   // set default options
+   if(!options->hasMember("format"))
+   {
+      options["format"] = "application/nquads";
+   }
+   if(!options->hasMember("notType"))
+   {
+      options["notType"] = false;
+   }
+
+   if(_isString(statements))
+   {
+      // supported formats
+      if(options["format"] == "application/nquads")
+      {
+         DynamicObject _statements = statements;
+         if(!_parseNQuads(_statements, statements))
+         {
+            return false;
+         }
+         printf("STATEMENTS\n");
+         JsonWriter::writeToStdOut(statements);
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Unknown input format.",
+            EXCEPTION_TYPE ".UnknownFormat");
+         e->getDetails()["format"] = options["format"].clone();
+         Exception::set(e);
+         return false;
+      }
+   }
+
+   return false;
+
+   // convert from RDF
+   Processor p;
+   return p.fromRdf(statements, options, output);
+}
+
 bool JsonLd::toRdf(
    DynamicObject input, DynamicObject options, DynamicObject& output)
 {
-   bool rval = true;
-
    // set default options
    if(!options->hasMember("base"))
    {
       options["base"] = "";
    }
 
-   // resolve all @context URLs in the input
-   input = input.clone();
-   // FIXME: implement
-   //rval = _resolveUrls(input, resolver);
-   if(rval)
+   // expand input
+   DynamicObject expanded;
+   if(!JsonLd::expand(input, options, expanded))
    {
-      // output statements
-      Processor p;
-      rval = p.toRdf(input, output);
+      ExceptionRef e = new Exception(
+         "Could not expand input before conversion to RDF.",
+         EXCEPTION_TYPE ".RdfError");
+      Exception::push(e);
+      return false;
    }
 
-   return rval;
+   // get RDF statements
+   DynamicObject namer = _createUniqueNamer("_:t");
+   DynamicObject statements(Array);
+   DynamicObject dNull(NULL);
+   Processor p;
+   if(!p.toRdf(expanded, namer, dNull, dNull, NULL, statements))
+   {
+      return false;
+   }
+
+   // convert to output format
+   if(options->hasMember("format"))
+   {
+      // supported formats
+      if(options["format"] == "application/nquads")
+      {
+         DynamicObject nquads(Array);
+         DynamicObjectIterator i = statements.getIterator();
+         while(i->hasNext())
+         {
+            string quad = _toNQuad(i->next());
+            nquads.push(quad.c_str());
+         }
+         nquads.sort();
+         statements = StringTools::join(nquads, "").c_str();
+      }
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Unknown output format.",
+            EXCEPTION_TYPE ".UnknownFormat");
+         e->getDetails()["format"] = options["format"].clone();
+         Exception::set(e);
+         return false;
+      }
+   }
+
+   // output RDF statements
+   return statements;
 }
 
 bool JsonLd::processContext(
@@ -1714,7 +1814,20 @@ bool Processor::normalize(DynamicObject input, DynamicObject& output)
    return true;
 }
 
-bool Processor::toRdf(DynamicObject input, DynamicObject& output)
+bool Processor::fromRdf(
+   DynamicObject statements, DynamicObject options, DynamicObject& output)
+{
+   ExceptionRef e = new Exception(
+      "Not implemented",
+      EXCEPTION_TYPE ".NotImplemented");
+   Exception::set(e);
+   return false;
+}
+
+bool Processor::toRdf(
+   DynamicObject element, DynamicObject& namer,
+   DynamicObject subject, DynamicObject property,
+   const char* graph, DynamicObject& statements)
 {
    ExceptionRef e = new Exception(
       "Not implemented",
@@ -1839,6 +1952,48 @@ DynamicObject _expandValue(
       // return simple string
       rval = value.clone();
    }
+   return rval;
+}
+
+/**
+ * Converts an RDF statement object to a JSON-LD object.
+ *
+ * @param o the RDF statement object to convert.
+ *
+ * @return the JSON-LD object.
+ */
+DynamicObject _rdfToObject(DynamicObject& o) {
+   // convert empty list
+   if(o["interfaceName"] == "IRI" && o["nominalValue"] == RDF_NIL)
+   {
+      DynamicObject rval(Map);
+      rval["@list"]->setType(Array);
+      return rval;
+   }
+
+   // convert IRI/BlankNode object to JSON-LD
+   if(o["interfaceName"] == "IRI" || o["interfaceName"] == "BlankNode")
+   {
+      DynamicObject rval(Map);
+      rval["@id"] = o["nominalValue"].clone();
+      return rval;
+   }
+
+   // convert literal object to JSON-LD
+   DynamicObject rval(Map);
+   rval["@value"] = o["nominalValue"].clone();
+
+   // add datatype
+   if(o->hasMember("datatype"))
+   {
+      rval["@type"] = o["datatype"]["nominalValue"].clone();
+   }
+   // add language
+   else if(o->hasMember("language"))
+   {
+      rval["@language"] = o["language"].clone();
+   }
+
    return rval;
 }
 
@@ -4197,6 +4352,242 @@ bool _isBlankNode(DynamicObject v)
 bool _isAbsoluteIri(const char* v)
 {
    return strchr(v, ':') != NULL;
+}
+
+/**
+ * Parses statements in the form of N-Quads.
+ *
+ * @param input the N-Quads input to parse.
+ * @param statements to be populated with RDF statements.
+ *
+ * @return true on success, false on failure with exception set.
+ */
+bool _parseNQuads(const char* input, DynamicObject& statements)
+{
+   // define partial regexes
+   const char* iri = "(?:<([^:]+:[^>]*)>)";
+   const char* bnode = "(_:(?:[A-Za-z][A-Za-z0-9]*))";
+   const char* plain = "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"";
+   string datatype = StringTools::format("(?:\\^\\^%s)", iri);
+   const char* language = "(?:@([a-z]+(?:-[a-z0-9]+)*))";
+   string literal = StringTools::format("(?:%s(?:%s|%s)?)",
+      plain, datatype.c_str(), language);
+   const char* ws = "[ \\t]";
+
+   // define quad part regexes
+   string subject = StringTools::format("(?:%s|%s)%s+", iri, bnode, ws);
+   string property = StringTools::format("%s%s+", iri, ws);
+   string object = StringTools::format("(?:%s|%s|%s)%s*",
+      iri, bnode, literal.c_str(), ws);
+   string graph = StringTools::format("(?:\\.|(?:(?:%s|%s)%s*\\.))",
+      iri, bnode, ws);
+
+   // full quad regex
+   string quadRegex = StringTools::format("^%s*%s%s%s%s%s*$",
+      ws, subject.c_str(), property.c_str(), object.c_str(), graph.c_str(), ws);
+   PatternRef quad = Pattern::compile(quadRegex.c_str());
+   if(quad.isNull())
+   {
+      ExceptionRef e = new Exception(
+         "Error while parsing N-Quads; invalid regex.",
+         EXCEPTION_TYPE "RegexError");
+      e->getDetails()["regex"] = quadRegex.c_str();
+      Exception::push(e);
+      return false;
+   }
+
+   // line delimiter
+   const char* eolnRegex = "(?:\\r\\n)|(?:\\n)|(?:\\r)";
+   PatternRef eoln = Pattern::compile(eolnRegex);
+   if(eoln.isNull())
+   {
+      ExceptionRef e = new Exception(
+         "Error while parsing N-Quads; invalid regex.",
+         EXCEPTION_TYPE "RegexError");
+      e->getDetails()["regex"] = eolnRegex;
+      Exception::push(e);
+      return false;
+   }
+
+   // empty/whitespace only string
+   const char* emptyRegex = "^[ \\t]*$";
+   PatternRef empty = Pattern::compile(emptyRegex);
+   if(empty.isNull())
+   {
+      ExceptionRef e = new Exception(
+         "Error while parsing N-Quads; invalid regex.",
+         EXCEPTION_TYPE "RegexError");
+      e->getDetails()["regex"] = emptyRegex;
+      Exception::push(e);
+      return false;
+   }
+
+   // build RDF statements
+   statements = DynamicObject(Array);
+
+   // split N-Quad input into lines
+   DynamicObject lines = StringTools::regexSplit(input, eoln);
+   int lineNumber = 0;
+   DynamicObjectIterator i = lines.getIterator();
+   while(i->hasNext())
+   {
+      const char* line = i->next();
+      lineNumber++;
+
+      // skip empty lines
+      if(empty->match(line))
+      {
+         continue;
+      }
+
+      // parse quad
+      DynamicObject match;
+      if(!quad->split(line, match))
+      {
+         ExceptionRef e = new Exception(
+            "Error while parsing N-Quads; invalid quad.",
+            EXCEPTION_TYPE "ParseError");
+         e->getDetails()["line"] = lineNumber;
+         Exception::set(e);
+         return false;
+      }
+
+      // create RDF statement
+      DynamicObject s(Map);
+
+      // get subject
+      if(!match[0].isNull())
+      {
+         s["subject"]["nominalValue"] = match[0];
+         s["subject"]["interfaceName"] = "IRI";
+      }
+      else
+      {
+         s["subject"]["nominalValue"] = match[1];
+         s["subject"]["interfaceName"] = "BlankNode";
+      }
+
+      // get property
+      s["property"]["nominalValue"] = match[2];
+      s["property"]["interfaceName"] = "IRI";
+
+      // get object
+      if(!match[3].isNull())
+      {
+         s["object"]["nominalValue"] = match[3];
+         s["object"]["interfaceName"] = "IRI";
+      }
+      else if(!match[4].isNull())
+      {
+         s["object"]["nominalValue"] = match[4];
+         s["object"]["interfaceName"] = "BlankNode";
+      }
+      else
+      {
+         s["object"]["nominalValue"] = match[5];
+         s["object"]["interfaceName"] = "LiteralNode";
+         if(!match[6].isNull())
+         {
+            s["object"]["datatype"]["nominalValue"] = match[6];
+            s["object"]["datatype"]["interfaceName"] = "IRI";
+         }
+         else if(!match[7].isNull())
+         {
+            s["object"]["language"] = match[7];
+         }
+      }
+
+      // get graph
+      if(!match[8].isNull())
+      {
+         s["name"]["nominalValue"] = match[8];
+         s["name"]["interfaceName"] = "IRI";
+      }
+      else if(!match[9].isNull())
+      {
+         s["name"]["nominalValue"] = match[9];
+         s["name"]["interfaceName"] = "BlankNode";
+      }
+
+      // add statement
+      statements.push(s);
+   }
+
+   return true;
+}
+
+/**
+ * Converts an RDF statement to an N-Quad string (a single quad).
+ *
+ * @param statement the RDF statement to convert.
+ *
+ * @return the N-Quad string.
+ */
+string _toNQuad(DynamicObject& statement) {
+   DynamicObject& s = statement["subject"];
+   DynamicObject& p = statement["property"];
+   DynamicObject& o = statement["object"];
+   DynamicObject g = statement->hasMember("name") ?
+      statement["name"] : DynamicObject(NULL);
+
+   string quad;
+
+   // subject is an IRI or bnode
+   if(s["interfaceName"] == "IRI")
+   {
+      quad.push_back('<');
+      quad.append(s["nominalValue"]);
+      quad.push_back('>');
+   }
+   else
+   {
+      quad.append(s["nominalValue"]);
+   }
+
+   // property is always an IRI
+   quad.append(" <");
+   quad.append(p["nominalValue"]);
+   quad.append("> ");
+
+   // object is IRI, bnode, or literal
+   if(o["interfaceName"] == "IRI")
+   {
+      quad.push_back('<');
+      quad.append(o["nominalValue"]);
+      quad.push_back('>');
+   }
+   else if(o["interfaceName"] == "BlankNode")
+   {
+      quad.append(o["nominalValue"]);
+   }
+   else
+   {
+      quad.push_back('"');
+      quad.append(o["nominalValue"]);
+      quad.push_back('"');
+      if(o->hasMember("datatype"))
+      {
+         quad.append("^^<");
+         quad.append(o["datatype"]["nominalValue"]);
+         quad.push_back('>');
+      }
+      else if(o->hasMember("language"))
+      {
+         quad.push_back('@');
+         quad.append(o["language"]);
+      }
+   }
+
+   // graph
+   if(!g.isNull())
+   {
+      quad.append(" <");
+      quad.append(g["nominalValue"]);
+      quad.push_back('>');
+   }
+
+   quad.append(" .\n");
+   return quad;
 }
 
 /**
