@@ -94,6 +94,16 @@ if test "$BUILD_FOR_WINDOWS" = "no" ; then
    fi
 fi
 
+dnl ----------------- libposixpcre -----------------
+
+# check for libposixpcre and headers
+PKG_CHECK_MODULES([LIBPCREPOSIX], [libpcreposix], HAVE_LIBPCREPOSIX=yes, HAVE_LIBPCREPOSIX=no)
+
+AC_SUBST(HAVE_LIBPCREPOSIX)
+if test "x$HAVE_LIBPCREPOSIX" = "xyes"; then
+   AC_DEFINE([HAVE_LIBPCREPOSIX], [1], [Perl-compatible regular expression support for POSIX (libpcreposix) enabled])
+fi
+
 dnl ----------------- librdfa -----------------
 
 # check for librdfa and headers
@@ -320,6 +330,15 @@ AC_OUTPUT
 
 # Setup extra build configuration
 
+MO_MSG_CONFIG_BEGIN([Required libraries])
+MO_MSG_CONFIG_OPTION_IF([libpcreposix],
+   [test "x$HAVE_LIBPCREPOSIX" = xyes],
+   [found], [MISSING (fatal error)])
+MO_MSG_CONFIG_OPTION_IF([librdfa],
+   [test "x$HAVE_LIBRDFA" = xyes],
+   [found], [MISSING (fatal error)])
+MO_MSG_CONFIG_END
+
 MO_MSG_CONFIG_BEGIN([Monarch Options])
 MO_MSG_CONFIG_OPTION([Dyno Stats], [$MO_DYNO_STATS_MSG])
 MO_MSG_CONFIG_END
@@ -334,9 +353,6 @@ MO_MSG_CONFIG_OPTION_IF([JSON-LD suite dir],
 MO_MSG_CONFIG_END
 
 MO_MSG_CONFIG_BEGIN([Features])
-MO_MSG_CONFIG_OPTION_IF([librdfa],
-   [test "x$HAVE_LIBRDFA" = xyes],
-   [enabled], [disabled])
 MO_MSG_CONFIG_OPTION_IF([MySQL],
    [test "x$BUILD_MYSQL" = xyes],
    [enabled], [disabled (use --enable-mysql to enable)])
@@ -350,3 +366,12 @@ MO_MSG_CONFIG_END
 
 # Output build configuration
 MO_MSG_CONFIG_OUTPUT([Monarch Build Configuration])
+
+# Print an error if the configuration fails to find required libraries
+if test "x$HAVE_LIBPCREPOSIX" != "xyes"; then
+   AC_MSG_ERROR([Perl-compatible regular expressions for POSIX (libpcreposix) not found.])
+fi
+
+if test "x$HAVE_LIBRDFA" != "xyes"; then
+   AC_MSG_ERROR([RDFa 1.1 processor (librdfa) not found.])
+fi
