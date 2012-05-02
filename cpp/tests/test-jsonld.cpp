@@ -40,7 +40,8 @@ namespace mo_test_jsonld
 // declare
 static void _runJsonLdTestSuiteFromPath(TestRunner& tr, const char* path);
 
-static void _readFile(const char* root, const char* name, DynamicObject& data)
+static void _readJsonFile(
+   const char* root, const char* name, DynamicObject& data)
 {
    string fullPath;
    fullPath.assign(File::join(root, name));
@@ -67,6 +68,35 @@ static void _readFile(const char* root, const char* name, DynamicObject& data)
    is.close();
 }
 
+static void _readNQuadsFile(
+   const char* root, const char* name, DynamicObject& data)
+{
+   string fullPath;
+   fullPath.assign(File::join(root, name));
+
+   File f(fullPath.c_str());
+   if(!f->exists() || !f->isFile())
+   {
+      ExceptionRef e = new Exception("Invalid test file.");
+      e->getDetails()["name"] = name;
+      Exception::set(e);
+   }
+   assertNoExceptionSet();
+   ByteBuffer b(4096);
+   bool success = f.readBytes(&b);
+   if(!success)
+   {
+      ExceptionRef e = new Exception("Failure reading test file.");
+      e->getDetails()["name"] = name;
+      Exception::push(e);
+   }
+   assertNoExceptionSet();
+
+   // null-terminate buffer
+   b.putByte(0x00, 1, false);
+   data = b.bytes();
+}
+
 static void _runJsonLdTestSuiteTest(
    TestRunner& tr, const char* root, DynamicObject& test)
 {
@@ -75,12 +105,8 @@ static void _runJsonLdTestSuiteTest(
 
    tr.test(test["name"]);
 
-   // read input
    DynamicObject input;
-   _readFile(root, test["input"], input);
-   // expected output
    DynamicObject expect;
-
    DynamicObject output;
    DynamicObject& type = test["@type"];
    DynamicObject options;
@@ -89,15 +115,19 @@ static void _runJsonLdTestSuiteTest(
       test["input"]->getString());
    if(type->indexOf("jld:NormalizeTest") != -1)
    {
+      // read input
+      _readJsonFile(root, test["input"], input);
       // read expected output
-      _readFile(root, test["expect"], expect);
+      _readJsonFile(root, test["expect"], expect);
       // normalize
       JsonLd::normalize(input, options, output);
    }
    else if(type->indexOf("jld:ExpandTest") != -1)
    {
+      // read input
+      _readJsonFile(root, test["input"], input);
       // read expected output
-      _readFile(root, test["expect"], expect);
+      _readJsonFile(root, test["expect"], expect);
       // expand
       JsonLd::expand(input, options, output);
    }
@@ -110,12 +140,14 @@ static void _runJsonLdTestSuiteTest(
       assertNoException(
          tv->isValid(test));
 
+      // read input
+      _readJsonFile(root, test["input"], input);
       // read expected output
-      _readFile(root, test["expect"], expect);
+      _readJsonFile(root, test["expect"], expect);
 
       // read context
       DynamicObject context;
-      _readFile(root, test["context"], context);
+      _readJsonFile(root, test["context"], context);
 
       // compact
       JsonLd::compact(input, context, options, output);
@@ -129,15 +161,38 @@ static void _runJsonLdTestSuiteTest(
       assertNoException(
          tv->isValid(test));
 
+      // read input
+      _readJsonFile(root, test["input"], input);
       // read expected output
-      _readFile(root, test["expect"], expect);
+      _readJsonFile(root, test["expect"], expect);
 
       // read frame
       DynamicObject frame;
-      _readFile(root, test["frame"], frame);
+      _readJsonFile(root, test["frame"], frame);
 
-      // reframe
+      // frame
       JsonLd::frame(input, frame, options, output);
+   }
+   else if(type->indexOf("jld:FromRDFTest") != -1)
+   {
+      // read input
+      _readNQuadsFile(root, test["input"], input);
+      // read expected output
+      _readJsonFile(root, test["expect"], expect);
+
+      // convert from RDF
+      JsonLd::fromRdf(input, options, output);
+   }
+   else if(type->indexOf("jld:ToRDFTest") != -1)
+   {
+      // read input
+      _readJsonFile(root, test["input"], input);
+      // read expected output
+      _readNQuadsFile(root, test["expect"], expect);
+
+      // convert to RDF (as N-Quads)
+      options["format"] = "application/nquads";
+      JsonLd::toRdf(input, options, output);
    }
    else
    {
@@ -177,7 +232,7 @@ static void _runJsonLdTestSuiteManifest(TestRunner& tr, const char* path)
 
    // read manifest file
    DynamicObject manifest;
-   _readFile(dirname.c_str(), basename.c_str(), manifest);
+   _readJsonFile(dirname.c_str(), basename.c_str(), manifest);
 
    // types
    DynamicObject manifestType;
@@ -190,6 +245,10 @@ static void _runJsonLdTestSuiteManifest(TestRunner& tr, const char* path)
    frameType = "jld:FrameTest";
    DynamicObject normalizeType;
    normalizeType = "jld:NormalizeTest";
+   DynamicObject fromRdfType;
+   fromRdfType = "jld:FromRDFTest";
+   DynamicObject toRdfType;
+   toRdfType = "jld:ToRDFTest";
 
    // sanity check
    v::ValidatorRef tv = new v::Map(
@@ -219,6 +278,14 @@ static void _runJsonLdTestSuiteManifest(TestRunner& tr, const char* path)
                   NULL),
                new v::Map(
                   "@type", new v::Contains(normalizeType),
+                  "expect", new v::Type(String),
+                  NULL),
+               new v::Map(
+                  "@type", new v::Contains(fromRdfType),
+                  "expect", new v::Type(String),
+                  NULL),
+               new v::Map(
+                  "@type", new v::Contains(toRdfType),
                   "expect", new v::Type(String),
                   NULL),
                NULL),

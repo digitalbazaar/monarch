@@ -129,13 +129,11 @@ public:
     * @param property the active property.
     * @param graph the graph name.
     * @param statements an array to be populated with RDF statements.
-    *
-    * @return true on success, false on failure with exception set.
     */
-   bool toRdf(
+   void toRdf(
       DynamicObject element, DynamicObject& namer,
       DynamicObject subject, DynamicObject property,
-      const char* graph, DynamicObject& statements);
+      DynamicObject graph, DynamicObject& statements);
 
    /**
     * Processes a local context and returns a new active context.
@@ -643,13 +641,14 @@ bool JsonLd::toRdf(
    DynamicObject statements(Array);
    DynamicObject dNull(NULL);
    Processor p;
-   if(!p.toRdf(expanded, namer, dNull, dNull, NULL, statements))
-   {
-      return false;
-   }
+   p.toRdf(expanded, namer, dNull, dNull, dNull, statements);
 
    // convert to output format
-   if(options->hasMember("format"))
+   if(!options->hasMember("format"))
+   {
+      output = statements;
+   }
+   else
    {
       // supported formats
       if(options["format"] == "application/nquads")
@@ -662,7 +661,7 @@ bool JsonLd::toRdf(
             nquads.push(quad.c_str());
          }
          nquads.sort();
-         statements = StringTools::join(nquads, "").c_str();
+         output = StringTools::join(nquads, "").c_str();
       }
       else
       {
@@ -676,7 +675,7 @@ bool JsonLd::toRdf(
    }
 
    // output RDF statements
-   return statements;
+   return output;
 }
 
 bool JsonLd::processContext(
@@ -1962,16 +1961,189 @@ bool Processor::fromRdf(
    return true;
 }
 
-bool Processor::toRdf(
+void Processor::toRdf(
    DynamicObject element, DynamicObject& namer,
    DynamicObject subject, DynamicObject property,
-   const char* graph, DynamicObject& statements)
+   DynamicObject graph, DynamicObject& statements)
 {
-   ExceptionRef e = new Exception(
-      "Not implemented",
-      EXCEPTION_TYPE ".NotImplemented");
-   Exception::set(e);
-   return false;
+   if(_isObject(element))
+   {
+      // convert @value to object
+      if(_isValue(element))
+      {
+         DynamicObject object(Map);
+         object["nominalValue"] = element["@value"];
+         object["interfaceName"] = "LiteralNode";
+
+         if(element->hasMember("@type"))
+         {
+            object["datatype"]["nominalValue"] = element["@type"];
+            object["datatype"]["interfaceName"] = "IRI";
+         }
+         else if(element->hasMember("@language"))
+         {
+            object["language"] = element["@language"];
+         }
+         // emit literal
+         DynamicObject statement(Map);
+         statement["subject"] = subject.clone();
+         statement["property"] = property.clone();
+         statement["object"] = object;
+         if(!graph.isNull())
+         {
+            statement["name"] = graph.clone();
+         }
+         statements.push(statement);
+         return;
+      }
+
+      // convert @list
+      if(_isList(element))
+      {
+         DynamicObject list = _makeLinkedList(element);
+         toRdf(list, namer, subject, property, graph, statements);
+         return;
+      }
+
+      // Note: element must be a subject
+
+      // get subject @id (generate one if it is a bnode)
+      const char* id = element->hasMember("@id") ?
+         element["@id"]->getString() : NULL;
+      bool isBnode = _isBlankNode(element);
+      if(isBnode)
+      {
+         id = _getName(namer, id);
+      }
+
+      // create object
+      DynamicObject object(Map);
+      object["nominalValue"] = id;
+      object["interfaceName"] = isBnode ? "BlankNode" : "IRI";
+
+      // emit statement if subject isn't NULL
+      if(!subject.isNull())
+      {
+         DynamicObject statement(Map);
+         statement["subject"] = subject.clone();
+         statement["property"] = property.clone();
+         statement["object"] = object.clone();
+         if(!graph.isNull())
+         {
+            statement["name"] = graph.clone();
+         }
+         statements.push(statement);
+      }
+
+      // set new active subject to object
+      subject = object;
+
+      // recurse over subject properties in order
+      DynamicObjectIterator i = element.keys().sort().getIterator();
+      while(i->hasNext())
+      {
+         DynamicObject prop = i->next();
+         DynamicObject& value = element[prop->getString()];
+
+         // convert @type to rdf:type
+         if(prop == "@type")
+         {
+            prop = RDF_TYPE;
+         }
+
+         // recurse into @graph
+         if(prop == "@graph")
+         {
+            DynamicObject dNull(NULL);
+            toRdf(value, namer, dNull, dNull, subject, statements);
+            continue;
+         }
+
+         // skip keywords
+         if(_isKeyword(prop))
+         {
+            continue;
+         }
+
+         // create new active property
+         property = DynamicObject(Map);
+         property["nominalValue"] = prop;
+         property["interfaceName"] = "IRI";
+
+         // recurse into value
+         toRdf(value, namer, subject, property, graph, statements);
+      }
+      return;
+   }
+
+   if(_isArray(element))
+   {
+      // recurse into arrays
+      DynamicObjectIterator i = element.getIterator();
+      while(i->hasNext())
+      {
+         toRdf(i->next(), namer, subject, property, graph, statements);
+      }
+      return;
+   }
+
+   if(_isString(element))
+   {
+      // property can be NULL for string subject references in @graph
+      if(property.isNull())
+      {
+         return;
+      }
+      // emit IRI for rdf:type, else plain literal
+      const char* objectType = (property["nominalValue"] == RDF_TYPE) ?
+         "IRI" : "LiteralNode";
+      DynamicObject statement;
+      statement["subject"] = subject.clone();
+      statement["property"] = property.clone();
+      statement["object"]["nominalValue"] = element;
+      statement["object"]["interfaceName"] = objectType;
+      if(!graph.isNull())
+      {
+         statement["name"] = graph.clone();
+      }
+      statements.push(statement);
+      return;
+   }
+
+   if(_isBoolean(element) || _isDouble(element) || _isInteger(element))
+   {
+      const char* datatype;
+
+      // convert to XSD datatype
+      if(_isBoolean(element))
+      {
+         datatype = XSD_BOOLEAN;
+      }
+      else if(_isDouble(element))
+      {
+         datatype = XSD_DOUBLE;
+         // do special JSON-LD double format, printf('%1.15e')
+         element->format("%1.15e", element->getDouble());
+      }
+      else
+      {
+         datatype = XSD_INTEGER;
+      }
+      // emit typed literal
+      DynamicObject statement;
+      statement["subject"] = subject.clone();
+      statement["property"] = property.clone();
+      statement["object"]["nominalValue"] = element->getString();
+      statement["object"]["interfaceName"] = "LiteralNode";
+      statement["object"]["datatype"]["nominalValue"] = datatype;
+      statement["object"]["datatype"]["interfaceName"] = "IRI";
+      if(!graph.isNull())
+      {
+         statement["name"] = graph.clone();
+      }
+      statements.push(statement);
+      return;
+   }
 }
 
 bool Processor::processContext(
