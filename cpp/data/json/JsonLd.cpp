@@ -601,8 +601,6 @@ bool JsonLd::fromRdf(
          {
             return false;
          }
-         printf("STATEMENTS\n");
-         JsonWriter::writeToStdOut(statements);
       }
       else
       {
@@ -614,8 +612,6 @@ bool JsonLd::fromRdf(
          return false;
       }
    }
-
-   return false;
 
    // convert from RDF
    Processor p;
@@ -1817,11 +1813,153 @@ bool Processor::normalize(DynamicObject input, DynamicObject& output)
 bool Processor::fromRdf(
    DynamicObject statements, DynamicObject options, DynamicObject& output)
 {
-   ExceptionRef e = new Exception(
-      "Not implemented",
-      EXCEPTION_TYPE ".NotImplemented");
-   Exception::set(e);
-   return false;
+   // prepare graph map (maps graph name => subjects, lists)
+   DynamicObject defaultGraph(Map);
+   defaultGraph["subjects"]->setType(Map);
+   defaultGraph["listMap"]->setType(Map);
+   DynamicObject graphs(Map);
+   graphs[""] = defaultGraph;
+
+   DynamicObjectIterator i = statements.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& statement = i->next();
+      // get subject, property, object, and graph name (default to "")
+      DynamicObject& s = statement["subject"]["nominalValue"];
+      DynamicObject& p = statement["property"]["nominalValue"];
+      DynamicObject& o = statement["object"];
+      DynamicObject name = statement->hasMember("name") ?
+         statement["name"]["nominalValue"] : DynamicObject(String);
+
+      // create a graph entry as needed
+      DynamicObject& graph = graphs[name->getString()];
+      graph["subjects"]->setType(Map);
+      graph["listMap"]->setType(Map);
+
+      // handle element in @list
+      if(p == RDF_FIRST)
+      {
+         // creates list entry as needed
+         DynamicObject& entry = graph["listMap"][s->getString()];
+         // set object value
+         entry["first"] = _rdfToObject(o);
+         continue;
+      }
+
+      // handle other element in @list
+      if(p == RDF_REST)
+      {
+         // set next in list
+         if(o["interfaceName"] == "BlankNode")
+         {
+            // creates list entry as needed
+            DynamicObject& entry = graph["listMap"][s->getString()];
+            entry["rest"] = o["nominalValue"];
+         }
+         continue;
+      }
+
+      // add graph subject to default graph as needed
+      if(name != "" && !defaultGraph["subjects"]->hasMember(name))
+      {
+         defaultGraph["subjects"][name->getString()]["@id"] = name.clone();
+      }
+
+      // add subject to graph as needed
+      DynamicObject& subject = graph["subjects"][s->getString()];
+      if(!subject->hasMember("@id"))
+      {
+         subject["@id"] = s.clone();
+      }
+
+      // convert to @type unless options indicate to treat rdf:type as property
+      if(p == RDF_TYPE && !options["notType"])
+      {
+         // add value of object as @type
+         JsonLd::addValue(subject, "@type", o["nominalValue"].clone(), true);
+      }
+      else
+      {
+         // add property to value as needed
+         DynamicObject object = _rdfToObject(o);
+         JsonLd::addValue(subject, p, object, true);
+
+         // a bnode might be the start of a list, so add it to list map
+         if(o["interfaceName"] == "BlankNode")
+         {
+            const char* id = object["@id"];
+            // creates list entry as needed
+            DynamicObject& entry = graph["listMap"][id];
+            entry["head"] = object;
+         }
+      }
+   }
+
+   // build @lists
+   i = graphs.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& graph = i->next();
+
+      // find list head
+      DynamicObject& listMap = graph["listMap"];
+      DynamicObjectIterator li = listMap.getIterator();
+      while(li->hasNext())
+      {
+         DynamicObject entry = li->next();
+         // head found, build lists
+         if(entry->hasMember("head") && entry->hasMember("first"))
+         {
+            // replace bnode @id with @list
+            DynamicObject& value = entry["head"];
+            value->removeMember("@id");
+            DynamicObject& list = value["@list"];
+            list.push(entry["first"]);
+            while(entry->hasMember("rest"))
+            {
+               const char* rest = entry["rest"];
+               entry = listMap[rest];
+               if(!entry->hasMember("first"))
+               {
+                  ExceptionRef e = new Exception(
+                     "Invalid RDF list entry.",
+                     EXCEPTION_TYPE ".RdfError");
+                  e->getDetails()["bnode"] = rest;
+                  Exception::set(e);
+                  return false;
+               }
+               list.push(entry["first"]);
+            }
+         }
+      }
+   }
+
+   // build default graph in subject @id order
+   output = DynamicObject(Array);
+   DynamicObject& subjects = defaultGraph["subjects"];
+   i = subjects.keys().sort().getIterator();
+   while(i->hasNext())
+   {
+      const char* id = i->next();
+      DynamicObject& subject = subjects[id];
+
+      // add subject to default graph
+      output.push(subject);
+
+      // output named graph in subject @id order
+      if(graphs->hasMember(id))
+      {
+         DynamicObject& graph = subject["@graph"];
+         graph->setType(Array);
+         DynamicObject _subjects = graphs[id]["subjects"];
+         DynamicObjectIterator si = _subjects.keys().sort().getIterator();
+         while(si->hasNext())
+         {
+            graph.push(_subjects[si->next()->getString()]);
+         }
+      }
+   }
+   return true;
 }
 
 bool Processor::toRdf(
