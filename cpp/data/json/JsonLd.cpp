@@ -99,14 +99,16 @@ public:
       DynamicObject options, DynamicObject& output);
 
    /**
-    * Performs JSON-LD normalization.
+    * Performs RDF normalization on the given JSON-LD input.
     *
     * @param input the expanded JSON-LD object to normalize.
+    * @param options the normalization options.
     * @param output the normalized output.
     *
     * @return true on success, false on failure with exception set.
     */
-   bool normalize(DynamicObject input, DynamicObject& output);
+   bool normalize(
+      DynamicObject input, DynamicObject options, DynamicObject& output);
 
    /**
     * Converts RDF statements into JSON-LD.
@@ -118,7 +120,8 @@ public:
     * @return true on success, false on failure with exception set.
     */
    bool fromRdf(
-      DynamicObject statements, DynamicObject options, DynamicObject& output);
+      DynamicObject statements, DynamicObject options,
+      DynamicObject& output);
 
    /**
     * Outputs the RDF statements found in the given JSON-LD element.
@@ -208,19 +211,14 @@ DynamicObject _expandValue(
    DynamicObject ctx, const char* property, DynamicObject value,
    const char* base);
 DynamicObject _rdfToObject(DynamicObject& o);
-DynamicObject _createStatement(
-   const char* s, const char* p, DynamicObject& o);
-void _getStatements(
-   DynamicObject& input, UniqueNamer& namer,
-   DynamicObject& bnodes, DynamicObject& subjects, const char* name = NULL);
 DynamicObject _makeLinkedList(DynamicObject value);
-void _addStatement(DynamicObject statements, DynamicObject statement);
 bool _hashStatements(
-   DynamicObject& statements, UniqueNamer& namer, string& hash);
+   const char* id, DynamicObject& bnodes, UniqueNamer& namer,
+   string& hash);
 bool _hashPaths(
-   DynamicObject& bnodes, DynamicObject& statements,
+   const char* id, DynamicObject& bnodes,
    UniqueNamer& namer, UniqueNamer pathNamer, DynamicObject& result);
-const char* _getBlankNodeName(DynamicObject value);
+const char* _getAdjacentBlankNodeName(DynamicObject value, const char* id);
 void _flatten(
    DynamicObject subjects, DynamicObject input, UniqueNamer namer,
    const char* name, DynamicObject* list);
@@ -273,7 +271,7 @@ bool _isList(DynamicObject v);
 bool _isBlankNode(DynamicObject v);
 bool _isAbsoluteIri(const char* v);
 bool _parseNQuads(const char* input, DynamicObject& statements);
-string _toNQuad(DynamicObject& statement);
+string _toNQuad(DynamicObject& statement, const char* bnode = NULL);
 UniqueNamer _createUniqueNamer(const char* prefix);
 const char* _getName(UniqueNamer& namer, const char* oldName = NULL);
 bool _isNamed(UniqueNamer& namer, const char* oldName);
@@ -573,7 +571,7 @@ bool JsonLd::normalize(
 
    // do normalization
    Processor p;
-   return p.normalize(expanded, output);
+   return p.normalize(expanded, options, output);
 }
 
 bool JsonLd::fromRdf(
@@ -906,86 +904,6 @@ bool JsonLd::compareValues(DynamicObject& v1, DynamicObject& v2)
       _isObject(v2) && v2->hasMember("@id"))
    {
       rval = (v1["@id"] == v2["@id"]);
-   }
-
-   return rval;
-}
-
-bool JsonLd::compareNormalized(DynamicObject& n1, DynamicObject& n2)
-{
-   bool rval = true;
-
-   // normalized JSON-LD must be an array, always return false if not
-   if(!_isArray(n1) || !_isArray(n2))
-   {
-      rval = false;
-   }
-   // different # of subjects
-   else if(n1->length() != n2->length())
-   {
-      rval = false;
-   }
-   else
-   {
-      // assume subjects are in the same order because of normalization
-      int length = n1->length();
-      for(int i = 0; rval && i < length; ++i)
-      {
-         DynamicObject s1 = n1[i];
-         DynamicObject s2 = n2[i];
-
-         // different @ids
-         if(s1["@id"] != s2["@id"])
-         {
-            rval = false;
-            break;
-         }
-
-         // subjects have different properties
-         if(s1->length() != s2->length())
-         {
-            rval = false;
-            break;
-         }
-
-         DynamicObjectIterator pi = s1.getIterator();
-         while(pi->hasNext())
-         {
-            pi->next();
-            const char* p = pi->getName();
-
-            // skip @id property
-            if(strcmp(p, "@id") == 0)
-            {
-              continue;
-            }
-
-            // s2 is missing s1 property
-            if(!JsonLd::hasProperty(s2, p))
-            {
-               rval = false;
-               break;
-            }
-
-            // subjects have different objects for the property
-            if(s1[p]->length() != s2[p]->length())
-            {
-               rval = false;
-               break;
-            }
-
-            DynamicObjectIterator oi = s1[p].getIterator();
-            while(oi->hasNext())
-            {
-               // s2 is missing s1 object
-               if(!JsonLd::hasValue(s2, p, oi->next()))
-               {
-                  rval = false;
-                  break;
-               }
-            }
-         }
-      }
    }
 
    return rval;
@@ -1604,19 +1522,6 @@ DynamicObject Permutator::next()
 }
 
 /**
- * Compares two subjects by their @ids.
- *
- * @param a the first subject.
- * @param b the second subject.
- *
- * @return true if the first subjects's @id is less than the second's.
- */
-bool _compareIds(DynamicObject a, DynamicObject b)
-{
-   return a["@id"] < b["@id"];
-}
-
-/**
  * Compares two hash paths results by hash.
  *
  * @param a the first result.
@@ -1629,15 +1534,34 @@ bool _compareResults(DynamicObject a, DynamicObject b)
    return a["hash"] < b["hash"];
 }
 
-bool Processor::normalize(DynamicObject input, DynamicObject& output)
+bool Processor::normalize(
+   DynamicObject input, DynamicObject options, DynamicObject& output)
 {
-   bool rval = true;
-
-   // get statements
-   UniqueNamer namer = _createUniqueNamer("_:t");
+   // map bnodes to RDF statements
+   DynamicObject statements(Array);
    DynamicObject bnodes(Map);
-   DynamicObject subjects(Map);
-   _getStatements(input, namer, bnodes, subjects);
+   UniqueNamer namer = _createUniqueNamer("_:t");
+   DynamicObject dNull(NULL);
+   Processor p;
+   p.toRdf(input, namer, dNull, dNull, dNull, statements);
+   DynamicObjectIterator i = statements.getIterator();
+   while(i->hasNext())
+   {
+      DynamicObject& statement = i->next();
+      DynamicObject nodes(Array);
+      nodes.push("subject");
+      nodes.push("object");
+      DynamicObjectIterator ni = nodes.getIterator();
+      while(ni->hasNext())
+      {
+         const char* node = ni->next();
+         const char* id = statement[node]["nominalValue"];
+         if(statement[node]["interfaceName"] == "BlankNode")
+         {
+            bnodes[id]["statements"].push(statement);
+         }
+      }
+   }
 
    // create canonical namer
    namer = _createUniqueNamer("_:c14n");
@@ -1652,41 +1576,41 @@ bool Processor::normalize(DynamicObject input, DynamicObject& output)
       nextUnnamed = DynamicObject(Array);
       duplicates = DynamicObject(Map);
       DynamicObject unique(Map);
-      DynamicObjectIterator i = unnamed.getIterator();
-      while(rval && i->hasNext())
+      i = unnamed.getIterator();
+      while(i->hasNext())
       {
          // hash statements for each unnamed bnode
          const char* bnode = i->next();
-         DynamicObject& statements = bnodes[bnode];
          string hashStr;
-         rval = _hashStatements(statements, namer, hashStr);
-         if(rval)
+         if(!_hashStatements(bnode, bnodes, namer, hashStr))
          {
-            // store hash as unique or a duplicate
-            const char* hash = hashStr.c_str();
-            if(duplicates->hasMember(hash))
-            {
-               duplicates[hash].push(bnode);
-               nextUnnamed.push(bnode);
-            }
-            else if(unique->hasMember(hash))
-            {
-               duplicates[hash].push(unique[hash]);
-               duplicates[hash].push(bnode);
-               nextUnnamed.push(unique[hash]);
-               nextUnnamed.push(bnode);
-               unique->removeMember(hash);
-            }
-            else
-            {
-               unique[hash] = bnode;
-            }
+            return false;
+         }
+
+         // store hash as unique or a duplicate
+         const char* hash = hashStr.c_str();
+         if(duplicates->hasMember(hash))
+         {
+            duplicates[hash].push(bnode);
+            nextUnnamed.push(bnode);
+         }
+         else if(unique->hasMember(hash))
+         {
+            duplicates[hash].push(unique[hash]);
+            duplicates[hash].push(bnode);
+            nextUnnamed.push(unique[hash]);
+            nextUnnamed.push(bnode);
+            unique->removeMember(hash);
+         }
+         else
+         {
+            unique[hash] = bnode;
          }
       }
 
       // name unique bnodes in sorted hash order
       i = unique.keys().sort().getIterator();
-      while(rval && i->hasNext())
+      while(i->hasNext())
       {
          const char* bnode = unique[i->next()->getString()];
          _getName(namer, bnode);
@@ -1695,112 +1619,101 @@ bool Processor::normalize(DynamicObject input, DynamicObject& output)
    while(unnamed->length() > nextUnnamed->length());
 
    // enumerate duplicate hash groups in sorted order
-   DynamicObjectIterator i = duplicates.keys().sort().getIterator();
-   while(rval && i->hasNext())
+   i = duplicates.keys().sort().getIterator();
+   while(i->hasNext())
    {
       // process group
-      const char* hash = i->next()->getString();
+      const char* hash = i->next();
       DynamicObject& group = duplicates[hash];
       DynamicObject results(Array);
       DynamicObjectIterator gi = group.getIterator();
-      while(rval && gi->hasNext())
+      while(gi->hasNext())
       {
          // skip already-named bnodes
          const char* bnode = gi->next();
          if(_isNamed(namer, bnode))
          {
-           continue;
+            continue;
          }
 
          // hash bnode paths
          UniqueNamer pathNamer = _createUniqueNamer("_:t");
          _getName(pathNamer, bnode);
          DynamicObject result;
-         rval = _hashPaths(bnodes, bnodes[bnode], namer, pathNamer, result);
-         if(rval)
+         if(!_hashPaths(bnode, bnodes, namer, pathNamer, result))
          {
-            results.push(result);
+            return false;
          }
+         results.push(result);
       }
 
       // name bnodes in hash order
       results.sort(&_compareResults);
       DynamicObjectIterator ri = results.getIterator();
-      while(rval && ri->hasNext())
+      while(ri->hasNext())
       {
          // name all bnodes in path namer in key-entry order
          DynamicObject& result = ri->next();
-         DynamicObjectIterator ni = result["pathNamer"]["order"].getIterator();
+         DynamicObjectIterator ni =
+            result["pathNamer"]["order"].getIterator();
          while(ni->hasNext())
          {
-            _getName(namer, ni->next());
+            DynamicObject& tmp = ni->next();
+            _getName(namer, tmp);
          }
       }
    }
 
-   // create JSON-LD array
+   // create normalized array
    output = DynamicObject(Array);
 
-   // add all bnodes
-   i = bnodes.getIterator();
+   // update bnode names in each statement and serialize
+   i = statements.getIterator();
    while(i->hasNext())
    {
-      DynamicObject& statements = i->next();
-      const char* id = i->getName();
-      DynamicObject bnode(Map);
-      bnode["@id"] = _getName(namer, id);
-
-      // add all property statements to bnode
-      DynamicObjectIterator si = statements.getIterator();
-      while(si->hasNext())
+      DynamicObject& statement = i->next();
+      DynamicObject nodes(Array);
+      nodes.push("subject");
+      nodes.push("object");
+      DynamicObjectIterator ni = nodes.getIterator();
+      while(ni->hasNext())
       {
-         DynamicObject& statement = si->next();
-         if(statement["s"] == "_:a")
+         const char* node = ni->next();
+         if(statement[node]["interfaceName"] == "BlankNode")
          {
-            const char* z = _getBlankNodeName(statement["o"]);
-            DynamicObject o = statement["o"];
-            if(z != NULL)
-            {
-               o = DynamicObject(Map);
-               o["@id"] = _getName(namer, z);
-            }
-            JsonLd::addValue(bnode, statement["p"], o, true);
+            statement[node]["nominalValue"] = _getName(
+               namer, statement[node]["nominalValue"]);
          }
       }
-
-      output.push(bnode);
+      output.push(_toNQuad(statement).c_str());
    }
 
-   // add all non-bnodes
-   DynamicObjectIterator si = subjects.getIterator();
-   while(si->hasNext())
+   // sort normalized output
+   output.sort();
+
+   // handle output format
+   if(options->hasMember("format"))
    {
-      DynamicObject& statements = si->next();
-      DynamicObject subject(Map);
-      subject["@id"] = si->getName();
-
-      // add all statements to subject
-      DynamicObjectIterator ssi = statements.getIterator();
-      while(ssi->hasNext())
+      if(options["format"] == "application/nquads")
       {
-         DynamicObject statement = ssi->next();
-         const char* z = _getBlankNodeName(statement["o"]);
-         DynamicObject o = statement["o"];
-         if(z != NULL)
-         {
-            o = DynamicObject(Map);
-            o["@id"] = _getName(namer, z);
-         }
-         JsonLd::addValue(subject, statement["p"], o, true);
+         output = StringTools::join(output, "").c_str();
+         return true;
       }
-
-      output.push(subject);
+      else
+      {
+         ExceptionRef e = new Exception(
+            "Unknown output format.",
+            EXCEPTION_TYPE ".UnknownFormat");
+         e->getDetails()["format"] = options["format"].clone();
+         Exception::set(e);
+         return false;
+      }
    }
 
-   // sort normalized output by @id
-   output.sort(&_compareIds);
-
-   return true;
+   // output parsed RDF statements
+   DynamicObject nquads;
+   nquads = StringTools::join(output, "").c_str();
+   return _parseNQuads(nquads, output);
 }
 
 bool Processor::fromRdf(
@@ -2307,188 +2220,6 @@ DynamicObject _rdfToObject(DynamicObject& o) {
 }
 
 /**
- * Creates a statement from a subject, property, and object.
- *
- * @param s the subject.
- * @param p the property.
- * @param o the object.
- *
- * @return the statement.
- */
-DynamicObject _createStatement(
-   const char* s, const char* p, DynamicObject& o)
-{
-   DynamicObject statement(Map);
-   statement["s"] = s;
-   statement["p"] = p;
-   statement["o"] = o;
-   return statement;
-}
-
-/**
- * Recursively gets all statements from the given expanded JSON-LD input.
- *
- * @param input the valid expanded JSON-LD input.
- * @param namer the UniqueNamer to use when encountering blank nodes.
- * @param bnodes the blank node statements map to populate.
- * @param subjects the subject statements map to populate.
- * @param [name] the name (@id) assigned to the current input.
- */
-void _getStatements(
-   DynamicObject& input, UniqueNamer& namer,
-   DynamicObject& bnodes, DynamicObject& subjects, const char* name)
-{
-   // recurse into arrays
-   if(_isArray(input))
-   {
-      DynamicObjectIterator i = input.getIterator();
-      while(i->hasNext())
-      {
-         _getStatements(i->next(), namer, bnodes, subjects);
-      }
-   }
-   // safe to assume input is a subject/blank node
-   else
-   {
-      bool isBnode = _isBlankNode(input);
-
-      // name blank node if appropriate, use passed name if given
-      if(name == NULL)
-      {
-         if(input->hasMember("@id"))
-         {
-            name = input["@id"];
-         }
-         if(isBnode)
-         {
-            name = _getName(namer, name);
-         }
-      }
-
-      // use a subject of '_:a' for blank node statements
-      const char* s = isBnode ? "_:a" : name;
-
-      // get statements for the blank node
-      DynamicObject entries(NULL);
-      if(isBnode)
-      {
-         entries = bnodes[name];
-         entries->setType(Array);
-      }
-      else
-      {
-         entries = subjects[name];
-         entries->setType(Array);
-      }
-
-      // add all statements in input
-      DynamicObjectIterator i = input.getIterator();
-      while(i->hasNext())
-      {
-         DynamicObject objects = i->next();
-         const char* p = i->getName();
-
-         // skip @id
-         if(strcmp(p, "@id") == 0)
-         {
-            continue;
-         }
-
-         // convert @lists into embedded blank node linked lists
-         DynamicObjectIterator oi = objects.getIterator();
-         while(oi->hasNext())
-         {
-            DynamicObject o = oi->next();
-            if(_isList(o))
-            {
-               objects[oi->getIndex()] = _makeLinkedList(o);
-            }
-         }
-
-         oi = objects.getIterator();
-         while(oi->hasNext())
-         {
-            DynamicObject o = oi->next();
-
-            // convert boolean to @value
-            if(_isBoolean(o))
-            {
-               DynamicObject tmp = o;
-               o = DynamicObject(Map);
-               o["@value"] = tmp->getString();
-               o["@type"] = XSD_BOOLEAN;
-            }
-            // convert double to @value
-            else if(_isDouble(o))
-            {
-               // do special JSON-LD double format, printf('%1.15e')
-               DynamicObject tmp = o;
-               o = DynamicObject(Map);
-               o["@value"]->format("%1.15e", tmp->getDouble());
-               o["@type"] = XSD_DOUBLE;
-            }
-            // convert integer to @value
-            else if(_isInteger(o))
-            {
-               DynamicObject tmp = o;
-               o = DynamicObject(Map);
-               o["@value"] = tmp->getString();
-               o["@type"] = XSD_INTEGER;
-            }
-
-            // object is a blank node
-            if(_isBlankNode(o))
-            {
-               // name object position blank node
-               const char* id = o->hasMember("@id") ?
-                  o["@id"]->getString() : NULL;
-               const char* oName = _getName(namer, id);
-
-               // add property statement
-               DynamicObject obj(Map);
-               obj["@id"] = oName;
-               _addStatement(entries, _createStatement(s, p, obj));
-
-               // add reference statement
-               DynamicObject oEntries = bnodes[oName];
-               oEntries->setType(Array);
-               obj = DynamicObject(Map);
-               obj["@id"] = "_:a";
-               _addStatement(oEntries, _createStatement(name, p, obj));
-
-               // recurse into blank node
-               _getStatements(o, namer, bnodes, subjects, oName);
-            }
-            // object is a string, @value, subject reference
-            else if(_isString(o) || _isValue(o) || _isSubjectReference(o))
-            {
-               // add property statement
-               _addStatement(entries, _createStatement(s, p, o));
-
-               // ensure a subject entry exists for subject reference
-               if(_isSubjectReference(o))
-               {
-                  const char* id = o["@id"];
-                  subjects[id]->setType(Array);
-               }
-            }
-            // object must be an embedded subject
-            else
-            {
-               // add property statement
-               DynamicObject obj = DynamicObject(Map);
-               obj["@id"] = o["@id"]->getString();
-               _addStatement(entries, _createStatement(s, p, obj));
-
-               // recurse into subject
-               _getStatements(o, namer, bnodes, subjects);
-            }
-         }
-      }
-   }
-};
-
-/**
  * Converts a @list value into an embedded linked list of blank nodes in
  * expanded form. The resulting array can be used as an RDF-replacement for
  * a property that used a @list.
@@ -2518,144 +2249,55 @@ DynamicObject _makeLinkedList(DynamicObject value)
 }
 
 /**
- * Adds a statement to an array of statements. If the statement already exists
- * in the array, it will not be added.
+ * Hashes all of the statements about the given blank node.
  *
- * @param statements the statements array.
- * @param statement the statement to add.
- */
-void _addStatement(DynamicObject statements, DynamicObject statement)
-{
-   DynamicObjectIterator i = statements.getIterator();
-   while(i->hasNext())
-   {
-      DynamicObject& s = i->next();
-      if(s["s"] == statement["p"] && s["p"] == statement["p"] &&
-        JsonLd::compareValues(s["o"], statement["o"]))
-      {
-         // duplicate, do not add statement
-         return;
-      }
-   }
-   statements.push(statement);
-}
-
-/**
- * Hashes all of the statements about the given blank node, generating a
- * new hash for it.
- *
- * @param statements the statements about the bnode.
+ * @param id the ID of the bnode to hash statements for.
+ * @param bnodes the mapping of bnodes to statements.
  * @param namer the canonical bnode namer.
  * @param hash the resulting hash.
  *
  * @return true on success, false on failure.
  */
 bool _hashStatements(
-   DynamicObject& statements, UniqueNamer& namer, string& hash)
+   const char* id, DynamicObject& bnodes, UniqueNamer& namer,
+   string& hash)
 {
-   // serialize all statements
-   DynamicObject triples(Array);
+   // return cached hash
+   if(bnodes[id]->hasMember("hash"))
+   {
+      hash = bnodes[id]["hash"]->getString();
+      return true;
+   }
+
+   // serialize all of bnode's statements
+   DynamicObject nquads(Array);
+   DynamicObject& statements = bnodes[id]["statements"];
    DynamicObjectIterator i = statements.getIterator();
    while(i->hasNext())
    {
-      DynamicObject& statement = i->next();
-
-      // serialize triple
-      string triple;
-
-      // serialize subject
-      if(statement["s"] == "_:a")
-      {
-         triple.append("_:a");
-      }
-      else if(strncmp(statement["s"], "_:", 2) == 0)
-      {
-         const char* id = statement["s"];
-         id = _isNamed(namer, id) ? _getName(namer, id) : "_:z";
-         triple.append(id);
-      }
-      else
-      {
-         triple.push_back('<');
-         triple.append(statement["s"]);
-         triple.push_back('>');
-      }
-
-      // serialize property
-      const char* p = (statement["p"] == "@type") ?
-         RDF_TYPE : statement["p"]->getString();
-      triple.append(" <");
-      triple.append(p);
-      triple.append("> ");
-
-      // serialize object
-      if(_isBlankNode(statement["o"]))
-      {
-         if(statement["o"]["@id"] == "_:a")
-         {
-            triple.append("_:a");
-         }
-         else
-         {
-            const char* id = statement["o"]["@id"];
-            id = _isNamed(namer, id) ? _getName(namer, id) : "_:z";
-            triple.append(id);
-         }
-      }
-      else if(_isString(statement["o"]))
-      {
-         triple.push_back('"');
-         triple.append(statement["o"]);
-         triple.push_back('"');
-      }
-      else if(_isSubjectReference(statement["o"]))
-      {
-         triple.push_back('<');
-         triple.append(statement["o"]["@id"]);
-         triple.push_back('>');
-      }
-      // must be a value
-      else
-      {
-         triple.push_back('"');
-         triple.append(statement["o"]["@value"]);
-         triple.push_back('"');
-
-         if(statement["o"]->hasMember("@type"))
-         {
-            triple.append("^^<");
-            triple.append(statement["o"]["@type"]);
-            triple.push_back('>');
-         }
-         else if(statement["o"]->hasMember("@language"))
-         {
-            triple.push_back('@');
-            triple.append(statement["o"]["@language"]);
-         }
-      }
-
-      // add triple
-      triples.push(triple.c_str());
+      nquads.push(_toNQuad(i->next(), id).c_str());
    }
 
-   // sort serialized triples
-   triples.sort();
+   // sort serialized quads
+   nquads.sort();
 
-   // digest triples
+   // cache and return hashed quads
    MessageDigest md;
-   bool rval = md.start("SHA1");
-   i = triples.getIterator();
-   while(rval && i->hasNext())
+   if(!md.start("SHA1"))
    {
-      md.update(i->next());
+      return false;
    }
-   if(rval)
+   i = nquads.getIterator();
+   while(i->hasNext())
    {
-      hash = md.getDigest();
-      rval = (hash.length() > 0);
+      if(!md.update(i->next()))
+      {
+         return false;
+      }
    }
-
-   return rval;
+   hash = md.getDigest();
+   bnodes[id]["hash"] = hash.c_str();
+   return (hash.length() > 0);
 }
 
 /**
@@ -2664,8 +2306,8 @@ bool _hashStatements(
  * method will recursively pick adjacent bnode permutations that produce the
  * lexicographically-least 'path' serializations.
  *
+ * @param id the ID of the bnode to hash paths for.
  * @param bnodes the map of bnode statements.
- * @param statements the statements for the bnode to produce the hash for.
  * @param namer the canonical bnode namer.
  * @param pathNamer the namer used to assign names to adjacent bnodes.
  * @param result the hash and pathNamer used.
@@ -2673,32 +2315,36 @@ bool _hashStatements(
  * @return true on success, false on failure with exception set.
  */
 bool _hashPaths(
-   DynamicObject& bnodes, DynamicObject& statements,
+   const char* id, DynamicObject& bnodes,
    UniqueNamer& namer, UniqueNamer pathNamer, DynamicObject& result)
 {
-   bool rval = true;
-
    // create SHA-1 digest
    MessageDigest md;
-   rval = md.start("SHA1");
+   if(!md.start("SHA1"))
+   {
+      return false;
+   }
 
    // group adjacent bnodes by hash, keep properties and references separate
    DynamicObject groups(Map);
-   DynamicObjectIterator i = statements.getIterator();
-   while(rval && i->hasNext())
+   DynamicObjectIterator i = bnodes[id]["statements"].getIterator();
+   while(i->hasNext())
    {
+      // get adjacent bnode
       DynamicObject& statement = i->next();
-      const char* bnode = NULL;
       const char* direction = NULL;
-      if(statement["s"] != "_:a" && strncmp(statement["s"], "_:", 2) == 0)
+      const char* bnode = _getAdjacentBlankNodeName(statement["subject"], id);
+      if(bnode != NULL)
       {
-         bnode = statement["s"];
          direction = "p";
       }
       else
       {
-         bnode = _getBlankNodeName(statement["o"]);
-         direction = "r";
+         bnode = _getAdjacentBlankNodeName(statement["object"], id);
+         if(bnode != NULL)
+         {
+            direction = "r";
+         }
       }
 
       if(bnode != NULL)
@@ -2713,45 +2359,46 @@ bool _hashPaths(
          {
             name = _getName(pathNamer, bnode);
          }
-         else
+         else if(!_hashStatements(bnode, bnodes, namer, name))
          {
-            rval = _hashStatements(bnodes[bnode], namer, name);
+            return false;
          }
 
-         if(rval)
+         // hash direction, property, and bnode name/hash
+         MessageDigest groupMd;
+         if(!(groupMd.start("SHA1") &&
+            groupMd.update(direction) &&
+            groupMd.update(statement["property"]["nominalValue"]) &&
+            groupMd.update(name.c_str())))
          {
-            // hash direction, property, and bnode name/hash
-            MessageDigest groupMd;
-            rval =
-               groupMd.start("SHA1") &&
-               groupMd.update(direction) &&
-               groupMd.update((statement["p"] == "@type") ?
-                  RDF_TYPE : statement["p"]->getString()) &&
-               groupMd.update(name.c_str());
-            string groupHash = groupMd.getDigest();
-            rval = rval && (groupHash.length() > 0);
-            if(rval)
-            {
-               // add bnode to hash group
-               groups[groupHash.c_str()].push(bnode);
-            }
+            return false;
          }
+         string groupHash = groupMd.getDigest();
+         if(groupHash.length() == 0)
+         {
+            return false;
+         }
+         // add bnode to hash group
+         groups[groupHash.c_str()].push(bnode);
       }
    }
 
    // iterate over groups in sorted hash order
    DynamicObject groupHashes = groups.keys().sort();
    i = groupHashes.getIterator();
-   while(rval && i->hasNext())
+   while(i->hasNext())
    {
       // digest group hash
       const char* groupHash = i->next();
-      rval = md.update(groupHash);
+      if(!md.update(groupHash))
+      {
+         return false;
+      }
 
       string chosenPath;
       UniqueNamer chosenNamer;
       Permutator permutator(groups[groupHash]);
-      while(rval && permutator.hasNext())
+      while(permutator.hasNext())
       {
          DynamicObject permutation = permutator.next();
          UniqueNamer pathNamerCopy = pathNamer.clone();
@@ -2761,7 +2408,7 @@ bool _hashPaths(
          bool skipped = false;
          DynamicObject recurse(Array);
          DynamicObjectIterator pi = permutation.getIterator();
-         while(rval && pi->hasNext())
+         while(pi->hasNext())
          {
             const char* bnode = pi->next();
 
@@ -2793,27 +2440,26 @@ bool _hashPaths(
          if(!skipped)
          {
             DynamicObjectIterator ri = recurse.getIterator();
-            while(rval && ri->hasNext())
+            while(ri->hasNext())
             {
                const char* bnode = ri->next();
                DynamicObject res;
-               rval = _hashPaths(
-                  bnodes, bnodes[bnode], namer, pathNamerCopy, res);
-               if(rval)
+               if(!_hashPaths(bnode, bnodes, namer, pathNamerCopy, res))
                {
-                  path.append(_getName(pathNamerCopy, bnode));
-                  path.push_back('<');
-                  path.append(res["hash"]);
-                  path.push_back('>');
-                  pathNamerCopy = res["pathNamer"];
+                  return false;
+               }
+               path.append(_getName(pathNamerCopy, bnode));
+               path.push_back('<');
+               path.append(res["hash"]);
+               path.push_back('>');
+               pathNamerCopy = res["pathNamer"];
 
-                  // skip permutation if path is already >= chosen path
-                  if(!chosenPath.empty() &&
-                     path.length() >= chosenPath.length() && path > chosenPath)
-                  {
-                     skipped = true;
-                     break;
-                  }
+               // skip permutation if path is already >= chosen path
+               if(!chosenPath.empty() &&
+                  path.length() >= chosenPath.length() && path > chosenPath)
+               {
+                  skipped = true;
+                  break;
                }
             }
          }
@@ -2826,37 +2472,38 @@ bool _hashPaths(
       }
 
       // digest chosen path
-      rval = md.update(chosenPath.c_str());
-      if(rval)
+      if(!md.update(chosenPath.c_str()))
       {
-         // update namer
-         pathNamer = chosenNamer;
+         return false;
       }
+      // update namer
+      pathNamer = chosenNamer;
    }
 
-   if(rval)
-   {
-      // return SHA-1 digest and path namer
-      result = DynamicObject(Map);
-      result["hash"] = md.getDigest().c_str();
-      result["pathNamer"] = pathNamer;
-   }
-   return rval;
+   // return SHA-1 digest and path namer
+   result = DynamicObject(Map);
+   result["hash"] = md.getDigest().c_str();
+   result["pathNamer"] = pathNamer;
+   return true;
 }
 
 /**
- * A helper function that gets the blank node name from a statement value
- * (a subject or object). If the statement value is not a blank node or it
- * has an @id of '_:a', then NULL will be returned.
+ * A helper function that gets the blank node name from an RDF statement
+ * node (subject or object). If the node is not a blank node or its
+ * nominal value does not match the given blank node ID, it will be returned.
  *
- * @param value the statement value.
+ * @param node the RDF statement node.
+ * @param id the ID of the blank node to look next to.
  *
- * @return the blank node name or null if none was found.
+ * @return the adjacent blank node name or null if none was found.
  */
-const char* _getBlankNodeName(DynamicObject value)
+const char* _getAdjacentBlankNodeName(DynamicObject node, const char* id)
 {
-   return (_isBlankNode(value) && value["@id"] != "_:a") ?
-      value["@id"]->getString() : NULL;
+   if(node["interfaceName"] == "BlankNode" && node["nominalValue"] != id)
+   {
+      return node["nominalValue"];
+   }
+   return NULL;
 }
 
 /**
@@ -4682,7 +4329,8 @@ bool _parseNQuads(const char* input, DynamicObject& statements)
 
    // full quad regex
    string quadRegex = StringTools::format("^%s*%s%s%s%s%s*$",
-      ws, subject.c_str(), property.c_str(), object.c_str(), graph.c_str(), ws);
+      ws, subject.c_str(), property.c_str(), object.c_str(),
+      graph.c_str(), ws);
    PatternRef quad = Pattern::compile(quadRegex.c_str());
    if(quad.isNull())
    {
@@ -4818,10 +4466,12 @@ bool _parseNQuads(const char* input, DynamicObject& statements)
  * Converts an RDF statement to an N-Quad string (a single quad).
  *
  * @param statement the RDF statement to convert.
+ * @param bnode the bnode the statement is mapped to (optional, for use
+ *           during normalization only).
  *
  * @return the N-Quad string.
  */
-string _toNQuad(DynamicObject& statement) {
+string _toNQuad(DynamicObject& statement, const char* bnode) {
    DynamicObject& s = statement["subject"];
    DynamicObject& p = statement["property"];
    DynamicObject& o = statement["object"];
@@ -4837,6 +4487,12 @@ string _toNQuad(DynamicObject& statement) {
       quad.append(s["nominalValue"]);
       quad.push_back('>');
    }
+   // normalization mode
+   else if(bnode != NULL)
+   {
+      quad.append((s["nominalValue"] == bnode) ? "_:a" : "_:z");
+   }
+   // normal mode
    else
    {
       quad.append(s["nominalValue"]);
@@ -4856,7 +4512,16 @@ string _toNQuad(DynamicObject& statement) {
    }
    else if(o["interfaceName"] == "BlankNode")
    {
-      quad.append(o["nominalValue"]);
+      // normalization mode
+      if(bnode != NULL)
+      {
+         quad.append((o["nominalValue"] == bnode) ? "_:a" : "_:z");
+      }
+      // normal mode
+      else
+      {
+         quad.append(o["nominalValue"]);
+      }
    }
    else
    {

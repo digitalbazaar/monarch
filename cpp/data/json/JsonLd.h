@@ -85,12 +85,14 @@ public:
       monarch::rt::DynamicObject& output);
 
    /**
-    * Performs JSON-LD normalization.
+    * Performs RDF normalization on the given JSON-LD input.
     *
     * @param input the JSON-LD object to normalize.
     * @param options normalization options.
     *           base: the base IRI to use.
-    * @param output to be set to the JSON-LD normalized output.
+    *           format: the format if output is a string:
+    *              "application/nquads" for N-Quads (default).
+    * @param output to be set to the normalized output.
     *
     * @return true on success, false on failure with exception set.
     */
