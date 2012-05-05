@@ -118,8 +118,9 @@ static void _runJsonLdTestSuiteTest(
       // read input
       _readJsonFile(root, test["input"], input);
       // read expected output
-      _readJsonFile(root, test["expect"], expect);
+      _readNQuadsFile(root, test["expect"], expect);
       // normalize
+      options["format"] = "application/nquads";
       JsonLd::normalize(input, options, output);
    }
    else if(type->indexOf("jld:ExpandTest") != -1)
@@ -201,17 +202,7 @@ static void _runJsonLdTestSuiteTest(
 
    if(!skipped && !expect.isNull() && !Exception::isSet())
    {
-      if(type->indexOf("jld:NormalizeTest") != -1)
-      {
-         if(!JsonLd::compareNormalized(expect, output))
-         {
-            namedDynoCmp("expect", expect, "output", output);
-         }
-      }
-      else
-      {
-         namedDynoCmp("expect", expect, "output", output);
-      }
+      namedDynoCmp("expect", expect, "output", output);
    }
 
    tr.passIfNoException();

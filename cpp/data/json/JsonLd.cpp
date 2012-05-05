@@ -1177,12 +1177,6 @@ bool Processor::compact(
             // compact property
             DynamicObject prop = _compactIri(ctx, key, &v);
 
-            // skip null properties
-            if(prop.isNull())
-            {
-               continue;
-            }
-
             // remove @list for recursion (will be re-added if necessary)
             if(isList)
             {
@@ -2154,6 +2148,11 @@ bool Processor::processContext(
    output = activeCtx.clone();
 
    // normalize local context to an array
+   if(_isObject(localCtx) && localCtx->hasMember("@context") &&
+      _isArray(localCtx["@context"]))
+   {
+      localCtx = localCtx["@context"];
+   }
    DynamicObject ctxs = localCtx.arrayify();
 
    // process each context in order
@@ -3810,12 +3809,6 @@ DynamicObject _compactIri(
    // no matching terms
    if(terms->length() == 0)
    {
-      // return null if a null mapping exists
-      if(ctx["mappings"]->hasMember(iri) &&
-         ctx["mappings"][iri]["@id"].isNull())
-      {
-         return DynamicObject(NULL);
-      }
       // use iri
       DynamicObject rval(String);
       rval = iri;
@@ -3924,7 +3917,8 @@ bool _defineContextMapping(
    }
 
    // clear context entry
-   if(value.isNull())
+   if(value.isNull() || (_isObject(value) && value->hasMember("@id") &&
+      value["@id"].isNull()))
    {
       if(activeCtx["mappings"]->hasMember(key))
       {
@@ -3935,9 +3929,8 @@ bool _defineContextMapping(
             DynamicObject& aliases = activeCtx["keywords"][kw->getString()];
             aliases->removeIndex(aliases->indexOf(key));
          }
+         activeCtx["mappings"]->removeMember(key);
       }
-      activeCtx["mappings"][key] = DynamicObject(Map);
-      activeCtx["mappings"][key]["@id"].setNull();
       defined[key] = true;
       return true;
    }
@@ -3965,7 +3958,7 @@ bool _defineContextMapping(
             aliases.sort(&_compareShortestLeast);
          }
       }
-      else if(!value.isNull())
+      else
       {
          // expand value to a full IRI
          string expanded;
@@ -4116,10 +4109,8 @@ bool _defineContextMapping(
       mapping["@language"] = language;
    }
 
-   // if not a null mapping, merge onto parent mapping if one exists for
-   // a prefix
-   if(!mapping["@id"].isNull() && prefix != NULL &&
-      activeCtx["mappings"]->hasMember(prefix))
+   // merge onto parent mapping if one exists for a prefix
+   if(prefix != NULL && activeCtx["mappings"]->hasMember(prefix))
    {
       DynamicObject child = mapping;
       mapping = activeCtx["mappings"][prefix].clone();
@@ -4169,8 +4160,8 @@ bool _expandContextIri(
    if(activeCtx["mappings"]->hasMember(value))
    {
       DynamicObject id = activeCtx["mappings"][value]["@id"];
-      // value is already an absolute IRI or id is a null mapping
-      if(id.isNull() || id == value)
+      // value is already an absolute IRI
+      if(id.isNull())
       {
          expanded = value;
          return true;
@@ -4214,15 +4205,12 @@ bool _expandContextIri(
       if(activeCtx["mappings"]->hasMember(prefix))
       {
          DynamicObject id = activeCtx["mappings"][prefix]["@id"];
-         if(!id.isNull())
+         if(!_expandContextIri(activeCtx, ctx, id, base, defined, expanded))
          {
-            if(!_expandContextIri(activeCtx, ctx, id, base, defined, expanded))
-            {
-               return false;
-            }
-            expanded.append(suffix);
-            return true;
+            return false;
          }
+         expanded.append(suffix);
+         return true;
       }
 
       // consider value an absolute IRI
