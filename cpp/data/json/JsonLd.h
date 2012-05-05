@@ -266,17 +266,6 @@ public:
       monarch::rt::DynamicObject& v1, monarch::rt::DynamicObject& v2);
 
    /**
-    * Compares two JSON-LD normalized inputs for equality.
-    *
-    * @param n1 the first normalized input.
-    * @param n2 the second normalized input.
-    *
-    * @return true if the inputs are equivalent, false if not.
-    */
-   static bool compareNormalized(
-      monarch::rt::DynamicObject& n1, monarch::rt::DynamicObject& n2);
-
-   /**
     * Gets the value for the given @context key and type, null if none is set.
     *
     * @param ctx the active context.
