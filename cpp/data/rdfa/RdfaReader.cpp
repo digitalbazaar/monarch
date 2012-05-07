@@ -82,7 +82,7 @@ bool RdfaReader::setFrame(DynamicObject& frame, DynamicObject* options)
    mDefaultGraph.frame = frame;
    if(options == NULL)
    {
-      mDefaultGraph.frameOptions.setNull();
+      mDefaultGraph.frameOptions = DynamicObject(Map);
    }
    else
    {
