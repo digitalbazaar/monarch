@@ -76,21 +76,24 @@ enum CompareOp
 
 TemplateInputStream::TemplateInputStream(
    DynamicObject& vars, bool strict, InputStream* is, bool cleanup,
-   const char* includeDir) :
+   DynamicObject* includeDirs) :
    FilterInputStream(is, cleanup),
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
    mVars(vars),
    mStrict(strict),
-   mIncludeDir((FileImpl*)NULL),
    mTemplateCache(NULL)
 {
    resetState();
    mVars->setType(Map);
    mLocalVars->setType(Map);
-   if(includeDir != NULL)
+   if(includeDirs == NULL)
    {
-      mIncludeDir = File(includeDir);
+      mIncludeDirs->setType(Array);
+   }
+   else
+   {
+      mIncludeDirs = *includeDirs;
    }
 }
 
@@ -99,12 +102,12 @@ TemplateInputStream::TemplateInputStream(InputStream* is, bool cleanup) :
    mTemplate(BUFFER_SIZE),
    mParsed(BUFFER_SIZE),
    mStrict(false),
-   mIncludeDir((FileImpl*)NULL),
    mTemplateCache(NULL)
 {
    resetState();
    mVars->setType(Map);
    mLocalVars->setType(Map);
+   mIncludeDirs->setType(Array);
 }
 
 TemplateInputStream::~TemplateInputStream()
@@ -127,7 +130,13 @@ void TemplateInputStream::setVariables(DynamicObject& vars, bool strict)
 
 void TemplateInputStream::setIncludeDirectory(const char* dir)
 {
-   mIncludeDir = File(dir);
+   mIncludeDirs->clear();
+   addIncludeDirectory(dir);
+}
+
+void TemplateInputStream::addIncludeDirectory(const char* dir)
+{
+   mIncludeDirs->append(dir);
 }
 
 void TemplateInputStream::setCache(TemplateCache* cache)
@@ -2847,12 +2856,12 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
 
          if(rval)
          {
-            // build full path if path is not absolute
-            if(!File::isPathAbsolute(path.c_str()) && !mIncludeDir.isNull())
-            {
-               path = File::join(mIncludeDir->getAbsolutePath(), path.c_str());
-            }
+            // try to find the template
+            rval = findPath(path.c_str(), mIncludeDirs, path);
+         }
 
+         if(rval)
+         {
             // fill parsed buffer with include data
             InputStream* is = NULL;
             off_t length = 0;
@@ -2871,8 +2880,7 @@ bool TemplateInputStream::writeCommand(Construct* c, Command* cmd)
             if(rval)
             {
                TemplateInputStream* tis = new TemplateInputStream(
-                  mVars, mStrict, is, true,
-                  mIncludeDir.isNull() ? NULL : mIncludeDir->getAbsolutePath());
+                  mVars, mStrict, is, true, &mIncludeDirs);
                tis->mLocalVars = mLocalVars;
                tis->setCache(mTemplateCache);
 
@@ -4012,4 +4020,50 @@ void TemplateInputStream::resetState(bool createRoot)
       root->parent = NULL;
       mConstructs.push_back(root);
    }
+}
+
+bool TemplateInputStream::findPath(
+   const char* tpl, DynamicObject& dirs, string& path)
+{
+   bool rval = false;
+
+   bool found = false;
+
+   if(File::isPathAbsolute(tpl))
+   {
+      found = true;
+      path = tpl;
+   }
+   else if(dirs->length() > 0)
+   {
+      // try to find tpl as a sub-path of a directory
+      // scan in reverse order
+      for(int i = dirs->length(); !found && i > 0; i--)
+      {
+         File dir(dirs[i - 1]->getString());
+         File checkedPath(File::join(dir->getAbsolutePath(), tpl).c_str());
+         if(checkedPath->exists())
+         {
+            found = true;
+            path = checkedPath->getPath();
+         }
+      }
+   }
+
+   if(!found)
+   {
+      // template not found
+      ExceptionRef e = new Exception(
+            "Template not found.",
+            "monarch.io.FileNotFound");
+      e->getDetails()["path"] = path.c_str();
+      Exception::set(e);
+      rval = false;
+   }
+   else
+   {
+      rval = true;
+   }
+
+   return rval;
 }

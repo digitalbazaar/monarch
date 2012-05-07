@@ -49,7 +49,7 @@ static void _readConfig(Config& config, const char* path)
    assertNoExceptionSet();
 }
 
-static void _testConfigs(
+static void _checkConfigs(
    ConfigManager& cm,
    Config& system,
    Config& engine, Config& ui,
@@ -64,7 +64,7 @@ static void _testConfigs(
 
       Config raw = cm.getConfig("system", true);
       assertNoExceptionSet();
-      assertDynoCmp(raw, system);
+      assertNamedDynoCmp("raw", raw, "system", system);
 
       printf("PASS.\n");
    }
@@ -88,7 +88,7 @@ static void _testConfigs(
 
       Config merged = cm.getConfig("system", false);
       assertNoExceptionSet();
-      assertDynoCmp(merged, expect);
+      assertNamedDynoCmp("merged", merged, "expect", expect);
 
       printf("PASS.\n");
    }
@@ -99,7 +99,7 @@ static void _testConfigs(
 
       Config raw = cm.getConfig("engine", true);
       assertNoExceptionSet();
-      assertDynoCmp(raw, engine);
+      assertNamedDynoCmp("raw", raw, "engine", engine);
 
       assertNoExceptionSet();
       printf("PASS.\n");
@@ -126,7 +126,7 @@ static void _testConfigs(
 
       Config merged = cm.getConfig("engine", false);
       assertNoExceptionSet();
-      assertDynoCmp(merged, expect);
+      assertNamedDynoCmp("merged", merged, "expect", expect);
 
       assertNoExceptionSet();
       printf("PASS.\n");
@@ -138,7 +138,7 @@ static void _testConfigs(
 
       Config raw = cm.getConfig("ui", true);
       assertNoExceptionSet();
-      assertDynoCmp(raw, ui);
+      assertNamedDynoCmp("raw", raw, "ui", ui);
 
       assertNoExceptionSet();
       printf("PASS.\n");
@@ -165,7 +165,7 @@ static void _testConfigs(
 
       Config merged = cm.getConfig("ui", false);
       assertNoExceptionSet();
-      assertDynoCmp(merged, expect);
+      assertNamedDynoCmp("merged", merged, "expect", expect);
 
       printf("PASS.\n");
    }
@@ -206,7 +206,7 @@ static void _testConfigs(
 
       Config merged = cm.getConfig("app", false);
       assertNoExceptionSet();
-      assertDynoCmp(merged, expect);
+      assertNamedDynoCmp("merge", merged, "expect", expect);
 
       printf("PASS.\n");
    }
@@ -217,7 +217,7 @@ static void _testConfigs(
 
       Config raw = cm.getConfig("user1", true);
       assertNoExceptionSet();
-      assertDynoCmp(raw, user1);
+      assertNamedDynoCmp("raw", raw, "user1", user1);
 
       assertNoExceptionSet();
       printf("PASS.\n");
@@ -243,7 +243,7 @@ static void _testConfigs(
 
       Config merged = cm.getConfig("user1", false);
       assertNoExceptionSet();
-      assertDynoCmp(merged, expect);
+      assertNamedDynoCmp("merged", merged, "expect", expect);
 
       printf("PASS.\n");
    }
@@ -254,7 +254,7 @@ static void _testConfigs(
 
       Config raw = cm.getConfig("user2", true);
       assertNoExceptionSet();
-      assertDynoCmp(raw, user2);
+      assertNamedDynoCmp("raw", raw, "user2", user2);
 
       assertNoExceptionSet();
       printf("PASS.\n");
@@ -286,7 +286,7 @@ static void _testConfigs(
 
       Config merged = cm.getConfig("user2", false);
       assertNoExceptionSet();
-      assertDynoCmp(merged, expect);
+      assertNamedDynoCmp("merged", merged, "expect", expect);
 
       printf("PASS.\n");
    }
@@ -297,7 +297,7 @@ static void _testConfigs(
 
       Config raw = cm.getConfig("child2", true);
       assertNoExceptionSet();
-      assertDynoCmp(raw, child2);
+      assertNamedDynoCmp("raw", raw, "child2", child2);
 
       assertNoExceptionSet();
       printf("PASS.\n");
@@ -327,7 +327,7 @@ static void _testConfigs(
 
       Config merged = cm.getConfig("child2", false);
       assertNoExceptionSet();
-      assertDynoCmp(merged, expect);
+      assertNamedDynoCmp("merged", merged, "expect", expect);
 
       printf("PASS.\n");
    }
@@ -347,7 +347,7 @@ static void _testConfigs(
 
       Config raw2 = cm.getConfig("user2", true);
       assertNoExceptionSet();
-      assertDynoCmp(raw2, raw);
+      assertNamedDynoCmp("raw2", raw2, "raw", raw);
 
       assertNoExceptionSet();
       printf("PASS.\n");
@@ -380,7 +380,7 @@ static void _testConfigs(
 
       Config merged = cm.getConfig("user2", false);
       assertNoExceptionSet();
-      assertDynoCmp(merged, expect);
+      assertNamedDynoCmp("merged", merged, "expect", expect);
 
       printf("PASS.\n");
    }
@@ -410,7 +410,7 @@ static void _testConfigs(
 
       Config merged = cm.getConfig("child2", false);
       assertNoExceptionSet();
-      assertDynoCmp(merged, expect);
+      assertNamedDynoCmp("merged", merged, "expect", expect);
 
       printf("PASS.\n");
    }
@@ -484,7 +484,7 @@ static void _testConfigs(
       printf("PASS.\n");
    }
 
-   _testConfigs(cm, system, engine, ui, user1, user2, child2);
+   _checkConfigs(cm, system, engine, ui, user1, user2, child2);
 }
 
 static void _testConfigFiles(
@@ -744,6 +744,272 @@ void testConfigs()
    _testConfigs(system, engine, ui, user1, user2, child2);
 }
 
+static void _checkKeywordConfigs(
+   ConfigManager& cm, Config& parent, Config& child1, Config& child2)
+{
+   // test parent raw config
+   {
+      printf("Testing kw parent raw config... ");
+
+      Config raw = cm.getConfig("parent", true);
+      assertNoExceptionSet();
+      assertNamedDynoCmp("raw", raw, "parent", parent);
+
+      printf("PASS.\n");
+   }
+
+   // test parent merged config
+   {
+      printf("Testing kw parent merged config... ");
+
+      // create expect config
+      Config expect;
+      expect["parent key1"] = "parent value1";
+
+      Config merged = cm.getConfig("parent", false);
+      assertNoExceptionSet();
+      assertNamedDynoCmp("merged", merged, "expect", expect);
+
+      printf("PASS.\n");
+   }
+
+   // test child1 raw config
+   {
+      printf("Testing kw child1 raw config... ");
+
+      // create expect config (raw w/ keyword replacement)
+      Config child1kw = child1.clone();
+      child1kw[ConfigManager::MERGE]["child1 global key1"] = "global value1";
+      child1kw[ConfigManager::MERGE]["child1 parent key1"] = "parent value1";
+      child1kw[ConfigManager::MERGE]["child1 key1"] = "child1 value1";
+
+      Config raw = cm.getConfig("child1", true);
+      assertNoExceptionSet();
+      assertNamedDynoCmp("raw", raw, "child1", child1kw);
+
+      assertNoExceptionSet();
+      printf("PASS.\n");
+   }
+
+   // test child2 raw config
+   {
+      printf("Testing kw child2 raw config... ");
+
+      // create expect config (raw w/ keyword replacement)
+      Config child2kw = child2.clone();
+      child2kw[ConfigManager::MERGE]["child2 global key1"] = "global value1";
+      child2kw[ConfigManager::MERGE]["child2 key1"] = "child2 parent value1";
+
+      Config raw = cm.getConfig("child2", true);
+      assertNoExceptionSet();
+      assertNamedDynoCmp("raw", raw, "child2", child2kw);
+
+      assertNoExceptionSet();
+      printf("PASS.\n");
+   }
+
+   // test group raw config
+   {
+      printf("Testing kw group raw config... ");
+
+      // invalid to request a raw groupid so check for that condition
+      Config raw = cm.getConfig("group", true);
+      assertNoExceptionSet();
+      assert(!raw.isNull());
+      Exception::clear();
+
+      printf("PASS.\n");
+   }
+
+   // test kw group merged config
+   {
+      printf("Testing kw group merged config... ");
+
+      // create expect config
+      Config expect;
+      expect["parent key1"] = "parent value1";
+      expect["child1 global key1"] = "global value1";
+      expect["child1 key1"] = "child1 value1";
+      expect["child1 parent key1"] = "parent value1";
+      expect["child2 global key1"] = "global value1";
+      expect["child2 key1"] = "child2 parent value1";
+
+      Config merged = cm.getConfig("group", false);
+      assertNoExceptionSet();
+      assertNamedDynoCmp("merged", merged, "expect", expect);
+
+      printf("PASS.\n");
+   }
+}
+
+static void _testKeywordConfigs(
+   Config& parent, Config& child1, Config& child2)
+{
+   ConfigManager cm;
+
+   // add parent config
+   {
+      printf("Testing kw adding parent plus included children configs... ");
+
+      assertNoException(
+         cm.addConfig(parent));
+
+      printf("PASS.\n");
+   }
+
+   _checkKeywordConfigs(cm, parent, child1, child2);
+}
+
+static void _testKeywordConfigFiles(
+   const char* globalsPath,
+   const char* parentPath,
+   const char* child1Path,
+   const char* child2Path)
+{
+   ConfigManager cm;
+
+   // read configs from disk
+   Config globals;
+   Config parent;
+   Config child1;
+   Config child2;
+   _readConfig(globals, globalsPath);
+   _readConfig(parent, parentPath);
+   _readConfig(child1, child1Path);
+   _readConfig(child2, child2Path);
+
+   // add globals config
+   {
+      printf("Testing kw adding globals config file... ");
+
+      assertNoException(
+         cm.addConfigFile(globalsPath));
+
+      printf("PASS.\n");
+   }
+
+   // add parent config
+   {
+      printf("Testing kw adding parent config file... ");
+
+      assertNoException(
+         cm.addConfigFile(parentPath));
+
+      printf("PASS.\n");
+   }
+
+   // add child1 config
+   {
+      printf("Testing kw adding child1 config file... ");
+
+      assertNoException(
+         cm.addConfigFile(child2Path));
+
+      printf("PASS.\n");
+   }
+
+   // add child2 config
+   {
+      printf("Testing kw adding child2 config file... ");
+
+      assertNoException(
+         cm.addConfigFile(child2Path));
+
+      printf("PASS.\n");
+   }
+
+   _testKeywordConfigs(parent, child1, child2);
+}
+
+static void _initKeywordConfigs(
+   Config& globals, Config& parent, Config& child1, Config& child2)
+{
+   // build globals config
+   {
+      DynamicObject& obj = globals;
+      // set properties
+      obj[ConfigManager::ID] = "globals";
+      obj[ConfigManager::GROUP] = "group";
+      Config& kw = obj[ConfigManager::GLOBALS];
+      kw["global key1"] = "global value1";
+   }
+
+   // build parent config
+   // NOTE: The parent includes the globals, but keyword replacement is done
+   // before including configs.  So the keywords in the globals config are
+   // only available to the other children.
+   {
+      DynamicObject& obj = parent;
+      // set properties
+      obj[ConfigManager::ID] = "parent";
+      obj[ConfigManager::GROUP] = "group";
+      Config& kw = obj[ConfigManager::LOCALS];
+      kw["parent key1"] = "parent value1";
+      Config& inc = obj[ConfigManager::INCLUDE];
+      inc->append(TMPDIR "/test-kw-globals.config");
+      inc->append(TMPDIR "/test-kw-child1.config");
+      inc->append(TMPDIR "/test-kw-child2.config");
+
+      // set merge info
+      Config& merge = obj[ConfigManager::MERGE];
+      merge["parent key1"] = "{parent key1}";
+   }
+
+   // build child 1 config
+   {
+      DynamicObject& obj = child1;
+      // set properties
+      obj[ConfigManager::ID] = "child1";
+      obj[ConfigManager::GROUP] = "group";
+      Config& kw = obj[ConfigManager::LOCALS];
+      kw["child1 key1"] = "child1 value1";
+
+      // set merge info
+      Config& merge = obj[ConfigManager::MERGE];
+      merge["child1 parent key1"] = "{parent key1}";
+      merge["child1 key1"] = "{child1 key1}";
+      merge["child1 global key1"] = "{global key1}";
+   }
+
+   // build child 2 config
+   {
+      DynamicObject& obj = child2;
+      // set properties
+      obj[ConfigManager::ID] = "child2";
+      obj[ConfigManager::GROUP] = "group";
+      Config& kw = obj[ConfigManager::LOCALS];
+      // override parent key
+      kw["parent key1"] = "child2 parent value1";
+
+      // set merge info
+      Config& merge = obj[ConfigManager::MERGE];
+      merge["child2 key1"] = "{parent key1}";
+      merge["child2 global key1"] = "{global key1}";
+   }
+}
+
+static void testKeywordConfigFiles()
+{
+   // create configs
+   Config globals;
+   Config parent;
+   Config child1;
+   Config child2;
+   _initKeywordConfigs(globals, parent, child1, child2);
+
+   // write configs to disk
+   _writeConfig(globals, TMPDIR "/test-kw-globals.config");
+   _writeConfig(parent, TMPDIR "/test-kw-parent.config");
+   _writeConfig(child1, TMPDIR "/test-kw-child1.config");
+   _writeConfig(child2, TMPDIR "/test-kw-child2.config");
+
+   _testKeywordConfigFiles(
+      TMPDIR "/test-kw-globals.config",
+      TMPDIR "/test-kw-parent.config",
+      TMPDIR "/test-kw-child1.config",
+      TMPDIR "/test-kw-child2.config");
+}
+
 static void testFailures()
 {
    // FIXME: failure tests could be more comprehensive
@@ -897,6 +1163,7 @@ int main()
 
    testConfigs();
    testConfigFiles();
+   testKeywordConfigFiles();
    testFailures();
    testRemove();
 

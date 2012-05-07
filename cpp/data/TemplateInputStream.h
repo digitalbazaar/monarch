@@ -282,9 +282,10 @@ protected:
    bool mStrict;
 
    /**
-    * An include directory for templates.
+    * An list of include directories to check for templates. The list is in
+    * order from low to high precedence.
     */
-   monarch::io::File mIncludeDir;
+   monarch::rt::DynamicObject mIncludeDirs;
 
    /**
     * A TemplateCache to use.
@@ -302,12 +303,14 @@ public:
     * @param is the underlying InputStream to read from.
     * @param cleanup true to clean up the passed InputStream when destructing,
     *           false not to.
-    * @param includeDir an include directory for other templates.
+    * @param includeDirs an array of include directories for other templates.
+    *           The directories are checked in reverse order from the last
+    *           element up to the first. NULL for no include directories.
     */
    TemplateInputStream(
       monarch::rt::DynamicObject& vars, bool strict,
       monarch::io::InputStream* is, bool cleanup = false,
-      const char* includeDir = NULL);
+      monarch::rt::DynamicObject* includeDirs = NULL);
 
    /**
     * Creates a new TemplateInputStream that reads a template from the
@@ -349,11 +352,19 @@ public:
       monarch::rt::DynamicObject& vars, bool strict = false);
 
    /**
-    * Sets the include directory for included templates.
+    * Sets a single directory for included templates.
     *
     * @param dir an include directory for other templates.
     */
    virtual void setIncludeDirectory(const char* dir);
+
+   /**
+    * Adds a directory for included templates. This directory will take
+    * precedence over current directories.
+    *
+    * @param dir an include directory for other templates.
+    */
+   virtual void addIncludeDirectory(const char* dir);
 
    /**
     * Sets the template cache to use.
@@ -386,6 +397,20 @@ public:
     * @return true if successful, false if an exception occurred.
     */
    virtual bool parse(monarch::io::OutputStream* os);
+
+   /**
+    * Find a template path given an absolute or relative path and potential
+    * directories for relative paths.
+    *
+    * @param tpl the template partial path.
+    * @param dirs an array of template directories in order from low to high
+    *        precedence.
+    * @param path the template path if found.
+    *
+    * @return true on success, false if on failure with exception set.
+    */
+   static bool findPath(
+      const char* tpl, monarch::rt::DynamicObject& dirs, std::string& path);
 
 protected:
    /**
