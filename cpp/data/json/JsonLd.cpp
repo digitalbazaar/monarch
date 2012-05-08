@@ -990,6 +990,14 @@ bool Processor::compact(
       // element is a @value
       if(_isValue(element))
       {
+         // if @value is the only key, return its value
+         if(element->length() == 1)
+         {
+            output = element["@value"];
+            return true;
+         }
+
+         // get type and language context rules
          DynamicObject type = JsonLd::getContextValue(ctx, property, "@type");
          DynamicObject language = JsonLd::getContextValue(
             ctx, property, "@language");
@@ -999,20 +1007,6 @@ bool Processor::compact(
             element["@type"] == type)
          {
             element = element["@value"];
-
-            // use native datatypes for certain xsd types
-            if(type == XSD_BOOLEAN)
-            {
-               element = !(element == "false" || element == "0");
-            }
-            else if(type == XSD_INTEGER)
-            {
-               element = element->getInt64();
-            }
-            else if(type == XSD_DOUBLE)
-            {
-               element = element->getDouble();
-            }
          }
          // matching @language specified in context, compact element
          else if(!language.isNull() &&
@@ -1274,9 +1268,9 @@ bool Processor::expand(
             return false;
          }
 
-         // recurse into @list, @set, or @graph, keeping the active property
+         // recurse into @list or @set keeping the active property
          bool isList = (prop == "@list");
-         if(isList || prop == "@set" || prop == "@graph")
+         if(isList || prop == "@set")
          {
             DynamicObject e;
             if(!expand(ctx, property, value, options, isList, e))
@@ -1384,11 +1378,6 @@ bool Processor::expand(
             e->getDetails()["element"] = output;
             Exception::set(e);
             return false;
-         }
-         // return only the value of @value if there is no @type or @language
-         else if(count == 1)
-         {
-            output = output["@value"];
          }
          // drop null @values
          else if(output["@value"].isNull())
@@ -1878,13 +1867,35 @@ void Processor::toRdf(
       // convert @value to object
       if(_isValue(element))
       {
+         DynamicObject value = element["@value"];
+         const char* datatype = element->hasMember("@type") ?
+            element["@type"]->getString() : NULL;
+         if(_isBoolean(value) || _isDouble(value) || _isInteger(value))
+         {
+            // convert to XSD datatype
+            if(_isBoolean(value))
+            {
+               datatype = (datatype == NULL) ? XSD_BOOLEAN : datatype;
+            }
+            else if(_isDouble(value))
+            {
+               // do special JSON-LD double format, printf('%1.15e')
+               value->format("%1.15e", value->getDouble());
+               datatype = (datatype == NULL) ? XSD_DOUBLE : datatype;
+            }
+            else
+            {
+               datatype = (datatype == NULL) ? XSD_INTEGER : datatype;
+            }
+         }
+
          DynamicObject object(Map);
-         object["nominalValue"] = element["@value"];
+         object["nominalValue"] = value->getString();
          object["interfaceName"] = "LiteralNode";
 
-         if(element->hasMember("@type"))
+         if(datatype != NULL)
          {
-            object["datatype"]["nominalValue"] = element["@type"];
+            object["datatype"]["nominalValue"] = datatype;
             object["datatype"]["interfaceName"] = "IRI";
          }
          else if(element->hasMember("@language"))
@@ -1994,56 +2005,15 @@ void Processor::toRdf(
       return;
    }
 
+   // element must be an rdf:type IRI (@values covered above)
    if(_isString(element))
    {
-      // property can be NULL for string subject references in @graph
-      if(property.isNull())
-      {
-         return;
-      }
-      // emit IRI for rdf:type, else plain literal
-      const char* objectType = (property["nominalValue"] == RDF_TYPE) ?
-         "IRI" : "LiteralNode";
+      // emit IRI
       DynamicObject statement;
       statement["subject"] = subject.clone();
       statement["property"] = property.clone();
       statement["object"]["nominalValue"] = element;
-      statement["object"]["interfaceName"] = objectType;
-      if(!graph.isNull())
-      {
-         statement["name"] = graph.clone();
-      }
-      statements.push(statement);
-      return;
-   }
-
-   if(_isBoolean(element) || _isDouble(element) || _isInteger(element))
-   {
-      const char* datatype;
-
-      // convert to XSD datatype
-      if(_isBoolean(element))
-      {
-         datatype = XSD_BOOLEAN;
-      }
-      else if(_isDouble(element))
-      {
-         datatype = XSD_DOUBLE;
-         // do special JSON-LD double format, printf('%1.15e')
-         element->format("%1.15e", element->getDouble());
-      }
-      else
-      {
-         datatype = XSD_INTEGER;
-      }
-      // emit typed literal
-      DynamicObject statement;
-      statement["subject"] = subject.clone();
-      statement["property"] = property.clone();
-      statement["object"]["nominalValue"] = element->getString();
-      statement["object"]["interfaceName"] = "LiteralNode";
-      statement["object"]["datatype"]["nominalValue"] = datatype;
-      statement["object"]["datatype"]["interfaceName"] = "IRI";
+      statement["object"]["interfaceName"] = "IRI";
       if(!graph.isNull())
       {
          statement["name"] = graph.clone();
@@ -2130,6 +2100,12 @@ DynamicObject _expandValue(
    DynamicObject ctx, const char* property, DynamicObject value,
    const char* base)
 {
+   // nothing to expand
+   if(value.isNull())
+   {
+      return DynamicObject(NULL);
+   }
+
    // special-case expand @id and @type (skips '@id' expansion)
    string prop = _expandTerm(ctx, property);
    if(prop == "@id" || prop == "@type")
@@ -2150,29 +2126,27 @@ DynamicObject _expandValue(
       return rval;
    }
 
+   // do not change keyword values
+   if(_isKeyword(prop.c_str())) {
+      return value.clone();
+   }
+
+   DynamicObject rval(Map);
+   rval["@value"] = value.clone();
+
    // other type
    if(!type.isNull())
    {
-      DynamicObject rval(Map);
-      rval["@value"] = value->getString();
       rval["@type"] = type->getString();
       return rval;
    }
 
    // check for language @tagging
-   DynamicObject rval(NULL);
    DynamicObject language = JsonLd::getContextValue(
       ctx, property, "@language");
    if(!language.isNull())
    {
-      rval = DynamicObject(Map);
-      rval["@value"] = value->getString();
       rval["@language"] = language->getString();
-   }
-   else
-   {
-      // return simple string
-      rval = value.clone();
    }
    return rval;
 }
@@ -2208,6 +2182,22 @@ DynamicObject _rdfToObject(DynamicObject& o) {
    // add datatype
    if(o->hasMember("datatype"))
    {
+      /*
+      DynamicObject type = o["datatype"]["nominalValue"];
+      // use native datatypes for certain xsd types
+      if(type == XSD_BOOLEAN)
+      {
+         element = !(element == "false" || element == "0");
+      }
+      else if(type == XSD_INTEGER)
+      {
+         element = element->getInt64();
+      }
+      else if(type == XSD_DOUBLE)
+      {
+         element = element->getDouble();
+      }
+      */
       rval["@type"] = o["datatype"]["nominalValue"].clone();
    }
    // add language
@@ -3250,46 +3240,11 @@ int _rankTerm(DynamicObject& ctx, const char* term, DynamicObject* value)
       return sum;
    }
 
-   // rank boolean or number
-   if(_isBoolean(v) || _isDouble(v) || _isInteger(v))
-   {
-      const char* type;
-      if(_isBoolean(v))
-      {
-         type = XSD_BOOLEAN;
-      }
-      else if(_isDouble(v))
-      {
-         type = XSD_DOUBLE;
-      }
-      else
-      {
-         type = XSD_INTEGER;
-      }
-      if(hasType && entry["@type"] == type)
-      {
-         return 3;
-      }
-      return (!hasType && !hasLanguage) ? 2 : 1;
-   }
-
-   // rank string (this means the value has no @language)
-   if(_isString(v))
-   {
-      // entry @language is specifically null or no @type, @language, or default
-      if((hasLanguage && entry["@language"].isNull()) ||
-         (!hasType && !hasLanguage && !hasDefaultLanguage))
-      {
-         return 3;
-      }
-      return 0;
-   }
-
    // Note: Value must be an object that is a @value or subject/reference.
 
-   // @value must have either @type or @language
    if(_isValue(v))
    {
+      // value has a @type
       if(v->hasMember("@type"))
       {
          // @types match
@@ -3298,6 +3253,25 @@ int _rankTerm(DynamicObject& ctx, const char* term, DynamicObject* value)
             return 3;
          }
          return (!hasType && !hasLanguage) ? 1 : 0;
+      }
+
+      // rank non-string value
+      if(!_isString(v["@value"]))
+      {
+         return (!hasType && !hasLanguage) ? 2 : 1;
+      }
+
+      // value has no @type or @language
+      if(!v->hasMember("@language"))
+      {
+         // entry @language is specifically null or no @type, @language, or
+         // default
+         if((hasLanguage && entry["@language"].isNull()) ||
+            (!hasType && !hasLanguage && !hasDefaultLanguage))
+         {
+            return 3;
+         }
+         return 0;
       }
 
       // @languages match or entry has no @type or @language but default
