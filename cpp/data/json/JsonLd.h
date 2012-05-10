@@ -108,7 +108,7 @@ public:
     *           specified by the format option or an array of the RDF
     *           statements to convert.
     * @param options the options to use:
-    *           format: the format if input is a string:
+    *           format: the format if input is not an array:
     *              "application/nquads" for N-Quads (default).
     *           notType: true to use rdf:type, false to use @type (default).
     * @param the JSON-LD output.

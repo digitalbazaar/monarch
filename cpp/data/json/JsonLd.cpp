@@ -587,7 +587,7 @@ bool JsonLd::fromRdf(
       options["notType"] = false;
    }
 
-   if(_isString(statements))
+   if(!_isArray(statements))
    {
       // supported formats
       if(options["format"] == "application/nquads")
