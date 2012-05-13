@@ -4404,7 +4404,13 @@ bool _parseNQuads(const char* input, DynamicObject& statements)
       }
       else
       {
-         s["object"]["nominalValue"] = match[5];
+         string unescaped(match[5]);
+         StringTools::replaceAll(unescaped, "\\\"", "\"");
+         StringTools::replaceAll(unescaped, "\\t", "\t");
+         StringTools::replaceAll(unescaped, "\\n", "\n");
+         StringTools::replaceAll(unescaped, "\\r", "\r");
+         StringTools::replaceAll(unescaped, "\\\\", "\\");
+         s["object"]["nominalValue"] = unescaped.c_str();
          s["object"]["interfaceName"] = "LiteralNode";
          if(!match[6].isNull())
          {
@@ -4499,8 +4505,14 @@ string _toNQuad(DynamicObject& statement, const char* bnode) {
    }
    else
    {
+      string escaped(o["nominalValue"]);
+      StringTools::replaceAll(escaped, "\\", "\\\\");
+      StringTools::replaceAll(escaped, "\t", "\\t");
+      StringTools::replaceAll(escaped, "\n", "\\n");
+      StringTools::replaceAll(escaped, "\r", "\\r");
+      StringTools::replaceAll(escaped, "\"", "\\\"");
       quad.push_back('"');
-      quad.append(o["nominalValue"]);
+      quad.append(escaped);
       quad.push_back('"');
       if(o->hasMember("datatype"))
       {
