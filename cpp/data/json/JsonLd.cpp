@@ -2565,8 +2565,8 @@ void _flatten(
             continue;
          }
 
-         // copy keywords
-         if(_isKeyword(prop))
+         // copy non-@type keywords
+         if(strcmp(prop, "@type") != 0 && _isKeyword(prop))
          {
             subject[prop] = input[prop];
             continue;
@@ -2599,10 +2599,15 @@ void _flatten(
                // recurse into list
                if(_isList(o))
                {
-                  DynamicObject l(Array);
-                  _flatten(subjects, o["@list"], namer, name, &l);
+                  DynamicObject _list(Array);
+                  _flatten(subjects, o["@list"], namer, name, &_list);
                   o = DynamicObject(Map);
-                  o["@list"] = l;
+                  o["@list"] = _list;
+               }
+               // special-handle @type IRIs
+               else if(strcmp(prop, "@type") == 0 && strncmp(o, "_:", 2) == 0)
+               {
+                  o = _getName(namer, o);
                }
 
                // add non-subject
